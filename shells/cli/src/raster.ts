@@ -95,6 +95,7 @@ export async function renderRaster(opts: {
   const floatEditing = (runtime.getModel() as ModelItem[]).some(item => item.id === 'editingRange' && item.value === 'hdr') || manifest.id === 'design' && !!opts.dims.hdr;
   const dims = floatEditing && opts.dims.hdr ? { ...opts.dims, hdrParam: opts.dims.hdrParam || serializeHdr({ ...HDR_DEFAULTS, ...opts.dims.hdr }) } : opts.dims;
   const fmt = opts.format.toLowerCase();
+  const sampled = (dims.cuts ?? 1) > 1 || dims.sampleTimes !== undefined || !!dims.motionBlur || !!dims.sequenceRange;
 
   // HDR stills (`--hdr=1` with png/jpg) are encoded HERE, on either tier's pixels.
   // Before this, `hdr=` reached neither: Tier A never saw it and the Tier-B URL
@@ -102,7 +103,7 @@ export async function renderRaster(opts: {
   // exit 0. The encode is DOM-free engine code (16-bit PQ PNG, ISO 21496-1 gain-map
   // JPEG), so Node does it directly - which also makes the bytes device-independent,
   // the same whether resvg or Chromium supplied the source frame.
-  if (!floatEditing && wantsNativeHdrStill(fmt, dims)) {
+  if (!sampled && !floatEditing && wantsNativeHdrStill(fmt, dims)) {
     return await renderHdrStill({ ...opts, format: fmt, dims });
   }
 
@@ -125,7 +126,7 @@ export async function renderRaster(opts: {
   // exit 0. run.ts now refuses those flags outright for any format that cannot carry
   // page geometry (PRINT_PREP_FORMATS), so this should be unreachable - it stays so the
   // silent no-op cannot come back if that allowlist ever widens.
-  if (!floatEditing && eligibleForResvgPng(fmt, dims)) {
+  if (!sampled && !floatEditing && eligibleForResvgPng(fmt, dims)) {
     const svg = await tryRenderSvg(runtime, dom, dims.slide);
     if (svg) {
       // Shared Tier-A rasteriser (node-shell): imprint + physical-unit DPI, identical to the

@@ -582,6 +582,7 @@ export function destroy(tp: TpCtx): void {
   tp.gestures.endGesture(tp.gesture);
   tp.crossfade.destroy();
   tp.rangePreview.destroy();
+  tp.cues.destroy();
   tp.markerMenu?.close();
   // Body-mounted: these outlive root.remove() unless they are closed explicitly.
   try {

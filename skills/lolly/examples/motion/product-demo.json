@@ -1,0 +1,24 @@
+{
+  "toolId": "design",
+  "format": "webm",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "seconds": 8,
+  "inputs": {
+    "background": "#f7f7f5",
+    "projectFps": "30",
+    "sequenceMarks": "v1|m,4000,,888888,Preview",
+    "boxes": [
+      { "id": "board", "kind": "frame", "name": "Example product flow", "x": 0, "y": 0, "w": 1920, "h": 1080, "bg": "#f7f7f5" },
+      { "id": "background", "kind": "box", "frame": "board", "x": 0, "y": 0, "w": 1920, "h": 1080, "bg": "#f7f7f5", "radius": 0, "start": 0, "dur": 8, "lane": "seq" },
+      { "id": "panel", "kind": "box", "frame": "board", "x": 940, "y": 180, "w": 820, "h": 720, "bg": "#ffffff", "radius": 28, "stroke": "#d1d1ce", "strokeW": 2 },
+      { "id": "panel-title", "kind": "text", "frame": "board", "x": 1000, "y": 240, "w": 700, "h": 80, "text": "Example workspace", "fontSize": 42, "fg": "#181818", "align": "left", "plainText": true },
+      { "id": "selection", "kind": "box", "frame": "board", "x": 1000, "y": 400, "w": 700, "h": 130, "bg": "#e5e5e2", "radius": 16, "start": 0, "dur": 8, "lane": "", "kf": "t0_y0*t3500_y0*t4500_eio_y210" },
+      { "id": "choose-label", "kind": "text", "frame": "board", "x": 1040, "y": 420, "w": 620, "h": 90, "text": "Choose a layout", "fontSize": 48, "fg": "#181818", "align": "left", "plainText": true },
+      { "id": "preview-label", "kind": "text", "frame": "board", "x": 1040, "y": 630, "w": 620, "h": 90, "text": "Preview the result", "fontSize": 48, "fg": "#181818", "align": "left", "plainText": true },
+      { "id": "choose-copy", "kind": "text", "frame": "board", "x": 120, "y": 310, "w": 700, "h": 450, "text": "Begin with a layout", "fontSize": 110, "weight": "700", "fg": "#181818", "align": "left", "plainText": true, "start": 0, "dur": 4, "lane": "", "enter": "none", "exit": "none" },
+      { "id": "preview-copy", "kind": "text", "frame": "board", "x": 120, "y": 310, "w": 700, "h": 450, "text": "See the result before sharing", "fontSize": 96, "weight": "700", "fg": "#181818", "align": "left", "plainText": true, "start": 4, "dur": 4, "lane": "", "enter": "none", "exit": "none" }
+    ]
+  }
+}

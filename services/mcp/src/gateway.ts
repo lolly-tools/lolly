@@ -20,6 +20,8 @@
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isIP } from 'node:net';
+import { allowedOrigin, validRequest, validateHttpHeaders, modernRequest } from './negotiation.ts';
+import { ERR, fail } from './protocol.ts';
 import { dispatch } from './server.ts';
 import type { JsonRpcRequest } from './protocol.ts';
 import { matchRenderGetPath, renderGet } from './render-get.ts';
@@ -34,7 +36,7 @@ import { createRateLimiter, RateLimitUnavailableError, type RateLimiter } from '
 const CORS: Record<string, string> = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, OPTIONS',
-  'access-control-allow-headers': 'content-type, authorization, mcp-session-id, mcp-protocol-version',
+  'access-control-allow-headers': 'content-type, authorization, mcp-session-id, mcp-protocol-version, mcp-method, mcp-name',
   // Expose the 401 challenge so a browser-side MCP client can read where to auth.
   'access-control-expose-headers': 'WWW-Authenticate',
 };
@@ -201,10 +203,10 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
   const limiter = createRateLimiter(env);
   return async (req, res) => {
     const method = req.method || 'GET';
-    if (method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
-
     const url = new URL(req.url || '/', 'http://internal');
     const path = url.pathname.replace(/\/+$/, '') || '/';
+    if (path.endsWith('/mcp') && !allowedOrigin(req.headers.origin, base, env.LOLLY_MCP_ALLOWED_ORIGINS)) { res.writeHead(403, { 'content-type': 'application/json' }); res.end(JSON.stringify(fail(null, ERR.INVALID_REQUEST, 'Origin is not allowed'))); return; }
+    if (method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
 
     // ── public GET render: /tool/<id>.<ext>?<query> ─────────────────────────
     // Deliberately OUTSIDE the mcpEnabled gate: it serves public tool+catalog
@@ -275,7 +277,7 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
         let form: Record<string, string>;
         try { form = formToObject(await readBody(req, OAUTH_BODY_MAX)); }
         catch (error) { return send(res, bodyFailure(error, 'could not read request body')); }
-        return send(res, await authorizePost({ ...q, ...form }, env));
+        return send(res, await authorizePost({ ...q, ...form }, env, publicBase));
       }
       return send(res, { status: 405, headers: { allow: 'GET, POST' }, json: { error: 'method_not_allowed' } });
     }
@@ -320,9 +322,16 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
       catch { res.writeHead(200, { ...CORS, 'content-type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } })); return; }
       // Private resources are opt-in for long-lived hosts, never a shared anonymous
       // bucket. Scope uses the already-verified bearer hash, not caller JSON.
-      const response = await dispatch(msg, { fileScope: env.LOLLY_MCP_PRIVATE_FILES === '1' && env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && auth !== 'anonymous' ? principal : undefined });
+      if (!validRequest(msg)) { res.writeHead(400, { ...CORS, 'content-type': 'application/json' }); res.end(JSON.stringify(fail(null, ERR.INVALID_REQUEST, 'Invalid JSON-RPC request'))); return; }
+      const protocolVersion = typeof req.headers['mcp-protocol-version'] === 'string' ? req.headers['mcp-protocol-version'] : undefined;
+      const modern = modernRequest(msg, protocolVersion);
+      const headerError = msg.id === undefined ? null : validateHttpHeaders(msg, req.headers);
+      if (headerError) { res.writeHead(400, { ...CORS, 'content-type': 'application/json' }); res.end(JSON.stringify(headerError)); return; }
+      if (modern && !String(req.headers['content-type'] ?? '').toLowerCase().startsWith('application/json')) { res.writeHead(415, CORS); res.end(); return; }
+      const response = await dispatch(msg, { protocolVersion, fileScope: env.LOLLY_MCP_PRIVATE_FILES === '1' && env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && auth !== 'anonymous' ? principal : undefined });
       if (!response) { res.writeHead(202, CORS); res.end(); return; } // notification
-      res.writeHead(200, { ...CORS, 'content-type': 'application/json' });
+      const status = modern && response.error ? response.error.code === ERR.METHOD_NOT_FOUND ? 404 : new Set<number>([ERR.HEADER_MISMATCH, ERR.MISSING_CAPABILITY, ERR.UNSUPPORTED_VERSION, ERR.INVALID_PARAMS]).has(response.error.code) ? 400 : 200 : 200;
+      res.writeHead(status, { ...CORS, 'content-type': 'application/json', 'cache-control': 'no-store' });
       res.end(JSON.stringify(response));
       return;
     }

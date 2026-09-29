@@ -163,6 +163,9 @@ export interface ExportOpts {
    *  and by any node that is not a [data-sequence] stage. See bridge/
    *  sequence-cuts.ts and plans/51-fable-timeline-editing.md section 4.6. */
   cuts?: number;
+  sampleTimes?: readonly number[];
+  motionBlur?: import('../../../../engine/src/motion-sampling.ts').MotionBlur;
+  sequenceRange?: import('../../../../engine/src/motion-sampling.ts').MotionRange;
   onProgress?: (done: number, total: number) => void;
   /** Cancellation (engine 1.141, ExportOpts.signal). Polled wherever this file
    *  already yields - the frame loops, the CMYK row pass, the SVG/PDF vector walks

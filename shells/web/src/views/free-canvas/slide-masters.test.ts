@@ -521,7 +521,7 @@ test('the manifest fields and the blocks wire order are appended in the same ord
   assert.deepEqual(ids, pinned, 'the wire order is the field order, position for position');
 
   const added = ['master', 'role', 'furniture', 'archetype'];
-  assert.deepEqual(ids.slice(-4), added, 'the four master fields are appended at the end');
+  assert.deepEqual(ids.slice(108, 112), added, 'the master fields retain their original wire positions as newer fields append');
   for (const id of added) {
     const field = fields.find((f) => f.id === id)!;
     assert.deepEqual(field.showFor, [], `${id} stays out of the sidebar`);

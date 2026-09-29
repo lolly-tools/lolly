@@ -37,6 +37,8 @@ import { nearestBrandColor, isPptx, readPptx, parseColor, colorToHexString } fro
 import type { PptxDeckRead, PptxReadPara, PptxParts } from '@lolly/engine';
 import { escape as escapeHtml } from '../utils.ts';
 import { isTypingTarget } from '../lib/typing-target.ts';
+import { createDeckCompositionUI, appendCompositionThumb, compositionTextBoxes } from '../lib/deck-composition-ui.ts';
+import { markdownDeckRows } from '../lib/deck-markdown.ts';
 
 // ── types ────────────────────────────────────────────────────────────────────
 
@@ -110,7 +112,7 @@ const OVERLAY_CLASS = 'deck-editor';
 // Which media slots each layout shows, in order - mirrors SLOTS_FOR in the tool hook so a
 // thumbnail lays out the same cells the real slide does.
 const SLOTS_FOR: Record<string, string[]> = {
-  title: [], full: ['media1'], hero: ['media1'],
+  auto: [], title: [], bignum: [], mainpoint: [], full: ['media1'], hero: ['media1'],
   split: ['media1', 'media2'], stack: ['media1', 'media2'], golden: ['media1', 'media2'],
   cols3: ['media1', 'media2', 'media3'], grid4: ['media1', 'media2', 'media3', 'media4'],
 };
@@ -199,6 +201,7 @@ export function coerceSlide(o: Record<string, unknown>): Slide {
     bg: isHex(bg) ? bg : '',
     notes: asText(o.notes),
   };
+  if (typeof o.arrangement === 'string') s.arrangement = o.arrangement;
   const theme = asText(o.theme), logo = asText(o.logo);
   if (theme) s.theme = theme;
   if (logo) s.logo = logo;
@@ -413,6 +416,7 @@ function textValign(layout: string): 't' | 'm' | 'b' {
  *  slide's caption text lands ON TOP of its cover image (later boxes paint above). */
 export function layoutToBoxes(slide: Slide, nativeW = 1920, nativeH = 1920): Box[] {
   const layout = clampLayout(slide.layout);
+  if (layout === 'auto') return compositionTextBoxes(slide, nativeW, nativeH).map(coerceBox);
   const boxes: Box[] = [];
   const px = (f: Frac): Record<string, unknown> => ({
     x: Math.round(f.x * nativeW), y: Math.round(f.y * nativeH),
@@ -447,40 +451,9 @@ export function parseJsonDeck(text: string): Slide[] {
     .map(r => coerceSlide(r as Record<string, unknown>));
 }
 
-/** Parse a Markdown deck (Marp/reveal convention): a line that is exactly `---` splits
- *  slides; the whole slide chunk - headings, prose, bullets, inline bold/italic markup - IS
- *  the slide's `content` markdown string (kept verbatim, no flattening). Standalone
- *  directive lines are peeled off first: `![alt](url)` becomes the slide image (media1) and
- *  `bg: #hex` / `layout: name` set those fields; everything else is preserved as content.
- *  Returns at least one slide. */
+/** New Markdown slides use content compositions; explicit layout directives survive. */
 export function parseMarkdownDeck(text: string): Slide[] {
-  let src = String(text).replace(/\r\n?/g, '\n');
-  // Strip a leading YAML front-matter block (Marp / Jekyll / reveal): `---\n…\n---` at the very
-  // top - otherwise its closing `---` reads as a slide separator and the metadata becomes a
-  // bogus first slide ("marp: true", …).
-  src = src.replace(/^\uFEFF?[ \t]*\n?---[ \t]*\n[\s\S]*?\n---[ \t]*(?:\n|$)/, '');
-  const chunks = src.split(/^[ \t]*---[ \t]*$/m).map(c => c.trim()).filter(Boolean);
-  const slides = chunks.map((chunk): Slide => {
-    const o: Record<string, unknown> = {};
-    const contentLines: string[] = [];
-    for (const raw of chunk.split('\n')) {
-      const line = raw.trim();
-      const bg = /^bg\s*:\s*(#[0-9a-fA-F]{3,8})\s*$/i.exec(line);
-      const layoutDir = /^layout\s*:\s*([a-z0-9]+)\s*$/i.exec(line);
-      const img = /^!\[[^\]]*\]\(([^)]+)\)\s*$/.exec(line);   // a line that is ONLY an image
-      if (bg) { o.bg = bg[1]; continue; }
-      if (layoutDir) { o.layout = layoutDir[1]; continue; }
-      if (img) { if (o.image == null) o.image = img[1]; continue; }
-      // an image embedded mid-prose still seeds the slot, but the line stays in content
-      const inlineImg = /!\[[^\]]*\]\(([^)]+)\)/.exec(line);
-      if (inlineImg && o.image == null) o.image = inlineImg[1];
-      contentLines.push(raw);   // preserve the raw markdown (markup + indentation)
-    }
-    o.content = contentLines.join('\n').trim();
-    if (o.image && o.layout == null) o.layout = 'full';
-    return coerceSlide(o);
-  });
-  return slides.length ? slides : [coerceSlide({})];
+  return markdownDeckRows(text).map(coerceSlide);
 }
 
 /** The first `# heading`'s text from a content markdown string, inline formatting stripped - 
@@ -757,6 +730,7 @@ export function buildThumbFace(slide: Slide, deckTheme = 'auto', resolved?: { bg
     face.appendChild(head);
   }
 
+  if (layout === 'auto') appendCompositionThumb(face, content, asText(slide.arrangement));
   const slots = SLOTS_FOR[layout]!;
   if (slots.length) {
     const grid = document.createElement('div');
@@ -1093,13 +1067,6 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
   const MODES = ['layout', 'freeform'];
   const cap1 = (s: string): string => (s ? s[0]!.toUpperCase() + s.slice(1) : s);
 
-  // Friendly labels for the on-canvas layout picker (mirrors the manifest's layout option
-  // labels - makeSelect's default cap1 would render 'cols3'/'grid4' unhelpfully).
-  const LAYOUT_LABELS: Record<string, string> = {
-    title: 'Title only', full: 'Full bleed', hero: 'Hero + title', split: 'Side by side',
-    stack: 'Stacked', golden: 'Golden ratio', cols3: 'Three columns', grid4: 'Four grid',
-  };
-
   // Each top-bar control is an ICON + a compact select - no text caption. The icon carries a
   // `title` tooltip naming the control, the select carries the matching aria-label, so the
   // meaning survives for both hover and assistive tech while the bar stays uncluttered.
@@ -1123,6 +1090,8 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
     const g = document.createElement('div'); g.className = 'deck-bar__grp'; g.append(...kids); return g;
   };
 
+  const compositionUI = createDeckCompositionUI({ canvas: opts.canvasEl, slide: activeSlide, index: clampedActive, commit: commitSlideAt });
+
   function renderBar(): void {
     bar.textContent = '';
     const slide = activeSlide();
@@ -1140,18 +1109,13 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
           if (v === 'freeform') {
             const s = activeSlide();
             const hasBoxes = Array.isArray(s?.boxes) && (s!.boxes as Box[]).length > 0;
-            if (s && !hasBoxes) { commitSlide({ mode: 'freeform', boxes: layoutToBoxes(s, opts.nativeW, opts.nativeH) }); return; }
+            if (s && !hasBoxes) { commitSlide({ mode: 'freeform', boxes: s.layout === 'auto' ? compositionTextBoxes(s, opts.nativeW ?? 1920, opts.nativeH ?? 1920, opts.canvasEl.querySelector('.sl-slide--' + clampedActive())).map(coerceBox) : layoutToBoxes(s, opts.nativeW, opts.nativeH) }); return; }
           }
           commitSlide({ mode: v });
         }),
     ];
     if (mode !== 'freeform') {
-      // On-canvas slide LAYOUT picker - layout mode only (freeform has no template). Mirrors
-      // the sidebar's layout sub-field so the primary flow never needs the sidebar.
-      const slideLayout = asText(slide?.layout);
-      structure.push(makeSelect('deck-bar__sel deck-bar__slide-layout', 'grid', 'Slide layout',
-        LAYOUTS, LAYOUTS.includes(slideLayout) ? slideLayout : 'title',
-        (v) => commitSlide({ layout: v }), (v) => LAYOUT_LABELS[v] ?? cap1(v)));
+      structure.push(compositionUI.chooseButton(), compositionUI.status());
       // Edit-text focuses the inline editor. Click-to-edit on the slide is the primary path;
       // this is the discoverable, keyboard-reachable affordance for it.
       const editBtn = document.createElement('button');
@@ -1311,6 +1275,7 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
     if (layoutEdit) { commitLayoutEdit(); return; }
     const slide = activeSlide();
     if (!slide || asText(slide.mode) === 'freeform') return;
+    if (slide.layout === 'auto') { compositionUI.edit(); return; }
     const idx = clampedActive();
     const slideEl = opts.canvasEl.querySelector<HTMLElement>('.slides .sl-slide--' + idx);
     if (!slideEl) return;
@@ -2436,7 +2401,7 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
     add.addEventListener('click', () => {
       const d = readDeck();
       if (d.length >= MAX_SLIDES) return;
-      const next = d.concat([coerceSlide({})]);
+      const next = d.concat([coerceSlide({ layout: 'auto' })]);
       commitDeck(next);
       setActive(next.length - 1);
     });
@@ -2655,6 +2620,7 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
 
   return {
     destroy(): void {
+      compositionUI.destroy();
       try { unsubscribe(); } catch { /* already gone */ }
       try { stageRO?.disconnect(); } catch { /* already gone */ }
       // Release the reserved stage bands so a non-deck tool mounted next fits the whole stage.

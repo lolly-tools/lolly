@@ -308,6 +308,12 @@ You can **Publish only**, or **Publish and make active** - the difference being 
 
 Some builds ship a **locked design system**, such as the SUSE Brand. Opening it shows a read-only note with **Make an editable copy** and **Switch**. Its original colours, fonts and tokens stay intact. Your own local systems remain editable, even when the locked system was the first one on the device. In Profile, **Open** selects a system and opens its studio; **Make a new one** creates a local system and opens it at `#/start` with its name field focused.
 
+## Remove a local design system
+
+Open **Profile > Design systems** and choose **Remove** from the copy's menu. The confirmation shows the system that will remain active. Personal sessions, uploads and material shared with another system are preserved. Removing an active hosted copy clears only the connection owned by that copy, then refreshes the supplied catalogue. A separately chosen instance connection remains selected.
+
+Expand **Catalogue source** to inspect the supplied tokens asset, origin, namespace and known version/checksum. If a refresh fails, cached material is labelled. Server branding remains until its operator changes the source catalogue and redeploys, or its Work administrator reviews and applies a server change. See [Configuration](/info/configuration.html#supplied-and-local-design-systems) for both paths. Editing in this studio creates local changes; publication to a server requires an operator install.
+
 ## Where to go next
 
 - **[Using Lolly](/info/using.html)** - the canvas, saving, projects and Assets.

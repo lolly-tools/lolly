@@ -419,6 +419,9 @@ export function paint(tview: ToolViewCtx): void {
         const expOpts: RunExportOpts = {
           width: dim(urlWidth, nativeW),
           height: dim(urlHeight, nativeH),
+          cuts: tview.openedSession.url.cuts,
+          sampleTimes: tview.openedSession.url.sampleTimes,
+          motionBlur: tview.openedSession.url.motionBlur, sequenceRange: tview.openedSession.url.sequenceRange,
         };
         if (u !== 'px') expOpts.dpi = urlDpi || 300;
         // CMYK print formats: carry the chosen press condition (recorded in the
@@ -491,6 +494,7 @@ export function paint(tview: ToolViewCtx): void {
         // would - and the CLI, which is this path under another transport, gets the same
         // knobs. `seconds` is a deliberate length (durationUserSet), so a tool hook that
         // lengthens a clip to its material (the audiogram's analysed bed) stands down.
+        if (expOpts.sampleTimes && urlVideo.fps != null) expOpts.fps = urlVideo.fps;
         if (
           ['mp4', 'webm', 'gif', 'apng', 'webp-anim'].includes(fmt) &&
           hasVideoParams(urlVideo)

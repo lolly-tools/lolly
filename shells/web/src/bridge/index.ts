@@ -72,6 +72,7 @@ import { noteTextLayoutDone } from '../lib/text-layout-progress.ts';
  * shapes come straight from their factories.
  */
 interface WebHost extends HostV1 {
+  tokens?: ReturnType<typeof createTokensAPI>;
   readonly shell: 'web';
   identity: Awaited<ReturnType<typeof import('./identity.ts')['createIdentityAPI']>>;
   previews: PreviewsAPI;
@@ -172,14 +173,16 @@ export async function createBridge(): Promise<WebHost> {
   // one-shot migration (the shipped catalog asset's name, the legacy head's).
   host.designSystems = createDesignSystemRegistry(db as unknown as RegistryDb, {
     catalogTokens: async () => {
-      const assets = host.assets as unknown as { _findMetaByType(t: string, o?: { catalogOnly?: boolean }): Promise<{ id: string; name?: string; brandLock?: boolean } | null> };
+      const assets = host.assets as unknown as { _findMetaByType(t: string, o?: { catalogOnly?: boolean }): Promise<{ id: string; name?: string; brandLock?: boolean; version?: string; checksum?: string; formats?: Array<{ url?: string; checksum?: string }> } | null> };
       let meta = await assets._findMetaByType('tokens', { catalogOnly: true }).catch(() => null);
       const syncing = pendingAssetSync();
       if (!meta && syncing) {
         await syncing;
         meta = await assets._findMetaByType('tokens', { catalogOnly: true }).catch(() => null);
       }
-      return meta ? { id: meta.id, name: meta.name, brandLock: meta.brandLock } : null;
+      const source = await db.get('profile', 'catalog-source') as { origin?: string } | undefined;
+      return meta ? { id: meta.id, name: meta.name, brandLock: meta.brandLock, version: meta.version,
+        checksum: meta.checksum ?? meta.formats?.[0]?.checksum, origin: source?.origin } : null;
     },
     legacyHead: async () => (host.assets as unknown as { _getUserRecord?(id: string): Promise<{ meta?: Record<string, unknown> } | null> })
       ._getUserRecord?.(USER_TOKENS_ID).catch(() => null) ?? null,

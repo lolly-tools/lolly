@@ -92,6 +92,7 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
   // Close the shutter BEFORE the resize so the shake happens fully hidden.
   if (shutter) await tview.designSystem.closeShutter(detail, onCancel);
 
+  const resumeStage = tview.stageZoom?.suspend();
   const prevTransform = canvasEl!.style.transform;
   const prevOuterTransform = outerEl!.style.transform;
   const prevZoom = canvasEl!.style.zoom; // paged docs fit-to-width via zoom
@@ -112,6 +113,7 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
     canvasEl!.style.zoom = prevZoom;
     outerEl!.style.width = prevW;
     outerEl!.style.height = prevH;
+    resumeStage?.();
     saved.forEach(({ el, id }) => {
       if (el.isConnected && id != null) el.dataset.canvasInput = id;
     });
@@ -124,6 +126,7 @@ export function resolveExportFormat(tview: ToolViewCtx): void {
 
   const exportDefaults: ExportDefaults = mergeExportPrefs(
     {
+      motionBlur: tview.openedSession.url.motionBlur,
       filename: urlFilename || (tview.initialValues.__export_filename as string | undefined),
       // A named Design outcome is stronger than a generic per-tool remembered format,
       // but never stronger than this link/session's explicit choice.

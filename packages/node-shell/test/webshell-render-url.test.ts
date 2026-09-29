@@ -44,3 +44,12 @@ test('a resolved language override reaches the browser without changing source i
   assert.equal(p.get('title'), 'Conférence');
   assert.equal(params(exportUrl(BASE, 'agenda', 'lang=ar', 'html', {})).get('lang'), 'ar');
 });
+
+test('timeline still controls survive browser routing and override stale query samples', () => {
+  const p = params(exportUrl(BASE, 'design', 'cuts=12&sampletimes=9', 'png', { sampleTimes: [0, 1 / 30, 2] }));
+  assert.equal(p.get('sampletimes'), '0,0.03333333333333333,2');
+  assert.equal(p.has('cuts'), false);
+  const cuts = params(exportUrl(BASE, 'design', 'sampletimes=9', 'png', { cuts: 3 }));
+  assert.equal(cuts.get('cuts'), '3');
+  assert.equal(cuts.has('sampletimes'), false);
+});

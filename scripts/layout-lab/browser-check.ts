@@ -5,7 +5,7 @@ import { chromium } from 'playwright';
 
 const url = process.argv[2] ?? 'http://127.0.0.1:4317';
 const origin = new URL(url).origin;
-const out = '.scratch/layout-lab';
+const out = 'plans/scratch/layout-lab';
 mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1500, height: 1000 } });

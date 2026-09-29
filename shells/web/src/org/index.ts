@@ -182,6 +182,7 @@ export interface OrgConfig {
   telemetry?: { level?: string; attribution?: unknown; consented?: boolean };
   inboxUnread?: number;
   policyVersion?: string | number;
+  branding?: { revision: string; sourceId: string };
 }
 
 /** What initOrg resolves with when a control plane is present. `null` (dormant)

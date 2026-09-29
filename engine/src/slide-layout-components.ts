@@ -2,6 +2,7 @@
 /** Content-sized slide components shared by import and authoring paths. */
 import type { ArchetypeV1, FurnitureLayerV1, PlaceholderLayerV1, SlideMasterV1, SlidePlanV1, SlideSourceV1, SourceObjectV1 } from '@lolly-tools/core';
 import { compareCodeUnits } from './rebrand-order.ts';
+import { slideGridCells } from './slide-composition.ts';
 
 export interface SlideLayoutRecipe { kind: 'cards' | 'columns'; count: number; columns: number }
 
@@ -85,10 +86,8 @@ export function withSlideLayoutComponents(master: SlideMasterV1, ids: readonly s
   for (const { id, recipe } of recipes) {
     const { count, columns, kind } = recipe;
     const rows = Math.ceil(count / columns);
-    const gapX = Math.min(.025, body.box.w / columns * .08);
-    const gapY = .025;
-    const cellW = (body.box.w - gapX * (columns - 1)) / columns;
-    const cellH = (body.box.h - gapY * (rows - 1)) / rows;
+    const cells = slideGridCells(count, columns, body.box);
+    const { w: cellW, h: cellH } = cells[0]!;
     const insetX = kind === 'cards' ? .012 : 0;
     const insetY = kind === 'cards' ? .016 : .008;
     const bodySize = Math.round(Math.min(master.typeScale.body, master.typeScale.body * (rows >= 3 ? .70 : columns >= 3 ? .85 : 1)));
@@ -97,11 +96,7 @@ export function withSlideLayoutComponents(master: SlideMasterV1, ids: readonly s
     const placeholders: PlaceholderLayerV1[] = [{ ...title, box: { ...title.box }, optional: true }];
     const decor: string[] = [];
     for (let k = 0; k < count; k++) {
-      const y = body.box.y + Math.floor(k / columns) * (cellH + gapY);
-      const lastCount = count - Math.floor(k / columns) * columns;
-      const usedCols = Math.min(columns, lastCount);
-      const center = (columns - usedCols) * (cellW + gapX) / 2;
-      const x = body.box.x + (k % columns) * (cellW + gapX) + center;
+      const { x, y } = cells[k]!;
       const common = { group: `c${k + 1}`, index: k };
       const textBox = { x: x + insetX, w: cellW - 2 * insetX };
       const ink = body.style ?? {};

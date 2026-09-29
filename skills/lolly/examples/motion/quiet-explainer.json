@@ -1,0 +1,19 @@
+{
+  "toolId": "design",
+  "format": "webm",
+  "width": 1080,
+  "height": 1080,
+  "fps": 24,
+  "seconds": 10,
+  "inputs": {
+    "background": "#f7f7f5",
+    "projectFps": "24",
+    "sequenceMarks": "v1|m,5000,,888888,Next%20thought",
+    "boxes": [
+      { "id": "board", "kind": "frame", "name": "Quiet explainer", "x": 0, "y": 0, "w": 1080, "h": 1080, "bg": "#f7f7f5" },
+      { "id": "background", "kind": "box", "frame": "board", "x": 0, "y": 0, "w": 1080, "h": 1080, "bg": "#f7f7f5", "radius": 0, "start": 0, "dur": 10, "lane": "seq" },
+      { "id": "first-thought", "kind": "text", "frame": "board", "x": 100, "y": 280, "w": 880, "h": 520, "text": "Give each idea time to be understood.", "fontSize": 90, "fg": "#181818", "plainText": true, "start": 0, "dur": 5, "lane": "", "enter": "none", "exit": "none" },
+      { "id": "second-thought", "kind": "text", "frame": "board", "x": 100, "y": 280, "w": 880, "h": 520, "text": "A clear message can stay still.", "fontSize": 90, "fg": "#181818", "plainText": true, "start": 5, "dur": 5, "lane": "", "enter": "none", "exit": "none" }
+    ]
+  }
+}

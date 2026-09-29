@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `ta.<module>.<fn>`. Extracted verbatim
  * from renderActions() by scripts/split-closure.ts.
  */
+import { readMotionControls } from '../../lib/motion-export-controls.ts';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
 import { runTemplateScripts } from '../../lib/render-lifecycle.ts';
 import { convertLength, roundIn } from '../../lib/unit-steps.ts';
@@ -20,6 +21,7 @@ import type { ArtInfo } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export function videoParams(ta: ActionsCtx): {
+  motionBlur?: import('../../../../../engine/src/motion-sampling.ts').MotionBlur;
   wait: number;
   duration: number;
   fps: number | undefined;
@@ -48,6 +50,7 @@ export function videoParams(ta: ActionsCtx): {
     el!.querySelector<HTMLSelectElement>('[data-action="video-hwaccel"]')?.value ?? '';
   const fpsNum = Number(fpsSel);
   return {
+    motionBlur: el ? readMotionControls(el) : undefined,
     wait: ta.formatRules.seqStageEl() ? 0 : Number.isFinite(wait) ? Math.max(0, wait) : 1,
     duration: Number.isFinite(duration) ? Math.max(0.5, duration) : 5,
     // Frame-rate select (24/25/30/50/60), the WP-B replacement for the old webm-only

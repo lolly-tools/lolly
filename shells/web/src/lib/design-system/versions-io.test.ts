@@ -39,7 +39,7 @@ function stubFetch(): void {
  *  reads so a "does no work" claim can be measured. */
 function memDb() {
   const stores: Record<string, Map<string, unknown>> = {
-    'user-assets': new Map(), 'asset-meta': new Map(), 'asset-blob': new Map(),
+    'profile': new Map(), 'user-assets': new Map(), 'asset-meta': new Map(), 'asset-blob': new Map(),
   };
   const reads = { n: 0 };
   const db = {

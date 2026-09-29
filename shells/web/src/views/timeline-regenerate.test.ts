@@ -248,7 +248,9 @@ test('a clip Lolly spoke opens the transcript with Regenerate wired to the voice
 
     const commitsBefore = h.commits;
     regen.click();
-    await settle(20);
+    // Wait for the rewrite to commit; cold module loading can outlast fixed timer ticks.
+    const deadline = Date.now() + 5000;
+    while (h.commits === commitsBefore && Date.now() < deadline) await settle(1);
 
     assert.deepEqual(calls.spoke, [['Hello there!']], 'only the sentence that changed was spoken');
     assert.equal(calls.writes.length, 1, 'the clip was rewritten once');

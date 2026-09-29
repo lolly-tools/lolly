@@ -75,6 +75,7 @@ import { subtitlesOps } from './timeline-panel/subtitles.ts';
 import { toolbarOps } from './timeline-panel/toolbar.ts';
 import { selectionActionsOps } from './timeline-panel/selection-actions.ts';
 import { layoutOps } from './timeline-panel/layout.ts';
+import { cueTimingOps } from './timeline-panel/cues.ts';
 import { marksOps } from './timeline-panel/marks.ts';
 import { rangePreviewOps } from './timeline-panel/range-preview.ts';
 import { lottieOps } from './timeline-panel/lottie.ts';
@@ -348,6 +349,7 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
   tp.layout = layoutOps(tp);
   tp.crossfade = crossfadeOps(tp);
   tp.marks = marksOps(tp);
+  tp.cues = cueTimingOps(tp);
   tp.rangePreview = rangePreviewOps(tp);
   tp.lottie = lottieOps(tp);
   tp.opts = opts;
@@ -1585,6 +1587,7 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
   scriptBtn.hidden = !tp.recording.canScriptVoiceover();
   tp.toolbar.wire();
   tp.marks.wire();
+  tp.cues.wire();
   tp.layout.wire();
   tp.crossfade.wire();
   transcriptBtn.addEventListener('click', () => {

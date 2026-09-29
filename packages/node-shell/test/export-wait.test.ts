@@ -64,3 +64,11 @@ test('repeated progress cannot hide a stall; a page crash and cancellation also 
     assert.equal(other.eventNames().length, 0);
   }
 });
+
+test('an explicit export failure reaches the caller immediately and removes listeners', async () => {
+  const page = new FakePage(), waiting = await waitForExport(page.asPage(), 'png');
+  page.emit('console', { text: () => 'Unrelated browser warning' });
+  page.emit('console', { text: () => 'Auto-export failed: Error: Every sample must be before the timeline end (6s).' });
+  await assert.rejects(waiting.result, /before the timeline end/);
+  assert.equal(page.eventNames().length, 0);
+});

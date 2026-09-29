@@ -130,13 +130,15 @@ export async function removeDesignSystem(host: ManageHost, id: string): Promise<
   const needed = await idsNamedByOtherSystems(host, id);
   let deleted = 0;
   let kept = 0;
-  const rows = await host.assets._exportUserAssets().catch(() => [] as Array<{ id: string; type: string }>);
+  const rows = await host.assets._exportUserAssets();
+  let failed = 0;
   for (const row of rows) {
     const material = designMaterialOf(row.id);
     if (!material || material.systemId !== id) continue;
     if (needed.has(row.id)) { kept++; continue; }
-    try { await host.assets._deleteUserAsset(row.id); deleted++; } catch { /* one stuck row never blocks the rest */ }
+    try { await host.assets._deleteUserAsset(row.id); deleted++; } catch { failed++; }
   }
+  if (failed) throw new Error('Some design-system assets could not be removed. The record was kept so you can try again.');
   await registry.remove(id);
   host.tokens?.bust?.({ lock: true });
   return { deleted, kept, wasActive };

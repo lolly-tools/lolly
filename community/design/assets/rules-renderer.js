@@ -1251,6 +1251,7 @@ function textCss(b) {
   var pad = Math.round(clamp(num(b.pad, 8), 0, 400));
   return (
     'text-align:' + align + ';' +
+    (b.textDirection === 'rtl' || b.textDirection === 'ltr' ? 'direction:' + b.textDirection + ';unicode-bidi:isolate;' : '') +
     'color:' + safeColor(b.fg, '#11141f') + ';' +
     'font-family:' + fontFamily(b.font) + ';' +
     // The authored size, multiplied by --fit (default 1, so this is inert unless the

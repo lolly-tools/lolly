@@ -17,7 +17,7 @@
  * to point at a preview deployment instead of production.
  */
 
-export {}; // ensure this file is treated as a module (top-level await)
+import { PROTOCOL_VERSION, VERSION_META, CAPABILITIES_META } from '../services/mcp/src/negotiation.ts';
 
 const DEFAULT_BASE = 'https://lolly.tools';
 
@@ -95,21 +95,23 @@ for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth
   }
 }
 
-// --- Check 4: AUTHENTICATED initialize + tools/list (proves data files bundled) ---
+// --- Check 4: authenticated modern and legacy requests read bundled data ---
 // The checks above are all file-read-free, so a broken `functions.includeFiles`
 // (catalog/** + tools/** not shipped into the function) passes them all while the
 // first real MCP call throws ENOENT. This is the only check that reads disk: it
-// drives an authenticated `initialize` (→ serverInstructions → loadIndex) and a
-// `tools/list` (→ catalog read). Runs only when LOLLY_MCP_TOKEN is in the env.
+// drives discovery (serverInstructions → loadIndex), tools/list and legacy
+// initialize. Runs only when LOLLY_MCP_TOKEN is in the env.
 const token = process.env.LOLLY_MCP_TOKEN;
 if (!token) {
-  console.log('• skipped authenticated initialize/tools-list - set LOLLY_MCP_TOKEN to run it');
+  console.log('• skipped authenticated discovery/list/initialize checks - set LOLLY_MCP_TOKEN to enable them');
 } else {
-  const rpc = async (method: string, params: unknown): Promise<{ status: number; body: Record<string, unknown> | undefined }> => {
+  const rpc = async (method: string, params: Record<string, unknown>, modern = true): Promise<{ status: number; body: Record<string, unknown> | undefined }> => {
     const res = await fetch(`${base}/api/mcp`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+      headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', authorization: `Bearer ${token}`,
+        ...(modern ? { 'mcp-protocol-version': PROTOCOL_VERSION, 'mcp-method': method } : {}) },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params: { ...params,
+        ...(modern ? { _meta: { [VERSION_META]: PROTOCOL_VERSION, [CAPABILITIES_META]: {}, 'io.modelcontextprotocol/clientInfo': { name: 'lolly-smoke', version: '1' } } } : {}) } }),
     });
     const text = await res.text();
     let body: Record<string, unknown> | undefined;
@@ -117,7 +119,13 @@ if (!token) {
     return { status: res.status, body };
   };
   try {
-    const init = await rpc('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'smoke', version: '0' } });
+    const discovery = await rpc('server/discover', {});
+    const found = discovery.body?.result as { supportedVersions?: string[]; resultType?: string } | undefined;
+    const discoveryOk = discovery.status === 200 && found?.resultType === 'complete' && !!found.supportedVersions?.includes(PROTOCOL_VERSION);
+    report('POST /api/mcp server/discover (authed)', discoveryOk,
+      discoveryOk ? `stateless MCP ${PROTOCOL_VERSION}` : `HTTP ${discovery.status} - ${JSON.stringify(discovery.body)?.slice(0, 120)}`);
+
+    const init = await rpc('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'smoke', version: '0' } }, false);
     const initOk = init.status === 200 && !!init.body && !init.body.error && !!init.body.result;
     report('POST /api/mcp initialize (authed)', initOk,
       initOk ? 'JSON-RPC result (function has catalog/tools on disk)'
@@ -125,8 +133,9 @@ if (!token) {
       : `HTTP ${init.status} - ${JSON.stringify(init.body).slice(0, 120)}`);
 
     const list = await rpc('tools/list', {});
-    const tools = (list.body?.result as { tools?: unknown[] } | undefined)?.tools;
-    const listOk = list.status === 200 && Array.isArray(tools) && tools.length > 0;
+    const listed = list.body?.result as { tools?: unknown[]; resultType?: string; ttlMs?: number; cacheScope?: string } | undefined;
+    const tools = listed?.tools;
+    const listOk = list.status === 200 && listed?.resultType === 'complete' && typeof listed.ttlMs === 'number' && listed.cacheScope === 'private' && Array.isArray(tools) && tools.length > 0;
     report('POST /api/mcp tools/list (authed)', listOk,
       listOk ? `${tools!.length} tools (catalog index read OK)`
       : `HTTP ${list.status} - no non-empty tools array (catalog read failed?)`);

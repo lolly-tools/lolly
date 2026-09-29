@@ -45,7 +45,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_SNAPSHOT = path.join(ROOT, 'scratch', 'export-characterization.json');
+const DEFAULT_SNAPSHOT = path.join(ROOT, 'plans', 'validation-scratch', 'export-characterization.json');
 
 // Matrix: tools chosen so every export.ts dispatch branch is exercised, with
 // tools whose DEFAULT render is rich enough to walk gradients/borders/clips/text

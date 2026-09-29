@@ -41,6 +41,10 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
         .catch(() => { dsBody.innerHTML = ''; });
     }
   }
+  viewEl.querySelector('#instance-design-systems')?.addEventListener('click', () => {
+    const section = viewEl.querySelector<HTMLDetailsElement>('#design-systems-section');
+    if (section) { section.open = true; section.scrollIntoView({ block: 'start' }); section.querySelector<HTMLElement>('summary')?.focus(); }
+  });
   viewEl.querySelector('#instance-change-btn')?.addEventListener('click', async () => {
     await openInstanceSheet(host);
     await pv.mountProfile(viewEl, host); // re-read getInstanceBase() into the row

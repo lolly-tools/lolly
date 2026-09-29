@@ -11,7 +11,7 @@ const corpus = await (await fetch(`${origin}/corpus`)).json() as CorpusIndex;
 const ready = corpus.cases.find(c => c.mode === 'ocr' && c.status === 'ready' && c.categories.includes('picture'))!;
 const inspect = corpus.cases.find(c => c.categories.includes('chart') && c.status === 'inspect')!;
 assert.ok(ready && inspect, 'Use a corpus with an OCR recommendation case and a chart inspection case.');
-const out = '.scratch/layout-lab'; mkdirSync(out, { recursive: true });
+const out = 'plans/scratch/layout-lab'; mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1600, height: 1050 } });
 const requests: string[] = [];

@@ -48,6 +48,13 @@ LOLLY_PROFILE=suse pnpm run dev:web           # needs: git submodule update --in
 
 ## 3. Where your changes go
 
+Keep local validation output under the ignored `plans/` directory: exported
+movies and PDFs, review screenshots, experiment corpora, machine-specific reports
+and scratch scripts. Reusable tests, fixtures, recipes and their generators belong
+in the maintained source tree. Generated files required by a plain clone or deploy
+(catalog indexes, tool hooks and API bundles) stay committed. Dependency caches,
+build directories and local service configuration keep their standard locations.
+
 Almost everywhere, a change is one commit in this repository: `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, root files, `community/`, `brands/lolly-start/`, `profiles.json`, `docs/`, `services/mcp`, `services/ca`, and every `shells/*`.
 
 The one exception is `brands/suse`: it is a separate, private repository (`suse-lolly`), mounted as a submodule. A change there is a commit inside `brands/suse`, then a second commit here recording the new pointer. Committing from the repo root does **not** capture edits made *inside* the submodule - git only sees the pointer.

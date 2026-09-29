@@ -79,6 +79,7 @@ export function authorizationServerMetadata(base: string): Result {
     status: 200,
     json: {
       issuer: base,
+      authorization_response_iss_parameter_supported: true,
       authorization_endpoint: `${base}/api/mcp/authorize`,
       token_endpoint: `${base}/api/mcp/token`,
       registration_endpoint: `${base}/api/mcp/register`,
@@ -98,11 +99,13 @@ const isValidRedirect = (u: unknown): boolean => {
   if (typeof u !== 'string') return false;
   try {
     const url = new URL(u);
-    return url.protocol === 'https:' || url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    return !url.username && !url.password && !url.hash && (url.protocol === 'https:' || (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)));
   } catch { return false; }
 };
 
 export async function register(body: Record<string, unknown>, env: NodeJS.ProcessEnv): Promise<Result> {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { status: 400, json: { error: 'invalid_client_metadata', error_description: 'Client metadata must be an object' } };
+  if (body.application_type !== undefined && (typeof body.application_type !== 'string' || !['web', 'native'].includes(body.application_type))) return { status: 400, json: { error: 'invalid_client_metadata', error_description: 'application_type must be web or native' } };
   const redirectUris = Array.isArray(body?.redirect_uris) ? body.redirect_uris : [];
   if (!redirectUris.length || !redirectUris.every(isValidRedirect)) {
     return { status: 400, json: { error: 'invalid_redirect_uri', error_description: 'redirect_uris must be a non-empty array of https (or localhost) URLs' } };
@@ -115,6 +118,7 @@ export async function register(body: Record<string, unknown>, env: NodeJS.Proces
       client_id: clientId,
       client_id_issued_at: client.iat,
       redirect_uris: redirectUris,
+      ...(body.application_type !== undefined ? { application_type: body.application_type } : {}),
       token_endpoint_auth_method: 'none',
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
@@ -158,7 +162,7 @@ export async function authorizeGet(params: AuthzParams, env: NodeJS.ProcessEnv):
 }
 
 /** POST /authorize → check the passphrase, mint a code, 302 back to the client. */
-export async function authorizePost(params: AuthzParams & { passphrase?: string }, env: NodeJS.ProcessEnv): Promise<Result> {
+export async function authorizePost(params: AuthzParams & { passphrase?: string }, env: NodeJS.ProcessEnv, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN || `http://localhost:${env.PORT || 8790}`): Promise<Result> {
   const client = await resolveClient(params, env);
   if (!client.ok) return client.result;
   if (params.response_type !== 'code' || !params.code_challenge || params.code_challenge_method !== 'S256') {
@@ -174,6 +178,7 @@ export async function authorizePost(params: AuthzParams & { passphrase?: string 
     sc: SCOPE, aud: params.resource, exp: now() + CODE_TTL,
   } satisfies CodePayload, signingSecret(env));
   const url = new URL(params.redirect_uri!);
+  url.searchParams.set('iss', issuer);
   url.searchParams.set('code', code);
   if (params.state) url.searchParams.set('state', params.state);
   return { status: 302, redirect: url.href };

@@ -102,6 +102,10 @@ export async function ensureTimeline(fc: FcCtx, open: boolean): Promise<void> {
           projectTime: {
             rate: () => runtime.getModel().find(input => input.id === 'projectFps')?.value,
             marks: () => String(runtime.getModel().find(input => input.id === 'sequenceMarks')?.value ?? ''),
+            ...(fc.history?.commit && runtime.getModel().some(input => input.id === 'sequenceTiming') ? {
+              timing: () => String(runtime.getModel().find(input => input.id === 'sequenceTiming')?.value ?? ''),
+              writeTiming: (boxes: Box[], wire: string) => fc.history!.commit!({ [blockId]: boxes, sequenceTiming: wire }, t('Beat and cue timing')),
+            } : {}),
             writeMarks: (wire: string) => { onDirty?.('sequenceMarks'); void runtime.setInput('sequenceMarks', wire); },
           },
         } : {}),

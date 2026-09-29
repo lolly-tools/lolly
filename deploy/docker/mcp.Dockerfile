@@ -5,8 +5,7 @@
 # Streamable-HTTP MCP transport + OAuth discovery. Runs `node services/mcp/src/http.ts`
 # (Node 24 executes TypeScript natively - no compile step). Listens on $PORT
 # (default 8790), serving JSON-RPC at POST /mcp plus the .well-known OAuth routes
-# and a public GET render path (/tool/<id>.<ext>). Stateless (SSE/session mgmt is
-# roadmap), so it scales horizontally.
+# and a public GET render path (/tool/<id>.<ext>). MCP requests are stateless.
 #
 # BUILD CONTEXT MUST BE THE REPO ROOT - the server imports its sibling workspace
 # (@lolly/engine at ../../../engine) and, at runtime, loads tools from the
@@ -78,6 +77,7 @@ RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 ENV NODE_ENV=production
 # Default transport port; the chart sets PORT explicitly too.
 ENV PORT=8790
+ENV LOLLY_MCP_BIND_HOST=0.0.0.0
 
 # Preserve the source layout and workspace links used by the headless host,
 # without shipping the entire web app, model weights or unrelated brand sources.

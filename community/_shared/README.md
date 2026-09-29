@@ -31,6 +31,14 @@ matching markers:
 3. `pnpm run validate:catalog` - fails CI if any marked region drifts from its
    canonical source (same fail-closed style as the index-drift check).
 
+`slide-composition.js` is generated from `engine/src/slide-composition.ts`.
+After changing that TypeScript source, run `node scripts/build-slide-composition.ts`
+before `pnpm run sync:shared`. Deck Builder uses the generated planner; Rebrand
+uses the same grid geometry directly. The planner keeps Markdown groups intact,
+ranks bounded recipes and inherits the slide master's type scale. The web tool
+checks actual font fit on the active slide and checks every slide before export.
+The bundle drift test also runs when the private SUSE pack is absent.
+
 ## Rules
 
 - Shipped `hooks.js` stay self-contained: the sync copies bytes; nothing here

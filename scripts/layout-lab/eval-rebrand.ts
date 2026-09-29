@@ -11,7 +11,7 @@ import { resolveProfileDesignSystem } from '../../packages/node-shell/src/rebran
 import type { SlideSourceV1, SourceDeckV1 } from '../../packages/core/src/rebrand-v1.ts';
 import { resolveModelsDir } from '../../packages/node-shell/src/ml/session.ts';
 
-const root = path.resolve(process.argv[2] ?? '.scratch/layout-lab/real');
+const root = path.resolve(process.argv[2] ?? 'plans/scratch/layout-lab/real');
 const profile = process.argv[3] ?? 'lolly-start';
 const resolved = await resolveProfileDesignSystem({ profile });
 if (!resolved || resolved.profile !== profile) throw new Error(`Design system unavailable: ${profile}`);

@@ -163,3 +163,19 @@ test('catalogue provenance escapes asset names and does not appear on a local re
   assert.match(body.textContent ?? '', /<img src=x>\/tokens\/brand/);
   assert.equal(catalogSourceHtml({ ...record, source: { kind: 'local' } }), '');
 });
+
+
+test('source facts report cached origin, version and checksum without claiming the newly chosen connection', async () => {
+  const { networkStatus } = await import('../../catalog/sync.ts');
+  const { _setBaseForTests } = await import('../instance.ts');
+  const record: DesignSystemRecord = { id: 'shipped', label: 'Alpha', ns: '', headId: 'alpha/tokens/brand', source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0,
+    catalog: { origin: 'https://old.example', version: '3.2', checksum: 'sha256-123', available: true } };
+  _setBaseForTests('https://new.example'); networkStatus.offline = true;
+  try {
+    const html = catalogSourceHtml(record, '/admin#/instance?tab=design');
+    assert.match(html, /old.example/); assert.doesNotMatch(html, /new.example/);
+    assert.match(html, /Cached catalogue/); assert.match(html, /3.2/); assert.match(html, /sha256-123/);
+    assert.match(html, /Manage instance design systems/);
+    assert.match(catalogSourceHtml({ ...record, headId: '', catalog: { available: false } }), /No selected tokens asset/);
+  } finally { networkStatus.offline = false; _setBaseForTests(''); }
+});

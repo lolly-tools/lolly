@@ -151,7 +151,7 @@ export interface TimelinePanelOpts {
    */
   cfg: TimeCfg & { frameTransitionField?: string };
   getBoxes(): Box[];
-  projectTime?: { rate(): unknown; marks(): string; writeMarks(wire: string): void };
+  projectTime?: { rate(): unknown; marks(): string; writeMarks(wire: string): void; timing?(): string; writeTiming?(boxes: Box[], wire: string): void | Promise<void> };
   /** The free-canvas single write path - the ONLY way this module touches the model. */
   commit(next: Box[]): void;
   selection: TimelineSelection;

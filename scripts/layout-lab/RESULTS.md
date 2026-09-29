@@ -79,10 +79,10 @@ Commands and model requirements are in [README.md](README.md). Full reports from
 this run, including raw responses and individual timings, are local ignored
 artifacts:
 
-- `.scratch/layout-lab/node-report.json`
-- `.scratch/layout-lab/rotated-report.json`
-- `.scratch/layout-lab/browser-report.json`
-- `.scratch/layout-lab/browser-check.json`
+- `plans/scratch/layout-lab/node-report.json`
+- `plans/scratch/layout-lab/rotated-report.json`
+- `plans/scratch/layout-lab/browser-report.json`
+- `plans/scratch/layout-lab/browser-check.json`
 
 The report timestamps use UTC, so this UK run is recorded as 28 September there.
 
@@ -133,10 +133,10 @@ real-slide success rate.
 
 Local evidence:
 
-- `.scratch/layout-lab/real/index.json` and `summary.json`
-- `.scratch/layout-lab/real/cases/` for each slide's extraction and OCR evidence
-- `.scratch/layout-lab/real-ranking.json` for the 59-case comparison
-- `.scratch/layout-lab/browser-corpus-report.json` and `browser-corpus-check.json`
+- `plans/scratch/layout-lab/real/index.json` and `summary.json`
+- `plans/scratch/layout-lab/real/cases/` for each slide's extraction and OCR evidence
+- `plans/scratch/layout-lab/real-ranking.json` for the 59-case comparison
+- `plans/scratch/layout-lab/browser-corpus-report.json` and `browser-corpus-check.json`
 
 ## Integrated Rebrand workflow
 
@@ -186,7 +186,7 @@ Local evidence:
 - `browser-rebrand-ocr-report.json` and `rebrand-ocr.png`
 - `rebrand-tests.log`, `build-web.log`, `lint.log` and the typecheck reports
 
-These paths are relative to `.scratch/layout-lab/` and are not committed.
+These paths are relative to `plans/scratch/layout-lab/` and are not committed.
 
 ## Rebrand workflow revision
 

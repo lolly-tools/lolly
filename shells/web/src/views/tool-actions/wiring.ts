@@ -24,6 +24,7 @@ import { saveExportPrefs } from '../../lib/export-prefs.ts';
 import { livePalette } from '../../lib/live-palette.ts';
 import { isModuleFormat, modUrlToWavBlobUrl } from '../../lib/mod-render.ts';
 import { buildStepsDropped, restMsOf } from '../../lib/motion-model.ts';
+import { wireMotionControls } from '../../lib/motion-export-controls.ts';
 import { loopRank } from '../../lib/neurospicy.ts';
 import { pcmToWavBlob } from '../../lib/pcm-wav.ts';
 import { embedRowLabel, isOwnProfile, listEligible, ownDigest } from '../../lib/press-profile-embed.ts';
@@ -41,6 +42,7 @@ import { bindOp, type ActionsCtx } from './context.ts';
 
 export function wireFormatAndName(ta: ActionsCtx): void {
   const { el, exportDefaults, formatEl } = ta;
+  if (el) wireMotionControls(el, ta.runtime, exportDefaults.motionBlur);
   formatEl?.addEventListener('change', ta.notes.refreshFilenamePlaceholder);
   el.querySelectorAll<HTMLInputElement>(
     '[data-action="pdf-c2pa"], [data-action="imprint"]'

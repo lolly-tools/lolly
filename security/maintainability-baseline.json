@@ -28,17 +28,17 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4518,
+      "lines": 4482,
       "largestFunctionLines": 647,
       "importFanIn": 26,
-      "importFanOut": 59,
+      "importFanOut": 62,
       "typeEscapes": 60
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1780,
-      "largestFunctionLines": 1035,
-      "importFanIn": 5,
-      "importFanOut": 31,
+      "lines": 1723,
+      "largestFunctionLines": 1033,
+      "importFanIn": 6,
+      "importFanOut": 33,
       "typeEscapes": 13
     },
     "shells/web/src/lib/rebrand/controller.ts": {
@@ -56,10 +56,10 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/deck-editor.ts": {
-      "lines": 1974,
-      "largestFunctionLines": 1739,
+      "lines": 1953,
+      "largestFunctionLines": 1731,
       "importFanIn": 2,
-      "importFanOut": 7,
+      "importFanOut": 9,
       "typeEscapes": 0
     },
     "shells/web/src/views/design-import.ts": {
@@ -191,7 +191,6 @@
     "bridge/index.ts -> views/picker.ts",
     "bridge/pdf-redact.ts -> views/pdf-import.ts",
     "bridge/sequence-render.ts -> views/lottie-mount.ts",
-    "bridge/sequence-render.ts -> views/timeline-captions.ts",
     "components/footer-nav.ts -> views/privacy-notice.ts",
     "components/welcome-dialog.ts -> views/privacy-notice.ts",
     "lib/convert-codecs.ts -> views/pdf-import.ts",

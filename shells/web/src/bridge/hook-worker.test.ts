@@ -222,6 +222,33 @@ test('strict worker lockdown removes ambient network, storage, and worker bypass
   }
 });
 
+test('strict worker lockdown removes inherited methods and accessors', () => {
+  const workerPrototype = Object.create(null);
+  Object.defineProperty(workerPrototype, 'fetch', { value: () => 'network', configurable: true });
+  Object.defineProperty(workerPrototype, 'indexedDB', { get: () => ({ open: () => 'storage' }), configurable: true });
+  const navigatorPrototype = Object.create(null);
+  Object.defineProperty(navigatorPrototype, 'storage', { get: () => ({ getDirectory: () => 'files' }), configurable: true });
+  const scope = Object.create(workerPrototype);
+  scope.navigator = Object.create(navigatorPrototype);
+  lockDownAmbientCapabilities(scope);
+  for (const [owner, names] of [[workerPrototype, ['fetch', 'indexedDB']], [navigatorPrototype, ['storage']]] as const) {
+    for (const name of names) {
+      const descriptor = Object.getOwnPropertyDescriptor(owner, name);
+      assert.equal(descriptor?.value, undefined);
+      assert.equal(descriptor?.get, undefined);
+      assert.equal(descriptor?.configurable, false);
+      assert.equal(descriptor?.writable, false);
+    }
+  }
+  lockDownAmbientCapabilities(scope);
+});
+
+test('strict worker refuses an inherited capability that cannot be disabled', () => {
+  const prototype = Object.create(null);
+  Object.defineProperty(prototype, 'fetch', { value: () => 'network', configurable: false, writable: false });
+  assert.throws(() => lockDownAmbientCapabilities(Object.create(prototype)), /could not disable.*fetch/);
+});
+
 test('isolated execution budgets cover every worker hook', () => {
   assert.deepEqual(Object.keys(WORKER_HOOK_BUDGET_MS).sort(), [
     'exportFile', 'onFrame', 'onInit', 'onInput', 'onLevel',

@@ -30,6 +30,7 @@ test('discovery metadata is well-formed and absolute', () => {
   assert.equal((as as unknown as { token_endpoint: string }).token_endpoint, 'https://lolly.tools/api/mcp/token');
   assert.deepEqual(as.code_challenge_methods_supported, ['S256']);
   assert.deepEqual(as.token_endpoint_auth_methods_supported, ['none']);
+  assert.equal((as as unknown as { authorization_response_iss_parameter_supported: boolean }).authorization_response_iss_parameter_supported, true);
 });
 
 test('dynamic client registration rejects a bad redirect and issues a client for a good one', async () => {
@@ -41,6 +42,24 @@ test('dynamic client registration rejects a bad redirect and issues a client for
   const client = ok.json as { client_id: string; token_endpoint_auth_method: string };
   assert.ok(client.client_id, 'issues a client_id');
   assert.equal(client.token_endpoint_auth_method, 'none');
+});
+
+test('registration validates application type and redirect scheme for modern and legacy clients', async () => {
+  for (const application_type of ['web', 'native']) {
+    const response = await register({ redirect_uris: [REDIRECT], application_type }, env);
+    assert.equal(response.status, 201);
+    assert.equal((response.json as { application_type: string }).application_type, application_type);
+  }
+  for (const application_type of ['service', ['native'], null, 7]) {
+    assert.equal((await register({ redirect_uris: [REDIRECT], application_type }, env)).status, 400);
+  }
+  for (const uri of ['javascript://localhost/cb', 'ftp://127.0.0.1/cb', 'https://user:pass@example.test/cb', 'https://example.test/cb#fragment']) {
+    assert.equal((await register({ redirect_uris: [uri], application_type: 'native' }, env)).status, 400);
+  }
+  for (const uri of ['http://127.0.0.1:4567/cb', 'http://[::1]:4567/cb']) {
+    assert.equal((await register({ redirect_uris: [uri], application_type: 'native' }, env)).status, 201);
+  }
+  assert.equal((await register(null as unknown as Record<string, unknown>, env)).status, 400);
 });
 
 /** Register a client and return its id. */
@@ -69,11 +88,12 @@ test('full authorization-code + PKCE flow yields a usable access token', async (
   assert.ok(!wrong.redirect, 'no code leaks on a bad passphrase');
 
   // correct passphrase → 302 back to the client with code+state
-  const good = await authorizePost({ ...params, passphrase: TOKEN }, env);
+  const good = await authorizePost({ ...params, passphrase: TOKEN }, env, 'https://lolly.tools');
   assert.equal(good.status, 302);
   const back = new URL(good.redirect!);
   assert.equal(back.origin + back.pathname, REDIRECT);
   assert.equal(back.searchParams.get('state'), 'xyz123');
+  assert.equal(back.searchParams.get('iss'), 'https://lolly.tools');
   const code = back.searchParams.get('code')!;
   assert.ok(code);
 

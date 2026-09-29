@@ -16,6 +16,12 @@ shells/tauri-mobile
 scratch
 .scratch
 plans
+output
+tmp
+artifacts
+.drills
+.codex-*
+__pycache__
 
 # Scoped Chromium for the CLI/MCP Tier-B raster path (`lolly install-browser`),
 # ~540 MB. Never used by the deployed function - esbuild bundles the MCP fn and
@@ -25,6 +31,16 @@ plans
 # Prebuilt web output - Vercel regenerates it via buildCommand (outputDirectory
 # is shells/web/dist), so shipping the local ~170 MB copy is pure waste.
 shells/web/dist
+/dist
+
+# Local configuration, signing material and private administrative records.
+.env
+.env.*
+keys
+appstore
+*.pem
+*.key
+*.log
 
 # onnxruntime-web WASM runtime (~93 MB) - an EXACT copy of *.wasm/*.mjs from the
 # installed onnxruntime-web dep's dist/. `build:web` runs `build:ort`
@@ -124,6 +140,7 @@ dist-packs
 # build() then derives ogSlugs from what exists ON DISK, so excluding info/og
 # would silently drop the og:image from every /info page.
 shells/web/public/info/shots
+shells/web/public/info/skills
 
 # The rest of the generated docs site: build:info regenerates every page, the
 # sitemap and llms.txt from docs/*.md + docs/i18n/. ~27 MB off each gzipped

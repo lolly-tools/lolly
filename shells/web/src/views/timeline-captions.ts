@@ -53,7 +53,8 @@ export function isCaptionGroup(group: unknown): boolean {
  * Plain `caption` rather than a namespaced token: the design hook's `classTokens`
  * drops anything starting `lolly-`, `pr-`, `seq-` or `fc-`.
  */
-export const CAPTION_BOX_CLASS = 'caption';
+export { CAPTION_BOX_CLASS, MIN_CUE_KEEP_S } from '../lib/caption-constants.ts';
+import { CAPTION_BOX_CLASS, MIN_CUE_KEEP_S } from '../lib/caption-constants.ts';
 
 /** The artboard a caption is being placed on, in px. Both optional; a caller who
  *  knows neither gets the 1920x1080 default frame. */
@@ -177,7 +178,7 @@ export interface CueSourceTiming {
 /** A cue clamped shorter than this by the clip's trim is dropped rather than
  *  kept as an unreadable flash. Deliberately under MIN_DUR: a cue that merely
  *  BRUSHES the trim edge still gets floored up to an editable box below. */
-export const MIN_CUE_KEEP_S = 0.05;
+
 
 const round3 = (v: number): number => Math.round(v * 1000) / 1000;
 

@@ -136,3 +136,35 @@ test('removing the active system moves the pointer to shipped; the shipped syste
   assert.equal(await r.registry.activeId(), 'shipped');
   await assert.rejects(() => removeDesignSystem(r.host as unknown as Parameters<typeof removeDesignSystem>[0], 'shipped'), /cannot be removed/);
 });
+
+
+test('a failed asset deletion keeps the design-system record and personal uploads for retry', async () => {
+  const r = await rig({ legacy: true });
+  const copy = await createDesignSystem(r.host as never, { label: 'Retry copy' });
+  const original = r.assets._deleteUserAsset;
+  r.assets._deleteUserAsset = async () => { throw new Error('Storage refused'); };
+  await assert.rejects(removeDesignSystem(r.host as never, copy.id), /record was kept/);
+  assert.ok(await r.registry.get(copy.id));
+  assert.ok(await r.assets._getUserRecord('user/raster/1700000000000-photo'));
+  r.assets._deleteUserAsset = original;
+  await removeDesignSystem(r.host as never, copy.id);
+  assert.equal(await r.registry.get(copy.id), null);
+});
+
+test('explicit catalogue token selection overrides order and neutral selection survives a stale metadata row', async () => {
+  const r = await rig();
+  const other = { id: 'other/tokens', type: 'tokens' as const, version: '1', formats: [{ format: 'json', url: '/other.json' }] };
+  await r.assets._syncFromIndex([other], { origin: 'https://brand.example', tokensHead: other.id });
+  assert.equal((await r.assets._findMetaByType('tokens', { catalogOnly: true }))?.id, other.id);
+  await r.assets._syncFromIndex([], { origin: 'https://brand.example', tokensHead: null });
+  assert.equal(await r.assets._findMetaByType('tokens', { catalogOnly: true }), null);
+});
+
+
+test('same-version catalogue content changes invalidate the old bytes', async () => {
+  const r = await rig();
+  assert.ok(await r.assets._getBlob('lolly/tokens/brand'));
+  await r.assets._syncFromIndex([{ id: 'lolly/tokens/brand', type: 'tokens', version: '1.0.0', formats: [{ format: 'json', url: '/replacement.json' }] }]);
+  assert.equal(await r.assets._getBlob('lolly/tokens/brand'), null);
+  assert.equal(await r.db.get('asset-blob', 'lolly/tokens/brand:json:1.0.0'), undefined);
+});

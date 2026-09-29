@@ -98,6 +98,7 @@ export function sync(tp: TpCtx): void {
     layer.append(band);
   }
   tp.rulerInner.append(layer);
+  tp.cues?.sync();
 }
 export function wire(tp: TpCtx): void {
   if (!tp.opts.projectTime) return;
@@ -111,6 +112,7 @@ export function wire(tp: TpCtx): void {
       void tp.host.export?.download(blob, 'chapters.vtt').catch(() => announce(t('Export failed'), { assertive: true }));
     }],
     [t('Preview mix'), () => { void tp.rangePreview.open(); }],
+    [t('Review frames'), () => { void tp.rangePreview.open(true); }],
   ];
   tp.markerMenu = mountBodyPopover(trigger, (el, pop) => {
     el.textContent = '';

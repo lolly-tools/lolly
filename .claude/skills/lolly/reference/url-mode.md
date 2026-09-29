@@ -52,7 +52,10 @@ These names are controls, never tool inputs. The live set is `RESERVED` in
 | `meta` | Generator-metadata toggle. On by default; `meta=off` strips the source field. |
 | `hdr` | HDR raster (Rec.2100 PQ). Off by default; `hdr=1`, or tuned `hdr=<peakNits>-<reach>-<lift>-<focus>`. |
 | `depth` | Requested bit depth: `8`, `16`, `float`, `auto` (default). A request, not a promise. |
-| `cuts` | Contact sheet of a timed composition. Integer, default `1`. Clamped `1`-`64`. |
+| `cuts` | Uniform contact sheet of a timed composition. Default `1`; `2`-`64` returns a ZIP or paged PDF through the browser tier. |
+| `sampletimes` | Exact authored timeline seconds, comma-separated. One returns one still; several return a ZIP or paged PDF. Use 1-64 increasing times before the timeline end. |
+| `motionblur` | Temporal blur as sample count and shutter angle, for example `8,180`. Use `1` (off), `4`, `8` or `16` samples; angle is 0-360 degrees. Flat SDR movies and exact raster samples only. |
+| `seqrange` | Temporary movie interval as `from,to` authored seconds. Retains the source audio clock and saved timeline marks. |
 | `lang` | UI/content language: `en` (default), `es`, `de`, `fr`, `zh`, `ar`, … |
 | `designv` | Design-system version to render against: a published slug, or `latest`. Never written into a share link. |
 | `ds` | Design system to render against: a system id held on the device. Never written into a share link. |

@@ -200,7 +200,7 @@
       ],
       "details": {
         "inputSource": "the marker structure of any JPEG - one a user uploaded, and one our own export pipeline is about to stamp",
-        "bounds": "`JPEG_MAX_SEGMENTS = 4096`, `JPEG_MAX_APP_ID = 64`; every length field is checked against the buffer before it is acted on, and entropy data is walked (`FF 00` stuffing, `FF D0`–`FF D7` restarts) rather than searched",
+        "bounds": "`JPEG_MAX_SEGMENTS = 4096`, `JPEG_MAX_APP_ID = 64`; every length field is checked against the buffer before it is acted on, and entropy data is walked (`FF 00` stuffing, `FF D0`\u2013`FF D7` restarts) rather than searched",
         "directTests": "`tests/jpeg-segments.test.ts`",
         "fuzzCoverage": "`jpeg-structure` (scan/find/body/splice over minimal, MPF and mutated files)",
         "notes": "The one shared JPEG marker walker/writer, replacing three ad-hoc \"skip the leading APP0\" insertion points now that segment ORDER carries meaning (an MPF index stores absolute offsets, so it must precede ICC). The contract is split by side: the reader follows the house rule - never throws, `null` when the bytes are not a JPEG, a short scan flagged `truncated` when they are malformed - while `insertJpegSegments` follows the splicer convention it replaces and returns the input bytes untouched, all or nothing, on any problem. The structural invariant \"no reported segment ends past the buffer\" is asserted on every scan in the tests, including a few hundred seeded mutations of a real `sharp`-encoded file."
@@ -335,7 +335,7 @@
         "bounds": "`CUBE_MAX_N = 129`, `TDL_MAX_N = 65` (grid size), declared in the hooks beside the parsers",
         "directTests": "none of its own; the fuzz target is the coverage",
         "fuzzCoverage": "`lut-parse` (both parsers, over the real hook source)",
-        "notes": "The one **tool-data** parser that reads untrusted bytes, listed here because the input source is the same as every row above. Hooks ship as plain script rather than a module, so the target lifts the two functions out with `new Function` exactly the way the engine runtime compiles them. A controlled \"not a … LUT\" / \"too large\" throw is the desired outcome; hangs and allocation blow-ups are the findings."
+        "notes": "The one **tool-data** parser that reads untrusted bytes, listed here because the input source is the same as every row above. Hooks ship as plain script rather than a module, so the target lifts the two functions out with `new Function` exactly the way the engine runtime compiles them. A controlled \"not a \u2026 LUT\" / \"too large\" throw is the desired outcome; hangs and allocation blow-ups are the findings."
       }
     },
     "engine/src/video-meta.ts": {
@@ -372,8 +372,8 @@
         "inputSource": "the container a manifest is being spliced into - ordinarily Lolly's own render output, but on the ingest and re-attach paths a file a stranger sent",
         "bounds": "none named; the bounds are per-grammar and structural (each PNG chunk, JPEG segment, GIF block, RIFF/TIFF IFD, BMFF box, EBML element and PDF xref offset is validated against the buffer before it is acted on)",
         "directTests": "`tests/c2pa-containers.test.ts`, plus `tests/c2pa-formats.test.ts` and `tests/c2pa.test.ts` in aggregate",
-        "fuzzCoverage": "`c2pa-containers` (`sniffFormat` → `attachC2paStore`, or `embedC2paInPdf` for PDF)",
-        "notes": "Placement, not extraction - but placing means walking the host container's grammar, so it belongs here rather than under \"Writers\". Contract: it **throws** on a container it refuses to modify, so only a hang, a stack overflow or an allocation blow-up counts as a finding. `c2pa-containers-tiff-forged-ifd-pointer.bin` is a saved regression: a hostile TIFF IFD pointer. The target's format→placer map is a `Record<Exclude<SniffFormat, …>>` on purpose, so adding a placeable format without adding its placer row is a compile error rather than a silent forever-fuzzed-as-PNG."
+        "fuzzCoverage": "`c2pa-containers` (`sniffFormat` \u2192 `attachC2paStore`, or `embedC2paInPdf` for PDF)",
+        "notes": "Placement, not extraction - but placing means walking the host container's grammar, so it belongs here rather than under \"Writers\". Contract: it **throws** on a container it refuses to modify, so only a hang, a stack overflow or an allocation blow-up counts as a finding. `c2pa-containers-tiff-forged-ifd-pointer.bin` is a saved regression: a hostile TIFF IFD pointer. The target's format\u2192placer map is a `Record<Exclude<SniffFormat, \u2026>>` on purpose, so adding a placeable format without adding its placer row is a compile error rather than a silent forever-fuzzed-as-PNG."
       }
     },
     "engine/src/c2pa-verify.ts": {
@@ -385,7 +385,7 @@
         "bounds": "`MAX_CHAIN_INTERMEDIATES = 8`",
         "directTests": "`tests/c2pa-verify.test.ts`, `tests/c2pa-trust.test.ts`, `tests/c2pa-verdict.test.ts`, `tests/c2pa-c2patool-conformance.test.ts`",
         "fuzzCoverage": "`c2pa-verify` (`verifyC2pa`)",
-        "notes": "Reports failures as named checks rather than throwing, so a malformed manifest is a failed check and never an escaped exception. Chain walking consumes each intermediate at most once, so no A→B→A loop, and hostile chains are bounded to a trivial O(cap²)."
+        "notes": "Reports failures as named checks rather than throwing, so a malformed manifest is a failed check and never an escaped exception. Chain walking consumes each intermediate at most once, so no A\u2192B\u2192A loop, and hostile chains are bounded to a trivial O(cap\u00b2)."
       }
     },
     "engine/src/der-read.ts": {
@@ -447,7 +447,7 @@
         "bounds": "`BRAND_IMPORT_MAX_PART_BYTES/CHARS = 16 MB/M chars`, `BRAND_IMPORT_MAX_JSON_UNITS = 64 M`, `BRAND_IMPORT_MAX_ENTRIES = 50,000`, `BRAND_IMPORT_MAX_PAGE_PARTS = 25,000`, `BRAND_IMPORT_MAX_TOKEN_DOCS = 512`, `BRAND_IMPORT_MAX_SET_FILES = 2,048`, `BRAND_IMPORT_MAX_TOKEN_SETS = 4,096`, `BRAND_IMPORT_MAX_NODES = 1,000,000`, `BRAND_IMPORT_MAX_DEPTH = 64`",
         "directTests": "`tests/brand-import.test.ts`",
         "fuzzCoverage": "`brand-import` (all three token containers plus both Penpot page censuses)",
-        "notes": "Takes already-parsed JSON and already-unzipped path→bytes entries, so the engine applies structural and aggregate budgets independently of the caller's inflation guard. Extraction never throws; a limit violation fails the whole operation closed instead of returning a partial token document or census. Page discovery is one bounded collection plus sort, not manifest-files × archive-entries work."
+        "notes": "Takes already-parsed JSON and already-unzipped path\u2192bytes entries, so the engine applies structural and aggregate budgets independently of the caller's inflation guard. Extraction never throws; a limit violation fails the whole operation closed instead of returning a partial token document or census. Page discovery is one bounded collection plus sort, not manifest-files \u00d7 archive-entries work."
       }
     },
     "engine/src/tar-read.ts": {
@@ -483,7 +483,7 @@
         "bounds": "`MAX_TOKEN = 64 KB`, `MAX_UNPACKED = 256 KB`; `PBKDF2_ITERATIONS = 210_000`, `ENC_SALT_BYTES = 16`, `ENC_IV_BYTES = 12` on the encrypted variant",
         "directTests": "`tests/url-pack.test.ts`",
         "fuzzCoverage": "`url-pack` (`unpackToken` + `hasPackedState`, over both the token text and its decoded bytes)",
-        "notes": "The one module whose entire input is a URL param. Both caps exist because raw DEFLATE expands roughly 1000×, so a decompression bomb must not hang the tab."
+        "notes": "The one module whose entire input is a URL param. Both caps exist because raw DEFLATE expands roughly 1000\u00d7, so a decompression bomb must not hang the tab."
       }
     },
     "engine/src/keyframes.ts": {
@@ -568,7 +568,7 @@
         "bounds": "`MAX_CHANNELS = 32`",
         "directTests": "`tests/wav.test.ts`",
         "fuzzCoverage": "`wav` (`parseWav`)",
-        "notes": "Chunk walking cannot run backwards or off the end regardless of declared sizes. Unknown encodings (µ-law, ADPCM, a compressed payload in a RIFF skin) are refused by name rather than misread as PCM, because misreading them yields full-scale noise that would look like a plausibly loud track."
+        "notes": "Chunk walking cannot run backwards or off the end regardless of declared sizes. Unknown encodings (\u00b5-law, ADPCM, a compressed payload in a RIFF skin) are refused by name rather than misread as PCM, because misreading them yields full-scale noise that would look like a plausibly loud track."
       }
     },
     "engine/src/zzfxm.ts": {
@@ -577,7 +577,7 @@
       ],
       "details": {
         "inputSource": "a `ZzfxSong`, which on the MIDI and MOD paths derives from a user file or fetched JSON",
-        "bounds": "128 instruments × 21 params, 1,024 patterns, 4,096 sequence items, 32 channels, 32,768 steps/pattern, five-minute stereo output, 50 M mix-sample operations, 30-second individual synths and 120-second aggregate sample cache; BPM/note/numeric ranges are named public constants",
+        "bounds": "128 instruments \u00d7 21 params, 1,024 patterns, 4,096 sequence items, 32 channels, 32,768 steps/pattern, five-minute stereo output, 50 M mix-sample operations, 30-second individual synths and 120-second aggregate sample cache; BPM/note/numeric ranges are named public constants",
         "directTests": "`tests/zzfxm.test.ts`, `tests/zzfxm-seed-parity.test.ts`",
         "fuzzCoverage": "`zzfxm` (JSON and byte-derived song objects through the real guarded renderer)",
         "notes": "The two vendored MIT functions remain unchanged behind guarded public wrappers. Validation rejects ragged rows, invalid references and allocation-driving totals before either the upstream synth or mixer allocates. Direct `zzfxG`, `zzfxM`, and `renderZzfxm` calls all pass the same budgets."
@@ -858,6 +858,54 @@
         "directTests": "`tests/vector-paint.test.ts`, `tests/text-vector.test.ts`",
         "fuzzCoverage": "`vector-paint` mutates SVG with gradients, clipping and group opacity through import and render",
         "notes": "Unsupported paint fails atomically; no bitmap replacement or silent silhouette reduction."
+      }
+    },
+    "engine/src/motion-cues.ts": {
+      "fuzzTargets": [
+        "motion-cues"
+      ],
+      "details": {
+        "inputSource": "Authored Sequence cue JSON from saved documents and URL inputs",
+        "bounds": "128 KiB string, 256 cues, 1,024 bindings, unique ids of at most 80 characters, cycle detection and one-hour resolved timeline",
+        "directTests": "`tests/motion-cues.test.ts`",
+        "fuzzCoverage": "`motion-cues` mutates absolute, beat, relative and maximum-depth cue graphs through compilation",
+        "notes": "Manual timing changes detach bindings; compilation validates the combined keyframe order."
+      }
+    },
+    "engine/src/sequence-samples.ts": {
+      "fuzzTargets": [
+        "motion-params"
+      ],
+      "details": {
+        "inputSource": "Explicit timeline seconds from URL, CLI and MCP export requests",
+        "bounds": "2,048-character URL value; 1-64 strictly increasing finite times from zero to one hour; every sample precedes the composition end",
+        "directTests": "`tests/sequence-samples.test.ts`, `services/mcp/test/motion-samples.browser.test.ts`",
+        "fuzzCoverage": "`motion-params` mutates query strings through sampling validation",
+        "notes": "Invalid explicit times are refused before selecting a render tier."
+      }
+    },
+    "engine/src/motion-sampling.ts": {
+      "fuzzTargets": [
+        "motion-params"
+      ],
+      "details": {
+        "inputSource": "Shutter and preview range settings from URL, CLI and MCP requests",
+        "bounds": "1, 4, 8 or 16 shutter samples; finite angle from zero to 360 degrees; finite preview range within one hour; accumulator capped at 256 MiB",
+        "directTests": "`tests/motion-sampling.test.ts`, `tests/motion-render.browser.test.ts`",
+        "fuzzCoverage": "`motion-params` mutates shutter and range query values",
+        "notes": "Exposure sampling clips at shot cuts and preview limits; accumulation uses premultiplied linear-light RGBA."
+      }
+    },
+    "services/mcp/src/negotiation.ts": {
+      "fuzzTargets": [
+        "mcp-negotiation"
+      ],
+      "details": {
+        "inputSource": "Untrusted JSON-RPC envelopes and mirrored HTTP headers",
+        "bounds": "Transport caps bodies at 32 MiB; fixed protocol-version set; object metadata and capability checks; strict ASCII or once-decoded base64 UTF-8 names",
+        "directTests": "`services/mcp/test/protocol-2026.test.ts`",
+        "fuzzCoverage": "`mcp-negotiation` mutates modern discovery, tool calls and legacy initialization envelopes with their HTTP mirrors",
+        "notes": "Header mismatches and unsupported versions return protocol errors before dispatch."
       }
     }
   }

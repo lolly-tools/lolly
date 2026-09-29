@@ -60,7 +60,7 @@ import {
   withAuthoredDom,
   type SequenceTimeSession,
 } from './sequence-dom.ts';
-import { CUTS_FORMATS } from '@lolly/engine';
+import { CUTS_FORMATS, assertSampleRequest, sequenceSampleTimes } from '@lolly/engine';
 import { sequenceError, toCodedError } from './sequence-plan.ts';
 import type { ExportOpts } from './export.ts';
 
@@ -123,9 +123,7 @@ export function cutCount(raw: unknown): number {
 export function cutTimestamps(totalMs: number, n: number): number[] {
   const count = cutCount(n);
   const total = Number.isFinite(totalMs) && totalMs > 0 ? totalMs : 0;
-  const out: number[] = [];
-  for (let i = 0; i < count; i++) out.push(total * (i + 0.5) / count);
-  return out;
+  return total > 0 ? sequenceSampleTimes(total, count) : Array.from({ length: count }, () => 0);
 }
 
 /**
@@ -203,13 +201,19 @@ async function renderCutsAuthored(
   node: Element, format: string, opts: ExportOpts, deps: CutsDeps,
 ): Promise<Blob> {
   const log = (l: string, m: string): void => deps.log?.(l, m);
-  const n = cutCount(opts.cuts);
+  assertSampleRequest(format, cutCount(opts.cuts), opts.sampleTimes);
   const root = node as HTMLElement;
   const totalMs = sequenceDurationMs(root);
   if (!(totalMs > 0)) {
     throw sequenceError('SEQ_DECODE_FAILED', 'contact sheet: the stage declares no duration (data-seq-ms)');
   }
-  const times = cutTimestamps(totalMs, n);
+  const times = sequenceSampleTimes(totalMs, cutCount(opts.cuts), opts.sampleTimes);
+  const n = times.length;
+  if (opts.motionBlur || (opts.sampleTimes && root.querySelector('video, [data-lottie-src], [data-lolly-scene], [data-anim-src]'))) {
+    return (await import('./sequence-capture.ts')).captureSequenceStills(node, format, opts, times, deps, cutMemberName);
+  }
+  const pages = root.querySelectorAll('[data-pdf-page]');
+  const target = pages.length === 1 ? pages[0]! : node;
 
   // ONE session across all N cuts. Per-cut sessions would re-capture the authored
   // styles on cut 2 - and by then the "authored" transform is the one cut 1 wrote,
@@ -218,9 +222,14 @@ async function renderCutsAuthored(
   // Members render with cuts stripped, so a member can never re-enter this path,
   // and without the caller's onProgress: progress is reported per CUT here (the
   // number a 32-cut sheet needs), not per DOM node of an inner walk.
-  const memberOpts: ExportOpts = { ...opts, cuts: 1, onProgress: undefined };
+  const memberOpts: ExportOpts = { ...opts, cuts: 1, sampleTimes: undefined, onProgress: undefined };
 
   try {
+    if (n === 1) {
+      opts.signal?.throwIfAborted();
+      session.apply(times[0]!);
+      return await deps.renderStill(target, format, memberOpts);
+    }
     if (format === 'pdf') {
       // The password stays ON the member opts here - there is exactly one output
       // document and locking it is the same request as locking a one-page PDF.
@@ -228,7 +237,7 @@ async function renderCutsAuthored(
       // multi-page renderer - it already owns page sizing, orientation, the
       // password tier and the PDF/X finishing pass - and `prepare` is the seam
       // that advances the playhead between pages.
-      const pages = times.map(() => node);
+      const pages = times.map(() => target);
       return await deps.renderPdfPages(pages, memberOpts, (i) => {
         session.apply(times[i] as number);
         opts.onProgress?.(i, n);
@@ -242,8 +251,9 @@ async function renderCutsAuthored(
     const members: { name: string; bytes: Uint8Array }[] = [];
     const base = opts.filename || 'export';
     for (let i = 0; i < n; i++) {
+      opts.signal?.throwIfAborted();
       session.apply(times[i] as number);
-      const blob = await deps.renderStill(node, format, stillOpts);
+      const blob = await deps.renderStill(target, format, stillOpts);
       members.push({ name: cutMemberName(base, format, i, n), bytes: new Uint8Array(await blob.arrayBuffer()) });
       opts.onProgress?.(i + 1, n);
     }

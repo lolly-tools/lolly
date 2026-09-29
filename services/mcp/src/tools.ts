@@ -8,9 +8,10 @@
  * returned as data by describe_tool. See plans/77-mcp-server.md section 3.
  */
 
-import { buildInputModel, serializeUrlState, parseUrlState, expandQuery, buildEmbedUrl, ENGINE_VERSION, verifyC2pa, resolveVerdict, defaultTrustAnchors, extractFileMetadata, HDR_DEFAULTS, compileDocument, inspectDocument, diffDocuments, measureDocument, packageDocument, validateDocument } from '@lolly/engine';
+import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, expandQuery, buildEmbedUrl, ENGINE_VERSION, verifyC2pa, resolveVerdict, defaultTrustAnchors, extractFileMetadata, HDR_DEFAULTS, compileDocument, inspectDocument, diffDocuments, measureDocument, packageDocument, validateDocument } from '@lolly/engine';
 import type { C2paVerdict } from '@lolly/engine';
 import { inspectDesignV1 } from '@lolly-tools/core';
+import { MOTION_EXPORT_ARGS, motionExportSettings, type MotionExportSettings } from './motion-export.ts';
 // Relative import (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
 import { VERDICT_SLUGS } from '@lolly-tools/node-shell/verdict-slugs';
@@ -57,6 +58,7 @@ const RENDER_ARGS = {
 };
 
 const TEMPLATE_ARGS = {
+  motionTiming: { type: 'object', description: 'Design version-1 tempo, named cues and bindings. Compile previews affected layers and returns editable ordinary fields; build_url/render apply the same compilation.' },
   templateId: { type: 'string', description: 'Start from this built-in template id (listed by lolly_describe_tool).' },
   presetId: { type: 'string', description: 'Apply this preset from the selected template. Requires templateId.' },
 };
@@ -164,6 +166,7 @@ const DESIGN_OPERATION_ARG = {
  * query.
  */
 const EXPORT_ARGS = {
+  ...MOTION_EXPORT_ARGS,
   depth: {
     type: 'string',
     enum: ['8', '16', 'float', 'auto'],
@@ -231,7 +234,7 @@ async function emojiSettings(args: Record<string, unknown>): Promise<{ emoji?: s
 
 /** The reserved-param half of a render request, in the shape serializeUrlState
  *  and RenderOpts both want. One reader, so the link and the file agree. */
-function exportSettings(args: Record<string, unknown>): {
+function exportSettings(args: Record<string, unknown>): MotionExportSettings & {
   depth?: 8 | 16 | 'float' | 'auto';
   hdr?: { peakNits: number; reach: number; lift: number; richness: number } | null;
   bleed?: string | null;
@@ -260,6 +263,7 @@ function exportSettings(args: Record<string, unknown>): {
 
   const cuts = typeof args.cuts === 'number' && args.cuts > 1 ? args.cuts : undefined;
   return {
+    ...motionExportSettings(args),
     ...(depth !== undefined ? { depth } : {}),
     ...(hdr ? { hdr } : {}),
     ...(args.bleed ? { bleed: String(args.bleed) } : {}),
@@ -275,7 +279,7 @@ export const TOOL_DEFS: McpToolDef[] = [
   ...(['compile', 'inspect', 'measure'] as const).map((verb): McpToolDef => ({
     name: `lolly_${verb}`,
     description: `${verb[0]!.toUpperCase()}${verb.slice(1)} a Lolly document without rasterising it.`,
-    inputSchema: { type: 'object', properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, ...TEMPLATE_ARGS, layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, document: { type: 'object' }, ...(verb === 'inspect' ? { file: FILE_ARG } : {}) }, additionalProperties: false },
+    inputSchema: { type: 'object', properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, ...TEMPLATE_ARGS, layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, document: { type: 'object' }, ...(verb === 'inspect' ? { file: FILE_ARG, motion: { type: 'boolean', description: 'Inspect delivered video bytes using optional ffprobe/ffmpeg.' }, motionTarget: { type: 'object', description: 'Expected width, height, seconds, fps, audio, loudness (LUFS) and truePeakMax (dBTP).' } } : {}) }, additionalProperties: false },
   })),
   {
     name: 'lolly_validate',
@@ -457,26 +461,35 @@ async function resolveInputs(
   toolId: string,
   manifest: ToolManifest,
   args: Record<string, unknown>,
-): Promise<{ inputs: Record<string, unknown>; template?: { id: string; name: string; preset?: string } }> {
+): Promise<{ inputs: Record<string, unknown>; motion?: ReturnType<typeof compileMotionCues>; template?: { id: string; name: string; preset?: string } }> {
   const explicit = inputObject(args.inputs);
   const templateId = args.templateId;
   const presetId = args.presetId;
-  const finish = (base: Record<string, unknown>): Record<string, unknown> =>
-    applyDesignLayerPatches(
+  let motion: ReturnType<typeof compileMotionCues> | undefined;
+  const finish = (base: Record<string, unknown>): Record<string, unknown> => {
+    const inputs = applyDesignLayerPatches(
       toolId,
       manifest,
       applyDesignLayerOperations(toolId, manifest, base, args.layerOperations),
       args.layerPatches,
     );
+    if (args.motionTiming !== undefined) {
+      if (toolId !== 'design') throw new Error('motionTiming requires Design.');
+      motion = compileMotionCues(designRows(manifest, inputs, 'layerPatches') as DesignRow[], args.motionTiming);
+      return { ...inputs, boxes: motion.boxes, sequenceTiming: JSON.stringify(motion.timing) };
+    }
+    return inputs;
+  };
   if (templateId === undefined) {
     if (presetId !== undefined) throw new Error('presetId requires templateId.');
-    return { inputs: finish(explicit) };
+    return { inputs: finish(explicit), motion };
   }
   if (typeof templateId !== 'string' || !templateId) throw new Error('templateId must be a non-empty string.');
   if (presetId !== undefined && (typeof presetId !== 'string' || !presetId)) throw new Error('presetId must be a non-empty string.');
   const seed = await loadTemplateSeed(toolId, templateId, presetId as string | undefined);
   return {
     inputs: finish({ ...seed.inputs, ...explicit }),
+    motion,
     template: { id: seed.template.id, name: seed.template.name, ...(seed.preset ? { preset: seed.preset.id } : {}) },
   };
 }
@@ -855,6 +868,13 @@ function buildLinks(manifest: ToolManifest, inputs: Record<string, unknown>, o: 
     bleed: o.bleed ?? null,
     marks: o.marks ?? null,
     cuts: o.cuts ?? null,
+    sampleTimes: o.sampleTimes,
+    motionBlur: o.motionBlur, sequenceRange: o.sequenceRange,
+    fps: o.fps,
+    seconds: o.seconds,
+    wait: o.wait,
+    codec: o.codec,
+    vq: o.vq,
     depth: o.depth ?? null,
     // `hdr` serialises as a presence flag (`hdr=1`); the dials only exist on the
     // engine-side opts, so the link carries "HDR on" and the render carries how.
@@ -985,7 +1005,9 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         if (name === 'lolly_inspect' && args.file && typeof args.file === 'object') {
           const file = args.file as { base64?: unknown };
           if (typeof file.base64 !== 'string') return errorResult('file.base64 is required.');
-          return textOnly(JSON.stringify(inspectDocument(Uint8Array.from(Buffer.from(file.base64, 'base64'))), null, 2));
+          const bytes = Uint8Array.from(Buffer.from(file.base64, 'base64'));
+          if (args.motion === true) return textOnly(JSON.stringify(await (await import('@lolly-tools/node-shell/motion-inspect')).inspectMotionBytes(bytes, args.motionTarget as never), null, 2));
+          return textOnly(JSON.stringify(inspectDocument(bytes), null, 2));
         }
         let document = args.document;
         if (name === 'lolly_compile' || !document) {
@@ -997,7 +1019,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
           const validation = validateToolInputs(tool.manifest, resolved.inputs);
           if (!validation.ok) return invalidInputs(validation);
           const compiled = await withHost({}, async (_dom, host) => compileDocument(tool, resolved.inputs as Record<string, never>, { host }));
-          if (name === 'lolly_compile') return textOnly(JSON.stringify({ ...compiled, validation, ...(resolved.template ? { template: resolved.template } : {}) }, null, 2));
+          if (name === 'lolly_compile') return textOnly(JSON.stringify({ ...compiled, validation, ...(resolved.motion ? { motion: { times: resolved.motion.times, changes: resolved.motion.changes, detached: resolved.motion.detached } } : {}), ...(resolved.template ? { template: resolved.template } : {}) }, null, 2));
           document = compiled.document;
         }
         return textOnly(JSON.stringify(name === 'lolly_inspect' ? inspectCompiledDocument(document) : measureDocument(document as never), null, 2));

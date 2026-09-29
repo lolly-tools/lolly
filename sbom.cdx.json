@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:330492a7-b22b-4cfe-8c28-5dbc03625453",
+  "serialNumber": "urn:uuid:a638f874-4152-471d-831b-7c3457f8ae11",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-28T11:16:03.492Z",
+    "timestamp": "2026-09-29T14:28:20.780Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -28155,10 +28155,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/ip-address@10.4.0",
+      "bom-ref": "pkg:npm/ip-address@10.7.2",
       "name": "ip-address",
-      "version": "10.4.0",
-      "purl": "pkg:npm/ip-address@10.4.0",
+      "version": "10.7.2",
+      "purl": "pkg:npm/ip-address@10.7.2",
       "scope": "excluded",
       "licenses": [
         {
@@ -28170,7 +28170,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a122bde86ae6dda3fa3ab4b6eb7c55c5b3431952fbaf306d61da46aa50c6f2241da1e9c3a13b3f9e4922f837e561b00413c5e5ea8e58c61c65acabc8de7a8a5d"
+          "content": "ec7ff68054888adc5cd211b79ce2358254bc40ba3f10704514b93cbc45235d8ff1bb401d2fc8d9f54d48cced8f526d1dd83fe87d070089f6f483a38192df14ef"
         }
       ],
       "properties": [

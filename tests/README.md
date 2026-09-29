@@ -20,6 +20,9 @@ Do not replace the runner with `node --test tests/`: on current Node the bare di
 
 CI also sets `LOLLY_SKIP_REPORT` so the custom reporter writes each skipped test's file, full parent-chain name, reason, capability and owner. `tests/expected-skips.json` is the exact reviewed Ubuntu baseline. Any new/replacement skip fails, and any expected skip that starts running also fails until its stale entry is removed. To refresh after a reviewed environment change, download all `test-skips-*` artifacts and pass every JSON file as a repeated argument: `pnpm run check:skip-identities --report=<one> --report=<two> … --write`.
 
+Local browser journey failure evidence goes under `plans/artifacts/browser-journeys/`.
+Use `LOLLY_SKIP_REPORT=plans/artifacts/test-skips.json` to retain a local skip report.
+
 ## Experience scorecard
 
 The codebase has many correctness gates; these are the small set that protect the

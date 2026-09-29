@@ -113,3 +113,12 @@ Keep that service's configuration in its own deployment. See its [configuration]
 
 - **CA service** reads `services/ca/.env` for provider credentials and certificate policy (`CA_CERT_DAYS` default 30, `CA_CERT_MAX_DAYS` default 365, allowed day set). Policy stays server-side; see the [Content Credentials Identity](/info/content-credentials-identity.html) operator runbook.
 - **MCP server** exposes hosted endpoints with OAuth; self-hosting and the tool surface are covered in [MCP Server](/info/mcp.html).
+
+
+## Supplied and local design systems
+
+**Profile > Design systems > Catalogue source** shows the supplied tokens asset, its namespace, last-known origin and known version/checksum. Cached or unavailable material is labelled. Removing an imported or local copy changes this browser/device only. The confirmation shows the fallback; catalogue assets, personal sessions and uploads remain. **Lolly instance > Design-system source** opens the same explanation.
+
+On a static host, change the source profile or catalogue, rebuild and validate every affected profile (`pnpm run build:catalog:all` and `pnpm run validate:catalog:all`), rebuild the web shell and redeploy. Refresh the catalogue afterwards. Removing a local copy cannot change the deployment's catalogue.
+
+On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a default change or retirement. Stopping a connect download leaves the mounted catalogue available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or editable local copy receives a notice and keeps its work. Older servers retain their existing refresh behaviour.

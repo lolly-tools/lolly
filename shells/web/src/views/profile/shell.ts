@@ -256,6 +256,7 @@ export function renderShell(pv: ProfileViewCtx): void {
           <span class="store-manage-name">${escapeText(instanceBase || t('Bundled with this app'))}</span>
           <span style="display:flex;gap:8px">
             ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - orgAdminHref() returns the '/admin' literal or null; no control-plane value reaches it */ ''}
+            <button type="button" class="btn" id="instance-design-systems">${t('Design-system source')}</button>
             ${adminHref ? `<a class="btn" id="instance-console-link" href="${escapeText(adminHref)}">${t('Instance console')}</a>` : ''}
             ${canChangeInstance ? `<button type="button" class="btn" id="instance-change-btn">${t('Change')}</button>` : ''}
             ${/* Leave is never desktop-only: a .lolly share file carrying an instance pack

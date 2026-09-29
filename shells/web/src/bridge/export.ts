@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { sequenceExportRequest } from './export-sequence-request.ts';
+import { snapshotMotion } from './export-motion-snapshot.ts';
 import { stripCanvasAnnotations } from './export-canvas-annotations.ts';
 import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
 /**
@@ -560,14 +562,9 @@ async function renderSequenceCutSheet(node: Element, format: string, opts: Expor
 }
 
 async function renderFormatDispatch(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {
-  // Contact sheet FIRST, ahead of every still renderer: `cuts=N` changes what the
-  // output IS (an archive, or a paged document), not how one still is drawn. The
-  // guard is exact - N > 1, a still format, a timed stage - so `cuts=1` and every
-  // non-sequence export fall straight through to the switch untouched.
-  if (opts.cuts != null && opts.cuts !== 1 && isSequenceStage(node)) {
-    const { wantsCuts } = await import('./sequence-cuts.ts');
-    if (wantsCuts(format, opts.cuts, true)) return await renderSequenceCutSheet(node, format, opts);
-  }
+  const request = sequenceExportRequest(node, format, opts, isSequenceStage(node));
+  opts = request.opts;
+  if (request.samples) return renderSequenceCutSheet(node, format, opts);
   if (wantsDeepExport(format,opts)) return (await import('./export-deep.ts')).renderDesignOrFrame(node,format,opts,_host);
   switch (format) {
     case 'lottie': {
@@ -4742,51 +4739,6 @@ function normalizeCanvas(src: HTMLCanvasElement, w: number, h: number): HTMLCanv
 // never thrown - a still-blank video is no worse than today. Synchronous + jsdom-safe
 // (videoWidth is 0 there → a clean no-op). gif/apng/animated-webp inside an <img>
 // already export as a still, so only <video> needs this.
-function snapshotMotion(node: Element): () => void {
-  if (!node.querySelectorAll) return () => {};
-  const swaps: { video: HTMLElement; still: HTMLElement; prevDisplay: string }[] = [];
-  for (const el of [...node.querySelectorAll('video')]) {
-    const video = el as HTMLVideoElement;
-    try {
-      const w = video.videoWidth, h = video.videoHeight;
-      if (!w || !h || video.readyState < 2) continue;   // no decoded frame yet
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) continue;
-      ctx.drawImage(video, 0, 0, w, h);                 // SecurityError if the video is cross-origin tainted
-      const still = document.createElement('img');
-      still.src = canvas.toDataURL('image/png');        // also throws SecurityError if tainted - caught below
-      // Marked so a renderer that decodes the video ITSELF can hide the freeze
-      // instead of baking it in. The sequence compositor needs exactly that on the
-      // ZIP path, where the guard above keys on the outer 'zip' format and the
-      // frozen still therefore already exists by the time mp4/webm re-dispatches.
-      still.setAttribute('data-motion-still', '1');
-      // Reproduce the on-screen framing: the class + inline style carry sizing
-      // (e.g. .lolly-box-img width/height + object-fit), and the computed
-      // replaced-element props cover a tool that set them elsewhere.
-      still.className = video.className;
-      const styleAttr = video.getAttribute('style');
-      if (styleAttr) still.setAttribute('style', styleAttr);
-      const cs = getComputedStyle(video);
-      still.style.objectFit = cs.objectFit;
-      still.style.objectPosition = cs.objectPosition;
-      still.style.borderRadius = cs.borderRadius;
-      video.parentNode?.insertBefore(still, video);
-      const prevDisplay = video.style.display;
-      video.style.display = 'none';                     // keep only the still in the serialised tree
-      swaps.push({ video, still, prevDisplay });
-    } catch { /* tainted or undecodable - leave the video as-is rather than throw */ }
-  }
-  return () => {
-    for (const { video, still, prevDisplay } of swaps) {
-      still.remove();
-      video.style.display = prevDisplay;
-    }
-  };
-}
-
 // Natural pixel dimensions of an image href (for cover/contain fitting). Null on failure.
 async function imageDims(src: string): Promise<{ w: number; h: number } | null> {
   try {

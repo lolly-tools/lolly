@@ -12,17 +12,25 @@ import { dispatch } from '../src/server.ts';
 import type { JsonRpcRequest } from '../src/protocol.ts';
 
 let buffer = '';
+const pending = new Set<Promise<void>>();
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (chunk: string) => {
   buffer += chunk;
+  if (Buffer.byteLength(buffer, 'utf8') > 32 * 1024 * 1024) { process.stderr.write('MCP input exceeds 32 MiB\n'); process.exit(1); }
   let nl: number;
   while ((nl = buffer.indexOf('\n')) >= 0) {
     const line = buffer.slice(0, nl).trim();
     buffer = buffer.slice(nl + 1);
-    if (line) void handleLine(line);
+    if (line) { const work = handleLine(line).finally(() => pending.delete(work)); pending.add(work); }
   }
 });
-process.stdin.on('end', () => process.exit(0));
+process.stdin.on('end', async () => {
+  if (buffer.trim()) await handleLine(buffer.trim());
+  await Promise.allSettled(pending);
+  const { closeBrowser, closeWebShell } = await import('../src/render.ts');
+  await closeBrowser(); await closeWebShell();
+  process.stdout.write('', () => process.exit(0));
+});
 
 async function handleLine(line: string): Promise<void> {
   let req: JsonRpcRequest;

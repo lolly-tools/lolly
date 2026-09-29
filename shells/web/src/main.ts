@@ -961,11 +961,15 @@ function afterWelcomeIdle(fn: () => void): void {
   void welcomeSettled().then(() => afterLoadIdle(() => { void welcomeSettled().then(fn); }));
 }
 
+function catalogHostOf(host: Awaited<ReturnType<typeof createBridge>>) {
+  return host as unknown as Parameters<typeof syncCatalog>[0] & Parameters<typeof showGalleryWelcome>[0];
+}
+
 /** Start the catalog once the shell's instance choice is settled. */
 function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean): Promise<void> {
   const welcomeRoute = parseRoute().name;
   if ((welcomeRoute === 'gallery' || welcomeRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
-  const catalogHost = host as unknown as Parameters<typeof syncCatalog>[0] & Parameters<typeof showGalleryWelcome>[0];
+  const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
     ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery').catch(console.error) : undefined;
   return syncCatalog(catalogHost, welcomeFirst, welcomeSettled)
@@ -1499,6 +1503,9 @@ async function boot(): Promise<void> {
   // section at all.
   const org = await orgPromise;
   if (org?.gate) { settleWelcomeDecision(); return; }
+  if (org?.config?.branding?.revision) {
+    void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), org.config!.branding!.revision, () => parseRoute().name)).catch(console.error);
+  }
 
   const routeName = parseRoute().name;
   // A cold gallery visit gets ONE extra chance before it falls back to waiting on the

@@ -100,6 +100,9 @@ export interface StageNavOpts {
 }
 /** The canvas pan/zoom handle setupStageNav returns. */
 export interface StageNav {
+  /** Hold view transforms during capture. Release after restoring the preview layout. */
+  suspend(): () => void;
+  isSuspended(): boolean;
   reset(): void;
   isZoomed(): boolean;
   /**
@@ -181,6 +184,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   const FIT_SNAP = 0.05;
   const FIT_FLOOR = 0.05;         // hard stop on how far a computed fit may widen the zoom-out floor
   let scale = 1, tx = 0, ty = 0;
+  let suspensions = 0, pendingFit = false, pendingApply = false, destroyed = false;
   let originX = 0, originY = 0;   // outer's natural (untransformed) top-left, client coords
   const pts = new Map<number, Point>();          // pointerId -> { x, y }   (touch / pen)
   let pinchDist = 0;              // finger separation at the previous move
@@ -274,6 +278,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   }
 
   function apply(): void {
+    if (suspensions) { pendingApply = true; return; }
     outerEl.style.transform = (scale === 1 && tx === 0 && ty === 0)
       ? '' : `translate(${tx}px, ${ty}px) scale(${scale})`;
     syncHud();
@@ -429,6 +434,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   // which is every tool but the canvas editors - and this is byte-for-byte what Fit
   // has always been.
   function fit(): void {
+    if (suspensions) { pendingFit = true; return; }
     reset();
     onFit?.();
     const r = (compactTouch() ? opts?.activeRect?.() : null) ?? opts?.contentRect?.();
@@ -994,6 +1000,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   stageRo?.observe(stageEl);
 
   function destroy(): void {
+    destroyed = true;
     stageEl.removeEventListener('fc-text-focus',onTextFocus);
     window.removeEventListener('resize', onLayoutChange);
     canvasEl?.removeEventListener('canvas-resize', onLayoutChange);
@@ -1012,6 +1019,20 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   }
 
   return {
+    suspend() {
+      suspensions++;
+      let released = false;
+      return () => {
+        if (released) return;
+        released = true;
+        if (--suspensions || destroyed) return;
+        const refit = pendingFit, repaint = pendingApply;
+        pendingFit = pendingApply = false;
+        if (refit) fit();
+        else if (repaint) apply();
+      };
+    },
+    isSuspended: () => suspensions > 0,
     reset, isZoomed, isUserZoomed, sync: syncHud, fit, fitSelection, focusRect,
     revealRect(rect, viewport) {
       if (![rect.x, rect.y, rect.w, rect.h, viewport.x, viewport.y, viewport.w, viewport.h].every(Number.isFinite) || viewport.w <= 0 || viewport.h <= 0) return;

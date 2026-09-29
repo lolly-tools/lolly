@@ -38,6 +38,7 @@ const SKIP_DIRS = new Set(['node_modules', '.git', '.claude', 'dist', 'build', '
  *  scanning them would double-count community/ and brands/ under a second path. */
 function isExcluded(rel: string): boolean {
   return (
+    rel === 'plans' || rel.startsWith('plans/') ||
     rel === 'tools' || rel.startsWith('tools/') ||
     rel === 'catalog' || rel.startsWith('catalog/') ||
     rel === 'api/mcp' || rel === 'api/ca' ||

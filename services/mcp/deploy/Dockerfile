@@ -18,6 +18,7 @@
 FROM node:26-bookworm-slim@sha256:662933cf47f013bc8e4beb31a6116448427a82057ba7c42c97e4c5ba766504c2
 
 ENV NODE_ENV=production \
+    LOLLY_MCP_BIND_HOST=0.0.0.0 \
     # Chromium lands here at build time; render.ts + install-browser.ts both point
     # PLAYWRIGHT_BROWSERS_PATH at services/mcp/.browsers - keep them in agreement.
     PLAYWRIGHT_BROWSERS_PATH=/app/services/mcp/.browsers \

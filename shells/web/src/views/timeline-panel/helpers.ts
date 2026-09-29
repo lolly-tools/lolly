@@ -64,7 +64,11 @@ export function stepTime(tp: TpCtx, seconds: number, frames: number): number {
   const rate = projectRate(tp.opts.projectTime?.rate());
   return timeOfFrame(frameAt(seconds, rate) + frames, rate);
 }
-export function quantiseTime(tp: TpCtx, seconds: number): number { return frameSeconds(seconds, projectRate(tp.opts.projectTime?.rate())); }
+export function quantiseTime(tp: TpCtx, seconds: number): number {
+  const tempo = tp.cues?.read();
+  if (tempo?.snap && tempo.tempo?.bpm) { const beat = 60 / tempo.tempo.bpm; seconds = tempo.tempo.offset + Math.round((seconds - tempo.tempo.offset) / beat) * beat; }
+  return frameSeconds(seconds, projectRate(tp.opts.projectTime?.rate()));
+}
 /** Set fields on one box. A VALUE write - no arithmetic, by design (see header). */
 export function patchBox(tp: TpCtx, boxes: Box[], id: string, patch: Record<string, Box[string]>): Box[] {
   const { cfg } = tp;

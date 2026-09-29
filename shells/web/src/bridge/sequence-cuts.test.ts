@@ -220,3 +220,40 @@ test('a stage with no declared duration fails coded, before rendering anything',
     /data-seq-ms/);
   assert.equal(rec.stills.length, 0);
 });
+
+test('explicit times return a single still or sample both sides of a clip boundary', async () => {
+  const root = stage(), before = root.innerHTML;
+  const one = deps(root);
+  await renderSequenceCuts(root, 'png', { sampleTimes: [1] }, one.d);
+  assert.deepEqual(one.rec.stills.map(item => item.live), [['b']]);
+  assert.equal(one.rec.zipped.length, 0);
+  assert.equal(root.innerHTML, before);
+  const many = deps(root);
+  await renderSequenceCuts(root, 'png', { sampleTimes: [0, 0.999, 1, 2] }, many.d);
+  assert.deepEqual(many.rec.stills.map(item => item.live), [['a'], ['a'], ['b'], ['c']]);
+  assert.equal(many.rec.zipped.length, 4);
+  assert.equal(root.innerHTML, before);
+});
+
+test('exact sampling refuses vector media samples and out-of-range times without posing the document', async () => {
+  for (const marker of ['video', 'div data-lottie-src="clip.json"', 'div data-lolly-scene', 'div data-anim-src="clip.svg"']) {
+    const root = stage();
+    root.querySelector('.lolly-box')!.innerHTML = `<${marker}></${marker.split(' ')[0]}>`;
+    const before = root.innerHTML, dep = deps(root);
+    await assert.rejects(() => renderSequenceCuts(root, 'svg', { sampleTimes: [0] }, dep.d), /require PNG/);
+    assert.equal(dep.rec.stills.length, 0);
+    assert.equal(root.innerHTML, before);
+  }
+  const root = stage();
+  await assert.rejects(() => renderSequenceCuts(root, 'png', { sampleTimes: [3] }, deps(root).d), /before the timeline end/);
+});
+
+test('cancellation restores the sample pose and never packages a partial sheet', async () => {
+  const root = stage(), before = root.innerHTML, dep = deps(root), controller = new AbortController();
+  const render = dep.d.renderStill;
+  dep.d.renderStill = async (...args) => { const blob = await render(...args); controller.abort(); return blob; };
+  await assert.rejects(() => renderSequenceCuts(root, 'png', { sampleTimes: [0, 1, 2], signal: controller.signal }, dep.d), /abort/i);
+  assert.equal(dep.rec.stills.length, 1);
+  assert.equal(dep.rec.zipped.length, 0);
+  assert.equal(root.innerHTML, before);
+});

@@ -157,6 +157,10 @@ jobs:
         if: matrix.shard == 'browser'
         run: pnpm run install:browser --with-deps
 
+      - name: Install motion inspection tools
+        if: matrix.shard == 'browser' || matrix.shard == 'contracts'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
       - name: Start public shell for journey regressions
         if: matrix.shard == 'browser'
         run: |
@@ -166,6 +170,7 @@ jobs:
             if curl --silent --fail http://127.0.0.1:4187/ > /dev/null; then
               echo 'LOLLY_IMPORT_TEST_URL=http://127.0.0.1:4187' >> "$GITHUB_ENV"
               echo 'LOLLY_EXPORT_TEST_URL=http://127.0.0.1:4187' >> "$GITHUB_ENV"
+              echo 'LOLLY_WEB_BASE=http://127.0.0.1:4187' >> "$GITHUB_ENV"
               exit 0
             fi
             sleep 1
@@ -250,7 +255,7 @@ jobs:
           path: |
             artifacts/test-skips.json
             artifacts/public-journey-shell.log
-            artifacts/browser-journeys/
+            plans/artifacts/browser-journeys/
           if-no-files-found: error
 
   typecheck:

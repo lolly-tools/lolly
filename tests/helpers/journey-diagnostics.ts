@@ -23,7 +23,7 @@ export function journeyDiagnostics(context: BrowserContext, name: string) {
   for (const page of context.pages()) watch(page);
   context.on('page', watch);
   return async (error: unknown): Promise<void> => {
-    const directory = join('artifacts', 'browser-journeys', name);
+    const directory = join('plans', 'artifacts', 'browser-journeys', name);
     try {
       await mkdir(directory, { recursive: true });
       const requests = [...pending].map(([request, started]) => ({ url: request.url(), type: request.resourceType(), elapsed: Date.now() - started }));

@@ -1,0 +1,16 @@
+@layer chrome {
+  .brand-refresh-note {
+    position: fixed;
+    inset: auto 1rem 1rem auto;
+    z-index: 100;
+    max-width: min(32rem, calc(100vw - 2rem));
+    padding: 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-lg);
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    box-shadow: var(--ui-elevation-floating);
+  }
+  .brand-refresh-note[hidden] { display: none; }
+  .brand-refresh-note a { display: inline-block; margin-top: .5rem; }
+}

@@ -34,13 +34,13 @@ the lab writes no browser storage.
 Import a local folder of PPTX and PDF files through Rebrand's Node reader. The
 optional OCR pass uses the same `reconstructFlattenedSlide` and installed
 PP-OCRv5 model as Rebrand. Source documents are read only. All extracted content,
-media, OCR evidence and previews go under the ignored `.scratch` directory.
+media, OCR evidence and previews go under the ignored `plans/scratch` directory.
 
 ```sh
 node scripts/layout-lab/import-corpus.ts /path/to/slides --ocr --render
-node scripts/layout-lab.ts --serve --corpus=.scratch/layout-lab/real
-node scripts/layout-lab.ts --corpus=.scratch/layout-lab/real \
-  --methods=rules,embed --out=.scratch/layout-lab/real-ranking.json
+node scripts/layout-lab.ts --serve --corpus=plans/scratch/layout-lab/real
+node scripts/layout-lab.ts --corpus=plans/scratch/layout-lab/real \
+  --methods=rules,embed --out=plans/scratch/layout-lab/real-ranking.json
 
 # With the corpus server running:
 node scripts/layout-lab/browser-corpus-check.ts
@@ -134,11 +134,11 @@ node scripts/layout-lab.ts --methods=rules
 
 # Full CPU comparison, incremental report saved after each result.
 node scripts/layout-lab.ts --methods=rules,embed,choice,json \
-  --out=.scratch/layout-lab/node-report.json
+  --out=plans/scratch/layout-lab/node-report.json
 
 # Rotate the option order to expose model position bias.
 node scripts/layout-lab.ts --methods=embed,choice --rotate=2 \
-  --out=.scratch/layout-lab/rotated-report.json
+  --out=plans/scratch/layout-lab/rotated-report.json
 
 # One case; --limit bounds the number of briefs, --timeout bounds each worker call.
 node scripts/layout-lab.ts --methods=choice,json --case=implicit-sequence
@@ -149,7 +149,7 @@ node scripts/layout-lab/browser-check.ts
 node --test tests/layout-lab.test.ts
 ```
 
-The CLI defaults to rules and writes `.scratch/layout-lab/report.json`. `--port`
+The CLI defaults to rules and writes `plans/scratch/layout-lab/report.json`. `--port`
 changes the browser port. No report contains uploaded material unless the person
 edits a brief to include that material.
 

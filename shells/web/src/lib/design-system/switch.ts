@@ -55,6 +55,7 @@ export interface SwitchResult {
   baseChanged: boolean;
   /** The current view holds work and was not remounted; show the reload banner. */
   needsReload: boolean;
+  catalogStatus: 'unchanged' | 'current' | 'cached';
 }
 
 export interface SwitchOptions {
@@ -66,6 +67,8 @@ export interface SwitchOptions {
   resync?: (host: SwitchHost) => Promise<void>;
   /** Injected for tests: the base write (IndexedDB-backed in the shell). */
   setBase?: (url: string | null) => Promise<void>;
+  /** Removal must retain the outgoing record if its connection cannot change. */
+  strictConnection?: boolean;
 }
 
 /** The instance a record wants as the base: hosted, or carried by an instance
@@ -79,28 +82,40 @@ export async function switchDesignSystem(host: SwitchHost, id: string, opts: Swi
   const registry = host.designSystems;
   const previous = await registry.active();
   await registry.setActive(id);
-  const record = await registry.active();
+  let record = await registry.active();
 
   // 1. Caches, lock included: whether the ACTIVE material is read-only is a
   //    record fact now, but the build lock memo also has to be re-read because a
   //    pack import may have changed the shipped catalog's flag underneath it.
   host.tokens?.bust({ lock: true });
 
-  // 2. Fonts.
-  await registerUserFonts(host as unknown as Parameters<typeof registerUserFonts>[0]).catch(() => { /* faces are cosmetic to a switch */ });
-
   // 3. The base follows hosted records, and only them: a base a person set by
   //    hand (the desktop instance sheet) is not this module's to clear.
   const from = instanceOf(previous);
   const to = instanceOf(record);
   let baseChanged = false;
+  let catalogStatus: SwitchResult['catalogStatus'] = 'unchanged';
   if (to !== from && (to || from === getInstanceBase())) {
     try {
       await (opts.setBase ?? setInstanceBase)(to || null);
       baseChanged = true;
-      await (opts.resync ?? defaultResync)(host);
-    } catch { /* offline or a refused base - the material on the device still renders */ }
+    } catch (error) {
+      if (opts.strictConnection) {
+        await registry.setActive(previous.id);
+        throw error;
+      }
+    }
+    if (baseChanged) {
+      try { await (opts.resync ?? defaultResync)(host); catalogStatus = 'current'; }
+      catch { catalogStatus = 'cached'; }
+      registry.bust();
+      record = await registry.active();
+      host.tokens?.bust({ lock: true });
+    }
   }
+
+  // Register fonts after the catalogue has followed the connection.
+  await registerUserFonts(host as unknown as Parameters<typeof registerUserFonts>[0]).catch(() => { /* faces are cosmetic to a switch */ });
 
   // 4. Chrome, then theme.
   await applyChromeBrandVars(host as unknown as Parameters<typeof applyChromeBrandVars>[0]).catch(() => { /* cosmetic */ });
@@ -127,15 +142,16 @@ export async function switchDesignSystem(host: SwitchHost, id: string, opts: Swi
       else if (opts.route) needsReload = true;
     }
   }
-  return { record, baseChanged, needsReload };
+  return { record, baseChanged, needsReload, catalogStatus };
 }
 
 /** The catalog resync a base change needs: the same pair the instance sheet and
  *  the profile's Leave button run. Dynamic imports keep this module off any
  *  boot path that only wants the event name. */
 async function defaultResync(host: SwitchHost): Promise<void> {
-  const { syncCatalog } = await import('../../catalog/sync.ts');
-  await syncCatalog(host as unknown as Parameters<typeof syncCatalog>[0]).catch(() => { /* offline - the cache stands */ });
+  const { syncCatalog, networkStatus } = await import('../../catalog/sync.ts');
+  await syncCatalog(host as unknown as Parameters<typeof syncCatalog>[0]);
   const { mergeInstalledToolsIntoIndex } = await import('../installed-tools.ts');
   await mergeInstalledToolsIntoIndex().catch(() => { /* no sideloads */ });
+  if (networkStatus.offline) throw new Error('Catalogue refresh is offline');
 }

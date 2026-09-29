@@ -181,6 +181,11 @@ tools/<id>/
 | `docs/` | architecture, authoring guides, positioning, URL mode; `build.ts` builds the info site |
 | `plans/` | **gitignored, local to the maintainer's machine** - any `plans/NN-…` reference in code comments or docs points at a file that is not in any repo. Treat those as citations you cannot follow, not as required reading |
 
+Local validation exports, screenshots, experiment corpora, scratch scripts and
+machine-specific run reports belong under `plans/`. Keep reusable test fixtures,
+recipes and generators in the maintained tree. Catalog indexes, generated hooks
+and API bundles required by a plain clone or deployment remain committed.
+
 ## Features
 
 ### Lottie clips and structural export (plan 250)

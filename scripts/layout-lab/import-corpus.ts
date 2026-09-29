@@ -14,7 +14,7 @@ import { caseFromSource, sourceText, type CorpusCase, type CorpusIndex, type Ocr
 const args = process.argv.slice(2);
 const directory = args.find(a => !a.startsWith('--'));
 if (!directory) throw new Error('Usage: node scripts/layout-lab/import-corpus.ts <directory> [--ocr] [--render] [--out=directory] [--references=directory]');
-const out = path.resolve(args.find(a => a.startsWith('--out='))?.slice(6) ?? '.scratch/layout-lab/real');
+const out = path.resolve(args.find(a => a.startsWith('--out='))?.slice(6) ?? 'plans/scratch/layout-lab/real');
 const references = path.resolve(args.find(a => a.startsWith('--references='))?.slice(13) ?? path.join(out, 'references'));
 for (const folder of [out, references, path.join(out, 'cases'), path.join(out, 'previews'), path.join(out, 'pictures')]) mkdirSync(folder, { recursive: true });
 const dom = new JSDOM('');

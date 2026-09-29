@@ -8,8 +8,8 @@
  * owner-side `host.raster.decode` RPC instead.
  */
 import { parentPort } from 'node:worker_threads';
-import { createHookWorkerCore, lockDownAmbientCapabilities } from '@lolly/engine';
-import type { HookWorkerIn } from '@lolly/engine';
+// Load only the worker core so startup does not evaluate the full engine barrel.
+import { createHookWorkerCore, lockDownAmbientCapabilities, type HookWorkerIn } from '../../../engine/src/hook-worker-core.ts';
 
 // `process` itself stays: Node's own message-port and timer internals in the
 // thread read it, and hiding it wedges the thread (verified on Node 22). Its

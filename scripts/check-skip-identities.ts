@@ -32,7 +32,7 @@ function load(filename: string): SkipManifest {
 
 export function main(argv = process.argv.slice(2)): number {
   const reportArgs = argv.filter((arg) => arg.startsWith('--report=')).map((arg) => path.resolve(arg.slice('--report='.length)));
-  const reports = reportArgs.length ? reportArgs : [path.resolve(process.env.LOLLY_SKIP_REPORT ?? 'artifacts/test-skips.json')];
+  const reports = reportArgs.length ? reportArgs : [path.resolve(process.env.LOLLY_SKIP_REPORT ?? 'plans/artifacts/test-skips.json')];
   const loaded = reports.map(load);
   const actual: SkipManifest = {
     schemaVersion: 1,

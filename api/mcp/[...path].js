@@ -3752,7 +3752,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.229.0";
+    ENGINE_VERSION = "1.231.0";
   }
 });
 
@@ -4948,22 +4948,22 @@ function sliceGamutRegion(plane, fixed, limit = "srgb", steps = 96, cMax = SLICE
     };
   };
   const rings = [];
-  let run = [];
+  let run2 = [];
   const flush = () => {
-    if (run.length >= 2) {
+    if (run2.length >= 2) {
       rings.push([
-        ...run.map((p) => ({ x: p.x, y: 1 - p.hi })),
+        ...run2.map((p) => ({ x: p.x, y: 1 - p.hi })),
         // out along the top
-        ...run.slice().reverse().map((p) => ({ x: p.x, y: 1 - p.lo }))
+        ...run2.slice().reverse().map((p) => ({ x: p.x, y: 1 - p.lo }))
         // back along the bottom
       ]);
     }
-    run = [];
+    run2 = [];
   };
   for (let i = 0; i <= n6; i++) {
     const x = i / n6;
     const w = window2(x * 360);
-    if (w) run.push({ x, ...w });
+    if (w) run2.push({ x, ...w });
     else flush();
   }
   flush();
@@ -35851,11 +35851,11 @@ var init_template = __esm({
       const html = String(text6).split(/\n{2,}/).filter((b) => b.trim()).map((block) => {
         const lines = block.split("\n").filter((l) => l.trim() !== "");
         const out = [];
-        let run = [];
+        let run2 = [];
         const flushRun = () => {
-          if (run.length) {
-            out.push(renderRun(run));
-            run = [];
+          if (run2.length) {
+            out.push(renderRun(run2));
+            run2 = [];
           }
         };
         for (const line of lines) {
@@ -35865,7 +35865,7 @@ var init_template = __esm({
             const level2 = h[1].length;
             out.push(`<h${level2}>${inline(h[2])}</h${level2}>`);
           } else {
-            run.push(line);
+            run2.push(line);
           }
         }
         flushRun();
@@ -39227,13 +39227,13 @@ function createEmojiToolText(api, text6, selected) {
       for (const segment of prepared3.segments) {
         if (segment.kind === "text") {
           if (!font || !text6) throw new Error("The selected face is unavailable for artwork text.");
-          const run = await text6.toPath({ text: segment.text, fontUrl: font.url, fontSize: size, variations: font.variations, letterSpacing: spacing, preserveWhitespaceAdvance: true });
-          if (run.notdef) throw new Error("The selected face does not cover this artwork text.");
-          parts.push(`<path transform="translate(${num11(x)} 0)" fill="${fill2}" d="${escapeXml(run.d)}"/>`);
-          x += run.advanceWidth;
-          if (run.bbox) {
-            top = Math.min(top, run.bbox.y1);
-            bottom = Math.max(bottom, run.bbox.y2);
+          const run2 = await text6.toPath({ text: segment.text, fontUrl: font.url, fontSize: size, variations: font.variations, letterSpacing: spacing, preserveWhitespaceAdvance: true });
+          if (run2.notdef) throw new Error("The selected face does not cover this artwork text.");
+          parts.push(`<path transform="translate(${num11(x)} 0)" fill="${fill2}" d="${escapeXml(run2.d)}"/>`);
+          x += run2.advanceWidth;
+          if (run2.bbox) {
+            top = Math.min(top, run2.bbox.y1);
+            bottom = Math.max(bottom, run2.bbox.y2);
           }
         } else if (segment.kind === "emoji") {
           const m2 = segment.metrics, y = (m2.descentEm - m2.heightEm) * size;
@@ -45389,8 +45389,8 @@ function decodeWrapperAt(nfc, unit2, byteOff) {
   };
   for (const want of WRAPPER_MAGIC) if (nextByte() !== want) return null;
   const at = (status, reason2, version2 = 0) => {
-    const run2 = runEndFrom(nfc, i, off);
-    return { start: byteOff, selectorStart, end: off, runEnd: run2.off, version: version2, store: null, status, reason: reason2 };
+    const run3 = runEndFrom(nfc, i, off);
+    return { start: byteOff, selectorStart, end: off, runEnd: run3.off, version: version2, store: null, status, reason: reason2 };
   };
   const version = nextByte();
   if (version < 0) return at(C2PA_TEXT_STATUS.textCorruptedWrapper, "the wrapper ends immediately after its magic number");
@@ -45429,8 +45429,8 @@ function decodeWrapperAt(nfc, unit2, byteOff) {
     if (b < 0) return at(C2PA_TEXT_STATUS.textCorruptedWrapper, `the wrapper is truncated at manifest byte ${k} of ${manifestLength}`, version);
     store[k] = b;
   }
-  const run = runEndFrom(nfc, i, off);
-  return { start: byteOff, selectorStart, end: off, runEnd: run.off, version, store };
+  const run2 = runEndFrom(nfc, i, off);
+  return { start: byteOff, selectorStart, end: off, runEnd: run2.off, version, store };
 }
 function readTextVs(bytes) {
   if (bytes.length > MAX_TEXT_BYTES) return tooLarge("text asset", bytes.length);
@@ -45446,9 +45446,9 @@ function readTextVs(bytes) {
       const wrapper = decodeWrapperAt(nfc, i, off);
       if (wrapper) {
         wrappers.push(wrapper);
-        const run = runEndFrom(nfc, i + width, off + utf8Len(cp));
-        i = run.unit;
-        off = run.off;
+        const run2 = runEndFrom(nfc, i + width, off + utf8Len(cp));
+        i = run2.unit;
+        off = run2.off;
         continue;
       }
     }
@@ -47106,9 +47106,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     }
   }
   function queueEmoji(fn) {
-    const run = emojiChain.then(fn, fn);
-    emojiChain = run.then(() => void 0, () => void 0);
-    return run;
+    const run2 = emojiChain.then(fn, fn);
+    emojiChain = run2.then(() => void 0, () => void 0);
+    return run2;
   }
   async function emojiPacksFor(style) {
     const api = host.emoji;
@@ -48212,6 +48212,156 @@ var init_runtime = __esm({
   }
 });
 
+// engine/src/print-marks.ts
+function cmykToRgbApprox([c, m2, y, k]) {
+  return [(1 - c) * (1 - k), (1 - m2) * (1 - k), (1 - y) * (1 - k)];
+}
+function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palette = [], barStyle = "cmyk-verify", barRadiusPt = 0 }) {
+  const m2 = { crop: false, registration: false, bleed: false, colorBars: false, provenance: false, ...marks };
+  const { markLengthPt: L, markReachPt: R2, regRadiusPt: rr, regCrossPt: rc, barCellPt: bc, barPairGapPt: bg, barGroupGapPt: bgap, barMaxCells: bmax, labelSizePt: ls, labelInsetPt: li } = PRINT_MARK_DEFAULTS;
+  const cellR = Math.max(0, Math.min(barRadiusPt, bc / 2));
+  const anyMark = m2.crop || m2.registration || m2.bleed || m2.colorBars || m2.provenance;
+  const reach2 = anyMark ? R2 : 0;
+  const M2 = bleedPt + reach2;
+  const pageW = trimWpt + 2 * M2;
+  const pageH = trimHpt + 2 * M2;
+  const trim2 = { x: M2, y: M2, w: trimWpt, h: trimHpt };
+  const bleed = { x: M2 - bleedPt, y: M2 - bleedPt, w: trimWpt + 2 * bleedPt, h: trimHpt + 2 * bleedPt };
+  const media = { x: 0, y: 0, w: pageW, h: pageH };
+  const trimL = trim2.x, trimT = trim2.y, trimR = trim2.x + trim2.w, trimB = trim2.y + trim2.h;
+  const bL = bleed.x, bT = bleed.y, bR = bleed.x + bleed.w, bB = bleed.y + bleed.h;
+  const lines = [], circles = [], bars = [], labels = [];
+  const line = (x1, y1, x2, y2, mark) => {
+    lines.push({ x1, y1, x2, y2, mark });
+  };
+  if (m2.crop) {
+    line(trimL, bT, trimL, bT - L, "crop");
+    line(bL, trimT, bL - L, trimT, "crop");
+    line(trimR, bT, trimR, bT - L, "crop");
+    line(bR, trimT, bR + L, trimT, "crop");
+    line(trimL, bB, trimL, bB + L, "crop");
+    line(bL, trimB, bL - L, trimB, "crop");
+    line(trimR, bB, trimR, bB + L, "crop");
+    line(bR, trimB, bR + L, trimB, "crop");
+  }
+  if (m2.bleed && bleedPt > 0) {
+    line(bL, bT, bL, bT - L, "bleed");
+    line(bL, bT, bL - L, bT, "bleed");
+    line(bR, bT, bR, bT - L, "bleed");
+    line(bR, bT, bR + L, bT, "bleed");
+    line(bL, bB, bL, bB + L, "bleed");
+    line(bL, bB, bL - L, bB, "bleed");
+    line(bR, bB, bR, bB + L, "bleed");
+    line(bR, bB, bR + L, bB, "bleed");
+  }
+  if (m2.registration) {
+    const reg = (cx2, cy3) => {
+      circles.push({ cx: cx2, cy: cy3, r: rr, mark: "registration" });
+      line(cx2, cy3 - rc, cx2, cy3 + rc, "registration");
+      line(cx2 - rc, cy3, cx2 + rc, cy3, "registration");
+    };
+    const midX = pageW / 2, midY = pageH / 2, half = reach2 / 2;
+    reg(midX, bT - half);
+    reg(midX, bB + half);
+    reg(bL - half, midY);
+    reg(bR + half, midY);
+  }
+  if (m2.colorBars) {
+    const y = bB + reach2 / 2 - bc / 2;
+    const maxX = m2.registration ? pageW / 2 - rc - 6 : pageW - M2;
+    let x = trimL;
+    if (palette.length && barStyle === "rgb-swatches") {
+      let brandCells = 0;
+      for (const { rgb, cmyk, label: label2, spotName } of palette) {
+        if (brandCells >= bmax) break;
+        if (x + bc > maxX) break;
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label: label2, spotName, mark: "colorbar", r: cellR });
+        x += bc + bg;
+        brandCells += 1;
+      }
+    } else if (palette.length) {
+      for (const cmyk of COLOR_BAR_CELLS.slice(0, 4)) {
+        if (x + bc > maxX) break;
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: "cmyk", mark: "colorbar", r: cellR });
+        x += bc;
+      }
+      if (bars.length) x += bgap;
+      let brandCells = 0;
+      for (const { rgb, cmyk, label: label2, spotName } of palette) {
+        if (brandCells + 2 > bmax) break;
+        if (x + 2 * bc > maxX) break;
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label: label2, spotName, mark: "colorbar", r: cellR });
+        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: "cmyk", label: label2, spotName, mark: "colorbar", r: cellR });
+        x += 2 * bc + bg;
+        brandCells += 2;
+      }
+    } else {
+      for (const cmyk of COLOR_BAR_CELLS) {
+        if (bars.length >= bmax) break;
+        if (x + bc > maxX) break;
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: "page", mark: "colorbar", r: cellR });
+        x += bc;
+      }
+    }
+  }
+  if (m2.provenance && reach2 > 0) {
+    labels.push({ slot: "topLeft", x: trimL + li, y: li + ls, size: ls, rotation: 0, align: "left", mark: "label" });
+    labels.push({ slot: "topRight", x: trimR - li, y: li + ls, size: ls, rotation: 0, align: "right", mark: "label" });
+    labels.push({ slot: "bottomLeftUp", x: reach2 / 2, y: trimB - li, size: ls, rotation: 90, align: "left", mark: "label" });
+  }
+  return {
+    page: { w: pageW, h: pageH },
+    boxes: { media, bleed, trim: trim2 },
+    artwork: { ...bleed },
+    strokeWeight: PRINT_MARK_DEFAULTS.markStrokePt,
+    primitives: { lines, circles, bars, labels }
+  };
+}
+var PRINT_MARK_DEFAULTS, COLOR_BAR_CELLS;
+var init_print_marks = __esm({
+  "engine/src/print-marks.ts"() {
+    "use strict";
+    PRINT_MARK_DEFAULTS = {
+      bleed: "3mm",
+      // default bleed amount (a dimension string; see units.js)
+      markLengthPt: 18,
+      // crop / bleed tick length (~0.25")
+      markStrokePt: 0.5,
+      // hairline stroke for all line marks
+      markReachPt: 30,
+      // margin band beyond the bleed that holds the marks
+      regRadiusPt: 6,
+      // registration target circle radius
+      regCrossPt: 11,
+      // registration crosshair half-length (overshoots the circle)
+      barCellPt: 14,
+      // colour-bar cell size (square)
+      barPairGapPt: 6,
+      // gap between brand RGB/CMYK swatch pairs
+      barGroupGapPt: 18,
+      // wider gap between the process primaries and the brand pairs
+      barMaxCells: 12,
+      // flat ceiling on brand colour-bar cells (width is the real cap)
+      labelSizePt: 6,
+      // provenance / credit text size (points)
+      labelInsetPt: 5
+      // provenance text inset from the page edge
+    };
+    COLOR_BAR_CELLS = [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1],
+      [1, 1, 0, 0],
+      [1, 0, 1, 0],
+      [0, 1, 1, 0],
+      [0, 0, 0, 0.25],
+      [0, 0, 0, 0.5],
+      [0, 0, 0, 0.75]
+    ];
+  }
+});
+
 // engine/src/units.ts
 function parseDimension(input, defaultUnit = "px") {
   if (input == null || input === "") return null;
@@ -48250,6 +48400,1365 @@ var init_units = __esm({
     isUnit = (u) => Object.hasOwn(PER_INCH, u);
     toInches = (dim) => dim.value / PER_INCH[dim.unit];
     isPhysical = (dim) => dim != null && dim.unit !== "px";
+  }
+});
+
+// engine/src/color.ts
+function srgbToLinear4(c) {
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+function writeSig(buf, offset, sig) {
+  for (let i = 0; i < 4; i++) buf[offset + i] = sig.charCodeAt(i);
+}
+function xyzType([x, y, z]) {
+  const b = new Uint8Array(20);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "XYZ ");
+  dv.setInt32(8, s15f162(x));
+  dv.setInt32(12, s15f162(y));
+  dv.setInt32(16, s15f162(z));
+  return b;
+}
+function curveType(samples) {
+  const n6 = samples.length;
+  const b = new Uint8Array(12 + n6 * 2);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "curv");
+  dv.setUint32(8, n6);
+  for (const [i, s] of samples.entries()) dv.setUint16(12 + i * 2, s);
+  return b;
+}
+function descType(ascii4) {
+  const a = new TextEncoder().encode(ascii4);
+  const count4 = a.length + 1;
+  const b = new Uint8Array(8 + 4 + count4 + 4 + 4 + 2 + 1 + 67);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "desc");
+  dv.setUint32(8, count4);
+  b.set(a, 12);
+  return b;
+}
+function textType(ascii4) {
+  const a = new TextEncoder().encode(ascii4);
+  const b = new Uint8Array(8 + a.length + 1);
+  writeSig(b, 0, "text");
+  b.set(a, 8);
+  return b;
+}
+function mlucType(str9) {
+  const HEADER2 = 16;
+  const RECORD = 12;
+  const bytes = str9.length * 2;
+  const b = new Uint8Array(HEADER2 + RECORD + bytes);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "mluc");
+  dv.setUint32(8, 1);
+  dv.setUint32(12, RECORD);
+  dv.setUint16(16, 25966);
+  dv.setUint16(18, 21843);
+  dv.setUint32(20, bytes);
+  dv.setUint32(24, HEADER2 + RECORD);
+  for (let i = 0; i < str9.length; i++) dv.setUint16(HEADER2 + RECORD + i * 2, str9.charCodeAt(i));
+  return b;
+}
+function sf32Type(values) {
+  const b = new Uint8Array(8 + values.length * 4);
+  const dv = new DataView(b.buffer);
+  writeSig(b, 0, "sf32");
+  values.forEach((v, i) => dv.setInt32(8 + i * 4, s15f162(v)));
+  return b;
+}
+function cicpType(primaries, transfer, matrix, fullRange) {
+  const b = new Uint8Array(12);
+  writeSig(b, 0, "cicp");
+  b[8] = primaries;
+  b[9] = transfer;
+  b[10] = matrix;
+  b[11] = fullRange;
+  return b;
+}
+function buildIcc(versionBE, tags3) {
+  const tagTableSize = 4 + tags3.length * 12;
+  let offset = align4(128 + tagTableSize);
+  const placed2 = /* @__PURE__ */ new Map();
+  const blobs = [];
+  const entries = tags3.map(([sig, data]) => {
+    let p = placed2.get(data);
+    if (!p) {
+      p = { offset, size: data.length };
+      placed2.set(data, p);
+      blobs.push({ offset, data });
+      offset = align4(offset + data.length);
+    }
+    return { sig, offset: p.offset, size: p.size };
+  });
+  const total = offset;
+  const out = new Uint8Array(total);
+  const dv = new DataView(out.buffer);
+  dv.setUint32(0, total);
+  dv.setUint32(8, versionBE);
+  writeSig(out, 12, "mntr");
+  writeSig(out, 16, "RGB ");
+  writeSig(out, 20, "XYZ ");
+  dv.setUint16(24, 2024);
+  dv.setUint16(26, 1);
+  dv.setUint16(28, 1);
+  writeSig(out, 36, "acsp");
+  dv.setInt32(68, s15f162(D50[0]));
+  dv.setInt32(72, s15f162(D50[1]));
+  dv.setInt32(76, s15f162(D50[2]));
+  dv.setUint32(128, tags3.length);
+  let to = 132;
+  for (const e of entries) {
+    writeSig(out, to, e.sig);
+    dv.setUint32(to + 4, e.offset);
+    dv.setUint32(to + 8, e.size);
+    to += 12;
+  }
+  for (const { offset: o, data } of blobs) out.set(data, o);
+  return out;
+}
+function srgbIccProfile() {
+  if (_srgbCache) return _srgbCache;
+  const trc = new Array(TRC_SAMPLES);
+  for (let i = 0; i < TRC_SAMPLES; i++) {
+    const lin = srgbToLinear4(i / (TRC_SAMPLES - 1));
+    trc[i] = Math.max(0, Math.min(65535, Math.round(lin * 65535)));
+  }
+  const trcData = curveType(trc);
+  _srgbCache = buildIcc(34603008, [
+    ["desc", descType("sRGB IEC61966-2.1")],
+    ["wtpt", xyzType(D50)],
+    ["rXYZ", xyzType(PRIMARIES.r)],
+    ["gXYZ", xyzType(PRIMARIES.g)],
+    ["bXYZ", xyzType(PRIMARIES.b)],
+    ["rTRC", trcData],
+    ["gTRC", trcData],
+    ["bTRC", trcData],
+    ["cprt", textType("Public Domain - sRGB profile generated by Lolly")]
+  ]);
+  return _srgbCache;
+}
+function pqEotfNorm(code) {
+  if (code <= 0) return 0;
+  const m1 = 2610 / 16384, m2 = 2523 / 4096 * 128;
+  const c1 = 3424 / 4096, c2 = 2413 / 4096 * 32, c3 = 2392 / 4096 * 32;
+  const p = code ** (1 / m2);
+  const num11 = Math.max(p - c1, 0);
+  const den = c2 - c3 * p;
+  return (num11 / den) ** (1 / m1);
+}
+function pqBt2020IccProfile() {
+  if (_pqCache) return _pqCache;
+  const trc = new Array(TRC_SAMPLES);
+  for (let i = 0; i < TRC_SAMPLES; i++) {
+    trc[i] = Math.max(0, Math.min(65535, Math.round(pqEotfNorm(i / (TRC_SAMPLES - 1)) * 65535)));
+  }
+  const trcData = curveType(trc);
+  _pqCache = buildIcc(71303168, [
+    // ICC v4.4 (first version with the cicp tag)
+    ["desc", mlucType("Rec.2100 PQ")],
+    ["cprt", mlucType("Public Domain - Rec.2100 PQ profile generated by Lolly")],
+    ["wtpt", xyzType(D50)],
+    ["chad", sf32Type(CHAD_D65_TO_D50)],
+    ["rXYZ", xyzType(BT2020_D50.r)],
+    ["gXYZ", xyzType(BT2020_D50.g)],
+    ["bXYZ", xyzType(BT2020_D50.b)],
+    ["rTRC", trcData],
+    ["gTRC", trcData],
+    ["bTRC", trcData],
+    ["cicp", cicpType(9, 16, 0, 1)]
+  ]);
+  return _pqCache;
+}
+function iccProfileBytes(name = "srgb") {
+  if (!name || name === "none") return null;
+  const p = isProfileName(name) ? COLOR_PROFILES[name] : COLOR_PROFILES.srgb;
+  return p.bytes();
+}
+function rgbToCmyk(r5, g2, b) {
+  const k = 1 - Math.max(r5, g2, b);
+  if (k >= 1) return [0, 0, 0, 1];
+  const d = 1 - k;
+  return [(1 - r5 - k) / d, (1 - g2 - k) / d, (1 - b - k) / d, k];
+}
+function cmykCondition(name = DEFAULT_CMYK_CONDITION) {
+  return isCmykConditionName(name) ? CMYK_CONDITIONS[name] : CMYK_CONDITIONS[DEFAULT_CMYK_CONDITION];
+}
+var s15f162, align4, D50, PRIMARIES, TRC_SAMPLES, _srgbCache, BT2020_D50, CHAD_D65_TO_D50, _pqCache, COLOR_PROFILES, isProfileName, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, isCmykConditionName;
+var init_color2 = __esm({
+  "engine/src/color.ts"() {
+    "use strict";
+    s15f162 = (v) => Math.round(v * 65536);
+    align4 = (n6) => n6 + 3 & ~3;
+    D50 = [0.9642, 1, 0.8249];
+    PRIMARIES = {
+      r: [0.43607, 0.22249, 0.01392],
+      g: [0.38515, 0.71687, 0.09708],
+      b: [0.14307, 0.06061, 0.7141]
+    };
+    TRC_SAMPLES = 1024;
+    _srgbCache = null;
+    BT2020_D50 = {
+      r: [0.673459, 0.279033, -1938e-6],
+      g: [0.165661, 0.675338, 0.029996],
+      b: [0.1251, 0.045631, 0.797177]
+    };
+    CHAD_D65_TO_D50 = [
+      1.0478112,
+      0.0228866,
+      -0.050127,
+      0.0295424,
+      0.9904844,
+      -0.0170491,
+      -92345e-7,
+      0.0150436,
+      0.7521316
+    ];
+    _pqCache = null;
+    COLOR_PROFILES = {
+      srgb: { id: "srgb", name: "sRGB IEC61966-2.1", space: "RGB", bytes: srgbIccProfile }
+    };
+    isProfileName = (n6) => Object.hasOwn(COLOR_PROFILES, n6);
+    CMYK_CONDITIONS = {
+      fogra39: { identifier: "FOGRA39", info: "Coated FOGRA39 (ISO 12647-2:2004)", registry: "http://www.color.org", tac: 330 },
+      fogra51: { identifier: "FOGRA51", info: "PSO Coated v3 (FOGRA51)", registry: "http://www.color.org", tac: 300 },
+      swop: { identifier: "CGATS TR 001", info: "U.S. Web Coated (SWOP) v2", registry: "http://www.color.org", tac: 300 },
+      gracol: { identifier: "CGATS TR 006", info: "GRACoL 2006 Coated", registry: "http://www.color.org", tac: 340 }
+    };
+    DEFAULT_CMYK_CONDITION = "fogra39";
+    isCmykConditionName = (n6) => Object.hasOwn(CMYK_CONDITIONS, n6);
+  }
+});
+
+// engine/src/preflight.ts
+function preflight(job) {
+  const out = [];
+  const rowIndex2 = isFiniteNum(job?.rowIndex) ? job.rowIndex : void 0;
+  const ctx = {
+    job,
+    fmt: lower(job?.settings?.format),
+    out,
+    add(f) {
+      const fixed = f.needs ? { ...f, severity: "info", count: void 0, needs: f.needs } : f;
+      out.push(rowIndex2 === void 0 ? fixed : { ...fixed, rowIndex: rowIndex2 });
+    }
+  };
+  for (const check of CHECKS) guard(() => check(ctx));
+  const findings = out.map((f, i) => ({ f, i })).sort((a, b) => SEVERITY_RANK[a.f.severity] - SEVERITY_RANK[b.f.severity] || a.i - b.i).map(({ f }) => f);
+  const seen = /* @__PURE__ */ new Set();
+  const counts = [];
+  for (const f of findings) {
+    if (!f.count) continue;
+    const key = `${f.count.kind}|${f.count.box ?? ""}|${f.count.basis}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    counts.push(f.count);
+  }
+  return {
+    $format: "lolly-preflight",
+    formatVersion: 1,
+    engine: ENGINE_VERSION,
+    job: safeReportedJob(job, ctx.fmt, rowIndex2),
+    findings,
+    counts,
+    gaps: findings.filter((f) => !!f.needs)
+  };
+}
+function safeReportedJob(job, fmt3, rowIndex2) {
+  try {
+    return reportedJob(job, fmt3, rowIndex2);
+  } catch {
+    return {
+      toolId: "",
+      format: fmt3,
+      ...rowIndex2 === void 0 ? {} : { rowIndex: rowIndex2 },
+      stageMounted: false,
+      paletteResolved: false,
+      settings: {
+        format: fmt3,
+        size: { width: { value: 0, unit: "px" }, height: { value: 0, unit: "px" }, dpi: 0, declaredBy: "manifest", unitDeclared: false },
+        bleed: { known: false, why: "not-set" },
+        marks: { known: false, why: "not-set" },
+        pressProfile: { known: false, why: "not-set" }
+      }
+    };
+  }
+}
+function reportedJob(job, fmt3, rowIndex2) {
+  const dim = (d) => isDim(d) ? { value: d.value, unit: d.unit } : { value: 0, unit: "px" };
+  const s = job?.settings;
+  const size = {
+    width: dim(s?.size?.width),
+    height: dim(s?.size?.height),
+    dpi: isFiniteNum(s?.size?.dpi) ? s.size.dpi : 0,
+    declaredBy: typeof s?.size?.declaredBy === "string" ? s.size.declaredBy : "manifest",
+    unitDeclared: s?.size?.unitDeclared === true
+  };
+  const bleed = s?.bleed?.known === true ? { known: true, value: isDim(s.bleed.value) ? dim(s.bleed.value) : null } : { known: false, why: s?.bleed?.known === false ? s.bleed.why : "not-set" };
+  const marks = s?.marks?.known === true ? { known: true, value: s.marks.value ?? null } : { known: false, why: s?.marks?.known === false ? s.marks.why : "not-set" };
+  const pressProfile = s?.pressProfile?.known === true ? { known: true, value: typeof s.pressProfile.value === "string" ? s.pressProfile.value : null } : { known: false, why: s?.pressProfile?.known === false ? s.pressProfile.why : "not-set" };
+  const settings = { format: fmt3, size, bleed, marks, pressProfile };
+  return {
+    toolId: typeof job?.manifest?.id === "string" && job.manifest.id || "",
+    format: fmt3,
+    ...rowIndex2 === void 0 ? {} : { rowIndex: rowIndex2 },
+    ...typeof job?.source === "string" ? { source: job.source } : {},
+    ...typeof job?.modelPhase === "string" ? { modelPhase: job.modelPhase } : {},
+    stageMounted: job?.stage?.known === true,
+    paletteResolved: job?.palette?.known === true,
+    settings
+  };
+}
+function dpiIntent(trim2) {
+  const wi = toInches(trim2.w), hi = toInches(trim2.h);
+  const longEdge = wi >= hi ? trim2.w : trim2.h;
+  const longEdgeIn = Math.max(wi, hi);
+  const intent = longEdgeIn >= LARGE_FORMAT_LONG_EDGE_IN ? "large-format" : "offset";
+  const floor = intent === "offset" ? OFFSET_MIN_DPI : LARGE_FORMAT_MIN_DPI;
+  const hard = intent === "offset" ? OFFSET_HARD_DPI : 50;
+  return { intent, floor, hard, longEdgeIn, longEdge };
+}
+var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, STILL_IMAGE_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, num3, labelOf, isDim, PT_TO_M, pt2ToM2, guard, spotSwatches, finishSpots, hexRgb01, swatchTac, tacLimitFor, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, LARGE_FORMAT_LONG_EDGE_IN, OFFSET_MIN_DPI, OFFSET_HARD_DPI, LARGE_FORMAT_MIN_DPI, round0, checkEffectiveDpi, checkImageEffectiveDpi, checkImageDpiNeedsStage, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkArtboardFanOut, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkInkCoverage, checkRichBlack, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
+var init_preflight2 = __esm({
+  "engine/src/preflight.ts"() {
+    "use strict";
+    init_src();
+    init_inputs();
+    init_print_marks();
+    init_units();
+    init_color2();
+    init_version();
+    init_clamp();
+    PRINT_MARK_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff", "svg", "eps", "eps-cmyk"]);
+    SEPARATING_FORMATS = /* @__PURE__ */ new Set(["pdf-cmyk", "cmyk-tiff", "eps-cmyk"]);
+    SPOT_PLATE_FORMATS = /* @__PURE__ */ new Set(["pdf-cmyk"]);
+    HDR_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "avif", "tiff"]);
+    DURABLE_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "avif", "tiff"]);
+    CUTS_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "svg", "pdf"]);
+    MOTION_FORMATS = /* @__PURE__ */ new Set(["webm", "mp4", "gif", "apng"]);
+    RASTER_FORMATS = /* @__PURE__ */ new Set([
+      "png",
+      "jpg",
+      "jpeg",
+      "webp",
+      "avif",
+      "tiff",
+      "cmyk-tiff",
+      "gif",
+      "apng",
+      "exr",
+      "hdr"
+    ]);
+    DEPTH_FORMATS = /* @__PURE__ */ new Set(["exr", "hdr"]);
+    PAGED_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "pptx"]);
+    STILL_IMAGE_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "svg", "tiff"]);
+    KNOWN_FINISHES = new Set(KNOWN_FINISH_KINDS);
+    lower = (v) => typeof v === "string" ? v.toLowerCase() : "";
+    isFiniteNum = (v) => typeof v === "number" && Number.isFinite(v);
+    num3 = (n6) => {
+      if (!Number.isFinite(n6)) return "?";
+      const r5 = Math.round(n6 * 100) / 100;
+      return Number.isInteger(r5) ? String(r5) : String(r5);
+    };
+    labelOf = (i) => typeof i.label === "string" && i.label || typeof i.id === "string" && i.id || "An input";
+    isDim = (d) => !!d && typeof d === "object" && isFiniteNum(d.value) && typeof d.unit === "string";
+    PT_TO_M = 0.0254 / 72;
+    pt2ToM2 = (w, h) => w * PT_TO_M * (h * PT_TO_M);
+    guard = (fn) => {
+      try {
+        fn();
+      } catch {
+      }
+    };
+    spotSwatches = (c) => {
+      const p = c.job?.palette;
+      if (!p || p.known !== true || !Array.isArray(p.value)) return [];
+      const out = [];
+      for (const s of p.value) {
+        const spot = s?.spot;
+        if (!spot || typeof spot !== "object" || typeof spot.name !== "string" || !spot.name) continue;
+        out.push({
+          name: typeof s.name === "string" && s.name ? s.name : spot.name,
+          spot,
+          path: typeof s.path === "string" ? s.path : ""
+        });
+      }
+      return out;
+    };
+    finishSpots = (c) => spotSwatches(c).filter((s) => typeof s.spot.finish === "string" && s.spot.finish !== "").map((s) => ({ ...s, finish: s.spot.finish }));
+    hexRgb01 = (hex3) => {
+      if (typeof hex3 !== "string") return null;
+      const m2 = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex3.trim());
+      if (!m2) return null;
+      let h = m2[1];
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      const n6 = parseInt(h, 16);
+      return [(n6 >> 16 & 255) / 255, (n6 >> 8 & 255) / 255, (n6 & 255) / 255];
+    };
+    swatchTac = (s) => {
+      if (s?.spot?.finish) return null;
+      let cmyk = null;
+      if (Array.isArray(s?.cmyk) && s.cmyk.length === 4 && s.cmyk.every(isFiniteNum)) {
+        cmyk = [s.cmyk[0], s.cmyk[1], s.cmyk[2], s.cmyk[3]];
+      } else {
+        const rgb = hexRgb01(s?.hex);
+        if (rgb) {
+          const [cc, mm, yy, kk] = rgbToCmyk(rgb[0], rgb[1], rgb[2]);
+          cmyk = [cc * 100, mm * 100, yy * 100, kk * 100];
+        }
+      }
+      if (!cmyk) return null;
+      return { cmyk, tac: Math.round(cmyk[0] + cmyk[1] + cmyk[2] + cmyk[3]), name: typeof s.name === "string" && s.name || "a brand colour" };
+    };
+    tacLimitFor = (c) => {
+      const p = c.job?.settings?.pressProfile;
+      const name = p?.known === true && typeof p.value === "string" && p.value ? p.value : DEFAULT_CMYK_CONDITION;
+      return { name, limit: cmykCondition(name).tac };
+    };
+    checkFinishSeparatesAsInk = (c) => {
+      if (!SPOT_PLATE_FORMATS.has(c.fmt)) return;
+      for (const s of finishSpots(c)) {
+        c.add({
+          id: "print.finish-separates-as-ink",
+          severity: "info",
+          message: `${s.name} is a ${s.finish} finish. Lolly writes it as its own overprinting named plate, with a 100% black process fallback if a RIP flattens it. Confirm with your printer how they want the finish supplied (its own overprinting plate, or separate finish artwork).`,
+          evidence: { spotName: s.spot.name, swatch: s.name, finish: s.finish, tokenPath: s.path, format: c.fmt, overprint: true }
+        });
+      }
+    };
+    checkFinishFlattened = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt) || SPOT_PLATE_FORMATS.has(c.fmt)) return;
+      for (const s of finishSpots(c)) {
+        c.add({
+          id: "print.finish-flattened-into-process",
+          severity: "error",
+          message: `${s.name} is a ${s.finish} finish, and ${c.fmt} has no separation plates. It is written into the process build as solid black, so it is a mask rather than a finish, and it is not overprinted. Supply the finish as its own artwork.`,
+          evidence: { spotName: s.spot.name, swatch: s.name, finish: s.finish, tokenPath: s.path, format: c.fmt, overprint: false }
+        });
+      }
+    };
+    checkFinishUnknownKind = (c) => {
+      for (const s of finishSpots(c)) {
+        if (KNOWN_FINISHES.has(s.finish)) continue;
+        c.add({
+          id: "print.finish-unknown-kind",
+          severity: "info",
+          message: `${s.name} declares the finish "${s.finish}", which Lolly does not recognise. The ink is kept; nothing is discarded.`,
+          evidence: { spotName: s.spot.name, finish: s.finish, tokenPath: s.path }
+        });
+      }
+    };
+    checkFormatOffered = (c) => {
+      if (DEPTH_FORMATS.has(c.fmt)) return;
+      const offered = c.job?.manifest?.render?.formats;
+      if (!Array.isArray(offered) || offered.length === 0 || !c.fmt) return;
+      const list2 = offered.map(lower).filter(Boolean);
+      if (list2.includes(c.fmt)) return;
+      c.add({
+        id: "settings.format-not-offered",
+        severity: "error",
+        message: `This tool does not offer ${c.fmt}. It offers: ${list2.join(", ")}.`,
+        evidence: { format: c.fmt, offered: list2.join(",") }
+      });
+    };
+    bleedIsSet = (c) => {
+      const b = c.job?.settings?.bleed;
+      return b?.known === true && isDim(b.value) && b.value.value > 0;
+    };
+    marksAreSet = (c) => {
+      const m2 = c.job?.settings?.marks;
+      if (m2?.known !== true || !m2.value || typeof m2.value !== "object") return false;
+      return Object.values(m2.value).some((v) => v === true);
+    };
+    checkPrintMarksOnNonPrintFormat = (c) => {
+      if (PRINT_MARK_FORMATS.has(c.fmt)) return;
+      if (!bleedIsSet(c) && !marksAreSet(c)) return;
+      c.add({
+        id: "settings.print-marks-on-non-print-format",
+        severity: "warn",
+        message: `Bleed and print marks are set, but ${c.fmt || "this format"} ignores them. Only PDF, Print PDF, Print TIFF, SVG and EPS carry them.`,
+        evidence: { format: c.fmt, bleedSet: bleedIsSet(c), marksSet: marksAreSet(c) }
+      });
+    };
+    checkPressProfileOnNonSeparatingFormat = (c) => {
+      const p = c.job?.settings?.pressProfile;
+      if (p?.known !== true) return;
+      const v = p.value;
+      if (typeof v !== "string" || v === "" || v === "none") return;
+      if (SEPARATING_FORMATS.has(c.fmt)) return;
+      c.add({
+        id: "settings.press-profile-on-non-separating-format",
+        severity: "warn",
+        message: `A press condition (${v}) is set, but ${c.fmt || "this format"} has no separation to apply it to.`,
+        evidence: { pressProfile: v, format: c.fmt }
+      });
+    };
+    checkHdrFormat = (c) => {
+      if (c.job?.settings?.hdr !== true || HDR_FORMATS.has(c.fmt)) return;
+      c.add({
+        id: "settings.hdr-on-unsupported-format",
+        severity: "warn",
+        message: `HDR is on, but ${c.fmt || "this format"} cannot carry it.`,
+        evidence: { format: c.fmt }
+      });
+    };
+    checkDurableFormat = (c) => {
+      if (c.job?.settings?.durable !== true || DURABLE_FORMATS.has(c.fmt)) return;
+      c.add({
+        id: "settings.durable-on-unsupported-format",
+        severity: "warn",
+        message: `A durable credential is requested, but ${c.fmt || "this format"} cannot carry one.`,
+        evidence: { format: c.fmt }
+      });
+    };
+    checkAspectGuard = (c) => {
+      const aw = c.job?.manifest?.render?.aspectWarning;
+      if (!aw) return;
+      const { width, height } = c.job.settings.size;
+      if (!isDim(width) || !isDim(height) || toCssPx(height) <= 0) return;
+      const ratio = toCssPx(width) / toCssPx(height);
+      const under = isFiniteNum(aw.min) && ratio < aw.min;
+      const over = isFiniteNum(aw.max) && ratio > aw.max;
+      if (!under && !over) return;
+      c.add({
+        id: "settings.aspect-guard",
+        severity: "warn",
+        message: typeof aw.message === "string" && aw.message || "This size may not suit this tool.",
+        evidence: {
+          ratio: Math.round(ratio * 1e3) / 1e3,
+          min: isFiniteNum(aw.min) ? aw.min : null,
+          max: isFiniteNum(aw.max) ? aw.max : null
+        }
+      });
+    };
+    model = (c) => Array.isArray(c.job?.model) ? c.job.model : [];
+    isBlank = (v) => v === null || v === void 0 || v === "" || Array.isArray(v) && v.length === 0;
+    checkRequiredBlank = (c) => {
+      for (const i of model(c)) {
+        if (i?.required !== true || !isBlank(i.value)) continue;
+        c.add({
+          id: "input.required-blank",
+          severity: "warn",
+          message: `${labelOf(i)} is marked required and is empty.`,
+          inputId: i.id,
+          evidence: { inputId: i.id, type: i.type }
+        });
+      }
+    };
+    checkNumberRange = (c) => {
+      for (const i of model(c)) {
+        if (i?.type !== "number" || !isFiniteNum(i.value)) continue;
+        const hasMin = isFiniteNum(i.min), hasMax = isFiniteNum(i.max);
+        if (!hasMin && !hasMax) continue;
+        const lo = hasMin ? i.min : -Infinity;
+        const hi = hasMax ? i.max : Infinity;
+        if (i.value >= lo && i.value <= hi) continue;
+        const clamped = clamp(i.value, lo, hi);
+        c.add({
+          id: "input.number-out-of-range",
+          severity: "warn",
+          message: `${labelOf(i)} is ${num3(i.value)}, outside its declared range ${hasMin ? num3(lo) : "any"} to ${hasMax ? num3(hi) : "any"}. The control will snap it to ${num3(clamped)} the moment it is touched, so this render cannot be reproduced from the interface.`,
+          inputId: i.id,
+          evidence: {
+            inputId: i.id,
+            value: i.value,
+            clamped,
+            min: hasMin ? lo : null,
+            max: hasMax ? hi : null
+          }
+        });
+      }
+    };
+    checkTextMaxLength = (c) => {
+      for (const i of model(c)) {
+        if (i?.type !== "text" && i?.type !== "longtext") continue;
+        if (!isFiniteNum(i.maxLength) || typeof i.value !== "string") continue;
+        if (i.value.length <= i.maxLength) continue;
+        c.add({
+          id: "input.text-over-maxlength",
+          severity: "warn",
+          message: `${labelOf(i)} is ${i.value.length} characters; the declared limit is ${i.maxLength}. Editing the field will cut it to ${i.maxLength}.`,
+          inputId: i.id,
+          evidence: { inputId: i.id, length: i.value.length, maxLength: i.maxLength }
+        });
+      }
+    };
+    checkSelectValue = (c) => {
+      for (const i of model(c)) {
+        if (i?.type !== "select" || !Array.isArray(i.options) || i.options.length === 0) continue;
+        if (i.brandFonts === true) continue;
+        if (typeof i.value !== "string" || i.value === "") continue;
+        if (i.options.some((o) => o?.value === i.value)) continue;
+        c.add({
+          id: "input.select-value-unknown",
+          severity: "warn",
+          message: `${labelOf(i)} is set to "${i.value}", which is not one of its options.`,
+          inputId: i.id,
+          evidence: {
+            inputId: i.id,
+            value: i.value,
+            options: i.options.map((o) => String(o?.value ?? "")).join(",")
+          }
+        });
+      }
+    };
+    checkVectorClamped = (c) => {
+      const raw = c.job?.rawInitial;
+      if (!raw || typeof raw !== "object") return;
+      for (const i of model(c)) {
+        if (i?.type !== "vector" || !Array.isArray(i.fields)) continue;
+        const given = raw[i.id];
+        if (!given || typeof given !== "object" || Array.isArray(given)) continue;
+        for (const f of i.fields) {
+          if (!f || typeof f.id !== "string") continue;
+          const rawV = given[f.id];
+          if (!isFiniteNum(rawV)) continue;
+          const hasMin = isFiniteNum(f.min), hasMax = isFiniteNum(f.max);
+          if (!hasMin && !hasMax) continue;
+          const clamped = clamp(rawV, hasMin ? f.min : -Infinity, hasMax ? f.max : Infinity);
+          if (clamped === rawV) continue;
+          c.add({
+            id: "input.vector-clamped",
+            severity: "warn",
+            message: `${labelOf(i)}.${f.id} was given as ${num3(rawV)} and was silently clamped to ${num3(clamped)}.`,
+            inputId: i.id,
+            evidence: { inputId: i.id, field: f.id, raw: rawV, clamped }
+          });
+        }
+      }
+    };
+    checkNoBleed = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      if (!SEPARATING_FORMATS.has(c.fmt) && !marksAreSet(c) && !physicalTrim(c)) return;
+      const b = c.job?.settings?.bleed;
+      if (b?.known !== true) return;
+      const zero = b.value === null || isDim(b.value) && b.value.value === 0;
+      if (!zero) return;
+      c.add({
+        id: "print.no-bleed",
+        severity: "warn",
+        message: "This is a print format and bleed is set to zero. Artwork that runs to the edge will show a white sliver after trimming.",
+        evidence: { format: c.fmt }
+      });
+    };
+    checkBleedUnknown = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      const b = c.job?.settings?.bleed;
+      if (!b || b.known !== false) return;
+      c.add({
+        id: "print.bleed-unknown",
+        severity: "info",
+        needs: b.why,
+        message: "Lolly cannot see the bleed setting for this job, so it is not reporting one. Zero has not been assumed.",
+        evidence: { format: c.fmt, why: b.why }
+      });
+    };
+    physicalTrim = (c) => {
+      const s = c.job?.settings?.size;
+      if (!s || s.unitDeclared !== true) return null;
+      if (!isDim(s.width) || !isDim(s.height)) return null;
+      if (!(s.width.value > 0) || !(s.height.value > 0)) return null;
+      if (!isPhysical(s.width) || !isPhysical(s.height)) return null;
+      return { w: s.width, h: s.height };
+    };
+    LARGE_FORMAT_LONG_EDGE_IN = 24;
+    OFFSET_MIN_DPI = 250;
+    OFFSET_HARD_DPI = 150;
+    LARGE_FORMAT_MIN_DPI = 72;
+    round0 = (n6) => Math.round(n6);
+    checkEffectiveDpi = (c) => {
+      if (!RASTER_FORMATS.has(c.fmt)) return;
+      const trim2 = physicalTrim(c);
+      if (!trim2) return;
+      const dpi = c.job?.settings?.size?.dpi;
+      if (!isFiniteNum(dpi) || dpi <= 0) return;
+      const { intent, floor, hard, longEdge } = dpiIntent(trim2);
+      if (dpi >= floor) return;
+      const L = num3(longEdge.value), U = longEdge.unit;
+      const message = intent === "offset" ? dpi < hard ? `This page is ${dpi} DPI at ${L} ${U}, below the 150 DPI floor for offset. It will look visibly soft.` : `This page is ${dpi} DPI at ${L} ${U}. Offset presses want 250 to 300 DPI, so this will look soft.` : `This page is ${dpi} DPI at ${L} ${U}. Large-format print tolerates 72 to 150 DPI at viewing distance; below 72 it softens even at distance.`;
+      c.add({
+        id: "print.effective-dpi",
+        severity: "warn",
+        message,
+        evidence: { dpi, intent, floor, longEdge: Math.round(dpiIntent(trim2).longEdgeIn * 100) / 100, unit: U, format: c.fmt }
+      });
+    };
+    checkImageEffectiveDpi = (c) => {
+      if (!RASTER_FORMATS.has(c.fmt) && !PRINT_MARK_FORMATS.has(c.fmt)) return;
+      const trim2 = physicalTrim(c);
+      if (!trim2) return;
+      const st = c.job?.stage;
+      if (st?.known !== true) return;
+      const imgs = st.value.rasterImages;
+      const cw = st.value.canvasCssW;
+      if (!Array.isArray(imgs) || !isFiniteNum(cw) || !(cw > 0)) return;
+      if ((st.value.pageBoxes ?? 1) > 1) return;
+      const trimWin = toInches(trim2.w), trimHin = toInches(trim2.h);
+      if (!(trimWin > 0) || !(trimHin > 0)) return;
+      const ch = cw * (trimHin / trimWin);
+      const { intent, floor } = dpiIntent(trim2);
+      for (const im of imgs) {
+        if (!(im.naturalW > 0) || !(im.naturalH > 0) || !(im.boxCssW > 0) || !(im.boxCssH > 0)) continue;
+        const physWin = im.boxCssW / cw * trimWin;
+        const physHin = im.boxCssH / ch * trimHin;
+        if (!(physWin > 0) || !(physHin > 0)) continue;
+        const eff = round0(Math.min(im.naturalW / physWin, im.naturalH / physHin));
+        if (eff >= floor) continue;
+        const physMm = round0(physWin * 25.4);
+        c.add({
+          id: "print.image-effective-dpi",
+          severity: "warn",
+          message: `${im.label} is ${eff} DPI at its placed size (${physMm} mm wide). ${intent === "offset" ? "Offset print wants at least 250 DPI" : "Large-format wants at least 72 DPI"}, so it will look soft. Replace it with a higher-resolution file.`,
+          evidence: { label: im.label, effectiveDpi: eff, placedMm: physMm, naturalW: im.naturalW, intent, floor, format: c.fmt }
+        });
+      }
+    };
+    checkImageDpiNeedsStage = (c) => {
+      if (!RASTER_FORMATS.has(c.fmt) && !PRINT_MARK_FORMATS.has(c.fmt)) return;
+      if (!physicalTrim(c)) return;
+      if (c.job?.stage?.known !== false) return;
+      c.add({
+        id: "print.image-dpi-needs-stage",
+        severity: "info",
+        needs: "needs-mount",
+        message: "Lolly cannot check the resolution of images placed in the artwork without the artwork on screen.",
+        evidence: { format: c.fmt }
+      });
+    };
+    checkTrimPartial = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      const s = c.job?.settings?.size;
+      if (!s || s.unitDeclared !== true) return;
+      if (!isDim(s.width) || !isDim(s.height)) return;
+      const wOk = s.width.value > 0, hOk = s.height.value > 0;
+      if (wOk === hOk) return;
+      const set = wOk ? s.width : s.height;
+      c.add({
+        id: "print.trim-partially-declared",
+        severity: "info",
+        needs: "not-set",
+        message: `Only the ${wOk ? "width" : "height"} was set (${num3(set.value)} ${set.unit}). The other follows the artwork's aspect, which Lolly cannot read without the artwork on screen, so no trim size and no print area are being reported.`,
+        evidence: { declared: wOk ? "width" : "height", value: set.value, unit: set.unit, format: c.fmt }
+      });
+    };
+    checkTrimNotPhysical = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      if ((c.fmt === "svg" || c.fmt === "eps" || c.fmt === "eps-cmyk") && !marksAreSet(c)) return;
+      if (physicalTrim(c)) return;
+      const s = c.job.settings.size;
+      if (!isDim(s?.width) || !isDim(s?.height)) return;
+      if (!(s.width.value > 0) || !(s.height.value > 0)) return;
+      const dpi = isFiniteNum(s.dpi) ? s.dpi : 300;
+      const w = toPixels(s.width, dpi), h = toPixels(s.height, dpi);
+      c.add({
+        id: "print.trim-not-physical",
+        severity: "info",
+        needs: "not-set",
+        message: `The page is ${w} x ${h} pixels. No physical page size was declared, so Lolly is reporting pixels and no print area.`,
+        evidence: { widthPx: w, heightPx: h, declaredBy: s.declaredBy ?? null, unitDeclared: s.unitDeclared === true }
+      });
+    };
+    checkPrintGeometry = (c) => {
+      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
+      const trim2 = physicalTrim(c);
+      if (!trim2) return;
+      const b = c.job.settings.bleed, m2 = c.job.settings.marks;
+      if (b?.known !== true || m2?.known !== true) return;
+      const bleedPt = isDim(b.value) ? toPoints(b.value) : 0;
+      const geo = computePrintGeometry({
+        trimWpt: toPoints(trim2.w),
+        trimHpt: toPoints(trim2.h),
+        bleedPt,
+        marks: m2.value ?? {}
+      });
+      const unit2 = trim2.w.unit === trim2.h.unit ? trim2.w.unit : "pt";
+      const wLbl = unit2 === trim2.w.unit ? num3(trim2.w.value) : num3(toPoints(trim2.w));
+      const hLbl = unit2 === trim2.h.unit ? num3(trim2.h.value) : num3(toPoints(trim2.h));
+      const bleedLbl = isDim(b.value) ? `${num3(b.value.value)} ${b.value.unit}` : "none";
+      const area2 = (box3, w, h) => ({
+        kind: "area",
+        value: pt2ToM2(w, h),
+        unit: "m2-sheet",
+        box: box3,
+        bound: "exact",
+        basis: "print-marks.computePrintGeometry"
+      });
+      c.add({
+        id: "print.geometry",
+        severity: "info",
+        message: `Trim ${wLbl} x ${hLbl} ${unit2}. Bleed ${bleedLbl}. Media box ${num3(geo.page.w)} x ${num3(geo.page.h)} points.`,
+        evidence: {
+          trimWpt: Math.round(geo.boxes.trim.w * 100) / 100,
+          trimHpt: Math.round(geo.boxes.trim.h * 100) / 100,
+          bleedPt: Math.round(bleedPt * 100) / 100,
+          mediaWpt: Math.round(geo.page.w * 100) / 100,
+          mediaHpt: Math.round(geo.page.h * 100) / 100
+        },
+        count: area2("trim", geo.boxes.trim.w, geo.boxes.trim.h)
+      });
+      c.add({
+        id: "print.geometry",
+        severity: "info",
+        message: `Bleed box ${num3(geo.boxes.bleed.w)} x ${num3(geo.boxes.bleed.h)} points.`,
+        count: area2("bleed", geo.boxes.bleed.w, geo.boxes.bleed.h)
+      });
+      c.add({
+        id: "print.geometry",
+        severity: "info",
+        message: `Media box ${num3(geo.boxes.media.w)} x ${num3(geo.boxes.media.h)} points, the whole sheet through the press.`,
+        count: area2("media", geo.boxes.media.w, geo.boxes.media.h)
+      });
+    };
+    checkPagesPaginate = (c) => {
+      const src = c.job?.manifest?.render?.paginate?.source;
+      if (typeof src !== "string" || !src) return;
+      const input = model(c).find((i) => i?.id === src);
+      if (!input) return;
+      const table = normalizeTableValue(input.value);
+      if (!table) return;
+      const n6 = Math.max(1, table.rows.length);
+      const bound = c.job.modelPhase === "post-init" ? "exact" : "ceiling";
+      c.add({
+        id: "count.pages.paginate",
+        severity: "info",
+        message: `${n6} ${n6 === 1 ? "page" : "pages"}, one per row of ${labelOf(input)}.`,
+        evidence: { source: src, rows: table.rows.length, modelPhase: c.job.modelPhase ?? null },
+        count: { kind: "pages", value: n6, unit: "page", bound, basis: "manifest.render.paginate" }
+      });
+    };
+    checkPagesPages = (c) => {
+      const pages = c.job?.manifest?.render?.pages;
+      const id2 = pages?.count;
+      if (typeof id2 !== "string" || !id2) return;
+      const input = model(c).find((i) => i?.id === id2);
+      if (!input || !isFiniteNum(input.value)) return;
+      const lo = isFiniteNum(pages.min) ? pages.min : 1;
+      const hi = isFiniteNum(pages.max) ? pages.max : 6;
+      const n6 = Math.round(clamp(input.value, lo, hi));
+      c.add({
+        id: "count.pages.pages",
+        severity: "info",
+        message: `${n6} ${n6 === 1 ? "page" : "pages"}.`,
+        evidence: { source: id2, typed: input.value, min: lo, max: hi },
+        count: { kind: "pages", value: n6, unit: "page", bound: "exact", basis: "manifest.render.pages" }
+      });
+    };
+    checkPagesFromStage = (c) => {
+      if (!PAGED_FORMATS.has(c.fmt)) return;
+      const r5 = c.job?.manifest?.render;
+      if (r5?.paginate?.source || r5?.pages?.count) return;
+      const st = c.job?.stage;
+      if (st?.known !== true) return;
+      const n6 = st.value?.pageBoxes;
+      if (!isFiniteNum(n6) || n6 <= 0) return;
+      c.add({
+        id: "count.pages.stage",
+        severity: "info",
+        message: `${Math.floor(n6)} ${n6 === 1 ? "page" : "pages"}, counted on the artwork as it stands.`,
+        evidence: { format: c.fmt, pageBoxes: Math.floor(n6) },
+        count: { kind: "pages", value: Math.floor(n6), unit: "page", bound: "exact", basis: "stage.pageBoxes" }
+      });
+    };
+    checkArtboardFanOut = (c) => {
+      if (!STILL_IMAGE_FORMATS.has(c.fmt)) return;
+      const st = c.job?.stage;
+      if (st?.known !== true) return;
+      const n6 = st.value?.pageBoxes;
+      if (!isFiniteNum(n6) || n6 <= 1) return;
+      c.add({
+        id: "count.artboard-fanout",
+        severity: "info",
+        message: `${Math.floor(n6)} artboards export as ${Math.floor(n6)} separate ${c.fmt.toUpperCase()} files (delivered zipped), each at its own artboard size - the size shown is the active artboard's.`,
+        evidence: { format: c.fmt, pageBoxes: Math.floor(n6) }
+      });
+    };
+    checkPagesUnknown = (c) => {
+      if (!PAGED_FORMATS.has(c.fmt)) return;
+      const r5 = c.job?.manifest?.render;
+      if (r5?.paginate?.source || r5?.pages?.count) return;
+      const st = c.job?.stage;
+      if (st?.known === true && isFiniteNum(st.value?.pageBoxes) && st.value.pageBoxes > 0) return;
+      c.add({
+        id: "count.pages.unknown",
+        severity: "info",
+        needs: st?.known === true ? "not-set" : "needs-mount",
+        message: st?.known === true ? "This tool declares no page count and the artwork on screen carries no page boxes, so Lolly is not reporting a page count." : "Lolly cannot count this tool's pages without the artwork on screen.",
+        evidence: { format: c.fmt }
+      });
+    };
+    checkSequenceDuration = (c) => {
+      if (!MOTION_FORMATS.has(c.fmt) && cutsOf(c) === 0) return;
+      const st = c.job?.stage;
+      if (st?.known !== true) return;
+      const ms = st.value?.durationMs;
+      if (!isFiniteNum(ms) || ms <= 0) return;
+      const s = Math.round(ms / 1e3 * 100) / 100;
+      c.add({
+        id: "count.sequence-duration",
+        severity: "info",
+        message: `The timeline on screen is ${num3(s)} seconds long.`,
+        evidence: { durationMs: Math.round(ms), format: c.fmt },
+        count: { kind: "seconds", value: s, unit: "s", bound: "exact", basis: "stage.durationMs" }
+      });
+    };
+    checkRasterPixels = (c) => {
+      if (!RASTER_FORMATS.has(c.fmt)) return;
+      const s = c.job?.settings?.size;
+      if (!isDim(s?.width) || !isDim(s?.height)) return;
+      const px3 = s.width.unit === "px" && s.height.unit === "px";
+      const dpi = isFiniteNum(s.dpi) ? s.dpi : 96;
+      const w = toPixels(s.width, dpi), h = toPixels(s.height, dpi);
+      if (!(w > 0) || !(h > 0)) return;
+      c.add({
+        id: "count.raster-pixels",
+        severity: "info",
+        message: px3 ? `${w} x ${h} pixels.` : `${w} x ${h} pixels at ${num3(dpi)} DPI.`,
+        evidence: { width: w, height: h, dpi: px3 ? null : dpi },
+        count: { kind: "pixels", value: w * h, unit: "px", bound: "exact", basis: "units.toPixels" }
+      });
+    };
+    checkVideoDurationDeclared = (c) => {
+      if (!MOTION_FORMATS.has(c.fmt)) return;
+      const d = c.job?.manifest?.render?.video?.duration;
+      if (!isFiniteNum(d) || d <= 0) return;
+      c.add({
+        id: "count.video-duration-declared",
+        severity: "info",
+        message: `The tool declares a ${num3(d)} second clip. The clip Lolly actually captures is measured after it runs.`,
+        evidence: { declaredSeconds: d, format: c.fmt },
+        count: { kind: "seconds", value: d, unit: "s", bound: "ceiling", basis: "manifest.render.video" }
+      });
+    };
+    checkProcessPlates = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      c.add({
+        id: "plates.process",
+        severity: "info",
+        message: "4 process plates. Whether all four carry ink cannot be known before the file is written.",
+        evidence: { format: c.fmt },
+        count: { kind: "processPlates", value: 4, unit: "plate", bound: "ceiling", basis: "format" }
+      });
+    };
+    checkSpotCeiling = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (c.job?.palette?.known !== true) return;
+      const names = new Set(spotSwatches(c).filter((s) => !s.spot.finish).map((s) => s.spot.name));
+      if (names.size === 0) return;
+      c.add({
+        id: "plates.spot-ceiling",
+        severity: "info",
+        message: `Up to ${names.size} spot ${names.size === 1 ? "plate" : "plates"}.`,
+        evidence: { spots: [...names].join(", "), format: c.fmt },
+        count: { kind: "spotPlates", value: names.size, unit: "plate", bound: "ceiling", basis: "palette.spot" }
+      });
+    };
+    checkFinishCeiling = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (c.job?.palette?.known !== true) return;
+      const names = [...new Set(finishSpots(c).map((s) => s.spot.name))];
+      if (names.length === 0) return;
+      c.add({
+        id: "plates.finish-ceiling",
+        severity: "info",
+        message: `Up to ${names.length} finish ${names.length === 1 ? "plate" : "plates"}: ${names.join(", ")}.`,
+        evidence: { finishes: names.join(", "), format: c.fmt },
+        count: { kind: "finishPlates", value: names.length, unit: "plate", bound: "ceiling", basis: "palette.spot.finish" }
+      });
+    };
+    checkNoSpotsDeclared = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (c.job?.palette?.known !== true) return;
+      if (spotSwatches(c).length > 0) return;
+      c.add({
+        id: "plates.no-spots-declared",
+        severity: "info",
+        needs: "not-set",
+        message: "This brand declares no spot inks, so there are no spot plates to count.",
+        evidence: { format: c.fmt }
+      });
+    };
+    checkInkCoverage = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (c.job?.palette?.known !== true) return;
+      const pal = c.job.palette.value;
+      if (!Array.isArray(pal)) return;
+      const weighed = pal.map(swatchTac).filter((x) => x !== null);
+      if (weighed.length === 0) return;
+      const heaviest = weighed.reduce((a, b) => b.tac > a.tac ? b : a);
+      const { name, limit } = tacLimitFor(c);
+      const cond = name.toUpperCase();
+      c.add({
+        id: "count.ink-coverage-palette",
+        severity: "info",
+        message: `The heaviest brand solid, ${heaviest.name}, is ${heaviest.tac}% total ink under ${cond} (limit ${limit}%). This is the brand's solid fills only, and a photograph or gradient can lay down more.`,
+        evidence: { swatch: heaviest.name, tac: heaviest.tac, limit, condition: name, format: c.fmt },
+        count: { kind: "inkCoverage", value: heaviest.tac, unit: "pct", bound: "exact", basis: "palette.tac" }
+      });
+      if (heaviest.tac > limit) {
+        c.add({
+          id: "print.ink-over-tac",
+          severity: "warn",
+          message: `${heaviest.name} is ${heaviest.tac}% total ink, over the ${limit}% limit for ${cond}. On press it can fail to dry, set off onto the next sheet, or crack on the fold. Lighten the darkest build, or ask the printer for their ink limit.`,
+          evidence: { swatch: heaviest.name, tac: heaviest.tac, limit, over: heaviest.tac - limit, condition: name, format: c.fmt }
+        });
+      }
+    };
+    checkRichBlack = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (c.job?.palette?.known !== true) return;
+      const pal = c.job.palette.value;
+      if (!Array.isArray(pal)) return;
+      for (const s of pal) {
+        const w = swatchTac(s);
+        if (!w) continue;
+        const [cc, mm, yy, kk] = w.cmyk;
+        if (kk >= 85 && cc + mm + yy >= 50) {
+          c.add({
+            id: "print.rich-black",
+            severity: "info",
+            message: `${w.name} is a rich black (${Math.round(kk)}% K plus ${Math.round(cc)}/${Math.round(mm)}/${Math.round(yy)} CMY). Rich black gives deep solids but mis-registers on small text and thin rules, so keep those 100% K only.`,
+            evidence: { swatch: w.name, k: Math.round(kk), c: Math.round(cc), m: Math.round(mm), y: Math.round(yy), format: c.fmt }
+          });
+        }
+      }
+    };
+    checkPaletteUnresolved = (c) => {
+      if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      const p = c.job?.palette;
+      if (!p || p.known !== false) return;
+      c.add({
+        id: "plates.palette-unresolved",
+        severity: "info",
+        needs: p.why,
+        message: "No brand palette resolved, so plate count is unavailable.",
+        evidence: { format: c.fmt, why: p.why }
+      });
+    };
+    cutsOf = (c) => {
+      const n6 = c.job?.settings?.cuts;
+      return isFiniteNum(n6) && n6 > 1 ? Math.floor(n6) : 0;
+    };
+    checkCutsNeedsStage = (c) => {
+      const n6 = cutsOf(c);
+      if (!n6 || c.job?.stage?.known !== false) return;
+      c.add({
+        id: "count.cuts-needs-stage",
+        severity: "info",
+        needs: "needs-mount",
+        message: `cuts=${n6} is set. It multiplies the output only on a timed composition, which Lolly cannot tell without the artwork on screen. Counted as one file.`,
+        evidence: { cuts: n6, format: c.fmt }
+      });
+    };
+    checkCutsInert = (c) => {
+      const n6 = cutsOf(c);
+      const st = c.job?.stage;
+      if (!n6 || st?.known !== true) return;
+      const seq = st.value?.isSequence === true;
+      const fmtOk = CUTS_FORMATS.has(c.fmt);
+      if (seq && fmtOk) return;
+      const reason2 = !seq ? "this tool is not a timed composition" : `${c.fmt || "this format"} has no contact sheet`;
+      c.add({
+        id: "count.cuts-inert",
+        severity: "info",
+        message: `cuts=${n6} is set but does nothing here: ${reason2}. One file will come out.`,
+        evidence: { cuts: n6, format: c.fmt, isSequence: seq },
+        count: { kind: "outputFiles", value: 1, unit: "file", bound: "exact", basis: "settings.cuts" }
+      });
+    };
+    checkCutsApplies = (c) => {
+      const n6 = cutsOf(c);
+      const st = c.job?.stage;
+      if (!n6 || st?.known !== true || st.value?.isSequence !== true || !CUTS_FORMATS.has(c.fmt)) return;
+      const pdf = c.fmt === "pdf";
+      c.add({
+        id: "count.cuts-applies",
+        severity: "info",
+        message: `A contact sheet of ${n6} frames, delivered as one ${pdf ? "PDF" : "ZIP"}.`,
+        evidence: { cuts: n6, format: c.fmt, delivery: pdf ? "pdf" : "zip" },
+        count: { kind: "outputFiles", value: 1, unit: "file", bound: "exact", basis: "settings.cuts" }
+      });
+      if (pdf) {
+        c.add({
+          id: "count.cuts-applies",
+          severity: "info",
+          message: `${n6} pages, one per frame.`,
+          evidence: { cuts: n6, format: c.fmt },
+          count: { kind: "pages", value: n6, unit: "page", bound: "exact", basis: "settings.cuts" }
+        });
+      }
+    };
+    checkExperimentalWatermark = (c) => {
+      if (c.job?.manifest?.status !== "experimental") return;
+      c.add({
+        id: "export.experimental-watermark",
+        severity: "info",
+        message: "This tool is experimental, so every export carries a watermark.",
+        evidence: { status: "experimental" }
+      });
+    };
+    refusal = (id2, needs, message, evidence) => ({ id: id2, severity: "info", needs, message, ...evidence ? { evidence } : {} });
+    checkRefusals = (c) => {
+      const separating = SEPARATING_FORMATS.has(c.fmt);
+      const motion = MOTION_FORMATS.has(c.fmt);
+      if (separating) {
+        c.add(refusal(
+          "refuse.ink-coverage",
+          "needs-render",
+          "Total ink coverage across the whole artwork (photographs, gradients and filters) is only known once the separation is rendered. The heaviest brand solid is reported separately, and a photo can lay down more."
+        ));
+        c.add(refusal(
+          "refuse.exact-separation",
+          "needs-render",
+          "The exact set of plates is only known once the file is written. Ink substitution is an exact colour match against brand swatches; everything else falls through to process, and images inside a CMYK PDF are not converted at all."
+        ));
+      }
+      if (finishSpots(c).length > 0) {
+        c.add(refusal(
+          "refuse.finish-covered-area",
+          "not-computable",
+          "Lolly cannot measure the area a finish covers. The only area it can supply is the whole sheet through the press, not the varnished part of it."
+        ));
+      }
+      c.add(refusal(
+        "refuse.output-file-size",
+        "not-computable",
+        "Lolly cannot predict the output file size."
+      ));
+      if (motion) {
+        c.add(refusal(
+          "refuse.render-time",
+          "not-computable",
+          "Lolly cannot predict how long a render will take. Motion capture runs in real time."
+        ));
+        c.add(refusal(
+          "refuse.video-frames",
+          "needs-render",
+          "Frame count and the frame rate actually used are decided while the export runs."
+        ));
+      }
+      if (c.job?.stage?.known === false && (motion || cutsOf(c) > 0)) {
+        c.add(refusal(
+          "refuse.sequence-duration",
+          "needs-mount",
+          "Lolly cannot read the timeline length without the artwork on screen."
+        ));
+      }
+      const svgLike = c.fmt === "svg" || c.fmt === "eps" || c.fmt === "eps-cmyk";
+      if (PRINT_MARK_FORMATS.has(c.fmt) && c.job?.settings?.size?.declaredBy === "manifest" && (!svgLike || marksAreSet(c))) {
+        c.add(refusal(
+          "refuse.trim-when-unset",
+          "not-set",
+          "No page size was set, so the trim size is whatever the artwork measures on screen. Lolly is not converting the tool's pixel canvas into millimetres."
+        ));
+      }
+    };
+    CHECKS = [
+      // errors
+      checkFinishSeparatesAsInk,
+      checkFinishFlattened,
+      checkFormatOffered,
+      // warnings
+      checkRequiredBlank,
+      checkNumberRange,
+      checkTextMaxLength,
+      checkSelectValue,
+      checkVectorClamped,
+      checkPrintMarksOnNonPrintFormat,
+      checkPressProfileOnNonSeparatingFormat,
+      checkHdrFormat,
+      checkDurableFormat,
+      checkAspectGuard,
+      checkNoBleed,
+      checkEffectiveDpi,
+      checkImageEffectiveDpi,
+      // info: geometry & counts
+      checkFinishUnknownKind,
+      checkBleedUnknown,
+      checkTrimPartial,
+      checkImageDpiNeedsStage,
+      checkTrimNotPhysical,
+      checkPrintGeometry,
+      checkPagesPaginate,
+      checkPagesPages,
+      checkPagesFromStage,
+      checkPagesUnknown,
+      checkArtboardFanOut,
+      checkRasterPixels,
+      checkSequenceDuration,
+      checkVideoDurationDeclared,
+      checkProcessPlates,
+      checkSpotCeiling,
+      checkFinishCeiling,
+      checkNoSpotsDeclared,
+      checkInkCoverage,
+      checkRichBlack,
+      checkPaletteUnresolved,
+      checkCutsNeedsStage,
+      checkCutsInert,
+      checkCutsApplies,
+      checkExperimentalWatermark,
+      // named refusals, last
+      checkRefusals
+    ];
+  }
+});
+
+// engine/src/sequence-samples.ts
+function validateSampleTimes(value) {
+  if (!Array.isArray(value) || value.length < 1 || value.length > MAX_SEQUENCE_SAMPLES) {
+    throw new RangeError("sampleTimes must contain 1 to 64 timeline times in seconds.");
+  }
+  const times = [];
+  for (const time of value) {
+    if (typeof time !== "number" || !Number.isFinite(time) || time < 0 || time > 3600 || times.length > 0 && time <= times[times.length - 1]) {
+      throw new RangeError("sampleTimes must be strictly increasing finite seconds from 0 to 3600.");
+    }
+    times.push(time);
+  }
+  return times;
+}
+function parseSampleTimes(raw) {
+  if (raw === null) return void 0;
+  if (raw.length > 2048 || raw.split(",").some((part) => !part.trim())) {
+    throw new RangeError("samples must be a comma-separated list of timeline seconds.");
+  }
+  return validateSampleTimes(raw.split(",").map(Number));
+}
+function assertSampleRequest(format, cuts = 1, sampleTimes) {
+  if (sampleTimes !== void 0) validateSampleTimes(sampleTimes);
+  const requested = cuts > 1 || sampleTimes !== void 0;
+  if (!requested) return false;
+  if (cuts > 1 && sampleTimes !== void 0) throw new RangeError("Choose cuts or sampleTimes, not both.");
+  if (!CUTS_FORMATS.has(format)) throw new RangeError(`Timeline samples are unavailable for ${format}; use png, jpg, webp, svg or pdf.`);
+  return true;
+}
+function sampleOutputFormat(format, cuts = 1, sampleTimes) {
+  return (sampleTimes?.length ?? cuts) > 1 && format !== "pdf" ? "zip" : format;
+}
+function sequenceSampleTimes(totalMs, cuts, sampleTimes) {
+  if (!Number.isFinite(totalMs) || totalMs <= 0) throw new RangeError("Timeline samples need a timed composition.");
+  if (sampleTimes !== void 0) {
+    const times = validateSampleTimes(sampleTimes).map((seconds) => seconds * 1e3);
+    if (times.some((time) => time >= totalMs)) throw new RangeError(`Every sample must be before the timeline end (${totalMs / 1e3}s).`);
+    return times;
+  }
+  if (!Number.isInteger(cuts) || cuts < 1 || cuts > MAX_SEQUENCE_SAMPLES) throw new RangeError("cuts must be an integer from 1 to 64.");
+  return Array.from({ length: cuts }, (_, i) => totalMs * (i + 0.5) / cuts);
+}
+function motionReviewTimes(seconds, fps, boundaries, holds3 = []) {
+  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 3600 || !Number.isInteger(fps) || fps < 1 || fps > 120 || [...boundaries, ...holds3].some((time) => !Number.isFinite(time) || time < 0 || time >= seconds)) {
+    throw new RangeError("Review times need a positive duration, an integer fps from 1 to 120 and in-range cues.");
+  }
+  const times = [0, (Math.ceil(seconds * fps) - 1) / fps, ...holds3];
+  for (const time of boundaries) times.push(time - 1 / fps, time, time + 1 / fps);
+  return validateSampleTimes([...new Set(times.filter((time) => time >= 0 && time < seconds))].sort((a, b) => a - b));
+}
+var MAX_SEQUENCE_SAMPLES;
+var init_sequence_samples = __esm({
+  "engine/src/sequence-samples.ts"() {
+    "use strict";
+    init_preflight2();
+    MAX_SEQUENCE_SAMPLES = 64;
+  }
+});
+
+// engine/src/motion-sampling.ts
+function validateMotionBlur(value) {
+  const v = value;
+  if (!v || ![1, 4, 8, 16].includes(Number(v.samples)) || typeof v.samples !== "number" || typeof v.shutterAngle !== "number" || !Number.isFinite(v.shutterAngle) || v.shutterAngle < 0 || v.shutterAngle > 360) {
+    throw new RangeError("motionBlur requires samples 1, 4, 8 or 16 and shutterAngle from 0 to 360.");
+  }
+  return { samples: v.samples, shutterAngle: v.shutterAngle };
+}
+function validateMotionRange(value) {
+  const v = value;
+  if (!v || typeof v.from !== "number" || typeof v.to !== "number" || !Number.isFinite(v.from) || !Number.isFinite(v.to) || v.from < 0 || v.to <= v.from || v.to > 3600) {
+    throw new RangeError("sequenceRange requires finite seconds with 0 <= from < to <= 3600.");
+  }
+  return { from: v.from, to: v.to };
+}
+function parseMotionParams(params2) {
+  const result = {};
+  for (const key of ["motionblur", "seqrange"]) {
+    if (!params2.has(key)) continue;
+    const parts = params2.get(key).split(",");
+    if (parts.length !== 2 || parts.some((part) => !part.trim())) throw new RangeError(`${key} requires two comma-separated numbers.`);
+    const [a, b] = parts.map(Number);
+    if (key === "motionblur") result.motionBlur = validateMotionBlur({ samples: a, shutterAngle: b });
+    else result.sequenceRange = validateMotionRange({ from: a, to: b });
+  }
+  return result;
+}
+function serializeMotionParams(params2, opts) {
+  if (opts.motionBlur !== void 0) {
+    const v = validateMotionBlur(opts.motionBlur);
+    params2.set("motionblur", `${v.samples},${v.shutterAngle}`);
+  }
+  if (opts.sequenceRange !== void 0) {
+    const v = validateMotionRange(opts.sequenceRange);
+    params2.set("seqrange", `${v.from},${v.to}`);
+  }
+}
+function blurEnabled(blur) {
+  return !!blur && blur.samples > 1 && blur.shutterAngle > 0;
+}
+function assertMotionRequest(format, opts) {
+  if (opts.motionBlur) validateMotionBlur(opts.motionBlur);
+  if (opts.sequenceRange) validateMotionRange(opts.sequenceRange);
+  const movie = ["mp4", "webm", "gif", "apng", "webp-anim"].includes(format);
+  if (opts.sequenceRange && (!movie || opts.sampleTimes)) throw new Error("sequenceRange requires a movie export without explicit still samples.");
+  if (blurEnabled(opts.motionBlur) && !movie && (!opts.sampleTimes || !["png", "jpg", "jpeg", "webp", "pdf"].includes(format))) throw new Error("Temporal motion blur requires a Sequence movie or explicit raster samples.");
+}
+function shutterTimes(t, fps, from, to, cuts, blur) {
+  if (!blurEnabled(blur)) return [t];
+  validateMotionBlur(blur);
+  if (![t, fps, from, to].every(Number.isFinite) || fps <= 0 || to <= from || t < from || t >= to) throw new RangeError("Invalid shutter interval.");
+  const exposure = 1e3 / fps * blur.shutterAngle / 360;
+  let a = Math.max(from, t - exposure / 2), b = Math.min(to, t + exposure / 2);
+  for (const cut of cuts) {
+    if (cut <= t) a = Math.max(a, cut);
+    else b = Math.min(b, cut);
+  }
+  if (b <= a) return [t];
+  return Array.from({ length: blur.samples }, (_, i) => a + (i + 0.5) * (b - a) / blur.samples);
+}
+var LINEAR, encoded, ShutterAccumulator;
+var init_motion_sampling = __esm({
+  "engine/src/motion-sampling.ts"() {
+    "use strict";
+    LINEAR = Float64Array.from({ length: 256 }, (_, n6) => {
+      const s = n6 / 255;
+      return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    });
+    encoded = (n6) => Math.round(255 * (n6 <= 31308e-7 ? n6 * 12.92 : 1.055 * n6 ** (1 / 2.4) - 0.055));
+    ShutterAccumulator = class {
+      sum;
+      count = 0;
+      constructor(length) {
+        if (!Number.isInteger(length) || length <= 0 || length % 4 || length > 64 * 1024 * 1024) throw new RangeError("Motion blur scratch exceeds 256 MiB. Reduce export dimensions.");
+        this.sum = new Float32Array(length);
+      }
+      add(rgba) {
+        if (rgba.length !== this.sum.length) throw new RangeError("Motion blur samples must have matching dimensions.");
+        for (let i = 0; i < rgba.length; i += 4) {
+          const a = rgba[i + 3] / 255;
+          for (let c = 0; c < 3; c++) this.sum[i + c] += LINEAR[rgba[i + c]] * a;
+          this.sum[i + 3] += a;
+        }
+        this.count++;
+      }
+      finish(target) {
+        if (!this.count || target.length !== this.sum.length) throw new RangeError("Motion blur has no matching samples.");
+        for (let i = 0; i < target.length; i += 4) {
+          const alpha = this.sum[i + 3];
+          for (let c = 0; c < 3; c++) target[i + c] = alpha ? encoded(Math.max(0, Math.min(1, this.sum[i + c] / alpha))) : 0;
+          target[i + 3] = Math.round(alpha / this.count * 255);
+        }
+        this.sum.fill(0);
+        this.count = 0;
+      }
+    };
   }
 });
 
@@ -48622,6 +50131,8 @@ function parseUrlState(searchParams, manifest) {
     // Contact-sheet frame count for a still export of a timed composition (see
     // header). Always 1…CUTS_MAX; 1 ⇒ the single playhead frame.
     cuts: parseCuts(params2.get("cuts")),
+    ...params2.has("sampletimes") ? { sampleTimes: parseSampleTimes(params2.get("sampletimes")) } : {},
+    ...parseMotionParams(params2),
     // UI/content language, alias-normalized (see header). null ⇒ absent/unrecognized.
     lang: normalizeLang(params2.get("lang")),
     // Design-system version override (see header). Verbatim, never validated here:
@@ -48692,6 +50203,8 @@ function serializeUrlState(model2, opts = {}) {
     const d = opts.depth == null ? "auto" : parseDepth(String(opts.depth));
     if (d !== "auto") params2.set("depth", String(d));
   }
+  if (opts.sampleTimes !== void 0) params2.set("sampletimes", validateSampleTimes(opts.sampleTimes).join(","));
+  serializeMotionParams(params2, opts);
   if (opts.cuts != null && parseCuts(String(opts.cuts)) > 1) params2.set("cuts", String(parseCuts(String(opts.cuts))));
   if (opts.lang && opts.lang !== "en") params2.set("lang", opts.lang);
   if (opts.emoji?.trim()) params2.set("emoji", opts.emoji.trim());
@@ -48825,6 +50338,8 @@ var HDR_DEFAULTS, DEPTH_VALUES, VIDEO_CODEC_STRINGS, VIDEO_CODEC_ALIASES, RESERV
 var init_url_mode = __esm({
   "engine/src/url-mode.ts"() {
     "use strict";
+    init_sequence_samples();
+    init_motion_sampling();
     init_units();
     init_tokens2();
     init_tool_url();
@@ -48854,7 +50369,7 @@ var init_url_mode = __esm({
       av1: "av1",
       av01: "av1"
     });
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "ds", "full", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence"]);
     CUTS_MAX = 64;
     HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
@@ -49129,7 +50644,7 @@ function createDeflateStream(opts = {}) {
     tokenEnd += len2;
     maybeFlush();
   };
-  const run = (final) => {
+  const run2 = (final) => {
     const runTo = final ? winLen : winLen - MIN_LOOKAHEAD;
     const hashLimit = winLen - MIN_MATCH;
     while (strstart < runTo) {
@@ -49197,14 +50712,14 @@ function createDeflateStream(opts = {}) {
       let off = 0;
       while (off < slab.length) {
         if (winLen === win.length) {
-          run(false);
+          run2(false);
           slide();
         }
         const n6 = Math.min(win.length - winLen, slab.length - off);
         win.set(slab.subarray(off, off + n6), winLen);
         winLen += n6;
         off += n6;
-        run(false);
+        run2(false);
       }
       const out = w.drain();
       bytesOut += out.length;
@@ -49212,7 +50727,7 @@ function createDeflateStream(opts = {}) {
     },
     finish() {
       if (finished) throw new Error("deflate stream: finish called twice.");
-      run(true);
+      run2(true);
       flushBlock(true);
       w.alignByte();
       finished = true;
@@ -51435,9 +52950,9 @@ function readBmff(bytes, out) {
         trackRows.push({ label: "Video track", value: w && h ? `${codec} - ${w} \xD7 ${h} px` : codec, group: "technical" });
       } else if (kind === "soun") {
         const ch = e.end - e.payload >= 28 ? u163(bytes, e.payload + 16) : 0;
-        const rate = e.end - e.payload >= 28 ? u323(bytes, e.payload + 24) >>> 16 : 0;
+        const rate2 = e.end - e.payload >= 28 ? u323(bytes, e.payload + 24) >>> 16 : 0;
         const chs = ch === 1 ? "mono" : ch === 2 ? "stereo" : ch ? `${ch} channels` : "";
-        const rateS = rate ? `${(rate / 1e3).toFixed(1).replace(/\.0$/, "")} kHz` : "";
+        const rateS = rate2 ? `${(rate2 / 1e3).toFixed(1).replace(/\.0$/, "")} kHz` : "";
         trackRows.push({ label: "Audio track", value: [codec, [rateS, chs].filter(Boolean).join(" ")].filter(Boolean).join(" - "), group: "technical" });
       }
     }
@@ -52285,9 +53800,9 @@ function inputSchema(input) {
 }
 function validateInputValue(input, value, path, errors) {
   if (value === "" && input.default === "" && (input.type === "number" || input.type === "boolean")) return;
-  const object = Boolean(value && typeof value === "object" && !Array.isArray(value));
+  const object2 = Boolean(value && typeof value === "object" && !Array.isArray(value));
   const expected = input.type === "number" ? "number" : input.type === "boolean" ? "boolean" : input.type === "blocks" ? "array" : input.type === "table" || input.type === "vector" ? "object" : input.type === "asset" ? "asset" : input.type === "file" ? "file" : input.type === "color" ? "color" : "string";
-  const matches3 = expected === "array" ? Array.isArray(value) : expected === "object" ? object : expected === "asset" ? value === null || typeof value === "string" || object : expected === "file" ? value === null || object || input.multiple === true && Array.isArray(value) : expected === "color" ? typeof value === "string" || object : typeof value === expected;
+  const matches3 = expected === "array" ? Array.isArray(value) : expected === "object" ? object2 : expected === "asset" ? value === null || typeof value === "string" || object2 : expected === "file" ? value === null || object2 || input.multiple === true && Array.isArray(value) : expected === "color" ? typeof value === "string" || object2 : typeof value === expected;
   if (!matches3) {
     errors.push({ path, message: `must be ${expected}` });
     return;
@@ -53089,8 +54604,8 @@ function intersectCubics(c1, c2, tol = EPS2) {
   return intersectOverrun(c1, c2, tol);
 }
 function intersectOverrun(c1, c2, tol) {
-  const run = sharedRun(c1, c2, tol);
-  if (run) return run;
+  const run2 = sharedRun(c1, c2, tol);
+  if (run2) return run2;
   let mag = 0;
   for (let i = 0; i < 8; i++) mag = Math.max(mag, Math.abs(c1[i]), Math.abs(c2[i]));
   const b1 = boundsCubic(c1), b2 = boundsCubic(c2);
@@ -53187,8 +54702,8 @@ function scanStalled(c1, c2, stalled, tol, out) {
     orientZone(scan2, g2.samples);
     for (const part of splitZone(scan2, g2)) decideZone(scan2, part, sides, touches);
   }
-  for (const run of sides) {
-    const at = touchPoint(scan2, run);
+  for (const run2 of sides) {
+    const at = touchPoint(scan2, run2);
     if (at) touches.push(at);
   }
   touches.sort((p, q) => p.t - q.t);
@@ -53331,7 +54846,7 @@ function decideZone(scan2, g2, sides, touches) {
     return;
   }
   let last = null;
-  let run = [];
+  let run2 = [];
   let pending2 = [];
   for (const s of g2.samples) {
     if (!readable(scan2, s)) {
@@ -53340,17 +54855,17 @@ function decideZone(scan2, g2, sides, touches) {
     }
     if (last && side(last) < 0 !== side(s) < 0) {
       refineCrossing(scan2, last, s);
-      sides.push(run);
-      run = [];
+      sides.push(run2);
+      run2 = [];
     } else {
-      run.push(...pending2);
+      run2.push(...pending2);
     }
     pending2 = [];
-    run.push(s);
+    run2.push(s);
     last = s;
   }
-  run.push(...pending2);
-  sides.push(run);
+  run2.push(...pending2);
+  sides.push(run2);
   if (g2.a0 <= TOUCH) endContact(scan2, 1, 0);
   if (g2.a1 >= 1 - TOUCH) endContact(scan2, 1, 1);
   if (g2.b0 <= TOUCH) endContact(scan2, 2, 0);
@@ -54081,8 +55596,8 @@ function selfIntersectCubic(c) {
 function pairSplits(ci, cj, tol, weld, budget3) {
   budget3.work -= 4;
   if (coincidence(ci, cj, weld) !== 0) return null;
-  const run = overlapRun(ci, cj, weld, budget3);
-  if (run) return run;
+  const run2 = overlapRun(ci, cj, weld, budget3);
+  if (run2) return run2;
   const hits2 = intersectCubics(ci, cj, tol);
   if (!hits2.length) {
     if (isLineCubic(ci, weld) && isLineCubic(cj, weld)) {
@@ -55943,7 +57458,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join19 = opts.join ?? "miter";
+  const join20 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners = [];
@@ -55972,7 +57487,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next.dirStart ?? startTangent2(next.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join19, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join20, miterLimit));
   }
   return out;
 }
@@ -56632,15 +58147,15 @@ function solveTangents(nodes, closed) {
   const n6 = nodes.length;
   const psiOut = new Array(n6).fill(0);
   const psiIn = new Array(n6).fill(0);
-  for (const run of partition(nodes, closed)) {
-    const m2 = run.idx.length;
+  for (const run2 of partition(nodes, closed)) {
+    const m2 = run2.idx.length;
     if (m2 < 2) continue;
-    const pts = run.idx.map((i) => ({ x: nodes[i].x, y: nodes[i].y }));
-    const sol = solveRun(pts, run.wrap);
+    const pts = run2.idx.map((i) => ({ x: nodes[i].x, y: nodes[i].y }));
+    const sol = solveRun(pts, run2.wrap);
     for (let j = 0; j < m2; j++) {
-      const i = run.idx[j];
-      if (run.wrap || j < m2 - 1) psiOut[i] = sol[j];
-      if (run.wrap || j > 0) psiIn[i] = sol[j];
+      const i = run2.idx[j];
+      if (run2.wrap || j < m2 - 1) psiOut[i] = sol[j];
+      if (run2.wrap || j > 0) psiIn[i] = sol[j];
     }
   }
   return { psiOut, psiIn };
@@ -56853,7 +58368,7 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
   const a = new Array(m2).fill(0);
   const b = new Array(m2).fill(1);
   const c = new Array(m2).fill(0);
-  const join19 = (k, prevIx, nextIx) => {
+  const join20 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next = segs[nextIx];
     const j = hbJoin(prev, next);
     r5[k] = j.r;
@@ -56862,10 +58377,10 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
     c[k] = j.dB * -next.d01;
   };
   if (wrap) {
-    for (let k = 0; k < m2; k++) join19(k, (k - 1 + m2) % m2, k);
+    for (let k = 0; k < m2; k++) join20(k, (k - 1 + m2) % m2, k);
     return { r: r5, a, b, c, segs };
   }
-  for (let k = 1; k < m2 - 1; k++) join19(k, k - 1, k);
+  for (let k = 1; k < m2 - 1; k++) join20(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r5[0] = mod2pi3(ths[0] - startTh);
@@ -57076,25 +58591,25 @@ function solveHyperbezier(nodes, closed, warm) {
   let converged = true;
   let residual = 0;
   let iterations = 0;
-  for (const run of runs) {
-    const idx = run.idx;
+  for (const run2 of runs) {
+    const idx = run2.idx;
     const m2 = idx.length;
     if (m2 < 2) continue;
     const pts = idx.map((i) => ({ x: nodes[i].x, y: nodes[i].y }));
-    const startTh = run.wrap ? null : pins[idx[0]].out;
-    const endTh = run.wrap ? null : pins[idx[m2 - 1]].in;
+    const startTh = run2.wrap ? null : pins[idx[0]].out;
+    const endTh = run2.wrap ? null : pins[idx[m2 - 1]].in;
     let warmRun = null;
     if (warm && warm.rth.length === n6 && warm.lth.length === n6) {
-      warmRun = idx.map((i, j) => run.wrap || j < m2 - 1 ? warm.rth[i] : warm.lth[i]);
+      warmRun = idx.map((i, j) => run2.wrap || j < m2 - 1 ? warm.rth[i] : warm.lth[i]);
     }
-    const res = hbSolveRun(pts, run.wrap, startTh, endTh, warmRun);
+    const res = hbSolveRun(pts, run2.wrap, startTh, endTh, warmRun);
     if (!res.converged) converged = false;
     if (res.residual > residual) residual = res.residual;
     iterations += res.iterations;
     for (let j = 0; j < m2; j++) {
       const i = idx[j];
-      if (run.wrap || j < m2 - 1) rth[i] = res.ths[j];
-      if (run.wrap || j > 0) lth[i] = res.ths[j];
+      if (run2.wrap || j < m2 - 1) rth[i] = res.ths[j];
+      if (run2.wrap || j > 0) lth[i] = res.ths[j];
     }
   }
   if (!wrap) {
@@ -57548,9 +59063,9 @@ function usableDecimals(dp) {
   if (typeof dp !== "number" || !Number.isFinite(dp)) return 4;
   return Math.max(0, Math.min(12, Math.round(dp)));
 }
-function attempt(run) {
+function attempt(run2) {
   try {
-    return run();
+    return run2();
   } catch (e) {
     if (e instanceof GeomLimitError) return fail2("limit", e.message);
     const msg3 = e instanceof Error ? e.message : String(e);
@@ -58026,33 +59541,24 @@ var init_geom_api = __esm({
 });
 
 // engine/src/hook-worker-core.ts
-function lockDownAmbientCapabilities(scope, extra = []) {
-  const names = [...STRICT_AMBIENT_GLOBALS, ...extra];
-  for (const name of names) {
+function lockAmbientProperty(receiver, name) {
+  let locked = true;
+  for (let owner2 = receiver; owner2; owner2 = Object.getPrototypeOf(owner2)) {
+    if (owner2 !== receiver && !Object.hasOwn(owner2, name)) continue;
     try {
-      Object.defineProperty(scope, name, {
-        value: void 0,
-        writable: false,
-        configurable: false
-      });
+      Object.defineProperty(owner2, name, { value: void 0, writable: false, configurable: false });
     } catch {
     }
+    const descriptor = Object.getOwnPropertyDescriptor(owner2, name);
+    if (!descriptor || !("value" in descriptor) || descriptor.value !== void 0 || descriptor.writable || descriptor.configurable) locked = false;
   }
+  return locked;
+}
+function lockDownAmbientCapabilities(scope, extra = []) {
+  const names = [...STRICT_AMBIENT_GLOBALS, ...extra];
+  const live = names.filter((name) => !lockAmbientProperty(scope, name));
   const navigator = scope.navigator;
-  if (navigator && typeof navigator === "object") {
-    for (const name of STRICT_NAVIGATOR_PROPERTIES) {
-      try {
-        Object.defineProperty(navigator, name, {
-          value: void 0,
-          writable: false,
-          configurable: false
-        });
-      } catch {
-      }
-    }
-  }
-  const live = names.filter((name) => typeof scope[name] !== "undefined");
-  const liveNavigator = navigator && typeof navigator === "object" ? STRICT_NAVIGATOR_PROPERTIES.filter((name) => typeof navigator[name] !== "undefined") : [];
+  const liveNavigator = navigator && typeof navigator === "object" ? STRICT_NAVIGATOR_PROPERTIES.filter((name) => !lockAmbientProperty(navigator, name)) : [];
   if (live.length || liveNavigator.length) {
     throw new Error(`strict hook worker could not disable ambient capabilities: ${[
       ...live,
@@ -58111,12 +59617,12 @@ function createHookWorkerCore(port, opts = {}) {
   let hostCallCounter = 0;
   const nextHostCallId = opts.hostCallSeq ?? (() => ++hostCallCounter);
   const canRaster = opts.canRaster ?? (() => false);
-  function scheduleFlush(runId, run) {
-    if (run.flushTimer != null) return;
-    run.flushTimer = setTimeout(() => {
-      run.flushTimer = null;
-      if (run.logBuf.length) {
-        port.post({ t: "log", runId, entries: run.logBuf.splice(0) });
+  function scheduleFlush(runId, run2) {
+    if (run2.flushTimer != null) return;
+    run2.flushTimer = setTimeout(() => {
+      run2.flushTimer = null;
+      if (run2.logBuf.length) {
+        port.post({ t: "log", runId, entries: run2.logBuf.splice(0) });
       }
     }, 250);
   }
@@ -58147,13 +59653,13 @@ function createHookWorkerCore(port, opts = {}) {
     };
   }
   function buildHost(runId, msg3) {
-    const run = () => runs.get(runId);
+    const run2 = () => runs.get(runId);
     const host = {
       version: "1",
       shell: msg3.shell,
       capabilities: msg3.capabilities,
       log: (level2, m2, ctx) => {
-        const r5 = run();
+        const r5 = run2();
         r5.logBuf.push({ level: level2, msg: m2, ctx });
         scheduleFlush(runId, r5);
       },
@@ -58213,17 +59719,17 @@ function createHookWorkerCore(port, opts = {}) {
   }
   function handle(msg3) {
     if (msg3.t === "init") {
-      const run = { host: null, mod: {}, waiters: /* @__PURE__ */ new Map(), logBuf: [], flushTimer: null };
-      runs.set(msg3.runId, run);
+      const run2 = { host: null, mod: {}, waiters: /* @__PURE__ */ new Map(), logBuf: [], flushTimer: null };
+      runs.set(msg3.runId, run2);
       let declared = [];
       let inRealmOnlyDeclared = [];
       let compileError;
       try {
-        run.host = buildHost(msg3.runId, msg3);
-        const compiled2 = compile2(run.host, msg3.hooksSource);
-        run.mod = compiled2.mod;
+        run2.host = buildHost(msg3.runId, msg3);
+        const compiled2 = compile2(run2.host, msg3.hooksSource);
+        run2.mod = compiled2.mod;
         inRealmOnlyDeclared = compiled2.inRealmOnlyDeclared;
-        declared = WORKER_HOOK_NAMES.filter((n6) => run.mod[n6] != null);
+        declared = WORKER_HOOK_NAMES.filter((n6) => run2.mod[n6] != null);
       } catch (e) {
         compileError = e.message;
         runs.delete(msg3.runId);
@@ -58232,15 +59738,15 @@ function createHookWorkerCore(port, opts = {}) {
       return;
     }
     if (msg3.t === "invoke") {
-      const run = runs.get(msg3.runId);
-      const fn = run?.mod[msg3.name];
-      if (!run || !fn) {
+      const run2 = runs.get(msg3.runId);
+      const fn = run2?.mod[msg3.name];
+      if (!run2 || !fn) {
         port.post({ t: "invoke-done", runId: msg3.runId, callId: msg3.callId, ok: false, error: `no hook '${msg3.name}'` });
         return;
       }
       const ctx = {
         ...msg3.ctx,
-        host: run.host,
+        host: run2.host,
         ...msg3.name === "onInit" || msg3.name === "onInput" ? {
           report: (patch, opts2) => port.post({ t: "report", runId: msg3.runId, callId: msg3.callId, patch, ...opts2?.ready ? { ready: true } : {} })
         } : {}
@@ -58262,10 +59768,10 @@ function createHookWorkerCore(port, opts = {}) {
       return;
     }
     if (msg3.t === "dispose") {
-      const run = runs.get(msg3.runId);
-      if (run) {
-        if (run.flushTimer != null) clearTimeout(run.flushTimer);
-        for (const wtr of run.waiters.values()) wtr.reject(new Error("mount disposed"));
+      const run2 = runs.get(msg3.runId);
+      if (run2) {
+        if (run2.flushTimer != null) clearTimeout(run2.flushTimer);
+        for (const wtr of run2.waiters.values()) wtr.reject(new Error("mount disposed"));
         runs.delete(msg3.runId);
       }
       return;
@@ -59532,7 +61038,7 @@ function writePsd(doc) {
   const dataParts = [];
   const CH_IDS = [-1, 0, 1, 2];
   for (const l of doc.layers) {
-    const encoded = CH_IDS.map((id2) => encodeChannel(l, id2));
+    const encoded2 = CH_IDS.map((id2) => encodeChannel(l, id2));
     const nameBytes = pascalName(l.name);
     const luni = luniBlock(l.name);
     const extraLen = 4 + 4 + nameBytes.length + luni.length;
@@ -59552,7 +61058,7 @@ function writePsd(doc) {
     for (let i = 0; i < CH_IDS.length; i++) {
       rv.setInt16(p, CH_IDS[i]);
       p += 2;
-      rv.setUint32(p, encoded[i].length);
+      rv.setUint32(p, encoded2[i].length);
       p += 4;
     }
     rec2.set([56, 66, 73, 77], p);
@@ -59575,7 +61081,7 @@ function writePsd(doc) {
     rec2.set(luni, p);
     p += luni.length;
     layerParts.push(rec2);
-    for (const e of encoded) dataParts.push(e);
+    for (const e of encoded2) dataParts.push(e);
   }
   const layerCount = doc.layers.length;
   const layerBody = concat2([i16(layerCount), ...layerParts, ...dataParts]);
@@ -62884,234 +64390,6 @@ var init_contentseal = __esm({
   }
 });
 
-// engine/src/color.ts
-function srgbToLinear4(c) {
-  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-}
-function writeSig(buf, offset, sig) {
-  for (let i = 0; i < 4; i++) buf[offset + i] = sig.charCodeAt(i);
-}
-function xyzType([x, y, z]) {
-  const b = new Uint8Array(20);
-  const dv = new DataView(b.buffer);
-  writeSig(b, 0, "XYZ ");
-  dv.setInt32(8, s15f162(x));
-  dv.setInt32(12, s15f162(y));
-  dv.setInt32(16, s15f162(z));
-  return b;
-}
-function curveType(samples) {
-  const n6 = samples.length;
-  const b = new Uint8Array(12 + n6 * 2);
-  const dv = new DataView(b.buffer);
-  writeSig(b, 0, "curv");
-  dv.setUint32(8, n6);
-  for (const [i, s] of samples.entries()) dv.setUint16(12 + i * 2, s);
-  return b;
-}
-function descType(ascii4) {
-  const a = new TextEncoder().encode(ascii4);
-  const count4 = a.length + 1;
-  const b = new Uint8Array(8 + 4 + count4 + 4 + 4 + 2 + 1 + 67);
-  const dv = new DataView(b.buffer);
-  writeSig(b, 0, "desc");
-  dv.setUint32(8, count4);
-  b.set(a, 12);
-  return b;
-}
-function textType(ascii4) {
-  const a = new TextEncoder().encode(ascii4);
-  const b = new Uint8Array(8 + a.length + 1);
-  writeSig(b, 0, "text");
-  b.set(a, 8);
-  return b;
-}
-function mlucType(str9) {
-  const HEADER2 = 16;
-  const RECORD = 12;
-  const bytes = str9.length * 2;
-  const b = new Uint8Array(HEADER2 + RECORD + bytes);
-  const dv = new DataView(b.buffer);
-  writeSig(b, 0, "mluc");
-  dv.setUint32(8, 1);
-  dv.setUint32(12, RECORD);
-  dv.setUint16(16, 25966);
-  dv.setUint16(18, 21843);
-  dv.setUint32(20, bytes);
-  dv.setUint32(24, HEADER2 + RECORD);
-  for (let i = 0; i < str9.length; i++) dv.setUint16(HEADER2 + RECORD + i * 2, str9.charCodeAt(i));
-  return b;
-}
-function sf32Type(values) {
-  const b = new Uint8Array(8 + values.length * 4);
-  const dv = new DataView(b.buffer);
-  writeSig(b, 0, "sf32");
-  values.forEach((v, i) => dv.setInt32(8 + i * 4, s15f162(v)));
-  return b;
-}
-function cicpType(primaries, transfer, matrix, fullRange) {
-  const b = new Uint8Array(12);
-  writeSig(b, 0, "cicp");
-  b[8] = primaries;
-  b[9] = transfer;
-  b[10] = matrix;
-  b[11] = fullRange;
-  return b;
-}
-function buildIcc(versionBE, tags3) {
-  const tagTableSize = 4 + tags3.length * 12;
-  let offset = align4(128 + tagTableSize);
-  const placed2 = /* @__PURE__ */ new Map();
-  const blobs = [];
-  const entries = tags3.map(([sig, data]) => {
-    let p = placed2.get(data);
-    if (!p) {
-      p = { offset, size: data.length };
-      placed2.set(data, p);
-      blobs.push({ offset, data });
-      offset = align4(offset + data.length);
-    }
-    return { sig, offset: p.offset, size: p.size };
-  });
-  const total = offset;
-  const out = new Uint8Array(total);
-  const dv = new DataView(out.buffer);
-  dv.setUint32(0, total);
-  dv.setUint32(8, versionBE);
-  writeSig(out, 12, "mntr");
-  writeSig(out, 16, "RGB ");
-  writeSig(out, 20, "XYZ ");
-  dv.setUint16(24, 2024);
-  dv.setUint16(26, 1);
-  dv.setUint16(28, 1);
-  writeSig(out, 36, "acsp");
-  dv.setInt32(68, s15f162(D50[0]));
-  dv.setInt32(72, s15f162(D50[1]));
-  dv.setInt32(76, s15f162(D50[2]));
-  dv.setUint32(128, tags3.length);
-  let to = 132;
-  for (const e of entries) {
-    writeSig(out, to, e.sig);
-    dv.setUint32(to + 4, e.offset);
-    dv.setUint32(to + 8, e.size);
-    to += 12;
-  }
-  for (const { offset: o, data } of blobs) out.set(data, o);
-  return out;
-}
-function srgbIccProfile() {
-  if (_srgbCache) return _srgbCache;
-  const trc = new Array(TRC_SAMPLES);
-  for (let i = 0; i < TRC_SAMPLES; i++) {
-    const lin = srgbToLinear4(i / (TRC_SAMPLES - 1));
-    trc[i] = Math.max(0, Math.min(65535, Math.round(lin * 65535)));
-  }
-  const trcData = curveType(trc);
-  _srgbCache = buildIcc(34603008, [
-    ["desc", descType("sRGB IEC61966-2.1")],
-    ["wtpt", xyzType(D50)],
-    ["rXYZ", xyzType(PRIMARIES.r)],
-    ["gXYZ", xyzType(PRIMARIES.g)],
-    ["bXYZ", xyzType(PRIMARIES.b)],
-    ["rTRC", trcData],
-    ["gTRC", trcData],
-    ["bTRC", trcData],
-    ["cprt", textType("Public Domain - sRGB profile generated by Lolly")]
-  ]);
-  return _srgbCache;
-}
-function pqEotfNorm(code) {
-  if (code <= 0) return 0;
-  const m1 = 2610 / 16384, m2 = 2523 / 4096 * 128;
-  const c1 = 3424 / 4096, c2 = 2413 / 4096 * 32, c3 = 2392 / 4096 * 32;
-  const p = code ** (1 / m2);
-  const num11 = Math.max(p - c1, 0);
-  const den = c2 - c3 * p;
-  return (num11 / den) ** (1 / m1);
-}
-function pqBt2020IccProfile() {
-  if (_pqCache) return _pqCache;
-  const trc = new Array(TRC_SAMPLES);
-  for (let i = 0; i < TRC_SAMPLES; i++) {
-    trc[i] = Math.max(0, Math.min(65535, Math.round(pqEotfNorm(i / (TRC_SAMPLES - 1)) * 65535)));
-  }
-  const trcData = curveType(trc);
-  _pqCache = buildIcc(71303168, [
-    // ICC v4.4 (first version with the cicp tag)
-    ["desc", mlucType("Rec.2100 PQ")],
-    ["cprt", mlucType("Public Domain - Rec.2100 PQ profile generated by Lolly")],
-    ["wtpt", xyzType(D50)],
-    ["chad", sf32Type(CHAD_D65_TO_D50)],
-    ["rXYZ", xyzType(BT2020_D50.r)],
-    ["gXYZ", xyzType(BT2020_D50.g)],
-    ["bXYZ", xyzType(BT2020_D50.b)],
-    ["rTRC", trcData],
-    ["gTRC", trcData],
-    ["bTRC", trcData],
-    ["cicp", cicpType(9, 16, 0, 1)]
-  ]);
-  return _pqCache;
-}
-function iccProfileBytes(name = "srgb") {
-  if (!name || name === "none") return null;
-  const p = isProfileName(name) ? COLOR_PROFILES[name] : COLOR_PROFILES.srgb;
-  return p.bytes();
-}
-function rgbToCmyk(r5, g2, b) {
-  const k = 1 - Math.max(r5, g2, b);
-  if (k >= 1) return [0, 0, 0, 1];
-  const d = 1 - k;
-  return [(1 - r5 - k) / d, (1 - g2 - k) / d, (1 - b - k) / d, k];
-}
-function cmykCondition(name = DEFAULT_CMYK_CONDITION) {
-  return isCmykConditionName(name) ? CMYK_CONDITIONS[name] : CMYK_CONDITIONS[DEFAULT_CMYK_CONDITION];
-}
-var s15f162, align4, D50, PRIMARIES, TRC_SAMPLES, _srgbCache, BT2020_D50, CHAD_D65_TO_D50, _pqCache, COLOR_PROFILES, isProfileName, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, isCmykConditionName;
-var init_color2 = __esm({
-  "engine/src/color.ts"() {
-    "use strict";
-    s15f162 = (v) => Math.round(v * 65536);
-    align4 = (n6) => n6 + 3 & ~3;
-    D50 = [0.9642, 1, 0.8249];
-    PRIMARIES = {
-      r: [0.43607, 0.22249, 0.01392],
-      g: [0.38515, 0.71687, 0.09708],
-      b: [0.14307, 0.06061, 0.7141]
-    };
-    TRC_SAMPLES = 1024;
-    _srgbCache = null;
-    BT2020_D50 = {
-      r: [0.673459, 0.279033, -1938e-6],
-      g: [0.165661, 0.675338, 0.029996],
-      b: [0.1251, 0.045631, 0.797177]
-    };
-    CHAD_D65_TO_D50 = [
-      1.0478112,
-      0.0228866,
-      -0.050127,
-      0.0295424,
-      0.9904844,
-      -0.0170491,
-      -92345e-7,
-      0.0150436,
-      0.7521316
-    ];
-    _pqCache = null;
-    COLOR_PROFILES = {
-      srgb: { id: "srgb", name: "sRGB IEC61966-2.1", space: "RGB", bytes: srgbIccProfile }
-    };
-    isProfileName = (n6) => Object.hasOwn(COLOR_PROFILES, n6);
-    CMYK_CONDITIONS = {
-      fogra39: { identifier: "FOGRA39", info: "Coated FOGRA39 (ISO 12647-2:2004)", registry: "http://www.color.org", tac: 330 },
-      fogra51: { identifier: "FOGRA51", info: "PSO Coated v3 (FOGRA51)", registry: "http://www.color.org", tac: 300 },
-      swop: { identifier: "CGATS TR 001", info: "U.S. Web Coated (SWOP) v2", registry: "http://www.color.org", tac: 300 },
-      gracol: { identifier: "CGATS TR 006", info: "GRACoL 2006 Coated", registry: "http://www.color.org", tac: 340 }
-    };
-    DEFAULT_CMYK_CONDITION = "fogra39";
-    isCmykConditionName = (n6) => Object.hasOwn(CMYK_CONDITIONS, n6);
-  }
-});
-
 // engine/src/cmyk-palette.ts
 function cmykKey(r5, g2, b) {
   return `${Math.round(r5 * 100)},${Math.round(g2 * 100)},${Math.round(b * 100)}`;
@@ -63380,1129 +64658,6 @@ var init_hdr = __esm({
   }
 });
 
-// engine/src/print-marks.ts
-function cmykToRgbApprox([c, m2, y, k]) {
-  return [(1 - c) * (1 - k), (1 - m2) * (1 - k), (1 - y) * (1 - k)];
-}
-function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palette = [], barStyle = "cmyk-verify", barRadiusPt = 0 }) {
-  const m2 = { crop: false, registration: false, bleed: false, colorBars: false, provenance: false, ...marks };
-  const { markLengthPt: L, markReachPt: R2, regRadiusPt: rr, regCrossPt: rc, barCellPt: bc, barPairGapPt: bg, barGroupGapPt: bgap, barMaxCells: bmax, labelSizePt: ls, labelInsetPt: li } = PRINT_MARK_DEFAULTS;
-  const cellR = Math.max(0, Math.min(barRadiusPt, bc / 2));
-  const anyMark = m2.crop || m2.registration || m2.bleed || m2.colorBars || m2.provenance;
-  const reach2 = anyMark ? R2 : 0;
-  const M2 = bleedPt + reach2;
-  const pageW = trimWpt + 2 * M2;
-  const pageH = trimHpt + 2 * M2;
-  const trim2 = { x: M2, y: M2, w: trimWpt, h: trimHpt };
-  const bleed = { x: M2 - bleedPt, y: M2 - bleedPt, w: trimWpt + 2 * bleedPt, h: trimHpt + 2 * bleedPt };
-  const media = { x: 0, y: 0, w: pageW, h: pageH };
-  const trimL = trim2.x, trimT = trim2.y, trimR = trim2.x + trim2.w, trimB = trim2.y + trim2.h;
-  const bL = bleed.x, bT = bleed.y, bR = bleed.x + bleed.w, bB = bleed.y + bleed.h;
-  const lines = [], circles = [], bars = [], labels = [];
-  const line = (x1, y1, x2, y2, mark) => {
-    lines.push({ x1, y1, x2, y2, mark });
-  };
-  if (m2.crop) {
-    line(trimL, bT, trimL, bT - L, "crop");
-    line(bL, trimT, bL - L, trimT, "crop");
-    line(trimR, bT, trimR, bT - L, "crop");
-    line(bR, trimT, bR + L, trimT, "crop");
-    line(trimL, bB, trimL, bB + L, "crop");
-    line(bL, trimB, bL - L, trimB, "crop");
-    line(trimR, bB, trimR, bB + L, "crop");
-    line(bR, trimB, bR + L, trimB, "crop");
-  }
-  if (m2.bleed && bleedPt > 0) {
-    line(bL, bT, bL, bT - L, "bleed");
-    line(bL, bT, bL - L, bT, "bleed");
-    line(bR, bT, bR, bT - L, "bleed");
-    line(bR, bT, bR + L, bT, "bleed");
-    line(bL, bB, bL, bB + L, "bleed");
-    line(bL, bB, bL - L, bB, "bleed");
-    line(bR, bB, bR, bB + L, "bleed");
-    line(bR, bB, bR + L, bB, "bleed");
-  }
-  if (m2.registration) {
-    const reg = (cx2, cy3) => {
-      circles.push({ cx: cx2, cy: cy3, r: rr, mark: "registration" });
-      line(cx2, cy3 - rc, cx2, cy3 + rc, "registration");
-      line(cx2 - rc, cy3, cx2 + rc, cy3, "registration");
-    };
-    const midX = pageW / 2, midY = pageH / 2, half = reach2 / 2;
-    reg(midX, bT - half);
-    reg(midX, bB + half);
-    reg(bL - half, midY);
-    reg(bR + half, midY);
-  }
-  if (m2.colorBars) {
-    const y = bB + reach2 / 2 - bc / 2;
-    const maxX = m2.registration ? pageW / 2 - rc - 6 : pageW - M2;
-    let x = trimL;
-    if (palette.length && barStyle === "rgb-swatches") {
-      let brandCells = 0;
-      for (const { rgb, cmyk, label: label2, spotName } of palette) {
-        if (brandCells >= bmax) break;
-        if (x + bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label: label2, spotName, mark: "colorbar", r: cellR });
-        x += bc + bg;
-        brandCells += 1;
-      }
-    } else if (palette.length) {
-      for (const cmyk of COLOR_BAR_CELLS.slice(0, 4)) {
-        if (x + bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: "cmyk", mark: "colorbar", r: cellR });
-        x += bc;
-      }
-      if (bars.length) x += bgap;
-      let brandCells = 0;
-      for (const { rgb, cmyk, label: label2, spotName } of palette) {
-        if (brandCells + 2 > bmax) break;
-        if (x + 2 * bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label: label2, spotName, mark: "colorbar", r: cellR });
-        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: "cmyk", label: label2, spotName, mark: "colorbar", r: cellR });
-        x += 2 * bc + bg;
-        brandCells += 2;
-      }
-    } else {
-      for (const cmyk of COLOR_BAR_CELLS) {
-        if (bars.length >= bmax) break;
-        if (x + bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: cmykToRgbApprox(cmyk), ink: "page", mark: "colorbar", r: cellR });
-        x += bc;
-      }
-    }
-  }
-  if (m2.provenance && reach2 > 0) {
-    labels.push({ slot: "topLeft", x: trimL + li, y: li + ls, size: ls, rotation: 0, align: "left", mark: "label" });
-    labels.push({ slot: "topRight", x: trimR - li, y: li + ls, size: ls, rotation: 0, align: "right", mark: "label" });
-    labels.push({ slot: "bottomLeftUp", x: reach2 / 2, y: trimB - li, size: ls, rotation: 90, align: "left", mark: "label" });
-  }
-  return {
-    page: { w: pageW, h: pageH },
-    boxes: { media, bleed, trim: trim2 },
-    artwork: { ...bleed },
-    strokeWeight: PRINT_MARK_DEFAULTS.markStrokePt,
-    primitives: { lines, circles, bars, labels }
-  };
-}
-var PRINT_MARK_DEFAULTS, COLOR_BAR_CELLS;
-var init_print_marks = __esm({
-  "engine/src/print-marks.ts"() {
-    "use strict";
-    PRINT_MARK_DEFAULTS = {
-      bleed: "3mm",
-      // default bleed amount (a dimension string; see units.js)
-      markLengthPt: 18,
-      // crop / bleed tick length (~0.25")
-      markStrokePt: 0.5,
-      // hairline stroke for all line marks
-      markReachPt: 30,
-      // margin band beyond the bleed that holds the marks
-      regRadiusPt: 6,
-      // registration target circle radius
-      regCrossPt: 11,
-      // registration crosshair half-length (overshoots the circle)
-      barCellPt: 14,
-      // colour-bar cell size (square)
-      barPairGapPt: 6,
-      // gap between brand RGB/CMYK swatch pairs
-      barGroupGapPt: 18,
-      // wider gap between the process primaries and the brand pairs
-      barMaxCells: 12,
-      // flat ceiling on brand colour-bar cells (width is the real cap)
-      labelSizePt: 6,
-      // provenance / credit text size (points)
-      labelInsetPt: 5
-      // provenance text inset from the page edge
-    };
-    COLOR_BAR_CELLS = [
-      [1, 0, 0, 0],
-      [0, 1, 0, 0],
-      [0, 0, 1, 0],
-      [0, 0, 0, 1],
-      [1, 1, 0, 0],
-      [1, 0, 1, 0],
-      [0, 1, 1, 0],
-      [0, 0, 0, 0.25],
-      [0, 0, 0, 0.5],
-      [0, 0, 0, 0.75]
-    ];
-  }
-});
-
-// engine/src/preflight.ts
-function preflight(job) {
-  const out = [];
-  const rowIndex2 = isFiniteNum(job?.rowIndex) ? job.rowIndex : void 0;
-  const ctx = {
-    job,
-    fmt: lower(job?.settings?.format),
-    out,
-    add(f) {
-      const fixed = f.needs ? { ...f, severity: "info", count: void 0, needs: f.needs } : f;
-      out.push(rowIndex2 === void 0 ? fixed : { ...fixed, rowIndex: rowIndex2 });
-    }
-  };
-  for (const check of CHECKS) guard(() => check(ctx));
-  const findings = out.map((f, i) => ({ f, i })).sort((a, b) => SEVERITY_RANK[a.f.severity] - SEVERITY_RANK[b.f.severity] || a.i - b.i).map(({ f }) => f);
-  const seen = /* @__PURE__ */ new Set();
-  const counts = [];
-  for (const f of findings) {
-    if (!f.count) continue;
-    const key = `${f.count.kind}|${f.count.box ?? ""}|${f.count.basis}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    counts.push(f.count);
-  }
-  return {
-    $format: "lolly-preflight",
-    formatVersion: 1,
-    engine: ENGINE_VERSION,
-    job: safeReportedJob(job, ctx.fmt, rowIndex2),
-    findings,
-    counts,
-    gaps: findings.filter((f) => !!f.needs)
-  };
-}
-function safeReportedJob(job, fmt3, rowIndex2) {
-  try {
-    return reportedJob(job, fmt3, rowIndex2);
-  } catch {
-    return {
-      toolId: "",
-      format: fmt3,
-      ...rowIndex2 === void 0 ? {} : { rowIndex: rowIndex2 },
-      stageMounted: false,
-      paletteResolved: false,
-      settings: {
-        format: fmt3,
-        size: { width: { value: 0, unit: "px" }, height: { value: 0, unit: "px" }, dpi: 0, declaredBy: "manifest", unitDeclared: false },
-        bleed: { known: false, why: "not-set" },
-        marks: { known: false, why: "not-set" },
-        pressProfile: { known: false, why: "not-set" }
-      }
-    };
-  }
-}
-function reportedJob(job, fmt3, rowIndex2) {
-  const dim = (d) => isDim(d) ? { value: d.value, unit: d.unit } : { value: 0, unit: "px" };
-  const s = job?.settings;
-  const size = {
-    width: dim(s?.size?.width),
-    height: dim(s?.size?.height),
-    dpi: isFiniteNum(s?.size?.dpi) ? s.size.dpi : 0,
-    declaredBy: typeof s?.size?.declaredBy === "string" ? s.size.declaredBy : "manifest",
-    unitDeclared: s?.size?.unitDeclared === true
-  };
-  const bleed = s?.bleed?.known === true ? { known: true, value: isDim(s.bleed.value) ? dim(s.bleed.value) : null } : { known: false, why: s?.bleed?.known === false ? s.bleed.why : "not-set" };
-  const marks = s?.marks?.known === true ? { known: true, value: s.marks.value ?? null } : { known: false, why: s?.marks?.known === false ? s.marks.why : "not-set" };
-  const pressProfile = s?.pressProfile?.known === true ? { known: true, value: typeof s.pressProfile.value === "string" ? s.pressProfile.value : null } : { known: false, why: s?.pressProfile?.known === false ? s.pressProfile.why : "not-set" };
-  const settings = { format: fmt3, size, bleed, marks, pressProfile };
-  return {
-    toolId: typeof job?.manifest?.id === "string" && job.manifest.id || "",
-    format: fmt3,
-    ...rowIndex2 === void 0 ? {} : { rowIndex: rowIndex2 },
-    ...typeof job?.source === "string" ? { source: job.source } : {},
-    ...typeof job?.modelPhase === "string" ? { modelPhase: job.modelPhase } : {},
-    stageMounted: job?.stage?.known === true,
-    paletteResolved: job?.palette?.known === true,
-    settings
-  };
-}
-function dpiIntent(trim2) {
-  const wi = toInches(trim2.w), hi = toInches(trim2.h);
-  const longEdge = wi >= hi ? trim2.w : trim2.h;
-  const longEdgeIn = Math.max(wi, hi);
-  const intent = longEdgeIn >= LARGE_FORMAT_LONG_EDGE_IN ? "large-format" : "offset";
-  const floor = intent === "offset" ? OFFSET_MIN_DPI : LARGE_FORMAT_MIN_DPI;
-  const hard = intent === "offset" ? OFFSET_HARD_DPI : 50;
-  return { intent, floor, hard, longEdgeIn, longEdge };
-}
-var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, STILL_IMAGE_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, num3, labelOf, isDim, PT_TO_M, pt2ToM2, guard, spotSwatches, finishSpots, hexRgb01, swatchTac, tacLimitFor, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, LARGE_FORMAT_LONG_EDGE_IN, OFFSET_MIN_DPI, OFFSET_HARD_DPI, LARGE_FORMAT_MIN_DPI, round0, checkEffectiveDpi, checkImageEffectiveDpi, checkImageDpiNeedsStage, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkArtboardFanOut, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkInkCoverage, checkRichBlack, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
-var init_preflight2 = __esm({
-  "engine/src/preflight.ts"() {
-    "use strict";
-    init_src();
-    init_inputs();
-    init_print_marks();
-    init_units();
-    init_color2();
-    init_version();
-    init_clamp();
-    PRINT_MARK_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff", "svg", "eps", "eps-cmyk"]);
-    SEPARATING_FORMATS = /* @__PURE__ */ new Set(["pdf-cmyk", "cmyk-tiff", "eps-cmyk"]);
-    SPOT_PLATE_FORMATS = /* @__PURE__ */ new Set(["pdf-cmyk"]);
-    HDR_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "avif", "tiff"]);
-    DURABLE_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "avif", "tiff"]);
-    CUTS_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "svg", "pdf"]);
-    MOTION_FORMATS = /* @__PURE__ */ new Set(["webm", "mp4", "gif", "apng"]);
-    RASTER_FORMATS = /* @__PURE__ */ new Set([
-      "png",
-      "jpg",
-      "jpeg",
-      "webp",
-      "avif",
-      "tiff",
-      "cmyk-tiff",
-      "gif",
-      "apng",
-      "exr",
-      "hdr"
-    ]);
-    DEPTH_FORMATS = /* @__PURE__ */ new Set(["exr", "hdr"]);
-    PAGED_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "pptx"]);
-    STILL_IMAGE_FORMATS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "svg", "tiff"]);
-    KNOWN_FINISHES = new Set(KNOWN_FINISH_KINDS);
-    lower = (v) => typeof v === "string" ? v.toLowerCase() : "";
-    isFiniteNum = (v) => typeof v === "number" && Number.isFinite(v);
-    num3 = (n6) => {
-      if (!Number.isFinite(n6)) return "?";
-      const r5 = Math.round(n6 * 100) / 100;
-      return Number.isInteger(r5) ? String(r5) : String(r5);
-    };
-    labelOf = (i) => typeof i.label === "string" && i.label || typeof i.id === "string" && i.id || "An input";
-    isDim = (d) => !!d && typeof d === "object" && isFiniteNum(d.value) && typeof d.unit === "string";
-    PT_TO_M = 0.0254 / 72;
-    pt2ToM2 = (w, h) => w * PT_TO_M * (h * PT_TO_M);
-    guard = (fn) => {
-      try {
-        fn();
-      } catch {
-      }
-    };
-    spotSwatches = (c) => {
-      const p = c.job?.palette;
-      if (!p || p.known !== true || !Array.isArray(p.value)) return [];
-      const out = [];
-      for (const s of p.value) {
-        const spot = s?.spot;
-        if (!spot || typeof spot !== "object" || typeof spot.name !== "string" || !spot.name) continue;
-        out.push({
-          name: typeof s.name === "string" && s.name ? s.name : spot.name,
-          spot,
-          path: typeof s.path === "string" ? s.path : ""
-        });
-      }
-      return out;
-    };
-    finishSpots = (c) => spotSwatches(c).filter((s) => typeof s.spot.finish === "string" && s.spot.finish !== "").map((s) => ({ ...s, finish: s.spot.finish }));
-    hexRgb01 = (hex3) => {
-      if (typeof hex3 !== "string") return null;
-      const m2 = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex3.trim());
-      if (!m2) return null;
-      let h = m2[1];
-      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-      const n6 = parseInt(h, 16);
-      return [(n6 >> 16 & 255) / 255, (n6 >> 8 & 255) / 255, (n6 & 255) / 255];
-    };
-    swatchTac = (s) => {
-      if (s?.spot?.finish) return null;
-      let cmyk = null;
-      if (Array.isArray(s?.cmyk) && s.cmyk.length === 4 && s.cmyk.every(isFiniteNum)) {
-        cmyk = [s.cmyk[0], s.cmyk[1], s.cmyk[2], s.cmyk[3]];
-      } else {
-        const rgb = hexRgb01(s?.hex);
-        if (rgb) {
-          const [cc, mm, yy, kk] = rgbToCmyk(rgb[0], rgb[1], rgb[2]);
-          cmyk = [cc * 100, mm * 100, yy * 100, kk * 100];
-        }
-      }
-      if (!cmyk) return null;
-      return { cmyk, tac: Math.round(cmyk[0] + cmyk[1] + cmyk[2] + cmyk[3]), name: typeof s.name === "string" && s.name || "a brand colour" };
-    };
-    tacLimitFor = (c) => {
-      const p = c.job?.settings?.pressProfile;
-      const name = p?.known === true && typeof p.value === "string" && p.value ? p.value : DEFAULT_CMYK_CONDITION;
-      return { name, limit: cmykCondition(name).tac };
-    };
-    checkFinishSeparatesAsInk = (c) => {
-      if (!SPOT_PLATE_FORMATS.has(c.fmt)) return;
-      for (const s of finishSpots(c)) {
-        c.add({
-          id: "print.finish-separates-as-ink",
-          severity: "info",
-          message: `${s.name} is a ${s.finish} finish. Lolly writes it as its own overprinting named plate, with a 100% black process fallback if a RIP flattens it. Confirm with your printer how they want the finish supplied (its own overprinting plate, or separate finish artwork).`,
-          evidence: { spotName: s.spot.name, swatch: s.name, finish: s.finish, tokenPath: s.path, format: c.fmt, overprint: true }
-        });
-      }
-    };
-    checkFinishFlattened = (c) => {
-      if (!SEPARATING_FORMATS.has(c.fmt) || SPOT_PLATE_FORMATS.has(c.fmt)) return;
-      for (const s of finishSpots(c)) {
-        c.add({
-          id: "print.finish-flattened-into-process",
-          severity: "error",
-          message: `${s.name} is a ${s.finish} finish, and ${c.fmt} has no separation plates. It is written into the process build as solid black, so it is a mask rather than a finish, and it is not overprinted. Supply the finish as its own artwork.`,
-          evidence: { spotName: s.spot.name, swatch: s.name, finish: s.finish, tokenPath: s.path, format: c.fmt, overprint: false }
-        });
-      }
-    };
-    checkFinishUnknownKind = (c) => {
-      for (const s of finishSpots(c)) {
-        if (KNOWN_FINISHES.has(s.finish)) continue;
-        c.add({
-          id: "print.finish-unknown-kind",
-          severity: "info",
-          message: `${s.name} declares the finish "${s.finish}", which Lolly does not recognise. The ink is kept; nothing is discarded.`,
-          evidence: { spotName: s.spot.name, finish: s.finish, tokenPath: s.path }
-        });
-      }
-    };
-    checkFormatOffered = (c) => {
-      if (DEPTH_FORMATS.has(c.fmt)) return;
-      const offered = c.job?.manifest?.render?.formats;
-      if (!Array.isArray(offered) || offered.length === 0 || !c.fmt) return;
-      const list2 = offered.map(lower).filter(Boolean);
-      if (list2.includes(c.fmt)) return;
-      c.add({
-        id: "settings.format-not-offered",
-        severity: "error",
-        message: `This tool does not offer ${c.fmt}. It offers: ${list2.join(", ")}.`,
-        evidence: { format: c.fmt, offered: list2.join(",") }
-      });
-    };
-    bleedIsSet = (c) => {
-      const b = c.job?.settings?.bleed;
-      return b?.known === true && isDim(b.value) && b.value.value > 0;
-    };
-    marksAreSet = (c) => {
-      const m2 = c.job?.settings?.marks;
-      if (m2?.known !== true || !m2.value || typeof m2.value !== "object") return false;
-      return Object.values(m2.value).some((v) => v === true);
-    };
-    checkPrintMarksOnNonPrintFormat = (c) => {
-      if (PRINT_MARK_FORMATS.has(c.fmt)) return;
-      if (!bleedIsSet(c) && !marksAreSet(c)) return;
-      c.add({
-        id: "settings.print-marks-on-non-print-format",
-        severity: "warn",
-        message: `Bleed and print marks are set, but ${c.fmt || "this format"} ignores them. Only PDF, Print PDF, Print TIFF, SVG and EPS carry them.`,
-        evidence: { format: c.fmt, bleedSet: bleedIsSet(c), marksSet: marksAreSet(c) }
-      });
-    };
-    checkPressProfileOnNonSeparatingFormat = (c) => {
-      const p = c.job?.settings?.pressProfile;
-      if (p?.known !== true) return;
-      const v = p.value;
-      if (typeof v !== "string" || v === "" || v === "none") return;
-      if (SEPARATING_FORMATS.has(c.fmt)) return;
-      c.add({
-        id: "settings.press-profile-on-non-separating-format",
-        severity: "warn",
-        message: `A press condition (${v}) is set, but ${c.fmt || "this format"} has no separation to apply it to.`,
-        evidence: { pressProfile: v, format: c.fmt }
-      });
-    };
-    checkHdrFormat = (c) => {
-      if (c.job?.settings?.hdr !== true || HDR_FORMATS.has(c.fmt)) return;
-      c.add({
-        id: "settings.hdr-on-unsupported-format",
-        severity: "warn",
-        message: `HDR is on, but ${c.fmt || "this format"} cannot carry it.`,
-        evidence: { format: c.fmt }
-      });
-    };
-    checkDurableFormat = (c) => {
-      if (c.job?.settings?.durable !== true || DURABLE_FORMATS.has(c.fmt)) return;
-      c.add({
-        id: "settings.durable-on-unsupported-format",
-        severity: "warn",
-        message: `A durable credential is requested, but ${c.fmt || "this format"} cannot carry one.`,
-        evidence: { format: c.fmt }
-      });
-    };
-    checkAspectGuard = (c) => {
-      const aw = c.job?.manifest?.render?.aspectWarning;
-      if (!aw) return;
-      const { width, height } = c.job.settings.size;
-      if (!isDim(width) || !isDim(height) || toCssPx(height) <= 0) return;
-      const ratio = toCssPx(width) / toCssPx(height);
-      const under = isFiniteNum(aw.min) && ratio < aw.min;
-      const over = isFiniteNum(aw.max) && ratio > aw.max;
-      if (!under && !over) return;
-      c.add({
-        id: "settings.aspect-guard",
-        severity: "warn",
-        message: typeof aw.message === "string" && aw.message || "This size may not suit this tool.",
-        evidence: {
-          ratio: Math.round(ratio * 1e3) / 1e3,
-          min: isFiniteNum(aw.min) ? aw.min : null,
-          max: isFiniteNum(aw.max) ? aw.max : null
-        }
-      });
-    };
-    model = (c) => Array.isArray(c.job?.model) ? c.job.model : [];
-    isBlank = (v) => v === null || v === void 0 || v === "" || Array.isArray(v) && v.length === 0;
-    checkRequiredBlank = (c) => {
-      for (const i of model(c)) {
-        if (i?.required !== true || !isBlank(i.value)) continue;
-        c.add({
-          id: "input.required-blank",
-          severity: "warn",
-          message: `${labelOf(i)} is marked required and is empty.`,
-          inputId: i.id,
-          evidence: { inputId: i.id, type: i.type }
-        });
-      }
-    };
-    checkNumberRange = (c) => {
-      for (const i of model(c)) {
-        if (i?.type !== "number" || !isFiniteNum(i.value)) continue;
-        const hasMin = isFiniteNum(i.min), hasMax = isFiniteNum(i.max);
-        if (!hasMin && !hasMax) continue;
-        const lo = hasMin ? i.min : -Infinity;
-        const hi = hasMax ? i.max : Infinity;
-        if (i.value >= lo && i.value <= hi) continue;
-        const clamped = clamp(i.value, lo, hi);
-        c.add({
-          id: "input.number-out-of-range",
-          severity: "warn",
-          message: `${labelOf(i)} is ${num3(i.value)}, outside its declared range ${hasMin ? num3(lo) : "any"} to ${hasMax ? num3(hi) : "any"}. The control will snap it to ${num3(clamped)} the moment it is touched, so this render cannot be reproduced from the interface.`,
-          inputId: i.id,
-          evidence: {
-            inputId: i.id,
-            value: i.value,
-            clamped,
-            min: hasMin ? lo : null,
-            max: hasMax ? hi : null
-          }
-        });
-      }
-    };
-    checkTextMaxLength = (c) => {
-      for (const i of model(c)) {
-        if (i?.type !== "text" && i?.type !== "longtext") continue;
-        if (!isFiniteNum(i.maxLength) || typeof i.value !== "string") continue;
-        if (i.value.length <= i.maxLength) continue;
-        c.add({
-          id: "input.text-over-maxlength",
-          severity: "warn",
-          message: `${labelOf(i)} is ${i.value.length} characters; the declared limit is ${i.maxLength}. Editing the field will cut it to ${i.maxLength}.`,
-          inputId: i.id,
-          evidence: { inputId: i.id, length: i.value.length, maxLength: i.maxLength }
-        });
-      }
-    };
-    checkSelectValue = (c) => {
-      for (const i of model(c)) {
-        if (i?.type !== "select" || !Array.isArray(i.options) || i.options.length === 0) continue;
-        if (i.brandFonts === true) continue;
-        if (typeof i.value !== "string" || i.value === "") continue;
-        if (i.options.some((o) => o?.value === i.value)) continue;
-        c.add({
-          id: "input.select-value-unknown",
-          severity: "warn",
-          message: `${labelOf(i)} is set to "${i.value}", which is not one of its options.`,
-          inputId: i.id,
-          evidence: {
-            inputId: i.id,
-            value: i.value,
-            options: i.options.map((o) => String(o?.value ?? "")).join(",")
-          }
-        });
-      }
-    };
-    checkVectorClamped = (c) => {
-      const raw = c.job?.rawInitial;
-      if (!raw || typeof raw !== "object") return;
-      for (const i of model(c)) {
-        if (i?.type !== "vector" || !Array.isArray(i.fields)) continue;
-        const given = raw[i.id];
-        if (!given || typeof given !== "object" || Array.isArray(given)) continue;
-        for (const f of i.fields) {
-          if (!f || typeof f.id !== "string") continue;
-          const rawV = given[f.id];
-          if (!isFiniteNum(rawV)) continue;
-          const hasMin = isFiniteNum(f.min), hasMax = isFiniteNum(f.max);
-          if (!hasMin && !hasMax) continue;
-          const clamped = clamp(rawV, hasMin ? f.min : -Infinity, hasMax ? f.max : Infinity);
-          if (clamped === rawV) continue;
-          c.add({
-            id: "input.vector-clamped",
-            severity: "warn",
-            message: `${labelOf(i)}.${f.id} was given as ${num3(rawV)} and was silently clamped to ${num3(clamped)}.`,
-            inputId: i.id,
-            evidence: { inputId: i.id, field: f.id, raw: rawV, clamped }
-          });
-        }
-      }
-    };
-    checkNoBleed = (c) => {
-      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
-      if (!SEPARATING_FORMATS.has(c.fmt) && !marksAreSet(c) && !physicalTrim(c)) return;
-      const b = c.job?.settings?.bleed;
-      if (b?.known !== true) return;
-      const zero = b.value === null || isDim(b.value) && b.value.value === 0;
-      if (!zero) return;
-      c.add({
-        id: "print.no-bleed",
-        severity: "warn",
-        message: "This is a print format and bleed is set to zero. Artwork that runs to the edge will show a white sliver after trimming.",
-        evidence: { format: c.fmt }
-      });
-    };
-    checkBleedUnknown = (c) => {
-      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
-      const b = c.job?.settings?.bleed;
-      if (!b || b.known !== false) return;
-      c.add({
-        id: "print.bleed-unknown",
-        severity: "info",
-        needs: b.why,
-        message: "Lolly cannot see the bleed setting for this job, so it is not reporting one. Zero has not been assumed.",
-        evidence: { format: c.fmt, why: b.why }
-      });
-    };
-    physicalTrim = (c) => {
-      const s = c.job?.settings?.size;
-      if (!s || s.unitDeclared !== true) return null;
-      if (!isDim(s.width) || !isDim(s.height)) return null;
-      if (!(s.width.value > 0) || !(s.height.value > 0)) return null;
-      if (!isPhysical(s.width) || !isPhysical(s.height)) return null;
-      return { w: s.width, h: s.height };
-    };
-    LARGE_FORMAT_LONG_EDGE_IN = 24;
-    OFFSET_MIN_DPI = 250;
-    OFFSET_HARD_DPI = 150;
-    LARGE_FORMAT_MIN_DPI = 72;
-    round0 = (n6) => Math.round(n6);
-    checkEffectiveDpi = (c) => {
-      if (!RASTER_FORMATS.has(c.fmt)) return;
-      const trim2 = physicalTrim(c);
-      if (!trim2) return;
-      const dpi = c.job?.settings?.size?.dpi;
-      if (!isFiniteNum(dpi) || dpi <= 0) return;
-      const { intent, floor, hard, longEdge } = dpiIntent(trim2);
-      if (dpi >= floor) return;
-      const L = num3(longEdge.value), U = longEdge.unit;
-      const message = intent === "offset" ? dpi < hard ? `This page is ${dpi} DPI at ${L} ${U}, below the 150 DPI floor for offset. It will look visibly soft.` : `This page is ${dpi} DPI at ${L} ${U}. Offset presses want 250 to 300 DPI, so this will look soft.` : `This page is ${dpi} DPI at ${L} ${U}. Large-format print tolerates 72 to 150 DPI at viewing distance; below 72 it softens even at distance.`;
-      c.add({
-        id: "print.effective-dpi",
-        severity: "warn",
-        message,
-        evidence: { dpi, intent, floor, longEdge: Math.round(dpiIntent(trim2).longEdgeIn * 100) / 100, unit: U, format: c.fmt }
-      });
-    };
-    checkImageEffectiveDpi = (c) => {
-      if (!RASTER_FORMATS.has(c.fmt) && !PRINT_MARK_FORMATS.has(c.fmt)) return;
-      const trim2 = physicalTrim(c);
-      if (!trim2) return;
-      const st = c.job?.stage;
-      if (st?.known !== true) return;
-      const imgs = st.value.rasterImages;
-      const cw = st.value.canvasCssW;
-      if (!Array.isArray(imgs) || !isFiniteNum(cw) || !(cw > 0)) return;
-      if ((st.value.pageBoxes ?? 1) > 1) return;
-      const trimWin = toInches(trim2.w), trimHin = toInches(trim2.h);
-      if (!(trimWin > 0) || !(trimHin > 0)) return;
-      const ch = cw * (trimHin / trimWin);
-      const { intent, floor } = dpiIntent(trim2);
-      for (const im of imgs) {
-        if (!(im.naturalW > 0) || !(im.naturalH > 0) || !(im.boxCssW > 0) || !(im.boxCssH > 0)) continue;
-        const physWin = im.boxCssW / cw * trimWin;
-        const physHin = im.boxCssH / ch * trimHin;
-        if (!(physWin > 0) || !(physHin > 0)) continue;
-        const eff = round0(Math.min(im.naturalW / physWin, im.naturalH / physHin));
-        if (eff >= floor) continue;
-        const physMm = round0(physWin * 25.4);
-        c.add({
-          id: "print.image-effective-dpi",
-          severity: "warn",
-          message: `${im.label} is ${eff} DPI at its placed size (${physMm} mm wide). ${intent === "offset" ? "Offset print wants at least 250 DPI" : "Large-format wants at least 72 DPI"}, so it will look soft. Replace it with a higher-resolution file.`,
-          evidence: { label: im.label, effectiveDpi: eff, placedMm: physMm, naturalW: im.naturalW, intent, floor, format: c.fmt }
-        });
-      }
-    };
-    checkImageDpiNeedsStage = (c) => {
-      if (!RASTER_FORMATS.has(c.fmt) && !PRINT_MARK_FORMATS.has(c.fmt)) return;
-      if (!physicalTrim(c)) return;
-      if (c.job?.stage?.known !== false) return;
-      c.add({
-        id: "print.image-dpi-needs-stage",
-        severity: "info",
-        needs: "needs-mount",
-        message: "Lolly cannot check the resolution of images placed in the artwork without the artwork on screen.",
-        evidence: { format: c.fmt }
-      });
-    };
-    checkTrimPartial = (c) => {
-      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
-      const s = c.job?.settings?.size;
-      if (!s || s.unitDeclared !== true) return;
-      if (!isDim(s.width) || !isDim(s.height)) return;
-      const wOk = s.width.value > 0, hOk = s.height.value > 0;
-      if (wOk === hOk) return;
-      const set = wOk ? s.width : s.height;
-      c.add({
-        id: "print.trim-partially-declared",
-        severity: "info",
-        needs: "not-set",
-        message: `Only the ${wOk ? "width" : "height"} was set (${num3(set.value)} ${set.unit}). The other follows the artwork's aspect, which Lolly cannot read without the artwork on screen, so no trim size and no print area are being reported.`,
-        evidence: { declared: wOk ? "width" : "height", value: set.value, unit: set.unit, format: c.fmt }
-      });
-    };
-    checkTrimNotPhysical = (c) => {
-      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
-      if ((c.fmt === "svg" || c.fmt === "eps" || c.fmt === "eps-cmyk") && !marksAreSet(c)) return;
-      if (physicalTrim(c)) return;
-      const s = c.job.settings.size;
-      if (!isDim(s?.width) || !isDim(s?.height)) return;
-      if (!(s.width.value > 0) || !(s.height.value > 0)) return;
-      const dpi = isFiniteNum(s.dpi) ? s.dpi : 300;
-      const w = toPixels(s.width, dpi), h = toPixels(s.height, dpi);
-      c.add({
-        id: "print.trim-not-physical",
-        severity: "info",
-        needs: "not-set",
-        message: `The page is ${w} x ${h} pixels. No physical page size was declared, so Lolly is reporting pixels and no print area.`,
-        evidence: { widthPx: w, heightPx: h, declaredBy: s.declaredBy ?? null, unitDeclared: s.unitDeclared === true }
-      });
-    };
-    checkPrintGeometry = (c) => {
-      if (!PRINT_MARK_FORMATS.has(c.fmt)) return;
-      const trim2 = physicalTrim(c);
-      if (!trim2) return;
-      const b = c.job.settings.bleed, m2 = c.job.settings.marks;
-      if (b?.known !== true || m2?.known !== true) return;
-      const bleedPt = isDim(b.value) ? toPoints(b.value) : 0;
-      const geo = computePrintGeometry({
-        trimWpt: toPoints(trim2.w),
-        trimHpt: toPoints(trim2.h),
-        bleedPt,
-        marks: m2.value ?? {}
-      });
-      const unit2 = trim2.w.unit === trim2.h.unit ? trim2.w.unit : "pt";
-      const wLbl = unit2 === trim2.w.unit ? num3(trim2.w.value) : num3(toPoints(trim2.w));
-      const hLbl = unit2 === trim2.h.unit ? num3(trim2.h.value) : num3(toPoints(trim2.h));
-      const bleedLbl = isDim(b.value) ? `${num3(b.value.value)} ${b.value.unit}` : "none";
-      const area2 = (box3, w, h) => ({
-        kind: "area",
-        value: pt2ToM2(w, h),
-        unit: "m2-sheet",
-        box: box3,
-        bound: "exact",
-        basis: "print-marks.computePrintGeometry"
-      });
-      c.add({
-        id: "print.geometry",
-        severity: "info",
-        message: `Trim ${wLbl} x ${hLbl} ${unit2}. Bleed ${bleedLbl}. Media box ${num3(geo.page.w)} x ${num3(geo.page.h)} points.`,
-        evidence: {
-          trimWpt: Math.round(geo.boxes.trim.w * 100) / 100,
-          trimHpt: Math.round(geo.boxes.trim.h * 100) / 100,
-          bleedPt: Math.round(bleedPt * 100) / 100,
-          mediaWpt: Math.round(geo.page.w * 100) / 100,
-          mediaHpt: Math.round(geo.page.h * 100) / 100
-        },
-        count: area2("trim", geo.boxes.trim.w, geo.boxes.trim.h)
-      });
-      c.add({
-        id: "print.geometry",
-        severity: "info",
-        message: `Bleed box ${num3(geo.boxes.bleed.w)} x ${num3(geo.boxes.bleed.h)} points.`,
-        count: area2("bleed", geo.boxes.bleed.w, geo.boxes.bleed.h)
-      });
-      c.add({
-        id: "print.geometry",
-        severity: "info",
-        message: `Media box ${num3(geo.boxes.media.w)} x ${num3(geo.boxes.media.h)} points, the whole sheet through the press.`,
-        count: area2("media", geo.boxes.media.w, geo.boxes.media.h)
-      });
-    };
-    checkPagesPaginate = (c) => {
-      const src = c.job?.manifest?.render?.paginate?.source;
-      if (typeof src !== "string" || !src) return;
-      const input = model(c).find((i) => i?.id === src);
-      if (!input) return;
-      const table = normalizeTableValue(input.value);
-      if (!table) return;
-      const n6 = Math.max(1, table.rows.length);
-      const bound = c.job.modelPhase === "post-init" ? "exact" : "ceiling";
-      c.add({
-        id: "count.pages.paginate",
-        severity: "info",
-        message: `${n6} ${n6 === 1 ? "page" : "pages"}, one per row of ${labelOf(input)}.`,
-        evidence: { source: src, rows: table.rows.length, modelPhase: c.job.modelPhase ?? null },
-        count: { kind: "pages", value: n6, unit: "page", bound, basis: "manifest.render.paginate" }
-      });
-    };
-    checkPagesPages = (c) => {
-      const pages = c.job?.manifest?.render?.pages;
-      const id2 = pages?.count;
-      if (typeof id2 !== "string" || !id2) return;
-      const input = model(c).find((i) => i?.id === id2);
-      if (!input || !isFiniteNum(input.value)) return;
-      const lo = isFiniteNum(pages.min) ? pages.min : 1;
-      const hi = isFiniteNum(pages.max) ? pages.max : 6;
-      const n6 = Math.round(clamp(input.value, lo, hi));
-      c.add({
-        id: "count.pages.pages",
-        severity: "info",
-        message: `${n6} ${n6 === 1 ? "page" : "pages"}.`,
-        evidence: { source: id2, typed: input.value, min: lo, max: hi },
-        count: { kind: "pages", value: n6, unit: "page", bound: "exact", basis: "manifest.render.pages" }
-      });
-    };
-    checkPagesFromStage = (c) => {
-      if (!PAGED_FORMATS.has(c.fmt)) return;
-      const r5 = c.job?.manifest?.render;
-      if (r5?.paginate?.source || r5?.pages?.count) return;
-      const st = c.job?.stage;
-      if (st?.known !== true) return;
-      const n6 = st.value?.pageBoxes;
-      if (!isFiniteNum(n6) || n6 <= 0) return;
-      c.add({
-        id: "count.pages.stage",
-        severity: "info",
-        message: `${Math.floor(n6)} ${n6 === 1 ? "page" : "pages"}, counted on the artwork as it stands.`,
-        evidence: { format: c.fmt, pageBoxes: Math.floor(n6) },
-        count: { kind: "pages", value: Math.floor(n6), unit: "page", bound: "exact", basis: "stage.pageBoxes" }
-      });
-    };
-    checkArtboardFanOut = (c) => {
-      if (!STILL_IMAGE_FORMATS.has(c.fmt)) return;
-      const st = c.job?.stage;
-      if (st?.known !== true) return;
-      const n6 = st.value?.pageBoxes;
-      if (!isFiniteNum(n6) || n6 <= 1) return;
-      c.add({
-        id: "count.artboard-fanout",
-        severity: "info",
-        message: `${Math.floor(n6)} artboards export as ${Math.floor(n6)} separate ${c.fmt.toUpperCase()} files (delivered zipped), each at its own artboard size - the size shown is the active artboard's.`,
-        evidence: { format: c.fmt, pageBoxes: Math.floor(n6) }
-      });
-    };
-    checkPagesUnknown = (c) => {
-      if (!PAGED_FORMATS.has(c.fmt)) return;
-      const r5 = c.job?.manifest?.render;
-      if (r5?.paginate?.source || r5?.pages?.count) return;
-      const st = c.job?.stage;
-      if (st?.known === true && isFiniteNum(st.value?.pageBoxes) && st.value.pageBoxes > 0) return;
-      c.add({
-        id: "count.pages.unknown",
-        severity: "info",
-        needs: st?.known === true ? "not-set" : "needs-mount",
-        message: st?.known === true ? "This tool declares no page count and the artwork on screen carries no page boxes, so Lolly is not reporting a page count." : "Lolly cannot count this tool's pages without the artwork on screen.",
-        evidence: { format: c.fmt }
-      });
-    };
-    checkSequenceDuration = (c) => {
-      if (!MOTION_FORMATS.has(c.fmt) && cutsOf(c) === 0) return;
-      const st = c.job?.stage;
-      if (st?.known !== true) return;
-      const ms = st.value?.durationMs;
-      if (!isFiniteNum(ms) || ms <= 0) return;
-      const s = Math.round(ms / 1e3 * 100) / 100;
-      c.add({
-        id: "count.sequence-duration",
-        severity: "info",
-        message: `The timeline on screen is ${num3(s)} seconds long.`,
-        evidence: { durationMs: Math.round(ms), format: c.fmt },
-        count: { kind: "seconds", value: s, unit: "s", bound: "exact", basis: "stage.durationMs" }
-      });
-    };
-    checkRasterPixels = (c) => {
-      if (!RASTER_FORMATS.has(c.fmt)) return;
-      const s = c.job?.settings?.size;
-      if (!isDim(s?.width) || !isDim(s?.height)) return;
-      const px3 = s.width.unit === "px" && s.height.unit === "px";
-      const dpi = isFiniteNum(s.dpi) ? s.dpi : 96;
-      const w = toPixels(s.width, dpi), h = toPixels(s.height, dpi);
-      if (!(w > 0) || !(h > 0)) return;
-      c.add({
-        id: "count.raster-pixels",
-        severity: "info",
-        message: px3 ? `${w} x ${h} pixels.` : `${w} x ${h} pixels at ${num3(dpi)} DPI.`,
-        evidence: { width: w, height: h, dpi: px3 ? null : dpi },
-        count: { kind: "pixels", value: w * h, unit: "px", bound: "exact", basis: "units.toPixels" }
-      });
-    };
-    checkVideoDurationDeclared = (c) => {
-      if (!MOTION_FORMATS.has(c.fmt)) return;
-      const d = c.job?.manifest?.render?.video?.duration;
-      if (!isFiniteNum(d) || d <= 0) return;
-      c.add({
-        id: "count.video-duration-declared",
-        severity: "info",
-        message: `The tool declares a ${num3(d)} second clip. The clip Lolly actually captures is measured after it runs.`,
-        evidence: { declaredSeconds: d, format: c.fmt },
-        count: { kind: "seconds", value: d, unit: "s", bound: "ceiling", basis: "manifest.render.video" }
-      });
-    };
-    checkProcessPlates = (c) => {
-      if (!SEPARATING_FORMATS.has(c.fmt)) return;
-      c.add({
-        id: "plates.process",
-        severity: "info",
-        message: "4 process plates. Whether all four carry ink cannot be known before the file is written.",
-        evidence: { format: c.fmt },
-        count: { kind: "processPlates", value: 4, unit: "plate", bound: "ceiling", basis: "format" }
-      });
-    };
-    checkSpotCeiling = (c) => {
-      if (!SEPARATING_FORMATS.has(c.fmt)) return;
-      if (c.job?.palette?.known !== true) return;
-      const names = new Set(spotSwatches(c).filter((s) => !s.spot.finish).map((s) => s.spot.name));
-      if (names.size === 0) return;
-      c.add({
-        id: "plates.spot-ceiling",
-        severity: "info",
-        message: `Up to ${names.size} spot ${names.size === 1 ? "plate" : "plates"}.`,
-        evidence: { spots: [...names].join(", "), format: c.fmt },
-        count: { kind: "spotPlates", value: names.size, unit: "plate", bound: "ceiling", basis: "palette.spot" }
-      });
-    };
-    checkFinishCeiling = (c) => {
-      if (!SEPARATING_FORMATS.has(c.fmt)) return;
-      if (c.job?.palette?.known !== true) return;
-      const names = [...new Set(finishSpots(c).map((s) => s.spot.name))];
-      if (names.length === 0) return;
-      c.add({
-        id: "plates.finish-ceiling",
-        severity: "info",
-        message: `Up to ${names.length} finish ${names.length === 1 ? "plate" : "plates"}: ${names.join(", ")}.`,
-        evidence: { finishes: names.join(", "), format: c.fmt },
-        count: { kind: "finishPlates", value: names.length, unit: "plate", bound: "ceiling", basis: "palette.spot.finish" }
-      });
-    };
-    checkNoSpotsDeclared = (c) => {
-      if (!SEPARATING_FORMATS.has(c.fmt)) return;
-      if (c.job?.palette?.known !== true) return;
-      if (spotSwatches(c).length > 0) return;
-      c.add({
-        id: "plates.no-spots-declared",
-        severity: "info",
-        needs: "not-set",
-        message: "This brand declares no spot inks, so there are no spot plates to count.",
-        evidence: { format: c.fmt }
-      });
-    };
-    checkInkCoverage = (c) => {
-      if (!SEPARATING_FORMATS.has(c.fmt)) return;
-      if (c.job?.palette?.known !== true) return;
-      const pal = c.job.palette.value;
-      if (!Array.isArray(pal)) return;
-      const weighed = pal.map(swatchTac).filter((x) => x !== null);
-      if (weighed.length === 0) return;
-      const heaviest = weighed.reduce((a, b) => b.tac > a.tac ? b : a);
-      const { name, limit } = tacLimitFor(c);
-      const cond = name.toUpperCase();
-      c.add({
-        id: "count.ink-coverage-palette",
-        severity: "info",
-        message: `The heaviest brand solid, ${heaviest.name}, is ${heaviest.tac}% total ink under ${cond} (limit ${limit}%). This is the brand's solid fills only, and a photograph or gradient can lay down more.`,
-        evidence: { swatch: heaviest.name, tac: heaviest.tac, limit, condition: name, format: c.fmt },
-        count: { kind: "inkCoverage", value: heaviest.tac, unit: "pct", bound: "exact", basis: "palette.tac" }
-      });
-      if (heaviest.tac > limit) {
-        c.add({
-          id: "print.ink-over-tac",
-          severity: "warn",
-          message: `${heaviest.name} is ${heaviest.tac}% total ink, over the ${limit}% limit for ${cond}. On press it can fail to dry, set off onto the next sheet, or crack on the fold. Lighten the darkest build, or ask the printer for their ink limit.`,
-          evidence: { swatch: heaviest.name, tac: heaviest.tac, limit, over: heaviest.tac - limit, condition: name, format: c.fmt }
-        });
-      }
-    };
-    checkRichBlack = (c) => {
-      if (!SEPARATING_FORMATS.has(c.fmt)) return;
-      if (c.job?.palette?.known !== true) return;
-      const pal = c.job.palette.value;
-      if (!Array.isArray(pal)) return;
-      for (const s of pal) {
-        const w = swatchTac(s);
-        if (!w) continue;
-        const [cc, mm, yy, kk] = w.cmyk;
-        if (kk >= 85 && cc + mm + yy >= 50) {
-          c.add({
-            id: "print.rich-black",
-            severity: "info",
-            message: `${w.name} is a rich black (${Math.round(kk)}% K plus ${Math.round(cc)}/${Math.round(mm)}/${Math.round(yy)} CMY). Rich black gives deep solids but mis-registers on small text and thin rules, so keep those 100% K only.`,
-            evidence: { swatch: w.name, k: Math.round(kk), c: Math.round(cc), m: Math.round(mm), y: Math.round(yy), format: c.fmt }
-          });
-        }
-      }
-    };
-    checkPaletteUnresolved = (c) => {
-      if (!SEPARATING_FORMATS.has(c.fmt)) return;
-      const p = c.job?.palette;
-      if (!p || p.known !== false) return;
-      c.add({
-        id: "plates.palette-unresolved",
-        severity: "info",
-        needs: p.why,
-        message: "No brand palette resolved, so plate count is unavailable.",
-        evidence: { format: c.fmt, why: p.why }
-      });
-    };
-    cutsOf = (c) => {
-      const n6 = c.job?.settings?.cuts;
-      return isFiniteNum(n6) && n6 > 1 ? Math.floor(n6) : 0;
-    };
-    checkCutsNeedsStage = (c) => {
-      const n6 = cutsOf(c);
-      if (!n6 || c.job?.stage?.known !== false) return;
-      c.add({
-        id: "count.cuts-needs-stage",
-        severity: "info",
-        needs: "needs-mount",
-        message: `cuts=${n6} is set. It multiplies the output only on a timed composition, which Lolly cannot tell without the artwork on screen. Counted as one file.`,
-        evidence: { cuts: n6, format: c.fmt }
-      });
-    };
-    checkCutsInert = (c) => {
-      const n6 = cutsOf(c);
-      const st = c.job?.stage;
-      if (!n6 || st?.known !== true) return;
-      const seq = st.value?.isSequence === true;
-      const fmtOk = CUTS_FORMATS.has(c.fmt);
-      if (seq && fmtOk) return;
-      const reason2 = !seq ? "this tool is not a timed composition" : `${c.fmt || "this format"} has no contact sheet`;
-      c.add({
-        id: "count.cuts-inert",
-        severity: "info",
-        message: `cuts=${n6} is set but does nothing here: ${reason2}. One file will come out.`,
-        evidence: { cuts: n6, format: c.fmt, isSequence: seq },
-        count: { kind: "outputFiles", value: 1, unit: "file", bound: "exact", basis: "settings.cuts" }
-      });
-    };
-    checkCutsApplies = (c) => {
-      const n6 = cutsOf(c);
-      const st = c.job?.stage;
-      if (!n6 || st?.known !== true || st.value?.isSequence !== true || !CUTS_FORMATS.has(c.fmt)) return;
-      const pdf = c.fmt === "pdf";
-      c.add({
-        id: "count.cuts-applies",
-        severity: "info",
-        message: `A contact sheet of ${n6} frames, delivered as one ${pdf ? "PDF" : "ZIP"}.`,
-        evidence: { cuts: n6, format: c.fmt, delivery: pdf ? "pdf" : "zip" },
-        count: { kind: "outputFiles", value: 1, unit: "file", bound: "exact", basis: "settings.cuts" }
-      });
-      if (pdf) {
-        c.add({
-          id: "count.cuts-applies",
-          severity: "info",
-          message: `${n6} pages, one per frame.`,
-          evidence: { cuts: n6, format: c.fmt },
-          count: { kind: "pages", value: n6, unit: "page", bound: "exact", basis: "settings.cuts" }
-        });
-      }
-    };
-    checkExperimentalWatermark = (c) => {
-      if (c.job?.manifest?.status !== "experimental") return;
-      c.add({
-        id: "export.experimental-watermark",
-        severity: "info",
-        message: "This tool is experimental, so every export carries a watermark.",
-        evidence: { status: "experimental" }
-      });
-    };
-    refusal = (id2, needs, message, evidence) => ({ id: id2, severity: "info", needs, message, ...evidence ? { evidence } : {} });
-    checkRefusals = (c) => {
-      const separating = SEPARATING_FORMATS.has(c.fmt);
-      const motion = MOTION_FORMATS.has(c.fmt);
-      if (separating) {
-        c.add(refusal(
-          "refuse.ink-coverage",
-          "needs-render",
-          "Total ink coverage across the whole artwork (photographs, gradients and filters) is only known once the separation is rendered. The heaviest brand solid is reported separately, and a photo can lay down more."
-        ));
-        c.add(refusal(
-          "refuse.exact-separation",
-          "needs-render",
-          "The exact set of plates is only known once the file is written. Ink substitution is an exact colour match against brand swatches; everything else falls through to process, and images inside a CMYK PDF are not converted at all."
-        ));
-      }
-      if (finishSpots(c).length > 0) {
-        c.add(refusal(
-          "refuse.finish-covered-area",
-          "not-computable",
-          "Lolly cannot measure the area a finish covers. The only area it can supply is the whole sheet through the press, not the varnished part of it."
-        ));
-      }
-      c.add(refusal(
-        "refuse.output-file-size",
-        "not-computable",
-        "Lolly cannot predict the output file size."
-      ));
-      if (motion) {
-        c.add(refusal(
-          "refuse.render-time",
-          "not-computable",
-          "Lolly cannot predict how long a render will take. Motion capture runs in real time."
-        ));
-        c.add(refusal(
-          "refuse.video-frames",
-          "needs-render",
-          "Frame count and the frame rate actually used are decided while the export runs."
-        ));
-      }
-      if (c.job?.stage?.known === false && (motion || cutsOf(c) > 0)) {
-        c.add(refusal(
-          "refuse.sequence-duration",
-          "needs-mount",
-          "Lolly cannot read the timeline length without the artwork on screen."
-        ));
-      }
-      const svgLike = c.fmt === "svg" || c.fmt === "eps" || c.fmt === "eps-cmyk";
-      if (PRINT_MARK_FORMATS.has(c.fmt) && c.job?.settings?.size?.declaredBy === "manifest" && (!svgLike || marksAreSet(c))) {
-        c.add(refusal(
-          "refuse.trim-when-unset",
-          "not-set",
-          "No page size was set, so the trim size is whatever the artwork measures on screen. Lolly is not converting the tool's pixel canvas into millimetres."
-        ));
-      }
-    };
-    CHECKS = [
-      // errors
-      checkFinishSeparatesAsInk,
-      checkFinishFlattened,
-      checkFormatOffered,
-      // warnings
-      checkRequiredBlank,
-      checkNumberRange,
-      checkTextMaxLength,
-      checkSelectValue,
-      checkVectorClamped,
-      checkPrintMarksOnNonPrintFormat,
-      checkPressProfileOnNonSeparatingFormat,
-      checkHdrFormat,
-      checkDurableFormat,
-      checkAspectGuard,
-      checkNoBleed,
-      checkEffectiveDpi,
-      checkImageEffectiveDpi,
-      // info: geometry & counts
-      checkFinishUnknownKind,
-      checkBleedUnknown,
-      checkTrimPartial,
-      checkImageDpiNeedsStage,
-      checkTrimNotPhysical,
-      checkPrintGeometry,
-      checkPagesPaginate,
-      checkPagesPages,
-      checkPagesFromStage,
-      checkPagesUnknown,
-      checkArtboardFanOut,
-      checkRasterPixels,
-      checkSequenceDuration,
-      checkVideoDurationDeclared,
-      checkProcessPlates,
-      checkSpotCeiling,
-      checkFinishCeiling,
-      checkNoSpotsDeclared,
-      checkInkCoverage,
-      checkRichBlack,
-      checkPaletteUnresolved,
-      checkCutsNeedsStage,
-      checkCutsInert,
-      checkCutsApplies,
-      checkExperimentalWatermark,
-      // named refusals, last
-      checkRefusals
-    ];
-  }
-});
-
 // engine/src/rate-card.ts
 function toText(input) {
   return typeof input === "string" ? input : decoder2.decode(input);
@@ -64519,10 +64674,10 @@ function breaksAreValid(breaks) {
   for (let i = 0; i < breaks.length; i++) {
     const b = breaks[i];
     if (!isObject(b)) return false;
-    const { min, rate } = b;
+    const { min, rate: rate2 } = b;
     if (typeof min !== "number" || !Number.isInteger(min)) return false;
     if (i === 0 ? min !== 1 : min <= prevMin) return false;
-    if (!isFiniteRate(rate)) return false;
+    if (!isFiniteRate(rate2)) return false;
     prevMin = min;
   }
   return true;
@@ -64595,11 +64750,11 @@ function parseRateCard(input, digest2, validate4) {
   if (isObject(doc.sheet)) card.sheet = doc.sheet;
   return card;
 }
-function toMinor(rate, exponent) {
-  return Math.round(rate * 10 ** exponent);
+function toMinor(rate2, exponent) {
+  return Math.round(rate2 * 10 ** exponent);
 }
-function exactMinor(rate, exponent) {
-  return rate * 10 ** exponent;
+function exactMinor(rate2, exponent) {
+  return rate2 * 10 ** exponent;
 }
 function breaksToMinor(breaks, exponent) {
   return breaks.map((b) => ({ min: b.min, rate: exactMinor(b.rate, exponent) }));
@@ -65146,7 +65301,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
     }
     return i;
   };
-  const join19 = (a, b) => {
+  const join20 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -65163,7 +65318,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
         const [lo, hi] = area2(ba) < area2(bb) ? [area2(ba), area2(bb)] : [area2(bb), area2(ba)];
         if (hi > lo * sizeRatio) continue;
       }
-      if (boxesOverlap2(grown, bb)) join19(a, b);
+      if (boxesOverlap2(grown, bb)) join20(a, b);
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
@@ -65199,15 +65354,15 @@ function splitUnsafeClusters(clusters, boxes, count4) {
       out.push(sorted);
       continue;
     }
-    let run = [sorted[0]];
+    let run2 = [sorted[0]];
     for (let k = 1; k < sorted.length; k++) {
-      if (sorted[k] === sorted[k - 1] + 1) run.push(sorted[k]);
+      if (sorted[k] === sorted[k - 1] + 1) run2.push(sorted[k]);
       else {
-        out.push(run);
-        run = [sorted[k]];
+        out.push(run2);
+        run2 = [sorted[k]];
       }
     }
-    out.push(run);
+    out.push(run2);
   }
   return out;
 }
@@ -66443,10 +66598,10 @@ function tpPhases() {
   return phases;
 }
 function createTruePeakLimiter(opts = {}) {
-  const rate = opts.rate && opts.rate > 0 ? opts.rate : 48e3;
+  const rate2 = opts.rate && opts.rate > 0 ? opts.rate : 48e3;
   const ceiling = 10 ** ((opts.ceilingDb ?? -1) / 20);
-  const look2 = Math.max(TP_PHASE_TAPS / 2 + 1, Math.round((opts.lookaheadMs ?? 2.5) / 1e3 * rate));
-  const relCoef = Math.exp(-1 / ((opts.releaseMs ?? 60) / 1e3 * rate));
+  const look2 = Math.max(TP_PHASE_TAPS / 2 + 1, Math.round((opts.lookaheadMs ?? 2.5) / 1e3 * rate2));
+  const relCoef = Math.exp(-1 / ((opts.releaseMs ?? 60) / 1e3 * rate2));
   const cap = look2 + 2;
   const delayL = new Float32Array(cap);
   const delayR = new Float32Array(cap);
@@ -66530,8 +66685,8 @@ function createTruePeakLimiter(opts = {}) {
   };
 }
 function activitySpans(channels, opts = {}) {
-  const rate = opts.rate && opts.rate > 0 ? opts.rate : 48e3;
-  const block = Math.max(1, Math.round((opts.blockMs ?? 50) / 1e3 * rate));
+  const rate2 = opts.rate && opts.rate > 0 ? opts.rate : 48e3;
+  const block = Math.max(1, Math.round((opts.blockMs ?? 50) / 1e3 * rate2));
   const open2 = 10 ** ((opts.openDb ?? -45) / 20);
   const close = 10 ** ((opts.closeDb ?? -51) / 20);
   const minSpan = (opts.minSpanMs ?? 150) / 1e3;
@@ -66549,7 +66704,7 @@ function activitySpans(channels, opts = {}) {
       for (let i = s; i < e; i++) sum += ch[i] * ch[i];
     }
     const rms = Math.sqrt(sum / ((e - s) * channels.length));
-    const t = s / rate;
+    const t = s / rate2;
     if (openAt < 0) {
       if (rms >= open2) openAt = t;
     } else if (rms < close) {
@@ -66557,7 +66712,7 @@ function activitySpans(channels, opts = {}) {
       openAt = -1;
     }
   }
-  if (openAt >= 0) raw.push({ from: openAt, to: n6 / rate });
+  if (openAt >= 0) raw.push({ from: openAt, to: n6 / rate2 });
   const merged = [];
   for (const s of raw) {
     const last = merged[merged.length - 1];
@@ -66577,11 +66732,11 @@ var init_audio_dynamics = __esm({
 });
 
 // engine/src/audio-loudness.ts
-function createLoudnessMeter(rate = LOUDNESS_RATE) {
-  if (rate !== LOUDNESS_RATE) {
-    throw new Error(`BS.1770 coefficients are published for ${LOUDNESS_RATE} Hz; got ${rate}`);
+function createLoudnessMeter(rate2 = LOUDNESS_RATE) {
+  if (rate2 !== LOUDNESS_RATE) {
+    throw new Error(`BS.1770 coefficients are published for ${LOUDNESS_RATE} Hz; got ${rate2}`);
   }
-  const hop = Math.round(rate * 0.1);
+  const hop = Math.round(rate2 * 0.1);
   const HOPS_PER_BLOCK = 4;
   const filters = [
     { s1: new Biquad(S1_B, S1_A), s2: new Biquad(S2_B, S2_A) },
@@ -66628,8 +66783,8 @@ function createLoudnessMeter(rate = LOUDNESS_RATE) {
     }
   };
 }
-function integratedLoudness(channels, rate = LOUDNESS_RATE) {
-  const m2 = createLoudnessMeter(rate);
+function integratedLoudness(channels, rate2 = LOUDNESS_RATE) {
+  const m2 = createLoudnessMeter(rate2);
   m2.push(channels[0] ?? new Float32Array(0), channels[1] ?? channels[0] ?? new Float32Array(0));
   return m2.integrated();
 }
@@ -66929,13 +67084,13 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
   const right = channels[1] ?? left;
   const [headL, headR] = limiter.process(left, right);
   const [tailL, tailR] = limiter.flush();
-  const join19 = (a, b) => {
+  const join20 = (a, b) => {
     const out = new Float32Array(a.length + b.length);
     out.set(a);
     out.set(b, a.length);
     return out;
   };
-  const limited2 = [join19(headL, tailL), join19(headR, tailR)];
+  const limited2 = [join20(headL, tailL), join20(headR, tailR)];
   channels = channels.length === 1 ? [limited2[0]] : limited2;
   if (limiter.engaged()) operations.push("Limited true peak to -1 dBTP");
   return {
@@ -71886,15 +72041,15 @@ function custGeomXml(shape) {
 function pathXml(shape, id2) {
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id2}" name="path${id2}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr>${xfrmXml(shape)}${custGeomXml(shape)}${fillXml(shape.fill)}${lineXml(shape.line)}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
 }
-function runXml(run) {
-  const u = run.underline ? ' u="sng"' : "";
-  const strike = run.strike ? ' strike="sngStrike"' : "";
-  const attrs = `lang="en-US" sz="${clampInt3(run.sizePt * 100, 100, 4e5)}" b="${run.bold ? 1 : 0}" i="${run.italic ? 1 : 0}"${u}${strike} dirty="0"`;
-  const fill2 = run.color ? `<a:solidFill>${clr(run.color, run.alpha)}</a:solidFill>` : "";
-  const font = run.font ? `<a:latin typeface="${xmlEsc2(run.font)}"/><a:cs typeface="${xmlEsc2(run.font)}"/>` : "";
-  const rid = run.linkSlide != null && slideLinkRid ? slideLinkRid(run.linkSlide) : void 0;
+function runXml(run2) {
+  const u = run2.underline ? ' u="sng"' : "";
+  const strike = run2.strike ? ' strike="sngStrike"' : "";
+  const attrs = `lang="en-US" sz="${clampInt3(run2.sizePt * 100, 100, 4e5)}" b="${run2.bold ? 1 : 0}" i="${run2.italic ? 1 : 0}"${u}${strike} dirty="0"`;
+  const fill2 = run2.color ? `<a:solidFill>${clr(run2.color, run2.alpha)}</a:solidFill>` : "";
+  const font = run2.font ? `<a:latin typeface="${xmlEsc2(run2.font)}"/><a:cs typeface="${xmlEsc2(run2.font)}"/>` : "";
+  const rid = run2.linkSlide != null && slideLinkRid ? slideLinkRid(run2.linkSlide) : void 0;
   const hlink = rid ? `<a:hlinkClick r:id="${rid}" action="ppaction://hlinksldjump"/>` : "";
-  return `<a:r><a:rPr ${attrs}>${fill2}${font}${hlink}</a:rPr><a:t>${xmlEsc2(run.text)}</a:t></a:r>`;
+  return `<a:r><a:rPr ${attrs}>${fill2}${font}${hlink}</a:rPr><a:t>${xmlEsc2(run2.text)}</a:t></a:r>`;
 }
 function paraXml(p) {
   const lvl = p.level && p.level > 0 ? Math.min(8, Math.round(p.level)) : 0;
@@ -74084,22 +74239,22 @@ function readRun(r5, theme, inherit, ctx) {
   const rPr = firstChildByLocal(r5, "rPr");
   const props = readRunProps(rPr, theme);
   inheritInto(props, inherit);
-  const run = { text: text6 };
-  if (props.bold) run.bold = true;
-  if (props.italic) run.italic = true;
+  const run2 = { text: text6 };
+  if (props.bold) run2.bold = true;
+  if (props.italic) run2.italic = true;
   if (props.underline) {
-    run.underline = true;
-    if (props.underlineStyle) run.underlineStyle = props.underlineStyle;
+    run2.underline = true;
+    if (props.underlineStyle) run2.underlineStyle = props.underlineStyle;
   }
-  if (props.strike) run.strike = true;
-  if (props.baseline !== void 0 && props.baseline !== 0) run.baseline = props.baseline > 0 ? "super" : "sub";
-  if (props.cap === "all" || props.cap === "small") run.cap = props.cap;
-  if (props.sizePt) run.sizePt = props.sizePt;
-  if (props.font) run.font = props.font;
-  if (props.color) run.color = props.color;
+  if (props.strike) run2.strike = true;
+  if (props.baseline !== void 0 && props.baseline !== 0) run2.baseline = props.baseline > 0 ? "super" : "sub";
+  if (props.cap === "all" || props.cap === "small") run2.cap = props.cap;
+  if (props.sizePt) run2.sizePt = props.sizePt;
+  if (props.font) run2.font = props.font;
+  if (props.color) run2.color = props.color;
   const href = readHref(rPr, ctx?.rels);
-  if (href) run.href = href;
-  if (text6.length > 0 || run.bold || run.italic || run.underline || run.sizePt || run.color || run.font || run.href) return run;
+  if (href) run2.href = href;
+  if (text6.length > 0 || run2.bold || run2.italic || run2.underline || run2.sizePt || run2.color || run2.font || run2.href) return run2;
   return null;
 }
 function applyParaProps(para, props) {
@@ -74151,8 +74306,8 @@ function readTxBody(txBody, theme, inherit, ctx) {
       }
       const ln = elemLocal(child);
       if (ln === "r") {
-        const run = readRun(child, theme, runInherit, ctx);
-        if (run) runs.push(run);
+        const run2 = readRun(child, theme, runInherit, ctx);
+        if (run2) runs.push(run2);
       } else if (ln === "br") {
         runs.push({ text: "\n" });
       } else if (ln === "fld") {
@@ -75753,8 +75908,8 @@ function validAttrs(attrs) {
   }
   return true;
 }
-function hexOf(run) {
-  const hex3 = run.color?.hex;
+function hexOf(run2) {
+  const hex3 = run2.color?.hex;
   if (typeof hex3 !== "string") return null;
   const m2 = /^#?([0-9a-fA-F]{6})/.exec(hex3.trim());
   return m2?.[1] ? `#${m2[1].toLowerCase()}` : null;
@@ -75829,9 +75984,9 @@ function sameFormat(a, b) {
 }
 function serialiseRuns(runs, formatOf, rowWeight) {
   const lines = [[]];
-  for (const run of runs) {
-    const parts = run.text.replace(/\r\n?/g, "\n").split("\n");
-    const fmt3 = formatOf(run);
+  for (const run2 of runs) {
+    const parts = run2.text.replace(/\r\n?/g, "\n").split("\n");
+    const fmt3 = formatOf(run2);
     parts.forEach((text6, k) => {
       if (k > 0) lines.push([]);
       if (!text6) return;
@@ -75855,39 +76010,39 @@ function designTextOf(paras, opts = {}) {
   const rowWeight = typeof opts.rowWeight === "number" && opts.rowWeight > 0 ? Math.round(opts.rowWeight / 100) * 100 : 400;
   const dropped = /* @__PURE__ */ new Set();
   const masterSetsType = opts.masterSetsType === true;
-  const weighted = paras.flatMap((para) => para.runs.map((run) => ({ run, weight: run.text.trim().length })));
-  const baseColour = weighted.every(({ run, weight }) => weight === 0 || hexOf(run) !== null) ? dominant(weighted.map(({ run, weight }) => ({ value: hexOf(run) ?? void 0, weight }))) : void 0;
-  const sizes = new Set(weighted.filter(({ weight }) => weight > 0).map(({ run }) => run.sizePt).filter((pt) => typeof pt === "number"));
+  const weighted = paras.flatMap((para) => para.runs.map((run2) => ({ run: run2, weight: run2.text.trim().length })));
+  const baseColour = weighted.every(({ run: run2, weight }) => weight === 0 || hexOf(run2) !== null) ? dominant(weighted.map(({ run: run2, weight }) => ({ value: hexOf(run2) ?? void 0, weight }))) : void 0;
+  const sizes = new Set(weighted.filter(({ weight }) => weight > 0).map(({ run: run2 }) => run2.sizePt).filter((pt) => typeof pt === "number"));
   if (sizes.size > 1 && !masterSetsType) dropped.add("sizes");
   const stated = paras.some((para) => para.align !== void 0);
-  const align = stated ? dominant(paras.map((para) => ({ value: para.align ?? "left", weight: para.runs.reduce((n6, run) => n6 + run.text.length, 0) }))) : void 0;
-  const formatOf = (run) => {
+  const align = stated ? dominant(paras.map((para) => ({ value: para.align ?? "left", weight: para.runs.reduce((n6, run2) => n6 + run2.text.length, 0) }))) : void 0;
+  const formatOf = (run2) => {
     let color3 = null;
-    const hex3 = hexOf(run);
+    const hex3 = hexOf(run2);
     if (hex3 && hex3 !== baseColour) {
       if (opts.carryColour) color3 = opts.mapColour?.(hex3) ?? hex3;
       else {
         const mapped = opts.mapColour?.(hex3);
         if (mapped) color3 = mapped;
-        else if (run.text.trim()) dropped.add("colours");
+        else if (run2.text.trim()) dropped.add("colours");
       }
       if (color3) {
         const m2 = /^#?([0-9a-fA-F]{6})/.exec(color3);
         color3 = m2?.[1] ? `#${m2[1].toLowerCase()}` : null;
       }
     }
-    if (run.text.trim()) {
-      if (run.baseline === "super") dropped.add("superscript");
-      if (run.baseline === "sub") dropped.add("subscript");
-      if (run.case) dropped.add("letter case");
-      if (run.href) dropped.add("links");
-      if (run.underlineStyle) dropped.add("underline style");
+    if (run2.text.trim()) {
+      if (run2.baseline === "super") dropped.add("superscript");
+      if (run2.baseline === "sub") dropped.add("subscript");
+      if (run2.case) dropped.add("letter case");
+      if (run2.href) dropped.add("links");
+      if (run2.underlineStyle) dropped.add("underline style");
     }
     return {
-      bold: run.bold === true && rowWeight < 600,
-      italic: run.italic === true,
-      underline: run.underline === true,
-      strike: run.strike === true,
+      bold: run2.bold === true && rowWeight < 600,
+      italic: run2.italic === true,
+      underline: run2.underline === true,
+      strike: run2.strike === true,
       color: color3
     };
   };
@@ -75906,7 +76061,7 @@ function designTextOf(paras, opts = {}) {
       counters.length = Math.min(counters.length, level2);
       if (para.bullet === "bullet") prefix = "- ";
     }
-    const worded = para.runs.some((run) => run.text.trim());
+    const worded = para.runs.some((run2) => run2.text.trim());
     if (worded && !masterSetsType && ((para.spaceBeforePt ?? 0) > 0 || (para.spaceAfterPt ?? 0) > 0 || para.lineSpacingPct !== void 0 && Math.abs(para.lineSpacingPct - 100) > 0.5)) {
       dropped.add("spacing");
     }
@@ -75917,7 +76072,7 @@ function designTextOf(paras, opts = {}) {
     lines.push(prefix ? `${indent}${prefix}${first}` : first ? `${indent}${first}` : "");
     const hang = prefix ? "  ".repeat(Math.min(9, level2 + 1)) : indent;
     for (const more of rest2) lines.push(more ? `${hang}${more}` : "");
-    plain.push(para.runs.map((run) => run.text).join("").replace(/\r\n?/g, "\n"));
+    plain.push(para.runs.map((run2) => run2.text).join("").replace(/\r\n?/g, "\n"));
   }
   const result = {
     text: lines.join("\n"),
@@ -75931,7 +76086,7 @@ function designTextOf(paras, opts = {}) {
 function designTextFromPlain(text6, paras = [], rowWeight = 400) {
   const slots = [];
   paras.forEach((para, p) => {
-    const breaks = para.runs.reduce((n6, run) => n6 + (run.text.replace(/\r\n?/g, "\n").match(/\n/g)?.length ?? 0), 0);
+    const breaks = para.runs.reduce((n6, run2) => n6 + (run2.text.replace(/\r\n?/g, "\n").match(/\n/g)?.length ?? 0), 0);
     slots.push({ para: p, continues: false });
     for (let k = 0; k < breaks; k += 1) slots.push({ para: p, continues: true });
   });
@@ -75956,14 +76111,14 @@ ${line}`;
 }
 function correctionDrops(paras) {
   const found = /* @__PURE__ */ new Set();
-  const worded = paras.flatMap((para) => para.runs).filter((run) => run.text.trim());
-  const hexes = new Set(worded.map((run) => hexOf(run) ?? ""));
-  for (const run of worded) {
-    if (run.bold) found.add("bold");
-    if (run.italic) found.add("italic");
-    if (run.underline) found.add("underline");
-    if (run.strike) found.add("strike");
-    if (run.href) found.add("links");
+  const worded = paras.flatMap((para) => para.runs).filter((run2) => run2.text.trim());
+  const hexes = new Set(worded.map((run2) => hexOf(run2) ?? ""));
+  for (const run2 of worded) {
+    if (run2.bold) found.add("bold");
+    if (run2.italic) found.add("italic");
+    if (run2.underline) found.add("underline");
+    if (run2.strike) found.add("strike");
+    if (run2.href) found.add("links");
   }
   if (hexes.size > 1) found.add("colours");
   return DROPPED_ORDER.filter((word) => found.has(word));
@@ -75999,17 +76154,17 @@ function parseInline(source) {
   let text6 = "";
   const flush = () => {
     if (!text6) return;
-    const run = { text: text6.split(PARK_STAR).join("*").split(PARK_UNDERSCORE).join("_") };
-    if (bold > 0) run.bold = true;
-    if (italic > 0) run.italic = true;
-    if (span?.underline) run.underline = true;
-    if (span?.strike) run.strike = true;
-    if (span?.color) run.color = span.color;
-    if (span?.weight !== void 0) run.weight = span.weight;
-    if (span?.font) run.font = span.font;
+    const run2 = { text: text6.split(PARK_STAR).join("*").split(PARK_UNDERSCORE).join("_") };
+    if (bold > 0) run2.bold = true;
+    if (italic > 0) run2.italic = true;
+    if (span?.underline) run2.underline = true;
+    if (span?.strike) run2.strike = true;
+    if (span?.color) run2.color = span.color;
+    if (span?.weight !== void 0) run2.weight = span.weight;
+    if (span?.font) run2.font = span.font;
     const last = runs[runs.length - 1];
-    if (last && JSON.stringify({ ...last, text: "" }) === JSON.stringify({ ...run, text: "" })) last.text += run.text;
-    else runs.push(run);
+    if (last && JSON.stringify({ ...last, text: "" }) === JSON.stringify({ ...run2, text: "" })) last.text += run2.text;
+    else runs.push(run2);
     text6 = "";
   };
   for (let i = 0; i < s.length; i += 1) {
@@ -76049,7 +76204,7 @@ function parseDesignText(text6) {
   return String(text6 ?? "").replace(/\r\n?/g, "\n").split("\n").map(parseDesignLine);
 }
 function plainOfDesignText(text6) {
-  return parseDesignText(text6).map((line) => line.runs.map((run) => run.text).join("")).join("\n");
+  return parseDesignText(text6).map((line) => line.runs.map((run2) => run2.text).join("")).join("\n");
 }
 function hasDesignMarkup(text6) {
   const s = String(text6 ?? "");
@@ -76114,12 +76269,12 @@ function emphasise(text6, bold, italic) {
 function paraToMd(para, plain = false) {
   const runs = Array.isArray(para?.runs) ? para.runs : [];
   let out = "";
-  for (const run of runs) {
-    if (run == null || typeof run !== "object") continue;
-    const raw = flatten2(str4(run.text));
+  for (const run2 of runs) {
+    if (run2 == null || typeof run2 !== "object") continue;
+    const raw = flatten2(str4(run2.text));
     if (!raw) continue;
     const escaped = escapeInline(raw);
-    out += plain ? escaped : emphasise(escaped, run.bold === true, run.italic === true);
+    out += plain ? escaped : emphasise(escaped, run2.bold === true, run2.italic === true);
   }
   return out.trim();
 }
@@ -77638,18 +77793,18 @@ function parseSealRecords(bytes) {
       const sigValueEnd = span.start + sigSpan.valEnd;
       const rawValue = rec2.slice(sigSpan.valStart, sigSpan.valEnd);
       let timestamp = null;
-      let encoded = rawValue;
+      let encoded2 = rawValue;
       if (dateScheme) {
         const colon = rawValue.indexOf(":");
         if (colon >= 0) {
           timestamp = rawValue.slice(0, colon);
-          encoded = rawValue.slice(colon + 1);
+          encoded2 = rawValue.slice(colon + 1);
         }
       }
       let signature2 = null;
       let parseError;
       try {
-        signature2 = decodeSignature(encoded, sigFormat);
+        signature2 = decodeSignature(encoded2, sigFormat);
       } catch (e) {
         parseError = `signature value could not be decoded (${e.message})`;
       }
@@ -83900,7 +84055,7 @@ function interpretPdfPage(page3) {
       onWarn("content.budget.exhausted", "characters");
     }
   };
-  const run = (content2, res, baseCtm, depth, parentGroups, baseClips = [], baseFill = "", sink = pageSink, inherit = null, glyphRun2 = false) => {
+  const run2 = (content2, res, baseCtm, depth, parentGroups, baseClips = [], baseFill = "", sink = pageSink, inherit = null, glyphRun2 = false) => {
     if (depth > PDF_MAP_MAX_RUN_DEPTH) return;
     if (tokensSpent >= PDF_MAP_MAX_TOKENS) {
       tokenExhausted();
@@ -84091,7 +84246,7 @@ function interpretPdfPage(page3) {
         const proc = t3.encoding[code] ? t3.charProcs[t3.encoding[code]] : void 0;
         if (proc && sink.count < sink.max) {
           const glyphCtm = matMul4(matMul4(matMul4(s.ctm, tm), scale), fmMat);
-          run(proc, t3.resources, glyphCtm, depth + 1, [...gpath(), gid], s.clips, s.fill, sink, s, true);
+          run2(proc, t3.resources, glyphCtm, depth + 1, [...gpath(), gid], s.clips, s.fill, sink, s, true);
         }
         const adv = (t3.widths[code] ?? 0) * (fm[0] ?? 1e-3) * (s.fontSize || 0);
         tm = matMul4(tm, { a: 1, b: 0, c: 0, d: 1, e: adv, f: 0 });
@@ -84362,7 +84517,7 @@ function interpretPdfPage(page3) {
         const sub = { nodes: [], count: 0, max: PDF_MAP_MAX_PATTERN_NODES };
         const unresolvedBefore = softMaskUnresolved;
         try {
-          run(tl.content, tl.resources, base, depth + 1, [], [], paintTint, sub);
+          run2(tl.content, tl.resources, base, depth + 1, [], [], paintTint, sub);
         } finally {
           inFlight2.delete(key);
         }
@@ -84878,7 +85033,7 @@ function interpretPdfPage(page3) {
           } else if (xo && xo.kind === "form") {
             const fm = xo.matrix && xo.matrix.length >= 6 ? matMul4(s.ctm, fromArr(xo.matrix)) : s.ctm;
             if (sink.count < sink.max && tokensSpent < PDF_MAP_MAX_TOKENS) {
-              run(xo.content || "", xo.resources || {}, fm, depth + 1, [...gpath(), "g" + ++gseq], s.clips, "", sink, s, glyphRun2);
+              run2(xo.content || "", xo.resources || {}, fm, depth + 1, [...gpath(), "g" + ++gseq], s.clips, "", sink, s, glyphRun2);
             }
           }
           break;
@@ -84942,7 +85097,7 @@ function interpretPdfPage(page3) {
     maskDepth++;
     const sub = { nodes: [], count: 0, max: PDF_MAP_MAX_MASK_NODES };
     try {
-      run(def.content, def.resources || {}, base, depth + 1, [], [region.clip], "", sub);
+      run2(def.content, def.resources || {}, base, depth + 1, [], [region.clip], "", sub);
     } catch {
     } finally {
       maskInFlight.delete(key);
@@ -84976,7 +85131,7 @@ function interpretPdfPage(page3) {
     maskCache.set(key, out);
     return out;
   };
-  run(page3.content || "", page3, flip, 0, [], [], "", pageSink);
+  run2(page3.content || "", page3, flip, 0, [], [], "", pageSink);
   const counts = /* @__PURE__ */ new Map();
   for (const nd of nodes) for (const id2 of nd._groupPath ?? []) counts.set(id2, (counts.get(id2) ?? 0) + 1);
   for (const nd of nodes) {
@@ -85161,22 +85316,22 @@ function parseToUnicode(cmap) {
   const rangeArray = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*\[([\s\S]*?)\]/g;
   while (mb2 = rangeBlock.exec(cmap)) {
     const body = mb2[1];
-    let rm3;
+    let rm4;
     rangeArray.lastIndex = 0;
     const arrSpans = [];
-    while (rm3 = rangeArray.exec(body)) {
-      const lo = parseInt(rm3[1], 16), hi = parseInt(rm3[2], 16);
-      arrSpans.push([rm3.index, rm3.index + rm3[0].length]);
-      const dsts = rm3[3].match(/<([0-9A-Fa-f]+)>/g) || [];
+    while (rm4 = rangeArray.exec(body)) {
+      const lo = parseInt(rm4[1], 16), hi = parseInt(rm4[2], 16);
+      arrSpans.push([rm4.index, rm4.index + rm4[0].length]);
+      const dsts = rm4[3].match(/<([0-9A-Fa-f]+)>/g) || [];
       for (let k = 0; k <= hi - lo && k < dsts.length; k++) {
         map.set(lo + k, hexToUtf16(dsts[k].replace(/[<>]/g, "")));
       }
     }
     rangeSingle.lastIndex = 0;
-    while (rm3 = rangeSingle.exec(body)) {
-      if (arrSpans.some(([a, b]) => rm3.index >= a && rm3.index < b)) continue;
-      const lo = parseInt(rm3[1], 16), hi = parseInt(rm3[2], 16);
-      const baseHex = rm3[3];
+    while (rm4 = rangeSingle.exec(body)) {
+      if (arrSpans.some(([a, b]) => rm4.index >= a && rm4.index < b)) continue;
+      const lo = parseInt(rm4[1], 16), hi = parseInt(rm4[2], 16);
+      const baseHex = rm4[3];
       const base = parseInt(baseHex, 16);
       const span = Math.min(hi - lo, PDF_MAP_MAX_BF_RANGE - 1);
       for (let k = 0; k <= span; k++) {
@@ -85837,7 +85992,7 @@ function cluster(items2) {
     }
     return i;
   };
-  const join19 = (a, b) => {
+  const join20 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -85847,7 +86002,7 @@ function cluster(items2) {
     const a = expand(items2[i].rect, gap);
     for (let j = i + 1; j < items2.length; j++) {
       if (find(i) === find(j)) continue;
-      if (overlaps(a, items2[j].rect)) join19(i, j);
+      if (overlaps(a, items2[j].rect)) join20(i, j);
     }
   }
   const collect3 = () => {
@@ -85884,7 +86039,7 @@ function cluster(items2) {
           if (find(ra) === find(rb)) continue;
           const reach2 = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
           if (gapBetween(rectA, rectB) <= Math.max(gap, reach2)) {
-            join19(ra, rb);
+            join20(ra, rb);
             merged = true;
           }
         }
@@ -91082,7 +91237,7 @@ function svgToPenpotDoc(svgText, o) {
             return false;
           }
           if (!col) break;
-          const run = {
+          const run2 = {
             text: text6,
             fontFamily: f.fontFamily || void 0,
             fontWeight: f.fontWeight,
@@ -91101,7 +91256,7 @@ function svgToPenpotDoc(svgText, o) {
             y: top,
             w: estW,
             h: size * lineH,
-            paragraphs: [{ align, runs: [run] }],
+            paragraphs: [{ align, runs: [run2] }],
             valign: "top",
             growType: "auto-width",
             strokes
@@ -92623,8 +92778,8 @@ function parseFxChain(value) {
 function serializeFxChain(entries) {
   return entries.map((e) => `${e.name}(${e.params.join("-")})`).join(".");
 }
-function rbj(kind, rate, freq, q, gainDb = 0) {
-  const w0 = 2 * Math.PI * Math.min(freq, rate / 2 - 1) / rate;
+function rbj(kind, rate2, freq, q, gainDb = 0) {
+  const w0 = 2 * Math.PI * Math.min(freq, rate2 / 2 - 1) / rate2;
   const cw = Math.cos(w0);
   const sw = Math.sin(w0);
   const alpha = sw / (2 * q);
@@ -92682,12 +92837,12 @@ function runBiquad(x, c) {
     x[i] = y;
   }
 }
-function freeverb(channels, rate, mixPct, roomPct) {
+function freeverb(channels, rate2, mixPct, roomPct) {
   const wet = Math.min(1, Math.max(0, mixPct / 100));
   if (wet === 0) return;
   const feedback = 0.7 + roomPct / 100 * 0.28;
   const damp = 0.2;
-  const scale = rate / 44100;
+  const scale = rate2 / 44100;
   const n6 = channels[0].length;
   for (let ch = 0; ch < channels.length; ch++) {
     const spread = ch === 0 ? 0 : FV_SPREAD;
@@ -92726,11 +92881,11 @@ function freeverb(channels, rate, mixPct, roomPct) {
     for (let i = 0; i < n6; i++) dst[i] = dst[i] * (1 - wet) + wetCh[i] * wetGain;
   }
 }
-function echoFx(channels, rate, ms, fbPct, mixPct) {
+function echoFx(channels, rate2, ms, fbPct, mixPct) {
   const wet = Math.min(1, Math.max(0, mixPct / 100));
   if (wet === 0) return;
   const fb = Math.min(0.9, Math.max(0, fbPct / 100));
-  const len2 = Math.max(1, Math.round(ms / 1e3 * rate));
+  const len2 = Math.max(1, Math.round(ms / 1e3 * rate2));
   for (const ch of channels) {
     const buf = new Float32Array(len2);
     let idx = 0;
@@ -92742,12 +92897,12 @@ function echoFx(channels, rate, ms, fbPct, mixPct) {
     }
   }
 }
-function gateFx(channels, rate, thresholdDb) {
+function gateFx(channels, rate2, thresholdDb) {
   const thr = 10 ** (-thresholdDb / 20);
-  const envAtt = Math.exp(-1 / (2e-3 * rate));
-  const envRel = Math.exp(-1 / (0.03 * rate));
-  const gAtt = Math.exp(-1 / (5e-3 * rate));
-  const gRel = Math.exp(-1 / (0.06 * rate));
+  const envAtt = Math.exp(-1 / (2e-3 * rate2));
+  const envRel = Math.exp(-1 / (0.03 * rate2));
+  const gAtt = Math.exp(-1 / (5e-3 * rate2));
+  const gRel = Math.exp(-1 / (0.06 * rate2));
   for (const ch of channels) {
     let env = 0;
     let g2 = 0;
@@ -92760,9 +92915,9 @@ function gateFx(channels, rate, thresholdDb) {
     }
   }
 }
-function dehumFx(channels, rate, mains) {
+function dehumFx(channels, rate2, mains) {
   for (let h = 1; h <= 4; h++) {
-    const c = rbj("notch", rate, mains * h, 30);
+    const c = rbj("notch", rate2, mains * h, 30);
     for (const ch of channels) runBiquad(ch, c);
   }
 }
@@ -92772,31 +92927,31 @@ function crushFx(channels, bits) {
     for (let i = 0; i < ch.length; i++) ch[i] = Math.round(ch[i] * steps) / steps;
   }
 }
-function processFxPcm(channels, rate, chain2) {
+function processFxPcm(channels, rate2, chain2) {
   for (const e of chain2) {
     if (e.name === "hp") {
-      const c = rbj("hp", rate, e.params[0], Math.SQRT1_2);
+      const c = rbj("hp", rate2, e.params[0], Math.SQRT1_2);
       for (const ch of channels) runBiquad(ch, c);
     } else if (e.name === "lp") {
-      const c = rbj("lp", rate, e.params[0], Math.SQRT1_2);
+      const c = rbj("lp", rate2, e.params[0], Math.SQRT1_2);
       for (const ch of channels) runBiquad(ch, c);
     } else if (e.name === "eq") {
-      const low = rbj("lowshelf", rate, 200, Math.SQRT1_2, eqDb(e.params[0]));
-      const mid3 = rbj("peak", rate, 1e3, 1, eqDb(e.params[1]));
-      const high = rbj("highshelf", rate, 4e3, Math.SQRT1_2, eqDb(e.params[2]));
+      const low = rbj("lowshelf", rate2, 200, Math.SQRT1_2, eqDb(e.params[0]));
+      const mid3 = rbj("peak", rate2, 1e3, 1, eqDb(e.params[1]));
+      const high = rbj("highshelf", rate2, 4e3, Math.SQRT1_2, eqDb(e.params[2]));
       for (const ch of channels) {
         runBiquad(ch, low);
         runBiquad(ch, mid3);
         runBiquad(ch, high);
       }
     } else if (e.name === "rv") {
-      freeverb(channels, rate, e.params[0], e.params[1]);
+      freeverb(channels, rate2, e.params[0], e.params[1]);
     } else if (e.name === "echo") {
-      echoFx(channels, rate, e.params[0], e.params[1], e.params[2]);
+      echoFx(channels, rate2, e.params[0], e.params[1], e.params[2]);
     } else if (e.name === "gate") {
-      gateFx(channels, rate, e.params[0]);
+      gateFx(channels, rate2, e.params[0]);
     } else if (e.name === "dehum") {
-      dehumFx(channels, rate, e.params[0]);
+      dehumFx(channels, rate2, e.params[0]);
     } else if (e.name === "crush") {
       crushFx(channels, e.params[0]);
     } else if (e.name === "rev") {
@@ -93300,11 +93455,11 @@ function textDocument(doc, bytes, text6, structured, json, rules, budget3) {
       if (isMap(node)) {
         const named = node.items.find((p) => isScalar(p.key) && p.key.value === "name");
         const context = named && isScalar(named.value) ? scalarText(named.value.value) : void 0;
-        const encoded = node.items.some((p) => isScalar(p.key) && p.key.value === "encoding" && isScalar(p.value) && p.value.value === "base64");
+        const encoded2 = node.items.some((p) => isScalar(p.key) && p.key.value === "encoding" && isScalar(p.value) && p.value.value === "base64");
         for (const pair of node.items) {
           const key = isScalar(pair.key) ? String(pair.key.value) : "?";
           queue2.push({ node: pair.key, path: `${path} (key)`, depth: depth + 1 });
-          queue2.push({ node: pair.value, path: `${path}.${key}`, field: key === "value" && path.includes(".cookies[") ? "cookie" : key === "value" && context ? context : key, base64: encoded && key === "text", depth: depth + 1 });
+          queue2.push({ node: pair.value, path: `${path}.${key}`, field: key === "value" && path.includes(".cookies[") ? "cookie" : key === "value" && context ? context : key, base64: encoded2 && key === "text", depth: depth + 1 });
         }
       } else if (isSeq(node)) node.items.forEach((item, i) => {
         queue2.push({ node: item, path: `${path}[${i}]`, field: field2, depth: depth + 1 });
@@ -97014,14 +97169,14 @@ function buildStudioScene(input) {
   const v = studioActiveValues(record8(wrapper.values));
   const arrangement = v.source === "arrangement";
   const objects = arrangement ? arrangementObjects(v) : [];
-  if (arrangement && !objects.some((object) => object.visible && !object.pending))
+  if (arrangement && !objects.some((object2) => object2.visible && !object2.pending))
     throw new Error(
-      objects.some((object) => object.pending) ? "Choose a file for an object, or add a sample shape, to see the arrangement." : "Show at least one object in the arrangement."
+      objects.some((object2) => object2.pending) ? "Choose a file for an object, or add a sample shape, to see the arrangement." : "Show at least one object in the arrangement."
     );
   const kind = choice2(v.source, ["artwork", "model", "primitive", "text"], "primitive");
   const uploaded = asset(v.upload);
   const selected = asset(kind === "artwork" ? v.artwork : v.modelAsset);
-  const source = arrangement ? (objects.find((object) => !object.pending) ?? objects[0]).source : sourceFrom2(kind, uploaded.url ? uploaded : selected, v.modelFormat, v.primitive, "", false, {
+  const source = arrangement ? (objects.find((object2) => !object2.pending) ?? objects[0]).source : sourceFrom2(kind, uploaded.url ? uploaded : selected, v.modelFormat, v.primitive, "", false, {
     text: v.words,
     settings: textSettings(v)
   });
@@ -98265,11 +98420,11 @@ function textLineLevels(paragraph, range) {
   return runs;
 }
 function reorderTextRuns(logical) {
-  const visual = logical.filter((run) => !run.removed);
+  const visual = logical.filter((run2) => !run2.removed);
   let maximum = 0, minimumOdd = Infinity;
-  for (const run of visual) {
-    maximum = Math.max(maximum, run.level);
-    if (run.level % 2) minimumOdd = Math.min(minimumOdd, run.level);
+  for (const run2 of visual) {
+    maximum = Math.max(maximum, run2.level);
+    if (run2.level % 2) minimumOdd = Math.min(minimumOdd, run2.level);
   }
   for (let level2 = maximum; level2 >= minimumOdd; level2--) for (let start = 0; start < visual.length; ) {
     if (visual[start].level < level2) {
@@ -98397,18 +98552,18 @@ function textDisplaySource(source, mode2, language = "und") {
   if (complete.length !== text6.length) throw new Error("This display-case mapping needs a separate text run.");
   return { text: complete, ranges };
 }
-function mapTextDisplayRun(run, source, start, map) {
+function mapTextDisplayRun(run2, source, start, map) {
   const logical = (at, end = false) => {
     const range = map.ranges.find((range2) => end ? at > range2.displayStart && at <= range2.displayEnd : at >= range2.displayStart && at < range2.displayEnd);
     return start + (range ? end ? range.end : range.start : source.length);
   };
   const groups = [];
-  const carets = run.clusters.flatMap((cluster2) => cluster2.carets).flatMap((caret) => {
+  const carets = run2.clusters.flatMap((cluster2) => cluster2.carets).flatMap((caret) => {
     const at = caret.offset - start;
     const edge = map.ranges.find((range) => range.displayStart === at || range.displayEnd === at);
     return edge ? [{ offset: start + (edge.displayStart === at ? edge.start : edge.end), x: caret.x }] : [];
   });
-  for (const cluster2 of [...run.clusters].sort((a, b) => a.start - b.start)) {
+  for (const cluster2 of [...run2.clusters].sort((a, b) => a.start - b.start)) {
     const a = logical(cluster2.start - start), b = logical(cluster2.end - start, true), previous = groups.at(-1);
     if (previous && previous.end > a) {
       previous.end = Math.max(previous.end, b);
@@ -98421,7 +98576,7 @@ function mapTextDisplayRun(run, source, start, map) {
     const mapped = carets.filter((caret) => caret.offset >= cluster2.start && caret.offset <= cluster2.end && caret.x >= cluster2.x - 1e-3 && caret.x <= cluster2.x + cluster2.advance + 1e-3);
     cluster2.carets = [...new Map(mapped.map((caret) => [caret.offset, caret])).values()];
   }
-  return { ...run, text: source, start, end: start + source.length, clusters: groups, missing: run.missing.map((range) => ({ start: logical(range.start - start), end: logical(range.end - start, true) })) };
+  return { ...run2, text: source, start, end: start + source.length, clusters: groups, missing: run2.missing.map((range) => ({ start: logical(range.start - start), end: logical(range.end - start, true) })) };
 }
 var init_text_display = __esm({
   "engine/src/text-display.ts"() {
@@ -98455,7 +98610,7 @@ var init_text_semantic = __esm({
 
 // engine/src/text-paragraph.ts
 function shapedLineBytes(line) {
-  const runBytes = (run) => !run ? 0 : 1024 + 2 * (run.text.length + run.script.length + run.language.length + JSON.stringify(run.font).length) + 64 * run.missing.length + run.clusters.reduce((sum, cluster2) => sum + 160 + 2 * cluster2.d.length + 48 * cluster2.carets.length, 0);
+  const runBytes = (run2) => !run2 ? 0 : 1024 + 2 * (run2.text.length + run2.script.length + run2.language.length + JSON.stringify(run2.font).length) + 64 * run2.missing.length + run2.clusters.reduce((sum, cluster2) => sum + 160 + 2 * cluster2.d.length + 48 * cluster2.carets.length, 0);
   return 256 + runBytes(line.hyphen?.shape) + line.pieces.reduce((sum, piece) => sum + 256 + 2 * JSON.stringify(piece.style).length + 48 * piece.carets.length + runBytes(piece.shape) + runBytes(piece.tab?.shape) + (piece.artwork ? 2 * JSON.stringify(piece.artwork).length : 0), 0);
 }
 function covers(info, text6) {
@@ -98907,8 +99062,8 @@ function dictionary() {
 }
 function thaiTextBreaks(source) {
   const breaks = [], trie = dictionary();
-  for (const run of source.matchAll(/[\u0e01-\u0e3a\u0e40-\u0e4e]+/gu)) {
-    const text6 = run[0], bounds = [...textBoundaries(text6)], allowed = new Set(bounds);
+  for (const run2 of source.matchAll(/[\u0e01-\u0e3a\u0e40-\u0e4e]+/gu)) {
+    const text6 = run2[0], bounds = [...textBoundaries(text6)], allowed = new Set(bounds);
     const cost = new Float64Array(text6.length + 1), next = new Uint32Array(text6.length + 1), known = new Uint8Array(text6.length + 1);
     cost.fill(Infinity);
     cost[text6.length] = 0;
@@ -98929,10 +99084,10 @@ function thaiTextBreaks(source) {
         }
       }
     }
-    if (run.index > 0) breaks.push(run.index);
+    if (run2.index > 0) breaks.push(run2.index);
     for (let at = 0; at < text6.length; ) {
       const end = next[at];
-      if (known[at] || known[end] || end === text6.length) breaks.push(run.index + end);
+      if (known[at] || known[end] || end === text6.length) breaks.push(run2.index + end);
       at = end;
     }
   }
@@ -99169,18 +99324,18 @@ function prepareTextWrap(context, frames) {
     if (!placement) continue;
     const inverse = inverseVectorMatrix(pose({ ...placement, width: frame.width, height: frame.height }));
     const exclusions = [];
-    for (const object of objects) {
-      if (object.item.scope !== placement.scope || object.item.id === frame.id) continue;
-      const matrix = multiplyVectorMatrix(inverse, object.matrix);
-      let contours = object.contours.map((points2) => points2.map((point3) => ({ x: matrix[0] * point3.x + matrix[2] * point3.y + matrix[4], y: matrix[1] * point3.x + matrix[3] * point3.y + matrix[5] })));
+    for (const object2 of objects) {
+      if (object2.item.scope !== placement.scope || object2.item.id === frame.id) continue;
+      const matrix = multiplyVectorMatrix(inverse, object2.matrix);
+      let contours = object2.contours.map((points2) => points2.map((point3) => ({ x: matrix[0] * point3.x + matrix[2] * point3.y + matrix[4], y: matrix[1] * point3.x + matrix[3] * point3.y + matrix[5] })));
       const points = contours.flat();
       if (!points.length) continue;
       const x0 = Math.min(...points.map((p) => p.x)), x1 = Math.max(...points.map((p) => p.x)), y0 = Math.min(...points.map((p) => p.y)), y1 = Math.max(...points.map((p) => p.y));
-      if (object.item.mode === "box") contours = [[{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }]];
-      const tolerance = object.item.mode === "contour" ? 0.25 : 0, offset = Object.fromEntries(Object.entries(object.item.offset).map(([key, value]) => [key, value + tolerance]));
+      if (object2.item.mode === "box") contours = [[{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }]];
+      const tolerance = object2.item.mode === "contour" ? 0.25 : 0, offset = Object.fromEntries(Object.entries(object2.item.offset).map(([key, value]) => [key, value + tolerance]));
       if (x1 + offset.right <= 0 || x0 - offset.left >= frame.width || y1 + offset.bottom <= 0 || frame.mode === "fixed" && y0 - offset.top >= frame.height) continue;
       if (frame.verticalAlign !== "top") fail3("Text frames that wrap around objects need top vertical alignment.");
-      exclusions.push({ id: object.item.id, contours, offset, bottom: y1 + offset.bottom });
+      exclusions.push({ id: object2.item.id, contours, offset, bottom: y1 + offset.bottom });
     }
     if (exclusions.length) result.set(frame.id, exclusions);
   }
@@ -99188,10 +99343,10 @@ function prepareTextWrap(context, frames) {
 }
 function textWrapBand(exclusions, left, width, y, height, direction2) {
   let spaces = [[left, left + width]], next = Infinity;
-  for (const object of exclusions ?? []) {
+  for (const object2 of exclusions ?? []) {
     let low = Infinity, high = -Infinity;
-    const top = y - object.offset.bottom, bottom = y + height + object.offset.top;
-    for (const points of object.contours) for (let i = 0; i < points.length; i++) {
+    const top = y - object2.offset.bottom, bottom = y + height + object2.offset.top;
+    for (const points of object2.contours) for (let i = 0; i < points.length; i++) {
       const a = points[i], b = points[(i + 1) % points.length];
       if (Math.max(a.y, b.y) < top || Math.min(a.y, b.y) > bottom) continue;
       const at = (value) => a.x + (b.x - a.x) * (value - a.y) / (b.y - a.y);
@@ -99203,10 +99358,10 @@ function textWrapBand(exclusions, left, width, y, height, direction2) {
       }
     }
     if (!Number.isFinite(low)) continue;
-    low -= object.offset.left;
-    high += object.offset.right;
+    low -= object2.offset.left;
+    high += object2.offset.right;
     if (high <= left || low >= left + width) continue;
-    next = Math.min(next, object.bottom);
+    next = Math.min(next, object2.bottom);
     spaces = spaces.flatMap(([a, b]) => high <= a || low >= b ? [[a, b]] : [...low > a ? [[a, Math.min(b, low)]] : [], ...high < b ? [[Math.max(a, high), b]] : []]);
   }
   spaces.sort((a, b) => b[1] - b[0] - (a[1] - a[0]) || (direction2 === "ltr" ? a[0] - b[0] : b[0] - a[0]));
@@ -99480,7 +99635,7 @@ function positionTextLine(source, paragraphId, original, index2, last, settings,
 function shiftTextLine(line, y) {
   line.y += y;
   line.baseline += y;
-  for (const run of line.runs) run.y += y;
+  for (const run2 of line.runs) run2.y += y;
   for (const inline of line.inlines) inline.y += y;
   for (const caret of line.carets) caret.y += y;
   if (line.hyphen) line.hyphen.y += y;
@@ -99909,13 +100064,13 @@ function deleteTextStory(snapshot, id2) {
   current.frames = current.frames.filter((frame) => frame.storyId !== id2);
   return admitted2(current);
 }
-function linkTextFrames(snapshot, sourceId, targetId, join19, fresh) {
+function linkTextFrames(snapshot, sourceId, targetId, join20, fresh) {
   const current = admitted2(snapshot), source = owner(current, sourceId), target = owner(current, targetId);
   if (source.id === target.id) throw new TextSourceError("thread-cycle", "These frames already belong to the same story.");
   const affected = [...source.frameIds, ...target.frameIds];
   mutable(current, affected);
   if (current.frames.some((frame) => affected.includes(frame.id) && frame.mode === "path")) throw new TextSourceError("thread-path", "Detach text from its path before linking frames.");
-  if ((target.source || target.frameIds.length > 1) && !join19) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
+  if ((target.source || target.frameIds.length > 1) && !join20) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
   if (target.frameIds[0] !== targetId) throw new TextSourceError("thread-target", "Choose the first frame of the target story.");
   let merged = source;
   if (target.source) {
@@ -100102,10 +100257,10 @@ async function textLayoutSvg(layout2, story, frameId, parseXml) {
     if (line.frameId !== frameId) continue;
     for (const rule of line.rules ?? []) fragments.push(`<rect x="${n5(rule.x)}" y="${n5(rule.y)}" width="${n5(rule.width)}" height="${n5(rule.height)}" fill="${color2(rule.color)}"/>`);
     for (const leader of line.leaders ?? []) for (let i = 0; i < leader.count; i++) fragments.push(`<g fill="${color2(leader.color)}" transform="translate(${n5(leader.x + i * leader.step)} ${n5(leader.y)})">${leader.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
-    for (const run of line.runs) {
-      const paths = run.shape.clusters.map((cluster2) => `<path data-text-start="${n5(cluster2.start)}" data-text-end="${n5(cluster2.end)}" d="${escapeMarkup2(cluster2.d)}"/>`).join("");
-      const decoration = (y) => `<rect x="0" y="${n5(y)}" width="${n5(run.shape.advance)}" height="${n5(Math.max(0.5, run.shape.size / 16))}"/>`;
-      fragments.push(`<g fill="${color2(run.color)}" transform="translate(${n5(run.x)} ${n5(run.y)}) rotate(${n5(run.angle)})">${paths}${run.character.underline ? decoration(run.shape.size / 10) : ""}${run.character.strike ? decoration(-run.shape.size * 0.3) : ""}</g>`);
+    for (const run2 of line.runs) {
+      const paths = run2.shape.clusters.map((cluster2) => `<path data-text-start="${n5(cluster2.start)}" data-text-end="${n5(cluster2.end)}" d="${escapeMarkup2(cluster2.d)}"/>`).join("");
+      const decoration = (y) => `<rect x="0" y="${n5(y)}" width="${n5(run2.shape.advance)}" height="${n5(Math.max(0.5, run2.shape.size / 16))}"/>`;
+      fragments.push(`<g fill="${color2(run2.color)}" transform="translate(${n5(run2.x)} ${n5(run2.y)}) rotate(${n5(run2.angle)})">${paths}${run2.character.underline ? decoration(run2.shape.size / 10) : ""}${run2.character.strike ? decoration(-run2.shape.size * 0.3) : ""}</g>`);
     }
     for (const inline of line.inlines) {
       const svg = admitTextInlineSvg(inline.svg, parseXml, `${prefix}-${placement++}`);
@@ -100342,6 +100497,25 @@ var init_rebrand_order = __esm({
   }
 });
 
+// engine/src/slide-composition.ts
+function slideGridCells(count4, columns, box3) {
+  count4 = Math.max(1, Math.min(12, Math.round(count4) || 1));
+  columns = Math.max(1, Math.min(count4, 4, Math.round(columns) || 1));
+  const rows2 = Math.ceil(count4 / columns);
+  const gapX = Math.min(0.025, box3.w / columns * 0.08), gapY = 0.025;
+  const w = (box3.w - gapX * (columns - 1)) / columns;
+  const h = (box3.h - gapY * (rows2 - 1)) / rows2;
+  return Array.from({ length: count4 }, (_, i) => {
+    const row = Math.floor(i / columns), used = Math.min(columns, count4 - row * columns);
+    return { x: box3.x + (i % columns + (columns - used) / 2) * (w + gapX), y: box3.y + row * (h + gapY), w, h };
+  });
+}
+var init_slide_composition = __esm({
+  "engine/src/slide-composition.ts"() {
+    "use strict";
+  }
+});
+
 // engine/src/slide-layout-components.ts
 function slideLayoutRecipe(id2) {
   const match = /^flow-(cards|columns)-(\d{1,2})-(\d)$/.exec(id2);
@@ -100359,20 +100533,20 @@ function slideContentGroups(objects) {
   const heading = (o) => o.kind === "text" && textOf4(o).trim().length <= 90 && (o.text?.paras.length ?? 0) === 1;
   const groups = [];
   const claimed = /* @__PURE__ */ new Set();
-  for (const object of sorted) {
-    if (claimed.has(object.id)) continue;
-    const group = [object];
-    claimed.add(object.id);
-    if (heading(object)) {
-      let bottom = object.box.y + object.box.h;
+  for (const object2 of sorted) {
+    if (claimed.has(object2.id)) continue;
+    const group = [object2];
+    claimed.add(object2.id);
+    if (heading(object2)) {
+      let bottom = object2.box.y + object2.box.h;
       for (const next of sorted) {
-        if (claimed.has(next.id) || next.kind !== "text" || next.box.y < object.box.y) continue;
-        const overlap = Math.min(object.box.x + object.box.w, next.box.x + next.box.w) - Math.max(object.box.x, next.box.x);
-        if (overlap < Math.min(object.box.w, next.box.w) * 0.7) continue;
+        if (claimed.has(next.id) || next.kind !== "text" || next.box.y < object2.box.y) continue;
+        const overlap = Math.min(object2.box.x + object2.box.w, next.box.x + next.box.w) - Math.max(object2.box.x, next.box.x);
+        if (overlap < Math.min(object2.box.w, next.box.w) * 0.7) continue;
         const gap = next.box.y - bottom;
-        if (gap < -object.box.h * 0.2 || gap > object.box.h * 1.6) continue;
+        if (gap < -object2.box.h * 0.2 || gap > object2.box.h * 1.6) continue;
         const bullet = next.text?.paras.some((p) => p.bullet && p.bullet !== "none");
-        if (heading(next) && !bullet && textOf4(next).length <= textOf4(object).length * 1.5) break;
+        if (heading(next) && !bullet && textOf4(next).length <= textOf4(object2).length * 1.5) break;
         group.push(next);
         claimed.add(next.id);
         bottom = next.box.y + next.box.h;
@@ -100413,10 +100587,8 @@ function withSlideLayoutComponents(master, ids2) {
   for (const { id: id2, recipe } of recipes) {
     const { count: count4, columns, kind } = recipe;
     const rows2 = Math.ceil(count4 / columns);
-    const gapX = Math.min(0.025, body.box.w / columns * 0.08);
-    const gapY = 0.025;
-    const cellW = (body.box.w - gapX * (columns - 1)) / columns;
-    const cellH = (body.box.h - gapY * (rows2 - 1)) / rows2;
+    const cells = slideGridCells(count4, columns, body.box);
+    const { w: cellW, h: cellH } = cells[0];
     const insetX = kind === "cards" ? 0.012 : 0;
     const insetY = kind === "cards" ? 0.016 : 8e-3;
     const bodySize = Math.round(Math.min(master.typeScale.body, master.typeScale.body * (rows2 >= 3 ? 0.7 : columns >= 3 ? 0.85 : 1)));
@@ -100425,11 +100597,7 @@ function withSlideLayoutComponents(master, ids2) {
     const placeholders = [{ ...title, box: { ...title.box }, optional: true }];
     const decor = [];
     for (let k = 0; k < count4; k++) {
-      const y = body.box.y + Math.floor(k / columns) * (cellH + gapY);
-      const lastCount = count4 - Math.floor(k / columns) * columns;
-      const usedCols = Math.min(columns, lastCount);
-      const center = (columns - usedCols) * (cellW + gapX) / 2;
-      const x = body.box.x + k % columns * (cellW + gapX) + center;
+      const { x, y } = cells[k];
       const common = { group: `c${k + 1}`, index: k };
       const textBox = { x: x + insetX, w: cellW - 2 * insetX };
       const ink = body.style ?? {};
@@ -100450,6 +100618,7 @@ var init_slide_layout_components = __esm({
   "engine/src/slide-layout-components.ts"() {
     "use strict";
     init_rebrand_order();
+    init_slide_composition();
     textOf4 = (o) => o.text?.paras.map((p) => p.runs.map((r5) => r5.text).join("")).join("\n") ?? "";
   }
 });
@@ -101599,8 +101768,8 @@ var init_deck_census_hash = __esm({
 });
 
 // engine/src/deck-census-vector.ts
-function vectorFeatures(object) {
-  const items2 = object.vectorItems?.items;
+function vectorFeatures(object2) {
+  const items2 = object2.vectorItems?.items;
   if (!items2 || items2.length === 0) return void 0;
   const fills = /* @__PURE__ */ new Set();
   const series = /* @__PURE__ */ new Set();
@@ -101613,11 +101782,11 @@ function vectorFeatures(object) {
   }
   return { fillCount: fills.size, hasText: hasText2, seriesCount: series.size };
 }
-function vectorColourUses(object) {
-  const items2 = object.vectorItems;
+function vectorColourUses(object2) {
+  const items2 = object2.vectorItems;
   if (!items2 || items2.items.length === 0) return [];
-  const sx = items2.viewBox.w > 0 ? object.box.w / items2.viewBox.w : 1;
-  const sy = items2.viewBox.h > 0 ? object.box.h / items2.viewBox.h : 1;
+  const sx = items2.viewBox.w > 0 ? object2.box.w / items2.viewBox.w : 1;
+  const sy = items2.viewBox.h > 0 ? object2.box.h / items2.viewBox.h : 1;
   const byKey = /* @__PURE__ */ new Map();
   const seriesIndex = /* @__PURE__ */ new Map();
   const add = (channel3, hex3, weight) => {
@@ -101628,9 +101797,9 @@ function vectorColourUses(object) {
         n6 = seriesIndex.size + 1;
         seriesIndex.set(hex3, n6);
       }
-      useId = `${object.id}:series:${n6}`;
+      useId = `${object2.id}:series:${n6}`;
     } else {
-      useId = `${object.id}:${channel3}:${hex3.slice(1)}`;
+      useId = `${object2.id}:${channel3}:${hex3.slice(1)}`;
     }
     const hit = byKey.get(useId);
     if (hit) {
@@ -101638,7 +101807,7 @@ function vectorColourUses(object) {
       return;
     }
     const use = { useId, hex: hex3, channel: channel3, weight };
-    if (channel3 === "series") use.distinctionSet = object.id;
+    if (channel3 === "series") use.distinctionSet = object2.id;
     byKey.set(useId, use);
   };
   for (const item of items2.items) {
@@ -101662,8 +101831,8 @@ function vectorColourUses(object) {
   }
   return [...byKey.values()].map((use) => ({ ...use, weight: Math.round(use.weight * 1e3) / 1e3 })).sort((a, b) => a.useId < b.useId ? -1 : a.useId > b.useId ? 1 : 0);
 }
-function vectorChartEvidence(object) {
-  const items2 = object.vectorItems;
+function vectorChartEvidence(object2) {
+  const items2 = object2.vectorItems;
   if (!items2 || items2.items.length === 0) return void 0;
   const titled = typeof items2.title === "string" && /\bchart\b/i.test(items2.title);
   const bars = items2.items.filter((item) => item.kind === "path" && item.shape === "rect");
@@ -101671,7 +101840,7 @@ function vectorChartEvidence(object) {
   const series = new Set(items2.items.map((item) => item.series).filter((name) => Boolean(name)));
   const barred = sharedEdge >= CHART_MIN_BARS && series.size >= CHART_MIN_SERIES;
   if (!titled && !barred) return void 0;
-  const fills = vectorFeatures(object)?.fillCount ?? 0;
+  const fills = vectorFeatures(object2)?.fillCount ?? 0;
   const evidence = [];
   if (titled) evidence.push({ signal: "native-tag", value: items2.title ?? "", weight: 0.4 });
   if (barred) evidence.push({ signal: "column-alignment", value: sharedEdge, weight: 0.3 });
@@ -101733,8 +101902,8 @@ function effectiveAction(row) {
 function effectiveReplacement(row) {
   return row.decision !== void 0 ? row.decisionReplacement ?? row.proposalReplacement : row.proposalReplacement;
 }
-function reviewFidelity(object) {
-  switch (object?.fidelity.state) {
+function reviewFidelity(object2) {
+  switch (object2?.fidelity.state) {
     case "editable":
       return "editable";
     case "raster-preserved":
@@ -101902,13 +102071,13 @@ function evidenceMessage(evidence, index2, context) {
       return reviewMessage("evidence.none", {});
   }
 }
-function rowEvidenceMessage(row, object) {
+function rowEvidenceMessage(row, object2) {
   const evidence = row?.evidence ?? [];
   const lead = leadingEvidence(evidence);
   if (row && lead >= 0) {
-    return evidenceMessage(evidence, lead, { class: row.class, ...object?.kind ? { kind: object.kind } : {} });
+    return evidenceMessage(evidence, lead, { class: row.class, ...object2?.kind ? { kind: object2.kind } : {} });
   }
-  const origin = object?.origin;
+  const origin = object2?.origin;
   if (origin) return reviewMessage(`evidence.origin.${origin}`, {});
   return reviewMessage("evidence.none", {});
 }
@@ -101944,7 +102113,7 @@ function indexPlan(plan, source) {
   const objectOf = /* @__PURE__ */ new Map();
   source.slides.forEach((slide, i) => {
     slideNumberOf.set(slide.id, i + 1);
-    for (const object of slide.objects) objectOf.set(object.id, object);
+    for (const object2 of slide.objects) objectOf.set(object2.id, object2);
   });
   const rows2 = [];
   const byId = /* @__PURE__ */ new Map();
@@ -101953,8 +102122,8 @@ function indexPlan(plan, source) {
     if (!slideNumberOf.has(slide.id)) slideNumberOf.set(slide.id, slideNumber);
     slide.objects.forEach((row, position) => {
       const info = { row, slideId: slide.id, slideNumber, position };
-      const object = objectOf.get(row.id);
-      if (object) info.object = object;
+      const object2 = objectOf.get(row.id);
+      if (object2) info.object = object2;
       rows2.push(info);
       byId.set(row.id, info);
     });
@@ -102282,28 +102451,28 @@ function objectStates(plan, source) {
   }
   return out;
 }
-function textOf5(object) {
-  return (object.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join(" ").replace(/\s+/g, " ").trim();
+function textOf5(object2) {
+  return (object2.text?.paras ?? []).map((para) => para.runs.map((run2) => run2.text).join("")).join(" ").replace(/\s+/g, " ").trim();
 }
-function largestRunPt(object) {
+function largestRunPt(object2) {
   let max = 0;
-  for (const para of object.text?.paras ?? []) for (const run of para.runs) max = Math.max(max, run.sizePt ?? 0);
+  for (const para of object2.text?.paras ?? []) for (const run2 of para.runs) max = Math.max(max, run2.sizePt ?? 0);
   return max;
 }
 function slideTitle(objects, rows2) {
-  const withText = objects.filter((object) => textOf5(object).length > 0);
-  const titled = withText.find((object) => {
-    const klass = rows2.get(object.id)?.class;
-    return klass === "title" || object.placeholder === "title" || object.placeholder === "ctrTitle";
+  const withText = objects.filter((object2) => textOf5(object2).length > 0);
+  const titled = withText.find((object2) => {
+    const klass = rows2.get(object2.id)?.class;
+    return klass === "title" || object2.placeholder === "title" || object2.placeholder === "ctrTitle";
   });
   let pick = titled;
   if (!pick) {
     let best = -1;
-    for (const object of withText) {
-      const size = largestRunPt(object);
+    for (const object2 of withText) {
+      const size = largestRunPt(object2);
       if (size > best) {
         best = size;
-        pick = object;
+        pick = object2;
       }
     }
   }
@@ -102327,7 +102496,7 @@ function slideStates(plan, source, census) {
   return effectiveSlideOrder(plan, source).map((slidePlan, order) => {
     const found = sourceById.get(slidePlan.id);
     const objects = found?.slide.objects ?? [];
-    const objectById = new Map(objects.map((object) => [object.id, object]));
+    const objectById = new Map(objects.map((object2) => [object2.id, object2]));
     const rows2 = new Map(slidePlan.objects.map((row) => [row.id, row]));
     let attention = 0;
     let unreviewed = 0;
@@ -102369,12 +102538,12 @@ function slideStates(plan, source, census) {
 function sameFace(a, b) {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
-function isPlainShape(object) {
-  return object.kind === "shape" && !object.media && !object.fidelity.fallbackAssetRef;
+function isPlainShape(object2) {
+  return object2.kind === "shape" && !object2.media && !object2.fidelity.fallbackAssetRef;
 }
 function planSummary(plan, source, census) {
   const objectOf = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object of slide.objects) objectOf.set(object.id, object);
+  for (const slide of source.slides) for (const object2 of slide.objects) objectOf.set(object2.id, object2);
   const objects = { keep: 0, replace: 0, remove: 0, unresolved: 0, unplaced: 0 };
   const review = { attention: 0, unreviewed: 0, accepted: 0 };
   let included = 0;
@@ -102387,9 +102556,9 @@ function planSummary(plan, source, census) {
       if (!slide.include) continue;
       const action = effectiveAction(row);
       objects[action] += 1;
-      const object = objectOf.get(row.id);
-      if (action !== "remove" && reviewFidelity(object) === "unavailable") objects.unresolved += 1;
-      else if (action === "keep" && object && isPlainShape(object)) objects.unplaced += 1;
+      const object2 = objectOf.get(row.id);
+      if (action !== "remove" && reviewFidelity(object2) === "unavailable") objects.unresolved += 1;
+      else if (action === "keep" && object2 && isPlainShape(object2)) objects.unplaced += 1;
     }
   }
   const colours2 = { assigned: 0, unresolved: 0, locked: 0 };
@@ -103146,8 +103315,8 @@ var init_deck_census_rules = __esm({
 });
 
 // engine/src/deck-census.ts
-function textOf6(object) {
-  return (object.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join("\n");
+function textOf6(object2) {
+  return (object2.text?.paras ?? []).map((para) => para.runs.map((run2) => run2.text).join("")).join("\n");
 }
 function wordsOf(text6) {
   return text6.split(/\s+/).filter((word) => word.length > 0);
@@ -103185,33 +103354,33 @@ function vectorFillCount(svg) {
 function fractionBox(box3, frame) {
   return { x: box3.x / frame.width, y: box3.y / frame.height, w: box3.w / frame.width, h: box3.h / frame.height };
 }
-function familyOf(object, stats) {
-  if (object.kind === "pic") {
-    if (object.media) {
-      return { key: `media:${object.media}`, kind: "media", by: "exact", digitWildcard: false, exact: object.media, normalised: object.media };
+function familyOf(object2, stats) {
+  if (object2.kind === "pic") {
+    if (object2.media) {
+      return { key: `media:${object2.media}`, kind: "media", by: "exact", digitWildcard: false, exact: object2.media, normalised: object2.media };
     }
     if (stats?.dhash) {
       const candidate = { key: `dhash:${stats.dhash}`, kind: "media", by: "dhash", digitWildcard: false, normalised: `dhash:${stats.dhash}` };
-      const ref = object.fidelity.fallbackAssetRef;
+      const ref = object2.fidelity.fallbackAssetRef;
       if (ref) candidate.exact = ref;
       return candidate;
     }
     return null;
   }
-  if (object.kind === "vector" && object.vector) {
-    const hash = pathHash(object.vector);
+  if (object2.kind === "vector" && object2.vector) {
+    const hash = pathHash(object2.vector);
     if (hash === null) return null;
-    return { key: `path:${hash}`, kind: "vector", by: "path-hash", digitWildcard: false, exact: object.vector, normalised: `path:${hash}` };
+    return { key: `path:${hash}`, kind: "vector", by: "path-hash", digitWildcard: false, exact: object2.vector, normalised: `path:${hash}` };
   }
-  const text6 = textOf6(object);
+  const text6 = textOf6(object2);
   if (text6.trim().length > 0) {
     const normalised = digitNormalise(text6);
-    return { key: `text:${object.kind}:${normalised}`, kind: "text", by: "exact", digitWildcard: true, exact: text6.trim(), normalised };
+    return { key: `text:${object2.kind}:${normalised}`, kind: "text", by: "exact", digitWildcard: true, exact: text6.trim(), normalised };
   }
-  if (object.kind === "shape") {
-    const fill2 = object.fill?.hex ?? object.fill?.scheme ?? "none";
-    const line = object.line?.color?.hex ?? object.line?.color?.scheme ?? "none";
-    const key = `shape:${object.geom ?? "rect"}:${fill2}:${line}`;
+  if (object2.kind === "shape") {
+    const fill2 = object2.fill?.hex ?? object2.fill?.scheme ?? "none";
+    const line = object2.line?.color?.hex ?? object2.line?.color?.scheme ?? "none";
+    const key = `shape:${object2.geom ?? "rect"}:${fill2}:${line}`;
     return { key, kind: "shape", by: "exact", digitWildcard: false, exact: key, normalised: key };
   }
   return null;
@@ -103311,12 +103480,12 @@ function chromaOf3(hex3) {
   const oklch = hexToOklch(hex3);
   return oklch ? oklch.c : 0;
 }
-function textWeight(object, hex3, theme) {
+function textWeight(object2, hex3, theme) {
   let weight = 0;
-  for (const para of object.text?.paras ?? []) {
-    for (const run of para.runs) {
-      if (resolveColor(run.color, theme) !== hex3) continue;
-      weight += run.text.length * (run.sizePt ?? 12);
+  for (const para of object2.text?.paras ?? []) {
+    for (const run2 of para.runs) {
+      if (resolveColor(run2.color, theme) !== hex3) continue;
+      weight += run2.text.length * (run2.sizePt ?? 12);
     }
   }
   return weight;
@@ -103328,23 +103497,23 @@ function censusDeck(source, opts = {}) {
     width: slide.width > 0 ? slide.width : 1280,
     height: slide.height > 0 ? slide.height : 720
   }));
-  const statsOf = (object) => {
-    if (object.raster) return object.raster;
-    const ref = object.media ?? object.fidelity.fallbackAssetRef;
+  const statsOf = (object2) => {
+    if (object2.raster) return object2.raster;
+    const ref = object2.media ?? object2.fidelity.fallbackAssetRef;
     return ref && opts.rasterStats ? opts.rasterStats(ref) : void 0;
   };
-  const ocrOf = (object) => {
-    if (object.ocr) return object.ocr;
-    const ref = object.media ?? object.fidelity.fallbackAssetRef;
+  const ocrOf = (object2) => {
+    if (object2.ocr) return object2.ocr;
+    const ref = object2.media ?? object2.fidelity.fallbackAssetRef;
     return ref && opts.ocr ? opts.ocr(ref) : void 0;
   };
   const families = /* @__PURE__ */ new Map();
   for (const frame of frames) {
-    for (const object of frame.slide.objects) {
-      const candidate = familyOf(object, statsOf(object));
+    for (const object2 of frame.slide.objects) {
+      const candidate = familyOf(object2, statsOf(object2));
       if (!candidate) continue;
       const family2 = families.get(candidate.key) ?? { key: candidate.key, kind: candidate.kind, by: candidate.by, digitWildcard: candidate.digitWildcard, members: [] };
-      const member = { object, frame, normalised: candidate.normalised };
+      const member = { object: object2, frame, normalised: candidate.normalised };
       if (candidate.exact !== void 0) member.exact = candidate.exact;
       family2.members.push(member);
       families.set(candidate.key, family2);
@@ -103400,70 +103569,70 @@ function censusDeck(source, opts = {}) {
     const { slide } = frame;
     warnings.push(...slide.warnings);
     const slideArea = frame.width * frame.height;
-    const sizes = [...new Set(slide.objects.filter((object) => textOf6(object).trim().length > 0).map((object) => maxRunPt(object) ?? 0))].sort((a, b) => b - a);
+    const sizes = [...new Set(slide.objects.filter((object2) => textOf6(object2).trim().length > 0).map((object2) => maxRunPt(object2) ?? 0))].sort((a, b) => b - a);
     const context = slideContext(frame);
     const hypotheses = /* @__PURE__ */ new Map();
-    for (const object of slide.objects) {
-      const text6 = textOf6(object);
-      const stats = statsOf(object);
-      const ocr = ocrOf(object);
-      const verified = groupOf.get(object.id);
-      const known = matchKnownLogo(object, stats, knownLogos);
-      const box3 = object.box;
+    for (const object2 of slide.objects) {
+      const text6 = textOf6(object2);
+      const stats = statsOf(object2);
+      const ocr = ocrOf(object2);
+      const verified = groupOf.get(object2.id);
+      const known = matchKnownLogo(object2, stats, knownLogos);
+      const box3 = object2.box;
       const centreX = box3.x + box3.w / 2;
       const centreY = box3.y + box3.h / 2;
       const inX = centreX < MARGIN_BAND_SHARE * frame.width || centreX > (1 - MARGIN_BAND_SHARE) * frame.width;
       const topBand = centreY < MARGIN_BAND_SHARE * frame.height;
       const bottomBand = centreY > (1 - MARGIN_BAND_SHARE) * frame.height;
-      const maxPt = maxRunPt(object);
+      const maxPt = maxRunPt(object2);
       const slideCount = frames.length || 1;
       const features = {
-        objectId: object.id,
+        objectId: object2.id,
         slideId: slide.id,
-        kind: object.kind,
-        origin: object.origin,
+        kind: object2.kind,
+        origin: object2.origin,
         areaShare: slideArea > 0 ? box3.w * box3.h / slideArea : 0,
         aspect: box3.h > 0 ? box3.w / box3.h : 0,
         marginZone: inX || topBand || bottomBand,
         topBand,
         bottomBand,
         longSideShare: Math.max(box3.w / frame.width, box3.h / frame.height),
-        hasFill: object.fill !== void 0,
-        fillCount: object.kind === "vector" ? vectorFillCount(object.vector) : object.fill ? 1 : 0,
+        hasFill: object2.fill !== void 0,
+        fillCount: object2.kind === "vector" ? vectorFillCount(object2.vector) : object2.fill ? 1 : 0,
         hasText: text6.trim().length > 0,
         textLength: text6.trim().length,
         wordCount: wordsOf(text6).length,
         lowerCaseWords: lowerCaseWords(text6),
         digitsOnly: digitsOnly(text6),
         dateLike: dateLike(text6),
-        textParagraphs: object.text?.paras.length ?? 0,
+        textParagraphs: object2.text?.paras.length ?? 0,
         repeatCount: verified ? verified.group.slideIds.length : 0,
         repeatShare: verified ? verified.group.slideIds.length / slideCount : 0,
         positionJitter: verified ? verified.jitter : 0,
         exactRepeat: verified ? verified.exactRepeat : false,
         digitRepeatOnly: verified ? verified.digitRepeatOnly : false,
-        hasChartData: object.chartData !== void 0,
-        seriesCount: object.chartData?.series?.length ?? 0,
-        hasTable: object.table !== void 0,
-        unavailable: object.fidelity.state === "unavailable"
+        hasChartData: object2.chartData !== void 0,
+        seriesCount: object2.chartData?.series?.length ?? 0,
+        hasTable: object2.table !== void 0,
+        unavailable: object2.fidelity.state === "unavailable"
       };
-      if (object.placeholder) features.placeholder = object.placeholder;
+      if (object2.placeholder) features.placeholder = object2.placeholder;
       if (maxPt !== void 0) features.maxTextPt = maxPt;
       if (features.hasText) features.sizeRank = Math.max(0, sizes.indexOf(maxPt ?? 0));
-      Object.assign(features, context.featuresFor(object, text6));
-      Object.assign(features, vectorFeatures(object) ?? {});
+      Object.assign(features, context.featuresFor(object2, text6));
+      Object.assign(features, vectorFeatures(object2) ?? {});
       if (verified) {
         features.groupId = verified.group.id;
         features.groupBy = verified.by;
       }
-      if (object.tag) features.tag = object.tag;
-      const drawnChart = vectorChartEvidence(object);
+      if (object2.tag) features.tag = object2.tag;
+      const drawnChart = vectorChartEvidence(object2);
       if (drawnChart) features.vectorChart = { confidence: drawnChart.confidence, evidence: drawnChart.evidence };
-      const corner = cornerShare.get(object.id);
+      const corner = cornerShare.get(object2.id);
       if (corner !== void 0) features.cornerRepeatShare = corner;
       if (features.hasText && new RegExp("\\p{N}", "u").test(text6)) features.hasDigit = true;
       if (features.hasText && LEGAL_NOTICE.test(text6)) features.legalNotice = true;
-      if (corner !== void 0 && corner > GENERATOR_MARK_SHARE && object.kind === "pic" && markWordBeside(object, slide, cornerShare)) {
+      if (corner !== void 0 && corner > GENERATOR_MARK_SHARE && object2.kind === "pic" && markWordBeside(object2, slide, cornerShare)) {
         features.markWordBeside = true;
       }
       if (ocr) {
@@ -103478,26 +103647,26 @@ function censusDeck(source, opts = {}) {
         if (known.distance !== void 0) features.knownLogoDistance = known.distance;
       }
       const hypothesis = classifyObject(features);
-      hypotheses.set(object.id, hypothesis);
-      classOf.set(object.id, hypothesis.class);
+      hypotheses.set(object2.id, hypothesis);
+      classOf.set(object2.id, hypothesis.class);
       const row = {
-        id: object.id,
+        id: object2.id,
         slideId: slide.id,
-        origin: object.origin,
+        origin: object2.origin,
         hypothesis
       };
       if (verified) row.groupId = verified.group.id;
       objects.push(row);
     }
     collectSlideColors(frame, uses, opts, source.theme);
-    for (const object of slide.objects) {
-      const klass = hypotheses.get(object.id)?.class;
+    for (const object2 of slide.objects) {
+      const klass = hypotheses.get(object2.id)?.class;
       const role = klass === "title" ? "title" : klass === "subtitle" ? "subtitle" : klass === "body" ? "body" : "other";
-      for (const para of object.text?.paras ?? []) {
-        for (const run of para.runs) {
-          if (!run.font) continue;
-          const family2 = resolveFamily(run.font, source.theme);
-          const provenance = run.fontProvenance ?? (run.font.startsWith("+") ? "theme" : "literal");
+      for (const para of object2.text?.paras ?? []) {
+        for (const run2 of para.runs) {
+          if (!run2.font) continue;
+          const family2 = resolveFamily(run2.font, source.theme);
+          const provenance = run2.fontProvenance ?? (run2.font.startsWith("+") ? "theme" : "literal");
           const key = `${provenance}:${family2}`;
           const roles = fontRoles.get(key) ?? {};
           roles[role] = (roles[role] ?? 0) + 1;
@@ -103507,7 +103676,7 @@ function censusDeck(source, opts = {}) {
     }
     layouts.push(layoutFeatures(frame, hypotheses));
     const covered = slide.objects.some(
-      (object) => object.kind === "pic" && slideArea > 0 && object.box.w * object.box.h / slideArea >= FLATTENED_AREA_SHARE
+      (object2) => object2.kind === "pic" && slideArea > 0 && object2.box.w * object2.box.h / slideArea >= FLATTENED_AREA_SHARE
     );
     if (slide.origin.flattened === true || covered) flattenedSlideIds.push(slide.id);
   }
@@ -103562,9 +103731,9 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
   const boxOf4 = /* @__PURE__ */ new Map();
   const kindOf3 = /* @__PURE__ */ new Map();
   for (const frame of frames) {
-    for (const object of frame.slide.objects) {
-      boxOf4.set(object.id, object.box);
-      kindOf3.set(object.id, object.kind);
+    for (const object2 of frame.slide.objects) {
+      boxOf4.set(object2.id, object2.box);
+      kindOf3.set(object2.id, object2.kind);
     }
   }
   const rowById = new Map(rows2.map((row) => [row.id, row]));
@@ -103681,12 +103850,12 @@ function cornerRepeatShares(frames, tolerance) {
   if (pictureSlides.length < 2) return out;
   const marks = [];
   for (const frame of pictureSlides) {
-    for (const object of frame.slide.objects) {
-      if (object.origin !== "raster-region") continue;
-      const box3 = fractionBox(object.box, frame);
+    for (const object2 of frame.slide.objects) {
+      if (object2.origin !== "raster-region") continue;
+      const box3 = fractionBox(object2.box, frame);
       const across = box3.x + box3.w > 1 - MARGIN_BAND_SHARE ? "right" : box3.x < MARGIN_BAND_SHARE ? "left" : "";
       const down = box3.y + box3.h > 1 - MARGIN_BAND_SHARE ? "bottom" : box3.y < MARGIN_BAND_SHARE ? "top" : "";
-      if (across && down) marks.push({ id: object.id, slideId: frame.slide.id, corner: `${down}-${across}`, box: box3 });
+      if (across && down) marks.push({ id: object2.id, slideId: frame.slide.id, corner: `${down}-${across}`, box: box3 });
     }
   }
   for (const mark of marks) {
@@ -103727,7 +103896,7 @@ function rowMarker(text6) {
 }
 function rowNumberingIds(frame, texts) {
   const out = /* @__PURE__ */ new Set();
-  const box3 = (object) => fractionBox(object.box, frame);
+  const box3 = (object2) => fractionBox(object2.box, frame);
   const markers = texts.filter((entry2) => rowMarker(entry2.text));
   const lines = texts.filter((entry2) => multiWord(entry2.text));
   const paired = markers.filter((marker) => {
@@ -103748,12 +103917,12 @@ function rowNumberingIds(frame, texts) {
   }
   return out;
 }
-function groupKeyOf(object) {
-  return object.groupPath && object.groupPath.length > 0 ? object.groupPath.join("/") : void 0;
+function groupKeyOf(object2) {
+  return object2.groupPath && object2.groupPath.length > 0 ? object2.groupPath.join("/") : void 0;
 }
 function slideContext(frame) {
   const { slide } = frame;
-  const texts = slide.objects.map((object) => ({ object, text: textOf6(object).trim(), pt: maxRunPt(object) ?? 0 })).filter((entry2) => entry2.text.length > 0);
+  const texts = slide.objects.map((object2) => ({ object: object2, text: textOf6(object2).trim(), pt: maxRunPt(object2) ?? 0 })).filter((entry2) => entry2.text.length > 0);
   const titleOnSlide = new Set(texts.filter((entry2) => entry2.object.placeholder === "title" || entry2.object.placeholder === "ctrTitle").map((entry2) => entry2.object.id));
   const worded = texts.filter((entry2) => multiWord(entry2.text));
   const wordSizes = [...new Set(worded.map((entry2) => entry2.pt))].sort((a, b) => b - a);
@@ -103770,35 +103939,35 @@ function slideContext(frame) {
   const holders = /* @__PURE__ */ new Set();
   for (const entry2 of texts) for (const id2 of entry2.object.groupPath ?? []) holders.add(id2);
   const members = /* @__PURE__ */ new Map();
-  for (const object of slide.objects) {
-    const key = groupKeyOf(object);
+  for (const object2 of slide.objects) {
+    const key = groupKeyOf(object2);
     if (!key) continue;
     const list2 = members.get(key) ?? [];
-    list2.push(object);
+    list2.push(object2);
     members.set(key, list2);
   }
-  const fillKey = (object) => object.fill?.hex?.toUpperCase() ?? object.fill?.scheme;
+  const fillKey = (object2) => object2.fill?.hex?.toUpperCase() ?? object2.fill?.scheme;
   return {
-    featuresFor(object, text6) {
+    featuresFor(object2, text6) {
       const out = {};
-      if (object.kind === "shape" && object.geom === void 0) out.customGeometry = true;
-      if (object.kind === "shape" && object.geom !== void 0 && CONNECTOR_GEOM.test(object.geom)) out.connector = object.geom;
-      if (object.kind === "shape" && object.origin === "raster-region" && holders.has(object.id)) out.holdsText = true;
-      if (object.id === roleTitle) out.roleTitle = true;
+      if (object2.kind === "shape" && object2.geom === void 0) out.customGeometry = true;
+      if (object2.kind === "shape" && object2.geom !== void 0 && CONNECTOR_GEOM.test(object2.geom)) out.connector = object2.geom;
+      if (object2.kind === "shape" && object2.origin === "raster-region" && holders.has(object2.id)) out.holdsText = true;
+      if (object2.id === roleTitle) out.roleTitle = true;
       const trimmed = text6.trim();
       if (trimmed.length > 0) {
-        if ([...titleOnSlide].some((id2) => id2 !== object.id)) out.titleOnSlide = true;
+        if ([...titleOnSlide].some((id2) => id2 !== object2.id)) out.titleOnSlide = true;
         if (loneLetter(trimmed)) out.loneLetter = true;
-        if (numbering.has(object.id)) out.rowNumbering = true;
+        if (numbering.has(object2.id)) out.rowNumbering = true;
         if (multiWord(trimmed)) {
-          const pt = maxRunPt(object) ?? 0;
+          const pt = maxRunPt(object2) ?? 0;
           out.wordRank = Math.max(0, wordSizes.indexOf(pt));
           if (pt === largestPt && largest.length === 1) out.uniqueLargest = true;
-          if (topmost === object.id) out.topmostInTopBand = true;
+          if (topmost === object2.id) out.topmostInTopBand = true;
         }
         if (largestIsBlock) out.largestIsBlock = true;
       }
-      const key = groupKeyOf(object);
+      const key = groupKeyOf(object2);
       const siblings = key ? members.get(key) ?? [] : [];
       if (siblings.length >= 2) {
         out.groupSize = siblings.length;
@@ -103811,22 +103980,22 @@ function slideContext(frame) {
     }
   };
 }
-function maxRunPt(object) {
+function maxRunPt(object2) {
   let max;
-  for (const para of object.text?.paras ?? []) {
-    for (const run of para.runs) {
-      if (run.sizePt === void 0) continue;
-      max = max === void 0 ? run.sizePt : Math.max(max, run.sizePt);
+  for (const para of object2.text?.paras ?? []) {
+    for (const run2 of para.runs) {
+      if (run2.sizePt === void 0) continue;
+      max = max === void 0 ? run2.sizePt : Math.max(max, run2.sizePt);
     }
   }
   return max;
 }
-function minRunPt(object) {
+function minRunPt(object2) {
   let min;
-  for (const para of object.text?.paras ?? []) {
-    for (const run of para.runs) {
-      if (run.sizePt === void 0) continue;
-      min = min === void 0 ? run.sizePt : Math.min(min, run.sizePt);
+  for (const para of object2.text?.paras ?? []) {
+    for (const run2 of para.runs) {
+      if (run2.sizePt === void 0) continue;
+      min = min === void 0 ? run2.sizePt : Math.min(min, run2.sizePt);
     }
   }
   return min;
@@ -103836,9 +104005,9 @@ function resolveFamily(font, theme) {
   if (font === "+mn-lt" || font === "+mn-ea" || font === "+mn-cs") return theme?.minorFont ?? font;
   return font;
 }
-function matchKnownLogo(object, stats, known) {
-  if (object.kind !== "pic" && object.kind !== "vector") return null;
-  const content2 = object.media;
+function matchKnownLogo(object2, stats, known) {
+  if (object2.kind !== "pic" && object2.kind !== "vector") return null;
+  const content2 = object2.media;
   for (const entry2 of known) {
     if (entry2.contentHash && content2 && entry2.contentHash === content2) return { label: entry2.label };
   }
@@ -103913,81 +104082,81 @@ function collectSlideColors(frame, uses, opts, theme) {
     if (slide.background.color?.scheme) use.scheme = slide.background.color.scheme;
     addUse(uses, use);
   }
-  for (const object of slide.objects) {
-    const area2 = Math.max(0, object.box.w * object.box.h);
-    const fillHex2 = resolveColor(object.fill, theme);
+  for (const object2 of slide.objects) {
+    const area2 = Math.max(0, object2.box.w * object2.box.h);
+    const fillHex2 = resolveColor(object2.fill, theme);
     if (fillHex2) {
       const use = {
-        useId: useIdFor(object.id, "fill", fillHex2, false),
+        useId: useIdFor(object2.id, "fill", fillHex2, false),
         hex: fillHex2,
         channel: "fill",
         weight: area2,
-        objectIds: [object.id],
+        objectIds: [object2.id],
         slideId: slide.id
       };
-      if (object.fill?.scheme) use.scheme = object.fill.scheme;
+      if (object2.fill?.scheme) use.scheme = object2.fill.scheme;
       addUse(uses, use);
     }
-    const lineHex = resolveColor(object.line?.color, theme);
+    const lineHex = resolveColor(object2.line?.color, theme);
     if (lineHex) {
-      const perimeter = 2 * (object.box.w + object.box.h);
+      const perimeter = 2 * (object2.box.w + object2.box.h);
       const use = {
-        useId: useIdFor(object.id, "stroke", lineHex, false),
+        useId: useIdFor(object2.id, "stroke", lineHex, false),
         hex: lineHex,
         channel: "stroke",
-        weight: perimeter * Math.max(1, object.line?.widthPt ?? 1),
-        objectIds: [object.id],
+        weight: perimeter * Math.max(1, object2.line?.widthPt ?? 1),
+        objectIds: [object2.id],
         slideId: slide.id
       };
-      if (object.line?.color?.scheme) use.scheme = object.line.color.scheme;
+      if (object2.line?.color?.scheme) use.scheme = object2.line.color.scheme;
       addUse(uses, use);
     }
     const runHexes = /* @__PURE__ */ new Set();
-    for (const para of object.text?.paras ?? []) {
-      for (const run of para.runs) {
-        const hex3 = resolveColor(run.color, theme);
+    for (const para of object2.text?.paras ?? []) {
+      for (const run2 of para.runs) {
+        const hex3 = resolveColor(run2.color, theme);
         if (hex3) runHexes.add(hex3);
       }
     }
     const shared = runHexes.size > 1;
     for (const hex3 of [...runHexes].sort(compareCodeUnits)) {
-      const scheme = schemeForRunHex(object, hex3, theme);
+      const scheme = schemeForRunHex(object2, hex3, theme);
       const use = {
-        useId: useIdFor(object.id, "text", hex3, shared),
+        useId: useIdFor(object2.id, "text", hex3, shared),
         hex: hex3,
         channel: "text",
-        weight: textWeight(object, hex3, theme),
-        objectIds: [object.id],
+        weight: textWeight(object2, hex3, theme),
+        objectIds: [object2.id],
         slideId: slide.id
       };
       if (scheme) use.scheme = scheme;
       addUse(uses, use);
     }
-    if (object.chartData && (object.chartData.series?.length ?? 0) > 0) {
-      const supplied = opts.chartSeriesColors?.(object.id);
+    if (object2.chartData && (object2.chartData.series?.length ?? 0) > 0) {
+      const supplied = opts.chartSeriesColors?.(object2.id);
       const cycle = accentCycle(theme);
-      const count4 = object.chartData.series?.length ?? 0;
+      const count4 = object2.chartData.series?.length ?? 0;
       for (let i = 0; i < count4; i += 1) {
         const hex3 = supplied?.[i] ?? (cycle.length > 0 ? cycle[i % cycle.length] : void 0);
         if (!hex3) continue;
         addUse(uses, {
-          useId: useIdFor(object.id, "series", normaliseHex(hex3), false, i + 1),
+          useId: useIdFor(object2.id, "series", normaliseHex(hex3), false, i + 1),
           hex: normaliseHex(hex3),
           channel: "series",
           weight: area2 / count4,
-          objectIds: [object.id],
+          objectIds: [object2.id],
           slideId: slide.id,
-          distinctionSet: object.id
+          distinctionSet: object2.id
         });
       }
     }
-    for (const u of vectorColourUses(object)) {
+    for (const u of vectorColourUses(object2)) {
       addUse(uses, {
         useId: u.useId,
         hex: u.hex,
         channel: u.channel,
         weight: u.weight,
-        objectIds: [object.id],
+        objectIds: [object2.id],
         slideId: slide.id,
         ...u.distinctionSet ? { distinctionSet: u.distinctionSet } : {}
       });
@@ -104003,10 +104172,10 @@ function accentCycle(theme) {
   }
   return out;
 }
-function schemeForRunHex(object, hex3, theme) {
-  for (const para of object.text?.paras ?? []) {
-    for (const run of para.runs) {
-      if (run.color?.scheme && resolveColor(run.color, theme) === hex3) return run.color.scheme;
+function schemeForRunHex(object2, hex3, theme) {
+  for (const para of object2.text?.paras ?? []) {
+    for (const run2 of para.runs) {
+      if (run2.color?.scheme && resolveColor(run2.color, theme) === hex3) return run2.color.scheme;
     }
   }
   return void 0;
@@ -104068,9 +104237,9 @@ function contrastPairsFor(frames, uses) {
   for (const frame of frames) {
     const ground = all.find((use) => use.useId === groundUseId(frame.slide.id));
     const fillOf3 = (objectId) => all.find((use) => use.channel === "fill" && use.objectIds.includes(objectId));
-    frame.slide.objects.forEach((object, index2) => {
-      const ownFill = fillOf3(object.id);
-      const texts = all.filter((use) => use.channel === "text" && use.objectIds.includes(object.id));
+    frame.slide.objects.forEach((object2, index2) => {
+      const ownFill = fillOf3(object2.id);
+      const texts = all.filter((use) => use.channel === "text" && use.objectIds.includes(object2.id));
       if (texts.length > 0) {
         let background = ownFill;
         for (let under = index2 - 1; under >= 0 && !background; under -= 1) {
@@ -104078,24 +104247,24 @@ function contrastPairsFor(frames, uses) {
           if (!below) continue;
           const fill2 = fillOf3(below.id);
           if (!fill2) continue;
-          if (overlapShare(object.box, below.box) >= BACKGROUND_COVER_SHARE) background = fill2;
+          if (overlapShare(object2.box, below.box) >= BACKGROUND_COVER_SHARE) background = fill2;
         }
         background = background ?? ground;
         if (background) {
-          const smallest = minRunPt(object) ?? 12;
+          const smallest = minRunPt(object2) ?? 12;
           for (const text6 of texts) {
             out.push({
               foreground: text6.useId,
               background: background.useId,
               minimum: smallest < LARGE_TEXT_PT ? 4.5 : 3,
-              objectId: object.id
+              objectId: object2.id
             });
           }
         }
       }
-      const stroke = all.find((use) => use.channel === "stroke" && use.objectIds.includes(object.id));
+      const stroke = all.find((use) => use.channel === "stroke" && use.objectIds.includes(object2.id));
       if (ownFill && stroke) {
-        out.push({ foreground: stroke.useId, background: ownFill.useId, minimum: 3, objectId: object.id });
+        out.push({ foreground: stroke.useId, background: ownFill.useId, minimum: 3, objectId: object2.id });
       }
     });
   }
@@ -104113,21 +104282,21 @@ function layoutFeatures(frame, hypotheses) {
   let textWords = 0;
   const leftEdges = /* @__PURE__ */ new Set();
   const sizeKeys = /* @__PURE__ */ new Map();
-  for (const object of slide.objects) {
-    const klass = hypotheses.get(object.id)?.class ?? "unknown";
+  for (const object2 of slide.objects) {
+    const klass = hypotheses.get(object2.id)?.class ?? "unknown";
     counts[klass] = (counts[klass] ?? 0) + 1;
-    const pt = maxRunPt(object);
+    const pt = maxRunPt(object2);
     if (pt !== void 0) largestTextPt = largestTextPt === void 0 ? pt : Math.max(largestTextPt, pt);
-    if (object.kind === "pic" || object.media !== void 0) imageArea += Math.max(0, object.box.w * object.box.h);
-    if (object.kind === "chart" || object.chartData !== void 0) chartPresent = true;
-    if (object.kind === "table" || object.table !== void 0) tablePresent = true;
-    const text6 = textOf6(object);
+    if (object2.kind === "pic" || object2.media !== void 0) imageArea += Math.max(0, object2.box.w * object2.box.h);
+    if (object2.kind === "chart" || object2.chartData !== void 0) chartPresent = true;
+    if (object2.kind === "table" || object2.table !== void 0) tablePresent = true;
+    const text6 = textOf6(object2);
     if (text6.trim().length > 0) {
-      textParagraphs += object.text?.paras.length ?? 0;
+      textParagraphs += object2.text?.paras.length ?? 0;
       textWords += wordsOf(text6).length;
     }
-    leftEdges.add(Math.round(object.box.x / 8));
-    const key = `${Math.round(object.box.w / 8)}x${Math.round(object.box.h / 8)}`;
+    leftEdges.add(Math.round(object2.box.x / 8));
+    const key = `${Math.round(object2.box.w / 8)}x${Math.round(object2.box.h / 8)}`;
     sizeKeys.set(key, (sizeKeys.get(key) ?? 0) + 1);
   }
   let equalSiblingBoxes = 0;
@@ -104176,50 +104345,50 @@ function layoutUnitsOf(frame, hypotheses) {
   const candidates2 = [];
   const heading = /* @__PURE__ */ new Set();
   const rebuilt = /* @__PURE__ */ new Map();
-  const objectIds = new Set(slide.objects.map((object) => object.id));
-  for (const object of slide.objects) {
-    if (object.hidden === true) continue;
-    if (object.origin !== "slide" && object.origin !== "raster-region") continue;
-    const klass = hypotheses.get(object.id)?.class ?? "unknown";
+  const objectIds = new Set(slide.objects.map((object2) => object2.id));
+  for (const object2 of slide.objects) {
+    if (object2.hidden === true) continue;
+    if (object2.origin !== "slide" && object2.origin !== "raster-region") continue;
+    const klass = hypotheses.get(object2.id)?.class ?? "unknown";
     if (NOT_CONTENT.has(klass)) continue;
-    const box3 = clippedBox(object.box, frame);
+    const box3 = clippedBox(object2.box, frame);
     const area2 = areaOf(box3);
     if (area2 <= 0) continue;
-    const text6 = textOf6(object);
+    const text6 = textOf6(object2);
     const words = wordsOf(text6).length;
-    if (object.origin === "raster-region" && object.groupPath && object.groupPath.length > 0) {
-      const key = object.groupPath[0];
-      if (key !== object.id) {
+    if (object2.origin === "raster-region" && object2.groupPath && object2.groupPath.length > 0) {
+      const key = object2.groupPath[0];
+      if (key !== object2.id) {
         const list2 = rebuilt.get(key) ?? [];
-        list2.push(object);
+        list2.push(object2);
         rebuilt.set(key, list2);
       }
     }
     if (klass === "decoration") {
-      const panel = object.kind === "shape" || object.kind === "vector";
+      const panel = object2.kind === "shape" || object2.kind === "vector";
       if (panel && words === 0 && area2 >= LAYOUT_CONTAINER_MIN && area2 <= LAYOUT_CONTAINER_MAX) {
-        candidates2.push({ id: object.id, box: box3, panel: false });
+        candidates2.push({ id: object2.id, box: box3, panel: false });
       }
       continue;
     }
     let kind;
-    if (object.kind === "table" || object.table !== void 0) kind = "table";
-    else if (object.kind === "chart" || object.chartData !== void 0) kind = "chart";
-    else if (klass === "chart" && (object.kind === "vector" || object.kind === "pic")) kind = "chart";
-    else if (object.kind === "pic" || object.media !== void 0 && object.kind !== "text") kind = "pic";
-    else if (object.kind === "vector") kind = area2 >= LAYOUT_CONTENT_PICTURE ? "pic" : "shape";
+    if (object2.kind === "table" || object2.table !== void 0) kind = "table";
+    else if (object2.kind === "chart" || object2.chartData !== void 0) kind = "chart";
+    else if (klass === "chart" && (object2.kind === "vector" || object2.kind === "pic")) kind = "chart";
+    else if (object2.kind === "pic" || object2.media !== void 0 && object2.kind !== "text") kind = "pic";
+    else if (object2.kind === "vector") kind = area2 >= LAYOUT_CONTENT_PICTURE ? "pic" : "shape";
     else if (words > 0) kind = "text";
-    else if (object.kind === "shape") kind = "shape";
+    else if (object2.kind === "shape") kind = "shape";
     else if (PICTURE_CLASSES.has(klass)) kind = "pic";
     else continue;
     if (kind === "shape" && area2 < LAYOUT_TINY_SHAPE) continue;
     if (kind === "pic" && area2 < LAYOUT_CONTENT_PICTURE && !PICTURE_CLASSES.has(klass)) kind = "icon";
-    const unit2 = { id: object.id, kind, box: roundBox2(box3), words, maxPt: maxRunPt(object) ?? 0 };
+    const unit2 = { id: object2.id, kind, box: roundBox2(box3), words, maxPt: maxRunPt(object2) ?? 0 };
     units2.push(unit2);
-    if (klass === "title" || klass === "subtitle") heading.add(object.id);
-    if (object.origin === "raster-region") continue;
-    if (kind === "shape" && area2 >= LAYOUT_CONTAINER_MIN && area2 <= LAYOUT_CONTAINER_MAX) candidates2.push({ id: object.id, box: box3, panel: false });
-    if (kind === "pic" && slide.origin.flattened !== true && area2 <= LAYOUT_CONTAINER_MAX) candidates2.push({ id: object.id, box: box3, panel: true });
+    if (klass === "title" || klass === "subtitle") heading.add(object2.id);
+    if (object2.origin === "raster-region") continue;
+    if (kind === "shape" && area2 >= LAYOUT_CONTAINER_MIN && area2 <= LAYOUT_CONTAINER_MAX) candidates2.push({ id: object2.id, box: box3, panel: false });
+    if (kind === "pic" && slide.origin.flattened !== true && area2 <= LAYOUT_CONTAINER_MAX) candidates2.push({ id: object2.id, box: box3, panel: true });
   }
   const containers = [];
   const unitOf2 = new Map(units2.map((unit2) => [unit2.id, unit2]));
@@ -104240,9 +104409,9 @@ function layoutUnitsOf(frame, hypotheses) {
     };
   };
   for (const key of [...rebuilt.keys()].sort(compareCodeUnits)) {
-    const members = (rebuilt.get(key) ?? []).filter((object) => unitOf2.has(object.id) && !heading.has(object.id)).map((object) => object.id);
+    const members = (rebuilt.get(key) ?? []).filter((object2) => unitOf2.has(object2.id) && !heading.has(object2.id)).map((object2) => object2.id);
     if (!members.some((id2) => unitOf2.get(id2)?.kind === "text")) continue;
-    const panel = objectIds.has(key) ? slide.objects.find((object) => object.id === key) : void 0;
+    const panel = objectIds.has(key) ? slide.objects.find((object2) => object2.id === key) : void 0;
     let box3;
     if (panel) box3 = clippedBox(panel.box, frame);
     else {
@@ -105818,12 +105987,12 @@ function indexSource(source) {
   const byId = /* @__PURE__ */ new Map();
   const byFingerprint = /* @__PURE__ */ new Map();
   for (const slide of source.slides) {
-    for (const object of slide.objects) {
-      const row = { object, slideId: slide.id };
-      byId.set(object.id, row);
-      const list2 = byFingerprint.get(object.fingerprint) ?? [];
+    for (const object2 of slide.objects) {
+      const row = { object: object2, slideId: slide.id };
+      byId.set(object2.id, row);
+      const list2 = byFingerprint.get(object2.fingerprint) ?? [];
       list2.push(row);
-      byFingerprint.set(object.fingerprint, list2);
+      byFingerprint.set(object2.fingerprint, list2);
     }
   }
   return { byId, byFingerprint };
@@ -105854,9 +106023,9 @@ function carryForward(previous, source, census) {
   };
   const rows2 = [];
   for (const slide of previous.slides) {
-    for (const object of slide.objects) {
-      if (object.decision === void 0) continue;
-      rows2.push({ slideId: slide.id, object });
+    for (const object2 of slide.objects) {
+      if (object2.decision === void 0) continue;
+      rows2.push({ slideId: slide.id, object: object2 });
     }
   }
   rows2.sort((a, b) => compareCodeUnits(a.object.id, b.object.id));
@@ -105888,29 +106057,29 @@ function carryForward(previous, source, census) {
     }
     return null;
   };
-  for (const { slideId, object } of rows2) {
-    const same = byId.get(object.id);
+  for (const { slideId, object: object2 } of rows2) {
+    const same = byId.get(object2.id);
     if (same) {
-      const found = take(slideId, object, same.object.fingerprint);
+      const found = take(slideId, object2, same.object.fingerprint);
       if (found) {
         usedMemory.add(found.index);
         carried.add(same.object.id);
         claimed.add(same.object.id);
-        record13(same.object.id, object, "exact");
+        record13(same.object.id, object2, "exact");
         out.push({ ...found.memory, carriedBy: "exact" });
         continue;
       }
-      const moved = same.slideId === slideId && same.object.kind === "vector" ? takeKindMoved(slideId, object) : null;
+      const moved = same.slideId === slideId && same.object.kind === "vector" ? takeKindMoved(slideId, object2) : null;
       if (moved) {
         usedMemory.add(moved.index);
         carried.add(same.object.id);
         claimed.add(same.object.id);
-        record13(same.object.id, object, "exact");
+        record13(same.object.id, object2, "exact");
         out.push({ ...moved.memory, fingerprint: same.object.fingerprint, carriedBy: "exact" });
         continue;
       }
     }
-    const byMemory = take(slideId, object);
+    const byMemory = take(slideId, object2);
     if (byMemory) {
       const candidates2 = (byFingerprint.get(byMemory.memory.fingerprint) ?? []).filter((row) => row.slideId === byMemory.memory.slideLineage && !claimed.has(row.object.id));
       if (candidates2.length === 1) {
@@ -105919,39 +106088,39 @@ function carryForward(previous, source, census) {
           usedMemory.add(byMemory.index);
           carried.add(only.object.id);
           claimed.add(only.object.id);
-          record13(only.object.id, object, "fingerprint");
+          record13(only.object.id, object2, "fingerprint");
           out.push({ ...byMemory.memory, carriedBy: "fingerprint" });
           continue;
         }
       }
-      const group2 = object.scope ? groups.get(object.scope) : void 0;
+      const group2 = object2.scope ? groups.get(object2.scope) : void 0;
       const members2 = group2 ? group2.members.filter((id2) => byId.has(id2) && !claimed.has(id2)) : [];
       if (members2.length > 0) {
         usedMemory.add(byMemory.index);
         for (const id2 of members2) {
           carried.add(id2);
           claimed.add(id2);
-          record13(id2, object, "group");
+          record13(id2, object2, "group");
         }
         out.push({ ...byMemory.memory, carriedBy: "group" });
         continue;
       }
       out.push({ ...byMemory.memory });
       usedMemory.add(byMemory.index);
-      needsReview.add(object.id);
+      needsReview.add(object2.id);
       continue;
     }
-    const group = object.scope ? groups.get(object.scope) : void 0;
+    const group = object2.scope ? groups.get(object2.scope) : void 0;
     const members = group ? group.members.filter((id2) => byId.has(id2) && !claimed.has(id2)) : [];
     if (members.length > 0) {
       for (const id2 of members) {
         carried.add(id2);
         claimed.add(id2);
-        record13(id2, object, "group");
+        record13(id2, object2, "group");
       }
       continue;
     }
-    needsReview.add(object.id);
+    needsReview.add(object2.id);
   }
   for (const entry2 of pool) {
     if (usedMemory.has(entry2.index)) continue;
@@ -106051,13 +106220,13 @@ function rowIndex(plan) {
 function sourceForOne(source, objectId, placed2) {
   if (!source) return void 0;
   const slide = placed2.get(objectId);
-  const object = slide?.objects.find((one) => one.id === objectId);
-  if (!slide || !object) return void 0;
-  return { ...source, slides: [{ ...slide, objects: [object] }] };
+  const object2 = slide?.objects.find((one) => one.id === objectId);
+  if (!slide || !object2) return void 0;
+  return { ...source, slides: [{ ...slide, objects: [object2] }] };
 }
 function slideOfObject(source) {
   const out = /* @__PURE__ */ new Map();
-  for (const slide of source?.slides ?? []) for (const object of slide.objects) out.set(object.id, slide);
+  for (const slide of source?.slides ?? []) for (const object2 of slide.objects) out.set(object2.id, slide);
   return out;
 }
 function stampScope(plan, ids2, scope, source) {
@@ -106067,8 +106236,8 @@ function stampScope(plan, ids2, scope, source) {
   const keys2 = /* @__PURE__ */ new Set();
   for (const id2 of ids2) {
     const slide = placed2.get(id2);
-    const object = slide?.objects.find((one) => one.id === id2);
-    if (slide && object) keys2.add(JSON.stringify([object.fingerprint, slide.id]));
+    const object2 = slide?.objects.find((one) => one.id === id2);
+    if (slide && object2) keys2.add(JSON.stringify([object2.fingerprint, slide.id]));
   }
   return {
     ...next,
@@ -106258,8 +106427,8 @@ function resetSlideDecisions(plan, slideIds, opts = {}) {
       }
       const back = proposedRows.get(row.id);
       const reset = back ? structuredClone(back) : withoutPersonFields(row);
-      const object = placed2.get(row.id)?.objects.find((one) => one.id === row.id);
-      if (object && reset.decision === void 0) forget.set(JSON.stringify([object.fingerprint, slide.id]), slide.id);
+      const object2 = placed2.get(row.id)?.objects.find((one) => one.id === row.id);
+      if (object2 && reset.decision === void 0) forget.set(JSON.stringify([object2.fingerprint, slide.id]), slide.id);
       return reset;
     });
     if (stableJson(next) !== stableJson(slide)) touched.push(slide.id);
@@ -106372,8 +106541,8 @@ function capturePlanRows(plan, touched) {
   if (touched.source) {
     keys2 = /* @__PURE__ */ new Set();
     for (const slide of touched.source.slides) {
-      for (const object of slide.objects) {
-        if (objectIds.has(object.id)) keys2.add(memoryKey(object.fingerprint, slide.id));
+      for (const object2 of slide.objects) {
+        if (objectIds.has(object2.id)) keys2.add(memoryKey(object2.fingerprint, slide.id));
       }
     }
   }
@@ -106662,8 +106831,8 @@ function slideGroundHex(slidePlan, themed, _opts = {}) {
 function rasterObjectIdsOf(source) {
   const out = [];
   for (const slide of source.slides) {
-    for (const object of slide.objects) {
-      if (object.kind === "pic" || object.fidelity.state === "raster-preserved") out.push(object.id);
+    for (const object2 of slide.objects) {
+      if (object2.kind === "pic" || object2.fidelity.state === "raster-preserved") out.push(object2.id);
     }
   }
   return out.sort();
@@ -106694,14 +106863,14 @@ function measuredGrounds(ctx, groups, measured, objectSlides, rasters) {
   const paired = new Set(ctx.census.colors.contrastPairs.map((pair) => `${pair.foreground}\0${pair.objectId}`));
   const sizes = /* @__PURE__ */ new Map();
   for (const slide of ctx.source?.slides ?? []) {
-    for (const object of slide.objects) {
+    for (const object2 of slide.objects) {
       let smallest;
-      for (const para of object.text?.paras ?? []) {
-        for (const run of para.runs) {
-          if (run.sizePt !== void 0) smallest = smallest === void 0 ? run.sizePt : Math.min(smallest, run.sizePt);
+      for (const para of object2.text?.paras ?? []) {
+        for (const run2 of para.runs) {
+          if (run2.sizePt !== void 0) smallest = smallest === void 0 ? run2.sizePt : Math.min(smallest, run2.sizePt);
         }
       }
-      if (smallest !== void 0) sizes.set(object.id, smallest);
+      if (smallest !== void 0) sizes.set(object2.id, smallest);
     }
   }
   const pairs2 = [];
@@ -107316,9 +107485,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (rule === "evenodd" || rule === "nonzero") own2.fillRule = rule;
     const cap = get3("stroke-linecap");
     if (cap === "butt" || cap === "round" || cap === "square") own2.cap = cap;
-    const join19 = get3("stroke-linejoin");
-    if (join19 === "miter" || join19 === "round" || join19 === "bevel") own2.join = join19;
-    else if (join19 === "miter-clip" || join19 === "arcs") own2.join = "miter";
+    const join20 = get3("stroke-linejoin");
+    if (join20 === "miter" || join20 === "round" || join20 === "bevel") own2.join = join20;
+    else if (join20 === "miter-clip" || join20 === "arcs") own2.join = "miter";
     const dash = get3("stroke-dasharray");
     if (dash !== void 0) {
       const list2 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own2.fontSize)).filter((v) => v !== void 0 && v >= 0);
@@ -107780,7 +107949,7 @@ function glyphRunsOf(items2) {
         if (last && g2.x0 - last.x1 <= 0.22 * ascent) last.x1 = Math.max(last.x1, g2.x1);
         else words.push({ x0: g2.x0, x1: g2.x1 });
       }
-      const run = {
+      const run2 = {
         kind: "glyph-run",
         items: open2.indices,
         box: { x: round32(box3.x0), y: round32(box3.y0), w: round32(box3.x1 - box3.x0), h: round32(box3.y1 - box3.y0) },
@@ -107793,9 +107962,9 @@ function glyphRunsOf(items2) {
         fill: fill2,
         labelGroup
       };
-      if (alpha < 1) run.opacity = round32(alpha);
-      if (groups?.length) run.groups = [...groups];
-      runs.push(run);
+      if (alpha < 1) run2.opacity = round32(alpha);
+      if (groups?.length) run2.groups = [...groups];
+      runs.push(run2);
     }
     open2 = null;
   };
@@ -107909,10 +108078,10 @@ function vectorItemsToRows(items2, place2, opts) {
   const vb = items2.viewBox;
   if (!items2.items.length) return { refused: "empty" };
   if (items2.items.length > maxRows) return { refused: "cap-reached" };
-  const finite3 = [vb.x, vb.y, vb.w, vb.h, place2.x, place2.y, place2.w, place2.h].every(Number.isFinite);
+  const finite4 = [vb.x, vb.y, vb.w, vb.h, place2.x, place2.y, place2.w, place2.h].every(Number.isFinite);
   const spanX = vb.w > 0;
   const spanY = vb.h > 0;
-  if (!finite3 || vb.w < 0 || vb.h < 0 || place2.w < 0 || place2.h < 0 || !spanX && !spanY) return { refused: "unplaceable" };
+  if (!finite4 || vb.w < 0 || vb.h < 0 || place2.w < 0 || place2.h < 0 || !spanX && !spanY) return { refused: "unplaceable" };
   let sx = spanX ? place2.w / vb.w : 1;
   let sy = spanY ? place2.h / vb.h : 1;
   let ox = place2.x;
@@ -108284,14 +108453,14 @@ function rowId(row) {
 function slug3(id2) {
   return id2.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "x";
 }
-function plainText2(object) {
-  const paras = object.text?.paras ?? [];
-  return paras.map((para) => para.runs.map((run) => run.text).join("")).join("\n");
+function plainText2(object2) {
+  const paras = object2.text?.paras ?? [];
+  return paras.map((para) => para.runs.map((run2) => run2.text).join("")).join("\n");
 }
-function firstRun(object) {
-  for (const para of object.text?.paras ?? []) {
-    const run = para.runs[0];
-    if (run) return run;
+function firstRun(object2) {
+  for (const para of object2.text?.paras ?? []) {
+    const run2 = para.runs[0];
+    if (run2) return run2;
   }
   return void 0;
 }
@@ -108328,8 +108497,8 @@ function flipsOf(transform2) {
   if (a * d - b * c >= 0) return {};
   return Math.abs(Math.atan2(-b, -a)) <= Math.abs(Math.atan2(b, a)) ? { flipH: true } : { flipV: true };
 }
-function placeBox(object, at) {
-  const box3 = object.box;
+function placeBox(object2, at) {
+  const box3 = object2.box;
   const row = {
     x: round22(at.ox + box3.x * at.sx),
     y: round22(at.oy + box3.y * at.sy),
@@ -108337,7 +108506,7 @@ function placeBox(object, at) {
     h: round22(box3.h * at.sy)
   };
   const posed = box3.rot ? { ...row, rot: round22(box3.rot) } : row;
-  const flips = flipsOf(object.transform);
+  const flips = flipsOf(object2.transform);
   return flips.flipH || flips.flipV ? { ...posed, ...flips } : posed;
 }
 function reportCodeForWarning(code) {
@@ -108362,17 +108531,17 @@ function reportCodeForWarning(code) {
       return "object.removed";
   }
 }
-function hasDrawableBytes(object) {
-  if (object.kind === "pic" || object.kind === "chart" || object.kind === "unknown" || object.kind === "vector") {
-    return (object.media ?? object.fidelity.fallbackAssetRef) !== void 0 || carriesItems(object);
+function hasDrawableBytes(object2) {
+  if (object2.kind === "pic" || object2.kind === "chart" || object2.kind === "unknown" || object2.kind === "vector") {
+    return (object2.media ?? object2.fidelity.fallbackAssetRef) !== void 0 || carriesItems(object2);
   }
   return true;
 }
-function carriesItems(object) {
-  if (object.kind !== "vector" && object.kind !== "shape") return false;
-  if ((object.vectorItems?.items.length ?? 0) === 0) return false;
-  const state = object.fidelity.state;
-  return state !== "unavailable" && state !== "raster-preserved" && object.fidelity.reason !== "geometry-approximation";
+function carriesItems(object2) {
+  if (object2.kind !== "vector" && object2.kind !== "shape") return false;
+  if ((object2.vectorItems?.items.length ?? 0) === 0) return false;
+  const state = object2.fidelity.state;
+  return state !== "unavailable" && state !== "raster-preserved" && object2.fidelity.reason !== "geometry-approximation";
 }
 function vectorGroupOf(layerId) {
   return `vector:${layerId}`;
@@ -108392,9 +108561,9 @@ function vectorOmittedMessage(noun, slideNumber, omitted) {
 function vectorKeptMessage(noun, slideNumber, why) {
   return `The ${noun} on slide ${slideNumber} stayed a picture: ${KEPT_WORDS[why] ?? KEPT_WORDS["not-read"]}.`;
 }
-function keptReason(object) {
-  if (object.fidelity.reason === "geometry-approximation") return "geometry";
-  if (object.vectorItems?.omitted?.some((o) => o.reason === "cap-reached")) return "cap-reached";
+function keptReason(object2) {
+  if (object2.fidelity.reason === "geometry-approximation") return "geometry";
+  if (object2.vectorItems?.omitted?.some((o) => o.reason === "cap-reached")) return "cap-reached";
   return "not-read";
 }
 function withRowAlpha(current, target) {
@@ -108416,8 +108585,8 @@ function authorPlaceholder(boxBase, labelBase, text6, style) {
     }
   };
 }
-function holdOneLine(row, object, frame) {
-  const paras = object.text?.paras ?? [];
+function holdOneLine(row, object2, frame) {
+  const paras = object2.text?.paras ?? [];
   const text6 = plainOfDesignText(rowStr(row, "text"));
   const size = rowNum(row, "fontSize");
   if (paras.length !== 1 || !text6 || text6.includes("\n") || !(size > 0)) return;
@@ -108510,61 +108679,61 @@ function compileFaithful(source, opts = {}) {
       });
       backward.push({ layerId: groundId, sourceObjectIds: [] });
     }
-    const base = (object, id2) => ({
+    const base = (object2, id2) => ({
       id: id2,
-      ...placeBox(object, at),
+      ...placeBox(object2, at),
       frame: frameId,
       order: order++,
-      name: object.id
+      name: object2.id
     });
-    const noteFurniture = (object, ids2) => {
-      if (object.origin === "master" || object.origin === "layout") furnitureLayerIds.push(...ids2);
+    const noteFurniture = (object2, ids2) => {
+      if (object2.origin === "master" || object2.origin === "layout") furnitureLayerIds.push(...ids2);
     };
-    for (const object of slide.objects) {
-      objectIds.push(object.id);
-      const layerId = `${prefix}.${slug3(object.id)}`;
+    for (const object2 of slide.objects) {
+      objectIds.push(object2.id);
+      const layerId = `${prefix}.${slug3(object2.id)}`;
       const produced = [];
-      const drawable2 = hasDrawableBytes(object);
-      if (object.fidelity.state === "unavailable" || !drawable2) {
+      const drawable2 = hasDrawableBytes(object2);
+      if (object2.fidelity.state === "unavailable" || !drawable2) {
         const labelId = `${layerId}.label`;
         const { box: box3, label: label2 } = authorPlaceholder(
-          base(object, layerId),
-          base(object, labelId),
-          `${kindLabel(object.kind)} could not be read`,
+          base(object2, layerId),
+          base(object2, labelId),
+          `${kindLabel(object2.kind)} could not be read`,
           { fill: placeholderFill, ink: placeholderInk }
         );
         layers.push(box3, label2);
         produced.push(layerId, labelId);
         placeholderLayerIds.push(layerId, labelId);
-        noteFurniture(object, [layerId, labelId]);
-        backward.push({ layerId, sourceObjectIds: [object.id], derived: "placeholder" });
-        backward.push({ layerId: labelId, sourceObjectIds: [object.id], derived: "placeholder" });
+        noteFurniture(object2, [layerId, labelId]);
+        backward.push({ layerId, sourceObjectIds: [object2.id], derived: "placeholder" });
+        backward.push({ layerId: labelId, sourceObjectIds: [object2.id], derived: "placeholder" });
         addEntry(report2, {
           code: "object.unresolved",
-          message: `${kindLabel(object.kind)} on slide ${slide.index + 1} could not be read, so a labelled stand-in takes its place.`,
+          message: `${kindLabel(object2.kind)} on slide ${slide.index + 1} could not be read, so a labelled stand-in takes its place.`,
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           layerId,
           disposition: "unresolved",
           // A source that claimed preserved bytes and then named none leaves
           // this compile with nothing, so the entry states what it faced rather
           // than repeating a claim the object did not keep.
-          fidelity: drawable2 ? object.fidelity.state : "unavailable",
-          reason: drawable2 ? object.fidelity.reason : object.fidelity.reason ?? "media-missing"
+          fidelity: drawable2 ? object2.fidelity.state : "unavailable",
+          reason: drawable2 ? object2.fidelity.reason : object2.fidelity.reason ?? "media-missing"
         });
         addEntry(report2, {
           code: "object.placeholder-authored",
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           layerId
         });
-        forward.push({ sourceObjectId: object.id, layerIds: produced });
+        forward.push({ sourceObjectId: object2.id, layerIds: produced });
         continue;
       }
-      if (carriesItems(object) && object.vectorItems && !(opts.originalArtwork && (object.media || object.fidelity.fallbackAssetRef))) {
-        const place2 = placeBox(object, at);
-        const made = vectorItemsToRows(object.vectorItems, place2, { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
-        const noun = nounFor("unknown", object.kind);
+      if (carriesItems(object2) && object2.vectorItems && !(opts.originalArtwork && (object2.media || object2.fidelity.fallbackAssetRef))) {
+        const place2 = placeBox(object2, at);
+        const made = vectorItemsToRows(object2.vectorItems, place2, { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
+        const noun = nounFor("unknown", object2.kind);
         const chars = "rows" in made ? vectorRowsPathChars(made.rows) : 0;
         const frameRoom = "rows" in made && vectorRowsOnFrame + made.rows.length <= MAX_VECTOR_ROWS_PER_FRAME;
         const documentRoom = vectorPathChars + chars <= DOCUMENT_PATH_CHARS;
@@ -108575,89 +108744,89 @@ function compileFaithful(source, opts = {}) {
             row2.order = order++;
             layers.push(row2);
             produced.push(rowId(row2));
-            backward.push({ layerId: rowId(row2), sourceObjectIds: [object.id] });
+            backward.push({ layerId: rowId(row2), sourceObjectIds: [object2.id] });
           }
-          noteFurniture(object, produced);
+          noteFurniture(object2, produced);
           addEntry(report2, {
             code: "object.transformed",
-            message: vectorCarriedMessage(noun, slide.index + 1, made.rows.length, object.vectorItems.desc),
+            message: vectorCarriedMessage(noun, slide.index + 1, made.rows.length, object2.vectorItems.desc),
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             layerId: produced[0] ?? layerId,
             disposition: "transformed",
-            fidelity: object.fidelity.state
+            fidelity: object2.fidelity.state
           });
-          if (object.vectorItems.omitted?.length) {
+          if (object2.vectorItems.omitted?.length) {
             addEntry(report2, {
               code: "vector.items-omitted",
-              message: vectorOmittedMessage(noun, slide.index + 1, object.vectorItems.omitted),
+              message: vectorOmittedMessage(noun, slide.index + 1, object2.vectorItems.omitted),
               slideId: slide.id,
-              objectId: object.id,
+              objectId: object2.id,
               layerId: produced[0] ?? layerId,
-              reason: object.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
+              reason: object2.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
             });
           }
-          forward.push({ sourceObjectId: object.id, layerIds: produced });
+          forward.push({ sourceObjectId: object2.id, layerIds: produced });
           continue;
         }
-        if (object.kind === "vector") {
+        if (object2.kind === "vector") {
           const why = "rows" in made ? frameRoom ? "document-cap" : "frame-cap" : made.refused === "cap-reached" ? "cap-reached" : "not-read";
           addEntry(report2, {
             code: "vector.kept-as-picture",
             message: vectorKeptMessage(noun, slide.index + 1, why),
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             layerId,
             reason: why
           });
         }
-      } else if (object.kind === "vector") {
-        const why = keptReason(object);
+      } else if (object2.kind === "vector") {
+        const why = keptReason(object2);
         addEntry(report2, {
           code: "vector.kept-as-picture",
-          message: vectorKeptMessage(nounFor("unknown", object.kind), slide.index + 1, why),
+          message: vectorKeptMessage(nounFor("unknown", object2.kind), slide.index + 1, why),
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           layerId,
           reason: why
         });
       }
-      const imageRef = object.kind === "pic" ? object.media : object.media ?? object.fidelity.fallbackAssetRef;
-      if (object.kind === "table" && object.table) {
-        const container = { ...base(object, layerId), kind: "box" };
-        if (object.fill?.hex) container.bg = object.fill.hex;
+      const imageRef = object2.kind === "pic" ? object2.media : object2.media ?? object2.fidelity.fallbackAssetRef;
+      if (object2.kind === "table" && object2.table) {
+        const container = { ...base(object2, layerId), kind: "box" };
+        if (object2.fill?.hex) container.bg = object2.fill.hex;
         layers.push(container);
         produced.push(layerId);
-        backward.push({ layerId, sourceObjectIds: [object.id] });
-        const sourceRows = object.table.length;
-        const sourceCols = object.table.reduce((n6, row2) => Math.max(n6, row2.length), 0);
-        const rows2 = object.table.slice(0, MAX_TABLE_ROWS5);
+        backward.push({ layerId, sourceObjectIds: [object2.id] });
+        const sourceRows = object2.table.length;
+        const sourceCols = object2.table.reduce((n6, row2) => Math.max(n6, row2.length), 0);
+        const rows2 = object2.table.slice(0, MAX_TABLE_ROWS5);
         const cols = Math.min(MAX_TABLE_COLS5, rows2.reduce((n6, row2) => Math.max(n6, row2.length), 0));
         const capped = sourceRows > MAX_TABLE_ROWS5 || sourceCols > MAX_TABLE_COLS5;
-        const sourceCells = object.table.reduce((n6, row2) => n6 + row2.length, 0);
+        const sourceCells = object2.table.reduce((n6, row2) => n6 + row2.length, 0);
         const carriedCells = rows2.reduce((n6, row2) => n6 + Math.min(row2.length, cols), 0);
         const droppedCells = sourceCells - carriedCells;
-        const cellW = cols > 0 ? object.box.w * at.sx / cols : 0;
-        const cellH = rows2.length > 0 ? object.box.h * at.sy / rows2.length : 0;
+        const cellW = cols > 0 ? object2.box.w * at.sx / cols : 0;
+        const cellH = rows2.length > 0 ? object2.box.h * at.sy / rows2.length : 0;
         rows2.forEach((row2, r5) => {
           for (let c = 0; c < cols; c++) {
             const cellId = `${layerId}.r${r5}c${c}`;
             const cell = {
               id: cellId,
               kind: "text",
-              x: round22(at.ox + object.box.x * at.sx + c * cellW),
-              y: round22(at.oy + object.box.y * at.sy + r5 * cellH),
+              x: round22(at.ox + object2.box.x * at.sx + c * cellW),
+              y: round22(at.oy + object2.box.y * at.sy + r5 * cellH),
               w: round22(cellW),
               h: round22(cellH),
               frame: frameId,
               order: order++,
-              name: `${object.id} r${r5}c${c}`,
+              name: `${object2.id} r${r5}c${c}`,
               text: designTextFromPlain(row2[c] ?? ""),
               valign: "middle"
             };
             layers.push(cell);
             produced.push(cellId);
-            backward.push({ layerId: cellId, sourceObjectIds: [object.id] });
+            backward.push({ layerId: cellId, sourceObjectIds: [object2.id] });
           }
         });
         if (capped) {
@@ -108665,7 +108834,7 @@ function compileFaithful(source, opts = {}) {
             code: "source.cap-reached",
             message: `The table on slide ${slide.index + 1} is ${sourceRows} by ${sourceCols}, past this compile's cap of ${MAX_TABLE_ROWS5} by ${MAX_TABLE_COLS5}, so ${droppedCells} cell(s) did not travel.`,
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             layerId,
             reason: "cap-reached"
           });
@@ -108674,69 +108843,69 @@ function compileFaithful(source, opts = {}) {
           code: "object.transformed",
           message: capped ? `The table on slide ${slide.index + 1} was carried over as one text layer per cell for the first ${rows2.length} row(s) and ${cols} column(s) of a ${sourceRows} by ${sourceCols} table.` : `The table on slide ${slide.index + 1} was carried over as one text layer per cell.`,
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           layerId,
           disposition: "transformed",
-          fidelity: capped ? "approximate" : object.fidelity.state,
+          fidelity: capped ? "approximate" : object2.fidelity.state,
           ...capped ? { reason: "cap-reached" } : {}
         });
-        noteFurniture(object, produced);
-        forward.push({ sourceObjectId: object.id, layerIds: produced });
+        noteFurniture(object2, produced);
+        forward.push({ sourceObjectId: object2.id, layerIds: produced });
         continue;
       }
-      const row = base(object, layerId);
+      const row = base(object2, layerId);
       if (imageRef) {
         row.kind = "image";
         row.image = imageRef;
         row.fit = "fill";
-        if (object.alt) row.text = object.alt;
-      } else if (object.kind === "text") {
-        const rich = designTextOf(object.text?.paras ?? [], { carryColour: true });
+        if (object2.alt) row.text = object2.alt;
+      } else if (object2.kind === "text") {
+        const rich = designTextOf(object2.text?.paras ?? [], { carryColour: true });
         row.kind = "text";
         row.text = rich.text;
-        const run = firstRun(object);
-        if (run?.sizePt) row.fontSize = round22(run.sizePt * PT_TO_PX * at.sy);
+        const run2 = firstRun(object2);
+        if (run2?.sizePt) row.fontSize = round22(run2.sizePt * PT_TO_PX * at.sy);
         if (rich.baseColour) row.fg = rich.baseColour;
         row.weight = 400;
         if (rich.align && rich.align !== "justify") row.align = rich.align;
         row.valign = "top";
-        if (object.origin === "raster-region") row.pad = 0;
-        holdOneLine(row, object, { x: at.ox, w: frameW });
-        if (object.fill?.hex) row.bg = object.fill.hex;
-        if (rich.dropped.length > 0) droppedBy.set(object.id, rich.dropped);
+        if (object2.origin === "raster-region") row.pad = 0;
+        holdOneLine(row, object2, { x: at.ox, w: frameW });
+        if (object2.fill?.hex) row.bg = object2.fill.hex;
+        if (rich.dropped.length > 0) droppedBy.set(object2.id, rich.dropped);
       } else {
         row.kind = "box";
-        if (object.geom === "ellipse") row.shape = "ellipse";
-        if (object.geom === "roundRect") row.shape = "rounded";
-        if (object.fill?.hex) row.bg = object.fill.hex;
-        if (object.line?.color?.hex) row.stroke = object.line.color.hex;
-        if (object.line?.widthPt) row.strokeW = round22(object.line.widthPt * PT_TO_PX * at.sy);
+        if (object2.geom === "ellipse") row.shape = "ellipse";
+        if (object2.geom === "roundRect") row.shape = "rounded";
+        if (object2.fill?.hex) row.bg = object2.fill.hex;
+        if (object2.line?.color?.hex) row.stroke = object2.line.color.hex;
+        if (object2.line?.widthPt) row.strokeW = round22(object2.line.widthPt * PT_TO_PX * at.sy);
       }
       layers.push(row);
       produced.push(layerId);
-      noteFurniture(object, [layerId]);
-      backward.push({ layerId, sourceObjectIds: [object.id] });
+      noteFurniture(object2, [layerId]);
+      backward.push({ layerId, sourceObjectIds: [object2.id] });
       addEntry(report2, {
         code: "object.retained",
-        message: `The ${nounFor("unknown", object.kind)} on slide ${slide.index + 1} was carried over.`,
+        message: `The ${nounFor("unknown", object2.kind)} on slide ${slide.index + 1} was carried over.`,
         slideId: slide.id,
-        objectId: object.id,
+        objectId: object2.id,
         layerId,
         disposition: "retained",
-        fidelity: object.fidelity.state
+        fidelity: object2.fidelity.state
       });
-      const dropped = droppedBy.get(object.id);
+      const dropped = droppedBy.get(object2.id);
       if (dropped) {
         addEntry(report2, {
           code: "text.formatting-not-carried",
           message: formattingNotCarried(slide.index + 1, dropped),
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           layerId,
           reason: dropped.join(",")
         });
       }
-      forward.push({ sourceObjectId: object.id, layerIds: produced });
+      forward.push({ sourceObjectId: object2.id, layerIds: produced });
     }
     const frame = {
       id: frameId,
@@ -108822,19 +108991,19 @@ function styledDesignLines(text6) {
   return parseDesignText(text6).map((line) => {
     const marker = line.list === "bullet" ? "\u2022  " : line.list === "number" ? `${line.number ?? 1}.  ` : "";
     if (marker) return { indent: line.indent, runs: [{ text: marker }, ...line.runs] };
-    const runs = line.runs.map((run) => ({ ...run }));
+    const runs = line.runs.map((run2) => ({ ...run2 }));
     let strip = line.indent;
-    for (const run of runs) {
-      const cut = Math.min(strip, run.text.length - run.text.trimStart().length);
-      run.text = run.text.slice(cut);
+    for (const run2 of runs) {
+      const cut = Math.min(strip, run2.text.length - run2.text.trimStart().length);
+      run2.text = run2.text.slice(cut);
       strip -= cut;
-      if (strip === 0 || run.text.length > 0) break;
+      if (strip === 0 || run2.text.length > 0) break;
     }
-    return { indent: line.indent, runs: runs.filter((run) => run.text.length > 0) };
+    return { indent: line.indent, runs: runs.filter((run2) => run2.text.length > 0) };
   });
 }
 function wrapStyledRuns(runs, fontSize, width) {
-  const whole = runs.map((run) => run.text).join("");
+  const whole = runs.map((run2) => run2.text).join("");
   const wrapped = wrapByAverageWidth(whole, fontSize, width);
   if (wrapped.length <= 1) return [runs];
   const out = [];
@@ -108845,11 +109014,11 @@ function wrapStyledRuns(runs, fontSize, width) {
     const end = start + line.length;
     const pieces = [];
     let at = 0;
-    for (const run of runs) {
+    for (const run2 of runs) {
       const from = Math.max(start, at);
-      const to = Math.min(end, at + run.text.length);
-      if (to > from) pieces.push({ ...run, text: run.text.slice(from - at, to - at) });
-      at += run.text.length;
+      const to = Math.min(end, at + run2.text.length);
+      if (to > from) pieces.push({ ...run2, text: run2.text.slice(from - at, to - at) });
+      at += run2.text.length;
     }
     out.push(pieces.length > 0 ? pieces : [{ text: line }]);
     cursor = end;
@@ -108877,7 +109046,7 @@ function designTextFit(row) {
   const w = Math.max(0, rowNum(row, "w") - pad * 2);
   const h = rowNum(row, "h");
   const layout2 = layoutDesignText(text6, size, w);
-  const words = layout2.lines.map((runs) => runs.map((run) => run.text).join("").split(/\s+/).filter(Boolean).length);
+  const words = layout2.lines.map((runs) => runs.map((run2) => run2.text).join("").split(/\s+/).filter(Boolean).length);
   const lines = layout2.lines.length;
   const line = size * DESIGN_LINE_HEIGHT;
   const needed = round22(lines * line + pad * 2);
@@ -109028,35 +109197,35 @@ function isBigNumber(text6) {
   for (const ch of trimmed) if (ch >= "0" && ch <= "9") digits += 1;
   return digits > 0 && digits * 2 >= trimmed.length;
 }
-function roleForObject(object, cls, content2) {
+function roleForObject(object2, cls, content2) {
   if (content2 === "image") return "visual";
   if (content2 === "placeholder") {
-    if (object.kind === "chart" || object.kind === "table") return "data";
-    if (object.kind === "pic" || object.kind === "vector") return "visual";
-    if (object.kind === "text") return "body";
+    if (object2.kind === "chart" || object2.kind === "table") return "data";
+    if (object2.kind === "pic" || object2.kind === "vector") return "visual";
+    if (object2.kind === "text") return "body";
     return void 0;
   }
   if (content2 !== "text") return void 0;
-  if (object.placeholder === "title" || object.placeholder === "ctrTitle" || cls === "title") return "title";
-  if (object.placeholder === "subTitle" || cls === "subtitle") return "subtitle";
-  if (object.kind === "table" || cls === "table") return "data";
-  if (isBigNumber(plainText2(object))) return "number";
+  if (object2.placeholder === "title" || object2.placeholder === "ctrTitle" || cls === "title") return "title";
+  if (object2.placeholder === "subTitle" || cls === "subtitle") return "subtitle";
+  if (object2.kind === "table" || cls === "table") return "data";
+  if (isBigNumber(plainText2(object2))) return "number";
   if (cls === "page-number" || cls === "footer" || cls === "date" || cls === "recurring-text" || cls === "decoration" || cls === "template-furniture") {
     return void 0;
   }
   return "body";
 }
-function describePlacement(object, entry2, outcome, slideNumber) {
+function describePlacement(object2, entry2, outcome, slideNumber) {
   const where = `on slide ${slideNumber}`;
   const surplus = entry2.surplus ?? "continuation";
-  const base = { object, entry: entry2, outcome, surplus };
+  const base = { object: object2, entry: entry2, outcome, surplus };
   if (outcome.action === "remove") {
     return {
       ...base,
       content: "none",
       disposition: "removed",
       code: "object.removed",
-      message: `The ${nounFor(entry2.class, object.kind)} ${where} was left out, as the plan asked.`
+      message: `The ${nounFor(entry2.class, object2.kind)} ${where} was left out, as the plan asked.`
     };
   }
   if (outcome.action === "replace" && outcome.replacement) {
@@ -109075,10 +109244,10 @@ function describePlacement(object, entry2, outcome, slideNumber) {
         ...base,
         content: "placeholder",
         label: replacement.label,
-        role: entry2.role ?? roleForObject(object, entry2.class, "placeholder"),
+        role: entry2.role ?? roleForObject(object2, entry2.class, "placeholder"),
         disposition: "transformed",
         code: "object.transformed",
-        message: `The ${nounFor(entry2.class, object.kind)} ${where} was replaced by a labelled stand-in, as the plan asked.`
+        message: `The ${nounFor(entry2.class, object2.kind)} ${where} was replaced by a labelled stand-in, as the plan asked.`
       };
     }
     if (replacement.kind === "asset" || replacement.kind === "supplied-picture" || replacement.kind === "tool") {
@@ -109090,51 +109259,51 @@ function describePlacement(object, entry2, outcome, slideNumber) {
         role: entry2.role ?? "visual",
         disposition: "transformed",
         code: "object.transformed",
-        message: `The ${nounFor(entry2.class, object.kind)} ${where} was replaced by a picture the plan named.`
+        message: `The ${nounFor(entry2.class, object2.kind)} ${where} was replaced by a picture the plan named.`
       };
     }
     return {
-      ...describeKeep(object, entry2, outcome, where, surplus),
+      ...describeKeep(object2, entry2, outcome, where, surplus),
       reason: "filter-not-applied",
-      message: `The ${nounFor(entry2.class, object.kind)} ${where} was carried over unchanged: the plan asks for the ${replacement.toolId} filter, which this compile does not run.`
+      message: `The ${nounFor(entry2.class, object2.kind)} ${where} was carried over unchanged: the plan asks for the ${replacement.toolId} filter, which this compile does not run.`
     };
   }
   if (outcome.action === "replace") {
     return {
-      ...describeKeep(object, entry2, outcome, where, surplus),
+      ...describeKeep(object2, entry2, outcome, where, surplus),
       reason: "replacement-missing",
-      message: `The ${nounFor(entry2.class, object.kind)} ${where} was carried over unchanged: the plan asks to replace it but names nothing to put there.`
+      message: `The ${nounFor(entry2.class, object2.kind)} ${where} was carried over unchanged: the plan asks to replace it but names nothing to put there.`
     };
   }
-  const kept = describeKeep(object, entry2, outcome, where, surplus);
+  const kept = describeKeep(object2, entry2, outcome, where, surplus);
   if (outcome.heldBack && kept.disposition === "retained") {
     const flagged = entry2.review === "needs-attention";
     return {
       ...kept,
       reason: flagged ? "needs-attention-held" : "unreviewed-proposal-held",
-      message: flagged ? `The ${nounFor(entry2.class, object.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it and flagged it for a person to look at, which nobody has answered.` : `The ${nounFor(entry2.class, object.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it, and nobody has reviewed that.`
+      message: flagged ? `The ${nounFor(entry2.class, object2.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it and flagged it for a person to look at, which nobody has answered.` : `The ${nounFor(entry2.class, object2.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it, and nobody has reviewed that.`
     };
   }
   return kept;
 }
-function describeKeep(object, entry2, outcome, where, surplus) {
-  const base = { object, entry: entry2, outcome, surplus };
-  if (object.fidelity.state === "unavailable" || !hasDrawableBytes(object)) {
-    const drawable2 = hasDrawableBytes(object);
+function describeKeep(object2, entry2, outcome, where, surplus) {
+  const base = { object: object2, entry: entry2, outcome, surplus };
+  if (object2.fidelity.state === "unavailable" || !hasDrawableBytes(object2)) {
+    const drawable2 = hasDrawableBytes(object2);
     return {
       ...base,
       content: "placeholder",
-      label: `${kindLabel(object.kind)} could not be read`,
-      role: entry2.role ?? roleForObject(object, entry2.class, "placeholder"),
+      label: `${kindLabel(object2.kind)} could not be read`,
+      role: entry2.role ?? roleForObject(object2, entry2.class, "placeholder"),
       disposition: "unresolved",
       code: "object.unresolved",
-      message: `${kindLabel(object.kind)} ${where} could not be read, so a labelled stand-in takes its place.`,
-      fidelity: drawable2 ? object.fidelity.state : "unavailable",
-      reason: drawable2 ? object.fidelity.reason : object.fidelity.reason ?? "media-missing"
+      message: `${kindLabel(object2.kind)} ${where} could not be read, so a labelled stand-in takes its place.`,
+      fidelity: drawable2 ? object2.fidelity.state : "unavailable",
+      reason: drawable2 ? object2.fidelity.reason : object2.fidelity.reason ?? "media-missing"
     };
   }
-  if (object.kind === "table" && object.table) {
-    const { text: text6, cap } = tableLines(object.table);
+  if (object2.kind === "table" && object2.table) {
+    const { text: text6, cap } = tableLines(object2.table);
     return {
       ...base,
       content: "text",
@@ -109145,11 +109314,11 @@ function describeKeep(object, entry2, outcome, where, surplus) {
       disposition: "transformed",
       code: "object.transformed",
       message: `The table ${where} was carried over as lines of text, one per row.`,
-      fidelity: cap && cap.dropped > 0 ? "approximate" : object.fidelity.state,
+      fidelity: cap && cap.dropped > 0 ? "approximate" : object2.fidelity.state,
       ...cap && cap.dropped > 0 ? { reason: "cap-reached" } : {}
     };
   }
-  const imageRef = object.kind === "pic" ? object.media : object.media ?? object.fidelity.fallbackAssetRef;
+  const imageRef = object2.kind === "pic" ? object2.media : object2.media ?? object2.fidelity.fallbackAssetRef;
   if (imageRef) {
     return {
       ...base,
@@ -109158,23 +109327,23 @@ function describeKeep(object, entry2, outcome, where, surplus) {
       role: entry2.role ?? "visual",
       disposition: "retained",
       code: "object.retained",
-      message: `The ${nounFor(entry2.class, object.kind)} ${where} was carried over.`,
-      fidelity: object.fidelity.state
+      message: `The ${nounFor(entry2.class, object2.kind)} ${where} was carried over.`,
+      fidelity: object2.fidelity.state
     };
   }
-  if (object.kind === "text") {
+  if (object2.kind === "text") {
     const override = typeof entry2.textOverride === "string" ? entry2.textOverride.replace(/\r\n?/g, "\n") : void 0;
-    const text6 = override ?? plainText2(object);
+    const text6 = override ?? plainText2(object2);
     return {
       ...base,
       content: "text",
       text: text6,
-      ...override !== void 0 ? { rich: designTextFromPlain(override, object.text?.paras ?? []), corrected: true } : {},
-      role: entry2.role ?? roleForObject({ ...object, text: override !== void 0 ? { paras: [{ runs: [{ text: text6 }] }] } : object.text }, entry2.class, "text"),
+      ...override !== void 0 ? { rich: designTextFromPlain(override, object2.text?.paras ?? []), corrected: true } : {},
+      role: entry2.role ?? roleForObject({ ...object2, text: override !== void 0 ? { paras: [{ runs: [{ text: text6 }] }] } : object2.text }, entry2.class, "text"),
       disposition: "retained",
       code: "object.retained",
       message: `The text ${where} was carried over.`,
-      fidelity: object.fidelity.state
+      fidelity: object2.fidelity.state
     };
   }
   return {
@@ -109182,8 +109351,8 @@ function describeKeep(object, entry2, outcome, where, surplus) {
     content: "shape",
     disposition: "retained",
     code: "object.retained",
-    message: `The ${nounFor(entry2.class, object.kind)} ${where} was carried over.`,
-    fidelity: object.fidelity.state
+    message: `The ${nounFor(entry2.class, object2.kind)} ${where} was carried over.`,
+    fidelity: object2.fidelity.state
   };
 }
 function seedBuild(master, archetypeId, args) {
@@ -109287,11 +109456,11 @@ function footerHolds(held, text6) {
   const line = foldSpace(text6);
   return held.split(FOOTER_JOIN).some((part) => foldSpace(part) === line);
 }
-function isIncidentalPicture(klass, object, slide) {
+function isIncidentalPicture(klass, object2, slide) {
   if (CONTENT_PICTURE_CLASSES.has(klass)) return false;
   const area2 = slide.width * slide.height;
   if (!(area2 > 0)) return false;
-  return Math.max(0, object.box.w) * Math.max(0, object.box.h) / area2 < INCIDENTAL_PICTURE_SHARE;
+  return Math.max(0, object2.box.w) * Math.max(0, object2.box.h) / area2 < INCIDENTAL_PICTURE_SHARE;
 }
 function isSourcePageNumber(placement) {
   if (placement.entry.class === "page-number") return true;
@@ -109299,30 +109468,30 @@ function isSourcePageNumber(placement) {
   return /^\d{1,4}$/.test((placement.text ?? "").trim());
 }
 function renovatedSlideName(slide, entries) {
-  const own2 = slide.objects.filter((object) => {
-    if (object.kind !== "text" || plainText2(object).trim().length === 0) return false;
-    if (object.origin === "master" || object.origin === "layout") return false;
-    const cls = entries.get(object.id)?.class;
+  const own2 = slide.objects.filter((object2) => {
+    if (object2.kind !== "text" || plainText2(object2).trim().length === 0) return false;
+    if (object2.origin === "master" || object2.origin === "layout") return false;
+    const cls = entries.get(object2.id)?.class;
     return !(cls && NOTE_CLASSES.has(cls));
   });
-  const titled = own2.find((object) => entries.get(object.id)?.class === "title");
+  const titled = own2.find((object2) => entries.get(object2.id)?.class === "title");
   return slideName({ ...slide, objects: titled ? [titled] : own2 });
 }
-function largestRunPt2(object) {
+function largestRunPt2(object2) {
   let max = 0;
-  for (const para of object.text?.paras ?? []) for (const run of para.runs) max = Math.max(max, run.sizePt ?? 0);
+  for (const para of object2.text?.paras ?? []) for (const run2 of para.runs) max = Math.max(max, run2.sizePt ?? 0);
   return max;
 }
-function isNoteText(klass, object, entry2) {
-  if (object.kind === "table" || object.table !== void 0) return false;
+function isNoteText(klass, object2, entry2) {
+  if (object2.kind === "table" || object2.table !== void 0) return false;
   if (NOTE_CLASSES.has(klass)) return true;
   if (entry2?.role && (entry2.author === "user" || entry2.author === "agent")) return false;
   if (klass !== "body" && klass !== "unknown") return false;
-  const text6 = plainText2(object).trim();
+  const text6 = plainText2(object2).trim();
   if (text6.length === 0 || text6.split("\n").length > 2) return false;
   if (text6.split(/\s+/).length > NOTE_MAX_WORDS) return false;
   if (URL_ONLY.test(text6) || NOTE_LEAD.test(text6)) return true;
-  const pt = largestRunPt2(object);
+  const pt = largestRunPt2(object2);
   return pt > 0 && pt < NOTE_MAX_PT;
 }
 function isNote(p) {
@@ -109506,12 +109675,12 @@ function nearestColour(hex3, candidates2) {
   }
   return best;
 }
-function emphasisHex(object) {
+function emphasisHex(object2) {
   let shared;
-  for (const para of object.text?.paras ?? []) {
-    for (const run of para.runs) {
-      if (run.text.trim().length === 0) continue;
-      const hex3 = run.color?.hex?.toLowerCase();
+  for (const para of object2.text?.paras ?? []) {
+    for (const run2 of para.runs) {
+      if (run2.text.trim().length === 0) continue;
+      const hex3 = run2.color?.hex?.toLowerCase();
       if (!hex3) return void 0;
       if (shared === void 0) shared = hex3;
       else if (shared !== hex3) return void 0;
@@ -109558,7 +109727,7 @@ function isMarkerText(p) {
   return isBigNumber(text6) || /^[\p{L}\p{N}]{1,3}[.)]?$/u.test(text6);
 }
 function keepRowMarkers(placements, mode2, slideNumber) {
-  const markerText = (object) => object.kind === "text" && /^[\p{L}\p{N}]{1,3}[.)]?$/u.test(plainText2(object).trim());
+  const markerText = (object2) => object2.kind === "text" && /^[\p{L}\p{N}]{1,3}[.)]?$/u.test(plainText2(object2).trim());
   const fromProposal = (entry2) => !entry2.locked && (entry2.decision === void 0 || entry2.decision === entry2.proposal && entry2.decisionReplacement === void 0);
   const candidates2 = placements.filter((p) => MARKER_RESCUE_CLASSES.has(p.entry.class) && markerText(p.object) && (p.content === "none" && p.outcome.action === "remove" && fromProposal(p.entry) || p.content === "text" && isNote(p)));
   if (candidates2.length < 2) return;
@@ -109598,7 +109767,7 @@ function pourItems(placements, mode2) {
     while (parent[at] !== at) at = parent[at];
     return at;
   };
-  const join19 = (a, b) => {
+  const join20 = (a, b) => {
     const ra = find(a);
     const rb = find(b);
     if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb);
@@ -109610,17 +109779,17 @@ function pourItems(placements, mode2) {
       const ba = boxOf4(a);
       const bb = boxOf4(b);
       if (mode2 === "rows") {
-        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join19(i, j);
+        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join20(i, j);
       } else if (mode2 === "columns") {
-        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join19(i, j);
+        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join20(i, j);
       } else {
         const [upper, lower3, top, bottom] = ba.y0 <= bb.y0 ? [a, b, ba, bb] : [b, a, bb, ba];
         const gap = bottom.y0 - top.y1;
-        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join19(i, j);
+        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join20(i, j);
         const marker = isMarkerText(a) ? ba : isMarkerText(b) ? bb : void 0;
         if (marker && spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) {
           const across = Math.max(ba.x0, bb.x0) - Math.min(ba.x1, bb.x1);
-          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join19(i, j);
+          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join20(i, j);
         }
       }
     }
@@ -109849,15 +110018,15 @@ function codeFamilies(plan, faces) {
     return normaliseFamily(family2) === monoKey || monoClassFamily(family2);
   };
 }
-function hasWords(object) {
-  return (object.text?.paras ?? []).some((para) => para.runs.some((run) => run.text.trim() !== ""));
+function hasWords(object2) {
+  return (object2.text?.paras ?? []).some((para) => para.runs.some((run2) => run2.text.trim() !== ""));
 }
-function isCodeObject(object, isCode) {
+function isCodeObject(object2, isCode) {
   let worded = false;
-  for (const para of object.text?.paras ?? []) {
-    for (const run of para.runs) {
-      if (!run.text.trim()) continue;
-      if (!isCode(run.font)) return false;
+  for (const para of object2.text?.paras ?? []) {
+    for (const run2 of para.runs) {
+      if (!run2.text.trim()) continue;
+      if (!isCode(run2.font)) return false;
       worded = true;
     }
   }
@@ -109931,7 +110100,7 @@ function compileRenovated(input) {
   const layersOf = (build2) => [...build2.rows, ...build2.extras].flatMap((row) => swapped.get(row) ?? [row]);
   const hex6 = (value) => value.trim().toLowerCase().replace(/^#/, "").slice(0, 6);
   const objectSlide = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object of slide.objects) objectSlide.set(object.id, slide.id);
+  for (const slide of source.slides) for (const object2 of slide.objects) objectSlide.set(object2.id, slide.id);
   const groundOfObject = (objectId) => {
     const slideId = objectSlide.get(objectId);
     return slideId === void 0 ? void 0 : slideGround2.get(slideId);
@@ -110181,8 +110350,8 @@ function compileRenovated(input) {
     if (placement.content === "text") {
       row.kind = "text";
       row.text = richOf(placement);
-      const run = firstRun(placement.object);
-      if (run?.sizePt) row.fontSize = round22(run.sizePt * PT_TO_PX * at.sy);
+      const run2 = firstRun(placement.object);
+      if (run2?.sizePt) row.fontSize = round22(run2.sizePt * PT_TO_PX * at.sy);
       if (ink) row.fg = ink;
       return row;
     }
@@ -110241,12 +110410,12 @@ function compileRenovated(input) {
     if (placement.content !== "text" || placement.corrected || paras.length < 2) return void 0;
     const [first, ...others] = paras;
     if (!first) return void 0;
-    const words = (list2) => list2.map((para) => para.runs.map((run) => run.text).join("")).join("\n").trim();
+    const words = (list2) => list2.map((para) => para.runs.map((run2) => run2.text).join("")).join("\n").trim();
     const headText = words([first]);
     const restText = words(others);
     if (!headText || !restText) return void 0;
-    const size = (list2) => Math.max(0, ...list2.flatMap((para) => para.runs.map((run) => run.sizePt ?? 0)));
-    const bold = (list2) => list2.every((para) => para.runs.every((run) => run.bold === true || run.text.trim() === ""));
+    const size = (list2) => Math.max(0, ...list2.flatMap((para) => para.runs.map((run2) => run2.sizePt ?? 0)));
+    const bold = (list2) => list2.every((para) => para.runs.every((run2) => run2.bold === true || run2.text.trim() === ""));
     const larger = size(others) > 0 && size([first]) >= size(others) * HEADING_SIZE_RATIO;
     const heavier = bold([first]) && !bold(others);
     const probe = { ...placement, text: headText };
@@ -110438,21 +110607,21 @@ function compileRenovated(input) {
       const pictureId = `${frameId}.picture`;
       content2.push({ id: pictureId, kind: "image", ...area2, frame: frameId, name: `Slide ${slide.index + 1} picture`, image: recovery, fit: "contain" });
       asItWas.add(pictureId);
-      for (const object of slide.objects) {
-        objectIds.push(object.id);
-        made.set(object.id, [pictureId]);
-        const klass = censusClass.get(object.id) ?? slidePlan.objects.find((row) => row.id === object.id)?.class ?? "unknown";
+      for (const object2 of slide.objects) {
+        objectIds.push(object2.id);
+        made.set(object2.id, [pictureId]);
+        const klass = censusClass.get(object2.id) ?? slidePlan.objects.find((row) => row.id === object2.id)?.class ?? "unknown";
         addEntry(report2, {
           code: "object.transformed",
-          message: `The ${nounFor(klass, object.kind)} on slide ${slide.index + 1} stays part of the slide picture.`,
+          message: `The ${nounFor(klass, object2.kind)} on slide ${slide.index + 1} stays part of the slide picture.`,
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           layerId: pictureId,
           disposition: "transformed",
           class: klass,
           reason: "kept-as-picture"
         });
-        forward.push({ sourceObjectId: object.id, layerIds: [pictureId] });
+        forward.push({ sourceObjectId: object2.id, layerIds: [pictureId] });
       }
     } else {
       const alone = compileFaithful(
@@ -110484,7 +110653,7 @@ function compileRenovated(input) {
         if (entry2.objectId === void 0) continue;
         addEntry(report2, { ...entry2, slideId: slide.id });
       }
-      for (const object of slide.objects) objectIds.push(object.id);
+      for (const object2 of slide.objects) objectIds.push(object2.id);
       for (const link of alone.lineage.forward) {
         made.set(link.sourceObjectId, [...link.layerIds]);
         forward.push({ sourceObjectId: link.sourceObjectId, layerIds: [...link.layerIds] });
@@ -110507,20 +110676,20 @@ function compileRenovated(input) {
     const derivedOf = /* @__PURE__ */ new Map();
     const content2 = [];
     let vectorRows = 0;
-    const base = (object, id2) => ({ id: id2, ...placeBox(object, at), frame: frameId, name: object.id });
+    const base = (object2, id2) => ({ id: id2, ...placeBox(object2, at), frame: frameId, name: object2.id });
     const mapHex = (objectId, hex3) => hex3 ? mappedColour(objectId, hex3) ?? hex3 : void 0;
-    for (const object of slide.objects) {
-      objectIds.push(object.id);
-      const listed = entries.get(object.id);
+    for (const object2 of slide.objects) {
+      objectIds.push(object2.id);
+      const listed = entries.get(object2.id);
       const entry2 = listed ?? {
-        id: object.id,
-        class: censusClass.get(object.id) ?? "unknown",
+        id: object2.id,
+        class: censusClass.get(object2.id) ?? "unknown",
         evidence: [],
         proposal: "keep",
         review: "unreviewed"
       };
-      const placement = describePlacement(object, entry2, outcomeOf(entry2, applyUnreviewed, applyNeedsAttention), slide.index + 1);
-      const layerId = `${prefix}.${slug3(object.id)}`;
+      const placement = describePlacement(object2, entry2, outcomeOf(entry2, applyUnreviewed, applyNeedsAttention), slide.index + 1);
+      const layerId = `${prefix}.${slug3(object2.id)}`;
       const produced = [];
       let code = placement.code;
       let message = placement.message;
@@ -110532,8 +110701,8 @@ function compileRenovated(input) {
         disposition = "removed";
         message = `The mark on slide ${slide.index + 1} was to be replaced by the design system's own, and this slide shows no logo, so the source mark did not travel.`;
       } else if (placement.content === "none") {
-      } else if (carriesItems(object) && object.vectorItems && (placement.content === "image" || placement.content === "shape")) {
-        const rows2 = vectorItemsToRows(object.vectorItems, placeBox(object, at), { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
+      } else if (carriesItems(object2) && object2.vectorItems && (placement.content === "image" || placement.content === "shape")) {
+        const rows2 = vectorItemsToRows(object2.vectorItems, placeBox(object2, at), { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
         const chars = "rows" in rows2 ? vectorRowsPathChars(rows2.rows) : 0;
         const frameRoom = "rows" in rows2 && vectorRows + rows2.rows.length <= MAX_VECTOR_ROWS_PER_FRAME;
         const documentRoom = vectorPathChars + chars <= DOCUMENT_PATH_CHARS;
@@ -110545,23 +110714,23 @@ function compileRenovated(input) {
             produced.push(rowId(row));
             vectorRowIds.add(rowId(row));
           }
-          vectorMade.set(object.id, rows2.rows.length);
+          vectorMade.set(object2.id, rows2.rows.length);
           code = "object.transformed";
           disposition = "transformed";
-          message = vectorCarriedMessage(nounFor(entry2.class, object.kind), slide.index + 1, rows2.rows.length, object.vectorItems.desc);
+          message = vectorCarriedMessage(nounFor(entry2.class, object2.kind), slide.index + 1, rows2.rows.length, object2.vectorItems.desc);
         } else {
           const why = "rows" in rows2 ? frameRoom ? "document-cap" : "frame-cap" : rows2.refused === "cap-reached" ? "cap-reached" : "not-read";
-          const image = object.media ?? object.fidelity.fallbackAssetRef;
+          const image = object2.media ?? object2.fidelity.fallbackAssetRef;
           if (image) {
-            content2.push({ ...base(object, layerId), kind: "image", image, fit: "fill" });
+            content2.push({ ...base(object2, layerId), kind: "image", image, fit: "fill" });
             produced.push(layerId);
           }
-          if (object.kind === "vector") {
+          if (object2.kind === "vector") {
             addEntry(report2, {
               code: "vector.kept-as-picture",
-              message: vectorKeptMessage(nounFor(entry2.class, object.kind), slide.index + 1, why),
+              message: vectorKeptMessage(nounFor(entry2.class, object2.kind), slide.index + 1, why),
               slideId: slide.id,
-              objectId: object.id,
+              objectId: object2.id,
               layerId,
               reason: why
             });
@@ -110569,42 +110738,42 @@ function compileRenovated(input) {
         }
       } else if (placement.content === "placeholder") {
         const labelId = `${layerId}.label`;
-        const { box: box3, label: label2 } = authorPlaceholder(base(object, layerId), base(object, labelId), placement.label ?? `${kindLabel(object.kind)} could not be read`, style);
+        const { box: box3, label: label2 } = authorPlaceholder(base(object2, layerId), base(object2, labelId), placement.label ?? `${kindLabel(object2.kind)} could not be read`, style);
         content2.push(box3, label2);
         produced.push(layerId, labelId);
         build2.placeholderLayerIds.push(layerId, labelId);
         derivedOf.set(layerId, "placeholder");
         derivedOf.set(labelId, "placeholder");
       } else if (placement.content === "image") {
-        const row = { ...base(object, layerId), kind: "image", image: placement.image ?? "", fit: placement.outcome.action === "replace" ? "contain" : "fill" };
-        if (object.alt) row.alt = object.alt;
+        const row = { ...base(object2, layerId), kind: "image", image: placement.image ?? "", fit: placement.outcome.action === "replace" ? "contain" : "fill" };
+        if (object2.alt) row.alt = object2.alt;
         content2.push(row);
         produced.push(layerId);
       } else if (placement.content === "text") {
-        const row = { ...base(object, layerId), kind: "text", weight: 400 };
-        const paras = object.kind === "text" && !placement.corrected ? object.text?.paras : void 0;
+        const row = { ...base(object2, layerId), kind: "text", weight: 400 };
+        const paras = object2.kind === "text" && !placement.corrected ? object2.text?.paras : void 0;
         if (paras) {
-          const rich = designTextOf(paras, { carryColour: true, mapColour: (hex3) => mappedColour(object.id, hex3) });
+          const rich = designTextOf(paras, { carryColour: true, mapColour: (hex3) => mappedColour(object2.id, hex3) });
           row.text = rich.text;
-          const fg = mapHex(object.id, rich.baseColour);
+          const fg = mapHex(object2.id, rich.baseColour);
           if (fg) row.fg = fg;
           if (rich.align && rich.align !== "justify") row.align = rich.align;
           if (rich.dropped.length > 0) placement.dropped = rich.dropped;
         } else {
           row.text = richOf(placement);
         }
-        const run = firstRun(object);
-        if (run?.sizePt) row.fontSize = round22(run.sizePt * PT_TO_PX * at.sy);
-        if (object.fill?.hex) row.bg = object.fill.hex;
+        const run2 = firstRun(object2);
+        if (run2?.sizePt) row.fontSize = round22(run2.sizePt * PT_TO_PX * at.sy);
+        if (object2.fill?.hex) row.bg = object2.fill.hex;
         content2.push(row);
         produced.push(layerId);
       } else {
-        const row = { ...base(object, layerId), kind: "box" };
-        if (object.geom === "ellipse") row.shape = "ellipse";
-        if (object.geom === "roundRect") row.shape = "rounded";
-        if (object.fill?.hex) row.bg = object.fill.hex;
-        if (object.line?.color?.hex) row.stroke = object.line.color.hex;
-        if (object.line?.widthPt) row.strokeW = round22(object.line.widthPt * PT_TO_PX * at.sy);
+        const row = { ...base(object2, layerId), kind: "box" };
+        if (object2.geom === "ellipse") row.shape = "ellipse";
+        if (object2.geom === "roundRect") row.shape = "rounded";
+        if (object2.fill?.hex) row.bg = object2.fill.hex;
+        if (object2.line?.color?.hex) row.stroke = object2.line.color.hex;
+        if (object2.line?.widthPt) row.strokeW = round22(object2.line.widthPt * PT_TO_PX * at.sy);
         content2.push(row);
         produced.push(layerId);
       }
@@ -110612,7 +110781,7 @@ function compileRenovated(input) {
         code,
         message,
         slideId: slide.id,
-        objectId: object.id,
+        objectId: object2.id,
         ...produced[0] ? { layerId: produced[0] } : {},
         disposition,
         class: entry2.class,
@@ -110622,14 +110791,14 @@ function compileRenovated(input) {
         ...placement.fidelity ? { fidelity: placement.fidelity } : {},
         ...placement.reason ? { reason: placement.reason } : {}
       });
-      if (code === "object.transformed" && vectorMade.has(object.id) && object.vectorItems?.omitted?.length) {
+      if (code === "object.transformed" && vectorMade.has(object2.id) && object2.vectorItems?.omitted?.length) {
         addEntry(report2, {
           code: "vector.items-omitted",
-          message: vectorOmittedMessage(nounFor(entry2.class, object.kind), slide.index + 1, object.vectorItems.omitted),
+          message: vectorOmittedMessage(nounFor(entry2.class, object2.kind), slide.index + 1, object2.vectorItems.omitted),
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           ...produced[0] ? { layerId: produced[0] } : {},
-          reason: object.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
+          reason: object2.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
         });
       }
       if (placement.dropped && placement.dropped.length > 0 && produced[0]) {
@@ -110637,7 +110806,7 @@ function compileRenovated(input) {
           code: "text.formatting-not-carried",
           message: formattingNotCarried(slide.index + 1, placement.dropped),
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           layerId: produced[0],
           reason: placement.dropped.join(",")
         });
@@ -110645,30 +110814,30 @@ function compileRenovated(input) {
       if (placement.corrected && produced[0]) {
         addEntry(report2, {
           code: "text.corrected",
-          message: `The ${nounFor(entry2.class, object.kind)} on slide ${slide.index + 1} carries the text as it was corrected, in place of the text that was read.`,
+          message: `The ${nounFor(entry2.class, object2.kind)} on slide ${slide.index + 1} carries the text as it was corrected, in place of the text that was read.`,
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           layerId: produced[0],
           ...entry2.author ? { author: entry2.author } : {}
         });
       }
       if (disposition === "unresolved" && produced[0]) {
-        addEntry(report2, { code: "object.placeholder-authored", slideId: slide.id, objectId: object.id, layerId: produced[0] });
+        addEntry(report2, { code: "object.placeholder-authored", slideId: slide.id, objectId: object2.id, layerId: produced[0] });
       }
       if (placement.outcome.appliedUnreviewed) {
         addEntry(report2, {
           code: "review.applied-unreviewed",
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           action: placement.outcome.action,
           review: entry2.review,
           ...entry2.author ? { author: entry2.author } : {}
         });
       }
       if (produced.length > 0) {
-        made.set(object.id, produced);
-        forward.push({ sourceObjectId: object.id, layerIds: [...produced] });
-        producedBy.set(object.id, [...producedBy.get(object.id) ?? [], ...produced]);
+        made.set(object2.id, produced);
+        forward.push({ sourceObjectId: object2.id, layerIds: [...produced] });
+        producedBy.set(object2.id, [...producedBy.get(object2.id) ?? [], ...produced]);
       }
     }
     settleArranged(build2, content2);
@@ -110698,15 +110867,15 @@ function compileRenovated(input) {
         message: `Slide ${slide.index + 1} was left out of the renovated deck, as the plan asked.`,
         slideId: slide.id
       });
-      for (const object of slide.objects) {
-        objectIds.push(object.id);
+      for (const object2 of slide.objects) {
+        objectIds.push(object2.id);
         addEntry(report2, {
           code: "object.removed",
-          message: `The ${nounFor(censusClass.get(object.id) ?? "unknown", object.kind)} on slide ${slide.index + 1} was left out with its slide.`,
+          message: `The ${nounFor(censusClass.get(object2.id) ?? "unknown", object2.kind)} on slide ${slide.index + 1} was left out with its slide.`,
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           disposition: "removed",
-          class: censusClass.get(object.id) ?? "unknown",
+          class: censusClass.get(object2.id) ?? "unknown",
           reason: "slide-excluded"
         });
       }
@@ -110736,23 +110905,23 @@ function compileRenovated(input) {
       if (slide.notes) frameRow.notes = slide.notes;
       if (slide.transition?.kind) frameRow.slideTransition = slide.transition.kind;
     }
-    const placements = slide.objects.map((object, index2) => {
-      objectIds.push(object.id);
-      const listed = entries.get(object.id);
+    const placements = slide.objects.map((object2, index2) => {
+      objectIds.push(object2.id);
+      const listed = entries.get(object2.id);
       const entry2 = listed ?? {
-        id: object.id,
-        class: censusClass.get(object.id) ?? "unknown",
+        id: object2.id,
+        class: censusClass.get(object2.id) ?? "unknown",
         evidence: [],
         proposal: "keep",
         review: "unreviewed"
       };
       const placement = describePlacement(
-        object,
+        object2,
         entry2,
         outcomeOf(entry2, applyUnreviewed, applyNeedsAttention),
         slide.index + 1
       );
-      return { ...placement, reading: object.readingIndex ?? index2, listed: listed !== void 0 };
+      return { ...placement, reading: object2.readingIndex ?? index2, listed: listed !== void 0 };
     });
     if (build2.cells.length >= 2 && build2.cells.some((cell) => cell.slots.some((slot) => slot.role === "number"))) {
       keepRowMarkers(placements, pourModeOf(build2), slide.index + 1);
@@ -111049,24 +111218,24 @@ function compileRenovated(input) {
         const placement = vectorSlot.get(row);
         const items2 = placement?.object.vectorItems;
         if (!placement || !items2) continue;
-        const object = placement.object;
-        const base = `${prefix}.${slug3(object.id)}`;
+        const object2 = placement.object;
+        const base = `${prefix}.${slug3(object2.id)}`;
         const made = vectorItemsToRows(
           items2,
           { x: rowNum(row, "x"), y: rowNum(row, "y"), w: rowNum(row, "w"), h: rowNum(row, "h") },
           { idPrefix: base, group: vectorGroupOf(base), frame: rowStr(row, "frame") || item.frameId, fit: "contain" }
         );
         if (!("rows" in made)) {
-          vectorKept.set(object.id, made.refused === "cap-reached" ? "cap-reached" : "not-read");
+          vectorKept.set(object2.id, made.refused === "cap-reached" ? "cap-reached" : "not-read");
           continue;
         }
         if (onFrame + made.rows.length > MAX_VECTOR_ROWS_PER_FRAME) {
-          vectorKept.set(object.id, "frame-cap");
+          vectorKept.set(object2.id, "frame-cap");
           continue;
         }
         const chars = vectorRowsPathChars(made.rows);
         if (vectorPathChars + chars > DOCUMENT_PATH_CHARS) {
-          vectorKept.set(object.id, "document-cap");
+          vectorKept.set(object2.id, "document-cap");
           continue;
         }
         vectorPathChars += chars;
@@ -111077,8 +111246,8 @@ function compileRenovated(input) {
           vectorRowIds.add(rowId(one));
         }
         swapped.set(row, made.rows);
-        assigned.set(object.id, made.rows.map(rowId));
-        vectorMade.set(object.id, made.rows.length);
+        assigned.set(object2.id, made.rows.map(rowId));
+        vectorMade.set(object2.id, made.rows.length);
       }
     }
     const ink = archetypeInk(masterOfSlide(build2.sourceSlideId), build2.archetype, ds.tokens);
@@ -111109,18 +111278,18 @@ function compileRenovated(input) {
       }
     }
     for (const placement of placements) {
-      const object = placement.object;
-      const produced = assigned.get(object.id) ?? [];
+      const object2 = placement.object;
+      const produced = assigned.get(object2.id) ?? [];
       if (placement.content === "brand-logo") {
         if (logoLayerId) {
           const list2 = furnitureLineage.get(logoLayerId) ?? [];
-          list2.push(object.id);
+          list2.push(object2.id);
           furnitureLineage.set(logoLayerId, list2);
           addEntry(report2, {
             code: "object.replaced-logo",
             message: placement.message,
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             layerId: logoLayerId,
             disposition: "transformed",
             class: placement.entry.class,
@@ -111128,13 +111297,13 @@ function compileRenovated(input) {
             ...placement.entry.author ? { author: placement.entry.author } : {},
             review: placement.entry.review
           });
-          forward.push({ sourceObjectId: object.id, layerIds: [logoLayerId] });
+          forward.push({ sourceObjectId: object2.id, layerIds: [logoLayerId] });
         } else {
           addEntry(report2, {
             code: "object.removed",
             message: `The mark on slide ${slide.index + 1} was to be replaced by the design system's own, and this archetype shows no logo, so the source mark did not travel.`,
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             disposition: "removed",
             class: placement.entry.class,
             action: "replace",
@@ -111145,7 +111314,7 @@ function compileRenovated(input) {
           addEntry(report2, {
             code: "review.applied-unreviewed",
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             action: placement.outcome.action,
             review: placement.entry.review,
             ...placement.entry.author ? { author: placement.entry.author } : {}
@@ -111153,66 +111322,66 @@ function compileRenovated(input) {
         }
         continue;
       }
-      const how = placedHow.get(object.id);
+      const how = placedHow.get(object2.id);
       const drawnByMaster = how === "page-number";
-      const rowsMade = vectorMade.get(object.id);
-      if (rowsMade !== void 0 && object.vectorItems) {
-        const noun = nounFor(placement.entry.class, object.kind);
+      const rowsMade = vectorMade.get(object2.id);
+      if (rowsMade !== void 0 && object2.vectorItems) {
+        const noun = nounFor(placement.entry.class, object2.kind);
         addEntry(report2, {
           code: "object.transformed",
-          message: vectorCarriedMessage(noun, slide.index + 1, rowsMade, object.vectorItems.desc),
+          message: vectorCarriedMessage(noun, slide.index + 1, rowsMade, object2.vectorItems.desc),
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           ...produced[0] ? { layerId: produced[0] } : {},
           disposition: "transformed",
           class: placement.entry.class,
           action: placement.outcome.action,
           ...placement.entry.author ? { author: placement.entry.author } : {},
           review: placement.entry.review,
-          fidelity: object.fidelity.state
+          fidelity: object2.fidelity.state
         });
-        if (object.vectorItems.omitted?.length) {
+        if (object2.vectorItems.omitted?.length) {
           addEntry(report2, {
             code: "vector.items-omitted",
-            message: vectorOmittedMessage(noun, slide.index + 1, object.vectorItems.omitted),
+            message: vectorOmittedMessage(noun, slide.index + 1, object2.vectorItems.omitted),
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             ...produced[0] ? { layerId: produced[0] } : {},
-            reason: object.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
+            reason: object2.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
           });
         }
         if (placement.outcome.appliedUnreviewed) {
           addEntry(report2, {
             code: "review.applied-unreviewed",
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             action: placement.outcome.action,
             review: placement.entry.review,
             ...placement.entry.author ? { author: placement.entry.author } : {}
           });
         }
         if (produced.length > 0) {
-          forward.push({ sourceObjectId: object.id, layerIds: [...produced] });
-          producedBy.set(object.id, [...producedBy.get(object.id) ?? [], ...produced]);
+          forward.push({ sourceObjectId: object2.id, layerIds: [...produced] });
+          producedBy.set(object2.id, [...producedBy.get(object2.id) ?? [], ...produced]);
         }
         continue;
       }
-      if (object.kind === "vector" && placement.content === "image" && produced.length > 0) {
-        const why = vectorKept.get(object.id) ?? (trayReasons.has(object.id) && carriesItems(object) ? "tray" : keptReason(object));
+      if (object2.kind === "vector" && placement.content === "image" && produced.length > 0) {
+        const why = vectorKept.get(object2.id) ?? (trayReasons.has(object2.id) && carriesItems(object2) ? "tray" : keptReason(object2));
         addEntry(report2, {
           code: "vector.kept-as-picture",
-          message: vectorKeptMessage(nounFor(placement.entry.class, object.kind), slide.index + 1, why),
+          message: vectorKeptMessage(nounFor(placement.entry.class, object2.kind), slide.index + 1, why),
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           ...produced[0] ? { layerId: produced[0] } : {},
           reason: why
         });
       }
       addEntry(report2, {
         code: drawnByMaster ? "object.transformed" : placement.code,
-        message: drawnByMaster ? `The page number on slide ${slide.index + 1} is drawn by the master's own page number.` : how === "note" && placement.disposition === "retained" ? `The ${nounFor(placement.entry.class, object.kind)} on slide ${slide.index + 1} was carried over as a note under the content.` : placement.message,
+        message: drawnByMaster ? `The page number on slide ${slide.index + 1} is drawn by the master's own page number.` : how === "note" && placement.disposition === "retained" ? `The ${nounFor(placement.entry.class, object2.kind)} on slide ${slide.index + 1} was carried over as a note under the content.` : placement.message,
         slideId: slide.id,
-        objectId: object.id,
+        objectId: object2.id,
         ...produced[0] ? { layerId: produced[0] } : {},
         disposition: drawnByMaster ? "transformed" : placement.disposition,
         class: placement.entry.class,
@@ -111226,19 +111395,19 @@ function compileRenovated(input) {
         if (placement.corrected) {
           addEntry(report2, {
             code: "text.corrected",
-            message: `The ${nounFor(placement.entry.class, object.kind)} on slide ${slide.index + 1} carries the text as it was corrected, in place of the text that was read.`,
+            message: `The ${nounFor(placement.entry.class, object2.kind)} on slide ${slide.index + 1} carries the text as it was corrected, in place of the text that was read.`,
             slideId: slide.id,
-            objectId: object.id,
+            objectId: object2.id,
             layerId: produced[0],
             ...placement.entry.author ? { author: placement.entry.author } : {}
           });
-          const lost = object.kind === "text" ? correctionDrops(object.text?.paras ?? []) : [];
+          const lost = object2.kind === "text" ? correctionDrops(object2.text?.paras ?? []) : [];
           if (lost.length > 0) {
             addEntry(report2, {
               code: "text.formatting-not-carried",
               message: correctedWithout(slide.index + 1, lost),
               slideId: slide.id,
-              objectId: object.id,
+              objectId: object2.id,
               layerId: produced[0],
               reason: lost.join(",")
             });
@@ -111250,7 +111419,7 @@ function compileRenovated(input) {
               code: "text.formatting-not-carried",
               message: formattingNotCarried(slide.index + 1, placement.dropped),
               slideId: slide.id,
-              objectId: object.id,
+              objectId: object2.id,
               layerId: produced[0],
               reason: placement.dropped.join(",")
             });
@@ -111262,7 +111431,7 @@ function compileRenovated(input) {
           code: "source.cap-reached",
           message: `The table on slide ${slide.index + 1} is ${placement.cap.sourceRows} by ${placement.cap.sourceCols}, past this compile's cap of ${MAX_TABLE_ROWS5} by ${MAX_TABLE_COLS5}, so ${placement.cap.dropped} cell(s) did not travel.`,
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           ...produced[0] ? { layerId: produced[0] } : {},
           reason: "cap-reached"
         });
@@ -111271,7 +111440,7 @@ function compileRenovated(input) {
         addEntry(report2, {
           code: "object.placeholder-authored",
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           ...produced[0] ? { layerId: produced[0] } : {}
         });
       }
@@ -111279,18 +111448,18 @@ function compileRenovated(input) {
         addEntry(report2, {
           code: "review.applied-unreviewed",
           slideId: slide.id,
-          objectId: object.id,
+          objectId: object2.id,
           action: placement.outcome.action,
           review: placement.entry.review,
           ...placement.entry.author ? { author: placement.entry.author } : {}
         });
       }
       if (produced.length > 0) {
-        forward.push({ sourceObjectId: object.id, layerIds: [...produced] });
+        forward.push({ sourceObjectId: object2.id, layerIds: [...produced] });
         for (const id2 of produced) {
-          const existing = producedBy.get(object.id) ?? [];
+          const existing = producedBy.get(object2.id) ?? [];
           existing.push(id2);
-          producedBy.set(object.id, existing);
+          producedBy.set(object2.id, existing);
         }
       }
     }
@@ -111324,15 +111493,15 @@ function compileRenovated(input) {
       slideId: slide.id,
       reason: "not-in-plan"
     });
-    for (const object of slide.objects) {
-      objectIds.push(object.id);
+    for (const object2 of slide.objects) {
+      objectIds.push(object2.id);
       addEntry(report2, {
         code: "object.removed",
-        message: `The ${nounFor(censusClass.get(object.id) ?? "unknown", object.kind)} on slide ${slide.index + 1} was left out with its slide, which the plan does not mention.`,
+        message: `The ${nounFor(censusClass.get(object2.id) ?? "unknown", object2.kind)} on slide ${slide.index + 1} was left out with its slide, which the plan does not mention.`,
         slideId: slide.id,
-        objectId: object.id,
+        objectId: object2.id,
         disposition: "removed",
-        class: censusClass.get(object.id) ?? "unknown",
+        class: censusClass.get(object2.id) ?? "unknown",
         reason: "not-in-plan"
       });
     }
@@ -111405,7 +111574,7 @@ function compileRenovated(input) {
   }
   const editable = /* @__PURE__ */ new Set();
   for (const slide of source.slides) {
-    for (const object of slide.objects) if (object.fidelity.state === "editable") editable.add(object.id);
+    for (const object2 of slide.objects) if (object2.fidelity.state === "editable") editable.add(object2.id);
   }
   for (const objectId of vectorMade.keys()) editable.add(objectId);
   const claimedColour = /* @__PURE__ */ new Map();
@@ -111595,14 +111764,14 @@ function compileRenovated(input) {
       const objects = madeOf.get(rowStr(row, "id")) ?? [];
       const answer = /* @__PURE__ */ new Map();
       const fixed = text6.replace(/\{#([0-9a-fA-F]{6})\|/g, (whole, hex3) => {
-        const run = `#${hex3.toLowerCase()}`;
-        if (worstContrast(run, grounds) >= floor) return whole;
-        let pick = answer.get(run);
+        const run2 = `#${hex3.toLowerCase()}`;
+        if (worstContrast(run2, grounds) >= floor) return whole;
+        let pick = answer.get(run2);
         if (pick === void 0) {
-          const from = objects.map((id2) => mappedFrom.get(`${id2}|${run}`)).find((one) => one !== void 0) ?? run;
+          const from = objects.map((id2) => mappedFrom.get(`${id2}|${run2}`)).find((one) => one !== void 0) ?? run2;
           const readable2 = isChromatic(from) ? palette.filter((one) => worstContrast(one, grounds) >= floor) : [];
-          pick = nearestColour(from, readable2) ?? (/^#[0-9a-fA-F]{6}/.test(ink) ? ink.slice(0, 7).toLowerCase() : run);
-          answer.set(run, pick);
+          pick = nearestColour(from, readable2) ?? (/^#[0-9a-fA-F]{6}/.test(ink) ? ink.slice(0, 7).toLowerCase() : run2);
+          answer.set(run2, pick);
         }
         return `{${pick}|`;
       });
@@ -111613,9 +111782,9 @@ function compileRenovated(input) {
   for (const mapping of plan.fonts) {
     const named = /* @__PURE__ */ new Set();
     for (const slide of source.slides) {
-      for (const object of slide.objects) {
-        for (const para of object.text?.paras ?? []) {
-          for (const run of para.runs) if (run.font === mapping.from) named.add(object.id);
+      for (const object2 of slide.objects) {
+        for (const para of object2.text?.paras ?? []) {
+          for (const run2 of para.runs) if (run2.font === mapping.from) named.add(object2.id);
         }
       }
     }
@@ -111647,18 +111816,18 @@ function compileRenovated(input) {
   };
   const isCode = codeFamilies(plan, faces);
   const objectById = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object of slide.objects) objectById.set(object.id, object);
+  for (const slide of source.slides) for (const object2 of slide.objects) objectById.set(object2.id, object2);
   const madeFrom = /* @__PURE__ */ new Map();
   for (const [objectId, layerIds] of producedBy) {
-    const object = objectById.get(objectId);
-    if (!object || !hasWords(object)) continue;
-    for (const layerId of layerIds) madeFrom.set(layerId, [...madeFrom.get(layerId) ?? [], object]);
+    const object2 = objectById.get(objectId);
+    if (!object2 || !hasWords(object2)) continue;
+    for (const layerId of layerIds) madeFrom.set(layerId, [...madeFrom.get(layerId) ?? [], object2]);
   }
   for (const row of [...builds.flatMap((build2) => layersOf(build2)), ...tray.map((item) => item.layer)]) {
     if (rowStr(row, "kind") !== "text") continue;
     const objects = madeFrom.get(rowStr(row, "id"));
     const stated = rowStr(row, "font").trim();
-    const code = objects ? objects.every((object) => isCodeObject(object, isCode)) : stated === "mono" ? faces.mono !== void 0 : isCode(stated || void 0);
+    const code = objects ? objects.every((object2) => isCodeObject(object2, isCode)) : stated === "mono" ? faces.mono !== void 0 : isCode(stated || void 0);
     if (code) row.font = "mono";
     else delete row.font;
   }
@@ -112121,8 +112290,8 @@ function union2(a, b) {
   const y0 = Math.min(a.y, b.y);
   return { x: x0, y: y0, w: Math.max(a.x + a.w, b.x + b.w) - x0, h: Math.max(a.y + a.h, b.y + b.h) - y0 };
 }
-function textOf7(object) {
-  return (object?.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join("\n");
+function textOf7(object2) {
+  return (object2?.text?.paras ?? []).map((para) => para.runs.map((run2) => run2.text).join("")).join("\n");
 }
 function figureText(text6) {
   const t = text6.trim();
@@ -112135,8 +112304,8 @@ function shortLabel(text6, words) {
   return bare.length >= 1 && bare.length <= 2 || words >= 1 && words <= 3 && bare.length <= 24;
 }
 function unitFrom(raw, ctx) {
-  const object = ctx.objectOf(raw.id);
-  const text6 = textOf7(object);
+  const object2 = ctx.objectOf(raw.id);
+  const text6 = textOf7(object2);
   return {
     id: raw.id,
     kind: raw.kind,
@@ -112720,7 +112889,7 @@ function wholeRead(su, quoted) {
   return { kind: "text", read: null };
 }
 function readSlideStructure(slide, features, opts) {
-  const objects = new Map(slide.objects.map((object) => [object.id, object]));
+  const objects = new Map(slide.objects.map((object2) => [object2.id, object2]));
   const ctx = {
     classOf: opts.classOf,
     objectOf: (id2) => objects.get(id2),
@@ -112843,7 +113012,7 @@ function bandCeiling(confidence) {
   return 1;
 }
 function hasQuoteMarks(slide, skip) {
-  return slide.objects.filter((object) => !skip?.has(object.id)).map((object) => textOf7(object)).filter((text6) => text6.trim().length > 0).some((text6) => OPENING_QUOTE.test(text6) && CLOSING_QUOTE.test(text6));
+  return slide.objects.filter((object2) => !skip?.has(object2.id)).map((object2) => textOf7(object2)).filter((text6) => text6.trim().length > 0).some((text6) => OPENING_QUOTE.test(text6) && CLOSING_QUOTE.test(text6));
 }
 function readRemoved(rows2) {
   const removed = /* @__PURE__ */ new Set();
@@ -113238,15 +113407,15 @@ var init_rebrand_structure = __esm({
 });
 
 // engine/src/rebrand-plan.ts
-function wordsOf2(object) {
-  const text6 = (object.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join(" ");
+function wordsOf2(object2) {
+  const text6 = (object2.text?.paras ?? []).map((para) => para.runs.map((run2) => run2.text).join("")).join(" ");
   return text6.split(/\s+/).filter((word) => word.length > 0).length;
 }
 function csvCell2(value) {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
-function chartToolOffer(object) {
-  const data = object.chartData;
+function chartToolOffer(object2) {
+  const data = object2.chartData;
   if (!data) return void 0;
   const type = data.type ? SIMPLE_CHART_TYPES[data.type] : void 0;
   if (!type) return void 0;
@@ -113274,17 +113443,17 @@ function chartToolOffer(object) {
   }
   return void 0;
 }
-function proposeFor(klass, object) {
-  const words = object ? wordsOf2(object) : 0;
+function proposeFor(klass, object2) {
+  const words = object2 ? wordsOf2(object2) : 0;
   switch (klass) {
     case "page-number":
     case "date":
     case "decoration":
       return { proposal: "remove", review: "unreviewed" };
     case "template-furniture": {
-      const picture = object !== void 0 && (object.kind === "pic" || object.kind === "vector");
+      const picture = object2 !== void 0 && (object2.kind === "pic" || object2.kind === "vector");
       if (picture) return { proposal: "keep", review: "needs-attention", surplus: "tray" };
-      if (object?.placeholder !== void 0 && words === 0 && object.kind !== "pic") {
+      if (object2?.placeholder !== void 0 && words === 0 && object2.kind !== "pic") {
         return { proposal: "remove", review: "unreviewed" };
       }
       return { proposal: "keep", review: "needs-attention", role: "label" };
@@ -113307,7 +113476,7 @@ function proposeFor(klass, object) {
     case "body":
       return { proposal: "keep", review: "accepted", role: "body" };
     case "chart": {
-      const offer = object ? chartToolOffer(object) : void 0;
+      const offer = object2 ? chartToolOffer(object2) : void 0;
       const row = { proposal: "keep", review: "unreviewed", role: "data" };
       if (offer) row.replacement = offer;
       return row;
@@ -113323,8 +113492,8 @@ function proposeFor(klass, object) {
       return { proposal: "keep", review: "needs-attention" };
   }
 }
-function textOf8(object) {
-  return (object.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join("\n");
+function textOf8(object2) {
+  return (object2.text?.paras ?? []).map((para) => para.runs.map((run2) => run2.text).join("")).join("\n");
 }
 function looksLikeOneFigure(text6) {
   const trimmed = text6.trim();
@@ -113338,18 +113507,18 @@ function isCoverSlide(slide, sourceLayout) {
 }
 function archetypeHints(slide, opts = {}) {
   const skip = opts.skipObjectIds;
-  const texts = slide.objects.filter((object) => !skip?.has(object.id)).map(textOf8).filter((text6) => text6.trim().length > 0);
+  const texts = slide.objects.filter((object2) => !skip?.has(object2.id)).map(textOf8).filter((text6) => text6.trim().length > 0);
   const quoteMarks = hasQuoteMarks(slide, skip);
   const bigNumber = texts.length >= 1 && texts.filter(looksLikeOneFigure).length === 1 && texts.every((text6) => looksLikeOneFigure(text6) || text6.trim().split(/\s+/).length <= 6);
   const hints = { quoteMarks, bigNumber };
   if (opts.coverSlide) hints.coverSlide = true;
   return hints;
 }
-function coverageNeed(row, object, slide) {
-  const incidental = () => object !== void 0 && isIncidentalPicture(row.class, object, slide);
+function coverageNeed(row, object2, slide) {
+  const incidental = () => object2 !== void 0 && isIncidentalPicture(row.class, object2, slide);
   const action = row.decision ?? row.proposal;
   if (action === "remove") return void 0;
-  if (action === "keep" && object && isNoteText(row.class, object, row)) return "note";
+  if (action === "keep" && object2 && isNoteText(row.class, object2, row)) return "note";
   if (action === "replace") {
     const replacement = row.decision !== void 0 ? row.decisionReplacement ?? row.proposalReplacement : row.proposalReplacement;
     if (replacement?.kind === "brand-logo") return void 0;
@@ -113365,17 +113534,17 @@ function coverageNeed(row, object, slide) {
     case "visual":
       return incidental() ? void 0 : "visual";
     case "data":
-      return object?.kind === "table" || object?.table !== void 0 ? "data" : "visual";
+      return object2?.kind === "table" || object2?.table !== void 0 ? "data" : "visual";
     case void 0:
       break;
     default:
       return void 0;
   }
-  if (!object) return void 0;
-  if (object.kind === "chart") return "visual";
-  if (object.kind === "pic" || object.kind === "vector") return incidental() ? void 0 : "visual";
-  if (object.kind === "table") return "data";
-  if (object.kind === "text" && (object.text?.paras ?? []).some((para) => para.runs.some((run) => run.text.trim().length > 0))) return "body";
+  if (!object2) return void 0;
+  if (object2.kind === "chart") return "visual";
+  if (object2.kind === "pic" || object2.kind === "vector") return incidental() ? void 0 : "visual";
+  if (object2.kind === "table") return "data";
+  if (object2.kind === "text" && (object2.text?.paras ?? []).some((para) => para.runs.some((run2) => run2.text.trim().length > 0))) return "body";
   return void 0;
 }
 function lockedRows(census, preset) {
@@ -113391,8 +113560,8 @@ function lockedRows(census, preset) {
 function rasterObjectIds(source) {
   const out = [];
   for (const slide of source.slides) {
-    for (const object of slide.objects) {
-      if (object.kind === "pic" || object.fidelity.state === "raster-preserved") out.push(object.id);
+    for (const object2 of slide.objects) {
+      if (object2.kind === "pic" || object2.fidelity.state === "raster-preserved") out.push(object2.id);
     }
   }
   return out.sort();
@@ -113429,19 +113598,19 @@ function firstPass(input) {
     previous && previous.source.lineageId === source.source.lineageId ? previous.slides.map((slide) => [slide.id, slide]) : []
   );
   const slides = source.slides.map((slide) => {
-    const objects = slide.objects.map((object) => {
-      const row = censusById.get(object.id);
+    const objects = slide.objects.map((object2) => {
+      const row = censusById.get(object2.id);
       const klass = row?.hypothesis.class ?? "unknown";
       const groupId = row?.groupId;
-      const base = proposeFor(klass, object);
+      const base = proposeFor(klass, object2);
       const presetAction = preset?.actions?.[klass];
       const presetReview = preset?.review?.[klass];
       const proposal = presetAction ?? base.proposal;
-      const unavailable = object.fidelity.state === "unavailable";
+      const unavailable = object2.fidelity.state === "unavailable";
       const overridden = presetAction !== void 0 && presetAction !== base.proposal;
       const review = presetReview ?? (unavailable || overridden ? "needs-attention" : base.review);
       const plan3 = {
-        id: object.id,
+        id: object2.id,
         class: klass,
         evidence: row ? [...row.hypothesis.evidence] : [],
         proposal,
@@ -113450,7 +113619,7 @@ function firstPass(input) {
       if (presetAction !== void 0) plan3.author = "preset";
       else if (review === "accepted" && presetReview === void 0) plan3.author = "rule";
       if (groupId && (klass === "logo-candidate" || klass === "known-logo")) plan3.scope = groupId;
-      const inherited2 = carriedByObject.get(object.id);
+      const inherited2 = carriedByObject.get(object2.id);
       if (inherited2) {
         plan3.decision = inherited2.action;
         if (inherited2.replacement) plan3.decisionReplacement = inherited2.replacement;
@@ -113468,7 +113637,7 @@ function firstPass(input) {
       return plan3;
     });
     const removed = readRemoved(objects);
-    const objectById = new Map(slide.objects.map((object) => [object.id, object]));
+    const objectById = new Map(slide.objects.map((object2) => [object2.id, object2]));
     const needs = {};
     for (const row of objects) {
       if (removed.has(row.id)) continue;
@@ -113603,7 +113772,7 @@ function takeSlot(archetype, role, used) {
 }
 function layoutFindings(plan, source, master) {
   const objectsById = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object of slide.objects) objectsById.set(object.id, object);
+  for (const slide of source.slides) for (const object2 of slide.objects) objectsById.set(object2.id, object2);
   const out = [];
   for (const slidePlan of plan.slides) {
     if (!slidePlan.include) continue;
@@ -113613,8 +113782,8 @@ function layoutFindings(plan, source, master) {
     for (const row of slidePlan.objects) {
       const action = row.decision ?? row.proposal;
       if (action !== "keep" || !row.role) continue;
-      const object = objectsById.get(row.id);
-      if (!object) continue;
+      const object2 = objectsById.get(row.id);
+      if (!object2) continue;
       const slot = takeSlot(archetype, row.role, used);
       if (!slot) continue;
       const box3 = masterBoxToPx(master, slot.box);
@@ -113629,7 +113798,7 @@ function layoutFindings(plan, source, master) {
           action
         });
       }
-      const text6 = textOf8(object);
+      const text6 = textOf8(object2);
       const characters = text6.replace(/\s+/g, " ").trim().length;
       if (characters === 0 || slot.kind !== "text") continue;
       const perLine = Math.max(1, Math.floor(box3.w / Math.max(1, size * AVERAGE_GLYPH_EM)));
@@ -113882,8 +114051,8 @@ function drawPath(row, box3, thumbScale) {
   let paint2 = `fill="${fill2 ? esc5(fill2) : "none"}"${rule}`;
   if (stroke && strokeW > 0) {
     const cap = str7(row, "strokeCap") || "round";
-    const join19 = str7(row, "strokeJoin") || "round";
-    paint2 += ` stroke="${esc5(stroke)}" stroke-width="${round23(strokeW)}" stroke-linecap="${esc5(cap)}" stroke-linejoin="${esc5(join19)}"`;
+    const join20 = str7(row, "strokeJoin") || "round";
+    paint2 += ` stroke="${esc5(stroke)}" stroke-width="${round23(strokeW)}" stroke-linecap="${esc5(cap)}" stroke-linejoin="${esc5(join20)}"`;
     if (str7(row, "strokeDash") === "dashed") {
       const dash = num8(row, "strokeDashLen") || strokeW * 3;
       const gap = num8(row, "strokeGapLen") || strokeW * 2;
@@ -113967,23 +114136,23 @@ function drawText(row, box3, ctx) {
   lines.forEach((runs, i) => {
     const dx = (indents[i] ?? 0) * size * AVERAGE_GLYPH_EM;
     out += `<tspan x="${x}"${dx > 0 ? ` dx="${round23(dx)}"` : ""}${i > 0 ? ` dy="${round23(size * DESIGN_LINE_HEIGHT)}"` : ""}>`;
-    for (const run of runs) out += runSpan(run, ctx);
+    for (const run2 of runs) out += runSpan(run2, ctx);
     out += "</tspan>";
   });
   out += "</text>";
   const clip3 = `<svg x="${round23(box3.x)}" y="${round23(box3.y)}" width="${round23(box3.w)}" height="${round23(box3.h)}" viewBox="${round23(box3.x)} ${round23(box3.y)} ${round23(box3.w)} ${round23(box3.h)}" overflow="hidden">${out}</svg>`;
   return `${lead}${clip3}`;
 }
-function runSpan(run, ctx) {
+function runSpan(run2, ctx) {
   const attrs = [];
-  const weight = run.weight ?? (run.bold ? 700 : void 0);
+  const weight = run2.weight ?? (run2.bold ? 700 : void 0);
   if (weight !== void 0) attrs.push(`font-weight="${round23(weight)}"`);
-  if (run.italic) attrs.push('font-style="italic"');
-  const deco = [run.underline ? "underline" : "", run.strike ? "line-through" : ""].filter(Boolean).join(" ");
+  if (run2.italic) attrs.push('font-style="italic"');
+  const deco = [run2.underline ? "underline" : "", run2.strike ? "line-through" : ""].filter(Boolean).join(" ");
   if (deco) attrs.push(`text-decoration="${deco}"`);
-  if (run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color)) attrs.push(`fill="${esc5(run.color)}"`);
-  if (run.font === "mono") attrs.push(`font-family="${esc5(ctx.slots.mono)}"`);
-  return attrs.length > 0 ? `<tspan ${attrs.join(" ")}>${esc5(run.text)}</tspan>` : esc5(run.text);
+  if (run2.color && /^#[0-9a-fA-F]{3,8}$/.test(run2.color)) attrs.push(`fill="${esc5(run2.color)}"`);
+  if (run2.font === "mono") attrs.push(`font-family="${esc5(ctx.slots.mono)}"`);
+  return attrs.length > 0 ? `<tspan ${attrs.join(" ")}>${esc5(run2.text)}</tspan>` : esc5(run2.text);
 }
 function framePreviewSvg(frame, opts) {
   const head2 = frame.layers[0];
@@ -114445,22 +114614,22 @@ function evenAlong(labels, id2, count4, b, gw, horizontal) {
 function dilate(on, gw, gh, rx, ry) {
   const mid3 = new Uint8Array(gw * gh);
   for (let y = 0; y < gh; y++) {
-    let run = 0;
-    for (let x = 0; x < Math.min(gw, rx); x++) run += on[y * gw + x] ?? 0;
+    let run2 = 0;
+    for (let x = 0; x < Math.min(gw, rx); x++) run2 += on[y * gw + x] ?? 0;
     for (let x = 0; x < gw; x++) {
-      if (x + rx < gw) run += on[y * gw + x + rx] ?? 0;
-      if (x - rx - 1 >= 0) run -= on[y * gw + x - rx - 1] ?? 0;
-      mid3[y * gw + x] = run > 0 ? 1 : 0;
+      if (x + rx < gw) run2 += on[y * gw + x + rx] ?? 0;
+      if (x - rx - 1 >= 0) run2 -= on[y * gw + x - rx - 1] ?? 0;
+      mid3[y * gw + x] = run2 > 0 ? 1 : 0;
     }
   }
   const out = new Uint8Array(gw * gh);
   for (let x = 0; x < gw; x++) {
-    let run = 0;
-    for (let y = 0; y < Math.min(gh, ry); y++) run += mid3[y * gw + x] ?? 0;
+    let run2 = 0;
+    for (let y = 0; y < Math.min(gh, ry); y++) run2 += mid3[y * gw + x] ?? 0;
     for (let y = 0; y < gh; y++) {
-      if (y + ry < gh) run += mid3[(y + ry) * gw + x] ?? 0;
-      if (y - ry - 1 >= 0) run -= mid3[(y - ry - 1) * gw + x] ?? 0;
-      out[y * gw + x] = run > 0 ? 1 : 0;
+      if (y + ry < gh) run2 += mid3[(y + ry) * gw + x] ?? 0;
+      if (y - ry - 1 >= 0) run2 -= mid3[(y - ry - 1) * gw + x] ?? 0;
+      out[y * gw + x] = run2 > 0 ? 1 : 0;
     }
   }
   return out;
@@ -115515,7 +115684,7 @@ function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
 function outlinedBoxes(regions) {
   const tolX = OUTLINE_TOLERANCE * regions.width;
   const tolY = OUTLINE_TOLERANCE * regions.height;
-  const join19 = (horizontal) => {
+  const join20 = (horizontal) => {
     const parts = regions.regions.filter((r5) => r5.kind === "rule" && r5.evidence.orientation === (horizontal ? "horizontal" : "vertical")).map((r5) => ({
       from: horizontal ? r5.box.x : r5.box.y,
       to: horizontal ? r5.box.x + r5.box.w : r5.box.y + r5.box.h,
@@ -115545,8 +115714,8 @@ function outlinedBoxes(regions) {
     }
     return out;
   };
-  const rows2 = join19(true);
-  const cols = join19(false);
+  const rows2 = join20(true);
+  const cols = join20(false);
   const found = [];
   for (const top of rows2) {
     for (const bottom of rows2) {
@@ -116760,6 +116929,131 @@ var init_ocr_typeset = __esm({
   }
 });
 
+// engine/src/motion-cues.ts
+function parseMotionTiming(raw) {
+  if (raw === "" || raw == null) return { version: 1, cues: [], bindings: [] };
+  if (typeof raw === "string" && raw.length > 131072) throw new Error("Cue description exceeds 128 KiB.");
+  const v = typeof raw === "string" ? JSON.parse(raw) : structuredClone(raw);
+  if (v?.version !== 1 || !Array.isArray(v.cues) || v.cues.length > 256 || !Array.isArray(v.bindings) || v.bindings.length > 1024) throw new Error("Cue timing requires version 1, at most 256 cues and 1024 bindings.");
+  if (v.tempo && (!(v.tempo.bpm === null || finite3(v.tempo.bpm) && v.tempo.bpm >= 1 && v.tempo.bpm <= 400) || !finite3(v.tempo.offset) || Math.abs(v.tempo.offset) > 3600 || !Number.isInteger(v.tempo.beatsPerBar) || v.tempo.beatsPerBar < 1 || v.tempo.beatsPerBar > 32)) throw new Error("Tempo needs BPM 1-400 or null, a finite offset, and 1-32 beats per bar.");
+  const ids2 = /* @__PURE__ */ new Set(), targets = /* @__PURE__ */ new Set();
+  for (const cue of v.cues) {
+    if (!idOk(cue?.id) || ids2.has(cue.id) || [cue.at, cue.beat, cue.after].filter((x) => x !== void 0).length !== 1 || cue.at !== void 0 && !finite3(cue.at) || cue.beat !== void 0 && !finite3(cue.beat) || cue.after !== void 0 && !idOk(cue.after) || cue.offset !== void 0 && !finite3(cue.offset)) throw new Error("Cues need unique ids and exactly one of at, beat or after.");
+    ids2.add(cue.id);
+  }
+  for (const b of v.bindings) {
+    const key = `${b?.layerId}:${b?.target}:${b?.keyIndex ?? ""}`;
+    if (!b || !idOk(b.layerId) || !ids2.has(b.cueId) || !["start", "enterEnd", "exitStart", "keyframe"].includes(b.target) || targets.has(key) || b.offset !== void 0 && !finite3(b.offset) || b.target === "keyframe" && (!Number.isInteger(b.keyIndex) || b.keyIndex < 0)) throw new Error("Invalid or duplicate cue binding.");
+    targets.add(key);
+  }
+  resolveCues(v);
+  return v;
+}
+function resolveCues(timing) {
+  const cues = new Map(timing.cues.map((cue) => [cue.id, cue]));
+  const times = /* @__PURE__ */ Object.create(null), pending2 = /* @__PURE__ */ new Set();
+  const visit = (id2) => {
+    if (Object.hasOwn(times, id2)) return times[id2];
+    const cue = cues.get(id2);
+    if (!cue || pending2.has(id2)) throw new Error(`Missing or cyclic cue: ${id2}`);
+    pending2.add(id2);
+    let at;
+    if (cue.at !== void 0) at = cue.at;
+    else if (cue.after !== void 0) at = visit(cue.after);
+    else {
+      if (!timing.tempo?.bpm) throw new Error(`Cue ${id2} needs a known BPM; no rhythm is inferred.`);
+      at = timing.tempo.offset + cue.beat * 60 / timing.tempo.bpm;
+    }
+    at += cue.offset ?? 0;
+    if (!finite3(at) || at < 0 || at > 3600) throw new Error(`Cue ${id2} is outside the one-hour timeline.`);
+    pending2.delete(id2);
+    times[id2] = at;
+    return at;
+  };
+  for (const id2 of cues.keys()) visit(id2);
+  return times;
+}
+function compileMotionCues(source, raw) {
+  const timing = parseMotionTiming(raw), times = resolveCues(timing);
+  const boxes = source.map((box3) => ({ ...box3 })), byId = new Map(boxes.map((box3) => [String(box3.id), box3]));
+  if (byId.size !== boxes.length) throw new Error("Cue compilation needs unique layer ids.");
+  const detached = [], changes = [];
+  const bindings = timing.bindings.filter((binding) => {
+    const box3 = byId.get(binding.layerId);
+    if (!box3) throw new Error(`Cue binding names missing layer ${binding.layerId}.`);
+    const manual = binding.applied !== void 0 && box3[fieldOf(binding.target)] !== binding.applied;
+    if (manual) detached.push(binding);
+    return !manual;
+  });
+  const tracks = /* @__PURE__ */ new Map();
+  for (const binding of [...bindings].sort((a, b) => Number(b.target === "start") - Number(a.target === "start"))) {
+    const box3 = byId.get(binding.layerId), field2 = fieldOf(binding.target), before = box3[field2];
+    const absolute = times[binding.cueId] + (binding.offset ?? 0), start = Number(box3.start) || 0;
+    let value;
+    if (binding.target === "start") value = absolute;
+    else if (binding.target === "keyframe") {
+      let track = tracks.get(binding.layerId);
+      if (!track) {
+        track = parseKf(box3.kf).map((key2) => ({ ...key2 }));
+        tracks.set(binding.layerId, track);
+      }
+      const key = track[binding.keyIndex];
+      if (!key) throw new Error(`Missing keyframe on ${binding.layerId}.`);
+      key.t = (absolute - start) * 1e3;
+      continue;
+    } else value = (binding.target === "enterEnd" ? absolute - start : start + Number(box3.dur) - absolute) * 1e3;
+    if (typeof value === "number" && (!finite3(value) || value < 0 || value > (field2 === "start" ? 3600 : 36e5))) throw new Error(`Cue creates invalid ${field2} on ${binding.layerId}.`);
+    box3[field2] = value;
+    if (before !== value) changes.push({ layerId: binding.layerId, field: field2, before, after: value });
+  }
+  for (const [layerId, track] of tracks) {
+    if (track.some((key, i) => !finite3(key.t) || key.t < 0 || i > 0 && key.t <= track[i - 1].t)) throw new Error(`Cue reorders keyframes on ${layerId}.`);
+    const box3 = byId.get(layerId), before = box3.kf, after = serialiseKf(track);
+    box3.kf = after;
+    if (before !== after) changes.push({ layerId, field: "kf", before, after });
+  }
+  timing.bindings = bindings.map((binding) => ({ ...binding, applied: byId.get(binding.layerId)[fieldOf(binding.target)] }));
+  return { boxes, timing, times, changes, detached };
+}
+var idOk, finite3, fieldOf;
+var init_motion_cues = __esm({
+  "engine/src/motion-cues.ts"() {
+    "use strict";
+    init_keyframes2();
+    idOk = (id2) => typeof id2 === "string" && /^[\w-]{1,80}$/.test(id2);
+    finite3 = (n6) => typeof n6 === "number" && Number.isFinite(n6);
+    fieldOf = (target) => ({ start: "start", enterEnd: "enterMs", exitStart: "exitMs", keyframe: "kf" })[target];
+  }
+});
+
+// engine/src/motion-report.ts
+function motionReport(facts2, target = {}, extra = []) {
+  if (!target || typeof target !== "object" || Array.isArray(target)) throw new Error("Motion targets must be an object.");
+  for (const [key, value] of Object.entries(target)) {
+    if (key === "audio" && typeof value === "boolean") continue;
+    if (!["width", "height", "seconds", "fps", "loudness", "truePeakMax"].includes(key) || typeof value !== "number" || !Number.isFinite(value)) throw new Error(`Invalid motion target: ${key}`);
+    if (["width", "height", "seconds", "fps"].includes(key) && value <= 0) throw new Error(`Motion target ${key} must be positive.`);
+  }
+  const checks = [];
+  for (const id2 of ["width", "height", "seconds", "fps", "audio", "loudness", "truePeak"]) {
+    const measured = facts2[id2], want = id2 === "truePeak" ? target.truePeakMax : target[id2];
+    if (measured === void 0) {
+      checks.push({ id: id2, status: "not-run", target: want, reason: "No measurement from this decoder." });
+      continue;
+    }
+    const tolerance = id2 === "seconds" ? 1 / (facts2.fps || 30) + 5e-3 : id2 === "fps" ? 0.02 : id2 === "loudness" ? 0.5 : 0;
+    const pass = want === void 0 || measured !== null && (id2 === "truePeak" ? Number(measured) <= Number(want) : typeof want === "number" ? Math.abs(Number(measured) - want) <= tolerance : measured === want);
+    checks.push({ id: id2, status: pass ? "pass" : "fail", measured, ...want === void 0 ? {} : { target: want } });
+  }
+  checks.push(...extra, { id: "rendered-layout", status: "not-run", reason: "Encoded pixels do not establish source font resolution or text overflow; review the mounted document." }, { id: "creative-review", status: "not-run", reason: "Message, legibility and intentional holds require human review." });
+  return { version: 1, checks, ok: checks.some((check) => check.status === "fail") ? false : checks.every((check) => check.status === "not-run") || checks.some((check) => check.status === "not-run" && check.target !== void 0) ? null : true };
+}
+var init_motion_report = __esm({
+  "engine/src/motion-report.ts"() {
+    "use strict";
+  }
+});
+
 // engine/src/index.ts
 var src_exports = {};
 __export(src_exports, {
@@ -117105,6 +117399,7 @@ __export(src_exports, {
   SVG_PATH_MAX_SEGMENTS: () => SVG_PATH_MAX_SEGMENTS,
   SVG_PATH_MAX_SUBPATHS: () => SVG_PATH_MAX_SUBPATHS,
   SYNTAX_LANGUAGES: () => SYNTAX_LANGUAGES,
+  ShutterAccumulator: () => ShutterAccumulator,
   TAR_MAX_ARCHIVE_BYTES: () => TAR_MAX_ARCHIVE_BYTES,
   TAR_MAX_MEMBERS: () => TAR_MAX_MEMBERS,
   TAR_MAX_PAYLOAD_BYTES: () => TAR_MAX_PAYLOAD_BYTES,
@@ -117207,6 +117502,8 @@ __export(src_exports, {
   assembleTokenSetFiles: () => assembleTokenSetFiles,
   assertComposeStack: () => assertComposeStack,
   assertDesignValues: () => assertDesignValues,
+  assertMotionRequest: () => assertMotionRequest,
+  assertSampleRequest: () => assertSampleRequest,
   assertTextRange: () => assertTextRange,
   assertZzfxmBudgets: () => assertZzfxmBudgets,
   assetDependency: () => assetDependency,
@@ -117230,6 +117527,7 @@ __export(src_exports, {
   bilinearResampleRgba: () => bilinearResampleRgba,
   binomialTailP: () => binomialTailP,
   blocksForUrl: () => blocksForUrl,
+  blurEnabled: () => blurEnabled,
   booleanPath: () => booleanPath,
   boundsCubic: () => boundsCubic,
   boxGeomFromBBox: () => boxGeomFromBBox,
@@ -117318,6 +117616,7 @@ __export(src_exports, {
   compileDocument: () => compileDocument,
   compileFaithful: () => compileFaithful,
   compileLearningModule: () => compileLearningModule,
+  compileMotionCues: () => compileMotionCues,
   compileRenovated: () => compileRenovated,
   compileSessionTool: () => compileSessionTool,
   compileSystemOpts: () => compileSystemOpts,
@@ -117751,6 +118050,8 @@ __export(src_exports, {
   minZoomForCover: () => minZoomForCover,
   mix32: () => mix32,
   mixOklch: () => mixOklch,
+  motionReport: () => motionReport,
+  motionReviewTimes: () => motionReviewTimes,
   moveSlide: () => moveSlide,
   moveSlides: () => moveSlides,
   mulberry32: () => mulberry322,
@@ -117844,6 +118145,8 @@ __export(src_exports, {
   parseLearningModule: () => parseLearningModule,
   parseLutText: () => parseLutText,
   parseMidi: () => parseMidi,
+  parseMotionParams: () => parseMotionParams,
+  parseMotionTiming: () => parseMotionTiming,
   parseOklch: () => parseOklch,
   parsePenpotColor: () => parsePenpotColor,
   parsePenpotContent: () => parsePenpotContent,
@@ -117852,6 +118155,7 @@ __export(src_exports, {
   parseProviderRef: () => parseProviderRef,
   parseRadialGradient: () => parseRadialGradient,
   parseRateCard: () => parseRateCard,
+  parseSampleTimes: () => parseSampleTimes,
   parseScriptMarks: () => parseScriptMarks,
   parseSealRecord: () => parseSealRecord,
   parseSealRecords: () => parseSealRecords,
@@ -117988,6 +118292,7 @@ __export(src_exports, {
   resolveCamera: () => resolveCamera,
   resolveChartTheme: () => resolveChartTheme,
   resolveColorValue: () => resolveColorValue,
+  resolveCues: () => resolveCues,
   resolveDesignVersion: () => resolveDesignVersion,
   resolveGamutSource: () => resolveGamutSource,
   resolvePaintBindings: () => resolvePaintBindings,
@@ -118018,6 +118323,7 @@ __export(src_exports, {
   sampleBilinear: () => sampleBilinear,
   sampleCurve: () => sampleCurve,
   sampleLut: () => sampleLut,
+  sampleOutputFormat: () => sampleOutputFormat,
   sanitizeAppliedTokens: () => sanitizeAppliedTokens,
   satisfiesRange: () => satisfiesRange,
   scaleTextFrame: () => scaleTextFrame,
@@ -118038,10 +118344,12 @@ __export(src_exports, {
   seededPenpotUuid: () => seededPenpotUuid,
   selectFramePage: () => selectFramePage,
   selfUnion: () => selfUnion,
+  sequenceSampleTimes: () => sequenceSampleTimes,
   serialiseKf: () => serialiseKf,
   serializeCurve: () => serializeCurve,
   serializeFxChain: () => serializeFxChain,
   serializeHdr: () => serializeHdr,
+  serializeMotionParams: () => serializeMotionParams,
   serializeTextDocument: () => serializeTextDocument,
   serializeUrlState: () => serializeUrlState,
   sessionVersionStamp: () => sessionVersionStamp,
@@ -118059,6 +118367,7 @@ __export(src_exports, {
   sfntToWoff: () => sfntToWoff,
   sha256Hex: () => sha256Hex,
   shadedSolidFill: () => shadedSolidFill,
+  shutterTimes: () => shutterTimes,
   signCatalogEnvelope: () => signCatalogEnvelope,
   signedAreaCubic: () => signedAreaCubic,
   signedBy: () => signedBy,
@@ -118223,8 +118532,11 @@ __export(src_exports, {
   validateChartSpec: () => validateChartSpec,
   validateDocument: () => validateDocument,
   validateManifest: () => validateManifest,
+  validateMotionBlur: () => validateMotionBlur,
+  validateMotionRange: () => validateMotionRange,
   validatePreparationRules: () => validatePreparationRules,
   validateRateCard: () => validateRateCard,
+  validateSampleTimes: () => validateSampleTimes,
   vectorChartEvidence: () => vectorChartEvidence,
   vectorColourUses: () => vectorColourUses,
   vectorFeatures: () => vectorFeatures,
@@ -118579,6 +118891,10 @@ var init_src2 = __esm({
     init_rebrand_edit();
     init_deck_compile();
     init_deck_compile();
+    init_sequence_samples();
+    init_motion_sampling();
+    init_motion_cues();
+    init_motion_report();
   }
 });
 
@@ -119682,10 +119998,10 @@ function readRadiance(bytes) {
           const code = bytes[p++];
           if (code === 0) return null;
           if (code > 128) {
-            const run = code - 128;
-            if (p >= bytes.length || x + run > width) return null;
+            const run2 = code - 128;
+            if (p >= bytes.length || x + run2 > width) return null;
             const v = bytes[p++];
-            for (let k = 0; k < run; k++) rgbe[(rowStart + x++) * 4 + c] = v;
+            for (let k = 0; k < run2; k++) rgbe[(rowStart + x++) * 4 + c] = v;
           } else {
             if (p + code > bytes.length || x + code > width) return null;
             for (let k = 0; k < code; k++) rgbe[(rowStart + x++) * 4 + c] = bytes[p++];
@@ -119702,10 +120018,10 @@ function readRadiance(bytes) {
         p += 4;
         if (r5 === 1 && g2 === 1 && b === 1) {
           if (px3 === 0) return null;
-          const run = e << shift;
-          if (x + run > width) return null;
+          const run2 = e << shift;
+          if (x + run2 > width) return null;
           const prev = (px3 - 1) * 4;
-          for (let k = 0; k < run; k++) {
+          for (let k = 0; k < run2; k++) {
             const o = px3 * 4;
             rgbe[o] = rgbe[prev];
             rgbe[o + 1] = rgbe[prev + 1];
@@ -122982,16 +123298,16 @@ function admitLottieAnimation(value, label2 = "Animation") {
     byId.set(asset2.id, asset2);
   }
   let layerCount = 0, keyCount = 0;
-  function inspectProperties(object) {
-    if (typeof object.ty === "string" && !["gr", "tr", "sh", "rc", "el", "fl", "st", "gf", "gs", "tm"].includes(object.ty)) throw new Error(`${label2}: unsupported shape operation ${object.ty}. Export video instead.`);
-    if (typeof object.x === "string") throw new Error(`${label2}: expressions are not supported.`);
-    if (object.sid) throw new Error(`${label2}: themed slots are not supported.`);
-    if (object.a === 1 && Array.isArray(object.k)) {
-      keyCount += object.k.length;
+  function inspectProperties(object2) {
+    if (typeof object2.ty === "string" && !["gr", "tr", "sh", "rc", "el", "fl", "st", "gf", "gs", "tm"].includes(object2.ty)) throw new Error(`${label2}: unsupported shape operation ${object2.ty}. Export video instead.`);
+    if (typeof object2.x === "string") throw new Error(`${label2}: expressions are not supported.`);
+    if (object2.sid) throw new Error(`${label2}: themed slots are not supported.`);
+    if (object2.a === 1 && Array.isArray(object2.k)) {
+      keyCount += object2.k.length;
       if (keyCount > LOTTIE_LIMITS.keys) throw new Error(`${label2}: keyframe limit exceeded.`);
-      for (const key of object.k) lottieNumber(lottieObject(key, `${label2} keyframe`).t, `${label2} key time`, -864e4, 864e4);
+      for (const key of object2.k) lottieNumber(lottieObject(key, `${label2} keyframe`).t, `${label2} key time`, -864e4, 864e4);
     }
-    for (const child of Object.values(object)) {
+    for (const child of Object.values(object2)) {
       if (Array.isArray(child)) for (const item of child) {
         if (item && typeof item === "object" && !Array.isArray(item)) inspectProperties(item);
       }
@@ -123378,12 +123694,12 @@ function retimeLottie(source, fps, prefix) {
   const copy = structuredClone(source);
   const ratio = fps / source.fr;
   const ids2 = new Map((copy.assets ?? []).map((asset2, index2) => [String(asset2.id), `${prefix}-asset-${index2}`]));
-  function properties2(object) {
-    if (object.a === 1 && Array.isArray(object.k)) for (const item of object.k) {
+  function properties2(object2) {
+    if (object2.a === 1 && Array.isArray(object2.k)) for (const item of object2.k) {
       const key = lottieObject(item, "Lottie keyframe");
       if (typeof key.t === "number") key.t *= ratio;
     }
-    for (const child of Object.values(object)) {
+    for (const child of Object.values(object2)) {
       if (Array.isArray(child)) for (const item of child) {
         if (item && typeof item === "object" && !Array.isArray(item)) properties2(item);
       }
@@ -123567,9 +123883,9 @@ function lottieTracks(layer) {
   shapes3(layer.shapes, "shapes", [], 0);
   return tracks;
 }
-function revisionFrom(encoded) {
-  if (encoded.length > LOTTIE_REVISION_LIMITS.bytes) throw new Error("Animation edits exceed 256 KiB.");
-  const bytes = new TextEncoder().encode(encoded);
+function revisionFrom(encoded2) {
+  if (encoded2.length > LOTTIE_REVISION_LIMITS.bytes) throw new Error("Animation edits exceed 256 KiB.");
+  const bytes = new TextEncoder().encode(encoded2);
   if (bytes.length > LOTTIE_REVISION_LIMITS.bytes) throw new Error("Animation edits exceed 256 KiB.");
   const value = readLottieJson(bytes, "Animation edits");
   if (value.version !== 1 || typeof value.source !== "string" || !/^[a-f0-9]{64}$/.test(value.source) || !Array.isArray(value.edits) || value.edits.length > LOTTIE_REVISION_LIMITS.edits) throw new Error("Invalid animation revision.");
@@ -123619,9 +123935,9 @@ function applyEdit(source, raw) {
     }
   } else throw new Error("Unknown animation edit.");
 }
-async function applyLottieEdits(source, encoded) {
-  if (!encoded) return source;
-  const revision = revisionFrom(encoded);
+async function applyLottieEdits(source, encoded2) {
+  if (!encoded2) return source;
+  const revision = revisionFrom(encoded2);
   if (revision.source !== await sourceHash(source)) throw new Error("Animation edits belong to a different source. Reset the internal edits before replacing it.");
   const copy = structuredClone(source);
   for (const edit of revision.edits) applyEdit(copy, edit);
@@ -123821,8 +124137,8 @@ async function exportDesignLottie(opts, host) {
   };
   const content2 = visible.filter((box3) => box3.kind !== "frame" && !yes(box3.ignored) && (!frame || String(box3.frame) === String(frame.id)));
   const timed = content2.filter((box3) => box3.lane === "seq" || authoredTime(box3.start));
-  const finite3 = timed.filter((box3) => authoredTime(box3.dur));
-  const durationMs = finite3.length ? Math.max(...finite3.map((box3) => start(box3) + Math.round(clamp5(num9(box3.dur), 0.1, 3600) * 1e3))) : 5e3;
+  const finite4 = timed.filter((box3) => authoredTime(box3.dur));
+  const durationMs = finite4.length ? Math.max(...finite4.map((box3) => start(box3) + Math.round(clamp5(num9(box3.dur), 0.1, 3600) * 1e3))) : 5e3;
   const layers = [];
   const background = opts.background === "transparent" || yes(values.transparentBg) ? null : await paint(frame?.bg ?? values.background, host);
   if (background) layers.push({
@@ -124147,6 +124463,84 @@ var init_signing_identity = __esm({
   }
 });
 
+// packages/node-shell/src/motion-inspect.ts
+var motion_inspect_exports = {};
+__export(motion_inspect_exports, {
+  inspectMotionBytes: () => inspectMotionBytes
+});
+import { execFile } from "node:child_process";
+import { promisify as promisify2 } from "node:util";
+import { mkdtemp, writeFile as writeFile3, rm as rm2 } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join as join17 } from "node:path";
+async function inspectMotionBytes(bytes, target = {}, binaries = { probe: "ffprobe", decode: "ffmpeg" }) {
+  if (!bytes.length || bytes.length > 256 * 1024 * 1024) throw new Error("Motion inspection accepts 1 byte to 256 MiB.");
+  const directory = await mkdtemp(join17(tmpdir(), "lolly-motion-check-")), path = join17(directory, "delivery");
+  const facts2 = {}, checks = [];
+  try {
+    await writeFile3(path, bytes);
+    let streams;
+    try {
+      const { stdout } = await run(binaries.probe, ["-v", "error", "-protocol_whitelist", "file,pipe", "-show_streams", "-show_format", "-of", "json", path], { timeout: 3e4, maxBuffer: 2 * 1024 * 1024 });
+      const parsed = JSON.parse(stdout);
+      streams = parsed.streams ?? [];
+      const video = streams.find((stream) => stream.codec_type === "video");
+      facts2.width = video?.width;
+      facts2.height = video?.height;
+      facts2.fps = rate(video?.avg_frame_rate ?? "0");
+      const seconds = Number(parsed.format?.duration ?? video?.duration);
+      if (Number.isFinite(seconds) && seconds > 0) facts2.seconds = seconds;
+      facts2.audio = streams.some((stream) => stream.codec_type === "audio");
+    } catch (error2) {
+      return motionReport(facts2, target, [{ id: "container", status: "not-run", reason: `ffprobe unavailable or could not read this file: ${error2.message}` }]);
+    }
+    if (!facts2.seconds || facts2.seconds > 3600) return motionReport(facts2, target, [{ id: "decoded-analysis", status: "not-run", reason: "Decoding requires a known duration of at most one hour." }]);
+    const args = ["-hide_banner", "-nostdin", "-protocol_whitelist", "file,pipe", "-i", path];
+    if (facts2.width) args.push("-vf", "blackdetect=d=0.5:pix_th=0.03,freezedetect=n=-50dB:d=1");
+    if (facts2.audio) args.push("-af", "ebur128=peak=true,silencedetect=n=-50dB:d=1");
+    args.push("-f", "null", "-");
+    try {
+      const { stderr } = await run(binaries.decode, args, { timeout: 3e5, maxBuffer: 16 * 1024 * 1024 });
+      if (facts2.audio) {
+        facts2.loudness = measurement(stderr, /Integrated loudness:\s+I:\s+([-\w.]+)/g);
+        facts2.truePeak = measurement(stderr, /True peak:\s+Peak:\s+([-\w.]+)/g);
+      }
+      for (const [id2, pattern] of [["black-spans", /black_start:([\d.]+) black_end:([\d.]+) black_duration:([\d.]+)/g], ["frozen-spans", /freeze_start:\s*([\d.]+)/g], ["silent-spans", /silence_start:\s*([\d.]+)/g]]) {
+        if (id2 === "silent-spans" && !facts2.audio || id2 !== "silent-spans" && !facts2.width) {
+          checks.push({ id: id2, status: "not-run", reason: "The corresponding media track is absent." });
+          continue;
+        }
+        const spans = [...stderr.matchAll(pattern)].map((match) => ({ from: Number(match[1]), ...match[2] ? { to: Number(match[2]) } : {} }));
+        checks.push({ id: id2, status: spans.length ? "review" : "pass", measured: spans, reason: "Candidates for review; black, reading holds and silence may be intentional." });
+      }
+    } catch (error2) {
+      checks.push({ id: "decoded-analysis", status: "not-run", reason: `ffmpeg unavailable or decoding failed: ${error2.message}` });
+    }
+    return motionReport(facts2, target, checks);
+  } finally {
+    await rm2(directory, { recursive: true, force: true });
+  }
+}
+var run, rate, measurement;
+var init_motion_inspect = __esm({
+  "packages/node-shell/src/motion-inspect.ts"() {
+    "use strict";
+    init_motion_report();
+    run = promisify2(execFile);
+    rate = (value) => {
+      const [n6, d = "1"] = value.split("/");
+      const out = Number(n6) / Number(d);
+      return Number.isFinite(out) && out > 0 ? out : void 0;
+    };
+    measurement = (text6, pattern) => {
+      const raw = [...text6.matchAll(pattern)].at(-1)?.[1];
+      if (raw === void 0) return void 0;
+      const n6 = Number(raw);
+      return Number.isFinite(n6) ? n6 : null;
+    };
+  }
+});
+
 // packages/node-shell/src/pdf-file-operation.ts
 var pdf_file_operation_exports = {};
 __export(pdf_file_operation_exports, {
@@ -124160,16 +124554,16 @@ async function runPdfFileOperation(bytes, target, signal) {
   if (document2.getPageCount() > 200) throw new Error("These PDF utilities support up to 200 pages. Split the document first.");
   const seen = /* @__PURE__ */ new Set();
   let visited = 0;
-  const inspect = (object, depth = 0) => {
-    if (seen.has(object)) return;
-    seen.add(object);
+  const inspect = (object2, depth = 0) => {
+    if (seen.has(object2)) return;
+    seen.add(object2);
     if (++visited > 5e5 || depth > 32) throw new Error("PDF structure exceeds the safe inspection limit.");
-    if (object instanceof PDFDict4) {
-      if (object.has(PDFName4.of("ByteRange")) || object.get(PDFName4.of("Type")) === PDFName4.of("Sig")) throw new Error("This PDF carries a digital signature. Rewriting would invalidate it; use an unsigned source.");
-      for (const [, value] of object.entries()) inspect(value, depth + 1);
-    } else if (object instanceof PDFArray5) for (const value of object.asArray()) inspect(value, depth + 1);
+    if (object2 instanceof PDFDict4) {
+      if (object2.has(PDFName4.of("ByteRange")) || object2.get(PDFName4.of("Type")) === PDFName4.of("Sig")) throw new Error("This PDF carries a digital signature. Rewriting would invalidate it; use an unsigned source.");
+      for (const [, value] of object2.entries()) inspect(value, depth + 1);
+    } else if (object2 instanceof PDFArray5) for (const value of object2.asArray()) inspect(value, depth + 1);
   };
-  for (const [, object] of document2.context.enumerateIndirectObjects()) inspect(object);
+  for (const [, object2] of document2.context.enumerateIndirectObjects()) inspect(object2);
   signal?.throwIfAborted();
   const output = target === "pdf-clean" ? (await stripPdf(bytes)).bytes : await document2.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false });
   signal?.throwIfAborted();
@@ -124191,7 +124585,10 @@ var ERR = {
   INVALID_REQUEST: -32600,
   METHOD_NOT_FOUND: -32601,
   INVALID_PARAMS: -32602,
-  INTERNAL: -32603
+  INTERNAL: -32603,
+  HEADER_MISMATCH: -32020,
+  MISSING_CAPABILITY: -32021,
+  UNSUPPORTED_VERSION: -32022
 };
 function ok(id2, result) {
   return { jsonrpc: "2.0", id: id2, result };
@@ -124200,9 +124597,123 @@ function fail(id2, code, message, data) {
   return { jsonrpc: "2.0", id: id2, error: { code, message, ...data !== void 0 ? { data } : {} } };
 }
 
+// services/mcp/src/negotiation.ts
+var PROTOCOL_VERSION = "2026-07-28";
+var LEGACY_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"];
+var SUPPORTED_VERSIONS = [PROTOCOL_VERSION, ...LEGACY_VERSIONS];
+var VERSION_META = "io.modelcontextprotocol/protocolVersion";
+var CAPABILITIES_META = "io.modelcontextprotocol/clientCapabilities";
+var SERVER_INFO = { name: "lolly-mcp", version: "0.2.0" };
+var CAPABILITIES = { tools: {}, resources: {}, prompts: {} };
+var object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+function validRequest(value) {
+  return object(value) && value.jsonrpc === "2.0" && typeof value.method === "string" && !!value.method && (value.id === void 0 || typeof value.id === "string" || typeof value.id === "number" && Number.isFinite(value.id));
+}
+function requestVersion(req) {
+  return object(req.params) && object(req.params._meta) ? req.params._meta[VERSION_META] : void 0;
+}
+function modernRequest(req, header) {
+  return req.method === "server/discover" || requestVersion(req) === PROTOCOL_VERSION || header === PROTOCOL_VERSION;
+}
+function unsupportedVersion(req, version) {
+  return fail(req.id ?? null, ERR.UNSUPPORTED_VERSION, "Unsupported MCP protocol version", { supported: SUPPORTED_VERSIONS, requested: version });
+}
+function validateNegotiation(req, header) {
+  const id2 = req.id ?? null;
+  if (req.params !== void 0 && !object(req.params)) return fail(id2, ERR.INVALID_PARAMS, "params must be an object");
+  if (object(req.params) && req.params._meta !== void 0 && !object(req.params._meta)) return fail(id2, ERR.INVALID_PARAMS, "_meta must be an object");
+  const version = requestVersion(req);
+  if (version !== void 0 && typeof version !== "string") return fail(id2, ERR.INVALID_PARAMS, "Protocol version metadata must be a string");
+  if (typeof version === "string" && !SUPPORTED_VERSIONS.includes(version)) return unsupportedVersion(req, version);
+  if (header && !SUPPORTED_VERSIONS.includes(header)) return unsupportedVersion(req, header);
+  if (modernRequest(req, header)) {
+    if (version !== PROTOCOL_VERSION) return fail(id2, ERR.INVALID_PARAMS, `Request _meta must include ${VERSION_META}`);
+    const meta = object(req.params) && object(req.params._meta) ? req.params._meta : {};
+    if (!object(meta[CAPABILITIES_META])) return fail(id2, ERR.INVALID_PARAMS, `Request _meta must include an object ${CAPABILITIES_META}`);
+  }
+  return null;
+}
+function decodedHeader(value) {
+  if (typeof value !== "string" || !/^[\x20-\x7e\t]*$/.test(value) || value.trim() !== value) return void 0;
+  if (!value.startsWith("=?base64?") || !value.endsWith("?=")) return value;
+  const raw = value.slice(9, -2);
+  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(raw)) return void 0;
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(Buffer.from(raw, "base64"));
+  } catch {
+    return void 0;
+  }
+}
+function validateHttpHeaders(req, headers) {
+  const header = headers["mcp-protocol-version"];
+  const version = requestVersion(req), modern = modernRequest(req, typeof header === "string" ? header : void 0);
+  const mismatch = (name) => fail(req.id ?? null, ERR.HEADER_MISMATCH, `Missing or mismatched ${name} header`);
+  if (Array.isArray(header)) return mismatch("MCP-Protocol-Version");
+  if ((modern || version !== void 0) && (header === void 0 || header !== version)) return mismatch("MCP-Protocol-Version");
+  if (header && !SUPPORTED_VERSIONS.includes(header)) return unsupportedVersion(req, header);
+  if (!modern) return null;
+  if (headers["mcp-method"] !== req.method) return mismatch("Mcp-Method");
+  const params2 = object(req.params) ? req.params : {};
+  const expected = req.method === "resources/read" ? params2.uri : ["tools/call", "prompts/get"].includes(req.method) ? params2.name : void 0;
+  if (["resources/read", "tools/call", "prompts/get"].includes(req.method) && (typeof expected !== "string" || decodedHeader(headers["mcp-name"]) !== expected)) return mismatch("Mcp-Name");
+  return null;
+}
+function allowedOrigin(origin, canonical2, extra = "") {
+  if (origin === void 0) return true;
+  if (typeof origin !== "string") return false;
+  try {
+    const url = new URL(origin);
+    return ["https:", "http:"].includes(url.protocol) && url.origin === origin && [canonical2, ...extra.split(",").map((value) => value.trim()).filter(Boolean)].includes(origin);
+  } catch {
+    return false;
+  }
+}
+
 // services/mcp/src/tools.ts
 init_src2();
 init_src();
+
+// services/mcp/src/motion-export.ts
+init_src2();
+var MOTION_EXPORT_ARGS = {
+  motionBlur: { type: "object", properties: { samples: { type: "integer", enum: [1, 4, 8, 16] }, shutterAngle: { type: "number", minimum: 0, maximum: 360 } }, required: ["samples", "shutterAngle"], additionalProperties: false, description: "Temporal exposure for deterministic Sequence exports. Off when absent. SDR sRGB only." },
+  sequenceRange: { type: "object", properties: { from: { type: "number", minimum: 0 }, to: { type: "number", maximum: 3600 } }, required: ["from", "to"], additionalProperties: false, description: "Temporary authored in/out seconds for a movie preview, including the full mix. Saved markers are unchanged." },
+  sampleTimes: { type: "array", minItems: 1, maxItems: 64, items: { type: "number", minimum: 0, maximum: 3600 }, description: "Exact authored timeline seconds for still export, strictly increasing and before the timeline end. One time returns one still; several return a ZIP or paged PDF. Cannot combine with cuts." },
+  fps: { type: "integer", minimum: 1, maximum: 120, description: "Movie frames per second. Overrides the project rate without changing playback speed." },
+  seconds: { type: "number", minimum: 0.5, maximum: 3600, description: "Requested movie length in seconds. Omit to use the composition duration." },
+  wait: { type: "number", minimum: 0, maximum: 30, description: "Settle time before capture, in seconds. Does not seek the timeline." },
+  codec: { type: "string", enum: Object.keys(VIDEO_CODEC_STRINGS), description: "Requested video codec; availability depends on the browser render tier." },
+  vq: { type: "string", enum: ["smaller", "balanced", "best"], description: "Video quality setting." }
+};
+function motionExportSettings(args) {
+  const result = {};
+  if (args.motionBlur !== void 0) result.motionBlur = validateMotionBlur(args.motionBlur);
+  if (args.sequenceRange !== void 0) result.sequenceRange = validateMotionRange(args.sequenceRange);
+  if (args.sampleTimes !== void 0) result.sampleTimes = validateSampleTimes(args.sampleTimes);
+  if (result.sampleTimes && Number(args.cuts) > 1) throw new Error("Choose cuts or sampleTimes, not both.");
+  for (const key of ["fps", "seconds", "wait"]) {
+    const value = args[key];
+    if (value === void 0) continue;
+    const rule = MOTION_EXPORT_ARGS[key];
+    if (typeof value !== "number" || !Number.isFinite(value) || value < rule.minimum || value > rule.maximum || key === "fps" && !Number.isInteger(value)) {
+      throw new Error(`${key} must be ${key === "fps" ? "an integer" : "a number"} from ${rule.minimum} to ${rule.maximum}.`);
+    }
+    result[key] = value;
+  }
+  if (args.codec !== void 0) {
+    if (typeof args.codec !== "string" || !Object.hasOwn(VIDEO_CODEC_STRINGS, args.codec)) {
+      throw new Error(`codec must be one of ${MOTION_EXPORT_ARGS.codec.enum.join(", ")}.`);
+    }
+    result.codec = args.codec;
+  }
+  if (args.vq !== void 0) {
+    if (typeof args.vq !== "string" || !MOTION_EXPORT_ARGS.vq.enum.includes(args.vq)) {
+      throw new Error("vq must be smaller, balanced or best.");
+    }
+    result.vq = args.vq;
+  }
+  return result;
+}
 
 // packages/node-shell/src/verdict-slugs.ts
 var VERDICT_SLUGS = {
@@ -124489,6 +125000,82 @@ function needsBrowserTier(err) {
   return PROSE.test(message);
 }
 
+// packages/node-shell/src/export-wait.ts
+var MOTION_FORMATS2 = /* @__PURE__ */ new Set(["mp4", "webm", "gif", "apng", "webp-anim"]);
+function exportIdleTimeout(format, configured = process.env.LOLLY_EXPORT_IDLE_TIMEOUT) {
+  const seconds = Number(configured);
+  if (Number.isFinite(seconds) && seconds > 0 && seconds <= 2147483) return seconds * 1e3;
+  if (MOTION_FORMATS2.has(format.toLowerCase())) return 6e5;
+  return ["pdf", "pdf-cmyk", "cmyk-tiff", "tiff"].includes(format.toLowerCase()) ? 9e4 : 6e4;
+}
+function advancingProgress() {
+  let started = false, done = 0, total = 0;
+  return (report2) => {
+    if (report2?.phase === "start") {
+      if (started) return false;
+      started = true;
+      return true;
+    }
+    const next = report2?.done, count4 = report2?.total;
+    if (report2?.phase !== "progress" || !Number.isFinite(next) || !Number.isFinite(count4) || !(next > 0 && count4 > 0 && next <= count4)) return false;
+    if (count4 === total && next <= done) return false;
+    done = next;
+    total = count4;
+    return true;
+  };
+}
+async function waitForExport(page3, format, idleMs = exportIdleTimeout(format)) {
+  const advanced = advancingProgress();
+  let timer;
+  let settled = false;
+  let rejectWait;
+  let resolveWait;
+  const result = new Promise((resolve6, reject) => {
+    resolveWait = resolve6;
+    rejectWait = reject;
+  });
+  void result.catch(() => {
+  });
+  const cleanup = () => {
+    clearTimeout(timer);
+    page3.off("console", exportError);
+    page3.off("download", downloaded);
+    page3.off("close", closed);
+    page3.off("crash", crashed);
+  };
+  const fail4 = (error2) => {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    rejectWait(error2);
+  };
+  const touch = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fail4(new Error(`No export progress or download for ${idleMs / 1e3}s. Set LOLLY_EXPORT_IDLE_TIMEOUT (seconds) for slower preparation or frames.`)), idleMs);
+  };
+  const downloaded = (download) => {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    resolveWait(download);
+  };
+  const closed = () => fail4(new Error("The export page closed before producing a file."));
+  const crashed = () => fail4(new Error("The export page crashed before producing a file."));
+  const exportError = (message) => {
+    const text6 = message.text();
+    if (/^Auto-export (?:failed|did not start):/.test(text6)) fail4(new Error(text6));
+  };
+  await page3.exposeFunction("__lollyExportProgress", (report2) => {
+    if (!settled && advanced(report2)) touch();
+  });
+  page3.on("console", exportError);
+  page3.on("download", downloaded);
+  page3.on("close", closed);
+  page3.on("crash", crashed);
+  touch();
+  return { result, dispose: () => fail4(new Error("The export wait was cancelled.")) };
+}
+
 // services/mcp/src/render.ts
 import { readFile as readFile15, stat as stat3 } from "node:fs/promises";
 
@@ -124641,9 +125228,9 @@ async function inspectPptx(bytes, opts, parseXml) {
         if (node.type === "text") {
           addColor(node.fill);
           for (const para of node.paras) {
-            for (const run of para.runs) {
-              addColor(run.color);
-              addFont(run.font);
+            for (const run2 of para.runs) {
+              addColor(run2.color);
+              addFont(run2.font);
             }
           }
         } else if (node.type === "shape") {
@@ -125406,20 +125993,20 @@ function createTextCompositionCache() {
 init_src2();
 
 // packages/node-shell/src/text-shape-cache.ts
-function copyRun(run, start = run.start) {
-  const delta = start - run.start;
+function copyRun(run2, start = run2.start) {
+  const delta = start - run2.start;
   return {
-    ...run,
+    ...run2,
     start,
-    end: run.end + delta,
-    font: { ...run.font, axes: { ...run.font.axes }, features: { ...run.font.features } },
-    clusters: run.clusters.map((cluster2) => ({
+    end: run2.end + delta,
+    font: { ...run2.font, axes: { ...run2.font.axes }, features: { ...run2.font.features } },
+    clusters: run2.clusters.map((cluster2) => ({
       ...cluster2,
       start: cluster2.start + delta,
       end: cluster2.end + delta,
       carets: cluster2.carets.map((caret) => ({ ...caret, offset: caret.offset + delta }))
     })),
-    missing: run.missing.map((range) => ({ ...range, start: range.start + delta, end: range.end + delta }))
+    missing: run2.missing.map((range) => ({ ...range, start: range.start + delta, end: range.end + delta }))
   };
 }
 function createTextShapeCache() {
@@ -125437,8 +126024,8 @@ function createTextShapeCache() {
       entries.set(key, entry2);
       return copyRun(entry2.run, start);
     },
-    remember(key, run) {
-      const cost = 2 * (key.length + JSON.stringify(run).length), limit = 16 * 1024 * 1024;
+    remember(key, run2) {
+      const cost = 2 * (key.length + JSON.stringify(run2).length), limit = 16 * 1024 * 1024;
       if (cost > limit) return;
       const old = entries.get(key);
       if (old) {
@@ -125450,7 +126037,7 @@ function createTextShapeCache() {
         bytes -= entries.get(first).bytes;
         entries.delete(first);
       }
-      entries.set(key, { run: copyRun(run), bytes: cost });
+      entries.set(key, { run: copyRun(run2), bytes: cost });
       bytes += cost;
     },
     clear() {
@@ -128660,7 +129247,7 @@ function runsOfNode(node, nodeIndex, artifact) {
     const inkW = Array.isArray(node.lineInk) ? node.lineInk[i] : void 0;
     const ink = typeof inkW === "number" && Number.isFinite(inkW) && inkW > 0 ? inkW : 0;
     const w = lines.length === 1 ? node.w : Math.min(node.w, ink || line.length * size * 0.55);
-    const run = {
+    const run2 = {
       text: line,
       x: node.x,
       y: node.y + i * lead,
@@ -128678,11 +129265,11 @@ function runsOfNode(node, nodeIndex, artifact) {
       rot: node.rot ?? 0,
       nodeIndex
     };
-    if (ink) run.measured = true;
-    if (tracking) run.tracking = tracking;
-    if (i === lines.length - 1 && node.spaceAfter) run.spaceAfter = true;
-    if (artifact) run.artifact = artifact;
-    out.push(run);
+    if (ink) run2.measured = true;
+    if (tracking) run2.tracking = tracking;
+    if (i === lines.length - 1 && node.spaceAfter) run2.spaceAfter = true;
+    if (artifact) run2.artifact = artifact;
+    out.push(run2);
   });
   return out;
 }
@@ -128690,35 +129277,35 @@ function pdfTextLines(nodes, artifacts) {
   const lines = [];
   nodes.forEach((node, index2) => {
     if (node.kind !== "text") return;
-    for (const run of runsOfNode(node, index2, artifacts?.[index2])) {
-      const upright = Math.abs(run.rot) <= UPRIGHT_DEG;
-      const host = upright ? lines.find((line2) => Math.abs(line2.rot) <= UPRIGHT_DEG && line2.artifact === run.artifact && Math.abs(line2.baseline - run.baseline) <= LINE_BASELINE_TOLERANCE * Math.min(line2.size, run.size) && run.x >= line2.ink - 0.5 * run.size && run.x - line2.ink <= LINE_GAP_SIZES * Math.max(line2.size, run.size)) : void 0;
+    for (const run2 of runsOfNode(node, index2, artifacts?.[index2])) {
+      const upright = Math.abs(run2.rot) <= UPRIGHT_DEG;
+      const host = upright ? lines.find((line2) => Math.abs(line2.rot) <= UPRIGHT_DEG && line2.artifact === run2.artifact && Math.abs(line2.baseline - run2.baseline) <= LINE_BASELINE_TOLERANCE * Math.min(line2.size, run2.size) && run2.x >= line2.ink - 0.5 * run2.size && run2.x - line2.ink <= LINE_GAP_SIZES * Math.max(line2.size, run2.size)) : void 0;
       if (host) {
-        host.runs.push(run);
-        const right = Math.max(host.right, run.x + run.w);
-        const bottom = Math.max(host.y + host.h, run.y + run.h);
-        host.y = Math.min(host.y, run.y);
+        host.runs.push(run2);
+        const right = Math.max(host.right, run2.x + run2.w);
+        const bottom = Math.max(host.y + host.h, run2.y + run2.h);
+        host.y = Math.min(host.y, run2.y);
         host.h = bottom - host.y;
         host.right = right;
-        host.ink = Math.max(host.ink, run.right);
+        host.ink = Math.max(host.ink, run2.right);
         host.w = right - host.x;
-        host.size = Math.max(host.size, run.size);
+        host.size = Math.max(host.size, run2.size);
         continue;
       }
       const line = {
-        runs: [run],
-        x: run.x,
-        y: run.y,
-        w: run.w,
-        h: run.h,
-        rot: run.rot,
+        runs: [run2],
+        x: run2.x,
+        y: run2.y,
+        w: run2.w,
+        h: run2.h,
+        rot: run2.rot,
         firstNode: index2,
-        right: run.x + run.w,
-        ink: run.right,
-        baseline: run.baseline,
-        size: run.size
+        right: run2.x + run2.w,
+        ink: run2.right,
+        baseline: run2.baseline,
+        size: run2.size
       };
-      if (run.artifact) line.artifact = run.artifact;
+      if (run2.artifact) line.artifact = run2.artifact;
       lines.push(line);
     }
   });
@@ -128732,18 +129319,18 @@ function pdfLineRunTexts(line) {
   const out = [];
   let acc = "";
   let prev = null;
-  for (const run of line.runs) {
-    let text6 = run.text;
+  for (const run2 of line.runs) {
+    let text6 = run2.text;
     if (prev && acc) {
       const measured = prev.measured === true;
-      const gap = run.x - prev.right - (measured ? prev.tracking ?? 0 : 0);
-      const size = Math.max(1, run.size);
+      const gap = run2.x - prev.right - (measured ? prev.tracking ?? 0 : 0);
+      const size = Math.max(1, run2.size);
       const spelled = prev.spaceAfter === true && gap > 0 && !/\s$/.test(acc) && !/^\s/.test(text6);
       if (spelled || pdfWordBreak(acc, text6, gap / size, measured ? PDF_WORD_GAP_EM : ESTIMATED_WORD_GAP_EM2)) text6 = ` ${text6}`;
     }
     out.push(text6);
     acc += text6;
-    prev = run;
+    prev = run2;
   }
   return out;
 }
@@ -129669,7 +130256,7 @@ function createNodeSpeechAPI(opts = {}) {
     for (let i = 0; i < plan.length; i++) {
       if (isAborted()) throw abortError2("speech synthesis aborted");
       const { sentence, line } = plan[i];
-      const rate = Math.min(MAX_SPEECH_SPEED, Math.max(MIN_SPEECH_SPEED, sentence.speed ?? speed));
+      const rate2 = Math.min(MAX_SPEECH_SPEED, Math.max(MIN_SPEECH_SPEED, sentence.speed ?? speed));
       const words = sentence.tokens ?? splitWords(sentence.text);
       const wordPhonemes = [];
       for (const [w, word] of words.entries()) {
@@ -129686,7 +130273,7 @@ function createNodeSpeechAPI(opts = {}) {
         const outputs = await model2({
           input_ids,
           style: new Tensor("float32", style, [1, KOKORO_STYLE_DIM]),
-          speed: new Tensor("float32", [rate], [1])
+          speed: new Tensor("float32", [rate2], [1])
         });
         const wave = outputs.waveform.data;
         let wordEntries = null;
@@ -131184,9 +131771,9 @@ async function brandCmykPalette(host) {
 // services/mcp/src/host.ts
 var chain = Promise.resolve();
 function enqueue(fn) {
-  const run = chain.then(fn, fn);
-  chain = run.then(() => void 0, () => void 0);
-  return run;
+  const run2 = chain.then(fn, fn);
+  chain = run2.then(() => void 0, () => void 0);
+  return run2;
 }
 function safeJson(v) {
   try {
@@ -131835,6 +132422,7 @@ function exportUrl(base, toolId, query2, fmt3, o) {
   if (o.colorProfile) p.set("profile", o.colorProfile);
   if (o.hdr) p.set("hdr", serializeHdr(o.hdr));
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
+  if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
   p.set("export", "1");
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -131854,12 +132442,6 @@ async function exposeExportPassword(context, password) {
     held = void 0;
   };
 }
-function exportTimeoutMs(fmt3) {
-  const f = normFormat(fmt3);
-  if (f === "webm" || f === "mp4" || f === "gif" || f === "apng") return 18e4;
-  if (f === "pdf" || f === "pdf-cmyk" || f === "cmyk-tiff" || f === "tiff") return 9e4;
-  return 6e4;
-}
 async function renderTierB(toolId, query2, fmt3, o) {
   return withBrowserJob(async () => {
     const base = await webShellBase();
@@ -131874,6 +132456,7 @@ async function renderTierB(toolId, query2, fmt3, o) {
     const ctx = await browser.newContext({ serviceWorkers: "block", acceptDownloads: true });
     let clearPassword = () => {
     };
+    let waiting;
     try {
       await ctx.addInitScript(() => {
         Object.defineProperty(globalThis, "__LOLLY_AI_DISABLED__", { value: true, writable: false, configurable: false });
@@ -131881,15 +132464,14 @@ async function renderTierB(toolId, query2, fmt3, o) {
       clearPassword = await exposeExportPassword(ctx, fmt3 === "pdf" ? o.password : void 0);
       const page3 = await ctx.newPage();
       await installBrowserEgressPolicy(page3, base);
-      const downloadP = page3.waitForEvent("download", { timeout: exportTimeoutMs(fmt3) });
+      waiting = await waitForExport(page3, fmt3);
+      const downloadP = waiting.result;
       await page3.goto(url, { waitUntil: "commit", timeout: 3e4 });
       let download;
       try {
         download = await downloadP;
-      } catch {
-        throw new RenderError(
-          `Tool "${toolId}" produced no "${fmt3}" export within the time limit - the tool may have failed to render, or the format isn't supported in the browser. Check the inputs.`
-        );
+      } catch (error2) {
+        throw new RenderError(`Tool "${toolId}" did not export: ${error2 instanceof Error ? error2.message : String(error2)}`);
       }
       const path = await download.path();
       if (!path) throw new RenderError(`Tier-B download for "${toolId}" yielded no file.`);
@@ -131898,6 +132480,7 @@ async function renderTierB(toolId, query2, fmt3, o) {
       });
       return { bytes, mime: mimeForFormat(fmt3) };
     } finally {
+      waiting?.dispose();
       clearPassword();
       await ctx.close();
     }
@@ -131935,6 +132518,10 @@ async function render(toolId, query2, o = {}) {
     throw new RenderError(`Tool "${toolId}" does not support format "${fmt3}". Supported: ${formats.join(", ")} (plus the pro float formats exr, hdr, which need hdr=1)`);
   }
   const exportFmt = fmt3 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt3;
+  assertMotionRequest(fmt3, st);
+  const sampled = assertSampleRequest(fmt3, st.cuts, st.sampleTimes);
+  const deliveredFormat = sampled ? sampleOutputFormat(fmt3, st.cuts, st.sampleTimes) : fmt3;
+  if ((sampled || st.motionBlur || st.sequenceRange) && o.noBrowser) throw new RenderError("Timeline samples require the browser render tier.");
   const values = { ...st.values };
   if (o.transparentBg !== void 0) values["transparentBg"] = o.transparentBg;
   if (o.convertPaths !== void 0) values["convertPaths"] = o.convertPaths;
@@ -131961,7 +132548,9 @@ async function render(toolId, query2, o = {}) {
   let evaluation = null;
   const floatScene = needsFloatScene(toolId, values.editingRange, exportFmt, merged.hdr);
   if (floatScene && o.noBrowser) throw new RenderError("HDR Design composition requires the browser render tier.");
-  if (TIER_A.has(exportFmt) && !floatScene) {
+  if (sampled || st.motionBlur || st.sequenceRange) {
+    out = { ...await renderTierB(toolId, q, exportFmt, merged), mime: mimeForFormat(deliveredFormat), tier: "B" };
+  } else if (TIER_A.has(exportFmt) && !floatScene) {
     try {
       const r5 = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji);
       placed2 = r5.ingredients;
@@ -132009,19 +132598,19 @@ async function render(toolId, query2, o = {}) {
       warnings.push(`This render drew emoji in the browser tier, and the source census could not be established here (${e.message}), so the result records no creative sources and no rights answer. Ask for a format the browser-free tier renders, or read the set's licence from the catalog entry.`);
     }
   }
-  if (merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt) && !(exportFmt === "pdf" && merged.password)) {
+  if (!sampled && merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt) && !(exportFmt === "pdf" && merged.password)) {
     try {
       bytes = await stampC2pa(bytes, exportFmt, tool.manifest, values, merged, placed2);
     } catch (e) {
       warnings.push(`Content Credentials not attached - ${e.message}`);
     }
-  } else if (merged.c2pa?.on) {
+  } else if (!sampled && merged.c2pa?.on) {
     warnings.push(`Format "${fmt3}" cannot carry Content Credentials - skipped.`);
   }
   return {
     bytes,
     mime: out.mime,
-    format: fmt3,
+    format: deliveredFormat,
     tier: out.tier,
     warnings,
     ...evaluation ? { rights: await rightsResult(evaluation, bytes) } : {}
@@ -132257,15 +132846,15 @@ function fillCoverage(cov, w, h, edges, evenOdd, clipL, clipR) {
     }
   }
 }
-function glyphRunFrame(items2, run, span) {
-  const box3 = span ? { x: span.x, y: run.box.y, w: span.w, h: run.box.h } : run.box;
+function glyphRunFrame(items2, run2, span) {
+  const box3 = span ? { x: span.x, y: run2.box.y, w: span.w, h: run2.box.h } : run2.box;
   let scale = FRAME_INK_HEIGHT / Math.max(box3.h, 1e-6);
   if (box3.w * scale + 2 * FRAME_PAD > FRAME_MAX_WIDTH) scale = (FRAME_MAX_WIDTH - 2 * FRAME_PAD) / Math.max(box3.w, 1e-6);
   const w = Math.max(1, Math.ceil(box3.w * scale + 2 * FRAME_PAD));
   const h = Math.max(1, Math.ceil(box3.h * scale + 2 * FRAME_PAD));
   const map = (x, y) => [(x - box3.x) * scale + FRAME_PAD, (y - box3.y) * scale + FRAME_PAD];
   const cov = new Float32Array(w * h);
-  for (const index2 of run.items) {
+  for (const index2 of run2.items) {
     const item = items2.items[index2];
     if (item?.kind !== "path") continue;
     fillCoverage(cov, w, h, edgesOf(item.d, map), item.fillRule === "evenodd", Math.max(0, FRAME_PAD - 2), Math.min(w, w - FRAME_PAD + 2));
@@ -132280,7 +132869,7 @@ function glyphRunFrame(items2, run, span) {
   }
   return { width: w, height: h, data };
 }
-function glyphRunKey(items2, run) {
+function glyphRunKey(items2, run2) {
   let h1 = 2166136261;
   let h2 = 16777619;
   let n6 = 0;
@@ -132290,24 +132879,24 @@ function glyphRunKey(items2, run) {
     h2 = Math.imul(h2 ^ v + n6, 1540483477) >>> 0;
     n6 += 1;
   };
-  for (const index2 of run.items) {
+  for (const index2 of run2.items) {
     const item = items2.items[index2];
     if (item?.kind !== "path") continue;
     for (const sub of parseSvgPath(item.d)) {
       for (const seg of sub.segments) {
         if (seg.op === "C") {
-          feed(seg.x1 - run.box.x);
-          feed(seg.y1 - run.box.y);
-          feed(seg.x2 - run.box.x);
-          feed(seg.y2 - run.box.y);
+          feed(seg.x1 - run2.box.x);
+          feed(seg.y1 - run2.box.y);
+          feed(seg.x2 - run2.box.x);
+          feed(seg.y2 - run2.box.y);
         }
-        feed(seg.x - run.box.x);
-        feed(seg.y - run.box.y);
+        feed(seg.x - run2.box.x);
+        feed(seg.y - run2.box.y);
       }
       feed(sub.closed ? -1e6 : -2e6);
     }
   }
-  return `${h1.toString(36)}.${h2.toString(36)}.${n6}.${run.glyphs}`;
+  return `${h1.toString(36)}.${h2.toString(36)}.${n6}.${run2.glyphs}`;
 }
 function fold2(text6) {
   return text6.normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
@@ -132500,9 +133089,9 @@ function mode(values) {
 }
 function settleByAxis(runs, texts, out) {
   const byGroup = /* @__PURE__ */ new Map();
-  runs.forEach((run, i) => {
-    if (!run.labelGroup) return;
-    const key = (run.groups ?? []).join("");
+  runs.forEach((run2, i) => {
+    if (!run2.labelGroup) return;
+    const key = (run2.groups ?? []).join("");
     const list2 = byGroup.get(key) ?? [];
     list2.push(i);
     byGroup.set(key, list2);
@@ -132558,29 +133147,29 @@ function settleByAxis(runs, texts, out) {
 var CAP_SHARE = 0.72;
 var ASCENDER_SHARE = 0.75;
 var X_SHARE = 0.53;
-function sizeOf(run, text6) {
+function sizeOf(run2, text6) {
   const chars = [...text6.replace(/\s+/g, "")];
-  if (chars.length === run.glyphBoxes.length) {
-    const heights = (pattern) => run.glyphBoxes.filter((g2, k) => pattern.test(chars[k]) && Math.abs(g2.y + g2.h - run.baseline) <= 0.12 * run.ascent).map((g2) => run.baseline - g2.y);
+  if (chars.length === run2.glyphBoxes.length) {
+    const heights = (pattern) => run2.glyphBoxes.filter((g2, k) => pattern.test(chars[k]) && Math.abs(g2.y + g2.h - run2.baseline) <= 0.12 * run2.ascent).map((g2) => run2.baseline - g2.y);
     for (const [pattern, share] of [[/[A-PR-Z0-9]/, CAP_SHARE], [/[bdfhkl]/, ASCENDER_SHARE], [/[acemnorsuvwxz]/, X_SHARE]]) {
       const found = heights(pattern);
       if (found.length) return medianOf(found) / share;
     }
   }
-  return run.ascent / (/[A-Z0-9bdfhklt]/.test(text6) ? CAP_SHARE : X_SHARE);
+  return run2.ascent / (/[A-Z0-9bdfhklt]/.test(text6) ? CAP_SHARE : X_SHARE);
 }
 function medianOf(values) {
   const s = [...values].sort((a, b) => a - b);
   const mid3 = s.length >> 1;
   return s.length % 2 ? s[mid3] : (s[mid3 - 1] + s[mid3]) / 2;
 }
-function anchorOf2(run, runs, items2) {
-  const tol = Math.max(1, 0.15 * run.ascent);
-  const left = run.box.x;
-  const right = run.box.x + run.box.w;
-  const mid3 = left + run.box.w / 2;
-  const key = (run.groups ?? []).join("");
-  const kin = runs.filter((r5) => r5 !== run && (r5.groups ?? []).join("") === key && r5.fill === run.fill && (r5.opacity ?? 1) === (run.opacity ?? 1) && Math.abs(r5.ascent - run.ascent) <= 0.25 * run.ascent);
+function anchorOf2(run2, runs, items2) {
+  const tol = Math.max(1, 0.15 * run2.ascent);
+  const left = run2.box.x;
+  const right = run2.box.x + run2.box.w;
+  const mid3 = left + run2.box.w / 2;
+  const key = (run2.groups ?? []).join("");
+  const kin = runs.filter((r5) => r5 !== run2 && (r5.groups ?? []).join("") === key && r5.fill === run2.fill && (r5.opacity ?? 1) === (run2.opacity ?? 1) && Math.abs(r5.ascent - run2.ascent) <= 0.25 * run2.ascent);
   const ends = kin.filter((r5) => Math.abs(r5.box.x + r5.box.w - right) <= tol && Math.abs(r5.box.x - left) > tol).length;
   const starts = kin.filter((r5) => Math.abs(r5.box.x - left) <= tol && Math.abs(r5.box.x + r5.box.w - right) > tol).length;
   if (ends > starts) return "end";
@@ -132612,21 +133201,21 @@ function vectorTextOf(items2, runs, readings, opts = {}) {
   settleByPhrases(runs, texts, phrasesOf(opts.hints, items2), settled);
   settleByAxis(runs, texts, settled);
   const chosen = [];
-  runs.forEach((run, i) => {
+  runs.forEach((run2, i) => {
     const reading = readings[i];
     const hint = settled.get(i);
     let value = null;
     if (hint && (reading === null || reading === void 0 ? !texts[i] : reading.confidence >= CONFIRMED_MIN_CONFIDENCE)) value = hint.text;
     else if (reading && texts[i] && reading.confidence >= floor) {
       const chars = inkChars(texts[i]);
-      if (Math.abs(chars - run.glyphs) <= Math.max(1, Math.round(0.25 * run.glyphs))) value = texts[i];
+      if (Math.abs(chars - run2.glyphs) <= Math.max(1, Math.round(0.25 * run2.glyphs))) value = texts[i];
     }
     if (!value || value.length > 2e3) return;
-    const size = sizeOf(run, value);
-    if (size > 0) chosen.push({ run, value, size });
+    const size = sizeOf(run2, value);
+    if (size > 0) chosen.push({ run: run2, value, size });
   });
   const buckets = /* @__PURE__ */ new Map();
-  const bucketOf = (run) => `${(run.groups ?? []).join("")}|${run.fill}|${run.opacity ?? 1}`;
+  const bucketOf = (run2) => `${(run2.groups ?? []).join("")}|${run2.fill}|${run2.opacity ?? 1}`;
   for (const c of chosen) {
     const list2 = buckets.get(bucketOf(c.run)) ?? [];
     list2.push(c.size);
@@ -132635,17 +133224,17 @@ function vectorTextOf(items2, runs, readings, opts = {}) {
   const replace = /* @__PURE__ */ new Map();
   const covered = /* @__PURE__ */ new Set();
   let text6 = 0;
-  for (const { run, value, size: own2 } of chosen) {
-    const group = medianOf(buckets.get(bucketOf(run)));
+  for (const { run: run2, value, size: own2 } of chosen) {
+    const group = medianOf(buckets.get(bucketOf(run2)));
     const size = Math.abs(own2 - group) <= 0.3 * group ? group : own2;
-    const anchor = anchorOf2(run, runs, items2);
-    const x = anchor === "end" ? run.box.x + run.box.w : anchor === "middle" ? run.box.x + run.box.w / 2 : run.box.x;
-    const item = { kind: "text", text: value, x: r3(x), y: r3(run.baseline), size: r3(size), fill: { hex: run.fill } };
+    const anchor = anchorOf2(run2, runs, items2);
+    const x = anchor === "end" ? run2.box.x + run2.box.w : anchor === "middle" ? run2.box.x + run2.box.w / 2 : run2.box.x;
+    const item = { kind: "text", text: value, x: r3(x), y: r3(run2.baseline), size: r3(size), fill: { hex: run2.fill } };
     if (anchor !== "start") item.anchor = anchor;
-    if (run.opacity !== void 0 && run.opacity < 1) item.opacity = run.opacity;
-    if (run.groups?.length) item.groups = [...run.groups];
-    replace.set(run.items[0], item);
-    for (const index2 of run.items) covered.add(index2);
+    if (run2.opacity !== void 0 && run2.opacity < 1) item.opacity = run2.opacity;
+    if (run2.groups?.length) item.groups = [...run2.groups];
+    replace.set(run2.items[0], item);
+    for (const index2 of run2.items) covered.add(index2);
     text6 += 1;
   }
   if (!text6) return { items: items2, runs: runs.length, text: 0, drawn: runs.length };
@@ -132658,25 +133247,25 @@ function vectorTextOf(items2, runs, readings, opts = {}) {
   return { items: { ...items2, items: next }, runs: runs.length, text: text6, drawn: runs.length - text6 };
 }
 var MAX_CHUNK_ASPECT = 12;
-function glyphRunChunks(run) {
-  const limit = MAX_CHUNK_ASPECT * Math.max(run.box.h, 1e-6);
-  if (run.box.w <= limit || run.words.length < 2) return [{ x: run.box.x, w: run.box.w }];
+function glyphRunChunks(run2) {
+  const limit = MAX_CHUNK_ASPECT * Math.max(run2.box.h, 1e-6);
+  if (run2.box.w <= limit || run2.words.length < 2) return [{ x: run2.box.x, w: run2.box.w }];
   const chunks = [];
-  for (const word of run.words) {
+  for (const word of run2.words) {
     const last = chunks[chunks.length - 1];
     if (last && word.x + word.w - last.x <= limit) last.w = word.x + word.w - last.x;
     else chunks.push({ ...word });
   }
   return chunks;
 }
-async function readRun3(items2, run, reader, signal) {
-  const chunks = glyphRunChunks(run);
-  if (chunks.length === 1) return reader(glyphRunFrame(items2, run));
+async function readRun3(items2, run2, reader, signal) {
+  const chunks = glyphRunChunks(run2);
+  if (chunks.length === 1) return reader(glyphRunFrame(items2, run2));
   const texts = [];
   let confidence = 1;
   for (const chunk6 of chunks) {
     signal?.throwIfAborted();
-    const part = await reader(glyphRunFrame(items2, run, chunk6));
+    const part = await reader(glyphRunFrame(items2, run2, chunk6));
     const text6 = part?.text.trim();
     if (!part || !text6) return null;
     texts.push(text6);
@@ -132688,20 +133277,20 @@ async function readVectorLabels(items2, reader, opts = {}) {
   const runs = glyphRunsOf(items2);
   if (!runs.length) return { items: items2, runs: 0, text: 0, drawn: 0 };
   const readings = [];
-  for (const [i, run] of runs.entries()) {
+  for (const [i, run2] of runs.entries()) {
     opts.signal?.throwIfAborted();
     if (i >= MAX_LABEL_RUNS_PER_DRAWING) {
       readings.push(null);
       continue;
     }
-    const key = glyphRunKey(items2, run);
+    const key = glyphRunKey(items2, run2);
     if (opts.cache?.has(key)) {
       readings.push(opts.cache.get(key) ?? null);
       continue;
     }
     let reading;
     try {
-      reading = await readRun3(items2, run, reader, opts.signal);
+      reading = await readRun3(items2, run2, reader, opts.signal);
     } catch (err) {
       if (opts.signal?.aborted) throw err;
       reading = null;
@@ -132902,26 +133491,26 @@ var MAX_LINE_SPACING_PCT = 1e4;
 function parasOf(paras) {
   return (paras ?? []).map((para) => {
     const out = {
-      runs: para.runs.map((run) => {
-        const item = { text: run.text };
-        if (run.bold) item.bold = true;
-        if (run.italic) item.italic = true;
-        if (run.underline) {
+      runs: para.runs.map((run2) => {
+        const item = { text: run2.text };
+        if (run2.bold) item.bold = true;
+        if (run2.italic) item.italic = true;
+        if (run2.underline) {
           item.underline = true;
-          if (run.underlineStyle && STYLE_TOKEN.test(run.underlineStyle)) item.underlineStyle = run.underlineStyle;
+          if (run2.underlineStyle && STYLE_TOKEN.test(run2.underlineStyle)) item.underlineStyle = run2.underlineStyle;
         }
-        if (run.strike) item.strike = true;
-        if (run.baseline) item.baseline = run.baseline;
-        if (run.cap === "all") item.case = "upper";
-        else if (run.cap === "small") item.case = "small-caps";
-        if (typeof run.sizePt === "number") item.sizePt = run.sizePt;
-        if (run.font) {
-          item.font = run.font;
-          item.fontProvenance = run.font.startsWith("+") ? "theme" : "literal";
+        if (run2.strike) item.strike = true;
+        if (run2.baseline) item.baseline = run2.baseline;
+        if (run2.cap === "all") item.case = "upper";
+        else if (run2.cap === "small") item.case = "small-caps";
+        if (typeof run2.sizePt === "number") item.sizePt = run2.sizePt;
+        if (run2.font) {
+          item.font = run2.font;
+          item.fontProvenance = run2.font.startsWith("+") ? "theme" : "literal";
         }
-        const color3 = colorOf(run.color);
+        const color3 = colorOf(run2.color);
         if (color3) item.color = color3;
-        if (run.href) item.href = run.href;
+        if (run2.href) item.href = run2.href;
         return item;
       })
     };
@@ -133011,12 +133600,12 @@ async function fingerprintOf2(kind, box3, content2) {
 function colorToken(color3) {
   return color3 ? `${color3.scheme ?? ""}:${color3.hex ?? ""}` : "";
 }
-function shapeMaterial(object) {
+function shapeMaterial(object2) {
   return [
-    object.geom ?? "",
-    colorToken(object.fill),
-    colorToken(object.line?.color),
-    object.line?.widthPt === void 0 ? "" : String(object.line.widthPt)
+    object2.geom ?? "",
+    colorToken(object2.fill),
+    colorToken(object2.line?.color),
+    object2.line?.widthPt === void 0 ? "" : String(object2.line.widthPt)
   ].join("|");
 }
 function chartMaterial(tag2, data) {
@@ -133148,30 +133737,30 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
       const box3 = boxOf2(node);
       let content2 = "";
       let fidelity = { state: "editable" };
-      const object = { id: id2, fingerprint: "", kind, box: box3, origin, fidelity };
+      const object2 = { id: id2, fingerprint: "", kind, box: box3, origin, fidelity };
       const transform2 = transformOf(node);
-      if (transform2) object.transform = transform2;
-      if (node.groupPath?.length) object.groupPath = [...node.groupPath];
+      if (transform2) object2.transform = transform2;
+      if (node.groupPath?.length) object2.groupPath = [...node.groupPath];
       const alt = cleanAlt(node.alt);
-      if (alt) object.alt = alt;
+      if (alt) object2.alt = alt;
       const readingIndex = readingIndexOf.get(node);
-      if (typeof readingIndex === "number") object.readingIndex = readingIndex;
+      if (typeof readingIndex === "number") object2.readingIndex = readingIndex;
       if (node.type === "text" || node.type === "shape") {
-        if (node.geom) object.geom = node.geom;
+        if (node.geom) object2.geom = node.geom;
         const fill2 = colorOf(node.fill);
-        if (fill2) object.fill = fill2;
+        if (fill2) object2.fill = fill2;
       }
       if (node.type === "shape") {
         const line = colorOf(node.line);
         if (line || typeof node.lineWidthPt === "number") {
-          object.line = {};
-          if (line) object.line.color = line;
-          if (typeof node.lineWidthPt === "number") object.line.widthPt = node.lineWidthPt;
+          object2.line = {};
+          if (line) object2.line.color = line;
+          if (typeof node.lineWidthPt === "number") object2.line.widthPt = node.lineWidthPt;
         }
       }
       if (node.type === "text" || node.type === "shape") {
         const ph = placeholderOf(node.ph?.type);
-        if (ph) object.placeholder = ph;
+        if (ph) object2.placeholder = ph;
       }
       if ((node.type === "text" || node.type === "shape") && (node.gradient || "lineGradient" in node && node.lineGradient)) {
         ownWarnings.push({
@@ -133183,22 +133772,22 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
       }
       if (node.type === "text") {
         const paras = parasOf(node.paras);
-        if (paras.length) object.text = { paras };
+        if (paras.length) object2.text = { paras };
         content2 = paras.map((p) => p.runs.map((r5) => r5.text).join("")).join("\n");
-        for (const para of node.paras ?? []) for (const run of para.runs) countFont(run.font);
+        for (const para of node.paras ?? []) for (const run2 of para.runs) countFont(run2.font);
       } else if (node.type === "shape") {
-        content2 = shapeMaterial(object);
+        content2 = shapeMaterial(object2);
         if (node.custGeom) {
-          const lineColor = object.line?.color;
+          const lineColor = object2.line?.color;
           const items2 = custGeomItems(node.custGeom, { w: box3.w, h: box3.h }, {
-            ...object.fill ? { fill: object.fill } : {},
-            ...lineColor ? { line: { color: lineColor, widthPx: (object.line?.widthPt ?? 0.75) * (96 / 72) } } : {}
+            ...object2.fill ? { fill: object2.fill } : {},
+            ...lineColor ? { line: { color: lineColor, widthPx: (object2.line?.widthPt ?? 0.75) * (96 / 72) } } : {}
           });
-          if (items2.items.length > 0 && items2.items.length <= MAX_VECTOR_ROWS_PER_OBJECT && withinBudget(id2, items2)) object.vectorItems = items2;
+          if (items2.items.length > 0 && items2.items.length <= MAX_VECTOR_ROWS_PER_OBJECT && withinBudget(id2, items2)) object2.vectorItems = items2;
         }
       } else if (node.type === "table") {
-        object.table = node.rows.map((row) => [...row]);
-        content2 = object.table.map((row) => row.join("")).join("");
+        object2.table = node.rows.map((row) => [...row]);
+        content2 = object2.table.map((row) => row.join("")).join("");
       } else if (node.type === "pic" && node.svg) {
         const raster = node.media ? await store(node.media) : void 0;
         const svgBytes = bytesOf3(parts, node.svg);
@@ -133210,15 +133799,15 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
           if (stored.ref) media = stored;
         }
         if (media?.ref) {
-          object.media = media.ref;
-          object.mediaMime = media.mime;
+          object2.media = media.ref;
+          object2.mediaMime = media.mime;
         }
         if (svgText && svgHash) {
           kind = "vector";
-          object.kind = kind;
+          object2.kind = kind;
           content2 = svgHash;
           if (svgText.length <= MAX_VECTOR_CHARS && deckVectorChars + svgText.length <= maxDeckVectorChars) {
-            object.vector = svgText;
+            object2.vector = svgText;
             deckVectorChars += svgText.length;
           }
           let read2 = itemsByHash.get(svgHash);
@@ -133238,10 +133827,10 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
           let placed2 = false;
           if (items2 && items2.items.length > MAX_VECTOR_ROWS_PER_OBJECT) {
             const omitted = (items2.omitted ?? []).filter((o) => o.reason !== "cap-reached");
-            object.vectorItems = { ...items2, items: [], omitted: [...omitted, { reason: "cap-reached", count: items2.items.length }] };
+            object2.vectorItems = { ...items2, items: [], omitted: [...omitted, { reason: "cap-reached", count: items2.items.length }] };
           } else if (items2) {
             placed2 = withinBudget(id2, items2);
-            if (placed2) object.vectorItems = items2;
+            if (placed2) object2.vectorItems = items2;
           }
           if (placed2 && items2 && items2.items.length > 0) {
             const counts = labelCounts(items2, nativeTextByHash.get(svgHash) ?? 0);
@@ -133275,8 +133864,8 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
         if (node.media) {
           const media = await store(node.media);
           if (media.ref) {
-            object.media = media.ref;
-            object.mediaMime = media.mime;
+            object2.media = media.ref;
+            object2.mediaMime = media.mime;
             fidelity = { state: "raster-preserved" };
             content2 = media.hash ?? media.ref;
           } else {
@@ -133288,14 +133877,14 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
         }
       } else if (node.type === "unknown") {
         const family2 = unknownFamily(node.tag);
-        if (node.tag) object.tag = node.tag;
+        if (node.tag) object2.tag = node.tag;
         if (node.chartData) {
           const chart = {
             series: node.chartData.series.map((s) => s.name === void 0 ? { values: [...s.values] } : { name: s.name, values: [...s.values] })
           };
           if (node.chartData.type) chart.type = node.chartData.type;
           if (node.chartData.categories) chart.categories = [...node.chartData.categories];
-          object.chartData = chart;
+          object2.chartData = chart;
         }
         if (node.fallbackMedia) {
           const media = await store(node.fallbackMedia);
@@ -133308,7 +133897,7 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
           }
         } else {
           fidelity = { state: "unavailable", reason: unavailableReason(family2) };
-          content2 = chartMaterial(node.tag ?? "", object.chartData);
+          content2 = chartMaterial(node.tag ?? "", object2.chartData);
         }
       }
       if (transform2 && !poseRestatesTransform(transform2)) {
@@ -133319,9 +133908,9 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
         });
         if (fidelity.state === "editable") fidelity = { state: "approximate", reason: "geometry-approximation" };
       }
-      object.fidelity = fidelity;
-      object.fingerprint = await fingerprintOf2(kind, box3, content2);
-      objects.push(object);
+      object2.fidelity = fidelity;
+      object2.fingerprint = await fingerprintOf2(kind, box3, content2);
+      objects.push(object2);
     }
     const slideW = px(deck.widthEmu) || 1280;
     const slideH = px(deck.heightEmu) || 720;
@@ -133874,10 +134463,10 @@ async function sourceDeckFromPdf(bytes, opts) {
       slide.warnings.push(...diagWarnings(slideId, diag, decodeDiag));
     }
     const order = readingOrderOf2(slide.objects, ranks);
-    order.forEach((object, i) => {
-      object.readingIndex = i;
+    order.forEach((object2, i) => {
+      object2.readingIndex = i;
     });
-    slide.readingOrder = order.map((object) => object.id);
+    slide.readingOrder = order.map((object2) => object2.id);
     slides.push(slide);
     opts.onSlide?.(slides.length, total);
   }
@@ -133957,13 +134546,13 @@ async function readPage(page3, slideId, store, caps, fontRuns, struct) {
       const box3 = boxOf3(n6.x, n6.y, n6.w, n6.h, n6.rot);
       let fidelity;
       const own2 = [];
-      const object = { id: id2, fingerprint: "", kind: "pic", box: box3, origin: artifacts[i] ? "pdf-artifact" : "slide", fidelity: { state: "editable" } };
+      const object2 = { id: id2, fingerprint: "", kind: "pic", box: box3, origin: artifacts[i] ? "pdf-artifact" : "slide", fidelity: { state: "editable" } };
       const clip3 = clipRead(n6);
-      if (clip3.cut && clip3.visible) object.clip = boxOf3(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
+      if (clip3.cut && clip3.visible) object2.clip = boxOf3(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
       const cutApprox = clip3.cut && !clip3.exact || !!n6._softMask;
       if (media.ref) {
-        object.media = media.ref;
-        if (media.mime) object.mediaMime = media.mime;
+        object2.media = media.ref;
+        if (media.mime) object2.mediaMime = media.mime;
         fidelity = media.opaque || cutApprox ? { state: "approximate", reason: "reader-approximation" } : { state: "raster-preserved" };
         if (clip3.cut && !clip3.exact) own2.push(cutWarning(id2, "The picture", false));
         if (n6._softMask) own2.push(cutWarning(id2, "The picture", true));
@@ -133971,11 +134560,11 @@ async function readPage(page3, slideId, store, caps, fontRuns, struct) {
         fidelity = { state: "unavailable", reason: media.reason ?? "media-missing" };
         own2.push({ code: "media-skipped", message: `The picture ${id2} was not stored: ${media.issue ?? media.reason ?? "media-missing"}.`, objectIds: [id2] });
       }
-      if (media.width > 0 && media.height > 0) object.raster = { width: media.width, height: media.height };
-      if (ocr) object.ocr = ocr;
-      object.fidelity = fidelity;
-      object.fingerprint = await fingerprintOf3("pic", box3, media.hash ?? `${n6._imageXObject ?? ""}|${media.reason ?? ""}`);
-      return { object, warnings: own2 };
+      if (media.width > 0 && media.height > 0) object2.raster = { width: media.width, height: media.height };
+      if (ocr) object2.ocr = ocr;
+      object2.fidelity = fidelity;
+      object2.fingerprint = await fingerprintOf3("pic", box3, media.hash ?? `${n6._imageXObject ?? ""}|${media.reason ?? ""}`);
+      return { object: object2, warnings: own2 };
     }
   });
   let pageOcr;
@@ -133997,8 +134586,8 @@ async function readPage(page3, slideId, store, caps, fontRuns, struct) {
   } else {
     const rankOf = (line) => {
       let best;
-      for (const run of line.runs) {
-        const mcid = nodes[run.nodeIndex]?.mcid;
+      for (const run2 of line.runs) {
+        const mcid = nodes[run2.nodeIndex]?.mcid;
         const r5 = typeof mcid === "number" ? struct.get(mcid) : void 0;
         if (r5 !== void 0 && (best === void 0 || r5 < best)) best = r5;
       }
@@ -134047,10 +134636,10 @@ async function readPage(page3, slideId, store, caps, fontRuns, struct) {
   const objects = [];
   const ranks = /* @__PURE__ */ new Map();
   for (const [z, unit2] of units2.entries()) {
-    const { object, warnings: own2 } = await unit2.build(`${slideId}.${z}`);
-    objects.push(object);
+    const { object: object2, warnings: own2 } = await unit2.build(`${slideId}.${z}`);
+    objects.push(object2);
     warnings.push(...own2);
-    if (unit2.rank !== void 0) ranks.set(object.id, unit2.rank);
+    if (unit2.rank !== void 0) ranks.set(object2.id, unit2.rank);
   }
   const out = { objects, warnings, flattened, ranks };
   if (pageOcr) out.ocr = pageOcr;
@@ -134078,21 +134667,21 @@ function ocrLayer(nodes, invisible, picture) {
 async function textObject(id2, line, fontRuns) {
   const runs = [];
   const texts = pdfLineRunTexts(line);
-  for (const [k, run] of line.runs.entries()) {
-    const item = { text: texts[k] ?? run.text, sizePt: round24(run.size) };
-    if (run.bold) item.bold = true;
-    if (run.italic) item.italic = true;
-    if (run.font) {
-      item.font = run.font.slice(0, 256);
+  for (const [k, run2] of line.runs.entries()) {
+    const item = { text: texts[k] ?? run2.text, sizePt: round24(run2.size) };
+    if (run2.bold) item.bold = true;
+    if (run2.italic) item.italic = true;
+    if (run2.font) {
+      item.font = run2.font.slice(0, 256);
       item.fontProvenance = "literal";
       fontRuns.set(item.font, (fontRuns.get(item.font) ?? 0) + 1);
     }
-    const color3 = colorOf2(run.color, run.opacity);
+    const color3 = colorOf2(run2.color, run2.opacity);
     if (color3) item.color = color3;
     runs.push(item);
   }
   const box3 = boxOf3(line.x, line.y, line.w, line.h, line.rot);
-  const object = {
+  const object2 = {
     id: id2,
     fingerprint: "",
     kind: "text",
@@ -134101,27 +134690,27 @@ async function textObject(id2, line, fontRuns) {
     fidelity: { state: "editable" },
     text: { paras: [{ runs }] }
   };
-  if (line.artifact === "Footer") object.placeholder = "ftr";
-  if (line.runs.every((r5) => r5.opacity <= 0)) object.hidden = true;
-  object.fingerprint = await fingerprintOf3("text", box3, runs.map((r5) => r5.text).join(""));
-  return { object, warnings: [] };
+  if (line.artifact === "Footer") object2.placeholder = "ftr";
+  if (line.runs.every((r5) => r5.opacity <= 0)) object2.hidden = true;
+  object2.fingerprint = await fingerprintOf3("text", box3, runs.map((r5) => r5.text).join(""));
+  return { object: object2, warnings: [] };
 }
 async function shapeObject(id2, n6, artifact, clip3) {
   const geom = n6.shape === "ellipse" ? "ellipse" : (n6.radius ?? 0) > 0 ? "roundRect" : "rect";
   const exactCut = clip3.cut && clip3.exact && geom === "rect" && clip3.visible;
   const shown = exactCut ? clip3.visible : { x: n6.x, y: n6.y, w: n6.w, h: n6.h };
   const box3 = boxOf3(shown.x, shown.y, shown.w, shown.h, n6.rot);
-  const object = { id: id2, fingerprint: "", kind: "shape", box: box3, origin: artifact ? "pdf-artifact" : "slide", fidelity: { state: "editable" }, geom };
-  if (clip3.cut && !exactCut && clip3.visible) object.clip = boxOf3(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
+  const object2 = { id: id2, fingerprint: "", kind: "shape", box: box3, origin: artifact ? "pdf-artifact" : "slide", fidelity: { state: "editable" }, geom };
+  if (clip3.cut && !exactCut && clip3.visible) object2.clip = boxOf3(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
   const fill2 = colorOf2(n6.fill, n6.opacity);
-  if (fill2) object.fill = fill2;
+  if (fill2) object2.fill = fill2;
   const warnings = [];
   if (n6._gradient) {
-    object.fidelity = { state: "approximate", reason: "reader-approximation" };
+    object2.fidelity = { state: "approximate", reason: "reader-approximation" };
     warnings.push({ code: "gradient-flattened", message: `A gradient on ${id2} was read as one flat colour.`, objectIds: [id2] });
   }
   if (clip3.cut && !exactCut) {
-    object.fidelity = { state: "approximate", reason: "reader-approximation" };
+    object2.fidelity = { state: "approximate", reason: "reader-approximation" };
     warnings.push(clip3.exact ? {
       code: "group-transform-approximated",
       message: `The ${geom} ${id2} is cut by a rectangle; it keeps its own box and states the part that shows as its clip.`,
@@ -134129,11 +134718,11 @@ async function shapeObject(id2, n6, artifact, clip3) {
     } : cutWarning(id2, "The shape", false));
   }
   if (n6._softMask) {
-    object.fidelity = { state: "approximate", reason: "reader-approximation" };
+    object2.fidelity = { state: "approximate", reason: "reader-approximation" };
     warnings.push(cutWarning(id2, "The shape", true));
   }
-  object.fingerprint = await fingerprintOf3("shape", box3, `${geom}|${fill2?.hex ?? ""}:${fill2?.alpha ?? ""}`);
-  return { object, warnings };
+  object2.fingerprint = await fingerprintOf3("shape", box3, `${geom}|${fill2?.hex ?? ""}:${fill2?.alpha ?? ""}`);
+  return { object: object2, warnings };
 }
 async function vectorObject(id2, nodes, indices, extent2, width, height, artifacts, markFill) {
   const members = indices.map((i) => nodes[i]);
@@ -134143,7 +134732,7 @@ async function vectorObject(id2, nodes, indices, extent2, width, height, artifac
   const h = round24(Math.max(1, Math.min(height - y, extent2.h + PDF_VECTOR_PAD * 2)));
   const box3 = boxOf3(x, y, w, h);
   const allArtifact = indices.every((i) => artifacts[i]);
-  const object = {
+  const object2 = {
     id: id2,
     fingerprint: "",
     kind: "vector",
@@ -134166,18 +134755,18 @@ async function vectorObject(id2, nodes, indices, extent2, width, height, artifac
     warnings.push({ code: "part-too-large", message: `The vector art ${id2} is ${svg.length} characters of SVG, over the ${MAX_VECTOR_CHARS2} limit, so it was not carried.`, objectIds: [id2] });
     svg = "";
   }
-  if (svg) object.vector = svg;
-  else object.fidelity = { state: "unavailable", reason: reason2 ?? "reader-approximation" };
+  if (svg) object2.vector = svg;
+  else object2.fidelity = { state: "unavailable", reason: reason2 ?? "reader-approximation" };
   const fill2 = colorOf2(markFill ?? members.find((m2) => m2._vectorFill && m2._vectorFill !== "none")?._vectorFill ?? members[0]?.fill);
-  if (fill2) object.fill = fill2;
+  if (fill2) object2.fill = fill2;
   const stroke = members.find((m2) => m2._vectorStroke)?._vectorStroke;
   if (stroke) {
     const color3 = colorOf2(stroke.color);
-    object.line = { widthPt: round24(stroke.width) };
-    if (color3) object.line.color = color3;
+    object2.line = { widthPt: round24(stroke.width) };
+    if (color3) object2.line.color = color3;
   }
-  object.fingerprint = await fingerprintOf3("vector", box3, vectorMaterial(members, extent2.x, extent2.y));
-  return { object, warnings };
+  object2.fingerprint = await fingerprintOf3("vector", box3, vectorMaterial(members, extent2.x, extent2.y));
+  return { object: object2, warnings };
 }
 
 // packages/node-shell/src/rebrand/pipeline.ts
@@ -134420,10 +135009,10 @@ function longHex(color3) {
   return `#${h.toLowerCase()}`;
 }
 var INDENTED_LINE = /(^|\n) {2,}\S/;
-function parasOf2(text6, run, align, resolveColour, onRestart) {
+function parasOf2(text6, run2, align, resolveColour, onRestart) {
   if (!hasDesignMarkup(text6) && !INDENTED_LINE.test(text6)) {
     return text6.split("\n").map((line) => ({
-      runs: [{ ...run, text: line }],
+      runs: [{ ...run2, text: line }],
       ...align ? { align } : {}
     }));
   }
@@ -134444,7 +135033,7 @@ function parasOf2(text6, run, align, resolveColour, onRestart) {
         strip = cut < part.text.length ? 0 : strip - cut;
         if (!partText) continue;
       }
-      const out = { ...run, text: partText };
+      const out = { ...run2, text: partText };
       if (part.weight !== void 0) {
         if (part.weight >= 600) out.bold = true;
         else delete out.bold;
@@ -134456,7 +135045,7 @@ function parasOf2(text6, run, align, resolveColour, onRestart) {
       if (hex3) out.color = resolveColour?.(hex3) ?? hex3;
       runs.push(out);
     }
-    const para = { runs: runs.length > 0 ? runs : [{ ...run, text: "" }], ...align ? { align } : {} };
+    const para = { runs: runs.length > 0 ? runs : [{ ...run2, text: "" }], ...align ? { align } : {} };
     if (line.list === "bullet") para.bullet = true;
     else if (line.list === "number") para.bullet = "number";
     else if (listed || line.level > 0) para.bullet = false;
@@ -134678,14 +135267,14 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     const colour = ctx.palette.resolve(str8(row, "fg") || masterStyle?.fg || masterStyle?.fgTokenPath);
     const weight = num10(row, "weight", 0) || Number(str8(row, "weight")) || Number(masterStyle?.weight) || DEFAULT_TEXT_WEIGHT;
     const textAlpha = foldAlpha(colour?.alpha, opacity);
-    const run = {
+    const run2 = {
       sizePt: Math.round(sizePx * 0.75 * 100) / 100,
       color: colour?.hex ?? DEFAULT_TEXT_HEX,
       ...weight >= 600 ? { bold: true } : {},
       ...textAlpha !== void 0 ? { alpha: textAlpha } : {}
     };
     const family2 = familyOf5(str8(row, "font") || masterStyle?.font || "", ctx.fonts);
-    if (family2) run.font = family2;
+    if (family2) run2.font = family2;
     const align = ALIGN[str8(row, "align") || masterStyle?.align || ""];
     const anchor = ANCHOR[str8(row, "valign") || masterStyle?.valign || ""];
     const text6 = {
@@ -134694,7 +135283,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
       ...rotOf(row),
       paras: parasOf2(
         str8(row, "text"),
-        run,
+        run2,
         align,
         (hex3) => ctx.palette.resolve(hex3)?.hex,
         () => ctx.notes.add("a numbered list that starts past 1 was numbered from 1")
@@ -134790,19 +135379,19 @@ function furnitureShape(ctx, f, master, size) {
   const role = f.kind === "page-number" ? "number" : "label";
   const colour = ctx.palette.resolve(f.style?.fg || f.style?.fgTokenPath);
   const weight = Number(f.style?.weight) || DEFAULT_TEXT_WEIGHT;
-  const run = {
+  const run2 = {
     sizePt: Math.round(roleFontSize(master, role, f.style) * typeScale * 0.75 * 100) / 100,
     color: colour?.hex ?? DEFAULT_TEXT_HEX,
     ...weight >= 600 ? { bold: true } : {}
   };
   const family2 = familyOf5(f.style?.font ?? "", ctx.fonts);
-  if (family2) run.font = family2;
+  if (family2) run2.font = family2;
   const align = f.style?.align ? ALIGN[f.style.align] : void 0;
   const anchor = f.style?.valign ? ANCHOR[f.style.valign] : void 0;
   return {
     kind: "text",
     ...box3,
-    paras: parasOf2(f.text ?? "", run, align),
+    paras: parasOf2(f.text ?? "", run2, align),
     ...anchor ? { anchor } : {}
   };
 }
@@ -135528,7 +136117,7 @@ async function reconstructFlattenedSlide(input) {
     const crop = paintOut.length ? smooth ? paintOutBoxes(at2, within) : maskedImageOf(at2, within) : at2;
     const stored = await store(crop);
     const slideBox = toSlide(box3);
-    const object = {
+    const object2 = {
       id: id2,
       fingerprint: await fingerprintOf4("pic", slideBox, stored.hash),
       kind: "pic",
@@ -135539,12 +136128,12 @@ async function reconstructFlattenedSlide(input) {
       mediaMime: "image/png",
       ocr
     };
-    return { object, pictureBox: box3, layer: 2 };
+    return { object: object2, pictureBox: box3, layer: 2 };
   };
   const shapeObject2 = async (region) => {
     const box3 = toSlide(region.box);
     const hex3 = region.evidence.ink;
-    const object = {
+    const object2 = {
       id: `${base}.${region.id}`,
       fingerprint: await fingerprintOf4("shape", box3, `rect|:${hex3}`),
       kind: "shape",
@@ -135554,7 +136143,7 @@ async function reconstructFlattenedSlide(input) {
       geom: "rect",
       fill: { hex: hex3 }
     };
-    return { object, pictureBox: region.box, layer: region.kind === "panel" ? 0 : 1, region };
+    return { object: object2, pictureBox: region.box, layer: region.kind === "panel" ? 0 : 1, region };
   };
   const runsOf = (para, block, colourOf2, fallback, bold = false, styleOf, heavy) => {
     const at2 = new Map(para.lines.map((index2, k) => [index2, k]));
@@ -135592,7 +136181,7 @@ async function reconstructFlattenedSlide(input) {
         const runs = runsOf(p, block, colourOf2, ink, boldOf?.(p) === true, styleOf, heavyOf?.(p));
         if (p.sizePx !== null) {
           const sizePt = Math.round(p.sizePx * sy * PT_PER_PX * 2) / 2;
-          for (const run of runs) run.sizePt = sizePt;
+          for (const run2 of runs) run2.sizePt = sizePt;
         }
         const para = { runs };
         if (p.lvl > 0) para.lvl = p.lvl;
@@ -135602,7 +136191,7 @@ async function reconstructFlattenedSlide(input) {
       });
       snapInks(paras);
       const text6 = group.map((p) => p.text).join("\n");
-      const object = {
+      const object2 = {
         id: k === 0 ? idBase : `${idBase}.part${k + 1}`,
         fingerprint: await fingerprintOf4("text", box3, text6),
         kind: "text",
@@ -135613,8 +136202,8 @@ async function reconstructFlattenedSlide(input) {
         ocr: evidenceFor(group, box3)
       };
       const role = group[0]?.role;
-      if (role && estimateRole) object.roleEstimate = role;
-      result.push({ object, pictureBox: inPicture, layer: 3 });
+      if (role && estimateRole) object2.roleEstimate = role;
+      result.push({ object: object2, pictureBox: inPicture, layer: 3 });
     }
     return result;
   };
@@ -135874,7 +136463,7 @@ async function reconstructFlattenedSlide(input) {
     const region = { ...readingRegion(`o${k + 1}`, o.box), kind: "panel" };
     const box3 = toSlide(o.box);
     const fill2 = outlineFills[k] ?? found.background;
-    const object = {
+    const object2 = {
       id: `${base}.o${k + 1}`,
       fingerprint: await fingerprintOf4("shape", box3, `rect|:${fill2}|${o.line}`),
       kind: "shape",
@@ -135885,7 +136474,7 @@ async function reconstructFlattenedSlide(input) {
       fill: { hex: fill2 },
       line: { color: { hex: o.line }, widthPt: Math.max(0.25, Math.round(o.thickness * sy * PT_PER_PX * 4) / 4) }
     };
-    built.push({ object, pictureBox: o.box, layer: 0, region });
+    built.push({ object: object2, pictureBox: o.box, layer: 0, region });
   }
   const outlineFillPanel = (region) => region.kind === "panel" && outlines.some((o, k) => insideShare3(region.box, o.box) >= 0.9 && sameColour(region.evidence.ink, outlineFills[k] ?? ""));
   const regions = parentFirst(found.regions);
@@ -136400,9 +136989,9 @@ var SAME_INK = 48;
 function snapInks(paras) {
   const weight = /* @__PURE__ */ new Map();
   for (const para of paras) {
-    for (const run of para.runs) {
-      const hex3 = run.color?.hex;
-      if (hex3) weight.set(hex3, (weight.get(hex3) ?? 0) + run.text.replace(/\s/g, "").length);
+    for (const run2 of para.runs) {
+      const hex3 = run2.color?.hex;
+      if (hex3) weight.set(hex3, (weight.get(hex3) ?? 0) + run2.text.replace(/\s/g, "").length);
     }
   }
   if (weight.size < 2) return;
@@ -136419,12 +137008,12 @@ function snapInks(paras) {
   }
   for (const para of paras) {
     const merged = [];
-    for (const run of para.runs) {
-      const hex3 = run.color?.hex;
-      if (hex3) run.color = { ...run.color, hex: to.get(hex3) ?? hex3 };
+    for (const run2 of para.runs) {
+      const hex3 = run2.color?.hex;
+      if (hex3) run2.color = { ...run2.color, hex: to.get(hex3) ?? hex3 };
       const last = merged[merged.length - 1];
-      if (last && last.color?.hex === run.color?.hex && last.bold === true === (run.bold === true) && last.sizePt === run.sizePt) last.text += run.text;
-      else merged.push(run);
+      if (last && last.color?.hex === run2.color?.hex && last.bold === true === (run2.bold === true) && last.sizePt === run2.sizePt) last.text += run2.text;
+      else merged.push(run2);
     }
     para.runs = merged;
   }
@@ -137067,7 +137656,7 @@ async function leftoverPictures(picture, found, ground, store, toSlide, base, oc
     }
     const stored = await store(crop);
     const slideBox = toSlide(box3);
-    const object = {
+    const object2 = {
       id: `${base}.rest${out.length + 1}`,
       fingerprint: await fingerprintOf4("pic", slideBox, stored.hash),
       kind: "pic",
@@ -137078,7 +137667,7 @@ async function leftoverPictures(picture, found, ground, store, toSlide, base, oc
       mediaMime: "image/png",
       ocr: { state: ocrState }
     };
-    out.push({ object, pictureBox: box3, layer: 2 });
+    out.push({ object: object2, pictureBox: box3, layer: 2 });
   }
   return out;
 }
@@ -137555,7 +138144,7 @@ function planSourceProblems(plan, source) {
   const seenSlides = /* @__PURE__ */ new Set();
   const seenRows = /* @__PURE__ */ new Set();
   const objectSlide = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object of slide.objects) objectSlide.set(object.id, slide.id);
+  for (const slide of source.slides) for (const object2 of slide.objects) objectSlide.set(object2.id, slide.id);
   for (const slide of plan.slides) {
     if (seenSlides.has(slide.id)) problems.push(`the slide ${slide.id} is in the plan twice`);
     seenSlides.add(slide.id);
@@ -140334,14 +140923,14 @@ async function inspectStage(args, ctx) {
     }
     const rows2 = plan.slides.find((one) => one.id === slideId)?.objects ?? [];
     const states = known ? objectStates(plan, known.source) : void 0;
-    const objectOf = known ? new Map(known.source.slides.flatMap((slide) => slide.objects).map((object) => [object.id, object])) : void 0;
+    const objectOf = known ? new Map(known.source.slides.flatMap((slide) => slide.objects).map((object2) => [object2.id, object2])) : void 0;
     const all = rows2.map((row) => {
-      const object = objectOf?.get(row.id);
-      const fidelity = known ? states?.get(row.id)?.fidelity ?? reviewFidelity(object) : null;
+      const object2 = objectOf?.get(row.id);
+      const fidelity = known ? states?.get(row.id)?.fidelity ?? reviewFidelity(object2) : null;
       const evidence = strongestEvidence(row.evidence);
       return {
         id: row.id,
-        kind: object?.kind ?? null,
+        kind: object2?.kind ?? null,
         class: row.class,
         action: effectiveAction(row),
         proposal: row.proposal,
@@ -140420,6 +141009,7 @@ var RENDER_ARGS = {
   dpi: { type: "number", description: "Raster DPI for physical units (default 300)." }
 };
 var TEMPLATE_ARGS = {
+  motionTiming: { type: "object", description: "Design version-1 tempo, named cues and bindings. Compile previews affected layers and returns editable ordinary fields; build_url/render apply the same compilation." },
   templateId: { type: "string", description: "Start from this built-in template id (listed by lolly_describe_tool)." },
   presetId: { type: "string", description: "Apply this preset from the selected template. Requires templateId." }
 };
@@ -140511,6 +141101,7 @@ var DESIGN_OPERATION_ARG = {
   }
 };
 var EXPORT_ARGS = {
+  ...MOTION_EXPORT_ARGS,
   depth: {
     type: "string",
     enum: ["8", "16", "float", "auto"],
@@ -140567,6 +141158,7 @@ function exportSettings(args) {
   })() : void 0;
   const cuts = typeof args.cuts === "number" && args.cuts > 1 ? args.cuts : void 0;
   return {
+    ...motionExportSettings(args),
     ...depth !== void 0 ? { depth } : {},
     ...hdr ? { hdr } : {},
     ...args.bleed ? { bleed: String(args.bleed) } : {},
@@ -140581,7 +141173,7 @@ var TOOL_DEFS = [
   ...["compile", "inspect", "measure"].map((verb) => ({
     name: `lolly_${verb}`,
     description: `${verb[0].toUpperCase()}${verb.slice(1)} a Lolly document without rasterising it.`,
-    inputSchema: { type: "object", properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, ...TEMPLATE_ARGS, layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, document: { type: "object" }, ...verb === "inspect" ? { file: FILE_ARG2 } : {} }, additionalProperties: false }
+    inputSchema: { type: "object", properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, ...TEMPLATE_ARGS, layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, document: { type: "object" }, ...verb === "inspect" ? { file: FILE_ARG2, motion: { type: "boolean", description: "Inspect delivered video bytes using optional ffprobe/ffmpeg." }, motionTarget: { type: "object", description: "Expected width, height, seconds, fps, audio, loudness (LUFS) and truePeakMax (dBTP)." } } : {} }, additionalProperties: false }
   })),
   {
     name: "lolly_validate",
@@ -140740,21 +141332,31 @@ async function resolveInputs(toolId, manifest, args) {
   const explicit = inputObject(args.inputs);
   const templateId = args.templateId;
   const presetId = args.presetId;
-  const finish2 = (base) => applyDesignLayerPatches(
-    toolId,
-    manifest,
-    applyDesignLayerOperations(toolId, manifest, base, args.layerOperations),
-    args.layerPatches
-  );
+  let motion;
+  const finish2 = (base) => {
+    const inputs = applyDesignLayerPatches(
+      toolId,
+      manifest,
+      applyDesignLayerOperations(toolId, manifest, base, args.layerOperations),
+      args.layerPatches
+    );
+    if (args.motionTiming !== void 0) {
+      if (toolId !== "design") throw new Error("motionTiming requires Design.");
+      motion = compileMotionCues(designRows(manifest, inputs, "layerPatches"), args.motionTiming);
+      return { ...inputs, boxes: motion.boxes, sequenceTiming: JSON.stringify(motion.timing) };
+    }
+    return inputs;
+  };
   if (templateId === void 0) {
     if (presetId !== void 0) throw new Error("presetId requires templateId.");
-    return { inputs: finish2(explicit) };
+    return { inputs: finish2(explicit), motion };
   }
   if (typeof templateId !== "string" || !templateId) throw new Error("templateId must be a non-empty string.");
   if (presetId !== void 0 && (typeof presetId !== "string" || !presetId)) throw new Error("presetId must be a non-empty string.");
   const seed = await loadTemplateSeed(toolId, templateId, presetId);
   return {
     inputs: finish2({ ...seed.inputs, ...explicit }),
+    motion,
     template: { id: seed.template.id, name: seed.template.name, ...seed.preset ? { preset: seed.preset.id } : {} }
   };
 }
@@ -141058,6 +141660,14 @@ function buildLinks(manifest, inputs, o) {
     bleed: o.bleed ?? null,
     marks: o.marks ?? null,
     cuts: o.cuts ?? null,
+    sampleTimes: o.sampleTimes,
+    motionBlur: o.motionBlur,
+    sequenceRange: o.sequenceRange,
+    fps: o.fps,
+    seconds: o.seconds,
+    wait: o.wait,
+    codec: o.codec,
+    vq: o.vq,
     depth: o.depth ?? null,
     // `hdr` serialises as a presence flag (`hdr=1`); the dials only exist on the
     // engine-side opts, so the link carries "HDR on" and the render carries how.
@@ -141143,7 +141753,9 @@ async function callTool(name, args) {
         if (name === "lolly_inspect" && args.file && typeof args.file === "object") {
           const file = args.file;
           if (typeof file.base64 !== "string") return errorResult("file.base64 is required.");
-          return textOnly2(JSON.stringify(inspectDocument(Uint8Array.from(Buffer.from(file.base64, "base64"))), null, 2));
+          const bytes = Uint8Array.from(Buffer.from(file.base64, "base64"));
+          if (args.motion === true) return textOnly2(JSON.stringify(await (await Promise.resolve().then(() => (init_motion_inspect(), motion_inspect_exports))).inspectMotionBytes(bytes, args.motionTarget), null, 2));
+          return textOnly2(JSON.stringify(inspectDocument(bytes), null, 2));
         }
         let document2 = args.document;
         if (name === "lolly_compile" || !document2) {
@@ -141155,7 +141767,7 @@ async function callTool(name, args) {
           const validation = validateToolInputs(tool.manifest, resolved2.inputs);
           if (!validation.ok) return invalidInputs(validation);
           const compiled2 = await withHost({}, async (_dom, host) => compileDocument(tool, resolved2.inputs, { host }));
-          if (name === "lolly_compile") return textOnly2(JSON.stringify({ ...compiled2, validation, ...resolved2.template ? { template: resolved2.template } : {} }, null, 2));
+          if (name === "lolly_compile") return textOnly2(JSON.stringify({ ...compiled2, validation, ...resolved2.motion ? { motion: { times: resolved2.motion.times, changes: resolved2.motion.changes, detached: resolved2.motion.detached } } : {}, ...resolved2.template ? { template: resolved2.template } : {} }, null, 2));
           document2 = compiled2.document;
         }
         return textOnly2(JSON.stringify(name === "lolly_inspect" ? inspectCompiledDocument(document2) : measureDocument(document2), null, 2));
@@ -141484,7 +142096,7 @@ ${listing}`;
 init_brand_context();
 init_src2();
 import { readFile as readFile16 } from "node:fs/promises";
-import { join as join17 } from "node:path";
+import { join as join18 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -141532,7 +142144,7 @@ async function assetsListing(uri) {
 async function previewResource(uri, id2) {
   for (const file of [`${id2}.svg`, `${id2}.look0.svg`]) {
     try {
-      const text6 = await readFile16(join17(previewsDir(), file), "utf8");
+      const text6 = await readFile16(join18(previewsDir(), file), "utf8");
       return { uri, mimeType: "image/svg+xml", text: text6 };
     } catch {
     }
@@ -141581,9 +142193,9 @@ async function readResource(uri) {
 }
 
 // services/mcp/src/file-resources.ts
-import { mkdtemp, writeFile as writeFile3, unlink, rm as rm2 } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join as join18 } from "node:path";
+import { mkdtemp as mkdtemp2, writeFile as writeFile4, unlink, rm as rm3 } from "node:fs/promises";
+import { tmpdir as tmpdir2 } from "node:os";
+import { join as join19 } from "node:path";
 import { randomUUID } from "node:crypto";
 
 // packages/node-shell/src/file-operations.ts
@@ -141758,12 +142370,12 @@ async function runNodeFileOperation(file, request, signal, execution = "device")
           if (operation.target === "jpeg") image = image.flatten({ background: options2.background });
           if (["jxl", "jxl-lossless"].includes(operation.target)) {
             const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-            const encoded2 = await runJxl({ operation: "encode", bytes: new Uint8Array(data), width: info.width, height: info.height, options: { quality, lossless: operation.target === "jxl-lossless" } }, signal);
-            return { size: encoded2.bytes.length, bytes: encoded2.bytes };
+            const encoded3 = await runJxl({ operation: "encode", bytes: new Uint8Array(data), width: info.width, height: info.height, options: { quality, lossless: operation.target === "jxl-lossless" } }, signal);
+            return { size: encoded3.bytes.length, bytes: encoded3.bytes };
           }
-          const encoded = await image.toFormat(operation.target, operation.target === "png" ? {} : { quality: Math.round(quality * 100) }).toBuffer();
+          const encoded2 = await image.toFormat(operation.target, operation.target === "png" ? {} : { quality: Math.round(quality * 100) }).toBuffer();
           signal?.throwIfAborted();
-          return { size: encoded.length, bytes: encoded };
+          return { size: encoded2.length, bytes: encoded2 };
         };
         const output2 = operation.target === "jxl-lossless" ? await encode(options2.quality) : await encodeToTargetBytes(encode, options2, signal);
         if (options2.targetBytes && output2.size > options2.targetBytes) throw new Error("Lossless output exceeds the target size. Increase the target or reduce the dimensions.");
@@ -141790,7 +142402,7 @@ var PrivateFileResources = class {
   reservations = /* @__PURE__ */ new Map();
   pending = 0;
   async close() {
-    if (this.directory) await rm2(await this.directory, { recursive: true, force: true });
+    if (this.directory) await rm3(await this.directory, { recursive: true, force: true });
     this.entries.clear();
     this.reservations.clear();
   }
@@ -141825,10 +142437,10 @@ var PrivateFileResources = class {
     const id2 = randomUUID();
     let path;
     try {
-      this.directory ??= mkdtemp(join18(tmpdir(), "lolly-private-files-"));
-      path = join18(await this.directory, id2);
+      this.directory ??= mkdtemp2(join19(tmpdir2(), "lolly-private-files-"));
+      path = join19(await this.directory, id2);
       const facts2 = await describeOperationFile(file);
-      await writeFile3(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
+      await writeFile4(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
       const ref = { id: id2, version: facts2.sha256, role, facts: facts2, ...source ? { derivedFrom: { id: source.ref.id, version: source.ref.version, sha256: source.ref.facts.sha256 } } : {} };
       this.entries.set(id2, { owner: owner2, ref, expires: Date.now() + TTL_MS, path, report: report2 });
       return ref;
@@ -141895,68 +142507,84 @@ var PRIVATE_FILE_TOOLS = [
 var privateFiles = new PrivateFileResources();
 
 // services/mcp/src/server.ts
-var PROTOCOL_VERSION = "2025-06-18";
-var SERVER_INFO = { name: "lolly-mcp", version: "0.1.0" };
 async function dispatch(req, context = {}) {
+  if (!validRequest(req)) return fail(null, ERR.INVALID_REQUEST, "Invalid JSON-RPC request");
   const isNotification = req.id === void 0;
   const id2 = req.id ?? null;
+  if (isNotification) return null;
+  const error2 = validateNegotiation(req, context.protocolVersion);
+  if (error2) return error2;
+  const modern = modernRequest(req, context.protocolVersion);
+  const done = (result) => {
+    if (!modern) return ok(id2, result);
+    const cacheable = ["server/discover", "tools/list", "resources/list", "resources/templates/list", "resources/read", "prompts/list"].includes(req.method);
+    return ok(id2, {
+      ...object(result) ? result : {},
+      resultType: "complete",
+      ...cacheable ? { ttlMs: req.method === "resources/read" ? 0 : 6e4, cacheScope: "private" } : {},
+      _meta: { ...object(result) && object(result._meta) ? result._meta : {}, "io.modelcontextprotocol/serverInfo": SERVER_INFO }
+    });
+  };
   try {
     switch (req.method) {
+      case "server/discover":
+        return done({ supportedVersions: SUPPORTED_VERSIONS, capabilities: CAPABILITIES, instructions: await serverInstructions() });
       case "initialize": {
+        if (modern) return fail(id2, ERR.METHOD_NOT_FOUND, "Use server/discover with stateless MCP");
         const params2 = req.params ?? {};
-        return ok(id2, {
-          protocolVersion: params2.protocolVersion || PROTOCOL_VERSION,
-          capabilities: { tools: {}, resources: {}, prompts: {} },
+        return done({
+          protocolVersion: LEGACY_VERSIONS.includes(params2.protocolVersion ?? "") ? params2.protocolVersion : LEGACY_VERSIONS[0],
+          capabilities: CAPABILITIES,
           serverInfo: SERVER_INFO,
           instructions: await serverInstructions()
         });
       }
-      case "notifications/initialized":
-      case "notifications/cancelled":
-        return null;
       case "ping":
-        return ok(id2, {});
+        return modern ? fail(id2, ERR.METHOD_NOT_FOUND, "ping is not part of this MCP version") : done({});
       case "tools/list":
-        return ok(id2, { tools: [...TOOL_DEFS, ...context.fileScope ? PRIVATE_FILE_TOOLS : []] });
+        return done({ tools: [...TOOL_DEFS, ...context.fileScope ? PRIVATE_FILE_TOOLS : []] });
       case "tools/call": {
         const params2 = req.params ?? {};
-        if (!params2.name) return fail(id2, ERR.INVALID_PARAMS, "tools/call requires a name");
+        if (typeof params2.name !== "string" || !params2.name) return fail(id2, ERR.INVALID_PARAMS, "tools/call requires a name");
+        if (params2.arguments !== void 0 && !object(params2.arguments)) return fail(id2, ERR.INVALID_PARAMS, "arguments must be an object");
+        if (![...TOOL_DEFS, ...context.fileScope ? PRIVATE_FILE_TOOLS : []].some((tool) => tool.name === params2.name)) return fail(id2, ERR.INVALID_PARAMS, `Unknown tool: ${params2.name}`);
         if (params2.name.startsWith("files_")) {
           if (!context.fileScope) return fail(id2, ERR.INVALID_PARAMS, "Private files are not enabled for this authenticated scope.");
           const result = await privateFiles.call(context.fileScope, params2.name, params2.arguments ?? {});
-          return ok(id2, { content: [{ type: "text", text: JSON.stringify(result) }] });
+          return done({ content: [{ type: "text", text: JSON.stringify(result) }] });
         }
-        return ok(id2, await callTool(params2.name, params2.arguments ?? {}));
+        return done(await callTool(params2.name, params2.arguments ?? {}));
       }
       case "resources/list":
-        return ok(id2, { resources: RESOURCES });
+        return done({ resources: RESOURCES });
       case "resources/templates/list":
-        return ok(id2, { resourceTemplates: RESOURCE_TEMPLATES });
+        return done({ resourceTemplates: RESOURCE_TEMPLATES });
       case "resources/read": {
         const params2 = req.params ?? {};
-        if (!params2.uri) return fail(id2, ERR.INVALID_PARAMS, "resources/read requires a uri");
+        if (typeof params2.uri !== "string" || !params2.uri) return fail(id2, ERR.INVALID_PARAMS, "resources/read requires a uri");
         if (params2.uri.startsWith("lolly://files/")) {
           if (!context.fileScope) return fail(id2, ERR.INVALID_PARAMS, "Private files are not enabled for this authenticated scope.");
-          return ok(id2, { contents: [await privateFiles.read(context.fileScope, params2.uri)] });
+          return done({ contents: [await privateFiles.read(context.fileScope, params2.uri)] });
         }
-        return ok(id2, { contents: [await readResource(params2.uri)] });
+        return done({ contents: [await readResource(params2.uri)] });
       }
       case "prompts/list":
-        return ok(id2, { prompts: await listPrompts() });
+        return done({ prompts: await listPrompts() });
       case "prompts/get": {
         const params2 = req.params ?? {};
-        if (!params2.name) return fail(id2, ERR.INVALID_PARAMS, "prompts/get requires a name");
+        if (typeof params2.name !== "string" || !params2.name) return fail(id2, ERR.INVALID_PARAMS, "prompts/get requires a name");
+        if (params2.arguments !== void 0 && (!object(params2.arguments) || Object.values(params2.arguments).some((value) => typeof value !== "string"))) return fail(id2, ERR.INVALID_PARAMS, "Prompt arguments must be strings");
         const prompt = await getPrompt(params2.name, params2.arguments ?? {});
         if (!prompt) return fail(id2, ERR.INVALID_PARAMS, `Unknown prompt: ${params2.name}`);
-        return ok(id2, prompt);
+        return done(prompt);
       }
       default:
-        if (isNotification) return null;
         return fail(id2, ERR.METHOD_NOT_FOUND, `Method not found: ${req.method}`);
     }
   } catch (e) {
-    if (isNotification) return null;
-    return fail(id2, ERR.INTERNAL, e.message);
+    const message = e.message;
+    const missingResource = req.method === "resources/read" && (e instanceof URIError || /^(Unknown (resource|asset)|Tool not found|Resource not found|File handle not found|Invalid file resource URI)/.test(message));
+    return fail(id2, missingResource ? ERR.INVALID_PARAMS : ERR.INTERNAL, message);
   }
 }
 
@@ -142567,6 +143195,7 @@ function authorizationServerMetadata(base) {
     status: 200,
     json: {
       issuer: base,
+      authorization_response_iss_parameter_supported: true,
       authorization_endpoint: `${base}/api/mcp/authorize`,
       token_endpoint: `${base}/api/mcp/token`,
       registration_endpoint: `${base}/api/mcp/register`,
@@ -142583,12 +143212,14 @@ var isValidRedirect = (u) => {
   if (typeof u !== "string") return false;
   try {
     const url = new URL(u);
-    return url.protocol === "https:" || url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    return !url.username && !url.password && !url.hash && (url.protocol === "https:" || url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname));
   } catch {
     return false;
   }
 };
 async function register(body, env) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { status: 400, json: { error: "invalid_client_metadata", error_description: "Client metadata must be an object" } };
+  if (body.application_type !== void 0 && (typeof body.application_type !== "string" || !["web", "native"].includes(body.application_type))) return { status: 400, json: { error: "invalid_client_metadata", error_description: "application_type must be web or native" } };
   const redirectUris = Array.isArray(body?.redirect_uris) ? body.redirect_uris : [];
   if (!redirectUris.length || !redirectUris.every(isValidRedirect)) {
     return { status: 400, json: { error: "invalid_redirect_uri", error_description: "redirect_uris must be a non-empty array of https (or localhost) URLs" } };
@@ -142601,6 +143232,7 @@ async function register(body, env) {
       client_id: clientId,
       client_id_issued_at: client.iat,
       redirect_uris: redirectUris,
+      ...body.application_type !== void 0 ? { application_type: body.application_type } : {},
       token_endpoint_auth_method: "none",
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],
@@ -142630,7 +143262,7 @@ async function authorizeGet(params2, env) {
   }
   return { status: 200, html: consentPage(params2) };
 }
-async function authorizePost(params2, env) {
+async function authorizePost(params2, env, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN || `http://localhost:${env.PORT || 8790}`) {
   const client = await resolveClient(params2, env);
   if (!client.ok) return client.result;
   if (params2.response_type !== "code" || !params2.code_challenge || params2.code_challenge_method !== "S256") {
@@ -142650,6 +143282,7 @@ async function authorizePost(params2, env) {
     exp: now() + CODE_TTL
   }, signingSecret(env));
   const url = new URL(params2.redirect_uri);
+  url.searchParams.set("iss", issuer);
   url.searchParams.set("code", code);
   if (params2.state) url.searchParams.set("state", params2.state);
   return { status: 302, redirect: url.href };
@@ -142753,7 +143386,7 @@ import { createHash as createHash7 } from "node:crypto";
 var CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, OPTIONS",
-  "access-control-allow-headers": "content-type, authorization, mcp-session-id, mcp-protocol-version",
+  "access-control-allow-headers": "content-type, authorization, mcp-session-id, mcp-protocol-version, mcp-method, mcp-name",
   // Expose the 401 challenge so a browser-side MCP client can read where to auth.
   "access-control-expose-headers": "WWW-Authenticate"
 };
@@ -142775,9 +143408,9 @@ function materializedBody(pre, maxBytes) {
   else if (Buffer.isBuffer(pre)) raw = pre.toString("utf8");
   else if (pre instanceof Uint8Array) raw = Buffer.from(pre).toString("utf8");
   else {
-    const encoded = JSON.stringify(pre);
-    if (typeof encoded !== "string") throw new Error("Request body cannot be encoded as JSON");
-    raw = encoded;
+    const encoded2 = JSON.stringify(pre);
+    if (typeof encoded2 !== "string") throw new Error("Request body cannot be encoded as JSON");
+    raw = encoded2;
   }
   if (Buffer.byteLength(raw, "utf8") > maxBytes) throw new BodyTooLargeError(maxBytes);
   return raw;
@@ -142903,13 +143536,18 @@ function createGateway(env = process.env) {
   const limiter = createRateLimiter(env);
   return async (req, res) => {
     const method = req.method || "GET";
+    const url = new URL(req.url || "/", "http://internal");
+    const path = url.pathname.replace(/\/+$/, "") || "/";
+    if (path.endsWith("/mcp") && !allowedOrigin(req.headers.origin, base, env.LOLLY_MCP_ALLOWED_ORIGINS)) {
+      res.writeHead(403, { "content-type": "application/json" });
+      res.end(JSON.stringify(fail(null, ERR.INVALID_REQUEST, "Origin is not allowed")));
+      return;
+    }
     if (method === "OPTIONS") {
       res.writeHead(204, CORS);
       res.end();
       return;
     }
-    const url = new URL(req.url || "/", "http://internal");
-    const path = url.pathname.replace(/\/+$/, "") || "/";
     if ((method === "GET" || method === "HEAD") && matchRenderGetPath(path)) {
       const r5 = await renderGet(path, url.search.replace(/^\?/, ""), {
         ip: clientIp(req, env),
@@ -142966,7 +143604,7 @@ function createGateway(env = process.env) {
         } catch (error2) {
           return send(res, bodyFailure(error2, "could not read request body"));
         }
-        return send(res, await authorizePost({ ...q, ...form }, env));
+        return send(res, await authorizePost({ ...q, ...form }, env, publicBase));
       }
       return send(res, { status: 405, headers: { allow: "GET, POST" }, json: { error: "method_not_allowed" } });
     }
@@ -143022,13 +143660,32 @@ function createGateway(env = process.env) {
         res.end(JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }));
         return;
       }
-      const response = await dispatch(msg3, { fileScope: env.LOLLY_MCP_PRIVATE_FILES === "1" && env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && auth !== "anonymous" ? principal : void 0 });
+      if (!validRequest(msg3)) {
+        res.writeHead(400, { ...CORS, "content-type": "application/json" });
+        res.end(JSON.stringify(fail(null, ERR.INVALID_REQUEST, "Invalid JSON-RPC request")));
+        return;
+      }
+      const protocolVersion = typeof req.headers["mcp-protocol-version"] === "string" ? req.headers["mcp-protocol-version"] : void 0;
+      const modern = modernRequest(msg3, protocolVersion);
+      const headerError = msg3.id === void 0 ? null : validateHttpHeaders(msg3, req.headers);
+      if (headerError) {
+        res.writeHead(400, { ...CORS, "content-type": "application/json" });
+        res.end(JSON.stringify(headerError));
+        return;
+      }
+      if (modern && !String(req.headers["content-type"] ?? "").toLowerCase().startsWith("application/json")) {
+        res.writeHead(415, CORS);
+        res.end();
+        return;
+      }
+      const response = await dispatch(msg3, { protocolVersion, fileScope: env.LOLLY_MCP_PRIVATE_FILES === "1" && env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && auth !== "anonymous" ? principal : void 0 });
       if (!response) {
         res.writeHead(202, CORS);
         res.end();
         return;
       }
-      res.writeHead(200, { ...CORS, "content-type": "application/json" });
+      const status = modern && response.error ? response.error.code === ERR.METHOD_NOT_FOUND ? 404 : (/* @__PURE__ */ new Set([ERR.HEADER_MISMATCH, ERR.MISSING_CAPABILITY, ERR.UNSUPPORTED_VERSION, ERR.INVALID_PARAMS])).has(response.error.code) ? 400 : 200 : 200;
+      res.writeHead(status, { ...CORS, "content-type": "application/json", "cache-control": "no-store" });
       res.end(JSON.stringify(response));
       return;
     }

@@ -77,7 +77,16 @@ render.
 Shared argument shapes: `RENDER_ARGS` are `toolId`, `inputs` (an object of the
 tool's inputs), `format`, `width`, `height`, `unit`, `dpi`; `TEMPLATE_ARGS` are
 `templateId`, `presetId`; `EXPORT_ARGS` cover `depth`, `hdr`, `bleed`, `marks`,
-`cuts`, `imprint`, `durable`. `lolly_render` adds `transparentBg`, `convertPaths`,
+`cuts`, `sampleTimes`, `imprint`, `durable`, `fps`, `seconds`, `wait`, `codec`, `vq`.
+For stills, `sampleTimes` is an array of 1-64 strictly increasing authored timeline
+seconds, before the composition end. One returns one still; several return a ZIP
+(or a paged PDF). Do not combine with `cuts > 1`. See `motion.md` for source limits.
+Motion settings travel in both the editable link and the browser export request.
+`fps` is an integer from 1 to 120, `seconds` is 0.5 to 3600, and `wait` is 0 to 30
+seconds. `codec` is `h264`, `hevc`, `vp9` or `av1`; `vq` is `smaller`, `balanced`
+or `best`. Omit settings to retain the tool's defaults. Invalid explicit settings
+return an error. Codec availability depends on the browser tier.
+`lolly_render` adds `transparentBg`, `convertPaths`,
 `background`, `colorProfile`, `c2pa` (`off`/`7`/`30`/`90`/`365`), `password` and
 `link` (default true).
 

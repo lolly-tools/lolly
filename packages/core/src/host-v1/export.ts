@@ -174,6 +174,14 @@ export type ExportFormat =
   | 'flac';
 
 export interface ExportOpts {
+  /** Uniform timeline still count. One retains the current playhead. */
+  cuts?: number;
+  /** Exact authored timeline seconds. One returns a still; several return a ZIP or paged PDF. */
+  sampleTimes?: readonly number[];
+  /** Centred temporal exposure; absent preserves the ordinary frame. */
+  motionBlur?: { samples: 1 | 4 | 8 | 16; shutterAngle: number };
+  /** Temporary authored range in seconds, without changing saved in/out marks. */
+  sequenceRange?: { from: number; to: number };
   /** Authored portable document, supplied by the runtime from declared tool files. */
   portableDocument?: { markup: string; styles: string; script: string; title: string; lang: string };
   /** Linear float render supplied by a tool. Encoded through the normal metadata/credential path. */

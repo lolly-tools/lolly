@@ -29,7 +29,7 @@ import { runBackgroundTasks } from '../lib/background-tasks.ts';
 // they are the only two edges to a ~7.9 KB module that also drags the upscale/matte
 // model tables along. Both call sites are async, so the import is invisible.
 const offlineManager = () => import('../lib/offline-manager.ts');
-import { adoptBootFetch, initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
+import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -70,6 +70,7 @@ export interface ToolIndex {
 
 /** The asset catalog index as fetched from /catalog/assets/index.json. */
 interface AssetIndex {
+  brandTokens?: string | null;
   assets: AssetMetaRecord[];
   /** Curated asset ids every user starts with favourited (seeded once, on first run -
    *  see boot() in main.ts). SUSE-specific content, so it's authored here in the catalog
@@ -134,7 +135,7 @@ declare global {
 interface SyncHost {
   log(level: string, msg: string, data?: Record<string, unknown>): void;
   assets: {
-    _syncFromIndex(assets: AssetMetaRecord[]): Promise<unknown>;
+    _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null }): Promise<unknown>;
     _pruneStale(assets: AssetMetaRecord[], sessionRefs: Set<string>, keepIds?: Set<string>): Promise<{ blobs: number; meta: number }>;
     _hasBlob(key: string): Promise<boolean>;
     _cacheBlob(key: string, blob: Blob): Promise<unknown>;
@@ -488,6 +489,7 @@ function absolutizeAssetUrls(index: AssetIndex): AssetIndex {
 let freshAssetSyncs = 0;
 
 async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, maintenanceGate?: () => Promise<unknown>): Promise<void> {
+  const origin = getInstanceBase() || window.location.origin;
   const resp = await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), 'assets-index');
   if (!resp) {
     host.log('info', 'Asset catalog unchanged (304)');
@@ -495,6 +497,7 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
     return;
   }
   const index = absolutizeAssetUrls(await resp.json() as AssetIndex);
+  if (origin !== (getInstanceBase() || window.location.origin)) throw new Error('The instance changed during catalogue refresh.');
   const generation = ++freshAssetSyncs;
   cachedAssetIndex = index; // let syncCorePrefetch reuse this fresh fetch
   if (Array.isArray(index.defaultFavourites)) {
@@ -508,7 +511,7 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
   }
 
   // Write metadata into IndexedDB so host.assets.get(id) can resolve whatever asset.
-  await host.assets._syncFromIndex(index.assets);
+  await host.assets._syncFromIndex(index.assets, { origin, ...('brandTokens' in index ? { tokensHead: index.brandTokens } : {}) });
   await onAssetsReady?.();
 
   if (maintenanceGate) {

@@ -156,6 +156,7 @@ export interface PrintMarks {
 
 /** Export defaults restored from the URL / a saved session (see mountTool). */
 export interface ExportDefaults {
+  motionBlur?: import('../../../../../engine/src/motion-sampling.ts').MotionBlur;
   filename?: string;
   format?: string;
   width?: number;
@@ -275,6 +276,10 @@ export type VizModule = typeof import('../../lib/viz-tool-mount.ts');
  * typecheck without changing what's passed at runtime.
  */
 export interface RunExportOpts {
+  cuts?: number;
+  sampleTimes?: readonly number[];
+  motionBlur?: import('../../../../../engine/src/motion-sampling.ts').MotionBlur;
+  sequenceRange?: import('../../../../../engine/src/motion-sampling.ts').MotionRange;
   width?: number | string;
   height?: number | string;
   quality?: number;

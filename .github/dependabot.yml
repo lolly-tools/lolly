@@ -112,6 +112,18 @@ updates:
     commit-message:
       prefix: "deps"
 
+  # The font subsetter ships a separate WASM crate and Cargo lockfile.
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/skera"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
   # ── GitHub Actions: the CI workflows (.github/workflows/*.yml) ─────────────
   - package-ecosystem: "github-actions"
     directory: "/"

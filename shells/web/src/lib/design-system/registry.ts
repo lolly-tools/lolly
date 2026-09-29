@@ -81,6 +81,8 @@ export interface DesignSystemRecord {
   locked: boolean;
   /** A pack's `prefs.theme`, applied on switch when set. */
   appearance?: { theme?: 'light' | 'dark' | 'brand' };
+  /** Last observed catalogue metadata; never inferred from a newly selected connection. */
+  catalog?: { origin?: string; version?: string; checksum?: string; available: boolean };
   createdAt: number;
   lastUsedAt: number;
 }
@@ -98,7 +100,7 @@ export interface RegistryDb {
 /** What the migration reads to name the shipped and the default records. */
 export interface RegistryProbe {
   /** The shipped catalog's tokens asset (name + id), or null when nothing is reachable yet. */
-  catalogTokens(): Promise<{ id: string; name?: string; brandLock?: boolean } | null>;
+  catalogTokens(): Promise<{ id: string; name?: string; brandLock?: boolean; origin?: string; version?: string; checksum?: string } | null>;
   /** The legacy head's user record, or null when this device never installed one. */
   legacyHead(): Promise<{ meta?: Record<string, unknown> } | null>;
 }
@@ -208,9 +210,10 @@ export function createDesignSystemRegistry(db: RegistryDb, probe: RegistryProbe)
       const catalog = await probe.catalogTokens().catch(() => null);
       // A fresh registry can precede catalog sync. Read the shipped identity
       // and lock from current metadata, including for records made before sync.
-      return rows.map(record => record.source.kind === 'shipped' && catalog
-        ? { ...record, headId: catalog.id, label: catalog.name ? stripTokensSuffix(catalog.name) : record.label, locked: catalog.brandLock === true }
-        : record);
+      return rows.map(record => record.source.kind !== 'shipped' ? record : catalog
+        ? { ...record, headId: catalog.id, label: catalog.name ? stripTokensSuffix(catalog.name) : record.label, locked: catalog.brandLock === true,
+          catalog: { origin: catalog.origin, version: catalog.version, checksum: catalog.checksum, available: true } }
+        : { ...record, label: 'Catalogue design system', headId: '', locked: false, catalog: { available: false } });
     },
     async get(id) {
       return (await api.list()).find(r => r.id === id) ?? null;

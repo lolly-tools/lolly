@@ -1247,14 +1247,14 @@ test('section 5.2 w/h: a size tween forces a per-frame live re-capture (a plate 
   // The Lottie machinery, reused: a stretched plate is a stretched picture, while the
   // preview rewraps its text and keeps its border one pixel wide. Parity beats speed,
   // so the layer is re-photographed at the size of the moment - even though it is a
-  // STATIC box with no source time at all, which is why `sourceSec` is no longer part
+  // STATIC box with no native frame rate, which is why `sourceSec` is no longer part
   // of the gate.
   const sized = layer({ kind: 'static', kf: kfTrackOf('t0_el_w100*t1000_el_w400') });
-  const asked: { idx: number; frame: number; sourceSec: number }[] = [];
+  const asked: { idx: number; frame: number; sourceSec: number; timeMs?: number }[] = [];
   const io = {
     frame: async (): Promise<void> => {},
-    lottieAt: async (idx: number, frame: number, sourceSec: number) => {
-      asked.push({ idx, frame, sourceSec }); return null;
+    lottieAt: async (idx: number, frame: number, sourceSec: number, _slot?: 'under' | 'over', timeMs?: number) => {
+      asked.push({ idx, frame, sourceSec, timeMs }); return null;
     },
   };
   // The FRAME asks, not the wire flag. The main thread does set `needsLiveRaster` on a
@@ -1263,7 +1263,8 @@ test('section 5.2 w/h: a size tween forces a per-frame live re-capture (a plate 
   // quietly lose the reflow and stretch one plate across the whole tween.
   await runSequenceJob(job([sized]), {} as AnyCanvas, stubCtx(), io);
   assert.equal(asked.length, 4, 'once per active frame, on `item.sized` alone');
-  assert.ok(asked.every((a) => a.sourceSec === 0), 'a static box has no source time to offer');
+  assert.deepEqual(asked.map(a => a.timeMs), [0, 250, 500, 750], 'live captures receive the authored frame clock');
+  assert.deepEqual(asked.map(a => a.sourceSec), [0, 0.25, 0.5, 0.75], 'static-layer captures also receive source time for embedded SVG animation');
 
   // …and a layer that keys no size still never goes live, which is the floor.
   asked.length = 0;

@@ -182,6 +182,7 @@ function memDb(seed: {
   users?: Array<Record<string, unknown>>;
 } = {}) {
   const stores: Record<string, Map<string, unknown>> = {
+    'profile': new Map(),
     'user-assets': new Map((seed.users ?? []).map(r => [String(r.id), r])),
     'asset-meta':  new Map((seed.meta ?? []).map(r => [String(r.id), r])),
     'asset-blob':  new Map(Object.entries(seed.blobs ?? {})),

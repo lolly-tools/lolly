@@ -24,6 +24,7 @@ Object.defineProperty(dom.window.document, 'fonts', { value: { add() {}, delete(
 const { createDesignSystemRegistry } = await import('./registry.ts');
 const { switchDesignSystem, DESIGN_SYSTEM_CHANGED_EVENT, REMOUNTABLE_ROUTES, instanceOf } = await import('./switch.ts');
 const { _setBaseForTests, getInstanceBase } = await import('../instance.ts');
+const { prepareDesignSystemRemoval, removeAndSwitchDesignSystem } = await import('./remove-coordinator.ts');
 type Registry = ReturnType<typeof createDesignSystemRegistry>;
 type Record_ = Awaited<ReturnType<Registry['active']>>;
 
@@ -54,7 +55,7 @@ async function rig() {
   await registry.put(hosted);
   const host = {
     designSystems: registry,
-    assets: { _exportUserAssets: async () => { calls.push('fonts:read'); return []; } },
+    assets: { _exportUserAssets: async () => { calls.push('fonts:read'); return []; }, _getBlob: async () => null },
     tokens: {
       bust: (o?: { lock?: boolean }) => { calls.push(`bust${o?.lock ? ':lock' : ''}`); },
       colors: async () => { calls.push('colors'); return [{ ref: '{c.x}', value: '#123456', name: 'x', group: 'g' }]; },
@@ -137,4 +138,98 @@ test('an unknown id is refused before anything moves', async () => {
   await assert.rejects(() => switchDesignSystem(r.host as unknown as Parameters<typeof switchDesignSystem>[0], 'nope', { resync: r.resync, setBase: r.setBase }), /no system/);
   assert.equal(await r.registry.activeId(), 'default');
   assert.deepEqual(r.calls, []);
+});
+
+for (const kind of ['hosted', 'file'] as const) {
+  test(`removing the active ${kind} system clears its owned connection before deleting the record`, async () => {
+    const r = await rig();
+    if (kind === 'file') {
+      const record = (await r.registry.get('suse'))!;
+      await r.registry.put({ ...record, source: { kind: 'file', instance: 'https://brand.suse.com', fileName: 'brand.lolly', signature: 'verified' } });
+    }
+    await r.registry.setActive('suse');
+    _setBaseForTests('https://brand.suse.com');
+    const reviewed = await prepareDesignSystemRemoval(r.registry, 'suse');
+    const res = await removeAndSwitchDesignSystem(r.host as never, 'suse', reviewed, { setBase: r.setBase, resync: r.resync });
+    assert.equal(res.wasActive, true);
+    assert.equal(res.fallback.id, 'shipped');
+    assert.equal(res.catalogStatus, 'current');
+    assert.equal(getInstanceBase(), '');
+    assert.equal(await r.registry.get('suse'), null);
+    assert.ok(r.calls.includes('resync'));
+  });
+}
+
+test('removal preserves an independently selected instance', async () => {
+  const r = await rig();
+  await r.registry.setActive('suse');
+  _setBaseForTests('https://independent.example');
+  const reviewed = await prepareDesignSystemRemoval(r.registry, 'suse');
+  await removeAndSwitchDesignSystem(r.host as never, 'suse', reviewed, { setBase: r.setBase, resync: r.resync });
+  assert.equal(getInstanceBase(), 'https://independent.example');
+  assert.equal(r.calls.includes('resync'), false);
+  _setBaseForTests('');
+});
+
+test('removal revalidates the active record after a dialog was reviewed', async () => {
+  const r = await rig();
+  _setBaseForTests('');
+  const reviewed = await prepareDesignSystemRemoval(r.registry, 'suse');
+  await r.registry.setActive('suse');
+  await assert.rejects(removeAndSwitchDesignSystem(r.host as never, 'suse', reviewed), /changed/);
+  assert.ok(await r.registry.get('suse'));
+});
+
+test('a refused connection write keeps the outgoing record and active pointer', async () => {
+  const r = await rig();
+  await r.registry.setActive('suse');
+  _setBaseForTests('https://brand.suse.com');
+  const reviewed = await prepareDesignSystemRemoval(r.registry, 'suse');
+  await assert.rejects(removeAndSwitchDesignSystem(r.host as never, 'suse', reviewed, {
+    setBase: async () => { throw new Error('storage refused'); }, resync: r.resync,
+  }), /storage refused/);
+  assert.equal(await r.registry.activeId(), 'suse');
+  assert.ok(await r.registry.get('suse'));
+  _setBaseForTests('');
+});
+
+test('offline removal reports the cached fallback without discarding other systems', async () => {
+  const r = await rig();
+  await r.registry.setActive('suse');
+  _setBaseForTests('https://brand.suse.com');
+  const reviewed = await prepareDesignSystemRemoval(r.registry, 'suse');
+  const res = await removeAndSwitchDesignSystem(r.host as never, 'suse', reviewed, {
+    setBase: r.setBase, resync: async () => { throw new Error('offline'); },
+  });
+  assert.equal(res.catalogStatus, 'cached');
+  assert.equal(getInstanceBase(), '');
+  assert.ok(await r.registry.get('default'));
+});
+
+test('hosted removal reviews the destination catalogue and refuses a changed destination', async () => {
+  const r = await rig();
+  await r.registry.setActive('suse');
+  _setBaseForTests('https://brand.suse.com');
+  const savedFetch = globalThis.fetch;
+  let name = 'Alpha Tokens';
+  globalThis.fetch = async input => {
+    assert.equal(String(input), '/catalog/assets/index.json');
+    return Response.json({ brandTokens: 'alpha/tokens/brand', assets: [
+      { id: 'alpha/tokens/brand', type: 'tokens', name, version: '1', formats: [{ format: 'json', checksum: name }] },
+    ] });
+  };
+  try {
+    const review = await prepareDesignSystemRemoval(r.registry, 'suse');
+    assert.match(review.message, /supplied design system “Alpha”/);
+    assert.doesNotMatch(review.message, /SUSE|Lolly Starter/);
+    assert.match(review.message, /https:\/\/lolly.tools/);
+    name = 'Beta Tokens';
+    await assert.rejects(removeAndSwitchDesignSystem(r.host as never, 'suse', review, { setBase: r.setBase, resync: r.resync }), /changed/);
+    assert.equal(await r.registry.activeId(), 'suse');
+    assert.equal(getInstanceBase(), 'https://brand.suse.com');
+    globalThis.fetch = async () => { throw new Error('offline'); };
+    const offline = await prepareDesignSystemRemoval(r.registry, 'suse');
+    assert.match(offline.message, /could not be verified/);
+    assert.doesNotMatch(offline.message, /SUSE|Alpha|Beta/);
+  } finally { globalThis.fetch = savedFetch; _setBaseForTests(''); }
 });

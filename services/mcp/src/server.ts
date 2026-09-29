@@ -5,74 +5,89 @@
  * dispatch(). Returns null for notifications (no response expected).
  */
 
+import { LEGACY_VERSIONS, SUPPORTED_VERSIONS, SERVER_INFO, CAPABILITIES, modernRequest, validRequest, validateNegotiation, object } from './negotiation.ts';
 import { ok, fail, ERR } from './protocol.ts';
 import type { JsonRpcRequest, JsonRpcResponse } from './protocol.ts';
 import { TOOL_DEFS, callTool, serverInstructions, listPrompts, getPrompt } from './tools.ts';
 import { RESOURCES, RESOURCE_TEMPLATES, readResource } from './resources.ts';
 import { PRIVATE_FILE_TOOLS, privateFiles } from './file-resources.ts';
 
-export const PROTOCOL_VERSION = '2025-06-18';
-export const SERVER_INFO = { name: 'lolly-mcp', version: '0.1.0' } as const;
+export { PROTOCOL_VERSION, SERVER_INFO } from './negotiation.ts';
 
-export async function dispatch(req: JsonRpcRequest, context: { fileScope?: string } = {}): Promise<JsonRpcResponse | null> {
+export async function dispatch(req: JsonRpcRequest, context: { fileScope?: string; protocolVersion?: string } = {}): Promise<JsonRpcResponse | null> {
+  if (!validRequest(req)) return fail(null, ERR.INVALID_REQUEST, 'Invalid JSON-RPC request');
   const isNotification = req.id === undefined;
   const id = req.id ?? null;
+  if (isNotification) return null;
+  const error = validateNegotiation(req, context.protocolVersion);
+  if (error) return error;
+  const modern = modernRequest(req, context.protocolVersion);
+  const done = (result: unknown): JsonRpcResponse => {
+    if (!modern) return ok(id, result);
+    const cacheable = ['server/discover', 'tools/list', 'resources/list', 'resources/templates/list', 'resources/read', 'prompts/list'].includes(req.method);
+    return ok(id, { ...(object(result) ? result : {}), resultType: 'complete',
+      ...(cacheable ? { ttlMs: req.method === 'resources/read' ? 0 : 60_000, cacheScope: 'private' } : {}),
+      _meta: { ...(object(result) && object(result._meta) ? result._meta : {}), 'io.modelcontextprotocol/serverInfo': SERVER_INFO } });
+  };
   try {
     switch (req.method) {
+      case 'server/discover':
+        return done({ supportedVersions: SUPPORTED_VERSIONS, capabilities: CAPABILITIES, instructions: await serverInstructions() });
       case 'initialize': {
+        if (modern) return fail(id, ERR.METHOD_NOT_FOUND, 'Use server/discover with stateless MCP');
         const params = (req.params ?? {}) as { protocolVersion?: string };
-        return ok(id, {
-          protocolVersion: params.protocolVersion || PROTOCOL_VERSION,
-          capabilities: { tools: {}, resources: {}, prompts: {} },
+        return done({
+          protocolVersion: LEGACY_VERSIONS.includes(params.protocolVersion ?? '') ? params.protocolVersion : LEGACY_VERSIONS[0],
+          capabilities: CAPABILITIES,
           serverInfo: SERVER_INFO,
           instructions: await serverInstructions(),
         });
       }
-      case 'notifications/initialized':
-      case 'notifications/cancelled':
-        return null;
       case 'ping':
-        return ok(id, {});
+        return modern ? fail(id, ERR.METHOD_NOT_FOUND, 'ping is not part of this MCP version') : done({});
       case 'tools/list':
-        return ok(id, { tools: [...TOOL_DEFS, ...(context.fileScope ? PRIVATE_FILE_TOOLS : [])] });
+        return done({ tools: [...TOOL_DEFS, ...(context.fileScope ? PRIVATE_FILE_TOOLS : [])] });
       case 'tools/call': {
         const params = (req.params ?? {}) as { name?: string; arguments?: Record<string, unknown> };
-        if (!params.name) return fail(id, ERR.INVALID_PARAMS, 'tools/call requires a name');
+        if (typeof params.name !== 'string' || !params.name) return fail(id, ERR.INVALID_PARAMS, 'tools/call requires a name');
+        if (params.arguments !== undefined && !object(params.arguments)) return fail(id, ERR.INVALID_PARAMS, 'arguments must be an object');
+        if (![...TOOL_DEFS, ...(context.fileScope ? PRIVATE_FILE_TOOLS : [])].some(tool => tool.name === params.name)) return fail(id, ERR.INVALID_PARAMS, `Unknown tool: ${params.name}`);
         if (params.name.startsWith('files_')) {
           if (!context.fileScope) return fail(id, ERR.INVALID_PARAMS, 'Private files are not enabled for this authenticated scope.');
           const result = await privateFiles.call(context.fileScope, params.name, params.arguments ?? {});
-          return ok(id, { content: [{ type: 'text', text: JSON.stringify(result) }] });
+          return done({ content: [{ type: 'text', text: JSON.stringify(result) }] });
         }
-        return ok(id, await callTool(params.name, params.arguments ?? {}));
+        return done(await callTool(params.name, params.arguments ?? {}));
       }
       case 'resources/list':
-        return ok(id, { resources: RESOURCES });
+        return done({ resources: RESOURCES });
       case 'resources/templates/list':
-        return ok(id, { resourceTemplates: RESOURCE_TEMPLATES });
+        return done({ resourceTemplates: RESOURCE_TEMPLATES });
       case 'resources/read': {
         const params = (req.params ?? {}) as { uri?: string };
-        if (!params.uri) return fail(id, ERR.INVALID_PARAMS, 'resources/read requires a uri');
+        if (typeof params.uri !== 'string' || !params.uri) return fail(id, ERR.INVALID_PARAMS, 'resources/read requires a uri');
         if (params.uri.startsWith('lolly://files/')) {
           if (!context.fileScope) return fail(id, ERR.INVALID_PARAMS, 'Private files are not enabled for this authenticated scope.');
-          return ok(id, { contents: [await privateFiles.read(context.fileScope, params.uri)] });
+          return done({ contents: [await privateFiles.read(context.fileScope, params.uri)] });
         }
-        return ok(id, { contents: [await readResource(params.uri)] });
+        return done({ contents: [await readResource(params.uri)] });
       }
       case 'prompts/list':
-        return ok(id, { prompts: await listPrompts() });
+        return done({ prompts: await listPrompts() });
       case 'prompts/get': {
         const params = (req.params ?? {}) as { name?: string; arguments?: Record<string, string> };
-        if (!params.name) return fail(id, ERR.INVALID_PARAMS, 'prompts/get requires a name');
+        if (typeof params.name !== 'string' || !params.name) return fail(id, ERR.INVALID_PARAMS, 'prompts/get requires a name');
+        if (params.arguments !== undefined && (!object(params.arguments) || Object.values(params.arguments).some(value => typeof value !== 'string'))) return fail(id, ERR.INVALID_PARAMS, 'Prompt arguments must be strings');
         const prompt = await getPrompt(params.name, params.arguments ?? {});
         if (!prompt) return fail(id, ERR.INVALID_PARAMS, `Unknown prompt: ${params.name}`);
-        return ok(id, prompt);
+        return done(prompt);
       }
       default:
-        if (isNotification) return null;
         return fail(id, ERR.METHOD_NOT_FOUND, `Method not found: ${req.method}`);
     }
   } catch (e) {
-    if (isNotification) return null;
-    return fail(id, ERR.INTERNAL, (e as Error).message);
+    const message = (e as Error).message;
+    const missingResource = req.method === 'resources/read' && (e instanceof URIError || /^(Unknown (resource|asset)|Tool not found|Resource not found|File handle not found|Invalid file resource URI)/.test(message));
+    return fail(id, missingResource ? ERR.INVALID_PARAMS : ERR.INTERNAL, message);
   }
 }

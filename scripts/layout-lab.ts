@@ -16,7 +16,7 @@ const args = new Map(process.argv.slice(2).map(a => { const at = a.indexOf('=');
 const known = new Set(['--help', '--serve', '--port', '--methods', '--limit', '--out', '--case', '--rotate', '--timeout', '--corpus']);
 for (const key of args.keys()) if (!known.has(key)) throw new Error(`Unknown option: ${key}`);
 if (args.has('--help')) {
-  console.log('node scripts/layout-lab.ts --serve [--port=4317] [--corpus=directory]\nnode scripts/layout-lab.ts [--methods=rules,embed,choice,json] [--corpus=directory] [--case=id] [--limit=18] [--rotate=1] [--timeout=120000] [--out=.scratch/layout-lab/report.json]');
+  console.log('node scripts/layout-lab.ts --serve [--port=4317] [--corpus=directory]\nnode scripts/layout-lab.ts [--methods=rules,embed,choice,json] [--corpus=directory] [--case=id] [--limit=18] [--rotate=1] [--timeout=120000] [--out=plans/scratch/layout-lab/report.json]');
 } else if (args.has('--serve')) {
   const port = Number(args.get('--port') ?? 4317);
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid port.');
@@ -45,7 +45,7 @@ if (args.has('--help')) {
   if (!fixtures.length) throw new Error('No matching fixture.');
   let worker: Worker | undefined;
   const rows: ExperimentResult[] = [];
-  const out = path.resolve(args.get('--out') ?? '.scratch/layout-lab/report.json');
+  const out = path.resolve(args.get('--out') ?? 'plans/scratch/layout-lab/report.json');
   const save = (): void => {
     mkdirSync(path.dirname(out), { recursive: true });
     writeFileSync(out, JSON.stringify({ version: 1, created: new Date().toISOString(), engine: ENGINE_VERSION, corpus: corpusSize === undefined ? 'synthetic' : { slides: corpusSize, eligible: sourceFixtures.length, labels: 'none' }, environment: { node: process.version, platform: process.platform, arch: process.arch, cpu: os.cpus()[0]?.model }, rotate, summary: summarize(rows), results: rows }, null, 2));

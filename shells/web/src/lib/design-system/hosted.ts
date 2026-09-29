@@ -117,10 +117,10 @@ interface CatalogCore {
 async function readCatalogCore(base: string): Promise<CatalogCore> {
   const resp = await instanceFetch(`${base}/catalog/assets/index.json`, { cache: 'no-cache' });
   if (!resp.ok) throw new Error(`${base} hosts no catalog (${resp.status}).`);
-  const idx = await resp.json() as { assets?: CatalogCore['assets'] };
+  const idx = await resp.json() as { brandTokens?: string | null; assets?: CatalogCore['assets'] };
   const assets = idx.assets ?? [];
   const tokensEntries = assets.filter(a => a.type === 'tokens');
-  const headId = pickHeadAssetId(tokensEntries.map(a => a.id));
+  const headId = 'brandTokens' in idx ? idx.brandTokens : pickHeadAssetId(tokensEntries.map(a => a.id));
   const head = tokensEntries.find(a => a.id === headId) as (CatalogCore['assets'][number] & { name?: string; brandLock?: boolean; checksum?: string }) | undefined;
   if (!head) throw new Error(`${base} ships no design tokens.`);
   const fmt = head.formats.find(f => f.format === 'json') ?? head.formats[0];

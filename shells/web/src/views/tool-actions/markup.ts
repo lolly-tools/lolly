@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `ta.<module>.<fn>`. Extracted verbatim
  * from renderActions() by scripts/split-closure.ts.
  */
+import { motionControlsMarkup } from '../../lib/motion-export-controls.ts';
 import { learningRenditions } from '../../../../../engine/src/learning/delivery.ts';
 import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, OUTPUT_LICENCE_CHOICES, UNITS } from '@lolly/engine';
 import { durableSupport, liveCaptureSupport } from '../../bridge/format-support.js';
@@ -554,6 +555,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
             <input type="number" class="field-input field-input--sm" data-action="video-duration" value="${defaultDuration}" min="1" max="${durationMax}" step="0.5"
                    aria-label="${escapeText(t('Recording duration (seconds)'))}"><span>s</span></span>
           <span class="vp-field" data-seq-range hidden></span>
+          ${motionControlsMarkup()}
           <label class="gif-dither-toggle" data-gif-only
                  style="display:${initialFmt === 'gif' ? 'flex' : 'none'}">
             <input type="checkbox" class="field-check" data-action="gif-dither">

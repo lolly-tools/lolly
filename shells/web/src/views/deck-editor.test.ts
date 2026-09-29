@@ -26,6 +26,9 @@ import type { PptxDeckRead } from '@lolly/engine';
 // ── jsdom bootstrap (functions touch `document` only at call time) ────────────
 const dom = new JSDOM('<!DOCTYPE html><body></body>');
 const W = dom.window as unknown as typeof globalThis & { Event: typeof Event; MouseEvent: typeof MouseEvent };
+// jsdom has dialog elements but does not implement their native lifecycle.
+dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new W.Event('close')); };
 // `window` + getComputedStyle are needed because the inspector mounts the app's real colour
 // picker (color-field.ts), which wires window listeners and reads computed styles on mount.
 for (const k of ['window', 'document', 'HTMLElement', 'KeyboardEvent', 'Event', 'MouseEvent', 'Node', 'getComputedStyle']) {
@@ -89,7 +92,7 @@ test('parseMarkdownDeck: --- splits, chunk becomes content, image + bg directive
   const b = parseMarkdownDeck('# **Bold** title')[0]!;
   assert.equal(b.content, '# **Bold** title');
   assert.equal(contentTitle(b.content!), 'Bold title');
-  assert.equal(parseMarkdownDeck('')[0]!.layout, 'title');   // empty → one blank slide
+  assert.equal(parseMarkdownDeck('')[0]!.layout, 'auto');   // empty → one blank slide
   assert.equal(parseMarkdownDeck('')[0]!.content, '');
 });
 
@@ -366,7 +369,7 @@ test('inline text edit: the real .sl-head/.sl-body become editable, Escape commi
   const canvasEl = document.getElementById('tool-canvas')!;
   injectSlide(canvasEl, 0, 'Old');
   // The bar's Edit button (icon) enters inline editing - no popup is created.
-  click(stageEl.querySelector('.deck-bar__btn')!);
+  click(stageEl.querySelector('[aria-label="Edit slide text"]')!);
   const head = canvasEl.querySelector<HTMLElement>('.sl-head')!;
   assert.equal(head.getAttribute('contenteditable'), 'true', 'the real head band is now editable');
   assert.equal(stageEl.querySelector('.deck-text'), null, 'no popup editor is created');
@@ -384,7 +387,7 @@ test('inline text edit: title + body recombine into one content string', () => {
   const { val } = mountFixture([{ content: '# T\n\nbody', layout: 'title' }]);
   const canvasEl = document.getElementById('tool-canvas')!;
   injectSlide(canvasEl, 0, 'T', '<p class="sl-p">body</p>');
-  const bar = document.querySelector('.deck-bar__btn') as HTMLElement;
+  const bar = document.querySelector('[aria-label="Edit slide text"]') as HTMLElement;
   click(bar);
   const head = canvasEl.querySelector<HTMLElement>('.sl-head')!;
   const body = canvasEl.querySelector<HTMLElement>('.sl-body')!;
@@ -588,18 +591,20 @@ test('mode → freeform keeps an already-arranged canvas (never re-explodes)', (
 
 // ── on-canvas layout picker ──────────────────────────────────────────────────────
 
-test('on-canvas layout picker: present in layout mode, commits the slide layout', () => {
-  const { stageEl, val } = mountFixture([{ content: '# One', layout: 'title' }]);
-  const laySel = stageEl.querySelector<HTMLSelectElement>('.deck-bar__slide-layout')!;
-  assert.ok(laySel, 'layout picker shown for a layout slide');
-  laySel.value = 'split';
-  laySel.dispatchEvent(new W.Event('change', { bubbles: true }));
-  assert.equal((val('deck') as Array<{ layout?: string }>)[0]!.layout, 'split');
+test('Choose layout opens without changing the slide and commits an explicit choice', () => {
+  const { stageEl, val } = mountFixture([{ content: '# One\n- A\n- B\n- C', layout: 'auto' }]);
+  click(stageEl.querySelector('.deck-bar__choose-layout')!);
+  assert.equal((val('deck') as Array<{ arrangement?: string }>)[0]!.arrangement, undefined);
+  const choices = document.querySelectorAll<HTMLButtonElement>('.deck-compose__choice');
+  assert.equal(choices.length, 3);
+  click(choices[1]!);
+  assert.equal((val('deck') as Array<{ arrangement?: string }>)[0]!.arrangement, 'flow-columns-3-3');
+  assert.equal(document.querySelector('.deck-compose'), null);
 });
 
 test('on-canvas layout picker: hidden for a freeform slide', () => {
   const { stageEl } = mountFixture([{ mode: 'freeform', boxes: [] }]);
-  assert.equal(stageEl.querySelector('.deck-bar__slide-layout'), null);
+  assert.equal(stageEl.querySelector('.deck-bar__choose-layout'), null);
 });
 
 // ── freeform box editing: rich text + image pick ────────────────────────────────
@@ -1135,4 +1140,25 @@ test('pptxMediaDataUrl: extension-sniffed data: URL; unknown type / text part �
   assert.equal(pptxMediaDataUrl({ 'ppt/media/movie1.emf': png }, 'ppt/media/movie1.emf'), null);
   assert.equal(pptxMediaDataUrl({ 'ppt/media/a.png': 'text' }, 'ppt/media/a.png'), null);
   assert.equal(pptxMediaDataUrl({}, 'ppt/media/missing.png'), null);
+});
+
+
+test('automatic slide source editing retains nested Markdown and a manual arrangement', () => {
+  const content = '# Plan\n## Build\n- First\n  - Nested\n## Ship\n- Last';
+  const { stageEl, val } = mountFixture([{ layout: 'auto', content, arrangement: 'flow-columns-2-2' }]);
+  click(stageEl.querySelector('[aria-label="Edit slide text"]')!);
+  const textarea = document.querySelector<HTMLTextAreaElement>('.deck-compose__markdown')!;
+  assert.equal(textarea.value, content);
+  textarea.value += '\n- Review';
+  click(Array.from(document.querySelectorAll('.deck-compose button')).find(b => b.textContent === 'Apply text')!);
+  const slide = (val('deck') as Array<{ content: string; arrangement: string }>)[0]!;
+  assert.equal(slide.content, content + '\n- Review');
+  assert.equal(slide.arrangement, 'flow-columns-2-2');
+});
+
+test('Markdown separators and directives inside code stay in the slide', () => {
+  const source = '# Code\n```md\n---\nlayout: split\n```\n---\n# Next\n- A\n- B\n- C';
+  const deck = parseMarkdownDeck(source);
+  assert.equal(deck.length, 2); assert.equal(deck[0]!.layout, 'auto');
+  assert.match(deck[0]!.content!, /layout: split/);
 });

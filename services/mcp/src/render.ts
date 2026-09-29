@@ -14,7 +14,7 @@
  */
 
 import {
-  createRuntime, parseUrlState, expandQuery, serializeHdr,
+  createRuntime, parseUrlState, expandQuery, serializeHdr, assertSampleRequest, assertMotionRequest, sampleOutputFormat,
   C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState,
   parseDimension, toPixels, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa,
@@ -30,6 +30,7 @@ import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/re
 import { isDeepFormat, DeepSourceError, needsFloatScene } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
+import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
 import { readFile, stat } from 'node:fs/promises';
 import { loadToolCached } from './catalog.ts';
 import { withHost } from './host.ts';
@@ -584,6 +585,7 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   if (o.colorProfile) p.set('profile', o.colorProfile);
   if (o.hdr) p.set('hdr', serializeHdr(o.hdr));
   if (o.depth && o.depth !== 'auto') p.set('depth', String(o.depth));
+  if (Number(p.get('cuts')) > 1 || p.has('sampletimes')) p.set('c2pa', o.c2pa?.on ? String(o.c2pa.days ?? 1) : 'off');
   p.set('export', '1'); // presence flag → immediate download on load
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -607,14 +609,6 @@ export async function exposeExportPassword(
     return value;
   });
   return () => { held = undefined; };
-}
-
-/** How long to wait for the download to arrive. Video records in real time. */
-function exportTimeoutMs(fmt: string): number {
-  const f = normFormat(fmt);
-  if (f === 'webm' || f === 'mp4' || f === 'gif' || f === 'apng') return 180_000;
-  if (f === 'pdf' || f === 'pdf-cmyk' || f === 'cmyk-tiff' || f === 'tiff') return 90_000;
-  return 60_000;
 }
 
 /**
@@ -643,6 +637,7 @@ async function renderTierB(
   }
   const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
   let clearPassword = (): void => {};
+  let waiting: ExportWait | undefined;
   try {
     await ctx.addInitScript(() => {
       Object.defineProperty(globalThis, '__LOLLY_AI_DISABLED__', { value: true, writable: false, configurable: false });
@@ -650,18 +645,16 @@ async function renderTierB(
     clearPassword = await exposeExportPassword(ctx, fmt === 'pdf' ? o.password : undefined);
     const page = await ctx.newPage();
     await installBrowserEgressPolicy(page, base);
-    const downloadP = page.waitForEvent('download', { timeout: exportTimeoutMs(fmt) });
+    waiting = await waitForExport(page, fmt);
+    const downloadP = waiting.result;
     // 'commit' returns as soon as navigation starts; the export fires later, after
     // the tool mounts + settles (onInit, fonts). waitForEvent above is the real gate.
     await page.goto(url, { waitUntil: 'commit', timeout: 30_000 });
     let download: Awaited<typeof downloadP>;
     try {
       download = await downloadP;
-    } catch {
-      throw new RenderError(
-        `Tool "${toolId}" produced no "${fmt}" export within the time limit - the tool may ` +
-        `have failed to render, or the format isn't supported in the browser. Check the inputs.`,
-      );
+    } catch (error) {
+      throw new RenderError(`Tool "${toolId}" did not export: ${error instanceof Error ? error.message : String(error)}`);
     }
     const path = await download.path();
     if (!path) throw new RenderError(`Tier-B download for "${toolId}" yielded no file.`);
@@ -669,6 +662,7 @@ async function renderTierB(
     await download.delete().catch(() => {});
     return { bytes, mime: mimeForFormat(fmt) };
   } finally {
+    waiting?.dispose();
     clearPassword();
     await ctx.close();
   }
@@ -719,6 +713,10 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   }
   // Map jpeg↔jpg to what the engine's ExportFormat expects.
   const exportFmt = fmt === 'jpg' && !formats.includes('jpg') ? 'jpg' : fmt;
+  assertMotionRequest(fmt, st);
+  const sampled = assertSampleRequest(fmt, st.cuts, st.sampleTimes);
+  const deliveredFormat = sampled ? sampleOutputFormat(fmt, st.cuts, st.sampleTimes) : fmt;
+  if ((sampled || st.motionBlur || st.sequenceRange) && o.noBrowser) throw new RenderError('Timeline samples require the browser render tier.');
 
   const values: Record<string, unknown> = { ...st.values };
   if (o.transparentBg !== undefined) values['transparentBg'] = o.transparentBg;
@@ -756,7 +754,9 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
 
   const floatScene = needsFloatScene(toolId, values.editingRange, exportFmt, merged.hdr);
   if (floatScene && o.noBrowser) throw new RenderError('HDR Design composition requires the browser render tier.');
-  if (TIER_A.has(exportFmt) && !floatScene) {
+  if (sampled || st.motionBlur || st.sequenceRange) {
+    out = { ...(await renderTierB(toolId, q, exportFmt, merged)), mime: mimeForFormat(deliveredFormat), tier: 'B' };
+  } else if (TIER_A.has(exportFmt) && !floatScene) {
     try {
       const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji);
       placed = r.ingredients;
@@ -827,15 +827,15 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
         + 'Ask for a format the browser-free tier renders, or read the set\'s licence from the catalog entry.');
     }
   }
-  if (merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt as ExportFormat) && !(exportFmt === 'pdf' && merged.password)) {
+  if (!sampled && merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt as ExportFormat) && !(exportFmt === 'pdf' && merged.password)) {
     try { bytes = await stampC2pa(bytes, exportFmt, tool.manifest, values, merged, placed); }
     catch (e) { warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
-  } else if (merged.c2pa?.on) {
+  } else if (!sampled && merged.c2pa?.on) {
     warnings.push(`Format "${fmt}" cannot carry Content Credentials - skipped.`);
   }
 
   return {
-    bytes, mime: out.mime, format: fmt, tier: out.tier, warnings,
+    bytes, mime: out.mime, format: deliveredFormat, tier: out.tier, warnings,
     ...(evaluation ? { rights: await rightsResult(evaluation, bytes) } : {}),
   };
 }

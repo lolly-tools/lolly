@@ -5,7 +5,8 @@ description: >-
   Lolly, over any surface it exposes: share links and URL mode, the public render
   route, the MCP server, the CLI, the GitHub render action, and the lolly-work
   API. Use when the task is to make an image, chart, poster, deck, QR code, print
-  file or on-device file transform, or to drive any Lolly tool by URL, MCP or CLI.
+  file, motion piece or on-device file transform, or to drive a Lolly tool by URL,
+  MCP or CLI.
   Covers the three document tools whose input is structured (chart, design,
   deck-studio) and how to edit a Design document by stable layer id.
 ---
@@ -17,7 +18,7 @@ plus a template): the same tool runs unchanged through a URL, the render route,
 MCP and the CLI, because all four share one parameter contract. Learn the contract
 once and you can produce anything in the catalogue.
 
-This skill is enough on its own. The reference files carry the exhaustive detail:
+Read the references needed for the chosen tool and surface:
 
 - `reference/surfaces.md`: every surface, its auth and limits, and when to pick it.
 - `reference/url-mode.md`: the parameter contract, compact encoding, packed and
@@ -25,6 +26,8 @@ This skill is enough on its own. The reference files carry the exhaustive detail
 - `reference/tools.md`: every catalogue tool with its formats and purpose.
 - `reference/chart.md`, `reference/design.md`, `reference/deck.md`: the three tools
   whose input is a structured document, each with a worked example.
+- `reference/motion.md`: timed Design work, with editable recipes for kinetic
+  type, a product demonstration and a quiet explainer. Read before authoring motion.
 - `reference/rebrand.md`: renovating someone else's PowerPoint deck into the
   active design system - the plan/compile/inspect stages, the object classes
   and their evidence, and the MCP tool.
@@ -56,6 +59,29 @@ This skill is enough on its own. The reference files carry the exhaustive detail
    `lolly_build_url` / `--share` returns an editable link without rendering.
 5. **Share the editable link.** When the human will iterate, hand them the
    `lolly.tools` link, not just the bytes.
+
+## Authoring a motion piece
+
+For a new animation, establish the message, audience, destination, duration and
+design system before placing layers. Use the active catalog and design tokens;
+take factual claims from the brief or supplied sources. Treat references as
+evidence for techniques and pacing. State when a reference could not be viewed.
+
+Write a short shot table: time window, purpose, on-screen copy, entrance, reading
+hold, exit and sound cue. Respect the requested duration, quiet passages and any
+supplied soundtrack. Music and continuous movement are creative choices. Give a
+reading hold enough time after the last staggered word arrives.
+
+Author through Design's existing layers and motion fields, then validate the
+document. Review representative stills and transition boundaries for clipping,
+legibility and unintended gaps; review a short draft with sound when sound is
+part of the brief. Use the preview surfaces described in `reference/motion.md`.
+A structural validation result does not establish visual or audio quality.
+
+Deliver the requested file and editable source, noting the checks actually run
+and any unresolved limitations. A share link does not transport local uploads;
+use a `.lolly` package when the recipient needs those assets. For a small edit to
+an existing piece, review the affected interval rather than repeating the brief.
 
 ## Three rules an agent must not break
 

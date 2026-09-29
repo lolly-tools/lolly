@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "purpose": "Briefs for evaluating an agent using the skill. These are not records of completed agent runs.",
+  "cases": [
+    {
+      "id": "kinetic-launch",
+      "prompt": "Make a six-second square launch title in the active design system. The supplied copy is Make room for ideas, followed by Start with one idea. Use kinetic type. Deliver a WebM and editable source. Keep it silent.",
+      "checks": ["Six-second square movie", "Only supplied copy", "Visible opening message", "Final copy has a reading hold", "No audio stream", "Editable layers with stable ids", "Review includes both sides of the text change"],
+      "recipe": "../examples/motion/kinetic-title.json"
+    },
+    {
+      "id": "product-demo",
+      "prompt": "Make an eight-second landscape demonstration of this example workflow: choose a layout, then preview the result. Show a simple invented interface labelled Example workspace. Use the active design system. Do not invent product claims or metrics.",
+      "checks": ["Eight-second landscape movie", "Selection indicator follows the explained step", "No overlapping explanatory copy", "Interface is clearly example content", "Active design system used", "Editable source supplied"],
+      "recipe": "../examples/motion/product-demo.json"
+    },
+    {
+      "id": "quiet-explainer",
+      "prompt": "Make a ten-second square, silent explainer. Show Give each idea time to be understood. for five seconds, then A clear message can stay still. for five seconds. Keep both passages still while they are read.",
+      "checks": ["Ten-second square movie", "Two five-second passages", "No camera drift, text loop or decorative motion during holds", "No audio stream", "Text fits and is readable", "Intentional holds are not reported as export failures"],
+      "recipe": "../examples/motion/quiet-explainer.json"
+    },
+    {
+      "id": "multilingual-edit",
+      "prompt": "Adapt the quiet explainer into three separate language variants using this supplied first passage: Дайте каждой идее время. / امنح كل فكرة وقتها. / Geben Sie jedem Gedanken genügend Zeit, damit er verstanden werden kann. Keep the source editable, preserve the script's shaping and check each layout before delivery.",
+      "checks": ["Supplied text preserved verbatim", "Real font resolution checked", "No missing-glyph claim based only on schema validation", "Arabic joining preserved", "Long German copy fits or receives an explicit layout adjustment", "Each variant visually reviewed", "No claim of review for an unrendered variant"]
+    },
+    {
+      "id": "supplied-soundtrack",
+      "prompt": "Using the audio file supplied with this evaluation, make a twelve-second landscape product demonstration. Keep this soundtrack, place the reveal at its four-second cue and leave the final message readable for three seconds. Package the editable source with its media.",
+      "requires": ["Evaluator supplies a reusable twelve-second audio fixture with a known cue at four seconds"],
+      "checks": ["Supplied soundtrack retained", "No compulsory replacement score", "Picture and sound cue remain aligned after a timing edit", "Final three-second reading hold", "Packaged media reopens", "Encoded duration and audio checked", "Unsupported cue binding is disclosed rather than invented"]
+    }
+  ],
+  "rubric": {
+    "measured": ["Dimensions, duration and frame rate", "Expected audio presence", "Source ids and text", "Reopenable document", "Checks actually executed"],
+    "reviewed": ["Message hierarchy", "Legibility at destination size", "Pacing and reading holds", "Design-system adherence", "Sound supports the message when requested"],
+    "report": "Record artifacts, measurements, findings, unavailable capabilities and unresolved issues. Passing artifact checks does not establish creative quality."
+  }
+}

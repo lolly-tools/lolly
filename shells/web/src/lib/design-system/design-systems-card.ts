@@ -20,9 +20,10 @@ import { confirmDialog, promptDialog } from '../../components/confirm-dialog.ts'
 import { createTokenSet } from '@lolly/engine';
 import { brandFontStack, tokenValueToHex, contrastText } from '../../brand-vars.ts';
 import type { DesignSystemRecord } from './registry.ts';
-import { createDesignSystem, removeDesignSystem, type ManageHost } from './manage.ts';
+import { createDesignSystem, type ManageHost } from './manage.ts';
+import { prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
-import { catalogSourceHtml, catalogSourceLabel, designSystemRemovalMessage } from './catalog-source.ts';
+import { catalogSourceHtml, catalogSourceLabel } from './catalog-source.ts';
 
 export type CardHost = ManageHost & SwitchHost;
 
@@ -121,7 +122,7 @@ export async function previewOf(host: CardHost, record: DesignSystemRecord): Pro
   } catch { return { font: fallback, colors: [] }; }
 }
 
-export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview): string {
+export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview, adminHref?: string | null): string {
   const active = r.id === activeId;
   const removable = r.source.kind !== 'shipped';
   const size = bytesLabel(bytes);
@@ -133,7 +134,7 @@ export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, by
         <h3 class="ds-row-label">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
         <span class="ds-row-source">${escape(sourceLine(r))}</span>
         <span class="ds-row-facts">${t('{n} colours', { n: preview.colorCount ?? preview.colors.length })}${size ? ` <span>·</span> ${escape(size)}` : ''}</span>
-        ${catalogSourceHtml(r)}
+        ${catalogSourceHtml(r, adminHref)}
       </div>
       <div class="ds-row-actions">
         <button type="button" class="btn ds-row-btn" data-ds-act="studio">${t('Open')}</button>
@@ -154,10 +155,11 @@ export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost)
     host.designSystems.activeId(),
     sizesOf ? sizesOf.call(host.assets).catch(() => ({} as Record<string, number>)) : Promise.resolve({} as Record<string, number>),
   ]);
+  const adminHref = (await import('../../org/index.ts')).orgAdminHref();
   const previews = await Promise.all(records.map(record => previewOf(host, record)));
   body.innerHTML = `
     <p class="profile-appearance-sub">${isTauriShell() ? t('The design systems on this device. The active one is what every tool renders with.') : t('The design systems in this browser. The active one is what every tool renders with.')}</p>
-    <div class="ds-rows">${records.map((r, i) => designSystemCardHtml(r, activeId, sizes[r.id], previews[i]!)).join('')}</div>
+    <div class="ds-rows">${records.map((r, i) => designSystemCardHtml(r, activeId, sizes[r.id], previews[i]!, adminHref ? `${adminHref}#/instance?tab=design` : null)).join('')}</div>
     <div class="ds-add">
       <button type="button" class="btn" data-ds-act="looks">${t('Find a look')}</button>
       <button type="button" class="btn" data-ds-act="new">${icon('plus', { size: 14 })} ${t('Make a new one')}</button>
@@ -212,16 +214,20 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
         return;
       }
       if (act === 'remove' && id) {
+        const reviewed = await prepareDesignSystemRemoval(host.designSystems, id);
         const record = await host.designSystems.get(id);
         const ok = await confirmDialog({
           title: t('Remove “{name}”?', { name: record?.label ?? id }),
-          message: await designSystemRemovalMessage(host.designSystems, id),
+          message: reviewed.message,
           confirmLabel: t('Remove'),
           danger: true,
         });
         if (!ok) return;
-        const res = await removeDesignSystem(host, id);
-        if (res.wasActive) { await switchDesignSystem(host, 'shipped', { route: 'profile' }); return; }
+        const res = await removeAndSwitchDesignSystem(host, id, reviewed, { route: 'profile' });
+        const status = res.catalogStatus === 'cached'
+          ? t('Removed from this device. The catalogue could not refresh; cached material remains until you reconnect.')
+          : t('Removed. “{name}” is active.', { name: res.fallback.label });
+        announce(body, status + (res.kept ? ' ' + t('{n} shared assets were kept.', { n: res.kept }) : ''));
       }
       if (act === 'refresh' && id) {
         const { refreshHostedDesignSystem } = await import('./hosted.ts');

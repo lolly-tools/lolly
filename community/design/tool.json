@@ -2,8 +2,8 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.38.1",
-  "engineVersion": "^1.228.0",
+  "version": "1.39.0",
+  "engineVersion": "^1.231.0",
   "status": "community",
   "category": "designer",
   "tags": [
@@ -2265,6 +2265,31 @@
           "default": "",
           "pattern": "^$|^[a-z][a-z0-9-]{1,40}$",
           "help": "Archetype (plans 274 and 275): for a FRAME, the id of the slide master layout this slide was seeded from, or empty on a frame that was not seeded from a master. The value is open: one of the twelve original layouts (title, section, content, two-column, split, visual, full-image, quote, big-number, main-point, agenda, table) or a layout library id its master declares, in lower case letters, digits and hyphens, 2 to 41 characters, starting with a letter (for example columns-3 or numbered-rows). It is a text field with that pattern rather than a list, so the document API, the MCP validator and the published schema accept every id the master may carry. 'Apply archetype' rewrites it and pours the frame's content into the new layout's boxes; 'Reset slide' re-reads it. showFor:[] keeps it out of the sidebar. APPENDED after furniture - the compact-blocks URL wire format is append-only."
+        },
+        {
+          "id": "textDirection",
+          "type": "select",
+          "label": "Text direction",
+          "default": "",
+          "showFor": [
+            "text",
+            "box"
+          ],
+          "options": [
+            {
+              "value": "",
+              "label": "Default"
+            },
+            {
+              "value": "ltr",
+              "label": "Left to right"
+            },
+            {
+              "value": "rtl",
+              "label": "Right to left"
+            }
+          ],
+          "help": "Set paragraph direction for mixed-script punctuation. Alignment is controlled separately."
         }
       ],
       "default": [
@@ -2410,6 +2435,20 @@
       "default": false,
       "group": "export",
       "help": "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document."
+    },
+    {
+      "id": "sequenceTiming",
+      "type": "longtext",
+      "label": "Beat and cue timing",
+      "default": "",
+      "showFor": []
+    },
+    {
+      "id": "sequenceMotionBlur",
+      "type": "longtext",
+      "label": "Temporal motion blur",
+      "default": "",
+      "showFor": []
     }
   ]
 }

@@ -124,6 +124,25 @@ function press(key: string, mods: Record<string, unknown> = {}): KeyboardEvent {
 
 const near = (a: number, b: number, eps = 1e-6): boolean => Math.abs(a - b) <= eps;
 
+test('capture holds a pending initial fit until the preview layout is restored', () => {
+  const h = mount([{ x: 0, y: 0, w: 160, h: 120 }]);
+  try {
+    const resume = h.nav.suspend();
+    const nested = h.nav.suspend();
+    h.outer.style.transform = '';
+    h.nav.fit();
+    assert.equal(h.fitCalls(), 0);
+    assert.equal(h.outer.style.transform, '');
+    nested(); nested();
+    assert.equal(h.nav.isSuspended(), true);
+    assert.equal(h.fitCalls(), 0);
+    resume(); resume();
+    assert.equal(h.nav.isSuspended(), false);
+    assert.equal(h.fitCalls(), 1);
+    assert.notEqual(h.outer.style.transform, '');
+  } finally { h.teardown(); }
+});
+
 test('Fit frames every artboard - a two-page document is not fitted to page one', () => {
   const pages: Rect[] = [{ x: 0, y: 0, w: 960, h: 540 }, { x: 1075, y: 0, w: 960, h: 540 }];
   const h = mount(pages);

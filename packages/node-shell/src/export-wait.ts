@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Browser exports may run for hours; only a lack of progress ends the wait. */
-import type { Download, Page } from 'playwright-core';
+import type { ConsoleMessage, Download, Page } from 'playwright-core';
 
 const MOTION_FORMATS = new Set(['mp4', 'webm', 'gif', 'apng', 'webp-anim']);
 
@@ -43,7 +43,7 @@ export async function waitForExport(page: Page, format: string, idleMs = exportI
   void result.catch(() => {});
   const cleanup = () => {
     clearTimeout(timer);
-    page.off('download', downloaded); page.off('close', closed); page.off('crash', crashed);
+    page.off('console', exportError); page.off('download', downloaded); page.off('close', closed); page.off('crash', crashed);
   };
   const fail = (error: Error) => { if (settled) return; settled = true; cleanup(); rejectWait(error); };
   const touch = () => {
@@ -53,8 +53,12 @@ export async function waitForExport(page: Page, format: string, idleMs = exportI
   const downloaded = (download: Download) => { if (settled) return; settled = true; cleanup(); resolveWait(download); };
   const closed = () => fail(new Error('The export page closed before producing a file.'));
   const crashed = () => fail(new Error('The export page crashed before producing a file.'));
+  const exportError = (message: ConsoleMessage) => {
+    const text = message.text();
+    if (/^Auto-export (?:failed|did not start):/.test(text)) fail(new Error(text));
+  };
   await page.exposeFunction('__lollyExportProgress', (report: ExportProgress) => { if (!settled && advanced(report)) touch(); });
-  page.on('download', downloaded); page.on('close', closed); page.on('crash', crashed);
+  page.on('console', exportError); page.on('download', downloaded); page.on('close', closed); page.on('crash', crashed);
   touch();
   return { result, dispose: () => fail(new Error('The export wait was cancelled.')) };
 }

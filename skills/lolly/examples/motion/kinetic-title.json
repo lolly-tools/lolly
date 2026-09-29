@@ -1,0 +1,20 @@
+{
+  "toolId": "design",
+  "format": "webm",
+  "width": 1080,
+  "height": 1080,
+  "fps": 30,
+  "seconds": 6,
+  "inputs": {
+    "background": "#f7f7f5",
+    "projectFps": "30",
+    "sequenceMarks": "v1|m,3000,,888888,Resolve",
+    "boxes": [
+      { "id": "board", "kind": "frame", "name": "Kinetic title", "x": 0, "y": 0, "w": 1080, "h": 1080, "bg": "#f7f7f5" },
+      { "id": "background", "kind": "box", "frame": "board", "x": 0, "y": 0, "w": 1080, "h": 1080, "bg": "#f7f7f5", "radius": 0, "start": 0, "dur": 6, "lane": "seq" },
+      { "id": "hook", "kind": "text", "frame": "board", "x": 90, "y": 330, "w": 900, "h": 180, "text": "Make room", "fontSize": 116, "weight": "700", "fg": "#181818", "plainText": true, "start": 0, "dur": 3, "lane": "", "enter": "none", "exit": "none", "kf": "t0_y32*t600_eo_y0" },
+      { "id": "ideas", "kind": "text", "frame": "board", "x": 90, "y": 510, "w": 900, "h": 180, "text": "for ideas", "fontSize": 116, "weight": "700", "fg": "#181818", "plainText": true, "start": 0, "dur": 3, "lane": "", "enter": "none", "exit": "none", "split": "word", "stagger": 130, "kf": "t0_y32*t600_eo_y0" },
+      { "id": "resolve", "kind": "text", "frame": "board", "x": 90, "y": 320, "w": 900, "h": 400, "text": "Start with one idea", "fontSize": 108, "weight": "700", "fg": "#181818", "plainText": true, "start": 3, "dur": 3, "lane": "", "enter": "none", "exit": "none", "kf": "t0_y24*t450_eo_y0" }
+    ]
+  }
+}

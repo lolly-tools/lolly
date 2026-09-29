@@ -88,6 +88,7 @@ export function updateFullParam(tview: ToolViewCtx, shouldBeFull: boolean): void
 // the visual (scaled) dimensions so the layout doesn't leave a gap.
 
 export function fitCanvas(tview: ToolViewCtx): void {
+  if (tview.stageZoom?.isSuspended()) return;
   const { canvasEl, nativeH, nativeW, outerEl, pagedDoc, pagesMode, sidebarEl, stageEl, visitorPage } = tview;
   if (visitorPage) return; // a visitor page flows as a document - never scaled to fit
   if (!canvasEl || !outerEl) return;

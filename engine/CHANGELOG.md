@@ -6,6 +6,16 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.231.0
+
+- Sequence export adds optional temporal motion blur with 4/8/16 shutter samples, linear-light premultiplied accumulation, cut clipping and fixed output/audio clocks. SDR flat compositor exports support worker and main-thread rendering; HDR and tilted scenes report capability errors.
+- Exact raster samples use the movie compositor for video, Lottie, animated SVG and 3D source clocks. Movie `sequenceRange` overrides authored in/out marks temporarily; URL/CLI `seqrange` and `motionblur` preserve the options.
+- Versioned beat and cue timing compiles to ordinary editable layer fields. Delivered-file reports distinguish measured targets, review candidates and unchecked capabilities. Design adds explicit paragraph direction.
+
+## 1.230.0
+
+- Still exports accept explicit authored timeline seconds through `ExportOpts.sampleTimes`, the `sampletimes` URL/CLI parameter and MCP `sampleTimes`. One time returns one still; multiple times produce a ZIP or paged PDF. Invalid times and unsupported sources fail explicitly. Uniform contact sheets also reach the browser renderer from CLI and MCP.
+
 ## 1.229.0
 
 - Rebrand can compile bounded `flow-cards-N-C` and `flow-columns-N-C` layout recipes. The number of content groups determines capacity and geometry; headings stay with their bullets. Recipes inherit the brand master's title, typography, colours and furniture, and replay through the same web and CLI compiler. Recommendations still require a single-slide compile and content/fit audit.
@@ -2983,7 +2993,7 @@ isn't staged falls back to a brand-native preset and a credit line naming an art
 whose work is not on screen is worse than none.
 
 The reason this lands as a contract rather than a shell feature is 1.71's opt-in
-`samples`: MilkDrop's renderer takes injected time-domain bytes (`render({ audioLevels })`)
+`sampletimes`: MilkDrop's renderer takes injected time-domain bytes (`render({ audioLevels })`)
 and only reads its own AnalyserNode when given none. So the visual becomes a function
 of (preset, palette, frame index) instead of of what the speakers are doing, and a
 video export matches the audio track rather than the render machine's frame rate.

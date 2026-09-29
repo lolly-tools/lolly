@@ -35,16 +35,16 @@ try {
   assert.match(await page.locator('[data-layout-options] [role="status"]').innerText(), /recognised text/);
   const ids = await page.locator('[data-layout-option]').evaluateAll(nodes => nodes.map(n => (n as HTMLElement).dataset.layoutOption));
   await page.locator('[data-layout-option]').last().hover();
-  await page.screenshot({ path: '.scratch/layout-lab/rebrand-ocr.png' });
+  await page.screenshot({ path: 'plans/scratch/layout-lab/rebrand-ocr.png' });
   await page.locator('[data-layout-option]').last().click();
   await page.locator('[data-key=apply-layout-option]').click();
   if (await page.locator('.rb-undo').isEnabled()) await page.locator('.rb-undo').click();
   assert.equal(await original.getAttribute('src'), originalSrc, 'layout edits never redraw the original picture');
   assert.deepEqual(errors, []);
   assert.deepEqual(external, []);
-  writeFileSync('.scratch/layout-lab/browser-rebrand-ocr-report.json', JSON.stringify({ ids, errors, external, passed: true }, null, 2));
+  writeFileSync('plans/scratch/layout-lab/browser-rebrand-ocr-report.json', JSON.stringify({ ids, errors, external, passed: true }, null, 2));
 } catch (error) {
-  await page.screenshot({ path: '.scratch/layout-lab/rebrand-ocr-failure.png' });
+  await page.screenshot({ path: 'plans/scratch/layout-lab/rebrand-ocr-failure.png' });
   console.error((await page.locator('body').innerText()).slice(-6000), errors);
   throw error;
 } finally { await browser.close(); }

@@ -33,6 +33,7 @@ import type { selectionActionsOps } from './selection-actions.ts';
 import type { layoutOps } from './layout.ts';
 import type { crossfadeOps, RampDrag, XfadeDrag } from './crossfade.ts';
 
+import type { cueTimingOps } from './cues.ts';
 import type { marksOps } from './marks.ts';
 import type { rangePreviewOps } from './range-preview.ts';
 import type { lottieOps, TimelineLottieState } from './lottie.ts';
@@ -41,6 +42,7 @@ export interface TpCtx {
   lottieState?: TimelineLottieState;
   markerMenu?: BodyPopoverHandle;
   marks: ReturnType<typeof marksOps>;
+  cues: ReturnType<typeof cueTimingOps>;
   rangePreview: ReturnType<typeof rangePreviewOps>;
   // ---- state (was: closure variables of initTimelinePanel) ----
   captionsBtn: HTMLButtonElement;

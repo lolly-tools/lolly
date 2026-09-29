@@ -54,7 +54,7 @@
  * things (absent previews, an offline model) that are not this feature's business.
  *
  * ARTIFACTS. Screenshots and a JSON log per page land in `LOLLY_DRILL_OUT`
- * (default `<repo>/.drills/collab`), one numbered PNG per milestone.
+ * (default `<repo>/plans/drills/collab`), one numbered PNG per milestone.
  *
  * RUN IT:
  *   LOLLY_BROWSER_DRILLS=1 node --test tests/collab-private.browser.test.ts
@@ -89,7 +89,7 @@ function drillGate(): string | null {
 }
 
 const GATE = drillGate();
-const OUT = process.env.LOLLY_DRILL_OUT || join(repoRoot(), '.drills', 'collab');
+const OUT = process.env.LOLLY_DRILL_OUT || join(repoRoot(), 'plans', 'drills', 'collab');
 
 // The tool the pair co-edits. A community tool (present in every profile view), fast to
 // mount, and `url` is a plain scalar text control - the simplest possible convergence
@@ -133,7 +133,7 @@ async function shot(page: Page, name: string): Promise<void> {
 //   • It can never fail the drill. Everything below is try/caught and only `note()`s - 
 //     the drill's job is to prove the feature works, and a docs artefact that did not
 //     write is a missing picture, not a broken feature.
-// Off unless LOLLY_DRILL_DOCS=1, so an ordinary drill run writes nothing outside .drills.
+// Off unless LOLLY_DRILL_DOCS=1, so an ordinary drill run writes nothing outside plans/drills.
 const DOCS_CAPTURE = process.env.LOLLY_DRILL_DOCS === '1';
 const DOCS_SHOTS_DIR = join(repoRoot(), 'docs', 'shots');
 

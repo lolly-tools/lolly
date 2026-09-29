@@ -2,9 +2,9 @@
 
 `design` is the free canvas. Its document is one input, `boxes` (alias `bx`): a
 flat array of layers, each an object with a stable `id`, a `kind`
-(`box`/`text`/`image`/`path`/`audio`/`camera`/`frame`), a position (`x`, `y`, `w`,
+(`box`/`text`/`image`/`path`/`audio`/`camera`/`frame`/`3d`), a position (`x`, `y`, `w`,
 `h`, `rot`) and kind-specific fields. A `frame` layer is an artboard; any layer
-naming that frame in its `frame` field is a child of it. The other 12 top-level
+naming that frame in its `frame` field is a child of it. The other top-level
 inputs are document-wide settings (background, units, guides, transitions,
 narration).
 
@@ -89,31 +89,37 @@ the lightweight MCP endpoint) refuse it. Use `lolly_compile` / `lolly_inspect` /
   `webm`) with `fps`/`seconds`. `lolly_measure` reports the document's duration so
   you can size the clip.
 
+Read [Motion in Design](motion.md) for timing units, motion recipes, review and
+the differences between the available export surfaces. The generated fields
+below list the allowed select values; an empty string is a real choice.
+
 ## Top-level inputs
 
 Generated from `community/design/tool.json` (the `boxes` block is documented
 separately below).
 
 <!-- GEN:design-inputs -->
-| ID | Alias | Type | Default | What it does |
-|---|---|---|---|---|
-| `editingRange` | - | select | `sdr` | Editing range |
-| `background` | - | color | `{color.semantic.surface}` | Canvas background |
-| `documentUnit` | - | select | `px` | Document unit |
-| `documentDpi` | - | number | 300 | Document DPI |
-| `guides` | `gd` | longtext | `""` | Authoring guides |
-| `customCss` | - | longtext | `""` | Custom CSS |
-| `transition` | - | select | `slide` | Slide transition |
-| `autoAdvance` | - | boolean | false | Auto-advance slides |
-| `narrationVoice` | - | text | `""` | Narration voice |
-| `narrationSpeed` | - | number | 1 | Narration speed |
-| `narrationLeadInMs` | - | number | 400 | Narration lead-in (ms) |
-| `narrationTailMs` | - | number | 600 | Narration tail (ms) |
-| `showCaptionsWhenPresenting` | - | boolean | false | Show captions when presenting |
-| `projectFps` | - | select | `30` | Project frame rate |
-| `sequenceMarks` | - | longtext | `""` | Timeline markers |
-| `textDocument` | `tdoc` | longtext | `""` | Text document |
-| `exportVisibleText` | - | boolean | false | Export visible text only |
+| ID | Alias | Type | Default | What it does | Allowed values |
+|---|---|---|---|---|---|
+| `editingRange` | - | select | `sdr` | Editing range | `"sdr"`, `"hdr"` |
+| `background` | - | color | `{color.semantic.surface}` | Canvas background | - |
+| `documentUnit` | - | select | `px` | Document unit | `"px"`, `"mm"`, `"cm"`, `"in"`, `"pt"` |
+| `documentDpi` | - | number | 300 | Document DPI | - |
+| `guides` | `gd` | longtext | `""` | Authoring guides | - |
+| `customCss` | - | longtext | `""` | Custom CSS | - |
+| `transition` | - | select | `slide` | Slide transition | `"slide"`, `"fade"`, `"morph"`, `"flight"` |
+| `autoAdvance` | - | boolean | false | Auto-advance slides | - |
+| `narrationVoice` | - | text | `""` | Narration voice | - |
+| `narrationSpeed` | - | number | 1 | Narration speed | - |
+| `narrationLeadInMs` | - | number | 400 | Narration lead-in (ms) | - |
+| `narrationTailMs` | - | number | 600 | Narration tail (ms) | - |
+| `showCaptionsWhenPresenting` | - | boolean | false | Show captions when presenting | - |
+| `projectFps` | - | select | `30` | Project frame rate | `"24"`, `"25"`, `"30"`, `"50"`, `"60"` |
+| `sequenceMarks` | - | longtext | `""` | Timeline markers | - |
+| `textDocument` | `tdoc` | longtext | `""` | Text document | - |
+| `exportVisibleText` | - | boolean | false | Export visible text only | - |
+| `sequenceTiming` | - | longtext | `""` | Beat and cue timing | - |
+| `sequenceMotionBlur` | - | longtext | `""` | Temporal motion blur | - |
 <!-- /GEN:design-inputs -->
 
 ## The `boxes` layer fields
@@ -124,118 +130,119 @@ Every field a layer object may carry. Not all apply to every `kind`: `text`, `fg
 are timing. Generated from the `boxes` block.
 
 <!-- GEN:design-boxes -->
-| ID | Alias | Type | Default | What it does |
-|---|---|---|---|---|
-| `id` | - | text | - |  |
-| `kind` | - | select | `box` | Kind |
-| `x` | - | number | 120 | X |
-| `y` | - | number | 120 | Y |
-| `w` | - | number | 320 | Width |
-| `h` | - | number | 200 | Height |
-| `rot` | - | number | 0 | Rotation |
-| `shape` | - | select | `rect` | Shape |
-| `radius` | - | number | 16 | Corner radius |
-| `bg` | - | color | `""` | Fill |
-| `opacity` | - | number | 100 | Opacity |
-| `image` | - | asset | - | Image, animation or video |
-| `fit` | - | select | `contain` | Image fit |
-| `blend` | - | select | `normal` | Blend mode |
-| `text` | - | text | `""` | Text |
-| `fg` | - | color | `{color.semantic.text}` | Text colour |
-| `fontSize` | - | number | 48 | Text size |
-| `align` | - | select | `center` | Align |
-| `valign` | - | select | `middle` | Vertical |
-| `weight` | - | select | `500` | Weight |
-| `font` | - | select | `sans` | Font |
-| `lineHeight` | - | number | 1.12 | Line height |
-| `tracking` | - | number | 0 | Kerning |
-| `ligatures` | - | boolean | true | Ligatures |
-| `alternates` | - | boolean | false | Stylistic alternates |
-| `group` | - | text | `""` | Group |
-| `clip` | - | text | `""` | Clip to |
-| `pad` | - | number | 8 | Text padding |
-| `shadow` | - | select | `none` | Shadow |
-| `shadowColor` | - | color | `#00000055` | Shadow colour |
-| `shadowX` | - | number | 0 | Shadow X |
-| `shadowY` | - | number | 0 | Shadow Y |
-| `shadowBlur` | - | number | 10 | Shadow blur |
-| `imgpos` | - | select | `center` | Image position |
-| `fitText` | - | boolean | false | Shrink text to fit |
-| `path` | - | text | `""` |  |
-| `stroke` | - | color | `""` | Stroke |
-| `strokeW` | - | number | 0 | Stroke width |
-| `fillRule` | - | select | `nonzero` | Fill rule |
-| `start` | - | number | `""` | Start (s) |
-| `dur` | - | number | `""` | Duration (s) |
-| `clipIn` | - | number | 0 | Trim in (s) |
-| `speed` | - | number | 1 | Speed |
-| `enter` | - | select | `none` | Animate in |
-| `exit` | - | select | `none` | Animate out |
-| `enterMs` | - | number | 400 | In duration (ms) |
-| `exitMs` | - | number | 400 | Out duration (ms) |
-| `mute` | - | boolean | false | Mute audio |
-| `lane` | - | select | `""` | Lane |
-| `strokeDash` | - | select | `""` | Stroke style |
-| `strokeCap` | - | select | `round` | Line ends |
-| `strokeJoin` | - | select | `round` | Corners |
-| `grad` | - | text | `""` | Gradient |
-| `blur` | - | number | 0 | Blur |
-| `strokeDashLen` | - | number | 0 | Dash length |
-| `strokeGapLen` | - | number | 0 | Gap length |
-| `bgBlur` | - | number | 0 | Backdrop blur |
-| `enterEase` | - | text | `""` | In easing |
-| `exitEase` | - | text | `""` | Out easing |
-| `frame` | - | text | `""` | Artboard |
-| `order` | - | number | 0 | Order |
-| `clipChildren` | - | boolean | true | Clip children |
-| `headStart` | - | select | `none` | Path start |
-| `headEnd` | - | select | `none` | Path end |
-| `strokeDashArray` | - | text | `""` | Dash array |
-| `dashFit` | - | boolean | false | Fit dashes to corners |
-| `bindStart` | - | text | `""` | Start attached to |
-| `bindEnd` | - | text | `""` | End attached to |
-| `route` | - | select | `""` | Route |
-| `z` | - | number | 0 | Depth |
-| `kf` | - | text | `""` | Keyframes |
-| `linkOf` | - | text | `""` | Linked to |
-| `presentAudio` | - | boolean | false | Play sound when presenting |
-| `build` | - | number | `""` | Build step |
-| `state` | - | text | `""` | Frame state |
-| `matchOf` | - | text | `""` | Morph match key |
-| `notes` | - | text | `""` | Speaker notes |
-| `flipH` | - | boolean | false | Flip horizontal |
-| `flipV` | - | boolean | false | Flip vertical |
-| `cls` | - | text | `""` | CSS class |
-| `gain` | - | number | 1 | Volume |
-| `name` | - | text | `""` | Clip name |
-| `ignored` | - | boolean | false | Skip on playback |
-| `split` | - | select | `""` | Animate text by |
-| `stagger` | - | number | 60 | Text stagger (ms) |
-| `splitOrder` | - | select | `""` | Text order |
-| `hold` | - | select | `""` | While on screen |
-| `holdRate` | - | number | 1 | Hold speed (cycles/sec) |
-| `rx` | - | number | `""` | Tilt X |
-| `ry` | - | number | `""` | Tilt Y |
-| `pan` | - | number | `""` | Pan |
-| `duck` | - | number | `""` | Under other audio |
-| `pitch` | - | number | `""` | Pitch |
-| `varispeed` | - | boolean | `""` | Pitch follows speed |
-| `fx` | - | text | `""` | Audio effect |
-| `stackOf` | - | text | `""` | Stacks under |
-| `hidden` | - | boolean | false | Hidden |
-| `locked` | - | boolean | false | Locked |
-| `slideTransition` | - | select | `""` | Transition to next |
-| `plainText` | - | boolean | false | Plain text |
-| `scene` | - | text | `""` | Scene |
-| `animationId` | - | text | `""` | Animation in source |
-| `animationEdits` | - | text | `""` | Internal animation edits |
-| `textStory` | - | text | `""` | Text story |
-| `textFrame` | - | text | `""` | Text frame settings |
-| `pathPaint` | - | text | `""` | Vector paint |
-| `vectorSource` | - | text | `""` | Vector source and credits |
-| `textWrap` | - | text | `""` | Text wrap settings |
-| `master` | - | text | `""` | Slide master |
-| `role` | - | select | `""` | Archetype role |
-| `furniture` | - | text | `""` | Master furniture |
-| `archetype` | - | text | `""` | Slide archetype |
+| ID | Alias | Type | Default | What it does | Allowed values |
+|---|---|---|---|---|---|
+| `id` | - | text | - |  | - |
+| `kind` | - | select | `box` | Kind | `"box"`, `"text"`, `"image"`, `"path"`, `"audio"`, `"camera"`, `"frame"`, `"3d"` |
+| `x` | - | number | 120 | X | - |
+| `y` | - | number | 120 | Y | - |
+| `w` | - | number | 320 | Width | - |
+| `h` | - | number | 200 | Height | - |
+| `rot` | - | number | 0 | Rotation | - |
+| `shape` | - | select | `rect` | Shape | `"rect"`, `"rounded"`, `"pill"`, `"ellipse"`, `"circle"` |
+| `radius` | - | number | 16 | Corner radius | - |
+| `bg` | - | color | `""` | Fill | - |
+| `opacity` | - | number | 100 | Opacity | - |
+| `image` | - | asset | - | Image, animation or video | - |
+| `fit` | - | select | `contain` | Image fit | `"contain"`, `"cover"`, `"fill"` |
+| `blend` | - | select | `normal` | Blend mode | `"normal"`, `"multiply"`, `"screen"`, `"overlay"`, `"darken"`, `"lighten"`, `"color-dodge"`, `"color-burn"`, `"hard-light"`, `"soft-light"`, `"difference"`, `"exclusion"`, `"hue"`, `"saturation"`, `"color"`, `"luminosity"` |
+| `text` | - | text | `""` | Text | - |
+| `fg` | - | color | `{color.semantic.text}` | Text colour | - |
+| `fontSize` | - | number | 48 | Text size | - |
+| `align` | - | select | `center` | Align | `"left"`, `"center"`, `"right"` |
+| `valign` | - | select | `middle` | Vertical | `"top"`, `"middle"`, `"bottom"` |
+| `weight` | - | select | `500` | Weight | `"100"`, `"200"`, `"300"`, `"400"`, `"500"`, `"600"`, `"700"`, `"800"`, `"900"` |
+| `font` | - | select | `sans` | Font | `"sans"`, `"display"`, `"mono"` |
+| `lineHeight` | - | number | 1.12 | Line height | - |
+| `tracking` | - | number | 0 | Kerning | - |
+| `ligatures` | - | boolean | true | Ligatures | - |
+| `alternates` | - | boolean | false | Stylistic alternates | - |
+| `group` | - | text | `""` | Group | - |
+| `clip` | - | text | `""` | Clip to | - |
+| `pad` | - | number | 8 | Text padding | - |
+| `shadow` | - | select | `none` | Shadow | `"none"`, `"box"`, `"text"`, `"content"`, `"depth"` |
+| `shadowColor` | - | color | `#00000055` | Shadow colour | - |
+| `shadowX` | - | number | 0 | Shadow X | - |
+| `shadowY` | - | number | 0 | Shadow Y | - |
+| `shadowBlur` | - | number | 10 | Shadow blur | - |
+| `imgpos` | - | select | `center` | Image position | `"left top"`, `"center top"`, `"right top"`, `"left center"`, `"center"`, `"right center"`, `"left bottom"`, `"center bottom"`, `"right bottom"` |
+| `fitText` | - | boolean | false | Shrink text to fit | - |
+| `path` | - | text | `""` |  | - |
+| `stroke` | - | color | `""` | Stroke | - |
+| `strokeW` | - | number | 0 | Stroke width | - |
+| `fillRule` | - | select | `nonzero` | Fill rule | `"nonzero"`, `"evenodd"` |
+| `start` | - | number | `""` | Start (s) | - |
+| `dur` | - | number | `""` | Duration (s) | - |
+| `clipIn` | - | number | 0 | Trim in (s) | - |
+| `speed` | - | number | 1 | Speed | - |
+| `enter` | - | select | `none` | Animate in | `"fade"`, `"pop"`, `"grow"`, `"rise"`, `"drop"`, `"slide-left"`, `"slide-right"`, `"slide-up"`, `"slide-down"`, `"zoom-in"`, `"zoom-out"`, `"tilt"`, `"swoop"`, `"spin"`, `"drift"`, `"none"` |
+| `exit` | - | select | `none` | Animate out | `"fade"`, `"pop"`, `"grow"`, `"rise"`, `"drop"`, `"slide-left"`, `"slide-right"`, `"slide-up"`, `"slide-down"`, `"zoom-in"`, `"zoom-out"`, `"tilt"`, `"swoop"`, `"spin"`, `"drift"`, `"none"` |
+| `enterMs` | - | number | 400 | In duration (ms) | - |
+| `exitMs` | - | number | 400 | Out duration (ms) | - |
+| `mute` | - | boolean | false | Mute audio | - |
+| `lane` | - | select | `""` | Lane | `""`, `"seq"` |
+| `strokeDash` | - | select | `""` | Stroke style | `""`, `"dashed"`, `"dotted"` |
+| `strokeCap` | - | select | `round` | Line ends | `"round"`, `"butt"`, `"square"` |
+| `strokeJoin` | - | select | `round` | Corners | `"round"`, `"miter"`, `"bevel"` |
+| `grad` | - | text | `""` | Gradient | - |
+| `blur` | - | number | 0 | Blur | - |
+| `strokeDashLen` | - | number | 0 | Dash length | - |
+| `strokeGapLen` | - | number | 0 | Gap length | - |
+| `bgBlur` | - | number | 0 | Backdrop blur | - |
+| `enterEase` | - | text | `""` | In easing | - |
+| `exitEase` | - | text | `""` | Out easing | - |
+| `frame` | - | text | `""` | Artboard | - |
+| `order` | - | number | 0 | Order | - |
+| `clipChildren` | - | boolean | true | Clip children | - |
+| `headStart` | - | select | `none` | Path start | `"none"`, `"triangle"`, `"open"`, `"circle"`, `"diamond"`, `"bar"` |
+| `headEnd` | - | select | `none` | Path end | `"none"`, `"triangle"`, `"open"`, `"circle"`, `"diamond"`, `"bar"` |
+| `strokeDashArray` | - | text | `""` | Dash array | - |
+| `dashFit` | - | boolean | false | Fit dashes to corners | - |
+| `bindStart` | - | text | `""` | Start attached to | - |
+| `bindEnd` | - | text | `""` | End attached to | - |
+| `route` | - | select | `""` | Route | `""`, `"straight"`, `"elbow"`, `"elbow-v"`, `"elbow-h"`, `"elbow-src"`, `"elbow-tgt"`, `"curved"`, `"curved-v"`, `"curved-h"`, `"arc"`, `"arc-wide"`, `"arc-flip"`, `"arc-flip-wide"` |
+| `z` | - | number | 0 | Depth | - |
+| `kf` | - | text | `""` | Keyframes | - |
+| `linkOf` | - | text | `""` | Linked to | - |
+| `presentAudio` | - | boolean | false | Play sound when presenting | - |
+| `build` | - | number | `""` | Build step | - |
+| `state` | - | text | `""` | Frame state | - |
+| `matchOf` | - | text | `""` | Morph match key | - |
+| `notes` | - | text | `""` | Speaker notes | - |
+| `flipH` | - | boolean | false | Flip horizontal | - |
+| `flipV` | - | boolean | false | Flip vertical | - |
+| `cls` | - | text | `""` | CSS class | - |
+| `gain` | - | number | 1 | Volume | - |
+| `name` | - | text | `""` | Clip name | - |
+| `ignored` | - | boolean | false | Skip on playback | - |
+| `split` | - | select | `""` | Animate text by | `""`, `"word"`, `"line"`, `"letter"` |
+| `stagger` | - | number | 60 | Text stagger (ms) | - |
+| `splitOrder` | - | select | `""` | Text order | `""`, `"reverse"`, `"center"`, `"random"` |
+| `hold` | - | select | `""` | While on screen | `""`, `"pulse"`, `"bob"`, `"sway"`, `"flicker"` |
+| `holdRate` | - | number | 1 | Hold speed (cycles/sec) | - |
+| `rx` | - | number | `""` | Tilt X | - |
+| `ry` | - | number | `""` | Tilt Y | - |
+| `pan` | - | number | `""` | Pan | - |
+| `duck` | - | number | `""` | Under other audio | - |
+| `pitch` | - | number | `""` | Pitch | - |
+| `varispeed` | - | boolean | `""` | Pitch follows speed | - |
+| `fx` | - | text | `""` | Audio effect | - |
+| `stackOf` | - | text | `""` | Stacks under | - |
+| `hidden` | - | boolean | false | Hidden | - |
+| `locked` | - | boolean | false | Locked | - |
+| `slideTransition` | - | select | `""` | Transition to next | `""`, `"slide"`, `"fade"`, `"morph"`, `"flight"`, `"none"`, `"custom"` |
+| `plainText` | - | boolean | false | Plain text | - |
+| `scene` | - | text | `""` | Scene | - |
+| `animationId` | - | text | `""` | Animation in source | - |
+| `animationEdits` | - | text | `""` | Internal animation edits | - |
+| `textStory` | - | text | `""` | Text story | - |
+| `textFrame` | - | text | `""` | Text frame settings | - |
+| `pathPaint` | - | text | `""` | Vector paint | - |
+| `vectorSource` | - | text | `""` | Vector source and credits | - |
+| `textWrap` | - | text | `""` | Text wrap settings | - |
+| `master` | - | text | `""` | Slide master | - |
+| `role` | - | select | `""` | Archetype role | `""`, `"title"`, `"subtitle"`, `"body"`, `"visual"`, `"data"`, `"caption"`, `"number"`, `"label"`, `"quote"`, `"attribution"` |
+| `furniture` | - | text | `""` | Master furniture | - |
+| `archetype` | - | text | `""` | Slide archetype | - |
+| `textDirection` | - | select | `""` | Text direction | `""`, `"ltr"`, `"rtl"` |
 <!-- /GEN:design-boxes -->

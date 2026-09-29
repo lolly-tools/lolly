@@ -115,11 +115,12 @@ function toolTable(tools: CatalogTool[]): string {
   return [head, ...rows].join('\n');
 }
 
-function inputTable(inputs: ManifestInput[], opts: { section?: boolean } = {}): string {
+function inputTable(inputs: ManifestInput[], opts: { section?: boolean; choices?: boolean } = {}): string {
   const withSection = opts.section ?? inputs.some((i) => i.section);
   const cols = withSection
     ? ['ID', 'Alias', 'Type', 'Default', 'Section', 'What it does']
     : ['ID', 'Alias', 'Type', 'Default', 'What it does'];
+  if (opts.choices) cols.push('Allowed values');
   const head = `| ${cols.join(' | ')} |\n|${cols.map(() => '---').join('|')}|`;
   const rows = inputs.map((i) => {
     const base = [
@@ -130,6 +131,7 @@ function inputTable(inputs: ManifestInput[], opts: { section?: boolean } = {}): 
     ];
     if (withSection) base.push(i.section ? cell(i.section) : '-');
     base.push(cell(i.label ?? ''));
+    if (opts.choices) base.push(i.options?.map((o) => `\`${cell(JSON.stringify(o.value))}\``).join(', ') || '-');
     return `| ${base.join(' | ')} |`;
   });
   return [head, ...rows].join('\n');
@@ -192,8 +194,8 @@ const edits: Record<string, Record<string, string>> = {
     'chart-inputs': inputTable(chart.inputs, { section: true }),
   },
   'reference/design.md': {
-    'design-inputs': inputTable(design.inputs.filter((i) => i.id !== 'boxes')),
-    'design-boxes': inputTable(designBoxes.fields),
+    'design-inputs': inputTable(design.inputs.filter((i) => i.id !== 'boxes'), { choices: true }),
+    'design-boxes': inputTable(designBoxes.fields, { choices: true }),
   },
   'reference/deck.md': {
     'deck-inputs': inputTable(deck.inputs.filter((i) => i.id !== 'deck')),

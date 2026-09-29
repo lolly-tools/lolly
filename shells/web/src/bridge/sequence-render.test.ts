@@ -63,7 +63,7 @@ test('contract: a frozen snapshotMotion still is marked, and the compositor hide
   // every <video> has already been swapped for a frozen <img> by the time the mp4
   // sub-render runs. Captured into the box's "over" plate it would sit on top of
   // every decoded frame - a zipped mp4 of a sequence would be a static picture.
-  assert.match(strip(read('./export.ts')), /setAttribute\('data-motion-still', '1'\)/,
+  assert.match(strip(read('./export-motion-snapshot.ts')), /setAttribute\('data-motion-still', '1'\)/,
     'snapshotMotion must mark the still it inserts');
   assert.match(strip(read('./sequence-render.ts')), /querySelectorAll\('\[data-motion-still\]'\)/,
     'the compositor must hide it while rasterising the box');
@@ -75,11 +75,13 @@ test('contract: the frame cap applies to every buffered path, not just gif/apng'
   // means the codec pick has to happen before the budget is decided.
   const src = strip(read('./sequence-render.ts'));
   const pickAt = src.indexOf('pickWebCodecsVideo(format');
-  const capAt = src.indexOf('const cap = maxVideoFrames()');
+  const capAt = src.indexOf('const cap = capture ? 64 : maxVideoFrames()');
   const windowAt = src.indexOf('activeFrameWindow(L,');
   assert.ok(pickAt > 0 && capAt > pickAt, 'the encoder pick must precede the frame cap');
   assert.ok(windowAt > capAt, 'activity windows must be derived AFTER the cap, from the capped grid');
-  assert.match(src, /activeFrameWindow\(L, usedGrid,/, 'one grid for the loop and the windows');
+  assert.match(src, /const sampleGrid = temporal \? usedGrid\.flatMap\([^\n]+\) : usedGrid;/,
+    'shutter times derive from the capped output grid');
+  assert.match(src, /activeFrameWindow\(L, sampleGrid,/, 'provider windows cover every shutter sample');
 });
 
 test('contract: both mix graphs consume the ONE bed-duck envelope (section 6.1)', () => {
@@ -294,7 +296,7 @@ test('contract: every PLANNED layer is photographed clean, and the stage backgro
   // The `over` slot is the transparent half of that pair, framed identically.
   assert.match(src, /slot === 'over' \? \{ transparentBg: true \} : \{\}/,
     'a video layer\'s second live plate is the transparent one, as its static twin is');
-  assert.match(src, /makeLiveRaster\(\s*liveBoxes, plateScaleOf, padOf, neutralOf, clipNeutralOf, sizeAt, splitShotAt, stage\.totalMs, slideShotAt, deepEditing,\s*\)/,
+  assert.match(src, /makeLiveRaster\(\s*liveBoxes, plateScaleOf, padOf, neutralOf, clipNeutralOf, sizeAt, splitShotAt, stage\.totalMs, slideShotAt, deepEditing, temporal \|\| !!capture, releaseLive,\s*\)/,
     'and is handed the same per-layer pad, scale and ownership the static plates were shot at'
     + ' (plus the split-text window predicate, plans/175 WP-A, and the posed-slide predicate, plans/184 R1)');
   // section 5.4: a camera is a pose over time. `drawItem` already refuses to draw one; the

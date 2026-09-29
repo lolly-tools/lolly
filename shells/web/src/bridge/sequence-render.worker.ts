@@ -398,6 +398,9 @@ export interface SeqJobClip { idx: number; src: Blob | string }
  * the worker `postMessage`.
  */
 export interface SeqJob {
+  motionBlur?: import('../../../../engine/src/motion-sampling.ts').MotionBlur;
+  rangeFromMs?: number;
+  rangeToMs?: number;
   layers: SeqJobLayer[];
   /** Output frame times, ms - already capped to `frameCount`. */
   grid: number[];
@@ -489,7 +492,7 @@ export interface SeqJobIO {
    * BETWEEN them, and a size tween has to re-shoot both or the stale one ghosts.
    */
   lottieAt?(
-    layerIdx: number, frameIndex: number, sourceSec: number, slot?: SeqLiveSlot,
+    layerIdx: number, frameIndex: number, sourceSec: number, slot?: SeqLiveSlot, timeMs?: number,
   ): Promise<CanvasImageSource | null>;
   /** Release what `lottieAt` handed over (the worker closes a transferred bitmap). */
   releaseLottie?(img: CanvasImageSource): void;
@@ -1000,6 +1003,7 @@ export async function drawItem(
  * and guarantees no decoder outlives the call.
  */
 export async function runSequenceJob(job: SeqJob, canvas: AnyCanvas, ctx: AnyCtx, io: SeqJobIO): Promise<void> {
+  if (job.motionBlur && job.motionBlur.samples > 1 && job.motionBlur.shutterAngle > 0) return await (await import('./sequence-shutter.ts')).runShutterJob(job, canvas, ctx, io, runSequenceJob);
   const log = (l: string, m: string): void => io.log?.(l, m);
   const layers = job.layers.map(hydrateJobLayer);
   const wireOf = new Map(job.layers.map((w) => [w.idx, w]));
@@ -1186,7 +1190,7 @@ export async function runSequenceJob(job: SeqJob, canvas: AnyCanvas, ctx: AnyCtx
           const slots: SeqLiveSlot[] = item.layer.kind === 'video' && r.over ? ['under', 'over'] : ['under'];
           for (const slot of slots) {
             const img = await watchdog(
-              io.lottieAt(item.layer.idx, i, item.sourceSec ?? 0, slot),
+              io.lottieAt(item.layer.idx, i, item.sourceSec ?? (item.layer.clipInMs + Math.max(0, t - item.layer.startMs) * item.layer.speed) / 1000, slot, t),
               `live raster ${i + 1}/${job.frameCount}`,
             );
             if (!img) continue;
@@ -1308,6 +1312,7 @@ export interface SeqWorkerNeedLive {
   type: 'need-live'; id: number; token: number; layerIdx: number; frame: number; sourceSec: number;
   /** Which plate is being re-shot; absent means `under`, the only slot a non-video layer has. */
   slot?: SeqLiveSlot;
+  timeMs?: number;
 }
 export interface SeqWorkerProgress { type: 'progress'; id: number; done: number; total: number }
 export interface SeqWorkerLog { type: 'log'; id: number; level: string; msg: string }
@@ -1391,9 +1396,9 @@ export async function handleStart(
       aborted: () => ctl.aborted(),
       progress: (done, total) => port.post({ type: 'progress', id, done, total }),
       frame: (c, _ctx2, _i, tsUs) => mux.addFrame(c as CanvasImageSource, tsUs),
-      lottieAt: async (layerIdx, frame, sourceSec, slot) => {
+      lottieAt: async (layerIdx, frame, sourceSec, slot, timeMs) => {
         const tk = ++token;
-        port.post({ type: 'need-live', id, token: tk, layerIdx, frame, sourceSec, ...(slot ? { slot } : {}) });
+        port.post({ type: 'need-live', id, token: tk, layerIdx, frame, sourceSec, timeMs, ...(slot ? { slot } : {}) });
         return await ctl.awaitLive(tk);
       },
       releaseLottie: (img) => { try { (img as ImageBitmap).close?.(); } catch { /* not a bitmap */ } },

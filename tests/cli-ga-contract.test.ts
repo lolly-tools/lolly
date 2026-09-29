@@ -339,14 +339,14 @@ test('an unparseable --user-profile file is a usage error too', async () => {
 
 // ── B6: reserved params stop being silent ────────────────────────────────────
 
-test('--cuts is refused with exit 3 rather than rendering one frame (B6)', async () => {
+test('--cuts refuses a tool without a timeline rather than rendering one frame (B6)', async () => {
   const out = outPath('svg');
   await assert.rejects(
     () => run({ toolId: 'vec-tool', params: { cuts: '6' }, outputPath: out, format: 'svg' }),
     (e: CliErr) => {
       assert.equal(e.exit, EXIT.UNAVAILABLE_HERE);
-      assert.equal(e.kind, 'CUTS_UNAVAILABLE');
-      assert.match(e.message, /contact sheet/);
+      assert.equal(e.kind, 'SAMPLES_UNAVAILABLE');
+      assert.match(e.message, /timed composition/);
       return true;
     },
   );

@@ -20,6 +20,11 @@ scratch
 .scratch
 .tokensave
 plans
+output
+tmp
+artifacts
+.drills
+__pycache__
 tests
 .vercel
 **/.vercel

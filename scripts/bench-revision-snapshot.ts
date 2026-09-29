@@ -22,7 +22,7 @@
  * changes one key, so the packing cache never answers for that run.
  *
  * Documents: the real 22-frame Design deck when the local copy exists
- * (.scratch/singapore-rebuild/design-inputs.json, gitignored), a 1,000-box Design
+ * (plans/scratch/singapore-rebuild/design-inputs.json, gitignored), a 1,000-box Design
  * document tiled from every Design template with a distinct id, position and text
  * per copy (so deflate is not flattered by repeats), Chart with a 200-row table,
  * and filter, deck-studio, darkroom and diagram-builder at their defaults.
@@ -42,7 +42,7 @@ import { snapshotAtDefaults } from './tool-history-audit.ts';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const MS_PER_MIB = 10;
 export const FLOOR_MS = 1;
-export const REAL_DECK = join(ROOT, '.scratch/singapore-rebuild/design-inputs.json');
+export const REAL_DECK = join(ROOT, 'plans/scratch/singapore-rebuild/design-inputs.json');
 
 type Data = Record<string, unknown>;
 export interface BenchDocument { name: string; data: Data; local?: boolean }

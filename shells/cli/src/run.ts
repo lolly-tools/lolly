@@ -12,7 +12,7 @@ import { readFile, writeFile, stat } from 'node:fs/promises';
 import { resolve, basename, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
-import { buildExportMeta, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
 import type { InputValue } from '../../../engine/src/inputs.ts';
@@ -325,10 +325,11 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // different transport, so a packed share link must run identically here
   // (`lolly design --z=1eJ…`). A no-op for ordinary readable params.
   const query = await expandQuery(rawQuery);
-  const { values, format: paramFormat, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, depth, hdr, filename, cuts, profile: pressProfileParam, designVersion: designvParam, slide, video, emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam, licence: licenceParam } = parseUrlState(
-    query,
-    tool.manifest,
-  );
+  const parsedUrl = (() => {
+    try { return parseUrlState(query, tool.manifest); }
+    catch (error) { throw usageError((error as Error).message, 'SAMPLES_INVALID'); }
+  })();
+  const { values, format: paramFormat, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, depth, hdr, filename, cuts, sampleTimes, motionBlur, sequenceRange, profile: pressProfileParam, designVersion: designvParam, slide, video, emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam, licence: licenceParam } = parsedUrl;
 
   // The host is built HERE, after the query is decrypted, expanded and parsed,
   // because `--designv=` is a render param like any other: the design-system
@@ -365,20 +366,6 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // is its frozen alias and reads straight off url-mode's reserved `profile` param, so
   // a shared print link and a hand-typed flag mean the same thing (contract B1).
   const pressProfile = params['press-profile'] || pressProfileParam || null;
-
-  // `cuts=N` asks for a CONTACT SHEET: N stills sampled across a timed tool's stage,
-  // which only the web shell's sequence-cuts renderer produces. The CLI accepted the
-  // param, rendered ONE frame, and said nothing - a different artefact under the right
-  // name. Exit 3, because a runner with the browser tier can do it (contract B6; note
-  // that the contract calls `cuts` a print instruction, which it is not - the refusal
-  // is right, the reason is "the CLI has no sequence renderer").
-  if (cuts > 1) {
-    throw unavailableHere(
-      `--cuts=${cuts} asks for a ${cuts}-frame contact sheet, which the CLI cannot produce (the sequence renderer lives in the web shell). ` +
-      'Nothing was written: a single frame under the name you asked for would be a different artefact. Export from the web shell, or drop --cuts.',
-      'CUTS_UNAVAILABLE',
-    );
-  }
 
   // --output=- means stdout, explicitly (contract B10). Normalised here so every
   // downstream branch sees "no path" and streams, exactly as an omitted --output does.
@@ -546,7 +533,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // is simply absent from the link - same as the web.)
   if (share) {
     const runtime = await createRuntime(tool, host, values, hookExecutorOpts());
-    const q = serializeUrlState(runtime.getModel());
+    const q = serializeUrlState(runtime.getModel(), { cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality });
     await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${q ? '?' + q : ''}\n`);
     return;
   }
@@ -754,6 +741,13 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
     );
   }
 
+  let sampled: boolean;
+  try { assertMotionRequest(targetFormat, { motionBlur, sequenceRange, sampleTimes }); sampled = assertSampleRequest(targetFormat, cuts, sampleTimes); }
+  catch (error) { throw usageError((error as Error).message, 'SAMPLES_INVALID'); }
+  if ((sampled || motionBlur || sequenceRange) && !browserTier) {
+    throw unavailableHere('Timeline samples need a timed composition and the browser render tier.', 'SAMPLES_UNAVAILABLE');
+  }
+
   // ── provenance: DEFAULT ON, exactly as the web shell does (contract section 12 O2) ──
   //
   // Decided by Andy on 2026-08-01, overruling this record's own recommendation: a file
@@ -852,7 +846,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
     }
   }
 
-  let finalFormat = targetFormat;         // the format actually written (may fall back to html)
+  let finalFormat = sampled ? sampleOutputFormat(targetFormat, cuts, sampleTimes) : targetFormat;         // the format actually written (may fall back to html)
   let buf: Buffer;
   let usedBrowser = false;                // a pooled browser was launched → tear it down before exit
   let webShellExport = false;             // the Tier-B web shell produced the bytes → it owns c2pa
@@ -885,6 +879,9 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
     const canvas = dom.window.document.getElementById('canvas')!;
     await applyBrandVars(canvas, host);
     canvas.innerHTML = runtime.getHydrated();
+    if (sampled && !canvas.querySelector('[data-sequence]')) {
+      throw unavailableHere('Timeline samples need a timed composition.', 'SAMPLES_UNAVAILABLE');
+    }
     // Draw every emoji from the chosen set BEFORE the slide filter picks a page:
     // the filter exports one node out of the canvas, and runtime.export would then
     // only walk that page, leaving the rest of the document undrawn for anything
@@ -987,6 +984,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
     exportOpts.onTextFallback = (run) => textFallbacks.push(run);
 
     const dims = {
+      cuts, sampleTimes, motionBlur, sequenceRange,
       lang: normalizeLang(params.lang) ?? profile.lang,
       width: width ?? undefined, height: height ?? undefined, unit: unit ?? undefined, dpi: dpi ?? undefined,
       ...(password ? { password } : {}),
@@ -1103,7 +1101,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
         // web shell). `usedBrowser` tells us to tear the browser + server down before exit.
         const portableVisual = targetFormat.toLowerCase() !== 'ics' && tool.manifest.render.portable
           || targetFormat.toLowerCase() === 'html' && tool.manifest.id === 'design';
-        const domFree = NODE_FORMATS.includes(targetFormat.toLowerCase()) && !portableVisual && !needsFloatScene(tool.manifest.id, values.editingRange, targetFormat, exportOpts.hdr);
+        const domFree = !sampled && !motionBlur && !sequenceRange && NODE_FORMATS.includes(targetFormat.toLowerCase()) && !portableVisual && !needsFloatScene(tool.manifest.id, values.editingRange, targetFormat, exportOpts.hdr);
         // TIER A FOR `pptx`, on a Design document (plan 274 work package 6). Design
         // carries its authored rows in the render, so the deck is lowered straight from
         // them - real slides, placeholder-bound text where a frame names a slide master -
@@ -1183,7 +1181,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
       // rather than failed, which is a large part of why a Tier-B failure reads as
       // "the browser tier is broken". Both closes no-op when nothing was started.
       if (REAL_RENDER_FAILURES.has((e as Error)?.name)) { await teardownTierB(); throw e; }
-      if (!htmlFallback || finalFormat === 'html') { await teardownTierB(); throw exportFailure(targetFormat, e as Error, domFreeError); }
+      if (sampled || motionBlur || sequenceRange || !htmlFallback || finalFormat === 'html') { await teardownTierB(); throw exportFailure(targetFormat, e as Error, domFreeError); }
       const blob = await runtime.export(canvas, 'html', {});
       buf = Buffer.from(await blob.arrayBuffer());
       assertRenderOk({ hookErrors: runtime.hookErrors, format: 'html', bytes: buf });
@@ -1493,7 +1491,7 @@ export const CLI_FLAGS = new Set([
  *
  * Not in this list because they ARE handled: format/export/output/filename/width/height/
  * w/h/unit/dpi/profile/password/bleed/marks/c2pa/imprint/durable/hdr/depth/lang/z/zx,
- * and `cuts`, which is refused outright above.
+ * and timeline sampling, which requires the browser renderer.
  */
 const UNSUPPORTED_RESERVED: Record<string, string> = {
   copy: 'the CLI cannot reach a clipboard',

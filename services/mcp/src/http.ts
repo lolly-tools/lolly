@@ -4,7 +4,8 @@
  * single handler (createGateway, gateway.ts) accepts a JSON-RPC POST at /mcp and
  * returns a single JSON response (202 for notifications), and also serves the
  * OAuth authorization-server endpoints so a remote client (claude.ai) can connect.
- * Full SSE streaming + session management is roadmap M1 (or adopt the MCP SDK).
+ * MCP 2026-07-28 uses per-request negotiation without protocol sessions.
+ * This server returns JSON results and does not advertise subscriptions.
  *
  * Run standalone:  node services/mcp/src/http.ts   (PORT, default 8790)
  * This is the container/worker deployment path (owns the Tier-B browser pool).
@@ -27,7 +28,7 @@ export function startHttpServer(port = Number(process.env.PORT || 8790)): void {
       try { res.writeHead(500, { 'content-type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: String(err) } })); }
       catch { /* headers already sent */ }
     });
-  }).listen(port, () => {
+  }).listen(port, process.env.LOLLY_MCP_BIND_HOST || '127.0.0.1', () => {
     process.stderr.write(`lolly-mcp (http) on http://localhost:${port}/mcp\n`);
     if (!process.env.LOLLY_WEB_BASE) process.stderr.write('  note: LOLLY_WEB_BASE unset - Tier-B (browser) formats disabled; svg/data + resvg-png still work.\n');
   });

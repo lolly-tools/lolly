@@ -599,14 +599,14 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
       // construction - the right cold-load source for both callers.
       const resp = await instanceFetch(instancePath(ASSET_INDEX_URL));
       if (resp.ok) {
-        const idx = await resp.json() as { assets?: Array<TokensAssetMeta & { type?: string }> };
+        const idx = await resp.json() as { brandTokens?: string | null; assets?: Array<TokensAssetMeta & { type?: string }> };
         // The SAME descendant-exclusion rule _findMetaByType applies (plans/97
         // section 6a): a pack that ships published versions puts several `type:'tokens'`
         // entries in this index, and index order must never decide which of them
         // is the design system. This reader also supplies the un-shadowable
         // brandLock flag, so a mis-pick here would be a mis-picked LOCK too.
         const tokens = (idx.assets ?? []).filter(a => a.type === 'tokens');
-        const headId = pickHeadAssetId(tokens.map(a => a.id));
+        const headId = 'brandTokens' in idx ? idx.brandTokens : pickHeadAssetId(tokens.map(a => a.id));
         return tokens.find(a => a.id === headId) ?? null;
       }
     } catch { /* offline with nothing synced */ }

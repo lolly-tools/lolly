@@ -23,6 +23,8 @@
     "./browser-tier": "./src/browser-tier.ts",
     "./desktop-renderer": "./src/desktop-renderer.ts",
     "./webshell-render": "./src/webshell-render.ts",
+    "./motion-inspect": "./src/motion-inspect.ts",
+    "./export-wait": "./src/export-wait.ts",
     "./raster": "./src/raster.ts",
     "./hdr": "./src/hdr.ts",
     "./format-sniff": "./src/format-sniff.ts",

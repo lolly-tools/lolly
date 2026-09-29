@@ -184,7 +184,7 @@ import {
   resolveCamera,
   hdrBoostToPQ,
 } from '@lolly/engine';
-import type { CaptionCue, HdrBoostOptions } from '@lolly/engine';
+import type { HdrBoostOptions } from '@lolly/engine';
 import { activitySpans, createTruePeakLimiter, createLoudnessMeter, normalizeGain, parseFxChain, processFxPcm } from '@lolly/engine';
 // The scene grammar's ms-to-phase conversion, the same one the preview clock uses, so a
 // scene's exported frames and its scrubbed ones are the same picture at the same moment.
@@ -216,10 +216,12 @@ import { lottiePlayerFor } from '../views/lottie-mount.ts';
 // The same bridge → views edge, for the caption contract: the class a caption box
 // carries and the sliver floor a cue has to clear are both defined once, beside the
 // cue maths that mints those boxes, so the collector below cannot drift from them.
-import { CAPTION_BOX_CLASS, MIN_CUE_KEEP_S } from '../views/timeline-captions.ts';
 import { suspendNodeRasters, drainNodeRasters } from '../lib/clip-thumbs.ts';
-import { sequenceExportSize } from './sequence-preflight.ts';
-import { sequenceSettings, offsetMix } from './sequence-range.ts';
+import { sequenceDimensions } from './sequence-dimensions.ts';
+import { blurEnabled, shutterTimes, validateMotionBlur } from '../../../../engine/src/motion-sampling.ts';
+import type { SequenceCapture } from './sequence-capture.ts';
+import { shutterCuts, assertVideoOverlap } from './sequence-shutter.ts';
+import { authoredMotionBlur, sequenceSettings, offsetMix } from './sequence-range.ts';
 import type { ExportOpts } from './export.ts';
 // Type only - the encoders themselves stay out of this module's graph.
 import type { AudioPcm } from '../lib/audio-encode.ts';
@@ -1416,74 +1418,7 @@ async function gatherStageIngredients(
 // field names, and a re-timed or trimmed caption cannot disagree with the picture
 // it was rendered into.
 
-/** The class the caption preset stamps on a caption box (views/timeline-captions.ts
- *  owns it). `data-caption` is the same statement as an attribute, for a tool that
- *  marks its captions itself rather than through the Design box `cls` field. */
-const CAPTION_SELECTOR = `.lolly-box.${CAPTION_BOX_CLASS}[data-t-start], .lolly-box[data-caption][data-t-start]`;
-
-/** Collapse every run of whitespace, including the line breaks a two-line caption
- *  box holds, to one space: a blank line TERMINATES a cue block in both WebVTT and
- *  SubRip, so a cue carrying one would split into a good cue and a broken fragment. */
-const oneLine = (s: string): string => s.replace(/\s+/g, ' ').trim();
-
-const attrMs = (el: Element, name: string): number => {
-  const v = parseFloat(el.getAttribute(name) ?? '');
-  return Number.isFinite(v) ? v : Number.NaN;
-};
-
-const round3 = (v: number): number => Math.round(v * 1000) / 1000;
-
-/** How {@link stageCaptionCues} is bounded. */
-export interface StageCaptionOpts {
-  /** The film's length in ms. Defaults to the stage's own `data-seq-ms`; pass the
-   *  export's length when the user typed a shorter one, so no cue outlives the file. */
-  totalMs?: number;
-}
-
-/**
- * The caption boxes on a `[data-sequence]` stage, as cues in FILM seconds.
- *
- * Read straight off the rendered markup: `data-t-start` / `data-t-dur` are the
- * same numbers the compositor gates the picture with, and the box's own text is
- * what the viewer sees burned in. So a cue here can never say something the frame
- * does not, which is the property that lets the sidecar and the embedded track be
- * generated without a second pass over the audio.
- *
- * Struck-through clips (`data-t-ignored`) are skipped - the compositor draws none
- * of them - and a cue is clamped to the film, then dropped if the clamp leaves it
- * too short to read. Empty in, empty out: a document with no caption boxes gives
- * back no cues at all, which is what keeps a caption-less export byte-identical.
- */
-export function stageCaptionCues(node: Element | null | undefined, opts: StageCaptionOpts = {}): CaptionCue[] {
-  const root = node as HTMLElement | null | undefined;
-  const stage = root?.matches?.('[data-sequence]')
-    ? root
-    : (root?.querySelector?.('[data-sequence]') as HTMLElement | null);
-  if (!stage?.querySelectorAll) return [];
-  const declared = attrMs(stage, 'data-seq-ms');
-  const totalMs = Number.isFinite(Number(opts.totalMs)) && Number(opts.totalMs) > 0
-    ? Number(opts.totalMs)
-    : (Number.isFinite(declared) && declared > 0 ? declared : 0);
-  const endLimit = totalMs > 0 ? totalMs / 1000 : Number.POSITIVE_INFINITY;
-  const out: CaptionCue[] = [];
-  for (const el of stage.querySelectorAll<HTMLElement>(CAPTION_SELECTOR)) {
-    if (el.getAttribute('data-t-ignored') != null) continue;
-    const startMs = attrMs(el, 'data-t-start');
-    if (!Number.isFinite(startMs)) continue;
-    const durMs = attrMs(el, 'data-t-dur');
-    const start = Math.max(0, startMs / 1000);
-    // An open-ended caption box (no authored duration) runs to the end of the film,
-    // exactly as the compositor draws it.
-    const end = Math.min(endLimit, Number.isFinite(durMs) && durMs > 0 ? start + durMs / 1000 : endLimit);
-    if (!(end > start) || !Number.isFinite(end)) continue;
-    const text = oneLine((el.querySelector('.lolly-box-text') ?? el).textContent ?? '');
-    if (!text) continue;
-    if (end - start < MIN_CUE_KEEP_S) continue;
-    out.push({ start: round3(start), end: round3(end), text });
-  }
-  out.sort((a, b) => (a.start - b.start) || (a.end - b.end));
-  return out;
-}
+export { stageCaptionCues, type StageCaptionOpts } from './sequence-captions.ts';
 
 /**
  * The mixed timeline audio as planar PCM: every unmuted clip's own sound plus the
@@ -1522,7 +1457,7 @@ export async function sequenceAudioPcm(
   // so it is the identical number renderSequence hands the mix for mp4/webm (the
   // streaming path never caps the grid). Same fps default, same rounding.
   const authoredTotalSec = stage.totalMs / 1000;
-  const range = sequenceSettings(node, stage.totalMs);
+  const range = sequenceSettings(node, stage.totalMs, opts.sequenceRange);
   const fps = Math.max(1, Math.round(opts.fps ?? range.fps));
   const grid = frameTimestamps(range.toMs - range.fromMs, fps).map(ms => ms + range.fromMs);
   if (!grid.length) throw sequenceError('SEQ_DECODE_FAILED', 'sequence has no frames');
@@ -1541,50 +1476,6 @@ export async function sequenceAudioPcm(
 }
 
 // ── the orchestrator ────────────────────────────────────────────────────────
-
-function sequenceDimensions(
-  stage: NonNullable<ReturnType<typeof parseSequenceStage>>, stageEl: HTMLElement,
-  format: string, opts: ExportOpts, host: SeqHost | null,
-): { nativeW: number; nativeH: number; outW: number; S: number; targetH: number } {
-  const log = (level: string, message: string): void => host?.log?.(level, message);
-  // A frames-as-scenes slideshow ("Design", plan 92) sizes to a SLIDE, not the stage:
-  // the [data-sequence] element spans the whole side-by-side pasteboard of every frame,
-  // so its offsetWidth is the strip, not one slide. Size the output to the first timed
-  // frame's own box; combined with normalizeFrameScene (which re-anchors each slide's
-  // draw rect to (0,0,nativeW,nativeH)) every slide then fills this slide-sized canvas
-  // at the origin. Object-clip Video / Sequence Studio docs carry no frameScene layer,
-  // so they keep the stageEl.offsetWidth path byte-for-byte.
-  const frameScene0 = stage.layers.find((l) => l.frameScene && l.rect.w > 0 && l.rect.h > 0);
-  const wantW = Number(opts.width);
-  const wantH = Number(opts.height);
-  // Frames mode: the output frame is the CALLER'S requested size when given - the
-  // export bar mirrors the artboard under the playhead (plans/141 WP-B/C) - falling
-  // back to the first timed frame's own box. Every slide then contain-fits into it
-  // via normalizeFrameScene: a different-sized artboard letterboxes, never stretches.
-  const nativeW = frameScene0
-    ? (Number.isFinite(wantW) && wantW > 0 ? Math.round(wantW) : frameScene0.rect.w)
-    : Math.max(1, stageEl.offsetWidth || 1920);
-  const nativeH = frameScene0
-    ? (Number.isFinite(wantH) && wantH > 0 ? Math.round(wantH) : frameScene0.rect.h)
-    : Math.max(1, stageEl.offsetHeight || 1080);
-  // Even dimensions: H.264 chroma subsampling refuses an odd width or height. The
-  // rounding happens BEFORE the scale is derived, so an odd requested width is
-  // resampled to fit rather than losing its last pixel column of content.
-  const desiredW = Number.isFinite(wantW) && wantW > 0 ? wantW : nativeW;
-  const size = sequenceExportSize(desiredW, nativeH * desiredW / nativeW, stage.totalMs / 1000, opts.videoCodec ?? (format === 'webm' ? 'vp9' : 'avc'));
-  const outW = size.width;
-  const S = outW / nativeW;
-  const targetH = size.height;
-  if (size.reduced) {
-    const message = `sequence: export size reduced to ${outW} by ${targetH} for this duration and codec`;
-    log('warn', message); host?.notice?.(message);
-  }
-  if (Number.isFinite(wantH) && wantH > 0 && Math.abs(wantH - targetH) > 2) {
-    log('warn', `sequence: exporting ${outW}x${targetH} - a sequence keeps the stage's aspect ratio, so the requested height (${Math.round(wantH)}) is derived from the width.`);
-  }
-
-  return { nativeW, nativeH, outW, S, targetH };
-}
 
 /**
  * Render a `[data-sequence]` stage to a motion file.
@@ -1613,13 +1504,14 @@ function sequenceDimensions(
  * stage again half way through the film.
  */
 export async function renderSequence(
-  node: Element, format: 'mp4' | 'webm' | 'gif' | 'apng' | 'webp-anim', opts: ExportOpts, host: SeqHost | null = null,
+  node: Element, format: 'mp4' | 'webm' | 'gif' | 'apng' | 'webp-anim', opts: ExportOpts, host: SeqHost | null = null, capture?: SequenceCapture,
 ): Promise<Blob> {
-  return await withAuthoredDom(node as HTMLElement, () => renderSequenceAuthored(node, format, opts, host));
+  opts = { ...opts, motionBlur: authoredMotionBlur(node, opts.motionBlur) };
+  return await withAuthoredDom(node as HTMLElement, () => renderSequenceAuthored(node, format, opts, host, capture));
 }
 
 async function renderSequenceAuthored(
-  node: Element, format: 'mp4' | 'webm' | 'gif' | 'apng' | 'webp-anim', opts: ExportOpts, host: SeqHost | null = null,
+  node: Element, format: 'mp4' | 'webm' | 'gif' | 'apng' | 'webp-anim', opts: ExportOpts, host: SeqHost | null = null, capture?: SequenceCapture,
 ): Promise<Blob> {
   const log = (l: string, m: string): void => host?.log?.(l, m);
   // The stage declares its own length (data-seq-ms), which is the default and tracks
@@ -1651,12 +1543,12 @@ async function renderSequenceAuthored(
   const { nativeW, nativeH, outW, S, targetH } = sequenceDimensions(stage, stageEl, format, opts, host);
 
   const authoredTotalSec = stage.totalMs / 1000;
-  const range = sequenceSettings(node, stage.totalMs);
+  const range = sequenceSettings(node, stage.totalMs, opts.sequenceRange);
   const fps = format === 'gif' ? GIF_FPS : Math.max(1, Math.round(opts.fps ?? range.fps));
-  const grid = frameTimestamps(range.toMs - range.fromMs, fps).map(ms => ms + range.fromMs);
+  const grid = capture?.timesMs ?? frameTimestamps(range.toMs - range.fromMs, fps).map(ms => ms + range.fromMs);
   if (!grid.length) throw sequenceError('SEQ_DECODE_FAILED', 'sequence has no frames');
 
-  const streaming = format === 'mp4' || format === 'webm';
+  const streaming = !capture && (format === 'mp4' || format === 'webm');
   // Encoder selection happens HERE, before anything is sized against the frame
   // count, because whether WebCodecs can encode decides whether the frame cap
   // applies: the streaming muxer holds no frames, the MediaRecorder fallback holds
@@ -1666,6 +1558,9 @@ async function renderSequenceAuthored(
   // efficiency, so every downstream mux/worker call inherits the AV1/HEVC saving.
   const baseBitrate = videoBitrate(outW, targetH, fps, bppForQuality(opts.videoQuality ?? 'balanced'));
   // HDR output requires a working 10-bit encoder; display capability only governs preview.
+  if (opts.motionBlur) validateMotionBlur(opts.motionBlur);
+  const temporal = blurEnabled(opts.motionBlur);
+  if (temporal && (opts.hdr || opts.sourceDocument?.values.editingRange === 'hdr')) throw new Error('Temporal motion blur currently requires SDR sRGB export.');
   const hdrDesired = !!opts.hdr;
   const deepEditing = hdrDesired || opts.sourceDocument?.values.editingRange === 'hdr';
   const pick = streaming ? await pickWebCodecsVideo(format, outW, targetH, fps, baseBitrate, opts.videoCodec, hdrDesired) : null;
@@ -1706,7 +1601,7 @@ async function renderSequenceAuthored(
     if (stage.totalMs > MAX_SEQUENCE_MS) {
       throw sequenceError('SEQ_TOO_HEAVY', `sequence is ${Math.round(stage.totalMs / 1000)}s; the export ceiling is ${MAX_SEQUENCE_MS / 1000}s`);
     }
-    const cap = maxVideoFrames();
+    const cap = capture ? 64 : maxVideoFrames();
     if (frameCount > cap) {
       log('warn', `${format.toUpperCase()} capped at ${cap} frames (requested ${frameCount}); shorten the sequence, or export mp4/webm, to fit it all in.`);
       frameCount = cap;
@@ -1716,6 +1611,8 @@ async function renderSequenceAuthored(
   // window, the overlap budget and the truncation verdict. Deriving any of those
   // from the uncapped grid is how a complete gif export dies as SEQ_TRUNCATED.
   const usedGrid = frameCount === grid.length ? grid : grid.slice(0, frameCount);
+  const discontinuities = temporal ? shutterCuts({ layers: stage.layers.map(L => toJobLayer(L)) }) : [];
+  const sampleGrid = temporal ? usedGrid.flatMap(t => shutterTimes(t, fps, range.fromMs, range.toMs, discontinuities, opts.motionBlur)) : usedGrid;
 
   // Overlapping-clip budget, checked BEFORE any decoder is opened so a hopeless
   // composition fails in milliseconds instead of half way through a render.
@@ -1735,22 +1632,8 @@ async function renderSequenceAuthored(
   // Activity windows for the OVERLAP BUDGET only - the executor derives its own
   // from the same wire layers and the same grid, so the two cannot disagree.
   const win = new Map<number, { first: number; last: number; span: number[] }>();
-  for (const L of stage.layers) win.set(L.idx, activeFrameWindow(L, usedGrid, ext.get(L.idx) ?? 0));
-  {
-    let peak = 0;
-    for (let i = 0; i < frameCount; i++) {
-      let n = 0;
-      for (const L of stage.layers) {
-        if (L.kind !== 'video') continue;
-        const r = win.get(L.idx)!;
-        if (r.first >= 0 && i >= r.first && i <= r.last) n++;
-      }
-      peak = Math.max(peak, n);
-    }
-    if (peak > MAX_LIVE_PROVIDERS) {
-      throw sequenceError('SEQ_TOO_HEAVY', `${peak} video clips overlap; at most ${MAX_LIVE_PROVIDERS} can be decoded at once`);
-    }
-  }
+  for (const L of stage.layers) win.set(L.idx, activeFrameWindow(L, sampleGrid, ext.get(L.idx) ?? 0));
+  assertVideoOverlap(stage.layers, sampleGrid.length, win, MAX_LIVE_PROVIDERS);
 
   const transparent = opts.background === 'transparent';
 
@@ -1808,7 +1691,9 @@ async function renderSequenceAuthored(
   // `renderGlComposite` after the thread-selection point. Everything else about the
   // export (the plates, the audio mix, the mux, the ingredient gather that already
   // ran above, one container-level C2PA over its results) is identical.
+  if (capture && tilt) throw new Error('Exact compositor stills for tilted scenes are not available.');
   const useGl = !!tilt && glSequenceRenderEnabled() && supportsGlSequenceRender();
+  if (temporal && tilt) throw new Error('Temporal motion blur for tilted cameras requires the GPU accumulation path.');
   if (tilt && !useGl) {
     log('info', `sequence: TILT export - the scene authors ${tilt.ch} ${Math.round(tilt.deg * 10) / 10}°${tilt.atMs == null ? ' as its scene pose' : ` at ${Math.round(tilt.atMs)}ms`}, which is a homography the canvas compositor cannot draw. Every frame is captured off the live artboard instead (slower, and pixel-for-pixel what the preview shows).`);
     return await renderTiltCapture(tilt);
@@ -1827,7 +1712,7 @@ async function renderSequenceAuthored(
     }
   }
 
-  const demands = plateWindowDemands(stage.layers, usedGrid, stage.totalMs, planEnv, camMoves);
+  const demands = plateWindowDemands(stage.layers, sampleGrid, stage.totalMs, planEnv, camMoves);
   // The blur lanes pool their scratch canvases ACROSS frames (canvas-blur.ts's POOL),
   // and those scratches are plate-sized - so they are part of what this render will
   // actually hold, not an unpriced extra. Peak pool occupancy is what the budget has to
@@ -1885,7 +1770,7 @@ async function renderSequenceAuthored(
   // The stage background's own margin (section 5.5). It joins the memory budget the same way
   // every other plate does - as bytes on a layer the budget can see - rather than as an
   // unpriced extra: a big pull-back can ask for a plate several times the artboard.
-  const bgPadWanted = transparent ? 0 : bgOverscanPad(nativeW, nativeH, usedGrid, planEnv);
+  const bgPadWanted = transparent ? 0 : bgOverscanPad(nativeW, nativeH, sampleGrid, planEnv);
   const bgBudget = bgPadWanted > 0
     ? planPlateBudget({
       layers: [{ idx: -1, kind: 'static', w: nativeW, h: nativeH, pad: bgPadWanted, maxEff: 1 }],
@@ -1927,6 +1812,7 @@ async function renderSequenceAuthored(
   // iframe are module-global - whichever call tears down first clears them out from
   // under the other, corrupting both pictures. Hold them for the whole render.
   const resumeThumbRasters = suspendNodeRasters();
+  const releaseLive: (() => void)[] = [];
 
   try {
     // Suspending stops the NEXT thumbnail shot; the one already inside the library
@@ -1954,7 +1840,7 @@ async function renderSequenceAuthored(
         bgRaster = await rasterBox(stageEl, S, [
           ...stageEl.querySelectorAll('.lolly-box'),
           ...stageEl.querySelectorAll('[data-pdf-page][data-t-start]'),
-        ], { ...(bgPad > 0 ? { pad: bgPad } : {}), wideColor: deepEditing });
+        ], { size: { w: nativeW, h: nativeH }, ...(bgPad > 0 ? { pad: bgPad } : {}), wideColor: deepEditing });
       }
       // A frames-as-scenes slide poses its boxes the way the podium does (plans/184 R1,
       // `poseSlideBoxes` - the one rule both read): a with-the-slide box enters when the
@@ -2044,7 +1930,7 @@ async function renderSequenceAuthored(
           }
           // A size tween re-photographs per frame whatever kind the layer is, and a 3D scene
           // box redraws per frame too (see makeLiveRaster); the static plate is the fallback.
-          if ((sizedLayers.has(L.idx) || L.kind === 'scene') && !liveBoxes.has(L.idx)) {
+          if ((sizedLayers.has(L.idx) || L.kind === 'scene' || !!el.querySelector('[data-anim-src]')) && !liveBoxes.has(L.idx)) {
             liveBoxes.set(L.idx, { marker: null, box: el, hide: plateHide });
             needsLiveRaster = true;
           }
@@ -2097,6 +1983,7 @@ async function renderSequenceAuthored(
 
     const job: SeqJob = {
       layers: wire, grid: usedGrid, frameCount, fps, totalMs: stage.totalMs,
+      motionBlur: opts.motionBlur, rangeFromMs: range.fromMs, rangeToMs: range.toMs,
       outW, outH: targetH, scale: S,
       // The stage the depth projection anchors on (plans/104 section 4.1): its NATIVE size,
       // the same number `S` was derived from, so the principal point stays the stage
@@ -2115,17 +2002,17 @@ async function renderSequenceAuthored(
     // size the draw will place it at. Memoised per frame index because a frame typically
     // asks for at most one or two layers and the executor walks the grid in order.
     let sizeCache: { i: number; byIdx: Map<number, { w: number; h: number }> } | null = null;
-    const sizeAt = (idx: number, frameIndex: number): { w: number; h: number } | null => {
+    const sizeAt = (idx: number, frameIndex: number, timeMs = usedGrid[frameIndex]): { w: number; h: number } | null => {
       if (!sizedLayers.has(idx)) return null;
-      if (!sizeCache || sizeCache.i !== frameIndex) {
-        const t = usedGrid[frameIndex];
+      if (!sizeCache || sizeCache.i !== timeMs) {
+        const t = timeMs;
         const byIdx = new Map<number, { w: number; h: number }>();
         if (t != null) {
           for (const it of sequenceDrawPlan(stage.layers, t, stage.totalMs, planEnv)) {
             if (it.sized) byIdx.set(it.layer.idx, { w: it.w, h: it.h });
           }
         }
-        sizeCache = { i: frameIndex, byIdx };
+        sizeCache = { i: timeMs ?? 0, byIdx };
       }
       return sizeCache.byIdx.get(idx) ?? null;
     };
@@ -2133,21 +2020,21 @@ async function renderSequenceAuthored(
     // one of their windows - the live raster keys its memo on the answer, so the
     // steady middle of a split clip is one shot, not nine hundred.
     const splitLayerByIdx = new Map(stage.layers.filter((L) => splitActive(L)).map((L) => [L.idx, L]));
-    const splitShotAt = (idx: number, frameIndex: number): { t: number; animating: boolean } | null => {
+    const splitShotAt = (idx: number, frameIndex: number, timeMs = usedGrid[frameIndex]): { t: number; animating: boolean } | null => {
       const L = splitLayerByIdx.get(idx);
       if (!L) return null;
-      const t = usedGrid[frameIndex] ?? 0;
+      const t = timeMs ?? 0;
       return { t, animating: splitAnimatingAt(L, t, stage.totalMs) };
     };
     // A posed slide at an output frame (plans/184 R1): the boxes are driven to that
     // frame's time before the shot, the ones not yet on screen are named so the shot can
     // hide them, and the memo key says whether anything is mid-transition - the steady
     // middle of a slide collapses onto one shot per set of boxes on screen.
-    const slideShotAt = (idx: number, frameIndex: number): { t: number; animating: boolean; restKey: number; hide: Element[] } | null => {
+    const slideShotAt = (idx: number, frameIndex: number, timeMs = usedGrid[frameIndex]): { t: number; animating: boolean; restKey: number; hide: Element[] } | null => {
       const pose = slidePoses.get(idx);
       if (!pose) return null;
       const layer = stage.layers.find(layer => layer.idx === idx)!;
-      const t = sceneSampleMs(usedGrid[frameIndex] ?? 0, layer.startMs, layer.durMs);
+      const t = sceneSampleMs(timeMs ?? 0, layer.startMs, layer.durMs);
       applyTimeToElements(pose.boxes, t, slideCtx(layer));
       let animating = false;
       let restKey = 7;
@@ -2162,7 +2049,7 @@ async function renderSequenceAuthored(
       return { t, animating, restKey: Math.abs(restKey) + 1, hide };
     };
     const liveRaster = makeLiveRaster(
-      liveBoxes, plateScaleOf, padOf, neutralOf, clipNeutralOf, sizeAt, splitShotAt, stage.totalMs, slideShotAt, deepEditing,
+      liveBoxes, plateScaleOf, padOf, neutralOf, clipNeutralOf, sizeAt, splitShotAt, stage.totalMs, slideShotAt, deepEditing, temporal || !!capture, releaseLive,
     );
     const hybrid = liveBoxes.size > 0;
 
@@ -2180,7 +2067,7 @@ async function renderSequenceAuthored(
     // builds its own mux WITHOUT threading a colorSpace, so an HDR sequence takes the
     // in-thread path below (whose frames are RGBA buffers), exactly as the buffered
     // renderVideo path skips its worker for HDR.
-    if (pick && !deepEditing && supportsWorkerSequenceRender()) {
+    if (!capture && pick && !deepEditing && supportsWorkerSequenceRender()) {
       log('info', `sequence: worker offload - ${hybrid
         ? `HYBRID (${liveBoxes.size} live layer(s) drawn on the main thread, one request in flight)`
         : 'fully worker-side (decode, composite, encode and mux all off the main thread)'}`);
@@ -2221,6 +2108,7 @@ async function renderSequenceAuthored(
     if (coded.code === 'SEQ_ABORTED') opts.signal?.throwIfAborted();
     throw err;
   } finally {
+    for (const release of releaseLive) release();
     resumeThumbRasters();
     // The live split shots wrote unit-span styles outside the authored store's
     // sight (plans/175); hand the text back at rest whatever way the render ended.
@@ -2287,6 +2175,7 @@ async function renderSequenceAuthored(
         // with SEQ_ABORTED - the same seam the worker's abort message trips.
         aborted: () => opts.signal?.aborted === true,
         frame: async (c, cx, _i, tsUs) => {
+          if (capture) { await capture.frame(c, cx, _i); return; }
           if (float && !hdrActive) await (await import('./deep-canvas.ts')).displayFloatFrame(float.frame,canvas);
           if (feeder) await feeder.upTo(tsUs);        // audio windows due by this frame
           if (mux) await mux.addFrame(float && hdrActive ? { data: pqToI420P10(pqEncodeFrame(float.frame)).data.slice().buffer } : c as CanvasImageSource, tsUs);
@@ -2297,6 +2186,7 @@ async function renderSequenceAuthored(
         },
       });
 
+      if (capture) return await capture.finish();
       if (mux) {
         if (feeder) await feeder.flush();             // any audio past the last frame
         const blob = await mux.finalize();
@@ -2726,25 +2616,28 @@ function makeLiveRaster(
   neutralOf: (idx: number) => boolean,
   clipNeutralOf: (idx: number) => boolean,
   /** The layer's DRAW size at that output frame, or null when it keyframes no size. */
-  sizeAt: (idx: number, frameIndex: number) => { w: number; h: number } | null,
+  sizeAt: (idx: number, frameIndex: number, timeMs?: number) => { w: number; h: number } | null,
   /** Split-text state at that frame (plans/175), or null when the layer splits nothing. */
-  splitAt?: (idx: number, frameIndex: number) => { t: number; animating: boolean } | null,
+  splitAt?: (idx: number, frameIndex: number, timeMs?: number) => { t: number; animating: boolean } | null,
   /** The sequence's total ms - applySplitAt's open-ended-box authority. */
   seqMs = 0,
   /** A posed slide at that frame (plans/184 R1): drives its boxes and names the hidden ones. */
-  slideAt?: (idx: number, frameIndex: number) => { t: number; animating: boolean; restKey: number; hide: Element[] } | null,
+  slideAt?: (idx: number, frameIndex: number, timeMs?: number) => { t: number; animating: boolean; restKey: number; hide: Element[] } | null,
   wideColor = false,
+  preciseTime = false,
+  release: (() => void)[] = [],
 ): SeqJobIO['lottieAt'] {
   if (!boxes.size) return undefined;
   // Keyed by layer AND slot: a video layer's two plates are two different pictures of
   // the same box (opaque with the media hidden, then transparent), so one memo slot per
   // layer would answer the `over` request with the `under` shot.
   const memo = new Map<string, { key: number; shot: CanvasImageSource }>();
-  return async (layerIdx, frameIndex, sourceSec, slot = 'under') => {
+  release.push(() => { for (const value of memo.values()) if (value.shot instanceof ImageBitmap) value.shot.close(); memo.clear(); });
+  return async (layerIdx, frameIndex, sourceSec, slot = 'under', timeMs) => {
     const entry = boxes.get(layerIdx);
     if (!entry) return null;
     const memoKey = `${layerIdx}:${slot}`;
-    const size = sizeAt(layerIdx, frameIndex);
+    const size = sizeAt(layerIdx, frameIndex, timeMs);
     let key: number;
     let slideHide: Element[] = [];
     // A 3D scene box is answered first and by a different route: its picture is rendered,
@@ -2756,7 +2649,7 @@ function makeLiveRaster(
       : entry.box.querySelector?.('[data-lolly-scene]');
     if (scene) {
       const { w, h } = boxNativeSize(entry.box, size);
-      key = Math.round(sourceSec * 1000) * 65537 + Math.round(w * 100) + Math.round(h * 100) * 4093;
+      key = (preciseTime ? sourceSec * 1000 : Math.round(sourceSec * 1000)) * 65537 + Math.round(w * 100) + Math.round(h * 100) * 4093;
       const held = memo.get(memoKey);
       if (held && held.key === key) return held.shot;
       const drawn = await sceneLivePlate(scene, entry.box, size, sourceSec, scaleOf(layerIdx), padOf(layerIdx));
@@ -2765,31 +2658,35 @@ function makeLiveRaster(
       memo.set(memoKey, { key, shot: drawn });
       return drawn;
     }
+    if (entry.box.querySelector('[data-anim-src]')) {
+      const { captureSvgTime } = await import('./sequence-svg-clock.ts');
+      return await captureSvgTime(entry.box, sourceSec, () => rasterBox(entry.box, scaleOf(layerIdx), entry.hide, { wideColor, opaque: true, neutralFilter: neutralOf(layerIdx), neutralClipPath: clipNeutralOf(layerIdx), pad: padOf(layerIdx), ...(size ? { size } : {}) }));
+    }
     if (entry.marker) {
       const player = lottiePlayerFor(entry.marker) as LottieScrubber | null;
       if (!player?.goToAndStop) return null;
       const rate = Number.isFinite(player.frameRate) && (player.frameRate as number) > 0 ? (player.frameRate as number) : 30;
-      key = Math.round(sourceSec * rate);
+      key = preciseTime ? sourceSec * rate : Math.round(sourceSec * rate);
       // A size tween moves the picture on EVERY frame even when the animation itself
       // does not, so the memo key has to carry the size too or a stretching Lottie
       // would be answered from a plate shot at the previous width.
       if (size) key = key * 4093 + Math.round(size.w * 100) + Math.round(size.h * 100) * 65537;
       const prev = memo.get(memoKey);
       if (prev && prev.key === key) return prev.shot;
-      try { player.goToAndStop((Math.round(sourceSec * rate) / rate) * 1000, false); } catch { return prev?.shot ?? null; }
+      try { player.goToAndStop((preciseTime ? sourceSec : Math.round(sourceSec * rate) / rate) * 1000, false); } catch { return prev?.shot ?? null; }
     } else {
       // Size-only: the frame index IS the key, quantised through the size so a track
       // that holds a value for a second is photographed once rather than thirty times.
       // A split-text layer (plans/175) joins the same memo: inside an animation window
       // every frame is its own key; at rest every frame collapses onto one.
-      const split = splitAt?.(layerIdx, frameIndex) ?? null;
-      const slide = slideAt?.(layerIdx, frameIndex) ?? null;
+      const split = splitAt?.(layerIdx, frameIndex, timeMs) ?? null;
+      const slide = slideAt?.(layerIdx, frameIndex, timeMs) ?? null;
       if (!size && !split && !slide) return null;
       key = size ? Math.round(size.w * 100) + Math.round(size.h * 100) * 65537 : 0;
-      if (split) key = Math.imul(key, 31) + (split.animating ? Math.round(split.t) + 2 : 1);
+      if (split) key = Math.imul(key, 31) + (split.animating ? (preciseTime ? split.t : Math.round(split.t)) + 2 : 1);
       // A slide mid-transition is its own frame; at rest it is one shot per set of boxes
       // on screen (a timed box arriving changes the picture without animating anything).
-      if (slide) key = Math.imul(key, 37) + (slide.animating ? Math.round(slide.t) * 2 + 1 : slide.restKey * 2);
+      if (slide) key = Math.imul(key, 37) + (slide.animating ? (preciseTime ? slide.t : Math.round(slide.t)) * 2 + 1 : slide.restKey * 2);
       slideHide = slide?.hide ?? [];
       const prev = memo.get(memoKey);
       if (prev && prev.key === key) return prev.shot;
@@ -2926,7 +2823,7 @@ async function onSeqWorkerMessage(w: Worker, m: SeqWorkerOut): Promise<void> {
     // slows the render instead of growing worker memory.
     let bitmap: ImageBitmap | null = null;
     try {
-      const img = await run.live?.(m.layerIdx, m.frame, m.sourceSec, m.slot);
+      const img = await run.live?.(m.layerIdx, m.frame, m.sourceSec, m.slot, m.timeMs);
       if (img) bitmap = await createImageBitmap(img as ImageBitmapSource);
     } catch { bitmap = null; }
     const reply: SeqWorkerIn = { type: 'live', id: m.id, token: m.token, bitmap };

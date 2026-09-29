@@ -120,39 +120,30 @@ export const STRICT_NAVIGATOR_PROPERTIES = [
   'bluetooth',
 ] as const;
 
-/** Remove bypass channels from the worker global. Non-configurable replacement
- * means a hook cannot recover them through Function/eval or a globalThis alias.
- * `extra` lets a Node host add its own (`process`, `require`, …). */
+/** Lock an ambient API on the receiver and on every prototype defining the API.
+ * Browser APIs can be inherited accessors, so shadowing the receiver alone
+ * leaves the original capability reachable through its prototype descriptor. */
+function lockAmbientProperty(receiver: object, name: string): boolean {
+  let locked = true;
+  for (let owner: object | null = receiver; owner; owner = Object.getPrototypeOf(owner)) {
+    if (owner !== receiver && !Object.hasOwn(owner, name)) continue;
+    try {
+      Object.defineProperty(owner, name, { value: undefined, writable: false, configurable: false });
+    } catch { /* Check the descriptor even when replacement was refused. */ }
+    const descriptor = Object.getOwnPropertyDescriptor(owner, name);
+    if (!descriptor || !('value' in descriptor) || descriptor.value !== undefined || descriptor.writable || descriptor.configurable) locked = false;
+  }
+  return locked;
+}
+
+/** Remove bypass channels before any untrusted hook runs in its dedicated realm.
+ * `extra` lets a Node host add its own ambient APIs. */
 export function lockDownAmbientCapabilities(scope: Record<string, unknown>, extra: readonly string[] = []): void {
   const names = [...STRICT_AMBIENT_GLOBALS, ...extra];
-  for (const name of names) {
-    try {
-      Object.defineProperty(scope, name, {
-        value: undefined,
-        writable: false,
-        configurable: false,
-      });
-    } catch {
-      // Some engines omit or pre-lock a global. An absent/pre-locked property is
-      // acceptable; strict startup verification below catches a live value.
-    }
-  }
+  const live = names.filter(name => !lockAmbientProperty(scope, name));
   const navigator = scope.navigator;
-  if (navigator && typeof navigator === 'object') {
-    for (const name of STRICT_NAVIGATOR_PROPERTIES) {
-      try {
-        Object.defineProperty(navigator, name, {
-          value: undefined,
-          writable: false,
-          configurable: false,
-        });
-      } catch { /* verified below */ }
-    }
-  }
-  const live = names.filter(name => typeof scope[name] !== 'undefined');
   const liveNavigator = navigator && typeof navigator === 'object'
-    ? STRICT_NAVIGATOR_PROPERTIES.filter(name =>
-        typeof (navigator as Record<string, unknown>)[name] !== 'undefined')
+    ? STRICT_NAVIGATOR_PROPERTIES.filter(name => !lockAmbientProperty(navigator, name))
     : [];
   if (live.length || liveNavigator.length) {
     throw new Error(`strict hook worker could not disable ambient capabilities: ${[

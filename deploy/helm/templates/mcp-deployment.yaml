@@ -81,6 +81,8 @@ spec:
               value: "production"
             - name: PORT
               value: {{ $c.service.targetPort | quote }}
+            - name: LOLLY_MCP_BIND_HOST
+              value: "0.0.0.0"
             {{- with $c.webBase }}
             - name: LOLLY_WEB_BASE
               value: {{ . | quote }}

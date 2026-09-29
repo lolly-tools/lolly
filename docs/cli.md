@@ -138,6 +138,16 @@ pnpm --silent run cli qr-code --url=https://suse.com --export=png > qr.png
 
 If `--output` is given, the file is written and a byte count is reported on stderr; otherwise the bytes go to **stdout** so you can pipe them.
 
+### Review a timed composition
+
+Use `--export=png --cuts=6 --output=frames.zip` for uniformly sampled stills, or
+`--export=png --sampletimes=0,1.5,3 --output=frames.zip` for explicit timeline seconds.
+One explicit time produces a single image; multiple times produce a ZIP for
+PNG/JPG/WebP/SVG or one paged PDF. Both routes need the browser renderer. Explicit
+times must be increasing and before the timeline end; they currently support
+native timed layers and refuse unsupported animated media. See
+[URL parameters](url-parameters.md#contact-sheets-cuts) for the full contract.
+
 ### The `--output` extension is a format request
 
 An extension picks a format, so it is checked like one. If the tool does not declare it, the run stops - it does not fall back to the tool's first format and write those bytes under your filename:
@@ -180,3 +190,15 @@ The full stage reference, the object classes a deck's contents are read into, an
 - [Exporting & Formats](/info/exporting.html) - what each format is for.
 - [AI Agents](/info/ai-agents.html) - driving the same surface from an LLM.
 - **/pro batch** - the web shell's interactive counterpart to the scripted fan-out loop above: a spreadsheet-style grid with CSV round-trip, spreadsheet paste and per-row output across one or many tools.
+
+### Motion delivery checks
+
+`lolly inspect --motion movie.webm` checks the delivered file with optional
+ffprobe/ffmpeg. It reports dimensions, duration, frame rate, audio presence,
+loudness and true peak, plus black, frozen and silent spans for review.
+Unavailable decoders produce explicit not-run results.
+
+For Design movies, `--seqrange=2,5` exports an authored two-to-five-second range
+with its mix. `--motionblur=8,180` integrates eight subframes with a 180-degree
+shutter. The latter supports SDR flat Sequence output; unsupported colour and
+tilt paths fail explicitly. Neither setting changes audio timing.

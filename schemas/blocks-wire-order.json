@@ -152,7 +152,8 @@
       "master",
       "role",
       "furniture",
-      "archetype"
+      "archetype",
+      "textDirection"
     ],
     "diagram-builder:nodes": [
       "shape",
@@ -349,7 +350,8 @@
       "text4",
       "notes",
       "mode",
-      "boxes"
+      "boxes",
+      "arrangement"
     ],
     "digi-ad:scenes": [
       "kind",

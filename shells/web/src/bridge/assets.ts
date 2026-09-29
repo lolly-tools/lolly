@@ -82,6 +82,8 @@ interface AssetMetaRecord {
   /** Tokens assets only: this brand is authoritative and not user-overridable
    *  (see bridge/tokens.ts). Rides the index entry through _syncFromIndex. */
   brandLock?: boolean;
+  /** An instance may explicitly choose its catalogue's tokens head. */
+  defaultTokens?: boolean;
   /** The date this asset's primary file was first added to its brand pack
    *  (YYYY-MM-DD), stamped into the index by scripts/checksum-assets.ts from the
    *  committed date map. Rides the index entry through _syncFromIndex and surfaces
@@ -181,6 +183,7 @@ interface AssetsTx {
 
 /** The slice of the idb database this API touches (the asset-* + user-assets stores). */
 interface AssetsDb {
+  get(store: 'profile', key: string): Promise<unknown>;
   get(store: 'user-assets', id: string): Promise<UserAssetRecord | undefined>;
   get(store: 'asset-meta', id: string): Promise<AssetMetaRecord | undefined>;
   get(store: 'asset-blob', key: string): Promise<Blob | undefined>;
@@ -188,9 +191,10 @@ interface AssetsDb {
   getAll(store: 'asset-meta'): Promise<AssetMetaRecord[]>;
   getAll(store: 'asset-blob'): Promise<Blob[]>;
   getAllKeys(store: 'user-assets' | 'asset-meta' | 'asset-blob'): Promise<string[]>;
+  put(store: 'profile', value: unknown, key: string): Promise<unknown>;
   put(store: 'user-assets', record: UserAssetRecord): Promise<unknown>;
   put(store: 'asset-blob', blob: Blob, key: string): Promise<unknown>;
-  delete(store: 'user-assets', id: string): Promise<void>;
+  delete(store: 'user-assets' | 'asset-blob', id: string): Promise<void>;
   transaction(store: 'asset-meta' | 'asset-blob', mode: 'readwrite'): AssetsTx;
 }
 
@@ -335,7 +339,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     const pending = inFlight.get(blobKey);
     if (pending) return pending;
     const started = fetchAndCache(meta, format, blobKey, db)
-      .finally(() => { inFlight.delete(blobKey); });
+      .finally(() => { if (inFlight.get(blobKey) === started) inFlight.delete(blobKey); });
     inFlight.set(blobKey, started);
     return started;
   };
@@ -1049,10 +1053,22 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Internal: called by catalog/sync.js at boot to populate asset metadata.
      * Not part of the public HostV1 bridge contract.
      */
-    async _syncFromIndex(assets: AssetMetaRecord[]): Promise<void> {
+    async _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null }): Promise<void> {
+      const old = new Map((await db.getAll('asset-meta')).map(meta => [meta.id, meta]));
+      for (const incoming of assets) {
+        const previous = old.get(incoming.id);
+        if (!previous || previous.version !== incoming.version || JSON.stringify(previous.formats) === JSON.stringify(incoming.formats)) continue;
+        for (const format of previous.formats) {
+          const key = `${previous.id}:${format.format}:${previous.version}`;
+          await db.delete('asset-blob', key);
+          inFlight.delete(key);
+          evictObjectUrlsByPrefix(`library:${key}`);
+        }
+      }
       const tx = db.transaction('asset-meta', 'readwrite');
       await Promise.all(assets.map(a => tx.store.put(a)));
       await tx.done;
+      if (source) await db.put('profile', source, 'catalog-source');
       ICON_THEMES_CACHE = null;       // the icon-themes palette may have changed
       PHOTO_TREATMENTS_CACHE = null;  // …as may the photo-treatments palette
     },
@@ -1180,6 +1196,13 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         }
       }
       const all = await db.getAll('asset-meta');
+      if (type === 'tokens') {
+        const source = await db.get('profile', 'catalog-source') as { tokensHead?: string | null } | undefined;
+        if (source && 'tokensHead' in source) return all.find(m => m.type === type && m.id === source.tokensHead) ?? null;
+      }
+      if (type === 'tokens' && all.some(m => m.type === type && typeof m.defaultTokens === 'boolean')) {
+        return all.find(m => m.type === type && m.defaultTokens === true) ?? null;
+      }
       const headId = pickHeadAssetId(all.filter(m => m.type === type).map(m => m.id));
       return (headId ? all.find(m => m.id === headId) : undefined) ?? null;
     },
@@ -1551,7 +1574,10 @@ async function fetchAndCache(meta: AssetMetaRecord, format: AssetFormat, blobKey
   await verifyAssetChecksum(blob, format);
   // Downloaded catalog bytes remain usable when the browser refuses its cache
   // (for example, WebKit cannot persist a Blob). User uploads still require a save.
-  try { await db.put('asset-blob', blob, blobKey); }
+  try {
+    const current = await db.get('asset-meta', meta.id);
+    if (current && current.version === meta.version && JSON.stringify(current.formats) === JSON.stringify(meta.formats)) await db.put('asset-blob', blob, blobKey);
+  }
   catch (error) { console.warn('Asset cache write failed; using verified downloaded bytes', meta.id, error); }
   return blob;
 }

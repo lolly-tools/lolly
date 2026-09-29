@@ -7643,3 +7643,33 @@ test('timeline resizing follows the visual viewport reserve without reopening a 
     assert.equal(h.reserves.at(-1), 0);
   } finally { h.teardown(); }
 });
+
+test('cue timing waits for the grouped write, reports refusals and rejects a stale preview', async () => {
+  let reject!: (error: Error) => void;
+  let writes = 0;
+  const pending = new Promise<void>((_resolve, fail) => { reject = fail; });
+  const h = mount([clip('a', 0, 3)], 40, ADD_KINDS, {
+    projectTime: { rate: () => 25, marks: () => '', writeMarks() {}, timing: () => '',
+      async writeTiming() { if (++writes === 1) await pending; } },
+  });
+  try {
+    h.root.querySelector<HTMLButtonElement>('.tl-cue-timing')!.click();
+    const dialog = dom.window.document.querySelector<HTMLDialogElement>('.tl-junction-modal')!;
+    const form = dialog.querySelector('form')!;
+    const preview = () => form.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+    const apply = dialog.querySelector<HTMLButtonElement>('.btn--primary')!;
+    preview(); apply.click();
+    assert.equal(writes, 1); assert.equal(apply.disabled, true); assert.equal(dialog.open, true);
+    reject(new Error('Document is read-only'));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.match(dialog.querySelector('[role="status"]')!.textContent!, /read-only/);
+    assert.equal(dialog.open, true); assert.equal(apply.disabled, false);
+    h.boxes[0]!.start = 1;
+    apply.click();
+    assert.equal(writes, 1, 'an outdated preview cannot overwrite newer layers');
+    assert.match(dialog.querySelector('[role="status"]')!.textContent!, /layers changed/);
+    preview(); apply.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(writes, 2); assert.equal(dialog.isConnected, false);
+  } finally { closeOverlays(); h.teardown(); }
+});

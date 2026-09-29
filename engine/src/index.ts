@@ -1061,3 +1061,11 @@ export { ARRANGED_ARCHETYPE } from './deck-compile.ts';
 // Plan 275 close-out: one text layout for the compile, the preview and the words-cut count, the document's path budget, and the compile options a design-system input carries.
 export { designTextFit, layoutDesignText, DESIGN_LINE_HEIGHT, DOCUMENT_PATH_CHARS, compileSystemOpts } from './deck-compile.ts';
 export type { DesignTextFitV1, DesignTextLayoutV1 } from './deck-compile.ts';
+
+export { validateSampleTimes, parseSampleTimes, assertSampleRequest, sampleOutputFormat, sequenceSampleTimes, motionReviewTimes } from './sequence-samples.ts';
+
+export { assertMotionRequest, validateMotionBlur, validateMotionRange, parseMotionParams, serializeMotionParams, blurEnabled, shutterTimes, ShutterAccumulator, type MotionBlur, type MotionRange } from './motion-sampling.ts';
+
+export { parseMotionTiming, resolveCues, compileMotionCues, type MotionTiming, type MotionCue, type CueBinding } from './motion-cues.ts';
+
+export { motionReport, type MotionReport, type MotionCheck, type MotionFacts, type MotionTarget } from './motion-report.ts';

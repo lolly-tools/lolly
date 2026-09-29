@@ -119,6 +119,10 @@ import { svgToCustGeomPaths, svgToNativePptx } from '../../engine/src/svg-custge
 import { makeGeomApi } from '../../engine/src/geom-api.ts';
 import { parseSvgPath, parseSvgPathArgs } from '../../engine/src/svg-path.ts';
 import { evaluateKf, kfChannelsUsed, parseKf, serialiseKf } from '../../engine/src/keyframes.ts';
+import { compileMotionCues } from '../../engine/src/motion-cues.ts';
+import { parseSampleTimes, sequenceSampleTimes } from '../../engine/src/sequence-samples.ts';
+import { parseMotionParams } from '../../engine/src/motion-sampling.ts';
+import { validRequest, validateNegotiation, validateHttpHeaders, allowedOrigin } from '../../services/mcp/src/negotiation.ts';
 import { midiToSong, parseMidi } from '../../engine/src/midi.ts';
 import { renderZzfxm, type ZzfxSong } from '../../engine/src/zzfxm.ts';
 import { packRadiance, parseRadianceHeader, readRadiance } from '../../engine/src/radiance.ts';
@@ -1793,7 +1797,55 @@ export const svgItemsTarget: FuzzTarget = {
   },
 };
 
+export const motionCuesTarget: FuzzTarget = {
+  name: 'motion-cues',
+  async seeds() {
+    return [
+      bytesOf(JSON.stringify({ version: 1, cues: [{ id: 'hit', at: 1 }], bindings: [{ layerId: 'title', cueId: 'hit', target: 'start' }] })),
+      bytesOf(JSON.stringify({ version: 1, tempo: { bpm: 120, offset: 0, beatsPerBar: 4 }, cues: [{ id: 'hit', beat: 2 }, { id: 'end', after: 'hit', offset: 1 }], bindings: [{ layerId: 'title', cueId: 'end', target: 'keyframe', keyIndex: 1 }] })),
+      bytesOf(JSON.stringify({ version: 1, cues: Array.from({ length: 256 }, (_, i) => i ? { id: `c${i}`, after: `c${i - 1}` } : { id: 'c0', at: 0 }), bindings: [] })),
+    ];
+  },
+  async invoke(bytes) {
+    compileMotionCues([{ id: 'title', start: 0, dur: 5, kf: 't0_x0*t1000_x10' }], new TextDecoder().decode(bytes));
+  },
+};
+
+export const motionParamsTarget: FuzzTarget = {
+  name: 'motion-params',
+  async seeds() {
+    return ['sampletimes=0,0.5,3.99', 'motionblur=8,180&seqrange=1,3', 'motionblur=16,360&sampletimes=0,1,2'].map(bytesOf);
+  },
+  async invoke(bytes) {
+    const params = new URLSearchParams(new TextDecoder().decode(bytes));
+    parseMotionParams(params);
+    const times = parseSampleTimes(params.get('sampletimes'));
+    if (times) sequenceSampleTimes(4000, 1, times);
+  },
+};
+
+export const mcpNegotiationTarget: FuzzTarget = {
+  name: 'mcp-negotiation',
+  async seeds() {
+    const meta = { 'io.modelcontextprotocol/protocolVersion': '2026-07-28', 'io.modelcontextprotocol/clientCapabilities': {} };
+    return [
+      { request: { jsonrpc: '2.0', id: 1, method: 'server/discover', params: { _meta: meta } }, headers: { 'mcp-protocol-version': '2026-07-28', 'mcp-method': 'server/discover' } },
+      { request: { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { _meta: meta, name: 'lolly_render' } }, headers: { 'mcp-protocol-version': '2026-07-28', 'mcp-method': 'tools/call', 'mcp-name': '=?base64?bG9sbHlfcmVuZGVy?=' } },
+      { request: { jsonrpc: '2.0', id: 0, method: 'initialize', params: { protocolVersion: '2025-11-25' } }, headers: { origin: 'https://lolly.tools' } },
+    ].map(value => bytesOf(JSON.stringify(value)));
+  },
+  async invoke(bytes) {
+    const value = JSON.parse(new TextDecoder().decode(bytes));
+    if (!validRequest(value?.request)) return;
+    const headers = value.headers ?? {};
+    validateNegotiation(value.request, typeof headers['mcp-protocol-version'] === 'string' ? headers['mcp-protocol-version'] : undefined);
+    validateHttpHeaders(value.request, headers);
+    allowedOrigin(headers.origin, 'https://lolly.tools');
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
+  motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
   lottieEditsTarget,

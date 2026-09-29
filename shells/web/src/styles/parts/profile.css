@@ -908,6 +908,7 @@
 .ds-row-origin dt { font-weight: 600; }
 .ds-row-origin dd { margin: 0 0 var(--sp-3); }
 .ds-row-origin p { margin-block: var(--sp-3); }
+.ds-row-origin a { display: block; margin-block-start: var(--sp-3); }
 .ds-row-origin :is(summary, a):focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
 .ds-row-actions { display: grid; grid-template-columns: 1fr 1fr max(44px, var(--ui-size-target)); align-items: center; gap: var(--sp-3); padding: 0 var(--ui-space-panel) var(--ui-space-panel); margin-top: auto; position: relative; z-index: 2; pointer-events: none; }
 .ds-row-actions .ds-row-btn { display: inline-flex; justify-content: center; align-items: center; gap: var(--sp-3); min-height: var(--ui-size-target); padding: var(--sp-3); font-size: var(--ui-type-body); pointer-events: auto; }

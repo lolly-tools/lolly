@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { serializeMotionParams } from '../../../engine/src/motion-sampling.ts';
 /**
  * The Node shells' full-fidelity render tier (CLI + TUI): for formats the DOM-free
  * engine can't make (HTML-layout raster, jpg/webp, pdf, video), drive a REAL Lolly web
@@ -29,6 +30,7 @@ const MIME: Record<string, string> = {
   '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif',
+  '.zip': 'application/zip', '.pdf': 'application/pdf',
   '.ico': 'image/x-icon', '.wasm': 'application/wasm', '.woff': 'font/woff',
   '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.map': 'application/json; charset=utf-8',
   // Legacy Windows-metafile type rather than RFC 7903 image/emf|image/wmf: it's
@@ -97,13 +99,16 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL. Cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth'];
+const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange'];
 
 export function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
   if (dims.lang) p.set('lang', dims.lang);
   for (const k of EXPORT_URL_RESERVED) p.delete(k);
   p.set('format', fmt);
+  if (dims.cuts != null && dims.cuts > 1) p.set('cuts', String(dims.cuts));
+  serializeMotionParams(p, dims);
+  if (dims.sampleTimes !== undefined) p.set('sampletimes', dims.sampleTimes.join(','));
   const unit = dims.unit || 'px';
   if (dims.width && dims.width > 0) p.set('width', String(dims.width));
   if (dims.height && dims.height > 0) p.set('height', String(dims.height));
@@ -285,6 +290,10 @@ function noFileError(toolId: string, format: string, debug: DebugRecorder, reaso
 }
 
 export interface RenderDims {
+  cuts?: number;
+  motionBlur?: import('../../../engine/src/motion-sampling.ts').MotionBlur;
+  sequenceRange?: import('../../../engine/src/motion-sampling.ts').MotionRange;
+  sampleTimes?: readonly number[];
   /** Effective UI/content language forwarded to the browser runtime. */
   lang?: string;
   width?: number; height?: number; unit?: string; dpi?: number;
@@ -571,7 +580,7 @@ async function renderViaChromiumShell(
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
     const bytes = new Uint8Array(await readFile(path));
     await download.delete().catch(() => {});
-    return { bytes, mime: MIME['.' + format.toLowerCase()] ?? 'application/octet-stream' };
+    return { bytes, mime: MIME[extname(download.suggestedFilename()).toLowerCase()] ?? MIME['.' + format.toLowerCase()] ?? 'application/octet-stream' };
   } catch (err) {
     throw withDebugLog(err, `${toolId}.${format}`, debug);
   } finally {
