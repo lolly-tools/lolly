@@ -163,7 +163,7 @@
     "@lottiefiles/dotlottie-web": "0.80.0",
     "@observablehq/plot": "0.6.17",
     "@types/d3-geo": "^3.1.1",
-    "@types/node": "^26.6.2",
+    "@types/node": "^26.6.3",
     "@types/three": "^0.186.0",
     "d3-geo": "^3.1.1",
     "esbuild": "^0.28.2",
