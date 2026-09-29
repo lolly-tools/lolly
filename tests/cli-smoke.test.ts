@@ -229,6 +229,33 @@ test('portable layout fallback snapshots hook output without a browser export', 
   assert.doesNotMatch(html, /<script/);
 });
 
+test('Design smoke fallback checks hydrated content without requesting portable export', async () => {
+  const toolDir = join(root, 'tools', 'design');
+  await mkdir(toolDir, { recursive: true });
+  await writeFile(join(toolDir, 'tool.json'), manifest('design', {
+    hooks: { onInit: true },
+    render: { width: 100, height: 100, formats: ['svg', 'html'] },
+  }));
+  await writeFile(join(toolDir, 'template.html'), '<div><p>{{label}}</p></div>');
+  await writeFile(join(toolDir, 'hooks.js'), "function onInit() { return { label: 'Design content hydrated' }; }");
+  const indexPath = join(root, 'catalog', 'tools', 'index.json');
+  const original = await readFile(indexPath, 'utf8');
+  try {
+    await writeFile(indexPath, JSON.stringify({ version: '1', tools: [{ id: 'design' }] }));
+    const { code, out } = await run({ only: 'design' });
+    assert.equal(code, 0, out);
+    assert.match(out, /~ design\s+svg:html/);
+    const directory = /outputs in (.+)\n/.exec(out)![1]!;
+    assert.match(await readFile(join(directory, 'design.html'), 'utf8'), /Design content hydrated/);
+    await writeFile(join(toolDir, 'hooks.js'), THROWING_HOOKS);
+    const broken = await run({ only: 'design' });
+    assert.equal(broken.code, 1);
+    assert.match(broken.out, /onInit failed: deliberately broken fixture hook/);
+  } finally {
+    await writeFile(indexPath, original);
+  }
+});
+
 test('smoke --only with an unknown id is a usage error (exit 2, nothing rendered)', async () => {
   const { code, out } = await run({ only: 'ok-tool,no-such-tool' });
   assert.equal(code, 2);

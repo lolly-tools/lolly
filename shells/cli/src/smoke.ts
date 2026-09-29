@@ -522,7 +522,7 @@ async function renderHtmlHeadless(toolId: string, outputPath: string): Promise<v
   // Smoke only snapshots its hydrated page; browser export tests cover that file.
   // Keep onInit failures strict through the same integrity check below.
   let blob: Blob;
-  if (tool.manifest.render.portable) {
+  if (tool.manifest.render.portable || tool.manifest.id === 'design') {
     await runtime.applyEmojiToDom(canvas);
     blob = await host.export.render(canvas, 'html', {});
   } else {
