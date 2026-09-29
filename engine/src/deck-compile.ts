@@ -40,6 +40,7 @@
  * source and options produce byte-identical JSON on every host.
  */
 
+import { slideContentGroups, slideLayoutRecipe, withSlideLayoutComponents } from './slide-layout-components.ts';
 import type {
   AlgorithmVersionsV1,
   ArchetypeIdV1,
@@ -173,6 +174,8 @@ const NO_DESIGN_SYSTEM: DesignSystemSnapshotV1 = {
 };
 
 export interface CompileFaithfulOptsV1 {
+  /** The comparison keeps stored vector artwork intact, including outlined text. */
+  originalArtwork?: boolean;
   /** Frame size in px. Defaults to the first slide's own size, else 1280 by 720. */
   frameSize?: { width: number; height: number };
   /** Prefix for every minted layer id. Defaults to `r`. */
@@ -190,7 +193,7 @@ export interface CompileFaithfulOptsV1 {
 }
 
 /** Identity of the compile step, recorded on the result and bumped when its output changes. */
-export const DECK_COMPILE_VERSION = 'faithful-2026-09-23.1';
+export const DECK_COMPILE_VERSION = 'faithful-2026-09-29.1';
 
 function round2(n: number): number {
   return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
@@ -653,7 +656,7 @@ export function compileFaithful(source: SourceDeckV1, opts: CompileFaithfulOptsV
 
       // A drawing read as items becomes its rows, in one group at the object's own
       // place and pose, stretched onto its box the way PowerPoint draws a picture.
-      if (carriesItems(object) && object.vectorItems) {
+      if (carriesItems(object) && object.vectorItems && !(opts.originalArtwork && (object.media || object.fidelity.fallbackAssetRef))) {
         const place: VectorPlacementV1 = placeBox(object, at);
         const made = vectorItemsToRows(object.vectorItems, place, { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: 'fill' });
         const noun = nounFor('unknown', object.kind);
@@ -939,7 +942,7 @@ export function compileFaithful(source: SourceDeckV1, opts: CompileFaithfulOptsV
 //     still written both ways for every layer.
 
 /** Identity of the renovate compile, recorded on the result and bumped when its output changes. */
-export const DECK_RENOVATE_VERSION = 'renovate-2026-09-25.1';
+export const DECK_RENOVATE_VERSION = 'renovate-2026-09-29.1';
 
 /**
  * Average glyph advance as a fraction of the font size, used by the overflow
@@ -2869,6 +2872,7 @@ export function archetypeIdFor(slidePlan: Pick<SlidePlanV1, 'layout' | 'ground'>
  * the same source, plan, master and design system produce byte-identical JSON.
  */
 export function compileRenovated(input: CompileRenovatedInputV1): CompiledDeckV1 {
+  input = { ...input, master: withSlideLayoutComponents(input.master, input.plan.slides.map(slide => slide.layout)) };
   const { source, plan, census } = input;
   const opts = input.opts ?? {};
   const prefix = opts.idPrefix ?? 'r';
@@ -4140,7 +4144,15 @@ export function compileRenovated(input: CompileRenovatedInputV1): CompiledDeckV1
       const pourable = leftovers.filter((p) => p.content === 'text' || p.content === 'image' || p.content === 'placeholder');
       const kept = new Set(pourable);
       leftovers = leftovers.filter((p) => !kept.has(p));
-      const units = pourItems(pourable, pourModeOf(build));
+      const byObject = new Map(pourable.map(p => [p.object.id, p]));
+      const units = slideLayoutRecipe(build.archetype)
+        ? slideContentGroups(pourable.map(p => p.object)).map(group => {
+          const members = group.map(o => byObject.get(o.id)!);
+          return { members, reading: Math.min(...members.map(p => p.reading)), box: {
+            x0: Math.min(...group.map(o => o.box.x)), y0: Math.min(...group.map(o => o.box.y)),
+            x1: Math.max(...group.map(o => o.box.x + o.box.w)), y1: Math.max(...group.map(o => o.box.y + o.box.h)),
+          } };
+        }) : pourItems(pourable, pourModeOf(build));
       pouredUnits = units.length;
       const poured = pourIntoCells(build, units);
       for (const [objectId, ids] of poured.placed) assigned.set(objectId, ids);

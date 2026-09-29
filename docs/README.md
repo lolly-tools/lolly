@@ -39,7 +39,7 @@ security posture).
 | [quickstart.md](quickstart.md) | end user | The one page to read first: make Lolly wear your brand, bring in the design files and tokens you already have, then pick a pathway. Its own pathway hub. |
 | [make-something.md](make-something.md) | end user | One first lesson: make a QR code, download it, check that it scans and save an editable copy, with no account or setup. Links to an audiogram and a filtered photo as other first projects. The first click for a brand-new visitor. |
 | [install.md](install.md) | end user | Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap 16 RPMs, the Flatpak, the Android APK, plus Windows, iOS, the CLI and the TUI. The destination of the landing hero's download rail. |
-| [organisation.md](organisation.md) | end user | For a member of an organisation that runs its own Lolly: reach it in a browser or the desktop and mobile apps, sign in, recognise managed settings, find shared projects, leave, and who to ask. States only what the product does, never an organisation's own processes. |
+| [organisation.md](organisation.md) | end user | Connect to an organisation's Lolly, with progressive disclosure for optional lolly.work identity, shared work, policies and data handling. |
 
 ## For Creators
 
@@ -70,11 +70,11 @@ security posture).
 | [animating.md](animating.md) | end user | Keyframes and depth: +Keyframe's two homes, the playhead-as-arm latch, the Keyframes popup and its curves, the Depth slider and Depth shadow, the scene camera and its five moves, Lift layers, Choreograph (six one-click showcases over a stack), and what a posed frame exports as. |
 | [presenting.md](presenting.md) | end user | Camera framing, logos, lower thirds, saved scenes, private controls, audience sharing, recording and current trial limitations. |
 | [agenda.md](agenda.md) | end user | Programme editing, large-type screens, interactive HTML, event clocks, calendars and animated or editable PowerPoint. |
-| [collaborate.md](collaborate.md) | end user | Two devices editing one tool session live: the invite ceremony (link, QR, code door), the matching plates that confirm the peer, presence and focus rings, beaming files across, and why it still works with no internet. |
+| [collaborate.md](collaborate.md) | end user | Private collabs between two devices: invites, presence, session transfers and offline use. A collapsed section covers optional work collabs through an organisation's lolly.work instance. |
 | [formats.md](formats.md) | end user | The whole format register as one three-zone table - read-only at the left, written-only at the right, both-ways in the middle - with a plain-language card behind every chip. |
 | [exporting.md](exporting.md) | end user | Choosing a format, setting output size, and the three paths that produce a file (canvas render, generated text/data, on-device transform). |
-| [positioning.md](positioning.md) | end user | How Lolly compares with Canva, brand portals, Illustrator and Figma/Penpot, and where it deliberately does not play. |
-| [compare.md](compare.md) | end user | The index of the tool-by-tool compare pages: what each competing tool does better, and what Lolly does instead. Dated, concession first, no superlatives. |
+| [positioning.md](positioning.md) | end user | How Lolly + lolly.work compare with creative tools and brand portals, with local and organisation capabilities distinguished. |
+| [compare.md](compare.md) | end user | The dated comparison index: workflows, deployment choices and limits across Lolly's creative tools and lolly.work's organisation services. |
 | [compare-canva.md](compare-canva.md) · [compare-adobe.md](compare-adobe.md) · [compare-figma.md](compare-figma.md) · [compare-render-apis.md](compare-render-apis.md) · [compare-converters.md](compare-converters.md) · [compare-penpot.md](compare-penpot.md) · [compare-brand-portals.md](compare-brand-portals.md) | end user | The per-competitor compare pages, reached from the compare index and the format-page footers rather than the top-level nav. |
 
 ## For Builders
@@ -134,7 +134,7 @@ The Builders sidebar also carries an **About** entry, which renders the repo-roo
 | [legal.md](legal.md) | operator | Playbook. Redact, anonymise, strip metadata, compress and verify with nothing sent anywhere, plus the licence, AI-marking and data positions stated plainly. |
 | [adoption-governance.md](adoption-governance.md) | operator | The honest pilot account: current status, who it is for, how adoption is measured, who governs the output. |
 | [cli-signing.md](cli-signing.md) | operator | Setting up a real signing identity for the CLI, so files made from the terminal carry a verifiable name rather than an anonymous on-device key. Its own pathway is Operators; the Builders sidebar carries it too. |
-| [deployment.md](deployment.md) | operator | Where each piece runs, and the delivery postures (distribute to devices, host the PWA, run the services). |
+| [deployment.md](deployment.md) | operator | Where each piece runs: distribute apps, host the PWA, add optional integrations or deploy lolly.work for organisation services. |
 | [configuration.md](configuration.md) | operator | Profiles, brand packs, tool sets and per-tool capabilities as files rather than in-app settings. |
 | [build-guide.md](build-guide.md) | operator | Per-target build steps: CLI binary, desktop app, mobile apps, and the web shell as a container image. |
 | [build-terminal.md](build-terminal.md) | operator | Run the terminal shells from source or package the CLI binary. |
@@ -142,7 +142,7 @@ The Builders sidebar also carries an **About** entry, which renders the repo-roo
 | [build-mobile.md](build-mobile.md) | operator | Set up, develop and package Android and iOS shells. |
 | [build-obs.md](build-obs.md) | operator | Plan OBS recipes for Lolly artifacts and their dependencies. |
 | [build-kubernetes.md](build-kubernetes.md) | operator | Build the web image and deploy the chart with optional services. |
-| [sovereign-production.md](sovereign-production.md) | operator | Sovereign creative production: no server in the render path, consent-gated networking, air-gapped deployment, on-device signing, and the limits stated as facts. |
+| [sovereign-production.md](sovereign-production.md) | operator | Sovereign creative production: local rendering, air-gapped deployment and signing, plus the boundaries of self-hosted lolly.work services. |
 
 ## For Trust
 
@@ -167,7 +167,7 @@ The fifth pathway, and the one the other four link into whenever a claim needs i
 | [threat-model.md](threat-model.md) | security | Trust boundaries, the residual-risk register, what is explicitly *not* a boundary, and the commands to verify each claim. An index into module headers, with file and line for every row. |
 | [parser-inventory.md](parser-inventory.md) | security | Every engine module that turns attacker-controlled bytes into structure, with its declared bounds, its test, and its fuzz status. |
 | [server-surface.md](server-surface.md) | operator | The complete inventory of server-side components, so the "runs on your device" claim can be stated precisely. |
-| [privacy.md](privacy.md) | end user | The privacy policy: on-device data, no accounts for ordinary use, no analytics. |
+| [privacy.md](privacy.md) | end user | The privacy policy: local data, optional network features and lolly.work organisation identity, shared storage, telemetry and audit. |
 | [inclusive-design.md](inclusive-design.md) | end user | Accessibility, language coverage and the ethical commitments Lolly holds itself to, with the tests that fail the build when one is broken. |
 
 ## Not in the site nav

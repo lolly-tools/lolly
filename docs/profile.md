@@ -2,7 +2,7 @@
 
 A **profile** is the working identity Lolly creates *as*. It's the small set of details a tool can pull from so you don't retype them every time - your name, contact details, an optional headshot, a few preferences - plus everything you accumulate while you work: saved sessions, uploaded images and the local activity tally.
 
-Everything in a profile lives **on the device**, in the browser's local database (IndexedDB on the web PWA, the filesystem on the Tauri apps). There's no account and nothing is uploaded. You manage it under **Settings → Preferences** (in the footer or avatar menu); tools only ever *read* it, and only the specific fields they were built to pre-fill.
+Your personal profile lives **on the device**, in the browser's local database (IndexedDB on the web PWA, the filesystem on the Tauri apps). Standalone use needs no account. Optional Sync, sharing and organisation services have their own data flows, described below. You manage it under **Settings → Preferences** (in the footer or avatar menu); tools only ever *read* it, and only the specific fields they were built to pre-fill.
 
 > Settings brings your profile and the former Dashboard into one destination. **Preferences** holds your details and personal choices; **This device**, **Design system**, **Capabilities** and **Activity & stats** sit alongside it. See [Settings](/info/dashboard.html) for the full map.
 
@@ -48,6 +48,12 @@ A profile doesn't have to be a single human. It can stand in for a **team or fun
 This is the case the rigid "one person, one profile" model misses. You might be an **event manager three days a year** and something else entirely the rest of the time. Those three days you want event details, the event inbox, maybe an event sub-brand to fill in your badges and signage; the other 362 you want your normal identity back.
 
 In Lolly, that role is just **another profile you keep on hand** - a saved bundle (next section) you load for the event and set aside afterwards. The role is a hat, not a new account. Wear it when you need it, take it off when you're done.
+
+::: details Profiles at an organisation using lolly.work
+When you sign in to an [organisation's Lolly](/info/organisation.html), **lolly.work** can supply verified profile fields from its identity provider and fix fields or preferences under organisation policy. A managed field is labelled in the app.
+
+That sign-in also controls access to shared projects and assets. A team profile file is still a local bundle; it does not grant organisation membership or replace a work account. Your **Use my details to create** choice controls export attribution, not the organisation's sign-in or audit records. See [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+:::
 
 ## One install, one active profile - many you can keep
 
@@ -104,7 +110,7 @@ If the browser hasn't granted persistent storage, the section says so and offers
 
 ## Moving a profile to a new device
 
-Because a profile is entirely local, there are two ways to get it onto a blank install - a new laptop, a freshly reset browser, a colleague's machine, an offline box. **Carry the file**, as below, or keep your own devices in step through storage you choose, as [Sync your devices](/info/sync.html) explains. No Lolly login restores it for you, and that's the point: nothing ever went to a Lolly server to begin with.
+To move your personal profile and library onto a blank install, **carry the file**, as below, or use storage you choose, as [Sync your devices](/info/sync.html) explains. Signing in to lolly.work restores access to organisation-held work and managed details; it does not restore the personal data stored only on your old device.
 
 Under **Settings → Preferences → Storage → Move to another device**:
 
@@ -124,7 +130,7 @@ For the exact bundle layout, version policy and integrity rules, see **[Data Tra
 
 A tool only ever *pre-fills* the profile fields it was explicitly built to bind:
 
-**Explicit binding.** A tool author marks an input as drawing from the profile (`bindToProfile: "firstname"`, `"email"`, `"headshot"`, …). When the tool opens, that input pre-fills from your profile - and you can still override it for that one session without changing the profile. Pre-fill is a local convenience and happens whether or not **Use my details** is on.
+**Explicit binding.** A tool author marks an input as drawing from the profile (`bindToProfile: "firstname"`, `"email"`, `"headshot"`, …). When the tool opens, that input pre-fills from your profile - and you can override that input for one session without changing the profile, unless an organisation policy locks the input. Pre-fill is a local convenience and happens whether or not **Use my details** is on.
 
 **The opt-in (provenance).** When you export an asset, your details optionally ride along as **provenance** - an author/credit line embedded in the file's metadata (PNG, PDF, SVG, …) - so a finished asset can say who made it. *This* is what **Use my details to create** governs: leave it off and the export still carries the "Made with Lolly" tool/platform attribution, but no personal author/contact line is embedded. (The same opt-in sets the author on **/pro** batch runs.) (Tool authors: see [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) and [Host API → `host.profile`](/info/host-api.html#host-profile).)
 
@@ -151,4 +157,4 @@ The word is overloaded across the project. Neither of these is the personal prof
 
 ## Privacy
 
-Outside the optional identity enrolment above (which sends the email you enrol to the certificate service - see [Server Surface](/info/server-surface.html)), a profile is never transmitted, uploaded or used to identify or track you - there's nothing to consent to, only this notice so you know what's kept. Wipe all of it at any time with **Settings → Preferences → Clear all my data**. See the [Privacy Policy](/info/privacy.html).
+Your personal profile is stored locally. Details can travel in a backup or Sync copy, in content you share or export, and during optional Content Credentials enrolment. On a lolly.work instance, sign-in, shared work, telemetry policy and audit records are separate from this local profile. **Settings → Preferences → Clear all my data** clears this device; it does not erase copies held by your storage provider or organisation. See the [Privacy Policy](/info/privacy.html).

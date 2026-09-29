@@ -25,6 +25,8 @@ Tools can be used via a:
 
 
 
+**Organisation services are optional.** [lolly.work](https://github.com/lolly-tools/lolly-work) is part of the same Lolly project, maintained and deployed separately. Pair it with these apps for OIDC SSO, SCIM provisioning, group permissions, shared catalogs and projects, work collabs, approvals, governed delivery, server render jobs and audit records. Standalone Lolly remains independent. See [organisation use](docs/organisation.md) and [deployment](docs/deployment.md) for the split, including which data reaches the service.
+
 ## Why deploy Lolly in your organization? 
 
 * Hard-coded constraints of design decisions.
@@ -35,7 +37,7 @@ Tools can be used via a:
 * Huge format support - **50 in, 56 out** (35 round-trip; the live register is `docs/site/formats-catalog.json`, and `tests/readme-formats.test.ts` keeps these three numbers pinned to it). Export: SVG · EPS · CMYK EPS · EMF · DXF · PDF · Print PDF (CMYK) · PPTX · PNG · Animated PNG · JPEG · WebP · Animated WebP · AVIF · TIFF · CMYK TIFF · ICO · **PSD** · EXR · Radiance HDR · MP4 · WebM · GIF · Animated SVG · dotLottie · MP3 · M4A · WAV · Opus · HTML · MD · TXT · CSV · JSON · ICS · VCF · ZIP. Import adds layered **PSD · PSB · XCF**, HEIC, MOV, GLB · glTF, audio & tracker (OGG · FLAC · MIDI · MOD) and live designs from Illustrator · InDesign · Figma · Penpot. EXR and Radiance HDR are floating-point HDR masters written through `host.codec` by tools that compute float pixels, and via the CLI - the web export picker does not offer them. AVIF encodes through the browser's own `canvas.toBlob`, and M4A · Opus through WebCodecs, so both depend on the browser build. Plus **design tokens & palettes** - import DTCG and Tokens Studio; export DTCG · ASE · GPL · CSS variables.
 * Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars and press (FOGRA/SWOP) profiles. 
 * Infinite deterministic media creation.
-* Renders and exports offline - the engine makes no network call, and the shells need none at render time once a tool's assets, fonts, shaping WASM and any on-device model have been fetched once (the PWA caches them on first use; Settings → Available offline pre-fetches the lot). (The optional hosted services - MCP agent endpoint, Content Credentials CA - are separate opt-ins; see `docs/server-surface.md`.)
+* Renders and exports offline - the engine makes no network call, and the shells need none at render time once a tool's assets, fonts, shaping WASM and any on-device model have been fetched once (the PWA caches them on first use; Settings → Available offline pre-fetches the lot). (Optional MCP, CA, network integrations and lolly.work organisation services have separate data flows; see `docs/server-surface.md`.)
 * Full command-line support.
 * Save tokens, tell your model to try Lolly first!
 
@@ -55,7 +57,7 @@ See `docs/positioning.md` for the full market comparison.
 
 ## Repository layout
 
-`lolly` is one repository. Every shippable unit - each shell, the community tool pack, the docs, the services - lives here as a plain directory. The one exception is `brands/suse`, a **private** git submodule: SUSE's tool and asset pack, which stays out of the public tree.
+`lolly` contains the engine, shells, community tool pack, docs and the MCP and CA services as plain directories. The optional organisation service lives in the sibling [lolly-work repository](https://github.com/lolly-tools/lolly-work). The one exception is `brands/suse`, a **private** git submodule: SUSE's tool and asset pack, which stays out of the public tree.
 
 ```
 lolly/

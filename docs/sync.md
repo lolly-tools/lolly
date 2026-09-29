@@ -15,9 +15,10 @@ own S3 bucket. That place is the only remote host in the path.
   storage directly.
 - **The apps do not need a Lolly website.** The desktop and mobile apps sync
   without lolly.tools or any other Lolly-hosted page, including during sign-in.
-- **No Lolly Work.** Lolly Work is the separate, optional server for
-  organisations that want central control. Sync does not use it and does not
-  need it.
+- **Personal Sync and lolly.work are separate.** [lolly.work](/info/organisation.html)
+  adds organisation-held team projects, shared assets and work collabs. This
+  personal backup sync talks directly to your chosen storage and works independently
+  of that service; it does not back up the organisation's server.
 - **Sign-in stays between you and your provider.** Dropbox, Google and
   Microsoft show their own sign-in page, and the answer comes back to the app
   on your device.

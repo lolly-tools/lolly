@@ -30,9 +30,9 @@ This platform is the direct answer:
 
 > **Programmatic creative and content at scale** - assets generated from inputs, with the rules set once, for whoever needs them.
 
-Lolly isn't where a design system gets invented - it's where it gets produced. Think of it like a vending machine for design: make a selection, get a result. Every time. The engine works for the highest quality each format can produce on the hardware in front of you, and the same engine makes the same file on every surface it ships to.
+Lolly lets you build or import a design system, author a layout and turn that work into repeatable production. A tool takes inputs and produces a finished asset, using the same engine across the browser, desktop and CLI.
 
-The outcome is **abundance**: every event has correct signage, every CVE alert matches the house style, every label prints clean, every email signature is current - all from tools that already carry the rules. The platform handles recurring operationalised creative. It is deliberately not a bespoke creative tool - designers still own flagship work.
+The outcome is **abundance**: every event has correct signage, every CVE alert matches the house style, every label prints clean, every email signature is current - all from tools that already carry the rules. Designers can create original work on the Design canvas and publish reusable tools for recurring production.
 
 ### Innovate probabilistically, scale deterministically
 
@@ -45,16 +45,16 @@ Lolly draws the same line. Explore probabilistically: a model, a designer, a rou
 ### Against the alternatives
 
 ::: figure positioning-comparison
-Capability completeness across today's creative tools, researched August 2026. Scoring: 0 absent, 25 workaround-grade, 50 real but gated or partial, 75 strong with caveats, 100 core competency.
+Capability comparison: competitor research and scores from August 2026; Lolly + lolly.work coverage reviewed 28 September 2026. Scoring: 0 absent, 25 workaround-grade, 50 real but gated or partial, 75 strong with caveats, 100 core competency.
 :::
 
-The gap is plain: nothing shipping today gives us constraints-first, offline-capable, low-skill, internally accessible output. Lolly even includes an open canvas - **Design** - where colours, type and assets conform to the brand globals, so free arrangement stays constraints-first. What it is **not** is an unconstrained design suite: designers continue to use Illustrator and Figma for bespoke flagship work. Permutations can be assembled with this tool.
+The comparison covers **Lolly + lolly.work**. Lolly provides local creation, the Design canvas and reusable tools. [lolly.work](https://lolly.work) is the same project's separately deployed organisation service: SSO, SCIM, roles, shared catalogues and projects, approvals, work collaboration, usage reporting, audit records and server rendering. Both parts are MPL-2.0 open source. Standalone creation needs no account; shared work uses the organisation's configured services. See the [comparison overview](/info/compare.html) for the split and the [brand-portal comparison](/info/compare-brand-portals.html) for the governance capabilities.
 
 ![Every tool in the library as a card, grouped by category, so a producer picks one and starts](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=aud-gallery-landscape)
 
 **Use it for:** Rapid generation of operationalised creative assets - event tiles, name badges, signatures, CVE alerts, QR codes, social cards, consignment labels, structured reports.
 
-**Do not use it for:** Bespoke hero content.
+**Choosing an editor:** Use Design for original layouts and reusable tools, or import work from another application. Specialist retouching, illustration, prototyping and video requirements can determine which authoring application a designer chooses.
 
 ---
 
@@ -80,15 +80,16 @@ That's the force multiplier. Lolly isn't a drawer of separate tools for separate
 
 The brand rules live in the tool, not in each file it makes (see [How Lolly compares](/info/positioning.html)). Get the tool right once and every output inherits the same type, colour and spacing, whether that is one card or a spreadsheet of rows in a dozen languages. How you check your work, and who does it, stays yours; Lolly makes the thing worth checking smaller and the output faster to make.
 
-The same deterministic tool reaches that scale three ways, all producing identical output:
+The same tool reaches production through four routes:
 
 - <!--i:people--> **A person, in the app.** The `/pro` batch grid: paste or import the rows, get one finished asset per row, download the zip. No design skill, no wait.
 - <!--i:code--> **A developer, from the command line.** The CLI runs the *same* engine and the *same* render path headless, so the tool can be sequenced over every row in a script or a nightly pipeline. A `lolly <tool> --field=…` call in a loop is the whole integration.
 - <!--i:cpu--> **A system or an AI agent, over MCP.** The same tool operated programmatically, at the same fidelity, for as many rows as the job has.
+- **An organisation, through lolly.work.** The server render API applies identity and tool policy, accepts recoverable jobs and batches, and retains outputs for retrieval or governed delivery. The deployment supplies persistent storage and the render workers its tools require.
 
 ![Batch mode on a fresh install: one empty row waiting for a tool, with the whole spreadsheet surface and its Render button in place before any data arrives](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-One set of brand constraints, fixed once by a designer; three routes to the identical output.
+One set of tool rules supports local creation, pipeline automation and organisation production. Supported formats and host capabilities determine which route a particular job can use.
 
 ---
 

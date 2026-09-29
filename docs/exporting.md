@@ -1,6 +1,6 @@
 # Exporting & Formats
 
-Press **Export** on a tool's **Export | Save as** pill, pick a format from the menu beside the file name, then press **Download**. The file is made on your device; nothing is uploaded.
+Press **Export** on a tool's **Export | Save as** pill, pick a format from the menu beside the file name, then press **Download**. An ordinary download is made on your device. Organisation approval and delivery options are covered below.
 
 For most jobs one of three formats is right:
 
@@ -34,6 +34,14 @@ The actions in the Export panel:
 ![The export panel - format, size and the Copy / Download / Save / Share actions](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Share opens over the tool, with the link already built and the on-visit toggles under it.
+
+::: details Approvals and delivery with lolly.work (optional)
+An [organisation using lolly.work](/info/organisation.html) can govern available formats and export settings. Where approval is required, the app can show **Request approval** in place of **Download**. Follow the policy shown by your instance.
+
+The service also supports governed delivery to configured S3, WebDAV and HTTP destinations, with approval steps where configured, delivery receipts and an audit record. Submitting a file for that workflow sends it to the organisation's service; ordinary local downloads remain on-device. Personal Send destinations and governed organisation delivery have separate configuration.
+
+For operators, see the [delivery guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). For queued server renders and batches, see [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Rendering many at once
 

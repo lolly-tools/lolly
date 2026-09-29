@@ -22,6 +22,7 @@
      rebrand-chooser.css  the layout chooser
      rebrand-theme.css    the deck theme
      rebrand-columns.css  the column grips
+     rebrand-workflow.css the slide-first workflow and progressive disclosure
 
      .rb                 top bar, the notice band, the phase's content, the strip, the footer
      ├─ .rb-top          title, design system, mode control (.rb-mode-slot), undo, save

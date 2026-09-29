@@ -2,7 +2,7 @@
 
 > **Scope.** This page is *where each piece runs*: the delivery models, which artefact goes to which host and what the optional services need. The [Build Guide](/info/build-guide.html) is *how each artefact is produced* - toolchain prerequisites, per-platform build and signing steps, the container image. Anything about compilers, SDKs or store submission belongs there; anything about hosting, routing and rollout belongs here.
 
-Lolly has no single deployment - it's an engine plus several shells, and you ship the ones your organisation needs. This guide covers each target: the hosted web app, the desktop/mobile apps and the two backend services.
+Lolly has no single deployment - it's an engine plus several shells, and you ship the ones your organisation needs. This guide covers each target: the hosted web app, the desktop/mobile apps, optional integrations and the separately deployed lolly.work organisation service.
 
 ## Choose a delivery model
 
@@ -14,9 +14,19 @@ The same build serves three postures - pick per team, not per organisation:
 
 See [Lolly for Operators](/info/operators.html) for the security rationale behind each.
 
+## Organisation services with lolly.work
+
+Choose **Lolly + lolly.work** when a deployment needs organisation SSO, SCIM provisioning, access policies, a shared catalog and projects, work collabs, approvals or governed delivery. lolly.work is part of the core Lolly project, in a [separate repository](https://github.com/lolly-tools/lolly-work), with its own service and admin console. It serves the same web app and can be used by connected desktop and mobile apps; local rendering remains available.
+
+Deploy its service alongside the Lolly web build, configure the identity provider and permissions, and supply persistent database and blob storage for shared work. Server renders and batches use the same engine; browser-dependent formats need its optional render worker. The static web/MCP/CA Helm chart in this repository does not install lolly.work.
+
+Use lolly.work's [installation guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) for Compose, systemd, YunoHost and Helm, and its [deployment guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/deployment.md) for production topology, storage and backups. Review [current status](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) and [production readiness](https://github.com/lolly-tools/lolly-work/blob/main/docs/production-readiness.md) against the release you deploy. The public lolly.work site is a memory-only demonstration sandbox, not a persistent organisation deployment.
+
+For users, link to [Use Lolly at your organisation](/info/organisation.html). For the change in data handling, read [Server Surface](/info/server-surface.html#organisation-services-with-lolly-work) and [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+
 ## The web shell
 
-The web shell is a static PWA built by Vite, with two *optional* serverless API functions alongside it.
+The web shell is a static PWA built by Vite. Optional API services can run alongside it; [Server Surface](/info/server-surface.html) lists them and the separate lolly.work service.
 
 ```bash
 pnpm install --frozen-lockfile                 # preinstall checks at least one content profile is complete on disk
@@ -84,7 +94,7 @@ For a self-hosting box rather than a cluster, Lolly ships as a [YunoHost](https:
 
 It is the static delivery model above, done for you: the package downloads a prebuilt web build from the release host, unpacks it into the app directory and serves it with the domain's nginx, with the same security headers as lolly.tools. There is no service and no database, nothing is stored on the server, and access is the ordinary YunoHost permission on the app - public by default, or limited to a group. Two things follow from the build it installs. It takes a **whole domain**, because the web build resolves its assets, service worker and clean routes from the domain root. And the on-device ML models are fetched on first use from `lolli.li`, the project's release host, rather than bundled, the same way the desktop app does it; without that the download would be over two gigabytes, and a YunoHost host is often a small machine.
 
-The governed, multi-user deployment with YunoHost sign-in is the separate **Lolly Work** package, which serves this same web build behind its control plane.
+The governed, multi-user deployment with YunoHost sign-in is the separate **[lolly.work](#organisation-services-with-lolly-work)** package, which serves this same web build behind its organisation service.
 
 ## Desktop & mobile apps
 
@@ -100,7 +110,7 @@ Signing, notarisation and store submission are platform-specific - the [Build Gu
 
 ## The backend services (optional)
 
-Two small services back optional features. Neither is required to render or export - the app is fully functional without them.
+The MCP and CA services below are independently deployable. lolly.work has its own deployment described above, and the complete inventory, including network pass-throughs, is on [Server Surface](/info/server-surface.html). None is required for an ordinary local render or download.
 
 | Service | What it powers | Build | Hosting |
 |---|---|---|---|

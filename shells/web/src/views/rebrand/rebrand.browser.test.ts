@@ -417,6 +417,7 @@ for (const deck of deckPaths()) {
       assert.ok(m.heads >= 1, 'the dock shows at least one section head');
       assert.ok(m.stage && m.stage.w >= 300, 'the Proposed slide takes the phone\'s width');
       // A chip made current scrolls its own row, never the page or the tab bar.
+      await page.locator('.rb-review-toggle').click();
       const tabsBefore = await page.evaluate(() => document.querySelector('.rb-q-tabs')?.getBoundingClientRect().left ?? -1);
       const chip = page.locator('.rb-q-chip').last();
       if (await chip.count()) {

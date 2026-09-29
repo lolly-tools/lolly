@@ -52,6 +52,7 @@ import type {
   SlideMasterV1,
 } from '@lolly-tools/core';
 import { findArchetype, roleFontSize } from '@lolly-tools/core';
+import { withSlideLayoutComponents } from './slide-layout-components.ts';
 import { contrastRatio } from './brand-derive.ts';
 import { bgIsDark, pickLogoVariant, type LogoSetV1 } from './logo-variant.ts';
 
@@ -294,6 +295,7 @@ export function seedFrame(
   archetypeId: ArchetypeRefV1,
   opts: SeedFrameOptsV1,
 ): SeededFrameV1 | null {
+  master = withSlideLayoutComponents(master, [archetypeId]);
   const archetype = findArchetype(master, archetypeId);
   if (!archetype) return null;
   const prefix = opts.idPrefix ?? opts.frameId;
@@ -819,6 +821,7 @@ export function archetypeSlots(
   layers: DesignBoxRowV1[],
   opts?: RelayoutOptsV1,
 ): ArchetypeSlotsV1 | null {
+  master = withSlideLayoutComponents(master, [fromArchetypeId, toArchetypeId]);
   const from = findArchetype(master, fromArchetypeId);
   const to = findArchetype(master, toArchetypeId);
   if (!from || !to) return null;
@@ -856,6 +859,7 @@ export function applyArchetype(
   layers: DesignBoxRowV1[],
   opts?: RelayoutOptsV1,
 ): DesignBoxRowV1[] {
+  master = withSlideLayoutComponents(master, [fromArchetypeId, toArchetypeId]);
   const from = findArchetype(master, fromArchetypeId);
   const to = findArchetype(master, toArchetypeId);
   if (!from || !to) return layers.slice();

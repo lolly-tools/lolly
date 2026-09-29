@@ -38,6 +38,7 @@ import { bindOp, type RbCtx } from './context.ts';
 // ─── view-only state ─────────────────────────────────────────────────────────
 
 interface TopEls {
+  review: HTMLButtonElement;
   name: HTMLElement;
   system: HTMLElement;
   /** The Deck theme control's slot, which theme.ts fills. */
@@ -419,6 +420,16 @@ export function wireTop(rb: RbCtx): void {
   title.append(nameRow, line);
 
   const actions = node('div', 'rb-top-actions');
+  const { el: review } = button('btn btn--ghost rb-review-toggle', tRaw('Review changes'));
+  review.setAttribute('aria-expanded', 'false');
+  review.setAttribute('aria-controls', 'rb-col-queue');
+  review.addEventListener('click', () => {
+    const open = rb.els.root.dataset.reviewOpen !== 'true';
+    rb.els.root.dataset.reviewOpen = String(open);
+    review.setAttribute('aria-expanded', String(open));
+    rb.columns.render();
+    rb.compare.render();
+  });
   const save = node('p', 'rb-save');
   const saveText = node('span', 'rb-save-text');
   const saveAction = node('button', 'btn btn--ghost btn--sm rb-save-action');
@@ -437,7 +448,7 @@ export function wireTop(rb: RbCtx): void {
   // the button itself would not hide it; its wrapper takes the attribute instead.
   const menuSlot = node('div', 'rb-top-menu');
   menuSlot.append(more);
-  actions.append(save, history, menuSlot);
+  actions.append(review, save, history, menuSlot);
 
   bar.setAttribute('aria-label', tRaw('Project'));
   bar.prepend(nav, title);
@@ -446,6 +457,7 @@ export function wireTop(rb: RbCtx): void {
   mountBackPill(nav);
 
   local.els = {
+    review,
     name,
     system,
     theme,
@@ -474,6 +486,7 @@ export function renderTop(rb: RbCtx): void {
   const els = local.els;
   if (!els) return;
   const { state } = rb;
+  els.review.hidden = !state.plan || state.mode !== 'renovate';
   // The theme control keeps its own memo, so it is drawn before this bar's.
   rb.theme.renderControl(els.theme);
   const project = state.project;

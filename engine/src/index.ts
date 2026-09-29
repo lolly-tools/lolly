@@ -937,6 +937,8 @@ export { textSemanticSource } from './text-semantic.ts';
 // Slide masters as design-system data (plan 274 section 3.4): seeding a Design frame
 // from an archetype, re-laying role-bound layers, and which logo a background wants.
 export { seedFrame, applyArchetype, resetFrame, masterBoxToPx, pxToMasterFraction, archetypePlaceholders } from './slide-master.ts';
+export { slideLayoutRecipe, slideLayoutName, slideContentGroups, slideLayoutChoices, withSlideLayoutComponents } from './slide-layout-components.ts';
+export type { SlideLayoutRecipe } from './slide-layout-components.ts';
 export type { SeedFrameOptsV1, SeededFrameV1, SeededCellV1, RelayoutOptsV1, TokenResolver } from './slide-master.ts';
 export { slideStructureLibrary, findStructure, expandStructure, expandRepeat, structureOf, archetypeForStructure, darkVariantOf, searchTokens, structureSearchIndex, searchStructures } from './slide-structures.ts';
 export type { StructureGridV1, StructureBandV1, StructureSlotV1, SlideStructureV1, SlideStructureSectionV1, SlideStructureLibraryV1, ExpandedStructureV1, StructureSearchEntryV1 } from './slide-structures.ts';

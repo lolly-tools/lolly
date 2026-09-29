@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.229.0
+
+- Rebrand can compile bounded `flow-cards-N-C` and `flow-columns-N-C` layout recipes. The number of content groups determines capacity and geometry; headings stay with their bullets. Recipes inherit the brand master's title, typography, colours and furniture, and replay through the same web and CLI compiler. Recommendations still require a single-slide compile and content/fit audit.
+- The Original comparison can keep stored vector artwork intact while recognised labels remain editable in the proposed slide (`compileFaithful` option `originalArtwork`).
+
 ## 1.228.0
 
 - Chromium export waits follow actual progress. Motion formats allow ten minutes without progress and keep rendering while frames advance, replacing the three-minute total cap. `LOLLY_EXPORT_IDLE_TIMEOUT` sets the inactivity allowance in seconds; stalled, closed or crashed pages still fail. The ordinary, screenshot and portable-tool browser paths share this policy.

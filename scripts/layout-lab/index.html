@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Lolly layout lab</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header><div><span class="eyebrow">LOLLY / EXPERIMENTS</span><h1>Layout lab</h1></div><span class="badge">Local inference · one artboard</span></header>
+  <main>
+    <aside class="brief-panel">
+      <label for="collection">Test set</label><select id="collection"><option value="synthetic">18 authored briefs</option></select>
+      <div id="corpus-controls" hidden><label for="corpus-filter">Show slides</label><select id="corpus-filter"><option value="all">All slides</option><option value="ready">Within the layout contract</option><option value="ocr">Read with OCR</option><option value="inspect">Needs inspection</option><option value="chart">Charts and tables</option></select></div>
+      <label for="fixture">Slide brief</label><select id="fixture"></select>
+      <label for="request">What should this slide communicate?</label><textarea id="request" rows="4" maxlength="600"></textarea>
+      <div id="source"></div>
+      <details id="brief-editor"><summary>Edit the slide data</summary><textarea id="brief-json" rows="16" aria-label="Slide brief JSON" spellcheck="false"></textarea><button id="edit" type="button">Load edited brief</button></details>
+      <p class="hint">Layouts preserve the supplied brief and use Lolly’s neutral slide master. Source pictures appear when available; other pictures are labelled stand-ins.</p>
+    </aside>
+    <section class="workspace" aria-label="Artboard preview">
+      <section id="reference" hidden aria-label="Original slide"><span class="eyebrow">ORIGINAL SLIDE</span><h2 id="reference-name">Source reference</h2><img id="reference-image" alt="Original slide reference"><p id="reference-note" class="hint"></p><details><summary>Extraction and OCR details</summary><p id="extraction-note"></p><div id="extraction-text"></div><p id="source-warnings" class="hint"></p></details></section>
+      <div class="workspace-top"><div><span class="eyebrow">SELECTED ARTBOARD</span><h2 id="slide-title">Slide preview</h2></div><button id="undo" type="button" disabled>Undo</button></div>
+      <div id="artboard" class="artboard"></div>
+      <div class="preview-caption"><span id="layout-name"></span><button id="apply" type="button" disabled>Use in lab</button><button id="download" type="button" disabled>Export Design inputs</button></div>
+      <div id="suggestions" class="suggestions"></div>
+      <p id="fit-note" class="hint"></p>
+      <details><summary>Candidate checks</summary><div id="checks"></div></details>
+    </section>
+    <aside class="results-panel">
+      <span class="eyebrow">FOUR WAYS TO CHOOSE</span><h2>Compare recommendations</h2>
+      <p class="hint">Rules, semantic similarity, a single model choice, and generated JSON.</p>
+      <button id="run" class="primary" type="button">Compare this slide</button>
+      <button id="cancel" type="button" disabled>Cancel and release model</button>
+      <p id="status" role="status" aria-live="polite">Checking local model files…</p>
+      <div id="results"></div>
+      <details><summary>Last raw model response</summary><pre id="raw">No model run yet.</pre></details>
+      <hr>
+      <button id="suite" type="button">Run all 18 briefs</button>
+      <button id="report" type="button">Save experiment report</button>
+      <div id="summary" class="hint"></div>
+    </aside>
+  </main>
+  <footer>This is a development experiment. Previews and fit checks use Lolly’s existing average-width text estimate. No recommendation changes a saved project.</footer>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

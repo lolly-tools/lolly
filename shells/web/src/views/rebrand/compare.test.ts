@@ -71,6 +71,7 @@ function objectOf(rb: RbCtx, id: string) {
 
 /** Slide 1 selected with nothing else. */
 function onFirstSlide(rb: RbCtx): void {
+  rb.compareSide = 'proposed';
   rb.select({ slideId: firstSlide().id, objectId: null, itemId: null });
 }
 
@@ -82,6 +83,15 @@ function loaded(rb: RbCtx): void {
 }
 
 // ─── the layout of the stage ─────────────────────────────────────────────────
+
+test('a wide stage starts with Original and Proposed side by side', () => {
+  const { rb, unmount } = mount(stateFrom());
+  assert.equal(rb.compareSide, 'both');
+  assert.equal(q(rb, '.rb-cmp').dataset.show, 'both');
+  assert.equal(q(rb, '[data-inset]').hidden, true);
+  for (const pane of rb.els.compare.querySelectorAll('.rb-pane')) assert.ok(pane.hasAttribute('data-on'));
+  unmount();
+});
 
 test('the caption hints the hold once, with the key in the tooltip, and the first pick line goes after a pick', () => {
   const { rb, unmount } = mount(stateFrom());
@@ -101,7 +111,7 @@ test('the caption hints the hold once, with the key in the tooltip, and the firs
   unmount();
 });
 
-test('a wide stage opens on the Proposed hero, with the Original as the inset and the side segment beside it', () => {
+test('choosing Proposed shows a hero with the Original inset and the side segment beside it', () => {
   const { rb, unmount } = mount(stateFrom());
   onFirstSlide(rb);
   assert.equal(rb.compareSide, 'proposed', 'the hero is the Proposed slide');
@@ -620,6 +630,8 @@ test('the cache evicts the oldest drawings once the strings pass the phone budge
 
 test('a slide rebuilt from its picture shows the picture as Original, never a drawing of the rebuilt objects', async () => {
   const { state, ref, slideId } = pictureDeckState();
+  // A recovery reference is authoritative even if a migrated source lost the marker.
+  state.source!.slides.find(slide => slide.id === slideId)!.origin.flattened = false;
   const { rb, unmount } = mount(state);
   rb.select({ slideId, objectId: null, itemId: null });
   rb.compareSide = 'original';
@@ -712,6 +724,7 @@ test('the Original line says what was read with the numbers in it, never the Pro
   const slide = deck.slides[0];
   assert.ok(slide);
   const { rb, unmount } = mount(stateFrom(RUN.plan, { source: deck }));
+  rb.compareSide = 'proposed';
   rb.select({ slideId: slide.id, objectId: null, itemId: null });
   const derived = rb.derived;
   assert.ok(derived);

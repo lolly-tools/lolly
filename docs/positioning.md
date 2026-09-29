@@ -1,32 +1,38 @@
 # How Lolly compares
 
-What Lolly does that today's creative tools do not, and what it deliberately leaves to them.
+Compare Lolly's creative tools and lolly.work's organisation services with other ways to design, govern and produce assets.
 
-For the tool-by-tool version, one page each for Canva, Adobe, Figma, rendering APIs and online converters, see [Lolly compared, tool by tool](/info/compare.html). Each page states what the other tool does better and what Lolly does instead.
+For individual comparisons with Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and online converters, see [Lolly compared, tool by tool](/info/compare.html). Each page covers the combined solution and identifies which part provides each capability.
+
+## Lolly and lolly.work
+
+**Lolly** provides the engine, apps and tools for creating, editing, converting and exporting on your device. **[lolly.work](https://lolly.work)** is the same project's separately deployed organisation service: SSO, SCIM provisioning, roles and input policies, shared catalogues and projects, approvals, work collaboration, usage reporting, audit records and server rendering. Both are MPL-2.0 open source; lolly.work is maintained in its [own repository](https://github.com/lolly-tools/lolly-work).
+
+An individual can use Lolly without an account or server. An organisation can operate both parts on its own infrastructure. Local rendering remains on the device; shared projects, work collabs, server jobs and delivery use the configured services. The public lolly.work site is an evaluation sandbox. Its [operator documentation](https://github.com/lolly-tools/lolly-work/tree/main/docs) covers durable deployments and current limits.
 
 > **Pilot status:** Lolly is a closed-pilot prototype, not a finished product, and its security is currently undergoing SUSE's strict infrastructure hardening, preparing for enterprise scale. The [Adoption & Governance](/info/adoption-governance.html#status) page covers the current state.
 
 ## Today's tools
 
-Each ring below scores how completely a product class delivers a capability **as shipped today** - not as marketed - with every class scored on its best representative. Lolly is scored with the same knife: it takes the only red ring on the board, for maturity. Open a row name for the reasoning behind its scores. Columns are sorted by the Overall completeness row at the top - the mean of the scored rows, with the spend row excluded.
+Each ring below scores how completely a product class delivers a capability, with every class scored on its best representative. The Lolly column covers both Lolly and lolly.work; each row distinguishes local and organisation features. Open a row name for the reasoning behind its score. Columns are sorted by the Overall completeness row at the top - the mean of the scored rows, with the spend row excluded.
 
 ::: figure positioning-comparison
-Capability completeness across today's creative tools, researched August 2026. Scoring: 0 absent, 25 workaround-grade, 50 real but gated or partial, 75 strong with caveats, 100 core competency.
+Capability comparison: competitor research and scores from August 2026; Lolly + lolly.work coverage reviewed 28 September 2026. Scoring: 0 absent, 25 workaround-grade, 50 real but gated or partial, 75 strong with caveats, 100 core competency.
 :::
 
-**Scoring notes.** Lolly's scores assume its published claims hold, which is why maturity is its one red ring: closed pilot, security hardening in progress, nothing audited yet. Research moved several cells.
+**Scoring notes.** Available features and production maturity are separate considerations. Lolly's maturity score reflects its pilot status and security hardening; the presence of SSO, approvals or server rendering does not establish a production track record. The feature descriptions below include lolly.work, while competitor scores retain their dated August review.
 
 Canva is scored on its best family member per row, since it owns Affinity and Cavalry (both given away October 2025). Offline and on-device rendering score 75 through Affinity - a desktop suite that still needs a verified account and carries telemetry, the deduction Adobe also takes - while Canva's own offline mode edits only pre-synced designs, one device, limited window. Autofill scores 50: real but Enterprise-gated, async, text and image only. Figma's mass generation rose 25 to 50 when Buzz shipped spreadsheet fill (free beta, August 2026).
 
 One rule governs the board: Full (100), on rows that touch your content or identity, needs a capability you can use with no account and no cloud precondition; rows describing the product itself (maturity, ease of use) are exempt. It costs Adobe on provenance: the broadest shipped C2PA (Photoshop, Lightroom, Premiere, Firefly) signs locally and in the cloud, but never without an Adobe account and identity, so 75. It caps the render APIs on mass generation and automation for the same reason.
 
-Lolly's provenance 75 reflects on-device offline signing: architecturally stronger but unaudited, and a device key reads as unverified in stock validators until an identity or an organization's own CA vouches for it. Penpot's 50 arrives through the official Lolly Export plugin: the same engine signing, opt-in, disclosed as Lolly's own. Penpot also takes the board's only off-scale ring, 90 on on-device rendering - browser canvas, save to your own sovereign cloud (even a laptop), private export; only the server hop separates it from Lolly. Cloudinary gets its own column: a media pipeline (DAM, transform API, CDN), and the only cloud column shipping C2PA (50, because fl_c2pa signs on delivery, attesting delivered-by-Cloudinary, not made-by-you).
+Lolly's provenance 75 includes optional on-device signing and lolly.work's server signing with a configured organisation identity. Signature integrity and signer trust are separate: a verifier must trust the certificate's root to identify the signer as trusted. Penpot's 50 arrives through the Lolly Export plugin: the same engine signing, opt-in, disclosed as Lolly's own. Penpot scores 90 on on-device rendering: browser canvas with a save target on its server, which can be self-hosted. Cloudinary gets its own column for its DAM, transform API and CDN; the August review scored its delivery signing at 50.
 
-Live collaboration runs the other way: Figma sets the scale benchmark (200 editors) and Lolly's pairwise, air-gapped P2P scores Partial. Price is a guess, labelled as such: list-price arithmetic on realistic seat mixes, wide on purpose, for scale not procurement. Render APIs take 75 on constraints: templates locked, no brand-governance layer.
+Lolly's live collaboration includes direct two-device private collabs and authenticated work collabs through lolly.work, with shared edits, cursors and saved team sessions. The Partial score reflects the current single-node work deployment and limited operating history, rather than an absence of team editing. Price estimates are dated list-price arithmetic for scale, not procurement. Lolly and lolly.work carry no per-seat software licence charge; organisation hosting, storage and operations still have costs.
 
-The gap: nothing shipping today is constraints-first and offline with no account and no server in the render path, and no one has copied the account clause. Lolly now ships its own open canvas - **Design**, a direct-manipulation free canvas - but colours, type and assets on it conform to the brand globals, so even free arrangement stays constraints-first.
+Lolly combines an on-device creative path with optional organisation services. **Design**, its direct-manipulation canvas, can use a design system's colours, type and assets. A finished layout can become a reusable tool whose declared inputs control the changes a recipient can make.
 
-What Lolly still is **not** is an unconstrained design suite; designers will continue to use Illustrator and Figma for bespoke work - and when that work needs to become a governed, reproducible asset, the Design tool's [Import a design](/info/design-import.html) brings the finished Figma, Penpot, Illustrator, InDesign or PDF file onto the canvas as editable, brand-conformed boxes.
+A team can author in Design or bring existing work across: [Import a design](/info/design-import.html) opens supported Figma, Penpot, Illustrator, InDesign and PDF files as editable layouts. Specialist editing and prototyping needs can still determine which authoring tool a designer chooses.
 
 ![Design's free canvas, where the colours, faces and assets on offer are the brand's own](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
@@ -43,11 +49,9 @@ Deck Studio is a good measure of the ceiling here: a whole slide deck declared a
 
 ![Deck Studio in the split view - the deck's slides listed as blocks on the left, the laid-out deck rendering on the right](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-## Do not use it for
+## Choosing an authoring workflow
 
-- Bespoke or flagship hero content (billboards, major videos)
-- Unique campaign work that genuinely needs a designer
-- Ideation that needs to escape the brand system entirely - Lolly's open canvas still conforms colours, type and assets to the brand globals, and that's the point
+Choose the editor by the operations your design needs: illustration, detailed retouching, prototyping or video production. Lolly's canvas and tools can create original work as well as repeatable assets. Imported designs and shared tokens let a team combine Lolly with specialist applications, while lolly.work governs shared assets, review and delivery.
 
 ## Innovate probabilistically, scale deterministically
 
@@ -57,11 +61,11 @@ Lolly is the press, not the sketch. Bring whatever you like to the ideation - a 
 
 > Trust the creative process, scale with rigour.
 
-## The rules live in the tool and it's templates
+## The rules live in the tool and its templates
 
-Every other tool on the board produces a *file*, and a file can only be looked at after the fact. Lolly moves the brand rules **one step upstream**. Exact hex codes, licensed font files, bleed margins, spacing - all of it is hard-coded into the tool's HTML and CSS, so the template *cannot* emit an off-brand asset. The layout itself does the enforcing.
+Lolly puts reusable brand rules in the tool: colours, fonts, bleed margins, spacing and permitted inputs. The template fixes the parts a recipient must not change. lolly.work adds group access and input policies around that template, with approval chains available for catalogue submissions and governed delivery.
 
-So the thing worth looking at is the **tool**, not each file it makes. Get the tool right, and every asset it ever produces is on-brand by construction. How you check your work, and who does it, stays yours; Lolly makes the checked thing smaller and the output quicker to make.
+Reviewing a tool once makes repeatable production easier: each output inherits its layout rules. Copy, uploaded imagery and usage rights can still need review, and lolly.work supplies shared catalogues and approval workflows for that process.
 
 This is the change the deterministic engine actually delivers. For the creative team it's a guard-rail, not a replacement - you still throw the ball (the data, the copy, the image) and the code is the bumper lane that keeps every throw out of the gutter.
 
@@ -81,8 +85,8 @@ The first of those is the one people underestimate. A poster-grade city map, dra
 
 ## Content sovereignty
 
-There is a name for what the previous section adds up to: sovereignty. Your media pipeline runs on hardware you own. Your brand - the tokens, the fonts, the logos, the tools that enforce them - lives in files you hold, in version control you control, not in a vendor's database with an export button. Rendering happens on the device in front of you, so an asset never transits a third party to exist, and the whole path from input to finished file is open source and inspectable. If every SaaS design vendor disappeared tomorrow, a Lolly deployment would not notice.
+Lolly's creative pipeline can run on hardware you own. Design tokens, fonts, logos and tool definitions are files you can hold in version control. Standalone rendering stays on the device. With lolly.work, shared projects, instance assets, policy and audit records live in the organisation's configured storage, and server rendering runs on its infrastructure. Both parts are open source and inspectable; existing third-party libraries remain optional integrations.
 
 This matters to anyone whose work should outlive a subscription: the parent whose photo book lives on that laptop as much as the public body whose brand library sits under procurement rules. For organisations - public bodies, regulated industries, anyone whose brand is a strategic asset rather than a decoration - "where does our content live and who can turn it off" is a governance question, not a preference. Sovereignty here is a property of the architecture rather than a hosting feature added for compliance, and the [Privacy Policy](/info/privacy.html) and [Verify It Yourself](/info/verify-yourself.html) pages exist so you can check that claim rather than take it.
 
-Underneath it all is one promise, stated as a commitment rather than a feature: **if it renders on your device, it is free forever.** The engine, the shells, the tools, the formats - the entire on-device creative path is open source and stays that way. That promise has a mechanism: a version that has been released is licensed so it cannot be taken back, and no contributor agreement exists that could relicense the work later. The whole boundary fits in one sentence: everything that renders on your device is free and open source, forever; coordinating people and machines across a network is the job of a separate control plane, [lolly.work](https://lolly.work).
+Underneath it all is one promise, stated as a commitment rather than a feature: **if it renders on your device, it is free forever.** The engine, the shells, the tools and the formats are open source. [lolly.work](https://lolly.work) is open source as well: the same project's separately deployed service for coordinating people, policy, shared work and server production. An organisation pays for the infrastructure and operation it chooses, with no per-seat or per-render software licence charge for self-hosting.

@@ -221,6 +221,12 @@ The full endpoint is the one part of Lolly that is a **server-side add-on**, not
 
 You can run the full server yourself - including fully air-gapped - as a container that ships the scoped Chromium and a prebuilt web shell. See the [Build Guide](/info/build-guide.html) and the deployment notes in `services/mcp/`.
 
+## Organisation automation with lolly.work
+
+The MCP endpoint on this page handles requests without persistent render history. Optional **lolly.work**, the Lolly project's separate organisation service, adds authenticated render jobs and batches with retained outputs, retry and cancellation, plus governed delivery and audit records. Use its `lw` client or HTTP API when a workflow needs those services; see [Organisation jobs with lolly.work](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+
+The two interfaces have separate authentication and permissions. Connecting an agent to this public MCP endpoint does not grant access to a private lolly.work catalog or apply that organisation's policy. Configure the intended instance and credentials for each service.
+
 ## Why this beats prompting an image model
 
 - **Quality doesn't drift.** Layout, type, colour and spacing are structural - hard-coded by the tool author, not prompted. A lazy model can't degrade them.

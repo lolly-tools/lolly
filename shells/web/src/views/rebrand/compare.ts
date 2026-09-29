@@ -918,7 +918,7 @@ function markSelection(rb: RbCtx): void {
  * flattened PDF page alike. Undefined for every other slide.
  */
 export function recoveryRefOf(slide: SlideSourceV1 | undefined): string | undefined {
-  return slide?.origin.flattened === true ? slide.recovery?.assetRef : undefined;
+  return slide?.recovery?.assetRef;
 }
 
 // ─── the panes ───────────────────────────────────────────────────────────────
@@ -1552,9 +1552,7 @@ function wireHold(rb: RbCtx): void {
 // ─── wiring and rendering ────────────────────────────────────────────────────
 
 export function wireCompare(rb: RbCtx): void {
-  // The hero is the Proposed slide with the Original as the inset; a phone keeps the
-  // side the orchestrator chose for it.
-  if (!rb.narrow && rb.compareSide === 'both') rb.compareSide = 'proposed';
+  // Keep the orchestrator's side-by-side view on a wide screen.
   rb.els.compare.innerHTML = skeleton(rb.compareSide);
   const rowOf = (target: EventTarget | null): string | null =>
     target instanceof Element ? target.closest<HTMLElement>('.rb-obj[data-object], .rb-tray-row[data-unplaced]')?.dataset.object

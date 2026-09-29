@@ -129,7 +129,7 @@ function stateOf(rb: RbCtx): DecideState {
       sheet: false,
       sheetOpener: null,
       openSlide: new Set<RbSectionId>(['layout']),
-      openObject: new Set<RbSectionId>(['decision', 'objects']),
+      openObject: new Set<RbSectionId>(['decision']),
       openGroups: new Set<string>(),
       busy: false,
       textNotBuilt: false,
@@ -991,10 +991,8 @@ function layoutBody(rb: RbCtx, slide: SlidePlanV1, master: SlideMasterV1 | null)
     acts.push(button('apply-suggested', 'layout-apply', t('Apply to {count} slides', { count: ids.length })));
   }
   // Change layout opens the chooser over this column: a door, so it carries the arrow, never a caret.
-  acts.push(`<button type="button" class="btn btn--ghost btn--sm rb-ctl" data-act="change-layout" data-key="layout-change" aria-haspopup="dialog" aria-expanded="false"${master ? '' : ' disabled'}>`
-    + `<span>${several ? t('Change layout for {count} slides', { count: ids.length }) : t('Change layout')}</span>${icon('arrowRight')}</button>`);
   const arranging = Boolean(rb.controller.setArrangement) && !several;
-  if (arranging && arranged !== 'original') acts.push(button('arrange', 'arrange-original', t('Original arrangement'), ' data-arrangement="original"'));
+  if (arranging && arranged !== 'original') acts.push(button('arrange', 'arrange-original', t('Restyle existing positions'), ' data-arrangement="original"'));
   if (arranging && arranged !== 'picture' && source?.recovery?.assetRef) acts.push(button('arrange', 'arrange-picture', t('Keep as a picture'), ' data-arrangement="picture"'));
   body += wideRow(`<div class="rb-layout-acts">${acts.join('')}</div>`);
   if (several) return body;
@@ -1087,7 +1085,7 @@ function sectionsHtml(rb: RbCtx): string {
     Fonts: () => fontsSection(rb),
     Background: () => '<div class="rb-style-mount" data-style-mount></div>',
   };
-  const names = [...(pick ? ['Decision'] : []), 'Objects', 'Colours', 'Fonts', 'Background', 'Layout'];
+  const names = [...(pick ? ['Decision'] : ['Layout']), 'Objects', 'Colours', 'Fonts', 'Background', ...(pick ? ['Layout'] : [])];
   const bands = resolveBands(names);
   const order: Band[] = [];
   const byBand = new Map<Band, string[]>();
@@ -1212,6 +1210,8 @@ export function renderDecide(rb: RbCtx): void {
   region.innerHTML = `<div class="lp rb-lp">${grip}`
     + `<div class="lp-head"><h2 class="lp-head-name" id="rb-decide-name">${htmlEscape(headName(rb))}</h2>${close}</div>`
     + '<div class="lp-scroll">'
+    + (rb.sel.objectId ? `<button type="button" class="btn btn--ghost rb-back-to-slide" data-act="show-slide">${t('Back to slide')}</button>` : '')
+    + `<div class="rb-layout-start"><button type="button" class="btn btn--primary rb-layout-primary" data-act="change-layout" data-key="layout-change" aria-haspopup="dialog" aria-expanded="false"${rb.chooser.master() ? '' : ' disabled'}>${t('Choose layout')}${icon('arrowRight')}</button><p class="lp-help">${t('Preview layouts for this slide, then apply your favourite. Click an object on the slide to edit its content.')}</p></div>`
     + sectionsHtml(rb)
     + '</div></div>';
   const style = region.querySelector<HTMLElement>('[data-style-mount]');
@@ -1383,6 +1383,10 @@ async function onClick(rb: RbCtx, e: MouseEvent): Promise<void> {
   const target = origin.closest<HTMLElement>('[data-act]');
   if (!target || !rb.els.decide.contains(target)) return;
   const act = target.dataset.act;
+  if (act === 'show-slide') {
+    rb.select({ objectId: null, itemId: null });
+    return;
+  }
   if (act === 'fold') {
     toggleSection(rb, target.dataset.fold);
     return;
@@ -1390,6 +1394,7 @@ async function onClick(rb: RbCtx, e: MouseEvent): Promise<void> {
   if (act === 'pick-object') {
     const objectId = target.dataset.object;
     if (!objectId) return;
+    state.openObject.add('objects');
     rb.select({ objectId, slideId: rb.derived?.objects.get(objectId)?.slideId ?? rb.sel.slideId, itemId: rb.derived?.itemOfObject.get(objectId) ?? null });
     return;
   }
@@ -1404,6 +1409,7 @@ async function onClick(rb: RbCtx, e: MouseEvent): Promise<void> {
       return;
     }
     state.openGroups.add(key);
+    state.openObject.add('objects');
     rb.select({ objectId: first, slideId: rb.derived?.objects.get(first)?.slideId ?? rb.sel.slideId, itemId: rb.derived?.itemOfObject.get(first) ?? null });
     return;
   }

@@ -1,8 +1,26 @@
 # Working on something together
 
-Two people, two devices, one tool session, edited live. No account, no sign-in, no server in the middle and no internet needed if both devices are on the same network. This page is the whole feature: how to start one, the three ways to hand the invite over, the reply leg that trips most pairs up, the six characters that tell you the connection is private, what you see while you work, how to send files and sessions down the same link and what to do when a network refuses to let two devices talk.
+A **private collab** lets two people edit one tool session live on their own devices. No account, no sign-in, no server in the middle and no internet needed if both devices are on the same network. This guide covers the invite, the reply, editing together, sending a session and solving connection problems.
 
-> This is the individual path. It pairs exactly two devices, directly, and it is yours to start whenever you want one. Nothing about it asks permission from anything.
+Your organisation may also offer **work collabs** through lolly.work. That optional route is explained below; the rest of this guide follows private collabs.
+
+::: details Work collabs with lolly.work (optional)
+[lolly.work](https://lolly.work) is the Lolly project's separately hosted organisation service. It adds shared projects, sign-in and access policies around the same creative tools. You can use Lolly and private collabs independently of this service.
+
+In a **work collab**, participants edit a session held by the organisation's instance, with live edits and cursors. The organisation controls who can join and who can edit. People can be on different networks as long as each can reach that instance.
+
+**To start:**
+
+1. Open your organisation's Lolly address and sign in. See [Use Lolly at your organisation](/info/organisation.html) for connecting a browser, desktop or mobile app.
+2. Open **Projects → Team projects** and choose the shared session you want to edit together.
+3. Open **Share**, find **Work collab** and press **Start a collab**.
+
+**To join an invitation:** press **Open the collab** in the invite in your inbox. Joining uses your organisation access; there is no private-collab reply code to exchange.
+
+**Where the work goes:** edits pass through the organisation's server and are saved to its shared session. **Saved to work** confirms the save; wait for that status before leaving. **View only** means you can follow the session but cannot change it. Your organisation manages access and retention of the shared copy.
+
+If **Team projects** or **Work collab** is absent, check with whoever runs your organisation's Lolly that the feature and your access are enabled. Work collabs need a reachable instance; the offline pairing instructions below apply to private collabs. Operators can find setup information in the [lolly.work documentation](https://github.com/lolly-tools/lolly-work/tree/main/docs).
+:::
 
 ## What a private collab is
 
@@ -288,7 +306,7 @@ This is the case the feature was built for.
 | Scanning a QR | A camera, and a browser that can decode barcodes - Chromium-family today. |
 | A beam | Both people in the tool. There is no queue for a transfer offered before the other side has the tool open. |
 
-**Across the open internet**, be realistic. The pairing uses the addresses each device can see on the network it is on, and this build configures no external address-discovery server. Two devices on different networks, in different buildings, is not something to plan around. Get onto one network, or onto a hotspot.
+**Across different networks**, private pairing is limited. It uses the addresses each device can see on its own network, and this build configures no external address-discovery server. For a private collab, use one shared network or a hotspot. If your organisation offers [work collabs through lolly.work](#work-collabs-with-lolly-work-optional), each participant connects to its instance instead.
 
 ## When it will not work
 
@@ -296,7 +314,7 @@ The failures are named rather than shrugged at, and each screen offers the one t
 
 **This network blocks direct connections.** Both devices gathered addresses and no route between them ever formed. This is client isolation - a guest network, a corporate Wi-Fi, a hotel, a conference floor - where the network deliberately stops its own clients from talking to each other. The screen says so and offers **Try again**.
 
-> **What to try:** a personal hotspot from a phone, with both devices on it. Or a wired network. Or any network you control. Nothing about the app can talk its way past a network that has been configured to prevent exactly this, and pretending otherwise would waste your time.
+> **What to try:** a personal hotspot with both devices connected, a wired network, or another network that allows direct connections. If your organisation offers [work collabs](#work-collabs-with-lolly-work-optional), those use its server and do not need a direct connection between your devices.
 
 <!--
 DRILL-ASSISTED SHOT (collab-isolation-fail). The isolation screen is reached through the

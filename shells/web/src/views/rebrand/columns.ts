@@ -268,7 +268,7 @@ export function wireColumns(rb: RbCtx): void {
 /** Show the grips the layout has and lay the columns out. */
 export function renderColumns(rb: RbCtx): void {
   const st = stateOf(rb);
-  const tier = columnsTier(rb);
+  const tier = columnsTier(rb) === 'wide' && rb.els.root.dataset.reviewOpen !== 'true' ? 'medium' : columnsTier(rb);
   const { body, queueGrip, decideGrip } = rb.els;
   queueGrip.hidden = tier !== 'wide';
   decideGrip.hidden = tier === null;

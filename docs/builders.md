@@ -39,9 +39,11 @@ One render path behind every surface: the GUI, the CLI and an agent all produce 
 
 ## Infrastructure
 
-A static host is the easy path and an air-gapped install is the same install. Nothing in the render path needs a server, so what you are deploying is files, not a service to keep alive.
+For standalone use, deploy static files or a prepared air-gapped app; local rendering needs no server. For organisation identity, policy and shared work, add **lolly.work**, the Lolly project's separately deployed service. It also offers persistent render jobs and batches for automation.
 
-- **[Deployment](/info/deployment.html)** - the web app, the packaged apps and the two optional services: where each piece runs.
+- **[Deployment](/info/deployment.html)** - the web app, packaged apps, optional integrations and lolly.work: where each piece runs.
+- **[Organisation automation](/info/cli-automation.html#organisation-jobs-with-lolly-work)** - use lolly.work's `lw` client and authenticated API for queued renders, batches and governed delivery.
+
 - **[Configuration](/info/configuration.html)** - profiles, brand packs, capability gating, feature flags and catalog validation.
 - **[Build Guide](/info/build-guide.html)** - build every target: CLI, TUI, desktop, mobile and the web PWA.
 - **[Building for iOS](/info/ios-build.html)** - the extra gates Apple adds, and what a device build needs on top of the desktop one.

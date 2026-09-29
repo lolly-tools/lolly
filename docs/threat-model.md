@@ -25,9 +25,11 @@ the shells need none at render or export time, with two declared exceptions: a
 tool's allowlisted `host.net` fetch (the boundary row below) and the URL-capture
 tool loading the address you give it. There is no upload step in the
 normal path: opening a tool, editing inputs, previewing, exporting and verifying
-a file all complete locally. Two optional server components exist (an MCP
-endpoint and a Content Credentials certificate authority) and both are listed,
-with their data handling, in [Server Surface](/info/server-surface.html).
+a file all complete locally. Optional services, including the separate
+**lolly.work** organisation service, introduce additional data flows. They are
+listed in [Server Surface](/info/server-surface.html). Local rendering does not
+make a connected organisation workflow local-only: shared saves, collaboration
+and server jobs transmit content to the instance.
 
 **Tools are data, not bundled code.** A tool is a `tool.json` manifest, a
 Handlebars `template.html`, optional `styles.css` and an optional `hooks.js`,
@@ -49,11 +51,22 @@ enforcement is optional only for visibly labelled development builds because no
 deployment key belongs in this repository (`scripts/build-release-web.ts`,
 `shells/web/src/catalog/integrity.ts`).
 
-**There is no server-side retention to attack.** The reference deployment keeps
-no copy of user content, no accounts for ordinary use and no analytics. The one
-piece of personal data that touches a server is an email address during optional
-Content Credentials enrolment, held in request memory only
-(`docs/privacy.md`, "Legal bases, retention and recipients").
+**Retention depends on the service.** The standalone app keeps personal work on
+the device. The public MCP service processes requests without persistent render
+history, and the optional CA keeps no issuance log. A persistent **lolly.work**
+instance holds accounts, shared content, job outputs and audit records, plus
+configured usage telemetry. Its database, blob storage, identity provider,
+permissions, collaboration connections and backups are additional trust
+boundaries; local-only guarantees do not apply to them.
+
+This page's test matrix covers the engine, shells and services in this
+repository. Review lolly.work's [security overview](https://github.com/lolly-tools/lolly-work/blob/main/docs/security-platform.md),
+[identity](https://github.com/lolly-tools/lolly-work/blob/main/docs/identity.md),
+[audit](https://github.com/lolly-tools/lolly-work/blob/main/docs/audit.md) and
+[data lifecycle](https://github.com/lolly-tools/lolly-work/blob/main/docs/data-lifecycle.md)
+guides for that separately deployed component. Assess the actual shell release
+and pinned engine used by the service together; passing one repository's tests
+does not establish the security of the complete deployment.
 
 ## Trust boundaries
 

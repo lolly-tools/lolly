@@ -320,3 +320,17 @@
   }
   html[data-a11y-motion="reduce"] .arch-tile { transition: none; }
 }
+@layer views {
+  /* Compiled suggestions belong to the selected slide. */
+  .rb-layout-options { padding: var(--sp-3) var(--ui-space-control-block); border-bottom: 1px solid var(--ui-color-border-default); }
+  .rb-layout-options label { display: grid; gap: var(--sp-2); font-size: var(--ui-type-body); }
+  .rb-layout-options input { width: 100%; min-width: 0; box-sizing: border-box; min-height: var(--ui-size-control); }
+  .rb-layout-options-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+  .rb-layout-options-results { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); }
+  .rb-layout-option { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; min-height: var(--ui-size-target); padding: var(--sp-1); color: var(--ui-color-text-default); background: transparent; border: 0; border-radius: var(--ui-radius-control); cursor: pointer; text-align: start; }
+  .rb-layout-option svg { width: 100%; height: auto; }
+  .rb-layout-option span { font-size: var(--ui-type-body); overflow-wrap: anywhere; }
+  .rb-layout-option small { font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
+  .rb-layout-option:hover { box-shadow: var(--ui-effect-selection-ring-hover); }
+  .rb-layout-option:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+}

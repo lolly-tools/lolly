@@ -10,7 +10,7 @@ Everything above the first `##` (this title and these notes) is ignored by the b
 
 ## What happens when I opt-in on the /profile page?
 
-When you first use Lolly, everything you type anywhere is fully private until you deliberately want that information out there via media or a share link (if online).
+In standalone Lolly, your personal work is stored on the device. Sharing and Sync send the content you choose; on an organisation's lolly.work instance, shared sessions and governed workflows also send data to that service. See [Privacy](/info/privacy.html).
 
 With the opt-in selected, the profile details you choose are sealed into what you make, naming you as the source. Nothing is included without you picking it.
 
@@ -46,9 +46,9 @@ This list does not include models vendored into Lolly.
 
 ## What are the feature flags?
 
-Feature flags turn parts of Lolly on or off. Usually an administrator controls these - with Lolly, you are in control.
+Feature flags turn parts of Lolly on or off. In standalone use, you choose your personal settings. An organisation using optional lolly.work can set defaults or hide selected switches under its policy; managed controls are labelled. See [Use Lolly at your organisation](/info/organisation.html).
 
-![Every feature flag is a switch you own, sitting in your own profile rather than an administrator's console](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
+![Personal feature flags in the standalone app; organisation policy can govern selected switches](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
 
 ## How do I get the mobile or desktop apps?
 
@@ -77,13 +77,7 @@ Design from day one.
 in the app, then share them with peers or submit them to whoever owns the
 deployment for default inclusion.
 
-**It's deliberately narrow - frame it that way.** Lolly is not for bespoke or hero
-content. It *is* your personal DAM - hydrated and supercharged by your design
-system, tools and catalog - and it *does* have an open canvas (Design), but
-even there colours, type and assets conform to the active design globals, so free
-arrangement stays inside the system. Judged against Figma or Canva it will
-look limited. Judged as what it is - operationalised, recurring, massive-scale asset
-generation - nothing competes. The wrong framing is the most common set-back.
+**Match the rollout to the work.** Lolly supports original layouts, imported designs, animation and repeatable production. Add optional lolly.work when the team needs SSO, shared projects and assets, approvals or an audit trail. Start with the [comparisons](/info/compare.html) and [Adoption & Governance](/info/adoption-governance.html) to check the workflows you intend to use.
 
 **Change management on the producing side.** Existing processes work today, even if
 the output is off-brand. Re-pointing them at the engine means re-testing re-learning,
@@ -137,9 +131,15 @@ Saved work is still in **Projects**. Unsaved work is gone, except in the tools t
 
 Yes. When a link can't carry everything (your own photos, long text), the Share dialog says exactly what would go missing and offers a **.lolly** file instead: one file holding the design, the images it uses and, if you choose, the tool itself. You decide how much travels - your name and details go in only if your profile opts in, licensed art is held back unless you include it, and whoever opens a file that carries a tool is asked whether they trust it before it can run. See [Sharing your work](/info/using.html#sharing-your-work).
 
+## Can our organisation use SSO, shared projects and approvals?
+
+Yes. **Lolly + lolly.work** provides those organisation features. lolly.work is an optional part of the same open-source project, hosted separately: it adds OIDC SSO, SCIM provisioning, group permissions, shared catalogs and projects, live work collabs, approvals, governed delivery and audit records. The everyday app still works independently.
+
+See [Use Lolly at your organisation](/info/organisation.html) for signing in and finding shared work, or [Deployment](/info/deployment.html#organisation-services-with-lolly-work) to set up the service. Shared content and organisation records follow that instance's privacy and retention policies.
+
 ## Can two people work on the same design without the internet?
 
-Yes. One person shares an invite (a link, a QR code or a short code), the other accepts, and both devices hold the same session live - presence, focus rings and all. It works on any shared network, including a phone hotspot in a basement, because there is no server in the middle. See [Working together](/info/collaborate.html).
+Yes. One person shares an invite (a link, a QR code or a short code), the other accepts, and both devices hold the same session live - presence, focus rings and all. It works on any shared network, including a phone hotspot in a basement, because there is no server in the middle. See [Working together](/info/collaborate.html). For colleagues on different networks, optional lolly.work provides authenticated work collabs through a reachable organisation instance.
 
 ## Where did the SUSE-branded tools go?
 

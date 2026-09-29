@@ -215,7 +215,7 @@ const pages: Page[] = [
   // architecture, which repository, what to trust - and a bare link cannot answer any
   // of it. Registered under Quickstart: a reader who wants the app installed is at the
   // very start of the path, not deep in Operators.
-  { slug: 'organisation',     title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', description: "Reach your organisation's own Lolly in a browser or the app, sign in if asked, and see what changes there: managed settings, its tools, shared projects and how to leave." },
+  { slug: 'organisation',     title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', description: "Use your organisation's Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave." },
   { slug: 'install',          title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', description: "Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made." },
 
   // ── Pathway hubs ─────────────────────────────────────────────────────────
@@ -261,7 +261,7 @@ const pages: Page[] = [
   // do with a tool session, and the reader arrives at it from "I want to work on this
   // with someone", not from an interest in WebRTC. The security property it turns on
   // (the matching plates) is explained where the reader meets it, and Trust links here.
-  { slug: 'collaborate',      title: 'Working together',  src: 'collaborate.md',  pathway: 'creators', description: "Two people, two devices, one tool session, edited live - no account, no server in the middle, and no internet needed when both devices are on the same network." },
+  { slug: 'collaborate',      title: 'Working together',  src: 'collaborate.md',  pathway: 'creators', description: "Edit a tool session together in a private collab between two devices, or use optional work collabs through your organisation's lolly.work instance." },
   // The first sentence of each of these reads well as a preview on its own, so both
   // fall through to mdDescription rather than repeating themselves here.
   { slug: 'search',           title: 'Search',            src: 'search.md',       pathway: 'creators' },
@@ -311,7 +311,7 @@ const pages: Page[] = [
   { slug: 'cli',              title: 'CLI',               src: 'cli.md',             pathway: 'builders' },
   { slug: 'cli-rendering', title: 'Render with the CLI', src: 'cli-rendering.md', pathway: 'builders', description: "Choose export options, troubleshoot the browser renderer and render timelines or links." },
   { slug: 'cli-files', title: 'CLI file and media utilities', src: 'cli-files.md', pathway: 'builders', description: "Process local files, redactions, speech and on-device models." },
-  { slug: 'cli-automation', title: 'CLI batch and automation', src: 'cli-automation.md', pathway: 'builders', description: "Run batches, preflight outputs and integrate predictable results into scripts and CI." },
+  { slug: 'cli-automation', title: 'CLI batch and automation', src: 'cli-automation.md', pathway: 'builders', description: "Run local batches and CI, or use optional lolly.work for persistent organisation render jobs, batches and governed delivery." },
   { slug: 'cli-reference', title: 'CLI verification and configuration', src: 'cli-reference.md', pathway: 'builders', description: "Verify files, inspect metadata, configure completion and find local state." },
   { slug: 'cli-signing',      title: 'Signing from the terminal', src: 'cli-signing.md', pathway: 'operators', description: "Set up a real signing identity for the CLI, so files made from the terminal carry a verifiable name rather than an anonymous on-device key." },
   { slug: 'tui',              title: 'TUI',               src: 'tui.md',             pathway: 'builders' },

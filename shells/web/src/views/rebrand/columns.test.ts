@@ -49,6 +49,7 @@ function mount(opts: { width?: number; narrow?: boolean; medium?: boolean; keep?
   const els = buildRegions(view);
   const rb = {} as RbCtx;
   rb.els = els;
+  els.root.dataset.reviewOpen = 'true';
   rb.state = opts.idle ? idleState() : reviewState(opts.keep ? { mode: 'keep-design' } : {});
   rb.narrow = opts.narrow === true;
   rb.medium = opts.medium === true;

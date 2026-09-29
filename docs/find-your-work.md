@@ -1,6 +1,6 @@
 # Find and recover your work
 
-Everything you make in Lolly stays in the browser or app you made it in, on that device, unless you turn on [Sync](/info/sync.html). Saved work is in **Projects**. A downloaded file is wherever your browser or system put it, and a copy usually waits in **Assets**. In most tools, work you never saved is kept as well. This page covers each of these, plus a closed tab, cleared browser data, earlier versions, deleted items and moving to another device.
+Personal work stays in the browser or app you made it in, on that device, unless you turn on [Sync](/info/sync.html). An organisation using optional **lolly.work** also has server-held **Team projects**, covered below. Saved work is in **Projects**. A downloaded file is wherever your browser or system put it, and a copy usually waits in **Assets**. In most tools, work you never saved is kept as well. This page covers each of these, plus a closed tab, cleared browser data, earlier versions, deleted items and moving to another device.
 
 | What you did | Where to look |
 |---|---|
@@ -9,6 +9,12 @@ Everything you make in Lolly stays in the browser or app you made it in, on that
 | Neither, in a [tool that saves as you work](#which-tools-save-as-you-work) | **Projects** and **History** |
 | Neither, in a tool that does not | Only the tab you worked in, until you close the tab |
 | Deleted it in the app | **Trash**, in **Projects**, **Assets** or **Settings → Storage**, for 30 days |
+
+::: details Find shared work in lolly.work (optional)
+Open your organisation's Lolly and sign in, then look in **Projects → Team projects**. Shared sessions are held by that instance and appear according to your access. Signing in can restore access to those sessions on another device; it does not restore your personal library or device backup.
+
+In a [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), wait for **Saved to work** before leaving. If a shared project is missing, check that you are connected to the right instance and ask its operator about access or retention. Clearing browser data removes local copies, not the organisation's server copy. See [Use Lolly at your organisation](/info/organisation.html).
+:::
 
 ## Find something you saved
 

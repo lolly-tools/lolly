@@ -16,12 +16,14 @@
  */
 import { ECHO_STAGE, echoStage, registerStage } from './stage-core.ts';
 import { censusStage, compileStage, faithfulStage, planStage } from './stage-rebrand.ts';
+import { layoutOptionsStage } from './stage-layout-options.ts';
 
 registerStage<unknown, unknown>(ECHO_STAGE, echoStage);
 registerStage('rebrand.census', censusStage);
 registerStage('rebrand.plan', planStage);
 registerStage('rebrand.compile', compileStage);
 registerStage('rebrand.faithful', faithfulStage);
+registerStage('rebrand.layout-options', layoutOptionsStage);
 
 /** Nothing to call. The registrations above are the module's whole purpose. */
 export const STAGES_LOADED = true;

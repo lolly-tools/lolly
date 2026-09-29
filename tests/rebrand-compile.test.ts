@@ -555,7 +555,7 @@ test('the renovate compile is a function of its input alone', async () => {
   assert.equal(JSON.stringify(first), JSON.stringify(second));
   assert.notEqual(JSON.stringify(first), JSON.stringify(await compiled({ idPrefix: 'z' })));
   assert.equal(first.planRevision, 3);
-  assert.equal(first.algorithms.compile, 'renovate-2026-09-25.1');
+  assert.equal(first.algorithms.compile, 'renovate-2026-09-29.1');
   assert.equal(first.designSystem.id, 'lolly-start');
 });
 

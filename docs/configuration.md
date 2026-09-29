@@ -103,6 +103,12 @@ Most runtime behaviour is fixed contract rather than deploy-time config, but two
 - **Engine version** - `ENGINE_VERSION` in `engine/src/version.ts` (read the live value there; `engine/CHANGELOG.md` tracks every minor). The capability bridge is additive-only within a major, so shells and tools built against an older minor keep working. See [Host API](/info/host-api.html).
 - **Hook budgets** - `HOOK_BUDGET_MS` in `engine/src/runtime.ts` time-boxes async tool hooks (`onInit` 5s, `onInput` 2s, export hooks 5–10s). It's exported for tests; async overruns are abandoned, sync overruns only logged (hooks are not a sandbox - see [Threat model: what is not a boundary](/info/threat-model.html#what-is-not-a-boundary)).
 
+## Organisation policy with lolly.work
+
+Content profiles and brand packs configure what a build ships. Optional **lolly.work** adds policy for the running organisation instance: OIDC identity and SCIM provisioning, group permissions, managed profile fields, tool-input restrictions, selected feature flags and export settings. It also configures shared catalogs, projects, approvals, delivery and usage reporting. Personal preferences do not override controls labelled **Managed by your organisation**.
+
+Keep that service's configuration in its own deployment. See its [configuration](https://github.com/lolly-tools/lolly-work/blob/main/docs/configuration.md) and [governance](https://github.com/lolly-tools/lolly-work/blob/main/docs/governance.md) guides, plus [Deployment](/info/deployment.html#organisation-services-with-lolly-work) for how it sits alongside this app. Static builds continue to use the settings on this page without needing an organisation service.
+
 ## The services' own config
 
 - **CA service** reads `services/ca/.env` for provider credentials and certificate policy (`CA_CERT_DAYS` default 30, `CA_CERT_MAX_DAYS` default 365, allowed day set). Policy stays server-side; see the [Content Credentials Identity](/info/content-credentials-identity.html) operator runbook.

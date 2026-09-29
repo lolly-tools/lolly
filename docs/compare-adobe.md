@@ -1,21 +1,25 @@
 # Lolly and Adobe
 
-_Last checked: August 2026._
+_Last checked: 28 September 2026._
 
-Lolly is not a replacement for Adobe's Creative Cloud, though it does what many people need Photoshop or Express for: resizing and converting images, stripping metadata, adding a watermark or Content Credentials, and exporting a print-ready PDF.
+Lolly handles image editing and conversion, layout, repeatable brand production, print output and Content Credentials. [lolly.work](https://lolly.work) adds organisation identity, shared assets, approvals and automated server production to that creative workflow.
 
 ## Where they overlap
 
-Both export professional formats (PDF/X, CMYK, high-bit-depth raster) and both can write C2PA Content Credentials. Adobe signs Content Credentials locally in its desktop apps.
+Both support work such as resizing images, composing layouts and exporting professional formats. Lolly supports PDF/X, CMYK and high-bit-depth raster output, with [format-specific capabilities](/info/formats.html). Its on-device utilities convert and clean files without uploading them.
 
-## What Adobe does better today
+Adobe's specialist applications cover extensive creative workflows. [Photoshop](https://www.adobe.com/products/photoshop.html), for example, provides detailed photo editing, selection, masking and compositing tools. Compare the editing operations your work requires with Lolly's tools; a recurring brand asset and a complex retouch can have different requirements.
 
-Deep pixel and vector editing, the widest professional toolset, and the largest ecosystem of plugins and integrations. For freeform creative editing, Adobe leads.
+## Creation and organisation services
 
-## What Lolly does instead
+Standalone Lolly runs without an Adobe account or a Lolly account, using the same engine in the browser, desktop app and CLI. Templates and design tokens make outputs repeatable, and [Share with rules](/info/create-a-tool.html) turns a design into a tool other people can fill in.
 
-It signs Content Credentials on the device with no Adobe account and no Adobe-provisioned certificate, and it runs the same render path in the browser, on the desktop and in the terminal. Adobe's own web route, the Content Authenticity app, signs in the cloud: uploads are capped at 20 MB of JPG or PNG, a thumbnail of your image is retained and it has stayed in beta sixteen months after launch (August 2026). With Lolly every file stays on your machine. The on-device transform utilities add nothing to your file; rendered raster output carries Lolly's own invisible Imprint mark by default (presence-only, no personal data), and it is one switch to turn off.
+lolly.work is a separate service within the Lolly project, open source under MPL-2.0 like the creative apps. It supplies SSO, SCIM, shared catalogues and projects, approvals, access policies, audit records and server rendering. An organisation can run both parts itself and connect existing asset libraries. Local creation stays on the device; shared work and server jobs use the configured services.
 
-One concession rides with the signing claim: a credential signed with an on-device key reads as unverified in a stranger's stock validator today. The structure and the tamper evidence are real; the signer identity is simply not vouched for by an authority. That is the stranger case. An organization can anchor trust in its own certificate authority and pin its own root, so its files verify inside its own trust domain with no external authority in the loop, Adobe included. [lolly.work](https://lolly.work) coordinates that at scale, and [Content Credentials Identity](/info/content-credentials-identity.html) documents the mechanism.
+## Content Credentials and identity
 
-Adobe, Photoshop and Creative Cloud are trademarks of Adobe. This page describes where the tools overlap and is not affiliated with Adobe.
+Lolly can sign supported exports on the device, with Content Credentials enabled by the user. A device-generated key proves the file's signature integrity; a verifier still needs to trust the signer before presenting a verified identity. An organisation can use its own certificate authority and distribute its root to its verifiers. lolly.work also supports server signing with a configured organisation certificate and key.
+
+That makes both personal signing and organisation signing available within the Lolly solution. See [Content Credentials Identity](/info/content-credentials-identity.html), the [lolly.work signing guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md) and the [combined-solution overview](/info/compare.html). On-device transform utilities do not add Lolly watermarks or provenance metadata.
+
+Adobe, Photoshop and Creative Cloud are trademarks of Adobe. This page describes where the solutions overlap and is not affiliated with Adobe.

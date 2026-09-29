@@ -3752,7 +3752,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.228.0";
+    ENGINE_VERSION = "1.229.0";
   }
 });
 
@@ -100332,6 +100332,128 @@ var init_text_design_wrap = __esm({
   }
 });
 
+// engine/src/rebrand-order.ts
+function compareCodeUnits(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+var init_rebrand_order = __esm({
+  "engine/src/rebrand-order.ts"() {
+    "use strict";
+  }
+});
+
+// engine/src/slide-layout-components.ts
+function slideLayoutRecipe(id2) {
+  const match = /^flow-(cards|columns)-(\d{1,2})-(\d)$/.exec(id2);
+  if (!match) return;
+  const count4 = Number(match[2]);
+  const columns = Number(match[3]);
+  if (count4 < 2 || count4 > 12 || columns < 1 || columns > 4 || columns > count4 || Math.ceil(count4 / columns) > 4 || String(count4) !== match[2]) return;
+  return { kind: match[1], count: count4, columns };
+}
+function slideLayoutName(recipe) {
+  return `${recipe.count} ${recipe.kind === "cards" ? "cards" : "text groups"} \xB7 ${recipe.columns} ${recipe.columns === 1 ? "column" : "columns"}`;
+}
+function slideContentGroups(objects) {
+  const sorted = [...objects].sort((a, b) => a.box.y - b.box.y || a.box.x - b.box.x || compareCodeUnits(a.id, b.id));
+  const heading = (o) => o.kind === "text" && textOf4(o).trim().length <= 90 && (o.text?.paras.length ?? 0) === 1;
+  const groups = [];
+  const claimed = /* @__PURE__ */ new Set();
+  for (const object of sorted) {
+    if (claimed.has(object.id)) continue;
+    const group = [object];
+    claimed.add(object.id);
+    if (heading(object)) {
+      let bottom = object.box.y + object.box.h;
+      for (const next of sorted) {
+        if (claimed.has(next.id) || next.kind !== "text" || next.box.y < object.box.y) continue;
+        const overlap = Math.min(object.box.x + object.box.w, next.box.x + next.box.w) - Math.max(object.box.x, next.box.x);
+        if (overlap < Math.min(object.box.w, next.box.w) * 0.7) continue;
+        const gap = next.box.y - bottom;
+        if (gap < -object.box.h * 0.2 || gap > object.box.h * 1.6) continue;
+        const bullet = next.text?.paras.some((p) => p.bullet && p.bullet !== "none");
+        if (heading(next) && !bullet && textOf4(next).length <= textOf4(object).length * 1.5) break;
+        group.push(next);
+        claimed.add(next.id);
+        bottom = next.box.y + next.box.h;
+      }
+    }
+    groups.push(group);
+  }
+  const rows2 = [];
+  for (const group of groups) {
+    const top = group[0];
+    const row = rows2.find((r5) => Math.abs(r5[0][0].box.y - top.box.y) <= Math.min(r5[0][0].box.h, top.box.h) * 0.5);
+    if (row) row.push(group);
+    else rows2.push([group]);
+  }
+  return rows2.flatMap((row) => row.sort((a, b) => a[0].box.x - b[0].box.x));
+}
+function slideLayoutChoices(slide, plan) {
+  const kept = new Map(plan.objects.filter((p) => (p.decision ?? p.proposal) === "keep" && !["title", "subtitle", "caption", "footer", "page-number"].includes(p.role ?? p.class)).map((p) => [p.id, p]));
+  const content2 = slide.objects.filter((o) => kept.has(o.id) && !["decoration", "template-furniture", "recurring-text", "brand-logo", "page-number", "footer"].includes(kept.get(o.id).class));
+  if (!content2.length || content2.some((o) => o.kind !== "text")) return [];
+  const count4 = slideContentGroups(content2).length;
+  if (count4 < 2 || count4 > 12) return [];
+  const ideal = Math.min(4, Math.ceil(Math.sqrt(count4)));
+  return [.../* @__PURE__ */ new Set([ideal, Math.max(1, ideal - 1), Math.min(count4, ideal + 1)])].filter((columns) => count4 % columns !== 1 || count4 <= 4).flatMap((columns) => ["cards", "columns"].map((kind) => `flow-${kind}-${count4}-${columns}`)).filter((id2) => slideLayoutRecipe(id2));
+}
+function withSlideLayoutComponents(master, ids2) {
+  const recipes = [...new Set(ids2)].flatMap((id2) => {
+    const recipe = slideLayoutRecipe(id2);
+    return recipe && !master.archetypes.some((a) => a.id === id2) ? [{ id: id2, recipe }] : [];
+  });
+  if (!recipes.length) return master;
+  const base = master.archetypes.find((a) => a.id === "content");
+  const title = base?.placeholders.find((p) => p.role === "title");
+  const body = base?.placeholders.find((p) => p.role === "body");
+  if (!base || !title || !body) return master;
+  const furniture = [...master.furniture];
+  const archetypes = [...master.archetypes];
+  for (const { id: id2, recipe } of recipes) {
+    const { count: count4, columns, kind } = recipe;
+    const rows2 = Math.ceil(count4 / columns);
+    const gapX = Math.min(0.025, body.box.w / columns * 0.08);
+    const gapY = 0.025;
+    const cellW = (body.box.w - gapX * (columns - 1)) / columns;
+    const cellH = (body.box.h - gapY * (rows2 - 1)) / rows2;
+    const insetX = kind === "cards" ? 0.012 : 0;
+    const insetY = kind === "cards" ? 0.016 : 8e-3;
+    const bodySize = Math.round(Math.min(master.typeScale.body, master.typeScale.body * (rows2 >= 3 ? 0.7 : columns >= 3 ? 0.85 : 1)));
+    const labelSize = Math.round(bodySize * 1.15);
+    const labelH = Math.min(cellH * 0.33, labelSize * 1.5 / master.size.height);
+    const placeholders = [{ ...title, box: { ...title.box }, optional: true }];
+    const decor = [];
+    for (let k = 0; k < count4; k++) {
+      const y = body.box.y + Math.floor(k / columns) * (cellH + gapY);
+      const lastCount = count4 - Math.floor(k / columns) * columns;
+      const usedCols = Math.min(columns, lastCount);
+      const center = (columns - usedCols) * (cellW + gapX) / 2;
+      const x = body.box.x + k % columns * (cellW + gapX) + center;
+      const common = { group: `c${k + 1}`, index: k };
+      const textBox = { x: x + insetX, w: cellW - 2 * insetX };
+      const ink = body.style ?? {};
+      placeholders.push({ ...common, role: "label", kind: "text", optional: true, box: { ...textBox, y: y + insetY, h: labelH }, style: { ...ink, fontSize: labelSize, weight: "700", valign: "top" } });
+      placeholders.push({ ...common, role: "body", kind: "text", box: { ...textBox, y: y + insetY + labelH + 8e-3, h: cellH - insetY * 2 - labelH - 8e-3 }, style: { ...ink, fontSize: bodySize, weight: "400", valign: "top" } });
+      if (kind === "cards") {
+        const ruleId = `${id2}-rule-${k}`;
+        furniture.push({ id: ruleId, kind: "bar", box: { x, y, w: cellW, h: 2e-3 }, tokenPath: ink.fgTokenPath, hex: ink.fg });
+        decor.push(ruleId);
+      }
+    }
+    archetypes.push({ id: id2, name: slideLayoutName(recipe), background: base.background, furniture: [...base.furniture ?? [], ...decor], placeholders, repeat: { count: count4, across: columns, cell: ["label:.25", "body:.75"] } });
+  }
+  return { ...master, archetypes, furniture };
+}
+var textOf4;
+var init_slide_layout_components = __esm({
+  "engine/src/slide-layout-components.ts"() {
+    "use strict";
+    init_rebrand_order();
+    textOf4 = (o) => o.text?.paras.map((p) => p.runs.map((r5) => r5.text).join("")).join("\n") ?? "";
+  }
+});
+
 // engine/src/logo-variant.ts
 function parseBackgroundRgb(input) {
   const raw = String(input ?? "").trim();
@@ -100468,6 +100590,7 @@ function logoDarkness(master, archetype, resolve6) {
   return { frameDark, byFurniture };
 }
 function seedFrame(master, archetypeId, opts) {
+  master = withSlideLayoutComponents(master, [archetypeId]);
   const archetype = findArchetype(master, archetypeId);
   if (!archetype) return null;
   const prefix = opts.idPrefix ?? opts.frameId;
@@ -100808,12 +100931,14 @@ function planSlots(master, from, to, layers, opts) {
   return { origin, slotOf, cellOf: cellOf2, slots: { slotKeys, shared, unplaced } };
 }
 function archetypeSlots(master, fromArchetypeId, toArchetypeId, layers, opts) {
+  master = withSlideLayoutComponents(master, [fromArchetypeId, toArchetypeId]);
   const from = findArchetype(master, fromArchetypeId);
   const to = findArchetype(master, toArchetypeId);
   if (!from || !to) return null;
   return planSlots(master, from, to, layers, opts)?.slots ?? null;
 }
 function applyArchetype(master, fromArchetypeId, toArchetypeId, layers, opts) {
+  master = withSlideLayoutComponents(master, [fromArchetypeId, toArchetypeId]);
   const from = findArchetype(master, fromArchetypeId);
   const to = findArchetype(master, toArchetypeId);
   if (!from || !to) return layers.slice();
@@ -100887,6 +101012,7 @@ var init_slide_master = __esm({
   "engine/src/slide-master.ts"() {
     "use strict";
     init_src();
+    init_slide_layout_components();
     init_brand_derive();
     init_logo_variant();
     ROUND = (n6) => Math.round(n6 * 1e4) / 1e4;
@@ -101588,16 +101714,6 @@ var init_deck_census_vector = __esm({
   }
 });
 
-// engine/src/rebrand-order.ts
-function compareCodeUnits(a, b) {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-var init_rebrand_order = __esm({
-  "engine/src/rebrand-order.ts"() {
-    "use strict";
-  }
-});
-
 // engine/src/rebrand-review.ts
 function fill(template, params2) {
   return template.replace(/\{([a-zA-Z]+)\}/g, (whole, name) => {
@@ -101951,7 +102067,7 @@ function lettersEvidence(members) {
   const letters2 = [];
   const slides = /* @__PURE__ */ new Set();
   for (const member of members) {
-    const text6 = member.object ? textOf4(member.object) : "";
+    const text6 = member.object ? textOf5(member.object) : "";
     if (!new RegExp("^\\p{L}$", "u").test(text6) || slides.has(member.slideId)) return null;
     slides.add(member.slideId);
     letters2.push(text6);
@@ -102166,7 +102282,7 @@ function objectStates(plan, source) {
   }
   return out;
 }
-function textOf4(object) {
+function textOf5(object) {
   return (object.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join(" ").replace(/\s+/g, " ").trim();
 }
 function largestRunPt(object) {
@@ -102175,7 +102291,7 @@ function largestRunPt(object) {
   return max;
 }
 function slideTitle(objects, rows2) {
-  const withText = objects.filter((object) => textOf4(object).length > 0);
+  const withText = objects.filter((object) => textOf5(object).length > 0);
   const titled = withText.find((object) => {
     const klass = rows2.get(object.id)?.class;
     return klass === "title" || object.placeholder === "title" || object.placeholder === "ctrTitle";
@@ -102192,7 +102308,7 @@ function slideTitle(objects, rows2) {
     }
   }
   if (!pick) return void 0;
-  return textOf4(pick).slice(0, TITLE_MAX).trimEnd();
+  return textOf5(pick).slice(0, TITLE_MAX).trimEnd();
 }
 function effectiveSlideOrder(plan, source) {
   const sourceIndex = /* @__PURE__ */ new Map();
@@ -103030,7 +103146,7 @@ var init_deck_census_rules = __esm({
 });
 
 // engine/src/deck-census.ts
-function textOf5(object) {
+function textOf6(object) {
   return (object.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join("\n");
 }
 function wordsOf(text6) {
@@ -103087,7 +103203,7 @@ function familyOf(object, stats) {
     if (hash === null) return null;
     return { key: `path:${hash}`, kind: "vector", by: "path-hash", digitWildcard: false, exact: object.vector, normalised: `path:${hash}` };
   }
-  const text6 = textOf5(object);
+  const text6 = textOf6(object);
   if (text6.trim().length > 0) {
     const normalised = digitNormalise(text6);
     return { key: `text:${object.kind}:${normalised}`, kind: "text", by: "exact", digitWildcard: true, exact: text6.trim(), normalised };
@@ -103284,11 +103400,11 @@ function censusDeck(source, opts = {}) {
     const { slide } = frame;
     warnings.push(...slide.warnings);
     const slideArea = frame.width * frame.height;
-    const sizes = [...new Set(slide.objects.filter((object) => textOf5(object).trim().length > 0).map((object) => maxRunPt(object) ?? 0))].sort((a, b) => b - a);
+    const sizes = [...new Set(slide.objects.filter((object) => textOf6(object).trim().length > 0).map((object) => maxRunPt(object) ?? 0))].sort((a, b) => b - a);
     const context = slideContext(frame);
     const hypotheses = /* @__PURE__ */ new Map();
     for (const object of slide.objects) {
-      const text6 = textOf5(object);
+      const text6 = textOf6(object);
       const stats = statsOf(object);
       const ocr = ocrOf(object);
       const verified = groupOf.get(object.id);
@@ -103590,7 +103706,7 @@ function markWordBeside(pic, slide, cornerShare) {
   return slide.objects.some((other) => {
     if (other.kind !== "text" || other === pic) return false;
     if ((cornerShare.get(other.id) ?? 0) <= GENERATOR_MARK_SHARE) return false;
-    const words = wordsOf(textOf5(other)).length;
+    const words = wordsOf(textOf6(other)).length;
     if (words === 0 || words > GENERATOR_MARK_MAX_WORDS) return false;
     const a = pic.box;
     const b = other.box;
@@ -103637,7 +103753,7 @@ function groupKeyOf(object) {
 }
 function slideContext(frame) {
   const { slide } = frame;
-  const texts = slide.objects.map((object) => ({ object, text: textOf5(object).trim(), pt: maxRunPt(object) ?? 0 })).filter((entry2) => entry2.text.length > 0);
+  const texts = slide.objects.map((object) => ({ object, text: textOf6(object).trim(), pt: maxRunPt(object) ?? 0 })).filter((entry2) => entry2.text.length > 0);
   const titleOnSlide = new Set(texts.filter((entry2) => entry2.object.placeholder === "title" || entry2.object.placeholder === "ctrTitle").map((entry2) => entry2.object.id));
   const worded = texts.filter((entry2) => multiWord(entry2.text));
   const wordSizes = [...new Set(worded.map((entry2) => entry2.pt))].sort((a, b) => b - a);
@@ -103687,7 +103803,7 @@ function slideContext(frame) {
       if (siblings.length >= 2) {
         out.groupSize = siblings.length;
         out.groupFills = new Set(siblings.map(fillKey).filter((value) => value !== void 0)).size;
-        if (siblings.every((member) => (member.kind === "shape" || member.kind === "vector") && textOf5(member).trim().length === 0)) {
+        if (siblings.every((member) => (member.kind === "shape" || member.kind === "vector") && textOf6(member).trim().length === 0)) {
           out.groupIsDrawing = true;
         }
       }
@@ -104005,7 +104121,7 @@ function layoutFeatures(frame, hypotheses) {
     if (object.kind === "pic" || object.media !== void 0) imageArea += Math.max(0, object.box.w * object.box.h);
     if (object.kind === "chart" || object.chartData !== void 0) chartPresent = true;
     if (object.kind === "table" || object.table !== void 0) tablePresent = true;
-    const text6 = textOf5(object);
+    const text6 = textOf6(object);
     if (text6.trim().length > 0) {
       textParagraphs += object.text?.paras.length ?? 0;
       textWords += wordsOf(text6).length;
@@ -104069,7 +104185,7 @@ function layoutUnitsOf(frame, hypotheses) {
     const box3 = clippedBox(object.box, frame);
     const area2 = areaOf(box3);
     if (area2 <= 0) continue;
-    const text6 = textOf5(object);
+    const text6 = textOf6(object);
     const words = wordsOf(text6).length;
     if (object.origin === "raster-region" && object.groupPath && object.groupPath.length > 0) {
       const key = object.groupPath[0];
@@ -108445,7 +108561,7 @@ function compileFaithful(source, opts = {}) {
         forward.push({ sourceObjectId: object.id, layerIds: produced });
         continue;
       }
-      if (carriesItems(object) && object.vectorItems) {
+      if (carriesItems(object) && object.vectorItems && !(opts.originalArtwork && (object.media || object.fidelity.fallbackAssetRef))) {
         const place2 = placeBox(object, at);
         const made = vectorItemsToRows(object.vectorItems, place2, { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
         const noun = nounFor("unknown", object.kind);
@@ -109755,6 +109871,7 @@ function archetypeIdFor(slidePlan, master) {
   return dark && master.archetypes.some((one) => one.id === dark) ? dark : base;
 }
 function compileRenovated(input) {
+  input = { ...input, master: withSlideLayoutComponents(input.master, input.plan.slides.map((slide) => slide.layout)) };
   const { source, plan, census } = input;
   const opts = input.opts ?? {};
   const prefix = opts.idPrefix ?? "r";
@@ -110696,7 +110813,16 @@ function compileRenovated(input) {
       const pourable = leftovers.filter((p) => p.content === "text" || p.content === "image" || p.content === "placeholder");
       const kept = new Set(pourable);
       leftovers = leftovers.filter((p) => !kept.has(p));
-      const units2 = pourItems(pourable, pourModeOf(build2));
+      const byObject = new Map(pourable.map((p) => [p.object.id, p]));
+      const units2 = slideLayoutRecipe(build2.archetype) ? slideContentGroups(pourable.map((p) => p.object)).map((group) => {
+        const members = group.map((o) => byObject.get(o.id));
+        return { members, reading: Math.min(...members.map((p) => p.reading)), box: {
+          x0: Math.min(...group.map((o) => o.box.x)),
+          y0: Math.min(...group.map((o) => o.box.y)),
+          x1: Math.max(...group.map((o) => o.box.x + o.box.w)),
+          y1: Math.max(...group.map((o) => o.box.y + o.box.h))
+        } };
+      }) : pourItems(pourable, pourModeOf(build2));
       pouredUnits = units2.length;
       const poured = pourIntoCells(build2, units2);
       for (const [objectId, ids2] of poured.placed) assigned.set(objectId, ids2);
@@ -111613,6 +111739,7 @@ var DEFAULT_FRAME, FRAME_GAP, FRAMES_PER_ROW, MAX_TABLE_ROWS5, MAX_TABLE_COLS5, 
 var init_deck_compile = __esm({
   "engine/src/deck-compile.ts"() {
     "use strict";
+    init_slide_layout_components();
     init_src();
     init_brand_map();
     init_brand_derive();
@@ -111639,7 +111766,7 @@ var init_deck_compile = __esm({
       fontHashes: {},
       assetHashes: {}
     };
-    DECK_COMPILE_VERSION = "faithful-2026-09-23.1";
+    DECK_COMPILE_VERSION = "faithful-2026-09-29.1";
     DOCUMENT_PATH_CHARS = 8e6;
     OMIT_WORDS = {
       "cap-reached": "past the cap",
@@ -111656,7 +111783,7 @@ var init_deck_compile = __esm({
       "not-read": "its parts could not be read as shapes"
     };
     ONE_LINE_BOX = 1.6;
-    DECK_RENOVATE_VERSION = "renovate-2026-09-25.1";
+    DECK_RENOVATE_VERSION = "renovate-2026-09-29.1";
     AVERAGE_GLYPH_EM = 0.5;
     ESTIMATE_LINE_HEIGHT = 1.25;
     DESIGN_LINE_HEIGHT = 1.12;
@@ -111994,7 +112121,7 @@ function union2(a, b) {
   const y0 = Math.min(a.y, b.y);
   return { x: x0, y: y0, w: Math.max(a.x + a.w, b.x + b.w) - x0, h: Math.max(a.y + a.h, b.y + b.h) - y0 };
 }
-function textOf6(object) {
+function textOf7(object) {
   return (object?.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join("\n");
 }
 function figureText(text6) {
@@ -112009,7 +112136,7 @@ function shortLabel(text6, words) {
 }
 function unitFrom(raw, ctx) {
   const object = ctx.objectOf(raw.id);
-  const text6 = textOf6(object);
+  const text6 = textOf7(object);
   return {
     id: raw.id,
     kind: raw.kind,
@@ -112049,7 +112176,7 @@ function pairLabels(units2, ctx) {
   const texts = units2.filter((u) => u.kind === "text");
   const pairs2 = [];
   const used = /* @__PURE__ */ new Set();
-  const labels = texts.filter((u) => shortLabel(textOf6(ctx.objectOf(u.id)), u.words)).sort((a, b) => a.box.y - b.box.y || compareCodeUnits(a.id, b.id));
+  const labels = texts.filter((u) => shortLabel(textOf7(ctx.objectOf(u.id)), u.words)).sort((a, b) => a.box.y - b.box.y || compareCodeUnits(a.id, b.id));
   for (const label2 of labels) {
     let best;
     let bestGap = Number.POSITIVE_INFINITY;
@@ -112197,7 +112324,7 @@ function slideUnits(features, ctx) {
   for (const u of body) {
     if (!u.figure && u.kind !== "pic" && top >= BIG_NUMBER_PT && u.maxPt === top && u.words <= 8) {
       const lead = u.members.length > 0 ? ctx.objectOf(u.members[0]) : ctx.objectOf(u.id);
-      const leadText = textOf6(lead).trim();
+      const leadText = textOf7(lead).trim();
       if (leadText.length > 0 && leadText.split(/\s+/).length <= 2) u.figure = true;
     }
   }
@@ -112604,7 +112731,7 @@ function readSlideStructure(slide, features, opts) {
   if (!su) return null;
   const flattened = slide.origin.flattened === true;
   const body = su.body;
-  const texts = [...su.headings, ...body].map((u) => textOf6(objects.get(u.members[0] ?? u.id))).join(" ");
+  const texts = [...su.headings, ...body].map((u) => textOf7(objects.get(u.members[0] ?? u.id))).join(" ");
   const agenda = AGENDA_WORDS.test(texts);
   const candidates2 = [];
   for (const row of clusterRows(body)) {
@@ -112716,7 +112843,7 @@ function bandCeiling(confidence) {
   return 1;
 }
 function hasQuoteMarks(slide, skip) {
-  return slide.objects.filter((object) => !skip?.has(object.id)).map((object) => textOf6(object)).filter((text6) => text6.trim().length > 0).some((text6) => OPENING_QUOTE.test(text6) && CLOSING_QUOTE.test(text6));
+  return slide.objects.filter((object) => !skip?.has(object.id)).map((object) => textOf7(object)).filter((text6) => text6.trim().length > 0).some((text6) => OPENING_QUOTE.test(text6) && CLOSING_QUOTE.test(text6));
 }
 function readRemoved(rows2) {
   const removed = /* @__PURE__ */ new Set();
@@ -113196,7 +113323,7 @@ function proposeFor(klass, object) {
       return { proposal: "keep", review: "needs-attention" };
   }
 }
-function textOf7(object) {
+function textOf8(object) {
   return (object.text?.paras ?? []).map((para) => para.runs.map((run) => run.text).join("")).join("\n");
 }
 function looksLikeOneFigure(text6) {
@@ -113211,7 +113338,7 @@ function isCoverSlide(slide, sourceLayout) {
 }
 function archetypeHints(slide, opts = {}) {
   const skip = opts.skipObjectIds;
-  const texts = slide.objects.filter((object) => !skip?.has(object.id)).map(textOf7).filter((text6) => text6.trim().length > 0);
+  const texts = slide.objects.filter((object) => !skip?.has(object.id)).map(textOf8).filter((text6) => text6.trim().length > 0);
   const quoteMarks = hasQuoteMarks(slide, skip);
   const bigNumber = texts.length >= 1 && texts.filter(looksLikeOneFigure).length === 1 && texts.every((text6) => looksLikeOneFigure(text6) || text6.trim().split(/\s+/).length <= 6);
   const hints = { quoteMarks, bigNumber };
@@ -113502,7 +113629,7 @@ function layoutFindings(plan, source, master) {
           action
         });
       }
-      const text6 = textOf7(object);
+      const text6 = textOf8(object);
       const characters = text6.replace(/\s+/g, " ").trim().length;
       if (characters === 0 || slot.kind !== "text") continue;
       const perLine = Math.max(1, Math.floor(box3.w / Math.max(1, size * AVERAGE_GLYPH_EM)));
@@ -117941,8 +118068,12 @@ __export(src_exports, {
   sliceGamutEdge: () => sliceGamutEdge,
   sliceGamutRegion: () => sliceGamutRegion,
   sliceTextDocument: () => sliceTextDocument,
+  slideContentGroups: () => slideContentGroups,
   slideGroundHex: () => slideGroundHex,
   slideGroundPlan: () => slideGroundPlan,
+  slideLayoutChoices: () => slideLayoutChoices,
+  slideLayoutName: () => slideLayoutName,
+  slideLayoutRecipe: () => slideLayoutRecipe,
   slideStates: () => slideStates,
   slideStructureLibrary: () => slideStructureLibrary,
   slidesSharingSourceLayout: () => slidesSharingSourceLayout,
@@ -118119,6 +118250,7 @@ __export(src_exports, {
   withAutoMatchEntries: () => withAutoMatchEntries,
   withDesignSystemIdentity: () => withDesignSystemIdentity,
   withGifComment: () => withGifComment,
+  withSlideLayoutComponents: () => withSlideLayoutComponents,
   withVersionIndex: () => withVersionIndex,
   woffToSfnt: () => woffToSfnt,
   wordTimingsFromDurations: () => wordTimingsFromDurations,
@@ -118403,6 +118535,7 @@ var init_src2 = __esm({
     init_text_scale();
     init_text_semantic();
     init_slide_master();
+    init_slide_layout_components();
     init_slide_structures();
     init_logo_variant();
     init_deck_compile();
@@ -132634,7 +132767,7 @@ function labelCounts(items2, nativeText) {
   const text6 = Math.max(0, items2.items.filter((item) => item.kind === "text").length - nativeText);
   return { text: text6, drawn: glyphRunsOf(items2).length };
 }
-function textOf8(parts, path) {
+function textOf9(parts, path) {
   const raw = parts[path];
   if (raw === void 0) return null;
   return typeof raw === "string" ? raw : new TextDecoder().decode(raw);
@@ -132681,7 +132814,7 @@ function relsPathOf(part) {
   return `${part.slice(0, cut)}/_rels/${part.slice(cut + 1)}.rels`;
 }
 function readRels(parts, part, parseXml) {
-  const xml = textOf8(parts, relsPathOf(part));
+  const xml = textOf9(parts, relsPathOf(part));
   if (!xml) return [];
   try {
     const doc = parseXml(xml);
@@ -132697,7 +132830,7 @@ function readRels(parts, part, parseXml) {
 }
 function slidePartsInOrder(parts, parseXml) {
   const numeric = Object.keys(parts).filter((name) => /^ppt\/slides\/slide\d+\.xml$/.test(name)).sort((a, b) => Number(a.match(/(\d+)/)?.[1] ?? 0) - Number(b.match(/(\d+)/)?.[1] ?? 0));
-  const xml = textOf8(parts, "ppt/presentation.xml");
+  const xml = textOf9(parts, "ppt/presentation.xml");
   if (!xml) return numeric;
   try {
     const doc = parseXml(xml);

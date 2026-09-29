@@ -165,7 +165,7 @@ Most people never touch it: in the open app you **ingest your own creative files
 
 ![The Brand Studio's Files room - a drop area and the assets already ingested, the no-git route into the same picker every tool reads](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcatalogue&width=1440&height=900&dpi=192&waitMs=2000&css=.start-head%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.be-cat&dark=1&filename=at2-brand-catalogue-tab)
 
-Those user assets live under the `user/` namespace and never enter a shared catalog. The git route matters only when you're curating a library many people depend on.
+Those user assets live under the `user/` namespace and do not automatically enter a shared catalog. A repository-managed shared library uses the git route above. For an organisation-managed library, optional **lolly.work** also supports uploads, metadata, collections, versions and approval workflows, and can federate assets from existing storage or DAM services. Follow its [catalog guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/catalog.md); provider-backed assets remain governed by their source. See [Use Lolly at your organisation](/info/organisation.html) for the user-facing distinction.
 
 ![The Your uploads section in Assets - a drop area that takes files straight from your device into every tool's picker](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dyour-uploads&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-group--uploads&dark=1&filename=auth-assets-uploads)
 

@@ -26,6 +26,12 @@ pnpm run dev:web
 # open localhost - your tool appears in the gallery
 ```
 
+### Publishing for an organisation using lolly.work
+
+The tool manifest and template remain the portable source. Optional **lolly.work** adds organisation permissions and input policies around the tools an instance offers, plus a shared asset catalog with uploads, federation and review workflows. Installing a portable tool on your device does not publish it to every member or grant access to organisation content.
+
+Coordinate pack publication with the instance operator. See [Configuration](/info/configuration.html#organisation-policy-with-lolly-work) and lolly.work's [catalog](https://github.com/lolly-tools/lolly-work/blob/main/docs/catalog.md) and [governance](https://github.com/lolly-tools/lolly-work/blob/main/docs/governance.md) guides for the respective controls.
+
 ### Try it without the monorepo
 
 You do not need the full clone to run a tool you wrote. Zip the tool folder and drop the zip on [lolly.tools](https://lolly.tools) or any Lolly instance. The drop sheet offers **Install this tool**; take it and the tool installs on that device and opens. Zipping the folder and zipping its contents both work, because a single top-level folder is stripped. Nothing is uploaded: the zip is read in the page, and the files go to the same device-local store a `.lolly`'s carried tool uses.

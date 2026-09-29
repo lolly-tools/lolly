@@ -6,7 +6,7 @@ The short version: **verification is entirely on-device, the crypto is standards
 
 ## Verification is on-device
 
-Everything Lolly verifies, it verifies **locally, offline, without uploading the file**. Dropping a file on `/verify` (or `lolly validate <file>`) parses it, walks its Content Credential, re-checks the signature and the byte-hash binding and renders a verdict. It all runs in your browser or on your machine. There is no verification server.
+The app's Verify view and the local CLI verify **locally, offline, without uploading the file**. Dropping a file on `/verify` (or `lolly validate <file>`) parses it, walks its Content Credential, re-checks the signature and the byte-hash binding and renders a verdict. It all runs in your browser or on your machine. Calling the separate MCP `lolly_verify` endpoint instead sends a file to that server; these local checks do not use that endpoint.
 
 ![The Verify screen - nothing but a drop target, no upload button, no account, because the check runs where the file already is](/t/url-shot?url=%2F%23%2Fverify&width=460&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop-sq)
 
@@ -19,6 +19,8 @@ AI declares itself in the same verdict, as a badge nobody has to go looking for.
 ![The GEN AI flag Verify raises for the storm image - a labelled badge reading that the image was AI-generated, with the SynthID note](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=820&height=900&dpi=192&waitMs=6000&waitSelector=.valid-ai-flag&walker=1&format=svg&cropSelector=.valid-ai-flag&dark=1&filename=cc-verify-genai)
 
 The engine's crypto core is **platform-agnostic and uses only `globalThis.crypto` / WebCrypto**. There is no bespoke crypto library, no Node-only APIs and **no network calls anywhere in the engine**. In the web app, verification makes **no network request to any third party**. The only fetch it can ever make is the opt-in deep scan's one-time detector download, from the app's own origin. Even a **SEAL** record whose signing key lives in DNS is reported as "no key resolver" rather than routed through a third-party DNS-over-HTTPS service (the desktop and command-line shells resolve such keys through your own machine's DNS, with no third party involved).
+
+For **Lolly + lolly.work**, review the organisation service as well as these local cryptographic paths. It adds identity, permission checks, shared storage, work collabs and server jobs, with its own [security boundaries](https://github.com/lolly-tools/lolly-work/blob/main/docs/security-platform.md) and [audit controls](https://github.com/lolly-tools/lolly-work/blob/main/docs/audit.md). The local verification tests below do not certify those services.
 
 ## Standards implemented
 
@@ -97,7 +99,7 @@ Found something? Report it privately: [fitzy+security@suse.com](mailto:fitzy+sec
 ## Where to go next
 
 - **[Verify It Yourself](/info/verify-yourself.html)** - every checkable claim on this page and the privacy policy as a runnable procedure: the exact commands and the output you should see.
-- **[Server Surface](/info/server-surface.html)** - the complete inventory of what runs server-side (two optional components) versus on-device.
+- **[Server Surface](/info/server-surface.html)** - the optional integrations and lolly.work organisation service alongside local processing.
 - **[Content Credentials - Engineering](/info/content-credentials-engineering.html)** - the engine contracts, trust anchors, CA service and threat model in full.
 - **[Content Credentials Identity](/info/content-credentials-identity.html)** - how verified-identity enrolment and the Lolly CA work.
 - **[Lolly for Operators](/info/operators.html)** - provenance, encryption and air-gap deployment in context.

@@ -248,6 +248,24 @@ async function ready(state: RebrandStateV1 = stateFrom()): Promise<Mounted> {
   return mounted;
 }
 
+test('a revision or slide change closes the chooser before recommendations can be applied', async () => {
+  const mounted = await ready(stateFrom(structuredClone(RUN.plan)));
+  try {
+    const { rb, calls } = mounted;
+    const id = rb.state.plan!.slides[0]!.id;
+    rb.chooser.open([id], 'inline');
+    assert.ok(document.querySelector('[data-layout-options]'));
+    rb.state.plan!.revision++;
+    rb.chooser.sync();
+    assert.equal(rb.chooser.isOpen(), false);
+    rb.chooser.open([id], 'inline');
+    rb.sel.slideId = rb.state.plan!.slides[1]!.id;
+    rb.chooser.sync();
+    assert.equal(rb.chooser.isOpen(), false);
+    assert.equal(calls.some(call => call.name === 'setLayout'), false);
+  } finally { mounted.unmount(); }
+});
+
 function pop(): HTMLElement {
   const found = document.querySelector<HTMLElement>('.rb-lc-pop');
   assert.ok(found, 'the popover is open');
@@ -285,8 +303,8 @@ test('every entry opens the same popover, titled for its slide, and Escape gives
     rb.chooser.open([second], entry, opener);
     const box = pop();
     assert.equal(box.getAttribute('role'), 'dialog', entry);
-    assert.equal(box.querySelector('.rb-lc-pop-title')?.textContent, 'Change layout');
-    assert.equal(document.getElementById(box.getAttribute('aria-labelledby') ?? '')?.textContent, 'Change layout', 'named by its heading');
+    assert.equal(box.querySelector('.rb-lc-pop-title')?.textContent, 'Choose layout');
+    assert.equal(document.getElementById(box.getAttribute('aria-labelledby') ?? '')?.textContent, 'Choose layout', 'named by its heading');
     assert.equal(box.querySelector('.rb-lc-pop-subject')?.textContent, 'Slide 2');
     assert.equal(rb.sel.slideId, second, 'the slide it is for is the one on screen');
     assert.equal(rb.els.decide.querySelector('.arch-chooser'), null, `${entry}: nothing unfolds in the column`);
@@ -367,7 +385,7 @@ test('one tile rule: flat tiles, the current one ringed and tinted with a check 
   unmount();
 });
 
-test('"This slide" leads: Original arrangement, then Keep as a picture with its badge, then the current layout', async () => {
+test('"This slide" leads: Restyle existing positions, then Keep as a picture with its badge, then the current layout', async () => {
   const { rb, calls, said, unmount } = await ready();
   const first = RUN.plan.slides[0];
   assert.ok(first);
@@ -376,8 +394,8 @@ test('"This slide" leads: Original arrangement, then Keep as a picture with its 
   assert.ok(lead);
   assert.equal(lead.querySelector('.arch-band-name')?.textContent, 'This slide');
   const shown = tiles(lead);
-  assert.deepEqual(shown.slice(0, 2).map((tile) => tile.querySelector('.arch-name')?.textContent), ['Original arrangement', 'Keep as a picture']);
-  assert.equal(shown[0]?.querySelector('.arch-badge'), null, 'Original arrangement carries no badge');
+  assert.deepEqual(shown.slice(0, 2).map((tile) => tile.querySelector('.arch-name')?.textContent), ['Restyle existing positions', 'Keep as a picture']);
+  assert.equal(shown[0]?.querySelector('.arch-badge'), null, 'Restyle existing positions carries no badge');
   const badge = shown[1]?.querySelector('.arch-badge');
   assert.ok(badge?.querySelector('svg'), 'Keep as a picture carries the picture badge');
   assert.equal(badge?.getAttribute('aria-hidden'), 'true', 'the badge is for the eye; the name says it');

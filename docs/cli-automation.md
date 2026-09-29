@@ -87,6 +87,14 @@ Three things it deliberately refuses rather than silently ignoring: `--rate-card
 
 The finding to know about: if your brand declares a spot ink that is actually a FINISH (a foil, an emboss, a spot varnish, a cutting rule), Lolly writes it as its own named plate whose process fallback is a 100% black mask, in every CMYK sink - the CMYK PDF, the CMYK TIFF and `eps-cmyk` in both the browser and this CLI. It is never given the swatch's own colour build, so a RIP that flattens spots paints an unmistakable mask rather than a plausible metallic. What is still wrong, and what the error actually says: **overprint is implemented nowhere in the platform, so the finish plate knocks out the artwork beneath it**. Agree with your printer how they want the finish supplied before sending the file.
 
+## Organisation jobs with lolly.work
+
+The `lolly` CLI renders on the machine running the command. For jobs an organisation needs to retain, inspect, retry or deliver centrally, optional **lolly.work** provides a separate `lw` client and authenticated APIs at `/api/v1/renders` and `/api/v1/render-batches`.
+
+These submit work to the organisation's server, using its tool permissions and policy. Requests support idempotency keys, status, cancellation, retries and retained output; durable recovery needs a persistent deployment. Browser-dependent formats need the configured render worker. Automation can authenticate with a scoped service token. Governed delivery can use completed render output without uploading those bytes again.
+
+Use the lolly.work [render jobs](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md), [CLI](https://github.com/lolly-tools/lolly-work/blob/main/docs/cli.md) and [delivery](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) guides for request formats and commands. These are service operations; the local batch and CI examples on this page continue to work independently.
+
 ## Scripting & CI
 
 The same inputs give the same **render** every time - that is what makes a tool a build artifact rather than a generation - so you can run the CLI wherever you generate other build outputs. ("The same render" is not "the same bytes": see the measurements below, and note that a default render is *signed*, which alone is enough to move the bytes.)

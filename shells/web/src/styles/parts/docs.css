@@ -140,7 +140,7 @@
   margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border);
 }
 .docs-content h2 {
-  font-size: calc(1.5rem * var(--a11y-fs, 1)); font-weight: 700; color: var(--dark);
+  font-size: calc(1.75rem * var(--a11y-fs, 1)); font-weight: 350; color: var(--dark);
   border-top: 1px solid var(--border); padding-top: 2rem;
   margin-top: 2.5rem; margin-bottom: 0.75rem;
 }

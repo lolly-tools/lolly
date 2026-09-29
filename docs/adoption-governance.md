@@ -70,7 +70,7 @@ The Dashboard's capability map is the inventory to scope that decision against: 
 
 ### IT & security
 
-1. Confirm the **data posture**: no telemetry, nothing uploaded by default and no backend in the core render/verify path - the two optional server components are inventoried on [Server Surface](/info/server-surface.html).
+1. Confirm the **data posture for the workflows you enable**. Local editing and verification run on-device. Optional lolly.work adds organisation identity, shared content, server jobs, configured telemetry and audit records; review [Server Surface](/info/server-surface.html) and [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 2. Scope a first rollout to a low-risk context; the independent assurance described in [Status](#status) is still open.
 3. Decide who owns **governance** - see [Governance](#governance-when-a-team-wants-a-process) below.
 
@@ -90,6 +90,8 @@ We measure a behavioural change, not feature usage. The north-star is **self-ser
 
 A leading signal moving without the self-served number following is a warning: people are trying Lolly but are not yet making their own files with it. That number is the one that says the behaviour actually changed.
 
+Standalone usage counters stay on each device. If you deploy **lolly.work**, its [telemetry and dashboards](https://github.com/lolly-tools/lolly-work/blob/main/docs/telemetry.md) can measure allowed usage labels across the instance, with off, aggregate and standard modes. Decide the attribution and consent policy before the pilot. Usage telemetry is separate from the audit record of governed actions, and neither measures the quality of the finished work for you.
+
 ### The 90-day pilot cycle
 
 Adoption runs on a **90-day** feedback loop. Each cycle:
@@ -108,15 +110,16 @@ They can go further without touching git at all. From any tool, **Save** offers 
 
 This is the answer to a claim you will hear often: that *governance by git* is a roadblock for anyone who does not live in git. Here it never was the only path, and it is no longer the default one. Brand governance lives **inside the tool itself** - the rules are part of the instrument, not a gate laid over it (see the guard-rails bullet below), so staying on-brand costs a producer nothing to learn and nothing to wait for.
 
-Git enters only when an organisation wants a single **canonical** catalog everyone shares - the reviewable source of truth. Then whoever runs the deployment records a template's values into the brand pack and commits it - after which it appears in the tool's "New from template" chooser and is deep-linkable as `?template=<id>`. That commit is the locking step, and it belongs to the deployment owner, not the creator. It runs the rules the way engineering runs code - **the rules are data, and changing them is a reviewable change** - and it is entirely optional. Teams that don't want a shared canonical catalog never meet git.
+A **git-backed catalog** gives an organisation a reviewable source of truth. Its maintainer records template values in the brand pack and commits them; clients then see that template in the chooser and through `?template=<id>`. Creators can submit their work without using git themselves. This is one way to manage a shared catalog.
 
-And git is not the only way to govern live. Everything above is self-owned governance-as-data; the other shape is a **control plane**. [lolly.work](https://lolly.work) is a separate open-source service you host that governs the running shell without a code change: SSO-gated sign-in, feature-flag / export / watermark policy, tool-input overlays, catalog federation, approvals and a hash-chained audit log. It is optional and additive - Lolly still runs fully standalone and still renders on-device - so the choice is per deployment: nothing hosted (individual freedom), or a control plane for org-wide governance (organizational freedom).
+**lolly.work** supplies another part of the same solution: an optional, separately deployed organisation service. It adds OIDC SSO and SCIM, group permissions, managed profile fields and tool controls, a shared asset catalog with uploads and federation, shared projects and work collabs, approvals, governed delivery, server render jobs, telemetry and audit. See [Deployment](/info/deployment.html#organisation-services-with-lolly-work) and the [operator documentation](https://github.com/lolly-tools/lolly-work/blob/main/docs/README.md).
 
-- **A shared catalog can be the source of truth.** Tools and assets are git-tracked content - a manifest, a template, optional hooks. What ships is exactly what was committed.
-- **A pull request can be the gate - for the canonical catalog only.** Promoting a template into the shared source of truth is a change to git-tracked content, so it can be a pull request. This is the *only* place git appears - creators make and share templates without it, and reach the canonical catalog by **submitting** a `.lolly`, not by opening a PR. Who looks at a submission, and how, is the deployment's own choice. Teams that don't want a canonical catalog skip all of it.
+- **Choose how catalog changes are reviewed.** Git review works for repository-managed packs. lolly.work's shared asset catalog supports uploads, metadata, versions and approval workflows without making each contributor use git. Federated providers remain the source of truth for their own assets.
+- **Choose what is shared.** Personal libraries remain on-device; team projects and shared assets live on the organisation's service and follow its access and retention policies.
+
 - **Guard-rails are structural, not advisory.** Brand constraints are hard-coded in the tool; even the open canvas (the **Design** tool) conforms colours, type and assets to the brand globals. Off-brand output isn't policed after the fact - it's prevented at authoring time.
 - **Feature flags put control local.** Parts of Lolly can be turned on or off per deployment. Whoever runs the deployment owns those.
-- **Configuration is yours.** A deployment can overlay its own authentication, telemetry or Certificate Authority to meet its own requirements - none of it is on by default.
+- **Configuration is yours.** lolly.work provides organisation authentication, policy and reporting; configure the supported controls for your deployment. Signing can use the optional Lolly CA or your own certificate authority.
 
 ![Every part of Lolly as its own switch, so turning a whole category of tools off is one click, not a support ticket](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&cropSelector=%23feature-flags-section&format=svg&walker=1&dark=1&filename=aud-feature-switches)
 
@@ -124,7 +127,7 @@ The most common adoption set-back is not technical; it's **framing and change ma
 
 ## We need your story
 
-Because Lolly collects no telemetry and no component reports usage back to us (see [Server Surface](/info/server-surface.html) for the two optional server components and what they keep), **we genuinely do not know who runs it or how well it's working** - and that's by design. The flip side is that the pilot depends on you telling us.
+Standalone Lolly does not report usage to the project. An organisation can collect its own configured telemetry in lolly.work, but those records stay with its operator; they do not automatically reach us. To learn how your pilot works, we depend on the evidence you choose to share.
 
 If you are piloting Lolly, the most valuable thing you can contribute is a concrete before/after: what you used to do, what you did with Lolly, how long it took and where it fell short. That evidence - not more architecture - is what moves this from a promising prototype to something proven.
 
@@ -135,5 +138,5 @@ To keep the framing straight, the things Lolly is *not* yet:
 - **Not yet independently certified.** See [Status](#status). The cryptography and parsers are fuzzed, threat-modelled and hardened inside SUSE; no independent party has certified them.
 - **Not finished.** Version 1.0 is the start of the public record; expect rough edges and change between releases.
 - **Not a turnkey pack of your templates.** Lolly is a platform - someone has to author the catalog and the tools before producers can self-serve.
-- **Not for hero content.** It's for operationalised, recurring, massive-scale asset generation. Judged against Figma or Canva it will look narrow - that narrowness is the point.
+- **Fit depends on the workflow.** Design, animation and imported layouts support original creative work as well as repeatable templates. Check the specific editing, collaboration and governance features your team needs in the [comparisons](/info/compare.html).
 - **Not yet backed by much evidence.** The maths is sound; the track record is months old. Help us change that.

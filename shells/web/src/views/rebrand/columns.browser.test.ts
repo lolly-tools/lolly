@@ -66,6 +66,7 @@ function sheetImports(): string {
 function regionsHtml(): string {
   const view = document.createElement('div');
   const els = buildRegions(view);
+  els.root.dataset.reviewOpen = 'true';
   applyLayout({ els, state: reviewState(), narrow: false, medium: false, reportOpen: false });
   return view.innerHTML;
 }

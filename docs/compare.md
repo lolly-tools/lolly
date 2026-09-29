@@ -1,17 +1,25 @@
 # Lolly compared, tool by tool
 
-Lolly overlaps with several kinds of software and replaces none of them wholesale. Each page below states plainly what the other tool does better and what Lolly does instead. Nothing here is a superlative about Lolly, and nothing here picks a villain: the reader does the arithmetic.
+Lolly covers creative work from a single on-device conversion to a governed organisation's asset production. These pages compare the workflows each product supports, the way it is deployed and the limits that matter when choosing a solution.
 
-For the capability-by-capability picture across the whole field, see [How Lolly compares](/info/positioning.html), which carries the comparison figure.
+_Last checked: 28 September 2026._
 
-_Last checked: August 2026._
+## One project, two separately deployed parts
 
-- [Lolly and Canva](/info/compare-canva.html) - making an on-brand graphic without a subscription.
-- [Lolly and Adobe](/info/compare-adobe.html) - converting, exporting and signing files without a Creative Cloud account.
-- [Lolly and Figma](/info/compare-figma.html) - laying out a design and turning it into a reusable output.
-- [Lolly and Penpot](/info/compare-penpot.html) - open-source design tooling, shared brand tokens and where the render happens.
-- [Lolly and brand portals](/info/compare-brand-portals.html) - locked templates for people who are not designers, without a per-seat licence (Bynder, Frontify, Marq, Brandfolder).
-- [Lolly and rendering APIs](/info/compare-render-apis.html) - generating many on-brand images from data (Bannerbear, Placid).
-- [Lolly and online file converters](/info/compare-converters.html) - turning one file format into another, on your own device.
+**Lolly** is the engine, apps and tools for creating, editing, converting and exporting. It runs on your device, works offline once the required assets are available, and needs no account for standalone use.
 
-Every page is dated, because a comparison goes stale. If a claim here no longer matches what the other tool does, it is a bug in this page.
+**[lolly.work](https://lolly.work)** is the project's organisation service, maintained in the [lolly-work repository](https://github.com/lolly-tools/lolly-work). It provides SSO, SCIM provisioning, roles and policies, shared catalogues and projects, approvals, work collaboration, usage reporting, audit records and server rendering. Both parts are MPL-2.0 open source. An organisation hosts lolly.work alongside Lolly and decides which services to enable.
+
+The comparisons cover **Lolly + lolly.work**. Features that need the organisation service are identified explicitly. Standalone use keeps files on the device; choosing shared projects, work collaboration, server rendering or delivery sends the relevant data to the configured services. The public lolly.work site is a sandbox; see the [deployment guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) and [current status](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) for an organisation deployment.
+
+## Compare by workflow
+
+- [Lolly and Canva](/info/compare-canva.html) - templates, everyday design and shared brand production.
+- [Lolly and Adobe](/info/compare-adobe.html) - editing, conversion, professional output and Content Credentials.
+- [Lolly and Figma](/info/compare-figma.html) - design, live collaboration and reusable asset production.
+- [Lolly and Penpot](/info/compare-penpot.html) - open-source design, shared tokens and organisation workflows.
+- [Lolly and brand portals](/info/compare-brand-portals.html) - approved libraries, locked templates, identity, review and reporting.
+- [Lolly and rendering APIs](/info/compare-render-apis.html) - automated generation on your device, in CI or through lolly.work.
+- [Lolly and online file converters](/info/compare-converters.html) - format conversion on your own device.
+
+For the capability-by-capability view, see [How Lolly compares](/info/positioning.html). Each comparison is dated; a claim that no longer matches either product needs correcting.

@@ -1,46 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * rebrand: the layout chooser (plan 275 section 4, decisions 27, 28, 30 and 31; close-out
- * section 3.6).
+ * Rebrand's single-slide layout chooser. Generated previews lead; choosing one
+ * previews the slide until Apply commits through the controller's undo history.
+ * The authored library and arrangement actions sit in a disclosure below. Those
+ * existing library controls preview on hover and apply on click, as their help says.
  *
- * One grid of layout wireframes, the one Design shows (`lib/slide-structures-ui.ts`),
- * shown as one thing: a popover that `rb.chooser.open` docks over the decision column, so
- * the Proposed pane it previews into stays in view beside it. Four places open it: the
- * column's Change layout button (`inline`), the L key and the filmstrip's menu (`menu`),
- * and a thumbnail's layout pill (`chip`). It closes on Escape, a pick or a click outside,
- * and the focus goes back to what opened it.
- *
- * The first group is "This slide": the ways back to the slide as it was, drawn from the
- * slide itself (Original arrangement, the kept objects where the source had them in the
- * colours and fonts of the design system, and Keep as a picture, the slide exactly as it
- * was, with a picture badge so the two differ at a glance), then Current, the matcher's
- * Suggested and its Also fits. The bands follow. Every tile follows one rule: flat on the
- * popover, a ring on hover, and the current one ringed and tinted with a check in its
- * caption. A layout that would pour the slide onto more slides than the current one does
- * carries the count as a muted suffix on its name ("Title slide +2"), measured by
- * compiling the slide alone for each layout; the words stay as its description. A slide
- * built one of the arrangement ways keeps its layout on the row, pinned as Last used, and
- * picking that tile goes back to it.
- *
- * Resting the pointer or the focus on a tile previews it in the Proposed pane after a
- * short wait, without writing to the plan: the slide is compiled alone, in the view,
- * through the same engine compile the controller's stage runs, and drawn in the design
- * system's faces once they are loaded (close-out section 9.2). Escape, or leaving the
- * grid, puts the committed slide back. A click or Enter applies at once through
- * `rb.controller.setLayout`, as one undo step, and the pane keeps showing that layout
- * until the controller's own preview of the new plan arrives, so the slide changes on
- * the next render rather than after the whole deck recompiles.
- *
- * Auto-match layouts has its row under the search, once the controller carries it: the
- * layouts it would set as small wireframes, each with its count and unit, and the button
- * that runs it as one undo step. Resting on the button previews the slide on screen under
- * its match. It is the one action that applies a match; without it a match stays a
- * suggestion. A controller with no such command shows no Auto-match anywhere, the
- * filmstrip included.
- *
- * The Proposed pane is `compare.ts`'s region. The preview is one element this module
- * puts beside the pane's frames while it shows and takes away after, and the pane's
- * frames are hidden meanwhile; nothing of compare's own is redrawn from here.
+ * The chooser docks over the decision column on desktop and fills the available
+ * width on a phone. A source, plan, selection or design-system change invalidates
+ * its request. Preview compiles use the controller's options and loaded faces.
+ * Closing cancels suggestions and restores the committed Proposed slide.
  */
 import { mountBodyPopover, pointAnchor, type BodyPopoverHandle, type PopoverAnchor } from '../../components/body-popover.ts';
 import {
@@ -56,6 +24,8 @@ import type { ArchetypeRefV1, CompiledFrameV1, RenovationPlanV1, SlideArrangemen
 import { t, tRaw } from '../../i18n.ts';
 import { icon } from '../../lib/icons.ts';
 import { previewPlanOf } from '../../lib/rebrand/controller.ts';
+import { compileSystemOpts } from '../../../../../engine/src/deck-compile.ts';
+import { mountLayoutOptions } from '../../lib/rebrand/layout-options-ui.ts';
 import { resolveActiveDesignSystem } from '../../lib/rebrand/design-system.ts';
 import {
   PREVIEW_DELAY_MS,
@@ -104,6 +74,8 @@ interface PopoverSlot {
   slideIds: string[];
   entry: RbChooserEntry;
   chooser: LayoutChooserHandle | null;
+  suggestions: ReturnType<typeof mountLayoutOptions> | null;
+  snapshot: unknown[];
 }
 
 interface ChooserState {
@@ -118,6 +90,7 @@ interface ChooserState {
   /** A layout or an arrangement just applied (a tile key), shown until the controller's preview of the new plan arrives. */
   pending: { slideId: string; layout: string; revision: number } | null;
   compiled: Map<string, CompiledFrameV1[] | null>;
+  compiledFor: unknown[];
   /** Learned from the controller's answer: the build does not carry Auto-match out yet. */
   autoMatchNotBuilt: boolean;
   busy: boolean;
@@ -145,6 +118,7 @@ function stateOf(rb: RbCtx): ChooserState {
       preview: null,
       pending: null,
       compiled: new Map(),
+      compiledFor: [],
       autoMatchNotBuilt: false,
       busy: false,
       marksRun: 0,
@@ -178,7 +152,8 @@ function textOf(html: string): string {
 // ─── the design system and its master ────────────────────────────────────────
 
 function systemKey(rb: RbCtx): string {
-  return `${rb.state.designSystem?.id ?? ''}|${rb.state.plan?.designSystem.tokenHash ?? ''}`;
+  const snapshot = rb.state.plan?.designSystem;
+  return JSON.stringify([rb.state.designSystem?.id, rb.state.designSystem?.archetypes, snapshot?.tokenHash, snapshot?.masterId, snapshot?.masterVersion, snapshot?.fontHashes, snapshot?.assetHashes]);
 }
 
 /**
@@ -267,7 +242,7 @@ function keyOfSlide(slide: SlidePlanV1 | undefined): string | undefined {
  * ("Kept as a picture").
  */
 export function arrangementName(arrangement: SlideArrangementV1, as: 'action' | 'state' = 'action'): string {
-  if (arrangement === 'original') return t('Original arrangement');
+  if (arrangement === 'original') return t('Restyle existing positions');
   if (arrangement === 'picture') return as === 'state' ? t('Kept as a picture') : t('Keep as a picture');
   return t('Layout');
 }
@@ -322,6 +297,11 @@ function framesUnder(rb: RbCtx, slideId: string, tileKey: string): CompiledFrame
   const { plan, source, census } = rb.state;
   const system = systemOf(rb);
   if (!plan || !source || !system) return null;
+  const owners = [plan, source, census, system];
+  if (owners.some((value, i) => value !== state.compiledFor[i])) {
+    state.compiled.clear();
+    state.compiledFor = owners;
+  }
   const key = `${plan.revision}|${slideId}|${tileKey}`;
   if (state.compiled.has(key)) return state.compiled.get(key) ?? null;
   let frames: CompiledFrameV1[] | null = null;
@@ -343,7 +323,7 @@ function framesUnder(rb: RbCtx, slideId: string, tileKey: string): CompiledFrame
         plan: alone,
         master: system.input.master,
         designSystem: system.compile,
-        opts: { applyUnreviewed: true, applyNeedsAttention: true },
+        opts: { ...compileSystemOpts(system.input), applyUnreviewed: true, applyNeedsAttention: true },
       });
       frames = framesForSlide(deck.frames, slideId);
     }
@@ -512,6 +492,10 @@ function captionPreview(pane: HTMLElement, shown: { name: string; pill: boolean;
 /** Show the preview in the Proposed pane, or take it away. Called after every render of the column. */
 export function syncPreview(rb: RbCtx): void {
   const state = stateOf(rb);
+  if (state.pop && chooserSnapshot(rb).some((value, i) => value !== state.pop?.snapshot[i])) {
+    closeChooser(rb);
+    return;
+  }
   // A popover drawn while the design system or its faces were loading draws again now they are in.
   if (state.pop && state.drewWaiting && drawable(rb)) refreshPopover(rb);
   const pane = rb.els.compare.querySelector<HTMLElement>('[data-pane="proposed"]');
@@ -1197,9 +1181,11 @@ function popoverSubject(rb: RbCtx, slideIds: string[]): string {
 function popoverContent(rb: RbCtx, box: HTMLDivElement, slot: PopoverSlot): HTMLElement | null {
   const state = stateOf(rb);
   const master = masterOf(rb);
+  slot.suggestions?.dispose();
+  slot.suggestions = null;
   box.replaceChildren();
   const head = el('div', 'rb-lc-pop-head');
-  const title = el('h2', 'rb-lc-pop-title', t('Change layout'));
+  const title = el('h2', 'rb-lc-pop-title', t('Choose layout'));
   title.id = 'rb-lc-pop-title';
   const close = el('button', 'lp-iconbtn rb-lc-pop-close');
   close.type = 'button';
@@ -1221,6 +1207,31 @@ function popoverContent(rb: RbCtx, box: HTMLDivElement, slot: PopoverSlot): HTML
   }
   const slideId = primarySlide(rb, slot.slideIds);
   const between: HTMLElement[] = [];
+  if (slot.slideIds.length === 1 && systemOf(rb)) {
+    slot.suggestions = mountLayoutOptions({
+      autoStart: true,
+      request: () => {
+        if (chooserSnapshot(rb).some((value, i) => value !== slot.snapshot[i])) return null;
+        const { source, plan, census } = rb.state;
+        const system = systemOf(rb);
+        const sourceSlide = source?.slides.find(s => s.id === slideId);
+        const row = plan?.slides.find(s => s.id === slideId);
+        if (!source || !plan || !system || !sourceSlide || !row) return null;
+        return {
+          source: { ...source, slides: [sourceSlide] }, plan: previewPlanOf({ ...plan, slides: [row] }),
+          census: census ? { ...census, layouts: census.layouts.filter(s => s.slideId === slideId), objects: census.objects.filter(o => o.slideId === slideId) } : undefined,
+          system: system.input, allowed: tilesOf(rb, system.input.master).flatMap(tile => tile.flip ? [tile.id, tile.flip] : [tile.id]),
+        };
+      },
+      draw: option => option.frames[0] ? svgNode(tileArt(rb, option.frames[0], slideId)) : null,
+      preview: id => setPreview(rb, slideId, id),
+      pick: id => {
+        if (chooserSnapshot(rb).some((value, i) => value !== slot.snapshot[i])) return;
+        void applyLayout(rb, [slideId], id);
+      },
+    });
+    box.append(slot.suggestions.root);
+  }
   const auto = autoMatchRow(rb, master, slideId);
   if (auto) between.push(auto);
   const toggle = slot.slideIds.length === 1 ? similarToggle(rb, slideId) : null;
@@ -1228,9 +1239,12 @@ function popoverContent(rb: RbCtx, box: HTMLDivElement, slot: PopoverSlot): HTML
   const chooser = chooserFor(rb, master, slot.slideIds, 'layout-pop', () => toggle !== null && state.similar, { between, notes: false });
   slot.chooser?.dispose();
   slot.chooser = chooser;
-  box.append(chooser.root);
-  const start = chooser.tiles().find((tile) => tile.tabIndex === 0);
-  return start ?? close;
+  const library = el('details', 'rb-layout-library');
+  library.append(el('summary', '', t('Browse all layouts and arrangement options')),
+    el('p', 'lp-help', t('Hover to preview. Library choices apply when clicked.')), chooser.root);
+  box.append(library);
+  if (!slot.suggestions) library.open = true;
+  return slot.suggestions?.root.querySelector<HTMLElement>('[data-key="suggest-layouts"]') ?? close;
 }
 
 /**
@@ -1326,6 +1340,12 @@ export function openChooser(rb: RbCtx, slideIds: string[], entry: RbChooserEntry
     ariaLabel: t('Change layout'),
     position: (box: HTMLDivElement, at2: PopoverAnchor) => {
       if (dockOverColumn(rb, box)) return;
+      if (rb.narrow) {
+        box.style.left = '8px'; box.style.top = '8px';
+        box.style.width = `${window.innerWidth - 16}px`;
+        box.style.maxHeight = `${window.innerHeight - 16}px`;
+        return;
+      }
       if (anchor) anchorBelow(box, at2);
       else centred(box);
     },
@@ -1333,15 +1353,21 @@ export function openChooser(rb: RbCtx, slideIds: string[], entry: RbChooserEntry
       if (state.matchTimer !== null) clearTimeout(state.matchTimer);
       state.matchTimer = null;
       slot?.chooser?.dispose();
+      slot?.suggestions?.dispose();
       if (state.pop === slot) state.pop = null;
       state.preview = null;
       state.marksRun += 1;
       syncPreview(rb);
     },
   });
-  slot = { handle, slideIds: ids, entry, chooser: null };
+  slot = { handle, slideIds: ids, entry, chooser: null, suggestions: null, snapshot: chooserSnapshot(rb) };
   state.pop = slot;
   handle.open();
+}
+
+function chooserSnapshot(rb: RbCtx): unknown[] {
+  return [rb.state.source, rb.state.source?.source.hash, rb.state.source?.source.instanceId,
+    rb.state.plan, rb.state.plan?.revision, rb.state.census, systemKey(rb), rb.sel.slideId];
 }
 
 /** True while the chooser is open as a popover, over the rest of the view. */

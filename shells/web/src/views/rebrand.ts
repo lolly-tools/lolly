@@ -39,6 +39,7 @@ import '../styles/parts/rebrand-keep.css';
 import '../styles/parts/rebrand-chooser.css';
 import '../styles/parts/rebrand-theme.css';
 import '../styles/parts/rebrand-columns.css';
+import '../styles/parts/rebrand-workflow.css';
 import { t, tRaw } from '../i18n.ts';
 import type { RebrandFinishedJobV1, RebrandStateV1 } from '../lib/rebrand/controller-api.ts';
 import { queueWithLineage, rebrandControllerFor } from '../lib/rebrand/controller.ts';
@@ -137,9 +138,8 @@ function withLineageItems(derived: RbDerived, state: RebrandStateV1): RbDerived 
 }
 
 /**
- * Keep the selection pointing at something that exists. With nothing selected, the
- * first item needing attention is selected, else the first included slide, so the view
- * always opens on a comparison rather than on an empty pane.
+ * Keep the selection pointing at something that exists. With nothing selected,
+ * start on the first included slide. Object decisions follow an explicit selection.
  */
 function settleSelection(rb: RbCtx): void {
   const derived = rb.derived;
@@ -152,13 +152,6 @@ function settleSelection(rb: RbCtx): void {
   if (sel.objectId && !derived.objects.has(sel.objectId)) sel.objectId = null;
   if (sel.slideId && !derived.slides.some((slide) => slide.id === sel.slideId)) sel.slideId = null;
   if (sel.slideId) return;
-  const first = derived.queue.find((item) => item.section === 'attention');
-  if (first) {
-    sel.itemId = first.id;
-    sel.objectId = first.exemplar;
-    sel.slideId = derived.objects.get(first.exemplar)?.slideId ?? first.slideIds[0] ?? null;
-    return;
-  }
   sel.slideId = derived.slides.find((slide) => slide.include)?.id ?? derived.slides[0]?.id ?? null;
 }
 

@@ -22,6 +22,7 @@
  * from numbers and a closed set of class names, and it is parsed rather than assigned.
  */
 import '../styles/parts/rebrand-chooser.css';
+import { slideLayoutName, slideLayoutRecipe, withSlideLayoutComponents } from '../../../../engine/src/slide-layout-components.ts';
 import { findStructure, searchTokens, slideStructureLibrary } from '@lolly/engine';
 import type { ArchetypeRefV1, ArchetypeV1, SlideMasterV1 } from '@lolly-tools/core';
 import { t, tRaw } from '../i18n.ts';
@@ -153,6 +154,8 @@ export function listedArchetypes(master: SlideMasterV1): ArchetypeV1[] {
  * name the master gives it; else its id. One name per layout in both tools.
  */
 export function layoutName(master: SlideMasterV1 | null | undefined, id: string): string {
+  const recipe = slideLayoutRecipe(id);
+  if (recipe) return slideLayoutName(recipe);
   const archetype = master?.archetypes.find((a) => a.id === id);
   const own = archetype ? structureIdOf(archetype) : id;
   // A picture layout folded into a box tile goes by the tile's name, so the grid and
@@ -362,6 +365,7 @@ let thumbDraws = 0;
  * `theme` is the deck theme being previewed, empty for the fixed neutral tones.
  */
 export function layoutThumb(master: SlideMasterV1, id: string, width: number, draw: ThumbDraw, theme = ''): string {
+  master = withSlideLayoutComponents(master, [id]);
   const marks = width <= PLAIN_THUMB_MAX ? 'none' : 'all';
   const key = `${master.id}@${master.version}|${theme}|${width}|${marks}|${id}`;
   const hit = thumbCache.get(key);

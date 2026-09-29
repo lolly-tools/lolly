@@ -48,8 +48,10 @@ Put your camera, logo and name over a Design deck or Countdown, with private con
 
 Two people, two devices, one session, edited live. Scan a code across the table and both screens hold the same work, with no account and no server in the middle - and no internet at all when both devices are on the same network.
 
-- **[Working together](/info/collaborate.html)** - starting a session, what travels between the devices and what happens when the network drops.
+- **[Working together](/info/collaborate.html)** - private collabs between devices, plus optional **lolly.work** collabs through your organisation's instance. Work collabs support live editing across reachable networks and save shared state to the organisation's server.
 - **[Using Lolly](/info/using.html#sharing-your-work)** - the quieter ways to hand work on: a share link that carries the whole state, or one `.lolly` file.
+
+If your organisation uses lolly.work, [Use Lolly at your organisation](/info/organisation.html) also covers sign-in, team projects, shared assets and managed settings. These are optional additions to the everyday app.
 
 ## Post
 

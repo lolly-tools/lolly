@@ -330,14 +330,14 @@ test('the Layout band is one head with who set the layout, open at rest on its p
   assert.equal(name, LISTED.find((tile) => tile.id === slide.layout || tile.flip === slide.layout)?.name ?? name);
   assert.ok(decideEl(rb, '.rb-layout-art svg'), 'the current layout is drawn');
   const change = decideEl(rb, '[data-key="layout-change"]');
-  assert.equal(change?.textContent, 'Change layout');
+  assert.equal(change?.textContent, 'Choose layout');
   assert.equal(change?.getAttribute('aria-haspopup'), 'dialog');
   assert.ok(change?.querySelector('svg'), 'a door carries the arrow');
   assert.equal(change?.getAttribute('aria-expanded'), 'false');
   assert.equal(document.querySelector('.rb-lc-pop'), null, 'the chooser opens only when asked');
   // One section open, and no help line saying a state that is fine.
   assert.deepEqual(openParts(rb), ['layout']);
-  assert.deepEqual(visibleHelp(rb).map((el) => el.textContent), []);
+  assert.ok(visibleHelp(rb).some(el => el.textContent?.includes('Preview layouts')));
   assert.equal(decideEl(rb, '[data-key="layout-auto"]'), null, 'Auto-match lives in the queue and the chooser, not on every slide');
   // The Position row: the moves and the switch.
   assert.ok(decideEl(rb, '[data-act="move"][data-delta="1"]'));
@@ -347,10 +347,10 @@ test('the Layout band is one head with who set the layout, open at rest on its p
   unmount();
 });
 
-test('the bands follow the vocabulary: Content, Style, then Layout, with every section but Layout folded', async () => {
+test('the slide starts with Layout, followed by Content and Style, with other sections folded', async () => {
   const { rb, unmount } = await ready();
   const bands = [...rb.els.decide.querySelectorAll<HTMLElement>('.lp-band')].map((band) => band.dataset.band);
-  assert.deepEqual(bands, ['content', 'style', 'layout']);
+  assert.deepEqual(bands, ['layout', 'content', 'style']);
   assert.deepEqual([...rb.els.decide.querySelectorAll<HTMLElement>('.lp-band-label')].map((el) => el.textContent), ['Content', 'Style']);
   const order = [...rb.els.decide.querySelectorAll<HTMLElement>('.lp-band > .lp-sec')].map((sec) => sec.dataset.sec);
   assert.deepEqual(order, ['objects', 'colours', 'fonts']);
@@ -370,7 +370,7 @@ test('Change layout opens the categorised chooser over the column: Current first
   const bands = [...chooser.querySelectorAll<HTMLElement>('.arch-band-name')].map((h) => h.textContent);
   assert.deepEqual(bands.slice(1), ['Titles', 'Text', 'Boxes', 'Pictures', 'Data', 'Steps and lists'], 'six display bands at slice size');
   const all = tiles(chooser);
-  // The ways back (Original arrangement, Keep as it was) show only with a controller that carries them out.
+  // The ways back (Restyle existing positions, Keep as it was) show only with a controller that carries them out.
   assert.equal(chooser.querySelector('.arch-tile[data-leading]'), null, 'no unavailable tiles lead the grid');
   const current = all.filter((tile) => tile.getAttribute('aria-current') === 'true');
   assert.equal(current.length, 1, 'one current tile');
@@ -450,7 +450,7 @@ test('both tools draw the same tile for Three boxes', async () => {
   unmount();
 });
 
-// ─── the ways back: Original arrangement and Keep as it was ──────────────────
+// ─── the ways back: Restyle existing positions and Keep as it was ──────────────────
 
 /** A mounted chooser whose controller carries arrangements out, recording each command. */
 async function arranging(state: RebrandStateV1 = stateFrom()): Promise<Mounted> {
@@ -465,7 +465,7 @@ async function arranging(state: RebrandStateV1 = stateFrom()): Promise<Mounted> 
   return mounted;
 }
 
-test('Original arrangement and Keep as it was lead every chooser, drawn from the slide itself', async () => {
+test('Restyle existing positions and Keep as it was lead every chooser, drawn from the slide itself', async () => {
   const { rb, calls, said, unmount } = await arranging();
   unfold(rb);
   const all = tiles(grid());
@@ -503,7 +503,7 @@ test('a slide kept as it was is current on that tile, previews like a layout, an
   // Resting on the other way back previews it, without a command.
   all[0]?.dispatchEvent(new window.Event('pointerover', { bubbles: true }));
   await wait(200);
-  assert.match(rb.els.compare.querySelector('[data-chooser-label]')?.textContent ?? '', /Preview: Original arrangement/);
+  assert.match(rb.els.compare.querySelector('[data-chooser-label]')?.textContent ?? '', /Preview: Restyle existing positions/);
   assert.equal(calls.length, 0, 'nothing written to the plan');
   // The layout the slide keeps underneath is pinned as Last used, and choosing it switches
   // the arrangement back, so the Undo and the sentence name that.
@@ -799,7 +799,7 @@ test('rb.chooser.open puts the same grid in a popover, and Escape closes it back
   assert.equal(pop.getAttribute('role'), 'dialog');
   assert.equal(rb.decide.chooserOpen(), true, 'the column counts it as its topmost overlay');
   assert.equal(tiles(pop).length, LISTED.length, 'the whole grid, each layout once');
-  assert.match(pop.querySelector('.rb-lc-pop-title')?.textContent ?? '', /^(Apply|Change) layout$/, 'the heading names what it does');
+  assert.match(pop.querySelector('.rb-lc-pop-title')?.textContent ?? '', /^(Apply|Choose) layout$/, 'the heading names what it does');
   const tile = tiles(pop).find((one) => one.dataset.layout === 'stats-3');
   tile?.focus();
   tile?.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
@@ -1223,16 +1223,16 @@ function withBars(): { state: RebrandStateV1; slideId: string; bars: string[] } 
   return { state: advState(plan, { source: deck }), slideId: slide.id, bars };
 }
 
-test('an object selected opens Decision and Objects, and nothing else, with a door glyph on Replace and no caret on a popup', () => {
+test('an object selected opens Decision with the other sections folded, with a door glyph on Replace and no caret on a popup', () => {
   const { rb, unmount } = advMount(advState());
   rb.controller.setObjectText = async () => ({ ok: true, touched: 1, skipped: 0 });
   const slide = firstSlide();
   const object = slide.objects.find((one) => rb.derived?.objects.has(one.id));
   assert.ok(object);
   rb.select({ slideId: slide.id, objectId: object.id, itemId: null });
-  assert.deepEqual(openParts(rb), ['decision', 'objects']);
+  assert.deepEqual(openParts(rb), ['decision']);
   assert.match(decideEl(rb, '.lp-head-name')?.textContent ?? '', / on slide 1$/);
-  assert.ok(visibleHelp(rb).length <= 1, visibleHelp(rb).map((el) => el.textContent).join(' | '));
+  assert.ok(visibleHelp(rb).filter(el => !el.closest('.rb-layout-start')).length <= 1, visibleHelp(rb).map((el) => el.textContent).join(' | '));
   const replace = decideEl(rb, '[data-key="act-replace"]');
   assert.ok(replace?.querySelector('svg'), 'Replace carries the arrow of a door');
   assert.equal(replace?.querySelector('.lp-caret'), null);

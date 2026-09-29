@@ -1,6 +1,6 @@
 # Using Lolly
 
-A practical guide to actually *using* the app - opening a tool, working the canvas, exporting, saving and sharing. Everything here runs **on your device**: no account, no upload, and no internet needed for the screens you have already opened.
+A practical guide to actually *using* the app - opening a tool, working the canvas, exporting, saving and sharing. Local editing and rendering run **on your device** without an account, and work offline once the required tools and assets are available. Optional **lolly.work** features add organisation sign-in and shared services; expand the sections below when you need those workflows.
 
 > New here? The [Quickstart](/info/quickstart.html) gets you making things in minutes, and [Lolly for Operators](/info/operators.html) covers installing/deploying the app; this page is about driving it once it's open.
 
@@ -277,9 +277,9 @@ Undo reaches back only through this visit; tools that save as you work also keep
 
 ## Your details & headshot
 
-**Settings** (top-right of the gallery, showing your first name once you set one) holds your name, contact details and an optional **headshot**. Tools that ask for those fields pre-fill them automatically - set them once and your email signature, lockups and badges fill themselves in. You can still override any field per session. Opt in with **Use my details to create** so your details ride along as the author on what you export.
+**Settings** (top-right of the gallery, showing your first name once you set one) holds your name, contact details and an optional **headshot**. Tools that ask for those fields pre-fill them automatically - set them once and your email signature, lockups and badges fill themselves in. You can override fields per session unless your organisation locks the input. Opt in with **Use my details to create** so your details ride along as the author on what you export.
 
-Your headshot and details live **only on this device**. A profile can be more than just you - a team or a role you step into now and then. See **[Profiles](/info/profile.html)** for the full picture, including keeping more than one.
+Your personal headshot and details are stored **on this device**; optional sharing, Sync and organisation-managed details are covered in the profile guide. A profile can be more than just you - a team or a role you step into now and then. See **[Profiles](/info/profile.html)** for the full picture, including keeping more than one.
 
 ## Saving & continuing
 
@@ -289,7 +289,7 @@ The **Save** button in the export panel does the same in one click and never dow
 
 To come back later, press **Home** at the top left, then open the **Projects** tab (a folder icon on a phone). My library saves are on its first screen; a project is a folder there. Items are named after the file name you typed in the export panel, or else after their tool, such as **QR Code**. Open one and every setting is there, ready to change and export again.
 
-Saved work stays on this device, in the browser or app you saved from, unless you turn on [Sync](/info/sync.html). A file you get with **Download** is a finished copy; to change it later, open the saved item in Projects. If something is not where you expect, see [Find and recover your work](/info/find-your-work.html).
+Personal saves stay on this device, in the browser or app you saved from, unless you turn on [Sync](/info/sync.html). Shared sessions in an organisation's **Team projects** are stored by its optional lolly.work service. A file you get with **Download** is a finished copy; to change it later, open the saved item in Projects. If something is not where you expect, see [Find and recover your work](/info/find-your-work.html).
 
 ![The two-half render pill - an up arrow that opens the export panel, and a tick labelled Save as that opens the save sheet](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -297,6 +297,12 @@ Saved work stays on this device, in the browser or app you saved from, unless yo
 
 **Projects**, the **Projects** tab at the top of the home screen, holds everything you have saved, in folders you make. Finding, sorting and searching your work there, and restoring an item from **Trash**, are on [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
 
+
+::: details Team projects with lolly.work (optional)
+If your [organisation uses lolly.work](/info/organisation.html), sign in to its instance and open **Projects → Team projects** for sessions shared with you. Access and retention are set by the organisation. For live editing, open a shared session and choose **Share → Work collab** when available; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) explains the steps.
+
+Your personal library remains separate. Signing in on another device gives you access to team work, while personal saves still need Sync or a backup to move across.
+:::
 
 ## Sharing your work
 
@@ -316,6 +322,12 @@ Paste the link to a colleague, bookmark it or commit it. (Full details: [URL Mod
 ![Jump Page in the editor: the heading scene at the top of the page, with the link scenes below it](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **The dialog says what a link cannot carry.** Three things don't fit in a URL: an image or file you added from this device, a very long text value or a very large list. Each one is counted as the link is built. If anything had to be dropped the dialog lists it and points you at the file below, instead of handing you a link that opens with the picture missing. A link that is merely *long* gets a milder note with its character count, since packing can still rescue length.
+
+::: details Organisation-managed links with lolly.work
+For sharing that needs an expiry, revocation or optional password, **lolly.work** supports managed links to shared sessions, tools and catalog assets. They resolve through the organisation's service and follow its access rules. They are separate from the self-contained design URLs above, and a revoked link cannot recall a file someone already downloaded.
+
+See the [lolly.work sharing guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/sharing.md) for the available link types and permissions.
+:::
 
 ### The .lolly file
 
@@ -348,7 +360,7 @@ After confirmation the selected reader inflates and verifies the bundle once. A 
 
 If the file carries a tool you don't have, Lolly asks before that tool can run: **Trust this tool?** shows the tool and its author and says plainly that opening it runs the tool's own code on your device, with **Trust & install** as the way through. Decline and the shared work is still saved to your projects, waiting there for the day you add the tool. (One kind of tool can't be sideloaded yet - one whose code ships as a module - and it's turned away the same way.)
 
-A link and a file both hand over a snapshot. To work on the same session *at the same time* as someone else - two devices, no server, no internet needed if you're on one network - see [Working together](/info/collaborate.html).
+A link and a file both hand over a snapshot. For live editing, [Working together](/info/collaborate.html) covers both private collabs between two devices on a shared network and optional work collabs through lolly.work.
 
 ## Live camera (motion-reactive tools)
 
@@ -360,7 +372,7 @@ When a tool lets you add an image from your device, it's kept exactly as it arri
 
 ## Assets - your library
 
-**Assets** (`#/a`, or the **Assets** segment of the Tools · Utilities · Assets · Projects switch at the top of every listing view) gathers everything your tools can draw on - brand logos, images, audio and motion, grouped by kind - and it's where your **own creative files** live too. No server, no admin console, no pull request: it's all on your device.
+**Assets** (`#/a`, or the **Assets** segment of the Tools · Utilities · Assets · Projects switch at the top of every listing view) gathers everything your tools can draw on - brand logos, images, audio and motion, grouped by kind - and it's where your **own creative files** live too. Your own uploads are stored on your device. An organisation using lolly.work can also supply a shared catalog, including uploaded assets and connected libraries; its access rules govern that content. See [Use Lolly at your organisation](/info/organisation.html).
 
 ![Assets, with the brand's swatches and fonts and your own uploads](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -395,7 +407,9 @@ Beside the Sound switch is **Neurospicy Mode** - an optional, calming background
 
 ## Storage & privacy
 
-Lolly keeps your work on your device: in this browser's own storage in the web app, and in the app's own storage in the desktop and mobile apps. What is kept, what **Clear all my data** removes and what clearing browser data takes with it are on [Find and recover your work](/info/find-your-work.html#if-you-clear-your-browser-data); the [Privacy Policy](/info/privacy.html) lists everything the app fetches or sends, and [Server Surface](/info/server-surface.html) the optional server components.
+Lolly keeps your personal library on your device: in this browser's own storage in the web app, and in the app's own storage in the desktop and mobile apps. What is kept, what **Clear all my data** removes and what clearing browser data takes with it are on [Find and recover your work](/info/find-your-work.html#if-you-clear-your-browser-data); the [Privacy Policy](/info/privacy.html) lists everything the app fetches or sends, and [Server Surface](/info/server-surface.html) the optional server components.
+
+Organisation-held projects, assets and audit records follow the instance's policies. Clearing this device does not erase those server records; see [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 
 ## Moving to another device
 

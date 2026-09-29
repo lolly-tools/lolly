@@ -10,6 +10,8 @@ Every example here that shows output is a command that was run, with its real ou
 
 ---
 
+For renders submitted to **lolly.work**, configure signing on the organisation service instead of copying a personal CLI key to each caller. Its [Content Credentials guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md) covers the server identity and trust roots. [Organisation jobs](/info/cli-automation.html#organisation-jobs-with-lolly-work) explains that separate render path; the steps below configure the local `lolly` CLI.
+
 ## 1. Install and prerequisites
 
 You need **Node 22.18 or later** (the repo runs TypeScript directly through Node's type-stripping; this page was produced on v24.18.1), **pnpm** and a checkout of the repo. The CLI runs as a package script, and its arguments follow the script name with no `--` in between:

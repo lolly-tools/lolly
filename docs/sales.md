@@ -11,6 +11,6 @@ You sell. The deck, the one-pager, the case study and the leave-behind are how t
 
 ## With the rest of the team
 
-A colleague can join you on the same design live - two people, two devices, one file, no server in the middle. See [Working together](/info/collaborate.html).
+A colleague can join you on the same design live: use a private collab between two devices on a shared network, or an optional **lolly.work** collab through your organisation's instance. See [Working together](/info/collaborate.html).
 
 Day-to-day habits that pay off - saved sessions, projects, share links and the batch grid - are in [Using Lolly](/info/using.html).

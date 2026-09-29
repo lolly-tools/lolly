@@ -249,7 +249,9 @@ the user's call, offered at the moment the certificate is actually minted:
 
 ---
 
+Organisation sign-in through optional **lolly.work** is separate from the on-device signing enrolment described here. Its SSO establishes access to the instance; server renders use the service's configured signing identity when available. See [Use Lolly at your organisation](/info/organisation.html) and lolly.work's [Content Credentials guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md).
+
 For the device/CA architecture, the engine contracts, the CA service protocol and
 environment, the web-shell wiring, the one-time operator setup, the threat model
-and the roadmap (RFC 3161 timestamps, transparency log, SUSE SSO), see the
+and the current limits and roadmap, see the
 [Content Credentials - engineering & operator guide](/info/content-credentials-engineering.html).

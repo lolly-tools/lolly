@@ -6,6 +6,17 @@ You govern the whole relay: a creative authors the rules and a developer scales 
 
 New here? [Adoption & Governance](/info/adoption-governance.html) is the rollout in full. [Deployment](/info/deployment.html) covers deploy, serve and hybrid, and [Configuration](/info/configuration.html) is what shapes a single instance.
 
+## Organisation services
+
+**Lolly + lolly.work** combines on-device creation with an optional organisation service. Deploy lolly.work separately when you need SSO and SCIM, group permissions, shared projects and live work collabs, a governed asset library, approvals, server render jobs or delivery records. Its admin console also provides policy-controlled usage reporting and a separate audit log.
+
+- **[Deploy lolly.work](/info/deployment.html#organisation-services-with-lolly-work)** - choose a hosting model and configure identity, persistent storage and backups.
+- **[Use Lolly at your organisation](/info/organisation.html)** - the guide for people signing in and finding their team work.
+- **[Organisation privacy](/info/privacy.html#organisation-services-with-lolly-work)** - which content and records reach the service, including telemetry attribution and audit retention.
+- **[lolly.work operator documentation](https://github.com/lolly-tools/lolly-work/blob/main/docs/README.md)** - the detailed installation, policy, catalog, review and operations guides.
+
+Standalone deployments remain useful without these services. Choose the enabled workflows first, then assess their data flows and access rules.
+
 ## Sales
 
 Walk into the meeting with exactly the file you need, made on the way there. Drop the deck you already have in and rebuild it sharp as a native deck file, with no request queue between you and the asset.
@@ -34,7 +45,7 @@ The usual way routine creative work gets done is a liability surface: files emai
 - **[Trust](/info/trust.html)** - every claim this site makes, with the mechanism that enforces it beside it.
 - **[Security & Verification](/info/security.html)** - the standards, primitives, trust model and testing, written for a reviewer.
 - **[Threat Model & Trust Boundaries](/info/threat-model.html)** - what Lolly defends against, what it explicitly does not and where each boundary falls.
-- **[Server Surface](/info/server-surface.html)** - the complete inventory of what runs server-side (two optional components) against what runs on the device.
+- **[Server Surface](/info/server-surface.html)** - the optional services, including lolly.work, and the data each handles alongside on-device work.
 - **[Parser Inventory](/info/parser-inventory.html)** - every parser that touches a file a user opens and what each one is hardened against.
 - **[Verify It Yourself](/info/verify-yourself.html)** - check the claims against a real export, step by step, with nothing you cannot run yourself.
 - **[Privacy Policy](/info/privacy.html)** - the formal statement of what is and is not collected, stored and sent.

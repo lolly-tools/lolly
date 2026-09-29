@@ -1,6 +1,6 @@
 # Data Transfer - the `lolly-backup` bundle
 
-Everything a Lolly user accumulates lives **on their device** - no account, no cloud. The data-transfer bundle is how that value moves: export it on one install, carry the file by any means (USB, AirDrop, email-to-self, a network share) and import it on another. The file *is* the transport. The target can be offline or online. It makes no difference, because nothing ever talks to a server.
+Lolly's personal library lives **on the device**. Organisation-held work in optional lolly.work is separate, as described below. The data-transfer bundle is how that value moves: export it on one install, carry the file by any means (USB, AirDrop, email-to-self, a network share) and import it on another. The file *is* the transport. The target can be offline or online. Exporting and importing the bundle need no server.
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
@@ -154,6 +154,12 @@ Older readers still accept the v2 envelope (`minReader: 1`) and restore familiar
 The storage meter itemises the same split. Saved sessions, My images and File results & versions ride in a bundle. The asset cache, tool previews and offline pins below them are all re-derivable, so they stay behind.
 
 ![The storage meter breaking this device's data into named categories, with Saved sessions and My images tracked separately from the Asset cache, here on a fresh install where every category is still empty](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+
+## Organisation data with lolly.work
+
+This bundle backs up the device's personal library. It is not a backup of a **lolly.work** instance: organisation accounts, access policies, shared projects, catalog versions, approvals, render jobs and audit records are held separately by that service. Reconnect and sign in to regain access to shared work; importing a personal bundle does not grant that access.
+
+Operators should follow lolly.work's [deployment](https://github.com/lolly-tools/lolly-work/blob/main/docs/deployment.md) and [data lifecycle](https://github.com/lolly-tools/lolly-work/blob/main/docs/data-lifecycle.md) guides for server backups, retention and erasure. Clearing or exporting this device does not perform those server operations.
 
 ## Cross-shell guarantee
 

@@ -218,7 +218,7 @@ export const compileStage: StageFnV1<CompileStageRequestV1, CompiledDeckV1> = as
 /** The Original pane: the source as it stands, through the same frame model as the proposal. */
 export const faithfulStage: StageFnV1<FaithfulStageInputV1, CompiledDeckV1> = (input, ctx) => {
   ctx.throwIfCancelled();
-  const compiled = compileFaithful(input.source);
+  const compiled = compileFaithful(input.source, { originalArtwork: true });
   ctx.throwIfCancelled();
   return compiled;
 };

@@ -1,22 +1,12 @@
 # Server Surface
 
-The complete inventory of Lolly's server-side components. This page exists so
-that one statement can be made precisely: **the core product - rendering,
-exporting and verifying - runs entirely on your device**, and everything that
-does *not* run on your device is listed below, with what it does, what it
-holds and what happens if you turn it off.
+Lolly's engine and apps can render, export and verify on-device. Optional services add agent rendering, verified signing identities, network integrations and organisation workflows. This page identifies those services, what they hold and which features depend on them.
 
-If a Lolly deployment exposes a network endpoint that is not on this page, it
-is not part of Lolly.
+**lolly.work is part of the Lolly project**, maintained in a [separate repository](https://github.com/lolly-tools/lolly-work) and deployed separately. Its shared storage and authenticated APIs are part of the combined solution, not requirements for standalone use.
 
 ## What a deployment looks like
 
-A Lolly deployment is a **static web application** (the PWA the browser loads
-and then runs locally, offline-capable) plus **three optional server components**.
-The server components are the MCP endpoint, the Content Credentials CA and
-the Penpot pass-through. Ordinary on-device editing, rendering, exporting and
-verification do not require these services. A deployment can omit all three;
-the table below lists the optional features each service adds.
+The web app is a static PWA. A deployment can serve those files alone, add selected services below, or run the app with lolly.work for organisation sign-in and shared work. Ordinary local editing, rendering, downloading and verification work without these services once the required tools and assets are available.
 
 | Component | Route | Purpose | Optional? |
 |---|---|---|---|
@@ -26,6 +16,8 @@ the table below lists the optional features each service adds.
 | MCP OAuth | Discovery at `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource`, plus the flow itself: `POST …/register`, `…/authorize`, `…/token` and a `GET …/authorize` consent page (all part of the MCP function) | Standard OAuth 2.1 registration, authorization and token exchange for MCP connectors | Removed with the MCP endpoint |
 | CA service | `/api/ca` - `GET /health`, `GET /root.pem`, `GET /auth/:provider`, `GET /callback/:provider`, `POST /email/start`, `POST /enroll` | Issues short-lived signing certificates so exports can carry a **verified identity** in their Content Credentials. `health` reports which OIDC providers a deployment has actually configured, so the app offers only buttons that work; `root.pem` serves the public root anyone can pin | Yes - without it, exports still sign, anonymously |
 | Penpot pass-through | `POST /api/penpot/rpc/get-all-projects` and `POST /api/penpot/rpc/import-binfile` | Forwards two Penpot RPC calls to `design.penpot.app` on the user's behalf, because Penpot's API refuses cross-origin browser calls. Carries the user's own Penpot personal access token and the `.penpot` archive being sent, stores nothing | Yes - without it, "Send to Penpot" fails closed; the desktop apps do not use it |
+| Image pass-through | `GET /api/fetch-image` | Fetches a public image URL for the web app's Add from URL action; returns image bytes without persistent storage | Yes - disable with `LOLLY_DISABLE_IMAGE_PROXY=1`; desktop apps fetch directly |
+| lolly.work | Separate instance: `/api/auth/*`, `/api/v1/*`, plus its collaboration WebSocket and admin console | Organisation identity, policy, shared catalog and projects, work collabs, approvals, render jobs, delivery, telemetry and audit | Yes - omit it for standalone Lolly; organisation services need a reachable instance |
 
 ## MCP endpoint (`services/mcp`, `api/mcp`)
 
@@ -109,60 +101,34 @@ else changes. Export the `.penpot` file and import it in Penpot yourself.
 Self-hosters who run their own Penpot point the function at it with
 `PENPOT_UPSTREAM_BASE`.
 
-## A deployment with a control plane
+## Organisation services with lolly.work
 
-A deployment may add an **optional control plane** - a separate server
-product an organisation runs so its instance can govern sign-in, policy,
-shared projects and its own catalogue. The app carries one seam for it
-(`src/org/` in the web shell), and that seam is **dormant by default**: on a
-plain deployment it makes one tolerant, time-boxed probe (`GET
-/api/auth/config`), remembers the absence, and the app behaves exactly as a
-build without the seam. Everything the seam can do when a control plane
-answers is additive and documented in the shell source: sign-in gating,
-org-config policy, an instance manifest (`GET /api/v1/instance`, read before
-anyone signs in), and device-code sign-in for the installed apps.
+**What it does.** lolly.work is the optional organisation service for the same Lolly apps and engine. It provides OIDC SSO, SCIM provisioning, group-based permissions, managed profile fields and tool policies. Shared projects and sessions, catalog uploads and federation, work collabs, approvals, governed delivery and server render jobs use its authenticated APIs.
 
-What the app sends a managed instance is the version tag described in the
-[Privacy Policy](/info/privacy.html) - and, **while you are signed in**, a
-per-device install id inside that tag, so the operator's device list can tell
-installs apart. It rides only requests your own use already makes; there is no
-timer and nothing phones home. Leaving the instance (Profile → Lolly instance → Leave) removes the
-organisation's brand, tools and catalogue from the device, deletes the
-install id (a device that reconnects presents a fresh one), and your own
-work stays. The control plane's own endpoints, storage
-and data handling are that product's documentation, not this page's - this
-page keeps its promise for what *Lolly* ships.
+The app's integration lives in `shells/web/src/org/`. On a standalone deployment it probes `/api/auth/config` and continues without organisation features when no service answers. On a managed instance it signs in, fetches policy and shared content, and maintains the connections needed for enabled features. [Use Lolly at your organisation](/info/organisation.html) covers the user-facing steps.
 
-That is the whole of what the app does about enrolment, and it is deliberate.
-Three arrangements follow from it. Plain Lolly has no instance and nothing to
-leave. The community app connected to a governed instance honours that
-instance's policy while you are signed in, and Leave is one tap: the
-organisation's brand, tools and catalogue go, your own work stays. An
-organisation that needs more than that - a client that cannot leave, or one
-that removes the organisation's content after a set time offline - builds and
-ships its own client from this open-source code. Nothing in the app prevents
-that, and nothing in the app does it, because this app is the individual's.
+**What it stores.** Unlike the stateless MCP endpoint, a persistent lolly.work deployment holds organisation accounts and memberships, shared sessions, uploaded assets and their versions, approval and delivery records, render requests and retained outputs, plus audit records and any enabled usage telemetry. The operator configures its database, blob storage, retention and backups. Federation also contacts the asset providers that operator configured.
 
-## What is deliberately *not* here
+**Rendering and delivery.** Local app exports still use the on-device engine. Requests to `/api/v1/renders` and `/api/v1/render-batches` run on the organisation's server, retain outputs and support status, retry and cancellation. Formats needing a browser require the render worker. Governed delivery sends approved staged bytes to configured destinations. These operations deliberately send content to the service.
 
-- **No render server for the app.** The app never uploads your inputs or
-  assets to produce an export.
-- **No verification server.** Dropping a file on Verify parses and checks it
-  locally. The file is never uploaded.
-- **No telemetry or analytics backend.** No endpoint receives usage
-  data. An automated test (`tests/no-trackers.test.ts`) enforces that no
-  analytics or tracking SDK appears anywhere in the shipped source.
-- **No user accounts** in the app. Identity enrolment (above) is the only
-  sign-in anywhere, it is opt-in and it produces a certificate on your
-  device, not an account on a server.
+**Telemetry and audit.** The service supports `off`, `aggregate` and `standard` usage reporting. Event attributes are allowlisted labels, not tool input values. At `standard`, attribution defaults to requiring consent; an operator can configure attributed reporting instead. The hash-chained audit log is a separate record of governed actions and is not disabled by telemetry opt-out. See [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 
-The complete list of every network request the *app* itself can make (fonts,
-catalog sync, the optional endpoints above) is maintained in the
-[Privacy Policy](/info/privacy.html#every-network-request-the-app-can-make).
+**If it is unavailable**, new sign-ins, shared saves, work collabs, server jobs and delivery cannot complete. Prepared local workflows remain on-device, subject to the instance's access policy. Do not assume that cached content is recalled immediately when a policy changes. The community app's **Settings → Lolly instance → Leave** removes its instance connection and managed content, while personal work stays; it does not erase server records. An operator needing a client that cannot leave must distribute its own client.
+
+Full references: lolly.work's [API](https://github.com/lolly-tools/lolly-work/blob/main/docs/api.md), [security boundaries](https://github.com/lolly-tools/lolly-work/blob/main/docs/security-platform.md), [data lifecycle](https://github.com/lolly-tools/lolly-work/blob/main/docs/data-lifecycle.md) and [current status](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md). The public lolly.work sandbox uses memory-only demo state; persistent organisation deployments need their own storage.
+
+## What stays local
+
+- **Ordinary app rendering and downloads** need no render server. Shared-session saves, approval submissions, delivery and explicitly requested server renders have the data flows described above.
+- **The app's Verify view** parses and checks a dropped file locally. Calling the separate MCP `lolly_verify` tool sends the file to that MCP server.
+- **Standalone use** needs no account or usage-reporting backend. lolly.work adds those organisation features when deployed. `tests/no-trackers.test.ts` checks for third-party tracking SDKs; it is not proof that organisation telemetry does not exist.
+- **Personal Sync** uses storage the user chooses and is separate from lolly.work's shared projects.
+
+The app's network flows are described in the [Privacy Policy](/info/privacy.html#every-network-request-the-app-can-make).
 
 ## For self-hosters
 
-All three components are ordinary processes you can run, omit or replace. See
+The services are optional components you can run, omit or replace. lolly.work has its own deployment and storage configuration. See
 [Deployment](/info/deployment.html). If you operate them, you are the operator
 of record for their logging and data handling. The
 [Privacy Policy](/info/privacy.html) explains the split between what the

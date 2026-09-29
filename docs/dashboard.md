@@ -40,7 +40,7 @@ This map is written documentation of what Lolly can do, kept in step with the gu
 
 The build first: how many tools are loaded, how many export formats exist, how many surfaces the platform runs on and how many brand assets the catalogue carries, with a **Catalogue** panel breaking down what ships in this build.
 
-Then your own side of it: **Your activity** counts what you have made on this device (local counters, nothing recorded remotely), and **Recent creations** and **Latest exports** are swipeable stacks of your saved sessions and downloaded files, each appearing only once there is something to show. Both open an item exactly as it was.
+Then your own side of it: **Your activity** counts what you have made on this device (local counters; an optional lolly.work instance has separate [organisation telemetry and audit records](/info/privacy.html#organisation-services-with-lolly-work)), and **Recent creations** and **Latest exports** are swipeable stacks of your saved sessions and downloaded files, each appearing only once there is something to show. Both open an item exactly as it was.
 
 ## Deep links
 
