@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { build } from 'esbuild';
 import { chromium } from 'playwright';
 import { snippetRender, snippetTool } from '../../../../tests/helpers/snippet.ts';
@@ -18,10 +18,14 @@ function bundles() {
       build({ ...options, entryPoints: ['shells/web/src/bridge/portable-player.ts'] }),
       build({ ...options, stdin: { resolveDir: root, contents: `
         import { renderPlayerHtml } from './shells/web/src/bridge/export-player.ts';
+        import { renderPortableHtml } from './shells/web/src/bridge/export-portable.ts';
         import { createSequenceTime } from './shells/web/src/bridge/sequence-dom.ts';
         import { rasterBox, plateWindowDemands } from './shells/web/src/bridge/sequence-render.ts';
         import { readLayer } from './shells/web/src/bridge/sequence-plan.ts';
         window.writeHtml = async (opts) => (await renderPlayerHtml(document.querySelector('#tool-canvas'),opts,null)).text();
+        window.writePortable = async () => (await renderPortableHtml(document.querySelector('#tool-canvas'), {
+          markup: document.querySelector('#tool-canvas').outerHTML, styles: '', script: '', title: 'Font test', lang: 'en'
+        })).text();
         window.shadowProof = async () => {
           const box = document.querySelector('.shadow-proof'), layer = readLayer(box, 0, 1000);
           const pad = plateWindowDemands([layer], [0], 1000).get(0).pad;
@@ -75,6 +79,46 @@ test('Design HTML preserves scoped styling and seeks offline through the shared 
     await offline.setViewportSize({ width: 390, height: 844 });
     const bar = await offline.locator('.lp-bar').boundingBox(); assert.ok(bar && bar.width <= 390);
     assert.deepEqual(requests, []); assert.deepEqual(errors, []);
+  } finally { await browser.close(); }
+});
+
+test('portable fonts use one available source per face and keep their descriptors offline', { skip }, async () => {
+  const source = await bundles(), browser = await chromium.launch();
+  const font = readFileSync(root + 'shells/web/public/fonts/SUSE[wght].woff2');
+  try {
+    const page = await browser.newPage(), requested: string[] = [];
+    await page.route('http://lolly.test/**', route => {
+      const path = new URL(route.request().url()).pathname;
+      requested.push(path);
+      if (path === '/') return route.fulfill({ contentType: 'text/html', body: '<!doctype html><body></body>' });
+      if (path.endsWith('available.woff2')) return route.fulfill({ contentType: 'font/woff2', body: font });
+      return route.fulfill({ status: 404, body: 'Missing font' });
+    });
+    await page.goto('http://lolly.test/');
+    await page.setContent(`<style>
+      @font-face { font-family: 'Portable font'; src: url('/available.woff2') format('woff2'), url('/unused.woff2') format('woff2'); font-weight: 100 900; font-display: swap; unicode-range: U+0000-007F; }
+      @font-face { font-family: 'Portable font'; src: url('/missing.woff2') format('woff2'), url('/subset-available.woff2') format('woff2'); font-weight: 100 900; font-display: swap; unicode-range: U+0080-00FF; }
+      </style><div id="tool-canvas" style="font:700 40px 'Portable font'">Editable café</div>`);
+    await page.evaluate(() => document.fonts.ready);
+    await page.addScriptTag({ content: source.writer });
+    requested.length = 0;
+    const html: string = await page.evaluate(() => (window as any).writePortable());
+    assert.deepEqual(requested, ['/available.woff2', '/missing.woff2', '/subset-available.woff2']);
+    const offline = await browser.newPage(), external: string[] = [];
+    await offline.route('**/*', route => { external.push(route.request().url()); return route.abort(); });
+    await offline.setContent(html);
+    await offline.evaluate(() => document.fonts.ready);
+    const faces = await offline.evaluate(() => [...document.fonts].map(face => ({ status: face.status, weight: face.weight, range: face.unicodeRange })));
+    assert.deepEqual(faces, [
+      { status: 'loaded', weight: '100 900', range: 'U+0-7F' },
+      { status: 'loaded', weight: '100 900', range: 'U+80-FF' },
+    ]);
+    assert.deepEqual(external, []);
+    await page.evaluate(() => {
+      const rule = document.styleSheets[0]!.cssRules[0] as CSSFontFaceRule;
+      rule.style.setProperty('src', 'url(/missing-one.woff2), url(/missing-two.woff2)');
+    });
+    await assert.rejects(page.evaluate(() => (window as any).writePortable()), /document resource could not be embedded/);
   } finally { await browser.close(); }
 });
 

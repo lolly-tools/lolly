@@ -2,6 +2,8 @@
 import type { ExportOpts } from '../../../../packages/core/src/host-v1/export.ts';
 import { portableHtml } from '../../../../engine/src/portable-html.ts';
 
+class ResourceUnavailableError extends Error {}
+
 /** Inline the fonts and images used by this document, without bundling the shell. */
 export async function renderPortableHtml(node: Element, doc: NonNullable<ExportOpts['portableDocument']>): Promise<Blob> {
   const resources = new Map<string, Promise<string>>();
@@ -14,8 +16,8 @@ export async function renderPortableHtml(node: Element, doc: NonNullable<ExportO
     if (existing) return existing;
     if (resources.size >= 128) throw new Error('This document uses too many resources for a portable file.');
     const result = (async () => {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('A document resource could not be embedded. Reload its font or image and retry.');
+      const response = await fetch(url).catch(() => { throw new ResourceUnavailableError('A document resource could not be embedded. Reload its font or image and retry.'); });
+      if (!response.ok) throw new ResourceUnavailableError('A document resource could not be embedded. Reload its font or image and retry.');
       const blob = await response.blob();
       totalBytes += blob.size;
       if (totalBytes > 32 * 1024 * 1024) throw new Error('The portable document exceeds 32 MB. Use smaller images.');
@@ -48,10 +50,10 @@ export async function renderPortableHtml(node: Element, doc: NonNullable<ExportO
   for (const el of [root, ...root.querySelectorAll('*')].slice(0, 4096)) {
     for (const family of getComputedStyle(el).fontFamily.split(',')) families.add(family.trim().replace(/["']/g, '').toLowerCase());
   }
-  const faces: Array<{ css: string; base: string }> = [];
+  const faces: Array<{ css: string; src: string; base: string }> = [];
   const visit = (rules: CSSRuleList, base: string): void => {
     for (const rule of rules) {
-      if (rule instanceof CSSFontFaceRule && families.has(rule.style.fontFamily.replace(/["']/g, '').toLowerCase())) faces.push({ css: rule.cssText, base });
+      if (rule instanceof CSSFontFaceRule && families.has(rule.style.fontFamily.replace(/["']/g, '').toLowerCase())) faces.push({ css: rule.cssText, src: rule.style.getPropertyValue('src'), base });
       else if ('cssRules' in rule) visit((rule as CSSGroupingRule).cssRules, base);
     }
   };
@@ -59,7 +61,23 @@ export async function renderPortableHtml(node: Element, doc: NonNullable<ExportO
     try { visit(sheet.cssRules, sheet.href ?? document.baseURI); } catch { /* Cross-origin stylesheets do not expose rules. */ }
   }
   let resourceCss = `:root{${vars.join(';')}}\n`;
-  for (const face of faces) resourceCss += await inlineCss(face.css, face.base) + '\n';
+  for (const face of faces) {
+    // Font sources are alternatives. Keep one embedded source and every face descriptor.
+    let css = face.css;
+    let unavailable: ResourceUnavailableError | undefined;
+    for (const match of face.src.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)) {
+      try {
+        css = css.replace(face.src, `url("${await inline(new URL(match[1]!, face.base).href)}")`);
+        unavailable = undefined;
+        break;
+      } catch (error) {
+        if (!(error instanceof ResourceUnavailableError)) throw error;
+        unavailable = error;
+      }
+    }
+    if (unavailable) throw unavailable;
+    resourceCss += css + '\n';
+  }
   const fragment = document.createElement('template');
   fragment.innerHTML = doc.markup;
   let markup = doc.markup;
