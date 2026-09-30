@@ -156,7 +156,7 @@ test('open access limits by address, so an invented Authorization header buys no
 });
 
 test('a spent daily budget answers MCP calls with 503 and the time to the next UTC day', async () => {
-  const env = { ...OPEN_ENV, LOLLY_BUDGET_CPU_SECONDS_PER_DAY: '0.001' } as NodeJS.ProcessEnv;
+  const env = { ...OPEN_ENV, LOLLY_BUDGET_EGRESS_MB_PER_DAY: String(1 / (1024 * 1024)) } as NodeJS.ProcessEnv;
   const gateway = createGateway(env);
   const call = (): Promise<{ status: number; headers: Record<string, string>; body: string }> => new Promise((resolve, reject) => {
     const out = { status: 0, headers: {} as Record<string, string>, body: '' };
@@ -170,7 +170,9 @@ test('a spent daily budget answers MCP calls with 503 and the time to the next U
     } as unknown as ServerResponse;
     gateway(req, res).catch(reject);
   });
-  assert.equal((await call()).status, 200); // spends more than a microsecond of CPU
+  const first = await call();
+  assert.equal(first.status, 200);
+  assert.ok(Buffer.byteLength(first.body) > 1, 'the response exceeds the one-byte egress budget');
   const spent = await call();
   assert.equal(spent.status, 503);
   assert.match(spent.body, /daily_budget_reached/);
