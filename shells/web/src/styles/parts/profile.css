@@ -174,7 +174,10 @@
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 1.25);
   padding: 1.25rem 1.4rem;
+  box-shadow: var(--ui-elevation-control);
 }
+.profile-view .profile-card[open]{ box-shadow: var(--ui-elevation-panel);}
+
 .profile-view .profile-card h2 {
   margin: 0 0 1rem;
   font-size: var(--fs-xs);
