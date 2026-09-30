@@ -552,21 +552,6 @@
 .docs-sitemap-slot a { color: hsl(var(--muted-foreground)); text-decoration: none; }
 .docs-sitemap-slot a:hover { color: hsl(var(--primary)); }
 
-/* The .footer-sitemap adopted from the built page carries its column markup but NOT
-   its layout: that lives inline in docs/build.ts and ships only to the static /info
-   site, so here the grid must be re-declared or every section's links run together on
-   one line (icon jammed against text, each .sitemap-col a full-width block row).
-   auto-fit rather than a fixed column count so the index fills as many ~11rem tracks
-   as the reader width offers - more columns on a wide viewport, folding down to two on
-   a phone - with each column's links stacked vertically inside it. */
-.docs-sitemap-slot .sitemap-expanded { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr)); align-items: start; gap: 1.5rem 1.75rem; margin-top: 2rem; }
-.docs-sitemap-slot .sitemap-col { display: flex; flex-direction: column; min-width: 0; }
-.docs-sitemap-slot .footer-sitemap a { display: flex; align-items: flex-start; gap: .5em; padding: .12rem 0; line-height: 1.4; }
-.docs-sitemap-slot .sitemap-ic { flex: none; margin-top: .1em; opacity: .55; color: hsl(var(--primary)); }
-.docs-sitemap-slot .footer-sitemap a:hover .sitemap-ic { opacity: 1; }
-.docs-sitemap-slot .sitemap-title { font-size: calc(.7rem * var(--a11y-fs, 1)); text-transform: uppercase; letter-spacing: .09em; font-weight: 700; color: hsl(var(--foreground)); margin-bottom: .35rem; }
-.docs-sitemap-slot a.sitemap-title:hover { color: hsl(var(--primary)); }
-
 /* footer contact block (extracted <footer> minus the sitemap) - the "Questions? Contact
    Andy Fitzsimon - fitzy@suse.com" line, the Open-Source/Privacy/Inclusive-Design line,
    and the Founded-by-SUSE badge. The built page's own footer CSS lives in its <head>,

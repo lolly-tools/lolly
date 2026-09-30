@@ -3791,45 +3791,8 @@ footer a{color:var(--muted);text-decoration:underline}
 footer a:hover{color:var(--dark)}
 footer .founded-badge{margin-top:.5rem}
 .docs-license{margin:.5rem 0 0;font-size:.6875rem;font-weight:300;line-height:1.6}
-/* Footer sitemap - the whole docs set, ten columns (see FOOTER_SECTIONS).
-   auto-fit is right for a handful of columns and wrong for ten: it maximises the
-   count, so 1180px yields seven and the last three sit alone on a second row under
-   four empty tracks. Explicit counts instead - 2 on a phone, 3 on a tablet, then 5.
-   Ten divides by both 2 and 5, so the phone and the desktop layouts are exactly
-   full (5 rows of two; 2 rows of five). The tablet band is the one that cannot be:
-   ten in threes leaves a single column on a fourth row, and the alternative (four
-   columns, 4+4+2) trades that for a half-empty row at a narrower column width.
-   align-items:start keeps a short column's links at the top of its row
-   rather than stretched down it. Columns read left-aligned inside a centred footer,
-   which is what makes them scannable as lists rather than as prose. Titles take
-   var(--text), not var(--dark), because --dark keeps its value in the dark theme
-   and would go invisible there. */
+/* Shared site map layout and controls live in docs-chrome.css. */
 .footer-sitemap{max-width:1180px;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
-.sitemap-expanded{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:1.25rem 1.5rem;margin-top:2rem}
-@media(min-width:34rem){.sitemap-expanded{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(min-width:64rem){.sitemap-expanded{grid-template-columns:repeat(5,minmax(0,1fr))}}
-.footer-sitemap a{display:flex;align-items:flex-start;gap:.45em;color:var(--muted);text-decoration:none;padding:.15rem 0 .15rem;line-height:2;min-width:0;overflow-wrap:anywhere;hyphens:auto}
-.footer-sitemap a:hover{color:var(--green);text-decoration:underline}
-/* Every sitemap link opens with the SAME glyph the docs sidebar gives that page
-   (SIDEBAR_ICON - one page→icon mapping, both navs), so the landmark a reader
-   learned on the rail keeps working down here. Decorative: aria-hidden spans,
-   sized in em to the footer's own text so rows and the smaller uppercase headings
-   each get a matching icon from one rule. margin-top holds the 1.5em glyph on the
-   FIRST line of the 2-line-height row when a label wraps. */
-.footer-sitemap .sitemap-ic{flex:none;width:1.5em;height:1.5em;margin-top:.22em;opacity:.6;color:var(--green)}
-.footer-sitemap .sitemap-ic svg{width:100%;height:100%;display:block}
-.footer-sitemap a:hover .sitemap-ic{opacity:1}
-/* The column heading is a LINK to its pathway's main page. That is what pays for
-   the full enumeration: the overview never costs a row of its own, and the two or
-   three columns a long pathway is split across all point their heading at the same
-   hub. It keeps the heading's own weight and colour rather than the muted link
-   treatment two rules above - declared AFTER them so it wins without a specificity
-   fight - and takes the underline only on hover, so it reads as a heading first and
-   a destination second. footer a{text-decoration:underline} is the rule overridden. */
-.sitemap-title{font-size:.6875rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text);font-weight:700;margin-bottom:.5rem;text-decoration:none}
-.footer-sitemap a.sitemap-title{color:var(--text)}
-.footer-sitemap a.sitemap-title:hover{color:var(--green);text-decoration:underline}
-.sitemap-title .sitemap-ic{ width:2em; height:2em; color:var(--text);}
 
 /* Mobile */
 @media(max-width:900px){
@@ -5300,93 +5263,43 @@ const PATHWAY_HUB: Record<Pathway, string> = {
 };
 
 /**
- * The footer sitemap: the WHOLE docs set, one column per section.
- *
- * This is a full site map, not a selection. Every page the build emits is either a
- * column HEADING (the five pathway hubs) or a link inside a column - asserted below,
- * so the footer cannot silently stop listing a page. There is no "everything else"
- * row: a catch-all is the shape a sitemap takes when it has given up being one, and
- * it hides exactly the pages nothing else links to.
- *
- * What makes that affordable is the heading. Each column's heading IS the link to
- * its pathway's main page, so the overview never costs a row of its own, and a
- * pathway too long for one readable column is split into two or three columns that
- * all point their heading at the same hub. That is where the balance comes from -
- * Builders' seventeen children are three columns of five or six rather than one
- * unreadable stack, and the same split gives Creators' ten (the "Using Lolly" set,
- * which grew by three pages when collab/search/favourites landed) a making column,
- * a finding column and a sharing column.
- *
- * The creators split IS its rail: the three columns below are exactly the rail's
- * "Make things", "Find your way" and "Share & collaborate" groups - same members,
- * same order - with only its "Creators" (hub + quickstart, both already elsewhere
- * in the footer) and "Compare" groups placed differently, as noted below. The two
- * columns that borrow a rail label ("Find your way", "Share & collaborate") hold
- * exactly the pages that label holds in the sidebar.
- *
- * Reusing a rail label over a DIFFERENT
- * set is worse than not reusing it - a reader who learned upstairs that "Find your
- * way" means search / favourites / profile then meets a fourth page under it down
- * here and has to work out which grouping is the real one.
- *
- * Builders and Trust use a different grouping: a sidebar deliberately REPEATS
- * a page across pathways (Security sits
- * in three rails; Data Transfer in two), while the footer lists every page exactly
- * once. So their columns are the rail clusters with the borrowed pages settled onto
- * one owner - cli-signing to Operators, data-transfer and about to Builders, privacy
- * and inclusive-design to Trust's second column.
- *
- * Two placements are worth stating out loud because they are footer-only groupings
- * and do NOT move the pages themselves - each page keeps its own `pathway`, its own
- * sidebar rail and its own URL:
- *   - Home sits under Quickstart. The Quickstart pathway has exactly one page, which
- *     is the heading, and a heading over an empty column reads as a bug.
- *   - "How Lolly compares" sits there too, next to Home: it is the page a reader
- *     wants BEFORE they pick a pathway, and it is the one Creators page that is not
- *     about operating the app.
- *
- * Order is the order shown. Labels reuse the SIDEBARS group labels wherever one
- * fits, so the footer and the rail name the same cluster the same way (and so the
- * string is already in every locale's site.json).
+ * The full site map has one column per pathway, with expandable topic groups.
+ * Groups follow the sidebar labels and order. Shared pages have one owner here,
+ * so each destination appears once while every pathway keeps its overview link.
+ * Home and comparisons sit under Quickstart, before a reader chooses a pathway.
  */
 interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
 const FOOTER_SECTIONS: SitemapSection[] = [
-  { hub: 'quickstart', label: 'Quickstart', slugs: ['index', 'make-something', 'install', 'organisation', 'faq', 'positioning', 'compare',
-    'compare-canva', 'compare-adobe', 'compare-figma', 'compare-render-apis', 'compare-converters',
-    'compare-penpot', 'compare-brand-portals'] },
-  // Keeps the pathway's own name rather than the rail's "Make things", because the
-  // FIRST column of a split pathway is where a reader looks for the pathway. The three
-  // "For …" pathway heads sit NEXT TO EACH OTHER (Andy, 2026-08-17): they are the same
-  // kind of thing - who-you-are doors - so they read as one group, with each pathway's
-  // sub-columns following after the trio. Membership is unchanged, order only.
-  { hub: 'creators', label: 'For Creators', slugs: [
-    'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', '3d-studio', 'text-composition', 'design-import', 'rebrand', 'sequence-editor', 'hdr-editing', 'animating', 'utilities', 'extension'] },
-  { hub: 'builders', label: 'For Builders', slugs: [
-    'overview', 'design-tokens', 'token-workflows', 'glossary', 'document-model', 'authoring-tools', 'authoring-assets', 'text-composition-engine', 'host-api', 'url-mode'] },
-  { hub: 'operators', label: 'For Operators', slugs: [
-    'sales', 'press', 'marketing', 'legal',
-    'adoption-governance', 'sovereign-production', 'deployment', 'configuration', 'build-guide', 'cli-signing'] },
-  { hub: 'creators', label: 'Find your way', slugs: [
-    'search', 'ask', 'dashboard', 'favourites', 'profile', 'find-your-work', 'sync'] },
-  { hub: 'creators', label: 'Share & collaborate', slugs: [
-    'agenda', 'presenting', 'collaborate', 'formats', 'exporting'] },
-  { hub: 'builders', label: 'Concepts', slugs: [
-    'constraints', 'determinism', 'reproducibility'] },
-  { hub: 'builders', label: 'Run & integrate', slugs: [
-    'cli', 'tui', 'mcp', 'ai-agents', 'data-transfer', 'learning-integration', 'design-tool-contract'] },
-  { hub: 'builders', label: 'Ship & operate', slugs: [
-    'contributing-setup', 'ios-build', 'about'] },
-  { hub: 'builders', label: 'Write a tool', slugs: ['tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files', 'tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing'] },
-  { hub: 'builders', label: 'URL reference', slugs: ['url-inputs', 'url-parameters', 'url-export', 'url-app-links'] },
-  { hub: 'builders', label: 'CLI guides', slugs: ['cli-rendering', 'cli-files', 'cli-automation', 'production-checks', 'cli-reference'] },
-  { hub: 'operators', label: 'Build targets', slugs: ['build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes'] },
-  { hub: 'trust', label: 'Trust', slugs: [
-    'tenets', 'status-quo', 'input-not-impersonation', 'content-credentials-identity',
-    'content-credentials-engineering', 'creative-rights', 'ai-stance', 'ai-features', 'eu-ai-act',
-    'beatrice-warde', 'shoulders-of-giants'] },
-  { hub: 'trust', label: 'Check it yourself', slugs: [
-    'verify-yourself', 'verify-ai-evidence', 'security', 'threat-model', 'parser-inventory', 'server-surface'] },
-  { hub: 'trust', label: 'Your data', slugs: ['privacy', 'inclusive-design'] },
+  { hub: 'quickstart', label: 'Start here', slugs: ['index', 'make-something', 'install', 'organisation', 'faq'] },
+  { hub: 'quickstart', label: 'Compare', slugs: ['positioning', 'compare',
+    'compare-canva', 'compare-adobe', 'compare-figma', 'compare-penpot',
+    'compare-render-apis', 'compare-brand-portals', 'compare-converters'] },
+  { hub: 'creators', label: 'Make', slugs: [
+    'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', '3d-studio',
+    'text-composition', 'design-import', 'rebrand', 'utilities', 'extension'] },
+  { hub: 'creators', label: 'Animate', slugs: ['sequence-editor', 'hdr-editing', 'animating'] },
+  { hub: 'creators', label: 'Find your way', slugs: ['search', 'ask', 'dashboard', 'favourites', 'profile', 'find-your-work', 'sync'] },
+  { hub: 'creators', label: 'Present', slugs: ['agenda', 'presenting'] },
+  { hub: 'creators', label: 'Collaborate', slugs: ['collaborate'] },
+  { hub: 'creators', label: 'Post', slugs: ['formats', 'exporting'] },
+  { hub: 'builders', label: 'Architecture', slugs: ['overview', 'design-tokens', 'token-workflows', 'glossary', 'document-model'] },
+  { hub: 'builders', label: 'Concepts', slugs: ['constraints', 'determinism', 'reproducibility'] },
+  { hub: 'builders', label: 'Author tools', slugs: ['authoring-tools', 'tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files'] },
+  { hub: 'builders', label: 'Render and share tools', slugs: ['tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing'] },
+  { hub: 'builders', label: 'Reference', slugs: ['authoring-assets', 'text-composition-engine', 'host-api'] },
+  { hub: 'builders', label: 'URL mode', slugs: ['url-mode', 'url-inputs', 'url-parameters', 'url-export', 'url-app-links'] },
+  { hub: 'builders', label: 'CLI', slugs: ['cli', 'cli-rendering', 'cli-files', 'cli-automation', 'production-checks', 'cli-reference', 'cli-signing'] },
+  { hub: 'builders', label: 'Run & integrate', slugs: ['tui', 'mcp', 'ai-agents', 'learning-integration', 'design-tool-contract'] },
+  { hub: 'builders', label: 'Ship & operate', slugs: ['contributing-setup', 'about'] },
+  { hub: 'operators', label: 'Playbooks', slugs: ['sales', 'press', 'marketing', 'legal'] },
+  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'configuration', 'build-guide'] },
+  { hub: 'operators', label: 'Build targets', slugs: ['build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes', 'ios-build'] },
+  { hub: 'trust', label: 'Tenets', slugs: ['tenets', 'status-quo', 'inclusive-design'] },
+  { hub: 'trust', label: 'Project perspective', slugs: ['input-not-impersonation', 'content-credentials-identity',
+    'creative-rights', 'ai-stance', 'ai-features', 'eu-ai-act', 'beatrice-warde', 'shoulders-of-giants'] },
+  { hub: 'trust', label: 'Check it yourself', slugs: ['verify-yourself', 'verify-ai-evidence', 'security'] },
+  { hub: 'trust', label: 'For reviewers', slugs: ['threat-model', 'parser-inventory', 'server-surface', 'content-credentials-engineering'] },
+  { hub: 'trust', label: 'Your data', slugs: ['privacy', 'data-transfer'] },
 ];
 
 // The guard that makes "full site map" a property of the build rather than a claim in
@@ -5443,19 +5356,24 @@ function footerSitemap(lang: Lang): string {
   // rule to the footer's own text scale. A missing entry throws at build (the
   // guard beside SIDEBAR_ICON), never renders blank.
   const ic = (slug: string) => `<span class="sitemap-ic" aria-hidden="true">${docIcon(SIDEBAR_ICON[slug]!)}</span>`;
-  const cols = FOOTER_SECTIONS.map(sec => {
-    const links = sec.slugs
-      .map(s => `<a href="${localeHref(lang, s)}">${ic(s)}<span>${esc(t(sitemapLabel(s, sec.hub)))}</span></a>`)
-      .join('');
+  const chevron = `<span class="sitemap-chevron" aria-hidden="true">${docIcon('adm-chevron')}</span>`;
+  const cols = (Object.keys(SIDEBARS) as Pathway[]).map(hub => {
+    const sections = FOOTER_SECTIONS.filter(sec => sec.hub === hub).map(sec => {
+      const links = sec.slugs
+        .map(s => `<a href="${localeHref(lang, s)}">${ic(s)}<span>${esc(t(sitemapLabel(s, hub)))}</span></a>`)
+        .join('');
+      return `<details class="sitemap-section"><summary><span>${esc(t(sec.label))}</span>${chevron}</summary><div class="sitemap-links">${links}</div></details>`;
+    }).join('');
     return `<div class="sitemap-col">`
-      + `<a class="sitemap-title" href="${localeHref(lang, PATHWAY_HUB[sec.hub])}">${ic(PATHWAY_HUB[sec.hub])}<span>${esc(t(sec.label))}</span></a>`
-      + `${links}</div>`;
+      + `<a class="sitemap-title" href="${localeHref(lang, PATHWAY_HUB[hub])}">${ic(PATHWAY_HUB[hub])}<span>${esc(t(SIDEBARS[hub].title))}</span></a>`
+      + `${sections}</div>`;
   }).join('');
   // A <div role="navigation">, not a <nav>: the stylesheet once styled the bare `nav`
   // element as the fixed top bar, which pinned any second <nav> over the real one.
   // The bar has its own class now; the div keeps the same landmark semantics.
-  const body = `<details class="sitemap-disclosure"><summary><span>${esc(t('Documentation'))}</span><span class="sitemap-chevron" aria-hidden="true">${docIcon('adm-chevron')}</span></summary><div class="sitemap-expanded">${cols}</div></details>`;
-  return `<div role="navigation" class="footer-sitemap" aria-label="${esc(t('Sitemap'))}">${body}</div>`;
+  const label = esc(t('Site map'));
+  const body = `<details class="sitemap-disclosure"><summary><span>${label}</span>${chevron}</summary><div class="sitemap-expanded">${cols}</div></details>`;
+  return `<div role="navigation" class="footer-sitemap" aria-label="${label}">${body}</div>`;
 }
 
 const FOOTER = (lang: Lang) => `<footer>${footerSitemap(lang)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a> · <a href="${localeHref(lang, 'shoulders-of-giants')}">${esc(t('Provenance'))}</a> · <a href="${localeHref(lang, 'faq')}">${esc(t('FAQ'))}</a></p>${FOUNDED_BY}<p class="docs-license">${esc(t('Code'))} (<a href="${CODE_LICENSE_URL}">MPL 2.0</a>) · ${esc(t('Content'))} (<a rel="license" href="${CONTENT_LICENSE_URL}">CC BY-SA 4.0</a>) · <a href="${SITE_URL}">lolly.tools</a></p></footer>`;
