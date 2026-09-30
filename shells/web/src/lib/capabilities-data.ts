@@ -435,7 +435,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'Proof-margin credits', desc: 'Optional timestamp, “Made with…”, and tool/author credit in the margin - a proof annotation, trimmed at the final cut.' },
       ] },
       { icon: ICONS.lock, title: 'Lockable output', shot: 'exp-pdf-password', keywords: 'password protect pdf encrypt aes open password', features: [
-        { name: 'Password-protect the press file', desc: 'Any PDF - including Print and CMYK PDFs - can carry a <strong>Standard</strong> (40-bit, link-embeddable) or <strong>Strong</strong> (AES-256) open-password. Full PDF, zip and share-link encryption lives under <strong>Security &amp; access control</strong> below.' },
+        { name: 'Password-protect the press file', desc: 'Any PDF - including Print and CMYK PDFs - can carry a <strong>Weak</strong> (40-bit, link-embeddable) or <strong>Strong</strong> (AES-256) open-password. Full PDF, zip and share-link encryption lives under <strong>Security &amp; access control</strong> below.' },
       ] },
     ],
   },
@@ -570,10 +570,10 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'Encrypted share links', desc: 'Any share link can be encrypted: the design is AES-256-GCM-encrypted under a key stretched from the password with PBKDF2-SHA256 (210k iterations). The link carries <em>only</em> the ciphertext - opening it prompts the recipient for the password and rebuilds the design in their browser. The password never travels in the link and never reaches a server - the server sees only ciphertext in the URL, and decryption happens entirely in the recipient’s browser.' },
       ] },
       { icon: ICONS.lock, title: 'Locked PDFs', shot: 'cc-pdf-lock', keywords: 'pdf password encrypt aes 256 rc4 40 bit open password acrobat', features: [
-        { name: 'Two lock strengths', desc: 'A PDF can carry a <strong>Standard</strong> open-password (a basic 40-bit lock that opens in any PDF app and can ride in a share link - a deterrent for short-lived material) or a <strong>Strong</strong> one (AES-256; opens in newer PDF apps only, and its password is typed at export, never in a link). Strong locks also apply to Print/CMYK and multi-page PDFs.' },
+        { name: 'Two lock strengths', desc: 'A PDF can carry a <strong>Weak</strong> open-password (a simple password that can ride in a share link - a deterrent for short-lived material) or a <strong>Strong</strong> one (AES-256; its password is typed at export, never in a link). Strong locks also apply to Print/CMYK and multi-page PDFs.' },
       ] },
       { icon: ICONS.zip, title: 'Locked downloads', keywords: 'zip encryption zipcrypto winzip aes 7zip windows explorer unzip', features: [
-        { name: 'Whole-zip encryption (defense-in-depth)', desc: 'A folder or multi-file download can lock the whole zip - <strong>Standard</strong> (ZipCrypto; opens in any unzip tool including Windows Explorer) or <strong>Strong</strong> (WinZip AES-256; needs 7-Zip / WinZip / macOS, not Windows Explorer’s built-in extract). One password protects <em>every</em> member - images and all - and any PDFs inside are <em>also</em> individually AES-256-locked, so they stay locked even after the zip is unpacked.' },
+        { name: 'Whole-zip encryption (defense-in-depth)', desc: 'A folder or multi-file download can lock the whole zip with a <strong>Weak</strong> simple password or <strong>Strong</strong> AES-256 encryption. One password protects <em>every</em> member - images and all - and any PDFs inside are <em>also</em> individually AES-256-locked, so they stay locked even after the zip is unpacked.' },
       ] },
       { icon: ICONS.shield, title: 'Reviewed tools', keywords: 'sandbox isolation worker hooks host bridge allowlist network review first party', features: [
         { name: 'One portable contract', desc: 'A tool’s optional logic is written against the <code>host.*</code> bridge - the supported, portable API for storage, network and export - and its calls are time-boxed. In the page the bridge is a portability contract rather than a sandbox, so tools proven to render byte-identically in a Worker run their logic there instead, a sideloaded tool always runs in the strict Worker executor, and every tool in the catalogue is first-party and reviewed before it ships.' },

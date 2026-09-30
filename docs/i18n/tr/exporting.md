@@ -1,6 +1,6 @@
 # Dışa Aktarma ve Formatlar
 
-Bir aracın **Dışa aktar | Farklı kaydet** düğmesinde **Dışa aktar**'a bas, dosya adının yanındaki menüden bir format seç, ardından **İndir**'e bas. Dosya cihazında oluşturulur; hiçbir şey yüklenmez.
+Bir aracın **Dışa aktar | Farklı kaydet** düğmesinde **Dışa aktar**'a bas, dosya adının yanındaki menüden bir format seç, ardından **İndir**'e bas. Sıradan bir indirme cihazında oluşturulur. Kuruluş onayı ve teslim seçenekleri aşağıda anlatılıyor.
 
 Çoğu iş için üç formattan biri doğrudur:
 
@@ -34,6 +34,14 @@ Dışa aktarma panelindeki eylemler:
 ![Dışa aktarma paneli - format, boyut ve Kopyala / İndir / Kaydet / Paylaş eylemleri](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Paylaş, aracın üzerinde açılır; bağlantı önceden oluşturulmuş ve ziyarette açılan geçişler altındadır.
+
+::: details lolly.work ile onay ve teslim (isteğe bağlı)
+[lolly.work kullanan bir kuruluş](/info/organisation.html) kullanılabilir formatları ve dışa aktarma ayarlarını yönetebilir. Onay gerektiğinde uygulama **İndir** yerine **Request approval** (onay iste) gösterebilir. Örneğinin gösterdiği ilkeyi izle.
+
+Hizmet ayrıca yapılandırılmış S3, WebDAV ve HTTP hedeflerine yönetilen teslimi destekler; yapılandırıldığı yerlerde onay adımları, teslim makbuzları ve bir denetim kaydı bulunur. Bir dosyayı bu iş akışına göndermek onu kuruluşun hizmetine iletir; sıradan yerel indirmeler cihazda kalır. Kişisel Gönder hedeflerinin ve yönetilen kuruluş teslimatının yapılandırması ayrıdır.
+
+Operatörler için [teslim kılavuzuna](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) bak. Kuyruğa alınmış sunucu işlemleri ve toplu işler için [CLI toplu işlem ve otomasyon](/info/cli-automation.html#organisation-jobs-with-lolly-work) bölümüne bak.
+:::
 
 ### Aynı anda birçoğunu işleme
 
@@ -296,21 +304,21 @@ Kart bir bezemedir, asla içerik değil: her dışa aktarma aşamasından soyulu
 
 Tamamen cihaz üzerinde çalışan iki bağımsız kilit türü.
 
-**PDF açma şifresi** - dışa aktarma panelindeki *Şifreyle koru* kartı iki kademe sunar:
+**PDF açma şifresi** - dışa aktarma panelindeki *Şifreyle koru* kartı, bir şifre yazıldığında iki kademe sunar:
 
 ![Bir PDF dışa aktarımında açılmış Şifreyle koru kartı, şifre alanı ve iki kilit kademesiyle](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standart** - temel bir 40-bit kilit (RC4). *Her* PDF uygulamasında açılır ve - hafif bir caydırıcı olduğu, gerçek bir koruma olmadığı için - bir paylaşım bağlantısında (tasarım gereği düz metin olarak) yolculuk edebilir. Sadece RGB `pdf`.
-- **Güçlü** - AES-256 (PDF 2.0). Şifresi dışa aktarımda girilir ve **asla** bir bağlantıya konmaz; yalnızca daha yeni PDF uygulamalarında açılır (Acrobat / Preview ~2018 ve sonrası), eski uygulamalar dosyayı hasarlı olarak bildirebilir. Güçlü kademe **Yazdır / CMYK PDF'ler** için ve **bir toplu zip içindeki her PDF** için de geçerlidir (toplu onay diyalogu şifreyi toplar). PDF/X-4 şifrelemeyi yasakladığından, Güçlü kilitli bir Yazdır PDF'i CMYK'sını, kesim işaretlerini ve çıktı amacını korur ama PDF/X-4 uyumluluk beyanını düşürür.
+- **Zayıf** - basit bir 40-bit şifre (RC4). Hafif bir caydırıcı, gerçek bir koruma değil: şifresi bir paylaşım bağlantısında (düz metin olarak) yolculuk edebilir. Sadece RGB `pdf`.
+- **Güçlü** - AES-256 (PDF 2.0). Şifresi dışa aktarımda girilir ve **asla** bir bağlantıya konmaz. Güçlü kademe **Yazdır / CMYK PDF'ler** için ve **bir toplu zip içindeki her PDF** için de geçerlidir (toplu onay diyalogu şifreyi toplar). PDF/X-4 şifrelemeyi yasakladığından, Güçlü kilitli bir Yazdır PDF'i CMYK'sını, kesim işaretlerini ve çıktı amacını korur ama PDF/X-4 uyumluluk beyanını düşürür.
 
 Her iki kademe de Content Credentials ile karşılıklı dışlayıcıdır (şifrelenmiş bir PDF kimlik bilgisini alamaz).
 
 **Kilitli indirmeler (tüm zip + derinlemesine savunma)** - bir **ZIP** dışa aktarımı (dışa aktarma panelinin, bir aracın birden çok biçimini bir araya toplayan *ZIP* biçimi), bir **klasör** indirmesi (Projeler → İndir) veya **toplu ızgara** tüm zip'i tek bir şifreyle iki kademede kilitleyebilir:
 
-- **Standart** - geleneksel **ZipCrypto**: Windows Explorer'ın yerleşik ayıklama aracı dahil *her* unzip aracında açılır, ama zayıftır (bir caydırıcı). Şifresi bir `?password=` paylaşım bağlantısında yolculuk edebilir.
-- **Güçlü** - **AES-256** (WinZip AE-2): güçlüdür, ama Windows Explorer'ın yerleşik ayıklama aracında **açılmaz** - alıcının 7-Zip / WinZip / Keka / macOS'a ihtiyacı vardır. Dışa aktarımda girilir, asla bir bağlantıya konmaz.
+- **Zayıf** - geleneksel **ZipCrypto**, yalnızca bir caydırıcı. Şifresi bir `?password=` paylaşım bağlantısında yolculuk edebilir.
+- **Güçlü** - **AES-256** şifrelemesi. Dışa aktarımda girilir, asla bir bağlantıya konmaz.
 
-Dışa aktarma panelindeki aynı *Şifreyle koru* kartı hem PDF hem de ZIP kilitlerini yönetir, seçilen biçime göre kendini yeniden ifade eder. Tek şifre **her** üyeyi korur - görseller, SVG, her şeyi, PDF'ler dahil (kendi kilidi olmayan PDF dışı dosyaları yalnızca zip kapsayıcısı koruyabilir). Ve bu **derinlemesine savunmadır**: içindeki herhangi bir PDF *ayrıca* aynı şifreyle tek tek AES-256 ile kilitlenir, böylece zip açıldıktan sonra bile PDF kilitli kalır. İstem, indirmeyi başlattığında görünür; boş bir şifre kilit olmadığı anlamına gelir.
+Dışa aktarma panelindeki aynı *Şifreyle koru* kartı hem PDF hem de ZIP kilitlerini yönetir. Tek şifre **her** üyeyi korur - görseller, SVG, her şeyi, PDF'ler dahil (kendi kilidi olmayan PDF dışı dosyaları yalnızca zip kapsayıcısı koruyabilir). Ve bu **derinlemesine savunmadır**: içindeki herhangi bir PDF *ayrıca* aynı şifreyle tek tek AES-256 ile kilitlenir, böylece zip açıldıktan sonra bile PDF kilitli kalır. İstem, indirmeyi başlattığında görünür; boş bir şifre kilit olmadığı anlamına gelir.
 
 **Şifre korumalı paylaşım bağlantıları** - herhangi bir paylaşım bağlantısı, açıldığında alıcıdan şifre istenecek şekilde şifrelenebilir. Tüm bağlantı durumu, şifreden türetilen bir anahtar (PBKDF2) altında AES-256 ile şifrelenir; yalnızca şifreli metin yolculuk eder, böylece **şifre asla bağlantıda değildir** ve şifre çözme **alıcının tarayıcısında** gerçekleşir - bağlantıyı sunan sunucu URL'de yalnızca şifreli metni görür, ne şifreyi ne de çözülmüş tasarımı asla görmez. **Paylaş** diyalogunda açarsın. Şifrelenmiş bir bağlantı yalnızca Lolly içinde *açılabilir* (görsel olarak gömülemez, çünkü o yol bir istem gösteremez). Bkz. [URL Modu → Şifrelenmiş bağlantılar](/info/url-mode.html).
 

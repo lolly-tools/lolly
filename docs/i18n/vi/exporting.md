@@ -1,6 +1,6 @@
 # Xuất & Định dạng
 
-Nhấn **Xuất** trên cụm **Xuất | Lưu thành** của một công cụ, chọn một định dạng từ menu bên cạnh tên tệp, rồi nhấn **Tải xuống**. Tệp được tạo trên thiết bị của bạn; không có gì được tải lên.
+Nhấn **Export** trên nút **Export | Save as** của một công cụ, chọn một định dạng từ menu bên cạnh tên tệp, rồi nhấn **Download**. Một lần tải xuống thông thường được thực hiện ngay trên thiết bị của bạn. Phần phê duyệt của tổ chức và các tùy chọn phân phối được nêu bên dưới.
 
 Với hầu hết công việc, một trong ba định dạng là phù hợp:
 
@@ -34,6 +34,14 @@ Các thao tác trong bảng xuất:
 ![Bảng xuất - định dạng, kích thước và các thao tác Sao chép / Tải xuống / Lưu / Chia sẻ](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Chia sẻ mở ra trên công cụ, với liên kết đã được dựng sẵn và các nút bật/tắt khi truy cập ở bên dưới.
+
+::: details Approvals and delivery with lolly.work (optional)
+Một [tổ chức dùng lolly.work](/info/organisation.html) có thể quản lý các định dạng khả dụng và thiết đặt xuất. Khi cần phê duyệt, ứng dụng có thể hiển thị **Request approval** thay cho **Download**. Hãy làm theo chính sách mà phiên bản của bạn hiển thị.
+
+Dịch vụ cũng hỗ trợ phân phối có quản trị tới các đích S3, WebDAV và HTTP đã cấu hình, với các bước phê duyệt khi được cấu hình, biên nhận phân phối và bản ghi kiểm toán. Việc gửi một tệp vào quy trình đó sẽ chuyển nó đến dịch vụ của tổ chức; các lần tải xuống cục bộ thông thường vẫn ở trên thiết bị. Các đích Send cá nhân và phân phối có quản trị của tổ chức có cấu hình riêng.
+
+Dành cho người vận hành, xem [hướng dẫn phân phối](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Với các lượt kết xuất và lô trên máy chủ được xếp hàng, xem [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Kết xuất nhiều thứ cùng lúc
 
@@ -296,21 +304,21 @@ Thẻ này là chrome, không bao giờ là nội dung: nó bị loại bỏ kh�
 
 Hai loại khóa độc lập, đều hoàn toàn trên thiết bị.
 
-**PDF open-password** - thẻ *Password protect* (Bảo vệ bằng mật khẩu) trong bảng xuất cung cấp hai cấp độ:
+**PDF open-password** - thẻ *Password protect* (Bảo vệ bằng mật khẩu) trong bảng xuất cung cấp hai cấp độ khi đã nhập mật khẩu:
 
 ![Thẻ Password protect được mở rộng trên một bản xuất PDF, với trường mật khẩu và hai cấp khóa](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - một khóa cơ bản 40-bit (RC4). Nó mở được trong *bất kỳ* ứng dụng PDF nào, và - vì chỉ là một biện pháp răn đe nhẹ, không phải bảo vệ thực sự - nó có thể xuất hiện trong liên kết chia sẻ (dạng văn bản rõ, có chủ đích). Chỉ áp dụng cho `pdf` RGB.
-- **Strong** - AES-256 (PDF 2.0). Mật khẩu được nhập khi xuất và **không bao giờ** được đặt vào liên kết; nó chỉ mở được trong các ứng dụng PDF mới hơn (Acrobat / Preview từ khoảng 2018 trở đi), và các ứng dụng cũ hơn có thể báo file bị hỏng. Strong cũng áp dụng cho **PDF Print / CMYK** và cho **từng PDF bên trong một zip hàng loạt** (hộp thoại xác nhận hàng loạt sẽ thu thập mật khẩu). Vì PDF/X-4 cấm mã hóa, một PDF Print bị khóa bằng Strong vẫn giữ CMYK, dấu cắt và output-intent nhưng mất tuyên bố tuân thủ PDF/X-4.
+- **Weak** - một mật khẩu 40-bit đơn giản (RC4). Chỉ là rào cản nhẹ, không phải bảo vệ thực sự: mật khẩu của nó có thể đi trong một liên kết chia sẻ (ở dạng văn bản thuần). Chỉ dành cho `pdf` RGB.
+- **Strong** - AES-256 (PDF 2.0). Mật khẩu được nhập khi xuất và **không bao giờ** được đặt vào liên kết. Strong cũng áp dụng cho **PDF Print / CMYK** và cho **từng PDF bên trong một zip hàng loạt** (hộp thoại xác nhận hàng loạt sẽ thu thập mật khẩu). Vì PDF/X-4 cấm mã hóa, một PDF Print bị khóa bằng Strong vẫn giữ CMYK, dấu cắt và output-intent nhưng mất tuyên bố tuân thủ PDF/X-4.
 
 Cả hai cấp độ đều loại trừ lẫn nhau với Content Credentials (một PDF được mã hóa không thể mang chứng nhận).
 
 **Tải xuống có khóa (toàn bộ zip + phòng thủ theo chiều sâu)** - một bản xuất **ZIP** (định dạng *ZIP* trong bảng xuất, gộp nhiều định dạng của một công cụ), một lượt tải **thư mục** (Projects → Download) hoặc **lưới hàng loạt** đều có thể khóa toàn bộ zip bằng một mật khẩu, ở hai cấp độ:
 
-- **Standard** - **ZipCrypto** truyền thống: mở được trong *bất kỳ* công cụ giải nén nào kể cả tính năng giải nén tích hợp của Windows Explorer, nhưng yếu (chỉ mang tính răn đe). Mật khẩu của nó có thể xuất hiện trong liên kết chia sẻ `?password=`.
-- **Strong** - **AES-256** (WinZip AE-2): mạnh, nhưng **không** mở được bằng tính năng giải nén tích hợp của Windows Explorer - người nhận cần 7-Zip / WinZip / Keka / macOS. Được nhập khi xuất, không bao giờ đặt vào liên kết.
+- **Weak** - **ZipCrypto** truyền thống, chỉ mang tính răn đe. Mật khẩu của nó có thể xuất hiện trong liên kết chia sẻ `?password=`.
+- **Strong** - mã hóa **AES-256**. Được nhập khi xuất, không bao giờ đặt vào liên kết.
 
-Cùng một thẻ *Password protect* (Bảo vệ bằng mật khẩu) trong bảng xuất điều khiển cả khóa PDF lẫn khóa ZIP, tự đổi cách diễn đạt tùy theo định dạng được chọn. Một mật khẩu duy nhất bảo vệ **mọi** thành phần - hình ảnh, SVG, tất cả, kể cả PDF (chỉ có container zip mới bảo vệ được các file không phải PDF, vốn không có khóa riêng). Và đây là **phòng thủ theo chiều sâu**: bất kỳ PDF nào bên trong *cũng* được khóa AES-256 riêng bằng cùng mật khẩu, nên một PDF vẫn bị khóa ngay cả sau khi zip được giải nén. Hộp thoại xuất hiện khi bạn bắt đầu tải xuống; để trống mật khẩu nghĩa là không khóa.
+Cùng một thẻ *Password protect* (Bảo vệ bằng mật khẩu) trong bảng xuất điều khiển cả khóa PDF lẫn khóa ZIP. Một mật khẩu duy nhất bảo vệ **mọi** thành phần - hình ảnh, SVG, tất cả, kể cả PDF (chỉ có container zip mới bảo vệ được các file không phải PDF, vốn không có khóa riêng). Và đây là **phòng thủ theo chiều sâu**: bất kỳ PDF nào bên trong *cũng* được khóa AES-256 riêng bằng cùng mật khẩu, nên một PDF vẫn bị khóa ngay cả sau khi zip được giải nén. Hộp thoại xuất hiện khi bạn bắt đầu tải xuống; để trống mật khẩu nghĩa là không khóa.
 
 **Liên kết chia sẻ có mật khẩu** - bất kỳ liên kết chia sẻ nào cũng có thể được mã hóa sao cho khi mở, người nhận phải nhập mật khẩu. Toàn bộ trạng thái liên kết được mã hóa AES-256 bằng khóa suy ra từ mật khẩu (PBKDF2); chỉ có bản mã được truyền đi, nên **mật khẩu không bao giờ nằm trong liên kết** và việc giải mã diễn ra **ngay trên trình duyệt của người nhận** - máy chủ phục vụ liên kết chỉ thấy bản mã trong URL, không bao giờ thấy mật khẩu và không bao giờ thấy thiết kế đã giải mã. Bật tính năng này trong hộp thoại **Share** (Chia sẻ). Một liên kết đã mã hóa chỉ có thể *mở* được trong Lolly (không thể nhúng như một hình ảnh, vì đường dẫn đó không thể hiện hộp thoại nhập mật khẩu). Xem [URL Mode → Encrypted links](/info/url-mode.html).
 

@@ -5,7 +5,7 @@
   "dim": 384,
   "count": 1239,
   "dtype": "q8",
-  "corpusHash": "08cdc0666e3f39658bb53247ad0f8ca980e8ed04619da75dba8cbffb5900e84f",
+  "corpusHash": "79ebf0d7d266191f81d88d768ae1a2e738b92666f10b8fcfa5dc35b604c772f9",
   "recordsHash": "40944fbddce0d8276a38267a8045361261918d0d3e24392523e53588fc4b3a60",
-  "builtAt": "2026-09-30T11:20:54.523Z"
+  "builtAt": "2026-09-30T19:06:26.995Z"
 }

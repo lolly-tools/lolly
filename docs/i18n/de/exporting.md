@@ -1,6 +1,6 @@
 # Exportieren & Formate
 
-Drücken Sie **Export** auf der **Export | Save as**-Pille eines Tools, wählen Sie ein Format aus dem Menü neben dem Dateinamen und drücken Sie dann **Herunterladen**. Die Datei wird auf Ihrem Gerät erstellt; nichts wird hochgeladen.
+Drücken Sie **Export** auf der **Export | Save as**-Pille eines Tools, wählen Sie ein Format aus dem Menü neben dem Dateinamen und drücken Sie dann **Herunterladen**. Ein gewöhnlicher Download wird auf Ihrem Gerät erstellt. Freigabe durch die Organisation und Zustelloptionen werden weiter unten behandelt.
 
 Für die meisten Aufgaben ist eines von drei Formaten richtig:
 
@@ -34,6 +34,14 @@ Die Aktionen in den Exportsteuerelementen:
 ![Das Exportpanel - Format, Größe und die Aktionen Kopieren / Download / Speichern / Teilen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Teilen öffnet sich über dem Tool, mit dem bereits erstellten Link und den Umschaltern beim Besuch darunter.
+
+::: details Freigaben und Zustellung mit lolly.work (optional)
+Eine [Organisation, die lolly.work nutzt](/info/organisation.html), kann verfügbare Formate und Export-Einstellungen steuern. Wo eine Freigabe erforderlich ist, kann die App statt **Download** die Schaltfläche **Request approval** anzeigen. Befolgen Sie die Richtlinie, die Ihre Instanz anzeigt.
+
+Der Dienst unterstützt außerdem gesteuerte Zustellung an konfigurierte S3-, WebDAV- und HTTP-Ziele, mit Freigabeschritten, wo konfiguriert, Zustellbelegen und einem Prüfprotokoll. Wer eine Datei für diesen Ablauf einreicht, sendet sie an den Dienst der Organisation; gewöhnliche lokale Downloads bleiben auf dem Gerät. Persönliche Send-Ziele und die gesteuerte Zustellung der Organisation werden getrennt konfiguriert.
+
+Für Betreiber siehe die [Zustellungsanleitung](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Für Server-Renderings in der Warteschlange und Batches siehe [CLI-Batch und Automatisierung](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Mehrere auf einmal rendern
 
@@ -296,21 +304,21 @@ Die Karte ist Chrome, nie Inhalt: Sie wird aus jeder Exportstufe entfernt und ka
 
 Zwei unabhängige Arten von Sperren, beide vollständig auf dem Gerät.
 
-**PDF-Öffnungspasswort** - die *Passwortschutz*-Karte im Exportbereich bietet zwei Stufen:
+**PDF-Öffnungspasswort** - die *Passwortschutz*-Karte im Exportbereich bietet zwei Stufen, sobald ein Passwort eingegeben ist:
 
 ![Die Passwortschutz-Karte aufgeklappt bei einem PDF-Export, mit dem Passwortfeld und den beiden Sicherheitsstufen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - eine einfache 40-Bit-Sperre (RC4). Sie öffnet sich in *jeder* PDF-App und kann - als leichte Abschreckung, kein echter Schutz - in einem Share-Link mitreisen (im Klartext). Nur RGB-`pdf`.
-- **Strong** - AES-256 (PDF 2.0). Ihr Passwort wird beim Export eingegeben und **niemals** in einen Link gesetzt; sie öffnet sich nur in neueren PDF-Apps (Acrobat/Preview ~2018 an), und ältere Apps melden die Datei möglicherweise als beschädigt. Strong gilt auch für **Print-/CMYK-PDFs** und für **jedes PDF in einem Batch-ZIP** (der Batch-Bestätigungsdialog erfasst das Passwort). Da PDF/X-4 Verschlüsselung verbietet, behält ein Strong-gesperrtes Print-PDF sein CMYK, seine Marken und seinen Output-Intent, verliert aber die PDF/X-4-Konformitätsangabe.
+- **Schwach** - ein einfaches 40-Bit-Passwort (RC4). Eine leichte Abschreckung, kein echter Schutz: Das Passwort kann in einem Share-Link mitreisen (im Klartext). Nur RGB-`pdf`.
+- **Stark** - AES-256 (PDF 2.0). Das Passwort wird beim Export eingegeben und **niemals** in einen Link gesetzt. Stark gilt auch für **Print-/CMYK-PDFs** und für **jedes PDF in einem Batch-ZIP** (der Batch-Bestätigungsdialog erfasst das Passwort). Da PDF/X-4 Verschlüsselung verbietet, behält ein Stark-gesperrtes Print-PDF sein CMYK, seine Marken und seinen Output-Intent, verliert aber die PDF/X-4-Konformitätsangabe.
 
 Jede Stufe schließt sich mit Content Credentials gegenseitig aus (ein verschlüsseltes PDF kann die Credential nicht aufnehmen).
 
 **Gesperrte Downloads (ganzes ZIP + Defense-in-Depth)** - ein **ZIP**-Export (das *ZIP*-Format des Exportbereichs, das mehrere Formate eines Tools bündelt), ein **Ordner**-Download (Projects → Download) oder das **Batch-Grid** können das gesamte ZIP mit einem Passwort auf zwei Stufen sperren:
 
-- **Standard** - klassisches **ZipCrypto**: öffnet sich in *jedem* Entpackungstool, einschließlich des in Windows Explorer eingebauten Extrahierens, aber schwach (eine Abschreckung). Ihr Passwort kann in einem `?password=`-Share-Link mitreisen.
-- **Strong** - **AES-256** (WinZip AE-2): stark, öffnet sich aber **nicht** im in Windows Explorer eingebauten Extrahieren - der Empfänger braucht 7-Zip/WinZip/Keka/macOS. Beim Export eingegeben, nie in einen Link gesetzt.
+- **Schwach** - klassisches **ZipCrypto**, nur eine Abschreckung. Das Passwort kann in einem `?password=`-Share-Link mitreisen.
+- **Stark** - **AES-256**-Verschlüsselung. Beim Export eingegeben, nie in einen Link gesetzt.
 
-Dieselbe *Passwortschutz*-Karte im Exportbereich steuert sowohl die PDF- als auch die ZIP-Sperre und formuliert sich für das gewählte Format um. Das eine Passwort schützt **jedes** Mitglied - Bilder, SVG, alles, PDFs eingeschlossen (nur der ZIP-Container kann Nicht-PDF-Dateien schützen, die keine eigene Sperre haben). Und es ist **Defense-in-Depth**: Jedes enthaltene PDF wird *zusätzlich* einzeln mit demselben Passwort AES-256-gesperrt, sodass ein PDF auch nach dem Entpacken des ZIP gesperrt bleibt. Die Eingabeaufforderung erscheint beim Start des Downloads; ein leeres Passwort bedeutet keine Sperre.
+Dieselbe *Passwortschutz*-Karte im Exportbereich steuert sowohl die PDF- als auch die ZIP-Sperre. Das eine Passwort schützt **jedes** Mitglied - Bilder, SVG, alles, auch PDFs (nur der ZIP-Container kann Nicht-PDF-Dateien schützen, die keine eigene Sperre haben). Und es ist **Defense-in-Depth**: Jedes PDF darin ist *zusätzlich* einzeln mit demselben Passwort AES-256-gesperrt, sodass ein PDF gesperrt bleibt, selbst nachdem das ZIP entpackt wurde. Die Abfrage erscheint, wenn Sie den Download starten; ein leeres Passwort bedeutet keine Sperre.
 
 **Passwortgeschützte Share-Links** - jeder Share-Link kann so verschlüsselt werden, dass das Öffnen den Empfänger nach einem Passwort fragt. Der gesamte Link-Zustand wird AES-256-verschlüsselt, unter einem aus dem Passwort abgeleiteten Schlüssel (PBKDF2); nur Chiffretext reist mit, sodass das **Passwort nie im Link steht** und die Entschlüsselung **im Browser des Empfängers** stattfindet - der Server, der den Link ausliefert, sieht nur den Chiffretext in der URL, nie das Passwort und nie das entschlüsselte Design. Aktivieren Sie es im **Share**-Dialog. Ein verschlüsselter Link lässt sich nur in Lolly *öffnen* (er kann nicht als Bild eingebettet werden, da dieser Pfad nicht nach einem Passwort fragen kann). Siehe [URL Mode → Encrypted links](/info/url-mode.html).
 

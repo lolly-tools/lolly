@@ -304,21 +304,21 @@ The card is chrome, never content: it's stripped from every export stage, so it 
 
 Two independent kinds of lock, both entirely on-device.
 
-**PDF open-password** - the export panel's *Password protect* card offers two tiers:
+**PDF open-password** - the export panel's *Password protect* card offers two tiers once a password is typed:
 
 ![The Password protect card expanded on a PDF export, with the password field and the two lock tiers](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - a basic 40-bit lock (RC4). It opens in *any* PDF app, and - being a light deterrent, not real protection - it can travel in a share link (in clear text). RGB `pdf` only.
-- **Strong** - AES-256 (PDF 2.0). Its password is typed at export and is **never** put in a link; it opens only in newer PDF apps (Acrobat / Preview ~2018 on), and older apps may report the file as damaged. Strong also applies to **Print / CMYK PDFs** and to **each PDF inside a batch zip** (the batch confirm dialog collects the password). Because PDF/X-4 forbids encryption, a Strong-locked Print PDF keeps its CMYK, marks and output-intent but drops the PDF/X-4 conformance claim.
+- **Weak** - a simple 40-bit password (RC4). A light deterrent, not real protection: its password can travel in a share link (in clear text). RGB `pdf` only.
+- **Strong** - AES-256 (PDF 2.0). Its password is typed at export and is **never** put in a link. Strong also applies to **Print / CMYK PDFs** and to **each PDF inside a batch zip** (the batch confirm dialog collects the password). Because PDF/X-4 forbids encryption, a Strong-locked Print PDF keeps its CMYK, marks and output-intent but drops the PDF/X-4 conformance claim.
 
 Either tier is mutually exclusive with Content Credentials (an encrypted PDF can't take the credential).
 
 **Locked downloads (whole-zip + defense-in-depth)** - a **ZIP** export (the export panel's *ZIP* format, which bundles several of a tool's formats), a **folder** download (Projects → Download) or the **batch grid** can lock the entire zip with one password, at two tiers:
 
-- **Standard** - traditional **ZipCrypto**: opens in *any* unzip tool including Windows Explorer's built-in extract, but weak (a deterrent). Its password can travel in a `?password=` share link.
-- **Strong** - **AES-256** (WinZip AE-2): strong, but does **not** open in Windows Explorer's built-in extract - the recipient needs 7-Zip / WinZip / Keka / macOS. Typed at export, never put in a link.
+- **Weak** - traditional **ZipCrypto**, a deterrent only. Its password can travel in a `?password=` share link.
+- **Strong** - **AES-256** encryption. Typed at export, never put in a link.
 
-The same *Password protect* card in the export panel drives both the PDF and ZIP locks, rewording itself for the chosen format. The one password protects **every** member - images, SVG, everything, PDFs included (only the zip container can protect non-PDF files, which have no lock of their own). And it's **defense-in-depth**: any PDF inside is *also* individually AES-256-locked with the same password, so a PDF stays locked even after the zip is unpacked. The prompt appears when you start the download; a blank password means no lock.
+The same *Password protect* card in the export panel drives both the PDF and ZIP locks. The one password protects **every** member - images, SVG, everything, PDFs included (only the zip container can protect non-PDF files, which have no lock of their own). And it's **defense-in-depth**: any PDF inside is *also* individually AES-256-locked with the same password, so a PDF stays locked even after the zip is unpacked. The prompt appears when you start the download; a blank password means no lock.
 
 **Password-gated share links** - any share link can be encrypted so that opening it asks the recipient for a password. The whole link state is AES-256-encrypted under a key derived from the password (PBKDF2); only ciphertext travels, so the **password is never in the link** and decryption happens **in the recipient's browser** - the server that serves the link sees only the ciphertext in the URL, never the password and never the decrypted design. Turn it on in the **Share** dialog. An encrypted link can only be *opened* in Lolly (it can't be embedded as an image, since that path can't prompt). See [URL Mode → Encrypted links](/info/url-mode.html).
 

@@ -1,6 +1,6 @@
 # Export a formáty
 
-Stiskni **Export** na pilulce nástroje **Export | Uložit jako**, vyber formát z nabídky vedle názvu souboru, pak stiskni **Stáhnout**. Soubor vzniká na tvém zařízení; nic se nenahrává.
+Na **Export | Save as** u nástroje stiskni **Export**, z nabídky vedle názvu souboru vyber formát a pak stiskni **Download**. Běžné stažení se vytvoří na tvém zařízení. Schvalování v organizaci a možnosti doručení jsou popsány níže.
 
 Pro většinu úkolů se hodí jeden ze tří formátů:
 
@@ -34,6 +34,14 @@ Akce v exportním panelu:
 ![Panel exportu - formát, velikost a akce Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Share se otevře přes nástroj, s odkazem už sestaveným a přepínači při návštěvě pod ním.
+
+::: details Schvalování a doručení s lolly.work (volitelné)
+[Organizace používající lolly.work](/info/organisation.html) může řídit dostupné formáty a nastavení exportu. Kde je schválení povinné, může aplikace místo **Download** zobrazit **Request approval**. Řiď se pravidly, která ukazuje tvá instance.
+
+Služba také podporuje řízené doručení do nakonfigurovaných cílů S3, WebDAV a HTTP, s kroky schválení tam, kde jsou nastaveny, potvrzeními o doručení a auditním záznamem. Odeslání souboru do tohoto workflow ho pošle do služby organizace; běžná místní stažení zůstávají na zařízení. Osobní cíle Send a řízené doručení organizace mají oddělenou konfiguraci.
+
+Pro provozovatele viz [průvodce doručením](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). K serverovým renderům ve frontě a dávkám viz [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Renderování mnoha najednou
 
@@ -296,21 +304,21 @@ Karta je ovládací prvek rozhraní, nikdy obsah: odstraní se z každé fáze e
 
 Dva nezávislé druhy zámku, oba zcela na zařízení.
 
-**Heslo pro otevření PDF** - karta *Password protect* v exportním panelu nabízí dvě úrovně:
+**Heslo pro otevření PDF** - karta *Password protect* v exportním panelu nabízí po zadání hesla dvě úrovně:
 
 ![Karta Password protect rozbalená u exportu PDF, s polem pro heslo a dvěma úrovněmi zámku](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standardní** - základní 40bitový zámek (RC4). Otevře se v *jakékoli* aplikaci pro PDF, a - protože je to jen lehké odrazení, ne skutečná ochrana - může cestovat v odkazu ke sdílení (v čistém textu). Jen RGB `pdf`.
-- **Silné** - AES-256 (PDF 2.0). Jeho heslo se zadává při exportu a **nikdy** se nedává do odkazu; otevře se jen v novějších aplikacích pro PDF (Acrobat / Preview ~2018 a novější), a starší aplikace mohou soubor hlásit jako poškozený. Silné se vztahuje i na **tiskové/CMYK PDF** a na **každé PDF uvnitř dávkového zipu** (dávkový potvrzovací dialog heslo vybere). Protože PDF/X-4 zakazuje šifrování, silně uzamčené tiskové PDF si ponechá své CMYK, značky a output-intent, ale ztratí nárok na shodu s PDF/X-4.
+- **Slabé** - jednoduché 40bitové heslo (RC4). Lehké odrazení, ne skutečná ochrana: jeho heslo může cestovat v odkazu ke sdílení (v čistém textu). Jen RGB `pdf`.
+- **Silné** - AES-256 (PDF 2.0). Jeho heslo se zadává při exportu a **nikdy** se nedává do odkazu. Silné se vztahuje i na **tisková/CMYK PDF** a na **každé PDF uvnitř dávkového zipu** (dávkový potvrzovací dialog heslo vybere). Protože PDF/X-4 zakazuje šifrování, silně uzamčené tiskové PDF si ponechá své CMYK, značky a output-intent, ale ztratí nárok na shodu s PDF/X-4.
 
 Obě úrovně se vzájemně vylučují s Content Credentials (zašifrované PDF nemůže nést pověření).
 
 **Zamčená stahování (celý zip + vrstvená ochrana)** - export **ZIP** (formát *ZIP* v exportním panelu, který sdruží několik formátů nástroje), stažení **složky** (Projects → Download) nebo **dávková mřížka** mohou zamknout celý zip jedním heslem, na dvou úrovních:
 
-- **Standard** - tradiční **ZipCrypto**: otevře se v *jakémkoli* nástroji pro rozbalování zipů včetně vestavěného rozbalování v Průzkumníku Windows, ale je slabý (jen odrazení). Jeho heslo může cestovat v odkazu ke sdílení `?password=`.
-- **Strong** - **AES-256** (WinZip AE-2): silný, ale v Průzkumníku Windows se vestavěným rozbalováním **neotevře** - příjemce potřebuje 7-Zip / WinZip / Keka / macOS. Zadává se při exportu, nikdy se nedává do odkazu.
+- **Slabé** - tradiční **ZipCrypto**, jen odrazení. Jeho heslo může cestovat v odkazu ke sdílení `?password=`.
+- **Silné** - šifrování **AES-256**. Zadává se při exportu, nikdy se nedává do odkazu.
 
-Stejná karta *Password protect* v exportním panelu řídí zámek PDF i ZIP a přeformuluje se podle zvoleného formátu. Jedno heslo chrání **každou** položku - obrázky, SVG, všechno, PDF nevyjímaje (jen kontejner zipu dokáže chránit soubory jiné než PDF, které vlastní zámek nemají). A jde o **vrstvenou ochranu**: každé PDF uvnitř je *navíc* jednotlivě zamčené stejným heslem pomocí AES-256, takže PDF zůstane zamčené i po rozbalení zipu. Výzva se objeví při zahájení stahování; prázdné heslo znamená žádný zámek.
+Stejná karta *Password protect* v exportním panelu řídí zámek PDF i ZIP. Jedno heslo chrání **každou** položku - obrázky, SVG, všechno, PDF nevyjímaje (jen kontejner zipu dokáže chránit soubory jiné než PDF, které vlastní zámek nemají). A jde o **vrstvenou ochranu**: každé PDF uvnitř je *navíc* jednotlivě zamčené stejným heslem pomocí AES-256, takže PDF zůstane zamčené i po rozbalení zipu. Výzva se objeví při zahájení stahování; prázdné heslo znamená žádný zámek.
 
 **Odkazy ke sdílení chráněné heslem** - jakýkoli odkaz ke sdílení lze zašifrovat tak, aby si jeho otevření od příjemce vyžádalo heslo. Celý stav odkazu je zašifrovaný AES-256 pod klíčem odvozeným z hesla (PBKDF2); cestuje jen šifrovaný text, takže **heslo nikdy není v odkazu** a dešifrování probíhá **v prohlížeči příjemce** - server, který odkaz obsluhuje, vidí v URL jen šifrovaný text, nikdy heslo a nikdy dešifrovaný návrh. Zapni ho v dialogu **Share**. Zašifrovaný odkaz lze v Lolly jen *otevřít* (nelze ho vložit jako obrázek, protože tato cesta nemůže vyžádat heslo). Viz [URL Mode → Encrypted links](/info/url-mode.html).
 

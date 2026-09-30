@@ -1,6 +1,6 @@
 # Export și formate
 
-Apasă **Exportă** pe pastila **Exportă | Salvează ca** a unui instrument, alege un format din meniul de lângă numele fișierului, apoi apasă **Descarcă**. Fișierul este creat pe dispozitivul tău; nimic nu este încărcat.
+Apasă **Exportă** pe pastila **Exportă | Salvează ca** a unui instrument, alege un format din meniul de lângă numele fișierului, apoi apasă **Descarcă**. O descărcare obișnuită este creată pe dispozitivul tău. Aprobarea organizației și opțiunile de livrare sunt tratate mai jos.
 
 Pentru majoritatea sarcinilor, unul din trei formate este potrivit:
 
@@ -34,6 +34,14 @@ Acțiunile din panoul de export:
 ![The export panel - format, size and the Copy / Download / Save / Share actions](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Share se deschide peste tool, cu linkul deja construit și comutatoarele la vizitare dedesubt.
+
+::: details Aprobări și livrare cu lolly.work (opțional)
+O [organizație care folosește lolly.work](/info/organisation.html) poate gestiona formatele disponibile și setările de export. Acolo unde este necesară aprobarea, aplicația poate afișa **Request approval** (solicită aprobare) în locul **Descarcă**. Urmează politica afișată de instanța ta.
+
+Serviciul acceptă și livrarea guvernată către destinații S3, WebDAV și HTTP configurate, cu pași de aprobare acolo unde sunt configurați, chitanțe de livrare și o evidență de audit. Trimiterea unui fișier în acest flux îl trimite către serviciul organizației; descărcările locale obișnuite rămân pe dispozitiv. Destinațiile personale Send și livrarea guvernată a organizației au configurări separate.
+
+Pentru operatori, vezi [ghidul de livrare](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Pentru randări de server puse în coadă și loturi, vezi [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Randarea mai multor deodată
 
@@ -296,21 +304,21 @@ Cardul este interfață, niciodată conținut: este eliminat din fiecare etapă 
 
 Două tipuri independente de blocare, ambele complet pe dispozitiv.
 
-**PDF open-password** - cardul *Password protect* din panoul de export oferă două niveluri:
+**PDF open-password** - cardul *Password protect* din panoul de export oferă două niveluri, odată ce este tastată o parolă:
 
 ![Cardul Password protect extins la un export PDF, cu câmpul pentru parolă și cele două niveluri de blocare](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - o blocare de bază pe 40 de biți (RC4). Se deschide în *orice* aplicație PDF și - fiind un descurajator ușor, nu o protecție reală - poate circula într-un link de partajare (text simplu, intenționat). Doar `pdf` RGB.
-- **Strong** - AES-256 (PDF 2.0). Parola sa este introdusă la export și **nu** este pusă niciodată într-un link; se deschide doar în aplicații PDF mai noi (Acrobat / Preview ~2018 și ulterior), iar aplicațiile mai vechi pot raporta fișierul ca fiind deteriorat. Strong se aplică și **PDF-urilor Print / CMYK** și **fiecărui PDF dintr-un zip de lot** (dialogul de confirmare al lotului colectează parola). Deoarece PDF/X-4 interzice criptarea, un PDF Print blocat cu Strong își păstrează CMYK-ul, marcajele și output-intent-ul, dar renunță la afirmația de conformitate PDF/X-4.
+- **Weak** - o parolă simplă pe 40 de biți (RC4). Un descurajator ușor, nu o protecție reală: parola sa poate circula într-un link de partajare (text simplu). Doar `pdf` RGB.
+- **Strong** - AES-256 (PDF 2.0). Parola sa este introdusă la export și **nu** este pusă niciodată într-un link. Strong se aplică și **PDF-urilor Print / CMYK** și **fiecărui PDF dintr-un zip de lot** (dialogul de confirmare al lotului colectează parola). Deoarece PDF/X-4 interzice criptarea, un PDF Print blocat cu Strong își păstrează CMYK-ul, marcajele și output-intent-ul, dar renunță la afirmația de conformitate PDF/X-4.
 
 Oricare dintre niveluri se exclude reciproc cu Content Credentials (un PDF criptat nu poate primi acreditarea).
 
 **Descărcări blocate (zip întreg + apărare în profunzime)** - un export **ZIP** (formatul *ZIP* din panoul de export, care grupează mai multe formate ale unui instrument), o descărcare de **folder** (Projects → Download) sau **grila de lot** poate bloca întregul zip cu o singură parolă, la două niveluri:
 
-- **Standard** - **ZipCrypto** tradițional: se deschide în *orice* instrument de dezarhivare, inclusiv funcția de extragere integrată din Windows Explorer, dar este slab (un descurajator). Parola sa poate circula într-un link de partajare `?password=`.
-- **Strong** - **AES-256** (WinZip AE-2): puternic, dar **nu** se deschide cu funcția de extragere integrată din Windows Explorer - destinatarul are nevoie de 7-Zip / WinZip / Keka / macOS. Introdusă la export, nu este pusă niciodată într-un link.
+- **Weak** - **ZipCrypto** tradițional, doar un descurajator. Parola sa poate circula într-un link de partajare `?password=`.
+- **Strong** - criptare **AES-256**. Introdusă la export, nu este pusă niciodată într-un link.
 
-Același card *Password protect* din panoul de export controlează atât blocările PDF, cât și cele ZIP, reformulându-se pentru formatul ales. Aceeași parolă protejează **fiecare** membru - imagini, SVG, orice, inclusiv PDF-uri (doar containerul zip poate proteja fișierele care nu sunt PDF, care nu au propria lor blocare). Și este **apărare în profunzime**: orice PDF dinăuntru este *de asemenea* blocat individual cu AES-256 folosind aceeași parolă, astfel încât un PDF rămâne blocat chiar și după dezarhivare. Solicitarea apare când începi descărcarea; o parolă goală înseamnă nicio blocare.
+Același card *Password protect* din panoul de export controlează atât blocările PDF, cât și cele ZIP. Aceeași parolă protejează **fiecare** membru - imagini, SVG, orice, inclusiv PDF-uri (doar containerul zip poate proteja fișierele care nu sunt PDF, care nu au propria lor blocare). Și este **apărare în profunzime**: orice PDF dinăuntru este *de asemenea* blocat individual cu AES-256 folosind aceeași parolă, astfel încât un PDF rămâne blocat chiar și după dezarhivare. Solicitarea apare când începi descărcarea; o parolă goală înseamnă nicio blocare.
 
 **Linkuri de partajare protejate cu parolă** - orice link de partajare poate fi criptat astfel încât deschiderea lui să ceară destinatarului o parolă. Întreaga stare a linkului este criptată AES-256 sub o cheie derivată din parolă (PBKDF2); circulă doar textul cifrat, astfel încât **parola nu se află niciodată în link**, iar decriptarea are loc **în browserul destinatarului** - serverul care servește linkul vede doar textul cifrat din URL, niciodată parola și niciodată designul decriptat. Activează-l în dialogul **Share**. Un link criptat poate fi *deschis* doar în Lolly (nu poate fi încorporat ca imagine, deoarece acea cale nu poate solicita parola). Vezi [URL Mode → Encrypted links](/info/url-mode.html).
 

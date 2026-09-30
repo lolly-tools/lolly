@@ -92,7 +92,7 @@ export function refreshNotesHandoutUi(ta: ActionsCtx): void {
   }
 }
 export function refreshLockTier(ta: ActionsCtx): void {
-  const { STD_LOCK_HINT, STD_ZIP_HINT, STRONG_LOCK_HINT, STRONG_ZIP_HINT, el, formatEl, initialFmt, onUrlSync } = ta;
+  const { STD_LOCK_HINT, STRONG_LOCK_HINT, el, formatEl, initialFmt, onUrlSync } = ta;
   const tierEl = el!.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]');
   if (!tierEl) return;
   const fmt = formatEl?.value ?? initialFmt;
@@ -103,17 +103,7 @@ export function refreshLockTier(ta: ActionsCtx): void {
   // finishing pass; print / CMYK / crop-marks force the strong (encrypt-last) tier.
   const standardOk = isZip || (fmt === 'pdf' && !marksOn);
   const stdOpt = tierEl.querySelector<HTMLOptionElement>('option[value="standard"]');
-  const strongOpt = tierEl.querySelector<HTMLOptionElement>('option[value="strong"]');
-  if (stdOpt) {
-    stdOpt.disabled = !standardOk;
-    stdOpt.textContent = isZip
-      ? 'Standard lock - opens in any unzip tool'
-      : 'Standard lock - opens in any PDF app';
-  }
-  if (strongOpt)
-    strongOpt.textContent = isZip
-      ? 'Strong · AES-256 - 7-Zip / Keka / macOS'
-      : 'Strong · AES-256 - newer apps only ⓘ';
+  if (stdOpt) stdOpt.disabled = !standardOk;
   if (!standardOk) tierEl.value = 'strong';
   // Never let a URL-prefilled password become a STRONG key: clear it the moment
   // the tier is strong (whether force-flipped here or picked by the user).
@@ -125,17 +115,18 @@ export function refreshLockTier(ta: ActionsCtx): void {
     }
     ta.pwFromUrl = false;
   }
+  // The strength choice and its hint mean nothing without a password, so both
+  // stay hidden until one is typed (checked after the clear above).
+  const hasPw = Boolean(el!.querySelector<HTMLInputElement>('[data-action="pdf-password"]')?.value);
+  tierEl.hidden = !hasPw;
   const hintEl = el!.querySelector<HTMLElement>('[data-pdfpass-hint]');
   if (hintEl) {
+    hintEl.hidden = !hasPw;
     const strong = tierEl.value === 'strong';
-    hintEl.textContent = isZip
-      ? strong
-        ? STRONG_ZIP_HINT
-        : STD_ZIP_HINT
-      : strong
-        ? (standardOk ? '' : 'Print, CMYK and crop-marked PDFs use the strong lock. ') +
-          STRONG_LOCK_HINT
-        : STD_LOCK_HINT;
+    hintEl.textContent = strong
+      ? (standardOk ? '' : 'Print, CMYK and crop-marked PDFs use the strong lock. ') +
+        STRONG_LOCK_HINT
+      : STD_LOCK_HINT;
   }
 }
 export function refreshC2paUi(ta: ActionsCtx, changed?: string): void {
@@ -153,6 +144,7 @@ export function refreshC2paUi(ta: ActionsCtx, changed?: string): void {
   if (changed === 'c2pa' && c2paEl.checked && pdfPassEl.value) {
     pdfPassEl.value = '';
     onUrlSync?.('password');
+    refreshLockTier(ta);
   }
   if (pdfPassEl.value) c2paEl.checked = false;
   c2paEl.disabled = Boolean(pdfPassEl.value);

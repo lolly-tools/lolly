@@ -1,6 +1,6 @@
 # Exporteren & Formaten
 
-Druk op **Exporteren** op de **Exporteren | Opslaan als**-pil van een tool, kies een formaat uit het menu naast de bestandsnaam, en druk dan op **Downloaden**. Het bestand wordt op je apparaat gemaakt; er wordt niets geüpload.
+Druk op **Export** op de **Export | Save as**-pil van een tool, kies een formaat in het menu naast de bestandsnaam en druk dan op **Download**. Een gewone download wordt op je apparaat gemaakt. Goedkeuring door de organisatie en bezorgopties komen hieronder aan bod.
 
 Voor de meeste klussen is een van deze drie formaten de juiste:
 
@@ -34,6 +34,14 @@ De acties in het exportpaneel:
 ![Het exportpaneel - formaat, grootte en de acties Kopiëren / Downloaden / Opslaan / Delen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Delen opent over de tool heen, met de link al opgebouwd en de schakelaars bij bezoek eronder.
+
+::: details Goedkeuringen en bezorging met lolly.work (optioneel)
+Een [organisatie die lolly.work gebruikt](/info/organisation.html) kan beschikbare formaten en export-instellingen beheren. Waar goedkeuring vereist is, kan de app **Request approval** tonen in plaats van **Download**. Volg het beleid dat jouw instantie toont.
+
+De dienst ondersteunt ook beheerde bezorging naar geconfigureerde S3-, WebDAV- en HTTP-bestemmingen, met goedkeuringsstappen waar geconfigureerd, bezorgbewijzen en een auditlogboek. Een bestand indienen voor die workflow stuurt het naar de dienst van de organisatie; gewone lokale downloads blijven op het apparaat. Persoonlijke Send-bestemmingen en beheerde bezorging door de organisatie hebben een aparte configuratie.
+
+Voor beheerders, zie de [bezorggids](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Voor server-renders in de wachtrij en batches, zie [CLI-batch en automatisering](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Meerdere tegelijk renderen
 
@@ -296,21 +304,21 @@ De kaart is chrome, nooit content: hij wordt uit elke exportfase gestript, dus h
 
 Twee onafhankelijke soorten sloten, beide volledig on-device.
 
-**PDF-openwachtwoord** - de kaart *Wachtwoordbeveiliging* in het exportpaneel biedt twee niveaus:
+**PDF open-wachtwoord** - de kaart *Password protect* in het exportpaneel biedt twee niveaus zodra er een wachtwoord is getypt:
 
 ![De kaart Wachtwoordbeveiliging uitgeklapt op een PDF-export, met het wachtwoordveld en de twee slotniveaus](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standaard** - een eenvoudig 40-bits slot (RC4). Het opent in *elke* PDF-app, en - als lichte afschrikking, geen echte bescherming - kan het meereizen in een deellink (leesbare tekst). Alleen RGB `pdf`.
-- **Sterk** - AES-256 (PDF 2.0). Het wachtwoord wordt getypt bij export en komt **nooit** in een link; het opent alleen in nieuwere PDF-apps (Acrobat / Preview ~2018 en later), en oudere apps kunnen het bestand als beschadigd melden. Sterk geldt ook voor **Print/CMYK-PDF's** en voor **elke PDF binnen een batch-zip** (de batchbevestigingsdialoog verzamelt het wachtwoord). Omdat PDF/X-4 versleuteling verbiedt, behoudt een met Sterk vergrendelde Print-PDF zijn CMYK, markeringen en output-intent maar laat de PDF/X-4-conformiteitsclaim vallen.
+- **Zwak** - een simpel 40-bit-wachtwoord (RC4). Een lichte afschrikking, geen echte bescherming: het wachtwoord kan meerijden in een share-link (in platte tekst). Alleen RGB-`pdf`.
+- **Sterk** - AES-256 (PDF 2.0). Het wachtwoord wordt bij de export getypt en wordt **nooit** in een link gezet. Sterk geldt ook voor **Print-/CMYK-PDF's** en voor **elke PDF in een batch-zip** (het bevestigingsvenster van de batch vraagt het wachtwoord). Omdat PDF/X-4 versleuteling verbiedt, behoudt een met Sterk vergrendelde Print-PDF zijn CMYK, markeringen en output-intent, maar vervalt de PDF/X-4-conformiteitsclaim.
 
 Beide niveaus sluiten Content Credentials wederzijds uit (een versleutelde PDF kan de credential niet dragen).
 
 **Vergrendelde downloads (hele zip + defense-in-depth)** - een **ZIP**-export (het ZIP-formaat van het exportpaneel, dat meerdere formaten van een tool bundelt), een **map**-download (Projecten → Downloaden) of het **batchraster** kan de hele zip met één wachtwoord vergrendelen, op twee niveaus:
 
-- **Standaard** - traditionele **ZipCrypto**: opent in *elke* uitpaktool, inclusief de ingebouwde extractie van Windows Verkenner, maar zwak (een afschrikking). Het wachtwoord kan meereizen in een `?password=`-deellink.
-- **Sterk** - **AES-256** (WinZip AE-2): sterk, maar opent **niet** in de ingebouwde extractie van Windows Verkenner - de ontvanger heeft 7-Zip / WinZip / Keka / macOS nodig. Getypt bij export, nooit in een link geplaatst.
+- **Zwak** - klassieke **ZipCrypto**, alleen een afschrikmiddel. Het wachtwoord kan meerijden in een `?password=`-share-link.
+- **Sterk** - **AES-256**-versleuteling. Bij de export getypt, nooit in een link gezet.
 
-Dezelfde kaart *Wachtwoordbeveiliging* in het exportpaneel stuurt zowel de PDF- als de ZIP-vergrendeling aan, en herformuleert zichzelf voor het gekozen formaat. Het ene wachtwoord beschermt **elk** lid - afbeeldingen, SVG, alles, PDF's inbegrepen (alleen de zip-container kan niet-PDF-bestanden beschermen, die geen eigen slot hebben). En het is **defense-in-depth**: elke PDF erin wordt *ook* individueel AES-256-vergrendeld met hetzelfde wachtwoord, zodat een PDF vergrendeld blijft ook nadat de zip is uitgepakt. De prompt verschijnt zodra je de download start; een leeg wachtwoord betekent geen slot.
+Dezelfde kaart *Password protect* in het exportpaneel regelt zowel het PDF- als het ZIP-slot. Het ene wachtwoord beschermt **elk** onderdeel - afbeeldingen, SVG, alles, ook PDF's (alleen de zip-container kan niet-PDF-bestanden beschermen, die geen eigen slot hebben). En het is **defense-in-depth**: elke PDF erin is *ook* afzonderlijk met hetzelfde wachtwoord AES-256-vergrendeld, zodat een PDF vergrendeld blijft zelfs nadat de zip is uitgepakt. De prompt verschijnt wanneer je de download start; een leeg wachtwoord betekent geen slot.
 
 **Wachtwoordbeveiligde deellinks** - elke deellink kan versleuteld worden, zodat het openen ervan de ontvanger om een wachtwoord vraagt. De hele linkstatus wordt AES-256-versleuteld onder een sleutel die uit het wachtwoord is afgeleid (PBKDF2); er reist alleen cijfertekst mee, dus het **wachtwoord staat nooit in de link** en ontsleuteling gebeurt **in de browser van de ontvanger** - de server die de link serveert, ziet alleen de cijfertekst in de URL, nooit het wachtwoord en nooit het ontsleutelde ontwerp. Zet het aan in de dialoog **Delen**. Een versleutelde link kan alleen in Lolly *geopend* worden (hij kan niet als afbeelding ingesloten worden, omdat dat pad niet kan promptén). Zie [URL-modus → Versleutelde links](/info/url-mode.html).
 

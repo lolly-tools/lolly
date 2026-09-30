@@ -1,6 +1,6 @@
 # Pag-export at mga Format
 
-Pindutin ang **I-export** sa **I-export | I-save bilang** pill ng isang tool, pumili ng format mula sa menu sa tabi ng pangalan ng file, pagkatapos ay pindutin ang **I-download**. Ginagawa ang file sa iyong device; walang ina-upload.
+Pindutin ang **Export** sa **Export | Save as** pill ng isang tool, pumili ng format mula sa menu sa tabi ng pangalan ng file, pagkatapos ay pindutin ang **Download**. Ang karaniwang download ay ginagawa sa device mo. Ang approval ng organisasyon at mga opsyon sa delivery ay tinatalakay sa ibaba.
 
 Para sa karamihan ng trabaho, isa sa tatlong format ang tama:
 
@@ -34,6 +34,14 @@ Ang mga aksyon sa export panel:
 ![Ang export panel - format, laki at ang mga aksyong Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Nagbubukas ang Share sa ibabaw ng tool, na naka-build na ang link at ang mga on-visit toggle sa ilalim nito.
+
+::: details Approvals and delivery with lolly.work (optional)
+Ang [organisasyong gumagamit ng lolly.work](/info/organisation.html) ay maaaring mamahala sa mga available na format at export setting. Kapag kailangan ng approval, maaaring ipakita ng app ang **Request approval** kapalit ng **Download**. Sundin ang policy na ipinapakita ng instance mo.
+
+Sinusuportahan din ng serbisyo ang governed delivery sa mga naka-configure na S3, WebDAV at HTTP destination, na may mga hakbang ng approval kung naka-configure, mga delivery receipt at isang audit record. Ang pagsusumite ng file sa workflow na iyon ay nagpapadala nito sa serbisyo ng organisasyon; ang karaniwang lokal na download ay nananatili sa device. May magkahiwalay na configuration ang mga personal na Send destination at ang governed na delivery ng organisasyon.
+
+Para sa mga operator, tingnan ang [delivery guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Para sa mga naka-queue na server render at batch, tingnan ang [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Pag-render ng Marami nang Sabay
 
@@ -296,21 +304,21 @@ Ang card ay chrome, hindi kailanman content: tinatanggal ito sa bawat export sta
 
 Dalawang independiyenteng uri ng lock, parehong ganap na on-device.
 
-**PDF open-password** - nag-aalok ng dalawang tier ang *Password protect* card ng export panel:
+**PDF open-password** - nag-aalok ang *Password protect* card ng export panel ng dalawang tier kapag na-type na ang password:
 
 ![Ang Password protect card na naka-expand sa isang PDF export, kasama ang password field at ang dalawang lock tier](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - isang basic 40-bit lock (RC4). Nabubuksan ito sa *anumang* PDF app, at - dahil ito ay isang magaan na deterrent lang, hindi tunay na proteksyon - maaari itong sumama sa isang share link (clear-text, sadyang ganito). RGB `pdf` lang.
-- **Strong** - AES-256 (PDF 2.0). Ini-type ang password nito sa oras ng export at **hindi kailanman** inilalagay sa isang link; nabubuksan lang ito sa mas bagong mga PDF app (Acrobat / Preview ~2018 pataas), at maaaring i-report ng mas lumang mga app na sira ang file. Nalalapat din ang Strong sa **Print / CMYK PDFs** at sa **bawat PDF sa loob ng isang batch zip** (kinokolekta ng batch confirm dialog ang password). Dahil ipinagbabawal ng PDF/X-4 ang encryption, ang isang Strong-locked na Print PDF ay pananatilihin ang CMYK, marks at output-intent nito ngunit itatapon ang PDF/X-4 conformance claim.
+- **Weak** - simpleng 40-bit na password (RC4). Isang magaan na deterrent, hindi tunay na proteksyon: ang password nito ay maaaring sumama sa share link (sa clear text). RGB `pdf` lang.
+- **Strong** - AES-256 (PDF 2.0). Ang password nito ay ini-type sa export at **hindi kailanman** inilalagay sa link. Nalalapat din ang Strong sa **Print / CMYK PDFs** at sa **bawat PDF sa loob ng batch zip** (kinokolekta ng batch confirm dialog ang password). Dahil ipinagbabawal ng PDF/X-4 ang encryption, ang Strong-locked na Print PDF ay pinananatili ang CMYK, marks at output-intent nito ngunit itinatapon ang PDF/X-4 conformance claim.
 
 Ang alinmang tier ay mutually exclusive sa Content Credentials (hindi maaaring magkaroon ng credential ang isang naka-encrypt na PDF).
 
 **Locked downloads (whole-zip + defense-in-depth)** - ang isang **ZIP** export (ang *ZIP* format ng export panel, na nagbu-bundle ng ilan sa mga format ng isang tool), isang **folder** download (Projects → Download), o ang **batch grid** ay maaaring i-lock ang buong zip gamit ang isang password, sa dalawang tier:
 
-- **Standard** - tradisyonal na **ZipCrypto**: nabubuksan sa *anumang* unzip tool kabilang ang built-in extract ng Windows Explorer, ngunit mahina (isang deterrent). Maaaring sumama ang password nito sa isang `?password=` share link.
-- **Strong** - **AES-256** (WinZip AE-2): malakas, ngunit **hindi** nabubuksan sa built-in extract ng Windows Explorer - kailangan ng tatanggap ng 7-Zip / WinZip / Keka / macOS. Ini-type sa oras ng export, hindi kailanman inilalagay sa isang link.
+- **Weak** - tradisyonal na **ZipCrypto**, isang deterrent lamang. Ang password nito ay maaaring sumama sa `?password=` share link.
+- **Strong** - **AES-256** encryption. Ini-type sa export, hindi kailanman inilalagay sa link.
 
-Ang parehong *Password protect* card sa export panel ang nagpapatakbo sa PDF at ZIP lock, at binabago nito ang sarili nitong pananalita depende sa napiling format. Ang isang password ay pumoprotekta sa **bawat** miyembro - mga imahe, SVG, lahat, kasama ang mga PDF (ang zip container lang ang makakaproteksyon sa mga non-PDF na file, na walang sariling lock). At ito ay **defense-in-depth**: anumang PDF sa loob ay *isa ring* indibidwal na naka-AES-256-lock gamit ang parehong password, kaya nananatiling naka-lock ang isang PDF kahit matapos i-unpack ang zip. Lumalabas ang prompt kapag sinimulan mo ang download; ang blangkong password ay nangangahulugang walang lock.
+Ang parehong *Password protect* card sa export panel ang nagpapatakbo sa PDF at ZIP lock. Ang isang password ay pumoprotekta sa **bawat** member - mga imahe, SVG, lahat, kasama ang mga PDF (ang zip container lang ang makakaprotekta sa mga non-PDF na file, na walang sariling lock). At ito ay **defense-in-depth**: anumang PDF sa loob ay *isa ring* indibidwal na naka-AES-256-lock gamit ang parehong password, kaya nananatiling naka-lock ang isang PDF kahit matapos i-unpack ang zip. Lumalabas ang prompt kapag sinimulan mo ang download; ang blangkong password ay nangangahulugang walang lock.
 
 **Password-gated share links** - ang anumang share link ay maaaring i-encrypt para hingin sa tatanggap ang isang password kapag binuksan ito. Ang buong link state ay AES-256-encrypted gamit ang isang key na hinango mula sa password (PBKDF2); ciphertext lang ang naglalakbay, kaya **hindi kailanman nasa link ang password** at nangyayari ang decryption **sa browser ng tatanggap** - nakikita lang ng server na naghahatid ng link ang ciphertext sa URL, hindi kailanman ang password at hindi kailanman ang na-decrypt na disenyo. I-on ito sa **Share** dialog. Ang isang naka-encrypt na link ay maaari lang *buksan* sa Lolly (hindi ito puwedeng i-embed bilang imahe, dahil hindi maaaring mag-prompt ang landas na iyon). Tingnan ang [URL Mode → Encrypted links](/info/url-mode.html).
 

@@ -1,6 +1,6 @@
 # Eksport og formater
 
-Trykk på **Eksporter** på et verktøys pille **Export | Save as**, velg et format fra menyen ved siden av filnavnet, trykk deretter på **Last ned**. Filen lages på enheten din; ingenting lastes opp.
+Trykk på **Eksporter** på et verktøys pille **Export | Save as**, velg et format fra menyen ved siden av filnavnet, trykk deretter på **Last ned**. En vanlig nedlasting lages på enheten din. Organisasjonens godkjenning og leveringsalternativer er beskrevet nedenfor.
 
 For de fleste jobber er ett av tre formater riktig:
 
@@ -34,6 +34,14 @@ Handlingene i eksportpanelet:
 ![Eksportpanelet - format, størrelse og handlingene Kopier / Last ned / Lagre / Del](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Del åpner over verktøyet, med lenken allerede bygget og bryterne for besøk under den.
+
+::: details Godkjenninger og levering med lolly.work (valgfritt)
+En [organisasjon som bruker lolly.work](/info/organisation.html) kan styre hvilke formater og eksportinnstillinger som er tilgjengelige. Der godkjenning kreves, kan appen vise **Be om godkjenning** i stedet for **Last ned**. Følg policyen som instansen din viser.
+
+Tjenesten støtter også styrt levering til konfigurerte S3-, WebDAV- og HTTP-mål, med godkjenningstrinn der det er konfigurert, leveringskvitteringer og en revisjonslogg. Når du sender en fil inn i den arbeidsflyten, går den til organisasjonens tjeneste; vanlige lokale nedlastinger blir på enheten. Personlige Send-mål og styrt organisasjonslevering har separat konfigurasjon.
+
+For operatører, se [leveringsguiden](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). For køede servergjengivelser og batcher, se [CLI-batch og automatisering](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Gjengi flere samtidig
 
@@ -296,21 +304,21 @@ Kortet er chrome, aldri innhold: det strippes fra hvert eksporttrinn, slik at de
 
 To uavhengige typer lås, begge helt on-device.
 
-**PDF-åpningspassord** - eksportpanelets *Password protect*-kort tilbyr to nivåer:
+**PDF-åpningspassord** - eksportpanelets *Password protect*-kort tilbyr to nivåer når et passord er skrevet inn:
 
 ![Password protect-kortet utvidet på en PDF-eksport, med passordfeltet og de to låsnivåene](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - en enkel 40-bits lås (RC4). Den åpnes i *hvilken som helst* PDF-app, og - siden det er et lett avskrekkende middel, ikke reell beskyttelse - kan den følge med i en delingslenke (i klartekst). Bare RGB `pdf`.
-- **Sterk** - AES-256 (PDF 2.0). Passordet skrives inn ved eksport og legges **aldri** i en lenke; den åpnes bare i nyere PDF-apper (Acrobat/Preview ~2018 og senere), og eldre apper kan melde at filen er skadet. Sterk gjelder også **Print/CMYK-PDF-er** og **hver PDF inni en batch-zip** (bekreftelsesdialogen for batchen samler inn passordet). Fordi PDF/X-4 forbyr kryptering, beholder en Sterk-låst Print-PDF sin CMYK, sine merker og sitt output-intent, men mister PDF/X-4-samsvarserklæringen.
+- **Svak** - et enkelt 40-bit passord (RC4). En lett avskrekkelse, ikke ekte beskyttelse: passordet kan reise med i en delingslenke (i klartekst). Kun RGB-`pdf`.
+- **Sterk** - AES-256 (PDF 2.0). Passordet skrives inn ved eksport og legges **aldri** i en lenke. Sterk gjelder også **Print/CMYK-PDF-er** og **hver PDF inni en batch-zip** (bekreftelsesdialogen for batchen samler inn passordet). Fordi PDF/X-4 forbyr kryptering, beholder en Sterkt låst Print-PDF sin CMYK, sine merker og sin output-intent, men slipper påstanden om PDF/X-4-samsvar.
 
 Begge nivåene er gjensidig utelukkende med Content Credentials (en kryptert PDF kan ikke få credentialen).
 
 **Låste nedlastinger (hele zip-en + defense-in-depth)** - en **ZIP**-eksport (eksportpanelets *ZIP*-format, som samler flere av et verktøys formater), en **mappe**-nedlasting (Projects → Download) eller **batch-rutenettet** kan låse hele zip-en med ett passord, på to nivåer:
 
-- **Standard** - tradisjonell **ZipCrypto**: åpnes i *ethvert* utpakkingsverktøy, inkludert Windows Explorers innebygde utpakking, men svak (et hinder). Passordet kan følge med i en `?password=`-delingslenke.
-- **Strong** - **AES-256** (WinZip AE-2): sterk, men åpnes **ikke** i Windows Explorers innebygde utpakking - mottakeren trenger 7-Zip / WinZip / Keka / macOS. Skrives inn ved eksport, legges aldri i en lenke.
+- **Svak** - tradisjonell **ZipCrypto**, kun en avskrekkelse. Passordet kan reise med i en `?password=`-delingslenke.
+- **Sterk** - **AES-256**-kryptering. Skrives inn ved eksport og legges aldri i en lenke.
 
-Det samme *Password protect*-kortet i eksportpanelet styrer både PDF- og ZIP-låsene, og ordlegger seg om etter valgt format. Det ene passordet beskytter **alle** medlemmer - bilder, SVG, alt, PDF-er inkludert (kun zip-beholderen kan beskytte filer som ikke er PDF, som ikke har noen egen lås). Og det er **defense-in-depth**: enhver PDF inni er *også* individuelt AES-256-låst med samme passord, så en PDF forblir låst selv etter at zip-en er pakket ut. Ledeteksten vises når du starter nedlastingen; et tomt passord betyr ingen lås.
+Det samme *Password protect*-kortet i eksportpanelet styrer både PDF- og ZIP-låsene. Det ene passordet beskytter **alle** medlemmer - bilder, SVG, alt, PDF-er inkludert (kun zip-beholderen kan beskytte filer som ikke er PDF, som ikke har noen egen lås). Og det er **defense-in-depth**: enhver PDF inni er *også* individuelt AES-256-låst med samme passord, så en PDF forblir låst selv etter at zip-filen er pakket ut. Spørsmålet vises når du starter nedlastingen; et tomt passord betyr ingen lås.
 
 **Passordbeskyttede delingslenker** - enhver delingslenke kan krypteres slik at det å åpne den ber mottakeren om et passord. Hele lenketilstanden er AES-256-kryptert under en nøkkel utledet fra passordet (PBKDF2); kun chiffertekst reiser, så **passordet er aldri i lenken**, og dekryptering skjer **i mottakerens nettleser** - serveren som betjener lenken ser kun chifferteksten i URL-en, aldri passordet og aldri det dekrypterte designet. Slå det på i **Share**-dialogen. En kryptert lenke kan kun *åpnes* i Lolly (den kan ikke bygges inn som et bilde, siden den veien ikke kan spørre om passord). Se [URL Mode → Encrypted links](/info/url-mode.html).
 

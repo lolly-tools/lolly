@@ -216,8 +216,6 @@ export interface ActionsCtx {
   pwFromUrl: boolean;
   STD_LOCK_HINT: string;
   STRONG_LOCK_HINT: string;
-  STD_ZIP_HINT: string;
-  STRONG_ZIP_HINT: string;
   c2paEl: HTMLInputElement | null;
   pdfPassEl: HTMLInputElement | null;
   sizeUserSet: boolean;

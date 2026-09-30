@@ -1,6 +1,6 @@
 # 匯出與格式
 
-在工具的**匯出 | 另存為**膠囊按鈕上按**匯出**，從檔案名稱旁邊的選單中選一個格式，然後按**下載**。檔案在你的裝置上產生；不會上傳任何內容。
+在工具的 **Export | Save as** 按鈕組上按 **Export**，從檔名旁的選單中選擇格式，然後按 **Download**。一般下載會在你的裝置上產生。組織審核與交付選項見下文。
 
 對大多數工作來說，三種格式中總有一種合適：
 
@@ -34,6 +34,14 @@
 ![匯出面板 - 格式、尺寸以及 Copy / Download / Save / Share 動作](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Share（分享）會在工具上方開啟，連結已經建立完成，造訪時的切換選項則列在下方。
+
+::: details 透過 lolly.work 審核與交付（選用）
+[使用 lolly.work 的組織](/info/organisation.html)可以管控可用的格式與匯出設定。在需要審核的情況下，應用程式可以用 **Request approval** 取代 **Download**。請依照你的執行個體所顯示的政策辦理。
+
+該服務也支援向已設定的 S3、WebDAV 與 HTTP 目的地進行受管交付，並在已設定時提供審核步驟、交付回條與稽核紀錄。為該工作流程提交檔案會將其傳送到組織的服務；一般的本機下載仍留在裝置上。個人 Send 目的地與受管的組織交付分別設定。
+
+維運人員請參閱[交付指南](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md)。關於排入佇列的伺服器渲染與批次處理，請參閱 [CLI 批次與自動化](/info/cli-automation.html#organisation-jobs-with-lolly-work)。
+:::
 
 ### 一次轉譯多個檔案
 
@@ -296,21 +304,21 @@ GIF 在任何地方都能運作(很適合聊天/電子郵件用途;檔案較大�
 
 兩種各自獨立的鎖定機制，皆完全在裝置端進行。
 
-**PDF 開啟密碼** - 匯出面板的 *密碼保護* 卡片提供兩種等級：
+**PDF 開啟密碼** - 輸入密碼後，匯出面板的 *Password protect* 卡片提供兩種等級：
 
 ![在 PDF 匯出中展開的密碼保護卡片，內含密碼欄位與兩種鎖定等級](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - 基本的 40 位元鎖定 (RC4)。可在*任何* PDF 應用程式中開啟，且 - 因為只是輕度嚇阻，並非真正的保護 - 它可能出現在分享連結中（依設計以明文形式傳送）。僅限 RGB `pdf`。
-- **Strong** - AES-256（PDF 2.0）。其密碼於匯出時輸入，**絕不會**放入連結中；僅能在較新版的 PDF 應用程式中開啟（Acrobat / Preview 約 2018 年後的版本），較舊的應用程式可能會回報檔案已損壞。Strong 也適用於**印刷用／CMYK PDF**以及**批次 zip 內的每個 PDF**（批次確認對話框會收集密碼）。由於 PDF/X-4 禁止加密，以 Strong 鎖定的印刷用 PDF 會保留其 CMYK、印刷標記與輸出意圖，但會失去 PDF/X-4 合規聲明。
+- **Weak** - 簡單的 40 位元密碼（RC4）。只是輕度嚇阻，並非真正的保護：其密碼可隨分享連結傳送（以明文形式）。僅限 RGB `pdf`。
+- **Strong** - AES-256（PDF 2.0）。其密碼於匯出時輸入，**絕不會**放入連結中。Strong 也適用於 **Print / CMYK PDF** 以及**批次 zip 內的每個 PDF**（批次確認對話框會收集密碼）。由於 PDF/X-4 禁止加密，以 Strong 鎖定的 Print PDF 會保留其 CMYK、印刷標記與輸出意圖，但會失去 PDF/X-4 合規聲明。
 
 任一等級皆與 Content Credentials 互斥（加密的 PDF 無法附加憑證）。
 
 **鎖定下載（整個 zip ＋縱深防禦）** - **ZIP** 匯出（匯出面板的 *ZIP* 格式，會將工具的多種格式打包在一起）、**資料夾**下載（Projects → Download）或**批次網格**都可用單一密碼鎖定整個 zip，分為兩種等級：
 
-- **Standard** - 傳統的 **ZipCrypto**：可在*任何*解壓縮工具中開啟，包括 Windows 檔案總管內建的解壓縮功能，但強度較弱（僅作嚇阻）。其密碼可能出現在 `?password=` 分享連結中。
-- **Strong** - **AES-256**（WinZip AE-2）：強度高，但**無法**在 Windows 檔案總管內建的解壓縮功能中開啟 - 收件者需要 7-Zip / WinZip / Keka / macOS。於匯出時輸入，絕不會放入連結中。
+- **Weak** - 傳統的 **ZipCrypto**，僅作嚇阻。其密碼可隨 `?password=` 分享連結傳送。
+- **Strong** - **AES-256** 加密。於匯出時輸入，絕不會放入連結中。
 
-匯出面板中同一張 *密碼保護* 卡片同時驅動 PDF 與 ZIP 的鎖定，會依所選格式改變措辭。同一組密碼會保護**所有**成員 - 圖片、SVG、一切內容，包括 PDF（只有 zip 容器能保護非 PDF 檔案，因為它們本身並無鎖定機制）。而且這是**縱深防禦**：其中任何 PDF *也會*以相同密碼個別以 AES-256 鎖定，因此即使 zip 被解開，PDF 仍保持鎖定狀態。此提示會在你開始下載時出現；密碼留空即代表不鎖定。
+匯出面板中同一張 *Password protect* 卡片同時驅動 PDF 與 ZIP 的鎖定。同一組密碼會保護**每一個**成員 - 圖片、SVG、一切內容，包括 PDF（只有 zip 容器能保護本身沒有鎖定機制的非 PDF 檔案）。而且這是**縱深防禦**：其中任何 PDF *也會*以相同密碼個別以 AES-256 鎖定，因此即使 zip 被解開，PDF 仍保持鎖定。此提示會在你開始下載時出現；密碼留空即代表不鎖定。
 
 **密碼保護的分享連結** - 任何分享連結都可以加密，讓開啟連結時要求收件者輸入密碼。整個連結狀態會以由密碼衍生（PBKDF2）的金鑰進行 AES-256 加密；只有密文會被傳送，因此**密碼絕不會出現在連結中**，且解密發生在**收件者的瀏覽器內** - 提供此連結的伺服器只會看到 URL 中的密文，永遠看不到密碼，也看不到解密後的設計內容。可在**Share**對話框中開啟此功能。加密連結只能在 Lolly 中*開啟*（無法嵌入為圖片，因為該路徑無法提示輸入密碼）。詳見 [URL Mode → Encrypted links](/info/url-mode.html)。
 

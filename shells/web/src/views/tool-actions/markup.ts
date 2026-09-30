@@ -177,11 +177,11 @@ export function buildFormatOptions(ta: ActionsCtx): void {
           <input type="password" class="field-input" data-action="pdf-password" autocomplete="new-password" spellcheck="false"
                  value="${escapeText(exportDefaults.password ?? '')}"
                  placeholder="Leave blank for no password" aria-label="Open password">
-          <select class="pdfpass-tier field-select field-select--sm" data-action="pdf-lock-tier" aria-label="Encryption strength">
-            <option value="standard">Standard lock - opens in any PDF app</option>
-            <option value="strong">Strong · AES-256 - newer apps only ⓘ</option>
+          <select class="pdfpass-tier field-select field-select--sm" data-action="pdf-lock-tier" aria-label="Encryption strength"${exportDefaults.password ? '' : ' hidden'}>
+            <option value="standard">Weak: Simple Password</option>
+            <option value="strong">Strong: Encrypted AES-256</option>
           </select>
-          <p class="pdfpass-hint" data-pdfpass-hint>Requires this password to open the PDF. A basic 40-bit lock - it opens in any PDF app and travels in a share link, so treat it as a deterrent, not protection for confidential files.</p>
+          <p class="pdfpass-hint" data-pdfpass-hint${exportDefaults.password ? '' : ' hidden'}>The password travels in share links, so treat this as a deterrent, not protection for confidential files.</p>
         </div>
       </div>`
       : ''; ta.pdfPassRow = pdfPassRow;

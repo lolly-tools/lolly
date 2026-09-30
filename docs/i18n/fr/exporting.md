@@ -1,6 +1,6 @@
 # Export et formats
 
-Appuie sur **Exporter** sur la pastille **Export | Save as** d'un outil, choisis un format dans le menu à côté du nom de fichier, puis appuie sur **Télécharger**. Le fichier est créé sur ton appareil ; rien n'est envoyé en ligne.
+Appuie sur **Export** dans la pastille **Export | Save as** d'un outil, choisis un format dans le menu à côté du nom de fichier, puis appuie sur **Download**. Un téléchargement ordinaire est généré sur ton appareil. L'approbation par l'organisation et les options de livraison sont traitées plus bas.
 
 Pour la plupart des tâches, l'un de ces trois formats convient :
 
@@ -34,6 +34,14 @@ Les actions dans les contrôles d'export :
 ![Le panneau d'export - format, taille et les actions Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Share s'ouvre par-dessus l'outil, avec le lien déjà construit et les bascules à l'ouverture en dessous.
+
+::: details Approbations et livraison avec lolly.work (optionnel)
+Une [organisation qui utilise lolly.work](/info/organisation.html) peut encadrer les formats disponibles et les réglages d'export. Quand une approbation est requise, l'appli peut afficher **Request approval** à la place de **Download**. Suis la politique affichée par ton instance.
+
+Le service prend aussi en charge la livraison encadrée vers des destinations S3, WebDAV et HTTP configurées, avec des étapes d'approbation là où elles sont configurées, des accusés de livraison et un journal d'audit. Soumettre un fichier à ce workflow l'envoie au service de l'organisation ; les téléchargements locaux ordinaires restent sur l'appareil. Les destinations Send personnelles et la livraison encadrée de l'organisation ont chacune leur propre configuration.
+
+Pour les opérateurs, voir le [guide de livraison](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Pour les rendus serveur en file d'attente et les lots, voir [Lots CLI et automatisation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Rendre plusieurs éléments à la fois
 
@@ -296,21 +304,21 @@ La carte est du chrome, jamais du contenu : elle est retirée de chaque étape d
 
 Deux types de verrouillage indépendants, entièrement sur l'appareil.
 
-**Mot de passe d'ouverture PDF** - la carte *Password protect* du panneau d'export propose deux niveaux :
+**Mot de passe d'ouverture PDF** - la carte *Password protect* du panneau d'export propose deux niveaux une fois un mot de passe saisi :
 
 ![La carte Password protect développée sur un export PDF, avec le champ de mot de passe et les deux niveaux de verrouillage](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - un verrou basique 40 bits (RC4). Il s'ouvre dans *n'importe quelle* application PDF et - n'étant qu'une dissuasion légère, pas une vraie protection - il peut voyager dans un lien de partage (en clair). RGB `pdf` uniquement.
-- **Strong** - AES-256 (PDF 2.0). Son mot de passe est saisi à l'export et n'est **jamais** placé dans un lien ; il ne s'ouvre que dans les applications PDF récentes (Acrobat / Preview ~2018 et après), et les applications plus anciennes peuvent signaler le fichier comme endommagé. Strong s'applique aussi aux **PDF Print / CMYK** et à **chaque PDF à l'intérieur d'un zip de lot** (la boîte de dialogue de confirmation du lot recueille le mot de passe). PDF/X-4 interdisant le chiffrement, un PDF Print verrouillé en Strong conserve son CMYK, ses repères et son intention de sortie mais perd la conformité PDF/X-4.
+- **Weak** - un simple mot de passe 40 bits (RC4). Une dissuasion légère, pas une vraie protection : son mot de passe peut voyager dans un lien de partage (en clair). RGB `pdf` uniquement.
+- **Strong** - AES-256 (PDF 2.0). Son mot de passe est saisi à l'export et n'est **jamais** placé dans un lien. Strong s'applique aussi aux **PDF Print / CMYK** et à **chaque PDF à l'intérieur d'un zip de lot** (la boîte de dialogue de confirmation du lot recueille le mot de passe). PDF/X-4 interdisant le chiffrement, un PDF Print verrouillé en Strong conserve son CMYK, ses repères et son intention de sortie mais perd la conformité PDF/X-4.
 
 Les deux niveaux sont mutuellement exclusifs avec Content Credentials (un PDF chiffré ne peut pas recevoir le credential).
 
 **Téléchargements verrouillés (zip entier + défense en profondeur)** - un export **ZIP** (le format *ZIP* du panneau d'export, qui regroupe plusieurs formats d'un outil), un téléchargement de **dossier** (Projects → Download) ou la **grille de lot** peuvent verrouiller l'ensemble du zip avec un seul mot de passe, selon deux niveaux :
 
-- **Standard** - **ZipCrypto** traditionnel : s'ouvre dans *n'importe quel* outil de décompression, y compris l'extraction intégrée de l'Explorateur Windows, mais faible (une dissuasion). Son mot de passe peut voyager dans un lien de partage `?password=`.
-- **Strong** - **AES-256** (WinZip AE-2) : robuste, mais ne s'ouvre **pas** avec l'extraction intégrée de l'Explorateur Windows - le destinataire a besoin de 7-Zip / WinZip / Keka / macOS. Saisi à l'export, jamais placé dans un lien.
+- **Weak** - **ZipCrypto** traditionnel, une simple dissuasion. Son mot de passe peut voyager dans un lien de partage `?password=`.
+- **Strong** - chiffrement **AES-256**. Saisi à l'export, jamais placé dans un lien.
 
-La même carte *Password protect* du panneau d'export pilote à la fois les verrous PDF et ZIP, en reformulant son texte selon le format choisi. Le mot de passe unique protège **chaque** membre - images, SVG, tout, PDF compris (seul le conteneur zip peut protéger les fichiers non-PDF, qui n'ont pas de verrou propre). Et c'est une **défense en profondeur** : tout PDF à l'intérieur est *aussi* verrouillé individuellement en AES-256 avec le même mot de passe, donc un PDF reste verrouillé même après décompression du zip. L'invite apparaît quand tu démarres le téléchargement ; un mot de passe vide signifie aucun verrou.
+La même carte *Password protect* du panneau d'export pilote à la fois les verrous PDF et ZIP. Le mot de passe unique protège **chaque** membre - images, SVG, tout, PDF compris (seul le conteneur zip peut protéger les fichiers non-PDF, qui n'ont pas de verrou propre). Et c'est une **défense en profondeur** : tout PDF à l'intérieur est *aussi* verrouillé individuellement en AES-256 avec le même mot de passe, donc un PDF reste verrouillé même après décompression du zip. L'invite apparaît quand tu démarres le téléchargement ; un mot de passe vide signifie aucun verrou.
 
 **Liens de partage protégés par mot de passe** - tout lien de partage peut être chiffré pour que son ouverture demande un mot de passe au destinataire. L'état complet du lien est chiffré en AES-256 sous une clé dérivée du mot de passe (PBKDF2) ; seul le texte chiffré voyage, donc le **mot de passe n'est jamais dans le lien** et le déchiffrement se fait **dans le navigateur du destinataire** - le serveur qui sert le lien ne voit que le texte chiffré dans l'URL, jamais le mot de passe ni le design déchiffré. Active-le dans la boîte de dialogue **Share**. Un lien chiffré ne peut être qu'*ouvert* dans Lolly (il ne peut pas être intégré comme image, puisque ce chemin ne peut pas afficher d'invite). Voir [URL Mode → Encrypted links](/info/url-mode.html).
 

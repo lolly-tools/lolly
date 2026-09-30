@@ -1,6 +1,6 @@
 # Eksport & Format
 
-Tekan **Eksport** pada pil **Export | Save as** milik sesuatu alat, pilih satu format daripada menu di sebelah nama fail, kemudian tekan **Muat turun**. Fail itu dibuat pada peranti anda; tiada apa-apa dimuat naik.
+Tekan **Export** pada pil **Export | Save as** sesebuah tool, pilih format daripada menu di sebelah nama fail, kemudian tekan **Download**. Muat turun biasa dibuat pada peranti anda. Kelulusan organisasi dan pilihan penghantaran diterangkan di bawah.
 
 Untuk kebanyakan kerja, salah satu daripada tiga format berikut adalah tepat:
 
@@ -34,6 +34,14 @@ Tindakan pada panel eksport:
 ![Panel eksport - format, saiz dan tindakan Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Share dibuka di atas alat, dengan pautan yang telah dibina dan togol semasa lawatan di bawahnya.
+
+::: details Kelulusan dan penghantaran dengan lolly.work (pilihan)
+[Organisasi yang menggunakan lolly.work](/info/organisation.html) boleh mengawal format yang tersedia dan tetapan eksport. Jika kelulusan diperlukan, apl boleh memaparkan **Request approval** sebagai ganti **Download**. Ikut dasar yang dipaparkan oleh instans anda.
+
+Perkhidmatan ini juga menyokong penghantaran terkawal ke destinasi S3, WebDAV dan HTTP yang dikonfigurasikan, dengan langkah kelulusan jika dikonfigurasikan, resit penghantaran dan rekod audit. Menghantar fail untuk aliran kerja itu bermakna menghantarnya kepada perkhidmatan organisasi; muat turun tempatan biasa kekal pada peranti. Destinasi Send peribadi dan penghantaran organisasi terkawal mempunyai konfigurasi yang berasingan.
+
+Untuk pengendali, lihat [panduan penghantaran](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Untuk render pelayan yang beratur dan kelompok, lihat [Kelompok dan automasi CLI](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Merender Banyak Sekali Gus
 
@@ -296,21 +304,21 @@ Kad itu adalah krom, bukan sesekali kandungan: ia ditanggalkan daripada setiap p
 
 Dua jenis kunci yang berasingan, kedua-duanya sepenuhnya di peranti.
 
-**Kata laluan buka PDF** - kad *Password protect* pada panel eksport menawarkan dua peringkat:
+**Kata laluan buka PDF** - kad *Password protect* dalam panel eksport menawarkan dua peringkat setelah kata laluan ditaip:
 
 ![Kad Password protect dikembangkan pada eksport PDF, dengan medan kata laluan dan dua peringkat kunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - kunci asas 40-bit (RC4). Ia terbuka pada *mana-mana* aplikasi PDF, dan - kerana ia hanya penghalang ringan, bukan perlindungan sebenar - ia boleh dibawa dalam pautan kongsi (teks jelas). Hanya `pdf` RGB.
-- **Strong** - AES-256 (PDF 2.0). Kata laluannya ditaip semasa eksport dan **tidak sekali-kali** diletakkan dalam pautan; ia hanya terbuka pada aplikasi PDF yang lebih baharu (Acrobat / Preview ~2018 ke atas), dan aplikasi lama mungkin melaporkan fail sebagai rosak. Strong juga terpakai pada **PDF Print / CMYK** dan pada **setiap PDF di dalam zip kelompok** (kotak dialog pengesahan kelompok mengumpul kata laluan itu). Kerana PDF/X-4 melarang penyulitan, PDF Print yang dikunci Strong mengekalkan CMYK, tanda dan niat outputnya tetapi menggugurkan tuntutan pematuhan PDF/X-4.
+- **Weak** - kata laluan ringkas 40-bit (RC4). Penghalang ringan, bukan perlindungan sebenar: kata laluannya boleh dibawa dalam pautan kongsi (teks jelas). Hanya `pdf` RGB.
+- **Strong** - AES-256 (PDF 2.0). Kata laluannya ditaip semasa eksport dan **tidak sekali-kali** diletakkan dalam pautan. Strong juga terpakai pada **PDF Print / CMYK** dan pada **setiap PDF di dalam zip kelompok** (kotak dialog pengesahan kelompok mengumpul kata laluan itu). Kerana PDF/X-4 melarang penyulitan, PDF Print yang dikunci Strong mengekalkan CMYK, tanda dan niat outputnya tetapi menggugurkan tuntutan pematuhan PDF/X-4.
 
 Kedua-dua peringkat itu saling eksklusif dengan Content Credentials (PDF yang disulitkan tidak boleh membawa kelayakan itu).
 
 **Muat turun yang dikunci (keseluruhan zip + pertahanan berlapis)** - eksport **ZIP** (format *ZIP* pada panel eksport, yang menggabungkan beberapa format sesuatu alat), muat turun **folder** (Projects → Download) atau **grid kelompok** boleh mengunci keseluruhan zip dengan satu kata laluan, pada dua peringkat:
 
-- **Standard** - **ZipCrypto** tradisional: terbuka pada *mana-mana* alat unzip termasuk fungsi extract terbina-dalam Windows Explorer, tetapi lemah (hanya penghalang). Kata laluannya boleh dibawa dalam pautan kongsi `?password=`.
-- **Strong** - **AES-256** (WinZip AE-2): kukuh, tetapi **tidak** terbuka pada fungsi extract terbina-dalam Windows Explorer - penerima memerlukan 7-Zip / WinZip / Keka / macOS. Ditaip semasa eksport, tidak sekali-kali diletakkan dalam pautan.
+- **Weak** - **ZipCrypto** tradisional, penghalang sahaja. Kata laluannya boleh dibawa dalam pautan kongsi `?password=`.
+- **Strong** - penyulitan **AES-256**. Ditaip semasa eksport, tidak sekali-kali diletakkan dalam pautan.
 
-Kad *Password protect* yang sama pada panel eksport menggerakkan kedua-dua kunci PDF dan ZIP, dan menukar kata-katanya mengikut format yang dipilih. Satu kata laluan itu melindungi **setiap** ahli - imej, SVG, semuanya, termasuk PDF (hanya bekas zip boleh melindungi fail bukan PDF, yang tiada kunci tersendiri). Dan ia **pertahanan berlapis**: mana-mana PDF di dalamnya *juga* dikunci AES-256 secara berasingan dengan kata laluan yang sama, jadi PDF itu kekal terkunci walaupun selepas zip dibuka. Gesaan itu muncul apabila anda memulakan muat turun; kata laluan kosong bermakna tiada kunci.
+Kad *Password protect* yang sama dalam panel eksport menggerakkan kunci PDF dan ZIP. Satu kata laluan melindungi **setiap** ahli - imej, SVG, semuanya, termasuk PDF (hanya bekas zip yang boleh melindungi fail bukan PDF, yang tiada kunci sendiri). Dan ia **defense-in-depth**: mana-mana PDF di dalamnya *juga* dikunci AES-256 secara individu dengan kata laluan yang sama, jadi PDF kekal terkunci walaupun selepas zip dibongkar. Prompt muncul apabila anda memulakan muat turun; kata laluan kosong bermakna tiada kunci.
 
 **Pautan kongsi berkunci kata laluan** - mana-mana pautan kongsi boleh disulitkan supaya membukanya meminta kata laluan daripada penerima. Keseluruhan keadaan pautan itu disulitkan AES-256 di bawah kunci yang diterbitkan daripada kata laluan (PBKDF2); hanya teks sifer yang dibawa, jadi **kata laluan tidak sekali-kali berada dalam pautan** dan penyahsulitan berlaku **di dalam pelayar penerima** - pelayan yang menyajikan pautan itu hanya melihat teks sifer dalam URL, tidak sekali-kali kata laluan dan tidak sekali-kali reka bentuk yang telah dinyahsulit. Hidupkannya dalam kotak dialog **Share**. Pautan yang disulitkan hanya boleh *dibuka* dalam Lolly (ia tidak boleh dibenamkan sebagai imej, kerana laluan itu tidak boleh menggesa). Lihat [URL Mode → Encrypted links](/info/url-mode.html).
 

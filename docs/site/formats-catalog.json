@@ -389,8 +389,8 @@
     ],
     "ZIP": [
       "Bundles any format combination",
-      "ZipCrypto (Windows-openable) lock",
-      "Or strong WinZip AES-256 (AE-2)",
+      "Weak ZipCrypto lock",
+      "Or strong AES-256 encryption",
       "Each inner PDF individually locked",
       "Reads a dropped .zip back to its members"
     ],
@@ -1678,7 +1678,7 @@
         "multi-file-bundle",
         "encryption"
       ],
-      "desc": "A single archive that bundles many files together, how Lolly delivers a multi-format export, a whole folder of saved sessions, or a batch run. You can lock the whole zip with one password: a Standard lock (traditional ZipCrypto, opens in any unzip tool including Windows) or Strong AES-256 (needs 7-Zip, Keka or WinZip). Any PDF inside is also individually locked with the same password. Drop a plain .zip in and Lolly explodes it, adding each member as its own asset (an office file inside - .xlsx/.pptx/.docx - is routed to its own reader, not shredded).",
+      "desc": "A single archive that bundles many files together, how Lolly delivers a multi-format export, a whole folder of saved sessions, or a batch run. You can lock the whole zip with one password: a Weak lock (a simple password) or Strong AES-256 encryption. Any PDF inside is also individually locked with the same password. Drop a plain .zip in and Lolly explodes it, adding each member as its own asset (an office file inside - .xlsx/.pptx/.docx - is routed to its own reader, not shredded).",
       "metadata": {
         "reads": [],
         "writes": [],

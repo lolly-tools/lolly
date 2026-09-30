@@ -315,16 +315,11 @@ export function readPassword(ta: ActionsCtx): void {
   // built into an unfinished document - so it works only on a plain RGB `pdf` with
   // no print finishing. Strong = AES-256 encrypt-last, which composes with CMYK /
   // marks / pdf-cmyk. When Standard can't apply we disable it and fall to Strong.
+  // The same two hints serve the PDF and the ZIP lock.
   const STD_LOCK_HINT =
-    'Requires this password to open the PDF. A basic 40-bit lock - it opens in any PDF app and travels in a share link, so treat it as a deterrent, not protection for confidential files.'; ta.STD_LOCK_HINT = STD_LOCK_HINT;
+    'The password travels in share links, so treat this as a deterrent, not protection for confidential files.'; ta.STD_LOCK_HINT = STD_LOCK_HINT;
   const STRONG_LOCK_HINT =
-    'AES-256 encryption (PDF 2.0). The recipient must type this exact password to open - it is never included in a link and can’t be recovered if lost. It opens only in newer PDF apps (Acrobat / Preview from ~2018 on); older apps may report the file as damaged.'; ta.STRONG_LOCK_HINT = STRONG_LOCK_HINT;
-  // ZIP variants - same two tiers, different reach: standard = PKWARE ZipCrypto
-  // (opens anywhere incl. Windows Explorer, weak); strong = WinZip AES-256.
-  const STD_ZIP_HINT =
-    'Locks the ZIP with a password. Traditional Zip encryption - it opens in any unzip tool including Windows Explorer, and travels in a share link, so treat it as a deterrent, not protection for confidential files.'; ta.STD_ZIP_HINT = STD_ZIP_HINT;
-  const STRONG_ZIP_HINT =
-    'AES-256 ZIP encryption. The recipient must type this exact password - it is never included in a link and can’t be recovered if lost. It opens in 7-Zip, Keka, WinZip or macOS Archive Utility, but NOT Windows Explorer’s built-in extract.'; ta.STRONG_ZIP_HINT = STRONG_ZIP_HINT;
+    'The password is never put in a link and can’t be recovered if lost.'; ta.STRONG_LOCK_HINT = STRONG_LOCK_HINT;
 }
 
 export function wirePrint(ta: ActionsCtx): void {
@@ -415,6 +410,7 @@ export function wirePrint(ta: ActionsCtx): void {
     'input',
     () => {
       ta.pwFromUrl = false;
+      ta.refresh.refreshLockTier();
       onUrlSync?.('password');
     }
   );

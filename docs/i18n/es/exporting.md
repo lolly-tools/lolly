@@ -1,6 +1,6 @@
 # Exportar y formatos
 
-Pulsa **Exportar** en la píldora **Exportar | Guardar como** de una herramienta, elige un formato en el menú junto al nombre del archivo y luego pulsa **Descargar**. El archivo se genera en tu dispositivo; no se sube nada.
+Pulsa **Export** en la píldora **Export | Save as** de una herramienta, elige un formato en el menú junto al nombre del archivo y luego pulsa **Download**. Una descarga ordinaria se genera en tu dispositivo. La aprobación de la organización y las opciones de entrega se tratan más abajo.
 
 Para la mayoría de los trabajos, uno de estos tres formatos es el adecuado:
 
@@ -34,6 +34,14 @@ Las acciones del panel de exportación:
 ![El panel de exportación - formato, tamaño y las acciones Copiar / Descargar / Guardar / Compartir](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Compartir se abre sobre la herramienta, con el enlace ya construido y las opciones de activación al visitar debajo.
+
+::: details Aprobaciones y entrega con lolly.work (opcional)
+Una [organización que usa lolly.work](/info/organisation.html) puede gobernar los formatos disponibles y los ajustes de exportación. Cuando se requiere aprobación, la app puede mostrar **Request approval** en lugar de **Download**. Sigue la política que muestre tu instancia.
+
+El servicio también admite la entrega gobernada a destinos S3, WebDAV y HTTP configurados, con pasos de aprobación cuando se configuran, recibos de entrega y un registro de auditoría. Enviar un archivo a ese flujo de trabajo lo manda al servicio de la organización; las descargas locales ordinarias permanecen en el dispositivo. Los destinos de Send personales y la entrega gobernada de la organización tienen configuración separada.
+
+Para operadores, consulta la [guía de entrega](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Para renders de servidor en cola y lotes, consulta [Lotes y automatización con la CLI](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Renderizar varios a la vez
 
@@ -296,21 +304,21 @@ La tarjeta es interfaz, nunca contenido: se elimina en cada etapa de exportació
 
 Dos tipos de bloqueo independientes, ambos completamente en el dispositivo.
 
-**Contraseña de apertura de PDF** - la tarjeta *Password protect* del panel de exportación ofrece dos niveles:
+**Contraseña de apertura de PDF** - la tarjeta *Password protect* del panel de exportación ofrece dos niveles una vez escrita una contraseña:
 
 ![La tarjeta Password protect desplegada en una exportación de PDF, con el campo de contraseña y los dos niveles de bloqueo](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - un bloqueo básico de 40 bits (RC4). Se abre en *cualquier* app de PDF y - al ser un disuasorio ligero, no una protección real - puede viajar en un enlace compartido (en texto claro). Solo `pdf` RGB.
-- **Strong** - AES-256 (PDF 2.0). Su contraseña se escribe al exportar y **nunca** se coloca en un enlace; solo se abre en apps de PDF más recientes (Acrobat / Preview ~2018 en adelante), y las apps más antiguas pueden reportar el archivo como dañado. Strong también se aplica a los **PDF de impresión / CMYK** y a **cada PDF dentro de un zip por lotes** (el diálogo de confirmación del lote recoge la contraseña). Como PDF/X-4 prohíbe el cifrado, un PDF de impresión bloqueado con Strong conserva su CMYK, sus marcas y su intención de salida, pero pierde la declaración de conformidad PDF/X-4.
+- **Weak** - una contraseña simple de 40 bits (RC4). Un disuasorio ligero, no una protección real: su contraseña puede viajar en un enlace compartido (en texto claro). Solo `pdf` RGB.
+- **Strong** - AES-256 (PDF 2.0). Su contraseña se escribe al exportar y **nunca** se coloca en un enlace. Strong también se aplica a los **PDF de impresión / CMYK** y a **cada PDF dentro de un zip por lotes** (el diálogo de confirmación del lote recoge la contraseña). Como PDF/X-4 prohíbe el cifrado, un PDF de impresión bloqueado con Strong conserva su CMYK, sus marcas y su intención de salida, pero pierde la declaración de conformidad PDF/X-4.
 
 Cualquiera de los dos niveles es mutuamente excluyente con Content Credentials (un PDF cifrado no puede llevar la credencial).
 
 **Descargas bloqueadas (zip completo + defensa en profundidad)** - una exportación en **ZIP** (el formato *ZIP* del panel de exportación, que agrupa varios formatos de una herramienta), una descarga de **carpeta** (Proyectos → Descargar) o la **cuadrícula por lotes** puede bloquear el zip completo con una contraseña, en dos niveles:
 
-- **Standard** - **ZipCrypto** tradicional: se abre en *cualquier* herramienta de descompresión, incluida la extracción integrada del Explorador de Windows, pero es débil (un disuasorio). Su contraseña puede viajar en un enlace compartido `?password=`.
-- **Strong** - **AES-256** (WinZip AE-2): fuerte, pero **no** se abre con la extracción integrada del Explorador de Windows - el destinatario necesita 7-Zip / WinZip / Keka / macOS. Se escribe al exportar, nunca se coloca en un enlace.
+- **Weak** - **ZipCrypto** tradicional, solo un disuasorio. Su contraseña puede viajar en un enlace compartido `?password=`.
+- **Strong** - cifrado **AES-256**. Se escribe al exportar, nunca se coloca en un enlace.
 
-La misma tarjeta *Password protect* del panel de exportación controla tanto los bloqueos de PDF como los de ZIP, reformulándose según el formato elegido. La misma contraseña protege a **todos** los miembros - imágenes, SVG, todo, PDFs incluidos (solo el contenedor zip puede proteger archivos que no son PDF, que no tienen bloqueo propio). Y es **defensa en profundidad**: cualquier PDF interior queda *también* bloqueado individualmente con AES-256 y la misma contraseña, de modo que un PDF permanece bloqueado incluso después de descomprimir el zip. El aviso aparece al iniciar la descarga; una contraseña en blanco significa ningún bloqueo.
+La misma tarjeta *Password protect* del panel de exportación controla tanto los bloqueos de PDF como los de ZIP. La misma contraseña protege a **todos** los miembros - imágenes, SVG, todo, PDFs incluidos (solo el contenedor zip puede proteger archivos que no son PDF, que no tienen bloqueo propio). Y es **defensa en profundidad**: cualquier PDF interior queda *también* bloqueado individualmente con AES-256 y la misma contraseña, de modo que un PDF permanece bloqueado incluso después de descomprimir el zip. El aviso aparece al iniciar la descarga; una contraseña en blanco significa ningún bloqueo.
 
 **Enlaces compartidos protegidos con contraseña** - cualquier enlace compartido puede cifrarse para que al abrirlo se pida una contraseña al destinatario. Todo el estado del enlace se cifra con AES-256 bajo una clave derivada de la contraseña (PBKDF2); solo viaja el texto cifrado, así que **la contraseña nunca está en el enlace** y el descifrado ocurre **en el navegador del destinatario** - el servidor que sirve el enlace solo ve el texto cifrado en la URL, nunca la contraseña ni el diseño descifrado. Actívalo en el diálogo **Share**. Un enlace cifrado solo puede *abrirse* en Lolly (no puede incrustarse como imagen, ya que esa vía no puede pedir la contraseña). Consulta [URL Mode → Encrypted links](/info/url-mode.html).
 

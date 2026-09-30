@@ -1,6 +1,6 @@
 # Eksportowanie i formaty
 
-Naciśnij **Eksportuj** na pigułce narzędzia **Eksportuj | Zapisz jako**, wybierz format z menu obok nazwy pliku, a potem naciśnij **Pobierz**. Plik powstaje na twoim urządzeniu; nic nie jest przesyłane.
+Naciśnij **Export** na przycisku **Export | Save as** narzędzia, wybierz format z menu obok nazwy pliku, a potem naciśnij **Download**. Zwykłe pobranie powstaje na Twoim urządzeniu. Zatwierdzanie w organizacji i opcje dostarczania opisano poniżej.
 
 Do większości zadań pasuje jeden z trzech formatów:
 
@@ -34,6 +34,14 @@ Akcje w panelu eksportu:
 ![Panel eksportu - format, rozmiar oraz akcje Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Share otwiera się nad narzędziem, z gotowym już linkiem i przełącznikami uruchamianymi przy wejściu poniżej.
+
+::: details Zatwierdzanie i dostarczanie z lolly.work (opcjonalnie)
+[Organizacja korzystająca z lolly.work](/info/organisation.html) może zarządzać dostępnymi formatami i ustawieniami eksportu. Tam, gdzie wymagane jest zatwierdzenie, aplikacja może pokazać **Request approval** zamiast **Download**. Stosuj zasady wyświetlane przez Twoją instancję.
+
+Usługa obsługuje też kontrolowane dostarczanie do skonfigurowanych miejsc docelowych S3, WebDAV i HTTP, z etapami zatwierdzania tam, gdzie je skonfigurowano, potwierdzeniami dostarczenia i zapisem audytu. Przesłanie pliku w tym przepływie wysyła go do usługi organizacji; zwykłe lokalne pobrania pozostają na urządzeniu. Osobiste miejsca docelowe Send i kontrolowane dostarczanie organizacji mają osobną konfigurację.
+
+Dla operatorów: zobacz [przewodnik po dostarczaniu](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Dla renderów serwerowych w kolejce i wsadów zobacz [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Renderowanie wielu naraz
 
@@ -296,21 +304,21 @@ Karta to interfejs, nigdy treść: jest usuwana z każdego etapu eksportu, więc
 
 Dwa niezależne rodzaje blokady, obie całkowicie na urządzeniu.
 
-**Hasło otwarcia PDF** - karta *Password protect* w panelu eksportu oferuje dwa poziomy:
+**Hasło otwarcia PDF** - karta *Password protect* w panelu eksportu oferuje dwa poziomy po wpisaniu hasła:
 
 ![Rozwinięta karta Password protect przy eksporcie PDF, z polem hasła i dwoma poziomami blokady](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standardowy** - podstawowa 40-bitowa blokada (RC4). Otwiera się w *dowolnej* aplikacji PDF, i - będąc lekkim odstraszaczem, nie prawdziwą ochroną - może podróżować w linku udostępniania (jawnym tekstem). Tylko RGB `pdf`.
-- **Mocne** - AES-256 (PDF 2.0). Jego hasło jest wpisywane przy eksporcie i **nigdy** nie trafia do linku; otwiera się tylko w nowszych aplikacjach PDF (Acrobat / Preview od ~2018), a starsze aplikacje mogą zgłosić plik jako uszkodzony. Mocne dotyczy też **PDF do druku / CMYK** i **każdego PDF wewnątrz zipu wsadowego** (okno potwierdzenia wsadu zbiera hasło). Ponieważ PDF/X-4 zabrania szyfrowania, mocno zablokowany PDF do druku zachowuje swoje CMYK, znaczniki i output-intent, ale traci deklarację zgodności PDF/X-4.
+- **Słabe** - proste 40-bitowe hasło (RC4). Lekki odstraszacz, nie prawdziwa ochrona: jego hasło może podróżować w linku udostępniania (jawnym tekstem). Tylko RGB `pdf`.
+- **Mocne** - AES-256 (PDF 2.0). Jego hasło jest wpisywane przy eksporcie i **nigdy** nie trafia do linku. Mocne dotyczy też **PDF do druku / CMYK** i **każdego PDF wewnątrz zipu wsadowego** (okno potwierdzenia wsadu zbiera hasło). Ponieważ PDF/X-4 zabrania szyfrowania, mocno zablokowany PDF do druku zachowuje swoje CMYK, znaczniki i output-intent, ale traci deklarację zgodności PDF/X-4.
 
 Żaden z poziomów nie jest kompatybilny z Content Credentials (zaszyfrowany PDF nie może otrzymać poświadczenia).
 
 **Zablokowane pobrania (cały zip + ochrona wielowarstwowa)** - eksport **ZIP** (format *ZIP* w panelu eksportu, który łączy kilka formatów narzędzia), pobranie **folderu** (Projekty → Pobierz) lub **siatka zbiorcza** mogą zablokować cały zip jednym hasłem, na dwóch poziomach:
 
-- **Standard** - tradycyjny **ZipCrypto**: otwiera się w *dowolnym* narzędziu do rozpakowywania, w tym we wbudowanym rozpakowywaniu Eksploratora Windows, ale jest słaby (środek odstraszający). Jego hasło może być przesyłane w linku udostępniania `?password=`.
-- **Strong** - **AES-256** (WinZip AE-2): silny, ale **nie** otwiera się we wbudowanym rozpakowywaniu Eksploratora Windows - odbiorca potrzebuje 7-Zip / WinZip / Keka / macOS. Wpisywane przy eksporcie, nigdy nie trafia do linku.
+- **Słabe** - tradycyjny **ZipCrypto**, tylko środek odstraszający. Jego hasło może być przesyłane w linku udostępniania `?password=`.
+- **Mocne** - szyfrowanie **AES-256**. Wpisywane przy eksporcie, nigdy nie trafia do linku.
 
-Ta sama karta *Password protect* w panelu eksportu obsługuje blokady zarówno PDF, jak i ZIP, zmieniając treść w zależności od wybranego formatu. Jedno hasło chroni **wszystkie** elementy - obrazy, SVG, wszystko, łącznie z PDF-ami (tylko kontener zip może chronić pliki inne niż PDF, które nie mają własnej blokady). To też **ochrona wielowarstwowa**: każdy PDF w środku jest *dodatkowo* indywidualnie zablokowany AES-256 tym samym hasłem, więc PDF pozostaje zablokowany nawet po rozpakowaniu zipa. Monit pojawia się przy rozpoczęciu pobierania; puste hasło oznacza brak blokady.
+Ta sama karta *Password protect* w panelu eksportu obsługuje blokady zarówno PDF, jak i ZIP. Jedno hasło chroni **wszystkie** elementy - obrazy, SVG, wszystko, łącznie z PDF-ami (tylko kontener zip może chronić pliki inne niż PDF, które nie mają własnej blokady). To też **ochrona wielowarstwowa**: każdy PDF w środku jest *dodatkowo* indywidualnie zablokowany AES-256 tym samym hasłem, więc PDF pozostaje zablokowany nawet po rozpakowaniu zipa. Monit pojawia się przy rozpoczęciu pobierania; puste hasło oznacza brak blokady.
 
 **Linki udostępniania chronione hasłem** - każdy link udostępniania można zaszyfrować, tak aby jego otwarcie wymagało od odbiorcy podania hasła. Cały stan linku jest szyfrowany AES-256 kluczem wyprowadzonym z hasła (PBKDF2); przesyłany jest tylko szyfrogram, więc **hasło nigdy nie znajduje się w linku**, a odszyfrowanie odbywa się **w przeglądarce odbiorcy** - serwer obsługujący link widzi w adresie URL tylko szyfrogram, nigdy hasła ani odszyfrowanego projektu. Włącz to w oknie **Share**. Zaszyfrowany link można wyłącznie *otworzyć* w Lolly (nie da się go osadzić jako obraz, bo ta ścieżka nie może wyświetlić monitu). Zobacz [URL Mode → Encrypted links](/info/url-mode.html).
 

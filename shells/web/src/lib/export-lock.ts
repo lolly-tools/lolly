@@ -52,9 +52,9 @@ export async function askExportLock(what: string, offerPassword: boolean, opts?:
       <h2 class="modal-title">${escape(`Render ${what}?`)}</h2>
       <p class="modal-msg">Renders into a zip. Optionally set a password to lock the whole download (blank = no lock). Any PDFs inside are also individually AES-256-locked, so they stay locked after the zip is extracted.</p>
       <input type="password" class="field-input export-lock-pw" autocomplete="off" spellcheck="false" placeholder="Password (optional)" aria-label="${escape(t('Zip password (optional)'))}">
-      <select class="field-select export-lock-tier" aria-label="Zip lock strength">
-        <option value="strong">Strong · AES-256 - needs 7-Zip / WinZip / macOS (not Windows Explorer) ⓘ</option>
-        <option value="standard">Standard · opens anywhere incl. Windows Explorer - weaker</option>
+      <select class="field-select export-lock-tier" aria-label="Zip lock strength" hidden>
+        <option value="strong">Strong: Encrypted AES-256</option>
+        <option value="standard">Weak: Simple Password</option>
       </select>
       ${opts?.offerCombine ? `
       <label class="export-lock-combine-row" style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;text-align:left">
@@ -73,6 +73,8 @@ export async function askExportLock(what: string, offerPassword: boolean, opts?:
     });
     const pwEl = modal.el.querySelector<HTMLInputElement>('.export-lock-pw')!;
     const tierEl = modal.el.querySelector<HTMLSelectElement>('.export-lock-tier')!;
+    // The strength choice means nothing without a password, so it only appears once one is typed.
+    pwEl.addEventListener('input', () => { tierEl.hidden = !pwEl.value; });
     modal.el.addEventListener('click', (e) => {
       const act = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-act]')?.dataset.act : undefined;
       if (act === 'ok') {

@@ -1,6 +1,6 @@
 # Ekspor & Format
 
-Tekan **Ekspor** pada pil **Export | Save as** milik sebuah tool, pilih sebuah format dari menu di samping nama file, lalu tekan **Unduh**. File tersebut dibuat di perangkat Anda; tidak ada yang diunggah.
+Tekan **Export** pada pil **Export | Save as** sebuah tool, pilih format dari menu di samping nama file, lalu tekan **Download**. Unduhan biasa dibuat di perangkat Anda. Persetujuan organisasi dan opsi pengiriman dijelaskan di bawah.
 
 Untuk sebagian besar pekerjaan, salah satu dari tiga format berikut sudah tepat:
 
@@ -34,6 +34,14 @@ Aksi-aksi pada panel ekspor:
 ![Panel ekspor - format, ukuran, dan aksi Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 Share terbuka di atas alat, dengan tautan yang sudah dibuat dan sakelar saat kunjungan di bawahnya.
+
+::: details Persetujuan dan pengiriman dengan lolly.work (opsional)
+[Organisasi yang memakai lolly.work](/info/organisation.html) dapat mengatur format yang tersedia dan pengaturan ekspor. Jika persetujuan diperlukan, aplikasi dapat menampilkan **Request approval** sebagai pengganti **Download**. Ikuti kebijakan yang ditampilkan oleh instans Anda.
+
+Layanan ini juga mendukung pengiriman terkelola ke tujuan S3, WebDAV, dan HTTP yang dikonfigurasi, dengan langkah persetujuan jika dikonfigurasi, tanda terima pengiriman, dan catatan audit. Mengirim file ke alur kerja tersebut berarti mengirimkannya ke layanan organisasi; unduhan lokal biasa tetap berada di perangkat. Tujuan Send pribadi dan pengiriman organisasi terkelola memiliki konfigurasi terpisah.
+
+Untuk operator, lihat [panduan pengiriman](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Untuk render server yang diantrekan dan batch, lihat [Batch dan otomatisasi CLI](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ### Merender banyak sekaligus
 
@@ -296,21 +304,21 @@ Kartu ini adalah chrome, bukan konten: kartu ini dihapus dari setiap tahap ekspo
 
 Dua jenis kunci independen, keduanya sepenuhnya on-device.
 
-**Kata sandi buka PDF** - kartu *Password protect* di panel ekspor menawarkan dua tingkat:
+**Kata sandi buka PDF** - kartu *Password protect* di panel ekspor menawarkan dua tingkat setelah kata sandi diketik:
 
 ![Kartu Password protect yang diperluas pada ekspor PDF, dengan bidang kata sandi dan dua tingkat kunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - kunci 40-bit dasar (RC4). Terbuka di *aplikasi PDF apa pun*, dan - karena hanya penghalang ringan, bukan perlindungan sungguhan - kata sandinya bisa ikut dalam tautan berbagi (teks polos). Hanya `pdf` RGB.
-- **Strong** - AES-256 (PDF 2.0). Kata sandinya diketik saat ekspor dan **tidak pernah** dimasukkan ke tautan; hanya terbuka di aplikasi PDF yang lebih baru (Acrobat / Preview ~2018 ke atas), dan aplikasi lama mungkin melaporkan file sebagai rusak. Strong juga berlaku untuk **PDF Print / CMYK** dan untuk **setiap PDF di dalam zip batch** (dialog konfirmasi batch mengumpulkan kata sandinya). Karena PDF/X-4 melarang enkripsi, PDF Print yang dikunci Strong tetap mempertahankan CMYK, tanda cetak dan output-intent-nya tetapi kehilangan klaim kesesuaian PDF/X-4.
+- **Weak** - kata sandi sederhana 40-bit (RC4). Penghalang ringan, bukan perlindungan sungguhan: kata sandinya bisa ikut dalam tautan berbagi (teks polos). Hanya `pdf` RGB.
+- **Strong** - AES-256 (PDF 2.0). Kata sandinya diketik saat ekspor dan **tidak pernah** dimasukkan ke tautan. Strong juga berlaku untuk **PDF Print / CMYK** dan untuk **setiap PDF di dalam zip batch** (dialog konfirmasi batch mengumpulkan kata sandinya). Karena PDF/X-4 melarang enkripsi, PDF Print yang dikunci Strong tetap mempertahankan CMYK, tanda cetak dan output-intent-nya tetapi kehilangan klaim kesesuaian PDF/X-4.
 
 Kedua tingkat saling eksklusif dengan Content Credentials (PDF terenkripsi tidak bisa membawa kredensial).
 
 **Unduhan terkunci (seluruh-zip + defense-in-depth)** - ekspor **ZIP** (format *ZIP* di panel ekspor, yang menggabungkan beberapa format tool sekaligus), unduhan **folder** (Projects → Download) atau **grid batch** dapat mengunci seluruh zip dengan satu kata sandi, pada dua tingkat:
 
-- **Standard** - **ZipCrypto** tradisional: terbuka di *alat unzip apa pun* termasuk fitur ekstrak bawaan Windows Explorer, tapi lemah (sekadar penghalang). Kata sandinya bisa ikut dalam tautan berbagi `?password=`.
-- **Strong** - **AES-256** (WinZip AE-2): kuat, tapi **tidak** terbuka di fitur ekstrak bawaan Windows Explorer - penerima memerlukan 7-Zip / WinZip / Keka / macOS. Diketik saat ekspor, tidak pernah dimasukkan ke tautan.
+- **Weak** - **ZipCrypto** tradisional, sekadar penghalang. Kata sandinya bisa ikut dalam tautan berbagi `?password=`.
+- **Strong** - enkripsi **AES-256**. Diketik saat ekspor, tidak pernah dimasukkan ke tautan.
 
-Kartu *Password protect* yang sama di panel ekspor menggerakkan kedua kunci PDF dan ZIP, dan menyesuaikan penyebutannya sesuai format yang dipilih. Satu kata sandi melindungi **setiap** anggota - gambar, SVG, semuanya, termasuk PDF (hanya kontainer zip yang dapat melindungi file non-PDF, yang tidak punya kunci sendiri). Dan ini **defense-in-depth**: PDF apa pun di dalamnya *juga* dikunci AES-256 secara individual dengan kata sandi yang sama, sehingga PDF tetap terkunci bahkan setelah zip dibongkar. Prompt muncul saat Anda memulai unduhan; kata sandi kosong berarti tanpa kunci.
+Kartu *Password protect* yang sama di panel ekspor menggerakkan kunci PDF dan ZIP. Satu kata sandi melindungi **setiap** anggota - gambar, SVG, semuanya, termasuk PDF (hanya kontainer zip yang dapat melindungi file non-PDF, yang tidak punya kunci sendiri). Dan ini **defense-in-depth**: PDF apa pun di dalamnya *juga* dikunci AES-256 secara individual dengan kata sandi yang sama, sehingga PDF tetap terkunci bahkan setelah zip dibongkar. Prompt muncul saat Anda memulai unduhan; kata sandi kosong berarti tanpa kunci.
 
 **Tautan berbagi berpagar kata sandi** - tautan berbagi apa pun dapat dienkripsi sehingga membukanya meminta kata sandi dari penerima. Seluruh state tautan dienkripsi AES-256 dengan kunci yang diturunkan dari kata sandi (PBKDF2); hanya ciphertext yang berpindah, jadi **kata sandi tidak pernah ada di tautan** dan dekripsi terjadi **di peramban penerima** - server yang menyajikan tautan hanya melihat ciphertext di URL, tidak pernah kata sandi dan tidak pernah desain yang sudah didekripsi. Aktifkan di dialog **Share**. Tautan terenkripsi hanya bisa *dibuka* di Lolly (tidak bisa disematkan sebagai gambar, karena jalur itu tidak bisa meminta kata sandi). Lihat [URL Mode → Encrypted links](/info/url-mode.html).
 
