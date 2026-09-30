@@ -36,7 +36,7 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
 
 ### New in 1.1.0 (unreleased)
 
-The proposed release is **the fancy one**. See the [draft 1.1.0 release notes](releases/1.1.0-draft.md) for Rebrand, slide masters and PowerPoint layouts in Design, animated Snippet scenes, Design cue timing and motion blur, standalone HTML playback, and rendered-file checks. It also covers automatic recovery and History in more tools, saving guidance, font coverage checks, the Trash, the shared settings panel, Assets, Diagram Builder looks, export licences and MCP server 0.2.0. The engine reaches 1.231; the document model remains a draft. This remains a draft until the release is published.
+The proposed release is **the fancy one**. See the [draft 1.1.0 release notes](releases/1.1.0-draft.md) for Rebrand, slide masters and PowerPoint layouts in Design, animated Snippet scenes, Design cue timing and motion blur, standalone HTML playback, and rendered-file checks. It also covers automatic recovery and History in more tools, saving guidance, font coverage checks, the Trash, the shared settings panel, Assets, Diagram Builder looks, export licences and MCP server 0.2.0. Design-system intake, custom brand vocabulary and Usage & rules add scoped example checks and reusable posters; optional lolly-work mappings enforce supported rules on actual runtime inputs. Verify also checks files against supplied production requirements. The engine reaches 1.235; the document model remains a draft. This remains a draft until the release is published.
 
 ### New in 1.0.9
 
