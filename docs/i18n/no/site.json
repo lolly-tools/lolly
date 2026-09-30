@@ -399,8 +399,10 @@
   "Skip to content": "Hopp til innhold",
   "Find your work": "Finn arbeidet ditt",
   "Find and recover your work": "Finn og gjenopprett arbeidet ditt",
-  "Copy agent instructions": "Kopier agentinstruksjoner",
   "Provenance": "Opphav",
   "Content": "Innhold",
-  "Production checks": "Produksjonskontroller"
+  "Production checks": "Produksjonskontroller",
+  "AI Instructions": "KI-instruksjoner",
+  "View": "Vis",
+  "Copy the AI instructions": "Kopier KI-instruksjonene"
 }

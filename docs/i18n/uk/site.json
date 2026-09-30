@@ -399,8 +399,10 @@
   "Skip to content": "Перейти до основного вмісту",
   "Find your work": "Знайти роботу",
   "Find and recover your work": "Знайдіть і відновіть свою роботу",
-  "Copy agent instructions": "Копіювати інструкції для агента",
   "Provenance": "Походження",
   "Content": "Вміст",
-  "Production checks": "Виробничі перевірки"
+  "Production checks": "Виробничі перевірки",
+  "AI Instructions": "Інструкції для ШІ",
+  "View": "Переглянути",
+  "Copy the AI instructions": "Копіювати інструкції для ШІ"
 }

@@ -399,8 +399,10 @@
   "Skip to content": "Pular para o conteúdo",
   "Find your work": "Encontre seu trabalho",
   "Find and recover your work": "Encontre e recupere seu trabalho",
-  "Copy agent instructions": "Copiar instruções do agente",
   "Provenance": "Proveniência",
   "Content": "Conteúdo",
-  "Production checks": "Verificações de produção"
+  "Production checks": "Verificações de produção",
+  "AI Instructions": "Instruções para IA",
+  "View": "Ver",
+  "Copy the AI instructions": "Copiar as instruções para IA"
 }

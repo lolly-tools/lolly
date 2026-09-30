@@ -399,8 +399,10 @@
   "Skip to content": "Přeskočit na obsah",
   "Find your work": "Najdi svou práci",
   "Find and recover your work": "Najdi a obnov svou práci",
-  "Copy agent instructions": "Zkopírovat pokyny pro agenta",
   "Provenance": "Původ",
   "Content": "Obsah",
-  "Production checks": "Produkční kontroly"
+  "Production checks": "Produkční kontroly",
+  "AI Instructions": "Pokyny pro AI",
+  "View": "Zobrazit",
+  "Copy the AI instructions": "Zkopírovat pokyny pro AI"
 }

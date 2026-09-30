@@ -399,8 +399,10 @@
   "Skip to content": "본문으로 건너뛰기",
   "Find your work": "작업 찾기",
   "Find and recover your work": "작업 찾기 및 복구",
-  "Copy agent instructions": "에이전트 지침 복사",
   "Provenance": "출처",
   "Content": "콘텐츠",
-  "Production checks": "제작 점검"
+  "Production checks": "제작 점검",
+  "AI Instructions": "AI 지침",
+  "View": "보기",
+  "Copy the AI instructions": "AI 지침 복사"
 }

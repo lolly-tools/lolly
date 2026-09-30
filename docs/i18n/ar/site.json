@@ -399,8 +399,10 @@
   "Skip to content": "تخطي إلى المحتوى",
   "Find your work": "ابحث عن عملك",
   "Find and recover your work": "ابحث عن عملك واستعده",
-  "Copy agent instructions": "نسخ تعليمات الوكيل",
   "Provenance": "المصدر والأصالة",
   "Content": "المحتوى",
-  "Production checks": "فحوصات الإنتاج"
+  "Production checks": "فحوصات الإنتاج",
+  "AI Instructions": "تعليمات الذكاء الاصطناعي",
+  "View": "عرض",
+  "Copy the AI instructions": "نسخ تعليمات الذكاء الاصطناعي"
 }

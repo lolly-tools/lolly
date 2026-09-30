@@ -399,8 +399,10 @@
   "Skip to content": "Lewati ke konten",
   "Find your work": "Temukan karya Anda",
   "Find and recover your work": "Temukan dan pulihkan karya Anda",
-  "Copy agent instructions": "Salin instruksi agen",
   "Provenance": "Asal-usul",
   "Content": "Konten",
-  "Production checks": "Pemeriksaan produksi"
+  "Production checks": "Pemeriksaan produksi",
+  "AI Instructions": "Instruksi AI",
+  "View": "Lihat",
+  "Copy the AI instructions": "Salin instruksi AI"
 }
