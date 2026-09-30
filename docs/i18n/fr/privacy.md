@@ -63,7 +63,7 @@ strictement nécessaire au service que tu as demandé ne nécessite pas de conse
 seulement de la transparence, ce que sont à la fois ce document et l'avis affiché dans
 l'application.)
 
-![La section stockage de la page profil sur un écran largeur téléphone : chaque catégorie de données sur l'appareil nommée, avec le bouton Clear all my data juste à côté](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![La section stockage de la page profil sur un écran largeur téléphone : chaque catégorie de données sur l'appareil nommée, avec le bouton Clear all my data juste à côté](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Ta propre sauvegarde de ces données - le pack `lolly-backup` produit par
 **Exporter mes données** - est un fichier que tu conserves et contrôles.

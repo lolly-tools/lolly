@@ -1164,13 +1164,13 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 /* ── beat 1: the cycling H1 ─────────────────────────────────────────────── */
 .hero-statement--cycle{display:block}
 .hero-statement--cycle .cycle-lead{display:block;font-weight:900}
-.hero-statement--cycle .cycle-word{display:block;max-width:100%;color:var(--brand-primary);text-decoration:none;font-weight:500;overflow-wrap:break-word;line-height:1.15}
+.hero-statement--cycle .cycle-word{display:block;max-width:100%;        color: currentcolor;text-decoration:none;font-weight:100;overflow-wrap:break-word;line-height:1.15}
 .hero .hero-statement--cycle .cycle-word:hover{text-decoration:none}
-.hero-statement--cycle .cycle-word span{display:block;overflow-wrap:break-word;hyphens:auto;text-transform:none; font-style:italic;transition: transform .24s ease,opacity .24s ease}
+.hero-statement--cycle .cycle-word span{display:block;overflow-wrap:break-word;hyphens:auto;text-transform:none; font-style:italic;transition: transform 1s ease, opacity .4s ease}
 /* block, not inline-block: an inline-block is an atomic box whose content never
    breaks with the parent's overflow-wrap, so "SOVEREIGNTY" ran past a tablet-width
    column. A block span wraps inside the anchor's max-width and still transforms. */
-.hero-statement--cycle .cycle-word.is-swapping span{transform:translateY(.5em);opacity:0}
+.hero-statement--cycle .cycle-word.is-swapping span{transform:translateX(-.5em);opacity:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (prefers-reduced-motion: reduce){.hero-statement--cycle .cycle-word span{transition:none}}
 

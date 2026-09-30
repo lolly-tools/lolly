@@ -59,7 +59,7 @@
 للخدمة التي طلبتها لا يستوجب موافقة - بل يستوجب الشفافية فقط،
 وهذا ما تمثّله هذه الوثيقة والإشعار داخل التطبيق كلاهما.)
 
-![قسم التخزين في صفحة الملف الشخصي على شاشة بعرض هاتف: كل فئة من بيانات الجهاز مُسماة، مع زر مسح كل بياناتي بجانبها مباشرة](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![قسم التخزين في صفحة الملف الشخصي على شاشة بعرض هاتف: كل فئة من بيانات الجهاز مُسماة، مع زر مسح كل بياناتي بجانبها مباشرة](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 نسختك الاحتياطية الخاصة من هذه البيانات - حزمة
 `lolly-backup` الناتجة عن **تصدير بياناتي** - هي ملف تحتفظ به

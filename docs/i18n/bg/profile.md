@@ -61,7 +61,7 @@
 
 И двете половини на това живеят в раздела Хранилище: измерителят отчита всеки байт, който тази инсталация държи, категория по категория, а бутоните под него са начинът да изчистиш или пренесеш данните.
 
-![Измервателят на съхранение, разбиващ запазени сесии, изображения и кеш спрямо реално отчетеното от браузъра](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![Измервателят на съхранение, разбиващ запазени сесии, изображения и кеш спрямо реално отчетеното от браузъра](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > Пази по един пакет за всеки контекст и преименувай файловете според това, което са (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Файлът *е* профилът.
 
@@ -112,7 +112,7 @@ Lolly кешира в движение, но кеширането в движе�
 - <!--i:upload--> **Импортиране на данни…** на другата инсталация зарежда обратно този файл и продължаваш точно откъдето си спрял. Взема също копие, което [Синхронизацията](/info/sync.html) пази в твоето хранилище.
 - <!--i:box--> **Експортирай данните ми & рендирай всичко** записва същото резервно копие *плюс* втори zip, който рендира всяка запазена сесия в нейния готов изходен файл, в папки, огледални на твоите Проекти. Пълен офлайн архив и на източниците, и на резултатите - и може да е голям и бавен при много сесии.
 
-![Двата бутона, които местят цяла инсталация: Export my data записва един zip, Import data го зарежда обратно](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Двата бутона, които местят цяла инсталация: Export my data записва един zip, Import data го зарежда обратно](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Пакетът е обикновен, самодостатъчен ZIP, така че пътува по **всякакъв** начин - USB, AirDrop, мрежово споделяне, имейл до самия теб - а целевото устройство може да е напълно офлайн. Всяка част има контролна сума, така че повреден при пренасяне файл се хваща при импортирането, вместо да бъде възстановен наполовина счупен. Импортирането **слива** (за сесия или изображение със същото име се запазва копието, записано по-скоро; папки, любими и шаблони се добавят; данните и настройките на целта остават; всичко останало се пази), така че никога не изтрива цел, която вече е била в употреба.
 

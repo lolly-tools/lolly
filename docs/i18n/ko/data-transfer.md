@@ -2,7 +2,7 @@
 
 Lolly 사용자가 쌓아온 모든 것은 **기기에** 있어요 - 계정도 없고 클라우드도 없어요. 데이터 전송 번들은 그 가치를 옮기는 방법이에요. 한 설치본에서 내보내고, 파일을 어떤 수단으로든(USB, AirDrop, 자신에게 보내는 이메일, 네트워크 공유) 옮긴 뒤, 다른 설치본에서 가져와요. 파일 자체가 전송 수단이에요. 대상은 오프라인이든 온라인이든 상관없어요. 서버와는 아무것도 통신하지 않으니까요.
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 이 페이지는 형식 명세예요. 최종 사용자용 안내는 [작업 찾기 및 복구 → 다른 기기로 작업 옮기기](/info/find-your-work.html#move-your-work-to-another-device)를 참고하세요. 구현체는 [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)이고, [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts)가 왕복 계약을 고정해요.
 
@@ -153,7 +153,7 @@ Lolly 사용자가 쌓아온 모든 것은 **기기에** 있어요 - 계정도 �
 
 저장 공간 미터는 같은 구분을 항목별로 보여줘요. 저장된 세션, 내 이미지, 그리고 파일 결과 및 버전은 번들에 실려요. 그 아래의 자산 캐시, 도구 미리보기, 오프라인 고정 항목은 모두 다시 만들어낼 수 있어서 남겨져요.
 
-![이 기기의 데이터를 이름 붙은 카테고리로 나눈 저장 공간 미터. Saved sessions와 My images가 Asset cache와 별도로 추적되고 있으며, 여기서는 모든 카테고리가 아직 비어 있는 새 설치 상태를 보여줌](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![이 기기의 데이터를 이름 붙은 카테고리로 나눈 저장 공간 미터. Saved sessions와 My images가 Asset cache와 별도로 추적되고 있으며, 여기서는 모든 카테고리가 아직 비어 있는 새 설치 상태를 보여줌](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## 셸 간 보장
 

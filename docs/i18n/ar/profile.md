@@ -61,7 +61,7 @@
 
 في أي لحظة، تحتوي النسخة المثبَّتة على **ملف شخصي نشط واحد** - التفاصيل التي تراها الأداة الآن. لا يوجد مبدّل ملفات شخصية داخل التطبيق؛ بدلاً من ذلك، كل ملف شخصي هو **حزمة قابلة للنقل** (ملف `.zip` واحد، انظر [أدناه](#moving-a-profile-to-a-new-device)). وهذا عمدًا الآلية نفسها المستخدمة للانتقال إلى جهاز جديد - فالملف الشخصي ملف يمكنك حفظه ونسخه وتحميله.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **أنظف تبديل:** **الإعدادات → Preferences → التخزين → امسح كل بياناتي**، ثم **استيراد** الحزمة الخاصة بالسياق الذي تنتقل إليه. أنت الآن تنشئ بحتا باسم ذلك الملف الشخصي.
 - <!--i:layers--> **التكديس:** استيراد الحزمة *دون* المسح أولا **يدمج** - تهبط الجلسات والصور المستوردة فوق ما هو موجود بالفعل؛ وحين يكون العنصر نفسه في الطرفين، تُحفظ النسخة الأحدث حفظا، ويُترك الباقي كما هو. وتُضاف المجلدات والمفضلة والقوالب إلى مجلداتك، وتبقى تفاصيلك وإعداداتك الخاصة. مفيد لسحب جلسات محفوظة لفريق واحد إلى إعدادك الخاص؛ وليس ما تريده إن احتجت حدودا نظيفة للأدوار.
@@ -69,7 +69,7 @@
 
 فإذا كنت فعلا تتنقل بين عدة سياقات (أنت، وفريقك، وقبعة مدير الفعاليات)، فاحتفظ بعدة حزم وحمل ما تحتاجه:
 
-![مقياس التخزين، يوضّح تفصيل الجلسات المحفوظة والصور والذاكرة المؤقتة (cache) مقارنة بما يُبلغ عنه المتصفح فعليا](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![مقياس التخزين، يوضّح تفصيل الجلسات المحفوظة والصور والذاكرة المؤقتة (cache) مقارنة بما يُبلغ عنه المتصفح فعليا](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > احتفظ بحزمة لكل سياق وأعد تسمية الملفات بما هي عليه (`LollyTools-events-2026.zip` و `LollyTools-me.zip`). الملف *هو* الملف الشخصي.
 
@@ -120,7 +120,7 @@
 - <!--i:upload--> **استيراد البيانات…** في التثبيت الآخر يقرأ ذلك الملف من جديد فتستأنف تماما من حيث توقفت. ويأخذ أيضا نسخة تحتفظ بها [المزامنة](/info/sync.html) في مخزونك.
 - <!--i:box--> **تصدير بياناتي وإخراج كل شيء** يكتب النسخة الاحتياطية نفسها *بالإضافة إلى* ملف مضغوط ثانٍ يُخرج كل جلسة محفوظة إلى ملفها النهائي، في مجلدات تعكس مشاريعك. أرشيف كامل غير متصل للمصادر والنتائج معا - وقد يكون كبيرا وبطيئا مع عدد كبير من الجلسات.
 
-![الزران اللذان ينقلان تثبيتا كاملا: تصدير بياناتي يكتب ملفا مضغوطا واحدا، واستيراد بيانات يقرأه من جديد](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![الزران اللذان ينقلان تثبيتا كاملا: تصدير بياناتي يكتب ملفا مضغوطا واحدا، واستيراد بيانات يقرأه من جديد](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 الحزمة ملف zip عادي مكتف بذاته، فتنتقل **بأي** وسيلة - USB، أو AirDrop، أو مشاركة شبكة، أو بريد إلكتروني إلى نفسك - ويمكن للجهاز الهدف أن يكون دون اتصال تماما. كل جزء له مجموع تحقق، فيُكتشف الملف المتضرر أثناء النقل عند الاستيراد بدلا من استعادته نصف مكسور. الاستيراد **يدمج** (بالنسبة إلى جلسة أو صورة تحمل الاسم نفسه، تُحفظ النسخة الأحدث حفظا؛ وتُضاف المجلدات والمفضلة والقوالب؛ وتبقى تفاصيل الجهاز الهدف وإعداداته؛ ويُحتفظ بكل شيء آخر)، فلا يمحو أبدا جهازا هدفا كان قيد الاستخدام أصلا.
 

@@ -60,7 +60,7 @@ Lolly의 웹, 데스크톱, 모바일 셸은 전체 렌더링 엔진을 클라�
 서비스에 반드시 필요한 저장소는 동의가 아니라 투명성만을 요구하며,
 이 문서와 앱 내 안내문이 바로 그 투명성입니다.)
 
-![휴대폰 너비 화면에서 본 프로필 페이지의 저장소 섹션: 기기 내 데이터의 모든 카테고리가 나열되어 있고, 그 바로 옆에 Clear all my data 버튼이 있다](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![휴대폰 너비 화면에서 본 프로필 페이지의 저장소 섹션: 기기 내 데이터의 모든 카테고리가 나열되어 있고, 그 바로 옆에 Clear all my data 버튼이 있다](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 이 데이터의 사용자 본인 백업 - **내 데이터 내보내기**로 만들어지는
 `lolly-backup` 번들 - 은 사용자가 직접 보관하고 관리하는 파일입니다. 사용자가

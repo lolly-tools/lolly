@@ -2,7 +2,7 @@
 
 Lolly 用户积累的一切都保存**在自己的设备上** - 没有账号,没有云端。数据迁移包就是这些数据移动的方式:在一个安装实例上导出它,通过任何方式携带该文件(USB、AirDrop、发送给自己的邮件、网络共享),再在另一个实例上导入。文件*本身*就是传输媒介。目标设备是否联网都无所谓,因为整个过程从不与任何服务器通信。
 
-![移动整个安装内容的两个按钮:导出我的数据写出一个 zip,导入数据将其读回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![移动整个安装内容的两个按钮:导出我的数据写出一个 zip,导入数据将其读回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 本页是格式规范。终端用户的操作演示见[找回你的作品 → 把你的作品移动到另一台设备](/info/find-your-work.html#move-your-work-to-another-device)。实现代码在 [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)，[`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) 固定了往返契约。
 
@@ -153,7 +153,7 @@ Lolly 用户积累的一切都保存**在自己的设备上** - 没有账号,没
 
 存储用量表列出的正是同样的划分。已保存的会话、“我的图片”和文件结果与版本都会包含在迁移包中。它们下方的资源缓存、工具预览和离线固定项都是可重新生成的，因此不会包含在内。
 
-![存储用量表将本设备的数据划分为若干命名类别,已保存的会话和我的图片与资源缓存分开统计,此处为全新安装、每个类别仍为空的状态](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![存储用量表将本设备的数据划分为若干命名类别,已保存的会话和我的图片与资源缓存分开统计,此处为全新安装、每个类别仍为空的状态](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## 跨 shell 保证
 

@@ -189,7 +189,7 @@ Webアプリでは、Lollyはこのサイト用のブラウザのストレージ
 
 **設定 → ストレージ**は、各種データがどれだけの容量を使っているかを示します。その**History**行には自動チェックポイント、そのプレビュー、復旧用下書きが数えられます。**Remove automatic checkpoints older than 30 days**はその容量を解放し、保存済みバージョンと名前を付けたバージョンは保持します。**キャッシュを消去**は、ダウンロード済みのカタログファイルを破棄します。これらは必要になれば再びダウンロードされます。**すべてのデータを消去**は、ある単語の入力を求めたうえで、同期をオフにし、その後Lollyがこのブラウザに保持しているものをすべて削除します: プロフィールと設定、履歴とゴミ箱を含む保存済みセッション、アップロードしたファイル、フォントとデザインシステム、ダウンロードログ、Convertの結果、ダウンロード済みのAIモデル、オフラインコピーです。ダウンロードしたファイルは保存した場所にそのまま残ります。その後アプリは初回訪問時と同じ状態で始まります。
 
-![スマートフォン幅の画面でのストレージカード。デバイス上のデータの分類がすべて示され、下部に Clear all my data ボタンがある](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![スマートフォン幅の画面でのストレージカード。デバイス上のデータの分類がすべて示され、下部に Clear all my data ボタンがある](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 デスクトップアプリとモバイルアプリでは、保存済みセッションはアプリ自身のデータフォルダー内のファイルであり、それ以外はアプリ自身のストレージにあるため、Webブラウザを消去してもそれらには影響しません。
 

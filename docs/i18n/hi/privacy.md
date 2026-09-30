@@ -59,7 +59,7 @@ Art. 5(3) के तहत, जिस स्टोरेज की आपके 
 सख़्ती से आवश्यकता होती है, उसके लिए सहमति की नहीं - केवल
 पारदर्शिता की आवश्यकता होती है, जो यह दस्तावेज़ और ऐप के भीतर की सूचना, दोनों प्रदान करते हैं।)
 
-![फ़ोन-चौड़ाई की स्क्रीन पर प्रोफ़ाइल पेज का संग्रहण खंड: ऑन-डिवाइस डेटा की हर श्रेणी नामित है, उसके ठीक बगल में Clear all my data बटन के साथ](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![फ़ोन-चौड़ाई की स्क्रीन पर प्रोफ़ाइल पेज का संग्रहण खंड: ऑन-डिवाइस डेटा की हर श्रेणी नामित है, उसके ठीक बगल में Clear all my data बटन के साथ](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 इस डेटा का आपका अपना बैकअप - `lolly-backup` बंडल, जो **मेरा डेटा एक्सपोर्ट करें** से
 बनता है - एक फ़ाइल है जिसे आप रखते और नियंत्रित करते हैं। यह हमारे सर्वरों को

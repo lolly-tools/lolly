@@ -2,7 +2,7 @@
 
 Allt en Lolly-användare samlar på sig finns **på deras enhet** - inget konto, inget moln. Dataöverföringspaketet är hur det värdet flyttas: exportera det från en installation, ta med filen på valfritt sätt (USB, AirDrop, e-post till dig själv, en nätverksdelning) och importera den på en annan. Filen *är* transporten. Målet kan vara offline eller online. Det spelar ingen roll, eftersom inget någonsin pratar med en server.
 
-![De två knapparna som flyttar en hel installation: Exportera mina data skriver en zip, Importera data läser in den igen](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![De två knapparna som flyttar en hel installation: Exportera mina data skriver en zip, Importera data läser in den igen](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Den här sidan är formatspecifikationen. För slutanvändargenomgången, se [Hitta och återfå ditt arbete → Flytta ditt arbete till en annan enhet](/info/find-your-work.html#move-your-work-to-another-device). Implementationen är [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), och [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fastställer kontraktet för tur-och-retur.
 
@@ -153,7 +153,7 @@ Batch-manifest registrerar varje vald källa innan bearbetning, inklusive filer 
 
 Lagringsmätaren specificerar samma uppdelning. Saved sessions, My images och File results & versions följer med i ett paket. Tillgångscachen, verktygsförhandsvisningarna och offlinefästningarna under dem kan alla härledas på nytt, så de stannar kvar.
 
-![Lagringsmätaren som delar upp den här enhetens data i namngivna kategorier, med Saved sessions och My images spårade separat från Asset cache, här på en ny installation där varje kategori fortfarande är tom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Lagringsmätaren som delar upp den här enhetens data i namngivna kategorier, med Saved sessions och My images spårade separat från Asset cache, här på en ny installation där varje kategori fortfarande är tom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garanti mellan skal
 

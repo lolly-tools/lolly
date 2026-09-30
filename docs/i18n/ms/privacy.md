@@ -61,7 +61,7 @@ Directive Art. 5(3), storan yang perlu secara mutlak untuk perkhidmatan yang and
 tidak memerlukan persetujuan - hanya ketelusan, iaitu apa yang menjadi tujuan dokumen ini dan
 notis dalam aplikasi ini.)
 
-![Bahagian storan halaman profil pada skrin lebar telefon: setiap kategori data pada peranti dinamakan, dengan butang Clear all my data betul-betul di sebelahnya](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Bahagian storan halaman profil pada skrin lebar telefon: setiap kategori data pada peranti dinamakan, dengan butang Clear all my data betul-betul di sebelahnya](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Sandaran data ini milik anda sendiri - bungkusan `lolly-backup` yang dihasilkan oleh **Export my
 data** - ialah fail yang anda simpan dan kawal sendiri. Ia tidak pernah menyentuh pelayan

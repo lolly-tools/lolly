@@ -189,7 +189,7 @@ History 저장 공간이 가득 차면, 30일 동안 열지 않은 창작물의 
 
 **설정 → 저장 공간**은 각 종류의 데이터가 얼마나 많은 공간을 쓰는지 보여줘요. 그중 **History** 행은 자동 체크포인트와 그 미리보기, 복구용 초안을 세어요; **Remove automatic checkpoints older than 30 days**는 그 공간을 확보하면서 저장된 버전과 이름 붙인 버전은 그대로 보관해요. **캐시 지우기**는 다운로드된 카탈로그 파일을 버려요. 필요할 때 다시 다운로드돼요. **내 데이터 모두 지우기**는 어떤 단어의 입력을 요청한 다음, 동기화를 끄고, Lolly가 이 브라우저에 보관하고 있는 모든 것을 지워요: 프로필과 설정, 히스토리와 휴지통을 포함한 저장된 세션, 업로드한 파일, 폰트와 디자인 시스템, 다운로드 기록, Convert 결과, 다운로드한 AI 모델과 오프라인 사본이에요. 다운로드한 파일은 저장한 위치에 그대로 남아요. 그런 다음 앱은 처음 방문했을 때처럼 시작돼요.
 
-![휴대폰 너비 화면의 저장 공간 카드 - 기기에 있는 데이터의 모든 갈래가 이름과 함께 나오고, 맨 아래에 Clear all my data 버튼이 있어요](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![휴대폰 너비 화면의 저장 공간 카드 - 기기에 있는 데이터의 모든 갈래가 이름과 함께 나오고, 맨 아래에 Clear all my data 버튼이 있어요](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 데스크톱과 모바일 앱에서는 저장된 세션이 앱 자체의 데이터 폴더 안 파일이고, 나머지는 앱 자체의 저장소에 있어서 웹 브라우저를 지워도 영향을 받지 않아요.
 

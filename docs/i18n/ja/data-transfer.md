@@ -2,7 +2,7 @@
 
 Lollyユーザーが蓄積するすべてのデータは**そのデバイス上**にあります - アカウントもクラウドもありません。データ転送バンドルはその価値を移動させる手段です：あるインストールでエクスポートし、任意の方法（USB、AirDrop、自分宛メール、ネットワーク共有）でファイルを運び、別のインストールでインポートします。ファイル*そのもの*が転送手段です。転送先はオフラインでもオンラインでも構いません。サーバーと一切通信しないため、違いはありません。
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 このページはフォーマット仕様です。エンドユーザー向けの手順は[作業を見つけて復元する → 作業を別のデバイスに移す](/info/find-your-work.html#move-your-work-to-another-device)を参照してください。実装は[`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)で、[`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts)がラウンドトリップの契約を固定しています。
 
@@ -153,7 +153,7 @@ Lollyユーザーが蓄積するすべてのデータは**そのデバイス上*
 
 ストレージメーターも同じ区分けを項目別に示します。保存済みセッション、自分の画像、そしてファイルの結果とバージョンはバンドルに含まれます。その下にあるアセットキャッシュ、ツールプレビュー、オフラインピンはすべて再導出可能なため、残されます。
 
-![このデバイスのデータを名前付きカテゴリーに分解して表示するストレージメーター。Saved sessionsとMy imagesはAsset cacheとは別に集計されている。ここではまだすべてのカテゴリーが空の新規インストール状態](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![このデバイスのデータを名前付きカテゴリーに分解して表示するストレージメーター。Saved sessionsとMy imagesはAsset cacheとは別に集計されている。ここではまだすべてのカテゴリーが空の新規インストール状態](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## クロスシェルの保証
 

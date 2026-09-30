@@ -2,7 +2,7 @@
 
 Tutto ciò che un utente Lolly accumula vive **sul suo dispositivo** - nessun account, nessun cloud. Il bundle di trasferimento dati è come quel valore si sposta: esportalo su un'installazione, porta il file con qualsiasi mezzo (USB, AirDrop, email a te stesso, una condivisione di rete) e importalo su un'altra. Il file *è* il trasporto. La destinazione può essere offline o online. Non fa differenza, perché nulla parla mai con un server.
 
-![I due pulsanti che spostano un'intera installazione: Esporta i miei dati scrive uno zip, Importa dati lo rilegge](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![I due pulsanti che spostano un'intera installazione: Esporta i miei dati scrive uno zip, Importa dati lo rilegge](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Questa pagina è la specifica del formato. Per la guida passo passo pensata per l'utente finale vedi [Trova e recupera il tuo lavoro → Sposta il tuo lavoro su un altro dispositivo](/info/find-your-work.html#move-your-work-to-another-device). L'implementazione è in [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), e [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fissa il contratto di andata e ritorno.
 
@@ -153,7 +153,7 @@ I lettori più vecchi accettano ancora la busta v2 (`minReader: 1`) e ripristina
 
 Il misuratore di archiviazione elenca la stessa suddivisione. Le sessioni salvate, Le mie immagini e i risultati e le versioni dei file viaggiano in un bundle. La cache degli asset, le anteprime degli strumenti e i pin offline sotto di esse sono tutti riderivabili, quindi restano indietro.
 
-![Il misuratore di archiviazione che suddivide i dati di questo dispositivo in categorie con nome, con Sessioni salvate e Le mie immagini tracciate separatamente dalla Cache asset, qui su un'installazione appena fatta dove ogni categoria è ancora vuota](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Il misuratore di archiviazione che suddivide i dati di questo dispositivo in categorie con nome, con Sessioni salvate e Le mie immagini tracciate separatamente dalla Cache asset, qui su un'installazione appena fatta dove ogni categoria è ancora vuota](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garanzia tra shell
 

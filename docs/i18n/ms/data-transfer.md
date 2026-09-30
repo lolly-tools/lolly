@@ -2,7 +2,7 @@
 
 Segala yang terkumpul oleh pengguna Lolly berada **pada peranti mereka** - tiada akaun, tiada awan. Bundel pemindahan data adalah cara nilai itu berpindah: eksportkannya pada satu pemasangan, bawa fail itu dengan apa cara sekalipun (USB, AirDrop, e-mel-kepada-diri-sendiri, perkongsian rangkaian) dan import pada yang lain. Fail itu *ialah* pengangkutan tersebut. Sasaran boleh berada dalam talian atau luar talian. Tiada bezanya, kerana tiada apa pun yang pernah berhubung dengan pelayan.
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Halaman ini adalah spesifikasi format. Untuk panduan pengguna akhir lihat [Cari dan pulihkan hasil kerja anda → Pindahkan kerja anda ke peranti lain](/info/find-your-work.html#move-your-work-to-another-device). Pelaksanaannya ialah [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), dan [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) mengunci kontrak pergi-balik itu.
 
@@ -153,7 +153,7 @@ Pembaca lama masih menerima sampul v2 (`minReader: 1`) dan memulihkan bahagian y
 
 Meter storan memerincikan pemisahan yang sama. Sesi tersimpan, My images dan File results & versions dibawa dalam bundel. Cache aset, pratonton alat dan sematan luar talian di bawahnya semuanya boleh diterbitkan semula, jadi ia kekal ditinggalkan.
 
-![Meter storan memecahkan data peranti ini kepada kategori bernama, dengan Saved sessions dan My images dijejaki berasingan daripada Asset cache, di sini pada pemasangan baharu di mana setiap kategori masih kosong](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Meter storan memecahkan data peranti ini kepada kategori bernama, dengan Saved sessions dan My images dijejaki berasingan daripada Asset cache, di sini pada pemasangan baharu di mana setiap kategori masih kosong](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Jaminan merentas shell
 

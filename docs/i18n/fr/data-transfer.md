@@ -2,7 +2,7 @@
 
 Tout ce qu'un utilisateur de Lolly accumule vit **sur son appareil** - pas de compte, pas de cloud. Le bundle de transfert de données est la façon dont cette valeur se déplace : exporte-le depuis une installation, transporte le fichier par n'importe quel moyen (USB, AirDrop, e-mail à soi-même, un partage réseau) et importe-le sur une autre. Le fichier *est* le transport. La cible peut être hors ligne ou en ligne. Cela ne fait aucune différence, car rien ne parle jamais à un serveur.
 
-![Les deux boutons qui déplacent toute une installation : Export my data écrit un zip, Import data le relit](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Les deux boutons qui déplacent toute une installation : Export my data écrit un zip, Import data le relit](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Cette page est la spécification du format. Pour le guide utilisateur final, voir [Retrouver et récupérer ton travail → Transférer ton travail vers un autre appareil](/info/find-your-work.html#move-your-work-to-another-device). L'implémentation se trouve dans [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), et [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fixe le contrat d'aller-retour.
 
@@ -153,7 +153,7 @@ Les lecteurs plus anciens acceptent toujours l'enveloppe v2 (`minReader: 1`) et 
 
 Le compteur de stockage détaille la même séparation. Les sessions enregistrées, Mes images et Résultats de fichiers & versions voyagent dans un bundle. Le cache d'assets, les aperçus d'outils et les épingles hors ligne en dessous sont tous re-dérivables, donc ils restent en arrière.
 
-![Le compteur de stockage qui décompose les données de cet appareil en catégories nommées, avec Saved sessions et My images suivies séparément de l'Asset cache, ici sur une installation neuve où chaque catégorie est encore vide](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Le compteur de stockage qui décompose les données de cet appareil en catégories nommées, avec Saved sessions et My images suivies séparément de l'Asset cache, ici sur une installation neuve où chaque catégorie est encore vide](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garantie multi-shell
 

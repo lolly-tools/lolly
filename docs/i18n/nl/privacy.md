@@ -61,7 +61,7 @@ Art. 5(3) vereist opslag die strikt noodzakelijk is voor de dienst die je hebt a
 geen toestemming - alleen transparantie, en dat zijn dit document en
 de melding in de app allebei.)
 
-![Het opslaggedeelte van de profielpagina op een scherm ter breedte van een telefoon: elke categorie on-device data benoemd, met de knop Al mijn gegevens wissen er direct naast](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Het opslaggedeelte van de profielpagina op een scherm ter breedte van een telefoon: elke categorie on-device data benoemd, met de knop Al mijn gegevens wissen er direct naast](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Je eigen back-up van deze gegevens - de bundel `lolly-backup` die wordt gemaakt door **Exporteer mijn
 gegevens** - is een bestand dat je zelf bewaart en beheert. Het raakt onze

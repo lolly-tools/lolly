@@ -2,7 +2,7 @@
 
 Todo lo que acumula un usuario de Lolly vive **en su dispositivo** - sin cuenta, sin nube. El paquete de transferencia de datos es cómo se mueve ese valor: expórtalo en una instalación, lleva el archivo por cualquier medio (USB, AirDrop, correo a ti mismo, una carpeta compartida en red) e impórtalo en otra. El archivo *es* el transporte. El destino puede estar sin conexión o con conexión. No importa, porque nada habla nunca con un servidor.
 
-![Los dos botones que mueven una instalación entera: Exportar mis datos escribe un zip, Importar datos lo vuelve a leer](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Los dos botones que mueven una instalación entera: Exportar mis datos escribe un zip, Importar datos lo vuelve a leer](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Esta página es la especificación del formato. Para el recorrido pensado para el usuario final, consulta [Encuentra y recupera tu trabajo → Pasa tu trabajo a otro dispositivo](/info/find-your-work.html#move-your-work-to-another-device). La implementación es [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), y [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fija el contrato de ida y vuelta.
 
@@ -153,7 +153,7 @@ Los lectores más antiguos siguen aceptando el sobre v2 (`minReader: 1`) y resta
 
 El medidor de almacenamiento desglosa la misma división. Las sesiones guardadas, Mis imágenes y los resultados y versiones de archivo viajan en un paquete. La caché de recursos, las vistas previas de herramientas y los anclajes sin conexión debajo de ellas son todos re-derivables, así que se quedan atrás.
 
-![El medidor de almacenamiento desglosando los datos de este dispositivo en categorías con nombre, con Sesiones guardadas y Mis imágenes rastreadas por separado de la Caché de recursos, aquí en una instalación nueva donde cada categoría sigue vacía](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![El medidor de almacenamiento desglosando los datos de este dispositivo en categorías con nombre, con Sesiones guardadas y Mis imágenes rastreadas por separado de la Caché de recursos, aquí en una instalación nueva donde cada categoría sigue vacía](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garantía entre shells
 

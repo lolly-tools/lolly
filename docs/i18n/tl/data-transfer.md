@@ -2,7 +2,7 @@
 
 Ang lahat ng naiipon ng isang user ng Lolly ay nasa **kanilang device** - walang account, walang cloud. Ang data-transfer bundle ang paraan para ilipat ang halagang iyon: i-export ito sa isang install, dalhin ang file sa anumang paraan (USB, AirDrop, email-to-self, isang network share) at i-import ito sa isa pa. Ang file mismo *ang* transport. Maaaring offline o online ang target. Walang pagkakaiba, dahil walang kailanman nakikipag-usap sa isang server.
 
-![Ang dalawang button na naglilipat ng buong install: isinusulat ng Export my data ang isang zip, binabasa ito pabalik ng Import data](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Ang dalawang button na naglilipat ng buong install: isinusulat ng Export my data ang isang zip, binabasa ito pabalik ng Import data](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Ang pahinang ito ang format spec. Para sa end-user na walkthrough, tingnan ang [Hanapin at bawiin ang gawa mo → Ilipat ang gawa mo sa ibang device](/info/find-your-work.html#move-your-work-to-another-device). Ang implementation ay nasa [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), at itinatakda ng [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) ang round-trip contract.
 
@@ -153,7 +153,7 @@ Tinatanggap pa rin ng mga mas lumang reader ang v2 envelope (`minReader: 1`) at 
 
 Inilalarawan ng storage meter ang parehong paghahati. Sumasama sa bundle ang Saved sessions, My images at File results & versions. Ang asset cache, tool preview at offline pin sa ibaba ng mga ito ay lahat re-derivable, kaya naiiwan sila.
 
-![Hinahati ng storage meter ang datos ng device na ito sa mga pinangalanang kategorya, kasama ang Saved sessions at My images na sinusubaybayan nang hiwalay sa Asset cache, dito sa isang fresh install kung saan walang laman pa ang bawat kategorya](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Hinahati ng storage meter ang datos ng device na ito sa mga pinangalanang kategorya, kasama ang Saved sessions at My images na sinusubaybayan nang hiwalay sa Asset cache, dito sa isang fresh install kung saan walang laman pa ang bawat kategorya](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garantiya sa Cross-shell
 

@@ -61,7 +61,7 @@ Pokud tedy opravdu žongluješ s víc kontexty (ty, tvůj tým, role manažera a
 
 Obojí se odehrává v sekci Storage: ukazatel vyúčtuje každý bajt, který tahle instalace drží, kategorii po kategorii, a tlačítka pod ním jsou to, čím data smažeš nebo přeneseš.
 
-![Ukazatel úložiště, rozklad uložených relací, obrázků a cache proti tomu, co skutečně hlásí prohlížeč](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![Ukazatel úložiště, rozklad uložených relací, obrázků a cache proti tomu, co skutečně hlásí prohlížeč](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > Drž si jeden balíček na kontext a přejmenuj soubory tak, aby bylo jasné, co jsou (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Soubor *je* profil.
 
@@ -112,7 +112,7 @@ V **Nastavení → Preferences → Úložiště → Přesunout na jiné zaříze
 - <!--i:upload--> **Importovat data…** na jiné instalaci soubor znovu načte a pokračuješ přesně tam, kde jsi skončil(a). Vezme také kopii, kterou [Synchronizace](/info/sync.html) uchovává v tvém úložišti.
 - <!--i:box--> **Exportovat moje data & vykreslit vše** zapíše stejnou zálohu *plus* druhý zip, který vyrenderuje každou uloženou relaci do jejího hotového výstupního souboru, ve složkách odpovídajících tvým Projects. Kompletní offline archiv zdrojů i výsledků - u velkého množství relací může být rozsáhlý a pomalý.
 
-![Dvě tlačítka, která přesunou celou instalaci: Exportovat moje data zapíše jeden zip, Import data ho zase načte](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Dvě tlačítka, která přesunou celou instalaci: Exportovat moje data zapíše jeden zip, Import data ho zase načte](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Balíček je obyčejný, samostatný zip, takže se dá přenést **jakýmkoliv** způsobem - přes USB, AirDrop, síťové úložiště, e-mail sám sobě - a cíl může být úplně offline. Každá část má kontrolní součet, takže soubor poškozený při přenosu se odhalí při importu, místo aby se obnovil napůl rozbitý. Import **slučuje** (u relace nebo obrázku se stejným názvem se zachová kopie uložená později; složky, oblíbené a šablony se přidají; údaje a nastavení cíle zůstanou; všechno ostatní se zachová), takže nikdy nesmaže cíl, který se už používal.
 

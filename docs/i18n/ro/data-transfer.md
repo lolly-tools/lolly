@@ -2,7 +2,7 @@
 
 Tot ce acumulează un utilizator Lolly rămâne **pe dispozitivul lui** - fără cont, fără cloud. Pachetul de transfer de date este modul în care această valoare se mută: îl exporți pe o instalare, transporți fișierul prin orice mijloc (USB, AirDrop, email către tine însuți, o partajare de rețea) și îl imporți pe alta. Fișierul *este* transportul. Ținta poate fi offline sau online. Nu contează, pentru că nimic nu comunică vreodată cu un server.
 
-![Cele două butoane care mută o instalare întreagă: Export my data scrie un zip, Import data îl citește înapoi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Cele două butoane care mută o instalare întreagă: Export my data scrie un zip, Import data îl citește înapoi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Această pagină este specificația formatului. Pentru ghidul pentru utilizatorul final, vezi [Găsește și recuperează-ți lucrarea → Mută-ți lucrarea pe alt dispozitiv](/info/find-your-work.html#move-your-work-to-another-device). Implementarea este [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), iar [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fixează contractul de round-trip.
 
@@ -153,7 +153,7 @@ Cititorii mai vechi acceptă în continuare plicul v2 (`minReader: 1`) și resta
 
 Contorul de stocare detaliază aceeași separare. Sesiuni salvate, Imaginile mele și Rezultatele fișierului & versiunile călătoresc într-un pachet. Cache de active, Previzualizări instrumente și fixările offline de sub ele sunt toate re-derivabile, deci rămân în urmă.
 
-![Contorul de stocare împărțind datele acestui dispozitiv în categorii denumite, cu Saved sessions și My images urmărite separat de Asset cache, aici pe o instalare nouă unde fiecare categorie este încă goală](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Contorul de stocare împărțind datele acestui dispozitiv în categorii denumite, cu Saved sessions și My images urmărite separat de Asset cache, aici pe o instalare nouă unde fiecare categorie este încă goală](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garanția cross-shell
 

@@ -61,7 +61,7 @@ Lolly-তে, সেই ভূমিকা কেবল **হাতের কা
 
 স্টোরেজেই এর দুটো দিকই থাকে: মিটার ক্যাটেগরি ধরে ধরে হিসাব দেয় এই ইনস্টলটা কত বাইট ধরে রেখেছে, আর তার নিচের বোতামগুলোই হলো সেটা মুছে ফেলার বা সঙ্গে নিয়ে যাওয়ার উপায়।
 
-![স্টোরেজ মিটার, সংরক্ষিত সেশন, ছবি ও ক্যাশকে ব্রাউজার প্রকৃতপক্ষে যা রিপোর্ট করে তার বিপরীতে ভেঙে দেখাচ্ছে](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![স্টোরেজ মিটার, সংরক্ষিত সেশন, ছবি ও ক্যাশকে ব্রাউজার প্রকৃতপক্ষে যা রিপোর্ট করে তার বিপরীতে ভেঙে দেখাচ্ছে](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > প্রতিটি প্রেক্ষাপটের জন্য একটি করে বান্ডল রাখুন এবং ফাইলগুলো যা, তা অনুযায়ী নাম বদলান (`LollyTools-events-2026.zip`, `LollyTools-me.zip`)। ফাইলটিই *হলো* প্রোফাইল।
 
@@ -112,7 +112,7 @@ Lolly আপনি যেতে যেতে ক্যাশ করে, কি�
 - <!--i:upload--> অন্য ইনস্টলে **ডেটা ইমপোর্ট করুন…** সেই ফাইলটি আবার পড়ে নেয় এবং আপনি ঠিক যেখানে ছেড়েছিলেন সেখান থেকে শুরু করতে পারেন। এটি [Sync](/info/sync.html) আপনার স্টোরেজে যে কপি রাখে তাও নিয়ে নেয়।
 - <!--i:box--> **আমার ডেটা এক্সপোর্ট করুন & সবকিছু রেন্ডার করুন** সেই একই ব্যাকআপ *এবং* একটি দ্বিতীয় zip লেখে যা প্রতিটি সংরক্ষিত সেশনকে তার চূড়ান্ত আউটপুট ফাইলে রেন্ডার করে, এমন ফোল্ডারে যা আপনার Projects-কে প্রতিফলিত করে। উৎস এবং ফলাফল উভয়েরই একটি সম্পূর্ণ অফলাইন আর্কাইভ - এবং অনেক সেশন থাকলে এটি বড় ও ধীর হতে পারে।
 
-![পুরো একটি ইনস্টল সরিয়ে নেওয়ার দুটি বোতাম: Export my data একটি zip লেখে, Import data সেটি আবার পড়ে](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![পুরো একটি ইনস্টল সরিয়ে নেওয়ার দুটি বোতাম: Export my data একটি zip লেখে, Import data সেটি আবার পড়ে](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 বান্ডলটি একটি সাধারণ, স্বয়ংসম্পূর্ণ zip, তাই এটি **যেকোনো** উপায়ে যায় - USB, AirDrop, নেটওয়ার্ক শেয়ার, নিজেকে-ইমেল - এবং গন্তব্য সম্পূর্ণ অফলাইন হতে পারে। প্রতিটি অংশ চেকসাম করা, তাই পথে নষ্ট হওয়া কোনো ফাইল অর্ধেক-ভাঙা অবস্থায় ফিরিয়ে আনার বদলে ইমপোর্টের সময় ধরা পড়ে। ইমপোর্ট **মিশিয়ে দেয়** (একই নামের সেশন বা ছবির মধ্যে, সাম্প্রতিক সময়ে সেভ করা কপিটি রাখা হয়; ফোল্ডার, ফেভারিট ও টেমপ্লেট যুক্ত করা হয়; গন্তব্যের বিবরণ ও সেটিংস থেকে যায়; বাকি সবকিছু রাখা হয়), তাই এটি ইতিমধ্যে ব্যবহৃত কোনো গন্তব্য কখনো মুছে ফেলে না।
 

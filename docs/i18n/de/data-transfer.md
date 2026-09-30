@@ -2,7 +2,7 @@
 
 Alles, was sich bei einem Lolly-Nutzer ansammelt, lebt **auf seinem Gerät** - kein Konto, keine Cloud. Das Datenübertragungsbündel ist der Weg, wie dieser Wert sich bewegt: exportieren Sie es auf einer Installation, tragen Sie die Datei auf beliebigem Weg (USB, AirDrop, E-Mail an sich selbst, eine Netzwerkfreigabe) und importieren Sie sie auf einer anderen. Die Datei *ist* der Transport. Das Ziel kann offline oder online sein. Es macht keinen Unterschied, denn nichts spricht je mit einem Server.
 
-![Die beiden Schaltflächen, die eine ganze Installation umziehen: Meine Daten exportieren schreibt ein Zip, Daten importieren liest es wieder ein](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Die beiden Schaltflächen, die eine ganze Installation umziehen: Meine Daten exportieren schreibt ein Zip, Daten importieren liest es wieder ein](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Diese Seite ist die Formatspezifikation. Die Anleitung für Endnutzer finden Sie unter [Ihre Arbeit finden und wiederherstellen → Arbeit auf ein anderes Gerät übertragen](/info/find-your-work.html#move-your-work-to-another-device). Die Implementierung ist [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), und [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) legt den Round-Trip-Vertrag fest.
 
@@ -153,7 +153,7 @@ Batch-Manifeste erfassen jede ausgewählte Quelle vor der Verarbeitung, einschli
 
 Der Speicherzähler gliedert dieselbe Aufteilung auf. Gespeicherte Sitzungen, Meine Bilder und Dateiergebnisse & Versionen reisen in einem Bundle mit. Der Asset-Cache, Tool-Vorschauen und Offline-Pins darunter sind alle neu ableitbar und bleiben daher zurück.
 
-![Der Speicherzähler, der die Daten dieses Geräts in benannte Kategorien unterteilt, wobei Gespeicherte Sitzungen und Meine Bilder getrennt vom Asset-Cache erfasst werden, hier auf einer frischen Installation, in der jede Kategorie noch leer ist](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Der Speicherzähler, der die Daten dieses Geräts in benannte Kategorien unterteilt, wobei Gespeicherte Sitzungen und Meine Bilder getrennt vom Asset-Cache erfasst werden, hier auf einer frischen Installation, in der jede Kategorie noch leer ist](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Shell-übergreifende Garantie
 

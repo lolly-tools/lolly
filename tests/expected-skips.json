@@ -934,6 +934,20 @@
       "owner": "tests"
     },
     {
+      "file": "tests/deck-builder-composition.test.ts",
+      "fullName": "export measures all slides in the node realm and refuses overflowing generated text",
+      "reason": "SUSE brand pack not mounted",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-composition.test.ts",
+      "fullName": "generated tool output preserves nine groups, uses the master scale, and remains safe HTML",
+      "reason": "SUSE brand pack not mounted",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
       "file": "tests/deck-builder-freeform.test.ts",
       "fullName": "a mixed deck: layout slide unchanged, freeform slide renders boxes",
       "reason": "SUSE brand pack not mounted (see profiles.json)",

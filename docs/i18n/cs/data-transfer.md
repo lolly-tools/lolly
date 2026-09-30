@@ -2,7 +2,7 @@
 
 Vše, co uživatel Lolly nashromáždí, žije **na jeho zařízení** - žádný účet, žádný cloud. Balíček pro přenos dat je způsob, jak se tato hodnota přesouvá: exportuj ho na jedné instalaci, přenes soubor jakýmkoli způsobem (USB, AirDrop, e-mail sám sobě, síťové sdílení) a naimportuj ho na jiné. Soubor *je* přenos. Cíl může být offline nebo online. Nehraje to roli, protože nic nikdy nekomunikuje se serverem.
 
-![Dvě tlačítka, která přesunou celou instalaci: Exportovat moje data zapíše jeden zip, Import data ho zase načte](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Dvě tlačítka, která přesunou celou instalaci: Exportovat moje data zapíše jeden zip, Import data ho zase načte](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Tato stránka je specifikace formátu. Návod pro koncového uživatele najdeš v [Najdi a obnov svou práci → Přenes svou práci do jiného zařízení](/info/find-your-work.html#move-your-work-to-another-device). Implementace je [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) a [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fixuje kontrakt zpětné kompatibility (round-trip).
 
@@ -153,7 +153,7 @@ Starší čtenáři pořád akceptují obálku v2 (`minReader: 1`) a obnoví zn�
 
 Ukazatel úložiště zobrazuje stejné rozdělení. Uložené relace, Moje obrázky a Výsledky a verze souborů jedou v balíčku. Cache assetů, náhledy nástrojů a offline piny pod nimi jsou vždy odvoditelné znovu, takže zůstávají mimo.
 
-![Ukazatel úložiště rozdělující data tohoto zařízení do pojmenovaných kategorií, kde jsou Uložené relace a Moje obrázky sledovány odděleně od Cache assetů, zde na čerstvé instalaci, kde je zatím každá kategorie prázdná](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Ukazatel úložiště rozdělující data tohoto zařízení do pojmenovaných kategorií, kde jsou Uložené relace a Moje obrázky sledovány odděleně od Cache assetů, zde na čerstvé instalaci, kde je zatím každá kategorie prázdná](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Záruka napříč shelly
 

@@ -58,7 +58,7 @@ din webbläsare tar bort allt av det när som helst, och det gör även
 den tjänst du bad om inget samtycke - bara transparens, vilket är vad både det
 här dokumentet och meddelandet i appen är.)
 
-![Lagringssektionen på profilsidan i telefonbredd: varje kategori av data på enheten namngiven, med knappen Clear all my data alldeles bredvid](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Lagringssektionen på profilsidan i telefonbredd: varje kategori av data på enheten namngiven, med knappen Clear all my data alldeles bredvid](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Din egen säkerhetskopia av den här datan - `lolly-backup`-paketet som skapas
 av **Exportera mina data** - är en fil du behåller och kontrollerar. Den rör aldrig

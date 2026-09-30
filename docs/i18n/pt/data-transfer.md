@@ -2,7 +2,7 @@
 
 Tudo que um usuário do Lolly acumula vive **no seu dispositivo** - sem conta, sem nuvem. O pacote de transferência de dados é como esse valor se move: exporte-o em uma instalação, leve o arquivo por qualquer meio (USB, AirDrop, e-mail para si mesmo, um compartilhamento de rede) e importe-o em outra. O arquivo *é* o transporte. O destino pode estar offline ou online. Não faz diferença, porque nada nunca fala com um servidor.
 
-![Os dois botões que movem uma instalação inteira: Export my data grava um zip, Import data o lê de volta](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Os dois botões que movem uma instalação inteira: Export my data grava um zip, Import data o lê de volta](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Esta página é a especificação do formato. Para o passo a passo do usuário final, veja [Encontre e recupere seu trabalho → Mova seu trabalho para outro dispositivo](/info/find-your-work.html#move-your-work-to-another-device). A implementação é [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), e [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fixa o contrato de ida e volta.
 
@@ -153,7 +153,7 @@ Leitores mais antigos ainda aceitam o envelope v2 (`minReader: 1`) e restauram a
 
 O medidor de armazenamento discrimina a mesma divisão. Sessões salvas, My images e File results & versions viajam em um pacote. O cache de ativos, prévias de ferramenta e fixações offline abaixo deles são todos rederiváveis, então ficam para trás.
 
-![O medidor de armazenamento dividindo os dados deste dispositivo em categorias nomeadas, com Saved sessions e My images rastreados separadamente do Asset cache, aqui em uma instalação nova onde toda categoria ainda está vazia](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![O medidor de armazenamento dividindo os dados deste dispositivo em categorias nomeadas, com Saved sessions e My images rastreados separadamente do Asset cache, aqui em uma instalação nova onde toda categoria ainda está vazia](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garantia entre shells
 

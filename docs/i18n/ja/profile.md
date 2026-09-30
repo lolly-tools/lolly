@@ -53,7 +53,7 @@ Lollyでは、その役割は単に**手元に置いておく別のプロフィ�
 
 どの瞬間でも、あるインストールには**1つのアクティブなプロフィール**しかありません - それが今この瞬間にツールから見えている詳細情報です。アプリ内にプロフィール切り替え機能はありません。その代わり、各プロフィールは**持ち運び可能なバンドル**(単一の`.zip`、[下記](#moving-a-profile-to-a-new-device)を参照)です。これは新しい端末への移行と意図的に同じ仕組みです - プロフィールは保存、コピー、読み込みができる1つのファイルです。
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **最もクリーンな切り替え方:** **設定 → Preferences → ストレージ → すべてのデータを消去**を実行し、その後、移行先のコンテキスト用のバンドルを**インポート**します。これで、そのプロフィールとして純粋に作成する状態になります。
 - <!--i:layers--> **レイヤー化:** 先にクリアせずにインポートすると**マージ**されます - インポートされたセッション、画像は既存のものの上に重なり、両方に同じものがある場合はより新しく保存された方のコピーが残り、それ以外はそのままです。フォルダー、お気に入り、テンプレートはあなたのものに追加され、あなた自身の詳細情報と設定はそのまま残ります。あるチームの保存済みセッションを自分の環境に取り込むのに便利ですが、明確な役割の境界が必要な場合には向きません。
@@ -61,7 +61,7 @@ Lollyでは、その役割は単に**手元に置いておく別のプロフィ�
 
 そのため、複数の文脈（あなた自身、チーム、イベントマネージャーという役割）を実際に使い分けている場合は、複数のバンドルを保持しておき、必要なものを読み込みます。
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > 文脈ごとにバンドルを保管し、内容がわかるようファイル名を変更しておきましょう（`LollyTools-events-2026.zip`、`LollyTools-me.zip`）。ファイルそのものが、プロフィール*なのです*。
 
@@ -112,7 +112,7 @@ Lollyは利用しながらキャッシュを蓄積していきますが、この
 - <!--i:upload--> 別のインストール先の**データをインポート…**でそのファイルを読み込むと、中断した箇所からそのまま再開できます。また、[同期](/info/sync.html)がストレージに保持しているコピーも取り込みます。
 - <!--i:box--> **自分のデータをエクスポート & すべてレンダリング**は同じバックアップに*加えて*、保存済みのすべてのセッションを完成した出力ファイルにレンダリングした2つ目のzipを、プロジェクトの構成を反映したフォルダー内に書き出します。ソースと結果の両方を含む完全なオフラインアーカイブです - セッション数が多いと大きく、時間がかかることがあります。
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 バンドルはそれ自体で完結した通常のzipファイルなので、USB、AirDrop、ネットワーク共有、自分宛のメールなど**あらゆる**手段で運ぶことができ、移行先は完全にオフラインでも構いません。各パートにはチェックサムが付いているため、転送中に破損したファイルは、中途半端に壊れた状態で復元されるのではなく、インポート時に検出されます。インポートは**マージ**します(同名のセッションや画像は、より新しく保存された方のコピーが残り、フォルダー、お気に入り、テンプレートは追加され、転送先の詳細情報と設定はそのまま残り、それ以外はすべて保持されます)。そのため、すでに使用中の転送先を消去してしまうことは決してありません。
 

@@ -2,7 +2,7 @@
 
 Bir Lolly kullanıcısının biriktirdiği her şey **cihazında** yaşar - hesap yok, bulut yok. Veri aktarımı demeti bu değerin nasıl taşındığıdır: bir kurulumda dışa aktar, dosyayı herhangi bir yolla taşı (USB, AirDrop, kendine e-posta, bir ağ paylaşımı) ve başka bir kurulumda içe aktar. Aktarım araç *dosyanın kendisidir*. Hedef çevrimdışı veya çevrimiçi olabilir. Hiçbir fark yaratmaz, çünkü hiçbir zaman bir sunucuyla konuşulmaz.
 
-![Bütün bir kurulumu taşıyan iki düğme: Export my data tek bir zip yazar, Import data onu geri okur](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Bütün bir kurulumu taşıyan iki düğme: Export my data tek bir zip yazar, Import data onu geri okur](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Bu sayfa biçim spesifikasyonudur. Son kullanıcı için adım adım anlatım için bkz. [Çalışmanı bul ve kurtar → Çalışmanı başka bir cihaza taşı](/info/find-your-work.html#move-your-work-to-another-device). Uygulama [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) dosyasındadır ve [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) gidiş-dönüş sözleşmesini sabitler.
 
@@ -153,7 +153,7 @@ Eski okuyucular hâlâ v2 zarfını (`minReader: 1`) kabul eder ve tanıdık par
 
 Depolama ölçer aynı ayrımı kalemleştirir. Kaydedilmiş oturumlar, Görsellerim ve File results & versions bir demette yolculuk eder. Varlık önbelleği, Araç önizlemeleri ve altındaki çevrimdışı sabitlemeler hepsi yeniden türetilebilir, bu yüzden geride kalırlar.
 
-![Bu cihazın verisini adlandırılmış kategorilere ayıran depolama ölçer, Kaydedilmiş oturumlar ve Görsellerim'in Varlık önbelleğinden ayrı takip edildiği, her kategorinin hâlâ boş olduğu yeni bir kurulumda](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Bu cihazın verisini adlandırılmış kategorilere ayıran depolama ölçer, Kaydedilmiş oturumlar ve Görsellerim'in Varlık önbelleğinden ayrı takip edildiği, her kategorinin hâlâ boş olduğu yeni bir kurulumda](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Kabuklar arası garanti
 

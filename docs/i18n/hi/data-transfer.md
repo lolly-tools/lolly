@@ -2,7 +2,7 @@
 
 Lolly उपयोगकर्ता जो कुछ भी जमा करता है वह **उसके डिवाइस पर** रहता है - कोई अकाउंट नहीं, कोई क्लाउड नहीं। डेटा-ट्रांसफ़र बंडल इसी मूल्य को हिलाने का तरीका है: इसे एक इंस्टॉल पर एक्सपोर्ट करें, फ़ाइल को किसी भी माध्यम से ले जाएँ (USB, AirDrop, ईमेल-टू-सेल्फ़, एक नेटवर्क शेयर) और दूसरे पर इम्पोर्ट करें। फ़ाइल *ही* परिवहन है। लक्ष्य डिवाइस ऑफ़लाइन हो या ऑनलाइन। इससे कोई फ़र्क़ नहीं पड़ता, क्योंकि कभी किसी सर्वर से बात नहीं होती।
 
-![वे दो बटन जो पूरी इंस्टॉल को स्थानांतरित करते हैं: Export my data एक zip लिखता है, Import data उसे वापस पढ़ता है](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![वे दो बटन जो पूरी इंस्टॉल को स्थानांतरित करते हैं: Export my data एक zip लिखता है, Import data उसे वापस पढ़ता है](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 यह पृष्ठ फ़ॉर्मैट स्पेक है। अंतिम-उपयोगकर्ता वॉकथ्रू के लिए देखें [अपना काम खोजें और वापस पाएँ → अपना काम किसी दूसरे डिवाइस पर ले जाएँ](/info/find-your-work.html#move-your-work-to-another-device)। कार्यान्वयन है [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), और [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) राउंड-ट्रिप कॉन्ट्रैक्ट को पिन करता है।
 
@@ -153,7 +153,7 @@ Lolly उपयोगकर्ता जो कुछ भी जमा करत
 
 स्टोरेज मीटर उसी विभाजन को वस्तुओं में बाँटता है। सेव किए गए सेशन, My images और फ़ाइल रिज़ल्ट व वर्शन एक बंडल में सवार होते हैं। एसेट कैश, टूल प्रीव्यू और नीचे के ऑफ़लाइन पिन सभी फिर से व्युत्पन्न किए जा सकते हैं, इसलिए वे पीछे रह जाते हैं।
 
-![स्टोरेज मीटर इस डिवाइस के डेटा को नामित श्रेणियों में तोड़ते हुए, जिसमें Saved sessions और My images को Asset cache से अलग ट्रैक किया गया है, यहाँ एक नए इंस्टॉल पर जहाँ हर श्रेणी अभी भी खाली है](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![स्टोरेज मीटर इस डिवाइस के डेटा को नामित श्रेणियों में तोड़ते हुए, जिसमें Saved sessions और My images को Asset cache से अलग ट्रैक किया गया है, यहाँ एक नए इंस्टॉल पर जहाँ हर श्रेणी अभी भी खाली है](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## क्रॉस-शेल गारंटी
 

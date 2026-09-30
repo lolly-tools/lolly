@@ -2,7 +2,7 @@
 
 Alt en Lolly-bruker samler seg opp, lever **på enheten deres** - ingen konto, ingen sky. Dataoverføringspakken er hvordan den verdien flytter seg: eksporter den på én installasjon, bær filen på hvilken som helst måte (USB, AirDrop, e-post til deg selv, en nettverksdeling) og importer den på en annen. Filen *er* transporten. Målet kan være offline eller online. Det spiller ingen rolle, fordi ingenting noensinne snakker med en server.
 
-![De to knappene som flytter en hel installasjon: Eksporter dataene mine skriver én zip, Importer data leser den tilbake](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![De to knappene som flytter en hel installasjon: Eksporter dataene mine skriver én zip, Importer data leser den tilbake](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Denne siden er formatspesifikasjonen. For gjennomgangen for sluttbrukeren, se [Finn og gjenopprett arbeidet ditt → Flytt arbeidet ditt til en annen enhet](/info/find-your-work.html#move-your-work-to-another-device). Implementasjonen er [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), og [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fastsetter kontrakten for tur-retur.
 
@@ -153,7 +153,7 @@ Eldre lesere godtar fortsatt v2-konvolutten (`minReader: 1`) og gjenoppretter kj
 
 Lagringsmåleren viser den samme oppdelingen kategori for kategori. Lagrede sesjoner, Mine bilder og File results & versions følger med i en pakke. Ressursbufferen, verktøyforhåndsvisningene og offline-pinnene under dem er alle avledbare på nytt, så de blir igjen.
 
-![Lagringsmåleren som deler denne enhetens data inn i navngitte kategorier, med Saved sessions og My images sporet separat fra Asset cache, her på en fersk installasjon der hver kategori fortsatt er tom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Lagringsmåleren som deler denne enhetens data inn i navngitte kategorier, med Saved sessions og My images sporet separat fra Asset cache, her på en fersk installasjon der hver kategori fortsatt er tom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Kryssgaranti mellom shells
 

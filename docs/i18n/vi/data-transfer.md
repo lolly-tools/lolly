@@ -2,7 +2,7 @@
 
 Mọi thứ mà một người dùng Lolly tích lũy đều nằm **trên thiết bị của họ** - không tài khoản, không đám mây. Gói chuyển dữ liệu là cách giá trị đó di chuyển: xuất nó trên một bản cài đặt, mang file đi bằng bất kỳ phương tiện nào (USB, AirDrop, gửi email cho chính mình, chia sẻ mạng) rồi nhập nó vào một bản cài đặt khác. File *chính là* phương tiện vận chuyển. Đích đến có thể offline hoặc online. Điều đó không quan trọng, vì không có gì từng liên lạc với máy chủ.
 
-![Hai nút di chuyển toàn bộ bản cài đặt: Export my data ghi ra một tệp zip, Import data đọc lại tệp đó](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Hai nút di chuyển toàn bộ bản cài đặt: Export my data ghi ra một tệp zip, Import data đọc lại tệp đó](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Trang này là đặc tả định dạng. Để xem hướng dẫn dành cho người dùng cuối, xem [Tìm và khôi phục công việc của bạn → Chuyển công việc của bạn sang thiết bị khác](/info/find-your-work.html#move-your-work-to-another-device). Việc triển khai nằm ở [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), và [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) chốt hợp đồng khứ hồi.
 
@@ -153,7 +153,7 @@ Các trình đọc cũ hơn vẫn chấp nhận envelope v2 (`minReader: 1`) và
 
 Đồng hồ đo dung lượng lưu trữ liệt kê chi tiết theo cùng cách phân chia đó. Saved sessions, My images và File results & versions được mang theo trong một gói. Asset cache, tool previews và offline pins bên dưới chúng đều có thể tạo lại được, nên chúng ở lại.
 
-![Đồng hồ đo dung lượng lưu trữ chia dữ liệu của thiết bị này thành các danh mục có tên, với Saved sessions và My images được theo dõi riêng biệt so với Asset cache, ở đây trên một bản cài đặt mới nơi mọi danh mục vẫn còn trống](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Đồng hồ đo dung lượng lưu trữ chia dữ liệu của thiết bị này thành các danh mục có tên, với Saved sessions và My images được theo dõi riêng biệt so với Asset cache, ở đây trên một bản cài đặt mới nơi mọi danh mục vẫn còn trống](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Cam kết xuyên shell
 

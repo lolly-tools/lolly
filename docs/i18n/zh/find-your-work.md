@@ -189,7 +189,7 @@ Automatic checkpoint 会随着时间推移而变得稀疏：最近一小时内�
 
 **设置 → 存储空间**会显示每种数据各占用了多少空间。其中的 **History** 行统计 Automatic checkpoint、它们的预览及恢复草稿；**Remove automatic checkpoints older than 30 days**（移除 30 天前的自动检查点）会释放这部分空间，并保留已保存和具名的版本。**清除缓存**会丢弃已下载的目录文件，需要时会重新下载。**清除我的所有数据**会要求你输入一个词，关闭同步，然后清除 Lolly 在这个浏览器里保存的一切：你的个人资料和设置、已保存的会话及其历史记录和回收站、上传内容、字体和设计系统、下载记录、转换结果、已下载的 AI 模型和离线副本。你下载过的文件仍留在你保存它们的位置。之后应用会像首次访问一样重新启动。
 
-![手机宽度屏幕上的存储卡片：设备上每一类数据都一一列出，底部是“清除我的所有数据”按钮](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![手机宽度屏幕上的存储卡片：设备上每一类数据都一一列出，底部是“清除我的所有数据”按钮](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 在桌面和移动应用中，已保存的会话是应用自己数据文件夹里的文件，其余内容则存放在应用自己的存储空间里，因此清除网页浏览器并不会影响它们。
 

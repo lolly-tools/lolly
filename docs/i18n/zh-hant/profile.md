@@ -53,7 +53,7 @@
 
 在任何時刻，一次安裝只會有**一個使用中的設定檔** - 也就是工具目前看到的細節。應用程式內沒有設定檔切換器；取而代之的是，每個設定檔都是一個**可攜式套件**（單一 `.zip` 檔，見[下文](#moving-a-profile-to-a-new-device)）。這刻意設計成與換到新裝置時相同的機制 - 設定檔就是一個你可以儲存、複製與載入的檔案。
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **最乾淨的切換方式：** **設定 → Preferences → 儲存空間 → 清除我的所有資料**，然後**匯入**你即將進入的那個情境所對應的包。此後你就是純粹以那個個人資料在創作。
 - <!--i:layers--> **分層疊加：** *不先*清除就直接匯入會**合併** - 匯入的工作階段與圖片會疊加在已有內容之上；兩邊都有的同一項，會保留儲存時間較新的那份副本，其餘保持不變。檔案裡的資料夾、我的最愛和範本會加入到你自己的內容中，你自己的詳細資訊與設定保持不變。適合把某個團隊已儲存的工作階段拉進你自己的環境；如果你需要一個乾淨的角色界線，這就不是你想要的效果。
@@ -61,7 +61,7 @@
 
 所以如果你真的要同時應付好幾種情境（你自己、你的團隊、活動經理這頂帽子），就保留好幾個包裹，需要哪個就載入哪個：
 
-![儲存空間量表，將已儲存的工作階段、圖片與快取，對照瀏覽器實際回報的數字加以拆解](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![儲存空間量表，將已儲存的工作階段、圖片與快取，對照瀏覽器實際回報的數字加以拆解](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > 每個情境都保留一個包裹，並依內容重新命名檔案（`LollyTools-events-2026.zip`、`LollyTools-me.zip`）。這個檔案*就是*個人資料本身。
 
@@ -112,7 +112,7 @@ Lolly 會隨著你的使用逐步快取內容，但這種邊用邊快取的方�
 - <!--i:upload--> **匯入資料…**在另一台裝置上讀取該檔案，你就能準確接續在離開的地方。它還會取用[同步](/info/sync.html)保存在你儲存空間裡的那份副本。
 - <!--i:box--> **匯出我的資料並全部渲染**會寫出同樣的備份，*外加*第二個 zip，把每個已儲存的工作階段都算圖成最終輸出檔案，資料夾結構與你的專案一一對應。這是來源檔案與結果的完整離線封存 - 工作階段較多時可能體積大、速度慢。
 
-![搬移整個安裝環境的兩個按鈕:匯出我的資料寫入一個 zip,匯入資料再讀回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![搬移整個安裝環境的兩個按鈕:匯出我的資料寫入一個 zip,匯入資料再讀回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 這個包裹是單純、自含的 zip 檔案，因此可以透過**任何**方式傳遞 - USB、AirDrop、網路共用資料夾、寄給自己的電子郵件 - 目標裝置也可以完全離線。每個部分都做了校驗碼，因此傳輸過程中損壞的檔案會在匯入時被抓出來，而不會半殘地被還原。匯入會**合併**（兩邊都有的同名工作階段或圖片，會保留儲存時間較新的那份副本；資料夾、我的最愛和範本會被加入；目標裝置的詳細資訊與設定保持不變；其餘內容全部保留），所以絕不會清空一個原本就在使用中的目標裝置。
 

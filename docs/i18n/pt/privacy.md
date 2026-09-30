@@ -60,7 +60,7 @@ Art. 5(3), o armazenamento estritamente necessário para o serviço que você pe
 não exige consentimento - só transparência, que é o que este documento e
 o aviso no app são, os dois.)
 
-![A seção de armazenamento da página de perfil em uma tela com largura de celular: cada categoria de dado no dispositivo é nomeada, com o botão Clear all my data logo ao lado](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![A seção de armazenamento da página de perfil em uma tela com largura de celular: cada categoria de dado no dispositivo é nomeada, com o botão Clear all my data logo ao lado](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Seu próprio backup desses dados - o pacote `lolly-backup` produzido por **Exportar meus
 dados** - é um arquivo que você guarda e controla. Ele nunca toca nossos

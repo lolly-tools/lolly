@@ -61,7 +61,7 @@ Lolly میں، وہ کردار بس **ایک اور پروفائل ہے جو آ�
 
 اسٹوریج ہی وہ جگہ ہے جہاں اِس کے دونوں حصے رہتے ہیں: میٹر زمرہ بہ زمرہ حساب دیتا ہے کہ یہ انسٹال کتنے بائٹ رکھے ہوئے ہے، اور اُس کے نیچے کے بٹن ہی وہ طریقہ ہیں جس سے آپ اسے صاف کرتے یا ساتھ لے جاتے ہیں۔
 
-![اسٹوریج میٹر، محفوظ سیشنز، تصاویر اور کیش کو اس کے مقابلے میں توڑتا ہوا جو براؤزر دراصل رپورٹ کرتا ہے](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![اسٹوریج میٹر، محفوظ سیشنز، تصاویر اور کیش کو اس کے مقابلے میں توڑتا ہوا جو براؤزر دراصل رپورٹ کرتا ہے](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > ہر سیاق کے لیے ایک بنڈل رکھیں اور فائلوں کا نام ان کی حیثیت کے مطابق رکھیں (`LollyTools-events-2026.zip`، `LollyTools-me.zip`)۔ فائل *ہی* پروفائل ہے۔
 
@@ -112,7 +112,7 @@ Lolly چلتے چلتے کیش کرتا ہے، لیکن چلتے چلتے کیش
 - <!--i:upload--> دوسری تنصیب پر **ڈیٹا امپورٹ کریں…** وہ فائل واپس پڑھتا ہے اور آپ بالکل وہیں سے آگے بڑھتے ہیں جہاں چھوڑا تھا۔ یہ اُس کاپی کو بھی لے لیتا ہے جو [Sync](/info/sync.html) آپ کے اسٹوریج میں رکھتا ہے۔
 - <!--i:box--> **میرا ڈیٹا ایکسپورٹ کریں & سب کچھ رینڈر کریں** وہی بیک اپ لکھتا ہے *اور اس کے علاوہ* ایک دوسری zip، جو ہر محفوظ کردہ سیشن کو اُس کی حتمی آؤٹ پٹ فائل میں رینڈر کرتی ہے، ایسے فولڈرز میں جو آپ کے Projects کی عکاسی کرتے ہیں۔ ذرائع اور نتائج دونوں کا ایک مکمل آف لائن آرکائیو - اور زیادہ سیشنز کے ساتھ یہ بڑا اور سست ہو سکتا ہے۔
 
-![دو بٹن جو پوری تنصیب منتقل کرتے ہیں: Export my data ایک zip لکھتا ہے، Import data اسے واپس پڑھتا ہے](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![دو بٹن جو پوری تنصیب منتقل کرتے ہیں: Export my data ایک zip لکھتا ہے، Import data اسے واپس پڑھتا ہے](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 بنڈل ایک سادہ، خود مکتفی zip ہے، لہٰذا یہ **کسی بھی** ذریعے سفر کرتا ہے - USB، AirDrop، ایک نیٹ ورک شیئر، اپنے آپ کو ای میل - اور ہدف مکمل طور پر آف لائن ہو سکتا ہے۔ ہر حصے کا چیک سم ہوتا ہے، لہٰذا سفر میں خراب ہونے والی فائل کو ادھوری بحال کرنے کے بجائے امپورٹ کے وقت پکڑ لیا جاتا ہے۔ امپورٹ **ضم** کرتا ہے (ایک ہی نام کے سیشن یا تصویر میں سے، حال ہی میں محفوظ کی گئی کاپی رکھی جاتی ہے؛ فولڈرز، پسندیدہ اور ٹیمپلیٹس شامل کیے جاتے ہیں؛ ہدف کی تفصیلات اور سیٹنگز برقرار رہتی ہیں؛ باقی سب کچھ رکھا جاتا ہے)، لہٰذا یہ کبھی بھی ایسے ہدف کو صاف نہیں کرتا جو پہلے سے استعمال میں ہو۔
 

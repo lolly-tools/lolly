@@ -2,7 +2,7 @@
 
 Wszystko, co gromadzi użytkownik Lolly, znajduje się **na jego urządzeniu** - bez konta, bez chmury. Paczka transferu danych to sposób, w jaki ta wartość się przemieszcza: eksportujesz ją na jednej instalacji, przenosisz plik dowolną metodą (USB, AirDrop, e-mail do siebie, udział sieciowy) i importujesz na drugiej. Plik *jest* transportem. Cel może być offline lub online. Nie ma to znaczenia, bo nic nigdy nie łączy się z serwerem.
 
-![Dwa przyciski przenoszące całą instalację: Eksportuj moje dane zapisuje jeden plik zip, Import data wczytuje go z powrotem](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![Dwa przyciski przenoszące całą instalację: Eksportuj moje dane zapisuje jeden plik zip, Import data wczytuje go z powrotem](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Ta strona to specyfikacja formatu. Instrukcję dla użytkownika końcowego znajdziesz w [Znajdź i odzyskaj swoją pracę → Przenieś swoją pracę na inne urządzenie](/info/find-your-work.html#move-your-work-to-another-device). Implementacja to [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), a [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) zabezpiecza kontrakt pełnego cyklu.
 
@@ -153,7 +153,7 @@ Starsze czytniki nadal akceptują kopertę v2 (`minReader: 1`) i przywracają zn
 
 Miernik pamięci wylicza ten sam podział. Zapisane sesje, Moje obrazy oraz Wyniki i wersje plików jadą w paczce. Pamięć podręczna zasobów, podglądy narzędzi i przypięcia offline poniżej nich są w pełni odtwarzalne, więc zostają na miejscu.
 
-![Miernik pamięci dzielący dane tego urządzenia na nazwane kategorie, z Saved sessions i My images śledzonymi osobno od Asset cache, tutaj na świeżej instalacji, gdzie każda kategoria jest wciąż pusta](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![Miernik pamięci dzielący dane tego urządzenia na nazwane kategorie, z Saved sessions i My images śledzonymi osobno od Asset cache, tutaj na świeżej instalacji, gdzie każda kategoria jest wciąż pusta](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Gwarancja między powłokami
 

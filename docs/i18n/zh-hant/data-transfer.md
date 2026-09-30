@@ -2,7 +2,7 @@
 
 Lolly 使用者累積的一切都存放在**自己的裝置上** - 沒有帳號，沒有雲端。資料傳輸打包檔就是搬移這些資料的方式：在一台裝置上匯出，透過任何方式攜帶該檔案（USB、AirDrop、寄給自己的電子郵件、網路共用），再匯入另一台裝置。檔案本身*就是*傳輸方式。目標裝置可以離線或連線，兩者沒有差別，因為整個過程完全不會與任何伺服器通訊。
 
-![搬移整個安裝環境的兩個按鈕:匯出我的資料寫入一個 zip,匯入資料再讀回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![搬移整個安裝環境的兩個按鈕:匯出我的資料寫入一個 zip,匯入資料再讀回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 本頁是格式規格。給終端使用者的操作說明見[找回你的成果 → 把你的作品移到另一台裝置](/info/find-your-work.html#move-your-work-to-another-device)。實作程式碼在 [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)，[`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) 固定了往返契約。
 
@@ -153,7 +153,7 @@ Lolly 使用者累積的一切都存放在**自己的裝置上** - 沒有帳號�
 
 儲存空間計量表會列出相同的分類。已儲存的工作階段、「我的圖片」與檔案結果與版本都會被納入打包檔中；資產快取、工具預覽以及下方的離線固定項目，皆可重新產生，因此不會被納入。
 
-![儲存空間計量表將此裝置的資料分成具名類別，其中「已儲存的工作階段」與「我的圖片」與「資產快取」分開追蹤，此處為全新安裝、每個類別皆尚未有內容的畫面](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![儲存空間計量表將此裝置的資料分成具名類別，其中「已儲存的工作階段」與「我的圖片」與「資產快取」分開追蹤，此處為全新安裝、每個類別皆尚未有內容的畫面](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## 跨殼層保證
 

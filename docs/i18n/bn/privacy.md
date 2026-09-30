@@ -60,7 +60,7 @@ Lolly-র ওয়েব, ডেস্কটপ এবং মোবাইল �
 স্টোরেজের জন্য সম্মতি লাগে না - শুধু স্বচ্ছতা, যা এই নথি
 এবং ইন-অ্যাপ নোটিশ উভয়ই প্রদান করে।)
 
-![ফোন-প্রস্থের স্ক্রিনে প্রোফাইল পেজের স্টোরেজ সেকশন: অন-ডিভাইস ডেটার প্রতিটি ক্যাটাগরির নাম, ঠিক পাশে Clear all my data বাটন সহ](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![ফোন-প্রস্থের স্ক্রিনে প্রোফাইল পেজের স্টোরেজ সেকশন: অন-ডিভাইস ডেটার প্রতিটি ক্যাটাগরির নাম, ঠিক পাশে Clear all my data বাটন সহ](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 আপনার এই ডেটার নিজস্ব ব্যাকআপ - `lolly-backup` বান্ডল, যা **আমার ডেটা এক্সপোর্ট করুন**
 দিয়ে তৈরি হয় - এমন একটি ফাইল যা আপনি নিজে রাখেন এবং নিয়ন্ত্রণ করেন। আপনি

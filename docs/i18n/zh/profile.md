@@ -53,7 +53,7 @@
 
 在任意时刻,一个安装只有**一个活动个人资料** - 也就是工具此刻能看到的信息。应用内没有个人资料切换器;取而代之的是,每个个人资料都是一个**可移动的包**(一个 `.zip` 文件,参见[下文](#moving-a-profile-to-a-new-device))。这是刻意与迁移到新设备使用相同的机制 - 个人资料就是一个可以保存、复制和加载的文件。
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **最干净的切换方式：** **设置 → Preferences → 存储空间 → 清除我的所有数据**，然后**导入**你即将进入的那个场景所对应的包。此后你就是纯粹以那个个人资料在创建。
 - <!--i:layers--> **分层叠加：** *不先*清除就直接导入会**合并** - 导入的会话和图片会叠加在已有内容之上；两边都有的同一项，会保留保存时间更近的那份副本，其余保持不变。文件里的文件夹、收藏和模板会添加到你自己的内容中，你自己的详细信息和设置保持不变。适合把某个团队已保存的会话拉进你自己的环境；如果你需要一个干净的角色边界，这就不是你想要的效果。
@@ -61,7 +61,7 @@
 
 所以,如果你确实需要在多个情境之间切换(你自己、你的团队、活动经理这顶帽子),就保留多个资料包,需要哪个就加载哪个:
 
-![存储用量表,将已保存的会话、图片和缓存与浏览器实际报告的用量进行对比拆分](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![存储用量表,将已保存的会话、图片和缓存与浏览器实际报告的用量进行对比拆分](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > 为每个情境保留一个资料包,并按其用途重命名文件(`LollyTools-events-2026.zip`、`LollyTools-me.zip`)。这个文件*就是*个人资料。
 
@@ -112,7 +112,7 @@ Lolly 会随着你的使用逐步缓存内容，但这种边用边缓存的方�
 - <!--i:upload--> **导入数据…**在另一台设备上读取该文件，你就能准确接续在离开的地方。它还会取用[同步](/info/sync.html)保存在你存储空间里的那份副本。
 - <!--i:box--> **导出我的数据 & 全部渲染**会写出同样的备份，*外加*第二个 zip，把每个已保存的会话都渲染成最终输出文件，文件夹结构与你的项目一一对应。这是源文件与结果的完整离线归档 - 会话较多时可能体积大、速度慢。
 
-![移动整个安装内容的两个按钮:导出我的数据写出一个 zip,导入数据将其读回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![移动整个安装内容的两个按钮:导出我的数据写出一个 zip,导入数据将其读回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 这个资料包是一个普通的、自包含的 zip 文件，因此可以通过**任何**方式传输 - U 盘、AirDrop、网络共享、发邮件给自己 - 目标设备也可以完全离线。每个部分都经过校验，因此传输中损坏的文件会在导入时被发现，而不会以半损坏状态被恢复。导入会**合并**（两边都有的同名会话或图片，会保留保存时间更近的那份副本；文件夹、收藏和模板会被添加；目标设备的详细信息和设置保持不变；其余内容全部保留），所以它绝不会清空一个已在使用中的目标设备。
 

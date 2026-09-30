@@ -2,7 +2,7 @@
 
 كل ما يجمعه مستخدم Lolly يعيش **على جهازه** - بلا حساب، بلا سحابة. حزمة نقل البيانات هي وسيلة انتقال تلك القيمة: صدّرها من تثبيت واحد، واحمل الملف بأي وسيلة (USB، AirDrop، بريد إلكتروني لنفسك، مشاركة شبكية) واستورده في تثبيت آخر. الملف *هو* وسيلة النقل. يمكن أن تكون الوجهة غير متصلة أو متصلة بالإنترنت. لا فرق، لأن لا شيء يتواصل مع خادم على الإطلاق.
 
-![الزران اللذان ينقلان تثبيتا كاملا: تصدير بياناتي يكتب ملفا مضغوطا واحدا، واستيراد بيانات يقرأه من جديد](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![الزران اللذان ينقلان تثبيتا كاملا: تصدير بياناتي يكتب ملفا مضغوطا واحدا، واستيراد بيانات يقرأه من جديد](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 هذه الصفحة هي مواصفة التنسيق. لدليل المستخدم النهائي راجع [ابحث عن عملك واستعده → نقل عملك إلى جهاز آخر](/info/find-your-work.html#move-your-work-to-another-device). التنفيذ موجود في [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)، ويثبّت [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) عقد الذهاب والإياب.
 
@@ -153,7 +153,7 @@
 
 يفصّل مقياس التخزين الانقسام نفسه. تنتقل الجلسات المحفوظة وMy images ونتائج الملفات وإصداراتها داخل الحزمة. أما ذاكرة الأصول المؤقتة ومعاينات الأدوات والتثبيتات غير المتصلة أسفلها فكلها قابلة لإعادة الاشتقاق، لذا تبقى خلفا.
 
-![مقياس التخزين يقسّم بيانات هذا الجهاز إلى فئات مسمّاة، مع تتبّع Saved sessions وMy images بشكل منفصل عن Asset cache، هنا في تثبيت جديد حيث لا تزال كل فئة فارغة](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![مقياس التخزين يقسّم بيانات هذا الجهاز إلى فئات مسمّاة، مع تتبّع Saved sessions وMy images بشكل منفصل عن Asset cache، هنا في تثبيت جديد حيث لا تزال كل فئة فارغة](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## ضمان عبر القشرات
 

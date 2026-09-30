@@ -2,7 +2,7 @@
 
 একজন Lolly ব্যবহারকারী যা কিছু সঞ্চয় করেন তা **তাদের ডিভাইসেই** থাকে - কোনো অ্যাকাউন্ট নেই, কোনো ক্লাউড নেই। data-transfer বান্ডেল হলো সেই মূল্য স্থানান্তরের উপায়: এটি একটি ইনস্টলে এক্সপোর্ট করুন, যেকোনো মাধ্যমে ফাইলটি বহন করুন (USB, AirDrop, ইমেইল-টু-সেলফ, একটি নেটওয়ার্ক শেয়ার) এবং অন্যটিতে ইমপোর্ট করুন। ফাইলটিই *পরিবহন*। টার্গেট অফলাইন বা অনলাইন হতে পারে। এতে কোনো পার্থক্য হয় না, কারণ কখনো কোনো সার্ভারের সাথে যোগাযোগ হয় না।
 
-![পুরো একটি ইনস্টল সরিয়ে নেওয়ার দুটি বোতাম: Export my data একটি zip লেখে, Import data সেটি আবার পড়ে](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![পুরো একটি ইনস্টল সরিয়ে নেওয়ার দুটি বোতাম: Export my data একটি zip লেখে, Import data সেটি আবার পড়ে](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 এই পৃষ্ঠাটি ফরম্যাট স্পেক। এন্ড-ইউজার ওয়াকথ্রুর জন্য দেখুন [আপনার কাজ খুঁজুন ও ফিরে পান → আপনার কাজ অন্য ডিভাইসে নিয়ে যান](/info/find-your-work.html#move-your-work-to-another-device)। ইমপ্লিমেন্টেশনটি হলো [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), এবং [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) round-trip কন্ট্র্যাক্টকে পিন করে।
 
@@ -153,7 +153,7 @@ Integrity ইচ্ছাকৃতভাবে best-effort: এটি শুধ�
 
 স্টোরেজ মিটার একই বিভাজনটি আইটেমাইজ করে। Saved sessions, My images এবং File results ও versions একটি বান্ডেলে থাকে। তাদের নিচের asset cache, tool previews এবং offline pins সবই পুনরায়-উদ্ভূতযোগ্য, তাই সেগুলো পেছনে থেকে যায়।
 
-![স্টোরেজ মিটার এই ডিভাইসের ডেটাকে নামযুক্ত ক্যাটাগরিতে ভাগ করছে, যেখানে Saved sessions এবং My images আলাদাভাবে Asset cache থেকে ট্র্যাক করা হয়, এখানে একটি নতুন ইনস্টলে যেখানে প্রতিটি ক্যাটাগরি এখনও খালি](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![স্টোরেজ মিটার এই ডিভাইসের ডেটাকে নামযুক্ত ক্যাটাগরিতে ভাগ করছে, যেখানে Saved sessions এবং My images আলাদাভাবে Asset cache থেকে ট্র্যাক করা হয়, এখানে একটি নতুন ইনস্টলে যেখানে প্রতিটি ক্যাটাগরি এখনও খালি](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## ক্রস-শেল গ্যারান্টি
 

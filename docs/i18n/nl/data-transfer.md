@@ -2,7 +2,7 @@
 
 Alles wat een Lolly-gebruiker opbouwt, staat **op zijn apparaat** - geen account, geen cloud. De gegevensoverdrachtbundel is hoe die waarde verplaatst: exporteer hem op de ene installatie, draag het bestand op elke manier over (USB, AirDrop, e-mail naar jezelf, een netwerkschijf) en importeer hem op een andere. Het bestand *is* het transport. Het doel kan offline of online zijn. Het maakt geen verschil, want er wordt nooit met een server gepraat.
 
-![De twee knoppen die een hele installatie verplaatsen: Mijn gegevens exporteren schrijft één zip, Gegevens importeren leest hem weer in](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![De twee knoppen die een hele installatie verplaatsen: Mijn gegevens exporteren schrijft één zip, Gegevens importeren leest hem weer in](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 Deze pagina is de formaatspecificatie. Voor de doorloop voor de eindgebruiker, zie [Vind en herstel je werk → Verhuis je werk naar een ander apparaat](/info/find-your-work.html#move-your-work-to-another-device). De implementatie is [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), en [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) legt het retourcontract vast.
 
@@ -153,7 +153,7 @@ Oudere lezers accepteren nog steeds de v2-envelop (`minReader: 1`) en herstellen
 
 De opslagmeter splitst hetzelfde uit. Opgeslagen sessies, My images en File results & versions reizen mee in een bundel. De asset-cache, toolpreviews en offline pins daaronder zijn allemaal opnieuw af te leiden, dus blijven achter.
 
-![De opslagmeter die de gegevens van dit apparaat onderverdeelt in benoemde categorieën, met Opgeslagen sessies en Mijn afbeeldingen apart bijgehouden van de Assetcache, hier op een verse installatie waar elke categorie nog leeg is](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
+![De opslagmeter die de gegevens van dit apparaat onderverdeelt in benoemde categorieën, met Opgeslagen sessies en Mijn afbeeldingen apart bijgehouden van de Assetcache, hier op een verse installatie waar elke categorie nog leeg is](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garantie over shells heen
 

@@ -61,7 +61,7 @@ Lolly में वह भूमिका बस **एक और प्रोफ
 
 स्टोरेज वही जगह है जहाँ इसके दोनों हिस्से रहते हैं: मीटर श्रेणी-दर-श्रेणी हिसाब देता है कि यह इंस्टॉल कितने बाइट रखे हुए है, और उसके नीचे के बटन ही वह तरीक़ा हैं जिससे आप उसे साफ़ करते हैं या साथ ले जाते हैं।
 
-![स्टोरेज मीटर, जो सेव्ड सेशन, इमेज और कैश को इस आधार पर विभाजित करता है कि ब्राउज़र वास्तव में क्या रिपोर्ट करता है](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![स्टोरेज मीटर, जो सेव्ड सेशन, इमेज और कैश को इस आधार पर विभाजित करता है कि ब्राउज़र वास्तव में क्या रिपोर्ट करता है](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > हर संदर्भ के लिए एक बंडल रखें और फ़ाइलों के नाम उनके काम के हिसाब से रख दें (`LollyTools-events-2026.zip`, `LollyTools-me.zip`)। फ़ाइल *ही* प्रोफ़ाइल है।
 
@@ -112,7 +112,7 @@ parts के नीचे प्रति-टूल सूची है: हर 
 - <!--i:upload--> दूसरी इंस्टॉल पर **डेटा इंपोर्ट करें…** उस फ़ाइल को वापस पढ़ लेता है और आप ठीक वहीं से शुरू हो जाते हैं जहाँ आपने छोड़ा था। यह उस कॉपी को भी लेता है जो [Sync](/info/sync.html) आपके स्टोरेज में रखता है।
 - <!--i:box--> **मेरा डेटा एक्सपोर्ट करें & सब कुछ रेंडर करें** वही backup लिखता है *साथ ही* एक दूसरा zip जो हर सेव किए गए session को उसके अंतिम आउटपुट फ़ाइल में render करता है, ऐसे folders में जो आपके Projects को दर्शाते हैं। sources और results दोनों का एक पूर्ण ऑफ़लाइन archive - और ज़्यादा sessions होने पर यह बड़ा और धीमा हो सकता है।
 
-![वे दो बटन जो पूरी इंस्टॉल को स्थानांतरित करते हैं: Export my data एक zip लिखता है, Import data उसे वापस पढ़ता है](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![वे दो बटन जो पूरी इंस्टॉल को स्थानांतरित करते हैं: Export my data एक zip लिखता है, Import data उसे वापस पढ़ता है](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
 बंडल एक सादी, आत्मनिर्भर zip फ़ाइल है, इसलिए यह **किसी भी** माध्यम से सफ़र कर सकती है - USB, AirDrop, नेटवर्क शेयर, ख़ुद को ईमेल - और लक्ष्य पूरी तरह ऑफ़लाइन भी हो सकता है। हर हिस्से का चेकसम होता है, इसलिए रास्ते में क्षतिग्रस्त हुई फ़ाइल आधी-अधूरी बहाल होने के बजाय इंपोर्ट पर ही पकड़ में आ जाती है। इंपोर्ट **मर्ज** करता है (एक ही नाम वाले सेशन या इमेज में से, हाल ही में सेव की गई कॉपी रखी जाती है; फ़ोल्डर, फ़ेवरिट और टेम्पलेट जोड़े जाते हैं; लक्ष्य के विवरण और सेटिंग्स बने रहते हैं; बाक़ी सब कुछ रखा जाता है), इसलिए यह पहले से इस्तेमाल हो रहे लक्ष्य को कभी नहीं मिटाता।
 

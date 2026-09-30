@@ -54,7 +54,7 @@ Lolly 的網頁、桌面與行動裝置殼層，會在用戶端執行整個算�
 要透明度，而這正是本文件與應用程式內通知
 所提供的。）
 
-![手機寬度畫面下設定檔頁面的儲存空間區段：列出裝置端資料的每一個類別，旁邊就是 Clear all my data 按鈕](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![手機寬度畫面下設定檔頁面的儲存空間區段：列出裝置端資料的每一個類別，旁邊就是 Clear all my data 按鈕](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 這份資料的備份 - 由**Export my data**
 （匯出我的資料）功能產生的 `lolly-backup` 套件 - 是一個由你保管與控制的
