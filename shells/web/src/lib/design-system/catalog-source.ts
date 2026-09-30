@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { t, tRaw } from '../../i18n.ts';
-import { escape as escapeHtml } from '../../utils.ts';
+import { escape as escapeHtml, safeHref } from '../../utils.ts';
 import { getInstanceBase, instanceFetch } from '../instance.ts';
 import { networkStatus } from '../../catalog/sync.ts';
 import { isTauriShell } from '../instance-choice.ts';
@@ -41,6 +41,9 @@ export function catalogSourceHtml(record: DesignSystemRecord, adminHref?: string
   if (record.source.kind !== 'shipped') return '';
   const instance = record.catalog?.origin || (networkStatus.offline ? '' : getInstanceBase() || (isTauriShell() ? '' : window.location.origin));
   const namespace = record.headId.includes('/tokens/') ? `${record.headId.split('/tokens/')[0]}/` : '';
+  const adminLink = adminHref && safeHref(adminHref)
+    // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref gates the link above
+    ? `<a href="${escapeHtml(adminHref)}">${t('Manage instance design systems')}</a>` : '';
   return `<details class="ds-row-origin">
     <summary>${t('Catalogue source')}</summary>
     <dl>
@@ -54,7 +57,7 @@ export function catalogSourceHtml(record: DesignSystemRecord, adminHref?: string
     ${record.catalog?.available === false ? `<p>${t('No selected tokens asset is available. Refresh the catalogue or ask the administrator to check its source.')}</p>` : ''}
     <p>${t('Removing a local copy does not remove these catalogue assets.')}</p>
     <a href="/info/operate/deployment.html#removing-a-catalogue-design-system">${t('How to change the supplied design system')}</a>
-    ${adminHref ? `<a href="${escapeHtml(adminHref)}">${t('Manage instance design systems')}</a>` : ''}
+    ${adminLink}
   </details>`;
 }
 

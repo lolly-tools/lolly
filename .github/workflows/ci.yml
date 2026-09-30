@@ -146,15 +146,15 @@ jobs:
       # tier on a runner that has a browser. pnpm-workspace.yaml holds them together and
       # tests/browser-tier-install.test.ts asserts it; the cache key below is that same
       # resolved version, so a bump re-downloads instead of serving the wrong revision.
-      - name: Cache Chromium (browser shard)
-        if: matrix.shard == 'browser'
+      - name: Cache Chromium (browser and security shards)
+        if: matrix.shard == 'browser' || matrix.shard == 'security'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: .browsers
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('node_modules/playwright-core/package.json') }}
 
-      - name: Install Chromium (browser shard)
-        if: matrix.shard == 'browser'
+      - name: Install Chromium (browser and security shards)
+        if: matrix.shard == 'browser' || matrix.shard == 'security'
         run: pnpm run install:browser --with-deps
 
       - name: Install motion inspection tools

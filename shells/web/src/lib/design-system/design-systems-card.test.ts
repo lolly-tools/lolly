@@ -164,6 +164,19 @@ test('catalogue provenance escapes asset names and does not appear on a local re
   assert.equal(catalogSourceHtml({ ...record, source: { kind: 'local' } }), '');
 });
 
+test('catalogue admin links reject executable and protocol-relative URLs', () => {
+  const record = { ...records[0], headId: '', source: { kind: 'shipped' } } as DesignSystemRecord;
+  const body = document.createElement('div');
+  for (const href of ['javascript:alert(1)', 'data:text/html,<script>alert(1)</script>', '//example.com/admin', '/\\example.com/admin']) {
+    body.innerHTML = catalogSourceHtml(record, href);
+    assert.equal(body.querySelectorAll('a').length, 1, href);
+    assert.doesNotMatch(body.textContent ?? '', /Manage instance design systems/);
+  }
+  body.innerHTML = catalogSourceHtml(record, '/admin#/instance?tab=design');
+  assert.equal(body.querySelectorAll('a').length, 2);
+  assert.equal(body.querySelectorAll('a')[1]!.getAttribute('href'), '/admin#/instance?tab=design');
+});
+
 
 test('source facts report cached origin, version and checksum without claiming the newly chosen connection', async () => {
   const { networkStatus } = await import('../../catalog/sync.ts');
