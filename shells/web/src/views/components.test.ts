@@ -99,7 +99,11 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     assert.equal(view.querySelector<HTMLElement>(`[data-cl-card="${buttonIndex}"]`)!.hidden, false);
     const hash = location.hash;
     view.querySelector<HTMLAnchorElement>('[data-cl-jump="cl-tokens"]')!.click();
-    assert.equal(location.hash, hash, 'category jumps must not route away');
+    assert.equal(location.hash.split('?')[0], hash.split('?')[0], 'category jumps keep the component library mounted');
+    const params = new URLSearchParams(location.hash.split('?')[1]);
+    assert.equal(params.get('section'), 'cl-tokens');
+    assert.equal(params.get('q'), 'btn primary');
+    assert.equal(params.get('mode'), 'all');
     assert.equal(document.activeElement?.id, 'cl-tokens');
     const tokenSearch = view.querySelector<HTMLInputElement>('.cl-token-search input')!;
     tokenSearch.value = 'type.display'; tokenSearch.dispatchEvent(new dom.window.Event('input'));

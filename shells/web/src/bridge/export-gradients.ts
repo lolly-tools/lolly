@@ -9,6 +9,31 @@ import { splitCssArgs, parseGradientAngle, expandGradientStops, parseGradientSto
 import type { ConicGradient } from '@lolly/engine';
 import { n2 } from './export-css.ts';
 
+type EmittedStop = { colorStr: string | null; opacity: number; offset: string };
+
+// CSS interpolates gradient stops PREMULTIPLIED, SVG does not. For a fully transparent
+// stop that matters: `teal, transparent` holds teal and fades it on screen, while the
+// SVG fades toward the transparent stop's own colour (black for `transparent`) and
+// paints a grey band through the middle. A stop with no alpha has no colour of its
+// own under premultiplication, so it borrows its visible neighbours': the one before
+// on its left side, the one after on its right (two stops at the same offset when
+// they differ).
+function borrowTransparentStops<S extends EmittedStop>(stops: S[]): S[] {
+  const visible = (i: number, step: 1 | -1): S | undefined => {
+    for (let j = i + step; j >= 0 && j < stops.length; j += step) if (stops[j]!.opacity > 0) return stops[j];
+    return undefined;
+  };
+  const out: S[] = [];
+  stops.forEach((s, i) => {
+    if (s.opacity > 0) { out.push(s); return; }
+    const before = visible(i, -1), after = visible(i, 1);
+    if (!before && !after) { out.push(s); return; }
+    if (before) out.push({ ...s, colorStr: before.colorStr });
+    if (after && after.colorStr !== before?.colorStr) out.push({ ...s, colorStr: after.colorStr });
+  });
+  return out;
+}
+
 // Builds a <linearGradient> SVG element from a CSS linear-gradient() value.
 // Uses gradientUnits="userSpaceOnUse" so coordinates match the canvas space.
 // Returns null if the value is not a parseable linear gradient.
@@ -51,8 +76,8 @@ export function buildLinearGradientEl(NS: string, bgImage: string, elX: number, 
   grad.setAttribute('y2', String(cy - cosA * len));
 
   const n = stops.length;
-  const parsedStops = expandGradientStops(
-    stops.map((raw: string, i: number) => parseGradientStop(raw.trim(), i, n)).filter((st) => st.colorStr));
+  const parsedStops = borrowTransparentStops(expandGradientStops(
+    stops.map((raw: string, i: number) => parseGradientStop(raw.trim(), i, n)).filter((st) => st.colorStr)));
   parsedStops.forEach(({ colorStr, opacity, offset }) => {
     const s = document.createElementNS(NS, 'stop');
     // An absolute CSS stop position is a distance ALONG THE GRADIENT LINE, whose
@@ -236,7 +261,7 @@ export function buildRadialGradientEl(NS: string, bgImage: string, elX: number, 
     const sy = ry / rx;                            // scale y about CY: leaves cx/cy fixed
     grad.setAttribute('gradientTransform', `matrix(1,0,0,${n2(sy)},0,${n2(CY * (1 - sy))})`);
   }
-  for (const { colorStr, opacity, offset } of g.stops) {
+  for (const { colorStr, opacity, offset } of borrowTransparentStops(g.stops)) {
     const s = document.createElementNS(NS, 'stop');
     // A px stop offset is a distance along the radius → fraction of rx (SVG stops take
     // 0–1 / %); percentages pass through unchanged.

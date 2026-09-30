@@ -71,6 +71,26 @@ let selfPops = 0;
 let listening = false;
 /** Entries a closed overlay will pop on its deferred task and has not popped yet. */
 let pendingConsumes = 0;
+let workspaceHref: string | null = null;
+const consumingEntries = new Set<StackEntry>();
+
+/** Keep address edits made over a dialog when its history entry is removed. */
+export function rememberOverlayUrlState(): void {
+  if (!openStack.length && !pendingConsumes && !selfPops) return;
+  workspaceHref = window.location.href;
+  for (const entry of [...openStack, ...consumingEntries]) entry.pushedHref = workspaceHref;
+}
+
+function restoreWorkspaceHref(): void {
+  if (!workspaceHref) return;
+  const base = (href: string): string => {
+    const url = new URL(href);
+    return url.pathname + (url.hash.startsWith('#/') ? url.hash.split('?')[0] : '');
+  };
+  if (base(workspaceHref) !== base(window.location.href)) { workspaceHref = null; return; }
+  window.history.replaceState(window.history.state, '', workspaceHref);
+  window.dispatchEvent(new window.Event('lolly:url-state'));
+}
 /** Callers of historySettled(), waiting for this module's own traversals to finish. */
 const settledWaiters = new Set<() => void>();
 /** Callers of overlaysClosed(), waiting for every overlay to close as well. */
@@ -80,6 +100,7 @@ function notifySettled(): void {
   if (pendingConsumes || selfPops) return;
   for (const resolve of [...settledWaiters]) resolve();
   if (openStack.length) return;
+  workspaceHref = null;
   for (const resolve of [...closedWaiters]) { closedWaiters.delete(resolve); resolve(); }
 }
 
@@ -127,6 +148,7 @@ function syncListeners(): void {
 
 const onNavEvent = (e: Event): void => {
   if (e.type === 'popstate') {
+    restoreWorkspaceHref();
     if (selfPops) { selfPops -= 1; syncListeners(); notifySettled(); return; }
     // One Back, the innermost overlay - the rule everywhere else in the shell. The
     // entry it popped was that overlay's own, so the URL is unchanged and main.ts's
@@ -134,6 +156,7 @@ const onNavEvent = (e: Event): void => {
     openStack[openStack.length - 1]?.record.pop();
     return;
   }
+  workspaceHref = null;
   // hashchange / lolly:navigate: the view underneath is being replaced, so every
   // body-mounted overlay goes with it. Snapshot the stack - each close splices
   // itself out of it, and a caller's onClose may open an overlay of its own.
@@ -148,7 +171,9 @@ const onNavEvent = (e: Event): void => {
 function consume(entry: StackEntry): void {
   entry.owed = false;
   pendingConsumes += 1;
+  consumingEntries.add(entry);
   setTimeout(() => {
+    consumingEntries.delete(entry);
     pendingConsumes -= 1;
     if (entry.seq < depth || location.href !== entry.pushedHref) { notifySettled(); return; }
     depth -= 1;

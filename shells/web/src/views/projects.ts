@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { updateRouteParams } from '../lib/url-state.ts';
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
@@ -69,7 +70,7 @@ import type { ModalHandle } from '../components/modal.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml } from './projects-create.ts';
-import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
+import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsViewFromUrl, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
@@ -130,12 +131,6 @@ type Entry = Awaited<ReturnType<WebStateAPI['list']>>[number];
 // migrate to on load. 'tool' groups by the owning tool (folder views only).
 type SortBy = 'modified' | 'added' | 'name' | 'tool' | 'size';
 type ViewMode = 'preview' | 'list';
-// The two vocabularies a `#/p?view=&sort=` deep link is checked against. Sets, not
-// object lookups - an object answers true for 'constructor' and every other inherited
-// key (see lib/design-system/start-route.ts). The stored prefs above still parse with
-// their own literal comparisons; these exist for the URL, which is untrusted input.
-const VIEW_MODES = new Set<string>(['preview', 'list'] satisfies ViewMode[]);
-const SORT_BYS = new Set<string>(['modified', 'added', 'name', 'tool', 'size'] satisfies SortBy[]);
 type SelectKind = 'folder' | 'session' | 'image' | 'template';   // images join via marquee (no checkbox)
 
 /** Query result: the (capped) tiles to render plus the true `total` so the header can
@@ -340,13 +335,9 @@ export async function mountProjects(
   // layers above - what a shared link, a docs recipe or a screenshot run needs to land
   // on a known layout. Never written back to either localStorage key: a link someone
   // pasted must not rewrite their own view preference. Read at mount only, like `q`
-  // and `tools`, and never propagated into a generated link. Sets, so an inherited key
-  // ('constructor') can't pass; anything unrecognised leaves the stored value standing.
-  const urlView = new URLSearchParams(opts.params || '').get('view');
-  if (urlView && VIEW_MODES.has(urlView)) viewMode = urlView as ViewMode;
-  const urlSort = new URLSearchParams(opts.params || '').get('sort');
-  if (urlSort && SORT_BYS.has(urlSort)) sortBy = urlSort as SortBy;
-  if (new URLSearchParams(opts.params || '').has('rev')) sortRev = true;
+  // and `tools`; user changes update the address. Literal choices keep inherited keys
+  // such as 'constructor' out; anything unrecognised leaves the stored value standing.
+  ({ view: viewMode, sort: sortBy, reversed: sortRev } = projectsViewFromUrl(opts.params, { view: viewMode, sort: sortBy, reversed: sortRev }));
 
   async function reload(): Promise<void> {
     recentExports = await projectRecentExports();
@@ -482,6 +473,7 @@ export async function mountProjects(
 
   /** Persist view + sort for THIS folder (plans/133 WP-2). */
   function saveViewPrefs(): void {
+    updateRouteParams({ view: viewMode, sort: sortBy, rev: sortRev ? '1' : '0' });
     try {
       const key = folderId ?? '__root__';
       const map = JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, unknown>;

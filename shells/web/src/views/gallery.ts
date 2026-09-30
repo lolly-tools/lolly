@@ -17,6 +17,7 @@
  * modals.
  */
 
+import { routeParams as currentRouteParams, updateRouteParams } from '../lib/url-state.ts';
 import { escape } from '../utils.ts';
 import { cssEscape } from '../lib/util/escape.ts';
 import { presentApis } from '@lolly-tools/core/host-v1';
@@ -879,6 +880,8 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     const savedView = localStorage.getItem(FEATURED_VIEW_STORAGE);
     if (savedView && (FEATURED_VIEWS as readonly string[]).includes(savedView)) featuredView = savedView as FeaturedViewMode;
   } catch { /* storage off */ }
+  const urlFeaturedView = new URLSearchParams(opts.params || '').get('view');
+  if (urlFeaturedView && (FEATURED_VIEWS as readonly string[]).includes(urlFeaturedView)) featuredView = urlFeaturedView as FeaturedViewMode;
   // An automated screenshot run always frames the filmstrip, never Cover Flow - the
   // house rule for docs shots, and it is about the OUTPUT format, not taste. Cover
   // Flow fans its covers with a 3-D `rotateY`; `parseCssMatrix` refuses 3-D matrices,
@@ -1171,6 +1174,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     const next = btn.dataset.view as FeaturedViewMode;
     const changed = next !== featuredView;
     featuredView = next;
+    updateRouteParams({ view: featuredView });
     try { localStorage.setItem(FEATURED_VIEW_STORAGE, featuredView); } catch { /* storage off */ }
     paintViewSeg();
     // Re-mount (not setViewMode) so the strip re-reads `staticStrip` for the new mode:
@@ -1269,8 +1273,8 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // link, a docs recipe or a screenshot run needs to land on a known view. They
   // OUTRANK the stored preferences below but are never written back into
   // localStorage: a link someone pasted must not rewrite their own sort. Like `q`
-  // and the `?tool=`/`?history=` flags, they're read at mount and never propagated
-  // into a generated link. An unknown value is ignored (the stored default stands).
+  // and the dialog flags, they restore this view without saving a preference.
+  // User changes update the address. Unknown values keep the stored default.
   const routeParams = new URLSearchParams(opts.params || '');
   let activeCat = 'all';   // active category pill
   // The pill vocabulary exactly: 'all', the favourites sentinel, and whatever
@@ -1294,6 +1298,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     const savedDir = localStorage.getItem(SORT_DIR_STORAGE);
     if (savedDir === 'asc' || savedDir === 'desc') sortDir = savedDir;
   } catch { /* storage off */ }
+  const syncBrowseUrl = (): void => updateRouteParams({ q: query || null, cat: activeCat, sort: sortKey, dir: sortDir });
   const urlDir = routeParams.get('dir');
   if (urlDir === 'asc' || urlDir === 'desc') sortDir = urlDir;
   // Entrance reveal runs the cascade once, on the cold mount - not when returning
@@ -1762,6 +1767,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       if (!btn) return;
       activeCat = btn.dataset.cat!;
       if (query) { query = ''; queryTokens = []; setSearchBarValue(''); }
+      syncBrowseUrl();
       applyView();
       // applyView() rebuilds the pills, dropping focus - restore it to the active one
       // so keyboard users aren't bounced to the top of the tab order. The popover
@@ -1804,6 +1810,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     sortSelect.addEventListener('change', () => {
       sortKey = sortSelect.value as SortKey;
       try { localStorage.setItem(SORT_KEY_STORAGE, sortKey); } catch { /* storage off */ }
+      syncBrowseUrl();
       applyView();   // reorder the live tiles in place - no re-render
     });
   }
@@ -1817,6 +1824,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       sortDir = sortDir === 'asc' ? 'desc' : 'asc';
       try { localStorage.setItem(SORT_DIR_STORAGE, sortDir); } catch { /* storage off */ }
       syncDirBtn();
+      syncBrowseUrl();
       applyView();   // reorder the live tiles in place - no re-render
     });
   }
@@ -1831,7 +1839,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // Type-to-find on fine-pointer devices (the bar skips touch so the keyboard
     // doesn't pop over the gallery).
     autoFocus: true,
-    onQuery: (raw) => { query = raw.toLowerCase(); queryTokens = tokenize(raw); applyView(); },
+    onQuery: (raw) => { query = raw.toLowerCase(); queryTokens = tokenize(raw); syncBrowseUrl(); applyView(); },
   }));
 
   // "clear search" link inside the empty-state line (rebuilt by applyView). The <p> node
@@ -2230,15 +2238,8 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
   cleanups.push(observeGalleryTheme(theme, refreshFeatured, render));
 
-  // ── Deep-link (read-only): open a card's dialog on mount. ───────────────────
-  // Read the hash query directly (same shape as main.ts's peekUrlLang) - these
-  // flags are this view's own, not router state (only `q` rides opts.params). `?tool=<id>`
-  // opens that card's info dialog; adding the `history` flag (or `?history=<id>`)
-  // opens its saved-sessions dialog instead; `welcome` re-opens the first-run
-  // dialog (see the ladder below). Consumed here only - READ-ONLY flags,
-  // never propagated into a generated share link. An unknown/absent id opens
-  // nothing; the gallery just renders normally.
-  const deepLink = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
+  // Restore the gallery dialog named by this address. Unknown tool ids open nothing.
+  const deepLink = new URLSearchParams(opts.params || '');
   const deepLinkTool = toolById.get(deepLink.get('tool') ?? deepLink.get('history') ?? '');
   if (deepLinkTool) {
     if (deepLink.has('history')) openHistoryFor(deepLinkTool);
@@ -2644,8 +2645,18 @@ function cardMarkup(
 // A tool's starting points as the About dialog sees them (plans/226 section 4.5) are
 // composed by the mount, where both overlays live: see views/gallery-templates.ts for
 // the InfoTemplates contract and the empty NO_INFO_TEMPLATES a bare call falls back to.
+function recordGalleryDialog(toolId: string, historyOpen: boolean): () => void {
+  const base = (): string => location.pathname + location.hash.split('?')[0];
+  const openedAt = base();
+  updateRouteParams({ tool: toolId, history: historyOpen ? toolId : null });
+  return () => {
+    if (base() === openedAt && currentRouteParams().get('tool') === toolId) updateRouteParams({ tool: null, history: null });
+  };
+}
+
 function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTheme: boolean, tpl: InfoTemplates = NO_INFO_TEMPLATES): void {
   if (!tool) return;
+  const dismissUrl = recordGalleryDialog(tool.id, false);
   const caps = Array.isArray(tool.capabilities) ? tool.capabilities : [];
   // Formats + privacy come straight from the catalog index entry - no fetch.
   // Transform-vs-export is decided by the `exportable` flag alone (NOT by whether
@@ -2792,7 +2803,7 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
       </div>
     </div>`;
   playSfx('whisper'); // airy elevation as the tool details rise in
-  const modal = mountModal(content, { className: `tool-meta-dialog${wide ? ' tool-meta-dialog--wide' : ''}` });
+  const modal = mountModal(content, { className: `tool-meta-dialog${wide ? ' tool-meta-dialog--wide' : ''}`, onClose: dismissUrl });
   modal.el.setAttribute('aria-labelledby', 'tool-info-title');
   modal.el.querySelectorAll('.meta-dialog-close').forEach(b => b.addEventListener('click', () => modal.close()));
   modal.el.querySelector('.meta-dialog-open')?.addEventListener('click', () => modal.close());
@@ -2991,6 +3002,7 @@ interface ShowHistoryDialogOpts {
 
 function showHistoryDialog(tool: GalleryTool | undefined, entries: SavedEntry[], sizes: Record<string, number>, host: GalleryHost, { onDelete, onRestore, onClose }: ShowHistoryDialogOpts = {}): void {
   if (!tool) return;
+  const dismissUrl = recordGalleryDialog(tool.id, true);
   const countText = (n: number) => (n === 1 ? t('1 saved session') : t('{n} saved sessions', { n }));
   // Defer the gallery re-render until the dialog closes: rebuilding the masonry
   // (and the (h) trigger button) mid-dialog would break the UA's focus restore.
@@ -3013,7 +3025,7 @@ function showHistoryDialog(tool: GalleryTool | undefined, entries: SavedEntry[],
     </div>`;
   const modal = mountModal(content, {
     className: 'tool-meta-dialog tool-history-dialog',
-    onClose: () => { if (changed) onClose?.(); },
+    onClose: () => { dismissUrl(); if (changed) onClose?.(); },
   });
   modal.el.setAttribute('aria-labelledby', 'tool-history-title');
   modal.el.querySelectorAll('.meta-dialog-close').forEach(b => b.addEventListener('click', () => modal.close()));

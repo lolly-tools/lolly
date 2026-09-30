@@ -12,7 +12,7 @@ import type { Box, Rect as MathRect } from '../free-canvas-math.ts';
 import type { DeepLinkState } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
-// The link's one-shot editor state (`_ui` + the `_sel`/`_t`/`_panel` shorthands,
+// The link's editor state (`_ui` + the `_sel`/`_t`/`_panel` shorthands,
 // lib/editor-state.ts) - and, the SAME routine, the runtime `applyUi` the handle
 // exposes (plans/176 v1). On a board with a timeline (already timed, or a playhead
 // asks for one) everything waits for the lazy panel chunk: the panel's mount owns
@@ -23,21 +23,23 @@ import { bindOp, type FcCtx } from './context.ts';
 export const applyEditorState = (fc: FcCtx, dl: DeepLinkState | undefined): void => {
   const { canvasEl, cfg, timeCfg } = fc;
   if (!dl || fc.disposed) return;
-  const wantSeek = typeof dl.playhead === 'number' && Number.isFinite(dl.playhead) && !!timeCfg;
+  if (dl.timeline === false) {
+    fc.timelineAutoOpened = false;
+    fc.timelineWantOpen = false;
+    if (fc.timelinePanel) void fc.timeline.ensureTimeline(false);
+  }
+  const wantSeek = dl.timeline !== false && typeof dl.playhead === 'number' && Number.isFinite(dl.playhead) && !!timeCfg;
   const run = (): void => {
     if (fc.disposed) return;
-    if (dl.select?.length) {
+    if (dl.page) fc.document.focusArtboard(dl.page);
+    if (dl.select) {
       const rows = fc.select.getBoxes();
       const known = new Set(rows.map((b, i) => fc.select.idOf(b, i)));
       const ids = dl.select.filter((id) => known.has(id));
-      if (ids.length) {
-        fc.selection = new Set(ids);
-        fc.chromeSync.renderChrome();
-        // And through the panel when it is up: its selection adapter is the one it
-        // shows, and a camera id - no canvas footprint - only reaches the Camera
-        // inspector group via the panel's own selection path.
-        fc.timelinePanel?.selectAndReveal(ids);
-      }
+      fc.selection = new Set(ids);
+      fc.chromeSync.renderChrome();
+      // The panel owns the selection adapter for cameras without a canvas footprint.
+      fc.timelinePanel?.selectAndReveal(ids);
     }
     if (wantSeek) fc.timelinePanel?.seek(Math.max(0, dl.playhead as number));
     if (dl.panel === 'choreograph' && fc.selection.size) {
@@ -60,7 +62,7 @@ export const applyEditorState = (fc: FcCtx, dl: DeepLinkState | undefined): void
       fc.dialogs.askChoreograph();
     }
   };
-  if (wantSeek || fc.timelineAutoOpened) {
+  if (wantSeek || dl.timeline === true || fc.timelineAutoOpened) {
     fc.timelineAutoOpened = true;
     void fc.timeline.ensureTimeline(true).then(run);
   } else {

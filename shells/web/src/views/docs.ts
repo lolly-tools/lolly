@@ -36,6 +36,7 @@
  */
 // The chrome both readers share (the round top-row button, the pathways strip, the
 // compact navigation lists), ahead of docs.css so the reader's own placement wins.
+import { updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/docs-chrome.css';
 import '../styles/parts/docs.css';
 import '../styles/parts/docs-components.css';
@@ -327,6 +328,7 @@ export async function mountDocs(
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
     if (!scrollToHeading(node, decodeURIComponent(raw.slice(1)), 'smooth')) return;
     e.preventDefault();
+    updateRouteParams({ h: decodeURIComponent(raw.slice(1)) });
   };
   scope.listen(node, 'click', onAnchorClick as EventListener);
 

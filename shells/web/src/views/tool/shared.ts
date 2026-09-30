@@ -4,6 +4,8 @@
  * constants and pure helpers that used to sit above mountTool(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The tool view: one mounted tool - sidebar, canvas, actions bar, history and collab.
  */
+import { copyWorkspaceParams, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
+import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
 import type { ClipboardAPI, ComposeAPI, HostV1, StateAPI } from '@lolly-tools/core/host-v1';
 import { DEFAULT_CMYK_CONDITION, ENC_PARAM, HDR_DEFAULTS, PACK_PARAM, expandQuery, hasPackedState, isPackAvailable, packQuery, serializeHdr, unpackEncrypted } from '@lolly/engine';
 import type { DepthSetting, HdrSettings, VideoUrlSettings } from '@lolly/engine';
@@ -52,6 +54,7 @@ export function toolEmojiParams(): EmojiParamPair | null {
 /** The view root; the router reads back a `_cleanup` teardown hook off it. */
 export type ViewEl = HTMLElement & {
   _cleanup?: () => void;
+  _applyWorkspace?: (params: string) => boolean;
   /** Asked by the router before it leaves this view (main.ts navigate()). */
   _beforeLeave?: () => Promise<boolean>;
 };
@@ -220,6 +223,9 @@ export interface ActionsApi {
   copy?: (fmtOverride?: string) => Promise<{ method: string } | undefined>;
   preview?: () => Promise<void>;
   save?: (btn?: HTMLElement | null, opts?: { folderId?: string | null }) => Promise<boolean>;
+  /** Where a quick save files an unfiled session: the project the last Save as… pick
+   *  chose, or null to leave it where it is. Pass the result to `save` as `folderId`. */
+  quickSaveFolder?: () => Promise<string | null>;
   setDims?: (dims?: { width?: number; height?: number; unit?: string; dpi?: number }) => void;
   setFormat?: (fmt: string) => void;
   /** Narrow the export format bar to a mode/effect select option's `formats`
@@ -517,10 +523,13 @@ export async function shrinkUrl(
       : '';
   if (!rawQs) return;
   const base = window.location.pathname + window.location.hash.split('?')[0]!;
+  const startedAt = location.href;
+  const startedSeq = barSeq?.v;
 
   // If the bar is already packed, expand it back to the readable query so the
   // default-stripping below can see individual params (it operates per-key).
   const qs = hasPackedState(rawQs) ? await expandQuery(rawQs) : rawQs;
+  if (location.href !== startedAt || barSeq?.v !== startedSeq) return;
 
   const model = runtime.getModel();
   const inputsByKey: Record<string, InputModelItem> = {};
@@ -586,15 +595,22 @@ export async function shrinkUrl(
   // Re-pack if the shrunk-but-still-large query would still risk the URL ceiling and
   // packing actually wins; otherwise leave the readable form (shorter and editable).
   if (newQs.length >= AUTO_PACK_MIN && isPackAvailable()) {
-    const token = await packQuery(newQs);
+    const content = new URLSearchParams(newQs);
+    for (const key of WORKSPACE_PARAMS) content.delete(key);
+    const token = await packQuery(content.toString());
     if (barSeq && seq !== barSeq.v) return; // a newer bar write happened mid-pack
-    const packed = token && `${PACK_PARAM}=${token}`;
+    if (window.location.pathname + window.location.hash.split('?')[0]! !== base) return;
+    const latest = new URLSearchParams(token ? { [PACK_PARAM]: token } : {});
+    copyWorkspaceParams(latest, routeParams());
+    const packed = token && latest.toString();
     if (packed && packed.length < newQs.length) {
-      history.replaceState(history.state, '', `${base}?${packed}`);
+      replaceRouteUrl(`${base}?${packed}`);
       return;
     }
   }
-  history.replaceState(history.state, '', newQs ? `${base}?${newQs}` : base);
+  const latest = new URLSearchParams(newQs);
+  copyWorkspaceParams(latest, routeParams());
+  replaceRouteUrl(latest.size ? `${base}?${latest}` : base);
 }
 
 // encodeBlocksCompact moved to lib/blocks-url.ts (imported above) so the wire
@@ -732,6 +748,28 @@ export function collectExportParams(exportScope: HTMLElement | null): string[] {
       )}`
     );
   }
+  const context = new URLSearchParams(exportScope?.dataset.resultContext ?? '');
+  for (const key of RESULT_CONTEXT_PARAMS) {
+    if (context.has(key)) parts.push(`${key}=${encodeURIComponent(context.get(key)!)}`);
+  }
+  const c2pa = exportScope?.querySelector<HTMLInputElement>('[data-action="pdf-c2pa"]');
+  const life = exportScope?.querySelector<HTMLSelectElement>('[data-action="c2pa-days"]')?.value;
+  if (c2pa) parts.push(`c2pa=${c2pa.checked ? (life || '1') : '0'}`);
+  const fields: Record<string, string> = { fps: 'video-fps', codec: 'video-codec', vq: 'video-quality', seconds: 'video-duration', wait: 'video-wait', cuts: 'export-cuts' };
+  for (const [key, action] of Object.entries(fields)) {
+    const control = exportScope?.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-action="${action}"]`);
+    if (!control?.value || (context.has(key) && !control.dataset.urlEdited)) continue;
+    // Codec selects store WebCodecs strings; links use the portable codec name.
+    let value = control.value;
+    if (key === 'codec') value = value.startsWith('avc') ? 'h264' : value.startsWith('hvc1') ? 'hevc' : value.startsWith('vp09') ? 'vp9' : value.startsWith('av01') ? 'av1' : value;
+    if ((key === 'seconds' || key === 'wait') && !control.dataset.urlEdited && !context.has(key)) continue;
+    if (key === 'cuts' && value === '1' && !control.dataset.urlEdited && !context.has(key)) continue;
+    // Replace a retained arrival setting when its control changes.
+    const prefix = `${key}=`;
+    const existing = parts.findIndex(part => part.startsWith(prefix));
+    if (existing >= 0) parts.splice(existing, 1);
+    parts.push(`${key}=${encodeURIComponent(value)}`);
+  }
   return parts;
 }
 
@@ -754,10 +792,8 @@ export function buildShareParams(
 
   // The per-param share-link encoding lives in lib/url-budget.ts (encodeModelParam),
   // so the copied link and the URL-budget gauge are the SAME bytes by construction -
-  // one decision primitive, two consumers. The fidelity RECORDING stays here (literal,
-  // and visible to the share-parity guard); the encoding DECISION (the 150/8000 caps,
-  // the user/* and default skips, the hex-strip) lives in the primitive, unit-tested
-  // in url-budget.test.ts. Byte-exact to the loop it replaces (pinned there).
+  // one decision primitive, two consumers. Device-local dependencies are recorded
+  // here so the dialog can explain why a content link is incomplete.
   for (const input of runtime.getModel()) {
     for (const p of encodeModelParam(input)) {
       if (p.status === 'kept') parts.push(p.emit);
@@ -791,7 +827,8 @@ export function showShareDialog(
   lolly?: ShareDialogLolly
 ): void {
   if (exportScope && !exportScope.dispatchEvent(new CustomEvent('lolly:share-open', { cancelable: true }))) return;
-  openShareDialog(shareDialogOptions(runtime, exportScope, manifest, lolly));
+  updateRouteParams({ _dialog: 'share', share: null });
+  openShareDialog({ ...shareDialogOptions(runtime, exportScope, manifest, lolly), onClose: () => { if (exportScope?.isConnected) updateRouteParams({ _dialog: null }); } });
 }
 
 export function shareDialogOptions(

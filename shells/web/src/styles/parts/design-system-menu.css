@@ -1,0 +1,13 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+@layer components {
+  .design-system-menu { max-height: min(70dvh, 32rem); overflow-y: auto; }
+  .design-system-menu .profile-menu-item > svg { width: 1.1em; height: 1.1em; flex: 0 0 auto; }
+  .design-system-menu .profile-menu-item > span { min-width: 0; flex: 1; }
+  .design-system-menu .profile-menu-item { width: 100%; overflow-wrap: anywhere; }
+  .design-system-menu .profile-menu-item[aria-checked="true"] {
+    color: var(--ui-color-action-primary);
+    background: var(--ui-color-selection-surface);
+    box-shadow: inset 0 0 0 2px var(--ui-color-selection-border);
+  }
+  .design-system-menu [role="status"] { padding: var(--ui-space-control-inline); color: var(--ui-color-text-muted); }
+}

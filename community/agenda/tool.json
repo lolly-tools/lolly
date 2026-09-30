@@ -674,7 +674,7 @@
       "id": "backdrop",
       "label": "Background",
       "type": "select",
-      "default": "silk",
+      "default": "depth",
       "section": "Presentation",
       "options": [
         {

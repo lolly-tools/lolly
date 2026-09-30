@@ -51,7 +51,7 @@ import { listConnections, type ProviderConnection } from '../lib/provider-connec
 import { isExportHomeKind } from '../lib/export-home.ts';
 import { CONNECTOR_FLAGS, connectorEnabled } from '../feature-flags.ts';
 import { serviceMark } from '../lib/service-marks.ts';
-import { COLLAPSE_CHEV, groupSummaryRow } from './profile/shared.ts';
+import { groupSummaryRow, rowSummaryRow } from './profile/shared.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 
 type ConnHost = HostV1 & { profile: { get(): Promise<Profile>; set(p: Profile): Promise<void> } };
@@ -179,10 +179,10 @@ function statusHtml(kind: string, conn: ProviderConnection, home: string | undef
  *  body ends in the one status line the click handler writes to. */
 function serviceHtml(kind: string, label: string, connected: boolean, description: string, body: string): string {
   return `
-    <details class="pconn-svc" data-pconn="${escape(kind)}">
-      <summary class="pconn-svc-sum">${serviceMark(kind)}<span class="pconn-svc-name">${escape(label)}</span>${connected ? `<span class="pconn-svc-state">${t('Connected')}</span>` : ''}${COLLAPSE_CHEV}</summary>
-      <div class="pconn-svc-body">
-        <p class="pconn-note pconn-desc">${escape(description)}</p>
+    <details class="profile-row" data-pconn="${escape(kind)}">
+      ${rowSummaryRow(serviceMark(kind), escape(label), connected ? `<span class="profile-row-tag">${t('Connected')}</span>` : '')}
+      <div class="profile-row-body">
+        <p class="profile-row-desc">${escape(description)}</p>
         ${body}
         <span class="pconn-status" data-pconn-status="${escape(kind)}" role="status"></span>
       </div>
@@ -316,9 +316,9 @@ function groupsHtml(rows: Map<string, string>, live: string[]): string {
     if (!items.length) return '';
     const n = items.filter((k) => live.includes(k)).length;
     return `
-    <details class="pconn-group" data-pconn-group="${g.id}">
+    <details class="profile-group" data-pconn-group="${g.id}">
       ${groupSummaryRow(g.title(), n ? t('{n} connected', { n }) : '', items.map(serviceMark).join(''))}
-      <div class="pconn-group-body"><div class="pconn-svcs">${items.map((k) => rows.get(k)).join('')}</div></div>
+      <div class="profile-group-body"><div class="profile-rows">${items.map((k) => rows.get(k)).join('')}</div></div>
     </details>`;
   }).join('');
 }

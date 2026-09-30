@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { updateRouteParams } from '../../lib/url-state.ts';
 import type { CatSort, TypeFilter } from '../assets-filter.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
@@ -246,11 +247,11 @@ export function wire(cat: CatCtx): void {
     const typeBtn = target.closest<HTMLElement>('[data-typefilter]');
     if (typeBtn) {
       const next = (typeBtn.dataset.typefilter || 'all') as TypeFilter;
-      if (next !== cat.typeFilter) { cat.typeFilter = next; cat.sections.renderBody(); }
+      if (next !== cat.typeFilter) { cat.typeFilter = next; updateRouteParams({ type: next }); cat.sections.renderBody(); }
       return;
     }
 
-    if (target.closest('.cat-showhidden')) { cat.showHidden = !cat.showHidden; cat.sections.rerender(); return; }
+    if (target.closest('.cat-showhidden')) { cat.showHidden = !cat.showHidden; updateRouteParams({ hidden: cat.showHidden ? '' : null }); cat.sections.rerender(); return; }
 
     // Star toggle on a swatch card → flip its membership in the favourites strip.
     const sFav = target.closest<HTMLElement>('.plat-swatch-fav');
@@ -334,7 +335,7 @@ export function wire(cat: CatCtx): void {
     }
     // Direction toggle: reverses whichever sort is active, every section in place.
     if ((e.target as HTMLElement).closest('.view-options-dir')) {
-      cat.catSortRev = !cat.catSortRev;
+      cat.catSortRev = !cat.catSortRev; updateRouteParams({ rev: cat.catSortRev ? '1' : '0' });
       try { localStorage.setItem(`${SORT_PREF_KEY}-rev`, cat.catSortRev ? '1' : '0'); } catch { /* storage off */ }
       syncSortDir(voPop.querySelector<HTMLElement>('.view-options-dir'), cat.catSortRev);
       cat.sections.rerender();
@@ -345,6 +346,7 @@ export function wire(cat: CatCtx): void {
     const next: FeaturedViewMode = seg.dataset.view === 'coverflow' ? 'coverflow' : 'gallery';
     const changed = next !== cat.favView;
     cat.favView = next;
+    updateRouteParams({ view: next });
     try { localStorage.setItem(FAV_VIEW_KEY, cat.favView); } catch { /* storage off */ }
     voPop.querySelectorAll<HTMLElement>('[data-be-seg="featured-view"] [data-view]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.view === cat.favView)); });
     cat.featuredHandle?.setViewMode(cat.favView);
@@ -360,6 +362,7 @@ export function wire(cat: CatCtx): void {
     const next = sortSelect.value as CatSort;
     if (!CAT_SORTS.includes(next) || next === cat.catSort) return;
     cat.catSort = next;
+    updateRouteParams({ sort: next });
     try { localStorage.setItem(SORT_PREF_KEY, cat.catSort); } catch { /* storage off */ }
     cat.sections.rerender();
   });
@@ -368,6 +371,7 @@ export function wire(cat: CatCtx): void {
   voPop?.querySelector<HTMLInputElement>('.cat-favstrip-toggle')?.addEventListener('change', (e) => {
   const { FAV_STRIP_KEY } = cat;
     cat.favStripOn = (e.target as HTMLInputElement).checked;
+    updateRouteParams({ favourites: cat.favStripOn ? '1' : '0' });
     try { localStorage.setItem(FAV_STRIP_KEY, cat.favStripOn ? 'on' : 'off'); } catch { /* storage off */ }
     const assets = viewEl.querySelector<HTMLElement>('.cat-assets');
     let mount = viewEl.querySelector<HTMLElement>('.cat-fav-strip');

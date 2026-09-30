@@ -24,6 +24,7 @@
  * glyphs) are turned into nodes by `markupNodes` below, which is the idiom
  * views/design-navigator.ts already uses for the same reason.
  */
+import { replaceRouteUrl } from '../lib/url-state.ts';
 import '../styles/parts/docs.css';
 import '../styles/parts/docs-components.css';
 import '../styles/parts/panel.css';
@@ -662,7 +663,7 @@ export async function mountDocumentModel(
     const id = link.dataset.dmHeading || '';
     scrollToHeading(article, id, 'smooth');
     markHeading(id);
-    try { history.replaceState(history.state, '', link.getAttribute('href') || ''); } catch { /* no history here */ }
+    try { replaceRouteUrl(link.getAttribute('href') || ''); } catch { /* no history here */ }
   });
 
   if (deepLink) {

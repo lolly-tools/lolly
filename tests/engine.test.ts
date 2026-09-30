@@ -662,6 +662,19 @@ test('url-mode: a block value containing a ~ round-trips losslessly via the JSON
   assert.equal(values.rows[0].b, '5');
 });
 
+test('url-mode: explicit clears survive serialization and default hydration', () => {
+  const manifest = { inputs: [
+    { id: 'title', type: 'text' as const, default: 'Demo' },
+    { id: 'photo', type: 'asset' as const, default: { source: 'library' as const, id: 'demo' } },
+    { id: 'rows', type: 'blocks' as const, fields: [{ id: 'label', type: 'text' as const }], default: [{ label: 'Demo' }] },
+    { id: 'grid', type: 'table' as const, default: { columns: ['Demo'], rows: [['1']] } },
+  ] };
+  const values = { title: '', photo: null, rows: [], grid: { columns: [], rows: [] } };
+  const model = buildInputModel(manifest, { initial: values });
+  const restored = buildInputModel(manifest, { initial: parseUrlState(serializeUrlState(model), manifest).values });
+  assert.deepEqual(modelToValues(restored), values);
+});
+
 test('url-mode: round-trips', () => {
   const model = [
     { id: 'heading', type: 'text', value: 'Hi there' },

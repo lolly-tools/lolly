@@ -29,6 +29,7 @@
  *               loadedFaces - brand/user fonts included)
  */
 
+import { bindDisclosureUrl, updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/platform.css'; // shared dashboard chrome (.plat-* / .cap-*)
 import '../styles/parts/dashboard.css'; // this view's layout + signature pieces
 import { escape } from '../utils.ts';
@@ -857,6 +858,7 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
   const deviceDetails = viewEl.querySelector<HTMLDetailsElement>('#dash-device');
   if (deviceDetails && window.matchMedia('(min-width: 900px)').matches) deviceDetails.open = true;
 
+  bindDisclosureUrl(viewEl, params);
   wireSettingsNav(viewEl);
   // Deep links select their owning panel and the matching navigation link.
   const dashPanels = [...viewEl.querySelectorAll<HTMLElement>('[data-dash-panel]')];
@@ -1164,14 +1166,16 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
       if (clearBtn) clearBtn.hidden = !active;
     };
 
-    capSearch.addEventListener('input', () => apply(capSearch.value));
+    capSearch.value = params.get('q') ?? '';
+    apply(capSearch.value);
+    capSearch.addEventListener('input', () => { apply(capSearch.value); updateRouteParams({ q: capSearch.value || null }); });
     // Esc clears instead of closing anything: the field is inside a
     // <dialog>-free panel, so the key is free, and a filtered page with no
     // visible way back is the trap this avoids.
     capSearch.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && capSearch.value) { e.stopPropagation(); capSearch.value = ''; apply(''); }
+      if (e.key === 'Escape' && capSearch.value) { e.stopPropagation(); capSearch.value = ''; apply(''); updateRouteParams({ q: null }); }
     });
-    clearBtn?.addEventListener('click', () => { capSearch.value = ''; apply(''); capSearch.focus(); });
+    clearBtn?.addEventListener('click', () => { capSearch.value = ''; apply(''); updateRouteParams({ q: null }); capSearch.focus(); });
   }
 
   // Build-up: the capability cards start hidden and float in, staggered,

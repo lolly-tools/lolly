@@ -34,7 +34,7 @@ export function mountLockedActions(view: HTMLElement, actions: HTMLElement, form
     action(t('Reset inputs'), reset);
     for (const node of view.querySelectorAll<HTMLButtonElement>('.history-controls .history-btn')) if (!node.disabled) action(node.getAttribute('aria-label') || '', () => node.click());
     const home = view.querySelector<HTMLElement>('.sidebar-back'); if (home) action(t('Home'), () => home.click());
-    if (view.querySelector('#render-save')) action(t('Save as'), () => view.querySelector<HTMLElement>('#render-save')?.click());
+    if (view.querySelector('#render-save')) action(t('Save'), () => view.querySelector<HTMLElement>('#render-save')?.click());
     action(t('Export options'), () => view.querySelector<HTMLElement>('#render-fab')?.click());
     return el.querySelector<HTMLElement>('button');
   }, { className: 'folder-menu locked-actions-menu', ariaLabel: t('More actions') });

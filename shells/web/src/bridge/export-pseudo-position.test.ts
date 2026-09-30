@@ -17,6 +17,10 @@
  *  2. The pseudo's own `transform` was ignored, so the universal
  *     `top: 50%; translateY(-50%)` centring idiom came out half the marker's height low.
  *
+ * And what it PAINTS: the descriptor read only `background-color`, so a full-bleed
+ * `::before` wash drawn with `background-image` (every Agenda background) exported as
+ * flat paper, and a gradient-only pseudo was dropped outright.
+ *
  * Measured against the BROWSER's own answer, not a hardcoded number: a probe span
  * with the pseudo's exact offsets is inserted, measured, removed, and the walker's
  * output must agree with where the browser put it. A test that asserts a literal
@@ -157,4 +161,68 @@ test('a rotated pseudo emits a transform about its own origin', { skip: SKIP }, 
   const r = Math.SQRT1_2;
   for (const [got, want, name] of [[a, r, 'a'], [b2, r, 'b'], [c, -r, 'c'], [d, r, 'd']] as const)
     assert.ok(Math.abs(got! - want) < 1e-3, `matrix ${name}: ${got} ≠ ${want}`);
+});
+
+// ── (4) a pseudo's background-image layers ───────────────────────────────────
+async function renderSvg(markup: string): Promise<string> {
+  const { chromium } = browser as { chromium: any };
+  const b = await chromium.launch();
+  try {
+    const page = await b.newPage({ viewport: { width: 800, height: 300 } });
+    await page.setContent(`<!doctype html><body style="margin:0">${markup}</body>`);
+    await page.addScriptTag({ content: await bundle() });
+    return await page.evaluate(async () => {
+      const blob = await (window as any).__render(document.getElementById('root')!, { convertPaths: false, rasterFallback: false });
+      return blob.text();
+    });
+  } finally { await b.close(); }
+}
+
+test('a pseudo wash paints its gradient over its colour', { skip: SKIP }, async () => {
+  const svg = await renderSvg(`<div id="root" style="width:600px;height:200px;position:relative">
+    <style>#root::before{content:"";position:absolute;inset:0;z-index:-1;
+      background:radial-gradient(ellipse at 80% 20%, rgb(220,20,60), transparent 65%), rgb(250,250,250)}</style>
+  </div>`);
+  assert.match(svg, /<radialGradient\b/, 'the radial layer was not emitted');
+  const base = svg.search(/<rect\b[^>]*fill="rgb\(250,\s?250,\s?250\)"/);
+  const wash = svg.search(/<rect\b[^>]*fill="url\(#svggrad-\d+\)"/);
+  assert.ok(base >= 0, 'the colour under the gradient was not emitted');
+  assert.ok(wash > base, 'the gradient must paint over the colour, not under it');
+});
+
+test('a gradient-only pseudo is emitted, not dropped', { skip: SKIP }, async () => {
+  const svg = await renderSvg(`<div id="root" style="width:600px;height:200px;position:relative">
+    <style>#root::before{content:"";position:absolute;inset:0;
+      background-image:linear-gradient(90deg, rgb(220,20,60), rgb(20,20,220))}</style>
+  </div>`);
+  assert.match(svg, /<linearGradient\b/);
+  assert.match(svg, /fill="url\(#svggrad-\d+\)"/);
+});
+
+test('an element gradient and its pseudo gradient get distinct ids', { skip: SKIP }, async () => {
+  const svg = await renderSvg(`<div id="root" style="width:600px;height:200px;position:relative;
+      background:linear-gradient(0deg, rgb(1,2,3), rgb(4,5,6))">
+    <style>#root::before{content:"";position:absolute;inset:0;
+      background-image:linear-gradient(90deg, rgb(220,20,60), rgb(20,20,220))}</style>
+  </div>`);
+  const ids = [...svg.matchAll(/<linearGradient\b[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
+  assert.equal(ids.length, 2, `expected two gradients, got ${ids.length}`);
+  assert.notEqual(ids[0], ids[1], 'gradient ids collided');
+});
+
+test('a transparent stop takes its neighbours\' colours, as CSS premultiplies', { skip: SKIP }, async () => {
+  const svg = await renderSvg(`<div id="root" style="width:600px;height:200px;position:relative;
+      background:linear-gradient(90deg, rgb(220,20,60), transparent, rgb(20,20,220))"></div>`);
+  const grad = /<linearGradient\b[\s\S]*?<\/linearGradient>/.exec(svg);
+  assert.ok(grad, 'no gradient emitted');
+  const stops = [...grad[0].matchAll(/<stop\b([^>]*)>/g)].map((m) => ({
+    color: /stop-color="([^"]+)"/.exec(m[1]!)?.[1] ?? '',
+    opacity: Number(/stop-opacity="([^"]+)"/.exec(m[1]!)?.[1] ?? '1'),
+  }));
+  const see = JSON.stringify(stops);
+  assert.equal(stops.length, 4, `expected the transparent stop split in two: ${see}`);
+  assert.ok(stops.every((s) => !/^(#000|#000000|black|rgba?\(0,\s?0,\s?0)/.test(s.color)), `a stop fell back to black: ${see}`);
+  assert.equal(stops[1]!.color, stops[0]!.color, `left half should fade the first colour: ${see}`);
+  assert.equal(stops[2]!.color, stops[3]!.color, `right half should fade the last colour: ${see}`);
+  assert.equal(stops[1]!.opacity, 0); assert.equal(stops[2]!.opacity, 0);
 });

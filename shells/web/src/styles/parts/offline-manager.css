@@ -15,30 +15,8 @@
    declared once in styles/app.css) so priority is load-order independent. */
 @layer views {
 
-/* ── Parts rows ── */
-.odl-parts {
-  list-style: none;
-  margin: 10px 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-.odl-part {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid hsl(var(--border) / 0.45);
-}
-.odl-part:last-child { border-bottom: none; }
-.odl-part-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.odl-part-name { font-size: var(--fs-md); font-weight: 600; }
+/* ── Parts rows ── the shared settings rows (profile.css .profile-row): name and
+   size or state on the row, the description, sub line and buttons in its body. */
 .odl-part-heavy {
   font-weight: 500;
   font-size: var(--fs-xs);
@@ -48,20 +26,10 @@
   padding: 1px 7px;
   vertical-align: 1px;
 }
-.odl-part-desc {
-  font-size: var(--fs-sm);
-  color: hsl(var(--muted-foreground));
-}
 .odl-part-sub {
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
   font-variant-numeric: tabular-nums;
-}
-.odl-part-actions {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* ── Catalogue tag scoping ── */
@@ -163,7 +131,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Persistence note + tools sub-heading ── */
+/* ── The three groups: app and content, AI models, tools ── */
+.odl-groups { margin-top: var(--sp-6); border-bottom: 1px solid var(--ui-color-border-default); }
+.odl-tools > .profile-row-desc { margin: 0 0 var(--sp-2); }
+
+/* ── Persistence note ── */
 .odl-persist {
   display: flex;
   align-items: center;
@@ -172,10 +144,6 @@
   margin: 8px 0;
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
-}
-.odl-subhead {
-  margin: 18px 0 2px;
-  font-size: var(--fs-lg);
 }
 
 .odl-head {
@@ -210,12 +178,19 @@
   outline-offset: 1px;
 }
 
+/* The tools scroll inside their own box, the way the saved-sessions list does,
+   so opening the group does not unroll every tool down the page. */
 .odl-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 var(--sp-6);
   display: flex;
   flex-direction: column;
+  max-height: min(50vh, 28rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-md);
 }
 .odl-row {
   display: flex;

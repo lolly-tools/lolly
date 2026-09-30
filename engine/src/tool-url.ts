@@ -67,7 +67,7 @@ export const APP_PATH_WORDS = new Set([
   'tool', 't', 'tools', 'batch', 'pro', 'start', 'verify', 'valid', 'v', 'c',
   'catalog', 'u', 'utilities', 'p', 'projects', 'd', 'dashboard', 'b', 'brand',
   'lab', 'unpack', 'pdf', 'docs', 'components', 'ask', 'multi', 'convert', 'data', 'prepare', 'compare',
-  'script', 'join', 'join-reply', 'profile', 'settings', 'gallery', 'platform', 'capabilities',
+  'script', 'join', 'join-reply', 'profile', 'settings', 'gallery', 'history', 'learning', 'platform', 'capabilities',
   'info', 'og', 'api', 'assets', 'fonts', 'ort', 'ort-hf', 'models', 'icons',
   'l', 'a',
 ]);

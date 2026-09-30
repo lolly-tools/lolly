@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { replaceRouteUrl, routeParams, updateRouteParams } from '../lib/url-state.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
 import type { AppHistoryContext, AppHistoryRow, AppHistoryView, AppHistoryQuery } from '../bridge/app-history.ts';
@@ -116,17 +117,18 @@ export async function mountHistory(view: HTMLElement & { _cleanup?: () => void }
   const toolNames = new Map<string, string>();
   const fail = (error: unknown): void => { if (!disposed) status.textContent = error instanceof Error ? error.message : t('Could not load history.'); };
   const remember = (): void => {
-    const next = new URLSearchParams();
-    for (const [key, value] of [['view', active === 'recent' ? '' : active], ['project', project.value], ['tool', tool.value], ['q', search.value], ['from', from.value], ['to', to.value], ['before', before ?? '']]) if (value) next.set(key!, value);
+    const next = routeParams();
+    for (const [key, value] of [['view', active === 'recent' ? '' : active], ['project', project.value], ['tool', tool.value], ['q', search.value], ['from', from.value], ['to', to.value], ['before', before ?? '']]) { if (value) next.set(key!, value); else next.delete(key!); }
     // Filters and paging are workspace state, not dozens of Back stops. The
     // entry survives browser Back from a resumed tool and reloads with its page.
-    window.history.replaceState(window.history.state, '', `#/history${next.size ? `?${next}` : ''}`);
+    replaceRouteUrl(`#/history${next.size ? `?${next}` : ''}`);
     onRemember?.();
   };
-  const versions = (row: AppHistoryRow): void => {
+  const versions = (row: Pick<AppHistoryRow, 'slot'>): void => {
     closePanel?.(); workspace.classList.add('has-detail');
+    updateRouteParams({ _detail: row.slot ?? null });
     closePanel = openHistoryPanel({ state, slot: () => row.slot ?? null, container: detail,
-      onClose: () => workspace.classList.remove('has-detail'), onNamed: () => { void load(); } });
+      onClose: () => { workspace.classList.remove('has-detail'); if (!disposed) updateRouteParams({ _detail: null }); }, onNamed: () => { void load(); } });
   };
   const timeline: HistoryTimelineContext = {
     toolNames, preview: previews.add, versions,
@@ -225,5 +227,5 @@ export async function mountHistory(view: HTMLElement & { _cleanup?: () => void }
   // and protected drafts older than 30 days go for good before the first listing.
   // A sweep that fails leaves them for the next visit; History still opens.
   const sweep = state.history?.sweep().catch(() => undefined);
-  try { await updateContext(); await sweep; if (!disposed) await load(); } catch (error) { fail(error); }
+  try { await updateContext(); await sweep; if (!disposed) { await load(); const detailSlot = query.get('_detail'); if (detailSlot && detailSlot.length <= 512) versions({ slot: detailSlot }); } } catch (error) { fail(error); }
 }

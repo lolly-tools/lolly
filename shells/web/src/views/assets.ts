@@ -24,6 +24,7 @@
  * deleting it would orphan profile.headshot).
  */
 
+import { updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/platform.css';
 import '../styles/parts/assets.css';
 import { TYPE_FILTER_TYPES } from './assets-filter.ts';
@@ -382,6 +383,11 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // ── mount ──────────────────────────────────────────────────────────────────────
   // A lighter, brighter arrival "ahhh" led in by four rising "stacking" clicks - the catalog's
   // counterpart to the gallery's bassy one. One-shot, gesture-gated, silent when sound's off.
+  const browse = new URLSearchParams(params);
+  if (CAT_SORTS.includes(browse.get('sort') as CatSort)) cat.catSort = browse.get('sort') as CatSort;
+  if (browse.has('rev')) cat.catSortRev = browse.get('rev') !== '0';
+  if (browse.get('view') === 'gallery' || browse.get('view') === 'coverflow') cat.favView = browse.get('view') as CatCtx['favView'];
+  if (browse.has('favourites')) cat.favStripOn = browse.get('favourites') !== '0';
   playCatalogAah();
   // Claim the shell's persistent search bar (plans/99 M1). The tap applies the same
   // trim+lowercase the old inline handler did, so filtering is byte-identical.
@@ -394,6 +400,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       const q = raw.trim().toLowerCase();
       if (q === cat.query) return;
       cat.query = q;
+      updateRouteParams({ q: q || null });
       cat.sections.renderBody();
     },
   }); cat.releaseSearch = releaseSearch;
@@ -449,10 +456,13 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     </div>`;
   await cat.tiles.reload();
   if (!cat.mounted) return;
-  // Deep link: expand the linked sections (validated) BEFORE the first paint so they render
-  // open over the collapsed-by-default state; persist so the choice sticks for this user.
+  // Deep link: apply the validated section list before paint for this visit.
+  // Reading the override leaves the saved collapsed preference untouched.
   const openTargets = linkedSections.filter(k => ALL_SECTION_KEYS.includes(k)); cat.openTargets = openTargets;
-  if (openTargets.length) { for (const k of openTargets) collapsed.delete(k); cat.tiles.persistCollapsed(); }
+  if (new URLSearchParams(params).has('section')) {
+    for (const k of ALL_SECTION_KEYS) collapsed.add(k);
+    for (const k of openTargets) collapsed.delete(k);
+  }
   cat.sections.render();
   // …then scroll the first linked section into view. The favourites hero + first images grow
   // the layout above the target during the opening moments and reset an early scroll, so we

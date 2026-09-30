@@ -1,27 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-/**
- * URL-space cost model - the single source of truth for "what the shareable
- * link contains and what each part costs".
- *
- * WHY THIS EXISTS. Two encoders in views/tool.ts describe the URL, and they are
- * DELIBERATELY different serializations (do not try to merge them):
- *   - buildShareParams (the SHARE link): encodeURIComponent, default-skips, strips
- *     '#' from colours, encodes blocks WITHOUT keepUserIds, parseFloat w/h.
- *   - syncUrl (the ADDRESS BAR): URLSearchParams (space->'+', '~'->%7E), no
- *     default-skip (that is shrinkUrl's separate pass), keeps '#', keepUserIds.
- * For the same state these emit different bytes, so ONE function cannot model
- * both. The budget gauge/ledger and the Share dialog are about the SHARE link - 
- * the thing you copy / QR / send - so this module reproduces buildShareParams'
- * share-link serialization EXACTLY, via one per-param decision primitive
- * (encodeModelParam) that buildShareParams itself now consumes. That makes
- * "the gauge's number" and "the copied link" the same bytes by construction.
- * syncUrl / shrinkUrl are left untouched; the gauge reads THIS model, never the
- * raw address bar (plan 115 section 3).
- *
- * Pure and DOM-free by design (unit-tested in url-budget.test.ts). The one thing
- * that lives in the DOM - the export-panel controls - is read once by the shell's
- * collectExportParams() and passed in as already-formed `key=value` strings.
- */
+/** Content-link encoding and cost accounting. Workspace state is owned by the shell. */
 
 import { assetIdForUrl, blocksForUrl, encodeTableCompact, isPackAvailable, isTokenValue, normalizeTableValue } from '@lolly/engine';
 import type { TableValue } from '@lolly/engine';
@@ -32,10 +10,7 @@ import { stripHiddenRowIds } from './row-id.ts';
 import { asRow } from '../views/tool-types.ts';
 
 // ── Canonical thresholds (this module OWNS them; tool.ts + share-dialog.ts import) ──
-/** A SHORT single-line scalar (`text`/`url`/…) longer than this is dropped - at that length it's
- *  an accident or bloat, not the point of the field. Does NOT apply to the CONTENT types, which
- *  ride uncapped and escalate to a `.lolly` by length instead of silently dropping: `table`,
- *  `blocks`, and `longtext` (a chart data table, design's customCss, a code tool's source). */
+/** Legacy size hint for the share UI; content is never truncated at this size. */
 export const SCALAR_CAP = 150;
 /** A reference size for a blocks value (a design's boxes, a deck's slides). NO LONGER a
  *  drop threshold - like a table, a blocks value now rides uncapped and escalates to a
@@ -65,7 +40,7 @@ export const URL_HARD_CAP = 4096;
 export interface ShareFidelity {
   /** false when anything below is non-empty - the link would silently lose content. */
   faithful: boolean;
-  /** input ids whose scalar value exceeded SCALAR_CAP. */
+  /** Legacy report field; scalar content now travels without truncation. */
   droppedScalars: { id: string; label: string }[];
   /** blocks inputs that couldn't ride the link. Now always empty (blocks ride uncapped and
    *  escalate to a `.lolly` via length, like tables) - kept for shape/consumer stability. */
@@ -79,8 +54,8 @@ export type UrlCostStatus =
   | 'kept' // in the link, costs bytes
   | 'default' // equals its default/baseline, so absent from the link (0 bytes)
   | 'baseline' // equals an active template baseline (distinct from tool default, for P3)
-  | 'dropped-len' // scalar over SCALAR_CAP - silently lost today, recorded here
-  | 'dropped-asset' // user/* or unshareable asset - silently lost today
+  | 'dropped-len' // legacy status; content length now affects the budget only
+  | 'dropped-asset' // device-local dependency recorded in the fidelity report
   | 'dropped-blocks'; // retained for shape stability; no longer emitted (blocks ride uncapped)
 
 /** One row emitted by the per-param decision primitive (byte-exact to buildShareParams). */
@@ -162,6 +137,15 @@ function tablesEqual(a: TableValue, b: TableValue): boolean {
 //    EXACTLY (order and bytes). buildShareParams and costUrlState both call this,
 //    so the copied link and the gauge never disagree. ──
 export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
+  return encodeInputParam(input, false);
+}
+
+/** Address state includes explicit defaults and device-local references. */
+export function encodeAddressModelParam(input: InputModelItem): EncodedModelParam[] {
+  return encodeInputParam(input, true);
+}
+
+function encodeInputParam(input: InputModelItem, workspace: boolean): EncodedModelParam[] {
   const id = input.id;
   const type = input.type as string;
   const value = input.value;
@@ -183,17 +167,17 @@ export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
   // memory). buildShareParams had no branch, so a file fell through to the scalar path
   // and stamped garbage `key=%5Bobject%20Object%5D` into the link - skipped here and in
   // syncUrl (pinned in url-budget.test.ts).
-  if (type === 'file') return [];
+  if (type === 'file') return value ? [row({ status: 'dropped-asset' })] : [];
 
   if (!isTokenValue(value) && input.restoreTokenRef) {
-    const literal = value === '' ? [row({ status: 'kept', emit: `${encodeURIComponent(key)}=` })] : encodeModelParam({ ...input, restoreTokenRef: undefined });
+    const literal = value === '' ? [row({ status: 'kept', emit: `${encodeURIComponent(key)}=` })] : encodeInputParam({ ...input, restoreTokenRef: undefined }, workspace);
     return [...literal, row({ key: `_restore.${key}`, type: 'token-restoration', value: input.restoreTokenRef, status: 'kept', emit: `${encodeURIComponent(`_restore.${key}`)}=${encodeURIComponent(input.restoreTokenRef)}` })];
   }
 
   if (['number', 'text', 'longtext', 'select'].includes(type) && isTokenValue(value)) {
     const cached = typeof value.value === 'string' || (typeof value.value === 'number' && Number.isFinite(value.value)) ? value.value : null;
     return [
-      ...encodeModelParam({ ...input, value: cached }),
+      ...encodeInputParam({ ...input, value: cached }, workspace),
       row({ key: `_ref.${key}`, type: 'token-reference', value: value.ref, status: 'kept', emit: `${encodeURIComponent(`_ref.${key}`)}=${encodeURIComponent(value.ref)}` }),
     ];
   }
@@ -212,9 +196,9 @@ export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
     // (the compact form is pre-escaped per cell; the outer encode survives the single
     // decode the load boundary performs - the engine's documented table-param contract).
     const tbl = normalizeTableValue(value);
-    if (!tbl || (!tbl.columns.length && !tbl.rows.length)) return [row({ status: 'default' })];
-    const def = normalizeTableValue(input.default);
-    if (def && tablesEqual(tbl, def)) return [row({ status: 'default' })];
+    if (!tbl) return [row({ status: 'default' })];
+    const def = normalizeTableValue(input.default) ?? { columns: [], rows: [] };
+    if (!workspace && def && tablesEqual(tbl, def)) return [row({ status: 'default' })];
     const emit = `${encodeURIComponent(key)}=${encodeURIComponent(encodeTableCompact(tbl))}`;
     return [row({ status: 'kept', emit })];
   }
@@ -224,31 +208,42 @@ export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
     // 'baked/…' id; any other ref shares by id. user/* uploads can't travel.
     const ref = value as AssetRef | null;
     const assetId = ref ? assetIdForUrl(ref) : undefined;
-    if (assetId && !assetId.startsWith('user/')) {
+    if (assetId && (workspace || !assetId.startsWith('user/'))) {
       return [row({ status: 'kept', emit: `${encodeURIComponent(key)}=${encodeURIComponent(assetId)}` })];
     }
     if (ref) return [row({ status: 'dropped-asset' })];
-    return [row({ status: 'default' })];
+    return input.default || workspace ? [row({ status: 'kept', emit: `${encodeURIComponent(key)}=` })] : [row({ status: 'default' })];
   }
 
   if (type === 'blocks') {
-    if (!Array.isArray(value) || value.length === 0) return [row({ status: 'default' })];
+    if (!Array.isArray(value)) return [row({ status: 'default' })];
+    let excludedAsset = false;
+    const fields = input.fields ?? [];
+    if (!workspace) {
+      for (const block of value) {
+        for (const field of fields) {
+          if (field.type !== 'asset') continue;
+          const raw = asRow(block)[field.id] ?? field.default;
+          const id = typeof raw === 'string' ? raw : raw ? assetIdForUrl(raw as AssetRef) : undefined;
+          if (raw && (!id || id.startsWith('user/'))) excludedAsset = true;
+        }
+      }
+    }
+    if (!workspace && !excludedAsset && JSON.stringify(value) === JSON.stringify(input.default ?? [])) return [row({ status: 'default' })];
     // A blocks SUB-FIELD is never costed or capped on its own: the whole value is one
     // param, so a long machine-written field rides with it. That is what carries a
     // Design box's `path`, its `kf` track and (plan 265 milestone 3) a 3D scene box's
     // `scene` - the 3D Studio's settings as a link query - into a share link intact.
-    // SCALAR_CAP is about top-level single-line inputs and reaches none of them.
-    //
-    // ONE thing a sub-field does not get from this branch: the user/ policy below is
-    // applied by encodeBlocksCompact per FIELD TYPE, so an `asset` sub-field is blanked
-    // but a device-local id written inside a longtext `scene` query still travels. Worth
-    // closing, and not silently: it needs a decision about how a shared scene should
-    // degrade, so it is recorded here rather than patched in passing.
-    //
     // Share policy: encodeBlocksCompact WITHOUT keepUserIds (never export user/ ids
     // off-device); JSON fallback only when there are no declared fields.
-    const compact = encodeBlocksCompact(value, input.fields ?? []);
-    const encoded = compact ?? JSON.stringify(blocksForUrl(stripHiddenRowIds(value)));
+    const compact = encodeBlocksCompact(value, fields, { keepUserIds: workspace });
+    const encoded = compact ?? JSON.stringify(blocksForUrl(stripHiddenRowIds(value)), (_key, candidate: unknown) => {
+      if (!workspace && candidate && typeof candidate === 'object' && 'id' in candidate && typeof candidate.id === 'string' && candidate.id.startsWith('user/')) {
+        excludedAsset = true;
+        return null;
+      }
+      return candidate;
+    });
     // NO drop cap: a blocks value IS the tool's content (a whole design's boxes, a deck's
     // slides), so - exactly like a table - it rides uncapped and a huge one escalates to the
     // .lolly file via the length band, rather than being SILENTLY dropped from the link (the
@@ -258,7 +253,7 @@ export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
     // (%2C/%7E) must survive the load boundary's single percent-decode or a comma in a label
     // would split a row - the same "one more layer" the table form uses (see blocks-url.ts).
     const emit = `${key}=${encodeURIComponent(encoded)}`;
-    return [row({ status: 'kept', emit })];
+    return [row({ status: 'kept', emit }), ...(excludedAsset ? [row({ status: 'dropped-asset' })] : [])];
   }
 
   if (type === 'vector') {
@@ -269,7 +264,7 @@ export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
     for (const f of input.fields ?? []) {
       const fv = vv[f.id];
       if (fv == null) continue;
-      const atDefault = f.default !== undefined && String(fv) === String(f.default);
+      const atDefault = !workspace && f.default !== undefined && String(fv) === String(f.default);
       out.push({
         ...base,
         key: `${key}.${f.id}`,
@@ -283,23 +278,11 @@ export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
     return out;
   }
 
-  // Scalars (text/longtext/number/boolean/color/select/date/time/url/…).
-  if (value == null || value === '') return [row({ status: 'default' })];
-  if (typeof value === 'boolean' && !value) return [row({ status: 'default' })];
-
+  // Empty and false values can override a non-empty or true default.
+  if (value == null) return [row({ status: 'default' })];
   const def = input.default;
-  if (def != null && String(value) === String(def)) return [row({ status: 'default' })];
-
-  // Token-backed colour → its canonical token ref (re-resolves against the
-  // recipient's tokens; never leaks "[object Object]"). Cap is on the pre-hex-strip
-  // string, matching tool.ts:4163-4168.
+  if (!workspace && (def != null ? String(value) === String(def) : value === '')) return [row({ status: 'default' })];
   let str = type === 'color' && isTokenValue(value) ? value.ref : String(value);
-  // A `longtext` is CONTENT (a chart data table, design's customCss, a code tool's source), not a
-  // stray-long label - so like a table/blocks it rides UNCAPPED and a huge one escalates to the
-  // .lolly by length, never silently dropping the chart/design from the link. The SCALAR_CAP drop
-  // stays for short single-line types (`text`/`url`/…), where >150 chars is an accident or bloat
-  // (e.g. color-palette's lcTargets) rather than the point of the field.
-  if (type !== 'longtext' && str.length > SCALAR_CAP) return [row({ status: 'dropped-len' })];
   if (type === 'color' && str.startsWith('#')) str = str.slice(1);
   return [row({ status: 'kept', emit: `${encodeURIComponent(key)}=${encodeURIComponent(str)}` })];
 }

@@ -11,6 +11,7 @@
  * to localStorage). This unifies only that tail - every call site still owns
  * its own pressed/active-state repaint, since that markup differs per UI.
  */
+import { updateRouteParams } from './url-state.ts';
 import { applyTheme } from '../theme.ts';
 import { playThemeSfx } from './sfx.ts';
 
@@ -28,6 +29,7 @@ export interface SetThemeHost {
 
 export async function setTheme(host: SetThemeHost, theme: string): Promise<void> {
   applyTheme(theme);
+  if (window.location.hash.startsWith('#/') || /^\/(?:t\/|design)/.test(window.location.pathname)) updateRouteParams({ _appearance: theme });
   playThemeSfx(theme); // theme switch always sings - user-initiated, so never on boot
   try {
     const profile = await host.profile.get();

@@ -26,6 +26,7 @@
  */
 // The cascade order rebrand.css states at its top: the grid first, then each region's
 // sheet in region order. A later sheet wins a tie, so the order is part of the look.
+import { replaceRouteUrl } from '../lib/url-state.ts';
 import '../styles/parts/rebrand.css';
 import '../styles/parts/rebrand-top.css';
 import '../styles/parts/rebrand-intake.css';
@@ -241,7 +242,7 @@ function syncUrl(viewEl: HTMLElement, state: RebrandStateV1, onUrlSync?: () => v
   if (state.mode === 'keep-design') query.set('mode', 'keep');
   const url = `#/rebrand${query.size ? `?${query}` : ''}`;
   if (window.location.hash === url) return;
-  window.history.replaceState(window.history.state, '', url);
+  replaceRouteUrl(url);
   // The router keys this route on its params. Without this, the pop of a dialog's
   // history entry reads the new URL as a different route and mounts the view again,
   // which drops the selection and anything just announced.

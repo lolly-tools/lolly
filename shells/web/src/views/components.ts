@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { updateRouteParams, bindDisclosureUrl } from '../lib/url-state.ts';
 import { mountCodeEditor } from '../components/code-editor.ts';
 import { mountCharacterGrid } from '../components/character-grid.ts';
 import './text/text.css';
@@ -665,14 +666,21 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
     viewEl.querySelector('.cl-result-count')!.textContent = `Showing ${count} of ${flat.length} components`;
     viewEl.querySelector<HTMLElement>('.cl-empty')!.hidden = count !== 0;
   };
-  search.addEventListener('input', filter); mode.addEventListener('change', filter);
-  viewEl.querySelector('.cl-reset')?.addEventListener('click', () => { search.value = ''; mode.value = 'all'; filter(); search.focus(); });
+  const viewParams = new URLSearchParams(_params || '');
+  search.value = viewParams.get('q') ?? '';
+  if (['all', 'live', 'sample', 'fixture'].includes(viewParams.get('mode') ?? '')) mode.value = viewParams.get('mode')!;
+  filter();
+  bindDisclosureUrl(viewEl, viewParams);
+  const syncFilter = (): void => { filter(); updateRouteParams({ q: search.value || null, mode: mode.value }); };
+  search.addEventListener('input', syncFilter); mode.addEventListener('change', syncFilter);
+  viewEl.querySelector('.cl-reset')?.addEventListener('click', () => { search.value = ''; mode.value = 'all'; syncFilter(); search.focus(); });
   viewEl.querySelectorAll<HTMLElement>('[data-cl-jump]').forEach(link => { link.addEventListener('click', event => {
     event.preventDefault();
     const target = viewEl.querySelector<HTMLElement>(`#${link.dataset.clJump}`);
     if (!target) return;
     target.closest<HTMLDetailsElement>('.cl-audit-disclosure')?.setAttribute('open', '');
     if (target.hidden) { search.value = ''; mode.value = 'all'; filter(); }
+    updateRouteParams({ section: target.id, q: search.value || null, mode: mode.value });
     target.scrollIntoView({ block: 'start' });
     target.tabIndex = -1; target.focus({ preventScroll: true });
     viewEl.querySelectorAll('[data-cl-jump]').forEach(a => { a.removeAttribute('aria-current'); });

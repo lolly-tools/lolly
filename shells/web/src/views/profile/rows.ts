@@ -218,7 +218,10 @@ export function wireOpenState(pv: ProfileViewCtx): void {
   // hand-kept copy of the five collapsibles).
   for (const { id } of NAV_SECTIONS) {
     const d = viewEl.querySelector<HTMLDetailsElement>('#' + id);
+    let previous = d?.open;
     d?.addEventListener('toggle', () => {
+      if (previous === d!.open) return;
+      previous = d!.open;
       pv.openState[id] = d!.open;
       try { localStorage.setItem(OPEN_KEY, JSON.stringify(pv.openState)); } catch { /* storage blocked */ }
     });

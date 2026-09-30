@@ -7,13 +7,16 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
+import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
+import { copyWorkspaceParams, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
+import { encodeAddressModelParam } from '../../lib/url-budget.ts';
 import type { FontStyleSlice } from '../../bridge/text-svg.ts';
 import { designTokenInspectorOptions } from '../design-token-bindings.ts';
 import type { AssetRef, Profile } from '@lolly-tools/core/host-v1';
-import { DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, PACK_PARAM, assetIdForUrl, blocksForUrl, encodeTableCompact, isBakedRef, isPackAvailable, isTokenValue, normalizeTableValue, packQuery, serializeHdr, toCssPx } from '@lolly/engine';
+import { PACK_PARAM, isPackAvailable, packQuery, toCssPx } from '@lolly/engine';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
 import { tokenRestoreRefsOf } from '../../../../../engine/src/inputs.ts';
-import { migrateBlockRowIds, stripHiddenRowIds } from '../../lib/row-id.ts';
+import { migrateBlockRowIds } from '../../lib/row-id.ts';
 import type { UserTemplate, UserTemplateHost } from '../../lib/user-templates.ts';
 import type { TemplateActionHost } from '../../lib/template-actions.ts';
 import { parseEditorState } from '../../lib/editor-state.ts';
@@ -24,19 +27,14 @@ import { mountHomeFab } from '../../components/home-fab.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
-import { urlProfileValue } from '../../lib/press-profile-embed.ts';
 import { edgeDockCollapsed, isDocked, onDockChange } from '../../lib/edge-dock.ts';
 import { AUTO_PACK_MIN, BROWSER_TARGET, costUrlState } from '../../lib/url-budget.ts';
 import { makeLollyVehicle } from '../tool-lolly-vehicle.ts';
 import type { Unit } from '../../../../../engine/src/units.js';
 import { navigateTo } from '../../nav.ts';
-import { asRow } from '../tool-types.ts';
 import { sessionName } from '../tool-session-name.ts';
-import { encodeBlocksCompact } from '../../lib/blocks-url.ts';
 import { fmtBytes, openEmbedEditor } from '../tool-inputs.ts';
-import { isCmykFmt, isPrintFmt, marksToCsv } from '../tool-actions.ts';
-import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog, showUnsavedDialog, shrinkUrl, toolEmojiParams, wireUpCopyUrl } from './shared.ts';
-import { writeEmojiParams } from '../../lib/emoji-prefs.ts';
+import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog, showUnsavedDialog, shrinkUrl, wireUpCopyUrl } from './shared.ts';
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
 
@@ -122,8 +120,12 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
   }
 
   if (runtime.manifest.render.urlSync === false && tview.userHasMadeChanges) {
+    const params = new URLSearchParams();
+    copyWorkspaceParams(params, routeParams());
     const slot = tview.actionsApi?.getSlot?.() ?? tview.slot;
-    history.replaceState(history.state, '', TOOL_URL_BASE + (slot ? `?slot=${encodeURIComponent(slot)}` : ''));
+    if (slot) params.set('slot', slot);
+    ++barSeq.v;
+    replaceRouteUrl(TOOL_URL_BASE + (params.size ? `?${params}` : ''));
     return;
   }
 
@@ -133,7 +135,10 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
   // and a refresh would skip the password prompt. After the first edit the new state
   // can't be the original token, so we fall through to the normal (cleartext) write.
   if (tview.encLinkQuery && !tview.userHasMadeChanges) {
-    history.replaceState(history.state, '', `${TOOL_URL_BASE}?${tview.encLinkQuery}`);
+    const params = new URLSearchParams(tview.encLinkQuery);
+    copyWorkspaceParams(params, routeParams());
+    ++barSeq.v;
+    replaceRouteUrl(`${TOOL_URL_BASE}?${params}`);
     return;
   }
 
@@ -141,238 +146,31 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
   if (runtime.tokenSelection) params.set('_themes', JSON.stringify(runtime.tokenSelection));
 
   for (const entry of runtime.getModel()) {
-    const { id, type, value } = entry;
+    const { id } = entry;
     if (!dirtyParams.has(id) && !templateSeededIds.has(id)) continue;
-    // The address bar writes each input under its short urlKey alias when it declares one
-    // (e.g. design `boxes`→`bx`), same as the share link (encodeModelParam) - so a
-    // copy-pasted bar is as small as a copied Share link. Dirty tracking stays keyed by the
-    // canonical id; only the written param NAME shortens. parseUrlState reads both forms.
-    const key = entry.urlKey ?? id;
-    if (!isTokenValue(value) && entry.restoreTokenRef) params.set(`_restore.${key}`, entry.restoreTokenRef);
-    // A picked file is binary, in-memory, device-local content - it has no
-    // shareable URL form. Never write it (would otherwise serialise to junk).
-    if (type === 'file') continue;
-    if (['number', 'text', 'longtext', 'select'].includes(type) && isTokenValue(value)) {
-      params.set(`_ref.${key}`, value.ref);
-      const cached = value.value;
-      if (typeof cached === 'string' || (typeof cached === 'number' && Number.isFinite(cached))) {
-        const str = String(cached);
-        if (type === 'longtext' || str.length <= 150) params.set(key, str);
-      }
-      continue;
+    for (const part of encodeAddressModelParam(entry)) {
+      if (part.status !== 'kept') continue;
+      for (const [key, value] of new URLSearchParams(part.emit)) params.set(key, value);
     }
-    if (type === 'asset') {
-      // Library assets are shareable by ID; user uploads are device-local. A
-      // baked ref's frozen bytes can't ride in the bar either: write its
-      // provenance (assetIdForUrl → bakedFrom) so a refresh degrades to a live
-      // re-render - but one WITHOUT provenance is skipped like a user upload
-      // (its dead 'baked/…' id could never re-resolve; a saved session is what
-      // restores the exact bytes).
-      const ref = value as AssetRef | null;
-      if (ref && isBakedRef(ref) && typeof ref.meta?.bakedFrom !== 'string') continue;
-      const assetId = ref ? assetIdForUrl(ref) : undefined;
-      if (assetId && !assetId.startsWith('user/')) params.set(key, assetId);
-      continue;
-    }
-    if (type === 'blocks') {
-      if (Array.isArray(value) && value.length > 0) {
-        // Compact form first (the share dialog's encoder, in its address-bar variant that
-        // keeps device-local user/ ids) - a 20-layer import is ~10× smaller than the JSON
-        // form, and it now carries separator-bearing values too (URLSearchParams.set applies
-        // the outer url-encode layer that keeps in-value %2C/%7E escapes intact - see
-        // blocks-url.ts), so JSON is the fallback only for field-less blocks; blocksForUrl
-        // collapses baked sub-field refs to their provenance URL first (the data: bytes would
-        // blow the bar). The JSON form copies every key, so the hidden row id comes off first -
-        // it is this device's bookkeeping, not a value. No length guard: a blocks value IS the
-        // content (a design's boxes), so - like a table - it rides the bar and the auto-pack
-        // tail below compresses it, rather than being silently dropped from a shared link.
-        const compact = encodeBlocksCompact(value, entry.fields ?? [], { keepUserIds: true });
-        const encoded = compact ?? JSON.stringify(blocksForUrl(stripHiddenRowIds(value)));
-        params.set(key, encoded);
-      }
-      continue;
-    }
-    if (type === 'vector') {
-      // One flat param per field: "<inputId>.<fieldId>" (e.g. transform.zoom=200).
-      if (value && typeof value === 'object') {
-        const vv = asRow(value);
-        for (const f of entry.fields ?? []) {
-          if (vv[f.id] !== undefined && vv[f.id] !== null)
-            params.set(`${key}.${f.id}`, String(vv[f.id]));
-        }
-      }
-      continue;
-    }
-    if (type === 'table') {
-      // A table IS the tool's content - it belongs in the URL, not as the
-      // "[object Object]" the scalar path below would stamp. It round-trips
-      // through the engine's compact form (encode here / decodeTableCompact on
-      // load), and rides under the input's short urlKey (e.g. battlecards `t`),
-      // which parseUrlState reads alongside the id. Deliberately bypasses the
-      // 150-char scalar cap below: a table is meant to FILL the link, and once
-      // the query passes AUTO_PACK_MIN the auto-pack tail of this function
-      // compresses the bar to the `z=` form. An empty grid writes nothing, so a
-      // blank tool keeps a bare URL. URLSearchParams applies its own encode layer.
-      const tbl = normalizeTableValue(value);
-      if (tbl && (tbl.columns.length || tbl.rows.length))
-        params.set(key, encodeTableCompact(tbl));
-      continue;
-    }
-    if (value == null || (value === '' && !entry.restoreTokenRef)) continue;
-    if (typeof value === 'boolean' && !value) continue;
-    // A token-backed colour ({ ref, value }) serialises to its canonical token ref
-    // (mirrors the engine's coerceToString) - never String()'d into the URL as
-    // "[object Object]", which would then ride into a lolly-URL embed of this tool.
-    const str = type === 'color' && isTokenValue(value) ? value.ref : String(value);
-    // A `longtext` is CONTENT (d3 data, design customCss, code) and rides uncapped like a
-    // table - it must NOT be dropped from the bar, or a shared chart link would open blank. The
-    // 150-char cap stays only for short single-line scalars (a stray-long label is bloat).
-    if (type !== 'longtext' && str.length > 150) continue;
-    params.set(key, str);
   }
 
-  if (dirtyParams.has('w')) {
-    // As typed, not truncated: `8.5in` must survive a share link (plans/184 R12).
-    const w = parseFloat(
-      actionsEl?.querySelector<HTMLInputElement>('[data-action="export-width"]')?.value ?? ''
-    );
-    if (w > 0) params.set('w', String(w));
-  }
-  if (dirtyParams.has('h')) {
-    const h = parseFloat(
-      actionsEl?.querySelector<HTMLInputElement>('[data-action="export-height"]')?.value ?? ''
-    );
-    if (h > 0) params.set('h', String(h));
-  }
-  if (dirtyParams.has('unit')) {
-    const u = actionsEl?.querySelector<HTMLSelectElement>('[data-action="export-unit"]')?.value;
-    if (u && u !== 'px') params.set('unit', u);
-  }
-  if (dirtyParams.has('dpi')) {
-    const d = parseInt(
-      actionsEl?.querySelector<HTMLInputElement>('[data-action="export-dpi"]')?.value ?? '',
-      10
-    );
-    const u = actionsEl?.querySelector<HTMLSelectElement>('[data-action="export-unit"]')?.value;
-    if (d > 0 && u && u !== 'px') params.set('dpi', String(d));
-  }
-  if (dirtyParams.has('format')) {
-    const fmt = actionsEl?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value;
-    if (fmt) params.set('format', fmt);
-  }
-  if (dirtyParams.has('filename')) {
-    const filename = actionsEl
-      ?.querySelector<HTMLInputElement>('[data-action="filename"]')
-      ?.value?.trim();
-    if (filename) params.set('filename', filename);
-  }
-  if (dirtyParams.has('profile')) {
-    // Meaningful for the CMYK print formats (Print PDF / Print TIFF); share it only
-    // when one is selected and it isn't the default condition (keeps links clean).
-    const fmt = actionsEl?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value;
-    // `own:<digest>` is device-local - urlProfileValue flattens it to bare `own`.
-    const prof = urlProfileValue(
-      actionsEl?.querySelector<HTMLSelectElement>('[data-action="cmyk-profile"]')?.value
-    );
-    if (isCmykFmt(fmt) && prof && prof !== DEFAULT_CMYK_CONDITION) params.set('profile', prof);
-  }
-  if (dirtyParams.has('password')) {
-    // Open-password for the standard-tier lock only (PDF 40-bit RC4 or the ZIP
-    // ZipCrypto bundle); carried clear-text by design (a basic lock for short-lived
-    // transactional material). Empty value → omitted.
-    const fmt = actionsEl?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value;
-    const pw = actionsEl?.querySelector<HTMLInputElement>('[data-action="pdf-password"]')?.value;
-    const strong =
-      actionsEl?.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]')?.value ===
-      'strong';
-    // Only the standard lock rides in the URL. The strong (AES-256) tier is never
-    // serialized - its password is typed at export/open only.
-    if ((fmt === 'pdf' || fmt === 'zip') && pw && !strong) params.set('password', pw);
-  }
-  if (dirtyParams.has('bleed') || dirtyParams.has('marks')) {
-    // Print marks & bleed - print formats (pdf / pdf-cmyk / cmyk-tiff) only, and
-    // only when the card is on.
-    const fmt = actionsEl?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value;
-    const on = actionsEl?.querySelector<HTMLInputElement>(
-      '[data-action="print-enable"]'
-    )?.checked;
-    if (isPrintFmt(fmt) && on) {
-      const mm = parseFloat(
-        actionsEl?.querySelector<HTMLInputElement>('[data-action="print-bleed"]')?.value ?? ''
-      );
-      if (mm > 0) params.set('bleed', `${mm}mm`);
-      const csv = marksToCsv({
-        crop: actionsEl?.querySelector<HTMLInputElement>('[data-action="mark-crop"]')?.checked,
-        registration: actionsEl?.querySelector<HTMLInputElement>('[data-action="mark-reg"]')
-          ?.checked,
-        bleed: actionsEl?.querySelector<HTMLInputElement>('[data-action="mark-bleed"]')?.checked,
-        colorBars: actionsEl?.querySelector<HTMLInputElement>('[data-action="mark-bars"]')
-          ?.checked,
-        provenance: actionsEl?.querySelector<HTMLInputElement>('[data-action="mark-prov"]')
-          ?.checked,
-      });
-      if (csv) params.set('marks', csv);
+  // Workspace context stays in the address, outside the content-share encoder.
+  const live = routeParams();
+  if (barSeq.v === 0) {
+    for (const key of WORKSPACE_PARAMS) {
+      if (!live.has(key) && tview.urlFlags.has(key)) live.set(key, tview.urlFlags.get(key)!);
     }
   }
-  if (dirtyParams.has('nostage')) {
-    // Full-page HTML export - a presence flag, written only while HTML is the
-    // selected format and the toggle is on (so it drops off other formats).
-    const fmt = actionsEl?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value;
-    const on = actionsEl?.querySelector<HTMLInputElement>('[data-action="full-page"]')?.checked;
-    if (fmt === 'html' && on) params.set('nostage', '');
+  copyWorkspaceParams(params, live);
+  const slot = tview.actionsApi?.getSlot?.() ?? tview.slot;
+  if (slot) params.set('slot', slot);
+  for (const key of RESULT_CONTEXT_PARAMS) {
+    const value = tview.urlFlags.get(key);
+    if (value !== null) params.set(key, value);
   }
-  if (dirtyParams.has('emoji') || dirtyParams.has('emojifx') || dirtyParams.has('emojistyle')) {
-    // The chosen emoji set and its brand treatment (plans/252). Document state,
-    // not an export setting: a refresh, a copied link and `lolly --emoji=` must
-    // all draw the same artwork, so both params go in whenever a set is chosen
-    // and come out together when the choice is cleared.
-    writeEmojiParams(params, toolEmojiParams());
-  }
-  if (dirtyParams.has('licence')) {
-    // The declared licence belongs to the document, so it travels like the emoji
-    // set: written while one is chosen, dropped when it goes back to none.
-    const id = runtime.outputLicence?.();
-    if (id) params.set('licence', id);
-    else params.delete('licence');
-  }
-  if (dirtyParams.has('imprint')) {
-    // Pixel watermark - on by default like c2pa (see url-mode serializeUrlState):
-    // unchecking the popup toggle writes the explicit `imprint=0` opt-out;
-    // checking it back on returns to the default, so the param drops out.
-    const on = actionsEl?.querySelector<HTMLInputElement>('[data-action="imprint"]')?.checked;
-    if (on) params.delete('imprint');
-    else params.set('imprint', '0');
-  }
-  if (dirtyParams.has('durable')) {
-    // Durable credential - OFF by default (opt-in, performance cost): checking
-    // writes durable=1; unchecking drops the param so a plain link stays clean.
-    const on = actionsEl?.querySelector<HTMLInputElement>('[data-action="durable"]')?.checked;
-    if (on) params.set('durable', '1');
-    else params.delete('durable');
-  }
-  if (dirtyParams.has('hdr')) {
-    // HDR - OFF by default (opt-in): checking writes hdr=1 (or the compact tuned
-    // form when a slider is off-default); unchecking drops it. serializeHdr emits
-    // `1` when all dials are default so a plain link stays clean.
-    const on = actionsEl?.querySelector<HTMLInputElement>('[data-action="hdr"]')?.checked;
-    if (on) {
-      const dial = (a: string, d: number) => {
-      const actionsEl = tview.actionsEl as NonNullable<ToolViewCtx['actionsEl']>;
-        const v = Number(
-          actionsEl?.querySelector<HTMLInputElement>(`[data-action="${a}"]`)?.value
-        );
-        return Number.isFinite(v) ? v : d;
-      };
-      params.set(
-        'hdr',
-        serializeHdr({
-          peakNits: dial('hdr-peak', HDR_DEFAULTS.peakNits),
-          reach: dial('hdr-reach', HDR_DEFAULTS.reach),
-          lift: dial('hdr-lift', HDR_DEFAULTS.lift),
-          richness: dial('hdr-focus', HDR_DEFAULTS.richness),
-        })
-      );
-    } else params.delete('hdr');
+  const output = new URLSearchParams(collectExportParams(actionsEl).join('&'));
+  for (const key of output.keys()) {
+    if (output.has(key)) params.set(key, output.get(key)!);
   }
 
   const qs = params.toString();
@@ -381,7 +179,7 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
   // earlier large state - otherwise that stale pack could resolve afterward and
   // overwrite this bar with the old state.
   const seq = ++barSeq.v;
-  history.replaceState(history.state, '', qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
+  replaceRouteUrl(qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
 
   // Auto-switch to the packed form once the readable query gets long enough to
   // risk the ~2000-char URL ceiling. The readable write above already arrived, so
@@ -389,13 +187,17 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
   // and only if packing is available AND genuinely shorter. Async + seq-guarded so
   // a slow pack from an older keystroke can never clobber a newer bar.
   if (qs.length >= AUTO_PACK_MIN && isPackAvailable()) {
-    packQuery(qs)
+    const packedParams = new URLSearchParams(params);
+    for (const key of WORKSPACE_PARAMS) packedParams.delete(key);
+    packQuery(packedParams.toString())
       .then((token) => {
       const { TOOL_URL_BASE, barSeq } = tview;
         if (token == null || seq !== barSeq.v) return; // unavailable, or superseded
-        const packed = `${PACK_PARAM}=${token}`;
+        const latest = new URLSearchParams({ [PACK_PARAM]: token });
+        copyWorkspaceParams(latest, routeParams());
+        const packed = latest.toString();
         if (packed.length >= qs.length) return; // packing didn't help - keep readable
-        history.replaceState(history.state, '', `${TOOL_URL_BASE}?${packed}`);
+        replaceRouteUrl(`${TOOL_URL_BASE}?${packed}`);
       })
       .catch(() => {
         /* keep the readable URL already written */
@@ -772,24 +574,22 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
   // confirmation before reverting to "Save".
   if (tview.renderSaveBtn && actionsApi?.save) {
     const saveLabel = tview.renderSaveBtn.querySelector<HTMLElement>('[data-save-label]');
-    // The button's "Saved" confirmation + amber-cue clear, factored out so the Save dialog's
-    // save-to-library path lights the button up exactly like the old in-place quick-save did.
+    // The button's "Saved" confirmation + amber-cue clear, shared by the quick save below
+    // and the Save dialog's save-to-library path.
     const flashSaved = (): void => {
       delete tview.renderSaveBtn!.dataset.saving;
       tview.renderSaveBtn!.disabled = false;
       tview.session.markSessionSaved(); // drop the amber unsaved cue
       tview.renderSaveBtn!.classList.add('is-just-saved');
       setTimeout(() => {
-        // Back to the door's own name, not "Save" - this half opens the Save as… dialog
-        // (plans/226 D12), and the label is what tells the two saves apart.
-        if (saveLabel) saveLabel.textContent = t('Save as');
+        if (saveLabel) saveLabel.textContent = t('Save');
         tview.renderSaveBtn!.classList.remove('is-just-saved');
       }, 1500);
     };
-    // Save opens the "Save as…" dialog (plan 114, plans/226 D12): file into a PROJECT, or
-    // save the doc as a reusable TEMPLATE for this tool. The export sheet's own Save stays
-    // a silent quick save and never comes through here. Everything the dialog does is
-    // injected here, where host / runtime / stores / the Share vehicle are all in scope.
+    // The "Save as…" dialog (plan 114): file into a PROJECT, or save the doc as a reusable
+    // TEMPLATE for this tool. The pill's Save no longer opens it; the export panel's Save
+    // as and the Design menu's Save as rows do. Everything the dialog does is injected
+    // here, where host / runtime / stores / the Share vehicle are all in scope.
     openSaveAs = async (focus?: 'project' | 'template'): Promise<void> => {
       if (tview.renderSaveBtn!.dataset.saving) return; // mid-save
       if (document.querySelector('dialog.save-dialog')) return; // already open
@@ -939,8 +739,16 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
     // Exposed for the export panel's Save as, which opens this same dialog - one label,
     // one meaning - rather than arming a file dialog for the next download.
     tview.openSaveAs = openSaveAs;
+    // The pill's Save (and Cmd+S, and the Design rail's Save icon, which click it) is a
+    // quick save: the same folder rule as the export sheet's Save, no dialog.
+    const quickSave = async (): Promise<void> => {
+      if (tview.renderSaveBtn!.dataset.saving) return; // mid-save
+      const folderId = await actionsApi!.quickSaveFolder?.();
+      const ok = await actionsApi!.save!(tview.renderSaveBtn, folderId ? { folderId } : undefined);
+      if (ok) flashSaved();
+    };
     tview.renderSaveBtn.addEventListener('click', () => {
-      void openSaveAs!();
+      void quickSave();
     });
   }
 
@@ -1219,7 +1027,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       mutate(sp);
       barSeq.v++;
       const q = sp.toString();
-      history.replaceState(history.state, '', q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
+      replaceRouteUrl(q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
     };
     const flushPresentAddress = (): void => {
       if (sPending == null) return;
@@ -1434,11 +1242,8 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           // Frame-primitive mode (plan 93 F1b): frame field names so the overlay renders
           // frame-local + re-buckets on drop. Absent unless the canvas declares frameField.
           frame: frameCfg,
-          // One-shot EDITOR state off the link (docs/url-mode.md "On a tool route"): the
-          // `_ui` object param plus the `_sel`/`_t`/`_panel` shorthands, which win on
-          // conflict. All in the `_` namespace the engine reserves outright (parseUrlState
-          // skips it), so none can ever shadow a tool input; syncUrl drops them on the
-          // first edit.
+          // Restore workspace selection and timeline state through the editor's
+          // public UI channel. Live changes stay in the address and outside Share.
           deepLink: { ...tview.templatePose, ...parseEditorState(urlFlags) },
           // Document-info panel: read/write the export/save name, plus at-a-glance
           // details. Name binds to the export bar's filename field (the canonical
@@ -1509,11 +1314,14 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           chrome: {
             themeToggle: themeToggle ?? undefined,
             soundToggle: soundToggle ?? undefined,
-            saveToLibrary: canSaveSession
-              ? () => {
-                  tview.renderSaveBtn?.click();
-                }
-              : undefined,
+            // The menu row is labelled Save as, so it opens the dialog; the pill's Save
+            // is the quick save.
+            saveToLibrary:
+              canSaveSession && openSaveAs
+                ? () => {
+                    void openSaveAs!();
+                  }
+                : undefined,
             // The same dialog, opened on its template card (plans/226 4.1) - so the menu
             // offers both destinations by name instead of one row that hides the other.
             saveAsTemplate:
@@ -1815,9 +1623,9 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               // Notes to voice (plans/180): undefined on a host with no speech bridge, and
               // then the row's dot is the speaker-notes mark it has always been.
               narration: design.narrationActions,
-              initiallyOpen: readColumnPref(NAV_KEY),
+              initiallyOpen: urlFlags.has('_nav') ? urlFlags.get('_nav') === '1' : readColumnPref(NAV_KEY),
               onOpenChange: (open) => {
-                if (!workspace?.adjusting) writeColumnPref(NAV_KEY, open);
+                if (!workspace?.adjusting) { writeColumnPref(NAV_KEY, open); updateRouteParams({ _nav: open ? '1' : '0' }); }
                 if (open) workspace?.activate('navigator');
                 workspace?.sync();
                 designTopbar?.sync();
@@ -1900,7 +1708,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               head: designInspector.el.querySelector<HTMLElement>('.fc-insp-headbar')!,
               onOpenChange: (open, reason) => {
                 inspectorOpen = open;
-                if (reason === 'user' && !workspace?.adjusting) writeColumnPref(INSP_KEY, open);
+                if (reason === 'user' && !workspace?.adjusting) { writeColumnPref(INSP_KEY, open); updateRouteParams({ _inspector: open ? '1' : '0' }); }
                 if (open) workspace?.activate('inspector');
                 workspace?.sync();
                 designTopbar?.sync();
@@ -1924,7 +1732,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             });
             // Restored from the device-local open preference. The detachable controller
             // independently remembers whether that means the edge column or a float box.
-            if (readColumnPref(INSP_KEY)) setInspectorOpen(true);
+            if (urlFlags.has('_inspector') ? urlFlags.get('_inspector') === '1' : readColumnPref(INSP_KEY)) setInspectorOpen(true);
             // BOTH columns are mounted after the bar, and neither announces its state at
             // mount: the navigator fires `onOpenChange` only from its own setOpen, and the
             // inspector's is now a dock request this view makes. So the bar's own `sync()`

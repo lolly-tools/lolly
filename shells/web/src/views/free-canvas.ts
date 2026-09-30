@@ -162,7 +162,8 @@ export { placePopover } from './free-canvas-popover.ts';
 interface FreeCanvasHandle {
   destroy(): void;
   /** The live editor state in the `_ui` wire field names: what a link here would carry. */
-  uiState(): { sel: string[]; t?: number; panel?: string };
+  uiState(): { sel: string[]; t?: number; panel?: string; page?: string; timeline?: boolean };
+  subscribeUi(listener: () => void): () => void;
   /** Apply editor state at runtime - the same routine the mount-time deep link runs. */
   applyUi(state: DeepLinkState): void;
   /**
@@ -2265,10 +2266,17 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       // The wire field names (docs/url-mode.md `_ui`): what a link to this exact view
       // would carry. Panel detection is the picker's own root class - no second flag
       // to keep in step with askChoreograph's open/close.
-      const st: { sel: string[]; t?: number; panel?: string } = { sel: [...fc.selection] };
+      const st: { sel: string[]; t?: number; panel?: string; page?: string; timeline?: boolean } = { sel: [...fc.selection], timeline: fc.timelinePanel?.isOpen() ?? false };
+      const page = artboardPort.active();
+      if (page) st.page = page;
       if (fc.timelinePanel?.isOpen()) st.t = fc.timelinePanel.time();
       if (document.querySelector('.fc-choreo-panel')) st.panel = 'choreograph';
       return st;
+    },
+    subscribeUi(listener) {
+      const a = selectionPort.onChange(listener);
+      const b = artboardPort.onChange(listener);
+      return () => { a(); b(); };
     },
     applyUi(state: DeepLinkState) {
       fc.editorState.applyEditorState(state);

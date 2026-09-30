@@ -39,8 +39,9 @@ test('portable file history: two-device restore, immutable collisions, orphan re
     await page.locator('[data-history-search]').fill('palette');
     await page.screenshot({ path: '/Users/andy/Build/lolly/plans/203-work/history-recovery-desktop.png', fullPage: true });
     await page.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' });
+    await page.locator('[data-store-group="move"] > summary').click();
     await page.locator('#export-data-btn').waitFor();
-    assert.match(await page.locator('.store-manage[data-cat="file-history"]').innerText(), /Not a disposable cache/);
+    assert.match(await page.locator('.profile-row[data-cat="file-history"]').textContent() ?? '', /Not a disposable cache/);
     const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#export-data-btn').click()]);
     const backup = await readFile((await download.path())!);
     assert.ok(backup.length > 0);

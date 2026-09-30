@@ -25,6 +25,7 @@
  * from render-lifecycle/scope-css/embed, session storage from bridge/state, and
  * the shared-input rule from pro/model.constraintSignature.
  */
+import { updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/tool.css';        // .tool-inputs control styles (shared chunk with the tool view)
 import '../styles/parts/multi-edit.css';
 import { UNITS, serializeUrlState, buildEmbedUrl, buildInputModel } from '@lolly/engine';
@@ -514,6 +515,7 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     if (!m) return;
     if (activeSingle !== null) freezeSingle(activeSingle);
     activeSingle = i;
+    updateRouteParams({ _active: m.slot });
     activeSingleReady = false;
     for (const member of members) if (member.tool.manifest.singleInstance) member.needsPaint = true;
     void previewer.pause().then(async () => {
@@ -528,6 +530,7 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     if (activeSingle === null) return;
     freezeSingle(activeSingle);
     activeSingle = null;
+    updateRouteParams({ _active: null });
     activeSingleReady = false;
     previewer.resume();
     members.forEach((m, j) => { if (m.tool.manifest.singleInstance && m.needsPaint && m.near) schedulePaint(m, j); });
@@ -732,6 +735,9 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
   });
   // Escape releases a live singleInstance cell back to a still (and lets stale siblings
   // catch up on any shared edit made while it was live). [[escape-to-close-overlays]]
+  const linkedActive = new URLSearchParams(params).get('_active');
+  const linkedIndex = members.findIndex(member => member.slot === linkedActive);
+  if (linkedIndex >= 0 && members[linkedIndex]?.tool.manifest.singleInstance) activateSingle(linkedIndex);
   const onEsc = (e: KeyboardEvent): void => { if (e.key === 'Escape' && activeSingle !== null) deactivateSingle(); };
   document.addEventListener('keydown', onEsc);
   cleanups.push(() => document.removeEventListener('keydown', onEsc));

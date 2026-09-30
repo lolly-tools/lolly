@@ -455,14 +455,14 @@ test('the inspector takes a slot in the ONE right-hand column, and is never a st
   // …and it must only write the device preference for a release the USER asked for. A
   // route change and the mobile-breakpoint undock both hand the panel back, and recording
   // "closed" for either meant leaving the editor once turned the inspector off forever.
-  assert.match(CODE, /if \(reason === 'user' && !workspace\?\.adjusting\) writeColumnPref\(INSP_KEY, open\)/,
+  assert.match(CODE, /if \(reason === 'user' && !workspace\?\.adjusting\) \{ writeColumnPref\(INSP_KEY, open\); updateRouteParams\(\{ _inspector:/,
     'a host-driven release must not record a preference the user never set');
   assert.match(INSPECTOR_FLOAT, /releaseAction = 'destroy';\s*releaseDock\('inspector', 'host'\)/,
     'the controller teardown takes it back out of a column that outlives the view, as the HOST');
   assert.match(CODE, /designInspectorFloat\?\.destroy\(\)/,
     'the view teardown destroys the controller, which is what releases the column');
-  assert.match(CODE, /if \(readColumnPref\(INSP_KEY\)\) setInspectorOpen\(true\)/,
-    'the panel is built detached and opened from the device preference afterwards: '
+  assert.match(CODE, /if \(urlFlags\.has\('_inspector'\) \? urlFlags\.get\('_inspector'\) === '1' : readColumnPref\(INSP_KEY\)\) setInspectorOpen\(true\)/,
+    'the panel is built detached and opened from a URL override or device preference afterwards: '
     + 'constructing it "open" made it rebuild itself on every selection change for a node '
     + 'that was never in the document');
   // Nothing may put it on the stage - that IS the second column.

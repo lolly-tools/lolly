@@ -34,7 +34,8 @@ import { fmtBytes } from '../../folder-tiles.ts';
 import { openImageLightbox, userImageThumb } from '../profile-user-images.ts';
 import { fmtPct, historyBytes, historyParts, pruneOutcome, reconciliationSentence, sessionRowsHtml } from '../profile-storage-model.ts';
 import type { HistoryMeasure, PreviewsMeasure, SessionEntry, StorageModel } from '../profile-storage-model.ts';
-import { CLEAR_CONFIRM_WORDS, COLLAPSE_CHEV, HEADSHOT_ID, HOARD_CONFIRM_WORDS, clearIdbStores, infoDot, openProfileModals } from './shared.ts';
+import { icon } from '../../lib/icons.ts';
+import { CLEAR_CONFIRM_WORDS, HEADSHOT_ID, HOARD_CONFIRM_WORDS, clearIdbStores, groupSummaryRow, infoDot, openProfileModals, rowSummaryRow } from './shared.ts';
 
 /** The Trash over this view's host (lib/trash.ts): Storage deletes go there too. */
 const trashFor = (pv: ProfileViewCtx) => createTrash(trashHostOf(pv.host));
@@ -149,27 +150,41 @@ function userImgAddButton(): string {
                 </button>`;
 }
 
+/** A row's mark: the bar segment's colour, so the rows read as the bar's key. */
+const swatch = (cat: string): string =>
+  `<span class="profile-mark" aria-hidden="true"><span class="store-chip-sw${cat === 'other' ? ' is-hatch' : ''}" data-cat="${cat}"></span></span>`;
+
+/** One Storage row: the swatch, the name, its size (applyMeter keeps every
+ *  [data-size] current), and a body with the description and the actions. The
+ *  name, description and body are t() output or markup built here. */
+function storeRow(cat: string, name: string, desc: string, body: string, lead = swatch(cat)): string {
+  return `
+          <details class="profile-row" data-cat="${cat}">
+            ${rowSummaryRow(lead, name, `<span class="profile-row-value" data-size="${cat}">0 KB</span>`)}
+            <div class="profile-row-body">
+              ${desc ? `<p class="profile-row-desc">${desc}</p>` : ''}
+              ${body}
+            </div>
+          </details>`;
+}
+
+/** A row whose one action frees its space: the files come back on demand. */
+const clearRow = (cat: string, name: string, desc: string, btnId: string, label: string): string =>
+  storeRow(cat, name, desc, `<div class="profile-row-actions"><button type="button" id="${btnId}" class="btn-link-danger">${label}</button></div>`);
+
 // The whole section, rendered ONCE. applyMeter() then refreshes only the viz so an
 // open managed list (multi-select state) is never rebuilt out from under the user.
+// Below the total and the bar, three folded groups: the work people made, the
+// caches and downloads that come back on demand, and moving to another device.
 export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string) {
   const { sessRowCtx } = pv;
   const hasPrev = m.previews.available;
   // Pinned-tools slice only renders once something is pinned - a permanent
   // "0 B" row would be noise for the (default) never-pinned user.
   const hasPins = m.pins.count > 0;
-  // Same for the speech models: the slice appears only after a download.
-  const hasSpeech = m.speech.bytes > 0;
-  // The AI image models (host.upscale / host.matte) - each appears only once its
-  // store holds bytes (pre-downloaded from Available offline, or fetched on demand
-  // by the Upscale / Remove-background dialogs).
-  const hasUpscale = m.upscale.bytes > 0;
-  const hasMatte = m.matte.bytes > 0;
-  const hasOcr = m.ocr.bytes > 0;
-  const hasReword = m.reword.bytes > 0;
-  const hasAiDetect = m.aiDetect.bytes > 0;
-  // The durable-credential encoder - present once a durable export or the offline
-  // part has fetched it. Scoped to its own key in the shared trustmark store.
-  const hasDurable = m.durable.bytes > 0;
+  // The downloaded models: each row appears only once its store holds bytes
+  // (pre-downloaded from Available offline, or fetched on first use).
+  const has = (bytes: number): boolean => bytes > 0;
   return `
       <section class="store-meter" aria-label="${escapeText(isTauriShell() ? t('Storage on this device') : t('Storage in this browser'))}">
         <header class="store-hero">
@@ -186,144 +201,97 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
           <button type="button" class="seg" data-cat="cache" style="flex-grow:0"></button>
           <button type="button" class="seg" data-cat="previews" style="flex-grow:0"${hasPrev ? '' : ' hidden'}></button>
           <button type="button" class="seg" data-cat="pins" style="flex-grow:0"${hasPins ? '' : ' hidden'}></button>
-          <button type="button" class="seg" data-cat="speech" style="flex-grow:0"${hasSpeech ? '' : ' hidden'}></button>
-          <button type="button" class="seg" data-cat="upscale" style="flex-grow:0"${hasUpscale ? '' : ' hidden'}></button>
-          <button type="button" class="seg" data-cat="matte" style="flex-grow:0"${hasMatte ? '' : ' hidden'}></button>
-          <button type="button" class="seg" data-cat="ocr" style="flex-grow:0"${hasOcr ? '' : ' hidden'}></button>
-          <button type="button" class="seg" data-cat="reword" style="flex-grow:0"${hasReword ? '' : ' hidden'}></button>
-          <button type="button" class="seg" data-cat="aidetect" style="flex-grow:0"${hasAiDetect ? '' : ' hidden'}></button>
-          <button type="button" class="seg" data-cat="durable" style="flex-grow:0"${hasDurable ? '' : ' hidden'}></button>
+          <button type="button" class="seg" data-cat="speech" style="flex-grow:0"${has(m.speech.bytes) ? '' : ' hidden'}></button>
+          <button type="button" class="seg" data-cat="upscale" style="flex-grow:0"${has(m.upscale.bytes) ? '' : ' hidden'}></button>
+          <button type="button" class="seg" data-cat="matte" style="flex-grow:0"${has(m.matte.bytes) ? '' : ' hidden'}></button>
+          <button type="button" class="seg" data-cat="ocr" style="flex-grow:0"${has(m.ocr.bytes) ? '' : ' hidden'}></button>
+          <button type="button" class="seg" data-cat="reword" style="flex-grow:0"${has(m.reword.bytes) ? '' : ' hidden'}></button>
+          <button type="button" class="seg" data-cat="aidetect" style="flex-grow:0"${has(m.aiDetect.bytes) ? '' : ' hidden'}></button>
+          <button type="button" class="seg" data-cat="durable" style="flex-grow:0"${has(m.durable.bytes) ? '' : ' hidden'}></button>
           <span class="seg seg--other" data-cat="other" style="flex-grow:0" aria-hidden="true" hidden></span>
         </div>
         <p class="visually-hidden" id="store-aria-sentence"></p>
-
-        <ul class="store-legend" role="list">
-          <li><button type="button" class="store-chip" data-cat="sessions"><span class="store-chip-sw" data-cat="sessions"></span><span class="store-chip-name">${t('Saved sessions')}</span><span class="store-chip-val" data-size="sessions">-</span></button></li>
-          <li><button type="button" class="store-chip" data-cat="images"><span class="store-chip-sw" data-cat="images"></span><span class="store-chip-name">${t('My images')}</span><span class="store-chip-val" data-size="images">-</span></button></li>
-          <li><button type="button" class="store-chip" data-cat="file-history"><span class="store-chip-sw" data-cat="file-history"></span><span class="store-chip-name">${t('File results & versions')}</span><span class="store-chip-val" data-size="file-history">-</span></button></li>
-          ${m.history ? `<li><button type="button" class="store-chip" data-cat="history"><span class="store-chip-sw" data-cat="history"></span><span class="store-chip-name">${t('History')}</span><span class="store-chip-val" data-size="history">-</span></button></li>` : ''}
-          <li><button type="button" class="store-chip" data-cat="cache"><span class="store-chip-sw" data-cat="cache"></span><span class="store-chip-name">${t('Asset cache')}</span><span class="store-chip-val" data-size="cache">-</span></button></li>
-          ${hasPrev ? `<li><button type="button" class="store-chip" data-cat="previews"><span class="store-chip-sw" data-cat="previews"></span><span class="store-chip-name">${t('Tool previews')}</span><span class="store-chip-val" data-size="previews">-</span></button></li>` : ''}
-          ${hasPins ? `<li><button type="button" class="store-chip" data-cat="pins"><span class="store-chip-sw" data-cat="pins"></span><span class="store-chip-name">${t('Available offline')}</span><span class="store-chip-val" data-size="pins">-</span></button></li>` : ''}
-          ${hasSpeech ? `<li><button type="button" class="store-chip" data-cat="speech"><span class="store-chip-sw" data-cat="speech"></span><span class="store-chip-name">${t('Voice models')}</span><span class="store-chip-val" data-size="speech">-</span></button></li>` : ''}
-          ${hasUpscale ? `<li><button type="button" class="store-chip" data-cat="upscale"><span class="store-chip-sw" data-cat="upscale"></span><span class="store-chip-name">${t('Upscaling models')}</span><span class="store-chip-val" data-size="upscale">-</span></button></li>` : ''}
-          ${hasMatte ? `<li><button type="button" class="store-chip" data-cat="matte"><span class="store-chip-sw" data-cat="matte"></span><span class="store-chip-name">${t('Background removal')}</span><span class="store-chip-val" data-size="matte">-</span></button></li>` : ''}
-          ${hasOcr ? `<li><button type="button" class="store-chip" data-cat="ocr"><span class="store-chip-sw" data-cat="ocr"></span><span class="store-chip-name">${t('Text recognition')}</span><span class="store-chip-val" data-size="ocr">-</span></button></li>` : ''}
-          ${hasReword ? `<li><button type="button" class="store-chip" data-cat="reword"><span class="store-chip-sw" data-cat="reword"></span><span class="store-chip-name">${t('Rewriter model')}</span><span class="store-chip-val" data-size="reword">-</span></button></li>` : ''}
-          ${hasAiDetect ? `<li><button type="button" class="store-chip" data-cat="aidetect"><span class="store-chip-sw" data-cat="aidetect"></span><span class="store-chip-name">${t('AI text detector')}</span><span class="store-chip-val" data-size="aidetect">-</span></button></li>` : ''}
-          ${hasDurable ? `<li><button type="button" class="store-chip" data-cat="durable"><span class="store-chip-sw" data-cat="durable"></span><span class="store-chip-name">${t('Durable credential')}</span><span class="store-chip-val" data-size="durable">-</span></button></li>` : ''}
-          ${m.hasEstimate ? `<li><span class="store-chip store-chip--other"><span class="store-chip-sw is-hatch"></span><span class="store-chip-name">${t('Other')}</span><span class="store-chip-val" data-size="other">-</span>${infoDot(t('Your profile, internal indexes, the offline app cache and storage overhead - everything not itemised above. Calculated as total used minus the measured items. Clear it with "Clear all my data" below.'))}</span></li>` : ''}
-        </ul>
-
-        <p class="store-quota" id="store-quota" hidden><span class="storage-bar-wrap"><span class="storage-bar-fill" id="store-quota-fill" style="width:0%"></span></span><span class="store-quota-text" id="store-quota-text"></span></p>
-        <p class="store-reclaim" id="store-reclaim"></p>
         <p class="store-footnote" id="store-footnote" hidden></p>
 
-        <div class="store-manages">
-          <div class="store-manage store-manage--row" data-cat="file-history">
-            <span class="store-manage-name">${t('File results & versions')} <span class="storage-count" data-size-label="file-history">0 KB</span><br><small>${t('Saved copies and earlier asset bytes, including recoverable deleted assets. Included in data backups. Not a disposable cache.')}</small></span>
-            <a class="btn" href="#/convert">${t('Review & manage…')}</a>
-          </div>
-          <details class="store-manage" data-cat="sessions">
-            <summary class="store-manage-sum">${COLLAPSE_CHEV}<span>${t('Saved sessions')}</span> <span class="storage-count" data-count="sessions">0</span> <span class="storage-hint" data-size-hint="sessions">0 KB</span></summary>
-            <div class="store-manage-body">
-              <div class="store-sess-tools">
-                <label class="store-selall"><input type="checkbox" id="sess-selall"> ${t('Select all')}</label>
-                <button type="button" class="store-sort" data-sort="${sort}">${sort === 'recent' ? t('Recent ▾') : t('Largest first ▾')}</button>
+        <div class="store-groups">
+        <details class="profile-group" data-store-group="work">
+          ${groupSummaryRow(t('Saved work'))}
+          <div class="profile-group-body"><div class="profile-rows">
+          <details class="profile-row" data-cat="sessions">
+            ${rowSummaryRow(swatch('sessions'), t('Saved sessions'), '<span class="profile-row-value" data-size="sessions">0 KB</span>')}
+            <div class="profile-row-body">
+              <div class="profile-row-wide">
+                <div class="store-sess-tools">
+                  <label class="store-selall"><input type="checkbox" id="sess-selall"> ${t('Select all')}</label>
+                  <button type="button" class="store-sort" data-sort="${sort}">${sort === 'recent' ? t('Recent ▾') : t('Largest first ▾')}</button>
+                </div>
+                <ul class="store-sess-list" id="store-sess-list">${sessionRowsHtml(m, sort, sessRowCtx)}</ul>
               </div>
-              <ul class="store-sess-list" id="store-sess-list">${sessionRowsHtml(m, sort, sessRowCtx)}</ul>
               <a class="store-manage-link" href="#/p">${t('Organise in Projects')} →</a>
             </div>
           </details>
 
-          <details class="store-manage" data-cat="images">
-            <summary class="store-manage-sum">${COLLAPSE_CHEV}<span>${t('My images')}</span> <span class="storage-count" id="userimg-count">0</span> <span class="storage-hint" id="userimg-size">0 KB</span> ${infoDot(t('Images you save to reuse across tools. This size includes your profile photo and any brand fonts.'))}</summary>
-            <div class="store-manage-body">
-              <div class="userimg-grid" id="userimg-grid">
+          ${storeRow('images', t('My images'), t('Images you save to reuse across tools. This size includes your profile photo and any brand fonts.'), `
+              <div class="userimg-grid profile-row-wide" id="userimg-grid">
                 ${m.images.list.map(userImageThumb).join('')}
                 ${userImgAddButton()}
               </div>
               <input type="file" id="userimg-file" accept="image/svg+xml,image/png,image/apng,image/jpeg,image/webp,image/gif,image/avif,image/heic,image/heif,video/mp4,video/webm,.mp4,.webm,.mov" multiple hidden>
-              <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>
+              <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>`)}
+
+          ${storeRow('file-history', t('File results & versions'), t('Saved copies and earlier asset bytes, including recoverable deleted assets. Included in data backups. Not a disposable cache.'),
+            `<div class="profile-row-actions"><a class="btn" href="#/convert">${t('Review & manage…')}</a></div>`)}
+
+          ${m.history ? storeRow('history', t('History'), t('The automatic checkpoints, previews and recovery drafts that let you go back to an earlier version of a creation. Older automatic checkpoints thin out on their own. Explicit saves and named versions stay until you delete the creation.'), `
+              <p class="profile-row-desc" data-history-parts>${escapeText(historyParts(m.history))}</p>
+              <div class="profile-row-actions">
+                <a class="btn" href="#/history">${t('Open History')}</a>
+                <button type="button" id="prune-history-btn" class="btn-link-danger">${t('Remove automatic checkpoints older than 30 days')}</button>
+              </div>`) : ''}
+
+          <details class="profile-row" data-cat="trash">
+            ${rowSummaryRow(`<span class="profile-mark" aria-hidden="true">${icon('trash')}</span>`, t('Trash'), `<span class="profile-row-value" data-trash-summary>${trashSummary(m.trash)}</span>`)}
+            <div class="profile-row-body">
+              <p class="profile-row-desc">${t('Saved sessions, folders and uploads you deleted here, in Projects or in Assets. They stay for 30 days, then go for good. Their space is counted above until the Trash is emptied.')}</p>
+              <div class="profile-row-actions"><button type="button" id="open-trash-btn" class="btn">${t('Open Trash')}</button></div>
             </div>
           </details>
+          </div></div>
+        </details>
 
-          ${m.history ? `<div class="store-manage store-manage--row" data-cat="history">
-            <span class="store-manage-name">${t('History')} ${infoDot(t('The automatic checkpoints, previews and recovery drafts that let you go back to an earlier version of a creation. Older automatic checkpoints thin out on their own. Explicit saves and named versions stay until you delete the creation.'))} <span class="storage-count" data-size-label="history">0 KB</span><small data-history-parts>${escapeText(historyParts(m.history))}</small></span>
-            <span class="store-history-actions">
-              <a class="btn" href="#/history">${t('Open History')}</a>
-              <button type="button" id="prune-history-btn" class="btn-link-danger">${t('Remove automatic checkpoints older than 30 days')}</button>
-            </span>
-          </div>` : ''}
+        <details class="profile-group" data-store-group="caches">
+          ${groupSummaryRow(t('Caches and downloads'))}
+          <div class="profile-group-body"><div class="profile-rows">
+          ${clearRow('cache', t('Asset cache'), t('Downloaded catalog content; it re-downloads on demand. Safe to clear.'), 'clear-cache-btn', t('Clear cache'))}
+          ${hasPrev ? clearRow('previews', t('Tool previews'), t('Snapshots Lolly draws of personalised tool cards - they redraw when needed. Safe to clear.'), 'clear-previews-btn', t('Clear previews')) : ''}
+          ${hasPins ? clearRow('pins', t('Available offline'), isTauriShell() ? t('Tools you pinned in the gallery to work offline - their files are kept on this device. Unpinning re-downloads them on demand.') : t('Tools you pinned in the gallery to work offline - their files are kept in this browser. Unpinning re-downloads them on demand.'), 'unpin-all-btn', t('Unpin all')) : ''}
+          ${has(m.speech.bytes) ? clearRow('speech', t('Voice models'), t('On-device voices for Script audio and narration. Removing them frees the space; they download again with your consent when next used.'), 'clear-speech-btn', t('Remove voices')) : ''}
+          ${has(m.upscale.bytes) ? clearRow('upscale', t('Upscaling models'), t('On-device AI upscalers for the Upscale tool. Removing them frees the space; they download again with your consent when next used.'), 'clear-upscale-btn', t('Remove models')) : ''}
+          ${has(m.matte.bytes) ? clearRow('matte', t('Background removal'), t('On-device cut-out models for Remove background. Removing them frees the space; they download again with your consent when next used.'), 'clear-matte-btn', t('Remove models')) : ''}
+          ${has(m.ocr.bytes) ? clearRow('ocr', t('Text recognition'), t('On-device OCR models for reading text out of images. Removing them frees the space; they download again with your consent when next used.'), 'clear-ocr-btn', t('Remove models')) : ''}
+          ${has(m.reword.bytes) ? clearRow('reword', t('Rewriter model'), t('The on-device rewriter for Humanize. Removing it frees the space; it downloads again with your consent when next used.'), 'clear-reword-btn', t('Remove model')) : ''}
+          ${has(m.aiDetect.bytes) ? clearRow('aidetect', t('AI text detector'), t('The on-device detector behind the deeper AI-text check. Removing it frees the space; it downloads again with your consent when next used.'), 'clear-aidetect-btn', t('Remove model')) : ''}
+          ${has(m.durable.bytes) ? clearRow('durable', t('Durable credential'), t('The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.'), 'clear-durable-btn', t('Remove model')) : ''}
+          ${m.hasEstimate ? storeRow('other', t('Other'), t('Your profile, internal indexes, the offline app cache and storage overhead - everything not itemised above. Calculated as total used minus the measured items. Clear it with "Clear all my data" below.'), '') : ''}
+          </div></div>
+        </details>
 
-          <div class="store-manage store-manage--row" data-cat="trash">
-            <span class="store-manage-name">${t('Trash')} ${infoDot(t('Saved sessions, folders and uploads you deleted here, in Projects or in Assets. They stay for 30 days, then go for good. Their space is counted above until the Trash is emptied.'))} <span class="storage-count" data-trash-summary>${trashSummary(m.trash)}</span></span>
-            <button type="button" id="open-trash-btn" class="btn">${t('Open Trash')}</button>
+        <details class="profile-group" data-store-group="move">
+          ${groupSummaryRow(t('Move to another device'))}
+          <div class="profile-group-body store-move">
+            <p class="profile-row-desc">${t('Export everything - profile, saved sessions, uploaded images and preferences - as one file, then import it on another offline install to pick up exactly where you left off. Stays entirely on your devices.')}</p>
+            <div class="profile-row-actions">
+              ${pv.jellyOn
+                ? `<jelly-button variant="platinum" id="export-data-btn" data-sfx="whoosh">${t('Export my data')}</jelly-button>
+              <jelly-button variant="platinum" id="import-data-btn">${t('Import data…')}</jelly-button>`
+                : `<button type="button" id="export-data-btn" class="btn" data-sfx="whoosh">${t('Export my data')}</button>
+              <button type="button" id="import-data-btn" class="btn">${t('Import data…')}</button>`}
+              <input type="file" id="import-data-input" accept=".zip,application/zip,.lolly,application/vnd.lolly+zip" hidden>
+            </div>
+            <div class="profile-row-actions"><button type="button" id="export-render-btn" class="btn">${t('Export my data &amp; render everything')}</button></div>
+            <p class="profile-row-desc">${t('The backup above, plus a second zip that <strong>renders every saved session</strong> to its output file - organised into folders that mirror your Projects. A complete offline archive; can be large and slow with many sessions.')}</p>
           </div>
-
-          <div class="store-manage store-manage--row" data-cat="cache">
-            <span class="store-manage-name">${t('Asset cache')} ${infoDot(t('Downloaded catalog content; it re-downloads on demand. Safe to clear.'))} <span class="storage-count" data-size-label="cache">0 KB</span></span>
-            <button type="button" id="clear-cache-btn" class="btn-link-danger">${t('Clear cache')}</button>
-          </div>
-
-          ${hasPrev ? `<div class="store-manage store-manage--row" data-cat="previews">
-            <span class="store-manage-name">${t('Tool previews')} ${infoDot(t('Snapshots Lolly draws of personalised tool cards - they redraw when needed. Safe to clear.'))} <span class="storage-count" data-size-label="previews">0 KB</span></span>
-            <button type="button" id="clear-previews-btn" class="btn-link-danger">${t('Clear previews')}</button>
-          </div>` : ''}
-
-          ${hasPins ? `<div class="store-manage store-manage--row" data-cat="pins">
-            <span class="store-manage-name">${t('Available offline')} ${infoDot(isTauriShell() ? t('Tools you pinned in the gallery to work offline - their files are kept on this device. Unpinning re-downloads them on demand.') : t('Tools you pinned in the gallery to work offline - their files are kept in this browser. Unpinning re-downloads them on demand.'))} <span class="storage-count" data-size-label="pins">0 KB</span></span>
-            <button type="button" id="unpin-all-btn" class="btn-link-danger">${t('Unpin all')}</button>
-          </div>` : ''}
-
-          ${hasSpeech ? `<div class="store-manage store-manage--row" data-cat="speech">
-            <span class="store-manage-name">${t('Voice models')} ${infoDot(t('On-device voices for Script audio and narration. Removing them frees the space; they download again with your consent when next used.'))} <span class="storage-count" data-size-label="speech">0 KB</span></span>
-            <button type="button" id="clear-speech-btn" class="btn-link-danger">${t('Remove voices')}</button>
-          </div>` : ''}
-
-          ${hasUpscale ? `<div class="store-manage store-manage--row" data-cat="upscale">
-            <span class="store-manage-name">${t('Upscaling models')} ${infoDot(t('On-device AI upscalers for the Upscale tool. Removing them frees the space; they download again with your consent when next used.'))} <span class="storage-count" data-size-label="upscale">0 KB</span></span>
-            <button type="button" id="clear-upscale-btn" class="btn-link-danger">${t('Remove models')}</button>
-          </div>` : ''}
-
-          ${hasMatte ? `<div class="store-manage store-manage--row" data-cat="matte">
-            <span class="store-manage-name">${t('Background removal')} ${infoDot(t('On-device cut-out models for Remove background. Removing them frees the space; they download again with your consent when next used.'))} <span class="storage-count" data-size-label="matte">0 KB</span></span>
-            <button type="button" id="clear-matte-btn" class="btn-link-danger">${t('Remove models')}</button>
-          </div>` : ''}
-
-          ${hasOcr ? `<div class="store-manage store-manage--row" data-cat="ocr">
-            <span class="store-manage-name">${t('Text recognition')} ${infoDot(t('On-device OCR models for reading text out of images. Removing them frees the space; they download again with your consent when next used.'))} <span class="storage-count" data-size-label="ocr">0 KB</span></span>
-            <button type="button" id="clear-ocr-btn" class="btn-link-danger">${t('Remove models')}</button>
-          </div>` : ''}
-
-          ${hasReword ? `<div class="store-manage store-manage--row" data-cat="reword">
-            <span class="store-manage-name">${t('Rewriter model')} ${infoDot(t('The on-device rewriter for Humanize. Removing it frees the space; it downloads again with your consent when next used.'))} <span class="storage-count" data-size-label="reword">0 KB</span></span>
-            <button type="button" id="clear-reword-btn" class="btn-link-danger">${t('Remove model')}</button>
-          </div>` : ''}
-          ${hasAiDetect ? `<div class="store-manage store-manage--row" data-cat="aidetect">
-            <span class="store-manage-name">${t('AI text detector')} ${infoDot(t('The on-device detector behind the deeper AI-text check. Removing it frees the space; it downloads again with your consent when next used.'))} <span class="storage-count" data-size-label="aidetect">0 KB</span></span>
-            <button type="button" id="clear-aidetect-btn" class="btn-link-danger">${t('Remove model')}</button>
-          </div>` : ''}
-          ${hasDurable ? `<div class="store-manage store-manage--row" data-cat="durable">
-            <span class="store-manage-name">${t('Durable credential')} ${infoDot(t('The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.'))} <span class="storage-count" data-size-label="durable">0 KB</span></span>
-            <button type="button" id="clear-durable-btn" class="btn-link-danger">${t('Remove model')}</button>
-          </div>` : ''}
-        </div>
-
-        <div class="storage-subsection">
-          <div class="storage-subsection-header">
-            <span>${t('Move to another device')} ${infoDot(t('Export everything - profile, saved sessions, uploaded images and preferences - as one file, then import it on another offline install to pick up exactly where you left off. Stays entirely on your devices.'))}</span>
-          </div>
-          <div class="storage-actions">
-            ${pv.jellyOn
-              ? `<jelly-button variant="platinum" id="export-data-btn" data-sfx="whoosh">${t('Export my data')}</jelly-button>
-            <jelly-button variant="platinum" id="import-data-btn">${t('Import data…')}</jelly-button>`
-              : `<button type="button" id="export-data-btn" class="btn" data-sfx="whoosh">${t('Export my data')}</button>
-            <button type="button" id="import-data-btn" class="btn">${t('Import data…')}</button>`}
-            <input type="file" id="import-data-input" accept=".zip,application/zip,.lolly,application/vnd.lolly+zip" hidden>
-          </div>
-          <button type="button" id="export-render-btn" class="btn storage-hoard-btn">📦 ${t('Export my data &amp; render everything')}</button>
-          <p class="storage-hoard-hint">${t('The backup above, plus a second zip that <strong>renders every saved session</strong> to its output file - organised into folders that mirror your Projects. A complete offline archive; can be large and slow with many sessions.')}</p>
+        </details>
         </div>
 
         <div class="storage-actions">
@@ -383,13 +351,14 @@ export async function loadStorage(pv: ProfileViewCtx) {
     requestAnimationFrame(tick);
   }
 
-  // What the rows below can free: the re-downloadable caches, plus the Trash,
-  // which Empty Trash frees. A deleted session goes to the Trash (plan 277 P3), so
-  // selecting sessions no longer counts as space freed.
-  function updateReclaim(m: StorageModel) {
-    const el = body.querySelector('#store-reclaim');
-    if (el) el.innerHTML = t('Up to <strong>{n}</strong> can be freed here', { n: fmtBytes(m.cache.bytes + m.previews.bytes + m.pins.bytes + m.speech.bytes + m.upscale.bytes + m.matte.bytes + m.ocr.bytes + m.durable.bytes + (m.trash?.bytes ?? 0)) });
+  // A folded group's value: Saved work shows what the work takes, Caches and
+  // downloads what clearing every row there would free.
+  function setGroupValue(group: string, bytes: number) {
+    const el = body.querySelector<HTMLElement>(`[data-store-group="${group}"] > summary [data-group-value]`);
+    if (el) el.textContent = fmtBytes(bytes);
   }
+  // The two lists show their count beside the size.
+  const countAndSize = (n: number, bytes: number): string => (n ? `${n} · ${fmtBytes(bytes)}` : fmtBytes(bytes));
 
   // Refresh ONLY the visualization (hero, segments, legend, quota, reclaim, aria,
   // manage-summary badges) from a fresh model. Never rebuilds the session list/grid.
@@ -433,50 +402,15 @@ export async function loadStorage(pv: ProfileViewCtx) {
     const otherSeg = bar?.querySelector<HTMLElement>('.seg--other');
     if (otherSeg) { otherSeg.style.flexGrow = String(m.other); otherSeg.hidden = !(m.hasEstimate && !m.overshoot && m.other > 0); }
 
-    setText('[data-size="sessions"]', fmtBytes(m.sessions.bytes));
-    setText('[data-size="images"]', fmtBytes(m.images.bytes));
-    setText('[data-size="file-history"]', fmtBytes(m.fileHistory?.bytes ?? 0));
-    setText('[data-size-label="file-history"]', fmtBytes(m.fileHistory?.bytes ?? 0));
-    setText('[data-size="history"]', fmtBytes(historyBytes(m.history)));
-    setText('[data-size-label="history"]', fmtBytes(historyBytes(m.history)));
+    for (const [cat, bytes] of segs) setText(`[data-size="${cat}"]`, fmtBytes(bytes));
+    setText('[data-size="sessions"]', countAndSize(m.sessions.count, m.sessions.bytes));
+    setText('[data-size="images"]', countAndSize(m.images.count, m.images.bytes));
     setText('[data-history-parts]', historyParts(m.history));
-    setText('[data-size="cache"]', fmtBytes(m.cache.bytes));
-    setText('[data-size="previews"]', fmtBytes(m.previews.bytes));
-    setText('[data-size="pins"]', fmtBytes(m.pins.bytes));
-    setText('[data-size="speech"]', fmtBytes(m.speech.bytes));
-    setText('[data-size="upscale"]', fmtBytes(m.upscale.bytes));
-    setText('[data-size="matte"]', fmtBytes(m.matte.bytes));
-    setText('[data-size="ocr"]', fmtBytes(m.ocr.bytes));
-    setText('[data-size="reword"]', fmtBytes(m.reword.bytes));
-    setText('[data-size="aidetect"]', fmtBytes(m.aiDetect.bytes));
-    setText('[data-size="durable"]', fmtBytes(m.durable.bytes));
     setText('[data-size="other"]', `~${fmtBytes(m.other)}`);
-    setText('[data-count="sessions"]', String(m.sessions.count));
     setText('[data-trash-summary]', trashSummary(m.trash));
-    setText('[data-size-hint="sessions"]', fmtBytes(m.sessions.bytes));
-    setText('[data-size-label="cache"]', fmtBytes(m.cache.bytes));
-    setText('[data-size-label="previews"]', fmtBytes(m.previews.bytes));
-    setText('[data-size-label="pins"]', fmtBytes(m.pins.bytes));
-    setText('[data-size-label="speech"]', fmtBytes(m.speech.bytes));
-    setText('[data-size-label="upscale"]', fmtBytes(m.upscale.bytes));
-    setText('[data-size-label="matte"]', fmtBytes(m.matte.bytes));
-    setText('[data-size-label="ocr"]', fmtBytes(m.ocr.bytes));
-    setText('[data-size-label="reword"]', fmtBytes(m.reword.bytes));
-    setText('[data-size-label="aidetect"]', fmtBytes(m.aiDetect.bytes));
-    setText('[data-size-label="durable"]', fmtBytes(m.durable.bytes));
-    const imgCount = body.querySelector('#userimg-count');
-    const imgSize = body.querySelector('#userimg-size');
-    if (imgCount) imgCount.textContent = `${m.images.count}`;
-    if (imgSize) imgSize.textContent = fmtBytes(m.images.bytes);
-
-    const quotaRow = body.querySelector<HTMLElement>('#store-quota');
-    const fill = body.querySelector<HTMLElement>('#store-quota-fill');
-    const quotaText = body.querySelector('#store-quota-text');
-    if (m.hasEstimate && m.quota) {
-      if (fill) fill.style.width = `${Math.min(100, (m.usage! / m.quota) * 100)}%`;
-      if (quotaText) quotaText.innerHTML = t('{used} of {quota} device budget · <strong>{pct}</strong> used', { used: fmtBytes(m.usage!), quota: fmtBytes(m.quota), pct: fmtPct(m.usage!, m.quota) });
-      if (quotaRow) quotaRow.hidden = false;
-    } else if (quotaRow) quotaRow.hidden = true;
+    setGroupValue('work', m.sessions.bytes + m.images.bytes + (m.fileHistory?.bytes ?? 0) + historyBytes(m.history));
+    setGroupValue('caches', m.cache.bytes + m.previews.bytes + m.pins.bytes + m.speech.bytes + m.upscale.bytes + m.matte.bytes
+      + m.ocr.bytes + m.reword.bytes + m.aiDetect.bytes + m.durable.bytes);
 
     const note = body.querySelector<HTMLElement>('#store-footnote');
     if (note) {
@@ -486,23 +420,23 @@ export async function loadStorage(pv: ProfileViewCtx) {
     }
     const aria = body.querySelector('#store-aria-sentence');
     if (aria) aria.textContent = reconciliationSentence(m);
-    updateReclaim(m);
   }
 
-  // Explore: a legend chip / bar segment isolates its slice and opens + scrolls to
-  // that category's manage panel. Re-clicking the active one clears the highlight.
+  // Explore: a bar segment isolates its slice and opens + scrolls to that
+  // category's row, unfolding its group. Re-clicking the active one clears the highlight.
   function exploreCategory(cat: string) {
     const next = bar?.getAttribute('data-active') === cat ? '' : cat;
     if (bar) {
       if (next) bar.setAttribute('data-active', next); else bar.removeAttribute('data-active');
       bar.querySelectorAll<HTMLElement>('.seg').forEach(s => s.classList.toggle('is-active', !!next && s.dataset.cat === next));
     }
-    body.querySelectorAll<HTMLElement>('.store-chip').forEach(c => c.classList.toggle('is-active', !!next && c.dataset.cat === next));
     if (!next) return;
-    const panel = body.querySelector<HTMLElement>(`.store-manage[data-cat="${cat}"]`);
-    if (panel) {
-      if (panel.tagName === 'DETAILS') (panel as HTMLDetailsElement).open = true;
-      panel.scrollIntoView({ block: 'start', behavior: reduceMotion(pv) ? 'auto' : 'smooth' });
+    const row = body.querySelector<HTMLDetailsElement>(`.profile-row[data-cat="${cat}"]`);
+    if (row) {
+      const group = row.closest<HTMLDetailsElement>('.profile-group');
+      if (group) group.open = true;
+      row.open = true;
+      row.scrollIntoView({ block: 'center', behavior: reduceMotion(pv) ? 'auto' : 'smooth' });
     }
   }
 
@@ -523,7 +457,6 @@ export async function loadStorage(pv: ProfileViewCtx) {
     const all = body.querySelector<HTMLInputElement>('#sess-selall');
     const boxes = [...body.querySelectorAll('.store-sess-check')];
     if (all) all.checked = boxes.length > 0 && checked.length === boxes.length;
-    updateReclaim(model);
   }
 
   async function refreshMeter() { model = await measure(pv); applyMeter(model); }
@@ -535,7 +468,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
     const t = (preferred && document.contains(preferred) && preferred)
       || body.querySelector<HTMLElement>('.store-sess-del')
       || body.querySelector<HTMLElement>('.store-sort')
-      || body.querySelector<HTMLElement>('.store-manage[data-cat="sessions"] > summary');
+      || body.querySelector<HTMLElement>('.profile-row[data-cat="sessions"] > summary');
     t?.focus?.();
   }
 
@@ -632,7 +565,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
 
   // ── one delegated click listener (explore / clear / sort / multi-select bar) ──
   body.addEventListener('click', async (e) => {
-    const explore = (e.target as Element).closest<HTMLElement>('.store-chip[data-cat], .seg[data-cat]');
+    const explore = (e.target as Element).closest<HTMLElement>('.seg[data-cat]');
     if (explore && explore.dataset.cat !== 'other') { exploreCategory(explore.dataset.cat!); return; }
 
     const del = (e.target as Element).closest<HTMLButtonElement>('[data-del-session]');
@@ -716,7 +649,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
   // ── My images - same add/delete/lightbox handlers as before (grid reused). ──
   const userimgAddBtn = body.querySelector<HTMLButtonElement>('#userimg-add');
   async function syncUserImgMeta() {
-    await refreshCounter(pv); // re-measures → applyMeter refreshes the count/size badges + legend + bar
+    await refreshCounter(pv); // re-measures → applyMeter refreshes the row sizes, the group values and the bar
   }
   const userimgFile = body.querySelector<HTMLInputElement>('#userimg-file');
   userimgAddBtn?.addEventListener('click', () => userimgFile?.click());

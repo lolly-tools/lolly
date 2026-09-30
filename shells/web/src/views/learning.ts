@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { updateRouteParams } from '../lib/url-state.ts';
 import type { LearningCtx } from './learning/context.ts';
 import type { LearningBlock, LearningRelease, LearningTarget } from '@lolly-tools/core/learning-v1';
 import type { PickerHost } from './picker.ts';
@@ -48,8 +49,8 @@ export async function mountLearning(
     releases: (Array.isArray(data?.__learningReleases)
       ? data.__learningReleases
       : []) as LearningRelease[],
-    selected: module.lessons[0]?.id || '',
-    selectedBlocks: new Set<string>(),
+    selected: module.lessons.find(lesson => lesson.id === query.get('_lesson'))?.id || module.lessons[0]?.id || '',
+    selectedBlocks: new Set<string>((query.get('_blocks') ?? '').split(',').filter(Boolean).slice(0, 512)),
     flushTyping: async () => {},
     target: ['static', 'scorm12', 'scorm2004', 'tincan', 'cmi5'].includes(
       String(data?.__learningTarget)
@@ -89,7 +90,7 @@ export async function mountLearning(
         module.projectId,
         { type: 'session', ref: slot }
       );
-    history.replaceState(history.state, '', `#/learning?slot=${encodeURIComponent(slot)}`);
+    updateRouteParams({ slot });
   }
   const click = (event: Event) => {
     const target = (event.target as Element).closest<HTMLElement>('[data-action]');
@@ -247,7 +248,7 @@ export async function mountLearning(
         /* Keep recoverable edits visible. */
       }
     }
-    history.replaceState(history.state, '', `#/learning?slot=${encodeURIComponent(ctx.slot)}`);
+    updateRouteParams({ slot: ctx.slot });
     ctx.ui.status(
       ctx.busy
         ? 'Wait for the package operation to finish before leaving.'

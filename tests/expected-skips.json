@@ -1312,6 +1312,41 @@
       "owner": "tests"
     },
     {
+      "file": "tests/deep-link-state.browser.test.ts",
+      "fullName": "Design workspace state restores while Share contains only content and output",
+      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deep-link-state.browser.test.ts",
+      "fullName": "live Gallery and Assets filters agree with reload and browser history",
+      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deep-link-state.browser.test.ts",
+      "fullName": "path shortcuts and installed-app view forms preserve queries in the actual router",
+      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deep-link-state.browser.test.ts",
+      "fullName": "settings focus, open cards and search restore without changing saved preferences",
+      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deep-link-state.browser.test.ts",
+      "fullName": "tool content and output settings survive first sync, a fresh context and same-tool navigation",
+      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/design-panels.browser.test.ts",
       "fullName": "artboard parents, overflowing tracks and the narrow inspector stay usable",
       "reason": "Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.",

@@ -21,8 +21,8 @@
   ],
   "modules": {
     "shells/web/src/bridge/export-svg-walker.ts": {
-      "lines": 1711,
-      "largestFunctionLines": 1875,
+      "lines": 1724,
+      "largestFunctionLines": 1700,
       "importFanIn": 1,
       "importFanOut": 16,
       "typeEscapes": 19
@@ -49,10 +49,10 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/color-lab.ts": {
-      "lines": 2168,
-      "largestFunctionLines": 2581,
+      "lines": 2166,
+      "largestFunctionLines": 2575,
       "importFanIn": 1,
-      "importFanOut": 22,
+      "importFanOut": 23,
       "typeEscapes": 0
     },
     "shells/web/src/views/deck-editor.ts": {
@@ -70,10 +70,10 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1964,
+      "lines": 1982,
       "largestFunctionLines": 1760,
       "importFanIn": 1,
-      "importFanOut": 63,
+      "importFanOut": 64,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
@@ -84,10 +84,10 @@
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2148,
-      "largestFunctionLines": 2841,
+      "lines": 2144,
+      "largestFunctionLines": 2838,
       "importFanIn": 1,
-      "importFanOut": 51,
+      "importFanOut": 52,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
@@ -96,13 +96,6 @@
       "importFanIn": 7,
       "importFanOut": 36,
       "typeEscapes": 5
-    },
-    "shells/web/src/views/tool/session.ts": {
-      "lines": 1583,
-      "largestFunctionLines": 1494,
-      "importFanIn": 1,
-      "importFanOut": 58,
-      "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
       "lines": 2719,

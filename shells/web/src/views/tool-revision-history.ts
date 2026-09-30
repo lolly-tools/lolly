@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { updateRouteParams } from '../lib/url-state.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { SavedStateData, WebStateAPI } from '../bridge/state.ts';
 import type { RevisionCursor } from '../bridge/revision-records.ts';
@@ -165,6 +166,7 @@ export function mountActionHistory(opts: {
     const slot = opts.getSlot();
     if (slot && mounted()) window.history.replaceState({ ...window.history.state,
       lollyHistory: { toolId: opts.toolId, slot } }, '', location.href);
+    if (slot && mounted()) updateRouteParams({ slot });
   };
   rememberSlot();
   // The pins of the chosen emoji set arrive when the Emoji section has resolved its

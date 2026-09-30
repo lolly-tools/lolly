@@ -10,6 +10,12 @@ test('a _ui blob round-trips through encode and parse', () => {
   assert.deepEqual(got, { select: ['a', 'b'], playhead: 2.5, panel: 'choreograph' });
 });
 
+test('Unicode ids, the active page and a closed timeline round-trip', () => {
+  const blob = encodeUiState({ v: 1, sel: ['文😀'], page: 'ページ', timeline: false });
+  assert.deepEqual(parseEditorState(flags(`_ui=${blob}`)), { select: ['文😀'], page: 'ページ', timeline: false });
+  assert.deepEqual(parseEditorState(flags(`_ui=${blob}&_sel=`)).select, []);
+});
+
 test('the shorthands win over a conflicting _ui', () => {
   const blob = encodeUiState({ v: 1, sel: ['x'], t: 9 });
   const got = parseEditorState(flags(`_ui=${blob}&_sel=a,b&_t=1&_panel=choreograph`));

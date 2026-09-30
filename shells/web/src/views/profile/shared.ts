@@ -214,7 +214,13 @@ export const summaryRow = (id: string, title: string, value = ''): string =>
 // builds the service groups; the shell wraps the lazily mounted #sync-body in
 // the last one.
 export const groupSummaryRow = (title: string, value = '', marks = ''): string =>
-  `<summary class="pconn-group-sum"><h3 class="pconn-group-title">${title}</h3>${marks ? `<span class="pconn-group-marks" aria-hidden="true">${marks}</span>` : ''}<span class="pconn-group-value" data-group-value>${value}</span>${COLLAPSE_CHEV}</summary>`;
+  `<summary class="profile-group-sum"><h3 class="profile-group-title">${title}</h3>${marks ? `<span class="profile-group-marks" aria-hidden="true">${marks}</span>` : ''}<span class="profile-group-value" data-group-value>${value}</span>${COLLAPSE_CHEV}</summary>`;
+
+// One row of a group's list: its mark, its name, then a tag or a value, and the
+// chevron. The caller builds the body. `lead` and `trail` are markup; `name` is
+// already escaped or t() output.
+export const rowSummaryRow = (lead: string, name: string, trail = ''): string =>
+  `<summary class="profile-row-sum">${lead}<span class="profile-row-name">${name}</span>${trail}${COLLAPSE_CHEV}</summary>`;
 
 // Stand-in for a lazy section's body until its load returns. A plain static bar,
 // deliberately never animated: a shimmer would be one more thing to switch off

@@ -774,16 +774,13 @@ strong{font-weight:600}
 .docs-compact-list .docs-toc-link { border: 0; margin: 0; }
 .docs-compact-list svg { width: 16px; height: 16px; flex: none; }
 
-.footer-sitemap .sitemap-disclosure > summary {
+.footer-sitemap { container-type: inline-size; text-align: start; }
+.footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.6em;
   box-sizing: border-box;
-  width: fit-content;
-  max-width: 100%;
   min-height: 44px;
-  margin: 0 auto;
   padding: 0.5rem 0.75rem;
   border-radius: var(--ui-radius-control, 6px);
   color: var(--ui-color-text-default);
@@ -792,10 +789,12 @@ strong{font-weight:600}
   list-style: none;
   cursor: pointer;
 }
-.footer-sitemap .sitemap-disclosure > summary::-webkit-details-marker { display: none; }
-.footer-sitemap .sitemap-disclosure > summary::marker { content: ''; }
-.footer-sitemap .sitemap-disclosure > summary:hover { background: var(--ui-color-surface-muted); }
-.footer-sitemap .sitemap-disclosure > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.footer-sitemap .sitemap-disclosure > summary { justify-content: center; width: fit-content; max-width: 100%; margin: 0 auto; }
+.footer-sitemap .sitemap-section > summary { justify-content: space-between; padding-inline: 0.5rem; font-weight: 500; }
+.footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary::-webkit-details-marker { display: none; }
+.footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary::marker { content: ''; }
+.footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary:hover { background: var(--ui-color-surface-muted); }
+.footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .footer-sitemap .sitemap-chevron {
   flex: none;
   width: 1.25em;
@@ -804,7 +803,24 @@ strong{font-weight:600}
   transition: transform var(--ui-motion-feedback);
 }
 .footer-sitemap .sitemap-chevron svg { display: block; width: 100%; height: 100%; }
-.footer-sitemap .sitemap-disclosure[open] .sitemap-chevron { transform: rotate(270deg); }
+.footer-sitemap :is(.sitemap-disclosure, .sitemap-section)[open] > summary > .sitemap-chevron { transform: rotate(270deg); }
+.footer-sitemap .sitemap-expanded { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 1.5rem; margin-top: 1.5rem; }
+@container (min-width: 34rem) {
+  .footer-sitemap .sitemap-expanded { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container (min-width: 64rem) {
+  .footer-sitemap .sitemap-expanded { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+.footer-sitemap .sitemap-col { min-width: 0; }
+.footer-sitemap a { display: flex; align-items: flex-start; gap: 0.5em; min-width: 0; padding: 0.4rem 0.5rem; color: var(--ui-color-text-muted); text-decoration: none; line-height: 1.4; overflow-wrap: anywhere; hyphens: auto; }
+.footer-sitemap a:hover { color: var(--ui-color-text-default); text-decoration: underline; }
+.footer-sitemap a:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.footer-sitemap .sitemap-ic { flex: none; width: 1.4em; height: 1.4em; color: var(--ui-color-action-primary); opacity: 0.65; }
+.footer-sitemap .sitemap-ic svg { display: block; width: 100%; height: 100%; }
+.footer-sitemap a:hover .sitemap-ic { opacity: 1; }
+.footer-sitemap a.sitemap-title { align-items: center; min-height: 44px; box-sizing: border-box; margin-bottom: 0.35rem; border-bottom: 1px solid var(--ui-color-border-default); color: var(--ui-color-text-default); font-weight: 700; }
+.footer-sitemap .sitemap-title .sitemap-ic { opacity: 1; }
+.footer-sitemap .sitemap-links { margin: 0.25rem 0.5rem 0.75rem; padding-inline-start: 0.5rem; border-inline-start: 1px solid var(--ui-color-border-default); }
 @media (prefers-reduced-motion: reduce) {
   .footer-sitemap .sitemap-chevron { transition: none; }
 }
@@ -3291,45 +3307,8 @@ footer a{color:var(--muted);text-decoration:underline}
 footer a:hover{color:var(--dark)}
 footer .founded-badge{margin-top:.5rem}
 .docs-license{margin:.5rem 0 0;font-size:.6875rem;font-weight:300;line-height:1.6}
-/* Footer sitemap - the whole docs set, ten columns (see FOOTER_SECTIONS).
-   auto-fit is right for a handful of columns and wrong for ten: it maximises the
-   count, so 1180px yields seven and the last three sit alone on a second row under
-   four empty tracks. Explicit counts instead - 2 on a phone, 3 on a tablet, then 5.
-   Ten divides by both 2 and 5, so the phone and the desktop layouts are exactly
-   full (5 rows of two; 2 rows of five). The tablet band is the one that cannot be:
-   ten in threes leaves a single column on a fourth row, and the alternative (four
-   columns, 4+4+2) trades that for a half-empty row at a narrower column width.
-   align-items:start keeps a short column's links at the top of its row
-   rather than stretched down it. Columns read left-aligned inside a centred footer,
-   which is what makes them scannable as lists rather than as prose. Titles take
-   var(--text), not var(--dark), because --dark keeps its value in the dark theme
-   and would go invisible there. */
+/* Shared site map layout and controls live in docs-chrome.css. */
 .footer-sitemap{max-width:1180px;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
-.sitemap-expanded{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:1.25rem 1.5rem;margin-top:2rem}
-@media(min-width:34rem){.sitemap-expanded{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(min-width:64rem){.sitemap-expanded{grid-template-columns:repeat(5,minmax(0,1fr))}}
-.footer-sitemap a{display:flex;align-items:flex-start;gap:.45em;color:var(--muted);text-decoration:none;padding:.15rem 0 .15rem;line-height:2;min-width:0;overflow-wrap:anywhere;hyphens:auto}
-.footer-sitemap a:hover{color:var(--green);text-decoration:underline}
-/* Every sitemap link opens with the SAME glyph the docs sidebar gives that page
-   (SIDEBAR_ICON - one page→icon mapping, both navs), so the landmark a reader
-   learned on the rail keeps working down here. Decorative: aria-hidden spans,
-   sized in em to the footer's own text so rows and the smaller uppercase headings
-   each get a matching icon from one rule. margin-top holds the 1.5em glyph on the
-   FIRST line of the 2-line-height row when a label wraps. */
-.footer-sitemap .sitemap-ic{flex:none;width:1.5em;height:1.5em;margin-top:.22em;opacity:.6;color:var(--green)}
-.footer-sitemap .sitemap-ic svg{width:100%;height:100%;display:block}
-.footer-sitemap a:hover .sitemap-ic{opacity:1}
-/* The column heading is a LINK to its pathway's main page. That is what pays for
-   the full enumeration: the overview never costs a row of its own, and the two or
-   three columns a long pathway is split across all point their heading at the same
-   hub. It keeps the heading's own weight and colour rather than the muted link
-   treatment two rules above - declared AFTER them so it wins without a specificity
-   fight - and takes the underline only on hover, so it reads as a heading first and
-   a destination second. footer a{text-decoration:underline} is the rule overridden. */
-.sitemap-title{font-size:.6875rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text);font-weight:700;margin-bottom:.5rem;text-decoration:none}
-.footer-sitemap a.sitemap-title{color:var(--text)}
-.footer-sitemap a.sitemap-title:hover{color:var(--green);text-decoration:underline}
-.sitemap-title .sitemap-ic{ width:2em; height:2em; color:var(--text);}
 
 /* Mobile */
 @media(max-width:900px){

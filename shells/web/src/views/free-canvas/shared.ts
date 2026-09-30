@@ -380,6 +380,8 @@ export interface HistoryApi {
 export interface DeepLinkState {
   /** Box ids to select; unknown ids are ignored. */
   select?: string[];
+  page?: string;
+  timeline?: boolean;
   /** Playhead position in seconds - opens the timeline and parks the playhead there. */
   playhead?: number;
   /** A panel to open over the selection: `choreograph` today. */

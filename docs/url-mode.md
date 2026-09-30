@@ -88,7 +88,7 @@ lolly qr-code
 
 ### Shareable link
 
-The web shell writes the current input state to the URL query automatically as inputs change - copy from the address bar at any time.
+The web shell writes inputs, result settings and supported workspace state to the address bar as they change. Copy that address to bookmark the workspace. Use **Share** to create a content link: the recipient gets the inputs and result settings without your editor selection, viewport, open panels or local session pointer. Explicit false and cleared values survive reopening, and long text is retained rather than silently truncated. See [App links and deep links](/info/url-app-links.html) for the workspace keys and device-local limits.
 
 ### Pre-filled embed
 

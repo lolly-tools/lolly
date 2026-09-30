@@ -42,6 +42,7 @@ let backs = 0;
 
 const { mountModal } = await import('../components/modal.ts');
 const { mountBodyPopover } = await import('../components/body-popover.ts');
+const { updateRouteParams } = await import('./url-state.ts');
 
 const fire = (type: string): void => { window.dispatchEvent(new dom.window.Event(type)); };
 const dialogs = (): number => document.querySelectorAll('dialog').length;
@@ -152,6 +153,20 @@ test('closing a nested source dialog preserves its parent menu through the histo
     assert.equal(menus(), 0);
   }
   coarse = true;
+});
+
+test('closing a dialog preserves address edits on the view entry underneath', async () => {
+  history.replaceState(null, '', '/#/p?view=list');
+  const modal = mountModal('<p>Options</p>', { className: 'modal' });
+  updateRouteParams({ view: 'preview', sort: 'name' });
+  backs = 0;
+  modal.close();
+  await settle();
+  assert.equal(backs, 1, 'address edits do not strand the overlay entry');
+  history.replaceState(null, '', '/#/p?view=list');
+  fire('popstate');
+  assert.equal(new URLSearchParams(location.hash.split('?')[1]).get('view'), 'preview');
+  assert.equal(new URLSearchParams(location.hash.split('?')[1]).get('sort'), 'name');
 });
 
 test('a menu on a coarse pointer pushes exactly one entry per open', async () => {

@@ -1019,7 +1019,7 @@ function build(model, args, palette) {
     intensity: Math.max(0,Math.min(1,Number(args.backgroundIntensity) || 0)), variation: Number(args.variation) || 1, strictPalette: !!args.strictPalette,
     kitVideo: !!args.kitVideo, sceneOrder: str(args.sceneOrder).split(/[\s,]+/).filter(Boolean),
     roomFilter: str(args.roomFilter), trackFilter: str(args.trackFilter), eventDay: str(args.eventDay),
-    layout: mode, look: style, background: args.backdrop || 'silk', motion: args.motion || 'calm', distance: args.distance || 'room',
+    layout: mode, look: style, background: args.backdrop || 'depth', motion: args.motion || 'calm', distance: args.distance || 'room',
     dwell: Math.max(5, Number(args.dwell) || 12), speed: Math.max(15, Number(args.panSpeed) || 45),
     tz: args.icsZone || '', zoneWarning: args.zoneWarning || '', referenceMs: reference && reference.ms, clockMode: args.clockMode || 'snapshot',
     labels: {now:wordOf(model,'nowLabel','Now'),next:wordOf(model,'nextLabel','Next')},

@@ -45,7 +45,7 @@ test('refused: not the scheme, invented routes, half addresses, injection charac
   assert.equal(deepLinkToHash('lolly://tool/qr-code?url=<script>'), null);
   assert.equal(deepLinkToHash('lolly://lab?x="y"'), null);
   assert.equal(deepLinkToHash('lolly://lab?x=a b'), null);
-  assert.equal(deepLinkToHash(`lolly://lab?x=${'a'.repeat(5000)}`), null);
+  assert.equal(deepLinkToHash(`lolly://lab?x=${'a'.repeat(66000)}`), null);
   assert.equal(deepLinkToHash(42 as unknown as string), null);
 });
 
@@ -62,7 +62,7 @@ test('web+lolly: gets no looser grammar than the bare scheme', () => {
   assert.equal(deepLinkToHash('web+lolly://not-a-route/anything'), null);
   assert.equal(deepLinkToHash('web+lolly://tool/'), null, 'tool with no id');
   assert.equal(deepLinkToHash('web+lolly://lab?x="y"'), null, 'injection characters are refused either way');
-  assert.equal(deepLinkToHash(`web+lolly://lab?x=${'a'.repeat(5000)}`), null);
+  assert.equal(deepLinkToHash(`web+lolly://lab?x=${'a'.repeat(66000)}`), null);
   assert.equal(deepLinkToHash('web-lolly://lab'), null, 'only the web+ prefix is the PWA spelling');
   assert.equal(deepLinkToHash('weblolly://lab'), null);
 });
@@ -83,4 +83,13 @@ test('toLollyAppLink refuses foreign origins and routes the app does not own', (
   assert.equal(toLollyAppLink('https://example.com/t/qr-code?url=x'), null);
   assert.equal(toLollyAppLink('https://lolly.tools/tool'), null);
   assert.equal(toLollyAppLink('not a URL'), null);
+});
+
+
+test('History, Learning and long tool-page links reach the app route', () => {
+  assert.equal(deepLinkToHash('lolly://history?q=poster'), '#/history?q=poster');
+  assert.equal(deepLinkToHash('lolly://learning?slot=one'), '#/learning?slot=one');
+  const link = `lolly://t/design?bx=${'a'.repeat(5000)}`;
+  assert.equal(deepLinkToHash(link), `#/tool/design?bx=${'a'.repeat(5000)}`);
+  for (const path of ['api', 'info', 'fonts', 'models']) assert.equal(deepLinkToHash(`lolly://${path}`), null);
 });

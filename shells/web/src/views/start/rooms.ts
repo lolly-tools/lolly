@@ -7,6 +7,7 @@
  * function as a value (an event listener), goes through `start.<module>.<fn>`. Extracted verbatim
  * from mountStart() by scripts/split-closure.ts.
  */
+import { updateRouteParams, bindDisclosureUrl, routeParams } from '../../lib/url-state.ts';
 import { mountOverviewRoom, readOverview } from '../../lib/design-system/rooms/overview.ts';
 import { mountUsageRoom } from '../../lib/design-system/rooms/usage.ts';
 import { isStartArea } from '../../lib/design-system/start-route.ts';
@@ -92,17 +93,8 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
   if (area === 'overview') start.overview?.refresh();
   if (area === 'versions') start.openVersions();
   syncPaletteSheet(start);
-  // Keep the URL shareable without spamming history.
-  // `area` is deliberately the ONLY param that survives: `focus`, `wheel`, `import`,
-  // `source` and `seed` are one-shot flags, consumed on mount and never propagated
-  // into a generated link (the contract in lib/design-system/start-route.ts). So a
-  // room click dropping them is the design, not a regression - the URL you copy
-  // afterwards says which room you are in, not which wing you once opened.
-  try {
-    history.replaceState(null, '', `#/start?area=${area}`);
-  } catch {
-    /* sandboxed */
-  }
+  // Room navigation consumes import actions and keeps the current workspace.
+  updateRouteParams({ area, tab: null, focus: area === 'color' ? routeParams().get('focus') : null, wheel: null, import: null, source: null, seed: null });
   if (opts.sfx) playSfx('click');
 };
 /**
@@ -115,6 +107,7 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
  * and `stage` put a decision in front of the person and wait for it.
  */
 export function openFocus(start: StartCtx, area: StartArea, focus: string): void {
+  updateRouteParams({ focus });
   if (focus === 'looks') { void start.looks.openLooks(); return; }
   if (area === 'type') {
     if (focus === 'stage') start.editor?.openTypeStage?.('brand');
@@ -211,6 +204,8 @@ export function wireFocusRoute(start: StartCtx): void {
   // that ever draws a starter tile. Same consume-on-mount, no-op-when-degraded
   // contract as the wing flags above.
   if (start.activeArea === 'color' && route.group) start.editor?.openStarterGroup?.(route.group);
+  start.editorRoot?.querySelectorAll<HTMLElement>('[data-be-wing]').forEach(wing => { wing.id = `start-wing-${wing.dataset.beWing}`; });
+  if (start.editorRoot) bindDisclosureUrl(start.editorRoot);
 }
 
 export function roomsOps(start: StartCtx) {

@@ -59,7 +59,7 @@ let themeTransitionTimer: ReturnType<typeof setTimeout> | undefined;
  * Apply a theme, persist it to localStorage (for FOUC prevention), and
  * optionally animate the colour transition.
  */
-export function applyTheme(theme: string, animate = true): void {
+export function applyTheme(theme: string, animate = true, persist = true): void {
   const html = document.documentElement;
   // Migrate the retired theme name wherever it's still stored (old profiles,
   // old localStorage) - the CSS block and the cycle only know 'brand' now.
@@ -72,7 +72,7 @@ export function applyTheme(theme: string, animate = true): void {
   }
 
   html.dataset.theme = theme;
-  localStorage.setItem('theme', theme);
+  if (persist) localStorage.setItem('theme', theme);
 
   // Keep the browser/PWA chrome colour in step with the theme. Prefer the LIVE
   // --background triple (the brand theme is constructed at runtime, so the
@@ -128,6 +128,8 @@ const TOOL_ADDRESS = /^\/?(tool\/|t\/|design$)/;
  */
 export function urlThemeOverride(): Theme | null {
   const [hashPath, hashQuery = ''] = window.location.hash.slice(1).split('?');
+  const workspace = new URLSearchParams(hashQuery).get('_appearance') ?? new URLSearchParams(window.location.search).get('_appearance');
+  if (workspace && THEME_VALUES.has(workspace)) return workspace as Theme;
   if (TOOL_ADDRESS.test(hashPath || window.location.pathname)) return null;
   const v = new URLSearchParams(hashQuery).get('theme')
     ?? new URLSearchParams(window.location.search).get('theme');

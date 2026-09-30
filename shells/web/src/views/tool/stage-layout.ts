@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
+import { replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { acquireCollabSession } from '../../lib/collab-session-source.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
@@ -80,7 +81,7 @@ export function updateFullParam(tview: ToolViewCtx, shouldBeFull: boolean): void
   const parts: string[] = [];
   for (const [k, v] of sp.entries()) parts.push(v ? `${k}=${encodeURIComponent(v)}` : k);
   const q = parts.join('&');
-  history.replaceState(history.state, '', q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
+  replaceRouteUrl(q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
 }
 // ── Responsive canvas ─────────────────────────────────────────────────────
 //
@@ -464,13 +465,12 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
               ? `
           <span class="render-pill-sep" aria-hidden="true"></span>
           ${
-            /* This half opens the "Save as…" dialog (a project, or a template), so it is
-                named for what it does; the export sheet's own Save is the silent quick
-                save and keeps the plain "Save" label (plans/226 D7 + D12). */ ''
+            /* A quick save in place, like the export sheet's own Save. The "Save as…"
+                dialog (a project, or a template) is on the export panel and the Design menu. */ ''
           }
-          <button type="button" class="render-pill-btn render-pill-save" id="render-save" data-sfx="save" aria-label="${escapeText(t('Save as'))}" title="${escapeText(t('Save as'))}">
+          <button type="button" class="render-pill-btn render-pill-save" id="render-save" data-sfx="save" aria-label="${escapeText(t('Save'))}" title="${escapeText(t('Save'))}">
             <svg class="render-pill-icon render-pill-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-            <span data-save-label>${t('Save as')}</span>
+            <span data-save-label>${t('Save')}</span>
           </button>`
               : ''
           }
@@ -817,6 +817,21 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
         autoDockHud: !designChrome,
       }
     );
+    const zoom = tview.stageZoom;
+    let lastView = '';
+    const offView = zoom.subscribe(() => {
+      if (isIframeMode() || !zoom.isUserZoomed() || zoom.isSuspended()) return;
+      const view = JSON.stringify(zoom.viewState());
+      if (view === lastView) return;
+      lastView = view;
+      updateRouteParams({ _view: view });
+    });
+    tview.mountLifecycle.add('viewport URL', offView);
+    const linkedView = tview.urlFlags.get('_view');
+    if (linkedView) requestAnimationFrame(() => {
+      if (!viewEl.isConnected) return;
+      try { zoom.applyView(JSON.parse(linkedView)); } catch { /* unreadable viewport */ }
+    });
     // The Artboards navigator (free-canvas) asks the stage to frame one artboard by
     // dispatching `fc-focus-rect` with the frame's native rect - the overlay never
     // touches the pan/zoom transform itself. Wired here because only tool.ts holds the
@@ -1029,6 +1044,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       // export-open removal actually hides it (docked, it lives outside the overlay).
       if (isDocked('export')) releaseDock('export');
       layout.classList.remove('export-open');
+      if (!isIframeMode() && wasOpen) updateRouteParams({ options: null });
       renderFab.setAttribute('aria-expanded', 'false');
       actionsApi?.stopAudioPreview?.(); // silence any audio audition when the popup closes
       // The pneumatic 'pushhh' as the door seals shut - here (not on the close controls)
@@ -1059,6 +1075,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     const exportOpenHooks = new Set<() => void>();
     const openExport = ({ focus = true }: { focus?: boolean } = {}): void => {
       layout.classList.add('export-open');
+      if (!isIframeMode()) updateRouteParams({ options: '' });
       renderFab.setAttribute('aria-expanded', 'true');
       applyModality();
       // Let the panel refresh anything derived from live state (the auto

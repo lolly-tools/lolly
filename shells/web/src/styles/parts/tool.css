@@ -46,6 +46,7 @@
   font: inherit;
   font-size: calc(15px * var(--a11y-fs));
   font-weight: 700;
+  white-space: nowrap;      /* a label that wraps breaks the pill's shape */
   padding: 13px 22px;
   cursor: pointer;
   transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard), color var(--ui-motion-feedback) var(--ui-motion-standard);

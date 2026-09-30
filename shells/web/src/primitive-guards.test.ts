@@ -653,6 +653,8 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  // System IDs, labels and translated status copy are escaped; icons are registry markup.
+  'components/design-system-menu.ts': 3,
   // Read the already-hydrated studio marker in an inert template; never mount its content.
   'views/studio3d-collection.ts': 1,
   'bridge/clipboard.ts': 2,
@@ -1332,7 +1334,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // is static.
   'views/profile/shell.ts': 1,        // the one page write: every card's markup, values escape()d or t()
   'views/profile/rows.ts': 6,         // the feature-flag, a11y, chrome-follow and render-save lists
-  'views/profile/storage.ts': 6,      // the storage meter, session and image lists, the dialogs
+  'views/profile/storage.ts': 4,      // the storage meter, session and image lists (6 → 4 on 2026-09-30: the reclaim and quota lines went with the regrouped card)
   'views/profile/offline.ts': 2,      // the download-manager list and the persistence line
   'views/profile/identity.ts': 4,     // the credentials card: status, enrol form and its errors
   'views/projects.ts': 8,   // View-options markup moved to its shared-popover adapter.
@@ -1968,7 +1970,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 101 → 100: the library uses semantic radii throughout.
     // 100 → 98: Design panel and thumbnail-cell radii use semantic tokens.
     // 96 → 94: the sidebar's history and language buttons took --radius-sm.
-    pin: 92,
+    // 92 → 91 on 2026-09-30: the Storage card's big archive button became a plain .btn.
+    pin: 91,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },

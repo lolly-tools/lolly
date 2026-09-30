@@ -191,3 +191,34 @@ test('createProfileControl returns an icon-only .profile-link that opens the con
   assert.equal(menu(), null);
   link.remove();
 });
+
+test('design systems open as a child picker without navigating and close with the profile menu', async () => {
+  const switchHost = {
+    ...host,
+    designSystems: {
+      list: async () => [{ id: 'one', label: 'First system' }, { id: 'two', label: 'Second system' }],
+      activeId: async () => 'two',
+    },
+  };
+  const detach = attachProfileMenu(trigger(), switchHost);
+  try {
+    trigger().click();
+    const row = menu()!.querySelector<HTMLButtonElement>('[data-act="design-system"]')!;
+    assert.equal(row.tagName, 'BUTTON');
+    row.click(); await tick();
+    const child = document.querySelector<HTMLElement>('.design-system-menu')!;
+    assert.ok(child);
+    assert.equal(child.querySelector('[aria-checked="true"]')?.textContent, 'Second system');
+    pointerDownOn(child.querySelector('button')!);
+    assert.ok(menu(), 'parent stays open during child interaction');
+    const url = window.location.href;
+    child.querySelector<HTMLButtonElement>('[aria-checked="true"]')!.click();
+    assert.equal(window.location.href, url);
+    assert.equal(document.querySelector('.design-system-menu'), null);
+    assert.equal(document.activeElement, row);
+    row.click(); await tick();
+    assert.ok(document.querySelector('.design-system-menu'));
+    detach();
+    assert.equal(document.querySelector('.design-system-menu'), null);
+  } finally { detach(); }
+});

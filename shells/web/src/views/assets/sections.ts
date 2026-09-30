@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { replaceRouteUrl } from '../../lib/url-state.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
@@ -366,7 +367,7 @@ export function syncAssetUrl(_cat: CatCtx, id: string | null): void {
   if (id) params.set('asset', id);
   else params.delete('asset');
   const q = params.toString();
-  history.replaceState(history.state, '', `${location.pathname}${path}${q ? `?${q}` : ''}`);
+  replaceRouteUrl(`${location.pathname}${path}${q ? `?${q}` : ''}`);
 }
 // Open the Verify checker (#/verify) on this asset and auto-run the on-device C2PA
 // check - the authoritative source for the AI provenance the badge summarises. The

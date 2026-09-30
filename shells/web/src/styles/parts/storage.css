@@ -335,18 +335,6 @@
 }
 .clear-confirm-input:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 
-/* "Export my data & render everything" - the headline archive action, so it's a big,
-   celebratory full-width CTA that stands clearly apart from the smaller export/import row
-   above it (it also earns a victory fanfare when it fires). */
-.storage-hoard-btn {
-  display: block; width: 100%; margin-top: 16px; text-align: center;
-  padding: 15px 22px; font-size: var(--fs-xl); font-weight: 650; line-height: 1.25;
-  border-radius: 12px; border-color: hsl(var(--primary) / 0.55);
-  box-shadow: inset 0 1px #fff3, 0 2px 8px hsl(var(--primary) / 0.14);
-}
-.storage-hoard-btn:hover { background: hsl(var(--primary) / 0.08); border-color: hsl(var(--primary)); }
-.storage-hoard-hint { margin: 6px 2px 0; font-size: var(--fs-sm); line-height: 1.5; color: hsl(var(--muted-foreground)); }
-.storage-hoard-hint strong { color: hsl(var(--foreground)); font-weight: 600; }
 
 /* The confirm gate reuses the clear-all dialog's layout, but this action is celebratory
    (a big backup, nothing destroyed) - so the primary "go" button uses the accent colour
@@ -385,15 +373,9 @@
 .profile-view .store-chip-sw[data-cat="durable"] { background: hsl(var(--store-12, 8 62% 60%)); }
 
 /* Version history (plan 277 P4): checkpoints, their previews and recovery drafts,
-   in a magenta held apart from the violet and pink slices above. The row wraps its
-   breakdown under the name and its two actions under both on a narrow screen. */
+   in a magenta held apart from the violet and pink slices above. */
 .profile-view .store-bar .seg[data-cat="history"],
 .profile-view .store-chip-sw[data-cat="history"] { background: hsl(var(--store-13, 296 48% 52%)); }
-.profile-view .store-manage[data-cat="history"] { flex-wrap: wrap; padding: .5rem 0; }
-.profile-view .store-manage[data-cat="history"] .store-manage-name { display: block; flex: 1 1 18rem; min-width: 0; overflow-wrap: anywhere; }
-.profile-view .store-manage[data-cat="history"] small { display: block; margin-top: .15rem; font-size: var(--fs-sm); font-weight: 400; line-height: 1.5; color: hsl(var(--muted-foreground)); }
-.profile-view .store-history-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
-.profile-view .store-history-actions .btn { min-height: 44px; }
 
 /* `.segmented-control`/`.segmented-btn` (component audit rec 1) used to live here -
    a byte-for-byte duplicate of `.view-seg`/`.view-seg-btn` (styles/parts/gallery.css)

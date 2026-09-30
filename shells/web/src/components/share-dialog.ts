@@ -159,6 +159,7 @@ export interface ShareDialogOpts {
   currentFormat?: string;
   /** dialog heading */
   title?: string;
+  onClose?: () => void;
   /**
    * What the link can't carry (from `buildShareParams`). When supplied, the dialog
    * shows a content-loss verdict naming the drops; when omitted (e.g. the Projects
@@ -184,7 +185,7 @@ export interface ShareDialogOpts {
  * @param {string} [o.title]       dialog heading
  */
 export function openShareDialog(opts: ShareDialogOpts): HTMLDialogElement {
-  return renderShareSurface(opts, content => mountModal<void>(content, { className: 'share-dialog' }), true) as HTMLDialogElement;
+  return renderShareSurface(opts, content => mountModal<void>(content, { className: 'share-dialog', onClose: opts.onClose }), true) as HTMLDialogElement;
 }
 
 /** The same controls in a docked panel, without a second modal or focus theft. */
@@ -446,7 +447,12 @@ function renderShareSurface(
       : (shortestCb?.checked && packedToken) ? [`${PACK_PARAM}=${packedToken}`]
       : [...baseParts];
     const webUrl = shareUrlFromParts([...base, ...flags], toolId);
-    field.value = appLinkCb?.checked ? (toLollyAppLink(webUrl) ?? webUrl) : webUrl;
+    const appUrl = toLollyAppLink(webUrl);
+    if (appLinkCb) {
+      appLinkCb.disabled = !appUrl;
+      if (!appUrl) appLinkCb.checked = false;
+    }
+    field.value = appLinkCb?.checked && appUrl ? appUrl : webUrl;
   };
 
   // Compute the packed form once. Only offer "Shortest link" when the codec is

@@ -14,7 +14,8 @@ import { isTauriShell } from '../../lib/instance-choice.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { staggerReveal } from '../../lib/reveal.ts';
 import { escape as escapeText } from '../../utils.ts';
-import { icon } from '../../lib/icons.ts';
+import { icon, type IconName } from '../../lib/icons.ts';
+import { groupSummaryRow, rowSummaryRow } from './shared.ts';
 import { announce } from '../../a11y.ts';
 import { pinRecords, pinTool, unpinAll, unpinTool } from '../../lib/offline-pins.ts';
 import type { PinRecord } from '../../lib/offline-pins.ts';
@@ -136,11 +137,19 @@ export async function loadOffline(pv: ProfileViewCtx) {
     })),
   ];
 
+  // Each part's picture: a plain glyph, so the list scans without reading.
+  const PART_GLYPHS: Record<OfflinePartId, IconName> = {
+    app: 'monitor', catalog: 'photos', docs: 'document', speech: 'speech', upscale: 'resize', matte: 'scissors',
+    ocr: 'font', verify: 'shieldCheck', durable: 'seal', reword: 'pen', ask: 'messageCircle', 'ai-detect': 'aiSpark',
+  };
+  // One part: its glyph and name, then its size or state on the row (syncPartRow
+  // fills [data-part-value]); the body holds the description, the catalogue's tag
+  // choice, the state line and the buttons.
   const partRowHtml = (p: PartDef): string => `
-      <li class="odl-part" data-part="${p.id}">
-        <div class="odl-part-info">
-          <span class="odl-part-name">${escapeText(p.name)}${p.model ? ` <span class="odl-part-heavy" data-part-heavy hidden>${t('large download')}</span>` : ''}</span>
-          <span class="odl-part-desc">${escapeText(p.desc)}</span>
+      <details class="profile-row odl-part" data-part="${p.id}">
+        ${rowSummaryRow(`<span class="profile-mark" aria-hidden="true">${icon(PART_GLYPHS[p.id])}</span>`, escapeText(p.name), `<span class="profile-row-value" data-part-value="${p.id}"></span>`)}
+        <div class="profile-row-body">
+          <p class="profile-row-desc">${escapeText(p.desc)}</p>
           ${p.id === 'catalog' && catSummary?.tags.length ? `
           <details class="odl-tagscope">
             <summary>${t('Choose by tag')}</summary>
@@ -149,12 +158,21 @@ export async function loadOffline(pv: ProfileViewCtx) {
             </div>
           </details>` : ''}
           <span class="odl-part-sub" data-part-sub="${p.id}" aria-live="polite"></span>
+          <div class="profile-row-actions">
+            <button type="button" class="btn" data-part-dl="${p.id}">${t('Download')}</button>
+            ${p.model ? `<span class="odl-part-heavy" data-part-heavy hidden>${t('large download')}</span>` : ''}
+            <button type="button" class="btn-link-danger" data-part-rm="${p.id}" hidden>${t('Remove')}</button>
+          </div>
         </div>
-        <span class="odl-part-actions">
-          <button type="button" class="btn" data-part-dl="${p.id}">${t('Download')}</button>
-          <button type="button" class="btn-link-danger" data-part-rm="${p.id}" hidden>${t('Remove')}</button>
-        </span>
-      </li>`;
+      </details>`;
+  // The three groups the list folds into: what makes the app work offline, the
+  // on-device AI models, and the tools one by one.
+  const CONTENT_PARTS: readonly OfflinePartId[] = ['app', 'catalog', 'docs'];
+  const partGroupHtml = (group: string, title: string, ids: readonly OfflinePartId[]): string => `
+      <details class="profile-group" data-odl-group="${group}">
+        ${groupSummaryRow(title)}
+        <div class="profile-group-body"><div class="profile-rows odl-parts">${partDefs.filter(p => ids.includes(p.id)).map(partRowHtml).join('')}</div></div>
+      </details>`;
 
   body.innerHTML = `
       <p class="storage-hint-text">${isTauriShell() ? t('Heading somewhere with no connection? Download what you need and it all keeps working - the app, your tools, the catalogue and the docs. Downloads stay on this device and refresh themselves when you are back online.') : t('Heading somewhere with no connection? Download what you need and it all keeps working - the app, your tools, the catalogue and the docs. Downloads stay in this browser and refresh themselves when you are back online.')}</p>
@@ -168,20 +186,32 @@ export async function loadOffline(pv: ProfileViewCtx) {
         <div class="odl-progress-track" role="progressbar" aria-label="${escapeText(t('Offline download progress'))}" aria-valuemin="0" aria-valuemax="100"><div class="odl-progress-fill"></div></div>
         <span class="odl-progress-text" aria-live="polite"></span>
       </div>
-      <ul class="odl-parts">${partDefs.map(partRowHtml).join('')}</ul>
-      <p class="odl-persist" id="odl-persist" hidden></p>
-      <h3 class="odl-subhead">${t('Tools')}</h3>
-      <p class="storage-hint-text">${isTauriShell() ? t('Download a tool to keep it working with no connection - its template, hooks and fonts are stored on this device. The tick means ready offline.') : t('Download a tool to keep it working with no connection - its template, hooks and fonts are stored in this browser. The tick means ready offline.')}</p>
-      <div class="odl-head">
-        <span class="odl-total" id="odl-total" aria-live="polite"></span>
-        <button type="button" id="odl-all" class="btn">${t('Download all')}</button>
-        <button type="button" id="odl-none" class="btn-link-danger">${t('Remove all')}</button>
+      <div class="odl-groups">
+      ${partGroupHtml('content', t('App, catalogue and guides'), CONTENT_PARTS)}
+      ${partGroupHtml('models', t('AI models'), MODEL_PART_IDS)}
+      <details class="profile-group" data-odl-group="tools">
+        ${groupSummaryRow(t('Tools'))}
+        <div class="profile-group-body odl-tools">
+          <p class="profile-row-desc">${isTauriShell() ? t('Download a tool to keep it working with no connection - its template, hooks and fonts are stored on this device. The tick means ready offline.') : t('Download a tool to keep it working with no connection - its template, hooks and fonts are stored in this browser. The tick means ready offline.')}</p>
+          <div class="odl-head">
+            <span class="odl-total" id="odl-total" aria-live="polite"></span>
+            <button type="button" id="odl-all" class="btn">${t('Download all')}</button>
+            <button type="button" id="odl-none" class="btn-link-danger">${t('Remove all')}</button>
+          </div>
+          <input type="search" class="odl-search" placeholder="${escapeText(t('Search tools…'))}" aria-label="${escapeText(t('Search tools'))}">
+          <ul class="odl-list">${tools.map(rowHtml).join('')}</ul>
+          <p class="odl-empty" hidden>${t('No tools match.')}</p>
+        </div>
+      </details>
       </div>
-      <input type="search" class="odl-search" placeholder="${escapeText(t('Search tools…'))}" aria-label="${escapeText(t('Search tools'))}">
-      <ul class="odl-list">${tools.map(rowHtml).join('')}</ul>
-      <p class="odl-empty" hidden>${t('No tools match.')}</p>`;
+      <p class="odl-persist" id="odl-persist" hidden></p>`;
   staggerReveal([...body.children], { sound: false });
 
+  // A folded group's value: how many of its items are downloaded.
+  const setGroupValue = (group: string, n: number, total: number): void => {
+    const el = body.querySelector<HTMLElement>(`[data-odl-group="${group}"] > summary [data-group-value]`);
+    if (el) el.textContent = tRaw('{n} of {total} downloaded', { n, total });
+  };
   const totalEl = body.querySelector<HTMLElement>('#odl-total')!;
   const allBtn = body.querySelector<HTMLButtonElement>('#odl-all')!;
   const noneBtn = body.querySelector<HTMLButtonElement>('#odl-none')!;
@@ -189,6 +219,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
     const recs = Object.entries(pins).filter(([id]) => tools.some(tl => tl.id === id));
     const bytes = recs.reduce((n, [, r]) => n + (r.bytes || 0), 0);
     totalEl.textContent = t('{n} of {total} downloaded · {size} on disk', { n: recs.length, total: tools.length, size: fmtBytes(bytes) });
+    setGroupValue('tools', recs.length, tools.length);
     allBtn.hidden = recs.length >= tools.length;
     noneBtn.hidden = recs.length === 0;
   };
@@ -409,6 +440,9 @@ export async function loadOffline(pv: ProfileViewCtx) {
       catalog: id === 'catalog',
     });
     sub.textContent = state.sub;
+    // The row already shows a plain size, so the line under the description only
+    // speaks when it says more than that.
+    sub.hidden = !partState[id] && !readyNow[id] && state.sub === (planned(id) > 0 ? fmtBytes(planned(id)) : '');
     // The tag only where a download is on offer and it is big.
     const heavy = row.querySelector<HTMLElement>('[data-part-heavy]');
     if (heavy) heavy.hidden = state.dl.hidden || state.dl.disabled || !isModelPart(id) || !isHeavy(modelInfo[id].bytes);
@@ -416,6 +450,24 @@ export async function loadOffline(pv: ProfileViewCtx) {
     dl.disabled = state.dl.disabled;
     dl.hidden = state.dl.hidden;
     rm.hidden = state.rm.hidden;
+    // On the row itself: Downloaded as a tag, an update, or what is left to download.
+    const value = row.querySelector<HTMLElement>(`[data-part-value="${id}"]`);
+    if (value) {
+      const done = partDone(id);
+      value.className = done ? 'profile-row-tag' : 'profile-row-value';
+      value.textContent = done ? t('Downloaded')
+        : rec && isStale(id) && partAvailable[id] ? t('Update available')
+        : state.dl.hidden ? ''
+        : planned(id) > 0 ? fmtBytes(planned(id)) : '';
+    }
+  };
+  // Downloaded and current, or already here from a feature's first use.
+  const partDone = (id: OfflinePartId): boolean => (partState[id] ? !(isStale(id) && partAvailable[id]) : !!readyNow[id]);
+  const syncPartGroups = (): void => {
+    for (const [group, ids] of [['content', CONTENT_PARTS], ['models', MODEL_PART_IDS]] as const) {
+      const offered = ids.filter(id => partAvailable[id] || partDone(id));
+      setGroupValue(group, offered.filter(partDone).length, offered.length);
+    }
   };
 
   // The heavyweight on-device AI models. Kept OUT of the plain "Download everything"
@@ -445,6 +497,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
         : modelIds.length ? t('all saved') : '';
     }
     for (const id of ['app', 'docs', 'speech', 'upscale', 'matte', 'ocr', 'reword', 'ask', 'ai-detect', 'verify', 'durable', 'catalog'] as const) syncPartRow(id);
+    syncPartGroups();
     // A live run owns row enablement: syncPartRow reads storage state, so it
     // would re-enable rows the run just froze. This fires from async
     // re-pricing (tag chips, the recorded-scope restore) too, which is
@@ -588,7 +641,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
     }
   };
 
-  body.querySelector('.odl-parts')?.addEventListener('click', async e => {
+  const onPartsClick = async (e: Event): Promise<void> => {
     const dl = (e.target as HTMLElement).closest<HTMLElement>('[data-part-dl]');
     if (dl) { await runParts([dl.dataset.partDl as OfflinePartId]); return; }
     const rm = (e.target as HTMLElement).closest<HTMLElement>('[data-part-rm]');
@@ -611,7 +664,8 @@ export async function loadOffline(pv: ProfileViewCtx) {
     syncSweepSize();
     announce(t('Offline download removed'));
     await pv.storage.refreshCounter();
-  });
+  };
+  body.querySelectorAll('.odl-parts').forEach(list => { list.addEventListener('click', e => { void onPartsClick(e); }); });
 
   // Tag chips re-price the catalogue row live (asset-accurate, not tag sums).
   // Scope drift is tracked on a FLAG, never by deleting the record from the

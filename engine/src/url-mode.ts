@@ -672,7 +672,10 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     inputsByKey[i.id] = i;
     if (i.urlKey) inputsByKey[i.urlKey] = i;
     if (i.type === 'vector') {
-      for (const f of i.fields ?? []) vectorFieldByKey[`${i.id}.${f.id}`] = { input: i, field: f };
+      for (const f of i.fields ?? []) {
+        vectorFieldByKey[`${i.id}.${f.id}`] = { input: i, field: f };
+        if (i.urlKey) vectorFieldByKey[`${i.urlKey}.${f.id}`] = { input: i, field: f };
+      }
     }
   }
 
@@ -799,7 +802,8 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   const params = new URLSearchParams();
   for (const input of model) {
     if (!isTokenValue(input.value) && isAlias(input.restoreTokenRef)) params.set(`_restore.${input.id}`, input.restoreTokenRef);
-    if (input.value === null || input.value === undefined) continue;
+    if (input.value === undefined || (input.value === null && input.type !== 'asset')) continue;
+    if (input.type === 'asset' && input.value === null) { params.set(input.id, ''); continue; }
     // A picked file is binary user content - it has no shareable URL form (its
     // bytes live only in memory on this device). Never serialise it.
     if (input.type === 'file') continue;
@@ -820,12 +824,6 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
         }
       }
       continue;
-    }
-    if (input.value === '' && !input.required && !input.restoreTokenRef) continue;
-    // An empty grid (no headings, no rows) is the blank state - omit it.
-    if (input.type === 'table') {
-      const t = normalizeTableValue(input.value);
-      if (!t || (!t.columns.length && !t.rows.length)) continue;
     }
     const str = coerceToString(input, input.value, opts.keepUserIds === true);
     // A device-local `user/…` asset id never leaves the device (plan 171 made this
@@ -900,6 +898,7 @@ function coerceFromString(input: InputSpec, raw: string): InputValue {
       if (raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw)) return '#' + raw;
       return raw;
     case 'asset':
+      if (raw === '') return null;
       // Lightweight ref. The runtime resolves it before hydration. A Lolly tool
       // URL (a share link the user dropped into the picker) is a 'remote' asset
       // the runtime re-renders via host.compose.renderUrl; a plain id is a

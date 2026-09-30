@@ -57,7 +57,7 @@ test('Design attaches, edits curved native text, changes its guide, detaches and
     const savedPath=(await frame()).path.d;
     let portable=false;for(let attempt=0;attempt<100;attempt++){const params=await expandQuery(new URL(page.url()).search);const boxes=parseUrlState(params,manifest).values.boxes as Array<Record<string,unknown>>;if(boxes&&JSON.parse(String(boxes.find(box=>box.id==='text')!.textFrame)).path.d===savedPath){portable=true;break;}await page.waitForTimeout(50);}
     assert.ok(portable,'the completed guide edit reaches the share URL');
-    await page.keyboard.press('ControlOrMeta+s');await page.getByRole('dialog',{name:'Save as',exact:true}).getByRole('button',{name:'Save',exact:true}).click();await page.getByRole('dialog',{name:'Save as',exact:true}).waitFor({state:'detached'});await page.locator('.dtb-save-status[data-dirty="false"]').waitFor();
+    await page.keyboard.press('ControlOrMeta+s');await page.locator('.dtb-save-status[data-dirty="false"]').waitFor();
     const savedState=await state(page),savedSvg=await svg().evaluate(el=>el.outerHTML);await page.reload();await svg().waitFor();
     assert.deepEqual((await state(page)).boxes,savedState.boxes);assert.equal(await svg().evaluate(el=>el.outerHTML),savedSvg);
 

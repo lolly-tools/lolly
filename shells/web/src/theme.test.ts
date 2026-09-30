@@ -20,7 +20,7 @@ globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.localStorage = dom.window.localStorage;
 
-const { urlThemeOverride } = await import('./theme.ts');
+const { applyTheme, urlThemeOverride } = await import('./theme.ts');
 
 /** Point the jsdom window at one address. */
 function at(url: string): void {
@@ -62,4 +62,14 @@ test('a view whose path merely starts with the tool letters still reads it', () 
   assert.equal(urlThemeOverride(), 'dark');
   at('/#/data?theme=dark');
   assert.equal(urlThemeOverride(), 'dark');
+});
+
+test('workspace appearance is independent of artwork theme and does not persist on arrival', () => {
+  at('/t/quotes?theme=dark&_appearance=light');
+  assert.equal(urlThemeOverride(), 'light');
+  localStorage.setItem('theme', 'brand');
+  globalThis.CustomEvent = dom.window.CustomEvent;
+  applyTheme(urlThemeOverride()!, false, false);
+  assert.equal(document.documentElement.dataset.theme, 'light');
+  assert.equal(localStorage.getItem('theme'), 'brand');
 });

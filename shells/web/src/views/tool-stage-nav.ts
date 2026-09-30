@@ -102,6 +102,8 @@ export interface StageNavOpts {
 export interface StageNav {
   /** Restore the editor's view after a temporary authoring workspace. */
   preserveView?(): () => void;
+  viewState(): { scale: number; x: number; y: number };
+  applyView(state: { scale: number; x: number; y: number }): void;
   /** Hold view transforms during capture. Release after restoring the preview layout. */
   suspend(): () => void;
   isSuspended(): boolean;
@@ -1019,6 +1021,11 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   }
 
   return {
+    viewState: () => ({ scale, x: tx, y: ty }),
+    applyView(state) {
+      if (![state.scale, state.x, state.y].every(Number.isFinite) || state.scale < .01 || state.scale > 1000 || Math.abs(state.x) > 1e7 || Math.abs(state.y) > 1e7) return;
+      scale = state.scale; tx = state.x; ty = state.y; contentFit = false; apply();
+    },
     preserveView() {
       const saved = { scale, tx, ty, contentFit, contentFloor };
       let restored = false;

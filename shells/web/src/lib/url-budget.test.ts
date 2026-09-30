@@ -82,17 +82,17 @@ test('scalar: value equal to its declared default is skipped (status default, no
   assert.equal(r.emit, '');
 });
 
-test('scalar: empty string and boolean false are absent from the link', () => {
+test('scalar: omitted defaults and explicit false values use their declared baseline', () => {
   assert.equal(only(mk({ id: 'x', type: 'text', value: '' })).status, 'default');
-  assert.equal(only(mk({ id: 'b', type: 'boolean', value: false })).status, 'default');
+  assert.equal(only(mk({ id: 'b', type: 'boolean', value: false, default: true })).emit, 'b=false');
   assert.equal(only(mk({ id: 'b', type: 'boolean', value: true })).emit, 'b=true');
 });
 
-test('scalar: a short-scalar value over the 150-char cap is DROPPED (dropped-len), not truncated', () => {
+test('scalar: long content remains complete in a link', () => {
   // `text`/`url`/… stay capped: >150 chars in a single-line field is bloat, not the point.
   const r = only(mk({ id: 'blurb', type: 'text', value: 'x'.repeat(SCALAR_CAP + 1), label: 'Blurb' }));
-  assert.equal(r.status, 'dropped-len');
-  assert.equal(r.emit, '');
+  assert.equal(r.status, 'kept');
+  assert.equal(r.emit, `blurb=${'x'.repeat(SCALAR_CAP + 1)}`);
   assert.equal(r.label, 'Blurb');
 });
 
@@ -202,7 +202,7 @@ test('vector: one flat "id.field" param per non-default field', () => {
 
 // ── file / table (the latent-bug fix + the table-in-the-URL fix) ─────────────────
 test('file inputs are skipped entirely (no [object Object] garbage in the link)', () => {
-  assert.deepEqual(encodeModelParam(mk({ id: 'doc', type: 'file', value: { __file: true, path: 'x' } })), []);
+  assert.equal(only(mk({ id: 'doc', type: 'file', value: { __file: true, path: 'x' } })).status, 'dropped-asset');
 });
 
 test('table: an empty grid is default (0 bytes), never [object Object]', () => {
@@ -265,7 +265,7 @@ test('costUrlState: fidelity is a faithful projection of the dropped rows', () =
   ];
   const m = costUrlState({ model, exportParts: [] });
   assert.equal(m.fidelity.faithful, false);
-  assert.deepEqual(m.fidelity.droppedScalars, [{ id: 'big', label: 'Big' }]);
+  assert.deepEqual(m.fidelity.droppedScalars, []);
   assert.deepEqual(m.fidelity.excludedAssets, [{ id: 'img', label: 'Img' }]);
   // the projector and the model agree
   assert.deepEqual(fidelityFromParams(m.params), m.fidelity);
@@ -281,8 +281,8 @@ test('costUrlState: model rows carry removable/simplifiable flags the ledger dri
   assert.equal(t.removable, true);
   assert.equal(t.simplifiable, true);
   const big = m.params.find((p) => p.id === 'big')!; // dropped-len → neither
-  assert.equal(big.removable, false);
-  assert.equal(big.simplifiable, false);
+  assert.equal(big.removable, true);
+  assert.equal(big.simplifiable, true);
 });
 
 test('costUrlState: counts dedup by id across vector rows; length identity survives non-kept rows', () => {

@@ -62,6 +62,7 @@
  * a value one.
  */
 
+import { updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/color-lab.css';
 import '../styles/parts/platform.css';     // the .plat-client-* device cards at the foot of the page
 import '../lib/oklch-slice.css';           // the .okls-* chart rules (see oklch-slice.ts)
@@ -2291,13 +2292,7 @@ export async function mountColorLab(view: HTMLElement, host: ColorLabHost, param
    *  reproduces the sender's comparison verbatim on any display, instead of the
    *  recipient's own screen re-deciding it. */
   function syncUrl(): void {
-    const url = `#/lab?c=${encodeURIComponent(subject)}`
-      + (limitPinned && limitParam ? `&limit=${encodeURIComponent(limitParam)}` : '')
-      // The headroom axis rides along once it has been set, so an HDR-tuned link
-      // reproduces the sender's exposure. Independent of the display: the value is
-      // kept even where this screen has no headroom, so forwarding it stays honest.
-      + (nitsPinned ? `&nits=${exposureNits}` : '');
-    if (window.location.hash !== url) window.history.replaceState(null, '', url);
+    updateRouteParams({ c: subject, limit: limitPinned && limitParam ? limitParam : null, nits: nitsPinned ? exposureNits : null });
   }
 
   /** Everything that is text or a swatch, rebuilt from `desc`. */

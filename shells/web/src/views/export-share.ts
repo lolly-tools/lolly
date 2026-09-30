@@ -3,6 +3,7 @@
 import { mountSharePanel, type ShareDialogOpts } from '../components/share-dialog.ts';
 import { mountDockedPanel } from '../components/docked-panel.ts';
 import { getExportPolicy } from '../lib/export-policy.ts';
+import { routeParams, updateRouteParams } from '../lib/url-state.ts';
 import { icon } from '../lib/icons.ts';
 import { t } from '../i18n.ts';
 import './export-share.css';
@@ -31,6 +32,7 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   let panel: ReturnType<typeof mountDockedPanel> | undefined;
   let signature = '';
   let refreshFrame = 0;
+  let disposed = false;
   const refresh = (): void => {
     const opts = options();
     const next = JSON.stringify([opts.baseParts, opts.currentFormat, opts.fidelity, canExportLolly(opts.toolId ?? '')]);
@@ -52,10 +54,16 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
     dispose = mountSharePanel(body, { ...opts, lolly, baseParts, currentFormat, title: t('Share this creation') }, () => panel?.close());
   };
   const open = (): void => {
+    if (disposed) return;
+    updateRouteParams({ _dialog: 'share', share: null });
     refresh();
     if (panel) { panel.show(); return; }
     panel = mountDockedPanel({ id: 'share', title: t('Share and editable file'), tabLabel: t('Share'), glyph: icon('share'),
-      content: body, onActivate: refresh, onClose: () => { panel = undefined; dispose?.(); dispose = undefined; } });
+      content: body, onActivate: () => { refresh(); if (!disposed) updateRouteParams({ _dialog: 'share' }); },
+      onClose: () => {
+        panel = undefined; dispose?.(); dispose = undefined;
+        if (!disposed && root.isConnected && routeParams().get('_dialog') === 'share') updateRouteParams({ _dialog: null });
+      } });
   };
   const onOpen = (event: Event): void => { event.preventDefault(); open(); };
   const onChange = (): void => {
@@ -86,6 +94,7 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   root.addEventListener('click', onDownload, true);
   sync();
   return () => {
+    disposed = true;
     panel?.close();
     cancelAnimationFrame(refreshFrame);
     dispose?.();

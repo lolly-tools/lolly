@@ -1,4 +1,5 @@
 import { swatchFace } from '../../../../../engine/src/color-face.ts';
+import { RESULT_CONTEXT_PARAMS } from '../../lib/tool-url-state.ts';
 import { getDesignPublication, restoreDesignPublication } from '../../lib/design-tool-publication.ts';
 import { getRebrandHandoff, restoreRebrandHandoff, REBRAND_HANDOFF_MARKER } from '../../lib/rebrand/design-handoff.ts';
 import { getDesignToolSource, restoreDesignToolSource } from '../../lib/design-tool-source.ts';
@@ -199,19 +200,8 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   tview.urlVideo = urlVideo;
   tview.urlDesignSystem = urlDesignSystem;
   const automationPassword = await takeAutomationExportPassword(Boolean(tview.autoExport), urlPassword); tview.automationPassword = automationPassword;
-  // Starting a collab force-remounts this tool, and the route it remounts through is a
-  // LOSSY encoder twice over: `buildShareParams` skips `user/` asset ids and anything
-  // past 150 chars, `syncUrl` writes only dirty params, skips `file` inputs, and never
-  // re-adds `slot`. So the outgoing mount hands its live model and its slot over in
-  // memory (see this file's _cleanup, and lib/collab-live-mount.ts's header) and the
-  // remount spends them here - an uploaded logo, a picked file and a long paragraph
-  // survive because nothing was serialised. Null for every mount that is not that
-  // remount. The values are applied below, ON TOP of the route: they are the same
-  // model the route was encoded from, only complete.
-  // The bar drops `slot` on the first edit, so the route alone would open the collab as
-  // a FRESH session and the inviter's first Save would mint a duplicate beside the one
-  // they were collaborating on (section 6.2a pins a private collab to the session it started
-  // from). The route still wins when it names one.
+  // A collab remount carries the live model in memory because file bytes cannot
+  // travel in a URL. Preserve its local slot unless the route names another one.
   // A framed tool (`?iframe`) shows the link it was given, never a session saved on this device.
   const slot = isIframeMode() ? undefined : routeSlot ?? carriedMount?.slot ?? localHistorySlot(tview.host.state, tview.tool.manifest); tview.slot = slot;
   const urlFlags = new URLSearchParams(tview.urlParams || ''); tview.urlFlags = urlFlags;
@@ -816,7 +806,6 @@ export function stableRowIds(tview: ToolViewCtx): void {
 }
 
 export function wireActionsPanel(tview: ToolViewCtx): void {
-  void tview.designSystem.mountTokenContext();
   const { autoCopy, autoExport, isFull, showAside, viewEl } = tview;
   const actionsEl = viewEl.querySelector<PanelEl>('#tool-actions'); tview.actionsEl = actionsEl;
   const sidebarEl = viewEl.querySelector<HTMLElement>('#tool-sidebar'); tview.sidebarEl = sidebarEl;
@@ -852,6 +841,19 @@ export function wireActionsPanel(tview: ToolViewCtx): void {
 /** The actions bar and the revision history panel. */
 export function mountActions(tview: ToolViewCtx): void {
   const { actionsEl, collabHandle, ephemeralState, exportDefaults, exportSourceNode, libraryHost, mountLifecycle, openedSession, reachedViaLink, runtime, slot, toolId, viewEl } = tview;
+  if (actionsEl) {
+    const context = new URLSearchParams();
+    for (const key of RESULT_CONTEXT_PARAMS) if (tview.urlFlags.has(key)) context.set(key, tview.urlFlags.get(key)!);
+    actionsEl.dataset.resultContext = context.toString();
+    const changes: Record<string, string> = { 'pdf-c2pa': 'c2pa', 'c2pa-days': 'c2pa', 'video-fps': 'fps', 'video-codec': 'codec', 'video-quality': 'vq', 'video-duration': 'seconds', 'video-wait': 'wait', 'export-cuts': 'cuts' };
+    actionsEl.addEventListener('change', event => {
+      const control = event.target as HTMLElement;
+      const key = changes[control.dataset.action ?? ''];
+      if (!key) return;
+      control.dataset.urlEdited = '1';
+      queueMicrotask(() => { if (actionsEl.isConnected) tview.session.syncUrl(key); });
+    });
+  }
   restoreDesignToolDraft(runtime, tview.initialValues.__designTool);
   restoreDesignToolSource(runtime, tview.initialValues.__designToolSource);
   restoreDesignPublication(runtime, tview.initialValues.__designPublication);
@@ -1084,7 +1086,7 @@ export function wireBulkRows(tview: ToolViewCtx): void {
   // reproduce a state that otherwise lives only in a click. `?share` opens the Share
   // dialog. This is the pattern for making the app's click-only surfaces addressable
   // (see plans/43-deep-linking.md) - each new one reads its flag here or in its view.
-  if (urlFlags.has('share')) {
+  if (urlFlags.has('share') || urlFlags.get('_dialog') === 'share') {
     requestAnimationFrame(() => showShareDialog(runtime, actionsEl, tview.tool.manifest));
   }
 }

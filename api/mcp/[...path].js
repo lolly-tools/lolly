@@ -36528,6 +36528,8 @@ var init_tool_url = __esm({
       "profile",
       "settings",
       "gallery",
+      "history",
+      "learning",
       "platform",
       "capabilities",
       "info",
@@ -50344,7 +50346,10 @@ function parseUrlState(searchParams, manifest) {
     inputsByKey[i.id] = i;
     if (i.urlKey) inputsByKey[i.urlKey] = i;
     if (i.type === "vector") {
-      for (const f of i.fields ?? []) vectorFieldByKey[`${i.id}.${f.id}`] = { input: i, field: f };
+      for (const f of i.fields ?? []) {
+        vectorFieldByKey[`${i.id}.${f.id}`] = { input: i, field: f };
+        if (i.urlKey) vectorFieldByKey[`${i.urlKey}.${f.id}`] = { input: i, field: f };
+      }
     }
   }
   for (const [key, raw] of params2.entries()) {
@@ -50451,7 +50456,11 @@ function serializeUrlState(model2, opts = {}) {
   const params2 = new URLSearchParams();
   for (const input of model2) {
     if (!isTokenValue(input.value) && isAlias(input.restoreTokenRef)) params2.set(`_restore.${input.id}`, input.restoreTokenRef);
-    if (input.value === null || input.value === void 0) continue;
+    if (input.value === void 0 || input.value === null && input.type !== "asset") continue;
+    if (input.type === "asset" && input.value === null) {
+      params2.set(input.id, "");
+      continue;
+    }
     if (input.type === "file") continue;
     if (input.type !== "color" && ["number", "text", "longtext", "select"].includes(input.type) && isTokenValue(input.value)) {
       params2.set(`_ref.${input.id}`, input.value.ref);
@@ -50469,11 +50478,6 @@ function serializeUrlState(model2, opts = {}) {
         }
       }
       continue;
-    }
-    if (input.value === "" && !input.required && !input.restoreTokenRef) continue;
-    if (input.type === "table") {
-      const t = normalizeTableValue(input.value);
-      if (!t || !t.columns.length && !t.rows.length) continue;
     }
     const str9 = coerceToString(input, input.value, opts.keepUserIds === true);
     if (input.type === "asset" && opts.keepUserIds !== true && str9.startsWith("user/")) continue;
@@ -50528,6 +50532,7 @@ function coerceFromString(input, raw) {
       if (raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw)) return "#" + raw;
       return raw;
     case "asset":
+      if (raw === "") return null;
       return { source: isToolUrl(raw) ? "remote" : "library", id: raw, _unresolved: true };
     case "file":
       return raw ? { __file: true, path: raw, _unresolved: true } : null;

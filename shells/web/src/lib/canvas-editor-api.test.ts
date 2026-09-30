@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
 import { attachCanvasEditorApi } from './canvas-editor-api.ts';
 import { isTrustedSender } from './message-sender.ts';
 
 test('lolly:ui steers the editor only for the app origin and the embedding page', () => {
   const prev = (globalThis as { window?: unknown }).window;
+  const prevDocument = globalThis.document;
+  const dom = new JSDOM('<!doctype html><html><body></body></html>');
+  globalThis.document = dom.window.document;
   let listener: ((event: MessageEvent) => void) | undefined;
   const parent = {};
   (globalThis as { window?: unknown }).window = {
@@ -28,6 +32,8 @@ test('lolly:ui steers the editor only for the app origin and the embedding page'
     assert.equal(listener, undefined);
   } finally {
     (globalThis as { window?: unknown }).window = prev;
+    globalThis.document = prevDocument;
+    dom.window.close();
   }
 });
 

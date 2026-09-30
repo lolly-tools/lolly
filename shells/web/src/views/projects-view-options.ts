@@ -11,6 +11,20 @@ import { t } from '../i18n.ts';
 export type ProjectsViewMode = 'preview' | 'list';
 export type ProjectsSort = 'name' | 'added' | 'modified' | 'size' | 'tool';
 
+/** URL choices override the saved view for this visit. */
+export function projectsViewFromUrl(query: string | undefined, current: {
+  view: ProjectsViewMode; sort: ProjectsSort; reversed: boolean;
+}): typeof current {
+  const params = new URLSearchParams(query ?? '');
+  const view = params.get('view');
+  const sort = params.get('sort');
+  return {
+    view: view === 'preview' || view === 'list' ? view : current.view,
+    sort: sort === 'name' || sort === 'added' || sort === 'modified' || sort === 'size' || sort === 'tool' ? sort : current.sort,
+    reversed: params.has('rev') ? params.get('rev') !== '0' : current.reversed,
+  };
+}
+
 /** The Projects view options: the same sections and controls as the Tools and Catalogue
  *  menus (components/view-options.ts), mounted through the body popover so the panel
  *  survives the view re-rendering under it. A change applies at once and the panel stays

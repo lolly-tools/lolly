@@ -1,31 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
-/**
- * Contract guard: the Share link must carry what the address bar carries.
- *
- * `syncUrl` writes the live export settings into the address bar; `buildShareParams`
- * builds the copied link. They are two independent readers of the same DOM controls,
- * and they had silently drifted: the Share button dropped `hdr`, `imprint=0`,
- * `durable`, `nostage` and every `group:"export"` input while the URL bar was
- * displaying exactly those settings to the user. Someone copying a link got a
- * different file than the one they were looking at, with no indication anything
- * had been lost.
- *
- * A unit test is impractical here - `buildShareParams` is private to a 3k-line
- * DOM-coupled view - so this scans the real source, in the house style of
- * `a11y-prefs-contract.test.ts` (which scans real stylesheets) and
- * `docs-shots-vector.test.ts` (which scans real recipes). It cannot prove the two
- * agree at RUNTIME; it proves neither one grew a parameter the other never heard
- * of, which is the drift that actually happened.
- *
- * When you add an export setting: write it in BOTH places, or add it to
- * SHARE_EXEMPT below with a reason. An exemption is a deliberate product decision
- * ("this must not travel in a link"), never a shortcut.
- */
+/** Content settings share one encoder; workspace navigation stays in the address. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { WORKSPACE_PARAMS } from '../lib/tool-url-state.ts';
+import { encodeModelParam } from '../lib/url-budget.ts';
+import type { InputModelItem } from '../../../../engine/src/inputs.ts';
 import { parseUrlState, RESERVED } from '../../../../engine/src/url-mode.ts';
 import type { InputManifest, InputSpec } from '../../../../engine/src/inputs.ts';
 
@@ -44,53 +26,15 @@ function fnBody(name: string): string {
   return TOOL_TS.slice(start, end);
 }
 
-/**
- * Params the address bar writes but a shared link deliberately must NOT carry.
- * Each needs a reason. Empty today: everything syncUrl writes is shareable, and
- * `password` is intentionally shared (a standard-tier PDF lock travels with the
- * link by design - documented at its call site).
- */
-const SHARE_EXEMPT: Record<string, string> = {};
-
-/** The params `syncUrl` writes to the address bar. */
-function syncUrlParams(): Set<string> {
-  // `dirtyParams.has('x')` gates every branch that writes a param, so it is the
-  // most reliable enumeration of what syncUrl can emit.
-  const found = [...TOOL_TS.matchAll(/dirtyParams\.has\('([a-z_]+)'\)/g)].map(m => m[1]!);
-  return new Set(found);
-}
-
-/** The export params the Share link pushes. These now live in collectExportParams
- *  (extracted from buildShareParams so the URL-budget gauge reads the same DOM once);
- *  the model-input pushes never appeared here (they use a dynamic `${key}`). */
-function shareParams(): Set<string> {
-  const body = fnBody('collectExportParams');
-  const out = new Set<string>();
-  // Both encodings used in the body: `parts.push(\`name=...\`)` and the bare
-  // presence flag `parts.push('name')` / `parts.push('name=0')`.
-  for (const m of body.matchAll(/parts\.push\(\s*`([a-z_]+)=/g)) out.add(m[1]!);
-  for (const m of body.matchAll(/parts\.push\('([a-z_]+)(?:=[^']*)?'\)/g)) out.add(m[1]!);
-  return out;
-}
-
-test('every export setting the address bar writes is also carried by the Share link', () => {
-  const bar = syncUrlParams();
-  const share = shareParams();
-  assert.ok(bar.size >= 10, `expected syncUrl to write many params, found ${bar.size} - the scan probably broke`);
-
-  const missing = [...bar].filter(p => !share.has(p) && !(p in SHARE_EXEMPT)).sort();
-  assert.deepEqual(missing, [], `Share link drops ${missing.join(', ')} - settings the address bar shows the user. `
-    + 'Add them to buildShareParams, or list them in SHARE_EXEMPT with a reason.');
+test('address and Share read result controls through the same function', () => {
+  assert.match(fnBody('syncUrl'), /collectExportParams\(actionsEl\)/);
+  assert.match(fnBody('buildShareParams'), /collectExportParams\(exportScope\)/);
 });
 
-test('the Share link does not invent params the address bar never writes', () => {
-  const bar = syncUrlParams();
-  const share = shareParams();
-  // The reverse direction: a param only the share link knows about is just as much
-  // a drift, and means the address bar is the one under-reporting.
-  const extra = [...share].filter(p => !bar.has(p)).sort();
-  assert.deepEqual(extra, [], `Share link carries ${extra.join(', ')} which syncUrl never writes - `
-    + 'the address bar is under-reporting, or the share builder is guessing.');
+test('Share does not inherit workspace keys or a local session pointer', () => {
+  const body = fnBody('buildShareParams');
+  assert.doesNotMatch(body, /routeParams|urlFlags|location\.|copyWorkspaceParams/);
+  for (const key of WORKSPACE_PARAMS) assert.doesNotMatch(body, new RegExp('parts\\.push\\([^\\n]*' + key + '='));
 });
 
 test('group:"export" inputs are not excluded from the Share link', () => {
@@ -115,21 +59,13 @@ test('each toggle the Share link reads is guarded on the control existing', () =
     'the imprint opt-out must check the control EXISTS before treating it as unchecked');
 });
 
-// ─── fidelity: every content drop is RECORDED, never silent ────────────────────
-//
-// buildShareParams deliberately drops what a URL can't carry - device-local
-// (user/*) images, scalars past the 150-char cap, and blocks past the 8000-char
-// cap. Before Wave 1 those drops were SILENT: a design "after many edits" shared a
-// link that opened with its content missing and no warning. The Share dialog now
-// renders a verdict from a `ShareFidelity` report; these guard that the builder
-// actually fills that report at every drop site, so a future drop that forgets to
-// record it can't re-introduce the silent-loss bug.
+// Device-local dependencies must be reported when a content link excludes them.
 
 test('buildShareParams records every content drop into a fidelity report', () => {
   const body = fnBody('buildShareParams');
   assert.match(body, /excludedAssets\.push\(/, 'a device-local asset drop must be recorded in the fidelity report');
-  assert.match(body, /droppedScalars\.push\(/, 'an over-cap scalar drop must be recorded in the fidelity report');
-  assert.match(body, /droppedBlocks\.push\(/, 'an over-cap blocks drop must be recorded in the fidelity report');
+  assert.match(body, /droppedScalars\.push\(/, 'legacy scalar status must remain visible in the report');
+  assert.match(body, /droppedBlocks\.push\(/, 'legacy blocks status must remain visible in the report');
   assert.match(body, /faithful:\s*excludedAssets\.length === 0/, 'the fidelity verdict must be false when anything was dropped');
 });
 
@@ -138,15 +74,7 @@ test('buildShareParams returns the parts array alongside the fidelity report', (
   assert.match(body, /return \{ parts, fidelity \};/, 'buildShareParams must return { parts, fidelity }');
 });
 
-// ─── tool-input URL parity: color-palette Contrast mode (m/b/cc/lc) ────────────
-//
-// The share link writes a tool's inputs by their compact `urlKey` (buildShareParams:
-// `key = input.urlKey ?? id`, hex colours stripped of '#', scalars over 150 chars
-// dropped), and the engine's `parseUrlState` reads them back keyed by EITHER the id
-// or the urlKey. Palette Lab's Contrast-mode inputs (mode→m, bg→b, contrastCurve→cc,
-// lcTargets→lc) are new URL surface, so pin that they encode under the 150-char cap
-// and decode back to the same model through both key forms - the CLI/web parity the
-// url-mode contract exists to guarantee.
+// Exercise the production content encoder against a real tool manifest.
 
 const PALETTE_JSON = join(HERE, '../../../../community/color-palette/tool.json');
 const PALETTE_MOUNTED = existsSync(PALETTE_JSON);
@@ -157,28 +85,10 @@ const paletteManifest: InputManifest = PALETTE_MOUNTED
 const inputById = (id: string): InputSpec =>
   (paletteManifest.inputs ?? []).find(i => i.id === id) as InputSpec;
 
-// The 150-char scalar cap enforced by buildShareParams (shells/web/src/views/tool.ts).
-const SCALAR_CAP = 150;
-
-/** The pre-encode string buildShareParams would write for a scalar input, or null
- *  when it would be skipped (empty / default / a boolean false / past the cap). */
-function shareScalar(input: InputSpec, value: unknown): string | null {
-  if (value == null || value === '') return null;
-  if (typeof value === 'boolean' && !value) return null;
-  const def = (input as { default?: unknown }).default;
-  if (def != null && input.type !== 'asset' && String(value) === String(def)) return null;
-  const str = String(value); // token-colour ({ ref }) branch is source-scanned above, not here
-  if (str.length > SCALAR_CAP) return null;
-  return str;
-}
-
-/** Mirror buildShareParams' key + hex-strip encoding for one scalar input. */
 function shareParam(input: InputSpec, value: unknown): string | null {
-  const raw = shareScalar(input, value);
-  if (raw == null) return null;
-  const key = input.urlKey ?? input.id;
-  const str = input.type === 'color' && raw.startsWith('#') ? raw.slice(1) : raw;
-  return `${encodeURIComponent(key)}=${encodeURIComponent(str)}`;
+  const parts = encodeModelParam({ ...input, value, isDirty: true } as InputModelItem)
+    .filter(part => part.status === 'kept').map(part => part.emit);
+  return parts.length ? parts.join('&') : null;
 }
 
 test('color-palette Contrast inputs have urlKeys that do not collide with RESERVED', { skip: SKIP_PALETTE }, () => {
@@ -194,7 +104,7 @@ test('color-palette Contrast inputs have urlKeys that do not collide with RESERV
   );
 });
 
-test('color-palette Contrast inputs encode under the 150-char cap and round-trip via urlKey', { skip: SKIP_PALETTE }, () => {
+test('color-palette Contrast inputs round-trip via urlKey', { skip: SKIP_PALETTE }, () => {
   const values: Record<string, string> = {
     seed: '#ff8800',
     mode: 'contrast',
@@ -206,10 +116,7 @@ test('color-palette Contrast inputs encode under the 150-char cap and round-trip
   const parts: string[] = [];
   for (const [id, value] of Object.entries(values)) {
     const input = inputById(id);
-    // Every value here is off-default, so each must produce a param within the cap.
-    const raw = shareScalar(input, value);
-    assert.ok(raw != null, `${id} was dropped by the share encoder`);
-    assert.ok(raw.length <= SCALAR_CAP, `${id} scalar "${raw}" exceeds the ${SCALAR_CAP}-char cap`);
+    assert.ok(shareParam(input, value), `${id} was dropped by the content encoder`);
     parts.push(shareParam(input, value)!);
   }
 
@@ -240,10 +147,9 @@ test('color-palette Contrast inputs decode identically from their full id form',
   assert.equal(decoded.seed, '#ff8800');
 });
 
-test('color-palette: an lcTargets over the 150-char cap is dropped, not shared', { skip: SKIP_PALETTE }, () => {
-  // A pathological custom list past the scalar cap must not ride in the link (it would
-  // bloat every URL); the share encoder skips it, so a shared link falls back to default.
-  const long = Array.from({ length: 60 }, (_, i) => String(i)).join(','); // > 150 chars
-  assert.ok(long.length > SCALAR_CAP);
-  assert.equal(shareParam(inputById('lcTargets'), long), null, 'over-cap lcTargets must be dropped');
+test('color-palette retains a long custom contrast list in content links', { skip: SKIP_PALETTE }, () => {
+  const long = Array.from({ length: 100 }, (_, i) => String(i)).join(',');
+  const query = shareParam(inputById('lcTargets'), long);
+  assert.ok(query);
+  assert.equal(parseUrlState(query, paletteManifest).values.lcTargets, long);
 });

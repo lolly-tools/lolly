@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { updateRouteParams } from '../../lib/url-state.ts';
 import type { LearningCtx } from './context.ts';
 
 export function syncBlockSelection(ctx: LearningCtx): void {
@@ -16,6 +17,7 @@ export function syncBlockSelection(ctx: LearningCtx): void {
   if (toolbar) toolbar.hidden = !ctx.selectedBlocks.size;
   const count = ctx.root.querySelector('[data-block-selection-count]');
   if (count) count.textContent = `${ctx.selectedBlocks.size} selected`;
+  if (ctx.root.isConnected) updateRouteParams({ _blocks: [...ctx.selectedBlocks].join(',') || null });
 }
 
 /** Dragging only starts on the grip or header. Editable content keeps native selection. */

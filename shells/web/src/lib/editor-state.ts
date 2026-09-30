@@ -1,20 +1,4 @@
-/**
- * The editor-state link grammar (plans/176 v1): the object form `_ui=` plus the three
- * shorthand params, parsed into the DeepLinkState free-canvas applies at mount. Editor
- * state, never document state - all of it lives in the `_` namespace the engine
- * reserves outright (engine/src/url-mode.ts skips the prefix), so none of these can
- * ever shadow a tool input, and syncUrl drops them on the first edit.
- *
- * `_ui` is base64url(JSON) of `{ v: 1, sel?: string[], t?: number, panel?: string }`.
- * Unknown keys are ignored with one console note, so the object can grow additively
- * and a newer link opens in an older shell applying what it can. The shorthands stay
- * first-class and WIN on conflict - a hand-edited `_t=2` over a pasted `_ui` blob does
- * what it says.
- *
- * The same wire object drives the runtime channel views/tool.ts registers while a
- * canvas editor is mounted: `window.lolly.ui.getState()/apply(state)`, and a
- * `postMessage({ type: 'lolly:ui', state })` from an embedding page.
- */
+/** Versioned workspace state. These keys never enter a content share link. */
 
 /** Wire form: versioned so the object can grow without breaking older shells. */
 export interface UiState {
@@ -25,6 +9,8 @@ export interface UiState {
   t?: number;
   /** A panel to open over the selection: `choreograph` today. */
   panel?: string;
+  page?: string;
+  timeline?: boolean;
 }
 
 /** Applied form - the field names free-canvas's DeepLinkState uses. */
@@ -32,6 +18,8 @@ export interface EditorState {
   select?: string[];
   playhead?: number;
   panel?: string;
+  page?: string;
+  timeline?: boolean;
 }
 
 /**
@@ -41,7 +29,7 @@ export interface EditorState {
  */
 export const EDITOR_STATE_PARAMS = ['_sel', '_t', '_panel', '_ui'] as const;
 
-const KNOWN_KEYS = new Set(['v', 'sel', 't', 'panel']);
+const KNOWN_KEYS = new Set(['v', 'sel', 't', 'panel', 'page', 'timeline']);
 
 /**
  * Validate an untrusted wire object (a decoded `_ui`, a postMessage body) into the
@@ -56,11 +44,13 @@ export function coerceUiState(raw: unknown): EditorState | undefined {
   if (unknown.length) console.info('[editor-state] ignoring unknown keys: ' + unknown.join(', '));
   const out: EditorState = {};
   if (Array.isArray(o.sel)) {
-    const sel = o.sel.filter((x): x is string => typeof x === 'string' && !!x);
-    if (sel.length) out.select = sel;
+    const sel = o.sel.filter((x): x is string => typeof x === 'string' && !!x && x.length <= 256);
+    out.select = sel.slice(0, 512);
   }
   if (typeof o.t === 'number' && Number.isFinite(o.t)) out.playhead = Math.max(0, o.t);
-  if (typeof o.panel === 'string' && o.panel) out.panel = o.panel;
+  if (typeof o.panel === 'string' && o.panel.length <= 64) out.panel = o.panel;
+  if (typeof o.timeline === 'boolean') out.timeline = o.timeline;
+  if (typeof o.page === 'string' && o.page.length <= 256) out.page = o.page;
   return out;
 }
 
@@ -70,14 +60,16 @@ export function parseEditorState(flags: { get(k: string): string | null; has(k: 
   const blob = flags.get('_ui');
   if (blob) {
     try {
-      const json = atob(blob.replace(/-/g, '+').replace(/_/g, '/'));
+      if (blob.length > 32768) throw new Error('Oversized workspace state');
+      const bytes = Uint8Array.from(atob(blob.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+      const json = new TextDecoder().decode(bytes);
       out = coerceUiState(JSON.parse(json)) ?? {};
     } catch {
       console.info('[editor-state] unreadable _ui param ignored');
     }
   }
   const sel = (flags.get('_sel') || '').split(',').map((s) => s.trim()).filter(Boolean);
-  if (sel.length) out.select = sel;
+  if (flags.has('_sel')) out.select = sel.slice(0, 512);
   if (flags.has('_t')) {
     const t = Number(flags.get('_t'));
     if (Number.isFinite(t)) out.playhead = Math.max(0, t);
@@ -89,5 +81,5 @@ export function parseEditorState(flags: { get(k: string): string | null; has(k: 
 
 /** The inverse: a UiState as a `_ui=` value (base64url, no padding). */
 export function encodeUiState(state: UiState): string {
-  return btoa(JSON.stringify(state)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(state)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }

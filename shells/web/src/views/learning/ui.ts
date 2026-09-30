@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { updateRouteParams, routeParams } from '../../lib/url-state.ts';
 import type { LearningCtx } from './context.ts';
 import { escape as esc } from '../../utils.ts';
 import { checkLearningModule } from '../../../../../engine/src/learning/module.ts';
@@ -19,7 +20,7 @@ interface ViewState {
 }
 export function uiOps(ctx: LearningCtx): LearningCtx['ui'] {
   const state: ViewState = {
-    disclosures: new Map(),
+    disclosures: new Map((routeParams().get('_open') ?? '').split(',').filter(Boolean).map(key => [key, true])),
   };
   return {
     render: (focus) => render(ctx, state, focus),
@@ -35,6 +36,7 @@ export function uiOps(ctx: LearningCtx): LearningCtx['ui'] {
   };
 }
 function render(ctx: LearningCtx, state: ViewState, focus?: string): void {
+  if (ctx.root.isConnected) updateRouteParams({ _lesson: ctx.selected });
   for (const el of ctx.root.querySelectorAll<HTMLDetailsElement>('details[data-disclosure]'))
     state.disclosures.set(el.dataset.disclosure!, el.open);
   const restoreFocus = focus || courseFocus(ctx.root, 'data-');
@@ -78,6 +80,14 @@ function render(ctx: LearningCtx, state: ViewState, focus?: string): void {
   for (const el of ctx.root.querySelectorAll<HTMLDetailsElement>('details[data-disclosure]'))
     if (state.disclosures.has(el.dataset.disclosure!))
       el.open = state.disclosures.get(el.dataset.disclosure!)!;
+  for (const detail of ctx.root.querySelectorAll<HTMLDetailsElement>('details[data-disclosure]')) {
+    let previous = detail.open;
+    detail.addEventListener('toggle', () => {
+      if (!ctx.root.contains(detail) || previous === detail.open) return;
+      previous = detail.open;
+      updateRouteParams({ _open: [...ctx.root.querySelectorAll<HTMLDetailsElement>('details[data-disclosure]')].filter(el => el.open).map(el => el.dataset.disclosure).join(',') });
+    });
+  }
   ctx.richText.mount();
   refreshChecks(ctx);
   syncBlockSelection(ctx);

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { navigateTo } from '../nav.ts';
 import '../styles/parts/settings.css';
 import { t } from '../i18n.ts';
 import { escape as escapeText } from '../utils.ts';
@@ -19,7 +20,7 @@ export function settingsNavHtml(active: string): string {
   </header>`;
 }
 
-/** Section changes stay within the current history entry, like the former tabs. */
+/** Settings tabs create navigation entries so Back returns to the previous tab. */
 export function wireSettingsNav(view: HTMLElement): void {
   view.querySelector('.settings-nav')?.addEventListener('click', (event) => {
     const e = event as MouseEvent;
@@ -28,7 +29,6 @@ export function wireSettingsNav(view: HTMLElement): void {
     if (!link) return;
     e.preventDefault();
     if (link.hasAttribute('aria-current')) return;
-    history.replaceState(history.state, '', link.href);
-    window.dispatchEvent(new Event('lolly:navigate'));
+    navigateTo(link.href);
   });
 }

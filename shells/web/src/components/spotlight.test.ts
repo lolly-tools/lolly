@@ -310,7 +310,7 @@ test('routeSignature carries the projects ?q= param (static pin of the main.ts c
   // signature; pin the source so a routeSignature refactor can't silently
   // bring the dedupe (and the dead see-all/Back) back.
   const mainSrc = readFileSync(fileURLToPath(new URL('../main.ts', import.meta.url)), 'utf8');
-  assert.ok(/key === 'folderId'[\s\S]{0,700}get\('q'\)/.test(mainSrc), 'folderId signature branch reads the q param');
+  assert.ok(/route.name, sub.toolId, sub.folderId, sub.lang, sub.slug, sub.params/.test(mainSrc), 'folderId signature branch reads the q param');
 });
 
 test('a slow superseded response is discarded - the newer query keeps the panel', async () => {

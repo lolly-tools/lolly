@@ -617,9 +617,6 @@
 .profile-view .store-bar .seg[data-cat="images"]   { background: hsl(var(--store-2)); }
 .profile-view .store-bar .seg[data-cat="file-history"],
 .profile-view .store-chip-sw[data-cat="file-history"] { background: hsl(var(--store-5)); }
-.profile-view .store-manage[data-cat="file-history"] .store-manage-name { min-width: 0; overflow-wrap: anywhere; }
-.profile-view .store-manage[data-cat="file-history"] small { display: block; max-width: 52ch; font-size: var(--fs-sm); font-weight: 400; line-height: 1.5; }
-.profile-view .store-manage[data-cat="file-history"] .btn { min-height: 44px; white-space: normal; }
 .profile-view .store-bar .seg[data-cat="cache"]    { background: hsl(var(--store-3)); }
 .profile-view .store-bar .seg[data-cat="previews"] { background: hsl(var(--store-4)); }
 .profile-view .store-bar .seg[data-cat="pins"]     { background: hsl(var(--store-5)); }
@@ -632,44 +629,22 @@
 .profile-view .store-bar[data-active] .seg:not(.is-active) { opacity: .3; }
 .profile-view .store-bar[data-active] .seg.is-active { box-shadow: inset 0 0 0 2px hsl(var(--ring)); }
 
-/* (C) Legend - chips ARE the explore control. */
-.profile-view .store-legend { list-style: none; display: flex; flex-wrap: wrap; gap: .35rem .85rem; padding: 0; margin: 0; }
-.profile-view .store-legend > li { display: inline-flex; }
-.profile-view .store-chip {
-  display: inline-flex; align-items: center; gap: .4rem; border: 0; background: none;
-  cursor: pointer; font: inherit; padding: 2px 5px; border-radius: var(--radius-sm);
-}
-.profile-view .store-chip:hover, .profile-view .store-chip.is-active { background: hsl(var(--muted)); }
-.profile-view .store-chip:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
-.profile-view .store-chip--other, .profile-view .store-chip--other:hover { cursor: default; background: none; }
+/* The category swatches: the bar's colour key, drawn as each Storage row's mark. */
 .profile-view .store-chip-sw { width: 11px; height: 11px; border-radius: var(--radius-xs); flex: none; }
 .profile-view .store-chip-sw[data-cat="sessions"] { background: hsl(var(--store-1)); }
 .profile-view .store-chip-sw[data-cat="images"]   { background: hsl(var(--store-2)); }
 .profile-view .store-chip-sw[data-cat="cache"]    { background: hsl(var(--store-3)); }
 .profile-view .store-chip-sw[data-cat="previews"] { background: hsl(var(--store-4)); }
 .profile-view .store-chip-sw[data-cat="pins"]     { background: hsl(var(--store-5)); }
-.profile-view .store-chip-name { font-size: var(--fs-sm); color: hsl(var(--foreground)); }
-.profile-view .store-chip-val { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
 
-/* (D) Quota gauge + reclaim line - the quiet used-of-budget truth. */
-.profile-view .store-quota { display: flex; align-items: center; gap: var(--sp-4); margin: 0; flex-wrap: wrap; }
-.profile-view .store-quota-text, .profile-view .store-reclaim { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); margin: 0; }
-.profile-view .store-quota-text strong, .profile-view .store-reclaim strong { color: hsl(var(--foreground)); }
 .profile-view .store-footnote { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); opacity: .8; margin: .1rem 0 0; }
 
-/* Manage panels - one per measured category. */
-.profile-view .store-manages { display: flex; flex-direction: column; margin-top: .3rem; }
-.profile-view .store-manage { border-top: 1px solid hsl(var(--border)); }
-.profile-view .store-manage-sum {
-  display: flex; align-items: center; gap: .5rem; min-height: 44px; cursor: pointer;
-  list-style: none; font-size: var(--fs-md); color: hsl(var(--foreground));
-}
-.profile-view .store-manage-sum::-webkit-details-marker { display: none; }
-.profile-view .store-manage-sum:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: var(--radius); }
-.profile-view .store-manage-sum .profile-collapse-chev { flex: none; color: hsl(var(--muted-foreground)); transition: transform var(--dur-1) ease; }
-.profile-view .store-manage[open] > .store-manage-sum .profile-collapse-chev { transform: rotate(90deg); }
-.profile-view .store-manage-sum .storage-hint { margin-left: auto; }
-.profile-view .store-manage-body { padding: .25rem 0 .75rem; }
+/* The Storage groups (views/profile/storage.ts) use the shared settings groups
+   and rows below. A hairline closes the last group above Clear all my data. */
+.profile-view .store-groups { border-bottom: 1px solid var(--ui-color-border-default); }
+.profile-view .store-move { display: grid; gap: var(--sp-5); justify-items: start; }
+.profile-view .store-move > * { margin: 0; }
+/* The plain row other cards still use (Updates, the Lolly instance). */
 .profile-view .store-manage--row {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;
   min-height: 44px; border-top: 1px solid hsl(var(--border));
@@ -881,60 +856,65 @@
 .identity-verify-link:hover { background: hsl(151 57% 36%); color: #fff; border-color: transparent; }
 .identity-verify-link svg { flex: 0 0 auto; }
 
-/* Connected services (plans/129). Folded groups on hairlines, like the Storage
-   card's manage panels: Storage and sync, Posting, Design apps, and Sync across
-   devices last. A service group holds one bordered list with a row per service -
-   its mark, its name, a Connected tag once set up - whose body opens with the
-   description, then the set-up form or the connection's status. */
-.profile-view .pconn-group { --pconn-mark-size: calc(20px * var(--a11y-fs)); border-top: 1px solid var(--ui-color-border-default); }
-.profile-view #connections-body > .pconn-group:first-of-type { margin-top: var(--sp-7); }
-.profile-view .pconn-group-sum,
-.profile-view .pconn-svc-sum,
+/* Settings groups and rows: the one disclosure pattern Connected services,
+   Storage and Available offline share. A card body holds folded groups on
+   hairlines (title, a short value, the chevron). A group holds one bordered list
+   with a row per item - its mark, its name, a tag or a value - whose body opens
+   with the description, then the item's form, status or actions. */
+.profile-view .profile-group { --profile-mark-size: calc(20px * var(--a11y-fs)); border-top: 1px solid var(--ui-color-border-default); }
+.profile-view #connections-body > .profile-group:first-of-type { margin-top: var(--sp-7); }
+.profile-view .profile-group-sum,
+.profile-view .profile-row-sum,
 .profile-view .pconn-sync-choices-sum,
 .profile-view .feature-flag-cluster-sum {
   display: flex; align-items: center; cursor: pointer; list-style: none;
 }
-.profile-view .pconn-group-sum::-webkit-details-marker,
-.profile-view .pconn-svc-sum::-webkit-details-marker,
+.profile-view .profile-group-sum::-webkit-details-marker,
+.profile-view .profile-row-sum::-webkit-details-marker,
 .profile-view .pconn-sync-choices-sum::-webkit-details-marker,
 .profile-view .feature-flag-cluster-sum::-webkit-details-marker { display: none; }
-.profile-view .pconn-group-sum:focus-visible,
-.profile-view .pconn-svc-sum:focus-visible,
+.profile-view .profile-group-sum:focus-visible,
+.profile-view .profile-row-sum:focus-visible,
 .profile-view .pconn-sync-choices-sum:focus-visible,
 .profile-view .feature-flag-cluster-sum:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; border-radius: var(--ui-radius-control); }
-.profile-view .pconn-group[open] > summary .profile-collapse-chev,
-.profile-view .pconn-svc[open] > summary .profile-collapse-chev,
+.profile-view .profile-group[open] > summary .profile-collapse-chev,
+.profile-view .profile-row[open] > summary .profile-collapse-chev,
 .profile-view .pconn-sync-choices[open] > summary .profile-collapse-chev,
 .profile-view .feature-flag-cluster[open] > summary .profile-collapse-chev { transform: rotate(90deg); }
-.profile-view .pconn-group-sum { gap: var(--sp-6); min-height: 52px; }
-.profile-view .pconn-group-title { flex: 1 1 auto; margin: 0; font-size: var(--fs-lg); font-weight: 600; color: var(--ui-color-text-default); }
-.profile-view .pconn-group-value { font-size: var(--fs-md); color: var(--ui-color-text-muted); white-space: nowrap; }
+.profile-view .profile-group-sum { gap: var(--sp-6); min-height: 52px; }
+.profile-view .profile-group-title { flex: 1 1 auto; margin: 0; font-size: var(--fs-lg); font-weight: 600; color: var(--ui-color-text-default); }
+.profile-view .profile-group-value { font-size: var(--fs-md); color: var(--ui-color-text-muted); white-space: nowrap; }
 /* The folded group's preview: its services' marks, small and quiet, gone once
    the list itself is open. */
-.profile-view .pconn-group-marks { display: flex; align-items: center; gap: var(--sp-4); color: var(--ui-color-text-muted); }
-.profile-view .pconn-group-marks .pconn-mark { --pconn-mark-size: calc(16px * var(--a11y-fs)); color: inherit; }
-.profile-view .pconn-group[open] > summary .pconn-group-marks { display: none; }
-@media (max-width: 480px) { .profile-view .pconn-group-marks { display: none; } }
-.profile-view .pconn-group-body { padding: 0 0 var(--sp-7); }
-.profile-view .pconn-svcs { border: 1px solid var(--ui-color-border-default); border-radius: var(--radius-md); overflow: hidden; }
-.profile-view .pconn-svc + .pconn-svc { border-top: 1px solid var(--ui-color-border-default); }
-.profile-view .pconn-svc[open] { background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent); }
-.profile-view .pconn-svc-sum { gap: var(--sp-6); min-height: 48px; padding: 0 var(--sp-7); transition: background var(--dur-1); }
-.profile-view .pconn-svc-sum:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
-.profile-view .pconn-mark { flex: none; display: inline-flex; width: var(--pconn-mark-size); height: var(--pconn-mark-size); color: var(--ui-color-text-default); }
-.profile-view .pconn-mark svg { width: 100%; height: 100%; }
-.profile-view .pconn-svc-name { flex: 1 1 auto; min-width: 0; font-size: var(--fs-lg); font-weight: 500; color: var(--ui-color-text-default); }
-/* The Connected tag: the selection tint as a fill, never an outline. */
-.profile-view .pconn-svc-state {
+.profile-view .profile-group-marks { display: flex; align-items: center; gap: var(--sp-4); color: var(--ui-color-text-muted); }
+.profile-view .profile-group-marks .profile-mark { --profile-mark-size: calc(16px * var(--a11y-fs)); color: inherit; }
+.profile-view .profile-group[open] > summary .profile-group-marks { display: none; }
+@media (max-width: 480px) { .profile-view .profile-group-marks { display: none; } }
+.profile-view .profile-group-body { padding: 0 0 var(--sp-7); }
+.profile-view .profile-rows { border: 1px solid var(--ui-color-border-default); border-radius: var(--radius-md); overflow: hidden; }
+.profile-view .profile-row + .profile-row { border-top: 1px solid var(--ui-color-border-default); }
+.profile-view .profile-row[open] { background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent); }
+.profile-view .profile-row-sum { gap: var(--sp-6); min-height: 48px; padding: 0 var(--sp-7); transition: background var(--dur-1); }
+.profile-view .profile-row-sum:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
+.profile-view .profile-mark { flex: none; display: inline-flex; width: var(--profile-mark-size); height: var(--profile-mark-size); color: hsl(var(--primary)); }
+.profile-view .profile-mark svg { width: 100%; height: 100%; }
+.profile-view .profile-row-name { flex: 1 1 auto; min-width: 0; font-size: var(--fs-lg); font-weight: 500; color: var(--ui-color-text-default); }
+.profile-view .profile-row-value { flex: none; font-size: var(--fs-md); color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* A settled state (Connected, Downloaded): the selection tint as a fill, never an outline. */
+.profile-view .profile-row-tag {
   flex: none; padding: var(--sp-1) var(--sp-4); border-radius: var(--ui-radius-pill);
   background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary);
   font-size: var(--fs-sm); font-weight: 600;
 }
 /* The body's text lines up under the service name, past the mark. */
-.profile-view .pconn-svc-body { padding: 0 var(--sp-7) var(--sp-7) calc(var(--sp-7) + var(--pconn-mark-size) + var(--sp-6)); display: grid; gap: var(--sp-5); justify-items: start; }
-.profile-view .pconn-svc-body > * { margin: 0; }
-.profile-view .pconn-svc-body > .pconn-form { justify-self: stretch; }
-.profile-view .pconn-desc { max-width: 62ch; }
+.profile-view .profile-row-body { padding: 0 var(--sp-7) var(--sp-7) calc(var(--sp-7) + var(--profile-mark-size) + var(--sp-6)); display: grid; gap: var(--sp-5); justify-items: start; }
+.profile-view .profile-row-body > * { margin: 0; }
+.profile-view .profile-row-body > :is(.pconn-form, .profile-row-wide) { justify-self: stretch; }
+.profile-view .profile-row-desc { max-width: 62ch; font-size: var(--fs-sm); line-height: 1.5; color: var(--ui-color-text-muted); }
+.profile-view .profile-row-actions { display: flex; align-items: center; gap: var(--sp-4) var(--sp-6); flex-wrap: wrap; }
+/* A colour key as a row's mark (Storage): the bar's swatch, centred in the mark box. */
+.profile-view .profile-mark > .store-chip-sw { margin: auto; width: calc(12px * var(--a11y-fs)); height: calc(12px * var(--a11y-fs)); }
+/* Connected services (plans/129): the service rows' own parts. */
 .profile-view .pconn-account { font-weight: 600; font-size: var(--fs-md); }
 .profile-view .pconn-note { display: block; opacity: .75; font-size: var(--fs-sm); margin-top: 2px; }
 .profile-view .pconn-account .pconn-note { font-weight: 400; }
@@ -942,7 +922,7 @@
 /* "Make this my export home" (plans/138 A1): the same inline-check idiom as
    the persist toggle, tinted with the brand accent when it is the live choice. */
 .profile-view .pconn-home { display: flex; align-items: center; gap: .4rem; margin-top: .45rem; font-size: var(--fs-md); opacity: .9; }
-.profile-view .pconn-svc-body > .pconn-home { margin-top: 0; }
+.profile-view .profile-row-body > .pconn-home { margin-top: 0; }
 .profile-view .pconn-home:has(input:checked) { opacity: 1; font-weight: 600; color: hsl(var(--brand-c1, var(--ring))); }
 .profile-view .pconn-cred { border: 1px solid hsl(var(--border) / .6); border-radius: var(--radius-md); padding: .55rem .8rem; margin-top: .6rem; }
 .profile-view .pconn-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .6rem .8rem; }
@@ -960,8 +940,8 @@
 .profile-view .pconn-restore > li { justify-content: space-between; font-size: var(--fs-md); }
 /* The sync group's body stacks its parts on one rhythm (they used to rely on the
    old sub-block's spacing). */
-.profile-view [data-pconn-group="sync"] > .pconn-group-body { display: grid; gap: var(--sp-6); }
-.profile-view [data-pconn-group="sync"] > .pconn-group-body > * { margin: 0; }
+.profile-view [data-pconn-group="sync"] > .profile-group-body { display: grid; gap: var(--sp-6); }
+.profile-view [data-pconn-group="sync"] > .profile-group-body > * { margin: 0; }
 .profile-view .pconn-sync-choices-sum { gap: var(--sp-4); min-height: var(--ui-size-target); font-size: var(--fs-md); font-weight: 500; color: var(--ui-color-text-default); }
 .profile-view .pconn-sync-choices-sum > span { flex: 1 1 auto; }
 .profile-view .pconn-choices { list-style: none; margin: var(--sp-4) 0 0; padding: 0; border: 1px solid var(--ui-color-border-default); border-radius: var(--radius-md); }
@@ -970,7 +950,7 @@
 .profile-view .pconn-choice-text { flex: 1 1 auto; min-width: 0; }
 .profile-view .pconn-choice-name { font-weight: 500; color: var(--ui-color-text-default); }
 .profile-view .pconn-choice-state { flex: none; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
-.profile-view .pconn-choice[data-state="unavailable"] :is(.pconn-choice-text, .pconn-mark) { opacity: .6; }
+.profile-view .pconn-choice[data-state="unavailable"] :is(.pconn-choice-text, .profile-mark) { opacity: .6; }
 
 }
 

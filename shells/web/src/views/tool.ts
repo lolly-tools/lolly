@@ -13,6 +13,8 @@
 
 // View-scoped stylesheets - Vite emits these as async CSS chunks loaded WITH this
 // lazy view, instead of render-blocking the gallery/catalog landing (see app.css).
+import { parseEditorState } from '../lib/editor-state.ts';
+import { inputParamIds } from '../lib/tool-url-state.ts';
 import '../styles/parts/panel.css';
 import '../styles/parts/tool.css';
 import '../styles/parts/editor.css';
@@ -398,12 +400,13 @@ async function mountToolInto(
   // Seed from the params this mount was routed with (form-agnostic - works whether the
   // bar arrived as /t/<id>?… or #/tool/<id>?…) so shared/bookmarked links survive the
   // first subscribe callback.
-  const dirtyParams = new Set(new URLSearchParams(tview.urlParams || '').keys()); tview.dirtyParams = dirtyParams;
+  const dirtyParams = inputParamIds(tview.urlParams || '', tview.runtime.getModel()); tview.dirtyParams = dirtyParams;
   // Monotonic guard shared by every address-bar writer (syncUrl AND shrinkUrl). It's
   // bumped on EVERY bar write, so any later write invalidates an in-flight async pack
   // - a stale pack from an earlier (larger) state can never clobber a newer bar. A
   // holder object (not a bare `let`) so the module-level shrinkUrl can share it.
   const barSeq: BarSeq = { v: 0 }; tview.barSeq = barSeq;
+  tview.mountLifecycle.add('URL packing', () => { barSeq.v++; });
 
   tview.setup.mountActions();
 
@@ -423,6 +426,18 @@ async function mountToolInto(
   tview.setup.wireBackPill();
 
   tview.stageLayout.wireCanvasEditor();
+  const workspaceView = tview.viewEl as ViewEl & { _applyWorkspace?: (params: string) => boolean };
+  workspaceView._applyWorkspace = params => {
+    const flags = new URLSearchParams(params);
+    const ui = (window as Window & { lolly?: { ui?: { apply(state: unknown): void } } }).lolly?.ui;
+    if (!ui && !tview.stageZoom) return false;
+    const state = parseEditorState(flags);
+    ui?.apply({ v: 1, sel: state.select ?? [], t: state.playhead, panel: state.panel, page: state.page, timeline: state.timeline });
+    try { if (flags.has('_view')) tview.stageZoom?.applyView(JSON.parse(flags.get('_view')!)); } catch { /* unreadable viewport */ }
+    return true;
+  };
+  tview.mountLifecycle.add('workspace route', () => { delete workspaceView._applyWorkspace; });
+
 
   tview.render.wirePreview();
 

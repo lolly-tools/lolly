@@ -1482,182 +1482,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     const bgImgAll = ownPaintRastered ? 'none' : style.backgroundImage;
     const bgRgb = ownPaintRastered ? null : parseCssColorFull(style.backgroundColor);
     if (bgRgb) g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, rgbaCss(bgRgb)));
-    // `background-image` is a LIST: CSS lists layers top-first and paints them
-    // bottom-first, and each layer carries its own size/position/repeat (those lists
-    // cycle when shorter than the image list). Until 2026-07-31 the whole list was
-    // handed to the gradient parsers as ONE value, and `^linear-gradient\((.+)\)$` is
-    // greedy - so two stacked gradients matched as one and their stop lists were
-    // concatenated. Offsets restart mid-list, SVG clamps stops monotonically, and a
-    // flat swatch chip painted as a dark-to-white fade (docs/shots/brand-colours.svg).
-    // One gradient/image element per layer, emitted bottom-first.
-    const bgLayers = (bgImgAll && bgImgAll !== 'none' ? splitCssArgs(bgImgAll) : [])
-      .map((value, idx) => ({ value: value.trim(), idx }))
-      .filter((l) => l.value && l.value !== 'none');
-    const layerProp = (list: string | null | undefined, i: number, fallback: string) => {
-      const parts = splitCssArgs(list || '').filter((p) => p !== '');
-      return parts.length ? parts[i % parts.length]! : fallback;
-    };
-    for (const { value: bgImg, idx: layerIdx } of bgLayers.slice().reverse()) {
-      const bgSize     = layerProp(style.backgroundSize,     layerIdx, 'auto');
-      const bgPosition = layerProp(style.backgroundPosition, layerIdx, '0% 0%');
-      const bgRepeat   = layerProp(style.backgroundRepeat,   layerIdx, 'repeat');
-      const gid = ++uid;
-      // The positioning area (the padding box) and its origin. Hoisted out of the
-      // url() branch below because the CONIC branch needs it too - see the tile
-      // handling there.
-      const area = {
-        w: Math.max(0, w - num2(style, 'borderLeftWidth') - num2(style, 'borderRightWidth')),
-        h: Math.max(0, h - num2(style, 'borderTopWidth') - num2(style, 'borderBottomWidth')),
-      };
-      const ax = x + num2(style, 'borderLeftWidth'), ay = y + num2(style, 'borderTopWidth');
-
-      // TILED gradient layers. A gradient is sized by `background-size` like any other
-      // background image, and the editor stage's transparency checkerboard is exactly
-      // that: two 45deg linear-gradient layers at `24px 24px`, offset `0 0, 12px 12px`.
-      // Drawing a tiled gradient across the whole element box is silently wrong pixels,
-      // so before this the only honest answer left was the raster escape hatch - which
-      // is how a 1080x676 PNG of a faint checkerboard ended up inside a docs shot.
-      // The tile becomes a real <pattern>, exactly as the conic and url() branches do.
-      const gradPl = placeBackground(bgSize, bgPosition, bgRepeat, area, null);
-      const gradTiles = Boolean(gradPl && gradPl.w > 0.5 && gradPl.h > 0.5
-        && (gradPl.repeatX || gradPl.repeatY)
-        && (gradPl.w < area.w - 0.5 || gradPl.h < area.h - 0.5));
-      // Built in the TILE's own coordinate space when tiling - a pattern's content
-      // coordinates are the tile, not the element.
-      const gradEl = gradTiles
-        ? (buildLinearGradientEl(NS, bgImg, 0, 0, gradPl.w, gradPl.h, gid)
-          || buildRadialGradientEl(NS, bgImg, 0, 0, gradPl.w, gradPl.h, gid))
-        : (buildLinearGradientEl(NS, bgImg, x, y, w, h, gid)
-          || buildRadialGradientEl(NS, bgImg, x, y, w, h, gid));
-      // A conic gradient is sized by `background-size` like any other background
-      // image, so resolve the placement BEFORE parsing: a tiled conic (the
-      // transparency checkerboard is `repeating-conic-gradient(...) 50% / 2em 2em`)
-      // must be parsed at ONE TILE, not at the element box. Parsing at the box and
-      // fanning across it - which is what this did until 2026-07-30 - turns a 32px
-      // checkerboard into a single element-sized four-quadrant sweep: not a raster,
-      // but silently wrong pixels, which is worse.
-      // `intrinsic` is null: a gradient has no intrinsic size, so `auto` resolves to
-      // the area and the untiled case behaves exactly as before.
-      const conicPl = gradEl ? null
-        : placeBackground(bgSize, bgPosition, bgRepeat, area, null);
-      const conicTiles = Boolean(conicPl && conicPl.w > 0 && conicPl.h > 0
-        && (conicPl.repeatX || conicPl.repeatY)
-        && (conicPl.w < area.w - 0.5 || conicPl.h < area.h - 0.5));
-      const conic = gradEl ? null
-        : parseConicGradient(bgImg, conicTiles ? conicPl!.w : w, conicTiles ? conicPl!.h : h);
-      if (gradEl && gradTiles) {
-        // One tile of the gradient inside a <pattern>, phased by background-position
-        // (modulo the tile on each repeating axis, so the phase matches what the
-        // browser paints - `12px 12px` on a 24px tile is not 0).
-        const pid = `fcgradpat-${++uid}`;
-        const pat = document.createElementNS(NS, 'pattern');
-        pat.setAttribute('id', pid);
-        pat.setAttribute('patternUnits', 'userSpaceOnUse');
-        pat.setAttribute('x', String(n2(ax + (gradPl.repeatX ? gradPl.x % gradPl.w : gradPl.x))));
-        pat.setAttribute('y', String(n2(ay + (gradPl.repeatY ? gradPl.y % gradPl.h : gradPl.y))));
-        pat.setAttribute('width', String(n2(gradPl.repeatX ? gradPl.w : Math.max(gradPl.w, area.w))));
-        pat.setAttribute('height', String(n2(gradPl.repeatY ? gradPl.h : Math.max(gradPl.h, area.h))));
-        const cell = document.createElementNS(NS, 'rect');
-        cell.setAttribute('x', '0'); cell.setAttribute('y', '0');
-        cell.setAttribute('width', String(n2(gradPl.w))); cell.setAttribute('height', String(n2(gradPl.h)));
-        cell.setAttribute('fill', `url(#svggrad-${gid})`);
-        defs.appendChild(gradEl);
-        pat.appendChild(cell);
-        defs.appendChild(pat);
-        g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#${pid})`));
-      } else if (gradEl) {
-        defs.appendChild(gradEl);
-        g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#svggrad-${gid})`));
-      } else if (conic && conicTiles && conicPl) {
-        // A TILED conic: emit one tile's fan inside a real <pattern>, mirroring the
-        // url() tiling branch below. Chromium cannot keep this vector through
-        // printToPDF at all (PDF has no conic/angular shading type - measured), so
-        // the walker is the only path that renders a checkerboard crisply.
-        const tile = conicFanEl(NS, conic, 0, 0, conicPl.w, conicPl.h, gid);
-        if (tile) {
-          const pid = `fcconicpat-${++uid}`;
-          const pat = document.createElementNS(NS, 'pattern');
-          pat.setAttribute('id', pid);
-          pat.setAttribute('patternUnits', 'userSpaceOnUse');
-          // Modulo the offset onto the repeating axes so the phase matches what the
-          // browser painted (background-position: 50% on a 2em tile is not 0).
-          pat.setAttribute('x', String(n2(ax + (conicPl.repeatX ? conicPl.x % conicPl.w : conicPl.x))));
-          pat.setAttribute('y', String(n2(ay + (conicPl.repeatY ? conicPl.y % conicPl.h : conicPl.y))));
-          pat.setAttribute('width', String(n2(conicPl.repeatX ? conicPl.w : Math.max(conicPl.w, area.w))));
-          pat.setAttribute('height', String(n2(conicPl.repeatY ? conicPl.h : Math.max(conicPl.h, area.h))));
-          pat.appendChild(tile);
-          defs.appendChild(pat);
-          g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#${pid})`));
-        }
-      } else if (conic) {
-        // SVG has no conic primitive, so the sweep is drawn as a fan of wedges. It is
-        // the last thing on these pages that forced a raster: on the qr fixture a
-        // single conic page background became a 1168×900 PNG that swamped every
-        // vector node behind it.
-        const fan = conicFanEl(NS, conic, x, y, w, h, gid);
-        if (fan) {
-          const cid = `fcconic-${++uid}`;
-          const clip = document.createElementNS(NS, 'clipPath');
-          clip.setAttribute('id', cid);
-          clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
-          clip.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, '#fff'));
-          defs.appendChild(clip);
-          fan.setAttribute('clip-path', `url(#${cid})`);
-          g.appendChild(fan);
-        }
-      } else {
-        const bgUrl = firstCssUrl(bgImg);
-        const href = bgUrl ? await cssUrlToHref(bgUrl) : null;
-        if (href) {
-          // Place the image per background-size/position/repeat instead of stretching
-          // it across the border box. The old behaviour was right only for a `cover`
-          // hero: a 14px right-centred select chevron came out smeared across the
-          // whole field, and this app's field primitive puts one on every select and
-          // every checkbox.
-          const pl = placeBackground(bgSize, bgPosition, bgRepeat, area, await intrinsicSize(href));
-
-          const cid = `fcbgclip-${++uid}`;
-          const clip = document.createElementNS(NS, 'clipPath');
-          clip.setAttribute('id', cid);
-          clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
-          clip.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, '#fff'));
-          defs.appendChild(clip);
-
-          if (pl.w > 0 && pl.h > 0 && (pl.repeatX || pl.repeatY)) {
-            // A tiling background becomes a real <pattern> rather than a screenshot.
-            // The tile step is the painted size on the repeating axis and the whole
-            // area on the axis that doesn't repeat, so repeat-x doesn't become a grid.
-            const pid = `fcbgpat-${++uid}`;
-            const pat = document.createElementNS(NS, 'pattern');
-            pat.setAttribute('id', pid);
-            pat.setAttribute('patternUnits', 'userSpaceOnUse');
-            pat.setAttribute('x', String(n2(ax + (pl.repeatX ? pl.x % pl.w : pl.x))));
-            pat.setAttribute('y', String(n2(ay + (pl.repeatY ? pl.y % pl.h : pl.y))));
-            pat.setAttribute('width', String(n2(pl.repeatX ? pl.w : Math.max(pl.w, area.w))));
-            pat.setAttribute('height', String(n2(pl.repeatY ? pl.h : Math.max(pl.h, area.h))));
-            const pim = document.createElementNS(NS, 'image');
-            pim.setAttribute('href', href);
-            pim.setAttribute('x', '0'); pim.setAttribute('y', '0');
-            pim.setAttribute('width', String(n2(pl.w))); pim.setAttribute('height', String(n2(pl.h)));
-            pim.setAttribute('preserveAspectRatio', 'none');
-            pat.appendChild(pim);
-            defs.appendChild(pat);
-            const fillRect = makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#${pid})`);
-            g.appendChild(fillRect);
-          } else if (pl.w > 0 && pl.h > 0) {
-            const im = document.createElementNS(NS, 'image');
-            im.setAttribute('href', href);
-            im.setAttribute('x', String(n2(ax + pl.x))); im.setAttribute('y', String(n2(ay + pl.y)));
-            im.setAttribute('width', String(n2(pl.w))); im.setAttribute('height', String(n2(pl.h)));
-            // The size is already resolved, so the image must fill it exactly - 
-            // letting preserveAspectRatio re-fit it would undo the arithmetic.
-            im.setAttribute('preserveAspectRatio', 'none');
-            im.setAttribute('clip-path', `url(#${cid})`);
-            g.appendChild(im);
-          }
-        }
-      }
-    }
+    await emitBackgroundLayers(NS, g, defs, style, bgImgAll, x, y, w, h, radii, uniform, () => ++uid);
 
     // ── Inset box-shadow ──────────────────────────────────────────────────────
     // CSS paints an inset shadow over the background and under the border/content,
@@ -2272,7 +2097,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // stacking mode each one therefore gets its own <g> and is placed like any
     // other positioned child, which stops a marker from hiding under a later
     // sibling's background.
-    await svgPseudoContent(NS, contentG, rootRect, el, vectorText,
+    await svgPseudoContent(NS, contentG, rootRect, el, vectorText, defs, () => ++uid,
       stackingOrder && childCtx.frame
         ? (z: number) => {
             const pg = document.createElementNS(NS, 'g');
@@ -2400,6 +2225,8 @@ export function hasOwnBox(child: Element): boolean {
 
 interface PseudoDescriptor {
   text: string; bg: Rgba | null; radii: CornerRadii; uniform: CornerPair | null;
+  /** The computed background-image list, or null for `none`. */
+  bgImage: string | null;
   w: number; h: number; ps: CSSStyleDeclaration; x: number; y: number;
   /** The pseudo's own transform, LINEAR part only (rotate/scale/skew), about its
    *  transform-origin in root space. Null for none / pure translate / 3-D - the
@@ -2493,11 +2320,15 @@ export function pseudoDescriptor(el: Element, name: string): PseudoDescriptor | 
   const w = parseFloat(ps.width)  || 0;
   const h = parseFloat(ps.height) || 0;
   const bg = parseCssColorFull(ps.backgroundColor);
+  // A full-bleed wash is the other shipping idiom: an empty pseudo whose paint is its
+  // background-image (Agenda's backgrounds are `.ag-screen::before` gradients). Until
+  // 2026-09-30 only the colour was read, so the gradient went out as flat paper.
+  const bgImage = ps.backgroundImage && ps.backgroundImage !== 'none' ? ps.backgroundImage : null;
   // getComputedStyle returns the resolved string with real chars (e.g. '"→"'),
   // already quoted; unwrap it. counter()/attr() values won't match and are skipped.
   const m = content.match(/^["'](.*)["']$/s);
   const text = applyTextTransform(m ? m[1]! : '', ps.textTransform);
-  if (!text.trim() && !(bg && w > 0.5 && h > 0.5)) return null;
+  if (!text.trim() && !((bg || bgImage) && w > 0.5 && h > 0.5)) return null;
 
   let cb: Element | null = el;
   while (cb && !establishesAbsContainingBlock(window.getComputedStyle(cb))) cb = cb.parentElement;
@@ -2522,7 +2353,195 @@ export function pseudoDescriptor(el: Element, name: string): PseudoDescriptor | 
     && Math.abs(mat.c) < 1e-6 && Math.abs(mat.d - 1) < 1e-6)
     ? { a: mat.a, b: mat.b, c: mat.c, d: mat.d, e: 0, f: 0 }
     : null;
-  return { text, bg, radii, uniform, w, h, ps, x, y, mat: linear };
+  return { text, bg, bgImage, radii, uniform, w, h, ps, x, y, mat: linear };
+}
+
+// Paint an element's (or a pseudo-element's) `background-image` layers into `g`, over
+// the background-color the caller has already drawn. `bgImage` is the computed
+// background-image list; `style` supplies the matching size/position/repeat lists and
+// border widths. Gradient, pattern and clip ids come from `nextId`, the walk's one
+// counter, so two callers in the same SVG never mint the same id.
+async function emitBackgroundLayers(
+  NS: string, g: Element, defs: Element, style: CSSStyleDeclaration, bgImage: string,
+  x: number, y: number, w: number, h: number, radii: CornerRadii, uniform: CornerPair | null,
+  nextId: () => number,
+): Promise<void> {
+  // `background-image` is a LIST: CSS lists layers top-first and paints them
+  // bottom-first, and each layer carries its own size/position/repeat (those lists
+  // cycle when shorter than the image list). Until 2026-07-31 the whole list was
+  // handed to the gradient parsers as ONE value, and `^linear-gradient\((.+)\)$` is
+  // greedy - so two stacked gradients matched as one and their stop lists were
+  // concatenated. Offsets restart mid-list, SVG clamps stops monotonically, and a
+  // flat swatch chip painted as a dark-to-white fade (docs/shots/brand-colours.svg).
+  // One gradient/image element per layer, emitted bottom-first.
+  const bgLayers = (bgImage && bgImage !== 'none' ? splitCssArgs(bgImage) : [])
+    .map((value, idx) => ({ value: value.trim(), idx }))
+    .filter((l) => l.value && l.value !== 'none');
+  const layerProp = (list: string | null | undefined, i: number, fallback: string) => {
+    const parts = splitCssArgs(list || '').filter((p) => p !== '');
+    return parts.length ? parts[i % parts.length]! : fallback;
+  };
+  for (const { value: bgImg, idx: layerIdx } of bgLayers.slice().reverse()) {
+    const bgSize     = layerProp(style.backgroundSize,     layerIdx, 'auto');
+    const bgPosition = layerProp(style.backgroundPosition, layerIdx, '0% 0%');
+    const bgRepeat   = layerProp(style.backgroundRepeat,   layerIdx, 'repeat');
+    const gid = nextId();
+    // The positioning area (the padding box) and its origin. Hoisted out of the
+    // url() branch below because the CONIC branch needs it too - see the tile
+    // handling there.
+    const area = {
+      w: Math.max(0, w - num2(style, 'borderLeftWidth') - num2(style, 'borderRightWidth')),
+      h: Math.max(0, h - num2(style, 'borderTopWidth') - num2(style, 'borderBottomWidth')),
+    };
+    const ax = x + num2(style, 'borderLeftWidth'), ay = y + num2(style, 'borderTopWidth');
+
+    // TILED gradient layers. A gradient is sized by `background-size` like any other
+    // background image, and the editor stage's transparency checkerboard is exactly
+    // that: two 45deg linear-gradient layers at `24px 24px`, offset `0 0, 12px 12px`.
+    // Drawing a tiled gradient across the whole element box is silently wrong pixels,
+    // so before this the only honest answer left was the raster escape hatch - which
+    // is how a 1080x676 PNG of a faint checkerboard ended up inside a docs shot.
+    // The tile becomes a real <pattern>, exactly as the conic and url() branches do.
+    const gradPl = placeBackground(bgSize, bgPosition, bgRepeat, area, null);
+    const gradTiles = Boolean(gradPl && gradPl.w > 0.5 && gradPl.h > 0.5
+      && (gradPl.repeatX || gradPl.repeatY)
+      && (gradPl.w < area.w - 0.5 || gradPl.h < area.h - 0.5));
+    // Built in the TILE's own coordinate space when tiling - a pattern's content
+    // coordinates are the tile, not the element.
+    const gradEl = gradTiles
+      ? (buildLinearGradientEl(NS, bgImg, 0, 0, gradPl.w, gradPl.h, gid)
+        || buildRadialGradientEl(NS, bgImg, 0, 0, gradPl.w, gradPl.h, gid))
+      : (buildLinearGradientEl(NS, bgImg, x, y, w, h, gid)
+        || buildRadialGradientEl(NS, bgImg, x, y, w, h, gid));
+    // A conic gradient is sized by `background-size` like any other background
+    // image, so resolve the placement BEFORE parsing: a tiled conic (the
+    // transparency checkerboard is `repeating-conic-gradient(...) 50% / 2em 2em`)
+    // must be parsed at ONE TILE, not at the element box. Parsing at the box and
+    // fanning across it - which is what this did until 2026-07-30 - turns a 32px
+    // checkerboard into a single element-sized four-quadrant sweep: not a raster,
+    // but silently wrong pixels, which is worse.
+    // `intrinsic` is null: a gradient has no intrinsic size, so `auto` resolves to
+    // the area and the untiled case behaves exactly as before.
+    const conicPl = gradEl ? null
+      : placeBackground(bgSize, bgPosition, bgRepeat, area, null);
+    const conicTiles = Boolean(conicPl && conicPl.w > 0 && conicPl.h > 0
+      && (conicPl.repeatX || conicPl.repeatY)
+      && (conicPl.w < area.w - 0.5 || conicPl.h < area.h - 0.5));
+    const conic = gradEl ? null
+      : parseConicGradient(bgImg, conicTiles ? conicPl!.w : w, conicTiles ? conicPl!.h : h);
+    if (gradEl && gradTiles) {
+      // One tile of the gradient inside a <pattern>, phased by background-position
+      // (modulo the tile on each repeating axis, so the phase matches what the
+      // browser paints - `12px 12px` on a 24px tile is not 0).
+      const pid = `fcgradpat-${nextId()}`;
+      const pat = document.createElementNS(NS, 'pattern');
+      pat.setAttribute('id', pid);
+      pat.setAttribute('patternUnits', 'userSpaceOnUse');
+      pat.setAttribute('x', String(n2(ax + (gradPl.repeatX ? gradPl.x % gradPl.w : gradPl.x))));
+      pat.setAttribute('y', String(n2(ay + (gradPl.repeatY ? gradPl.y % gradPl.h : gradPl.y))));
+      pat.setAttribute('width', String(n2(gradPl.repeatX ? gradPl.w : Math.max(gradPl.w, area.w))));
+      pat.setAttribute('height', String(n2(gradPl.repeatY ? gradPl.h : Math.max(gradPl.h, area.h))));
+      const cell = document.createElementNS(NS, 'rect');
+      cell.setAttribute('x', '0'); cell.setAttribute('y', '0');
+      cell.setAttribute('width', String(n2(gradPl.w))); cell.setAttribute('height', String(n2(gradPl.h)));
+      cell.setAttribute('fill', `url(#svggrad-${gid})`);
+      defs.appendChild(gradEl);
+      pat.appendChild(cell);
+      defs.appendChild(pat);
+      g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#${pid})`));
+    } else if (gradEl) {
+      defs.appendChild(gradEl);
+      g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#svggrad-${gid})`));
+    } else if (conic && conicTiles && conicPl) {
+      // A TILED conic: emit one tile's fan inside a real <pattern>, mirroring the
+      // url() tiling branch below. Chromium cannot keep this vector through
+      // printToPDF at all (PDF has no conic/angular shading type - measured), so
+      // the walker is the only path that renders a checkerboard crisply.
+      const tile = conicFanEl(NS, conic, 0, 0, conicPl.w, conicPl.h, gid);
+      if (tile) {
+        const pid = `fcconicpat-${nextId()}`;
+        const pat = document.createElementNS(NS, 'pattern');
+        pat.setAttribute('id', pid);
+        pat.setAttribute('patternUnits', 'userSpaceOnUse');
+        // Modulo the offset onto the repeating axes so the phase matches what the
+        // browser painted (background-position: 50% on a 2em tile is not 0).
+        pat.setAttribute('x', String(n2(ax + (conicPl.repeatX ? conicPl.x % conicPl.w : conicPl.x))));
+        pat.setAttribute('y', String(n2(ay + (conicPl.repeatY ? conicPl.y % conicPl.h : conicPl.y))));
+        pat.setAttribute('width', String(n2(conicPl.repeatX ? conicPl.w : Math.max(conicPl.w, area.w))));
+        pat.setAttribute('height', String(n2(conicPl.repeatY ? conicPl.h : Math.max(conicPl.h, area.h))));
+        pat.appendChild(tile);
+        defs.appendChild(pat);
+        g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#${pid})`));
+      }
+    } else if (conic) {
+      // SVG has no conic primitive, so the sweep is drawn as a fan of wedges. It is
+      // the last thing on these pages that forced a raster: on the qr fixture a
+      // single conic page background became a 1168×900 PNG that swamped every
+      // vector node behind it.
+      const fan = conicFanEl(NS, conic, x, y, w, h, gid);
+      if (fan) {
+        const cid = `fcconic-${nextId()}`;
+        const clip = document.createElementNS(NS, 'clipPath');
+        clip.setAttribute('id', cid);
+        clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+        clip.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, '#fff'));
+        defs.appendChild(clip);
+        fan.setAttribute('clip-path', `url(#${cid})`);
+        g.appendChild(fan);
+      }
+    } else {
+      const bgUrl = firstCssUrl(bgImg);
+      const href = bgUrl ? await cssUrlToHref(bgUrl) : null;
+      if (href) {
+        // Place the image per background-size/position/repeat instead of stretching
+        // it across the border box. The old behaviour was right only for a `cover`
+        // hero: a 14px right-centred select chevron came out smeared across the
+        // whole field, and this app's field primitive puts one on every select and
+        // every checkbox.
+        const pl = placeBackground(bgSize, bgPosition, bgRepeat, area, await intrinsicSize(href));
+
+        const cid = `fcbgclip-${nextId()}`;
+        const clip = document.createElementNS(NS, 'clipPath');
+        clip.setAttribute('id', cid);
+        clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+        clip.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, '#fff'));
+        defs.appendChild(clip);
+
+        if (pl.w > 0 && pl.h > 0 && (pl.repeatX || pl.repeatY)) {
+          // A tiling background becomes a real <pattern> rather than a screenshot.
+          // The tile step is the painted size on the repeating axis and the whole
+          // area on the axis that doesn't repeat, so repeat-x doesn't become a grid.
+          const pid = `fcbgpat-${nextId()}`;
+          const pat = document.createElementNS(NS, 'pattern');
+          pat.setAttribute('id', pid);
+          pat.setAttribute('patternUnits', 'userSpaceOnUse');
+          pat.setAttribute('x', String(n2(ax + (pl.repeatX ? pl.x % pl.w : pl.x))));
+          pat.setAttribute('y', String(n2(ay + (pl.repeatY ? pl.y % pl.h : pl.y))));
+          pat.setAttribute('width', String(n2(pl.repeatX ? pl.w : Math.max(pl.w, area.w))));
+          pat.setAttribute('height', String(n2(pl.repeatY ? pl.h : Math.max(pl.h, area.h))));
+          const pim = document.createElementNS(NS, 'image');
+          pim.setAttribute('href', href);
+          pim.setAttribute('x', '0'); pim.setAttribute('y', '0');
+          pim.setAttribute('width', String(n2(pl.w))); pim.setAttribute('height', String(n2(pl.h)));
+          pim.setAttribute('preserveAspectRatio', 'none');
+          pat.appendChild(pim);
+          defs.appendChild(pat);
+          const fillRect = makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#${pid})`);
+          g.appendChild(fillRect);
+        } else if (pl.w > 0 && pl.h > 0) {
+          const im = document.createElementNS(NS, 'image');
+          im.setAttribute('href', href);
+          im.setAttribute('x', String(n2(ax + pl.x))); im.setAttribute('y', String(n2(ay + pl.y)));
+          im.setAttribute('width', String(n2(pl.w))); im.setAttribute('height', String(n2(pl.h)));
+          // The size is already resolved, so the image must fill it exactly -
+          // letting preserveAspectRatio re-fit it would undo the arithmetic.
+          im.setAttribute('preserveAspectRatio', 'none');
+          im.setAttribute('clip-path', `url(#${cid})`);
+          g.appendChild(im);
+        }
+      }
+    }
+  }
 }
 
 // Emit any ::before/::after markers of `el` into the SVG group `parentG`.
@@ -2538,6 +2557,7 @@ export function pseudoDescriptor(el: Element, name: string): PseudoDescriptor | 
 // label buried under its scene wash this way).
 async function svgPseudoContent(
   NS: string, parentG: Element, rootRect: { left: number; top: number }, el: Element, vectorText: boolean,
+  defs: Element, nextId: () => number,
   defer?: (z: number) => Element, negInsert?: (pg: Element) => void,
 ): Promise<void> {
   for (const name of ['::before', '::after']) {
@@ -2576,6 +2596,10 @@ async function svgPseudoContent(
         ? `rgba(${ds.bg[0]},${ds.bg[1]},${ds.bg[2]},${ds.bg[3]})`
         : `rgb(${ds.bg[0]},${ds.bg[1]},${ds.bg[2]})`;
       parentG_.appendChild(makeRoundedFill(NS, x, y, ds.w, ds.h, ds.radii, ds.uniform, f));
+    }
+    // The image layers go over the colour, exactly as on a real element.
+    if (ds.bgImage && ds.w > 0.5 && ds.h > 0.5) {
+      await emitBackgroundLayers(NS, parentG_, defs, ds.ps, ds.bgImage, x, y, ds.w, ds.h, ds.radii, ds.uniform, nextId);
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;

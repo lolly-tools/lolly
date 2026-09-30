@@ -34,9 +34,10 @@ const WEB_PREFIX_RE = /^web\+/i;
 // links keep opening in the app here rather than bouncing through the web first.
 const HOST_RE = /^(?:www\.)?lolly\.(?:tools|art)(?=[/?#]|$)\/?/i;
 const WEB_HOSTS = new Set(['lolly.tools', 'www.lolly.tools', 'lolly.art', 'www.lolly.art']);
-// The engine's own cap on a Lolly URL (tool-url.ts MAX_URL), so a link the engine
-// would refuse is refused here too instead of becoming an oversized hash.
-const MAX_LINK = 4096;
+// App navigation admits full documents; the engine's 4096-byte cap applies only
+// to a tool rendered as an embedded asset.
+const MAX_LINK = 65536;
+const NON_VIEW_WORDS = new Set(['info', 'og', 'api', 'fonts', 'ort', 'ort-hf', 'models', 'icons', 'l']);
 
 /**
  * `lolly://tool/qr-code?url=x` → `#/tool/qr-code?url=x`; `lolly://lab` → `#/lab`;
@@ -53,9 +54,10 @@ export function deepLinkToHash(link: string): string | null {
   const rest = canonical.replace(SCHEME_RE, '').replace(HOST_RE, '');
   if (!rest || rest.length > MAX_LINK || /[\s<>"'\\]/.test(rest)) return null;
 
-  const tool = parseToolUrl(canonical);
+  const question = canonical.indexOf('?');
+  const tool = parseToolUrl(question < 0 ? canonical : canonical.slice(0, question));
   if (tool) {
-    let query = tool.query;
+    let query = question < 0 ? tool.query : canonical.slice(question + 1).split('#')[0]!;
     // An embed-form extension (`tool/qr-code.svg`) names a format the GUI reads
     // from the `format=` param, so carry it across unless the query already says.
     if (tool.format && !/(^|&)format=/.test(query)) {
@@ -71,7 +73,7 @@ export function deepLinkToHash(link: string): string | null {
   const path = (qi === -1 ? pathAndQuery : pathAndQuery.slice(0, qi)).replace(/\/+$/, '');
   const query = qi === -1 ? '' : pathAndQuery.slice(qi);
   const head = path.split('/')[0] ?? '';
-  if (!head || !APP_PATH_WORDS.has(head)) return null;
+  if (!head || !APP_PATH_WORDS.has(head) || NON_VIEW_WORDS.has(head)) return null;
   // `tool`/`t` with no valid id fell through parseToolUrl above: refuse rather than
   // open half an address.
   if (head === 'tool' || head === 't') return null;

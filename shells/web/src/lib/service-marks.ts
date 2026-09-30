@@ -17,5 +17,5 @@ export function serviceMark(kind: string): string {
   const svg = paths
     ? `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${paths.map((d) => `<path d="${d}"/>`).join('')}</svg>`
     : icon(GLYPHS[kind] ?? 'link');
-  return `<span class="pconn-mark" aria-hidden="true">${svg}</span>`;
+  return `<span class="profile-mark" aria-hidden="true">${svg}</span>`;
 }

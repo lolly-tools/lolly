@@ -150,9 +150,14 @@ test('table value round-trips through serializeUrlState → parseUrlState as ONE
   assert.deepEqual(parsed.values.data, BATTLE);
 });
 
-test('an empty table is omitted from the URL entirely', () => {
-  const model = buildInputModel({ inputs: [tableInput()] });
-  assert.equal(serializeUrlState(model), '');
+test('an explicit empty table clears a populated default through the URL', () => {
+  const manifest = { inputs: [tableInput({ default: BATTLE })] };
+  const empty = { columns: [], rows: [] };
+  const model = updateInput(buildInputModel(manifest), 'data', empty);
+  const query = serializeUrlState(model);
+  assert.equal(query, 'data=');
+  assert.deepEqual(parseUrlState(query, manifest).values.data, empty);
+  assert.deepEqual(buildInputModel(manifest, { initial: parseUrlState(query, manifest).values })[0]?.value, empty);
 });
 
 test('parseUrlState also accepts the JSON form', () => {

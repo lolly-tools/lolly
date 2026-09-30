@@ -1,5 +1,6 @@
 import '../styles/parts/design-system-specimen.css';
 // SPDX-License-Identifier: MPL-2.0
+import { bindDisclosureUrl } from '../lib/url-state.ts';
 import '../styles/parts/profile.css';   // async CSS chunk (lazy view - not on the landing)
 import '../styles/parts/tool.css';      // .help-tip-btn/-pop/-host styles - shared chunk with the
                                         // tool view, same reuse the .tool-inputs sheet already gets
@@ -238,6 +239,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   const metrics = getMetrics(); pv.metrics = metrics;
 
   pv.shell.renderShell();
+  bindDisclosureUrl(viewEl, new URLSearchParams(params));
 
   pv.shell.wireNav();
 

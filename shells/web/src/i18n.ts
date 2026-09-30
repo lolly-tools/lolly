@@ -19,6 +19,7 @@
 // set is the UNION over every importer - touching it here drags createRuntime
 // (Handlebars) + loadTool/validate (Ajv) + c2pa onto first paint. See
 // scripts/check-bundle-budget.ts.
+import { updateRouteParams } from './lib/url-state.ts';
 import { LANGS, LANG_META, normalizeLang, flagEmoji, sortedLangs } from '../../../engine/src/lang.ts';
 import type { Lang, LangSort } from '../../../engine/src/lang.ts';
 // utils.ts is a dependency-free leaf (escape/safeHref/NAV_EVENTS only), so this
@@ -252,6 +253,7 @@ export async function switchLang(host: LangSwitchHost, next: Lang): Promise<void
     await host.profile.set?.(next === 'en' ? rest : { ...rest, lang: next });
   } catch { /* preference save is best-effort - the switch below still applies for this session */ }
   await setActiveLang(next, { persist: true });
+  updateRouteParams({ lang: next });
   window.location.reload();
 }
 

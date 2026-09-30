@@ -8,6 +8,7 @@
  * from mountStart() by scripts/split-closure.ts.
  */
 import { mountModal } from '../../components/modal.ts';
+import { updateRouteParams } from '../../lib/url-state.ts';
 import { adoptionOf } from '../../lib/design-system/adoption-material.ts';
 import { t } from '../../i18n.ts';
 import { SITE_MAX_URL_CHARS, normalizeSiteUrl } from '../../lib/design-system/sources/website.ts';
@@ -55,6 +56,7 @@ export function showStage(start: StartCtx, src: StartSource | null): void {
       : src === 'url' && siteReady
         ? 'url'
         : null;
+  updateRouteParams({ import: '', source: stage });
   const tiles = el.querySelector<HTMLElement>('[data-ds-src-tiles]');
   const intro = el.querySelector<HTMLElement>('[data-ds-src-intro]');
   if (tiles) tiles.hidden = stage !== null;
@@ -217,6 +219,7 @@ export function openImport(start: StartCtx, source: StartSource | null = null): 
       const { importBtn, importHome, importPanel } = start;
         start.reference.cancelReference();
         start.importModal = null;
+        if (start.shell.isConnected) updateRouteParams({ import: null, source: null });
         importHome.appendChild(importPanel); // back to the holder, still wired
         importBtn?.classList.remove('is-open');
       },

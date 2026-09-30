@@ -499,7 +499,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `trusted-sites.ts` | 135 | Trusted sites (plan 288 section 5.3): the entries a person, a brand or an organisation lists as "may be contacted without asking", and the one matcher every consumer shares (the Sandbox's fetch-and-inline, a Design web… | no | `tests/trusted-sites.test.ts` | – |
 | `trustmark.ts` | 971 | Adobe TrustMark: BCH data-layer decode (pure GF(2^7) math, DOM-free). | yes | `tests/trustmark.test.ts` | – |
 | `units.ts` | 98 | Physical unit conversions for output dimensions - platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
-| `url-mode.ts` | 1115 | URL mode. | yes | indirect | – |
+| `url-mode.ts` | 1114 | URL mode. | yes | indirect | – |
 | `url-pack.ts` | 360 | Packed URL state - the compact transport for large tool state. | yes | `tests/url-pack.test.ts` | yes |
 | `validate.ts` | 82 | Validates a tool manifest against the JSON Schema. | yes | indirect | – |
 | `vector-paint-import.ts` | 61 | Lower admitted static artwork into editable contours and a separate paint tree. | yes | indirect | – |

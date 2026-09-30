@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { updateRouteParams } from '../../lib/url-state.ts';
 import { createTrash } from '../../lib/trash.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t } from '../../i18n.ts';
@@ -171,10 +172,7 @@ export const persistCollapsed = (cat: CatCtx): void => {
 export const syncSectionUrl = (cat: CatCtx): void => {
   const { ALL_SECTION_KEYS, collapsed } = cat;
   const open = ALL_SECTION_KEYS.filter(k => !collapsed.has(k));
-  const base = location.hash.split('?')[0] || '#/a';
-  try {
-    history.replaceState(history.state, '', `${location.pathname}${base}${open.length ? `?section=${open.join(',')}` : ''}`);
-  } catch { /* history unavailable - non-fatal */ }
+  updateRouteParams({ section: open.join(',') });
 };
 // The active brand's fonts: its declared font tokens (matched to a bundled spec
 // when the family is one Lolly ships, so it keeps downloads + licence), then any

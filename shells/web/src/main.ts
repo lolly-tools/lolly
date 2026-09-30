@@ -141,6 +141,7 @@ type Route =
 interface ViewElement extends HTMLElement {
   _cleanup?: () => void;
   _beforeLeave?: () => Promise<boolean>;
+  _applyWorkspace?: (params: string) => boolean;
 }
 
 /** The File Handling API's launch queue: an installed PWA opened through the OS
@@ -173,12 +174,6 @@ if (urlTheme) document.documentElement.dataset.theme = urlTheme;
 // opens the native popup on arrow keys instead of cycling the value).
 initSelectPreview();
 
-/**
- * Which piece of a route's sub-state its dedup signature keys on (see
- * routeSignature). Absent ⇒ the route name alone is the whole signature.
- */
-type RouteSigKey = 'toolId' | 'folderId' | 'params' | 'slug';
-
 /** Everything the router needs to know about one route, in one place. */
 interface RouteSpec {
   /** Spoken name, announced to assistive tech after the view mounts. */
@@ -187,8 +182,6 @@ interface RouteSpec {
   tab?: ViewToggleKey;
   /** Scoping classes #view carries while this route is mounted. */
   viewClasses?: readonly string[];
-  /** The sub-state the dedup signature keys on. */
-  sigKey?: RouteSigKey;
   /** Whether the persistent bottom search bar shows on this route (plans/99 M1):
    *  'search' on the browse views, 'none' (the default) on editing views and the
    *  utility views that keep their own chrome for now. */
@@ -198,47 +191,47 @@ interface RouteSpec {
 /**
  * THE route table - the single source of truth for per-route chrome. The tab a
  * route lights up, the scoping classes #view carries, the announced label and
- * the dedup signature's shape are all derived from here, so adding a view means
+ * footer policy are all derived from here, so adding a view means
  * adding one row (plus its parseRoute branch and its lazy mount case) rather
  * than editing four parallel lists that silently half-work when one is missed.
  */
 const ROUTES: Record<RouteName, RouteSpec> = {
-  learning: { label: 'Learning module', sigKey: 'params', footer: 'none' },
+  learning: { label: 'Learning module', footer: 'none' },
   gallery: { label: 'Tools gallery', tab: 'tools', viewClasses: ['gallery-view'], footer: 'search' },
   // Utilities IS the gallery view (mountGallery in only-utility mode), so it must
   // carry the same scoping class - gallery.css's desktop saved-list grid, footer
   // padding and every other .gallery-view rule apply identically. Without it the
   // mounted markup is styled by nothing and the view renders broken/blank.
   utilities: { label: 'Utilities', tab: 'utilities', viewClasses: ['gallery-view', 'utilities-view'], footer: 'search' },
-  tool: { label: 'Tool', viewClasses: ['tool-view'], sigKey: 'toolId', footer: 'none' },
-  profile: { label: 'Settings', viewClasses: ['profile-view'], sigKey: 'params', footer: 'search' },
+  tool: { label: 'Tool', viewClasses: ['tool-view'], footer: 'none' },
+  profile: { label: 'Settings', viewClasses: ['profile-view'], footer: 'search' },
   // The dashboard keys on its query too, so a deep link that only changes a flag
   // (#/d → #/d?print, or an old #/platform?x redirect) re-mounts and re-applies
   // the open+scroll, instead of being deduped as the same 'dashboard' route.
-  dashboard: { label: 'Settings', viewClasses: ['dashboard-view'], sigKey: 'params', footer: 'search' },
+  dashboard: { label: 'Settings', viewClasses: ['dashboard-view'], footer: 'search' },
   // params-keyed so #/pro?s=slot,slot… ("Edit as sheet") and #/pro?session=… deep
   // links re-seed the grid and survive Back. Safe: /pro never rewrites its own
   // params mid-session (its only location writes navigate AWAY - see index.ts).
-  pro: { label: 'Batch mode', viewClasses: ['pro-view'], sigKey: 'params', footer: 'none' },
-  projects: { label: 'Projects', tab: 'projects', viewClasses: ['projects-view'], sigKey: 'folderId', footer: 'search' },
-  history: { label: 'History', viewClasses: ['history-view'], sigKey: 'params', footer: 'none' },
+  pro: { label: 'Batch mode', viewClasses: ['pro-view'], footer: 'none' },
+  projects: { label: 'Projects', tab: 'projects', viewClasses: ['projects-view'], footer: 'search' },
+  history: { label: 'History', viewClasses: ['history-view'], footer: 'none' },
   catalog: { label: 'Assets', tab: 'catalog', viewClasses: ['catalog-view'], footer: 'search' },
   // Verify/Convert/PDF/Lab keep their own chrome in v1 - the bar reaches them in
   // plans/99 M3 once proven (decision locked 2026-08-08).
   verify: { label: 'Verify', viewClasses: ['verify-view'], footer: 'none' },
-  convert: { label: 'Convert', viewClasses: ['convert-view'], sigKey: 'params', footer: 'none' },
+  convert: { label: 'Convert', viewClasses: ['convert-view'], footer: 'none' },
   compare: { label: 'Compare', viewClasses: ['compare-view'], footer: 'none' },
   prepare: { label: 'Prepare for sharing', viewClasses: ['prepare-view'], footer: 'none' },
   // Rebrand (plan 274): keyed on params, so a dropped .lolly that names a different
   // project (`?project=<id>`) re-mounts rather than deduping onto the open one.
-  rebrand: { label: 'Rebrand', viewClasses: ['rebrand-view'], sigKey: 'params', footer: 'none' },
+  rebrand: { label: 'Rebrand', viewClasses: ['rebrand-view'], footer: 'none' },
   data: { label: 'Spreadsheet', viewClasses: ['data-view'], footer: 'none' },
   // The studio keys on ?tab= for the same reason - "Manage fonts" (#/start?tab=type)
   // clicked while already on #/start must switch steps, not dedupe to a no-op.
-  start: { label: 'Brand setup', viewClasses: ['start-view'], sigKey: 'params', footer: 'none' },
+  start: { label: 'Brand setup', viewClasses: ['start-view'], footer: 'none' },
   // Multi-edit keys on its selection (?s=slot,slot…) so editing a different
   // selection re-mounts with the new set instead of deduping.
-  multi: { label: 'Multi-edit', viewClasses: ['multi-view'], sigKey: 'params', footer: 'none' },
+  multi: { label: 'Multi-edit', viewClasses: ['multi-view'], footer: 'none' },
   // Components keeps its footerNav SPECIMEN (in-flow, neutralised in components.css)
   // rather than the live bar.
   components: { label: 'Component library', footer: 'none' },
@@ -246,7 +239,7 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // no pretty path and no APP_PATH_WORDS entry, because a path word is permanent
   // and this is a draft. Keys on the SLUG, like the docs reader, so moving
   // between chapters re-mounts instead of deduping onto the open one.
-  'document-model': { label: 'Document model', viewClasses: ['dm-view'], sigKey: 'slug', footer: 'none' },
+  'document-model': { label: 'Document model', viewClasses: ['dm-view'], footer: 'none' },
   // The Lab gets NO tab. It's a utility you open and come back from, like any tool
   // page - so it gets the back pill and no tab bar. Lighting the Utilities tab
   // here would suggest the pill is where you are rather than where you'd go,
@@ -262,22 +255,22 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // for. Keys on `params` so a fresh #/ask?q= from spotlight (or a Back into it)
   // re-mounts and appends the new question to the session transcript instead of
   // deduping onto the first.
-  ask: { label: 'Ask Lolly', viewClasses: ['ask-view'], sigKey: 'params', footer: 'none' },
+  ask: { label: 'Ask Lolly', viewClasses: ['ask-view'], footer: 'none' },
   // In-app documentation reader (#/docs/<slug>) - the /info docs rehosted into #view so
   // they inherit the ACTIVE brand (plan "this-is-a-very-sparkling-eich" M2). A utility
   // view like Ask/Lab (no tab, the back pill, its own scroll) but it KEEPS the search bar:
   // a reader mid-page needs the spotlight (docs group hoisted via ROUTE_DOMAIN) without
   // backing out to a browse route first. Unclaimed - queries go to the overlay only, never
-  // reshape the page behind. Keys on the SLUG (routeSignature's 'slug' case), so moving
+  // reshape the page behind. Moving
   // between doc pages re-mounts the reader.
-  docs: { label: 'Documentation', viewClasses: ['docs-view'], sigKey: 'slug', footer: 'search' },
+  docs: { label: 'Documentation', viewClasses: ['docs-view'], footer: 'search' },
   // The two private-collab ceremony links (plan 100 section 6.1 skin 1, section 11.25). Both are
   // arrival points from someone ELSE's device, so they get no tab and no footer bar - 
   // and both key on `params`, because the whole meaning of the route is the invite (or
   // reply) token in the query: a second link pasted into the same tab must re-mount
   // with the new payload, never dedupe onto the first one.
-  join: { label: 'Join a collab', sigKey: 'params', footer: 'none' },
-  'join-reply': { label: 'Collab reply', sigKey: 'params', footer: 'none' },
+  join: { label: 'Join a collab', footer: 'none' },
+  'join-reply': { label: 'Collab reply', footer: 'none' },
 };
 
 /** Every scoping class in ROUTES → the routes that own it, in declaration order. */
@@ -292,13 +285,6 @@ const VIEW_CLASS_OWNERS: ReadonlyMap<string, ReadonlySet<RouteName>> = (() => {
   }
   return owners;
 })();
-
-/** Routes whose signature keys on `params`, so re-navigating WITHIN them isn't a leave. */
-const PARAM_KEYED_ROUTES: ReadonlySet<RouteName> = new Set(
-  (Object.entries(ROUTES) as Array<[RouteName, RouteSpec]>)
-    .filter(([, spec]) => spec.sigKey === 'params')
-    .map(([name]) => name),
-);
 
 let _lastRouteName: RouteName | null = null;
 // The docs page last shown (language and slug), so moving between two docs pages
@@ -321,46 +307,23 @@ function navKeyForRoute(name: RouteName): ViewToggleKey | null {
 }
 
 /**
- * The dedup signature for a parsed route: its name plus whatever sub-state
- * ROUTES says changes what's mounted. See navigate() for the rationale.
+ * The complete route identity and query; external same-view links restore state too.
  */
 function routeSignature(route: Route): string {
-  const key = ROUTES[route.name]?.sigKey;
-  if (!key) return route.name;
   const sub = route as { toolId?: string; folderId?: string | null; params?: string; slug?: string; lang?: string | null };
-  if (key === 'toolId') return `${route.name}:${sub.toolId ?? ''}`;
-  // The docs reader mounts a specific page, so its signature is the slug (+ any
-  // explicit route lang) - navigating between doc pages must re-mount, not dedupe.
-  if (key === 'slug') return `${route.name}:${sub.lang ?? ''}/${sub.slug ?? ''}`;
-  if (key === 'folderId') {
-    // The ?q= results-mode param is mount state too (plans/99 section 2a): entering or
-    // leaving projects results mode must remount in BOTH directions - the
-    // overlay's "See all in Projects" handoff forward AND the browser's Back - 
-    // so the signature carries it alongside the folder. Other params stay out:
-    // they don't change what's mounted.
-    const q = new URLSearchParams(sub.params ?? '').get('q');
-    return `${route.name}:${sub.folderId ?? ''}${q ? `?q=${q}` : ''}`;
-  }
-  return `${route.name}:${sub.params ?? ''}`;
+  return JSON.stringify([route.name, sub.toolId, sub.folderId, sub.lang, sub.slug, sub.params ?? '']);
 }
+
+// A view has already applied its own address update. External navigation still
+// compares the complete route, including its query, and restores the new state.
+window.addEventListener('lolly:url-state', () => { mountedRouteSig = routeSignature(parseRoute()); });
 
 async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<void> {
   const route = parseRoute();
-  // A single tool open sets a hash while on a History-API /t/<id> URL, which fires BOTH
-  // hashchange AND popstate - in separate macrotasks, with variable timing (the 2nd can
-  // land after the 1st mount's replaceState). That mounted the tool TWICE per open,
-  // re-running loadTool + createRuntime + hydrate for nothing (~2× the open cost; the tool
-  // view even documents the quirk, reading its resume markers read-only to survive it).
-  // Skip a navigate that resolves to the route already mounted - timing-independent, since
-  // parseRoute maps both #/tool/<id> and /t/<id> to the same `tool:<id>` signature. The
-  // signature must capture EVERYTHING that changes what's mounted, or it over-collapses:
-  // keyed on `route.name` alone, opening a Projects folder (#/p/<id>) from the Projects
-  // root both read 'projects' and the folder never opens. So each route keys on its full
-  // sub-state (folderId / params). ONLY the tool route strips params - its two burst
-  // events repack the query mid-mount, and same-tool param edits apply in place
-  // (runtime.setInput), never by re-mount; every other route's sub-state is stable across
-  // a burst. Explicit refreshes - boot, the gallery's post-sync re-render - force past this.
-  // Which sub-state each route keys on is declared in ROUTES (sigKey) above.
+  const appearance = urlThemeOverride();
+  applyTheme(appearance ?? localStorage.getItem('theme') ?? 'light', false, false);
+  // Hash and popstate can both report one navigation; own writes acknowledge
+  // their state synchronously through lolly:url-state.
   const routeSig = routeSignature(route);
   // The URL this navigation left (hashchange oldURL / navigateTo's capture) - 
   // consumed on EVERY navigate, even a deduped one, so a stale stash can't
@@ -369,6 +332,17 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   const leftHref = takeLeavingHref();
   if (!opts.force && routeSig === mountedRouteSig) return;
   const outgoing = document.getElementById('view') as ViewElement | null;
+  if (!opts.force && mountedRouteSig && route.name === 'tool' && outgoing?._applyWorkspace) {
+    const previous = JSON.parse(mountedRouteSig) as Array<string | null>;
+    const strip = (params: string): string => {
+      const values = new URLSearchParams(params);
+      for (const key of ['_ui', '_sel', '_t', '_panel', '_view', '_appearance']) values.delete(key);
+      values.sort(); return values.toString();
+    };
+    if (previous[0] === 'tool' && previous[1] === route.toolId && strip(previous[5] ?? '') === strip(route.params ?? '') && outgoing._applyWorkspace(route.params ?? '')) {
+      mountedRouteSig = routeSig; return;
+    }
+  }
   if (outgoing?._beforeLeave && !await outgoing._beforeLeave()) return;
   const prevSig = mountedRouteSig;
   mountedRouteSig = routeSig;
@@ -381,11 +355,9 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // within themselves (#/start?tab=color → ?tab=type), and a forced same-sig
   // remount (lolly:remount) isn't a leave at all.
   const viewIdent = (sig: string): string => {
-    const colon = sig.indexOf(':');
-    if (colon < 0) return sig;
-    const name = sig.slice(0, colon);
+    const [name, toolId, folderId, lang, slug] = JSON.parse(sig) as string[];
     if (name === 'profile' || name === 'dashboard') return 'settings';
-    return PARAM_KEYED_ROUTES.has(name as RouteName) ? name : sig;
+    return JSON.stringify([name, toolId, folderId, lang, slug]);
   };
   if (prevSig && viewIdent(routeSig) !== viewIdent(prevSig)) recordLeave(leftHref);
 
@@ -1930,7 +1902,7 @@ function parseRoute(): Route {
       return { name: 'pro', params: query || '' };
     }
     if (parts[0] === 'learning') return { name: 'learning', params: query || '' };
-    if (parts[0] === 'p') return { name: 'projects', folderId: parts[1] || null, params: query || '' };
+    if ((parts[0] === 'p' || parts[0] === 'projects')) return { name: 'projects', folderId: parts[1] || null, params: query || '' };
     if (parts[0] === 'a' || parts[0] === 'assets') return { name: 'catalog', params: query || '' };
     // The view's spelling before it was renamed Assets (2026-09-26). Old bookmarks,
     // share links (`#/c?asset=…`) and docs recipes forward to #/a with the query
@@ -1997,9 +1969,9 @@ function parseRoute(): Route {
   // profile data - no OG stub / first-class path needed, unlike /t/). Same redirect
   // style as /pro|/platform|/capabilities. Must precede the length===1 tool-shortcut
   // block so a bare /p isn't treated as a tool id.
-  if (pathParts[0] === 'p') {
+  if (pathParts[0] === 'p' || pathParts[0] === 'projects') {
     window.location.replace(`/#/p${pathParts[1] ? '/' + pathParts[1] : ''}${window.location.search}`);
-    return { name: 'projects', folderId: pathParts[1] || null };
+    return { name: 'projects', folderId: pathParts[1] || null, params: window.location.search.slice(1) };
   }
   if (pathParts.length === 1) {
     // /design is the Design tool's canonical vanity path - the one tool with a bare
@@ -2043,13 +2015,16 @@ function parseRoute(): Route {
     }
     // /components is the browsable component library, not a tool shortcut - a bare
     // /components would otherwise fall through to /#/tool/components and 404.
-    if (pathParts[0] === 'components') { window.location.replace('/#/components'); return { name: 'components' }; }
+    if (pathParts[0] === 'components') { window.location.replace(`/#/components${window.location.search}`); return { name: 'components', params: window.location.search.slice(1) }; }
     // The remaining view shortlinks that carry an OG share card (scripts/build-view-og.ts
     // → vercel.json rewrites them to a crawler-visible stub). In production a human never
     // reaches this branch - the stub bounces them into the hash route - but in dev, and on
     // any fall-through, these MUST resolve to their view rather than to /#/tool/<slug>,
     // which would 404 on a tool id that doesn't exist. Same contract as /pro and /start.
     const PATH_VIEWS: Record<string, { hash: string; route: Route }> = {
+      history:   { hash: '#/history', route: { name: 'history', params: '' } },
+      learning:  { hash: '#/learning', route: { name: 'learning', params: '' } },
+      gallery:   { hash: '#/', route: { name: 'gallery' } },
       tools:     { hash: '#/',     route: { name: 'gallery' } },
       u:         { hash: '#/u',    route: { name: 'utilities' } },
       utilities: { hash: '#/u',    route: { name: 'utilities' } },
@@ -2086,7 +2061,7 @@ function parseRoute(): Route {
       window.location.replace(`/${view.hash}${q}`);
       if (view.route.name === 'profile') return { name: 'profile', params: q.slice(1) };
       if (view.route.name === 'rebrand') return { name: 'rebrand', params: q.slice(1) };
-      return view.route;
+      return { ...view.route, params: q.slice(1) } as Route;
     }
     // /b and /brand → the Dashboard's Design System tab (shortlinks, not tools).
     if (pathParts[0] === 'b' || pathParts[0] === 'brand') {

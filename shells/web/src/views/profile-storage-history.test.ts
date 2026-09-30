@@ -68,7 +68,7 @@ test('the screen-reader overview names History with its bytes, and says nothing 
 test('the Storage card measures history, shows the row only where history exists, and wires both actions', () => {
   assert.match(STORAGE_SRC, /host\.state\.history \? await host\.state\.history\.usage\(\)/, 'measured from the revision store');
   assert.match(STORAGE_SRC, /fileHistory\.bytes \+ historyBytes\(history\)/, 'counted in the measured total, so it is not "Other"');
-  assert.match(STORAGE_SRC, /\$\{m\.history \? `<div class="store-manage store-manage--row" data-cat="history">/, 'no row without a revision store');
+  assert.match(STORAGE_SRC, /\$\{m\.history \? storeRow\('history', t\('History'\)/, 'no row without a revision store');
   assert.match(STORAGE_SRC, /<a class="btn" href="#\/history">\$\{t\('Open History'\)\}<\/a>/);
   assert.match(STORAGE_SRC, /id="prune-history-btn"[^>]*>\$\{t\('Remove automatic checkpoints older than 30 days'\)\}/);
   const handler = STORAGE_SRC.slice(STORAGE_SRC.indexOf("closest<HTMLButtonElement>('#prune-history-btn')"), STORAGE_SRC.indexOf("closest('.store-selbar-clear')"));

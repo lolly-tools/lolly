@@ -27,6 +27,8 @@ import { mountBodyPopover } from './body-popover.ts';
 import { soundSwitchHtml, wireSoundSwitch } from './sound-toggle.ts';
 import { LOLLY_MARK_SVG } from '../lib/lolly-mark.ts';
 import { t, LANG_META, currentLang, type LangSwitchHost } from '../i18n.ts';
+import { attachDesignSystemMenu } from './design-system-menu.ts';
+import type { SwitchHost } from '../lib/design-system/switch.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 // The chevron every navigation row wears (was hand-copied per row).
@@ -52,7 +54,7 @@ function hasAssets(h: ProfileMenuHost): h is AssetsHost {
  *  doesn't dismiss this menu underneath it. */
 function inLangMenu(node: Node | null): boolean {
   const el = node instanceof Element ? node : (node?.parentElement ?? null);
-  return !!el?.closest('.lang-menu');
+  return !!el?.closest('.lang-menu, .design-system-menu');
 }
 
 export function attachProfileMenu(
@@ -68,6 +70,7 @@ export function attachProfileMenu(
   // The Language row's child popover detach - re-wired per open (render runs
   // fresh each time), torn down with the menu so the child can't outlive it.
   let detachLang: (() => void) | null = null;
+  let detachDesignSystem: (() => void) | null = null;
 
   const popover = mountBodyPopover(trigger, (el, pop) => {
     const theme = currentTheme();
@@ -86,9 +89,9 @@ export function attachProfileMenu(
       <button type="button" class="profile-menu-item" role="menuitem" data-act="lang" aria-haspopup="menu" aria-expanded="false">
         <span>${t('Language')}</span><span class="profile-menu-count">${escape(LANG_META[currentLang()].nativeName)}</span>
       </button>
-      <a class="profile-menu-item" role="menuitem" href="#/settings?focus=design-systems-section" data-act="design-system">
+      <button type="button" class="profile-menu-item" role="menuitem" data-act="design-system" aria-haspopup="menu" aria-expanded="false">
         <span>${t('Design system')}</span><span class="profile-menu-count" data-ds-label></span>
-      </a>
+      </button>
       <a class="profile-menu-item" role="menuitem" href="#/start" data-act="brand">
         <span>${t('Set up your brand')}</span>
         ${CHEVRON}
@@ -152,12 +155,15 @@ export function attachProfileMenu(
     // path (it overwrites the user tokens).
     el.querySelector('[data-act="home"]')?.addEventListener('click', () => pop.close());
     // The active design system's label (plans/186): read async, filled in place,
-    // so the row costs the menu nothing at open. The row opens the Profile card
-    // that lists and switches them.
-    el.querySelector('[data-act="design-system"]')?.addEventListener('click', () => pop.close());
+    // so the row costs the menu nothing at open. The active
+    // label updates in place after a quick switch.
+    const systemButton = el.querySelector<HTMLButtonElement>('[data-act="design-system"]')!;
+    const switchHost = host as SwitchHost;
+    if (switchHost.designSystems) detachDesignSystem = attachDesignSystemMenu(systemButton, switchHost);
+    else systemButton.disabled = true;
     void (host as unknown as { tokens?: { active?(): Promise<{ label: string } | null> } }).tokens?.active?.()
       .then(a => { const slot = el.querySelector<HTMLElement>('[data-ds-label]'); if (slot && a) slot.textContent = a.label; })
-      .catch(() => { /* no registry - the row still opens the card */ });
+      .catch(() => { /* The picker reports registry availability separately. */ });
     el.querySelector('[data-act="brand"]')?.addEventListener('click', () => pop.close());
     el.querySelector('[data-act="settings"]')?.addEventListener('click', () => pop.close());
 
@@ -188,7 +194,7 @@ export function attachProfileMenu(
     isInside: inLangMenu,
     // Close the child with the parent, whichever route closed it (Escape,
     // outside tap, route change) - detachLang's cleanup closes the child popover.
-    onClose: () => { detachLang?.(); detachLang = null; },
+    onClose: () => { detachLang?.(); detachLang = null; detachDesignSystem?.(); detachDesignSystem = null; },
   });
 
   const onClick = (e: MouseEvent) => {

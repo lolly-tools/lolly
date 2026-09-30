@@ -7,6 +7,7 @@
  * function as a value (an event listener), goes through `pv.<module>.<fn>`. Extracted verbatim
  * from mountProfile() by scripts/split-closure.ts.
  */
+import { updateRouteParams, routeParams } from '../../lib/url-state.ts';
 import { settingsNavHtml, wireSettingsNav } from '../../components/settings-nav.ts';
 import { THEMES, THEME_ICONS, THEME_LABELS } from '../../theme.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
@@ -193,9 +194,9 @@ export function renderShell(pv: ProfileViewCtx): void {
         ${summaryRow('connections-section', t('Connected services'))}
         <div class="profile-collapse-body section-card-body">
           <div id="connections-body">${skeletonRow()}</div>
-          <details class="pconn-group" data-pconn-group="sync"${pv.focusSync ? ' open' : ''}>
+          <details class="profile-group" data-pconn-group="sync"${pv.focusSync ? ' open' : ''}>
             ${groupSummaryRow(t('Sync across devices'))}
-            <div class="pconn-group-body" id="sync-body">${skeletonRow()}</div>
+            <div class="profile-group-body" id="sync-body">${skeletonRow()}</div>
           </details>
         </div>
       </details>
@@ -317,6 +318,7 @@ export function wireNav(pv: ProfileViewCtx): void {
       if (!el) return;
       // A collapsed <details> must open before it can be scrolled into meaningful view.
       if (el instanceof HTMLDetailsElement && !el.open) el.open = true;
+      updateRouteParams({ focus: id });
       el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
     };
 
@@ -393,7 +395,9 @@ export function wireNav(pv: ProfileViewCtx): void {
         panes?.classList.toggle('is-searching', tokens.length > 0);
         if (empty) empty.hidden = matches > 0;
       };
-      search.addEventListener('input', apply);
+      search.value = routeParams().get('q') ?? '';
+      apply();
+      search.addEventListener('input', () => { apply(); updateRouteParams({ q: search.value || null }); });
       // Enter jumps to the first (only) remaining match - the quickest path to a
       // setting you searched for.
       search.addEventListener('keydown', e => {

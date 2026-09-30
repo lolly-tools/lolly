@@ -153,7 +153,7 @@ function renderActions(
           ta.saving.settleSaveButton(this);
       }
     );
-    return { ...kept, save: ta.saving.performSave };
+    return { ...kept, save: ta.saving.performSave, quickSaveFolder: ta.saving.quickSaveFolder };
   }
 
   const actions = manifest.render.actions ?? ['copy', 'download', 'save']; ta.actions = actions;
@@ -410,6 +410,7 @@ function renderActions(
     copy: ta.copying.performCopy,
     preview: ta.copying.preview,
     save: ta.saving.performSave,
+    quickSaveFolder: ta.saving.quickSaveFolder,
     setDims: ta.video.setDims,
     setFormat: ta.video.setFormat,
     setFormats: ta.video.setFormats,
