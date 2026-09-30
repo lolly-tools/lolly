@@ -35,6 +35,8 @@ import { uiTokenCssValue } from '../brand-vars.ts';
 import type { UiTokenKind } from '../brand-vars.ts';
 import { listLollyUiTokens, lollyUiOverride, lollyUiTokenDocument, removeLollyUiOverride, setLollyUiOverride } from './lolly-ui-tokens.ts';
 
+import { mountTokenWorkspace } from '../components/token-workspace.ts';
+
 export interface StudioTabCtx {
   host: HostV1;
   doc: () => Record<string, unknown>;
@@ -193,6 +195,17 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     </form>
     <p class="be-err" data-tok-err hidden></p>`;
 
+  const workspaceRoot = document.createElement('section');
+  mount.prepend(workspaceRoot);
+  const workspace = mountTokenWorkspace(workspaceRoot, {
+    read: ctx.doc, host: ctx.host,
+    commit: candidate => {
+      const current = ctx.doc();
+      for (const key of Object.keys(current)) delete current[key];
+      Object.assign(current, candidate);
+      ctx.persist(true); ctx.notify();
+    },
+  });
   const list = mount.querySelector<HTMLElement>('[data-tok-list]')!;
   const err = mount.querySelector<HTMLElement>('[data-tok-err]');
   const showErr = (m: string): void => { if (err) { err.textContent = m; err.hidden = !m; } if (m) announce(m, { assertive: true }); };
@@ -320,6 +333,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
   };
 
   const render = (): void => {
+    workspace.refresh();
     renderNeutrals();
     renderUiStarter();
     const all = listStudioTokens(ctx.doc()).filter(t => t.kind !== 'gradient');
@@ -459,7 +473,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     list.querySelector<HTMLElement>(`[data-tok-row][data-tok-path="${pathAttr({ path } as StudioToken)}"] input`)?.focus();
   });
 
-  return { render, teardown: () => {} };
+  return { render, teardown: () => workspace.teardown() };
 }
 
 // ── Gradients panel (Colour tab) ──────────────────────────────────────────────

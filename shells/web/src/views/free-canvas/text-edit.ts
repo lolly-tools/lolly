@@ -20,6 +20,8 @@ import type { EmojiRuntime } from '../emoji-mount.ts';
 import { FC_CLIP_PREFIX, H_JUSTIFY, V_ALIGN, boolOf, featureSettings } from './shared.ts';
 import type { EditingState, FmtBar, FmtRefs } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { parseWebEmbed } from '../../../../../engine/src/web-embed.ts';
+import { consentToLink, lollyToolRef } from '../../lib/design-web-mount.ts';
 
 /**
  * The runtime's emoji pass, when this host has one (plan 252).
@@ -98,6 +100,40 @@ export function createTextBoxFromSource(fc: FcCtx, source: string): void {
   fc.select.commit([...boxes, box]);
   fc.chromeSync.renderChrome();
 }
+/**
+ * A pasted link to a web page, a video, a code playground or a Sandbox demo becomes a
+ * web page box (plan 288), sized to what the link shows and placed where a pasted text
+ * box would land. The person pasted it, so it is theirs to load. False when the canvas
+ * has no web kind or the text is not a link a box can show.
+ */
+export function createWebBoxFromLink(fc: FcCtx, link: string): boolean {
+  const { addKinds, cfg } = fc;
+  const kind = addKinds.find((k) => k.id === 'web' || (k.seed && k.seed[cfg.kindField] === 'web'));
+  if (!kind) return false;
+  const embed = parseWebEmbed(link, { appOrigin: location.origin });
+  if (!embed) return false;
+  const boxes = fc.select.getBoxes();
+  const cw = fc.helpers.canvasWH();
+  const m = fc.stage.metrics();
+  const onStage = fc.lastPointer
+    && fc.lastPointer.x >= m.sr.left && fc.lastPointer.x <= m.sr.left + m.sr.width
+    && fc.lastPointer.y >= m.sr.top && fc.lastPointer.y <= m.sr.top + m.sr.height;
+  const c = onStage
+    ? fc.stage.clientToNative(fc.lastPointer!.x, fc.lastPointer!.y)
+    : fc.stage.clientToNative(m.sr.left + m.sr.width / 2, m.sr.top + m.sr.height / 2);
+  const w = Math.round(Math.min(cw.w * 0.6, 960));
+  const h = Math.round(w / (embed.aspect || 16 / 9));
+  const id = fc.select.freshId(boxes);
+  let box = seedBox(cfg, {}, { ...(kind.seed), web: link }, { x: c.x - w / 2, y: c.y - h / 2, w, h } as MathRect, id);
+  box = fc.document.clampToWorkArea(box);
+  consentToLink(link);
+  fc.selection = new Set([id]);
+  fc.select.commit([...boxes, box]);
+  fc.chromeSync.renderChrome();
+  // A Lolly or Sandbox link brings its own poster, the tool's render, once it is drawn.
+  if (lollyToolRef(link)) void fc.objects.refreshWebPoster([id], true);
+  return true;
+}
 export function onGlobalPaste(fc: FcCtx, e: ClipboardEvent): void {
   const { canvasEl, cfg } = fc;
   if (fc.disposed || fc.editing) return;
@@ -125,6 +161,15 @@ export function onGlobalPaste(fc: FcCtx, e: ClipboardEvent): void {
       fc.modes.pasteObjects(picked);
       return;
     }
+  }
+  // A single pasted link a web page box can show → that box (plan 288). Anything longer,
+  // or a link no box can show, stays a text box as before.
+  const oneLine = plain.trim();
+  if (oneLine && !/\s/.test(oneLine) && /^(https?:\/\/|localhost[:/]|[a-z0-9-]+(\.[a-z0-9-]+)+\/)/i.test(oneLine)
+    && createWebBoxFromLink(fc, oneLine)) {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
   }
   // Otherwise clipboard TEXT (rich or plain) → a new text box at the canvas centre.
   if (!cfg.textField) return;
@@ -964,6 +1009,7 @@ export function textEditOps(fc: FcCtx) {
     sourceFromPastedHtml: bindOp(fc, sourceFromPastedHtml),
     createTextBoxFromSource: bindOp(fc, createTextBoxFromSource),
     onGlobalPaste: bindOp(fc, onGlobalPaste),
+    createWebBoxFromLink: bindOp(fc, createWebBoxFromLink),
     setFramesClipped: bindOp(fc, setFramesClipped),
     editAfterPaint: bindOp(fc, editAfterPaint),
     startTextEdit: bindOp(fc, startTextEdit),

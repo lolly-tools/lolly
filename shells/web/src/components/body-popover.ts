@@ -96,6 +96,8 @@ export interface BodyPopoverOptions {
   onResize?(popover: BodyPopoverHandle): void;
   /** Follow a scrolling trigger; scrolling within the panel leaves it in place. */
   trackScroll?: boolean;
+  /** Keep expanding content inside the viewport as its measured size changes. */
+  trackSize?: boolean;
   /** Called AFTER a close that actually closed something, whichever route took it:
    *  the caller's own `close()`, Escape, an outside pointerdown, or a route change.
    *  For a caller whose content is not owned by the popover - the timeline inspector
@@ -265,6 +267,8 @@ export function mountBodyPopover(
   let menu: HTMLDivElement | null = null;
   let outside: ((e: PointerEvent) => void) | null = null;
   let trap: FocusTrap | null = null;
+  let sizeObserver: ResizeObserver | null = null;
+  let openedHref = '';
   /** This popover's place on the shared Back stack while it is open, or null when it
    *  pushed no history entry (see the pointer gate in `open()`). */
   let back: OverlayEntry | null = null;
@@ -294,6 +298,12 @@ export function mountBodyPopover(
   // pushed its own entry on top of it. Reached twice on one event (the shared stack
   // and the NAV_EVENTS listener below both call it); close() is idempotent.
   const onNavAway = (): void => { back?.disown(); close(); };
+  const onNavEvent = (event: Event): void => {
+    // A nested dialog releases its own same-URL history entry when dismissed.
+    // The Back stack owns those transitions; route changes still close the menu.
+    if (event.type === 'popstate' && opts.isInside && window.location.href === openedHref) return;
+    onNavAway();
+  };
 
   function close(returnFocus = false): void {
     if (!menu) return;
@@ -303,7 +313,9 @@ export function mountBodyPopover(
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResizeEvt);
     if (opts.trackScroll) window.removeEventListener('scroll', onScroll, true);
-    NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNavAway));
+    sizeObserver?.disconnect();
+    sizeObserver = null;
+    NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNavEvent));
     outside = null;
     trap?.release();
     trap = null;
@@ -319,6 +331,7 @@ export function mountBodyPopover(
   function open(): void {
     if (menu) return;
     const el = document.createElement('div');
+    openedHref = window.location.href;
     menu = el;
     el.className = opts.className;
     el.setAttribute('role', opts.role ?? 'menu');
@@ -326,6 +339,10 @@ export function mountBodyPopover(
     const initialFocus = render(el, handle);
     container.appendChild(el);
     position(el, anchor);
+    if (opts.trackSize && typeof ResizeObserver !== 'undefined') {
+      sizeObserver = new ResizeObserver(reposition);
+      sizeObserver.observe(el);
+    }
     anchor.setAttribute?.('aria-expanded', 'true');
 
     outside = (e) => {
@@ -339,7 +356,7 @@ export function mountBodyPopover(
     document.addEventListener('keydown', onKey);
     window.addEventListener('resize', onResizeEvt);
     if (opts.trackScroll) window.addEventListener('scroll', onScroll, true);
-    NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNavAway));
+    NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNavEvent));
     // Taking system Back costs one history entry per open. On a touch device that is
     // the trade to make: Back is how a user dismisses a menu, and without an entry the
     // press navigates the view out from under it. On a fine-pointer desktop these

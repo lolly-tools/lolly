@@ -5,6 +5,7 @@ import type { Runtime } from '../../../../engine/src/runtime.ts';
 import { showScrubReadout, hideScrubReadout } from '../components/scrub-readout.ts';
 import { playScrubTick } from '../lib/sfx.ts';
 import { cssEscape } from '../lib/util/escape.ts';
+import { exportTargetNode } from '../lib/export-target.ts';
 
 /** Strip-scale → export → reapply wrapper shared by the tool mount and action helpers.
  *  `size` is the pixel size this export renders at, when the caller knows it: a tool whose
@@ -19,13 +20,7 @@ export type ExportUnscaled = <T>(
   }
 ) => Promise<T>;
 
-// Export-target opt-in (plan: sandbox render). A tool whose exported output is
-// NOT its whole canvas - e.g. a code sandbox whose rendered preview is transplanted
-// into a same-origin mirror node - marks that node with `data-export-root`; the
-// walker then rasterises the mirror instead of the IDE chrome. Inert by construction
-// for every other tool: no marker → querySelector null → the canvas itself is used.
-export const exportTargetNode = (c: HTMLElement | null): HTMLElement | null =>
-  c?.querySelector<HTMLElement>('[data-export-root]') ?? c;
+export { exportTargetNode } from '../lib/export-target.ts';
 
 // Flat single-image paths (copy, send-to, thumbnails): with artboards in the doc,
 // capture the ACTIVE artboard's page rather than the whole canvas - the canvas rect

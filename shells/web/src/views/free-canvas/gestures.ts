@@ -1019,6 +1019,9 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     // id, exactly like `camera` above: it is a kind of its own, so the seed alone
     // identifies it wherever the gesture came from.
     const wasScene = fc.armedKind?.id === '3d' || g.seed?.[cfg.kindField] === '3d';
+    // A WEB PAGE box (plan 288) arrives with no link, so the inspector opens on it with
+    // the link field ready for a paste.
+    const wasWeb = fc.armedKind?.id === 'web' || g.seed?.[cfg.kindField] === 'web';
     const wasImage =
       !wasLottie &&
       !wasVideo &&
@@ -1070,6 +1073,10 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     // it is deferred by a macrotask for the same reason they are: the commit above has to
     // reach the model (and the box has to exist) before a modal reads it back.
     if (wasScene) setTimeout(() => { void fc.objects.openStudio([id]); }, 0);
+    else if (wasWeb) setTimeout(() => {
+      fc.inspectorPort?.reveal('web');
+      requestAnimationFrame(() => document.querySelector<HTMLInputElement>('input[data-fld="web"]')?.focus());
+    }, 0);
     else if (wasLottie) setTimeout(() => fc.objects.pickImage({ pickType: 'lottie', initialTab: 'library' }), 0);
     else if (wasVideo || wasClip)
       setTimeout(() => fc.objects.pickImage({ pickType: 'video', initialTab: 'library' }), 0);

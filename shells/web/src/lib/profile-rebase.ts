@@ -83,6 +83,7 @@ export function sameValue(a: unknown, b: unknown): boolean {
  *  (profile-rebase.test.ts checks this). */
 export const ID_LIST_FIELDS: readonly string[] = [
   'favourites', 'favouriteAssets', 'favouriteProjects', 'hiddenTools', 'hiddenTemplates', 'hiddenAssets',
+  'trustedSites',
 ];
 
 /** Lists of records that carry an `id`. When both sides changed one record, the

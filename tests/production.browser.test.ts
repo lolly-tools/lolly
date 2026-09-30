@@ -38,6 +38,7 @@ test('Verify checks uploaded requirements and records a separate local review', 
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({ acceptDownloads: true });
+    page.setDefaultTimeout(5_000);
     await page.route('**/*', route => route.fulfill({ body: '<!doctype html><main id="verify"></main>', contentType: 'text/html' }));
     await page.goto('http://127.0.0.1/production-test');
     await page.addScriptTag({ content: bundle.outputFiles.find(f => f.path.endsWith('.js'))!.text });
@@ -46,14 +47,17 @@ test('Verify checks uploaded requirements and records a separate local review', 
       const file = new File(['<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><text id="legal">Legal 125</text></svg>'], 'card.svg', { type: 'image/svg+xml' });
       (globalThis as unknown as { ProductionUi: { wireProductionVerify(view: HTMLElement, files: () => File[], host: { export: { download(blob: Blob, name: string): Promise<void> } }): () => void } }).ProductionUi.wireProductionVerify(document.querySelector<HTMLElement>('#verify')!, () => [file], { export: { download: async (blob, name) => { const link = document.createElement('a'); const url = URL.createObjectURL(blob); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); } } });
     });
-    await page.getByText('Production checks', { exact: true }).click();
+    assert.equal(await page.locator('.valid-production').isVisible(), false, 'policy starts hidden');
+    await page.locator('.valid-production').evaluate((panel: HTMLDetailsElement) => { panel.hidden = false; panel.open = true; });
     const contract = { profile: 'lolly/production-still-v1', id: 'card', revision: '1', format: 'svg', width: 200, height: 100, pages: 1, alpha: 'any', requirements: [{ id: 'legal', kind: 'text', location: 'legal', expected: 'Legal 125' }] };
-    await page.getByLabel('Requirements JSON').setInputFiles({ name: 'checks.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(contract)) });
+    await page.getByLabel('Requirements').setInputFiles({ name: 'checks.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(contract)) });
     assert.equal(await page.getByLabel('File to check').inputValue(), '0');
-    await page.getByRole('button', { name: 'Check requirements', exact: true }).click();
-    await page.getByText('card.svg: All specified checks passed.').waitFor();
-    await page.getByText('Record a local review', { exact: true }).click(); await page.getByLabel('Reviewer name').fill('Local reviewer');
-    const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Download my review' }).click();
+    await page.getByRole('button', { name: 'Check', exact: true }).click();
+    await page.locator('.valid-production-summary').getByText('Passed', { exact: true }).waitFor();
+    assert.ok(await page.locator('.valid-production-checks details').count() > 0);
+    assert.equal(await page.locator('.valid-production-checks details:not([data-state="pass"])').count(), 0);
+    await page.getByText('Review', { exact: true }).click(); await page.getByLabel('Reviewer name').fill('Local reviewer');
+    const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Save', exact: true }).click();
     const stream = await (await download).createReadStream(); const chunks: Buffer[] = []; for await (const part of stream!) chunks.push(part);
     const reviewed = JSON.parse(Buffer.concat(chunks).toString());
     assert.equal(reviewed.acceptance.authority.kind, 'local-person'); assert.equal(reviewed.acceptance.reportSha256, reviewed.report.reportSha256);

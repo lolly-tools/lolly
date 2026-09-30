@@ -53,7 +53,7 @@ test('staged detector honours the FP corpus contract', { skip: !staged && 'ai-de
   env.localModelPath = `${MODELS_DIR}/`;
   const [tokenizer, classifier] = await Promise.all([
     AutoTokenizer.from_pretrained(m.dir),
-    AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8' }),
+    AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8', device: 'cpu', session_options: { graphOptimizationLevel: 'basic', intraOpNumThreads: 1, interOpNumThreads: 1 } }),
   ]);
 
   // Gate 5: the staged config's labels resolve the AI side by NAME.

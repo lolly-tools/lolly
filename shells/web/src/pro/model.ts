@@ -96,7 +96,7 @@ const BULK_TYPES = new Set<string>([
 // twice). Mirrors RESERVED in engine/src/url-mode.js.
 const RESERVED_KEYS = new Set<string>([
   'format', 'export', 'copy', 'slot', 'output', 'filename', '_v',
-  'width', 'height', 'w', 'h', 'unit', 'dpi', 'full', 'options',
+  'width', 'height', 'w', 'h', 'unit', 'dpi', 'full', 'iframe', 'options',
   // presentation-mode addresses (plan 112) - shell-owned, never a batch column.
   // NB: the signage flag `loop` is intentionally absent - it is a real input id in
   // several tools (slides/deck-builder/3d/…) and must keep its own grid column.

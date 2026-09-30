@@ -23,7 +23,7 @@ import type { AssetRef, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
 import { CAT_ICONS, ORIGINAL_THEME, ZOOM_IN_ICON, ZOOM_OUT_ICON, blobToDataUrl, cropSvg, downloadName, isThemable, isVector, stripC2paManifest, svgAspect, svgTextToDataUrl, svgToPng, svgToRaster, svgViewBox } from './shared.ts';
-import type { CropDeliver, CropSource, CropTransform } from './shared.ts';
+import type { AssetDownloadAppearance, CropDeliver, CropSource, CropTransform } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 
 // ── downloads ──────────────────────────────────────────────────────────────────
@@ -76,6 +76,64 @@ export async function directDownload(cat: CatCtx, ref: AssetRef): Promise<void> 
   try { await host.export.download(await cat.bulk.credentialedBytes(ref), filename); return; }
   catch { /* fetch blocked (opaque/data URL edge) - anchor fallback below */ }
   await saveUrl(cat, ref.original?.url ?? ref.url, filename);
+}
+/** Capture this asset's visible colour choice before a batch starts preparing files. */
+export function gridDownloadAppearance(cat: CatCtx, ref: AssetRef): AssetDownloadAppearance {
+  const tile = cat.viewEl.querySelector<HTMLElement>(`.cat-tile[data-id="${CSS.escape(ref.id)}"]`);
+  const group = tile?.closest<HTMLElement>('.cat-group');
+  const themeId = group
+    ? group.querySelector<HTMLElement>('.cat-dl-theme:not(.cat-dl-treat)[aria-pressed="true"]')?.dataset.theme
+    : cat.catIconTheme;
+  const treatmentId = group
+    ? group.querySelector<HTMLElement>('.cat-dl-treat[aria-pressed="true"]')?.dataset.treatment
+    : cat.catPhotoTreatment;
+  const theme = isThemable(ref) ? cat.iconThemes.find(th => th.id === themeId) : null;
+  const treatment = ref.type === 'raster' && !ref.meta?.animated ? cat.photoTreatments.find(tr => tr.id === treatmentId) : null;
+  return { theme: theme ? { ...theme } : null, treatment: treatment ? { ...treatment } : null };
+}
+/** Bake the grid's appearance into a ZIP member using the individual download's transforms. */
+export async function prepareSelectionDownload(cat: CatCtx, ref: AssetRef, appearance: AssetDownloadAppearance): Promise<{ blob: Blob; format: string }> {
+  const originalFormat = String(ref.format || 'bin');
+  if (isThemable(ref) && appearance.theme) {
+    const response = await fetch(ref.url);
+    if (!response.ok) throw new Error(String(response.status));
+    const sourceBytes = new Uint8Array(await response.arrayBuffer());
+    const base = new TextDecoder().decode(sourceBytes);
+    const themed = restyleIconTheme(base, appearance.theme);
+    if (themed && themed !== base) {
+      const theme = appearance.theme;
+      const blob = await signDerived(cat, ref, new Blob([stripC2paManifest(themed)], { type: 'image/svg+xml' }), 'svg', {
+        edits: [{ action: 'c2pa.color_adjustments', description: `Recoloured with the '${theme.label ?? theme.id}' icon colours (${theme.c1 ?? '?'} / ${theme.c2 ?? '?'})` }],
+        detail: { theme: String(theme.label ?? theme.id), colours: `${theme.c1 ?? ''} / ${theme.c2 ?? ''}` },
+        sourceBytes,
+      });
+      return { blob, format: 'svg' };
+    }
+  } else if (ref.type === 'raster' && !ref.meta?.animated && appearance.treatment) {
+    const response = await fetch(ref.url);
+    if (!response.ok) throw new Error(String(response.status));
+    const source = await response.blob();
+    const wrap = await treatedWrapperSvg(cat, ref, appearance.treatment, source);
+    if (!wrap) throw new Error('Photo treatment is unavailable');
+    const mod = await import('../../lib/catalog-download.ts');
+    const format = mod.imageDownloadFormat(originalFormat) ?? 'png';
+    const quality = mod.imageQualityValue('balanced');
+    const rendered = await svgToRaster(wrap.svg, wrap.w, wrap.h, mod.imageDownloadMime(format), quality);
+    if (mod.imageDownloadFormat(rendered.type) !== format) throw new Error('The image encoder returned an unexpected format');
+    const label = String(appearance.treatment.label ?? appearance.treatment.id);
+    const blob = await signDerived(cat, ref, rendered, format, {
+      edits: [
+        { action: 'c2pa.color_adjustments', description: `Applied the '${label}' colour treatment` },
+        { action: 'c2pa.converted', description: `Encoded to ${format.toUpperCase()} at ${wrap.w}×${wrap.h}px` },
+      ],
+      detail: { treatment: label, quality: `${Math.round(quality * 100)}%`, locationMetadata: 'removed' },
+      dims: `${wrap.w}×${wrap.h}`,
+      sourceBytes: new Uint8Array(await source.arrayBuffer()),
+      requireCredential: true,
+    });
+    return { blob, format };
+  }
+  return { blob: await cat.bulk.credentialedBytes(ref), format: originalFormat };
 }
 // "Send to…" for a STORED asset (plans/129 section 2.3): the same connected
 // destinations the export panel offers, fed the same byte-exact bytes a
@@ -586,15 +644,15 @@ export async function openDownloadDialog(cat: CatCtx, ref: AssetRef, initialThem
 // data URI + the treatment <filter>), at the photo's natural pixel size - the same wrapper
 // the bridge bakes at resolve, but built here so it works for user uploads too (which carry
 // no catalog format dimensions). Returns null when there's no valid treatment.
-export async function treatedWrapperSvg(cat: CatCtx, ref: AssetRef, treatmentId: string | null): Promise<{ svg: string; w: number; h: number } | null> {
-  const def = treatmentId ? cat.photoTreatments.find(t => t.id === treatmentId) : null;
+export async function treatedWrapperSvg(cat: CatCtx, ref: AssetRef, treatmentId: string | PhotoTreatment | null, source?: Blob): Promise<{ svg: string; w: number; h: number } | null> {
+  const def = typeof treatmentId === 'object' ? treatmentId : cat.photoTreatments.find(t => t.id === treatmentId);
   if (!def) return null;
-  const blob = await (await fetch(ref.url)).blob();
+  const blob = source ?? await (await fetch(ref.url)).blob();
   const href = await blobToDataUrl(blob);
-  const { w, h } = await new Promise<{ w: number; h: number }>((res) => {
+  const { w, h } = await new Promise<{ w: number; h: number }>((res, reject) => {
     const im = new Image();
     im.onload = () => res({ w: im.naturalWidth || 1, h: im.naturalHeight || 1 });
-    im.onerror = () => res({ w: 1, h: 1 });
+    im.onerror = () => reject(new Error('Could not decode the source image'));
     im.src = href;
   });
   return { svg: wrapRasterWithTreatment({ href, width: w, height: h, treatment: def }), w, h };
@@ -966,6 +1024,9 @@ export async function openVideoDownloadDialog(cat: CatCtx, ref: AssetRef): Promi
 export async function openAssetDownloadDialog(cat: CatCtx, 
   ref: AssetRef, initialTheme?: string | null, initialTreatment?: string | null,
 ): Promise<void> {
+  const appearance = gridDownloadAppearance(cat, ref);
+  if (initialTheme === undefined) initialTheme = appearance.theme?.id;
+  if (initialTreatment === undefined) initialTreatment = appearance.treatment?.id;
   if (isVector(ref) || isThemable(ref)) return openDownloadDialog(cat, ref, initialTheme);
   if (ref.type === 'raster') return openPhotoDownloadDialog(cat, ref, initialTreatment);
   if (ref.type === 'audio') return openAudioDownloadDialog(cat, ref);
@@ -979,6 +1040,8 @@ export function downloadsOps(cat: CatCtx) {
     signDerived: bindOp(cat, signDerived),
     downloadSigned: bindOp(cat, downloadSigned),
     directDownload: bindOp(cat, directDownload),
+    gridDownloadAppearance: bindOp(cat, gridDownloadAppearance),
+    prepareSelectionDownload: bindOp(cat, prepareSelectionDownload),
     openSendDialog: bindOp(cat, openSendDialog),
     closeDownloadDialog: bindOp(cat, closeDownloadDialog),
     prepCropSource: bindOp(cat, prepCropSource),

@@ -47,6 +47,8 @@ import { selectAdoptionFonts } from '../lib/design-system/adoption-fonts.ts';
 import { resolveSuseFontUrl } from './text-svg.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 import { discoverFontFaces } from './fontface-discovery.ts';
+import type { PinnedAsset } from '../../../../engine/src/design-version.ts';
+import { pinnedFontAliases, verifyPinnedFontBytes } from '../../../../engine/src/token-font-pins.ts';
 
 /**
  * WHICH source face a run resolved to, as identity rather than bytes.
@@ -95,6 +97,41 @@ interface RegistryFace {
   weight: string;   // '400' or a variable range '100 900'
   style: string;    // 'normal' | 'italic'
   unicodeRange: string;
+}
+
+const releaseFaces = new Map<string, RegistryFace[]>();
+const releaseLoads = new Map<string, Promise<void>>();
+
+/** Install exact release bytes under isolated names for CSS and vector shaping. */
+export async function registerReleaseFonts(pins: readonly PinnedAsset[], readBlob: (id: string) => Promise<Blob | null>): Promise<void> {
+  const aliases = await pinnedFontAliases(pins);
+  for (const [family, alias] of aliases) {
+    const faces = pins.filter(p => p.font?.family.toLowerCase() === family);
+    const key = JSON.stringify([alias, faces.map(p => [p.id, p.frozenId, p.sha256, p.font])]);
+    let loading = releaseLoads.get(key);
+    if (!loading) {
+      loading = (async () => {
+        const records: RegistryFace[] = [];
+        const css: FontFace[] = [];
+        for (const pin of faces) {
+          const assetId = pin.frozenId ?? pin.id;
+          const blob = await readBlob(assetId);
+          await verifyPinnedFontBytes(pin, blob ? new Uint8Array(await blob.arrayBuffer()) : null);
+          const face = pin.font!;
+          records.push({ assetId, staticUrl: '', weight: face.weight, style: face.style, unicodeRange: face.unicodeRange ?? '' });
+          if (typeof FontFace !== 'undefined') {
+            const font = new FontFace(alias, await blob!.arrayBuffer(), { weight: face.weight, style: face.style, ...(face.unicodeRange ? { unicodeRange: face.unicodeRange } : {}) });
+            await font.load(); css.push(font);
+          }
+        }
+        if (css.length && (!('add' in document.fonts) || typeof document.fonts.add !== 'function')) throw new Error('This host cannot install pinned fonts.');
+        for (const font of css) if ('add' in document.fonts && typeof document.fonts.add === 'function') document.fonts.add(font);
+        releaseFaces.set(alias.toLowerCase(), records);
+      })().catch(error => { releaseLoads.delete(key); throw error; });
+      releaseLoads.set(key, loading);
+    }
+    await loading;
+  }
 }
 
 // The shell's own default faces (styles/fonts.css + tokens.css `--font-brand`).
@@ -480,10 +517,13 @@ export async function resolveVectorFont(style: FontStyleSlice, text: string): Pr
         return { url, face: { family, weight: style.fontWeight ?? '400', style: style.fontStyle ?? 'normal', source: 'catalog', file: url } };
       }
     }
-    const list = faces.get(key);
+    const list = releaseFaces.get(key) ?? faces.get(key);
     if (!list?.length) return null;
     const chain = pickFaces(list, style, text);
-    if (!chain.length) return null;
+    if (!chain.length) {
+      if (releaseFaces.has(key)) throw new Error('The pinned release has no face for this text and slant.');
+      return null;
+    }
     try {
       // Decode every face in the chain up front; a failure anywhere means this
       // family can't be trusted to draw the run, so try the next one.
@@ -495,7 +535,8 @@ export async function resolveVectorFont(style: FontStyleSlice, text: string): Pr
         ...(rest.length ? { fallbacks: rest } : {}),
         face: describeFace(family, chain[0]!.face),
       };
-    } catch {
+    } catch (error) {
+      if (releaseFaces.has(key)) throw error;
       return null; // this family's bytes are unreadable - try the next family
     }
   };

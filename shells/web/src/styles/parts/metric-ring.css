@@ -1,0 +1,8 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+@layer components {
+  .metric-ring { position: relative; display: inline-grid; place-items: center; width: 4rem; height: 4rem; flex: 0 0 auto; vertical-align: middle; color: var(--ui-color-text-default); font: 600 var(--ui-type-label)/1 var(--ui-type-ui-family); }
+  .metric-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke-width: 3; }
+  .metric-ring-track { stroke: var(--ui-color-border-default); }
+  .metric-ring-value { stroke: var(--ui-color-focus-ring); transform: rotate(-90deg); transform-origin: center; stroke-linecap: round; }
+  .metric-ring.is-unknown .metric-ring-track { stroke-dasharray: 3 3; }
+}

@@ -80,7 +80,7 @@ import type {
   ParamOp,
   Scalar,
 } from '@lolly-tools/core/canvas-op-v1';
-import type { InputModelItem, InputValue } from '../../../../engine/src/inputs.ts';
+import type { InputModelItem, InputValue, InputWriteOptions } from '../../../../engine/src/inputs.ts';
 import { getCanvasSyncProvider } from './canvas-sync-provider.ts';
 // `rowIdField` is shared with the sidebar (where rows are BORN with an id) and the
 // canvas: a row minted under one name and addressed under another is a row nothing
@@ -91,8 +91,8 @@ import { rowIdField, ulid } from './row-id.ts';
  *  ToolRuntime, so nothing here needs the view, the DOM, or a real engine mount. */
 export interface CollabRuntime {
   getModel(): InputModelItem[];
-  setInput(id: string, value: InputValue): Promise<void>;
-  applyPatch(values: Record<string, unknown>): Promise<void>;
+  setInput(id: string, value: InputValue, options?: InputWriteOptions): Promise<void>;
+  applyPatch(values: Record<string, unknown>, options?: InputWriteOptions): Promise<void>;
 }
 
 export interface CollabPlumbingOpts {
@@ -520,24 +520,24 @@ export function attachCollabPlumbing(
   // was there; it is invoked through the runtime so a method-style setter still
   // sees its receiver.
   const inner = runtime.setInput;
-  const outer = (id: string, value: InputValue): Promise<void> => {
+  const outer = (id: string, value: InputValue, options?: InputWriteOptions): Promise<void> => {
     if (!applyingRemote && opts.canEdit?.() === false) return Promise.resolve();
     if (!applyingRemote && !detached) textProjection?.assertReady();
     if (!applyingRemote && !applyingLocalPatch && !detached) {
       // A sync failure must never cost the user their edit.
       try { emitLocal(id, value); } catch (e) { warn('outbound', e); }
     }
-    return inner.call(runtime, id, value);
+    return inner.call(runtime, id, value, options);
   };
   runtime.setInput = outer;
   const innerPatch = runtime.applyPatch;
-  const outerPatch = (values: Record<string, unknown>): Promise<void> => {
-    if (applyingRemote || detached) return innerPatch.call(runtime, values);
+  const outerPatch = (values: Record<string, unknown>, options?: InputWriteOptions): Promise<void> => {
+    if (applyingRemote || detached) return innerPatch.call(runtime, values, options);
     if (opts.canEdit?.() === false) return Promise.resolve();
     textProjection?.assertReady();
     for (const [id, value] of Object.entries(values)) emitLocal(id, value as InputValue);
     applyingLocalPatch = true;
-    try { return innerPatch.call(runtime, values); }
+    try { return innerPatch.call(runtime, values, options); }
     finally { applyingLocalPatch = false; }
   };
   runtime.applyPatch = outerPatch;

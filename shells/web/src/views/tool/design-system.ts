@@ -7,6 +7,8 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
+import { withTokenSelection } from '../../../../../engine/src/token-context.ts';
+import { mountTokenContextStrip } from '../../components/token-context-strip.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
@@ -59,8 +61,22 @@ export function playShutter(tview: ToolViewCtx): void {
   const { shutter } = tview;
   shutter.play();
 }
+export async function mountTokenContext(tview: ToolViewCtx): Promise<void> {
+  const body = tview.viewEl.querySelector<HTMLElement>('.sidebar-body');
+  if (!body || !tview.host.tokens?.snapshot) return;
+  const effectiveHost = tview.runtime?.tokenSelection ? withTokenSelection(tview.host, tview.runtime.tokenSelection) : tview.host;
+  const snapshot = await effectiveHost.tokens!.snapshot!().catch(() => null);
+  if (!snapshot || !body.isConnected) return;
+  const strip = document.createElement('div');
+  mountTokenContextStrip(strip, snapshot, async () => {
+    const { openTokenInspector } = await import('../../components/token-workspace.ts');
+    await openTokenInspector(effectiveHost, undefined, () => strip.isConnected);
+  });
+  body.prepend(strip);
+}
 export function designSystemOps(tview: ToolViewCtx) {
   return {
+    mountTokenContext: bindOp(tview, mountTokenContext),
     onDesignSystemChanged: bindOp(tview, onDesignSystemChanged),
     openShutter: bindOp(tview, openShutter),
     reportShutterProgress: bindOp(tview, reportShutterProgress),

@@ -314,6 +314,31 @@ function isSceneBox(b) {
   return !!b && String(b.kind) === '3d';
 }
 
+// plan 288 - "is this box a web page?". Keyed off `kind` alone, like a scene: its link
+// lives in the `web` field and its poster in `image`. It PAINTS (fill, border, shadow
+// and the poster), so it is not a bare box either.
+function isWebBox(b) {
+  return !!b && String(b.kind) === 'web';
+}
+
+// The host a person recognises in a web box's link, without `www.`. A regex rather than
+// URL() so the hook reads the same on every host realm; the shell validates the link
+// properly (engine/src/web-embed.ts) before any frame exists.
+function webHostOf(link) {
+  var m = /^[a-z][a-z0-9+.-]*:\/\/(?:[^@\/?#]*@)?([^\/?#:]+)/i.exec(String(link == null ? '' : link));
+  return m ? m[1].replace(/^(www|m)\./i, '').toLowerCase() : '';
+}
+
+// What the placeholder card calls a web box's link: a Sandbox demo, another Lolly tool,
+// or the site's host.
+function webLabelOf(link) {
+  var s = String(link == null ? '' : link);
+  if (/#\/?tool\/sandbox(\?|$)/.test(s)) return 'Sandbox demo';
+  var tool = /#\/?tool\/([a-z0-9-]+)/.exec(s);
+  if (tool) return 'Lolly ' + tool[1];
+  return webHostOf(s) || 'Web page';
+}
+
 // The boxes that leave NO MARK on the frame: an audio bed and a camera marker. One
 // predicate so every "paints nothing" site (fill, gradient, clip, blur, shadow, text)
 // stays in one vocabulary and a new bare kind is added in exactly one place.
@@ -494,6 +519,30 @@ function mediaHtmlFor(b) {
   if (isSceneBox(b)) {
     return '<div class="lolly-box-img lolly-box-scene" data-lolly-scene="' +
       esc(b.scene == null ? '' : b.scene) + '" data-scene-state="poster"></div>';
+  }
+  // plan 288 - a WEB PAGE box. Checked before the `url` guard: its link is not an asset.
+  // The marker is the whole contract with the shell, as a scene's is. The link rides
+  // inert in a data attribute, never as a src and never in an <iframe>: the shell checks
+  // it (engine/src/web-embed.ts), turns it into what a frame loads, and mounts the frame
+  // over the poster. The poster is the box's image; with none, a plain card names the
+  // site. Either way every export, the CLI and a shell-less browser draw something true.
+  if (isWebBox(b)) {
+    var link = String(b.web == null ? '' : b.web).trim();
+    var title = String(b.name == null ? '' : b.name).trim();
+    var label = webLabelOf(link);
+    var poster = b.image && b.image.url ? String(b.image.url) : '';
+    var view = Math.max(0, Math.round(num(b.webView, 0)));
+    var inner = poster && !/\.(json|mp4|m4v|mov|webm|mp3|wav|ogg|m4a)($|\?|#)/i.test(poster)
+      ? '<img class="lolly-box-web-poster" src="' + esc(poster) + '" alt="' + esc(title || label) +
+        '" draggable="false" style="' + imgCss(b) + '">'
+      : '<div class="lolly-box-web-card">' +
+        '<svg class="lolly-box-web-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 8.5h18" stroke="currentColor" stroke-width="1.6"/><circle cx="6" cy="6.3" r=".8" fill="currentColor"/><circle cx="8.6" cy="6.3" r=".8" fill="currentColor"/></svg>' +
+        '<span class="lolly-box-web-label">' + esc(label) + '</span>' +
+        (title && title !== label ? '<span class="lolly-box-web-title">' + esc(title) + '</span>' : '') +
+        '</div>';
+    return '<div class="lolly-box-web" data-lolly-web="' + esc(link) + '" data-web-view="' + view +
+      '" data-web-load="' + esc(String(b.webLoad == null || b.webLoad === '' ? 'slide' : b.webLoad)) +
+      '" data-web-title="' + esc(title || label) + '" data-web-state="poster">' + inner + '</div>';
   }
   var img = b && b.image;
   var url = img && img.url ? String(img.url) : '';
@@ -2593,7 +2642,9 @@ function deckElementFor(cb, byId, lx, ly) {
       paras: paras,
     }, cb);
   }
-  if (kind === 'image') {
+  // A web page box lowers to its poster, a still picture like an image box's; with no
+  // poster it falls through to the rectangle below (plan 288).
+  if (kind === 'image' || (kind === 'web' && cb.image && cb.image.url)) {
     // Asset refs are resolved by the runtime BEFORE this hook, so cb.image already
     // carries { type, url } - the same shape mediaHtmlFor reads. STILL images only:
     // a lottie/video source is skipped (rasterise-to-image FOLLOW-UP), reusing

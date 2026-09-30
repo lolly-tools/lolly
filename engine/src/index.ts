@@ -60,8 +60,8 @@ export {
   PSD_BLEND_TO_CSS, CSS_TO_PSD_BLEND, XCF_MODE_TO_CSS, psdBlendToCss, xcfModeToCss,
 } from './raster-layers.ts';
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
-export { buildInputModel, summarizeInputs, normalizeTableValue, deriveExportFilename, matchesShowIf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
-export type { TableValue, TableColumnEditor, ShowIf } from './inputs.ts';
+export { buildInputModel, summarizeInputs, normalizeTableValue, deriveExportFilename, matchesShowIf, tokenRestoreRefsOf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
+export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from './inputs.ts';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
@@ -637,6 +637,11 @@ export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, typographyFamilies, tokenSetNames, TOKEN_EXT,
 } from './tokens.ts';
+export { inspectTokenDocument, diffTokenDocuments, TOKEN_INSPECTION_LIMIT } from './token-inspect.ts';
+export { readBlockTokenBindings, reconcileBlockTokenBindings, resolveBlockTokenBindings, withBlockTokenBinding } from './token-block-bindings.ts';
+export type { BlockTokenBinding } from './token-block-bindings.ts';
+export type { TokenImpact } from './token-inspect.ts';
+export { resolveTokenSelection, tokenSelectionKey, parseTokenSelection } from './token-selection.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
@@ -814,6 +819,7 @@ export type {
 // Per-minor contract changelog: engine/CHANGELOG.md (one entry per ENGINE_VERSION
 // minor, moved out of this barrel so prose edits stop conflicting with exports).
 export { ENGINE_VERSION } from './version.ts';
+export { base64ToBytes } from './bytes.ts';
 export { createTruePeakLimiter, activitySpans } from './audio-dynamics.ts';
 export { createLoudnessMeter, integratedLoudness, normalizeGain, LOUDNESS_RATE } from './audio-loudness.ts';
 export { parseFxChain, serializeFxChain, processFxPcm, FX_PRESETS, FX_CHAIN_MAX_CHARS } from './audio-fx.ts';
@@ -1070,3 +1076,20 @@ export { parseMotionTiming, resolveCues, compileMotionCues, type MotionTiming, t
 
 export { motionReport, type MotionReport, type MotionCheck, type MotionFacts, type MotionTarget } from './motion-report.ts';
 export * from './production.ts';
+
+export { generateTokenRecipe, readTokenRecipes } from './token-recipes.ts';
+export type { TokenRecipe, TokenRecipeRecord } from './token-recipes.ts';
+export { mergeTokenDocuments } from './token-merge.ts';
+export type { TokenMergeConflict, TokenMergeResult } from './token-merge.ts';
+
+export * from './forensic.ts';
+
+export { resolveTokenBinding } from './token-binding.ts';
+export type { TokenConsumer, TokenBindingResult } from './token-binding.ts';
+
+export { pinnedFontAliases, applyPinnedFontFamilies, restorePinnedFontFamilies, verifyPinnedFontBytes } from './token-font-pins.ts';
+export type { PinnedFontFace } from './design-version.ts';
+
+export { withTokenSelection } from './token-context.ts';
+
+export { withTokenSourceValue } from './token-edit.ts';

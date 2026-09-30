@@ -26,6 +26,11 @@
     <button class="rwc-btn rwc-ghost rwc-svgbtn" type="button" data-rwc-fullpage aria-pressed="false" aria-label="Full page - preview only" title="Full page - the preview fills the whole window (shareable with ?full)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M6.5 9.3h11"/></svg>
     </button>
+    <!-- Put this demo on a Design slide (plan 288): copies a link carrying the code, and a
+         paste onto the Design canvas makes a live web page box with the demo's own picture. -->
+    <button class="rwc-btn rwc-ghost rwc-svgbtn" type="button" data-rwc-slide aria-label="Copy for a slide" title="Copy a link to paste onto a Design slide, where the demo runs live">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m10 8.5-2 2 2 2M14 8.5l2 2-2 2"/></svg>
+    </button>
     <div class="rwc-sess" data-rwc-sess>
       <span class="rwc-sess-name" data-rwc-sess-name hidden></span>
       <button class="rwc-btn rwc-ghost" type="button" data-rwc-save title="Save the current code (updates the open session, or names a new one)">Save</button>
@@ -394,7 +399,12 @@
 .rwc-ext-tag { flex: 0 0 auto; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 1px 6px; border-radius: 999px; margin-left: auto; }
 .rwc-ext-ok { background: hsl(var(--rwc-ok) / .16); color: color-mix(in oklab, hsl(var(--rwc-ok)), hsl(var(--rwc-fg)) 26%); }
 .rwc-ext-blocked { background: hsl(var(--rwc-warn) / .14); color: color-mix(in oklab, hsl(var(--rwc-warn)), hsl(var(--rwc-fg)) 30%); }
-.rwc-ext-trusted { background: hsl(var(--rwc-info) / .16); color: color-mix(in oklab, hsl(var(--rwc-info)), hsl(var(--rwc-fg)) 26%); }
+.rwc-ext-trust {
+  flex: 0 0 auto; appearance: none; border: 1px solid hsl(var(--rwc-bd)); background: transparent; color: hsl(var(--rwc-fg));
+  font: inherit; font-size: 10.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+}
+.rwc-ext-trust:hover { border-color: hsl(var(--rwc-brand) / .6); }
+.rwc-ext-trust:disabled { opacity: .5; cursor: default; }
 .rwc-banner-actions { flex: 0 0 auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
 .rwc-banner-btn {
   appearance: none; border: 1px solid hsl(var(--rwc-brand) / .4); background: hsl(var(--rwc-brand)); color: hsl(var(--rwc-brandfg));
@@ -584,6 +594,11 @@
   transition: color .12s, border-color .12s;
 }
 .rwc.is-fullpage .rwc-fullpage-exit:hover { color: hsl(var(--rwc-brand)); border-color: hsl(var(--rwc-brand) / .55); }
+/* Shown inside another page (the shell's ?iframe, data-lolly-iframe on <html>): the
+   running preview only, with no way back to the editor and no banner. External
+   resources stay blocked; nobody is there to be asked. */
+.rwc.is-framed .rwc-fullpage-exit,
+.rwc.is-framed .rwc-banner { display: none !important; }
 .rwc-fullpage-exit svg { width: 19px; height: 19px; }
 
 /* ── Responsive: stack editor over preview ───────────────────────────────── */
@@ -607,6 +622,16 @@
   var root = document.querySelector('[data-rwc]');
   if (!root || root.dataset.rwcReady) return;
   root.dataset.rwcReady = '1';
+  // Inside another page (the shell's ?iframe mode, plan 288 M1): show the running
+  // preview only and keep nothing. This device's draft, layout, theme and saved
+  // sessions are neither read nor written, so a framed Sandbox can never show or
+  // overwrite someone's own work.
+  var framed = document.documentElement.hasAttribute('data-lolly-iframe');
+  // An off-screen render (a composed Sandbox, e.g. a Design web box's poster, or a
+  // gallery preview) is a one-shot picture of ITS inputs: it takes the framed treatment,
+  // so this device's draft is never read into someone else's picture.
+  if (!framed && root.closest && root.closest('[data-lolly-offscreen]')) framed = true;
+  if (framed) root.classList.add('is-framed');
 
   var $ = function (s) { return root.querySelector(s); };
   var frame = $('[data-rwc-frame]');
@@ -627,7 +652,8 @@
   // Fetched external resources are cached so re-runs (and auto-run) never re-hit
   // the network for the same URL.
   var netCache = {};
-  var allowNet = false;          // user consent to fetch & inline external resources
+  var allowNet = false;          // "Fetch & inline": this mount, every site not blocked
+  var lastExternals = [];        // what the last run found, so a trust change can re-run
   var bannerDismissed = false;
   var runSeq = 0;
   var debounceTimer = null;
@@ -676,6 +702,9 @@
     'window.addEventListener("error",function(e){if(e.error&&e.error.stack)send("error",[String(e.error.stack).replace(/about:srcdoc/g,"preview")]);else send("error",[(e.message||"Error")+(e.filename?" ("+String(e.filename).replace(/about:srcdoc/,"preview")+":"+e.lineno+")":"")]);});',
     'window.addEventListener("unhandledrejection",function(e){var r=e.reason;send("error",["Uncaught (in promise) "+(r&&(r.stack||r.message)||fmt(r))]);});',
     'parent.postMessage({__rwc:1,level:"__ready__"},"*");',
+    // A clicker's two keys, pressed while the demo has focus, are passed up so a deck
+    // showing this Sandbox on a slide can still move on (plan 288). Nothing else is sent.
+    'window.addEventListener("keydown",function(e){if(e.key==="PageDown"||e.key==="PageUp")parent.postMessage({__rwc:1,level:"__deckkey__",key:e.key},"*");},true);',
     // Snapshot the live preview for export. Canvas pixels do NOT survive DOM
     // serialisation, so each <canvas> is baked to an <img> of its toDataURL in a CLONE
     // of the document (the live preview is left untouched). Wholly guarded - any failure
@@ -739,19 +768,21 @@
   // ── External-resource detection ─────────────────────────────────────────────
   function hostOf(u) { try { return new URL(u).host; } catch (e) { return u; } }
   function pathOf(u) { try { var p = new URL(u); return p.pathname + p.search; } catch (e) { return ''; } }
-  // Hosts whose external resources may be fetched & inlined without the "external" warning.
-  // Google Fonts: exact hosts (CSS API + its font-file CDN). SUSE: apex or any subdomain of
-  // suse.com/.de/.cz - SUSE-owned, under full IT oversight, so a www./cdn./static. host counts too.
-  var TRUSTED_HOSTS = { 'fonts.googleapis.com': 1, 'fonts.gstatic.com': 1 };
-  var TRUSTED_DOMAINS = ['suse.com', 'suse.de', 'suse.cz'];
-  function isTrusted(u) {
-    var h = hostOf(u);
-    if (TRUSTED_HOSTS[h]) return true;
-    for (var i = 0; i < TRUSTED_DOMAINS.length; i++) {
-      var d = TRUSTED_DOMAINS[i];
-      if (h === d || h.slice(-(d.length + 1)) === '.' + d) return true;
-    }
-    return false;
+  // Trusted sites (plan 288) come from the shell: the person's own list, their brand's
+  // and their organisation's, through the canvas channel. 'trusted' is fetched and
+  // inlined on every run without asking; 'blocked' is an organisation's rule and is
+  // never fetched; 'ask' waits for "Fetch & inline". Without the channel (offscreen, an
+  // older shell) nothing is trusted, so every fetch waits for the button.
+  function trustApi() { var c = chan(); return (c && c.__lollyTrust) || null; }
+  function trustOf(u) {
+    var api = trustApi();
+    try { return api ? api.check(u) : 'ask'; } catch (e) { return 'ask'; }
+  }
+  // Whether this run may fetch a URL: a trusted one always, any other only after
+  // "Fetch & inline", and an organisation's block never.
+  function mayFetch(u) {
+    var v = trustOf(u);
+    return v === 'trusted' || (allowNet && v !== 'blocked');
   }
 
   function findExternals(files) {
@@ -814,6 +845,7 @@
     imports.forEach(function (imp) {
       chain = chain.then(function (txt) {
         if (depth > 4) return txt;
+        if (!mayFetch(imp.url)) { report.held.push(imp.url); return txt; }
         return grabText(imp.url)
           .then(function (t) { return inlineCss(t, imp.url, depth + 1, report); })
           .then(function (t) { report.inlined.push(imp.url); return txt.split(imp.whole).join(t); })
@@ -826,6 +858,7 @@
       var c2 = Promise.resolve(txt);
       assets.forEach(function (a) {
         c2 = c2.then(function (t) {
+          if (!mayFetch(a.url)) { report.held.push(a.url); return t; }
           return grabDataURL(a.url)
             .then(function (d) { report.inlined.push(a.url); return t.split(a.whole).join('url(' + d + ')'); })
             .catch(function (e) { report.blocked.push({ url: a.url, reason: reason(e) }); return t; });
@@ -836,7 +869,7 @@
   }
 
   function inlineExternals(files) {
-    var report = { inlined: [], blocked: [] };
+    var report = { inlined: [], blocked: [], held: [] };
     var htmlH = { str: files.html || '' };
     var headH = { str: files.head || '' };
     var css = files.css || '';
@@ -852,6 +885,7 @@
       while ((m = re.exec(h.str))) { if (/stylesheet/i.test(m[0])) { var hr = /href\s*=\s*["']([^"']+)["']/i.exec(m[0]); if (hr && /^https?:/i.test(hr[1])) links.push({ whole: m[0], url: hr[1] }); } }
       links.forEach(function (lk) {
         steps = steps.then(function () {
+          if (!mayFetch(lk.url)) { report.held.push(lk.url); return; }
           return grabText(lk.url).then(function (t) { return inlineCss(t, lk.url, 0, report); })
             .then(function (t) { report.inlined.push(lk.url); h.str = h.str.split(lk.whole).join('<style>' + t + '</style>'); })
             .catch(function (e) { report.blocked.push({ url: lk.url, reason: reason(e) }); });
@@ -861,6 +895,7 @@
       while ((m = re2.exec(h.str))) { if (/^https?:/i.test(m[2])) scripts.push({ whole: m[0], attrs: m[1] + ' ' + m[3], url: m[2] }); }
       scripts.forEach(function (sc) {
         steps = steps.then(function () {
+          if (!mayFetch(sc.url)) { report.held.push(sc.url); return; }
           return grabText(sc.url).then(function (code) {
             var typeAttr = /type\s*=\s*["']module["']/i.test(sc.attrs) ? ' type="module"' : '';
             report.inlined.push(sc.url);
@@ -872,6 +907,7 @@
       while ((m = re3.exec(h.str))) media.push({ whole: m[0], pre: m[1], url: m[2], post: m[3] });
       media.forEach(function (md) {
         steps = steps.then(function () {
+          if (!mayFetch(md.url)) { report.held.push(md.url); return; }
           return grabDataURL(md.url).then(function (d) { report.inlined.push(md.url); h.str = h.str.split(md.whole).join(md.pre + d + md.post); })
             .catch(function (e) { report.blocked.push({ url: md.url, reason: reason(e) }); });
         });
@@ -960,9 +996,10 @@
     prepareJs(files, mode, my).then(function (prepared) {
       if (prepared == null || my !== runSeq) return;   // transpile/lib error (logged) or superseded
       var externals = findExternals(prepared);
+      var fetchable = externals.filter(function (e) { return mayFetch(e.url); });
       var proceed;
-      if (allowNet && externals.length) {
-        setStatus('Fetching ' + externals.length + ' external resource' + (externals.length > 1 ? 's' : '') + '…');
+      if (fetchable.length) {
+        setStatus('Fetching ' + fetchable.length + ' external resource' + (fetchable.length > 1 ? 's' : '') + '…');
         proceed = inlineExternals(prepared).then(function (r) {
           if (my !== runSeq) return null;
           renderBanner(externals, r.report);
@@ -986,50 +1023,68 @@
   }
 
   // ── External banner ─────────────────────────────────────────────────────────
-  function extRow(url, tagCls, tagTxt) {
+  function extRow(url, tagCls, tagTxt, trustUrl, count) {
     return '<li><span class="rwc-ext-host">' + esc(hostOf(url)) + '</span>'
-      + '<span class="rwc-ext-path">' + esc(pathOf(url)) + '</span>'
-      + '<span class="rwc-ext-tag ' + tagCls + '">' + tagTxt + '</span></li>';
+      + '<span class="rwc-ext-path">' + esc(count > 1 ? count + ' files' : pathOf(url)) + '</span>'
+      + '<span class="rwc-ext-tag ' + tagCls + '">' + tagTxt + '</span>'
+      + (trustUrl ? '<button class="rwc-ext-trust" type="button" data-rwc-trust="' + esc(trustUrl) + '">Always trust ' + esc(hostOf(trustUrl)) + '</button>' : '')
+      + '</li>';
   }
   function renderBanner(externals, report) {
+    lastExternals = externals;
     if (!externals.length || bannerDismissed) { bannerEl.hidden = true; bannerEl.innerHTML = ''; return; }
-    var n = externals.length;
-    var html = '';
+    var done = {}, failed = {};
     if (report) {
-      // Post-inline summary.
-      var done = {}; report.inlined.forEach(function (u) { done[u] = 1; });
-      var blocked = {}; report.blocked.forEach(function (b) { blocked[b.url] = b.reason; });
-      var items = externals.map(function (e) {
-        if (done[e.url]) return extRow(e.url, 'rwc-ext-ok', 'inlined');
-        if (blocked[e.url]) return extRow(e.url, 'rwc-ext-blocked', 'blocked');
-        return extRow(e.url, 'rwc-ext-blocked', 'blocked');
-      }).join('');
-      var nOk = report.inlined.length, nNo = report.blocked.length;
-      bannerEl.classList.toggle('is-warn', nNo > 0);
-      html = '<div class="rwc-banner-row"><div class="rwc-banner-txt">'
-        + '<b>External resources inlined into the sandbox.</b> '
-        + (nNo === 0 ? 'All fetched and embedded - this now runs offline too.'
-                     : nOk + ' embedded, ' + nNo + ' could not be reached (they stay unavailable in the private sandbox).')
-        + '<ul class="rwc-banner-list">' + items + '</ul>'
-        + '</div><div class="rwc-banner-actions">'
-        + '<button class="rwc-banner-btn rwc-ghost" type="button" data-rwc-stopnet>Stop inlining</button>'
-        + '</div></div>';
-    } else {
-      // Consent prompt.
-      var anyTrusted = externals.some(function (e) { return isTrusted(e.url); });
-      var items2 = externals.map(function (e) {
-        return extRow(e.url, isTrusted(e.url) ? 'rwc-ext-trusted' : 'rwc-ext-blocked', isTrusted(e.url) ? 'trusted' : 'external');
-      }).join('');
+      report.inlined.forEach(function (u) { done[u] = 1; });
+      report.blocked.forEach(function (b) { failed[b.url] = b.reason; });
+    }
+    var canTrust = !!trustApi();
+    var pending = [], nOrg = 0;
+    // Files a fetched stylesheet asks for (Google Fonts' CSS names its font files on
+    // fonts.gstatic.com) are held too when their site is not trusted: one row per site.
+    var shown = externals.slice(), heldHosts = {};
+    if (report) report.held.forEach(function (u) {
+      if (externals.some(function (e) { return e.url === u; })) return;
+      var h = hostOf(u);
+      if (heldHosts[h]) { heldHosts[h].count++; return; }
+      heldHosts[h] = { url: u, kind: 'asset', count: 1 };
+      shown.push(heldHosts[h]);
+    });
+    var items = shown.map(function (e) {
+      if (done[e.url]) return extRow(e.url, 'rwc-ext-ok', 'inlined');
+      if (failed[e.url]) return extRow(e.url, 'rwc-ext-blocked', 'could not load');
+      var v = trustOf(e.url);
+      if (v === 'blocked') { nOrg++; return extRow(e.url, 'rwc-ext-blocked', 'blocked by your organisation'); }
+      pending.push(e);
+      return extRow(e.url, 'rwc-ext-blocked', 'not trusted', canTrust ? e.url : null, e.count);
+    }).join('');
+    var nOk = report ? report.inlined.length : 0, nNo = report ? report.blocked.length : 0;
+    // Everything came from trusted sites and arrived: nothing to say.
+    if (!pending.length && !nNo && !nOrg && !allowNet) { bannerEl.hidden = true; bannerEl.innerHTML = ''; return; }
+    var html;
+    if (pending.length) {
+      var n = pending.length;
       bannerEl.classList.remove('is-warn');
       html = '<div class="rwc-banner-row"><div class="rwc-banner-txt">'
-        + '<b>This code loads ' + n + ' resource' + (n > 1 ? 's' : '') + ' from the web.</b> '
-        + 'They’re blocked so your preview stays private and works offline. '
-        + (anyTrusted ? 'Trusted sources like Google Fonts can be fetched and embedded.' : 'You can try to fetch and embed them.')
-        + ' Fetching reaches out to those servers.'
-        + '<ul class="rwc-banner-list">' + items2 + '</ul>'
+        + '<b>This code loads ' + n + ' resource' + (n > 1 ? 's' : '') + ' from sites you have not trusted.</b> '
+        + 'They’re blocked so your preview stays private and works offline. Fetching reaches out to those servers.'
+        + (nOk ? ' ' + nOk + ' from trusted sites ' + (nOk > 1 ? 'are' : 'is') + ' already embedded.' : '')
+        + '<ul class="rwc-banner-list">' + items + '</ul>'
         + '</div><div class="rwc-banner-actions">'
         + '<button class="rwc-banner-btn" type="button" data-rwc-inline>Fetch &amp; inline</button>'
         + '<button class="rwc-banner-dismiss" type="button" data-rwc-dismiss>Keep them off</button>'
+        + '</div></div>';
+    } else {
+      // Post-inline summary.
+      bannerEl.classList.toggle('is-warn', nNo > 0 || nOrg > 0);
+      html = '<div class="rwc-banner-row"><div class="rwc-banner-txt">'
+        + '<b>External resources inlined into the sandbox.</b> '
+        + (nNo === 0 && nOrg === 0 ? 'All fetched and embedded - this now runs offline too.'
+                     : nOk + ' embedded, ' + (nNo + nOrg) + ' not loaded (they stay unavailable in the private sandbox).')
+        + '<ul class="rwc-banner-list">' + items + '</ul>'
+        + '</div><div class="rwc-banner-actions">'
+        + (allowNet ? '<button class="rwc-banner-btn rwc-ghost" type="button" data-rwc-stopnet>Stop inlining</button>' : '')
+        + '<button class="rwc-banner-dismiss" type="button" data-rwc-dismiss>Hide</button>'
         + '</div></div>';
     }
     bannerEl.innerHTML = html;
@@ -1085,6 +1140,7 @@
     return _dbTry;
   }
   function idbGet(key) {
+    if (framed) return Promise.resolve(undefined);
     return idbOpen().then(function (db) {
       return new Promise(function (res, rej) {
         try { var r = db.transaction('kv', 'readonly').objectStore('kv').get(key); r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; }
@@ -1093,6 +1149,7 @@
     });
   }
   function idbSet(key, val) {
+    if (framed) return Promise.resolve();
     return idbOpen().then(function (db) {
       return new Promise(function (res, rej) {
         try { var tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(val, key); tx.oncomplete = function () { res(); }; tx.onerror = function () { rej(tx.error); }; }
@@ -1162,6 +1219,9 @@
     return _chan;
   }
   function hasModelChannel() { var c = chan(); return !!(c && c.__lollyModel && c.__lollyCommit); }
+  // A read-only channel (an off-screen render has no commit) still carries THIS render's
+  // inputs, so the boot seed reads it.
+  function hasModelRead() { var c = chan(); return !!(c && c.__lollyModel); }
   function modelValue(id) {
     var c = chan(); if (!c || !c.__lollyModel) return null;
     try { var m = c.__lollyModel(); if (m) for (var i = 0; i < m.length; i++) if (m[i].id === id) return m[i].value; }
@@ -1576,10 +1636,28 @@
 
   // Banner actions (delegated).
   bannerEl.addEventListener('click', function (e) {
-    if (e.target.closest('[data-rwc-inline]')) { allowNet = true; run(); }
+    var trustBtn = e.target.closest('[data-rwc-trust]');
+    if (trustBtn) {
+      var api = trustApi();
+      trustBtn.disabled = true;
+      // The shell writes the person's trusted sites, then this run fetches the host.
+      if (api) api.trust(trustBtn.getAttribute('data-rwc-trust')).then(function () { run(); }, function () { trustBtn.disabled = false; });
+    }
+    else if (e.target.closest('[data-rwc-inline]')) { allowNet = true; run(); }
     else if (e.target.closest('[data-rwc-stopnet]')) { allowNet = false; run(); }
     else if (e.target.closest('[data-rwc-dismiss]')) { bannerDismissed = true; bannerEl.hidden = true; }
   });
+
+  // A site trusted elsewhere (Design's pre-flight, /profile, another Sandbox) is fetched
+  // on the next run here too. The listener goes once this Sandbox is unmounted.
+  (function () {
+    var api = trustApi();
+    if (!api || !api.subscribe) return;
+    var off = api.subscribe(function () {
+      if (!root.isConnected) { if (off) off(); return; }
+      if (lastExternals.length) scheduleRun();
+    });
+  })();
 
   // About dialog.
   var aboutOverlay = $('[data-rwc-about]');
@@ -1666,6 +1744,7 @@
   // Write/remove ?full via replaceState (no router re-entry, mirrors the shell's own
   // updateFullParam). location.pathname is /t/<id> once mounted; other params kept.
   function setUrlFull(on) {
+    if (framed) return; // the page around a framed Sandbox owns the link
     try {
       var sp = new URLSearchParams(location.search);
       if (on) { sp.set('full', ''); sp.delete('edit'); } else { sp.delete('full'); }
@@ -1678,12 +1757,26 @@
     root.classList.toggle('is-fullpage', on);
     if (fpBtn) fpBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
     if (!skipUrl) setUrlFull(on);
-    if (on && fpExit) { try { fpExit.focus(); } catch (_) {} }
+    // Never when framed: the page around a framed Sandbox owns the keyboard, and a deck
+    // presenting it would lose its arrow keys to this button (plan 288).
+    if (on && fpExit && !framed) { try { fpExit.focus(); } catch (_) {} }
   }
   if (fpBtn) fpBtn.addEventListener('click', function () { setFullPage(!root.classList.contains('is-fullpage')); });
+  // Copy for a slide (plan 288): the link a Design paste turns into a live web page box.
+  // Only the panes in use travel, and the language mode when it is not plain JS.
+  var slideBtn = $('[data-rwc-slide]');
+  if (slideBtn) slideBtn.addEventListener('click', function () {
+    var f = readFiles(), q = new URLSearchParams();
+    PANES.forEach(function (p) { if (f[p]) q.set(p, f[p]); });
+    if (modeSel && modeSel.value && modeSel.value !== 'none') q.set('mode', modeSel.value);
+    var link = location.origin + '/#/tool/sandbox' + (q.toString() ? '?' + q.toString() : '');
+    var done = function () { setStatus('Copied. Paste it onto a Design slide.'); };
+    var fail = function () { setStatus('Could not copy the link. Your browser blocked the clipboard.'); };
+    try { navigator.clipboard.writeText(link).then(done, fail); } catch (e) { fail(); }
+  });
   if (fpExit) fpExit.addEventListener('click', function () { setFullPage(false); });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && root.classList.contains('is-fullpage')) { e.preventDefault(); setFullPage(false); }
+    if (e.key === 'Escape' && root.classList.contains('is-fullpage') && !framed) { e.preventDefault(); setFullPage(false); }
   });
   // Honour the deep link at boot. The tool IIFE runs BEFORE the shell's boot syncUrl()
   // strips unknown params, so enter the mode now, then re-assert ?full on the next
@@ -1691,6 +1784,7 @@
   // and the export panel that would is hidden in full-page).
   (function () {
     try {
+      if (framed) { setFullPage(true, true); return; }
       if (bootHadFull()) {
         setFullPage(true, true);
         // Re-assert ?full in the bar AFTER the boot syncUrl() cleaned it (rAF), and again
@@ -1720,14 +1814,21 @@
     if (!d || d.__rwc !== 1) return;
     if (d.level === '__ready__') { setStatus(''); liveEl.classList.add('is-live'); return; }
     if (d.level === '__snapshot__') { mountShot(d.html, d.w, d.h); return; }
+    // Only when this Sandbox is itself framed on a slide (the shell's ?iframe mode): the
+    // deck listens for these from its own frames (views/present-mode.ts).
+    if (d.level === '__deckkey__') {
+      if (framed && window.parent !== window) window.parent.postMessage({ type: 'lolly:deck-key', key: d.key === 'PageUp' ? 'PageUp' : 'PageDown' }, location.origin);
+      return;
+    }
     addLog(d.level === 'error' ? 'error' : (d.level === 'warn' ? 'warn' : 'log'), d.text);
   });
 
   // Transplant the rendered preview into a same-origin mirror node so the shell's
   // export walker (which can't read the opaque-origin sandbox iframe) can rasterise
   // it. The mirror carries [data-export-root], so tool-actions' exportTargetNode
-  // retargets export/thumbnail to it. Scripts are stripped (inert here anyway);
-  // html/body-scoped rules are re-scoped onto .rwc-shot-body so the reset still bites.
+  // retargets export/thumbnail to it. Everything that could run is removed first
+  // (cleanShot, below); html/body-scoped rules are re-scoped onto .rwc-shot-body so
+  // the reset still bites.
   // ── Export sizing ───────────────────────────────────────────────────────────
   // The export walker rasterises the off-screen .rwc-shot mirror. Size it to the
   // CHOSEN export dimensions (the shell's width/height fields, which live in this
@@ -1759,11 +1860,56 @@
     if (t && t.matches && t.matches('[data-action="export-width"], [data-action="export-height"]')) syncShotToExportDims();
   });
 
+  // The snapshot is whatever the preview says it is: the user's code runs in that
+  // frame and can post any markup under the __snapshot__ tag, and the mirror joins
+  // THIS page, in the app's own origin. So the parsed tree is cleaned before any node
+  // leaves it: nothing that runs code, loads a frame, rewrites the page or wakes one
+  // of the app's own custom elements survives. The cleaned nodes are then adopted,
+  // never serialised and re-parsed, so no round trip can turn them back into markup
+  // that runs. The mirror is a picture of the preview, so nothing removed here is
+  // something an export draws.
+  function cleanShot(doc) {
+    var DROP = /^(script|iframe|frame|frameset|object|embed|applet|portal|fencedframe|base|meta|link|noscript|template)$/;
+    var all = doc.querySelectorAll('*');
+    // Reverse document order visits children before their parents, so a stand-in
+    // below always receives children that are already clean.
+    for (var i = all.length - 1; i >= 0; i--) {
+      var el = all[i];
+      var tag = String(el.localName || '').toLowerCase();
+      if (DROP.test(tag)) { el.remove(); continue; }
+      // SVG can animate an href to a javascript: URL.
+      if ((tag === 'animate' || tag === 'set') && /href$/i.test(el.getAttribute('attributeName') || '')) { el.remove(); continue; }
+      var attrs = Array.prototype.slice.call(el.attributes);
+      for (var j = 0; j < attrs.length; j++) {
+        var a = attrs[j];
+        // Browsers ignore whitespace and control characters inside a URL scheme.
+        var v = String(a.value).replace(/[\u0000-\u0020\u007f-\u00a0\u1680\u180e\u2000-\u2029\u205f\u3000\ufeff]+/g, '').toLowerCase();
+        if (/^on/i.test(a.name) || /^(javascript|vbscript):/.test(v) || v.indexOf('data:text/html') === 0) el.removeAttributeNode(a);
+      }
+      // Any custom-element tag could upgrade into one of the app's own components
+      // (jelly-*, the emoji picker) with these attributes, now or when the app
+      // defines that tag later, so every custom tag becomes a plain span. The
+      // snapshot never carries a component's shadow content, so the span draws the
+      // same. A customised built-in keeps its `is` value from creation, so it is
+      // rebuilt as a fresh element of its own tag.
+      var custom = el.namespaceURI === 'http://www.w3.org/1999/xhtml' && tag.indexOf('-') > 0;
+      if (custom || el.hasAttribute('is')) {
+        var stand = custom ? doc.createElement('span') : doc.createElementNS(el.namespaceURI, el.localName);
+        for (var k = 0; k < el.attributes.length; k++) {
+          var ak = el.attributes[k];
+          if (ak.name !== 'is') stand.setAttributeNS(ak.namespaceURI, ak.name, ak.value);
+        }
+        while (el.firstChild) stand.appendChild(el.firstChild);
+        el.replaceWith(stand);
+      }
+    }
+    return doc;
+  }
+
   function mountShot(html, w, h) {
     if (!shotEl || !html) return;
     try {
-      var doc = new DOMParser().parseFromString(String(html), 'text/html');
-      Array.prototype.forEach.call(doc.querySelectorAll('script'), function (s) { s.remove(); });
+      var doc = cleanShot(new DOMParser().parseFromString(String(html), 'text/html'));
       shotEl.textContent = '';
       Array.prototype.forEach.call(doc.head ? doc.head.querySelectorAll('style') : [], function (st) {
         var css = (st.textContent || '').replace(/(^|\})\s*(html|body)\b/gi, '$1 .rwc-shot-body');
@@ -1773,7 +1919,7 @@
       wrap.className = 'rwc-shot-body';
       var bstyle = doc.body && doc.body.getAttribute('style');
       if (bstyle) wrap.setAttribute('style', bstyle);
-      wrap.innerHTML = doc.body ? doc.body.innerHTML : '';
+      if (doc.body) while (doc.body.firstChild) wrap.appendChild(document.adoptNode(doc.body.firstChild));
       shotEl.appendChild(wrap);
       // Size to the chosen EXPORT dimensions (not the snapshot's own content box),
       // so the walker renders 1:1 and the preview fills the image with no letterbox.
@@ -1837,7 +1983,7 @@
       var d = draft || {};
       var mv = { html: str(modelValue('html')), css: str(modelValue('css')), js: str(modelValue('js')), head: str(modelValue('head')), mode: str(modelValue('mode')) };
       var modelHasContent = !!(mv.html || mv.css || mv.js || mv.head || (mv.mode && mv.mode !== 'none'));
-      if (hasModelChannel() && modelHasContent) {
+      if (hasModelRead() && modelHasContent) {
         // A deliberate seed. syncUrl drops any scalar over 150 chars, so on a plain reload
         // of a LARGE pen the URL-rehydrated model is missing those panes; back-fill them
         // from the local draft - but ONLY when the draft is the SAME pen (every pane the two

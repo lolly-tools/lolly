@@ -144,6 +144,10 @@ export interface InspectorActions {
    * undo step. Cancelling writes nothing at all.
    */
   openStudio(ids: string[]): void;
+  /** A web page box's poster from its tool's own render (plan 288). */
+  refreshWebPoster?(ids: string[], onlyComposed?: boolean): void;
+  /** Edit a Lolly or Sandbox web box's tool in place, writing back its link and poster. */
+  editWebTool?(ids: string[]): void;
 }
 
 /**
@@ -244,7 +248,7 @@ export interface DesignCanvasPorts {
    * Register the mounted inspector so the object bar's Text / More / Dims / Stroke buttons
    * reveal its sections instead of opening the one-slot panels; null restores the panels.
    */
-  setInspector(inspector: { reveal(section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'motion' | 'present' | 'guide'): void } | null): void;
+  setInspector(inspector: { reveal(section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'web' | 'motion' | 'present' | 'guide'): void } | null): void;
 }
 
 /** Chrome the tool view already owns and lends to the overlay's mark menu (theme, sounds, profile). */

@@ -4,6 +4,8 @@ Turn a finished Design document into a small tool that other people can personal
 
 The shared `.lolly` contains one reusable tool, its fonts and its images. Keep the Design master separately so you can revise it later.
 
+![Keep the Design master, choose inputs and limits in an authoring copy, then share a reusable .lolly tool. Recipients use its allowed inputs to export finished PNG, SVG or PDF files.](/info/diagrams/concepts/share-with-rules.svg)
+
 ## Start from a saved session or template
 
 In **Projects**, open a saved tool session's menu and choose **Share with rules**. The **Templates** collection and template chooser offer the same action. Lolly opens a separate authoring copy; the saved source remains intact. An open tool also offers **Save as → Share with rules → Choose inputs**. The Share dialog also offers **Share as a reusable tool**. For one setting, open its **Input actions** menu and choose **Use as a tool input**. Save the authoring session to keep its rules for later revisions.

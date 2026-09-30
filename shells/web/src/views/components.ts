@@ -78,6 +78,7 @@ import { soundSwitchHtml } from '../components/sound-toggle.ts';
 import { helpTip } from '../components/help-tip.ts';
 import { footerNav, gallerySearchBox } from '../components/footer-nav.ts';
 import { confirmDialog, choiceDialog, noticeDialog, promptDialog } from '../components/confirm-dialog.ts';
+import { beginViewLoading } from '../components/view-loading.ts';
 import { openShareDialog } from '../components/share-dialog.ts';
 import { palettePreviewSvgs } from '../lib/palette-preview.ts';
 import { categoryGlyph } from '../lib/category-icons.ts';
@@ -125,7 +126,17 @@ function triggerButton(label: string, onClick: () => void): HTMLElement {
 const previewDisposers: Array<() => void> = [];
 const previewPopovers = new Set<BodyPopoverHandle>();
 
+import { mountTokenWorkspace } from '../components/token-workspace.ts';
+import { wireTokenBindingExamples, wireTokenContextExample } from './components-token-examples.ts';
+
 const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: HTMLElement, host: HostV1) => void }> = {
+  tokenBinding: { render: () => '<div data-token-fields></div>', wire: stage => { previewDisposers.push(wireTokenBindingExamples(stage.querySelector<HTMLElement>('[data-token-fields]')!)); } },
+  tokenContext: { render: () => '<div data-token-context></div>', wire: stage => { previewDisposers.push(wireTokenContextExample(stage.querySelector<HTMLElement>('[data-token-context]')!)); } },
+  viewLoading: { render: () => triggerButton(t('Loading…'), () => {
+    const loading = beginViewLoading(0);
+    const timer = setTimeout(() => loading.close(), 2000);
+    previewDisposers.push(() => { clearTimeout(timer); loading.close(); });
+  }) },
   featuredRow: { render: featuredRowExample, wire: (stage, host) => {
     previewDisposers.push(wireFeaturedRowExample(stage, host));
   } },
@@ -137,6 +148,15 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
     const grid = mountCharacterGrid(stage.querySelector<HTMLElement>('[data-character-specimen]')!, { onPick: value => { void navigator.clipboard.writeText(value); } });
     grid.set([{ value: 'Æ', label: 'Latin capital ligature AE' }, { value: 'Ω', label: 'Greek capital letter omega' }, { value: '→', label: 'Rightwards arrow' }], 'var(--font-brand)');
     previewDisposers.push(() => grid.destroy());
+  } },
+  tokenWorkspace: { render: () => '<div data-token-specimen></div>', wire: stage => {
+    let disposed = false, workspace: ReturnType<typeof mountTokenWorkspace> | undefined;
+    previewDisposers.push(() => { disposed = true; workspace?.teardown(); });
+    void fetch('/examples/beacon.tokens.json').then(response => { if (!response.ok) throw new Error('Example tokens could not be read.'); return response.json(); }).then(source => {
+      if (disposed) return;
+      let document: Record<string, unknown> = source;
+      workspace = mountTokenWorkspace(stage.querySelector<HTMLElement>('[data-token-specimen]')!, { read: () => document, label: 'Beacon example', commit: candidate => { document = candidate; } });
+    }).catch(error => { if (!disposed) stage.textContent = error.message; });
   } },
   objectCards: { render: objectCardsExample, wire: wireObjectCardsExample },
   catalogTile: { render: catalogTileExample, wire: wireObjectCardsExample },

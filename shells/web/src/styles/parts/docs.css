@@ -178,7 +178,7 @@
 
 .docs-content p { margin-bottom: 1.5rem; }
 .docs-content ul, .docs-content ol { margin-bottom: 1rem; padding-left: 1.25rem; }
-.docs-content li { margin-bottom: 0.35rem; }
+.docs-content li { margin-bottom: 1rem; list-style-type: "🍭 "; font-size: 0.875em; }
 .docs-content a { color: var(--green); text-decoration: underline; }
 .docs-content a:hover { text-decoration: underline; }
 .docs-content strong { font-weight: 600; }
@@ -556,13 +556,10 @@
    its layout: that lives inline in docs/build.ts and ships only to the static /info
    site, so here the grid must be re-declared or every section's links run together on
    one line (icon jammed against text, each .sitemap-col a full-width block row).
-   auto-fill rather than a fixed column count so the index fills as many ~11rem tracks
+   auto-fit rather than a fixed column count so the index fills as many ~11rem tracks
    as the reader width offers - more columns on a wide viewport, folding down to two on
    a phone - with each column's links stacked vertically inside it. */
-.docs-sitemap-slot .footer-sitemap { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); align-items: start; gap: 1.5rem 1.75rem; }
-.docs-sitemap-slot .sitemap-disclosure { grid-column: 1/-1; }
-.docs-sitemap-slot .sitemap-disclosure > summary { width: fit-content; margin: 0 auto; cursor: pointer; font-weight: 600; padding: .5rem; }
-.docs-sitemap-slot .sitemap-expanded { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1.5rem 1.75rem; margin-top: 2rem; }
+.docs-sitemap-slot .sitemap-expanded { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr)); align-items: start; gap: 1.5rem 1.75rem; margin-top: 2rem; }
 .docs-sitemap-slot .sitemap-col { display: flex; flex-direction: column; min-width: 0; }
 .docs-sitemap-slot .footer-sitemap a { display: flex; align-items: flex-start; gap: .5em; padding: .12rem 0; line-height: 1.4; }
 .docs-sitemap-slot .sitemap-ic { flex: none; margin-top: .1em; opacity: .55; color: hsl(var(--primary)); }

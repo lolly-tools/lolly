@@ -50,6 +50,8 @@ import { connectDiscord, disconnectDiscord, testDiscord } from '../lib/discord-s
 import { listConnections, type ProviderConnection } from '../lib/provider-connections.ts';
 import { isExportHomeKind } from '../lib/export-home.ts';
 import { CONNECTOR_FLAGS, connectorEnabled } from '../feature-flags.ts';
+import { serviceMark } from '../lib/service-marks.ts';
+import { COLLAPSE_CHEV, groupSummaryRow } from './profile/shared.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 
 type ConnHost = HostV1 & { profile: { get(): Promise<Profile>; set(p: Profile): Promise<void> } };
@@ -81,8 +83,7 @@ const OAUTH_ROWS: Array<{
     disconnect: () => (isTauriShell() ? disconnectDriveDesktop() : disconnectDriveWeb()),
     setup: () => (isTauriShell() || driveAvailable()) ? '' : `
       ${field('clientId', t('Client ID'), '', 'text', '…apps.googleusercontent.com')}
-      <p class="pconn-note">${t('This site ships no Google app, so connect with your own. In Google Cloud: create a project, turn on the Google Drive API, set the OAuth consent screen to External and add yourself as a test user, then create an OAuth client of type Web application with {origin} as an authorised JavaScript origin and {redirect} as an authorised redirect URI. Paste its Client ID above. It is kept with the connection in this browser.', { origin: location.origin, redirect: `${location.origin}/oauth-return.html` })}</p>
-      <span class="pconn-status" data-pconn-status="gdrive" role="status"></span>`,
+      <p class="pconn-note">${t('This site ships no Google app, so connect with your own. In Google Cloud: create a project, turn on the Google Drive API, set the OAuth consent screen to External and add yourself as a test user, then create an OAuth client of type Web application with {origin} as an authorised JavaScript origin and {redirect} as an authorised redirect URI. Paste its Client ID above. It is kept with the connection in this browser.', { origin: location.origin, redirect: `${location.origin}/oauth-return.html` })}</p>`,
   },
   {
     kind: 'dropbox',
@@ -103,8 +104,7 @@ const OAUTH_ROWS: Array<{
         ? t('This app has no Dropbox app for phones, so connect with your own: create an app in the Dropbox App Console (scoped access, App folder type), add {redirect} as a redirect URI, and paste its App key above. It is kept with the connection on this device.', { redirect: MOBILE_REDIRECT_URI })
         : isTauriShell()
         ? t('This build ships no Dropbox app, so connect with your own: create an app in the Dropbox App Console (scoped access, App folder type) and paste its App key above. No redirect URI needs registering - Dropbox allows localhost, which is where this app receives the sign-in. The key is kept with the connection on this device.')
-        : t('This site ships no Dropbox app, so connect with your own: create an app in the Dropbox App Console (scoped access, App folder type), add {redirect} as a redirect URI, and paste its App key above. It is kept with the connection in this browser.', { redirect: `${location.origin}/oauth-return.html` })}</p>
-      <span class="pconn-status" data-pconn-status="dropbox" role="status"></span>`,
+        : t('This site ships no Dropbox app, so connect with your own: create an app in the Dropbox App Console (scoped access, App folder type), add {redirect} as a redirect URI, and paste its App key above. It is kept with the connection in this browser.', { redirect: `${location.origin}/oauth-return.html` })}</p>`,
   },
   {
     kind: 'o365',
@@ -141,191 +141,186 @@ const field = (name: string, label: string, value = '', type: 'text' | 'password
     <input class="field-input" type="${type}" data-field="${escape(name)}" value="${escape(value)}"${placeholder ? ` placeholder="${escape(placeholder)}"` : ''} autocomplete="off" spellcheck="false">
   </label>`;
 
+/** A remembered sign-in lives in this browser's storage on the web, and on the device
+ *  itself in the desktop and mobile apps. Whole sentences per shell, for translation. */
+const stayConnectedLabel = (): string => (isTauriShell() ? t('Stay connected on this device') : t('Stay connected in this browser'));
+const staysConnectedNote = (): string => (isTauriShell() ? t('Stays connected on this device') : t('Stays connected in this browser'));
+
 /** "Make this my export home" (plans/138 A1): shown on a CONNECTED storage
  *  provider only, and only when the connection is REMEMBERED on this device
  *  (`persist`). A session-only connection vanishes on reload, so a home pinned to
  *  it would silently stop auto-sending - the toggle stays hidden rather than
  *  offering a home that evaporates. A single choice across providers: checking one
  *  is the home, and the re-render unchecks the rest. Absent for the publish tier. */
-/** A remembered sign-in lives in this browser's storage on the web, and on the device
- *  itself in the desktop and mobile apps. Whole sentences per shell, for translation. */
-const stayConnectedLabel = (): string => (isTauriShell() ? t('Stay connected on this device') : t('Stay connected in this browser'));
-const staysConnectedNote = (): string => (isTauriShell() ? t('Stays connected on this device') : t('Stays connected in this browser'));
-
 function homeToggleHtml(kind: string, home: string | undefined, persisted: boolean): string {
   if (!isExportHomeKind(kind) || !persisted) return '';
   return `<label class="pconn-home"><input type="checkbox" data-pconn-home="${escape(kind)}"${home === kind ? ' checked' : ''}> ${t('Make this my export home')}</label>`;
 }
 
-function oauthRowHtml(kind: string, label: string, scopesNote: string, conn: ProviderConnection | null, home: string | undefined, setup = ''): string {
-  if (conn) {
-    return `
-    <div class="store-manage--row pconn-row" data-pconn="${escape(kind)}">
-      <span class="store-manage-name">${escape(label)}
-        <span class="pconn-account">${escape(conn.account)}</span>
-        <span class="pconn-note">${escape(!conn.persist ? t('Connected for this session only')
-          : kind === 'gdrive' && !isTauriShell() ? t('Remembered in this browser; signs in again on each visit')
-            : staysConnectedNote())}</span>
-        ${homeToggleHtml(kind, home, conn.persist)}
-      </span>
-      <button type="button" class="btn-link-danger" data-pconn-disconnect="${escape(kind)}">${t('Disconnect')}</button>
-    </div>`;
-  }
-  return `
-    <div class="store-manage--row pconn-row" data-pconn="${escape(kind)}">
-      <span class="store-manage-name">${escape(label)}
-        <span class="pconn-note">${escape(scopesNote)}</span>
-        ${setup}
-        <label class="pconn-persist"><input type="checkbox" data-pconn-persist="${escape(kind)}"> ${stayConnectedLabel()}</label>
-      </span>
-      <button type="button" class="btn" data-pconn-connect="${escape(kind)}">${t('Connect')}</button>
-    </div>`;
+/** What a live connection remembers, shown under its account name. */
+const rememberedNote = (kind: string, conn: ProviderConnection): string => (!conn.persist ? t('Connected for this session only')
+  : kind === 'gdrive' && !isTauriShell() ? t('Remembered in this browser; signs in again on each visit')
+    : staysConnectedNote());
+
+const persistHtml = (kind: string): string =>
+  `<label class="pconn-persist"><input type="checkbox" data-pconn-persist="${escape(kind)}"> ${stayConnectedLabel()}</label>`;
+const disconnectHtml = (kind: string): string =>
+  `<button type="button" class="btn-link-danger" data-pconn-disconnect="${escape(kind)}">${t('Disconnect')}</button>`;
+
+/** The status a connected service shows when opened: the account, what is
+ *  remembered, and the export-home choice where it applies. */
+function statusHtml(kind: string, conn: ProviderConnection, home: string | undefined): string {
+  return `<p class="pconn-account">${escape(conn.account)}<span class="pconn-note">${escape(rememberedNote(kind, conn))}</span></p>
+        ${homeToggleHtml(kind, home, conn.persist)}`;
 }
 
-/** Drop a provider's whole block when its connector kill switch is off (the note
- *  in mountConnectionsBody says where it went). */
-const gate = (kind: string, html: string): string => (connectorEnabled(kind) ? html : '');
+/** One service: its mark and name, a Connected tag once it is set up, and a body
+ *  that opens with the description, then the set-up form or the status. Every
+ *  body ends in the one status line the click handler writes to. */
+function serviceHtml(kind: string, label: string, connected: boolean, description: string, body: string): string {
+  return `
+    <details class="pconn-svc" data-pconn="${escape(kind)}">
+      <summary class="pconn-svc-sum">${serviceMark(kind)}<span class="pconn-svc-name">${escape(label)}</span>${connected ? `<span class="pconn-svc-state">${t('Connected')}</span>` : ''}${COLLAPSE_CHEV}</summary>
+      <div class="pconn-svc-body">
+        <p class="pconn-note pconn-desc">${escape(description)}</p>
+        ${body}
+        <span class="pconn-status" data-pconn-status="${escape(kind)}" role="status"></span>
+      </div>
+    </details>`;
+}
+
+function oauthBody(kind: string, conn: ProviderConnection | undefined, home: string | undefined, setup: string): string {
+  if (conn) return `${statusHtml(kind, conn, home)}
+        <div class="pconn-actions">${disconnectHtml(kind)}</div>`;
+  return `${setup ? `<div class="pconn-form">${setup}</div>` : ''}
+        ${persistHtml(kind)}
+        <div class="pconn-actions"><button type="button" class="btn" data-pconn-connect="${escape(kind)}">${t('Connect')}</button></div>`;
+}
+
+/** A service set up with an address and keys. Once connected, its form folds
+ *  behind Edit, under the status, with the saved values filled in. `note` is
+ *  already t() output. */
+function credentialBody(kind: string, conn: ProviderConnection | undefined, home: string | undefined, fields: string, note: string): string {
+  const form = `
+        <div class="pconn-form" id="pconn-form-${escape(kind)}"${conn ? ' hidden' : ''}>
+          ${fields}
+          <p class="pconn-note">${note}</p>
+          <div class="pconn-actions"><button type="button" class="btn" data-pconn-save="${escape(kind)}">${t('Save & test')}</button></div>
+        </div>`;
+  if (!conn) return form;
+  return `${statusHtml(kind, conn, home)}
+        <div class="pconn-actions">
+          <button type="button" class="btn" data-pconn-edit aria-expanded="false" aria-controls="pconn-form-${escape(kind)}">${t('Edit')}</button>
+          ${disconnectHtml(kind)}
+        </div>${form}`;
+}
 
 /** In the mobile apps, hide a browser-sign-in service that is not connected and
  *  cannot sign in there: its Connect button could only fail. */
 const signInPossible = (kind: string, connected: boolean): boolean =>
   connected || !BROWSER_SIGN_IN_KINDS.has(kind) || !isTauriMobileShell() || mobileSignInReady(kind);
 
-function credentialRowsHtml(conns: Map<string, ProviderConnection>, home: string | undefined): string {
+/** Every service row this device offers, by kind. A kind that is switched off,
+ *  unavailable here or cannot sign in here has no entry. */
+function serviceRows(conns: Map<string, ProviderConnection>, home: string | undefined): Map<string, string> {
+  const rows = new Map<string, string>();
+  // A kind switched off in Feature flags gets no row (the note in
+  // mountConnectionsBody says where it went).
+  const add = (kind: string, label: string, description: string, body: string): void => {
+    if (connectorEnabled(kind)) rows.set(kind, serviceHtml(kind, label, conns.has(kind), description, body));
+  };
+  for (const r of OAUTH_ROWS) {
+    if (!r.available() || !signInPossible(r.kind, conns.has(r.kind))) continue;
+    add(r.kind, r.label(), r.scopesNote(), oauthBody(r.kind, conns.get(r.kind), home, r.setup?.() ?? ''));
+  }
+
   const s3 = conns.get('s3');
   const s3cfg = (s3?.config ?? {}) as Partial<S3Config>;
+  add('s3', t('S3 bucket'), t('Your own AWS S3, MinIO, R2 or any S3-compatible store'), credentialBody('s3', s3, home, `
+          ${field('endpoint', t('Endpoint URL'), s3cfg.endpoint ?? '', 'text', 'https://s3.eu-central-1.amazonaws.com')}
+          ${field('region', t('Region'), s3cfg.region ?? '', 'text', 'eu-central-1')}
+          ${field('bucket', t('Bucket'), s3cfg.bucket ?? '')}
+          ${field('accessKeyId', t('Access key id'), s3cfg.accessKeyId ?? '')}
+          ${field('secretAccessKey', t('Secret access key'), s3cfg.secretAccessKey ?? '', 'password')}
+          ${field('prefix', t('Key prefix (optional)'), s3cfg.prefix ?? '', 'text', 'lolly/')}
+          ${field('publicBaseUrl', t('Public base URL (optional)'), s3cfg.publicBaseUrl ?? '', 'text', 'https://cdn.example.com')}`,
+  isTauriShell() ? t('Keys stay on this device, never in backups. The bucket’s CORS config must allow this origin.') : t('Keys stay in this browser, never in backups. The bucket’s CORS config must allow this origin.')));
+
   const dav = conns.get('webdav');
   const davCfg = (dav?.config ?? {}) as Partial<WebdavConfig>;
-  return `
-    ${gate('s3', `<details class="pconn-cred" data-pconn="s3">
-      <summary><span class="store-manage-name">${t('S3 bucket')}
-        ${s3 ? `<span class="pconn-account">${escape(s3.account)}</span>` : `<span class="pconn-note">${t('Your own AWS S3, MinIO, R2 or any S3-compatible store')}</span>`}
-      </span></summary>
-      <div class="pconn-form">
-        ${field('endpoint', t('Endpoint URL'), s3cfg.endpoint ?? '', 'text', 'https://s3.eu-central-1.amazonaws.com')}
-        ${field('region', t('Region'), s3cfg.region ?? '', 'text', 'eu-central-1')}
-        ${field('bucket', t('Bucket'), s3cfg.bucket ?? '')}
-        ${field('accessKeyId', t('Access key id'), s3cfg.accessKeyId ?? '')}
-        ${field('secretAccessKey', t('Secret access key'), s3cfg.secretAccessKey ?? '', 'password')}
-        ${field('prefix', t('Key prefix (optional)'), s3cfg.prefix ?? '', 'text', 'lolly/')}
-        ${field('publicBaseUrl', t('Public base URL (optional)'), s3cfg.publicBaseUrl ?? '', 'text', 'https://cdn.example.com')}
-        <p class="pconn-note">${isTauriShell() ? t('Keys stay on this device, never in backups. The bucket’s CORS config must allow this origin.') : t('Keys stay in this browser, never in backups. The bucket’s CORS config must allow this origin.')}</p>
-        <div class="pconn-actions">
-          <button type="button" class="btn" data-pconn-save="s3">${t('Save & test')}</button>
-          ${s3 ? `<button type="button" class="btn-link-danger" data-pconn-disconnect="s3">${t('Disconnect')}</button>` : ''}
-          <span class="pconn-status" data-pconn-status="s3" role="status"></span>
-          ${s3 ? homeToggleHtml('s3', home, s3.persist) : ''}
-        </div>
-      </div>
-    </details>`)}
-    ${gate('webdav', `<details class="pconn-cred" data-pconn="webdav">
-      <summary><span class="store-manage-name">${t('Nextcloud / WebDAV')}
-        ${dav ? `<span class="pconn-account">${escape(dav.account)}</span>` : `<span class="pconn-note">${t('Your own server, signed in with an app password')}</span>`}
-      </span></summary>
-      <div class="pconn-form">
-        ${field('baseUrl', t('Server URL'), davCfg.baseUrl ?? '', 'text', 'https://cloud.example.org')}
-        ${field('username', t('Username'), davCfg.username ?? '')}
-        ${field('appPassword', t('App password'), davCfg.appPassword ?? '', 'password')}
-        ${field('folder', t('Folder (optional)'), davCfg.folder ?? '', 'text', 'Lolly')}
-        <p class="pconn-note">${isTauriShell() ? t('Use a per-app password (Nextcloud: Settings → Security), never your account password. Stays on this device.') : t('Use a per-app password (Nextcloud: Settings → Security), never your account password. Stays in this browser.')}</p>
-        <div class="pconn-actions">
-          <button type="button" class="btn" data-pconn-save="webdav">${t('Save & test')}</button>
-          ${dav ? `<button type="button" class="btn-link-danger" data-pconn-disconnect="webdav">${t('Disconnect')}</button>` : ''}
-          <span class="pconn-status" data-pconn-status="webdav" role="status"></span>
-          ${dav ? homeToggleHtml('webdav', home, dav.persist) : ''}
-        </div>
-      </div>
-    </details>`)}
-    ${penpotRowHtml(conns)}
-    ${publishRowsHtml(conns)}`;
-}
+  add('webdav', t('Nextcloud / WebDAV'), t('Your own server, signed in with an app password'), credentialBody('webdav', dav, home, `
+          ${field('baseUrl', t('Server URL'), davCfg.baseUrl ?? '', 'text', 'https://cloud.example.org')}
+          ${field('username', t('Username'), davCfg.username ?? '')}
+          ${field('appPassword', t('App password'), davCfg.appPassword ?? '', 'password')}
+          ${field('folder', t('Folder (optional)'), davCfg.folder ?? '', 'text', 'Lolly')}`,
+  isTauriShell() ? t('Use a per-app password (Nextcloud: Settings → Security), never your account password. Stays on this device.') : t('Use a per-app password (Nextcloud: Settings → Security), never your account password. Stays in this browser.')));
 
-/** Penpot (plans/178): a Personal Access Token, plus an OPTIONAL default
- *  project picked from a list the token itself fetches - the connect flow is
- *  two clicks on one button (Load projects → Connect), with the picker
- *  injected in place by the handler so the pasted PAT survives (a re-render
- *  would drop it). The real destination is chosen at send time, so this card
- *  is custody first: session-only by default, at rest only by explicit choice
- *  (the Mastodon shape). The helper text is deliberately honest about the
- *  pass-through - this is the one connector whose bytes cross a Lolly server,
- *  because Penpot's API refuses direct browser calls from other origins. */
-function penpotRowHtml(conns: Map<string, ProviderConnection>): string {
+  // Penpot (plans/178): a Personal Access Token, plus an OPTIONAL default project
+  // picked from a list the token itself fetches - the connect flow is two clicks on
+  // one button (Load projects → Connect), with the picker injected in place by the
+  // handler so the pasted PAT survives (a re-render would drop it). The real
+  // destination is chosen at send time, so this row is custody first: session-only
+  // by default, at rest only by explicit choice (the Mastodon shape). The helper
+  // text is deliberately honest about the pass-through - this is the one connector
+  // whose bytes cross a Lolly server, because Penpot's API refuses direct browser
+  // calls from other origins.
   const pen = conns.get('penpot');
-  return gate('penpot', `<details class="pconn-cred" data-pconn="penpot">
-      <summary><span class="store-manage-name">${t('Penpot')}
-        ${pen ? `<span class="pconn-account">${escape(pen.account)}</span>` : `<span class="pconn-note">${t('Send renders into a Penpot project with an access token')}</span>`}
-      </span></summary>
-      <div class="pconn-form">
-        ${pen ? `
-        <span class="pconn-note">${escape(pen.persist ? staysConnectedNote() : t('Connected for this session only'))}</span>` : `
-        ${field('token', t('Access token'), '', 'password')}
-        <p class="pconn-note">${isTauriShell() ? t('Make a token in Penpot under Settings → Access tokens. Each send creates a new Penpot file, on the canvas with your brand tokens inside, in the project you pick at send time. It travels through lolly.tools’s pass-through, because Penpot’s API does not allow browser calls from other sites - your token is forwarded with each send, not stored server-side. What is remembered on this device is your choice below.') : t('Make a token in Penpot under Settings → Access tokens. Each send creates a new Penpot file, on the canvas with your brand tokens inside, in the project you pick at send time. It travels through lolly.tools’s pass-through, because Penpot’s API does not allow browser calls from other sites - your token is forwarded with each send, not stored server-side. What is remembered in this browser is your choice below.')}</p>
-        <label class="pconn-persist"><input type="checkbox" data-pconn-persist="penpot"> ${stayConnectedLabel()}</label>`}
-        <div class="pconn-actions">
-          ${pen
-            ? `<button type="button" class="btn-link-danger" data-pconn-disconnect="penpot">${t('Disconnect')}</button>`
-            : `<button type="button" class="btn" data-pconn-save="penpot">${t('Load projects')}</button>`}
-          <span class="pconn-status" data-pconn-status="penpot" role="status"></span>
+  add('penpot', t('Penpot'), t('Send renders into a Penpot project with an access token'), pen ? `${statusHtml('penpot', pen, home)}
+        <div class="pconn-actions">${disconnectHtml('penpot')}</div>` : `
+        <div class="pconn-form">
+          ${field('token', t('Access token'), '', 'password')}
+          <p class="pconn-note">${isTauriShell() ? t('Make a token in Penpot under Settings → Access tokens. Each send creates a new Penpot file, on the canvas with your brand tokens inside, in the project you pick at send time. It travels through lolly.tools’s pass-through, because Penpot’s API does not allow browser calls from other sites - your token is forwarded with each send, not stored server-side. What is remembered on this device is your choice below.') : t('Make a token in Penpot under Settings → Access tokens. Each send creates a new Penpot file, on the canvas with your brand tokens inside, in the project you pick at send time. It travels through lolly.tools’s pass-through, because Penpot’s API does not allow browser calls from other sites - your token is forwarded with each send, not stored server-side. What is remembered in this browser is your choice below.')}</p>
         </div>
-      </div>
-    </details>`);
-}
+        ${persistHtml('penpot')}
+        <div class="pconn-actions"><button type="button" class="btn" data-pconn-save="penpot">${t('Load projects')}</button></div>`);
 
-/** The publish tier (plans/129 WP5): Mastodon (per-server OAuth), Bluesky (app
- *  password), Discord (webhook). Same details-block shape as the credential
- *  providers - these need nobody's app-review queue, so the rows always exist. */
-function publishRowsHtml(conns: Map<string, ProviderConnection>): string {
+  // The publish tier (plans/129 WP5): Mastodon (per-server OAuth), Bluesky (app
+  // password), Discord (webhook). These need nobody's app-review queue, so the
+  // rows always exist.
   const masto = conns.get('mastodon');
+  if (signInPossible('mastodon', !!masto)) {
+    add('mastodon', t('Mastodon'), t('Post to any Mastodon server - no central app, your server issues the sign-in'), masto ? `${statusHtml('mastodon', masto, home)}
+        <div class="pconn-actions">${disconnectHtml('mastodon')}</div>` : `
+        <div class="pconn-form">${field('server', t('Your server'), '', 'text', 'mastodon.social')}</div>
+        ${persistHtml('mastodon')}
+        <div class="pconn-actions"><button type="button" class="btn" data-pconn-save="mastodon">${t('Connect')}</button></div>`);
+  }
+
   const bsky = conns.get('bluesky');
   const bskyCfg = (bsky?.config ?? {}) as Partial<BlueskyConfig>;
+  add('bluesky', t('Bluesky'), t('Image posts with an app password - no OAuth, revocable any time'), credentialBody('bluesky', bsky, home, `
+          ${field('service', t('Service URL'), bskyCfg.service ?? 'https://bsky.social')}
+          ${field('identifier', t('Handle'), bskyCfg.identifier ?? '', 'text', 'you.bsky.social')}
+          ${field('appPassword', t('App password'), bskyCfg.appPassword ?? '', 'password')}`,
+  isTauriShell() ? t('Make an app password in Bluesky under Settings → App passwords - never your account password. Stays on this device.') : t('Make an app password in Bluesky under Settings → App passwords - never your account password. Stays in this browser.')));
+
   const discord = conns.get('discord');
-  return `
-    ${signInPossible('mastodon', !!masto) ? gate('mastodon', `<details class="pconn-cred" data-pconn="mastodon">
-      <summary><span class="store-manage-name">${t('Mastodon')}
-        ${masto ? `<span class="pconn-account">${escape(masto.account)}</span>` : `<span class="pconn-note">${t('Post to any Mastodon server - no central app, your server issues the sign-in')}</span>`}
-      </span></summary>
-      <div class="pconn-form">
-        ${masto ? '' : `
-        ${field('server', t('Your server'), '', 'text', 'mastodon.social')}
-        <label class="pconn-persist"><input type="checkbox" data-pconn-persist="mastodon"> ${stayConnectedLabel()}</label>`}
-        <div class="pconn-actions">
-          ${masto
-            ? `<button type="button" class="btn-link-danger" data-pconn-disconnect="mastodon">${t('Disconnect')}</button>`
-            : `<button type="button" class="btn" data-pconn-save="mastodon">${t('Connect')}</button>`}
-          <span class="pconn-status" data-pconn-status="mastodon" role="status"></span>
-        </div>
-      </div>
-    </details>`) : ''}
-    ${gate('bluesky', `<details class="pconn-cred" data-pconn="bluesky">
-      <summary><span class="store-manage-name">${t('Bluesky')}
-        ${bsky ? `<span class="pconn-account">${escape(bsky.account)}</span>` : `<span class="pconn-note">${t('Image posts with an app password - no OAuth, revocable any time')}</span>`}
-      </span></summary>
-      <div class="pconn-form">
-        ${field('service', t('Service URL'), bskyCfg.service ?? 'https://bsky.social')}
-        ${field('identifier', t('Handle'), bskyCfg.identifier ?? '', 'text', 'you.bsky.social')}
-        ${field('appPassword', t('App password'), bskyCfg.appPassword ?? '', 'password')}
-        <p class="pconn-note">${isTauriShell() ? t('Make an app password in Bluesky under Settings → App passwords - never your account password. Stays on this device.') : t('Make an app password in Bluesky under Settings → App passwords - never your account password. Stays in this browser.')}</p>
-        <div class="pconn-actions">
-          <button type="button" class="btn" data-pconn-save="bluesky">${t('Save & test')}</button>
-          ${bsky ? `<button type="button" class="btn-link-danger" data-pconn-disconnect="bluesky">${t('Disconnect')}</button>` : ''}
-          <span class="pconn-status" data-pconn-status="bluesky" role="status"></span>
-        </div>
-      </div>
-    </details>`)}
-    ${gate('discord', `<details class="pconn-cred" data-pconn="discord">
-      <summary><span class="store-manage-name">${t('Discord')}
-        ${discord ? `<span class="pconn-account">${escape(discord.account)}</span>` : `<span class="pconn-note">${t('Post files into a channel through its webhook - no sign-in needed')}</span>`}
-      </span></summary>
-      <div class="pconn-form">
-        ${field('url', t('Webhook URL'), (discord?.config?.url as string | undefined) ?? '', 'password', 'https://discord.com/api/webhooks/…')}
-        <p class="pconn-note">${isTauriShell() ? t('Channel settings → Integrations → Webhooks. Anyone holding this URL can post to the channel - it stays on this device, never in backups.') : t('Channel settings → Integrations → Webhooks. Anyone holding this URL can post to the channel - it stays in this browser, never in backups.')}</p>
-        <div class="pconn-actions">
-          <button type="button" class="btn" data-pconn-save="discord">${t('Save & test')}</button>
-          ${discord ? `<button type="button" class="btn-link-danger" data-pconn-disconnect="discord">${t('Disconnect')}</button>` : ''}
-          <span class="pconn-status" data-pconn-status="discord" role="status"></span>
-        </div>
-      </div>
-    </details>`)}`;
+  add('discord', t('Discord'), t('Post files into a channel through its webhook - no sign-in needed'), credentialBody('discord', discord, home,
+    field('url', t('Webhook URL'), (discord?.config?.url as string | undefined) ?? '', 'password', 'https://discord.com/api/webhooks/…'),
+    isTauriShell() ? t('Channel settings → Integrations → Webhooks. Anyone holding this URL can post to the channel - it stays on this device, never in backups.') : t('Channel settings → Integrations → Webhooks. Anyone holding this URL can post to the channel - it stays in this browser, never in backups.')));
+  return rows;
+}
+
+/** The groups the services sit in, named by what they do with your work. Sync
+ *  across devices is the card's last group; the shell renders it around
+ *  #sync-body. */
+const GROUPS: Array<{ id: string; title: () => string; kinds: string[] }> = [
+  { id: 'storage', title: () => t('Storage and sync'), kinds: ['gdrive', 'dropbox', 'o365', 's3', 'webdav'] },
+  { id: 'post', title: () => t('Posting'), kinds: ['mastodon', 'bluesky', 'discord', 'linkedin'] },
+  { id: 'design', title: () => t('Design apps'), kinds: ['penpot'] },
+];
+
+function groupsHtml(rows: Map<string, string>, live: string[]): string {
+  return GROUPS.map((g) => {
+    const items = g.kinds.filter((k) => rows.has(k));
+    if (!items.length) return '';
+    const n = items.filter((k) => live.includes(k)).length;
+    return `
+    <details class="pconn-group" data-pconn-group="${g.id}">
+      ${groupSummaryRow(g.title(), n ? t('{n} connected', { n }) : '', items.map(serviceMark).join(''))}
+      <div class="pconn-group-body"><div class="pconn-svcs">${items.map((k) => rows.get(k)).join('')}</div></div>
+    </details>`;
+  }).join('');
 }
 
 /** Provider display name for one connection kind - the labels are otherwise spread
@@ -344,8 +339,6 @@ const kindLabel = (kind: string): string => ({
 export async function mountConnectionsBody(body: HTMLElement, host: ConnHost, onSummary?: (text: string) => void): Promise<void> {
   const conns = new Map((await listConnections()).map((c) => [c.kind, c]));
   const home = (await host.profile.get().catch(() => ({}) as Profile)).exportHome;
-  const oauthRows = OAUTH_ROWS.filter((r) => connectorEnabled(r.kind) && r.available() && signInPossible(r.kind, conns.has(r.kind)))
-    .map((r) => oauthRowHtml(r.kind, r.label(), r.scopesNote(), conns.get(r.kind) ?? null, home, r.setup?.() ?? '')).join('');
   // Names what a kill switch is hiding, so a vanished Drive row reads as a choice
   // the user made rather than a missing feature.
   const switchedOff = CONNECTOR_FLAGS.filter((f) => !connectorEnabled(f.connector!));
@@ -358,16 +351,20 @@ export async function mountConnectionsBody(body: HTMLElement, host: ConnHost, on
   const mobileNote = notHere.length
     ? `<p class="pconn-note">${t('Not available in the mobile app yet: {names}. Signing in to them needs a registration this app does not have.', { names: notHere.join(', ') })}</p>`
     : '';
+  // A provider switched off in Feature flags has no row here, so it must not count
+  // as connected either.
+  const live = [...conns.keys()].filter(connectorEnabled);
+  // Every group and service starts folded, and a re-render after a change keeps
+  // open what was open, so a connect shows the row's new status.
+  const openKey = (d: HTMLDetailsElement): string => d.dataset.pconnGroup ?? `svc:${d.dataset.pconn ?? ''}`;
+  const wasOpen = new Set([...body.querySelectorAll<HTMLDetailsElement>('details[open]')].map(openKey));
   body.innerHTML = `
     <p class="storage-hint-text">${isTauriShell() ? t('Send finished exports straight to your own places. Every send goes from this device to the provider directly - no Lolly server ever holds your files or your sign-ins - and what is remembered on this device is your choice, wiped by Disconnect and never included in backups.') : t('Send finished exports straight to your own places. Every send goes from this device to the provider directly - no Lolly server ever holds your files or your sign-ins - and what is remembered in this browser is your choice, wiped by Disconnect and never included in backups.')}</p>
     ${offNote}
     ${mobileNote}
-    ${oauthRows}
-    ${credentialRowsHtml(conns, home)}`;
+    ${groupsHtml(serviceRows(conns, home), live)}`;
+  body.querySelectorAll<HTMLDetailsElement>('details').forEach((d) => { if (wasOpen.has(openKey(d))) d.open = true; });
 
-  // A provider switched off in Feature flags has no row here, so it must not count
-  // as connected either.
-  const live = [...conns.keys()].filter(connectorEnabled);
   onSummary?.(live.length === 0 ? t('None connected')
     : live.length === 1 ? kindLabel(live[0]!)
     : tRaw('{first} + {n}', { first: kindLabel(live[0]!), n: live.length - 1 }));
@@ -389,6 +386,16 @@ export async function mountConnectionsBody(body: HTMLElement, host: ConnHost, on
 
   body.onclick = async (ev) => {
     const el = ev.target as HTMLElement;
+    // Edit unfolds a connected service's saved settings in place.
+    const edit = el.closest<HTMLButtonElement>('[data-pconn-edit]');
+    if (edit) {
+      const form = body.querySelector<HTMLElement>(`#${CSS.escape(edit.getAttribute('aria-controls') ?? '')}`);
+      if (!form) return;
+      form.hidden = !form.hidden;
+      edit.setAttribute('aria-expanded', String(!form.hidden));
+      if (!form.hidden) form.querySelector<HTMLInputElement>('input')?.focus();
+      return;
+    }
     const connectKind = el.closest<HTMLElement>('[data-pconn-connect]')?.dataset.pconnConnect;
     const disconnectKind = el.closest<HTMLElement>('[data-pconn-disconnect]')?.dataset.pconnDisconnect;
     const saveKind = el.closest<HTMLElement>('[data-pconn-save]')?.dataset.pconnSave;

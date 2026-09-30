@@ -45,7 +45,8 @@ const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !
  * bytes were preserved under a content-keyed id (see frozenAssetId). Publishing
  * copies nothing, so an unchanged asset never grows one.
  */
-export interface PinnedAsset { id: string; version: string; sha256: string; frozenId?: string }
+export interface PinnedFontFace { family: string; weight: string; style: string; unicodeRange?: string }
+export interface PinnedAsset { id: string; version: string; sha256: string; frozenId?: string; font?: PinnedFontFace }
 
 /** One published version. `slug` addresses it (asset id segment), `label` is what
  *  the team calls it, `checksum` is docChecksum of the tokens doc it froze. */
@@ -104,7 +105,10 @@ function readPinnedAssets(v: unknown): PinnedAsset[] | undefined {
     // frozenId is a different object to a deepEqual comparison, and a pin that
     // claims a frozen copy it doesn't have would send resolution to a dead id.
     const frozenId = str(raw.frozenId);
-    out.push(frozenId ? { id, version, sha256, frozenId } : { id, version, sha256 });
+    const f = isRec(raw.font) ? raw.font : null;
+    const font = f && str(f.family) && str(f.weight) && str(f.style)
+      ? { family: String(f.family), weight: String(f.weight), style: String(f.style), ...(str(f.unicodeRange) ? { unicodeRange: String(f.unicodeRange) } : {}) } : null;
+    out.push({ id, version, sha256, ...(frozenId ? { frozenId } : {}), ...(font ? { font } : {}) });
   }
   return out.length ? out : undefined;
 }

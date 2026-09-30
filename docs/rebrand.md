@@ -57,7 +57,7 @@ Every change you make is answered with **Undo**, next to the counts in the foote
 
 ## Work through the review list
 
-![The review list for the sample deck, grouped into Needs attention, Suggestions and Layouts.](/t/url-shot?url=%2F%23%2Frebrand%3Fsample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-queue&try=1&waitSelector=.rb%5Bdata-drawn%5D&cropSelector=.rb-queue&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
+![The review list for the sample deck, grouped into Needs attention, Suggestions and Layouts.](/t/url-shot?url=%2F%23%2Frebrand%3Fsample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-queue&try=1&waitSelector=.rb%5Bdata-drawn%5D&cropSelector=.rb-queue&css=.float-cluster%7Bdisplay%3Anone%21important%7D&drive=click%3A.rb-review-toggle)
 
 A card stands for one kind of object across the deck, so you answer the old logo once rather than on every slide: "Replace marks on 8 slides". The list has three groups:
 

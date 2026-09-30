@@ -172,7 +172,7 @@ export async function detectAiCli(positionals: string[], flags: Record<string, s
   if (!api.eligible(text)) {
     // Absence of a check is NEVER a verdict. Say which gate refused and stop.
     const message = 'Not checked: the detector is trained on English and over-scores non-native-English prose, '
-      + 'so it is only asked about texts of 50+ words that are mostly Latin script. This one is not.';
+      + 'so it is only asked about English prose of 50+ words with recognisable English function words. This one is not.';
     if (json) { await writeOut(`${JSON.stringify({ ok: true, command: 'detect-ai', checked: false, reason: 'ineligible' }, null, 2)}\n`); }
     else note(message);
     return EXIT.NOT_FOUND;
@@ -185,7 +185,7 @@ export async function detectAiCli(positionals: string[], flags: Record<string, s
     } else {
       // An ESTIMATE, never a verdict: the number, the operating point, and the
       // model that produced it, with no word like "detected" anywhere near it.
-      await writeOut(`${est.probAi.toFixed(4)} (operating point ${est.threshold}, ${est.modelName})\n`);
+      await writeOut(`${est.probAi.toFixed(4)} raw classifier score (operating point ${est.threshold}, ${est.modelName}); not a calibrated probability. ${est.windows?.length ?? 0} windows, coverage ${est.complete ? 'complete' : 'partial'}\n`);
     }
     return EXIT.OK;
   } catch (err) { throw asCliError(err); }

@@ -22,6 +22,7 @@ import { duringAssetSync } from '../lib/asset-sync.ts';
 import { assertToolIndexIntegrity, getToolIntegrity } from './integrity.ts';
 import { currentLang, t } from '../i18n.ts';
 import { pinnedAssetIds, refreshPinnedToolFiles } from '../lib/offline-pins.ts';
+import { setBrandTrustedSites } from '../lib/trusted-sites.ts';
 import { runBackgroundTasks } from '../lib/background-tasks.ts';
 // The "Available offline" download manager is DYNAMICALLY imported: this module is
 // on the boot path (main.ts syncs the catalog), but both reads below happen inside
@@ -84,6 +85,10 @@ interface AssetIndex {
   /** Template refs (`"<toolId>:<tid>"`) a brand ships hidden for a fresh profile (plans/226) -
    *  the template twin of `defaultHiddenTools`, merged by lib/hidden-templates.ts until seeded. */
   defaultHiddenTemplates?: string[];
+  /** Sites a brand lets its people contact without asking (plan 288): the Sandbox's web
+   *  fonts and scripts, a Design web page box. Merged into the person's trusted sites
+   *  until they first edit that list (lib/trusted-sites.ts). */
+  defaultTrustedSites?: string[];
 }
 
 /**
@@ -458,6 +463,10 @@ let defaultFavouriteIds: readonly string[] = [];
  *  hasn't been fetched this session). Read once at boot to seed first-run favourites. */
 export function defaultFavouriteAssetIds(): readonly string[] { return defaultFavouriteIds; }
 
+/** The brand's `defaultTrustedSites` as the last full index read left them (plan 288):
+ *  catalog data kept beside the ETag caches, never tool state. */
+const BRAND_TRUST_MIRROR = 'lolly:brand-trusted-sites';
+
 let defaultHiddenToolIds_: readonly string[] = [];
 /** Tool ids flagged `defaultHiddenTools` in the catalog index (empty if the index hasn't been
  *  fetched this session). Merged into a fresh profile's hidden-tools overlay by the gallery. */
@@ -493,6 +502,9 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
   const resp = await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), 'assets-index');
   if (!resp) {
     host.log('info', 'Asset catalog unchanged (304)');
+    // An unchanged index is not parsed again, so its trusted-site defaults come from
+    // the copy the last full read left.
+    try { setBrandTrustedSites(JSON.parse(localStorage.getItem(BRAND_TRUST_MIRROR) ?? '[]')); } catch { /* storage off */ }
     await onAssetsReady?.();
     return;
   }
@@ -509,6 +521,9 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
   if (Array.isArray(index.defaultHiddenTemplates)) {
     defaultHiddenTemplateRefs_ = index.defaultHiddenTemplates.filter((x): x is string => typeof x === 'string');
   }
+  const brandTrust = Array.isArray(index.defaultTrustedSites) ? index.defaultTrustedSites.filter((x): x is string => typeof x === 'string') : [];
+  setBrandTrustedSites(brandTrust);
+  try { localStorage.setItem(BRAND_TRUST_MIRROR, JSON.stringify(brandTrust)); } catch { /* storage off */ }
 
   // Write metadata into IndexedDB so host.assets.get(id) can resolve whatever asset.
   await host.assets._syncFromIndex(index.assets, { origin, ...('brandTokens' in index ? { tokensHead: index.brandTokens } : {}) });

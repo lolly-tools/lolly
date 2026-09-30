@@ -26,7 +26,7 @@
 .modal::backdrop { background: hsl(0 0% 0% / 0.42); }
 .modal-title { margin: 0 0 8px; font-size: var(--fs-xl); font-weight: 700; }
 .modal-msg { margin: 0 0 18px; font-size: var(--fs-md); line-height: 1.5; color: var(--ui-color-text-muted); }
-.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top:1rem; }
 /* Scoped (two-class) so it beats the generic .btn base by specificity. Fill
    (background/color) + hover are aliased in parts/buttons.css's .btn--danger list. */
 .modal .modal-danger {
@@ -44,6 +44,35 @@
 @media (min-width: 641px) {
   .modal:has(.modal-actions--choices) { width: auto; max-width: min(760px, 92vw); }
 }
+
+/* View loading lives in shared chrome so lazy downloads cannot delay feedback. */
+.view-loading {
+  width: min(208px, 92vw); padding: var(--sp-6);
+  text-align: center;
+  animation: view-loading-in 160ms ease-out;
+}
+.view-loading-mark { display: block; width: 56px; height: 56px; margin: 0 auto var(--sp-4); }
+.view-loading-mark svg { display: block; width: 100%; height: 100%; }
+.view-loading-status { margin: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--ui-color-text-muted); }
+.view-loading-mark .lolly-mark__spin-1,
+.view-loading-mark .lolly-mark__spin-2,
+.view-loading-mark .lolly-mark__spin-3 { transform-origin: 50% 50%; transform-box: fill-box; }
+.view-loading-mark .lolly-mark__spin-1 { animation: view-loading-spin 2.4s linear infinite; }
+.view-loading-mark .lolly-mark__spin-2 { animation: view-loading-spin 4.6s linear infinite reverse; }
+.view-loading-mark .lolly-mark__spin-3 { animation: view-loading-spin 7s linear infinite; }
+@keyframes view-loading-spin { to { transform: rotate(360deg); } }
+@keyframes view-loading-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
+@media (prefers-reduced-motion: reduce) {
+  .view-loading,
+  .view-loading-mark .lolly-mark__spin-1,
+  .view-loading-mark .lolly-mark__spin-2,
+  .view-loading-mark .lolly-mark__spin-3 { animation: none; }
+}
+html[data-a11y-motion="reduce"] .view-loading,
+html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-1,
+html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-2,
+html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animation: none; }
+
 /* ─── "Opening…" card (components/open-progress.ts) ────────────────────────
    The plain .modal card while a saved document opens: its thumbnail when the
    opening view had one, its name, the step now running, the shared candy-stripe

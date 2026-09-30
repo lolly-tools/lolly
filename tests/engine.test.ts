@@ -149,7 +149,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   // docs/url-parameters.md. The docs aren't programmatically importable, so this inline
   // list is the guard: if you add/remove a reserved param, update all three.
   const documented = [
-    'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
+    'format', 'export', 'copy', 'full', 'iframe', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
     'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx',
     'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence',

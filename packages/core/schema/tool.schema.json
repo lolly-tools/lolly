@@ -1784,6 +1784,11 @@
                 "default": false,
                 "description": "Show a text label above each sub-field (the layout typed/addMenu blocks always use). Turn on for untyped blocks whose controls aren't self-evident, or that carry several optional fields."
               },
+              "tokenBindingsField": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+                "description": "Declared text sub-field carrying JSON token references and local override state for scalar row properties. Append this field to preserve compact URL positions. The engine resolves compatible links before hooks; cached scalar properties remain usable by older readers."
+              },
               "rowActions": {
                 "type": "boolean",
                 "default": false,

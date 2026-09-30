@@ -12,19 +12,20 @@
  * disabled outright, so no text or bytes ever leave the device
  * (lib/ai-detect-privacy.test.ts pins these lines, like reword's).
  *
- * The worker returns a RAW probability. Calibration against the operating
- * threshold, the evidence cap, and the band fold all happen in the ENGINE
+ * The worker returns a raw classifier score. The provisional operating
+ * threshold, evidence cap and band fold are interpreted in the ENGINE
  * (`applyModelEstimate`), so every shell scores identically - this side owns
  * only tokenise → forward → softmax.
  */
 
+import { forensicModelWindows, type ForensicModelWindow } from '@lolly/engine';
 import type { AiDetectModel } from './ai-detect-models.ts';
 import { ORT_HF_BASE } from './ort-hf-base.ts';
 import { MODELS_BASE } from './models-base.ts';
 
 export interface AiDetectWorkerRequest {
   id: number;
-  type: 'score';
+  type: 'score' | 'cancel';
   text?: string;
   /** The roster entry to run - passed in so the worker holds no roster copy. */
   model?: AiDetectModel;
@@ -33,10 +34,12 @@ export interface AiDetectWorkerRequest {
 export interface AiDetectWorkerReply {
   id: number;
   progress?: { phase: 'download'; fraction: number; loaded?: number; total?: number };
-  /** The classifier's AI-side probability, 0-1. */
+  /** The classifier's raw AI-side score, 0-1; not calibrated probability. */
   prob?: number;
   /** Which label was read as the AI side, for the staging gate's sanity log. */
   label?: string;
+  windows?: ForensicModelWindow[];
+  complete?: boolean;
   error?: string;
 }
 
@@ -49,9 +52,7 @@ interface ClassifierLike {
   (inputs: Record<string, unknown>): Promise<{ logits: TensorLike }>;
   config: { id2label?: Record<string, string> };
 }
-interface TokenizeFnLike {
-  (text: string, opts: { truncation: boolean; max_length: number }): Record<string, unknown>;
-}
+type TokenizeFnLike = (text: string, opts: { truncation: boolean; max_length: number }) => Record<string, unknown>
 
 interface Runtime { model: ClassifierLike; tokenize: TokenizeFnLike }
 
@@ -84,7 +85,7 @@ function ensureRuntime(id: number, m: AiDetectModel): Promise<Runtime> {
     // 'q8' resolves to the staged onnx/model_quantized.onnx; wasm for the same
     // reason as reword - one file that runs everywhere.
     const [model, tokenizer] = await Promise.all([
-      AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8', device: 'wasm', progress_callback }),
+      AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8', device: 'wasm', session_options: { graphOptimizationLevel: 'basic' }, progress_callback }),
       AutoTokenizer.from_pretrained(m.dir, { progress_callback }),
     ]);
     return { model: model as unknown as ClassifierLike, tokenize: tokenizer as unknown as TokenizeFnLike };
@@ -100,11 +101,10 @@ function softmax(row: Float32Array): number[] {
   return exps.map((e) => e / sum);
 }
 
+const cancelled = new Set<number>(), active = new Set<number>();
 async function score(id: number, text: string, m: AiDetectModel): Promise<void> {
   const { model, tokenize } = await ensureRuntime(id, m);
-  const inputs = tokenize(text, { truncation: true, max_length: m.maxTokens });
-  const { logits } = await model(inputs);
-  const probs = softmax(logits.data);
+  const measure = (part: string): number => (tokenize(part, { truncation: false, max_length: m.maxTokens }).input_ids as TensorLike).dims.at(-1)!;
   // Which output index is "AI"? Read the graph's own labels; a two-label graph
   // with no readable labels falls back to index 1 (the conventional positive).
   const labels = model.config.id2label ?? {};
@@ -112,16 +112,24 @@ async function score(id: number, text: string, m: AiDetectModel): Promise<void> 
   for (const [k, v] of Object.entries(labels)) {
     if (m.aiLabel.test(v)) { aiIndex = Number(k); break; }
   }
-  if (aiIndex < 0) aiIndex = probs.length > 1 ? 1 : 0;
-  post({ id, prob: probs[aiIndex] ?? 0, label: labels[String(aiIndex)] ?? String(aiIndex) } satisfies AiDetectWorkerReply);
+  if (aiIndex < 0) aiIndex = 1;
+  const result = await forensicModelWindows(text, m.maxTokens, measure, async part => {
+    const { logits } = await model(tokenize(part, { truncation: false, max_length: m.maxTokens }));
+    return softmax(logits.data)[aiIndex] ?? 0;
+  }, 32, () => cancelled.has(id));
+  cancelled.delete(id);
+  post({ id, prob: result.rawMean, windows: result.windows, complete: result.complete, label: labels[String(aiIndex)] ?? String(aiIndex) } satisfies AiDetectWorkerReply);
 }
 
-onmessage = (e: MessageEvent<AiDetectWorkerRequest>): void => {
+globalThis.onmessage = (e: MessageEvent<AiDetectWorkerRequest>): void => {
   const { id, type, text, model } = e.data;
+  if (type === 'cancel') { if (active.has(id)) cancelled.add(id); return; }
   if (type !== 'score' || typeof text !== 'string' || !text.trim() || !model) {
     post({ id, error: 'nothing to score' } satisfies AiDetectWorkerReply);
     return;
   }
+  active.add(id);
   score(id, text, model)
-    .catch((err) => { post({ id, error: err instanceof Error ? err.message : String(err) } satisfies AiDetectWorkerReply); });
+    .catch((err) => { cancelled.delete(id); post({ id, error: err instanceof Error ? err.message : String(err) } satisfies AiDetectWorkerReply); })
+    .finally(() => { active.delete(id); cancelled.delete(id); });
 };

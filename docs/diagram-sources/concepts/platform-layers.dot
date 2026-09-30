@@ -1,0 +1,19 @@
+digraph platform_layers {
+  rankdir=TB
+  node [shape=box]
+  tools [label="Tools\nmanifest, template, hooks"]
+  engine [label="Engine\nshared runtime"]
+  bridge [label="Capability bridge\nHostV1 contract"]
+  web [label="Web shell\nPWA"]
+  tauri [label="Tauri shells\ndesktop and mobile"]
+  terminal [label="Terminal shells\nCLI and TUI"]
+  catalog [label="Catalogs\ntools and assets"]
+  tools -> engine
+  engine -> bridge
+  bridge -> web
+  bridge -> tauri
+  bridge -> terminal
+  web -> catalog
+  tauri -> catalog
+  terminal -> catalog
+}

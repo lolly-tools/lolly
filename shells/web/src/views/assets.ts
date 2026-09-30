@@ -168,10 +168,9 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.coverMap = new Map();
   cat.coverPool = [];
 
-  // Multi-select of the user's OWN uploads (a closure Set of user-asset ids; survives the
-  // render() that wipes viewEl.innerHTML). Only user uploads are selectable - shared
-  // catalog assets can't be deleted (they're a permanent contract), only hidden. Mirrors
-  // the projects view's checkbox + floating bulk-bar pattern.
+  // Selected asset ids survive the render that replaces viewEl.innerHTML.
+  // Catalog assets and uploads share selection; changes to files are upload-only.
+  // Uses the Projects checkbox and floating bulk-bar pattern.
   const selected = new Set<string>(); cat.selected = selected;
 
   const tileSelect = wireTileSelect({
@@ -321,12 +320,11 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     { fmt: 'gpl', label: 'GIMP palette (.gpl)' },
   ]; cat.SWATCH_DOWNLOADS = SWATCH_DOWNLOADS;
 
-  // Floating bulk-action bar for a multi-selection of uploads - markup + sync live in
+  // Floating bulk-action bar for selected assets - markup + sync live in
   // lib/bulk-bar.ts (shared with projects and the gallery); this view supplies its
   // action set. Rendered once per render(); shown/populated by syncBulkBar().
-  // Favourite/Hide apply to ANY selection; Duplicate/Download/Delete only light up
-  // when the whole selection is the user's own uploads (catalog assets are a
-  // permanent contract - favourite and hide are the only honest bulk verbs there).
+  // Downloads apply to catalog assets and uploads. Actions that modify library
+  // files remain restricted to the user's own uploads.
   const bulkBarCfg: BulkBarConfig = {
     prefix: 'cat-bulkbar',
     rootSelector: '.catalog',
@@ -335,12 +333,12 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       { id: 'compare', icon: icon('duplicate'), label: () => t('Compare'), hidden: () => !cat.bulk.canCompareSelection() },
       { id: 'fav', icon: STAR_ICON, label: () => (cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')) },
       { id: 'add-to-project', icon: icon('folder'), label: () => t('Add to project'), title: () => t('Reference the selection into a project folder - nothing is copied, the files stay in Assets') },
+      { id: 'download', icon: DOWNLOAD_ICON, label: () => selected.size > 1 ? t('Download selection') : t('Download'), title: () => t('Download the selected files as one ZIP') },
       { id: 'hide', icon: icon('eye'), label: () => (cat.bulk.allSelectedHidden() ? t('Unhide') : t('Hide')) },
       { id: 'replace', icon: REPLACE_ICON, label: () => t('Replace'), title: () => t('Swap in a new file, keeping the same image - every saved session, tool and project that uses it updates to the new one'), hidden: () => !cat.bulk.singleSelectedUploadRef() },
       { id: 'rename', icon: PENCIL_ICON, label: () => t('Rename'), title: () => t('Change this upload’s name'), hidden: () => !cat.bulk.singleSelectedUploadRef() },
       { id: 'edit-tags', icon: TAG_ICON, label: () => t('Edit tags'), title: () => t('Set one comma-separated tag list on every selected upload'), hidden: () => !cat.bulk.allSelectedUploads() },
       { id: 'duplicate', icon: COPY_ICON, label: () => t('Duplicate'), title: () => t('Make a copy of each selected image - the copies are selected, ready to move or edit'), hidden: () => !cat.bulk.allSelectedUploads() },
-      { id: 'download', icon: DOWNLOAD_ICON, label: () => t('Download'), title: () => t('Download the selection as one zip - Content Credentials checked and preserved'), hidden: () => !cat.bulk.allSelectedUploads() },
       { id: 'delete', icon: TRASH_ICON, label: () => t('Delete'), extraClass: 'cat-bulk-danger', hidden: () => !cat.bulk.allSelectedUploads() },
     ],
   }; cat.bulkBarCfg = bulkBarCfg;

@@ -890,7 +890,7 @@
     "Profile": {
       "module": "profile.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "d213cbf1ec526884d03e2f179f5709451ad69c1e62038c0a3baa199038069318"
+      "sha256": "5adf1dbcec370e763faef1373a3d510f426943e630fd2797bb56fd57aff25800"
     },
     "RasterAPI": {
       "module": "raster.ts",
@@ -1037,15 +1037,45 @@
       "kind": "InterfaceDeclaration",
       "sha256": "7abce3d31f784a9b4063b35092933a661ffbe26467aaa1b2087b2edb31841ae3"
     },
+    "TokenResolveOptions": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5c23b937bb25445924d6c0a59c0c283c8a90997a65209ad57bbeab6343c47e35"
+    },
+    "TokenDiagnostic": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "12c5e8bf35b265f82181eb772e02efceb3f799695eb4227a57a37f09a359e135"
+    },
+    "TokenSelection": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e471fc81beb14157e6134809051207ba95d3e1033dd0f9e4ab9349359accaf3d"
+    },
+    "TokenSource": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9ce5a3b266c796f722e1310fb155ef7c72c261c76a1bf0ddda3a8f4551ba872b"
+    },
+    "TokenTrace": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "cf9f28ceea93ffc315be03de2a78414f94dfb53174733247003151f4d4ace975"
+    },
+    "TokenInspection": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f779a58f20aea406cb2400ff997e552efb06c4e4c31baf06258fa97f961595ee"
+    },
     "TokensAPI": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3a1363c8242ed6cd48ad22c9b9965a2b900a6e383f74eedcc78ee266536f77b0"
+      "sha256": "56e0e0558e88d55406fe31baa57a682c000acdbf91f08498749ea7c549bb9b6f"
     },
     "TokensSnapshot": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "9267fa7fa2ee7fe685fc72be28d5f3f34bafd8268fc18b04110cb1e797cad18d"
+      "sha256": "8ad6fde1a7761d4e6aa9bc69c519d20134c167bc626344d06e0fb76474feb670"
     },
     "DesignSystemSummary": {
       "module": "tokens.ts",

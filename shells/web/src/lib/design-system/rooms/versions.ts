@@ -291,7 +291,7 @@ function storageHtml(model: VersionsModel): string {
       frozen === 1 ? t('{n} preserved file', { n: frozen }) : t('{n} preserved files', { n: frozen }),
       escape(fmtBytes(bytes)),
     ].join(' · ')}</p>
-    <p class="ds-v-storage-note">${isTauriShell() ? t('A version cannot be deleted yet. The images it pins are kept on this device, so it keeps drawing them the way it did on the day it was published. Type follows whichever font file is installed for that family today.') : t('A version cannot be deleted yet. The images it pins are kept in this browser, so it keeps drawing them the way it did on the day it was published. Type follows whichever font file is installed for that family today.')}</p>`;
+    <p class="ds-v-storage-note">${isTauriShell() ? t('A version cannot be deleted yet. The images it pins are kept on this device, so it keeps drawing them the way it did on the day it was published. New local font pins keep their published bytes. Earlier font pins and unpinned families follow the installed face.') : t('A version cannot be deleted yet. The images it pins are kept in this browser, so it keeps drawing them the way it did on the day it was published. New local font pins keep their published bytes. Earlier font pins and unpinned families follow the installed face.')}</p>`;
 }
 
 /** The whole panel for a model, or the resting line while the first read runs. */

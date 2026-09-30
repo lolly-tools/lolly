@@ -10,6 +10,7 @@
  * changes were needed.
  */
 
+import { scopedTokenOptions } from '../../../engine/src/token-context.ts';
 import { isJxl } from '../../../engine/src/jxl.ts';
 import { prepareJxlAsset } from '@lolly-tools/node-shell/jxl-asset';
 import { readFile } from 'node:fs/promises';
@@ -18,10 +19,10 @@ import { assetBytes } from '@lolly-tools/node-shell/asset-bytes';
 // (the pptx read path uses it); the engine hands back entries and the caller zips them,
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
-import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId } from '@lolly/engine';
+import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId } from '@lolly/engine';
 import type {
   HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts, ExportMeta,
-  StateEntry, ComposeSpec, ExportFormat, TokenSet, C2paSignOpts,
+  StateEntry, ComposeSpec, ExportFormat, TokenSet, TokenResolveOptions, C2paSignOpts,
 } from '@lolly-tools/core/host-v1';
 // Deep image encoders (v1.100 host.codec) - off the @lolly/engine barrel by
 // design, imported deep-relative like node-shell/raster.ts does for packExr.
@@ -253,6 +254,7 @@ interface CliBridgeOpts {
    * then the edit head) are read off the head document's own ledger, so a caller
    * that passes nothing still resolves the same version the web shell would.
    */
+  tokenSelection?: Record<string, string>;
   designVersion?: { override?: string | null; pin?: string | null };
   /**
    * Refuse `host.capture.page` targets a hosted process must never reach: only
@@ -267,7 +269,7 @@ interface CliBridgeOpts {
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, capturePublicOnly = false, aiEnabled = true }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -429,6 +431,7 @@ export async function createCliBridge(
    * and says so: an author who typed a slug and silently got a different design
    * system has the one failure this shell refuses to be quiet about.
    */
+  let releasePins: import('../../../engine/src/design-version.ts').PinnedAsset[] = [];
   async function resolvedDoc(): Promise<unknown> {
     return (async () => {
       const head = await tokensDoc();
@@ -443,16 +446,20 @@ export async function createCliBridge(
       if (override && override !== DESIGN_VERSION_LATEST && !index.versions.some(v => v.slug === override)) {
         host.log('warn', `--designv=${override} names no design-system version in this catalog - rendering against ${slug === DESIGN_VERSION_LATEST ? 'the edit head' : `"${slug}"`} instead.`);
       }
-      if (slug === DESIGN_VERSION_LATEST) return head;
+      if (slug === DESIGN_VERSION_LATEST) { releasePins = []; return head; }
       const entry = index.versions.find(v => v.slug === slug);
       const asset = headTokensAsset ? assetById.get(versionAssetId(headTokensAsset.id, slug)) : undefined;
       if (!entry || !asset) {
+        releasePins = [];
         host.log('warn', `design-system version "${slug}" is listed but ships no tokens asset - rendering against the edit head instead.`);
         return head;
       }
       try {
-        return applyPinnedAssets(await readAssetDoc(asset), entry.assets ?? []);
+        releasePins = entry.assets ?? [];
+        const { applyPinnedFontFamilies } = await import('../../../engine/src/token-font-pins.ts');
+        return await applyPinnedFontFamilies(applyPinnedAssets(await readAssetDoc(asset), releasePins), releasePins);
       } catch (e) {
+        releasePins = [];
         host.log('warn', `design-system version "${slug}" could not be read (${e instanceof Error ? e.message : e}) - rendering against the edit head instead.`);
         return head;
       }
@@ -460,23 +467,37 @@ export async function createCliBridge(
   }
 
   const tokenSets = new Map<string, TokenSet>(); // revision + theme → resolved set
-  async function tokenSet(theme?: string): Promise<TokenSet> {
+  async function tokenSet(opts: TokenResolveOptions = {}): Promise<TokenSet> {
     const localRecord = await activeNodeDesignSystem().catch(() => null);
     const revision = localRecord ? `${localRecord.id}:${localRecord.updatedAt}` : 'catalog';
-    const key = `${revision}\0${theme ?? ''}`;
+    const key = `${revision}\0${tokenSelectionKey(scopedTokenOptions(tokenSelection, opts))}`;
     let set = tokenSets.get(key);
-    if (!set) { set = createTokenSet(await resolvedDoc(), { theme }); tokenSets.set(key, set); }
+    if (!set) { set = createTokenSet(await resolvedDoc(), scopedTokenOptions(tokenSelection, opts)); if (tokenSets.size >= 64) tokenSets.delete(tokenSets.keys().next().value!); tokenSets.set(key, set); }
     return set;
   }
   host.tokens = {
-    get: (opts = {}) => tokenSet(opts.theme),
-    colors: async (opts = {}) => (await tokenSet(opts.theme)).colors(),
-    resolve: async (ref, opts = {}) => (await tokenSet(opts.theme)).resolve(ref),
+    get: (opts = {}) => tokenSet(opts),
+    inspect: async (opts = {}) => inspectTokenDocument(await resolvedDoc(), scopedTokenOptions(tokenSelection, opts)),
+    snapshot: async () => {
+      const renderDocument = await resolvedDoc();
+      const { restorePinnedFontFamilies } = await import('../../../engine/src/token-font-pins.ts');
+      const document = await restorePinnedFontFamilies(renderDocument, releasePins);
+      const { resolveTokenSelection } = await import('../../../engine/src/token-selection.ts');
+      const choices = resolveTokenSelection(document, { selection: tokenSelection }).choices;
+      const projected = document && typeof document === 'object' ? { ...document, $metadata: { ...((document as Record<string, unknown>).$metadata as object ?? {}), activeThemeSelection: choices } } : document;
+      return { document: projected, ...(releasePins.some(p => p.font) ? { renderDocument: renderDocument && typeof renderDocument === 'object' ? { ...renderDocument, $metadata: (projected as Record<string, unknown>).$metadata } : renderDocument } : {}), system: null, version: resolveDesignVersion({ override: designVersion?.override, pin: designVersion?.pin, index: readVersionIndex(await tokensDoc()) }), selection: { choices } };
+    },
+    colors: async (opts = {}) => (await tokenSet(opts)).colors(),
+    resolve: async (ref, opts = {}) => (await tokenSet(opts)).resolve(ref),
     themes: async () => (await tokenSet()).themes(),
     // Owner-side seam for the worker_threads hook executor: the raw DTCG doc it
     // snapshots into the worker so hooks resolve tokens without an RPC. Never a
     // hook-facing call (the worker core omits it from the proxy).
-    raw: () => resolvedDoc(),
+    raw: async () => {
+      const d = await resolvedDoc();
+      if (!tokenSelection || !d || typeof d !== 'object') return d;
+      return { ...d, $metadata: { ...((d as Record<string, unknown>).$metadata as object ?? {}), activeThemeSelection: tokenSelection } };
+    },
   } as typeof host.tokens;
 
   // Perceptual colour tools (v1.40) - pure engine math, attached verbatim
@@ -500,6 +521,13 @@ export async function createCliBridge(
   // empty SVG. Fonts resolve off disk under the repo root (see text.ts). Node-only fonts
   // are all sfnt; the WASM loads lazily on first shape.
   host.text = createNodeTextAPI({ repoRoot: REPO_ROOT, assets: host.assets, parseXml: source => new w.DOMParser().parseFromString(source, 'image/svg+xml') });
+  await resolvedDoc();
+  if (releasePins.some(pin => pin.font)) {
+    const { releaseTextAPI } = await import('../../../packages/node-shell/src/release-fonts.ts');
+    host.text = await releaseTextAPI(host.text, releasePins, async id => {
+      try { return host.assets.bytes ? await host.assets.bytes(id) : null; } catch { return null; }
+    });
+  }
 
   // host.audio (v1.71) - the SAME per-frame analysis the web shell runs (the engine's
   // analysePcm), so an audio-reactive tool draws identical frames headlessly. The

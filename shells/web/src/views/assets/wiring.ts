@@ -31,6 +31,7 @@ import { bindOp, type CatCtx } from './context.ts';
 export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: string | null): Promise<void> {
   const { iconSvgCache } = cat;
   const th = themeId ? cat.iconThemes.find(x => x.id === themeId) : null;
+  group.dataset.iconTheme = themeId ?? '';
   // Recolour every icon in the group concurrently. The old serial `for…await`
   // did up to ~111 network round-trips one after another on the first colour
   // pick (before iconSvgCache warms), stalling the whole group visibly.
@@ -43,6 +44,7 @@ export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: st
     try {
       let base = iconSvgCache.get(id!);
       if (!base) { base = await (await fetch(ref.url)).text(); iconSvgCache.set(id!, base); }
+      if (group.dataset.iconTheme !== themeId) return;
       img.src = svgTextToDataUrl(restyleIconTheme(base, th) || base);
     } catch { /* leave this tile on its current art */ }
   }));
@@ -75,13 +77,16 @@ export function retreatGroup(cat: CatCtx, group: HTMLElement, treatmentId: strin
     img.style.filter = def ? `url(#${TREATMENT_FILTER_PREFIX}${def.id})` : '';
   }
 }
-// Re-apply the active treatment to every raster group after a (re-)render - the wash
-// is a CSS style on fresh tiles, so it must be re-stamped when the grid rebuilds.
+// Restore each group's active colours on the fresh tiles after the grid rebuilds.
 export function reapplyTreatment(cat: CatCtx): void {
   const { viewEl } = cat;
   ensureTreatmentDefs(cat);
-  if (!cat.catPhotoTreatment) return;
-  viewEl.querySelectorAll<HTMLElement>('.cat-group').forEach(g => { retreatGroup(cat, g, cat.catPhotoTreatment); });
+  viewEl.querySelectorAll<HTMLElement>('.cat-group').forEach(group => {
+    const themeId = group.querySelector<HTMLElement>('.cat-dl-theme:not(.cat-dl-treat)[aria-pressed="true"]')?.dataset.theme;
+    if (themeId) void retheemeGroup(cat, group, themeId);
+    const treatmentId = group.querySelector<HTMLElement>('.cat-dl-treat[aria-pressed="true"]')?.dataset.treatment;
+    retreatGroup(cat, group, treatmentId || null);
+  });
 }
 export function wire(cat: CatCtx): void {
   const { collapsed, host, viewEl } = cat;
@@ -192,7 +197,10 @@ export function wire(cat: CatCtx): void {
       // Carry the category grid's colour choice into the details modal - an icon opens on
       // its category theme, a photo on its category treatment (openDetails picks the one
       // that applies to the asset's type; passing both is harmless).
-      if (ref) cat.details.openDetails(ref, cat.catIconTheme, cat.catPhotoTreatment);
+      if (ref) {
+        const appearance = cat.downloads.gridDownloadAppearance(ref);
+        cat.details.openDetails(ref, appearance.theme?.id ?? null, appearance.treatment?.id ?? null);
+      }
       return;
     }
 

@@ -27,13 +27,16 @@ import { initDesignInspector, ARRANGE_OPS, SECTIONS_KEY } from './design-inspect
 import type { DesignInspectorHandle, InspectorSection } from './design-inspector.ts';
 import type { ArtboardPort, DesignGuide, DesignGuidePort, ModelPort, NarrationStatus, SelectionPort } from './design-ports.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
+import { createTokenSet } from '../../../../engine/src/tokens.ts';
+import { withBlockTokenBinding, readBlockTokenBindings } from '../../../../engine/src/token-block-bindings.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 // ── jsdom bootstrap ───────────────────────────────────────────────────────────
 const dom = new JSDOM('<!DOCTYPE html><body></body>');
 const W = dom.window as unknown as typeof globalThis & { Event: typeof Event; MouseEvent: typeof MouseEvent };
 // `window` + getComputedStyle are needed because the column mounts the app's real
 // colour picker (components/color-field.ts), which reads computed styles on mount.
-for (const k of ['window', 'document', 'HTMLElement', 'HTMLInputElement', 'KeyboardEvent', 'Event', 'MouseEvent', 'Node', 'getComputedStyle']) {
+for (const k of ['window', 'document', 'HTMLElement', 'HTMLInputElement', 'KeyboardEvent', 'Event', 'MouseEvent', 'Node', 'getComputedStyle', 'AbortController']) {
   (globalThis as Record<string, unknown>)[k] = (dom.window as unknown as Record<string, unknown>)[k];
 }
 // jsdom ships no `CSS` object, and the colour picker escapes selectors with it
@@ -225,6 +228,58 @@ function mount(initial: Box[] = BOXES, extra: Partial<Parameters<typeof initDesi
 }
 
 const secs = (h: Harness): string[] => [...h.el.querySelectorAll<HTMLElement>('.fc-insp-sec')].map((s) => s.dataset.sec!);
+
+test('token actions keep mixed values, one transaction and the open property across repaint', async () => {
+  const host = { tokens: { get: async () => createTokenSet({ opacity: { $type: 'number', $value: 28 } }) } } as unknown as HostV1;
+  const first = withBlockTokenBinding({ ...BOXES[1]! }, 'tokenLinks', 'opacity', { ref: '{a}', value: 30 });
+  const second = withBlockTokenBinding({ ...BOXES[1]!, id: 'b2' }, 'tokenLinks', 'opacity', { ref: '{b}', value: 40 });
+  const h = mount([BOXES[0]!, first, second], { fields: [...FIELDS, { id: 'opacity', type: 'number', label: 'Opacity' }], tokens: { host, metadataField: 'tokenLinks' } });
+  try {
+    h.select(['b1', 'b2']);
+    let slot = h.el.querySelector<HTMLElement>('[data-token-section="appearance"]')!;
+    const details = slot.querySelector('details')!; details.open = true;
+    const property = slot.querySelector<HTMLSelectElement>('[data-design-token-property]')!;
+    property.value = 'opacity'; fire(property, 'change');
+    assert.match(slot.textContent!, /Mixed values/);
+    const custom = slot.querySelector<HTMLButtonElement>('[data-token-custom]')!;
+    custom.focus(); click(custom);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(h.arrays.length, 1);
+    assert.deepEqual(h.boxes().slice(1).map(box => box.opacity), [30, 40]);
+    assert.ok(h.boxes().slice(1).every(box => readBlockTokenBindings(box.tokenLinks).opacity?.custom));
+    slot = h.el.querySelector<HTMLElement>('[data-token-section="appearance"]')!;
+    assert.equal(slot.querySelector('details')!.open, true);
+    assert.equal((slot.querySelector('[data-design-token-property]') as HTMLSelectElement).value, 'opacity');
+    assert.equal(document.activeElement, slot.querySelector('summary'));
+    assert.equal(slot.querySelector('[data-token-restore]'), null, 'different previous links have no common restore target');
+    click(slot.querySelector('[data-token-choose]')!);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const chooser = slot.querySelector<HTMLSelectElement>('[data-token-options] select')!;
+    chooser.value = 'opacity'; fire(chooser, 'change');
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(h.arrays.length, 2);
+    assert.deepEqual(h.boxes().slice(1).map(box => box.opacity), [28, 28]);
+    assert.ok(h.boxes().slice(1).every(box => readBlockTokenBindings(box.tokenLinks).opacity?.ref === '{opacity}'));
+  } finally { h.handle.destroy(); }
+});
+
+test('an abandoned token lookup cannot edit a new Design selection', async () => {
+  let finish: (set: ReturnType<typeof createTokenSet>) => void;
+  const pending = new Promise<ReturnType<typeof createTokenSet>>(resolve => { finish = resolve; });
+  const host = { tokens: { get: () => pending } } as unknown as HostV1;
+  const custom = withBlockTokenBinding(withBlockTokenBinding({ ...BOXES[1]! }, 'tokenLinks', 'w', { ref: '{width}', value: 300 }), 'tokenLinks', 'w', 300);
+  const h = mount([BOXES[0]!, custom, BOXES[2]!], { fields: [...FIELDS, { id: 'w', type: 'number' }], tokens: { host, metadataField: 'tokenLinks' } });
+  try {
+    h.select(['b1']);
+    click(h.el.querySelector('[data-token-section="object"] [data-token-restore]')!);
+    h.select(['t1']);
+    finish!(createTokenSet({ width: { $type: 'number', $value: 99 } }));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(h.arrays.length, 0);
+    assert.equal(h.boxes().find(box => box.id === 'b1')!.w, 300);
+    assert.equal(h.boxes().find(box => box.id === 't1')!.w, 400);
+  } finally { h.handle.destroy(); }
+});
 const row = (h: Harness, sel: string): HTMLElement => h.el.querySelector<HTMLElement>(sel)!;
 /** The number cell that writes `field` - components/num-field.ts keys them by it. */
 const num = (h: Harness, field: string): HTMLInputElement => h.el.querySelector<HTMLInputElement>(`input[data-nf="f:${field}"]`)!;

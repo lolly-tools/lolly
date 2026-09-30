@@ -345,7 +345,7 @@
    the space above it when the cover is short or the title wraps. */
 .featured--coverflow .ftile--icon {
   --fic-size: calc(clamp(112px, 18vh, 160px) * var(--a11y-fs));
-  --fic-stroke: .72em;
+  --fic-stroke: 10px;
 }
 .featured--coverflow .ftile--icon .ftile-iconfill {
   flex: 0 1 var(--fic-size);

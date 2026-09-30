@@ -72,14 +72,9 @@ export function createPinPreserverWriter(
     const rec = await host.assets._getUserRecord(id);
     if (!rec?.blob) return;
 
-    // 6a. A FONT is recorded in a version's manifest but never frozen. Version
-    //     -scoped indirection is a document rewrite of `$type: 'asset'` leaves
-    //     (applyPinnedAssets); a face is resolved by FAMILY out of the user font
-    //     store, which no `user/frozen/*` id can join. A frozen copy would be
-    //     bytes nothing can read, billed to the user under a line that says they
-    //     buy fidelity - so the pin stays a truthful record of what the version
-    //     used and falls back to the live face, which is what the panel says.
-    if (rec.type === 'font') return;
+    // Legacy font pins without face descriptors remain record-only. New font
+    // pins are read by the release resolver and need copy-on-write preservation.
+    if (rec.type === 'font' && !pins.some(p => p.font)) return;
 
     const hex = await sha256Hex(new Uint8Array(await rec.blob.arrayBuffer()));
 

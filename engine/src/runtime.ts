@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
+import { withTokenSelection } from './token-context.ts';
+import { parseTokenSelection } from './token-selection.ts';
+import { resolveTokenBinding } from './token-binding.ts';
 /**
  * Runtime - orchestrates the 5-step lifecycle for a single mounted tool.
  *
@@ -35,10 +38,11 @@ import { sourceIngredientsFor } from './rights-attribution.ts';
 import type { SourceDetailV1 } from './rights-attribution.ts';
 import { evaluateCreativeUses } from './rights-evaluate.ts';
 import { outputLicenceId, outputLicenceNotice } from './rights-profiles.ts';
-import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue, tokenBindingsOf } from './inputs.ts';
+import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue, tokenBindingsOf, type InputWriteOptions } from './inputs.ts';
 import { hydrate, resolvePaintBindings } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
-import { isTokenValue, isAlias, colorToHex } from './tokens.ts';
+import { isTokenValue, isAlias, aliasPath, colorToHex } from './tokens.ts';
+import { resolveBlockTokenBindings } from './token-block-bindings.ts';
 import { resolveNestedRenders } from './compose.ts';
 import { isToolUrl } from './tool-url.ts';
 import { isBakedRef } from './bake.ts';
@@ -289,6 +293,7 @@ export interface Hooks {
 
 /** The mounted-tool API createRuntime resolves to. Shells drive this. */
 export interface Runtime {
+  readonly tokenSelection?: Record<string, string>;
   getModel(): InputModelItem[];
   getHydrated(): string;
   /** Hydrate an arbitrary template string against the same context (e.g. manifest.a11yLabel). */
@@ -380,7 +385,7 @@ export interface Runtime {
   droppedAssets: DroppedAsset[];
   /** Hook failures (currently onInit); empty when every hook ran cleanly. */
   hookErrors: HookError[];
-  setInput(id: string, value: InputValue): Promise<void>;
+  setInput(id: string, value: InputValue, options?: InputWriteOptions): Promise<void>;
   /**
    * Apply MANY input values as ONE batch - the multi-input counterpart to
    * setInput (plans/100 section 5: a remote collaboration op arrives as a set of values;
@@ -390,7 +395,7 @@ export interface Runtime {
    * insertion order; what coalesces is the render: subscribers are notified
    * exactly once, after the last hook.
    */
-  applyPatch(values: Record<string, unknown>): Promise<void>;
+  applyPatch(values: Record<string, unknown>, options?: InputWriteOptions): Promise<void>;
   /**
    * Re-resolve unresolved asset + token refs in the CURRENT model, then re-emit if
    * anything changed. createRuntime resolves these once from the initial seed, but a
@@ -510,6 +515,7 @@ export async function createRuntime(
      *  arrives. For an interactive view only. A render, an export or a script must
      *  leave it off, or it would deliver half a document. */
     progressiveInit?: boolean;
+    tokenSelection?: Record<string, string>;
     /** The emoji style to compose with from the first render (v1.227), in place of the
      *  default. A shell that already knows the document's style passes it here, so
      *  onInit lays text out once with the right glyphs instead of composing everything
@@ -518,6 +524,8 @@ export async function createRuntime(
     emojiStyle?: EmojiStyleV1 | null;
   } = {},
 ): Promise<Runtime> {
+  const tokenSelection = opts.tokenSelection ?? parseTokenSelection(initialState.__tokenSelection ? JSON.stringify(initialState.__tokenSelection) : null);
+  if (tokenSelection) host = withTokenSelection(host, tokenSelection);
   if (host.version !== '1') {
     throw new Error(`Tool requires host bridge v1, got v${host.version}`);
   }
@@ -575,10 +583,13 @@ export async function createRuntime(
   // The person's saved templates ride the same record (plans/226) but are never
   // a bind target, and their shape is not an input value, so they stay out. The
   // emoji preference (plans/252) is the same: a seed the shell reads when it
-  // opens new work, never a value a tool input can bind to.
-  const { userTemplates: _templates, emoji: _emojiPref, ...profileValues } = profile;
+  // opens new work, never a value a tool input can bind to. Trusted sites (plan 288)
+  // stay out too: no tool may copy the person's list into a render or a share link.
+  const { userTemplates: _templates, emoji: _emojiPref, trustedSites: _trusted, trustedSitesSeeded: _trustedSeeded, ...profileValues } = profile;
   void _templates;
   void _emojiPref;
+  void _trusted;
+  void _trustedSeeded;
   const pendingDesignIssues = new Map<string, string>();
   if (tool.manifest.designTool) {
     const bound: Record<string, unknown> = {};
@@ -1225,6 +1236,7 @@ export async function createRuntime(
   }
 
   return {
+    ...(tokenSelection ? { tokenSelection: structuredClone(tokenSelection) } : {}),
     getModel: () => model,
     getHydrated,
     getHydratedString,
@@ -1344,7 +1356,7 @@ export async function createRuntime(
     pauseLive() { livePaused = true; },
     resumeLive() { livePaused = false; },
 
-    async setInput(id, value) {
+    async setInput(id, value, options) {
       if (tool.manifest.designTool) {
         if (!tool.manifest.inputs.some(i => i.id === id)) throw new Error('This property is fixed by the designer.');
         try { assertDesignValues(tool.manifest.designTool, { ...modelToValues(model), [id]: value }); pendingDesignIssues.delete(id); }
@@ -1357,7 +1369,7 @@ export async function createRuntime(
       // the capture the moment it's committed.
       const priorType = model.find(i => i.id === id)?.type;
       if (priorType === 'asset' || priorType === 'file' || priorType === 'url') liveCameraShown = false;
-      model = updateInput(model, id, value);
+      model = updateInput(model, id, value, options);
       // A live-camera resolution slider (render.liveMaxEdgeInput) re-applies to the
       // running stream without a camera stop/start - the grab loop just starts
       // producing frames at the new working edge. No-op unless currently live.
@@ -1425,7 +1437,7 @@ export async function createRuntime(
      * is the honest one. A hook that branches on out-of-range input sees it on the
      * keystroke path only.
      */
-    async applyPatch(values) {
+    async applyPatch(values, options) {
       if (tool.manifest.designTool) {
         if (Object.keys(values).some(id => !tool.manifest.inputs.some(i => i.id === id))) throw new Error('This property is fixed by the designer.');
         try { assertDesignValues(tool.manifest.designTool, { ...modelToValues(model), ...values }); for (const id of Object.keys(values)) pendingDesignIssues.delete(id); }
@@ -1437,12 +1449,12 @@ export async function createRuntime(
         if (!before) continue; // no such input on this build - dropped, not an error
         // Trust boundary, the one setInput already has: the value is whatever the
         // caller (a peer, a URL, /multi) sent; constrain() decides what may enter.
-        const next = updateInput(model, id, value as InputValue);
+        const next = updateInput(model, id, value as InputValue, options);
         const after = next.find(i => i.id === id)!;
         // constrain() returns the PRIOR value when it rejects one, so an unchanged
         // value is exactly the rejected case (and a genuine no-op write): leave the
         // model alone rather than churn isDirty and run a hook for nothing.
-        if (Object.is(after.value, before.value)) continue;
+        if (Object.is(after.value, before.value) && after.restoreTokenRef === before.restoreTokenRef) continue;
         // Same live-capture retirement as setInput - swapping the image SOURCE
         // means the render no longer shows camera essence.
         if (before.type === 'asset' || before.type === 'file' || before.type === 'url') liveCameraShown = false;
@@ -2279,28 +2291,31 @@ async function resolveAssetRefs(
   );
 }
 
-// Re-resolve token-backed colour values against the live token set. A value is
-// token-backed when it's a { ref, value } object (saved session / resolved URL)
-// or a bare `{path}` alias string (freshly parsed from a URL). Each becomes a
-// { ref, value:<hex> } pair: the ref keeps it canonical, the hex is the cached
-// fallback for when the token is absent on this device.
+// Typed adapters refresh links while preserving a labelled cached fallback.
+// Colour conversion continues through the target gamut's swatch face.
 async function resolveTokenRefs(model: InputModelItem[], host: HostV1): Promise<InputModelItem[]> {
   if (!host.tokens) return model; // shell without token support - leave values as-is
-  // No colour input carries a token ref/alias → skip the host.tokens.get() round
+  // No supported input carries a link: skip the host.tokens.get() round
   // trip entirely and keep the same model reference.
-  const needs = model.some(i => i.type === 'color' && (isTokenValue(i.value) || isAlias(i.value)));
+  const needs = model.some(i => i.type === 'blocks' && i.tokenBindingsField && Array.isArray(i.value) || ['color', 'number', 'text', 'longtext', 'select'].includes(i.type) && (isTokenValue(i.value) || (['color', 'number'].includes(i.type) && isAlias(i.value))));
   if (!needs) return model;
-  let set: TokenSet;
-  try { set = await host.tokens.get(); } catch { return model; }
+  let set: TokenSet | undefined;
+  try { set = await host.tokens.get(); } catch { /* Retain cached values with unresolved status. */ }
   const { swatchFace } = await import('./color-face.ts');
-  const swatches = new Map((set.colors?.() ?? []).map(swatch => [swatch.ref, swatch]));
+  const swatches = new Map((set?.colors?.() ?? []).map(swatch => [swatch.ref, swatch]));
   const target = model.some(input => input.id === 'editingRange' && input.value === 'hdr') ? 'rec2020' : 'srgb';
   return model.map(input => {
-    if (input.type !== 'color') return input;
+    if (input.type === 'blocks' && input.tokenBindingsField && Array.isArray(input.value)) return { ...input, value: resolveBlockTokenBindings(input.value, input.tokenBindingsField, input.fields ?? [], set, target) };
+    if (!['color', 'number', 'text', 'longtext', 'select'].includes(input.type)) return input;
     const v = input.value;
-    const ref = isTokenValue(v) ? v.ref : (isAlias(v) ? v : null);
+    const ref = isTokenValue(v) ? v.ref : (['color', 'number'].includes(input.type) && isAlias(v) ? v : null);
     if (!ref) return input;
-    const resolved = set.resolve(ref);
+    if (input.type !== 'color') {
+      const entry = set?.get(aliasPath(ref) ?? ref);
+      const bound = resolveTokenBinding(entry, input);
+      return { ...input, value: { ref, value: bound.status === 'linked' ? bound.value : isTokenValue(v) ? v.value : undefined, status: bound.status, ...(bound.reason ? { reason: bound.reason } : {}) } };
+    }
+    const resolved = set?.resolve(ref);
     if (resolved !== undefined) return { ...input, value: { ref, value: swatches.has(ref) ? swatchFace(swatches.get(ref)!,target) : colorToHex(resolved) } };
     // Unresolved here: keep the cached value if we had one; otherwise mark it
     // resolved-to-nothing so modelToValues yields '' rather than the raw alias.

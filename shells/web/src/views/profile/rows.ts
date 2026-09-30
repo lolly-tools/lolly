@@ -7,7 +7,7 @@
  * function as a value (an event listener), goes through `pv.<module>.<fn>`. Extracted verbatim
  * from mountProfile() by scripts/split-closure.ts.
  */
-import { t } from '../../i18n.ts';
+import { t, tRaw } from '../../i18n.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
@@ -19,7 +19,7 @@ import { stopNeurospicy } from '../../lib/neurospicy.ts';
 import { stopAtmosphere } from '../../lib/atmosphere.ts';
 import { syncNeuroDock } from '../../components/neuro-dock.ts';
 import { getFieldPolicy } from '../../lib/field-policy.ts';
-import { FIELD_LABELS, NAV_SECTIONS, fieldAttrs } from './shared.ts';
+import { COLLAPSE_CHEV, FIELD_LABELS, NAV_SECTIONS, fieldAttrs } from './shared.ts';
 import { bindOp, type ProfileViewCtx } from './context.ts';
 
 export const startOpen = (pv: ProfileViewCtx, id: string) => { const { focusSectionId } = pv; return (pv.openState[id] || focusSectionId === id ? ' open' : ''); };
@@ -112,8 +112,19 @@ export const flagListHtml = (pv: ProfileViewCtx): string => { const { jellyHidde
             ${flagRow(pv, PREFLIGHT_FLAG)}
             ${flagRow(pv, PRIVATE_COLLAB_FLAG)}
             <li class="feature-flag-divider" aria-hidden="true"></li>
-            <li class="feature-flag-group">${t('Connectors')}<span class="feature-flag-group-note">${t('Where this device may send finished exports. Turning one off withdraws it from every send and share surface, and hides its row in Connected services.')}</span></li>
-            ${CONNECTOR_FLAGS.map(pv.rows.flagRow).join('')}`; };
+            ${/* The connectors fold into one cluster that starts closed, so the
+                flag list opens on the app's own features; its value says how
+                many are off. */''}
+            <li class="feature-flag-group"><details class="feature-flag-cluster">
+              <summary class="feature-flag-cluster-sum"><span class="feature-flag-group-title">${t('Connectors')}</span><span class="feature-flag-group-value" data-connectors-value>${escapeText(connectorsSummary(pv))}</span>${COLLAPSE_CHEV}</summary>
+              <span class="feature-flag-group-note">${t('Where this device may send finished exports. Turning one off withdraws it from every send and share surface, and hides its row in Connected services.')}</span>
+              <ul class="feature-flags">${CONNECTOR_FLAGS.map(pv.rows.flagRow).join('')}</ul>
+            </details></li>`; };
+/** The Connectors cluster's folded value: how many connectors are switched off. */
+export const connectorsSummary = (pv: ProfileViewCtx): string => {
+  const off = CONNECTOR_FLAGS.filter(f => !flagHidden(f.id) && !isFlagOn(pv.liveProfile, f)).length;
+  return off ? tRaw('{n} off', { n: off }) : tRaw('All on');
+};
 /** Feature-flag toggles: auto-save each flip and apply the ones with live effects. */
 export function wireFlagRows(pv: ProfileViewCtx): void {
   const { fields, host, viewEl } = pv;
@@ -143,6 +154,10 @@ export function wireFlagRows(pv: ProfileViewCtx): void {
     // that card's two bodies in place (only if they are already mounted - a closed
     // card will read the flag when it first opens). Every SEND surface reads
     // connectorEnabled() at call time, so nothing else needs telling.
+    if (flagId.startsWith('conn-')) {
+      const value = viewEl.querySelector<HTMLElement>('[data-connectors-value]');
+      if (value) value.textContent = connectorsSummary(pv);
+    }
     if (flagId.startsWith('conn-') && pv.connectionsLoaded) {
       pv.connectionsLoaded = false;
       pv.syncLoaded = false;
@@ -163,7 +178,10 @@ export function wireFlagRows(pv: ProfileViewCtx): void {
       pv.jellyOn = await ensureJelly(isFlagOn(pv.liveProfile, JELLY_FLAG));
       const list = viewEl.querySelector('#feature-flags');
       if (list) {
+        const clusterOpen = list.querySelector<HTMLDetailsElement>('.feature-flag-cluster')?.open ?? false;
         list.innerHTML = pv.rows.flagListHtml();
+        const cluster = list.querySelector<HTMLDetailsElement>('.feature-flag-cluster');
+        if (cluster) cluster.open = clusterOpen;
         list.querySelector<HTMLElement>(`[data-flag="${flagId}"]`)?.focus();
       }
       // The Accessibility card's rows use the same two control kinds, so they swap
@@ -214,6 +232,7 @@ export function rowsOps(pv: ProfileViewCtx) {
     fieldControl: bindOp(pv, fieldControl),
     saveButtonHtml: bindOp(pv, saveButtonHtml),
     flagListHtml: bindOp(pv, flagListHtml),
+    connectorsSummary: bindOp(pv, connectorsSummary),
     wireFlagRows: bindOp(pv, wireFlagRows),
     wireOpenState: bindOp(pv, wireOpenState),
   };

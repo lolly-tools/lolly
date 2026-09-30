@@ -159,7 +159,7 @@ export interface ToolViewCtx {
   historyControls: HistoryControls | null;
   historyToastEl: HTMLElement | null;
   historyToastTimer: ReturnType<typeof setTimeout> | undefined;
-  baseSetInput: (id: string, value: InputValue) => Promise<void>;
+  baseSetInput: (id: string, value: InputValue, options?: import('../../../../../engine/src/inputs.ts').InputWriteOptions) => Promise<void>;
   collab: CollabPlumbing | null;
   collabReanchor: (() => void) | null;
   collabTeardown: (() => void) | null;

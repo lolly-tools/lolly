@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:a638f874-4152-471d-831b-7c3457f8ae11",
+  "serialNumber": "urn:uuid:d85489d8-7f77-42c4-8e84-66432ac0b5b0",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-29T14:28:20.780Z",
+    "timestamp": "2026-09-30T19:45:53.261Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -21827,6 +21827,27 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40pdf-lib/fontkit@1.1.1",
+      "name": "@pdf-lib/fontkit",
+      "version": "1.1.1",
+      "purl": "pkg:npm/%40pdf-lib/fontkit@1.1.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "2a331dee0acd6a92164bf0e6d20bdf1c48a54b202678bbeb10655ca8b1a2d1561e6eeaaacd36e0176f5e7c2c7bb6fc7e2046c6df341c8914969771a4512be366"
         }
       ]
     },

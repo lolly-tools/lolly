@@ -13,6 +13,7 @@
  * via readControlValue(), which coerces by type. Asset cells delegate to the
  * host picker (passed in by the caller) rather than embedding picker UI.
  */
+import { flattenValue } from '../../../../engine/src/inputs.ts';
 import { optionValue } from './model.ts';
 import { escapeHtml } from '../lib/util/escape.ts';
 import type { InputValue, SelectOption, BlockFieldSpec } from '../../../../engine/src/inputs.ts';
@@ -70,6 +71,7 @@ const esc = escapeHtml;
  * Returns '' for types that have no inline control (caller renders read-only).
  */
 export function controlHtml(input: ControlSpec, value: InputValue | undefined, attrs = '', opts: ControlOpts = {}): string {
+  value = value === undefined ? value : flattenValue(value);
   const t = input.type;
   const { label = '', boxed = true } = opts;
   // One place that assembles class + type hook + caller attrs + accessible name,

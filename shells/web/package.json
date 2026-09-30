@@ -19,6 +19,7 @@
     "@lolly-tools/node-shell": "workspace:*",
     "@lolly/engine": "workspace:*",
     "@mediabunny/flac-encoder": "^1.59.1",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@tiptap/core": "^3.30.4",
     "@tiptap/extension-image": "^3.30.4",
     "@tiptap/extension-placeholder": "^3.30.4",

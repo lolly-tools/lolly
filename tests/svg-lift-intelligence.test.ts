@@ -288,7 +288,9 @@ describe('geometric peers share a depth, so grids stay grids', () => {
     // Re-measured 2026-09-25: the panel-system re-capture (d0f6404b0) replaced the
     // toolbar's icon row with the panel primitive's controls, so 37 layers lift on 31
     // rungs and the largest shared rung is 2. The lift code did not change.
-    'seq-studio-timeline': { rungs: 31, biggest: 2 },
+    // Re-measured 2026-09-30: refreshed docs capture has 41 layers on 31 rungs.
+    // Its four repeated controls share the largest rung; lift code is unchanged.
+    'seq-studio-timeline': { rungs: 31, biggest: 4 },
   };
   for (const [name, want] of Object.entries(GRIDS)) {
     test(`${name}: its grid is ONE surface, not ${want.biggest} steps`, () => {

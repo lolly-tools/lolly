@@ -22,6 +22,7 @@ import { t } from '../../i18n.ts';
 import { boolOf } from './shared.ts';
 import type { SvgLayerPlan, SvgSourceBox } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { composedPosterId, consentToLink, isComposedPoster, lollyToolRef } from '../../lib/design-web-mount.ts';
 
 // `initialTab` is the picker pane this add-kind should OPEN on (picker.ts's
 // PickerOpts.initialTab - a default the user can leave immediately, not a lock):
@@ -195,6 +196,77 @@ export async function openStudio(fc: FcCtx, ids: readonly string[]): Promise<voi
   // edited, and stamping it across a multi-selection is not an edit anyone asked for.
   fc.editorState.setFieldOn([id], SCENE_FIELD,
     designSceneEncode(designSceneDecode(back.query, manifest), manifest));
+}
+/** The web page box's link field (plan 288), named literally like the manifest does. */
+const WEB_FIELD = 'web';
+const RENDER_ONLY_PARAMS = ['format', 'export', 'copy', 'slot', 'output', 'filename', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'full', 'options', 'nostage'];
+
+/**
+ * A Lolly or Sandbox web box's poster, made again from its current link (plan 288): the
+ * tool's own render, so exports show what the demo shows. `onlyComposed` leaves a poster
+ * the person chose themselves alone (the automatic refresh after a link edit); the
+ * inspector's Refresh door passes false.
+ */
+export async function refreshWebPoster(fc: FcCtx, ids: readonly string[], onlyComposed = false): Promise<void> {
+  const { cfg } = fc;
+  const compose = fc.host.compose;
+  if (!cfg.imageField || !compose?.renderUrl) return;
+  const keepsOwnPoster = (b: Box | undefined): boolean => !!(onlyComposed && b?.[cfg.imageField!] && !isComposedPoster(b[cfg.imageField!]));
+  for (const id of ids) {
+    const before = fc.select.getBoxes();
+    const box = before[fc.select.indexOfId(before, id)];
+    if (!box || String(box[cfg.kindField]) !== 'web' || keepsOwnPoster(box)) continue;
+    const link = String(box[WEB_FIELD] ?? '');
+    const poster = await composedPosterId(link);
+    if (!poster) continue;
+    // The resolved, self-contained ref the asset picker commits: the runtime resolves a
+    // bare embed id only when a document mounts, so the editor renders the poster here.
+    const ref = await compose.renderUrl(poster).catch(() => null);
+    if (!ref) continue;
+    // The person may have changed the link, or chosen a poster of their own, meanwhile.
+    const now = fc.select.getBoxes();
+    const row = now[fc.select.indexOfId(now, id)];
+    if (!row || String(row[WEB_FIELD] ?? '') !== link || keepsOwnPoster(row)) continue;
+    fc.editorState.setFieldOn([id], cfg.imageField, ref);
+  }
+}
+
+
+/**
+ * Edit a Lolly or Sandbox web box's tool in place, the round trip the 3D box's studio
+ * door runs (plan 288): the tool opens on the box's own link, and Done writes the edited
+ * link and its render, which becomes the poster, back onto that ONE box.
+ */
+export async function editWebTool(fc: FcCtx, ids: readonly string[]): Promise<void> {
+  const { cfg, editTool } = fc;
+  const id = ids[0];
+  if (!editTool || !id) return;
+  const boxes = fc.select.getBoxes();
+  const box = boxes[fc.select.indexOfId(boxes, id)];
+  if (!box) return;
+  const link = String(box[WEB_FIELD] ?? '');
+  const ref = lollyToolRef(link);
+  const url = ref ? await composedPosterId(link) : null;
+  if (!ref || !url) {
+    announce(t('Only a Sandbox demo or another Lolly tool can be edited here.'));
+    return;
+  }
+  let edited: Awaited<ReturnType<typeof editTool>> = null;
+  try { edited = await editTool(url, 'edit'); } catch { return; }
+  if (!edited) return;
+  const meta = edited.meta as { toolUrl?: unknown } | undefined;
+  const back = parseToolUrl(typeof meta?.toolUrl === 'string' ? meta.toolUrl : edited.id);
+  if (!back || back.toolId !== ref.toolId) return;
+  // The render's size and format belong to the poster, not to the live frame's link.
+  const q = new URLSearchParams(back.query);
+  for (const k of RENDER_ONLY_PARAMS) q.delete(k);
+  const next = `${location.origin}/#/tool/${back.toolId}${q.size ? `?${q}` : ''}`;
+  consentToLink(next);
+  const rows = fc.select.getBoxes();
+  // The whole resolved ref, as the asset picker commits one, so the poster draws now.
+  fc.select.commit(rows.map((b, i) => fc.select.idOf(b, i) === id
+    ? { ...b, web: next, ...(cfg.imageField ? { [cfg.imageField]: edited } : {}) }
+    : b));
 }
 // Cut the background out of the single selected image box on-device (host.matte)
 // and drop the cutout back over that box - the exact tail of pickImage, so the
@@ -765,6 +837,8 @@ export function objectsOps(fc: FcCtx) {
   return {
     pickImage: bindOp(fc, pickImage),
     openStudio: bindOp(fc, openStudio),
+    refreshWebPoster: bindOp(fc, refreshWebPoster),
+    editWebTool: bindOp(fc, editWebTool),
     removeBackgroundOnSelection: bindOp(fc, removeBackgroundOnSelection),
     isOutlinableTextBox: bindOp(fc, isOutlinableTextBox),
     paintsBesidesText: bindOp(fc, paintsBesidesText),

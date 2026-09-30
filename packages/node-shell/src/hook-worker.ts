@@ -76,8 +76,8 @@ let callSeq = 0;
 
 async function snapshotTokens(host: HostV1): Promise<unknown | null> {
   const t = host.tokens as (TokensAPI & { raw?: () => Promise<unknown> }) | undefined;
-  if (!t || typeof t.raw !== 'function') return null;
-  try { return (await t.raw()) ?? null; } catch { return null; }
+  if (!t || (!t.snapshot && typeof t.raw !== 'function')) return null;
+  try { return (t.snapshot ? await t.snapshot().then(s => s.renderDocument ?? s.document) : await t.raw!()) ?? null; } catch { return null; }
 }
 
 /** Build the executor. One Worker thread per mount; disposed with the runtime. */

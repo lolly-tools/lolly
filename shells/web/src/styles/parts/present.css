@@ -467,3 +467,40 @@
 .pr-stage.pr-reduced .pr-page { transition: opacity var(--pr-dur) linear; }
 .pr-stage.pr-reduced .pr-page.pr-past,
 .pr-stage.pr-reduced .pr-page.pr-future { --pr-tx: 0px; --pr-ty: 0px; }
+
+/* Web page boxes (plan 288, lib/design-web-mount.ts). While a page has the keyboard the
+   deck cannot hear any key, a clicker's included, so the HUD stays up and says how to
+   come back. In the overview a page never takes the click that opens its slide. */
+.pr-embed-return {
+  position: absolute;
+  left: 50%;
+  top: calc(max(16px, var(--safe-top, 0px)));
+  transform: translateX(-50%);
+  z-index: 4;
+  display: none;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(12, 16, 24, 0.82);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.pr-stage.pr-embed-focus .pr-embed-return { display: inline-flex; }
+.pr-stage.pr-overview .lolly-box-web-frame { pointer-events: none; }
+.pr-stage .lolly-box-web-load {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  padding: 0.6em 1.2em;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(12, 16, 24, 0.82);
+  color: #fff;
+  font: inherit;
+  font-size: max(14px, 4cqmin);
+  cursor: pointer;
+}

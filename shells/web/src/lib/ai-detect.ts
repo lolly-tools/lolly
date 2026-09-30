@@ -16,7 +16,7 @@ import { aiAllowed, assertAiAllowed, guardAiWorker } from './ai-policy.ts';
 
 import type { AiModelEstimate } from '@lolly/engine';
 import {
-  AI_DETECT_MODELS, AI_DETECT_STAGED, AI_DETECT_TEXT_CAP, aiDetectEligible, aiDetectModel,
+  AI_DETECT_MODELS, AI_DETECT_STAGED, aiDetectEligible, aiDetectModel,
   aiDetectCacheUrl, 
 } from './ai-detect-models.ts';
 import type { AiDetectWorkerReply, AiDetectWorkerRequest } from './ai-detect-worker.ts';
@@ -28,7 +28,7 @@ export type AiDetectStatus = 'unstaged' | 'need-download' | 'ready';
 // refuses exactly the texts the app refuses. Re-exported here unchanged:
 // lib/ai-detect.test.ts and the views still import aiDetectEligible from this
 // module.
-const TEXT_CAP = AI_DETECT_TEXT_CAP;
+
 export { aiDetectEligible };
 
 /** Can this environment even try? (A staged model + Worker + wasm.) */
@@ -57,6 +57,7 @@ export async function aiDetectStatus(): Promise<AiDetectStatus> {
 interface Pending {
   resolve: (r: AiModelEstimate | null) => void;
   onProgress?: (fraction: number) => void;
+  cleanup?: () => void;
 }
 
 let worker: Worker | null = null;
@@ -68,17 +69,17 @@ function ensureWorker(): Worker {
   if (worker) return worker;
   worker = guardAiWorker('ai-detect', () => new Worker(new URL('./ai-detect-worker.ts', import.meta.url), { type: 'module' }));
   worker.onmessage = (e: MessageEvent<AiDetectWorkerReply>): void => {
-    const { id, progress, prob, error } = e.data;
+    const { id, progress, prob, error, windows, complete } = e.data;
     const p = pending.get(id);
     if (!p) return;
     if (progress) { p.onProgress?.(progress.fraction); return; }
-    pending.delete(id);
+    pending.delete(id); p.cleanup?.();
     const m = aiDetectModel();
     if (error || typeof prob !== 'number' || !m) { p.resolve(null); return; }
-    p.resolve({ probAi: prob, threshold: m.threshold, modelId: m.id, modelName: m.name });
+    p.resolve({ probAi: prob, threshold: m.threshold, modelId: m.id, modelName: m.name, ...(windows ? { windows, complete } : {}) });
   };
   worker.onerror = (): void => {
-    for (const p of pending.values()) p.resolve(null);
+    for (const p of pending.values()) { p.cleanup?.(); p.resolve(null); }
     pending.clear();
     if (worker) { worker.onmessage = null; worker.onerror = null; worker.terminate(); }
     worker = null;
@@ -94,21 +95,23 @@ function ensureWorker(): Worker {
  */
 export function scoreAiText(
   text: string,
-  opts: { onProgress?: (fraction: number) => void } = {},
+  opts: { onProgress?: (fraction: number) => void; signal?: AbortSignal } = {},
 ): Promise<AiModelEstimate | null> {
   const m = aiDetectModel();
-  if (!m || !aiDetectAvailable() || !aiDetectEligible(text)) return Promise.resolve(null);
+  if (opts.signal?.aborted || !m || !aiDetectAvailable() || !aiDetectEligible(text)) return Promise.resolve(null);
   const w = ensureWorker();
   const id = ++seq;
   return new Promise<AiModelEstimate | null>((resolve) => {
-    pending.set(id, { resolve, onProgress: opts.onProgress });
-    w.postMessage({ id, type: 'score', text: text.slice(0, TEXT_CAP), model: m } satisfies AiDetectWorkerRequest);
+    const onAbort = () => { pending.delete(id); w.postMessage({ id, type: 'cancel' } satisfies AiDetectWorkerRequest); resolve(null); };
+    opts.signal?.addEventListener('abort', onAbort, { once: true });
+    pending.set(id, { resolve, onProgress: opts.onProgress, cleanup: () => opts.signal?.removeEventListener('abort', onAbort) });
+    w.postMessage({ id, type: 'score', text, model: m } satisfies AiDetectWorkerRequest);
   });
 }
 
 /** Tear the worker down - pending checks resolve null. */
 export function disposeAiDetect(): void {
-  for (const p of pending.values()) p.resolve(null);
+  for (const p of pending.values()) { p.cleanup?.(); p.resolve(null); }
   pending.clear();
   if (worker) { worker.onmessage = null; worker.onerror = null; worker.terminate(); }
   worker = null;

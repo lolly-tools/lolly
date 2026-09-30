@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { coerceUiState, type EditorState, type UiState } from './editor-state.ts';
+import { isTrustedSender } from './message-sender.ts';
 
 /** The public editor-state channel changes the view, never the document. */
 export function attachCanvasEditorApi(canvas: {
@@ -17,7 +18,7 @@ export function attachCanvasEditorApi(canvas: {
   w.lolly = { ...w.lolly, ui };
   const onMessage = (event: MessageEvent): void => {
     const data = event.data as { type?: unknown; state?: unknown } | null;
-    if (data?.type === 'lolly:ui') ui.apply(data.state);
+    if (data?.type === 'lolly:ui' && isTrustedSender(event, window)) ui.apply(data.state);
   };
   window.addEventListener('message', onMessage);
   return () => {

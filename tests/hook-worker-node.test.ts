@@ -41,6 +41,16 @@ function host(extra: Record<string, unknown> = {}): any {
   };
 }
 
+test('token workers use the effective render projection while retaining portable authored snapshots', async () => {
+  const portable = { font: { $type: 'fontFamily', $value: 'Authored family' } };
+  const projection = { font: { $type: 'fontFamily', $value: 'Pinned release family' } };
+  const h = host({ tokens: { snapshot: async () => ({ document: portable, renderDocument: projection, system: null, version: 'v1', selection: {} }), raw: async () => ({ font: { $value: 'Unpublished head' } }) } });
+  const runtime = await createRuntime(toolWith('async function onInit({ host }) { return { note: await host.tokens.resolve("font") }; }'), h, {}, { hookExecutor: createNodeHookExecutor() });
+  assert.match(runtime.getHydrated(), /Pinned release family/);
+  assert.equal((await h.tokens.snapshot()).document.font.$value, 'Authored family');
+  runtime.destroy();
+});
+
 test('hooks run in a worker thread: proxied host calls round-trip and colocated colour maths answers locally', async () => {
   process.env.LOLLY_TEST_SECRET = 'must-not-leak';
   const h = host();

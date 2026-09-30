@@ -133,7 +133,7 @@ are timing. Generated from the `boxes` block.
 | ID | Alias | Type | Default | What it does | Allowed values |
 |---|---|---|---|---|---|
 | `id` | - | text | - |  | - |
-| `kind` | - | select | `box` | Kind | `"box"`, `"text"`, `"image"`, `"path"`, `"audio"`, `"camera"`, `"frame"`, `"3d"` |
+| `kind` | - | select | `box` | Kind | `"box"`, `"text"`, `"image"`, `"path"`, `"audio"`, `"camera"`, `"frame"`, `"3d"`, `"web"` |
 | `x` | - | number | 120 | X | - |
 | `y` | - | number | 120 | Y | - |
 | `w` | - | number | 320 | Width | - |
@@ -245,4 +245,8 @@ are timing. Generated from the `boxes` block.
 | `furniture` | - | text | `""` | Master furniture | - |
 | `archetype` | - | text | `""` | Slide archetype | - |
 | `textDirection` | - | select | `""` | Text direction | `""`, `"ltr"`, `"rtl"` |
+| `tokenLinks` | - | text | `""` | Token links | - |
+| `web` | - | text | `""` | Web page | - |
+| `webView` | - | number | 0 | Lay out as | - |
+| `webLoad` | - | select | `slide` | When presenting | `"slide"`, `"early"`, `"keep"`, `"click"` |
 <!-- /GEN:design-boxes -->

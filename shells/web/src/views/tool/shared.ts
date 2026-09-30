@@ -18,13 +18,14 @@ import { urlProfileValue } from '../../lib/press-profile-embed.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { openShareDialog } from '../../components/share-dialog.ts';
 import type { ShareDialogLolly } from '../../components/share-dialog.ts';
-import { AUTO_PACK_MIN, encodeModelParam } from '../../lib/url-budget.ts';
+import { AUTO_PACK_MIN, encodeModelParam, tokenSelectionParam } from '../../lib/url-budget.ts';
 import type { ShareFidelity } from '../../lib/url-budget.ts';
 import type { ToolManifest, ToolRenderSpec } from '../../../../../engine/src/loader.js';
 import type { Runtime } from '../../../../../engine/src/runtime.js';
 import { isTextEditingTarget } from '../../lib/typing-target.ts';
 import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
 import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from '../tool-actions.ts';
+import { isIframeMode } from '../../lib/iframe-mode.ts';
 
 // ── The chosen emoji set, for every writer of this tool's URL ────────────────
 //
@@ -505,6 +506,7 @@ export async function shrinkUrl(
   manifest: ToolManifest,
   barSeq: BarSeq | null
 ): Promise<void> {
+  if (isIframeMode()) return; // a framed tool never rewrites its address
   // The bar is normally the path form /t/<id>?… by now; tolerate the boot-time hash
   // form too. Keep the route part, rewrite only the query.
   const hashQ = window.location.hash.indexOf('?');
@@ -538,6 +540,7 @@ export async function shrinkUrl(
     'slot',
     'output',
     'full',
+    'iframe',
     '_v',
     'nostage',
     'lang',
@@ -740,6 +743,8 @@ export function buildShareParams(
   exportScope: HTMLElement | null
 ): { parts: string[]; fidelity: ShareFidelity } {
   const parts: string[] = [];
+  const selectionPart = tokenSelectionParam(runtime.tokenSelection);
+  if (selectionPart) parts.push(selectionPart);
   // What a URL can't carry, recorded as we drop it, so the Share dialog can tell the
   // user what won't travel instead of dropping it silently (the "link has no content"
   // bug). Each `continue`-with-a-drop below records here.

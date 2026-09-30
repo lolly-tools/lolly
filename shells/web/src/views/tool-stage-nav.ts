@@ -20,7 +20,7 @@
 import { mountZoomHud } from '../components/zoom-hud.ts';
 import { stageBottomReserve, stageSideReserve } from '../lib/design-panel-layout.ts';
 import type { ZoomHud } from '../components/zoom-hud.ts';
-import { isTypingTarget } from '../lib/typing-target.ts';
+import { deepActiveElement, isTypingTarget } from '../lib/typing-target.ts';
 import { icon } from '../lib/icons.ts';
 import { t } from '../i18n.ts';
 import {
@@ -633,7 +633,9 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // the factor in the profile. The mobile shell still has no zoom hook. Nothing
     // changes here either way: the chords stay the host's, and this handler must
     // never re-capture them.
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+    // Focused controls own their activation keys, including Space on disclosures.
+    if (deepActiveElement()?.closest('button, summary, a[href], [role="button"], [role="slider"]')) return;
     if (e.code === 'Space' && !isTyping()) { e.preventDefault(); spaceDown = true; stageEl.classList.add('is-grabbable'); return; }
     if (isTyping()) return;
     // Shift+1 / Shift+2 are matched on `code`, not `key`: the shifted digits are '!' and

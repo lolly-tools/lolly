@@ -10,7 +10,8 @@ const words = (n: number): string => Array.from({ length: n }, (_, i) => `word${
 
 test('short text is never eligible', () => {
   assert.equal(aiDetectEligible(words(49)), false);
-  assert.equal(aiDetectEligible(words(50)), true);
+  assert.equal(aiDetectEligible(words(50)), false);
+  assert.equal(aiDetectEligible('The report is for the team and it has a section with the findings from our work. '.repeat(4)), true);
 });
 
 test('mostly non-Latin text is never eligible, regardless of length', () => {

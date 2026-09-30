@@ -37,6 +37,9 @@ import { bindOp, type ToolViewCtx } from './context.ts';
  * to reach it so an emptied document hands its renderer back.
  */
 let sceneModule: typeof import('../../lib/design-scene-mount.ts') | null = null;
+/** The Design web page box module (plan 288), once loaded: the owner of every live web
+ *  frame on the canvas. Module scope for the scene module's reason. */
+let webModule: typeof import('../../lib/design-web-mount.ts') | null = null;
 
 // Drive a [data-preview] control through a capture. `btn` is the control the user
 // actually clicked (auto-preview passes none → the first control, the placeholder
@@ -167,7 +170,12 @@ export function paint(tview: ToolViewCtx): void {
       // renders (blob URLs) just after the template's own scripts run. The
       // generation guard stops a slow embed render from overwriting a newer one.
       const safeHtml = neutralizeEmbeds(hydrated);
+      // Live web page frames (plan 288) step aside for the swap and come back after the
+      // swap: a demo on the canvas keeps running through an edit instead of reloading on
+      // every keystroke.
+      const parkedWeb = webModule ? webModule.parkWebFrames(contentEl) : null;
       if (!patchTextEditingCanvas(contentEl, safeHtml)) contentEl.innerHTML = safeHtml;
+      webModule?.restoreWebFrames(contentEl, parkedWeb);
       // A <style> inside template.html would otherwise apply unscoped and unlayered,
       // beating every app layer - one tool's `*` reset strips the chrome's padding.
       scopeTemplateStyles(contentEl, canvasScope);
@@ -302,6 +310,17 @@ export function paint(tview: ToolViewCtx): void {
       // through the renderer pool, and the selected box a live renderer. Loaded only where
       // a marker exists, so a document without a scene never loads three.js; once loaded,
       // the pass runs on marker-less paints too, so a deleted box hands its renderer back.
+      // Web page boxes in a Design document (plan 288): the tool paints an inert marker per
+      // box, and the shell decides what each may show and mounts the frame. Loaded only
+      // where a marker exists; once loaded, the pass runs on every paint so a deleted box
+      // drops its frame.
+      if (webModule || contentEl.querySelector('[data-lolly-web]')) {
+        void (webModule
+          ? Promise.resolve(webModule)
+          : import('../../lib/design-web-mount.ts').then(m => (webModule = m)))
+          .then(m => { if (gen === tview.renderGen) m.mountWebFrames(tview.contentEl, { mode: 'editor' }); })
+          .catch(error => console.warn('design web mount failed:', error));
+      }
       if (sceneModule || contentEl.querySelector('[data-lolly-scene]')) {
         void (sceneModule
           ? Promise.resolve(sceneModule)

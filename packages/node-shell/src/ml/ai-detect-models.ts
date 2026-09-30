@@ -35,7 +35,7 @@
  * WHY IT LIVES IN packages/node-shell (moved 2026-09-03, plans/183 WS2): the
  * detector now runs on the Node shells too (onnxruntime-node through
  * transformers.js, packages/node-shell/src/ml/ai-detect.ts). The roster, the
- * calibrated threshold and the eligibility gate must be the SAME on both, or a
+ * provisional threshold and the eligibility gate must be the SAME on both, or a
  * `lolly detect-ai` reading would not be the reading the app gives. This shared
  * package is the only place both can import from (no shell may import from
  * another), so the constants live here and
@@ -44,6 +44,8 @@
  * probe built from the web build's MODELS_BASE.
  */
 
+
+import { forensicLanguage } from '@lolly/engine';
 
 export interface AiDetectModel {
   /** Roster id; doubles as the directory under /models/ai-detect/. */
@@ -60,8 +62,8 @@ export interface AiDetectModel {
   /** Token budget for one classification pass (the model's usable context). */
   maxTokens: number;
   /**
-   * The calibrated operating threshold: probAi at or above this counts as
-   * evidence, below it the run reports NOTHING (absence, never exoneration).
+   * The provisional operating threshold: a raw score at or above this counts
+   * as a weak clue. Lower scores remain visible in forensic window observations.
    * PROVISIONAL until staging - the fetch gate includes measuring it against
    * the corpus at a ~1% false-positive rate and pinning the measured value.
    */
@@ -160,8 +162,8 @@ export function aiDetectModel(): AiDetectModel | null {
 export const AI_DETECT_MIN_WORDS = 50;
 /** Latin-letter share below which the text is not the model's language. */
 export const AI_DETECT_MIN_LATIN = 0.6;
-/** The runner never sees more than this (the model truncates to its own token
- *  budget anyway; on the web this also bounds the postMessage payload). */
+/** The window planner bounds this many source characters; each inference
+ *  window respects the model token budget. */
 export const AI_DETECT_TEXT_CAP = 65536;
 
 /** Pure: is this text one the detector may honestly be asked about? */
@@ -172,5 +174,5 @@ export function aiDetectEligible(text: string): boolean {
   const letters = t.match(/\p{L}/gu)?.length ?? 0;
   if (letters === 0) return false;
   const latin = t.match(/\p{Script=Latin}/gu)?.length ?? 0;
-  return latin / letters >= AI_DETECT_MIN_LATIN;
+  return latin / letters >= AI_DETECT_MIN_LATIN && forensicLanguage(t) === 'english';
 }

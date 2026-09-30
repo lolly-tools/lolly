@@ -178,8 +178,14 @@
   .sr-disclosure { min-height: 44px; display: inline-flex; align-items: center; padding-inline: 8px; }
 }
 @layer views {
-  .input-rule-actions { margin-left: auto; min-width: 28px; min-height: 28px; padding: 0 6px; line-height: 1; }
+  .input-rule-actions { margin-inline-start: auto; min-width: 28px; min-height: 28px; padding: 0 var(--sp-2); line-height: 1; }
+  .input-rule-menu { position: fixed; width: min(22rem, calc(100vw - var(--sp-6))); max-height: calc(100dvh - var(--sp-6)); overflow: auto; gap: var(--sp-2); padding: var(--sp-2); }
   .input-rule-menu .btn { min-height: 44px; }
+  .input-rule-menu .folder-menu-item { white-space: normal; text-align: start; }
+  .input-token-actions { min-width: 0; border-top: 1px solid var(--ui-color-border-default); padding: var(--sp-2); }
+  .input-token-actions .folder-menu-head { padding: 0 0 var(--sp-2); }
+  .input-token-actions .token-binding-field { flex-direction: column; align-items: stretch; }
+  .input-token-actions .token-binding-field .btn { text-align: start; white-space: normal; }
   @media (any-pointer: coarse) { .input-rule-actions { min-width: 44px; min-height: 44px; } }
 }
 @layer views {

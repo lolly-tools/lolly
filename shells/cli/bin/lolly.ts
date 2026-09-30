@@ -41,6 +41,10 @@ Usage:
   lolly system context [--file=tokens.json] export tokens, source evidence and rules as JSON
   lolly system check <design-inputs.json>   review colours, type and asset references locally
   lolly system list | use <id>              list or switch on-device systems
+  lolly system inspect                     inspect token sources, references and choices
+  lolly system diff <tokens.json>           compare authored and resolved token changes
+  lolly system generate --recipe=<file>     review a portable colour, spacing or type scale
+  lolly system sync <file> --base=<file> --revision=<id>  review an upstream update
   lolly list [--q=words] [--limit=1..100]  list or scope tools (explicit spelling)
   lolly describe <tool-id> [--all]         show essential inputs; --all shows every input
   lolly run <tool-id> [--flags]            render
@@ -49,6 +53,7 @@ Usage:
   lolly schema <tool-id>                    print its typed input JSON Schema
   lolly inspect|measure <document.json>     inspect without rasterising
   lolly prepare <file…>                   inspect and prepare private files locally
+  lolly inspect <file> --forensic          inspect located AI clues and coverage
   lolly diff <a.json> <b.json>              semantic document diff
   lolly optimize <document.json>            run named immutable stages
   lolly package <document.json> [--output]  write a portable .lolly package

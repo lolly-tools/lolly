@@ -144,6 +144,8 @@ The invite as a block of text. Copy it, send it however you like and the other p
 
 This is the leg pairs give up on, so it is worth being explicit: **an invite on its own does not connect anything.** The joining device makes a reply, and that reply has to get back to the waiting device before either of you is connected. Same three forms, same choice.
 
+![The starting device makes an invite, the joining device makes a reply, and the starting device accepts the reply. Once connected, both devices compare their matching plates.](/info/diagrams/concepts/private-collab-handshake.svg)
+
 <!--
 SHOT DROPPED (collab-answer-minted): the same call as collab-invite-minted above, and
 for the same first reason. It WAS captured: the drill reaches the reply screen, and the

@@ -15,6 +15,13 @@
  *   - `export` - presence flag: trigger an immediate download on load
  *   - `copy` - presence flag: arm copy-to-clipboard on first interaction
  *   - `full` - presence flag: open in fullscreen (sidebar collapsed)
+ *   - `iframe` - presence flag: show only the tool's rendered output, for a tool
+ *                  shown inside another page. Implies `full`, removes every piece of
+ *                  shell chrome, and keeps nothing: no saved session, history,
+ *                  metrics, sounds or address-bar rewrites. `export`, `copy`,
+ *                  `options`, `present` and `slot` are ignored alongside the flag. Shells
+ *                  stamp `data-lolly-iframe` on <html> for tools to read (web shell
+ *                  only; ignored by CLI).
  *   - `options` - presence flag: open with the export-settings panel expanded
  *                  (web shell only; ignored by CLI). `full` wins if both are set.
  *   - `slot` - saved state slot to load
@@ -229,6 +236,7 @@ import { parseSampleTimes, validateSampleTimes } from './sequence-samples.ts';
 import { parseMotionParams, serializeMotionParams, type MotionBlur, type MotionRange } from './motion-sampling.ts';
 import { isUnit } from './units.ts';
 import type { Unit } from './units.ts';
+import { parseTokenSelection } from './token-selection.ts';
 import { isTokenValue, isAlias } from './tokens.ts';
 import { isToolUrl } from './tool-url.ts';
 import { assetIdForUrl, blocksForUrl } from './bake.ts';
@@ -390,6 +398,7 @@ export interface UrlState {
    *  ladder in engine/src/design-version.ts decides what it resolves to, since only
    *  the caller knows which versions this device holds. See the header. */
   designVersion: string | null;
+  tokenSelection?: Record<string, string>;
   /** Design-system override (the `ds` param): the id of a design system on the device,
    *  or null when absent or when the value fails the id grammar. Which systems this
    *  device holds is not something url-mode can know, so an unknown id is the caller's
@@ -425,6 +434,7 @@ export interface UrlSerializableInput {
   value?: InputValue;
   required?: boolean;
   fields?: BlockFieldSpec[];
+  restoreTokenRef?: string;
 }
 
 /** Reserved-control overrides folded into a serialised URL. */
@@ -491,12 +501,13 @@ export interface SerializeUrlOpts {
    *  is omitted and a `user/` block sub-field is blanked. The web address bar
    *  passes true: on the SAME device a refresh/bookmark resolves them fine. */
   keepUserIds?: boolean;
+  tokenSelection?: Record<string, string>;
 }
 
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -694,6 +705,26 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     values[input.id] = coerceFromString(input, raw);
   }
 
+  // Typed links use an explicit reserved key so literal text such as "{title}"
+  // stays text. A scalar companion lets older hosts render the cached value.
+  let referenceCount = 0;
+  for (const [key, raw] of params.entries()) {
+    const restore = key.startsWith('_restore.');
+    if (!restore && !key.startsWith('_ref.')) continue;
+    const inputKey = key.slice(restore ? 9 : 5);
+    if (!Object.hasOwn(inputsByKey, inputKey)) continue;
+    const input = inputsByKey[inputKey]!;
+    if (!['color', 'number', 'text', 'longtext', 'select'].includes(input.type)) continue;
+    if (++referenceCount > 128 || raw.length > 1024 || !isAlias(raw)) throw new Error('Invalid or oversized token reference in URL.');
+    if (restore) {
+      values.__tokenLinks ??= {};
+      (values.__tokenLinks as Record<string, string>)[input.id] = raw;
+      continue;
+    }
+    const cached = values[input.id];
+    values[input.id] = { ref: raw, ...(typeof cached === 'string' || (typeof cached === 'number' && Number.isFinite(cached)) ? { value: cached } : {}) };
+  }
+
   const rawW = params.get('width') ?? params.get('w');
   const rawH = params.get('height') ?? params.get('h');
   const rawUnit = (params.get('unit') || '').toLowerCase();
@@ -743,6 +774,7 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     // Design-system version override (see header). Verbatim, never validated here:
     // whether a slug names a real version is a question about the device's ledger.
     designVersion: params.get('designv') || null,
+    tokenSelection: parseTokenSelection(params.get('_themes')),
     // Design-system override (see header). Validated against the id grammar, not the
     // device: a junk value reads as absent, and an id for a system the device lacks is
     // the caller's fall-through.
@@ -766,10 +798,18 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
 export function serializeUrlState(model: UrlSerializableInput[], opts: SerializeUrlOpts = {}): string {
   const params = new URLSearchParams();
   for (const input of model) {
+    if (!isTokenValue(input.value) && isAlias(input.restoreTokenRef)) params.set(`_restore.${input.id}`, input.restoreTokenRef);
     if (input.value === null || input.value === undefined) continue;
     // A picked file is binary user content - it has no shareable URL form (its
     // bytes live only in memory on this device). Never serialise it.
     if (input.type === 'file') continue;
+    if (input.type !== 'color' && ['number', 'text', 'longtext', 'select'].includes(input.type) && isTokenValue(input.value)) {
+      params.set(`_ref.${input.id}`, input.value.ref);
+      if (typeof input.value.value === 'string' || (typeof input.value.value === 'number' && Number.isFinite(input.value.value))) {
+        params.set(input.id, coerceToString(input, input.value.value, opts.keepUserIds === true));
+      }
+      continue;
+    }
     if (input.type === 'vector') {
       // One flat param per field: "<inputId>.<fieldId>=<value>".
       const v = input.value;
@@ -781,7 +821,7 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
       }
       continue;
     }
-    if (input.value === '' && !input.required) continue;
+    if (input.value === '' && !input.required && !input.restoreTokenRef) continue;
     // An empty grid (no headings, no rows) is the blank state - omit it.
     if (input.type === 'table') {
       const t = normalizeTableValue(input.value);
@@ -794,6 +834,7 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
     if (input.type === 'asset' && opts.keepUserIds !== true && str.startsWith('user/')) continue;
     params.set(input.id, str);
   }
+  if (opts.tokenSelection) params.set('_themes', JSON.stringify(opts.tokenSelection));
   if (opts.format) params.set('format', opts.format);
   if (opts.export) params.set('export', '');
   if (opts.slot)   params.set('slot',   opts.slot);
@@ -845,6 +886,7 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
 }
 
 function coerceFromString(input: InputSpec, raw: string): InputValue {
+  if (input.type === 'number' && isAlias(raw)) return { ref: raw };
   switch (input.type) {
     case 'number':
       return Number(raw);
@@ -901,7 +943,7 @@ function coerceToString(input: UrlSerializableInput, value: InputValue, keepUser
   }
   // A token-backed colour serialises to its reference ('{color.brand.jungle}'),
   // so a shared link re-resolves against the destination's tokens (canonical).
-  if (input.type === 'color' && isTokenValue(value)) return value.ref;
+  if (isTokenValue(value)) return value.ref;
   // Blocks emit the compact tilde form (plan 171: engine-owned, so CLI/web links
   // match byte-for-byte; the encoder handles baked refs via assetIdForUrl and the
   // user/ policy per field). The JSON fallback covers what compact structurally

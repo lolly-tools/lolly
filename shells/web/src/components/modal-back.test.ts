@@ -58,6 +58,18 @@ test('lolly:navigate closes every open dialog', () => {
   assert.equal(dialogs(), 0);
 });
 
+test('a dialog mounted in a styled container still tears down on navigation', () => {
+  const container = document.createElement('section');
+  document.body.append(container);
+  const closed: unknown[] = [];
+  const modal = mountModal('<p>Instructions</p>', { className: 'agent-dialog', container, onClose: result => closed.push(result) });
+  assert.equal(modal.el.parentElement, container);
+  fire('lolly:navigate');
+  assert.equal(container.querySelector('dialog'), null);
+  assert.deepEqual(closed, [undefined]);
+  container.remove();
+});
+
 test('Back closes the topmost dialog only, as a dismissal', () => {
   const closed: string[] = [];
   mountModal<string>('<p>a</p>', { className: 'modal', cancelValue: 'esc-a', onClose: r => closed.push(`a:${r}`) });

@@ -78,6 +78,42 @@
 .lolly-box-scene { pointer-events: none; }
 .lolly-box-scene > img { display: block; width: 100%; height: 100%; object-fit: contain; }
 
+/* A web page box (plan 288) is a marker the shell fills with a live frame over its
+   poster (shells/web/src/lib/design-web-mount.ts). The poster, or the plain card naming
+   the site when there is none, is what every export draws, so it is laid out here in
+   full; the frame sits on top while live. No pointer-events rule here: this sheet is
+   copied onto the presentation stage, where the page must stay clickable. The editor's
+   inert state belongs to the shell's own CSS. */
+.lolly-box-web {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  container-type: size;
+  user-select: none;
+}
+.lolly-box-web-poster { display: block; width: 100%; height: 100%; -webkit-user-drag: none; }
+.lolly-box-web-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 6%;
+  text-align: center;
+  color: var(--brand-text, #11141f);
+  background: color-mix(in oklab, currentColor 7%, transparent);
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  font-size: max(12px, 5.5cqmin);
+  line-height: 1.2;
+}
+.lolly-box-web-glyph { width: 2.4em; height: 2.4em; opacity: 0.55; }
+.lolly-box-web-label { font-weight: 600; overflow-wrap: anywhere; }
+.lolly-box-web-title { opacity: 0.7; overflow-wrap: anywhere; }
+
 /* An audio box (a music bed / voiceover) is a TIMELINE citizen, not an artboard one: it
    carries the src for the shell compositor's waveform + audio mix and nothing visible.
    display:none rather than opacity/visibility so it takes no space and no export walker

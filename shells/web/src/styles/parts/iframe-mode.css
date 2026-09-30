@@ -1,0 +1,17 @@
+/* `?iframe` (lib/iframe-mode.ts): a tool shown inside another page draws its output and
+   nothing else. The attribute is stamped on <html> before the first paint by index.html,
+   so none of this chrome ever flashes. Most chrome is simply never built in this mode
+   (views/tool/stage-layout.ts); these rules cover the parts other code still needs in the
+   page: the export panel, which the export machinery reads, and the app-wide floating
+   cluster. Nothing here reaches inside the tool canvas or an export stage. */
+
+html[data-lolly-iframe] #tool-actions,
+html[data-lolly-iframe] .float-cluster {
+  display: none !important;
+}
+
+/* The full-bleed layout reserves a top strip for the back pill and profile cluster,
+   neither of which exists in a frame. */
+html[data-lolly-iframe] .tool-layout.is-bare .tool-stage {
+  padding-top: 0;
+}

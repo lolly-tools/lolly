@@ -26,6 +26,7 @@
  */
 import type { Runtime, RuntimeState } from '../../../../engine/src/runtime.js';
 import type { InputModelItem, InputValue } from '../../../../engine/src/inputs.js';
+import { onTrustedSitesChange, siteVerdict, trustSite } from './trusted-sites.ts';
 
 export interface CanvasCommitEl extends HTMLElement {
   /** Commit `id`→`value` to the runtime that owns THIS canvas (1:1, never fanned). */
@@ -97,6 +98,17 @@ export interface CanvasCommitEl extends HTMLElement {
    * edit they cannot take back.
    */
   __lollyCommitQuiet?: (id: string, value: InputValue) => void;
+  /**
+   * Trusted sites (plan 288) for a template script that cannot reach `host`: the
+   * Sandbox's fetch-and-inline asks `check` before contacting a URL ('trusted' fetches
+   * without asking, 'blocked' is an organisation's rule, 'ask' waits for the person),
+   * and its "Always trust" button calls `trust`. The list lives in lib/trusted-sites.ts.
+   */
+  __lollyTrust?: {
+    check(url: string): 'trusted' | 'ask' | 'blocked';
+    trust(url: string): Promise<boolean>;
+    subscribe(cb: () => void): () => void;
+  };
 }
 
 /** mountTool installs the history-free setter on its runtime (views/tool.ts). */
@@ -127,5 +139,14 @@ export function attachCanvasCommit(canvasEl: CanvasCommitEl, runtime: Runtime): 
   canvasEl.__lollySubscribe = (cb) => runtime.subscribe(cb);
   canvasEl.__lollyColorField = (container, id, opts) => {
     void import('../components/color-field.ts').then(m => { m.mountColorField(container, id, opts); });
+  };
+  canvasEl.__lollyTrust = {
+    check: (url) => siteVerdict(url).state,
+    trust: async (url) => {
+      let origin = '';
+      try { origin = new URL(url).origin; } catch { return false; }
+      return (await trustSite(origin)) !== null;
+    },
+    subscribe: (cb) => onTrustedSitesChange(cb),
   };
 }

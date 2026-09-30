@@ -10,6 +10,8 @@ When you turn on sync, you nominate one place to hold your work: your Dropbox,
 your Google Drive, your OneDrive, your own Nextcloud or WebDAV server, or your
 own S3 bucket. That place is the only remote host in the path.
 
+![A computer and a phone or tablet each sync their local work directly with the shared backup copy in your chosen storage.](/info/diagrams/concepts/personal-sync.svg)
+
 - **No Lolly server.** Your work is never sent to lolly.tools, to a Lolly relay
   or to any other server that Lolly runs. The app on your device talks to your
   storage directly.

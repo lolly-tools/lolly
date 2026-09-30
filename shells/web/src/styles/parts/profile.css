@@ -411,19 +411,23 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
   transition: transform var(--dur-1);
 }
-/* A named cluster heading inside the flag list (Connectors) - a label row, not a
-   toggle, so it carries the card-heading treatment plus one line of scope text. */
-.profile-view .feature-flag-group {
-  list-style: none;
-  display: flex; flex-direction: column; gap: .2rem;
-  margin: .1rem .25rem;
+/* A named cluster inside the flag list (Connectors): a folded disclosure that
+   starts closed, headed like a card title with its value on the right, then one
+   line of scope text over its own list of toggles. */
+.profile-view .feature-flag-group { list-style: none; margin: .1rem 0; }
+.profile-view .feature-flag-cluster-sum { gap: var(--sp-6); min-height: var(--ui-size-target); padding-inline: var(--sp-2); }
+.profile-view .feature-flag-group-title {
+  flex: 1 1 auto;
   font-size: var(--fs-xs); font-weight: 700;
   text-transform: uppercase; letter-spacing: .07em;
-  color: hsl(var(--muted-foreground));
+  color: var(--ui-color-text-muted);
 }
+.profile-view .feature-flag-cluster-sum:hover .feature-flag-group-title { color: var(--ui-color-text-default); }
+.profile-view .feature-flag-group-value { font-size: var(--fs-md); color: var(--ui-color-text-muted); white-space: nowrap; }
 .profile-view .feature-flag-group-note {
-  font-size: var(--fs-md); font-weight: 400;
-  text-transform: none; letter-spacing: 0; line-height: 1.45; max-width: 74ch;
+  display: block; padding-inline: var(--sp-2);
+  font-size: var(--fs-md); color: var(--ui-color-text-muted);
+  line-height: 1.45; max-width: 74ch;
 }
 /* Separates the category flags from the Pro (batch) mode flag. */
 .profile-view .feature-flag-divider {
@@ -456,6 +460,29 @@
   margin: -.4rem 0 1rem; max-width: 74ch;
   font-size: var(--fs-lg); line-height: 1.5; color: hsl(var(--muted-foreground));
 }
+/* Trusted sites (plan 288, views/profile/prefs.ts wireTrustedSites): one row per entry,
+   the entry in the mono face so a wildcard or a path reads exactly, its source as a pill. */
+.profile-view .trusted-sites-list {
+  list-style: none; margin: 0 0 1rem; padding: 0;
+  display: grid; gap: .4rem;
+}
+.profile-view .trusted-sites-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .6rem;
+  padding: .5rem .75rem; border-radius: var(--radius);
+  background: var(--ui-color-surface-muted);
+}
+.profile-view .trusted-sites-entry { font-family: var(--font-mono); font-size: var(--fs-md); overflow-wrap: anywhere; }
+.profile-view .trusted-sites-badge {
+  padding: .1rem .55rem; border-radius: var(--radius-pill);
+  border: 1px solid var(--ui-color-border-default);
+  font-size: var(--fs-sm); color: hsl(var(--muted-foreground));
+}
+.profile-view .trusted-sites-reason { flex-basis: 100%; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.profile-view .trusted-sites-remove { margin-left: auto; }
+.profile-view .trusted-sites-subhead { margin: 1rem 0 .5rem; font-size: var(--fs-md); font-weight: 600; }
+.profile-view .trusted-sites-add { display: flex; flex-wrap: wrap; align-items: end; gap: .6rem; }
+.profile-view .trusted-sites-add .field-row { flex: 1 1 16rem; margin: 0; }
+.profile-view .trusted-sites-grammar { margin-top: .5rem; }
 .profile-view .profile-theme-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: .85rem;
 }
@@ -547,10 +574,6 @@
 
 /* Storage */
 .profile-view .storage-subsection:first-of-type { margin-top: 1.1rem; }
-/* A titled sub-block inside any card body - Sync across devices, inside Connected
-   services - reuses .storage-subsection's neutral rule + spacing (parts/storage.css).
-   Only the heading needs taming: that block always used a plain <span>. */
-.profile-view .storage-subsection-header h3 { margin: 0; font: inherit; }
 /* Clear cache + Clear all my data sit together on their own row, right-aligned. */
 .profile-view .storage-actions { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; margin-top: 1.25em; }
 
@@ -855,38 +878,96 @@
 .identity-verify-link:hover { background: hsl(151 57% 36%); color: #fff; border-color: transparent; }
 .identity-verify-link svg { flex: 0 0 auto; }
 
-/* Connected services (plans/129): the personal send-target providers. Rows
-   reuse the store-manage idiom; the credential providers get a small form. */
-.profile-view .pconn-row { align-items: flex-start; }
-/* The name cell stacks: provider name, then account, then the note - the row's
-   flex display would otherwise glue them onto one line. Same fix inside the
-   credential cards' summaries. */
-.profile-view .pconn-row .store-manage-name,
-.profile-view .pconn-cred summary .store-manage-name { display: block; }
-.profile-view .pconn-account { display: block; font-weight: 600; margin-top: 2px; }
+/* Connected services (plans/129). Folded groups on hairlines, like the Storage
+   card's manage panels: Storage and sync, Posting, Design apps, and Sync across
+   devices last. A service group holds one bordered list with a row per service -
+   its mark, its name, a Connected tag once set up - whose body opens with the
+   description, then the set-up form or the connection's status. */
+.profile-view .pconn-group { --pconn-mark-size: calc(20px * var(--a11y-fs)); border-top: 1px solid var(--ui-color-border-default); }
+.profile-view #connections-body > .pconn-group:first-of-type { margin-top: var(--sp-7); }
+.profile-view .pconn-group-sum,
+.profile-view .pconn-svc-sum,
+.profile-view .pconn-sync-choices-sum,
+.profile-view .feature-flag-cluster-sum {
+  display: flex; align-items: center; cursor: pointer; list-style: none;
+}
+.profile-view .pconn-group-sum::-webkit-details-marker,
+.profile-view .pconn-svc-sum::-webkit-details-marker,
+.profile-view .pconn-sync-choices-sum::-webkit-details-marker,
+.profile-view .feature-flag-cluster-sum::-webkit-details-marker { display: none; }
+.profile-view .pconn-group-sum:focus-visible,
+.profile-view .pconn-svc-sum:focus-visible,
+.profile-view .pconn-sync-choices-sum:focus-visible,
+.profile-view .feature-flag-cluster-sum:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; border-radius: var(--ui-radius-control); }
+.profile-view .pconn-group[open] > summary .profile-collapse-chev,
+.profile-view .pconn-svc[open] > summary .profile-collapse-chev,
+.profile-view .pconn-sync-choices[open] > summary .profile-collapse-chev,
+.profile-view .feature-flag-cluster[open] > summary .profile-collapse-chev { transform: rotate(90deg); }
+.profile-view .pconn-group-sum { gap: var(--sp-6); min-height: 52px; }
+.profile-view .pconn-group-title { flex: 1 1 auto; margin: 0; font-size: var(--fs-lg); font-weight: 600; color: var(--ui-color-text-default); }
+.profile-view .pconn-group-value { font-size: var(--fs-md); color: var(--ui-color-text-muted); white-space: nowrap; }
+/* The folded group's preview: its services' marks, small and quiet, gone once
+   the list itself is open. */
+.profile-view .pconn-group-marks { display: flex; align-items: center; gap: var(--sp-4); color: var(--ui-color-text-muted); }
+.profile-view .pconn-group-marks .pconn-mark { --pconn-mark-size: calc(16px * var(--a11y-fs)); color: inherit; }
+.profile-view .pconn-group[open] > summary .pconn-group-marks { display: none; }
+@media (max-width: 480px) { .profile-view .pconn-group-marks { display: none; } }
+.profile-view .pconn-group-body { padding: 0 0 var(--sp-7); }
+.profile-view .pconn-svcs { border: 1px solid var(--ui-color-border-default); border-radius: var(--radius-md); overflow: hidden; }
+.profile-view .pconn-svc + .pconn-svc { border-top: 1px solid var(--ui-color-border-default); }
+.profile-view .pconn-svc[open] { background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent); }
+.profile-view .pconn-svc-sum { gap: var(--sp-6); min-height: 48px; padding: 0 var(--sp-7); transition: background var(--dur-1); }
+.profile-view .pconn-svc-sum:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
+.profile-view .pconn-mark { flex: none; display: inline-flex; width: var(--pconn-mark-size); height: var(--pconn-mark-size); color: var(--ui-color-text-default); }
+.profile-view .pconn-mark svg { width: 100%; height: 100%; }
+.profile-view .pconn-svc-name { flex: 1 1 auto; min-width: 0; font-size: var(--fs-lg); font-weight: 500; color: var(--ui-color-text-default); }
+/* The Connected tag: the selection tint as a fill, never an outline. */
+.profile-view .pconn-svc-state {
+  flex: none; padding: var(--sp-1) var(--sp-4); border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary);
+  font-size: var(--fs-sm); font-weight: 600;
+}
+/* The body's text lines up under the service name, past the mark. */
+.profile-view .pconn-svc-body { padding: 0 var(--sp-7) var(--sp-7) calc(var(--sp-7) + var(--pconn-mark-size) + var(--sp-6)); display: grid; gap: var(--sp-5); justify-items: start; }
+.profile-view .pconn-svc-body > * { margin: 0; }
+.profile-view .pconn-svc-body > .pconn-form { justify-self: stretch; }
+.profile-view .pconn-desc { max-width: 62ch; }
+.profile-view .pconn-account { font-weight: 600; font-size: var(--fs-md); }
 .profile-view .pconn-note { display: block; opacity: .75; font-size: var(--fs-sm); margin-top: 2px; }
-.profile-view .pconn-persist { display: flex; align-items: center; gap: .4rem; margin-top: .45rem; font-size: var(--fs-md); opacity: .9; }
+.profile-view .pconn-account .pconn-note { font-weight: 400; }
+.profile-view .pconn-persist { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-md); opacity: .9; }
 /* "Make this my export home" (plans/138 A1): the same inline-check idiom as
    the persist toggle, tinted with the brand accent when it is the live choice. */
 .profile-view .pconn-home { display: flex; align-items: center; gap: .4rem; margin-top: .45rem; font-size: var(--fs-md); opacity: .9; }
+.profile-view .pconn-svc-body > .pconn-home { margin-top: 0; }
 .profile-view .pconn-home:has(input:checked) { opacity: 1; font-weight: 600; color: hsl(var(--brand-c1, var(--ring))); }
 .profile-view .pconn-cred { border: 1px solid hsl(var(--border) / .6); border-radius: var(--radius-md); padding: .55rem .8rem; margin-top: .6rem; }
-.profile-view .pconn-cred summary { cursor: pointer; list-style: none; }
-.profile-view .pconn-cred summary::-webkit-details-marker { display: none; }
-.profile-view .pconn-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .6rem .8rem; margin-top: .7rem; }
+.profile-view .pconn-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .6rem .8rem; }
+.profile-view .pconn-form[hidden] { display: none; }
 .profile-view .pconn-field { display: flex; flex-direction: column; gap: .25rem; font-size: var(--fs-md); }
 .profile-view .pconn-form > .pconn-note, .profile-view .pconn-form > .pconn-actions { grid-column: 1 / -1; }
 .profile-view .pconn-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .profile-view .pconn-status { font-size: var(--fs-md); opacity: .85; }
-/* Device sync: the choice a conflict or a first join asks for, and the list of
-   earlier copies (views/profile-sync.ts). */
+.profile-view .pconn-status:empty { display: none; }
+/* Device sync: the choice a conflict or a first join asks for, the list of
+   earlier copies, and where this device can sync (views/profile-sync.ts). */
 .profile-view .pconn-sync-choice { margin-block: .6rem; }
 .profile-view .pconn-sync-choice > p { margin: 0 0 .5rem; }
 .profile-view .pconn-restore { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .4rem; }
 .profile-view .pconn-restore > li { justify-content: space-between; font-size: var(--fs-md); }
-.profile-view .pconn-choices { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .5rem; }
-.profile-view .pconn-choice { display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem; font-size: var(--fs-md); }
-.profile-view .pconn-choice[data-state="unavailable"] .pconn-choice-text { opacity: .7; }
+/* The sync group's body stacks its parts on one rhythm (they used to rely on the
+   old sub-block's spacing). */
+.profile-view [data-pconn-group="sync"] > .pconn-group-body { display: grid; gap: var(--sp-6); }
+.profile-view [data-pconn-group="sync"] > .pconn-group-body > * { margin: 0; }
+.profile-view .pconn-sync-choices-sum { gap: var(--sp-4); min-height: var(--ui-size-target); font-size: var(--fs-md); font-weight: 500; color: var(--ui-color-text-default); }
+.profile-view .pconn-sync-choices-sum > span { flex: 1 1 auto; }
+.profile-view .pconn-choices { list-style: none; margin: var(--sp-4) 0 0; padding: 0; border: 1px solid var(--ui-color-border-default); border-radius: var(--radius-md); }
+.profile-view .pconn-choice { display: flex; align-items: center; gap: var(--sp-6); padding: var(--sp-5) var(--sp-7); font-size: var(--fs-md); }
+.profile-view .pconn-choice + .pconn-choice { border-top: 1px solid var(--ui-color-border-default); }
+.profile-view .pconn-choice-text { flex: 1 1 auto; min-width: 0; }
+.profile-view .pconn-choice-name { font-weight: 500; color: var(--ui-color-text-default); }
+.profile-view .pconn-choice-state { flex: none; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.profile-view .pconn-choice[data-state="unavailable"] :is(.pconn-choice-text, .pconn-mark) { opacity: .6; }
 
 }
 

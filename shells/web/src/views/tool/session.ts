@@ -8,9 +8,11 @@
  * from mountTool() by scripts/split-closure.ts.
  */
 import type { FontStyleSlice } from '../../bridge/text-svg.ts';
+import { designTokenInspectorOptions } from '../design-token-bindings.ts';
 import type { AssetRef, Profile } from '@lolly-tools/core/host-v1';
 import { DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, PACK_PARAM, assetIdForUrl, blocksForUrl, encodeTableCompact, isBakedRef, isPackAvailable, isTokenValue, normalizeTableValue, packQuery, serializeHdr, toCssPx } from '@lolly/engine';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
+import { tokenRestoreRefsOf } from '../../../../../engine/src/inputs.ts';
 import { migrateBlockRowIds, stripHiddenRowIds } from '../../lib/row-id.ts';
 import type { UserTemplate, UserTemplateHost } from '../../lib/user-templates.ts';
 import type { TemplateActionHost } from '../../lib/template-actions.ts';
@@ -68,6 +70,7 @@ import { bindOp, type ToolViewCtx } from './context.ts';
 import { discardUnsavedWork, leftEntryHref, localDocument, rewriteLeftEntry, syncEntryMark } from '../tool-leave.ts';
 import { unfileSession } from '../tool-revision-history.ts';
 import { historySettled } from '../../lib/overlay-back.ts';
+import { isIframeMode } from '../../lib/iframe-mode.ts';
 
 export const currentDesignOutcome = (tview: ToolViewCtx) =>
   { const { runtime } = tview; return designOutcome(tview.designIntent, runtime.getModel().find((i) => i.id === 'boxes')?.value); };
@@ -97,6 +100,8 @@ export function markSessionSaved(tview: ToolViewCtx): void {
   tview.renderSaveBtn?.classList.remove('is-unsaved');
 }
 export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
+  // A framed tool (`?iframe`) never rewrites its address: the page around it owns the link.
+  if (isIframeMode()) return;
   const { TOOL_URL_BASE, actionsEl, barSeq, dirtyParams, runtime, templateSeededIds } = tview;
   actionsEl?.dispatchEvent(new Event('lolly:share-change'));
   if (dirtyId) dirtyParams.add(dirtyId);
@@ -109,7 +114,7 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
     const gaugeBase = `${location.origin}${TOOL_URL_BASE}?`;
     tview.urlGauge.update(
       costUrlState(
-        { model: runtime.getModel(), exportParts: collectExportParams(actionsEl) },
+        { model: runtime.getModel(), exportParts: collectExportParams(actionsEl), tokenSelection: runtime.tokenSelection },
         { base: gaugeBase, target: BROWSER_TARGET }
       ),
       gaugeBase
@@ -133,6 +138,7 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
   }
 
   const params = new URLSearchParams();
+  if (runtime.tokenSelection) params.set('_themes', JSON.stringify(runtime.tokenSelection));
 
   for (const entry of runtime.getModel()) {
     const { id, type, value } = entry;
@@ -142,9 +148,19 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
     // copy-pasted bar is as small as a copied Share link. Dirty tracking stays keyed by the
     // canonical id; only the written param NAME shortens. parseUrlState reads both forms.
     const key = entry.urlKey ?? id;
+    if (!isTokenValue(value) && entry.restoreTokenRef) params.set(`_restore.${key}`, entry.restoreTokenRef);
     // A picked file is binary, in-memory, device-local content - it has no
     // shareable URL form. Never write it (would otherwise serialise to junk).
     if (type === 'file') continue;
+    if (['number', 'text', 'longtext', 'select'].includes(type) && isTokenValue(value)) {
+      params.set(`_ref.${key}`, value.ref);
+      const cached = value.value;
+      if (typeof cached === 'string' || (typeof cached === 'number' && Number.isFinite(cached))) {
+        const str = String(cached);
+        if (type === 'longtext' || str.length <= 150) params.set(key, str);
+      }
+      continue;
+    }
     if (type === 'asset') {
       // Library assets are shareable by ID; user uploads are device-local. A
       // baked ref's frozen bytes can't ride in the bar either: write its
@@ -202,7 +218,7 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
         params.set(key, encodeTableCompact(tbl));
       continue;
     }
-    if (value == null || value === '') continue;
+    if (value == null || (value === '' && !entry.restoreTokenRef)) continue;
     if (typeof value === 'boolean' && !value) continue;
     // A token-backed colour ({ ref, value }) serialises to its canonical token ref
     // (mirrors the engine's coerceToString) - never String()'d into the URL as
@@ -805,7 +821,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       // for a tool that can BE a user tool's base (Design today). See lib/user-tools.ts.
       const canCreateTool = toolId === 'design';
       const plainValues = (): Record<string, unknown> =>
-        Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value]));
+        ({ ...Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value])), __tokenLinks: tokenRestoreRefsOf(runtime.getModel()), ...(runtime.tokenSelection ? { __tokenSelection: runtime.tokenSelection } : {}) });
       // What a TEMPLATE keeps: the same session snapshot the save-to-library path writes,
       // minus the per-document identity and every `file` input (tool-session-snapshot.ts).
       // The export markers ride along, so a template opens at the size/format it was saved
@@ -1253,18 +1269,9 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       // same promise every other deep-link path waits on (plan 179 T7). On the menu path
       // this is one microtask - the promise settled during mount, long before the click -
       // and it carries brandVarsReady's own 3s cap, so a stalled fetch cannot wedge it.
-      await brandVarsReady;
-      if (presenter || !viewEl.isConnected) return; // re-check after the awaits
-      // Present from the ENGINE's render (nested frame pages WITH their children), not the
-      // editor's live DOM: the free-canvas editor flattens boxes to siblings of empty
-      // frame-page backgrounds for editing, so cloning those pages would show blank frames.
-      // getHydrated() reflects the current committed model as the template renders it.
-      const presentSource = document.createElement('div');
-      presentSource.innerHTML = runtime.getHydrated();
-      // Presentation mode paints this tree, not the editor canvas, so it runs the
-      // emoji pass itself. A slide shown to a room must draw the set the document
-      // chose, not whatever emoji font the presenting machine carries.
-      await runtime.applyEmojiToDom(presentSource);
+      const { preparePresentSource } = await import('../present-web-check.ts');
+      const presentSource = await preparePresentSource(runtime, { loop: tview.presentLoop, ready: brandVarsReady, isActive: () => !presenter && viewEl.isConnected });
+      if (!presentSource) return;
       const transitionVal = String(
         runtime.getModel().find((i) => i.id === 'transition')?.value ?? 'slide'
       );
@@ -1872,7 +1879,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               // its inspector never pulls the font registry into this chunk.
               resolveFont: (style, text) => resolveDesignFont(tview, style, text),
               voices: tview.host.speech?.voices ? () => tview.host.speech!.voices() : undefined,
-              fields: design.fields,
+              ...designTokenInspectorOptions(runtime, tview.host, design.model, tview.inputHistory, design.fields),
               // The panel skips its whole render while closed, and it is built DETACHED - so
               // without this it was constructed "open" and rebuilt its full property column on
               // every selection change and every commit, for a node that was never in the

@@ -330,6 +330,7 @@ export interface RuntimeApi {
   applyEmojiToDom?(node: unknown): Promise<unknown>;
 }
 export interface HostApi {
+  compose?: import('@lolly-tools/core/host-v1').HostV1['compose'];
   assets?: { pick(opts: any): Promise<any> };
   /** Feature-detected (plan 96): the engine's dash-fit primitives, once the running
    *  engine carries them. `parse` is the AUTHORITY on what the Dash array field accepts,

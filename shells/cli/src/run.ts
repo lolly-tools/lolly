@@ -386,6 +386,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     // version and the head off the catalog's own ledger. `--designv=latest` is
     // the documented "test against the edit head" lever and beats the pin.
     designVersion: { override: designvParam, pin: tool.manifest.designVersion ?? null },
+    tokenSelection: parsedUrl.tokenSelection,
   });
 
   // `--input.<id>=<value>` - the explicit input namespace (contract B7). Never
@@ -569,8 +570,8 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // without hand-reconstructing a URL. (A `file`-typed input has no shareable form, so it
   // is simply absent from the link - same as the web.)
   if (share) {
-    const runtime = await createRuntime(tool, host, values, hookExecutorOpts());
-    const q = serializeUrlState(runtime.getModel(), { cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality });
+    const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
+    const q = serializeUrlState(runtime.getModel(), { cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection });
     await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${q ? '?' + q : ''}\n`);
     return;
   }
@@ -601,7 +602,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         'UNSUPPORTED_FLAG',
       );
     }
-    const runtime = await createRuntime(tool, host, values, hookExecutorOpts());
+    const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
     const fileIn = (tool.manifest.inputs ?? []).find(i => i.type === 'file');
     let tier = 'node';
     let bytes: Uint8Array;
@@ -645,7 +646,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         toolId: tool.manifest.id,
         fileInputId: fileIn.id,
         file: { name: ref.name || 'input', mime: ref.mime || 'application/octet-stream', bytes: ref.bytes },
-        query: serializeUrlState(runtime.getModel()),
+        query: serializeUrlState(runtime.getModel(), { tokenSelection: runtime.tokenSelection }),
       });
       bytes = out.bytes;
       suggestedName = out.filename;
@@ -716,7 +717,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
 
   // The runtime resolves asset refs (catalog ids → AssetRefs with a `format`), which
   // the matchExportFormat default below reads - so it's created before format resolution.
-  const runtime = await createRuntime(tool, host, values, hookExecutorOpts());
+  const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
   let productionInputs: Record<string, string> | undefined;
   let browserProductionInputs: Record<string, string> | undefined;
   const productionContract = productionPath ? await (await import('@lolly-tools/node-shell/production')).productionContractFile(productionPath) : undefined;
@@ -1566,6 +1567,7 @@ const UNSUPPORTED_RESERVED: Record<string, string> = {
   copy: 'the CLI cannot reach a clipboard',
   slot: 'saved slots are a GUI concept; the CLI is ephemeral',
   full: 'there is no viewport to go full-bleed in',
+  iframe: 'a CLI render is already the output alone, with no shell chrome to remove',
   options: 'the options panel is a GUI affordance',
   nostage: 'there is no stage chrome to suppress',
   _v: 'the CLI always runs the tool version on disk',

@@ -56,9 +56,9 @@ const anchor: PopoverAnchor = {
 
 /** An open menu. `container` mounts it inside a dialog, the way a kebab menu opened
  *  from within one does (folder-overlay's does). */
-function openMenu(container?: HTMLElement): BodyPopoverHandle {
+function openMenu(container?: HTMLElement, nested = false): BodyPopoverHandle {
   const pop = mountBodyPopover(anchor, (el) => { el.textContent = 'items'; return null; },
-    { className: 'test-menu', container });
+    { className: 'test-menu', container, isInside: nested ? node => [...document.querySelectorAll('dialog')].some(dialog => dialog.contains(node)) : undefined });
   pop.open();
   return pop;
 }
@@ -136,6 +136,22 @@ test('a replacement dialog survives the previous dialog’s pending self-pop', a
   assert.equal(dialogs(), 1);
   fire('popstate');
   assert.equal(dialogs(), 0);
+});
+
+test('closing a nested source dialog preserves its parent menu through the history pop', async () => {
+  for (const touch of [false, true]) {
+    coarse = touch;
+    const menu = openMenu(undefined, true);
+    const child = mountModal('<p>Source</p>', { className: 'modal' });
+    child.close();
+    await settle();
+    fire('popstate');
+    assert.equal(menus(), 1, 'dialog bookkeeping leaves its parent menu open');
+    if (touch) fire('popstate');
+    else menu.close();
+    assert.equal(menus(), 0);
+  }
+  coarse = true;
 });
 
 test('a menu on a coarse pointer pushes exactly one entry per open', async () => {

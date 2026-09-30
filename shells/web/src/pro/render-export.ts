@@ -53,6 +53,7 @@ import { scopeCss, scopeTemplateStyles } from '../lib/scope-css.ts';
 import { runTemplateScripts, waitForQuiescence } from '../lib/render-lifecycle.ts';
 import { c2paDefaultOn } from '../lib/c2pa-policy.ts';
 import { MOTION_EXPORT_FORMATS } from './folder-rows.ts';
+import { exportTargetNode } from '../lib/export-target.ts';
 
 async function applySavedEmoji(runtime: Awaited<ReturnType<typeof createRuntime>>, host: HostV1, values: Record<string, InputValue> | undefined): Promise<void> {
   const saved = values?.__emoji;
@@ -240,6 +241,12 @@ async function mountToolCanvas(
     // so its boot-seed reads THIS render's values. Write-only here: an off-screen render is
     // one-shot, so no __lollyCommit/__lollySubscribe.
     if (getModel) (canvas as CanvasCommitEl).__lollyModel = getModel;
+    // The marker is how a template finds the channel (root.closest('[data-lolly-canvas]'));
+    // without it the read channel above was unreachable, and a composed Sandbox rendered
+    // this device's last draft. `data-lolly-offscreen` tells a template this render is a
+    // one-shot picture: it keeps nothing and reads nothing of the person's own work.
+    canvas.dataset.lollyCanvas = '';
+    canvas.dataset.lollyOffscreen = '';
     runTemplateScripts(canvas);
     await waitForQuiescence(canvas, { silenceMs: settleMs !== undefined && settleMs > 0 ? settleMs : SETTLE_MS });
     // Emoji, once the template's own scripts have stopped building the DOM, so
@@ -442,7 +449,11 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     }
     // Strong-lock PDF outputs only; the export bridge ignores it for non-pdf formats.
     if (strongPassword && (fmt === 'pdf' || fmt === 'pdf-cmyk')) exportOpts.strongPassword = strongPassword;
-    const target = previewPage ? canvas.querySelector<HTMLElement>('[data-pdf-page]') ?? canvas : canvas;
+    // A tool whose output is not its whole canvas (the Sandbox's snapshot mirror) marks
+    // that node with data-export-root, as the tool view's own export reads it; without the
+    // same retarget a composed Sandbox (a Design web box's poster, plan 288) rendered its
+    // off-screen mirror clipped away to nothing.
+    const target = previewPage ? canvas.querySelector<HTMLElement>('[data-pdf-page]') ?? canvas : exportTargetNode(canvas) ?? canvas;
     if (target !== canvas) {
       const rect = target.getBoundingClientRect();
       exportOpts.width = rect.width;

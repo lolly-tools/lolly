@@ -28,10 +28,10 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4482,
+      "lines": 4471,
       "largestFunctionLines": 647,
       "importFanIn": 26,
-      "importFanOut": 62,
+      "importFanOut": 63,
       "typeEscapes": 60
     },
     "shells/web/src/bridge/sequence-render.ts": {
@@ -91,24 +91,24 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
-      "lines": 2865,
-      "largestFunctionLines": 2115,
+      "lines": 2855,
+      "largestFunctionLines": 2110,
       "importFanIn": 7,
       "importFanOut": 36,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1570,
-      "largestFunctionLines": 1503,
+      "lines": 1583,
+      "largestFunctionLines": 1494,
       "importFanIn": 1,
-      "importFanOut": 55,
+      "importFanOut": 58,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2721,
+      "lines": 2719,
       "largestFunctionLines": 1930,
       "importFanIn": 3,
-      "importFanOut": 53,
+      "importFanOut": 54,
       "typeEscapes": 1
     }
   },

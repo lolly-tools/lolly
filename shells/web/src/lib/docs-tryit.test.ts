@@ -47,19 +47,21 @@ test('toolRouteId matches live-tool routes and rejects view captures', () => {
   assert.equal(toolRouteId('/#/catalogue'), null);
 });
 
-test('embedSrcFor forces full-bleed and strips export/copy triggers, preserving encoding', () => {
+test('embedSrcFor opens the tool in iframe mode and strips export/copy triggers, preserving encoding', () => {
   assert.equal(
     embedSrcFor('/#/tool/qr-code?url=https://suse.com&color=%230c322c'),
-    '/#/tool/qr-code?url=https://suse.com&color=%230c322c&full',
+    '/#/tool/qr-code?url=https://suse.com&color=%230c322c&iframe',
   );
-  // Already full → unchanged.
-  assert.equal(embedSrcFor('/#/tool/chart?ct=treemap&full'), '/#/tool/chart?ct=treemap&full');
-  // No query → gains ?full.
-  assert.equal(embedSrcFor('/#/tool/gradient'), '/#/tool/gradient?full');
+  // Already framed → unchanged.
+  assert.equal(embedSrcFor('/#/tool/chart?ct=treemap&iframe'), '/#/tool/chart?ct=treemap&iframe');
+  // A recipe's `full` gives way to `iframe`, which already implies `full`.
+  assert.equal(embedSrcFor('/#/tool/chart?ct=treemap&full'), '/#/tool/chart?ct=treemap&iframe');
+  // No query → gains ?iframe.
+  assert.equal(embedSrcFor('/#/tool/gradient'), '/#/tool/gradient?iframe');
   // Export/copy/download triggers dropped so the embed never auto-downloads.
   assert.equal(
     embedSrcFor('/#/tool/qr-code?url=x&format=png&export&copy&filename=my-qr'),
-    '/#/tool/qr-code?url=x&full',
+    '/#/tool/qr-code?url=x&iframe',
   );
 });
 
@@ -145,7 +147,7 @@ test('clicking the live button mounts/removes the iframe over the retained image
   live.click();
   const frame = toolShot.querySelector<HTMLIFrameElement>('iframe.shot-live-frame');
   assert.ok(frame, 'iframe mounted on first click');
-  assert.match(frame!.getAttribute('src') ?? '', /\/#\/tool\/qr-code\?.*full$/);
+  assert.match(frame!.getAttribute('src') ?? '', /\/#\/tool\/qr-code\?.*iframe$/);
   assert.ok(toolShot.classList.contains('shot--live'));
   assert.equal(live.getAttribute('aria-pressed'), 'true');
   assert.ok(toolShot.querySelector('img[src="/info/shots/exp-url-qr-color.svg"]'), 'img retained under the live frame');

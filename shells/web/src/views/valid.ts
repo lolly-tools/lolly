@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
+import { handleVerifyFileAction } from './valid-file-actions.ts';
 import { mountProductionVerify } from './valid-production.ts';
+import { forensicPanelHtml, mountForensicVerify } from './valid-forensics.ts';
 /**
  * /valid - on-device Content Credentials check.
  *
@@ -74,7 +76,6 @@ import { metadataValueHtml, metadataLinkHtml, metadataUrl, wireMetadataLinks, vi
 import { wireVerifyActions } from './valid-actions.ts';
 import { wireAddressRequests } from './valid-location.ts';
 import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
-import { saveReportCard } from './valid-report-card.ts';
 // The C2PA 2.4 text-binding models - same pure-module rule as valid-verdict.ts.
 // The copy for every carrier state, the snippet cap, and the ONE url gate both
 // the paste path and the external-manifest fetch go through, all testable
@@ -714,18 +715,9 @@ function textSignalsHtml(panel: TextSignalPanel | undefined): string {
   const heatbar = panel.heatmap && panel.heatmap.cells.length >= 4
     ? `<div class="valid-tsig-heatbar" role="img" aria-label="${escape(t('Where AI-writing signals concentrate in this text'))}">${panel.heatmap.cells.map((c) => `<i style="--h:${c.heat}"></i>`).join('')}</div><span class="valid-tsig-heatbar-cap">${t('Signal heat across the text, start to end')}</span>`
     : '';
-  // The best-guess source. A leaked FINGERPRINT names the model with confidence; a
-  // STYLE guess (Claude or generic) is hedged and low-confidence, "consistent with".
-  const guess = panel.guessFamily
-    ? (panel.guessConfidence === 'high'
-      ? `<p class="valid-tsig-guess valid-tsig-guess--high">${tRaw('Identified as <strong>{family}</strong> from a leaked model fingerprint.', { family: escape(panel.guessFamily) })}</p>`
-      : `<p class="valid-tsig-guess">${tRaw('Best guess (low confidence): consistent with <strong>{family}</strong> output.', { family: escape(panel.guessFamily) })}</p>`)
-    : '';
-  // The runners-up behind a LOW-confidence guess: showing every family that
-  // scored keeps the winner honest ("leans X over Y", not "is X"). A leaked
-  // fingerprint needs no runners-up, so a high-confidence guess shows none.
-  const cands = panel.guessConfidence === 'low' && (panel.guessCandidates?.length ?? 0) >= 2
-    ? `<p class="valid-tsig-cands">${escape(t('Style comparison across families:'))} ${escape(panel.guessCandidates!.map((c) => `${c.family} ${c.strength}`).join(' · '))}</p>`
+  // A literal marker is observable; style alone cannot identify a generator.
+  const guess = panel.guessConfidence === 'high' && panel.guessFamily
+    ? `<p class="valid-tsig-guess">${tRaw('Observed a token associated with <strong>{family}</strong>. Quotation or copying can explain its presence.', { family: escape(panel.guessFamily) })}</p>`
     : '';
   // Absence of a leaked marker must not read as a failed check: chat apps strip
   // their own scaffolding on copy, so most AI text carries none. Said out loud
@@ -759,7 +751,6 @@ function textSignalsHtml(panel: TextSignalPanel | undefined): string {
             <details class="valid-text-extract-disclosure"><summary>${svgIcon('document')}<span>${t('Extracted text')}</span>${ICON_CHEVRON}</summary>${openText}${extract}</details>
             ${rows ? `<ul class="valid-aidecl-list">${rows}</ul>` : ''}
             ${guess}
-            ${cands}
             ${noMarker}
             ${panel.facts ? tsigFactsHtml(panel.facts) : ''}
           </div>
@@ -1831,14 +1822,16 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
   const counts = receiptCounts(receiptRows);
   const receiptHtml = `
     <div class="valid-receipt" data-lamp-section="receipt">
-      <p class="guide-fact">${escape(tRaw('{ran} checks ran on this device · {not} could not run or did not apply · nothing was fetched.', { ran: counts.ran, not: counts.not }))}</p>
+      <p class="guide-fact">${escape(tRaw('{ran} local checks ran · {not} skipped or unavailable.', { ran: counts.ran, not: counts.not }))}</p>
       <details class="valid-receipt-list"><summary>${escape(t('See every check'))}</summary>
         <ul>${receiptRows.map((r) => r.status === 'ran'
           ? `<li class="valid-receipt-ran">${escape(t(r.name))}</li>`
           : `<li class="valid-receipt-not">${escape(t(r.name))} - <span class="guide-absent">${escape(t(r.why ?? ''))}</span></li>`).join('')}</ul>
       </details>
       <div class="valid-receipt-actions">
-        <button type="button" class="btn" data-report-card data-file-index="${fileIndex}">${svgIcon('seal')}<span>${t('Save a signed report card')}</span></button>
+        <button type="button" class="btn" data-open-unpack data-file-index="${fileIndex}">${svgIcon('layers')}<span>${t('Unpack')}</span></button>
+        <button type="button" class="btn" data-open-prepare data-file-index="${fileIndex}">${svgIcon('shield')}<span>${t('Prepare')}</span></button>
+        <button type="button" class="btn" data-report-card data-file-index="${fileIndex}">${svgIcon('seal')}<span>${t('Save a signed PDF report')}</span></button>
         <button type="button" class="btn" data-add-catalog data-file-index="${fileIndex}">${svgIcon('package')}<span>${t('Keep in Assets with these findings')}</span></button>
       </div>
     </div>`;
@@ -1882,7 +1875,8 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
       ${aiDisclosureHtml(report, identity)}
       </div>
       <div data-lamp-section="signals">
-      ${textSignalsHtml(textSignals)}
+      ${forensicPanelHtml(fileIndex, aiOrigin ? [{ kind: aiOrigin.via === 'fingerprint' ? 'container-hint' : aiOrigin.kind, source: aiOrigin.via === 'fingerprint' ? 'container-signature' : aiOrigin.via, integrity: aiOrigin.via === 'credential' ? report.state === 'valid' ? 'verified' : 'unverified' : 'unsigned', scope: 'document' }] : [])}
+      ${textSignals ? `<details class="valid-text-preflight"><summary>${t('Text preflight details')}</summary>${textSignalsHtml(textSignals)}</details>` : ''}
       ${(preview?.kind === 'image' && (ocrReady || report.format === 'svg')) || report.format === 'pdf' ? `<div class="valid-tsig-ocr">
         <button type="button" class="btn valid-ocr-read" data-ocr-read data-read-kind="${report.format === 'pdf' ? 'pdf' : report.format === 'svg' ? 'svg' : 'image'}" data-file-index="${fileIndex}">${svgIcon('aiSpark')}<span>${report.format === 'pdf' ? t('Read the text in this document') : report.format === 'svg' ? t('Read the text in this vector') : t('Read the text in this image')}</span></button>
         <div class="valid-ocr-result" data-ocr-result hidden></div>
@@ -2086,7 +2080,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
 
       <div class="valid-intake">
         <div class="valid-drop" data-drop tabindex="0" role="button" aria-label="${escape(t('Choose or drop files to verify'))}">
-          <input type="file" multiple accept=".pdf,.pptx,.docx,.png,.apng,.jpg,.jpeg,.gif,.svg,.tif,.tiff,.webp,.avif,.mp4,.m4v,.mov,.m4a,.webm,.mkv,.mp3,.wav,.opus,.html,.htm,.js,.css,.md,.txt,application/pdf,${PPTX_MIME},${DOCX_MIME},image/png,image/jpeg,image/gif,image/svg+xml,image/tiff,image/webp,image/avif,video/mp4,video/webm,video/x-matroska,audio/mp4,audio/mpeg,audio/wav,audio/x-wav,.ogg,audio/ogg,audio/opus,text/*" hidden>
+          <input type="file" multiple accept=".pdf,.ai,.psd,.psb,.xcf,.fig,.penpot,.idml,.pptx,.docx,.png,.apng,.jpg,.jpeg,.gif,.svg,.tif,.tiff,.webp,.avif,.mp4,.m4v,.mov,.m4a,.webm,.mkv,.mp3,.wav,.opus,.html,.htm,.js,.css,.md,.txt,application/pdf,${PPTX_MIME},${DOCX_MIME},image/png,image/jpeg,image/gif,image/svg+xml,image/tiff,image/webp,image/avif,video/mp4,video/webm,video/x-matroska,audio/mp4,audio/mpeg,audio/wav,audio/x-wav,.ogg,audio/ogg,audio/opus,text/*" hidden>
           <span class="valid-drop-icon" aria-hidden="true">${ICON_SHIELD}</span>
           <!-- Two leads, both rendered, one shown per pointer type (valid.css): a coarse
                pointer gets the tap affordance, a mouse keeps the drop sentence. The zone
@@ -2870,6 +2864,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
   // on reportEl, see wireCleanCopy) can re-read the right file's bytes on demand
   // rather than holding every batch's bytes in memory between renders.
   let activeFiles: File[] = [];
+  mountForensicVerify(viewEl, reportEl, host, () => activeFiles);
   mountProductionVerify(viewEl, () => activeFiles, host);
   // Each report's scalar-input digest, same indexing - what a [data-recreate]
   // click (the "Recreate with these settings" CTA) seeds the tool link from.
@@ -3705,8 +3700,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     if (ocr) void readImageText(ocr);
     const ask = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-ask-cred]');
     if (ask) void copyCredentialRequest(ask);
-    const card = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-report-card]');
-    if (card) void saveReportCard(host, card);
+    if (handleVerifyFileAction(e.target, host, activeFiles)) return;
     const keep = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-add-catalog]');
     if (keep) void keepInCatalog(keep);
     const claim = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-claim-sign]');

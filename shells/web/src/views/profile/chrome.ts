@@ -156,6 +156,8 @@ export function wireCleanup(pv: ProfileViewCtx): void {
     pv.offlineRunUnsub = null;
     pv.aiPolicyUnsub?.();
     pv.aiPolicyUnsub = null;
+    pv.trustedSitesUnsub?.();
+    pv.trustedSitesUnsub = null;
   };
 }
 

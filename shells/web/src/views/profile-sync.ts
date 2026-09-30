@@ -17,6 +17,9 @@
 import { t, tRaw, currentLang } from '../i18n.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { escape } from '../utils.ts';
+import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { serviceMark } from '../lib/service-marks.ts';
+import { COLLAPSE_CHEV } from './profile/shared.ts';
 import { announce } from '../a11y.ts';
 import { confirmDialog, choiceDialog } from '../components/confirm-dialog.ts';
 import { navigateTo } from '../nav.ts';
@@ -64,8 +67,9 @@ const bringHereNote = (): string => (isTauriShell()
   ? t('Bringing it here adds the synced data to this device and removes nothing.')
   : t('Bringing it here adds the synced data to this browser and removes nothing.'));
 
-/** The "where can this device sync" list (plans/138 Tier D, WP-S5). */
-function choicesHtml(choices: SyncChoice[], open: boolean): string {
+/** The "where can this device sync" list (plans/138 Tier D, WP-S5): one row per
+ *  sync home, with its mark, why, and either the step that sets it up or its state. */
+function choicesListHtml(choices: SyncChoice[]): string {
   const stateText: Record<SyncChoice['state'], string> = {
     ready: t('Ready'), setup: t('Needs set-up'), planned: t('Planned'), unavailable: t('Not on this device'),
   };
@@ -74,15 +78,25 @@ function choicesHtml(choices: SyncChoice[], open: boolean): string {
   };
   const rows = choices.map((c) => `
     <li class="pconn-choice" data-state="${escape(c.state)}">
-      <span class="pconn-choice-text"><strong>${escape(c.label)}</strong> · ${escape(stateText[c.state])}
+      ${serviceMark(c.id)}
+      <span class="pconn-choice-text"><span class="pconn-choice-name">${escape(c.label)}</span>
         <span class="pconn-note">${escape(c.note)}</span></span>
       ${c.action && (c.state !== 'ready' || c.action === 'storage')
-        ? `<button type="button" class="btn" data-sync-goto="${escape(c.action!)}">${escape(actionText[c.action!])}</button>` : ''}
+        ? `<button type="button" class="btn" data-sync-goto="${escape(c.action!)}" data-sync-kind="${escape(c.id)}">${escape(actionText[c.action!])}</button>`
+        : `<span class="pconn-choice-state">${escape(stateText[c.state])}</span>`}
     </li>`).join('');
-  return `<details class="pconn-cred pconn-sync-choices"${open ? ' open' : ''}>
-      <summary><span class="store-manage-name">${t('Where this device can sync')}</span></summary>
-      <ul class="pconn-choices">${rows}</ul>
-    </details>`;
+  return `<ul class="pconn-choices">${rows}</ul>`;
+}
+
+/** Open a service's row in Connected services, unfolding its group, and move there. */
+function openService(kind: string): void {
+  const row = document.querySelector<HTMLDetailsElement>(`#connections-body [data-pconn="${CSS.escape(kind)}"]`);
+  if (!row) { document.querySelector('#connections-body')?.scrollIntoView({ block: 'start' }); return; }
+  const group = row.closest<HTMLDetailsElement>('[data-pconn-group]');
+  if (group) group.open = true;
+  row.open = true;
+  row.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  row.querySelector<HTMLElement>('summary')?.focus({ preventScroll: true });
 }
 
 /** Fill the section body and wire it. Re-renders itself after every change. */
@@ -99,17 +113,24 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
     body.querySelectorAll<HTMLButtonElement>('[data-sync-goto]').forEach((btn) => {
       btn.addEventListener('click', () => {
         if (btn.dataset.syncGoto === 'storage') { navigateTo('#/profile?focus=storage-section'); return; }
-        document.querySelector('#connections-body')?.scrollIntoView({ block: 'start' });
+        openService(btn.dataset.syncKind ?? '');
       });
     });
   };
 
   const intro = `<p class="storage-hint-text">${isTauriShell() ? t('Keep your projects, brand and settings in step across your devices, through storage you own. Your data goes straight from this device to your storage; no Lolly server ever holds it. Before a newer copy is applied here, a copy of this device is saved, so you can undo it.') : t('Keep your projects, brand and settings in step across your devices, through storage you own. Your data goes straight from this device to your storage; no Lolly server ever holds a copy. Before a newer copy is applied here, this browser’s data is saved, so you can undo the change.')}</p>`;
 
+  // The group's folded value: whether this device syncs.
+  const showOn = (on: boolean): void => {
+    const value = body.closest('details')?.querySelector<HTMLElement>(':scope > summary [data-group-value]');
+    if (value) value.textContent = on ? tRaw('On') : tRaw('Off');
+  };
+  showOn(providers.length > 0 && cfg.enabled);
+
   if (providers.length === 0) {
     body.innerHTML = `${intro}
       <p class="pconn-note">${t('First connect a provider that supports sync in Connected services. This is what works on this device:')}</p>
-      ${choicesHtml(choices, true)}`;
+      ${choicesListHtml(choices)}`;
     wireGoto();
     return;
   }
@@ -173,7 +194,10 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
     </div>
     <div data-sync-restore-list hidden></div>
     <p class="pconn-note">${t('Last synced: {when}', { when: whenText(cfg.lastSyncedAt) })}</p>
-    ${choicesHtml(choices, false)}`;
+    <details class="pconn-sync-choices">
+      <summary class="pconn-sync-choices-sum"><span>${t('Where this device can sync')}</span>${COLLAPSE_CHEV}</summary>
+      ${choicesListHtml(choices)}
+    </details>`;
   wireGoto();
 
   const status = (msg: string): void => {
@@ -251,6 +275,7 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
     const input = e.target as HTMLInputElement;
     if (!input.checked) {
       await saveSyncConfig({ enabled: false });
+      showOn(false);
       announce(t('Disabled'));
       return;
     }
@@ -259,6 +284,7 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
     try {
       if (!(await askFirstJoin())) { input.checked = false; return; }
       await saveSyncConfig({ enabled: true });
+      showOn(true);
       announce(t('Enabled'));
     } catch (err) {
       input.checked = false;

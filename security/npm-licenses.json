@@ -120,6 +120,7 @@
   "@napi-rs/keyring@1.3.0": "MIT",
   "@observablehq/plot@0.6.17": "ISC",
   "@oxc-project/types@0.151.0": "MIT",
+  "@pdf-lib/fontkit@1.1.1": "MIT",
   "@pdf-lib/standard-fonts@1.0.0": "MIT",
   "@pdf-lib/upng@1.0.1": "MIT",
   "@pinojs/redact@0.4.0": "MIT",

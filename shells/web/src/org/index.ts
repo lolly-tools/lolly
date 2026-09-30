@@ -43,6 +43,7 @@ import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onT
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
 import { setExportPolicy } from '../lib/export-policy.ts';
+import { failClosedSitePolicy, setSitePolicy } from '../lib/site-policy.ts';
 import { registerApprovalOpener } from '../lib/approval-request.ts';
 import { registerSessionSource } from '../lib/session-source.ts';
 import { registerNearbyProvider } from '../lib/nearby.ts';
@@ -183,6 +184,20 @@ export interface OrgConfig {
   inboxUnread?: number;
   policyVersion?: string | number;
   branding?: { revision: string; sourceId: string };
+  /** Which sites members may contact (lolly-work plan 58, Lolly plan 288): a mode,
+   *  allow and block rules by id, each rule's reason, whether the member's own list
+   *  is locked and whether the brand's entries apply. Absent ⇒ `open`. */
+  network?: OrgNetworkPolicy;
+}
+
+export interface OrgNetworkPolicy {
+  mode: 'open' | 'ask' | 'allowlist-only' | 'none';
+  allow?: Array<{ entry: string; ruleId?: string }>;
+  block?: Array<{ entry?: string; ruleId?: string }>;
+  memberEntries?: 'allowed' | 'locked';
+  brandDefaults?: 'include' | 'ignore';
+  by?: string;
+  reasons?: Record<string, string>;
 }
 
 /** What initOrg resolves with when a control plane is present. `null` (dormant)
@@ -381,6 +396,29 @@ function applyProfilePolicy(config: OrgConfig | null): void {
  * restrictive) approval path - never fail open. It takes precedence over `config`,
  * which is null in that case anyway.
  */
+/**
+ * Install the organisation's site rules in the neutral lib/site-policy.ts seam (plan
+ * 288, lolly-work plan 58). An instance that sends no `network` leaves the shell open.
+ * Governed and unreachable with no cached copy: no outside site at all, with the reason
+ * shown wherever a site is refused. Each rule's reason is looked up by its id here, so
+ * the seam carries plain entries and words.
+ */
+function applySitePolicy(config: OrgConfig | null, failClosed = false): void {
+  if (failClosed) { setSitePolicy(failClosedSitePolicy(undefined, t("Can't reach your organisation's settings."))); return; }
+  const sites = config?.network;
+  if (!sites) { setSitePolicy(null); return; }
+  const reasons = sites.reasons ?? {};
+  const rule = (r: { entry?: string; ruleId?: string }) => ({ entry: r.entry ?? '', ...(r.ruleId && reasons[r.ruleId] ? { reason: reasons[r.ruleId] } : {}) });
+  setSitePolicy({
+    mode: sites.mode,
+    allow: (sites.allow ?? []).map(rule),
+    block: (sites.block ?? []).map(rule),
+    by: sites.by ?? config?.instance?.name,
+    memberEntries: sites.memberEntries,
+    brandDefaults: sites.brandDefaults,
+  });
+}
+
 function applyExportPolicy(config: OrgConfig | null, failClosed = false): void {
   if (failClosed) { setExportPolicy({ canDownload: false, canRequestApproval: true, chains: {} }); return; }
   if (!config) { setExportPolicy(undefined); return; }
@@ -748,6 +786,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // more restrictive state rather than falling open.
       applyExportPolicy(orgConfigState, failClosed);
       applyInputFailClosed(failClosed);
+      applySitePolicy(orgConfigState, failClosed);
       // Route the instance's injectables (plans/19): tool descriptors into the
       // gallery registry (pure data, beside the apply* group); chrome descriptors
       // are DOM-mounted lazily after emit() below. Dormant when the list is absent.

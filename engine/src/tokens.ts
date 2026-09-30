@@ -27,11 +27,13 @@
  * exactly this, and Penpot round-trips it untouched.
  */
 
-import type { TokenSet, TokenEntry, ColorSwatch, SpotColor } from './bridge/host-v1.ts';
+import type { TokenSet, TokenEntry, ColorSwatch, SpotColor, TokenResolveOptions } from './bridge/host-v1.ts';
 import { parseOklch, oklchToHex } from './brand-derive.ts';
 import { colorCss } from './color-face.ts';
 import { parseColor, colorToHexString } from './css-color.ts';
 import { readFaces } from './color-faces.ts';
+import { tokenSetNames, resolveTokenSelection } from './token-selection.ts';
+import { TOKEN_COMPOSITE_FIELDS, compositeElementType } from './token-composite.ts';
 
 // Vendor extension namespace for Lolly-specific token metadata (CMYK anchors, swatch
 // grouping hints). Defined in its own leaf module so a boot-path importer can take it
@@ -120,9 +122,12 @@ function flattenGroup(
   inheritedType: string | null,
   prefix: string,
   out: Map<string, MutableEntry>,
+  budget = { nodes: 0 },
+  depth = 0,
 ): void {
-  if (!isRecord(node)) return;
+  if (!isRecord(node) || depth > 48) return;
   for (const [key, child] of Object.entries(node)) {
+    if (++budget.nodes > 20000) return;
     if (key.startsWith('$')) continue; // group-level metadata ($type/$description/…)
     if (!isRecord(child)) continue;
     const path = prefix ? `${prefix}.${key}` : key;
@@ -135,142 +140,23 @@ function flattenGroup(
         extensions: isRecord(child.$extensions) ? child.$extensions : null,
       });
     } else {
-      flattenGroup(child, strOrNull(child.$type) ?? inheritedType, path, out);
+      flattenGroup(child, strOrNull(child.$type) ?? inheritedType, path, out, budget, depth + 1);
     }
   }
 }
 
-// The theme entries to COMPOSE for `theme`. Tokens-Studio themes can be grouped into
-// independent AXES via a `group` field (e.g. "mode", "brand", "density"); a single theme
-// entry only enables its OWN axis's sets, so composing just one leaves cross-axis aliases
-// ({alias} into a set another axis enables) dangling. Selection precedence:
-//   1. an explicit `theme` wins for its own group; the DEFAULT (first) theme fills each
-//      OTHER group, so the named theme's cross-axis aliases still resolve;
-//   2. else `$metadata.activeThemes` (Tokens-Studio's "active theme per axis"), if present;
-//   3. else one theme per group (the first of each).
-// A single-theme or single-axis (one `group`) doc composes exactly one theme: the first,
-// unless `activeThemes` names one of them, which is the designer's own ON state and the
-// reason Penpot writes the field at all.
-function chosenThemes(themes: UnknownRecord[], meta: UnknownRecord, theme: string | undefined): UnknownRecord[] {
-  if (themes.length <= 1) return themes;
-  const groupOf = (t: UnknownRecord): string => (typeof t.group === 'string' ? t.group : '');
-  const byGroup = new Map<string, UnknownRecord[]>();
-  for (const t of themes) { const g = groupOf(t); const list = byGroup.get(g); if (list) list.push(t); else byGroup.set(g, [t]); }
-  const activeNames = Array.isArray(meta.activeThemes)
-    ? meta.activeThemes.filter((x): x is string => typeof x === 'string') : [];
-  // A grouped theme can be named in activeThemes as "group/name" as well as bare.
-  const isActive = (t: UnknownRecord): boolean => {
-    const g = groupOf(t);
-    for (const key of ['name', 'id'] as const) {
-      const v = t[key];
-      if (typeof v !== 'string') continue;
-      if (activeNames.includes(v)) return true;
-      if (g && activeNames.includes(`${g}/${v}`)) return true;
-    }
-    return false;
-  };
-  if (byGroup.size <= 1) {
-    if (theme) return [themes.find(t => t.name === theme || t.id === theme) ?? themes[0]!];
-    // No explicit theme: honour the doc's own active theme before falling back
-    // to "the first one wins". Only bites docs that carry activeThemes.
-    if (activeNames.length) {
-      const active = themes.find(isActive);
-      if (active) return [active];
-    }
-    return [themes[0]!];
-  }
+export { tokenSetNames } from './token-selection.ts';
 
-  const requested = theme ? themes.find(t => t.name === theme || t.id === theme) : undefined;
-  if (requested) {
-    const rg = groupOf(requested);
-    const out = [requested];
-    for (const [g, list] of byGroup) if (g !== rg && list[0]) out.push(list[0]);
-    return out;
-  }
-  if (activeNames.length) {
-    const active = themes.filter(isActive);
-    if (active.length) return active;
-  }
-  const out: UnknownRecord[] = [];
-  for (const [, list] of byGroup) if (list[0]) out.push(list[0]);
-  return out.length ? out : [themes[0]!];
-}
-
-/**
- * The top-level keys of `doc` that are token SETS, or `null` when the document
- * is one implicit set (a plain DTCG file, whose top-level keys are groups and
- * therefore part of every token's path).
- *
- * Two signals mark a layered (Tokens-Studio shaped) document, and either is
- * enough:
- *   - a non-empty `$themes` array, or
- *   - a non-empty `$metadata.tokenSetOrder` naming top-level objects.
- *
- * The second is not a nicety. A real Penpot export (2.17.1, `design-tokens/v1`)
- * of a file whose designer never created a theme writes exactly:
- *   `{ "Global": {…}, "$themes": [], "$metadata": { "tokenSetOrder": ["Global"],
- *      "activeThemes": [], "activeSets": ["Global"] } }`
- * That is an EMPTY `$themes` beside a real set. Reading `$themes` alone made "Global"
- * a group, so `brand.primary` flattened to `Global.brand.primary` and no longer
- * joined to the `appliedTokens: {"fill": "brand.primary"}` Penpot writes on the
- * shapes, silently dropping the token-first role proposal back to hex guessing.
- * `tokenSetOrder` is a Tokens-Studio/Penpot key with no DTCG meaning, and every
- * entry is required to name an existing top-level object, so a plain DTCG doc
- * can never be mistaken for a layered one.
- *
- * @param doc a parsed token document.
- * @returns the set keys, or null for a single-implicit-set document.
- */
-export function tokenSetNames(doc: unknown): string[] | null {
-  if (!isRecord(doc)) return null;
-  const setKeys = Object.keys(doc).filter(k => !k.startsWith('$'));
-  if (!setKeys.length) return null;
-  if (Array.isArray(doc.$themes) && doc.$themes.length > 0) return setKeys;
-  const meta = isRecord(doc.$metadata) ? doc.$metadata : null;
-  const order = meta && Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
-  if (order && order.length && order.every(s => typeof s === 'string' && isRecord(doc[s]))) {
-    return setKeys;
-  }
-  return null;
-}
-
-// Which top-level sets are active (and in what order). Unions the selectedTokenSets across
-// every COMPOSED theme (see chosenThemes) so a multi-axis doc resolves fully; a 'source' set
-// counts (it backs alias resolution), 'disabled' does not. Order comes from the global
-// $metadata.tokenSetOrder (later overrides earlier).
-function activeSets(doc: UnknownRecord, theme: string | undefined): string[] {
-  const setKeys = tokenSetNames(doc) ?? [];
-  const meta = isRecord(doc.$metadata) ? doc.$metadata : {};
-  const order = Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
-  const themes = Array.isArray(doc.$themes) ? doc.$themes.filter(isRecord) : null;
-  if (!themes || !themes.length) {
-    // Themeless-but-layered (Penpot's `$themes: []`): tokenSetOrder IS the layering.
-    return order
-      ? order.filter((s): s is string => typeof s === 'string' && setKeys.includes(s))
-      : setKeys;
-  }
-  const active = new Set<string>();
-  for (const t of chosenThemes(themes, meta, theme)) {
-    const sel = isRecord(t.selectedTokenSets) ? t.selectedTokenSets : {};
-    for (const s of setKeys) { const v = sel[s]; if (v && v !== 'disabled') active.add(s); }
-  }
-  let out = setKeys.filter(s => active.has(s));
-  if (!out.length) out = setKeys; // themes name no sets → fall back to all
-  if (order) out = order.filter((s): s is string => typeof s === 'string' && out.includes(s));
-  return out;
-}
-
-function buildMergedMap(doc: UnknownRecord, theme: string | undefined): Map<string, MutableEntry> {
+function buildMergedMap(doc: UnknownRecord, opts: TokenResolveOptions): Map<string, MutableEntry> {
   const out = new Map<string, MutableEntry>();
   if (!tokenSetNames(doc)) {
-    flattenGroup(doc, null, '', out); // whole document is one implicit set
+    flattenGroup(doc, strOrNull(doc.$type), '', out);
     return out;
   }
-  for (const setName of activeSets(doc, theme)) {
-    const setNode = doc[setName];
-    if (isRecord(setNode)) {
-      flattenGroup(setNode, strOrNull(setNode.$type), '', out); // set name is NOT part of the path
-    }
+  const budget = { nodes: 0 };
+  for (const setName of resolveTokenSelection(doc, opts).sets) {
+    const node = doc[setName];
+    if (isRecord(node)) flattenGroup(node, strOrNull(node.$type), '', out, budget);
   }
   return out;
 }
@@ -285,7 +171,7 @@ function resolveAliases(map: Map<string, MutableEntry>): Map<string, MutableEntr
     const e = map.get(path);
     if (!e) return undefined;
     if (e._done) return e.value;
-    if (resolving.has(path)) return e.value; // cycle: stop, keep raw
+    if (resolving.size >= 128 || resolving.has(path)) return e.value; // cycle: stop, keep raw
     resolving.add(path);
     if (isAlias(e.value)) {
       const target = aliasPath(e.value);
@@ -301,19 +187,23 @@ function resolveAliases(map: Map<string, MutableEntry>): Map<string, MutableEntr
           if (e.type == null) { const te = map.get(target); if (te) e.type = te.type; }
         }
       }
-    } else if (e.type === 'gradient' && Array.isArray(e.value)) {
-      let changed = false;
-      const stops = e.value.map((s): unknown => {
-        if (!isRecord(s) || !isAlias(s.color)) return s;
-        const target = aliasPath(s.color);
-        const tv = target != null ? resolve(target) : undefined;
-        // Unresolvable, or a cycle's still-alias value, stays as authored,
-        // exactly like a whole-value alias would.
-        if (tv === undefined || isAlias(tv)) return s;
-        changed = true;
-        return { ...s, color: tv };
-      });
-      if (changed) e.value = stops;
+    } else if (['gradient', 'shadow', 'typography', 'border', 'transition'].includes(e.type ?? '')) {
+      let nodes = 0;
+      const nested = (value: unknown, expected: string | null = e.type, depth = 0): unknown => {
+        if (++nodes > 4096 || depth > 32) return value;
+        if (isAlias(value)) {
+          if (!expected) return value;
+          const target = aliasPath(value)!;
+          const resolved = resolve(target);
+          const actual = map.get(target)?.type;
+          if (actual && actual !== expected) return value;
+          return resolved === undefined || isAlias(resolved) ? value : resolved;
+        }
+        if (Array.isArray(value)) return value.map(v => nested(v, compositeElementType(expected), depth + 1));
+        if (isRecord(value)) return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, nested(v, TOKEN_COMPOSITE_FIELDS[expected ?? '']?.[k] ?? null, depth + 1)]));
+        return value;
+      };
+      e.value = nested(e.value);
     }
     e._done = true;
     resolving.delete(path);
@@ -331,9 +221,9 @@ function resolveAliases(map: Map<string, MutableEntry>): Map<string, MutableEntr
  * @param doc  a DTCG document (or null/garbage → an empty set)
  * @param opts optional theme selection
  */
-export function createTokenSet(doc: unknown, { theme }: { theme?: string } = {}): TokenSet {
+export function createTokenSet(doc: unknown, opts: TokenResolveOptions = {}): TokenSet {
   const map = isRecord(doc)
-    ? resolveAliases(buildMergedMap(doc, theme))
+    ? resolveAliases(buildMergedMap(doc, opts))
     : new Map<string, MutableEntry>();
 
   return {
@@ -374,7 +264,7 @@ export function createTokenSet(doc: unknown, { theme }: { theme?: string } = {})
   };
 }
 
-function toSwatch(e: TokenEntry): ColorSwatch {
+export function toSwatch(e: TokenEntry): ColorSwatch {
   const segs = e.path.split('.');
   const leaf = segs[segs.length - 1] ?? '';
   const extRaw = e.extensions ? e.extensions[TOKEN_EXT] : null;
@@ -557,4 +447,3 @@ function rgbaToHex(r: number, g: number, b: number, a = 1): string {
   const base = `#${h(r)}${h(g)}${h(b)}`;
   return a >= 1 ? base : base + h(a * 255);
 }
-

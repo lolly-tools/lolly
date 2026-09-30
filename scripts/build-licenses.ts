@@ -149,6 +149,17 @@ ${MIT_BODY}
 (The kiwi-schema npm package publishes no LICENSE file; this is the MIT
 license of the upstream project, https://github.com/evanw/kiwi.)`;
 
+// The fontkit fork declares MIT in its README and package metadata but ships no
+// LICENSE file. Its metadata names Andrew Dillon and contributor Devon Govett.
+const PDF_LIB_FONTKIT_TEXT = `MIT License
+
+Copyright (c) Andrew Dillon, Devon Govett and contributors
+
+${MIT_BODY}
+
+(The @pdf-lib/fontkit npm package publishes no LICENSE file; its README declares
+MIT at https://github.com/Hopding/fontkit#license.)`;
+
 // ─── npm components that are DISTRIBUTED to users ────────────────────────────
 // `where: 'web'`  → bundled into the web PWA (engine runtime deps + web deps).
 // `where: 'cli'`  → ships only with the Node CLI shell.
@@ -180,6 +191,7 @@ const NPM_COMPONENTS: NpmComponent[] = [
   // shells/web direct dependencies - bundled into the PWA.
   { pkg: 'dompurify', where: 'web', elect: 'MPL-2.0' },
   { pkg: 'pdf-lib', where: 'web' },
+  { pkg: '@pdf-lib/fontkit', where: 'web', fallbackText: PDF_LIB_FONTKIT_TEXT },
   { pkg: 'dom-to-image-more', where: 'web' },
   { pkg: 'fflate', where: 'web' },
   { pkg: 'flatpickr', where: 'web' },

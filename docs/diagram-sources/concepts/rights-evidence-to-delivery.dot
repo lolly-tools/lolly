@@ -1,0 +1,15 @@
+digraph rights_evidence_to_delivery {
+  rankdir=TB
+  node [shape=box]
+  evidence [label="Evidence\nrecorded source licence"]
+  use [label="Your use\nroute and audience"]
+  obligations [label="Obligation\nreviewed rules"]
+  export [label="Export\nprepared credits"]
+  readback [label="Delivery check\nread finished bytes"]
+  result [label="Credit status\nfound or still needed"]
+  evidence -> obligations
+  use -> obligations
+  obligations -> export
+  export -> readback
+  readback -> result
+}

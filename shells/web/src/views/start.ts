@@ -1,5 +1,6 @@
-import '../styles/parts/design-system-specimen.css';
 // SPDX-License-Identifier: MPL-2.0
+import { mountTokenWorkspace } from '../components/token-workspace.ts';
+import '../styles/parts/design-system-specimen.css';
 /**
  * #/start - the Design System studio (plan 97). This is THE place the design
  * system is set, saved, edited and deleted; the Dashboard's Design-system tab
@@ -164,13 +165,15 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
           <h1 class="start-title">${t('This brand is set')}</h1>
           <p class="start-sub">${t('This build ships with a fixed brand. Explore its usage rules and examples below.')}</p>
         </header>
-        <section data-usage-readonly></section>
+        <section data-token-readonly></section><section data-usage-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
+    const tokenDoc = await host.tokens?.raw?.().catch(() => null);
+    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: 'Design system', context: 'Editable head' });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => usage.teardown();
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); workspace.teardown(); };
     return;
   }
 
@@ -192,13 +195,15 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
             <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
           </p>
         </header>
-        <section data-usage-readonly></section>
+        <section data-token-readonly></section><section data-usage-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
+    const tokenDoc = await host.tokens?.raw?.().catch(() => null);
+    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: active?.label, context: 'Editable head' });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => usage.teardown();
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); workspace.teardown(); };
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
       const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([
         import('../lib/design-system/manage.ts'),

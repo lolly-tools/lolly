@@ -56,6 +56,7 @@ import { PENDING_MS, poseSlideBoxes } from '../lib/slide-pose.ts';
 import { easingPoints, splitPhaseWindowMs } from '../lib/transitions.ts';
 import { MIN_TRANSITION_MS, MAX_TRANSITION_MS } from '../bridge/sequence-plan.ts';
 import { CAPTION_BOX_CLASS } from './timeline-captions.ts';
+import { mountWebFrames, pauseWebFrame, setWebPresenting, stripWebFrames, unmountWebFrames } from '../lib/design-web-mount.ts';
 
 /** How long the HUD stays visible after the last pointer/key wake (the old visualiser panel used 2600). */
 const IDLE_MS = 2600;
@@ -524,6 +525,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   const kiosk = loop || wantsAutoAdvance(source);
   const { specs, pages } = readFrames(source, kiosk);
   if (specs.length === 0) return null; // nothing to present - caller nudges "add frames"
+  setWebPresenting(true); // the editor's web frames unload behind the stage
 
   // The two document-level narration settings the podium honours (plans/180): whether the
   // burned-in captions stay up while a human is speaking, and how long after the last word
@@ -629,6 +631,12 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   hud.append(btnPrev, counter, btnNext, ...(btnPause ? [btnPause] : []),
     ...(btnMute ? [btnMute] : []), btnSpeaker, btnOverview, btnExit);
   stage.appendChild(hud);
+  // Shown only while a web page box has the keyboard (plan 288): keys, a clicker's
+  // included, go to the page until focus comes back to the deck.
+  const btnReturn = el('button', 'pr-embed-return') as HTMLButtonElement;
+  btnReturn.type = 'button';
+  btnReturn.textContent = t('Back to slides');
+  stage.appendChild(btnReturn);
 
   // Kiosk dwell progress - a thin bar that fills over the active frame's dur, then advances.
   const progress = el('div', 'pr-progress');
@@ -1057,7 +1065,77 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
         if (isActive) startNarration(marker); else pauseNarration(marker, i !== active);
       }
     }
+    conductWeb();
   }
+
+  // ---- Web page boxes (plan 288) -----------------------------------------------------
+  // Which slide's pages are live follows each box's own rule (`data-web-load`). Nothing is
+  // ever asked while presenting: a site nobody agreed to shows its poster.
+  const webLoaded = new WeakSet<Element>();
+  const webClicked = new WeakSet<Element>();
+  const webWasCurrent = new WeakSet<Element>();
+  function webShouldBeLive(i: number, marker: HTMLElement): boolean {
+    const current = i === active || inFlight(i);
+    const rule = marker.dataset.webLoad || 'slide';
+    if (rule === 'early') return current || i === walkNext(deck, active, { loop });
+    if (rule === 'keep') return current || webLoaded.has(marker);
+    if (rule === 'click') return current && webClicked.has(marker);
+    return current;
+  }
+  function conductWeb(): void {
+    for (let i = 0; i < cloneByIndex.length; i++) {
+      const page = cloneByIndex[i]!;
+      if (!page.querySelector('.lolly-box-web')) continue;
+      mountWebFrames(page, { mode: 'present', shouldBeLive: (m) => webShouldBeLive(i, m) });
+      const current = i === active || inFlight(i);
+      for (const marker of page.querySelectorAll<HTMLElement>('.lolly-box-web')) {
+        const frame = marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]');
+        if (frame) webLoaded.add(marker);
+        // A kept page stays loaded when its slide is left, but it stops talking over the
+        // next slide: a player is paused the moment its slide stops being current.
+        if (frame && !current && webWasCurrent.has(marker)) pauseWebFrame(frame);
+        if (current) webWasCurrent.add(marker); else webWasCurrent.delete(marker);
+        // "Wait for a click": the poster carries a Load control on its own slide.
+        const waiting = marker.dataset.webLoad === 'click' && i === active && !webClicked.has(marker)
+          && marker.dataset.webState === 'poster';
+        const chip = marker.querySelector('.lolly-box-web-load');
+        if (waiting && !chip) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'lolly-box-web-load';
+          btn.textContent = t('Load page');
+          btn.addEventListener('click', (e) => { e.stopPropagation(); webClicked.add(marker); btn.remove(); conductWeb(); });
+          marker.appendChild(btn);
+        } else if (!waiting && chip) chip.remove();
+      }
+    }
+  }
+
+  // A page that has the keyboard keeps every key from the deck, a clicker's included. The
+  // window's blur says so; "Back to slides" and a click anywhere outside hand them back.
+  let embedFocus = false;
+  function syncEmbedFocus(on: boolean): void {
+    embedFocus = on;
+    stage.classList.toggle('pr-embed-focus', on);
+    if (on) { stage.classList.remove('pr-idle'); if (idleTimer) clearTimeout(idleTimer); }
+    else wake();
+  }
+  const onWindowBlur = (): void => {
+    setTimeout(() => {
+      const el = document.activeElement;
+      syncEmbedFocus(!!el && el.tagName === 'IFRAME' && stage.contains(el));
+    }, 0);
+  };
+  const onWindowFocus = (): void => { if (embedFocus) syncEmbedFocus(false); };
+  // A Lolly tool framed in a box (`?iframe`) forwards a clicker's PageUp/PageDown here
+  // (lib/iframe-mode.ts); arrows stay with the demo, which may need them.
+  const onEmbedKey = (e: MessageEvent): void => {
+    const data = e.data as { type?: unknown; key?: unknown } | null;
+    if (closed || e.origin !== location.origin || data?.type !== 'lolly:deck-key') return;
+    const fromStage = [...stage.querySelectorAll('iframe')].some((f) => f.contentWindow === e.source);
+    if (!fromStage) return;
+    if (data.key === 'PageDown') next(); else if (data.key === 'PageUp') prev();
+  };
 
   // ---- Narration conduct (plans/180 M-E) ---------------------------------------------
   //
@@ -1403,6 +1481,8 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
       // preview drops them outright rather than holding a second copy of the voice track -
       // which would fetch and decode it again, in the popup window as well as this one.
       for (const a of clone.querySelectorAll('[data-narration-audio]')) a.remove();
+      // A preview is a still: a cloned web page frame would load the page again (plan 288).
+      stripWebFrames(clone);
       wrap.appendChild(clone);
     }
     return wrap;
@@ -1801,7 +1881,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   function wake(): void {
     stage.classList.remove('pr-idle');
     if (idleTimer) clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => { if (!overview) stage.classList.add('pr-idle'); }, IDLE_MS);
+    idleTimer = setTimeout(() => { if (!overview && !embedFocus) stage.classList.add('pr-idle'); }, IDLE_MS);
   }
 
   // ---- Input -------------------------------------------------------------------------
@@ -1883,6 +1963,10 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   btnExit.addEventListener('click', () => close());
   framesEl.addEventListener('click', onFramesClick);
   document.addEventListener('keydown', onKey, true);
+  window.addEventListener('blur', onWindowBlur);
+  window.addEventListener('focus', onWindowFocus);
+  window.addEventListener('message', onEmbedKey);
+  btnReturn.addEventListener('click', () => { syncEmbedFocus(false); stage.focus({ preventScroll: true }); });
   stage.addEventListener('pointermove', wake);
   stage.addEventListener('pointerdown', wake);
   stage.addEventListener('focusin', wake);
@@ -1914,6 +1998,9 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     window.removeEventListener('pagehide', close);
     production?.dispose();
     document.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('blur', onWindowBlur);
+    window.removeEventListener('focus', onWindowFocus);
+    window.removeEventListener('message', onEmbedKey);
     window.removeEventListener('resize', onResize);
     if (idleTimer) clearTimeout(idleTimer);
     if (armTimer) clearTimeout(armTimer);
@@ -1938,7 +2025,9 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     htmlEl.style.overflow = prevOverflow;
     if (ownedFullscreen.v && document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     destroyLottiePlayers(stage); // reap OUR players only - lottie-web's global rAF ticks detached trees otherwise
+    unmountWebFrames(stage); // blank each page first, so a playing video stops with the deck
     stage.remove(); // clones (and their media) die with it; originals are untouched
+    setWebPresenting(false); // the editor's own web frames load again
     onClose?.();
   }
 

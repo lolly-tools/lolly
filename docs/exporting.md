@@ -22,6 +22,8 @@ The preview *is* the file. When you export, the host renders that canvas to the 
 
 Three paths produce a file. Most tools **render the canvas** to the chosen format. Text and data formats (HTML, MD, TXT, JSON, CSV, ICS, VCF) are instead **generated from the tool's content**, not rasterised from the picture. And privacy utilities (e.g. *Strip Hidden Data*) use a third path: the file *you* pick is transformed byte-for-byte on device and handed straight back - no canvas, no watermark and no provenance metadata added, because it's already your own file.
 
+![Three export paths converge on a finished file: render the canvas, generate text or data from content, or transform a picked file on device.](/info/diagrams/concepts/three-export-paths.svg)
+
 The actions in the Export panel:
 
 - <!--i:download--> **Download** - save the file (the primary action). If you cannot find it afterwards, see [Find a file you downloaded](/info/find-your-work.html#find-a-file-you-downloaded).

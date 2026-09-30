@@ -26,6 +26,11 @@
  */
 
 import type { InputValue } from '../../../../engine/src/inputs.js';
+import { isTokenValue } from '../../../../engine/src/tokens.ts';
+
+export function historyTokenLinks(model: Array<{ id: string; restoreTokenRef?: string }>, fields: readonly string[]): Record<string, string | null> {
+  return Object.fromEntries(fields.map(id => [id, model.find(item => item.id === id)?.restoreTokenRef ?? null]));
+}
 
 /** One undoable edit: an input's value before and after a single gesture. */
 export interface HistoryEntry {
@@ -37,6 +42,7 @@ export interface HistoryEntry {
   collabStamp?: number;
   /** An atomic command can change several declared inputs together. */
   fields?: string[];
+  tokenLinks?: { before: Record<string, string | null>; after: Record<string, string | null> };
 }
 
 /** Entries kept before the oldest is dropped. */
@@ -204,24 +210,27 @@ export function createHistory(opts: { limit?: number; coalesceMs?: number } = {}
   let holding = false;
 
   return {
-    record({ id, label, before, after, collabStamp, fields }, now) {
-      if (sameValue(before, after)) return 'ignored';
+    record({ id, label, before, after, collabStamp, fields, tokenLinks }, now) {
+      if (sameValue(before, after) && sameValue(tokenLinks?.before ?? null, tokenLinks?.after ?? null)) return 'ignored';
       if (carriesBytes(after) || carriesBytes(before)) return 'ignored';
 
       const last = undoStack[undoStack.length - 1];
       const structural = Array.isArray(before) && Array.isArray(after) && before.length !== after.length;
+      const bindingChange = (isTokenValue(before) ? before.ref : null) !== (isTokenValue(after) ? after.ref : null);
+      const decision = structural || bindingChange;
       let outcome: RecordOutcome;
-      if (!structural && last && lastRecordId === id && JSON.stringify(last.fields) === JSON.stringify(fields) && (holding || now - lastRecordTime < coalesceMs)) {
+      if (!decision && last && lastRecordId === id && JSON.stringify(last.fields) === JSON.stringify(fields) && (holding || now - lastRecordTime < coalesceMs)) {
         last.after = cloneValue(after);   // extend the gesture, keep its original `before`
+        if (tokenLinks) last.tokenLinks = { before: last.tokenLinks?.before ?? { ...tokenLinks.before }, after: { ...tokenLinks.after } };
         outcome = 'coalesced';
       } else {
-        undoStack.push({ id, label, before: cloneValue(before), after: cloneValue(after), ...(collabStamp !== undefined ? { collabStamp } : {}), ...(fields ? { fields: [...fields] } : {}) });
+        undoStack.push({ id, label, before: cloneValue(before), after: cloneValue(after), ...(collabStamp !== undefined ? { collabStamp } : {}), ...(fields ? { fields: [...fields] } : {}), ...(tokenLinks ? { tokenLinks: structuredClone(tokenLinks) } : {}) });
         if (undoStack.length > limit) undoStack.shift();
         outcome = 'pushed';
       }
       // Nothing merges INTO a structural step either: a move made straight after a paste
       // is its own step, so one undo takes back the move and the next takes back the paste.
-      lastRecordId = structural ? null : id;
+      lastRecordId = decision ? null : id;
       lastRecordTime = now;
       redoStack.length = 0;   // a fresh edit breaks the redo chain
       return outcome;

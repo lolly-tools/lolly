@@ -24,6 +24,11 @@ import { VISUAL_TYPES } from '../../lib/asset-kinds.ts';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
 
+export interface AssetDownloadAppearance {
+  theme: IconTheme | null;
+  treatment: PhotoTreatment | null;
+}
+
 // The user's headshot is a user asset but is managed on /profile (and backs
 // profile.headshot) - keep it out of the Catalog grid so it can't be orphaned here.
 export const HEADSHOT_ID = 'user/headshot';
@@ -791,4 +796,3 @@ export interface CropSource {
 export interface CropTransform { rotate: number; quarter: number; skewX: number; skewY: number; flipH: boolean; flipV: boolean }
 /** cropModeActive is an ES module binding now: importers read it live and write it through here. */
 export function setCropModeActive(value: boolean): void { cropModeActive = value; }
-

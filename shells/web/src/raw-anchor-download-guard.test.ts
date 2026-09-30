@@ -61,8 +61,8 @@ test('no module outside shells/web/src/bridge/ assigns .download on an anchor', 
   );
 });
 
-test('bridge/export.ts still owns a real anchor helper (the guard has something to protect)', () => {
-  const src = readFileSync(join(SRC, 'bridge', 'export.ts'), 'utf8');
+test('bridge/anchor-save.ts owns a real anchor helper (the guard has something to protect)', () => {
+  const src = readFileSync(join(SRC, 'bridge', 'anchor-save.ts'), 'utf8');
   assert.match(src, /export function anchorSave\b/, 'anchorSave is the sanctioned fallback the guard points callers at');
   assert.match(src, /\.download\s*=/, 'the one legitimate `.download =` lives here');
 });

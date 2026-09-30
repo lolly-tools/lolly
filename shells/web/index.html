@@ -198,6 +198,12 @@
         var ff = JSON.parse(localStorage.getItem('lolly:featureFlags') || 'null');
         if (ff && ff['perf-ui']) document.documentElement.setAttribute('data-perf-ui', '');
       } catch (e) { /* corrupt cache - boot JS rewrites it */ }
+      // `?iframe` (lib/iframe-mode.ts is canonical; this is its pre-paint mirror): a tool
+      // shown inside another page draws no shell chrome, not even for the first frame.
+      try {
+        var iq = location.hash.indexOf('?');
+        if (new URLSearchParams(location.search).has('iframe') || (iq >= 0 && new URLSearchParams(location.hash.slice(iq + 1)).has('iframe'))) document.documentElement.setAttribute('data-lolly-iframe', '');
+      } catch (e) { /* no URLSearchParams - boot JS sets the attribute */ }
       // Apply the saved language's <html lang> before paint (glyph fallback/Han
       // unification depends on it) - the FOUC-mirror half of i18n.ts's canonical
       // profile.lang store. A hand-inlined alias map + LANG_META.htmlLang mirror

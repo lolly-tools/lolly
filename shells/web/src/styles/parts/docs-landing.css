@@ -128,21 +128,51 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
 .hero-trust span{font-size:.8rem;line-height:1;color:hsl(var(--on-band-dark) / .5);letter-spacing:0}
-/* "Copy agent instructions" (lib/agent-copy.ts): a quiet third action under the two
-   calls to action, for people who hand Lolly to an agent. An outline pill, so it reads
-   as a button without competing with Launch App; the file link beside it is the
-   manual route when the clipboard is refused. */
-.hero-agent{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem 1rem;position:relative;margin:-.6rem 0 2rem}
-.hero-agent-copy{display:inline-flex;align-items:center;gap:.5em;padding:.6rem 1.1rem;border:1px solid hsl(var(--on-band-dark) / .3);border-radius:999px;
-  background:rgba(6,20,14,.3);color:hsl(var(--on-band-dark));font:inherit;font-size:.9375rem;font-weight:600;line-height:1.2;cursor:pointer;
-  transition:background .18s ease,border-color .18s ease}
-.hero-agent-copy:hover{background:rgba(6,20,14,.5);border-color:hsl(var(--on-band-dark) / .5)}
-.hero-agent-copy:focus-visible{outline:2px solid hsl(var(--on-band-dark));outline-offset:3px}
-.hero-agent-copy svg{width:1.1em;height:1.1em;flex:none}
-.hero-agent-copy[data-state="done"]{border-color:hsl(var(--on-band-dark) / .7)}
-.hero-agent-file{font-size:.8125rem;color:hsl(var(--on-band-dark) / .65);text-decoration:underline;text-underline-offset:.2em}
-.hero-agent-file:hover{color:hsl(var(--on-band-dark))}
-@media(prefers-reduced-motion:reduce){.hero-agent-copy{transition:none}}
+/* "AI Instructions" (lib/agent-copy.ts): one outline pill under the two calls to
+   action, for people who hand Lolly to an agent. The whole pill copies; the three icons
+   to the right of the label copy, view and download, each with a tip on hover and on
+   keyboard focus. Quiet on purpose, so it never competes with Launch App. */
+.hero-agent{display:flex;justify-content:center;position:relative;margin:-.6rem 0 2rem}
+.agent-pill{display:inline-flex;align-items:center;gap:.2rem;padding:.25rem .3rem;border:1px solid hsl(var(--on-band-dark) / .3);border-radius:999px;
+  background:rgba(6,20,14,.3);color:hsl(var(--on-band-dark));cursor:pointer;transition:background .18s ease,border-color .18s ease}
+.agent-pill:hover{background:rgba(6,20,14,.45);border-color:hsl(var(--on-band-dark) / .5)}
+.agent-pill[data-state="done"]{border-color:hsl(var(--on-band-dark) / .75)}
+.agent-pill-main{appearance:none;border:0;background:none;color:inherit;font:inherit;font-size:.9375rem;font-weight:600;line-height:1.2;
+  padding:.5rem .55rem .5rem .8rem;border-radius:999px;cursor:pointer;white-space:nowrap}
+.agent-pill-icons{display:inline-flex;align-items:center;gap:.1rem}
+.agent-pill-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;padding:0;border:0;border-radius:999px;
+  background:transparent;color:hsl(var(--on-band-dark) / .8);cursor:pointer;text-decoration:none;transition:background .18s ease,color .18s ease}
+.agent-pill-icon:hover{background:hsl(var(--on-band-dark) / .14);color:hsl(var(--on-band-dark))}
+.agent-pill-icon svg{width:1.05rem;height:1.05rem;flex:none}
+.agent-pill-main:focus-visible,.agent-pill-icon:focus-visible{outline:2px solid hsl(var(--on-band-dark));outline-offset:1px}
+/* The tip: above the icon, on hover and keyboard focus, and never in the way of a click. */
+.agent-pill-icon[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;z-index:2;padding:.3rem .55rem;border-radius:.45rem;
+  background:hsl(var(--on-band-dark));color:#0b1512;font-size:.75rem;font-weight:600;line-height:1.2;white-space:nowrap;pointer-events:none;
+  box-shadow:0 .3em 1em #0004;opacity:0;transform:translate(-50%,4px);transition:opacity .15s ease,transform .15s ease}
+.agent-pill-icon:hover::after,.agent-pill-icon:focus-visible::after{opacity:1;transform:translate(-50%,0)}
+/* The modal the eye opens: the markdown as it will be pasted, on the page's own surface. */
+/* Centred by hand: the page's reset zeroes the margin a modal dialog centres with. */
+.agent-dialog{position:fixed;inset:0;margin:auto;width:min(760px,calc(100vw - 32px));height:fit-content;max-height:min(82vh,860px);padding:0;border:0;border-radius:14px;
+  background:var(--ui-color-surface-canvas,#fff);color:var(--ui-color-text-default,#10231f);box-shadow:0 1.2em 3em #0006;text-align:start}
+.agent-dialog[open]{display:flex;flex-direction:column}
+.agent-dialog::backdrop{background:rgba(4,12,9,.62)}
+.agent-dialog-head{display:flex;align-items:center;gap:.75rem;padding:.6rem .6rem .6rem 1.25rem;border-radius:14px 14px 0 0;
+  background:color-mix(in oklab,currentColor 6%,transparent)}
+.agent-dialog-head h2{flex:1;min-width:0;margin:0;font-size:1.0625rem;font-weight:700;line-height:1.3;color:inherit;text-transform:none;letter-spacing:normal}
+.agent-dialog-tools{display:flex;align-items:center;gap:.15rem}
+.agent-dialog .agent-pill-icon{color:inherit;opacity:.75}
+.agent-dialog .agent-pill-icon:hover,.agent-dialog .agent-pill-icon:focus-visible{opacity:1;background:color-mix(in oklab,currentColor 10%,transparent)}
+.agent-dialog .agent-pill-icon:focus-visible{outline-color:var(--ui-color-focus-ring,currentColor)}
+/* In the header the tips open downward, so the top of the modal never clips them. */
+.agent-dialog .agent-pill-icon[data-tip]::after{bottom:auto;top:calc(100% + 8px);background:#0b1512;color:#fff;transform:translate(-50%,-4px)}
+.agent-dialog .agent-pill-icon:hover::after,.agent-dialog .agent-pill-icon:focus-visible::after{transform:translate(-50%,0)}
+.agent-dialog-status{margin:.5rem 1.25rem 0;font-size:.8125rem;font-weight:600}
+.agent-dialog-status:empty{display:none}
+.agent-dialog-body{flex:1 1 auto;min-height:0;margin:0;padding:1rem 1.25rem 1.25rem;overflow:auto;border:0;background:none;color:inherit;
+  white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;
+  font-family:var(--ui-type-mono-family,var(--font-mono,monospace));font-size:.8125rem;line-height:1.6}
+.agent-dialog-body:focus-visible{outline:2px solid var(--ui-color-focus-ring,currentColor);outline-offset:-2px}
+@media(prefers-reduced-motion:reduce){.agent-pill,.agent-pill-icon,.agent-pill-icon[data-tip]::after{transition:none}}
 .trust-dot{color:hsl(var(--on-band-dark) / .18)!important}
 /* The landing's big call-to-action pill. Its own class, not .btn: /info reads the
    app's buttons.css for its top bar (plan 277 step 3c), and there .btn is the
@@ -1368,7 +1398,6 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 /* ── beat 4b: the lolly.work band ───────────────────────────────────────── */
 .work-section{padding:0 1.5rem 3.5rem}
 .work-inner{max-width:1120px;margin:0 auto;padding:1.5rem 1.6rem;border:1px solid var(--border);border-radius:14px;background:color-mix(in oklab,var(--green) 36%,var(--page))}
-.work-eyebrow{display:block;font-family:'SUSE Mono',monospace;font-size:.75rem;letter-spacing:.08em;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));margin-bottom:.35rem}
 .work-cols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem 2rem;align-items:center}
 .work-heading{font-size:1.25rem;font-weight:800;text-transform:none;letter-spacing:0;margin:0 0 .4rem;text-wrap:balance}
 .work-body{margin:0;color:var(--band-primary);max-width:62ch;font-size:.95rem}

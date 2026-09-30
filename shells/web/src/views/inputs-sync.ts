@@ -15,6 +15,7 @@
  */
 import { matchesShowIf } from '../../../../engine/src/inputs.ts';
 import type { InputControl, InputValue, ShowIf } from '../../../../engine/src/inputs.ts';
+import { isTokenValue } from '../../../../engine/src/tokens.ts';
 
 /** The slice of an input model item this module reads. */
 export interface SyncableInput {
@@ -23,6 +24,7 @@ export interface SyncableInput {
   control: InputControl;
   group?: string;
   showIf?: ShowIf;
+  restoreTokenRef?: string;
 }
 
 // Controls whose entire value lives in one [data-input-id] element's .value, so
@@ -171,7 +173,10 @@ export function canSkipInputsRebuild(el: HTMLElement, model: SyncableInput[], pr
   for (const input of model) {
     const prev = prevById.get(input.id);
     if (!prev) return false;
+    if (prev.restoreTokenRef !== input.restoreTokenRef) return false;
     if (prev.value === input.value) continue;        // unchanged (incl. same object ref)
+    // Link actions and diagnostics can change while the scalar editor stays equal.
+    if (isTokenValue(prev.value) || isTokenValue(input.value)) return false;
     if (!domReflectsValue(el, input)) return false;  // changed but not already shown → rebuild
   }
   return true;

@@ -40,6 +40,8 @@ export interface ModalHandle<T> {
 }
 
 export interface ModalOptions<T> {
+  /** Mount in a styled container instead of body; navigation still tears the dialog down. */
+  container?: HTMLElement;
   /** Class name(s) set on the `<dialog>` element, e.g. `'modal'`, `'share-dialog'`. */
   className: string;
   ariaLabel?: string;
@@ -75,7 +77,7 @@ export function mountModal<T = void>(content: string, opts: ModalOptions<T>): Mo
   dlg.className = opts.className;
   if (opts.ariaLabel) dlg.setAttribute('aria-label', opts.ariaLabel);
   dlg.innerHTML = content;
-  document.body.appendChild(dlg);
+  (opts.container ?? document.body).appendChild(dlg);
 
   let settled = false;
   /** This dialog's place on the shared Back stack (lib/overlay-back.ts), set once

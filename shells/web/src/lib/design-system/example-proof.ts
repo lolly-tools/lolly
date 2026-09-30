@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { HostV1, TokenResolveOptions } from '@lolly-tools/core/host-v1';
 import type { BrandSystemV1 } from '@lolly-tools/core/brand-system-v1';
 import { brandRuleDisposition, checkBrandRules, constrainBrandPoster, type BrandExample, type BrandFacts } from '../../../../../engine/src/brand-rules.ts';
 import type { InputValue } from '../../../../../engine/src/inputs.ts';
@@ -77,11 +77,11 @@ function layoutFacts(root: HTMLElement): ExampleCheck {
 }
 
 /** Every run starts fresh and binds mounted observations to the bytes it produces. */
-export async function renderBrandExample(base: HostV1, doc: unknown, system: BrandSystemV1, mode: string, id: BrandExample, text: ExampleText, signal: AbortSignal, packagePoster = false, include?: ReadonlySet<string>) {
-  const example = await brandExample(id, doc, system, mode, text);
+export async function renderBrandExample(base: HostV1, doc: unknown, system: BrandSystemV1, mode: string, id: BrandExample, text: ExampleText, signal: AbortSignal, packagePoster = false, include?: ReadonlySet<string>, tokenOptions?: TokenResolveOptions) {
+  const example = await brandExample(id, doc, system, mode, text, tokenOptions);
   const tool = await getTool(example.toolId);
-  const sourceSha256 = await digest({ doc, mode, values: example.values, system, template: id });
-  const host = createDraftHost(base, example.renderDoc, mode);
+  const sourceSha256 = await digest({ doc, mode, tokenOptions, values: example.values, system, template: id });
+  const host = createDraftHost(base, example.renderDoc, tokenOptions ?? mode);
   let inputs: Record<string, InputValue> = {};
   let fonts: ExampleFont[] = [], checks: ExampleCheck[] = [], rules = checkBrandRules(system, doc, { tool: id, mode, output: 'png' }, {});
   let compiled: CompiledDesignTool | undefined;

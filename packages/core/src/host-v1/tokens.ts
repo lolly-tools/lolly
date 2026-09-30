@@ -2,13 +2,73 @@
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
+export interface TokenResolveOptions {
+  theme?: string;
+  /** One source theme id per source group. Empty group ids use the empty string. */
+  selection?: Record<string, string>;
+}
+
+export interface TokenDiagnostic {
+  code: 'selection' | 'missing' | 'cycle' | 'type' | 'unsupported' | 'limit';
+  path: string;
+  message: string;
+}
+
+export interface TokenSelection {
+  groups: { id: string; options: { id: string; name: string }[] }[];
+  choices: Record<string, string>;
+  defaults: string[];
+  sets: string[];
+  diagnostics: TokenDiagnostic[];
+}
+
+export interface TokenSource {
+  set: string | null;
+  /** JSON Pointer into the retained source document. */
+  location: string;
+  type: string | null;
+  value: unknown;
+  active: boolean;
+  description?: string;
+  extensions?: Record<string, unknown>;
+}
+
+export interface TokenTrace {
+  path: string;
+  type: string | null;
+  authored: unknown;
+  resolved: unknown;
+  source: TokenSource | null;
+  candidates: TokenSource[];
+  references: string[];
+  usedBy: string[];
+  /** Portable declarations in this document, not observed or policy-checked usage. */
+  declaredConsumers?: {
+    roleId: string;
+    label: string;
+    bindings: { id: string; tool?: string; slot: string; modes?: string[] }[];
+  }[];
+  diagnostics: TokenDiagnostic[];
+}
+
+export interface TokenInspection {
+  selection: TokenSelection;
+  tokens: TokenTrace[];
+  diagnostics: TokenDiagnostic[];
+  truncated: boolean;
+  /** Counts cover token references and declared roles in this document only. */
+  scope: 'token-document';
+}
+
 export interface TokensAPI {
   /** The resolved token set for the active (or named) theme. */
-  get(opts?: { theme?: string }): Promise<TokenSet>;
+  get(opts?: TokenResolveOptions): Promise<TokenSet>;
   /** Colour tokens as picker-ready swatches. */
-  colors(opts?: { theme?: string }): Promise<ColorSwatch[]>;
+  colors(opts?: TokenResolveOptions): Promise<ColorSwatch[]>;
   /** Resolve a `{dotted.path}` alias (or bare path) to its concrete value. */
-  resolve(ref: string, opts?: { theme?: string }): Promise<unknown>;
+  resolve(ref: string, opts?: TokenResolveOptions): Promise<unknown>;
+  /** Resolution evidence for all retained sets, including inactive definitions. */
+  inspect?(opts?: TokenResolveOptions): Promise<TokenInspection>;
   /** Theme names declared in the document. */
   themes(): Promise<{ name: string; group: string | null }[]>;
   /**
@@ -60,6 +120,9 @@ export interface TokensSnapshot {
    * the host holds no token definitions (geometry still exports).
    */
   document: unknown;
+  /** Optional shell projection for rendering, such as isolated pinned font families.
+   * Portable writers retain `document`; worker renderers prefer this projection. */
+  renderDocument?: unknown;
   /** The active design system, or null where the host names none. Mirrors `active()`. */
   system: DesignSystemSummary | null;
   /**
@@ -75,7 +138,7 @@ export interface TokensSnapshot {
    * single name a URL/`get({theme})` pinned, when one was. An exporter passes this
    * straight to the writer so the file's active selection matches the render.
    */
-  selection: { activeThemes?: string[]; activeSets?: string[]; theme?: string | null };
+  selection: { activeThemes?: string[]; activeSets?: string[]; theme?: string | null; choices?: Record<string, string> };
 }
 
 /**

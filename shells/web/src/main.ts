@@ -24,6 +24,8 @@ import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
 import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
+import { initTrustedSites } from './lib/trusted-sites.ts';
+import { applyIframeModeAttr, forwardDeckKeys, isIframeMode } from './lib/iframe-mode.ts';
 import { hydrateChromeFollow } from './lib/chrome-follow.ts';
 import { computeViewportInsets } from './lib/viewport-insets.ts';
 import { initI18n, loadedLang } from './i18n.ts';
@@ -64,6 +66,7 @@ import { installDepthSeam } from './lib/depth-seam.ts';
 import { recordTool, recordBatch, bumpMetric, recordFormat } from './metrics.ts';
 import { announce } from './a11y.ts';
 import { beginViewFade } from './view-fade.ts';
+import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
 import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView } from './lib/back-nav.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
@@ -85,7 +88,12 @@ function installCollabWiring(): void {
     .then(m => { m.installNearbyBoot(); return import('./collab/nearby-accept.ts'); })
     .then(m => m.installNearbyAccept());
 }
-onWindowLoad(installCollabWiring);
+// A tool shown with `?iframe` inside another page keeps nothing and joins nothing
+// (lib/iframe-mode.ts): no collab or nearby listeners in a frame.
+applyIframeModeAttr();
+if (!isIframeMode()) onWindowLoad(installCollabWiring);
+// ...and a framed tool on a Design slide passes a clicker's PageUp/PageDown to the deck.
+if (isIframeMode()) forwardDeckKeys();
 // Publish window.__lollyDepth, the seam the spatial-photo tool asks for a depth
 // map through (plans/160). Progressive enhancement in both directions: with no
 // seam the tool renders the flat photo, and with DEPTH_STAGED false the seam
@@ -299,6 +307,7 @@ let _lastDocsPage: string | null = null;
 // Signature of the route currently mounted - used to drop a redundant re-navigate to the
 // SAME route (a single tool open fires hashchange AND popstate → two navigates). See navigate().
 let mountedRouteSig = '';
+let routeLoading: ViewLoading | null = null;
 
 // Announce client-side route changes (the view swaps via innerHTML, which
 // assistive tech wouldn't otherwise notice).
@@ -363,7 +372,8 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   if (outgoing?._beforeLeave && !await outgoing._beforeLeave()) return;
   const prevSig = mountedRouteSig;
   mountedRouteSig = routeSig;
-  if (routeSig !== prevSig) recordFeaturedRoute(route);
+  routeLoading?.close();
+  if (routeSig !== prevSig && !isIframeMode()) recordFeaturedRoute(route);
 
   // Remember the view being left so the next view's back pill can name it and
   // return there (lib/back-nav.ts). Only on a genuine view change: the routes
@@ -460,10 +470,17 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // Any failure mounting the route must NOT leave the (already-cleared) view blank:
   // a stale lazy chunk reloads onto the fresh shell; any other mount error shows a
   // Reload card. See recoverFromStaleShell / showReloadCard below.
+  // Start before the lazy import: first-time downloads need feedback too.
+  const scriptedExport = new URLSearchParams('params' in route ? route.params ?? '' : '').has('export');
+  const browsingBoot = !prevRouteName && (route.name === 'gallery' || route.name === 'utilities');
+  // A framed tool (`?iframe`) shows no loading dialog: a modal takes the keyboard from
+  // the page around it, which is a presenting deck's arrow keys.
+  const loading = scriptedExport || browsingBoot || isIframeMode() ? null : beginViewLoading();
+  routeLoading = loading;
   try {
   switch (route.name) {
     case 'tool': {
-      recordTool(route.toolId); // local usage metric (profile page)
+      if (!isIframeMode()) recordTool(route.toolId); // local usage metric (profile page); a framed tool is not a visit
       // Lazy-load the tool view (the largest) so it stays out of the cold-load
       // bundle every gallery/catalog visitor pays for before first paint. Same
       // dynamic-import pattern as the other views; idle-prefetched below so the
@@ -736,6 +753,9 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     if (import.meta.env.PROD && looksLikeChunkError(err)) { recoverFromStaleShell(); return; }
     showReloadCard('This view didn’t finish loading. Reload to try again.');
     return;
+  } finally {
+    loading?.close();
+    if (routeLoading === loading) routeLoading = null;
   }
 
   // The mount settled: its document.title is set and any URL canonicalisation
@@ -775,7 +795,9 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
 
   announceRoute(route.name);
   const af = document.activeElement;
-  if (!af || af === document.body || af === view) {
+  // A framed tool (`?iframe`) never takes focus on its own: the page around it owns the
+  // keyboard, and a deck presenting it would lose its arrow keys to the demo on load.
+  if (!isIframeMode() && (!af || af === document.body || af === view)) {
     view.setAttribute('tabindex', '-1');
     view.focus({ preventScroll: true });
   }
@@ -1223,6 +1245,9 @@ async function boot(): Promise<void> {
   // Accessibility prefs ride the profile the same way (localStorage is only
   // their FOUC mirror, applied by the index.html inline script) - reconcile.
   hydrateA11yPrefs(profile.a11y);
+  // Trusted sites (plan 288) are read once here; web page boxes and the Sandbox ask
+  // lib/trusted-sites.ts synchronously from then on.
+  void initTrustedSites(host);
   // Same for "Interface follows the design system" (plans/182 section 5.6). The
   // chrome accent above is applied off the device mirror, unordered with this
   // read; a profile that disagrees repaints once, through the same painter.
@@ -1318,7 +1343,7 @@ async function boot(): Promise<void> {
   const neuroDemo = peekNeuroDemo();
   const neuroState = (profile as { neurospicy?: unknown }).neurospicy !== undefined
     || (profile as { atmosphere?: unknown }).atmosphere !== undefined;
-  if (neuroState || neuroDemo) {
+  if ((neuroState || neuroDemo) && !isIframeMode()) {
     void Promise.all([import('./lib/neurospicy.ts'), import('./lib/atmosphere.ts')]).then(([neuro, atmo]) => {
       neuro.hydrateNeurospicy((profile as { neurospicy?: unknown }).neurospicy);
       atmo.hydrateAtmosphere((profile as { atmosphere?: unknown }).atmosphere);
@@ -1410,7 +1435,7 @@ async function boot(): Promise<void> {
   // the components/featured-row.ts pattern) - same work, after the paint that matters.
   // It also refreshes pinned tool files and downloaded offline parts, so it waits for
   // the first-run welcome to close as well.
-  catalogReady.then(() => afterWelcomeIdle(() => { void syncCorePrefetch(host as unknown as Parameters<typeof syncCorePrefetch>[0]); }));
+  if (!isIframeMode()) catalogReady.then(() => afterWelcomeIdle(() => { void syncCorePrefetch(host as unknown as Parameters<typeof syncCorePrefetch>[0]); }));
   // Hosted design systems (plans/186 section 3.6): once a day, and when the tab
   // comes back to the front after a day away, ask each host whether its design
   // system moved. Idle-scheduled and best-effort - a host that is away, or a
@@ -1419,6 +1444,7 @@ async function boot(): Promise<void> {
   // Neither the check nor that repaint belongs behind the first-run welcome, so both
   // callers below go through its gate.
   const checkHosted = (): void => {
+    if (isIframeMode()) return;
     void welcomeSettled().then(() => import('./lib/design-system/hosted.ts')).then(async m => {
       const outcomes = await m.checkHostedDesignSystems(host as unknown as Parameters<typeof m.checkHostedDesignSystems>[0]);
       const activeId = await (host as unknown as { designSystems?: { activeId(): Promise<string> } }).designSystems?.activeId();
@@ -1437,7 +1463,7 @@ async function boot(): Promise<void> {
   // on first use, against the synced catalog. Without the gate this line pulled the
   // chunk back onto every boot, since the flag is ON by default for everyone.
   catalogReady.then(async () => {
-    if (!neuroState || !flagEnabledSync('neurospicy')) return;
+    if (!neuroState || isIframeMode() || !flagEnabledSync('neurospicy')) return;
     const m = await import('./lib/neurospicy.ts');
     m.invalidateNeurospicyTracks();
     // Now that the real track list has landed, heal a persisted selection pointing at an

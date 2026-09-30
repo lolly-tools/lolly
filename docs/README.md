@@ -90,6 +90,7 @@ security posture).
 | [Design tool contract](design-tool-contract.md) | Builders | Rules, compilation, packages and immutable revisions |
 | [overview.md](overview.md) | contributor | **The architecture document.** The three-layer separation (engine, shells, tool/brand packs), the capability-bridge boundary, the repository layout, the ten architectural commitments, and where the engine ends and the host begins. Opens with the product rationale, so use its navigation note to jump straight to the architecture. |
 | [design-tokens.md](design-tokens.md) | tool author | The DTCG token model as the single source of truth for brand primitives, and what round-trips with Penpot and Tokens Studio. |
+| [token-workflows.md](token-workflows.md) | tool author | Retained source inspection, independent choices, typed links, scale recipes and reviewed upstream updates. |
 | [glossary.md](glossary.md) | end user | The words Lolly uses with exact meanings (engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab) and what each is not. Read before the architecture page or CLAUDE.md. |
 | [document-model.md](document-model.md) | contributor | The front door of the document model draft: what a Lolly document is, what is decided, what is open and what is not built. The draft itself is its own web document, built from `spec/document-model/` by `spec-pages.ts` to /info/spec/document-model/ and browsed in the app at #/document-model. |
 | [constraints.md](constraints.md) | end user | The constraints concept page: why output comes out right by construction, with the mechanism, the enforcing tests and the limits. |
@@ -168,6 +169,7 @@ The fifth pathway, and the one the other four link into whenever a claim needs i
 | [beatrice-warde.md](beatrice-warde.md) | end user | The typographer whose 1932 lines this project adapted, what we changed, and who she was. |
 | [shoulders-of-giants.md](shoulders-of-giants.md) | end user | The open source projects Lolly is built from, named and thanked - the free-desktop lineage first, then sound, type, maps, models and the toolchain. |
 | [verify-yourself.md](verify-yourself.md) | security | Falsifiable procedures with exact commands and expected output for the privacy and security claims. |
+| [verify-ai-evidence.md](verify-ai-evidence.md) | security | Located evidence, coverage and review notes in Verify, with limits on authorship conclusions. |
 | [security-verification.md](security-verification.md) | security | A reviewer's summary of the cryptography behind Content Credentials, verification and encryption, and the tests behind each claim. |
 | [threat-model.md](threat-model.md) | security | Trust boundaries, the residual-risk register, what is explicitly *not* a boundary, and the commands to verify each claim. An index into module headers, with file and line for every row. |
 | [parser-inventory.md](parser-inventory.md) | security | Every engine module that turns attacker-controlled bytes into structure, with its declared bounds, its test, and its fuzz status. |

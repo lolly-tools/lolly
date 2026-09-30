@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
+import { prepareInputPanel } from './tool-input-model.ts';
+import { flattenValue } from '../../../../engine/src/inputs.ts';
 import { scrollToControl, focusSidebarBlock, toggleBlock } from '../lib/sidebar-focus.ts';
-import { prepareDesignInputs, isDesignInputVisible } from '../lib/design-tool-input-errors.ts';
 /**
  * Tool view - input subsystem.
  *
@@ -57,8 +58,9 @@ import { icon, hasIcon, type IconName } from '../lib/icons.ts';
 // Generic per-input display policy (empty/no-op unless a deployment's control plane
 // has populated it via src/org/) - a rendering overlay only; the engine input model
 // stays the single source of truth.
-import { getInputPolicy } from '../lib/input-policy.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
+import { policyLocksControl } from '../lib/input-policy.ts';
+export { policyLocksControl } from '../lib/input-policy.ts';
 import {
   nestingActive,
   nestingConfig,
@@ -317,23 +319,6 @@ function patchEditedBlockPreview(panel: PanelEl): void {
 }
 
 /**
- * Whether an input's control should render fully LOCKED (inert + read-only) under a
- * given policy. `locked` always locks; a `choice` locks every control EXCEPT a
- * select - a select narrows its options instead, but a non-enumerable control
- * (text, slider, colour…) has no in-UI "restrict to a set", so it locks to its
- * value and the server enforces the allow-set. Pure - exported for tests.
- */
-export function policyLocksControl(
-  control: InputModelItem['control'],
-  policy: InputPolicy | undefined
-): boolean {
-  if (!policy) return false;
-  if (policy.mode === 'locked') return true;
-  if (policy.mode === 'choice') return control !== 'select';
-  return false;
-}
-
-/**
  * The fine-print line naming the policy that governs a control - "why is this
  * locked?", answered where the question is asked. `''` whenever there is nothing
  * to attribute: an ungoverned control, a governed one whose policy names no
@@ -517,14 +502,9 @@ export function renderInputs(
   onDirty?: (id: string) => void,
   toolId?: string
 ): void {
-  [runtime,model] = prepareDesignInputs(runtime,model,el);
-  el._emojiInputsDispose?.();
-  // Generic input-policy overlay for the mounted tool (empty/no-op by default).
-  const policyFor = (id: string): InputPolicy | undefined => getInputPolicy(toolId, id);
-  const modelValues: Record<string, InputValue> = Object.fromEntries(
-    model.map((i) => [i.id, i.value])
-  );
-  const panelModel = model.filter(i => isDesignInputVisible(runtime,i,modelValues,policyFor(i.id)?.mode === 'hidden'));
+  const prepared = prepareInputPanel(el, runtime, model, host, toolId);
+  ({ runtime, model, host } = prepared);
+  const { policyFor, modelValues, panelModel } = prepared;
 
   // The block-row handlers below build the value they commit from the input's
   // CURRENT rows, and they must read those rows from the RUNTIME, not this
@@ -648,7 +628,7 @@ export function renderInputs(
     const cls = `input-row${isCheckbox ? ' input-row--checkbox' : ''}${isPill ? ' input-row--pill' : ''}${isStaticLabel ? ' input-row--static-label' : ''}${input.control === 'textarea' ? ' input-row--multiline' : ''}${isSubControl(input, prev) ? ' input-row--sub' : ''}`;
     const valueTag =
       input.control === 'slider'
-        ? ` <span class="input-value">${parseFloat(String(input.value ?? 0))}</span>`
+        ? ` <span class="input-value">${parseFloat(String(flattenValue(input.value) ?? 0))}</span>`
         : '';
     const labelId = `irow-label-${escape(input.id)}`;
     // Help moves behind an info button (see help-tip.js). The label id rides on the
@@ -2712,6 +2692,7 @@ function controlHtml(
   attachedHtml = ''
 ): string {
   const id = escape(input.id);
+  input = { ...input, value: flattenValue(input.value) };
   const val = escape(input.value ?? '');
   switch (input.control) {
     case 'textarea':

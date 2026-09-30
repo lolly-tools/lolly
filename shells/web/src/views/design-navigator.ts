@@ -226,6 +226,7 @@ function kindWord(kind: string): string {
     case 'table': return t('Table');
     case 'tool': return t('Tool');
     case 'anim': return t('Animation');
+    case 'web': return t('Web page');
     default: return t('Layer');
   }
 }

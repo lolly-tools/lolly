@@ -114,7 +114,7 @@ async function runCheck(el: HTMLElement, s: Slot): Promise<void> {
   if (!est) { el.remove(); return; }
   if (est.probAi < est.threshold) {
     // The run happened and was inconclusive - said plainly, claimed as nothing.
-    el.textContent = t('The on-device detector found nothing conclusive in this text.');
+    el.textContent = tRaw('Local classifier score {score}/100 across {windows} windows. The score did not cross the evidence threshold and is not a calibrated probability. Coverage: {coverage}.', { score: Math.round(est.probAi * 100), windows: est.windows?.length ?? 0, coverage: est.complete ? 'complete' : 'partial' });
     return;
   }
   const enriched = applyModelEstimate(analyzeTextSignals(s.text, { source: s.source }), est);

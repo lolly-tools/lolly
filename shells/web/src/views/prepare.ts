@@ -13,6 +13,7 @@ import { mountHomeFab } from '../components/home-fab.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { mountProfileFab } from '../components/profile-menu.ts';
 import { t } from '../i18n.ts';
+import { takePendingUtility } from '../lib/utility-handoff.ts';
 import '../styles/parts/platform.css';   // .plat-header / .plat-title / .plat-sub
 
 export function mountPrepare(view: HTMLElement & { _cleanup?: () => void }, host: HostV1): void {
@@ -34,6 +35,7 @@ export function mountPrepare(view: HTMLElement & { _cleanup?: () => void }, host
   mountThemeFab(view.querySelector('.gallery-topright'), host);
   mountProfileFab(view.querySelector('.gallery-topright'), host);
   const detachLang = attachLangMenu(view.querySelector<HTMLElement>('.lang-fab'), host);
-  const dispose = mountPreparationPanel(view.querySelector<HTMLElement>('[data-prepare-root]')!, host, [], { dock: true });
+  const file = takePendingUtility('prepare');
+  const dispose = mountPreparationPanel(view.querySelector<HTMLElement>('[data-prepare-root]')!, host, file ? [file] : [], { dock: true });
   view._cleanup = () => { dispose(); detachLang(); };
 }

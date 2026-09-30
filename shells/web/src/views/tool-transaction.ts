@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Grouped input changes use the same history and collab fences as ordinary edits. */
-import type { InputValue } from '../../../../engine/src/inputs.ts';
+import type { InputValue, InputWriteOptions } from '../../../../engine/src/inputs.ts';
 import type { HistoryEntry, HistoryModel } from './tool-history.ts';
-import { cloneValue, sameValue } from './tool-history.ts';
+import { cloneValue, sameValue, historyTokenLinks } from './tool-history.ts';
 import { collabHistoryStamp, collabHistoryValue } from '../lib/collab-undo.ts';
 interface TransactionRuntime {
-  getModel(): Array<{ id: string; value: InputValue }>;
-  applyPatch(values: Record<string, unknown>): Promise<void>;
+  getModel(): Array<{ id: string; value: InputValue; restoreTokenRef?: string }>;
+  applyPatch(values: Record<string, unknown>, options?: InputWriteOptions): Promise<void>;
 }
 export async function commitToolTransaction(runtime: TransactionRuntime, history: HistoryModel,
   values: Record<string, unknown>, label: string, typingGroup?: string): Promise<void> {
@@ -14,13 +14,14 @@ export async function commitToolTransaction(runtime: TransactionRuntime, history
   const fields = Object.keys(values).sort();
   if (fields.some(id => !model.has(id))) throw new Error('A command names an unknown input.');
   const before = Object.fromEntries(fields.map(id => [id, cloneValue(model.get(id)!)]));
+  const beforeLinks = historyTokenLinks(runtime.getModel(), fields);
   if (!typingGroup) history.endGesture();
   const pending = runtime.applyPatch(values);
   // The engine admits all input values before awaiting hooks. Refused/read-only
   // writes therefore cannot enter history as if they had succeeded.
   const next = new Map(runtime.getModel().map(item => [item.id, item.value]));
   const after = Object.fromEntries(fields.map(id => [id, cloneValue(next.get(id)!)]));
-  history.record({ id: `@command:${typingGroup ?? label}`, label, before, after, fields, collabStamp: collabHistoryStamp(runtime) }, Date.now());
+  history.record({ id: `@command:${typingGroup ?? label}`, label, before, after, fields, tokenLinks: { before: beforeLinks, after: historyTokenLinks(runtime.getModel(), fields) }, collabStamp: collabHistoryStamp(runtime) }, Date.now());
   if (!typingGroup) history.endGesture();
   await pending;
 }

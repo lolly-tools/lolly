@@ -51,7 +51,7 @@ export function verifyReceiptModel(i: ReceiptInput): ReceiptCheck[] {
   ];
 
   if (i.textAnalysed) {
-    rows.push({ name: 'Text analysis (style, boilerplate, census)', status: 'ran' });
+    rows.push({ name: 'Text preflight (style, boilerplate, census)', status: 'ran' });
     rows.push(i.pixelSourced
       ? { name: 'Hidden-character check', status: 'blocked', why: 'the text was read from pixels, so byte-level characters were lost before we saw them' }
       : { name: 'Hidden-character check', status: 'ran' });
@@ -59,13 +59,13 @@ export function verifyReceiptModel(i: ReceiptInput): ReceiptCheck[] {
       ? { name: 'Lolly reword watermark', status: 'ran' }
       : { name: 'Lolly reword watermark', status: 'blocked', why: 'the reword pack is not installed on this deploy' });
     rows.push(i.detectorStaged
-      ? { name: 'On-device detector model', status: 'ran' }
+      ? { name: 'On-device detector model', status: 'na', why: 'available here; see AI evidence coverage for checks run' }
       : { name: 'On-device detector model', status: 'blocked', why: 'no detector model is staged on this deploy' });
   } else if (i.textReadable) {
-    rows.push({ name: 'Text analysis', status: 'na', why: 'not run yet - use the Read-the-text action above' });
+    rows.push({ name: 'Text preflight', status: 'na', why: 'not run - choose Read text in More; AI evidence has its own coverage' });
     if (!i.ocrReady) rows.push({ name: 'Text recognition (OCR)', status: 'blocked', why: 'the text-recognition model is not installed' });
   } else {
-    rows.push({ name: 'Text analysis', status: 'na', why: 'this file type carries no readable text' });
+    rows.push({ name: 'Text preflight', status: 'na', why: 'this file type carries no readable text' });
   }
 
   rows.push({

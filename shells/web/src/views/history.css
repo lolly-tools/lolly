@@ -70,7 +70,7 @@
 
 /* Each date anchors the timeline; its calendar and count remain when folded. */
 .app-history-day { margin-block-end: 1.5rem; }
-.app-history-day-summary { display: flex; align-items: center; gap: 1rem; padding: .9rem 1rem; cursor: pointer; list-style: none; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised); transition: background var(--ui-motion-feedback); }
+.app-history-day-summary { display: flex; align-items: center; gap: 1rem; padding: .9rem 1rem; cursor: pointer; list-style: none; box-shadow:var(--ui-elevation-panel); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised); transition: background var(--ui-motion-feedback); }
 .app-history-day-summary:hover { background: var(--ui-color-surface-muted); }
 .app-history-day-summary::-webkit-details-marker, .app-history-period > summary::-webkit-details-marker, .app-history-date-filter > summary::-webkit-details-marker { display: none; }
 .app-history-day-summary:focus-visible, .app-history-period > summary:focus-visible, .app-history-date-filter > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
@@ -80,14 +80,14 @@
 .app-history-day-heading { flex: 1; min-width: 0; }
 .app-history-day-heading h2 { font-size: var(--ui-type-heading); line-height: 1.2; letter-spacing: -.025em; margin: 0 0 .25rem; }
 .app-history-day-date { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); line-height: 1.5; }
-.app-history-day-count { flex: none; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); padding: .4rem .65rem; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-pill); }
+.app-history-day-count { flex: none; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); padding: .4rem .65rem;  border-radius: var(--ui-radius-pill); }
 .app-history-day-chevron { display: inline-flex; justify-content: center; align-items: center; flex: none; width: 2rem; height: 2rem; border-radius: var(--ui-radius-round); color: var(--ui-color-text-muted); rotate: -90deg; transition: rotate var(--ui-motion-feedback); }
 .app-history-day[open] > summary > .app-history-day-chevron, .app-history-period[open] > summary > .app-history-day-chevron { rotate: 0deg; }
 .app-history-day-entries { margin-inline-start: 2.75rem; padding: 1rem 0 .1rem 1.5rem; border-inline-start: 1px solid var(--ui-color-border-default); }
 .app-history-day-entries > * { position: relative; }
 .app-history-day-entries > *::before { content: ''; position: absolute; inset-inline-start: calc(-1.5rem - 5px); top: 2.2rem; width: 9px; height: 9px; border: 2px solid var(--ui-color-surface-canvas); border-radius: var(--ui-radius-round); background: var(--ui-color-selection-border); }
 
-.app-history-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 1.1rem; padding: 1rem; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-canvas); margin-block-end: .75rem; transition: border-color var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback); }
+.app-history-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 1.1rem; padding: 1rem; box-shadow: var(--ui-elevation-control); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-canvas); margin-block-end: .75rem; transition: border-color var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback); }
 .app-history-row:hover, .app-history-row:focus-within { border-color: var(--ui-color-selection-border); box-shadow: var(--ui-edge-faint), var(--ui-elevation-control); }
 .app-history-cover { position: relative; width: 100%; height: 94px; display: grid; place-items: center; overflow: hidden; background: var(--ui-color-surface-muted); border-radius: var(--ui-radius-control); color: var(--ui-color-text-muted); }
 .app-history-cover > .app-history-icon svg { width: 2rem; height: 2rem; stroke-width: 1.4; }

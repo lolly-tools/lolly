@@ -83,6 +83,7 @@ import { parseRateCard, isRateCardError } from '../engine/src/rate-card.ts';
 // under a signed catalog an unsigned file is indistinguishable from an injected one.
 import { CATALOG_SIGNED_TEMPLATE_FILE } from '../engine/src/catalog-integrity.ts';
 import { LANGS } from '../engine/src/lang.ts';
+import { normaliseTrustedSite } from '../engine/src/trusted-sites.ts';
 // Shared-hook-region drift guard - the writer (pnpm run sync:shared) and this
 // check share one parser (same import-without-side-effect pattern as
 // entryFromManifest above), so "what sync writes" and "what CI accepts" can't
@@ -1708,6 +1709,20 @@ if (assetsIndex.defaultFavourites !== undefined) {
       if (typeof id !== 'string' || !assetById.has(id)) {
         errors.push(`assets/index.json: defaultFavourites entry "${id}" is not a known asset id`);
       }
+    }
+  }
+}
+
+// A brand's trusted-site defaults (plan 288) must each be an entry the shared grammar
+// accepts, already in its stored form, so what the brand wrote is what a profile trusts.
+if (assetsIndex.defaultTrustedSites !== undefined) {
+  if (!Array.isArray(assetsIndex.defaultTrustedSites)) {
+    errors.push(`assets/index.json: "defaultTrustedSites" must be an array of site entries`);
+  } else {
+    for (const entry of assetsIndex.defaultTrustedSites) {
+      const stored = normaliseTrustedSite(entry);
+      if (!stored) errors.push(`assets/index.json: defaultTrustedSites entry "${entry}" is not a site entry (example.com, *.example.com or an https URL prefix)`);
+      else if (stored !== entry) errors.push(`assets/index.json: defaultTrustedSites entry "${entry}" should be written "${stored}"`);
     }
   }
 }

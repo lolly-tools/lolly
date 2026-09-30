@@ -21,7 +21,7 @@ import { isTauriShell } from '../../lib/instance-choice.ts';
 import { getFieldPolicy } from '../../lib/field-policy.ts';
 import { updatesRowHtml } from '../profile-updates.ts';
 import { backHomeHtml } from '../../components/back-pill.ts';
-import { DEFAULT_HEADSHOT, FIELD_LABELS, NAV_SECTIONS, pulseHighlight, skeletonRow, summaryRow, visibleProfileSections } from './shared.ts';
+import { DEFAULT_HEADSHOT, FIELD_LABELS, NAV_SECTIONS, groupSummaryRow, pulseHighlight, skeletonRow, summaryRow, visibleProfileSections } from './shared.ts';
 import { bindOp, type ProfileViewCtx } from './context.ts';
 
 /** The whole page markup in one write: the nav rail and every settings card. */
@@ -185,17 +185,29 @@ export function renderShell(pv: ProfileViewCtx): void {
         </div>
       </details>
 
-      ${/* Sync across devices is a sub-block of this card, not a card of its own: it
-           syncs THROUGH the providers connected right above it, so the two were
-           always one subject. Both bodies mount lazily when the card opens. */''}
+      ${/* Sync across devices is the last group of this card, not a card of its own:
+           it syncs THROUGH the storage services grouped right above it, so the two
+           were always one subject. Both bodies mount lazily when the card opens;
+           an old ?focus=sync-section link opens this group too. */''}
       <details class="profile-card profile-collapse" id="connections-section"${pv.rows.startOpen('connections-section')}>
         ${summaryRow('connections-section', t('Connected services'))}
         <div class="profile-collapse-body section-card-body">
           <div id="connections-body">${skeletonRow()}</div>
-          <div class="storage-subsection">
-            <div class="storage-subsection-header"><h3>${t('Sync across devices')}</h3></div>
-            <div id="sync-body">${skeletonRow()}</div>
-          </div>
+          <details class="pconn-group" data-pconn-group="sync"${pv.focusSync ? ' open' : ''}>
+            ${groupSummaryRow(t('Sync across devices'))}
+            <div class="pconn-group-body" id="sync-body">${skeletonRow()}</div>
+          </details>
+        </div>
+      </details>
+
+      ${/* Trusted sites (plan 288): the one list that answers "may Lolly contact this
+           site without asking me?" for the Sandbox and for Design's web page boxes.
+           The body is built by wireTrustedSites and repaints on every change. */''}
+      <details class="profile-card profile-collapse" id="trusted-sites-section"${pv.rows.startOpen('trusted-sites-section')}>
+        ${summaryRow('trusted-sites-section', t('Trusted sites'))}
+        <div class="profile-collapse-body section-card-body">
+        <p class="profile-appearance-sub">${t("Sites Lolly may contact without asking first: the fonts and scripts a Sandbox demo loads, and the pages Design shows on a slide. Trusting a site removes a question. A site the app's security policy blocks stays blocked.")}</p>
+        <div id="trusted-sites-body"></div>
         </div>
       </details>
 

@@ -44,7 +44,10 @@ export const TAURI_CSP = [
   "font-src 'self' asset: http://asset.localhost https: data: blob:",
   "worker-src 'self' blob:",
   "child-src 'self' blob:",
-  "frame-src 'self' blob:",
+  // Web page boxes in Design (plan 288): the desktop app may frame any https page and
+  // this machine's own dev servers. connect-src above already reaches https:, so a frame
+  // opens no new way for data to leave.
+  "frame-src 'self' blob: https: http://localhost:* http://127.0.0.1:*",
   "object-src 'none'",
   "base-uri 'none'",
   "form-action 'none'",

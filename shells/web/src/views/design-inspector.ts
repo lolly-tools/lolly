@@ -117,6 +117,12 @@ import type { AppearIntent, AppearMode } from '../lib/motion-model.ts';
 import { auditMountedDesign } from './design-mounted-audit.ts';
 import type { MountedDesignAudit, MountedFontStyle } from './design-mounted-audit.ts';
 import { mountedDesignFindingMessage } from './design-audit-copy.ts';
+import { mountDesignTokenBindings } from './design-token-bindings.ts';
+import type { BlockFieldSpec } from '../../../../engine/src/inputs.ts';
+import { parseWebEmbed } from '../../../../engine/src/web-embed.ts';
+import { consentToLink, policyNote, trustEntryFor, webSiteVerdict } from '../lib/design-web-mount.ts';
+import { canTrustMore, onTrustedSitesChange, trustSite } from '../lib/trusted-sites.ts';
+import { trustedSiteHost } from '../../../../engine/src/trusted-sites.ts';
 
 /** The dock slot this column lives in - the app's one right sidebar. */
 const DOCK_ID = 'inspector';
@@ -137,7 +143,7 @@ const DOCK_ID = 'inspector';
  * to be sub-headings inside Object.
  */
 export type InspectorSection =
-  | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'motion' | 'present'
+  | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'web' | 'motion' | 'present'
   | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide';
 
 /**
@@ -263,6 +269,7 @@ export interface DesignInspectorOpts {
   resolveFont?: (style: MountedFontStyle, text: string) => Promise<boolean>;
   /** The manifest's `boxes` field declarations - the source of every select's options. */
   fields?: unknown[];
+  tokens?: { host: HostV1; metadataField: string; commit?: (rows: Box[], label: string) => void | Promise<void> };
   /** Open on mount (the host decides from viewport width + its device-local memory). */
   initiallyOpen?: boolean;
   onOpenChange?(open: boolean): void;
@@ -375,6 +382,8 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   // and `lane` above: the Design manifest declares `scene` as a machine-written field
   // with no `canvas` key of its own, so there is no cfg name to read it through.
   scene: () => ['scene'],
+  // The web page box (plan 288): its link, layout width, load rule and poster.
+  web: (c) => ['web', 'webView', 'webLoad', c.imageField],
   // `build` and `lane` have no cfg key of their own (the manifest names them literally,
   // as `notes` and `cls` are named), and the Appears control is derived from all four of
   // build/start/dur/lane - so a build step written anywhere else has to move this memo.
@@ -416,6 +425,7 @@ const SECTION_META: Record<InspectorSection, { title: () => string; glyph: IconN
   // section glyph for Start, Collection, Lighting and Arrangement, so the studio and
   // the door onto it wear one picture.
   scene: { title: () => t('3D scene'), glyph: 'box', band: 'content' },
+  web: { title: () => t('Web page'), glyph: 'globe', band: 'content' },
   motion: { title: () => t('Motion'), glyph: 'animate', band: 'presence' },
   // `play` now means playback and nothing else. A slide's build, notes and
   // transition are what it is like to BE presented, which is the speech glyph.
@@ -444,7 +454,7 @@ export const SECTIONS_KEY = 'lolly-design-inspector-sections';
 const DEFAULT_OPEN: Record<InspectorSection, boolean> = {
   document: true, guide: true, artboard: true, object: false, fill: true, appearance: false,
   shadow: false, tilt: false, arrange: false,
-  text: true, image: true, scene: true, motion: false, present: false,
+  text: true, image: true, scene: true, web: true, motion: false, present: false,
 };
 
 /** The remembered state, section by section. Storage can be absent or refuse. */
@@ -536,6 +546,8 @@ function sceneSummary(query: string): { subject: string; studio: string } {
 }
 
 export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorHandle {
+  let tokenDisposers: (() => void)[] = [];
+  const tokenUiState = new Map<string, { open?: boolean; field?: string }>();
   const { canvasEl, model, selection, artboard, actions, fonts, narration } = opts;
   let voiceList: SpeechVoiceInfo[] | null = null;   // the bridge's voices, fetched once per column
   let mountedAudit: MountedDesignAudit | null = null;
@@ -569,6 +581,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   const m4: FlagFields = { trans: F_TRANS, hidden: F_HIDDEN, locked: F_LOCKED };
   /** The 3D scene field (plan 265 milestone 3), or undefined on a tool without one. */
   const F_SCENE = declaredField('scene');
+  /** The web page box's link field (plan 288), or undefined on a tool without one. */
+  const F_WEB = declaredField('web');
   const F_NAME = declaredField(cfg.labelField ?? frame?.labelField ?? 'name');
 
   // ── the column ──────────────────────────────────────────────────────────────
@@ -741,6 +755,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // shadows and arrives on its slide like the rest of them. Gated on the field the
     // manifest declares, so a canvas tool with no `scene` field grows no empty header.
     if (kindOf(box) === '3d' && F_SCENE) secs.push('scene');
+    // A web page box's section carries its poster door, so it never also takes Image.
+    else if (kindOf(box) === 'web' && F_WEB) secs.push('web');
     else if (cfg.imageField && box[cfg.imageField]) secs.push('image');
     secs.push('object', ...paintSecs(true));
     secs.push('motion');
@@ -1491,6 +1507,54 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * paint groups, Motion - because a scene box is an ordinary box that happens to paint
    * through a renderer.
    */
+  /**
+   * A WEB PAGE box (plan 288): its link, what that link shows, how the page is laid
+   * out, and when it loads while presenting. Every rule about the link is
+   * engine/src/web-embed.ts; this reads its answer back in words.
+   */
+  function webBody(b: Box): string {
+    const link = String(fv(b, F_WEB) ?? '').trim();
+    const embed = link ? parseWebEmbed(link, { appOrigin: location.origin }) : null;
+    const shows = !link ? t('No link yet')
+      : !embed ? t('This link cannot be shown in a box')
+        : embed.refuses ? t('{label}: the site does not allow being shown inside other pages', { label: embed.label })
+          : embed.label;
+    const view = Math.max(0, Math.round(clampN(fv(b, 'webView'), 0, 0, 3840)));
+    const views: Array<[string, string]> = [['0', t('Box size')], ['1280', t('Desktop (1280)')], ['1024', t('Tablet (1024)')], ['390', t('Phone (390)')]];
+    if (!views.some(([v]) => Number(v) === view)) views.push([String(view), t('{n} px wide', { n: view })]);
+    return textRow(t('Link'), 'web', link, 'https://…')
+      + readRow(t('Shows'), shows)
+      + `<label class="fc-row"><span>${t('Lay out as')}</span><select class="field-select field-select--sm" data-fld="webView" data-kind="num">`
+      + views.map(([v, l]) => opt(v, l, String(view))).join('') + '</select></label>'
+      + selectRow(t('When presenting'), 'webLoad', [
+        ['slide', t('With its slide')], ['early', t('One slide early')],
+        ['keep', t('Keep running')], ['click', t('Wait for a click')],
+      ], String(fv(b, 'webLoad') ?? '') || 'slide')
+      + (embed && !embed.sameOrigin ? siteRows(embed) : '')
+      + doorBtn(cfg.imageField && b[cfg.imageField] ? t('Change poster') : t('Choose poster'), 'pickimage', 'image')
+      + (embed?.kind === 'lolly'
+        ? doorBtn(embed.provider === 'sandbox' ? t('Edit in Sandbox') : t('Edit in the tool'), 'webedit', 'code')
+          + doorBtn(t('Refresh poster'), 'webposter', 'refresh')
+        : embed ? doorBtn(t('Open in new tab'), 'webopen', 'externalLink') : '');
+  }
+
+  /** Whether the site a web box contacts is trusted, and by whom, with "Always trust"
+   *  beside a site nobody has decided about (plan 288 D5: double-clicking the box on the
+   *  canvas loads it just this time). */
+  function siteRows(embed: NonNullable<ReturnType<typeof parseWebEmbed>>): string {
+    const verdict = webSiteVerdict(embed);
+    if (verdict.state === 'blocked') return readRow(t('Site'), policyNote(embed));
+    if (verdict.state === 'trusted') {
+      const by = verdict.source === 'organisation'
+        ? (verdict.by ? t('Trusted by {org}', { org: verdict.by }) : t('Trusted by your organisation'))
+        : verdict.source === 'brand' ? t('Trusted by your brand') : t('Trusted by you');
+      return readRow(t('Site'), by);
+    }
+    const entry = trustEntryFor(embed);
+    return readRow(t('Site'), t('Not trusted yet'))
+      + (entry && canTrustMore() ? doorBtn(t('Always trust {host}', { host: trustedSiteHost(entry) }), 'webtrust', 'shieldCheck') : '');
+  }
+
   function sceneBody(b: Box): string {
     const query = String(fv(b, F_SCENE) ?? '');
     const { subject, studio } = sceneSummary(query);
@@ -1705,6 +1769,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (sec === 'text') return textBody(b, g.rows);
     if (sec === 'image') return imageBody(b);
     if (sec === 'scene') return sceneBody(b);
+    if (sec === 'web') return webBody(b);
     if (sec === 'motion') return motionBody(b, g.kind === 'frame');
     return presentBody(b, g.kind === 'frame');
   }
@@ -1724,6 +1789,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function focusKey(node: Element | null): string | null {
     if (!node || !scroll.contains(node)) return null;
     const d = (node as HTMLElement).dataset;
+    const tokenSection = node.closest<HTMLElement>('[data-token-section]');
+    if (tokenSection) return `[data-token-section="${q(tokenSection.dataset.tokenSection)}"] ${node.hasAttribute('data-design-token-property') ? '[data-design-token-property]' : 'summary'}`;
     const seg = node.closest<HTMLElement>('.fc-seg');
     if (seg && d?.v != null) return `.fc-seg[data-seg="${q(seg.dataset.seg)}"] .fc-seg-btn[data-v="${q(d.v)}"]`;
     for (const attr of ['fld', 'doc', 'nf', 'dm', 'mp', 'arr', 'act', 'head'] as const) {
@@ -1736,8 +1803,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   let textMounted: ReturnType<typeof mountTextInspector> | null = null;
   function render(g: Gate): void {
-    textMounted?.destroy(); textMounted = null;
     const keep = focusKey(typeof document !== 'undefined' ? document.activeElement : null);
+    tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = [];
+    textMounted?.destroy(); textMounted = null;
     renderedIds = [...g.ids];
     renderedGuideId = g.kind === 'guide' ? g.guide.id : null;
     // The number cells go with the markup that held them: their listeners are on nodes
@@ -1805,6 +1873,14 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const textSlot = scroll.querySelector<HTMLElement>('[data-composed-inspector]');
     if (textSlot && actions.text) textMounted = mountTextInspector(textSlot, g.ids, actions.text, fonts);
     wire();
+    if (opts.tokens && g.ids.length) for (const sec of g.secs) {
+      if (sec === 'text' && g.rows.some(row => row.textStory)) continue;
+      const parent = scroll.querySelector<HTMLElement>(`[data-rows="${sec}"]`);
+      if (!parent || parent.hasAttribute('data-deferred')) continue;
+      const slot = document.createElement('div'); slot.dataset.tokenSection = sec; parent.append(slot);
+      if (!tokenUiState.has(sec)) tokenUiState.set(sec, {});
+      tokenDisposers.push(mountDesignTokenBindings(slot, { ...opts.tokens, model, ids: [...g.ids], fields: fieldDefs as BlockFieldSpec[], fieldIds: WATCHED[sec](cfg, m4), state: tokenUiState.get(sec) }));
+    }
     if (g.secs.includes('document')) scheduleMountedAudit();
     // Put the user back on the control they were operating. `preventScroll` because a
     // restore is not a navigation: scrolling the column to it would move the rows the
@@ -1844,6 +1920,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * labelled as a box edit.
    */
   function write(field: string | undefined, value: unknown): void {
+    // A link the person typed here is theirs to load (plan 288): agreed before the paint
+    // that follows mounts the frame.
+    if (field === F_WEB && F_WEB && typeof value === 'string') consentToLink(value);
     if (renderedGuideId && field === 'guide-snap') {
       opts.guides?.update(renderedGuideId, { snap: Boolean(value) });
       return;
@@ -1864,6 +1943,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       return;
     }
     model.setField([...renderedIds], field, value);
+    // A new link for a Lolly or Sandbox web box brings its own picture: a poster that was
+    // the old link's render (or none) follows the link; one the person chose stays.
+    if (field === F_WEB && F_WEB) actions.refreshWebPoster?.([...renderedIds], true);
   }
 
   /** Is every row this column is showing an artboard? (No frame primitive ⇒ never.) */
@@ -1901,7 +1983,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     });
 
     scroll.querySelectorAll<HTMLSelectElement>('select[data-fld]').forEach((sel) => {
-      sel.addEventListener('change', () => write(sel.dataset.fld, sel.value));
+      sel.addEventListener('change', () => write(sel.dataset.fld, sel.dataset.kind === 'num' ? Number(sel.value) : sel.value));
     });
 
     // The DOCUMENT's own settings (plans/180's narration inputs, and the captions flag).
@@ -1991,6 +2073,21 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           // other door here: the studio round trip is asynchronous, and the selection can
           // move while it is open.
           case 'editscene': actions.openStudio(ids); break;
+          // A web page box's link, opened as the person gave it (the watch page, not the
+          // embed form; a Sandbox link opens the Sandbox itself, where the code can change).
+          case 'webedit': actions.editWebTool?.(ids); break;
+          case 'webposter': actions.refreshWebPoster?.(ids, false); break;
+          case 'webtrust': {
+            const embed = parseWebEmbed(String(fv(boxesById(ids)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin });
+            const entry = embed ? trustEntryFor(embed) : null;
+            if (entry) void trustSite(entry);
+            break;
+          }
+          case 'webopen': {
+            const link = String(fv(boxesById(ids)[0] ?? {}, F_WEB) ?? '').trim();
+            if (/^(https?:)?\/\//i.test(link) || /^[a-z0-9.-]+\.[a-z]{2,}/i.test(link)) window.open(/^https?:/i.test(link) ? link : `https://${link.replace(/^\/\//, '')}`, '_blank', 'noopener,noreferrer');
+            break;
+          }
           case 'timeline': actions.openTimeline('animate', ids[0] ?? ''); break;
           // Back to the deck's own transition. '' is the manifest default and the value
           // the players read as "follow the document", so clearing it is the whole verb.
@@ -2054,6 +2151,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    */
   function signature(g: Gate): string {
     const watched: unknown[] = [documentView, g.rows.map(row => fv(row, F_NAME)), model.getInput('editingRange'), opts.videoWorkspace?.() === true, g.kind === 'guide' ? g.guide : null, model.getInput('documentUnit')];
+    if (opts.tokens) watched.push(g.rows.map(row => row[opts.tokens!.metadataField]));
     for (const sec of g.secs) {
       // EVERY selected row, not just the first. A paint group's cells read them all to
       // decide whether to show a number or "Mixed", so a change to the second box's
@@ -2172,6 +2270,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     document.removeEventListener('keyup', settle, true);
     document.removeEventListener('scroll', settle, true);
   }
+
+  // A site trusted from the pre-flight, /profile or this section repaints its Site row.
+  const offTrust = onTrustedSitesChange(() => sync(true));
 
   function sync(force = false): void {
     if (destroyed) return;
@@ -2341,9 +2442,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       head?.focus();
     },
     destroy(): void {
+      tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = [];
       textMounted?.destroy();
       if (destroyed) return;
       destroyed = true;
+      offTrust();
       returnFocus = null;
       for (const h of numMounted) h.destroy();
       numMounted = [];

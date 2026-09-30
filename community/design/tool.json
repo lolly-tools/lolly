@@ -2,8 +2,8 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.39.1",
-  "engineVersion": "^1.231.0",
+  "version": "1.41.0",
+  "engineVersion": "^1.238.0",
   "status": "community",
   "category": "designer",
   "tags": [
@@ -368,6 +368,7 @@
       "id": "boxes",
       "urlKey": "bx",
       "type": "blocks",
+      "tokenBindingsField": "tokenLinks",
       "label": "Boxes",
       "labelledFields": true,
       "addMenu": {
@@ -605,6 +606,19 @@
               "h": 640,
               "scene": "source=primitive&primitive=badge&studio=dramatic"
             }
+          },
+          {
+            "id": "web",
+            "label": "Web page",
+            "seed": {
+              "kind": "web",
+              "w": 960,
+              "h": 540,
+              "bg": "",
+              "shape": "rounded",
+              "text": "",
+              "web": ""
+            }
           }
         ],
         "textDocumentInput": "textDocument",
@@ -660,6 +674,11 @@
             {
               "value": "3d",
               "label": "3D scene",
+              "repeatable": true
+            },
+            {
+              "value": "web",
+              "label": "Web page",
               "repeatable": true
             }
           ]
@@ -2290,6 +2309,46 @@
             }
           ],
           "help": "Set paragraph direction for mixed-script punctuation. Alignment is controlled separately."
+        },
+        {
+          "id": "tokenLinks",
+          "type": "text",
+          "label": "Token links",
+          "default": "",
+          "showFor": [],
+          "help": "Property token references, cached values and local override state. Appended to preserve earlier compact URL field positions."
+        },
+        {
+          "id": "web",
+          "type": "text",
+          "label": "Web page",
+          "default": "",
+          "showFor": [],
+          "help": "For a WEB PAGE box (plan 288): the link as it was given - a Sandbox or other Lolly tool link, a video or code-playground share link, or any https page. What the frame loads is derived from it when the box is shown (engine/src/web-embed.ts), so a provider change never rewrites the document. The box's image is its poster, drawn in every export. Appended: the compact-blocks URL wire format is append-only."
+        },
+        {
+          "id": "webView",
+          "type": "number",
+          "label": "Lay out as",
+          "default": 0,
+          "min": 0,
+          "max": 3840,
+          "showFor": [],
+          "help": "For a WEB PAGE box: the width, in CSS pixels, the page is laid out at before it is scaled into the box (1280 desktop, 1024 tablet, 390 phone). 0 lays it out at the box's own size."
+        },
+        {
+          "id": "webLoad",
+          "type": "select",
+          "label": "When presenting",
+          "default": "slide",
+          "showFor": [],
+          "options": [
+            { "value": "slide", "label": "With its slide" },
+            { "value": "early", "label": "One slide early" },
+            { "value": "keep", "label": "Keep running" },
+            { "value": "click", "label": "Wait for a click" }
+          ],
+          "help": "For a WEB PAGE box: when the page loads while presenting. With its slide loads it when the slide appears and unloads it after; One slide early starts it a slide ahead; Keep running holds its state for the rest of the talk; Wait for a click shows the poster until the presenter clicks."
         }
       ],
       "default": [

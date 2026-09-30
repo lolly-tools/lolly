@@ -17,10 +17,13 @@ import { collabHistoryStamp } from '../../lib/collab-undo.ts';
 import { annotateTemplate, diffDocuments, expandQuery, hasEncryptedState, inspectDocument, measureDocument, parseUrlState } from '@lolly/engine';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
+import { buildInputModel, tokenRestoreRefsOf } from '../../../../../engine/src/inputs.ts';
 import { createInteractiveToolRuntime as createRuntime } from '../../lib/mount-runtime.ts';
 import { attachCollabPlumbing } from '../../lib/collab-plumbing.ts';
 import { getCollabSessionSource } from '../../lib/collab-session-source.ts';
 import { takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
+import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
+import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { captureNeutralPinned } from '../../lib/capture-neutral.ts';
 import { migrateBlockRowIds } from '../../lib/row-id.ts';
 import { installDocumentSurface } from '../../lib/document-surface.ts';
@@ -28,7 +31,7 @@ import { prepareToolDesignSystemContext } from '../tool-design-system-context.ts
 import { fpsTick, startFrameFps, stopFrameFps } from '../../lib/frame-fps.ts';
 import { takeAutomationExportPassword } from '../../lib/automation-export-secret.ts';
 import { inferDesignIntent } from '../design-workspace.ts';
-import { createHistory } from '../tool-history.ts';
+import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
 import { autoOpenToolGuide, showToolGuide } from '../../components/tool-guide.ts';
 import { collectBulkFiles } from '../../lib/bulk-files.ts';
@@ -89,7 +92,10 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   // path in this view and in the tool's own actions is looking at one object. One-shot
   // and null for every mount that is not an ephemeral collab, which is all of them
   // until somebody accepts an invite.
-  const ephemeralState = takeEphemeralState(toolId); tview.ephemeralState = ephemeralState;
+  // A tool shown with `?iframe` inside another page (lib/iframe-mode.ts) rides the same
+  // interception point with a store of its own: nothing it does reaches this device's
+  // slots, history or recovery, exactly as for a collab acceptor.
+  const ephemeralState = takeEphemeralState(toolId) ?? (isIframeMode() ? createMemoryStateAPI() : null); tview.ephemeralState = ephemeralState;
   // The bridge as it was BEFORE the swap, kept because exactly one thing still needs the
   // real store on an acceptor's mount: a beam they were asked about and accepted. section 11.17
   // is about their borrowed copy of the inviter's document; a gift is not that, and section 6.4
@@ -170,8 +176,9 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   } = openedSession.url;
   tview.values = values;
   tview.urlFormat = urlFormat;
-  tview.autoExport = autoExport;
-  tview.autoCopy = autoCopy;
+  // A framed tool never downloads or copies on load: the page around it asked for a picture.
+  tview.autoExport = autoExport && !isIframeMode();
+  tview.autoCopy = autoCopy && !isIframeMode();
   tview.routeSlot = routeSlot;
   tview.urlFilename = urlFilename;
   tview.urlLicence = urlLicence ?? null;
@@ -191,7 +198,7 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   tview.urlDepth = urlDepth;
   tview.urlVideo = urlVideo;
   tview.urlDesignSystem = urlDesignSystem;
-  const automationPassword = await takeAutomationExportPassword(Boolean(autoExport), urlPassword); tview.automationPassword = automationPassword;
+  const automationPassword = await takeAutomationExportPassword(Boolean(tview.autoExport), urlPassword); tview.automationPassword = automationPassword;
   // Starting a collab force-remounts this tool, and the route it remounts through is a
   // LOSSY encoder twice over: `buildShareParams` skips `user/` asset ids and anything
   // past 150 chars, `syncUrl` writes only dirty params, skips `file` inputs, and never
@@ -205,9 +212,11 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   // a FRESH session and the inviter's first Save would mint a duplicate beside the one
   // they were collaborating on (section 6.2a pins a private collab to the session it started
   // from). The route still wins when it names one.
-  const slot = routeSlot ?? carriedMount?.slot ?? localHistorySlot(tview.host.state, tview.tool.manifest); tview.slot = slot;
+  // A framed tool (`?iframe`) shows the link it was given, never a session saved on this device.
+  const slot = isIframeMode() ? undefined : routeSlot ?? carriedMount?.slot ?? localHistorySlot(tview.host.state, tview.tool.manifest); tview.slot = slot;
   const urlFlags = new URLSearchParams(tview.urlParams || ''); tview.urlFlags = urlFlags;
-  const isFull = urlFlags.has('full'); tview.isFull = isFull;
+  // `?iframe` implies `full`: the sidebar and every other piece of chrome stay closed.
+  const isFull = urlFlags.has('full') || isIframeMode(); tview.isFull = isFull;
   // `?template=<id>` launches straight into a template starting point, SKIPPING the "New
   // from template" chooser - the on-ramp for a retired tool id or a deep link. Reserved
   // (so it's never a tool input and never counts toward the blank check below); the heavy
@@ -237,7 +246,7 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   // `?kiosk` makes it signage. All three are engine-reserved (url-mode.ts RESERVED) -
   // `kiosk` was the unreserved `loop` flag until plan 171's freeze-day rename, because
   // `loop` is a live input id in other tools and could never be reserved.
-  const isPresent = urlFlags.has('present'); tview.isPresent = isPresent;
+  const isPresent = urlFlags.has('present') && !isIframeMode(); tview.isPresent = isPresent;
   const presentAddress = urlFlags.get('s'); tview.presentAddress = presentAddress;
   // `let`, not const: the Design top bar's Loop row flips it and rewrites the URL, so the
   // flag the next openPresenter() reads is the one the author just chose (plan 179 M1).
@@ -563,7 +572,9 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // while the SECOND mount owns the live Save button. The marker is cleared instead
   // when the user ends up on any non-tool view (main.js navigate). Used in performSave.
   tview.fileIntoFolder = null;
-  if (!slot) {
+  // A same-origin frame shares its parent tab's sessionStorage, so a framed tool
+  // (`?iframe`) must not pick up the Projects markers the parent set.
+  if (!slot && !isIframeMode()) {
     try {
       const into = sessionStorage.getItem('lolly:fileInto');
       if (into !== null) tview.fileIntoFolder = into;
@@ -579,7 +590,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // double-mount reason as fileIntoFolder above; cleared on the next non-tool mount.
   tview.returnTo = '/';
   try {
-    const back = sessionStorage.getItem('lolly:returnTo');
+    const back = isIframeMode() ? null : sessionStorage.getItem('lolly:returnTo');
     if (back) tview.returnTo = back;
   } catch (_e) {
     /* sessionStorage unavailable (private mode) */
@@ -637,6 +648,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   observeProductionExport(tview.host, toolId, () => tview.runtime?.getModel() ?? []);
   const runtime: ToolRuntime = await createRuntime(tview.tool, tview.host, tview.initialValues, {
     progressiveInit,
+    tokenSelection: tview.openedSession.url.tokenSelection,
     ...(emojiStyle === undefined ? {} : { emojiStyle }),
   }); tview.runtime = runtime;
   // A locked policy value (and a choice whose current value is outside the
@@ -665,7 +677,7 @@ export function documentSurface(tview: ToolViewCtx): void {
   // A NEW session appears - the soft "twinkle bloom". Only a fresh open (no resume
   // slot); resuming a saved session is not "making" one. Audible when opened via a
   // click (audio is gesture-gated); a cold direct-URL load stays silent until a gesture.
-  if (!slot) playSfx('newSession');
+  if (!slot && !isIframeMode()) playSfx('newSession');
 
   // ── Undo / redo (Cmd+Z / Cmd+Shift+Z / Cmd+Y) ──────────────────────────────
   // Lets an accidental slider nudge - or any control edit - be reverted. There's
@@ -701,14 +713,17 @@ export function wrapSetInput(tview: ToolViewCtx): void {
       window.removeEventListener('blur', up);
     });
   }
-  runtime.setInput = (id: string, value: InputValue) => {
+  runtime.setInput = (id: string, value: InputValue, options) => {
+    const cur = runtime.getModel().find((i) => i.id === id);
+    const beforeLinks = historyTokenLinks(runtime.getModel(), [id]);
+    const pending = baseSetInput(id, value, options);
+    const admitted = runtime.getModel().find((i) => i.id === id);
     if (!tview.applyingHistory) {
-      const cur = runtime.getModel().find((i) => i.id === id);
       // `label` is what the toast shows on undo/redo - what CHANGED where we can name it.
       if (
-        cur &&
+        cur && admitted &&
         inputHistory.record(
-          { id, label: tview.history.changeLabel(cur, cur.value, value), before: cur.value, after: value, collabStamp: collabHistoryStamp(runtime) },
+          { id, label: tview.history.changeLabel(cur, cur.value, admitted.value), before: cur.value, after: admitted.value, tokenLinks: { before: beforeLinks, after: historyTokenLinks(runtime.getModel(), [id]) }, collabStamp: collabHistoryStamp(runtime) },
           Date.now()
         ) !== 'ignored'
       ) {
@@ -716,7 +731,7 @@ export function wrapSetInput(tview: ToolViewCtx): void {
         tview.history.refreshHistoryUI();
       }
     }
-    return trackRevisionInput(baseSetInput(id, value), () => tview.revisionChanged());
+    return trackRevisionInput(pending, () => tview.revisionChanged());
   };
 }
 
@@ -758,11 +773,13 @@ export function stableRowIds(tview: ToolViewCtx): void {
         // below would end up empty regardless - this is the explicit, required check.
         if (tview.templatePickTornDown) return;
         const seed: Record<string, InputValue> = {};
-        for (const [k, v] of Object.entries(chosen ?? {})) if (!(k in tview.initialValues)) seed[k] = v;
+        for (const [k, v] of Object.entries(chosen ?? {})) if (k !== '__tokenLinks' && !(k in tview.initialValues)) seed[k] = v;
         if (!Object.keys(seed).length) return; // Blank canvas / Escape / close
         for (const id of Object.keys(seed)) templateSeededIds.add(id);
         tview.templatePose = (await import('../template-chooser.ts')).templateEditorPose(chosen);
-        await runtime.applyPatch(seed);
+        const templateLinks = tokenRestoreRefsOf(buildInputModel(tview.tool.manifest, { initial: chosen ?? {} }));
+        const restoreTokenRefs = Object.fromEntries(Object.entries(templateLinks).filter(([id]) => Object.hasOwn(seed, id)));
+        await runtime.applyPatch(seed, { restoreTokenRefs });
         if (tview.templatePickTornDown) return; // torn down while applyPatch was in flight
         await migrateBlockRowIds(runtime);
         // applyPatch resolves no refs (it's the keystroke/collab path); a template's
@@ -799,6 +816,7 @@ export function stableRowIds(tview: ToolViewCtx): void {
 }
 
 export function wireActionsPanel(tview: ToolViewCtx): void {
+  void tview.designSystem.mountTokenContext();
   const { autoCopy, autoExport, isFull, showAside, viewEl } = tview;
   const actionsEl = viewEl.querySelector<PanelEl>('#tool-actions'); tview.actionsEl = actionsEl;
   const sidebarEl = viewEl.querySelector<HTMLElement>('#tool-sidebar'); tview.sidebarEl = sidebarEl;
@@ -1022,7 +1040,7 @@ export function wireBulkRows(tview: ToolViewCtx): void {
     const gaugeBase = `${location.origin}${TOOL_URL_BASE}?`;
     tview.urlGauge.update(
       costUrlState(
-        { model: runtime.getModel(), exportParts: collectExportParams(actionsEl) },
+        { model: runtime.getModel(), exportParts: collectExportParams(actionsEl), tokenSelection: runtime.tokenSelection },
         { base: gaugeBase, target: BROWSER_TARGET }
       ),
       gaugeBase

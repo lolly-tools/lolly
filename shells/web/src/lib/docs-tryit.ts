@@ -53,16 +53,18 @@ export function toolRouteId(route: string): string | null {
   return m ? decodeURIComponent(m[1]!) : null;
 }
 
-/** The `src` for the in-place live <iframe>: the recipe route forced into full-bleed
- *  (`full`, no sidebar) with any export/copy/download trigger stripped, so the embed shows
- *  the live tool and never auto-downloads. Param encoding is preserved verbatim. */
+/** The `src` for the in-place live <iframe>: the recipe route in `iframe` mode (the tool's
+ *  output only, no chrome, nothing saved on the reader's device; lib/iframe-mode.ts) with any
+ *  export/copy/download trigger stripped, so the embed shows the live tool and never
+ *  auto-downloads. A `full` the recipe carried is dropped, since `iframe` already implies `full`. Param
+ *  encoding is preserved verbatim. */
 export function embedSrcFor(route: string): string {
   const qIdx = route.indexOf('?');
   const base = qIdx === -1 ? route : route.slice(0, qIdx);
   const params = (qIdx === -1 ? '' : route.slice(qIdx + 1)).split('&').filter(Boolean);
-  const DROP = /^(format|export|copy|output|download|filename|nostage)(=|$)/;
+  const DROP = /^(format|export|copy|output|download|filename|nostage|full)(=|$)/;
   const kept = params.filter((p) => !DROP.test(p));
-  if (!kept.some((p) => p === 'full' || p.startsWith('full='))) kept.push('full');
+  if (!kept.some((p) => p === 'iframe' || p.startsWith('iframe='))) kept.push('iframe');
   return kept.length ? `${base}?${kept.join('&')}` : base;
 }
 

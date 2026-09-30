@@ -181,6 +181,9 @@ export const NAV_SECTIONS: ReadonlyArray<ProfileNavSection> = [
   // Sync across devices lives INSIDE this card (its own titled sub-block), so its
   // search keywords ride here - a query for "passphrase" or "icloud" must still land.
   { id: 'connections-section', icon: 'upload', label: 'Connected services', keywords: 'connect send drive dropbox onedrive s3 bucket nextcloud webdav providers oauth sync devices continuity snapshot backup cloud icloud across phone desktop passphrase encrypt' },
+  // Plan 288: which sites Lolly may contact without asking (Sandbox demos, web page
+  // boxes in Design). After the services you connect, because both say who Lolly talks to.
+  { id: 'trusted-sites-section', icon: 'shieldCheck', label: 'Trusted sites', keywords: 'trusted sites domains allow block web pages iframe embed sandbox fetch inline network privacy organisation policy' },
   { id: 'renders-section', icon: 'image', label: 'Your renders', keywords: 'renders downloads library save copy export tag auto-save' },
   { id: 'storage-section', icon: 'package', label: 'Storage', keywords: 'storage data space sessions images clear export delete' },
   { id: 'offline-section', icon: 'download', label: 'Available offline', keywords: 'offline download pwa install cache' },
@@ -203,6 +206,15 @@ export function visibleProfileSections(): ReadonlyArray<ProfileNavSection> {
 // returns, so nothing here waits on first paint.
 export const summaryRow = (id: string, title: string, value = ''): string =>
   `<summary class="profile-collapse-summary section-card-summary"><h2 class="section-card-title">${title}</h2><span class="profile-summary-value" data-summary="${id}">${value}</span>${COLLAPSE_CHEV}</summary>`;
+
+// One group header inside the Connected services card (Cloud storage, Posting,
+// Design apps, Sync across devices): the same title, value and chevron as
+// summaryRow, one heading level down, plus (for a service group) the marks of
+// the services inside, shown while it is folded. views/profile-connections.ts
+// builds the service groups; the shell wraps the lazily mounted #sync-body in
+// the last one.
+export const groupSummaryRow = (title: string, value = '', marks = ''): string =>
+  `<summary class="pconn-group-sum"><h3 class="pconn-group-title">${title}</h3>${marks ? `<span class="pconn-group-marks" aria-hidden="true">${marks}</span>` : ''}<span class="pconn-group-value" data-group-value>${value}</span>${COLLAPSE_CHEV}</summary>`;
 
 // Stand-in for a lazy section's body until its load returns. A plain static bar,
 // deliberately never animated: a shimmer would be one more thing to switch off

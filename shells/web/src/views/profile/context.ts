@@ -44,6 +44,8 @@ export interface ProfileViewCtx {
   hasShellUpdater: boolean;
   headshotUrl: string;
   focusParam: string | null;
+  /** The link named the old sync-section: open the Sync group inside Connected services. */
+  focusSync: boolean;
   focusFlags: boolean;
   focusUseDetails: boolean;
   focusSectionId: string | null;
@@ -68,6 +70,8 @@ export interface ProfileViewCtx {
   offlineLoaded: boolean;
   offlineRunUnsub: (() => void) | null;
   aiPolicyUnsub: (() => void) | null;
+  /** Detaches the Trusted sites card from trust and policy changes (plan 288). */
+  trustedSitesUnsub: (() => void) | null;
   connectionsDetails: HTMLDetailsElement | null;
   connectionsLoaded: boolean;
   syncLoaded: boolean;

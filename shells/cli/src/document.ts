@@ -45,7 +45,11 @@ export async function documentCli(command: string, positionals: string[], flags:
     if (!positionals[0]) throw new Error(`usage: lolly ${command} <document.json>`);
     const isJsonDocument = positionals[0].toLowerCase().endsWith('.json');
     const document = isJsonDocument ? await jsonFile(positionals[0]) : null;
-    if (command === 'inspect' && flags.production) {
+    if (command === 'inspect' && flags.forensic) {
+      if (flags.production || flags.motion) throw new Error('--forensic requires a separate assessment from production and motion checks.');
+      const { inspectForensicBytes } = await import('@lolly-tools/node-shell/forensic');
+      value = await inspectForensicBytes(new Uint8Array(await readFile(positionals[0])), positionals[0], { pageCap: flags['page-cap'] ? Number(flags['page-cap']) : undefined });
+    } else if (command === 'inspect' && flags.production) {
       const { inspectProductionBytes, productionContractFile, productionFile } = await import('@lolly-tools/node-shell/production');
       const contract = await productionContractFile(flags.production);
       value = await inspectProductionBytes(await productionFile(positionals[0], 32 * 1024 * 1024), contract, flags['production-reference'] ? await productionFile(flags['production-reference'], 32 * 1024 * 1024) : undefined);

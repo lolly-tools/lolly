@@ -70,6 +70,8 @@ export const SVG = {
   // its own Start, Collection and Arrangement sections and what the inspector's Scene
   // header carries. Deliberately NOT `boxKind` above, which is the flat plate a plain
   // box add-kind draws: the whole point of this picture is that it has depth.
+  // A web page box (plan 288): a browser window.
+  webKind: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 8.5h18"/><path d="M6.5 6.3h.01"/><path d="M9 6.3h.01"/>',
   sceneKind: '<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/>',
   // Animation (Lottie) add-kind - a play triangle inside a rounded frame, echoing the picker's "▶ LOTTIE" badge.
   anim: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M10 9l5 3-5 3z"/>',

@@ -152,6 +152,8 @@ export interface TextBlock {
 
 export interface PageText {
   blocks: TextBlock[];
+  /** Located lines; widths follow the reader's glyph estimates. */
+  lines?: TextLine[];
   /** Plain text: blocks separated by blank lines, in reading order. */
   text: string;
   /** The same content as markdown: headings and list items marked up. */
@@ -1176,7 +1178,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
     const covered = boundedNodes.some((n) =>
       n.kind === 'image' && (n.w * n.h) / pageArea >= SCAN_COVERAGE);
     return {
-      blocks: [], text: '', markdown: '', columns: 1,
+      blocks: [], lines: [], text: '', markdown: '', columns: 1,
       scanned: covered, rotated, order: 'geometric',
     };
   }
@@ -1208,6 +1210,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
       const blocks = [...tb, ...extra];
       return {
         blocks,
+        lines: toLines(items),
         text: blocksToText(blocks),
         markdown: blocksToMarkdown(blocks),
         columns: 1,
@@ -1230,6 +1233,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
 
   return {
     blocks,
+    lines: flows.flatMap(f => toLines(f.items)),
     text: blocksToText(blocks),
     markdown: blocksToMarkdown(blocks),
     columns,

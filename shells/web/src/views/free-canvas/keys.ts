@@ -16,6 +16,8 @@ import { t } from '../../i18n.ts';
 import { centreCtxBar, ctxTopBand, stageBlockers } from './shared.ts';
 import type { Metrics, Rect, StageBox } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { isIframeMode } from '../../lib/iframe-mode.ts';
+import { enterWebBox, mountWebFrames } from '../../lib/design-web-mount.ts';
 
 export function ctxBarBlockers(fc: FcCtx, sr: DOMRect): StageBox[] {
   const { stageEl, toolbarDock } = fc;
@@ -454,6 +456,13 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
     const first = [...fc.selection][0]!;
     const at = rows.findIndex((b, n) => fc.select.idOf(b, n) === first);
     const k = at >= 0 ? fc.contextBar.kindOf(rows[at]) : '';
+    // A web page box (plan 288): Enter uses its page in place, as a double-click does.
+    if (k === 'web') {
+      if (!enterWebBox(fc.canvasEl, first, () => mountWebFrames(fc.canvasEl, { mode: 'editor' }))) {
+        announce(t('This web page cannot be used in place. The note on the box says why.'));
+      }
+      return;
+    }
     if (NO_TEXT_KINDS.has(k)) {
       announce(t('This object has no text to edit.'));
       return;
@@ -657,7 +666,8 @@ export const refitAfterChrome = (fc: FcCtx): void => {
   }
 };
 export function onPreviewKey(fc: FcCtx, e: KeyboardEvent): void {
-  if (e.defaultPrevented || document.querySelector('dialog[open]')) return;
+  // A framed Design document (`?iframe`) keeps its chrome hidden; there is nothing to toggle.
+  if (isIframeMode() || e.defaultPrevented || document.querySelector('dialog[open]')) return;
   const l = chromeRoot(fc);
   if (!l) return;
   if (

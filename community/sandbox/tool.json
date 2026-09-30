@@ -2,7 +2,7 @@
   "id": "sandbox",
   "name": "Sandbox",
   "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "singleInstance": true,

@@ -37,6 +37,7 @@ import { stopSlotPreview } from '../tool-inputs.ts';
 import { armViewEnter } from '../../view-enter.ts';
 import type { PanelEl } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
+import { isIframeMode } from '../../lib/iframe-mode.ts';
 
 export function setSidebarWidth(tview: ToolViewCtx, w: number, save = true): void {
   const { SIDEBAR_MIN, fullscreenToggle, layout, sidebarEl } = tview;
@@ -71,6 +72,7 @@ export function getRestoreWidth(tview: ToolViewCtx): number {
   return v > SIDEBAR_MIN ? v : SIDEBAR_DEFAULT;
 }
 export function updateFullParam(tview: ToolViewCtx, shouldBeFull: boolean): void {
+  if (isIframeMode()) return; // a framed tool never rewrites its address
   const { TOOL_URL_BASE } = tview;
   const sp = new URLSearchParams(currentQuery(tview));
   if (shouldBeFull) sp.set('full', '');
@@ -343,7 +345,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
           top of each other. mountBackPill() scans the whole view, so the one the bar emits
           (backHomeHtml, below) is wired by the same call, unsaved-changes intercept and all. */ ''
     }
-    ${noAside && !visitorPage && !designChrome ? backPillHtml(backPillOpts) : ''}
+    ${noAside && !visitorPage && !isIframeMode() && !designChrome ? backPillHtml(backPillOpts) : ''}
     <div class="tool-layout${chromeless ? ' is-editor' : ''}${documentLayout ? ' is-document' : ''}${pagedDoc ? ' is-paged' : ''}${webDoc ? ' is-webdoc' : ''}${visitorPage ? ' is-visitor' : ''}${hideSidebar && !visitorPage ? ' is-bare' : ''}" id="tool-layout"${documentLayout ? ' data-theme="light"' : ''} data-sidebar="${noAside ? 'hidden' : sidebarOpen ? 'open' : 'closed'}">
       ${
         showAside
@@ -420,10 +422,10 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             : ''
       }
       <div class="tool-stage" id="tool-stage">
-        ${runtime.manifest.render.urlSync !== false && !exportUiEmpty && !visitorPage ? `<div class="url-budget" id="url-budget-gauge" role="button" tabindex="0" aria-label="${escapeText(t('URL budget'))}" title="${escapeText(t('URL budget'))}" hidden><span class="url-budget-fill" data-gauge-fill></span></div><div class="url-budget-toast" data-gauge-toast role="status" aria-live="polite" hidden></div>` : ''}
-        ${showAside ? `<button type="button" class="fullscreen-toggle-float" id="fullscreen-toggle-float" data-tip-below data-tip-align="start" data-tip="${escapeText(t('Expand sidebar'))}" aria-label="${escapeText(t('Expand sidebar'))}">${icon('arrowRight')}</button>` : ''}
+        ${runtime.manifest.render.urlSync !== false && !exportUiEmpty && !visitorPage && !isIframeMode() ? `<div class="url-budget" id="url-budget-gauge" role="button" tabindex="0" aria-label="${escapeText(t('URL budget'))}" title="${escapeText(t('URL budget'))}" hidden><span class="url-budget-fill" data-gauge-fill></span></div><div class="url-budget-toast" data-gauge-toast role="status" aria-live="polite" hidden></div>` : ''}
+        ${showAside && !isIframeMode() ? `<button type="button" class="fullscreen-toggle-float" id="fullscreen-toggle-float" data-tip-below data-tip-align="start" data-tip="${escapeText(t('Expand sidebar'))}" aria-label="${escapeText(t('Expand sidebar'))}">${icon('arrowRight')}</button>` : ''}
         ${
-          hideSidebar && onDevice
+          hideSidebar && onDevice && !isIframeMode()
             ? `<div class="on-device-badge on-device-badge--float" title="${escapeText(t('This tool runs entirely in your browser. Your file is never uploaded.'))}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <span>${t('Runs on your device - nothing is uploaded')}</span>
@@ -450,7 +452,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
         }
       </div>
       ${
-        (!hideSidebar || bareExport) && !exportUiEmpty && !visitorPage
+        (!hideSidebar || bareExport) && !exportUiEmpty && !visitorPage && !isIframeMode()
           ? `
         <div class="render-pill" id="render-pill" role="group" aria-label="${escapeText(t('Export and save'))}">
           <button type="button" class="render-pill-btn render-pill-get" id="render-fab" data-sfx="hydraulicOpen" aria-label="${escapeText(t('Export options'))}">
@@ -657,7 +659,8 @@ export function wireStageZoom(tview: ToolViewCtx): void {
       setTimeout(tview.stageLayout.fitCanvas, 220);
     });
 
-    fullscreenToggleFloat!.addEventListener('click', () => {
+    // Absent in a framed tool (`?iframe`), which has no chrome to expand.
+    fullscreenToggleFloat?.addEventListener('click', () => {
       tview.stageLayout.setSidebarWidth(tview.stageLayout.getRestoreWidth());
       tview.stageLayout.updateFullParam(false);
       tview.stageZoom?.reset();
@@ -749,7 +752,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
   // - so the right side reads like the Design editor's (Andy, 2026-09-07). Computed once
   // because the stage-nav mount (below) and the export-panel wiring (further down, outside
   // this block) both need it.
-  const canvasStage = !!(stageEl && !hideSidebar && !visitorPage && outerEl && canvasEl && !pagedDoc); tview.canvasStage = canvasStage;
+  // A framed tool (`?iframe`) has no stage chrome: no zoom HUD and no pan or zoom
+  // gestures, so the canvas simply fits the frame.
+  const canvasStage = !!(stageEl && !hideSidebar && !visitorPage && !isIframeMode() && outerEl && canvasEl && !pagedDoc); tview.canvasStage = canvasStage;
 
   // Canvas navigation - one module for both pointer types. Touch gets pinch-zoom +
   // drag-pan; desktop gets trackpad-native zoom/pan (Cmd/Ctrl-wheel & pinch zoom

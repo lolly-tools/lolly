@@ -54,6 +54,7 @@ const SEEDED_PAIRS: ReadonlyArray<readonly [list: string, marker: string]> = [
   ['hiddenTools', 'hiddenToolsSeeded'],
   ['hiddenTemplates', 'hiddenTemplatesSeeded'],
   ['hiddenAssets', 'catalogDefaultsSeeded'],
+  ['trustedSites', 'trustedSitesSeeded'],
 ];
 
 const HANDLED = new Set<string>([

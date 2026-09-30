@@ -14,6 +14,7 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `export` | web + CLI | Presence flag - trigger an immediate download on page load. |
 | `copy` | web only | Presence flag - arm copy-to-clipboard on first interaction. |
 | `full` | web only | Presence flag - open in fullscreen (sidebar collapsed). |
+| `iframe` | web only | Presence flag - show only the tool's rendered output, for a tool placed inside another page (a Design slide, a docs page, a second screen or a kiosk). It implies `full`, removes every piece of the app's chrome, and keeps nothing on the device: no saved session, no history entry, no sounds and no changes to the address. `export`, `copy`, `options`, `present` and `slot` are ignored alongside the flag. Which pages may frame the app is set by the deployment. |
 | `options` | web only | Presence flag - open with the export-settings panel expanded instead of the collapsed Render button. `full` wins if both are set. |
 | `filename` | web only | Name for the downloaded file (no extension). Defaults to the tool ID. |
 | `slot` | web only | Name of a saved state slot to pre-load. URL params override saved values. (The one-shot CLI has no saved-state store, so it ignores `slot`.) |
@@ -62,7 +63,7 @@ The reserved `z` (and `zx`) above is a **top-level** param only - the whole-stat
 
 **Dimensions on a multi-artboard document** (a Design doc with more than one artboard): the artboards are the size truth, and `width`/`height` describe the **active** artboard - the selected one for still formats, the one under the playhead for animated ones. In the app the export panel mirrors that artboard live, and editing the fields resizes it. At export time each format resolves the boards its own way: still images fan out to one file per artboard at that board's own size (zipped when there is more than one, and `?s=` narrows to one board), PDF and PPTX carry every board as a page at its native size, and the animated formats composite every scene into a `width`×`height` output frame, letterboxing a board whose aspect differs. So on a framed document `w`/`h` never scales the whole set - it is the size of one board, and the video frame.
 
-`export`, `copy`, `full`, `options`, `nostage`, `present` and `kiosk` are **presence flags** - the parameter value is ignored; what matters is whether the key appears in the URL.
+`export`, `copy`, `full`, `iframe`, `options`, `nostage`, `present` and `kiosk` are **presence flags** - the parameter value is ignored; what matters is whether the key appears in the URL.
 
 `lang` is the one reserved param that changes the interface rather than the file. Adding `?lang=ja` to any tool link hands the recipient the whole sidebar in Japanese for that session, without touching their saved preference.
 

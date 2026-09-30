@@ -1,10 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { HostV1, TokenResolveOptions } from '@lolly-tools/core/host-v1';
 import { createTokenSet } from '../../../../../engine/src/tokens.ts';
+import { resolveTokenSelection } from '../../../../../engine/src/token-selection.ts';
 
 /** A scoped host for the trusted, fixed poster proof. This is not a hook sandbox. */
-export function createDraftHost(base: HostV1, document: unknown, theme: string): HostV1 {
+export function createDraftHost(base: HostV1, document: unknown, selection: string | TokenResolveOptions): HostV1 {
   const draft = structuredClone(document);
+  const opts = typeof selection === 'string' ? { theme: selection } : selection;
+  const choices = resolveTokenSelection(draft, opts).choices;
+  const snapshotDocument = structuredClone(draft);
+  if (snapshotDocument && typeof snapshotDocument === 'object' && !Array.isArray(snapshotDocument)) {
+    const doc = snapshotDocument as Record<string, unknown>;
+    doc.$metadata = { ...(doc.$metadata as object ?? {}), activeThemeSelection: choices };
+  }
   const state = new Map<string, object>();
   const refuse = async (): Promise<never> => { throw new Error('Draft previews cannot write to your library or device.'); };
   return {
@@ -28,11 +36,11 @@ export function createDraftHost(base: HostV1, document: unknown, theme: string):
     log: (...args) => base.log(...args),
     tokens: {
       // A fresh resolver prevents consumers mutating this frozen render context.
-      get: async () => createTokenSet(structuredClone(draft), { theme }),
-      colors: async () => structuredClone(createTokenSet(draft, { theme }).colors()),
-      resolve: async ref => structuredClone(createTokenSet(draft, { theme }).resolve(ref)),
+      get: async () => createTokenSet(structuredClone(draft), opts),
+      colors: async () => structuredClone(createTokenSet(draft, opts).colors()),
+      resolve: async ref => structuredClone(createTokenSet(draft, opts).resolve(ref)),
       themes: async () => createTokenSet(draft).themes(),
-      snapshot: async () => ({ document: structuredClone(draft), system: null, version: null, selection: { theme } }),
+      snapshot: async () => ({ document: structuredClone(snapshotDocument), system: null, version: null, selection: { theme: opts.theme, choices } }),
     },
     color: base.color, geom: base.geom, connectors: base.connectors, text: base.text,
   };

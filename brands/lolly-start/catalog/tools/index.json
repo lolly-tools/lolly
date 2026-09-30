@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-29T19:48:20.131Z",
+  "generatedAt": "2026-09-30T18:41:37.212Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3817,7 +3817,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.39.1",
+      "version": "1.41.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -10323,7 +10323,7 @@
       "id": "sandbox",
       "name": "Sandbox",
       "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
-      "version": "1.5.3",
+      "version": "1.6.0",
       "status": "official",
       "category": "utility",
       "tags": [

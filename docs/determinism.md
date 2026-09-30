@@ -10,6 +10,8 @@ There is a single renderer. `createRuntime(tool, host, initialState)` in `engine
 
 The command line is the same path under a different transport. `engine/src/url-mode.ts` says it at the top of the file: the CLI uses the same conversion, so `--url=https://suse.com` on the terminal and `?url=https://suse.com` in the address bar become the same value in the same input model. There is no second parser to drift and no CLI-only code path to fall behind.
 
+![URL parameters and CLI arguments become the same typed input model, pass through the shared runtime, then reach the shell's export bridge for the chosen format.](/info/diagrams/concepts/one-render-path.svg)
+
 ```
 # the same render, two ways in
 lolly qr-code --url=https://suse.com --export=svg --output=./qr.svg

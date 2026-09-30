@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
+import type { TokenResolveOptions } from '@lolly-tools/core/host-v1';
 import type { BrandSystemV1 } from '@lolly-tools/core/brand-system-v1';
 import type { InputValue } from '../../../../../engine/src/inputs.ts';
 import { resolveBrandRule, type BrandExample, type BrandFacts } from '../../../../../engine/src/brand-rules.ts';
-import { createTokenSet } from '../../../../../engine/src/tokens.ts';
+import { resolveTokenBinding } from '../../../../../engine/src/token-binding.ts';
+import { createTokenSet, colorToHex } from '../../../../../engine/src/tokens.ts';
 import { fetchTemplateSeed } from '../template-source.ts';
 import { designVariants, newDesignToolDraft, makeDesignInput } from '../design-tool-draft.ts';
 
@@ -15,8 +17,8 @@ export const EXAMPLE_TEXT: ExampleText = {
   dense: 'A clear starting point\nBring your colours, type and artwork together.\n\nSpace to explore\nMake useful variations without losing the details that identify your brand.\n\nReady for the next step\nReview the output, resolve any issues and share a consistent result.',
 };
 
-export async function brandExample(id: BrandExample, doc: unknown, system: BrandSystemV1, mode: string, text: ExampleText) {
-  const tokens = createTokenSet(doc, { theme: mode });
+export async function brandExample(id: BrandExample, doc: unknown, system: BrandSystemV1, mode: string, text: ExampleText, tokenOptions?: TokenResolveOptions) {
+  const tokens = createTokenSet(doc, tokenOptions ?? { theme: mode });
   const choices = system.rules.map(rule => resolveBrandRule(rule, system, doc, { tool: id, mode, output: 'png' })).filter(result => result.constraint);
   const first = (slot: string, fallback: string): string => choices.find(result => result.constraint!.slot === slot)?.constraint?.values?.[0] ?? fallback;
   const fieldLabel = (slot: string, fallback: string): string => {
@@ -25,15 +27,17 @@ export async function brandExample(id: BrandExample, doc: unknown, system: Brand
     return names?.length ? `${names.join(' / ')} · ${fallback}` : fallback;
   };
   const resolve = (path: string, fallback: string): string => { const value = tokens.resolve(`{${path}}`); return typeof value === 'string' && value && !value.startsWith('{') ? value : fallback; };
-  const accent = first('accent', resolve('color.semantic.primary', '#326b54'));
-  const family = first('type', resolve('font.brand', 'SUSE'));
+  const color = (path: string, fallback: string): string => colorToHex(tokens.resolve(path)) ?? fallback;
+  const accent = first('accent', color('color.semantic.primary', '#326b54'));
+  const linkedFamily = resolveTokenBinding(tokens.get('font.brand'), { type: 'text' });
+  const family = first('type', linkedFamily.status === 'linked' ? String(linkedFamily.value) : resolve('font.brand', 'SUSE'));
   const device = first('device', '');
   const facts: BrandFacts = { accent: { value: accent }, type: { value: family }, heading: { value: text.heading } };
   const renderDoc = structuredClone(doc || {}) as Record<string, unknown>;
   const font = (renderDoc.font || {}) as object;
   renderDoc.font = { ...font, brand: { $type: 'fontFamily', $value: family }, display: { $type: 'fontFamily', $value: family } };
   if (id === 'brand-chart') {
-    return { id, toolId: 'chart', values: { heading: text.heading, data: 'Quarter,Studio\nQ1,42\nQ2,58\nQ3,73\nQ4,89', chartType: 'bar', palette: 'ordered', paletteSeed: accent, palette1: accent, transparentBg: false, background: resolve('color.semantic.surface', '#ffffff'), width: 1280, height: 800 } as Record<string, InputValue>, facts, renderDoc, family, width: 1280, height: 800, draft: null };
+    return { id, toolId: 'chart', values: { heading: text.heading, data: 'Quarter,Studio\nQ1,42\nQ2,58\nQ3,73\nQ4,89', chartType: 'bar', palette: 'ordered', paletteSeed: accent, palette1: accent, transparentBg: false, background: color('color.semantic.surface', '#ffffff'), width: 1280, height: 800 } as Record<string, InputValue>, facts, renderDoc, family, width: 1280, height: 800, draft: null };
   }
   const seed = await fetchTemplateSeed('design', id === 'brand-poster' ? 'poster' : 'slide-deck');
   if (!seed || !Array.isArray(seed.boxes)) throw new Error('The example template is unavailable.');
@@ -42,19 +46,25 @@ export async function brandExample(id: BrandExample, doc: unknown, system: Brand
   const titleId = prefix ? `${prefix}title` : 'title';
   const bodyId = `${prefix}body`, accentId = `${prefix}accent`;
   const boxes = (seed.boxes as Array<Record<string, unknown>>).filter(box => box.id === frameId || box.frame === frameId).map(box => structuredClone(box));
+  const gap = resolveTokenBinding(tokens.get('space.exampleGap'), { type: 'number', min: 0, max: 200 });
   const frame = boxes.find(box => box.id === frameId)!;
+  frame.bg = color('color.semantic.surface', String(frame.bg));
   const x = Number(frame.x), y = Number(frame.y);
   const body = id === 'brand-slide-content' ? text.dense : text.body;
   facts.body = { value: body };
   for (const box of boxes) {
     box.x = Number(box.x) - x; box.y = Number(box.y) - y;
-    if (box.kind === 'text') box.font = family;
+    if (box.kind === 'text') { box.font = family; box.fg = color('color.semantic.foreground', String(box.fg ?? '#20202b')); }
     if (box.id === titleId) { box.text = text.heading; if (id === 'brand-poster') box.fg = accent; }
     if (box.id === bodyId) box.text = body;
     if (box.id === accentId) box.bg = accent;
     if (id === 'brand-slide-title' && box.id === titleId) box.h = 300;
     if (id === 'brand-slide-title' && box.id === bodyId) box.y = 760;
     if (id === 'brand-slide-content' && box.id === bodyId) { box.fontSize = 40; box.lineHeight = 1.4; box.h = 560; }
+  }
+  if (gap.status === 'linked') {
+    const title = boxes.find(box => box.id === titleId), body = boxes.find(box => box.id === bodyId);
+    if (title && body) body.y = Number(title.y) + Number(title.h) + Number(gap.value);
   }
   if (device) {
     boxes.push({ id: 'brand-device', kind: 'image', image: device, x: 1500, y: 70, w: 260, h: 110, frame: frameId, fit: 'contain' });

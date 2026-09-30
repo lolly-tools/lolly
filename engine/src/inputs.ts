@@ -11,9 +11,10 @@
  * we keep behaviour consistent across web/Tauri/CLI.
  */
 
-import { isTokenValue, aliasPath } from './tokens.ts';
+import { isTokenValue, isAlias, aliasPath } from './tokens.ts';
 import type { TokenValue } from './tokens.ts';
 import type { AssetRef, InputFile } from './bridge/host-v1.ts';
+import { reconcileBlockTokenBindings } from './token-block-bindings.ts';
 
 /** An input's declared type (schemas/tool.schema.json `$defs/input.type`). */
 export type InputType =
@@ -262,6 +263,8 @@ export interface InputSpec {
   allowUpload?: boolean;
   // vector (blocks declares richer field objects; the engine only reads these)
   fields?: BlockFieldSpec[];
+  /** A declared text sub-field retaining property links and override state on each row. */
+  tokenBindingsField?: string;
   // file
   accept?: string[];
   maxSize?: number;
@@ -328,6 +331,8 @@ export interface InputModelItem extends InputSpec {
   value: InputValue;
   isDirty: boolean;
   control: InputControl;
+  /** Previous link retained when this field becomes a local scalar override. */
+  restoreTokenRef?: string;
 }
 
 /** The manifest slice this module reads. */
@@ -472,11 +477,14 @@ export function buildInputModel(
 
   return [...declared, ...synthetic].map(input => {
     const value = resolveInitialValue(input, profile, initial);
+    const savedLinks = initial.__tokenLinks;
+    const previous = savedLinks && typeof savedLinks === 'object' && !Array.isArray(savedLinks) && Object.hasOwn(savedLinks, input.id) ? (savedLinks as Record<string, InputValue>)[input.id] : undefined;
     return {
       ...input,
       value,
       isDirty: input.id in initial,
       control: pickControl(input),
+      ...(!isTokenValue(value) && ['color', 'number', 'text', 'longtext', 'select'].includes(input.type) && isAlias(previous) && previous.length <= 1024 ? { restoreTokenRef: previous } : {}),
     };
   });
 }
@@ -590,11 +598,19 @@ function pickControl(input: InputSpec): InputControl {
  * Apply user input changes back to the model, with constraint enforcement.
  * Returns a new model array - caller passes it to the renderer.
  */
-export function updateInput(model: InputModelItem[], id: string, value: InputValue): InputModelItem[] {
+export interface InputWriteOptions {
+  /** Explicit restoration metadata when replaying an authored edit. Null clears a previous link. */
+  restoreTokenRefs?: Record<string, string | null>;
+}
+
+export function updateInput(model: InputModelItem[], id: string, value: InputValue, options?: InputWriteOptions): InputModelItem[] {
   return model.map(input => {
     if (input.id !== id) return input;
     const constrained = constrain(input, value);
-    return { ...input, value: constrained, isDirty: true };
+    const requested = options?.restoreTokenRefs;
+    const previous = requested && Object.hasOwn(requested, id) ? requested[id] : isTokenValue(input.value) ? input.value.ref : input.restoreTokenRef;
+    const restoreTokenRef = !isTokenValue(constrained) && isAlias(previous) && previous.length <= 1024 ? previous : undefined;
+    return { ...input, value: constrained, isDirty: true, ...(restoreTokenRef ? { restoreTokenRef } : input.restoreTokenRef ? { restoreTokenRef: undefined } : {}) };
   });
 }
 
@@ -618,6 +634,8 @@ export function updateInput(model: InputModelItem[], id: string, value: InputVal
  * trust boundary - a hook may compute anything for its own tool).
  */
 function constrain(input: InputModelItem, value: InputValue): InputValue {
+  if (['number', 'text', 'longtext', 'select'].includes(input.type) && isTokenValue(value)) return value;
+  if (input.type === 'number' && isAlias(value)) return value;
   if (input.type === 'select') {
     // The enum whitelist (plans/100 section 11.11's first named case). Only when the
     // manifest actually declares the options AND does not extend them at runtime:
@@ -650,7 +668,7 @@ function constrain(input: InputModelItem, value: InputValue): InputValue {
     // A repeating field group is an ARRAY of rows, always. A non-array would break
     // every consumer that iterates it (template `{{#each}}`, the sidebar panel, the
     // collab row projection), so it keeps the prior value.
-    return Array.isArray(value) ? value : input.value;
+    return Array.isArray(value) ? input.tokenBindingsField ? reconcileBlockTokenBindings(value, input.tokenBindingsField) : value : input.value;
   }
   if (input.type === 'text' || input.type === 'longtext') {
     if (typeof value !== 'string') return input.value;
@@ -714,6 +732,11 @@ export function modelToValues(model: InputModelItem[]): Record<string, InputValu
   return out;
 }
 
+/** Portable restoration hints, separate from the local values a renderer consumes. */
+export function tokenRestoreRefsOf(model: readonly InputModelItem[]): Record<string, string> {
+  return Object.fromEntries(model.filter(input => !isTokenValue(input.value) && isAlias(input.restoreTokenRef)).map(input => [input.id, input.restoreTokenRef!]));
+}
+
 // Input types whose value is worth recording in export provenance ("what was this
 // rendered from"). Deliberately excludes the user's own uploads (asset/file) and
 // repeating groups (blocks/vector) - bulky or not a legible entry. Text AND
@@ -775,15 +798,14 @@ export function modelForHooks(model: InputModelItem[]): InputModelItem[] {
   });
 }
 
-// A token-backed colour value ({ ref, value }) hydrates as its resolved hex - 
+// A token-backed value hydrates from its resolved or cached scalar.
 // the template (and CLI/JSON export) only ever sees a plain colour string. The
 // runtime refreshes `.value` from the live token set before this; the cached hex
 // is the fallback. Plain values (incl. AssetRefs, which carry no `ref`) pass through.
 export function flattenValue(v: InputValue): InputValue {
   if (!isTokenValue(v)) return v;
-  // The cached value is a resolved colour string; anything else (or a missing
-  // cache) flattens to '' - the same fallback the `?? ''` gave.
-  return typeof v.value === 'string' ? v.value : '';
+  // Unsupported composite caches and missing values hydrate as empty text.
+  return typeof v.value === 'string' || typeof v.value === 'number' ? v.value : '';
 }
 
 /**

@@ -437,8 +437,8 @@ test('a bare --s is a usage error, not slide 1', () => {
 
 test('reserved params the CLI cannot honour warn instead of vanishing (B6)', async () => {
   assert.deepEqual(
-    unsupportedReservedParams({ copy: '1', slot: 'a', full: '1', options: '1', nostage: '1', _v: '2', width: '10' }).sort(),
-    ['_v', 'copy', 'full', 'nostage', 'options', 'slot'],
+    unsupportedReservedParams({ copy: '1', slot: 'a', full: '1', iframe: '1', options: '1', nostage: '1', _v: '2', width: '10' }).sort(),
+    ['_v', 'copy', 'full', 'iframe', 'nostage', 'options', 'slot'],
   );
   const out = outPath('svg');
   const { stderr } = await run({ toolId: 'vec-tool', params: { copy: '1' }, outputPath: out, format: 'svg' });

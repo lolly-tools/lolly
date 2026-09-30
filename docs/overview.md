@@ -99,37 +99,7 @@ Everything from here down is architecture. The diagram is the whole system in on
 data at the top, the engine in the middle knows nothing of any platform, the shells below it
 implement one contract, and the catalogs supply the content.
 
-```
-                ┌─────────────────────────────────────────────┐
-                │              Tools (data, not code)         │
-                │   tool.json + template.html + hooks.js?     │
-                └─────────────────────────────────────────────┘
-                                    ▲
-                                    │ talks to via Capability Bridge v1
-                                    ▼
-                ┌─────────────────────────────────────────────┐
-                │                  Engine                     │
-                │   loader · validator · runtime · template   │
-                │   inputs · url-mode                         │
-                │   PLATFORM AGNOSTIC. Knows nothing of DOM,  │
-                │   filesystem, or You.                       │
-                └─────────────────────────────────────────────┘
-                                    ▲
-                                    │ implements HostV1
-                                    ▼
-        ┌──────────────┬──────────────┬──────────────┬──────────────┐
-        │  Web Shell   │ Tauri Desktop│ Tauri Mobile │  CLI Shell   │
-        │   (PWA)      │              │              │              │
-        └──────────────┴──────────────┴──────────────┴──────────────┘
-                                    ▲
-                                    │ fetches from
-                                    ▼
-                ┌─────────────────────────────────────────────┐
-                │              Catalogs                       │
-                │   catalog/tools/index.json + tool dirs      │
-                │   catalog/assets/index.json + asset files   │
-                └─────────────────────────────────────────────┘
-```
+![Tools supply a manifest, template and hooks to the shared engine. Web, Tauri and terminal shells implement the HostV1 capability bridge and read tools and assets from catalogs.](/info/diagrams/concepts/platform-layers.svg)
 
 ### Repository layout
 

@@ -570,6 +570,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/asset-selection-download.browser.test.ts",
+      "fullName": "Assets selection downloads preserve the displayed colours, source history and original bytes",
+      "reason": "no browser origin (set LOLLY_ASSETS_TEST_URL to a local web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
       "file": "tests/asset-version.browser.test.ts",
       "fullName": "an uncached old catalog version never fetches today’s URL or poisons the old cache key",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
@@ -3121,6 +3128,13 @@
       "file": "tests/timezone-table.browser.test.ts",
       "fullName": "Timezone table: saved object ids, optional fields and large-list deletion survive editing",
       "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/token-binding.browser.test.ts",
+      "fullName": "token controls stay compact and usable across tool inputs, phone layouts and accessibility preferences",
+      "reason": "set LOLLY_EXPORT_TEST_URL",
       "capability": "environment",
       "owner": "tests"
     },

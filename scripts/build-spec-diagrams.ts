@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * build-spec-diagrams - render the docs figures that Diagram Builder draws from
- * checked-in sources: the document model specification (plans/276) and the
- * Shoulders of giants page. Each set keeps its own sources, output folder and
- * shared styling; the render, signing and `--check` path is the same for both.
+ * checked-in sources: the document model specification (plans/276), the
+ * Shoulders of giants page and the concepts used across the guides. Each set
+ * keeps its own sources, output folder and shared styling; the render, signing
+ * and `--check` path is the same for every set.
  *
  *   node scripts/build-spec-diagrams.ts                    # render every figure
  *   node scripts/build-spec-diagrams.ts --only=four-records
+ *   node scripts/build-spec-diagrams.ts --set=concepts
  *   node scripts/build-spec-diagrams.ts --check            # exit 1 if a rerun would change a byte
  *
  *   sources  docs/spec/document-model/diagrams/<name>.<mmd|dot|pikchr>
  *            docs/diagram-sources/shoulders-of-giants/<name>.txt
+ *            docs/diagram-sources/concepts/<name>.dot
  *   output   docs/diagrams/<set>/<name>.svg, plus docs/diagrams/<set>/recipes.json;
  *            a set marked `dark` also writes docs/diagrams/<set>/<name>.dark.svg
  *
@@ -48,6 +51,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SET_DIRS = {
   'document-model': { src: join(ROOT, 'docs/spec/document-model/diagrams'), out: join(ROOT, 'docs/diagrams/document-model'), dark: false },
   'shoulders-of-giants': { src: join(ROOT, 'docs/diagram-sources/shoulders-of-giants'), out: join(ROOT, 'docs/diagrams/shoulders-of-giants'), dark: true },
+  concepts: { src: join(ROOT, 'docs/diagram-sources/concepts'), out: join(ROOT, 'docs/diagrams/concepts'), dark: true },
 } as const;
 export type FigureSet = keyof typeof SET_DIRS;
 const CLI = join(ROOT, 'shells/cli/bin/lolly.ts');
@@ -139,8 +143,20 @@ export const GIANTS_FIGURES: Figure[] = [
   { set: 'shoulders-of-giants', name: 'into-the-page', lang: 'text', title: 'From the desktop into the page', flags: ['--diagramType=process', '--flowDir=down', '--cardWidth=176', '--siblingGap=24', '--rowGap=26'] },
 ];
 
+/** Guide concepts use a full card border and the same label and connector treatment. */
+export const CONCEPT_FIGURES: Figure[] = [
+  { set: 'concepts', name: 'platform-layers', lang: 'dot', title: 'Tools, engine and shells', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=18'] },
+  { set: 'concepts', name: 'three-export-paths', lang: 'dot', title: 'Three paths to a finished file', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
+  { set: 'concepts', name: 'private-collab-handshake', lang: 'dot', title: 'Invite, reply, then connect', flags: ['--look=minimal', '--cardWidth=190', '--rowGap=36'] },
+  { set: 'concepts', name: 'personal-sync', lang: 'dot', title: 'Your devices, your storage', flags: ['--look=minimal', '--cardWidth=180'] },
+  { set: 'concepts', name: 'share-with-rules', lang: 'dot', title: 'From a master to a reusable tool', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'token-resolution', lang: 'dot', title: 'From token sources to tool values', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
+];
+
 /** Every figure the script renders, in set order. */
-export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES];
+export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES];
 
 const setOf = (fig: Figure): FigureSet => fig.set ?? 'document-model';
 const sourcePath = (fig: Figure): string => join(SET_DIRS[setOf(fig)].src, `${fig.name}.${EXT[fig.lang]}`);
@@ -229,23 +245,29 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const check = args.includes('--check');
   const only = args.find(a => a.startsWith('--only='))?.slice('--only='.length);
-  const unknown = args.filter(a => a !== '--check' && !a.startsWith('--only='));
+  const set = args.find(a => a.startsWith('--set='))?.slice('--set='.length);
+  const unknown = args.filter(a => a !== '--check' && !a.startsWith('--only=') && !a.startsWith('--set='));
   if (unknown.length) {
     console.error(`build-spec-diagrams: unknown argument ${unknown[0]}`);
     process.exit(2);
   }
 
-  const figures = only ? ALL_FIGURES.filter(f => f.name === only) : ALL_FIGURES;
+  if (set && !Object.hasOwn(SET_DIRS, set)) {
+    console.error(`build-spec-diagrams: unknown set "${set}". Known: ${Object.keys(SET_DIRS).join(', ')}`);
+    process.exit(2);
+  }
+  const selected = set ? ALL_FIGURES.filter(f => setOf(f) === set) : ALL_FIGURES;
+  const figures = only ? selected.filter(f => f.name === only) : selected;
   if (only && !figures.length) {
-    console.error(`build-spec-diagrams: no figure called "${only}". Known: ${ALL_FIGURES.map(f => f.name).join(', ')}`);
+    console.error(`build-spec-diagrams: no figure called "${only}". Known: ${selected.map(f => f.name).join(', ')}`);
     process.exit(2);
   }
 
   const problems: string[] = [];
   if (!only) {
-    for (const set of Object.keys(SET_DIRS) as FigureSet[]) {
-      const expected = new Set(ALL_FIGURES.filter(f => setOf(f) === set).map(f => basename(sourcePath(f))));
-      for (const f of sourcesOnDisk(set)) if (!expected.has(f)) problems.push(`stray source with no figure entry in ${set}: ${f}`);
+    for (const figureSet of (set ? [set] : Object.keys(SET_DIRS)) as FigureSet[]) {
+      const expected = new Set(ALL_FIGURES.filter(f => setOf(f) === figureSet).map(f => basename(sourcePath(f))));
+      for (const f of sourcesOnDisk(figureSet)) if (!expected.has(f)) problems.push(`stray source with no figure entry in ${figureSet}: ${f}`);
     }
   }
   for (const fig of figures) {

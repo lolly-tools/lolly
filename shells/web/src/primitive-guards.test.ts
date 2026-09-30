@@ -249,6 +249,9 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   // attribute order (it adds xmlns). One template, no new pictures. 2026-09-02.
   // Product logos from the checked-in vendor paths, not interface glyphs.
   'views/valid-vendors.ts': 1,
+  // Connected services logos (Simple Icons paths in lib/service-marks/), the same
+  // one-template shape as the vendor marks above. 2026-09-30.
+  'lib/service-marks.ts': 1,
   'views/free-canvas-fields.ts': 1,
   'views/multi-edit.ts': 1,
   'views/personalize-nudge.ts': 1,
@@ -1492,7 +1495,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/tool.ts': 6, // ratcheted 16->15 2026-09-08: an interpolated sink moved into an escaped renderer
   'views/tool/stage-layout.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/tool/setup.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/tool/session.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  // Hydrated engine markup, moved from the tool session into presenter preparation.
+  'views/present-web-check.ts': 1,
   'views/tool/render.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/tool/popovers.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/tool/history.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -1651,8 +1655,16 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/valid-actions.ts': 4,
   // Static unavailable state with a registry icon and a fixed translation.
   'views/valid-preview.ts': 1,
-  // Every report value is escaped; dot colours come from a constant lookup.
-  'views/valid-report-card.ts': 1,
+  // AI Instructions uses only the close icon authored by docs/build.ts; text uses textContent.
+  'lib/agent-copy.ts': 1,
+  // Passive extraction parses bounded uploaded HTML in a detached template, never mounted.
+  'views/html-unpack.ts': 1,
+  // Workspace rendering escapes file names, notes, findings and source extracts.
+  // The progress sink contains trusted translations and the same escaped renderer.
+  'views/valid-forensics.ts': 2,
+  // Policy summaries use fixed registry icons, translated copy and bounded metrics.
+  // Report values are written with textContent.
+  'views/valid-production.ts': 4,
   'views/text.ts': 3,
   // 2026-09-17, the saved-studio actions row (plan 265 milestone 2). One sink builds
   // the Studio section header from a fixed class string and one translated title; the
@@ -1704,6 +1716,16 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // restore or deletion. Entry names go through escape(); kinds, dates and button
   // labels are translated strings, escaped; icons come from the fixed registry.
   'components/trash-dialog.ts': 1,
+  // Token workflow controls escape source paths, values, labels, diagnostics and
+  // revision text. Remaining interpolations are translated copy, registered icons,
+  // booleans, bounded counts and validated numeric recipe versions. Review markup
+  // composes changeSummaryHtml, which escapes its own label/detail arguments.
+  'components/token-binding-field.ts': 3,
+  'components/token-context-strip.ts': 1,
+  'components/token-review-proof.ts': 1,
+  'components/token-workspace.ts': 7,
+  'views/components-token-examples.ts': 1,
+  'views/design-token-bindings.ts': 1,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {

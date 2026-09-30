@@ -5,6 +5,17 @@ import assert from 'node:assert/strict';
 
 import { TEMPLATE_DROPPED_KEYS, awaitsEmojiPins, carriedEmojiPins, snapshotSession, templateValuesFromSnapshot } from './tool-session-snapshot.ts';
 import { emojiParams } from '../../../../engine/src/emoji-style.ts';
+import { buildInputModel, tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
+
+test('a saved custom value carries its restore link into a reopened document and template', () => {
+  const spec = { inputs: [{ id: 'gap', type: 'number' as const, default: 10 }] };
+  const model = buildInputModel(spec, { initial: { gap: 17, __tokenLinks: { gap: '{rhythm.gap}' } } });
+  const snap = snapshotSession(null, { id: 'example', version: '1.0.0' } as never, { getModel: () => model } as never, {}, () => '', () => '');
+  assert.equal(snap.gap, 17);
+  assert.deepEqual(snap.__tokenLinks, { gap: '{rhythm.gap}' });
+  const template = templateValuesFromSnapshot(snap, spec);
+  assert.deepEqual(tokenRestoreRefsOf(buildInputModel(spec, { initial: template as never })), { gap: '{rhythm.gap}' });
+});
 
 const manifest = { inputs: [{ id: 'url', type: 'text' }, { id: 'photo', type: 'asset' }, { id: 'source', type: 'file' }] };
 

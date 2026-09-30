@@ -286,6 +286,7 @@ const pages: Page[] = [
   // ── Builders pathway ─────────────────────────────────────────────────────
   { slug: 'overview',         title: 'Architecture',      src: 'overview.md',        pathway: 'builders', description: "How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code." },
   { slug: 'design-tokens',    title: 'Design Tokens',     src: 'design-tokens.md',   pathway: 'builders' },
+  { slug: 'token-workflows',  title: 'Token workflows',   src: 'token-workflows.md', pathway: 'builders' },
   { slug: 'glossary',         title: 'Glossary',          src: 'glossary.md',        pathway: 'builders', description: "The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not." },
   // The summary of the document model draft (plan 276). The draft itself is its own
   // web document under /info/spec/document-model/ (docs/spec-pages.ts), browsed in
@@ -351,6 +352,7 @@ const pages: Page[] = [
   { slug: 'parser-inventory', title: 'Parser Inventory',  src: 'parser-inventory.md', pathway: 'trust' },
   { slug: 'server-surface',   title: 'Server Surface',    src: 'server-surface.md',  pathway: 'trust', description: "The complete inventory of what a Lolly server does and does not see, component by component, so you can audit the whole network surface in one sitting." },
   { slug: 'verify-yourself',  title: 'Verify It Yourself', src: 'verify-yourself.md', pathway: 'trust', description: "Check this site's claims against a real export, step by step. No account, no trust required, and nothing you cannot run yourself." },
+  { slug: 'verify-ai-evidence', title: 'AI evidence in Verify', src: 'verify-ai-evidence.md', pathway: 'trust', description: 'Located text and visual clues, coverage, review notes and the limits of authorship probability.' },
   { slug: 'privacy',          title: 'Privacy Policy',    src: 'privacy.md',         pathway: 'trust' },
   { slug: 'inclusive-design', title: 'Inclusive Design',  src: 'inclusive-design.md', pathway: 'trust', description: "Accessibility, language coverage and the ethical commitments Lolly holds itself to, with the tests that fail the build when one is broken." },
   { slug: 'ai-stance',        title: 'Our AI Stance',     src: 'ai-stance.md',       pathway: 'trust', description: "AI is welcome as labour and refused as impersonation. Where Lolly stands on generated content, and the machinery that enforces each commitment." },
@@ -589,6 +591,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { label: 'Architecture', items: [
         { slug: 'overview',      label: 'Architecture' },
         { slug: 'design-tokens', label: 'Design Tokens' },
+        { slug: 'token-workflows', label: 'Token workflows' },
         { slug: 'glossary',      label: 'Glossary' },
         { slug: 'document-model', label: 'Document model draft' } ] },
       // The three concept pages: each takes one term the landing states in plain
@@ -685,6 +688,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'trust',    label: 'Trust overview' },
         { slug: 'security', label: 'Security & Verification' },
         { slug: 'verify-yourself', label: 'Verify It Yourself' },
+        { slug: 'verify-ai-evidence', label: 'AI evidence in Verify' },
         { slug: 'threat-model',    label: 'Threat Model' },
         { slug: 'server-surface',  label: 'What a server sees' },
         { slug: 'parser-inventory', label: 'Every parser we run' },
@@ -714,6 +718,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'shoulders-of-giants',          label: 'Shoulders of giants' } ] },
       { label: 'Check it yourself', items: [
         { slug: 'verify-yourself', label: 'Verify It Yourself' },
+        { slug: 'verify-ai-evidence', label: 'AI evidence in Verify' },
         { slug: 'security',        label: 'Security & Verification' } ] },
       { label: 'For reviewers', items: [
         { slug: 'threat-model',     label: 'Threat Model' },
@@ -2098,18 +2103,12 @@ const landingCtaHref = (lang: Lang, href: string): string => (href.startsWith('#
  * TypeScript copy there) is gone. esbuild is already the docs player's bundler.
  */
 /**
- * The reading enhancer (plan 277): Copy on code blocks, its feedback, and opening a
- * closed disclosure that a #link points into. shells/web/src/lib/docs-enhance.ts is the
- * module the in-app reader imports; bundled once here, like the Cover Flow, so the two
- * readers run the same code. Its words come from the page (readingAttr), in the page's
- * language, and it writes with the browser's clipboard only, refusing when that is
- * absent rather than pretending a copy happened.
- */
-/**
- * "Copy agent instructions" under the hero's calls to action: the text a person
- * pastes into an agent so it can use Lolly (the open MCP server, the CLI, the
- * skill). The text rides on the button as an attribute, from the same builder
- * that writes /info/agent-instructions.md, which the link beside it opens.
+ * "AI Instructions" under the hero's calls to action: one pill for the text a person
+ * pastes into an agent so it can use Lolly (the open MCP server, the CLI, the skill).
+ * A click on the pill copies the text; the icons to its right copy, view and download
+ * it, each with a tip. The text rides on the pill as an attribute, from the same builder
+ * that writes /info/agent-instructions.md, which the download icon links to when
+ * scripts are off.
  */
 function heroAgentHtml(): string {
   const text = buildAgentInstructions({
@@ -2117,15 +2116,23 @@ function heroAgentHtml(): string {
     mcpDoc: `${SITE_URL}/info/${pathSlug('mcp')}.md`,
     cliDoc: `${SITE_URL}/info/${pathSlug('cli')}.md`,
   });
+  const label = t('AI Instructions');
+  const tip = (words: string): string => `data-tip="${escAttr(words)}" aria-label="${escAttr(words)}"`;
   return `<div class="hero-agent">
-      <button type="button" class="hero-agent-copy" data-agent-copy data-agent-text="${escAttr(text)}" data-copied="${escAttr(t('Copied to clipboard'))}" data-failed="${escAttr(t('Copy did not work'))}">${docIcon('adm-clipboard')}<span class="agent-copy-label">${esc(t('Copy agent instructions'))}</span></button>
-      <a class="hero-agent-file" href="/info/${AGENT_FILES.instructions}">${esc(AGENT_FILES.instructions)}</a>
-      <span class="agent-copy-status sr-only" aria-live="polite"></span>
+      <div class="agent-pill" data-agent-pill data-agent-text="${escAttr(text)}" data-copied="${escAttr(t('Copied to clipboard'))}" data-failed="${escAttr(t('Copy did not work'))}" data-title="${escAttr(label)}" data-close="${escAttr(t('Close'))}" data-close-icon="${escAttr(appIcon('close'))}" data-filename="lolly-ai-instructions.md">
+        <button type="button" class="agent-pill-main" aria-label="${escAttr(t('Copy the AI instructions'))}"><span class="agent-copy-label">${esc(label)}</span></button>
+        <span class="agent-pill-icons">
+          <button type="button" class="agent-pill-icon" data-agent-action="copy" ${tip(t('Copy'))}>${appIcon('duplicate')}</button>
+          <button type="button" class="agent-pill-icon" data-agent-action="view" aria-haspopup="dialog" ${tip(t('View'))}>${appIcon('eye')}</button>
+          <a class="agent-pill-icon" data-agent-action="download" href="/info/${AGENT_FILES.instructions}" download="lolly-ai-instructions.md" ${tip(t('Download'))}>${appIcon('download')}</a>
+        </span>
+        <span class="agent-copy-status sr-only" aria-live="polite"></span>
+      </div>
     </div>`;
 }
 
-/** The copy button's behaviour: shells/web/src/lib/agent-copy.ts, the module the
- *  in-app reader calls on the landing it adopts, bundled once here. */
+/** The pill's behaviour: shells/web/src/lib/agent-copy.ts, the module the in-app
+ *  reader calls on the landing it adopts, bundled once here. */
 let _agentCopyJs: string | null = null;
 function agentCopyScript(): string {
   if (_agentCopyJs === null) {
@@ -2139,6 +2146,14 @@ function agentCopyScript(): string {
   return `<script>\n${_agentCopyJs}\nLollyAgentCopy.wireAgentCopy(document);\n</script>`;
 }
 
+/**
+ * The reading enhancer (plan 277): Copy on code blocks, its feedback, and opening a
+ * closed disclosure that a #link points into. shells/web/src/lib/docs-enhance.ts is the
+ * module the in-app reader imports; bundled once here, like the Cover Flow, so the two
+ * readers run the same code. Its words come from the page (readingAttr), in the page's
+ * language, and it writes with the browser's clipboard only, refusing when that is
+ * absent rather than pretending a copy happened.
+ */
 let _readingJs: string | null = null;
 function readingScript(): string {
   if (_readingJs === null) {
@@ -2221,7 +2236,6 @@ function workBand(lang: Lang): string {
   void lang;
   return `<section class="work-section" id="work">
   <div class="work-inner reveal">
-    <span class="work-eyebrow">${esc(w.eyebrow)}</span>
     <div class="work-cols">
       <div class="work-copy">
         <h2 class="work-heading">${esc(w.heading)}</h2>
@@ -2250,7 +2264,6 @@ function whoIsBehindBlock(lang: Lang): string {
   const b = loadLandingJson<BehindJson>('behind.json');
   return `<section class="behind-section" id="behind">
   <div class="behind-inner reveal">
-    <span class="behind-eyebrow">${esc(b.eyebrow)}</span>
     <p class="behind-para behind-para--solo">${inline(b.sceptic)}</p>
     <div class="behind-foot">
       ${FOUNDED_BY}
@@ -3776,9 +3789,6 @@ tr:nth-child(even) td{background:hsl(var(--muted) / 0.4)}
 footer{border-top:1px solid var(--border);padding:2rem 1.5rem;text-align:center;color:var(--muted);font-size:.8125rem;background:var(--pale)}
 footer a{color:var(--muted);text-decoration:underline}
 footer a:hover{color:var(--dark)}
-.sitemap-disclosure{grid-column:1/-1;text-align:start}
-.sitemap-disclosure>summary{width:fit-content;margin:0 auto;cursor:pointer;font-weight:600;padding:.5rem}
-.sitemap-expanded{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:2rem;margin-top:2rem}
 footer .founded-badge{margin-top:.5rem}
 .docs-license{margin:.5rem 0 0;font-size:.6875rem;font-weight:300;line-height:1.6}
 /* Footer sitemap - the whole docs set, ten columns (see FOOTER_SECTIONS).
@@ -3794,9 +3804,10 @@ footer .founded-badge{margin-top:.5rem}
    which is what makes them scannable as lists rather than as prose. Titles take
    var(--text), not var(--dark), because --dark keeps its value in the dark theme
    and would go invisible there. */
-.footer-sitemap{display:grid;grid-template-columns:repeat(2,1fr);align-items:start;gap:1.25rem 1.5rem;max-width:1180px;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
-@media(min-width:34rem){.footer-sitemap{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:64rem){.footer-sitemap{grid-template-columns:repeat(5,1fr)}}
+.footer-sitemap{max-width:1180px;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
+.sitemap-expanded{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:1.25rem 1.5rem;margin-top:2rem}
+@media(min-width:34rem){.sitemap-expanded{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:64rem){.sitemap-expanded{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .footer-sitemap a{display:flex;align-items:flex-start;gap:.45em;color:var(--muted);text-decoration:none;padding:.15rem 0 .15rem;line-height:2;min-width:0;overflow-wrap:anywhere;hyphens:auto}
 .footer-sitemap a:hover{color:var(--green);text-decoration:underline}
 /* Every sitemap link opens with the SAME glyph the docs sidebar gives that page
@@ -5351,7 +5362,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'creators', label: 'For Creators', slugs: [
     'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', '3d-studio', 'text-composition', 'design-import', 'rebrand', 'sequence-editor', 'hdr-editing', 'animating', 'utilities', 'extension'] },
   { hub: 'builders', label: 'For Builders', slugs: [
-    'overview', 'design-tokens', 'glossary', 'document-model', 'authoring-tools', 'authoring-assets', 'text-composition-engine', 'host-api', 'url-mode'] },
+    'overview', 'design-tokens', 'token-workflows', 'glossary', 'document-model', 'authoring-tools', 'authoring-assets', 'text-composition-engine', 'host-api', 'url-mode'] },
   { hub: 'operators', label: 'For Operators', slugs: [
     'sales', 'press', 'marketing', 'legal',
     'adoption-governance', 'sovereign-production', 'deployment', 'configuration', 'build-guide', 'cli-signing'] },
@@ -5374,7 +5385,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
     'content-credentials-engineering', 'creative-rights', 'ai-stance', 'ai-features', 'eu-ai-act',
     'beatrice-warde', 'shoulders-of-giants'] },
   { hub: 'trust', label: 'Check it yourself', slugs: [
-    'verify-yourself', 'security', 'threat-model', 'parser-inventory', 'server-surface'] },
+    'verify-yourself', 'verify-ai-evidence', 'security', 'threat-model', 'parser-inventory', 'server-surface'] },
   { hub: 'trust', label: 'Your data', slugs: ['privacy', 'inclusive-design'] },
 ];
 
@@ -5423,7 +5434,7 @@ function sitemapLabel(slug: string, hub: Pathway): string {
   return pages.find(p => p.slug === slug)?.title ?? slug;
 }
 
-function footerSitemap(lang: Lang, compact = false): string {
+function footerSitemap(lang: Lang): string {
   // Each link opens with the SAME glyph the docs sidebar gives that page - 
   // SIDEBAR_ICON is the one page→icon mapping, shared, so the footer and the rail
   // can never disagree about what a destination looks like (headings included:
@@ -5443,11 +5454,11 @@ function footerSitemap(lang: Lang, compact = false): string {
   // A <div role="navigation">, not a <nav>: the stylesheet once styled the bare `nav`
   // element as the fixed top bar, which pinned any second <nav> over the real one.
   // The bar has its own class now; the div keeps the same landmark semantics.
-  const body = compact ? `<details class="sitemap-disclosure"><summary>${esc(t('Documentation'))}</summary><div class="sitemap-expanded">${cols}</div></details>` : cols;
+  const body = `<details class="sitemap-disclosure"><summary><span>${esc(t('Documentation'))}</span><span class="sitemap-chevron" aria-hidden="true">${docIcon('adm-chevron')}</span></summary><div class="sitemap-expanded">${cols}</div></details>`;
   return `<div role="navigation" class="footer-sitemap" aria-label="${esc(t('Sitemap'))}">${body}</div>`;
 }
 
-const FOOTER = (lang: Lang, compact = false) => `<footer>${footerSitemap(lang, compact)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a> · <a href="${localeHref(lang, 'shoulders-of-giants')}">${esc(t('Provenance'))}</a> · <a href="${localeHref(lang, 'faq')}">${esc(t('FAQ'))}</a></p>${compact ? '' : `<p>${esc(t('Questions? Contact Andy Fitzsimon -'))} <a href="mailto:fitzy@suse.com">fitzy@suse.com</a></p>`}${FOUNDED_BY}<p class="docs-license">${esc(t('Code'))} (<a href="${CODE_LICENSE_URL}">MPL 2.0</a>) · ${esc(t('Content'))} (<a rel="license" href="${CONTENT_LICENSE_URL}">CC BY-SA 4.0</a>) · <a href="${SITE_URL}">lolly.tools</a></p></footer>`;
+const FOOTER = (lang: Lang) => `<footer>${footerSitemap(lang)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a> · <a href="${localeHref(lang, 'shoulders-of-giants')}">${esc(t('Provenance'))}</a> · <a href="${localeHref(lang, 'faq')}">${esc(t('FAQ'))}</a></p>${FOUNDED_BY}<p class="docs-license">${esc(t('Code'))} (<a href="${CODE_LICENSE_URL}">MPL 2.0</a>) · ${esc(t('Content'))} (<a rel="license" href="${CONTENT_LICENSE_URL}">CC BY-SA 4.0</a>) · <a href="${SITE_URL}">lolly.tools</a></p></footer>`;
 
 // Docs sidebar for a page, driven by its pathway. Falls back to the builders
 // sidebar for any non-landing page without an explicit pathway.
@@ -5483,7 +5494,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   ask: 'sparkle', dashboard: 'monitor', utilities: 'wrench',
   collaborate: 'people', search: 'search', favourites: 'star', 'find-your-work': 'folder', sync: 'convert',
   // Builders - architecture & authoring
-  overview: 'layers', 'design-tokens': 'hash', glossary: 'document', 'document-model': 'layers', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
+  overview: 'layers', 'design-tokens': 'hash', 'token-workflows': 'hash', glossary: 'document', 'document-model': 'layers', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
   'host-api': 'code', 'url-mode': 'link',
   'build-terminal': 'box', 'build-desktop': 'box', 'build-mobile': 'box', 'build-obs': 'box', 'build-kubernetes': 'box',
   'production-checks': 'check', 'cli-rendering': 'code', 'cli-files': 'code', 'cli-automation': 'code', 'cli-reference': 'code',
@@ -5503,7 +5514,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'beatrice-warde': 'font',
   'shoulders-of-giants': 'people',
   // Trust - check it yourself
-  'verify-yourself': 'check', security: 'shieldcheck', 'threat-model': 'lock',
+  'verify-yourself': 'check', 'verify-ai-evidence': 'check', security: 'shieldcheck', 'threat-model': 'lock',
   'parser-inventory': 'code', 'server-surface': 'server',
   // Trust - your data
   privacy: 'eyeoff', 'data-transfer': 'convert', 'inclusive-design': 'people',
@@ -6120,7 +6131,7 @@ ${NOSCRIPT_NAV}
 <a class="skip-link" href="#docs-main">${esc(t('Skip to content'))}</a>
 ${buildNav(lang, page.slug, isLanding, sheet)}
 ${body}
-${FOOTER(lang, page.slug === 'tenets')}
+${FOOTER(lang)}
 ${jump}
 ${DOCS_JS_TAG}
 </body>

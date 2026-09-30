@@ -1,0 +1,13 @@
+digraph token_resolution {
+  rankdir=TB
+  node [shape=box]
+  catalog [label="Catalog tokens\ndesign system asset"]
+  user [label="User tokens\ncreated or imported"]
+  model [label="Engine token model\nthemes and aliases"]
+  host [label="Shell bridge\nhost.tokens"]
+  tool [label="Tool lookups\nresolved values"]
+  catalog -> model
+  user -> model
+  model -> host
+  host -> tool
+}

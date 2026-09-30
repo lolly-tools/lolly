@@ -89,7 +89,10 @@ export function wireIntakeAlts(viewEl: HTMLElement, deps: IntakeAltsDeps): Intak
     if (open) pasteText.focus();
     else {
       layoutEl.classList.remove('is-pasting');
-      if (restoreFocus) pasteOpen.focus();
+      if (restoreFocus) {
+        const action = viewEl.querySelector<HTMLElement>('[data-actions-primary] [data-verify-action="paste"]');
+        (action?.getClientRects().length ? action : viewEl.querySelector<HTMLElement>('.valid-actions-more > summary') ?? pasteOpen).focus();
+      }
     }
   };
   pasteOpen.addEventListener('click', () => setPasteOpen(pastePanel.hidden));
@@ -135,7 +138,10 @@ export function wireIntakeAlts(viewEl: HTMLElement, deps: IntakeAltsDeps): Intak
     else {
       layoutEl.classList.remove('is-linking');
       // Results mode hides the intake row, so focus goes back to the header button.
-      if (restoreFocus) (layoutEl.classList.contains('has-results') ? resultUrl : urlOpen).focus();
+      if (restoreFocus) {
+        const action = viewEl.querySelector<HTMLElement>('[data-actions-primary] [data-verify-action="url"]');
+        (action?.getClientRects().length ? action : viewEl.querySelector<HTMLElement>('.valid-actions-more > summary') ?? urlOpen).focus();
+      }
     }
   }
   function openUrlPanel(prefill = ''): void {

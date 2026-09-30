@@ -51,6 +51,8 @@ Two deliberate choices keep us interoperable with Penpot while serving Lolly's p
 
 **4. Bridge - `host.tokens`.** An additive, optional v1 capability (like `net`/`text`): `get` / `colors` / `resolve` / `themes`. Each shell implements it over the engine model and its sources; a shell that doesn't is simply not token-driven. Loading is offline-safe (prefers the core-prefetched blob, falls back to a direct fetch, then to the built-in palette).
 
+![Catalog and user tokens feed the engine token model, which resolves themes and aliases. The shell exposes that model through host.tokens so tools can look up resolved values.](/info/diagrams/concepts/token-resolution.svg)
+
 ## Lolly UI tokens
 
 Your brand describes identity. Lolly also carries a small **application UI** system
@@ -150,6 +152,10 @@ The brand colours moved into tokens without changing what anyone sees: `scripts/
 The corner radius is the plainest of the shipped dimension tokens: one slider writing one `shape.radius` value that the app chrome, the panels and every opted-in tool then follow.
 
 ![The Rounded corners control in the Tokens tab - a live preview square, a slider and the value it writes, all standing for a single dimension token](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.be-radius-panel&dark=1&filename=at2-token-radius-dimension)
+
+## Token workflows
+
+The [token workflow guide](/info/token-workflows.html) covers retained source inspection, independent theme choices, typed links, reviewed source edits, scale recipes and upstream updates. The controls use the same fields, buttons, cards and dialogs throughout Lolly.
 
 ## Reference
 

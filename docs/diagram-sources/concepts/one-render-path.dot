@@ -1,0 +1,13 @@
+digraph one_render_path {
+  rankdir=TB
+  node [shape=box]
+  url [label="URL parameters\n?url=..."]
+  cli [label="CLI arguments\n--url=..."]
+  model [label="Input model\nsame typed values"]
+  runtime [label="Shared runtime\nhooks and template"]
+  export [label="Shell export bridge\nchosen format"]
+  url -> model
+  cli -> model
+  model -> runtime
+  runtime -> export
+}

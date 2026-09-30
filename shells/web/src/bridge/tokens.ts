@@ -65,7 +65,7 @@ import {
 } from '../../../../engine/src/design-version.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { pendingAssetSync } from '../lib/asset-sync.ts';
-import type { DesignSystemSummary, TokensAPI, TokensSnapshot, TokenSet } from '@lolly-tools/core/host-v1';
+import type { DesignSystemSummary, TokensAPI, TokensSnapshot, TokenSet, TokenResolveOptions } from '@lolly-tools/core/host-v1';
 // The design systems this device holds and which one is active (plans/186). A
 // type-only import: the registry is handed in through the host slice, so a test's
 // narrow stub (no registry) keeps the legacy discovery below byte for byte.
@@ -472,24 +472,25 @@ function tokenSurface(loadDoc: () => Promise<unknown>): TokenDocSurface {
     return docPromise;
   }
 
-  async function ensure(theme?: string): Promise<TokenSet> {
-    const key = theme ?? '';
+  async function ensure(opts: TokenResolveOptions = {}): Promise<TokenSet> {
+    const { tokenSelectionKey } = await import('../../../../engine/src/token-selection.ts');
+    const key = tokenSelectionKey(opts);
     if (setByTheme.has(key)) return setByTheme.get(key)!;
     const { createTokenSet } = await tokensMod();
-    const set = createTokenSet(await doc(), { theme });
-    if (set.size > 0) setByTheme.set(key, set); // don't cache an empty (failed) load
+    const set = createTokenSet(await doc(), opts);
+    if (set.size > 0) { if (setByTheme.size >= 64) setByTheme.delete(setByTheme.keys().next().value!); setByTheme.set(key, set); } // don't cache an empty (failed) load
     return set;
   }
 
   return {
     /** The resolved token set for the active (or named) theme. */
-    get: (opts = {}) => ensure(opts.theme),
+    get: (opts = {}) => ensure(opts),
     /** Colour tokens as picker-ready swatches ({ ref, value, name, group, cmyk }).
      *  Swatches on the doc's exclusion list (a "deleted" derived ramp step - 
      *  the studio hides it, the token keeps resolving) are filtered here so
      *  every picker honours the exclusion without each caller re-reading it. */
     colors: async (opts = {}) => {
-      const list = (await ensure(opts.theme)).colors();
+      const list = (await ensure(opts)).colors();
       const excluded = new Set(getExcludedSwatches(await doc()));
       if (!excluded.size) return list;
       const { aliasPath } = await tokensMod();
@@ -504,8 +505,9 @@ function tokenSurface(loadDoc: () => Promise<unknown>): TokenDocSurface {
       });
     },
     /** Resolve a `{path}` alias (or bare path) to its value. */
-    resolve: async (ref, opts = {}) => (await ensure(opts.theme)).resolve(ref),
+    resolve: async (ref, opts = {}) => (await ensure(opts)).resolve(ref),
     /** The raw effective DTCG document (see WebTokensAPI.raw). */
+    inspect: async (opts = {}) => { const { inspectTokenDocument } = await import('../../../../engine/src/token-inspect.ts'); return inspectTokenDocument(await doc(), opts); },
     raw: () => doc(),
     /** Theme names declared in the document. */
     themes: async () => (await ensure()).themes(),
@@ -716,7 +718,13 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     try { doc = await readJsonBlob(await host.assets._getBlob(versionAssetId(asset.id, slug))); }
     catch { /* IDB unavailable - treated as unreadable below */ }
     if (!doc) return fallback('could not be read');
-    return applyPinnedAssets(doc, entry.assets ?? []);
+    const pins = entry.assets ?? [];
+    if (pins.some(p => p.font)) {
+      const { registerReleaseFonts } = await import('./font-registry.ts');
+      await registerReleaseFonts(pins, id => host.assets._getBlob(id));
+    }
+    const { applyPinnedFontFamilies } = await import('../../../../engine/src/token-font-pins.ts');
+    return applyPinnedFontFamilies(applyPinnedAssets(doc, pins), pins);
   }
 
   /** A memoised read surface over one published version. */
@@ -748,16 +756,29 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     const headDoc = await head.raw();
     if (!headDoc) return null;
     const slug = ladder(headDoc);
-    return slug === DESIGN_VERSION_LATEST ? headDoc : versionSurface(slug).raw();
+    const document = await (slug === DESIGN_VERSION_LATEST ? headDoc : versionSurface(slug).raw());
+    const choices = await routeChoices();
+    if (!choices || !document || typeof document !== 'object') return document;
+    const copy = structuredClone(document) as Record<string, unknown>;
+    copy.$metadata = { ...(copy.$metadata as object ?? {}), activeThemeSelection: choices };
+    return copy;
   }
   const render = tokenSurface(loadRenderDoc);
 
   /** Which `?designv=` the memoised render surface was built for. The bridge
    *  outlives any one route, so navigating off a `designv` link (or onto one) has
    *  to drop that memo - and only that one, since the head never moved. */
-  let builtFor: string | null = urlDesignVersion();
+  async function routeChoices(): Promise<Record<string, string> | undefined> {
+    const { parseTokenSelection } = await import('../../../../engine/src/token-selection.ts');
+    return parseTokenSelection(routeChoiceText());
+  }
+  function routeChoiceText(): string | null {
+    const hash = typeof location === 'undefined' ? '' : location.hash;
+    return new URLSearchParams(hash.includes('?') ? hash.slice(hash.indexOf('?') + 1) : '').get('_themes');
+  }
+  let builtFor = JSON.stringify([urlDesignVersion(), routeChoiceText()]);
   function syncOverride(): void {
-    const now = urlDesignVersion();
+    const now = JSON.stringify([urlDesignVersion(), routeChoiceText()]);
     if (now === builtFor) return;   // the overwhelmingly common case: both null
     builtFor = now;
     render.bust();
@@ -780,6 +801,7 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     colors: async (opts = {}) => { syncOverride(); return render.colors(opts); },
     resolve: async (ref, opts = {}) => { syncOverride(); return render.resolve(ref, opts); },
     themes: async () => { syncOverride(); return render.themes(); },
+    inspect: async (opts = {}) => { syncOverride(); return render.inspect!(opts); },
     /** The EDIT HEAD's document (see WebTokensAPI.raw). */
     raw: () => head.raw(),
     /** The id the head was discovered at (see WebTokensAPI.headId). */
@@ -822,9 +844,14 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
      */
     async snapshot(): Promise<TokensSnapshot> {
       syncOverride();
-      const [document, system] = await Promise.all([render.raw(), activeSummary()]);
-      const version = ladder(await head.raw().catch(() => null));
-      return { document: document ?? null, system, version, selection: readActiveSelection(document) };
+      const [renderDocument, system] = await Promise.all([render.raw(), activeSummary()]);
+      const headDoc = await head.raw().catch(() => null);
+      const version = ladder(headDoc);
+      const pins = readVersionIndex(headDoc).versions.find(v => v.slug === version)?.assets ?? [];
+      const { restorePinnedFontFamilies } = await import('../../../../engine/src/token-font-pins.ts');
+      const document = await restorePinnedFontFamilies(renderDocument, pins);
+      const choices = (await import('../../../../engine/src/token-selection.ts')).resolveTokenSelection(document).choices;
+      return { document: document ?? null, ...(pins.some(p => p.font) ? { renderDocument } : {}), system, version, selection: { ...readActiveSelection(document), ...(Object.keys(choices).length ? { choices } : {}) } };
     },
     async activeRecord() {
       return host.designSystems ? (await host.designSystems.active().catch(() => null)) : null;

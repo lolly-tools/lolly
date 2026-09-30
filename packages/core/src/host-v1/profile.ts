@@ -152,6 +152,16 @@ export interface Profile {
    *  have been established for this profile - the `hiddenToolsSeeded` mechanism, for
    *  templates: merged at load until set, then the stored set is authoritative. */
   hiddenTemplatesSeeded?: boolean;
+  /** Sites the person lets Lolly contact without asking (plan 288): the web fonts and
+   *  scripts a Sandbox demo fetches, and the page a Design web page box frames. Entries
+   *  follow `engine/src/trusted-sites.ts`: `example.com`, `*.example.com` or a URL prefix.
+   *  Trust removes a question and never widens a security header. Never a bind target,
+   *  and never unioned on merge, so a removed site stays removed. */
+  trustedSites?: string[];
+  /** One-shot marker that the brand's `defaultTrustedSites` (catalog asset index) have
+   *  been established for this profile: merged in until set, then the stored list is
+   *  authoritative. The `hiddenToolsSeeded` mechanism, for trusted sites. */
+  trustedSitesSeeded?: boolean;
   /** Per-tool "Start with" for a blank fresh open (plans/226): tool id → `"blank"` (open
    *  on the manifest defaults, no chooser) or a template ref (`"<toolId>:<tid>"` or
    *  `"user:<id>"`, seeded directly, no chooser). Absent = ask (the chooser). Applies to

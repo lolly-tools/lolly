@@ -1,0 +1,160 @@
+{
+  "foundation": {
+    "identity": {
+      "Beacon": {
+        "$type": "color",
+        "$value": "#7c3aed"
+      },
+      "Ink": {
+        "$type": "color",
+        "$value": "#20202b"
+      },
+      "Paper": {
+        "$type": "color",
+        "$value": "#ffffff"
+      }
+    },
+    "font": {
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "SUSE"
+      }
+    }
+  },
+  "day": {
+    "color": {
+      "semantic": {
+        "primary": {
+          "$type": "color",
+          "$value": "{identity.Beacon}"
+        },
+        "surface": {
+          "$type": "color",
+          "$value": "{identity.Paper}"
+        },
+        "foreground": {
+          "$type": "color",
+          "$value": "{identity.Ink}"
+        }
+      }
+    }
+  },
+  "night": {
+    "color": {
+      "semantic": {
+        "primary": {
+          "$type": "color",
+          "$value": "#b5a0ff"
+        },
+        "surface": {
+          "$type": "color",
+          "$value": "{identity.Ink}"
+        },
+        "foreground": {
+          "$type": "color",
+          "$value": "{identity.Paper}"
+        }
+      }
+    }
+  },
+  "compact": {
+    "space": {
+      "exampleGap": {
+        "$type": "dimension",
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "roomy": {
+    "space": {
+      "exampleGap": {
+        "$type": "dimension",
+        "$value": {
+          "value": 96,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "$themes": [
+    {
+      "id": "day",
+      "name": "Day",
+      "group": "appearance",
+      "selectedTokenSets": {
+        "foundation": "source",
+        "day": "enabled"
+      }
+    },
+    {
+      "id": "night",
+      "name": "Night",
+      "group": "appearance",
+      "selectedTokenSets": {
+        "foundation": "source",
+        "night": "enabled"
+      }
+    },
+    {
+      "id": "compact",
+      "name": "Compact",
+      "group": "density",
+      "selectedTokenSets": {
+        "foundation": "source",
+        "compact": "enabled"
+      }
+    },
+    {
+      "id": "roomy",
+      "name": "Roomy",
+      "group": "density",
+      "selectedTokenSets": {
+        "foundation": "source",
+        "roomy": "enabled"
+      }
+    }
+  ],
+  "$metadata": {
+    "tokenSetOrder": [
+      "foundation",
+      "day",
+      "night",
+      "compact",
+      "roomy"
+    ],
+    "activeThemeSelection": {
+      "appearance": "day",
+      "density": "compact"
+    }
+  },
+  "$extensions": {
+    "com.suse.lolly": {
+      "brandSystem": {
+        "schemaVersion": 1,
+        "id": "beacon-example",
+        "label": "Beacon example",
+        "roles": [
+          {
+            "id": "beacon",
+            "label": "Beacon",
+            "resources": [
+              {
+                "type": "token",
+                "path": "identity.Beacon"
+              }
+            ]
+          }
+        ],
+        "bindings": [],
+        "rules": []
+      },
+      "example": {
+        "license": "CC0-1.0",
+        "scope": "Token definitions only. Font bytes are supplied by the app separately."
+      }
+    }
+  }
+}

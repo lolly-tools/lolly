@@ -280,7 +280,7 @@ export const TOOL_DEFS: McpToolDef[] = [
   ...(['compile', 'inspect', 'measure'] as const).map((verb): McpToolDef => ({
     name: `lolly_${verb}`,
     description: `${verb[0]!.toUpperCase()}${verb.slice(1)} a Lolly document without rasterising it.`,
-    inputSchema: { type: 'object', properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, ...TEMPLATE_ARGS, layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, document: { type: 'object' }, ...(verb === 'inspect' ? { ...PRODUCTION_ARGS, file: FILE_ARG, motion: { type: 'boolean', description: 'Inspect delivered video bytes using optional ffprobe/ffmpeg.' }, motionTarget: { type: 'object', description: 'Expected width, height, seconds, fps, audio, loudness (LUFS) and truePeakMax (dBTP).' } } : {}) }, additionalProperties: false },
+    inputSchema: { type: 'object', properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, ...TEMPLATE_ARGS, layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, document: { type: 'object' }, ...(verb === 'inspect' ? { ...PRODUCTION_ARGS, file: FILE_ARG, forensic: { type: 'boolean', description: 'Located AI-associated text and layout evidence. No calibrated probability is currently released.' }, forensicPageCap: { type: 'integer', minimum: 1, maximum: 100, description: 'Maximum pages for forensic assessment; default 6.' }, motion: { type: 'boolean', description: 'Inspect delivered video bytes using optional ffprobe/ffmpeg.' }, motionTarget: { type: 'object', description: 'Expected width, height, seconds, fps, audio, loudness (LUFS) and truePeakMax (dBTP).' } } : {}) }, additionalProperties: false },
   })),
   {
     name: 'lolly_validate',
@@ -1004,6 +1004,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
       case 'lolly_compile':
       case 'lolly_inspect':
       case 'lolly_measure': {
+        if (name === 'lolly_inspect' && args.forensic && (!args.file || args.production || args.motion)) return errorResult('Forensic assessment requires file bytes and a separate request from production or motion checks.');
         if (name === 'lolly_inspect' && args.production !== undefined && !args.file) return errorResult('Production inspection requires final file bytes.');
         if (name === 'lolly_inspect' && args.productionRepair !== undefined) return errorResult('Production repair requires lolly_render and declared tool inputs.');
         if (name === 'lolly_inspect' && args.productionReference !== undefined && args.production === undefined) return errorResult('A production reference requires a production contract.');
@@ -1011,6 +1012,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
           const file = args.file as { base64?: unknown };
           if (typeof file.base64 !== 'string') return errorResult('file.base64 is required.');
           const bytes = Uint8Array.from(Buffer.from(file.base64, 'base64'));
+          if (args.forensic === true) return textOnly(JSON.stringify(await (await import('@lolly-tools/node-shell/forensic')).inspectForensicBytes(bytes, String((args.file as { name?: string }).name ?? 'file'), { pageCap: args.forensicPageCap as number | undefined }), null, 2));
           if (args.production !== undefined) return textOnly(JSON.stringify(await (await import('@lolly-tools/node-shell/production')).inspectProductionBytes(bytes, args.production, readProductionReference(args.productionReference)), null, 2));
           if (args.motion === true) return textOnly(JSON.stringify(await (await import('@lolly-tools/node-shell/motion-inspect')).inspectMotionBytes(bytes, args.motionTarget as never), null, 2));
           return textOnly(JSON.stringify(inspectDocument(bytes), null, 2));

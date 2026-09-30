@@ -162,17 +162,11 @@ export async function readVersionDoc(ctx: VersionsIoCtx, slug: string): Promise<
 /**
  * Every asset `doc` names, as the pins a version records: `{id, version, sha256}`.
  *
- * Two rails, one list, and they are NOT worth the same. `$type: 'asset'` leaves
- * give ids directly (today's logos), and those pins are required: the render
- * path rewrites them to preserved bytes (`applyPinnedAssets`), so the version
- * keeps drawing the image it was published with. `$type: 'fontFamily'` leaves
- * give family NAMES, and every stored face whose `meta.family` matches - case-
- * insensitively, mirroring the font registry's own lookup - contributes a pin
- * that is a RECORD ONLY: nothing resolves a face through an asset id, so a font
- * pin says what the version used (and lets the compat card name a replacement)
- * but does not freeze it. bridge/version-assets.ts skips fonts for exactly that
- * reason, rather than charging a user's storage for bytes nothing can read; the
- * panel's storage copy says which of the two a version actually guarantees.
+ * Asset leaves contribute required image pins. Font-family leaves contribute
+ * stored faces with a matching family, using the registry's case-insensitive
+ * lookup. New font pins carry face descriptors so both CSS and vector rendering
+ * can address the verified release bytes. Older pins without descriptors remain
+ * record-only and keep their previous storage behaviour.
  *
  * A token naming an id this device does not have is skipped - a dangling token is
  * not a pin, and inventing a checksum for absent bytes would make the manifest
@@ -187,10 +181,11 @@ export async function buildAssetManifest(ctx: VersionsIoCtx, doc: unknown): Prom
   const byId = new Map<string, PinnedAsset>();
   const pin = async (
     rec: { id: string; blob?: Blob; version?: string },
+    font?: PinnedAsset['font'],
   ): Promise<void> => {
     if (!rec.blob || byId.has(rec.id)) return;
     const sha256 = await sha256Hex(new Uint8Array(await rec.blob.arrayBuffer()));
-    byId.set(rec.id, { id: rec.id, version: rec.version ?? '0.0.0', sha256 });
+    byId.set(rec.id, { id: rec.id, version: rec.version ?? '0.0.0', sha256, ...(font ? { font } : {}) });
   };
 
   for (const { id } of collectAssetTokens(doc)) {
@@ -206,7 +201,7 @@ export async function buildAssetManifest(ctx: VersionsIoCtx, doc: unknown): Prom
       if (rec.type !== 'font') continue;
       const family = String(rec.meta?.family ?? '').trim().toLowerCase();
       if (!family || !wanted.has(family)) continue;
-      await pin(rec);
+      await pin(rec, { family: String(rec.meta?.family), weight: String(rec.meta?.weight ?? '400'), style: String(rec.meta?.style ?? 'normal'), ...(typeof rec.meta?.unicodeRange === 'string' ? { unicodeRange: rec.meta.unicodeRange } : {}) });
     }
   }
 

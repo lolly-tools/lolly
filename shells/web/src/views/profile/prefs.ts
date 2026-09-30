@@ -224,6 +224,110 @@ export async function wireEmojiPref(pv: ProfileViewCtx): Promise<void> {
   summarise(saved);
 }
 
+/**
+ * The Trusted sites card (plan 288): every entry in force with where it came from, a
+ * remove button on the person's own and the brand's, the organisation's blocks, and an
+ * add field. Built with DOM calls and repainted whenever the list changes (an "Always
+ * trust" in Design, an organisation's new rule), so it never shows a stale list.
+ */
+export async function wireTrustedSites(pv: ProfileViewCtx): Promise<void> {
+  const { viewEl } = pv;
+  const body = viewEl.querySelector<HTMLElement>('#trusted-sites-body');
+  if (!body) return;
+  const [sites, policy, grammar] = await Promise.all([
+    import('../../lib/trusted-sites.ts'),
+    import('../../lib/site-policy.ts'),
+    import('../../../../../engine/src/trusted-sites.ts'),
+  ]);
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+  const sourceWord = (source: string): string => {
+    const by = policy.sitePolicy()?.by;
+    if (source === 'organisation') return by ?? t('Your organisation');
+    return source === 'brand' ? t('Brand') : t('You');
+  };
+  let draft = '';
+  const paint = (): void => {
+    if (!body.isConnected) return;
+    const rows = sites.trustedSiteRows();
+    const blocked = sites.blockedSiteRows();
+    const current = sitePolicyMode();
+    pv.summaries.setSummary('trusted-sites-section', rows.length ? t('{n} sites', { n: rows.length }) : t('None'));
+    body.replaceChildren();
+    if (current === 'none') body.append(el('p', 'profile-hint', t('Your organisation allows no outside sites. Sandbox demos and Lolly tools still run, because they come from this app.')));
+    else if (current === 'allowlist-only') body.append(el('p', 'profile-hint', t('Your organisation manages this list. Only the sites below can be contacted.')));
+    const list = el('ul', 'trusted-sites-list');
+    for (const row of rows) {
+      const li = el('li', 'trusted-sites-row');
+      const text = el('span', 'trusted-sites-entry', row.entry);
+      const badge = el('span', 'trusted-sites-badge', sourceWord(row.source));
+      li.append(text, badge);
+      if (row.reason) li.append(el('span', 'trusted-sites-reason', row.reason));
+      if (!row.locked) {
+        const remove = el('button', 'btn btn--sm trusted-sites-remove', t('Remove'));
+        remove.type = 'button';
+        remove.setAttribute('aria-label', t('Remove {site}', { site: row.entry }));
+        remove.addEventListener('click', () => { void sites.untrustSite(row.entry).then(() => announce(t('Removed {site}', { site: row.entry }))); });
+        li.append(remove);
+      }
+      list.append(li);
+    }
+    if (rows.length) body.append(list);
+    else body.append(el('p', 'profile-hint', t('No sites yet. Lolly asks before contacting a site.')));
+    if (blocked.length) {
+      body.append(el('h3', 'trusted-sites-subhead', t('Blocked by {org}', { org: sourceWord('organisation') })));
+      const bl = el('ul', 'trusted-sites-list');
+      for (const rule of blocked) {
+        const li = el('li', 'trusted-sites-row');
+        li.append(el('span', 'trusted-sites-entry', rule.entry));
+        if (rule.reason) li.append(el('span', 'trusted-sites-reason', rule.reason));
+        bl.append(li);
+      }
+      body.append(bl);
+    }
+    if (!sites.canTrustMore()) return;
+    const form = el('form', 'trusted-sites-add');
+    const label = el('label', 'field-row');
+    const input = el('input', 'field-input');
+    input.type = 'text';
+    input.id = 'trusted-sites-input';
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    input.placeholder = 'example.com';
+    input.value = draft;
+    input.addEventListener('input', () => { draft = input.value; err.hidden = true; });
+    label.append(el('span', '', t('Add a site')), input);
+    const add = el('button', 'btn', t('Trust'));
+    add.type = 'submit';
+    const hint = el('p', 'profile-hint trusted-sites-grammar', t('A host (example.com), a host and its subdomains (*.example.com), or one part of a site (https://example.com/docs/).'));
+    const err = el('p', 'be-err', t('That is not a site Lolly can trust. Use one of the three forms above, on https.'));
+    err.hidden = true;
+    err.setAttribute('role', 'alert');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entry = grammar.normaliseTrustedSite(input.value);
+      if (!entry) { err.hidden = false; input.focus(); return; }
+      draft = '';
+      void sites.trustSite(entry).then((saved) => {
+        if (saved) announce(t('Trusted {site}', { site: saved }));
+        document.getElementById('trusted-sites-input')?.focus();
+      });
+    });
+    form.append(label, add);
+    body.append(form, hint, err);
+  };
+  const sitePolicyMode = (): string | undefined => policy.sitePolicy()?.mode;
+  paint();
+  const offSites = sites.onTrustedSitesChange(paint);
+  const offPolicy = policy.onSitePolicyChange(paint);
+  // The view's _cleanup (profile/chrome.ts) detaches the card when the route changes.
+  pv.trustedSitesUnsub = () => { offSites(); offPolicy(); };
+}
+
 export function prefsOps(pv: ProfileViewCtx) {
   return {
     a11yRow: bindOp(pv, a11yRow),
@@ -237,5 +341,6 @@ export function prefsOps(pv: ProfileViewCtx) {
     wireRenderSaveRows: bindOp(pv, wireRenderSaveRows),
     wireThemePick: bindOp(pv, wireThemePick),
     wireEmojiPref: bindOp(pv, wireEmojiPref),
+    wireTrustedSites: bindOp(pv, wireTrustedSites),
   };
 }

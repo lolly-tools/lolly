@@ -338,7 +338,7 @@ test('preserved rows are hidden from the library listing but counted in storage'
   assert.equal(storage.bytes > 0, true);
 });
 
-test('a FONT pin is recorded but never frozen - nothing could ever read the copy', async () => {
+test('a release font pin preserves its exact bytes before replacement', async () => {
   stubFetch();
   const h = makeHost();
   await seedSystem(h);
@@ -346,18 +346,17 @@ test('a FONT pin is recorded but never frozen - nothing could ever read the copy
   const pins = (await readIndex(h.ctx)).versions[0]?.assets ?? [];
   assert.equal(pins.some(p => p.id === FONT_ID), true, 'the manifest still says which face the version used');
 
-  // Replace the face. Version-scoped indirection is a rewrite of `$type: 'asset'`
-  // leaves; a font is resolved by FAMILY out of the user font store, which no
-  // `user/frozen/*` id can join - so a frozen copy would be storage billed to the
-  // user for fidelity they do not get.
+  // Replacement preserves the face addressed by the release manifest.
   await h.assets._uploadUserAsset({
     id: FONT_ID, type: 'font', format: 'woff2', blob: bytes('FONT-B'), meta: { family: 'Acme Sans' },
   });
-  assert.deepEqual([...h.stores['user-assets']!.keys()].filter(k => k.startsWith(FROZEN_PREFIX)), [],
-    'no unreachable copy was made');
+  const frozen = [...h.stores['user-assets']!.keys()].filter(k => k.startsWith(FROZEN_PREFIX));
+  assert.equal(frozen.length, 1);
   const after = (await readIndex(h.ctx)).versions[0]?.assets?.find(p => p.id === FONT_ID);
-  assert.equal(after?.frozenId, undefined, 'and the pin does not claim one');
-  assert.equal((await versionStorage(h.ctx)).frozen, 0);
+  assert.equal(after?.frozenId, frozen[0]);
+  assert.equal(after?.font?.family, 'Acme Sans');
+  assert.equal(await (h.stores['user-assets']!.get(frozen[0]!) as { blob: Blob }).blob.text(), 'FONT-A');
+  assert.ok((await versionStorage(h.ctx)).frozen > 0);
 });
 
 test('repointing a pin does not rename the design system', async () => {

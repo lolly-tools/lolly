@@ -360,6 +360,9 @@ export function frameThumb(
     v.muted = true; v.autoplay = false; v.removeAttribute('autoplay');
     try { v.pause(); } catch { /* not-ready - ignore */ }
   }
+  // A cloned web page frame (plan 288) would load its page again inside a thumbnail: the
+  // thumbnail keeps the box's poster instead.
+  for (const el of clone.querySelectorAll('iframe[data-web-live], .lolly-box-web-note, .lolly-box-web-done')) el.remove();
   media.appendChild(clone);
   const style = frameThumbStyles(canvasEl, media);
   if (style) media.appendChild(style);

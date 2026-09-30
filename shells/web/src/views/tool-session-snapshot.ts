@@ -4,6 +4,7 @@ import { emojiParams } from '../../../../engine/src/emoji-style.ts';
 import type { EmojiStyleV1 } from '@lolly-tools/core';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
+import { tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
 import type { ToolRuntime, ActionsExperience } from './tool.ts';
 import type { SavedStateData } from '../bridge/state.ts';
 
@@ -24,6 +25,8 @@ export function snapshotSession(el: HTMLElement | null, manifest: ToolManifest, 
     const metaLabel = typeof meta.__label === 'string' && meta.__label.trim() ? meta.__label.trim() : undefined;
     return {
       ...values,
+      ...(Object.keys(tokenRestoreRefsOf(runtime.getModel())).length ? { __tokenLinks: tokenRestoreRefsOf(runtime.getModel()) } : {}),
+      ...(runtime.tokenSelection ? { __tokenSelection: structuredClone(runtime.tokenSelection) } : {}),
       ...(runtime.emoji?.style ? { __emoji: emojiParams(runtime.emoji.style), __emojiAssets: runtime.emoji.assets ?? [] } : { __emoji: { emoji: 'none', emojifx: '' }, __emojiAssets: [] }),
       ...meta,
       __emojiUsage: runtime.emoji?.sources?.map(({ pack, assetId }) => ({ packId: pack.id, version: pack.pin.version, checksum: pack.checksum, assetId })),

@@ -15,7 +15,7 @@ import { modelToValues } from '../../../../../engine/src/inputs.js';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
 import type { DesignIntent } from '../design-workspace.ts';
 import { escape as escapeText } from '../../utils.ts';
-import { cloneValue, describeRowChange } from '../tool-history.ts';
+import { cloneValue, describeRowChange, sameValue } from '../tool-history.ts';
 import { canBatchTool, singleFileInputId } from '../../capabilities.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
@@ -90,12 +90,12 @@ export const changeLabel = (_tview: ToolViewCtx,
   const f = (item.fields || []).find((x) => x?.id === ch.field);
   return f?.label ? t(f.label) : fallback;
 };
-export const applyHistory = (tview: ToolViewCtx, id: string, value: InputValue) => {
+export const applyHistory = (tview: ToolViewCtx, id: string, value: InputValue, restoreTokenRefs?: Record<string, string | null>) => {
   const { inputHistory, runtime } = tview;
   tview.applyingHistory = true;
   inputHistory.endGesture(); // an undo/redo ends any gesture - the next edit starts a new step
   try {
-    runtime.setInput(id, cloneValue(value));
+    void runtime.setInput(id, cloneValue(value), { restoreTokenRefs }).catch(error => announce(String(error)));
   } finally {
     tview.applyingHistory = false;
   }
@@ -110,12 +110,15 @@ function applyEntry(tview: ToolViewCtx, entry: import('../tool-history.ts').Hist
   if (entry.fields) {
     tview.inputHistory.endGesture();
     const values = transactionHistoryValues(tview.runtime, entry, redo);
-    if (values) void tview.runtime.applyPatch(values).then(() => tview.revisionChanged()).catch(error => announce(String(error)));
+    if (values) void tview.runtime.applyPatch(values, { restoreTokenRefs: redo ? entry.tokenLinks?.after : entry.tokenLinks?.before }).then(() => tview.revisionChanged()).catch(error => announce(String(error)));
     else announce(t('This edit changed in another session. Its current content was kept.'));
     return !!values;
   }
   const item = tview.runtime.getModel().find(i => i.id === entry.id);
-  applyHistory(tview, entry.id, collabHistoryValue(tview.runtime, entry.id, item?.value, redo ? entry.before : entry.after, redo ? entry.after : entry.before, entry.collabStamp, item ? rowIdField(item) : 'id') as InputValue);
+  const desired = redo ? entry.after : entry.before;
+  const value = collabHistoryValue(tview.runtime, entry.id, item?.value, redo ? entry.before : entry.after, desired, entry.collabStamp, item ? rowIdField(item) : 'id') as InputValue;
+  const restores = sameValue(value, desired) ? redo ? entry.tokenLinks?.after : entry.tokenLinks?.before : undefined;
+  applyHistory(tview, entry.id, value, restores);
   return true;
 }
 export const undoHistory = (tview: ToolViewCtx) => {

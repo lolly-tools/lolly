@@ -34,6 +34,7 @@
  * catalogs keep working (dev/compat) with a one-time console warning.
  */
 
+import { canonicalJson } from './canonical-json.ts';
 import { pemToDer } from './x509.ts';
 import { asBufferSource, base64ToBytes, sha256Hex } from './bytes.ts';
 
@@ -124,23 +125,7 @@ function base64UrlToBytes(str: string): Uint8Array {
  * object members dropped (as JSON.stringify does). The ONE serialization the
  * signature covers - signer and verifier both call this, never JSON.stringify.
  */
-export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value !== 'object') {
-    // Primitives: defer to JSON.stringify (number/string/boolean formatting is
-    // already deterministic). undefined/function have no JSON form → null.
-    return JSON.stringify(value) ?? 'null';
-  }
-  if (Array.isArray(value)) {
-    return '[' + value.map(v => canonicalJson(v)).join(',') + ']';
-  }
-  const record = value as Record<string, unknown>;
-  const parts: string[] = [];
-  for (const key of Object.keys(record).sort()) {
-    if (record[key] === undefined) continue;
-    parts.push(JSON.stringify(key) + ':' + canonicalJson(record[key]));
-  }
-  return '{' + parts.join(',') + '}';
-}
+export { canonicalJson } from './canonical-json.ts';
 
 /** Lowercase sha256 hex of the given bytes. Implemented in `bytes.ts` (the leaf
  *  every consumer can import without pulling this module's x509 dependency in

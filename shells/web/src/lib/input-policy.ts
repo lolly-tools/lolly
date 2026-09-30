@@ -47,6 +47,11 @@ export interface InputPolicy {
   allow?: readonly string[];
 }
 
+/** Non-select controls cannot express a restricted set of choices. */
+export function policyLocksControl(control: string, policy: InputPolicy | undefined): boolean {
+  return policy?.mode === 'locked' || (policy?.mode === 'choice' && control !== 'select');
+}
+
 // toolId → (inputId → policy).
 const registry = new Map<string, Map<string, InputPolicy>>();
 

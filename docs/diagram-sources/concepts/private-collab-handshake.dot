@@ -1,0 +1,13 @@
+digraph private_collab_handshake {
+  rankdir=TB
+  node [shape=box]
+  invite [label="Starting device\n1. Make the invite"]
+  join [label="Joining device\n2. Make the reply"]
+  reply [label="Starting device\n3. Accept the reply"]
+  connection [label="Direct connection\nprivate collab"]
+  plates [label="Both devices\n4. Compare plates"]
+  invite -> join
+  join -> reply
+  reply -> connection
+  connection -> plates
+}

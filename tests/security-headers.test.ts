@@ -170,7 +170,12 @@ test('the directives that carry the security value are present', () => {
   // request - so a scheme-wide `https:` grant would hand back everything
   // connect-src is holding, which is this policy's entire stated value. The cost
   // of keeping it closed is community/url-shot's live composer preview, whose
-  // capture path runs in the extension/desktop shell anyway.
+  // capture path runs in the extension/desktop shell anyway. Design's web page boxes
+  // (plan 288 D2) add NAMED video and map players only, which run no author code, so
+  // a URL to them cannot be read back by whoever wrote it; any site that runs
+  // author-written code (CodePen, StackBlitz) stays out, because it would reopen the
+  // channel this comment describes. engine/src/web-embed.ts HOSTED_FRAME_ORIGINS is
+  // the list, and tests/web-embed.test.ts pins the two together.
   for (const dir of ['frame-src', 'child-src', 'worker-src'] as const) {
     assert.ok(csp[dir], `${dir} missing`);
     assert.ok(!csp[dir].includes('https:'), `${dir} must not carry a scheme-wide https: grant - it bypasses connect-src`);

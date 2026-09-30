@@ -12,13 +12,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 
-import { mountBodyPopover, type PopoverAnchor } from './body-popover.ts';
+import { mountBodyPopover, type PopoverAnchor, type BodyPopoverOptions } from './body-popover.ts';
 
 const VW = 390, VH = 844; // iPhone-class portrait viewport
 
 interface Harness { panel(): HTMLElement; open(): void; close(): void }
 
-function harness(anchorRect: { top: number; bottom: number; right: number }, panel: { w: number; h: number }): Harness {
+function harness(anchorRect: { top: number; bottom: number; right: number }, panel: { w: number; h: number }, options: Partial<BodyPopoverOptions> = {}): Harness {
   const d = new JSDOM('<!doctype html><html><body></body></html>', { pretendToBeVisual: true });
   const w = d.window;
   Object.defineProperty(w, 'innerWidth', { value: VW, configurable: true });
@@ -38,7 +38,7 @@ function harness(anchorRect: { top: number; bottom: number; right: number }, pan
     }),
     contains: () => false,
   };
-  const handle = mountBodyPopover(anchor, (el) => { el.textContent = 'items'; return null; }, { className: 'test-pop' });
+  const handle = mountBodyPopover(anchor, (el) => { el.textContent = 'items'; return null; }, { className: 'test-pop', ...options });
   return {
     panel: () => w.document.querySelector('.test-pop') as HTMLElement,
     open: () => handle.open(),
@@ -88,4 +88,28 @@ test('an unmeasurable panel keeps the plain drop (nothing to reason from)', () =
   h.open();
   assert.equal(h.panel().style.top, '840px');
   h.close();
+});
+
+
+test('expanding popover content stays inside the viewport and stops tracking on close', () => {
+  let resize: (() => void) | undefined;
+  let disconnected = false;
+  const previous = globalThis.ResizeObserver;
+  globalThis.ResizeObserver = class {
+    constructor(callback: ResizeObserverCallback) { resize = () => callback([], this); }
+    observe() {}
+    unobserve() {}
+    disconnect() { disconnected = true; }
+  } as typeof ResizeObserver;
+  const panel = { w: 220, h: 100 };
+  const h = harness({ top: 500, bottom: 532, right: 370 }, panel, { trackSize: true });
+  try {
+    h.open();
+    assert.equal(h.panel().style.top, '540px');
+    panel.h = 400;
+    resize!();
+    assert.equal(h.panel().style.top, '92px', 'the expanded chooser flips above its trigger');
+    h.close();
+    assert.equal(disconnected, true);
+  } finally { h.close(); globalThis.ResizeObserver = previous; }
 });

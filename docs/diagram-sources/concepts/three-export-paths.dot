@@ -1,0 +1,17 @@
+digraph three_export_paths {
+  rankdir=TB
+  node [shape=box]
+  canvas [label="Canvas\nvisible artwork"]
+  content [label="Content\ntext and data"]
+  upload [label="Your file\noriginal bytes"]
+  render [label="Render\nchosen image format"]
+  generate [label="Generate\nCSV, ICS, JSON and more"]
+  transform [label="Transform\non-device utility"]
+  file [label="Finished file\ndownload or copy"]
+  canvas -> render
+  content -> generate
+  upload -> transform
+  render -> file
+  generate -> file
+  transform -> file
+}

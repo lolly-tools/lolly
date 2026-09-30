@@ -19,10 +19,11 @@ import {
   costUrlState,
   encodeModelParam,
   fidelityFromParams,
+  tokenSelectionParam,
 } from './url-budget.ts';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { blocksForUrl, encodeTableCompact, decodeTableCompact, normalizeTableValue } from '@lolly/engine';
+import { blocksForUrl, encodeTableCompact, decodeTableCompact, normalizeTableValue, parseUrlState } from '@lolly/engine';
 import { stripHiddenRowIds } from './row-id.ts';
 
 // encodeModelParam only reads spec + value; a partial cast keeps the fixtures honest
@@ -41,6 +42,33 @@ test('scalar: kept value emits encodeURIComponent(key)=encodeURIComponent(value)
   const r = only(mk({ id: 'title', type: 'text', value: 'Hi there' }));
   assert.equal(r.emit, 'title=Hi%20there'); // space is %20 (encodeURIComponent), NOT '+'
   assert.equal(r.status, 'kept');
+});
+
+test('custom overrides retain empty text and their previous link in the share budget', () => {
+  const model = [mk({ id: 'title', urlKey: 't', type: 'text', default: 'Starter', value: '', restoreTokenRef: '{label}' })];
+  const rows = model.flatMap(encodeModelParam);
+  const wire = rows.filter(row => row.status === 'kept').map(row => row.emit).join('&');
+  assert.equal(new URLSearchParams(wire).get('t'), '');
+  const parsed = parseUrlState(wire, { inputs: model });
+  assert.equal(parsed.values.title, '');
+  assert.deepEqual(parsed.values.__tokenLinks, { title: '{label}' });
+  assert.equal(costUrlState({ model, exportParts: [] }, { base: 'https://lolly.tools/t/example?' }).readableLen, 'https://lolly.tools/t/example?'.length + wire.length);
+});
+
+test('typed links and theme context cost exactly the share bytes and retain scalar fallbacks', () => {
+  const model = [mk({ id: 'title', urlKey: 't', type: 'text', value: { ref: '{label}', value: 'Cached title' } }), mk({ id: 'gap', type: 'number', value: { ref: '{rhythm.step}', value: 12 } })];
+  const selection = { appearance: 'night-id', density: 'roomy-id' };
+  const parts = [tokenSelectionParam(selection)!, ...model.flatMap(encodeModelParam).filter(row => row.status === 'kept').map(row => row.emit), 'format=svg'];
+  const wire = parts.join('&');
+  const cost = costUrlState({ model, exportParts: ['format=svg'], tokenSelection: selection }, { base: 'https://lolly.tools/t/fixture?' });
+  assert.equal(cost.readableLen, 'https://lolly.tools/t/fixture?'.length + wire.length);
+  assert.equal(cost.params.filter(row => row.status === 'kept').map(row => row.emit).join('&'), wire);
+  const parsed = parseUrlState(wire, { inputs: model });
+  assert.deepEqual(parsed.values.title, { ref: '{label}', value: 'Cached title' });
+  assert.deepEqual(parsed.values.gap, { ref: '{rhythm.step}', value: 12 });
+  assert.deepEqual(parsed.tokenSelection, selection);
+  assert.equal(new URLSearchParams(wire).get('t'), 'Cached title');
+  assert.equal(only(mk({ id: 'title', type: 'text', value: '{label}' })).emit, 'title=%7Blabel%7D');
 });
 
 test('scalar: encodeURIComponent charset - tilde/quote stay literal, not %XX', () => {

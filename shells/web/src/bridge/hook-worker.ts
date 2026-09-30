@@ -190,9 +190,9 @@ const gatherSeeds = gatherHostSeeds;
  *  the worker rebuilds a local TokenSet (sync get/colors/resolve without RPC). */
 async function snapshotTokens(host: HostV1): Promise<{ doc: unknown | null; excluded: string[] }> {
   const t = host.tokens as (TokensAPI & { raw?: () => Promise<unknown> }) | undefined;
-  if (!t || typeof t.raw !== 'function') return { doc: null, excluded: [] };
+  if (!t || (!t.snapshot && typeof t.raw !== 'function')) return { doc: null, excluded: [] };
   try {
-    const doc = (await t.raw()) ?? null;
+    const doc = (t.snapshot ? await t.snapshot().then(s => s.renderDocument ?? s.document) : await t.raw!()) ?? null;
     return { doc, excluded: doc ? getExcludedSwatches(doc) : [] };
   } catch { return { doc: null, excluded: [] }; }
 }

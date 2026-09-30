@@ -16,9 +16,43 @@ import {
   HISTORY_LIMIT, COALESCE_MS,
 } from './tool-history.ts';
 import type { InputValue } from '../../../../engine/src/inputs.js';
+import { buildInputModel, updateInput, tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
+import { historyTokenLinks } from './tool-history.ts';
+
+test('undo and redo retain the previous token for each custom value', () => {
+  let model = buildInputModel({ inputs: [{ id: 'gap', type: 'number', default: 10 }] }, { initial: { gap: 17, __tokenLinks: { gap: '{old}' } } });
+  const history = createHistory();
+  const before = model[0]!.value, beforeLinks = historyTokenLinks(model, ['gap']);
+  model = updateInput(model, 'gap', { ref: '{new}', value: 33 });
+  history.record({ id: 'gap', label: 'Gap', before, after: model[0]!.value, tokenLinks: { before: beforeLinks, after: historyTokenLinks(model, ['gap']) } }, 0);
+  const entry = history.undo()!;
+  model = updateInput(model, entry.id, entry.before, { restoreTokenRefs: entry.tokenLinks!.before });
+  assert.equal(model[0]!.value, 17);
+  assert.deepEqual(tokenRestoreRefsOf(model), { gap: '{old}' });
+  const redo = history.redo()!;
+  model = updateInput(model, redo.id, redo.after, { restoreTokenRefs: redo.tokenLinks!.after });
+  assert.deepEqual(model[0]!.value, { ref: '{new}', value: 33 });
+  assert.deepEqual(tokenRestoreRefsOf(model), {});
+});
+
+test('coalesced local edits retain the original restore target and latest restore state', () => {
+  const history = createHistory();
+  history.record({ id: 'gap', label: 'Gap', before: 10, after: 11, tokenLinks: { before: { gap: '{old}' }, after: { gap: '{new}' } } }, 0);
+  history.record({ id: 'gap', label: 'Gap', before: 11, after: 12, tokenLinks: { before: { gap: '{new}' }, after: { gap: null } } }, 1);
+  assert.deepEqual(history.sizes(), { undo: 1, redo: 0 });
+  assert.deepEqual(history.undo()!.tokenLinks, { before: { gap: '{old}' }, after: { gap: null } });
+});
 
 const edit = (id: string, before: unknown, after: unknown, label = id) =>
   ({ id, label, before: before as InputValue, after: after as InputValue });
+
+test('linking, making custom and the next numeric edit are separate keyboard undo steps', () => {
+  const history = createHistory();
+  history.record(edit('gap', 16, { ref: '{rhythm.gap}', value: 24 }), 0);
+  history.record(edit('gap', { ref: '{rhythm.gap}', value: 24 }, 24), 1);
+  history.record(edit('gap', 24, 25), 2);
+  assert.equal(history.sizes().undo, 3);
+});
 
 // ── sameValue ────────────────────────────────────────────────────────────────
 

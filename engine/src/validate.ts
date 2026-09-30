@@ -50,9 +50,13 @@ export const validateRateCard = (doc: unknown): boolean => rateCardValidator(doc
 
 export function validateManifest(manifest: unknown): ValidationResult {
   const ok = validateTool(manifest);
+  const errors = ok ? [] : (validateTool.errors ?? []).map(formatError);
+  if (ok) for (const [index, input] of ((manifest as { inputs?: { type: string; tokenBindingsField?: string; fields?: { id: string; type?: string }[] }[] }).inputs ?? []).entries()) {
+    if (input.tokenBindingsField && (input.type !== 'blocks' || !input.fields?.some(field => field.id === input.tokenBindingsField && (field.type ?? 'text') === 'text'))) errors.push({ path: `/inputs/${index}/tokenBindingsField`, message: 'must name a declared text sub-field of this blocks input' });
+  }
   return {
-    valid: ok,
-    errors: ok ? [] : (validateTool.errors ?? []).map(formatError),
+    valid: errors.length === 0,
+    errors,
   };
 }
 

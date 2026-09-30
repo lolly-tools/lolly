@@ -1,0 +1,9 @@
+digraph personal_sync {
+  rankdir=TB
+  node [shape=box]
+  computer [label="Computer\nlocal work"]
+  storage [label="Your chosen storage\nshared backup copy"]
+  phone [label="Phone or tablet\nlocal work"]
+  computer -> storage [dir=both]
+  storage -> phone [dir=both]
+}

@@ -46,8 +46,8 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     assert.equal(view.querySelectorAll('[data-cl-card]').length, total);
     assert.equal(view.querySelectorAll('[data-cl-download]').length, total);
     assert.deepEqual([...view.querySelectorAll('.cl-broken')].map(n => n.textContent), []);
-    assert.equal(view.querySelector('.cl-component-section')?.id, 'cl-colour-tools');
-    assert.equal(view.querySelector('.cl-stage')?.getAttribute('data-cl-preview'), 'wheel');
+    assert.equal(view.querySelector('.cl-component-section')?.id, 'cl-token-workflows');
+    assert.ok(view.querySelector('[data-cl-preview="wheel"]'));
     assert.equal(view.querySelectorAll('[data-cl-preview="audioDock"] .audio-dock').length, 1, 'use the production player shell');
     assert.equal(view.querySelector('[data-cl-preview="catSummary"]')?.textContent?.includes('reading…'), false);
     assert.ok(view.querySelector('[data-cl-preview="projectTiles"] .folder-mosaic'));

@@ -169,6 +169,11 @@ export async function openDesignFile(file: File | Blob): Promise<UnpackHandle> {
     }
   }
 
+  if (/\.html?$/i.test(name || '') || file.type === 'text/html') {
+    const { openHtmlFile } = await importOr(() => import('./html-unpack.ts'));
+    return openHtmlFile(file);
+  }
+
   // Otherwise treat the bytes as SVG text. The opener re-reads the file, so a file
   // that decodes but is not SVG throws its own "not readable as SVG" message.
   const { openSvgFile } = await importOr(() => import('./svg-unpack.ts'));

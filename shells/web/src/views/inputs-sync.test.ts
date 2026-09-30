@@ -54,3 +54,16 @@ test('a grid that is neither in the sidebar nor a panel does not defer', () => {
   const el = panel({ active, contains: false });
   assert.equal(canSkipInputsRebuild(el, model([1]), model([2])), false);
 });
+
+test('link state repaints even when the scalar editor already shows the same value', () => {
+  const el = panel({});
+  el.querySelector = () => ({ value: '12', getAttribute: () => '12' });
+  for (const control of ['slider', 'text-input', 'select'] as const) {
+    const linked: SyncableInput = { id: 'size', control, value: { ref: '{size}', value: 12 } };
+    const custom: SyncableInput = { id: 'size', control, value: 12 };
+    assert.equal(canSkipInputsRebuild(el, [custom], [linked]), false, `${control}: Make custom must remove the linked state`);
+    assert.equal(canSkipInputsRebuild(el, [linked], [custom]), false, `${control}: restoring must show the link`);
+    assert.equal(canSkipInputsRebuild(el, [{ ...custom, restoreTokenRef: '{size}' }], [custom]), false, 'a restore hint changes the available actions');
+    assert.equal(canSkipInputsRebuild(el, [custom], [{ ...custom, value: 10 }]), true, 'ordinary edits still keep their existing DOM');
+  }
+});

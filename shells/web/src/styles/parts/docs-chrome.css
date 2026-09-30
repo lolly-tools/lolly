@@ -10,7 +10,8 @@
      - the pathways strip (Welcome and the five documentation sections), which
        /info builds and the in-app reader adopts from the fetched page;
      - the compact lists inside the two disclosures (the section's pages and On
-       this page): the in-app reader's phone navigation and the /info menu.
+       this page): the in-app reader's phone navigation and the /info menu;
+     - the collapsed footer sitemap and its disclosure arrow.
 
    Built from the app's token roles (tokens.css) only. /info's bridge re-points
    the two roles its legacy names shadow (surface-muted, border-default), so a
@@ -153,6 +154,42 @@
 .docs-compact-list .docs-toc-list { border: 0; }
 .docs-compact-list .docs-toc-link { border: 0; margin: 0; }
 .docs-compact-list svg { width: 16px; height: 16px; flex: none; }
+
+.footer-sitemap .sitemap-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 0 auto;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--ui-radius-control, 6px);
+  color: var(--ui-color-text-default);
+  font-weight: 600;
+  line-height: 1.4;
+  list-style: none;
+  cursor: pointer;
+}
+.footer-sitemap .sitemap-disclosure > summary::-webkit-details-marker { display: none; }
+.footer-sitemap .sitemap-disclosure > summary::marker { content: ''; }
+.footer-sitemap .sitemap-disclosure > summary:hover { background: var(--ui-color-surface-muted); }
+.footer-sitemap .sitemap-disclosure > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.footer-sitemap .sitemap-chevron {
+  flex: none;
+  width: 1.25em;
+  height: 1.25em;
+  transform: rotate(90deg);
+  transition: transform var(--ui-motion-feedback);
+}
+.footer-sitemap .sitemap-chevron svg { display: block; width: 100%; height: 100%; }
+.footer-sitemap .sitemap-disclosure[open] .sitemap-chevron { transform: rotate(270deg); }
+@media (prefers-reduced-motion: reduce) {
+  .footer-sitemap .sitemap-chevron { transition: none; }
+}
+html[data-a11y-motion="reduce"] .footer-sitemap .sitemap-chevron { transition: none; }
 
 /* ── Forced colours (Windows High Contrast) ─────────────────────────────────
    The system repaints a transparent border in the link colour, which would draw

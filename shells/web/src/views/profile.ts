@@ -130,6 +130,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   // services, and links written before that (share links, docs, the sync-service
   // passphrase nudge, screenshot recipes) still name it.
   const focusParam = rawFocus === 'sync-section' ? 'connections-section' : rawFocus; pv.focusParam = focusParam;
+  pv.focusSync = rawFocus === 'sync-section';
   const focusFlags = focusParam === 'feature-flags'; pv.focusFlags = focusFlags;
   const focusUseDetails = focusParam === 'use-details'; pv.focusUseDetails = focusUseDetails;
   // Which SECTION a ?focus= param must leave expanded. Every card is a collapsible
@@ -251,6 +252,8 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   // Emoji (plans/252): the set new work starts from. Lazy - the shared control
   // is its own chunk - so this is not awaited and the card fills itself in.
   void pv.prefs.wireEmojiPref();
+  pv.trustedSitesUnsub = null;
+  void pv.prefs.wireTrustedSites();
 
   pv.shell.wireFocusTarget();
 

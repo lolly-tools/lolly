@@ -39,9 +39,8 @@ export const setOverrides = (cat: CatCtx, v: Record<string, string>) => { cat.ov
 // ── multi-select gestures (marquee + Shift-range) ───────────────────────────
 // Shared verbatim with Projects (lib/tile-select.ts) so the two grids behave the same:
 // drag a box through the gaps between cards to select what it touches, Shift-click a dot
-// to sweep up everything back to the anchor. Only the user's uploads carry a dot, so only
-// they are ever caught - a box dragged across the library's own cards selects nothing,
-// which is right: shared assets can't be bulk-acted on.
+// to sweep up everything back to the anchor. Catalog assets and uploads both select;
+// actions that change files check for an all-upload selection before they run.
 //
 // Wired ONCE per mount against viewEl (the persistent element): render() replaces
 // `.catalog` wholesale and renderBody() replaces the grid, so anything bound inside would
@@ -88,9 +87,9 @@ export function catBulkMenuHtml(cat: CatCtx): string {
         cat.bulk.canCompareSelection() ? menuItemHtml('compare', icon('duplicate'), t('Compare…')) : '',
         menuItemHtml('fav', icon('star'), cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')),
         menuItemHtml('add-to-project', icon('folder'), t('Add to project…')),
+        menuItemHtml('download', icon('download'), selected.size > 1 ? t('Download selection') : t('Download')),
         menuItemHtml('hide', icon('eye'), cat.bulk.allSelectedHidden() ? t('Unhide') : t('Hide')),
         uploads ? menuItemHtml('duplicate', icon('duplicate'), t('Duplicate')) : '',
-        uploads ? menuItemHtml('download', icon('download'), t('Download')) : '',
         uploads ? menuItemHtml('delete', icon('trash'), t('Delete'), { danger: true }) : '',
       ].join('')}</div>`;
 }
@@ -100,7 +99,11 @@ export async function onTileMenuAction(cat: CatCtx, act: string, id: string | nu
   if (act === 'share-favourite') { await shareFavourite(cat, id); return; }
   const ref = cat.assetById.get(id);
   if (!ref) return;
-  if (act === 'open') { cat.details.openDetails(ref); return; }
+  if (act === 'open') {
+    const appearance = cat.downloads.gridDownloadAppearance(ref);
+    cat.details.openDetails(ref, appearance.theme?.id ?? null, appearance.treatment?.id ?? null);
+    return;
+  }
   if (act === 'fav') { await cat.userAssets.toggleFavourite(id); return; }
   if (act === 'download') { await cat.downloads.openAssetDownloadDialog(ref); return; }
   if (act === 'saved-versions') { const { openAssetVersions } = await import('../asset-versions.ts'); await openAssetVersions(id, host, cat.tiles.reload); return; }

@@ -1069,9 +1069,9 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
 // reaches 'strong', because detector models over-score fluent human prose.
 // Below the operating threshold the report returns unchanged.
 
-/** A staged on-device detector model's calibrated verdict. */
+/** A staged classifier's raw output, with optional located readback coverage. */
 export interface AiModelEstimate {
-  /** Calibrated probability the text is AI-authored, 0-1. */
+  /** Raw classifier score. Probability calibration requires a separate artifact. */
   probAi: number;
   /** Operating threshold below which the estimate is inconclusive. */
   threshold: number;
@@ -1079,6 +1079,8 @@ export interface AiModelEstimate {
   modelId: string;
   /** Human model name for the finding label. */
   modelName?: string;
+  windows?: { index: number; length: number; tokens: number; rawScore: number }[];
+  complete?: boolean;
 }
 
 const AI_BAND_ORDER: TextSignalBand[] = ['none', 'weak', 'notable', 'strong'];
@@ -1091,12 +1093,12 @@ export function applyModelEstimate(report: TextSignalReport, estimate: AiModelEs
     tier: 'heuristic',
     kind: 'model-estimate',
     label: 'On-device model estimate',
-    detail: `${estimate.modelName ?? estimate.modelId} scored this ${pct}% AI (threshold ${Math.round(estimate.threshold * 100)}%).`,
+    detail: `${estimate.modelName ?? estimate.modelId} returned a raw score of ${pct}/100 (threshold ${Math.round(estimate.threshold * 100)}). This score is not a calibrated probability.${estimate.windows ? ` ${estimate.windows.length} windows; coverage ${estimate.complete ? 'complete' : 'partial'}.` : ''}`,
     weight: estimate.probAi,
     heat: 0.7,
   };
   const capped: TextSignalBand =
     AI_BAND_ORDER.indexOf(report.band) >= AI_BAND_ORDER.indexOf('notable') ? report.band : 'notable';
-  const score = report.band === 'strong' ? report.score : Math.min(Math.max(report.score, pct), 79);
+  const score = report.band === 'strong' ? report.score : Math.min(Math.max(report.score, pct), 71);
   return { ...report, band: capped, score, findings: [finding, ...report.findings] };
 }

@@ -185,6 +185,19 @@ export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
   // syncUrl (pinned in url-budget.test.ts).
   if (type === 'file') return [];
 
+  if (!isTokenValue(value) && input.restoreTokenRef) {
+    const literal = value === '' ? [row({ status: 'kept', emit: `${encodeURIComponent(key)}=` })] : encodeModelParam({ ...input, restoreTokenRef: undefined });
+    return [...literal, row({ key: `_restore.${key}`, type: 'token-restoration', value: input.restoreTokenRef, status: 'kept', emit: `${encodeURIComponent(`_restore.${key}`)}=${encodeURIComponent(input.restoreTokenRef)}` })];
+  }
+
+  if (['number', 'text', 'longtext', 'select'].includes(type) && isTokenValue(value)) {
+    const cached = typeof value.value === 'string' || (typeof value.value === 'number' && Number.isFinite(value.value)) ? value.value : null;
+    return [
+      ...encodeModelParam({ ...input, value: cached }),
+      row({ key: `_ref.${key}`, type: 'token-reference', value: value.ref, status: 'kept', emit: `${encodeURIComponent(`_ref.${key}`)}=${encodeURIComponent(value.ref)}` }),
+    ];
+  }
+
   if (type === 'table') {
     // A table IS the tool's content: it rides in the link via the engine's compact form
     // (round-trips through parseUrlState). This is the fix for the `%5Bobject+Object%5D`
@@ -357,6 +370,12 @@ export interface CostInput {
   model: InputModelItem[];
   /** Already-formed `key=value` (or bare-flag) strings from collectExportParams(). */
   exportParts: string[];
+  /** Captured document choices, encoded identically to the share link. */
+  tokenSelection?: Record<string, string>;
+}
+
+export function tokenSelectionParam(selection?: Record<string, string>): string | undefined {
+  return selection ? `_themes=${encodeURIComponent(JSON.stringify(selection))}` : undefined;
 }
 
 export interface CostOpts {
@@ -380,6 +399,8 @@ export function costUrlState(input: CostInput, opts: CostOpts = {}): UrlCostMode
   const params: UrlParamCost[] = [];
   const changedContent = new Set<string>();
   const contentInputs = new Set<string>();
+  const selectionPart = tokenSelectionParam(input.tokenSelection);
+  if (selectionPart) params.push(costRowFromExport(selectionPart));
 
   for (const item of input.model) {
     const rows = encodeModelParam(item);

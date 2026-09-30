@@ -69,6 +69,7 @@ import { takePendingRebrandDesign } from '../lib/rebrand/design-open.ts';
 import { brandFontFamilies } from '../lib/register-user-fonts.ts';
 import { announce } from '../a11y.ts';
 import { attachWobble } from '../lib/wobble.ts';
+import { isIframeMode } from '../lib/iframe-mode.ts';
 import { t } from '../i18n.ts';
 import { mountDesignGuides } from './design-guides.ts';
 import { SVG, icon } from './free-canvas-icons.ts';
@@ -1392,6 +1393,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // and the one the inspector's Scene header carries, so the add-kind, the section and
     // the studio all look like one thing.
     '3d': SVG.sceneKind,
+    // A web page box (plan 288): a browser window.
+    web: SVG.webKind,
   }; fc.ADD_KIND_ICON = ADD_KIND_ICON;
 
   // ── what a KIND can carry (plan 179 C3 / A5) ─────────────────────────────────
@@ -1421,13 +1424,13 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // The EMPTY kind passes every gate. A tool whose boxes carry no `kind` at all (Carousel
   // Maker, every non-Design canvas) must keep the bar it has always had, and a gate that
   // read `String(undefined)` would have hidden the lot.
-  const STROKE_KINDS = new Set(['path', 'box', 'image', 'frame']); fc.STROKE_KINDS = STROKE_KINDS;
+  const STROKE_KINDS = new Set(['path', 'box', 'image', 'frame', 'web']); fc.STROKE_KINDS = STROKE_KINDS;
   /** Kinds that render NO text node, so "Edit text" would open nothing. `3d` is here for
    *  a different reason from the other three (plan 265 milestone 3): a scene box's words
    *  are part of the SCENE, set in the studio, so a second caption typed on the canvas is
    *  two places to write the same sentence. A row that already carries text keeps the
    *  inspector's Text section, which is where such a caption is repaired or cleared. */
-  const NO_TEXT_KINDS = new Set(['frame', 'audio', 'camera', '3d']); fc.NO_TEXT_KINDS = NO_TEXT_KINDS;
+  const NO_TEXT_KINDS = new Set(['frame', 'audio', 'camera', '3d', 'web']); fc.NO_TEXT_KINDS = NO_TEXT_KINDS;
   /** Kinds that paint no picture from the image field. (An `audio` box DOES use it - that
    *  field is where its track lives - and a frame page paints it as the board's fill.) A
    *  `3d` box paints through the studio's renderer, and the hook returns its scene marker
@@ -1810,6 +1813,17 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   }); fc.unsub = unsub;
   document.addEventListener('keydown', fc.keys.onPreviewKey);
   document.addEventListener('pointerdown', fc.keys.onDocDown, true);
+  // A Design document shown with `?iframe` inside another page (lib/iframe-mode.ts) opens
+  // with the editor chrome hidden, and onPreviewKey keeps it that way.
+  if (isIframeMode()) { fc.keys.chromeRoot()?.classList.add('is-chrome-hidden'); fc.keys.refitAfterChrome(); }
+  // Web page boxes (plan 288): double-click a live one to use its page in place. The
+  // module owns every live frame; a paint mounts them (views/tool/render.ts).
+  let unwireWeb: (() => void) | null = null;
+  let webTornDown = false;
+  void import('../lib/design-web-mount.ts').then((m) => {
+    if (webTornDown) return;
+    unwireWeb = m.wireWebEditing(canvasEl, () => m.mountWebFrames(canvasEl, { mode: 'editor' }));
+  });
 
   // Legacy documents - saved before this tool declared an id field, or hand-written into
   // a URL - get their ids HERE, once, on load. mountTool already ran the same migration
@@ -2046,6 +2060,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // rows the inspector handed it, so moving the canvas selection under the dialog
     // would only change what the user comes back to.
     openStudio: (ids) => { void fc.objects.openStudio(ids); },
+    refreshWebPoster: (ids, onlyComposed) => { void fc.objects.refreshWebPoster(ids, onlyComposed); },
+    editWebTool: (ids) => { void fc.objects.editWebTool(ids); },
     useAsInput: (ids, property) => { fc.selection = new Set(ids); fc.rules?.expose(property); },
   }; fc.inspectorActions = inspectorActions;
 
@@ -2221,6 +2237,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       document.removeEventListener('pointerdown', fc.keys.onDocDown, true);
       document.removeEventListener('keydown', fc.keys.onPreviewKey);
       fc.keys.chromeRoot()?.classList.remove('is-chrome-hidden'); // never leave the next mount chromeless
+      webTornDown = true;
+      unwireWeb?.();
       ro.disconnect();
       mo.disconnect();
       fc.poseMo?.disconnect();

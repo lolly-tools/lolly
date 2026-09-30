@@ -104,7 +104,7 @@ export const MAX_RASTER_PIXELS = 2048 * 2048;
 // Reserved params this route never reads: the format is the path's extension,
 // Content Credentials are always off, no pdf is served (so no password), and
 // the rest steer the app or a download, not a GET render.
-const IGNORED_RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', 'c2pa', 'password', 'nostage', 'kiosk', 'present', 'options', 'full']);
+const IGNORED_RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', 'c2pa', 'password', 'nostage', 'kiosk', 'present', 'options', 'full', 'iframe']);
 
 /** Params in `params` that cannot change this tool's render, in first-seen order. */
 export function ignoredParams(params: URLSearchParams, manifest: ToolManifest): string[] {

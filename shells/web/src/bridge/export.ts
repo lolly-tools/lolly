@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { anchorSave } from './anchor-save.ts';
 import { sequenceExportRequest } from './export-sequence-request.ts';
 import { snapshotMotion } from './export-motion-snapshot.ts';
 import { stripCanvasAnnotations } from './export-canvas-annotations.ts';
@@ -120,27 +121,7 @@ export function _exportNotice(msg: string): void { if (msg) _exportNoticeSink?.(
  * it calls host.export.download (overridable) and, only when no host exists yet,
  * this shared fallback. tests/no-raw-anchor-download guard enforces it.
  */
-export function anchorSave(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  anchorSaveUrl(url, filename);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-/**
- * Click a download anchor at an ALREADY-RESOLVED url (a same-origin path or a
- * data: URI the caller owns) - the sibling of anchorSave for callers that hold a
- * url, not a Blob. Same bridge/-only rule: it exists so a fallback that must
- * anchor a raw url doesn't grow a second `<a download>` outside bridge/. Does not
- * revoke `url` - it is not this helper's to own.
- */
-export function anchorSaveUrl(url: string, filename: string): void {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
+export { anchorSave, anchorSaveUrl } from './anchor-save.ts';
 
 export function createExportAPI(host: WebHost) {
   setExportHost(host);

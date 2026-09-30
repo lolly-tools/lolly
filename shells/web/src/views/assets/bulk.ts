@@ -188,7 +188,7 @@ export function handleBulk(cat: CatCtx, action: string): void {
     void import('../../components/compare-assets.ts').then(({ openAssetComparison }) => openAssetComparison(cat.host, sources));
   }
   else if (action === 'delete') { if (allSelectedUploads(cat)) void deleteSelection(cat); }
-  else if (action === 'download') { if (allSelectedUploads(cat)) void downloadSelection(cat); }
+  else if (action === 'download') { void downloadSelection(cat); }
   else if (action === 'duplicate') { if (allSelectedUploads(cat)) void duplicateSelection(cat); }
   else if (action === 'edit-tags') {
     if (allSelectedUploads(cat)) void cat.userAssets.editTags([...selected].map(id => cat.assetById.get(id)).filter((r): r is AssetRef => !!r));
@@ -334,11 +334,12 @@ export async function downloadSelection(cat: CatCtx): Promise<void> {
   const { host, selected } = cat;
   const refs = [...selected].map(id => cat.assetById.get(id)).filter((r): r is AssetRef => !!r);
   if (!refs.length) return;
+  const members = refs.map(ref => ({ ref, appearance: cat.downloads.gridDownloadAppearance(ref) }));
   const { askExportLock } = await import('../../lib/export-lock.ts');
-  const { ok, strongPassword, zipLock } = await askExportLock(refs.length === 1 ? t('1 selected image') : t('{n} selected images', { n: refs.length }), true);
+  const { ok, strongPassword, zipLock } = await askExportLock(refs.length === 1 ? t('1 selected asset') : t('{n} selected assets', { n: refs.length }), true);
   if (!ok || !cat.mounted) return;
   const job = startJob({
-    title: t('Zipping images'),
+    title: t('Zipping assets'),
     heavy: false,
     cancel: () => { /* cooperative - the loop polls job.cancelled between members */ },
   });
@@ -346,16 +347,16 @@ export async function downloadSelection(cat: CatCtx): Promise<void> {
     const files: { name: string; blob: Blob }[] = [];
     const names = new Set<string>();
     let credentialed = 0;
-    for (const ref of refs) {
+    for (const { ref, appearance } of members) {
       if (job.cancelled) return;
       job.progress(files.length, refs.length);
       try {
-        const blob = await credentialedBytes(cat, ref);
+        const { blob, format } = await cat.downloads.prepareSelectionDownload(ref, appearance);
         try {
           const bytes = new Uint8Array(await blob.arrayBuffer());
           if (extractC2paStore(bytes) && (await verifyC2pa(bytes)).found) credentialed++;
         } catch { /* the check is advisory - never blocks the zip */ }
-        const orig = downloadName(ref, String(ref.format || 'bin'));
+        const orig = downloadName(ref, format);
         let name = orig;
         for (let n = 2; names.has(name); n++) {
           name = orig.includes('.') ? orig.replace(/(\.[^.]+)$/, ` (${n})$1`) : `${orig} (${n})`;
@@ -372,17 +373,17 @@ export async function downloadSelection(cat: CatCtx): Promise<void> {
     const { buildZip, saveBlob } = await import('../../pro/zip.ts');
     let zip: Blob;
     try {
-      zip = await buildZip(files, { zipName: 'lolly-images', zipLock, password: strongPassword });
+      zip = await buildZip(files, { zipName: 'lolly-assets', zipLock, password: strongPassword });
     } catch (err) {
       job.fail(err);
       throw err;
     }
     if (job.cancelled) return;
-    await saveBlob(zip, 'lolly-images.zip');
+    await saveBlob(zip, 'lolly-assets.zip');
     job.finish();
     announce(files.length === 1
-      ? t('1 image zipped · {c} with Content Credentials', { c: credentialed })
-      : t('{n} images zipped · {c} with Content Credentials', { n: files.length, c: credentialed }));
+      ? t('1 asset zipped · {c} with Content Credentials', { c: credentialed })
+      : t('{n} assets zipped · {c} with Content Credentials', { n: files.length, c: credentialed }));
   } catch (err) {
     job.fail(err);
     throw err;

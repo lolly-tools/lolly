@@ -9,12 +9,12 @@
  * bridge method, so the Node twin is the same shape - an API for the CLI
  * wrapper, and nothing attached to `host`.
  *
- * The web twin is shells/web/src/lib/ai-detect-worker.ts. THE CALIBRATION IS THE
+ * The web twin is shells/web/src/lib/ai-detect-worker.ts. THE MODEL CONFIGURATION USES THE
  * SAME MODULE: the roster, the operating threshold, the label regex and the
  * eligibility gate come from ml/ai-detect-models.ts, which the web facade
- * imports too. Both sides return a RAW probability and let the ENGINE do the
- * fold (`applyModelEstimate`), so a reading in the terminal is the reading the
- * app gives.
+ * imports too. Both sides return a raw classifier score and let the ENGINE do the
+ * fold (`applyModelEstimate`). Located reports record the runtime separately;
+ * quantized CPU and WebAssembly scores can differ numerically.
  *
  * SELF-HOSTED ONLY, exactly as on the web: `env.allowRemoteModels = false` and
  * `env.localModelPath` points at the resolved models directory, so no text and
@@ -26,9 +26,9 @@
  * text is never sent to the model at all: `score()` answers null, which means
  * "the check did not run" and must never be rendered as a verdict either way.
  */
-import type { AiModelEstimate } from '@lolly/engine';
+import { forensicModelWindows, type AiModelEstimate } from '@lolly/engine';
 import {
-  AI_DETECT_TEXT_CAP, aiDetectEligible, aiDetectModel, type AiDetectModel,
+  aiDetectEligible, aiDetectModel, type AiDetectModel,
 } from './ai-detect-models.ts';
 import {
   familyDir, isTransformersAvailable, modelFilesExist, refuseMissing, resolveModelsDir,
@@ -45,7 +45,7 @@ export interface NodeAiDetectAPI {
   cached(): Promise<boolean>;
   /** Pure: may the detector honestly be asked about this text? */
   eligible(text: string): boolean;
-  score(text: string): Promise<AiModelEstimate | null>;
+  score(text: string, opts?: { prefixOnly?: boolean }): Promise<AiModelEstimate | null>;
 }
 
 interface TensorLike { data: Float32Array; dims: number[] }
@@ -55,21 +55,25 @@ interface ClassifierLike {
 }
 type TokenizeFnLike = (text: string, opts: { truncation: boolean; max_length: number }) => Record<string, unknown>;
 
-let runtime: Promise<{ model: ClassifierLike; tokenize: TokenizeFnLike }> | null = null;
+const runtimes = new Map<string, Promise<{ model: ClassifierLike; tokenize: TokenizeFnLike }>>();
 
-function ensureRuntime(m: AiDetectModel): Promise<{ model: ClassifierLike; tokenize: TokenizeFnLike }> {
-  runtime ??= (async () => {
+function ensureRuntime(m: AiDetectModel, legacy = false): Promise<{ model: ClassifierLike; tokenize: TokenizeFnLike }> {
+  const key = `${m.id}:${legacy ? 'legacy' : 'basic'}`;
+  const cached = runtimes.get(key);
+  if (cached) return cached;
+  const runtime = (async () => {
     const { env, AutoModelForSequenceClassification, AutoTokenizer } = await import('@huggingface/transformers');
     // The privacy pins, the same three the web worker sets.
     env.allowRemoteModels = false;
     env.allowLocalModels = true;
     env.localModelPath = `${resolveModelsDir()}/`;
     const [model, tokenizer] = await Promise.all([
-      AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8', ...transformersSessionOptions() }),
+      AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8', device: 'cpu', session_options: { ...transformersSessionOptions().session_options, graphOptimizationLevel: legacy ? 'all' : 'basic' } }),
       AutoTokenizer.from_pretrained(m.dir),
     ]);
     return { model: model as unknown as ClassifierLike, tokenize: tokenizer as unknown as TokenizeFnLike };
-  })().catch((e) => { runtime = null; throw e; });
+  })().catch((e) => { runtimes.delete(key); throw e; });
+  runtimes.set(key, runtime);
   return runtime;
 }
 
@@ -103,17 +107,15 @@ export function createNodeAiDetectAPI(): NodeAiDetectAPI | null {
     },
     eligible: (text) => aiDetectEligible(text),
 
-    async score(text: string): Promise<AiModelEstimate | null> {
+    async score(text: string, opts: { prefixOnly?: boolean } = {}): Promise<AiModelEstimate | null> {
       const m = aiDetectModel();
       if (!m) return null;
       if (!aiDetectEligible(text)) return null;
       if (!modelFilesExist('ai-detect', filesFor(m))) {
         refuseMissing('ai-detect', m.name, m.bytes);
       }
-      const { model, tokenize } = await ensureRuntime(m);
-      const inputs = tokenize(text.slice(0, AI_DETECT_TEXT_CAP), { truncation: true, max_length: m.maxTokens });
-      const { logits } = await model(inputs);
-      const probs = softmax(logits.data);
+      const { model, tokenize } = await ensureRuntime(m, opts.prefixOnly === true);
+      const measure = (part: string): number => (tokenize(part, { truncation: false, max_length: m.maxTokens }).input_ids as TensorLike).dims.at(-1)!;
       // Which output index is "AI"? Read the graph's own labels; a two-label
       // graph with no readable labels falls back to index 1 (the conventional
       // positive). The same read the web worker does.
@@ -122,8 +124,16 @@ export function createNodeAiDetectAPI(): NodeAiDetectAPI | null {
       for (const [k, v] of Object.entries(labels)) {
         if (m.aiLabel.test(v)) { aiIndex = Number(k); break; }
       }
-      if (aiIndex < 0) aiIndex = probs.length > 1 ? 1 : 0;
-      return { probAi: probs[aiIndex] ?? 0, threshold: m.threshold, modelId: m.id, modelName: m.name };
+      if (aiIndex < 0) aiIndex = 1;
+      if (opts.prefixOnly) {
+        const { logits } = await model(tokenize(text.slice(0, 65_536), { truncation: true, max_length: m.maxTokens }));
+        return { probAi: softmax(logits.data)[aiIndex] ?? 0, threshold: m.threshold, modelId: m.id, modelName: m.name, complete: false };
+      }
+      const result = await forensicModelWindows(text, m.maxTokens, measure, async part => {
+        const { logits } = await model(tokenize(part, { truncation: false, max_length: m.maxTokens }));
+        return softmax(logits.data)[aiIndex] ?? 0;
+      });
+      return { probAi: result.rawMean, windows: result.windows, complete: result.complete, threshold: m.threshold, modelId: m.id, modelName: m.name };
     },
   };
 }

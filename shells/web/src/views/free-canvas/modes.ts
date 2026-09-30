@@ -300,7 +300,9 @@ export function pasteSelectionStyle(fc: FcCtx): void {
 export function pasteAimedHere(fc: FcCtx): boolean {
   const { stageEl } = fc;
   const ae = document.activeElement;
-  return !(ae && ae !== document.body && !stageEl.contains(ae));
+  // The route focuses its own view on arrival, and a click on the stage leaves focus
+  // there, so a focused element that holds the stage is still aimed at the canvas.
+  return !(ae && ae !== document.body && !stageEl.contains(ae) && !ae.contains(stageEl));
 }
 /**
  * What a copy takes: the selection, PLUS the children of any selected artboard

@@ -12,6 +12,8 @@ None of this is legal advice and none of it is a ruling about your project. Loll
 - **Obligation** is what the reviewed rules make of that evidence for one use, one delivery route and one audience. Sharing conditions stay conditional while you are working privately.
 - **Delivery** is what the finished bytes actually carry, measured by reading them back. Lolly says credits are included only after a reader has found them in the delivered file.
 
+![Recorded source evidence and the chosen use feed reviewed rules. Export prepares the credits, then a delivery check reads the finished bytes to report which credits were found or are still needed.](/info/diagrams/concepts/rights-evidence-to-delivery.svg)
+
 ## Where you meet this first
 
 The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with the artwork credited and nothing left for you to do. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Choosing the set is never blocked, and the set control shows the licence where you choose it. The same rules answer for a catalog illustration, a LUT, a font and any other recorded work.

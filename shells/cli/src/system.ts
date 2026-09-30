@@ -2,10 +2,12 @@
 /** Human and machine entry points for the shared terminal design-system store. */
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { canonicalJson } from '../../../engine/src/canonical-json.ts';
 import { basename, extname } from 'node:path';
 import {
   assembleTokenSetFiles, coerceTokensDoc, createTokenSet, deriveBrandTokens,
   extractPenpotProject, extractSvgColors, readZip, summarizeTokensDoc,
+  inspectTokenDocument, diffTokenDocuments, parseTokenSelection, generateTokenRecipe, mergeTokenDocuments, TOKEN_EXT,
 } from '@lolly/engine';
 import {
   activateNodeDesignSystem, activeNodeDesignSystem, addNodeDesignResources,
@@ -30,7 +32,7 @@ Start with what you have. Setup is optional, and each source can be added later.
   Explore first    lolly list
   Make something   lolly qr-code --url=https://example.com --output=qr.svg
 
-Design-system commands: lolly system status | list | use | import | add | export
+Design-system commands: lolly system status | list | use | import | add | export | inspect | diff | generate | sync
 `;
 
 type Flags = Record<string, string>;
@@ -213,6 +215,49 @@ export async function startCli(json = false): Promise<void> {
 
 export async function systemCli(positionals: string[], flags: Flags, json = false): Promise<void> {
   const action = positionals[0] ?? 'status';
+  if (['inspect', 'diff', 'generate', 'sync'].includes(action)) {
+    const { readActiveDesignSystemTokens } = await import('@lolly-tools/node-shell/design-systems');
+    const initialSystem = flags.file ? null : await activeNodeDesignSystem();
+    const local = flags.file ? (await importSystemTokens(flags.file)).doc : await readActiveDesignSystemTokens();
+    if (!local) throw usageError('Import a design system or pass --file=tokens.json.', 'NO_TOKENS');
+    const opts = { theme: flags.theme, selection: parseTokenSelection(flags._themes) };
+    if (action === 'inspect') {
+      const report = inspectTokenDocument(local, opts);
+      const path = flags.token;
+      const result = path ? { ...report, tokens: report.tokens.filter(t => t.path === path) } : report;
+      await emit(result, JSON.stringify(result, null, 2) + '\n', json); return;
+    }
+    let candidate: Record<string, unknown>, conflicts: unknown[] = [];
+    if (action === 'generate') {
+      if (!flags.recipe) throw usageError('Pass --recipe=recipe.json with a registered recipe.', 'NO_RECIPE');
+      candidate = generateTokenRecipe(local, JSON.parse(await readFile(flags.recipe, 'utf8')));
+    } else {
+      const path = positionals[1];
+      if (!path) throw usageError('Pass the incoming token file.', 'NO_INCOMING_SOURCE');
+      const incoming = (await importSystemTokens(path)).doc;
+      if (action === 'diff') {
+        const result = { scope: 'token-document', choices: opts.selection, changes: diffTokenDocuments(local, incoming, opts) };
+        await emit(result, JSON.stringify(result, null, 2) + '\n', json); return;
+      }
+      if (!flags.base || !flags.revision) throw usageError('Sync needs --base=earlier-source.json and --revision=source-release-id.', 'NO_SOURCE_REVISION');
+      const base = (await importSystemTokens(flags.base)).doc;
+      const merged = mergeTokenDocuments(base, local, incoming); candidate = merged.document; conflicts = merged.conflicts;
+      const extensions = (candidate.$extensions ?? {}) as Record<string, unknown>;
+      candidate.$extensions = { ...extensions, [TOKEN_EXT]: { ...(extensions[TOKEN_EXT] as object ?? {}), upstream: { kind: 'file', revision: flags.revision, incomingSha256: createHash('sha256').update(canonicalJson(incoming)).digest('hex'), baseSha256: createHash('sha256').update(canonicalJson(base)).digest('hex'), ...(flags.source ? { source: flags.source } : {}) } } };
+    }
+    const changes = diffTokenDocuments(local, candidate, opts);
+    if (flags.output) await writeFile(flags.output, JSON.stringify(candidate, null, 2) + '\n');
+    if (flags.apply === '1') {
+      if (flags.file) throw usageError('Use --output to save a candidate for an external file. Apply targets the active terminal system.', 'EXTERNAL_SOURCE');
+      if (conflicts.length && flags['keep-local'] !== '1') throw usageError('Conflicts retain local values. Review the report, then pass --keep-local to apply that choice.', 'SOURCE_CONFLICTS');
+      const active = await activeNodeDesignSystem();
+      if (!active) throw usageError('No active terminal system can receive this candidate.', 'NO_TOKENS');
+      // Recheck after async file reads so a concurrent system edit cannot be replaced.
+      if (active.id !== initialSystem?.id || JSON.stringify(await readActiveDesignSystemTokens()) !== JSON.stringify(local)) throw usageError('The active source changed. Review again.', 'STALE_REVIEW');
+      await writeNodeDesignSystemTokens({ id: active.id, tokens: candidate, source: active.source });
+    }
+    await emit({ scope: 'token-document', applied: flags.apply === '1', conflicts, changes, ...(flags.output ? { output: flags.output } : {}) }, JSON.stringify({ applied: flags.apply === '1', conflicts, changes }, null, 2) + '\n', json); return;
+  }
   if (action === 'context' || action === 'check') {
     const { readActiveDesignSystemTokens } = await import('@lolly-tools/node-shell/design-systems');
     if (flags.file === '1' || flags.output === '1') throw usageError('--file and --output need a path.', 'MISSING_FLAG_VALUE');
@@ -314,5 +359,5 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
     await emit(result, `Now using ${record.label}.\n${humanStatus(result)}`, json);
     return;
   }
-  throw usageError(`Unknown system command “${action}”. Use status, list, init, import, add, export, context, check, or use.`, 'UNKNOWN_COMMAND');
+  throw usageError(`Unknown system command “${action}”. Use status, list, init, import, add, export, context, check, inspect, diff, generate, sync, or use.`, 'UNKNOWN_COMMAND');
 }

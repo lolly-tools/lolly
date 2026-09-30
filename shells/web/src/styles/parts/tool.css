@@ -2251,15 +2251,26 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
    its own small box, rather than clip. Under five they stay one joined pill. */
 .vector-input:has(.vec-field:nth-child(5)) {
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 1px;
 }
+
+
 .vector-input:has(.vec-field:nth-child(5)) .vec-field { flex: 1 1 calc(33.333% - 4px); }
 .vector-input:has(.vec-field:nth-child(5)) .vec-num,
 .vector-input:has(.vec-field:nth-child(5)) .vec-field:first-child .vec-num,
 .vector-input:has(.vec-field:nth-child(5)) .vec-field:last-child .vec-num {
   border-right-width: 1px;
-  border-radius: var(--radius);
+  border-radius:0;
 }
+
+/* pill shaping the input*/
+.vector-input:has(.vec-field:nth-child(5)) .vec-field.vec-field:nth-child(1) .vec-num { border-top-left-radius: var(--radius); }
+.vector-input:has(.vec-field:nth-child(5)) .vec-field:nth-child(3) .vec-num { border-top-right-radius: var(--radius); }
+
+.vector-input:has(.vec-field:nth-child(5)) .vec-field:last-child .vec-num { border-bottom-right-radius: var(--radius); }
+.vector-input:has(.vec-field:nth-child(5)) .vec-field:nth-child(4) .vec-num { border-bottom-left-radius: var(--radius); }
+
+
 .vec-field {
   position: relative;
   flex: 1 1 0;

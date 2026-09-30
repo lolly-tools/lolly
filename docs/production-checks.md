@@ -9,6 +9,35 @@ profile returns its artifact only when every required check passes. Missing
 collectors, stale references, incomplete coverage and exhausted budgets prevent
 that verified result. The report remains available to explain the refusal.
 
+## In Verify
+
+Production is an advanced check for people who already have agreed output
+requirements. For an ordinary file inspection, leave the policy controls hidden.
+
+1. Add the finished file to Verify. Choose the file in the floating toolbar if
+   you added several files.
+2. Choose **Policy** from **More** in the toolbar to open **Production policy**.
+3. Choose a **Requirements** JSON file in the format below. Use the dimensions,
+   format and content agreed before production; do not copy measurements from
+   the candidate just to obtain a passing result.
+4. Add a **Reference** only when the requirements specify a comparison image.
+   Its digest must match the reference named in the requirements.
+5. Select **Check**. Expand a result to see the expected value, measured value
+   and reason. **Passed** means the requirement was measured and met.
+   **Mismatch** means the measurement disagreed. **Unchecked** means the
+   required fact could not be measured; that is not a pass.
+6. Select **Report** inside Production policy for the detailed JSON. The toolbar's
+   **Report** exports a signed PDF of the current Verify assessment, including
+   completed production checks. When every mandatory check permits review,
+   expand **Review**, enter your name and any appearance-exception reason,
+   then select **Save** for a separate local review record.
+
+Changing the file, requirements or reference clears the displayed checks.
+A local review records a person's decision; it does not turn missing measurements
+into passes or establish an organisation's approval. Unsupported checks remain
+unchecked. The JSON report binds the measurements to the exact file bytes and
+requirements revision.
+
 ## Requirements
 
 A contract records its own revision and the expected output. Dimensions are pixels;

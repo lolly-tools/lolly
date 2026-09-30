@@ -6,6 +6,29 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.239.0
+
+- Reserve the `iframe` presence flag for a tool shown inside another page. Shells show only the rendered output, keep nothing on the device and stamp `data-lolly-iframe` for tools to read. It implies `full`, and the CLI and the render route ignore it.
+- Add `web-embed.ts` for Design web page boxes: the URL policy for what a box may frame, provider embed forms, Lolly and Sandbox links re-homed to the running app in `iframe` mode, and the player origins the hosted web policy allows.
+- Add `trusted-sites.ts`: the entry grammar (`example.com`, `*.example.com`, an https URL prefix, and the loopback on any port) and the one matcher the Sandbox, Design web page boxes and an organisation's site policy share. `Profile` gains the optional `trustedSites` list and its `trustedSitesSeeded` marker. The runtime keeps both out of the profile values a tool input can bind.
+
+## 1.238.0
+
+- Block inputs can declare a text field retaining typed property links and intentional local overrides. Scalar geometry and style values remain available to renderers; current token values resolve before hooks on load and refresh.
+- Local scalar overrides retain their former link through sessions and `_restore.<inputId>` URL parameters, with ordinary scalar fallbacks for older readers.
+
+## 1.237.0
+
+- Add byte-bound forensic AI assessment reports with located text and layout findings, grouped occurrences, extraction coverage and raw model windows. Rounded accent cards, eyebrow headings and short decorative sequences remain weak style clues.
+- Add token-measured document windows and guarded calibration admission. No numeric authorship probability is released. PDF text may include estimated line geometry.
+
+## 1.236.0
+
+- Token resolution accepts explicit theme choices by source group and theme id. Optional `tokens.inspect()` reports source definitions, set precedence, aliases, local token dependents and bounded diagnostics. Existing single-theme callers remain supported.
+- Composite aliases in supported typography, shadow, border and transition values resolve alongside gradient stops. Source documents remain intact.
+- Typed number, dimension, string and font-family input links preserve references through URL/session transport and hydrate through compatible consumer adapters. Explicit choices use `_themes` in render links.
+- Bounded token recipes, authored/resolved diffs and three-way source merges produce reviewable candidates. New font pins carry face descriptors; render projections isolate pinned families while portable snapshots retain authored data.
+
 ## 1.235.0
 
 - Add the `@lolly/engine/brand-policy` entry point for bounded, reviewed mappings from brand roles to managed tool inputs. Local and managed paths share rule resolution and predicates; final runtime input digests establish only their declared scope.

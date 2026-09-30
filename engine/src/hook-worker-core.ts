@@ -26,8 +26,10 @@
  */
 import { makeColorApi } from './color-tools.ts';
 import { makeGeomApi } from './geom-api.ts';
+import { inspectTokenDocument } from './token-inspect.ts';
+import { tokenSelectionKey } from './token-selection.ts';
 import { createTokenSet, aliasPath } from './tokens.ts';
-import type { HostV1, TokenSet } from './bridge/host-v1.ts';
+import type { HostV1, TokenSet, TokenResolveOptions } from './bridge/host-v1.ts';
 
 // ── Wire protocol ────────────────────────────────────────────────────────────
 // Every message carries `runId` (one per mounted tool). The owning side creates
@@ -280,18 +282,19 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
   function makeTokens(doc: unknown, excluded: string[]): NonNullable<HostV1['tokens']> {
     const byTheme = new Map<string, TokenSet>();
     const excl = new Set(excluded);
-    const ensure = (theme?: string): TokenSet => {
-      const key = theme ?? '';
+    const ensure = (opts: TokenResolveOptions = {}): TokenSet => {
+      const key = tokenSelectionKey(opts);
       let set = byTheme.get(key);
-      if (!set) { set = createTokenSet(doc, { theme }); byTheme.set(key, set); }
+      if (!set) { set = createTokenSet(doc, opts); if (byTheme.size >= 64) byTheme.delete(byTheme.keys().next().value!); byTheme.set(key, set); }
       return set;
     };
     return {
-      get: async (o = {}) => ensure(o.theme),
-      resolve: async (ref, o = {}) => ensure(o.theme).resolve(ref),
+      get: async (o = {}) => ensure(o),
+      inspect: async (o = {}) => inspectTokenDocument(doc, o),
+      resolve: async (ref, o = {}) => ensure(o).resolve(ref),
       themes: async () => ensure().themes(),
       colors: async (o = {}) => {
-        const list = ensure(o.theme).colors();
+        const list = ensure(o).colors();
         if (!excl.size) return list;
         return list.filter(c => {
           const p = aliasPath(c.ref) ?? c.ref;

@@ -6,6 +6,8 @@ import { brandResourceAssetIds } from '../../../../../engine/src/brand-resources
 import { collectAssetTokens } from '../../../../../engine/src/design-version.ts';
 import { sha256Hex } from '../../../../../engine/src/bytes.ts';
 import type { createBridge } from '../../bridge/index.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { WebTokensAPI } from '../../bridge/tokens.ts';
 
 export type UsageHost = Awaited<ReturnType<typeof createBridge>> & { tokens: NonNullable<Awaited<ReturnType<typeof createBridge>>['tokens']> };
 
@@ -48,8 +50,9 @@ export async function usageRevision(host: UsageHost) {
 }
 
 /** Stored byte revisions are checked again when returning to an already measured guide. */
-export async function usageDependencies(host: UsageHost, doc: unknown): Promise<string> {
-  const record = await host.tokens.activeRecord();
+export async function usageDependencies(host: Pick<HostV1, 'assets' | 'tokens'>, doc: unknown): Promise<string> {
+  const tokens = host.tokens as (NonNullable<HostV1['tokens']> & Partial<Pick<WebTokensAPI, 'activeRecord'>>) | undefined;
+  const record = await tokens?.activeRecord?.();
   const ids = new Set([...brandResourceAssetIds(doc), ...collectAssetTokens(doc).map(ref => ref.id), ...(record?.importedFonts ?? [])]);
   const assets = host.assets as typeof host.assets & { _getUserRecord?(id: string): Promise<{ version?: string; checksum?: string } | null> };
   const resources = await Promise.all([...ids].sort().map(async id => {
@@ -57,6 +60,6 @@ export async function usageDependencies(host: UsageHost, doc: unknown): Promise<
     const ref = await host.assets.get(id).catch(() => null);
     return { id, available: !!ref, version: stored?.version ?? ref?.version, checksum: stored?.checksum ?? ref?.checksum, type: ref?.type, format: ref?.format, pin: ref?.pin };
   }));
-  const identity = record && { id: record.id, headId: record.headId, locked: record.locked, importedFonts: record.importedFonts, catalog: record.catalog };
+  const identity = record ? { id: record.id, headId: record.headId, locked: record.locked, importedFonts: record.importedFonts, catalog: record.catalog } : await tokens?.active?.();
   return sha256Hex(new TextEncoder().encode(JSON.stringify({ doc, identity, resources })));
 }

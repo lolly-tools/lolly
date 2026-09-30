@@ -1,0 +1,13 @@
+digraph share_with_rules {
+  rankdir=TB
+  node [shape=box]
+  master [label="Design master\nkeep for revisions"]
+  rules [label="Authoring copy\ninputs and limits"]
+  package [label="Reusable .lolly tool\nfonts and images"]
+  reader [label="Recipient\nallowed inputs"]
+  output [label="Finished artwork\nPNG, SVG or PDF"]
+  master -> rules
+  rules -> package
+  package -> reader
+  reader -> output
+}

@@ -12,8 +12,8 @@
 export const DESIGN_DOCUMENT_VERSION = 1 as const;
 
 // Extended, never reordered: the wire value of each entry is a permanent contract
-// (`3d` joined it in plan 265 milestone 3). A reader older than that release marks a
-// document holding a 3D scene box invalid, which the release note for it says.
+// (`3d` joined it in plan 265 milestone 3, `web` in plan 288). A reader older than
+// those releases marks a document holding such a box invalid, which their release notes say.
 export const DESIGN_LAYER_KINDS = [
   'box',
   'text',
@@ -23,6 +23,7 @@ export const DESIGN_LAYER_KINDS = [
   'camera',
   'frame',
   '3d',
+  'web',
 ] as const;
 
 export type DesignLayerKindV1 = (typeof DESIGN_LAYER_KINDS)[number];
@@ -58,6 +59,8 @@ export interface DesignLayerInspectionV1 {
   /** A `3d` layer's scene: the 3D Studio's own settings as its link query, defaults
    *  left out. Absent when the layer is another kind or its scene is empty. */
   scene?: string;
+  /** A `web` layer's link, as it was given (plan 288). Absent when empty. */
+  web?: string;
   timing?: DesignTimingV1;
 }
 
@@ -82,6 +85,8 @@ export type DesignFindingIdV1 =
   | 'design.layer.unassigned'
   | 'design.text.empty'
   | 'design.image.empty'
+  | 'design.web.empty'
+  | 'design.web.no-poster'
   | 'design.artboard.unnamed'
   | 'design.artboard.empty';
 
@@ -268,6 +273,7 @@ export function inspectDesignV1(
       // a new, unedited box, not a fault, and the assets it references live inside
       // the query rather than in `image` (engine/src/design-scene.ts reads them out).
       ...(kind === '3d' && text(row.scene) ? { scene: text(row.scene) } : {}),
+      ...(kind === 'web' && text(row.web).trim() ? { web: text(row.web).trim() } : {}),
       ...(timed
         ? {
             timing: {
@@ -302,6 +308,13 @@ export function inspectDesignV1(
         'Image layer has no asset.',
         id ? { layerId: id } : {}
       );
+    }
+    // A web page box draws its poster (its `image`) in every export, and a plain card
+    // naming the site when there is none: a missing poster is worth a note, never a fault.
+    if (kind === 'web' && !text(row.web).trim()) {
+      finding(findings, 'design.web.empty', 'warn', `${path}/web`, 'Web page layer has no link.', id ? { layerId: id } : {});
+    } else if (kind === 'web' && !assetId(row.image)) {
+      finding(findings, 'design.web.no-poster', 'info', `${path}/image`, 'Web page layer has no poster; exports show a card naming the site.', id ? { layerId: id } : {});
     }
   });
 

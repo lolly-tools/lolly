@@ -37,6 +37,9 @@
 
 @import './fonts.css';
 @import './tokens.css';
+@import '../components/token-workspace.css';
+/* Every @import must sit below the @layer line:
+ * one placed above it makes postcss-import drop every @import after that line. */
 
 @import './parts/base.css'         layer(base);
 @import './parts/utilities.css'    layer(base);
@@ -66,6 +69,7 @@
 @import './parts/saved-list.css'   layer(chrome); /* saved-session rows - history modal + drawer + /profile */
 @import './parts/notfound.css'     layer(chrome);
 @import './parts/overrides.css'    layer(overrides); /* cross-cutting overrides (top-right FAB/profile cluster) */
+@import './parts/iframe-mode.css'  layer(overrides); /* ?iframe: a framed tool draws its output only (lib/iframe-mode.ts) */
 @import './parts/a11y.css'         layer(a11y);
 @import './parts/rtl.css'          layer(a11y); /* RTL correctness rules (Arabic) - accessibility layer, wins over views */
 @import './parts/perf-ui.css'      layer(perf); /* First layer wins for !important. Gated on html[data-perf-ui]: absent by default ⇒ no-op. */

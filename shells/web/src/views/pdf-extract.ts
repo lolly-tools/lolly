@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { takePendingUtility } from '../lib/utility-handoff.ts';
 /**
  * Unpack (#/unpack, alias #/pdf) - take a design file apart: the extraction surface.
  *
@@ -623,7 +624,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
       </header>
 
       <div class="pdfx-drop" data-drop tabindex="0" role="button" aria-label="${escape(t('Choose or drop a design file to take apart'))}">
-        <input type="file" accept=".pdf,.ai,.svg,.idml,.penpot,.fig,.pptx,.psd,.psb,.xcf,application/pdf,image/svg+xml" hidden>
+        <input type="file" accept=".pdf,.ai,.svg,.html,.htm,.idml,.penpot,.fig,.pptx,.psd,.psb,.xcf,application/pdf,image/svg+xml" hidden>
         <span class="pdfx-drop-icon" aria-hidden="true">${icon('document', { size: 32 })}</span>
         <strong>${t('Drop a design file here')}</strong>
         <span>${t('pdf · svg · idml · penpot · fig · pptx · psd · nothing leaves your device')}</span>
@@ -1508,4 +1509,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     else if (act === 'txt') download(host, joinPageText(current.pages, { markdown: false }), `${base}.txt`, 'text/plain');
     else if (act === 'clear') reset();
   });
+  const incoming = takePendingUtility('unpack');
+  if (incoming) void open(incoming);
+
 }
