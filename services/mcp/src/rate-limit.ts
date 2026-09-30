@@ -134,11 +134,30 @@ export class UnconfiguredRateLimiter implements RateLimiter {
 export const UNCONFIGURED_REASON =
   'No durable rate limiter is configured for this hosted deployment: set LOLLY_RATE_LIMIT_REST_URL + LOLLY_RATE_LIMIT_REST_TOKEN (a Redis-compatible HTTPS REST store), or LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=1 to accept per-instance limiting';
 
+/**
+ * The Redis-compatible REST store, or null. LOLLY_RATE_LIMIT_REST_* wins; after
+ * that come the variables written by the Upstash integration on the Vercel
+ * Marketplace (UPSTASH_REDIS_REST_*, then its older KV_REST_API_* spelling), so connecting
+ * the store to the project is the whole setup. Each pair is read as a pair: a
+ * URL from one family is never matched with a token from another.
+ */
+export function restStoreConfig(env: NodeJS.ProcessEnv): { url: string; token: string } | null {
+  for (const [urlName, tokenName] of [
+    ['LOLLY_RATE_LIMIT_REST_URL', 'LOLLY_RATE_LIMIT_REST_TOKEN'],
+    ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN'],
+    ['KV_REST_API_URL', 'KV_REST_API_TOKEN'],
+  ] as const) {
+    const url = env[urlName]?.trim();
+    const token = env[tokenName]?.trim();
+    if (!!url !== !!token) throw new Error(`${urlName} and ${tokenName} must be configured together`);
+    if (url && token) return { url, token };
+  }
+  return null;
+}
+
 export function createRateLimiter(env: NodeJS.ProcessEnv, namespace = 'mcp'): RateLimiter {
-  const url = env.LOLLY_RATE_LIMIT_REST_URL?.trim();
-  const token = env.LOLLY_RATE_LIMIT_REST_TOKEN?.trim();
-  if (!!url !== !!token) throw new Error('LOLLY_RATE_LIMIT_REST_URL and LOLLY_RATE_LIMIT_REST_TOKEN must be configured together');
-  if (url && token) return new RedisRestRateLimiter({ url, token, namespace });
+  const store = restStoreConfig(env);
+  if (store) return new RedisRestRateLimiter({ ...store, namespace });
   const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production';
   if (hosted && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== '1') {
     console.warn(`[rate-limit] ${UNCONFIGURED_REASON}`);

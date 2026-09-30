@@ -59,7 +59,7 @@ import { enhanceDocsReading } from '../lib/docs-enhance.ts';
 import { enhancePathwaysStrip } from '../lib/docs-strip.ts';
 import { docsClipboardWriter, docsCopyLabels } from '../lib/docs-clipboard.ts';
 import { enhanceDocsFormats } from '../lib/docs-formats.ts';
-import { ensureLandingStyles, adaptLandingLinks, hydrateLandingCycle, hydrateLandingCovers, fitHeroCtaInk } from '../lib/docs-landing.ts';
+import { ensureLandingStyles, adaptLandingLinks, hydrateLandingCycle, hydrateLandingCovers, hydrateLandingAgentCopy, fitHeroCtaInk } from '../lib/docs-landing.ts';
 import {
   rewriteDocLinks,
   extractSidebar,
@@ -489,7 +489,7 @@ export async function mountDocs(
   // (lib/docs-landing.ts). The audience strip needs no hydration since plan 123 D1 -
   // its pills are plain #id jump links the anchor handler above already intercepts,
   // and every card is open on both surfaces.
-  if (isLanding) { adaptLandingLinks(node); hydrateLandingCycle(node); hydrateLandingCovers(node); fitHeroCtaInk(node); }
+  if (isLanding) { adaptLandingLinks(node); hydrateLandingCycle(node); hydrateLandingCovers(node); hydrateLandingAgentCopy(node); fitHeroCtaInk(node); }
 
   // Prepare narration without opening the floating player over the page. Produced
   // English audio takes priority; other pages use the device voice when available.

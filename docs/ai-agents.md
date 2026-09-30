@@ -175,9 +175,25 @@ Formats are **per-tool** - you can only request one a tool declares (`lolly_desc
 
 ### Connect a client
 
-The recommended endpoint is the **full** one - **`https://mcp.lolly.tools/mcp`** (a browser-free serverless endpoint at `https://lolly.tools/api/mcp` also exists, for vector/data output only). Connect either one of two ways - both authenticate against the same shared access token, which your Lolly operator holds (it is never printed in a link or a log). Full reference: the **[MCP Server](/info/mcp.html)** page.
+**The open endpoint, no token.** Anyone can connect to **`https://lolly.tools/api/mcp`**: vector and data output, plus `png` for SVG-native tools, with no sign-in. Calls are limited per address and by a daily budget for the whole endpoint. In Claude Code:
 
-**A custom connector (OAuth).** The endpoint is also a stateless **OAuth 2.1** authorization server, so it drops straight into any MCP client that supports custom connectors:
+```bash
+claude mcp add --transport http lolly https://lolly.tools/api/mcp
+```
+
+Any other client takes a config entry like:
+
+```json
+{
+  "mcpServers": {
+    "lolly": { "type": "http", "url": "https://lolly.tools/api/mcp" }
+  }
+}
+```
+
+**The full endpoint, with a token.** **`https://mcp.lolly.tools/mcp`** renders every format, and authenticates against a shared access token that your Lolly operator holds (the token is never printed in a link or a log). Connect it one of two ways. Full reference, including the open endpoint's limits: the **[MCP Server](/info/mcp.html)** page.
+
+**A custom connector (OAuth).** The full endpoint is also a stateless **OAuth 2.1** authorization server, so it drops straight into any MCP client that supports custom connectors:
 
 1. In your client's connector settings, add a custom connector pointing at `https://mcp.lolly.tools/mcp`. (Hosted assistants usually expose this under a *Connectors* or *Integrations* panel; on team/enterprise plans an admin typically adds it once for everyone.)
 2. Leave the OAuth Client ID / Secret blank - the server registers your client automatically (dynamic client registration).
@@ -185,7 +201,7 @@ The recommended endpoint is the **full** one - **`https://mcp.lolly.tools/mcp`**
 
 Nothing is stored server-side: the client registration, the authorization code and the tokens are all short-lived signed values verified with a shared secret on each call (PKCE-protected, so a leaked link can't be replayed).
 
-**A bearer token (CLI / any HTTP client).** The endpoint also accepts the raw token directly, so scripted clients skip the OAuth dance. Most MCP clients take a config entry like:
+**A bearer token (CLI / any HTTP client).** The full endpoint also accepts the raw token directly, so scripted clients skip the OAuth dance. Most MCP clients take a config entry like:
 
 ```json
 {

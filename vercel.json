@@ -6,7 +6,7 @@
   "outputDirectory": "shells/web/dist",
   "functions": {
     "api/mcp/**": {
-      "maxDuration": 60,
+      "maxDuration": 30,
       "includeFiles": "{shells/web/public/fonts/**,packages/node-shell/wasm/jxl/**,community/{!(emoji-packs)/**,emoji-packs/{index.json,*.json.gz}},brands/lolly-start/{tools/**,catalog/{{assets,fonts,tools}/**,previews/*.{svg,json}}},profiles.json}",
       "excludeFiles": "community/emoji-packs/*-*.json",
       "regions": ["fra1"]

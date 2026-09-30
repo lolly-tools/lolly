@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { generateOgImages } from './og-image.ts';
 import { LANGS, LANG_META, sortedLangs } from '../engine/src/lang.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
-import { buildAgentDocs, AGENT_FILES } from './agents-pages.ts';
+import { buildAgentDocs, buildAgentInstructions, AGENT_FILES } from './agents-pages.ts';
 // The document model specification (plan 276): its own web document under
 // /info/spec/document-model/, built from docs/spec/document-model/*.md.
 import { buildSpecPages, SPEC_BASE } from './spec-pages.ts';
@@ -2105,6 +2105,40 @@ const landingCtaHref = (lang: Lang, href: string): string => (href.startsWith('#
  * language, and it writes with the browser's clipboard only, refusing when that is
  * absent rather than pretending a copy happened.
  */
+/**
+ * "Copy agent instructions" under the hero's calls to action: the text a person
+ * pastes into an agent so it can use Lolly (the open MCP server, the CLI, the
+ * skill). The text rides on the button as an attribute, from the same builder
+ * that writes /info/agent-instructions.md, which the link beside it opens.
+ */
+function heroAgentHtml(): string {
+  const text = buildAgentInstructions({
+    url: SITE_URL,
+    mcpDoc: `${SITE_URL}/info/${pathSlug('mcp')}.md`,
+    cliDoc: `${SITE_URL}/info/${pathSlug('cli')}.md`,
+  });
+  return `<div class="hero-agent">
+      <button type="button" class="hero-agent-copy" data-agent-copy data-agent-text="${escAttr(text)}" data-copied="${escAttr(t('Copied to clipboard'))}" data-failed="${escAttr(t('Copy did not work'))}">${docIcon('adm-clipboard')}<span class="agent-copy-label">${esc(t('Copy agent instructions'))}</span></button>
+      <a class="hero-agent-file" href="/info/${AGENT_FILES.instructions}">${esc(AGENT_FILES.instructions)}</a>
+      <span class="agent-copy-status sr-only" aria-live="polite"></span>
+    </div>`;
+}
+
+/** The copy button's behaviour: shells/web/src/lib/agent-copy.ts, the module the
+ *  in-app reader calls on the landing it adopts, bundled once here. */
+let _agentCopyJs: string | null = null;
+function agentCopyScript(): string {
+  if (_agentCopyJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/agent-copy.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyAgentCopy',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _agentCopyJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_agentCopyJs}\nLollyAgentCopy.wireAgentCopy(document);\n</script>`;
+}
+
 let _readingJs: string | null = null;
 function readingScript(): string {
   if (_readingJs === null) {
@@ -2286,6 +2320,7 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
     <div class="hero-cta">
       ${hero.ctas.map(c => `<a href="${esc(localizeHref(lang, c.href))}" class="${esc(c.class)}">${esc(c.label)}${c.href === '/' ? docIcon('chrome-arrow') : ''}</a>`).join('\n      ')}
     </div>
+    ${heroAgentHtml()}
   </div>
   </div>
 </section>`;
@@ -5931,7 +5966,7 @@ const DOCS_JS = [
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
   DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
-  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, LISTEN_SCRIPT, readingScript(), stripScript(), MAST_CLEAR_SCRIPT,
+  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, LISTEN_SCRIPT, readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
@@ -6150,9 +6185,11 @@ HTTP surface as OpenAPI 3.1: ${SITE_URL}/openapi.json. Discovery record:
 ${SITE_URL}/.well-known/lolly.json
 
 Reading this as an agent? Lolly speaks MCP, so you can act, not just read:
-connect at https://mcp.lolly.tools/mcp (full render tier) or
-${SITE_URL}/api/mcp (browser-free tier: vector and data output). Access
-tokens come from the instance operator; endpoints, auth and the tool list:
+connect at ${SITE_URL}/api/mcp, open with no token (browser-free tier: vector,
+data, and png for SVG-native tools; limited per address and per day), or at
+https://mcp.lolly.tools/mcp (full render tier, with a token from the operator).
+Agent instructions to paste: ${SITE_URL}/info/agent-instructions.md. Endpoints,
+limits and the tool list:
 ${SITE_URL}/info/${pathSlug('mcp')}.md and ${SITE_URL}/info/${pathSlug('ai-agents')}.md. Machine-readable
 format claims: ${SITE_URL}/info/capabilities.json
 

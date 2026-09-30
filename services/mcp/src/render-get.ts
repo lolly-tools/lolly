@@ -50,17 +50,26 @@
  *    (default 600), so a distributed flood is bounded by budget, not by luck.
  *  - Per render: the query's width/height/dpi are bounded, and a PNG raster is
  *    additionally bounded by AREA (MAX_RASTER_PIXELS), because the 10000px edge
- *    cap alone still allows a 400 MB RGBA allocation.
+ *    cap alone still allows a 400 MB RGBA allocation, and cost grows with area
+ *    times the SVG's filters (a blurred gradient at 4096 x 4096 took 22 s of CPU
+ *    and came to 8 MB, which a 4.5 MB serverless response cannot even carry).
+ *  - Per day: the gateway's usage budget (usage-budget.ts) caps the CPU and the
+ *    bytes every metered route may spend, however many addresses ask.
+ *  - Per URL: a param the render never reads is dropped by a 308 to the URL
+ *    without it, so a cache-busting param costs a redirect, not a render, and
+ *    the CDN caches one URL per image.
  *  Both limits use the gateway's durable limiter in hosted deployments (per
  *  instance otherwise); if that limiter is unconfigured or unreachable the
  *  answer is a 503 with Retry-After, never unlimited admission.
  */
 
 import { createHash } from 'node:crypto';
-import { ENGINE_VERSION, expandQuery, parseDimension, toPixels } from '@lolly/engine';
-import { loadIndex } from './catalog.ts';
+import { ENGINE_VERSION, RESERVED, expandQuery, parseDimension, toPixels } from '@lolly/engine';
+import type { ToolManifest } from '../../../engine/src/loader.ts';
+import { loadIndex, loadToolCached } from './catalog.ts';
 import { TIER_A, render, normFormat, mimeForFormat, isTextFormat, RenderError } from './render.ts';
 import { MemoryRateLimiter, RateLimitUnavailableError, type RateLimiter } from './rate-limit.ts';
+import { budgetRefusal, type UsageBudget } from './usage-budget.ts';
 
 export interface RenderGetResponse {
   status: number;
@@ -86,9 +95,36 @@ const MAX_QUERY = 4096;
 // to pixels at `dpi` before the check, so 10000mm can't sneak in a huge raster).
 const MAX_EDGE_PX = 10_000;
 const MAX_DPI = 1200;
-// A PNG raster's pixel budget (4096 x 4096). The edge cap bounds each side; this
-// bounds the allocation, which is what a public route must actually bound.
-export const MAX_RASTER_PIXELS = 4096 * 4096;
+// A PNG raster's pixel budget (2048 x 2048). The edge cap bounds each side; this
+// bounds the allocation and the CPU, which is what a public route must actually
+// bound. Larger than the MCP's HOSTED_MAX_RASTER_PIXELS because this route sends
+// raw bytes, not base64.
+export const MAX_RASTER_PIXELS = 2048 * 2048;
+
+// Reserved params this route never reads: the format is the path's extension,
+// Content Credentials are always off, no pdf is served (so no password), and
+// the rest steer the app or a download, not a GET render.
+const IGNORED_RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', 'c2pa', 'password', 'nostage', 'kiosk', 'present', 'options', 'full']);
+
+/** Params in `params` that cannot change this tool's render, in first-seen order. */
+export function ignoredParams(params: URLSearchParams, manifest: ToolManifest): string[] {
+  // transparentBg and convertPaths are synthesised inputs (engine inputs.ts);
+  // keeping them when a tool lacks them costs a render, never a wrong image.
+  const known = new Set<string>(['transparentBg', 'convertPaths']);
+  for (const input of manifest.inputs ?? []) {
+    known.add(input.id);
+    if (input.urlKey) known.add(input.urlKey);
+    if (input.type === 'vector') for (const field of input.fields ?? []) known.add(`${input.id}.${field.id}`);
+  }
+  const out = new Set<string>();
+  for (const key of params.keys()) {
+    // Same order parseUrlState reads a key in: reserved first, then the two
+    // reserved prefixes, then the tool's own inputs.
+    if (RESERVED.has(key)) { if (IGNORED_RESERVED.has(key)) out.add(key); continue; }
+    if (key.startsWith('_') || key.startsWith('pkg.') || !known.has(key)) out.add(key);
+  }
+  return [...out];
+}
 
 const RL_WINDOW_MS = 60_000;
 const DEFAULT_RPM = 60;
@@ -210,6 +246,8 @@ export interface RenderGetOpts {
   ifNoneMatch?: string;
   env?: NodeJS.ProcessEnv;
   rateLimiter?: RateLimiter;
+  /** The gateway's daily usage budget. Absent means unmetered (tests, embedding). */
+  budget?: UsageBudget;
 }
 
 /**
@@ -251,11 +289,34 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
     return errorResponse(400, 'png is only served for SVG-native tools on this endpoint - request svg, or use the app for full raster.');
   }
 
+  // One URL per image. A param the render never reads is dropped by a redirect,
+  // which the CDN caches, so varying it costs a redirect instead of a render.
+  const tool = await loadToolCached(match.toolId).catch(() => null);
+  if (!tool) return errorResponse(404, 'not_found');
+  const dropped = ignoredParams(params, tool.manifest);
+  if (dropped.length) {
+    for (const key of dropped) params.delete(key);
+    const canonical = params.toString();
+    if (canonical.length > MAX_QUERY) return errorResponse(400, `Unknown parameters: ${dropped.join(', ')}.`);
+    return {
+      status: 308,
+      headers: {
+        location: `/tool/${match.toolId}.${match.ext}${canonical ? `?${canonical}` : ''}`,
+        'cache-control': 'public, max-age=3600, s-maxage=86400',
+        'x-robots-tag': 'noindex',
+      },
+    };
+  }
+
   // Renders are deterministic for their URL (c2pa forced off below), so a strong
   // ETag over (engine + catalog build + canonical URL) is honest. Catalog or
-  // engine updates roll every ETag - over-invalidation, never staleness.
+  // engine updates roll every ETag - over-invalidation, never staleness. The
+  // params are sorted for the ETag only, so one image asked for in two orders
+  // shares the memo below.
+  const sorted = new URLSearchParams(params);
+  sorted.sort();
   const etag = `"${createHash('sha256')
-    .update(`${ENGINE_VERSION}|${index.version}|${index.generatedAt}|${match.toolId}.${fmt}?${expanded}`)
+    .update(`${ENGINE_VERSION}|${index.version}|${index.generatedAt}|${match.toolId}.${fmt}?${sorted.toString()}`)
     .digest('hex').slice(0, 32)}"`;
   const cacheHeaders: Record<string, string> = {
     'cache-control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
@@ -302,6 +363,13 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
     else {
       const total = await limiter.consume('render-all', 'all', budget(env.LOLLY_RENDER_GET_GLOBAL_RPM, DEFAULT_GLOBAL_RPM), RL_WINDOW_MS);
       if (!total.ok) refused = errorResponse(429, 'The public render endpoint is busy - try again shortly.', { 'retry-after': String(total.retryAfter) });
+      else if (opts.budget) {
+        const state = await opts.budget.check();
+        if (!state.ok) {
+          const r = budgetRefusal(state);
+          refused = { status: r.status, headers: { ...NO_STORE, ...r.headers }, body: JSON.stringify(r.json) };
+        }
+      }
     }
   } catch (e) {
     if (!(e instanceof RateLimitUnavailableError)) { closeSlot(etag, slot); slot.reject(e); throw e; }
@@ -324,10 +392,12 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
     const result = await render(match.toolId, expanded, { format: fmt, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
     rendered = { bytes: result.bytes, mime: result.mime };
   } catch (e) {
+    await opts.budget?.record(0);
     closeSlot(etag, slot);
     slot.reject(e);
     return renderFailure(e);
   }
+  await opts.budget?.record(rendered.bytes.byteLength);
   memoPut(etag, rendered);
   closeSlot(etag, slot);
   slot.resolve(rendered);

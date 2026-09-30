@@ -397,5 +397,9 @@
   "Close": "Cerrar",
   "Skip to content": "Saltar al contenido",
   "Find your work": "Encuentra tu trabajo",
-  "Find and recover your work": "Encuentra y recupera tu trabajo"
+  "Find and recover your work": "Encuentra y recupera tu trabajo",
+  "Copy agent instructions": "Copiar instrucciones para el agente",
+  "Provenance": "Procedencia",
+  "Content": "Contenido",
+  "Production checks": "Comprobaciones de producción"
 }

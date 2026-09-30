@@ -36,6 +36,7 @@ import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { isPublicAddress } from './egress.ts';
 import { MemoryRateLimiter, RateLimitUnavailableError, type RateLimiter } from './rate-limit.ts';
+import { budgetRefusal, type UsageBudget } from './usage-budget.ts';
 
 export interface ImageProxyResponse {
   status: number;
@@ -54,6 +55,9 @@ export function matchImageProxyPath(path: string): boolean {
 
 const MAX_URL_LEN = 2048;
 const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
+// On Vercel a response body over 4.5 MB is refused by the platform, so a larger
+// image would be downloaded in full only to fail on the way out.
+const VERCEL_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const MAX_REDIRECTS = 4;
 // One deadline covers the whole request (every redirect hop plus the body read),
 // so a chain of slow hops cannot outlive the serverless function's own limit.
@@ -157,6 +161,8 @@ export interface ImageProxyOpts {
   ip: string;
   env?: NodeJS.ProcessEnv;
   rateLimiter?: RateLimiter;
+  /** The gateway's daily usage budget. Absent means unmetered (tests, embedding). */
+  budget?: UsageBudget;
   /** Injectable for tests: DNS resolver and fetch. */
   resolver?: (hostname: string) => Promise<string[]>;
   fetchImpl?: typeof fetch;
@@ -189,6 +195,11 @@ export async function proxyImage(reqUrl: URL, opts: ImageProxyOpts): Promise<Ima
     if (!perIp.ok) return errorResponse(429, 'Too many image fetches from this address - slow down.', { 'retry-after': String(perIp.retryAfter) });
     const total = await limiter.consume('imgproxy-all', 'all', budget(env.LOLLY_IMAGE_PROXY_GLOBAL_RPM, DEFAULT_GLOBAL_RPM), RL_WINDOW_MS);
     if (!total.ok) return errorResponse(429, 'The image proxy is busy - try again shortly.', { 'retry-after': String(total.retryAfter) });
+    const state = await opts.budget?.check();
+    if (state && !state.ok) {
+      const r = budgetRefusal(state);
+      return { status: r.status, headers: { ...NO_STORE, ...r.headers }, body: JSON.stringify(r.json) };
+    }
   } catch (e) {
     if (!(e instanceof RateLimitUnavailableError)) throw e;
     return errorResponse(503, 'Image fetching is temporarily unavailable.', { 'retry-after': '5' });
@@ -238,12 +249,15 @@ export async function proxyImage(reqUrl: URL, opts: ImageProxyOpts): Promise<Ima
     return errorResponse(415, 'That URL is not an image.');
   }
 
+  const maxBytes = env.VERCEL ? VERCEL_MAX_IMAGE_BYTES : MAX_IMAGE_BYTES;
   let bytes: Uint8Array;
-  try { bytes = await readCapped(response, MAX_IMAGE_BYTES); }
+  try { bytes = await readCapped(response, maxBytes); }
   catch (e) {
-    if (e instanceof TooLarge) return errorResponse(413, `That image is larger than the ${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)} MB limit.`);
+    await opts.budget?.record(0);
+    if (e instanceof TooLarge) return errorResponse(413, `That image is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`);
     return errorResponse(502, `Couldn't read that image: ${(e as Error).message}`);
   }
+  await opts.budget?.record(bytes.byteLength);
 
   return {
     status: 200,

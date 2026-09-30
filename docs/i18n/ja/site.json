@@ -397,5 +397,9 @@
   "Close": "閉じる",
   "Skip to content": "コンテンツへスキップ",
   "Find your work": "作業を見つける",
-  "Find and recover your work": "作業を見つけて復元する"
+  "Find and recover your work": "作業を見つけて復元する",
+  "Copy agent instructions": "エージェント向け指示をコピー",
+  "Provenance": "来歴",
+  "Content": "コンテンツ",
+  "Production checks": "制作チェック"
 }

@@ -165,9 +165,15 @@ test('openapi.json is 3.1 and describes the render route from the same facts', (
   const ok = render.responses['200']!.content!;
   for (const f of RENDER_GET_FORMATS) assert.ok(ok[mimeForFormat(f)], `200 response lists ${mimeForFormat(f)}`);
   for (const code of ['304', '400', '404', '429', '500']) assert.ok(render.responses[code], `documents ${code}`);
-  for (const path of ['/catalog/tools/index.json', '/tools/{id}/tool.json', '/info/capabilities.json', '/.well-known/lolly.json', '/api/mcp', '/.well-known/oauth-authorization-server', '/.well-known/oauth-protected-resource']) {
+  for (const path of ['/catalog/tools/index.json', '/tools/{id}/tool.json', '/info/capabilities.json', '/.well-known/lolly.json', '/api/mcp']) {
     assert.ok(api.paths[path], `describes ${path}`);
   }
+  // lolly.tools/api/mcp is open: no security requirement, no OAuth routes on this host,
+  // and the two refusals an open endpoint gives are documented.
+  const mcp = (api.paths['/api/mcp'] as unknown as { post: { security: unknown[]; responses: Record<string, unknown> } }).post;
+  assert.deepEqual(mcp.security, []);
+  for (const code of ['429', '503']) assert.ok(mcp.responses[code], `MCP documents ${code}`);
+  assert.equal(api.paths['/.well-known/oauth-authorization-server'], undefined);
 });
 
 test('the text-format list matches isTextFormat, so the response schemas follow the server', () => {

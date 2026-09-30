@@ -37,6 +37,7 @@
  */
 import { toAppHref, toReaderHref } from './docs-nav.ts';
 import { mountCoverFlow } from './covers-flow.ts';
+import { wireAgentCopy } from './agent-copy.ts';
 import landingCss from '../styles/parts/docs-landing.css?raw';
 
 /** Marks the singleton <style> so a second landing mount reuses it. */
@@ -184,6 +185,12 @@ export function fitHeroCtaInk(root: ParentNode): void {
  */
 export function hydrateLandingCovers(root: ParentNode): void {
   mountCoverFlow(root);
+}
+
+/** The hero's "Copy agent instructions" button, rehosted with the same module the
+ *  static page bundles (lib/agent-copy.ts); its text rides on the button. */
+export function hydrateLandingAgentCopy(root: ParentNode): void {
+  wireAgentCopy(root);
 }
 
 export function hydrateLandingCycle(root: ParentNode): void {

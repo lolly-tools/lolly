@@ -20,10 +20,10 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSeed } from './catalog.ts';
 import { toolInputSchema, fileInputId } from './schema.ts';
-import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName } from './render.ts';
+import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng } from './render.ts';
 import { withHost } from './host.ts';
 import type { RenderOpts } from './render.ts';
-import { REBRAND_TOOL_DEF, callRebrand } from './rebrand.ts';
+import { REBRAND_TOOL_DEF, callRebrand, isHostedServer } from './rebrand.ts';
 
 const WEB_BASE = (process.env.LOLLY_WEB_BASE || 'https://lolly.tools').replace(/\/$/, '');
 
@@ -1145,6 +1145,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
           convertPaths: args.convertPaths as boolean | undefined,
           password: args.password as string | undefined,
           c2pa: c2paSetting(args.c2pa),
+          maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
           ...exportSettings(args),
         };
         // The set is resolved before anything renders, so an unknown name is
@@ -1186,10 +1187,12 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         if (RASTER.includes(fmt)) {
           content.push({ type: 'image', data: b64, mimeType: result.mime });
         } else if (fmt === 'svg') {
-          // SVG: give a viewable PNG preview + the SVG source as a resource.
+          // SVG: give a viewable PNG preview + the SVG source as a resource. The
+          // preview rasterises the SVG just made, at a small fixed size, so it
+          // never repeats the render or follows the requested export size.
           try {
-            const preview = await render(toolId, links.query, { ...opts, format: 'png', production: undefined, productionRepair: undefined, productionReference: undefined });
-            content.push({ type: 'image', data: Buffer.from(preview.bytes).toString('base64'), mimeType: 'image/png' });
+            const preview = await previewPng(new TextDecoder().decode(result.bytes));
+            content.push({ type: 'image', data: Buffer.from(preview).toString('base64'), mimeType: 'image/png' });
           } catch { /* preview is best-effort */ }
           content.push({ type: 'resource', resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: 'image/svg+xml', text: new TextDecoder().decode(result.bytes) } });
         } else if (isTextFormat(fmt)) {

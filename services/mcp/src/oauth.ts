@@ -58,6 +58,15 @@ export function signingSecret(env: NodeJS.ProcessEnv): string {
 function passphrase(env: NodeJS.ProcessEnv): string {
   return env.LOLLY_MCP_TOKEN || '';
 }
+/**
+ * Open access: no token configured and the operator opted in with
+ * LOLLY_MCP_ALLOW_ANONYMOUS=1. Every caller is admitted, so there is nothing for
+ * OAuth to grant, and the gateway serves no discovery or OAuth routes: a client
+ * that found them would start a consent flow that has no passphrase to check.
+ */
+export function openAccess(env: NodeJS.ProcessEnv): boolean {
+  return !passphrase(env) && env.LOLLY_MCP_ALLOW_ANONYMOUS === '1';
+}
 
 // ─── discovery metadata ──────────────────────────────────────────────────────
 

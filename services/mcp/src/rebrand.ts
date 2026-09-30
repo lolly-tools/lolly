@@ -132,8 +132,14 @@ import { loadToolCached } from './catalog.ts';
 export const REBRAND_STAGES = ['capabilities', 'plan', 'compile', 'inspect'] as const;
 export type RebrandStageV1 = (typeof REBRAND_STAGES)[number];
 
-/** Slides a hosted server renovates in one call. A policy of this surface, not of the reader. */
-export const HOSTED_MAX_SLIDES = 200;
+/**
+ * Slides a hosted server renovates in one call. A policy of this surface, not of
+ * the reader. Measured 2026-09-30: compiling 200 slides to .pptx took 14 to 17 s
+ * of CPU and came to 4.1 to 7.1 MB, over the 4 MB a hosted response carries, so
+ * a deck that size cost a full compile only to be refused. At 100 the compile
+ * fits the function's time limit with room to spare.
+ */
+export const HOSTED_MAX_SLIDES = 100;
 /**
  * Slides a local server renovates: one under the 2000 that `pptx-read` stops
  * reading at, so a deck the reader cut short is over this cap and refused.

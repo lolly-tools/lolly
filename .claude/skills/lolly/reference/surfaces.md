@@ -34,13 +34,14 @@ Contract (`services/mcp/src/render-get.ts`):
   requires a fresh `DTSTAMP`. Responses are `noindex`.
 - **Limits.** Query at most 4096 characters; `dpi` 1 to 1200 (default 300);
   width/height positive; a physical size must resolve to at most 10000 px per
-  edge. Renders are rate-limited per address (60/min by default).
+  edge; a `png` is capped at 2048 x 2048 pixels of area. Renders are
+  rate-limited per address (60/min by default) and share the host's daily
+  budget. A param the render never reads is dropped with a `308` redirect, so
+  build URLs with `lolly_build_url` rather than adding your own.
 - **Headers.** `content-security-policy: sandbox`, `x-content-type-options:
   nosniff`, `content-disposition: inline`.
 - An operator can switch the route off entirely (`LOLLY_DISABLE_RENDER_GET=1`),
-  in which case every URL is a 404. lolly.tools itself currently runs it off, so
-  treat the route as available on self-hosted instances and use the MCP or CLI
-  against the public host.
+  in which case every URL is a 404. The route is live on lolly.tools.
 
 ## MCP server
 
@@ -51,9 +52,15 @@ render.
 
 - **Transports.** stdio (JSON-RPC over stdout, logs on stderr) and Streamable-HTTP
   at `POST <base>/api/mcp`.
-- **Auth.** Anonymous locally; hosted mode requires an OAuth 2.1 bearer token
-  (`Authorization: Bearer …`). The protected resource is `<base>/api/mcp` with the
-  usual discovery endpoints under `/.well-known/`.
+- **Auth.** Anonymous locally. `https://lolly.tools/api/mcp` is open to anyone
+  with no token (browser-free tier: vector, data, and `png` for SVG-native tools).
+  Its limits: 60 calls a minute per address, a daily compute and data budget for
+  the whole endpoint (`503` with `error: daily_budget_reached` and `Retry-After`
+  to 00:00 UTC once spent), `png` at most 1600 x 1600 pixels of area, 4.4 MB per
+  answer and rebrand decks up to 100 slides. `https://mcp.lolly.tools/mcp` (full
+  browser tier) requires an OAuth 2.1 bearer token (`Authorization: Bearer …`),
+  with the usual discovery endpoints under `/.well-known/`. For HTML-layout tools
+  (`design`, `chart`), large files or heavy automation, use the CLI.
 
 ### The 14 tools
 

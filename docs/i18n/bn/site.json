@@ -397,5 +397,9 @@
   "Close": "বন্ধ করুন",
   "Skip to content": "কনটেন্টে যান",
   "Find your work": "আপনার কাজ খুঁজুন",
-  "Find and recover your work": "আপনার কাজ খুঁজুন ও ফিরে পান"
+  "Find and recover your work": "আপনার কাজ খুঁজুন ও ফিরে পান",
+  "Copy agent instructions": "এজেন্টের নির্দেশনা কপি করুন",
+  "Provenance": "উৎস ও প্রমাণ",
+  "Content": "বিষয়বস্তু",
+  "Production checks": "প্রোডাকশন যাচাই"
 }

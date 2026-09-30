@@ -30,13 +30,16 @@ rule-bound assets. The serverless tier renders browser-free formats.
 The full endpoint at `mcp.lolly.tools` drives a headless browser for
 raster/PDF/animation/video.
 
-**Authentication.** MCP tool calls require OAuth 2.1 (as an MCP connector) or
-a bearer access token held by the operator. Two deliberate exceptions: the
-hot-link render route `GET /tool/<id>.<ext>` is public and unauthenticated
-(it serves only public tool + catalogue data, never signs output and can be
-disabled with `LOLLY_DISABLE_RENDER_GET=1`), and an operator can opt the whole
-endpoint into anonymous mode with `LOLLY_MCP_ALLOW_ANONYMOUS=1` (off by
-default).
+**Authentication.** By default, MCP tool calls require OAuth 2.1 (as an MCP
+connector) or a bearer access token held by the operator. Two deliberate
+exceptions: the hot-link render route `GET /tool/<id>.<ext>` is public and
+unauthenticated (it serves only public tool + catalogue data, never signs
+output and can be disabled with `LOLLY_DISABLE_RENDER_GET=1`), and an operator
+can open the whole endpoint with `LOLLY_MCP_ALLOW_ANONYMOUS=1` (off by
+default). lolly.tools opens `lolly.tools/api/mcp` this way; `mcp.lolly.tools`
+keeps the token. An open endpoint serves no OAuth routes, limits calls by the
+caller's address and stops for the rest of the UTC day once its daily CPU and
+data-transfer budget is spent.
 
 **What it stores.** Nothing persistent. The endpoint processes each request and
 returns the rendered bytes. There is no user database and no stored render

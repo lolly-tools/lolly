@@ -260,10 +260,14 @@ plus four tools that necessarily handle file bytes:
 - <!--i:checklist--> Every other tool - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
   `lolly_describe_tool` - works from parameters only (text, numbers, colours,
   URLs, catalogue asset ids), the same inputs a hot-link render URL takes.
-- <!--i:lock--> Access is either a shared token the operator issues to clients they trust, or
-  stateless OAuth 2.1: short-lived signed tokens verified against a shared
-  secret, nothing stored server-side and the token itself is never written to a
-  log or a render URL.
+- <!--i:lock--> On lolly.tools, `lolly.tools/api/mcp` is open to anyone with no token.
+  Its calls are limited per address and by a daily budget: the address becomes
+  a one-way-derived bucket key in the abuse-control store, as on the sign-in
+  endpoints below, and the budget counts only CPU time and bytes sent, with no
+  address. `mcp.lolly.tools` takes a shared token the operator issues to clients
+  they trust, or stateless OAuth 2.1: short-lived signed tokens verified against
+  a shared secret, nothing stored server-side and the token itself is never
+  written to a log or a render URL.
 
 ## Content Credentials identity (a sign-in you have to start yourself)
 
@@ -385,7 +389,7 @@ its operator must provide those in its own policy.
 |---|---|---|
 | Everything on your device (documents, prefs, cache, counters) | **Not our processing at all** - it never reaches us. Storage on your device is strictly necessary for the service you requested (ePrivacy Art. 5(3)), so it needs no consent | Until you delete it |
 | Your email address during Content Credentials enrolment | **Art. 6(1)(b)**, performance of a service you explicitly requested | Not retained. Present in memory for the duration of the request only |
-| A one-way-derived bucket key made from your IP address on sign-in endpoints, for rate limiting | **Art. 6(1)(f)**, our legitimate interest in preventing abuse of a free service and of a third party's email quota. We consider this to pass a balancing test because the raw address is not sent to the limiter, the bucket is used only for abuse control and it expires automatically | About 1 minute in the abuse-control store; not retained afterwards |
+| A one-way-derived bucket key made from your IP address, for rate limiting the sign-in endpoints and the public render, image and MCP endpoints | **Art. 6(1)(f)**, our legitimate interest in preventing abuse of a free service and of a third party's email quota. We consider this to pass a balancing test because the raw address is not sent to the limiter, the bucket is used only for abuse control and it expires automatically | About 1 minute in the abuse-control store; not retained afterwards |
 | Hosting access logs (IP, path, timestamp, user agent) | **Art. 6(1)(f)**, our legitimate interest in service security, abuse prevention and diagnosing faults | Vercel's platform default for our plan. We add no drain or export |
 
 **Recipients.** The categories of recipient are: our hosting provider (Vercel

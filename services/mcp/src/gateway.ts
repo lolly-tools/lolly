@@ -21,17 +21,18 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isIP } from 'node:net';
 import { allowedOrigin, validRequest, validateHttpHeaders, modernRequest } from './negotiation.ts';
-import { ERR, fail } from './protocol.ts';
+import { ERR, fail, ok } from './protocol.ts';
 import { dispatch } from './server.ts';
 import type { JsonRpcRequest } from './protocol.ts';
 import { matchRenderGetPath, renderGet } from './render-get.ts';
 import { matchImageProxyPath, proxyImage } from './image-proxy.ts';
 import {
-  authorizationServerMetadata, authorizeGet, authorizePost, isAuthorized,
+  authorizationServerMetadata, authorizeGet, authorizePost, isAuthorized, openAccess,
   protectedResourceMetadata, register, signingSecret, token, type Result,
 } from './oauth.ts';
 import { createHash } from 'node:crypto';
 import { createRateLimiter, RateLimitUnavailableError, type RateLimiter } from './rate-limit.ts';
+import { budgetRefusal, createUsageBudget, type UsageBudget } from './usage-budget.ts';
 
 const CORS: Record<string, string> = {
   'access-control-allow-origin': '*',
@@ -42,6 +43,9 @@ const CORS: Record<string, string> = {
 };
 
 export const MCP_BODY_MAX = 32 * 1024 * 1024; // room for base64 transform inputs
+/** Vercel refuses a function response over 4.5 MB with a bare platform error, so
+ *  on Vercel a larger JSON-RPC answer is replaced by one the agent can act on. */
+export const VERCEL_MCP_RESPONSE_MAX = 4_400_000;
 export const OAUTH_BODY_MAX = 64 * 1024;
 const RATE_WINDOW_MS = 60_000;
 
@@ -120,9 +124,17 @@ export function publicOrigin(env: NodeJS.ProcessEnv): string {
 }
 
 /** Forwarded addresses are honored only through an explicitly enabled, exact
- * direct-proxy allowlist. Invalid client entries fall back to the socket peer. */
+ * direct-proxy allowlist, or on Vercel, whose edge sets x-vercel-forwarded-for
+ * and x-real-ip itself and overwrites any value a client sends. Invalid client
+ * entries fall back to the socket peer. */
 export function clientIp(req: IncomingMessage, env: NodeJS.ProcessEnv): string {
   const peer = req.socket?.remoteAddress || 'unknown';
+  if (env.VERCEL) {
+    for (const name of ['x-vercel-forwarded-for', 'x-real-ip']) {
+      const value = String(req.headers[name] || '').split(',')[0]!.trim();
+      if (isIP(value)) return value;
+    }
+  }
   if (env.LOLLY_MCP_TRUST_PROXY !== '1') return peer;
   const trusted = new Set((env.LOLLY_MCP_TRUSTED_PROXIES || '').split(',').map(v => v.trim()).filter(Boolean));
   if (!trusted.has(peer)) return peer;
@@ -178,6 +190,21 @@ async function limited(
   }
 }
 
+/** The daily budget's answer as a refusal, or null to go ahead. */
+async function overBudget(budget: UsageBudget): Promise<Result | null> {
+  try {
+    const state = await budget.check();
+    return state.ok ? null : budgetRefusal(state);
+  } catch (error) {
+    if (!(error instanceof RateLimitUnavailableError)) throw error;
+    return {
+      status: 503,
+      headers: { 'retry-after': '5' },
+      json: { error: 'temporarily_unavailable', error_description: 'Request admission is temporarily unavailable.' },
+    };
+  }
+}
+
 export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
   // Is the MCP configured to actually run on THIS deployment? It needs a shared
   // token / signing secret (or an explicit anonymous opt-in). A deployment with
@@ -201,6 +228,10 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
     }
   }
   const limiter = createRateLimiter(env);
+  // One daily ceiling on CPU and response bytes for every metered route here
+  // (usage-budget.ts), so a public deployment's worst-case bill is known.
+  const budget = createUsageBudget(env);
+  const open = openAccess(env);
   return async (req, res) => {
     const method = req.method || 'GET';
     const url = new URL(req.url || '/', 'http://internal');
@@ -219,6 +250,7 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
         ifNoneMatch: req.headers['if-none-match'] as string | undefined,
         env,
         rateLimiter: limiter,
+        budget,
       });
       res.writeHead(r.status, { ...CORS, ...r.headers });
       if (method === 'HEAD' || r.body === undefined) res.end();
@@ -232,7 +264,7 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
     // CSP can show it. SSRF-guarded + rate-limited in image-proxy.ts; a self-
     // hoster disables it with LOLLY_DISABLE_IMAGE_PROXY=1.
     if ((method === 'GET' || method === 'HEAD') && matchImageProxyPath(path)) {
-      const r = await proxyImage(url, { ip: clientIp(req, env), env, rateLimiter: limiter });
+      const r = await proxyImage(url, { ip: clientIp(req, env), env, rateLimiter: limiter, budget });
       res.writeHead(r.status, { ...CORS, ...r.headers });
       if (method === 'HEAD' || r.body === undefined) res.end();
       else res.end(typeof r.body === 'string' ? r.body : Buffer.from(r.body));
@@ -253,6 +285,14 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
     // `base` was parsed once when the gateway was constructed. It never depends
     // on attacker-controlled Host/Forwarded request headers.
     const publicBase = base;
+
+    // Open access has no OAuth surface: every caller is admitted, so discovery
+    // and the consent flow would only send a client down a dead end.
+    if (open && !path.endsWith('/mcp')) {
+      res.writeHead(404, { ...CORS, 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: 'not_found', path }));
+      return;
+    }
 
     // ── discovery (GET) ──────────────────────────────────────────────────────
     if (method === 'GET' && path.includes('oauth-authorization-server')) return send(res, authorizationServerMetadata(publicBase));
@@ -304,9 +344,15 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
         return;
       }
       const auth = String(req.headers['authorization'] || 'anonymous');
-      const principal = createHash('sha256').update(auth).digest('hex');
-      const refusal = await limited(limiter, 'mcp', principal, positiveInt(env.LOLLY_MCP_RPM, 120));
+      // With open access any header is admitted, so a header-keyed budget would
+      // be a fresh budget per invented header. The caller's address is the key.
+      const principal = open
+        ? `ip:${clientIp(req, env)}`
+        : createHash('sha256').update(auth).digest('hex');
+      const refusal = await limited(limiter, 'mcp', principal, positiveInt(env.LOLLY_MCP_RPM, open ? 60 : 120));
       if (refusal) return send(res, refusal);
+      const spent = await overBudget(budget);
+      if (spent) return send(res, spent);
       let raw: string;
       try { raw = await readBody(req, MCP_BODY_MAX); }
       catch (error) {
@@ -329,10 +375,22 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
       if (headerError) { res.writeHead(400, { ...CORS, 'content-type': 'application/json' }); res.end(JSON.stringify(headerError)); return; }
       if (modern && !String(req.headers['content-type'] ?? '').toLowerCase().startsWith('application/json')) { res.writeHead(415, CORS); res.end(); return; }
       const response = await dispatch(msg, { protocolVersion, fileScope: env.LOLLY_MCP_PRIVATE_FILES === '1' && env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && auth !== 'anonymous' ? principal : undefined });
-      if (!response) { res.writeHead(202, CORS); res.end(); return; } // notification
+      if (!response) { await budget.record(0); res.writeHead(202, CORS); res.end(); return; } // notification
       const status = modern && response.error ? response.error.code === ERR.METHOD_NOT_FOUND ? 404 : new Set<number>([ERR.HEADER_MISMATCH, ERR.MISSING_CAPABILITY, ERR.UNSUPPORTED_VERSION, ERR.INVALID_PARAMS]).has(response.error.code) ? 400 : 200 : 200;
+      let body = JSON.stringify(response);
+      if (env.VERCEL && Buffer.byteLength(body) > VERCEL_MCP_RESPONSE_MAX) {
+        const mb = (Buffer.byteLength(body) / 1e6).toFixed(1);
+        const message = `The result is ${mb} MB, over the ${VERCEL_MCP_RESPONSE_MAX / 1e6} MB this hosted endpoint can return. Ask for svg, a smaller size, or run Lolly locally for large files.`;
+        // A tool call answers with a tool error the agent reads; anything else with a JSON-RPC error.
+        body = JSON.stringify(msg.method === 'tools/call'
+          ? ok(response.id ?? null, { content: [{ type: 'text', text: message }], isError: true })
+          : fail(response.id ?? null, ERR.INTERNAL, message));
+      }
+      // Recorded before the response ends: a platform may freeze the function
+      // once the body is sent, and an unrecorded render is an unmetered one.
+      await budget.record(Buffer.byteLength(body));
       res.writeHead(status, { ...CORS, 'content-type': 'application/json', 'cache-control': 'no-store' });
-      res.end(JSON.stringify(response));
+      res.end(body);
       return;
     }
 

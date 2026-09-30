@@ -8,20 +8,32 @@ It is the programmatic sibling of [driving Lolly from a URL](/info/ai-agents.htm
 
 ## Two hosted endpoints
 
-The render path has two tiers, so there are two endpoints. **They share the same access token** and the same tools - the only difference is which output formats each can produce.
+The render path has two tiers, so there are two endpoints with the same tools. They differ in two ways: which output formats each can produce, and who can connect.
 
-| Endpoint | Tier | Produces |
-|---|---|---|
-| `https://mcp.lolly.tools/mcp` | **Full** (headless browser) | **Everything** - vector, all raster (`png`/`jpg`/`webp`/…), print PDF (incl. CMYK + crop marks) and animation/video (`gif`/`apng`/`webm`/`mp4`). |
-| `https://lolly.tools/api/mcp` | **Lightweight** (serverless, no browser) | Vector (`svg`/`emf`/`eps`/`eps-cmyk`/`dxf`), data/text formats (`html`/`md`/`txt`/`json`/`csv`/`ics`/`vcf`) and `png` for SVG-native tools. (Print PDF needs the full endpoint's browser.) |
+| Endpoint | Tier | Access | Produces |
+|---|---|---|---|
+| `https://lolly.tools/api/mcp` | **Lightweight** (serverless, no browser) | **Open to anyone.** No token and no sign-in; calls are limited per address and per day (see [Limits on the open endpoint](#limits-on-the-open-endpoint)). | Vector (`svg`/`emf`/`eps`/`eps-cmyk`/`dxf`), data/text formats (`html`/`md`/`txt`/`json`/`csv`/`ics`/`vcf`) and `png` for SVG-native tools. (Print PDF needs the full endpoint's browser.) |
+| `https://mcp.lolly.tools/mcp` | **Full** (headless browser) | An access token from the operator (OAuth or bearer). | **Everything** - vector, all raster (`png`/`jpg`/`webp`/…), print PDF (incl. CMYK + crop marks) and animation/video (`gif`/`apng`/`webm`/`mp4`). |
 
-Use the **full** endpoint (`mcp.lolly.tools`) unless you have a reason not to - it is a superset. The lightweight endpoint runs browser-free on the same infrastructure as `lolly.tools`, and is handy for quick vector/data work.
+Start with the **open** endpoint: it needs no setup and covers every SVG-native tool. The full endpoint is a superset for operators who hold a token. For HTML-layout tools such as `design` and `chart`, for large files and for heavy automation, run Lolly yourself: the [CLI](/info/cli.html) renders every format on your own machine, and the same MCP server runs locally over stdio (see [Connect a client](#connect-a-client)).
+
+## Limits on the open endpoint
+
+`lolly.tools/api/mcp` is free to use and has a known daily cost, so these limits apply to it:
+
+- **60 calls a minute per address.** A `429` carries `Retry-After`.
+- **A daily budget for the whole endpoint**, shared by every caller: a fixed amount of compute and data transfer per UTC day. When the budget is spent, every call returns `503` with `error: daily_budget_reached` and a `Retry-After` that counts down to 00:00 UTC.
+- **PNG up to 1600 x 1600 pixels of area** (enough for 1920 x 1080). A larger request is scaled down to fit, and the render result says so. Ask for `svg` for a file that scales to any size.
+- **4.4 MB per answer**, the platform's response limit less the envelope. A larger result comes back as a tool error that says so, not as a broken response.
+- **Rebrand decks up to 100 slides** per call.
+
+None of these apply to Lolly on your own machine.
 
 > A render on either endpoint runs **the same render path a user's export runs** - the server honours the full parameter contract (width/height/unit/dpi/colour profile/PDF password, and for the motion formats `fps`/`seconds`/`wait`/`codec`/`vq`), and never watermarks or embeds anything a user's own download wouldn't. Same path and same settings does not mean the same bytes for every format; see [Reproducibility](#reproducibility-what-is-and-is-not-byte-stable).
 
 ## Hot-linkable render URLs (no auth)
 
-Alongside the authenticated MCP endpoints, a deployment can answer the canonical embed URL directly:
+Alongside the MCP endpoints, a deployment can answer the canonical embed URL directly:
 
 ```
 GET https://<host>/tool/<tool-id>.<ext>?<inputs>
@@ -40,10 +52,11 @@ This is the same "raw render URL" `lolly_build_url` returns - drop it into a REA
 - **Official and community tools only** - anything else is a 404.
 - **Browser-free formats only**: the vector, float-raster and data set - `svg`, `emf`, `eps`, `eps-cmyk`, `dxf`, `exr`, `hdr`, `penpot`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf` - plus `png` for SVG-native tools such as `qr-code`. Formats that need the browser tier return an honest `400` - use `lolly_render` or the app for those.
 - **Content Credentials are off here**, because a credential is signed with a fresh timestamp and nothing signed is cacheable. With them off, the vector and PNG formats this route serves are byte-stable run to run, which is what makes responses cacheable (a day at the CDN, `ETag` revalidation after that). `ics` is the exception in the list below: RFC 5545 requires a `DTSTAMP`, so an `.ics` differs between any two requests a second apart. A credentialed render is one `lolly_render` call away.
-- Renders are **rate-limited per address**; heavy automation belongs on the MCP endpoints.
+- Renders are **rate-limited per address** and count against the same daily budget as the open MCP endpoint. A `png` is capped at 2048 x 2048 pixels of area.
+- **One URL per image.** A parameter the render never reads (an unknown name, or a reserved one such as `export` or `c2pa` that this route ignores) is removed with a `308` redirect, so the CDN caches one URL for each image.
 - Responses are marked **`noindex`**, so search engines don't index your renders.
 
-Operators who don't want a public render surface switch the route off entirely with `LOLLY_DISABLE_RENDER_GET=1` - every `/tool/<id>.<ext>` URL then returns 404. That is what lolly.tools itself currently does.
+Operators who don't want a public render surface switch the route off entirely with `LOLLY_DISABLE_RENDER_GET=1` - every `/tool/<id>.<ext>` URL then returns 404.
 
 The route's parameters, refusals and headers are described in OpenAPI 3.1 at [`/openapi.json`](/openapi.json); the other machine-readable entry points (the discovery record, `llms.txt`, `llms-full.txt`, `agents.md`) are listed on [AI Agents](/info/ai-agents.html).
 
@@ -161,11 +174,39 @@ The server also publishes **MCP prompts**, for clients that surface them as slas
 
 ## Connect a client
 
-Both endpoints authenticate against the same shared access token, which your Lolly operator holds. It is never printed in a link or a log.
+### The open endpoint (no token)
 
-### A custom connector (OAuth)
+Point any MCP client that speaks Streamable HTTP at `https://lolly.tools/api/mcp`. There is nothing to sign in to:
 
-The endpoint is a stateless **OAuth 2.1** authorization server, so it drops straight into any MCP client that supports custom connectors:
+```json
+{
+  "mcpServers": {
+    "lolly": { "type": "http", "url": "https://lolly.tools/api/mcp" }
+  }
+}
+```
+
+In Claude Code the same connection is one command:
+
+```bash
+claude mcp add --transport http lolly https://lolly.tools/api/mcp
+```
+
+In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the fourteen tools):
+
+```bash
+curl -s -X POST https://lolly.tools/api/mcp \
+  -H "content-type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+```
+
+### The full endpoint (access token)
+
+`mcp.lolly.tools` authenticates against a shared access token, which your Lolly operator holds. The token is never printed in a link or a log.
+
+#### A custom connector (OAuth)
+
+The full endpoint is a stateless **OAuth 2.1** authorization server, so it drops straight into any MCP client that supports custom connectors:
 
 1. In your client's connector settings, add a custom connector pointing at `https://mcp.lolly.tools/mcp`. (Hosted assistants usually expose this under a *Connectors* or *Integrations* panel; on team/enterprise plans an admin typically adds it once for everyone.)
 2. Leave the OAuth Client ID / Secret blank - the server registers your client automatically (dynamic client registration).
@@ -173,9 +214,9 @@ The endpoint is a stateless **OAuth 2.1** authorization server, so it drops stra
 
 Then ask the agent to *"list the Lolly tools"* or *"render the color-block tool as a PNG."*
 
-### A bearer token (CLI / any HTTP client)
+#### A bearer token (CLI / any HTTP client)
 
-The endpoint also accepts the raw token directly, so scripted clients skip the OAuth dance. Most MCP clients take a config entry like:
+The full endpoint also accepts the raw token directly, so scripted clients skip the OAuth dance. Most MCP clients take a config entry like:
 
 ```json
 {
@@ -202,7 +243,8 @@ During local development you can also run the server over **stdio** - no token n
 
 ## Authentication & security
 
-- **Fail-closed.** With no token configured the endpoint returns `401` - it never silently becomes an open server.
+- **Open only on purpose.** With no token configured the endpoint returns `401`, so a missing setting never opens a server by accident. An operator opens one deliberately with `LOLLY_MCP_ALLOW_ANONYMOUS=1`, as lolly.tools does for `lolly.tools/api/mcp`. An open endpoint serves no OAuth routes, and it limits calls by the caller's address, so an invented `Authorization` header buys no extra calls.
+- **A known worst case.** A hosted endpoint counts the CPU time it uses and the bytes it sends per UTC day, in the same store as its rate limits, and refuses work once either total reaches its ceiling (`LOLLY_BUDGET_CPU_SECONDS_PER_DAY`, default 240, and `LOLLY_BUDGET_EGRESS_MB_PER_DAY`, default 1,024, sized so a free hosting tier keeps room for the rest of the site; `0` turns a ceiling off). `LOLLY_MCP_MAX_RASTER_PIXELS` sets the PNG area cap and `LOLLY_MCP_RPM` the per-caller rate. A store connected through the Upstash integration is found by its own variable names, so there is nothing to copy.
 - **Stateless OAuth 2.1.** The client registration, authorization code and access/refresh tokens are all short-lived **signed values** verified with a shared secret on each call - nothing is stored server-side. PKCE (S256) protects the flow, so a captured link can't be replayed.
 - **The token stays out of band.** It is the bearer for scripted clients and the passphrase on the consent page; it never appears in a render URL or a log line.
 

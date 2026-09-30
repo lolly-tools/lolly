@@ -50,6 +50,7 @@ export const AGENT_FILES = {
   agents: 'agents.md',
   openapi: 'openapi.json',
   wellKnown: 'well-known-lolly.json',
+  instructions: 'agent-instructions.md',
 } as const;
 
 /** Root URLs → the /info/ file each serves. vercel.json must carry each as a rewrite. */
@@ -62,6 +63,9 @@ export const ROOT_ALIASES: ReadonlyArray<{ source: string; destination: string }
 ];
 
 const MCP_FULL_DEFAULT = 'https://mcp.lolly.tools/mcp';
+/** The open endpoint's limits, in one sentence, as services/mcp enforces them
+ *  (gateway.ts LOLLY_MCP_RPM, usage-budget.ts, render.ts HOSTED_MAX_RASTER_PIXELS). */
+const MCP_OPEN_LIMITS = '60 calls a minute per address; a daily compute and data-transfer budget for the whole endpoint (503 with Retry-After to 00:00 UTC once spent); png up to 1600 x 1600 pixels of area; 4.4 MB per answer; rebrand decks up to 100 slides.';
 const SOURCE_URL = 'https://github.com/lolly-tools/lolly';
 
 /**
@@ -231,10 +235,13 @@ ${u}/#/tool/{id}?{input}={value}&{input}={value}&format={ext}&export
    is not public there or the route is off; a
    \`400\` gives the reason (a browser-tier format, an output bound, a query over 4096
    characters). Full contract: ${u}/openapi.json
-2. **MCP.** \`${mcpFull}\` renders every format a tool declares (a headless browser sits
-   behind it); \`${u}/api/mcp\` is the browser-free tier with the same tools. Both take
-   the same bearer token, or an OAuth 2.1 flow with dynamic client registration -
-   discovery at \`${u}/.well-known/oauth-authorization-server\`. Tools:
+2. **MCP.** \`${u}/api/mcp\` is open to anyone with no token: the browser-free tier
+   (vector, data, and \`png\` for SVG-native tools), limited to 60 calls a minute per
+   address and by a daily budget for the whole endpoint (\`503\` with \`Retry-After\` to
+   00:00 UTC once spent). \`${mcpFull}\` renders every format a tool declares (a
+   headless browser sits behind it) and takes a bearer token from the operator, or an
+   OAuth 2.1 flow with dynamic client registration. For HTML-layout tools, large files
+   or heavy automation, run the CLI from ${SOURCE_URL}. Tools:
    ${MCP_TOOLS.map((t) => `\`${t}\``).join(', ')}. Resources:
    ${MCP_RESOURCES.map((r) => `\`${r}\``).join(', ')}. The intended flow is list, describe,
    render, and verify when you need to prove a file is an untouched export.
@@ -375,29 +382,20 @@ export function buildOpenApi(o: AgentDocsOpts): Record<string, unknown> {
           tags: ['mcp'],
           operationId: 'mcp',
           summary: 'MCP over Streamable HTTP (JSON-RPC 2.0, POST)',
-          description: `The browser-free tier. The full tier, with a headless browser behind it, is ${mcpFull}; same tools, same token. Tools: ${MCP_TOOLS.join(', ')}. Resources: ${MCP_RESOURCES.join(', ')}. Notifications are answered 202 with no body. Without a valid token the answer is 401 with a WWW-Authenticate header pointing at the protected-resource metadata.`,
-          security: [{ bearer: [] }, { oauth: [] }],
+          description: `The browser-free tier, open to anyone with no token. Limits: ${MCP_OPEN_LIMITS} The full tier, with a headless browser behind it, is ${mcpFull}; same tools, and it takes an access token (bearer, or OAuth 2.1 with discovery on that host). Tools: ${MCP_TOOLS.join(', ')}. Resources: ${MCP_RESOURCES.join(', ')}. Notifications are answered 202 with no body.`,
+          security: [],
           requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/JsonRpcRequest' } } } },
           responses: {
-            '200': { description: 'A JSON-RPC response.', content: { 'application/json': { schema: { type: 'object' } } } },
+            '200': { description: 'A JSON-RPC response. A result over 4.4 MB comes back as a tool error that says so.', content: { 'application/json': { schema: { type: 'object' } } } },
             '202': { description: 'A notification was accepted.' },
-            '401': { description: 'Missing or invalid token.', headers: { 'WWW-Authenticate': { schema: { type: 'string' } } } },
             '404': { description: 'MCP is not configured on this deployment.' },
+            '429': { description: 'Over 60 calls a minute from this address.', headers: { 'Retry-After': { schema: { type: 'integer' } } } },
+            '503': { description: 'The daily budget is spent (error: daily_budget_reached), or admission is briefly unavailable.', headers: { 'Retry-After': { schema: { type: 'integer' } } } },
           },
         },
       },
-      '/.well-known/oauth-authorization-server': {
-        get: { tags: ['mcp'], operationId: 'oauthServerMetadata', summary: 'OAuth 2.1 authorization server metadata (RFC 8414)', responses: { '200': { description: 'Issuer, endpoints, PKCE S256, dynamic client registration.', content: { 'application/json': { schema: { type: 'object' } } } } } },
-      },
-      '/.well-known/oauth-protected-resource': {
-        get: { tags: ['mcp'], operationId: 'oauthResourceMetadata', summary: 'OAuth protected resource metadata (RFC 9728)', responses: { '200': { description: 'The resource and its authorization servers.', content: { 'application/json': { schema: { type: 'object' } } } } } },
-      },
     },
     components: {
-      securitySchemes: {
-        bearer: { type: 'http', scheme: 'bearer', description: 'The instance access token, held by the operator.' },
-        oauth: { type: 'oauth2', flows: { authorizationCode: { authorizationUrl: `${u}/api/mcp/authorize`, tokenUrl: `${u}/api/mcp/token`, scopes: {} } }, description: 'Stateless OAuth 2.1 with PKCE and dynamic client registration at /api/mcp/register.' },
-      },
       schemas: {
         Error: { type: 'object', required: ['error'], properties: { error: { type: 'string' } } },
         JsonRpcRequest: { type: 'object', required: ['jsonrpc', 'method'], properties: { jsonrpc: { type: 'string', const: '2.0' }, id: { oneOf: [{ type: 'string' }, { type: 'number' }, { type: 'null' }] }, method: { type: 'string' }, params: { type: 'object' } } },
@@ -438,13 +436,72 @@ export function buildWellKnown(o: AgentDocsOpts): Record<string, unknown> {
     mcp: {
       full: o.mcpFull ?? MCP_FULL_DEFAULT,
       light: `${u}/api/mcp`,
-      auth: ['bearer', 'oauth2.1'],
-      oauth_authorization_server: `${u}/.well-known/oauth-authorization-server`,
-      oauth_protected_resource: `${u}/.well-known/oauth-protected-resource`,
+      auth: { light: 'none', full: ['bearer', 'oauth2.1'] },
+      light_limits: MCP_OPEN_LIMITS,
+      full_oauth_authorization_server: `${new URL(o.mcpFull ?? MCP_FULL_DEFAULT).origin}/.well-known/oauth-authorization-server`,
       tools: [...MCP_TOOLS],
       resources: [...MCP_RESOURCES],
     },
   };
+}
+
+// ── agent-instructions.md ─────────────────────────────────────────────────────
+
+export interface AgentInstructionsOpts {
+  url: string;
+  /** The full-tier MCP endpoint, with a headless browser behind its renders. */
+  mcpFull?: string;
+  /** Markdown twin URLs of the MCP and CLI pages. */
+  mcpDoc: string;
+  cliDoc: string;
+}
+
+/**
+ * The text the "Copy agent instructions" button puts on the clipboard, also served
+ * as /info/agent-instructions.md: what a person pastes into an agent so it can use
+ * Lolly. Three routes, in the order an agent should try them: the open MCP server,
+ * the CLI for work that server does not take, and the skill for the full contract.
+ */
+export function buildAgentInstructions(o: AgentInstructionsOpts): string {
+  const u = o.url;
+  const mcpFull = o.mcpFull ?? MCP_FULL_DEFAULT;
+  return `# Lolly: instructions for AI agents
+
+Lolly makes on-brand files (SVG, PNG, PDF, PPTX, video and more) from tool templates and plain inputs: charts, QR codes, posters, badges, social cards, decks and print files. Use it when the user wants one of those as a file, rather than drawing or generating the image yourself. Every result comes with an editable ${u} link.
+
+## 1. The MCP server: start here
+
+- URL: ${u}/api/mcp (MCP over Streamable HTTP, JSON-RPC 2.0 over POST).
+- Access: open to anyone. No token, no account, no sign-in.
+- Add it in Claude Code: \`claude mcp add --transport http lolly ${u}/api/mcp\`
+- Any other client: \`{"mcpServers":{"lolly":{"type":"http","url":"${u}/api/mcp"}}}\`
+- Workflow: \`lolly_list_tools\` (pass \`q\` and a small \`limit\`), then \`lolly_describe_tool\` for the exact input schema, then \`lolly_validate\`, then \`lolly_render\`. \`lolly_build_url\` returns an editable link without rendering.
+- This endpoint has no browser. It renders vector (\`svg\`, \`emf\`, \`eps\`, \`dxf\`), data and text formats, and \`png\` for SVG-native tools. HTML-layout tools such as \`design\` and \`chart\`, and \`pdf\`, \`jpg\`, \`webp\` or video, need the CLI (section 2).
+- Limits: ${MCP_OPEN_LIMITS}
+- Full reference: ${o.mcpDoc}
+- ${mcpFull} is the same server with a browser tier for every format; it needs an access token from its operator.
+
+## 2. The CLI: for larger work
+
+For every format, large files, batches and heavy automation, run Lolly on the user's own machine, with no limits. It needs Node.js 22.18 or later and pnpm.
+
+\`\`\`bash
+git clone ${SOURCE_URL}.git
+cd lolly && pnpm install
+pnpm run cli                       # list the tools
+pnpm run cli qr-code               # show one tool's inputs
+pnpm run cli qr-code --url=https://example.com --output=qr.svg
+\`\`\`
+
+Same tools and the same inputs as the MCP server. When a format needs the browser tier, the CLI says so and names the one-time setup (\`pnpm run cli install-browser\`). The MCP server itself also runs locally over stdio. Full reference: ${o.cliDoc}
+
+## 3. The Lolly skill
+
+For the full parameter contract, the tool table and worked examples, load the skill:
+
+- ${u}/info/skills/lolly/SKILL.md, with reference files under ${u}/info/skills/lolly/reference/
+- In the repository: \`skills/lolly/\`
+`;
 }
 
 /** Every agent file, filename → text, ready to write under /info/. */
@@ -454,5 +511,6 @@ export function buildAgentDocs(o: AgentDocsOpts): Record<string, string> {
     [AGENT_FILES.agents]: buildAgentsMd(o),
     [AGENT_FILES.openapi]: JSON.stringify(buildOpenApi(o), null, 2) + '\n',
     [AGENT_FILES.wellKnown]: JSON.stringify(buildWellKnown(o), null, 2) + '\n',
+    [AGENT_FILES.instructions]: buildAgentInstructions({ url: o.url, mcpFull: o.mcpFull, mcpDoc: twinUrl(o, 'mcp'), cliDoc: twinUrl(o, 'cli') }),
   };
 }

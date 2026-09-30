@@ -99,3 +99,80 @@ test('oversized OAuth materialized bodies return 413', async () => {
   assert.equal(response.status, 413);
   assert.match(response.body, /request_too_large/);
 });
+
+test('on Vercel the edge-set client address is used, and a client-sent one is not', () => {
+  const req = {
+    headers: { 'x-vercel-forwarded-for': '198.51.100.4', 'x-real-ip': '198.51.100.5', 'x-forwarded-for': '203.0.113.9' },
+    socket: { remoteAddress: '10.0.0.8' },
+  } as unknown as IncomingMessage;
+  assert.equal(clientIp(req, { VERCEL: '1' }), '198.51.100.4');
+  const realIpOnly = { headers: { 'x-real-ip': '198.51.100.5' }, socket: { remoteAddress: '10.0.0.8' } } as unknown as IncomingMessage;
+  assert.equal(clientIp(realIpOnly, { VERCEL: '1' }), '198.51.100.5');
+  const junk = { headers: { 'x-vercel-forwarded-for': 'not-an-ip' }, socket: { remoteAddress: '10.0.0.8' } } as unknown as IncomingMessage;
+  assert.equal(clientIp(junk, { VERCEL: '1' }), '10.0.0.8');
+  // Off Vercel the same headers are ignored unless the peer is a trusted proxy.
+  assert.equal(clientIp(req, {}), '10.0.0.8');
+});
+
+const OPEN_ENV = {
+  LOLLY_MCP_ALLOW_ANONYMOUS: '1',
+  LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test',
+} as NodeJS.ProcessEnv;
+const INIT = { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } } };
+
+test('open access serves MCP with no credentials and no OAuth surface', async () => {
+  const init = await drive('/api/mcp', OPEN_ENV, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(INIT) });
+  assert.equal(init.status, 200);
+  assert.match(init.body, /"result"/);
+  for (const path of ['/.well-known/oauth-authorization-server', '/.well-known/oauth-protected-resource', '/api/mcp/register', '/api/mcp/authorize', '/api/mcp/token']) {
+    const r = await drive(path, OPEN_ENV, { method: path.includes('well-known') ? 'GET' : 'POST', body: '{}' });
+    assert.equal(r.status, 404, path);
+  }
+});
+
+test('a configured token still gates the endpoint, whatever the anonymous flag says', async () => {
+  const env = { ...OPEN_ENV, LOLLY_MCP_TOKEN: 'test-token' } as NodeJS.ProcessEnv;
+  const r = await drive('/api/mcp', env, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(INIT) });
+  assert.equal(r.status, 401);
+  const discovery = await drive('/.well-known/oauth-authorization-server', env);
+  assert.equal(discovery.status, 200);
+});
+
+test('open access limits by address, so an invented Authorization header buys no new budget', async () => {
+  const env = { ...OPEN_ENV, LOLLY_MCP_RPM: '1' } as NodeJS.ProcessEnv;
+  const gateway = createGateway(env);
+  const call = (authorization: string): Promise<number> => new Promise((resolve, reject) => {
+    const req = {
+      method: 'POST', url: '/api/mcp',
+      headers: { 'content-type': 'application/json', authorization },
+      socket: { remoteAddress: '192.0.2.10' },
+      body: JSON.stringify(INIT),
+    } as unknown as IncomingMessage;
+    const res = { writeHead(status: number) { resolve(status); return this; }, end() {} } as unknown as ServerResponse;
+    gateway(req, res).catch(reject);
+  });
+  assert.equal(await call('Bearer one'), 200);
+  assert.equal(await call('Bearer two'), 429);
+});
+
+test('a spent daily budget answers MCP calls with 503 and the time to the next UTC day', async () => {
+  const env = { ...OPEN_ENV, LOLLY_BUDGET_CPU_SECONDS_PER_DAY: '0.001' } as NodeJS.ProcessEnv;
+  const gateway = createGateway(env);
+  const call = (): Promise<{ status: number; headers: Record<string, string>; body: string }> => new Promise((resolve, reject) => {
+    const out = { status: 0, headers: {} as Record<string, string>, body: '' };
+    const req = {
+      method: 'POST', url: '/api/mcp', headers: { 'content-type': 'application/json' },
+      socket: { remoteAddress: '192.0.2.11' }, body: JSON.stringify(INIT),
+    } as unknown as IncomingMessage;
+    const res = {
+      writeHead(status: number, headers?: Record<string, string>) { out.status = status; out.headers = headers ?? {}; return this; },
+      end(body?: string) { out.body = String(body ?? ''); resolve(out); },
+    } as unknown as ServerResponse;
+    gateway(req, res).catch(reject);
+  });
+  assert.equal((await call()).status, 200); // spends more than a microsecond of CPU
+  const spent = await call();
+  assert.equal(spent.status, 503);
+  assert.match(spent.body, /daily_budget_reached/);
+  assert.ok(Number(spent.headers['retry-after']) > 0);
+});

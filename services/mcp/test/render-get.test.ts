@@ -197,6 +197,51 @@ test('a png raster is bounded by area, not just by edge', async () => {
   assert.equal(svg.status, 200);
 });
 
+test('the raster cap is 2048 x 2048, and an unset height is bounded by area too', async () => {
+  assert.equal(MAX_RASTER_PIXELS, 2048 * 2048);
+  const over = await renderGet('/tool/qr-code.png', 'url=https%3A%2F%2Fsuse.com&width=3000&height=3000', { ip: ip(), env });
+  assert.equal(over.status, 400);
+  // Width alone passes the query check; the raster itself is then held to the area.
+  const wide = await renderGet('/tool/qr-code.png', 'url=https%3A%2F%2Fsuse.com%2Fwide&width=6000', { ip: ip(), env });
+  assert.equal(wide.status, 200);
+  const png = wide.body as Uint8Array;
+  const view = new DataView(png.buffer, png.byteOffset, png.byteLength);
+  const w = view.getUint32(16), h = view.getUint32(20);
+  assert.ok(w * h <= MAX_RASTER_PIXELS, `${w} x ${h} is within the area cap`);
+});
+
+test('a param the render never reads is dropped by a cacheable 308, not rendered', async () => {
+  const limiter = countingLimiter();
+  const r = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com&cachebust=123&export=1&_x=1&c2pa=30', { ip: ip(), env, rateLimiter: limiter });
+  assert.equal(r.status, 308);
+  assert.equal(r.headers.location, '/tool/qr-code.svg?url=https%3A%2F%2Fsuse.com');
+  assert.match(r.headers['cache-control']!, /s-maxage=/);
+  assert.equal(limiter.calls.length, 0, 'a redirect spends no render budget');
+  // Declared inputs, render params and the _v version marker stay.
+  const kept = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fkept&width=300&_v=1', { ip: ip(), env });
+  assert.equal(kept.status, 200);
+});
+
+test('one image asked for in two param orders shares an ETag', async () => {
+  const a = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Forder&width=300', { ip: ip(), env });
+  const b = await renderGet('/tool/qr-code.svg', 'width=300&url=https%3A%2F%2Fsuse.com%2Forder', { ip: ip(), env });
+  assert.equal(a.status, 200);
+  assert.equal(a.headers.etag, b.headers.etag);
+});
+
+test('a spent daily budget answers renders with 503, and a render is recorded against it', async () => {
+  const recorded: number[] = [];
+  const spent = { async check() { return { ok: false, reached: 'cpu' as const, retryAfter: 60 }; }, async record(n: number) { recorded.push(n); } };
+  const r = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fspent', { ip: ip(), env, budget: spent });
+  assert.equal(r.status, 503);
+  assert.equal(r.headers['retry-after'], '60');
+  assert.match(JSON.parse(r.body as string).error, /daily_budget_reached/);
+  const open = { async check() { return { ok: true, retryAfter: 0 }; }, async record(n: number) { recorded.push(n); } };
+  const ok = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fmetered', { ip: ip(), env, budget: open });
+  assert.equal(ok.status, 200);
+  assert.equal(recorded.at(-1), (ok.body as Uint8Array).byteLength);
+});
+
 test('an unconfigured hosted limiter answers 503 + Retry-After instead of crashing the function', async () => {
   _resetRenderGetCaches();
   const unavailable: RateLimiter = { async consume() { throw new RateLimitUnavailableError('unconfigured'); } };

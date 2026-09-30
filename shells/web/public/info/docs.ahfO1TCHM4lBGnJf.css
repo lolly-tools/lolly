@@ -1076,6 +1076,21 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
 .hero-trust span{font-size:.8rem;line-height:1;color:hsl(var(--on-band-dark) / .5);letter-spacing:0}
+/* "Copy agent instructions" (lib/agent-copy.ts): a quiet third action under the two
+   calls to action, for people who hand Lolly to an agent. An outline pill, so it reads
+   as a button without competing with Launch App; the file link beside it is the
+   manual route when the clipboard is refused. */
+.hero-agent{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem 1rem;position:relative;margin:-.6rem 0 2rem}
+.hero-agent-copy{display:inline-flex;align-items:center;gap:.5em;padding:.6rem 1.1rem;border:1px solid hsl(var(--on-band-dark) / .3);border-radius:999px;
+  background:rgba(6,20,14,.3);color:hsl(var(--on-band-dark));font:inherit;font-size:.9375rem;font-weight:600;line-height:1.2;cursor:pointer;
+  transition:background .18s ease,border-color .18s ease}
+.hero-agent-copy:hover{background:rgba(6,20,14,.5);border-color:hsl(var(--on-band-dark) / .5)}
+.hero-agent-copy:focus-visible{outline:2px solid hsl(var(--on-band-dark));outline-offset:3px}
+.hero-agent-copy svg{width:1.1em;height:1.1em;flex:none}
+.hero-agent-copy[data-state="done"]{border-color:hsl(var(--on-band-dark) / .7)}
+.hero-agent-file{font-size:.8125rem;color:hsl(var(--on-band-dark) / .65);text-decoration:underline;text-underline-offset:.2em}
+.hero-agent-file:hover{color:hsl(var(--on-band-dark))}
+@media(prefers-reduced-motion:reduce){.hero-agent-copy{transition:none}}
 .trust-dot{color:hsl(var(--on-band-dark) / .18)!important}
 /* The landing's big call-to-action pill. Its own class, not .btn: /info reads the
    app's buttons.css for its top bar (plan 277 step 3c), and there .btn is the
@@ -1952,6 +1967,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .hero-heading{animation:heroUp .7s ease both .22s}
 .hero .subtitle{animation:heroUp .65s ease both .38s}
 .hero-cta{animation:heroUp .65s ease both .52s}
+.hero-agent{animation:heroUp .65s ease both .58s}
 .hero-trust{animation:heroUp .65s ease both .65s}
 .hero-inner{display:flex;align-items:center;gap:4rem;max-width:1400px;margin:0 auto;width:100%}
 .hero-heading{margin-bottom:1.5rem;position:relative}
@@ -1970,8 +1986,9 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
    wraps inside it. */
 .hero .subtitle{margin-left:.5rem;max-width:none}
 .hero-cta{justify-content:flex-start}
+.hero-agent{justify-content:flex-start}
 .hero-trust{justify-content:flex-start}
-@media(max-width:600px){.hero-inner{flex-direction:column;text-align:center}.hero-heading{flex-direction:column;gap:1rem;align-items:center}.hero h1{text-align:center;font-size:clamp(2rem,10vw,4rem)}.hero-details{text-align:center}.hero-cta{justify-content:center}.hero-trust{justify-content:center}}
+@media(max-width:600px){.hero-inner{flex-direction:column;text-align:center}.hero-heading{flex-direction:column;gap:1rem;align-items:center}.hero h1{text-align:center;font-size:clamp(2rem,10vw,4rem)}.hero-details{text-align:center}.hero-cta{justify-content:center}.hero-agent{justify-content:center}.hero-trust{justify-content:center}}
 /* Scroll reveal */
 /* 300ms, both widths (plans/168 WP-3). The old .55s desktop fade ran longer than the
    scroll that triggered it, so a band was still arriving as the reader passed it. */

@@ -133366,13 +133366,24 @@ async function renderTierA(toolId, values, fmt3, opts, profile, emoji, productio
     };
   });
 }
+var PREVIEW_MAX_PIXELS = 1024 * 1024;
+var HOSTED_MAX_RASTER_PIXELS = 1600 * 1600;
+function maxRasterPixelsFor(env, hosted) {
+  const raw = env.LOLLY_MCP_MAX_RASTER_PIXELS?.trim();
+  if (raw) {
+    const n6 = Number(raw);
+    if (Number.isSafeInteger(n6) && n6 >= 0) return n6 || void 0;
+  }
+  return hosted ? HOSTED_MAX_RASTER_PIXELS : void 0;
+}
 async function svgToPng(svg, width, background, maxPixels) {
   const { Resvg } = await import("@resvg/resvg-js");
   const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
   const iw = probe.width, ih = probe.height;
   if (!(iw > 0) || !(ih > 0)) throw new RenderError("SVG has no rasterisable size");
-  let capScale = Math.min(MAX_RASTER_EDGE_PX / iw, MAX_RASTER_EDGE_PX / ih);
-  if (maxPixels && maxPixels > 0) capScale = Math.min(capScale, Math.sqrt(maxPixels / (iw * ih)));
+  const edgeScale = Math.min(MAX_RASTER_EDGE_PX / iw, MAX_RASTER_EDGE_PX / ih);
+  const areaScale = maxPixels && maxPixels > 0 ? Math.sqrt(maxPixels / (iw * ih)) : Infinity;
+  const capScale = Math.min(edgeScale, areaScale);
   const wantScale = width && width > 0 ? width / iw : 1;
   const scale = Math.min(wantScale, capScale);
   if (iw * scale < 1 || ih * scale < 1) {
@@ -133384,7 +133395,11 @@ async function svgToPng(svg, width, background, maxPixels) {
     fitTo,
     font: { fontDirs: [fontsDir()], loadSystemFonts: true }
   });
-  return r5.render().asPng();
+  const img = r5.render();
+  return { png: img.asPng(), width: img.width, height: img.height, reduced: areaScale < wantScale && areaScale <= edgeScale };
+}
+async function previewPng(svg) {
+  return (await svgToPng(svg, void 0, void 0, PREVIEW_MAX_PIXELS)).png;
 }
 var browserPromise2 = null;
 var browserJobs = new BrowserJobQueue(browserQueueOptions());
@@ -133657,7 +133672,10 @@ async function renderCandidate(toolId, query2, o = {}) {
       warnings.push(...svg.warnings);
       const px3 = targetPx(merged.width, merged.unit, merged.dpi);
       const png = await svgToPng(new TextDecoder().decode(svg.bytes), px3, merged.background, o.maxRasterPixels);
-      out = { bytes: png, mime: "image/png", tier: "A(resvg)", productionInputs: svg.productionInputs };
+      if (png.reduced) {
+        warnings.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels.toLocaleString("en")}-pixel raster limit. Ask for svg for a file that scales to any size.`);
+      }
+      out = { bytes: png.png, mime: "image/png", tier: "A(resvg)", productionInputs: svg.productionInputs };
     } catch (e) {
       if (o.noBrowser) {
         throw e instanceof RenderError ? e : new RenderError(`SVG\u2192PNG render failed: ${e.message}`);
@@ -134762,11 +134780,11 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
   const maxDeckVectorChars = opts.maxDeckVectorChars ?? DEFAULT_MAX_DECK_VECTOR_CHARS;
   let deckItems = 0;
   let deckVectorChars = 0;
-  const overBudget = [];
+  const overBudget2 = [];
   const withinBudget = (objectId, items2) => {
     if (items2.items.length === 0) return true;
     if (deckItems + items2.items.length > VECTOR_DECK_ITEMS_MAX) {
-      overBudget.push(objectId);
+      overBudget2.push(objectId);
       return false;
     }
     deckItems += items2.items.length;
@@ -135052,12 +135070,12 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
     opts.onSlide?.(slides.length, total);
   }
   opts.onVectorLabels?.(labels);
-  if (overBudget.length > 0) {
+  if (overBudget2.length > 0) {
     deckWarnings.push({
       code: "vector-budget-reached",
-      message: `The deck holds more than ${VECTOR_DECK_ITEMS_MAX} drawing parts in all, so ${overBudget.length === 1 ? "1 drawing stays a picture" : `${overBudget.length} drawings stay pictures`}.`,
-      objectIds: overBudget.slice(0, MAX_WARNING_IDS),
-      count: overBudget.length
+      message: `The deck holds more than ${VECTOR_DECK_ITEMS_MAX} drawing parts in all, so ${overBudget2.length === 1 ? "1 drawing stays a picture" : `${overBudget2.length} drawings stay pictures`}.`,
+      objectIds: overBudget2.slice(0, MAX_WARNING_IDS),
+      count: overBudget2.length
     });
   }
   const theme = {};
@@ -141070,7 +141088,7 @@ var rebrand_plan_v1_schema_default = {
 
 // services/mcp/src/rebrand.ts
 var REBRAND_STAGES = ["capabilities", "plan", "compile", "inspect"];
-var HOSTED_MAX_SLIDES = 200;
+var HOSTED_MAX_SLIDES = 100;
 var LOCAL_MAX_SLIDES = 1999;
 var PLAN_INLINE_MAX_BYTES = 128 * 1024;
 var VERCEL_BODY_MAX_BYTES = 45e5;
@@ -142988,6 +143006,7 @@ ${links.renderUrl ?? "(unavailable)"}${check}`);
           convertPaths: args.convertPaths,
           password: args.password,
           c2pa: c2paSetting(args.c2pa),
+          maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
           ...exportSettings(args)
         };
         const emoji = await emojiSettings(args);
@@ -143018,8 +143037,8 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           content2.push({ type: "image", data: b64, mimeType: result.mime });
         } else if (fmt3 === "svg") {
           try {
-            const preview = await render(toolId, links.query, { ...opts, format: "png", production: void 0, productionRepair: void 0, productionReference: void 0 });
-            content2.push({ type: "image", data: Buffer.from(preview.bytes).toString("base64"), mimeType: "image/png" });
+            const preview = await previewPng(new TextDecoder().decode(result.bytes));
+            content2.push({ type: "image", data: Buffer.from(preview).toString("base64"), mimeType: "image/png" });
           } catch {
           }
           content2.push({ type: "resource", resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: "image/svg+xml", text: new TextDecoder().decode(result.bytes) } });
@@ -143800,11 +143819,22 @@ var UnconfiguredRateLimiter = class {
   }
 };
 var UNCONFIGURED_REASON = "No durable rate limiter is configured for this hosted deployment: set LOLLY_RATE_LIMIT_REST_URL + LOLLY_RATE_LIMIT_REST_TOKEN (a Redis-compatible HTTPS REST store), or LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=1 to accept per-instance limiting";
+function restStoreConfig(env) {
+  for (const [urlName, tokenName] of [
+    ["LOLLY_RATE_LIMIT_REST_URL", "LOLLY_RATE_LIMIT_REST_TOKEN"],
+    ["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"],
+    ["KV_REST_API_URL", "KV_REST_API_TOKEN"]
+  ]) {
+    const url = env[urlName]?.trim();
+    const token2 = env[tokenName]?.trim();
+    if (!!url !== !!token2) throw new Error(`${urlName} and ${tokenName} must be configured together`);
+    if (url && token2) return { url, token: token2 };
+  }
+  return null;
+}
 function createRateLimiter(env, namespace2 = "mcp") {
-  const url = env.LOLLY_RATE_LIMIT_REST_URL?.trim();
-  const token2 = env.LOLLY_RATE_LIMIT_REST_TOKEN?.trim();
-  if (!!url !== !!token2) throw new Error("LOLLY_RATE_LIMIT_REST_URL and LOLLY_RATE_LIMIT_REST_TOKEN must be configured together");
-  if (url && token2) return new RedisRestRateLimiter({ url, token: token2, namespace: namespace2 });
+  const store = restStoreConfig(env);
+  if (store) return new RedisRestRateLimiter({ ...store, namespace: namespace2 });
   const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
   if (hosted && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== "1") {
     console.warn(`[rate-limit] ${UNCONFIGURED_REASON}`);
@@ -143841,6 +143871,168 @@ function decision(count4, limit, ttlMs) {
   };
 }
 
+// services/mcp/src/usage-budget.ts
+var HOSTED_CPU_SECONDS_PER_DAY = 4 * 60 * 60;
+var HOSTED_EGRESS_MB_PER_DAY = 10 * 1024;
+var CHECK_TTL_MS = 5e3;
+var KEY_TTL_SECONDS = 2 * 24 * 60 * 60;
+var processCpuMs = () => {
+  const u = process.cpuUsage();
+  return (u.user + u.system) / 1e3;
+};
+function utcDay(now2) {
+  return new Date(now2).toISOString().slice(0, 10);
+}
+function secondsToNextUtcDay(now2) {
+  const next = new Date(now2);
+  next.setUTCHours(24, 0, 0, 0);
+  return Math.max(1, Math.ceil((next.getTime() - now2) / 1e3));
+}
+function limitFromEnv(raw, fallback, scale) {
+  if (raw == null || raw.trim() === "") return fallback;
+  const n6 = Number(raw);
+  if (!Number.isFinite(n6) || n6 < 0) throw new Error("usage budget values must be non-negative numbers");
+  return Math.round(n6 * scale);
+}
+function budgetLimits(env) {
+  const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
+  return {
+    cpuMs: limitFromEnv(env.LOLLY_BUDGET_CPU_SECONDS_PER_DAY, hosted ? HOSTED_CPU_SECONDS_PER_DAY * 1e3 : 0, 1e3),
+    egressBytes: limitFromEnv(env.LOLLY_BUDGET_EGRESS_MB_PER_DAY, hosted ? HOSTED_EGRESS_MB_PER_DAY * 1024 * 1024 : 0, 1024 * 1024)
+  };
+}
+var MeteredBudget = class {
+  limits;
+  now;
+  #cpu;
+  #lastCpu;
+  #cached = null;
+  constructor(limits, now2, cpu) {
+    this.limits = limits;
+    this.now = now2;
+    this.#cpu = cpu;
+    this.#lastCpu = cpu();
+  }
+  #judge(totals, now2) {
+    const { cpuMs, egressBytes } = this.limits;
+    const reached = cpuMs > 0 && totals.cpuMs >= cpuMs ? "cpu" : egressBytes > 0 && totals.egressBytes >= egressBytes ? "egress" : void 0;
+    return reached ? { ok: false, reached, retryAfter: secondsToNextUtcDay(now2) } : { ok: true, retryAfter: 0 };
+  }
+  async check() {
+    if (!this.limits.cpuMs && !this.limits.egressBytes) return { ok: true, retryAfter: 0 };
+    const now2 = this.now();
+    if (this.#cached && this.#cached.until > now2) return this.#cached.state;
+    const state = this.#judge(await this.totals(utcDay(now2)), now2);
+    this.#cached = { state, until: now2 + CHECK_TTL_MS };
+    return state;
+  }
+  async record(egressBytes) {
+    if (!this.limits.cpuMs && !this.limits.egressBytes) return;
+    const cpuNow = this.#cpu();
+    const cpuMs = Math.max(0, Math.round(cpuNow - this.#lastCpu));
+    this.#lastCpu = cpuNow;
+    const bytes = Math.max(0, Math.round(egressBytes));
+    const now2 = this.now();
+    try {
+      const totals = await this.add(utcDay(now2), cpuMs, bytes);
+      const state = this.#judge(totals, now2);
+      if (!state.ok) this.#cached = { state, until: now2 + CHECK_TTL_MS };
+    } catch (error2) {
+      console.warn(`[usage-budget] could not record usage: ${error2.message}`);
+    }
+  }
+};
+var MemoryUsageBudget = class extends MeteredBudget {
+  #days = /* @__PURE__ */ new Map();
+  constructor(limits, now2 = Date.now, cpu = processCpuMs) {
+    super(limits, now2, cpu);
+  }
+  async totals(day) {
+    return this.#days.get(day) ?? { cpuMs: 0, egressBytes: 0 };
+  }
+  async add(day, cpuMs, egressBytes) {
+    for (const key of this.#days.keys()) if (key !== day) this.#days.delete(key);
+    const t = this.#days.get(day) ?? { cpuMs: 0, egressBytes: 0 };
+    t.cpuMs += cpuMs;
+    t.egressBytes += egressBytes;
+    this.#days.set(day, t);
+    return { ...t };
+  }
+};
+var ADD_LUA = [
+  "local c = redis.call('INCRBY', KEYS[1], ARGV[1])",
+  "local e = redis.call('INCRBY', KEYS[2], ARGV[2])",
+  "if redis.call('TTL', KEYS[1]) < 0 then redis.call('EXPIRE', KEYS[1], ARGV[3]) end",
+  "if redis.call('TTL', KEYS[2]) < 0 then redis.call('EXPIRE', KEYS[2], ARGV[3]) end",
+  "return {c, e}"
+].join("\n");
+var RedisRestUsageBudget = class extends MeteredBudget {
+  #url;
+  #token;
+  #namespace;
+  #fetch;
+  constructor(options2) {
+    super(options2.limits, options2.now ?? Date.now, options2.cpu ?? processCpuMs);
+    this.#url = options2.url;
+    this.#token = options2.token;
+    this.#namespace = options2.namespace;
+    this.#fetch = options2.fetchImpl ?? fetch;
+  }
+  #keys(day) {
+    return [`lolly:budget:${this.#namespace}:${day}:cpu-ms`, `lolly:budget:${this.#namespace}:${day}:egress-bytes`];
+  }
+  async #command(body) {
+    let response;
+    try {
+      response = await this.#fetch(this.#url, {
+        method: "POST",
+        headers: { authorization: `Bearer ${this.#token}`, "content-type": "application/json" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(2500)
+      });
+    } catch {
+      throw new RateLimitUnavailableError("Usage budget store is unavailable");
+    }
+    if (!response.ok) throw new RateLimitUnavailableError(`Usage budget store returned HTTP ${response.status}`);
+    try {
+      return (await response.json()).result;
+    } catch {
+      throw new RateLimitUnavailableError("Usage budget store returned malformed JSON");
+    }
+  }
+  async totals(day) {
+    const result = await this.#command(["MGET", ...this.#keys(day)]);
+    if (!Array.isArray(result) || result.length !== 2) throw new RateLimitUnavailableError("Usage budget store returned an invalid result");
+    return { cpuMs: Number(result[0] ?? 0) || 0, egressBytes: Number(result[1] ?? 0) || 0 };
+  }
+  async add(day, cpuMs, egressBytes) {
+    const result = await this.#command(["EVAL", ADD_LUA, "2", ...this.#keys(day), String(cpuMs), String(egressBytes), String(KEY_TTL_SECONDS)]);
+    if (!Array.isArray(result) || result.length !== 2) throw new RateLimitUnavailableError("Usage budget store returned an invalid result");
+    return { cpuMs: Number(result[0]) || 0, egressBytes: Number(result[1]) || 0 };
+  }
+};
+function createUsageBudget(env, namespace2 = "mcp") {
+  const limits = budgetLimits(env);
+  const store = restStoreConfig(env);
+  if (store) return new RedisRestUsageBudget({ ...store, namespace: namespace2, limits });
+  if (limits.cpuMs || limits.egressBytes) {
+    const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
+    if (hosted) console.warn("[usage-budget] no durable store is configured, so the daily budget is counted per instance");
+  }
+  return new MemoryUsageBudget(limits);
+}
+function budgetRefusal(state) {
+  const what = state.reached === "egress" ? "data transfer" : "compute";
+  return {
+    status: 503,
+    headers: { "retry-after": String(state.retryAfter), "cache-control": "no-store" },
+    json: {
+      error: "daily_budget_reached",
+      error_description: `This public endpoint has used its ${what} budget for today. It resets at 00:00 UTC. For unlimited use, run Lolly yourself: the CLI or a local MCP server (https://github.com/lolly-tools/lolly).`
+    }
+  };
+}
+
 // services/mcp/src/render-get.ts
 var PATH_RE = /\/tool\/([a-z0-9][a-z0-9-]*[a-z0-9])\.([a-z0-9-]{1,12})$/;
 function matchRenderGetPath(path) {
@@ -143850,7 +144042,25 @@ function matchRenderGetPath(path) {
 var MAX_QUERY = 4096;
 var MAX_EDGE_PX = 1e4;
 var MAX_DPI = 1200;
-var MAX_RASTER_PIXELS = 4096 * 4096;
+var MAX_RASTER_PIXELS = 2048 * 2048;
+var IGNORED_RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "c2pa", "password", "nostage", "kiosk", "present", "options", "full"]);
+function ignoredParams(params2, manifest) {
+  const known = /* @__PURE__ */ new Set(["transparentBg", "convertPaths"]);
+  for (const input of manifest.inputs ?? []) {
+    known.add(input.id);
+    if (input.urlKey) known.add(input.urlKey);
+    if (input.type === "vector") for (const field2 of input.fields ?? []) known.add(`${input.id}.${field2.id}`);
+  }
+  const out = /* @__PURE__ */ new Set();
+  for (const key of params2.keys()) {
+    if (RESERVED.has(key)) {
+      if (IGNORED_RESERVED.has(key)) out.add(key);
+      continue;
+    }
+    if (key.startsWith("_") || key.startsWith("pkg.") || !known.has(key)) out.add(key);
+  }
+  return [...out];
+}
 var RL_WINDOW_MS = 6e4;
 var DEFAULT_RPM = 60;
 var DEFAULT_GLOBAL_RPM = 600;
@@ -143961,7 +144171,25 @@ async function renderGet(path, query2, opts) {
   if (pngRequested && !formats.includes("svg")) {
     return errorResponse(400, "png is only served for SVG-native tools on this endpoint - request svg, or use the app for full raster.");
   }
-  const etag = `"${createHash7("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt3}?${expanded}`).digest("hex").slice(0, 32)}"`;
+  const tool = await loadToolCached(match.toolId).catch(() => null);
+  if (!tool) return errorResponse(404, "not_found");
+  const dropped = ignoredParams(params2, tool.manifest);
+  if (dropped.length) {
+    for (const key of dropped) params2.delete(key);
+    const canonical2 = params2.toString();
+    if (canonical2.length > MAX_QUERY) return errorResponse(400, `Unknown parameters: ${dropped.join(", ")}.`);
+    return {
+      status: 308,
+      headers: {
+        location: `/tool/${match.toolId}.${match.ext}${canonical2 ? `?${canonical2}` : ""}`,
+        "cache-control": "public, max-age=3600, s-maxage=86400",
+        "x-robots-tag": "noindex"
+      }
+    };
+  }
+  const sorted = new URLSearchParams(params2);
+  sorted.sort();
+  const etag = `"${createHash7("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt3}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
     etag,
@@ -144002,6 +144230,13 @@ async function renderGet(path, query2, opts) {
     else {
       const total = await limiter.consume("render-all", "all", budget(env.LOLLY_RENDER_GET_GLOBAL_RPM, DEFAULT_GLOBAL_RPM), RL_WINDOW_MS);
       if (!total.ok) refused = errorResponse(429, "The public render endpoint is busy - try again shortly.", { "retry-after": String(total.retryAfter) });
+      else if (opts.budget) {
+        const state = await opts.budget.check();
+        if (!state.ok) {
+          const r5 = budgetRefusal(state);
+          refused = { status: r5.status, headers: { ...NO_STORE, ...r5.headers }, body: JSON.stringify(r5.json) };
+        }
+      }
     }
   } catch (e) {
     if (!(e instanceof RateLimitUnavailableError)) {
@@ -144021,10 +144256,12 @@ async function renderGet(path, query2, opts) {
     const result = await render(match.toolId, expanded, { format: fmt3, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
     rendered = { bytes: result.bytes, mime: result.mime };
   } catch (e) {
+    await opts.budget?.record(0);
     closeSlot(etag, slot);
     slot.reject(e);
     return renderFailure(e);
   }
+  await opts.budget?.record(rendered.bytes.byteLength);
   memoPut(etag, rendered);
   closeSlot(etag, slot);
   slot.resolve(rendered);
@@ -144044,6 +144281,7 @@ function matchImageProxyPath(path) {
 }
 var MAX_URL_LEN = 2048;
 var MAX_IMAGE_BYTES = 25 * 1024 * 1024;
+var VERCEL_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 var MAX_REDIRECTS = 4;
 var OVERALL_TIMEOUT_MS = 2e4;
 var RL_WINDOW_MS2 = 6e4;
@@ -144158,6 +144396,11 @@ async function proxyImage(reqUrl, opts) {
     if (!perIp.ok) return errorResponse2(429, "Too many image fetches from this address - slow down.", { "retry-after": String(perIp.retryAfter) });
     const total = await limiter.consume("imgproxy-all", "all", budget2(env.LOLLY_IMAGE_PROXY_GLOBAL_RPM, DEFAULT_GLOBAL_RPM2), RL_WINDOW_MS2);
     if (!total.ok) return errorResponse2(429, "The image proxy is busy - try again shortly.", { "retry-after": String(total.retryAfter) });
+    const state = await opts.budget?.check();
+    if (state && !state.ok) {
+      const r5 = budgetRefusal(state);
+      return { status: r5.status, headers: { ...NO_STORE2, ...r5.headers }, body: JSON.stringify(r5.json) };
+    }
   } catch (e) {
     if (!(e instanceof RateLimitUnavailableError)) throw e;
     return errorResponse2(503, "Image fetching is temporarily unavailable.", { "retry-after": "5" });
@@ -144212,13 +144455,16 @@ async function proxyImage(reqUrl, opts) {
     }
     return errorResponse2(415, "That URL is not an image.");
   }
+  const maxBytes = env.VERCEL ? VERCEL_MAX_IMAGE_BYTES : MAX_IMAGE_BYTES;
   let bytes;
   try {
-    bytes = await readCapped(response, MAX_IMAGE_BYTES);
+    bytes = await readCapped(response, maxBytes);
   } catch (e) {
-    if (e instanceof TooLarge) return errorResponse2(413, `That image is larger than the ${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)} MB limit.`);
+    await opts.budget?.record(0);
+    if (e instanceof TooLarge) return errorResponse2(413, `That image is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`);
     return errorResponse2(502, `Couldn't read that image: ${e.message}`);
   }
+  await opts.budget?.record(bytes.byteLength);
   return {
     status: 200,
     headers: {
@@ -144287,6 +144533,9 @@ function signingSecret(env) {
 }
 function passphrase(env) {
   return env.LOLLY_MCP_TOKEN || "";
+}
+function openAccess(env) {
+  return !passphrase(env) && env.LOLLY_MCP_ALLOW_ANONYMOUS === "1";
 }
 function protectedResourceMetadata(base) {
   return {
@@ -144501,6 +144750,7 @@ var CORS = {
   "access-control-expose-headers": "WWW-Authenticate"
 };
 var MCP_BODY_MAX = 32 * 1024 * 1024;
+var VERCEL_MCP_RESPONSE_MAX = 44e5;
 var OAUTH_BODY_MAX = 64 * 1024;
 var RATE_WINDOW_MS = 6e4;
 var BodyTooLargeError = class extends Error {
@@ -144582,6 +144832,12 @@ function publicOrigin(env) {
 }
 function clientIp(req, env) {
   const peer = req.socket?.remoteAddress || "unknown";
+  if (env.VERCEL) {
+    for (const name of ["x-vercel-forwarded-for", "x-real-ip"]) {
+      const value = String(req.headers[name] || "").split(",")[0].trim();
+      if (isIP3(value)) return value;
+    }
+  }
   if (env.LOLLY_MCP_TRUST_PROXY !== "1") return peer;
   const trusted = new Set((env.LOLLY_MCP_TRUSTED_PROXIES || "").split(",").map((v) => v.trim()).filter(Boolean));
   if (!trusted.has(peer)) return peer;
@@ -144631,6 +144887,19 @@ async function limited(limiter, scope, subject, limit) {
     };
   }
 }
+async function overBudget(budget3) {
+  try {
+    const state = await budget3.check();
+    return state.ok ? null : budgetRefusal(state);
+  } catch (error2) {
+    if (!(error2 instanceof RateLimitUnavailableError)) throw error2;
+    return {
+      status: 503,
+      headers: { "retry-after": "5" },
+      json: { error: "temporarily_unavailable", error_description: "Request admission is temporarily unavailable." }
+    };
+  }
+}
 function createGateway(env = process.env) {
   const mcpEnabled = !!signingSecret(env) || env.LOLLY_MCP_ALLOW_ANONYMOUS === "1";
   let base = null;
@@ -144644,6 +144913,8 @@ function createGateway(env = process.env) {
     }
   }
   const limiter = createRateLimiter(env);
+  const budget3 = createUsageBudget(env);
+  const open3 = openAccess(env);
   return async (req, res) => {
     const method = req.method || "GET";
     const url = new URL(req.url || "/", "http://internal");
@@ -144663,7 +144934,8 @@ function createGateway(env = process.env) {
         ip: clientIp(req, env),
         ifNoneMatch: req.headers["if-none-match"],
         env,
-        rateLimiter: limiter
+        rateLimiter: limiter,
+        budget: budget3
       });
       res.writeHead(r5.status, { ...CORS, ...r5.headers });
       if (method === "HEAD" || r5.body === void 0) res.end();
@@ -144671,7 +144943,7 @@ function createGateway(env = process.env) {
       return;
     }
     if ((method === "GET" || method === "HEAD") && matchImageProxyPath(path)) {
-      const r5 = await proxyImage(url, { ip: clientIp(req, env), env, rateLimiter: limiter });
+      const r5 = await proxyImage(url, { ip: clientIp(req, env), env, rateLimiter: limiter, budget: budget3 });
       res.writeHead(r5.status, { ...CORS, ...r5.headers });
       if (method === "HEAD" || r5.body === void 0) res.end();
       else res.end(typeof r5.body === "string" ? r5.body : Buffer.from(r5.body));
@@ -144688,6 +144960,11 @@ function createGateway(env = process.env) {
       return;
     }
     const publicBase = base;
+    if (open3 && !path.endsWith("/mcp")) {
+      res.writeHead(404, { ...CORS, "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "not_found", path }));
+      return;
+    }
     if (method === "GET" && path.includes("oauth-authorization-server")) return send(res, authorizationServerMetadata(publicBase));
     if (method === "GET" && path.includes("oauth-protected-resource")) return send(res, protectedResourceMetadata(publicBase));
     if (path.endsWith("/register")) {
@@ -144746,9 +145023,11 @@ function createGateway(env = process.env) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = createHash8("sha256").update(auth).digest("hex");
-      const refusal2 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, 120));
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash8("sha256").update(auth).digest("hex");
+      const refusal2 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal2) return send(res, refusal2);
+      const spent = await overBudget(budget3);
+      if (spent) return send(res, spent);
       let raw;
       try {
         raw = await readBody(req, MCP_BODY_MAX);
@@ -144790,13 +145069,21 @@ function createGateway(env = process.env) {
       }
       const response = await dispatch(msg3, { protocolVersion, fileScope: env.LOLLY_MCP_PRIVATE_FILES === "1" && env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && auth !== "anonymous" ? principal : void 0 });
       if (!response) {
+        await budget3.record(0);
         res.writeHead(202, CORS);
         res.end();
         return;
       }
       const status = modern && response.error ? response.error.code === ERR.METHOD_NOT_FOUND ? 404 : (/* @__PURE__ */ new Set([ERR.HEADER_MISMATCH, ERR.MISSING_CAPABILITY, ERR.UNSUPPORTED_VERSION, ERR.INVALID_PARAMS])).has(response.error.code) ? 400 : 200 : 200;
+      let body = JSON.stringify(response);
+      if (env.VERCEL && Buffer.byteLength(body) > VERCEL_MCP_RESPONSE_MAX) {
+        const mb2 = (Buffer.byteLength(body) / 1e6).toFixed(1);
+        const message = `The result is ${mb2} MB, over the ${VERCEL_MCP_RESPONSE_MAX / 1e6} MB this hosted endpoint can return. Ask for svg, a smaller size, or run Lolly locally for large files.`;
+        body = JSON.stringify(msg3.method === "tools/call" ? ok(response.id ?? null, { content: [{ type: "text", text: message }], isError: true }) : fail(response.id ?? null, ERR.INTERNAL, message));
+      }
+      await budget3.record(Buffer.byteLength(body));
       res.writeHead(status, { ...CORS, "content-type": "application/json", "cache-control": "no-store" });
-      res.end(JSON.stringify(response));
+      res.end(body);
       return;
     }
     res.writeHead(404, { ...CORS, "content-type": "application/json" });

@@ -449,18 +449,45 @@ async function renderTierA(
   });
 }
 
+/** Pixel area of the PNG preview `lolly_render` attaches to an SVG answer. The
+ *  preview is for looking at, so it never follows the requested export size: an
+ *  SVG asked for at 10000 px must not cost a 100-megapixel raster. */
+export const PREVIEW_MAX_PIXELS = 1024 * 1024;
+
+/** Default pixel-area cap for the resvg PNG path on a hosted server (1600 x 1600,
+ *  which still holds 1920 x 1080). Raster cost grows with area and with the
+ *  SVG's filters (a blurred mesh gradient at 10000 px took a minute of CPU and
+ *  7 GB). The MCP answer carries the PNG as base64, a third larger, and a
+ *  photographic PNG at 2048 x 2048 already came to 4.3 MB: over the 4.5 MB a
+ *  serverless response may be once encoded. */
+export const HOSTED_MAX_RASTER_PIXELS = 1600 * 1600;
+
+/** The pixel-area cap for a server-side PNG raster: LOLLY_MCP_MAX_RASTER_PIXELS
+ *  when set (0 turns the area cap off), HOSTED_MAX_RASTER_PIXELS on a hosted
+ *  server, and none locally, where the only bound is MAX_RASTER_EDGE_PX. */
+export function maxRasterPixelsFor(env: NodeJS.ProcessEnv, hosted: boolean): number | undefined {
+  const raw = env.LOLLY_MCP_MAX_RASTER_PIXELS?.trim();
+  if (raw) {
+    const n = Number(raw);
+    if (Number.isSafeInteger(n) && n >= 0) return n || undefined;
+  }
+  return hosted ? HOSTED_MAX_RASTER_PIXELS : undefined;
+}
+
 /** Rasterise an SVG string to PNG via resvg. Text renders from catalog fonts.
  *  Output is ALWAYS bounded by MAX_RASTER_EDGE_PX, independent of the caller's
  *  `width` and of the SVG's intrinsic size (see the constant's comment), and by
- *  `maxPixels` (total area) when the caller sets one. */
-async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number): Promise<Uint8Array> {
+ *  `maxPixels` (total area) when the caller sets one. `reduced` reports that the
+ *  area cap, not the caller, chose the size. */
+async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number): Promise<{ png: Uint8Array; width: number; height: number; reduced: boolean }> {
   const { Resvg } = await import('@resvg/resvg-js');
   // Cheap parse-only probe for the intrinsic size (viewBox/width/height) - no raster.
   const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
   const iw = probe.width, ih = probe.height;
   if (!(iw > 0) || !(ih > 0)) throw new RenderError('SVG has no rasterisable size');
-  let capScale = Math.min(MAX_RASTER_EDGE_PX / iw, MAX_RASTER_EDGE_PX / ih);
-  if (maxPixels && maxPixels > 0) capScale = Math.min(capScale, Math.sqrt(maxPixels / (iw * ih)));
+  const edgeScale = Math.min(MAX_RASTER_EDGE_PX / iw, MAX_RASTER_EDGE_PX / ih);
+  const areaScale = maxPixels && maxPixels > 0 ? Math.sqrt(maxPixels / (iw * ih)) : Infinity;
+  const capScale = Math.min(edgeScale, areaScale);
   const wantScale = width && width > 0 ? width / iw : 1;
   const scale = Math.min(wantScale, capScale);
   // Beyond MAX_RASTER_EDGE_PX:1 aspect the capped raster's short edge drops
@@ -478,7 +505,15 @@ async function svgToPng(svg: string, width: number | undefined, background: stri
     fitTo,
     font: { fontDirs: [fontsDir()], loadSystemFonts: true },
   });
-  return r.render().asPng();
+  const img = r.render();
+  return { png: img.asPng(), width: img.width, height: img.height, reduced: areaScale < wantScale && areaScale <= edgeScale };
+}
+
+/** A small PNG of an SVG answer, for clients that show images but not SVG.
+ *  Rasterised from the bytes already rendered, so it costs no second render
+ *  (and no second browser run when the SVG came from the browser tier). */
+export async function previewPng(svg: string): Promise<Uint8Array> {
+  return (await svgToPng(svg, undefined, undefined, PREVIEW_MAX_PIXELS)).png;
 }
 
 // ── Tier B: headless Chromium (lazy, env-gated, pooled) ──────────────────────
@@ -835,7 +870,10 @@ async function renderCandidate(toolId: string, query: string, o: RenderOpts = {}
       warnings.push(...svg.warnings);
       const px = targetPx(merged.width, merged.unit, merged.dpi);
       const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels);
-      out = { bytes: png, mime: 'image/png', tier: 'A(resvg)', productionInputs: svg.productionInputs };
+      if (png.reduced) {
+        warnings.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels!.toLocaleString('en')}-pixel raster limit. Ask for svg for a file that scales to any size.`);
+      }
+      out = { bytes: png.png, mime: 'image/png', tier: 'A(resvg)', productionInputs: svg.productionInputs };
     } catch (e) {
       if (o.noBrowser) {
         // No silent Tier-B escalation on the browser-free contract. Surface the
