@@ -1134,8 +1134,8 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
    to the right of the label copy, view and download, each with a tip on hover and on
    keyboard focus. Quiet on purpose, so it never competes with Launch App. */
 .hero-agent{display:flex;justify-content:center;position:relative;margin:-.6rem 0 2rem}
-.agent-pill{display:inline-flex;align-items:center;gap:.2rem;padding:.25rem .3rem;border:1px solid hsl(var(--on-band-dark) / .3);border-radius:999px;
-  background:rgba(6,20,14,.3);color:hsl(var(--on-band-dark));cursor:pointer;transition:background .18s ease,border-color .18s ease}
+.agent-pill{display:inline-flex;align-items:center;gap:.2rem;padding:.25rem .3rem;border-radius:var(--radius);;
+  background:rgba(6,20,14,.3);color:hsl(var(--on-band-dark));cursor:pointer;transition:background .18s ease}
 .agent-pill:hover{background:rgba(6,20,14,.45);border-color:hsl(var(--on-band-dark) / .5)}
 .agent-pill[data-state="done"]{border-color:hsl(var(--on-band-dark) / .75)}
 .agent-pill-main{appearance:none;border:0;background:none;color:inherit;font:inherit;font-size:.9375rem;font-weight:600;line-height:1.2;
@@ -2167,7 +2167,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .hero-statement--cycle .cycle-lead{display:block;font-weight:900}
 .hero-statement--cycle .cycle-word{display:block;max-width:100%;        color: currentcolor;text-decoration:none;font-weight:100;overflow-wrap:break-word;line-height:1.15}
 .hero .hero-statement--cycle .cycle-word:hover{text-decoration:none}
-.hero-statement--cycle .cycle-word span{display:block;overflow-wrap:break-word;hyphens:auto;text-transform:none; font-style:italic;transition: transform .24s ease,opacity .24s ease}
+.hero-statement--cycle .cycle-word span{display:block;overflow-wrap:break-word;hyphens:auto;text-transform:none; font-style:italic;transition: transform 1s ease, opacity .4s ease}
 /* block, not inline-block: an inline-block is an atomic box whose content never
    breaks with the parent's overflow-wrap, so "SOVEREIGNTY" ran past a tablet-width
    column. A block span wraps inside the anchor's max-width and still transforms. */
@@ -2762,9 +2762,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
    are the estimate a reader without JavaScript gets. */
 .docs-masthead{--mast-clear:calc(var(--site-bar-h) + 5rem)}
 @media(max-width:768px){.docs-masthead{--mast-clear:calc(var(--site-bar-h) + 4rem)}}
-.docs-mast-canvas,.docs-mast-art{
-  -webkit-mask-image:linear-gradient(180deg,transparent 0,transparent var(--mast-clear),#000 calc(var(--mast-clear) + 3rem));
-  mask-image:linear-gradient(180deg,transparent 0,transparent var(--mast-clear),#000 calc(var(--mast-clear) + 3rem))}
+
 /* Dark reuses the landing's own recipe (color-dodge over a dark plate); light gets
    a normal blend, because dodging on a near-white band blows the chips out to
    invisible white. Blend and opacity live here rather than in the JS: they are how

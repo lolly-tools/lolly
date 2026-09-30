@@ -155,6 +155,20 @@ test('closing a nested source dialog preserves its parent menu through the histo
   coarse = true;
 });
 
+test('a new same-view query closes an overlay and retains the destination URL', async () => {
+  history.replaceState(null, '', '/#/p?view=list');
+  const modal = mountModal('<p>Options</p>', { className: 'modal' });
+  updateRouteParams({ view: 'preview' });
+  backs = 0;
+  history.replaceState(null, '', '/#/p?view=new');
+  fire('popstate');
+  await settle();
+  assert.equal(dialogs(), 0);
+  assert.equal(new URLSearchParams(location.hash.split('?')[1]).get('view'), 'new');
+  assert.equal(backs, 0, 'external navigation retains its own history entry');
+  modal.close();
+});
+
 test('closing a dialog preserves address edits on the view entry underneath', async () => {
   history.replaceState(null, '', '/#/p?view=list');
   const modal = mountModal('<p>Options</p>', { className: 'modal' });

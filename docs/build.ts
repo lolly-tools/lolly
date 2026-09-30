@@ -3246,9 +3246,7 @@ ${LANDING_CSS}
    are the estimate a reader without JavaScript gets. */
 .docs-masthead{--mast-clear:calc(var(--site-bar-h) + 5rem)}
 @media(max-width:768px){.docs-masthead{--mast-clear:calc(var(--site-bar-h) + 4rem)}}
-.docs-mast-canvas,.docs-mast-art{
-  -webkit-mask-image:linear-gradient(180deg,transparent 0,transparent var(--mast-clear),#000 calc(var(--mast-clear) + 3rem));
-  mask-image:linear-gradient(180deg,transparent 0,transparent var(--mast-clear),#000 calc(var(--mast-clear) + 3rem))}
+
 /* Dark reuses the landing's own recipe (color-dodge over a dark plate); light gets
    a normal blend, because dodging on a near-white band blows the chips out to
    invisible white. Blend and opacity live here rather than in the JS: they are how

@@ -52,6 +52,7 @@ test('live Gallery and Assets filters agree with reload and browser history', { 
   try {
     await page.locator('.gallery-search').fill('chart');
     await page.waitForFunction(() => new URLSearchParams(location.hash.split('?')[1]).get('q') === 'chart');
+    await page.locator('#spotlight-listbox').waitFor({ state: 'visible' });
     await page.evaluate(() => { location.hash = '/?q=gradient'; });
     await page.waitForFunction(() => (document.querySelector('.gallery-search') as HTMLInputElement)?.value === 'gradient');
     await page.goBack();

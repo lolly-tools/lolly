@@ -49,6 +49,7 @@ interface StackEntry {
   seq: number;
   /** The URL the entry was pushed at. */
   pushedHref: string;
+  initialHref: string;
 }
 
 /** One record per registered overlay, innermost last. */
@@ -148,6 +149,12 @@ function syncListeners(): void {
 
 const onNavEvent = (e: Event): void => {
   if (e.type === 'popstate') {
+    const entry = openStack[openStack.length - 1];
+    if (!selfPops && entry && location.href !== entry.initialHref) {
+      workspaceHref = null;
+      [...openStack].forEach(o => o.record.nav());
+      return;
+    }
     restoreWorkspaceHref();
     if (selfPops) { selfPops -= 1; syncListeners(); notifySettled(); return; }
     // One Back, the innermost overlay - the rule everywhere else in the shell. The
@@ -188,7 +195,7 @@ function consume(entry: StackEntry): void {
  *  stack. Call it as the overlay opens: stack order IS open order, which is what
  *  makes Back close the innermost one. */
 export function registerOverlay(record: OverlayRecord): OverlayEntry {
-  const entry: StackEntry = { record, owed: false, seq: 0, pushedHref: '' };
+  const entry: StackEntry = { record, owed: false, seq: 0, pushedHref: '', initialHref: location.href };
   // Same URL, so this fires neither hashchange nor popstate and no route work runs;
   // it exists purely as something for Back to consume. Blocked (a sandboxed iframe,
   // a rate limit) is survivable: Back then reaches the route, and the popstate branch
