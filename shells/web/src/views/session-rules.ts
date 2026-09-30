@@ -31,6 +31,7 @@ export function openSessionRules(opts: {
   size: { width: number; height: number };
   saveMaster(): void;
   autoOpen?: boolean;
+  inputId?: string;
 }): () => void {
   const saved = getDesignToolDraft(opts.runtime);
   let draft = saved?.sourceTool
@@ -54,6 +55,12 @@ export function openSessionRules(opts: {
     });
   };
   syncFields();
+  if (opts.inputId) {
+    const entry = fields.find(entry => entry.source.id === opts.inputId);
+    if (entry && !sessionInputReason(entry.source) && !draft.inputs.includes(entry.field)) {
+      draft.inputs.push(entry.field); draft.sourceTool!.inputs[entry.field.input.id] = entry.source.id;
+    }
+  }
   let modal: ReturnType<typeof mountModal> | undefined;
   let stopOrder: (() => void) | undefined;
   let stopped = false;
@@ -134,6 +141,8 @@ export function openSessionRules(opts: {
     const allLabel = document.createElement('label');
     allLabel.className = 'dr-check sr-help';
     allLabel.append(showAll, document.createTextNode(t('Show settings for other content types')));
+    const selectedOnly = document.createElement('input'); selectedOnly.type = 'checkbox'; selectedOnly.checked = !!opts.inputId;
+    const selectedLabel = document.createElement('label'); selectedLabel.className = 'dr-check sr-help'; selectedLabel.append(selectedOnly, document.createTextNode(t('Show editable inputs only')));
     const sourceValues = Object.fromEntries(opts.runtime.getModel().map((i) => [i.id, i.value]));
     let visibleFields = fields;
     const list = document.createElement('div');
@@ -161,6 +170,7 @@ export function openSessionRules(opts: {
       const query = search.value.trim().toLocaleLowerCase();
       visibleFields = fields.filter(
         ({ source, field }) =>
+          (!selectedOnly.checked || selected(field)) &&
           (showAll.checked ||
             !!query ||
             selected(field) ||
@@ -172,6 +182,7 @@ export function openSessionRules(opts: {
         const row = document.createElement('details');
         row.className = 'dr-input';
         row.dataset.reorderRow = '';
+        row.open = source.id === opts.inputId;
         row.dataset.search =
           `${source.id} ${source.label} ${field.input.label}`.toLocaleLowerCase();
         const summary = document.createElement('summary');
@@ -251,6 +262,10 @@ export function openSessionRules(opts: {
               save();
             })
           );
+          const placement = document.createElement('select'); placement.className = 'field-select';
+          for (const [value, title] of [['', 'Main inputs'], ['More options', 'More options']]) { const option = document.createElement('option'); option.value = value!; option.textContent = t(title!); placement.append(option); }
+          placement.value = field.input.section || ''; placement.onchange = () => { field.input.section = placement.value || undefined; save(); };
+          settings.append(labelControl('Placement', placement));
           if (['text', 'longtext', 'url'].includes(source.type))
             settings.append(
               textControl(
@@ -287,6 +302,15 @@ export function openSessionRules(opts: {
             const choices = document.createElement('fieldset');
             choices.className = 'sr-choices';
             choices.append(title);
+            const error = document.createElement('p'); error.className = 'dr-field-error'; error.setAttribute('role', 'status');
+            const starting = document.createElement('select'); starting.className = 'field-select';
+            const refreshChoices = (): void => {
+              starting.replaceChildren();
+              for (const option of field.input.options || []) { const el = document.createElement('option'); el.value = option.value; el.textContent = option.label || option.value; starting.append(el); }
+              starting.value = String(field.input.default || '');
+              error.textContent = field.input.options?.length ? '' : t('Choose at least one allowed option.');
+            };
+            starting.onchange = () => { field.input.default = starting.value; save(); };
             for (const option of source.options || []) {
               const optionLabel = document.createElement('label');
               optionLabel.className = 'dr-check';
@@ -300,11 +324,12 @@ export function openSessionRules(opts: {
                 if (!field.input.options.some((o) => o.value === field.input.default))
                   field.input.default = field.input.options[0]?.value || '';
                 save();
+                refreshChoices();
               };
               optionLabel.append(allowed, document.createTextNode(option.label || option.value));
               choices.append(optionLabel);
             }
-            settings.append(choices);
+            refreshChoices(); settings.append(choices, labelControl('Default choice', starting), error);
           }
         }
         refreshRow();
@@ -315,6 +340,7 @@ export function openSessionRules(opts: {
     };
     search.oninput = paint;
     showAll.onchange = paint;
+    selectedOnly.onchange = paint;
     const footer = document.createElement('footer');
     const action = (label: string, run: () => void, primary = false): HTMLButtonElement => {
       const button = document.createElement('button');
@@ -375,7 +401,7 @@ export function openSessionRules(opts: {
       },
       true
     );
-    modal.el.append(heading, note, setup, search, allLabel, list, status, footer);
+    modal.el.append(heading, note, setup, search, selectedLabel, allLabel, list, status, footer);
     paint();
     update();
     stopOrder = wireReorderList(
@@ -434,5 +460,5 @@ export async function openPendingRules(opts: {
   if(!request&&!draft?.sourceTool)return;
   const name=request?.name||draft!.name;
   if(opts.tool.manifest.id==='design'){openRegisteredRules(opts.runtime,name);return;}
-  return openSessionRules({...opts,name,autoOpen:!!request});
+  return openSessionRules({...opts,name,autoOpen:!!request,inputId:request?.inputId});
 }

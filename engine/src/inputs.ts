@@ -246,7 +246,7 @@ export interface InputSpec {
    *  `pill` is a boolean variant rendered as an inline chip toggle (the web shell
    *  flows consecutive pill booleans into one wrapped chip bar); `segmented`
    *  renders a select as labelled tabs (a radiogroup of pills). */
-  display?: 'input' | 'slider' | 'icon-toggle' | 'pill' | 'segmented';
+  display?: 'input' | 'slider' | 'select' | 'icon-toggle' | 'pill' | 'segmented';
   // color
   palette?: string;
   swatchesOnly?: boolean;

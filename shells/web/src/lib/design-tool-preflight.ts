@@ -8,7 +8,7 @@ import { DesignPreparationError } from './design-tool-compile.ts';
 import { scopeCss } from './scope-css.ts';
 
 /** Every authored choice combination is measured through the recipient runtime. */
-export async function preflightDesignTool(compiled: CompiledDesignTool, host: HostV1, options: {signal?: AbortSignal; progress?(current: number, total: number): void} = {}): Promise<{thumbnail: string; combinations: number}> {
+export async function preflightDesignTool(compiled: CompiledDesignTool, host: HostV1, options: {signal?: AbortSignal; checkInputs?: boolean; progress?(current: number, total: number): void} = {}): Promise<{thumbnail: string; combinations: number}> {
   const tool = await loadTool(compiled.manifest.id, async path => {
     const value = compiled.files[path.slice(compiled.manifest.id.length + 1)];
     if (value === undefined) throw new Error(`Missing file: ${path}`);
@@ -25,7 +25,7 @@ export async function preflightDesignTool(compiled: CompiledDesignTool, host: Ho
     if (runtime.hookErrors.length) throw new Error(runtime.hookErrors.map(e => e.message).join('\n'));
     let combinations: Array<Record<string, import('../../../../engine/src/inputs.ts').InputValue>> = [{}];
     for (const choice of tool.manifest.designTool!.choices) combinations = combinations.flatMap(values => choice.options.map(option => ({ ...values, [choice.inputId]: option.value })));
-    if(tool.manifest.designTool!.sourceTool) {
+    if(tool.manifest.designTool!.sourceTool || options.checkInputs) {
       for(const input of tool.manifest.inputs) {
         const options=input.type==='select'?input.options?.map(o=>o.value):input.type==='boolean'?[true,false]:undefined;
         if(options)combinations=combinations.flatMap(values=>options.map(value=>({...values,[input.id]:value})));

@@ -111,7 +111,7 @@ export interface InputSpec {
   min?: number;
   max?: number;
   step?: number;
-  display?: 'input' | 'slider';
+  display?: 'input' | 'slider' | 'select' | 'icon-toggle' | 'pill' | 'segmented';
   unit?: string;
   suffix?: string;
   /** Named columns and optional form controls for a string-valued table. */

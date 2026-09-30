@@ -13,7 +13,15 @@ export function designPanelsFit(width: number, navigator: number, inspector: num
 
 export function stageBottomReserve(style: CSSStyleDeclaration): number {
   const px = (name: string): number => Math.max(0, parseFloat(style.getPropertyValue(name)) || 0);
+  if (style.getPropertyValue('--rules-workspace') === '1') return px('--rules-bottom');
   return Math.max(px('--stage-reserve-bottom'), px('--design-panel-reserve')) + px('--design-actions-h') + px('--design-viewport-inset');
+}
+
+/** Rules temporarily owns the canvas edges while the editor's panels are parked. */
+export function stageSideReserve(style: CSSStyleDeclaration, edge: 'top' | 'left' | 'right'): number {
+  const px = (name: string): number => Math.max(0, parseFloat(style.getPropertyValue(name)) || 0);
+  if (style.getPropertyValue('--rules-workspace') === '1') return px(`--rules-${edge}`);
+  return Math.max(px(`--stage-reserve-${edge}`), edge === 'top' ? px('--stage-rulers-bottom') : edge === 'left' ? px('--stage-rulers-right') : 0);
 }
 
 export function panelStageHeight(stage: HTMLElement): number {

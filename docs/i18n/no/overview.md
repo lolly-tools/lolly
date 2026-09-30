@@ -455,7 +455,7 @@ Samme livssyklus i Tauri. Samme livssyklus i CLI - jsdom leverer den hodeløse D
 
 ## Status for åpen kildekode
 
-**Koden er MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` og `docs/` er åpen kildekode under **MPL-2.0** - en leverandørnøytral stillasplattform for merkevareverktøy, alt sammen i ett offentlig repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Koden er MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` og `docs/*.ts` er åpen kildekode under **MPL-2.0** - en leverandørnøytral stillasplattform for merkevareverktøy, alt sammen i ett offentlig repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Verktøyinnhold leveres som merkevarepakker**, hver med sine egne vilkår (se pakkens `NOTICE.md`). `community/` er en mappe i dette repositoryet, og de merkevarenøytrale verktøyene der er også MPL-2.0. `brands/suse/` er den private `suse-lolly`-pakken, den ene submodulen: SUSE-verktøyene og SUSE-katalogen, **proprietær for SUSE**, inkludert dens lisensierte PremiumBeat-musikk. `brands/lolly-start/` er den blanke startmerkevaren dette repositoryet eier. Skrifter leveres inne i en pakke under **SIL Open Font License 1.1** - SUSE-pakken inneholder skrifttypene SUSE og SUSE Mono.
 

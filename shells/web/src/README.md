@@ -5,22 +5,22 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 664,000 lines of TypeScript, tests included, and 56,000 lines of CSS.
+Roughly 667,000 lines of TypeScript, tests included, and 57,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 421 files, 184,089 lines | 194 files, 71,486 lines | 6 files, 1,427 lines |
-| `lib/` | 664 files, 150,173 lines | 376 files, 80,474 lines | 12 files, 1,799 lines |
-| `bridge/` | 188 files, 50,547 lines | 111 files, 24,037 lines | none |
-| `components/` | 85 files, 24,185 lines | 39 files, 11,457 lines | 14 files, 945 lines |
+| `views/` | 426 files, 184,648 lines | 195 files, 71,542 lines | 6 files, 1,427 lines |
+| `lib/` | 682 files, 151,408 lines | 381 files, 80,734 lines | 12 files, 1,799 lines |
+| `bridge/` | 192 files, 50,916 lines | 113 files, 24,373 lines | none |
+| `components/` | 86 files, 24,194 lines | 39 files, 11,457 lines | 14 files, 945 lines |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
-| `pro/` | 22 files, 8,521 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
+| `pro/` | 22 files, 8,524 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
 | `org/` | 19 files, 5,882 lines | 15 files, 4,257 lines | none |
 | `catalog/` | 2 files, 898 lines | 2 files, 231 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 6 files, 1,234 lines | 112 files, 51,060 lines |
+| `styles/` | none | 6 files, 1,234 lines | 114 files, 51,269 lines |
 
-Plus 50 `.ts`/`.js` files at the top level of `src/`, 16,606 lines all told, of which 24 are tests and 3 are ambient declarations. `main.ts` is 2,213 of that.
+Plus 50 `.ts`/`.js` files at the top level of `src/`, 16,659 lines all told, of which 24 are tests and 3 are ambient declarations. `main.ts` is 2,215 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -59,7 +59,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | Lines | File | Direct test coverage |
 |---|---|---|
 | 7,178 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
-| 4,004 | `views/valid.ts` | `valid-verdict.test.ts` only |
+| 3,995 | `views/valid.ts` | `valid-verdict.test.ts` only |
 | 3,936 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,898 | `views/tool-inputs.ts` | none |
 | 3,659 | `views/color-lab.ts` | yes |
@@ -71,12 +71,12 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,640 | `views/deck-editor.ts` | yes |
 | 2,557 | `views/timeline-math.ts` | yes |
 | 2,462 | `views/design-import.ts` | **none** |
-| 2,366 | `views/design-inspector.ts` | yes |
+| 2,374 | `views/design-inspector.ts` | yes |
 | 2,363 | `views/free-canvas-math.ts` | yes |
-| 2,258 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
-| 2,213 | `main.ts` | yes |
-| 2,193 | `lib/drop-router.ts` | yes |
-| 2,171 | `views/tool/session.ts` | yes |
+| 2,260 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
+| 2,215 | `main.ts` | yes |
+| 2,198 | `lib/drop-router.ts` | yes |
+| 2,175 | `views/tool/session.ts` | yes |
 | 2,103 | `lib/clip-thumbs.ts` | yes |
 <!-- web-src-largest:end -->
 

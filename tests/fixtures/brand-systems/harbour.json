@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1, "id": "harbour", "label": "Harbour",
+  "roles": [
+    { "id": "beacon", "label": "Beacon", "group": "Signals", "resources": [{ "type": "token", "path": "identity.Beacon" }] },
+    { "id": "paper", "label": "Paper", "resources": [{ "type": "token", "path": "identity.Paper" }] }
+  ],
+  "bindings": [{ "id": "poster-accent", "roleId": "beacon", "consumer": { "tool": "design", "slot": "color.semantic.primary" }, "modes": ["Day", "Night"] }],
+  "rules": [{ "id": "beacon-only", "label": "Beacon in the poster accent", "kind": "allowed-token-values", "roleIds": ["beacon"], "parameters": { "paths": ["identity.Beacon"] }, "scope": { "tools": ["design"], "modes": ["Day"] }, "requirement": "required", "origin": { "kind": "manual", "author": "Harbour studio" }, "review": { "state": "approved", "authority": "Harbour studio" } }],
+  "guide": { "groups": [{ "id": "signals", "label": "Our signals", "roleIds": ["beacon", "paper"], "ruleIds": ["beacon-only"] }] },
+  "extensions": { "example.vendor": { "unrecognised": true } }
+}

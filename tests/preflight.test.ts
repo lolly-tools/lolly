@@ -1141,3 +1141,33 @@ test('every CMYK condition declares a TAC limit in the documented 260-360 band',
     assert.ok(Number.isInteger(cond.tac) && cond.tac >= 260 && cond.tac <= 360, `${name} tac ${cond.tac}`);
   }
 });
+
+test('execution coverage names every check without treating completion as a pass', () => {
+  const r = preflight(baseJob());
+  assert.ok(r.checks && r.checks.length > 30);
+  assert.equal(new Set(r.checks.map(c => c.id)).size, r.checks.length);
+  assert.ok(r.checks.every(c => c.state === 'completed'));
+  assert.ok(r.gaps.length > 0, 'completed execution still includes unknown facts');
+  assert.deepEqual(JSON.parse(JSON.stringify(r)).checks, r.checks);
+  assert.deepEqual(preflight(baseJob()), r);
+});
+
+test('a thrown rule records a gap, removes its partial findings and lets other rules finish', () => {
+  const job = baseJob();
+  const broken = { id: 'broken', label: 'Broken', type: 'text', required: true,
+    get value(): never { throw new Error('private input must not leak'); } };
+  const r = preflight({ ...job, rowIndex: 3, model: [
+    { id: 'first', label: 'First', type: 'text', required: true, value: '' },
+    broken as PreflightInput,
+  ] });
+  assert.equal(r.checks?.find(c => c.id === 'required-blank')?.state, 'undetermined');
+  const gap = r.gaps.find(f => f.id === 'check.incomplete' && f.evidence?.check === 'required-blank');
+  assert.equal(gap?.rowIndex, 3);
+  assert.equal(gap?.severity, 'info');
+  assert.equal(gap?.needs, 'not-resolved');
+  assert.equal(gap?.count, undefined);
+  assert.ok(!r.findings.some(f => f.id === 'input.required-blank'), 'partial rule findings are discarded');
+  assert.equal(r.checks?.find(c => c.id === 'refusals')?.state, 'completed');
+  assert.ok(r.findings.some(f => f.id === 'refuse.output-file-size'));
+  assert.doesNotMatch(JSON.stringify(r), /private input must not leak/);
+});

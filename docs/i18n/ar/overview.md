@@ -455,7 +455,7 @@ lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H
 
 ## حالة المصدر المفتوح
 
-**الكود مرخّص بموجب MPL-2.0.** `engine/`، و`shells/*`، و`services/*`، و`schemas/`، و`docs/` مفتوحة المصدر بموجب **MPL-2.0** - منصة سقالات (scaffolding) محايدة تجاه المزودين لأدوات العلامة التجارية، كلها في مستودع عام واحد، [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**الكود مرخّص بموجب MPL-2.0.** `engine/`، و`shells/*`، و`services/*`، و`schemas/`، و`docs/*.ts` مفتوحة المصدر بموجب **MPL-2.0** - منصة سقالات (scaffolding) محايدة تجاه المزودين لأدوات العلامة التجارية، كلها في مستودع عام واحد، [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **يُشحَن محتوى الأدوات كحزم علامة تجارية (brand packs)**، لكل منها شروطها الخاصة (راجع ملف `NOTICE.md` الخاص بالحزمة). `community/` دليل ضمن هذا المستودع، وأدواته المحايدة تجاه العلامة التجارية مرخّصة بموجب MPL-2.0 أيضاً. `brands/suse/` هي حزمة `suse-lolly` الخاصة، الوحدة الفرعية الوحيدة: أدوات SUSE وفهرس SUSE، **مملوكة حصرياً لـ SUSE**، بما في ذلك موسيقى PremiumBeat المرخّصة لها. `brands/lolly-start/` هي العلامة التجارية الفارغة للبدء التي يملكها هذا المستودع. تُشحَن الخطوط داخل حزمة بموجب **رخصة SIL Open Font License 1.1** - وتحمل حزمة SUSE خطي SUSE وSUSE Mono.
 

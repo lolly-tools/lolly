@@ -87,17 +87,20 @@ Generated from `community/chart/tool.json`. Aliases are the `urlKey` column.
 <!-- GEN:chart-inputs -->
 | ID | Alias | Type | Default | Section | What it does |
 |---|---|---|---|---|---|
-| `chartIntent` | `goal` | select | `manual` | - | What to show |
-| `renderMode` | `rm` | select | `vector` | - | Render |
-| `chartType` | `ct` | select | `bar` | - | Chart type |
+| `data` | `d` | longtext | `Quarter,Coffee,Tea,Juice\nQ1,42…` | - | Data |
+| `heading` | `t` | text | `""` | - | Title |
+| `subheading` | `st` | text | `""` | - | Subtitle / source |
+| `chartIntent` | `goal` | select | `manual` | Change chart | What to show |
+| `renderMode` | `rm` | select | `vector` | Change chart | Render |
+| `chartType` | `ct` | select | `bar` | Change chart | Chart type |
 | `paretoCumulative` | - | boolean | true | Pareto | Show cumulative percentage |
 | `paretoThreshold` | - | number | 80 | Pareto | Cumulative reference (%) |
 | `bulletTarget` | - | number | 100 | Bullet targets | Fallback target |
 | `bulletBands` | - | boolean | true | Bullet targets | Show target bands |
 | `rangeMidpoint` | - | boolean | true | Range bars | Show range midpoint |
-| `plotType` | `pf` | select | `dot-strip` | - | Statistical form |
-| `sceneType` | `sct` | select | `bar3d` | - | 3-D chart type |
-| `cinematicType` | `cft` | select | `flythrough3d` | - | Cinematic form |
+| `plotType` | `pf` | select | `dot-strip` | Change chart | Statistical form |
+| `sceneType` | `sct` | select | `bar3d` | Change chart | 3-D chart type |
+| `cinematicType` | `cft` | select | `flythrough3d` | Change chart | Cinematic form |
 | `plotBins` | `pbn` | number | 20 | Statistical | Bins / contour levels |
 | `plotBinWidth` | `pbw` | number | 24 | Statistical | Hexagon size |
 | `plotBandwidth` | `pbnd` | number | 20 | Statistical | Density smoothing |
@@ -105,9 +108,6 @@ Generated from `community/chart/tool.json`. Aliases are the `urlKey` column.
 | `plotConfidenceBand` | `pci` | boolean | true | Statistical | 95% confidence band |
 | `plotFacetDirection` | `pfd` | select | `rows` | Statistical | Facet direction |
 | `plotMotionPreset` | `psm` | select | `none` | Animation | Statistical motion |
-| `data` | `d` | longtext | `Quarter,Coffee,Tea,Juice\nQ1,42…` | - | Data |
-| `heading` | `t` | text | `""` | - | Title |
-| `subheading` | `st` | text | `""` | - | Subtitle / source |
 | `chartStyle` | `sty` | select | `brand-default` | - | Style |
 | `palette` | `pl` | select | `ordered` | Colour & style | Palette |
 | `paletteSeed` | `pz` | color | `{color.semantic.primary}` | Colour & style | Base colour |

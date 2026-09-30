@@ -42,7 +42,9 @@
     "./studio3d-v1": "./src/studio3d-v1.ts",
     "./text-v1": "./src/text-v1.ts",
     "./schema/text-document-v1.schema.json": "./schema/text-document-v1.schema.json",
-    "./schema/text-frame-v1.schema.json": "./schema/text-frame-v1.schema.json"
+    "./schema/text-frame-v1.schema.json": "./schema/text-frame-v1.schema.json",
+    "./brand-system-v1": "./src/brand-system-v1.ts",
+    "./schema/brand-system-v1.schema.json": "./schema/brand-system-v1.schema.json"
   },
   "files": [
     "src",

@@ -16,11 +16,10 @@
  * and unknown parts are counted, never silently dropped. Same fflate
  * worker/sync split, too.
  *
- * Import is merge-not-wipe: tokens install at the active head (the same
- * write path as the wizard), fonts land as `type:'font'` user assets (quota-
- * checked; a full disk skips a face, never aborts the pack), and the primary
- * face follows the pack's `font.brand` token automatically because that IS the
- * doc. Nothing else on the device is touched.
+ * Plain brand imports use the shell's atomic adoption boundary when available:
+ * resources are validated before the head, record and files commit together.
+ * Collection and instance packs still use the legacy importer below. The
+ * primary face follows the pack's `font.brand` token.
  *
  * Published VERSIONS travel too (plans/97 section 6a): `versions/<slug>.json` per
  * published version, `frozen/<sha12>.<ext>` for bytes a version pinned and the
@@ -46,6 +45,9 @@
 import { strToU8 } from 'fflate';
 import type { Unzipped } from 'fflate';
 import { zipAsync } from './lib/zip.ts';
+import { selectAdoptionFonts } from './lib/design-system/adoption-fonts.ts';
+import type { BrandAdoptionAPI } from './bridge/brand-adoption.ts';
+import { brandResourceAssetIds } from '../../../engine/src/brand-resources.ts';
 import {
   BUNDLE_HEADER, README_NAME, buildIntegrity, readJson, unzipBundle, verifyIntegrity,
   type BundleEntry,
@@ -72,13 +74,11 @@ export const BRAND_FORMAT = 'lolly-brand';
 /** 2 adds the `versions/` + `frozen/` parts (plans/97 section 6a); 3 adds the
  *  instance-pack parts (plans/131: instance.json, tools/, catalog/, pack.sig -
  *  written by scripts/build-instance-pack.ts, read below via lib/pack-store.ts).
- *  `minReader` stays 1 on purpose: the parts are additive, so a reader that
- *  predates them loads the pack and counts them as skipped rather than refusing
- *  a file it can mostly use. */
+ *  Packs with custom role resources require reader 3 for reference remapping;
+ *  otherwise the additive parts retain their earlier reader requirements. */
 export const BRAND_FORMAT_VERSION = 3;
-/** Reader 2 also imports format-4 collections from brand-package.ts. Their
- * minReader is 2 so earlier apps cannot silently discard selected local work. */
-export const BRAND_READER_VERSION = 2;
+/** Reader 2 adds collections; reader 3 remaps custom brand-role resources. */
+export const BRAND_READER_VERSION = 3;
 
 // The brand-adjacent localStorage keys that travel. Deliberately tiny: the
 // theme is part of how a brand feels; everything else in prefs is personal.
@@ -99,6 +99,8 @@ const isKnownPart = (path: string): boolean =>
 /** The host slice a brand pack travels through - the same seams user-fonts
  *  drives, plus profile.get for the export filename. */
 export interface BrandTransferHost extends UserFontsHost {
+  brandAdoption?: BrandAdoptionAPI;
+  assets: UserFontsHost['assets'] & { get?(id: string): Promise<{ type: import('@lolly-tools/core/host-v1').AssetRef['type']; format: string; meta?: Record<string, unknown> }> };
   profile?: { get(): Promise<Record<string, unknown>> };
   log?: (level: string, message: string, meta?: unknown) => void;
   /** The design systems this device holds (plans/186). Only a TARGETED import or
@@ -182,6 +184,8 @@ export interface BrandPackSummary {
 }
 
 export interface BrandImportSummary extends BrandPackSummary {
+  /** All brand material and its record committed in one local transaction. */
+  adopted?: boolean;
   skipped: number;
   failedFonts: number;
   /** Versions the pack carried whose slug was already published on this device.
@@ -216,6 +220,8 @@ interface FontRow {
   meta?: Record<string, unknown>;
   file: string;
   mime: string;
+  /** False for a referenced archival face that is not selected for current use. */
+  selected?: boolean;
 }
 type LogoRow = FontRow;
 /** A preserved (frozen) asset row. Same shape plus the asset `type`, which a
@@ -312,10 +318,8 @@ async function activeTokensDoc(
 }
 
 /**
- * A stored version payload as the pack should carry it. Untargeted the bytes
- * travel verbatim, exactly as they always have. A targeted export normalises its
- * asset refs the same way the head document's are, or the pack would name a
- * namespace nobody else has. Unparseable bytes travel as they are: a version
+ * A stored version payload normalises its asset refs like the head document,
+ * including resources named only by custom roles. Unparseable bytes travel as they are: a version
  * asset that is not JSON is already broken, and dropping it here would lose a
  * published version over a rename.
  */
@@ -363,14 +367,22 @@ export async function exportBrandPack(
   // Normalising is a pure property of the namespace prefix, so it needs no row
   // list: anything under `user/ds/<id>/` is that system's, and everything else
   // (frozen bytes, catalog ids) is already portable.
-  // Skipped rather than run as an identity rename for the default system, so an
-  // ordinary export of it writes the bytes it always wrote.
   const portableLogos = new Map<string, string>();
-  const toLegacy: Rekey | null = record || ns !== LEGACY_NS ? (id => portableLogos.get(id) ?? legacyId(ns, id)) : null;
+  const toLegacy: Rekey = id => portableLogos.get(id) ?? legacyId(ns, id);
   const head = record
     ? { doc: await readTokensBlob(host, record.headId), headId: record.headId }
     : await activeTokensDoc(host);
   const doc = head?.doc ?? null;
+  const ledger = readVersionIndex(doc);
+  const headId = head?.headId ?? await activeHeadId(host);
+  const versionPayloads = new Map<string, Blob>();
+  const dependencyDocs: unknown[] = doc ? [doc] : [];
+  for (const entry of ledger.versions) {
+    const blob = await host.assets._getBlob(versionAssetId(headId, entry.slug)).catch(() => null);
+    if (!blob) continue;
+    versionPayloads.set(entry.slug, blob);
+    try { dependencyDocs.push(JSON.parse(await blob.text())); } catch { /* existing unreadable payload travels unchanged */ }
+  }
   const records: Awaited<ReturnType<BrandTransferHost['assets']['_exportUserAssets']>> = await host.assets._exportUserAssets().catch(() => []);
   // A brand can point at a logo it does not own: a shipped one, or (when the
   // repair pass could not copy it, a full disk) another system's row. Carry
@@ -378,19 +390,26 @@ export async function exportBrandPack(
   // not need the sender's catalogue or the other system. This is a read-only
   // export projection. An export with no system given carries only the
   // borrowed rows: its shipped marks stay references, as they always have.
-  if ((record || ns !== LEGACY_NS) && doc) for (const { path, id } of collectAssetTokens(doc)) {
-    if (!/(^|\.)asset\.logo\./.test(path) || portableLogos.has(id)) continue;
+  const roleResources = new Set(dependencyDocs.flatMap(brandResourceAssetIds));
+  const exportRefs = dependencyDocs.flatMap(collectAssetTokens);
+  for (const { path, id } of exportRefs) {
+    const roleResource = roleResources.has(id);
+    if ((!roleResource && (!(record || ns !== LEGACY_NS) || !/(^|\.)asset\.logo\./.test(path))) || portableLogos.has(id)) continue;
     const material = designMaterialOf(id);
     if (material?.systemId === owner && material.kind === 'logo') continue;
-    if (!record && !material) continue;
+    if (!record && !material && !roleResource) continue;
     const blob = await host.assets._getBlob(id).catch(() => null);
-    if (!blob && !record) continue;
+    if (!blob && !record && !roleResource) continue;
     if (!blob) throw new Error(`The brand logo “${id}” could not be read. Try again when it is available.`);
-    const format = blob.type.includes('svg') ? 'svg' : blob.type.includes('jpeg') ? 'jpg' : blob.type.includes('webp') ? 'webp' : 'png';
-    const variant = `imported-${(await sha256Hex(new TextEncoder().encode(id))).slice(0, 12)}`;
-    portableLogos.set(id, `${USER_LOGO_PREFIX}${variant}`);
     const owned = records.find(row => row.id === id);
-    if (!owned) records.push({ id, type: format === 'svg' ? 'vector' : 'raster', blob, meta: { format, variant, identity: LOGO_DEFAULT_IDENTITY, kind: 'logo' } });
+    const source = owned ?? await host.assets.get?.(id);
+    const isFont = source?.type === 'font' || /font|woff/.test(blob.type);
+    if (isFont && !source?.meta?.family) throw new Error(`The font “${id}” has no family metadata. Add the font separately before exporting.`);
+    if (roleResource && source && !['font', 'vector', 'raster'].includes(source.type)) throw new Error(`The role resource “${id}” cannot travel in a design-system pack yet.`);
+    const format = String((source as { format?: string })?.format ?? source?.meta?.format ?? (isFont ? 'woff2' : blob.type.includes('svg') ? 'svg' : blob.type.includes('jpeg') ? 'jpg' : blob.type.includes('webp') ? 'webp' : 'png'));
+    const variant = `imported-${(await sha256Hex(new TextEncoder().encode(id))).slice(0, 12)}`;
+    portableLogos.set(id, isFont ? `${USER_FONT_PREFIX}${variant}/0` : `${USER_LOGO_PREFIX}${variant}`);
+    if (!owned) records.push({ id, type: isFont ? 'font' : format === 'svg' ? 'vector' : 'raster', blob, meta: { ...source?.meta, format, variant, identity: LOGO_DEFAULT_IDENTITY, kind: isFont ? 'font' : 'logo' } });
   }
   if (doc) {
     entries['tokens.json'] = strToU8(
@@ -406,8 +425,11 @@ export async function exportBrandPack(
    * normalised back to the legacy shape.
    */
   const packId = (id: string, kind: DesignMaterialKind): string | null => {
-    if (kind === 'logo' && portableLogos.has(id)) return portableLogos.get(id)!;
-    if (!record && (kind === 'font' || ns === LEGACY_NS)) {
+    if (portableLogos.has(id)) {
+      const mapped = portableLogos.get(id)!;
+      return mapped.startsWith(kind === 'font' ? USER_FONT_PREFIX : USER_LOGO_PREFIX) ? mapped : null;
+    }
+    if (!record && ns === LEGACY_NS) {
       const prefix = kind === 'font' ? USER_FONT_PREFIX : USER_LOGO_PREFIX;
       return id.startsWith(prefix) ? id : null;
     }
@@ -418,7 +440,10 @@ export async function exportBrandPack(
   // Every stored font face, bytes + full record (sans blob) for a faithful rebuild.
   const fontRows: FontRow[] = [];
   const families = new Set<string>();
-  for (const r of records) {
+  const fontSystem = record ?? await host.designSystems?.active();
+  const localFaces = records.filter(r => r.type === 'font' && r.blob && !(r as { trashedAt?: string }).trashedAt && packId(r.id, 'font'));
+  const selectedFaces = new Set(selectAdoptionFonts(localFaces, fontSystem?.importedFonts).map(r => r.id));
+  for (const r of localFaces.filter(r => selectedFaces.has(r.id) || roleResources.has(r.id))) {
     // A font in the Trash (plan 277 P3) is deleted as far as the person can see,
     // so it does not travel with the brand.
     if (r.type !== 'font' || !r.blob || (r as { trashedAt?: string }).trashedAt) continue;
@@ -427,7 +452,8 @@ export async function exportBrandPack(
     const file = `fonts/${id.slice(USER_FONT_PREFIX.length).replace(/\//g, '-')}.woff2`;
     entries[file] = [new Uint8Array(await r.blob.arrayBuffer()), { level: 0 }]; // woff2 is already compressed
     const { blob: _blob, ...rest } = r as FontRow & { blob: Blob; type: string };
-    fontRows.push({ ...(rest as unknown as FontRow), id, file, mime: r.blob.type || 'font/woff2' });
+    const { adoption: _localRevision, ...meta } = r.meta ?? {};
+    fontRows.push({ ...(rest as unknown as FontRow), meta, id, file, format: String((r as { format?: string }).format ?? r.meta?.format ?? 'woff2'), mime: r.blob.type || 'font/woff2', selected: selectedFaces.has(r.id) });
     families.add(String(r.meta?.family ?? r.meta?.name ?? id));
   }
   entries['fonts.json'] = strToU8(JSON.stringify(fontRows, null, 2));
@@ -447,14 +473,15 @@ export async function exportBrandPack(
     if (!r.blob || (r as { trashedAt?: string }).trashedAt) continue;
     const id = packId(r.id, 'logo');
     if (!id) continue;
-    const fmt = String(r.meta?.format ?? 'png');
+    const fmt = String((r as { format?: string }).format ?? r.meta?.format ?? (r.blob.type.includes('svg') ? 'svg' : 'png'));
     const parsed = parseLogoAssetId(id);
     const file = parsed && parsed.identity !== LOGO_DEFAULT_IDENTITY
       ? `logos/${parsed.identity}__${parsed.variant}.${fmt}`
       : `logos/${id.slice(USER_LOGO_PREFIX.length).replace(/\//g, '-')}.${fmt}`;
     entries[file] = new Uint8Array(await r.blob.arrayBuffer());
     const { blob: _b, ...rest } = r as LogoRow & { blob: Blob; type: string };
-    logoRows.push({ ...(rest as unknown as LogoRow), id, file, format: fmt, mime: r.blob.type || 'image/png' });
+    const { adoption: _localRevision, ...meta } = r.meta ?? {};
+    logoRows.push({ ...(rest as unknown as LogoRow), meta, id, file, format: fmt, mime: r.blob.type || 'image/png' });
   }
   entries['logos.json'] = strToU8(JSON.stringify(logoRows, null, 2));
 
@@ -465,16 +492,14 @@ export async function exportBrandPack(
   // A system that never published takes this branch to zero on the first line and
   // adds NOTHING to the zip: an unversioned pack is the same file it was before
   // versions existed, part for part.
-  const ledger = readVersionIndex(doc);
   // A version is addressed relative to the head it belongs to, which is not always
   // the user id: a catalog-discovered design system publishes under its own
   // namespace, and looking for its versions under `user/…` would find nothing.
-  const headId = head?.headId ?? await activeHeadId(host);
   const shipped: VersionEntry[] = [];
   const frozenIds = new Set<string>();
   for (const entry of ledger.versions) {
     const id = versionAssetId(headId, entry.slug);
-    const blob = await host.assets._getBlob(id).catch(() => null);
+    const blob = versionPayloads.get(entry.slug);
     if (!blob) {
       // The ledger names it and the bytes are gone - carrying the entry anyway
       // would put a version in the pack that the receiver could never load.
@@ -539,7 +564,7 @@ export async function exportBrandPack(
   const manifest: Record<string, unknown> = {
     format: BRAND_FORMAT,
     formatVersion: BRAND_FORMAT_VERSION,
-    minReader: 1,
+    minReader: roleResources.size ? 3 : 1,
     app: 'lolly',
     exportedAt: new Date().toISOString(),
     label,
@@ -640,6 +665,7 @@ export async function importBrandPack(
   bytes: ArrayBuffer | Uint8Array | Unzipped,
   opts?: {
     target?: { system: string };
+    create?: DesignSystemRecord;
     /** The caller is importing a targeted system and switching to it as the
      *  same committed operation. Let an instance pack establish its base before
      *  its tools are cached; a background/for-later targeted import leaves the
@@ -650,6 +676,23 @@ export async function importBrandPack(
   const files: Unzipped = (bytes instanceof ArrayBuffer || bytes instanceof Uint8Array)
     ? await unzipBrandBytes(bytes)
     : bytes;
+
+  if (host.brandAdoption && files['tokens.json'] && !files['instance.json'] && !files['content.json']) {
+    const { adoptBrandPack } = await import('./lib/design-system/adoption-pack.ts');
+    if (!host.assets.get) throw new Error('This shell cannot read design-system resources. Update Lolly and try again.');
+    const adoptionHost = { brandAdoption: host.brandAdoption, assets: { _getBlob: host.assets._getBlob.bind(host.assets), get: host.assets.get.bind(host.assets) } };
+    const summary = await adoptBrandPack(adoptionHost, files, BRAND_READER_VERSION, {
+      system: opts?.target?.system, create: opts?.create, activate: !opts?.target && !opts?.create,
+    });
+    summary.adopted = true;
+    summary.skipped = Object.keys(files).filter(path => !path.endsWith('/') && !isKnownPart(path)).length;
+    if (!opts?.target && !opts?.create) {
+      await registerUserFonts(host);
+      await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]);
+    }
+    return summary;
+  }
+  if (opts?.create) throw new Error('This package needs the full workspace importer.');
 
   const record = opts?.target ? await namedRecord(host, opts.target.system) : null;
   const target: ImportTarget | null = record ? { ns: record.ns, map: new Map() } : null;

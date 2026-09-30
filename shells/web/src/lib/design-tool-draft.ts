@@ -30,21 +30,24 @@ export function designVariants(boxes: Array<Record<string, unknown>>, width: num
 export function newDesignToolDraft(variants: ArtboardVariantV1[], name = 'Untitled tool'): DesignToolDraftV1 {
   return { schemaVersion: 1, id: `design-${crypto.randomUUID().slice(0, 12)}`, name, version: '1.0.0', presentation: 'sidebar', formats: ['png', 'svg', 'pdf'], inputs: [], variants, defaultVariant: variants[0]!.id, choices: [], recipes: [] };
 }
-export function makeDesignInput(draft: DesignToolDraftV1, layerId: string, property: 'text' | 'image'): DesignInputV1 | null {
+export function makeDesignInput(draft: DesignToolDraftV1, layerId: string, property: 'text' | 'image' | 'fg' | 'fill'): DesignInputV1 | null {
   const existing = draft.inputs.find(f => f.targets.some(t => t.layerId === layerId && t.property === property));
   if (existing) return existing;
   const v = draft.variants.find(v => v.boxes.some(b => b.id === layerId));
   const b = v?.boxes.find(b => b.id === layerId);
   if (!v || !b) return null;
-  const base = String(b.name || (property === 'text' ? 'Text' : 'Image'));
+  const colour = property === 'fg' || property === 'fill';
+  const base = String(b.name || (property === 'text' ? 'Text' : property === 'image' ? 'Image' : 'Object')) + (colour ? ' colour' : '');
   let id = base.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^\d|_$/g, '') || 'content';
   if (['image', 'text', 'font', 'background'].includes(id)) id = `editable_${id}`;
   const ids = new Set(draft.inputs.map(f => f.input.id));
   while (ids.has(id)) id += '_2';
   const story=v.textDocument?.stories.find(story=>story.id===b.textStory),character=story?textStyleResolver(v.textDocument!).character(story,story.paragraphs[0]!,0):undefined;
   const size = character?.size ?? (Number(b.fontSize) || 32);
+  const value = property === 'text' && story ? story.source : b[property] ?? (colour ? '#000000' : '');
+  const multiline = property === 'text' && (String(value).includes('\n') || String(value).length > 100);
   const f: DesignInputV1 = {
-    input: { id, label: base, type: property === 'text' ? 'longtext' : 'asset', default: property==='text'&&story?story.source:b[property] ?? '', ...(property === 'image' ? { assetType: 'image', allowUpload: true } : { maxLength: 200, rows: 3 }) },
+    input: { id, label: base, type: colour ? 'color' : property === 'text' ? multiline ? 'longtext' : 'text' : 'asset', default: value, ...(property === 'image' ? { assetType: 'image', allowUpload: true } : property === 'text' ? { maxLength: Math.max(200, String(value).length), ...(multiline ? { rows: 3 } : {}) } : {}) },
     targets: [{ variantId: v.id, layerId, property }],
     ...(property === 'text' ? { text: { mode: 'fixed' as const, min: size, max: size, wrap: true } } : {}),
   };

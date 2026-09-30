@@ -8,6 +8,7 @@
  * from mountStart() by scripts/split-closure.ts.
  */
 import { mountOverviewRoom, readOverview } from '../../lib/design-system/rooms/overview.ts';
+import { mountUsageRoom } from '../../lib/design-system/rooms/usage.ts';
 import { isStartArea } from '../../lib/design-system/start-route.ts';
 import type { StartArea } from '../../lib/design-system/start-route.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -81,6 +82,11 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
     if (on && opts.focus) btn.focus();
   }
   overviewPanel.hidden = area !== 'overview';
+  start.usagePanel.hidden = area !== 'usage';
+  if (area === 'usage') {
+    if (start.usage) void start.usage.refresh();
+    else start.usage = mountUsageRoom(start.usagePanel, { host: start.host, studio: start.studio, changed: () => { start.rooms.refreshFurnished(); start.brand.wireRegistry(); } });
+  } else start.usage?.suspend();
   versionsPanel.hidden = area !== 'versions';
   editorRoot?.setAttribute('data-active-tab', area);
   if (area === 'overview') start.overview?.refresh();

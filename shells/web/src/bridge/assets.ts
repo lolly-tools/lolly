@@ -695,18 +695,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // cannot show that. The cost is one extra read of an upload the picker already
       // scanned and found clean - bounded by the same cap the rest of the shell
       // refuses to scan past, and cheap against losing a credential. Never fatal.
-      if (!record.credential && record.blob && record.blob.size <= MAX_CREDENTIAL_SCAN_BYTES) {
-        try {
-          const { extractC2paStore } = await loadC2paVerify();
-          const ex = extractC2paStore(new Uint8Array(await record.blob.arrayBuffer()));
-          if (ex) { record.credential = ex.store; record.credentialFormat = ex.format; }
-        } catch { /* unreadable bytes are not a reason to refuse the write */ }
-      }
-      // Compute the AI-provenance flag once, at ingest, from the captured credential.
-      if (record.aiGenerated === undefined && record.credential && record.credentialFormat) {
-        const kind = detectAiGenerated(record, await loadC2paVerify());
-        if (kind) record.aiGenerated = kind;
-      }
+      await captureUserAssetCredentials(record);
       // Content-modification stamp (plans/132 WP-A): every write through this
       // path is a content change (ingest, replace, trim, duplicate), so the
       // catalog can sort/show "Modified". _importUserAsset (backup restore)
@@ -1435,7 +1424,22 @@ function userAssetError(message: string, code: string): UserAssetError {
  * can't estimate (older browsers, private mode), the write is allowed; the
  * IDB layer remains the hard backstop.
  */
-async function assertQuotaRoom(incomingBytes: number): Promise<void> {
+/** Byte-only preparation shared by uploads and atomic brand adoption. */
+export async function captureUserAssetCredentials(record: UserAssetRecord): Promise<void> {
+  if (!record.credential && record.blob && record.blob.size <= MAX_CREDENTIAL_SCAN_BYTES) {
+    try {
+      const { extractC2paStore } = await loadC2paVerify();
+      const ex = extractC2paStore(new Uint8Array(await record.blob.arrayBuffer()));
+      if (ex) { record.credential = ex.store; record.credentialFormat = ex.format; }
+    } catch { /* preserve the original bytes when credentials cannot be read */ }
+  }
+  if (record.aiGenerated === undefined && record.credential && record.credentialFormat) {
+    const kind = detectAiGenerated(record, await loadC2paVerify());
+    if (kind) record.aiGenerated = kind;
+  }
+}
+
+export async function assertQuotaRoom(incomingBytes: number): Promise<void> {
   let est: StorageEstimate | undefined;
   try {
     est = await navigator.storage?.estimate?.();

@@ -280,15 +280,16 @@ test('the chart delivery keeps its progressive renderer and accessibility contra
   ]) {
     assert.ok(plotValues.has(id), id);
   }
-  assert.equal(manifest.inputs[0].id, 'chartIntent');
+  assert.equal(manifest.inputs[0].id, 'data', 'the first step is to paste the table');
+  const intentInput = manifest.inputs.find((input: any) => input.id === 'chartIntent');
+  const rendererInput = manifest.inputs.find((input: any) => input.id === 'renderMode');
   assert.deepEqual(
-    manifest.inputs[0].options.map((option: any) => option.value),
+    intentInput.options.map((option: any) => option.value),
     ['manual', 'auto', 'compare', 'trend', 'composition', 'distribution', 'relationship', 'uncertainty', 'story']
   );
-  assert.equal(manifest.inputs[1].id, 'renderMode');
-  assert.equal(manifest.inputs[1].display, 'segmented');
+  assert.equal(rendererInput.display, 'segmented');
   assert.deepEqual(
-    manifest.inputs[1].options.map((option: any) => option.value),
+    rendererInput.options.map((option: any) => option.value),
     ['vector', 'statistical', 'scene', 'cinematic']
   );
   for (const id of ['labelColumn', 'seriesColumns', 'pivotColumn', 'zColumn', 'sizeColumn', 'errorColumn', 'frameColumn']) {

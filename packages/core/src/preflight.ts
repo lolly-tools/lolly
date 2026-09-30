@@ -206,6 +206,7 @@ export interface Count {
  * a reason to drop the finding.
  */
 export type FindingId =
+  | 'check.incomplete'
   // Print / finish correctness
   | 'print.finish-separates-as-ink'
   | 'print.finish-flattened-into-process'
@@ -402,6 +403,13 @@ export interface PreflightReport {
    * outcome this whole module exists to prevent.
    */
   readonly gaps: readonly Finding[];
+  /** Execution coverage, when supplied by the producer. Completion does not
+   * establish applicability or a pass; findings and facts still qualify the result.
+   * Older reports without this field have unknown execution coverage. */
+  readonly checks?: readonly {
+    readonly id: string;
+    readonly state: 'completed' | 'undetermined';
+  }[];
 }
 
 /** The `$format` discriminator, so a reader can identify a report on disk. */

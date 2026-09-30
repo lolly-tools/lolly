@@ -32,9 +32,9 @@
 }
 .edge-dock-tab {
   flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
-  padding: var(--sp-2) var(--ui-space-control-block); border: 0; border-radius: var(--ui-radius-choice); cursor: pointer;
+  padding: var(--sp-2) var(--ui-space-control-block); border: 0; border-radius: var(--ui-radius-choice-round); cursor: pointer;
   background: transparent; color: var(--ui-color-text-muted);
-  font: inherit; font-size: var(--ui-type-label); line-height: 1.2;
+  font: inherit; font-size: var(--ui-type-label); line-height: 2.5;
 }
 .edge-dock-tab:hover { color: var(--ui-color-text-default); }
 .edge-dock-tab[aria-selected="true"] {
@@ -82,7 +82,7 @@
     linear-gradient(var(--ui-color-border-default), var(--ui-color-border-default)) center / 28px 2px no-repeat;
 }
 .edge-dock-collapse {
-  flex: 0 0 auto; height: 28px; border: 0; background: var(--ui-color-surface-muted);
+  flex: 0 0 auto; height: 28px; border: 0; background: var(--ui-color-surface);
   color: var(--ui-color-text-muted); cursor: pointer; font: inherit;
 }
 .edge-dock.is-collapsed .edge-dock-body { display: none; }

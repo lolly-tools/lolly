@@ -583,6 +583,7 @@ export const onStageWheel = (fc: FcCtx, e: unknown): void => {
 // rail's clamp reads the rail and stage rects, which a pan or zoom never changes, so it
 // runs here and not on every wheel tick.
 export const onStageResize = (fc: FcCtx, e: unknown): void => {
+  fc.rail.dockRailForTimeline(!!fc.timelinePanel?.isOpen());
   onStageMove(fc, e);
   fc.rail.reclampRail();
 };

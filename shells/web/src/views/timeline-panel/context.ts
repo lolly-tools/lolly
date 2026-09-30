@@ -49,6 +49,9 @@ export interface TpCtx {
   recordMenu: BodyPopoverHandle;
   editMenu: BodyPopoverHandle;
   guideMenu: BodyPopoverHandle;
+  addToolsMenu?: BodyPopoverHandle;
+  moreToolsMenu?: BodyPopoverHandle;
+  toolbarDispose?: () => void;
   editBtn: HTMLButtonElement;
   selectionActions: ReturnType<typeof selectionActionsOps>;
   toolbar: ReturnType<typeof toolbarOps>;

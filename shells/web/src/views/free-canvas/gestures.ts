@@ -112,6 +112,7 @@ export function onDblClick(fc: FcCtx, e: MouseEvent): void {
 export function onStageTouchDown(fc: FcCtx, e: PointerEvent): void {
   const { touchPts } = fc;
   if (e.pointerType === 'mouse') return;
+  if ((e.target as Element).closest('button,input,select,textarea,.tl-panel,.dr-panel,.dr-toolbar')) return;
   touchPts.set(e.pointerId, { x: e.clientX, y: e.clientY, moved: 0 });
   if (touchPts.size === 2) {
     fc.twoTapStart = e.timeStamp || Date.now();

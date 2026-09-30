@@ -99,7 +99,7 @@ export function compileSessionTool(
     name: draft.name,
     version: draft.version,
     engineVersion: '^1.201.0',
-    description: 'A reusable tool with designer-selected inputs.',
+    description: draft.description || 'A reusable tool with designer-selected inputs.',
     category: 'designer',
     status: 'community',
     isolate: true,
@@ -112,7 +112,7 @@ export function compileSessionTool(
       units: false,
     },
     designTool: designToolPolicy(draft),
-    inputs: draft.inputs.map((f) => f.input as InputSpec),
+    inputs: [...draft.inputs].sort((a, b) => Number(a.input.section === 'More options') - Number(b.input.section === 'More options')).map((f) => f.input as InputSpec),
     hooks: { onInit: true, onInput: true },
   };
   const json = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c');

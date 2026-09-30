@@ -86,7 +86,8 @@ export function wire(tp: TpCtx): void {
     tp.menus.openCtxMenu(chip.dataset.id, rect.left, rect.bottom, chip);
   });
 
-  const size = tp.helpers.actionBtn('tl-track-size tl-secondary-tool', t('Track height'), 'layers');
+  const size = tp.helpers.actionBtn('tl-track-size', t('Track height'), 'trackHeight');
+  size.dataset.tip = t('Track height');
   tp.trackSizeMenu = mountBodyPopover(size, (el, pop) => {
     el.textContent = '';
     const label = document.createElement('label');
@@ -101,7 +102,8 @@ export function wire(tp: TpCtx): void {
     slider.max = String(HEIGHT_MAX);
     slider.step = '2';
     slider.value = String(tp.trackHeight);
-    slider.addEventListener('input', () => tp.layout.setTrackHeight(Number(slider.value)));
+    const value = document.createElement('output'); value.textContent = `${tp.trackHeight} px`;
+    slider.addEventListener('input', () => { tp.layout.setTrackHeight(Number(slider.value)); value.textContent = `${tp.trackHeight} px`; });
     label.append(caption, slider);
     const row = document.createElement('div');
     row.className = 'tl-track-size-actions';
@@ -111,13 +113,16 @@ export function wire(tp: TpCtx): void {
       const next = Math.max(HEIGHT_MIN, Math.min(HEIGHT_MAX, tp.trackHeight + delta));
       tp.layout.setTrackHeight(next);
       slider.value = String(next);
+      value.textContent = `${next} px`;
     };
     shorter.addEventListener('click', () => change(-8));
     taller.addEventListener('click', () => change(8));
     const done = tp.helpers.actionBtn('tl-track-size-done', t('Done'), 'check');
     done.addEventListener('click', () => pop.close(true));
-    row.append(shorter, taller, done);
-    el.append(label, row);
+    const reset = tp.helpers.actionBtn('tl-track-reset', t('Reset'), 'undo');
+    reset.addEventListener('click', () => { tp.layout.setTrackHeight(HEIGHT_DEFAULT); slider.value = String(HEIGHT_DEFAULT); value.textContent = `${HEIGHT_DEFAULT} px`; });
+    row.append(shorter, taller, reset, done);
+    el.append(value, label, row);
     // The shell upgrades ranges after mount; keep initial focus on a stable button.
     return shorter;
   }, {

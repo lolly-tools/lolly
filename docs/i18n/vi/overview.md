@@ -455,7 +455,7 @@ Cùng vòng đời trong Tauri. Cùng vòng đời trong CLI - jsdom cung cấp 
 
 ## Trạng thái mã nguồn mở
 
-**Mã nguồn theo giấy phép MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` và `docs/` là mã nguồn mở theo **MPL-2.0** - một nền tảng khung sườn (scaffolding) trung lập với nhà cung cấp cho công cụ thương hiệu, tất cả nằm trong một kho lưu trữ công khai duy nhất, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Mã nguồn theo giấy phép MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` và `docs/*.ts` là mã nguồn mở theo **MPL-2.0** - một nền tảng khung sườn (scaffolding) trung lập với nhà cung cấp cho công cụ thương hiệu, tất cả nằm trong một kho lưu trữ công khai duy nhất, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Nội dung công cụ được phân phối dưới dạng các gói thương hiệu (brand pack)**, mỗi gói có điều khoản riêng (xem `NOTICE.md` của gói). `community/` là một thư mục của kho lưu trữ này và các công cụ trung lập về thương hiệu (brand-agnostic) của nó cũng theo MPL-2.0. `brands/suse/` là gói riêng tư `suse-lolly`, submodule duy nhất: các công cụ SUSE và catalog SUSE, **thuộc sở hữu độc quyền của SUSE**, bao gồm cả nhạc nền PremiumBeat đã được cấp phép. `brands/lolly-start/` là thương hiệu khởi đầu trống mà kho lưu trữ này sở hữu. Phông chữ được phân phối bên trong một gói theo **SIL Open Font License 1.1** - gói SUSE mang theo các kiểu chữ SUSE và SUSE Mono.
 

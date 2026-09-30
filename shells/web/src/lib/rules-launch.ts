@@ -4,7 +4,7 @@ import type { Runtime } from '../../../../engine/src/runtime.ts';
 import { getDesignToolDraft } from './design-tool-draft.ts';
 const waiting = new WeakMap<Runtime,string>();
 const editors = new WeakMap<Runtime, (name?: string) => void>();
-let pending: { toolId: string; name: string } | undefined;
+let pending: { toolId: string; name: string; inputId?: string } | undefined;
 
 export function registerRulesEditor(runtime: Runtime, open: (name?: string) => void): () => void {
   editors.set(runtime, open);
@@ -32,10 +32,11 @@ export function rulesCopySeed(
 export async function launchRulesCopy(
   toolId: string,
   values: Record<string, unknown>,
-  name: string
+  name: string,
+  inputId?: string
 ): Promise<void> {
   const { openToolWithSeed } = await import('./drop-router.ts');
-  pending = { toolId, name };
+  pending = { toolId, name, inputId };
   openToolWithSeed(toolId, rulesCopySeed(values, name));
 }
 
@@ -53,7 +54,7 @@ export async function shareCurrentWithRules(
   await launchRulesCopy(toolId, values, name);
 }
 
-export function takeRulesRequest(toolId: string): {name: string} | undefined {
+export function takeRulesRequest(toolId: string): {name: string; inputId?: string} | undefined {
   if (pending?.toolId !== toolId) return;
   const request = pending; pending = undefined; return request;
 }

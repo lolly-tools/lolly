@@ -2046,6 +2046,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // rows the inspector handed it, so moving the canvas selection under the dialog
     // would only change what the user comes back to.
     openStudio: (ids) => { void fc.objects.openStudio(ids); },
+    useAsInput: (ids, property) => { fc.selection = new Set(ids); fc.rules?.expose(property); },
   }; fc.inspectorActions = inspectorActions;
 
   const designPorts: DesignCanvasPorts = {
@@ -2125,7 +2126,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   if (blockId === 'boxes') fc.rules = mountDesignRules({
     ports: designPorts, runtime: runtime as import('../../../../engine/src/runtime.ts').Runtime,
     host: host as HostV1, view: viewEl, stage: stageEl, canvas: canvasEl,
-    size: () => ({ width: fc.nativeW, height: fc.nativeH }),
+    size: () => { const { w, h } = fc.helpers.canvasWH(); return { width: w, height: h }; },
+    workspace: opts.rulesWorkspace,
     dirty: () => onDirty?.('__designTool'),
     saveMaster: () => fc.actions?.save?.(),
   });

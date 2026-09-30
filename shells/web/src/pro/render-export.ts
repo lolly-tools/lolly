@@ -105,6 +105,8 @@ interface BatchRow {
 
 /** Preferred format + optional output dimensions for a batch render. */
 interface RenderRowOpts {
+  /** Read the mounted runtime's input values for a scoped source check. */
+  observeInputs?: (values: Record<string, InputValue>) => void;
   signal?: AbortSignal;
   format?: string;
   width?: number;
@@ -334,7 +336,7 @@ type ExportStage = HTMLDivElement & { _lottieCleanup?: () => void };
  *        in `unit` (px/mm/cm/in/pt); blank falls back to the tool's native size.
  *        `dpi` sets raster resolution for physical units.
  */
-export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, settleMs, signal }: RenderRowOpts = {}): Promise<RenderRowResult> {
+export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, settleMs, signal, observeInputs }: RenderRowOpts = {}): Promise<RenderRowResult> {
   const tool = await getTool(row.toolId, row.artifactDigest);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);
@@ -447,6 +449,7 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
       exportOpts.height = rect.height;
     }
     signal?.throwIfAborted();
+    observeInputs?.(structuredClone(Object.fromEntries(runtime.getModel().map(input => [input.id, input.value]))));
     // The pixel size this row is about to render at. A studio whose curve detail follows
     // the output builds its sources again for it; every other tool ignores it. Physical
     // units become pixels at the export dpi, the way the export bridge converts them.

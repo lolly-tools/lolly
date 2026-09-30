@@ -369,6 +369,7 @@ function extractZip(entries: Record<string, Uint8Array>, abs: string, ns: string
   const manifest = parseZipJson(entries, 'manifest.json');
 
   if (isRecord(manifest) && manifest.format === BRAND_PACK_FORMAT) {
+    if (Number(manifest.minReader ?? 1) > 2) fail('This pack needs brand resource support that this token-only importer does not provide. Open the .lolly file in the Lolly app.');
     verifyPackIntegrity(entries, manifest, abs);
     const tokens = parseZipJson(entries, 'tokens.json');
     if (tokens === undefined) {

@@ -22,6 +22,7 @@ async function compile(toolId: string, inputsPath?: string, profilePath?: string
 }
 
 export async function documentCli(command: string, positionals: string[], flags: Record<string, string>): Promise<void> {
+  if (command === 'inspect' && flags['production-reference'] && !flags.production) throw new Error('--production-reference requires --production.');
   let value: unknown;
   if (command === 'compile') {
     if (!positionals[0]) throw new Error('usage: lolly compile <tool-id> [--inputs=file.json]');
@@ -44,7 +45,11 @@ export async function documentCli(command: string, positionals: string[], flags:
     if (!positionals[0]) throw new Error(`usage: lolly ${command} <document.json>`);
     const isJsonDocument = positionals[0].toLowerCase().endsWith('.json');
     const document = isJsonDocument ? await jsonFile(positionals[0]) : null;
-    if (command === 'inspect') value = document && document.toolId && document.hydrated ? inspectDocument(document) : await inspectPath(positionals[0]);
+    if (command === 'inspect' && flags.production) {
+      const { inspectProductionBytes, productionContractFile, productionFile } = await import('@lolly-tools/node-shell/production');
+      const contract = await productionContractFile(flags.production);
+      value = await inspectProductionBytes(await productionFile(positionals[0], 32 * 1024 * 1024), contract, flags['production-reference'] ? await productionFile(flags['production-reference'], 32 * 1024 * 1024) : undefined);
+    } else if (command === 'inspect') value = document && document.toolId && document.hydrated ? inspectDocument(document) : await inspectPath(positionals[0]);
     else if (command === 'measure') {
       if (!document) throw new Error('measure requires a compiled document JSON file');
       value = measureDocument(document, { width: flags.width, height: flags.height, unit: flags.unit, dpi: flags.dpi ? Number(flags.dpi) : undefined });

@@ -1,10 +1,45 @@
 @layer views {
   .locked-fit-feedback { position: absolute; inset-block-end: calc(var(--ui-size-target) + var(--sp-8)); inset-inline: var(--sp-6); text-align: center; font-size: var(--fs-sm); color: var(--ui-color-text-muted); pointer-events: none; font-variant-numeric: tabular-nums; }
-  .locked-edit-inputs { position: absolute; inset-block-end: var(--sp-7); inset-inline-end: var(--sp-7); z-index: 20; }
-  .locked-on-canvas:not(.locked-inputs-open) #tool-sidebar { display: none; }
-  .locked-on-canvas.locked-inputs-open #tool-sidebar { display: flex; }
+  .locked-heading { position: absolute; top: 0; left: 0; right: 0; display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 8px 16px; min-height: 64px; box-sizing: border-box; z-index: 20; background: var(--ui-color-surface-raised); }
+  .locked-heading h1 { margin: 0; font-size: var(--fs-lg); overflow-wrap: anywhere; }
+  .locked-edit-inputs { flex-shrink: 0; min-height: 44px; }
+  .locked-inputs-done { min-height: 44px; align-self: flex-end; }
+  .is-locked-tool:not(.locked-inputs-open) :is(#tool-sidebar,.sheet-grip) { display: none; }
+  .is-locked-tool.locked-inputs-open #tool-sidebar { display: flex; }
+  .is-locked-tool.locked-inputs-open .locked-heading { display: none; }
+  .is-locked-tool .sidebar-body { padding-top: 12px; }
+  .is-locked-tool .fullscreen-toggle-float { display: none; }
   .is-locked-tool [data-public-input]:not([data-public-input=""]) { cursor: pointer; }
   @media (max-width: 640px) {
-    .locked-edit-inputs { min-height: var(--ui-size-target); inset-block-end: calc(var(--ui-size-target) + var(--sp-8) + env(safe-area-inset-bottom)); }
+    .is-locked-tool .tool-layout { --preview-top: 0px; }
+    .is-locked-tool .sidebar-header-row { padding-block: 4px; }
+    .is-locked-tool .sidebar-title { font-size: var(--fs-lg); }
+  }
+}
+@layer views {
+  .is-locked-tool #render-pill { display: none; }
+  .locked-instructions { margin: 0 0 12px; color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
+  .locked-actions { position: fixed; z-index: 45; inset-inline: 0; bottom: calc(var(--safe-bottom, 0px) + var(--vv-bottom, 0px)); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; padding: 10px 12px; background: var(--ui-color-surface-raised); border-top: 1px solid var(--ui-color-border-default); }
+  .locked-actions > :is(button,select) { min-height: 44px; }
+  .locked-actions > select { width: auto; max-width: 7em; }
+  .locked-actions-menu { display: flex; flex-direction: column; min-width: 220px; max-height: min(60dvh, 480px); overflow: auto; }
+  .locked-actions-menu > button { justify-content: flex-start; min-height: 44px; }
+  .locked-delivery { flex-basis: 100%; font-size: var(--fs-sm); text-align: center; }
+  .locked-delivery:empty { display: none; }
+  .locked-delivery p { margin: 0; }
+  .is-locked-tool .sidebar-body { padding-bottom: 88px; }
+  .is-locked-tool #fullscreen-toggle { display: none; }
+  .locked-inputs-done { margin: 0 12px 8px; }
+}
+@layer views {
+  @media (max-width: 640px) {
+    .is-locked-tool .tool-layout[data-sheet="half"] { --sheet-h: min(var(--locked-form-h, 50dvh), calc(100dvh - var(--vv-bottom, 0px) - 88px)); }
+    .is-locked-tool .sidebar-body { padding-bottom: 24px; }
+  }
+}
+@layer views {
+  .locked-fit-feedback { inset-block-end: calc(var(--locked-actions-h, 88px) + 12px); }
+  @media (max-width: 640px) {
+    .is-locked-tool .tool-layout[data-sheet="full"] { --sheet-h: min(90dvh, calc(100dvh - var(--vv-bottom, 0px) - var(--locked-actions-h, 88px) - 12px)); }
   }
 }

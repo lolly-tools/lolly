@@ -44,3 +44,15 @@ test('font-only input yields observations without inventing a palette', async ()
   assert.equal(report.checks, null);
   assert.equal(report.observations.fonts.length, 1);
 });
+
+test('light and dark previews resolve the selected mode without rewriting the source or proposal', async () => {
+  const { census } = await extractSavedPage(input);
+  const light = referenceLook(census, 'Example', evidence, '#2078cc', 'light');
+  const dark = referenceLook(census, 'Example', evidence, '#2078cc', 'dark');
+  assert.deepEqual(light.doc, dark.doc);
+  assert.notEqual(light.preview.surface, dark.preview.surface);
+  for (const [mode, look] of [['light', light], ['dark', dark]] as const) {
+    assert.equal(createTokenSet(look.doc, { theme: mode }).colors().find(c => c.path === 'color.semantic.surface')?.value, look.preview.surface);
+    assert.ok(look.contrast.text >= 4.5);
+  }
+});

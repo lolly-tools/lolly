@@ -1669,7 +1669,12 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // The source-details sink accepts only styleEvidenceHtml output: values and
   // translated labels are escaped, properties are allowlisted, and counts and
   // viewport dimensions were bounded by readBrandStyleEvidence before rendering.
-  'views/start/reference.ts': 1,
+  // Reviewed summaries escape source values; segment markup uses its shared renderer.
+  'views/start/reference.ts': 3,
+  // Rule labels, origins, resources and text escape at interpolation; IDs and states are bounded.
+  'lib/design-system/rooms/usage.ts': 2,
+  // Form options escape labels and values; colour previews use the CSS property setter.
+  'lib/design-system/usage-editor.ts': 3,
   // Hydrated tool markup enters an inert template for resource embedding, then
   // portableHtml strips undeclared scripts, event handlers and unsafe URLs.
   'bridge/export-portable.ts': 1,

@@ -797,7 +797,7 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
 .lp-rows .fc-row-lbl > svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .lp-rows .fc-row-lbl > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lp-rows > .fc-row > span:first-child:not(.fc-row-lbl) {
-  padding-inline-start: calc(var(--ui-size-icon-sm) + var(--sp-2));
+;
 }
 /* A segmented control is one of the row's controls, so it takes the row's
    height rather than the 24px it sized itself to. */

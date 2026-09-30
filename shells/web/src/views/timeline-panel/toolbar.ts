@@ -147,6 +147,7 @@ export function sync(tp: TpCtx): void {
       if (label) label.textContent = ids.length > 1 ? t('Edit {n}', { n: String(ids.length) }) : t('Edit');
       tp.editBtn.setAttribute('aria-label', ids.length === 1 ? t('Edit selected item')
         : ids.length ? t('Edit {n} selected items', { n: String(ids.length) }) : t('Edit clips'));
+      tp.editBtn.dataset.tip = tp.editBtn.getAttribute('aria-label')!;
     }
   }
   const enabled = ids.length === 1 && tp.subtitles.canGenerateSubtitles(ids[0]!);
@@ -156,6 +157,71 @@ export function sync(tp: TpCtx): void {
       : t('Select one audio or video clip to add captions.'));
 }
 
+/** Keep the original controls as the owners of their actions and nested popovers. */
+export function arrange(tp: TpCtx): void {
+  const add = tp.helpers.actionBtn('tl-add-compact', t('Add'), 'plus');
+  add.dataset.tip = t('Add media, text or a recording');
+  const addControls = [...tp.tools.querySelectorAll<HTMLButtonElement>('.tl-add-media,.tl-add-text,.tl-record,.tl-add')];
+  const primary = new Set<HTMLElement>([tp.editBtn, tp.mobileToolsBtn, tp.fitBtn, tp.alwaysBtn,
+    ...tp.tools.querySelectorAll<HTMLElement>('.tl-track-size'), ...addControls]);
+  const secondary = [...tp.tools.querySelectorAll<HTMLButtonElement>('button')].filter(button => !primary.has(button) && !button.classList.contains('tl-record-source') && button !== tp.scriptBtn);
+  const parking = document.createElement('div'); parking.className = 'tl-tool-parking'; parking.hidden = true;
+  tp.root.append(parking);
+  for (const button of secondary) parking.append(button);
+  for (const button of addControls) button.classList.add('tl-add-source');
+  tp.tools.prepend(add);
+  tp.tools.append(tp.editBtn, tp.tools.querySelector('.tl-track-size')!, tp.fitBtn, tp.alwaysBtn, tp.mobileToolsBtn);
+  for (const button of tp.tools.querySelectorAll<HTMLButtonElement>('button')) {
+    button.dataset.tip ||= button.getAttribute('aria-label') || button.textContent || '';
+  }
+  const menu = (trigger: HTMLButtonElement, controls: HTMLButtonElement[], grouped: boolean) => {
+    let homes: Array<{ button: HTMLButtonElement; marker: Comment }> = [];
+    let surface: HTMLElement | undefined;
+    const pop = mountBodyPopover(trigger, (el) => {
+      surface = el;
+      el.replaceChildren();
+      const groups = grouped ? [
+        [t('Edit clips'), controls.filter(b => b.matches('.tl-split,.tl-captions,.tl-transcript,.tl-kf-btn'))],
+        [t('View and timing'), controls.filter(b => !b.matches('.tl-split,.tl-captions,.tl-transcript,.tl-kf-btn,.tl-guide,.tl-keys'))],
+        [t('Help'), controls.filter(b => b.matches('.tl-guide,.tl-keys'))],
+      ] as const : [[t('Add'), controls]] as const;
+      for (const [label, buttons] of groups) {
+        const visible = buttons.filter(b => !b.hidden && (!b.matches('.tl-fit,.tl-always-on') || tp.root.dataset.toolbarDensity === 'compact'));
+        if (!visible.length) continue;
+        const heading = document.createElement('div'); heading.className = 'tl-tool-menu-heading'; heading.textContent = label; el.append(heading);
+        for (const button of visible) {
+          const marker = document.createComment('Sequence control'); button.replaceWith(marker); homes.push({ button, marker });
+          if (!button.querySelector('.tl-action-label')) { const text = document.createElement('span'); text.className = 'tl-action-label'; text.textContent = button.getAttribute('aria-label') || ''; button.append(text); }
+          el.append(button);
+        }
+      }
+      return el.querySelector<HTMLElement>('button:not(:disabled)');
+    }, {
+      className: 'folder-menu tl-menu tl-tool-menu', ariaLabel: trigger.getAttribute('aria-label') || '',
+      position: tp.menus.menuPosition,
+      onResize: pop => pop.close(),
+      isInside: node => { const child = (node as Element | null)?.closest?.('.tl-menu,.tl-ctx-menu,[role="dialog"]'); return !!child && child !== surface; },
+      onClose() { for (const { button, marker } of homes) marker.replaceWith(button); homes = []; surface = undefined; },
+    });
+    trigger.addEventListener('click', () => { if (pop.isOpen()) pop.close(true); else pop.open(); });
+    return pop;
+  };
+  tp.addToolsMenu = menu(add, addControls, false);
+  tp.moreToolsMenu = menu(tp.mobileToolsBtn, [...secondary, tp.fitBtn, tp.alwaysBtn], true);
+  tp.mobileToolsBtn.dataset.tip = t('More tools');
+  const resize = (): void => {
+    const width = tp.root.clientWidth;
+    const density = width < 620 ? 'compact' : width < 1100 ? 'icons' : 'labels';
+    if (tp.root.dataset.toolbarDensity === density) return;
+    close(tp); tp.root.dataset.toolbarDensity = density;
+  };
+  const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : undefined;
+  observer?.observe(tp.root); resize();
+  tp.toolbarDispose = () => { observer?.disconnect(); close(tp); parking.remove(); };
+}
+
+export function close(tp: TpCtx): void { tp.addToolsMenu?.close(); tp.moreToolsMenu?.close(); }
+
 export function toolbarOps(tp: TpCtx) {
-  return { wire: bindOp(tp, wire), sync: bindOp(tp, sync) };
+  return { wire: bindOp(tp, wire), sync: bindOp(tp, sync), arrange: bindOp(tp, arrange), close: bindOp(tp, close) };
 }

@@ -19,6 +19,9 @@ export function wireSavedPage(start: StartCtx): void {
   const stage = start.importModal?.el.querySelector<HTMLElement>('[data-ds-stage="page"]');
   if (!stage) return;
   const files = stage.querySelector<HTMLInputElement>('[data-page-files]')!;
+  const drop = stage.querySelector<HTMLElement>('[data-page-drop]')!;
+  const selection = stage.querySelector<HTMLElement>('[data-page-selection]')!;
+  let selected: File[] = [];
   const text = stage.querySelector<HTMLTextAreaElement>('[data-page-text]')!;
   const format = stage.querySelector<HTMLSelectElement>('[data-page-format]')!;
   const go = stage.querySelector<HTMLButtonElement>('[data-page-read]')!;
@@ -29,8 +32,24 @@ export function wireSavedPage(start: StartCtx): void {
     stage.classList.remove('has-reference-review');
     start.sources.srcNote('');
   };
-  files.addEventListener('change', () => { text.value = ''; pasted.open = false; reset(); });
-  text.addEventListener('input', () => { files.value = ''; reset(); });
+  const choose = (next: File[]): void => {
+    selected = next;
+    selection.textContent = next.length ? next.map(file => file.name).join(', ') : t('or drag & drop them here');
+    text.value = ''; pasted.open = false; reset();
+  };
+  files.addEventListener('change', () => choose(Array.from(files.files ?? [])));
+  drop.addEventListener('dragover', event => {
+    if (!event.dataTransfer?.types.includes('Files')) return;
+    event.preventDefault(); event.stopPropagation(); drop.classList.add('is-dragover');
+  });
+  drop.addEventListener('dragleave', event => {
+    if (!event.relatedTarget || !drop.contains(event.relatedTarget as Node)) drop.classList.remove('is-dragover');
+  });
+  drop.addEventListener('drop', event => {
+    event.preventDefault(); event.stopPropagation(); drop.classList.remove('is-dragover');
+    files.value = ''; choose(Array.from(event.dataTransfer?.files ?? []));
+  });
+  text.addEventListener('input', () => { files.value = ''; selected = []; selection.textContent = t('or drag & drop them here'); reset(); });
   format.addEventListener('change', reset);
   go.addEventListener('click', async () => {
     if (go.getAttribute('aria-disabled') === 'true') return;
@@ -43,11 +62,11 @@ export function wireSavedPage(start: StartCtx): void {
     let worker: Worker | undefined;
     try {
       let parts: PageText[];
-      const isPaste = !files.files?.length;
+      const isPaste = !selected.length;
       if (isPaste) {
         if (text.value.length > PAGE_MAX_BYTES) throw new Error('size');
         parts = [{ name: format.value === 'css' ? 'pasted.css' : 'pasted.html', text: text.value }];
-      } else parts = await readPageFiles(Array.from(files.files!));
+      } else parts = await readPageFiles(selected);
       if (!current()) return;
       worker = new Worker(new URL('../../lib/design-system/sources/saved-page-worker.ts', import.meta.url), { type: 'module' });
       const result = await new Promise<Awaited<ReturnType<typeof extractSavedPage>>>((resolve, reject) => {

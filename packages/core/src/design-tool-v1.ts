@@ -68,6 +68,7 @@ export interface DesignToolDraftV1 {
   schemaVersion: 1;
   id: string;
   name: string;
+  description?: string;
   version: string;
   presentation: 'sidebar' | 'on-canvas';
   formats: Array<'png' | 'svg' | 'pdf'>;
@@ -129,6 +130,7 @@ export function validateDesignTool(d: DesignToolDraftV1, reserved: readonly stri
   if (d.schemaVersion !== 1) add('version', 'This rules version is not supported.');
   if (!/^[a-z0-9][a-z0-9-]{2,95}$/.test(d.id)) add('identity', 'Use a valid permanent tool id.');
   if (!d.name.trim() || !/^\d+\.\d+\.\d+$/.test(d.version)) add('identity', 'Add a name and a three-part version.');
+  if (d.description !== undefined && (typeof d.description !== 'string' || d.description.length > 2000)) add('description', 'Keep the instructions within 2000 characters.');
   if (!['sidebar', 'on-canvas'].includes(d.presentation)) add('presentation', 'Choose Sidebar or On-canvas.');
   if (!d.formats.length || d.formats.some(f => !['png', 'svg', 'pdf'].includes(f))) add('formats', 'Choose PNG, SVG or PDF.');
   if (!d.variants.length || d.variants.length > 24 || d.inputs.length > 64 || d.choices.length > 4 || d.recipes.length > 64) add('limits', 'Use up to 24 artboards, 64 inputs and four choices.');

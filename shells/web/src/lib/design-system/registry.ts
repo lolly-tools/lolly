@@ -81,6 +81,8 @@ export interface DesignSystemRecord {
   locked: boolean;
   /** A pack's `prefs.theme`, applied on switch when set. */
   appearance?: { theme?: 'light' | 'dark' | 'brand' };
+  /** Exact imported face rows for this material revision; older bytes stay recoverable. */
+  importedFonts?: string[];
   /** Last observed catalogue metadata; never inferred from a newly selected connection. */
   catalog?: { origin?: string; version?: string; checksum?: string; available: boolean };
   createdAt: number;

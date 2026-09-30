@@ -30,7 +30,7 @@ export function sessionInputReason(input: InputSpec): string | null {
   return null;
 }
 export function sessionField(input: InputSpec, item: InputModelItem, index: number): DesignInputV1 {
-  const spec: DesignInputV1['input'] = {...structuredClone(input), display: input.display === 'slider' ? 'slider' : 'input'};
+  const spec: DesignInputV1['input'] = {...structuredClone(input), display: input.type === 'select' ? 'select' : input.display === 'slider' ? 'slider' : 'input'};
   spec.id = `editable_${index + 1}`;
   spec.label = String(input.label || input.id);
   spec.default = structuredClone(item.value) as InputSpec['default'];

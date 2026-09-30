@@ -1,0 +1,79 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+@layer components {
+  .usage-room { min-width: 0; padding-block: 4px 48px; }
+  [data-usage-readonly] { max-width: 1200px; margin-inline: auto; margin-top: 32px; }
+  .usage-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+  .usage-head h2 { margin: 0 0 10px; font-size: 1.5rem; font-weight: 550; letter-spacing: -.025em; }
+  .usage-head p { max-width: 58ch; margin: 0; color: hsl(var(--muted-foreground)); line-height: 1.55; }
+  .usage-head .start-eyebrow { margin-bottom: 10px; }
+  .usage-head > .btn { flex-shrink: 0; }
+  .usage-room .btn svg { width: 16px; height: 16px; }
+  .usage-rules { border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 48px; }
+  .usage-rule { display: flex; align-items: flex-start; gap: 16px; padding: 24px; }
+  .usage-rule + .usage-rule { border-top: 1px solid hsl(var(--border)); }
+  .usage-rule-icon { color: hsl(var(--muted-foreground)); padding-top: 3px; flex: 0 0 20px; }
+  .usage-rule-copy { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+  .usage-rule h3, .usage-example h3, .usage-empty h3 { margin: 0 0 6px; font-size: 1rem; font-weight: 550; }
+  .usage-rule p { margin: 0 0 6px; line-height: 1.5; }
+  .usage-rule-meta { display: flex; align-items: flex-end; flex-direction: column; gap: 12px; }
+  .usage-badge { display: inline-flex; align-items: center; border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-pill); padding: 4px 10px; color: hsl(var(--muted-foreground)); font-size: .75rem; line-height: 1.3; white-space: nowrap; }
+  .usage-badge[data-state="blocked"] { color: hsl(var(--destructive)); border-color: currentColor; }
+  .usage-hint { color: hsl(var(--muted-foreground)); font-size: .82rem; line-height: 1.55; overflow-wrap: anywhere; }
+  .usage-empty { padding: 36px 28px; max-width: 66ch; }
+  .usage-empty > svg { width: 28px; height: 28px; color: hsl(var(--muted-foreground)); margin-bottom: 18px; }
+  .usage-empty p { color: hsl(var(--muted-foreground)); line-height: 1.6; }
+  .usage-details { margin-top: 10px; font-size: .85rem; }
+  .usage-details summary { cursor: pointer; color: hsl(var(--muted-foreground)); padding-block: 6px; width: fit-content; }
+  .usage-details summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: var(--radius-xs); }
+  .usage-details > ul { padding: 0; list-style: none; }
+  .usage-details li { margin-block: 12px; overflow-wrap: anywhere; }
+  .usage-details li p { font-size: .8rem; color: hsl(var(--muted-foreground)); margin-top: 5px; line-height: 1.5; }
+  .usage-check-state { display: inline-block; font-size: .72rem; min-width: 75px; color: hsl(var(--muted-foreground)); }
+  .usage-check-state[data-state="fail"] { color: hsl(var(--destructive)); }
+  .usage-proof-controls { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  .usage-proof-controls > label { min-width: 160px; }
+  .usage-proof-controls > details { flex: 1; min-width: min(100%, 260px); margin: 0; }
+  .usage-proof-controls label, .usage-rule-form > label, .usage-form-pair > label, .usage-rule-form [data-rule-material] > label, .usage-rule-form [data-new-role] > label, .usage-sample-fields > label { display: grid; gap: 8px; font-size: .84rem; line-height: 1.4; min-width: 0; }
+  .usage-sample-fields { display: grid; gap: 14px; margin-top: 12px; }
+  .usage-message { font-size: .84rem; line-height: 1.55; min-height: 1.6em; color: hsl(var(--muted-foreground)); }
+  .usage-message--error { color: hsl(var(--destructive)); }
+  .usage-examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .usage-example { min-width: 0; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); overflow: hidden; }
+  .usage-example-image { background: hsl(var(--muted) / .35); min-height: 180px; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; flex-direction: column; color: hsl(var(--muted-foreground)); }
+  .usage-example-image p { font-size: .82rem; margin: 10px 0 0; }
+  .usage-example-image svg { width: 32px; height: 32px; }
+  .usage-example-image img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .usage-example-body { padding: 20px; }
+  .usage-example-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .usage-example-title h3 { margin: 0; }
+  .usage-example-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+  .usage-rule-modal { width: min(620px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow-y: auto; padding: 28px; }
+  .usage-rule-modal header h2 { font-size: 1.5rem; margin: 6px 0 10px; }
+  .usage-rule-modal header > p:not(.start-eyebrow) { color: hsl(var(--muted-foreground)); font-size: .9rem; line-height: 1.6; margin-bottom: 24px; }
+  .usage-rule-form { display: grid; gap: 20px; }
+  .usage-form-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .usage-rule-form [data-new-role] { margin-top: 16px; }
+  .usage-resource-list { margin: 18px 0 0; border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); padding: 12px; font-size: .82rem; min-width: 0; }
+  .usage-resource-list legend { padding-inline: 6px; }
+  .usage-resource-list [data-resources] { max-height: 200px; overflow-y: auto; }
+  .usage-resource { display: flex; gap: 10px; align-items: center; padding: 8px 4px; overflow-wrap: anywhere; cursor: pointer; }
+  .usage-resource > input { flex-shrink: 0; }
+  .usage-resource small { display: block; margin-top: 3px; color: hsl(var(--muted-foreground)); font-size: .75rem; }
+  .usage-resource-search { display: grid; gap: 8px; margin-block: 4px 12px; }
+  .usage-colour-chip { width: 24px; height: 24px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); flex-shrink: 0; }
+  .usage-rule-modal footer { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding-top: 8px; }
+  .usage-rule-form footer { position: sticky; bottom: -28px; padding-block: 16px 20px; background: var(--ui-color-surface-raised); border-top: 1px solid hsl(var(--border)); z-index: 1; }
+  .usage-rule-form textarea { resize: vertical; }
+  .usage-rule-form [hidden] { display: none; }
+  @media (max-width: 800px) { .usage-examples { grid-template-columns: 1fr; } }
+  @media (max-width: 540px) {
+    .usage-head { flex-direction: column; gap: 16px; }
+    .usage-rule { padding: 18px 16px; gap: 12px; flex-wrap: wrap; }
+    .usage-rule-copy { flex: 1 1 calc(100% - 32px); }
+    .usage-rule-meta { flex-direction: row; align-items: center; margin-left: 32px; }
+    .usage-rule-modal { padding: 22px 18px; }
+    .usage-rule-form footer { bottom: -22px; }
+    .usage-form-pair { grid-template-columns: 1fr; }
+    .usage-example-image { min-height: 140px; }
+  }
+}

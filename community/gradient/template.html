@@ -1149,12 +1149,12 @@ function mgmPaintMesh(d, W, H, patches, n) {
 
     /* Sidebar shuffle buttons: the hover-revealed canvas overlays are easy to
        miss, so the same actions also live as visible buttons right under the
-       mode tabs. Only the LIVE editing instance injects (never an offscreen
+       colour controls. Only the LIVE editing instance injects (never an offscreen
        batch/compose copy), rebuilt each render so per-mode labels stay right.
        styles.css never reaches the sidebar - a scoped head <style> does. */
     (function sidebarActions() {
       if (!wrap.closest('#tool-canvas')) return;
-      var modeEl = document.querySelector('.tool-layout [data-input-id="mode"]');
+      var modeEl = document.querySelector('.tool-layout [data-input-id="color1"]');
       var row = modeEl ? modeEl.closest('.input-row') : null;
       if (!row || !row.parentNode) return;
       var old = row.parentNode.querySelector('.mg-side-actions');
@@ -1164,7 +1164,7 @@ function mgmPaintMesh(d, W, H, patches, n) {
         st.id = 'mg-side-style';
         st.textContent = '.mg-side-actions{display:flex;gap:8px;margin:10px 0 4px}'
           + '.mg-side-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;'
-          + 'padding:7px 10px;border-radius:8px;border:1px solid rgba(127,127,127,.35);'
+          + 'min-height:44px;padding:7px 10px;border-radius:8px;border:1px solid rgba(127,127,127,.35);'
           + 'background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer}'
           + '.mg-side-btn:hover{background:rgba(127,127,127,.12)}'
           + '.mg-side-btn svg{width:14px;height:14px;flex:none}';
@@ -1191,7 +1191,7 @@ function mgmPaintMesh(d, W, H, patches, n) {
       else if (mode === 'flow') addBtn('positions', 'New wave');
       else addBtn('positions', 'Shuffle nodes');
       if (mode === 'subdivide' || mode === 'mesh') addBtn('mesh-reset', 'Reset mesh');
-      row.parentNode.insertBefore(bar, row.nextSibling);
+      row.parentNode.insertBefore(bar, row);
     })();
   })();
 </script>

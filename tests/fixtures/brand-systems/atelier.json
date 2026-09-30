@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1, "id": "atelier", "label": "Atelier",
+  "roles": [
+    { "id": "partner-seal", "label": "Signature", "resources": [{ "type": "asset", "id": "atelier/device/partner-seal" }] },
+    { "id": "editorial-ink", "label": "Signature", "resources": [{ "type": "token", "path": "Encre.Signature" }] }
+  ],
+  "bindings": [{ "id": "cover-device", "roleId": "partner-seal", "consumer": { "tool": "atelier-cover", "slot": "fixed-artwork" }, "modes": ["Édition", "Exposition"] }],
+  "rules": [{ "id": "seal-space", "label": "Space around the seal", "kind": "atelier.clear-space-v2", "roleIds": ["partner-seal"], "parameters": { "unit": "seal-height", "minimum": 0.5 }, "requirement": "required", "origin": { "kind": "source", "reference": "guide.pdf", "locator": "page 12" }, "review": { "state": "draft" } }]
+}

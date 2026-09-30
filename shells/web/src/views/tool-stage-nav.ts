@@ -18,7 +18,7 @@
  * the difference.
  */
 import { mountZoomHud } from '../components/zoom-hud.ts';
-import { stageBottomReserve } from '../lib/design-panel-layout.ts';
+import { stageBottomReserve, stageSideReserve } from '../lib/design-panel-layout.ts';
 import type { ZoomHud } from '../components/zoom-hud.ts';
 import { isTypingTarget } from '../lib/typing-target.ts';
 import { icon } from '../lib/icons.ts';
@@ -100,6 +100,8 @@ export interface StageNavOpts {
 }
 /** The canvas pan/zoom handle setupStageNav returns. */
 export interface StageNav {
+  /** Restore the editor's view after a temporary authoring workspace. */
+  preserveView?(): () => void;
   /** Hold view transforms during capture. Release after restoring the preview layout. */
   suspend(): () => void;
   isSuspended(): boolean;
@@ -227,17 +229,13 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
    * free-canvas's `syncStageReserves` / `reserveBottom`), and a computed read would cost
    * a style recalc on a path a wheel tick reaches.
    */
-  function reserveOf(prop: string): number {
-    const v = parseFloat(stageEl.style.getPropertyValue(prop));
-    return Number.isFinite(v) && v > 0 ? v : 0;
-  }
   const compactTouch = (): boolean => typeof matchMedia === 'function'
     && matchMedia('(pointer: coarse) and (max-width: 640px), (pointer: coarse) and (max-height: 430px)').matches;
   function stageBox(): { left: number; top: number; right: number; bottom: number; width: number; height: number } {
     const sr = stageEl.getBoundingClientRect();
-    const left = sr.left + Math.max(reserveOf('--stage-reserve-left'), reserveOf('--stage-rulers-right'));
-    const right = sr.right - reserveOf('--stage-reserve-right');
-    const top = sr.top + Math.max(reserveOf('--stage-reserve-top'), reserveOf('--stage-rulers-bottom'));
+    const left = sr.left + stageSideReserve(stageEl.style, 'left');
+    const right = sr.right - stageSideReserve(stageEl.style, 'right');
+    const top = sr.top + stageSideReserve(stageEl.style, 'top');
     let bottom = sr.bottom - stageBottomReserve(stageEl.style);
     // The compact tool rail becomes a horizontal palette at the foot of a touch
     // screen. It intentionally remains draggable chrome rather than claiming the
@@ -1019,6 +1017,17 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   }
 
   return {
+    preserveView() {
+      const saved = { scale, tx, ty, contentFit, contentFloor };
+      let restored = false;
+      return () => {
+        if (restored || destroyed) return;
+        restored = true;
+        reset(); onFit?.();
+        ({ scale, tx, ty, contentFit, contentFloor } = saved);
+        apply();
+      };
+    },
     suspend() {
       suspensions++;
       let released = false;

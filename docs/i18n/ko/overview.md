@@ -453,7 +453,7 @@ Tauri에서도 동일한 라이프사이클입니다. CLI에서도 동일한 라
 
 ## 오픈소스 상태
 
-**코드는 MPL-2.0입니다.** `engine/`, `shells/*`, `services/*`, `schemas/`, `docs/`는 **MPL-2.0** 라이선스로 공개된 오픈소스입니다 - 브랜드 도구를 위한 벤더 중립적 스캐폴딩 플랫폼이며, 모두 하나의 공개 저장소인 [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)에 있습니다.
+**코드는 MPL-2.0입니다.** `engine/`, `shells/*`, `services/*`, `schemas/`, `docs/*.ts`는 **MPL-2.0** 라이선스로 공개된 오픈소스입니다 - 브랜드 도구를 위한 벤더 중립적 스캐폴딩 플랫폼이며, 모두 하나의 공개 저장소인 [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)에 있습니다.
 
 **도구 콘텐츠는 브랜드 팩 형태로 제공되며**, 각 팩은 고유한 이용 조건을 가집니다(팩의 `NOTICE.md` 참고). `community/`는 이 저장소의 한 디렉터리이며, 그 안의 브랜드 중립적 도구들 역시 MPL-2.0입니다. `brands/suse/`는 비공개 `suse-lolly` 팩으로, 유일한 서브모듈입니다: SUSE 도구와 SUSE 카탈로그로 구성되며, 라이선스가 부여된 PremiumBeat 음악을 포함해 **SUSE의 독점 자산**입니다. `brands/lolly-start/`는 이 저장소가 소유한 빈 스타터 브랜드입니다. 폰트는 팩 안에 **SIL Open Font License 1.1** 하에 제공되며 - SUSE 팩은 SUSE 및 SUSE Mono 서체를 담고 있습니다.
 

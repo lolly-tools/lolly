@@ -421,8 +421,8 @@ test('with the timeline rail docked, the left reserve carries the column AND the
       assert.ok(f.stageEl.classList.contains('has-tl-reserve'), 'and took the rail as a column');
 
       // jsdom reports a zero-width rail, so the dock falls back to its design width (46)
-      // and the band is 46 + 12 gutters.
-      const railBand = 58;
+      // and the dock uses that width without extra gutters.
+      const railBand = 46;
       assert.equal(f.stageEl.style.getPropertyValue('--ldock-rail-w'), `${railBand}px`,
         'the rail column keeps its OWN width');
       assert.equal(f.stageEl.style.getPropertyValue('--stage-reserve-left'), `${railBand}px`);
@@ -463,7 +463,7 @@ test('the left reserve, pinned in all four states (navigator on/off × timeline 
     const f = mount([frameBox('f1', 0, 0)], { withTime: true });
     const rail = f.stageEl.querySelector<HTMLElement>('.fc-toolbar')!;
     const dock = f.stageEl.querySelector<HTMLElement>('.fc-toolbar-dock')!;
-    const RAIL_BAND = 58;             // jsdom measures 0, so the dock's fallback 46 + 12
+    const RAIL_BAND = 46;             // jsdom measures 0; use the dock fallback width
     const left = (): string => f.stageEl.style.getPropertyValue('--stage-reserve-left');
     const ldock = (): string => f.stageEl.style.getPropertyValue('--ldock-rail-w');
     try {

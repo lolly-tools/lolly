@@ -5289,29 +5289,21 @@ test('the canvas seam writes one full-pose key per selected box, in ONE array th
 
 /** The transport's "+Keyframe" - the END of the left cluster, after the keyboard sheet. */
 const kfBtn = (h: Harness): HTMLButtonElement => {
-  const b = h.root.querySelector('.tl-tools .tl-kf-btn') as HTMLButtonElement;
+  const b = h.root.querySelector('.tl-kf-btn') as HTMLButtonElement;
   assert.ok(b, 'the transport carries a +Keyframe button');
   return b;
 };
 
-test('+Keyframe sits at the END of the transport cluster, and says when it can do nothing', () => {
+test('+Keyframe remains available in More tools while track height stays on the rail', () => {
   const h = mount(kfScene({ ...clip('a', 0, 3), kf: 't0_x0*t1500_eo_x40' } as Box), 40, ADD_KINDS, KF_CFG);
   try {
     const b = kfBtn(h);
-    // The WHOLE cluster, in order - pinned end to end rather than by a slice, because
-    // the position of this one button is the assertion. section 8's M2.6 pass moved it out of
-    // the additive/recording cluster to the tail, AFTER the keyboard sheet:
-    // `… zoom− zoom+ expand ⌨ ◇`.
-    // The IDENTITY class only (`classList[1]`, the token `btn()` mints after `tl-btn`) - 
-    // a state class like `.is-active` on the snap button is not part of the ordering.
-    const cluster = Array.from(h.root.querySelectorAll<HTMLElement>('.tl-tools > .tl-btn'))
-      .map((x) => x.classList.contains('tl-always-on') ? 'tl-always-on'
-        : x.classList.contains('tl-track-size') ? 'tl-track-size' : x.classList[1]);
-    assert.deepEqual(cluster, [
-      'tl-screen', 'tl-add', 'tl-mic', 'tl-cam', 'tl-script', 'tl-transcript', 'tl-split', 'tl-snap', 'tl-onion',
-      'tl-zoom-out', 'tl-zoom-in', 'tl-fit', 'tl-keys', 'tl-always-on', 'tl-mobile-tools', 'tl-track-size', 'tl-kf-btn',
-    ], 'the diamond is LAST - never back among +, mic, camera and script');
-    assert.equal(cluster.at(-1), 'tl-kf-btn', 'and nothing may be appended after it');
+    assert.ok(h.root.querySelector('.tl-tools > .tl-track-size'));
+    assert.equal(h.root.querySelector('.tl-tools > .tl-track-size')!.classList.contains('tl-secondary-tool'), false);
+    const more = h.root.querySelector<HTMLButtonElement>('.tl-mobile-tools')!;
+    more.click();
+    assert.equal(document.querySelector('.tl-tool-menu .tl-kf-btn'), b);
+    more.click();
     assert.ok(b.querySelector('svg'), 'it is the diamond glyph');
 
     // DISABLED, not hidden: a control that vanishes as you click around teaches nothing,
@@ -5335,7 +5327,7 @@ test('a tool that declares no kf sub-field never grows the button', () => {
   const h = mount([clip('a', 0, 3)]);
   try {
     h.select(['a']);
-    assert.equal(h.root.querySelector<HTMLElement>('.tl-tools .tl-kf-btn')!.hidden, true,
+    assert.equal(h.root.querySelector<HTMLElement>('.tl-kf-btn')!.hidden, true,
       'the same progressive-capability gate the + and the mic already carry');
   } finally { h.teardown(); }
 });
@@ -7030,6 +7022,8 @@ test('More tools preserves the original controls and their state across disclosu
     assert.equal(more.getAttribute('aria-expanded'), 'true');
     snap.click();
     more.click();
+    more.click();
+    assert.equal(document.querySelector('.tl-tool-menu .tl-keys'), key);
     more.click();
     assert.equal(h.root.querySelector('.tl-keys'), key);
     assert.equal(snap.getAttribute('aria-pressed'), 'false');

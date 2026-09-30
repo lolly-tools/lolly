@@ -287,7 +287,7 @@ test('Document health merges settled mounted overflow, contrast and vector-font 
   assert.equal(check?.dataset.designCheck, 'warn');
   assert.match(check?.textContent ?? '', /Text in “Hello” is clipped/);
   assert.match(check?.textContent ?? '', /contrast/);
-  assert.match(check?.textContent ?? '', /cannot be embedded in vector exports/);
+  assert.match(check?.textContent ?? '', /Font coverage could not be verified/);
   h.handle.destroy();
 });
 

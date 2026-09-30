@@ -373,7 +373,7 @@ async function main(): Promise<void> {
   // `list` / `describe` / `run` exist because the first positional is an open namespace
   // shared with tool ids: a brand pack shipping a tool called `batch` would otherwise be
   // permanently unreachable. The verbs can never be shadowed.
-  if (cmd === 'inspect' && flags.motion) {
+  if (cmd === 'inspect' && flags.motion && !flags.production) {
     const { inspectMotionBytes } = await import('@lolly-tools/node-shell/motion-inspect');
     if (!positionals[1]) throw usageError('inspect --motion requires a delivered media file.');
     const report = await inspectMotionBytes(new Uint8Array(await readFile(positionals[1])));

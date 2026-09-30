@@ -455,7 +455,7 @@ Kitaran hayat sama dalam Tauri. Kitaran hayat sama dalam CLI - jsdom menyediakan
 
 ## Status sumber terbuka
 
-**Kod adalah MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` dan `docs/` adalah sumber terbuka di bawah **MPL-2.0** - platform perancah neutral-vendor untuk perkakas jenama, semuanya dalam satu repositori awam, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Kod adalah MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` dan `docs/*.ts` adalah sumber terbuka di bawah **MPL-2.0** - platform perancah neutral-vendor untuk perkakas jenama, semuanya dalam satu repositori awam, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Kandungan alat dihantar sebagai pek jenama**, setiap satu dengan terma tersendiri (lihat `NOTICE.md` pek berkenaan). `community/` ialah direktori repositori ini dan alatnya yang neutral-jenama juga MPL-2.0. `brands/suse/` ialah pek `suse-lolly` yang peribadi, satu-satunya submodul: alat SUSE dan katalog SUSE, **hak milik SUSE**, termasuk muzik PremiumBeat berlesennya. `brands/lolly-start/` ialah jenama permulaan kosong yang dimiliki oleh repositori ini. Fon dihantar di dalam pek di bawah **SIL Open Font License 1.1** - pek SUSE membawa taip aksara SUSE dan SUSE Mono.
 

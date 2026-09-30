@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { mountProductionVerify } from './valid-production.ts';
 /**
  * /valid - on-device Content Credentials check.
  *
@@ -94,7 +95,7 @@ import { wmNoteSlot } from '../lib/wm-note.ts';
 import { aiModelSlot } from './tsig-model-note.ts';
 // The Document facts census section (shared with the catalog panel).
 import { tsigFactsHtml } from './tsig-facts.ts';
-import { scannedUnreadNote, type DocReadNotes } from './doc-read.ts';
+import { docReadNotesHtml } from './valid-notes.ts';
 // The illumination strip + the completeness receipt (pure models; the strip
 // renders through this view's existing reviewed sinks).
 import { verifyLampCues } from './valid-text.ts';
@@ -2869,6 +2870,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
   // on reportEl, see wireCleanCopy) can re-read the right file's bytes on demand
   // rather than holding every batch's bytes in memory between renders.
   let activeFiles: File[] = [];
+  mountProductionVerify(viewEl, () => activeFiles, host);
   // Each report's scalar-input digest, same indexing - what a [data-recreate]
   // click (the "Recreate with these settings" CTA) seeds the tool link from.
   let activeDigests: Array<Record<string, string> | undefined> = [];
@@ -3466,17 +3468,6 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
   // The OCR overlay carries its own un-pin (ResizeObserver disconnect + load-listener
   // removal) so replacing it also retires the machinery that kept it aligned.
   type OcrOverlayEl = SVGSVGElement & { _ocrUnpin?: () => void };
-
-  // The read-what-could-not-be-read ledger under a document analysis: what was
-  // capped, what came off pixels, what stayed unread and why. Every line is a
-  // fact the reader can act on - the perceptive-honesty half of best effort.
-  function docReadNotesHtml(notes: DocReadNotes): string {
-    const bits: string[] = [];
-    if (notes.pagesRead < notes.pageCount) bits.push(tRaw('The first {n} of {total} pages were read.', { n: notes.pagesRead, total: notes.pageCount }));
-    if (notes.ocrPages > 0) bits.push(tRaw('{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.', { n: notes.ocrPages }));
-    if (notes.scannedUnread > 0) bits.push(scannedUnreadNote(notes));
-    return bits.map((b) => `<p class="valid-tsig-cands">${escape(b)}</p>`).join('');
-  }
 
   // PDF → the text LAYER first (digital - the byte-level artifact tier still
   // applies), then per-page OCR for its SCANNED pages when the on-device model

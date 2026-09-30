@@ -118,3 +118,19 @@ test('a change made before anyone listens is delivered once on subscribe', () =>
   assert.equal(seen, 1);
   assert.equal(localChangeSeq(), before);
 });
+
+test('atomic brand adoption and recovery report one change each after success', async () => {
+  const host = { brandAdoption: {
+    async capture() { return {}; }, async prepare() { return {}; },
+    async commit(fail = false) { if (fail) throw new Error('conflict'); }, async restore() {},
+  } };
+  trackHostChanges(host);
+  let seen = 0;
+  onLocalChange(() => { seen++; });
+  await host.brandAdoption.capture(); await host.brandAdoption.prepare();
+  assert.equal(seen, 0);
+  await host.brandAdoption.commit(); await host.brandAdoption.restore();
+  assert.equal(seen, 2);
+  await assert.rejects(host.brandAdoption.commit(true), /conflict/);
+  assert.equal(seen, 2);
+});

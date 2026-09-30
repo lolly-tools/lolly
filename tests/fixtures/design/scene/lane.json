@@ -78,7 +78,7 @@
         "duration": 4
       },
       "scene": "motion=turntable&duration=4",
-      "sceneFull": "source=primitive&primitive=badge&motion=turntable&duration=4"
+      "sceneFull": "primitive=badge&source=primitive&motion=turntable&duration=4"
     }
   ],
   "assetIds": [

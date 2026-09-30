@@ -487,7 +487,7 @@ html[dir="rtl"] .start-back-row {
 }
 /* Keyboard path: the visually-hidden file input inside is focusable - surface
    its focus on the card. */
-.start-import-drop:has(.start-import-file:focus-visible) {
+.start-import-drop:has(input[type="file"]:focus-visible) {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
@@ -523,7 +523,7 @@ html[dir="rtl"] .start-back-row {
   color: hsl(var(--muted-foreground));
 }
 .start-import-btn { cursor: pointer; }
-.start-import-drophint { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); margin-top: -8px; }
+.start-import-drophint { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); margin-top: -8px; overflow-wrap: anywhere; }
 .start-import-result {
   display: flex;
   flex-direction: column;

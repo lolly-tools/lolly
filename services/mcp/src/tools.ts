@@ -47,6 +47,7 @@ const FILE_ARG = {
   additionalProperties: false,
 };
 
+const PRODUCTION_ARGS = { productionRepair: { type: 'object', description: 'Bounded, explicitly permitted input alternatives and triggering findings.' }, production: { type: 'object', description: 'Explicit lolly/production-still-v1 or lolly/production-motion-v1 contract. Required checks gate final bytes.' }, productionReference: { type: 'string', description: 'Base64 reference bytes bound by the production contract digest.' } };
 const RENDER_ARGS = {
   toolId: { type: 'string', description: 'The tool id (from lolly_list_tools).' },
   inputs: { type: 'object', description: "The tool's inputs. Get the exact schema from lolly_describe_tool.", additionalProperties: true },
@@ -279,7 +280,7 @@ export const TOOL_DEFS: McpToolDef[] = [
   ...(['compile', 'inspect', 'measure'] as const).map((verb): McpToolDef => ({
     name: `lolly_${verb}`,
     description: `${verb[0]!.toUpperCase()}${verb.slice(1)} a Lolly document without rasterising it.`,
-    inputSchema: { type: 'object', properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, ...TEMPLATE_ARGS, layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, document: { type: 'object' }, ...(verb === 'inspect' ? { file: FILE_ARG, motion: { type: 'boolean', description: 'Inspect delivered video bytes using optional ffprobe/ffmpeg.' }, motionTarget: { type: 'object', description: 'Expected width, height, seconds, fps, audio, loudness (LUFS) and truePeakMax (dBTP).' } } : {}) }, additionalProperties: false },
+    inputSchema: { type: 'object', properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, ...TEMPLATE_ARGS, layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, document: { type: 'object' }, ...(verb === 'inspect' ? { ...PRODUCTION_ARGS, file: FILE_ARG, motion: { type: 'boolean', description: 'Inspect delivered video bytes using optional ffprobe/ffmpeg.' }, motionTarget: { type: 'object', description: 'Expected width, height, seconds, fps, audio, loudness (LUFS) and truePeakMax (dBTP).' } } : {}) }, additionalProperties: false },
   })),
   {
     name: 'lolly_validate',
@@ -342,6 +343,7 @@ export const TOOL_DEFS: McpToolDef[] = [
       type: 'object',
       properties: {
         ...RENDER_ARGS,
+        ...PRODUCTION_ARGS,
         ...TEMPLATE_ARGS,
         layerOperations: DESIGN_OPERATION_ARG,
         layerPatches: DESIGN_PATCH_ARG,
@@ -1002,10 +1004,14 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
       case 'lolly_compile':
       case 'lolly_inspect':
       case 'lolly_measure': {
+        if (name === 'lolly_inspect' && args.production !== undefined && !args.file) return errorResult('Production inspection requires final file bytes.');
+        if (name === 'lolly_inspect' && args.productionRepair !== undefined) return errorResult('Production repair requires lolly_render and declared tool inputs.');
+        if (name === 'lolly_inspect' && args.productionReference !== undefined && args.production === undefined) return errorResult('A production reference requires a production contract.');
         if (name === 'lolly_inspect' && args.file && typeof args.file === 'object') {
           const file = args.file as { base64?: unknown };
           if (typeof file.base64 !== 'string') return errorResult('file.base64 is required.');
           const bytes = Uint8Array.from(Buffer.from(file.base64, 'base64'));
+          if (args.production !== undefined) return textOnly(JSON.stringify(await (await import('@lolly-tools/node-shell/production')).inspectProductionBytes(bytes, args.production, readProductionReference(args.productionReference)), null, 2));
           if (args.motion === true) return textOnly(JSON.stringify(await (await import('@lolly-tools/node-shell/motion-inspect')).inspectMotionBytes(bytes, args.motionTarget as never), null, 2));
           return textOnly(JSON.stringify(inspectDocument(bytes), null, 2));
         }
@@ -1127,6 +1133,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         const validation = validateToolInputs(tool.manifest, inputs);
         if (!validation.ok) return invalidInputs(validation);
         const opts: RenderOpts = {
+          production: args.production, productionRepair: args.productionRepair, productionReference: readProductionReference(args.productionReference),
           format: args.format as string | undefined,
           width: args.width as number | undefined,
           height: args.height as number | undefined,
@@ -1166,6 +1173,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
           : '';
 
         const header = [
+          ...(result.production ? [`Production checks: ${JSON.stringify({ report: result.production, attempts: result.productionAttempts })}`] : []),
           `Rendered ${toolId} → ${result.format} (${result.bytes.length} bytes, tier ${result.tier}).`,
           args.link === false ? '' : `Edit: ${links.editUrl}`,
           `Provenance: ${provenance}${rights}`,
@@ -1180,7 +1188,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         } else if (fmt === 'svg') {
           // SVG: give a viewable PNG preview + the SVG source as a resource.
           try {
-            const preview = await render(toolId, links.query, { ...opts, format: 'png' });
+            const preview = await render(toolId, links.query, { ...opts, format: 'png', production: undefined, productionRepair: undefined, productionReference: undefined });
             content.push({ type: 'image', data: Buffer.from(preview.bytes).toString('base64'), mimeType: 'image/png' });
           } catch { /* preview is best-effort */ }
           content.push({ type: 'resource', resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: 'image/svg+xml', text: new TextDecoder().decode(result.bytes) } });
@@ -1281,6 +1289,10 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         return errorResult(`Unknown tool: ${name}`);
     }
   } catch (e) {
+    if (e instanceof Error && 'report' in e && 'code' in e && e.code === 'PRODUCTION_VERIFICATION_FAILED') {
+      const failure = e as Error & { report: unknown; attempts?: unknown };
+      return errorResult(JSON.stringify({ code: e.code, message: failure.message, report: failure.report, attempts: failure.attempts }));
+    }
     return errorResult(`${name} failed: ${(e as Error).message}`);
   }
 }
@@ -1401,4 +1413,10 @@ export async function getPrompt(name: string, args: Record<string, string> = {})
     description: featured?.blurb || m.description || m.name,
     messages: [{ role: 'user', content: { type: 'text', text } }],
   };
+}
+
+function readProductionReference(value: unknown): Uint8Array | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || value.length > 44 * 1024 * 1024 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)) throw new Error('Invalid production reference bytes.');
+  return new Uint8Array(Buffer.from(value, 'base64'));
 }

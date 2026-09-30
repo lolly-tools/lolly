@@ -1073,7 +1073,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + `<div class="fc-row"><span>${t('Blend with')}</span><select class="field-select" data-doc-voice="blend" aria-label="${escape(t('Blend with'))}">`
       + `<option value=""${other ? '' : ' selected'}>${escape(t('None'))}</option>${other ? opt(other) : ''}</select></div>`
       + (other
-        ? `<label class="fc-row fc-insp-text"><span>${t('Second voice weight')}</span><input type="number" class="field-input" data-doc-voice="weight" min="5" max="95" step="5" value="${weight}" aria-label="${escape(t('Second voice weight'))}"></label>`
+        ? `<label class="fc-row fc-insp-text"><span>${t('Voice Blend')}</span><input type="number" class="field-input" data-doc-voice="weight" min="5" max="95" step="5" value="${weight}" aria-label="${escape(t('Voice Blend'))}"></label>`
         : '');
   }
 
@@ -1256,8 +1256,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function narrationDocRows(): string {
     if (!narration || opts.narrationEnabled?.() === false) return '';
     return `<p class="lp-subhead">${t('Narration')}</p>`
-      + docVoiceRows()
       + `<p class="fc-insp-hint">${t('English voices only.')}</p>`
+      + docVoiceRows()
       + docNumRow(t('Speed'), 'narrationSpeed', 1, { min: 0.5, max: 2, step: 0.05, precision: 2 })
       // The ranges are the MANIFEST's own (community/design/tool.json), so this column
       // cannot offer a number the runtime would refuse.
@@ -1282,6 +1282,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         ? colorRow(t('Fill'), 'fc-insp-fill', fv(b, cfg.fillField),
           `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>`)
         : '')
+      + (cfg.fillField && actions.useAsInput ? doorBtn(t('Use fill as input'), 'input-fill', 'sliders') : '')
       + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField)) : '')
       + (cfg.strokeWField ? ctrlRow(FIELD_GLYPH.strokeIc, t('Stroke width'), numCell('', cfg.strokeWField, sw, { name: t('Stroke width'), min: 0, max: 400, unit: 'px' })) : '')
       + (clipF ? toggleRow(t('Clip children'), clipF, boolOf(b[clipF], true)) : '')
@@ -1434,12 +1435,14 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // a nested <button>, which is invalid markup: the parser closed the head
     // button early and carried the caret out with it.
     return (rows.length === 1 && actions.editText ? doorBtn(t('Edit on the canvas'), 'edittext', 'pen') : '')
+      + (actions.useAsInput ? doorBtn(t('Use text as input'), 'input-text', 'sliders') : '')
       + choice(t('Font'), cfg.fontField, fonts?.options() ?? [])
       + (cfg.fontSizeField ? `<div class="fc-row"><span>${t('Size')}</span><div class="fc-stepper">`
         + `<button type="button" class="fc-cbtn" data-act="smaller" aria-label="${escape(t('Smaller text'))}">A-</button>`
         + numCell('', cfg.fontSizeField, num(cfg.fontSizeField, 48, 1, 2000), { name: t('Size'), min: 4, max: 2000, unit: 'px' })
         + `<button type="button" class="fc-cbtn" data-act="bigger" aria-label="${escape(t('Bigger text'))}">A+</button></div></div>` : '')
       + (cfg.textColorField ? colorRow(t('Text colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField)) : '')
+      + (cfg.textColorField && actions.useAsInput ? doorBtn(t('Use colour as input'), 'input-fg', 'sliders') : '')
       + align
       // Vertical align sits WITH horizontal align, because that is the pair
       // people look for (Andy, 2026-09-23). It used to be four rows further
@@ -1470,6 +1473,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       ? fit.map(([v, l]) => [v, l, ({ contain: FIELD_GLYPH.fitContain, cover: FIELD_GLYPH.fitCover, fill: FIELD_GLYPH.fitFill } as Record<string, string>)[v]])
       : [['contain', t('Contain'), FIELD_GLYPH.fitContain], ['cover', t('Cover (crop)'), FIELD_GLYPH.fitCover], ['fill', t('Stretch'), FIELD_GLYPH.fitFill]];
     return doorBtn(t('Set image'), 'pickimage', 'uploadImage')
+      + (actions.useAsInput ? doorBtn(t('Use image as input'), 'input-image', 'sliders') : '')
       + (cfg.fitField ? segRow(FIELD_GLYPH.fitContain, t('Image fit'), segHtml(cfg.fitField, String(fv(b, cfg.fitField) ?? 'contain'), fitChoices, t('Image fit'))) : '')
       + (cfg.imgPosField ? segRow(FIELD_GLYPH.fitPos, t('Image position'), posGridHtml(cfg.imgPosField, String(fv(b, cfg.imgPosField) ?? 'center'), t('Image position'))) : '');
   }
@@ -1975,6 +1979,10 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         const ids = [...renderedIds];
         switch (btn.dataset.act) {
           case 'documentsize': actions.openDocumentSize?.(btn); break;
+          case 'input-text': actions.useAsInput?.(ids, 'text'); break;
+          case 'input-image': actions.useAsInput?.(ids, 'image'); break;
+          case 'input-fg': actions.useAsInput?.(ids, 'fg'); break;
+          case 'input-fill': actions.useAsInput?.(ids, 'fill'); break;
           case 'edittext': if (ids[0]) actions.editText?.(ids[0]); break;
           case 'delete-guide': if (renderedGuideId) opts.guides?.remove(renderedGuideId); break;
           case 'gradient': actions.openGradient(ids); break;

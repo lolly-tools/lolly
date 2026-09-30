@@ -98,17 +98,17 @@
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1567,
-      "largestFunctionLines": 1505,
+      "lines": 1570,
+      "largestFunctionLines": 1503,
       "importFanIn": 1,
       "importFanOut": 55,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2726,
-      "largestFunctionLines": 1940,
+      "lines": 2721,
+      "largestFunctionLines": 1930,
       "importFanIn": 3,
-      "importFanOut": 51,
+      "importFanOut": 53,
       "typeEscapes": 1
     }
   },
@@ -403,7 +403,7 @@
     "shells/web/src/views/start/pdf.ts": 3,
     "shells/web/src/views/start/rooms.ts": 2,
     "shells/web/src/views/start/site.ts": 3,
-    "shells/web/src/views/start/tokens.ts": 3,
+    "shells/web/src/views/start/tokens.ts": 1,
     "shells/web/src/views/timeline-captions.ts": 1,
     "shells/web/src/views/timeline-math.ts": 1,
     "shells/web/src/views/timeline-panel/clips.ts": 2,

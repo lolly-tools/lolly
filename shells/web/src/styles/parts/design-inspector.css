@@ -227,9 +227,9 @@
 }
 .fc-insp-hint {
   margin: 0;
-  padding: var(--sp-4);
+  padding: var(--sp-4) 0;
   color: var(--ui-color-text-muted);
-  font-size: var(--fs-sm);
+  font-size: calc(var(--fs-sm) * 0.8);
 }
 
 /* The same structural Design check MCP exposes, kept compact enough to lead the

@@ -30,19 +30,16 @@ A deterministic build-gate exists in Lolly's codebase to keep code and documenta
 
 **Generative AI disclosure:**
 
-- **LLM-written code:** Opus 4.8, Gemini 3.1, Qwen3-Coder-Next (this list may expand)
-- **LLM discovery:** Gemini 3.1, Fable
+- **LLM-written code:** Opus 4.8, Gemini 3.1, Qwen3-Coder-Next, Codex Sol (this list may expand)
+- **LLM discovery:** Gemini 3.1, Fable, Codex Astra
 - **Documentation:** Sonnet 5
-- **Open source libraries:** their respective authors, expressed in the SBOM, comments and file headers
+- **Open source libraries:** Their respective authors, expressed in the SBOM, comments and file headers
 
 This list does not include models vendored into Lolly.
 
 **Human claims:**
-
-- **Architecture:** Andy Fitzsimon
-- **Art direction:** Andy Fitzsimon
-- **Human-written code:** Andy Fitzsimon
-- **Ideation, review and feedback:** Ravan Naidoo, Matthias Eckermann, Kelly Andrews, Ryan Kleeman, Peter Chamalian, the Penpot Community (list not exhaustive)
+- **Ideation, review and feedback:** Ravan Naidoo, Matthias Eckermann, Kelly Andrews, Ryan Kleeman, Peter Chamalian, the Penpot Community, Tim Hildred (list not exhaustive)
+- **Architecture, art direction & slop janitor:** Andy Fitzsimon
 
 ## What are the feature flags?
 

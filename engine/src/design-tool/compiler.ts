@@ -26,11 +26,11 @@ export function compileDesignTool(
   const policy = designToolPolicy(definition);
   const manifest = {
     id: definition.id, name: definition.name, version: definition.version,
-    engineVersion: composed?'^1.217.0':'^1.199.0', description: 'Share your design with your rules.',
+    engineVersion: composed?'^1.217.0':'^1.199.0', description: definition.description || 'Share your design with your rules.',
     category: 'designer', tags: ['design', 'template'], status: 'community', isolate: true,
     render: { width: first.width, height: first.height, formats: definition.formats, dims: false, units: false },
     designTool: policy,
-    inputs: definition.inputs.map(f => ({ ...f.input, ...(f.common?.source === 'profile' ? { bindToProfile: f.common.key } : {}) })),
+    inputs: [...definition.inputs].sort((a, b) => Number(a.input.section === 'More options') - Number(b.input.section === 'More options')).map(f => ({ ...f.input, ...(f.common?.source === 'profile' ? { bindToProfile: f.common.key } : {}) })),
     hooks: { onInit: true, onInput: true },
   } as ToolManifest;
   const json = JSON.stringify(definition).replace(/</g, '\\u003c');

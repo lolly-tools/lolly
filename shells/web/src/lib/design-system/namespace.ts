@@ -16,6 +16,7 @@
  */
 import { designMaterialOf, designSystemNamespace } from '../../../../../engine/src/design-system.ts';
 import { FROZEN_PREFIX } from '../../bridge/version-assets-contract.ts';
+import { mapBrandResourceIds } from '../../../../../engine/src/brand-resources.ts';
 
 /** The legacy namespace: the migrated default system's, and the shape every
  *  brand pack is written in, whichever system it came from. */
@@ -81,5 +82,5 @@ export function rewriteAssetRefs(node: unknown, rekey: Rekey): unknown {
     for (const [key, v] of Object.entries(value)) out[key] = key === '$value' ? remap(v) : walk(v);
     return out;
   };
-  return walk(node);
+  return mapBrandResourceIds(walk(node), rekey);
 }

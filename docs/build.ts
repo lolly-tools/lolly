@@ -116,6 +116,9 @@ type Lang = (typeof LANGS)[number];
 // Social crawlers (Slack, X, Facebook, LinkedIn, iMessage) require absolute og:image URLs.
 const SITE_URL = 'https://lolly.tools';
 const REPO_URL = 'https://github.com/lolly-tools/lolly';
+const CODE_LICENSE_URL = 'https://www.mozilla.org/en-US/MPL/2.0/';
+const CONTENT_LICENSE_URL = 'https://creativecommons.org/licenses/by-sa/4.0/';
+const DOCS_LICENSE_MD = `Code ([MPL 2.0](${CODE_LICENSE_URL})) · Content ([CC BY-SA 4.0](${CONTENT_LICENSE_URL})) · [lolly.tools](${SITE_URL})`;
 // "Founded by SUSE" badge - reused at the same size in the hero, the social-proof
 // block, and the footer. Always links to suse.com in a new window.
 const FOUNDED_BY = `<a class="founded-badge" href="https://www.suse.com" target="_blank" rel="noopener" aria-label="Founded by SUSE"><img src="/info/founded-by.svg" alt="Founded by SUSE"></a>`;
@@ -311,6 +314,7 @@ const pages: Page[] = [
   { slug: 'cli',              title: 'CLI',               src: 'cli.md',             pathway: 'builders' },
   { slug: 'cli-rendering', title: 'Render with the CLI', src: 'cli-rendering.md', pathway: 'builders', description: "Choose export options, troubleshoot the browser renderer and render timelines or links." },
   { slug: 'cli-files', title: 'CLI file and media utilities', src: 'cli-files.md', pathway: 'builders', description: "Process local files, redactions, speech and on-device models." },
+  { slug: 'production-checks', title: 'Production checks', src: 'production-checks.md', pathway: 'builders', description: 'Inspect final files against explicit requirements, compare references, and apply permitted repairs with retained evidence.' },
   { slug: 'cli-automation', title: 'CLI batch and automation', src: 'cli-automation.md', pathway: 'builders', description: "Run local batches and CI, or use optional lolly.work for persistent organisation render jobs, batches and governed delivery." },
   { slug: 'cli-reference', title: 'CLI verification and configuration', src: 'cli-reference.md', pathway: 'builders', description: "Verify files, inspect metadata, configure completion and find local state." },
   { slug: 'cli-signing',      title: 'Signing from the terminal', src: 'cli-signing.md', pathway: 'operators', description: "Set up a real signing identity for the CLI, so files made from the terminal carry a verifiable name rather than an anonymous on-device key." },
@@ -620,6 +624,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'cli-rendering', label: 'Render with the CLI' },
         { slug: 'cli-files', label: 'CLI file and media utilities' },
         { slug: 'cli-automation', label: 'CLI batch and automation' },
+        { slug: 'production-checks', label: 'Production checks' },
         { slug: 'cli-reference', label: 'CLI verification and configuration' },
         { slug: 'cli-signing', label: 'Signing from the terminal' } ] },
       { label: 'Run & integrate', items: [
@@ -3740,6 +3745,7 @@ footer a:hover{color:var(--dark)}
 .sitemap-disclosure>summary{width:fit-content;margin:0 auto;cursor:pointer;font-weight:600;padding:.5rem}
 .sitemap-expanded{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:2rem;margin-top:2rem}
 footer .founded-badge{margin-top:.5rem}
+.docs-license{margin:.5rem 0 0;font-size:.6875rem;font-weight:300;line-height:1.6}
 /* Footer sitemap - the whole docs set, ten columns (see FOOTER_SECTIONS).
    auto-fit is right for a handful of columns and wrong for ten: it maximises the
    count, so 1180px yields seven and the last three sit alone on a second row under
@@ -5326,7 +5332,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
     'contributing-setup', 'ios-build', 'about'] },
   { hub: 'builders', label: 'Write a tool', slugs: ['tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files', 'tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing'] },
   { hub: 'builders', label: 'URL reference', slugs: ['url-inputs', 'url-parameters', 'url-export', 'url-app-links'] },
-  { hub: 'builders', label: 'CLI guides', slugs: ['cli-rendering', 'cli-files', 'cli-automation', 'cli-reference'] },
+  { hub: 'builders', label: 'CLI guides', slugs: ['cli-rendering', 'cli-files', 'cli-automation', 'production-checks', 'cli-reference'] },
   { hub: 'operators', label: 'Build targets', slugs: ['build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes'] },
   { hub: 'trust', label: 'Trust', slugs: [
     'tenets', 'status-quo', 'input-not-impersonation', 'content-credentials-identity',
@@ -5406,7 +5412,7 @@ function footerSitemap(lang: Lang, compact = false): string {
   return `<div role="navigation" class="footer-sitemap" aria-label="${esc(t('Sitemap'))}">${body}</div>`;
 }
 
-const FOOTER = (lang: Lang, compact = false) => `<footer>${footerSitemap(lang, compact)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a></p>${compact ? '' : `<p>${esc(t('Questions? Contact Andy Fitzsimon -'))} <a href="mailto:fitzy@suse.com">fitzy@suse.com</a></p>`}${FOUNDED_BY}</footer>`;
+const FOOTER = (lang: Lang, compact = false) => `<footer>${footerSitemap(lang, compact)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a> · <a href="${localeHref(lang, 'shoulders-of-giants')}">${esc(t('Provenance'))}</a> · <a href="${localeHref(lang, 'faq')}">${esc(t('FAQ'))}</a></p>${compact ? '' : `<p>${esc(t('Questions? Contact Andy Fitzsimon -'))} <a href="mailto:fitzy@suse.com">fitzy@suse.com</a></p>`}${FOUNDED_BY}<p class="docs-license">${esc(t('Code'))} (<a href="${CODE_LICENSE_URL}">MPL 2.0</a>) · ${esc(t('Content'))} (<a rel="license" href="${CONTENT_LICENSE_URL}">CC BY-SA 4.0</a>) · <a href="${SITE_URL}">lolly.tools</a></p></footer>`;
 
 // Docs sidebar for a page, driven by its pathway. Falls back to the builders
 // sidebar for any non-landing page without an explicit pathway.
@@ -5445,7 +5451,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   overview: 'layers', 'design-tokens': 'hash', glossary: 'document', 'document-model': 'layers', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
   'host-api': 'code', 'url-mode': 'link',
   'build-terminal': 'box', 'build-desktop': 'box', 'build-mobile': 'box', 'build-obs': 'box', 'build-kubernetes': 'box',
-  'cli-rendering': 'code', 'cli-files': 'code', 'cli-automation': 'code', 'cli-reference': 'code',
+  'production-checks': 'check', 'cli-rendering': 'code', 'cli-files': 'code', 'cli-automation': 'code', 'cli-reference': 'code',
   'url-inputs': 'link', 'url-parameters': 'link', 'url-export': 'link', 'url-app-links': 'link',
   'tool-manifest': 'wrench', 'tool-inputs': 'wrench', 'tool-structured-inputs': 'wrench', 'tool-files': 'wrench', 'tool-rendering': 'wrench', 'tool-starters': 'wrench', 'tool-hooks': 'wrench', 'tool-composition': 'wrench', 'tool-publishing': 'wrench',
   // Builders - run & integrate
@@ -6050,6 +6056,7 @@ ${mast ? mast.band : pathwaysBand(strip)}
 <meta name="description" content="${esc(description)}">
 ${page.author ? `<meta name="author" content="${esc(page.author)}">` : ''}
 <link rel="canonical" href="${esc(localeUrl)}">
+<link rel="license" href="${CONTENT_LICENSE_URL}">
 ${alternates}${seal}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Lolly">
@@ -6086,7 +6093,7 @@ ${DOCS_JS_TAG}
 }
 
 // ── llms.txt + markdown twins ─────────────────────────────────────────────────
-// Alongside each English HTML page the build emits a verbatim markdown twin at
+// Alongside each English HTML page the build emits a markdown twin with its licence at
 // /info/<slug>.md, indexed by /info/llms.txt (https://llmstxt.org) - the
 // agent-readable face of the docs. English only by design; locale sidecars stay
 // HTML-only.
@@ -6134,6 +6141,8 @@ function buildLlmsTxt(mdBySlug: Map<string, string>): string {
 Every page below is also served as plain markdown - a twin of the HTML page at
 the same slug under ${SITE_URL}/info/ - so fetch the .md URL directly. English
 only. Product landing copy: ${SITE_URL}/info/index.md
+
+${DOCS_LICENSE_MD}
 
 The whole corpus in one file: ${SITE_URL}/llms-full.txt. The short guide for
 agents (entry points, URL grammar, how to get bytes): ${SITE_URL}/agents.md. The
@@ -6405,11 +6414,12 @@ async function build() {
           // re-derived, so the claim names the source this page really came from.
           source: relative(repoRoot, srcPath).split(sep).join('/'),
         });
-        // Markdown twin: the verbatim English source, published next to the HTML
+        // Markdown twin: the English source and licence, published next to the HTML
         // so agents (and llms.txt below) can read the docs without a DOM.
         // The formats page's table is built at render time; its twin gets the same register as a list.
         const twinSrc = page.slug === 'formats' ? md.replace(FORMATS_TABLE_MARK, formatsMarkdown()) : md;
-        const twin = stripLogoMarkers(unwrapComponentFences(unwrapFigureFences(unwrapProvenanceMarkers(commentStandaloneProvenanceLines(stripFrontMatter(twinSrc))))));
+        const twinBody = stripLogoMarkers(unwrapComponentFences(unwrapFigureFences(unwrapProvenanceMarkers(commentStandaloneProvenanceLines(stripFrontMatter(twinSrc))))));
+        const twin = `${twinBody.trimEnd()}\n\n---\n\n${DOCS_LICENSE_MD}\n`;
         // Written at the DOORED path beside its HTML (/info/<door>/<slug>.md):
         // the search index records carry the doored path and the in-app Ask
         // fetches `/info/<p>.md` from it (lib/ask/answer.ts), so a flat twin
@@ -6480,7 +6490,8 @@ async function build() {
   for (const [rel, body] of Object.entries(specFiles)) {
     const path = resolve(outDir, rel);
     mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, body, 'utf-8');
+    const published = rel.endsWith('.md') ? `${body.trimEnd()}\n\n---\n\n${DOCS_LICENSE_MD}\n` : body;
+    writeFileSync(path, published, 'utf-8');
   }
   if (Object.keys(specFiles).length) {
     console.log(`✓  /info/${SPEC_BASE}/ (${Object.keys(specFiles).length - 2} chapters, the index and the whole draft in one file)`);

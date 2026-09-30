@@ -455,7 +455,7 @@ Derselbe Lebenszyklus in Tauri. Derselbe Lebenszyklus in der CLI - jsdom stellt 
 
 ## Open-Source-Status
 
-**Code steht unter MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` und `docs/` sind Open Source unter **MPL-2.0** - eine anbieterneutrale Scaffolding-Plattform für Brand-Tooling, alles in einem einzigen öffentlichen Repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Code steht unter MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` und `docs/*.ts` sind Open Source unter **MPL-2.0** - eine anbieterneutrale Scaffolding-Plattform für Brand-Tooling, alles in einem einzigen öffentlichen Repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Tool-Inhalte werden als Brand-Packs ausgeliefert**, jedes mit eigenen Bedingungen (siehe die `NOTICE.md` des jeweiligen Packs). `community/` ist ein Verzeichnis dieses Repositorys, und seine markenunabhängigen Tools stehen ebenfalls unter MPL-2.0. `brands/suse/` ist das private Pack `suse-lolly`, das einzige Submodul: die SUSE-Tools und der SUSE-Katalog, **proprietär für SUSE**, einschließlich der lizenzierten PremiumBeat-Musik. `brands/lolly-start/` ist die leere Starter-Marke, die diesem Repository gehört. Schriften werden innerhalb eines Packs unter der **SIL Open Font License 1.1** ausgeliefert - das SUSE-Pack enthält die Schriftschnitte SUSE und SUSE Mono.
 

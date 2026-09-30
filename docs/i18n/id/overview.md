@@ -455,7 +455,7 @@ Siklus hidup yang sama di Tauri. Siklus hidup yang sama di CLI - jsdom menyediak
 
 ## Status open source
 
-**Kode berlisensi MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` dan `docs/` adalah open source di bawah **MPL-2.0** - platform scaffolding netral vendor untuk tooling brand, semuanya dalam satu repositori publik, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Kode berlisensi MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` dan `docs/*.ts` adalah open source di bawah **MPL-2.0** - platform scaffolding netral vendor untuk tooling brand, semuanya dalam satu repositori publik, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Konten alat dikirim sebagai paket brand (brand pack)**, masing-masing dengan ketentuannya sendiri (lihat `NOTICE.md` paket tersebut). `community/` adalah direktori dari repositori ini dan alat-alatnya yang agnostik terhadap brand juga berlisensi MPL-2.0. `brands/suse/` adalah paket privat `suse-lolly`, satu-satunya submodul: alat SUSE dan katalog SUSE, **milik eksklusif SUSE**, termasuk musik PremiumBeat yang dilisensikannya. `brands/lolly-start/` adalah brand starter kosong yang dimiliki oleh repositori ini. Font dikirim di dalam sebuah paket di bawah **SIL Open Font License 1.1** - paket SUSE membawa typeface SUSE dan SUSE Mono.
 

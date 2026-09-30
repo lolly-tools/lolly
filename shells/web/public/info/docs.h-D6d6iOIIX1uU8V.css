@@ -3210,6 +3210,7 @@ footer a:hover{color:var(--dark)}
 .sitemap-disclosure>summary{width:fit-content;margin:0 auto;cursor:pointer;font-weight:600;padding:.5rem}
 .sitemap-expanded{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:2rem;margin-top:2rem}
 footer .founded-badge{margin-top:.5rem}
+.docs-license{margin:.5rem 0 0;font-size:.6875rem;font-weight:300;line-height:1.6}
 /* Footer sitemap - the whole docs set, ten columns (see FOOTER_SECTIONS).
    auto-fit is right for a handful of columns and wrong for ten: it maximises the
    count, so 1180px yields seven and the last three sit alone on a second row under

@@ -49,6 +49,7 @@ test('designer UI produces one portable tool; clean reader exports offline and p
       if (!await row.evaluate(el => (el as HTMLDetailsElement).open)) await row.locator('summary').first().click();
       await row.locator('[data-rule="default"]').fill(value!); await row.locator('[data-rule="default"]').press('Tab');
     }
+    await author.getByText('Tool setup', {exact:true}).click();
     await author.locator('[data-presentation]').selectOption('on-canvas');
     await author.screenshot({path:`${output}/author-rules.png`});
     if (process.env.LOLLY_DESIGN_TOOL_SHOTS) {
@@ -142,7 +143,7 @@ test('designer UI produces one portable tool; clean reader exports offline and p
     await reader.setViewportSize({width:640,height:900}); await reader.waitForTimeout(350);
     await reader.screenshot({path:`${output}/reader-mobile.png`});
     await reader.setViewportSize({width:390,height:844}); await reader.waitForTimeout(150);
-    await reader.getByRole('button',{name:'Edit inputs',exact:true}).click();
+    await reader.getByRole('button',{name:'Preview',exact:true}).click();
     assert.equal(await reader.getByRole('button',{name:'Edit inputs',exact:true}).getAttribute('aria-expanded'),'false');
     await reader.getByRole('button',{name:'Edit inputs',exact:true}).click();
     await reader.screenshot({path:`${output}/reader-phone.png`});
@@ -290,7 +291,7 @@ test('Rules selection, Preview gestures and fitted text obey authored bounds', {
     for(const [key,value] of [['x:min','20'],['x:max','70'],['y:min','10'],['y:max','60'],['zoom:max','180']]) {const control=position.locator(`[data-rule="vector:${key}"]`);await control.fill(value!);await control.press('Tab');}
     await page.locator('#tool-canvas [data-box-id="title"]').click();await page.getByRole('button',{name:'Make editable',exact:true}).click();
     const title=page.locator('.dr-input[data-field="title"]');await title.locator('.dr-advanced > summary').click();
-    await page.locator('#tool-canvas [data-box-id="copy"]').click();await title.getByRole('button',{name:'Link selection',exact:true}).click();
+    await page.locator('#tool-canvas [data-box-id="copy"]').click();await title.getByRole('button',{name:'Link selected objects to this input',exact:true}).click();
     assert.equal(await title.locator('[data-act="unlink"]').count(),2);
     await title.locator('[data-rule="fit"]').selectOption('shrink');await title.locator('[data-rule="min"]').fill('16');await title.locator('[data-rule="min"]').press('Tab');
     await title.locator('[data-rule="target:1:min"]').fill('16');await title.locator('[data-rule="target:1:min"]').press('Tab');await title.locator('[data-rule="sharedSize"]').check();
@@ -316,6 +317,7 @@ test('Rules selection, Preview gestures and fitted text obey authored bounds', {
     await page.screenshot({path:`${output}/author-gestures.png`});
     await page.locator('.dr-toolbar [data-mode="rules"]').click();await title.locator('[data-act="unlink"]').last().click();assert.equal(await title.locator('[data-act="unlink"]').count(),1);
     const cancelled=page.locator('[data-share]');await cancelled.click();await page.getByRole('button',{name:'Check file',exact:true}).click();await page.getByRole('button',{name:'Back',exact:true}).click();assert.equal(await page.getByRole('dialog',{name:'Share tool'}).count(),0);
+    await page.getByText('Tool setup',{exact:true}).click();
     await page.getByRole('button',{name:'Find content',exact:true}).click();await page.getByRole('searchbox').fill('Copy');await page.getByRole('button',{name:/Artboard · Copy/}).click();assert.equal(await page.locator('#tool-canvas [data-box-id="copy"]').evaluate(el=>el.classList.contains('dr-selected')),true);
     assert.deepEqual(errors,[]);
   }finally{await browser.close();}
@@ -330,12 +332,14 @@ test('an awaited file chooser imports Rules into the destination and remounts th
     await page.goto(`${origin}/t/qr-code?url=https%3A%2F%2Flolly.tools`);
     await page.locator('#tool-canvas svg').first().waitFor();
     for(let pass=0;pass<2;pass++) {
+      const previousToolbar = pass ? await page.locator('.dr-toolbar').elementHandle() : null;
       await page.evaluate(async bytes=>{
         const router='/src/lib/drop-router.ts', bridge='/src/bridge/index.ts';
         const {openDropChooser}=await import(router);const {createBridge}=await import(bridge);
         void openDropChooser([new File([new Uint8Array(bytes)],'Course.pdf',{type:'application/pdf'})],await createBridge());
       },bytes);
       await page.getByRole('button',{name:/Share with rules/}).click();
+      if (previousToolbar) await page.waitForFunction(el => !el.isConnected, previousToolbar);
       await page.locator('.dr-toolbar [data-mode="rules"]').waitFor({timeout:60_000});
       const heading=page.locator('#tool-canvas .lolly-box-text').getByText('A complete course heading',{exact:true});
       await heading.waitFor();
@@ -345,6 +349,7 @@ test('an awaited file chooser imports Rules into the destination and remounts th
       await heading.click();await page.getByRole('button',{name:'Make editable',exact:true}).click();
       assert.equal(await page.locator('.dr-input').count(),1);
       if(pass===0) {
+        await page.getByText('Tool setup',{exact:true}).click();
         await page.getByRole('button',{name:'Compare with source',exact:true}).click();
         const comparison=page.getByRole('dialog',{name:'Compare source and Design'});
         for(const width of [640,390]) {

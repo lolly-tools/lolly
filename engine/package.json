@@ -1,6 +1,6 @@
 {
   "name": "@lolly/engine",
-  "version": "1.231.0",
+  "version": "1.235.0",
   "//version": "Tracks ENGINE_VERSION in src/version.ts - the published package version IS the engine version. scripts/pack-engine.ts asserts they match before packing.",
   "description": "Platform-agnostic engine for Lolly. Loads tool manifests, renders inputs, hydrates templates, drives exports through the capability bridge.",
   "license": "MPL-2.0",
@@ -14,7 +14,10 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./bridge/v1": "./src/bridge/host-v1.ts"
+    "./bridge/v1": "./src/bridge/host-v1.ts",
+    "./brand-policy": "./src/brand-policy.ts",
+    "./production": "./src/production.ts",
+    "./production/types": "./src/production/types.ts"
   },
   "scripts": {
     "test": "node --test \"../tests/**/*.test.ts\"",

@@ -1,7 +1,7 @@
 {
   "id": "3d-studio",
   "name": "3D Studio",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "engineVersion": ">=1.205.0",
   "status": "official",
   "singleInstance": true,
@@ -71,56 +71,6 @@
   },
   "inputs": [
     {
-      "id": "controls",
-      "label": "Controls",
-      "type": "select",
-      "default": "guided",
-      "section": "Start",
-      "options": [
-        {
-          "value": "guided",
-          "label": "Guided"
-        },
-        {
-          "value": "expert",
-          "label": "Expert"
-        }
-      ]
-    },
-    {
-      "id": "source",
-      "label": "Start with",
-      "type": "select",
-      "default": "primitive",
-      "section": "Start",
-      "options": [
-        {
-          "value": "primitive",
-          "label": "A sample shape"
-        },
-        {
-          "value": "artwork",
-          "label": "SVG artwork"
-        },
-        {
-          "value": "model",
-          "label": "A 3D model"
-        },
-        {
-          "value": "text",
-          "label": "Words in the brand font"
-        },
-        {
-          "value": "collection",
-          "label": "A collection"
-        },
-        {
-          "value": "arrangement",
-          "label": "Several objects together"
-        }
-      ]
-    },
-    {
       "id": "primitive",
       "label": "Shape",
       "type": "select",
@@ -173,6 +123,68 @@
       "help": "Choose or upload a self-contained GLB or STL up to 32 MB. Uploads are saved on this device for reuse."
     },
     {
+      "id": "words",
+      "label": "Words",
+      "type": "longtext",
+      "default": "Hello",
+      "section": "Start",
+      "showIf": {
+        "source": "text"
+      },
+      "rows": 2,
+      "help": "Up to eight lines and 200 characters, set in the brand font and extruded like artwork."
+    },
+    {
+      "id": "source",
+      "label": "Start with",
+      "type": "select",
+      "default": "primitive",
+      "section": "Start",
+      "options": [
+        {
+          "value": "primitive",
+          "label": "A sample shape"
+        },
+        {
+          "value": "artwork",
+          "label": "SVG artwork"
+        },
+        {
+          "value": "model",
+          "label": "A 3D model"
+        },
+        {
+          "value": "text",
+          "label": "Words in the brand font"
+        },
+        {
+          "value": "collection",
+          "label": "A collection"
+        },
+        {
+          "value": "arrangement",
+          "label": "Several objects together"
+        }
+      ]
+    },
+    {
+      "id": "controls",
+      "label": "Controls",
+      "type": "select",
+      "default": "guided",
+      "section": "Start",
+      "options": [
+        {
+          "value": "guided",
+          "label": "Guided"
+        },
+        {
+          "value": "expert",
+          "label": "Expert"
+        }
+      ]
+    },
+    {
       "id": "modelFormat",
       "label": "Model format",
       "type": "select",
@@ -196,18 +208,6 @@
         "source": "model",
         "controls": "expert"
       }
-    },
-    {
-      "id": "words",
-      "label": "Words",
-      "type": "longtext",
-      "default": "Hello",
-      "section": "Start",
-      "showIf": {
-        "source": "text"
-      },
-      "rows": 2,
-      "help": "Up to eight lines and 200 characters, set in the brand font and extruded like artwork."
     },
     {
       "id": "wordFont",

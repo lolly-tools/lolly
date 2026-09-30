@@ -39,6 +39,7 @@
  * Design top bar, the stage zoom HUD) can follow what is docked without polling.
  */
 import { t } from '../i18n.ts';
+import { mountTooltips } from './tooltips.ts';
 import './edge-dock.css';
 import { clamp } from '@lolly/engine';
 
@@ -121,13 +122,7 @@ let geom: DockGeom = load();
 let col: HTMLElement | null = null;
 let body: HTMLElement | null = null;
 let preview: HTMLElement | null = null;
-// Docked panels scroll and clip their contents, so the ordinary `data-tip`
-// pseudo-element cannot promise to stay visible there. One body-level bubble
-// is deliberately owned by the dock and positioned against the hovered/focused
-// control. It is visual-only (the triggering control keeps its own accessible
-// name), never intercepts a pointer, and is removed with the column.
-let dockTooltip: HTMLElement | null = null;
-let dockTooltipTarget: HTMLElement | null = null;
+let releaseTooltips: (() => void) | undefined;
 let resizeBound = false;
 const dockListeners = new Set<DockChangeListener>();
 let notifying = false;
@@ -154,72 +149,6 @@ function isRTL(): boolean {
 }
 
 
-function hideDockTooltip(): void {
-  if (dockTooltipTarget) delete dockTooltipTarget.dataset.dockTipManaged;
-  dockTooltipTarget = null;
-  if (dockTooltip) dockTooltip.hidden = true;
-}
-
-function onDockTooltipResize(): void { hideDockTooltip(); }
-
-/** Place the dock tooltip inside the viewport, preferring above the trigger and
- * falling below only when the dock's top edge would clip it. */
-function showDockTooltip(target: HTMLElement): void {
-  const label = target.getAttribute('data-tip')?.trim();
-  if (!label || !col?.contains(target)) { hideDockTooltip(); return; }
-  if (!dockTooltip) {
-    dockTooltip = document.createElement('div');
-    dockTooltip.className = 'edge-dock-tooltip';
-    dockTooltip.setAttribute('role', 'tooltip');
-    dockTooltip.hidden = true;
-    document.body.appendChild(dockTooltip);
-  }
-  if (dockTooltipTarget && dockTooltipTarget !== target) delete dockTooltipTarget.dataset.dockTipManaged;
-  dockTooltipTarget = target;
-  target.dataset.dockTipManaged = '';
-  dockTooltip.textContent = label;
-  dockTooltip.hidden = false;
-  // Measure offscreen first: it avoids a visible 0,0 frame and lets a long
-  // label be clamped against either viewport edge rather than its scroll slot.
-  dockTooltip.style.left = '-9999px';
-  dockTooltip.style.top = '-9999px';
-  const anchor = target.getBoundingClientRect();
-  const bubble = dockTooltip.getBoundingClientRect();
-  const margin = 8;
-  const left = Math.max(margin, Math.min(anchor.left + anchor.width / 2 - bubble.width / 2, window.innerWidth - bubble.width - margin));
-  const above = anchor.top - bubble.height - margin;
-  const top = above >= margin ? above : Math.min(window.innerHeight - bubble.height - margin, anchor.bottom + margin);
-  dockTooltip.style.left = `${Math.round(left)}px`;
-  dockTooltip.style.top = `${Math.round(Math.max(margin, top))}px`;
-}
-
-function wireDockTooltips(root: HTMLElement): void {
-  const trigger = (node: EventTarget | null): HTMLElement | null =>
-    node && typeof (node as { closest?: unknown }).closest === 'function'
-      ? (node as HTMLElement).closest<HTMLElement>('[data-tip]') : null;
-  root.addEventListener('pointerover', (event) => {
-    const target = trigger(event.target);
-    if (target) showDockTooltip(target);
-  });
-  root.addEventListener('pointerout', (event) => {
-    const target = trigger(event.target);
-    if (target && target === dockTooltipTarget && !target.contains(event.relatedTarget as Node | null)) hideDockTooltip();
-  });
-  root.addEventListener('focusin', (event) => {
-    const target = trigger(event.target);
-    if (target) showDockTooltip(target);
-  });
-  root.addEventListener('focusout', () => {
-    queueMicrotask(() => {
-      if (!dockTooltipTarget || !dockTooltipTarget.matches(':focus')) hideDockTooltip();
-    });
-  });
-  // A scrolled trigger no longer has the geometry the bubble was placed from;
-  // hiding it is honest, and the next hover/focus repositions it precisely.
-  root.addEventListener('scroll', hideDockTooltip, true);
-  window.addEventListener('resize', onDockTooltipResize, { passive: true });
-}
-
 function ensureColumn(): void {
   if (col) return;
   col = document.createElement('aside');
@@ -231,7 +160,7 @@ function ensureColumn(): void {
   // export panel removed the canvas selection. free-canvas reads this one attribute on
   // any chrome root that holds focusable controls over the canvas.
   col.setAttribute('data-canvas-keys', 'off');
-  wireDockTooltips(col);
+  releaseTooltips = mountTooltips();
 
   const grip = document.createElement('div');
   grip.className = 'edge-dock-grip resize-grip';
@@ -265,10 +194,7 @@ function ensureColumn(): void {
 
 function teardownColumn(): void {
   if (!col) return;
-  hideDockTooltip();
-  window.removeEventListener('resize', onDockTooltipResize);
-  dockTooltip?.remove();
-  dockTooltip = null;
+  releaseTooltips?.(); releaseTooltips = undefined;
   col.remove();
   col = null; body = null;
   document.documentElement.removeAttribute('data-edge-dock');

@@ -57,6 +57,13 @@ async function readJson(blob: Blob | null): Promise<unknown> {
   try { return JSON.parse(await blob.text()); } catch { return null; }
 }
 
+/** Plan a new identity without creating an empty system before its files are ready. */
+export async function newDesignSystemRecord(registry: DesignSystemRegistry, opts: { label: string; source?: DesignSystemSource; locked?: boolean }): Promise<DesignSystemRecord> {
+  const id = await uniqueDesignSystemId(registry, opts.label);
+  const now = Date.now();
+  return { id, label: opts.label.trim() || 'My design system', ns: designSystemNamespace(id), headId: designSystemHeadId(id), source: opts.source ?? { kind: 'local' }, locked: !!opts.locked, createdAt: now, lastUsedAt: now };
+}
+
 /**
  * Create a design system. `seedFrom` names the record whose head document seeds
  * the new head (default: the shipped system, so a new system starts as the

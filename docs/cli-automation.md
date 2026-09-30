@@ -83,6 +83,13 @@ Exit codes: **0** it ran and there is nothing to fix, **4** (`REFUSED`) it ran a
 
 The report's `job` member carries the collection context as well as the tool and format - `source`, `modelPhase`, `stageMounted`, `paletteResolved` and an echo of the settings the findings were taken against. A clean report taken headlessly with an unresolved palette and an un-run `onInit` must not look identical to one taken with all three in hand, because the artifact is the copy that travels.
 
+The report's optional `checks` list records execution coverage. Each named
+rule is `completed` or `undetermined`; completion also includes rules that do
+not apply to this job. A rule that throws adds a `check.incomplete` gap and
+contributes no partial measurements. Older reports without `checks` have
+unknown execution coverage. Findings and gaps still qualify the result: exit
+0 does not establish that every production requirement was measured.
+
 Three things it deliberately refuses rather than silently ignoring: `--rate-card` (preflight counts, it does not cost - there are no rates and no money anywhere in it), `--batch` (not implemented yet; a silently-ignored `--batch=rows.csv` would print a confident single-job report that reads like a 50-row answer) and `--out` (removed before GA, with the redirect named in the message).
 
 The finding to know about: if your brand declares a spot ink that is actually a FINISH (a foil, an emboss, a spot varnish, a cutting rule), Lolly writes it as its own named plate whose process fallback is a 100% black mask, in every CMYK sink - the CMYK PDF, the CMYK TIFF and `eps-cmyk` in both the browser and this CLI. It is never given the swatch's own colour build, so a RIP that flattens spots paints an unmistakable mask rather than a plausible metallic. What is still wrong, and what the error actually says: **overprint is implemented nowhere in the platform, so the finish plate knocks out the artwork beneath it**. Agree with your printer how they want the finish supplied before sending the file.
@@ -223,3 +230,8 @@ lolly describe qr-code --json    # one tool's full input schema
 `describe --json` returns each input's declared spec plus three things the manifest cannot know: `flag` (the actual command-line spelling), `urlParam` (the compact alias, when the tool declares one) and `syntax` (how a non-scalar type is expressed). For the handful of inputs whose id collides with a reserved export flag - `width`, `height`, `format` - `flag` is `--input.<id>=` and `shadowedByReservedParam` is `true`, which is exactly the case where reading the bare id off the manifest would set the export size instead of the input.
 
 [Back to CLI](/info/cli.html).
+
+Production still exports can require byte-bound checks and a finite set of
+permitted input repairs. See [Production checks](production-checks.md) for the
+contract, `--production`, `--production-repairs`, reference files and report
+sidecars. Missing required measurements prevent a verified output.

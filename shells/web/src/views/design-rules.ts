@@ -19,12 +19,14 @@ import { announce } from '../a11y.ts';
 import { t } from '../i18n.ts';
 import '../styles/parts/design-rules.css';
 import { registerRulesEditor } from '../lib/rules-launch.ts';
+import { mountRulesWorkspace } from './design-rules-workspace.ts';
 
-export interface DesignRulesHandle { open(): void; rememberSource(file: File): Promise<void>; key(event: KeyboardEvent): boolean; destroy(): void }
+export interface DesignRulesHandle { open(): void; expose(property?: 'text' | 'image' | 'fg' | 'fill'): void; rememberSource(file: File): Promise<void>; key(event: KeyboardEvent): boolean; destroy(): void }
 export interface DesignRulesOptions {
   ports: DesignCanvasPorts; runtime: Runtime; host: HostV1;
   view: HTMLElement; stage: HTMLElement; canvas: HTMLElement;
   size(): { width: number; height: number };
+  workspace?: { fit(): void; preserve(): (() => void) | undefined };
   dirty(): void;
   saveMaster(): void;
 }
@@ -35,7 +37,10 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
   let busy = false;
   const parkedChrome = new Map<HTMLElement, { display: string; inert: boolean }>();
   const parkChrome = (park: boolean): void => {
-    if (park) for (const element of document.querySelectorAll<HTMLElement>('.edge-dock')) {
+    if (park) for (const element of [
+      ...document.querySelectorAll<HTMLElement>('.edge-dock'),
+      ...opts.view.querySelectorAll<HTMLElement>('.design-compact-actions,.design-topbar,.fc-toolbar-dock,.fc-nav,.fc-insp,.fc-overlay,.tl-panel,.stage-zoom'),
+    ]) {
       if (!parkedChrome.has(element)) parkedChrome.set(element, { display: element.style.display, inert: element.inert });
       element.style.display = 'none'; element.inert = true;
     }
@@ -58,6 +63,21 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
   preview.innerHTML = `<div class="dr-preview-controls tool-panel"></div><div class="dr-preview-stage"><button class="btn btn--glass dr-edit-inputs" type="button">${t('Edit inputs')}</button><p class="dr-preview-status" role="status" aria-live="polite"></p><div class="dr-preview-scale"><div id="design-rules-preview-canvas" data-rules-preview-canvas></div></div></div>`;
   opts.view.append(toolbar, panel);
   opts.stage.append(preview);
+  const workspace = mountRulesWorkspace({ stage: opts.stage, panel, toolbar, navigation: opts.workspace });
+  const collapse = document.createElement('button');
+  collapse.type = 'button'; collapse.className = 'btn btn--ghost dr-panel-toggle';
+  collapse.textContent = t('Hide inputs'); collapse.setAttribute('aria-expanded', 'true');
+  collapse.addEventListener('click', () => {
+    const collapsed = panel.classList.toggle('is-collapsed');
+    collapse.textContent = t(collapsed ? 'Show inputs' : 'Hide inputs');
+    collapse.setAttribute('aria-expanded', String(!collapsed)); workspace.refresh();
+  });
+  panel.querySelector('header')!.append(collapse);
+  const scroll = panel.querySelector('.dr-panel-scroll')!;
+  const setup = document.createElement('details'); setup.className = 'dr-advanced dr-setup';
+  const summary = document.createElement('summary'); summary.textContent = t('Tool setup'); setup.append(summary);
+  for (const element of panel.querySelectorAll('.dr-presentation,[data-original],.dr-row-actions,.dr-panel-scroll > .dr-advanced')) setup.append(element);
+  scroll.append(setup);
   const list = panel.querySelector<HTMLElement>('[data-inputs]')!;
   const status = panel.querySelector<HTMLElement>('.dr-status')!;
   const statusText = (message: string): void => { status.textContent = message; preview.querySelector('.dr-preview-status')!.textContent = message; };
@@ -106,18 +126,22 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
     repair.hidden = !ids.length || texts.length === 1 || opts.ports.model.getBoxes().some(b => ids.includes(String(b.id)) && b.kind === 'frame');
     repair.textContent = t(texts.length > 1 ? 'Combine as text' : 'Replace selected artwork with text');
   };
-  const editable = (): void => {
+  const editable = (property?: 'text' | 'image' | 'fg' | 'fill'): void => {
     if (!draft) return;
     let id = '';
     change(() => {
       for (const layerId of opts.ports.selection.get()) {
         const b = opts.ports.model.getBoxes().find(b => b.id === layerId);
-        if (b?.kind === 'text' || b?.text || b?.image) id = makeDesignInput(draft!, layerId, b.kind === 'text' || b.text ? 'text' : 'image')?.input.id || id;
+        if (b && (property || b.kind === 'text' || b.text || b.image)) id = makeDesignInput(draft!, layerId, property || (b.kind === 'text' || b.text ? 'text' : 'image'))?.input.id || id;
       }
     });
     paintList();
     const row = [...list.querySelectorAll<HTMLDetailsElement>('[data-field]')].find(el => el.dataset.field === id);
-    if (row) { row.open = true; row.querySelector<HTMLElement>('[data-rule="label"]')?.focus(); }
+    if (row) {
+      panel.classList.remove('is-collapsed'); collapse.textContent = t('Hide inputs'); collapse.setAttribute('aria-expanded', 'true');
+      row.open = true; row.querySelector<HTMLElement>('[data-rule="label"]')?.focus({ preventScroll: true });
+      row.scrollIntoView({ block: 'nearest' }); workspace.refresh();
+    }
   };
   const reader = mountRulesPreview({root: preview, source: opts.canvas, host: opts.host,
     draft: () => draft!, status: statusText,
@@ -133,6 +157,7 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
       preview.classList.toggle('is-on-canvas', draft.presentation === 'on-canvas');
       opts.view.classList.add('is-design-rules-preview');
       document.body.classList.add('design-rules-active'); updateModes();
+      workspace.set(true);
       await reader.show();
     } catch (error) { statusText((error as Error).message); announce((error as Error).message, {assertive:true}); }
     finally { busy = false; }
@@ -149,6 +174,7 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
     opts.view.classList.toggle('is-design-rules', next === 'rules');
     document.body.classList.toggle('design-rules-active', next === 'rules');
     opts.view.classList.remove('is-design-rules-preview');
+    workspace.set(next === 'rules');
     if (next === 'rules') paintList();
     updateSelection();
     updateModes();
@@ -217,7 +243,7 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
       m.close(); announce(t('Artwork replaced. Review the font and spacing in Design. Undo restores the original objects.'));
     });
   });
-  panel.querySelector('[data-editable]')!.addEventListener('click', editable);
+  panel.querySelector('[data-editable]')!.addEventListener('click', () => editable());
   const commitDraft = (next: DesignToolDraftV1): void => { change(() => { draft = next; }); paintList(); };
   panel.querySelector('[data-choice]')!.addEventListener('click', () => { if (draft) editDesignChoice(draft, opts.ports.selection.get(), opts.host, commitDraft, undefined, ids=>opts.ports.selection.set(ids)); });
   panel.querySelector('[data-layout]')!.addEventListener('click', () => { change(() => addArtboardChoice(draft!)); paintList(); });
@@ -228,10 +254,11 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
     const field = draft?.inputs.find(f => f.input.id === id);
     if (!field || !control.dataset.rule) return;
     change(() => editDesignRule(field, control.dataset.rule!, control.type === 'checkbox' ? control.checked : control.value));
+    if (control.dataset.rule === 'label') control.closest('[data-field]')!.querySelector('summary strong')!.textContent = String(field.input.label);
     const issues = validateDesignTool(draft!).filter(issue => issue.inputId === id);
     control.setAttribute('aria-invalid', String(issues.length > 0));
     control.closest('[data-field]')!.querySelector('.dr-field-error')!.textContent = issues.map(issue => issue.message).join(' ');
-    if (['common', 'source', 'subject'].includes(control.dataset.rule)) paintList();
+    if (['common', 'source', 'subject', 'control'].includes(control.dataset.rule)) paintList();
   });
   list.addEventListener('focusin', event => { const id = (event.target as Element).closest<HTMLElement>('[data-field]')?.dataset.field; const field = draft?.inputs.find(f => f.input.id === id); if (field) {const ids=[...field.targets.map(t=>t.layerId),...draft!.recipes.filter(r=>r.parts.some(p=>'inputId' in p&&p.inputId===id)).map(r=>r.target.layerId)];for(const el of opts.canvas.querySelectorAll<HTMLElement>('[data-box-id]'))el.classList.toggle('dr-affected',ids.includes(el.dataset.boxId!));} });
   list.addEventListener('keydown', event => {
@@ -261,6 +288,13 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
     if (action?.startsWith('approved-')) { void addApprovedProperty(draft, id!, action.slice(9) as 'font' | 'weight' | 'fg' | 'image' | 'text' | 'options', opts.host, commitDraft).catch(err => statusText(String(err.message))); return; }
     if (action === 'up' || action === 'down') { move(index, index + (action === 'up' ? -1 : 1)); return; }
     change(() => {
+      if (action === 'free') {
+        const property = f.targets[0]?.property;
+        if (property === 'text' || property === 'fg' || property === 'fill') {
+          f.input.type = property === 'text' ? String(f.input.default).includes('\n') ? 'longtext' : 'text' : 'color';
+          delete f.input.options; delete f.approved;
+        }
+      }
       if (action === 'remove') { draft!.inputs.splice(index, 1); draft!.choices = draft!.choices.filter(c => c.inputId !== id); draft!.recipes = draft!.recipes.filter(r => !r.parts.some(p => 'inputId' in p && p.inputId === id)); }
       if (action === 'link') for (const layerId of opts.ports.selection.get()) {
         const variant = draft!.variants.find(v => v.boxes.some(b => b.id === layerId));
@@ -289,6 +323,7 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
   const offSelection = opts.ports.selection.onChange(updateSelection);
   const handle: DesignRulesHandle = {
     open,
+    expose(property) { open(); editable(property); },
     async rememberSource(file) {
       await rememberDesignToolSource(opts.runtime, file);
       draft = newDesignToolDraft(variants(), file.name.replace(/\.[^.]+$/, '') || 'Untitled tool');
@@ -315,7 +350,7 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
       else return true;
       event.preventDefault(); event.stopPropagation(); return true;
     },
-    destroy() { unregisterEditor(); document.removeEventListener('keydown',handle.key); parkChrome(false); reader.destroy(); sharing.destroy(); offSelection(); disposeReorder(); selection.destroy(); toolbar.remove(); panel.remove(); preview.remove(); opts.view.classList.remove('is-design-rules', 'is-design-rules-preview'); document.body.classList.remove('design-rules-active'); },
+    destroy() { unregisterEditor(); document.removeEventListener('keydown',handle.key); parkChrome(false); workspace.destroy(); reader.destroy(); sharing.destroy(); offSelection(); disposeReorder(); selection.destroy(); toolbar.remove(); panel.remove(); preview.remove(); opts.view.classList.remove('is-design-rules', 'is-design-rules-preview'); document.body.classList.remove('design-rules-active'); },
   };
   document.addEventListener('keydown',handle.key);
   return handle;

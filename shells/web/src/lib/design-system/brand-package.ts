@@ -116,7 +116,7 @@ export async function buildBrandPackage(
   const counts = { sessions: sessions.length, assets: selected.size, tools: toolPaths.length, references: payload.summary.byReferenceCount };
   entries[README_NAME] = strToU8(new TextDecoder().decode(original[README_NAME]) + `\nSelected local content: ${counts.sessions} sessions, ${counts.assets} files, ${counts.tools} tools.\nRequired session assets travel inside content/collection.lolly. ${counts.references} assets remain external references.\nImport this .lolly in Lolly to add the brand and selected content. Existing sessions are never replaced; tools retain their normal trust prompt.\n`);
   const integrity = await buildIntegrity(entries);
-  const zip = await zipAsync({ 'manifest.json': strToU8(JSON.stringify({ ...manifest, formatVersion: 4, minReader: 2, contents: counts, integrity })), ...entries });
+  const zip = await zipAsync({ 'manifest.json': strToU8(JSON.stringify({ ...manifest, formatVersion: 4, minReader: Math.max(2, Number(manifest.minReader) || 1), contents: counts, integrity })), ...entries });
   return { blob: new Blob([zip as BlobPart], { type: brand.blob.type }), filename: brand.filename, references: counts.references };
 }
 

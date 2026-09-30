@@ -126,6 +126,7 @@ export interface NavigatorActions {
 
 /** Verbs the inspector delegates to the overlay. */
 export interface InspectorActions {
+  useAsInput?(ids: string[], property?: 'text' | 'image' | 'fg' | 'fill'): void;
   text?: TextPropertyPort;
   editText?(id: string): void;
   openDocumentSize?(anchor: HTMLElement): void;

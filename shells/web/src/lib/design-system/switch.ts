@@ -59,6 +59,8 @@ export interface SwitchResult {
 }
 
 export interface SwitchOptions {
+  /** Outgoing material when an atomic local recovery already moved the pointer. */
+  previous?: DesignSystemRecord;
   /** The current route name (parseRoute().name) - decides remount vs banner. */
   route?: string;
   /** Skip the remount entirely (a caller that will navigate itself). */
@@ -80,7 +82,7 @@ export function instanceOf(record: DesignSystemRecord): string {
 
 export async function switchDesignSystem(host: SwitchHost, id: string, opts: SwitchOptions = {}): Promise<SwitchResult> {
   const registry = host.designSystems;
-  const previous = await registry.active();
+  const previous = opts.previous ?? await registry.active();
   await registry.setActive(id);
   let record = await registry.active();
 

@@ -15,7 +15,7 @@
 
 /** The rooms, in sidebar order. `catalogue` stays the panel key the brand
  *  editor renders (a permanent contract); the sidebar labels it Files. */
-export const START_ROOMS = ['overview', 'color', 'type', 'logos', 'tokens', 'catalogue'] as const;
+export const START_ROOMS = ['overview', 'color', 'type', 'logos', 'tokens', 'catalogue', 'usage'] as const;
 
 export type StartRoom = (typeof START_ROOMS)[number];
 

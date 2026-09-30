@@ -10,6 +10,7 @@ import { readLocalLooks, rankLocalLooks, lookTags, type LocalLook } from '../../
 import { switchDesignSystem } from '../../lib/design-system/switch.ts';
 import { styleEvidenceHtml } from '../../lib/design-system/style-evidence-view.ts';
 import { saveBlob } from '../../pro/zip.ts';
+import { adoptionOf } from '../../lib/design-system/adoption-material.ts';
 import { bindOp, type StartCtx } from './context.ts';
 
 function specimen(look: LocalLook): string {
@@ -21,6 +22,7 @@ function specimen(look: LocalLook): string {
 
 export async function openLooks(start: StartCtx): Promise<void> {
   if (start.looksModal) return;
+  start.adoptionReviewBase = adoptionOf(start.host)?.capture().catch(error => error instanceof Error ? error : new Error(String(error)));
   const modal = mountModal(`<header class="start-import-head"><h2 class="modal-title">${t('Find a look')}</h2><button type="button" class="be-btn" data-looks-close>${t('Close')}</button></header>
     <p>${t('Compare saved design systems and a few starting points. Nothing changes until you choose Use.')}</p>
     <p role="status" data-looks-status>${t('Loading design systems…')}</p><div data-looks-body></div>`, {
@@ -38,7 +40,7 @@ export async function openLooks(start: StartCtx): Promise<void> {
     const active = result.looks.find(look => look.id === activeId);
     const body = modal.el.querySelector<HTMLElement>('[data-looks-body]')!;
     body.innerHTML = `<div class="ds-looks-filters"><label class="field-label">${t('Search looks')}<input type="search" class="field-input" maxlength="160" data-looks-search placeholder="${escapeText(t('Name, colour tag or font'))}"></label>
-      <label class="ds-reference-choice"><input type="checkbox" data-looks-similar>${t('Closest to my current palette')}</label></div>
+      <label class="ds-reference-choice"><input type="checkbox" class="field-check" data-looks-similar>${t('Closest to my current palette')}</label></div>
       <p class="ds-src-stage-note">${t('Examples use your current fonts when applied. Saved systems keep their own declared fonts.')}</p>
       <div class="ds-looks-grid" data-looks-grid></div><section data-looks-compare tabindex="-1" hidden></section><footer class="ds-looks-selection" hidden><button type="button" class="be-btn" data-looks-review></button></footer>`;
     status.textContent = result.unavailable ? tRaw('{n} saved systems could not be previewed. Open them from Profile to manage them.', { n: result.unavailable }) : '';
@@ -71,7 +73,7 @@ export async function openLooks(start: StartCtx): Promise<void> {
     const paint = (): void => {
       const found = rankLocalLooks(result.looks, search.value, similar.checked ? active : undefined);
       grid.innerHTML = found.length ? found.map(look => `<label class="ds-look-option ${selected.has(look.id) ? 'is-selected' : ''}">
-        <input type="checkbox" data-look-select="${escapeText(look.id)}" ${selected.has(look.id) ? 'checked' : ''}>
+        <input type="checkbox" class="field-check" data-look-select="${escapeText(look.id)}" ${selected.has(look.id) ? 'checked' : ''}>
         <span>${escapeText(look.name)}</span>${specimen(look)}<span class="ds-src-stage-note">${escapeText(look.tags.join(' · '))}</span>
       </label>`).join('') : `<p>${t('No matching looks. Try a different name, tag or font.')}</p>`;
     };
@@ -84,7 +86,9 @@ export async function openLooks(start: StartCtx): Promise<void> {
       if (input.checked && selected.size >= 2) { input.checked = false; status.textContent = t('Compare two looks at a time. Deselect one to choose another.'); return; }
       if (input.checked) selected.add(id); else selected.delete(id);
       input.closest('.ds-look-option')?.classList.toggle('is-selected', input.checked);
-      status.textContent = tRaw('{n} looks selected. Comparison is below the list.', { n: selected.size });
+      status.textContent = selected.size === 0 ? '' : selected.size === 1
+        ? t('One look selected. Its preview is below the list.')
+        : t('Two looks selected. Their comparison is below the list.');
       comparePaint();
     });
     compare.addEventListener('click', async event => {

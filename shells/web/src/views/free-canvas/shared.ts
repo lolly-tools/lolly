@@ -395,6 +395,7 @@ export interface InitFreeCanvasOpts {
   input: { id: string; canvas?: CanvasCfg; fields?: BlockFieldDef[] };
   nativeW: number;
   nativeH: number;
+  rulesWorkspace?: { fit(): void; preserve(): (() => void) | undefined };
   onDirty?(id: string): void;
   editTool?(url: string, mode?: string): Promise<any>;
   setCanvasSize?(w: number, h: number, unit?: string): void;

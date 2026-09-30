@@ -454,7 +454,7 @@ Parehong lifecycle sa Tauri. Parehong lifecycle sa CLI - ang jsdom ang nagbibiga
 
 ## Katayuan ng open source
 
-**Ang Code ay MPL-2.0.** Ang `engine/`, `shells/*`, `services/*`, `schemas/` at `docs/` ay open source sa ilalim ng **MPL-2.0** - isang vendor-neutral na scaffolding platform para sa brand tooling, lahat ito sa iisang pampublikong repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Ang Code ay MPL-2.0.** Ang `engine/`, `shells/*`, `services/*`, `schemas/` at `docs/*.ts` ay open source sa ilalim ng **MPL-2.0** - isang vendor-neutral na scaffolding platform para sa brand tooling, lahat ito sa iisang pampublikong repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Ang tool content ay ipinapadala bilang mga brand pack**, bawat isa may sariling mga tuntunin (tingnan ang `NOTICE.md` ng pack). Ang `community/` ay isang direktoryo ng repository na ito at MPL-2.0 din ang mga brand-agnostic na tool nito. Ang `brands/suse/` ang pribadong `suse-lolly` pack, ang tanging submodule: ang mga SUSE tool at ang SUSE catalog, **eksklusibong pag-aari ng SUSE**, kasama ang lisensyadong musika nitong PremiumBeat. Ang `brands/lolly-start/` ang blangkong starter brand na pag-aari ng repository na ito. Ipinapadala ang mga font sa loob ng isang pack sa ilalim ng **SIL Open Font License 1.1** - dala ng SUSE pack ang mga typeface na SUSE at SUSE Mono.
 

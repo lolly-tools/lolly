@@ -411,6 +411,8 @@ async function mountToolInto(
 
   await tview.session.wireLiveEditing();
   if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
+  const { mountRulesEntrypoints } = await import('../lib/rules-entrypoints.ts');
+  tview.mountLifecycle.add('rules entry points', mountRulesEntrypoints(tview.runtime, tview.viewEl.querySelector('#tool-inputs'), () => tview.actionsApi?.sessionState?.() || {}));
   if(tview.canvasEl) {
     const {openPendingRules}=await import('./session-rules.ts');
     const closeRules=await openPendingRules({tool:tview.tool,runtime:tview.runtime,host:tview.host,canvas:tview.canvasEl,size:{width:tview.nativeW,height:tview.nativeH},saveMaster:()=>{void tview.openSaveAs?.();}});

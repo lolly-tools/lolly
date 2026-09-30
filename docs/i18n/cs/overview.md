@@ -455,7 +455,7 @@ Stejný životní cyklus v Tauri. Stejný životní cyklus v CLI - jsdom poskytu
 
 ## Stav open source
 
-**Kód je pod licencí MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` a `docs/` jsou open source pod licencí **MPL-2.0** - platforma pro nástroje značek nezávislá na dodavateli, celá v jednom veřejném repozitáři, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Kód je pod licencí MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` a `docs/*.ts` jsou open source pod licencí **MPL-2.0** - platforma pro nástroje značek nezávislá na dodavateli, celá v jednom veřejném repozitáři, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Obsah nástrojů se dodává jako balíčky značek**, každý s vlastními podmínkami (viz `NOTICE.md` daného balíčku). `community/` je adresář tohoto repozitáře a jeho nástroje nezávislé na značce jsou také pod MPL-2.0. `brands/suse/` je soukromý balíček `suse-lolly`, jediný submodul: nástroje SUSE a katalog SUSE, **v majetku SUSE**, včetně licencované hudby PremiumBeat. `brands/lolly-start/` je prázdná výchozí značka, kterou vlastní tento repozitář. Fonty se dodávají uvnitř balíčku pod licencí **SIL Open Font License 1.1** - balíček SUSE obsahuje řezy písma SUSE a SUSE Mono.
 

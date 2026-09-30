@@ -9,6 +9,7 @@
  */
 
 import type { DesignInspectionV1, DesignLayerInspectionV1 } from '@lolly-tools/core/design-v1';
+import { renderedFontRuns } from '../bridge/font-coverage.ts';
 
 export type MountedDesignFindingId =
   | 'design.text.overflow'
@@ -351,21 +352,23 @@ export async function auditMountedDesign(
       }
     }
 
-    if (options.resolveFont) {
-      const computed = styleOf(text);
+    if (options.resolveFont) for (const run of renderedFontRuns(text, styleOf)) {
+      const computed = run.style;
       const style: MountedFontStyle = {
-        fontFamily: computed.fontFamily,
-        fontWeight: computed.fontWeight,
-        fontStyle: computed.fontStyle,
+        fontFamily: computed.fontFamily ?? '',
+        fontWeight: computed.fontWeight ?? '400',
+        fontStyle: computed.fontStyle ?? 'normal',
       };
-      const key = `${style.fontFamily}|${style.fontWeight}|${style.fontStyle}|${layer.text}`;
+      const key = JSON.stringify([style, run.text]);
       const existing = fontRuns.get(key);
-      if (existing) existing.layers.push(layer);
-      else fontRuns.set(key, { style, text: layer.text, layers: [layer] });
+      if (existing) { if (!existing.layers.includes(layer)) existing.layers.push(layer); }
+      else fontRuns.set(key, { style, text: run.text, layers: [layer] });
     }
   }
 
   if (options.resolveFont) {
+    const checkedLayers = new Set<string>();
+    const missingLayers = new Set<string>();
     await Promise.all(
       [...fontRuns.values()].map(async (run) => {
         let resolved = false;
@@ -374,9 +377,11 @@ export async function auditMountedDesign(
         } catch {
           resolved = false;
         }
-        checked.fonts += run.layers.length;
+        for (const layer of run.layers) checkedLayers.add(layer.id);
         if (resolved) return;
         for (const layer of run.layers) {
+          if (missingLayers.has(layer.id)) continue;
+          missingLayers.add(layer.id);
           const family =
             run.style.fontFamily.split(',')[0]?.replace(/["']/g, '').trim() || 'selected font';
           findings.push({
@@ -384,12 +389,13 @@ export async function auditMountedDesign(
             severity: 'warn',
             path: pathOf(layer, 'font'),
             evidence: { name: labelOf(layer), family },
-            message: `“${labelOf(layer)}” uses ${family}, which cannot be embedded in vector exports.`,
+            message: `Font coverage could not be verified for “${labelOf(layer)}” in ${family}. Add or choose a font that covers this text before exporting; a system fallback can change on another device.`,
             layerId: layer.id,
           });
         }
       })
     );
+    checked.fonts = checkedLayers.size;
   }
 
   return { findings, checked, manualContrastReview };

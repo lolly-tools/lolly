@@ -252,6 +252,7 @@ const PATHS = {
   fitContain: '<rect x="2" y="4" width="20" height="16" rx="2"/><rect x="6" y="8" width="12" height="8" rx="1"/>',
   // Stacked planes - "composite of multiple elements".
   layers: '<path d="M12 2 2 7l10 5 10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+  trackHeight: '<rect x="3" y="10" width="18" height="4" rx=".5"/><path d="M12 2v5m-3-2 3-3 3 3M12 17v5m-3-3 3 3 3-3"/>',
   // Microphone - "recorded live from the microphone".
   mic: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3M8 21h8"/>',
   // Lucide "speech" - a voice with sound waves. The Script audio surfaces

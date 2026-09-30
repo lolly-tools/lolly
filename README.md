@@ -30,7 +30,7 @@ Tools can be used via a:
 ## Why deploy Lolly in your organization? 
 
 * Hard-coded constraints of design decisions.
-* Free, open-source platform - the engine, every shell, the schemas and docs are MPL-2.0. Tools and assets are just data: bring your own brand content (SUSE's tool & asset packs are proprietary - see [Licensing & structure](#licensing--structure)).
+* Free, open-source platform - the engine, every shell and the schemas are MPL-2.0. Documentation content is CC BY-SA 4.0, with attribution to lolly.tools. Tools and assets are just data: bring your own brand content (SUSE's tool & asset packs are proprietary - see [Licensing & structure](#licensing--structure)).
 * Unlimited scale, No SaaS fees. 
 * Low-or-Zero server costs: Lolly uses local device compute. 
 * Builds for Mac, Windows, Linux, iOS, Android, web and the command line. 
@@ -84,7 +84,7 @@ lolly/
     └── chrome-extension/
 ```
 
-**Critical separation:** `engine/` knows nothing about SUSE. Brand-specific content lives in **brand packs** (`brands/suse` - private; `brands/lolly-start` - the blank starter brand), brand-agnostic tools in `community/`; the shells, services, engine and docs are MPL-2.0. There is no repo-root `tools/`/`catalog/` view on disk: `packages/node-shell/src/content-roots.ts` resolves which tool pack and catalog a build uses, from `profiles.json`, at runtime - `contentRoots()`, `toolFile()`, `catalogFile()`, and `materializeInto()` for the one place a real copy is still needed (`dist/`, for static hosting). Set `LOLLY_PROFILE=suse` or `LOLLY_PROFILE=lolly-start` to choose explicitly; otherwise it resolves the same way the old profile switcher did (the declared default, else the first profile whose packs are complete - `lolly-start` on a public clone, since `brands/suse` is absent).
+**Critical separation:** `engine/` knows nothing about SUSE. Brand-specific content lives in **brand packs** (`brands/suse` - private; `brands/lolly-start` - the blank starter brand), brand-agnostic tools in `community/`; the shells, services and engine are MPL-2.0, and documentation content is CC BY-SA 4.0. There is no repo-root `tools/`/`catalog/` view on disk: `packages/node-shell/src/content-roots.ts` resolves which tool pack and catalog a build uses, from `profiles.json`, at runtime - `contentRoots()`, `toolFile()`, `catalogFile()`, and `materializeInto()` for the one place a real copy is still needed (`dist/`, for static hosting). Set `LOLLY_PROFILE=suse` or `LOLLY_PROFILE=lolly-start` to choose explicitly; otherwise it resolves the same way the old profile switcher did (the declared default, else the first profile whose packs are complete - `lolly-start` on a public clone, since `brands/suse` is absent).
 
 ## Architectural commitments
 
@@ -264,7 +264,8 @@ The `utility` "Offline Utilities" section always renders last in the gallery.
 
 This is one repository (see [Repository layout](#repository-layout)), with one private submodule for the SUSE brand pack.
 
-- **Code** - `engine/`, `shells/*`, `services/*`, `docs/` - is **[MPL-2.0](LICENSE)**.
+- **Code** - including the documentation generator and code examples - is **[MPL-2.0](LICENSE)**.
+- **Documentation content** is **[CC BY-SA 4.0](docs/LICENSE)**, with attribution to [lolly.tools](https://lolly.tools). Third-party material keeps its stated licence.
 - **Tool content ships as brand packs.** `community/` holds the brand-agnostic tools; `brands/suse/` (private submodule `suse-lolly`) holds the SUSE tools and catalog - including its licensed PremiumBeat music, which stays private with the pack. See each pack's `NOTICE.md`.
 - **Fonts** ship inside each brand pack under the SIL Open Font License 1.1 - the SUSE pack carries the **SUSE** and **SUSE Mono** typefaces (neither the MPL nor SUSE-proprietary; "SUSE" is a SUSE trademark). They appear at `catalog/fonts/` in a build.
 

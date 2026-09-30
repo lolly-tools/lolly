@@ -1069,3 +1069,4 @@ export { assertMotionRequest, validateMotionBlur, validateMotionRange, parseMoti
 export { parseMotionTiming, resolveCues, compileMotionCues, type MotionTiming, type MotionCue, type CueBinding } from './motion-cues.ts';
 
 export { motionReport, type MotionReport, type MotionCheck, type MotionFacts, type MotionTarget } from './motion-report.ts';
+export * from './production.ts';

@@ -454,7 +454,7 @@ Web 端：IndexedDB。Tauri：文件系统。CLI：内存中。工具只能看�
 
 ## 开源状态
 
-**代码采用 MPL-2.0 许可。** `engine/`、`shells/*`、`services/*`、`schemas/` 和 `docs/` 均以 **MPL-2.0** 开源 - 这是一个面向品牌工具的、厂商中立的脚手架平台,全部内容都在同一个公开仓库中,[`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)。
+**代码采用 MPL-2.0 许可。** `engine/`、`shells/*`、`services/*`、`schemas/` 和 `docs/*.ts` 均以 **MPL-2.0** 开源 - 这是一个面向品牌工具的、厂商中立的脚手架平台,全部内容都在同一个公开仓库中,[`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)。
 
 **工具内容以品牌包(brand pack)形式分发**,每个品牌包都有各自的条款(参见该包的 `NOTICE.md`)。`community/` 是本仓库中的一个目录,其品牌无关的工具同样采用 MPL-2.0。`brands/suse/` 是私有的 `suse-lolly` 包,也是唯一的子模块:包含 SUSE 工具和 SUSE 目录,**归 SUSE 专有**,包括其授权的 PremiumBeat 音乐。`brands/lolly-start/` 是本仓库拥有的空白起始品牌。字体以 **SIL 开放字体许可证 1.1**(SIL Open Font License 1.1)的形式包含在品牌包中 - SUSE 包中含有 SUSE 和 SUSE Mono 字体。
 

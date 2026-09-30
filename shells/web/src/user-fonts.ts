@@ -34,6 +34,8 @@ import { fetchGoogleFont, GOOGLE_FAMILY_RE } from './lib/google-fonts.ts';
 import type { DownloadedFontFace } from './lib/google-fonts.ts';
 import { detectFontFormat, parseFontMetadata, readFontEmbedding, validateFontFile } from './lib/font-utils.ts';
 import { variableWeightRange } from './lib/design-system/font-resolve.ts';
+import { isFontOf } from './lib/register-user-fonts.ts';
+import { selectAdoptionFonts } from './lib/design-system/adoption-fonts.ts';
 
 /** Every user font asset id starts with this (headshot-style fixed namespace). */
 
@@ -65,7 +67,7 @@ export interface UserFontsHost {
   };
   /** The design systems this device holds (the web bridge's registry): a restored
    *  family's roles go back into the system they were in (restoreFontRoles). */
-  designSystems?: RegistrySlice & { active(): Promise<{ id: string }> };
+  designSystems?: RegistrySlice & { active(): Promise<{ id: string; importedFonts?: string[] }> };
 }
 
 /** One installed family, grouped from its per-face assets. */
@@ -635,9 +637,9 @@ export async function listUserFonts(host: UserFontsHost): Promise<UserFontFamily
   catch { return []; }
   const primary = await primaryFontFamily(host);
   const byFamily = new Map<string, UserFontFamily & { _weights: Set<string> }>();
-  for (const r of records) {
-    // A family in the Trash is not installed (plan 277 P3).
-    if (r.type !== 'font' || !r.id.startsWith(USER_FONT_PREFIX) || r.trashedAt) continue;
+  const system = await host.designSystems?.active();
+  const localFaces = records.filter(r => r.type === 'font' && isFontOf(r.id, system?.id ?? null) && !r.trashedAt);
+  for (const r of selectAdoptionFonts(localFaces, system?.importedFonts)) {
     const family = String(r.meta?.family ?? r.meta?.name ?? 'Font');
     let g = byFamily.get(family);
     if (!g) {

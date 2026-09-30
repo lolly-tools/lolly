@@ -25,7 +25,8 @@ import { trackHostChanges } from '../lib/sync-changes.ts';
 // tab's "Clear all my data" stops it (plan 277 review B6).
 import { guardHostWrites } from '../lib/clear-elsewhere.ts';
 import type { PreviewsAPI } from './previews.ts';
-import { createAssetsAPI } from './assets.ts';
+import { createAssetsAPI, assertQuotaRoom, captureUserAssetCredentials } from './assets.ts';
+import type { BrandAdoptionAPI } from './brand-adoption.ts';
 import { createTokensAPI, USER_TOKENS_ID } from './tokens.ts';
 import { createDesignSystemRegistry, type DesignSystemRegistry, type RegistryDb } from '../lib/design-system/registry.ts';
 import { createPinPreserver } from './version-assets.ts';
@@ -72,6 +73,7 @@ import { noteTextLayoutDone } from '../lib/text-layout-progress.ts';
  * shapes come straight from their factories.
  */
 interface WebHost extends HostV1 {
+  brandAdoption: BrandAdoptionAPI;
   tokens?: ReturnType<typeof createTokensAPI>;
   readonly shell: 'web';
   identity: Awaited<ReturnType<typeof import('./identity.ts')['createIdentityAPI']>>;
@@ -188,6 +190,20 @@ export async function createBridge(): Promise<WebHost> {
       ._getUserRecord?.(USER_TOKENS_ID).catch(() => null) ?? null,
   });
   host.tokens = createTokensAPI(host as unknown as Parameters<typeof createTokensAPI>[0]); // depends on assets (reads the brand tokens asset) + designSystems
+  let adoption: Promise<BrandAdoptionAPI> | undefined;
+  const adoptionAPI = () => adoption ??= import('./brand-adoption.ts').then(async m => {
+    await host.designSystems.ensure();
+    return m.createBrandAdoptionAPI(m.adoptionDatabase(db), () => {
+      host.designSystems.bust(); host.tokens?.bust({ lock: true });
+    }, assertQuotaRoom, captureUserAssetCredentials);
+  });
+  host.brandAdoption = {
+    capture: async opts => (await adoptionAPI()).capture(opts),
+    prepare: async (snapshot, input) => (await adoptionAPI()).prepare(snapshot, input),
+    commit: async (candidate, opts) => (await adoptionAPI()).commit(candidate, opts),
+    recovery: async id => (await adoptionAPI()).recovery(id),
+    restore: async id => (await adoptionAPI()).restore(id),
+  };
   preservePinned = createPinPreserver(host as unknown as Parameters<typeof createPinPreserver>[0]);
   host.clipboard = createClipboardAPI();
 

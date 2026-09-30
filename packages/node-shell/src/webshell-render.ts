@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { observeProductionInputs, type ProductionBrowserOptions } from './production-browser.ts';
 import { serializeMotionParams } from '../../../engine/src/motion-sampling.ts';
 /**
  * The Node shells' full-fidelity render tier (CLI + TUI): for formats the DOM-free
@@ -289,7 +290,7 @@ function noFileError(toolId: string, format: string, debug: DebugRecorder, reaso
   );
 }
 
-export interface RenderDims {
+export interface RenderDims extends ProductionBrowserOptions {
   cuts?: number;
   motionBlur?: import('../../../engine/src/motion-sampling.ts').MotionBlur;
   sequenceRange?: import('../../../engine/src/motion-sampling.ts').MotionRange;
@@ -563,6 +564,7 @@ async function renderViaChromiumShell(
   let waiting: ExportWait | undefined;
   try {
     const page = await ctx.newPage();
+    const observeInputs = await observeProductionInputs(page, toolId, dims.productionInputIds ?? []);
     debug.attach(page);
     waiting = await waitForExport(page, format);
     const downloadP = waiting.result;
@@ -580,6 +582,7 @@ async function renderViaChromiumShell(
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
     const bytes = new Uint8Array(await readFile(path));
     await download.delete().catch(() => {});
+    dims.onProductionInputs?.(observeInputs(bytes));
     return { bytes, mime: MIME[extname(download.suggestedFilename()).toLowerCase()] ?? MIME['.' + format.toLowerCase()] ?? 'application/octet-stream' };
   } catch (err) {
     throw withDebugLog(err, `${toolId}.${format}`, debug);
@@ -709,13 +712,14 @@ export async function renderVideoViaScreenshot(
 }
 
 /** A portable tool is installed in an isolated reader, then rendered by the ordinary export path. */
-export async function renderToolPackageViaWebShell(bytes: Uint8Array, toolId: string, query: string, format: string): Promise<Uint8Array> {
+export async function renderToolPackageViaWebShell(bytes: Uint8Array, toolId: string, query: string, format: string, production: ProductionBrowserOptions = {}): Promise<Uint8Array> {
   const base = await webShellBase();
   const browser = await getBrowser();
   const context = await browser.newContext({serviceWorkers:'block',acceptDownloads:true});
   let waiting: ExportWait | undefined;
   try {
     const page = await context.newPage();
+    const observeInputs = await observeProductionInputs(page, toolId, production.productionInputIds ?? []);
     await page.goto(base, {waitUntil:'load',timeout:30_000});
     await page.waitForLoadState('networkidle');
     await page.evaluate(data => {
@@ -729,6 +733,8 @@ export async function renderToolPackageViaWebShell(bytes: Uint8Array, toolId: st
     await page.goto(exportUrl(base,toolId,query,format,{}), {waitUntil:'commit'});
     const download = await downloading;
     const path = await download.path(); if (!path) throw new BrowserError('The tool produced no output file.');
-    return new Uint8Array(await readFile(path));
+    const rendered = new Uint8Array(await readFile(path));
+    production.onProductionInputs?.(observeInputs(rendered));
+    return rendered;
   } finally { waiting?.dispose(); await context.close(); }
 }

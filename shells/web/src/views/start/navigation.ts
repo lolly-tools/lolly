@@ -41,7 +41,7 @@ export function renderShell(start: StartCtx): void {
       <header class="start-head">
         <p class="start-eyebrow">${t('Design system')}</p>
         <h1 class="start-title">${t('Make it yours')}</h1>
-        <p class="start-sub">${isTauriShell() ? t('Everything stays on this device. Every tool and export follows it.') : t('Everything stays in this browser. Every tool and export follows the design system.')}</p>
+        <p class="start-sub">${isTauriShell() ? t('Your design system stays on this device.') : t('Your design system stays in this browser.')}</p>
         <!-- Which design system the studio is editing (plans/186 section 5): filled
              async from the registry; the link opens the Profile card that switches. -->
         <p class="start-sub start-ds" data-start-ds hidden></p>
@@ -125,6 +125,8 @@ export function renderShell(start: StartCtx): void {
             role="region" aria-labelledby="ds-room-overview" hidden></section>
           <section class="ds-panel" id="start-panel-versions" data-ds-panel="versions"
             role="region" aria-labelledby="ds-room-versions" hidden></section>
+          <section class="ds-panel" id="start-panel-usage" data-ds-panel="usage"
+            role="region" aria-labelledby="ds-room-usage" hidden></section>
           <div class="start-editor-wrap">
             <div class="start-editor-mount" data-start-editor><p class="start-editor-loading">${t('Loading the design system…')}</p></div>
           </div>

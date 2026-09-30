@@ -77,6 +77,7 @@ interface TrackedHost {
   profile?: object;
   assets?: object;
   designSystems?: object;
+  brandAdoption?: object;
 }
 
 /**
@@ -85,6 +86,8 @@ interface TrackedHost {
  * really changes, because several boot steps write the profile back unchanged.
  */
 export function trackHostChanges(host: TrackedHost): void {
+  const adoption = host.brandAdoption as Record<string, unknown> | undefined;
+  for (const name of ['commit', 'restore']) wrap(adoption, name);
   // restore is the save a backup import writes through (it keeps the session's
   // own times), so an import is a local change sync must push (plan 277 P7).
   const state = host.state as Record<string, unknown> | undefined;

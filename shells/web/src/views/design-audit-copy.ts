@@ -32,7 +32,7 @@ export function mountedDesignFindingMessage(finding: MountedDesignFinding): stri
           minimum: minimum ?? '',
         });
       case 'design.font.unembeddable':
-        return tRaw('“{name}” uses {family}, which cannot be embedded in vector exports.', {
+        return tRaw('Font coverage could not be verified for “{name}” in {family}. Add or choose a font that covers this text before exporting; a system fallback can change on another device.', {
           name,
           family: family ?? '',
         });

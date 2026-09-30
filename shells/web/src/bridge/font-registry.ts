@@ -43,6 +43,7 @@ import { openDB } from './db.ts';
 // Static and safe: register-user-fonts only reaches THIS module through a dynamic
 // import, so there is no evaluation cycle, and the boot graph stays as it was.
 import { isFontOf } from '../lib/register-user-fonts.ts';
+import { selectAdoptionFonts } from '../lib/design-system/adoption-fonts.ts';
 import { resolveSuseFontUrl } from './text-svg.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 import { discoverFontFaces } from './fontface-discovery.ts';
@@ -280,9 +281,9 @@ async function buildRegistry(): Promise<Map<string, RegistryFace[]>> {
       const stored = await db.get('profile', 'active-design-system');
       systemId = typeof stored === 'string' && stored ? stored : null;
     } catch { systemId = null; }
-    for (const r of records) {
-      // A face in the Trash (plan 277 P3) is not installed, so it never outlines.
-      if (r.type !== 'font' || !isFontOf(r.id, systemId) || r.trashedAt) continue;
+    const activeSystem = systemId ? await db.get('design-systems', systemId) : null;
+    const localFaces = records.filter(r => r.type === 'font' && isFontOf(r.id, systemId) && !r.trashedAt);
+    for (const r of selectAdoptionFonts(localFaces, activeSystem?.importedFonts)) {
       const family = String(r.meta?.family ?? '').trim();
       if (!family) continue;
       const key = family.toLowerCase();

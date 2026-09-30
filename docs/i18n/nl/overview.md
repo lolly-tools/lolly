@@ -455,7 +455,7 @@ Zelfde levenscyclus in Tauri. Zelfde levenscyclus in CLI - jsdom levert de headl
 
 ## Opensourcestatus
 
-**Code is MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` en `docs/` zijn open source onder **MPL-2.0** - een vendor-neutraal scaffoldingplatform voor brandtooling, allemaal in één publieke repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Code is MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` en `docs/*.ts` zijn open source onder **MPL-2.0** - een vendor-neutraal scaffoldingplatform voor brandtooling, allemaal in één publieke repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Toolcontent wordt uitgeleverd als brand packs**, elk met eigen voorwaarden (zie het `NOTICE.md`-bestand van het pakket). `community/` is een map van deze repository en de merkonafhankelijke tools daarin zijn ook MPL-2.0. `brands/suse/` is het private `suse-lolly`-pakket, de enige submodule: de SUSE-tools en de SUSE-catalogus, **eigendom van SUSE**, inclusief de gelicentieerde PremiumBeat-muziek. `brands/lolly-start/` is het lege startmerk dat deze repository zelf bezit. Lettertypen worden binnen een pakket uitgeleverd onder de **SIL Open Font License 1.1** - het SUSE-pakket bevat de SUSE- en SUSE Mono-lettertypen.
 

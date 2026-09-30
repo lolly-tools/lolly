@@ -181,7 +181,8 @@ test('when that design system is gone the faces come back without roles', async 
   h.systems.delete('default');
   h.setActive('other');
   await trashOf(h).restore(entry!);
-  assert.deepEqual((await listUserFonts(asFonts(h))).map(f => f.family).sort(), ['Inter', 'Sora']);
+  assert.deepEqual((await listUserFonts(asFonts(h))).map(f => f.family), [], 'orphaned faces do not become another system’s active fonts');
+  assert.deepEqual([...new Set([...h.store.values()].filter(r => r.type === 'font' && !r.trashedAt).map(r => r.meta?.family))].sort(), ['Inter', 'Sora'], 'restored font bytes remain in the library');
   assert.equal(await h.readDoc('user/ds/other/tokens/brand'), null, 'no role is written anywhere else');
 });
 

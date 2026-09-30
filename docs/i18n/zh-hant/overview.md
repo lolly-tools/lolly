@@ -454,7 +454,7 @@ Tauri 中的生命週期相同。CLI 中的生命週期也相同 - jsdom 提供�
 
 ## 開放原始碼狀態
 
-**程式碼採用 MPL-2.0 授權。** `engine/`、`shells/*`、`services/*`、`schemas/` 與 `docs/` 皆以 **MPL-2.0** 授權開放原始碼 - 這是一個廠商中立的品牌工具腳手架平台,全部集中在單一公開儲存庫 [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly) 中。
+**程式碼採用 MPL-2.0 授權。** `engine/`、`shells/*`、`services/*`、`schemas/` 與 `docs/*.ts` 皆以 **MPL-2.0** 授權開放原始碼 - 這是一個廠商中立的品牌工具腳手架平台,全部集中在單一公開儲存庫 [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly) 中。
 
 **工具內容以品牌包(brand pack)形式發行**,各自附有其授權條款(詳見該包的 `NOTICE.md`)。`community/` 是本儲存庫中的一個目錄,其品牌中立工具同樣採用 MPL-2.0 授權。`brands/suse/` 是私有的 `suse-lolly` 包,也是唯一的子模組:包含 SUSE 工具與 SUSE 目錄,**為 SUSE 專有**,並含有其授權的 PremiumBeat 音樂。`brands/lolly-start/` 是本儲存庫所擁有的空白入門品牌。字型隨品牌包一併發行,採用 **SIL Open Font License 1.1** 授權 - SUSE 品牌包內含 SUSE 與 SUSE Mono 字體。
 

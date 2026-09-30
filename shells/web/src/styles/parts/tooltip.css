@@ -1,21 +1,19 @@
 /* SPDX-License-Identifier: MPL-2.0 */
-/* ── Tooltip primitive - the app's ONE styled tooltip. ──────────────────────────
-   Opt in by putting `data-tip="Label"` on any element (promoted from the asset
-   picker's category buttons, the original recipe). A small bubble appears ABOVE
-   the element on hover or keyboard focus - above the pointer, so the finger/cursor
-   never covers it; carry the same text in aria-label for assistive tech (the bubble
-   is a pseudo-element, presentation only, never read).
-
-   Opt-out: `data-tip-below` drops the bubble BELOW instead, for hosts hugging the
-   TOP of a scrolling/clipping container (e.g. the asset picker's sticky category
-   bar) where an above-bubble would be clipped.
-
-   Contract: the host element becomes position:relative (anchors the bubble) and
-   must tolerate that. Prefer this over native title= for interactive chrome -
-   title is invisible to keyboard and touch users, and the browser draws it BELOW
-   the cursor where the pointer covers it. */
+/* Shared hover, focus and touch-hold help is portalled by lib/tooltips.ts.
+   The pseudo-elements below are a fallback for surfaces without that mount.
+   Use data-tip with an accessible name for interactive chrome. */
 
 [data-tip] { position: relative; }
+
+html[data-tooltips] [data-tip]::before,
+html[data-tooltips] [data-tip]::after { display: none; }
+.lolly-tooltip {
+  position: fixed; inset: auto; margin: 0; width: max-content; max-width: min(28em, calc(100vw - 16px));
+  box-sizing: border-box; padding: 7px 10px; border: 0; border-radius: var(--ui-radius-control);
+  background: var(--ui-color-text-default); color: var(--ui-color-surface-raised);
+  font: 500 var(--ui-type-caption) / 1.35 var(--font-brand); overflow-wrap: anywhere;
+  text-align: center; box-shadow: var(--ui-elevation-floating); pointer-events: none; z-index: 2147483647;
+}
 
 /* Default: ABOVE the element. */
 [data-tip]::after {

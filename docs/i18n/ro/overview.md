@@ -455,7 +455,7 @@ Același ciclu de viață în Tauri. Același ciclu de viață în CLI - jsdom o
 
 ## Statutul open-source
 
-**Codul este MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` și `docs/` sunt open source sub licența **MPL-2.0** - o platformă de scaffolding neutră din punct de vedere al furnizorului pentru unelte de brand, totul într-un singur repository public, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Codul este MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` și `docs/*.ts` sunt open source sub licența **MPL-2.0** - o platformă de scaffolding neutră din punct de vedere al furnizorului pentru unelte de brand, totul într-un singur repository public, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Conținutul uneltelor este livrat ca pachete de brand**, fiecare cu propriii termeni (vezi `NOTICE.md` al pachetului). `community/` este un director al acestui repository, iar uneltele sale agnostice de brand sunt tot MPL-2.0. `brands/suse/` este pachetul privat `suse-lolly`, singurul submodul: uneltele SUSE și catalogul SUSE, **proprietate exclusivă SUSE**, inclusiv muzica sa licențiată PremiumBeat. `brands/lolly-start/` este brandul de pornire necompletat, deținut de acest repository. Fonturile sunt livrate în cadrul unui pachet sub **SIL Open Font License 1.1** - pachetul SUSE conține fonturile SUSE și SUSE Mono.
 

@@ -90,7 +90,9 @@
     "./jxl.wasm": "./wasm/jxl/lolly-jxl.wasm",
     "./text-shape": "./src/text-shape.ts",
     "./text-fonts": "./src/text-fonts.ts",
-    "./text-composition": "./src/text-composition.ts"
+    "./text-composition": "./src/text-composition.ts",
+    "./production-browser": "./src/production-browser.ts",
+    "./production": "./src/production.ts"
   },
   "files": [
     "src",

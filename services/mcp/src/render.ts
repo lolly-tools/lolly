@@ -15,7 +15,7 @@
 
 import {
   createRuntime, parseUrlState, expandQuery, serializeHdr, assertSampleRequest, assertMotionRequest, sampleOutputFormat,
-  C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState,
+  C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState, parseProductionSpec,
   parseDimension, toPixels, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa,
 } from '@lolly/engine';
@@ -30,6 +30,7 @@ import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/re
 import { isDeepFormat, DeepSourceError, needsFloatScene } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
+import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
 import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
 import { readFile, stat } from 'node:fs/promises';
 import { loadToolCached } from './catalog.ts';
@@ -65,6 +66,9 @@ export const TIER_A = new Set(['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'h
 const MAX_RASTER_EDGE_PX = 10_000;
 
 export interface RenderOpts {
+  production?: unknown;
+  productionRepair?: unknown;
+  productionReference?: Uint8Array;
   format?: string;
   width?: number;
   height?: number;
@@ -116,6 +120,8 @@ export interface RenderRightsResult {
 }
 
 export interface RenderResult {
+  production?: import('@lolly/engine').ProductionReport;
+  productionAttempts?: import('@lolly/engine').ProductionReport[];
   bytes: Uint8Array;
   mime: string;
   format: string;
@@ -394,9 +400,19 @@ async function renderTierA(
   opts: ExportOpts,
   profile: Profile,
   emoji: EmojiRequest,
-): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; rights: RightsEvaluationV1; warnings: string[] }> {
+  productionContract?: import('@lolly/engine').ProductionSpec,
+): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string> }> {
   return withHost(profile, async (dom, host) => {
     const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji);
+    let productionInputs: Record<string, string> | undefined;
+    if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
+      const { productionInputFacts } = await import('@lolly/engine');
+      const render = host.export.render.bind(host.export);
+      host.export.render = async (...args) => {
+        const inputs = productionInputFacts(runtime.getModel(), productionContract);
+        const result = await render(...args); productionInputs = await inputs; return result;
+      };
+    }
     let blob: Blob;
     try {
       blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, opts);
@@ -420,6 +436,7 @@ async function renderTierA(
       throw e;
     }
     return {
+      ...(productionInputs ? { productionInputs } : {}),
       bytes,
       mime: blob.type || mimeForFormat(fmt),
       ingredients: runtime.emojiIngredients(),
@@ -624,7 +641,7 @@ async function renderTierB(
   query: string,
   fmt: string,
   o: RenderOpts,
-): Promise<{ bytes: Uint8Array; mime: string }> {
+): Promise<{ bytes: Uint8Array; mime: string; productionInputs?: Record<string, string> }> {
   return withBrowserJob(async () => {
   const base = await webShellBase();
   const url = exportUrl(base, toolId, query, fmt, o);
@@ -644,6 +661,8 @@ async function renderTierB(
     });
     clearPassword = await exposeExportPassword(ctx, fmt === 'pdf' ? o.password : undefined);
     const page = await ctx.newPage();
+    const inputIds = o.production === undefined ? [] : parseProductionSpec(o.production).requirements.filter(r => r.kind === 'input').map(r => r.location);
+    const observeInputs = await observeProductionInputs(page, toolId, inputIds);
     await installBrowserEgressPolicy(page, base);
     waiting = await waitForExport(page, fmt);
     const downloadP = waiting.result;
@@ -660,7 +679,7 @@ async function renderTierB(
     if (!path) throw new RenderError(`Tier-B download for "${toolId}" yielded no file.`);
     const bytes = await readBoundedDownload(path);
     await download.delete().catch(() => {});
-    return { bytes, mime: mimeForFormat(fmt) };
+    return { bytes, mime: mimeForFormat(fmt), productionInputs: observeInputs(bytes) };
   } finally {
     waiting?.dispose();
     clearPassword();
@@ -697,6 +716,35 @@ export async function stampC2pa(
  * shared param contract. Explicit opts override anything parsed from the query.
  */
 export async function render(toolId: string, query: string, o: RenderOpts = {}): Promise<RenderResult> {
+  if (o.productionReference !== undefined && o.production === undefined) throw new Error('A production reference requires a production contract.');
+  const { requireProduction, parseProductionSpec, parseProductionRepair, runProductionRepairs, proposeProductionPatch } = await import('@lolly/engine');
+  if (o.productionRepair === undefined) {
+    const out = await renderCandidate(toolId, query, o);
+    if (o.production !== undefined) await requireProduction(out.production!, out.bytes, o.production);
+    return out;
+  }
+  const contract = parseProductionSpec(o.production), plan = parseProductionRepair(o.productionRepair);
+  const tool = await loadToolCached(toolId), expanded = await expandQuery(query), state = parseUrlState(expanded, tool.manifest);
+  const declared = new Set(tool.manifest.inputs.map(input => input.id));
+  if (Object.keys(plan.permitted).some(key => !declared.has(key))) throw new Error('Repair inputs must be declared tool inputs.');
+  const { emoji: _emoji, userTemplates: _templates, ...repairProfile } = o.profile ?? {};
+  const inputs = Object.fromEntries(buildInputModel(tool.manifest, { initial: state.values, profile: repairProfile }).filter(i => declared.has(i.id)).map(i => [i.id, i.value]));
+  const run = await runProductionRepairs(inputs, plan, {
+    render: async values => {
+      const params = new URLSearchParams(expanded);
+      for (const key of Object.keys(plan.permitted)) params.set(key, typeof values[key] === 'string' ? values[key] as string : JSON.stringify(values[key]));
+      const out = await renderCandidate(toolId, params.toString(), o);
+      return { ...out, report: out.production!, contract };
+    },
+    propose: (values, report) => proposeProductionPatch(values, report, plan),
+  });
+  const last = run.attempts.at(-1)!;
+  try { await requireProduction(last.report, last.bytes, contract); }
+  catch (error) { if (error instanceof Error) Object.assign(error, { attempts: run.attempts.map(a => a.report) }); throw error; }
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
+}
+
+async function renderCandidate(toolId: string, query: string, o: RenderOpts = {}): Promise<RenderResult> {
   const tool = await loadToolCached(toolId);
   const formats = (tool.manifest.render.formats ?? []).map(f => f.toLowerCase());
   const supported = new Set<string>();
@@ -745,7 +793,8 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   if (merged.password && exportFmt === 'pdf-cmyk') {
     warnings.push('Password is not applied for pdf-cmyk - the returned PDF is not protected. Use format "pdf" for an open-password.');
   }
-  let out: { bytes: Uint8Array; mime: string; tier: string };
+  const productionContract = o.production === undefined ? undefined : parseProductionSpec(o.production);
+  let out: { bytes: Uint8Array; mime: string; tier: string; productionInputs?: Record<string, string> };
   // The emoji artwork a browser-free render placed. Tier B stamps inside the web
   // shell, which records its own, so this stays empty there.
   let placed: C2paSourceIngredient[] = [];
@@ -758,11 +807,11 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
     out = { ...(await renderTierB(toolId, q, exportFmt, merged)), mime: mimeForFormat(deliveredFormat), tier: 'B' };
   } else if (TIER_A.has(exportFmt) && !floatScene) {
     try {
-      const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji);
+      const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract);
       placed = r.ingredients;
       evaluation = r.rights;
       warnings.push(...r.warnings);
-      out = { bytes: r.bytes, mime: r.mime, tier: 'A' };
+      out = { bytes: r.bytes, mime: r.mime, tier: 'A', productionInputs: r.productionInputs };
     } catch (e) {
       // Same decision the CLI runner and the png fast path below already made:
       // on a browser-capable host, escalate ANY browser-free failure rather than
@@ -779,14 +828,14 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   } else if (exportFmt === 'png' && formats.includes('svg') && !floatScene && values.editingRange !== 'hdr') {
     // SVG-native fast path: engine SVG → resvg PNG, no browser.
     try {
-      const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile, emoji);
+      const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile, emoji, productionContract);
       // The raster below is that SVG, so it placed the same artwork.
       placed = svg.ingredients;
       evaluation = svg.rights;
       warnings.push(...svg.warnings);
       const px = targetPx(merged.width, merged.unit, merged.dpi);
       const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels);
-      out = { bytes: png, mime: 'image/png', tier: 'A(resvg)' };
+      out = { bytes: png, mime: 'image/png', tier: 'A(resvg)', productionInputs: svg.productionInputs };
     } catch (e) {
       if (o.noBrowser) {
         // No silent Tier-B escalation on the browser-free contract. Surface the
@@ -834,7 +883,13 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
     warnings.push(`Format "${fmt}" cannot carry Content Credentials - skipped.`);
   }
 
+  let production: import('@lolly/engine').ProductionReport | undefined;
+  if (o.production !== undefined) {
+    const { inspectProductionBytes } = await import('@lolly-tools/node-shell/production');
+    production = await inspectProductionBytes(bytes, productionContract, o.productionReference, undefined, { inputs: out.productionInputs });
+  }
   return {
+    ...(production ? { production } : {}),
     bytes, mime: out.mime, format: deliveredFormat, tier: out.tier, warnings,
     ...(evaluation ? { rights: await rightsResult(evaluation, bytes) } : {}),
   };

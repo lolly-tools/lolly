@@ -71,7 +71,7 @@ export const VALUE_FLAGS = new Set([
   // string "1" and then be reported as an unreadable file called "1". There is
   // deliberately no flag that takes the KEY or its passphrase: argv is visible in `ps`
   // to every user on the machine, kept in shell history, and echoed into CI logs.
-  'sign-key', 'sign-cert', 'recipe', 'rules', 'review-file', 'choices', 'save-recipe', 'report',
+  'production', 'production-reference', 'production-report', 'production-repairs', 'sign-key', 'sign-cert', 'recipe', 'rules', 'review-file', 'choices', 'save-recipe', 'report',
   // `--rights=private` states that this render is not being delivered to anyone.
   // A bare form parsing to "1" would be a value the reader refuses anyway, but
   // refusing it here names the one spelling instead of reporting an odd value.

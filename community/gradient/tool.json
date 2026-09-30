@@ -3,7 +3,7 @@
   "name": "Gradient",
   "description": "Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
   "a11yLabel": "Mesh gradient blending {{count}} colours",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "everyone",
@@ -141,11 +141,26 @@
       "Colour": "palette",
       "Mesh grid": "grid",
       "Texture & motion": "animate",
-      "Waves": "waves"
+      "Waves": "waves",
+      "Method": "sliders",
+      "Position": "move"
     },
     "width": 1600,
     "height": 900,
-    "formats": ["svg", "penpot", "png", "jpg", "webp", "avif", "webm", "mp4", "gif", "pdf", "tiff", "webp-anim"],
+    "formats": [
+      "svg",
+      "penpot",
+      "png",
+      "jpg",
+      "webp",
+      "avif",
+      "webm",
+      "mp4",
+      "gif",
+      "pdf",
+      "tiff",
+      "webp-anim"
+    ],
     "actions": [
       "copy",
       "download",
@@ -158,6 +173,87 @@
   },
   "inputs": [
     {
+      "id": "count",
+      "label": "Colour points",
+      "type": "number",
+      "display": "slider",
+      "default": 5,
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "section": "Colour"
+    },
+    {
+      "id": "color1",
+      "label": "Colour 1 (base)",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "section": "Colour"
+    },
+    {
+      "id": "color2",
+      "label": "Colour 2",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "section": "Colour"
+    },
+    {
+      "id": "color3",
+      "label": "Colour 3",
+      "type": "color",
+      "default": "{color.spectrum.teal}",
+      "showIf": {
+        "count": [
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "section": "Colour"
+    },
+    {
+      "id": "color4",
+      "label": "Colour 4",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "showIf": {
+        "count": [
+          4,
+          5,
+          6
+        ]
+      },
+      "section": "Colour"
+    },
+    {
+      "id": "color5",
+      "label": "Colour 5",
+      "type": "color",
+      "default": "#f2a65a",
+      "showIf": {
+        "count": [
+          5,
+          6
+        ]
+      },
+      "section": "Colour"
+    },
+    {
+      "id": "color6",
+      "label": "Colour 6",
+      "type": "color",
+      "default": "#5b8def",
+      "showIf": {
+        "count": [
+          6
+        ]
+      },
+      "section": "Colour"
+    },
+    {
+      "display": "select",
+      "section": "Method",
       "id": "mode",
       "label": "Method",
       "type": "select",
@@ -233,6 +329,7 @@
       ]
     },
     {
+      "section": "Method",
       "id": "blend",
       "label": "Blend mode",
       "type": "select",
@@ -281,24 +378,6 @@
       ]
     },
     {
-      "id": "count",
-      "label": "Colour points",
-      "type": "number",
-      "display": "slider",
-      "default": 5,
-      "min": 2,
-      "max": 6,
-      "step": 1,
-      "section": "Colour"
-    },
-    {
-      "id": "color1",
-      "label": "Colour 1 (base)",
-      "type": "color",
-      "default": "{color.semantic.primary}",
-      "section": "Colour"
-    },
-    {
       "id": "pos1",
       "label": "Position 1",
       "type": "vector",
@@ -327,14 +406,7 @@
           "default": 20
         }
       ],
-      "section": "Colour"
-    },
-    {
-      "id": "color2",
-      "label": "Colour 2",
-      "type": "color",
-      "default": "{color.semantic.secondary}",
-      "section": "Colour"
+      "section": "Position"
     },
     {
       "id": "pos2",
@@ -364,22 +436,7 @@
           "default": 18
         }
       ],
-      "section": "Colour"
-    },
-    {
-      "id": "color3",
-      "label": "Colour 3",
-      "type": "color",
-      "default": "{color.spectrum.teal}",
-      "showIf": {
-        "count": [
-          3,
-          4,
-          5,
-          6
-        ]
-      },
-      "section": "Colour"
+      "section": "Position"
     },
     {
       "id": "pos3",
@@ -415,21 +472,7 @@
           "default": 82
         }
       ],
-      "section": "Colour"
-    },
-    {
-      "id": "color4",
-      "label": "Colour 4",
-      "type": "color",
-      "default": "{color.semantic.surface}",
-      "showIf": {
-        "count": [
-          4,
-          5,
-          6
-        ]
-      },
-      "section": "Colour"
+      "section": "Position"
     },
     {
       "id": "pos4",
@@ -464,20 +507,7 @@
           "default": 78
         }
       ],
-      "section": "Colour"
-    },
-    {
-      "id": "color5",
-      "label": "Colour 5",
-      "type": "color",
-      "default": "#f2a65a",
-      "showIf": {
-        "count": [
-          5,
-          6
-        ]
-      },
-      "section": "Colour"
+      "section": "Position"
     },
     {
       "id": "pos5",
@@ -511,19 +541,7 @@
           "default": 10
         }
       ],
-      "section": "Colour"
-    },
-    {
-      "id": "color6",
-      "label": "Colour 6",
-      "type": "color",
-      "default": "#5b8def",
-      "showIf": {
-        "count": [
-          6
-        ]
-      },
-      "section": "Colour"
+      "section": "Position"
     },
     {
       "id": "pos6",
@@ -556,7 +574,7 @@
           "default": 88
         }
       ],
-      "section": "Colour"
+      "section": "Position"
     },
     {
       "id": "rows",

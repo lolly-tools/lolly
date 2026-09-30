@@ -8,6 +8,7 @@
  * from mountStart() by scripts/split-closure.ts.
  */
 import { mountModal } from '../../components/modal.ts';
+import { adoptionOf } from '../../lib/design-system/adoption-material.ts';
 import { t } from '../../i18n.ts';
 import { SITE_MAX_URL_CHARS, normalizeSiteUrl } from '../../lib/design-system/sources/website.ts';
 import type { StartSource } from '../../lib/design-system/start-route.ts';
@@ -104,6 +105,7 @@ export function openImport(start: StartCtx, source: StartSource | null = null): 
     showStage(start, source);
     return;
   }
+  start.adoptionReviewBase = adoptionOf(start.host)?.capture().catch(error => error instanceof Error ? error : new Error(String(error)));
   start.importModal = mountModal<void>(
     `
       <!-- A VISIBLE way out (plans/137 B3). Escape and a backdrop tap both
@@ -147,13 +149,16 @@ export function openImport(start: StartCtx, source: StartSource | null = null): 
         <button type="button" class="be-btn be-btn--sm ds-src-back" data-ds-src-back>${t('All sources')}</button>
         <h3>${t('Start from a saved web page')}</h3>
         <p class="ds-src-stage-note">${t('Choose one HTML page with its CSS files, or CSS on its own. Up to 20 files, 2 MB in total.')}</p>
-        <label class="field-label">${t('HTML and CSS files')}
-          <input class="field-input" type="file" data-page-files multiple accept=".html,.htm,.css,text/html,text/css">
+        <label class="start-import-drop ds-src-drop" data-page-drop>
+          <input class="visually-hidden" type="file" data-page-files multiple accept=".html,.htm,.css,text/html,text/css" aria-label="${escapeText(t('Choose HTML and CSS files'))}">
+          <span class="ds-src-drop-ic" aria-hidden="true">${icon('document')}</span>
+          <span class="be-btn start-import-btn" aria-hidden="true">${t('Choose HTML and CSS files…')}</span>
+          <span class="start-import-drophint" data-page-selection aria-live="polite">${t('or drag & drop them here')}</span>
         </label>
         <details class="ds-reference-details">
           <summary>${t('Paste HTML or CSS instead')}</summary>
           <label class="field-label" for="ds-page-format">${t('Source format')}</label>
-          <select class="field-input" data-page-format id="ds-page-format"><option value="html">HTML</option><option value="css">CSS</option></select>
+          <select class="field-select" data-page-format id="ds-page-format"><option value="html">HTML</option><option value="css">CSS</option></select>
           <label class="field-label">${t('Page source')}
             <textarea class="field-input" data-page-text rows="6" spellcheck="false" autocapitalize="off"></textarea>
           </label>

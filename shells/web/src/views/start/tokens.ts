@@ -7,6 +7,8 @@
  * function as a value (an event listener), goes through `start.<module>.<fn>`. Extracted verbatim
  * from mountStart() by scripts/split-closure.ts.
  */
+import { tokenCompatibilityHtml } from '../../lib/design-system/token-compatibility-view.ts';
+import { adoptionOf, prepareTokenAdoption } from '../../lib/design-system/adoption-material.ts';
 import { deriveBrandTokens, extractPenpotProject, extractSvgColors, scanPenpotAppliedTokens, scanPenpotUsage, summarizeTokensDoc } from '@lolly/engine';
 import { announce } from '../../a11y.ts';
 import { applyChromeBrandVars } from '../../brand-vars.ts';
@@ -23,7 +25,6 @@ import { openLollyFile } from '../../lib/drop-router.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { applyTheme } from '../../theme.ts';
 import { carryUserFontTokens, installGoogleFont } from '../../user-fonts.ts';
-import type { UserFontsHost } from '../../user-fonts.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { FONT_NAME, IMAGE_NAME, PDF_NAME } from './shared.ts';
 import { bindOp, type StartCtx } from './context.ts';
@@ -70,11 +71,17 @@ export async function install(start: StartCtx,
     } else await start.brand.checkpointBeforeInstall();
     // A doc with no font group inherits the fonts already installed here, so an
     // import never silently undoes a chosen face.
-    const withFonts = await carryUserFontTokens(host as unknown as UserFontsHost, doc);
+    const withFonts = await carryUserFontTokens(host, doc);
     // An import replaces the ACTIVE system's material but keeps its name: `label`
     // (the file's name, or "My brand" when it has none) is used only for a system
     // this write creates. Passed as a rename, it renamed whichever system was open.
-    await installUserTokens(host, withFonts, { labelIfNew: label });
+    const adoption = adoptionOf(host);
+    if (adoption) {
+      const snapshot = await (start.adoptionReviewBase ?? adoption.capture());
+      if (snapshot instanceof Error) throw snapshot;
+      const prepared = await prepareTokenAdoption(host, snapshot, withFonts, [], { labelIfNew: label });
+      await adoption.commit(prepared.candidate);
+    } else await installUserTokens(host, withFonts, { labelIfNew: label });
     void applyChromeBrandVars(host); // bust() cleared caches; nothing repaints chrome by itself
     await start.editor?.reload();
     await start.exporting.refreshHead(); // the head moved - the tokens export follows it
@@ -90,7 +97,7 @@ export async function install(start: StartCtx,
     btn.disabled = false;
     btn.textContent = prevLabel;
     start.rooms.selectRoom(opts?.area ?? 'color');
-    announce(tRaw('{label} installed - the studio now shows it', { label }));
+    announce(t('Design system settings applied'));
     playSfx('saveProfile');
   } catch (err) {
     start.installing = false;
@@ -273,7 +280,7 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
               (hex, i) => `
             <li class="start-color-chip">
               <label>
-                <input type="checkbox" data-color-idx="${i}" checked>
+                <input type="checkbox" class="field-check" data-color-idx="${i}" checked>
                 <span class="start-color-swatch" style="background:${escapeText(hex)}" aria-hidden="true"></span>
                 <span class="start-color-hex">${escapeText(hex)}</span>
               </label>
@@ -419,7 +426,7 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
                   (hex, i) => `
                 <li class="start-color-chip">
                   <label>
-                    <input type="checkbox" data-color-idx="${i}" checked>
+                    <input type="checkbox" class="field-check" data-color-idx="${i}" checked>
                     <span class="start-color-swatch" style="background:${escapeText(hex)}" aria-hidden="true"></span>
                     <span class="start-color-hex">${escapeText(hex)}</span>
                   </label>
@@ -479,6 +486,7 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
         <p class="start-import-name">${escapeText(file.name)}<span class="start-import-source">${t('penpot tokens')}</span></p>
         ${statLine ? `<p class="start-import-stats">${escapeText(statLine)}</p>` : ''}
         ${warnings.length ? `<p class="start-import-warn">${escapeText(warnings.join(' · '))}</p>` : ''}
+        ${tokenCompatibilityHtml(doc)}
         ${
           roles
             ? `
@@ -526,6 +534,7 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
       <p class="start-import-name">${escapeText(file.name)}<span class="start-import-source">${escapeText(SOURCE_LABEL[source]())}</span></p>
       ${statLine ? `<p class="start-import-stats">${escapeText(statLine)}</p>` : ''}
       ${warnings.length ? `<p class="start-import-warn">${escapeText(warnings.join(' · '))}</p>` : ''}
+        ${tokenCompatibilityHtml(doc)}
       ${mappingReviewHtml(start, doc)}
       <div class="start-color-actions">
         <button type="button" class="be-cta start-cta--import" data-install-import>${
@@ -577,7 +586,7 @@ export function mappingReviewHtml(start: StartCtx, doc: Record<string, unknown>)
   return `
       <div class="ds-roles-card">
         <p class="ds-roles-q">${t('Which one is the primary?')}</p>
-        <p class="start-import-warn">${t('This document declares colours but no roles, so nothing would pick up its main colour without one.')}</p>
+        <p class="start-import-warn">${t('Choose the main colour for Lolly tools. Your original token names stay in place.')}</p>
         <ul class="ds-roles-choices" role="list">
           ${choices
             .map(
@@ -592,7 +601,7 @@ export function mappingReviewHtml(start: StartCtx, doc: Record<string, unknown>)
             )
             .join('')}
         </ul>
-        <p class="start-import-stats">${t('Surface and text follow from it.')}</p>
+        <p class="start-import-stats">${t('Lolly suggests background and text bindings from this choice.')}</p>
         <ul class="start-color-grid start-look-roles" role="list">
           ${(['surface', 'text'] as const)
             .map(
@@ -796,7 +805,7 @@ export function wireTokenReview(start: StartCtx): void {
     let landed = false;
     for (const family of fonts.google) {
       try {
-        await installGoogleFont(host as unknown as UserFontsHost, family, { neverPrimary: true });
+        await installGoogleFont(host, family, { neverPrimary: true });
         landed = true;
       } catch {
         /* offline or blocked - the font token still points at the family */

@@ -5,6 +5,8 @@
  * no feature module has to import the orchestrator file. Make it yours: brand rooms, source imports, exports and recovery.
  */
 import { hexToOklch } from '@lolly/engine';
+import type { UsageHost } from '../../lib/design-system/usage-model.ts';
+import type { UserFontsHost } from '../../user-fonts.ts';
 import type { installUserTokens } from '../../bridge/tokens.ts';
 import { t } from '../../i18n.ts';
 import type { LangSwitchHost } from '../../i18n.ts';
@@ -20,7 +22,7 @@ export type ViewElement = HTMLElement & { _cleanup?: () => void };
 
 /** Whatever host installUserTokens needs - stays in lock-step with the bridge -
  *  plus the profile slice the language switcher persists its choice through. */
-export type StartHost = Parameters<typeof installUserTokens>[0] & LangSwitchHost & SwitchHost;
+export type StartHost = Parameters<typeof installUserTokens>[0] & LangSwitchHost & SwitchHost & UsageHost & UserFontsHost;
 
 // ── The import card's format marks ───────────────────────────────────────────
 // Recognition beats description: the four accepted formats lead the card as
@@ -63,6 +65,7 @@ export const ROOM_ICONS: Record<StartArea, IconName> = {
   logos: 'shapes',
   tokens: 'tokens',
   catalogue: 'folder',
+  usage: 'clipboard',
   versions: 'tag',
 };
 

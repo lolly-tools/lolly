@@ -57,6 +57,17 @@ test('compiler mounts the ordinary runtime with literal inputs and no editor pay
   runtime.destroy();
 });
 
+test('recipient instructions and secondary placement survive compilation without changing the policy order', async () => {
+  const draft = rulesFixture(); draft.description = 'Enter a name, then download your card.';
+  draft.inputs[0]!.input.section = 'More options';
+  const compiled = compileDesignTool(draft, { source: await readFile('community/design/assets/rules-renderer.js', 'utf8'), styles: '' });
+  assert.equal(compiled.manifest.description, draft.description);
+  assert.deepEqual(compiled.manifest.inputs.map(input => input.id), ['firstname', 'theme']);
+  assert.deepEqual(draft.inputs.map(field => field.input.id), ['theme', 'firstname']);
+  draft.description = 'x'.repeat(2001);
+  assert.ok(validateDesignTool(draft).some(issue => issue.code === 'description'));
+});
+
 test('tool packages round-trip without a session and keep old session writers compatible', async () => {
   const renderer = { source: await readFile('community/design/assets/rules-renderer.js', 'utf8'), styles: await readFile('community/design/styles.css', 'utf8') };
   const compiled = compileDesignTool(rulesFixture(), renderer);

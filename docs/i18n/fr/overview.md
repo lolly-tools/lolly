@@ -455,7 +455,7 @@ Même cycle de vie sous Tauri. Même cycle de vie en CLI - jsdom fournit le DOM 
 
 ## Statut open source
 
-**Le code est sous licence MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` et `docs/` sont open source sous **MPL-2.0** - une plateforme d'échafaudage neutre vis-à-vis des fournisseurs pour l'outillage de marque, le tout dans un seul dépôt public, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Le code est sous licence MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` et `docs/*.ts` sont open source sous **MPL-2.0** - une plateforme d'échafaudage neutre vis-à-vis des fournisseurs pour l'outillage de marque, le tout dans un seul dépôt public, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Le contenu des outils est livré sous forme de packs de marque**, chacun avec ses propres conditions (voir le `NOTICE.md` du pack). `community/` est un répertoire de ce dépôt et ses outils indépendants de toute marque sont eux aussi sous MPL-2.0. `brands/suse/` est le pack privé `suse-lolly`, l'unique sous-module : les outils SUSE et le catalogue SUSE, **propriété exclusive de SUSE**, y compris sa musique PremiumBeat sous licence. `brands/lolly-start/` est la marque de démarrage vierge que possède ce dépôt. Les polices sont livrées dans un pack sous la **SIL Open Font License 1.1** - le pack SUSE contient les polices SUSE et SUSE Mono.
 

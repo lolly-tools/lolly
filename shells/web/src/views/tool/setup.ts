@@ -46,6 +46,7 @@ import { createUrlGauge } from '../../lib/url-budget-gauge.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { makeLollyVehicle } from '../tool-lolly-vehicle.ts';
 import { historyParticipation, localHistorySlot, mountCollabActionHistory, trackRevisionInput, wireToolRevisionHistory } from '../tool-revision-history.ts';
+import { mountRecoveryNotice } from '../tool-recovery-notice.ts';
 import { entryHoldsUnsavedEdits, localDocument } from '../tool-leave.ts';
 import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
@@ -632,6 +633,8 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // capture: they read the page as soon as the view is up and must never see half a
   // document.
   const progressiveInit = !tview.autoExport && !tview.autoCopy && !captureNeutralPinned();
+  const { observeProductionExport } = await import('../../bridge/production-observer.ts');
+  observeProductionExport(tview.host, toolId, () => tview.runtime?.getModel() ?? []);
   const runtime: ToolRuntime = await createRuntime(tview.tool, tview.host, tview.initialValues, {
     progressiveInit,
     ...(emojiStyle === undefined ? {} : { emojiStyle }),
@@ -863,11 +866,15 @@ export function mountActions(tview: ToolViewCtx): void {
       ...historyParticipation(tview.tool.manifest, !!collabHandle || !!ephemeralState || !!getCollabSessionSource()),
     }
   ); tview.actionsApi = actionsApi;
+  if (!tview.isFull && !tview.autoExport && !tview.autoCopy) mountLifecycle.add('recovery notice', mountRecoveryNotice(viewEl, {
+    manifest: tview.tool.manifest, automatic: !!actionsApi?.history, canSave: !!actionsApi?.save,
+    shared: !!collabHandle || !!ephemeralState || !!getCollabSessionSource(), collab: collabHandle?.history,
+  }));
   // The retained export file (plans/236) lives only as long as this mount.
   mountLifecycle.add('export delivery result', () => actionsApi?.releaseDelivery?.());
   if (tview.tool.manifest.designTool && tview.sidebarEl && tview.canvasEl) mountLifecycle.add('locked tool inputs', mountLockedTool({
     view: viewEl, canvas: tview.canvasEl, stage: tview.stageEl, sidebar: tview.sidebarEl,
-    runtime, host: tview.host, policy: tview.tool.manifest.designTool,
+    runtime, host: tview.host, policy: tview.tool.manifest.designTool, actions: tview.actionsEl,
   }));
   tview.revisionChanged = () => actionsApi?.history?.changed();
   const capture = mountCollabActionHistory({ handle: collabHandle, snapshot: actionsApi?.sessionState,

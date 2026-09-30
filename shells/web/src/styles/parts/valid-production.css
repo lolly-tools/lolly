@@ -1,0 +1,8 @@
+.valid-production { margin-block: 1.5rem; padding: 1rem; border: 1px solid currentColor; border-radius: .5rem; }
+.valid-production > summary { cursor: pointer; font-weight: 600; }
+.valid-production > label { display: block; margin-block: .75rem; }
+.valid-production-filename { display: block; margin-block-start: .5rem; overflow-wrap: anywhere; color: var(--ui-color-text-muted); }
+.valid-production .field-label > .btn { display: block; margin-block-start: .5rem; }
+.valid-production select { max-width: 100%; margin-inline-end: .75rem; }
+.valid-production li { overflow-wrap: anywhere; }
+.valid-production details input, .valid-production textarea { display: block; max-width: 100%; margin-block: .5rem; }

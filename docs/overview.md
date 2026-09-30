@@ -456,7 +456,9 @@ Same lifecycle in Tauri. Same lifecycle in CLI - jsdom provides the headless DOM
 
 ## Open-source status
 
-**Code is MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` and `docs/` are open source under **MPL-2.0** - a vendor-neutral scaffolding platform for brand tooling, all of it in one public repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Code is MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` and the documentation generator are open source under **MPL-2.0** - a vendor-neutral scaffolding platform for brand tooling, all of it in one public repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+
+**Documentation content is CC BY-SA 4.0**, with attribution to [lolly.tools](https://lolly.tools). The [documentation licence](https://github.com/lolly-tools/lolly/blob/main/docs/LICENSE) covers the prose and original illustrations; code examples use MPL-2.0, and third-party material keeps its stated licence.
 
 **Tool content ships as brand packs**, each with its own terms (see the pack's `NOTICE.md`). `community/` is a directory of this repository and its brand-agnostic tools are MPL-2.0 too. `brands/suse/` is the private `suse-lolly` pack, the one submodule: the SUSE tools and the SUSE catalog, **proprietary to SUSE**, including its licensed PremiumBeat music. `brands/lolly-start/` is the blank starter brand this repository owns. Fonts ship inside a pack under the **SIL Open Font License 1.1** - the SUSE pack carries the SUSE and SUSE Mono typefaces.
 

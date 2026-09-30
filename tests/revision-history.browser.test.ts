@@ -215,13 +215,13 @@ test('rolling recovery survives reopen, preserves competing edits and keeps the 
       await state.save(slot, { ...initial, text: 'imported current' });
       const draftsAfterImport = await history.recovery.list({ slot });
       const beforeImport = draftsAfterImport.entries.find((row: { id: string }) => row.id.startsWith('before-replacement:'));
-      const retained = await history.recovery.read(beforeImport.id);
+      const retained = await history.read(next.id);
       await history.move(slot, '__trash__:recovery');
       const movedDrafts = await history.recovery.list({ slot: '__trash__:recovery' });
       await state.delete('__trash__:recovery');
       return { restored, recoveryQuota, afterRecoveryQuota, protectedWhileFull, sparse: sparse.entries.length, rolling: rolling.entries, wrongPreview, right, protectedRight, currentAfterConflict,
         staleRejected, remainingDrafts: remainingDrafts.entries, refs, duplicate: duplicate.id, next: next.id, abaRejected: abaRejected.diverged,
-        retained, moved: movedDrafts.entries.length, recoveryBytes: await db.get('revision-usage', 'recovery'),
+        retained, duplicateDraft: !!beforeImport, moved: movedDrafts.entries.length, recoveryBytes: await db.get('revision-usage', 'recovery'),
         deletedDraft: await history.recovery.read('right') };
     });
     assert.equal(result.restored.text, 'edit 39'); assert.equal(result.sparse, 1); assert.equal(result.rolling.length, 1);
@@ -231,7 +231,9 @@ test('rolling recovery survives reopen, preserves competing edits and keeps the 
     assert.equal(result.currentAfterConflict.text, 'edit 39'); assert.equal(result.staleRejected, true);
     assert.deepEqual(result.remainingDrafts.map((row: { id: string }) => row.id), ['right']);
     assert.ok(result.refs.includes('branch:png:2')); assert.equal(result.duplicate, result.next); assert.equal(result.abaRejected, true);
-    assert.equal(result.retained.text, 'edit 39'); assert.equal(result.moved, 3);
+    assert.equal(result.retained.text, 'edit 39');
+    assert.equal(result.duplicateDraft, false, 'the saved revision already protects the replaced state');
+    assert.equal(result.moved, 2, 'both competing drafts move with the creation');
     assert.equal(result.recoveryBytes, 0); assert.equal(result.deletedDraft, null);
   } finally { await browser.close(); }
 });
@@ -279,13 +281,14 @@ test('manual backup round-trips revision IDs, previews and drafts; reimport is i
       const malformed = structuredClone(before); malformed.revisions[0].data.text = 'corrupt';
       const corrupt = await history.backup.restore(malformed).then(() => false, () => true);
       const preserved = await history.read(first.id);
-      // A snapshot-sync replacement remains separate from history. Its previous
-      // working state is protected as a draft and no archive is uploaded.
+      // Sync applies its incoming snapshot. The saved revision already protects
+      // the replaced work, so replacement need not make a duplicate draft.
       await importBackup(deps, await sync.blob.arrayBuffer(), { mode: 'sync' });
       const afterSync = await history.backup.export();
+      const currentAfterSync = await state.load(slot);
       return { summary, quotaRejected, quotaHead, quotaPayload, quotaDraft, restoredSummary, before, restored, usage, afterRepeat, recoveryUsage, repeatRecovery,
         syncSummary: sync.summary, conflict, afterConflict, headAfterConflict, changed: changed.id, profileBefore, profileAfterConflict,
-        corrupt, preserved, afterSync, profileWrites };
+        corrupt, preserved, afterSync, currentAfterSync, profileWrites };
     });
     assert.equal(result.summary.revisions, 1); assert.equal(result.summary.recoveryDrafts, 1);
     // A full history space no longer refuses the import (plan 277 P1): older history is
@@ -303,7 +306,8 @@ test('manual backup round-trips revision IDs, previews and drafts; reimport is i
     assert.equal(result.headAfterConflict, result.changed); assert.ok(result.profileAfterConflict >= result.profileBefore);
     assert.equal(result.corrupt, true); assert.equal(result.preserved.text, 'saved');
     assert.equal(result.afterSync.revisions.length, 2);
-    assert.ok(result.afterSync.recoveries.some((row: { data: { text: string }; diverged: boolean }) => row.diverged && row.data.text === 'new target work'));
+    assert.equal(result.currentAfterSync.text, 'latest draft');
+    assert.ok(result.afterSync.revisions.some((row: { data: { text: string } }) => row.data.text === 'new target work'), 'the newer saved version stays in History');
   } finally { await browser.close(); }
 });
 

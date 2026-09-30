@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
+import type { FontStyleSlice } from '../../bridge/text-svg.ts';
 import type { AssetRef, Profile } from '@lolly-tools/core/host-v1';
 import { DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, PACK_PARAM, assetIdForUrl, blocksForUrl, encodeTableCompact, isBakedRef, isPackAvailable, isTokenValue, normalizeTableValue, packQuery, serializeHdr, toCssPx } from '@lolly/engine';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
@@ -36,6 +37,11 @@ import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog
 import { writeEmojiParams } from '../../lib/emoji-prefs.ts';
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
+
+async function resolveDesignFont(tview: ToolViewCtx, style: FontStyleSlice, text: string): Promise<boolean> {
+  const { fontCoversText } = await import('../../bridge/font-coverage.ts');
+  return fontCoversText(style, text, tview.host.text);
+}
 
 /**
  * The shared emoji control, mounted for the design dock without pulling it (and
@@ -1394,6 +1400,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           input: canvasEditInput,
           nativeW,
           nativeH,
+          rulesWorkspace: { fit: () => tview.stageZoom?.fit(), preserve: () => tview.stageZoom?.preserveView?.() },
           onDirty: tview.session.markUserDirty,
           // In carousel mode the strip size is owned by syncStrip (page count/size inputs);
           // withholding setCanvasSize stops the artboard-resize + design-import paths from
@@ -1863,10 +1870,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               // Document health asks the SAME registry vector export uses whether a
               // rendered run has real font bytes. Kept lazy: opening Design without
               // its inspector never pulls the font registry into this chunk.
-              resolveFont: async (style, text) => {
-                const { resolveVectorFont } = await import('../../bridge/font-registry.ts');
-                return Boolean(await resolveVectorFont(style, text));
-              },
+              resolveFont: (style, text) => resolveDesignFont(tview, style, text),
               voices: tview.host.speech?.voices ? () => tview.host.speech!.voices() : undefined,
               fields: design.fields,
               // The panel skips its whole render while closed, and it is built DETACHED - so

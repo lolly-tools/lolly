@@ -98,6 +98,22 @@ test('mounted Design audit asks for visual review on gradient paint instead of i
   );
 });
 
+test('font checks read inline runs, report the affected layer once and ignore outlined artwork', async () => {
+  const { canvas, report } = mounted();
+  canvas.querySelector('.lolly-box-text')!.innerHTML = '<span style="font-family:SUSE;font-weight:400">Hello</span><span style="font-family:Missing;font-weight:700">مرحبا</span><span style="font-family:Missing;font-weight:700">عالم</span><svg><title>Not text</title><path d="M0 0"/></svg>';
+  const seen: string[] = [];
+  const audit = await auditMountedDesign(canvas, report, { resolveFont: async (style, text) => {
+    seen.push(`${style.fontFamily}:${style.fontWeight}:${text}`);
+    return style.fontFamily === 'SUSE';
+  } });
+  assert.deepEqual(seen, ['SUSE:400:Hello', 'Missing:700:مرحبا', 'Missing:700:عالم']);
+  assert.equal(audit.checked.fonts, 1);
+  const fonts = audit.findings.filter(finding => finding.id === 'design.font.unembeddable');
+  assert.equal(fonts.length, 1);
+  assert.equal(fonts[0]!.layerId, 'title');
+  assert.match(mountedDesignFindingMessage(fonts[0]!), /Add or choose a font.*before exporting/);
+});
+
 test('mounted Design audit does not claim flat contrast over an overlapping image layer', async () => {
   const { canvas } = mounted();
   const title = canvas.querySelector<HTMLElement>('[data-box-id="title"]')!;

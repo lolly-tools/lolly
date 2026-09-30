@@ -29,6 +29,7 @@ import { bytesToHex, sha256 } from './bytes.ts';
 // The leaf, not tokens.ts: this module is reached from bridge/assets.ts at first paint,
 // and the tokens module would bring its colour cluster along for one string (token-ext.ts).
 import { TOKEN_EXT } from './token-ext.ts';
+import { brandResourceAssetIds, mapBrandResourceIds } from './brand-resources.ts';
 
 type Rec = Record<string, unknown>;
 
@@ -366,7 +367,7 @@ function walkLeaves(doc: unknown, visit: (leaf: Rec, path: string[]) => void): v
 }
 
 /**
- * Every `$type: 'asset'` leaf: its dotted path and the asset id it names.
+ * Asset token leaves and explicit brand-role resources, with their source paths.
  *
  * Deliberately generic rather than a walk of `asset.logo.*`: that is simply
  * where the shipped studio puts logos today, and a manifest that only knew that
@@ -381,6 +382,7 @@ export function collectAssetTokens(doc: unknown): Array<{ path: string; id: stri
     if (!id || id.startsWith('{')) return;
     out.push({ path: path.join('.'), id });
   });
+  for (const [index, id] of brandResourceAssetIds(doc).entries()) out.push({ path: `$extensions.brandSystem.resources.${index}`, id });
   return out;
 }
 
@@ -431,7 +433,7 @@ export function applyPinnedAssets(doc: unknown, pins: readonly PinnedAsset[]): u
     const to = id ? frozen.get(id) : undefined;
     if (to) leaf.$value = to;
   });
-  return next;
+  return mapBrandResourceIds(next, id => frozen.get(id) ?? id);
 }
 
 /** Key-sorted deep copy - the canonical form both docChecksum and the leaf diff

@@ -88,6 +88,9 @@ const ALLOWED_PACKAGES = new Set([
   '@lolly-tools/core/rights-v1',
   // Portable Design rules and pure value evaluation, shared with packaged hooks.
   '@lolly-tools/core/design-tool-v1',
+  // Portable brand vocabulary and its static validation schema.
+  '@lolly-tools/core/brand-system-v1',
+  '@lolly-tools/core/schema/brand-system-v1.schema.json',
   // engine/package.json dep (declared 2026-08-05, allowlist missed at the time).
   // Pure JS zip/gzip codec, no DOM/fs/network - same platform-agnostic bar as
   // handlebars/ajv above. Used directly by epub.ts (zipSync), font-convert.ts

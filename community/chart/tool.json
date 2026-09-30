@@ -2,7 +2,7 @@
   "id": "chart",
   "name": "Chart",
   "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-  "version": "1.26.0",
+  "version": "1.26.1",
   "engineVersion": "^1.181.0",
   "status": "official",
   "category": "designer",
@@ -126,7 +126,25 @@
     }
   ],
   "render": {
-    "sectionIcons": {"Data": "table", "Field mapping": "filterLines", "Marks & spacing": "shapes", "Category labels": "resize", "Axes & scale": "grid", "Custom palette": "palette", "Titles & labels": "font", "Legend": "checklist", "Animation": "animate", "Colour & style": "paintbrush", "3-D scene": "box", "Cinematic flight": "camera", "Statistical": "flask", "Pareto": "sortDir", "Bullet targets": "ring", "Range bars": "arrowsH"},
+    "sectionIcons": {
+      "Data": "table",
+      "Field mapping": "filterLines",
+      "Marks & spacing": "shapes",
+      "Category labels": "resize",
+      "Axes & scale": "grid",
+      "Custom palette": "palette",
+      "Titles & labels": "font",
+      "Legend": "checklist",
+      "Animation": "animate",
+      "Colour & style": "paintbrush",
+      "3-D scene": "box",
+      "Cinematic flight": "camera",
+      "Statistical": "flask",
+      "Pareto": "sortDir",
+      "Bullet targets": "ring",
+      "Range bars": "arrowsH",
+      "Change chart": "table"
+    },
     "width": 1280,
     "height": 800,
     "formats": [
@@ -171,6 +189,34 @@
   "isolate": true,
   "inputs": [
     {
+      "id": "data",
+      "urlKey": "d",
+      "label": "Data",
+      "type": "longtext",
+      "dataSource": {},
+      "rows": 4,
+      "placeholder": "Quarter,Coffee,Tea,Juice\nQ1,42,28,12\nQ2,49,35,18",
+      "help": "Copy cells straight from Excel, Google Sheets or Numbers and paste here - they come across as a clean table (no fiddling with commas). Or type/paste CSV or TSV. First row = column headers; the first text column becomes the labels and every numeric column a series. The chart rebuilds automatically.",
+      "default": "Quarter,Coffee,Tea,Juice\nQ1,42,28,12\nQ2,49,35,18\nQ3,55,41,24\nQ4,63,52,33"
+    },
+    {
+      "id": "heading",
+      "urlKey": "t",
+      "label": "Title",
+      "type": "text",
+      "default": "",
+      "placeholder": "Chart title"
+    },
+    {
+      "id": "subheading",
+      "urlKey": "st",
+      "label": "Subtitle / source",
+      "type": "text",
+      "default": "",
+      "placeholder": "Optional subtitle or data source"
+    },
+    {
+      "section": "Change chart",
       "id": "chartIntent",
       "urlKey": "goal",
       "label": "What to show",
@@ -217,6 +263,7 @@
       "help": "Choose a communication goal and Chart profiles the pasted table, explains its assumptions, maps suitable fields and switches to a defensible starting form. Choose the form myself to keep every renderer choice fully manual."
     },
     {
+      "section": "Change chart",
       "id": "renderMode",
       "urlKey": "rm",
       "label": "Render",
@@ -244,6 +291,7 @@
       "help": "Vector draws a flat SVG chart, Stats the statistical plot grammar, 3-D an extruded scene and Cinema an animated flight. Switch renderer without replacing your work. The table, titles, palette, labels, formatting and layout settings follow between the vector, statistical, 3-D and cinematic renderers. Renderer-specific controls stay parked and return when you switch back."
     },
     {
+      "section": "Change chart",
       "id": "chartType",
       "urlKey": "ct",
       "label": "Chart type",
@@ -461,6 +509,7 @@
       "help": "Columns are Label, Low, High. A small tick marks the arithmetic midpoint, not an observed mean. Reversed endpoints are put in low-to-high order; incomplete rows are omitted."
     },
     {
+      "section": "Change chart",
       "id": "plotType",
       "urlKey": "pf",
       "label": "Statistical form",
@@ -538,6 +587,7 @@
       "help": "Curated layered and transformed SVG forms for comparison, change, distributions, uncertainty, relationships, monitoring and finance. Density, hexbin and regression use the first two numeric columns. Range band uses Low, Expected, High; candlestick uses Open, High, Low, Close."
     },
     {
+      "section": "Change chart",
       "id": "sceneType",
       "urlKey": "sct",
       "label": "3-D chart type",
@@ -563,6 +613,7 @@
       "help": "Choose how the same table is interpreted in the real 3-D scene. Bars use a label column plus numeric series; Scatter uses at least three numeric columns; Surface uses the table as a value grid."
     },
     {
+      "section": "Change chart",
       "id": "cinematicType",
       "urlKey": "cft",
       "label": "Cinematic form",
@@ -735,33 +786,6 @@
       "help": "A deterministic entrance treatment driven by Lolly's exact frame clock. If Animate by column is set, data-frame interpolation takes priority. Preview and GIF/APNG/WebP/MP4/WebM export use the same phases; static vector export uses the complete poster."
     },
     {
-      "id": "data",
-      "urlKey": "d",
-      "label": "Data",
-      "type": "longtext",
-      "dataSource": {},
-      "rows": 9,
-      "placeholder": "Quarter,Coffee,Tea,Juice\nQ1,42,28,12\nQ2,49,35,18",
-      "help": "Copy cells straight from Excel, Google Sheets or Numbers and paste here - they come across as a clean table (no fiddling with commas). Or type/paste CSV or TSV. First row = column headers; the first text column becomes the labels and every numeric column a series. The chart rebuilds automatically.",
-      "default": "Quarter,Coffee,Tea,Juice\nQ1,42,28,12\nQ2,49,35,18\nQ3,55,41,24\nQ4,63,52,33"
-    },
-    {
-      "id": "heading",
-      "urlKey": "t",
-      "label": "Title",
-      "type": "text",
-      "default": "",
-      "placeholder": "Chart title"
-    },
-    {
-      "id": "subheading",
-      "urlKey": "st",
-      "label": "Subtitle / source",
-      "type": "text",
-      "default": "",
-      "placeholder": "Optional subtitle or data source"
-    },
-    {
       "id": "chartStyle",
       "urlKey": "sty",
       "label": "Style",
@@ -786,17 +810,29 @@
         },
         {
           "value": "iso-vector",
-          "showIf": {"renderMode":"vector"},
+          "showIf": {
+            "renderMode": "vector"
+          },
           "label": "Isometric - vector depth"
         },
         {
           "value": "studio-3d",
-          "showIf": {"renderMode":["scene","cinematic"]},
+          "showIf": {
+            "renderMode": [
+              "scene",
+              "cinematic"
+            ]
+          },
           "label": "Studio 3-D - design system materials"
         },
         {
           "value": "glass-3d",
-          "showIf": {"renderMode":["scene","cinematic"]},
+          "showIf": {
+            "renderMode": [
+              "scene",
+              "cinematic"
+            ]
+          },
           "label": "Glass 3-D - translucent"
         }
       ],
@@ -973,7 +1009,19 @@
           "label": "Category"
         }
       ],
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal"]},{"renderMode":"scene","sceneType":"bar3d"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal"
+          ]
+        },
+        {
+          "renderMode": "scene",
+          "sceneType": "bar3d"
+        }
+      ]
     },
     {
       "id": "barStyle",
@@ -1393,7 +1441,9 @@
       "section": "Colour & style",
       "type": "color",
       "default": "{color.semantic.surface}",
-      "showIf": { "transparentBg": false }
+      "showIf": {
+        "transparentBg": false
+      }
     },
     {
       "id": "textColor",
@@ -1533,7 +1583,27 @@
     },
     {
       "id": "zColumn",
-      "showIf": [{"renderMode":"scene","sceneType":"scatter3d"},{"renderMode":"statistical","plotType":["hexbin","density-contour","regression"]},{"renderMode":"vector","chartType":["scatter","parallel"]}],
+      "showIf": [
+        {
+          "renderMode": "scene",
+          "sceneType": "scatter3d"
+        },
+        {
+          "renderMode": "statistical",
+          "plotType": [
+            "hexbin",
+            "density-contour",
+            "regression"
+          ]
+        },
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "scatter",
+            "parallel"
+          ]
+        }
+      ],
       "urlKey": "zc",
       "label": "Z / depth",
       "section": "Field mapping",
@@ -1544,7 +1614,17 @@
     },
     {
       "id": "sizeColumn",
-      "showIf": [{"renderMode":"vector","chartType":"scatter","sizeBy":"auto"},{"renderMode":"scene","sceneType":"scatter3d"}],
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": "scatter",
+          "sizeBy": "auto"
+        },
+        {
+          "renderMode": "scene",
+          "sceneType": "scatter3d"
+        }
+      ],
       "urlKey": "szc",
       "label": "Size",
       "section": "Field mapping",
@@ -1562,7 +1642,23 @@
       "default": "",
       "placeholder": "e.g. Quarter, Year, Wave",
       "help": "Name (or 1-based number) of a frame / time column - its distinct values (e.g. Q1, Q2, Q3) become animation keyframes. Classic and Statistical charts interpolate the same typed data; 3-D scenes use their Motion control. Export to GIF/APNG/animated WebP or MP4/WebM for exact-clock motion; static SVG/PDF uses the complete poster.",
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal","line","area","pie","donut","scatter"]},{"renderMode":"statistical"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal",
+            "line",
+            "area",
+            "pie",
+            "donut",
+            "scatter"
+          ]
+        },
+        {
+          "renderMode": "statistical"
+        }
+      ]
     },
     {
       "id": "motionPreset",
@@ -1614,7 +1710,23 @@
       "type": "boolean",
       "default": true,
       "help": "Show the current keyframe's name (e.g. the quarter) as a caption while the animation plays.",
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal","line","area","pie","donut","scatter"]},{"renderMode":"statistical"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal",
+            "line",
+            "area",
+            "pie",
+            "donut",
+            "scatter"
+          ]
+        },
+        {
+          "renderMode": "statistical"
+        }
+      ]
     },
     {
       "id": "frameLabelSize",
@@ -1628,7 +1740,23 @@
       "max": 120,
       "step": 1,
       "help": "Font size (px) of the keyframe caption.",
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal","line","area","pie","donut","scatter"]},{"renderMode":"statistical"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal",
+            "line",
+            "area",
+            "pie",
+            "donut",
+            "scatter"
+          ]
+        },
+        {
+          "renderMode": "statistical"
+        }
+      ]
     },
     {
       "id": "frameLabelWeight",
@@ -1706,7 +1834,23 @@
           "label": "Bottom right"
         }
       ],
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal","line","area","pie","donut","scatter"]},{"renderMode":"statistical"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal",
+            "line",
+            "area",
+            "pie",
+            "donut",
+            "scatter"
+          ]
+        },
+        {
+          "renderMode": "statistical"
+        }
+      ]
     },
     {
       "id": "animEase",
@@ -1877,7 +2021,24 @@
       "min": 2,
       "max": 48,
       "step": 1,
-      "showIf": [{"renderMode":"vector","chartType":["scatter","line","area","slope","bump","pareto","radar","beeswarm"]},{"renderMode":"statistical"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "scatter",
+            "line",
+            "area",
+            "slope",
+            "bump",
+            "pareto",
+            "radar",
+            "beeswarm"
+          ]
+        },
+        {
+          "renderMode": "statistical"
+        }
+      ]
     },
     {
       "id": "sizeBy",
@@ -1912,7 +2073,27 @@
       "min": 1,
       "max": 16,
       "step": 1,
-      "showIf": [{"renderMode":"vector","chartType":["line","area","radar","lollipop","dumbbell","slope","bump","parallel","pareto","bullet","range-bar"]},{"renderMode":"statistical"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "line",
+            "area",
+            "radar",
+            "lollipop",
+            "dumbbell",
+            "slope",
+            "bump",
+            "parallel",
+            "pareto",
+            "bullet",
+            "range-bar"
+          ]
+        },
+        {
+          "renderMode": "statistical"
+        }
+      ]
     },
     {
       "id": "fillOpacity",
@@ -1925,7 +2106,25 @@
       "min": 0,
       "max": 100,
       "step": 1,
-      "showIf": [{"renderMode":"vector","chartType":["area","radar","scatter","stream","parallel","chord","box","violin","beeswarm"]},{"renderMode":"statistical"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "area",
+            "radar",
+            "scatter",
+            "stream",
+            "parallel",
+            "chord",
+            "box",
+            "violin",
+            "beeswarm"
+          ]
+        },
+        {
+          "renderMode": "statistical"
+        }
+      ]
     },
     {
       "id": "donutRadius",
@@ -2013,7 +2212,25 @@
       "max": 0.9,
       "step": 0.01,
       "help": "Gap between categories (each group of bars).",
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal","radial-bar","histogram","waterfall","pareto","bullet","range-bar"]},{"renderMode":"statistical","plotType":"candlestick"}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal",
+            "radial-bar",
+            "histogram",
+            "waterfall",
+            "pareto",
+            "bullet",
+            "range-bar"
+          ]
+        },
+        {
+          "renderMode": "statistical",
+          "plotType": "candlestick"
+        }
+      ]
     },
     {
       "id": "barGap",
@@ -2061,7 +2278,17 @@
       "options": [
         {
           "value": "none",
-          "showIf": {"chartType":["bar","bar-horizontal","pie","donut","radial-bar","polar","funnel"]},
+          "showIf": {
+            "chartType": [
+              "bar",
+              "bar-horizontal",
+              "pie",
+              "donut",
+              "radial-bar",
+              "polar",
+              "funnel"
+            ]
+          },
           "label": "As entered"
         },
         {
@@ -2074,7 +2301,17 @@
         },
         {
           "value": "alpha",
-          "showIf": {"chartType":["bar","bar-horizontal","pie","donut","radial-bar","polar","waffle"]},
+          "showIf": {
+            "chartType": [
+              "bar",
+              "bar-horizontal",
+              "pie",
+              "donut",
+              "radial-bar",
+              "polar",
+              "waffle"
+            ]
+          },
           "label": "A to Z by label"
         }
       ],
@@ -2106,7 +2343,20 @@
         },
         {
           "value": "horizontal",
-          "showIf": {"chartType":["bar","lollipop","dumbbell","pareto","bullet","range-bar","box","violin","beeswarm","waterfall"]},
+          "showIf": {
+            "chartType": [
+              "bar",
+              "lollipop",
+              "dumbbell",
+              "pareto",
+              "bullet",
+              "range-bar",
+              "box",
+              "violin",
+              "beeswarm",
+              "waterfall"
+            ]
+          },
           "label": "Horizontal"
         },
         {
@@ -2225,12 +2475,58 @@
         },
         {
           "value": "log",
-          "showIf": [{"chartType":["line","scatter","lollipop","dumbbell","slope","bump","box","violin","beeswarm"]},{"chartType":["bar","bar-horizontal","area"],"stackMode":"grouped"}],
+          "showIf": [
+            {
+              "chartType": [
+                "line",
+                "scatter",
+                "lollipop",
+                "dumbbell",
+                "slope",
+                "bump",
+                "box",
+                "violin",
+                "beeswarm"
+              ]
+            },
+            {
+              "chartType": [
+                "bar",
+                "bar-horizontal",
+                "area"
+              ],
+              "stackMode": "grouped"
+            }
+          ],
           "label": "Logarithmic"
         },
         {
           "value": "sqrt",
-          "showIf": [{"chartType":["line","scatter","histogram","lollipop","dumbbell","slope","bump","radial-bar","box","violin","beeswarm"]},{"chartType":["bar","bar-horizontal","area"],"stackMode":"grouped"}],
+          "showIf": [
+            {
+              "chartType": [
+                "line",
+                "scatter",
+                "histogram",
+                "lollipop",
+                "dumbbell",
+                "slope",
+                "bump",
+                "radial-bar",
+                "box",
+                "violin",
+                "beeswarm"
+              ]
+            },
+            {
+              "chartType": [
+                "bar",
+                "bar-horizontal",
+                "area"
+              ],
+              "stackMode": "grouped"
+            }
+          ],
           "label": "Square-root"
         }
       ],
@@ -2314,7 +2610,38 @@
       "section": "Axes & scale",
       "type": "boolean",
       "default": true,
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal","line","area","scatter","histogram","lollipop","dumbbell","slope","waterfall","polar","pareto","bullet","range-bar","radial-bar","box","violin","beeswarm"]},{"renderMode":["statistical","scene","cinematic"]}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal",
+            "line",
+            "area",
+            "scatter",
+            "histogram",
+            "lollipop",
+            "dumbbell",
+            "slope",
+            "waterfall",
+            "polar",
+            "pareto",
+            "bullet",
+            "range-bar",
+            "radial-bar",
+            "box",
+            "violin",
+            "beeswarm"
+          ]
+        },
+        {
+          "renderMode": [
+            "statistical",
+            "scene",
+            "cinematic"
+          ]
+        }
+      ]
     },
     {
       "id": "showAxes",
@@ -2439,7 +2766,36 @@
       "type": "text",
       "default": "",
       "placeholder": "Optional",
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal","line","area","scatter","histogram","lollipop","dumbbell","slope","waterfall","pareto","bullet","range-bar","box","violin","beeswarm"]},{"renderMode":["statistical","scene","cinematic"]}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal",
+            "line",
+            "area",
+            "scatter",
+            "histogram",
+            "lollipop",
+            "dumbbell",
+            "slope",
+            "waterfall",
+            "pareto",
+            "bullet",
+            "range-bar",
+            "box",
+            "violin",
+            "beeswarm"
+          ]
+        },
+        {
+          "renderMode": [
+            "statistical",
+            "scene",
+            "cinematic"
+          ]
+        }
+      ]
     },
     {
       "id": "yTitle",
@@ -2449,7 +2805,36 @@
       "type": "text",
       "default": "",
       "placeholder": "Optional",
-      "showIf": [{"renderMode":"vector","chartType":["bar","bar-horizontal","line","area","scatter","histogram","lollipop","dumbbell","slope","waterfall","pareto","bullet","range-bar","box","violin","beeswarm"]},{"renderMode":["statistical","scene","cinematic"]}]
+      "showIf": [
+        {
+          "renderMode": "vector",
+          "chartType": [
+            "bar",
+            "bar-horizontal",
+            "line",
+            "area",
+            "scatter",
+            "histogram",
+            "lollipop",
+            "dumbbell",
+            "slope",
+            "waterfall",
+            "pareto",
+            "bullet",
+            "range-bar",
+            "box",
+            "violin",
+            "beeswarm"
+          ]
+        },
+        {
+          "renderMode": [
+            "statistical",
+            "scene",
+            "cinematic"
+          ]
+        }
+      ]
     },
     {
       "id": "timeAxis",

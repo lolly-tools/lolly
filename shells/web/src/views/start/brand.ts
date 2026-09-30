@@ -170,7 +170,7 @@ export function wireRecoveryAndVersions(start: StartCtx): void {
       start.overview?.refresh();
       start.versions?.refresh();
       start.rooms.refreshFurnished();
-    });
+    }, host);
   });
   // The panel is built the first time it is opened, and it reads on mount - so
   // this is both the lazy mount and the re-entry refresh.

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-29T14:42:47.064Z",
+  "generatedAt": "2026-09-29T19:48:20.131Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -272,7 +272,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
-      "version": "2.6.1",
+      "version": "2.6.2",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -3817,7 +3817,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.39.0",
+      "version": "1.39.1",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5415,7 +5415,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, design system colour treatments and finishing texture - then bake your look as a LUT any editor can use. Opens a Photoshop or GIMP file as layers too: position, blend and hide each one, grade the composite, and export flat images or a layered PSD.",
-      "version": "2.3.0",
+      "version": "2.3.1",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -8504,7 +8504,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.26.0",
+      "version": "1.26.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -9656,7 +9656,7 @@
       "id": "gradient",
       "name": "Gradient",
       "description": "Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -14346,7 +14346,7 @@
       "id": "3d-studio",
       "name": "3D Studio",
       "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls.",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "status": "official",
       "category": "designer",
       "tags": [

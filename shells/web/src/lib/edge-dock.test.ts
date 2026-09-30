@@ -122,14 +122,14 @@ test('a docked data-tip is portalled above the scroll slot, not clipped inside i
   el.appendChild(trigger);
   ED.requestDock('inspector', el);
   trigger.focus();
-  const tip = document.querySelector<HTMLElement>('.edge-dock-tooltip');
-  assert.ok(tip, 'the dock owns one body-level tooltip');
+  const tip = document.querySelector<HTMLElement>('.lolly-tooltip');
+  assert.ok(tip, 'the dock uses the shared body-level tooltip');
   assert.equal(tip.textContent, 'Distribute horizontally');
   assert.equal(tip.hidden, false);
-  assert.equal(trigger.dataset.dockTipManaged, '', 'the clipped pseudo-tooltip is suppressed only while portalled');
+  assert.equal(trigger.dataset.tooltipManaged, '', 'the clipped pseudo-tooltip is suppressed only while portalled');
   ED.releaseDock('inspector');
   await Promise.resolve();
-  assert.equal(document.querySelector('.edge-dock-tooltip'), null, 'tearing down the final dock panel removes the portal');
+  assert.equal(document.querySelector('.lolly-tooltip'), null, 'tearing down the final dock panel removes the portal');
 });
 
 test('releasing the last panel restores it and tears down to byte-identical idle', () => {

@@ -470,7 +470,7 @@ export function overviewHtml(model: OverviewModel | null): string {
   return `
     <div class="ds-ov">
       <h2 class="ds-ov-title">${t('The design system')}</h2>
-      <p class="ds-ov-sub">${t('This is live. Every tool, page and export follows it. Open a room to change anything.')}</p>
+      <p class="ds-ov-sub">${t('Tools use these settings where they follow this design system. Saved designs can keep their own colours and fonts.')}</p>
       <div class="ds-ov-cards">
         ${cardHtml('color', t('Colours'), colorsValue(model), strip)}
         ${cardHtml('type', t('Type'), type.value, cardSub(type.sub))}

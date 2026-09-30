@@ -8,6 +8,10 @@ notice. It holds the prose documentation **and** the generator for the `/info` s
 paths such as `engine/`, `../README.md` and `shells/web/public/info/` that exist only in
 that layout. Run `pnpm run build:info` from the repo root, never from here.
 
+Documentation content is licensed under [CC BY-SA 4.0](LICENSE), with attribution to
+[lolly.tools](https://lolly.tools). The generator and code examples use
+[MPL 2.0](../LICENSE). Third-party material keeps its stated licence.
+
 New contributors should start with [`CONTRIBUTING.md`](../CONTRIBUTING.md) at the repo root, which
 owns the setup steps, the profile workflow and where each kind of change goes.
 
@@ -112,6 +116,7 @@ security posture).
 | [cli-rendering.md](cli-rendering.md) | builder | Choose export options, troubleshoot the browser renderer and render timelines or links. |
 | [cli-files.md](cli-files.md) | builder | Process local files, redactions, speech and on-device models. |
 | [cli-automation.md](cli-automation.md) | builder | Run batches, preflight outputs and integrate predictable results into scripts and CI. |
+| [production-checks.md](production-checks.md) | builder | Check final still files, compare explicit references, preserve protected content and run permitted repairs with byte-bound reports. |
 | [cli-reference.md](cli-reference.md) | builder | Verify files, inspect metadata, configure completion and find local state. |
 | [tui.md](tui.md) | tool author | The interactive terminal shell: browse, fill inputs, save projects and export without a browser. |
 | [mcp.md](mcp.md) | tool author | The native MCP server, its two hosted tiers, and the callable tools it exposes. |

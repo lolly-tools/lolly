@@ -7,29 +7,20 @@
   border-block-start: 1px solid hsl(var(--border));
   min-width: 0;
 }
-.ds-reference-review h3,
-.ds-reference-preview p { margin: 0; }
-.ds-reference-preview {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--sp-6);
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-lg);
-  padding: clamp(20px, 5vw, 36px);
-  background: var(--reference-surface);
-  color: var(--reference-text);
-  overflow-wrap: anywhere;
-}
-.ds-reference-eyebrow { font-size: var(--fs-sm); }
-.ds-reference-name { font-size: calc(var(--fs-xl) * 2); line-height: 1.2; }
-.ds-reference-action {
-  padding: 12px 20px;
-  border-radius: var(--radius);
-  background: var(--reference-primary);
-  color: var(--reference-onPrimary);
-  font-weight: 600;
-}
+.ds-reference-review h3 { margin: 0; }
+.ds-reference-preview { min-width: 0; }
+.ds-reference-preview-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.ds-reference-modes .view-seg { margin: 0; }
+.ds-reference-proof { position: relative; aspect-ratio: 16 / 9; margin: 0; overflow: hidden; display: grid; place-items: center; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); background: hsl(var(--muted)); }
+.ds-reference-proof img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.ds-reference-proof img[hidden], .ds-reference-proof-status[hidden] { display: none; }
+.ds-reference-proof-status { padding: var(--sp-7); text-align: center; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+.ds-reference-palette { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.ds-reference-palette-item { display: grid; grid-template-columns: 28px 1fr; gap: 4px 8px; align-items: center; font-size: var(--fs-sm); }
+.ds-reference-palette-item .start-color-swatch { grid-row: span 2; width: 28px; height: 40px; }
+.ds-reference-palette-item code { font-size: var(--fs-xs); }
+.ds-token-compatibility { margin-block: var(--sp-5); overflow-wrap: anywhere; font-size: var(--fs-sm); }
+.ds-token-compatibility li + li { margin-block-start: var(--sp-3); }
 .ds-reference-choices { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
 .ds-reference-choice {
   display: flex;
@@ -76,7 +67,7 @@
 .ds-looks-modal .field-input { min-height: 44px; max-width: 100%; }
 .ds-looks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--sp-6); }
 .ds-look-option { display: grid; grid-template-columns: 44px 1fr; align-items: center; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; min-width: 0; }
-.ds-look-option > input { width: 24px; height: 24px; margin: 10px; }
+.ds-look-option > .field-check { margin: 10px; }
 .ds-look-option > .ds-row-preview,
 .ds-look-option > .ds-src-stage-note { grid-column: 1 / -1; }
 .ds-look-option > .ds-src-stage-note { padding-inline: var(--sp-5); }
@@ -92,3 +83,11 @@
 .ds-looks-modal [data-looks-compare] { scroll-margin-block-start: 90px; }
 
 .ds-looks-modal .be-cta.is-active { animation: none; }
+
+.ds-reference-workspace { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; gap: var(--sp-7); }
+.ds-reference-visual, .ds-reference-controls { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.ds-reference-controls .be-cta { width: 100%; }
+.ds-reference-review > .ds-src-note:empty { display: none; }
+@media (max-width: 680px) {
+  .ds-reference-workspace { grid-template-columns: minmax(0, 1fr); }
+}

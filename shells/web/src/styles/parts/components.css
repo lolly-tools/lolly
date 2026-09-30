@@ -506,3 +506,11 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
 .motion-preview-wrap { position: relative; min-width: 0; min-height: 0; }
 .motion-preview-wrap > :is(button, a):not(.motion-preview-control) { width: 100%; height: 100%; }
 .motion-preview-control { position: absolute; inset-inline-end: .35rem; top: .35rem; z-index: 2; max-width: calc(100% - .7rem); white-space: normal; }
+
+/* Action scope for an import, replacement or other reviewed change. */
+.change-summary { padding: var(--sp-6); }
+.change-summary h4 { margin: 0 0 var(--sp-4); font-size: var(--fs-sm); }
+.change-summary dl { margin: 0; display: grid; gap: var(--sp-4); font-size: var(--fs-sm); }
+.change-summary dl > div { display: grid; grid-template-columns: minmax(64px, .22fr) 1fr; gap: var(--sp-4); }
+.change-summary dt { font-weight: 600; }
+.change-summary dd { margin: 0; color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }

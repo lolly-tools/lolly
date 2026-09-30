@@ -1564,10 +1564,6 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
   // ── wiring ──────────────────────────────────────────────────────────────────
 
   playBtn.addEventListener('click', tp.playback.togglePlay);
-  mobileToolsBtn.addEventListener('click', () => {
-    const expanded = root.classList.toggle('is-mobile-tools-open');
-    mobileToolsBtn.setAttribute('aria-expanded', String(expanded));
-  });
   // Re-click closes, the way every other disclosure in the shell behaves.
   addBtn.addEventListener('click', () => {
     if (addMenu.isOpen()) addMenu.close(true);
@@ -1590,6 +1586,7 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
   tp.cues.wire();
   tp.layout.wire();
   tp.crossfade.wire();
+  tp.toolbar.arrange();
   transcriptBtn.addEventListener('click', () => {
     void tp.subtitles.openTranscript();
   });

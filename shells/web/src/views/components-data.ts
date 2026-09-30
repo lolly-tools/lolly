@@ -12,6 +12,7 @@
 // COMPONENT_SECTIONS curates the visible collection with colour and Design
 // first, followed by shared primitives and the other use cases. The VIEW
 // (views/components.ts) supplies the live renderers keyed by `live`.
+import { changeSummaryHtml } from '../components/change-summary.ts';
 import type { IconMetaphor } from '../lib/icons.ts';
 
 export interface Specimen {
@@ -33,6 +34,7 @@ export const COMPONENT_ARTWORK = {
 
 export const AUDIT_SECTIONS: Section[] = [
   { group: "common", title: "Primitives", metaphor: "primitives", blurb: "The shared layer every family below is built from: buttons, chips, cards, surfaces, fields, the segmented control, the modal shape, the icon registry and the popover. Most load with the app, so a page that already has Lolly's base styles gets them for free.", items: [
+    { name: "Change summary", defined: "shells/web/src/components/change-summary.ts", description: "An explicit action scope before applying a suggestion. Short labels name what changes, what stays and what recovery covers. Uses the shared card surface and a native definition list.", kind: "pure-html-fn", css: ".change-summary", markup: changeSummaryHtml("When you apply", [{ label: "Replace", detail: "The active palette and token settings." }, { label: "Keep", detail: "Your font choices and library files." }, { label: "Recover", detail: "Restore the previous tokens from a checkpoint." }]) },
     { name: "Code editor", defined: "shells/web/src/components/code-editor.ts (mountCodeEditor)", description: "A source-preserving textarea with shared syntax highlighting, selection edits and undo. Uses the loaded monospace font and ui.color.syntax roles. Plain text remains available; highlighting never runs the code.", kind: "wired-fn", css: ".code-editor", live: "codeEditor" },
     { name: "Character grid", defined: "shells/web/src/components/character-grid.ts (mountCharacterGrid)", description: "Paged character choices with bounded rendering, native button labels and arrow-key focus. The caller supplies exact font coverage and clipboard behaviour.", kind: "wired-fn", css: ".character-grid", live: "characterGrid" },
     { name: "Button system (.btn / --primary / --ghost / --danger / --sm)", defined: "shells/web/src/styles/parts/buttons.css", description: "The one button: .btn is the outline base, and --primary, --ghost and --danger set the fill, with --sm for dense toolbars. Use it for every action that is not a link; the primary fill marks the single main action on a surface. Views alias their own button classes onto these fills rather than restating them, so a new button starts here and adds only its own shape.", kind: "markup-only", css: ".btn, .btn--primary, .btn--ghost, .btn--danger, .btn--sm", eg: ["Outline","Primary","Ghost","Danger","Small"], markup: `<button class="btn">Outline</button> <button class="btn btn--primary">Primary</button> <button class="btn btn--ghost">Ghost</button> <button class="btn btn--danger">Delete</button> <button class="btn btn--primary btn--sm">Small</button>` },

@@ -455,7 +455,7 @@ Samma livscykel i Tauri. Samma livscykel i CLI - jsdom tillhandahåller den huvu
 
 ## Status för öppen källkod
 
-**Koden är MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` och `docs/` är öppen källkod under **MPL-2.0** - en leverantörsneutral ställningsplattform för varumärkesverktyg, allt i ett enda publikt repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Koden är MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` och `docs/*.ts` är öppen källkod under **MPL-2.0** - en leverantörsneutral ställningsplattform för varumärkesverktyg, allt i ett enda publikt repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Verktygsinnehåll levereras som varumärkespaket**, vart och ett med sina egna villkor (se paketets `NOTICE.md`). `community/` är en katalog i detta repository och dess varumärkesneutrala verktyg är också MPL-2.0. `brands/suse/` är det privata paketet `suse-lolly`, den enda submodulen: SUSE:s verktyg och SUSE:s katalog, **SUSE:s proprietära egendom**, inklusive dess licensierade PremiumBeat-musik. `brands/lolly-start/` är det tomma startvarumärket som detta repository äger. Typsnitt levereras inuti ett paket under **SIL Open Font License 1.1** - SUSE-paketet innehåller typsnitten SUSE och SUSE Mono.
 

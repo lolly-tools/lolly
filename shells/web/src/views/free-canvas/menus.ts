@@ -656,6 +656,9 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
   // stack item below the fold).
   const slideItems: PopItem[] = [];
   const items: PopItem[] = [
+    ...(fc.rules && fc.select.getBoxes().some(b => fc.selection.has(String(b.id)) && (b.kind === 'text' || b.text || b.image)) ? [{
+      label: t('Use as input'), icon: icon(SVG.exportUp), run: () => fc.rules?.expose(),
+    }] : []),
     {
       label: t('Duplicate'),
       icon: icon(SVG.dup),

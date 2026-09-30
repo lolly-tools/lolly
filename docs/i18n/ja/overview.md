@@ -450,7 +450,7 @@ Tauriでも同じライフサイクル。CLIでも同じライフサイクル - 
 
 ## オープンソースのステータス
 
-**コードはMPL-2.0です。** `engine/`、`shells/*`、`services/*`、`schemas/`、`docs/`は**MPL-2.0**の下でオープンソース化されています - ブランドツーリングのためのベンダーニュートラルなスキャフォールディングプラットフォームであり、そのすべてが単一の公開リポジトリ[`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)にあります。
+**コードはMPL-2.0です。** `engine/`、`shells/*`、`services/*`、`schemas/`、`docs/*.ts`は**MPL-2.0**の下でオープンソース化されています - ブランドツーリングのためのベンダーニュートラルなスキャフォールディングプラットフォームであり、そのすべてが単一の公開リポジトリ[`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)にあります。
 
 **ツールコンテンツはブランドパックとして配布され**、それぞれ独自の利用条件を持ちます(パックの`NOTICE.md`を参照)。`community/`はこのリポジトリ内のディレクトリであり、そのブランドに依存しないツールもMPL-2.0です。`brands/suse/`は唯一のサブモジュールであるプライベートな`suse-lolly`パックで、SUSEのツールとSUSEカタログを含み、ライセンスされたPremiumBeatの音楽も含めて**SUSEの専有物**です。`brands/lolly-start/`は、このリポジトリが所有する空のスターターブランドです。フォントはパック内に**SIL Open Font License 1.1**の下で同梱されます - SUSEパックにはSUSEおよびSUSE Monoの書体が含まれます。
 

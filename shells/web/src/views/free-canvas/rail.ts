@@ -46,7 +46,7 @@ export function syncStageReserves(fc: FcCtx): void {
   // The rail gets a band of its own ONLY while the timeline made it a column. With the
   // navigator open the buttons sit inside that column, so the navigator's width is the
   // whole left band and a rail allowance on top of it would double-count the same px.
-  const railBand = stageEl.dataset.designLayout !== 'compact' && fc.railMode === 'timeline' ? fc.railDockW + 12 : 0;
+  const railBand = stageEl.dataset.designLayout !== 'compact' && fc.railMode === 'timeline' ? fc.railDockW : 0;
   const left = Math.max(0, Math.round(fc.navReserveLeft + railBand));
   // Equality-guarded, like reserveBottom: the stage has a ResizeObserver, and an
   // unconditional write plus an unconditional `canvas-resize` is a loop.
@@ -234,7 +234,7 @@ export function enterTimelineDock(fc: FcCtx): void {
   toolbarDock.classList.remove('is-detached');
   toolbarDock.style.removeProperty('left');
   toolbarDock.style.removeProperty('top');
-  // Measure the floating rail BEFORE the panel styles land, +gutters. A rail that
+  // Measure the floating rail BEFORE the panel styles land. A rail that
   // cannot be measured (display:none mid-navigation) falls back to its design width.
   fc.railDockW = Math.ceil(toolbar.getBoundingClientRect().width) || 46;
   stageEl.classList.add('has-tl-reserve');
@@ -278,7 +278,7 @@ export function dockRailForTimeline(fc: FcCtx, on: boolean): void {
       '(pointer: coarse) and (max-width: 640px), (pointer: coarse) and (max-height: 430px)'
     ).matches
   )
-    return;
+    on = false;
   if (on === fc.tlWantsRail) return;
   fc.tlWantsRail = on;
   applyRailMode(fc);

@@ -724,26 +724,31 @@ async function importBrandLollyDrop(
   // "overwrite whichever system happens to be active". The preview already
   // obtained explicit consent; create the destination only now, after that
   // choice, and remove it again if the verified importer refuses the bundle.
-  const [{ createDesignSystem, removeDesignSystem }, { switchDesignSystem }] = await Promise.all([
+  const [{ createDesignSystem, newDesignSystemRecord, removeDesignSystem }, { switchDesignSystem }] = await Promise.all([
     import('./design-system/manage.ts'), import('./design-system/switch.ts'),
   ]);
-  const record = await createDesignSystem(host as unknown as Parameters<typeof createDesignSystem>[0], {
+  const registry = 'designSystems' in host ? host.designSystems as DesignSystemRegistry : undefined;
+  const atomic = !!registry && 'brandAdoption' in host && !!host.brandAdoption && !!files['tokens.json'] && !files['instance.json'] && !files['content.json'];
+  const createOptions = {
     label,
     source: {
-      kind: 'file', fileName: file.name,
+      kind: 'file' as const, fileName: file.name,
       ...(manifest?.pack?.publisher ? { publisher: manifest.pack.publisher } : {}),
       ...(manifest?.pack?.version ? { version: manifest.pack.version } : {}),
       ...(manifest?.pack?.instance ? { instance: manifest.pack.instance } : {}),
-      signature: 'unsigned',
+      signature: 'unsigned' as const,
     },
-  });
+  };
+  const record = atomic
+    ? await newDesignSystemRecord(registry!, createOptions)
+    : await createDesignSystem(host as unknown as Parameters<typeof createDesignSystem>[0], createOptions);
   try {
     const summary = await bt.importBrandPack(
       { host: host as unknown as Parameters<typeof bt.importBrandPack>[0]['host'], storage: localStorage },
       files,
-      { target: { system: record.id }, activateInstance: true },
+      atomic ? { create: record } : { target: { system: record.id }, activateInstance: true },
     );
-    await (host as unknown as { designSystems: DesignSystemRegistry }).designSystems.put({
+    if (!summary.adopted) await (host as unknown as { designSystems: DesignSystemRegistry }).designSystems.put({
       ...record,
       source: {
         kind: 'file', fileName: file.name,
@@ -777,7 +782,7 @@ async function importBrandLollyDrop(
     const hash = '#/profile?focus=design-systems-section';
     routeToConsumer(hash, window.location.hash === hash);
   } catch (err) {
-    await removeDesignSystem(host as unknown as Parameters<typeof removeDesignSystem>[0], record.id).catch(() => {});
+    if (!atomic) await removeDesignSystem(host as unknown as Parameters<typeof removeDesignSystem>[0], record.id).catch(() => {});
     announce(tRaw('Could not load this brand file: {message}', { message: (err as Error).message }), { assertive: true });
   }
 }

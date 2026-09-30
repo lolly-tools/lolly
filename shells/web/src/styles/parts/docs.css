@@ -585,6 +585,7 @@
 .docs-contact-slot a:hover { color: hsl(var(--primary)); }
 .docs-contact-slot .founded-badge { display: inline-block; line-height: 0; margin-top: .5rem; }
 .docs-contact-slot .founded-badge img { display: block; width: 15em; max-width: 100%; height: auto; }
+.docs-contact-slot .docs-license { margin: .5rem 0 0; font-size: calc(.6875rem * var(--a11y-fs, 1)); font-weight: 300; line-height: 1.6; }
 
 /* responsive: fold the rails away on narrow screens (content + TOC-in-flow) */
 @media (max-width: 1024px) {

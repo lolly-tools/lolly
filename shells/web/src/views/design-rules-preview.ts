@@ -24,6 +24,10 @@ export function mountRulesPreview(opts: {
   const canvas = opts.root.querySelector<HTMLElement>('[data-rules-preview-canvas]')!;
   const controls = opts.root.querySelector<PanelEl>('.dr-preview-controls')!;
   const stage = opts.root.querySelector<HTMLElement>('.dr-preview-stage')!;
+  const form = document.createElement('div'); form.className = 'dr-preview-form';
+  controls.replaceWith(form); form.append(controls);
+  const done = document.createElement('button'); done.type = 'button'; done.className = 'btn dr-preview-done'; done.textContent = t('Done');
+  form.prepend(done);
   const actions = document.createElement('div'); actions.className = 'dr-sample-actions';
   for (const [action,label] of [['reset','Reset samples'],['theme','Reset to theme'],['limits','Test limits'],['defaults','Use as defaults']]) {
     const button=document.createElement('button');button.className='btn btn--ghost';button.dataset.sample=action!;button.textContent=t(label!);button.hidden=action==='theme'||action==='defaults'&&!!opts.hideDefaults;actions.append(button);
@@ -39,7 +43,7 @@ export function mountRulesPreview(opts: {
     const artboard = canvas.querySelector<HTMLElement>('[data-design-width]');
     if (!artboard || !stage.clientWidth) return;
     const width = Number(artboard.dataset.designWidth), height = Number(artboard.dataset.designHeight);
-    const factor = Math.max(.01, Math.min((stage.clientWidth - 48) / width, (stage.clientHeight - 160) / height, 1));
+    const factor = Math.max(.01, Math.min((stage.clientWidth - 32) / width, (stage.clientHeight - 96) / height, 1));
     canvas.parentElement!.style.width = `${width * factor}px`; canvas.parentElement!.style.height = `${height * factor}px`;
     canvas.style.width = `${width}px`; canvas.style.height = `${height}px`; canvas.style.transform = `scale(${factor})`;
   };
@@ -103,6 +107,7 @@ export function mountRulesPreview(opts: {
     }
   });
   const toggle = (): void => { opts.root.classList.toggle('is-inputs-open'); if (opts.root.classList.contains('is-inputs-open')) controls.querySelector<HTMLElement>('input,textarea,select,button')?.focus(); scale(); };
+  done.addEventListener('click', () => { opts.root.classList.remove('is-inputs-open'); scale(); opts.root.querySelector<HTMLElement>('.dr-edit-inputs')?.focus(); });
   opts.root.querySelector('.dr-edit-inputs')!.addEventListener('click', toggle);
   canvas.addEventListener('click', event => {
     const id = (event.target as Element).closest<HTMLElement>('[data-public-input]')?.dataset.publicInput;

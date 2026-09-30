@@ -132,3 +132,41 @@ test('session write failure rolls back newly created slots and preserves existin
   await assert.rejects(importBrandContent((await readBrandContent(await unpack(out.blob)))!, dst.host), /disk full/);
   assert.deepEqual([...dst.slots.keys()], ['keep']);
 });
+
+test('the existing package envelope retains custom vocabulary and unsupported rule kinds', async () => {
+  const r = rig();
+  const { readFileSync } = await import('node:fs');
+  const { TOKEN_EXT } = await import('../../../../../engine/src/token-ext.ts');
+  for (const name of ['harbour', 'atelier']) {
+    const vocabulary = JSON.parse(readFileSync(new URL(`../../../../../tests/fixtures/brand-systems/${name}.json`, import.meta.url), 'utf8'));
+    for (const role of vocabulary.roles) for (const resource of role.resources) if (resource.type === 'asset') r.image(resource.id, 1);
+    const doc = { color: { ink: { $type: 'color', $value: '#123456' } }, $extensions: { [TOKEN_EXT]: { brandSystem: vocabulary } } };
+    r.records.get('user/ds/acme/tokens/brand')!.blob = new Blob([JSON.stringify(doc)]);
+    const files = await unpack((await buildBrandPackage(r.host, 'acme', emptyBrandSelection())).blob);
+    const expected = structuredClone(vocabulary);
+    for (const role of expected.roles) for (const resource of role.resources) if (resource.type === 'asset') {
+      const row = readJson(files, 'logos.json')[0];
+      assert.ok(files[row.file]);
+      resource.id = row.id;
+      assert.equal(readJson(files, 'manifest.json').minReader, 3);
+    }
+    assert.deepEqual(readJson(files, 'tokens.json').$extensions[TOKEN_EXT].brandSystem, expected);
+  }
+});
+
+test('a role can carry an earlier font revision without making it the selected face', async () => {
+  const r = rig();
+  const fontId = 'user/ds/acme/fonts/adopt-earlier/0';
+  r.records.set(fontId, { id: fontId, type: 'font', format: 'woff2', blob: new Blob(['font bytes'], { type: 'font/woff2' }), meta: { family: 'Editorial', adoption: 'earlier' } });
+  r.records.get('user/ds/acme/tokens/brand')!.blob = new Blob([JSON.stringify({ $extensions: { 'com.suse.lolly': { brandSystem: {
+    schemaVersion: 1, id: 'acme', label: 'Acme', roles: [{ id: 'archive', label: 'Archive type', resources: [{ type: 'asset', id: fontId }] }], bindings: [], rules: [],
+  } } } })]);
+  const files = await unpack((await buildBrandPackage(r.host, 'acme', emptyBrandSelection())).blob);
+  const fonts = readJson(files, 'fonts.json');
+  const id = readJson(files, 'tokens.json').$extensions['com.suse.lolly'].brandSystem.roles[0].resources[0].id;
+  assert.equal(fonts.length, 1);
+  assert.equal(fonts[0].id, id);
+  assert.ok(files[fonts[0].file]);
+  assert.equal(fonts[0].meta.adoption, undefined);
+  assert.equal(fonts[0].selected, false);
+});

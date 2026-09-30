@@ -6,6 +6,26 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.235.0
+
+- Add the `@lolly/engine/brand-policy` entry point for bounded, reviewed mappings from brand roles to managed tool inputs. Local and managed paths share rule resolution and predicates; final runtime input digests establish only their declared scope.
+- Required failures block, missing facts remain draft, and fixed-artwork appearance stays unknown on adapters that only observe inputs. Legacy token documents without rule records retain their existing behaviour.
+
+## 1.234.0
+
+- Add `lolly/production-motion-v1` for bounded MP4/WebM delivery checks: authored timing, frame counts, decoded audio requirements and timestamped native reference comparisons. Reports bind the final bytes and retain decoder versions, review observations and unsampled appearance limits.
+- `parseProductionSpec` admits either still or motion requirements. The still-only `parseProductionContract` retains its existing contract. Missing motion collectors remain unresolved.
+
+## 1.233.0
+
+- Production requirements can protect canonical runtime input values by digest, collected at the actual rendering boundary. These source checks remain distinct from final-file semantics and cannot be waived or targeted by repairs.
+- Production repairs stop immediately when a previously passing check regresses, even when the total failure count falls.
+
+## 1.232.0
+
+- Production still checks bind explicit requirements and native RGBA comparisons to final artifacts. Reports retain unknown coverage and support revision-bound, permitted input repairs and separately recorded authority decisions. The profile does not claim general print or motion conformance.
+- Preflight reports include execution coverage and preserve detector failures as unresolved findings.
+
 ## 1.231.0
 
 - Sequence export adds optional temporal motion blur with 4/8/16 shutter samples, linear-light premultiplied accumulation, cut clipping and fixed output/audio clocks. SDR flat compositor exports support worker and main-thread rendering; HDR and tilted scenes report capability errors.

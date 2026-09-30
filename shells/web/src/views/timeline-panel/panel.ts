@@ -528,6 +528,7 @@ export function setOpen(tp: TpCtx, next: boolean): void {
     tp.gestures.endGesture(tp.gesture);
     // The menus are body-mounted, so hiding the panel does not hide them.
     tp.recordMenu.close();
+    tp.toolbar.close();
     tp.editMenu.close();
     tp.guideMenu.close();
     tp.layout.close();
@@ -587,6 +588,8 @@ export function destroy(tp: TpCtx): void {
   // Body-mounted: these outlive root.remove() unless they are closed explicitly.
   try {
     tp.recordMenu.close();
+    tp.toolbar.close();
+    tp.toolbarDispose?.();
     tp.editMenu.close();
     tp.guideMenu.close();
     tp.layout.close();

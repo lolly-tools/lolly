@@ -11,6 +11,7 @@
 
 import { recordFeaturedRoute } from './lib/featured-activity.ts';
 import { mountIOSTextScale } from './lib/ios-text-scale.ts';
+import { mountTooltips } from './lib/tooltips.ts';
 import { createBridge } from './bridge/index.ts';
 import { setSceneManifestLoader, SCENE_TOOL_ID } from './bridge/scene-manifest.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
@@ -90,6 +91,7 @@ onWindowLoad(installCollabWiring);
 // seam the tool renders the flat photo, and with DEPTH_STAGED false the seam
 // resolves null rather than offering a download that cannot succeed.
 installDepthSeam();
+mountTooltips();
 
 /** The web capability bridge, as produced by createBridge. */
 type WebHost = Awaited<ReturnType<typeof createBridge>>;

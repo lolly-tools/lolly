@@ -38,6 +38,7 @@ export const GUARDED_HOST_WRITES: Readonly<Record<string, readonly string[]>> = 
     '_restampUserAsset', '_replaceUserAssetBytes', '_setUserAssetTrashed',
   ],
   designSystems: ['put', 'remove', 'setActive'],
+  brandAdoption: ['commit', 'restore'],
 };
 
 /**

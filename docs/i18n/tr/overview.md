@@ -455,7 +455,7 @@ Tauri'de aynı yaşam döngüsü. CLI'de aynı yaşam döngüsü - jsdom başsı
 
 ## Açık kaynak durumu
 
-**Kod MPL-2.0 lisanslıdır.** `engine/`, `shells/*`, `services/*`, `schemas/` ve `docs/`, **MPL-2.0** altında açık kaynaktır - marka araçları için satıcıdan bağımsız (vendor-neutral) bir iskelet platformu, hepsi tek bir herkese açık depoda, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
+**Kod MPL-2.0 lisanslıdır.** `engine/`, `shells/*`, `services/*`, `schemas/` ve `docs/*.ts`, **MPL-2.0** altında açık kaynaktır - marka araçları için satıcıdan bağımsız (vendor-neutral) bir iskelet platformu, hepsi tek bir herkese açık depoda, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
 **Araç içeriği marka paketleri (brand packs) olarak dağıtılır**, her birinin kendi koşulları vardır (bkz. paketin `NOTICE.md`'si). `community/` bu deponun bir dizinidir ve markadan bağımsız araçları da MPL-2.0'dır. `brands/suse/` özel `suse-lolly` paketidir, tek alt modül: SUSE araçları ve SUSE kataloğu, lisanslı PremiumBeat müziği dahil, **SUSE'ye özel mülkiyettedir**. `brands/lolly-start/` bu deponun sahip olduğu boş başlangıç markasıdır. Fontlar bir paketin içinde **SIL Open Font License 1.1** altında dağıtılır - SUSE paketi SUSE ve SUSE Mono yazı tiplerini taşır.
 

@@ -138,3 +138,8 @@ non-model rendering, file processing and the standalone CLI/TUI are unchanged.
 Promote the matching updated shell and MCP code together. These application
 controls do not sandbox arbitrary custom JavaScript or govern an independent CLI;
 review trusted tools, endpoint controls and network access for the service scope.
+
+`lolly_render` and `lolly_inspect` accept an explicit production still contract.
+The render core checks final bytes and can try declared input alternatives using
+`productionRepair`; failures retain their measurement report. See
+[Production checks](../../docs/production-checks.md) for capabilities and examples.

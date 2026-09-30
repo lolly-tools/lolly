@@ -15,6 +15,7 @@
     "recipes"
   ],
   "properties": {
+    "description": { "type": "string", "maxLength": 2000 },
     "schemaVersion": {
       "const": 1
     },

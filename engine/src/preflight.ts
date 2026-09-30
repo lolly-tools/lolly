@@ -22,7 +22,7 @@
  *    indistinguishable from "no problem here".
  * 2. **It is total.** `preflight()` never throws, on any input, including a
  *    hand-built job with wrong types. Every check runs inside a guard; a
- *    malformed member drops its own check, never the report. This mirrors
+ *    malformed member produces a named check gap, never a missing report. This mirrors
  *    `readSpotColor`'s tolerance in `tokens.ts`.
  * 3. **It counts; it does not cost.** There is no currency, no rate and no
  *    monetary concept anywhere in this module, and none may be added.
@@ -355,15 +355,6 @@ interface Ctx {
 }
 
 /**
- * Run one check. A check that throws (a malformed job member, a hostile value)
- * drops itself and nothing else: the report is still produced, still ordered,
- * still honest about everything the other checks could see.
- */
-const guard = (fn: () => void): void => {
-  try { fn(); } catch { /* a broken check drops itself, never the report */ }
-};
-
-/**
  * Pre-export findings for one job.
  *
  * Pure, synchronous, DOM-free and TOTAL: it never throws, for any input.
@@ -388,7 +379,20 @@ export function preflight(job: PreflightJob): PreflightReport {
     },
   };
 
-  for (const check of CHECKS) guard(() => check(ctx));
+  const checks: { id: string; state: 'completed' | 'undetermined' }[] = [];
+  for (const [id, check] of CHECKS) {
+    const start = out.length;
+    try {
+      check(ctx);
+      checks.push({ id, state: 'completed' });
+    } catch {
+      // Discard partial measurements from a check that did not finish.
+      out.length = start;
+      checks.push({ id, state: 'undetermined' });
+      ctx.add({ id: 'check.incomplete', severity: 'info', needs: 'not-resolved',
+        message: `The ${id} check could not complete.`, evidence: { check: id } });
+    }
+  }
 
   const findings = out
     .map((f, i) => ({ f, i }))
@@ -415,6 +419,7 @@ export function preflight(job: PreflightJob): PreflightReport {
     findings,
     counts,
     gaps: findings.filter(f => !!f.needs),
+    checks,
   };
 }
 
@@ -1529,51 +1534,51 @@ const checkRefusals: Check = c => {
 // ─── Registry ───────────────────────────────────────────────────────────────
 
 /** Every check, in emission order. Severity ordering happens afterwards. */
-const CHECKS: readonly Check[] = [
+const CHECKS: readonly (readonly [string, Check])[] = [
   // errors
-  checkFinishSeparatesAsInk,
-  checkFinishFlattened,
-  checkFormatOffered,
+  ['finish-separates-as-ink', checkFinishSeparatesAsInk],
+  ['finish-flattened', checkFinishFlattened],
+  ['format-offered', checkFormatOffered],
   // warnings
-  checkRequiredBlank,
-  checkNumberRange,
-  checkTextMaxLength,
-  checkSelectValue,
-  checkVectorClamped,
-  checkPrintMarksOnNonPrintFormat,
-  checkPressProfileOnNonSeparatingFormat,
-  checkHdrFormat,
-  checkDurableFormat,
-  checkAspectGuard,
-  checkNoBleed,
-  checkEffectiveDpi,
-  checkImageEffectiveDpi,
+  ['required-blank', checkRequiredBlank],
+  ['number-range', checkNumberRange],
+  ['text-max-length', checkTextMaxLength],
+  ['select-value', checkSelectValue],
+  ['vector-clamped', checkVectorClamped],
+  ['print-marks-on-non-print-format', checkPrintMarksOnNonPrintFormat],
+  ['press-profile-on-non-separating-format', checkPressProfileOnNonSeparatingFormat],
+  ['hdr-format', checkHdrFormat],
+  ['durable-format', checkDurableFormat],
+  ['aspect-guard', checkAspectGuard],
+  ['no-bleed', checkNoBleed],
+  ['effective-dpi', checkEffectiveDpi],
+  ['image-effective-dpi', checkImageEffectiveDpi],
   // info: geometry & counts
-  checkFinishUnknownKind,
-  checkBleedUnknown,
-  checkTrimPartial,
-  checkImageDpiNeedsStage,
-  checkTrimNotPhysical,
-  checkPrintGeometry,
-  checkPagesPaginate,
-  checkPagesPages,
-  checkPagesFromStage,
-  checkPagesUnknown,
-  checkArtboardFanOut,
-  checkRasterPixels,
-  checkSequenceDuration,
-  checkVideoDurationDeclared,
-  checkProcessPlates,
-  checkSpotCeiling,
-  checkFinishCeiling,
-  checkNoSpotsDeclared,
-  checkInkCoverage,
-  checkRichBlack,
-  checkPaletteUnresolved,
-  checkCutsNeedsStage,
-  checkCutsInert,
-  checkCutsApplies,
-  checkExperimentalWatermark,
+  ['finish-unknown-kind', checkFinishUnknownKind],
+  ['bleed-unknown', checkBleedUnknown],
+  ['trim-partial', checkTrimPartial],
+  ['image-dpi-needs-stage', checkImageDpiNeedsStage],
+  ['trim-not-physical', checkTrimNotPhysical],
+  ['print-geometry', checkPrintGeometry],
+  ['pages-paginate', checkPagesPaginate],
+  ['pages-pages', checkPagesPages],
+  ['pages-from-stage', checkPagesFromStage],
+  ['pages-unknown', checkPagesUnknown],
+  ['artboard-fan-out', checkArtboardFanOut],
+  ['raster-pixels', checkRasterPixels],
+  ['sequence-duration', checkSequenceDuration],
+  ['video-duration-declared', checkVideoDurationDeclared],
+  ['process-plates', checkProcessPlates],
+  ['spot-ceiling', checkSpotCeiling],
+  ['finish-ceiling', checkFinishCeiling],
+  ['no-spots-declared', checkNoSpotsDeclared],
+  ['ink-coverage', checkInkCoverage],
+  ['rich-black', checkRichBlack],
+  ['palette-unresolved', checkPaletteUnresolved],
+  ['cuts-needs-stage', checkCutsNeedsStage],
+  ['cuts-inert', checkCutsInert],
+  ['cuts-applies', checkCutsApplies],
+  ['experimental-watermark', checkExperimentalWatermark],
   // named refusals, last
-  checkRefusals,
+  ['refusals', checkRefusals],
 ];

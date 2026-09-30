@@ -25,6 +25,7 @@
  */
 
 import { designMaterialOf } from '../../../../engine/src/design-system.ts';
+import { selectAdoptionFonts } from './design-system/adoption-fonts.ts';
 
 /** Asset-id prefix every stored user font of the DEFAULT design system shares.
  *  A namespaced system's fonts live at `user/ds/<id>/fonts/...` (plans/186
@@ -39,7 +40,7 @@ export interface RegisterFontsHost {
   assets: {
     _exportUserAssets: () => Promise<Array<{ id: string; type: string; blob?: Blob; meta?: Record<string, unknown>; trashedAt?: string }>>;
   };
-  designSystems?: { active(): Promise<{ id: string }> };
+  designSystems?: { active(): Promise<{ id: string; importedFonts?: string[] }> };
 }
 
 /** True when `id` is a font row of the design system `systemId` - or, with no
@@ -100,7 +101,8 @@ export async function registerUserFonts(host: RegisterFontsHost): Promise<void> 
   // step 3). The shipped system owns no user rows, so under it nothing registers
   // and every previously loaded face is unloaded below.
   let systemId: string | null = null;
-  try { systemId = (await host.designSystems?.active())?.id ?? null; } catch { systemId = null; }
+  let importedFonts: string[] = [];
+  try { const system = await host.designSystems?.active(); systemId = system?.id ?? null; importedFonts = system?.importedFonts ?? []; } catch { systemId = null; }
   // The installed set may have just changed (install, brand pack, backup restore
   // - every path funnels through here), so the vector-export font registry must
   // re-read it rather than serve a stale family map. See bridge/font-registry.ts.
@@ -122,7 +124,7 @@ export async function registerUserFonts(host: RegisterFontsHost): Promise<void> 
   // and backup import; one store read for both.
   // A face in the Trash (plan 277 P3) stays stored but is not installed, so the
   // unregister pass below unloads it and a restore's call here loads it back.
-  const wanted = records.filter(r => r.type === 'font' && isFontOf(r.id, systemId) && !r.trashedAt);
+  const wanted = selectAdoptionFonts(records.filter(r => r.type === 'font' && isFontOf(r.id, systemId) && !r.trashedAt), importedFonts);
   setBrandFontFamilyCache(wanted.map(r => String(r.meta?.family ?? r.meta?.name ?? '')));
   // The unregister pass: a face loaded for another design system (or one whose
   // row is gone) leaves document.fonts, or the CSS font matcher would keep

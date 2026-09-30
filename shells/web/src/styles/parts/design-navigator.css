@@ -33,7 +33,6 @@
   padding: var(--sp-4) var(--sp-3) var(--sp-5);
   pointer-events: auto;
   background: var(--ui-color-surface-raised);
-  box-shadow: var(--ui-edge-default);
   color: var(--ui-color-text-default);
   font-size: var(--ui-type-body);
   overflow: hidden;
@@ -547,7 +546,7 @@ button.fc-nav-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring)
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--ui-radius-choice-round);
-  background: var(--ui-color-surface-muted);
+  background: transparent;
   color: var(--ui-color-text-muted);
   font: inherit;
   font-size: var(--fs-2xs);
@@ -560,7 +559,6 @@ button.fc-nav-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring)
    .btn--primary recipe (buttons.css) and a dot is not a button in that sense -
    restating it here would fork the primitive (primitive-guards R2). */
 .fc-nav-dot-btn.is-active {
-  border-color: var(--ui-color-selection-border);
   background: var(--ui-color-selection-surface);
   color: var(--ui-color-text-default);
   font-weight: 700;

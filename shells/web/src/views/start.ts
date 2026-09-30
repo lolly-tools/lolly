@@ -39,6 +39,8 @@ import '../styles/parts/design-system-specimen.css';
  */
 
 import '../styles/parts/start.css';
+import '../styles/parts/start-usage.css';
+import { mountUsageRoom } from '../lib/design-system/rooms/usage.ts';
 import type { TokensExtraction } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { applyChromeBrandVars } from '../brand-vars.ts';
@@ -85,8 +87,8 @@ import { lifecycleOps } from './start/lifecycle.ts';
 // foot-pinned panel this view renders itself, and parking its key on the same
 // attribute is exactly how the editor hides - the same trick `overview` uses.
 type RoomsArePanels =
-  Exclude<StartRoom, 'overview'> extends BrandTabKey
-    ? BrandTabKey extends Exclude<StartRoom, 'overview'>
+  Exclude<StartRoom, 'overview' | 'usage'> extends BrandTabKey
+    ? BrandTabKey extends Exclude<StartRoom, 'overview' | 'usage'>
       ? true
       : never
     : never;
@@ -160,12 +162,15 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
         <header class="start-head">
           <p class="start-eyebrow">${t('Brand')}</p>
           <h1 class="start-title">${t('This brand is set')}</h1>
-          <p class="start-sub">${t('This build ships with a fixed brand - its colours, fonts and tokens are what every tool and export use. Brand adjustment is turned off here, so there’s nothing to change.')}</p>
+          <p class="start-sub">${t('This build ships with a fixed brand. Explore its usage rules and examples below.')}</p>
         </header>
+        <section data-usage-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
+    const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => usage.teardown();
     return;
   }
 
@@ -187,10 +192,13 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
             <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
           </p>
         </header>
+        <section data-usage-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
+    const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => usage.teardown();
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
       const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([
         import('../lib/design-system/manage.ts'),
@@ -240,6 +248,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     logos: t('Logos'),
     tokens: t('Tokens'),
     catalogue: t('Files'),
+    usage: t('Usage & rules'),
     versions: t('Versions'),
   }; start.ROOM_LABELS = ROOM_LABELS;
 
@@ -257,6 +266,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   const editorMount = viewEl.querySelector<HTMLElement>('[data-start-editor]')!; start.editorMount = editorMount;
   const noteEl = viewEl.querySelector<HTMLElement>('[data-start-note]'); start.noteEl = noteEl;
   const overviewPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="overview"]')!; start.overviewPanel = overviewPanel;
+  start.usagePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="usage"]')!;
+  start.usage = null;
   const versionsPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="versions"]')!; start.versionsPanel = versionsPanel;
   const versionsBtn = viewEl.querySelector<HTMLButtonElement>('[data-ds-room="versions"]'); start.versionsBtn = versionsBtn;
   const versionsLink = viewEl.querySelector<HTMLButtonElement>('[data-ds-versions-link]'); start.versionsLink = versionsLink;

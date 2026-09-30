@@ -98,8 +98,8 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
   }
   const mounted = await auditMountedDesign(canvasEl, report, {
     resolveFont: async (style, text) => {
-      const { resolveVectorFont } = await import('../../bridge/font-registry.ts');
-      return Boolean(await resolveVectorFont(style, text));
+      const { fontCoversText } = await import('../../bridge/font-coverage.ts');
+      return fontCoversText(style, text, ta.host.text);
     },
   });
   const brandRows = await brandCheckRows({

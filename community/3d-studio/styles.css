@@ -159,3 +159,11 @@
 .studio-frame[data-studio-narrow="true"] [data-studio-camera-note] {
   font-size: calc(11px * var(--studio-ui-scale, 1));
 }
+
+@media (any-pointer: coarse) {
+  .studio-collection-actions button,
+  .studio-collection-actions .studio-group button {
+    min-height: calc(44px * var(--studio-ui-scale, 1));
+    min-width: calc(44px * var(--studio-ui-scale, 1));
+  }
+}

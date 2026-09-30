@@ -638,7 +638,7 @@ export function renderInputs(
     // the first option button, and the caption must be aria-labelledby, not a <label for>.
     const isBadgedSelect =
       input.control === 'select' &&
-      ((input.options ?? []).some((o) => (o as { badge?: string }).badge) ||
+      (input.display !== 'select' && (input.options ?? []).some((o) => (o as { badge?: string }).badge) ||
         input.display === 'segmented');
     const isComposite =
       isBadgedSelect ||
@@ -833,7 +833,7 @@ export function renderInputs(
       if (openSection !== null) parts.push('</div></details>');
       if (sec !== null) {
         sectionIndex++;
-        const open = shouldOpenSection({
+        const open = !(firstRender && sec === 'More options') && shouldOpenSection({
           index: sectionIndex,
           wasOpen: openSections.has(sec),
           firstRender,
@@ -2813,7 +2813,7 @@ function controlHtml(
       // (Hue/Saturation/Luminance). The badge pill is already per-option-conditional,
       // so a badge-less segmented select renders as plain labelled tabs.
       const segmented = input.display === 'segmented';
-      if (segmented || selOpts.some((o) => o.badge)) {
+      if (segmented || input.display !== 'select' && selOpts.some((o) => o.badge)) {
         const cur = String(input.value ?? '');
         const btns = selOpts
           .map((o) => {

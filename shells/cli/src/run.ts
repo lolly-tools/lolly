@@ -227,7 +227,44 @@ export function quietVirtualConsole(jsdom: typeof import('jsdom')): InstanceType
   return vc;
 }
 
-export async function runToolCli({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, fetchFile: fetchFileOverride, browserTier = true }: RunToolCliArgs): Promise<void> {
+export async function runToolCli(args: RunToolCliArgs): Promise<void> {
+  const path = args.params['production-repairs'];
+  if (!path) return runToolCliCandidate(args);
+  if (!args.params.production || args.share) throw new Error('Production repairs require --production and rendered output.');
+  const { productionFile, productionContractFile } = await import('@lolly-tools/node-shell/production');
+  const { parseProductionRepair, buildInputModel, runProductionRepairs, proposeProductionPatch, requireProduction } = await import('@lolly/engine');
+  const contract = await productionContractFile(args.params.production), plan = parseProductionRepair(JSON.parse(new TextDecoder().decode(await productionFile(path, 128 * 1024))));
+  const tool = await loadToolOrThrow(args.toolId, readToolFile), declared = new Set(tool.manifest.inputs.map(input => input.id));
+  if (Object.keys(plan.permitted).some(key => !declared.has(key))) throw new Error('Repair inputs must be declared tool inputs.');
+  const state = parseUrlState(new URLSearchParams(args.params).toString(), tool.manifest);
+  const { emoji: _emoji, userTemplates: _templates, ...repairProfile } = await readProfile(args.params['user-profile']);
+  const inputs = Object.fromEntries(buildInputModel(tool.manifest, { initial: state.values, profile: repairProfile }).filter(i => declared.has(i.id)).map(i => [i.id, i.value]));
+  const run = await runProductionRepairs(inputs, plan, {
+    render: async values => {
+      const params = { ...args.params }; delete params['production-repairs'];
+      for (const key of Object.keys(plan.permitted)) params[key] = typeof values[key] === 'string' ? values[key] as string : JSON.stringify(values[key]);
+      let candidate: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport } | undefined;
+      await runToolCliCandidate({ ...args, params }, value => { candidate = value; });
+      if (!candidate) throw new Error('This export path does not support verified production repairs.');
+      return candidate;
+    },
+    propose: (values, report) => proposeProductionPatch(values, report, plan),
+  });
+  const last = run.attempts.at(-1)!, reportPath = args.params['production-report'] ?? (args.outputPath ? `${args.outputPath}.production.json` : undefined);
+  if (reportPath) {
+    await writeFile(reportPath, JSON.stringify(last.report, null, 2) + '\n');
+    await writeFile(`${reportPath}.history.json`, JSON.stringify(run.attempts.map(a => a.report), null, 2) + '\n');
+  } else process.stderr.write(JSON.stringify({ report: last.report, attempts: run.attempts.map(a => a.report) }) + '\n');
+  try { await requireProduction(last.report, last.bytes, contract); } catch (error) { throw refused((error as Error).message, 'PRODUCTION_VERIFICATION_FAILED'); }
+  if (args.outputPath) await writeFile(args.outputPath, last.bytes); else await writeOut(Buffer.from(last.bytes));
+}
+
+async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, fetchFile: fetchFileOverride, browserTier = true }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
+  const productionPath = params.production, productionReference = params['production-reference'], productionReport = params['production-report'];
+  if (productionPath && share) throw new Error('Production verification requires rendered bytes.');
+  if (!productionPath && (productionReference || productionReport)) throw new Error('Production options require --production.');
+  params = { ...params };
+  delete params.production; delete params['production-reference']; delete params['production-report'];
   // Lazy import - jsdom is heavy and we only need it when actually rendering.
   const jsdom = await import('jsdom');
   const dom = new jsdom.JSDOM('<!DOCTYPE html><html><body><div id="canvas"></div></body></html>', {
@@ -542,6 +579,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // exportFile hook (bytes in → bytes out), not by rendering a DOM node. They
   // don't use a render format at all - short-circuit before the format checks.
   if (tool.manifest.hooks?.exportFile) {
+    if (productionPath) throw new Error('Production verification is unavailable for file-transform exports.');
     // `--export=` on a transform is REFUSED, not ignored. A transform's output container
     // follows its INPUT file (and whatever the tool's own inputs say); the reserved
     // `format` param never reaches the hook. Accepting it printed
@@ -679,6 +717,17 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // The runtime resolves asset refs (catalog ids → AssetRefs with a `format`), which
   // the matchExportFormat default below reads - so it's created before format resolution.
   const runtime = await createRuntime(tool, host, values, hookExecutorOpts());
+  let productionInputs: Record<string, string> | undefined;
+  let browserProductionInputs: Record<string, string> | undefined;
+  const productionContract = productionPath ? await (await import('@lolly-tools/node-shell/production')).productionContractFile(productionPath) : undefined;
+  if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
+    const { productionInputFacts } = await import('@lolly/engine');
+    const render = host.export.render.bind(host.export);
+    host.export.render = async (...args) => {
+      const inputs = productionInputFacts(runtime.getModel(), productionContract);
+      const result = await render(...args); productionInputs = await inputs; return result;
+    };
+  }
   // `--emoji` / `--emojifx`: the set this render draws its emoji from and the brand
   // treatment applied to that artwork. Set before anything hydrates, so the first
   // pass over the canvas already has the packs it needs.
@@ -984,6 +1033,8 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
     exportOpts.onTextFallback = (run) => textFallbacks.push(run);
 
     const dims = {
+      productionInputIds: productionContract?.requirements.filter(r => r.kind === 'input').map(r => r.location),
+      onProductionInputs: (inputs: Record<string, string> | undefined) => { browserProductionInputs = inputs; },
       cuts, sampleTimes, motionBlur, sequenceRange,
       lang: normalizeLang(params.lang) ?? profile.lang,
       width: width ?? undefined, height: height ?? undefined, unit: unit ?? undefined, dpi: dpi ?? undefined,
@@ -1307,6 +1358,24 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // included" is a reading of the file and not a claim about the intention.
   await reportRights(runtime, buf, finalFormat, rights, wantC2pa && C2PA_FORMATS.includes(finalFormat));
 
+  if (productionPath) {
+    try {
+      const { inspectProductionBytes, productionFile } = await import('@lolly-tools/node-shell/production');
+      const { requireProduction } = await import('@lolly/engine');
+      const contract = productionContract!;
+      const reference = productionReference ? await productionFile(productionReference, 32 * 1024 * 1024) : undefined;
+      const report = await inspectProductionBytes(new Uint8Array(buf), contract, reference, undefined, { inputs: usedBrowser ? browserProductionInputs : productionInputs });
+      if (capture) { capture({ bytes: new Uint8Array(buf), contract, report }); return; }
+      const reportPath = productionReport ?? (outputPath ? `${outputPath}.production.json` : undefined);
+      if (reportPath) await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n');
+      else process.stderr.write(JSON.stringify(report) + '\n');
+      try { await requireProduction(report, new Uint8Array(buf), contract); } catch (error) { throw refused((error as Error).message, 'PRODUCTION_VERIFICATION_FAILED'); }
+    } finally {
+      runtime.destroy(); dom.window.close();
+      if (usedBrowser) { await teardownTierB(); usedBrowser = false; }
+    }
+  }
+
   // `--filename=<name>` names the file when no --output was given (contract B6). It is
   // resolved against the working directory, never against the tool or the catalog.
   const destPath = outputPath ?? (filenameFlag ? resolve(process.cwd(), filenameFlag) : null);
@@ -1463,7 +1532,7 @@ export function exportFailure(format: string, failure: Error, domFreeError: Erro
 /** Flags this shell reads itself, on top of url-mode's RESERVED set. */
 export const CLI_FLAGS = new Set([
   'press-profile', 'user-profile', 'link-password', 'html-fallback', 'help', 'version',
-  'text', 'password-stdin', 'share', 'link', 'verify', 'rate-card',
+  'text', 'password-stdin', 'share', 'link', 'verify', 'rate-card', 'production', 'production-reference', 'production-report', 'production-repairs',
   // The one-word provenance opt-out (contract section 12 O2). Consumed in the render path
   // above; listed here so it is never reported as "not an input of <tool>".
   'no-provenance',

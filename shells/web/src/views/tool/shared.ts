@@ -801,7 +801,7 @@ export function shareDialogOptions(
   // (it reads the live runtime + export-panel DOM); the session path passes its own parts.
   const toolId =
     window.location.pathname.match(/^\/t\/([^/?]+)/)?.[1] ??
-    window.location.hash.match(/^#\/tool\/([^/?]+)/)?.[1];
+    window.location.hash.match(/^#\/tool\/([^/?]+)/)?.[1] ?? manifest.id;
   const currentFormat =
     exportScope?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value || '';
   const { parts, fidelity } = buildShareParams(runtime, exportScope);
