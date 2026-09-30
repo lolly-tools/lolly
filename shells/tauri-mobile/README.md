@@ -85,9 +85,21 @@ What is hand-maintained in there:
 Both mobile apps open the `lolly://` scheme (the grammar is in `docs/url-mode.md`, the mapper in `shells/web/src/lib/deep-link.ts`), and Android also opens `https://lolly.tools/t/…` App Links (plan 171, pending the `assetlinks.json` fingerprint).
 
 - **Android** - `AndroidManifest.xml` carries a `BROWSABLE` VIEW filter for the scheme beside the App-Link filter; `MainActivity.ingestViewIntent` stashes either kind of link on the `LollyShare` bridge (`pendingDeepLink`, latest wins, consumed on read) and fires the `lolly-deep-link` window event when the app is already running.
-- **iOS** - `gen/apple/lolly-mobile_iOS/Info.plist` declares `CFBundleURLTypes` for the scheme; iOS delivers an open as `RunEvent::Opened`, which `src/lib.rs` queues in `MobileEvents`, and the web shell drains through the `mobile_poll_events` command.
+- **iOS** - `src-tauri/Info.ios.plist` declares `CFBundleURLTypes` for the scheme and is merged into the generated Apple plist; iOS delivers an open as `RunEvent::Opened`, which `src/lib.rs` queues in `MobileEvents`, and the web shell drains through the `mobile_poll_events` command.
 
 The web side is one function, `initDeepLinkIntake` in `shells/web/src/lib/drop-router.ts`: it prefers the Android bridge and polls the Rust queue only where that bridge is absent, so a link that arrives before the web shell boots is not lost on either platform.
+
+## iOS scene startup
+
+`src-tauri/Info.ios.plist`, selected by `bundle.iOS.infoPlist`, declares a static
+`TaoSceneDelegate` scene configuration. Apps built with the iOS 27 SDK fail at
+launch without scene adoption. The multiple-scenes boolean also enables tao's
+scene path. Keep the manifest and native dependency update together: Tauri 2.12
+uses tao 0.37, which includes the scene configuration ownership fix missing from
+tao 0.35.3. Validate a release build on a real device after changing this path.
+
+References: [Apple's migration guide](https://developer.apple.com/documentation/uikit/transitioning-to-the-uikit-scene-based-life-cycle),
+[tao's ownership fix](https://github.com/tauri-apps/tao/pull/1245).
 
 ## `.lolly` documents
 

@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:d85489d8-7f77-42c4-8e84-66432ac0b5b0",
+  "serialNumber": "urn:uuid:9d20b414-7863-488a-867d-03a89c245143",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-30T19:45:53.261Z",
+    "timestamp": "2026-09-30T23:23:08.406Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -207,6 +207,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/alloc-no-stdlib@3.0.0",
+      "name": "alloc-no-stdlib",
+      "version": "3.0.0",
+      "purl": "pkg:cargo/alloc-no-stdlib@3.0.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c2fb6cfd47bf496ff64095c20eaba0c201404ee38714d4142fcfa1dc334fcc7a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/alloc-stdlib@0.2.2",
       "name": "alloc-stdlib",
       "version": "0.2.2",
@@ -234,10 +261,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/alloc-stdlib@0.2.4",
+      "bom-ref": "pkg:cargo/alloc-stdlib@0.3.0",
       "name": "alloc-stdlib",
-      "version": "0.2.4",
-      "purl": "pkg:cargo/alloc-stdlib@0.2.4",
+      "version": "0.3.0",
+      "purl": "pkg:cargo/alloc-stdlib@0.3.0",
       "scope": "required",
       "licenses": [
         {
@@ -249,7 +276,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e76a019e91224d279006ff972f1e984179a6e9feb050adba6ce8274aef23195"
+          "content": "0b5c1865780388bfa186411ab5f247819487fc4864c6e9c3106611fa347586e1"
         }
       ],
       "properties": [
@@ -1125,10 +1152,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/brotli-decompressor@5.0.3",
+      "bom-ref": "pkg:cargo/brotli-decompressor@6.0.1",
       "name": "brotli-decompressor",
-      "version": "5.0.3",
-      "purl": "pkg:cargo/brotli-decompressor@5.0.3",
+      "version": "6.0.1",
+      "purl": "pkg:cargo/brotli-decompressor@6.0.1",
       "scope": "required",
       "licenses": [
         {
@@ -1138,7 +1165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a32acac15fe1967bc3986b2a6347dffc965602354ea6f450ad07e8bfd253583"
+          "content": "941cd9bd4ddab83cb46fa5a2d428f1c857b24ac78cb876cf7beb710840934bd7"
         }
       ],
       "properties": [
@@ -1175,10 +1202,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/brotli@8.0.4",
+      "bom-ref": "pkg:cargo/brotli@9.0.0",
       "name": "brotli",
-      "version": "8.0.4",
-      "purl": "pkg:cargo/brotli@8.0.4",
+      "version": "9.0.0",
+      "purl": "pkg:cargo/brotli@9.0.0",
       "scope": "required",
       "licenses": [
         {
@@ -1188,7 +1215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5cc91aac060a7a1e25823bdccbfb6af1875b88f17c6daac97894eed8207166b3"
+          "content": "f8b851b75c23ca7873623d612fe49bd1989aeb03d08fb9432187eb253d3d4c6b"
         }
       ],
       "properties": [
@@ -1610,6 +1637,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/cargo_toml@1.0.1",
+      "name": "cargo_toml",
+      "version": "1.0.1",
+      "purl": "pkg:cargo/cargo_toml@1.0.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82f4b26e751e711a5302649417f2da046dce6391b2ea30a4820f37462314f0b9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/castaway@0.2.4",
       "name": "castaway",
       "version": "0.2.4",
@@ -1707,6 +1759,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/cfb@0.14.0",
+      "name": "cfb",
+      "version": "0.14.0",
+      "purl": "pkg:cargo/cfb@0.14.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a347dcabdae9c31b0825fd6a8bed285ec9c2acb89c47827126d52fa4f59cece3"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -2603,6 +2682,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/cssparser-macros@0.7.1",
+      "name": "cssparser-macros",
+      "version": "0.7.1",
+      "purl": "pkg:cargo/cssparser-macros@0.7.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d045de693cb712d0b22c6a64be5b953f67b3ce00ab5ad3dd5d8b441886ab8e1a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/cssparser@0.36.0",
       "name": "cssparser",
       "version": "0.36.0",
@@ -2625,6 +2731,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/cssparser@0.37.0",
+      "name": "cssparser",
+      "version": "0.37.0",
+      "purl": "pkg:cargo/cssparser@0.37.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c9cdaae01d5ed7882b04d795e7f752f46ff52d2fa3b50a20d28c464510bba98"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -2675,6 +2808,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/ctor@1.0.13",
+      "name": "ctor",
+      "version": "1.0.13",
+      "purl": "pkg:cargo/ctor@1.0.13",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "914a755b7c2d4af2bdcff7ce1739e2db9a1b81a9b07123d8015786ae03c0980d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -3325,6 +3483,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/dirs@7.0.0",
+      "name": "dirs",
+      "version": "7.0.0",
+      "purl": "pkg:cargo/dirs@7.0.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d57d423b3c82e89b9a24ca3091fee61f456a26edbd28d26c65906f4bc1dcd8f"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/dispatch2@0.3.1",
       "name": "dispatch2",
       "version": "0.3.1",
@@ -3476,6 +3659,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/dom_query@0.28.0",
+      "name": "dom_query",
+      "version": "0.28.0",
+      "purl": "pkg:cargo/dom_query@0.28.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fac5fca71e65e94cc718a6e2af65d6e0f9c6027751c2aa562fbb5087fda639bc"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -5770,6 +5980,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/html5ever@0.39.0",
+      "name": "html5ever",
+      "version": "0.39.0",
+      "purl": "pkg:cargo/html5ever@0.39.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46a1761807faccc9a19e86944bbf40610014066306f96edcdedc2fb714bcb7b8"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/http-body-util@0.1.3",
       "name": "http-body-util",
       "version": "0.1.3",
@@ -6446,6 +6681,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/infer@0.22.0",
+      "name": "infer",
+      "version": "0.22.0",
+      "purl": "pkg:cargo/infer@0.22.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4200d433cbd5178df7797c9c2e75b348b728e39631cf14520d1e2fc424201f4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/inotify-sys@0.1.8",
       "name": "inotify-sys",
       "version": "0.1.8",
@@ -6879,6 +7141,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/json-patch@4.2.0",
+      "name": "json-patch",
+      "version": "4.2.0",
+      "purl": "pkg:cargo/json-patch@4.2.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7421438de105a0827e44fadd05377727847d717c80ce29a229f85fd04c427b72"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/jsonptr@0.6.3",
       "name": "jsonptr",
       "version": "0.6.3",
@@ -6904,6 +7191,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/jsonptr@0.7.1",
+      "name": "jsonptr",
+      "version": "0.7.1",
+      "purl": "pkg:cargo/jsonptr@0.7.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5a3cc660ba5d72bce0b3bb295bf20847ccbb40fd423f3f05b61273672e561fe"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/keyboard-types@0.7.0",
       "name": "keyboard-types",
       "version": "0.7.0",
@@ -6924,6 +7236,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/keyboard-types@0.8.3",
+      "name": "keyboard-types",
+      "version": "0.8.3",
+      "purl": "pkg:cargo/keyboard-types@0.8.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0fbe853b403ae61a04233030ae8a79d94975281ed9770a1f9e246732b534b28d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -7581,6 +7918,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/markup5ever@0.39.0",
+      "name": "markup5ever",
+      "version": "0.39.0",
+      "purl": "pkg:cargo/markup5ever@0.39.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7122d987ec5f704ee56f6e5b41a7d93722e9aae27ae07cafa4036c4d3f9757de"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/matrixmultiply@0.3.11",
       "name": "matrixmultiply",
       "version": "0.3.11",
@@ -7937,10 +8299,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/muda@0.19.3",
+      "bom-ref": "pkg:cargo/muda@0.20.0",
       "name": "muda",
-      "version": "0.19.3",
-      "purl": "pkg:cargo/muda@0.19.3",
+      "version": "0.20.0",
+      "purl": "pkg:cargo/muda@0.20.0",
       "scope": "required",
       "licenses": [
         {
@@ -7950,7 +8312,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1dd04e60bc0b07438a6771710ee1698f98f6ebbc7f89b61264af1563b8aeb878"
+          "content": "cca139e57da4383727f189e43e66e84fa372347027fc996f9f1a007ec0a37996"
         }
       ],
       "properties": [
@@ -8007,6 +8369,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/ndk-context@0.1.1",
+      "name": "ndk-context",
+      "version": "0.1.1",
+      "purl": "pkg:cargo/ndk-context@0.1.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "27b02d87554356db9e9a873add8782d4ea6e3e58ea071a9adb9a2e8ddb884a8b"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -11676,6 +12063,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/selectors@0.38.0",
+      "name": "selectors",
+      "version": "0.38.0",
+      "purl": "pkg:cargo/selectors@0.38.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8adfa1c298912827b8a28b223b3b874357397ae706e6190acd9bf28cee99114d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/semver@1.0.28",
       "name": "semver",
       "version": "1.0.28",
@@ -12819,6 +13233,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/swift-rs@1.0.8",
+      "name": "swift-rs",
+      "version": "1.0.8",
+      "purl": "pkg:cargo/swift-rs@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e45c444e496845d3f2a351146bff59aae4975b2280238df1dfaa0c7d1846f38e"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/syn@1.0.109",
       "name": "syn",
       "version": "1.0.109",
@@ -13098,6 +13537,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/tao-macros@0.1.4",
+      "name": "tao-macros",
+      "version": "0.1.4",
+      "purl": "pkg:cargo/tao-macros@0.1.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f7eeb6d99155545da6150a1795945f16ac9c178deb2a5f2e74d776107bd5849"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/tao@0.35.3",
       "name": "tao",
       "version": "0.35.3",
@@ -13120,6 +13584,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tao@0.37.1",
+      "name": "tao",
+      "version": "0.37.1",
+      "purl": "pkg:cargo/tao@0.37.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f37f381f4e048e6cdf038b5705f8cf14ad108279d46eb968140a7b291aba9400"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -13200,6 +13691,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/tauri-build@2.7.1",
+      "name": "tauri-build",
+      "version": "2.7.1",
+      "purl": "pkg:cargo/tauri-build@2.7.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "59563ca5b331fd97f27ee9672ec8d36d33bb3c9e2c9f6710a1a5687256052e45"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/tauri-codegen@2.6.3",
       "name": "tauri-codegen",
       "version": "2.6.3",
@@ -13225,6 +13741,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/tauri-codegen@2.7.1",
+      "name": "tauri-codegen",
+      "version": "2.7.1",
+      "purl": "pkg:cargo/tauri-codegen@2.7.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e50213e463086ecc283d7e9f51c30cc0fd304ad457425158018be26dbf0d0a80"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/tauri-macros@2.6.3",
       "name": "tauri-macros",
       "version": "2.6.3",
@@ -13245,6 +13786,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tauri-macros@2.7.1",
+      "name": "tauri-macros",
+      "version": "2.7.1",
+      "purl": "pkg:cargo/tauri-macros@2.7.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8129fb43bb6e0d6b73ad3315cd172beaab17cd28899c594b1b32c80edbbfd99c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -13546,6 +14112,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/tauri-runtime-wry@2.12.1",
+      "name": "tauri-runtime-wry",
+      "version": "2.12.1",
+      "purl": "pkg:cargo/tauri-runtime-wry@2.12.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7f9e7e0c9f80a5130773cfabb6df4dc924518fb1b2c923726966804634b57d22"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/tauri-runtime@2.11.3",
       "name": "tauri-runtime",
       "version": "2.11.3",
@@ -13566,6 +14157,56 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tauri-runtime@2.12.1",
+      "name": "tauri-runtime",
+      "version": "2.12.1",
+      "purl": "pkg:cargo/tauri-runtime@2.12.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c2a57a2a9b8c8b7fc00d35b510fe808ded7f9f1b44fc1cdda6aee38632ea5413"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tauri-utils@2.10.1",
+      "name": "tauri-utils",
+      "version": "2.10.1",
+      "purl": "pkg:cargo/tauri-utils@2.10.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ff55a614843b9a3f010f211df637c94df2607175b8d0f6e0f4a7c19e18621ee"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -13648,31 +14289,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri@2.11.5",
-      "name": "tauri",
-      "version": "2.11.5",
-      "purl": "pkg:cargo/tauri@2.11.5",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "Apache-2.0 OR MIT"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "667b20e2726d572dea2de7370da16e188eb06008faf9a92fab7cdc46791190b5"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/tauri@2.11.6",
       "name": "tauri",
       "version": "2.11.6",
@@ -13693,6 +14309,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tauri@2.12.0",
+      "name": "tauri",
+      "version": "2.12.0",
+      "purl": "pkg:cargo/tauri@2.12.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb20ef8e6f97d6fe03039666cd82861f09a38b56291fa2f0f9fe140023f61c1a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -14774,31 +15415,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tray-icon@0.24.1",
-      "name": "tray-icon",
-      "version": "0.24.1",
-      "purl": "pkg:cargo/tray-icon@0.24.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "65ba1e5f6b9ef9fd87e21b9c6f351554dbd717960089168fcfdef854686961dc"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/tray-icon@0.24.2",
       "name": "tray-icon",
       "version": "0.24.2",
@@ -14819,6 +15435,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tray-icon@0.25.1",
+      "name": "tray-icon",
+      "version": "0.25.1",
+      "purl": "pkg:cargo/tray-icon@0.25.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b2b9c52859a94554803ccd4a24b98f74148ebc73b90676d783f3490b1bff9d72"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -15352,6 +15993,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/urlpattern@0.6.0",
+      "name": "urlpattern",
+      "version": "0.6.0",
+      "purl": "pkg:cargo/urlpattern@0.6.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "df16f50ef4cc145211879a3867ba757076b25dfee812040dcb0658bd9ae7904b"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -16429,6 +17097,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/webview2-com-sys@0.39.1",
+      "name": "webview2-com-sys",
+      "version": "0.39.1",
+      "purl": "pkg:cargo/webview2-com-sys@0.39.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b3a07132775117d6065853d9d1178157b8c90e228de47129d6bce2c7edebedfb"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/webview2-com@0.38.2",
       "name": "webview2-com",
       "version": "0.38.2",
@@ -16451,6 +17146,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/webview2-com@0.39.1",
+      "name": "webview2-com",
+      "version": "0.39.1",
+      "purl": "pkg:cargo/webview2-com@0.39.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f89fca7a704cee10dcb3654c1dbb8941d1783132f1917358af75bec37a7d7e6"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -16633,6 +17355,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/window-vibrancy@0.8.1",
+      "name": "window-vibrancy",
+      "version": "0.8.1",
+      "purl": "pkg:cargo/window-vibrancy@0.8.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "111e51caca442cafd9bab396628ac4d814880eaea4e63dfd76a12e9f342b5580"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/windows-collections@0.2.0",
       "name": "windows-collections",
       "version": "0.2.0",
@@ -16653,6 +17400,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/windows-collections@0.3.2",
+      "name": "windows-collections",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/windows-collections@0.3.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "23b2d95af1a8a14a3c7367e1ed4fc9c20e0a26e79551b1454d72583c97cc6610"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -16728,6 +17500,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/windows-future@0.3.2",
+      "name": "windows-future",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/windows-future@0.3.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1d6f90251fe18a279739e78025bd6ddc52a7e22f921070ccdc67dde84c605cb"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -16853,6 +17650,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/windows-numerics@0.3.1",
+      "name": "windows-numerics",
+      "version": "0.3.1",
+      "purl": "pkg:cargo/windows-numerics@0.3.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e2e40844ac143cdb44aead537bbf727de9b044e107a0f1220392177d15b0f26"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -17208,6 +18030,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/windows-threading@0.2.1",
+      "name": "windows-threading",
+      "version": "0.2.1",
+      "purl": "pkg:cargo/windows-threading@0.2.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3949bd5b99cafdf1c7ca86b43ca564028dfe27d66958f2470940f73d86d75b37"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/windows-version@0.1.7",
       "name": "windows-version",
       "version": "0.1.7",
@@ -17253,6 +18100,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/windows@0.62.2",
+      "name": "windows",
+      "version": "0.62.2",
+      "purl": "pkg:cargo/windows@0.62.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "527fadee13e0c05939a6a05d5bd6eec6cd2e3dbd648b9f8e447c6518133d8580"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -18215,6 +19087,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/wry@0.57.0",
+      "name": "wry",
+      "version": "0.57.0",
+      "purl": "pkg:cargo/wry@0.57.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a819957a01b3119af85e638a38d242af76dbc87d130dca67bfd0441072e21ff0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -22884,6 +23781,25 @@
         {
           "alg": "SHA-512",
           "content": "33614fb98343da6fb087985f5bd66949dc4c3dd109a2f3c15b0a07266c14a72b1360d1da3a4545378d7d9bf2b42c88236ffeca536bc182c51ea495ae8100af00"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40tauri-apps/api@2.12.0",
+      "name": "@tauri-apps/api",
+      "version": "2.12.0",
+      "purl": "pkg:npm/%40tauri-apps/api@2.12.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7d44b1157f1500161ef56f4ae5139d11a29590d50545c3124687e3aeebdac73b5703e2345e74077181c5f26fdaea2131454c6c51fd07b055a13c1b87f4883327"
         }
       ]
     },

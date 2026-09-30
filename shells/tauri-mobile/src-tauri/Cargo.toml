@@ -8,10 +8,10 @@ name = "lolly_mobile_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.7", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["devtools"] }
+tauri = { version = "2.12", features = ["devtools"] }
 tauri-plugin-fs = "2"
 # System browser sign-in sheet for provider OAuth (plans/138 Tier D, WP-M1.2).
 tauri-plugin-lolly-auth = { path = "../plugins/lolly-auth" }

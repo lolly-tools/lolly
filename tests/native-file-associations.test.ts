@@ -60,6 +60,7 @@ interface TauriConfig {
   identifier?: string;
   build?: { beforeBuildCommand?: string };
   bundle?: {
+    iOS?: { infoPlist?: string };
     fileAssociations?: Association[];
     resources?: Record<string, string>;
     macOS?: { files?: Record<string, string> };
@@ -104,6 +105,22 @@ test('mobile bundle identifier matches the generated Android and Apple projects'
   );
   assert.doesNotMatch(xcodeProject, /PRODUCT_BUNDLE_IDENTIFIER = tools\.lolly\.desktop/);
   assert.match(xcodeProject, /PRODUCT_BUNDLE_IDENTIFIER = tools\.lolly\.mobile/);
+});
+
+test('iOS startup declares a scene delegate backed by the fixed native runtime', () => {
+  const native = path.join(MOBILE, 'src-tauri');
+  const conf = JSON.parse(readFileSync(path.join(native, 'tauri.conf.json'), 'utf8')) as TauriConfig;
+  assert.ok(conf.bundle?.iOS?.infoPlist, 'scene configuration must survive Apple project regeneration');
+  const plist = readFileSync(path.join(native, conf.bundle.iOS.infoPlist), 'utf8');
+  assert.match(plist, /<key>UIApplicationSupportsMultipleScenes<\/key>\s*<true\/>/);
+  assert.match(plist, /<key>UIWindowSceneSessionRoleApplication<\/key>\s*<array>\s*<dict>/);
+  assert.match(plist, /<key>UISceneDelegateClassName<\/key>\s*<string>TaoSceneDelegate<\/string>/);
+  assert.match(plist, /<key>CFBundleURLSchemes<\/key>\s*<array>\s*<string>lolly<\/string>/);
+  const lock = readFileSync(path.join(native, 'Cargo.lock'), 'utf8');
+  const version = lock.match(/name = "tao"\nversion = "(\d+)\.(\d+)\.(\d+)"/);
+  assert.ok(version, 'the window runtime must be locked');
+  assert.ok(Number(version[1]) > 0 || Number(version[2]) >= 36,
+    'tao 0.35 releases free the scene configuration before UIKit retains it');
 });
 
 test('foreign formats are alternate openers with a real universal-import route', () => {
