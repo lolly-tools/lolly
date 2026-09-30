@@ -400,7 +400,7 @@
     "ExportOpts": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "5022c68c8ccbd7ffdec6a5e6b67a5e367e4a35ea0c907c17fb22117b58910edf"
+      "sha256": "1e5109b65280395abe57ada07c0d99ffa169bab5811263c9e889ef7fa36f08c7"
     },
     "ExportMeta": {
       "module": "export.ts",
