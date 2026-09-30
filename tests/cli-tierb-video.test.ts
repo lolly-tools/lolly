@@ -144,7 +144,7 @@ test('a Tier-B failure fails, and fails PROMPTLY, with the debug log it was aske
   // there holding the browser and the dist server open until the harness killed it.
   assert.ok(ms < 150_000, `the failure took ${ms}ms - it is hanging, not failing`);
   // The debug switch names the step and writes the log beside the output.
-  assert.match(outcome.stderr, /Timed out in step "wait for the jpeg download"/);
+  assert.match(outcome.stderr, /Stopped in step "wait for the jpeg download"/);
   const log = `${file}.tier-b-debug.log`;
   assert.ok(existsSync(log), 'no tier-b debug log was written beside the output');
   const text = readFileSync(log, 'utf8');
