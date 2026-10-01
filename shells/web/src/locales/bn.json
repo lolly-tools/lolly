@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: সাইটটি অন্য পেজের ভেতরে দেখানোর অনুমতি দেয় না",
   "{n} px wide": "{n} px চওড়া",
   "{n} sites": "{n}টি সাইট",
-  "{org} does not allow {host} here.": "{org} এখানে {host}-এর অনুমতি দেয় না।"
+  "{org} does not allow {host} here.": "{org} এখানে {host}-এর অনুমতি দেয় না।",
+  "Allow pages from any site": "যেকোনো সাইটের পেজের অনুমতি দিন",
+  "Lolly could not reach its server to check. Try again when you are online.": "যাচাই করতে Lolly তার সার্ভারে পৌঁছাতে পারেনি। অনলাইনে থাকলে আবার চেষ্টা করুন।",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "ওয়েব সংস্করণে, আপনি এটি চালু না করা পর্যন্ত Design শুধু ভিডিও ও মানচিত্র প্লেয়ার দেখায়। তখন Lolly এই ডিভাইসে শিথিল ফ্রেম নীতিতে আবার লোড হয়, এবং আপনি বিশ্বাস করেননি এমন সাইট লোড করার আগে তবুও জিজ্ঞাসা করে।",
+  "Pages from any site": "যেকোনো সাইটের পেজ",
+  "The web version of Lolly cannot show this site.": "Lolly-র ওয়েব সংস্করণ এই সাইট দেখাতে পারে না।",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Lolly-র ওয়েব সংস্করণ এখানে শুধু ভিডিও ও মানচিত্র প্লেয়ার দেখায়। {host} দেখাতে আপনার প্রোফাইলে যেকোনো সাইটের পেজের অনুমতি দিন, অথবা ডেস্কটপ অ্যাপ ব্যবহার করুন।",
+  "This server does not offer pages from any site. The desktop app can show any page.": "এই সার্ভার যেকোনো সাইটের পেজ দেয় না। ডেস্কটপ অ্যাপ যেকোনো পেজ দেখাতে পারে।",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "ওয়েব সংস্করণ যে সাইট দেখাতে পারে না সেগুলো দেখাতে Lolly এই ডিভাইসে শিথিল ফ্রেম নীতিতে আবার লোড হতে পারে, তারপর উপস্থাপনার আগে প্রতিটি সাইট সম্পর্কে জিজ্ঞাসা করে। আপনি প্রোফাইলে বিশ্বস্ত সাইট-এর অধীনে এটি বন্ধ করতে পারেন।"
 }

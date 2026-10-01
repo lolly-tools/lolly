@@ -129,6 +129,11 @@ export interface InspectorActions {
   useAsInput?(ids: string[], property?: 'text' | 'image' | 'fg' | 'fill'): void;
   text?: TextPropertyPort;
   editText?(id: string): void;
+  /** For text that is not a story: whether all of it is bold ('b'), italic ('i') or
+   *  underlined ('u'), as 'on', 'off' or 'mixed'; null when the boxes hold no such text. */
+  wholeTextStyle?(ids: string[], flag: 'b' | 'i' | 'u'): 'on' | 'off' | 'mixed' | null;
+  /** Toggle that flag on all of the text of the boxes, as one undo step. */
+  styleWholeText?(ids: string[], flag: 'b' | 'i' | 'u'): void;
   openDocumentSize?(anchor: HTMLElement): void;
   pickImage(ids: string[]): void;
   openGradient(ids: string[]): void;

@@ -62,7 +62,7 @@ render.
   with the usual discovery endpoints under `/.well-known/`. For HTML-layout tools
   (`design`, `chart`), large files or heavy automation, use the CLI.
 
-### The 14 tools
+### The 17 tools
 
 | Tool | Required | Does |
 |---|---|---|
@@ -80,6 +80,17 @@ render.
 | `lolly_rebrand` | `stage` | Renovate a `.pptx` deck into the design system in stages: `capabilities`, `plan`, `compile` (to a `.lolly`, optionally a `.pptx`) and `inspect`. A hosted server receives the file. |
 | `lolly_redact` | `file` | Destroy regions of an image/SVG/PDF. Rebuilds and re-checks; a failed check returns no file. |
 | `lolly_verify` | `file` | Verify a file's Content Credentials: made with Lolly, who signed, changed since export. |
+| `lolly_look` | `toolId` or `file` | The render with a labelled grid in document units, or one `region` enlarged. For looking; not an export. |
+| `lolly_sample_color` | `points` | Colours at points, each with the nearest design-system colour and its ΔE (0.02 is just noticeable). |
+| `lolly_trace_edges` | `toolId` or `file` | Edges as polylines in document units, longest first; `asDesignLayers` adds a ready Design path layer per line. |
+
+The three looking tools take a source the way `lolly_render` does (`toolId`,
+`inputs`, `templateId`, `layerOperations`, `layerPatches`) or a `file` (PNG, JPEG,
+GIF, WebP or SVG). Document units are the render's own SVG viewBox: for Design,
+the artboard pixels a layer's `x`, `y`, `w` and `h` use, so a position read off
+the grid can go straight into a `layerPatches` entry. A raster file is measured in
+its own pixels. Design and Chart draw their SVG in the browser tier, so looking at
+them needs the full endpoint, as rendering them does.
 
 Shared argument shapes: `RENDER_ARGS` are `toolId`, `inputs` (an object of the
 tool's inputs), `format`, `width`, `height`, `unit`, `dpi`; `TEMPLATE_ARGS` are

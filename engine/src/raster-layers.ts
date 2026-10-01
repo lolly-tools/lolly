@@ -57,6 +57,10 @@ export interface RasterLayer {
   isGroup: boolean;
   /** Indices (into the layers array) of ancestor groups, outermost first. */
   groupPath: number[];
+  /** What a PSD layer is beyond its pixels: live text, a shape, a vector path,
+   *  a solid fill, and what an importer cannot keep (psd-layer-semantics.ts).
+   *  Absent for XCF and for ordinary pixel layers. */
+  psd?: import('./psd-layer-semantics.ts').PsdLayerSemantics;
 }
 
 /** A parsed layered document - the one shape both readers return. */

@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: nettstedet tillater ikke å vises inni andre sider",
   "{n} px wide": "{n} px bred",
   "{n} sites": "{n} nettsteder",
-  "{org} does not allow {host} here.": "{org} tillater ikke {host} her."
+  "{org} does not allow {host} here.": "{org} tillater ikke {host} her.",
+  "Allow pages from any site": "Tillat sider fra alle nettsteder",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly fikk ikke kontakt med serveren for å sjekke. Prøv igjen når du er på nett.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "I nettversjonen viser Design bare video- og kartspillere til du slår dette på. Lolly laster da inn på nytt med en mildere rammepolicy på denne enheten, og spør fortsatt før den laster et nettsted du ikke har klarert.",
+  "Pages from any site": "Sider fra alle nettsteder",
+  "The web version of Lolly cannot show this site.": "Nettversjonen av Lolly kan ikke vise dette nettstedet.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Nettversjonen av Lolly viser bare video- og kartspillere her. For å vise {host}, tillat sider fra alle nettsteder i profilen din, eller bruk skrivebordsappen.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Denne serveren tilbyr ikke sider fra alle nettsteder. Skrivebordsappen kan vise alle sider.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "For å vise nettstedene nettversjonen ikke kan, kan Lolly laste inn på nytt med en mildere rammepolicy på denne enheten, og så spørre om hvert nettsted før du presenterer. Du kan slå dette av i profilen din, under Klarerte nettsteder."
 }

@@ -97,3 +97,12 @@ export const BROWSERS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 
 export function fetchToolFile(path: string): Promise<string> {
   return readToolText(path, content());
 }
+
+/** The directories a render's own pictures may come from: the active profile's
+ *  catalog, its tool packs and its shared asset roots. lolly_look inlines a local
+ *  image reference only from inside one of these (look.ts), so a rendered or
+ *  supplied SVG can never point the rasteriser at any other file on the server. */
+export function contentImageRoots(): string[] {
+  const c = content();
+  return [c.catalogRoot, ...c.toolRoots, ...c.assetRoots.map(a => a.dir)];
+}

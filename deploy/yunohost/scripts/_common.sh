@@ -8,6 +8,9 @@
 # conf/security-headers.inc). It is not a *.conf, so the domain's server block does
 # not include it a second time by itself.
 headers_inc="/etc/nginx/conf.d/$domain.d/$app.headers.inc"
+# The /any-site location's policy (conf/any-site-headers.inc): the same, with a
+# frame-src that admits any https page.
+any_site_inc="/etc/nginx/conf.d/$domain.d/$app.any-site.inc"
 
 # Only complete HTTPS origins may enter the nginx template. In particular, no
 # CSP directives, nginx variables, wildcards, credentials or URL paths belong here.
@@ -47,4 +50,5 @@ lolly_add_headers_inc() {
     # hosted policy byte for byte.
     lolly_csp_extra_connect_src="${lolly_csp_extra_connect_src:+ $lolly_csp_extra_connect_src}"
     ynh_config_add --template="security-headers.inc" --destination="$headers_inc"
+    ynh_config_add --template="any-site-headers.inc" --destination="$any_site_inc"
 }

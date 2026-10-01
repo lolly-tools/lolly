@@ -20,7 +20,7 @@ Lolly أداة إبداعية: يأتي الناس إلى هنا ليصنعوا 
 
 ## إمكانية الوصول
 
-![The Accessibility card on the profile page: four plain switches - Reduce motion, Hide colourful previews, High contrast and Large text - each with a help tip](/t/url-shot?url=%2F%23%2Fprofile&width=430&height=900&dpi=192&waitMs=2000&scrollDepth=1300&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--a11y&dark=1&filename=incl-a11y-card)
+![The Accessibility card on the profile page: four plain switches - Reduce motion, Hide colourful previews, High contrast and Large text - each with a help tip](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Da11y-section&width=430&height=900&dpi=192&waitMs=2000&scrollDepth=1300&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--a11y&dark=1&filename=incl-a11y-card)
 
 إلى جانب اتباع إشارات المنصة نفسها (الوضع الداكن للنظام، وتفضيل تقليل الحركة في
 نظام التشغيل)، يوفر Lolly تفضيلات إمكانية وصول صريحة تفعلها بنفسك في ملفك
@@ -72,7 +72,7 @@ Lolly أداة إبداعية: يأتي الناس إلى هنا ليصنعوا 
 
 ## أولوية اللغات والتوطين
 
-![The appearance settings rendered in Arabic on a phone-width screen: a fully right-to-left layout, not a mirrored afterthought](/t/url-shot?url=%2F%23%2Fprofile%3Flang%3Dar&width=430&height=900&dpi=192&waitMs=2200&scrollDepth=950&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=incl-profile-rtl)
+![The appearance settings rendered in Arabic on a phone-width screen: a fully right-to-left layout, not a mirrored afterthought](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dappearance-section%26lang%3Dar&width=430&height=900&dpi=192&waitMs=2200&scrollDepth=950&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=incl-profile-rtl)
 
 - <!--i:globe--> واجهة Lolly ووثائقه مترجمة إلى أكثر من 25 لغة، ونحن **نرتب
   أولوية اللغات بعدد المتحدثين بها**، لا بإيرادات السوق: فقد وصلت الهندية

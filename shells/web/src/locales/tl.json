@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: hindi pinapayagan ng site na ipakita ito sa loob ng ibang page",
   "{n} px wide": "{n} px ang lapad",
   "{n} sites": "{n} site",
-  "{org} does not allow {host} here.": "Hindi pinapayagan ng {org} ang {host} dito."
+  "{org} does not allow {host} here.": "Hindi pinapayagan ng {org} ang {host} dito.",
+  "Allow pages from any site": "Payagan ang mga page mula sa kahit anong site",
+  "Lolly could not reach its server to check. Try again when you are online.": "Hindi naabot ng Lolly ang server nito para mag-check. Subukan ulit kapag online ka na.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "Sa web na bersyon, video at map player lang ang ipinapakita ng Design hangga't hindi mo ito binubuksan. Magre-reload ang Lolly sa mas maluwag na frame policy sa device na ito, at magtatanong pa rin bago mag-load ng site na hindi mo pa pinagkakatiwalaan.",
+  "Pages from any site": "Mga page mula sa kahit anong site",
+  "The web version of Lolly cannot show this site.": "Hindi maipapakita ng web na bersyon ng Lolly ang site na ito.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Video at map player lang ang ipinapakita ng web na bersyon ng Lolly dito. Para ipakita ang {host}, payagan ang mga page mula sa kahit anong site sa profile mo, o gamitin ang desktop app.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Hindi nag-aalok ang server na ito ng mga page mula sa kahit anong site. Maipapakita ng desktop app ang kahit anong page.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Para maipakita ang mga site na hindi kaya ng web na bersyon, puwedeng mag-reload ang Lolly sa mas maluwag na frame policy sa device na ito, saka magtanong tungkol sa bawat site bago ka mag-present. Puwede mo itong patayin sa profile mo, sa ilalim ng Mga pinagkakatiwalaang site."
 }

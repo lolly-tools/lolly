@@ -239,7 +239,7 @@ import type { Unit } from './units.ts';
 import { parseTokenSelection } from './token-selection.ts';
 import { isTokenValue, isAlias } from './tokens.ts';
 import { isToolUrl } from './tool-url.ts';
-import { assetIdForUrl, blocksForUrl } from './bake.ts';
+import { assetIdForUrl, blocksForUrl, isBakedRef } from './bake.ts';
 import { isDesignSystemId } from './design-system.ts';
 import { normalizeLang } from './lang.ts';
 import type { Lang } from './lang.ts';
@@ -501,6 +501,11 @@ export interface SerializeUrlOpts {
    *  is omitted and a `user/` block sub-field is blanked. The web address bar
    *  passes true: on the SAME device a refresh/bookmark resolves them fine. */
   keepUserIds?: boolean;
+  /** Carry a top-level baked asset (a local file loaded into memory) as its own `data:`
+   *  URL instead of degrading it to a link-safe id. ONLY for a handoff to a renderer on
+   *  this same machine (the CLI's browser tier): a shared link must never inline bytes,
+   *  so every other caller leaves this off and a baked ref degrades as before. */
+  inlineBakedAssets?: boolean;
   tokenSelection?: Record<string, string>;
 }
 
@@ -823,6 +828,11 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
           if (vo[f.id] !== undefined && vo[f.id] !== null) params.set(`${input.id}.${f.id}`, String(vo[f.id]));
         }
       }
+      continue;
+    }
+    if (opts.inlineBakedAssets && input.type === 'asset' && input.value && typeof input.value === 'object'
+      && isBakedRef(input.value as AssetRef) && String((input.value as AssetRef).url ?? '').startsWith('data:')) {
+      params.set(input.id, String((input.value as AssetRef).url));
       continue;
     }
     const str = coerceToString(input, input.value, opts.keepUserIds === true);

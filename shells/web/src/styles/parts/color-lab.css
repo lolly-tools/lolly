@@ -768,6 +768,7 @@
   border-color: transparent;
   border-radius: calc(var(--radius) * 0.8);
 }
+
 /* Only the gamut row gets the extra height. It is the focal control of its
    section; the blend rows sit beside a picker and a ramp and would shout over
    them at the same size. */

@@ -143,7 +143,9 @@ export async function renderRaster(opts: {
   // link: Tier B is the web shell rendering the same address, so it has to be told
   // which set to draw from or it would fall back to the browser's own emoji font.
   const model = opts.initial ? restoreToolLinks(runtime.getModel() as ModelItem[], opts.initial) : runtime.getModel();
-  const query = serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle });
+  // inlineBakedAssets: this query is handed to a browser on this machine, not shared, so
+  // a local file given to an asset input travels as its bytes instead of being dropped.
+  const query = serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle, inlineBakedAssets: true });
   const MOTION = ['gif', 'apng', 'webm', 'mp4'];
   // PROTOTYPE opt-in: real Playwright screenshots instead of dom-to-image for the
   // frame-by-frame capture (see renderVideoViaScreenshot's doc comment). Motion
@@ -268,7 +270,7 @@ async function renderHdrStill(opts: {
     const { width, height } = pxDims(dims, manifest);
     frame = await rasterizeSvgToRgba(svg, width, height);
   } else {
-    const query = serializeUrlState(runtime.getModel() as never, { emoji:opts.emoji?.emoji, emojiFx:opts.emoji?.emojiFx, emojiStyle:opts.emoji?.emojiStyle });
+    const query = serializeUrlState(runtime.getModel() as never, { emoji:opts.emoji?.emoji, emojiFx:opts.emoji?.emojiFx, emojiStyle:opts.emoji?.emojiStyle, inlineBakedAssets: true });
     const { renderViaWebShell } = await import('@lolly-tools/node-shell/webshell-render');
     const { bytes } = await renderViaWebShell(manifest.id, query, 'png', { ...dims, hdrParam: undefined, depth: undefined, imprint: false, c2pa: false });
     const decoded = await decodeRgba(bytes);

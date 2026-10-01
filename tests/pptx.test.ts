@@ -554,3 +554,16 @@ test('no layouts → parts, order, master and blank layout are byte-identical to
   assert.match(before['ppt/slideLayouts/slideLayout1.xml'] as string, /type="blank" preserve="1"/);
   assert.match(before['ppt/slideMasters/_rels/slideMaster1.xml.rels'] as string, /Id="rId2" Type="[^"]*\/theme"/);
 });
+
+test('a newline inside a run is written as <a:br/>, never as a raw newline in <a:t>', () => {
+  const slide: PptxSlide = {
+    shapes: [{ kind: 'text', x: 0, y: 0, cx: 100, cy: 100, paras: [{ runs: [{ text: 'One\nTwo\r\nThree', sizePt: 20, font: 'SUSE' }], lineSpacingPt: 30 }] }],
+    media: [],
+  };
+  const xml = buildPptxParts([slide], {})['ppt/slides/slide1.xml'] as string;
+  assert.doesNotMatch(xml, /<a:t>[^<]*\n/, 'no raw newline inside a text element');
+  assert.equal((xml.match(/<a:br>/g) ?? []).length, 2);
+  assert.match(xml, /<a:t>One<\/a:t><\/a:r><a:br><a:rPr [^>]*sz="2000"[^>]*><a:latin typeface="SUSE"\/>/);
+  assert.match(xml, /<a:t>Three<\/a:t>/);
+  assert.match(xml, /<a:lnSpc><a:spcPts val="3000"\/><\/a:lnSpc>/, 'an exact pitch is written in hundredths of a point');
+});

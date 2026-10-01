@@ -134,6 +134,11 @@ test('scripts: the header include is written before nginx is (re)configured, and
     assert.ok(inc > 0 && ng > inc, `${name}: lolly_add_headers_inc must run before ynh_config_add_nginx (nginx -t needs the include to exist)`);
   }
   assert.match(read('scripts/remove'), /ynh_safe_rm "\$headers_inc"/);
+  assert.match(read('scripts/remove'), /ynh_safe_rm "\$any_site_inc"/, 'the /any-site policy file is removed with the app');
+  // Rendered, not restored: a backup made before the file existed does not hold the file.
+  const restore = read('scripts/restore');
+  assert.ok(restore.indexOf('lolly_add_headers_inc') > restore.indexOf('ynh_restore "$headers_inc"'));
+  assert.match(read('scripts/_common.sh'), /ynh_config_add --template="any-site-headers\.inc" --destination="\$any_site_inc"/);
   assert.match(read('scripts/backup'), /ynh_backup "\$headers_inc"/);
   assert.match(read('scripts/restore'), /ynh_restore "\$headers_inc"/);
   const cu = read('scripts/change_url');
@@ -157,7 +162,7 @@ test('nginx: only placeholders YunoHost substitutes, and the .inc suffix that ke
 
 test('nginx: every location that sets a header re-includes the header file', () => {
   // Walk the innermost location blocks (nested `location` inside `location /`).
-  const inner = [...nginx.matchAll(/location\s+(?:=|\^~)?\s*([^\s{]+)\s*\{([^{}]*)\}/g)]
+  const inner = [...nginx.matchAll(/location\s+(?:=|\^~|~\*?)?\s*([^\s{]+)\s*\{([^{}]*)\}/g)]
     .map((m) => ({ path: m[1]!, body: m[2]! }));
   assert.ok(inner.length >= 8, `expected the cache-tier locations, found ${inner.length}`);
   const offenders = inner
@@ -169,6 +174,22 @@ test('nginx: every location that sets a header re-includes the header file', () 
   // and mixing the two modules gives duplicate headers.
   assert.doesNotMatch(nginx, /add_header/);
   assert.doesNotMatch(headers, /add_header/);
+});
+
+test('/any-site: the hosted twin policy, served by a location nothing else can override', () => {
+  const hosted = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as { headers: Array<{ headers: Array<{ key: string; value: string }> }> };
+  const want = hosted.headers[1]!.headers.find((h) => h.key === 'Content-Security-Policy')!.value;
+  const inc = read('conf/any-site-headers.inc');
+  const lines = [...inc.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '').matchAll(/^more_set_headers "([A-Za-z-]+): ([^\n]*)";$/gm)];
+  assert.deepEqual(lines.map((m) => m[1]), ['Content-Security-Policy'], 'the twin file changes the CSP and nothing else');
+  assert.equal(lines[0]![2], want);
+  assert.match(inc, /__LOLLY_CSP_EXTRA_CONNECT_SRC__/, 'extra storage origins reach /any-site too');
+  const loc = nginx.match(/location ~ \^\/any-site\(\/\|\$\) \{([^{}]*)\}/);
+  assert.ok(loc, 'nginx.conf has no /any-site location');
+  const body = loc![1]!;
+  assert.ok(body.indexOf('__APP__.headers.inc') < body.indexOf('__APP__.any-site.inc'), 'the twin policy is included after the base one, so it wins');
+  assert.match(body, /rewrite \^ \/index\.html break;/, 'break keeps the nested /index.html location (and its narrower policy) out');
+  assert.ok(nginx.indexOf('location ~ ^/any-site') < nginx.indexOf('location / {'));
 });
 
 test('headers: without extra origins, the headers are the hosted policy, byte for byte', () => {

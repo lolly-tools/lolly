@@ -24,6 +24,7 @@ import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, r
 import { withHost } from './host.ts';
 import type { RenderOpts } from './render.ts';
 import { REBRAND_TOOL_DEF, callRebrand, isHostedServer } from './rebrand.ts';
+import { callLookTool, lookToolDefs, type LookRender } from './look.ts';
 
 const WEB_BASE = (process.env.LOLLY_WEB_BASE || 'https://lolly.tools').replace(/\/$/, '');
 
@@ -426,6 +427,10 @@ export const TOOL_DEFS: McpToolDef[] = [
       additionalProperties: false,
     },
   },
+  ...lookToolDefs({
+    toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, template: TEMPLATE_ARGS,
+    layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG, file: FILE_ARG,
+  }),
 ];
 
 /** Tool ids are `[a-z0-9-]` slugs (matches resources.ts); reject anything else so a
@@ -998,6 +1003,29 @@ function c2paSetting(v: unknown): RenderOpts['c2pa'] {
   return { on: true, days: [7, 30, 90, 365].includes(n) ? n : null };
 }
 
+/**
+ * A render for the looking tools (look.ts): the same input resolution and
+ * validation as lolly_render, drawn as the tool's own SVG when it has one (so
+ * the coordinates are the document's) and otherwise in its first raster format.
+ * Nothing is stamped or linked: the result is only ever looked at.
+ */
+const renderForLook: LookRender = async (args) => {
+  const toolId = String(args.toolId ?? '');
+  if (!TOOL_ID_RE.test(toolId)) return { error: `Invalid toolId: ${toolId}. Use lolly_list_tools.` };
+  const tool = await loadToolCached(toolId).catch(() => null);
+  if (!tool) return { error: `Tool not found: ${toolId}. Use lolly_list_tools.` };
+  const resolved = await resolveInputs(toolId, tool.manifest, args);
+  const validation = validateToolInputs(tool.manifest, resolved.inputs);
+  if (!validation.ok) return { error: `Invalid inputs: ${validation.errors.map(e => `${e.path}: ${e.message}`).join('; ')}` };
+  const formats = (tool.manifest.render.formats ?? []).map(f => f.toLowerCase());
+  const format = formats.includes('svg') ? 'svg' : formats.find(f => ['png', 'jpg', 'jpeg', 'webp'].includes(f));
+  if (!format) return { error: `${toolId} draws no image to look at (formats: ${formats.join(', ')}).` };
+  const opts: RenderOpts = { format, maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()) };
+  const links = buildLinks(tool.manifest, resolved.inputs, opts);
+  const result = await render(toolId, links.query, opts);
+  return { bytes: result.bytes, mime: result.mime, format: result.format, warnings: result.warnings };
+};
+
 export async function callTool(name: string, args: Record<string, unknown>): Promise<ToolCallResult> {
   try {
     switch (name) {
@@ -1223,6 +1251,11 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
 
       case 'lolly_rebrand':
         return await callRebrand(args);
+
+      case 'lolly_look':
+      case 'lolly_sample_color':
+      case 'lolly_trace_edges':
+        return await callLookTool(name, args, renderForLook);
 
       case 'lolly_redact': {
         const file = args.file as { base64?: string; name?: string; mime?: string } | undefined;

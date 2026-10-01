@@ -26,6 +26,9 @@
 .modal::backdrop { background: hsl(0 0% 0% / 0.42); }
 .modal-title { margin: 0 0 8px; font-size: var(--fs-xl); font-weight: 700; }
 .modal-msg { margin: 0 0 18px; font-size: var(--fs-md); line-height: 1.5; color: var(--ui-color-text-muted); }
+/* An optional list under the message (choiceDialog `items`), e.g. what an import changes. */
+.modal-items { margin: -8px 0 18px; padding-left: 1.2em; max-height: min(40vh, 320px); overflow-y: auto; font-size: var(--fs-sm); line-height: 1.45; color: var(--ui-color-text-muted); }
+.modal-items li + li { margin-top: 4px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top:1rem; }
 /* Scoped (two-class) so it beats the generic .btn base by specificity. Fill
    (background/color) + hover are aliased in parts/buttons.css's .btn--danger list. */
@@ -566,6 +569,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   flex-wrap: wrap;
 
 }
+.unsaved-dialog-actions button{flex:auto}
 
 .unsaved-save {
   padding: 6px 14px;

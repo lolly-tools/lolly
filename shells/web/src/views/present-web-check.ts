@@ -20,6 +20,7 @@ import { parseWebEmbed, type WebEmbed } from '../../../../engine/src/web-embed.t
 import { trustedSiteHost } from '../../../../engine/src/trusted-sites.ts';
 import { canTrustMore, trustSite } from '../lib/trusted-sites.ts';
 import { consentToLink, frameHost, policyNote, trustEntryFor, webFrameState, type WebFrameState } from '../lib/design-web-mount.ts';
+import { anySiteApplies, enterAnySite, probeAnySite } from '../lib/any-site.ts';
 
 type CheckState = Extract<WebFrameState, 'ask' | 'policy' | 'blocked' | 'refused' | 'browser'>;
 
@@ -127,6 +128,10 @@ export function openWebCheck(rows: readonly WebCheckRow[]): Promise<boolean> {
       `<h2 class="modal-title">${title}</h2>`
       + `<p class="modal-msg">${t('Some slides show web pages. Nothing is asked while you present, so decide here. A page that does not load shows its picture.')}</p>`
       + `<ul class="pwc-list">${rows.map(rowHtml).join('')}</ul>`
+      + (rows.some((r) => r.state === 'blocked') && anySiteApplies()
+        ? `<div class="pwc-anysite"><p class="pwc-anysite-note">${t('To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.')}</p>`
+          + `<button type="button" class="btn" data-pwc-anysite>${t('Allow pages from any site')}</button><p class="pwc-anysite-note" data-pwc-anysite-msg hidden></p></div>`
+        : '')
       + `<div class="modal-actions"><button type="button" class="btn" data-pwc-cancel>${t('Not now')}</button>`
       + `<button type="button" class="btn modal-primary" data-pwc-present>${t('Present')}</button></div>`,
       {
@@ -152,6 +157,23 @@ export function openWebCheck(rows: readonly WebCheckRow[]): Promise<boolean> {
       if (!el) return;
       if (el.hasAttribute('data-pwc-cancel')) { modal.close(false); return; }
       if (el.hasAttribute('data-pwc-present')) { modal.close(true); return; }
+      if (el.hasAttribute('data-pwc-anysite')) {
+        el.disabled = true;
+        void probeAnySite().then((offer) => {
+          // Back with the deck, presenting: the list runs again under the wider policy. The
+          // dialog stays up while the page goes, because closing it steps history back,
+          // and that traversal would cancel the reload.
+          if (offer === 'offered') { enterAnySite('present'); return; }
+          const msg = modal.el.querySelector<HTMLElement>('[data-pwc-anysite-msg]');
+          if (msg) {
+            msg.textContent = offer === 'unreachable'
+              ? t('Lolly could not reach its server to check. Try again when you are online.')
+              : t('This server does not offer pages from any site. The desktop app can show any page.');
+            msg.hidden = false;
+          }
+        });
+        return;
+      }
       const once = el.dataset.pwcOnce, always = el.dataset.pwcAlways;
       const row = rows[Number(once ?? always)];
       if (!row) return;

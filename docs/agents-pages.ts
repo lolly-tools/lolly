@@ -113,6 +113,7 @@ export const MCP_TOOLS: readonly string[] = [
   'lolly_compile', 'lolly_inspect', 'lolly_measure', 'lolly_validate', 'lolly_diff', 'lolly_package',
   'lolly_list_tools', 'lolly_describe_tool', 'lolly_build_url', 'lolly_render',
   'lolly_transform', 'lolly_rebrand', 'lolly_redact', 'lolly_verify',
+  'lolly_look', 'lolly_sample_color', 'lolly_trace_edges',
 ];
 
 export const MCP_RESOURCES: readonly string[] = [

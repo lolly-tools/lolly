@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: o site não permite ser mostrado dentro de outras páginas",
   "{n} px wide": "{n} px de largura",
   "{n} sites": "{n} sites",
-  "{org} does not allow {host} here.": "{org} não permite {host} aqui."
+  "{org} does not allow {host} here.": "{org} não permite {host} aqui.",
+  "Allow pages from any site": "Permitir páginas de qualquer site",
+  "Lolly could not reach its server to check. Try again when you are online.": "O Lolly não conseguiu acessar o servidor para verificar. Tente de novo quando você estiver online.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "Na versão web, o Design mostra só players de vídeo e de mapas até você ativar isto. O Lolly então recarrega com uma política de frames mais flexível neste dispositivo e continua perguntando antes de carregar um site em que você não confiou.",
+  "Pages from any site": "Páginas de qualquer site",
+  "The web version of Lolly cannot show this site.": "A versão web do Lolly não pode mostrar este site.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "A versão web do Lolly mostra aqui só players de vídeo e de mapas. Para mostrar {host}, permita páginas de qualquer site no seu perfil ou use o app desktop.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Este servidor não oferece páginas de qualquer site. O app desktop pode mostrar qualquer página.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Para mostrar os sites que a versão web não pode mostrar, o Lolly pode recarregar com uma política de frames mais flexível neste dispositivo e depois perguntar sobre cada site antes de você apresentar. Você pode desativar isso no seu perfil, em Sites confiáveis."
 }

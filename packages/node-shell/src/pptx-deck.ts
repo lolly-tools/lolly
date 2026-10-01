@@ -73,6 +73,54 @@ const hex2 = (n: number): string => Math.max(0, Math.min(255, Math.round(Number.
 /** Look one CSS custom property (`--brand-surface`) up; '' / undefined = not defined. */
 export type DeckColorResolver = (name: string) => string | undefined;
 
+/** The line ends a deck path may ask for (the engine's PptxLineEnd). */
+const LINE_END_NAMES = ['triangle', 'arrow', 'oval', 'diamond', 'stealth'] as const;
+
+/** Generic CSS families and stack keywords: never a typeface PowerPoint can install. */
+const GENERIC_FAMILY = /^(?:serif|sans-serif|monospace|cursive|fantasy|math|emoji|fangsong|system-ui|ui-[\w-]+|-apple-system|blinkmacsystemfont|inherit|initial|unset)$/i;
+
+/** The first concrete family of a CSS font stack, unquoted, or undefined for a stack
+ *  of generics only. A pptx run carries ONE typeface name, never a stack. */
+export function firstFontFamily(stack: string | undefined): string | undefined {
+  for (const part of String(stack ?? '').split(',')) {
+    const name = part.trim().replace(/^(['"])(.*)\1$/, '$2').trim();
+    if (!name || name.startsWith('var(')) continue;
+    if (GENERIC_FAMILY.test(name)) return undefined;
+    return name;
+  }
+  return undefined;
+}
+
+/**
+ * A run's typeface. A plain name passes through. A `var(--font-x)` reference (how a tool
+ * points at its brand's mono or display face without knowing the family) resolves
+ * through the exported node's cascade, the same lookup brand colours use, to that
+ * stack's first family; a reference that resolves to nothing is left off, so the theme
+ * font applies.
+ */
+export function deckFontName(v: unknown, resolve?: DeckColorResolver): string | undefined {
+  const raw = asStr(v)?.trim();
+  if (!raw) return undefined;
+  const ref = /^var\(\s*(--[\w-]+)\s*(?:,\s*([^)]*))?\)$/.exec(raw);
+  if (!ref) return raw;
+  return firstFontFamily(resolve?.(ref[1]!) || ref[2]);
+}
+
+/**
+ * The theme a deck exports with, with the brand's own faces filled in when the tool's
+ * deck model gives none. Without this a run with no face of its own (Design's default
+ * `sans`) is drawn in PowerPoint's Calibri, because the theme font is the only route
+ * from the brand family to such a run. `--font-display` heads the major (heading) font
+ * when a brand declares one; both otherwise take `--font-brand`.
+ */
+export function withBrandFonts(theme: PptxTheme | undefined, resolve?: DeckColorResolver): PptxTheme | undefined {
+  if (theme?.fonts?.major && theme.fonts.minor) return theme;
+  const brand = firstFontFamily(resolve?.('--font-brand'));
+  if (!brand) return theme;
+  const display = firstFontFamily(resolve?.('--font-display')) ?? brand;
+  return { ...theme, fonts: { major: theme?.fonts?.major ?? display, minor: theme?.fonts?.minor ?? brand } };
+}
+
 // A custom-property name: '--' plus anything that is not whitespace, a paren or a comma.
 const CUSTOM_PROP_RE = /^--[^\s(),]+$/;
 // `var(--a, var(--b, #fff))` is 2 hops. A token defined as another var() chains; the cap
@@ -186,7 +234,7 @@ export function deckRun(r: Record<string, unknown>, resolve?: DeckColorResolver)
   const run: PptxRun = {
     text: asStr(r?.text) ?? '', sizePt: asFinite(r?.sizePt, 12),
     color: colour?.hex, bold: asBool(r?.bold), italic: asBool(r?.italic),
-    underline: asBool(r?.underline), strike: asBool(r?.strike), font: asStr(r?.font),
+    underline: asBool(r?.underline), strike: asBool(r?.strike), font: deckFontName(r?.font, resolve),
   };
   const alpha = runAlpha(colour, r?.alpha);
   if (alpha !== undefined) run.alpha = alpha;
@@ -203,7 +251,7 @@ export function deckPara(p: Record<string, unknown>, resolve?: DeckColorResolver
   if (b === true || b === false || b === 'number') para.bullet = b;
   else if (b && typeof b === 'object' && typeof (b as { char?: unknown }).char === 'string') para.bullet = { char: (b as { char: string }).char };
   const bc = deckColor(p?.bulletColor, resolve); if (bc) para.bulletColor = bc.hex;
-  for (const k of ['lineSpacingPct', 'spaceBeforePt', 'spaceAfterPt'] as const)
+  for (const k of ['lineSpacingPct', 'lineSpacingPt', 'spaceBeforePt', 'spaceAfterPt'] as const)
     if (typeof p?.[k] === 'number' && Number.isFinite(p[k])) para[k] = p[k] as number;
   return para;
 }
@@ -220,7 +268,7 @@ function deckCell(c: Record<string, unknown>, resolve?: DeckColorResolver): Pptx
   if (typeof c?.rowSpan === 'number') cell.rowSpan = c.rowSpan;
   if (typeof c?.bold === 'boolean') cell.bold = c.bold;
   if (typeof c?.sizePt === 'number') cell.sizePt = c.sizePt;
-  const font = asStr(c?.font); if (font) cell.font = font;
+  const font = deckFontName(c?.font, resolve); if (font) cell.font = font;
   if (typeof c?.margin === 'number') cell.margin = emuOf(c.margin);
   const bs = c?.borders as Record<string, unknown> | undefined;
   if (bs && typeof bs === 'object') {
@@ -265,7 +313,7 @@ export function deckPlaceholder(p: unknown, resolve?: DeckColorResolver): PptxPl
   const prompt = asStr(el.prompt); if (prompt) out.prompt = prompt;
   if (st && typeof st === 'object') {
     const style: NonNullable<PptxPlaceholder['style']> = {};
-    const font = asStr(st.font); if (font) style.font = font;
+    const font = deckFontName(st.font, resolve); if (font) style.font = font;
     if (typeof st.sizePt === 'number' && Number.isFinite(st.sizePt)) style.sizePt = st.sizePt;
     style.color = deckColor(st.color, resolve)?.hex;
     const align = oneOf(st.align, ['l', 'ctr', 'r'] as const); if (align) style.align = align;
@@ -492,12 +540,14 @@ function deckPathShape(el: Record<string, unknown>, box: ReturnType<typeof deckB
   }
   if (!scaled) return null;
   const fill = deckFill(el.fill, resolve);
-  const lineIn = el.line as { color?: unknown; w?: unknown } | undefined;
+  const lineIn = el.line as { color?: unknown; w?: unknown; head?: unknown; tail?: unknown } | undefined;
   const lc = deckColor(lineIn?.color, resolve);
+  const head = oneOf(lineIn?.head, LINE_END_NAMES);
+  const tail = oneOf(lineIn?.tail, LINE_END_NAMES);
   return {
     kind: 'path', ...box, paths: [{ d: scaled }],
     ...(fill ? { fill } : {}),
-    ...(lc ? { line: { color: lc.hex, w: Math.max(0, Math.round(asFinite(lineIn?.w, 1) * EMU_PER_PX)), ...(lc.alpha !== undefined ? { alpha: lc.alpha } : {}) } } : {}),
+    ...(lc ? { line: { color: lc.hex, w: Math.max(0, Math.round(asFinite(lineIn?.w, 1) * EMU_PER_PX)), ...(lc.alpha !== undefined ? { alpha: lc.alpha } : {}), ...(head ? { head } : {}), ...(tail ? { tail } : {}) } } : {}),
   };
 }
 
@@ -521,7 +571,7 @@ export function deckSyncShape(el: Record<string, unknown>, animNotes?: DeckNoteS
   }
   switch (el.t) {
     case 'rect':
-      return withAnim({ kind: 'rect', ...box, ...rot, fill: deckFill(el.fill, resolve), line: deckRectLine(el.line, resolve), radius: el.radius != null ? emuOf(el.radius) : undefined });
+      return withAnim({ kind: 'rect', ...box, ...rot, fill: deckFill(el.fill, resolve), line: deckRectLine(el.line, resolve), radius: el.radius != null ? emuOf(el.radius) : undefined, ...(el.geom === 'ellipse' ? { geom: 'ellipse' as const } : {}) });
     case 'text':
       return withAnim({ kind: 'text', ...box, ...rot, anchor: oneOf(el.anchor, ['t', 'ctr', 'b'] as const), paras: (Array.isArray(el.paras) ? el.paras : []).map((p: Record<string, unknown>) => deckPara(p, resolve)), ph: deckPh(el.ph) });
     case 'table': {

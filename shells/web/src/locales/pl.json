@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: witryna nie zezwala na pokazywanie w innych stronach",
   "{n} px wide": "Szerokość {n} px",
   "{n} sites": "{n} witryn",
-  "{org} does not allow {host} here.": "{org} nie zezwala tutaj na {host}."
+  "{org} does not allow {host} here.": "{org} nie zezwala tutaj na {host}.",
+  "Allow pages from any site": "Zezwalaj na strony z dowolnej witryny",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly nie połączyło się z serwerem, żeby sprawdzić. Spróbuj ponownie, gdy będziesz online.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "W wersji internetowej Design pokazuje tylko odtwarzacze wideo i map, dopóki tego nie włączysz. Lolly przeładuje się wtedy na tym urządzeniu z luźniejszą polityką ramek i nadal zapyta przed wczytaniem witryny, której nie oznaczono jako zaufanej.",
+  "Pages from any site": "Strony z dowolnej witryny",
+  "The web version of Lolly cannot show this site.": "Wersja internetowa Lolly nie może pokazać tej witryny.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Wersja internetowa Lolly pokazuje tu tylko odtwarzacze wideo i map. Aby pokazać {host}, zezwól na strony z dowolnej witryny w swoim profilu albo użyj aplikacji desktopowej.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Ten serwer nie udostępnia stron z dowolnej witryny. Aplikacja desktopowa może pokazać dowolną stronę.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Aby pokazać witryny, których wersja internetowa nie obsłuży, Lolly może przeładować się na tym urządzeniu z luźniejszą polityką ramek, a potem pytać o każdą witrynę przed prezentacją. Możesz to wyłączyć w profilu, w sekcji Zaufane witryny."
 }

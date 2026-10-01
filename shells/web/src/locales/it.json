@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: il sito non consente di essere mostrato dentro altre pagine",
   "{n} px wide": "{n} px di larghezza",
   "{n} sites": "{n} siti",
-  "{org} does not allow {host} here.": "{org} non consente {host} qui."
+  "{org} does not allow {host} here.": "{org} non consente {host} qui.",
+  "Allow pages from any site": "Consenti pagine da qualsiasi sito",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly non è riuscito a raggiungere il suo server per controllare. Riprova quando sei online.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "Nella versione web, Design mostra solo lettori video e di mappe finché non attivi questa opzione. Lolly si ricarica poi con una politica dei frame più permissiva su questo dispositivo e chiede comunque conferma prima di caricare un sito di cui non ti sei fidato.",
+  "Pages from any site": "Pagine da qualsiasi sito",
+  "The web version of Lolly cannot show this site.": "La versione web di Lolly non può mostrare questo sito.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "La versione web di Lolly qui mostra solo lettori video e di mappe. Per mostrare {host}, consenti pagine da qualsiasi sito nel tuo profilo oppure usa l'app desktop.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Questo server non offre pagine da qualsiasi sito. L'app desktop può mostrare qualsiasi pagina.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Per mostrare i siti che la versione web non può mostrare, Lolly può ricaricarsi con una politica dei frame più permissiva su questo dispositivo e poi chiedere conferma per ogni sito prima che tu presenti. Puoi disattivarlo nel tuo profilo, sotto Siti attendibili."
 }

@@ -17,6 +17,9 @@ ynh_restore "$install_dir"
 ynh_script_progression "Restoring system configurations related to $app..."
 
 ynh_restore "$headers_inc"
+# The /any-site policy is derived from the same settings, and a backup made before
+# it existed does not hold it, so it is rendered again rather than restored.
+lolly_add_headers_inc
 ynh_restore "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================

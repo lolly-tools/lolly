@@ -32,6 +32,7 @@ import { buildEmbedUrl } from '../../../../engine/src/tool-url.ts';
 import { packQuery } from '../../../../engine/src/url-pack.ts';
 import { t } from '../i18n.ts';
 import { isIframeMode } from './iframe-mode.ts';
+import { anySiteActive } from './any-site.ts';
 import { siteVerdict, onTrustedSitesChange } from './trusted-sites.ts';
 import { normaliseTrustedSite } from '../../../../engine/src/trusted-sites.ts';
 import { onSitePolicyChange } from './site-policy.ts';
@@ -131,9 +132,10 @@ export function webFrameState(embed: WebEmbed | null, mode: WebMountMode): WebFr
   const verdict = webSiteVerdict(embed);
   if (verdict.state === 'blocked') return 'policy';
   if (embed.refuses) return 'refused';
-  // The hosted web CSP lists a few named players (plan 288 D2); the desktop app's
-  // own policy frames any https page.
-  if (!inTauri() && !allowedOnHostedWeb(embed)) return 'blocked';
+  // The hosted web CSP lists a few named players (plan 288 D2); the desktop app's own
+  // policy frames any https page, and so does the web app's /any-site/ shell once this
+  // device allowed pages from any site (lib/any-site.ts).
+  if (!inTauri() && !anySiteActive() && !allowedOnHostedWeb(embed)) return 'blocked';
   // An isolated page can frame another site only with the credentialless attribute,
   // which Firefox does not have.
   if (globalThis.crossOriginIsolated && !('credentialless' in HTMLIFrameElement.prototype)) return 'browser';
@@ -157,7 +159,7 @@ function note(state: WebFrameState, embed: WebEmbed | null): string {
     case 'ask': return t('Double-click to load {host}').replace('{host}', frameHost(embed));
     case 'policy': return policyNote(embed);
     case 'refused': return t('{host} does not allow being shown inside other pages. Presenting shows this picture.').replace('{host}', host);
-    case 'blocked': return t('The web version of Lolly can only show video and map players here. The desktop app can show {host}.').replace('{host}', host);
+    case 'blocked': return t('The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.').replace('{host}', host);
     case 'browser': return t('This browser cannot show other sites inside Lolly. Chrome, Edge and Safari can.');
     case 'invalid': return embed === null ? t('Add a link to a web page, video or Sandbox demo in the inspector.') : '';
     default: return '';

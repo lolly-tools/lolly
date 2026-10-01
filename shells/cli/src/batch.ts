@@ -25,6 +25,7 @@ import { readToolFile, runToolCli } from './run.ts';
 import { checkTransformOutput, transformOutputKind } from './transform-output.ts';
 import { EXIT, exitCodeFor, usageError } from './exit-codes.ts';
 import { warn } from './output.ts';
+import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 
 // The one tool reader this shell has (run.ts), not a second path join of its own.
 const fetchFile = readToolFile;
@@ -40,7 +41,7 @@ export async function batchTemplateCli(toolIds: string[], opts: { json?: boolean
     try {
       const t = await loadTool(id, fetchFile);
       tools.push({ id: t.manifest.id, inputs: (t.manifest.inputs ?? []).map(i => ({ id: i.id })) });
-      if (t.manifest.hooks?.exportFile) transforms.push(t.manifest.id);
+      if (isFileTransform(t.manifest)) transforms.push(t.manifest.id);
     } catch { warn('UNKNOWN_TOOL', `unknown tool "${id}" - skipped.`); }
   }
   if (!tools.length) {
@@ -127,7 +128,7 @@ export async function runBatchCli(csvPath: string, opts: { outDir: string; keepG
       info = {
         format: t.manifest.render.formats[0] ?? 'svg',
         formats: t.manifest.render.formats,
-        transform: !!t.manifest.hooks?.exportFile,
+        transform: isFileTransform(t.manifest),
         // The input a default run reads: one with no showIf before a conditional one.
         fileInput: (files.find(i => !i.showIf) ?? files[0])?.id ?? null,
         containerChoices: containerChoices(t.manifest),

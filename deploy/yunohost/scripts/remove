@@ -10,6 +10,7 @@ ynh_script_progression "Removing system configurations related to $app..."
 
 ynh_config_remove_nginx
 ynh_safe_rm "$headers_inc"
+ynh_safe_rm "$any_site_inc"
 
 #=================================================
 # END OF SCRIPT

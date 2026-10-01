@@ -20,6 +20,7 @@ import { jellyActive } from '../lib/jelly.ts';
 import type { LollySummary } from '../lib/lolly-pack.ts';
 import { AUTO_PACK_MIN, SHARE_WARN_LEN, BROWSER_HARD_CAP, type ShareFidelity } from '../lib/url-budget.ts';
 import { toLollyAppLink } from '../lib/deep-link.ts';
+import { appPathname } from '../lib/any-site.ts';
 
 /** The `.lolly` download vehicle (plans/114 Wave 2). Supplied by the tool view, which
  *  has the host + session the link builder never sees. `build(includeLicensed)` returns
@@ -85,7 +86,8 @@ function shareUrlFromParts(parts: readonly string[], toolId?: string): string {
     ?? window.location.pathname.match(/^\/t\/([^/?]+)/)?.[1]
     ?? window.location.hash.match(/^#\/tool\/([^/?]+)/)?.[1];
   if (id) return `${origin}/t/${id}${query}`;
-  return origin + window.location.pathname + window.location.hash.split('?')[0] + query;
+  // A link is for someone else, so it never carries this device's `/any-site/` shell.
+  return origin + appPathname() + window.location.hash.split('?')[0] + query;
 }
 
 /** An input field (top-level, or a `blocks` sub-field) - we only need its type. */

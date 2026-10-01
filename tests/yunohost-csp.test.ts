@@ -10,6 +10,10 @@ import { fileURLToPath } from 'node:url';
 const PKG = fileURLToPath(new URL('../deploy/yunohost/', import.meta.url));
 const TEMPLATE = readFileSync(join(PKG, 'conf/security-headers.inc'), 'utf8');
 const DEFAULT = TEMPLATE.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '');
+// The /any-site twin ("Allow pages from any site", plan 288): rendered from the same
+// setting, so extra storage origins reach the wider policy too.
+const ANY_SITE_TEMPLATE = readFileSync(join(PKG, 'conf/any-site-headers.inc'), 'utf8');
+const ANY_SITE_DEFAULT = ANY_SITE_TEMPLATE.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '');
 const ORIGINS = 'https://cloud.example.org https://storage.example.org:8443';
 
 // Execute the package scripts with filesystem, settings and service helpers
@@ -17,6 +21,7 @@ const ORIGINS = 'https://cloud.example.org https://storage.example.org:8443';
 const HELPERS = String.raw`
 set -e
 headers_inc="$LOLLY_TEST_DIR/$domain.headers.inc"
+any_site_inc="$LOLLY_TEST_DIR/$domain.any-site.inc"
 ynh_die() { printf '%s\n' "$*" >&2; exit 1; }
 ynh_script_progression() { :; }
 ynh_print_info() { :; }
@@ -33,11 +38,15 @@ ynh_app_setting_set_default() {
     fi
 }
 ynh_config_add() {
-    [[ "$1" == --template=security-headers.inc ]]
-    [[ "$2" == "--destination=$headers_inc" ]]
+    local template="${'$'}{1#--template=}" destination="${'$'}{2#--destination=}" event
+    case "$template" in
+        security-headers.inc) [[ "$destination" == "$headers_inc" ]]; event=render ;;
+        any-site-headers.inc) [[ "$destination" == "$any_site_inc" ]]; event=render-any-site ;;
+        *) return 1 ;;
+    esac
     sed "s|__LOLLY_CSP_EXTRA_CONNECT_SRC__|$lolly_csp_extra_connect_src|g" \
-        ../conf/security-headers.inc > "$headers_inc"
-    echo render >> "$LOLLY_TEST_DIR/events"
+        "../conf/$template" > "$destination"
+    echo "$event" >> "$LOLLY_TEST_DIR/events"
 }
 nginx() {
     [[ "$*" == '-t' ]]
@@ -90,6 +99,7 @@ function fixture(t: test.TestContext) {
   return {
     dir, run, saved,
     headers: (domain = 'lolly.example.org') => readFileSync(join(dir, `${domain}.headers.inc`), 'utf8'),
+    anySite: (domain = 'lolly.example.org') => readFileSync(join(dir, `${domain}.any-site.inc`), 'utf8'),
     events: () => readFileSync(join(dir, 'events'), 'utf8').trim().split('\n'),
     clearEvents: () => writeFileSync(join(dir, 'events'), ''),
   };
@@ -104,12 +114,15 @@ test('storage origins: default, configure, upgrade, backup/restore, domain chang
   ok('install');
   assert.equal(f.saved(), '');
   assert.equal(f.headers(), DEFAULT);
+  assert.equal(f.anySite(), ANY_SITE_DEFAULT);
   f.clearEvents();
   ok('config', { csp_extra_connect_src: `  https://cloud.example.org/ ${ORIGINS}  ` });
   assert.equal(f.saved(), ORIGINS);
   const configured = f.headers();
   assert.equal(configured, DEFAULT.replace('; img-src', ` ${ORIGINS}; img-src`));
-  assert.deepEqual(f.events(), ['render', 'check', 'reload', 'save']);
+  const configuredAnySite = f.anySite();
+  assert.equal(configuredAnySite, ANY_SITE_DEFAULT.replace('; img-src', ` ${ORIGINS}; img-src`));
+  assert.deepEqual(f.events(), ['render', 'render-any-site', 'check', 'reload', 'save']);
 
   writeFileSync(join(f.dir, 'lolly.example.org.headers.inc'), 'manual edit');
   ok('upgrade');
@@ -123,8 +136,11 @@ test('storage origins: default, configure, upgrade, backup/restore, domain chang
   assert.equal(f.headers(), DEFAULT);
   assert.equal(f.saved(), '');
   cpSync(join(f.dir, 'archive/setting'), join(f.dir, 'setting'));
+  // A backup taken before the twin existed holds no copy of that file: restore renders the file again.
+  rmSync(join(f.dir, 'lolly.example.org.any-site.inc'));
   ok('restore');
   assert.equal(f.headers(), configured);
+  assert.equal(f.anySite(), configuredAnySite);
   ok('upgrade');
   assert.equal(f.headers(), configured);
 
@@ -177,11 +193,13 @@ for (const failure of ['check', 'reload']) {
     assert.equal(f.run('install').status, 0);
     assert.equal(f.run('config', { csp_extra_connect_src: ORIGINS }).status, 0);
     const before = f.headers();
+    const beforeAnySite = f.anySite();
     f.clearEvents();
     const r = f.run('config', { csp_extra_connect_src: '', LOLLY_TEST_FAIL: failure });
     assert.notEqual(r.status, 0);
     assert.match(r.stderr, /previous configuration was restored/);
     assert.equal(f.headers(), before);
+    assert.equal(f.anySite(), beforeAnySite, 'the /any-site twin rolls back with the header file');
     assert.equal(f.saved(), ORIGINS);
     assert.equal(f.events().includes('save'), false);
     if (failure === 'check') assert.equal(f.events().includes('reload'), false);

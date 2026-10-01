@@ -1,0 +1,107 @@
+/* Cascade layer: this lazy-loaded sheet sits in the `views` layer (order declared
+   once in styles/app.css), the same reasoning as easing-editor.css. It is imported
+   directly by components/tone-curve.ts. */
+@layer views {
+
+/*
+ * The tone curve plot beside a `display: "curve"` text input
+ * (components/tone-curve.ts). The text field under it keeps the shared
+ * .field-input look from parts/fields.css; only the plot and its footer are here.
+ *
+ * Every line is solid: dashed strokes mean "drop something here" in this app.
+ */
+.tone-curve {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tone-curve-plot {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  aspect-ratio: 1;
+  /* The plot is the gesture surface: a browser pan would steal the drag. */
+  touch-action: none;
+  overflow: visible;
+  cursor: crosshair;
+}
+
+.tone-curve-box {
+  fill: hsl(var(--muted) / 0.35);
+  stroke: hsl(var(--border));
+  stroke-width: 1;
+}
+.tone-curve-grid {
+  stroke: hsl(var(--border) / 0.55);
+  stroke-width: 1;
+}
+.tone-curve-ref {
+  stroke: hsl(var(--muted-foreground) / 0.45);
+  stroke-width: 1;
+}
+.tone-curve-line {
+  fill: none;
+  stroke: hsl(var(--primary));
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.tone-curve-point {
+  fill: hsl(var(--background));
+  stroke: hsl(var(--primary));
+  stroke-width: 2.5;
+  cursor: grab;
+}
+.tone-curve-point:hover { fill: hsl(var(--primary) / 0.25); }
+.tone-curve-point:active { cursor: grabbing; }
+/* :focus-visible alone drops the ring on a pointer-then-keyboard handoff, which is
+   how these are used: grab one, then fine-tune it with the arrows. */
+.tone-curve-point:focus {
+  outline: none;
+  stroke: hsl(var(--ring));
+  fill: hsl(var(--ring) / 0.3);
+}
+/* Dragged far enough out to be removed on release. */
+.tone-curve-point.is-removing {
+  opacity: 0.35;
+  stroke: hsl(var(--destructive));
+}
+
+.tone-curve-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  max-width: 260px;
+}
+.tone-curve-hint {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-xs);
+  line-height: 1.35;
+}
+.tone-curve-reset {
+  flex: none;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--fs-xs);
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.tone-curve-reset:hover { background: hsl(var(--muted)); }
+.tone-curve-reset:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 1px;
+}
+.tone-curve-reset[hidden] { display: none; }
+
+.tone-curve-field .field-input {
+  font-variant-numeric: tabular-nums;
+}
+
+}

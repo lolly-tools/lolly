@@ -43,6 +43,12 @@ let backs = 0;
 const { mountModal } = await import('../components/modal.ts');
 const { mountBodyPopover } = await import('../components/body-popover.ts');
 const { updateRouteParams } = await import('./url-state.ts');
+const { overlayAbsorbsPopstate } = await import('./overlay-back.ts');
+
+/** The router's question, asked the way main.ts asks it: from a popstate listener added
+ *  before any overlay opens, so it runs before the stack's own listener. */
+const routerSaw: boolean[] = [];
+window.addEventListener('popstate', () => { routerSaw.push(overlayAbsorbsPopstate()); });
 
 const fire = (type: string): void => { window.dispatchEvent(new dom.window.Event(type)); };
 const dialogs = (): number => document.querySelectorAll('dialog').length;
@@ -76,6 +82,7 @@ test('Back closes a menu opened inside a dialog, and the next press closes the d
   fire('popstate');
   assert.deepEqual(closed, ['esc'], 'the dialog is innermost now, and this press dismisses it');
   assert.equal(dialogs(), 0);
+  assert.deepEqual(routerSaw.splice(0), [true, true], 'neither press is a route change for the router');
 });
 
 test('a fine pointer pushes no entry for a menu, so Back still reaches the dialog under it', () => {
@@ -109,7 +116,9 @@ test('a closed menu unregisters, and a self-pop closes nothing', async () => {
   menu.close();
   await settle();
   assert.equal(backs, 1, 'closing by another path pops the entry the menu pushed');
+  routerSaw.length = 0;
   fire('popstate'); // that back()'s own popstate, arriving late: bookkeeping, not a press
+  assert.deepEqual(routerSaw, [true], 'the router leaves a self-pop alone');
   assert.deepEqual(closed, [], 'a self-pop is not a Back press');
   assert.equal(dialogs(), 1);
   fire('popstate');
@@ -161,7 +170,9 @@ test('a new same-view query closes an overlay and retains the destination URL', 
   updateRouteParams({ view: 'preview' });
   backs = 0;
   history.replaceState(null, '', '/#/p?view=new');
+  routerSaw.length = 0;
   fire('popstate');
+  assert.deepEqual(routerSaw, [false], 'a different address is a navigation, and the router takes it');
   await settle();
   assert.equal(dialogs(), 0);
   assert.equal(new URLSearchParams(location.hash.split('?')[1]).get('view'), 'new');
@@ -178,7 +189,9 @@ test('closing a dialog preserves address edits on the view entry underneath', as
   await settle();
   assert.equal(backs, 1, 'address edits do not strand the overlay entry');
   history.replaceState(null, '', '/#/p?view=list');
+  routerSaw.length = 0;
   fire('popstate');
+  assert.deepEqual(routerSaw, [true], 'the older address underneath does not mount the view again');
   assert.equal(new URLSearchParams(location.hash.split('?')[1]).get('view'), 'preview');
   assert.equal(new URLSearchParams(location.hash.split('?')[1]).get('sort'), 'name');
 });

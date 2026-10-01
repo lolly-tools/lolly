@@ -2037,6 +2037,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const inspectorActions: InspectorActions = {
     text: fc.storyTextProperties.port(),
     editText: (id) => fc.textEdit.startTextEdit(id),
+    wholeTextStyle: (ids, flag) => fc.textEdit.wholeTextStyle(ids, flag),
+    styleWholeText: (ids, flag) => fc.textEdit.styleWholeText(ids, flag),
     openDocumentSize: fc.document.openSizeMenu,
     pickImage: (ids) => {
       if (!ids.length) return;

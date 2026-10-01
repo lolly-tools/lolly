@@ -3,8 +3,10 @@
 .input-emoji-field > :first-child { flex: 1; min-width: 0; width: 0; }
 .input-emoji-trigger {
   display: grid; place-items: center; align-self: center; flex: 0 0 auto;
-  width: 30px; min-height: 32px; padding: 4px; border: 1px solid hsl(var(--border));
+  width: 30px; min-height: 32px; padding: 4px; border: 0;
   border-radius: 7px; color: hsl(var(--muted-foreground)); background: transparent; cursor: pointer;
+  /* Logical insets put the button at the field's end edge in LTR and RTL alike. */
+  position: absolute; inset-block-start: 8px; inset-inline-end: 6px;
 }
 .input-emoji-trigger:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
 .input-emoji-trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }

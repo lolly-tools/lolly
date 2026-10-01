@@ -368,12 +368,13 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
                       session.ts when the person has one of their own - the user list is a
                       profile read, which the markup pass cannot wait for. */ ''
                 }
+                ${canBulk ? `<button type="button" class="multi-edit-btn" id="bulk-rows-btn" data-tip="${escapeText(t('Bulk from rows'))}" aria-label="${escapeText(t('Bulk from rows'))}">${icon('table', { className: 'multi-edit-icon' })}</button>` : ''}
                 <button type="button" class="multi-edit-btn" id="templates-btn" data-tip="${escapeText(t('Templates'))}" aria-label="${escapeText(t('Templates'))}"${tview.hasTemplates ? '' : ' hidden'}>${icon('filePlus', { className: 'multi-edit-icon' })}</button>
                 ${
                   /* "Bulk from rows" - the same icon-only header control as Make variants
                       next to it, so it needs no styling of its own. */ ''
                 }
-                ${canBulk ? `<button type="button" class="multi-edit-btn" id="bulk-rows-btn" data-tip="${escapeText(t('Bulk from rows'))}" aria-label="${escapeText(t('Bulk from rows'))}">${icon('table', { className: 'multi-edit-icon' })}</button>` : ''}
+
                 ${/* "Bulk from files" (plans/147 M2) - loop this transform tool over N picked files into one zip. */ ''}
                 ${bulkFilesId ? `<button type="button" class="multi-edit-btn" id="bulk-files-btn" data-tip="${escapeText(t('Bulk from files'))}" aria-label="${escapeText(t('Bulk from files'))}">${icon('layersStack', { className: 'multi-edit-icon' })}</button>` : ''}
                 <button type="button" class="fullscreen-toggle" id="fullscreen-toggle" ${sidebarOpen ? 'open' : ''} data-tip-align="end" data-tip="${escapeText(sidebarOpen ? t('Collapse sidebar') : t('Expand sidebar'))}" aria-label="${escapeText(sidebarOpen ? t('Collapse sidebar') : t('Expand sidebar'))}">${icon('panelLeft', { className: 'fullscreen-toggle-collapse' })}${icon('arrowRight', { className: 'fullscreen-toggle-expand' })}</button>

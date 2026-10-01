@@ -713,6 +713,28 @@ function ditherFloyd(grid, cols, rows) {
   }
 }
 
+// Atkinson diffusion for the 1-bit dot grid: six neighbours each take 1/8 of
+// the error, so only 6/8 of it travels on. That keeps highlights and shadows
+// clean where Floyd-Steinberg would speckle them. The kernel is adapted from
+// Compositor's DitherPixels.c (MIT, Wonder Assembly LLC).
+var ATKINSON_TAPS = [[1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]];
+function ditherAtkinson(grid, cols, rows) {
+  for (var row = 0; row < rows; row++) {
+    for (var col = 0; col < cols; col++) {
+      var idx = row * cols + col;
+      var oldV = grid[idx];
+      var newV = oldV < 128 ? 0 : 255;
+      var err = (oldV - newV) / 8;
+      grid[idx] = newV;
+      for (var t = 0; t < ATKINSON_TAPS.length; t++) {
+        var nx = col + ATKINSON_TAPS[t][0], ny = row + ATKINSON_TAPS[t][1];
+        if (nx < 0 || nx >= cols || ny >= rows) continue;
+        grid[ny * cols + nx] += err;
+      }
+    }
+  }
+}
+
 function ditherOrdered(grid, cols, rows) {
   var bayer = [[0, 2], [3, 1]];
   for (var row = 0; row < rows; row++) {
@@ -737,7 +759,16 @@ function ditherNoise(grid, cols, rows) {
 
 // ── dot geometry → SVG ───────────────────────────────────────────────────────
 
-function dotMarkup(shape, cx, cy, r) {
+function dotMarkup(shape, cx, cy, r, cellW, cellH) {
+  if (shape === 'line') {
+    // A line screen: each cell draws a bar the full cell wide whose thickness
+    // matches a circle's area, so neighbouring cells join into continuous lines
+    // that swell in the shadows and thin out in the highlights. The half-pixel
+    // overlap closes the hairline seam between cells.
+    var h = Math.min(cellH, Math.PI * r * r / cellW);
+    return '<rect x="' + f2(cx - cellW / 2) + '" y="' + f2(cy - h / 2) + '" width="' + f2(cellW + 0.5)
+      + '" height="' + f2(h) + '"/>';
+  }
   cx = f2(cx); cy = f2(cy); r = f2(r);
   if (shape === 'square') {
     var s = f2(r * 1.7724);                    // match a circle's area (√π)
@@ -1197,6 +1228,7 @@ function buildSvg(args) {
   if (args.dither === 'floyd') ditherFloyd(grid, cols, rows);
   else if (args.dither === 'ordered') ditherOrdered(grid, cols, rows);
   else if (args.dither === 'noise') ditherNoise(grid, cols, rows);
+  else if (args.dither === 'atkinson') ditherAtkinson(grid, cols, rows);
 
   var offX = (W - regionW) / 2;
   var offY = (H - regionH) / 2;
@@ -1230,7 +1262,7 @@ function buildSvg(args) {
       var coverage = invert ? norm : (1 - norm); // dark → big dot (unless inverted)
       var r = maxR * coverage;
       if (r < 0.3) continue;                      // skip invisibly small dots
-      var markup = dotMarkup(shape, offX + (col + 0.5) * cellW, offY + (row + 0.5) * cellH, r);
+      var markup = dotMarkup(shape, offX + (col + 0.5) * cellW, offY + (row + 0.5) * cellH, r, cellW, cellH);
       var hex;
       if (colorSource === 'solid') {
         hex = solidHex;
@@ -7146,7 +7178,23 @@ var PALETTES = {
   retro54: null, // built lazily by buildRetro54()
   gray4: grayPalette(4),
   gray8: grayPalette(8),
+  rgb8: rgbCubePalette(2),
+  rgb27: rgbCubePalette(3),
 };
+
+// Every combination of `levels` evenly spaced steps per sRGB channel: 2 gives the
+// eight corners of the colour cube, 3 gives 27. Quantizing each channel on its
+// own like this is the classic look of a dither that keeps the picture's colours.
+function rgbCubePalette(levels) {
+  var out = [];
+  for (var r = 0; r < levels; r++)
+    for (var g = 0; g < levels; g++)
+      for (var b = 0; b < levels; b++) {
+        var k = 255 / (levels - 1);
+        out.push('#' + hex2(r * k) + hex2(g * k) + hex2(b * k));
+      }
+  return out;
+}
 
 // Resolve a palette id + colour count to a flat hex array. 'brand' is the only
 // async path (reads the active brand's colour tokens); everything else resolves
@@ -7205,37 +7253,140 @@ function nearestIndex(lab, entries) {
 
 // ── dithering algorithms - all deterministic, NO Math.random anywhere ───────
 
+// Error-diffusion kernels: the neighbours a pixel's error goes to, as
+// [dx, dy, weight] (dx mirrored on right-to-left rows), and the divisor the
+// weights are over. Atkinson's six taps carry only 6/8 of the error, which is
+// what gives it the crisp, high-contrast look of early 1-bit screens; the
+// kernel is adapted from Compositor's DitherPixels.c (MIT, Wonder Assembly LLC).
+var KERNELS = {
+  floyd: { taps: [[1, 0, 7], [-1, 1, 3], [0, 1, 5], [1, 1, 1]], div: 16 },
+  atkinson: { taps: [[1, 0, 1], [2, 0, 1], [-1, 1, 1], [0, 1, 1], [1, 1, 1], [0, 2, 1]], div: 8 },
+};
+
 // Error diffusion in LINEAR RGB; nearest-colour matching in OKLab. rl/gl/bl are
 // mutated in place - accumulated error can push a value outside 0..1, clamped
 // only at the moment of matching, exactly like the classic algorithm.
-function ditherFloydPalette(rl, gl, bl, idxArr, cols, rows, entries) {
+// `spread` (0..1) is how much of the error is passed on; less gives flatter,
+// posterized areas. `serpentine` scans odd rows right to left so the error's
+// drift does not streak to one side. At spread 1 without serpentine the
+// arithmetic is the same expression, in the same order, as the original
+// Floyd-Steinberg loop, so existing renders stay byte-identical.
+function ditherDiffusePalette(rl, gl, bl, idxArr, cols, rows, entries, kernel, spread, serpentine) {
+  var taps = kernel.taps, div = kernel.div;
   for (var row = 0; row < rows; row++) {
-    for (var col = 0; col < cols; col++) {
+    var reverse = serpentine && (row & 1) === 1;
+    for (var i = 0; i < cols; i++) {
+      var col = reverse ? cols - 1 - i : i;
       var idx = row * cols + col;
       var or_ = rl[idx], og = gl[idx], ob = bl[idx];
       var cr = clamp(or_, 0, 1), cg = clamp(og, 0, 1), cb = clamp(ob, 0, 1);
       var pi = nearestIndex(linRgbToOklab(cr, cg, cb), entries);
       idxArr[idx] = pi;
       var pick = entries[pi].lin;
-      var er = or_ - pick[0], eg = og - pick[1], eb = ob - pick[2];
-      if (col + 1 < cols) { rl[idx + 1] += er * 7 / 16; gl[idx + 1] += eg * 7 / 16; bl[idx + 1] += eb * 7 / 16; }
-      if (row + 1 < rows) {
-        if (col - 1 >= 0) { rl[idx + cols - 1] += er * 3 / 16; gl[idx + cols - 1] += eg * 3 / 16; bl[idx + cols - 1] += eb * 3 / 16; }
-        rl[idx + cols] += er * 5 / 16; gl[idx + cols] += eg * 5 / 16; bl[idx + cols] += eb * 5 / 16;
-        if (col + 1 < cols) { rl[idx + cols + 1] += er * 1 / 16; gl[idx + cols + 1] += eg * 1 / 16; bl[idx + cols + 1] += eb * 1 / 16; }
+      var er = (or_ - pick[0]) * spread, eg = (og - pick[1]) * spread, eb = (ob - pick[2]) * spread;
+      for (var t = 0; t < taps.length; t++) {
+        var nx = col + (reverse ? -taps[t][0] : taps[t][0]), ny = row + taps[t][1];
+        if (nx < 0 || nx >= cols || ny >= rows) continue;
+        var j = ny * cols + nx, w = taps[t][2];
+        rl[j] += er * w / div; gl[j] += eg * w / div; bl[j] += eb * w / div;
       }
     }
   }
 }
-var BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
-function ditherOrderedPalette(rl, gl, bl, idxArr, cols, rows, entries) {
-  var amt = 0.22;
+
+// Bayer threshold matrices. The 2x2 and 4x4 are the top-left corners of the
+// 8x8, rescaled, which is how the recursive construction nests them.
+var BAYER = {
+  2: [[0, 2], [3, 1]],
+  4: [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]],
+  8: [
+    [0, 32, 8, 40, 2, 34, 10, 42], [48, 16, 56, 24, 50, 18, 58, 26],
+    [12, 44, 4, 36, 14, 46, 6, 38], [60, 28, 52, 20, 62, 30, 54, 22],
+    [3, 35, 11, 43, 1, 33, 9, 41], [51, 19, 59, 27, 49, 17, 57, 25],
+    [15, 47, 7, 39, 13, 45, 5, 37], [63, 31, 55, 23, 61, 29, 53, 21],
+  ],
+};
+// `amt` is the pattern strength: how far the threshold pushes each pixel before
+// it snaps to the palette. 0.22 is the long-standing default; 1 gives the
+// classic full-range Bayer look on a 1-bit palette.
+function ditherOrderedPalette(rl, gl, bl, idxArr, cols, rows, entries, size, amt) {
+  var m = BAYER[size] || BAYER[4], cells = size * size;
   for (var row = 0; row < rows; row++) {
     for (var col = 0; col < cols; col++) {
       var idx = row * cols + col;
-      var t = ((BAYER4[row & 3][col & 3] + 0.5) / 16 - 0.5) * amt;
+      var t = ((m[row % size][col % size] + 0.5) / cells - 0.5) * amt;
       var cr = clamp(rl[idx] + t, 0, 1), cg = clamp(gl[idx] + t, 0, 1), cb = clamp(bl[idx] + t, 0, 1);
       idxArr[idx] = nearestIndex(linRgbToOklab(cr, cg, cb), entries);
+    }
+  }
+}
+
+// Classic 8x8 one-bit fill patterns, one byte per row with the leftmost pixel in
+// the top bit, from the sparsest to the fullest. The table is adapted from
+// Compositor's DitherPixels.c (MIT, Wonder Assembly LLC). Each pattern's share
+// of set bits is measured once, so a tone picks the pattern whose coverage is
+// nearest instead of assuming the table is evenly spaced.
+var FILL_PATTERNS = [
+  [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+  [0x80, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00],
+  [0x88, 0x00, 0x22, 0x00, 0x88, 0x00, 0x22, 0x00],
+  [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01],
+  [0x88, 0x22, 0x88, 0x22, 0x88, 0x22, 0x88, 0x22],
+  [0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00],
+  [0x11, 0x22, 0x44, 0x88, 0x11, 0x22, 0x44, 0x88],
+  [0xAA, 0x00, 0xAA, 0x00, 0xAA, 0x00, 0xAA, 0x00],
+  [0x88, 0x55, 0x22, 0x55, 0x88, 0x55, 0x22, 0x55],
+  [0xFF, 0x80, 0x80, 0x80, 0xFF, 0x08, 0x08, 0x08],
+  [0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55],
+  [0x81, 0x42, 0x24, 0x18, 0x18, 0x24, 0x42, 0x81],
+  [0x77, 0xAA, 0xDD, 0xAA, 0x77, 0xAA, 0xDD, 0xAA],
+  [0xEE, 0xDD, 0xBB, 0x77, 0xEE, 0xDD, 0xBB, 0x77],
+  [0x77, 0xFF, 0xDD, 0xFF, 0x77, 0xFF, 0xDD, 0xFF],
+  [0x7F, 0xFF, 0xFF, 0xFF, 0xF7, 0xFF, 0xFF, 0xFF],
+  [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+];
+var FILL_COVERAGE = FILL_PATTERNS.map(function (p) {
+  var bits = 0;
+  for (var y = 0; y < 8; y++) for (var b = p[y]; b; b >>= 1) bits += b & 1;
+  return bits / 64;
+});
+
+// Fill-pattern dithering over any palette. Each cell's colour is explained as a
+// mix of two palette entries: the nearest one (A) and the one (B) whose segment
+// from A passes closest to the colour, all in OKLab. How far along A->B the
+// colour sits picks the fill pattern, and the pattern's bit at this cell picks A
+// or B. On a black-and-white palette this is the plain 1-bit pattern fill.
+function ditherPatternPalette(rl, gl, bl, idxArr, cols, rows, entries) {
+  var n = entries.length;
+  for (var row = 0; row < rows; row++) {
+    for (var col = 0; col < cols; col++) {
+      var idx = row * cols + col;
+      var lab = linRgbToOklab(clamp(rl[idx], 0, 1), clamp(gl[idx], 0, 1), clamp(bl[idx], 0, 1));
+      var a = nearestIndex(lab, entries);
+      var A = entries[a].lab, best = -1, bestD = Infinity, bestT = 0, bestLen = Infinity;
+      for (var k = 0; k < n; k++) {
+        if (k === a) continue;
+        var B = entries[k].lab;
+        var ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2];
+        var len2 = ux * ux + uy * uy + uz * uz;
+        if (len2 <= 0) continue;
+        var t = ((lab[0] - A[0]) * ux + (lab[1] - A[1]) * uy + (lab[2] - A[2]) * uz) / len2;
+        if (t <= 0) continue; // B lies away from the colour: mixing it in moves the wrong way
+        t = Math.min(t, 1);
+        var dx = lab[0] - (A[0] + ux * t), dy = lab[1] - (A[1] + uy * t), dz = lab[2] - (A[2] + uz * t);
+        var d = dx * dx + dy * dy + dz * dz;
+        // Several entries can lie on one line through the colour (a grey ramp
+        // does): then the nearest partner along it is the right mix.
+        if (d < bestD - 1e-9 || (d <= bestD + 1e-9 && len2 < bestLen)) { bestD = d; best = k; bestT = t; bestLen = len2; }
+      }
+      if (best < 0) { idxArr[idx] = a; continue; }
+      var pat = 0, patD = Infinity;
+      for (var q = 0; q < FILL_COVERAGE.length; q++) {
+        var e = Math.abs(FILL_COVERAGE[q] - bestT);
+        if (e < patD) { patD = e; pat = q; }
+      }
+      var bit = (FILL_PATTERNS[pat][row & 7] >> (7 - (col & 7))) & 1;
+      idxArr[idx] = bit ? best : a;
     }
   }
 }
@@ -7257,9 +7408,26 @@ function ditherNoisePalette(rl, gl, bl, idxArr, cols, rows, entries) {
   }
 }
 
-function buildSvg(W, H, cols, rows, idxArr, fills, rootExtra, overlaySvg) {
+function buildSvg(W, H, cols, rows, idxArr, fills, rootExtra, overlaySvg, pixelShape, gapIndex) {
   var cellW = W / cols, cellH = H / rows;
   var out = svgOpen(W, H, rootExtra);
+  if (pixelShape === 'dot') {
+    // Dot-matrix pixels: each cell is a round dot in its own colour on the
+    // palette's darkest colour, like the lit pixels of an LED or dot-matrix
+    // screen. The radius (0.42 of the cell) follows Compositor's dither_dots.
+    // A cell whose colour is the gap colour is left to the background.
+    var r = f2(Math.min(cellW, cellH) * 0.42);
+    out += '<rect width="' + W + '" height="' + H + '" fill="' + fills[gapIndex] + '"/>';
+    for (var dr = 0; dr < rows; dr++) {
+      for (var dc = 0; dc < cols; dc++) {
+        var di = idxArr[dr * cols + dc];
+        if (di === gapIndex) continue;
+        out += '<circle cx="' + f2((dc + 0.5) * cellW) + '" cy="' + f2((dr + 0.5) * cellH) + '" r="' + r
+          + '" fill="' + fills[di] + '"/>';
+      }
+    }
+    return out + '<g id="lolly-ov-slot">' + (overlaySvg || '') + '</g></svg>';
+  }
   for (var row = 0; row < rows; row++) {
     for (var col = 0; col < cols; col++) {
       var hex = fills[idxArr[row * cols + col]];
@@ -7302,7 +7470,7 @@ async function compute(model) {
   if (!url) return { svgContent: placeholder('Choose an image to dither') };
 
   var paletteId = inputs.palette || 'mono';
-  var algorithm = inputs.algorithm || 'floyd';
+  var opts = ditherOptions(inputs);
   var scale = clamp(n(inputs.scale, 6), 0.5, 60);
   var fit = inputs.fit === 'contain' ? 'contain' : 'cover';
   var colorCount = clamp(Math.round(n(inputs.colorCount, 8)), 2, 16);
@@ -7317,7 +7485,7 @@ async function compute(model) {
 
   var rootExtra = ' data-img-key="' + esc(isUserPick ? url : '') + '"';
   var memoKey = JSON.stringify({
-    url: url, W: W, H: H, paletteId: paletteId, algorithm: algorithm, scale: scale, fit: fit, colorCount: colorCount,
+    url: url, W: W, H: H, paletteId: paletteId, opts: opts, scale: scale, fit: fit, colorCount: colorCount,
     hue: inputs.hue, sat: inputs.saturation, light: inputs.lightness, con: inputs.contrast,
     tc: inputs.treatmentColor, bm: inputs.blendMode, ti: inputs.treatmentIntensity, ov: ov, nf: !!ovi.noFilter,
   });
@@ -7332,7 +7500,7 @@ async function compute(model) {
       var img = await getImage(url);
       var g = gridDims(W, H, scale);
       var hexes = await resolvePalette(paletteId, colorCount);
-      svgContent = renderDitherSvg(img, W, H, g.cols, g.rows, fit, hexes, algorithm, grade, rootExtra, overlaySvg)
+      svgContent = renderDitherSvg(img, W, H, g.cols, g.rows, fit, hexes, opts, grade, rootExtra, overlaySvg)
         || placeholder('Preview renders in the browser', W, H);
     }
   } catch (e) {
@@ -7358,7 +7526,7 @@ function gridDims(W, H, scale) {
 
 // Sample → grade → dither → SVG. Shared by compute (decoded image) and onFrame
 // (a live camera frame drawn onto a canvas). Returns null when sampling fails.
-function renderDitherSvg(source, W, H, cols, rows, fit, hexes, algorithm, grade, rootExtra, overlaySvg) {
+function renderDitherSvg(source, W, H, cols, rows, fit, hexes, opts, grade, rootExtra, overlaySvg) {
   var grid = sampleColorGrid(source, cols, rows, fit);
   if (!grid) return null;
   gradeColorGrid(grid, grade);
@@ -7371,10 +7539,32 @@ function renderDitherSvg(source, W, H, cols, rows, fit, hexes, algorithm, grade,
     bl[i] = srgbToLinear(grid.b[i] / 255);
   }
   var idxArr = new Uint8Array(cols * rows);
-  if (algorithm === 'ordered') ditherOrderedPalette(rl, gl, bl, idxArr, cols, rows, entries);
-  else if (algorithm === 'noise') ditherNoisePalette(rl, gl, bl, idxArr, cols, rows, entries);
-  else ditherFloydPalette(rl, gl, bl, idxArr, cols, rows, entries);
-  return buildSvg(W, H, cols, rows, idxArr, fills, rootExtra, overlaySvg);
+  var alg = opts.algorithm;
+  if (alg === 'ordered' || alg === 'bayer2' || alg === 'bayer8') {
+    ditherOrderedPalette(rl, gl, bl, idxArr, cols, rows, entries, ORDERED_SIZE[alg], opts.strength);
+  } else if (alg === 'noise') ditherNoisePalette(rl, gl, bl, idxArr, cols, rows, entries);
+  else if (alg === 'patterns') ditherPatternPalette(rl, gl, bl, idxArr, cols, rows, entries);
+  else ditherDiffusePalette(rl, gl, bl, idxArr, cols, rows, entries, KERNELS[alg] || KERNELS.floyd, opts.spread, opts.serpentine);
+  var gap = 0;
+  if (opts.pixelShape === 'dot') {
+    for (var e = 1; e < entries.length; e++) if (entries[e].lab[0] < entries[gap].lab[0]) gap = e;
+  }
+  return buildSvg(W, H, cols, rows, idxArr, fills, rootExtra, overlaySvg, opts.pixelShape, gap);
+}
+
+var ORDERED_SIZE = { ordered: 4, bayer2: 2, bayer8: 8 };
+var ALGORITHMS = { floyd: 1, atkinson: 1, ordered: 1, bayer2: 1, bayer8: 1, noise: 1, patterns: 1 };
+
+// The dither controls, read once and shared by the still and the live path. The
+// defaults reproduce the effect as it was before these controls existed.
+function ditherOptions(inputs) {
+  return {
+    algorithm: ALGORITHMS[inputs.algorithm] ? inputs.algorithm : 'floyd',
+    spread: clamp(n(inputs.diffusion, 100), 0, 100) / 100,
+    serpentine: inputs.serpentine === true || inputs.serpentine === 'true',
+    strength: clamp(n(inputs.strength, 22), 0, 100) / 100,
+    pixelShape: inputs.pixelShape === 'dot' ? 'dot' : 'square',
+  };
 }
 
 // Synchronous palette resolve for the live path (onFrame can't await). Everything
@@ -7398,7 +7588,7 @@ function onFrame(ctx) {
   var W = dimW(inputs), H = dimH(inputs);
   _lastW = W; _lastH = H;
   var paletteId = inputs.palette || 'mono';
-  var algorithm = inputs.algorithm || 'floyd';
+  var opts = ditherOptions(inputs);
   var scale = clamp(n(inputs.scale, 6), 0.5, 60);
   var fit = inputs.fit === 'contain' ? 'contain' : 'cover';
   var colorCount = clamp(Math.round(n(inputs.colorCount, 8)), 2, 16);
@@ -7427,7 +7617,7 @@ function onFrame(ctx) {
       srcC.width = frame.width; srcC.height = frame.height;
       srcC.getContext('2d').putImageData(new ImageData(frame.data, frame.width, frame.height), 0, 0);
       var g2 = gridDims(W, H, scale);
-      svgContent = renderDitherSvg(srcC, W, H, g2.cols, g2.rows, fit, resolvePaletteSync(paletteId, colorCount), algorithm, grade, '', overlaySvg)
+      svgContent = renderDitherSvg(srcC, W, H, g2.cols, g2.rows, fit, resolvePaletteSync(paletteId, colorCount), opts, grade, '', overlaySvg)
         || placeholder('Preview renders in the browser', W, H);
     }
   } catch (e) { return null; }

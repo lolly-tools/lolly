@@ -112,6 +112,50 @@ export const MODEL_FINGERPRINTS: ModelFingerprint[] = [
   { re: /(?:^|\n)Assistant:[ \t]/g, requires: /(?:^|\n)Human:[ \t]/, model: 'Claude (Anthropic)', label: 'Claude transcript scaffolding' },
 ];
 
+// ── The "beside it" pointer (Andy, 2026-10-01) ─────────────────────────────────
+// "beside it", "next to it", "in front of it", "behind it", "above it" and "below it"
+// used as a vague pointer: "each claim has a mechanism behind it", "with the reason
+// beside it". The reader has to work out what "it" is and where. Spatial writing
+// keeps these phrases legitimately ("the field above it", "the backdrop behind it"),
+// so a hit does not count when its sentence names a layout or physical element from
+// the list below. Shared by this lexicon and the docs, comment and UI-copy gates
+// (scripts/check-docs-vernacular.ts), so the detector and the gates agree.
+export const SPATIAL_CONTEXT_WORDS: readonly string[] = [
+  // Interface parts
+  'button', 'field', 'chip', 'badge', 'icon', 'label', 'preview', 'panel', 'pane', 'sidebar',
+  'rail', 'toolbar', 'bar', 'strip', 'slider', 'wheel', 'swatch', 'canvas', 'layer', 'screen',
+  'window', 'dialog', 'modal', 'menu', 'tab', 'row', 'column', 'card', 'tile', 'grid', 'cell',
+  'image', 'photo', 'picture', 'thumbnail', 'logo', 'heading', 'headline', 'title', 'caption',
+  'box', 'frame', 'slide', 'toggle', 'checkbox', 'dropdown', 'input', 'cursor', 'pointer',
+  'arrow', 'dot', 'pill', 'handle', 'ruler', 'header', 'footer', 'sheet', 'stage', 'viewport',
+  'dock', 'popover', 'tooltip', 'overlay', 'scrollbar', 'table', 'map', 'pin', 'marker',
+  'link', 'qr',
+  // Scenes and the physical world
+  'scene', 'camera', 'light', 'backdrop', 'background', 'subject', 'mesh', 'floor', 'wall',
+  // No 'person' or 'people': "the people behind it" is the figurative use itself.
+  'sky', 'horizon', 'room', 'building', 'street', 'road', 'car', 'tree', 'door', 'shelf', 'desk', 'chair', 'monitor', 'display', 'poster', 'sign', 'phone', 'tablet',
+  // Placement words
+  'sit', 'sits', 'sitting', 'stack', 'stacked', 'drag', 'dragged', 'painted', 'drawn', 'pinned',
+  'docked', 'placed', 'positioned', 'aligned', 'overlaid', 'scroll', 'scrolled', 'hover',
+  'top', 'bottom', 'left', 'corner', 'edge', 'margin',
+  // Source layout and geometry, for code comments: "the loop below it", "the vertex beside it"
+  'line', 'loop', 'call', 'function', 'block', 'statement', 'comment', 'branch', 'case',
+  'element', 'node', 'child', 'sibling', 'vertex', 'segment', 'curve', 'glyph', 'letter',
+];
+const SPATIAL_WORD = `(?:${SPATIAL_CONTEXT_WORDS.join('|')})(?:e?s)?`;
+/**
+ * The pointer phrase, skipped when the same sentence (no `.`, `!`, `?` or line break
+ * in between) names a spatial word before or after it. Pass 'gi' for span walking,
+ * 'i' for a per-line `test()`.
+ */
+export function spatialPointerRe(flags = 'gi'): RegExp {
+  return new RegExp(
+    String.raw`\b(?:beside|next to|in front of|behind|above|below) it\b` +
+      String.raw`(?<!\b${SPATIAL_WORD}\b[^.!?\n]*)(?![^.!?\n]*\b${SPATIAL_WORD}\b)`,
+    flags,
+  );
+}
+
 // ── 2. Claude-leaning tics (best-guess Claude) ────────────────────────────────
 // The distinctive ones Andy flagged in CLAUDE's output. The generic stock phrases live
 // in AI_PHRASES instead, so they do not tip the guess to Claude on their own.
@@ -162,6 +206,21 @@ export const CLAUDE_TELLS: Tell[] = [
   { re: /(?<!\b(?:quantum|fluid|orbital|classical|statistical|celestial|auto) )\bmechanics of\b/gi, label: 'abstract "mechanics of"' },
   { re: /\bsurviv(?:e|es|ed|ing) (?:contact with|scrutiny|translation|the (?:cut|edit|rewrite|transition|retelling|journey))\b|\bwhat survives\b/gi, label: 'figurative "survives"' },
   { re: /\bstructure of the (?:argument|essay|answer|response|conversation|thinking|reasoning|claim|story|prose|piece|writing|work|problem)\b/gi, label: 'abstract "structure of the argument"' },
+  { re: spatialPointerRe('gi'), label: '"beside it" / "behind it" pointer' },
+  // From the docs gate's claudism list (scripts/check-docs-vernacular.ts), kept in step
+  // with it (Andy, 2026-10-01). Left out on purpose, because ordinary human writing uses
+  // them too often for a score: "say so", "in X terms", figurative "lands", "the X
+  // fits", "names" as a verb, "what X is worth", a sentence that ends in "it", and the
+  // house-style domain rules (transcribe, admissible, survivable, honesty note, the
+  // code-comment self-references).
+  { re: /\bworth knowing\b/gi, label: '"worth knowing"' },
+  { re: /\bnow says so\b/gi, label: '"now says so"' },
+  { re: /\bbrings? (?:me|us) back to\b/gi, label: '"brings us back to"' },
+  { re: /\banchors? it\b/gi, label: '"anchors it" (prose verb)' },
+  // The short assertion tacked on after a comma: ", in full", ", by design", ", end to end".
+  { re: /,\s+(?:in full|in short|by design|on purpose|deliberately|end[- ]to[- ]end|for real|full stop|every time|nothing (?:more|less)|no (?:more|less)|for good|and nothing else|by construction|no exceptions|plain and simple|simple as that|once and for all|precisely|honestly|byte[- ]for[- ]byte|in one place|and that(?:'s| is) (?:it|all))(?=[*_"'’”]*(?:[.,;:!?)]|\s+-\s|\s*$))/gim, label: 'short assertion after a comma (", in full")' },
+  // A heading that ends in "it" ("How to hold us to it"): markdown or HTML headings.
+  { re: /^\s{0,3}#{1,6}\s.*(?<![\w.'’`-])[Ii]t[\s*_"'’”)\]?!.:]*$|<h[1-6]\b[^>]*>(?:(?!<\/h[1-6]).)*?(?<![\w.'’`-])[Ii]t[\s*_"'’”)\]?!.:]*<\/h[1-6]>/gm, label: 'heading that ends in "it"' },
 ];
 
 // ── 3a. Generic AI vocabulary (Wikipedia + frequency studies) ─────────────────
@@ -207,12 +266,12 @@ export const AI_PHRASES: Tell[] = [
   { re: /\bvaluable insights?\b/gi, label: '"valuable insights"' },
   // The enthusiastic-greeting tell lives in CHATBOT_SOFT only - listing it here
   // too scored the same span in two buckets at once.
-  { re: /\blet'?s (?:break it down|explore|dive in|dive into|unpack)\b/gi, label: 'signposting "let\'s explore"' },
+  { re: /\blet'?s (?:break it down|explore|dive in|dive into|turn to|unpack)\b/gi, label: 'signposting "let\'s explore"' },
   { re: /\bthe future (?:looks|is) bright\b/gi, label: 'generic ending ("the future looks bright")' },
   { re: /\bwould be (?:complete|remiss) without\b/gi, label: '"would be complete/remiss without"' },
   { re: /\blook no further\b/gi, label: '"look no further"' },
   { re: /\bever-(?:evolving|changing|expanding|growing)\b/gi, label: '"ever-evolving"' },
-  { re: /\b(?:digital|competitive|evolving|modern|business|technological) landscape\b/gi, label: '"…landscape" puffery' },
+  { re: /\b(?:digital|competitive|evolving|modern|business|technological|existing|wider|current) landscape\b/gi, label: '"…landscape" puffery' },
   { re: /\bin the realm of\b/gi, label: '"in the realm of"' },
   { re: /\btake (?:it|this|your [\w-]+) to the next level\b/gi, label: '"to the next level"' },
   { re: /\bunlock(?:ing)? the (?:full )?(?:power|potential|possibilit(?:y|ies))\b/gi, label: '"unlock the potential"' },
@@ -225,6 +284,16 @@ export const AI_PHRASES: Tell[] = [
   { re: /\bhere'?s what you need to know\b/gi, label: '"here\'s what you need to know"' },
   { re: /\bparadigm shift\b/gi, label: '"paradigm shift"' },
   { re: /\bstrategic imperative\b/gi, label: '"strategic imperative"' },
+  // From the docs gate's claudism list (scripts/check-docs-vernacular.ts): generic
+  // stock phrasing, so it counts here rather than tipping the guess to Claude.
+  { re: /\bdeep[ -]dives?\b/gi, label: '"deep dive"' },
+  { re: /\btreasure trove\b/gi, label: '"treasure trove"' },
+  { re: /\b(?:the )?bar is (?:high|higher|low|lower)\b|\brais(?:e|es|ed|ing) the bar\b/gi, label: '"raise the bar" metaphor' },
+  { re: /\b(?:reflecting a broader trend|marking a significant shift)\b/gi, label: '"reflecting a broader trend"' },
+  { re: /\bmoving on to\b/gi, label: 'signposting "moving on to"' },
+  // Bare "worth noting"; the "it's worth noting" form is scored by the entries above.
+  { re: /(?<!\bit'?s |\bit is )\bworth noting\b/gi, label: '"worth noting"' },
+  { re: /\blean(?:s|ing|ed)? into (?:the|it|this|that|your|our|their)\b/gi, label: '"lean into"' },
 ];
 
 // ── 6. US/British spelling variant pairs (the consistency tell) ───────────────
@@ -363,4 +432,4 @@ export const FAMILY_TELLS: FamilyTells[] = [
  * analysis (e.g. a catalog asset's stored AI-signal note) key it by this, so a
  * stored verdict from an older lexicon is recomputed rather than trusted.
  */
-export const LEXICON_VERSION = 6;
+export const LEXICON_VERSION = 7;

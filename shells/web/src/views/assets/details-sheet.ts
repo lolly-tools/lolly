@@ -45,6 +45,7 @@ import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
 import { bindOp, type DetailsCtx } from './details-context.ts';
+import { appPathname } from '../../lib/any-site.ts';
 
 /**
  * The rights rows of the details sheet (plan 253, section 7.1): who is credited,
@@ -846,9 +847,9 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       // Share the styled variant when a colour is picked, so the recipient reopens the same
       // look (the modifier rides in the asset id - buildThemedAssetId / buildTreatedAssetId).
       const link = themable && dt.dTheme
-        ? `${location.origin}${location.pathname}#/a?asset=${encodeURIComponent(buildThemedAssetId(base, dt.dTheme))}`
+        ? `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(buildThemedAssetId(base, dt.dTheme))}`
         : treatable && dt.dTreatment
-          ? `${location.origin}${location.pathname}#/a?asset=${encodeURIComponent(buildTreatedAssetId(base, dt.dTreatment))}`
+          ? `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(buildTreatedAssetId(base, dt.dTreatment))}`
           : cat.sections.assetLink(ref);
       try { await navigator.clipboard.writeText(link); } catch { /* clipboard blocked */ }
       const s = btn?.querySelector('span');

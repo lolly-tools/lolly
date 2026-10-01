@@ -12,6 +12,7 @@
 import { recordFeaturedRoute } from './lib/featured-activity.ts';
 import { mountIOSTextScale } from './lib/ios-text-scale.ts';
 import { mountTooltips } from './lib/tooltips.ts';
+import { overlayAbsorbsPopstate } from './lib/overlay-back.ts';
 import { createBridge } from './bridge/index.ts';
 import { setSceneManifestLoader, SCENE_TOOL_ID } from './bridge/scene-manifest.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
@@ -25,6 +26,7 @@ import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welco
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
 import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
 import { initTrustedSites } from './lib/trusted-sites.ts';
+import { appPathname } from './lib/any-site.ts';
 import { applyIframeModeAttr, forwardDeckKeys, isIframeMode } from './lib/iframe-mode.ts';
 import { hydrateChromeFollow } from './lib/chrome-follow.ts';
 import { computeViewportInsets } from './lib/viewport-insets.ts';
@@ -1770,7 +1772,9 @@ async function boot(): Promise<void> {
   // (lib/back-nav.ts; navigateTo() captures its own, popstate has none).
   window.addEventListener('hashchange', (e) => noteLeavingHref(e.oldURL));
   window.addEventListener('hashchange', onRouteChange);
-  window.addEventListener('popstate', onRouteChange);
+  // A popstate the overlay Back stack absorbs (a dialog's own entry, popped) is not a
+  // route change: the view stays, and its address comes back from the overlay stack.
+  window.addEventListener('popstate', () => { if (!overlayAbsorbsPopstate()) onRouteChange(); });
   window.addEventListener('lolly:navigate', onRouteChange);
   // Forced same-route remount - lib/drop-router.ts routes a shared file INTO the
   // route the user is already on (its one-shot stashes are consumed at mount),
@@ -1952,7 +1956,8 @@ function parseRoute(): Route {
     return { name: 'gallery', params: query || '' };
   }
 
-  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  // The `/any-site/` shell (lib/any-site.ts) is the app root under a wider frame policy.
+  const pathParts = appPathname().split('/').filter(Boolean);
   // /t/<id> is a tool's canonical address-bar URL (path form, so a copied link
   // carries the per-tool OG preview - see scripts/build-tool-og.ts); params ride in
   // the query string. Returned as a first-class tool route - NOT redirected to the

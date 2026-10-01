@@ -18,7 +18,7 @@ Lolly 自己的界面：菜单、卡片、导航、字体。它们经过专门�
 
 ## 无障碍
 
-![The Accessibility card on the profile page: four plain switches - Reduce motion, Hide colourful previews, High contrast and Large text - each with a help tip](/t/url-shot?url=%2F%23%2Fprofile&width=430&height=900&dpi=192&waitMs=2000&scrollDepth=1300&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--a11y&dark=1&filename=incl-a11y-card)
+![The Accessibility card on the profile page: four plain switches - Reduce motion, Hide colourful previews, High contrast and Large text - each with a help tip](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Da11y-section&width=430&height=900&dpi=192&waitMs=2000&scrollDepth=1300&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--a11y&dark=1&filename=incl-a11y-card)
 
 除了跟随平台自身的信号（系统深色模式、操作系统的减弱动效偏好）之外，Lolly 还在
 你的个人资料中提供明确的、需自行开启的无障碍偏好设置：
@@ -64,7 +64,7 @@ Lolly 自己的界面：菜单、卡片、导航、字体。它们经过专门�
 
 ## 语言与本地化优先级
 
-![The appearance settings rendered in Arabic on a phone-width screen: a fully right-to-left layout, not a mirrored afterthought](/t/url-shot?url=%2F%23%2Fprofile%3Flang%3Dar&width=430&height=900&dpi=192&waitMs=2200&scrollDepth=950&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=incl-profile-rtl)
+![The appearance settings rendered in Arabic on a phone-width screen: a fully right-to-left layout, not a mirrored afterthought](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dappearance-section%26lang%3Dar&width=430&height=900&dpi=192&waitMs=2200&scrollDepth=950&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=incl-profile-rtl)
 
 - <!--i:globe--> Lolly 的界面和文档被翻译成超过 25 种语言，并且我们**按使用
   人数排定语言的优先级**，而不是按市场收入：印地语、孟加拉语、乌尔都语和印尼语

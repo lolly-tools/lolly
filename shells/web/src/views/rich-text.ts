@@ -86,7 +86,7 @@ interface DomNodeLike {
   nodeValue?: string | null;
   childNodes: Iterable<DomNodeLike>;
   getAttribute?: (name: string) => string | null;
-  style?: { color?: string; fontWeight?: string; fontFamily?: string } | null;
+  style?: { color?: string; fontWeight?: string; fontFamily?: string; textDecoration?: string; textDecorationLine?: string } | null;
 }
 
 const BLOCK_TAGS = new Set(['DIV', 'P', 'LI', 'UL', 'OL', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'PRE']);
@@ -122,8 +122,8 @@ export function charsFromDom(root: DomNodeLike): Char[] {
         i: f.i || tag === 'I' || tag === 'EM',
         // U/INS carry underline, S/STRIKE/DEL strikethrough (our render emits <u>/<s>;
         // pasted markup may use any of these). Both are simple inherited booleans.
-        u: f.u || tag === 'U' || tag === 'INS',
-        s: f.s || tag === 'S' || tag === 'STRIKE' || tag === 'DEL',
+        u: f.u || tag === 'U' || tag === 'INS' || nodeDecoration(child, 'underline'),
+        s: f.s || tag === 'S' || tag === 'STRIKE' || tag === 'DEL' || nodeDecoration(child, 'line-through'),
         color: nodeColor(child) || f.color,
         weight: nodeWeight(child) ?? f.weight,
         font: nodeFont(child) || f.font,
@@ -168,6 +168,14 @@ function nodeColor(el: DomNodeLike): string | null {
 // An element's own explicit numeric font-weight (100–900), or null. Only NUMERIC
 // weights become per-run weights; keyword bold/normal is left to <strong>/<b> tags so
 // pasted body copy (which routinely sets font-weight:normal) doesn't stamp weight runs.
+// Underline or strikethrough from an inline style. The box render (hooks.js) writes
+// a {u|…} or {s|…} run as <span style="text-decoration:…">, not as <u>/<s>, and
+// edit mode starts from that render, so a reader of tags alone dropped both on the
+// next commit.
+function nodeDecoration(el: DomNodeLike, line: 'underline' | 'line-through'): boolean {
+  const d = el.style ? String(el.style.textDecorationLine || el.style.textDecoration || '') : '';
+  return d.split(/\s+/).includes(line);
+}
 function nodeWeight(el: DomNodeLike): number | null {
   const dw = el.getAttribute && el.getAttribute('data-fc-weight');
   if (dw && /^[1-9]00$/.test(dw)) return parseInt(dw, 10);

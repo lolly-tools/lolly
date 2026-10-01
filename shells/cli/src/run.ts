@@ -12,6 +12,7 @@ import { readFile, writeFile, stat } from 'node:fs/promises';
 import { resolve, basename, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
+import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
@@ -579,7 +580,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // Transform-path tools (on-device utilities) produce their output via the
   // exportFile hook (bytes in → bytes out), not by rendering a DOM node. They
   // don't use a render format at all - short-circuit before the format checks.
-  if (tool.manifest.hooks?.exportFile) {
+  if (isFileTransform(tool.manifest)) {
     if (productionPath) throw new Error('Production verification is unavailable for file-transform exports.');
     // `--export=` on a transform is REFUSED, not ignored. A transform's output container
     // follows its INPUT file (and whatever the tool's own inputs say); the reserved

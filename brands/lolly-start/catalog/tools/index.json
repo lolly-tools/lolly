@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-30T18:41:37.212Z",
+  "generatedAt": "2026-10-01T17:55:46.640Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3415,7 +3415,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
-      "version": "1.4.0",
+      "version": "1.5.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5415,7 +5415,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, design system colour treatments and finishing texture - then bake your look as a LUT any editor can use. Opens a Photoshop or GIMP file as layers too: position, blend and hide each one, grade the composite, and export flat images or a layered PSD.",
-      "version": "2.3.1",
+      "version": "2.4.0",
       "status": "community",
       "category": "designer",
       "tags": [

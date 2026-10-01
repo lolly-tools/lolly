@@ -24,6 +24,7 @@ import {
   rendererPreference, renderViaRenderServer,
 } from './desktop-renderer.ts';
 import { repoRoot } from './repo-root.ts';
+import { catalogFile, readAssetIndex, toolFile } from './content-roots.ts';
 import { waitForExport, type ExportWait } from './export-wait.ts';
 
 const MIME: Record<string, string> = {
@@ -56,6 +57,30 @@ export async function closeWebShell(): Promise<void> {
   if (s) { try { await (await s).close(); } catch { /* ignore */ } }
 }
 
+/**
+ * A `/catalog/<rel>` or `/tools/<id>/<rel>` request answered from the ACTIVE content
+ * profile, as the dev server answers it (the same resolver, and the same merged asset
+ * index). The dist on disk holds whichever profile last ran `build:web`, so serving its
+ * own catalog rendered every brand asset of another profile as missing: a SUSE deck
+ * came back without its logos or icons, with no warning. null hands the request back
+ * to the dist (the app bundle, and any file the profile does not have).
+ */
+export function activeContentResponse(urlPath: string): { file: string } | { json: string } | null {
+  const segs = urlPath.split('/').filter((seg) => seg && seg !== '.');
+  if (segs.some((seg) => seg === '..')) return null;
+  const [head, ...rest] = segs;
+  if (!rest.length) return null;
+  try {
+    if (head === 'catalog' && rest.join('/') === 'assets/index.json') return { json: JSON.stringify(readAssetIndex()) };
+    const file = head === 'catalog' ? catalogFile(rest.join('/'))
+      : head === 'tools' && rest.length > 1 ? toolFile(rest[0]!, rest.slice(1).join('/'))
+        : null;
+    return file && existsSync(file) ? { file } : null;
+  } catch {
+    return null;   // no such tool in this profile, or no profile at all
+  }
+}
+
 /** Serve the built web dist over localhost, SPA-style (unknown paths → index.html). */
 function serveDist(): Promise<Served> {
   const dist = process.env.LOLLY_WEB_DIST || join(repoRoot(), 'shells', 'web', 'dist');
@@ -70,9 +95,16 @@ function serveDist(): Promise<Served> {
   const server = createServer(async (req, res) => {
     try {
       const urlPath = decodeURIComponent((req.url || '/').split('?')[0]!);
-      let filePath = resolve(root, '.' + normalize(urlPath));
-      if (!filePath.startsWith(root)) { res.writeHead(403).end(); return; }
-      if (urlPath === '/' || !existsSync(filePath) || !(await stat(filePath)).isFile()) {
+      const live = activeContentResponse(urlPath);
+      if (live && 'json' in live) {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(live.json);
+        return;
+      }
+      let filePath = live ? live.file : resolve(root, '.' + normalize(urlPath));
+      if (!live && !filePath.startsWith(root)) { res.writeHead(403).end(); return; }
+      if (!live && (urlPath === '/' || !existsSync(filePath) || !(await stat(filePath)).isFile())) {
         filePath = join(root, 'index.html');
       }
       const data = await readFile(filePath);

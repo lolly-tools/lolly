@@ -234,10 +234,11 @@ export async function wireTrustedSites(pv: ProfileViewCtx): Promise<void> {
   const { viewEl } = pv;
   const body = viewEl.querySelector<HTMLElement>('#trusted-sites-body');
   if (!body) return;
-  const [sites, policy, grammar] = await Promise.all([
+  const [sites, policy, grammar, anySite] = await Promise.all([
     import('../../lib/trusted-sites.ts'),
     import('../../lib/site-policy.ts'),
     import('../../../../../engine/src/trusted-sites.ts'),
+    import('../../lib/any-site.ts'),
   ]);
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] => {
     const node = document.createElement(tag);
@@ -289,7 +290,7 @@ export async function wireTrustedSites(pv: ProfileViewCtx): Promise<void> {
       }
       body.append(bl);
     }
-    if (!sites.canTrustMore()) return;
+    if (!sites.canTrustMore()) { paintAnySite(); return; }
     const form = el('form', 'trusted-sites-add');
     const label = el('label', 'field-row');
     const input = el('input', 'field-input');
@@ -319,8 +320,49 @@ export async function wireTrustedSites(pv: ProfileViewCtx): Promise<void> {
     });
     form.append(label, add);
     body.append(form, hint, err);
+    paintAnySite();
   };
   const sitePolicyMode = (): string | undefined => policy.sitePolicy()?.mode;
+  /** "Allow pages from any site" (lib/any-site.ts), on the web version only. Turning the
+   *  switch on asks the server first, so a deployment without the wider /any-site/
+   *  policy says so instead of reloading into one it does not have. */
+  const paintAnySite = (): void => {
+    if (!anySite.anySiteApplies()) return;
+    body.append(el('h3', 'trusted-sites-subhead', t('Pages from any site')));
+    const list = el('ul', 'feature-flags profile-a11y-prefs trusted-sites-anysite');
+    const li = el('li', '');
+    const label = el('label', 'feature-flag');
+    label.htmlFor = 'trusted-sites-anysite';
+    const input = el('input', 'feature-flag-input');
+    input.type = 'checkbox';
+    input.id = 'trusted-sites-anysite';
+    input.checked = anySite.anySiteChosen();
+    const note = el('p', 'profile-hint', t('On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.'));
+    note.id = 'trusted-sites-anysite-note';
+    input.setAttribute('aria-describedby', note.id);
+    const switchMark = el('span', 'feature-flag-switch');
+    switchMark.setAttribute('aria-hidden', 'true');
+    label.append(el('span', 'feature-flag-label', t('Allow pages from any site')), input, switchMark);
+    li.append(label);
+    list.append(li);
+    const err = el('p', 'be-err');
+    err.hidden = true;
+    err.setAttribute('role', 'alert');
+    input.addEventListener('change', () => {
+      if (!input.checked) { anySite.leaveAnySite(); return; }
+      input.disabled = true;
+      void anySite.probeAnySite().then((offer) => {
+        if (offer === 'offered') { anySite.enterAnySite(); return; }
+        input.checked = false;
+        input.disabled = false;
+        err.textContent = offer === 'unreachable'
+          ? t('Lolly could not reach its server to check. Try again when you are online.')
+          : t('This server does not offer pages from any site. The desktop app can show any page.');
+        err.hidden = false;
+      });
+    });
+    body.append(list, note, err);
+  };
   paint();
   const offSites = sites.onTrustedSitesChange(paint);
   const offPolicy = policy.onSitePolicyChange(paint);

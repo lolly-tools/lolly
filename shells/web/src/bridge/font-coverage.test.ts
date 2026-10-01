@@ -49,3 +49,9 @@ test('mounted coverage uses inline font changes and whole runs without image lab
   assert.deepEqual(runs.map(run => [run.text, run.style.fontFamily]), [['Hello ', 'Latin face'], ['مرحبا', 'Arabic face']]);
   dom.window.close();
 });
+
+test('a line break is layout, not a missing glyph', async () => {
+  assert.equal(await fontCoversText(style, 'Must we explain the output?\nCould we show a tested exit?', api, suse), true);
+  assert.equal(await fontCoversText(style, 'Tabbed\tand\r\nwrapped', api, suse), true);
+  assert.equal(await fontCoversText(style, 'Still checked\nПривет', api, suse), false, 'real script gaps still fail');
+});

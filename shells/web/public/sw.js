@@ -157,6 +157,8 @@ const PERSISTENT_CACHES = [PIN_CACHE, INSTALLED_CACHE, APP_CACHE, ORT_CACHE, ORT
 // one canonical entry serves them all - but ONLY navigations the SPA actually
 // owns may be stored under it. See isShellNavigation.
 const SHELL_URL = '/';
+// The app shell under the wider frame policy (lib/any-site.ts): never stored as SHELL_URL.
+const ANY_SITE_PATTERN = /^\/any-site(\/|$)/;
 
 // How long a tool-file fetch may run before we give up and serve cache instead.
 // Long enough that a healthy connection always wins (fresh); short enough that a
@@ -556,14 +558,20 @@ async function staleWhileRevalidate(event) {
 async function networkFirstDocument(event) {
   const { request } = event;
   const cache = await caches.open(CACHE);
-  const ownsShell = isShellNavigation(new URL(request.url).pathname);
+  const path = new URL(request.url).pathname;
+  const ownsShell = isShellNavigation(path);
+  // The /any-site/ document carries a wider frame policy ("Allow pages from any site",
+  // lib/any-site.ts). It is served from the network, and offline from the ordinary
+  // shell, but never STORED as the shell: a cached response keeps its own headers, so
+  // storing it would hand the wider policy to / even after the setting is turned off.
+  const storesShell = ownsShell && !ANY_SITE_PATTERN.test(path);
   try {
     const fresh = await fetch(request);
     // Only a navigation the SPA actually owns may be written to the shell key -
     // storing a real static document there poisons the offline boot for every
     // other route. BYPASS_PATTERNS already keeps the known static paths out of
     // this function; this is the backstop for the next one somebody adds.
-    if (fresh && fresh.ok) { if (ownsShell) cache.put(SHELL_URL, fresh.clone()); return fresh; }
+    if (fresh && fresh.ok) { if (storesShell) cache.put(SHELL_URL, fresh.clone()); return fresh; }
     // Server reachable but unhappy (5xx) - a cached shell beats an error page,
     // but only where the shell is what the URL should have served anyway.
     const cached = ownsShell ? await matchShell(cache) : null;

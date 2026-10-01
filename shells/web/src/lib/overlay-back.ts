@@ -82,13 +82,15 @@ export function rememberOverlayUrlState(): void {
   for (const entry of [...openStack, ...consumingEntries]) entry.pushedHref = workspaceHref;
 }
 
+/** The route part of an address: the path, plus the hash route without its query. */
+function routeBase(href: string): string {
+  const url = new URL(href);
+  return url.pathname + (url.hash.startsWith('#/') ? url.hash.split('?')[0] : '');
+}
+
 function restoreWorkspaceHref(): void {
   if (!workspaceHref) return;
-  const base = (href: string): string => {
-    const url = new URL(href);
-    return url.pathname + (url.hash.startsWith('#/') ? url.hash.split('?')[0] : '');
-  };
-  if (base(workspaceHref) !== base(window.location.href)) { workspaceHref = null; return; }
+  if (routeBase(workspaceHref) !== routeBase(window.location.href)) { workspaceHref = null; return; }
   window.history.replaceState(window.history.state, '', workspaceHref);
   window.dispatchEvent(new window.Event('lolly:url-state'));
 }
@@ -169,6 +171,24 @@ const onNavEvent = (e: Event): void => {
   // itself out of it, and a caller's onClose may open an overlay of its own.
   [...openStack].forEach(o => o.record.nav());
 };
+
+/**
+ * True when the popstate now being dispatched is one this stack absorbs: the pop of
+ * an entry a closed overlay owed, or Back closing the innermost overlay. The router
+ * asks from its own popstate listener, which runs before this module's, and skips
+ * the navigation. The entry popped was an overlay's same-URL copy, so the view stays.
+ * Address edits made while the overlay was open come back through
+ * restoreWorkspaceHref. Without this check the router reads the older address of the
+ * entry underneath and mounts the view again from that address. Work in progress is
+ * then lost: a Photoshop import that asked a question during the tool mount put its
+ * layers on a canvas that was already gone.
+ */
+export function overlayAbsorbsPopstate(): boolean {
+  if (!listening) return false;
+  const entry = openStack[openStack.length - 1];
+  if (!selfPops && (!entry || window.location.href !== entry.initialHref)) return false;
+  return !workspaceHref || routeBase(workspaceHref) === routeBase(window.location.href);
+}
 
 /** Pop the entry this overlay pushed, so the next Back leaves the view rather than
  *  doing nothing. Deferred one task so promise continuations from onClose can navigate

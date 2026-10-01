@@ -13,6 +13,10 @@ export async function fontCoversText(
   api: Pick<TextAPI, 'toPath'> | undefined,
   resolve?: typeof resolveVectorFont,
 ): Promise<boolean> {
+  // Line breaks and tabs are layout, not glyphs: no face draws a newline, so shaping one
+  // reports a .notdef and every multi-line text box would read as uncovered. They are
+  // proofed as spaces, which every text face carries.
+  text = text.replace(/\p{Cc}/gu, ' ');
   if (!text.trim()) return true;
   if (!api) return false;
   try {

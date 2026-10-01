@@ -130,10 +130,13 @@ test('a Tier-B failure fails, and fails PROMPTLY, with the debug log it was aske
   const { writeFileSync } = await import('node:fs');
   writeFileSync(join(stub, 'index.html'), '<!doctype html><title>stub</title><body>stub');
   const file = join(OUT, 'nope.jpg');
+  // LOLLY_WEB_BASE wins over any dist, and the browser shard exports it for a live shell
+  // that renders `wordmark` fine, so the stub is only reached with it cleared.
+  const { LOLLY_WEB_BASE: _liveShell, ...env } = process.env;
   const t0 = Date.now();
   const outcome = await run(process.execPath, [CLI, 'wordmark', '--export=jpg', '--tier-b-debug', `--output=${file}`], {
     cwd: REPO, timeout: WALL_BUDGET_MS, maxBuffer: 16 * 1024 * 1024,
-    env: { ...process.env, LOLLY_WEB_DIST: stub },
+    env: { ...env, LOLLY_WEB_DIST: stub },
   }).then(() => ({ code: 0, stderr: '' }), (e: { code?: number; stderr?: string }) => ({ code: e.code ?? -1, stderr: e.stderr ?? '' }));
   const ms = Date.now() - t0;
   rmSync(stub, { recursive: true, force: true });

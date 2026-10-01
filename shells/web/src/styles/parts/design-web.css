@@ -76,4 +76,6 @@
   .pwc-meta { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
   .pwc-state { font-size: var(--fs-md); }
   .pwc-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .pwc-anysite { margin-top: 12px; display: grid; gap: 8px; justify-items: start; }
+  .pwc-anysite-note { margin: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
 }

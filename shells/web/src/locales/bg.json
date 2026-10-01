@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: сайтът не позволява да бъде показван в други страници",
   "{n} px wide": "{n} px ширина",
   "{n} sites": "{n} сайта",
-  "{org} does not allow {host} here.": "{org} не позволява {host} тук."
+  "{org} does not allow {host} here.": "{org} не позволява {host} тук.",
+  "Allow pages from any site": "Разрешаване на страници от всеки сайт",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly не успя да се свърже със сървъра си за проверка. Опитай отново, когато си онлайн.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "В уеб версията Design показва само видео и картографски плейъри, докато не включиш това. Тогава Lolly се презарежда на това устройство с по-свободна политика за рамки и пак пита, преди да зареди сайт, на който още не се доверяваш.",
+  "Pages from any site": "Страници от всеки сайт",
+  "The web version of Lolly cannot show this site.": "Уеб версията на Lolly не може да покаже този сайт.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Уеб версията на Lolly показва тук само видео и картографски плейъри. За да покажеш {host}, разреши в профила си страници от всеки сайт или използвай десктоп приложението.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Този сървър не предлага страници от всеки сайт. Десктоп приложението може да покаже всяка страница.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "За да покаже сайтовете, които уеб версията не може, Lolly може да се презареди на това устройство с по-свободна политика за рамки, след което да попита за всеки сайт преди презентация. Можеш да изключиш това в профила си, под Доверени сайтове."
 }

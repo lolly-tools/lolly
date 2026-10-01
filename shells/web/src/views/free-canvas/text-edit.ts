@@ -553,6 +553,63 @@ export function selectOffsets(_fc: FcCtx, el: HTMLElement, a: number, b: number)
   sel!.removeAllRanges();
   sel!.addRange(range);
 }
+/** A flag the inspector's Emphasis row sets on a whole text box. */
+export type WholeTextFlag = 'b' | 'i' | 'u';
+
+/**
+ * The rendered characters of a text box that is not a story, read the way edit mode
+ * reads them (emoji pictures back to characters), or null when the box has no such
+ * text: a story, a box that prints its markers as typed, or nothing on the canvas.
+ */
+function wholeTextChars(fc: FcCtx, id: string): ReturnType<typeof charsFromDom> | null {
+  const box = fc.select.getBoxes().find(b => b[fc.cfg.idField] === id);
+  if (!box || (fc.cv.textStoryField && box[fc.cv.textStoryField])) return null;
+  if (box.plainText === true || box.plainText === 'true' || box.plainText === '1') return null;
+  const el = fc.canvasEl.querySelector<HTMLElement>(`.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"] .lolly-box-text`);
+  if (!el) return null;
+  const copy = el.cloneNode(true) as HTMLElement;
+  revertEmojiIn(copy);
+  const chars = charsFromDom(copy);
+  return chars.some(c => c.ch.trim()) ? chars : null;
+}
+
+/** Whether every visible character of the boxes has `flag`: 'on', 'off' or 'mixed'.
+ *  Null when none of the boxes has text the Emphasis row can change. */
+export function wholeTextStyle(fc: FcCtx, ids: string[], flag: WholeTextFlag): 'on' | 'off' | 'mixed' | null {
+  let on = 0, off = 0;
+  for (const id of ids) {
+    const chars = wholeTextChars(fc, id);
+    if (!chars) continue;
+    const visible = chars.filter(c => c.ch.trim());
+    if (visible.every(c => c[flag])) on++;
+    else if (visible.some(c => c[flag])) return 'mixed';
+    else off++;
+  }
+  return on + off === 0 ? null : on && off ? 'mixed' : on ? 'on' : 'off';
+}
+
+/**
+ * Bold, italic or underline on all of the text of each box, without edit mode:
+ * the same change as selecting all of the text and pressing the format bar's
+ * button, written with the editor's own markup, as one undo step. The flag goes
+ * on unless every box already has it everywhere.
+ */
+export function styleWholeText(fc: FcCtx, ids: string[], flag: WholeTextFlag): void {
+  if (fc.editing) commitTextEdit(fc);
+  const on = wholeTextStyle(fc, ids, flag) !== 'on';
+  const next = new Map<string, string>();
+  for (const id of ids) {
+    const chars = wholeTextChars(fc, id);
+    if (chars) next.set(id, markdownFromChars(setFlag(chars, 0, chars.length, flag, on)));
+  }
+  if (!next.size) return;
+  const { idField, textField } = fc.cfg;
+  fc.select.commit(fc.select.getBoxes().map(box => {
+    const text = next.get(String(box[idField]));
+    return text == null || text === box[textField] ? box : { ...box, [textField]: text };
+  }));
+}
+
 export function toggleInline(fc: FcCtx, flag: string): void {
   if (!fc.editing) return;
   const el = fc.editing.el;
@@ -1025,6 +1082,8 @@ export function textEditOps(fc: FcCtx) {
     selectionOffsets: bindOp(fc, selectionOffsets),
     selectOffsets: bindOp(fc, selectOffsets),
     toggleInline: bindOp(fc, toggleInline),
+    wholeTextStyle: bindOp(fc, wholeTextStyle),
+    styleWholeText: bindOp(fc, styleWholeText),
     stashRunColorRange: bindOp(fc, stashRunColorRange),
     applyRunColor: bindOp(fc, applyRunColor),
     stashRunWeightRange: bindOp(fc, stashRunWeightRange),

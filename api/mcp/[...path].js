@@ -1502,6 +1502,15 @@ var init_tool_schema = __esm({
                   pattern: {
                     type: "string",
                     description: "Regex."
+                  },
+                  display: {
+                    type: "string",
+                    enum: [
+                      "input",
+                      "curve"
+                    ],
+                    default: "input",
+                    description: "'curve' marks a text input that holds a tone curve (points on the 0..255 scale in the wire form in-out_in-out, e.g. 0-0_64-48_255-255, see engine/src/tone-curve.ts). The value stays plain text everywhere; the web shell adds an interactive curve plot beside the field that writes it."
                   }
                 }
               }
@@ -3494,11 +3503,11 @@ function pemToDer(pem) {
   if (!b64) throw new Error("x509: no PEM body found");
   return base64ToBytes(b64);
 }
-function derToPem(der2, label2) {
+function derToPem(der2, label3) {
   const body = btoa(bytesToBin(der2)).replace(/(.{64})/g, "$1\n").trimEnd();
-  return `-----BEGIN ${label2}-----
+  return `-----BEGIN ${label3}-----
 ${body}
------END ${label2}-----
+-----END ${label3}-----
 `;
 }
 function randomSerial() {
@@ -3770,7 +3779,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.239.0";
+    ENGINE_VERSION = "1.241.0";
   }
 });
 
@@ -4732,9 +4741,9 @@ var init_gamut_source = __esm({
     EPS = 1e-6;
     inUnitCube = (rgb) => rgb[0] >= -EPS && rgb[0] <= 1 + EPS && rgb[1] >= -EPS && rgb[1] <= 1 + EPS && rgb[2] >= -EPS && rgb[2] <= 1 + EPS;
     gamutInputSane = (l, c, h) => l >= -EPS && l <= 1 + EPS && c >= -EPS && Number.isFinite(h);
-    rgbSource = (name, label2) => ({
+    rgbSource = (name, label3) => ({
       id: name,
-      label: label2,
+      label: label3,
       contains: (l, c, h) => gamutInputSane(l, c, h) && rgbContains(name, l, c, h),
       // Additive light has no ink. Answering 0 here would read as "no ink needed",
       // which is a different claim from "the question does not apply".
@@ -4857,8 +4866,8 @@ function oklchSlice(opts) {
   let inside2;
   if (fast) inside2 = fast;
   else {
-    const own2 = ceilingGrid(src);
-    inside2 = (l, c, h) => c <= sampleCeiling(own2, l, h);
+    const own3 = ceilingGrid(src);
+    inside2 = (l, c, h) => c <= sampleCeiling(own3, l, h);
   }
   const encode = opts.encode ?? "srgb";
   const ceiling = ceilingGrid(ENCODE_GAMUT[encode]);
@@ -5860,9 +5869,9 @@ function formatGradientSpec(g2) {
     g2.hue && g2.hue !== "shorter" ? g2.hue : ""
   ].filter(Boolean).join(".");
   const head2 = KIND_SHORT[g2.kind] + (mods ? `.${mods}` : "");
-  const num11 = (n6) => String(Math.round(n6 * 100) / 100);
-  const stops = g2.stops.map((s) => `${wireColor(s.color)}-${num11(clampPos(s.pos))}`);
-  return [head2, num11(normAngle(g2.angle)), ...stops].join("_");
+  const num12 = (n6) => String(Math.round(n6 * 100) / 100);
+  const stops = g2.stops.map((s) => `${wireColor(s.color)}-${num12(clampPos(s.pos))}`);
+  return [head2, num12(normAngle(g2.angle)), ...stops].join("_");
 }
 function gradientSpecStops(g2) {
   const authored = [];
@@ -7505,14 +7514,14 @@ function validateChartSpec(spec) {
       continue;
     }
     const fields = fieldsByDataset.get(series.dataset) ?? /* @__PURE__ */ new Set();
-    for (const [channel3, encoding] of Object.entries(series.channels ?? {})) {
+    for (const [channel4, encoding] of Object.entries(series.channels ?? {})) {
       if (encoding && !fields.has(encoding.field))
         finding(
           findings,
           "chart.channel.field",
           "error",
-          `Channel \u201C${channel3}\u201D references missing field \u201C${encoding.field}\u201D.`,
-          `series.${si}.channels.${channel3}`
+          `Channel \u201C${channel4}\u201D references missing field \u201C${encoding.field}\u201D.`,
+          `series.${si}.channels.${channel4}`
         );
     }
     if ((series.mark === "bar3d" || series.mark === "line3d" || series.mark === "ribbon3d" || series.mark === "scatter3d" || series.mark === "surface3d" || series.mark === "mesh3d" || series.mark === "volume3d") && !series.channels.z) {
@@ -8099,8 +8108,8 @@ var init_preflight = __esm({
 function minorUnitExponent(currency, locale) {
   return exponentOf(currencyFormatter(currency, locale), currency);
 }
-function exponentOf(fmt3, currency) {
-  const exp = fmt3.resolvedOptions().maximumFractionDigits;
+function exponentOf(fmt4, currency) {
+  const exp = fmt4.resolvedOptions().maximumFractionDigits;
   if (typeof exp !== "number") throw new CurrencyError(currency);
   return exp;
 }
@@ -8370,7 +8379,7 @@ function inspectDesignV1(boxes, opts = {}) {
   const looseLayerIds = layers.filter((layer) => layer.kind !== "frame" && !layer.artboardId).map((layer) => layer.id).filter(Boolean);
   if (artboards.length) {
     for (const id2 of looseLayerIds) {
-      const layer = layers.find((item) => item.id === id2);
+      const layer = layers.find((item2) => item2.id === id2);
       finding2(
         findings,
         "design.layer.unassigned",
@@ -8386,8 +8395,8 @@ function inspectDesignV1(boxes, opts = {}) {
 function finish(layers, artboards, findings, opts, looseLayerIds = []) {
   void opts.width;
   void opts.height;
-  const errors = findings.filter((item) => item.severity === "error").length;
-  const warnings = findings.filter((item) => item.severity === "warn").length;
+  const errors = findings.filter((item2) => item2.severity === "error").length;
+  const warnings = findings.filter((item2) => item2.severity === "warn").length;
   return {
     version: DESIGN_DOCUMENT_VERSION,
     valid: errors === 0,
@@ -8564,7 +8573,7 @@ function parseProviderRef(value) {
   if (!match) return null;
   try {
     const query2 = {};
-    for (const [key, item] of new URLSearchParams(match[4] ?? "")) query2[key] = item;
+    for (const [key, item2] of new URLSearchParams(match[4] ?? "")) query2[key] = item2;
     return { raw: value, provider: match[1].toLowerCase(), scope: decodeURIComponent(match[2]), path: (match[3] ?? "").split("/").filter(Boolean).map(decodeURIComponent).join("/"), query: query2 };
   } catch {
     return null;
@@ -8633,10 +8642,10 @@ function readFaces(ext) {
   for (const [target, raw] of Object.entries(faces)) {
     if (!target || !isRec(raw)) continue;
     const v = raw.value;
-    const label2 = raw.label;
+    const label3 = raw.label;
     const value = normaliseFaceValue(v);
     if (value === null) continue;
-    out.set(target, { value, ...typeof label2 === "string" && label2 ? { label: label2 } : {} });
+    out.set(target, { value, ...typeof label3 === "string" && label3 ? { label: label3 } : {} });
   }
   return out;
 }
@@ -8665,13 +8674,13 @@ function writeFace(ns, target, face) {
 function colorFaces(canonical2, targets, stored, derive) {
   const out = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const { target, label: label2 } of targets) {
+  for (const { target, label: label3 } of targets) {
     seen.add(target);
     const override = stored.get(target);
     const derived = derive(canonical2, target);
     if (!override) {
       if (derived === null) continue;
-      out.push({ target, value: derived, origin: "auto", ...label2 ? { label: label2 } : {} });
+      out.push({ target, value: derived, origin: "auto", ...label3 ? { label: label3 } : {} });
       continue;
     }
     const drift = derived === null ? void 0 : faceDrift(override.value, derived);
@@ -8679,7 +8688,7 @@ function colorFaces(canonical2, targets, stored, derive) {
       target,
       value: override.value,
       origin: "set",
-      ...label2 || override.label ? { label: label2 ?? override.label } : {},
+      ...label3 || override.label ? { label: label3 ?? override.label } : {},
       ...drift === void 0 ? {} : { drift }
     });
   }
@@ -8895,7 +8904,7 @@ function buildMergedMap(doc, opts) {
 }
 function resolveAliases(map) {
   const resolving = /* @__PURE__ */ new Set();
-  function resolve6(path) {
+  function resolve7(path) {
     const e = map.get(path);
     if (!e) return void 0;
     if (e._done) return e.value;
@@ -8904,13 +8913,13 @@ function resolveAliases(map) {
     if (isAlias(e.value)) {
       const target = aliasPath(e.value);
       if (target != null) {
-        const tv = resolve6(target);
+        const tv = resolve7(target);
         if (tv !== void 0) {
           e.value = tv;
           const inherited2 = map.get(target)?.extensions?.[TOKEN_EXT];
-          const own2 = e.extensions?.[TOKEN_EXT];
-          if (isRecord(inherited2) && inherited2.faces && (!isRecord(own2) || !own2.faces)) {
-            e.extensions = { ...e.extensions, [TOKEN_EXT]: { ...isRecord(own2) ? own2 : {}, faces: inherited2.faces } };
+          const own3 = e.extensions?.[TOKEN_EXT];
+          if (isRecord(inherited2) && inherited2.faces && (!isRecord(own3) || !own3.faces)) {
+            e.extensions = { ...e.extensions, [TOKEN_EXT]: { ...isRecord(own3) ? own3 : {}, faces: inherited2.faces } };
           }
           if (e.type == null) {
             const te11 = map.get(target);
@@ -8925,7 +8934,7 @@ function resolveAliases(map) {
         if (isAlias(value)) {
           if (!expected) return value;
           const target = aliasPath(value);
-          const resolved2 = resolve6(target);
+          const resolved2 = resolve7(target);
           const actual = map.get(target)?.type;
           if (actual && actual !== expected) return value;
           return resolved2 === void 0 || isAlias(resolved2) ? value : resolved2;
@@ -8940,7 +8949,7 @@ function resolveAliases(map) {
     resolving.delete(path);
     return e.value;
   }
-  for (const path of [...map.keys()]) resolve6(path);
+  for (const path of [...map.keys()]) resolve7(path);
   for (const e of map.values()) delete e._done;
   return map;
 }
@@ -9052,7 +9061,7 @@ function typographyFamilies(value) {
   const seen = /* @__PURE__ */ new Set();
   const take = (v) => {
     if (Array.isArray(v)) {
-      for (const item of v) take(item);
+      for (const item2 of v) take(item2);
       return;
     }
     if (typeof v !== "string" || isAlias(v)) return;
@@ -9546,17 +9555,17 @@ function tokenRestoreRefsOf(model2) {
 }
 function summarizeInputs(model2, { maxValueLen = 48, maxEntries = 24 } = {}) {
   const out = {};
-  for (const item of model2) {
+  for (const item2 of model2) {
     if (Object.keys(out).length >= maxEntries) break;
-    if (!item || !SUMMARISABLE_TYPES.has(item.type) || item.bindToProfile) continue;
-    const v = flattenValue(item.value);
+    if (!item2 || !SUMMARISABLE_TYPES.has(item2.type) || item2.bindToProfile) continue;
+    const v = flattenValue(item2.value);
     if (typeof v !== "string" && typeof v !== "number" && typeof v !== "boolean") continue;
     let s = String(v).trim();
     if (!s) continue;
-    if (item.unit && typeof v === "number") s += ` ${item.unit}`;
-    const cap = item.type === "text" || item.type === "longtext" ? TEXT_VALUE_CAP : maxValueLen;
+    if (item2.unit && typeof v === "number") s += ` ${item2.unit}`;
+    const cap = item2.type === "text" || item2.type === "longtext" ? TEXT_VALUE_CAP : maxValueLen;
     if (s.length > cap) s = s.slice(0, Math.max(1, cap - 1)) + "\u2026";
-    out[item.id] = s;
+    out[item2.id] = s;
   }
   return out;
 }
@@ -9665,7 +9674,7 @@ function designToolPolicy(d) {
     presentation: d.presentation,
     inputs: d.inputs,
     choices: d.choices,
-    variants: d.variants.map(({ id: id2, label: label2, width, height }) => ({ id: id2, label: label2, width, height })),
+    variants: d.variants.map(({ id: id2, label: label3, width, height }) => ({ id: id2, label: label3, width, height })),
     defaultVariant: d.defaultVariant,
     formats: d.formats,
     ...d.sourceTool ? { sourceTool: d.sourceTool } : {}
@@ -33405,14 +33414,14 @@ function svgPath(value) {
     if (count4 === void 0) throw new Error("SVG path requires a command.");
     const start = offset;
     while (offset < parts.length && !/^[a-z]$/i.test(parts[offset])) offset++;
-    const length = offset - start;
-    if (count4 === 0 ? length !== 0 : length === 0 || length % count4 !== 0) throw new Error("Incomplete SVG path command.");
+    const length2 = offset - start;
+    if (count4 === 0 ? length2 !== 0 : length2 === 0 || length2 % count4 !== 0) throw new Error("Incomplete SVG path command.");
     if (command === "A") {
       for (let index2 = start; index2 < offset; index2 += 7) {
         if (Number(parts[index2]) < 0 || Number(parts[index2 + 1]) < 0 || !["0", "1"].includes(parts[index2 + 3]) || !["0", "1"].includes(parts[index2 + 4])) throw new Error("Unsupported SVG arc arguments.");
       }
     }
-    segments += count4 ? length / count4 : 1;
+    segments += count4 ? length2 / count4 : 1;
     if (segments > 1e4) throw new Error("SVG exceeds the supported segment count.");
   }
   return parts.join(" ");
@@ -33472,7 +33481,7 @@ function staticSvgAttribute(name, value, tag2, authoredPaint = false) {
       if (parsed) return /^#[a-f0-9]{6}$/i.test(value) ? value.toLowerCase() : formatColor(parsed);
     }
     const rgb = /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/.exec(value);
-    if (rgb?.slice(1).every((channel3) => Number(channel3) <= 255)) return `#${rgb.slice(1).map((channel3) => Number(channel3).toString(16).padStart(2, "0")).join("")}`;
+    if (rgb?.slice(1).every((channel4) => Number(channel4) <= 255)) return `#${rgb.slice(1).map((channel4) => Number(channel4).toString(16).padStart(2, "0")).join("")}`;
     if (/^#(?:[a-f0-9]{3}|[a-f0-9]{6})$/i.test(value)) return value.toLowerCase();
     const named = NAMED_COLORS[value.toLowerCase()];
     if (named !== void 0) return `#${named.toString(16).padStart(6, "0")}`;
@@ -33548,9 +33557,9 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     const attributes = {};
     const hidden3 = { value: false };
     let style = "";
-    for (const attr4 of Array.from(element.attributes)) {
-      const value = attr4.value;
-      let name = attr4.name;
+    for (const attr5 of Array.from(element.attributes)) {
+      const value = attr5.value;
+      let name = attr5.name;
       if (/[^\x20-\x7e\t\r\n]/.test(value)) throw new Error("Unsupported SVG attribute characters.");
       totalArguments += value.length;
       if (totalArguments > 1e6) throw new Error("SVG exceeds the supported geometry budget.");
@@ -33570,10 +33579,10 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
         changes.add(`Omitted inert root ${name}.`);
         continue;
       }
-      if (tag2 === "use" && name === "xlink:href" && attr4.namespaceURI === xlinkNamespace) {
+      if (tag2 === "use" && name === "xlink:href" && attr5.namespaceURI === xlinkNamespace) {
         name = "href";
         changes.add("Canonicalized xlink:href to href.");
-      } else if (attr4.namespaceURI || attr4.prefix) throw new Error("Unsupported SVG attribute namespace.");
+      } else if (attr5.namespaceURI || attr5.prefix) throw new Error("Unsupported SVG attribute namespace.");
       if (name === "style") {
         style = value;
         continue;
@@ -33627,7 +33636,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     if (tree.attributes[name] !== void 0 && tree.attributes[name] !== expected) throw new Error("SVG viewport differs from its manifest.");
     tree.attributes[name] = expected;
   }
-  for (const reference2 of references) if (!reference2.targets.includes(ids2.get(reference2.id) ?? "")) throw new Error("SVG paint or clip reference is missing or unsupported.");
+  for (const reference3 of references) if (!reference3.targets.includes(ids2.get(reference3.id) ?? "")) throw new Error("SVG paint or clip reference is missing or unsupported.");
   tree.attributes.xmlns = namespace;
   tree.attributes.fill ??= "#000000";
   tree.attributes.stroke ??= "none";
@@ -34626,7 +34635,7 @@ function licenceDisplayName(id2, extra = []) {
   const profile = licenceProfile(id2, extra);
   if (profile) return profile.name;
   for (const candidate of [...extra, ...PROFILES.values()]) {
-    const entry2 = candidate.compatibleOutputLicences.find((item) => item.id === id2);
+    const entry2 = candidate.compatibleOutputLicences.find((item2) => item2.id === id2);
     if (entry2) return entry2.name;
   }
   return id2;
@@ -35419,11 +35428,11 @@ function fingerprintOf(situation, decisions) {
 }
 function sha256Hex2(bytes) {
   const h = new Uint32Array([1779033703, 3144134277, 1013904242, 2773480762, 1359893119, 2600822924, 528734635, 1541459225]);
-  const length = bytes.length;
-  const padded = new Uint8Array(Math.ceil((length + 9) / 64) * 64);
+  const length2 = bytes.length;
+  const padded = new Uint8Array(Math.ceil((length2 + 9) / 64) * 64);
   padded.set(bytes);
-  padded[length] = 128;
-  const bits = length * 8;
+  padded[length2] = 128;
+  const bits = length2 * 8;
   const view = new DataView(padded.buffer);
   view.setUint32(padded.length - 8, Math.floor(bits / 4294967296));
   view.setUint32(padded.length - 4, bits >>> 0);
@@ -36119,9 +36128,9 @@ var init_template = __esm({
           const safe = mdUrl(url, MD_IMAGE_SCHEMES);
           if (!safe) return alt || whole;
           return `<img class="md-image" src="${park(safe)}" alt="${alt.replace(/"/g, "&quot;")}">`;
-        }).replace(MD_LINK, (_, label2, url) => {
+        }).replace(MD_LINK, (_, label3, url) => {
           const safe = mdUrl(url, MD_LINK_SCHEMES);
-          return safe ? `<a href="${park(safe)}">${label2}</a>` : label2;
+          return safe ? `<a href="${park(safe)}">${label3}</a>` : label3;
         }).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/~~(.+?)~~/g, "<del>$1</del>").replace(/\*([^*\n]+?)\*/g, "<em>$1</em>").replace(/\u0000(\d+)\u0000/g, (_, i) => urls[Number(i)] ?? "");
       };
       const renderRun = (lines) => {
@@ -36376,12 +36385,12 @@ async function resolveNestedRenders(tool, model2, extras, host, composeStack = [
   return out;
 }
 function withTimeout(promise, ms, toolId) {
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve7, reject) => {
     const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
     Promise.resolve(promise).then(
       (v) => {
         clearTimeout(t);
-        resolve6(v);
+        resolve7(v);
       },
       (e) => {
         clearTimeout(t);
@@ -36914,7 +36923,7 @@ async function prepareEmojiText(text7, style, packs, io, options2 = {}) {
   const segments = [];
   const census = [];
   const used = /* @__PURE__ */ new Map();
-  let placement = 0;
+  let placement2 = 0;
   const pushText = (value) => {
     const previous = segments.at(-1);
     if (previous?.kind === "text") previous.text += value;
@@ -36957,7 +36966,7 @@ async function prepareEmojiText(text7, style, packs, io, options2 = {}) {
       text: span.text,
       key: record20.key,
       label: record20.label,
-      markup: emojiSvgMarkup(record20.svg, `${prefix}-${placement++}`),
+      markup: emojiSvgMarkup(record20.svg, `${prefix}-${placement2++}`),
       metrics: record20.metrics,
       source
     });
@@ -38128,18 +38137,18 @@ function sourceBreaks(source, newline = "paragraph") {
   for (let i = 0; i < source.length; i++) {
     const cp = source.charCodeAt(i);
     if (!separators.has(cp)) continue;
-    const length = cp === 13 && source.charCodeAt(i + 1) === 10 ? 2 : 1;
-    breaks.push({ start: i, length, kind: cp === 8232 ? "soft" : cp === 8233 ? "paragraph" : newline });
-    i += length - 1;
+    const length2 = cp === 13 && source.charCodeAt(i + 1) === 10 ? 2 : 1;
+    breaks.push({ start: i, length: length2, kind: cp === 8232 ? "soft" : cp === 8233 ? "paragraph" : newline });
+    i += length2 - 1;
   }
   return breaks;
 }
 function paragraphRanges(source, breaks) {
   const ranges = [];
   let start = 0;
-  for (const item of breaks) if (item.kind === "paragraph") {
-    ranges.push({ start, end: item.start });
-    start = item.start + item.length;
+  for (const item2 of breaks) if (item2.kind === "paragraph") {
+    ranges.push({ start, end: item2.start });
+    start = item2.start + item2.length;
   }
   ranges.push({ start, end: source.length });
   return ranges;
@@ -38171,17 +38180,17 @@ var init_text_source = __esm({
 
 // engine/src/text-story-document.ts
 import { Ajv as Ajv4 } from "ajv";
-function unique(items2, id2, label2) {
+function unique(items2, id2, label3) {
   const map = /* @__PURE__ */ new Map();
-  for (const item of items2) {
-    const key = id2(item);
-    if (map.has(key)) error("duplicate-id", `Duplicate ${label2} id: ${key}`);
-    map.set(key, item);
+  for (const item2 of items2) {
+    const key = id2(item2);
+    if (map.has(key)) error("duplicate-id", `Duplicate ${label3} id: ${key}`);
+    map.set(key, item2);
   }
   return map;
 }
-function reference(map, id2, label2) {
-  if (id2 !== void 0 && !map.has(id2)) error("missing-reference", `Missing ${label2}: ${id2}`);
+function reference(map, id2, label3) {
+  if (id2 !== void 0 && !map.has(id2)) error("missing-reference", `Missing ${label3}: ${id2}`);
 }
 function checkCharacter(value, fonts) {
   if (value?.color !== void 0 && !parseColor(value.color)) error("text-color", "Text colour must be an explicit supported colour.");
@@ -38206,12 +38215,12 @@ function checkStyleRef(styles, id2, kind) {
 function checkStory(story, styles, fonts, frames) {
   const boundaries = textBoundaries(story.source);
   const expectedBreaks = sourceBreaks(story.source);
-  if (expectedBreaks.length !== story.breaks.length || expectedBreaks.some((item, index2) => item.start !== story.breaks[index2].start || item.length !== story.breaks[index2].length)) {
+  if (expectedBreaks.length !== story.breaks.length || expectedBreaks.some((item2, index2) => item2.start !== story.breaks[index2].start || item2.length !== story.breaks[index2].length)) {
     error("break-source", "Every source separator must have exactly one ordered break record.");
   }
-  for (const item of story.breaks) {
-    const separator2 = story.source.slice(item.start, item.start + item.length);
-    if (separator2 === "\u2028" && item.kind !== "soft" || separator2 === "\u2029" && item.kind !== "paragraph") error("break-kind", "Unicode line and paragraph separators must retain their meaning.");
+  for (const item2 of story.breaks) {
+    const separator2 = story.source.slice(item2.start, item2.start + item2.length);
+    if (separator2 === "\u2028" && item2.kind !== "soft" || separator2 === "\u2029" && item2.kind !== "paragraph") error("break-kind", "Unicode line and paragraph separators must retain their meaning.");
   }
   const ranges = paragraphRanges(story.source, story.breaks);
   if (ranges.length !== story.paragraphs.length) error("paragraph-source", "Paragraphs must cover the complete story.");
@@ -38342,16 +38351,16 @@ function textStyleResolver(doc) {
     resolved2.set(id2, value);
     return value;
   }
-  function paragraph(story, item) {
-    let result = paragraphs.get(item);
+  function paragraph(story, item2) {
+    let result = paragraphs.get(item2);
     if (!result) {
-      result = mergeParagraph(mergeParagraph(named(story.defaultStyle).paragraph, named(item.style).paragraph), item.paragraph);
-      paragraphs.set(item, result);
+      result = mergeParagraph(mergeParagraph(named(story.defaultStyle).paragraph, named(item2.style).paragraph), item2.paragraph);
+      paragraphs.set(item2, result);
     }
     return result;
   }
-  function character(story, item, offset) {
-    let result = paragraph(story, item).character ?? {};
+  function character(story, item2, offset) {
+    let result = paragraph(story, item2).character ?? {};
     let low = 0, high = story.spans.length - 1;
     while (low <= high) {
       const middle = low + high >>> 1;
@@ -38686,9 +38695,9 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
     rx2 = rx * rx;
     ry2 = ry * ry;
   }
-  const num11 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
+  const num12 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
   const den = rx2 * y1p2 + ry2 * x1p2;
-  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num11 / den);
+  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num12 / den);
   const cxp = coef * rx * y1p / ry;
   const cyp = -coef * ry * x1p / rx;
   const cx2 = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
@@ -38798,9 +38807,9 @@ function quadRoots01(a, b, c) {
   if (disc < 0) return out;
   const s = Math.sqrt(disc);
   const q = -0.5 * (b + (b < 0 ? -s : s));
-  const r1 = q / a, r25 = q !== 0 ? c / q : r1;
-  if (r1 > 0 && r1 < 1) out.push(r1);
-  if (r25 !== r1 && r25 > 0 && r25 < 1) out.push(r25);
+  const r12 = q / a, r26 = q !== 0 ? c / q : r12;
+  if (r12 > 0 && r12 < 1) out.push(r12);
+  if (r26 !== r12 && r26 > 0 && r26 < 1) out.push(r26);
   return out;
 }
 function extremaCubic(c) {
@@ -38932,9 +38941,9 @@ function rootsIn01(co, len2, depth, out, withCritical = false, minimaOnly = fals
     const disc = bb * bb - 4 * aa * cc;
     if (disc < 0) return 0;
     const s = Math.sqrt(disc);
-    const r1 = (-bb - (bb < 0 ? -s : s)) / 2;
-    const t1 = r1 / aa;
-    const t2 = r1 !== 0 ? cc / r1 : t1;
+    const r12 = (-bb - (bb < 0 ? -s : s)) / 2;
+    const t1 = r12 / aa;
+    const t2 = r12 !== 0 ? cc / r12 : t1;
     const lo = Math.min(t1, t2), hi = Math.max(t1, t2);
     let count5 = 0;
     if (lo >= 0 && lo <= 1) out[count5++] = lo;
@@ -39163,17 +39172,17 @@ function emojiTextPath(d) {
   const paths = pathFromSubPaths(parseSvgPath(d));
   if (paths.length !== 1 || !paths[0]?.curves.length || paths[0].curves.length > 512) throw new Error("SVG text needs one bounded continuous path.");
   const points = [];
-  let length = 0;
+  let length2 = 0;
   for (const curve of paths[0].curves) {
     if (curve.some((value) => !Number.isFinite(value) || Math.abs(value) > 1e6)) throw new Error("SVG text path coordinates are unsupported.");
     for (let i = points.length ? 1 : 0; i <= 64; i++) {
       const p = evalCubic(curve, i / 64), last = points.at(-1);
-      if (last) length += Math.hypot(p.x - last.x, p.y - last.y);
-      points.push({ ...p, s: length });
+      if (last) length2 += Math.hypot(p.x - last.x, p.y - last.y);
+      points.push({ ...p, s: length2 });
     }
   }
-  if (!(length > 0)) throw new Error("SVG text needs a nonempty path.");
-  return { length, at(distance3) {
+  if (!(length2 > 0)) throw new Error("SVG text needs a nonempty path.");
+  return { length: length2, at(distance3) {
     if (!Number.isFinite(distance3)) throw new Error("Invalid SVG text path offset.");
     let lo = 0, hi = points.length - 1;
     while (hi - lo > 1) {
@@ -39205,8 +39214,8 @@ function property2(node, name, fallback = "") {
   for (let at = node; at; at = at.parentElement) {
     const computed = at.ownerDocument.defaultView?.getComputedStyle(at).getPropertyValue(name);
     if (computed && !/^(inherit|initial|unset)$/.test(computed)) return computed;
-    const attr4 = at.getAttribute(name);
-    if (attr4) return attr4;
+    const attr5 = at.getAttribute(name);
+    if (attr5) return attr5;
   }
   return fallback;
 }
@@ -39265,7 +39274,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text7, options2 = {}
     group.setAttribute("data-lolly-emoji-svg", "1");
     group.setAttribute("role", "img");
     group.setAttribute("aria-label", raw);
-    for (const attr4 of Array.from(source.attributes)) if (!layout.has(attr4.name) && attr4.name !== "id") group.setAttribute(attr4.name, attr4.value);
+    for (const attr5 of Array.from(source.attributes)) if (!layout.has(attr5.name) && attr5.name !== "id") group.setAttribute(attr5.name, attr5.value);
     const sourceId = source.getAttribute("id");
     if (sourceId) group.setAttribute("id", sourceId);
     let markup = "";
@@ -39290,7 +39299,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text7, options2 = {}
         const weight = weightRaw === "bold" ? 700 : parseFloat(weightRaw) || 400;
         const italic = /italic|oblique/.test(property2(line, "font-style"));
         let font = null;
-        for (const name of family2.split(",").map((item) => item.trim().replace(/^['"]|['"]$/g, ""))) {
+        for (const name of family2.split(",").map((item2) => item2.trim().replace(/^['"]|['"]$/g, ""))) {
           if (name) font = await text7.fontUrl(name, { weight, italic });
           if (font) break;
         }
@@ -39356,7 +39365,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text7, options2 = {}
           if (!/^#[A-Za-z_][\w.-]*$/.test(href)) throw new Error("SVG text paths need a local path.");
           let scope = source;
           while (scope.parentElement && scope.tagName.toLowerCase() !== "svg") scope = scope.parentElement;
-          const path = Array.from(scope.querySelectorAll("path")).find((item) => item.getAttribute("id") === href.slice(1));
+          const path = Array.from(scope.querySelectorAll("path")).find((item2) => item2.getAttribute("id") === href.slice(1));
           if (!path || path.getAttribute("transform") || path.getAttribute("pathLength")) throw new Error("SVG text path transforms need explicit outlines.");
           const curve = emojiTextPath(path.getAttribute("d") || "");
           const offset = line.getAttribute("startOffset") || "0";
@@ -39385,7 +39394,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text7, options2 = {}
       result.census.push(...pending2.census);
     } catch (error2) {
       const fallback = source.ownerDocument.createElementNS(NS, "text");
-      for (const attr4 of Array.from(source.attributes)) if (!["id", "transform"].includes(attr4.name)) fallback.setAttribute(attr4.name, attr4.value);
+      for (const attr5 of Array.from(source.attributes)) if (!["id", "transform"].includes(attr5.name)) fallback.setAttribute(attr5.name, attr5.value);
       fallback.textContent = spans.map((span) => span.kind === "text" ? span.text : "\u25A1").join("");
       markup = "";
       group.appendChild(fallback);
@@ -39477,7 +39486,7 @@ function createEmojiToolText(api, text7, selected) {
       }
       layout2.emojiSources = structuredClone(census);
       while (sources.size > 512) sources.delete(sources.keys().next().value);
-      for (const item of prepared3.request.artwork) if (item.sha256 && !layout2.resources.some((resource) => resource.id === item.id && resource.sha256 === item.sha256)) layout2.resources.push({ id: item.id, sha256: item.sha256 });
+      for (const item2 of prepared3.request.artwork) if (item2.sha256 && !layout2.resources.some((resource) => resource.id === item2.id && resource.sha256 === item2.sha256)) layout2.resources.push({ id: item2.id, sha256: item2.sha256 });
       return layout2;
     },
     async renderSvg(source) {
@@ -39516,13 +39525,13 @@ function createEmojiToolText(api, text7, selected) {
       let outputSize = 0;
       let x = 0, top = -size, bottom = size * 0.3;
       const parts = [];
-      const num11 = (v) => String(Math.round(v * 1e6) / 1e6);
+      const num12 = (v) => String(Math.round(v * 1e6) / 1e6);
       for (const segment of prepared3.segments) {
         if (segment.kind === "text") {
           if (!font || !text7) throw new Error("The selected face is unavailable for artwork text.");
           const run3 = await text7.toPath({ text: segment.text, fontUrl: font.url, fontSize: size, variations: font.variations, letterSpacing: spacing, preserveWhitespaceAdvance: true });
           if (run3.notdef) throw new Error("The selected face does not cover this artwork text.");
-          parts.push(`<path transform="translate(${num11(x)} 0)" fill="${fill2}" d="${escapeXml(run3.d)}"/>`);
+          parts.push(`<path transform="translate(${num12(x)} 0)" fill="${fill2}" d="${escapeXml(run3.d)}"/>`);
           x += run3.advanceWidth;
           if (run3.bbox) {
             top = Math.min(top, run3.bbox.y1);
@@ -39530,12 +39539,12 @@ function createEmojiToolText(api, text7, selected) {
           }
         } else if (segment.kind === "emoji") {
           const m2 = segment.metrics, y = (m2.descentEm - m2.heightEm) * size;
-          parts.push(segment.markup.replace(/<svg\b[^>]*>/, (tag2) => tag2.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace("<svg", `<svg x="${num11(x)}" y="${num11(y)}" width="${num11(m2.widthEm * size)}" height="${num11(m2.heightEm * size)}"`)));
+          parts.push(segment.markup.replace(/<svg\b[^>]*>/, (tag2) => tag2.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace("<svg", `<svg x="${num12(x)}" y="${num12(y)}" width="${num12(m2.widthEm * size)}" height="${num12(m2.heightEm * size)}"`)));
           x += m2.advanceEm * size + spacing;
           top = Math.min(top, y);
           bottom = Math.max(bottom, m2.descentEm * size);
         } else {
-          parts.push(`<rect x="${num11(x + size * 0.1)}" y="${num11(-size * 0.75)}" width="${num11(size * 0.7)}" height="${num11(size * 0.8)}" fill="none" stroke="${fill2}" stroke-width="${num11(size * 0.05)}"/>`);
+          parts.push(`<rect x="${num12(x + size * 0.1)}" y="${num12(-size * 0.75)}" width="${num12(size * 0.7)}" height="${num12(size * 0.8)}" fill="none" stroke="${fill2}" stroke-width="${num12(size * 0.05)}"/>`);
           x += size;
         }
         outputSize += parts.at(-1)?.length ?? 0;
@@ -39545,7 +39554,7 @@ function createEmojiToolText(api, text7, selected) {
       sources.set(opts.text, census);
       if (sources.size > 64) sources.delete(sources.keys().next().value);
       const width = Math.max(1, Math.ceil(x + 2)), height = Math.max(1, Math.ceil(bottom - top + 2));
-      return { width, height, baseline: 1 - top, advanceWidth: x, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="-1 ${num11(top - 1)} ${width} ${height}" color="${fill2}">${parts.join("")}</svg>` };
+      return { width, height, baseline: 1 - top, advanceWidth: x, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="-1 ${num12(top - 1)} ${width} ${height}" color="${fill2}">${parts.join("")}</svg>` };
     }
   };
 }
@@ -39797,8 +39806,8 @@ function parseTextFrame(value) {
   if (value.mode === "path" && !value.path || value.mode !== "path" && value.path) throw new TextSourceError("frame-path", "Path settings must belong to a path text frame.");
   if (value.path) {
     svgPath(value.path.d);
-    const length = emojiTextPath(value.path.d).length, closed = !!parseSvgPath(value.path.d)[0]?.closed;
-    if (value.path.start >= length || value.path.end > (closed ? value.path.start + length : length) + 1e-3) throw new TextSourceError("path-interval", "Choose an interval within the guide, with at most one traversal of a closed path.");
+    const length2 = emojiTextPath(value.path.d).length, closed = !!parseSvgPath(value.path.d)[0]?.closed;
+    if (value.path.start >= length2 || value.path.end > (closed ? value.path.start + length2 : length2) + 1e-3) throw new TextSourceError("path-interval", "Choose an interval within the guide, with at most one traversal of a closed path.");
     if (value.path.end <= value.path.start) throw new TextSourceError("frame-path", "The path interval must end after it starts.");
   }
   if (value.inset.left + value.inset.right + (value.columns.count - 1) * value.columns.gutter >= value.width || value.inset.top + value.inset.bottom >= value.height)
@@ -40160,9 +40169,9 @@ __export(emoji_dom_exports, {
   emojiTextTrigger: () => emojiTextTrigger,
   revertEmojiDom: () => revertEmojiDom
 });
-function placementPrefix(scope, item, chunk6) {
+function placementPrefix(scope, item2, chunk6) {
   const base = SCOPE_PATTERN.test(scope) ? scope : "e";
-  return chunk6 === 0 ? `${base}${item}` : `${base}${item}c${chunk6}`;
+  return chunk6 === 0 ? `${base}${item2}` : `${base}${item2}c${chunk6}`;
 }
 function documentFor(node) {
   const owner2 = node.ownerDocument;
@@ -40213,8 +40222,8 @@ function spanMarkup(segment, at) {
   if (segment.kind === "text") return escapeChars(segment.text);
   const common = `role="img" data-emoji="${escapeChars(segment.text)}" data-emoji-at="${at}"`;
   if (segment.kind === "unresolved") {
-    const label2 = `${segment.label ?? segment.text}${EMOJI_UNSET_LABEL}`;
-    return `<span class="${EMOJI_SPAN_CLASS} ${EMOJI_UNSET_CLASS}" ${common} aria-label="${escapeChars(label2)}" data-emoji-why="${escapeXml(segment.reason)}" style="${PLACEHOLDER_STYLE}">${EMOJI_PLACEHOLDER_SVG}${hiddenText(segment.text)}</span>`;
+    const label3 = `${segment.label ?? segment.text}${EMOJI_UNSET_LABEL}`;
+    return `<span class="${EMOJI_SPAN_CLASS} ${EMOJI_UNSET_CLASS}" ${common} aria-label="${escapeChars(label3)}" data-emoji-why="${escapeXml(segment.reason)}" style="${PLACEHOLDER_STYLE}">${EMOJI_PLACEHOLDER_SVG}${hiddenText(segment.text)}</span>`;
   }
   return `<span class="${EMOJI_SPAN_CLASS}" ${common} aria-label="${escapeChars(segment.label)}" data-emoji-key="${escapeXml(segment.key)}" data-emoji-sum="${shortSum(segment.source.canonicalChecksum)}" style="${escapeXml(emojiInlineStyle(segment.metrics))}">${artworkMarkup(segment.markup)}${hiddenText(segment.text)}</span>`;
 }
@@ -40260,11 +40269,11 @@ async function applyEmojiToDom(root2, style, packs, io, options2 = {}) {
   const work = collect(root2, options2);
   const scope = options2.idScope ?? "e";
   for (let at = 0; at < work.length; at++) {
-    const item = work[at];
-    const parent = item.node.parentNode;
+    const item2 = work[at];
+    const parent = item2.node.parentNode;
     if (!parent) continue;
     const segments = [];
-    const chunks = chunkText(item.text);
+    const chunks = chunkText(item2.text);
     for (let chunk6 = 0; chunk6 < chunks.length; chunk6++) {
       let prepared3;
       const prefix = placementPrefix(scope, at, chunk6);
@@ -40276,7 +40285,7 @@ async function applyEmojiToDom(root2, style, packs, io, options2 = {}) {
       }
       segments.push(...prepared3.segments);
     }
-    let offset = item.at;
+    let offset = item2.at;
     let html = "";
     let rewrite = false;
     for (const segment of segments) {
@@ -40291,15 +40300,15 @@ async function applyEmojiToDom(root2, style, packs, io, options2 = {}) {
           census.push(entry2);
         }
         entry2.occurrences.push({ start: offset, end: offset + segment.text.length });
-        if (item.kind === "text" || item.node.getAttribute("data-emoji-sum") !== shortSum(segment.source.canonicalChecksum)) rewrite = true;
+        if (item2.kind === "text" || item2.node.getAttribute("data-emoji-sum") !== shortSum(segment.source.canonicalChecksum)) rewrite = true;
       } else if (segment.kind === "unresolved") {
         unresolved++;
-        if (item.kind === "text" || !isUnsetSpan(item.node)) rewrite = true;
+        if (item2.kind === "text" || !isUnsetSpan(item2.node)) rewrite = true;
       }
       offset += segment.text.length;
     }
     if (!rewrite) continue;
-    insertMarkup(doc, parent, item.node, html);
+    insertMarkup(doc, parent, item2.node, html);
   }
   return { replaced, unresolved, census };
 }
@@ -40308,11 +40317,11 @@ function revertEmojiDom(root2) {
   const doc = documentFor(root2);
   if (!doc) return 0;
   let reverted = 0;
-  for (const item of collect(root2, {}, true)) {
-    if (item.kind !== "span") continue;
-    const parent = item.node.parentNode;
+  for (const item2 of collect(root2, {}, true)) {
+    if (item2.kind !== "span") continue;
+    const parent = item2.node.parentNode;
     if (!parent) continue;
-    insertMarkup(doc, parent, item.node, escapeChars(item.text));
+    insertMarkup(doc, parent, item2.node, escapeChars(item2.text));
     parent.normalize?.();
     reverted++;
   }
@@ -41599,16 +41608,16 @@ function parsePdf(bin) {
   return { startxref, entries, root: root2, maxNum, infoRaw: infoM ? infoM[0] : null, idRaw: idM ? idM[0] : null };
 }
 function catalogSource(bin, info) {
-  const { num: num11, gen } = info.root;
-  const headRe = new RegExp(`^${num11}\\s+${gen}\\s+obj\\b`);
+  const { num: num12, gen } = info.root;
+  const headRe = new RegExp(`^${num12}\\s+${gen}\\s+obj\\b`);
   let at = -1;
-  const entry2 = info.entries.get(num11);
+  const entry2 = info.entries.get(num12);
   if (entry2 && entry2.type === "n") {
     const i2 = skipWs(bin, entry2.offset);
     if (headRe.test(bin.slice(i2, i2 + 32))) at = i2;
   }
   if (at < 0) {
-    const re = new RegExp(`(?:^|[^0-9])(${num11}\\s+${gen}\\s+obj)\\b`, "g");
+    const re = new RegExp(`(?:^|[^0-9])(${num12}\\s+${gen}\\s+obj)\\b`, "g");
     for (let m2; m2 = re.exec(bin); ) at = m2.index + m2[0].length - m2[1].length;
   }
   if (at < 0) throw new Error("C2PA embed: cannot locate the PDF Catalog object");
@@ -41654,7 +41663,7 @@ async function embedC2paInPdf(pdfBytes, { title, claimGenerator, generatorInfo, 
   const efNum = info.maxNum + 2;
   const fsRef = `${fsNum} 0 R`;
   const catalog = catalogWithAttachment(catalogSource(bin, info), fsRef);
-  const sep2 = bin.endsWith("\n") || bin.endsWith("\r") ? "" : "\n";
+  const sep3 = bin.endsWith("\n") || bin.endsWith("\r") ? "" : "\n";
   const catObj = `${info.root.num} ${info.root.gen} obj
 ${catalog}
 endobj
@@ -41666,10 +41675,10 @@ endobj
   const afterStream = "\nendstream\nendobj\n";
   const trailerExtra = (info.infoRaw ? " " + info.infoRaw : "") + (info.idRaw ? " " + info.idRaw : "");
   const layoutFor2 = (manifestLen2) => {
-    const catOff = pdfBytes.length + sep2.length;
+    const catOff = pdfBytes.length + sep3.length;
     const fsOff = catOff + catObj.length;
     const efOff = fsOff + fsObj.length;
-    const head2 = sep2 + catObj + fsObj + `${efNum} 0 obj
+    const head2 = sep3 + catObj + fsObj + `${efNum} 0 obj
 << /Type /EmbeddedFile /Subtype /application#2Fc2pa /Length ${manifestLen2} >>
 stream
 `;
@@ -41849,14 +41858,14 @@ function placeGif(gif, manifest) {
     const b = gif[i];
     if (b === 44 || b === 59) break;
     if (b !== 33) throw new Error("C2PA embed: malformed GIF block");
-    const label2 = gif[i + 1];
+    const label3 = gif[i + 1];
     let j = i + 2;
     if (j >= gif.length) throw new Error("C2PA embed: truncated GIF block");
-    if (label2 === 255 || label2 === 1 || label2 === 249) j += 1 + gif[j];
+    if (label3 === 255 || label3 === 1 || label3 === 249) j += 1 + gif[j];
     while (j < gif.length && gif[j] !== 0) j += 1 + gif[j];
     if (j >= gif.length) throw new Error("C2PA embed: truncated GIF sub-blocks");
     j += 1;
-    if (label2 === 255 && String.fromCharCode(...gif.subarray(i + 3, i + 11)) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0) {
+    if (label3 === 255 && String.fromCharCode(...gif.subarray(i + 3, i + 11)) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0) {
       drop = { start: i, end: j };
     }
     i = j;
@@ -41981,15 +41990,15 @@ function placeTiff(tiff, manifest) {
     ]
   };
 }
-function placeRiff(riff, manifest, form, label2) {
+function placeRiff(riff, manifest, form, label3) {
   const fourcc4 = (o) => String.fromCharCode(riff[o], riff[o + 1], riff[o + 2], riff[o + 3]);
-  if (riff.length < 12 || fourcc4(0) !== "RIFF" || fourcc4(8) !== form) throw new Error(`C2PA embed: not a ${label2}`);
+  if (riff.length < 12 || fourcc4(0) !== "RIFF" || fourcc4(8) !== form) throw new Error(`C2PA embed: not a ${label3}`);
   const dv = new DataView(riff.buffer, riff.byteOffset);
   let drop = null;
   for (let i = 12; i + 8 <= riff.length; ) {
     const size = dv.getUint32(i + 4, true);
     const end = i + 8 + size + (size & 1);
-    if (end > riff.length + 1) throw new Error(`C2PA embed: malformed ${label2} chunk`);
+    if (end > riff.length + 1) throw new Error(`C2PA embed: malformed ${label3} chunk`);
     if (fourcc4(i) === "C2PA") drop = { start: i, end: Math.min(end, riff.length) };
     i = end;
   }
@@ -42448,17 +42457,17 @@ function armorIndices(bin, needle, cap) {
   for (let at = bin.indexOf(needle); at >= 0 && out.length < cap; at = bin.indexOf(needle, at + needle.length)) out.push(at);
   return out;
 }
-function stripArmorBlock(bin, label2) {
+function stripArmorBlock(bin, label3) {
   const begins = armorIndices(bin, ARMOR_BEGIN, 2);
   const ends = armorIndices(bin, ARMOR_END, 2);
   if (!begins.length && !ends.length) return bin;
   const begin = begins[0];
   const end = ends[0];
   if (begins.length !== 1 || ends.length !== 1 || end < begin + ARMOR_BEGIN.length) {
-    throw new Error(`C2PA embed: this ${label2} already carries more than one - or a malformed - C2PA manifest block (section A.9.3 allows at most one)`);
+    throw new Error(`C2PA embed: this ${label3} already carries more than one - or a malformed - C2PA manifest block (section A.9.3 allows at most one)`);
   }
   const refuse = (what) => {
-    throw new Error(`C2PA embed: this ${label2} quotes the section A.9 armour delimiters ${what} - refusing to delete it, and a second block would make the file unreadable`);
+    throw new Error(`C2PA embed: this ${label3} quotes the section A.9 armour delimiters ${what} - refusing to delete it, and a second block would make the file unreadable`);
   };
   const lineStart = bin.lastIndexOf("\n", begin) + 1;
   const nl = bin.indexOf("\n", end);
@@ -42498,9 +42507,9 @@ function attachC2paStore(bytes, format, store) {
 }
 async function embedC2pa(bytes, format, opts = {}) {
   if (!(bytes instanceof Uint8Array)) throw new Error("C2PA embed: bytes must be a Uint8Array");
-  const fmt3 = String(format || "").toLowerCase();
-  if (fmt3 === "pdf" || fmt3 === "pdf-cmyk") return embedC2paInPdf(bytes, opts);
-  const container = CONTAINERS[fmt3];
+  const fmt4 = String(format || "").toLowerCase();
+  if (fmt4 === "pdf" || fmt4 === "pdf-cmyk") return embedC2paInPdf(bytes, opts);
+  const container = CONTAINERS[fmt4];
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === "bmff";
   const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer } = opts;
@@ -42919,8 +42928,8 @@ function isoBox(type, ...payloads) {
   out.set(body, 8);
   return out;
 }
-function jumbfSuperbox(uuid, label2, ...children) {
-  const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te5.encode(label2), Uint8Array.of(0));
+function jumbfSuperbox(uuid, label3, ...children) {
+  const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te5.encode(label3), Uint8Array.of(0));
   return isoBox("jumb", jumd, ...children);
 }
 async function coseSign1Detached(signer, payload) {
@@ -42962,8 +42971,8 @@ function collectAiIngredientDeclarations(model2) {
     if (input.type === "asset") read(input.value);
     else if (input.type === "blocks" && Array.isArray(input.value)) {
       const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
-      for (const item of input.value) {
-        if (item && typeof item === "object") for (const fid of assetFields) read(item[fid]);
+      for (const item2 of input.value) {
+        if (item2 && typeof item2 === "object") for (const fid of assetFields) read(item2[fid]);
       }
     }
   }
@@ -43071,7 +43080,7 @@ async function buildC2paManifest({
   const rightsSources = [];
   for (let i = 0; i < ingList.length; i++) {
     const ing = ingList[i];
-    const label2 = ingList.length > 1 ? `c2pa.ingredient.v3__${i + 1}` : "c2pa.ingredient.v3";
+    const label3 = ingList.length > 1 ? `c2pa.ingredient.v3__${i + 1}` : "c2pa.ingredient.v3";
     let ingAssertion;
     if (isSourceIngredient(ing)) {
       ingAssertion = sourceIngredientAssertion(ing);
@@ -43093,12 +43102,12 @@ async function buildC2paManifest({
         }
       };
     }
-    const box3 = jumbfSuperbox(UUID_CBOR_CONTENT, label2, isoBox("cbor", encodeCbor(ingAssertion)));
+    const box3 = jumbfSuperbox(UUID_CBOR_CONTENT, label3, isoBox("cbor", encodeCbor(ingAssertion)));
     const hash = await sha256(box3.subarray(8));
     ingredientBoxes.push(box3);
-    ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label2}`, hash });
-    ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label2}`, alg: "sha256", hash });
-    if (isSourceIngredient(ing) && ing.rights) rightsSources.push(rightsSourceEntry(ing.rights, { url: `self#jumbf=c2pa.assertions/${label2}`, alg: "sha256", hash }));
+    ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label3}`, hash });
+    ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label3}`, alg: "sha256", hash });
+    if (isSourceIngredient(ing) && ing.rights) rightsSources.push(rightsSourceEntry(ing.rights, { url: `self#jumbf=c2pa.assertions/${label3}`, alg: "sha256", hash }));
   }
   const ingredientSteps = ingList.map((ing, i) => {
     const placed2 = relationships[i] === "componentOf";
@@ -45083,9 +45092,9 @@ function extractC2paFromPdf(pdfBytes) {
   let start = streamKw + 6;
   if (bin[start] === "\r") start++;
   if (bin[start] === "\n") start++;
-  const length = +lenM[1];
-  if (start + length > pdfBytes.length) throw new Error("C2PA manifest stream overruns the file");
-  return { manifest: pdfBytes.slice(start, start + length), start };
+  const length2 = +lenM[1];
+  if (start + length2 > pdfBytes.length) throw new Error("C2PA manifest stream overruns the file");
+  return { manifest: pdfBytes.slice(start, start + length2), start };
 }
 function maskMarkupNoise(head2) {
   if (!head2.includes("<!--") && !head2.includes("<?")) return head2;
@@ -45227,11 +45236,11 @@ function extractC2paFromGif(gif) {
     const b = gif[i];
     if (b === 44 || b === 59) break;
     if (b !== 33) throw new Error("malformed GIF block");
-    const label2 = gif[i + 1];
+    const label3 = gif[i + 1];
     let j = i + 2;
     if (j >= gif.length) throw new Error("truncated GIF block");
-    if (label2 === 255 || label2 === 1 || label2 === 249) j += 1 + gif[j];
-    const isC2pa = label2 === 255 && ascii(gif, i + 3, 8) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0;
+    if (label3 === 255 || label3 === 1 || label3 === 249) j += 1 + gif[j];
+    const isC2pa = label3 === 255 && ascii(gif, i + 3, 8) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0;
     const parts = [];
     while (j < gif.length && gif[j] !== 0) {
       const n6 = gif[j];
@@ -45771,18 +45780,18 @@ function readTextVs(bytes) {
 }
 function extractC2paDetailed(bytes, format) {
   if (!(bytes instanceof Uint8Array)) return null;
-  const fmt3 = format ?? sniffFormat(bytes);
-  if (!fmt3) return null;
-  if (!Object.hasOwn(TEXT_READERS, fmt3) && !Object.hasOwn(EXTRACTORS, fmt3)) return null;
-  if (Object.hasOwn(TEXT_READERS, fmt3)) {
-    const { fatal, ...rest2 } = TEXT_READERS[fmt3](bytes);
-    return { ...rest2, ...fatal && !rest2.detail ? { detail: fatal } : {}, format: fmt3 };
+  const fmt4 = format ?? sniffFormat(bytes);
+  if (!fmt4) return null;
+  if (!Object.hasOwn(TEXT_READERS, fmt4) && !Object.hasOwn(EXTRACTORS, fmt4)) return null;
+  if (Object.hasOwn(TEXT_READERS, fmt4)) {
+    const { fatal, ...rest2 } = TEXT_READERS[fmt4](bytes);
+    return { ...rest2, ...fatal && !rest2.detail ? { detail: fatal } : {}, format: fmt4 };
   }
   try {
-    const ex = EXTRACTORS[fmt3](bytes) ?? null;
-    return { store: ex ? ex.manifest : null, format: fmt3 };
+    const ex = EXTRACTORS[fmt4](bytes) ?? null;
+    return { store: ex ? ex.manifest : null, format: fmt4 };
   } catch (err) {
-    return { store: null, format: fmt3, status: C2PA_TEXT_STATUS.credentialUnreadable, detail: err.message };
+    return { store: null, format: fmt4, status: C2PA_TEXT_STATUS.credentialUnreadable, detail: err.message };
   }
 }
 function collectActionChain(store) {
@@ -45949,7 +45958,7 @@ function collectIngredientRecords(store) {
         } else if (RIGHTS_LABEL.test(ab.label)) {
           try {
             const map = decodeCbor(contentOf(store, ab));
-            if (map instanceof Map) for (const [label2, record20] of rightsEntries(map)) rights.set(label2, record20);
+            if (map instanceof Map) for (const [label3, record20] of rightsEntries(map)) rights.set(label3, record20);
           } catch {
           }
         }
@@ -45963,9 +45972,9 @@ function collectIngredientRecords(store) {
   }
   return out;
 }
-function ingredientRecord(manifest, label2, map) {
+function ingredientRecord(manifest, label3, map) {
   const active = map.get("activeManifest") ?? map.get("c2pa_manifest");
-  const record20 = { manifest, label: label2, credentialed: active instanceof Map };
+  const record20 = { manifest, label: label3, credentialed: active instanceof Map };
   const activeUrl = active instanceof Map ? asText(active.get("url")) : void 0;
   if (activeUrl) record20.activeManifest = activeUrl;
   const relationship = asText(map.get("relationship"));
@@ -46769,8 +46778,8 @@ async function verifyC2pa(bytes, { trustAnchors, externalManifest } = {}) {
       fail5(C2PA_CHECK.assertionHashedUriMismatch, "malformed assertion reference in the claim");
       continue;
     }
-    const label2 = url.startsWith(HASHED_URI_PREFIX) ? url.slice(HASHED_URI_PREFIX.length) : null;
-    const assertion = label2 && parts.assertions.find((a) => a.label === label2);
+    const label3 = url.startsWith(HASHED_URI_PREFIX) ? url.slice(HASHED_URI_PREFIX.length) : null;
+    const assertion = label3 && parts.assertions.find((a) => a.label === label3);
     if (!assertion) {
       fail5(C2PA_CHECK.assertionMissing, `claim references ${url} but the store has no such assertion`);
       continue;
@@ -47130,7 +47139,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let outstandingSeq = 0;
   const settleWaiters = [];
   const flushSettled = () => {
-    for (const resolve6 of settleWaiters.splice(0)) resolve6();
+    for (const resolve7 of settleWaiters.splice(0)) resolve7();
   };
   const noteLanded = (seq) => {
     if (seq !== outstandingSeq) return;
@@ -47145,8 +47154,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     const seq = onLate ? ++hookRunSeq : 0;
     let finished = false;
     let markReady;
-    const ready = new Promise((resolve6) => {
-      markReady = () => resolve6("ready");
+    const ready = new Promise((resolve7) => {
+      markReady = () => resolve7("ready");
     });
     const report2 = onLate ? (patch, opts2) => {
       if (finished || seq !== hookRunSeq) return;
@@ -47522,7 +47531,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     result.replaced += svg.replaced;
     result.unresolved += svg.unresolved;
     for (const source of svg.census) {
-      const prior = result.census.find((item) => item.pack.checksum === source.pack.checksum && item.assetId === source.assetId && item.canonicalChecksum === source.canonicalChecksum);
+      const prior = result.census.find((item2) => item2.pack.checksum === source.pack.checksum && item2.assetId === source.assetId && item2.canonicalChecksum === source.canonicalChecksum);
       if (prior) prior.occurrences.push(...source.occurrences);
       else result.census.push(source);
     }
@@ -47804,9 +47813,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       return () => listeners.delete(fn);
     },
     whenSettled() {
-      return new Promise((resolve6) => {
-        if (outstandingSeq && !destroyed) settleWaiters.push(resolve6);
-        else setTimeout(resolve6, 0);
+      return new Promise((resolve7) => {
+        if (outstandingSeq && !destroyed) settleWaiters.push(resolve7);
+        else setTimeout(resolve7, 0);
       });
     },
     // Re-notify subscribers with the CURRENT model - no value change. For shell
@@ -48027,7 +48036,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       return out;
     },
     async export(renderedNode, format, opts2 = {}) {
-      const composedSource = model2.some((item) => item.id === "textDocument" && item.value) || !!extras.__lollyTextPreflight;
+      const composedSource = model2.some((item2) => item2.id === "textDocument" && item2.value) || !!extras.__lollyTextPreflight;
       const exportRevision = composedSource ? JSON.stringify([modelToValues(model2), emojiStyle]) : null;
       const checkTextRevision = () => {
         if (exportRevision !== null && exportRevision !== JSON.stringify([modelToValues(model2), emojiStyle]))
@@ -48131,8 +48140,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           if (input.type === "asset") note(input.value);
           else if (input.type === "blocks" && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
-            for (const item of input.value) {
-              if (item && typeof item === "object") for (const fid of assetFields) note(item[fid]);
+            for (const item2 of input.value) {
+              if (item2 && typeof item2 === "object") for (const fid of assetFields) note(item2[fid]);
             }
           }
         }
@@ -48180,10 +48189,10 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             c2paAiUpscale = readUpscale(input.value);
           } else if (input.type === "blocks" && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
-            for (const item of input.value) {
-              if (item && typeof item === "object") {
+            for (const item2 of input.value) {
+              if (item2 && typeof item2 === "object") {
                 for (const fid of assetFields) {
-                  c2paAiUpscale = readUpscale(item[fid]);
+                  c2paAiUpscale = readUpscale(item2[fid]);
                   if (c2paAiUpscale) break;
                 }
               }
@@ -48304,19 +48313,19 @@ function inputNeedsAssetResolve(input) {
   if (input.type === "blocks" && Array.isArray(v)) {
     const assetFields = (input.fields ?? []).filter((f) => f.type === "asset");
     if (!assetFields.length) return false;
-    return v.some((item) => item && typeof item === "object" && assetFields.some((f) => assetRefId(item[f.id]) !== null));
+    return v.some((item2) => item2 && typeof item2 === "object" && assetFields.some((f) => assetRefId(item2[f.id]) !== null));
   }
   return false;
 }
 async function resolveAssetRefs(model2, host, dropped = [], composeStack = [], toolId = "") {
   if (!model2.some(inputNeedsAssetResolve)) return model2;
-  const resolveOne = async (value, id2, inputId, label2) => {
+  const resolveOne = async (value, id2, inputId, label3) => {
     let pin;
     try {
       if (isBakedRef(value)) {
         const ref = value;
         if (typeof ref.url === "string" && ref.url.startsWith("data:")) return ref;
-        dropped.push({ inputId, label: label2, id: id2, reason: "baked-bytes-lost" });
+        dropped.push({ inputId, label: label3, id: id2, reason: "baked-bytes-lost" });
         return null;
       }
       const decoded = decodeAssetVersion(id2);
@@ -48334,20 +48343,20 @@ async function resolveAssetRefs(model2, host, dropped = [], composeStack = [], t
           id2
         ) : null;
         if (ref) return ref;
-        dropped.push({ inputId, label: label2, id: id2, reason: "render-failed" });
+        dropped.push({ inputId, label: label3, id: id2, reason: "render-failed" });
         return null;
       }
       const providerRef = parseProviderRef(id2);
       if (providerRef && providerRef.provider !== "http" && providerRef.provider !== "https") {
         const resolved2 = await host.assets.resolveProvider?.(providerRef) ?? null;
         if (resolved2) return resolved2;
-        dropped.push({ inputId, label: label2, id: id2, reason: "not-found" });
+        dropped.push({ inputId, label: label3, id: id2, reason: "not-found" });
         return null;
       }
       return await host.assets.get(id2);
     } catch (e) {
       host.log("warn", `Failed to resolve asset ${id2}`, { error: String(e) });
-      dropped.push({ inputId, label: label2, id: id2, reason: "not-found" });
+      dropped.push({ inputId, label: label3, id: id2, reason: "not-found" });
       if (pin) return unavailablePinnedAsset(id2, pin, value);
       return null;
     }
@@ -48364,9 +48373,9 @@ async function resolveAssetRefs(model2, host, dropped = [], composeStack = [], t
       if (input.type === "blocks" && Array.isArray(v)) {
         const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
         if (!assetFields.length) return input;
-        const value = await Promise.all(v.map(async (item) => {
-          if (!item || typeof item !== "object") return item;
-          const rec2 = item;
+        const value = await Promise.all(v.map(async (item2) => {
+          if (!item2 || typeof item2 !== "object") return item2;
+          const rec2 = item2;
           const next = { ...rec2 };
           for (const fid of assetFields) {
             const id2 = assetRefId(rec2[fid]);
@@ -48439,12 +48448,12 @@ async function loadHooks(tool, host) {
   };
 }
 function withTimeout2(promise, ms, toolId) {
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve7, reject) => {
     const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
     Promise.resolve(promise).then(
       (v) => {
         clearTimeout(t);
-        resolve6(v);
+        resolve7(v);
       },
       (e) => {
         clearTimeout(t);
@@ -48579,10 +48588,10 @@ function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palet
     let x = trimL;
     if (palette.length && barStyle === "rgb-swatches") {
       let brandCells = 0;
-      for (const { rgb, cmyk, label: label2, spotName } of palette) {
+      for (const { rgb, cmyk, label: label3, spotName } of palette) {
         if (brandCells >= bmax) break;
         if (x + bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label: label2, spotName, mark: "colorbar", r: cellR });
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label: label3, spotName, mark: "colorbar", r: cellR });
         x += bc + bg;
         brandCells += 1;
       }
@@ -48594,11 +48603,11 @@ function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palet
       }
       if (bars.length) x += bgap;
       let brandCells = 0;
-      for (const { rgb, cmyk, label: label2, spotName } of palette) {
+      for (const { rgb, cmyk, label: label3, spotName } of palette) {
         if (brandCells + 2 > bmax) break;
         if (x + 2 * bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label: label2, spotName, mark: "colorbar", r: cellR });
-        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: "cmyk", label: label2, spotName, mark: "colorbar", r: cellR });
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb, ink: "rgb", label: label3, spotName, mark: "colorbar", r: cellR });
+        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: "cmyk", label: label3, spotName, mark: "colorbar", r: cellR });
         x += 2 * bc + bg;
         brandCells += 2;
       }
@@ -48810,9 +48819,9 @@ function pqEotfNorm(code) {
   const m1 = 2610 / 16384, m2 = 2523 / 4096 * 128;
   const c1 = 3424 / 4096, c2 = 2413 / 4096 * 32, c3 = 2392 / 4096 * 32;
   const p = code ** (1 / m2);
-  const num11 = Math.max(p - c1, 0);
+  const num12 = Math.max(p - c1, 0);
   const den = c2 - c3 * p;
-  return (num11 / den) ** (1 / m1);
+  return (num12 / den) ** (1 / m1);
 }
 function pqBt2020IccProfile() {
   if (_pqCache) return _pqCache;
@@ -48949,18 +48958,18 @@ function preflight(job) {
     checks
   };
 }
-function safeReportedJob(job, fmt3, rowIndex2) {
+function safeReportedJob(job, fmt4, rowIndex2) {
   try {
-    return reportedJob(job, fmt3, rowIndex2);
+    return reportedJob(job, fmt4, rowIndex2);
   } catch {
     return {
       toolId: "",
-      format: fmt3,
+      format: fmt4,
       ...rowIndex2 === void 0 ? {} : { rowIndex: rowIndex2 },
       stageMounted: false,
       paletteResolved: false,
       settings: {
-        format: fmt3,
+        format: fmt4,
         size: { width: { value: 0, unit: "px" }, height: { value: 0, unit: "px" }, dpi: 0, declaredBy: "manifest", unitDeclared: false },
         bleed: { known: false, why: "not-set" },
         marks: { known: false, why: "not-set" },
@@ -48969,7 +48978,7 @@ function safeReportedJob(job, fmt3, rowIndex2) {
     };
   }
 }
-function reportedJob(job, fmt3, rowIndex2) {
+function reportedJob(job, fmt4, rowIndex2) {
   const dim = (d) => isDim(d) ? { value: d.value, unit: d.unit } : { value: 0, unit: "px" };
   const s = job?.settings;
   const size = {
@@ -48982,10 +48991,10 @@ function reportedJob(job, fmt3, rowIndex2) {
   const bleed = s?.bleed?.known === true ? { known: true, value: isDim(s.bleed.value) ? dim(s.bleed.value) : null } : { known: false, why: s?.bleed?.known === false ? s.bleed.why : "not-set" };
   const marks = s?.marks?.known === true ? { known: true, value: s.marks.value ?? null } : { known: false, why: s?.marks?.known === false ? s.marks.why : "not-set" };
   const pressProfile = s?.pressProfile?.known === true ? { known: true, value: typeof s.pressProfile.value === "string" ? s.pressProfile.value : null } : { known: false, why: s?.pressProfile?.known === false ? s.pressProfile.why : "not-set" };
-  const settings = { format: fmt3, size, bleed, marks, pressProfile };
+  const settings = { format: fmt4, size, bleed, marks, pressProfile };
   return {
     toolId: typeof job?.manifest?.id === "string" && job.manifest.id || "",
-    format: fmt3,
+    format: fmt4,
     ...rowIndex2 === void 0 ? {} : { rowIndex: rowIndex2 },
     ...typeof job?.source === "string" ? { source: job.source } : {},
     ...typeof job?.modelPhase === "string" ? { modelPhase: job.modelPhase } : {},
@@ -49978,8 +49987,8 @@ function serializeMotionParams(params2, opts) {
     params2.set("seqrange", `${v.from},${v.to}`);
   }
 }
-function blurEnabled(blur) {
-  return !!blur && blur.samples > 1 && blur.shutterAngle > 0;
+function blurEnabled(blur2) {
+  return !!blur2 && blur2.samples > 1 && blur2.shutterAngle > 0;
 }
 function assertMotionRequest(format, opts) {
   if (opts.motionBlur) validateMotionBlur(opts.motionBlur);
@@ -49988,18 +49997,18 @@ function assertMotionRequest(format, opts) {
   if (opts.sequenceRange && (!movie || opts.sampleTimes)) throw new Error("sequenceRange requires a movie export without explicit still samples.");
   if (blurEnabled(opts.motionBlur) && !movie && (!opts.sampleTimes || !["png", "jpg", "jpeg", "webp", "pdf"].includes(format))) throw new Error("Temporal motion blur requires a Sequence movie or explicit raster samples.");
 }
-function shutterTimes(t, fps, from, to, cuts, blur) {
-  if (!blurEnabled(blur)) return [t];
-  validateMotionBlur(blur);
+function shutterTimes(t, fps, from, to, cuts, blur2) {
+  if (!blurEnabled(blur2)) return [t];
+  validateMotionBlur(blur2);
   if (![t, fps, from, to].every(Number.isFinite) || fps <= 0 || to <= from || t < from || t >= to) throw new RangeError("Invalid shutter interval.");
-  const exposure = 1e3 / fps * blur.shutterAngle / 360;
+  const exposure = 1e3 / fps * blur2.shutterAngle / 360;
   let a = Math.max(from, t - exposure / 2), b = Math.min(to, t + exposure / 2);
   for (const cut of cuts) {
     if (cut <= t) a = Math.max(a, cut);
     else b = Math.min(b, cut);
   }
   if (b <= a) return [t];
-  return Array.from({ length: blur.samples }, (_, i) => a + (i + 0.5) * (b - a) / blur.samples);
+  return Array.from({ length: blur2.samples }, (_, i) => a + (i + 0.5) * (b - a) / blur2.samples);
 }
 var LINEAR, encoded, ShutterAccumulator;
 var init_motion_sampling = __esm({
@@ -50013,9 +50022,9 @@ var init_motion_sampling = __esm({
     ShutterAccumulator = class {
       sum;
       count = 0;
-      constructor(length) {
-        if (!Number.isInteger(length) || length <= 0 || length % 4 || length > 64 * 1024 * 1024) throw new RangeError("Motion blur scratch exceeds 256 MiB. Reduce export dimensions.");
-        this.sum = new Float32Array(length);
+      constructor(length2) {
+        if (!Number.isInteger(length2) || length2 <= 0 || length2 % 4 || length2 > 64 * 1024 * 1024) throw new RangeError("Motion blur scratch exceeds 256 MiB. Reduce export dimensions.");
+        this.sum = new Float32Array(length2);
       }
       add(rgba) {
         if (rgba.length !== this.sum.length) throw new RangeError("Motion blur samples must have matching dimensions.");
@@ -50044,8 +50053,8 @@ var init_motion_sampling = __esm({
 function isDesignSystemId(v) {
   return typeof v === "string" && v.length <= DESIGN_SYSTEM_ID_MAX && DESIGN_SYSTEM_ID_RE.test(v);
 }
-function slugifyDesignSystemId(label2) {
-  const folded = label2.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function slugifyDesignSystemId(label3) {
+  const folded = label3.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const id2 = folded.replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, DESIGN_SYSTEM_ID_MAX).replace(/-+$/, "");
   return isDesignSystemId(id2) ? id2 : "design-system";
 }
@@ -50479,6 +50488,10 @@ function serializeUrlState(model2, opts = {}) {
       }
       continue;
     }
+    if (opts.inlineBakedAssets && input.type === "asset" && input.value && typeof input.value === "object" && isBakedRef(input.value) && String(input.value.url ?? "").startsWith("data:")) {
+      params2.set(input.id, String(input.value.url));
+      continue;
+    }
     const str9 = coerceToString(input, input.value, opts.keepUserIds === true);
     if (input.type === "asset" && opts.keepUserIds !== true && str9.startsWith("user/")) continue;
     params2.set(input.id, str9);
@@ -50576,8 +50589,8 @@ function coerceToString(input, value, keepUserIds = false) {
 }
 function decodeBlocksCompact(str9, fields) {
   if (!str9 || !fields.length) return [];
-  return str9.split("~").filter(Boolean).map((item) => {
-    const parts = splitToFields(item, fields.length);
+  return str9.split("~").filter(Boolean).map((item2) => {
+    const parts = splitToFields(item2, fields.length);
     const obj2 = {};
     fields.forEach((f, i) => {
       const part = parts[i] ?? "";
@@ -50601,8 +50614,8 @@ function decodeBlocksCompact(str9, fields) {
 function encodeBlocksCompact(items2, fields, opts = {}) {
   if (!Array.isArray(items2) || !items2.length || !fields.length) return null;
   const cell = (s) => encodeURIComponent(s).replace(/~/g, "%7E");
-  return items2.map((item) => {
-    const row = item && typeof item === "object" ? item : {};
+  return items2.map((item2) => {
+    const row = item2 && typeof item2 === "object" ? item2 : {};
     const vals = fields.map((f) => {
       const raw = row[f.id] !== void 0 ? row[f.id] : f.default;
       if (f.type === "asset") {
@@ -52175,7 +52188,7 @@ function readXmpFields(input, specs) {
   const out = [];
   const namespaces = /* @__PURE__ */ new Map();
   for (const m2 of text7.matchAll(/xmlns:([\w-]+)\s*=\s*["']([^"']+)["']/g)) namespaces.set(m2[1], m2[2]);
-  for (const [fallback, namespace2, property4, group, label2] of specs) {
+  for (const [fallback, namespace2, property4, group, label3] of specs) {
     const prefixes = [...namespaces].filter(([, uri]) => uri === namespace2).map(([prefix]) => prefix);
     if (!namespaces.has(fallback)) prefixes.push(fallback);
     for (const prefix of prefixes) {
@@ -52198,7 +52211,7 @@ function readXmpFields(input, specs) {
           }
         }
         const value = xmlValue(raw ?? "");
-        if (value && !out.some((f) => f.label === label2 && f.value === value)) out.push({ label: label2, value, group, source: `XMP/RDF ${tag2}`, ...label2 === "Creator" || label2.startsWith("Contact ") ? { sensitive: true } : {} });
+        if (value && !out.some((f) => f.label === label3 && f.value === value)) out.push({ label: label3, value, group, source: `XMP/RDF ${tag2}`, ...label3 === "Creator" || label3.startsWith("Contact ") ? { sensitive: true } : {} });
       }
     }
   }
@@ -52519,8 +52532,8 @@ function scalar3(dv, e) {
     if (e.type === 4) return dv.getUint32(e.valueOffset, e.le);
     if (e.type === 5) {
       if (e.valueOffset + 8 > dv.byteLength) return null;
-      const num11 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
-      return den ? num11 / den : 0;
+      const num12 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
+      return den ? num12 / den : 0;
     }
   } catch {
   }
@@ -52532,8 +52545,8 @@ function rationals(dv, e, want) {
   for (let i = 0; i < Math.min(e.count, want); i++) {
     const o = e.valueOffset + i * 8;
     if (o + 8 > dv.byteLength) return null;
-    const num11 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
-    out.push(den ? num11 / den : 0);
+    const num12 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
+    out.push(den ? num12 / den : 0);
   }
   return out.length === want ? out : null;
 }
@@ -52578,9 +52591,9 @@ function readExif(bytes, base, len2, out) {
   else if (b0 === 77 && b1 === 77) le = false;
   else return;
   if (dv.getUint16(2, le) !== 42) return;
-  const push = (label2, value, group, sensitive = false) => {
+  const push = (label3, value, group, sensitive = false) => {
     if (value == null || value === "") return;
-    out.fields.push({ label: label2, value, group, sensitive });
+    out.fields.push({ label: label3, value, group, sensitive });
   };
   const ifd0 = readIfd(dv, dv.getUint32(4, le), le);
   const byTag = /* @__PURE__ */ new Map();
@@ -52777,10 +52790,10 @@ function readMpfIndex(bytes) {
     const images = [];
     for (let i = 0; i < declared; i++) {
       const at = entriesAt + i * 16;
-      const length = dv.getUint32(at + 4, le);
+      const length2 = dv.getUint32(at + 4, le);
       const off = dv.getUint32(at + 8, le);
       const start = i === 0 && off === 0 ? 0 : h + off;
-      images.push({ start, length });
+      images.push({ start, length: length2 });
     }
     const second = images[1];
     if (second.start <= 0 || second.length <= 0) return null;
@@ -53052,9 +53065,9 @@ function readWav(bytes, out) {
     ICRD: ["Created", "timestamps"]
   };
   for (let p = 12; p + 8 <= limit && out.fields.length < MAX_FIELDS; ) {
-    const length = view.getUint32(p + 4, true), end = p + 8 + length;
+    const length2 = view.getUint32(p + 4, true), end = p + 8 + length2;
     if (end > limit) break;
-    if (length >= 4 && matchAscii(bytes, p, "LIST") && matchAscii(bytes, p + 8, "INFO")) {
+    if (length2 >= 4 && matchAscii(bytes, p, "LIST") && matchAscii(bytes, p + 8, "INFO")) {
       for (let q = p + 12; q + 8 <= end && out.fields.length < MAX_FIELDS; ) {
         const size = view.getUint32(q + 4, true);
         if (q + 8 + size > end) break;
@@ -53067,7 +53080,7 @@ function readWav(bytes, out) {
         q += 8 + size + (size & 1);
       }
     }
-    p = end + (length & 1);
+    p = end + (length2 & 1);
   }
 }
 function readWebp(bytes, out) {
@@ -53337,14 +53350,14 @@ function readHeifItemTable(bytes) {
       if (p + 4 > infe.end) continue;
       const type = String.fromCharCode(bytes[p], bytes[p + 1], bytes[p + 2], bytes[p + 3]);
       p += 4;
-      const item = { id: id2, type, extents: [] };
+      const item2 = { id: id2, type, extents: [] };
       if (type === "mime") {
         let q = p;
         while (q < infe.end && bytes[q] !== 0) q++;
         q++;
-        item.contentType = bmffString(bytes, q, infe.end);
+        item2.contentType = bmffString(bytes, q, infe.end);
       }
-      items2.set(id2, item);
+      items2.set(id2, item2);
       if (items2.size >= MAX_HEIF_ITEMS) break;
     }
   }
@@ -53381,7 +53394,7 @@ function readHeifItemTable(bytes) {
       if (p + 2 > iloc.end) break;
       const extentCount = u163(bytes, p);
       p += 2;
-      const item = items2.get(id2);
+      const item2 = items2.get(id2);
       for (let e = 0; e < extentCount; e++) {
         const need = indexSize + offsetSize + lengthSize;
         if (p + need > iloc.end) {
@@ -53393,7 +53406,7 @@ function readHeifItemTable(bytes) {
         p += offsetSize;
         const len2 = readN(p, lengthSize);
         p += lengthSize;
-        item?.extents.push({ offset: baseOffset + off, length: len2, method });
+        item2?.extents.push({ offset: baseOffset + off, length: len2, method });
       }
     }
   }
@@ -53403,12 +53416,12 @@ function readHeifItemTable(bytes) {
     ...idat ? { idat: { start: idat.payload, end: idat.end } } : {}
   };
 }
-function heifItemPayload(bytes, store, item) {
-  const total = item.extents.reduce((n6, e) => n6 + e.length, 0);
-  if (!item.extents.length || total <= 0 || total > MAX_HEIF_ITEM_BYTES) return null;
+function heifItemPayload(bytes, store, item2) {
+  const total = item2.extents.reduce((n6, e) => n6 + e.length, 0);
+  if (!item2.extents.length || total <= 0 || total > MAX_HEIF_ITEM_BYTES) return null;
   const out = new Uint8Array(total);
   let o = 0;
-  for (const e of item.extents) {
+  for (const e of item2.extents) {
     const start = e.method === 1 ? store.idat ? store.idat.start + e.offset : -1 : e.offset;
     const limit = e.method === 1 ? store.idat?.end ?? -1 : bytes.length;
     if (start < 0 || start + e.length > limit) return null;
@@ -53428,14 +53441,14 @@ function heifExifTiffStart(payload) {
 function readHeif(bytes, out) {
   const store = readHeifItemTable(bytes);
   if (!store) return;
-  for (const item of store.items) {
+  for (const item2 of store.items) {
     if (out.fields.length >= MAX_FIELDS) break;
-    if (item.type === "Exif") {
-      const payload = heifItemPayload(bytes, store, item);
+    if (item2.type === "Exif") {
+      const payload = heifItemPayload(bytes, store, item2);
       const tiffAt = payload ? heifExifTiffStart(payload) : null;
       if (payload && tiffAt != null) readExif(payload, tiffAt, payload.length - tiffAt, out);
-    } else if (item.type === "mime" && item.contentType === "application/rdf+xml") {
-      const payload = heifItemPayload(bytes, store, item);
+    } else if (item2.type === "mime" && item2.contentType === "application/rdf+xml") {
+      const payload = heifItemPayload(bytes, store, item2);
       if (payload) readXmp(new TextDecoder("utf-8").decode(payload.subarray(0, MAX_TEXT_SCAN)), out);
     }
   }
@@ -53443,8 +53456,8 @@ function readHeif(bytes, out) {
 function heifXmpPacket(bytes) {
   const store = readHeifItemTable(bytes);
   if (!store) return null;
-  const item = store.items.find((i) => i.type === "mime" && i.contentType === "application/rdf+xml");
-  const payload = item ? heifItemPayload(bytes, store, item) : null;
+  const item2 = store.items.find((i) => i.type === "mime" && i.contentType === "application/rdf+xml");
+  const payload = item2 ? heifItemPayload(bytes, store, item2) : null;
   if (!payload) return null;
   const text7 = new TextDecoder("utf-8").decode(payload.subarray(0, MAX_TEXT_SCAN)).trim();
   return text7 || null;
@@ -54110,9 +54123,9 @@ function inputSchema(input) {
 }
 function validateInputValue(input, value, path, errors) {
   if (value === "" && input.default === "" && (input.type === "number" || input.type === "boolean")) return;
-  const object3 = Boolean(value && typeof value === "object" && !Array.isArray(value));
+  const object4 = Boolean(value && typeof value === "object" && !Array.isArray(value));
   const expected = input.type === "number" ? "number" : input.type === "boolean" ? "boolean" : input.type === "blocks" ? "array" : input.type === "table" || input.type === "vector" ? "object" : input.type === "asset" ? "asset" : input.type === "file" ? "file" : input.type === "color" ? "color" : "string";
-  const matches3 = expected === "array" ? Array.isArray(value) : expected === "object" ? object3 : expected === "asset" ? value === null || typeof value === "string" || object3 : expected === "file" ? value === null || object3 || input.multiple === true && Array.isArray(value) : expected === "color" ? typeof value === "string" || object3 : typeof value === expected;
+  const matches3 = expected === "array" ? Array.isArray(value) : expected === "object" ? object4 : expected === "asset" ? value === null || typeof value === "string" || object4 : expected === "file" ? value === null || object4 || input.multiple === true && Array.isArray(value) : expected === "color" ? typeof value === "string" || object4 : typeof value === expected;
   if (!matches3) {
     errors.push({ path, message: `must be ${expected}` });
     return;
@@ -54140,10 +54153,10 @@ function validateInputValue(input, value, path, errors) {
         errors.push({ path: `${path}/${index2}`, message: "must be an object" });
         return;
       }
-      for (const [key, item] of Object.entries(row)) {
+      for (const [key, item2] of Object.entries(row)) {
         const field2 = fields.get(key);
         if (!field2) errors.push({ path: `${path}/${index2}/${key}`, message: "unknown field" });
-        else validateInputValue(field2, item, `${path}/${index2}/${key}`, errors);
+        else validateInputValue(field2, item2, `${path}/${index2}/${key}`, errors);
       }
     });
   }
@@ -54178,7 +54191,7 @@ function tokenValuesFromModel(model2) {
       out[path] = { ref: value.ref, value: value.value };
       return;
     }
-    for (const [key, item] of Object.entries(value)) walk2(item, `${path}/${key}`);
+    for (const [key, item2] of Object.entries(value)) walk2(item2, `${path}/${key}`);
   };
   for (const input of model2) walk2(input.value, input.id);
   return out;
@@ -54198,14 +54211,14 @@ function measureDocument(doc, opts = {}) {
   const dpi = opts.dpi ?? 96;
   const unit2 = opts.unit ?? "px";
   const info = inspectDocument(doc);
-  const pixels = (value) => {
+  const pixels2 = (value) => {
     const dim = parseDimension(value, unit2);
     return dim ? toPixels(dim, dpi) : 0;
   };
   const weights = /* @__PURE__ */ new Map();
   for (const input of doc.model) collectModelAssetWeights(input, weights);
   const assets = info.assets.map((id2) => weights.has(id2) ? { id: id2, bytes: weights.get(id2) } : { id: id2 });
-  return { width: pixels(opts.width ?? doc.manifest.render.width ?? 0), height: pixels(opts.height ?? doc.manifest.render.height ?? 0), unit: unit2, dpi, boxes: Object.keys(ids(doc.hydrated)).length, assets, bytes: info.bytes, assetBytes: [...weights.values()].reduce((sum, n6) => sum + n6, 0), ...opts.gamut ? { gamut: opts.gamut } : {} };
+  return { width: pixels2(opts.width ?? doc.manifest.render.width ?? 0), height: pixels2(opts.height ?? doc.manifest.render.height ?? 0), unit: unit2, dpi, boxes: Object.keys(ids(doc.hydrated)).length, assets, bytes: info.bytes, assetBytes: [...weights.values()].reduce((sum, n6) => sum + n6, 0), ...opts.gamut ? { gamut: opts.gamut } : {} };
 }
 function collectModelAssetWeights(input, out) {
   const weigh = (value) => {
@@ -54314,9 +54327,9 @@ function cubicRoots01(a, b, c, d, dirs) {
     if (disc >= 0) {
       const sq = Math.sqrt(disc);
       const q = -0.5 * (qb + (qb < 0 ? -sq : sq));
-      const r0 = q !== 0 ? q / qa : -qb / (2 * qa), r1 = q !== 0 ? qc / q : r0;
+      const r0 = q !== 0 ? q / qa : -qb / (2 * qa), r12 = q !== 0 ? qc / q : r0;
       if (r0 > -T_EPS && r0 < 1 + T_EPS) cuts[nc++] = r0;
-      if (q !== 0 && r1 > -T_EPS && r1 < 1 + T_EPS) cuts[nc++] = r1;
+      if (q !== 0 && r12 > -T_EPS && r12 < 1 + T_EPS) cuts[nc++] = r12;
     }
   } else if (Math.abs(qb) > 1e-300) {
     const r5 = -qc / qb;
@@ -54842,10 +54855,10 @@ function twinNode(search, swap, c1, t1lo, t1hi, t2lo, t2hi, tol) {
   bernRuns(Q, 0, 1, 0, runs);
   const deltaP = rho / vlo;
   for (let i = 0; i < runs.length; i += 2) {
-    const r0 = t1lo + (t1hi - t1lo) * runs[i], r1 = t1lo + (t1hi - t1lo) * runs[i + 1];
-    const w0 = Math.max(0, r0 - deltaP), w1 = Math.min(1, r1 + deltaP);
-    if (twin === 1) stall(search, swap, r0, r1, w0, w1);
-    else stall(search, swap, r0, r1, 1 - w1, 1 - w0);
+    const r0 = t1lo + (t1hi - t1lo) * runs[i], r12 = t1lo + (t1hi - t1lo) * runs[i + 1];
+    const w0 = Math.max(0, r0 - deltaP), w1 = Math.min(1, r12 + deltaP);
+    if (twin === 1) stall(search, swap, r0, r12, w0, w1);
+    else stall(search, swap, r0, r12, 1 - w1, 1 - w0);
   }
   return true;
 }
@@ -55435,8 +55448,8 @@ function closest(scan2, from, a, b) {
 function endContact(scan2, curve, end) {
   const { c1, c2, out, tol } = scan2;
   if (out.length > MAX_HITS) return;
-  const own2 = curve === 1 ? c1 : c2, other = curve === 1 ? c2 : c1;
-  const x = own2[6 * end], y = own2[6 * end + 1];
+  const own3 = curve === 1 ? c1 : c2, other = curve === 1 ? c2 : c1;
+  const x = own3[6 * end], y = own3[6 * end + 1];
   const near = nearest2(other, x, y);
   if (near.distance > tol) return;
   let u = near.t;
@@ -56554,17 +56567,17 @@ function rawMomentsCubic(c) {
   const x1 = c[2] - x0, y1 = c[3] - y0;
   const x2 = c[4] - x0, y2 = c[5] - y0;
   const x3 = c[6] - x0, y3 = c[7] - y0;
-  const r0 = 3 * x1, r1 = 3 * y1;
-  const r25 = x2 * y3, r32 = x3 * y2, r42 = x3 * y3;
-  const r5 = 27 * y1, r6 = x1 * x2, r7 = 27 * y2, r8 = 45 * r25, r9 = 18 * x3;
-  const r10 = x1 * y1, r11 = 30 * x1, r12 = 45 * x3, r13 = x2 * y1, r14 = 45 * r32;
+  const r0 = 3 * x1, r12 = 3 * y1;
+  const r26 = x2 * y3, r32 = x3 * y2, r42 = x3 * y3;
+  const r5 = 27 * y1, r6 = x1 * x2, r7 = 27 * y2, r8 = 45 * r26, r9 = 18 * x3;
+  const r10 = x1 * y1, r11 = 30 * x1, r122 = 45 * x3, r13 = x2 * y1, r14 = 45 * r32;
   const r15 = x1 * x1, r16 = 18 * y3, r17 = x2 * x2, r18 = 45 * y3, r19 = x3 * x3;
   const r20 = 30 * y1, r21 = y2 * y2, r222 = y3 * y3, r232 = y1 * y1;
-  const a = -r0 * y2 - r0 * y3 + r1 * x2 + r1 * x3 - 6 * r25 + 6 * r32 + 10 * r42;
+  const a = -r0 * y2 - r0 * y3 + r12 * x2 + r12 * x3 - 6 * r26 + 6 * r32 + 10 * r42;
   const lift = x3 * y0;
   const area2 = a * 0.05 + lift;
-  const x = r10 * r9 - r11 * r42 + r12 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r25 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
-  const y = -r10 * r16 - r10 * r7 - r11 * r222 + r12 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r42 - 27 * r21 * x1 - 105 * r222 * x2 + 140 * r222 * x3 + r232 * r9 + 27 * r232 * x2 + 105 * r32 * y3 - r8 * y2;
+  const x = r10 * r9 - r11 * r42 + r122 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r26 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
+  const y = -r10 * r16 - r10 * r7 - r11 * r222 + r122 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r42 - 27 * r21 * x1 - 105 * r222 * x2 + 140 * r222 * x3 + r232 * r9 + 27 * r232 * x2 + 105 * r32 * y3 - r8 * y2;
   return {
     a: area2,
     x: x * (1 / 840) + x0 * area2 + 0.5 * x3 * lift,
@@ -57529,8 +57542,8 @@ function offsetCuspParams(c, d) {
     if (!(t > MIN_SPAN) || !(t < 1 - MIN_SPAN)) continue;
     const speed2 = (((dPoly[4] * t + dPoly[3]) * t + dPoly[2]) * t + dPoly[1]) * t + dPoly[0];
     if (!(speed2 > 0)) continue;
-    const num11 = (a[2] * t + a[1]) * t + a[0];
-    if (Math.abs(1 - d * num11 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
+    const num12 = (a[2] * t + a[1]) * t + a[0];
+    if (Math.abs(1 - d * num12 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
   }
   return out;
 }
@@ -57822,8 +57835,8 @@ function joinPieces(a, b, pivot, t0, t1, d, style, miterLimit) {
 }
 function arcJoin(a, b, pivot, heading) {
   const r0 = Math.hypot(a.x - pivot.x, a.y - pivot.y);
-  const r1 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
-  const r5 = (r0 + r1) / 2;
+  const r12 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
+  const r5 = (r0 + r12) / 2;
   if (r5 < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
   const from = Math.atan2(a.y - pivot.y, a.x - pivot.x);
   let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
@@ -57969,10 +57982,10 @@ function reparameterise(pts, u, curve) {
   return u.map((t, i) => {
     const p = evalCubic(curve, t), d1 = tangentAt(curve, t), d2 = secondDeriv(curve, t);
     const dx = p.x - pts[i].x, dy = p.y - pts[i].y;
-    const num11 = dx * d1.x + dy * d1.y;
+    const num12 = dx * d1.x + dy * d1.y;
     const den = d1.x * d1.x + d1.y * d1.y + dx * d2.x + dy * d2.y;
     if (Math.abs(den) < 1e-14) return t;
-    return Math.min(1, Math.max(0, t - num11 / den));
+    return Math.min(1, Math.max(0, t - num12 / den));
   });
 }
 function secondDeriv(c, t) {
@@ -59281,13 +59294,13 @@ function vectorPaintMatrices(paint2, count4, authored) {
     const clip3 = /^url\(#([^)]+)\)$/.exec(node.attributes["clip-path"] ?? "");
     if (clip3) {
       const definition = clips.get(clip3[1]);
-      let placement = matrix;
+      let placement2 = matrix;
       if (definition.attributes.clipPathUnits === "objectBoundingBox") {
         const box3 = bounds(node);
         if (!box3) throw new Error("This vector clip has no finite bounding box.");
-        placement = multiplyVectorMatrix(matrix, [box3.x1 - box3.x0, 0, 0, box3.y1 - box3.y0, box3.x0, box3.y0]);
+        placement2 = multiplyVectorMatrix(matrix, [box3.x1 - box3.x0, 0, 0, box3.y1 - box3.y0, box3.x0, box3.y0]);
       }
-      pending2.push({ node: definition, matrix: placement });
+      pending2.push({ node: definition, matrix: placement2 });
     }
     for (const child of node.children ?? []) visit(child, matrix);
   }
@@ -60383,25 +60396,25 @@ function inspectTokenDocument(doc, opts = {}) {
     const stack = [{ path: token2.path, exit: false }];
     let edges = 0;
     while (stack.length) {
-      const item = stack.pop();
-      if (item.exit) {
-        visiting.delete(item.path);
-        done.add(item.path);
+      const item2 = stack.pop();
+      if (item2.exit) {
+        visiting.delete(item2.path);
+        done.add(item2.path);
         continue;
       }
-      if (visiting.has(item.path)) {
-        const t = byPath.get(item.path);
+      if (visiting.has(item2.path)) {
+        const t = byPath.get(item2.path);
         t.diagnostics.push({ code: "cycle", path: t.path, message: "This reference chain contains a cycle." });
         continue;
       }
-      if (done.has(item.path)) continue;
+      if (done.has(item2.path)) continue;
       if (++edges > TOKEN_INSPECTION_LIMIT) {
         truncated = true;
         break;
       }
-      visiting.add(item.path);
-      stack.push({ path: item.path, exit: true });
-      for (const ref of byPath.get(item.path)?.references ?? []) if (byPath.has(ref)) stack.push({ path: ref, exit: false });
+      visiting.add(item2.path);
+      stack.push({ path: item2.path, exit: true });
+      for (const ref of byPath.get(item2.path)?.references ?? []) if (byPath.has(ref)) stack.push({ path: ref, exit: false });
     }
   }
   if (truncated) diagnostics.push({ code: "limit", path: "", message: "Inspection reached a scan limit. Usage counts and results are incomplete." });
@@ -60593,8 +60606,8 @@ function createHookWorkerCore(port, opts = {}) {
     const r5 = runs.get(runId);
     if (!r5) return Promise.reject(new Error(`host-call after dispose (${method})`));
     const hostCallId = nextHostCallId();
-    return new Promise((resolve6, reject) => {
-      r5.waiters.set(hostCallId, { resolve: resolve6, reject });
+    return new Promise((resolve7, reject) => {
+      r5.waiters.set(hostCallId, { resolve: resolve7, reject });
       port.post({ t: "host-call", runId, hostCallId, method, args });
     });
   }
@@ -60911,6 +60924,799 @@ var init_media_sniff = __esm({
       "msf1",
       "miaf"
     ]);
+  }
+});
+
+// engine/src/psd-descriptor.ts
+function object2(c, depth) {
+  if (depth > MAX_DEPTH3) throw new Stop();
+  c.unicode();
+  c.key();
+  const n6 = c.u32();
+  if (n6 > MAX_ITEMS) throw new Stop();
+  const out = /* @__PURE__ */ Object.create(null);
+  for (let i = 0; i < n6; i++) {
+    c.count();
+    const k = c.key();
+    out[k] = item(c, c.ascii(4), depth);
+  }
+  return out;
+}
+function item(c, type, depth) {
+  switch (type) {
+    case "Objc":
+    case "GlbO":
+      return object2(c, depth + 1);
+    case "VlLs": {
+      const n6 = c.u32();
+      if (n6 > MAX_LIST) throw new Stop();
+      const list2 = [];
+      for (let i = 0; i < n6; i++) {
+        c.count();
+        list2.push(item(c, c.ascii(4), depth + 1));
+      }
+      return list2;
+    }
+    case "doub":
+      return c.f64();
+    case "UntF":
+      c.skip(4);
+      return c.f64();
+    case "UnFl": {
+      c.skip(4);
+      const n6 = c.u32();
+      if (n6 > MAX_LIST) throw new Stop();
+      const list2 = [];
+      for (let i = 0; i < n6; i++) list2.push(c.f64());
+      return list2;
+    }
+    case "TEXT":
+      return c.unicode();
+    case "enum":
+      c.key();
+      return { enum: c.key() };
+    case "long":
+      return c.i32();
+    case "comp":
+      return c.i64();
+    case "bool":
+      return c.u8() !== 0;
+    case "type":
+    case "GlbC":
+      c.unicode();
+      return c.key();
+    case "tdta": {
+      const n6 = c.u32();
+      if (n6 > MAX_DATA) throw new Stop();
+      c.need(n6);
+      const data = c.b.slice(c.p, c.p + n6);
+      c.p += n6;
+      return data;
+    }
+    case "alis":
+    case "Pth ":
+      c.skip(c.u32());
+      return null;
+    case "obj ":
+      reference2(c);
+      return null;
+    default:
+      throw new Stop();
+  }
+}
+function reference2(c) {
+  const n6 = c.u32();
+  if (n6 > MAX_ITEMS) throw new Stop();
+  for (let i = 0; i < n6; i++) {
+    c.count();
+    switch (c.ascii(4)) {
+      case "prop":
+        c.unicode();
+        c.key();
+        c.key();
+        break;
+      case "Clss":
+        c.unicode();
+        c.key();
+        break;
+      case "Enmr":
+        c.unicode();
+        c.key();
+        c.key();
+        c.key();
+        break;
+      case "rele":
+        c.unicode();
+        c.key();
+        c.i32();
+        break;
+      case "Idnt":
+      case "indx":
+        c.i32();
+        break;
+      case "name":
+        c.unicode();
+        break;
+      default:
+        throw new Stop();
+    }
+  }
+}
+function readDescriptor(bytes, offset = 0) {
+  try {
+    const c = new Cursor(bytes, offset);
+    const value = object2(c, 0);
+    return { value, end: c.p };
+  } catch (e) {
+    if (e instanceof Stop) return null;
+    throw e;
+  }
+}
+function readVersionedDescriptor(bytes, offset = 0) {
+  if (offset + 4 > bytes.length) return null;
+  const version = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(offset);
+  return version === 16 ? readDescriptor(bytes, offset + 4) : null;
+}
+function descColor(color3) {
+  const r5 = descNumber(color3, "Rd  "), g2 = descNumber(color3, "Grn "), b = descNumber(color3, "Bl  ");
+  if (r5 == null || g2 == null || b == null) return null;
+  return `#${hex2(channel(r5))}${hex2(channel(g2))}${hex2(channel(b))}`;
+}
+function parseEngineData(bytes) {
+  let i = 0;
+  for (; i + 1 < bytes.length; i++) if (bytes[i] === 60 && bytes[i + 1] === 60) break;
+  if (i + 1 >= bytes.length) return null;
+  let p = i, depth = 0, tokens3 = 0;
+  const at = (k = 0) => p + k < bytes.length ? bytes[p + k] : -1;
+  const isDelim = (b) => b <= 32 || b === 47 || b === 60 || b === 62 || b === 91 || b === 93 || b === 40 || b === 41;
+  const ws = () => {
+    for (; ; ) {
+      const b = at();
+      if (b === 37) {
+        while (at() !== -1 && at() !== 10 && at() !== 13) p++;
+        continue;
+      }
+      if (b !== -1 && b <= 32) {
+        p++;
+        continue;
+      }
+      return;
+    }
+  };
+  const decode = (raw) => {
+    if (raw.length >= 2 && raw[0] === 254 && raw[1] === 255) {
+      let s = "";
+      for (let k = 2; k + 1 < raw.length; k += 2) s += String.fromCharCode(raw[k] << 8 | raw[k + 1]);
+      return s;
+    }
+    return decodeLatin1(raw);
+  };
+  const decodeLatin1 = (raw) => {
+    let s = "";
+    for (const b of raw) s += String.fromCharCode(b);
+    return s;
+  };
+  const token2 = () => {
+    const s = p;
+    while (at() !== -1 && !isDelim(at())) p++;
+    return decodeLatin1([...bytes.subarray(s, p)]);
+  };
+  const word = (w) => {
+    for (let k = 0; k < w.length; k++) if (at(k) !== w.charCodeAt(k)) return false;
+    if (at(w.length) !== -1 && !isDelim(at(w.length))) return false;
+    p += w.length;
+    return true;
+  };
+  function value() {
+    if (++tokens3 > ENGINE_TOKENS) return null;
+    ws();
+    const b = at();
+    if (b === -1) return null;
+    if (b === 60) return at(1) === 60 ? dict() : hex3();
+    if (b === 91) return array();
+    if (b === 40) return str9();
+    if (b === 47) {
+      p++;
+      return token2();
+    }
+    if (b === 45 || b === 43 || b === 46 || b >= 48 && b <= 57) return number5();
+    if (word("true")) return true;
+    if (word("false")) return false;
+    if (word("null")) return "";
+    return null;
+  }
+  function dict() {
+    p += 2;
+    if (++depth > ENGINE_DEPTH) return null;
+    const out = /* @__PURE__ */ Object.create(null);
+    for (; ; ) {
+      ws();
+      if (at() === -1) return null;
+      if (at() === 62) break;
+      if (at() !== 47) return null;
+      p++;
+      const k = token2();
+      const v = value();
+      if (v === null) return null;
+      out[k] = v;
+    }
+    depth--;
+    if (at() !== 62 || at(1) !== 62) return null;
+    p += 2;
+    return out;
+  }
+  function array() {
+    p++;
+    if (++depth > ENGINE_DEPTH) return null;
+    const out = [];
+    for (; ; ) {
+      ws();
+      if (at() === -1) return null;
+      if (at() === 93) break;
+      const v = value();
+      if (v === null) return null;
+      out.push(v);
+    }
+    depth--;
+    p++;
+    return out;
+  }
+  function number5() {
+    const s = p;
+    if (at() === 43 || at() === 45) p++;
+    while (at() >= 48 && at() <= 57) p++;
+    if (at() === 46) {
+      p++;
+      while (at() >= 48 && at() <= 57) p++;
+    }
+    if (at() === 101 || at() === 69) {
+      p++;
+      if (at() === 43 || at() === 45) p++;
+      while (at() >= 48 && at() <= 57) p++;
+    }
+    const n6 = Number(decodeLatin1([...bytes.subarray(s, p)]));
+    return Number.isFinite(n6) ? n6 : null;
+  }
+  function str9() {
+    p++;
+    const raw = [];
+    for (; ; ) {
+      const b = at();
+      if (b === -1) return null;
+      p++;
+      if (b === 41) return decode(raw);
+      if (b !== 92) {
+        raw.push(b);
+        continue;
+      }
+      const e = at();
+      if (e === -1) return null;
+      p++;
+      if (e === 110) raw.push(10);
+      else if (e === 114) raw.push(13);
+      else if (e === 116) raw.push(9);
+      else if (e >= 48 && e <= 55) {
+        let v = e - 48;
+        for (let k = 0; k < 2 && at() >= 48 && at() <= 55; k++) v = v * 8 + (bytes[p++] - 48);
+        raw.push(v & 255);
+      } else if (e === 10 || e === 13) {
+      } else raw.push(e);
+    }
+  }
+  function hex3() {
+    p++;
+    const nib = [];
+    for (; ; ) {
+      const b = at();
+      if (b === -1) return null;
+      p++;
+      if (b === 62) break;
+      const n6 = b >= 48 && b <= 57 ? b - 48 : b >= 97 && b <= 102 ? b - 87 : b >= 65 && b <= 70 ? b - 55 : -1;
+      if (n6 >= 0) nib.push(n6);
+    }
+    const raw = [];
+    for (let k = 0; k + 1 < nib.length; k += 2) raw.push(nib[k] << 4 | nib[k + 1]);
+    return decode(raw);
+  }
+  return value();
+}
+function engineWalk(v, ...keys2) {
+  let cur = v;
+  for (const k of keys2) {
+    if (!cur || typeof cur !== "object" || Array.isArray(cur) || !Object.hasOwn(cur, k)) return null;
+    cur = cur[k];
+  }
+  return cur ?? null;
+}
+var MAX_DEPTH3, MAX_ITEMS, MAX_LIST, MAX_TOTAL, MAX_DATA, MAX_KEY, Stop, Cursor, own2, descNumber, descText, descBool, descEnum, descData, descList, descChild, hex2, channel, ENGINE_DEPTH, ENGINE_TOKENS, engineNumber, engineBool, engineString, engineList;
+var init_psd_descriptor = __esm({
+  "engine/src/psd-descriptor.ts"() {
+    "use strict";
+    MAX_DEPTH3 = 32;
+    MAX_ITEMS = 1e4;
+    MAX_LIST = 1e5;
+    MAX_TOTAL = 2e5;
+    MAX_DATA = 8e6;
+    MAX_KEY = 256;
+    Stop = class extends Error {
+    };
+    Cursor = class {
+      p;
+      b;
+      v;
+      total = 0;
+      constructor(b, start) {
+        this.b = b;
+        this.p = start;
+        this.v = new DataView(b.buffer, b.byteOffset, b.byteLength);
+      }
+      need(n6) {
+        if (n6 < 0 || this.p + n6 > this.b.length) throw new Stop();
+      }
+      u8() {
+        this.need(1);
+        return this.b[this.p++];
+      }
+      u32() {
+        this.need(4);
+        const x = this.v.getUint32(this.p);
+        this.p += 4;
+        return x;
+      }
+      i32() {
+        this.need(4);
+        const x = this.v.getInt32(this.p);
+        this.p += 4;
+        return x;
+      }
+      f64() {
+        this.need(8);
+        const x = this.v.getFloat64(this.p);
+        this.p += 8;
+        return x;
+      }
+      i64() {
+        this.need(8);
+        const x = Number(this.v.getBigInt64(this.p));
+        this.p += 8;
+        return x;
+      }
+      ascii(n6) {
+        this.need(n6);
+        let s = "";
+        for (let i = 0; i < n6; i++) s += String.fromCharCode(this.b[this.p + i]);
+        this.p += n6;
+        return s;
+      }
+      /** A key: a length, then that many characters, or a 4-character ID when the length is 0. */
+      key() {
+        const n6 = this.u32();
+        if (n6 > MAX_KEY) throw new Stop();
+        return this.ascii(n6 === 0 ? 4 : n6);
+      }
+      /** A Unicode string: a character count, then UTF-16BE. A trailing NUL is dropped. */
+      unicode() {
+        const n6 = this.u32();
+        if (n6 > MAX_DATA / 2) throw new Stop();
+        this.need(n6 * 2);
+        let s = "";
+        for (let i = 0; i < n6; i++) s += String.fromCharCode(this.v.getUint16(this.p + i * 2));
+        this.p += n6 * 2;
+        return s.replace(/\0+$/, "");
+      }
+      skip(n6) {
+        this.need(n6);
+        this.p += n6;
+      }
+      count() {
+        if (++this.total > MAX_TOTAL) throw new Stop();
+      }
+    };
+    own2 = (o, k) => o && Object.hasOwn(o, k) ? o[k] : void 0;
+    descNumber = (o, k) => {
+      const v = own2(o, k);
+      return typeof v === "number" && Number.isFinite(v) ? v : null;
+    };
+    descText = (o, k) => {
+      const v = own2(o, k);
+      return typeof v === "string" ? v : null;
+    };
+    descBool = (o, k) => {
+      const v = own2(o, k);
+      return typeof v === "boolean" ? v : null;
+    };
+    descEnum = (o, k) => {
+      const v = own2(o, k);
+      return v && typeof v === "object" && !Array.isArray(v) && !(v instanceof Uint8Array) && typeof v.enum === "string" && Object.keys(v).length === 1 ? v.enum : null;
+    };
+    descData = (o, k) => {
+      const v = own2(o, k);
+      return v instanceof Uint8Array ? v : null;
+    };
+    descList = (o, k) => {
+      const v = own2(o, k);
+      return Array.isArray(v) ? v : null;
+    };
+    descChild = (o, k) => {
+      const v = own2(o, k);
+      return v && typeof v === "object" && !Array.isArray(v) && !(v instanceof Uint8Array) && !("enum" in v && Object.keys(v).length === 1) ? v : null;
+    };
+    hex2 = (v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0");
+    channel = (v) => v > 1 ? v : v * 255;
+    ENGINE_DEPTH = 64;
+    ENGINE_TOKENS = 1e6;
+    engineNumber = (v) => typeof v === "number" && Number.isFinite(v) ? v : null;
+    engineBool = (v) => typeof v === "boolean" ? v : null;
+    engineString = (v) => typeof v === "string" ? v : null;
+    engineList = (v) => Array.isArray(v) ? v : [];
+  }
+});
+
+// engine/src/psd-layer-semantics.ts
+function placement(xx, xy, yx, yy) {
+  const sx = Math.hypot(xx, yx);
+  if (sx <= 1e-6) return null;
+  const cos = xx / sx, sin = yx / sx;
+  const lx = cos * xy + sin * yy, ly = -sin * xy + cos * yy;
+  const sy = Math.abs(ly);
+  if (sy <= 1e-6) return null;
+  const big = Math.max(sx, sy);
+  if (Math.abs(lx) > 0.02 * big || Math.abs(sx - sy) > 0.02 * big) return null;
+  return { scale: sx, rotation: Math.atan2(sin, cos) * 180 / Math.PI, flip: ly < 0 };
+}
+function readFontName(name) {
+  const dash = name.indexOf("-");
+  let family2 = dash > 0 ? name.slice(0, dash) : name;
+  let style = dash > 0 ? name.slice(dash + 1) : "";
+  if (dash < 0) {
+    const m2 = STYLE_WORDS.exec(family2);
+    if (m2 && m2.index > 0) {
+      style = family2.slice(m2.index);
+      family2 = family2.slice(0, m2.index);
+    }
+  }
+  for (const tag2 of ["PSMT", "MT", "PS"]) {
+    if (family2.length > tag2.length + 2 && family2.endsWith(tag2)) {
+      family2 = family2.slice(0, -tag2.length);
+      break;
+    }
+  }
+  family2 = family2.replace(/([a-z])([A-Z])/g, "$1 $2").trim();
+  let weight = 400;
+  for (const [re, w] of WEIGHTS) if (re.test(style)) {
+    weight = w;
+    break;
+  }
+  return { family: family2, weight, italic: ITALIC.test(style) };
+}
+function engineColor(values) {
+  const n6 = values.map((v) => engineNumber(v)).filter((v) => v != null);
+  if (!n6.length) return null;
+  const [r5, g2, b] = n6.length >= 4 ? [n6[1], n6[2], n6[3]] : n6.length === 3 ? [n6[0], n6[1], n6[2]] : [n6[0], n6[0], n6[0]];
+  const c = (v) => Math.round(Math.max(0, Math.min(255, v > 1 ? v : v * 255))).toString(16).padStart(2, "0");
+  return `#${c(r5)}${c(g2)}${c(b)}`;
+}
+function spacingSignature(sheet) {
+  const keys2 = ["FontSize", "Tracking", "AutoLeading", "Leading", "HorizontalScale", "VerticalScale"];
+  return keys2.map((k) => String(engineWalk(sheet, k) ?? "")).join("|");
+}
+function runStyle(run3, fonts, scale) {
+  const sheet = run3 ? engineWalk(run3, "StyleSheet", "StyleSheetData") ?? run3 : null;
+  const points = engineNumber(engineWalk(sheet, "FontSize")) ?? 12;
+  const index2 = Math.round(engineNumber(engineWalk(sheet, "Font")) ?? 0);
+  const postScriptName = (index2 >= 0 && index2 < fonts.length ? engineString(engineWalk(fonts[index2], "Name")) : null) || null;
+  let family2 = null, weight = 400, italic = false;
+  if (postScriptName) ({ family: family2, weight, italic } = readFontName(postScriptName));
+  if (engineBool(engineWalk(sheet, "FauxBold"))) weight = Math.max(weight, 700);
+  if (engineBool(engineWalk(sheet, "FauxItalic"))) italic = true;
+  return {
+    sheet,
+    postScriptName,
+    family: family2,
+    weight,
+    italic,
+    size: Math.max(1, Math.min(2e3, points * scale)),
+    color: engineColor(engineList(engineWalk(sheet, "FillColor", "Values"))),
+    underline: engineBool(engineWalk(sheet, "Underline")) === true,
+    strike: engineBool(engineWalk(sheet, "Strikethrough")) === true
+  };
+}
+function splitRuns(text7, styles, lengths) {
+  const first = styles[0];
+  const usable = styles.length > 1 && lengths.length === styles.length && lengths.every((n6) => n6 != null && Number.isInteger(n6) && n6 >= 0);
+  if (!usable) return [{ ...first, text: text7 }];
+  const out = [];
+  let at = 0;
+  styles.forEach((style, i) => {
+    if (at >= text7.length) return;
+    const end = i === styles.length - 1 ? text7.length : Math.min(text7.length, at + lengths[i]);
+    const piece = text7.slice(at, end);
+    at = end;
+    if (!piece) return;
+    const last = out[out.length - 1];
+    if (last && sameStyle(last, style)) last.text += piece;
+    else out.push({ ...style, text: piece });
+  });
+  return out.length ? out : [{ ...first, text: text7 }];
+}
+function descRect(o) {
+  const left = descNumber(o, "Left"), top = descNumber(o, "Top "), right = descNumber(o, "Rght"), bottom = descNumber(o, "Btom");
+  return left == null || top == null || right == null || bottom == null ? null : { left, top, right, bottom };
+}
+function readText(block, pixels2, notes) {
+  if (block.length < 2 + 48 + 2) return null;
+  const dv = new DataView(block.buffer, block.byteOffset, block.byteLength);
+  if (dv.getUint16(0) !== 1) return null;
+  const [xx, xy, yx, yy, tx, ty] = [0, 1, 2, 3, 4, 5].map((i) => dv.getFloat64(2 + i * 8));
+  if (![xx, xy, yx, yy, tx, ty].every(Number.isFinite)) return null;
+  if (dv.getUint16(50) !== 50) return null;
+  const read = readVersionedDescriptor(block, 52);
+  if (!read) return null;
+  const desc = read.value;
+  if (descEnum(desc, "Ornt") === "Vrtc") {
+    notes.push("Vertical text is kept as pixels.");
+    return null;
+  }
+  const place2 = placement(xx, xy, yx, yy);
+  if (!place2) {
+    notes.push("Text that is sheared or stretched unevenly is kept as pixels.");
+    return null;
+  }
+  if (place2.flip) {
+    notes.push("Mirrored text is kept as pixels.");
+    return null;
+  }
+  if (read.end + 2 <= block.length && dv.getUint16(read.end) === 1) {
+    const warp = readVersionedDescriptor(block, read.end + 2);
+    const style = warp ? descEnum(warp.value, "warpStyle") : null;
+    if (style && style !== "warpNone" && style !== "none") notes.push("The text warp was dropped.");
+  }
+  const engineBytes = descData(desc, "EngineData");
+  const engine = engineBytes ? parseEngineData(engineBytes) : null;
+  const clean2 = (s) => s == null ? null : s.replace(/^﻿/, "").replace(/\0+$/, "").replace(/\r\n?/g, "\n");
+  const text7 = clean2(descText(desc, "Txt ")) ?? clean2(engineString(engineWalk(engine, "EngineDict", "Editor", "Text")));
+  if (!text7?.trim()) return null;
+  const content2 = text7.replace(/\n+$/, "");
+  const styleRuns = engineList(engineWalk(engine, "EngineDict", "StyleRun", "RunArray"));
+  const fonts = engineList(engineWalk(engine, "ResourceDict", "FontSet"));
+  const styles = (styleRuns.length ? styleRuns : [null]).map((run3) => runStyle(run3, fonts, place2.scale));
+  const lengths = engineList(engineWalk(engine, "EngineDict", "StyleRun", "RunLengthArray")).map((v) => engineNumber(v));
+  const runs = splitRuns(content2, styles.map(({ sheet: _sheet, postScriptName: _name, ...style }) => style), lengths);
+  const first = styles[0];
+  const { sheet, postScriptName, family: family2, weight, italic, size, color: color3 } = first;
+  const trackingThousandths = engineNumber(engineWalk(sheet, "Tracking")) ?? 0;
+  const tracking = r2(Math.max(-100, Math.min(400, trackingThousandths * size / 1e3)));
+  const auto = engineBool(engineWalk(sheet, "AutoLeading")) ?? true;
+  const leadingPts = engineNumber(engineWalk(sheet, "Leading"));
+  const lineHeight = !auto && leadingPts && leadingPts > 0 ? r2(Math.max(0.5, Math.min(4, leadingPts * place2.scale / size))) : 1.2;
+  if (styles.some((s) => spacingSignature(s.sheet) !== spacingSignature(sheet))) {
+    notes.push("The text mixes sizes or spacing. All of the text uses the first size and spacing.");
+  }
+  if (styles.some((s) => s.family !== family2)) {
+    notes.push("The text mixes font families. All of the text uses the first family; weight and italic are kept.");
+  }
+  const paras = engineList(engineWalk(engine, "EngineDict", "ParagraphRun", "RunArray"));
+  const just = Math.round(engineNumber(engineWalk(paras[0] ?? null, "ParagraphSheet", "Properties", "Justification")) ?? 0);
+  const align = just === 1 ? "right" : just === 2 ? "center" : "left";
+  if (just > 2) notes.push("Justified text was imported left-aligned.");
+  const lines = content2.split("\n").length;
+  const textH = lines * size * lineHeight;
+  const rad = place2.rotation * Math.PI / 180;
+  const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+  const bounds = descRect(descChild(desc, "bounds"));
+  const glyphs2 = descRect(descChild(desc, "boundingBox"));
+  let box3;
+  let paragraph = false;
+  if (bounds && glyphs2 && bounds.right - bounds.left > glyphs2.right - glyphs2.left + 4 && bounds.bottom - bounds.top > glyphs2.bottom - glyphs2.top + 4) {
+    paragraph = true;
+    const w = (bounds.right - bounds.left) * place2.scale, h = (bounds.bottom - bounds.top) * place2.scale;
+    const cx2 = (bounds.left + bounds.right) / 2, cy3 = (bounds.top + bounds.bottom) / 2;
+    const ccx = xx * cx2 + xy * cy3 + tx, ccy = yx * cx2 + yy * cy3 + ty;
+    box3 = { x: r2(ccx - w / 2), y: r2(ccy - h / 2), w: r2(w), h: r2(h) };
+  } else if (pixels2.w > 0 && pixels2.h > 0) {
+    let w = pixels2.w;
+    if (sin > 0.01) w = cos > 0.3 ? (pixels2.w - textH * sin) / cos : (pixels2.h - textH * cos) / sin;
+    w = Math.max(size, w) * 1.06 + size * 0.2;
+    const cx2 = pixels2.x + pixels2.w / 2, cy3 = pixels2.y + pixels2.h / 2;
+    box3 = { x: r2(cx2 - w / 2), y: r2(cy3 - textH / 2), w: r2(w), h: r2(textH) };
+    if (sin <= 0.01) {
+      if (align === "left") box3.x = r2(pixels2.x - size * 0.05);
+      else if (align === "right") box3.x = r2(pixels2.x + pixels2.w + size * 0.05 - box3.w);
+    }
+  } else {
+    const w = Math.max(size * 2, content2.length * size * 0.6);
+    const top = ty - size * (0.5 * lineHeight + 0.3);
+    const x = align === "left" ? tx : align === "right" ? tx - w : tx - w / 2;
+    box3 = { x: r2(x), y: r2(top), w: r2(w), h: r2(textH) };
+  }
+  return {
+    text: content2,
+    postScriptName,
+    family: family2,
+    weight,
+    italic,
+    size: r2(size),
+    color: color3,
+    tracking,
+    lineHeight,
+    align,
+    box: box3,
+    paragraph,
+    rotation: r2(place2.rotation),
+    runs: runs.map((r5) => ({ ...r5, size: r2(r5.size) }))
+  };
+}
+function strokeOf(vstk) {
+  const s = vstk ? readVersionedDescriptor(vstk)?.value ?? null : null;
+  if (!s) return { fill: null, stroke: null, alignment: null };
+  const on = descBool(s, "strokeEnabled") ?? false;
+  const color3 = descColor(descChild(descChild(s, "strokeStyleContent"), "Clr "));
+  const width = descNumber(s, "strokeStyleLineWidth") ?? 1;
+  return {
+    fill: descBool(s, "fillEnabled"),
+    stroke: on && color3 && width > 0 && width < 1e4 ? { color: color3, width: r2(width) } : null,
+    alignment: descEnum(s, "strokeStyleLineAlignment")
+  };
+}
+function originShape(vogk, notes) {
+  if (vogk.length < 8) return null;
+  const root2 = readDescriptor(vogk, 8)?.value ?? null;
+  const shape = (descList(root2, "keyDescriptorList") ?? []).find((v) => v && typeof v === "object" && !Array.isArray(v) && !(v instanceof Uint8Array));
+  if (!shape) return null;
+  const type = descNumber(shape, "keyOriginType");
+  if (type !== 1 && type !== 2 && type !== 5) return null;
+  const b = descRect(descChild(shape, "keyOriginShapeBBox"));
+  if (!b || b.right - b.left < 1 || b.bottom - b.top < 1) return null;
+  const box3 = { x: r2(b.left), y: r2(b.top), w: r2(b.right - b.left), h: r2(b.bottom - b.top) };
+  if (type === 5) return { kind: "ellipse", box: box3, radius: 0 };
+  let radius = 0;
+  const radii2 = descChild(shape, "keyOriginRRectRadii");
+  if (radii2) {
+    const corners = ["topLeft", "topRight", "bottomRight", "bottomLeft"].map((k) => descNumber(radii2, k)).filter((v) => v != null);
+    if (corners.length) {
+      const lo = Math.min(...corners), hi = Math.max(...corners);
+      if (hi - lo > 0.5) notes.push("The rounded rectangle's corners differ; the largest radius was used for all four.");
+      radius = Math.max(0, hi);
+    }
+  }
+  return { kind: radius > 0 ? "rounded" : "rect", box: box3, radius: r2(radius) };
+}
+function readVectorPath(mask, canvasW, canvasH) {
+  const dv = new DataView(mask.buffer, mask.byteOffset, mask.byteLength);
+  const out = [];
+  let cur = null;
+  const fx = (v) => v / 16777216;
+  for (let o = 8; o + 26 <= mask.length && out.length < 1e3; o += 26) {
+    const type = dv.getInt16(o);
+    if (type === 0 || type === 3) {
+      cur = { closed: type === 0, knots: [] };
+      out.push(cur);
+      continue;
+    }
+    if (type !== 1 && type !== 2 && type !== 4 && type !== 5) continue;
+    if (!cur) {
+      cur = { closed: type === 1 || type === 2, knots: [] };
+      out.push(cur);
+    }
+    if (cur.knots.length >= 2e4) continue;
+    const pt = (k) => [fx(dv.getInt32(o + 2 + k * 8 + 4)) * canvasW, fx(dv.getInt32(o + 2 + k * 8)) * canvasH];
+    const [ix, iy] = pt(0), [ax, ay] = pt(1), [ox, oy] = pt(2);
+    cur.knots.push({ x: r2(ax), y: r2(ay), inX: r2(ix), inY: r2(iy), outX: r2(ox), outY: r2(oy) });
+  }
+  return out.filter((s) => s.knots.length >= 2);
+}
+function sharpRect(subpaths) {
+  if (subpaths.length !== 1 || subpaths[0].knots.length !== 4) return null;
+  const k = subpaths[0].knots;
+  if (k.some((p) => Math.hypot(p.inX - p.x, p.inY - p.y) > 0.5 || Math.hypot(p.outX - p.x, p.outY - p.y) > 0.5)) return null;
+  for (let i = 0; i < 4; i++) {
+    const a = k[i], b = k[(i + 1) % 4];
+    if (Math.abs(a.x - b.x) > 0.5 && Math.abs(a.y - b.y) > 0.5) return null;
+  }
+  const xs = k.map((p) => p.x), ys = k.map((p) => p.y);
+  const box3 = { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+  return box3.w >= 1 && box3.h >= 1 ? box3 : null;
+}
+function readLayerSemantics(blocks, pixels2, canvas) {
+  const notes = [];
+  const out = { notes };
+  const get3 = (k) => blocks.get(k);
+  const tySh = get3("TySh") ?? get3("tySh");
+  if (tySh) {
+    const text7 = readText(tySh, pixels2, notes);
+    if (text7) out.text = text7;
+  }
+  const soco = get3("SoCo");
+  const fill2 = soco ? descColor(descChild(readVersionedDescriptor(soco)?.value ?? null, "Clr ")) : null;
+  if (soco && !fill2) notes.push("The fill colour could not be read; the layer is kept as pixels.");
+  if (get3("GdFl")) notes.push("Gradient fill kept as pixels.");
+  if (get3("PtFl")) notes.push("Pattern fill kept as pixels.");
+  const { fill: fillOn, stroke, alignment } = strokeOf(get3("vstk"));
+  if (stroke && alignment && alignment !== "strokeStyleAlignCenter") notes.push("The stroke is drawn centred on the edge; Photoshop drew it inside or outside.");
+  const mask = get3("vmsk") ?? get3("vsms");
+  const vogk = get3("vogk");
+  const hasVector = !!(mask || vogk);
+  const shapeFill = fillOn === false ? null : fill2;
+  if (!out.text && hasVector && (shapeFill || stroke)) {
+    const origin = vogk ? originShape(vogk, notes) : null;
+    const subpaths = mask ? readVectorPath(mask, canvas.w, canvas.h) : [];
+    const rect = !origin ? sharpRect(subpaths) : null;
+    if (origin) out.shape = { ...origin, fill: shapeFill, stroke };
+    else if (rect) out.shape = { kind: "rect", box: rect, radius: 0, fill: shapeFill, stroke };
+    else if (subpaths.length) out.path = { subpaths, fill: shapeFill, stroke };
+  } else if (!out.text && fill2 && !hasVector) {
+    out.fill = fill2;
+  }
+  const iOpa = get3("iOpa");
+  if (iOpa && iOpa.length >= 1 && iOpa[0] < 255) out.fillOpacity = r2(iOpa[0] / 255);
+  for (const [k, name] of Object.entries(ADJUSTMENTS)) {
+    if (get3(k)) {
+      out.adjustment = name;
+      notes.push(`${name} adjustment layer was not applied.`);
+      break;
+    }
+  }
+  if (get3("lfx2") || get3("lrFX") || get3("lmfx")) notes.push("Layer effects (shadows, glows, strokes) were dropped.");
+  if (get3("SoLd") || get3("PlLd") || get3("SoLE")) notes.push("Smart object kept as pixels.");
+  return out.text || out.shape || out.path || out.fill || out.fillOpacity != null || out.adjustment || notes.length ? out : null;
+}
+var ADJUSTMENTS, SEMANTIC_BLOCK_KEYS, r2, WEIGHTS, ITALIC, STYLE_WORDS, sameStyle;
+var init_psd_layer_semantics = __esm({
+  "engine/src/psd-layer-semantics.ts"() {
+    "use strict";
+    init_psd_descriptor();
+    ADJUSTMENTS = {
+      levl: "Levels",
+      curv: "Curves",
+      brit: "Brightness/Contrast",
+      blnc: "Color Balance",
+      blwh: "Black & White",
+      hue2: "Hue/Saturation",
+      "hue ": "Hue/Saturation",
+      expA: "Exposure",
+      vibA: "Vibrance",
+      selc: "Selective Color",
+      mixr: "Channel Mixer",
+      grdm: "Gradient Map",
+      phfl: "Photo Filter",
+      nvrt: "Invert",
+      thrs: "Threshold",
+      post: "Posterize",
+      clrL: "Color Lookup"
+    };
+    SEMANTIC_BLOCK_KEYS = /* @__PURE__ */ new Set([
+      "TySh",
+      "tySh",
+      "vogk",
+      "vmsk",
+      "vsms",
+      "SoCo",
+      "vstk",
+      "iOpa",
+      "GdFl",
+      "PtFl",
+      "SoLd",
+      "PlLd",
+      "SoLE",
+      "lfx2",
+      "lrFX",
+      "lmfx",
+      ...Object.keys(ADJUSTMENTS)
+    ]);
+    r2 = (v) => Math.round(v * 100) / 100;
+    WEIGHTS = [
+      [/(thin|hairline)/i, 100],
+      [/(extra|ultra)\s*light/i, 200],
+      [/light/i, 300],
+      [/(semi|demi)\s*bold/i, 600],
+      [/(extra|ultra)\s*bold/i, 800],
+      [/(black|heavy)/i, 900],
+      [/bold/i, 700],
+      [/medium/i, 500]
+    ];
+    ITALIC = /(italic|oblique)/i;
+    STYLE_WORDS = /(Thin|Hairline|ExtraLight|UltraLight|Light|Regular|Book|Normal|Medium|SemiBold|DemiBold|Semibold|Demibold|ExtraBold|UltraBold|Extrabold|Ultrabold|Bold|Black|Heavy|Italic|Oblique)+$/;
+    sameStyle = (a, b) => a.family === b.family && a.weight === b.weight && a.italic === b.italic && Math.abs(a.size - b.size) < 0.01 && a.color === b.color && a.underline === b.underline && a.strike === b.strike;
   }
 });
 
@@ -61278,8 +62084,9 @@ function readPsd(bytes, opts = {}) {
       mergedHasAlpha = rawCount < 0;
       const count4 = Math.abs(rawCount);
       if (count4 > MAX_LAYERS) throw new PsdUnsupportedError("bounds", `${count4} layers (cap ${MAX_LAYERS})`);
+      const semanticBudget = { left: MAX_SEMANTIC_BYTES };
       for (let i = 0; i < count4; i++) {
-        const rec2 = readLayerRecord(c, liEnd, psb, warn);
+        const rec2 = readLayerRecord(c, liEnd, psb, warn, semanticBudget);
         if (!rec2) {
           warn("layer.bad", `record ${i} unreadable - remaining layers dropped`);
           break;
@@ -61329,6 +62136,10 @@ function readPsd(bytes, opts = {}) {
         isGroup,
         groupPath: [...stack]
       };
+      if (rec2.blocks && !isGroup) {
+        const semantics = readLayerSemantics(rec2.blocks, { x: layer.x, y: layer.y, w: layer.width, h: layer.height }, { w: width, h: height });
+        if (semantics) layer.psd = semantics;
+      }
       if (!isGroup) {
         const px3 = decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, opts);
         if (px3) layer.pixels = px3;
@@ -61358,7 +62169,7 @@ function readPsd(bytes, opts = {}) {
     warnings
   };
 }
-function readLayerRecord(c, end, psb, warn) {
+function readLayerRecord(c, end, psb, warn, semanticBudget) {
   if (c.p + 18 > end) return null;
   const top = c.i32();
   const left = c.i32();
@@ -61369,9 +62180,9 @@ function readLayerRecord(c, end, psb, warn) {
   const channels = [];
   for (let i = 0; i < nCh; i++) {
     const id2 = c.i16();
-    const length = psb ? c.u64() : c.u32();
-    if (!Number.isSafeInteger(length)) return null;
-    channels.push({ id: id2, length });
+    const length2 = psb ? c.u64() : c.u32();
+    if (!Number.isSafeInteger(length2)) return null;
+    channels.push({ id: id2, length: length2 });
   }
   if (c.p + 16 > end) return null;
   if (c.ascii(4) !== "8BIM") return null;
@@ -61418,6 +62229,8 @@ function readLayerRecord(c, end, psb, warn) {
     c.p = Math.min(c.p + padded, extraEnd);
   }
   let section = 0;
+  let blocks;
+  let keptHere = 0;
   for (let n6 = 0; c.p + 12 <= extraEnd && n6 < MAX_EXTRA_BLOCKS; n6++) {
     const sig = c.ascii(4);
     if (sig !== "8BIM" && sig !== "8B64") break;
@@ -61438,6 +62251,16 @@ function readLayerRecord(c, end, psb, warn) {
         warn("layer.bad", `lsct type ${section}`);
         section = 0;
       }
+    } else if (SEMANTIC_BLOCK_KEYS.has(key) && blockEnd > c.p) {
+      const n7 = blockEnd - c.p;
+      if (keptHere + n7 <= MAX_SEMANTIC_BYTES_PER_LAYER && n7 <= semanticBudget.left) {
+        blocks ??= /* @__PURE__ */ new Map();
+        blocks.set(key, c.b.slice(c.p, blockEnd));
+        keptHere += n7;
+        semanticBudget.left -= n7;
+      } else {
+        warn("layer.semantics", `${key} block too large to read`);
+      }
     }
     c.p = blockEnd + len2 % 2;
     if (c.p > extraEnd) {
@@ -61446,7 +62269,7 @@ function readLayerRecord(c, end, psb, warn) {
     }
   }
   c.p = extraEnd;
-  return { top, left, bottom, right, channels, blendKey, opacity, clipping, hidden: (flags & 2) !== 0, name, section, mask, dataAt: 0 };
+  return { top, left, bottom, right, channels, blendKey, opacity, clipping, hidden: (flags & 2) !== 0, name, section, mask, dataAt: 0, ...blocks ? { blocks } : {} };
 }
 function decodePlane(bytes, at, chLen, rows2, cols, depth, psb, inflate, reserve, warn) {
   if (rows2 <= 0 || cols <= 0) return new Uint8Array(0);
@@ -61803,11 +62626,12 @@ function fold16(raw, samples) {
 function compositeIsPsb(c) {
   return c.b.length >= 6 && (c.b[4] << 8 | c.b[5]) === 2;
 }
-var MAX_DIM_PSD, MAX_DIM_PSB, MAX_LAYERS, MAX_CHANNELS_PER_LAYER, MAX_EXTRA_BLOCKS, MAX_RESOURCE_BLOCKS, DEFAULT_DECODE_BUDGET, MAX_CMYK_CACHE, PsdUnsupportedError, Cur, EMPTY;
+var MAX_DIM_PSD, MAX_DIM_PSB, MAX_LAYERS, MAX_CHANNELS_PER_LAYER, MAX_EXTRA_BLOCKS, MAX_RESOURCE_BLOCKS, DEFAULT_DECODE_BUDGET, MAX_CMYK_CACHE, PsdUnsupportedError, Cur, EMPTY, MAX_SEMANTIC_BYTES_PER_LAYER, MAX_SEMANTIC_BYTES;
 var init_psd = __esm({
   "engine/src/psd.ts"() {
     "use strict";
     init_icc();
+    init_psd_layer_semantics();
     init_packbits();
     init_pixels();
     init_raster_layers();
@@ -61879,6 +62703,8 @@ var init_psd = __esm({
       }
     };
     EMPTY = new Uint8Array(0);
+    MAX_SEMANTIC_BYTES_PER_LAYER = 8 << 20;
+    MAX_SEMANTIC_BYTES = 64 << 20;
   }
 });
 
@@ -61939,7 +62765,9 @@ function writePsd(doc) {
     const encoded2 = CH_IDS.map((id2) => encodeChannel(l, id2));
     const nameBytes = pascalName(l.name);
     const luni = luniBlock(l.name);
-    const extraLen = 4 + 4 + nameBytes.length + luni.length;
+    const tagged = (l.extraBlocks ?? []).map(([k, data]) => taggedBlock(k, data));
+    const taggedLen = tagged.reduce((n6, b) => n6 + b.length, 0);
+    const extraLen = 4 + 4 + nameBytes.length + luni.length + taggedLen;
     const rec2 = new Uint8Array(16 + 2 + CH_IDS.length * 6 + 4 + 4 + 1 + 1 + 1 + 1 + 4 + extraLen);
     const rv = new DataView(rec2.buffer);
     let p = 0;
@@ -61965,7 +62793,7 @@ function writePsd(doc) {
     for (let i = 0; i < 4; i++) rec2[p + i] = key.charCodeAt(i);
     p += 4;
     rec2[p++] = Math.max(0, Math.min(255, Math.round((l.opacity ?? 1) * 255)));
-    rec2[p++] = 0;
+    rec2[p++] = l.clipped ? 1 : 0;
     rec2[p++] = l.visible ?? true ? 0 : 2;
     rec2[p++] = 0;
     rv.setUint32(p, extraLen);
@@ -61978,6 +62806,10 @@ function writePsd(doc) {
     p += nameBytes.length;
     rec2.set(luni, p);
     p += luni.length;
+    for (const b of tagged) {
+      rec2.set(b, p);
+      p += b.length;
+    }
     layerParts.push(rec2);
     for (const e of encoded2) dataParts.push(e);
   }
@@ -62047,6 +62879,15 @@ function pascalName(name) {
   out.set(ascii4, 1);
   return out;
 }
+function taggedBlock(key, data) {
+  if (!/^[\x20-\x7e]{4}$/.test(key)) throw new Error(`tagged block key must be 4 characters: ${JSON.stringify(key)}`);
+  const out = new Uint8Array(12 + data.length + data.length % 2);
+  out.set([56, 66, 73, 77]);
+  for (let i = 0; i < 4; i++) out[4 + i] = key.charCodeAt(i);
+  new DataView(out.buffer).setUint32(8, data.length);
+  out.set(data, 12);
+  return out;
+}
 function luniBlock(name) {
   const units2 = [];
   for (let i = 0; i < name.length; i++) units2.push(name.charCodeAt(i));
@@ -62062,7 +62903,7 @@ function luniBlock(name) {
   return out;
 }
 function encodeChannel(l, id2) {
-  const { width: w, height: h, pixels } = l;
+  const { width: w, height: h, pixels: pixels2 } = l;
   if (w === 0 || h === 0) return u164(0);
   const offset = id2 === -1 ? 3 : id2;
   const row = new Uint8Array(w);
@@ -62071,7 +62912,7 @@ function encodeChannel(l, id2) {
   const tv = new DataView(table.buffer);
   let rleTotal = 0;
   for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) row[x] = pixels[(y * w + x) * 4 + offset];
+    for (let x = 0; x < w; x++) row[x] = pixels2[(y * w + x) * 4 + offset];
     const packed = packBitsEncode(row);
     packedRows[y] = packed;
     tv.setUint16(y * 2, packed.length);
@@ -62082,7 +62923,7 @@ function encodeChannel(l, id2) {
   }
   const plane = new Uint8Array(w * h);
   for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) plane[y * w + x] = pixels[(y * w + x) * 4 + offset];
+    for (let x = 0; x < w; x++) plane[y * w + x] = pixels2[(y * w + x) * 4 + offset];
   }
   return concat2([u164(0), plane]);
 }
@@ -63103,8 +63944,8 @@ function parseBatchCsv(text7) {
       const reserved = RESERVED_HEADERS[h.toLowerCase()];
       if (reserved === "toolId") row.toolId = raw;
       else if (reserved === "width" || reserved === "height" || reserved === "dpi") {
-        const num11 = Number(raw);
-        if (Number.isFinite(num11) && num11 > 0) row[reserved] = num11;
+        const num12 = Number(raw);
+        if (Number.isFinite(num12) && num12 > 0) row[reserved] = num12;
       } else if (reserved) row[reserved] = raw;
       else row.params[h] = raw;
     });
@@ -63521,8 +64362,8 @@ async function pipeThroughTransform(transform2, data) {
 function pickCarryFields(meta) {
   const out = {};
   for (const spec of META_CARRY_FIELDS) {
-    for (const label2 of spec.labels) {
-      const f = meta.fields.find((x) => x.label === label2);
+    for (const label3 of spec.labels) {
+      const f = meta.fields.find((x) => x.label === label3);
       if (f?.value) {
         out[spec.key] = f.value;
         break;
@@ -63899,10 +64740,10 @@ function parseIloc(bytes, iloc) {
       p += indexSize;
       const offset = base + readN(p, offsetSize);
       p += offsetSize;
-      const length = readN(p, lengthSize);
+      const length2 = readN(p, lengthSize);
       p += lengthSize;
-      if (offset > 4294967295 || length > 4294967295) return null;
-      extents.push({ offset, length });
+      if (offset > 4294967295 || length2 > 4294967295) return null;
+      extents.push({ offset, length: length2 });
     }
     entries.push({ id: id2, method, dataRef, extents });
   }
@@ -64598,9 +65439,9 @@ function lnGamma(x) {
   for (let i = 0; i < 8; i++) a += c[i] / (x + i + 1);
   return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
 }
-function channelP(rgba, channel3, n6) {
+function channelP(rgba, channel4, n6) {
   const h = new Float64Array(256);
-  for (let i = 0; i < n6; i++) h[rgba[i * 4 + channel3]]++;
+  for (let i = 0; i < n6; i++) h[rgba[i * 4 + channel4]]++;
   let chi2 = 0, k = 0;
   for (let v = 0; v < 256; v += 2) {
     const e = (h[v] + h[v + 1]) / 2;
@@ -65395,10 +66236,10 @@ function hdrBoostToPQ(rgba, opts) {
       lb = Math.max(0, y + (lb - y) * sat);
     }
     const scale = (1 + extra) * sdrWhiteNits;
-    const r25 = (m0[0] * lr + m0[1] * lg + m0[2] * lb) * scale;
+    const r26 = (m0[0] * lr + m0[1] * lg + m0[2] * lb) * scale;
     const g2 = (m1[0] * lr + m1[1] * lg + m1[2] * lb) * scale;
     const b2 = (m2[0] * lr + m2[1] * lg + m2[2] * lb) * scale;
-    rgba[i] = Math.round(pqEncode(r25) * 255);
+    rgba[i] = Math.round(pqEncode(r26) * 255);
     rgba[i + 1] = Math.round(pqEncode(g2) * 255);
     rgba[i + 2] = Math.round(pqEncode(b2) * 255);
   }
@@ -66589,9 +67430,9 @@ function spillOf(tags3, node, base, index2) {
       i = after - 1;
       continue;
     }
-    const own2 = parseTransform(attrOf(t.attrs, "transform"));
-    if (!own2) return NO;
-    const m2 = matMul(stack[stack.length - 1], own2);
+    const own3 = parseTransform(attrOf(t.attrs, "transform"));
+    if (!own3) return NO;
+    const m2 = matMul(stack[stack.length - 1], own3);
     if (t.kind === "open") stack.push(m2);
     const attrs = ` ${t.attrs}`;
     if (VIEWPORT_PCT_RE.test(attrs) || VIEWPORT_PCT_STYLE_RE.test(attrs)) return NO;
@@ -66661,11 +67502,11 @@ function cropFor(tags3, c, src, index2, scale) {
   if (w * h >= src.w * src.h * CROP_MIN_GAIN) return null;
   return { x, y, w, h };
 }
-function mergeRefs(own2, shared) {
-  if (!shared.ids.length) return own2;
-  const ids2 = [...own2.ids];
+function mergeRefs(own3, shared) {
+  if (!shared.ids.length) return own3;
+  const ids2 = [...own3.ids];
   const seen = new Set(ids2);
-  let more = own2.more || shared.more;
+  let more = own3.more || shared.more;
   for (const id2 of shared.ids) {
     if (seen.has(id2)) continue;
     if (ids2.length >= SVG_LAYERS_MAX_REFS) {
@@ -66858,26 +67699,26 @@ var init_svg_layers = __esm({
 function budgetError(message) {
   throw new RangeError(`zzfxm: ${message}`);
 }
-function instrumentSampleCount(params2, label2) {
-  if (params2.length > ZZFXM_MAX_INSTRUMENT_PARAMS) budgetError(`${label2} has too many parameters`);
+function instrumentSampleCount(params2, label3) {
+  if (params2.length > ZZFXM_MAX_INSTRUMENT_PARAMS) budgetError(`${label3} has too many parameters`);
   for (let i = 0; i < params2.length; i++) {
     const value = params2[i];
     if (value === void 0) continue;
     if (typeof value !== "number" || !Number.isFinite(value) || Math.abs(value) > ZZFXM_MAX_NUMERIC_MAGNITUDE) {
-      budgetError(`${label2} has an invalid parameter`);
+      budgetError(`${label3} has an invalid parameter`);
     }
   }
   const duration = (index2, fallback = 0) => {
     const value = params2[index2] ?? fallback;
     if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
-      budgetError(`${label2} has an invalid envelope duration`);
+      budgetError(`${label3} has an invalid envelope duration`);
     }
     return value;
   };
   const seconds = duration(3) + duration(18) + duration(4) + duration(5, 0.1) + duration(16);
   const samples = Math.ceil(seconds * zzfxR);
   if (!Number.isSafeInteger(samples) || samples > ZZFXM_MAX_SYNTH_SAMPLES) {
-    budgetError(`${label2} exceeds the ${ZZFXM_MAX_SYNTH_SAMPLES}-sample synth limit`);
+    budgetError(`${label3} exceeds the ${ZZFXM_MAX_SYNTH_SAMPLES}-sample synth limit`);
   }
   return samples;
 }
@@ -66975,7 +67816,7 @@ function zzfxGUnchecked(volume = 1, randomness = 0.05, frequency = 220, attack =
   let repeat = 0;
   let crush = 0;
   let jump = 1;
-  let length = 0;
+  let length2 = 0;
   const b = [];
   let t = 0;
   let i = 0;
@@ -67004,12 +67845,12 @@ function zzfxGUnchecked(volume = 1, randomness = 0.05, frequency = 220, attack =
   pitchJumpTime *= sampleRate;
   repeatTime = repeatTime * sampleRate | 0;
   volume *= zzfxV;
-  for (length = attack + decay + sustain + release + delay | 0; i < length; b[i++] = s * volume) {
+  for (length2 = attack + decay + sustain + release + delay | 0; i < length2; b[i++] = s * volume) {
     if (!(++crush % (bitCrush * 100 | 0))) {
       s = shape ? shape > 1 ? shape > 2 ? shape > 3 ? shape > 4 ? t / PI2 % 1 < shapeCurve / 2 ? 1 : -1 : Math.sin(t ** 3) : Math.max(Math.min(Math.tan(t), 1), -1) : 1 - (2 * t / PI2 % 2 + 2) % 2 : 1 - 4 * abs(Math.round(t / PI2) - t / PI2) : Math.sin(t);
       s = (repeatTime ? 1 - tremolo + tremolo * Math.sin(PI2 * i / repeatTime) : 1) * (shape > 4 ? s : sign(s) * abs(s) ** shapeCurve) * // shape curve
-      (i < attack ? i / attack : i < attack + decay ? 1 - (i - attack) / decay * (1 - sustainVolume) : i < attack + decay + sustain ? sustainVolume : i < length - delay ? (length - i - delay) / release * sustainVolume : 0);
-      s = delay ? s / 2 + (delay > i ? 0 : (i < length - delay ? 1 : (length - i) / delay) * // release delay
+      (i < attack ? i / attack : i < attack + decay ? 1 - (i - attack) / decay * (1 - sustainVolume) : i < attack + decay + sustain ? sustainVolume : i < length2 - delay ? (length2 - i - delay) / release * sustainVolume : 0);
+      s = delay ? s / 2 + (delay > i ? 0 : (i < length2 - delay ? 1 : (length2 - i) / delay) * // release delay
       (b[i - delay | 0] ?? 0) / 2 / volume) : s;
       if (filter)
         s = y1 = b2 * x2 + b1 * (x2 = x1) + b0 * (x1 = s) - a2 * y2 - a1 * (y2 = y1);
@@ -67889,43 +68730,43 @@ var init_wav = __esm({
 
 // engine/src/audio-clean.ts
 function cleanAudioPreview(result) {
-  const length = Math.min(result.channels[0]?.length ?? 0, result.sampleRate * 30);
+  const length2 = Math.min(result.channels[0]?.length ?? 0, result.sampleRate * 30);
   return {
-    bytes: packWav({ channels: result.channels.map((c) => c.subarray(0, length)), sampleRate: result.sampleRate }, { format: "int16" }),
+    bytes: packWav({ channels: result.channels.map((c) => c.subarray(0, length2)), sampleRate: result.sampleRate }, { format: "int16" }),
     mime: "audio/wav",
-    duration: length / result.sampleRate,
+    duration: length2 / result.sampleRate,
     excerpt: result.durationAfter > 30
   };
 }
 function resamplePcm(channels, fromRate, toRate = LOUDNESS_RATE) {
-  if (fromRate === toRate) return channels.map((channel3) => Float32Array.from(channel3));
+  if (fromRate === toRate) return channels.map((channel4) => Float32Array.from(channel4));
   if (!(fromRate > 0) || !(toRate > 0)) throw new Error("audio clean: invalid sample rate");
   const inputLength = channels[0]?.length ?? 0;
   const outputLength = Math.max(0, Math.round(inputLength * toRate / fromRate));
-  return channels.map((channel3) => {
+  return channels.map((channel4) => {
     const out = new Float32Array(outputLength);
-    if (!channel3.length || !outputLength) return out;
+    if (!channel4.length || !outputLength) return out;
     for (let i = 0; i < outputLength; i++) {
       const at = i * fromRate / toRate;
-      const left = Math.min(channel3.length - 1, Math.floor(at));
-      const right = Math.min(channel3.length - 1, left + 1);
+      const left = Math.min(channel4.length - 1, Math.floor(at));
+      const right = Math.min(channel4.length - 1, left + 1);
       const mix2 = at - left;
-      out[i] = channel3[left] * (1 - mix2) + channel3[right] * mix2;
+      out[i] = channel4[left] * (1 - mix2) + channel4[right] * mix2;
     }
     return out;
   });
 }
 function trimBounds(channels, threshold) {
-  const length = channels[0]?.length ?? 0;
+  const length2 = channels[0]?.length ?? 0;
   let from = 0;
-  while (from < length && channels.every((channel3) => Math.abs(channel3[from] ?? 0) <= threshold)) from++;
-  let to = length;
-  while (to > from && channels.every((channel3) => Math.abs(channel3[to - 1] ?? 0) <= threshold)) to--;
+  while (from < length2 && channels.every((channel4) => Math.abs(channel4[from] ?? 0) <= threshold)) from++;
+  let to = length2;
+  while (to > from && channels.every((channel4) => Math.abs(channel4[to - 1] ?? 0) <= threshold)) to--;
   return [from, to];
 }
 function peakDb(channels) {
   let peak = 0;
-  for (const channel3 of channels) for (const sample of channel3) peak = Math.max(peak, Math.abs(sample));
+  for (const channel4 of channels) for (const sample of channel4) peak = Math.max(peak, Math.abs(sample));
   return peak > 0 ? 20 * Math.log10(peak) : -Infinity;
 }
 function cleanAudioPcm(input, sampleRate, opts = {}) {
@@ -67933,9 +68774,9 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
     throw new Error(`audio clean: expected ${LOUDNESS_RATE} Hz PCM; got ${sampleRate}`);
   }
   if (!input.length || !input[0]?.length) throw new Error("audio clean: decoded audio is empty");
-  const length = Math.min(...input.map((channel3) => channel3.length));
-  const original = input.slice(0, 2).map((channel3) => Float32Array.from(channel3.subarray(0, length)));
-  const durationBefore = length / sampleRate;
+  const length2 = Math.min(...input.map((channel4) => channel4.length));
+  const original = input.slice(0, 2).map((channel4) => Float32Array.from(channel4.subarray(0, length2)));
+  const durationBefore = length2 / sampleRate;
   const loudnessBefore = integratedLoudness(original, sampleRate);
   const operations = [];
   let channels = original;
@@ -67943,10 +68784,10 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
   if (denoise !== "off") {
     if (!opts.enhanced?.length) throw new Error("audio clean: the requested speech denoiser is unavailable in this shell");
     const amount = denoise === "strong" ? 1 : 0.55;
-    channels = channels.map((channel3, c) => {
+    channels = channels.map((channel4, c) => {
       const enhanced = opts.enhanced[c] ?? opts.enhanced[0];
-      const out = new Float32Array(channel3.length);
-      for (let i = 0; i < out.length; i++) out[i] = channel3[i] * (1 - amount) + (enhanced[i] ?? 0) * amount;
+      const out = new Float32Array(channel4.length);
+      for (let i = 0; i < out.length; i++) out[i] = channel4[i] * (1 - amount) + (enhanced[i] ?? 0) * amount;
       return out;
     });
     operations.push(`${denoise === "strong" ? "Strong" : "Light"} voice cleanup`);
@@ -67961,7 +68802,7 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
     trimmedSamples = channels[0].length - (to - from);
     trimStartSamples = from;
     trimEndSamples = channels[0].length - to;
-    channels = channels.map((channel3) => Float32Array.from(channel3.subarray(from, to)));
+    channels = channels.map((channel4) => Float32Array.from(channel4.subarray(from, to)));
     operations.push(`Trimmed ${(trimmedSamples / sampleRate).toFixed(2)} seconds of edge silence`);
   }
   const target = opts.normalize === "off" || opts.normalize == null ? null : Number(opts.normalize);
@@ -67969,9 +68810,9 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
     const measured = integratedLoudness(channels, sampleRate);
     if (measured != null) {
       const gain = normalizeGain(measured, target);
-      channels = channels.map((channel3) => {
-        const out = new Float32Array(channel3.length);
-        for (let i = 0; i < out.length; i++) out[i] = channel3[i] * gain;
+      channels = channels.map((channel4) => {
+        const out = new Float32Array(channel4.length);
+        for (let i = 0; i < out.length; i++) out[i] = channel4[i] * gain;
         return out;
       });
       operations.push(`Normalised to ${target} LUFS`);
@@ -68061,14 +68902,14 @@ function cuesForSlide(words2, slideStartMs, slideEndMs, opts = {}) {
   }
   return out;
 }
-function stamp(seconds, sep2) {
+function stamp(seconds, sep3) {
   const ms = Math.max(0, Math.round(seconds * 1e3));
   const h = Math.floor(ms / 36e5);
   const m2 = Math.floor(ms % 36e5 / 6e4);
   const s = Math.floor(ms % 6e4 / 1e3);
   const frac = ms % 1e3;
   const pad = (n6, w = 2) => String(n6).padStart(w, "0");
-  return `${pad(h)}:${pad(m2)}:${pad(s)}${sep2}${pad(frac, 3)}`;
+  return `${pad(h)}:${pad(m2)}:${pad(s)}${sep3}${pad(frac, 3)}`;
 }
 function cuesToVtt(cues) {
   const blocks = cues.map((c) => `${stamp(c.start, ".")} --> ${stamp(c.end, ".")}
@@ -68109,7 +68950,13 @@ var init_captions = __esm({
 });
 
 // engine/src/claudisms.ts
-var MODEL_FINGERPRINTS, CLAUDE_TELLS, AI_WORDS, AI_PHRASES, SPELLING_VARIANTS, AI_STRUCTURE, CHATBOT_ARTIFACTS, CHATBOT_SOFT, CHATGPT_TELLS, GEMINI_TELLS, DEEPSEEK_TELLS, FAMILY_TELLS, LEXICON_VERSION;
+function spatialPointerRe(flags = "gi") {
+  return new RegExp(
+    String.raw`\b(?:beside|next to|in front of|behind|above|below) it\b` + String.raw`(?<!\b${SPATIAL_WORD}\b[^.!?\n]*)(?![^.!?\n]*\b${SPATIAL_WORD}\b)`,
+    flags
+  );
+}
+var MODEL_FINGERPRINTS, SPATIAL_CONTEXT_WORDS, SPATIAL_WORD, CLAUDE_TELLS, AI_WORDS, AI_PHRASES, SPELLING_VARIANTS, AI_STRUCTURE, CHATBOT_ARTIFACTS, CHATBOT_SOFT, CHATGPT_TELLS, GEMINI_TELLS, DEEPSEEK_TELLS, FAMILY_TELLS, LEXICON_VERSION;
 var init_claudisms = __esm({
   "engine/src/claudisms.ts"() {
     "use strict";
@@ -68169,6 +69016,153 @@ var init_claudisms = __esm({
       // a line-start "Human:" too before this counts.
       { re: /(?:^|\n)Assistant:[ \t]/g, requires: /(?:^|\n)Human:[ \t]/, model: "Claude (Anthropic)", label: "Claude transcript scaffolding" }
     ];
+    SPATIAL_CONTEXT_WORDS = [
+      // Interface parts
+      "button",
+      "field",
+      "chip",
+      "badge",
+      "icon",
+      "label",
+      "preview",
+      "panel",
+      "pane",
+      "sidebar",
+      "rail",
+      "toolbar",
+      "bar",
+      "strip",
+      "slider",
+      "wheel",
+      "swatch",
+      "canvas",
+      "layer",
+      "screen",
+      "window",
+      "dialog",
+      "modal",
+      "menu",
+      "tab",
+      "row",
+      "column",
+      "card",
+      "tile",
+      "grid",
+      "cell",
+      "image",
+      "photo",
+      "picture",
+      "thumbnail",
+      "logo",
+      "heading",
+      "headline",
+      "title",
+      "caption",
+      "box",
+      "frame",
+      "slide",
+      "toggle",
+      "checkbox",
+      "dropdown",
+      "input",
+      "cursor",
+      "pointer",
+      "arrow",
+      "dot",
+      "pill",
+      "handle",
+      "ruler",
+      "header",
+      "footer",
+      "sheet",
+      "stage",
+      "viewport",
+      "dock",
+      "popover",
+      "tooltip",
+      "overlay",
+      "scrollbar",
+      "table",
+      "map",
+      "pin",
+      "marker",
+      "link",
+      "qr",
+      // Scenes and the physical world
+      "scene",
+      "camera",
+      "light",
+      "backdrop",
+      "background",
+      "subject",
+      "mesh",
+      "floor",
+      "wall",
+      // No 'person' or 'people': "the people behind it" is the figurative use itself.
+      "sky",
+      "horizon",
+      "room",
+      "building",
+      "street",
+      "road",
+      "car",
+      "tree",
+      "door",
+      "shelf",
+      "desk",
+      "chair",
+      "monitor",
+      "display",
+      "poster",
+      "sign",
+      "phone",
+      "tablet",
+      // Placement words
+      "sit",
+      "sits",
+      "sitting",
+      "stack",
+      "stacked",
+      "drag",
+      "dragged",
+      "painted",
+      "drawn",
+      "pinned",
+      "docked",
+      "placed",
+      "positioned",
+      "aligned",
+      "overlaid",
+      "scroll",
+      "scrolled",
+      "hover",
+      "top",
+      "bottom",
+      "left",
+      "corner",
+      "edge",
+      "margin",
+      // Source layout and geometry, for code comments: "the loop below it", "the vertex beside it"
+      "line",
+      "loop",
+      "call",
+      "function",
+      "block",
+      "statement",
+      "comment",
+      "branch",
+      "case",
+      "element",
+      "node",
+      "child",
+      "sibling",
+      "vertex",
+      "segment",
+      "curve",
+      "glyph",
+      "letter"
+    ];
+    SPATIAL_WORD = `(?:${SPATIAL_CONTEXT_WORDS.join("|")})(?:e?s)?`;
     CLAUDE_TELLS = [
       { re: /\bload-bearing\b/gi, label: '"load-bearing"' },
       { re: /\bearns? its keep\b/gi, label: '"earns its keep"' },
@@ -68215,7 +69209,22 @@ var init_claudisms = __esm({
       { re: /\bmachinery of\b|\bthe [\w-]+ machinery\b/gi, label: 'abstract "machinery"' },
       { re: /(?<!\b(?:quantum|fluid|orbital|classical|statistical|celestial|auto) )\bmechanics of\b/gi, label: 'abstract "mechanics of"' },
       { re: /\bsurviv(?:e|es|ed|ing) (?:contact with|scrutiny|translation|the (?:cut|edit|rewrite|transition|retelling|journey))\b|\bwhat survives\b/gi, label: 'figurative "survives"' },
-      { re: /\bstructure of the (?:argument|essay|answer|response|conversation|thinking|reasoning|claim|story|prose|piece|writing|work|problem)\b/gi, label: 'abstract "structure of the argument"' }
+      { re: /\bstructure of the (?:argument|essay|answer|response|conversation|thinking|reasoning|claim|story|prose|piece|writing|work|problem)\b/gi, label: 'abstract "structure of the argument"' },
+      { re: spatialPointerRe("gi"), label: '"beside it" / "behind it" pointer' },
+      // From the docs gate's claudism list (scripts/check-docs-vernacular.ts), kept in step
+      // with it (Andy, 2026-10-01). Left out on purpose, because ordinary human writing uses
+      // them too often for a score: "say so", "in X terms", figurative "lands", "the X
+      // fits", "names" as a verb, "what X is worth", a sentence that ends in "it", and the
+      // house-style domain rules (transcribe, admissible, survivable, honesty note, the
+      // code-comment self-references).
+      { re: /\bworth knowing\b/gi, label: '"worth knowing"' },
+      { re: /\bnow says so\b/gi, label: '"now says so"' },
+      { re: /\bbrings? (?:me|us) back to\b/gi, label: '"brings us back to"' },
+      { re: /\banchors? it\b/gi, label: '"anchors it" (prose verb)' },
+      // The short assertion tacked on after a comma: ", in full", ", by design", ", end to end".
+      { re: /,\s+(?:in full|in short|by design|on purpose|deliberately|end[- ]to[- ]end|for real|full stop|every time|nothing (?:more|less)|no (?:more|less)|for good|and nothing else|by construction|no exceptions|plain and simple|simple as that|once and for all|precisely|honestly|byte[- ]for[- ]byte|in one place|and that(?:'s| is) (?:it|all))(?=[*_"'’”]*(?:[.,;:!?)]|\s+-\s|\s*$))/gim, label: 'short assertion after a comma (", in full")' },
+      // A heading that ends in "it" ("How to hold us to it"): markdown or HTML headings.
+      { re: /^\s{0,3}#{1,6}\s.*(?<![\w.'’`-])[Ii]t[\s*_"'’”)\]?!.:]*$|<h[1-6]\b[^>]*>(?:(?!<\/h[1-6]).)*?(?<![\w.'’`-])[Ii]t[\s*_"'’”)\]?!.:]*<\/h[1-6]>/gm, label: 'heading that ends in "it"' }
     ];
     AI_WORDS = [
       "delve",
@@ -68315,12 +69324,12 @@ var init_claudisms = __esm({
       { re: /\bvaluable insights?\b/gi, label: '"valuable insights"' },
       // The enthusiastic-greeting tell lives in CHATBOT_SOFT only - listing it here
       // too scored the same span in two buckets at once.
-      { re: /\blet'?s (?:break it down|explore|dive in|dive into|unpack)\b/gi, label: `signposting "let's explore"` },
+      { re: /\blet'?s (?:break it down|explore|dive in|dive into|turn to|unpack)\b/gi, label: `signposting "let's explore"` },
       { re: /\bthe future (?:looks|is) bright\b/gi, label: 'generic ending ("the future looks bright")' },
       { re: /\bwould be (?:complete|remiss) without\b/gi, label: '"would be complete/remiss without"' },
       { re: /\blook no further\b/gi, label: '"look no further"' },
       { re: /\bever-(?:evolving|changing|expanding|growing)\b/gi, label: '"ever-evolving"' },
-      { re: /\b(?:digital|competitive|evolving|modern|business|technological) landscape\b/gi, label: '"\u2026landscape" puffery' },
+      { re: /\b(?:digital|competitive|evolving|modern|business|technological|existing|wider|current) landscape\b/gi, label: '"\u2026landscape" puffery' },
       { re: /\bin the realm of\b/gi, label: '"in the realm of"' },
       { re: /\btake (?:it|this|your [\w-]+) to the next level\b/gi, label: '"to the next level"' },
       { re: /\bunlock(?:ing)? the (?:full )?(?:power|potential|possibilit(?:y|ies))\b/gi, label: '"unlock the potential"' },
@@ -68332,7 +69341,17 @@ var init_claudisms = __esm({
       { re: /\bexciting times lie ahead\b/gi, label: 'generic ending ("exciting times lie ahead")' },
       { re: /\bhere'?s what you need to know\b/gi, label: `"here's what you need to know"` },
       { re: /\bparadigm shift\b/gi, label: '"paradigm shift"' },
-      { re: /\bstrategic imperative\b/gi, label: '"strategic imperative"' }
+      { re: /\bstrategic imperative\b/gi, label: '"strategic imperative"' },
+      // From the docs gate's claudism list (scripts/check-docs-vernacular.ts): generic
+      // stock phrasing, so it counts here rather than tipping the guess to Claude.
+      { re: /\bdeep[ -]dives?\b/gi, label: '"deep dive"' },
+      { re: /\btreasure trove\b/gi, label: '"treasure trove"' },
+      { re: /\b(?:the )?bar is (?:high|higher|low|lower)\b|\brais(?:e|es|ed|ing) the bar\b/gi, label: '"raise the bar" metaphor' },
+      { re: /\b(?:reflecting a broader trend|marking a significant shift)\b/gi, label: '"reflecting a broader trend"' },
+      { re: /\bmoving on to\b/gi, label: 'signposting "moving on to"' },
+      // Bare "worth noting"; the "it's worth noting" form is scored by the entries above.
+      { re: /(?<!\bit'?s |\bit is )\bworth noting\b/gi, label: '"worth noting"' },
+      { re: /\blean(?:s|ing|ed)? into (?:the|it|this|that|your|our|their)\b/gi, label: '"lean into"' }
     ];
     SPELLING_VARIANTS = [
       { us: /\bcolor(?:s|ed|ing|ful)?\b/gi, uk: /\bcolour(?:s|ed|ing|ful)?\b/gi, label: "color/colour" },
@@ -68415,7 +69434,7 @@ var init_claudisms = __esm({
       { family: "Gemini (Google)", tells: GEMINI_TELLS },
       { family: "DeepSeek", tells: DEEPSEEK_TELLS }
     ];
-    LEXICON_VERSION = 6;
+    LEXICON_VERSION = 7;
   }
 });
 
@@ -68475,9 +69494,9 @@ function anomalousNbsp(text7) {
 }
 function mostlyMarkdownAdjacent(spans, text7) {
   if (spans.length === 0) return false;
-  const adjacent = spans.filter(({ index: index2, length }) => {
+  const adjacent = spans.filter(({ index: index2, length: length2 }) => {
     const before = charAt(text7, index2 - 1);
-    const after = charAt(text7, index2 + length);
+    const after = charAt(text7, index2 + length2);
     return /[*#`_]/.test(before) || /[*#`_]/.test(after);
   }).length;
   return adjacent * 2 >= spans.length;
@@ -68548,11 +69567,11 @@ function commentSpans(text7) {
   }
   return out;
 }
-function quotedAt(text7, index2, length) {
+function quotedAt(text7, index2, length2) {
   const lineStart = text7.lastIndexOf("\n", index2 - 1) + 1;
-  let lineEnd = text7.indexOf("\n", index2 + length);
+  let lineEnd = text7.indexOf("\n", index2 + length2);
   if (lineEnd < 0) lineEnd = text7.length;
-  return /["“”«»]/.test(text7.slice(lineStart, index2)) && /["“”«»]/.test(text7.slice(index2 + length, lineEnd));
+  return /["“”«»]/.test(text7.slice(lineStart, index2)) && /["“”«»]/.test(text7.slice(index2 + length2, lineEnd));
 }
 function collectTells(tells, text7, keep) {
   const spans = [];
@@ -69240,14 +70259,14 @@ var init_text_facts = __esm({
 function humanizeText(input) {
   let text7 = input;
   const changes = [];
-  const apply4 = (re, repl, kind, label2) => {
+  const apply4 = (re, repl, kind, label3) => {
     const g2 = re.flags.includes("g") ? re : new RegExp(re.source, `${re.flags}g`);
     let n6 = 0;
     text7 = text7.replace(g2, () => {
       n6 += 1;
       return repl;
     });
-    if (n6 > 0) changes.push({ kind, label: label2, count: n6 });
+    if (n6 > 0) changes.push({ kind, label: label3, count: n6 });
   };
   let fpCount = 0;
   const fpModels = /* @__PURE__ */ new Set();
@@ -69314,17 +70333,17 @@ function suggestRewrites(text7) {
         continue;
       }
       if (quotedAt(text7, m2.index, m2[0].length)) continue;
-      let length = m2[0].length;
+      let length2 = m2[0].length;
       let replacement = e.replace(m2);
       if (e.kind === "swap") replacement = matchCase(m2[0], replacement);
       if (e.kind === "delete" && atSentenceStart(text7, m2.index)) {
-        const next = text7[m2.index + length];
+        const next = text7[m2.index + length2];
         if (next && /[a-z]/.test(next)) {
-          length += 1;
+          length2 += 1;
           replacement = next.toUpperCase();
         }
       }
-      found.push({ index: m2.index, length, replacement, label: e.label, kind: e.kind });
+      found.push({ index: m2.index, length: length2, replacement, label: e.label, kind: e.kind });
     }
   }
   found.sort((a, b) => a.index - b.index || b.length - a.length);
@@ -70204,7 +71223,7 @@ function patternSeconds(bpm) {
   const beatLen = zzfxR / bpm * 60 >> 2;
   return STEPS * beatLen / zzfxR;
 }
-function channel(inst, pan, notes) {
+function channel2(inst, pan, notes) {
   return [inst, pan, ...notes];
 }
 function hits(steps, note = 12) {
@@ -70269,13 +71288,13 @@ function composeSong(spec) {
     const restProb = spec.restProb ?? 0.55;
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, 0, placed([[0, root2], [8, root2 + 7]])),
+        channel2(0, 0, placed([[0, root2], [8, root2 + 7]])),
         // warm pad
-        channel(1, 0, placed([[0, root2]])),
+        channel2(1, 0, placed([[0, root2]])),
         // soothing swell, rings the bar
-        channel(2, pan, walk(rng, scale, root2, restProb)),
+        channel2(2, pan, walk(rng, scale, root2, restProb)),
         // sparse melody
-        channel(3, 0, placed([[0, root2]]))
+        channel2(3, 0, placed([[0, root2]]))
         // sub
       ]);
     }
@@ -70283,15 +71302,15 @@ function composeSong(spec) {
     instruments = [PRESETS.kick, PRESETS.snare, PRESETS.hat, PRESETS[spec.bass ?? "bass"], PRESETS[spec.lead ?? "pluck"]];
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, 0, hits([0, 4, 8, 12])),
+        channel2(0, 0, hits([0, 4, 8, 12])),
         // kick - four on the floor
-        channel(1, 0, hits([4, 12])),
+        channel2(1, 0, hits([4, 12])),
         // snare - backbeat
-        channel(2, 0, hits([0, 2, 4, 6, 8, 10, 12, 14])),
+        channel2(2, 0, hits([0, 2, 4, 6, 8, 10, 12, 14])),
         // hats - eighths
-        channel(3, 0, placed([[0, root2], [3, root2], [8, root2], [11, root2]])),
+        channel2(3, 0, placed([[0, root2], [3, root2], [8, root2], [11, root2]])),
         // bass groove
-        channel(4, pan, placed([[0, root2], [8, root2 + 7]]))
+        channel2(4, pan, placed([[0, root2], [8, root2 + 7]]))
         // chord stab
       ]);
     }
@@ -70300,13 +71319,13 @@ function composeSong(spec) {
     const restProb = spec.restProb ?? 0.3;
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, 0, placed([[0, root2], [8, root2 + 7]])),
+        channel2(0, 0, placed([[0, root2], [8, root2 + 7]])),
         // pad
-        channel(1, pan, walk(rng, scale, root2, restProb)),
+        channel2(1, pan, walk(rng, scale, root2, restProb)),
         // lead melody
-        channel(2, 0, placed([[0, root2], [8, root2]])),
+        channel2(2, 0, placed([[0, root2], [8, root2]])),
         // bass
-        channel(3, 0, hits([2, 6, 10, 14]))
+        channel2(3, 0, hits([2, 6, 10, 14]))
         // light offbeat hats
       ]);
     }
@@ -70316,15 +71335,15 @@ function composeSong(spec) {
     for (const root2 of spec.roots) {
       const brk = breakbeat(rng, 0.2);
       patterns.push([
-        channel(0, 0, brk.kick),
+        channel2(0, 0, brk.kick),
         // breakbeat kick - syncopated, not four-on-the-floor
-        channel(1, 0, brk.snare),
+        channel2(1, 0, brk.snare),
         // breakbeat snare + occasional ghost hits
-        channel(2, 0, hits(everyN(1))),
+        channel2(2, 0, hits(everyN(1))),
         // fast 16th-note hats
-        channel(3, 0, walk(rng, scale, root2, restProb)),
+        channel2(3, 0, walk(rng, scale, root2, restProb)),
         // moving sub/reese bass line
-        channel(4, pan, placed([[0, root2]]))
+        channel2(4, pan, placed([[0, root2]]))
         // sparse dark stab/pad
       ]);
     }
@@ -70334,13 +71353,13 @@ function composeSong(spec) {
     for (const root2 of spec.roots) {
       const brk = breakbeat(rng, 0.45);
       patterns.push([
-        channel(0, 0, brk.kick),
-        channel(1, 0, brk.snare),
-        channel(2, 0, hits(everyN(1))),
+        channel2(0, 0, brk.kick),
+        channel2(1, 0, brk.snare),
+        channel2(2, 0, hits(everyN(1))),
         // fast hats
-        channel(3, 0, placed([[0, root2], [10, root2]])),
+        channel2(3, 0, placed([[0, root2], [10, root2]])),
         // sub bass, half-time anchor
-        channel(4, pan, walk(rng, scale, root2, restProb))
+        channel2(4, pan, walk(rng, scale, root2, restProb))
         // echo-y sparse ragga stab/bell lead
       ]);
     }
@@ -70349,11 +71368,11 @@ function composeSong(spec) {
     const restProb = spec.restProb ?? 0.2;
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, 0, placed([[0, root2], [2, root2 + 4], [4, root2 + 7], [6, root2 + 4], [8, root2], [10, root2 + 4], [12, root2 + 7], [14, root2 + 4]])),
+        channel2(0, 0, placed([[0, root2], [2, root2 + 4], [4, root2 + 7], [6, root2 + 4], [8, root2], [10, root2 + 4], [12, root2 + 7], [14, root2 + 4]])),
         // arpeggiated harpsichord
-        channel(1, 0, placed([[0, root2], [8, root2 + 7]])),
+        channel2(1, 0, placed([[0, root2], [8, root2 + 7]])),
         // strings pad, sustained
-        channel(2, pan, walk(rng, scale, root2, restProb))
+        channel2(2, pan, walk(rng, scale, root2, restProb))
         // answering phrase - call-and-response
       ]);
     }
@@ -70362,13 +71381,13 @@ function composeSong(spec) {
     const restProb = spec.restProb ?? 0.35;
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, pan, walk(rng, scale, root2, restProb)),
+        channel2(0, pan, walk(rng, scale, root2, restProb)),
         // arpeggiated lead
-        channel(0, 0, placed([[0, root2], [8, root2 + 7]])),
+        channel2(0, 0, placed([[0, root2], [8, root2 + 7]])),
         // occasional chord stab (root + fifth)
-        channel(1, 0, hits([6, 14])),
+        channel2(1, 0, hits([6, 14])),
         // light hand-clap accent, off-beat
-        channel(2, 0, placed([[0, root2]]))
+        channel2(2, 0, placed([[0, root2]]))
         // low anchor root
       ]);
     }
@@ -70376,15 +71395,15 @@ function composeSong(spec) {
     instruments = [PRESETS.claves, PRESETS.conga, PRESETS.bongo, PRESETS[spec.lead ?? "piano"], PRESETS[spec.bass ?? "bass"]];
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, 0, clave()),
+        channel2(0, 0, clave()),
         // son-clave (3-2)
-        channel(1, 0, hits([2, 6, 9, 13])),
+        channel2(1, 0, hits([2, 6, 9, 13])),
         // conga tumbao
-        channel(2, 0, hits([0, 4, 8, 11])),
+        channel2(2, 0, hits([0, 4, 8, 11])),
         // bongo accents
-        channel(3, pan, placed([[2, root2], [6, root2 + 4], [9, root2 + 7], [13, root2 + 4]])),
+        channel2(3, pan, placed([[2, root2], [6, root2 + 4], [9, root2 + 7], [13, root2 + 4]])),
         // piano-montuno stabs
-        channel(4, 0, placed([[0, root2], [8, root2]]))
+        channel2(4, 0, placed([[0, root2], [8, root2]]))
         // walking bass anchor
       ]);
     }
@@ -70392,13 +71411,13 @@ function composeSong(spec) {
     instruments = [PRESETS[spec.lead ?? "nylonGuitar"], PRESETS.brushSnare, PRESETS.shaker, PRESETS.bass];
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, pan, placed([[0, root2], [3, root2 + 4], [6, root2 + 7], [10, root2 + 4], [12, root2], [14, root2 + 7]])),
+        channel2(0, pan, placed([[0, root2], [3, root2 + 4], [6, root2 + 7], [10, root2 + 4], [12, root2], [14, root2 + 7]])),
         // bossa comping pattern
-        channel(1, 0, hits([4, 12])),
+        channel2(1, 0, hits([4, 12])),
         // soft brushed snare/rim, off-beats
-        channel(2, 0, hits(everyN(2))),
+        channel2(2, 0, hits(everyN(2))),
         // light shaker, eighths
-        channel(3, 0, placed([[0, root2], [8, root2 + 7]]))
+        channel2(3, 0, placed([[0, root2], [8, root2 + 7]]))
         // relaxed bass
       ]);
     }
@@ -70407,11 +71426,11 @@ function composeSong(spec) {
     for (const root2 of spec.roots) {
       const restProb = (spec.restProb ?? 0.3) + rng() * 0.25;
       patterns.push([
-        channel(0, pan, walk(rng, scale, root2, restProb)),
+        channel2(0, pan, walk(rng, scale, root2, restProb)),
         // playful skipping melody
-        channel(1, 0, placed([[0, root2], [7, root2 + 3], [11, root2]])),
+        channel2(1, 0, placed([[0, root2], [7, root2 + 3], [11, root2]])),
         // light plucky bass
-        channel(2, 0, hits([3, 9]))
+        channel2(2, 0, hits([3, 9]))
         // sparse tick
       ]);
     }
@@ -70419,13 +71438,13 @@ function composeSong(spec) {
     instruments = [PRESETS[spec.lead ?? "square"], PRESETS.pulse, PRESETS.breakKick, PRESETS.hat];
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, pan, arpeggio(root2, [0, 4, 7, 12], 1)),
+        channel2(0, pan, arpeggio(root2, [0, 4, 7, 12], 1)),
         // fast NES-style broken-chord arpeggio
-        channel(1, 0, placed([[0, root2], [8, root2 + 7]])),
+        channel2(1, 0, placed([[0, root2], [8, root2 + 7]])),
         // pulse-wave harmony stabs
-        channel(2, 0, hits([0, 4, 8, 12])),
+        channel2(2, 0, hits([0, 4, 8, 12])),
         // blippy 8-bit kick
-        channel(3, 0, hits(everyN(2)))
+        channel2(3, 0, hits(everyN(2)))
         // simple hats
       ]);
     }
@@ -70433,15 +71452,15 @@ function composeSong(spec) {
     instruments = [PRESETS.breakKick, PRESETS.brushSnare, PRESETS.shaker, PRESETS[spec.lead ?? "epiano"], PRESETS[spec.bass ?? "bass"]];
     for (const root2 of spec.roots) {
       patterns.push([
-        channel(0, 0, hits([0, 10])),
+        channel2(0, 0, hits([0, 10])),
         // laid-back kick
-        channel(1, 0, hits([3, 7, 11, 15])),
+        channel2(1, 0, hits([3, 7, 11, 15])),
         // swung/shuffled snare - off the straight grid
-        channel(2, 0, hits(everyN(2))),
+        channel2(2, 0, hits(everyN(2))),
         // soft shaker, eighths
-        channel(3, pan, placed([[0, root2], [8, root2 + 7]])),
+        channel2(3, pan, placed([[0, root2], [8, root2 + 7]])),
         // warm filtered e-piano pad
-        channel(4, 0, placed([[0, root2], [10, root2]]))
+        channel2(4, 0, placed([[0, root2], [10, root2]]))
         // mellow jazzy bass
       ]);
     }
@@ -70705,8 +71724,8 @@ function readVersionIndex(doc) {
   if (!listRaw) return empty2;
   const versions = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const item of listRaw) {
-    const entry2 = readEntry(item);
+  for (const item2 of listRaw) {
+    const entry2 = readEntry(item2);
     if (!entry2 || seen.has(entry2.slug)) continue;
     seen.add(entry2.slug);
     versions.push(entry2);
@@ -70718,8 +71737,8 @@ function withVersionIndex(doc, index2) {
   const next = isRec3(doc) ? clone3(doc) : {};
   const versions = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const item of index2.versions ?? []) {
-    const entry2 = readEntry(item);
+  for (const item2 of index2.versions ?? []) {
+    const entry2 = readEntry(item2);
     if (!entry2 || seen.has(entry2.slug)) continue;
     seen.add(entry2.slug);
     versions.push(entry2);
@@ -70743,8 +71762,8 @@ function withVersionIndex(doc, index2) {
 function stripVersionIndex(doc) {
   return withVersionIndex(doc, { versions: [], active: null });
 }
-function slugifyVersion(label2) {
-  const folded = label2.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function slugifyVersion(label3) {
+  const folded = label3.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const slug4 = folded.replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, SLUG_MAX).replace(/-+$/, "");
   return slug4 && isVersionSlug(slug4) ? slug4 : null;
 }
@@ -71042,9 +72061,9 @@ function parseBoxShadow(value) {
     const rest2 = colorMatch ? body.replace(colorMatch, " ") : body;
     const nums = (rest2.match(/-?\d*\.?\d+(?:px)?/g) || []).map((s) => parseFloat(s)).filter(Number.isFinite);
     if (nums.length < 2) continue;
-    const [x, y, blur = 0, spread = 0] = nums;
+    const [x, y, blur2 = 0, spread = 0] = nums;
     if (x === void 0 || y === void 0) continue;
-    shadows.push({ x, y, blur: Math.max(0, blur), spread, color: color3, inset });
+    shadows.push({ x, y, blur: Math.max(0, blur2), spread, color: color3, inset });
   }
   return shadows;
 }
@@ -71059,9 +72078,9 @@ function parseTextShadow(value) {
     const rest2 = colorMatch ? part.replace(colorMatch, " ") : part;
     const nums = (rest2.match(/-?\d*\.?\d+(?:px)?/g) || []).map((v) => parseFloat(v)).filter(Number.isFinite);
     if (nums.length < 2) continue;
-    const [x, y, blur = 0] = nums;
+    const [x, y, blur2 = 0] = nums;
     if (x === void 0 || y === void 0) continue;
-    out.push({ x, y, blur: Math.max(0, blur), color: color3 });
+    out.push({ x, y, blur: Math.max(0, blur2), color: color3 });
   }
   return out;
 }
@@ -71071,8 +72090,8 @@ function normalCdf(x) {
   const p = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
   return x >= 0 ? 1 - p : p;
 }
-function gaussianShadowBands(blur, alpha, bands) {
-  const sigma = blur / 2;
+function gaussianShadowBands(blur2, alpha, bands) {
+  const sigma = blur2 / 2;
   if (!(sigma > 0) || !(alpha > 0)) return [];
   const n6 = Math.max(8, Math.min(bands ?? 160, Math.round(4 * sigma)));
   const reach2 = 3 * sigma;
@@ -71091,8 +72110,8 @@ function gaussianShadowBands(blur, alpha, bands) {
   }
   return out;
 }
-function gaussianShadowRings(blur, alpha, bands) {
-  const inc = gaussianShadowBands(blur, alpha, bands);
+function gaussianShadowRings(blur2, alpha, bands) {
+  const inc = gaussianShadowBands(blur2, alpha, bands);
   if (!inc.length) return [];
   const out = [];
   let acc = 0;
@@ -71476,8 +72495,8 @@ function parseDropShadowFilter(filterStr) {
     if (cm) color3 = cm;
     const nums = (rest2.match(/-?\d*\.?\d+(?:px)?/g) || []).map(parseFloat).filter(Number.isFinite);
     if (nums.length < 2) return null;
-    const [dx, dy, blur = 0] = nums;
-    shadows.push({ dx, dy, blur: Math.max(0, blur), color: color3 });
+    const [dx, dy, blur2 = 0] = nums;
+    shadows.push({ dx, dy, blur: Math.max(0, blur2), color: color3 });
   }
   return shadows.length ? shadows : null;
 }
@@ -71554,8 +72573,8 @@ function quantise(runs) {
   let pos = 0, prev = 0;
   for (const r5 of runs) {
     pos += r5;
-    const p = r2(pos);
-    out.push(r2(p - prev));
+    const p = r22(pos);
+    out.push(r22(p - prev));
     prev = p;
   }
   return out;
@@ -71569,7 +72588,7 @@ function fitRuns(spanLengths, pattern, opts) {
   for (const L of spans) total += L;
   if (!(total > EPS3)) return [];
   const pat = normPattern(pattern);
-  if (!pat) return [r2(total), 0];
+  if (!pat) return [r22(total), 0];
   let cycle = 0;
   for (const v of pat) cycle += v;
   const minScale = clamp(numOr(opts?.minScale, 0.66), 0.01, 1);
@@ -71602,12 +72621,12 @@ function dashSegments(spanLengths, pattern, opts) {
   let pos = 0;
   for (let i = 0; i < runs.length; i++) {
     const len2 = runs[i];
-    if (i % 2 === 0 && len2 > EPS3) out.push({ start: r2(pos), end: r2(pos + len2) });
-    pos = r2(pos + len2);
+    if (i % 2 === 0 && len2 > EPS3) out.push({ start: r22(pos), end: r22(pos + len2) });
+    pos = r22(pos + len2);
   }
   return out;
 }
-var MAX_ENTRIES, MAX_VALUE, MAX_TEXT, MAX_PATTERN, MAX_RUNS, EPS3, r2, numOr, DASH_NUM_RE;
+var MAX_ENTRIES, MAX_VALUE, MAX_TEXT, MAX_PATTERN, MAX_RUNS, EPS3, r22, numOr, DASH_NUM_RE;
 var init_dash_fit = __esm({
   "engine/src/dash-fit.ts"() {
     "use strict";
@@ -71618,7 +72637,7 @@ var init_dash_fit = __esm({
     MAX_PATTERN = 32;
     MAX_RUNS = 4096;
     EPS3 = 1e-9;
-    r2 = (v) => Math.round(v * 100) / 100;
+    r22 = (v) => Math.round(v * 100) / 100;
     numOr = (v, d) => {
       const n6 = Number(v);
       return Number.isFinite(n6) ? n6 : d;
@@ -72941,7 +73960,8 @@ function fillXml(fill2) {
   const ang = ((Math.round(fill2.angle) - 90) % 360 + 360) % 360;
   return `<a:gradFill><a:gsLst>${stops}</a:gsLst><a:lin ang="${ang * 6e4}" scaled="1"/></a:gradFill>`;
 }
-function geomXml(radius, cx2 = 0, cy3 = 0) {
+function geomXml(radius, cx2 = 0, cy3 = 0, geom) {
+  if (geom === "ellipse") return `<a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom>`;
   if (radius && radius > 0) {
     const adj = clampInt3(radius / Math.max(1, Math.min(cx2, cy3)) * 1e5, 0, 5e4);
     return `<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${adj}"/></a:avLst></a:prstGeom>`;
@@ -72949,7 +73969,7 @@ function geomXml(radius, cx2 = 0, cy3 = 0) {
   return `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>`;
 }
 function rectXml(r5, id2) {
-  return `<p:sp><p:nvSpPr><p:cNvPr id="${id2}" name="rect${id2}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr>${xfrmXml(r5)}${geomXml(r5.radius, r5.cx, r5.cy)}${fillXml(r5.fill)}${lineXml(r5.line)}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id2}" name="rect${id2}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr>${xfrmXml(r5)}${geomXml(r5.radius, r5.cx, r5.cy, r5.geom)}${fillXml(r5.fill)}${lineXml(r5.line)}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
 }
 function custGeomXml(shape) {
   const w = Math.max(1, Math.round(shape.cx));
@@ -72981,7 +74001,8 @@ function runXml(run3) {
   const font = run3.font ? `<a:latin typeface="${xmlEsc2(run3.font)}"/><a:cs typeface="${xmlEsc2(run3.font)}"/>` : "";
   const rid = run3.linkSlide != null && slideLinkRid ? slideLinkRid(run3.linkSlide) : void 0;
   const hlink = rid ? `<a:hlinkClick r:id="${rid}" action="ppaction://hlinksldjump"/>` : "";
-  return `<a:r><a:rPr ${attrs}>${fill2}${font}${hlink}</a:rPr><a:t>${xmlEsc2(run3.text)}</a:t></a:r>`;
+  const rPr = `<a:rPr ${attrs}>${fill2}${font}${hlink}</a:rPr>`;
+  return String(run3.text).split(/\r\n?|\n/).map((part) => `<a:r>${rPr}<a:t>${xmlEsc2(part)}</a:t></a:r>`).join(`<a:br><a:rPr ${attrs}>${font}</a:rPr></a:br>`);
 }
 function paraXml(p) {
   const lvl = p.level && p.level > 0 ? Math.min(8, Math.round(p.level)) : 0;
@@ -72993,7 +74014,8 @@ function paraXml(p) {
   if (hasBullet) attrs.push(`indent="-${BULLET_STEP}"`);
   if (p.align) attrs.push(`algn="${p.align}"`);
   let kids2 = "";
-  if (p.lineSpacingPct && p.lineSpacingPct > 0) kids2 += `<a:lnSpc><a:spcPct val="${clampInt3(p.lineSpacingPct * 1e3, 1e3, 1e6)}"/></a:lnSpc>`;
+  if (p.lineSpacingPt && p.lineSpacingPt > 0) kids2 += `<a:lnSpc><a:spcPts val="${clampInt3(p.lineSpacingPt * 100, 0, 158400)}"/></a:lnSpc>`;
+  else if (p.lineSpacingPct && p.lineSpacingPct > 0) kids2 += `<a:lnSpc><a:spcPct val="${clampInt3(p.lineSpacingPct * 1e3, 1e3, 1e6)}"/></a:lnSpc>`;
   if (p.spaceBeforePt && p.spaceBeforePt > 0) kids2 += `<a:spcBef><a:spcPts val="${clampInt3(p.spaceBeforePt * 100, 0, 158400)}"/></a:spcBef>`;
   if (p.spaceAfterPt && p.spaceAfterPt > 0) kids2 += `<a:spcAft><a:spcPts val="${clampInt3(p.spaceAfterPt * 100, 0, 158400)}"/></a:spcAft>`;
   if (hasBullet) {
@@ -73099,8 +74121,8 @@ function tcPrXml(cell) {
 }
 function tcXml(slot) {
   if (slot.kind !== "origin") {
-    const attr4 = slot.kind === "hmerge" ? ' hMerge="1"' : slot.kind === "vmerge" ? ' vMerge="1"' : ' hMerge="1" vMerge="1"';
-    return `<a:tc${attr4}>${EMPTY_TXBODY}<a:tcPr/></a:tc>`;
+    const attr5 = slot.kind === "hmerge" ? ' hMerge="1"' : slot.kind === "vmerge" ? ' vMerge="1"' : ' hMerge="1" vMerge="1"';
+    return `<a:tc${attr5}>${EMPTY_TXBODY}<a:tcPr/></a:tc>`;
   }
   const span = slot.gridSpan > 1 ? ` gridSpan="${slot.gridSpan}"` : "";
   const rspan = slot.rowSpan > 1 ? ` rowSpan="${slot.rowSpan}"` : "";
@@ -73148,12 +74170,12 @@ function fadeFxXml(id2, spid, dur, entering, fx) {
   return `<p:animEffect transition="${entering ? "in" : "out"}" filter="fade"><p:cBhvr>${bhvrCTn(id2, dur, fx)}${tgt(spid)}</p:cBhvr></p:animEffect>`;
 }
 function flyAnimXml(id2, spid, dur, dir, entering, fx) {
-  const attr4 = dir === "l" || dir === "r" ? "ppt_x" : "ppt_y";
-  const rest2 = `#${attr4}`;
+  const attr5 = dir === "l" || dir === "r" ? "ppt_x" : "ppt_y";
+  const rest2 = `#${attr5}`;
   const off = dir === "r" ? "1+#ppt_w/2" : dir === "l" ? "0-#ppt_w/2" : dir === "b" ? "1+#ppt_h/2" : "0-#ppt_h/2";
   const from = entering ? off : rest2;
   const to = entering ? rest2 : off;
-  return `<p:anim calcmode="lin" valueType="num"><p:cBhvr additive="base">${bhvrCTn(id2, dur, fx)}${tgt(spid)}<p:attrNameLst><p:attrName>${attr4}</p:attrName></p:attrNameLst></p:cBhvr><p:tavLst><p:tav tm="0"><p:val><p:strVal val="${from}"/></p:val></p:tav><p:tav tm="100000"><p:val><p:strVal val="${to}"/></p:val></p:tav></p:tavLst></p:anim>`;
+  return `<p:anim calcmode="lin" valueType="num"><p:cBhvr additive="base">${bhvrCTn(id2, dur, fx)}${tgt(spid)}<p:attrNameLst><p:attrName>${attr5}</p:attrName></p:attrNameLst></p:cBhvr><p:tavLst><p:tav tm="0"><p:val><p:strVal val="${from}"/></p:val></p:tav><p:tav tm="100000"><p:val><p:strVal val="${to}"/></p:val></p:tav></p:tavLst></p:anim>`;
 }
 function scaleFxXml(id2, spid, dur, fromPct, toPct, fx) {
   return `<p:animScale><p:cBhvr>${bhvrCTn(id2, dur, fx)}${tgt(spid)}</p:cBhvr><p:from x="${fromPct}" y="${fromPct}"/><p:to x="${toPct}" y="${toPct}"/></p:animScale>`;
@@ -73487,7 +74509,7 @@ function buildPptxParts(slides, opts = {}) {
   }
   return parts;
 }
-var EMU_PER_INCH, EMU_PER_PX, xmlEsc2, REL, PKG_REL_NS, CT, SVG_EXT_URI, P14_MEDIA_EXT_URI, P14_NS, MEDIA_CT, AUDIO_CT, AUDIO_ICON_B64, AUDIO_ICON_PNG, AUDIO_ICON_EMU, AUDIO_ICON_MARGIN_EMU, clampInt3, finInt, lineXml, xfrmXml, slideLinkRid, BULLET_STEP, PH_TYPES, mediaRid, audioRidBase, AUDIO_RELS, DEFAULT_TABLE_STYLE, spanOf, EMPTY_TXBODY, lnSideXml, MAX_TABLE_COLS, MAX_TABLE_ROWS, EFFECT_PRESET_IDS, FLY_SUBTYPE, MAX_EFFECT_MS, MAX_DELAY_MS, MAX_ADV_TM_MS, tgt, mediaName, layoutMediaName, audioName, AUDIO_ICON_NAME, linkRidBase, notesMasterRels, ROOT_RELS, MASTER_TX_STYLES, THEME_DEFAULT_COLORS, hexNorm, appPropsXml;
+var EMU_PER_INCH, EMU_PER_PX, xmlEsc2, REL, PKG_REL_NS, CT, SVG_EXT_URI, P14_MEDIA_EXT_URI, P14_NS, MEDIA_CT, AUDIO_CT, AUDIO_ICON_B64, AUDIO_ICON_PNG, AUDIO_ICON_EMU, AUDIO_ICON_MARGIN_EMU, clampInt3, finInt, LINE_ENDS, lineEndXml, lineXml, xfrmXml, slideLinkRid, BULLET_STEP, PH_TYPES, mediaRid, audioRidBase, AUDIO_RELS, DEFAULT_TABLE_STYLE, spanOf, EMPTY_TXBODY, lnSideXml, MAX_TABLE_COLS, MAX_TABLE_ROWS, EFFECT_PRESET_IDS, FLY_SUBTYPE, MAX_EFFECT_MS, MAX_DELAY_MS, MAX_ADV_TM_MS, tgt, mediaName, layoutMediaName, audioName, AUDIO_ICON_NAME, linkRidBase, notesMasterRels, ROOT_RELS, MASTER_TX_STYLES, THEME_DEFAULT_COLORS, hexNorm, appPropsXml;
 var init_pptx2 = __esm({
   "engine/src/pptx.ts"() {
     "use strict";
@@ -73520,7 +74542,9 @@ var init_pptx2 = __esm({
     AUDIO_ICON_MARGIN_EMU = Math.round(EMU_PER_INCH * 0.15);
     clampInt3 = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
     finInt = (v, fallback = 0) => Number.isFinite(v) ? Math.round(v) : fallback;
-    lineXml = (line) => line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill></a:ln>` : "";
+    LINE_ENDS = /* @__PURE__ */ new Set(["triangle", "arrow", "oval", "diamond", "stealth"]);
+    lineEndXml = (tag2, end) => end && LINE_ENDS.has(end) ? `<a:${tag2} type="${end}"/>` : "";
+    lineXml = (line) => line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill>${lineEndXml("headEnd", line.head)}${lineEndXml("tailEnd", line.tail)}</a:ln>` : "";
     xfrmXml = (s) => `<a:xfrm${s.rot ? ` rot="${Math.round((s.rot % 360 + 360) % 360 * 6e4)}"` : ""}><a:off x="${Math.round(s.x)}" y="${Math.round(s.y)}"/><a:ext cx="${Math.max(1, Math.round(s.cx))}" cy="${Math.max(1, Math.round(s.cy))}"/></a:xfrm>`;
     slideLinkRid = null;
     BULLET_STEP = 342900;
@@ -74204,10 +75228,10 @@ function hexNorm2(v) {
   const h = v.replace("#", "").replace(/[^0-9A-Fa-f]/g, "").slice(0, 6).toUpperCase();
   return h.length === 6 ? h : h.padStart(6, "0");
 }
-function rewriteTagAttr(xml, qname, attr4, map) {
+function rewriteTagAttr(xml, qname, attr5, map) {
   let count4 = 0;
   const tagRe = new RegExp(`<${reEsc(qname)}(?=[\\s/>])[^>]*>`, "g");
-  const attrRe = new RegExp(`(\\s${reEsc(attr4)}=")([^"]*)(")`);
+  const attrRe = new RegExp(`(\\s${reEsc(attr5)}=")([^"]*)(")`);
   const text7 = xml.replace(tagRe, (tag2) => {
     let changed = false;
     const out = tag2.replace(attrRe, (whole, pre, val, post) => {
@@ -74930,11 +75954,11 @@ function groupAffine(grpSp) {
 function composeBox(box3, flips, group) {
   if (!group) {
     if (flips[0] > 0 && flips[1] > 0) return box3;
-    const own2 = { xEmu: box3.xEmu, yEmu: box3.yEmu, cxEmu: box3.cxEmu, cyEmu: box3.cyEmu };
-    if (box3.rot) own2.rot = box3.rot;
-    if (flips[0] < 0) own2.flipH = true;
-    if (flips[1] < 0) own2.flipV = true;
-    return own2;
+    const own3 = { xEmu: box3.xEmu, yEmu: box3.yEmu, cxEmu: box3.cxEmu, cyEmu: box3.cyEmu };
+    if (box3.rot) own3.rot = box3.rot;
+    if (flips[0] < 0) own3.flipH = true;
+    if (flips[1] < 0) own3.flipV = true;
+    return own3;
   }
   const m2 = group.m;
   const gsx = Math.hypot(m2[0], m2[1]) || 1;
@@ -75383,8 +76407,8 @@ function readCustGeom(custGeom, extent2, ctx) {
         x = nx;
         y = ny;
       } else if (name === "arcTo") {
-        const read = (attr4) => {
-          const raw = attrByLocal(cmd, attr4);
+        const read = (attr5) => {
+          const raw = attrByLocal(cmd, attr5);
           if (raw == null || !/^-?\d+(\.\d+)?$/.test(raw.trim())) return null;
           const n6 = Number(raw);
           return Number.isFinite(n6) ? n6 : null;
@@ -75810,9 +76834,9 @@ function walkTree(tree, ctx, out, opts) {
           readAlternateContent(child, ctx, out, opts);
           break;
         case "grpSp": {
-          const own2 = groupAffine(child);
+          const own3 = groupAffine(child);
           const inner = {
-            m: group ? mulAffine(group.m, own2) : own2,
+            m: group ? mulAffine(group.m, own3) : own3,
             path: [...group?.path ?? [], groupIdOf(child, ctx)]
           };
           walkTree(child, ctx, out, { ...opts, depth: depth + 1, group: inner });
@@ -76867,13 +77891,13 @@ function breakLiteralRuns(text7, weight) {
 function separator(weight) {
   return `{w${weight}|}`;
 }
-function serialiseSegment(text7, fmt3, rowWeight, lineStart) {
-  const emphasis = fmt3.bold && fmt3.italic ? "***" : fmt3.bold ? "**" : fmt3.italic ? "*" : "";
-  const weight = fmt3.bold ? 700 : rowWeight;
+function serialiseSegment(text7, fmt4, rowWeight, lineStart) {
+  const emphasis = fmt4.bold && fmt4.italic ? "***" : fmt4.bold ? "**" : fmt4.italic ? "*" : "";
+  const weight = fmt4.bold ? 700 : rowWeight;
   const attrs = [];
-  if (fmt3.color) attrs.push(fmt3.color);
-  if (fmt3.underline) attrs.push("u");
-  if (fmt3.strike) attrs.push("s");
+  if (fmt4.color) attrs.push(fmt4.color);
+  if (fmt4.underline) attrs.push("u");
+  if (fmt4.strike) attrs.push("s");
   const m2 = /^(\s*)([\s\S]*?)(\s*)$/.exec(text7);
   const lead = m2?.[1] ?? "";
   const core = m2?.[2] ?? text7;
@@ -76918,14 +77942,14 @@ function serialiseRuns(runs, formatOf, rowWeight) {
   const lines = [[]];
   for (const run3 of runs) {
     const parts = run3.text.replace(/\r\n?/g, "\n").split("\n");
-    const fmt3 = formatOf(run3);
+    const fmt4 = formatOf(run3);
     parts.forEach((text7, k) => {
       if (k > 0) lines.push([]);
       if (!text7) return;
       const segments = lines[lines.length - 1];
       const last = segments[segments.length - 1];
-      if (last && sameFormat(last.fmt, fmt3)) last.text += text7;
-      else segments.push({ text: text7, fmt: fmt3 });
+      if (last && sameFormat(last.fmt, fmt4)) last.text += text7;
+      else segments.push({ text: text7, fmt: fmt4 });
     });
   }
   return lines.map((segments) => {
@@ -77395,10 +78419,10 @@ function mdInlines(nodes, ctx, depth) {
 }
 function mdList(items2, ordered) {
   const lines = [];
-  for (const item of Array.isArray(items2) ? items2 : []) {
-    if (!item || typeof item !== "object") continue;
-    const indent = "  ".repeat(clampListLevel(item.level));
-    const text7 = oneLine(mdInlines(item.inlines, { inTable: false }, 0));
+  for (const item2 of Array.isArray(items2) ? items2 : []) {
+    if (!item2 || typeof item2 !== "object") continue;
+    const indent = "  ".repeat(clampListLevel(item2.level));
+    const text7 = oneLine(mdInlines(item2.inlines, { inTable: false }, 0));
     lines.push(`${indent}${ordered ? "1. " : "- "}${text7}`);
   }
   return lines.join("\n");
@@ -77509,8 +78533,8 @@ function htmlList(items2, ordered) {
   const walk2 = (level2) => {
     const lis = [];
     while (i < list2.length) {
-      const item = list2[i];
-      const lvl = clampListLevel(item.level);
+      const item2 = list2[i];
+      const lvl = clampListLevel(item2.level);
       if (lvl < level2) break;
       if (lvl > level2) {
         const child = walk2(lvl);
@@ -77519,7 +78543,7 @@ function htmlList(items2, ordered) {
         continue;
       }
       i++;
-      lis.push(`<li>${htmlInlines(item.inlines, 0)}</li>`);
+      lis.push(`<li>${htmlInlines(item2.inlines, 0)}</li>`);
     }
     return `<${tag2}>${lis.join("")}</${tag2}>`;
   };
@@ -77796,9 +78820,9 @@ function readNumbering(store, parseXml) {
     abstract.set(id2, lvls);
     if (abstract.size > MAX_STYLES) break;
   }
-  for (const num11 of childrenByLocal2(doc.documentElement, "num")) {
-    const numId = attrByLocal2(num11, "numId");
-    const absId = valOf(firstChildByLocal2(num11, "abstractNumId"));
+  for (const num12 of childrenByLocal2(doc.documentElement, "num")) {
+    const numId = attrByLocal2(num12, "numId");
+    const absId = valOf(firstChildByLocal2(num12, "abstractNumId"));
     if (!numId || absId == null) continue;
     const lvls = abstract.get(absId);
     if (lvls) byNumId.set(numId, lvls);
@@ -78013,15 +79037,15 @@ function readParagraph(p, ctx, depth) {
   collectInlines(p, ctx, depth, images, inlines);
   const styleId = valOf(firstChildByLocal2(pPr, "pStyle"));
   const level2 = headingLevel(styleId, pPr, ctx);
-  const num11 = level2 > 0 ? null : readNumPr(pPr);
+  const num12 = level2 > 0 ? null : readNumPr(pPr);
   const text7 = hasText(inlines);
-  if (num11 && text7) {
-    const lvls = ctx.numbering.get(num11.numId);
-    const ordered = lvls?.get(num11.ilvl) ?? lvls?.get(0) ?? false;
+  if (num12 && text7) {
+    const lvls = ctx.numbering.get(num12.numId);
+    const ordered = lvls?.get(num12.ilvl) ?? lvls?.get(0) ?? false;
     if (ctx.openList && ctx.openList.ordered === ordered) {
-      ctx.openList.items.push({ level: num11.ilvl, inlines });
+      ctx.openList.items.push({ level: num12.ilvl, inlines });
     } else {
-      const items2 = [{ level: num11.ilvl, inlines }];
+      const items2 = [{ level: num12.ilvl, inlines }];
       ctx.openList = { ordered, items: items2 };
       pushBlock(ctx, { type: "list", ordered, items: items2 });
     }
@@ -78307,8 +79331,8 @@ var init_docx_read = __esm({
     MAX_RELS = 1e5;
     ELEMENT_NODE3 = 1;
     valOf = (el) => attrByLocal2(el, "val");
-    isOrderedFmt = (fmt3) => {
-      const f = fmt3.trim().toLowerCase();
+    isOrderedFmt = (fmt4) => {
+      const f = fmt4.trim().toLowerCase();
       return f !== "" && f !== "bullet" && f !== "none";
     };
     MAX_CORE_PROP_LEN2 = 2048;
@@ -78588,12 +79612,12 @@ function binStringToBytes(s) {
   return out;
 }
 function locateRecords(bytes) {
-  const length = bytes.length;
+  const length2 = bytes.length;
   const spans = [];
-  const windows = length > SEAL_SCAN_WHOLE_MAX_BYTES ? [
-    { scanStart: 0, scanEnd: SEAL_SCAN_EDGE_BYTES, textStart: 0, textEnd: Math.min(length, SEAL_SCAN_EDGE_BYTES + SEAL_MAX_RECORD_CHARS) },
-    { scanStart: length - SEAL_SCAN_EDGE_BYTES, scanEnd: length, textStart: Math.max(0, length - SEAL_SCAN_EDGE_BYTES - SEAL_MAX_RECORD_CHARS), textEnd: length }
-  ] : [{ scanStart: 0, scanEnd: length, textStart: 0, textEnd: length }];
+  const windows = length2 > SEAL_SCAN_WHOLE_MAX_BYTES ? [
+    { scanStart: 0, scanEnd: SEAL_SCAN_EDGE_BYTES, textStart: 0, textEnd: Math.min(length2, SEAL_SCAN_EDGE_BYTES + SEAL_MAX_RECORD_CHARS) },
+    { scanStart: length2 - SEAL_SCAN_EDGE_BYTES, scanEnd: length2, textStart: Math.max(0, length2 - SEAL_SCAN_EDGE_BYTES - SEAL_MAX_RECORD_CHARS), textEnd: length2 }
+  ] : [{ scanStart: 0, scanEnd: length2, textStart: 0, textEnd: length2 }];
   const seen = /* @__PURE__ */ new Set();
   for (const scanWindow of windows) {
     const bin = bytesToBin(bytes.subarray(scanWindow.textStart, scanWindow.textEnd));
@@ -79089,12 +80113,12 @@ function chunk(type, data) {
   writeU323(out, 8 + data.length, crc322(out.subarray(4, 8 + data.length)));
   return out;
 }
-function parsePng(bytes, label2) {
+function parsePng(bytes, label3) {
   if (!(bytes instanceof Uint8Array)) {
-    throw new Error(`packApng: ${label2} is not a Uint8Array`);
+    throw new Error(`packApng: ${label3} is not a Uint8Array`);
   }
   for (let i = 0; i < 8; i++) {
-    if (bytes[i] !== PNG_SIG2[i]) throw new Error(`packApng: ${label2} has a bad PNG signature`);
+    if (bytes[i] !== PNG_SIG2[i]) throw new Error(`packApng: ${label3} has a bad PNG signature`);
   }
   const chunks = [];
   let off = 8;
@@ -79102,16 +80126,16 @@ function parsePng(bytes, label2) {
     const len2 = readU323(bytes, off);
     const type = String.fromCharCode(bytes[off + 4], bytes[off + 5], bytes[off + 6], bytes[off + 7]);
     const end = off + 12 + len2;
-    if (end > bytes.length) throw new Error(`packApng: ${label2} is truncated inside a ${type} chunk`);
+    if (end > bytes.length) throw new Error(`packApng: ${label3} is truncated inside a ${type} chunk`);
     chunks.push({ type, data: bytes.subarray(off + 8, off + 8 + len2) });
     off = end;
     if (type === "IEND") break;
   }
   if (!chunks.length || chunks[0].type !== "IHDR" || chunks[0].data.length !== 13) {
-    throw new Error(`packApng: ${label2} does not start with a valid IHDR chunk`);
+    throw new Error(`packApng: ${label3} does not start with a valid IHDR chunk`);
   }
   if (chunks[chunks.length - 1].type !== "IEND") {
-    throw new Error(`packApng: ${label2} has no IEND chunk`);
+    throw new Error(`packApng: ${label3} has no IEND chunk`);
   }
   return chunks;
 }
@@ -79138,15 +80162,15 @@ function packApng(frames, opts = {}) {
   let seq = 0;
   const fctl = (frameIndex) => {
     const raw = Array.isArray(delayMs) ? delayMs[frameIndex] : delayMs;
-    const num11 = Number.isFinite(raw) && raw >= 0 ? Math.min(65535, Math.round(raw)) : 67;
+    const num12 = Number.isFinite(raw) && raw >= 0 ? Math.min(65535, Math.round(raw)) : 67;
     const d = new Uint8Array(26);
     writeU323(d, 0, seq++);
     writeU323(d, 4, width);
     writeU323(d, 8, height);
     writeU323(d, 12, 0);
     writeU323(d, 16, 0);
-    d[20] = num11 >>> 8 & 255;
-    d[21] = num11 & 255;
+    d[20] = num12 >>> 8 & 255;
+    d[21] = num12 & 255;
     d[22] = 1e3 >>> 8 & 255;
     d[23] = 1e3 & 255;
     d[24] = 0;
@@ -79263,9 +80287,9 @@ function concat3(parts) {
   }
   return out;
 }
-function delayToMs(num11, den) {
+function delayToMs(num12, den) {
   const d = den === 0 ? 100 : den;
-  return num11 / d * 1e3;
+  return num12 / d * 1e3;
 }
 function demuxApng(bytes) {
   if (!(bytes instanceof Uint8Array)) throw new Error("demuxApng: input is not a Uint8Array");
@@ -79380,10 +80404,10 @@ function demuxApng(bytes) {
   }
   return { width: canvasWidth, height: canvasHeight, loops, frames: out };
 }
-function validateGeometry(width, height, label2) {
+function validateGeometry(width, height, label3) {
   if (width < 1 || height < 1 || width > APNG_DEMUX_MAX_DIM || height > APNG_DEMUX_MAX_DIM || width * height > APNG_DEMUX_MAX_PIXELS) {
     throw new Error(
-      `demuxApng: ${label2} ${width}x${height} exceeds ${APNG_DEMUX_MAX_DIM} per side / ${APNG_DEMUX_MAX_PIXELS} pixels`
+      `demuxApng: ${label3} ${width}x${height} exceeds ${APNG_DEMUX_MAX_DIM} per side / ${APNG_DEMUX_MAX_PIXELS} pixels`
     );
   }
 }
@@ -79428,12 +80452,12 @@ function chunk3(fourcc4, payload) {
   out.set(payload, 8);
   return out;
 }
-function parseStillWebp(bytes, label2) {
+function parseStillWebp(bytes, label3) {
   const fourcc4 = (o) => String.fromCharCode(bytes[o], bytes[o + 1], bytes[o + 2], bytes[o + 3]);
   const u326 = (o) => (bytes[o] | bytes[o + 1] << 8 | bytes[o + 2] << 16 | bytes[o + 3] << 24) >>> 0;
   const u24 = (o) => bytes[o] | bytes[o + 1] << 8 | bytes[o + 2] << 16;
   if (bytes.length < 12 || fourcc4(0) !== "RIFF" || fourcc4(8) !== "WEBP") {
-    throw new Error(`packWebpAnim: ${label2} is not a WebP (bad RIFF/WEBP signature)`);
+    throw new Error(`packWebpAnim: ${label3} is not a WebP (bad RIFF/WEBP signature)`);
   }
   const imageChunks = [];
   let hasAlpha3 = false, width = 0, height = 0, sawImage = false;
@@ -79442,7 +80466,7 @@ function parseStillWebp(bytes, label2) {
     const cc = fourcc4(p);
     const size = u326(p + 4);
     const full = 8 + size + (size & 1);
-    if (p + 8 + size > bytes.length) throw new Error(`packWebpAnim: ${label2} truncated in ${cc}`);
+    if (p + 8 + size > bytes.length) throw new Error(`packWebpAnim: ${label3} truncated in ${cc}`);
     const q = p + 8;
     if (cc === "VP8X") {
       if (bytes[q] & 16) hasAlpha3 = true;
@@ -79470,7 +80494,7 @@ function parseStillWebp(bytes, label2) {
     }
     p += full;
   }
-  if (!sawImage) throw new Error(`packWebpAnim: ${label2} has no VP8/VP8L image data`);
+  if (!sawImage) throw new Error(`packWebpAnim: ${label3} has no VP8/VP8L image data`);
   return { chunks: concatBytes(imageChunks), hasAlpha: hasAlpha3, width, height };
 }
 function packWebpAnim(frames, opts = {}) {
@@ -79661,10 +80685,10 @@ function demuxWebpAnim(bytes) {
   }
   return { width, height, loops, frames };
 }
-function validateGeometry2(width, height, label2) {
+function validateGeometry2(width, height, label3) {
   if (width < 1 || height < 1 || width > WEBP_DEMUX_MAX_DIM || height > WEBP_DEMUX_MAX_DIM || width * height > WEBP_DEMUX_MAX_PIXELS) {
     throw new Error(
-      `demuxWebpAnim: ${label2} ${width}x${height} exceeds ${WEBP_DEMUX_MAX_DIM} per side / ${WEBP_DEMUX_MAX_PIXELS} pixels`
+      `demuxWebpAnim: ${label3} ${width}x${height} exceeds ${WEBP_DEMUX_MAX_DIM} per side / ${WEBP_DEMUX_MAX_PIXELS} pixels`
     );
   }
 }
@@ -79688,7 +80712,7 @@ var init_webp_anim_decode = __esm({
 });
 
 // engine/src/tiff.ts
-function packTiff(pixels, opts = { width: 0, height: 0 }) {
+function packTiff(pixels2, opts = { width: 0, height: 0 }) {
   const W = opts.width | 0;
   const H = opts.height | 0;
   const spp = opts.samplesPerPixel ?? 3;
@@ -79698,20 +80722,20 @@ function packTiff(pixels, opts = { width: 0, height: 0 }) {
   if (depth !== 8 && depth !== 16 && depth !== "float32") {
     throw new Error(`packTiff: unsupported depth ${String(depth)} (8, 16 or 'float32').`);
   }
-  if (depth === 8 && !(pixels instanceof Uint8Array || pixels instanceof Uint8ClampedArray)) {
+  if (depth === 8 && !(pixels2 instanceof Uint8Array || pixels2 instanceof Uint8ClampedArray)) {
     throw new Error("packTiff: depth 8 requires a Uint8Array or Uint8ClampedArray.");
   }
-  if (depth === 16 && !(pixels instanceof Uint16Array)) {
+  if (depth === 16 && !(pixels2 instanceof Uint16Array)) {
     throw new Error("packTiff: depth 16 requires a Uint16Array.");
   }
-  if (depth === "float32" && !(pixels instanceof Float32Array)) {
+  if (depth === "float32" && !(pixels2 instanceof Float32Array)) {
     throw new Error("packTiff: depth 'float32' requires a Float32Array.");
   }
   const bits = depth === "float32" ? 32 : depth;
   const bytesPerSample = bits >> 3;
   const expected = W * H * spp;
-  if (pixels.length !== expected) {
-    throw new Error(`packTiff: pixel buffer is ${pixels.length} samples, expected ${expected} (${W}\xD7${H}\xD7${spp}).`);
+  if (pixels2.length !== expected) {
+    throw new Error(`packTiff: pixel buffer is ${pixels2.length} samples, expected ${expected} (${W}\xD7${H}\xD7${spp}).`);
   }
   const stripBytes = expected * bytesPerSample;
   const photometric = opts.photometric ?? (spp === 1 ? 1 : 2);
@@ -79719,7 +80743,7 @@ function packTiff(pixels, opts = { width: 0, height: 0 }) {
   const description = opts.description ?? meta.description;
   const enc5 = new TextEncoder();
   const entries = [];
-  const num11 = (tag2, type, n6) => entries.push({ tag: tag2, type, count: 1, n: n6 });
+  const num12 = (tag2, type, n6) => entries.push({ tag: tag2, type, count: 1, n: n6 });
   const asciiTag = (tag2, s) => {
     if (!s) return;
     const a = enc5.encode(String(s));
@@ -79740,19 +80764,19 @@ function packTiff(pixels, opts = { width: 0, height: 0 }) {
     return d;
   };
   const res = Math.max(1, Math.round(opts.dpi || 72));
-  num11(256, LONG, W);
-  num11(257, LONG, H);
+  num12(256, LONG, W);
+  num12(257, LONG, H);
   entries.push({ tag: 258, type: SHORT, count: spp, data: bps });
-  num11(259, SHORT, 1);
-  num11(262, SHORT, photometric);
+  num12(259, SHORT, 1);
+  num12(262, SHORT, photometric);
   asciiTag(270, description);
-  num11(273, LONG, 0);
-  num11(277, SHORT, spp);
-  num11(278, LONG, H);
-  num11(279, LONG, stripBytes);
+  num12(273, LONG, 0);
+  num12(277, SHORT, spp);
+  num12(278, LONG, H);
+  num12(279, LONG, stripBytes);
   entries.push({ tag: 282, type: RATIONAL, count: 1, data: rational(res, 1) });
   entries.push({ tag: 283, type: RATIONAL, count: 1, data: rational(res, 1) });
-  num11(296, SHORT, 2);
+  num12(296, SHORT, 2);
   asciiTag(305, meta.software);
   asciiTag(315, meta.author);
   if (depth !== 8) {
@@ -79813,11 +80837,11 @@ function packTiff(pixels, opts = { width: 0, height: 0 }) {
   }
   dv.setUint32(o, 0, true);
   if (depth === 8) {
-    out.set(pixels, stripOffset);
+    out.set(pixels2, stripOffset);
   } else if (depth === 16) {
-    for (let i = 0; i < expected; i++) dv.setUint16(stripOffset + i * 2, pixels[i], true);
+    for (let i = 0; i < expected; i++) dv.setUint16(stripOffset + i * 2, pixels2[i], true);
   } else {
-    for (let i = 0; i < expected; i++) dv.setFloat32(stripOffset + i * 4, pixels[i], true);
+    for (let i = 0; i < expected; i++) dv.setFloat32(stripOffset + i * 4, pixels2[i], true);
   }
   return out;
 }
@@ -79933,7 +80957,7 @@ function storedZlib(data) {
   writeU325(out, o, a);
   return out.subarray(0, o + 4);
 }
-function packPng(pixels, opts) {
+function packPng(pixels2, opts) {
   const W = Math.floor(opts.width);
   const H = Math.floor(opts.height);
   const channels = opts.channels ?? 4;
@@ -79947,16 +80971,16 @@ function packPng(pixels, opts) {
   if (depth !== 8 && depth !== 16) {
     throw new Error(`packPng: unsupported depth ${String(depth)} (8 or 16).`);
   }
-  if (depth === 8 && !(pixels instanceof Uint8Array || pixels instanceof Uint8ClampedArray)) {
+  if (depth === 8 && !(pixels2 instanceof Uint8Array || pixels2 instanceof Uint8ClampedArray)) {
     throw new Error("packPng: depth 8 requires a Uint8Array or Uint8ClampedArray (pixels.ts owns depth conversion).");
   }
-  if (depth === 16 && !(pixels instanceof Uint16Array)) {
+  if (depth === 16 && !(pixels2 instanceof Uint16Array)) {
     throw new Error("packPng: depth 16 requires a Uint16Array (pixels.ts owns depth conversion).");
   }
   const expected = W * H * channels;
   if (!Number.isSafeInteger(expected)) throw new Error("packPng: image is too large to address.");
-  if (pixels.length !== expected) {
-    throw new Error(`packPng: pixel buffer is ${pixels.length} samples, expected ${expected} (${W}x${H}x${channels}).`);
+  if (pixels2.length !== expected) {
+    throw new Error(`packPng: pixel buffer is ${pixels2.length} samples, expected ${expected} (${W}x${H}x${channels}).`);
   }
   const bpp = channels * (depth >> 3);
   const rowBytes = W * bpp;
@@ -79982,10 +81006,10 @@ function packPng(pixels, opts) {
   for (let y = 0; y < H; y++) {
     const src = y * W * channels;
     if (depth === 8) {
-      for (let i = 0; i < rowBytes; i++) cur[i] = pixels[src + i] & 255;
+      for (let i = 0; i < rowBytes; i++) cur[i] = pixels2[src + i] & 255;
     } else {
       for (let i = 0, s = src; i < rowBytes; i += 2, s++) {
-        const v = pixels[s] & 65535;
+        const v = pixels2[s] & 65535;
         cur[i] = v >>> 8;
         cur[i + 1] = v & 255;
       }
@@ -81232,10 +82256,10 @@ function woffToSfnt(bytes) {
   if (bytes.length < WOFF_HEADER_SIZE) throw new Error("font-convert: truncated WOFF header");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const flavor = view.getUint32(4, false);
-  const length = view.getUint32(8, false);
+  const length2 = view.getUint32(8, false);
   const numTables = view.getUint16(12, false);
   const totalSfntSize = view.getUint32(16, false);
-  if (length > bytes.length) throw new Error("font-convert: WOFF length field exceeds buffer");
+  if (length2 > bytes.length) throw new Error("font-convert: WOFF length field exceeds buffer");
   if (totalSfntSize > MAX_FONT_BYTES) throw new Error("font-convert: WOFF totalSfntSize exceeds size cap");
   const dirEnd = WOFF_HEADER_SIZE + numTables * WOFF_DIR_ENTRY_SIZE;
   if (numTables === 0 || dirEnd > bytes.length) throw new Error("font-convert: WOFF directory out of range");
@@ -81422,7 +82446,7 @@ function makeStore3(entries) {
   const lower3 = /* @__PURE__ */ new Map();
   const keys2 = Object.keys(entries);
   for (const k of keys2) if (!lower3.has(k.toLowerCase())) lower3.set(k.toLowerCase(), k);
-  const resolve6 = (path) => {
+  const resolve7 = (path) => {
     const direct = entries[path];
     if (direct !== void 0) return direct;
     const real = lower3.get(path.toLowerCase());
@@ -81430,9 +82454,9 @@ function makeStore3(entries) {
   };
   return {
     keys: () => keys2,
-    has: (path) => resolve6(path) !== void 0,
+    has: (path) => resolve7(path) !== void 0,
     bytes(path) {
-      const raw = resolve6(path);
+      const raw = resolve7(path);
       if (raw === void 0 || raw.byteLength > MAX_PART_BYTES3) return null;
       return raw;
     },
@@ -82239,15 +83263,15 @@ function readEpub(bytes) {
   for (const itemref of matchTags(opf, "itemref", EPUB_READ_MAX_SPINE_ITEMS, "spine items")) {
     const idref = attr2(itemref, "idref");
     if (!idref) continue;
-    const item = manifest.get(idref);
-    if (!item) continue;
-    if (item.mediaType && !/xhtml|html/i.test(item.mediaType)) continue;
-    const xhtml = textOf3(parts, item.href);
+    const item2 = manifest.get(idref);
+    if (!item2) continue;
+    if (item2.mediaType && !/xhtml|html/i.test(item2.mediaType)) continue;
+    const xhtml = textOf3(parts, item2.href);
     if (xhtml === void 0) continue;
     const body = extractBody(xhtml);
     const markdown = htmlToMarkdown(body);
     const title = boundedTitle(
-      firstHeadingText(body) || navLabels.get(item.href) || firstElementText(xhtml, "title") || `Chapter ${chapters.length + 1}`,
+      firstHeadingText(body) || navLabels.get(item2.href) || firstElementText(xhtml, "title") || `Chapter ${chapters.length + 1}`,
       "chapter title"
     );
     outputChars += title.length + markdown.length;
@@ -82315,12 +83339,12 @@ function collectNavLabels(navHtml, navDir, out) {
         }
         active = { href: attr2(navHtml.slice(tag2.start, tag2.end), "href"), labelStart: tag2.end };
       } else if (active) {
-        const label2 = plainText(navHtml.slice(active.labelStart, tag2.start));
+        const label3 = plainText(navHtml.slice(active.labelStart, tag2.start));
         const resolved2 = resolvePath(navDir, active.href);
-        if (label2.length > EPUB_READ_MAX_TITLE_CHARS) {
+        if (label3.length > EPUB_READ_MAX_TITLE_CHARS) {
           throw new Error(`readEpub: navigation label exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
         }
-        if (resolved2 && label2 && !out.has(resolved2)) out.set(resolved2, label2);
+        if (resolved2 && label3 && !out.has(resolved2)) out.set(resolved2, label3);
         active = void 0;
       }
     }
@@ -82347,7 +83371,7 @@ function firstStartTag(s, name) {
     cursor = tag2.end;
   }
 }
-function matchTags(s, name, max, label2) {
+function matchTags(s, name, max, label3) {
   const out = [];
   let cursor = 0;
   for (; ; ) {
@@ -82355,7 +83379,7 @@ function matchTags(s, name, max, label2) {
     if (!tag2) return out;
     if (!tag2.closing && localName4(tag2.name) === name) {
       out.push(s.slice(tag2.start, tag2.end));
-      if (out.length > max) throw new Error(`readEpub: more than ${max} ${label2}`);
+      if (out.length > max) throw new Error(`readEpub: more than ${max} ${label3}`);
     }
     cursor = tag2.end;
   }
@@ -82411,9 +83435,9 @@ function plainText(s) {
 function localName4(name) {
   return name.slice(name.lastIndexOf(":") + 1);
 }
-function boundedTitle(title, label2) {
+function boundedTitle(title, label3) {
   if (title.length > EPUB_READ_MAX_TITLE_CHARS) {
-    throw new Error(`readEpub: ${label2} exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
+    throw new Error(`readEpub: ${label3} exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
   }
   return title;
 }
@@ -82800,11 +83824,11 @@ function blockXml(block, ctx) {
     }
     case "list": {
       const numId = block.ordered ? DECIMAL_NUM_ID : BULLET_NUM_ID;
-      return (block.items ?? []).map((item) => {
-        const ilvl = Math.max(0, Math.min(MAX_ILVL, Math.trunc(item.level) || 0));
+      return (block.items ?? []).map((item2) => {
+        const ilvl = Math.max(0, Math.min(MAX_ILVL, Math.trunc(item2.level) || 0));
         return paraXml2(
           `<w:numPr><w:ilvl w:val="${ilvl}"/><w:numId w:val="${numId}"/></w:numPr>`,
-          inlinesXml(item.inlines ?? [], ctx, NO_MARKS, false, false, 0)
+          inlinesXml(item2.inlines ?? [], ctx, NO_MARKS, false, false, 0)
         );
       }).join("");
     }
@@ -83363,10 +84387,10 @@ function penpotRoundedRectD(x, y, w, h, r5) {
   return roundedRectPath(x, y, w, h, radii2);
 }
 function penpotUnequalCorners(sh) {
-  const r1 = num5(sh.r1, 0);
-  const r25 = num5(sh.r2, r1), r32 = num5(sh.r3, r1), r42 = num5(sh.r4, r1);
-  if (r1 === r25 && r1 === r32 && r1 === r42) return null;
-  let c = [r1, r25, r32, r42];
+  const r12 = num5(sh.r1, 0);
+  const r26 = num5(sh.r2, r12), r32 = num5(sh.r3, r12), r42 = num5(sh.r4, r12);
+  if (r12 === r26 && r12 === r32 && r12 === r42) return null;
+  let c = [r12, r26, r32, r42];
   if (sh.flipX === true) c = [c[1], c[0], c[3], c[2]];
   if (sh.flipY === true) c = [c[3], c[2], c[1], c[0]];
   return c;
@@ -83557,8 +84581,8 @@ function penpotGroupToSvg(group, lookup3) {
       if (corners) {
         return `<path d="${penpotRoundedRectD(x, y, w, h, corners)}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
       }
-      const r1 = num5(sh.r1, 0);
-      return `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r1 > 0 ? ` rx="${r1}"` : ""}${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
+      const r12 = num5(sh.r1, 0);
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r12 > 0 ? ` rx="${r12}"` : ""}${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
     }
     return null;
   };
@@ -83737,10 +84761,10 @@ function penpotShapeToNode(shape) {
     applyPenpotBlur(sh, vnode);
     return vnode;
   }
-  const r1 = num5(sh.r1, 0);
-  if (r1 > 0) {
+  const r12 = num5(sh.r1, 0);
+  if (r12 > 0) {
     node.shape = "rounded";
-    node.radius = r1;
+    node.radius = r12;
   }
   applyPenpotStroke(sh, node);
   applyPenpotShadow(sh, node);
@@ -83796,15 +84820,15 @@ function applyPenpotShadow(sh, node) {
   const list2 = Array.isArray(sh.shadow) ? sh.shadow : [];
   const s = list2.find((e) => e && typeof e === "object" && String(get(e, "style") || "drop-shadow") === "drop-shadow" && get(e, "hidden") !== true);
   if (!s) return;
-  const x = Math.round(num5(s.offsetX, 0)), y = Math.round(num5(s.offsetY, 0)), blur = Math.round(num5(s.blur, 0));
-  if (!x && !y && !blur) return;
+  const x = Math.round(num5(s.offsetX, 0)), y = Math.round(num5(s.offsetY, 0)), blur2 = Math.round(num5(s.blur, 0));
+  if (!x && !y && !blur2) return;
   const hex6 = hexLong(safeColor(String(s.color?.color ?? ""), "#000000"));
   const a = Math.round(clamp(num5(s.color?.opacity, 1), 0, 1) * 255);
   node.shadow = node.kind === "text" ? "text" : node.kind === "image" ? "content" : "box";
   node.shadowColor = hex6 + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(hex6) ? a.toString(16).padStart(2, "0") : "");
   node.shadowX = x;
   node.shadowY = y;
-  node.shadowBlur = blur;
+  node.shadowBlur = blur2;
 }
 function applyPenpotBlur(sh, node) {
   const b = sh.blur;
@@ -83815,12 +84839,12 @@ function applyPenpotBlur(sh, node) {
   if (v > 0) node.blur = v;
 }
 function penpotBackgroundBlurPx(sh) {
-  const own2 = get(sh, "backgroundBlur");
+  const own3 = get(sh, "backgroundBlur");
   const legacy = get(sh, "blur");
-  const entry2 = own2 && typeof own2 === "object" ? own2 : legacy && typeof legacy === "object" && String(get(legacy, "type") || "") === "background-blur" ? legacy : null;
+  const entry2 = own3 && typeof own3 === "object" ? own3 : legacy && typeof legacy === "object" && String(get(legacy, "type") || "") === "background-blur" ? legacy : null;
   if (!entry2) return 0;
   if (get(entry2, "hidden") === true) return 0;
-  if (entry2 === own2 && String(get(entry2, "type") || "background-blur") !== "background-blur") return 0;
+  if (entry2 === own3 && String(get(entry2, "type") || "background-blur") !== "background-blur") return 0;
   const v = num5(get(entry2, "value"), 0);
   if (!(v > 0)) return 0;
   return clamp(round1(v * BG_BLUR_SIGMA_A + BG_BLUR_SIGMA_B), 0, 300);
@@ -84432,16 +85456,16 @@ function collectPenpotComponents(componentJsons, shapesByPage, opts = {}) {
   return { components, externals, localFileId, warnings };
 }
 function slotFor(sh) {
-  const label2 = str5(sh.name);
+  const label3 = str5(sh.name);
   if (str5(sh.type) === "text") {
     const text7 = sh.content ? parsePenpotContent(sh.content).text : "";
-    return text7 ? { kind: "text", label: label2, text: text7 } : { kind: "text", label: label2 };
+    return text7 ? { kind: "text", label: label3, text: text7 } : { kind: "text", label: label3 };
   }
   const fills = Array.isArray(sh.fills) ? sh.fills : [];
   for (const f of fills) {
     if (!isRec4(f)) continue;
     const img = f.fillImage;
-    if (isRec4(img) && img.id != null) return { kind: "image", label: label2, imageId: String(img.id) };
+    if (isRec4(img) && img.id != null) return { kind: "image", label: label3, imageId: String(img.id) };
   }
   return null;
 }
@@ -84494,7 +85518,7 @@ function designSceneEncode(values, manifest) {
 function designSceneDecode(query2, manifest) {
   const state = parseUrlState(query2 ?? "", manifest);
   const out = {};
-  for (const item of buildInputModel(manifest, { initial: state.values })) out[item.id] = item.value;
+  for (const item2 of buildInputModel(manifest, { initial: state.values })) out[item2.id] = item2.value;
   return out;
 }
 function idOf2(value) {
@@ -84553,7 +85577,7 @@ function maskRegion(bbox, m2) {
   const minX = Math.min(...xs), minY = Math.min(...ys);
   const w = Math.max(...xs) - minX, h = Math.max(...ys) - minY;
   if (!(w > 0.01) || !(h > 0.01)) return null;
-  const d = "M" + pts.map((p) => `${r22(p.x)} ${r22(p.y)}`).join("L") + "Z";
+  const d = "M" + pts.map((p) => `${r23(p.x)} ${r23(p.y)}`).join("L") + "Z";
   return { x: minX, y: minY, w, h, clip: { d, evenOdd: false } };
 }
 function hexRgb(hex3) {
@@ -84598,12 +85622,12 @@ function isShadowPlate(n6) {
   const alpha = typeof n6.opacity === "number" ? n6.opacity : 100;
   return alpha < 90 && isAchromatic(nodeFill(n6));
 }
-var fin, r22;
+var fin, r23;
 var init_pdf_smask = __esm({
   "engine/src/pdf-smask.ts"() {
     "use strict";
     fin = (v) => typeof v === "number" && isFinite(v);
-    r22 = (v) => Math.round(v * 100) / 100;
+    r23 = (v) => Math.round(v * 100) / 100;
   }
 });
 
@@ -86605,9 +87629,9 @@ function assertPdfSvgBudgets(nodes) {
     throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_NODES} nodes`);
   }
   let sourceChars = 0;
-  const charge = (value, perValueMax, label2) => {
+  const charge = (value, perValueMax, label3) => {
     if (typeof value !== "string") return;
-    if (value.length > perValueMax) throw new Error(`pdfNodesToSvg: ${label2} exceeds ${perValueMax} characters`);
+    if (value.length > perValueMax) throw new Error(`pdfNodesToSvg: ${label3} exceeds ${perValueMax} characters`);
     sourceChars += value.length;
     if (!Number.isSafeInteger(sourceChars) || sourceChars > PDF_SVG_MAX_SOURCE_CHARS) {
       throw new Error(`pdfNodesToSvg: source strings exceed ${PDF_SVG_MAX_SOURCE_CHARS} characters`);
@@ -87936,18 +88960,18 @@ function capQuads(radius, L, H, j, x, scaleR) {
     const l0 = i / (L - 1);
     const l1 = (i + 1) / (L - 1);
     const r0 = radius[i][jj];
-    const r1 = radius[i + 1][jj];
+    const r12 = radius[i + 1][jj];
     for (let k = 0; k < CAP_STEPS; k++) {
       const t0 = k / CAP_STEPS;
       const t1 = (k + 1) / CAP_STEPS;
       const pts = [
         { x, z: l0 * 2 - 1, y: r0 * t0 / scaleR },
         { x, z: l0 * 2 - 1, y: r0 * t1 / scaleR },
-        { x, z: l1 * 2 - 1, y: r1 * t1 / scaleR },
-        { x, z: l1 * 2 - 1, y: r1 * t0 / scaleR }
+        { x, z: l1 * 2 - 1, y: r12 * t1 / scaleR },
+        { x, z: l1 * 2 - 1, y: r12 * t0 / scaleR }
       ];
       const cl = (l0 + l1) / 2;
-      const c = (r0 + r1) / 2 * ((t0 + t1) / 2);
+      const c = (r0 + r12) / 2 * ((t0 + t1) / 2);
       const oklch = { l: cl, c: c * 0.995, h: hue };
       const hex3 = oklchToHex(oklch);
       out.push({ pts, hex: hex3, oklch, up: 0 });
@@ -88043,20 +89067,20 @@ function gamutSolidToSvg(projected, opts = {}) {
   const size = opts.size && opts.size > 0 ? opts.size : 512;
   const encode = opts.encode ?? "srgb";
   const dp = Math.max(0, Math.floor(opts.precision ?? 2));
-  const fmt3 = (v) => {
+  const fmt4 = (v) => {
     const n6 = Number.isFinite(v) ? v : 0;
     return parseFloat(n6.toFixed(dp)).toString();
   };
   const polys = [];
   for (const q of projected) {
-    const pts = q.points.map((p) => `${fmt3(p.x * size)},${fmt3(p.y * size)}`).join(" ");
+    const pts = q.points.map((p) => `${fmt4(p.x * size)},${fmt4(p.y * size)}`).join(" ");
     const fill2 = shadedSolidFill(q.oklch, q.shade, encode);
     polys.push(
       `<polygon points="${pts}" fill="${fill2}" stroke="${fill2}" stroke-width="1" stroke-linejoin="round"/>`
     );
   }
-  const bg = opts.background ? `<rect width="${fmt3(size)}" height="${fmt3(size)}" fill="${opts.background}"/>` : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt3(size)}" height="${fmt3(size)}" viewBox="0 0 ${fmt3(size)} ${fmt3(size)}">` + bg + polys.join("") + `</svg>`;
+  const bg = opts.background ? `<rect width="${fmt4(size)}" height="${fmt4(size)}" fill="${opts.background}"/>` : "";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt4(size)}" height="${fmt4(size)}" viewBox="0 0 ${fmt4(size)} ${fmt4(size)}">` + bg + polys.join("") + `</svg>`;
 }
 function solidPointOklch(solid, p) {
   if (solid.embed === "landscape") {
@@ -88116,8 +89140,8 @@ function imageColorCloud(data, width, height, opts) {
     if (c >= HUE_CHROMA_FLOOR) hueBins[Math.floor((hue % 360 + 360) % 360 / 30)] += 1;
     const snapped = snapToCube(lin);
     cover[snapped ? oklchOf(snapped).gamut : oklchGamut(l, c, hue)] += 1;
-    const own2 = space === "display-p3" ? "p3" : "srgb";
-    if (inGamut(l, c, hue, own2) && !inGamut(l, c + nearEdge, hue, own2)) atRisk++;
+    const own3 = space === "display-p3" ? "p3" : "srgb";
+    if (inGamut(l, c, hue, own3) && !inGamut(l, c + nearEdge, hue, own3)) atRisk++;
   }
   const points = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, maxPoints).map(([key, n6]) => {
     const step = 256 / GRID;
@@ -88696,14 +89720,14 @@ function inpaintTelea(frame, mask, opts = {}) {
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 0 || height < 0) {
     throw new Error(`inpaintTelea: width and height must be non-negative integers (got ${width}x${height})`);
   }
-  const pixels = width * height;
-  if (frame.data.length !== pixels * 4) {
+  const pixels2 = width * height;
+  if (frame.data.length !== pixels2 * 4) {
     throw new Error(
-      `inpaintTelea: frame data is ${frame.data.length} bytes, expected ${pixels * 4} for ${width}x${height} RGBA`
+      `inpaintTelea: frame data is ${frame.data.length} bytes, expected ${pixels2 * 4} for ${width}x${height} RGBA`
     );
   }
-  if (mask.length !== pixels) {
-    throw new Error(`inpaintTelea: mask is ${mask.length} bytes, expected ${pixels} for ${width}x${height}`);
+  if (mask.length !== pixels2) {
+    throw new Error(`inpaintTelea: mask is ${mask.length} bytes, expected ${pixels2} for ${width}x${height}`);
   }
   const rawRadius = opts.radius;
   const radius = Math.max(
@@ -88762,7 +89786,7 @@ function inpaintTelea(frame, mask, opts = {}) {
       if (touches) heap.push(li);
     }
   }
-  const r25 = radius * radius;
+  const r26 = radius * radius;
   const paint2 = (x, y, li) => {
     let gx = 0;
     let gy = 0;
@@ -88799,7 +89823,7 @@ function inpaintTelea(frame, mask, opts = {}) {
         if (flags[qrow + qx] !== KNOWN) continue;
         const dx = x - qx;
         const d2 = dx * dx + dy * dy;
-        if (d2 === 0 || d2 > r25) continue;
+        if (d2 === 0 || d2 > r26) continue;
         const dir = hasNormal ? Math.max(Math.abs((dx * nx + dy * ny) / Math.sqrt(d2)), 1e-6) : 1;
         const dstw = 1 / d2;
         const lev = 1 / (1 + Math.abs(tp - T[qrow + qx]));
@@ -90181,13 +91205,13 @@ function scanPenpotUsage(entries) {
   }).sort((a, b) => b.row.count - a.row.count || (a.sig < b.sig ? -1 : a.sig > b.sig ? 1 : 0)).map((e) => e.row);
   return { colors: colorRows, gradients: gradientRows, fonts: [...fonts.values()] };
 }
-function appliedClassOf(attr4, isText) {
-  if (attr4 === "fill") return isText ? "text" : "fills";
-  if (attr4 === "strokeColor" || attr4 === "shadow") return "strokes";
-  if (TYPE_ATTRS.has(attr4)) return "type";
-  if (GEOMETRY_ATTRS.has(attr4)) return "geometry";
-  if (/^[rpm][1-4]$/.test(attr4)) return "geometry";
-  if (attr4.startsWith("padding") || attr4.startsWith("margin")) return "geometry";
+function appliedClassOf(attr5, isText) {
+  if (attr5 === "fill") return isText ? "text" : "fills";
+  if (attr5 === "strokeColor" || attr5 === "shadow") return "strokes";
+  if (TYPE_ATTRS.has(attr5)) return "type";
+  if (GEOMETRY_ATTRS.has(attr5)) return "geometry";
+  if (/^[rpm][1-4]$/.test(attr5)) return "geometry";
+  if (attr5.startsWith("padding") || attr5.startsWith("margin")) return "geometry";
   return null;
 }
 function camelOf(k) {
@@ -90824,8 +91848,8 @@ function buildPenpotEntries(doc, opts = {}) {
       switch (sh.type) {
         case "board": {
           rec2 = baseRecord(id2, "frame", sh, parentId, frameId, pageId, media, uuid, warn, nameOf4("Board"));
-          const [r1, r25, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
-          Object.assign(rec2, { r1, r2: r25, r3: r32, r4: r4v, hideFillOnExport: false, growType: "fixed" });
+          const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
+          Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v, hideFillOnExport: false, growType: "fixed" });
           if (sh.showContent) rec2.showContent = true;
           shapeCount++;
           const kids2 = [];
@@ -90858,8 +91882,8 @@ function buildPenpotEntries(doc, opts = {}) {
         }
         case "rect": {
           rec2 = baseRecord(id2, "rect", sh, parentId, frameId, pageId, media, uuid, warn, nameOf4("Rectangle"));
-          const [r1, r25, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
-          Object.assign(rec2, { r1, r2: r25, r3: r32, r4: r4v });
+          const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
+          Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v });
           shapeCount++;
           break;
         }
@@ -90871,8 +91895,8 @@ function buildPenpotEntries(doc, opts = {}) {
           }
           const fills = [{ media: sh.media, keepAspectRatio: sh.keepAspectRatio !== false, opacity: 1 }];
           rec2 = baseRecord(id2, "rect", { ...sh, fills }, parentId, frameId, pageId, media, uuid, warn, nameOf4(m2.name || "Image"));
-          const [r1, r25, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
-          Object.assign(rec2, { r1, r2: r25, r3: r32, r4: r4v });
+          const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
+          Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v });
           shapeCount++;
           break;
         }
@@ -91257,12 +92281,12 @@ function boxesToPenpotDoc(boxesIn, o) {
       const p = parsePenpotColor(c);
       base.shadows = [{ style: "drop-shadow", x: fin2(b.shadowX), y: fin2(b.shadowY), blur: fin2(b.shadowBlur, 10), spread: 0, color: p?.hex ?? "#000000", opacity: p?.alpha ?? 85 / 255 }];
     }
-    const blur = fin2(b.blur);
-    if (blur > 0) base.blur = blur;
+    const blur2 = fin2(b.blur);
+    if (blur2 > 0) base.blur = blur2;
     const bgBlur = fin2(b.bgBlur);
     if (bgBlur > 0) base.backgroundBlur = bgBlur;
   };
-  const strokeOf = (b) => {
+  const strokeOf2 = (b) => {
     const sc = color3(b.stroke);
     const sw = fin2(b.strokeW);
     if (!sc || !(sw > 0)) return [];
@@ -91342,13 +92366,13 @@ function boxesToPenpotDoc(boxesIn, o) {
         return { align, runs };
       });
       shape = { ...base, type: "text", paragraphs, valign: valignRaw === "top" ? "top" : valignRaw === "bottom" ? "bottom" : "center", growType: "fixed" };
-      shape.strokes = strokeOf(b);
+      shape.strokes = strokeOf2(b);
     } else if (kind === "image") {
       const m2 = o.mediaFor?.(b) ?? null;
       if (!m2) {
         const fills = fillsOf(b, w, h);
         if (!fills.length) return null;
-        shape = { ...base, type: "rect", fills, strokes: strokeOf(b), radius: str6(b.shape) === "rounded" ? fin2(b.radius) : 0 };
+        shape = { ...base, type: "rect", fills, strokes: strokeOf2(b), radius: str6(b.shape) === "rounded" ? fin2(b.radius) : 0 };
       } else {
         media.push(m2);
         shape = {
@@ -91356,7 +92380,7 @@ function boxesToPenpotDoc(boxesIn, o) {
           type: "image",
           media: m2.id,
           keepAspectRatio: str6(b.fit) !== "fill",
-          strokes: strokeOf(b),
+          strokes: strokeOf2(b),
           radius: str6(b.shape) === "rounded" ? fin2(b.radius) : str6(b.shape) === "pill" ? Math.min(w, h) / 2 : 0,
           flipX: b.flipH === true,
           flipY: b.flipV === true
@@ -91391,11 +92415,11 @@ function boxesToPenpotDoc(boxesIn, o) {
       const subs = transformSubpaths(parseSvgPath(ds.join(" ")), m2);
       const bb = subpathBounds(subs);
       if (!bb) return null;
-      shape = { ...base, type: "path", d: subpathsToD(subs), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), rotation: 0, fills: fillsOf(b, w, h), strokes: strokeOf(b) };
+      shape = { ...base, type: "path", d: subpathsToD(subs), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), rotation: 0, fills: fillsOf(b, w, h), strokes: strokeOf2(b) };
     } else {
       const shapeKind = str6(b.shape);
       const fills = fillsOf(b, w, h);
-      const strokes = strokeOf(b);
+      const strokes = strokeOf2(b);
       if (shapeKind === "ellipse" || shapeKind === "circle") shape = { ...base, type: "circle", fills, strokes };
       else shape = { ...base, type: "rect", fills, strokes, radius: shapeKind === "rounded" ? fin2(b.radius) : shapeKind === "pill" ? Math.min(w, h) / 2 : 0 };
     }
@@ -91413,7 +92437,7 @@ function boxesToPenpotDoc(boxesIn, o) {
         const p = tokenPathOf(b.bg, "color");
         if (p) applied.fill = p;
       }
-      if (strokeOf(b).length) {
+      if (strokeOf2(b).length) {
         const sp = tokenPathOf(b.stroke, "color");
         if (sp) applied.strokeColor = sp;
       }
@@ -91454,7 +92478,7 @@ function boxesToPenpotDoc(boxesIn, o) {
         // A frame carries a REAL border (the Artboard add-kind seeds one), and a Penpot
         // board takes strokes like any other shape. `inner`, because the design tool
         // paints that border inside the box (`box-sizing: border-box`).
-        strokes: strokeOf(fb).map((s) => ({ ...s, alignment: "inner" })),
+        strokes: strokeOf2(fb).map((s) => ({ ...s, alignment: "inner" })),
         children,
         showContent: fb.clipChildren === false
       };
@@ -91462,7 +92486,7 @@ function boxesToPenpotDoc(boxesIn, o) {
       const boardApplied = {};
       const bfp = tokenPathOf(fb.bg, "color");
       if (bfp) boardApplied.fill = bfp;
-      if (strokeOf(fb).length) {
+      if (strokeOf2(fb).length) {
         const bsp = tokenPathOf(fb.stroke, "color");
         if (bsp) boardApplied.strokeColor = bsp;
       }
@@ -93538,8 +94562,8 @@ function dofBlur(cam, z) {
     const effAt = (v) => Math.min(P / Math.max(P - kappa * (v - camZ), near), KF_EFF_MAX);
     return clamp(a * DOF_K * Math.abs(zz - f) * effAt(zz) * effAt(f) * Math.abs(kappa) / P, 0, KF_MAX_BLUR);
   }
-  const blur = a * DOF_K * Math.abs(zz - f) * projectDepth(cam, zz).eff * projectDepth(cam, f).eff / P;
-  return clamp(blur, 0, KF_MAX_BLUR);
+  const blur2 = a * DOF_K * Math.abs(zz - f) * projectDepth(cam, zz).eff * projectDepth(cam, f).eff / P;
+  return clamp(blur2, 0, KF_MAX_BLUR);
 }
 function resolveCamera(cameras, tMs) {
   const t = Number.isFinite(tMs) ? tMs : 0;
@@ -94218,7 +95242,7 @@ function inspectPrivateText(text7, rules = [], field2) {
   if (text7.length > PREPARE_MAX_TEXT) throw new Error("Text inspection is limited to 1 MiB per value.");
   const spans = [];
   let truncated = false;
-  const add = (start, end, category, label2, rule, uncertain = false, encoding) => {
+  const add = (start, end, category, label3, rule, uncertain = false, encoding) => {
     if (end <= start || spans.some((s) => start < s.end && s.start < end)) return;
     if (spans.length >= PREPARE_MAX_FINDINGS) {
       truncated = true;
@@ -94231,16 +95255,16 @@ function inspectPrivateText(text7, rules = [], field2) {
       } catch {
       }
     }
-    spans.push({ start, end, value, category, label: label2, rule, uncertain, ...encoding ? { encoding } : {} });
+    spans.push({ start, end, value, category, label: label3, rule, uncertain, ...encoding ? { encoding } : {} });
   };
   if (field2 && sensitiveField(field2, rules) && text7.trim()) {
     const prefix = /^(?:Bearer|Basic)\s+/i.exec(text7)?.[0].length ?? 0;
     add(prefix, text7.length, "credential", "Sensitive field", "sensitive-field");
     return { spans, truncated };
   }
-  const match = (pattern, category, label2, rule) => {
+  const match = (pattern, category, label3, rule) => {
     for (const m2 of text7.matchAll(pattern)) {
-      add(m2.index, m2.index + m2[0].length, category, label2, rule);
+      add(m2.index, m2.index + m2[0].length, category, label3, rule);
       if (truncated) break;
     }
   };
@@ -94396,8 +95420,8 @@ function textDocument(doc, bytes, text7, structured, json, rules, budget3) {
           queue2.push({ node: pair.key, path: `${path} (key)`, depth: depth + 1 });
           queue2.push({ node: pair.value, path: `${path}.${key}`, field: key === "value" && path.includes(".cookies[") ? "cookie" : key === "value" && context ? context : key, base64: encoded2 && key === "text", depth: depth + 1 });
         }
-      } else if (isSeq(node)) node.items.forEach((item, i) => {
-        queue2.push({ node: item, path: `${path}[${i}]`, field: field2, depth: depth + 1 });
+      } else if (isSeq(node)) node.items.forEach((item2, i) => {
+        queue2.push({ node: item2, path: `${path}[${i}]`, field: field2, depth: depth + 1 });
       });
       else if (isScalar(node) && node.range) {
         const [start, end] = node.range;
@@ -94633,7 +95657,7 @@ async function scan(sources, rules, options2 = {}) {
       }
     }
     options2.progress?.({ completed: index2 + 1, total: sources.length, phase: "input" });
-    await new Promise((resolve6) => setTimeout(resolve6, 0));
+    await new Promise((resolve7) => setTimeout(resolve7, 0));
   }
   options2.signal?.throwIfAborted();
   inspection.groups = [...groups.values()];
@@ -94968,9 +95992,9 @@ function compareStructure(before, after, options2, budget3) {
         const ids2 = (items2) => {
           const map = /* @__PURE__ */ new Map();
           for (let i = 0; i < items2.length; i++) {
-            const item = items2[i];
-            if (!record7(item) || typeof item.id !== "string" || map.has(item.id)) return null;
-            map.set(item.id, i);
+            const item2 = items2[i];
+            if (!record7(item2) || typeof item2.id !== "string" || map.has(item2.id)) return null;
+            map.set(item2.id, i);
           }
           return map;
         };
@@ -95396,15 +96420,15 @@ var choice, field, number, rows, TEXT_OPERATIONS;
 var init_text_operations = __esm({
   "engine/src/text-operations.ts"() {
     "use strict";
-    choice = (id2, label2, choices2, value = choices2[0]) => ({
+    choice = (id2, label3, choices2, value = choices2[0]) => ({
       id: id2,
-      label: label2,
+      label: label3,
       type: "select",
       choices: choices2,
       default: value
     });
-    field = (id2, label2, value = "") => ({ id: id2, label: label2, type: "text", default: value });
-    number = (id2, label2, value) => ({ id: id2, label: label2, type: "number", default: value });
+    field = (id2, label3, value = "") => ({ id: id2, label: label3, type: "text", default: value });
+    number = (id2, label3, value) => ({ id: id2, label: label3, type: "number", default: value });
     rows = [
       ["upper", "UPPERCASE", "Edit", ["case"]],
       ["lower", "lowercase", "Edit", ["case"]],
@@ -95647,9 +96671,9 @@ var init_text_operations = __esm({
       ]
     ];
     TEXT_OPERATIONS = rows.map(
-      ([id2, label2, group, keywords, options2]) => ({
+      ([id2, label3, group, keywords, options2]) => ({
         id: id2,
-        label: label2,
+        label: label3,
         group,
         keywords,
         ...options2 ? { options: options2 } : {}
@@ -96400,13 +97424,13 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
       ];
       if (!alphabet.length || alphabet.length > 256)
         throw new Error("Choose 1 to 256 different characters.");
-      const length = bounded(o.length, 32, 1, 1e4);
+      const length2 = bounded(o.length, 32, 1, 1e4);
       const limit = 256 - 256 % alphabet.length;
       out = "";
-      while ([...out].length < length) {
-        for (const b of env.random(Math.min(2e4, length * 2))) {
+      while ([...out].length < length2) {
+        for (const b of env.random(Math.min(2e4, length2 * 2))) {
           if (b < limit) out += alphabet[b % alphabet.length];
-          if ([...out].length === length) break;
+          if ([...out].length === length2) break;
         }
       }
       break;
@@ -96831,7 +97855,7 @@ function checkSignature(bytes, mime2) {
     throw new Error(`A required file does not match its ${mime2} format. Replace or re-export it.`);
   if (mime2 === "text/plain") new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }
-async function compileLearningModule(input, releaseId, resolve6, hash, onProgress, options2 = {}) {
+async function compileLearningModule(input, releaseId, resolve7, hash, onProgress, options2 = {}) {
   const checkCancelled = () => options2.throwIfCancelled?.();
   checkCancelled();
   const module = parseLearningModule(input);
@@ -96881,7 +97905,7 @@ async function compileLearningModule(input, releaseId, resolve6, hash, onProgres
         if (!["text", "quiz"].includes(block.kind)) {
           let parts;
           try {
-            parts = await resolve6(block);
+            parts = await resolve7(block);
             checkCancelled();
           } catch (error2) {
             throw new Error(
@@ -96973,9 +97997,9 @@ function learningRenditions(manifest) {
     return [];
   const formats = manifest.render?.formats || [];
   const choices2 = [];
-  const add = (kind, options2, label2) => {
+  const add = (kind, options2, label3) => {
     const format = options2.find((f) => formats.includes(f));
-    if (format) choices2.push({ kind, format, label: label2 });
+    if (format) choices2.push({ kind, format, label: label3 });
   };
   add("slides", ["png", "jpg", "jpeg", "webp"], "Still pages");
   add("video", ["mp4", "webm"], "Video with motion");
@@ -97621,10 +98645,10 @@ function studioActiveIndex(values) {
   const n6 = Number(values.activeSubject);
   return Math.max(0, Math.min(rows2.length - 1, Number.isFinite(n6) ? Math.trunc(n6) - 1 : 0));
 }
-function itemValues(values, item) {
-  const kind = item.kind === "model" ? "model" : item.kind === "primitive" ? "primitive" : item.kind === "text" ? "text" : "artwork";
-  const scale = number2(item.scale, 1, 0.5, 2);
-  const offsetX = number2(item.offsetX, 0, -5, 5), offsetY = number2(item.offsetY, 0, -5, 5);
+function itemValues(values, item2) {
+  const kind = item2.kind === "model" ? "model" : item2.kind === "primitive" ? "primitive" : item2.kind === "text" ? "text" : "artwork";
+  const scale = number2(item2.scale, 1, 0.5, 2);
+  const offsetX = number2(item2.offsetX, 0, -5, 5), offsetY = number2(item2.offsetY, 0, -5, 5);
   const transform2 = record11(values.transform), position = record11(values.position);
   const corrections = {};
   if (scale !== 1)
@@ -97637,9 +98661,9 @@ function itemValues(values, item) {
     };
   const camera = record11(values.camera);
   const framing = { ...camera };
-  if (enabled(item.ownFraming))
+  if (enabled(item2.ownFraming))
     for (const key of ["azimuth", "elevation", "fov", "zoom", "panX", "panY", "panZ"]) {
-      if (item[key] !== void 0 && item[key] !== "") framing[key] = item[key];
+      if (item2[key] !== void 0 && item2[key] !== "") framing[key] = item2[key];
     }
   return {
     ...values,
@@ -97647,21 +98671,21 @@ function itemValues(values, item) {
     subjects: [],
     activeSubject: 1,
     upload: void 0,
-    primitive: item.primitive || "badge",
-    artwork: kind === "artwork" ? item.asset : void 0,
-    modelAsset: kind === "model" ? item.asset : void 0,
-    modelFormat: item.modelFormat || "auto",
+    primitive: item2.primitive || "badge",
+    artwork: kind === "artwork" ? item2.asset : void 0,
+    modelAsset: kind === "model" ? item2.asset : void 0,
+    modelFormat: item2.modelFormat || "auto",
     // A Words item sets its own line in the shared typesetting; its own font, when it
     // names one instead of inheriting, is the only type setting an item may differ in.
     ...kind === "text" ? {
-      words: item.text,
-      ...item.font && item.font !== "inherit" ? { wordFont: item.font } : {}
+      words: item2.text,
+      ...item2.font && item2.font !== "inherit" ? { wordFont: item2.font } : {}
     } : {},
     ...corrections,
     camera: framing,
-    focusDistance: enabled(item.ownFocus) ? item.focusDistance : values.focusDistance,
-    materialSlotA: item.roleA || "",
-    materialSlotB: item.roleB || ""
+    focusDistance: enabled(item2.ownFocus) ? item2.focusDistance : values.focusDistance,
+    materialSlotA: item2.roleA || "",
+    materialSlotB: item2.roleB || ""
   };
 }
 function studioActiveValues(values) {
@@ -97671,8 +98695,8 @@ function studioActiveValues(values) {
 function studioCollectionRows(values) {
   const rows2 = items(values);
   const ids2 = subjectIds(rows2);
-  return rows2.map((item, index2) => {
-    const name = String(item.name || `Item ${index2 + 1}`).trim().slice(0, 120) || `Item ${index2 + 1}`;
+  return rows2.map((item2, index2) => {
+    const name = String(item2.name || `Item ${index2 + 1}`).trim().slice(0, 120) || `Item ${index2 + 1}`;
     const slug4 = name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70) || "item";
     return {
       index: index2,
@@ -97680,8 +98704,8 @@ function studioCollectionRows(values) {
       name,
       // Numbered by position, so a delivered set reads in the order the sheet shows.
       filename: `${String(index2 + 1).padStart(2, "0")}-${slug4}.png`,
-      ownFraming: enabled(item.ownFraming),
-      values: itemValues(values, item)
+      ownFraming: enabled(item2.ownFraming),
+      values: itemValues(values, item2)
     };
   });
 }
@@ -97689,7 +98713,7 @@ function studioSubjectEdit(values, id2, patch) {
   const rows2 = items(values);
   const at = subjectIds(rows2).indexOf(id2);
   if (at < 0) throw new Error(`No item in this collection has the id "${id2}".`);
-  return { id: "subjects", value: rows2.map((item, i) => i === at ? { ...item, ...patch } : item) };
+  return { id: "subjects", value: rows2.map((item2, i) => i === at ? { ...item2, ...patch } : item2) };
 }
 function studioCameraEdit(values, camera) {
   if (values.source !== "collection") return { id: "camera", value: camera };
@@ -98104,14 +99128,14 @@ function buildStudioScene(input) {
   const v = studioActiveValues(record12(wrapper.values));
   const arrangement = v.source === "arrangement";
   const objects = arrangement ? arrangementObjects(v) : [];
-  if (arrangement && !objects.some((object3) => object3.visible && !object3.pending))
+  if (arrangement && !objects.some((object4) => object4.visible && !object4.pending))
     throw new Error(
-      objects.some((object3) => object3.pending) ? "Choose a file for an object, or add a sample shape, to see the arrangement." : "Show at least one object in the arrangement."
+      objects.some((object4) => object4.pending) ? "Choose a file for an object, or add a sample shape, to see the arrangement." : "Show at least one object in the arrangement."
     );
   const kind = choice2(v.source, ["artwork", "model", "primitive", "text"], "primitive");
   const uploaded = asset(v.upload);
   const selected = asset(kind === "artwork" ? v.artwork : v.modelAsset);
-  const source = arrangement ? (objects.find((object3) => !object3.pending) ?? objects[0]).source : sourceFrom2(kind, uploaded.url ? uploaded : selected, v.modelFormat, v.primitive, "", false, {
+  const source = arrangement ? (objects.find((object4) => !object4.pending) ?? objects[0]).source : sourceFrom2(kind, uploaded.url ? uploaded : selected, v.modelFormat, v.primitive, "", false, {
     text: v.words,
     settings: textSettings(v)
   });
@@ -98697,7 +99721,7 @@ function brandContext(doc, opts = {}) {
   const raw = record15(doc) ? doc : {};
   const extensions2 = record15(raw.$extensions) ? raw.$extensions : {};
   const vendor = record15(extensions2[TOKEN_EXT]) ? extensions2[TOKEN_EXT] : {};
-  const reference2 = record15(vendor.reference) ? vendor.reference : {};
+  const reference3 = record15(vendor.reference) ? vendor.reference : {};
   const entries = tokens3.query();
   const colors = tokens3.colors().map((c) => ({ path: c.path, value: c.value, name: c.name }));
   const fonts = entries.filter((e) => e.type === "fontFamily").flatMap((e) => {
@@ -98705,12 +99729,12 @@ function brandContext(doc, opts = {}) {
     return typeof value === "string" ? [{ path: e.path, value }] : [];
   });
   const assets = entries.filter((e) => e.path.startsWith("asset.") && typeof e.value === "string" && !e.value.startsWith("{")).map((e) => ({ path: e.path, id: e.value }));
-  const source = text5(reference2.method) ? {
-    method: text5(reference2.method),
-    label: text5(reference2.label),
-    ...typeof reference2.sha256 === "string" && /^[a-f0-9]{64}$/i.test(reference2.sha256) ? { sha256: reference2.sha256 } : {}
+  const source = text5(reference3.method) ? {
+    method: text5(reference3.method),
+    label: text5(reference3.label),
+    ...typeof reference3.sha256 === "string" && /^[a-f0-9]{64}$/i.test(reference3.sha256) ? { sha256: reference3.sha256 } : {}
   } : null;
-  const styles = readBrandStyleEvidence(reference2.styles);
+  const styles = readBrandStyleEvidence(reference3.styles);
   return {
     format: "lolly-design-context",
     version: 1,
@@ -98772,12 +99796,12 @@ function checkBrandDesign(boxes, doc, opts = {}) {
   for (const row of rows2.slice(0, 5e3)) {
     if (row.hidden === true || row.hidden === "true") continue;
     const id2 = typeof row.id === "string" ? row.id : "";
-    const label2 = String(row.name || (typeof row.text === "string" ? row.text.slice(0, 40) : "") || id2 || "Layer");
+    const label3 = String(row.name || (typeof row.text === "string" ? row.text.slice(0, 40) : "") || id2 || "Layer");
     const add = (field2, kind, status, value, suggestion, after) => {
       findings.push({
         id: `brand.${kind}.${id2}.${field2}`,
         layerId: id2,
-        label: label2,
+        label: label3,
         field: field2,
         kind,
         status,
@@ -98881,7 +99905,7 @@ function normalizeTextSpans(source, candidates2) {
     const style = spanStyle(candidate);
     if (!Object.keys(style).length) continue;
     const previous = result.at(-1);
-    if (previous && previous.end === cluster2.start && sameStyle(spanStyle(previous), style)) previous.end = cluster2.end;
+    if (previous && previous.end === cluster2.start && sameStyle2(spanStyle(previous), style)) previous.end = cluster2.end;
     else result.push({ start: cluster2.start, end: cluster2.end, ...structuredClone(style) });
   }
   return result;
@@ -98898,9 +99922,9 @@ function replaceStoryRange(story, range, insertion, options2) {
     throw new TextSourceError("break-source", "Inserted breaks must match their source separators.");
   }
   const kinds2 = /* @__PURE__ */ new Map();
-  for (const item of story.breaks) if (item.start < start || item.start >= end) kinds2.set(item.start >= end ? item.start + delta : item.start, item.kind);
-  for (const item of insertedBreaks) kinds2.set(item.start + start, item.kind);
-  const breaks = sourceBreaks(source).map((item) => ({ ...item, kind: kinds2.get(item.start) ?? item.kind }));
+  for (const item2 of story.breaks) if (item2.start < start || item2.start >= end) kinds2.set(item2.start >= end ? item2.start + delta : item2.start, item2.kind);
+  for (const item2 of insertedBreaks) kinds2.set(item2.start + start, item2.kind);
+  const breaks = sourceBreaks(source).map((item2) => ({ ...item2, kind: kinds2.get(item2.start) ?? item2.kind }));
   const current = story.paragraphs.find((p) => p.start <= start && p.end >= start) ?? story.paragraphs.at(-1);
   const surviving = story.paragraphs.flatMap((paragraph) => {
     if (paragraph === current) return [{ at: Math.min(paragraph.start, start), paragraph }];
@@ -98909,19 +99933,19 @@ function replaceStoryRange(story, range, insertion, options2) {
   }).sort((a, b) => a.at - b.at);
   const used = /* @__PURE__ */ new Set();
   const paragraphs = paragraphRanges(source, breaks).map((bounds) => {
-    const existing = surviving.find((item) => item.at >= bounds.start && item.at <= bounds.end && !used.has(item.paragraph.id))?.paragraph;
+    const existing = surviving.find((item2) => item2.at >= bounds.start && item2.at <= bounds.end && !used.has(item2.paragraph.id))?.paragraph;
     const id2 = existing?.id ?? options2.paragraphId();
     if (used.has(id2)) throw new TextSourceError("duplicate-id", "A paragraph id was reused during the edit.");
     used.add(id2);
     const inherited3 = existing ?? current;
-    const imported = insertion.paragraphs?.find((item) => item.start + start === bounds.start);
+    const imported = insertion.paragraphs?.find((item2) => item2.start + start === bounds.start);
     return { ...structuredClone(inherited3), ...bounds, id: id2, ...imported ? { style: void 0, paragraph: structuredClone(imported.paragraph) } : {} };
   });
   const candidates2 = [];
   for (const span of story.spans) if (span.start < start) candidates2.push({ ...span, end: Math.min(start, span.end) });
   const inherited2 = options2.typing ?? (() => {
     const at = start === end ? Math.max(current.start, start - 1) : start;
-    const span = story.spans.find((item) => item.start <= at && item.end > at);
+    const span = story.spans.find((item2) => item2.start <= at && item2.end > at);
     return span ? spanStyle(span) : {};
   })();
   const insertedSpans = insertion.spans ?? (insertion.source ? [{ start: 0, end: insertion.source.length, ...inherited2 }] : []);
@@ -98933,8 +99957,8 @@ function replaceStoryRange(story, range, insertion, options2) {
     candidates2.push({ ...span, start: span.start + start, end: span.end + start });
   }
   for (const span of story.spans) if (span.end > end) candidates2.push({ ...span, start: Math.max(end, span.start) + delta, end: span.end + delta });
-  const inlines = story.inlines.filter((item) => item.offset < start || item.offset >= end).map((item) => ({ ...item, offset: item.offset >= end ? item.offset + delta : item.offset }));
-  inlines.push(...(insertion.inlines ?? []).map((item) => ({ ...structuredClone(item), offset: item.offset + start })));
+  const inlines = story.inlines.filter((item2) => item2.offset < start || item2.offset >= end).map((item2) => ({ ...item2, offset: item2.offset >= end ? item2.offset + delta : item2.offset }));
+  inlines.push(...(insertion.inlines ?? []).map((item2) => ({ ...structuredClone(item2), offset: item2.offset + start })));
   inlines.sort((a, b) => a.offset - b.offset);
   const next = { ...story, revision: story.revision + 1, source, breaks, paragraphs, spans: normalizeTextSpans(source, candidates2), inlines };
   return { story: next, selection: snapTextRange(source, { start: start + insertion.source.length, end: start + insertion.source.length }) };
@@ -98993,14 +100017,14 @@ function formatStoryParagraphs(story, ids2, patch) {
     return { ...paragraph, paragraph: settings };
   }) };
 }
-var spanStyle, sameStyle;
+var spanStyle, sameStyle2;
 var init_text_edits = __esm({
   "engine/src/text-edits.ts"() {
     "use strict";
     init_emoji_segment();
     init_text_source();
     spanStyle = ({ start: _start, end: _end, ...style }) => style;
-    sameStyle = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    sameStyle2 = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   }
 });
 
@@ -99008,26 +100032,26 @@ var init_text_edits = __esm({
 function sliceTextDocument(doc, story, range) {
   assertTextRange(story.source, range);
   const result = createTextStory("fragment", story.source.slice(range.start, range.end), (index2) => `p${index2}`);
-  result.breaks = story.breaks.filter((item) => item.start >= range.start && item.start < range.end).map((item) => ({ ...item, start: item.start - range.start }));
-  const resolve6 = textStyleResolver(doc);
+  result.breaks = story.breaks.filter((item2) => item2.start >= range.start && item2.start < range.end).map((item2) => ({ ...item2, start: item2.start - range.start }));
+  const resolve7 = textStyleResolver(doc);
   result.paragraphs = paragraphRanges(result.source, result.breaks).map((bounds, index2) => {
-    const at = bounds.start + range.start, paragraph = story.paragraphs.find((item) => item.start <= at && item.end >= at) ?? story.paragraphs.at(-1);
-    return { ...bounds, id: `p${index2}`, paragraph: resolve6.paragraph(story, paragraph) };
+    const at = bounds.start + range.start, paragraph = story.paragraphs.find((item2) => item2.start <= at && item2.end >= at) ?? story.paragraphs.at(-1);
+    return { ...bounds, id: `p${index2}`, paragraph: resolve7.paragraph(story, paragraph) };
   });
-  const points = [.../* @__PURE__ */ new Set([range.start, range.end, ...story.paragraphs.flatMap((item) => [item.start, item.end]), ...story.spans.flatMap((item) => [item.start, item.end])])].filter((at) => at >= range.start && at <= range.end).sort((a, b) => a - b);
+  const points = [.../* @__PURE__ */ new Set([range.start, range.end, ...story.paragraphs.flatMap((item2) => [item2.start, item2.end]), ...story.spans.flatMap((item2) => [item2.start, item2.end])])].filter((at) => at >= range.start && at <= range.end).sort((a, b) => a - b);
   result.spans = normalizeTextSpans(result.source, points.slice(0, -1).map((at, index2) => {
-    const paragraph = story.paragraphs.find((item) => item.start <= at && item.end >= at) ?? story.paragraphs.at(-1);
-    const span = story.spans.find((item) => item.start <= at && item.end > at);
-    return { start: at - range.start, end: points[index2 + 1] - range.start, character: resolve6.character(story, paragraph, at), ...span?.noBreak ? { noBreak: true } : {}, ...span?.literal ? { literal: true } : {} };
+    const paragraph = story.paragraphs.find((item2) => item2.start <= at && item2.end >= at) ?? story.paragraphs.at(-1);
+    const span = story.spans.find((item2) => item2.start <= at && item2.end > at);
+    return { start: at - range.start, end: points[index2 + 1] - range.start, character: resolve7.character(story, paragraph, at), ...span?.noBreak ? { noBreak: true } : {}, ...span?.literal ? { literal: true } : {} };
   }));
-  result.inlines = story.inlines.filter((item) => item.offset >= range.start && item.offset < range.end).map((item) => ({ ...structuredClone(item), offset: item.offset - range.start }));
+  result.inlines = story.inlines.filter((item2) => item2.offset >= range.start && item2.offset < range.end).map((item2) => ({ ...structuredClone(item2), offset: item2.offset - range.start }));
   const used = /* @__PURE__ */ new Set();
   const remember = (value) => {
     if (value?.font) used.add(value.font);
     for (const id2 of value?.fallbackFonts ?? []) used.add(id2);
   };
-  for (const item of result.spans) remember(item.character);
-  for (const item of result.paragraphs) remember(item.paragraph?.character);
+  for (const item2 of result.spans) remember(item2.character);
+  for (const item2 of result.paragraphs) remember(item2.paragraph?.character);
   return parseTextDocument({ version: 1, stories: [result], fonts: doc.fonts.filter((font) => used.has(font.id)), styles: [] });
 }
 function importTextFragment(doc, input, inlineId) {
@@ -99036,7 +100060,7 @@ function importTextFragment(doc, input, inlineId) {
   const fragment = sliceTextDocument(parsed, parsed.stories[0], { start: 0, end: parsed.stories[0].source.length });
   const fonts = new Map(doc.fonts.map((font) => [font.id, font])), ids2 = /* @__PURE__ */ new Map();
   for (const font of fragment.fonts) {
-    const same = [...fonts.values()].find((item) => item.sha256 === font.sha256 && item.faceIndex === font.faceIndex);
+    const same = [...fonts.values()].find((item2) => item2.sha256 === font.sha256 && item2.faceIndex === font.faceIndex);
     let id2 = same?.id ?? font.id;
     if (!same && fonts.has(id2)) {
       const base = `font-${font.sha256}-${font.faceIndex}`;
@@ -99095,7 +100119,7 @@ function translateOutlinePath(d, x, y) {
     for (let c = d.charCodeAt(i); c >= 48 && c <= 57; c = d.charCodeAt(++i)) ;
     return i > from;
   };
-  const num11 = () => {
+  const num12 = () => {
     const from = i;
     if (d.charCodeAt(i) === 45) i++;
     if (!digits()) return null;
@@ -99110,10 +100134,10 @@ function translateOutlinePath(d, x, y) {
       if (d.charCodeAt(i) !== 32) return null;
       i++;
     }
-    const px3 = num11();
+    const px3 = num12();
     if (px3 === null || d.charCodeAt(i) !== 44) return null;
     i++;
-    const py = num11();
+    const py = num12();
     return py === null ? null : [px3, py];
   };
   const at = (px3, py) => `${n4(px3 + x)},${n4(py + y)}`;
@@ -99256,7 +100280,7 @@ function upgradeDesignText(input, boxes, boxId, options2) {
   for (const paragraph of story.paragraphs) paragraph.paragraph = { ...structuredClone(options2.paragraph), character: structuredClone(options2.character) };
   current.document.stories.push(story);
   for (const font of options2.fonts) {
-    const existing = current.document.fonts.find((item) => item.id === font.id);
+    const existing = current.document.fonts.find((item2) => item2.id === font.id);
     if (existing && JSON.stringify(existing) !== JSON.stringify(font)) throw new TextSourceError("font-conflict", "An existing font id has different pinned bytes.");
     if (!existing) current.document.fonts.push(structuredClone(font));
   }
@@ -99304,10 +100328,10 @@ function textScripts(cp) {
   const extensions2 = text_unicode_data_default.extensions;
   let low = 0, high = extensions2.length - 1;
   while (low <= high) {
-    const middle = low + high >>> 1, item = extensions2[middle];
-    if (cp < item[0]) high = middle - 1;
-    else if (cp > item[1]) low = middle + 1;
-    else return item[2];
+    const middle = low + high >>> 1, item2 = extensions2[middle];
+    if (cp < item2[0]) high = middle - 1;
+    else if (cp > item2[1]) low = middle + 1;
+    else return item2[2];
   }
   return [textScript(cp)];
 }
@@ -99375,7 +100399,7 @@ function reorderTextRuns(logical) {
 }
 function textBreakOpportunities(source) {
   const boundaries = textBoundaries(source);
-  return [...breakers.breaks(source)].filter((item) => boundaries.has(item.position)).map((item) => ({ offset: item.position, required: item.required }));
+  return [...breakers.breaks(source)].filter((item2) => boundaries.has(item2.position)).map((item2) => ({ offset: item2.position, required: item2.required }));
 }
 function textScriptRuns(source) {
   const clusters = emojiGraphemes(source).map((cluster2) => {
@@ -99436,21 +100460,21 @@ function positionTextTabs(pieces, settings, source, direction2) {
         if (following.tab) break;
         field2.push(following);
       }
-      const fieldWidth = field2.reduce((sum, item) => sum + item.advance, 0), stop = settings.tabs?.find((stop2) => stop2.position > distance3 + 1e-3);
+      const fieldWidth = field2.reduce((sum, item2) => sum + item2.advance, 0), stop = settings.tabs?.find((stop2) => stop2.position > distance3 + 1e-3);
       const unit2 = Math.max(1, (piece.style.size ?? 16) * 2), position = stop?.position ?? (Math.floor(distance3 / unit2) + 1) * unit2;
       let aligned = 0;
       if (stop?.align === "center") aligned = fieldWidth / 2;
       else if (stop?.align === "end") aligned = fieldWidth;
       else if (stop?.align === "decimal") {
         const decimal = new Intl.NumberFormat(settings.language === "und" ? void 0 : settings.language).formatToParts(1.1).find((part) => part.type === "decimal")?.value ?? ".";
-        for (const item of field2) {
-          const at = source.slice(item.start, item.end).indexOf(decimal);
+        for (const item2 of field2) {
+          const at = source.slice(item2.start, item2.end).indexOf(decimal);
           if (at < 0) {
-            aligned += item.advance;
+            aligned += item2.advance;
             continue;
           }
-          const caret = item.carets.find((caret2) => caret2.offset === item.start + at);
-          aligned += caret ? direction2 === "rtl" ? item.x + item.advance - caret.x : caret.x - item.x : 0;
+          const caret = item2.carets.find((caret2) => caret2.offset === item2.start + at);
+          aligned += caret ? direction2 === "rtl" ? item2.x + item2.advance - caret.x : caret.x - item2.x : 0;
           break;
         }
       }
@@ -99570,8 +100594,8 @@ async function prepareTextParagraph(doc, story, paragraph, services, artwork = [
   const styles = textStyleResolver(doc), settings = styles.paragraph(story, paragraph);
   const source = story.source.slice(paragraph.start, paragraph.end), semantic = textSemanticSource(story, paragraph), bidi = analyzeTextBidi(semantic.source, settings.direction);
   const scripts = textScriptRuns(semantic.source), fonts = new Map(doc.fonts.map((font) => [font.id, font]));
-  const metadata = /* @__PURE__ */ new Map(), prepared3 = new Map(artwork.map((item) => [item.start, item]));
-  const inlineByOffset = new Map(story.inlines.map((item) => [item.offset, item]));
+  const metadata = /* @__PURE__ */ new Map(), prepared3 = new Map(artwork.map((item2) => [item2.start, item2]));
+  const inlineByOffset = new Map(story.inlines.map((item2) => [item2.offset, item2]));
   const clusters = emojiGraphemes(source), atoms = [];
   const needed = /* @__PURE__ */ new Set();
   const characters = clusters.map((cluster2) => styles.character(story, paragraph, paragraph.start + cluster2.start));
@@ -99597,7 +100621,7 @@ async function prepareTextParagraph(doc, story, paragraph, services, artwork = [
     const art = prepared3.get(start) ?? (inline ? { start, end, svg: inline.svg, overflow: inline.overflow, whitespace: false, width: inline.width, ascent: inline.ascent, descent: inline.descent, id: inline.id, sha256: "" } : void 0);
     if (art && (art.end !== end || ![art.width, art.inkWidth ?? art.width, art.ascent, art.descent].every((n6) => Number.isFinite(n6) && n6 >= 0))) throw new TextSourceError("artwork-range", "Inline artwork must cover one complete character with finite dimensions.");
     const hidden3 = [...text7].every((char) => [173, 8203, 8288, 65279, 1564, 8206, 8207].includes(char.codePointAt(0)) || char.codePointAt(0) >= 8234 && char.codePointAt(0) <= 8238 || char.codePointAt(0) >= 8294 && char.codePointAt(0) <= 8297);
-    const separator2 = story.breaks.some((item) => item.start === start);
+    const separator2 = story.breaks.some((item2) => item2.start === start);
     const id2 = [style.font, ...style.fallbackFonts ?? []].find((id3) => art || hidden3 || separator2 || text7 === "	" || covers(metadata.get(id3), textDisplaySource(text7, style.case, settings.language).text));
     if (!id2) throw new TextSourceError("font-glyph", `No pinned font covers the character at source offset ${start}.`);
     atoms.push({ start, end, style, font: fonts.get(id2), script, artwork: art, tab: text7 === "	", hidden: hidden3 || separator2 });
@@ -99834,10 +100858,10 @@ function compile(data) {
     }
     node.values = values;
   }
-  for (const item of data.exceptions) {
+  for (const item2 of data.exceptions) {
     const points = [];
     let word = "";
-    for (const char of item) {
+    for (const char of item2) {
       if (char === "-") points.push(word.length);
       else word += char;
     }
@@ -100055,10 +101079,10 @@ async function composeParagraphLines(story, range, prepared3, width) {
   if (hyphenator) resources.push({ id: hyphenator.id, sha256: hyphenator.sha256 });
   const thai = /[\u0e01-\u0e3a\u0e40-\u0e4e]/u.test(textSemanticSource(story, range).source) ? await Promise.resolve().then(() => (init_text_thai(), text_thai_exports)) : null;
   if (thai) resources.push(thai.TEXT_THAI_RESOURCE);
-  const forced = story.breaks.filter((item) => item.kind === "soft" && item.start >= range.start && item.start < range.end);
+  const forced = story.breaks.filter((item2) => item2.kind === "soft" && item2.start >= range.start && item2.start < range.end);
   const boundaries = textBoundaries(story.source);
   let segmentStart = range.start;
-  for (const ending of [...forced.map((item) => ({ end: item.start, next: item.start + item.length })), { end: range.end, next: range.end }]) {
+  for (const ending of [...forced.map((item2) => ({ end: item2.start, next: item2.start + item2.length })), { end: range.end, next: range.end }]) {
     const probe = await readShape({ start: segmentStart, end: ending.end }, false, false);
     const advances = probe.pieces.flatMap((piece) => piece.shape ? piece.shape.clusters.map((cluster2) => ({ start: cluster2.start, end: cluster2.end, advance: cluster2.advance, carets: cluster2.carets, x: cluster2.x, rtl: piece.shape.direction === "rtl" })) : [{ start: piece.start, end: piece.end, advance: piece.advance, carets: [], x: 0, rtl: false }]).sort((a, b) => a.start - b.start);
     const prefix = /* @__PURE__ */ new Map([[segmentStart, 0]]), spacePrefix = /* @__PURE__ */ new Map([[segmentStart, 0]]);
@@ -100076,8 +101100,8 @@ async function composeParagraphLines(story, range, prepared3, width) {
     const semantic = textSemanticSource(story, { start: segmentStart, end: ending.end });
     const opportunities = textBreakOpportunities(semantic.source);
     if (thai) for (const offset of thai.thaiTextBreaks(semantic.source)) opportunities.push({ offset, required: false });
-    for (const item of opportunities) {
-      const at = semantic.backward.get(item.offset);
+    for (const item2 of opportunities) {
+      const at = semantic.backward.get(item2.offset);
       if (at === void 0) continue;
       const shy = story.source[at - 1] === "\xAD";
       if (!shy || mode2 !== "off") offsets.set(at, shy);
@@ -100194,14 +101218,14 @@ var init_text_lines = __esm({
 function fail3(message) {
   throw new TextSourceError("text-wrap", message);
 }
-function pose(item) {
-  if (!item || typeof item.id !== "string" || typeof item.scope !== "string" || item.id.length > 128 || item.scope.length > 128 || ![item.x, item.y, item.width, item.height, item.rotation].every((value) => Number.isFinite(value) && Math.abs(value) <= 1e6) || item.width <= 0 || item.height <= 0) fail3("A text wrap placement is invalid.");
-  const a = item.rotation * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), x = item.flipX ? -1 : 1, y = item.flipY ? -1 : 1;
-  return [c * x, s * x, -s * y, c * y, item.x + item.width / 2 - c * x * item.width / 2 + s * y * item.height / 2, item.y + item.height / 2 - s * x * item.width / 2 - c * y * item.height / 2];
+function pose(item2) {
+  if (!item2 || typeof item2.id !== "string" || typeof item2.scope !== "string" || item2.id.length > 128 || item2.scope.length > 128 || ![item2.x, item2.y, item2.width, item2.height, item2.rotation].every((value) => Number.isFinite(value) && Math.abs(value) <= 1e6) || item2.width <= 0 || item2.height <= 0) fail3("A text wrap placement is invalid.");
+  const a = item2.rotation * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), x = item2.flipX ? -1 : 1, y = item2.flipY ? -1 : 1;
+  return [c * x, s * x, -s * y, c * y, item2.x + item2.width / 2 - c * x * item2.width / 2 + s * y * item2.height / 2, item2.y + item2.height / 2 - s * x * item2.width / 2 - c * y * item2.height / 2];
 }
-function outline(item) {
-  const { width: w, height: h } = item, g2 = item.geometry;
-  if (item.mode === "box" || g2.kind === "rect" && !g2.radius) return [[{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }]];
+function outline(item2) {
+  const { width: w, height: h } = item2, g2 = item2.geometry;
+  if (item2.mode === "box" || g2.kind === "rect" && !g2.radius) return [[{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }]];
   let contours;
   if (g2.kind === "path") {
     if (typeof g2.path !== "string" || g2.path.length > 1024 * 1024) fail3("This contour is missing or exceeds the text wrap limit.");
@@ -100221,8 +101245,8 @@ function outline(item) {
     const points = [];
     function segment(a, b, c, d, depth = 0) {
       if (++count4 > 8192) fail3("This contour is too detailed for text wrapping. Use bounding-box wrap.");
-      const dx = d.x - a.x, dy = d.y - a.y, length = Math.hypot(dx, dy), distance3 = (p) => {
-        const t = length ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (length * length))) : 0;
+      const dx = d.x - a.x, dy = d.y - a.y, length2 = Math.hypot(dx, dy), distance3 = (p) => {
+        const t = length2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (length2 * length2))) : 0;
         return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy);
       };
       if (Math.max(distance3(b), distance3(c)) <= 0.125) {
@@ -100243,34 +101267,34 @@ function prepareTextWrap(context, frames) {
   const result = /* @__PURE__ */ new Map();
   if (!context) return result;
   if (!Array.isArray(context.placements) || !Array.isArray(context.objects) || context.placements.length > 512 || context.objects.length > 256) fail3("The document exceeds the supported text wrap object count.");
-  if (new Set(context.placements.map((item) => item.id)).size !== context.placements.length || new Set(context.objects.map((item) => item.id)).size !== context.objects.length) fail3("Text wrap object identities must be unique.");
+  if (new Set(context.placements.map((item2) => item2.id)).size !== context.placements.length || new Set(context.objects.map((item2) => item2.id)).size !== context.objects.length) fail3("Text wrap object identities must be unique.");
   let budget3 = 0;
-  const objects = context.objects.map((item) => {
-    const matrix = pose(item);
-    if (!["box", "contour"].includes(item.mode) || !item.geometry || !["rect", "ellipse", "path"].includes(item.geometry.kind) || !item.offset || !["top", "right", "bottom", "left"].every((key) => Number.isFinite(item.offset[key]) && Math.abs(item.offset[key]) <= 1e3)) fail3("A text wrap setting is invalid.");
-    const contours = outline(item);
+  const objects = context.objects.map((item2) => {
+    const matrix = pose(item2);
+    if (!["box", "contour"].includes(item2.mode) || !item2.geometry || !["rect", "ellipse", "path"].includes(item2.geometry.kind) || !item2.offset || !["top", "right", "bottom", "left"].every((key) => Number.isFinite(item2.offset[key]) && Math.abs(item2.offset[key]) <= 1e3)) fail3("A text wrap setting is invalid.");
+    const contours = outline(item2);
     budget3 += contours.reduce((sum, points) => sum + points.length, 0);
     if (budget3 > 65536) fail3("The document exceeds the supported text wrap geometry count.");
-    return { item, matrix, contours };
+    return { item: item2, matrix, contours };
   });
   for (const frame of frames) {
     if (frame.honorWrap === false || frame.mode === "path") continue;
-    const placement = context.placements.find((item) => item.id === frame.id);
-    if (!placement) continue;
-    const inverse = inverseVectorMatrix(pose({ ...placement, width: frame.width, height: frame.height }));
+    const placement2 = context.placements.find((item2) => item2.id === frame.id);
+    if (!placement2) continue;
+    const inverse = inverseVectorMatrix(pose({ ...placement2, width: frame.width, height: frame.height }));
     const exclusions = [];
-    for (const object3 of objects) {
-      if (object3.item.scope !== placement.scope || object3.item.id === frame.id) continue;
-      const matrix = multiplyVectorMatrix(inverse, object3.matrix);
-      let contours = object3.contours.map((points2) => points2.map((point3) => ({ x: matrix[0] * point3.x + matrix[2] * point3.y + matrix[4], y: matrix[1] * point3.x + matrix[3] * point3.y + matrix[5] })));
+    for (const object4 of objects) {
+      if (object4.item.scope !== placement2.scope || object4.item.id === frame.id) continue;
+      const matrix = multiplyVectorMatrix(inverse, object4.matrix);
+      let contours = object4.contours.map((points2) => points2.map((point3) => ({ x: matrix[0] * point3.x + matrix[2] * point3.y + matrix[4], y: matrix[1] * point3.x + matrix[3] * point3.y + matrix[5] })));
       const points = contours.flat();
       if (!points.length) continue;
       const x0 = Math.min(...points.map((p) => p.x)), x1 = Math.max(...points.map((p) => p.x)), y0 = Math.min(...points.map((p) => p.y)), y1 = Math.max(...points.map((p) => p.y));
-      if (object3.item.mode === "box") contours = [[{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }]];
-      const tolerance = object3.item.mode === "contour" ? 0.25 : 0, offset = Object.fromEntries(Object.entries(object3.item.offset).map(([key, value]) => [key, value + tolerance]));
+      if (object4.item.mode === "box") contours = [[{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }]];
+      const tolerance = object4.item.mode === "contour" ? 0.25 : 0, offset = Object.fromEntries(Object.entries(object4.item.offset).map(([key, value]) => [key, value + tolerance]));
       if (x1 + offset.right <= 0 || x0 - offset.left >= frame.width || y1 + offset.bottom <= 0 || frame.mode === "fixed" && y0 - offset.top >= frame.height) continue;
       if (frame.verticalAlign !== "top") fail3("Text frames that wrap around objects need top vertical alignment.");
-      exclusions.push({ id: object3.item.id, contours, offset, bottom: y1 + offset.bottom });
+      exclusions.push({ id: object4.item.id, contours, offset, bottom: y1 + offset.bottom });
     }
     if (exclusions.length) result.set(frame.id, exclusions);
   }
@@ -100278,10 +101302,10 @@ function prepareTextWrap(context, frames) {
 }
 function textWrapBand(exclusions, left, width, y, height, direction2) {
   let spaces = [[left, left + width]], next = Infinity;
-  for (const object3 of exclusions ?? []) {
+  for (const object4 of exclusions ?? []) {
     let low = Infinity, high = -Infinity;
-    const top = y - object3.offset.bottom, bottom = y + height + object3.offset.top;
-    for (const points of object3.contours) for (let i = 0; i < points.length; i++) {
+    const top = y - object4.offset.bottom, bottom = y + height + object4.offset.top;
+    for (const points of object4.contours) for (let i = 0; i < points.length; i++) {
       const a = points[i], b = points[(i + 1) % points.length];
       if (Math.max(a.y, b.y) < top || Math.min(a.y, b.y) > bottom) continue;
       const at = (value) => a.x + (b.x - a.x) * (value - a.y) / (b.y - a.y);
@@ -100293,10 +101317,10 @@ function textWrapBand(exclusions, left, width, y, height, direction2) {
       }
     }
     if (!Number.isFinite(low)) continue;
-    low -= object3.offset.left;
-    high += object3.offset.right;
+    low -= object4.offset.left;
+    high += object4.offset.right;
     if (high <= left || low >= left + width) continue;
-    next = Math.min(next, object3.bottom);
+    next = Math.min(next, object4.bottom);
     spaces = spaces.flatMap(([a, b]) => high <= a || low >= b ? [[a, b]] : [...low > a ? [[a, Math.min(b, low)]] : [], ...high < b ? [[Math.max(a, high), b]] : []]);
   }
   spaces.sort((a, b) => b[1] - b[0] - (a[1] - a[0]) || (direction2 === "ltr" ? a[0] - b[0] : b[0] - a[0]));
@@ -100556,7 +101580,7 @@ function positionTextLine(source, paragraphId, original, index2, last, settings,
     }
     if (piece.shape) line.runs.push({ x: textX + piece.x, y, angle: 0, color: piece.style.color ?? "#000000", character: piece.style, shape: piece.shape });
     if (piece.artwork) line.inlines.push({ offset: piece.start, x: textX + piece.x, y: y - piece.ascent, advance: piece.advance, width: piece.artwork.inkWidth ?? piece.advance, height: piece.ascent + piece.descent, angle: 0, svg: piece.artwork.svg, overflow: piece.artwork.overflow, direction: piece.level % 2 ? "rtl" : "ltr", ascent: piece.ascent, baselineShift: piece.style.baselineShift ?? 0 });
-    for (const caret of piece.carets) if (!line.carets.some((item) => item.offset === caret.offset && Math.abs(item.x - textX - caret.x) < 1e-4))
+    for (const caret of piece.carets) if (!line.carets.some((item2) => item2.offset === caret.offset && Math.abs(item2.x - textX - caret.x) < 1e-4))
       line.carets.push({ offset: caret.offset, affinity: caret.offset === piece.end ? "upstream" : "downstream", x: textX + caret.x, y: position.y, height: position.height, angle: 0 });
   }
   for (const [rule, enabled3, at] of [[settings.ruleBefore, index2 === 0, position.y], [settings.ruleAfter, last, position.y + position.height]]) if (rule && rule.enabled !== false && enabled3) {
@@ -100574,7 +101598,7 @@ function shiftTextLine(line, y) {
   for (const inline of line.inlines) inline.y += y;
   for (const caret of line.carets) caret.y += y;
   if (line.hyphen) line.hyphen.y += y;
-  for (const item of [...line.leaders ?? [], ...line.rules ?? []]) item.y += y;
+  for (const item2 of [...line.leaders ?? [], ...line.rules ?? []]) item2.y += y;
 }
 var init_text_line_layout = __esm({
   "engine/src/text-line-layout.ts"() {
@@ -100677,7 +101701,7 @@ async function composePathText(story, frame, prepared3, result) {
   result.lines = [line];
   result.shaper = prepared3.shaper;
   result.resources = [...prepared3.resources];
-  for (const piece of shaped.pieces) if (piece.artwork && !result.resources.some((item) => item.id === piece.artwork.id)) result.resources.push({ id: piece.artwork.id, sha256: piece.artwork.sha256 });
+  for (const piece of shaped.pieces) if (piece.artwork && !result.resources.some((item2) => item2.id === piece.artwork.id)) result.resources.push({ id: piece.artwork.id, sha256: piece.artwork.sha256 });
   result.frames = [{ id: frame.id, start: 0, end: consumed, columnEnds: [consumed], width: frame.width, height: frame.height, geometryKey: textFrameKey(frame), appliedScale: scale, ...path.guide ? { guide: path.d } : {} }];
   const notice = (code, severity, message) => result.diagnostics.push({ code, severity, storyId: story.id, frameId: frame.id, start: 0, end: story.source.length, message });
   if (result.overset) result.diagnostics.push({ ...result.overset, code: "overset", severity: "error", storyId: story.id, frameId: frame.id, message: "Text continues beyond the path endpoint. Extend the interval, change its size, or choose Fit to path." });
@@ -100728,7 +101752,7 @@ async function composeFrames(story, frames, prepared3, finalHeight, wrap, cache4
   if (previous?.signature === signature2) {
     while (from < keys2.length && from < previous.keys.length && keys2[from] === previous.keys[from]) from++;
     if (from < keys2.length && from && prepared3[from - 1].settings.keep?.nextLines) from--;
-    const point3 = previous.checkpoints.findLast((item) => item.paragraph < from);
+    const point3 = previous.checkpoints.findLast((item2) => item2.paragraph < from);
     if (point3) {
       from = point3.paragraph + 1;
       cursor = { ...point3.cursor };
@@ -100746,17 +101770,17 @@ async function composeFrames(story, frames, prepared3, finalHeight, wrap, cache4
       point3.widths.forEach(([a, b]) => {
         widths.set(a, b);
       });
-      checkpoints = previous.checkpoints.filter((item) => item.paragraph < from);
+      checkpoints = previous.checkpoints.filter((item2) => item2.paragraph < from);
     } else from = 0;
   }
-  const resource = (item) => {
-    if (!result.resources.some((resource2) => resource2.id === item.id)) result.resources.push(item);
+  const resource = (item2) => {
+    if (!result.resources.some((resource2) => resource2.id === item2.id)) result.resources.push(item2);
   };
   for (const [paragraphIndex, paragraph] of story.paragraphs.entries()) {
     if (paragraphIndex < from) continue;
-    const original = prepared3[paragraphIndex], drop = await prepareTextDropCap(story, paragraph, original), item = drop?.prepared ?? original, { settings } = item;
-    item.resources.forEach(resource);
-    result.shaper = item.shaper;
+    const original = prepared3[paragraphIndex], drop = await prepareTextDropCap(story, paragraph, original), item2 = drop?.prepared ?? original, { settings } = item2;
+    item2.resources.forEach(resource);
+    result.shaper = item2.shaper;
     if (cursor.slot >= slots.length) {
       result.overset = { start: consumed, end: story.source.length };
       break;
@@ -100768,7 +101792,7 @@ async function composeFrames(story, frames, prepared3, finalHeight, wrap, cache4
     const following = next && settings.keep?.nextLines ? { settings: next.settings, lines: (await composeParagraphLines(story, story.paragraphs[paragraphIndex + 1], next, () => initialWidth - (next.settings.indentStart ?? 0) - (next.settings.indentEnd ?? 0))).lines } : void 0;
     for (let attempt2 = 0; attempt2 < 12; attempt2++) {
       const width = (line) => (schedule[line] ?? schedule.at(-1) ?? initialWidth) - (settings.indentStart ?? 0) - (settings.indentEnd ?? 0) - (line ? 0 : settings.firstIndent ?? 0) - (drop && line < drop.lines ? drop.width : 0);
-      composed = await composeParagraphLines(drop ? { ...story, spans: [...story.spans, { start: paragraph.start, end: drop.end, noBreak: true }] } : story, paragraph, item, width);
+      composed = await composeParagraphLines(drop ? { ...story, spans: [...story.spans, { start: paragraph.start, end: drop.end, noBreak: true }] } : story, paragraph, item2, width);
       flow = placeTextLines(composed.lines, settings, cursor, slots, following);
       const actual = flow.positions.map((position) => position.width ?? slots[position.slot].width);
       if (actual.every((value, index2) => Math.abs(value - (schedule[index2] ?? schedule.at(-1) ?? initialWidth)) < 1e-4)) {
@@ -100802,7 +101826,7 @@ async function composeFrames(story, frames, prepared3, finalHeight, wrap, cache4
       result.overset = { start: consumed, end: story.source.length };
       break;
     }
-    const separator2 = story.breaks.find((item2) => item2.kind === "paragraph" && item2.start === paragraph.end);
+    const separator2 = story.breaks.find((item3) => item3.kind === "paragraph" && item3.start === paragraph.end);
     if (separator2) consumed = separator2.start + separator2.length;
     ends.set(cursor.slot, consumed);
     if (drop && flow.positions[0]?.slot === cursor.slot) cursor.y = Math.max(cursor.y, flow.positions[0].y + drop.height + (settings.spaceAfter ?? 0));
@@ -100873,7 +101897,7 @@ async function composeText(request, services, cache4) {
     let low = 0, high = last.height - last.inset.top - last.inset.bottom;
     for (let attempt2 = 0; attempt2 < 16 && high - low > 0.01; attempt2++) {
       const height = (low + high) / 2, trial = await composeFrames(story, frames, prepared3, height, wrap);
-      if (trial.overset || trial.diagnostics.some((item) => item.code === "keep-impossible") && !result.diagnostics.some((item) => item.code === "keep-impossible")) low = height;
+      if (trial.overset || trial.diagnostics.some((item2) => item2.code === "keep-impossible") && !result.diagnostics.some((item2) => item2.code === "keep-impossible")) low = height;
       else {
         high = height;
         result = trial;
@@ -100884,7 +101908,7 @@ async function composeText(request, services, cache4) {
   if (shrink && (result.overset || result.diagnostics.some((notice) => notice.code === "line-width"))) {
     const resolver = textStyleResolver(doc), sizes = story.paragraphs.flatMap((paragraph) => [paragraph.start, ...story.spans.flatMap((span) => [span.start, span.end]).filter((at) => at >= paragraph.start && at < paragraph.end)].map((at) => resolver.character(story, paragraph, at).size ?? 16)), minimum = shrink.minSize / Math.min(...sizes);
     if (minimum < 1) {
-      const trial = async (factor) => composeText({ ...request, document: scaleTextStory(doc, story.id, factor, false), frames: frames.map(({ shrink: _shrink, ...frame }) => frame), artwork: request.artwork?.map((item) => ({ ...item, width: item.width * factor, ...item.inkWidth === void 0 ? {} : { inkWidth: item.inkWidth * factor }, ascent: item.ascent * factor, descent: item.descent * factor })) }, services);
+      const trial = async (factor) => composeText({ ...request, document: scaleTextStory(doc, story.id, factor, false), frames: frames.map(({ shrink: _shrink, ...frame }) => frame), artwork: request.artwork?.map((item2) => ({ ...item2, width: item2.width * factor, ...item2.inkWidth === void 0 ? {} : { inkWidth: item2.inkWidth * factor }, ascent: item2.ascent * factor, descent: item2.descent * factor })) }, services);
       const fits = (layout2) => !layout2.overset && !layout2.diagnostics.some((notice) => notice.code === "line-width");
       let low = minimum, high = 1, best = await trial(low), applied = low;
       if (fits(best)) for (let attempt2 = 0; attempt2 < 12 && high - low > 1e-4; attempt2++) {
@@ -100995,7 +102019,7 @@ function deleteTextStory(snapshot, id2) {
   const current = admitted2(snapshot), story = current.document.stories.find((story2) => story2.id === id2);
   if (!story) throw new TextSourceError("story-missing", "This story no longer exists.");
   mutable(current, story.frameIds);
-  current.document.stories = current.document.stories.filter((item) => item.id !== id2);
+  current.document.stories = current.document.stories.filter((item2) => item2.id !== id2);
   current.frames = current.frames.filter((frame) => frame.storyId !== id2);
   return admitted2(current);
 }
@@ -101013,7 +102037,7 @@ function linkTextFrames(snapshot, sourceId, targetId, join22, fresh) {
     const insertion = imported.insertion, separator2 = "\n";
     merged = replaceStoryRange(source, { start: source.source.length, end: source.source.length }, {
       source: separator2 + insertion.source,
-      breaks: [...sourceBreaks(separator2), ...(insertion.breaks ?? []).map((item) => ({ ...item, start: item.start + separator2.length }))],
+      breaks: [...sourceBreaks(separator2), ...(insertion.breaks ?? []).map((item2) => ({ ...item2, start: item2.start + separator2.length }))],
       spans: insertion.spans?.map((span) => ({ ...span, start: span.start + separator2.length, end: span.end + separator2.length })),
       paragraphs: insertion.paragraphs?.map((paragraph) => ({ ...paragraph, start: paragraph.start + separator2.length })),
       inlines: insertion.inlines?.map((inline) => ({ ...inline, offset: inline.offset + separator2.length }))
@@ -101027,7 +102051,7 @@ function linkTextFrames(snapshot, sourceId, targetId, join22, fresh) {
 }
 async function settledStory(snapshot, story, layout2) {
   if (layout2.storyId !== story.id || layout2.revision !== story.revision || layout2.frames.map((frame) => frame.id).join("\0") !== story.frameIds.join("\0") || layout2.documentHash !== await sha256Hex(new TextEncoder().encode(JSON.stringify(snapshot.document))) || layout2.frames.some((frame) => {
-    const current = snapshot.frames.find((item) => item.id === frame.id);
+    const current = snapshot.frames.find((item2) => item2.id === frame.id);
     return !current || frame.geometryKey !== textFrameKey(current);
   }))
     throw new TextSourceError("layout-stale", "Finish layout for the current frames before changing this story.");
@@ -101046,7 +102070,7 @@ async function splitTextThread(snapshot, after, layout2, fresh) {
   left.revision = story.revision + 1;
   left.frameIds = story.frameIds.slice(0, index2 + 1);
   right.frameIds = story.frameIds.slice(index2 + 1);
-  current.document.stories = current.document.stories.map((item) => item.id === story.id ? left : item).concat(right);
+  current.document.stories = current.document.stories.map((item2) => item2.id === story.id ? left : item2).concat(right);
   current.frames = current.frames.map((frame) => right.frameIds.includes(frame.id) ? { ...frame, storyId: right.id } : frame);
   return admitted2(current);
 }
@@ -101081,7 +102105,7 @@ async function duplicateTextFrames(snapshot, copies, layouts, fresh) {
 }
 function placeTextStory(snapshot, storyId, frame) {
   const current = admitted2(snapshot), story = current.document.stories.find((story2) => story2.id === storyId);
-  if (!story || story.frameIds.length || frame.storyId !== storyId || current.frames.some((item) => item.id === frame.id)) throw new TextSourceError("story-placement", "Choose an unplaced story and a new frame.");
+  if (!story || story.frameIds.length || frame.storyId !== storyId || current.frames.some((item2) => item2.id === frame.id)) throw new TextSourceError("story-placement", "Choose an unplaced story and a new frame.");
   story.frameIds = [frame.id];
   story.revision++;
   current.frames.push(structuredClone(frame));
@@ -101090,11 +102114,11 @@ function placeTextStory(snapshot, storyId, frame) {
 function insertTextFrame(snapshot, after, frame) {
   const current = admitted2(snapshot), story = owner(current, after);
   mutable(current, story.frameIds);
-  if (frame.storyId !== story.id || current.frames.some((item) => item.id === frame.id) || frame.mode === "path" || current.frames.some((item) => item.storyId === story.id && item.mode === "path"))
+  if (frame.storyId !== story.id || current.frames.some((item2) => item2.id === frame.id) || frame.mode === "path" || current.frames.some((item2) => item2.storyId === story.id && item2.mode === "path"))
     throw new TextSourceError("frame-owner", "Continue this story into a new rectangular frame.");
   story.frameIds.splice(story.frameIds.indexOf(after) + 1, 0, frame.id);
   story.revision++;
-  current.frames = current.frames.map((item) => item.storyId === story.id ? { ...item, mode: "fixed", shrink: void 0 } : item);
+  current.frames = current.frames.map((item2) => item2.storyId === story.id ? { ...item2, mode: "fixed", shrink: void 0 } : item2);
   current.frames.push({ ...frame, mode: "fixed", shrink: void 0 });
   return admitted2(current);
 }
@@ -101107,7 +102131,7 @@ async function detachTextFrame(snapshot, id2, layout2, fresh) {
   detached.frameIds = [id2];
   const remaining = replaceStoryRange(story, { start: frame.start, end: frame.end }, { source: "" }, { paragraphId: fresh }).story;
   remaining.frameIds = story.frameIds.filter((frameId) => frameId !== id2);
-  current.document.stories = current.document.stories.map((item) => item.id === story.id ? remaining : item).concat(detached);
+  current.document.stories = current.document.stories.map((item2) => item2.id === story.id ? remaining : item2).concat(detached);
   current.frames = current.frames.map((frame2) => frame2.id === id2 ? { ...frame2, storyId: detached.id } : frame2);
   return admitted2(current);
 }
@@ -101138,7 +102162,7 @@ function previewTextCleanup(story, range, language, options2) {
     start += range.start;
     end += range.start;
     if (!boundaries.has(start) || !boundaries.has(end)) return;
-    if (protectedRanges.some((item) => item.start < end && item.end > start) || edits.some((item) => item.start < end && item.end > start)) return;
+    if (protectedRanges.some((item2) => item2.start < end && item2.end > start) || edits.some((item2) => item2.start < end && item2.end > start)) return;
     if (edits.length >= 512) throw new TextSourceError("cleanup-size", "Select a smaller range to preview typography cleanup.");
     edits.push({ start, end, before: story.source.slice(start, end), after, kind });
   };
@@ -101183,11 +102207,11 @@ var init_text_cleanup = __esm({
 // engine/src/text-layout-svg.ts
 async function textLayoutSvg(layout2, story, frameId, parseXml) {
   if (layout2.storyId !== story.id || layout2.revision !== story.revision) throw new TextSourceError("layout-stale", "Finish text layout before exporting this revision.");
-  const frame = layout2.frames.find((item) => item.id === frameId);
+  const frame = layout2.frames.find((item2) => item2.id === frameId);
   if (!frame) throw new TextSourceError("frame-missing", "The settled text frame is missing.");
   const fragments = frame.guide ? [`<path d="${escapeMarkup2(frame.guide)}" fill="none" stroke="#666666" stroke-width="1"/>`] : [];
   const prefix = `text-${await sha256Hex(new TextEncoder().encode(`${story.id}\0${frameId}`))}`;
-  let placement = 0;
+  let placement2 = 0;
   for (const line of layout2.lines) {
     if (line.frameId !== frameId) continue;
     for (const rule of line.rules ?? []) fragments.push(`<rect x="${n5(rule.x)}" y="${n5(rule.y)}" width="${n5(rule.width)}" height="${n5(rule.height)}" fill="${color2(rule.color)}"/>`);
@@ -101198,9 +102222,9 @@ async function textLayoutSvg(layout2, story, frameId, parseXml) {
       fragments.push(`<g fill="${color2(run3.color)}" transform="translate(${n5(run3.x)} ${n5(run3.y)}) rotate(${n5(run3.angle)})">${paths}${run3.character.underline ? decoration(run3.shape.size / 10) : ""}${run3.character.strike ? decoration(-run3.shape.size * 0.3) : ""}</g>`);
     }
     for (const inline of line.inlines) {
-      const svg = admitTextInlineSvg(inline.svg, parseXml, `${prefix}-${placement++}`);
+      const svg = admitTextInlineSvg(inline.svg, parseXml, `${prefix}-${placement2++}`);
       const fitted = svg.replace(/^<svg([^>]*)>/, (_match, attributes) => `<svg${attributes.replace(/ (width|height)="[^"]*"/g, "")} width="${n5(inline.width)}" height="${n5(inline.height)}"${inline.overflow === "visible" ? ' overflow="visible"' : ""}>`);
-      const sources = story.inlines.find((item) => item.offset === inline.offset)?.emojiSources;
+      const sources = story.inlines.find((item2) => item2.offset === inline.offset)?.emojiSources;
       fragments.push(`<g data-text-start="${n5(inline.offset)}"${sources?.length ? ` data-emoji-vector-sources="${escapeMarkup2(JSON.stringify(sources))}"` : ``} transform="translate(${n5(inline.x)} ${n5(inline.y)}) rotate(${n5(inline.angle)})">${fitted}</g>`);
     }
     if (line.hyphen) fragments.push(`<g fill="${color2(line.hyphen.color ?? "#000000")}" transform="translate(${n5(line.hyphen.x)} ${n5(line.hyphen.y)})">${line.hyphen.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
@@ -101251,7 +102275,7 @@ function captureTextFrames(snapshot, ids2, receipts, fresh) {
       }
       const fragment = sliceTextDocument(snapshot.document, story, { start, end }), copied = fragment.stories[0];
       textDocument2.stories.push({ ...copied, id: fresh(), frameIds: group, paragraphs: copied.paragraphs.map((paragraph) => ({ ...paragraph, id: fresh() })), inlines: copied.inlines.map((inline) => ({ ...inline, id: fresh() })) });
-      for (const font of fragment.fonts) if (!textDocument2.fonts.some((item) => item.id === font.id)) textDocument2.fonts.push(font);
+      for (const font of fragment.fonts) if (!textDocument2.fonts.some((item2) => item2.id === font.id)) textDocument2.fonts.push(font);
     }
   }
   return parseTextDocument(textDocument2);
@@ -101349,14 +102373,14 @@ function importVectorPaint(svg, parseXml) {
   const view = (root2.getAttribute("viewBox") ?? "").split(/[\s,]+/).map(Number), width = view[2], height = view[3];
   const paths = [], idMap = new Map(Array.from(doc.getElementsByTagName("*")).filter((el) => el.hasAttribute("id")).map((el) => [el.getAttribute("id"), el]));
   function walk2(element, definition = false, instance = false) {
-    const tag2 = element.localName, attributes = Object.fromEntries(Array.from(element.attributes).map((attr4) => [attr4.name, attr4.value]));
+    const tag2 = element.localName, attributes = Object.fromEntries(Array.from(element.attributes).map((attr5) => [attr5.name, attr5.value]));
     if (instance) delete attributes.id;
     if (tag2 === "use") {
       const target = idMap.get(attributes.href.slice(1));
       if (!target) throw new Error("Missing local vector shape.");
-      const x = Number(attributes.x ?? 0), y = Number(attributes.y ?? 0), own2 = attributes.transform ?? "";
+      const x = Number(attributes.x ?? 0), y = Number(attributes.y ?? 0), own3 = attributes.transform ?? "";
       for (const key of ["href", "x", "y", "width", "height"]) delete attributes[key];
-      attributes.transform = `${own2} translate(${x} ${y})`.trim();
+      attributes.transform = `${own3} translate(${x} ${y})`.trim();
       const child = walk2(target, false, true);
       return { tag: "g", attributes, children: child ? [child] : [] };
     }
@@ -101378,8 +102402,8 @@ function importVectorPaint(svg, parseXml) {
     });
     if (tag2 === "svg") {
       for (const key of ["xmlns", "viewBox", "width", "height", "preserveAspectRatio"]) delete attributes[key];
-      const own2 = attributes.transform ?? "";
-      attributes.transform = `translate(${-view[0]} ${-view[1]}) ${own2}`.trim();
+      const own3 = attributes.transform ?? "";
+      attributes.transform = `translate(${-view[0]} ${-view[1]}) ${own3}`.trim();
       return { tag: "g", attributes, children };
     }
     return { tag: tag2, attributes, children };
@@ -101468,20 +102492,20 @@ function slideContentGroups(objects) {
   const heading = (o) => o.kind === "text" && textOf4(o).trim().length <= 90 && (o.text?.paras.length ?? 0) === 1;
   const groups = [];
   const claimed = /* @__PURE__ */ new Set();
-  for (const object3 of sorted) {
-    if (claimed.has(object3.id)) continue;
-    const group = [object3];
-    claimed.add(object3.id);
-    if (heading(object3)) {
-      let bottom = object3.box.y + object3.box.h;
+  for (const object4 of sorted) {
+    if (claimed.has(object4.id)) continue;
+    const group = [object4];
+    claimed.add(object4.id);
+    if (heading(object4)) {
+      let bottom = object4.box.y + object4.box.h;
       for (const next of sorted) {
-        if (claimed.has(next.id) || next.kind !== "text" || next.box.y < object3.box.y) continue;
-        const overlap = Math.min(object3.box.x + object3.box.w, next.box.x + next.box.w) - Math.max(object3.box.x, next.box.x);
-        if (overlap < Math.min(object3.box.w, next.box.w) * 0.7) continue;
+        if (claimed.has(next.id) || next.kind !== "text" || next.box.y < object4.box.y) continue;
+        const overlap = Math.min(object4.box.x + object4.box.w, next.box.x + next.box.w) - Math.max(object4.box.x, next.box.x);
+        if (overlap < Math.min(object4.box.w, next.box.w) * 0.7) continue;
         const gap = next.box.y - bottom;
-        if (gap < -object3.box.h * 0.2 || gap > object3.box.h * 1.6) continue;
+        if (gap < -object4.box.h * 0.2 || gap > object4.box.h * 1.6) continue;
         const bullet = next.text?.paras.some((p) => p.bullet && p.bullet !== "none");
-        if (heading(next) && !bullet && textOf4(next).length <= textOf4(object3).length * 1.5) break;
+        if (heading(next) && !bullet && textOf4(next).length <= textOf4(object4).length * 1.5) break;
         group.push(next);
         claimed.add(next.id);
         bottom = next.box.y + next.box.h;
@@ -101618,10 +102642,10 @@ function furnitureKind(kind) {
   if (kind === "bar" || kind === "rect") return "box";
   return "text";
 }
-function colourOf(hex3, tokenPath, resolve6) {
+function colourOf(hex3, tokenPath, resolve7) {
   if (typeof hex3 === "string" && hex3) return hex3;
-  if (typeof tokenPath === "string" && tokenPath && resolve6) {
-    const v = resolve6(tokenPath);
+  if (typeof tokenPath === "string" && tokenPath && resolve7) {
+    const v = resolve7(tokenPath);
     if (typeof v === "string" && v) return v;
   }
   return void 0;
@@ -101644,7 +102668,7 @@ function coveredFraction(box3, over) {
   const area2 = box3.w * box3.h;
   return area2 > 0 ? w * h / area2 : 0;
 }
-function applyTextStyle(row, master, role, style, resolve6) {
+function applyTextStyle(row, master, role, style, resolve7) {
   if (role) row.fontSize = roleFontSize(master, role, style);
   else if (style && typeof style.fontSize === "number") row.fontSize = style.fontSize;
   if (!style) return;
@@ -101652,15 +102676,15 @@ function applyTextStyle(row, master, role, style, resolve6) {
   if (style.align) row.align = style.align;
   if (style.valign) row.valign = style.valign;
   if (style.font) row.font = style.font;
-  const fg = colourOf(style.fg, style.fgTokenPath, resolve6);
+  const fg = colourOf(style.fg, style.fgTokenPath, resolve7);
   if (fg) row.fg = fg;
 }
 function clearTextStyle(row) {
   for (const key of STYLE_FIELDS) delete row[key];
 }
 function roleName(role, ordinal) {
-  const label2 = role.charAt(0).toUpperCase() + role.slice(1);
-  return ordinal > 1 ? `${label2} ${ordinal}` : label2;
+  const label3 = role.charAt(0).toUpperCase() + role.slice(1);
+  return ordinal > 1 ? `${label3} ${ordinal}` : label3;
 }
 function archetypePlaceholders(archetype) {
   return archetype.placeholders;
@@ -101669,14 +102693,14 @@ function shownFurniture(master, archetype) {
   const chosen = (archetype.furniture ?? []).map((id2) => master.furniture.find((f) => f.id === id2)).filter((f) => f !== void 0);
   return [...chosen.filter((f) => f.kind === "rect"), ...chosen.filter((f) => f.kind !== "rect")];
 }
-function logoDarkness(master, archetype, resolve6) {
-  const frameBg = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve6);
+function logoDarkness(master, archetype, resolve7) {
+  const frameBg = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve7);
   const frameDark = archetype.background?.dark ?? (frameBg ? bgIsDark(frameBg) : false);
   const painted = [];
   const byFurniture = /* @__PURE__ */ new Map();
   for (const f of shownFurniture(master, archetype)) {
     if (f.kind === "bar" || f.kind === "rect") {
-      const fill2 = colourOf(f.hex, f.tokenPath, resolve6);
+      const fill2 = colourOf(f.hex, f.tokenPath, resolve7);
       if (fill2) painted.push({ box: f.box, dark: bgIsDark(fill2) });
       continue;
     }
@@ -101698,8 +102722,8 @@ function seedFrame(master, archetypeId, opts) {
   const archetype = findArchetype(master, archetypeId);
   if (!archetype) return null;
   const prefix = opts.idPrefix ?? opts.frameId;
-  const resolve6 = opts.resolveToken;
-  const bg = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve6);
+  const resolve7 = opts.resolveToken;
+  const bg = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve7);
   const ox = Math.round(opts.x);
   const oy = Math.round(opts.y);
   const frame = {
@@ -101715,7 +102739,7 @@ function seedFrame(master, archetypeId, opts) {
     order: typeof opts.order === "number" ? opts.order : 0
   };
   if (bg) frame.bg = bg;
-  const darkness = logoDarkness(master, archetype, resolve6);
+  const darkness = logoDarkness(master, archetype, resolve7);
   const markFor = (f) => {
     if (!master.logo.variantByBackground || !opts.logos) return null;
     const picked = pickLogoVariant({
@@ -101745,12 +102769,12 @@ function seedFrame(master, archetypeId, opts) {
       const mark = markFor(f);
       if (mark) row.image = mark;
     } else if (f.kind === "bar" || f.kind === "rect") {
-      const fill2 = colourOf(f.hex, f.tokenPath, resolve6);
+      const fill2 = colourOf(f.hex, f.tokenPath, resolve7);
       if (fill2) row.bg = fill2;
     } else {
       row.text = f.text ?? "";
       const role = f.kind === "page-number" ? "number" : "label";
-      applyTextStyle(row, master, role, f.style, resolve6);
+      applyTextStyle(row, master, role, f.style, resolve7);
     }
     layers.push(row);
   };
@@ -101782,7 +102806,7 @@ function seedFrame(master, archetypeId, opts) {
       row.fit = ph.fit ?? "contain";
     } else {
       row.text = "";
-      applyTextStyle(row, master, ph.role, ph.style, resolve6);
+      applyTextStyle(row, master, ph.role, ph.style, resolve7);
     }
     layers.push(row);
   };
@@ -101881,7 +102905,7 @@ function deriveOrigin(master, archetype, layers, ordinals, opts) {
   layers.forEach((row, index2) => {
     const furnitureId = rowText(row, "furniture");
     if (furnitureId) {
-      const f = master.furniture.find((item) => item.id === furnitureId);
+      const f = master.furniture.find((item2) => item2.id === furnitureId);
       if (f) add(f.box, row, index2);
       return;
     }
@@ -101912,25 +102936,25 @@ function paintOver(top, under) {
   if (!t) return under;
   const u = under ? hexAlpha(under) : null;
   if (t.alpha >= 1 || !u) return t.hex;
-  const channel3 = (i) => {
+  const channel4 = (i) => {
     const a = Number.parseInt(t.hex.slice(1 + i * 2, 3 + i * 2), 16);
     const b = Number.parseInt(u.hex.slice(1 + i * 2, 3 + i * 2), 16);
     return Math.round(a * t.alpha + b * (1 - t.alpha));
   };
-  return `#${[0, 1, 2].map((i) => channel3(i).toString(16).padStart(2, "0")).join("")}`;
+  return `#${[0, 1, 2].map((i) => channel4(i).toString(16).padStart(2, "0")).join("")}`;
 }
-function groundUnder(master, archetype, box3, resolve6) {
-  let ground = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve6);
+function groundUnder(master, archetype, box3, resolve7) {
+  let ground = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve7);
   ground = ground ? paintOver(ground, "#ffffff") : void 0;
   for (const f of shownFurniture(master, archetype)) {
     if (f.kind !== "bar" && f.kind !== "rect") continue;
-    const fill2 = colourOf(f.hex, f.tokenPath, resolve6);
+    const fill2 = colourOf(f.hex, f.tokenPath, resolve7);
     if (fill2 && coveredFraction(box3, f.box) >= 0.5) ground = paintOver(fill2, ground);
   }
   return ground;
 }
-function inkFor(master, archetype, box3, preferred, resolve6) {
-  const ground = groundUnder(master, archetype, box3, resolve6);
+function inkFor(master, archetype, box3, preferred, resolve7) {
+  const ground = groundUnder(master, archetype, box3, resolve7);
   if (!ground) return void 0;
   const styles = [
     preferred,
@@ -101941,7 +102965,7 @@ function inkFor(master, archetype, box3, preferred, resolve6) {
   let best;
   const seen = /* @__PURE__ */ new Set();
   for (const style of styles) {
-    const raw = style ? colourOf(style.fg, style.fgTokenPath, resolve6) : void 0;
+    const raw = style ? colourOf(style.fg, style.fgTokenPath, resolve7) : void 0;
     const hex3 = raw ? paintOver(raw, ground) : void 0;
     if (!hex3 || seen.has(hex3)) continue;
     seen.add(hex3);
@@ -102049,19 +103073,19 @@ function applyArchetype(master, fromArchetypeId, toArchetypeId, layers, opts) {
   const plan = planSlots(master, from, to, layers, opts);
   if (!plan) return layers.slice();
   const { origin, slotOf, cellOf: cellOf2 } = plan;
-  const resolve6 = opts?.resolveToken;
-  const targetBg = colourOf(to.background?.hex, to.background?.tokenPath, resolve6);
-  const darkness = logoDarkness(master, to, resolve6);
+  const resolve7 = opts?.resolveToken;
+  const targetBg = colourOf(to.background?.hex, to.background?.tokenPath, resolve7);
+  const darkness = logoDarkness(master, to, resolve7);
   const logos = opts?.logos;
   const bodyStyle = to.placeholders.find((one) => one.role === "body" && one.kind !== "image")?.style;
   return layers.map((row, index2) => {
     const furnitureId = rowText(row, "furniture");
     if (furnitureId) {
-      const f = master.furniture.find((item) => item.id === furnitureId);
+      const f = master.furniture.find((item2) => item2.id === furnitureId);
       if (!f) return row;
       const next2 = { ...row, ...place(f.box, master, origin.x, origin.y) };
       if (f.kind === "bar" || f.kind === "rect") {
-        const fill2 = colourOf(f.hex, f.tokenPath, resolve6);
+        const fill2 = colourOf(f.hex, f.tokenPath, resolve7);
         if (fill2) next2.bg = fill2;
       } else if (f.kind === "logo") {
         next2.fit = "contain";
@@ -102077,7 +103101,7 @@ function applyArchetype(master, fromArchetypeId, toArchetypeId, layers, opts) {
         }
       } else {
         clearTextStyle(next2);
-        applyTextStyle(next2, master, f.kind === "page-number" ? "number" : "label", f.style, resolve6);
+        applyTextStyle(next2, master, f.kind === "page-number" ? "number" : "label", f.style, resolve7);
       }
       return next2;
     }
@@ -102091,12 +103115,12 @@ function applyArchetype(master, fromArchetypeId, toArchetypeId, layers, opts) {
     } else if (ph.kind === "image" || ph.role !== role) {
       const style = ph.kind === "image" ? bodyStyle : ph.style ?? bodyStyle;
       clearTextStyle(next);
-      applyTextStyle(next, master, role === "title" ? "title" : "body", style, resolve6);
-      const ink = inkFor(master, to, ph.box, style, resolve6);
+      applyTextStyle(next, master, role === "title" ? "title" : "body", style, resolve7);
+      const ink = inkFor(master, to, ph.box, style, resolve7);
       if (ink) next.fg = ink;
     } else {
       clearTextStyle(next);
-      applyTextStyle(next, master, role, ph.style, resolve6);
+      applyTextStyle(next, master, role, ph.style, resolve7);
     }
     return next;
   });
@@ -102703,96 +103727,96 @@ var init_deck_census_hash = __esm({
 });
 
 // engine/src/deck-census-vector.ts
-function vectorFeatures(object3) {
-  const items2 = object3.vectorItems?.items;
+function vectorFeatures(object4) {
+  const items2 = object4.vectorItems?.items;
   if (!items2 || items2.length === 0) return void 0;
   const fills = /* @__PURE__ */ new Set();
   const series = /* @__PURE__ */ new Set();
   let hasText2 = false;
-  for (const item of items2) {
-    if (item.kind === "text") hasText2 = true;
-    const hex3 = fillHex(item);
+  for (const item2 of items2) {
+    if (item2.kind === "text") hasText2 = true;
+    const hex3 = fillHex(item2);
     if (hex3) fills.add(hex3);
-    if (item.series) series.add(item.series);
+    if (item2.series) series.add(item2.series);
   }
   return { fillCount: fills.size, hasText: hasText2, seriesCount: series.size };
 }
-function vectorColourUses(object3) {
-  const items2 = object3.vectorItems;
+function vectorColourUses(object4) {
+  const items2 = object4.vectorItems;
   if (!items2 || items2.items.length === 0) return [];
-  const sx = items2.viewBox.w > 0 ? object3.box.w / items2.viewBox.w : 1;
-  const sy = items2.viewBox.h > 0 ? object3.box.h / items2.viewBox.h : 1;
+  const sx = items2.viewBox.w > 0 ? object4.box.w / items2.viewBox.w : 1;
+  const sy = items2.viewBox.h > 0 ? object4.box.h / items2.viewBox.h : 1;
   const byKey = /* @__PURE__ */ new Map();
   const seriesIndex = /* @__PURE__ */ new Map();
-  const add = (channel3, hex3, weight) => {
+  const add = (channel4, hex3, weight) => {
     let useId;
-    if (channel3 === "series") {
+    if (channel4 === "series") {
       let n6 = seriesIndex.get(hex3);
       if (n6 === void 0) {
         n6 = seriesIndex.size + 1;
         seriesIndex.set(hex3, n6);
       }
-      useId = `${object3.id}:series:${n6}`;
+      useId = `${object4.id}:series:${n6}`;
     } else {
-      useId = `${object3.id}:${channel3}:${hex3.slice(1)}`;
+      useId = `${object4.id}:${channel4}:${hex3.slice(1)}`;
     }
     const hit = byKey.get(useId);
     if (hit) {
       hit.weight += weight;
       return;
     }
-    const use = { useId, hex: hex3, channel: channel3, weight };
-    if (channel3 === "series") use.distinctionSet = object3.id;
+    const use = { useId, hex: hex3, channel: channel4, weight };
+    if (channel4 === "series") use.distinctionSet = object4.id;
     byKey.set(useId, use);
   };
-  for (const item of items2.items) {
-    if (item.kind === "text") {
-      const hex4 = fillHex(item);
-      if (hex4) add("text", hex4, Math.max(1, item.text.length) * item.size * item.size * sx * sy * 0.5);
+  for (const item2 of items2.items) {
+    if (item2.kind === "text") {
+      const hex4 = fillHex(item2);
+      if (hex4) add("text", hex4, Math.max(1, item2.text.length) * item2.size * item2.size * sx * sy * 0.5);
       continue;
     }
-    const area2 = Math.max(0, item.box.w * sx) * Math.max(0, item.box.h * sy);
-    const hex3 = fillHex(item);
+    const area2 = Math.max(0, item2.box.w * sx) * Math.max(0, item2.box.h * sy);
+    const hex3 = fillHex(item2);
     if (hex3) {
-      if (item.series) add("series", hex3, area2);
-      else if (isGlyphRun(item, items2.viewBox.h, hex3)) add("text", hex3, area2);
+      if (item2.series) add("series", hex3, area2);
+      else if (isGlyphRun(item2, items2.viewBox.h, hex3)) add("text", hex3, area2);
       else add("fill", hex3, area2);
     }
-    const stroke = item.stroke?.color.hex ? normal(item.stroke.color.hex) : void 0;
-    if (stroke && item.stroke) {
-      const length = item.shape === "line" ? Math.hypot(item.box.w * sx, item.box.h * sy) : 2 * (item.box.w * sx + item.box.h * sy);
-      add("stroke", stroke, length * Math.max(1, item.stroke.width * Math.sqrt(sx * sy)));
+    const stroke = item2.stroke?.color.hex ? normal(item2.stroke.color.hex) : void 0;
+    if (stroke && item2.stroke) {
+      const length2 = item2.shape === "line" ? Math.hypot(item2.box.w * sx, item2.box.h * sy) : 2 * (item2.box.w * sx + item2.box.h * sy);
+      add("stroke", stroke, length2 * Math.max(1, item2.stroke.width * Math.sqrt(sx * sy)));
     }
   }
   return [...byKey.values()].map((use) => ({ ...use, weight: Math.round(use.weight * 1e3) / 1e3 })).sort((a, b) => a.useId < b.useId ? -1 : a.useId > b.useId ? 1 : 0);
 }
-function vectorChartEvidence(object3) {
-  const items2 = object3.vectorItems;
+function vectorChartEvidence(object4) {
+  const items2 = object4.vectorItems;
   if (!items2 || items2.items.length === 0) return void 0;
   const titled = typeof items2.title === "string" && /\bchart\b/i.test(items2.title);
-  const bars = items2.items.filter((item) => item.kind === "path" && item.shape === "rect");
+  const bars = items2.items.filter((item2) => item2.kind === "path" && item2.shape === "rect");
   const sharedEdge = Math.max(0, ...["x0", "x1", "y0", "y1"].map((edge) => mostShared(bars, edge)));
-  const series = new Set(items2.items.map((item) => item.series).filter((name) => Boolean(name)));
+  const series = new Set(items2.items.map((item2) => item2.series).filter((name) => Boolean(name)));
   const barred = sharedEdge >= CHART_MIN_BARS && series.size >= CHART_MIN_SERIES;
   if (!titled && !barred) return void 0;
-  const fills = vectorFeatures(object3)?.fillCount ?? 0;
+  const fills = vectorFeatures(object4)?.fillCount ?? 0;
   const evidence = [];
   if (titled) evidence.push({ signal: "native-tag", value: items2.title ?? "", weight: 0.4 });
   if (barred) evidence.push({ signal: "column-alignment", value: sharedEdge, weight: 0.3 });
   evidence.push({ signal: "fill-count", value: fills, weight: 0.2 });
   return { class: "chart", confidence: VECTOR_CHART_CONFIDENCE, evidence };
 }
-function fillHex(item) {
-  const fill2 = item.fill;
+function fillHex(item2) {
+  const fill2 = item2.fill;
   if (!fill2 || "none" in fill2 || !fill2.hex) return void 0;
   return normal(fill2.hex);
 }
 function normal(hex3) {
   return `#${hex3.trim().toLowerCase().replace(/^#/, "").slice(0, 6)}`;
 }
-function isGlyphRun(item, height, hex3) {
-  if (item.shape || item.stroke || item.series) return false;
-  if (height > 0 && item.box.h > height * GLYPH_HEIGHT_SHARE) return false;
+function isGlyphRun(item2, height, hex3) {
+  if (item2.shape || item2.stroke || item2.series) return false;
+  if (height > 0 && item2.box.h > height * GLYPH_HEIGHT_SHARE) return false;
   const oklch = hexToOklch(hex3);
   return (oklch ? oklch.c : 0) < INK_CHROMA_CEILING;
 }
@@ -102837,8 +103861,8 @@ function effectiveAction(row) {
 function effectiveReplacement(row) {
   return row.decision !== void 0 ? row.decisionReplacement ?? row.proposalReplacement : row.proposalReplacement;
 }
-function reviewFidelity(object3) {
-  switch (object3?.fidelity.state) {
+function reviewFidelity(object4) {
+  switch (object4?.fidelity.state) {
     case "editable":
       return "editable";
     case "raster-preserved":
@@ -103006,13 +104030,13 @@ function evidenceMessage(evidence, index2, context) {
       return reviewMessage("evidence.none", {});
   }
 }
-function rowEvidenceMessage(row, object3) {
+function rowEvidenceMessage(row, object4) {
   const evidence = row?.evidence ?? [];
   const lead = leadingEvidence(evidence);
   if (row && lead >= 0) {
-    return evidenceMessage(evidence, lead, { class: row.class, ...object3?.kind ? { kind: object3.kind } : {} });
+    return evidenceMessage(evidence, lead, { class: row.class, ...object4?.kind ? { kind: object4.kind } : {} });
   }
-  const origin = object3?.origin;
+  const origin = object4?.origin;
   if (origin) return reviewMessage(`evidence.origin.${origin}`, {});
   return reviewMessage("evidence.none", {});
 }
@@ -103048,7 +104072,7 @@ function indexPlan(plan, source) {
   const objectOf = /* @__PURE__ */ new Map();
   source.slides.forEach((slide, i) => {
     slideNumberOf.set(slide.id, i + 1);
-    for (const object3 of slide.objects) objectOf.set(object3.id, object3);
+    for (const object4 of slide.objects) objectOf.set(object4.id, object4);
   });
   const rows2 = [];
   const byId = /* @__PURE__ */ new Map();
@@ -103057,8 +104081,8 @@ function indexPlan(plan, source) {
     if (!slideNumberOf.has(slide.id)) slideNumberOf.set(slide.id, slideNumber);
     slide.objects.forEach((row, position) => {
       const info = { row, slideId: slide.id, slideNumber, position };
-      const object3 = objectOf.get(row.id);
-      if (object3) info.object = object3;
+      const object4 = objectOf.get(row.id);
+      if (object4) info.object = object4;
       rows2.push(info);
       byId.set(row.id, info);
     });
@@ -103077,8 +104101,8 @@ function majorityAction(members, exemplar) {
   let best = 0;
   for (const count4 of counts.values()) best = Math.max(best, count4);
   const tied = PLAN_ACTIONS.filter((action) => (counts.get(action) ?? 0) === best);
-  const own2 = effectiveAction(exemplar.row);
-  return tied.includes(own2) ? own2 : tied[0] ?? own2;
+  const own3 = effectiveAction(exemplar.row);
+  return tied.includes(own3) ? own3 : tied[0] ?? own3;
 }
 function byRowOrder(a, b) {
   return a.slideNumber - b.slideNumber || a.position - b.position || compareCodeUnits(a.row.id, b.row.id);
@@ -103138,7 +104162,7 @@ function finishItem(draft, deckSlides) {
     slideIds.push(member.slideId);
     slideNumbers.push(member.slideNumber);
   }
-  const item = {
+  const item2 = {
     id: draft.id,
     section,
     class: draft.klass,
@@ -103158,13 +104182,13 @@ function finishItem(draft, deckSlides) {
   };
   if (rebuiltPictures(members)) {
     const count4 = slideIds.length;
-    item.title = count4 === 1 ? reviewMessage("title.rebuilt.one", { slide: slideNumbers[0] ?? draft.exemplar.slideNumber }) : reviewMessage("title.rebuilt.many", { count: count4 });
-    item.evidence = reviewMessage("evidence.rebuilt", {});
+    item2.title = count4 === 1 ? reviewMessage("title.rebuilt.one", { slide: slideNumbers[0] ?? draft.exemplar.slideNumber }) : reviewMessage("title.rebuilt.many", { count: count4 });
+    item2.evidence = reviewMessage("evidence.rebuilt", {});
   }
-  if (QUIET_EVIDENCE.has(item.evidence.code)) item.evidenceAddsFact = false;
-  if (replacement) item.replacement = replacement;
-  if (draft.groupId) item.groupId = draft.groupId;
-  return item;
+  if (QUIET_EVIDENCE.has(item2.evidence.code)) item2.evidenceAddsFact = false;
+  if (replacement) item2.replacement = replacement;
+  if (draft.groupId) item2.groupId = draft.groupId;
+  return item2;
 }
 function lettersEvidence(members) {
   if (members.length < 2 || members.length > LETTERS_MAX) return null;
@@ -103252,7 +104276,7 @@ function slideItems(plan, index2, opts) {
     const titleCode = band === "likely" ? count4 === 1 ? "title.layout-group.likely.one" : "title.layout-group.likely.many" : count4 === 1 ? "title.layout-group.one" : "title.layout-group.many";
     const lead = slides.find((slide) => slide.layoutMatch?.band === band) ?? first;
     const evidence = lead.layoutReasons?.[0] ?? reviewMessage("evidence.none", {});
-    const item = {
+    const item2 = {
       id: `layout:${key}`,
       section,
       class: "unknown",
@@ -103272,7 +104296,7 @@ function slideItems(plan, index2, opts) {
       type: "layout-group",
       layout: { structure: match.structure, band, archetype: band === "likely" ? lead.layoutAlternative ?? lead.layout : lead.layout }
     };
-    out.push(item);
+    out.push(item2);
   }
   if (diagrams.length > 0) {
     const slides = diagrams.sort((a, b) => numberOf2(a.id) - numberOf2(b.id));
@@ -103386,28 +104410,28 @@ function objectStates(plan, source) {
   }
   return out;
 }
-function textOf5(object3) {
-  return (object3.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join(" ").replace(/\s+/g, " ").trim();
+function textOf5(object4) {
+  return (object4.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join(" ").replace(/\s+/g, " ").trim();
 }
-function largestRunPt(object3) {
+function largestRunPt(object4) {
   let max = 0;
-  for (const para of object3.text?.paras ?? []) for (const run3 of para.runs) max = Math.max(max, run3.sizePt ?? 0);
+  for (const para of object4.text?.paras ?? []) for (const run3 of para.runs) max = Math.max(max, run3.sizePt ?? 0);
   return max;
 }
 function slideTitle(objects, rows2) {
-  const withText = objects.filter((object3) => textOf5(object3).length > 0);
-  const titled = withText.find((object3) => {
-    const klass = rows2.get(object3.id)?.class;
-    return klass === "title" || object3.placeholder === "title" || object3.placeholder === "ctrTitle";
+  const withText = objects.filter((object4) => textOf5(object4).length > 0);
+  const titled = withText.find((object4) => {
+    const klass = rows2.get(object4.id)?.class;
+    return klass === "title" || object4.placeholder === "title" || object4.placeholder === "ctrTitle";
   });
   let pick = titled;
   if (!pick) {
     let best = -1;
-    for (const object3 of withText) {
-      const size = largestRunPt(object3);
+    for (const object4 of withText) {
+      const size = largestRunPt(object4);
       if (size > best) {
         best = size;
-        pick = object3;
+        pick = object4;
       }
     }
   }
@@ -103431,7 +104455,7 @@ function slideStates(plan, source, census) {
   return effectiveSlideOrder(plan, source).map((slidePlan, order) => {
     const found = sourceById.get(slidePlan.id);
     const objects = found?.slide.objects ?? [];
-    const objectById = new Map(objects.map((object3) => [object3.id, object3]));
+    const objectById = new Map(objects.map((object4) => [object4.id, object4]));
     const rows2 = new Map(slidePlan.objects.map((row) => [row.id, row]));
     let attention = 0;
     let unreviewed = 0;
@@ -103473,12 +104497,12 @@ function slideStates(plan, source, census) {
 function sameFace(a, b) {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
-function isPlainShape(object3) {
-  return object3.kind === "shape" && !object3.media && !object3.fidelity.fallbackAssetRef;
+function isPlainShape(object4) {
+  return object4.kind === "shape" && !object4.media && !object4.fidelity.fallbackAssetRef;
 }
 function planSummary(plan, source, census) {
   const objectOf = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object3 of slide.objects) objectOf.set(object3.id, object3);
+  for (const slide of source.slides) for (const object4 of slide.objects) objectOf.set(object4.id, object4);
   const objects = { keep: 0, replace: 0, remove: 0, unresolved: 0, unplaced: 0 };
   const review = { attention: 0, unreviewed: 0, accepted: 0 };
   let included = 0;
@@ -103491,9 +104515,9 @@ function planSummary(plan, source, census) {
       if (!slide.include) continue;
       const action = effectiveAction(row);
       objects[action] += 1;
-      const object3 = objectOf.get(row.id);
-      if (action !== "remove" && reviewFidelity(object3) === "unavailable") objects.unresolved += 1;
-      else if (action === "keep" && object3 && isPlainShape(object3)) objects.unplaced += 1;
+      const object4 = objectOf.get(row.id);
+      if (action !== "remove" && reviewFidelity(object4) === "unavailable") objects.unresolved += 1;
+      else if (action === "keep" && object4 && isPlainShape(object4)) objects.unplaced += 1;
     }
   }
   const colours2 = { assigned: 0, unresolved: 0, locked: 0 };
@@ -104250,8 +105274,8 @@ var init_deck_census_rules = __esm({
 });
 
 // engine/src/deck-census.ts
-function textOf6(object3) {
-  return (object3.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join("\n");
+function textOf6(object4) {
+  return (object4.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join("\n");
 }
 function wordsOf(text7) {
   return text7.split(/\s+/).filter((word) => word.length > 0);
@@ -104289,33 +105313,33 @@ function vectorFillCount(svg) {
 function fractionBox(box3, frame) {
   return { x: box3.x / frame.width, y: box3.y / frame.height, w: box3.w / frame.width, h: box3.h / frame.height };
 }
-function familyOf(object3, stats) {
-  if (object3.kind === "pic") {
-    if (object3.media) {
-      return { key: `media:${object3.media}`, kind: "media", by: "exact", digitWildcard: false, exact: object3.media, normalised: object3.media };
+function familyOf(object4, stats) {
+  if (object4.kind === "pic") {
+    if (object4.media) {
+      return { key: `media:${object4.media}`, kind: "media", by: "exact", digitWildcard: false, exact: object4.media, normalised: object4.media };
     }
     if (stats?.dhash) {
       const candidate = { key: `dhash:${stats.dhash}`, kind: "media", by: "dhash", digitWildcard: false, normalised: `dhash:${stats.dhash}` };
-      const ref = object3.fidelity.fallbackAssetRef;
+      const ref = object4.fidelity.fallbackAssetRef;
       if (ref) candidate.exact = ref;
       return candidate;
     }
     return null;
   }
-  if (object3.kind === "vector" && object3.vector) {
-    const hash = pathHash(object3.vector);
+  if (object4.kind === "vector" && object4.vector) {
+    const hash = pathHash(object4.vector);
     if (hash === null) return null;
-    return { key: `path:${hash}`, kind: "vector", by: "path-hash", digitWildcard: false, exact: object3.vector, normalised: `path:${hash}` };
+    return { key: `path:${hash}`, kind: "vector", by: "path-hash", digitWildcard: false, exact: object4.vector, normalised: `path:${hash}` };
   }
-  const text7 = textOf6(object3);
+  const text7 = textOf6(object4);
   if (text7.trim().length > 0) {
     const normalised = digitNormalise(text7);
-    return { key: `text:${object3.kind}:${normalised}`, kind: "text", by: "exact", digitWildcard: true, exact: text7.trim(), normalised };
+    return { key: `text:${object4.kind}:${normalised}`, kind: "text", by: "exact", digitWildcard: true, exact: text7.trim(), normalised };
   }
-  if (object3.kind === "shape") {
-    const fill2 = object3.fill?.hex ?? object3.fill?.scheme ?? "none";
-    const line = object3.line?.color?.hex ?? object3.line?.color?.scheme ?? "none";
-    const key = `shape:${object3.geom ?? "rect"}:${fill2}:${line}`;
+  if (object4.kind === "shape") {
+    const fill2 = object4.fill?.hex ?? object4.fill?.scheme ?? "none";
+    const line = object4.line?.color?.hex ?? object4.line?.color?.scheme ?? "none";
+    const key = `shape:${object4.geom ?? "rect"}:${fill2}:${line}`;
     return { key, kind: "shape", by: "exact", digitWildcard: false, exact: key, normalised: key };
   }
   return null;
@@ -104328,7 +105352,7 @@ function median4(values) {
 }
 function verifyFamily(family2, tolerance) {
   const boxes = family2.members.map((member) => fractionBox(member.object.box, member.frame));
-  const reference2 = {
+  const reference3 = {
     x: median4(boxes.map((b) => b.x)),
     y: median4(boxes.map((b) => b.y)),
     w: median4(boxes.map((b) => b.w)),
@@ -104337,7 +105361,7 @@ function verifyFamily(family2, tolerance) {
   let anchorIndex = 0;
   let anchorDistance = Number.POSITIVE_INFINITY;
   boxes.forEach((box3, i) => {
-    const distance3 = Math.abs(box3.x - reference2.x) + Math.abs(box3.y - reference2.y);
+    const distance3 = Math.abs(box3.x - reference3.x) + Math.abs(box3.y - reference3.y);
     const member = family2.members[i];
     const best = family2.members[anchorIndex];
     if (distance3 < anchorDistance || distance3 === anchorDistance && member && best && member.object.id < best.object.id) {
@@ -104353,10 +105377,10 @@ function verifyFamily(family2, tolerance) {
   family2.members.forEach((member, i) => {
     const box3 = boxes[i];
     if (!box3) return;
-    const dx = Math.abs(box3.x - reference2.x);
-    const dy = Math.abs(box3.y - reference2.y);
-    const dw = Math.abs(box3.w - reference2.w);
-    const dh = Math.abs(box3.h - reference2.h);
+    const dx = Math.abs(box3.x - reference3.x);
+    const dy = Math.abs(box3.y - reference3.y);
+    const dw = Math.abs(box3.w - reference3.w);
+    const dh = Math.abs(box3.h - reference3.h);
     const placed2 = dx <= tolerance && dy <= tolerance && dw <= tolerance && dh <= tolerance;
     const sameContent = family2.digitWildcard ? member.normalised === anchor.normalised : member.exact !== void 0 && anchor.exact !== void 0 ? member.exact === anchor.exact : member.normalised === anchor.normalised;
     if (placed2 && sameContent) {
@@ -104415,9 +105439,9 @@ function chromaOf3(hex3) {
   const oklch = hexToOklch(hex3);
   return oklch ? oklch.c : 0;
 }
-function textWeight(object3, hex3, theme) {
+function textWeight(object4, hex3, theme) {
   let weight = 0;
-  for (const para of object3.text?.paras ?? []) {
+  for (const para of object4.text?.paras ?? []) {
     for (const run3 of para.runs) {
       if (resolveColor(run3.color, theme) !== hex3) continue;
       weight += run3.text.length * (run3.sizePt ?? 12);
@@ -104432,23 +105456,23 @@ function censusDeck(source, opts = {}) {
     width: slide.width > 0 ? slide.width : 1280,
     height: slide.height > 0 ? slide.height : 720
   }));
-  const statsOf = (object3) => {
-    if (object3.raster) return object3.raster;
-    const ref = object3.media ?? object3.fidelity.fallbackAssetRef;
+  const statsOf = (object4) => {
+    if (object4.raster) return object4.raster;
+    const ref = object4.media ?? object4.fidelity.fallbackAssetRef;
     return ref && opts.rasterStats ? opts.rasterStats(ref) : void 0;
   };
-  const ocrOf = (object3) => {
-    if (object3.ocr) return object3.ocr;
-    const ref = object3.media ?? object3.fidelity.fallbackAssetRef;
+  const ocrOf = (object4) => {
+    if (object4.ocr) return object4.ocr;
+    const ref = object4.media ?? object4.fidelity.fallbackAssetRef;
     return ref && opts.ocr ? opts.ocr(ref) : void 0;
   };
   const families = /* @__PURE__ */ new Map();
   for (const frame of frames) {
-    for (const object3 of frame.slide.objects) {
-      const candidate = familyOf(object3, statsOf(object3));
+    for (const object4 of frame.slide.objects) {
+      const candidate = familyOf(object4, statsOf(object4));
       if (!candidate) continue;
       const family2 = families.get(candidate.key) ?? { key: candidate.key, kind: candidate.kind, by: candidate.by, digitWildcard: candidate.digitWildcard, members: [] };
-      const member = { object: object3, frame, normalised: candidate.normalised };
+      const member = { object: object4, frame, normalised: candidate.normalised };
       if (candidate.exact !== void 0) member.exact = candidate.exact;
       family2.members.push(member);
       families.set(candidate.key, family2);
@@ -104504,70 +105528,70 @@ function censusDeck(source, opts = {}) {
     const { slide } = frame;
     warnings.push(...slide.warnings);
     const slideArea = frame.width * frame.height;
-    const sizes = [...new Set(slide.objects.filter((object3) => textOf6(object3).trim().length > 0).map((object3) => maxRunPt(object3) ?? 0))].sort((a, b) => b - a);
+    const sizes = [...new Set(slide.objects.filter((object4) => textOf6(object4).trim().length > 0).map((object4) => maxRunPt(object4) ?? 0))].sort((a, b) => b - a);
     const context = slideContext(frame);
     const hypotheses = /* @__PURE__ */ new Map();
-    for (const object3 of slide.objects) {
-      const text7 = textOf6(object3);
-      const stats = statsOf(object3);
-      const ocr = ocrOf(object3);
-      const verified = groupOf.get(object3.id);
-      const known = matchKnownLogo(object3, stats, knownLogos);
-      const box3 = object3.box;
+    for (const object4 of slide.objects) {
+      const text7 = textOf6(object4);
+      const stats = statsOf(object4);
+      const ocr = ocrOf(object4);
+      const verified = groupOf.get(object4.id);
+      const known = matchKnownLogo(object4, stats, knownLogos);
+      const box3 = object4.box;
       const centreX = box3.x + box3.w / 2;
       const centreY = box3.y + box3.h / 2;
       const inX = centreX < MARGIN_BAND_SHARE * frame.width || centreX > (1 - MARGIN_BAND_SHARE) * frame.width;
       const topBand = centreY < MARGIN_BAND_SHARE * frame.height;
       const bottomBand = centreY > (1 - MARGIN_BAND_SHARE) * frame.height;
-      const maxPt = maxRunPt(object3);
+      const maxPt = maxRunPt(object4);
       const slideCount = frames.length || 1;
       const features = {
-        objectId: object3.id,
+        objectId: object4.id,
         slideId: slide.id,
-        kind: object3.kind,
-        origin: object3.origin,
+        kind: object4.kind,
+        origin: object4.origin,
         areaShare: slideArea > 0 ? box3.w * box3.h / slideArea : 0,
         aspect: box3.h > 0 ? box3.w / box3.h : 0,
         marginZone: inX || topBand || bottomBand,
         topBand,
         bottomBand,
         longSideShare: Math.max(box3.w / frame.width, box3.h / frame.height),
-        hasFill: object3.fill !== void 0,
-        fillCount: object3.kind === "vector" ? vectorFillCount(object3.vector) : object3.fill ? 1 : 0,
+        hasFill: object4.fill !== void 0,
+        fillCount: object4.kind === "vector" ? vectorFillCount(object4.vector) : object4.fill ? 1 : 0,
         hasText: text7.trim().length > 0,
         textLength: text7.trim().length,
         wordCount: wordsOf(text7).length,
         lowerCaseWords: lowerCaseWords(text7),
         digitsOnly: digitsOnly(text7),
         dateLike: dateLike(text7),
-        textParagraphs: object3.text?.paras.length ?? 0,
+        textParagraphs: object4.text?.paras.length ?? 0,
         repeatCount: verified ? verified.group.slideIds.length : 0,
         repeatShare: verified ? verified.group.slideIds.length / slideCount : 0,
         positionJitter: verified ? verified.jitter : 0,
         exactRepeat: verified ? verified.exactRepeat : false,
         digitRepeatOnly: verified ? verified.digitRepeatOnly : false,
-        hasChartData: object3.chartData !== void 0,
-        seriesCount: object3.chartData?.series?.length ?? 0,
-        hasTable: object3.table !== void 0,
-        unavailable: object3.fidelity.state === "unavailable"
+        hasChartData: object4.chartData !== void 0,
+        seriesCount: object4.chartData?.series?.length ?? 0,
+        hasTable: object4.table !== void 0,
+        unavailable: object4.fidelity.state === "unavailable"
       };
-      if (object3.placeholder) features.placeholder = object3.placeholder;
+      if (object4.placeholder) features.placeholder = object4.placeholder;
       if (maxPt !== void 0) features.maxTextPt = maxPt;
       if (features.hasText) features.sizeRank = Math.max(0, sizes.indexOf(maxPt ?? 0));
-      Object.assign(features, context.featuresFor(object3, text7));
-      Object.assign(features, vectorFeatures(object3) ?? {});
+      Object.assign(features, context.featuresFor(object4, text7));
+      Object.assign(features, vectorFeatures(object4) ?? {});
       if (verified) {
         features.groupId = verified.group.id;
         features.groupBy = verified.by;
       }
-      if (object3.tag) features.tag = object3.tag;
-      const drawnChart = vectorChartEvidence(object3);
+      if (object4.tag) features.tag = object4.tag;
+      const drawnChart = vectorChartEvidence(object4);
       if (drawnChart) features.vectorChart = { confidence: drawnChart.confidence, evidence: drawnChart.evidence };
-      const corner = cornerShare.get(object3.id);
+      const corner = cornerShare.get(object4.id);
       if (corner !== void 0) features.cornerRepeatShare = corner;
       if (features.hasText && new RegExp("\\p{N}", "u").test(text7)) features.hasDigit = true;
       if (features.hasText && LEGAL_NOTICE.test(text7)) features.legalNotice = true;
-      if (corner !== void 0 && corner > GENERATOR_MARK_SHARE && object3.kind === "pic" && markWordBeside(object3, slide, cornerShare)) {
+      if (corner !== void 0 && corner > GENERATOR_MARK_SHARE && object4.kind === "pic" && markWordBeside(object4, slide, cornerShare)) {
         features.markWordBeside = true;
       }
       if (ocr) {
@@ -104582,22 +105606,22 @@ function censusDeck(source, opts = {}) {
         if (known.distance !== void 0) features.knownLogoDistance = known.distance;
       }
       const hypothesis = classifyObject(features);
-      hypotheses.set(object3.id, hypothesis);
-      classOf.set(object3.id, hypothesis.class);
+      hypotheses.set(object4.id, hypothesis);
+      classOf.set(object4.id, hypothesis.class);
       const row = {
-        id: object3.id,
+        id: object4.id,
         slideId: slide.id,
-        origin: object3.origin,
+        origin: object4.origin,
         hypothesis
       };
       if (verified) row.groupId = verified.group.id;
       objects.push(row);
     }
     collectSlideColors(frame, uses, opts, source.theme);
-    for (const object3 of slide.objects) {
-      const klass = hypotheses.get(object3.id)?.class;
+    for (const object4 of slide.objects) {
+      const klass = hypotheses.get(object4.id)?.class;
       const role = klass === "title" ? "title" : klass === "subtitle" ? "subtitle" : klass === "body" ? "body" : "other";
-      for (const para of object3.text?.paras ?? []) {
+      for (const para of object4.text?.paras ?? []) {
         for (const run3 of para.runs) {
           if (!run3.font) continue;
           const family2 = resolveFamily(run3.font, source.theme);
@@ -104611,7 +105635,7 @@ function censusDeck(source, opts = {}) {
     }
     layouts.push(layoutFeatures(frame, hypotheses));
     const covered = slide.objects.some(
-      (object3) => object3.kind === "pic" && slideArea > 0 && object3.box.w * object3.box.h / slideArea >= FLATTENED_AREA_SHARE
+      (object4) => object4.kind === "pic" && slideArea > 0 && object4.box.w * object4.box.h / slideArea >= FLATTENED_AREA_SHARE
     );
     if (slide.origin.flattened === true || covered) flattenedSlideIds.push(slide.id);
   }
@@ -104666,9 +105690,9 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
   const boxOf4 = /* @__PURE__ */ new Map();
   const kindOf3 = /* @__PURE__ */ new Map();
   for (const frame of frames) {
-    for (const object3 of frame.slide.objects) {
-      boxOf4.set(object3.id, object3.box);
-      kindOf3.set(object3.id, object3.kind);
+    for (const object4 of frame.slide.objects) {
+      boxOf4.set(object4.id, object4.box);
+      kindOf3.set(object4.id, object4.kind);
     }
   }
   const rowById = new Map(rows2.map((row) => [row.id, row]));
@@ -104785,12 +105809,12 @@ function cornerRepeatShares(frames, tolerance) {
   if (pictureSlides.length < 2) return out;
   const marks = [];
   for (const frame of pictureSlides) {
-    for (const object3 of frame.slide.objects) {
-      if (object3.origin !== "raster-region") continue;
-      const box3 = fractionBox(object3.box, frame);
+    for (const object4 of frame.slide.objects) {
+      if (object4.origin !== "raster-region") continue;
+      const box3 = fractionBox(object4.box, frame);
       const across = box3.x + box3.w > 1 - MARGIN_BAND_SHARE ? "right" : box3.x < MARGIN_BAND_SHARE ? "left" : "";
       const down = box3.y + box3.h > 1 - MARGIN_BAND_SHARE ? "bottom" : box3.y < MARGIN_BAND_SHARE ? "top" : "";
-      if (across && down) marks.push({ id: object3.id, slideId: frame.slide.id, corner: `${down}-${across}`, box: box3 });
+      if (across && down) marks.push({ id: object4.id, slideId: frame.slide.id, corner: `${down}-${across}`, box: box3 });
     }
   }
   for (const mark of marks) {
@@ -104831,7 +105855,7 @@ function rowMarker(text7) {
 }
 function rowNumberingIds(frame, texts) {
   const out = /* @__PURE__ */ new Set();
-  const box3 = (object3) => fractionBox(object3.box, frame);
+  const box3 = (object4) => fractionBox(object4.box, frame);
   const markers = texts.filter((entry2) => rowMarker(entry2.text));
   const lines = texts.filter((entry2) => multiWord(entry2.text));
   const paired = markers.filter((marker) => {
@@ -104852,12 +105876,12 @@ function rowNumberingIds(frame, texts) {
   }
   return out;
 }
-function groupKeyOf(object3) {
-  return object3.groupPath && object3.groupPath.length > 0 ? object3.groupPath.join("/") : void 0;
+function groupKeyOf(object4) {
+  return object4.groupPath && object4.groupPath.length > 0 ? object4.groupPath.join("/") : void 0;
 }
 function slideContext(frame) {
   const { slide } = frame;
-  const texts = slide.objects.map((object3) => ({ object: object3, text: textOf6(object3).trim(), pt: maxRunPt(object3) ?? 0 })).filter((entry2) => entry2.text.length > 0);
+  const texts = slide.objects.map((object4) => ({ object: object4, text: textOf6(object4).trim(), pt: maxRunPt(object4) ?? 0 })).filter((entry2) => entry2.text.length > 0);
   const titleOnSlide = new Set(texts.filter((entry2) => entry2.object.placeholder === "title" || entry2.object.placeholder === "ctrTitle").map((entry2) => entry2.object.id));
   const worded = texts.filter((entry2) => multiWord(entry2.text));
   const wordSizes = [...new Set(worded.map((entry2) => entry2.pt))].sort((a, b) => b - a);
@@ -104874,35 +105898,35 @@ function slideContext(frame) {
   const holders = /* @__PURE__ */ new Set();
   for (const entry2 of texts) for (const id2 of entry2.object.groupPath ?? []) holders.add(id2);
   const members = /* @__PURE__ */ new Map();
-  for (const object3 of slide.objects) {
-    const key = groupKeyOf(object3);
+  for (const object4 of slide.objects) {
+    const key = groupKeyOf(object4);
     if (!key) continue;
     const list2 = members.get(key) ?? [];
-    list2.push(object3);
+    list2.push(object4);
     members.set(key, list2);
   }
-  const fillKey = (object3) => object3.fill?.hex?.toUpperCase() ?? object3.fill?.scheme;
+  const fillKey = (object4) => object4.fill?.hex?.toUpperCase() ?? object4.fill?.scheme;
   return {
-    featuresFor(object3, text7) {
+    featuresFor(object4, text7) {
       const out = {};
-      if (object3.kind === "shape" && object3.geom === void 0) out.customGeometry = true;
-      if (object3.kind === "shape" && object3.geom !== void 0 && CONNECTOR_GEOM.test(object3.geom)) out.connector = object3.geom;
-      if (object3.kind === "shape" && object3.origin === "raster-region" && holders.has(object3.id)) out.holdsText = true;
-      if (object3.id === roleTitle) out.roleTitle = true;
+      if (object4.kind === "shape" && object4.geom === void 0) out.customGeometry = true;
+      if (object4.kind === "shape" && object4.geom !== void 0 && CONNECTOR_GEOM.test(object4.geom)) out.connector = object4.geom;
+      if (object4.kind === "shape" && object4.origin === "raster-region" && holders.has(object4.id)) out.holdsText = true;
+      if (object4.id === roleTitle) out.roleTitle = true;
       const trimmed = text7.trim();
       if (trimmed.length > 0) {
-        if ([...titleOnSlide].some((id2) => id2 !== object3.id)) out.titleOnSlide = true;
+        if ([...titleOnSlide].some((id2) => id2 !== object4.id)) out.titleOnSlide = true;
         if (loneLetter(trimmed)) out.loneLetter = true;
-        if (numbering.has(object3.id)) out.rowNumbering = true;
+        if (numbering.has(object4.id)) out.rowNumbering = true;
         if (multiWord(trimmed)) {
-          const pt = maxRunPt(object3) ?? 0;
+          const pt = maxRunPt(object4) ?? 0;
           out.wordRank = Math.max(0, wordSizes.indexOf(pt));
           if (pt === largestPt && largest.length === 1) out.uniqueLargest = true;
-          if (topmost === object3.id) out.topmostInTopBand = true;
+          if (topmost === object4.id) out.topmostInTopBand = true;
         }
         if (largestIsBlock) out.largestIsBlock = true;
       }
-      const key = groupKeyOf(object3);
+      const key = groupKeyOf(object4);
       const siblings = key ? members.get(key) ?? [] : [];
       if (siblings.length >= 2) {
         out.groupSize = siblings.length;
@@ -104915,9 +105939,9 @@ function slideContext(frame) {
     }
   };
 }
-function maxRunPt(object3) {
+function maxRunPt(object4) {
   let max;
-  for (const para of object3.text?.paras ?? []) {
+  for (const para of object4.text?.paras ?? []) {
     for (const run3 of para.runs) {
       if (run3.sizePt === void 0) continue;
       max = max === void 0 ? run3.sizePt : Math.max(max, run3.sizePt);
@@ -104925,9 +105949,9 @@ function maxRunPt(object3) {
   }
   return max;
 }
-function minRunPt(object3) {
+function minRunPt(object4) {
   let min;
-  for (const para of object3.text?.paras ?? []) {
+  for (const para of object4.text?.paras ?? []) {
     for (const run3 of para.runs) {
       if (run3.sizePt === void 0) continue;
       min = min === void 0 ? run3.sizePt : Math.min(min, run3.sizePt);
@@ -104940,9 +105964,9 @@ function resolveFamily(font, theme) {
   if (font === "+mn-lt" || font === "+mn-ea" || font === "+mn-cs") return theme?.minorFont ?? font;
   return font;
 }
-function matchKnownLogo(object3, stats, known) {
-  if (object3.kind !== "pic" && object3.kind !== "vector") return null;
-  const content2 = object3.media;
+function matchKnownLogo(object4, stats, known) {
+  if (object4.kind !== "pic" && object4.kind !== "vector") return null;
+  const content2 = object4.media;
   for (const entry2 of known) {
     if (entry2.contentHash && content2 && entry2.contentHash === content2) return { label: entry2.label };
   }
@@ -104956,9 +105980,9 @@ function matchKnownLogo(object3, stats, known) {
   }
   return best;
 }
-function useIdFor(objectId, channel3, hex3, shared, index2) {
-  if (channel3 === "series") return `${objectId}:series:${index2 ?? 0}`;
-  return shared ? `${objectId}:${channel3}:${hex3.slice(1).toLowerCase()}` : `${objectId}:${channel3}`;
+function useIdFor(objectId, channel4, hex3, shared, index2) {
+  if (channel4 === "series") return `${objectId}:series:${index2 ?? 0}`;
+  return shared ? `${objectId}:${channel4}:${hex3.slice(1).toLowerCase()}` : `${objectId}:${channel4}`;
 }
 function addUse(uses, use) {
   const suffix = use.hex.replace("#", "").toLowerCase();
@@ -105017,37 +106041,37 @@ function collectSlideColors(frame, uses, opts, theme) {
     if (slide.background.color?.scheme) use.scheme = slide.background.color.scheme;
     addUse(uses, use);
   }
-  for (const object3 of slide.objects) {
-    const area2 = Math.max(0, object3.box.w * object3.box.h);
-    const fillHex2 = resolveColor(object3.fill, theme);
+  for (const object4 of slide.objects) {
+    const area2 = Math.max(0, object4.box.w * object4.box.h);
+    const fillHex2 = resolveColor(object4.fill, theme);
     if (fillHex2) {
       const use = {
-        useId: useIdFor(object3.id, "fill", fillHex2, false),
+        useId: useIdFor(object4.id, "fill", fillHex2, false),
         hex: fillHex2,
         channel: "fill",
         weight: area2,
-        objectIds: [object3.id],
+        objectIds: [object4.id],
         slideId: slide.id
       };
-      if (object3.fill?.scheme) use.scheme = object3.fill.scheme;
+      if (object4.fill?.scheme) use.scheme = object4.fill.scheme;
       addUse(uses, use);
     }
-    const lineHex = resolveColor(object3.line?.color, theme);
+    const lineHex = resolveColor(object4.line?.color, theme);
     if (lineHex) {
-      const perimeter = 2 * (object3.box.w + object3.box.h);
+      const perimeter = 2 * (object4.box.w + object4.box.h);
       const use = {
-        useId: useIdFor(object3.id, "stroke", lineHex, false),
+        useId: useIdFor(object4.id, "stroke", lineHex, false),
         hex: lineHex,
         channel: "stroke",
-        weight: perimeter * Math.max(1, object3.line?.widthPt ?? 1),
-        objectIds: [object3.id],
+        weight: perimeter * Math.max(1, object4.line?.widthPt ?? 1),
+        objectIds: [object4.id],
         slideId: slide.id
       };
-      if (object3.line?.color?.scheme) use.scheme = object3.line.color.scheme;
+      if (object4.line?.color?.scheme) use.scheme = object4.line.color.scheme;
       addUse(uses, use);
     }
     const runHexes = /* @__PURE__ */ new Set();
-    for (const para of object3.text?.paras ?? []) {
+    for (const para of object4.text?.paras ?? []) {
       for (const run3 of para.runs) {
         const hex3 = resolveColor(run3.color, theme);
         if (hex3) runHexes.add(hex3);
@@ -105055,43 +106079,43 @@ function collectSlideColors(frame, uses, opts, theme) {
     }
     const shared = runHexes.size > 1;
     for (const hex3 of [...runHexes].sort(compareCodeUnits)) {
-      const scheme = schemeForRunHex(object3, hex3, theme);
+      const scheme = schemeForRunHex(object4, hex3, theme);
       const use = {
-        useId: useIdFor(object3.id, "text", hex3, shared),
+        useId: useIdFor(object4.id, "text", hex3, shared),
         hex: hex3,
         channel: "text",
-        weight: textWeight(object3, hex3, theme),
-        objectIds: [object3.id],
+        weight: textWeight(object4, hex3, theme),
+        objectIds: [object4.id],
         slideId: slide.id
       };
       if (scheme) use.scheme = scheme;
       addUse(uses, use);
     }
-    if (object3.chartData && (object3.chartData.series?.length ?? 0) > 0) {
-      const supplied = opts.chartSeriesColors?.(object3.id);
+    if (object4.chartData && (object4.chartData.series?.length ?? 0) > 0) {
+      const supplied = opts.chartSeriesColors?.(object4.id);
       const cycle = accentCycle(theme);
-      const count4 = object3.chartData.series?.length ?? 0;
+      const count4 = object4.chartData.series?.length ?? 0;
       for (let i = 0; i < count4; i += 1) {
         const hex3 = supplied?.[i] ?? (cycle.length > 0 ? cycle[i % cycle.length] : void 0);
         if (!hex3) continue;
         addUse(uses, {
-          useId: useIdFor(object3.id, "series", normaliseHex(hex3), false, i + 1),
+          useId: useIdFor(object4.id, "series", normaliseHex(hex3), false, i + 1),
           hex: normaliseHex(hex3),
           channel: "series",
           weight: area2 / count4,
-          objectIds: [object3.id],
+          objectIds: [object4.id],
           slideId: slide.id,
-          distinctionSet: object3.id
+          distinctionSet: object4.id
         });
       }
     }
-    for (const u of vectorColourUses(object3)) {
+    for (const u of vectorColourUses(object4)) {
       addUse(uses, {
         useId: u.useId,
         hex: u.hex,
         channel: u.channel,
         weight: u.weight,
-        objectIds: [object3.id],
+        objectIds: [object4.id],
         slideId: slide.id,
         ...u.distinctionSet ? { distinctionSet: u.distinctionSet } : {}
       });
@@ -105107,8 +106131,8 @@ function accentCycle(theme) {
   }
   return out;
 }
-function schemeForRunHex(object3, hex3, theme) {
-  for (const para of object3.text?.paras ?? []) {
+function schemeForRunHex(object4, hex3, theme) {
+  for (const para of object4.text?.paras ?? []) {
     for (const run3 of para.runs) {
       if (run3.color?.scheme && resolveColor(run3.color, theme) === hex3) return run3.color.scheme;
     }
@@ -105172,9 +106196,9 @@ function contrastPairsFor(frames, uses) {
   for (const frame of frames) {
     const ground = all.find((use) => use.useId === groundUseId(frame.slide.id));
     const fillOf3 = (objectId) => all.find((use) => use.channel === "fill" && use.objectIds.includes(objectId));
-    frame.slide.objects.forEach((object3, index2) => {
-      const ownFill = fillOf3(object3.id);
-      const texts = all.filter((use) => use.channel === "text" && use.objectIds.includes(object3.id));
+    frame.slide.objects.forEach((object4, index2) => {
+      const ownFill = fillOf3(object4.id);
+      const texts = all.filter((use) => use.channel === "text" && use.objectIds.includes(object4.id));
       if (texts.length > 0) {
         let background = ownFill;
         for (let under = index2 - 1; under >= 0 && !background; under -= 1) {
@@ -105182,24 +106206,24 @@ function contrastPairsFor(frames, uses) {
           if (!below) continue;
           const fill2 = fillOf3(below.id);
           if (!fill2) continue;
-          if (overlapShare(object3.box, below.box) >= BACKGROUND_COVER_SHARE) background = fill2;
+          if (overlapShare(object4.box, below.box) >= BACKGROUND_COVER_SHARE) background = fill2;
         }
         background = background ?? ground;
         if (background) {
-          const smallest = minRunPt(object3) ?? 12;
+          const smallest = minRunPt(object4) ?? 12;
           for (const text7 of texts) {
             out.push({
               foreground: text7.useId,
               background: background.useId,
               minimum: smallest < LARGE_TEXT_PT ? 4.5 : 3,
-              objectId: object3.id
+              objectId: object4.id
             });
           }
         }
       }
-      const stroke = all.find((use) => use.channel === "stroke" && use.objectIds.includes(object3.id));
+      const stroke = all.find((use) => use.channel === "stroke" && use.objectIds.includes(object4.id));
       if (ownFill && stroke) {
-        out.push({ foreground: stroke.useId, background: ownFill.useId, minimum: 3, objectId: object3.id });
+        out.push({ foreground: stroke.useId, background: ownFill.useId, minimum: 3, objectId: object4.id });
       }
     });
   }
@@ -105217,21 +106241,21 @@ function layoutFeatures(frame, hypotheses) {
   let textWords = 0;
   const leftEdges = /* @__PURE__ */ new Set();
   const sizeKeys = /* @__PURE__ */ new Map();
-  for (const object3 of slide.objects) {
-    const klass = hypotheses.get(object3.id)?.class ?? "unknown";
+  for (const object4 of slide.objects) {
+    const klass = hypotheses.get(object4.id)?.class ?? "unknown";
     counts[klass] = (counts[klass] ?? 0) + 1;
-    const pt = maxRunPt(object3);
+    const pt = maxRunPt(object4);
     if (pt !== void 0) largestTextPt = largestTextPt === void 0 ? pt : Math.max(largestTextPt, pt);
-    if (object3.kind === "pic" || object3.media !== void 0) imageArea += Math.max(0, object3.box.w * object3.box.h);
-    if (object3.kind === "chart" || object3.chartData !== void 0) chartPresent = true;
-    if (object3.kind === "table" || object3.table !== void 0) tablePresent = true;
-    const text7 = textOf6(object3);
+    if (object4.kind === "pic" || object4.media !== void 0) imageArea += Math.max(0, object4.box.w * object4.box.h);
+    if (object4.kind === "chart" || object4.chartData !== void 0) chartPresent = true;
+    if (object4.kind === "table" || object4.table !== void 0) tablePresent = true;
+    const text7 = textOf6(object4);
     if (text7.trim().length > 0) {
-      textParagraphs += object3.text?.paras.length ?? 0;
+      textParagraphs += object4.text?.paras.length ?? 0;
       textWords += wordsOf(text7).length;
     }
-    leftEdges.add(Math.round(object3.box.x / 8));
-    const key = `${Math.round(object3.box.w / 8)}x${Math.round(object3.box.h / 8)}`;
+    leftEdges.add(Math.round(object4.box.x / 8));
+    const key = `${Math.round(object4.box.w / 8)}x${Math.round(object4.box.h / 8)}`;
     sizeKeys.set(key, (sizeKeys.get(key) ?? 0) + 1);
   }
   let equalSiblingBoxes = 0;
@@ -105280,50 +106304,50 @@ function layoutUnitsOf(frame, hypotheses) {
   const candidates2 = [];
   const heading = /* @__PURE__ */ new Set();
   const rebuilt = /* @__PURE__ */ new Map();
-  const objectIds = new Set(slide.objects.map((object3) => object3.id));
-  for (const object3 of slide.objects) {
-    if (object3.hidden === true) continue;
-    if (object3.origin !== "slide" && object3.origin !== "raster-region") continue;
-    const klass = hypotheses.get(object3.id)?.class ?? "unknown";
+  const objectIds = new Set(slide.objects.map((object4) => object4.id));
+  for (const object4 of slide.objects) {
+    if (object4.hidden === true) continue;
+    if (object4.origin !== "slide" && object4.origin !== "raster-region") continue;
+    const klass = hypotheses.get(object4.id)?.class ?? "unknown";
     if (NOT_CONTENT.has(klass)) continue;
-    const box3 = clippedBox(object3.box, frame);
+    const box3 = clippedBox(object4.box, frame);
     const area2 = areaOf(box3);
     if (area2 <= 0) continue;
-    const text7 = textOf6(object3);
+    const text7 = textOf6(object4);
     const words2 = wordsOf(text7).length;
-    if (object3.origin === "raster-region" && object3.groupPath && object3.groupPath.length > 0) {
-      const key = object3.groupPath[0];
-      if (key !== object3.id) {
+    if (object4.origin === "raster-region" && object4.groupPath && object4.groupPath.length > 0) {
+      const key = object4.groupPath[0];
+      if (key !== object4.id) {
         const list2 = rebuilt.get(key) ?? [];
-        list2.push(object3);
+        list2.push(object4);
         rebuilt.set(key, list2);
       }
     }
     if (klass === "decoration") {
-      const panel = object3.kind === "shape" || object3.kind === "vector";
+      const panel = object4.kind === "shape" || object4.kind === "vector";
       if (panel && words2 === 0 && area2 >= LAYOUT_CONTAINER_MIN && area2 <= LAYOUT_CONTAINER_MAX) {
-        candidates2.push({ id: object3.id, box: box3, panel: false });
+        candidates2.push({ id: object4.id, box: box3, panel: false });
       }
       continue;
     }
     let kind;
-    if (object3.kind === "table" || object3.table !== void 0) kind = "table";
-    else if (object3.kind === "chart" || object3.chartData !== void 0) kind = "chart";
-    else if (klass === "chart" && (object3.kind === "vector" || object3.kind === "pic")) kind = "chart";
-    else if (object3.kind === "pic" || object3.media !== void 0 && object3.kind !== "text") kind = "pic";
-    else if (object3.kind === "vector") kind = area2 >= LAYOUT_CONTENT_PICTURE ? "pic" : "shape";
+    if (object4.kind === "table" || object4.table !== void 0) kind = "table";
+    else if (object4.kind === "chart" || object4.chartData !== void 0) kind = "chart";
+    else if (klass === "chart" && (object4.kind === "vector" || object4.kind === "pic")) kind = "chart";
+    else if (object4.kind === "pic" || object4.media !== void 0 && object4.kind !== "text") kind = "pic";
+    else if (object4.kind === "vector") kind = area2 >= LAYOUT_CONTENT_PICTURE ? "pic" : "shape";
     else if (words2 > 0) kind = "text";
-    else if (object3.kind === "shape") kind = "shape";
+    else if (object4.kind === "shape") kind = "shape";
     else if (PICTURE_CLASSES.has(klass)) kind = "pic";
     else continue;
     if (kind === "shape" && area2 < LAYOUT_TINY_SHAPE) continue;
     if (kind === "pic" && area2 < LAYOUT_CONTENT_PICTURE && !PICTURE_CLASSES.has(klass)) kind = "icon";
-    const unit2 = { id: object3.id, kind, box: roundBox2(box3), words: words2, maxPt: maxRunPt(object3) ?? 0 };
+    const unit2 = { id: object4.id, kind, box: roundBox2(box3), words: words2, maxPt: maxRunPt(object4) ?? 0 };
     units2.push(unit2);
-    if (klass === "title" || klass === "subtitle") heading.add(object3.id);
-    if (object3.origin === "raster-region") continue;
-    if (kind === "shape" && area2 >= LAYOUT_CONTAINER_MIN && area2 <= LAYOUT_CONTAINER_MAX) candidates2.push({ id: object3.id, box: box3, panel: false });
-    if (kind === "pic" && slide.origin.flattened !== true && area2 <= LAYOUT_CONTAINER_MAX) candidates2.push({ id: object3.id, box: box3, panel: true });
+    if (klass === "title" || klass === "subtitle") heading.add(object4.id);
+    if (object4.origin === "raster-region") continue;
+    if (kind === "shape" && area2 >= LAYOUT_CONTAINER_MIN && area2 <= LAYOUT_CONTAINER_MAX) candidates2.push({ id: object4.id, box: box3, panel: false });
+    if (kind === "pic" && slide.origin.flattened !== true && area2 <= LAYOUT_CONTAINER_MAX) candidates2.push({ id: object4.id, box: box3, panel: true });
   }
   const containers = [];
   const unitOf2 = new Map(units2.map((unit2) => [unit2.id, unit2]));
@@ -105344,9 +106368,9 @@ function layoutUnitsOf(frame, hypotheses) {
     };
   };
   for (const key of [...rebuilt.keys()].sort(compareCodeUnits)) {
-    const members = (rebuilt.get(key) ?? []).filter((object3) => unitOf2.has(object3.id) && !heading.has(object3.id)).map((object3) => object3.id);
+    const members = (rebuilt.get(key) ?? []).filter((object4) => unitOf2.has(object4.id) && !heading.has(object4.id)).map((object4) => object4.id);
     if (!members.some((id2) => unitOf2.get(id2)?.kind === "text")) continue;
-    const panel = objectIds.has(key) ? slide.objects.find((object3) => object3.id === key) : void 0;
+    const panel = objectIds.has(key) ? slide.objects.find((object4) => object4.id === key) : void 0;
     let box3;
     if (panel) box3 = clippedBox(panel.box, frame);
     else {
@@ -105695,16 +106719,16 @@ function holdingInk(colors, ground, minimum, current) {
   return best;
 }
 function holdingFill(colors, backdrop, minimum, current, light) {
-  const own2 = [];
+  const own3 = [];
   const step = light ? rampStepOf(current, light) : void 0;
   const hue = step ? /^color\.ramp\.([^.]+)\./.exec(step)?.[1] : void 0;
   if (hue !== void 0) {
-    for (const one of Object.keys(colors).sort(compareCodeUnits)) if (one.startsWith(`color.ramp.${hue}.`)) own2.push(one);
+    for (const one of Object.keys(colors).sort(compareCodeUnits)) if (one.startsWith(`color.ramp.${hue}.`)) own3.push(one);
   }
   const semantic = ["muted", "edge", "secondary", "primary", "accent", "text", "on-primary", "surface"].map(semanticPath).filter((one) => colors[one] !== void 0);
-  const rest2 = Object.keys(colors).sort(compareCodeUnits).filter((one) => !own2.includes(one) && !semantic.includes(one));
+  const rest2 = Object.keys(colors).sort(compareCodeUnits).filter((one) => !own3.includes(one) && !semantic.includes(one));
   const ground = themeHex(backdrop);
-  for (const tier of [own2, semantic, rest2]) {
+  for (const tier of [own3, semantic, rest2]) {
     let pick;
     let pickRatio = Number.POSITIVE_INFINITY;
     for (const tokenPath of tier) {
@@ -106807,8 +107831,8 @@ function assignColorsByGround(input) {
   const onGroup = /* @__PURE__ */ new Map();
   for (const use of input.uses) {
     const slides = /* @__PURE__ */ new Set();
-    const own2 = groundUseSlide(use.useId);
-    if (own2 !== void 0 && use.objectIds.length === 0) slides.add(own2);
+    const own3 = groundUseSlide(use.useId);
+    if (own3 !== void 0 && use.objectIds.length === 0) slides.add(own3);
     for (const id2 of use.objectIds) {
       const slide = slideOf(id2);
       if (slide !== void 0) slides.add(slide);
@@ -106839,9 +107863,9 @@ function assignColorsByGround(input) {
     });
     const pinned = /* @__PURE__ */ new Map();
     for (const use of members) {
-      const own2 = groundUseSlide(use.useId);
-      if (own2 === void 0 || use.objectIds.length > 0) continue;
-      const ground = group.groundBySlide?.[own2];
+      const own3 = groundUseSlide(use.useId);
+      if (own3 === void 0 || use.objectIds.length > 0) continue;
+      const ground = group.groundBySlide?.[own3];
       if (ground && isHex(ground.hex)) pinned.set(use.useId, { hex: normHex4(ground.hex), ...ground.path ? { path: ground.path } : {} });
     }
     const { grounds: _grounds, ...rest2 } = input;
@@ -106862,9 +107886,9 @@ function assignColorsByGround(input) {
     const slidesOn = (at) => {
       const group = groups[at];
       if (!group) return [];
-      const own2 = groundUseSlide(use.useId);
+      const own3 = groundUseSlide(use.useId);
       const mine = new Set(use.objectIds.map((id2) => slideOf(id2)).filter((id2) => id2 !== void 0));
-      if (own2 !== void 0 && use.objectIds.length === 0) mine.add(own2);
+      if (own3 !== void 0 && use.objectIds.length === 0) mine.add(own3);
       return group.slideIds.filter((id2) => mine.has(id2));
     };
     if (primary?.unresolved) {
@@ -106922,12 +107946,12 @@ function indexSource(source) {
   const byId = /* @__PURE__ */ new Map();
   const byFingerprint = /* @__PURE__ */ new Map();
   for (const slide of source.slides) {
-    for (const object3 of slide.objects) {
-      const row = { object: object3, slideId: slide.id };
-      byId.set(object3.id, row);
-      const list2 = byFingerprint.get(object3.fingerprint) ?? [];
+    for (const object4 of slide.objects) {
+      const row = { object: object4, slideId: slide.id };
+      byId.set(object4.id, row);
+      const list2 = byFingerprint.get(object4.fingerprint) ?? [];
       list2.push(row);
-      byFingerprint.set(object3.fingerprint, list2);
+      byFingerprint.set(object4.fingerprint, list2);
     }
   }
   return { byId, byFingerprint };
@@ -106958,9 +107982,9 @@ function carryForward(previous, source, census) {
   };
   const rows2 = [];
   for (const slide of previous.slides) {
-    for (const object3 of slide.objects) {
-      if (object3.decision === void 0) continue;
-      rows2.push({ slideId: slide.id, object: object3 });
+    for (const object4 of slide.objects) {
+      if (object4.decision === void 0) continue;
+      rows2.push({ slideId: slide.id, object: object4 });
     }
   }
   rows2.sort((a, b) => compareCodeUnits(a.object.id, b.object.id));
@@ -106992,29 +108016,29 @@ function carryForward(previous, source, census) {
     }
     return null;
   };
-  for (const { slideId, object: object3 } of rows2) {
-    const same = byId.get(object3.id);
+  for (const { slideId, object: object4 } of rows2) {
+    const same = byId.get(object4.id);
     if (same) {
-      const found = take(slideId, object3, same.object.fingerprint);
+      const found = take(slideId, object4, same.object.fingerprint);
       if (found) {
         usedMemory.add(found.index);
         carried.add(same.object.id);
         claimed.add(same.object.id);
-        record20(same.object.id, object3, "exact");
+        record20(same.object.id, object4, "exact");
         out.push({ ...found.memory, carriedBy: "exact" });
         continue;
       }
-      const moved = same.slideId === slideId && same.object.kind === "vector" ? takeKindMoved(slideId, object3) : null;
+      const moved = same.slideId === slideId && same.object.kind === "vector" ? takeKindMoved(slideId, object4) : null;
       if (moved) {
         usedMemory.add(moved.index);
         carried.add(same.object.id);
         claimed.add(same.object.id);
-        record20(same.object.id, object3, "exact");
+        record20(same.object.id, object4, "exact");
         out.push({ ...moved.memory, fingerprint: same.object.fingerprint, carriedBy: "exact" });
         continue;
       }
     }
-    const byMemory = take(slideId, object3);
+    const byMemory = take(slideId, object4);
     if (byMemory) {
       const candidates2 = (byFingerprint.get(byMemory.memory.fingerprint) ?? []).filter((row) => row.slideId === byMemory.memory.slideLineage && !claimed.has(row.object.id));
       if (candidates2.length === 1) {
@@ -107023,39 +108047,39 @@ function carryForward(previous, source, census) {
           usedMemory.add(byMemory.index);
           carried.add(only.object.id);
           claimed.add(only.object.id);
-          record20(only.object.id, object3, "fingerprint");
+          record20(only.object.id, object4, "fingerprint");
           out.push({ ...byMemory.memory, carriedBy: "fingerprint" });
           continue;
         }
       }
-      const group2 = object3.scope ? groups.get(object3.scope) : void 0;
+      const group2 = object4.scope ? groups.get(object4.scope) : void 0;
       const members2 = group2 ? group2.members.filter((id2) => byId.has(id2) && !claimed.has(id2)) : [];
       if (members2.length > 0) {
         usedMemory.add(byMemory.index);
         for (const id2 of members2) {
           carried.add(id2);
           claimed.add(id2);
-          record20(id2, object3, "group");
+          record20(id2, object4, "group");
         }
         out.push({ ...byMemory.memory, carriedBy: "group" });
         continue;
       }
       out.push({ ...byMemory.memory });
       usedMemory.add(byMemory.index);
-      needsReview.add(object3.id);
+      needsReview.add(object4.id);
       continue;
     }
-    const group = object3.scope ? groups.get(object3.scope) : void 0;
+    const group = object4.scope ? groups.get(object4.scope) : void 0;
     const members = group ? group.members.filter((id2) => byId.has(id2) && !claimed.has(id2)) : [];
     if (members.length > 0) {
       for (const id2 of members) {
         carried.add(id2);
         claimed.add(id2);
-        record20(id2, object3, "group");
+        record20(id2, object4, "group");
       }
       continue;
     }
-    needsReview.add(object3.id);
+    needsReview.add(object4.id);
   }
   for (const entry2 of pool) {
     if (usedMemory.has(entry2.index)) continue;
@@ -107155,13 +108179,13 @@ function rowIndex(plan) {
 function sourceForOne(source, objectId, placed2) {
   if (!source) return void 0;
   const slide = placed2.get(objectId);
-  const object3 = slide?.objects.find((one) => one.id === objectId);
-  if (!slide || !object3) return void 0;
-  return { ...source, slides: [{ ...slide, objects: [object3] }] };
+  const object4 = slide?.objects.find((one) => one.id === objectId);
+  if (!slide || !object4) return void 0;
+  return { ...source, slides: [{ ...slide, objects: [object4] }] };
 }
 function slideOfObject(source) {
   const out = /* @__PURE__ */ new Map();
-  for (const slide of source?.slides ?? []) for (const object3 of slide.objects) out.set(object3.id, slide);
+  for (const slide of source?.slides ?? []) for (const object4 of slide.objects) out.set(object4.id, slide);
   return out;
 }
 function stampScope(plan, ids2, scope, source) {
@@ -107171,8 +108195,8 @@ function stampScope(plan, ids2, scope, source) {
   const keys2 = /* @__PURE__ */ new Set();
   for (const id2 of ids2) {
     const slide = placed2.get(id2);
-    const object3 = slide?.objects.find((one) => one.id === id2);
-    if (slide && object3) keys2.add(JSON.stringify([object3.fingerprint, slide.id]));
+    const object4 = slide?.objects.find((one) => one.id === id2);
+    if (slide && object4) keys2.add(JSON.stringify([object4.fingerprint, slide.id]));
   }
   return {
     ...next,
@@ -107362,8 +108386,8 @@ function resetSlideDecisions(plan, slideIds, opts = {}) {
       }
       const back = proposedRows.get(row.id);
       const reset = back ? structuredClone(back) : withoutPersonFields(row);
-      const object3 = placed2.get(row.id)?.objects.find((one) => one.id === row.id);
-      if (object3 && reset.decision === void 0) forget.set(JSON.stringify([object3.fingerprint, slide.id]), slide.id);
+      const object4 = placed2.get(row.id)?.objects.find((one) => one.id === row.id);
+      if (object4 && reset.decision === void 0) forget.set(JSON.stringify([object4.fingerprint, slide.id]), slide.id);
       return reset;
     });
     if (stableJson(next) !== stableJson(slide)) touched.push(slide.id);
@@ -107476,8 +108500,8 @@ function capturePlanRows(plan, touched) {
   if (touched.source) {
     keys2 = /* @__PURE__ */ new Set();
     for (const slide of touched.source.slides) {
-      for (const object3 of slide.objects) {
-        if (objectIds.has(object3.id)) keys2.add(memoryKey(object3.fingerprint, slide.id));
+      for (const object4 of slide.objects) {
+        if (objectIds.has(object4.id)) keys2.add(memoryKey(object4.fingerprint, slide.id));
       }
     }
   }
@@ -107651,9 +108675,9 @@ function buildDeckTheme(id2, source, opts = {}) {
     const rows2 = /* @__PURE__ */ new Map();
     const inkHex = inkPath ? light[inkPath] : void 0;
     for (const [tokenPath, uses] of all) {
-      const own2 = themeSlotOf(tokenPath, light);
-      if (own2) {
-        const target = targets[own2];
+      const own3 = themeSlotOf(tokenPath, light);
+      if (own3) {
+        const target = targets[own3];
         if (target) rows2.set(tokenPath, target);
         continue;
       }
@@ -107766,8 +108790,8 @@ function slideGroundHex(slidePlan, themed, _opts = {}) {
 function rasterObjectIdsOf(source) {
   const out = [];
   for (const slide of source.slides) {
-    for (const object3 of slide.objects) {
-      if (object3.kind === "pic" || object3.fidelity.state === "raster-preserved") out.push(object3.id);
+    for (const object4 of slide.objects) {
+      if (object4.kind === "pic" || object4.fidelity.state === "raster-preserved") out.push(object4.id);
     }
   }
   return out.sort();
@@ -107798,14 +108822,14 @@ function measuredGrounds(ctx, groups, measured, objectSlides, rasters) {
   const paired = new Set(ctx.census.colors.contrastPairs.map((pair) => `${pair.foreground}\0${pair.objectId}`));
   const sizes = /* @__PURE__ */ new Map();
   for (const slide of ctx.source?.slides ?? []) {
-    for (const object3 of slide.objects) {
+    for (const object4 of slide.objects) {
       let smallest;
-      for (const para of object3.text?.paras ?? []) {
+      for (const para of object4.text?.paras ?? []) {
         for (const run3 of para.runs) {
           if (run3.sizePt !== void 0) smallest = smallest === void 0 ? run3.sizePt : Math.min(smallest, run3.sizePt);
         }
       }
-      if (smallest !== void 0) sizes.set(object3.id, smallest);
+      if (smallest !== void 0) sizes.set(object4.id, smallest);
     }
   }
   const pairs2 = [];
@@ -107867,10 +108891,10 @@ function solveThemeColors(plan, theme, ctx) {
     contrastPairs: [...input.contrastPairs, ...extra.pairs],
     grounds: { groups, objectSlides }
   });
-  const own2 = new Set(extra.uses.map((use) => use.useId));
+  const own3 = new Set(extra.uses.map((use) => use.useId));
   return {
-    colors: solved.colors.filter((row) => !own2.has(row.useId)),
-    issues: solved.issues.filter((issue2) => !own2.has(issue2.useId)),
+    colors: solved.colors.filter((row) => !own3.has(row.useId)),
+    issues: solved.issues.filter((issue2) => !own3.has(issue2.useId)),
     themed,
     groups
   };
@@ -108138,8 +109162,8 @@ function matchesCompound(el, c) {
     if (c.ids.some((x) => x !== id2)) return false;
   }
   if (c.classes.length) {
-    const own2 = (el.getAttribute("class") ?? "").split(/\s+/);
-    if (!c.classes.every((x) => own2.includes(x))) return false;
+    const own3 = (el.getAttribute("class") ?? "").split(/\s+/);
+    if (!c.classes.every((x) => own3.includes(x))) return false;
   }
   return true;
 }
@@ -108150,8 +109174,8 @@ function parentOf(el) {
 function prop(el, style, name) {
   const fromStyle = style.get(name);
   if (fromStyle !== void 0) return fromStyle;
-  const attr4 = el.getAttribute(name);
-  return attr4 == null ? void 0 : attr4.trim();
+  const attr5 = el.getAttribute(name);
+  return attr5 == null ? void 0 : attr5.trim();
 }
 function lengthOf(value, fontSize) {
   if (value === void 0) return void 0;
@@ -108389,67 +109413,67 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     for (const [name, value, important] of inline) if (important) out2.set(name, value);
     return out2;
   };
-  const push = (item, dLength) => {
+  const push = (item2, dLength) => {
     seen += 1;
     if (items2.length >= maxItems) throw new CapReached();
     chars += dLength;
     if (chars > maxChars) throw new CapReached();
-    items2.push(item);
+    items2.push(item2);
   };
   const inherit = (el, parent, style) => {
-    const own2 = { ...parent, groups: parent.groups };
+    const own3 = { ...parent, groups: parent.groups };
     const get3 = (name) => {
       const v = prop(el, style, name);
       return v === "inherit" ? void 0 : v;
     };
     const color3 = get3("color");
-    if (color3) own2.color = color3;
+    if (color3) own3.color = color3;
     const fill2 = get3("fill");
-    if (fill2 !== void 0) own2.fill = fill2;
+    if (fill2 !== void 0) own3.fill = fill2;
     const stroke = get3("stroke");
-    if (stroke !== void 0) own2.stroke = stroke;
+    if (stroke !== void 0) own3.stroke = stroke;
     const fontSize = lengthOf(get3("font-size"), parent.fontSize);
-    if (fontSize !== void 0 && fontSize > 0) own2.fontSize = fontSize;
-    const sw = lengthIn(get3("stroke-width"), own2, "d");
-    if (sw !== void 0 && sw >= 0) own2.strokeWidth = sw;
+    if (fontSize !== void 0 && fontSize > 0) own3.fontSize = fontSize;
+    const sw = lengthIn(get3("stroke-width"), own3, "d");
+    if (sw !== void 0 && sw >= 0) own3.strokeWidth = sw;
     const fo = unitOf(get3("fill-opacity"));
-    if (fo !== void 0) own2.fillOpacity = fo;
+    if (fo !== void 0) own3.fillOpacity = fo;
     const so = unitOf(get3("stroke-opacity"));
-    if (so !== void 0) own2.strokeOpacity = so;
+    if (so !== void 0) own3.strokeOpacity = so;
     const rule = get3("fill-rule");
-    if (rule === "evenodd" || rule === "nonzero") own2.fillRule = rule;
+    if (rule === "evenodd" || rule === "nonzero") own3.fillRule = rule;
     const cap = get3("stroke-linecap");
-    if (cap === "butt" || cap === "round" || cap === "square") own2.cap = cap;
+    if (cap === "butt" || cap === "round" || cap === "square") own3.cap = cap;
     const join22 = get3("stroke-linejoin");
-    if (join22 === "miter" || join22 === "round" || join22 === "bevel") own2.join = join22;
-    else if (join22 === "miter-clip" || join22 === "arcs") own2.join = "miter";
+    if (join22 === "miter" || join22 === "round" || join22 === "bevel") own3.join = join22;
+    else if (join22 === "miter-clip" || join22 === "arcs") own3.join = "miter";
     const dash = get3("stroke-dasharray");
     if (dash !== void 0) {
-      const list2 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own2.fontSize)).filter((v) => v !== void 0 && v >= 0);
-      own2.dash = list2.length > 0 && list2.some((v) => v > 0) ? list2.length % 2 ? [...list2, ...list2] : list2 : void 0;
+      const list2 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own3.fontSize)).filter((v) => v !== void 0 && v >= 0);
+      own3.dash = list2.length > 0 && list2.some((v) => v > 0) ? list2.length % 2 ? [...list2, ...list2] : list2 : void 0;
     }
     const opacity = unitOf(get3("opacity"));
-    if (opacity !== void 0) own2.opacity = parent.opacity * opacity;
+    if (opacity !== void 0) own3.opacity = parent.opacity * opacity;
     const visibility = get3("visibility");
-    if (visibility === "hidden" || visibility === "collapse") own2.visible = false;
-    else if (visibility === "visible") own2.visible = true;
+    if (visibility === "hidden" || visibility === "collapse") own3.visible = false;
+    else if (visibility === "visible") own3.visible = true;
     const family2 = get3("font-family");
-    if (family2) own2.fontFamily = familyOf2(family2) ?? own2.fontFamily;
+    if (family2) own3.fontFamily = familyOf2(family2) ?? own3.fontFamily;
     const weight = get3("font-weight");
-    if (weight) own2.bold = weight === "bold" || weight === "bolder" || Number(weight) >= 600;
+    if (weight) own3.bold = weight === "bold" || weight === "bolder" || Number(weight) >= 600;
     const fontStyle = get3("font-style");
-    if (fontStyle) own2.italic = fontStyle === "italic" || fontStyle === "oblique";
+    if (fontStyle) own3.italic = fontStyle === "italic" || fontStyle === "oblique";
     const anchor = get3("text-anchor");
-    if (anchor === "start" || anchor === "middle" || anchor === "end") own2.anchor = anchor;
+    if (anchor === "start" || anchor === "middle" || anchor === "end") own3.anchor = anchor;
     for (const effect of ["clip-path", "mask", "filter"]) {
       const v = get3(effect);
-      if (v && v !== "none") own2.blocked = "unsupported-paint";
+      if (v && v !== "none") own3.blocked = "unsupported-paint";
     }
     const blend = get3("mix-blend-mode");
-    if (blend && blend !== "normal") own2.blocked = "unsupported-paint";
+    if (blend && blend !== "normal") own3.blocked = "unsupported-paint";
     const series = el.getAttribute("data-series") ?? el.getAttribute("data-recolor") ?? el.getAttribute("data-name");
-    if (series?.trim()) own2.series = series.trim().slice(0, MAX_SERIES);
-    return own2;
+    if (series?.trim()) own3.series = series.trim().slice(0, MAX_SERIES);
+    return own3;
   };
   const transformOf2 = (el, parent) => {
     const raw = el.getAttribute("transform");
@@ -108501,33 +109525,33 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (d.length > SVG_PATH_MAX_CHARS) throw new CapReached();
     if (nodeCount(contours) > VECTOR_ITEM_MAX_NODES) throw new CapReached();
     if (d.length > ENCODE_CHECK_CHARS && !encodable(subs, box3)) throw new CapReached();
-    const item = { kind: "path", d, box: box3 };
+    const item2 = { kind: "path", d, box: box3 };
     const axisAligned = Math.abs(state.m[1]) < 1e-9 && Math.abs(state.m[2]) < 1e-9;
     if (axisAligned && tag2 === "rect") {
-      item.shape = "rect";
+      item2.shape = "rect";
       const rx = lengthIn(el.getAttribute("rx") ?? el.getAttribute("ry") ?? void 0, state, "x") ?? 0;
       const scaled = Math.min(rx * Math.min(Math.abs(state.m[0]), Math.abs(state.m[3])), box3.w / 2, box3.h / 2);
-      if (scaled > 0) item.rx = round32(scaled);
+      if (scaled > 0) item2.rx = round32(scaled);
     } else if (axisAligned && (tag2 === "ellipse" || tag2 === "circle")) {
-      item.shape = "ellipse";
+      item2.shape = "ellipse";
     } else if (tag2 === "line") {
-      item.shape = "line";
+      item2.shape = "line";
     }
-    item.fill = fills && "hex" in fillPaint ? { hex: fillPaint.hex } : { none: true };
-    if (fills && fillAlpha < 1) item.fillOpacity = round32(fillAlpha);
-    if (fills && state.fillRule === "evenodd") item.fillRule = "evenodd";
+    item2.fill = fills && "hex" in fillPaint ? { hex: fillPaint.hex } : { none: true };
+    if (fills && fillAlpha < 1) item2.fillOpacity = round32(fillAlpha);
+    if (fills && state.fillRule === "evenodd") item2.fillRule = "evenodd";
     if (strokes && "hex" in strokePaint) {
       const stroke = { color: { hex: strokePaint.hex }, width: round32(strokeWidth) };
       if (strokeAlpha < 1) stroke.opacity = round32(strokeAlpha);
       if (state.cap) stroke.cap = state.cap;
       if (state.join) stroke.join = state.join;
       if (state.dash) stroke.dash = state.dash.slice(0, 16).map((v) => round32(v * scale));
-      item.stroke = stroke;
+      item2.stroke = stroke;
     }
-    if (state.opacity < 1) item.opacity = round32(state.opacity);
-    if (state.series) item.series = state.series;
-    if (state.groups.length) item.groups = state.groups.slice(0, MAX_GROUPS);
-    push(item, d.length);
+    if (state.opacity < 1) item2.opacity = round32(state.opacity);
+    if (state.series) item2.series = state.series;
+    if (state.groups.length) item2.groups = state.groups.slice(0, MAX_GROUPS);
+    push(item2, d.length);
   };
   const textItem = (el, state) => {
     if (!state.visible || state.opacity <= 0) return;
@@ -108563,7 +109587,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       omit("unsupported-text");
       return;
     }
-    const item = {
+    const item2 = {
       kind: "text",
       text: text7,
       x: round32(m2[0] * x0 + m2[4]),
@@ -108571,15 +109595,15 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       size: round32(state.fontSize * m2[3]),
       fill: { hex: fillPaint.hex }
     };
-    if (state.anchor && state.anchor !== "start") item.anchor = state.anchor;
-    if (state.fontFamily) item.font = state.fontFamily;
-    if (state.bold) item.bold = true;
-    if (state.italic) item.italic = true;
+    if (state.anchor && state.anchor !== "start") item2.anchor = state.anchor;
+    if (state.fontFamily) item2.font = state.fontFamily;
+    if (state.bold) item2.bold = true;
+    if (state.italic) item2.italic = true;
     const alpha = fillPaint.alpha * state.fillOpacity * state.opacity;
-    if (alpha < 1) item.opacity = round32(alpha);
-    if (state.series) item.series = state.series;
-    if (state.groups.length) item.groups = state.groups.slice(0, MAX_GROUPS);
-    push(item, 0);
+    if (alpha < 1) item2.opacity = round32(alpha);
+    if (state.series) item2.series = state.series;
+    if (state.groups.length) item2.groups = state.groups.slice(0, MAX_GROUPS);
+    push(item2, 0);
   };
   let useVisits = 0;
   const walk2 = (el, parent, depth, useDepth, trail) => {
@@ -108602,7 +109626,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     }
     const state = inherit(el, { ...parent, m: m2 }, style);
     if (tag2 === "g" || tag2 === "a" || tag2 === "svg") {
-      if (depth > MAX_DEPTH3) throw new CapReached();
+      if (depth > MAX_DEPTH4) throw new CapReached();
       let inner = state;
       if (tag2 === "svg" && depth > 0) {
         const x = lengthIn(el.getAttribute("x") ?? void 0, state, "x") ?? 0;
@@ -108704,8 +109728,8 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     let y0 = Infinity;
     let x1 = -Infinity;
     let y1 = -Infinity;
-    for (const item of items2) {
-      const b = item.kind === "path" ? item.box : { x: item.x, y: item.y - item.size, w: 0, h: item.size };
+    for (const item2 of items2) {
+      const b = item2.kind === "path" ? item2.box : { x: item2.x, y: item2.y - item2.size, w: 0, h: item2.size };
       x0 = Math.min(x0, b.x);
       y0 = Math.min(y0, b.y);
       x1 = Math.max(x1, b.x + b.w);
@@ -108805,12 +109829,12 @@ function subBox(sub) {
   }
   return Number.isFinite(x0) && x1 >= x0 && y1 >= y0 ? { x0, y0, x1, y1 } : null;
 }
-function glyphLineOf(item, short) {
-  if (item.kind !== "path" || item.shape || item.series || item.stroke) return null;
-  if (!item.fill || !("hex" in item.fill) || !item.fill.hex) return null;
+function glyphLineOf(item2, short) {
+  if (item2.kind !== "path" || item2.shape || item2.series || item2.stroke) return null;
+  if (!item2.fill || !("hex" in item2.fill) || !item2.fill.hex) return null;
   let subs;
   try {
-    subs = parseSvgPath(item.d);
+    subs = parseSvgPath(item2.d);
   } catch {
     return null;
   }
@@ -108854,15 +109878,15 @@ function glyphLineOf(item, short) {
     x1: Math.max(...glyphs2.map((g2) => g2.x1)),
     y1: Math.max(...glyphs2.map((g2) => g2.y1))
   };
-  const alpha = (item.fillOpacity ?? 1) * (item.opacity ?? 1);
+  const alpha = (item2.fillOpacity ?? 1) * (item2.opacity ?? 1);
   return {
     box: box3,
     baseline,
     ascent,
     glyphs: glyphs2,
-    fill: item.fill.hex.toLowerCase(),
+    fill: item2.fill.hex.toLowerCase(),
     alpha,
-    groupKey: (item.groups ?? []).join("")
+    groupKey: (item2.groups ?? []).join("")
   };
 }
 function glyphRunsOf(items2) {
@@ -108903,8 +109927,8 @@ function glyphRunsOf(items2) {
     }
     open3 = null;
   };
-  items2.items.forEach((item, index2) => {
-    const line = glyphLineOf(item, short);
+  items2.items.forEach((item2, index2) => {
+    const line = glyphLineOf(item2, short);
     if (!line) {
       close();
       return;
@@ -108944,8 +109968,8 @@ function svgLabelHintsOf(svgText, parseXml) {
   for (let i = 0; i < all.length && out.names.length < MAX_HINT_NAMES; i++) {
     const el = all[i];
     if (!el) continue;
-    for (const attr4 of ["data-recolor", "data-series", "data-name"]) {
-      const raw = el.getAttribute(attr4);
+    for (const attr5 of ["data-recolor", "data-series", "data-name"]) {
+      const raw = el.getAttribute(attr5);
       const name = raw?.replace(/\s+/g, " ").trim().slice(0, MAX_HINT_NAME);
       if (name && !seen.has(name)) {
         seen.add(name);
@@ -108983,19 +110007,19 @@ function custGeomItems(geom, box3, paint2) {
     if (chars > VECTOR_ITEMS_MAX_CHARS) {
       return { ...out, items: [], omitted: [{ reason: "cap-reached", count: geom.paths.length }] };
     }
-    const item = { kind: "path", d, box: itemBox };
-    item.fill = fills && paint2.fill ? { ...paint2.fill } : { none: true };
-    if (fills && typeof paint2.fill?.alpha === "number" && paint2.fill.alpha < 1) item.fillOpacity = round32(paint2.fill.alpha);
+    const item2 = { kind: "path", d, box: itemBox };
+    item2.fill = fills && paint2.fill ? { ...paint2.fill } : { none: true };
+    if (fills && typeof paint2.fill?.alpha === "number" && paint2.fill.alpha < 1) item2.fillOpacity = round32(paint2.fill.alpha);
     if (strokes && paint2.line?.color) {
       const stroke = { color: { ...paint2.line.color }, width: round32(strokeW) };
       if (typeof paint2.line.color.alpha === "number" && paint2.line.color.alpha < 1) stroke.opacity = round32(paint2.line.color.alpha);
-      item.stroke = stroke;
+      item2.stroke = stroke;
     }
-    out.items.push(item);
+    out.items.push(item2);
   }
   return out;
 }
-function r23(n6) {
+function r24(n6) {
   const r5 = Math.round(n6 * 100) / 100;
   return Object.is(r5, -0) ? 0 : r5;
 }
@@ -109004,9 +110028,9 @@ function hexWithAlpha(hex3, alpha) {
   if (alpha === void 0 || alpha >= 1) return `#${base}`;
   return `#${base}${Math.round(Math.max(0, alpha) * 255).toString(16).padStart(2, "0")}`;
 }
-function rowName(kind, item) {
-  const label2 = item.series ?? item.groups?.at(-1);
-  return label2 ? `${kind}: ${label2}` : kind;
+function rowName(kind, item2) {
+  const label3 = item2.series ?? item2.groups?.at(-1);
+  return label3 ? `${kind}: ${label3}` : kind;
 }
 function vectorItemsToRows(items2, place2, opts) {
   const maxRows = opts.maxRows ?? MAX_VECTOR_ROWS_PER_OBJECT;
@@ -109031,7 +110055,7 @@ function vectorItemsToRows(items2, place2, opts) {
   const realX = spanX && sx > 0;
   const realY = spanY && sy > 0;
   if (!realX && !realY) return { refused: "unplaceable" };
-  const drawn = { x: r23(ox), y: r23(oy), w: r23(vb.w * sx), h: r23(vb.h * sy) };
+  const drawn = { x: r24(ox), y: r24(oy), w: r24(vb.w * sx), h: r24(vb.h * sy) };
   const mapX = (x) => ox + (x - vb.x) * sx;
   const mapY = (y) => oy + (y - vb.y) * sy;
   const lineScale = realX && realY ? Math.sqrt(sx * sy) : realX ? sx : sy;
@@ -109046,10 +110070,10 @@ function vectorItemsToRows(items2, place2, opts) {
   const rows2 = [];
   const setBox = (row, x, y, w, h) => {
     if (!posed) {
-      row.x = r23(x);
-      row.y = r23(y);
-      row.w = r23(w);
-      row.h = r23(h);
+      row.x = r24(x);
+      row.y = r24(y);
+      row.w = r24(w);
+      row.h = r24(h);
       return;
     }
     let dx = x + w / 2 - cx0;
@@ -109058,48 +110082,48 @@ function vectorItemsToRows(items2, place2, opts) {
     if (flipV) dy = -dy;
     const cx2 = cx0 + dx * cos - dy * sin;
     const cy3 = cy0 + dx * sin + dy * cos;
-    row.x = r23(cx2 - w / 2);
-    row.y = r23(cy3 - h / 2);
-    row.w = r23(w);
-    row.h = r23(h);
-    if (rot !== 0) row.rot = r23(rot);
+    row.x = r24(cx2 - w / 2);
+    row.y = r24(cy3 - h / 2);
+    row.w = r24(w);
+    row.h = r24(h);
+    if (rot !== 0) row.rot = r24(rot);
     if (flipH) row.flipH = true;
     if (flipV) row.flipV = true;
   };
   let n6 = 0;
-  for (const item of items2.items) {
+  for (const item2 of items2.items) {
     const id2 = `${opts.idPrefix}.i${n6}`;
     const row = { id: id2, group: opts.group };
     if (opts.frame) row.frame = opts.frame;
-    if (item.kind === "text") {
-      const size = item.size * sy;
+    if (item2.kind === "text") {
+      const size = item2.size * sy;
       if (!(size > 0)) continue;
-      const width = Math.max(size, labelWidthEm(item.text) * size);
+      const width = Math.max(size, labelWidthEm(item2.text) * size);
       const height = size * 1.25;
-      const x2 = mapX(item.x);
-      const left = item.anchor === "middle" ? x2 - width / 2 : item.anchor === "end" ? x2 - width : x2;
-      const top = mapY(item.y) - size * 0.95;
+      const x2 = mapX(item2.x);
+      const left = item2.anchor === "middle" ? x2 - width / 2 : item2.anchor === "end" ? x2 - width : x2;
+      const top = mapY(item2.y) - size * 0.95;
       row.kind = "text";
       setBox(row, left, top, width, height);
-      row.text = designTextFromPlain(item.text);
-      row.fontSize = r23(size);
-      row.align = item.anchor === "middle" ? "center" : item.anchor === "end" ? "right" : "left";
+      row.text = designTextFromPlain(item2.text);
+      row.fontSize = r24(size);
+      row.align = item2.anchor === "middle" ? "center" : item2.anchor === "end" ? "right" : "left";
       row.valign = "top";
-      row.weight = item.bold ? 700 : 400;
+      row.weight = item2.bold ? 700 : 400;
       row.pad = 0;
-      if (item.font) row.font = item.font;
-      if (item.fill?.hex) row.fg = hexWithAlpha(item.fill.hex, void 0);
-      if (item.opacity !== void 0 && item.opacity < 1) row.opacity = Math.round(item.opacity * 100);
-      row.name = rowName("Text", item);
+      if (item2.font) row.font = item2.font;
+      if (item2.fill?.hex) row.fg = hexWithAlpha(item2.fill.hex, void 0);
+      if (item2.opacity !== void 0 && item2.opacity < 1) row.opacity = Math.round(item2.opacity * 100);
+      row.name = rowName("Text", item2);
       rows2.push(row);
       n6 += 1;
       continue;
     }
-    const strokeW = item.stroke ? item.stroke.width * lineScale : 0;
-    let x = mapX(item.box.x);
-    let y = mapY(item.box.y);
-    let w = item.box.w * sx;
-    let h = item.box.h * sy;
+    const strokeW = item2.stroke ? item2.stroke.width * lineScale : 0;
+    let x = mapX(item2.box.x);
+    let y = mapY(item2.box.y);
+    let w = item2.box.w * sx;
+    let h = item2.box.h * sy;
     const pad = Math.max(strokeW / 2, 0.5);
     if (w < 1e-6) {
       x -= pad;
@@ -109109,16 +110133,16 @@ function vectorItemsToRows(items2, place2, opts) {
       y -= pad;
       h = pad * 2;
     }
-    const fill2 = item.fill && "hex" in item.fill && item.fill.hex ? hexWithAlpha(item.fill.hex, item.fillOpacity) : "";
-    if (item.shape === "rect") {
+    const fill2 = item2.fill && "hex" in item2.fill && item2.fill.hex ? hexWithAlpha(item2.fill.hex, item2.fillOpacity) : "";
+    if (item2.shape === "rect") {
       row.kind = "box";
-      if (item.rx && item.rx > 0) {
+      if (item2.rx && item2.rx > 0) {
         row.shape = "rounded";
-        row.radius = r23(item.rx * Math.min(sx, sy));
+        row.radius = r24(item2.rx * Math.min(sx, sy));
       } else row.shape = "rect";
-      row.name = rowName("Shape", item);
+      row.name = rowName("Shape", item2);
     } else {
-      const paths = authoredNodes(parseSvgPath(item.d), x - ox + vb.x * sx, y - oy + vb.y * sy, sx, sy, w, h);
+      const paths = authoredNodes(parseSvgPath(item2.d), x - ox + vb.x * sx, y - oy + vb.y * sy, sx, sy, w, h);
       if (!paths.length) continue;
       let value;
       try {
@@ -109129,27 +110153,27 @@ function vectorItemsToRows(items2, place2, opts) {
       if (value.length > VECTOR_ITEM_MAX_ENCODED) return { refused: "cap-reached" };
       row.kind = "path";
       row.path = value;
-      row.fillRule = item.fillRule === "evenodd" ? "evenodd" : "nonzero";
-      row.name = rowName(item.shape === "line" ? "Line" : "Drawing", item);
+      row.fillRule = item2.fillRule === "evenodd" ? "evenodd" : "nonzero";
+      row.name = rowName(item2.shape === "line" ? "Line" : "Drawing", item2);
     }
     setBox(row, x, y, w, h);
     row.bg = fill2;
-    if (item.stroke) {
-      row.stroke = hexWithAlpha(item.stroke.color.hex ?? "#000000", item.stroke.opacity);
-      row.strokeW = r23(Math.min(400, strokeW));
-      row.strokeCap = item.stroke.cap ?? "butt";
-      row.strokeJoin = item.stroke.join ?? "miter";
-      const dash = item.stroke.dash;
+    if (item2.stroke) {
+      row.stroke = hexWithAlpha(item2.stroke.color.hex ?? "#000000", item2.stroke.opacity);
+      row.strokeW = r24(Math.min(400, strokeW));
+      row.strokeCap = item2.stroke.cap ?? "butt";
+      row.strokeJoin = item2.stroke.join ?? "miter";
+      const dash = item2.stroke.dash;
       if (dash && dash.length >= 2) {
         row.strokeDash = "dashed";
-        row.strokeDashLen = r23(Math.min(400, (dash[0] ?? 0) * lineScale));
-        row.strokeGapLen = r23(Math.min(400, (dash[1] ?? 0) * lineScale));
+        row.strokeDashLen = r24(Math.min(400, (dash[0] ?? 0) * lineScale));
+        row.strokeGapLen = r24(Math.min(400, (dash[1] ?? 0) * lineScale));
       }
     } else {
       row.stroke = "";
       row.strokeW = 0;
     }
-    if (item.opacity !== void 0 && item.opacity < 1) row.opacity = Math.round(item.opacity * 100);
+    if (item2.opacity !== void 0 && item2.opacity < 1) row.opacity = Math.round(item2.opacity * 100);
     rows2.push(row);
     n6 += 1;
   }
@@ -109179,8 +110203,8 @@ function vectorRowNameParts(name) {
   const head2 = at >= 0 ? name.slice(0, at) : name;
   const kind = VECTOR_ROW_KIND_WORDS.find((word) => word === head2);
   if (!kind) return void 0;
-  const label2 = at >= 0 ? name.slice(at + 2).trim() : "";
-  return label2 ? { kind, label: label2 } : { kind };
+  const label3 = at >= 0 ? name.slice(at + 2).trim() : "";
+  return label3 ? { kind, label: label3 } : { kind };
 }
 function cropViewBox(vb, crop) {
   const f = (v) => typeof v === "number" && Number.isFinite(v) ? Math.max(-10, Math.min(1, v)) : 0;
@@ -109199,28 +110223,28 @@ function cropVectorItems(items2, crop) {
   if (!vb) return null;
   const edge = 0.5;
   const kept = [];
-  for (const item of items2.items) {
+  for (const item2 of items2.items) {
     let x0;
     let y0;
     let x1;
     let y1;
-    if (item.kind === "text") {
-      const width = Math.max(item.size, labelWidthEm(item.text) * item.size);
-      x0 = item.anchor === "middle" ? item.x - width / 2 : item.anchor === "end" ? item.x - width : item.x;
+    if (item2.kind === "text") {
+      const width = Math.max(item2.size, labelWidthEm(item2.text) * item2.size);
+      x0 = item2.anchor === "middle" ? item2.x - width / 2 : item2.anchor === "end" ? item2.x - width : item2.x;
       x1 = x0 + width;
-      y0 = item.y - item.size * 0.95;
-      y1 = item.y + item.size * 0.3;
+      y0 = item2.y - item2.size * 0.95;
+      y1 = item2.y + item2.size * 0.3;
     } else {
-      x0 = item.box.x;
-      y0 = item.box.y;
-      x1 = item.box.x + item.box.w;
-      y1 = item.box.y + item.box.h;
+      x0 = item2.box.x;
+      y0 = item2.box.y;
+      x1 = item2.box.x + item2.box.w;
+      y1 = item2.box.y + item2.box.h;
     }
     const outside = x1 <= vb.x || y1 <= vb.y || x0 >= vb.x + vb.w || y0 >= vb.y + vb.h;
     if (outside) continue;
     const inside2 = x0 >= vb.x - edge && y0 >= vb.y - edge && x1 <= vb.x + vb.w + edge && y1 <= vb.y + vb.h + edge;
     if (!inside2) return null;
-    kept.push(item);
+    kept.push(item2);
   }
   if (!kept.length) return null;
   return { ...items2, viewBox: vb, items: kept };
@@ -109234,31 +110258,31 @@ function markupHex(hex3) {
 }
 function vectorItemsSvg(items2) {
   const out = [];
-  for (const item of items2.items) {
-    if (item.kind === "text") {
-      const fill3 = markupHex(item.fill?.hex) ?? "#000000";
-      const attrs2 = [`x="${round32(item.x)}"`, `y="${round32(item.y)}"`, `font-size="${round32(item.size)}"`, `fill="${fill3}"`];
-      if (item.anchor) attrs2.push(`text-anchor="${item.anchor}"`);
-      if (item.font) attrs2.push(`font-family="${escXml(item.font)}"`);
-      if (item.bold) attrs2.push('font-weight="700"');
-      if (item.italic) attrs2.push('font-style="italic"');
-      if (item.opacity !== void 0 && item.opacity < 1) attrs2.push(`opacity="${round32(item.opacity)}"`);
-      out.push(`<text ${attrs2.join(" ")}>${escXml(item.text)}</text>`);
+  for (const item2 of items2.items) {
+    if (item2.kind === "text") {
+      const fill3 = markupHex(item2.fill?.hex) ?? "#000000";
+      const attrs2 = [`x="${round32(item2.x)}"`, `y="${round32(item2.y)}"`, `font-size="${round32(item2.size)}"`, `fill="${fill3}"`];
+      if (item2.anchor) attrs2.push(`text-anchor="${item2.anchor}"`);
+      if (item2.font) attrs2.push(`font-family="${escXml(item2.font)}"`);
+      if (item2.bold) attrs2.push('font-weight="700"');
+      if (item2.italic) attrs2.push('font-style="italic"');
+      if (item2.opacity !== void 0 && item2.opacity < 1) attrs2.push(`opacity="${round32(item2.opacity)}"`);
+      out.push(`<text ${attrs2.join(" ")}>${escXml(item2.text)}</text>`);
       continue;
     }
-    const fill2 = item.fill && "hex" in item.fill ? markupHex(item.fill.hex) : void 0;
-    const attrs = [`d="${escXml(item.d)}"`, `fill="${fill2 ?? "none"}"`];
-    if (fill2 && item.fillOpacity !== void 0 && item.fillOpacity < 1) attrs.push(`fill-opacity="${round32(item.fillOpacity)}"`);
-    if (fill2 && item.fillRule === "evenodd") attrs.push('fill-rule="evenodd"');
-    const stroke = item.stroke ? markupHex(item.stroke.color.hex) : void 0;
-    if (item.stroke && stroke) {
-      attrs.push(`stroke="${stroke}"`, `stroke-width="${round32(item.stroke.width)}"`);
-      if (item.stroke.opacity !== void 0 && item.stroke.opacity < 1) attrs.push(`stroke-opacity="${round32(item.stroke.opacity)}"`);
-      if (item.stroke.cap) attrs.push(`stroke-linecap="${item.stroke.cap}"`);
-      if (item.stroke.join) attrs.push(`stroke-linejoin="${item.stroke.join}"`);
-      if (item.stroke.dash?.length) attrs.push(`stroke-dasharray="${item.stroke.dash.map(round32).join(" ")}"`);
+    const fill2 = item2.fill && "hex" in item2.fill ? markupHex(item2.fill.hex) : void 0;
+    const attrs = [`d="${escXml(item2.d)}"`, `fill="${fill2 ?? "none"}"`];
+    if (fill2 && item2.fillOpacity !== void 0 && item2.fillOpacity < 1) attrs.push(`fill-opacity="${round32(item2.fillOpacity)}"`);
+    if (fill2 && item2.fillRule === "evenodd") attrs.push('fill-rule="evenodd"');
+    const stroke = item2.stroke ? markupHex(item2.stroke.color.hex) : void 0;
+    if (item2.stroke && stroke) {
+      attrs.push(`stroke="${stroke}"`, `stroke-width="${round32(item2.stroke.width)}"`);
+      if (item2.stroke.opacity !== void 0 && item2.stroke.opacity < 1) attrs.push(`stroke-opacity="${round32(item2.stroke.opacity)}"`);
+      if (item2.stroke.cap) attrs.push(`stroke-linecap="${item2.stroke.cap}"`);
+      if (item2.stroke.join) attrs.push(`stroke-linejoin="${item2.stroke.join}"`);
+      if (item2.stroke.dash?.length) attrs.push(`stroke-dasharray="${item2.stroke.dash.map(round32).join(" ")}"`);
     }
-    if (item.opacity !== void 0 && item.opacity < 1) attrs.push(`opacity="${round32(item.opacity)}"`);
+    if (item2.opacity !== void 0 && item2.opacity < 1) attrs.push(`opacity="${round32(item2.opacity)}"`);
     out.push(`<path ${attrs.join(" ")}/>`);
   }
   return out.join("");
@@ -109271,7 +110295,7 @@ function vectorItemsDocument(items2) {
   const desc = items2.desc ? `<desc>${escXml(items2.desc)}</desc>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${round32(vb.x)} ${round32(vb.y)} ${w} ${h}" width="${w}" height="${h}">${title}${desc}${vectorItemsSvg(items2)}</svg>`;
 }
-var VECTOR_ITEM_MAX_NODES, VECTOR_ITEM_MAX_ENCODED, MAX_VECTOR_ROWS_PER_OBJECT, MAX_VECTOR_ROWS_PER_FRAME, MAX_VECTOR_PATH_CHARS_PER_DOCUMENT, MAX_USE_DEPTH, MAX_DEPTH3, MAX_TITLE, MAX_DESC, MAX_SERIES, MAX_GROUPS, MAX_GROUP_NAME, ENCODE_CHECK_CHARS, SVG_NS, SILENT, SHAPES2, ANIMATION, CapReached, CASCADED, FACE_ONLY, INERT_AT_RULES, MAX_SHEET_CHARS, MAX_SHEET_RULES, MAX_CHAIN, MAX_MATCH_STEPS, ROW_PRECISION_PX, LABEL_GROUP, MAX_GLYPH_SUBPATHS, MAX_GLYPH_SHARE, MAX_HINT_NAMES, MAX_HINT_NAME, VECTOR_ROW_KIND_WORDS;
+var VECTOR_ITEM_MAX_NODES, VECTOR_ITEM_MAX_ENCODED, MAX_VECTOR_ROWS_PER_OBJECT, MAX_VECTOR_ROWS_PER_FRAME, MAX_VECTOR_PATH_CHARS_PER_DOCUMENT, MAX_USE_DEPTH, MAX_DEPTH4, MAX_TITLE, MAX_DESC, MAX_SERIES, MAX_GROUPS, MAX_GROUP_NAME, ENCODE_CHECK_CHARS, SVG_NS, SILENT, SHAPES2, ANIMATION, CapReached, CASCADED, FACE_ONLY, INERT_AT_RULES, MAX_SHEET_CHARS, MAX_SHEET_RULES, MAX_CHAIN, MAX_MATCH_STEPS, ROW_PRECISION_PX, LABEL_GROUP, MAX_GLYPH_SUBPATHS, MAX_GLYPH_SHARE, MAX_HINT_NAMES, MAX_HINT_NAME, VECTOR_ROW_KIND_WORDS;
 var init_svg_items = __esm({
   "engine/src/svg-items.ts"() {
     "use strict";
@@ -109289,7 +110313,7 @@ var init_svg_items = __esm({
     MAX_VECTOR_ROWS_PER_FRAME = 1200;
     MAX_VECTOR_PATH_CHARS_PER_DOCUMENT = 25e5;
     MAX_USE_DEPTH = 8;
-    MAX_DEPTH3 = 64;
+    MAX_DEPTH4 = 64;
     MAX_TITLE = 120;
     MAX_DESC = 500;
     MAX_SERIES = 64;
@@ -109388,12 +110412,12 @@ function rowId(row) {
 function slug3(id2) {
   return id2.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "x";
 }
-function plainText2(object3) {
-  const paras = object3.text?.paras ?? [];
+function plainText2(object4) {
+  const paras = object4.text?.paras ?? [];
   return paras.map((para) => para.runs.map((run3) => run3.text).join("")).join("\n");
 }
-function firstRun(object3) {
-  for (const para of object3.text?.paras ?? []) {
+function firstRun(object4) {
+  for (const para of object4.text?.paras ?? []) {
     const run3 = para.runs[0];
     if (run3) return run3;
   }
@@ -109432,8 +110456,8 @@ function flipsOf(transform2) {
   if (a * d - b * c >= 0) return {};
   return Math.abs(Math.atan2(-b, -a)) <= Math.abs(Math.atan2(b, a)) ? { flipH: true } : { flipV: true };
 }
-function placeBox(object3, at) {
-  const box3 = object3.box;
+function placeBox(object4, at) {
+  const box3 = object4.box;
   const row = {
     x: round22(at.ox + box3.x * at.sx),
     y: round22(at.oy + box3.y * at.sy),
@@ -109441,7 +110465,7 @@ function placeBox(object3, at) {
     h: round22(box3.h * at.sy)
   };
   const posed = box3.rot ? { ...row, rot: round22(box3.rot) } : row;
-  const flips = flipsOf(object3.transform);
+  const flips = flipsOf(object4.transform);
   return flips.flipH || flips.flipV ? { ...posed, ...flips } : posed;
 }
 function reportCodeForWarning(code) {
@@ -109466,17 +110490,17 @@ function reportCodeForWarning(code) {
       return "object.removed";
   }
 }
-function hasDrawableBytes(object3) {
-  if (object3.kind === "pic" || object3.kind === "chart" || object3.kind === "unknown" || object3.kind === "vector") {
-    return (object3.media ?? object3.fidelity.fallbackAssetRef) !== void 0 || carriesItems(object3);
+function hasDrawableBytes(object4) {
+  if (object4.kind === "pic" || object4.kind === "chart" || object4.kind === "unknown" || object4.kind === "vector") {
+    return (object4.media ?? object4.fidelity.fallbackAssetRef) !== void 0 || carriesItems(object4);
   }
   return true;
 }
-function carriesItems(object3) {
-  if (object3.kind !== "vector" && object3.kind !== "shape") return false;
-  if ((object3.vectorItems?.items.length ?? 0) === 0) return false;
-  const state = object3.fidelity.state;
-  return state !== "unavailable" && state !== "raster-preserved" && object3.fidelity.reason !== "geometry-approximation";
+function carriesItems(object4) {
+  if (object4.kind !== "vector" && object4.kind !== "shape") return false;
+  if ((object4.vectorItems?.items.length ?? 0) === 0) return false;
+  const state = object4.fidelity.state;
+  return state !== "unavailable" && state !== "raster-preserved" && object4.fidelity.reason !== "geometry-approximation";
 }
 function vectorGroupOf(layerId) {
   return `vector:${layerId}`;
@@ -109496,9 +110520,9 @@ function vectorOmittedMessage(noun, slideNumber, omitted) {
 function vectorKeptMessage(noun, slideNumber, why) {
   return `The ${noun} on slide ${slideNumber} stayed a picture: ${KEPT_WORDS[why] ?? KEPT_WORDS["not-read"]}.`;
 }
-function keptReason(object3) {
-  if (object3.fidelity.reason === "geometry-approximation") return "geometry";
-  if (object3.vectorItems?.omitted?.some((o) => o.reason === "cap-reached")) return "cap-reached";
+function keptReason(object4) {
+  if (object4.fidelity.reason === "geometry-approximation") return "geometry";
+  if (object4.vectorItems?.omitted?.some((o) => o.reason === "cap-reached")) return "cap-reached";
   return "not-read";
 }
 function withRowAlpha(current, target) {
@@ -109520,8 +110544,8 @@ function authorPlaceholder(boxBase, labelBase, text7, style) {
     }
   };
 }
-function holdOneLine(row, object3, frame) {
-  const paras = object3.text?.paras ?? [];
+function holdOneLine(row, object4, frame) {
+  const paras = object4.text?.paras ?? [];
   const text7 = plainOfDesignText(rowStr(row, "text"));
   const size = rowNum(row, "fontSize");
   if (paras.length !== 1 || !text7 || text7.includes("\n") || !(size > 0)) return;
@@ -109614,61 +110638,61 @@ function compileFaithful(source, opts = {}) {
       });
       backward.push({ layerId: groundId, sourceObjectIds: [] });
     }
-    const base = (object3, id2) => ({
+    const base = (object4, id2) => ({
       id: id2,
-      ...placeBox(object3, at),
+      ...placeBox(object4, at),
       frame: frameId,
       order: order++,
-      name: object3.id
+      name: object4.id
     });
-    const noteFurniture = (object3, ids2) => {
-      if (object3.origin === "master" || object3.origin === "layout") furnitureLayerIds.push(...ids2);
+    const noteFurniture = (object4, ids2) => {
+      if (object4.origin === "master" || object4.origin === "layout") furnitureLayerIds.push(...ids2);
     };
-    for (const object3 of slide.objects) {
-      objectIds.push(object3.id);
-      const layerId = `${prefix}.${slug3(object3.id)}`;
+    for (const object4 of slide.objects) {
+      objectIds.push(object4.id);
+      const layerId = `${prefix}.${slug3(object4.id)}`;
       const produced = [];
-      const drawable2 = hasDrawableBytes(object3);
-      if (object3.fidelity.state === "unavailable" || !drawable2) {
+      const drawable2 = hasDrawableBytes(object4);
+      if (object4.fidelity.state === "unavailable" || !drawable2) {
         const labelId = `${layerId}.label`;
-        const { box: box3, label: label2 } = authorPlaceholder(
-          base(object3, layerId),
-          base(object3, labelId),
-          `${kindLabel(object3.kind)} could not be read`,
+        const { box: box3, label: label3 } = authorPlaceholder(
+          base(object4, layerId),
+          base(object4, labelId),
+          `${kindLabel(object4.kind)} could not be read`,
           { fill: placeholderFill, ink: placeholderInk }
         );
-        layers.push(box3, label2);
+        layers.push(box3, label3);
         produced.push(layerId, labelId);
         placeholderLayerIds.push(layerId, labelId);
-        noteFurniture(object3, [layerId, labelId]);
-        backward.push({ layerId, sourceObjectIds: [object3.id], derived: "placeholder" });
-        backward.push({ layerId: labelId, sourceObjectIds: [object3.id], derived: "placeholder" });
+        noteFurniture(object4, [layerId, labelId]);
+        backward.push({ layerId, sourceObjectIds: [object4.id], derived: "placeholder" });
+        backward.push({ layerId: labelId, sourceObjectIds: [object4.id], derived: "placeholder" });
         addEntry(report2, {
           code: "object.unresolved",
-          message: `${kindLabel(object3.kind)} on slide ${slide.index + 1} could not be read, so a labelled stand-in takes its place.`,
+          message: `${kindLabel(object4.kind)} on slide ${slide.index + 1} could not be read, so a labelled stand-in takes its place.`,
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           layerId,
           disposition: "unresolved",
           // A source that claimed preserved bytes and then named none leaves
           // this compile with nothing, so the entry states what it faced rather
           // than repeating a claim the object did not keep.
-          fidelity: drawable2 ? object3.fidelity.state : "unavailable",
-          reason: drawable2 ? object3.fidelity.reason : object3.fidelity.reason ?? "media-missing"
+          fidelity: drawable2 ? object4.fidelity.state : "unavailable",
+          reason: drawable2 ? object4.fidelity.reason : object4.fidelity.reason ?? "media-missing"
         });
         addEntry(report2, {
           code: "object.placeholder-authored",
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           layerId
         });
-        forward.push({ sourceObjectId: object3.id, layerIds: produced });
+        forward.push({ sourceObjectId: object4.id, layerIds: produced });
         continue;
       }
-      if (carriesItems(object3) && object3.vectorItems && !(opts.originalArtwork && (object3.media || object3.fidelity.fallbackAssetRef))) {
-        const place2 = placeBox(object3, at);
-        const made = vectorItemsToRows(object3.vectorItems, place2, { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
-        const noun = nounFor("unknown", object3.kind);
+      if (carriesItems(object4) && object4.vectorItems && !(opts.originalArtwork && (object4.media || object4.fidelity.fallbackAssetRef))) {
+        const place2 = placeBox(object4, at);
+        const made = vectorItemsToRows(object4.vectorItems, place2, { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
+        const noun = nounFor("unknown", object4.kind);
         const chars = "rows" in made ? vectorRowsPathChars(made.rows) : 0;
         const frameRoom = "rows" in made && vectorRowsOnFrame + made.rows.length <= MAX_VECTOR_ROWS_PER_FRAME;
         const documentRoom = vectorPathChars + chars <= DOCUMENT_PATH_CHARS;
@@ -109679,89 +110703,89 @@ function compileFaithful(source, opts = {}) {
             row2.order = order++;
             layers.push(row2);
             produced.push(rowId(row2));
-            backward.push({ layerId: rowId(row2), sourceObjectIds: [object3.id] });
+            backward.push({ layerId: rowId(row2), sourceObjectIds: [object4.id] });
           }
-          noteFurniture(object3, produced);
+          noteFurniture(object4, produced);
           addEntry(report2, {
             code: "object.transformed",
-            message: vectorCarriedMessage(noun, slide.index + 1, made.rows.length, object3.vectorItems.desc),
+            message: vectorCarriedMessage(noun, slide.index + 1, made.rows.length, object4.vectorItems.desc),
             slideId: slide.id,
-            objectId: object3.id,
+            objectId: object4.id,
             layerId: produced[0] ?? layerId,
             disposition: "transformed",
-            fidelity: object3.fidelity.state
+            fidelity: object4.fidelity.state
           });
-          if (object3.vectorItems.omitted?.length) {
+          if (object4.vectorItems.omitted?.length) {
             addEntry(report2, {
               code: "vector.items-omitted",
-              message: vectorOmittedMessage(noun, slide.index + 1, object3.vectorItems.omitted),
+              message: vectorOmittedMessage(noun, slide.index + 1, object4.vectorItems.omitted),
               slideId: slide.id,
-              objectId: object3.id,
+              objectId: object4.id,
               layerId: produced[0] ?? layerId,
-              reason: object3.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
+              reason: object4.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
             });
           }
-          forward.push({ sourceObjectId: object3.id, layerIds: produced });
+          forward.push({ sourceObjectId: object4.id, layerIds: produced });
           continue;
         }
-        if (object3.kind === "vector") {
+        if (object4.kind === "vector") {
           const why = "rows" in made ? frameRoom ? "document-cap" : "frame-cap" : made.refused === "cap-reached" ? "cap-reached" : "not-read";
           addEntry(report2, {
             code: "vector.kept-as-picture",
             message: vectorKeptMessage(noun, slide.index + 1, why),
             slideId: slide.id,
-            objectId: object3.id,
+            objectId: object4.id,
             layerId,
             reason: why
           });
         }
-      } else if (object3.kind === "vector") {
-        const why = keptReason(object3);
+      } else if (object4.kind === "vector") {
+        const why = keptReason(object4);
         addEntry(report2, {
           code: "vector.kept-as-picture",
-          message: vectorKeptMessage(nounFor("unknown", object3.kind), slide.index + 1, why),
+          message: vectorKeptMessage(nounFor("unknown", object4.kind), slide.index + 1, why),
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           layerId,
           reason: why
         });
       }
-      const imageRef = object3.kind === "pic" ? object3.media : object3.media ?? object3.fidelity.fallbackAssetRef;
-      if (object3.kind === "table" && object3.table) {
-        const container = { ...base(object3, layerId), kind: "box" };
-        if (object3.fill?.hex) container.bg = object3.fill.hex;
+      const imageRef = object4.kind === "pic" ? object4.media : object4.media ?? object4.fidelity.fallbackAssetRef;
+      if (object4.kind === "table" && object4.table) {
+        const container = { ...base(object4, layerId), kind: "box" };
+        if (object4.fill?.hex) container.bg = object4.fill.hex;
         layers.push(container);
         produced.push(layerId);
-        backward.push({ layerId, sourceObjectIds: [object3.id] });
-        const sourceRows = object3.table.length;
-        const sourceCols = object3.table.reduce((n6, row2) => Math.max(n6, row2.length), 0);
-        const rows2 = object3.table.slice(0, MAX_TABLE_ROWS5);
+        backward.push({ layerId, sourceObjectIds: [object4.id] });
+        const sourceRows = object4.table.length;
+        const sourceCols = object4.table.reduce((n6, row2) => Math.max(n6, row2.length), 0);
+        const rows2 = object4.table.slice(0, MAX_TABLE_ROWS5);
         const cols = Math.min(MAX_TABLE_COLS5, rows2.reduce((n6, row2) => Math.max(n6, row2.length), 0));
         const capped = sourceRows > MAX_TABLE_ROWS5 || sourceCols > MAX_TABLE_COLS5;
-        const sourceCells = object3.table.reduce((n6, row2) => n6 + row2.length, 0);
+        const sourceCells = object4.table.reduce((n6, row2) => n6 + row2.length, 0);
         const carriedCells = rows2.reduce((n6, row2) => n6 + Math.min(row2.length, cols), 0);
         const droppedCells = sourceCells - carriedCells;
-        const cellW = cols > 0 ? object3.box.w * at.sx / cols : 0;
-        const cellH = rows2.length > 0 ? object3.box.h * at.sy / rows2.length : 0;
+        const cellW = cols > 0 ? object4.box.w * at.sx / cols : 0;
+        const cellH = rows2.length > 0 ? object4.box.h * at.sy / rows2.length : 0;
         rows2.forEach((row2, r5) => {
           for (let c = 0; c < cols; c++) {
             const cellId = `${layerId}.r${r5}c${c}`;
             const cell = {
               id: cellId,
               kind: "text",
-              x: round22(at.ox + object3.box.x * at.sx + c * cellW),
-              y: round22(at.oy + object3.box.y * at.sy + r5 * cellH),
+              x: round22(at.ox + object4.box.x * at.sx + c * cellW),
+              y: round22(at.oy + object4.box.y * at.sy + r5 * cellH),
               w: round22(cellW),
               h: round22(cellH),
               frame: frameId,
               order: order++,
-              name: `${object3.id} r${r5}c${c}`,
+              name: `${object4.id} r${r5}c${c}`,
               text: designTextFromPlain(row2[c] ?? ""),
               valign: "middle"
             };
             layers.push(cell);
             produced.push(cellId);
-            backward.push({ layerId: cellId, sourceObjectIds: [object3.id] });
+            backward.push({ layerId: cellId, sourceObjectIds: [object4.id] });
           }
         });
         if (capped) {
@@ -109769,7 +110793,7 @@ function compileFaithful(source, opts = {}) {
             code: "source.cap-reached",
             message: `The table on slide ${slide.index + 1} is ${sourceRows} by ${sourceCols}, past this compile's cap of ${MAX_TABLE_ROWS5} by ${MAX_TABLE_COLS5}, so ${droppedCells} cell(s) did not travel.`,
             slideId: slide.id,
-            objectId: object3.id,
+            objectId: object4.id,
             layerId,
             reason: "cap-reached"
           });
@@ -109778,69 +110802,69 @@ function compileFaithful(source, opts = {}) {
           code: "object.transformed",
           message: capped ? `The table on slide ${slide.index + 1} was carried over as one text layer per cell for the first ${rows2.length} row(s) and ${cols} column(s) of a ${sourceRows} by ${sourceCols} table.` : `The table on slide ${slide.index + 1} was carried over as one text layer per cell.`,
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           layerId,
           disposition: "transformed",
-          fidelity: capped ? "approximate" : object3.fidelity.state,
+          fidelity: capped ? "approximate" : object4.fidelity.state,
           ...capped ? { reason: "cap-reached" } : {}
         });
-        noteFurniture(object3, produced);
-        forward.push({ sourceObjectId: object3.id, layerIds: produced });
+        noteFurniture(object4, produced);
+        forward.push({ sourceObjectId: object4.id, layerIds: produced });
         continue;
       }
-      const row = base(object3, layerId);
+      const row = base(object4, layerId);
       if (imageRef) {
         row.kind = "image";
         row.image = imageRef;
         row.fit = "fill";
-        if (object3.alt) row.text = object3.alt;
-      } else if (object3.kind === "text") {
-        const rich = designTextOf(object3.text?.paras ?? [], { carryColour: true });
+        if (object4.alt) row.text = object4.alt;
+      } else if (object4.kind === "text") {
+        const rich = designTextOf(object4.text?.paras ?? [], { carryColour: true });
         row.kind = "text";
         row.text = rich.text;
-        const run3 = firstRun(object3);
+        const run3 = firstRun(object4);
         if (run3?.sizePt) row.fontSize = round22(run3.sizePt * PT_TO_PX * at.sy);
         if (rich.baseColour) row.fg = rich.baseColour;
         row.weight = 400;
         if (rich.align && rich.align !== "justify") row.align = rich.align;
         row.valign = "top";
-        if (object3.origin === "raster-region") row.pad = 0;
-        holdOneLine(row, object3, { x: at.ox, w: frameW });
-        if (object3.fill?.hex) row.bg = object3.fill.hex;
-        if (rich.dropped.length > 0) droppedBy.set(object3.id, rich.dropped);
+        if (object4.origin === "raster-region") row.pad = 0;
+        holdOneLine(row, object4, { x: at.ox, w: frameW });
+        if (object4.fill?.hex) row.bg = object4.fill.hex;
+        if (rich.dropped.length > 0) droppedBy.set(object4.id, rich.dropped);
       } else {
         row.kind = "box";
-        if (object3.geom === "ellipse") row.shape = "ellipse";
-        if (object3.geom === "roundRect") row.shape = "rounded";
-        if (object3.fill?.hex) row.bg = object3.fill.hex;
-        if (object3.line?.color?.hex) row.stroke = object3.line.color.hex;
-        if (object3.line?.widthPt) row.strokeW = round22(object3.line.widthPt * PT_TO_PX * at.sy);
+        if (object4.geom === "ellipse") row.shape = "ellipse";
+        if (object4.geom === "roundRect") row.shape = "rounded";
+        if (object4.fill?.hex) row.bg = object4.fill.hex;
+        if (object4.line?.color?.hex) row.stroke = object4.line.color.hex;
+        if (object4.line?.widthPt) row.strokeW = round22(object4.line.widthPt * PT_TO_PX * at.sy);
       }
       layers.push(row);
       produced.push(layerId);
-      noteFurniture(object3, [layerId]);
-      backward.push({ layerId, sourceObjectIds: [object3.id] });
+      noteFurniture(object4, [layerId]);
+      backward.push({ layerId, sourceObjectIds: [object4.id] });
       addEntry(report2, {
         code: "object.retained",
-        message: `The ${nounFor("unknown", object3.kind)} on slide ${slide.index + 1} was carried over.`,
+        message: `The ${nounFor("unknown", object4.kind)} on slide ${slide.index + 1} was carried over.`,
         slideId: slide.id,
-        objectId: object3.id,
+        objectId: object4.id,
         layerId,
         disposition: "retained",
-        fidelity: object3.fidelity.state
+        fidelity: object4.fidelity.state
       });
-      const dropped = droppedBy.get(object3.id);
+      const dropped = droppedBy.get(object4.id);
       if (dropped) {
         addEntry(report2, {
           code: "text.formatting-not-carried",
           message: formattingNotCarried(slide.index + 1, dropped),
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           layerId,
           reason: dropped.join(",")
         });
       }
-      forward.push({ sourceObjectId: object3.id, layerIds: produced });
+      forward.push({ sourceObjectId: object4.id, layerIds: produced });
     }
     const frame = {
       id: frameId,
@@ -110132,35 +111156,35 @@ function isBigNumber(text7) {
   for (const ch of trimmed) if (ch >= "0" && ch <= "9") digits += 1;
   return digits > 0 && digits * 2 >= trimmed.length;
 }
-function roleForObject(object3, cls, content2) {
+function roleForObject(object4, cls, content2) {
   if (content2 === "image") return "visual";
   if (content2 === "placeholder") {
-    if (object3.kind === "chart" || object3.kind === "table") return "data";
-    if (object3.kind === "pic" || object3.kind === "vector") return "visual";
-    if (object3.kind === "text") return "body";
+    if (object4.kind === "chart" || object4.kind === "table") return "data";
+    if (object4.kind === "pic" || object4.kind === "vector") return "visual";
+    if (object4.kind === "text") return "body";
     return void 0;
   }
   if (content2 !== "text") return void 0;
-  if (object3.placeholder === "title" || object3.placeholder === "ctrTitle" || cls === "title") return "title";
-  if (object3.placeholder === "subTitle" || cls === "subtitle") return "subtitle";
-  if (object3.kind === "table" || cls === "table") return "data";
-  if (isBigNumber(plainText2(object3))) return "number";
+  if (object4.placeholder === "title" || object4.placeholder === "ctrTitle" || cls === "title") return "title";
+  if (object4.placeholder === "subTitle" || cls === "subtitle") return "subtitle";
+  if (object4.kind === "table" || cls === "table") return "data";
+  if (isBigNumber(plainText2(object4))) return "number";
   if (cls === "page-number" || cls === "footer" || cls === "date" || cls === "recurring-text" || cls === "decoration" || cls === "template-furniture") {
     return void 0;
   }
   return "body";
 }
-function describePlacement(object3, entry2, outcome, slideNumber) {
+function describePlacement(object4, entry2, outcome, slideNumber) {
   const where = `on slide ${slideNumber}`;
   const surplus = entry2.surplus ?? "continuation";
-  const base = { object: object3, entry: entry2, outcome, surplus };
+  const base = { object: object4, entry: entry2, outcome, surplus };
   if (outcome.action === "remove") {
     return {
       ...base,
       content: "none",
       disposition: "removed",
       code: "object.removed",
-      message: `The ${nounFor(entry2.class, object3.kind)} ${where} was left out, as the plan asked.`
+      message: `The ${nounFor(entry2.class, object4.kind)} ${where} was left out, as the plan asked.`
     };
   }
   if (outcome.action === "replace" && outcome.replacement) {
@@ -110179,10 +111203,10 @@ function describePlacement(object3, entry2, outcome, slideNumber) {
         ...base,
         content: "placeholder",
         label: replacement.label,
-        role: entry2.role ?? roleForObject(object3, entry2.class, "placeholder"),
+        role: entry2.role ?? roleForObject(object4, entry2.class, "placeholder"),
         disposition: "transformed",
         code: "object.transformed",
-        message: `The ${nounFor(entry2.class, object3.kind)} ${where} was replaced by a labelled stand-in, as the plan asked.`
+        message: `The ${nounFor(entry2.class, object4.kind)} ${where} was replaced by a labelled stand-in, as the plan asked.`
       };
     }
     if (replacement.kind === "asset" || replacement.kind === "supplied-picture" || replacement.kind === "tool") {
@@ -110194,51 +111218,51 @@ function describePlacement(object3, entry2, outcome, slideNumber) {
         role: entry2.role ?? "visual",
         disposition: "transformed",
         code: "object.transformed",
-        message: `The ${nounFor(entry2.class, object3.kind)} ${where} was replaced by a picture the plan named.`
+        message: `The ${nounFor(entry2.class, object4.kind)} ${where} was replaced by a picture the plan named.`
       };
     }
     return {
-      ...describeKeep(object3, entry2, outcome, where, surplus),
+      ...describeKeep(object4, entry2, outcome, where, surplus),
       reason: "filter-not-applied",
-      message: `The ${nounFor(entry2.class, object3.kind)} ${where} was carried over unchanged: the plan asks for the ${replacement.toolId} filter, which this compile does not run.`
+      message: `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over unchanged: the plan asks for the ${replacement.toolId} filter, which this compile does not run.`
     };
   }
   if (outcome.action === "replace") {
     return {
-      ...describeKeep(object3, entry2, outcome, where, surplus),
+      ...describeKeep(object4, entry2, outcome, where, surplus),
       reason: "replacement-missing",
-      message: `The ${nounFor(entry2.class, object3.kind)} ${where} was carried over unchanged: the plan asks to replace it but names nothing to put there.`
+      message: `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over unchanged: the plan asks to replace it but names nothing to put there.`
     };
   }
-  const kept = describeKeep(object3, entry2, outcome, where, surplus);
+  const kept = describeKeep(object4, entry2, outcome, where, surplus);
   if (outcome.heldBack && kept.disposition === "retained") {
     const flagged = entry2.review === "needs-attention";
     return {
       ...kept,
       reason: flagged ? "needs-attention-held" : "unreviewed-proposal-held",
-      message: flagged ? `The ${nounFor(entry2.class, object3.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it and flagged it for a person to look at, which nobody has answered.` : `The ${nounFor(entry2.class, object3.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it, and nobody has reviewed that.`
+      message: flagged ? `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it and flagged it for a person to look at, which nobody has answered.` : `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it, and nobody has reviewed that.`
     };
   }
   return kept;
 }
-function describeKeep(object3, entry2, outcome, where, surplus) {
-  const base = { object: object3, entry: entry2, outcome, surplus };
-  if (object3.fidelity.state === "unavailable" || !hasDrawableBytes(object3)) {
-    const drawable2 = hasDrawableBytes(object3);
+function describeKeep(object4, entry2, outcome, where, surplus) {
+  const base = { object: object4, entry: entry2, outcome, surplus };
+  if (object4.fidelity.state === "unavailable" || !hasDrawableBytes(object4)) {
+    const drawable2 = hasDrawableBytes(object4);
     return {
       ...base,
       content: "placeholder",
-      label: `${kindLabel(object3.kind)} could not be read`,
-      role: entry2.role ?? roleForObject(object3, entry2.class, "placeholder"),
+      label: `${kindLabel(object4.kind)} could not be read`,
+      role: entry2.role ?? roleForObject(object4, entry2.class, "placeholder"),
       disposition: "unresolved",
       code: "object.unresolved",
-      message: `${kindLabel(object3.kind)} ${where} could not be read, so a labelled stand-in takes its place.`,
-      fidelity: drawable2 ? object3.fidelity.state : "unavailable",
-      reason: drawable2 ? object3.fidelity.reason : object3.fidelity.reason ?? "media-missing"
+      message: `${kindLabel(object4.kind)} ${where} could not be read, so a labelled stand-in takes its place.`,
+      fidelity: drawable2 ? object4.fidelity.state : "unavailable",
+      reason: drawable2 ? object4.fidelity.reason : object4.fidelity.reason ?? "media-missing"
     };
   }
-  if (object3.kind === "table" && object3.table) {
-    const { text: text7, cap } = tableLines(object3.table);
+  if (object4.kind === "table" && object4.table) {
+    const { text: text7, cap } = tableLines(object4.table);
     return {
       ...base,
       content: "text",
@@ -110249,11 +111273,11 @@ function describeKeep(object3, entry2, outcome, where, surplus) {
       disposition: "transformed",
       code: "object.transformed",
       message: `The table ${where} was carried over as lines of text, one per row.`,
-      fidelity: cap && cap.dropped > 0 ? "approximate" : object3.fidelity.state,
+      fidelity: cap && cap.dropped > 0 ? "approximate" : object4.fidelity.state,
       ...cap && cap.dropped > 0 ? { reason: "cap-reached" } : {}
     };
   }
-  const imageRef = object3.kind === "pic" ? object3.media : object3.media ?? object3.fidelity.fallbackAssetRef;
+  const imageRef = object4.kind === "pic" ? object4.media : object4.media ?? object4.fidelity.fallbackAssetRef;
   if (imageRef) {
     return {
       ...base,
@@ -110262,23 +111286,23 @@ function describeKeep(object3, entry2, outcome, where, surplus) {
       role: entry2.role ?? "visual",
       disposition: "retained",
       code: "object.retained",
-      message: `The ${nounFor(entry2.class, object3.kind)} ${where} was carried over.`,
-      fidelity: object3.fidelity.state
+      message: `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over.`,
+      fidelity: object4.fidelity.state
     };
   }
-  if (object3.kind === "text") {
+  if (object4.kind === "text") {
     const override = typeof entry2.textOverride === "string" ? entry2.textOverride.replace(/\r\n?/g, "\n") : void 0;
-    const text7 = override ?? plainText2(object3);
+    const text7 = override ?? plainText2(object4);
     return {
       ...base,
       content: "text",
       text: text7,
-      ...override !== void 0 ? { rich: designTextFromPlain(override, object3.text?.paras ?? []), corrected: true } : {},
-      role: entry2.role ?? roleForObject({ ...object3, text: override !== void 0 ? { paras: [{ runs: [{ text: text7 }] }] } : object3.text }, entry2.class, "text"),
+      ...override !== void 0 ? { rich: designTextFromPlain(override, object4.text?.paras ?? []), corrected: true } : {},
+      role: entry2.role ?? roleForObject({ ...object4, text: override !== void 0 ? { paras: [{ runs: [{ text: text7 }] }] } : object4.text }, entry2.class, "text"),
       disposition: "retained",
       code: "object.retained",
       message: `The text ${where} was carried over.`,
-      fidelity: object3.fidelity.state
+      fidelity: object4.fidelity.state
     };
   }
   return {
@@ -110286,8 +111310,8 @@ function describeKeep(object3, entry2, outcome, where, surplus) {
     content: "shape",
     disposition: "retained",
     code: "object.retained",
-    message: `The ${nounFor(entry2.class, object3.kind)} ${where} was carried over.`,
-    fidelity: object3.fidelity.state
+    message: `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over.`,
+    fidelity: object4.fidelity.state
   };
 }
 function seedBuild(master, archetypeId, args) {
@@ -110391,42 +111415,42 @@ function footerHolds(held, text7) {
   const line = foldSpace(text7);
   return held.split(FOOTER_JOIN).some((part) => foldSpace(part) === line);
 }
-function isIncidentalPicture(klass, object3, slide) {
+function isIncidentalPicture(klass, object4, slide) {
   if (CONTENT_PICTURE_CLASSES.has(klass)) return false;
   const area2 = slide.width * slide.height;
   if (!(area2 > 0)) return false;
-  return Math.max(0, object3.box.w) * Math.max(0, object3.box.h) / area2 < INCIDENTAL_PICTURE_SHARE;
+  return Math.max(0, object4.box.w) * Math.max(0, object4.box.h) / area2 < INCIDENTAL_PICTURE_SHARE;
 }
-function isSourcePageNumber(placement) {
-  if (placement.entry.class === "page-number") return true;
-  if (!FOOTER_CLASSES.has(placement.entry.class) && placement.entry.class !== "recurring-text") return false;
-  return /^\d{1,4}$/.test((placement.text ?? "").trim());
+function isSourcePageNumber(placement2) {
+  if (placement2.entry.class === "page-number") return true;
+  if (!FOOTER_CLASSES.has(placement2.entry.class) && placement2.entry.class !== "recurring-text") return false;
+  return /^\d{1,4}$/.test((placement2.text ?? "").trim());
 }
 function renovatedSlideName(slide, entries) {
-  const own2 = slide.objects.filter((object3) => {
-    if (object3.kind !== "text" || plainText2(object3).trim().length === 0) return false;
-    if (object3.origin === "master" || object3.origin === "layout") return false;
-    const cls = entries.get(object3.id)?.class;
+  const own3 = slide.objects.filter((object4) => {
+    if (object4.kind !== "text" || plainText2(object4).trim().length === 0) return false;
+    if (object4.origin === "master" || object4.origin === "layout") return false;
+    const cls = entries.get(object4.id)?.class;
     return !(cls && NOTE_CLASSES.has(cls));
   });
-  const titled = own2.find((object3) => entries.get(object3.id)?.class === "title");
-  return slideName({ ...slide, objects: titled ? [titled] : own2 });
+  const titled = own3.find((object4) => entries.get(object4.id)?.class === "title");
+  return slideName({ ...slide, objects: titled ? [titled] : own3 });
 }
-function largestRunPt2(object3) {
+function largestRunPt2(object4) {
   let max = 0;
-  for (const para of object3.text?.paras ?? []) for (const run3 of para.runs) max = Math.max(max, run3.sizePt ?? 0);
+  for (const para of object4.text?.paras ?? []) for (const run3 of para.runs) max = Math.max(max, run3.sizePt ?? 0);
   return max;
 }
-function isNoteText(klass, object3, entry2) {
-  if (object3.kind === "table" || object3.table !== void 0) return false;
+function isNoteText(klass, object4, entry2) {
+  if (object4.kind === "table" || object4.table !== void 0) return false;
   if (NOTE_CLASSES.has(klass)) return true;
   if (entry2?.role && (entry2.author === "user" || entry2.author === "agent")) return false;
   if (klass !== "body" && klass !== "unknown") return false;
-  const text7 = plainText2(object3).trim();
+  const text7 = plainText2(object4).trim();
   if (text7.length === 0 || text7.split("\n").length > 2) return false;
   if (text7.split(/\s+/).length > NOTE_MAX_WORDS) return false;
   if (URL_ONLY.test(text7) || NOTE_LEAD.test(text7)) return true;
-  const pt = largestRunPt2(object3);
+  const pt = largestRunPt2(object4);
   return pt > 0 && pt < NOTE_MAX_PT;
 }
 function isNote(p) {
@@ -110449,9 +111473,9 @@ function archetypeHolds(master, id2, need) {
   if (need === "data") return archetype.placeholders.some((ph) => ph.role === "data" && ph.kind === "table");
   return archetype.placeholders.some((ph) => ph.role === "body" && ph.kind === "text");
 }
-function continuationArchetype(master, own2, need) {
-  for (const id2 of [...CONTINUATION_ARCHETYPES[need], own2]) if (archetypeHolds(master, id2, need)) return { id: id2, need };
-  if (need === "data") return continuationArchetype(master, own2, "body");
+function continuationArchetype(master, own3, need) {
+  for (const id2 of [...CONTINUATION_ARCHETYPES[need], own3]) if (archetypeHolds(master, id2, need)) return { id: id2, need };
+  if (need === "data") return continuationArchetype(master, own3, "body");
   return void 0;
 }
 function composite(top, under) {
@@ -110460,21 +111484,21 @@ function composite(top, under) {
   if (!/^[0-9a-f]{6}$/.test(u)) return `#${t.slice(0, 6)}`;
   if (t.length !== 8) return `#${t.slice(0, 6)}`;
   const alpha = Number.parseInt(t.slice(6, 8), 16) / 255;
-  const channel3 = (at) => {
+  const channel4 = (at) => {
     const value = Math.round(Number.parseInt(t.slice(at, at + 2), 16) * alpha + Number.parseInt(u.slice(at, at + 2), 16) * (1 - alpha));
     return value.toString(16).padStart(2, "0");
   };
-  return `#${channel3(0)}${channel3(2)}${channel3(4)}`;
+  return `#${channel4(0)}${channel4(2)}${channel4(4)}`;
 }
 function groundsUnder(rows2, index2) {
   const frame = rows2[0];
-  const own2 = rows2[index2];
-  if (!frame || !own2) return void 0;
+  const own3 = rows2[index2];
+  if (!frame || !own3) return void 0;
   const base = rowStr(frame, "bg");
   if (!/^#[0-9a-fA-F]{6}/.test(base)) return void 0;
   const ground = base.slice(0, 7).toLowerCase();
-  const x0 = rowNum(own2, "x"), y0 = rowNum(own2, "y");
-  const x1 = x0 + rowNum(own2, "w"), y1 = y0 + rowNum(own2, "h");
+  const x0 = rowNum(own3, "x"), y0 = rowNum(own3, "y");
+  const x1 = x0 + rowNum(own3, "w"), y1 = y0 + rowNum(own3, "h");
   if (!(x1 > x0) || !(y1 > y0)) return [ground];
   const painted = [];
   for (let i = 1; i < index2; i += 1) {
@@ -110610,9 +111634,9 @@ function nearestColour(hex3, candidates2) {
   }
   return best;
 }
-function emphasisHex(object3) {
+function emphasisHex(object4) {
   let shared;
-  for (const para of object3.text?.paras ?? []) {
+  for (const para of object4.text?.paras ?? []) {
     for (const run3 of para.runs) {
       if (run3.text.trim().length === 0) continue;
       const hex3 = run3.color?.hex?.toLowerCase();
@@ -110662,7 +111686,7 @@ function isMarkerText(p) {
   return isBigNumber(text7) || /^[\p{L}\p{N}]{1,3}[.)]?$/u.test(text7);
 }
 function keepRowMarkers(placements, mode2, slideNumber) {
-  const markerText = (object3) => object3.kind === "text" && /^[\p{L}\p{N}]{1,3}[.)]?$/u.test(plainText2(object3).trim());
+  const markerText = (object4) => object4.kind === "text" && /^[\p{L}\p{N}]{1,3}[.)]?$/u.test(plainText2(object4).trim());
   const fromProposal = (entry2) => !entry2.locked && (entry2.decision === void 0 || entry2.decision === entry2.proposal && entry2.decisionReplacement === void 0);
   const candidates2 = placements.filter((p) => MARKER_RESCUE_CLASSES.has(p.entry.class) && markerText(p.object) && (p.content === "none" && p.outcome.action === "remove" && fromProposal(p.entry) || p.content === "text" && isNote(p)));
   if (candidates2.length < 2) return;
@@ -110749,20 +111773,20 @@ function pourItems(placements, mode2) {
       reading: Math.min(...members.map((m2) => m2.reading))
     };
   });
-  for (const item of items2) {
-    item.members.sort((a, b) => (mode2 === "rows" ? a.object.box.x - b.object.box.x : a.object.box.y - b.object.box.y) || a.reading - b.reading);
+  for (const item2 of items2) {
+    item2.members.sort((a, b) => (mode2 === "rows" ? a.object.box.x - b.object.box.x : a.object.box.y - b.object.box.y) || a.reading - b.reading);
   }
-  const bandOf = (item) => item.box.y0;
+  const bandOf = (item2) => item2.box.y0;
   if (mode2 === "rows") items2.sort((a, b) => a.box.y0 - b.box.y0 || a.reading - b.reading);
   else if (mode2 === "columns") items2.sort((a, b) => a.box.x0 - b.box.x0 || a.reading - b.reading);
   else {
     items2.sort((a, b) => bandOf(a) - bandOf(b) || a.reading - b.reading);
     const bands = [];
-    for (const item of items2) {
+    for (const item2 of items2) {
       const band = bands[bands.length - 1];
       const head2 = band?.[0];
-      if (band && head2 && Math.abs(item.box.y0 - head2.box.y0) <= 0.5 * Math.min(item.box.y1 - item.box.y0, head2.box.y1 - head2.box.y0)) band.push(item);
-      else bands.push([item]);
+      if (band && head2 && Math.abs(item2.box.y0 - head2.box.y0) <= 0.5 * Math.min(item2.box.y1 - item2.box.y0, head2.box.y1 - head2.box.y0)) band.push(item2);
+      else bands.push([item2]);
     }
     items2.length = 0;
     for (const band of bands) items2.push(...band.sort((a, b) => a.box.x0 - b.box.x0 || a.reading - b.reading));
@@ -110900,14 +111924,14 @@ function compileTheme(input, opts) {
     master: deckMaster,
     themed: theme !== null,
     draw: (slidePlan, layout2) => {
-      const own2 = layout2 ?? slidePlan.layout;
-      const placed2 = slideGroundPlan({ layout: own2, ...slidePlan.ground ? { ground: slidePlan.ground } : {} }, measured, theme);
+      const own3 = layout2 ?? slidePlan.layout;
+      const placed2 = slideGroundPlan({ layout: own3, ...slidePlan.ground ? { ground: slidePlan.ground } : {} }, measured, theme);
       if (!placed2.moved) return { archetype: placed2.archetype, master: deckMaster };
       if (placed2.ground === "dark") {
         return { archetype: placed2.archetype, master: masterOf("dark", () => onGrounds(toSide(true, false))), moved: "dark" };
       }
       if (placed2.ground === "light") {
-        return { archetype: own2, master: masterOf("light", () => onGrounds(toSide(false, false))) };
+        return { archetype: own3, master: masterOf("light", () => onGrounds(toSide(false, false))) };
       }
       const brandPath2 = placed2.groundPath;
       if (brandPath2 === void 0 || !colors) return { archetype: placed2.archetype, master: deckMaster, moved: "brand" };
@@ -110925,17 +111949,17 @@ function compileTheme(input, opts) {
 }
 function colourTargetOf(mapping, ground, tokens3, themed) {
   if (themed && mapping.locked === true && mapping.to) return mapping.to;
-  const resolve6 = (to, toPath) => toPath ? tokens3(toPath) ?? to : to;
+  const resolve7 = (to, toPath) => toPath ? tokens3(toPath) ?? to : to;
   const entries = mapping.byGround;
   if (ground && entries && Object.hasOwn(entries, ground)) {
     const entry2 = entries[ground];
-    return entry2 ? resolve6(entry2.to, entry2.toPath) : void 0;
+    return entry2 ? resolve7(entry2.to, entry2.toPath) : void 0;
   }
   if (mapping.unresolved) {
     const named = entries !== void 0 && Object.values(entries).some((entry2) => entry2 !== void 0 && !entry2.to && !entry2.toPath);
     if (!named) return void 0;
   }
-  return resolve6(mapping.to, mapping.toPath);
+  return resolve7(mapping.to, mapping.toPath);
 }
 function monoClassFamily(family2) {
   if (FONT_ALIASES[normaliseFamily(family2)] === "mono") return true;
@@ -110953,12 +111977,12 @@ function codeFamilies(plan, faces) {
     return normaliseFamily(family2) === monoKey || monoClassFamily(family2);
   };
 }
-function hasWords(object3) {
-  return (object3.text?.paras ?? []).some((para) => para.runs.some((run3) => run3.text.trim() !== ""));
+function hasWords(object4) {
+  return (object4.text?.paras ?? []).some((para) => para.runs.some((run3) => run3.text.trim() !== ""));
 }
-function isCodeObject(object3, isCode) {
+function isCodeObject(object4, isCode) {
   let worded = false;
-  for (const para of object3.text?.paras ?? []) {
+  for (const para of object4.text?.paras ?? []) {
     for (const run3 of para.runs) {
       if (!run3.text.trim()) continue;
       if (!isCode(run3.font)) return false;
@@ -111035,7 +112059,7 @@ function compileRenovated(input) {
   const layersOf = (build2) => [...build2.rows, ...build2.extras].flatMap((row) => swapped.get(row) ?? [row]);
   const hex6 = (value) => value.trim().toLowerCase().replace(/^#/, "").slice(0, 6);
   const objectSlide = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object3 of slide.objects) objectSlide.set(object3.id, slide.id);
+  for (const slide of source.slides) for (const object4 of slide.objects) objectSlide.set(object4.id, slide.id);
   const groundOfObject = (objectId) => {
     const slideId = objectSlide.get(objectId);
     return slideId === void 0 ? void 0 : slideGround2.get(slideId);
@@ -111112,105 +112136,105 @@ function compileRenovated(input) {
     const parts = [...[...slot.members].sort(byPour), ...[...slot.notes].sort(byReading)].filter((p) => (p.text ?? "").length > 0).map((p) => richOf(p));
     row.text = parts.join("\n");
   };
-  const wouldFit = (build2, slot, placement) => {
+  const wouldFit = (build2, slot, placement2) => {
     const row = build2.rows[slot.index];
     if (!row) return false;
-    const text7 = [...slot.members, ...slot.notes, placement].map((p) => p.text ?? "").filter((t) => t.length > 0).join("\n");
+    const text7 = [...slot.members, ...slot.notes, placement2].map((p) => p.text ?? "").filter((t) => t.length > 0).join("\n");
     const size = slot.kind === "image" ? master.typeScale.body : rowNum(row, "fontSize");
     return estimateTextHeight(text7, size, rowNum(row, "w")) <= rowNum(row, "h");
   };
-  const takeSlot2 = (build2, slot, placement) => {
+  const takeSlot2 = (build2, slot, placement2) => {
     const row = build2.rows[slot.index];
     if (!row) return [];
     const id2 = rowStr(row, "id");
-    if (placement.content !== "text" || placement.object.kind === "table" || placement.object.table !== void 0) slot.taken = true;
-    if (placement.content === "placeholder") {
+    if (placement2.content !== "text" || placement2.object.kind === "table" || placement2.object.table !== void 0) slot.taken = true;
+    if (placement2.content === "placeholder") {
       const labelId = `${id2}.label`;
-      const { box: box3, label: label2 } = authorPlaceholder(
+      const { box: box3, label: label3 } = authorPlaceholder(
         slotGeometry(row, id2, rowStr(row, "name")),
         slotGeometry(row, labelId, `${rowStr(row, "name")} note`),
-        placement.label ?? "Content could not be read",
+        placement2.label ?? "Content could not be read",
         style
       );
-      delete label2.role;
+      delete label3.role;
       build2.rows[slot.index] = box3;
-      build2.extras.push(label2);
+      build2.extras.push(label3);
       build2.placeholderLayerIds.push(id2, labelId);
       return [id2, labelId];
     }
-    if (placement.content === "image") {
+    if (placement2.content === "image") {
       if (slot.kind !== "image") {
-        rowAsImage(row, placement.image ?? "");
+        rowAsImage(row, placement2.image ?? "");
         slot.kind = "image";
       }
-      row.image = placement.image ?? "";
-      if (placement.object.alt) row.alt = placement.object.alt;
-      slot.picture = placement;
-      if (carriesItems(placement.object)) vectorSlot.set(row, placement);
+      row.image = placement2.image ?? "";
+      if (placement2.object.alt) row.alt = placement2.object.alt;
+      slot.picture = placement2;
+      if (carriesItems(placement2.object)) vectorSlot.set(row, placement2);
       return [id2];
     }
     if (slot.kind === "image") {
       rowAsText(row, masterOfSlide(build2.sourceSlideId), build2.archetype, ds.tokens);
       slot.kind = "text";
     }
-    slot.members.push(placement);
+    slot.members.push(placement2);
     writeSlotText(build2, slot);
     return [id2];
   };
-  const joinSlot = (build2, slot, placement, asNote) => {
+  const joinSlot = (build2, slot, placement2, asNote) => {
     const row = build2.rows[slot.index];
     if (!row) return [];
-    if (asNote) slot.notes.push(placement);
-    else slot.members.push(placement);
+    if (asNote) slot.notes.push(placement2);
+    else slot.members.push(placement2);
     writeSlotText(build2, slot);
     return [rowStr(row, "id")];
   };
-  const fillFurniture = (build2, index2, placement) => {
+  const fillFurniture = (build2, index2, placement2) => {
     if (index2 === void 0) return [];
     const row = build2.rows[index2];
     if (!row) return [];
-    if (index2 !== build2.pageNumberIndex) row.text = designTextFromPlain(placement.text ?? "");
+    if (index2 !== build2.pageNumberIndex) row.text = designTextFromPlain(placement2.text ?? "");
     return [rowStr(row, "id")];
   };
   const freeSlot = (build2, test) => build2.slots.find((slot) => !slot.taken && slot.members.length === 0 && slot.notes.length === 0 && test(slot));
-  const placeCompatible = (build2, placement, emptyOk) => {
-    const need = needOf(placement);
+  const placeCompatible = (build2, placement2, emptyOk) => {
+    const need = needOf(placement2);
     if (need === "image") {
-      const slot = freeSlot(build2, (s) => s.kind === "image") ?? (placement.content === "placeholder" ? freeSlot(build2, (s) => s.role === "data") : void 0) ?? (anyBoxPicture(build2, placement) ? freeBoxForPicture(build2) : void 0);
-      return slot ? takeSlot2(build2, slot, placement) : null;
+      const slot = freeSlot(build2, (s) => s.kind === "image") ?? (placement2.content === "placeholder" ? freeSlot(build2, (s) => s.role === "data") : void 0) ?? (anyBoxPicture(build2, placement2) ? freeBoxForPicture(build2) : void 0);
+      return slot ? takeSlot2(build2, slot, placement2) : null;
     }
     if (need === "data") {
       const slot = freeSlot(build2, (s) => s.role === "data");
-      if (slot) return takeSlot2(build2, slot, placement);
+      if (slot) return takeSlot2(build2, slot, placement2);
       if (!build2.continuation || build2.slots.some((s) => s.role === "data")) return null;
     }
-    if (placement.content === "placeholder") {
-      const slot = freeSlot(build2, (s) => s.role === "body" || s.role === placement.role);
-      return slot ? takeSlot2(build2, slot, placement) : null;
+    if (placement2.content === "placeholder") {
+      const slot = freeSlot(build2, (s) => s.role === "body" || s.role === placement2.role);
+      return slot ? takeSlot2(build2, slot, placement2) : null;
     }
-    const text7 = placement.text ?? "";
+    const text7 = placement2.text ?? "";
     const empty2 = freeSlot(build2, (s) => s.role === "body" && s.kind === "text");
-    if (empty2 && (emptyOk || wouldFit(build2, empty2, placement))) return takeSlot2(build2, empty2, placement);
+    if (empty2 && (emptyOk || wouldFit(build2, empty2, placement2))) return takeSlot2(build2, empty2, placement2);
     for (const slot of build2.slots) {
       const contentBox = slot.role === "body" || slot.role === "visual" || slot.role === "data";
       if (!contentBox || slot.kind !== "text" || slot.taken) continue;
       if (slot.members.length === 0 && slot.notes.length === 0) continue;
-      if (wouldFit(build2, slot, placement)) return joinSlot(build2, slot, placement, false);
+      if (wouldFit(build2, slot, placement2)) return joinSlot(build2, slot, placement2, false);
     }
     const number5 = isBigNumber(text7) ? freeSlot(build2, (s) => s.role === "number") : void 0;
-    if (number5) return takeSlot2(build2, number5, placement);
+    if (number5) return takeSlot2(build2, number5, placement2);
     const other = freeSlot(build2, (s) => s.kind === "text" && (s.role === "caption" || s.role === "subtitle" || s.role === "quote"));
-    if (other && (emptyOk || wouldFit(build2, other, placement))) return takeSlot2(build2, other, placement);
+    if (other && (emptyOk || wouldFit(build2, other, placement2))) return takeSlot2(build2, other, placement2);
     for (const slot of freeBoxesInReadingOrder(build2)) {
       if (slot.role === "title") continue;
-      if (emptyOk || wouldFit(build2, slot, placement)) return takeSlot2(build2, slot, placement);
+      if (emptyOk || wouldFit(build2, slot, placement2)) return takeSlot2(build2, slot, placement2);
     }
     return null;
   };
-  const anyBoxPicture = (build2, placement) => {
-    if (placement.content !== "image" || MARK_CLASSES.has(placement.entry.class)) return false;
+  const anyBoxPicture = (build2, placement2) => {
+    if (placement2.content !== "image" || MARK_CLASSES.has(placement2.entry.class)) return false;
     const slide = slideById.get(build2.sourceSlideId);
-    return !(slide && placement.outcome.action === "keep" && isIncidentalPicture(placement.entry.class, placement.object, slide));
+    return !(slide && placement2.outcome.action === "keep" && isIncidentalPicture(placement2.entry.class, placement2.object, slide));
   };
   const freeBoxesInReadingOrder = (build2) => build2.slots.filter((slot) => !slot.taken && slot.members.length === 0 && slot.notes.length === 0).map((slot) => ({ slot, row: build2.rows[slot.index] })).filter((one) => one.row !== void 0).sort((a, b) => rowNum(a.row, "y") - rowNum(b.row, "y") || rowNum(a.row, "x") - rowNum(b.row, "x")).map((one) => one.slot);
   const freeBoxForPicture = (build2) => {
@@ -111223,15 +112247,15 @@ function compileRenovated(input) {
     if (content2[0]) return content2[0];
     return free.find((slot) => area2(slot) >= frameW * frameH * PICTURE_BOX_MIN_SHARE2);
   };
-  const placeNote = (build2, placement) => {
-    const text7 = (placement.text ?? "").trim();
+  const placeNote = (build2, placement2) => {
+    const text7 = (placement2.text ?? "").trim();
     const footer = build2.footerIndex !== void 0 ? build2.rows[build2.footerIndex] : void 0;
     if (footer !== void 0 && text7.length > 0 && !text7.includes("\n") && footerHolds(plainOfDesignText(rowStr(footer, "text")), text7)) {
       return [rowStr(footer, "id")];
     }
-    if (FOOTER_CLASSES.has(placement.entry.class) && footer !== void 0 && !text7.includes("\n")) {
+    if (FOOTER_CLASSES.has(placement2.entry.class) && footer !== void 0 && !text7.includes("\n")) {
       const held = rowStr(footer, "text");
-      if (!held && footerFits(footer, text7)) return fillFurniture(build2, build2.footerIndex, placement);
+      if (!held && footerFits(footer, text7)) return fillFurniture(build2, build2.footerIndex, placement2);
       const joined = `${plainOfDesignText(held)}${FOOTER_JOIN}${text7}`;
       if (held && footerFits(footer, joined)) {
         footer.text = `${held}${FOOTER_JOIN}${designTextFromPlain(text7)}`;
@@ -111239,15 +112263,15 @@ function compileRenovated(input) {
       }
     }
     const labelled = freeSlot(build2, (s) => s.kind === "text" && (s.role === "caption" || s.role === "label"));
-    if (labelled) return takeSlot2(build2, labelled, placement);
+    if (labelled) return takeSlot2(build2, labelled, placement2);
     const body = build2.slots.filter((s) => s.role === "body" && s.kind === "text" && !s.taken);
     const last = body[body.length - 1];
-    if (last) return joinSlot(build2, last, placement, true);
+    if (last) return joinSlot(build2, last, placement2, true);
     const subtitle = freeSlot(build2, (s) => s.role === "subtitle" && s.kind === "text");
-    if (subtitle) return takeSlot2(build2, subtitle, placement);
+    if (subtitle) return takeSlot2(build2, subtitle, placement2);
     for (const role of ["caption", "attribution", "quote", "subtitle"]) {
       const filled2 = build2.slots.find((s) => s.role === role && s.kind === "text" && !s.taken && s.members.length + s.notes.length > 0);
-      if (filled2) return joinSlot(build2, filled2, placement, true);
+      if (filled2) return joinSlot(build2, filled2, placement2, true);
     }
     if (footer !== void 0 && !text7.includes("\n")) {
       const held = rowStr(footer, "text");
@@ -111257,24 +112281,24 @@ function compileRenovated(input) {
     }
     return null;
   };
-  const trayRow = (placement, slide, id2, ink) => {
+  const trayRow = (placement2, slide, id2, ink) => {
     const at = {
       ox: 0,
       oy: 0,
       sx: slide.width > 0 ? frameW / slide.width : 1,
       sy: slide.height > 0 ? frameH / slide.height : 1
     };
-    const row = { id: id2, ...placeBox(placement.object, at), name: placement.object.id };
-    if (placement.content === "image") {
+    const row = { id: id2, ...placeBox(placement2.object, at), name: placement2.object.id };
+    if (placement2.content === "image") {
       row.kind = "image";
-      row.image = placement.image ?? "";
+      row.image = placement2.image ?? "";
       row.fit = "contain";
-      if (placement.object.alt) row.alt = placement.object.alt;
+      if (placement2.object.alt) row.alt = placement2.object.alt;
       return row;
     }
-    if (placement.content === "placeholder") {
+    if (placement2.content === "placeholder") {
       row.kind = "text";
-      row.text = placement.label ?? "Content could not be read";
+      row.text = placement2.label ?? "Content could not be read";
       row.bg = style.fill;
       row.fg = style.ink;
       row.fontSize = 18;
@@ -111282,22 +112306,22 @@ function compileRenovated(input) {
       row.valign = "middle";
       return row;
     }
-    if (placement.content === "text") {
+    if (placement2.content === "text") {
       row.kind = "text";
-      row.text = richOf(placement);
-      const run3 = firstRun(placement.object);
+      row.text = richOf(placement2);
+      const run3 = firstRun(placement2.object);
       if (run3?.sizePt) row.fontSize = round22(run3.sizePt * PT_TO_PX * at.sy);
       if (ink) row.fg = ink;
       return row;
     }
     row.kind = "box";
-    if (placement.object.geom === "ellipse") row.shape = "ellipse";
-    if (placement.object.geom === "roundRect") row.shape = "rounded";
-    if (placement.object.fill?.hex) row.bg = placement.object.fill.hex;
-    if (placement.object.line?.color?.hex) row.stroke = placement.object.line.color.hex;
+    if (placement2.object.geom === "ellipse") row.shape = "ellipse";
+    if (placement2.object.geom === "roundRect") row.shape = "rounded";
+    if (placement2.object.fill?.hex) row.bg = placement2.object.fill.hex;
+    if (placement2.object.line?.color?.hex) row.stroke = placement2.object.line.color.hex;
     return row;
   };
-  const gridEligible = (placement, slide) => placement.content === "image" && placement.surplus !== "tray" && !carriesItems(placement.object) && !MARK_CLASSES.has(placement.entry.class) && !(placement.outcome.action === "keep" && isIncidentalPicture(placement.entry.class, placement.object, slide));
+  const gridEligible = (placement2, slide) => placement2.content === "image" && placement2.surplus !== "tray" && !carriesItems(placement2.object) && !MARK_CLASSES.has(placement2.entry.class) && !(placement2.outcome.action === "keep" && isIncidentalPicture(placement2.entry.class, placement2.object, slide));
   const gridSlotOf = (build2, slide) => build2.slots.find((slot) => {
     if (slot.kind !== "image" || !slot.picture || !gridEligible(slot.picture, slide)) return false;
     const row = build2.rows[slot.index];
@@ -111313,7 +112337,7 @@ function compileRenovated(input) {
     const aspects = ordered.map((p) => p.object.box.h > 0 ? p.object.box.w / p.object.box.h : 1);
     const cells = pictureGrid(box3, aspects, Math.round(frameW * GRID_GUTTER_SHARE));
     if (cells.length !== ordered.length) return out;
-    ordered.forEach((placement, k) => {
+    ordered.forEach((placement2, k) => {
       const cell = cells[k];
       if (!cell) return;
       let target = row;
@@ -111329,20 +112353,20 @@ function compileRenovated(input) {
       target.y = cell.y;
       target.w = cell.w;
       target.h = cell.h;
-      target.image = placement.image ?? "";
+      target.image = placement2.image ?? "";
       target.fit = "contain";
       delete target.alt;
-      if (placement.object.alt) target.alt = placement.object.alt;
-      out.set(placement.object.id, rowStr(target, "id"));
+      if (placement2.object.alt) target.alt = placement2.object.alt;
+      out.set(placement2.object.id, rowStr(target, "id"));
     });
     slot.taken = true;
     const first = ordered[0];
     if (first) slot.picture = first;
     return out;
   };
-  const headingSplit = (placement) => {
-    const paras = placement.object.kind === "text" ? placement.object.text?.paras ?? [] : [];
-    if (placement.content !== "text" || placement.corrected || paras.length < 2) return void 0;
+  const headingSplit = (placement2) => {
+    const paras = placement2.object.kind === "text" ? placement2.object.text?.paras ?? [] : [];
+    if (placement2.content !== "text" || placement2.corrected || paras.length < 2) return void 0;
     const [first, ...others] = paras;
     if (!first) return void 0;
     const words2 = (list2) => list2.map((para) => para.runs.map((run3) => run3.text).join("")).join("\n").trim();
@@ -111353,14 +112377,14 @@ function compileRenovated(input) {
     const bold = (list2) => list2.every((para) => para.runs.every((run3) => run3.bold === true || run3.text.trim() === ""));
     const larger = size(others) > 0 && size([first]) >= size(others) * HEADING_SIZE_RATIO;
     const heavier = bold([first]) && !bold(others);
-    const probe = { ...placement, text: headText };
+    const probe = { ...placement2, text: headText };
     if (!isLabelText(probe) || !(larger || heavier)) return void 0;
-    const rich = (list2) => designTextOf(list2, { carryColour: false, masterSetsType: true, mapColour: (hex3) => mappedColour(placement.object.id, hex3) }).text;
+    const rich = (list2) => designTextOf(list2, { carryColour: false, masterSetsType: true, mapColour: (hex3) => mappedColour(placement2.object.id, hex3) }).text;
     const heading = { runs: first.runs };
     if (first.align) heading.align = first.align;
     return {
-      head: { ...placement, text: headText, rich: rich([heading]) },
-      rest: { ...placement, text: restText, rich: rich(others) }
+      head: { ...placement2, text: headText, rich: rich([heading]) },
+      rest: { ...placement2, text: restText, rich: rich(others) }
     };
   };
   const pourCallout = (build2, slide, roled, assigned) => {
@@ -111375,9 +112399,9 @@ function compileRenovated(input) {
     const callouts = [...holders.entries()].filter(([id2, members2]) => members2.length < texts.length && textOnly3(id2));
     if (callouts.length !== 1) return placed2;
     const members = [...callouts[0]?.[1] ?? []].sort((a, b) => a.reading - b.reading);
-    const label2 = cell.find((slot) => slot.role === "label");
+    const label3 = cell.find((slot) => slot.role === "label");
     members.forEach((member, k) => {
-      const ids2 = k === 0 && label2 && members.length > 1 && isLabelText(member) ? takeSlot2(build2, label2, member) : body.members.length === 0 ? takeSlot2(build2, body, member) : joinSlot(build2, body, member, false);
+      const ids2 = k === 0 && label3 && members.length > 1 && isLabelText(member) ? takeSlot2(build2, label3, member) : body.members.length === 0 ? takeSlot2(build2, body, member) : joinSlot(build2, body, member, false);
       assigned.set(member.object.id, ids2);
       placed2.add(member);
     });
@@ -111432,11 +112456,11 @@ function compileRenovated(input) {
         if (member.content === "image" || member.content === "placeholder" && needOf(member) === "image") {
           slot = find((s) => s.kind === "image") ?? find((s) => s.role === "body");
         } else {
-          const label2 = find((s) => s.role === "label" && s.kind === "text");
-          const body = label2 ? find((s) => s.role === "body" && s.kind === "text") : void 0;
-          const parts = label2 && body ? headingSplit(member) : void 0;
-          if (label2 && body && parts) {
-            placed2.set(member.object.id, [...takeSlot2(build2, label2, parts.head), ...takeSlot2(build2, body, parts.rest)]);
+          const label3 = find((s) => s.role === "label" && s.kind === "text");
+          const body = label3 ? find((s) => s.role === "body" && s.kind === "text") : void 0;
+          const parts = label3 && body ? headingSplit(member) : void 0;
+          if (label3 && body && parts) {
+            placed2.set(member.object.id, [...takeSlot2(build2, label3, parts.head), ...takeSlot2(build2, body, parts.rest)]);
             return;
           }
           const textAfter = unit2.members.slice(m2 + 1).some((next) => next.content === "text");
@@ -111542,21 +112566,21 @@ function compileRenovated(input) {
       const pictureId = `${frameId}.picture`;
       content2.push({ id: pictureId, kind: "image", ...area2, frame: frameId, name: `Slide ${slide.index + 1} picture`, image: recovery, fit: "contain" });
       asItWas.add(pictureId);
-      for (const object3 of slide.objects) {
-        objectIds.push(object3.id);
-        made.set(object3.id, [pictureId]);
-        const klass = censusClass.get(object3.id) ?? slidePlan.objects.find((row) => row.id === object3.id)?.class ?? "unknown";
+      for (const object4 of slide.objects) {
+        objectIds.push(object4.id);
+        made.set(object4.id, [pictureId]);
+        const klass = censusClass.get(object4.id) ?? slidePlan.objects.find((row) => row.id === object4.id)?.class ?? "unknown";
         addEntry(report2, {
           code: "object.transformed",
-          message: `The ${nounFor(klass, object3.kind)} on slide ${slide.index + 1} stays part of the slide picture.`,
+          message: `The ${nounFor(klass, object4.kind)} on slide ${slide.index + 1} stays part of the slide picture.`,
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           layerId: pictureId,
           disposition: "transformed",
           class: klass,
           reason: "kept-as-picture"
         });
-        forward.push({ sourceObjectId: object3.id, layerIds: [pictureId] });
+        forward.push({ sourceObjectId: object4.id, layerIds: [pictureId] });
       }
     } else {
       const alone = compileFaithful(
@@ -111588,7 +112612,7 @@ function compileRenovated(input) {
         if (entry2.objectId === void 0) continue;
         addEntry(report2, { ...entry2, slideId: slide.id });
       }
-      for (const object3 of slide.objects) objectIds.push(object3.id);
+      for (const object4 of slide.objects) objectIds.push(object4.id);
       for (const link of alone.lineage.forward) {
         made.set(link.sourceObjectId, [...link.layerIds]);
         forward.push({ sourceObjectId: link.sourceObjectId, layerIds: [...link.layerIds] });
@@ -111611,33 +112635,33 @@ function compileRenovated(input) {
     const derivedOf = /* @__PURE__ */ new Map();
     const content2 = [];
     let vectorRows = 0;
-    const base = (object3, id2) => ({ id: id2, ...placeBox(object3, at), frame: frameId, name: object3.id });
+    const base = (object4, id2) => ({ id: id2, ...placeBox(object4, at), frame: frameId, name: object4.id });
     const mapHex = (objectId, hex3) => hex3 ? mappedColour(objectId, hex3) ?? hex3 : void 0;
-    for (const object3 of slide.objects) {
-      objectIds.push(object3.id);
-      const listed = entries.get(object3.id);
+    for (const object4 of slide.objects) {
+      objectIds.push(object4.id);
+      const listed = entries.get(object4.id);
       const entry2 = listed ?? {
-        id: object3.id,
-        class: censusClass.get(object3.id) ?? "unknown",
+        id: object4.id,
+        class: censusClass.get(object4.id) ?? "unknown",
         evidence: [],
         proposal: "keep",
         review: "unreviewed"
       };
-      const placement = describePlacement(object3, entry2, outcomeOf(entry2, applyUnreviewed, applyNeedsAttention), slide.index + 1);
-      const layerId = `${prefix}.${slug3(object3.id)}`;
+      const placement2 = describePlacement(object4, entry2, outcomeOf(entry2, applyUnreviewed, applyNeedsAttention), slide.index + 1);
+      const layerId = `${prefix}.${slug3(object4.id)}`;
       const produced = [];
-      let code = placement.code;
-      let message = placement.message;
-      let disposition = placement.disposition;
-      if (placement.content === "brand-logo" && build2.logoLayerId) {
+      let code = placement2.code;
+      let message = placement2.message;
+      let disposition = placement2.disposition;
+      if (placement2.content === "brand-logo" && build2.logoLayerId) {
         produced.push(build2.logoLayerId);
-      } else if (placement.content === "brand-logo") {
+      } else if (placement2.content === "brand-logo") {
         code = "object.removed";
         disposition = "removed";
         message = `The mark on slide ${slide.index + 1} was to be replaced by the design system's own, and this slide shows no logo, so the source mark did not travel.`;
-      } else if (placement.content === "none") {
-      } else if (carriesItems(object3) && object3.vectorItems && (placement.content === "image" || placement.content === "shape")) {
-        const rows2 = vectorItemsToRows(object3.vectorItems, placeBox(object3, at), { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
+      } else if (placement2.content === "none") {
+      } else if (carriesItems(object4) && object4.vectorItems && (placement2.content === "image" || placement2.content === "shape")) {
+        const rows2 = vectorItemsToRows(object4.vectorItems, placeBox(object4, at), { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
         const chars = "rows" in rows2 ? vectorRowsPathChars(rows2.rows) : 0;
         const frameRoom = "rows" in rows2 && vectorRows + rows2.rows.length <= MAX_VECTOR_ROWS_PER_FRAME;
         const documentRoom = vectorPathChars + chars <= DOCUMENT_PATH_CHARS;
@@ -111649,66 +112673,66 @@ function compileRenovated(input) {
             produced.push(rowId(row));
             vectorRowIds.add(rowId(row));
           }
-          vectorMade.set(object3.id, rows2.rows.length);
+          vectorMade.set(object4.id, rows2.rows.length);
           code = "object.transformed";
           disposition = "transformed";
-          message = vectorCarriedMessage(nounFor(entry2.class, object3.kind), slide.index + 1, rows2.rows.length, object3.vectorItems.desc);
+          message = vectorCarriedMessage(nounFor(entry2.class, object4.kind), slide.index + 1, rows2.rows.length, object4.vectorItems.desc);
         } else {
           const why = "rows" in rows2 ? frameRoom ? "document-cap" : "frame-cap" : rows2.refused === "cap-reached" ? "cap-reached" : "not-read";
-          const image = object3.media ?? object3.fidelity.fallbackAssetRef;
+          const image = object4.media ?? object4.fidelity.fallbackAssetRef;
           if (image) {
-            content2.push({ ...base(object3, layerId), kind: "image", image, fit: "fill" });
+            content2.push({ ...base(object4, layerId), kind: "image", image, fit: "fill" });
             produced.push(layerId);
           }
-          if (object3.kind === "vector") {
+          if (object4.kind === "vector") {
             addEntry(report2, {
               code: "vector.kept-as-picture",
-              message: vectorKeptMessage(nounFor(entry2.class, object3.kind), slide.index + 1, why),
+              message: vectorKeptMessage(nounFor(entry2.class, object4.kind), slide.index + 1, why),
               slideId: slide.id,
-              objectId: object3.id,
+              objectId: object4.id,
               layerId,
               reason: why
             });
           }
         }
-      } else if (placement.content === "placeholder") {
+      } else if (placement2.content === "placeholder") {
         const labelId = `${layerId}.label`;
-        const { box: box3, label: label2 } = authorPlaceholder(base(object3, layerId), base(object3, labelId), placement.label ?? `${kindLabel(object3.kind)} could not be read`, style);
-        content2.push(box3, label2);
+        const { box: box3, label: label3 } = authorPlaceholder(base(object4, layerId), base(object4, labelId), placement2.label ?? `${kindLabel(object4.kind)} could not be read`, style);
+        content2.push(box3, label3);
         produced.push(layerId, labelId);
         build2.placeholderLayerIds.push(layerId, labelId);
         derivedOf.set(layerId, "placeholder");
         derivedOf.set(labelId, "placeholder");
-      } else if (placement.content === "image") {
-        const row = { ...base(object3, layerId), kind: "image", image: placement.image ?? "", fit: placement.outcome.action === "replace" ? "contain" : "fill" };
-        if (object3.alt) row.alt = object3.alt;
+      } else if (placement2.content === "image") {
+        const row = { ...base(object4, layerId), kind: "image", image: placement2.image ?? "", fit: placement2.outcome.action === "replace" ? "contain" : "fill" };
+        if (object4.alt) row.alt = object4.alt;
         content2.push(row);
         produced.push(layerId);
-      } else if (placement.content === "text") {
-        const row = { ...base(object3, layerId), kind: "text", weight: 400 };
-        const paras = object3.kind === "text" && !placement.corrected ? object3.text?.paras : void 0;
+      } else if (placement2.content === "text") {
+        const row = { ...base(object4, layerId), kind: "text", weight: 400 };
+        const paras = object4.kind === "text" && !placement2.corrected ? object4.text?.paras : void 0;
         if (paras) {
-          const rich = designTextOf(paras, { carryColour: true, mapColour: (hex3) => mappedColour(object3.id, hex3) });
+          const rich = designTextOf(paras, { carryColour: true, mapColour: (hex3) => mappedColour(object4.id, hex3) });
           row.text = rich.text;
-          const fg = mapHex(object3.id, rich.baseColour);
+          const fg = mapHex(object4.id, rich.baseColour);
           if (fg) row.fg = fg;
           if (rich.align && rich.align !== "justify") row.align = rich.align;
-          if (rich.dropped.length > 0) placement.dropped = rich.dropped;
+          if (rich.dropped.length > 0) placement2.dropped = rich.dropped;
         } else {
-          row.text = richOf(placement);
+          row.text = richOf(placement2);
         }
-        const run3 = firstRun(object3);
+        const run3 = firstRun(object4);
         if (run3?.sizePt) row.fontSize = round22(run3.sizePt * PT_TO_PX * at.sy);
-        if (object3.fill?.hex) row.bg = object3.fill.hex;
+        if (object4.fill?.hex) row.bg = object4.fill.hex;
         content2.push(row);
         produced.push(layerId);
       } else {
-        const row = { ...base(object3, layerId), kind: "box" };
-        if (object3.geom === "ellipse") row.shape = "ellipse";
-        if (object3.geom === "roundRect") row.shape = "rounded";
-        if (object3.fill?.hex) row.bg = object3.fill.hex;
-        if (object3.line?.color?.hex) row.stroke = object3.line.color.hex;
-        if (object3.line?.widthPt) row.strokeW = round22(object3.line.widthPt * PT_TO_PX * at.sy);
+        const row = { ...base(object4, layerId), kind: "box" };
+        if (object4.geom === "ellipse") row.shape = "ellipse";
+        if (object4.geom === "roundRect") row.shape = "rounded";
+        if (object4.fill?.hex) row.bg = object4.fill.hex;
+        if (object4.line?.color?.hex) row.stroke = object4.line.color.hex;
+        if (object4.line?.widthPt) row.strokeW = round22(object4.line.widthPt * PT_TO_PX * at.sy);
         content2.push(row);
         produced.push(layerId);
       }
@@ -111716,63 +112740,63 @@ function compileRenovated(input) {
         code,
         message,
         slideId: slide.id,
-        objectId: object3.id,
+        objectId: object4.id,
         ...produced[0] ? { layerId: produced[0] } : {},
         disposition,
         class: entry2.class,
-        action: placement.outcome.action,
+        action: placement2.outcome.action,
         ...entry2.author ? { author: entry2.author } : {},
         review: entry2.review,
-        ...placement.fidelity ? { fidelity: placement.fidelity } : {},
-        ...placement.reason ? { reason: placement.reason } : {}
+        ...placement2.fidelity ? { fidelity: placement2.fidelity } : {},
+        ...placement2.reason ? { reason: placement2.reason } : {}
       });
-      if (code === "object.transformed" && vectorMade.has(object3.id) && object3.vectorItems?.omitted?.length) {
+      if (code === "object.transformed" && vectorMade.has(object4.id) && object4.vectorItems?.omitted?.length) {
         addEntry(report2, {
           code: "vector.items-omitted",
-          message: vectorOmittedMessage(nounFor(entry2.class, object3.kind), slide.index + 1, object3.vectorItems.omitted),
+          message: vectorOmittedMessage(nounFor(entry2.class, object4.kind), slide.index + 1, object4.vectorItems.omitted),
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           ...produced[0] ? { layerId: produced[0] } : {},
-          reason: object3.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
+          reason: object4.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
         });
       }
-      if (placement.dropped && placement.dropped.length > 0 && produced[0]) {
+      if (placement2.dropped && placement2.dropped.length > 0 && produced[0]) {
         addEntry(report2, {
           code: "text.formatting-not-carried",
-          message: formattingNotCarried(slide.index + 1, placement.dropped),
+          message: formattingNotCarried(slide.index + 1, placement2.dropped),
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           layerId: produced[0],
-          reason: placement.dropped.join(",")
+          reason: placement2.dropped.join(",")
         });
       }
-      if (placement.corrected && produced[0]) {
+      if (placement2.corrected && produced[0]) {
         addEntry(report2, {
           code: "text.corrected",
-          message: `The ${nounFor(entry2.class, object3.kind)} on slide ${slide.index + 1} carries the text as it was corrected, in place of the text that was read.`,
+          message: `The ${nounFor(entry2.class, object4.kind)} on slide ${slide.index + 1} carries the text as it was corrected, in place of the text that was read.`,
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           layerId: produced[0],
           ...entry2.author ? { author: entry2.author } : {}
         });
       }
       if (disposition === "unresolved" && produced[0]) {
-        addEntry(report2, { code: "object.placeholder-authored", slideId: slide.id, objectId: object3.id, layerId: produced[0] });
+        addEntry(report2, { code: "object.placeholder-authored", slideId: slide.id, objectId: object4.id, layerId: produced[0] });
       }
-      if (placement.outcome.appliedUnreviewed) {
+      if (placement2.outcome.appliedUnreviewed) {
         addEntry(report2, {
           code: "review.applied-unreviewed",
           slideId: slide.id,
-          objectId: object3.id,
-          action: placement.outcome.action,
+          objectId: object4.id,
+          action: placement2.outcome.action,
           review: entry2.review,
           ...entry2.author ? { author: entry2.author } : {}
         });
       }
       if (produced.length > 0) {
-        made.set(object3.id, produced);
-        forward.push({ sourceObjectId: object3.id, layerIds: [...produced] });
-        producedBy.set(object3.id, [...producedBy.get(object3.id) ?? [], ...produced]);
+        made.set(object4.id, produced);
+        forward.push({ sourceObjectId: object4.id, layerIds: [...produced] });
+        producedBy.set(object4.id, [...producedBy.get(object4.id) ?? [], ...produced]);
       }
     }
     settleArranged(build2, content2);
@@ -111802,15 +112826,15 @@ function compileRenovated(input) {
         message: `Slide ${slide.index + 1} was left out of the renovated deck, as the plan asked.`,
         slideId: slide.id
       });
-      for (const object3 of slide.objects) {
-        objectIds.push(object3.id);
+      for (const object4 of slide.objects) {
+        objectIds.push(object4.id);
         addEntry(report2, {
           code: "object.removed",
-          message: `The ${nounFor(censusClass.get(object3.id) ?? "unknown", object3.kind)} on slide ${slide.index + 1} was left out with its slide.`,
+          message: `The ${nounFor(censusClass.get(object4.id) ?? "unknown", object4.kind)} on slide ${slide.index + 1} was left out with its slide.`,
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           disposition: "removed",
-          class: censusClass.get(object3.id) ?? "unknown",
+          class: censusClass.get(object4.id) ?? "unknown",
           reason: "slide-excluded"
         });
       }
@@ -111840,23 +112864,23 @@ function compileRenovated(input) {
       if (slide.notes) frameRow.notes = slide.notes;
       if (slide.transition?.kind) frameRow.slideTransition = slide.transition.kind;
     }
-    const placements = slide.objects.map((object3, index2) => {
-      objectIds.push(object3.id);
-      const listed = entries.get(object3.id);
+    const placements = slide.objects.map((object4, index2) => {
+      objectIds.push(object4.id);
+      const listed = entries.get(object4.id);
       const entry2 = listed ?? {
-        id: object3.id,
-        class: censusClass.get(object3.id) ?? "unknown",
+        id: object4.id,
+        class: censusClass.get(object4.id) ?? "unknown",
         evidence: [],
         proposal: "keep",
         review: "unreviewed"
       };
-      const placement = describePlacement(
-        object3,
+      const placement2 = describePlacement(
+        object4,
         entry2,
         outcomeOf(entry2, applyUnreviewed, applyNeedsAttention),
         slide.index + 1
       );
-      return { ...placement, reading: object3.readingIndex ?? index2, listed: listed !== void 0 };
+      return { ...placement2, reading: object4.readingIndex ?? index2, listed: listed !== void 0 };
     });
     if (build2.cells.length >= 2 && build2.cells.some((cell) => cell.slots.some((slot) => slot.role === "number"))) {
       keepRowMarkers(placements, pourModeOf(build2), slide.index + 1);
@@ -111870,12 +112894,12 @@ function compileRenovated(input) {
     const roled = [];
     const shapes3 = [];
     const pageNumbers = [];
-    for (const placement of placements) {
-      if (placement.content === "none" || placement.content === "brand-logo") continue;
-      if (placement.content === "shape") shapes3.push(placement);
-      else if (placement.content === "text" && isSourcePageNumber(placement) && build2.pageNumberIndex !== void 0) pageNumbers.push(placement);
-      else if (isNote(placement)) notes.push(placement);
-      else roled.push(placement);
+    for (const placement2 of placements) {
+      if (placement2.content === "none" || placement2.content === "brand-logo") continue;
+      if (placement2.content === "shape") shapes3.push(placement2);
+      else if (placement2.content === "text" && isSourcePageNumber(placement2) && build2.pageNumberIndex !== void 0) pageNumbers.push(placement2);
+      else if (isNote(placement2)) notes.push(placement2);
+      else roled.push(placement2);
     }
     const grouped = build2.cells.length >= 2;
     const bodyTexts = roled.filter((p) => p.content === "text" && p.role === "body");
@@ -111893,10 +112917,10 @@ function compileRenovated(input) {
     const pictures = roled.filter((p) => !consumed.has(p) && needOf(p) === "image").sort((a, b) => authority(a, a.role) - authority(b, b.role) || b.object.box.w * b.object.box.h - a.object.box.w * a.object.box.h || byReading(a, b));
     let words2 = roled.filter((p) => !consumed.has(p) && needOf(p) !== "image").sort((a, b) => compareRole(a.role, b.role) || authority(a, a.role) - authority(b, b.role) || byReading(a, b));
     let leftovers = [];
-    for (const placement of pictures) {
-      const slot = freeSlot(build2, (s) => outsideCells(s) && s.kind === "image" && s.role === placement.role) ?? freeSlot(build2, (s) => outsideCells(s) && s.kind === "image");
-      if (slot) assigned.set(placement.object.id, takeSlot2(build2, slot, placement));
-      else leftovers.push(placement);
+    for (const placement2 of pictures) {
+      const slot = freeSlot(build2, (s) => outsideCells(s) && s.kind === "image" && s.role === placement2.role) ?? freeSlot(build2, (s) => outsideCells(s) && s.kind === "image");
+      if (slot) assigned.set(placement2.object.id, takeSlot2(build2, slot, placement2));
+      else leftovers.push(placement2);
     }
     const peers = grouped ? [] : build2.slots.filter((slot) => slot.role === "body" && slot.kind === "text" && slot.group === void 0 && !slot.taken && slot.members.length === 0);
     const bodyWords = words2.filter((p) => p.content === "text" && p.role === "body" && p.object.kind !== "table" && p.object.table === void 0);
@@ -111905,11 +112929,11 @@ function compileRenovated(input) {
       words2 = words2.filter((p) => !distributed.has(p));
       leftovers.push(...distributeToPeers(build2, peers, bodyWords, assigned));
     }
-    for (const placement of words2) {
-      const role = placement.role;
-      const slot = role ? freeSlot(build2, (s) => outsideCells(s) && s.role === role && (placement.content === "placeholder" || s.kind === "text")) : void 0;
-      if (slot) assigned.set(placement.object.id, takeSlot2(build2, slot, placement));
-      else leftovers.push(placement);
+    for (const placement2 of words2) {
+      const role = placement2.role;
+      const slot = role ? freeSlot(build2, (s) => outsideCells(s) && s.role === role && (placement2.content === "placeholder" || s.kind === "text")) : void 0;
+      if (slot) assigned.set(placement2.object.id, takeSlot2(build2, slot, placement2));
+      else leftovers.push(placement2);
     }
     let pourLeft = [];
     let pouredUnits = 0;
@@ -111934,41 +112958,41 @@ function compileRenovated(input) {
       pourLeft = poured.left;
     }
     const later = [];
-    for (const placement of leftovers.sort(byReading)) {
-      const produced = placeCompatible(build2, placement, false);
+    for (const placement2 of leftovers.sort(byReading)) {
+      const produced = placeCompatible(build2, placement2, false);
       if (produced) {
-        assigned.set(placement.object.id, produced);
-        placedHow.set(placement.object.id, "joined");
+        assigned.set(placement2.object.id, produced);
+        placedHow.set(placement2.object.id, "joined");
       } else {
-        later.push(placement);
+        later.push(placement2);
       }
     }
-    for (const placement of pageNumbers) {
-      assigned.set(placement.object.id, fillFurniture(build2, build2.pageNumberIndex, placement));
-      placedHow.set(placement.object.id, "page-number");
+    for (const placement2 of pageNumbers) {
+      assigned.set(placement2.object.id, fillFurniture(build2, build2.pageNumberIndex, placement2));
+      placedHow.set(placement2.object.id, "page-number");
     }
-    for (const placement of notes.sort(byReading)) {
-      const produced = placeNote(build2, placement);
+    for (const placement2 of notes.sort(byReading)) {
+      const produced = placeNote(build2, placement2);
       if (produced) {
-        assigned.set(placement.object.id, produced);
-        placedHow.set(placement.object.id, "note");
+        assigned.set(placement2.object.id, produced);
+        placedHow.set(placement2.object.id, "note");
       } else {
-        later.push(placement);
+        later.push(placement2);
       }
     }
     const trayReasons = /* @__PURE__ */ new Map();
-    for (const placement of shapes3) trayReasons.set(placement.object.id, "no-role-in-master");
+    for (const placement2 of shapes3) trayReasons.set(placement2.object.id, "no-role-in-master");
     const surplusWords = [];
     const surplusPictures = [];
     const gridPictures = [];
-    for (const placement of later.sort(byReading)) {
-      if (placement.surplus === "tray") trayReasons.set(placement.object.id, "plan-asked");
-      else if (MARK_CLASSES.has(placement.entry.class)) trayReasons.set(placement.object.id, "mark-without-slot");
-      else if (needOf(placement) === "image" && placement.outcome.action === "keep" && isIncidentalPicture(placement.entry.class, placement.object, slide)) {
-        trayReasons.set(placement.object.id, "small-pictures");
-      } else if (needOf(placement) === "image" && gridEligible(placement, slide)) gridPictures.push(placement);
-      else if (needOf(placement) === "image") surplusPictures.push(placement);
-      else surplusWords.push(placement);
+    for (const placement2 of later.sort(byReading)) {
+      if (placement2.surplus === "tray") trayReasons.set(placement2.object.id, "plan-asked");
+      else if (MARK_CLASSES.has(placement2.entry.class)) trayReasons.set(placement2.object.id, "mark-without-slot");
+      else if (needOf(placement2) === "image" && placement2.outcome.action === "keep" && isIncidentalPicture(placement2.entry.class, placement2.object, slide)) {
+        trayReasons.set(placement2.object.id, "small-pictures");
+      } else if (needOf(placement2) === "image" && gridEligible(placement2, slide)) gridPictures.push(placement2);
+      else if (needOf(placement2) === "image") surplusPictures.push(placement2);
+      else surplusWords.push(placement2);
     }
     let gridQueue = gridPictures;
     const ownGrid = gridSlotOf(build2, slide);
@@ -112042,11 +113066,11 @@ function compileRenovated(input) {
         for (const [objectId, ids2] of poured.placed) {
           assigned.set(objectId, ids2);
           placedHow.set(objectId, "continuation");
-          const placement = placements.find((p) => p.object.id === objectId);
-          if (!placement) continue;
+          const placement2 = placements.find((p) => p.object.id === objectId);
+          if (!placement2) continue;
           addEntry(report2, {
             code: "object.surplus-continuation",
-            message: `The ${nounFor(placement.entry.class, placement.object.kind)} on slide ${slide.index + 1} fit no box on its own slide, so it moved to continuation slide ${added} of slide ${slide.index + 1}.`,
+            message: `The ${nounFor(placement2.entry.class, placement2.object.kind)} on slide ${slide.index + 1} fit no box on its own slide, so it moved to continuation slide ${added} of slide ${slide.index + 1}.`,
             slideId: slide.id,
             objectId,
             ...ids2[0] ? { layerId: ids2[0] } : {}
@@ -112085,16 +113109,16 @@ function compileRenovated(input) {
       const placedHere = [];
       const repeats2 = repeatOnto(extra);
       let left = [];
-      for (const placement of queue2) {
-        const emptyOk = placement === first;
-        const produced = isNote(placement) ? placedHere.length > 0 || emptyOk ? placeNote(extra, placement) : null : placeCompatible(extra, placement, emptyOk);
+      for (const placement2 of queue2) {
+        const emptyOk = placement2 === first;
+        const produced = isNote(placement2) ? placedHere.length > 0 || emptyOk ? placeNote(extra, placement2) : null : placeCompatible(extra, placement2, emptyOk);
         if (!produced) {
-          left.push(placement);
+          left.push(placement2);
           continue;
         }
-        assigned.set(placement.object.id, produced);
-        placedHow.set(placement.object.id, "continuation");
-        placedHere.push({ placement, layerId: produced[0] ?? extra.frameId });
+        assigned.set(placement2.object.id, produced);
+        placedHow.set(placement2.object.id, "continuation");
+        placedHere.push({ placement: placement2, layerId: produced[0] ?? extra.frameId });
       }
       const extraGrid = gridSlotOf(extra, slide);
       if (extraGrid?.picture && gridIds.has(extraGrid.picture.object.id)) {
@@ -112135,42 +113159,42 @@ function compileRenovated(input) {
         slideId: slide.id,
         layerId: extra.frameId
       });
-      for (const { placement, layerId } of placedHere) {
+      for (const { placement: placement2, layerId } of placedHere) {
         addEntry(report2, {
           code: "object.surplus-continuation",
-          message: `The ${nounFor(placement.entry.class, placement.object.kind)} on slide ${slide.index + 1} fit no slot on its own slide, so it moved to continuation slide ${added} of slide ${slide.index + 1}.`,
+          message: `The ${nounFor(placement2.entry.class, placement2.object.kind)} on slide ${slide.index + 1} fit no slot on its own slide, so it moved to continuation slide ${added} of slide ${slide.index + 1}.`,
           slideId: slide.id,
-          objectId: placement.object.id,
+          objectId: placement2.object.id,
           layerId
         });
       }
       queue2 = left;
     }
-    for (const item of builds) {
-      if (item.sourceSlideId !== slide.id) continue;
+    for (const item2 of builds) {
+      if (item2.sourceSlideId !== slide.id) continue;
       let onFrame = 0;
-      for (const row of [...item.rows, ...item.extras]) {
-        const placement = vectorSlot.get(row);
-        const items2 = placement?.object.vectorItems;
-        if (!placement || !items2) continue;
-        const object3 = placement.object;
-        const base = `${prefix}.${slug3(object3.id)}`;
+      for (const row of [...item2.rows, ...item2.extras]) {
+        const placement2 = vectorSlot.get(row);
+        const items2 = placement2?.object.vectorItems;
+        if (!placement2 || !items2) continue;
+        const object4 = placement2.object;
+        const base = `${prefix}.${slug3(object4.id)}`;
         const made = vectorItemsToRows(
           items2,
           { x: rowNum(row, "x"), y: rowNum(row, "y"), w: rowNum(row, "w"), h: rowNum(row, "h") },
-          { idPrefix: base, group: vectorGroupOf(base), frame: rowStr(row, "frame") || item.frameId, fit: "contain" }
+          { idPrefix: base, group: vectorGroupOf(base), frame: rowStr(row, "frame") || item2.frameId, fit: "contain" }
         );
         if (!("rows" in made)) {
-          vectorKept.set(object3.id, made.refused === "cap-reached" ? "cap-reached" : "not-read");
+          vectorKept.set(object4.id, made.refused === "cap-reached" ? "cap-reached" : "not-read");
           continue;
         }
         if (onFrame + made.rows.length > MAX_VECTOR_ROWS_PER_FRAME) {
-          vectorKept.set(object3.id, "frame-cap");
+          vectorKept.set(object4.id, "frame-cap");
           continue;
         }
         const chars = vectorRowsPathChars(made.rows);
         if (vectorPathChars + chars > DOCUMENT_PATH_CHARS) {
-          vectorKept.set(object3.id, "document-cap");
+          vectorKept.set(object4.id, "document-cap");
           continue;
         }
         vectorPathChars += chars;
@@ -112181,240 +113205,240 @@ function compileRenovated(input) {
           vectorRowIds.add(rowId(one));
         }
         swapped.set(row, made.rows);
-        assigned.set(object3.id, made.rows.map(rowId));
-        vectorMade.set(object3.id, made.rows.length);
+        assigned.set(object4.id, made.rows.map(rowId));
+        vectorMade.set(object4.id, made.rows.length);
       }
     }
     const ink = archetypeInk(masterOfSlide(build2.sourceSlideId), build2.archetype, ds.tokens);
     const trayed = placements.filter((p) => trayReasons.has(p.object.id)).sort(byReading);
-    for (const placement of trayed) {
-      const id2 = `${prefix}.${slug3(placement.object.id)}`;
-      tray.push({ sourceObjectId: placement.object.id, layer: trayRow(placement, slide, id2, ink) });
-      assigned.set(placement.object.id, [id2]);
+    for (const placement2 of trayed) {
+      const id2 = `${prefix}.${slug3(placement2.object.id)}`;
+      tray.push({ sourceObjectId: placement2.object.id, layer: trayRow(placement2, slide, id2, ink) });
+      assigned.set(placement2.object.id, [id2]);
       rowsById.set(id2, tray[tray.length - 1].layer);
       traySlide.set(id2, slide.id);
-      backward.push({ layerId: id2, sourceObjectIds: [placement.object.id] });
-      const reason2 = trayReasons.get(placement.object.id) ?? "no-role-in-master";
+      backward.push({ layerId: id2, sourceObjectIds: [placement2.object.id] });
+      const reason2 = trayReasons.get(placement2.object.id) ?? "no-role-in-master";
       addEntry(report2, {
         code: "object.surplus-tray",
-        message: trayMessage(reason2, nounFor(placement.entry.class, placement.object.kind), slide.index + 1, deckLimit),
+        message: trayMessage(reason2, nounFor(placement2.entry.class, placement2.object.kind), slide.index + 1, deckLimit),
         slideId: slide.id,
-        objectId: placement.object.id,
+        objectId: placement2.object.id,
         layerId: id2,
         reason: reason2
       });
     }
-    for (const item of builds) {
-      if (item.sourceSlideId !== slide.id) continue;
-      for (const slot of item.slots) {
-        const row = item.rows[slot.index];
+    for (const item2 of builds) {
+      if (item2.sourceSlideId !== slide.id) continue;
+      for (const slot of item2.slots) {
+        const row = item2.rows[slot.index];
         const only = slot.members[0];
         if (row && slot.members.length === 1 && slot.notes.length === 0 && only) soleText.set(rowStr(row, "id"), only.object);
       }
     }
-    for (const placement of placements) {
-      const object3 = placement.object;
-      const produced = assigned.get(object3.id) ?? [];
-      if (placement.content === "brand-logo") {
+    for (const placement2 of placements) {
+      const object4 = placement2.object;
+      const produced = assigned.get(object4.id) ?? [];
+      if (placement2.content === "brand-logo") {
         if (logoLayerId) {
           const list2 = furnitureLineage.get(logoLayerId) ?? [];
-          list2.push(object3.id);
+          list2.push(object4.id);
           furnitureLineage.set(logoLayerId, list2);
           addEntry(report2, {
             code: "object.replaced-logo",
-            message: placement.message,
+            message: placement2.message,
             slideId: slide.id,
-            objectId: object3.id,
+            objectId: object4.id,
             layerId: logoLayerId,
             disposition: "transformed",
-            class: placement.entry.class,
+            class: placement2.entry.class,
             action: "replace",
-            ...placement.entry.author ? { author: placement.entry.author } : {},
-            review: placement.entry.review
+            ...placement2.entry.author ? { author: placement2.entry.author } : {},
+            review: placement2.entry.review
           });
-          forward.push({ sourceObjectId: object3.id, layerIds: [logoLayerId] });
+          forward.push({ sourceObjectId: object4.id, layerIds: [logoLayerId] });
         } else {
           addEntry(report2, {
             code: "object.removed",
             message: `The mark on slide ${slide.index + 1} was to be replaced by the design system's own, and this archetype shows no logo, so the source mark did not travel.`,
             slideId: slide.id,
-            objectId: object3.id,
+            objectId: object4.id,
             disposition: "removed",
-            class: placement.entry.class,
+            class: placement2.entry.class,
             action: "replace",
             reason: "no-logo-furniture"
           });
         }
-        if (placement.outcome.appliedUnreviewed) {
+        if (placement2.outcome.appliedUnreviewed) {
           addEntry(report2, {
             code: "review.applied-unreviewed",
             slideId: slide.id,
-            objectId: object3.id,
-            action: placement.outcome.action,
-            review: placement.entry.review,
-            ...placement.entry.author ? { author: placement.entry.author } : {}
+            objectId: object4.id,
+            action: placement2.outcome.action,
+            review: placement2.entry.review,
+            ...placement2.entry.author ? { author: placement2.entry.author } : {}
           });
         }
         continue;
       }
-      const how = placedHow.get(object3.id);
+      const how = placedHow.get(object4.id);
       const drawnByMaster = how === "page-number";
-      const rowsMade = vectorMade.get(object3.id);
-      if (rowsMade !== void 0 && object3.vectorItems) {
-        const noun = nounFor(placement.entry.class, object3.kind);
+      const rowsMade = vectorMade.get(object4.id);
+      if (rowsMade !== void 0 && object4.vectorItems) {
+        const noun = nounFor(placement2.entry.class, object4.kind);
         addEntry(report2, {
           code: "object.transformed",
-          message: vectorCarriedMessage(noun, slide.index + 1, rowsMade, object3.vectorItems.desc),
+          message: vectorCarriedMessage(noun, slide.index + 1, rowsMade, object4.vectorItems.desc),
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           ...produced[0] ? { layerId: produced[0] } : {},
           disposition: "transformed",
-          class: placement.entry.class,
-          action: placement.outcome.action,
-          ...placement.entry.author ? { author: placement.entry.author } : {},
-          review: placement.entry.review,
-          fidelity: object3.fidelity.state
+          class: placement2.entry.class,
+          action: placement2.outcome.action,
+          ...placement2.entry.author ? { author: placement2.entry.author } : {},
+          review: placement2.entry.review,
+          fidelity: object4.fidelity.state
         });
-        if (object3.vectorItems.omitted?.length) {
+        if (object4.vectorItems.omitted?.length) {
           addEntry(report2, {
             code: "vector.items-omitted",
-            message: vectorOmittedMessage(noun, slide.index + 1, object3.vectorItems.omitted),
+            message: vectorOmittedMessage(noun, slide.index + 1, object4.vectorItems.omitted),
             slideId: slide.id,
-            objectId: object3.id,
+            objectId: object4.id,
             ...produced[0] ? { layerId: produced[0] } : {},
-            reason: object3.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
+            reason: object4.vectorItems.omitted.map((o) => `${o.reason}:${o.count}`).join(",")
           });
         }
-        if (placement.outcome.appliedUnreviewed) {
+        if (placement2.outcome.appliedUnreviewed) {
           addEntry(report2, {
             code: "review.applied-unreviewed",
             slideId: slide.id,
-            objectId: object3.id,
-            action: placement.outcome.action,
-            review: placement.entry.review,
-            ...placement.entry.author ? { author: placement.entry.author } : {}
+            objectId: object4.id,
+            action: placement2.outcome.action,
+            review: placement2.entry.review,
+            ...placement2.entry.author ? { author: placement2.entry.author } : {}
           });
         }
         if (produced.length > 0) {
-          forward.push({ sourceObjectId: object3.id, layerIds: [...produced] });
-          producedBy.set(object3.id, [...producedBy.get(object3.id) ?? [], ...produced]);
+          forward.push({ sourceObjectId: object4.id, layerIds: [...produced] });
+          producedBy.set(object4.id, [...producedBy.get(object4.id) ?? [], ...produced]);
         }
         continue;
       }
-      if (object3.kind === "vector" && placement.content === "image" && produced.length > 0) {
-        const why = vectorKept.get(object3.id) ?? (trayReasons.has(object3.id) && carriesItems(object3) ? "tray" : keptReason(object3));
+      if (object4.kind === "vector" && placement2.content === "image" && produced.length > 0) {
+        const why = vectorKept.get(object4.id) ?? (trayReasons.has(object4.id) && carriesItems(object4) ? "tray" : keptReason(object4));
         addEntry(report2, {
           code: "vector.kept-as-picture",
-          message: vectorKeptMessage(nounFor(placement.entry.class, object3.kind), slide.index + 1, why),
+          message: vectorKeptMessage(nounFor(placement2.entry.class, object4.kind), slide.index + 1, why),
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           ...produced[0] ? { layerId: produced[0] } : {},
           reason: why
         });
       }
       addEntry(report2, {
-        code: drawnByMaster ? "object.transformed" : placement.code,
-        message: drawnByMaster ? `The page number on slide ${slide.index + 1} is drawn by the master's own page number.` : how === "note" && placement.disposition === "retained" ? `The ${nounFor(placement.entry.class, object3.kind)} on slide ${slide.index + 1} was carried over as a note under the content.` : placement.message,
+        code: drawnByMaster ? "object.transformed" : placement2.code,
+        message: drawnByMaster ? `The page number on slide ${slide.index + 1} is drawn by the master's own page number.` : how === "note" && placement2.disposition === "retained" ? `The ${nounFor(placement2.entry.class, object4.kind)} on slide ${slide.index + 1} was carried over as a note under the content.` : placement2.message,
         slideId: slide.id,
-        objectId: object3.id,
+        objectId: object4.id,
         ...produced[0] ? { layerId: produced[0] } : {},
-        disposition: drawnByMaster ? "transformed" : placement.disposition,
-        class: placement.entry.class,
-        action: placement.outcome.action,
-        ...placement.entry.author ? { author: placement.entry.author } : {},
-        review: placement.entry.review,
-        ...placement.fidelity ? { fidelity: placement.fidelity } : {},
-        ...placement.reason ? { reason: placement.reason } : {}
+        disposition: drawnByMaster ? "transformed" : placement2.disposition,
+        class: placement2.entry.class,
+        action: placement2.outcome.action,
+        ...placement2.entry.author ? { author: placement2.entry.author } : {},
+        review: placement2.entry.review,
+        ...placement2.fidelity ? { fidelity: placement2.fidelity } : {},
+        ...placement2.reason ? { reason: placement2.reason } : {}
       });
-      if (placement.content === "text" && produced.length > 0 && !drawnByMaster) {
-        if (placement.corrected) {
+      if (placement2.content === "text" && produced.length > 0 && !drawnByMaster) {
+        if (placement2.corrected) {
           addEntry(report2, {
             code: "text.corrected",
-            message: `The ${nounFor(placement.entry.class, object3.kind)} on slide ${slide.index + 1} carries the text as it was corrected, in place of the text that was read.`,
+            message: `The ${nounFor(placement2.entry.class, object4.kind)} on slide ${slide.index + 1} carries the text as it was corrected, in place of the text that was read.`,
             slideId: slide.id,
-            objectId: object3.id,
+            objectId: object4.id,
             layerId: produced[0],
-            ...placement.entry.author ? { author: placement.entry.author } : {}
+            ...placement2.entry.author ? { author: placement2.entry.author } : {}
           });
-          const lost = object3.kind === "text" ? correctionDrops(object3.text?.paras ?? []) : [];
+          const lost = object4.kind === "text" ? correctionDrops(object4.text?.paras ?? []) : [];
           if (lost.length > 0) {
             addEntry(report2, {
               code: "text.formatting-not-carried",
               message: correctedWithout(slide.index + 1, lost),
               slideId: slide.id,
-              objectId: object3.id,
+              objectId: object4.id,
               layerId: produced[0],
               reason: lost.join(",")
             });
           }
         } else if (how !== "note") {
-          richOf(placement);
-          if (placement.dropped && placement.dropped.length > 0) {
+          richOf(placement2);
+          if (placement2.dropped && placement2.dropped.length > 0) {
             addEntry(report2, {
               code: "text.formatting-not-carried",
-              message: formattingNotCarried(slide.index + 1, placement.dropped),
+              message: formattingNotCarried(slide.index + 1, placement2.dropped),
               slideId: slide.id,
-              objectId: object3.id,
+              objectId: object4.id,
               layerId: produced[0],
-              reason: placement.dropped.join(",")
+              reason: placement2.dropped.join(",")
             });
           }
         }
       }
-      if (placement.cap && placement.cap.dropped > 0) {
+      if (placement2.cap && placement2.cap.dropped > 0) {
         addEntry(report2, {
           code: "source.cap-reached",
-          message: `The table on slide ${slide.index + 1} is ${placement.cap.sourceRows} by ${placement.cap.sourceCols}, past this compile's cap of ${MAX_TABLE_ROWS5} by ${MAX_TABLE_COLS5}, so ${placement.cap.dropped} cell(s) did not travel.`,
+          message: `The table on slide ${slide.index + 1} is ${placement2.cap.sourceRows} by ${placement2.cap.sourceCols}, past this compile's cap of ${MAX_TABLE_ROWS5} by ${MAX_TABLE_COLS5}, so ${placement2.cap.dropped} cell(s) did not travel.`,
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           ...produced[0] ? { layerId: produced[0] } : {},
           reason: "cap-reached"
         });
       }
-      if (placement.disposition === "unresolved" && produced.length > 0) {
+      if (placement2.disposition === "unresolved" && produced.length > 0) {
         addEntry(report2, {
           code: "object.placeholder-authored",
           slideId: slide.id,
-          objectId: object3.id,
+          objectId: object4.id,
           ...produced[0] ? { layerId: produced[0] } : {}
         });
       }
-      if (placement.outcome.appliedUnreviewed) {
+      if (placement2.outcome.appliedUnreviewed) {
         addEntry(report2, {
           code: "review.applied-unreviewed",
           slideId: slide.id,
-          objectId: object3.id,
-          action: placement.outcome.action,
-          review: placement.entry.review,
-          ...placement.entry.author ? { author: placement.entry.author } : {}
+          objectId: object4.id,
+          action: placement2.outcome.action,
+          review: placement2.entry.review,
+          ...placement2.entry.author ? { author: placement2.entry.author } : {}
         });
       }
       if (produced.length > 0) {
-        forward.push({ sourceObjectId: object3.id, layerIds: [...produced] });
+        forward.push({ sourceObjectId: object4.id, layerIds: [...produced] });
         for (const id2 of produced) {
-          const existing = producedBy.get(object3.id) ?? [];
+          const existing = producedBy.get(object4.id) ?? [];
           existing.push(id2);
-          producedBy.set(object3.id, existing);
+          producedBy.set(object4.id, existing);
         }
       }
     }
-    for (const item of builds) {
-      if (item.sourceSlideId !== slide.id) continue;
-      const placeholders = new Set(item.placeholderLayerIds);
-      const furniture = new Set(item.furnitureLayerIds);
+    for (const item2 of builds) {
+      if (item2.sourceSlideId !== slide.id) continue;
+      const placeholders = new Set(item2.placeholderLayerIds);
+      const furniture = new Set(item2.furnitureLayerIds);
       const byLayer = /* @__PURE__ */ new Map();
       for (const [objectId, ids2] of assigned) for (const id2 of ids2) {
         const list2 = byLayer.get(id2) ?? [];
         list2.push(objectId);
         byLayer.set(id2, list2);
       }
-      for (const row of layersOf(item)) {
+      for (const row of layersOf(item2)) {
         const id2 = rowStr(row, "id");
         if (!id2) continue;
         rowsById.set(id2, row);
         if (rowStr(row, "role") || rowStr(row, "furniture")) masterBound.add(id2);
         const sources = [.../* @__PURE__ */ new Set([...byLayer.get(id2) ?? [], ...furnitureLineage.get(id2) ?? []])].sort();
-        const derived = placeholders.has(id2) ? "placeholder" : furniture.has(id2) ? "furniture" : item.continuation && sources.length === 0 ? "continuation" : void 0;
+        const derived = placeholders.has(id2) ? "placeholder" : furniture.has(id2) ? "furniture" : item2.continuation && sources.length === 0 ? "continuation" : void 0;
         backward.push({ layerId: id2, sourceObjectIds: sources, ...derived ? { derived } : {} });
       }
     }
@@ -112428,15 +113452,15 @@ function compileRenovated(input) {
       slideId: slide.id,
       reason: "not-in-plan"
     });
-    for (const object3 of slide.objects) {
-      objectIds.push(object3.id);
+    for (const object4 of slide.objects) {
+      objectIds.push(object4.id);
       addEntry(report2, {
         code: "object.removed",
-        message: `The ${nounFor(censusClass.get(object3.id) ?? "unknown", object3.kind)} on slide ${slide.index + 1} was left out with its slide, which the plan does not mention.`,
+        message: `The ${nounFor(censusClass.get(object4.id) ?? "unknown", object4.kind)} on slide ${slide.index + 1} was left out with its slide, which the plan does not mention.`,
         slideId: slide.id,
-        objectId: object3.id,
+        objectId: object4.id,
         disposition: "removed",
-        class: censusClass.get(object3.id) ?? "unknown",
+        class: censusClass.get(object4.id) ?? "unknown",
         reason: "not-in-plan"
       });
     }
@@ -112446,7 +113470,7 @@ function compileRenovated(input) {
     const row = build2.rows[build2.pageNumberIndex];
     if (row && !rowStr(row, "text")) row.text = String(position + 1);
   });
-  for (const row of [...builds.flatMap((build2) => layersOf(build2)), ...tray.map((item) => item.layer)]) {
+  for (const row of [...builds.flatMap((build2) => layersOf(build2)), ...tray.map((item2) => item2.layer)]) {
     if (rowStr(row, "kind") === "text" && row.pad === void 0) row.pad = 0;
   }
   const roleFloor = /* @__PURE__ */ new Map();
@@ -112509,7 +113533,7 @@ function compileRenovated(input) {
   }
   const editable = /* @__PURE__ */ new Set();
   for (const slide of source.slides) {
-    for (const object3 of slide.objects) if (object3.fidelity.state === "editable") editable.add(object3.id);
+    for (const object4 of slide.objects) if (object4.fidelity.state === "editable") editable.add(object4.id);
   }
   for (const objectId of vectorMade.keys()) editable.add(objectId);
   const claimedColour = /* @__PURE__ */ new Map();
@@ -112717,9 +113741,9 @@ function compileRenovated(input) {
   for (const mapping of plan.fonts) {
     const named = /* @__PURE__ */ new Set();
     for (const slide of source.slides) {
-      for (const object3 of slide.objects) {
-        for (const para of object3.text?.paras ?? []) {
-          for (const run3 of para.runs) if (run3.font === mapping.from) named.add(object3.id);
+      for (const object4 of slide.objects) {
+        for (const para of object4.text?.paras ?? []) {
+          for (const run3 of para.runs) if (run3.font === mapping.from) named.add(object4.id);
         }
       }
     }
@@ -112751,18 +113775,18 @@ function compileRenovated(input) {
   };
   const isCode = codeFamilies(plan, faces);
   const objectById = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object3 of slide.objects) objectById.set(object3.id, object3);
+  for (const slide of source.slides) for (const object4 of slide.objects) objectById.set(object4.id, object4);
   const madeFrom = /* @__PURE__ */ new Map();
   for (const [objectId, layerIds] of producedBy) {
-    const object3 = objectById.get(objectId);
-    if (!object3 || !hasWords(object3)) continue;
-    for (const layerId of layerIds) madeFrom.set(layerId, [...madeFrom.get(layerId) ?? [], object3]);
+    const object4 = objectById.get(objectId);
+    if (!object4 || !hasWords(object4)) continue;
+    for (const layerId of layerIds) madeFrom.set(layerId, [...madeFrom.get(layerId) ?? [], object4]);
   }
-  for (const row of [...builds.flatMap((build2) => layersOf(build2)), ...tray.map((item) => item.layer)]) {
+  for (const row of [...builds.flatMap((build2) => layersOf(build2)), ...tray.map((item2) => item2.layer)]) {
     if (rowStr(row, "kind") !== "text") continue;
     const objects = madeFrom.get(rowStr(row, "id"));
     const stated = rowStr(row, "font").trim();
-    const code = objects ? objects.every((object3) => isCodeObject(object3, isCode)) : stated === "mono" ? faces.mono !== void 0 : isCode(stated || void 0);
+    const code = objects ? objects.every((object4) => isCodeObject(object4, isCode)) : stated === "mono" ? faces.mono !== void 0 : isCode(stated || void 0);
     if (code) row.font = "mono";
     else delete row.font;
   }
@@ -112775,8 +113799,8 @@ function compileRenovated(input) {
   for (const build2 of builds) {
     for (const row of layersOf(build2)) measurable.push({ row, slideId: build2.sourceSlideId, inTray: false });
   }
-  for (const item of tray) {
-    measurable.push({ row: item.layer, slideId: traySlide.get(rowStr(item.layer, "id")) ?? "", inTray: true });
+  for (const item2 of tray) {
+    measurable.push({ row: item2.layer, slideId: traySlide.get(rowStr(item2.layer, "id")) ?? "", inTray: true });
   }
   for (const { row, slideId, inTray } of measurable) {
     if (rowStr(row, "kind") !== "text") continue;
@@ -113225,8 +114249,8 @@ function union2(a, b) {
   const y0 = Math.min(a.y, b.y);
   return { x: x0, y: y0, w: Math.max(a.x + a.w, b.x + b.w) - x0, h: Math.max(a.y + a.h, b.y + b.h) - y0 };
 }
-function textOf7(object3) {
-  return (object3?.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join("\n");
+function textOf7(object4) {
+  return (object4?.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join("\n");
 }
 function figureText(text7) {
   const t = text7.trim();
@@ -113239,8 +114263,8 @@ function shortLabel(text7, words2) {
   return bare.length >= 1 && bare.length <= 2 || words2 >= 1 && words2 <= 3 && bare.length <= 24;
 }
 function unitFrom(raw, ctx) {
-  const object3 = ctx.objectOf(raw.id);
-  const text7 = textOf7(object3);
+  const object4 = ctx.objectOf(raw.id);
+  const text7 = textOf7(object4);
   return {
     id: raw.id,
     kind: raw.kind,
@@ -113281,14 +114305,14 @@ function pairLabels(units2, ctx) {
   const pairs2 = [];
   const used = /* @__PURE__ */ new Set();
   const labels = texts.filter((u) => shortLabel(textOf7(ctx.objectOf(u.id)), u.words)).sort((a, b) => a.box.y - b.box.y || compareCodeUnits(a.id, b.id));
-  for (const label2 of labels) {
+  for (const label3 of labels) {
     let best;
     let bestGap = Number.POSITIVE_INFINITY;
     for (const line of texts) {
-      if (line === label2 || used.has(line.id) || line.words <= label2.words || line.box.w <= label2.box.w) continue;
-      const gap = line.box.x - (label2.box.x + label2.box.w);
+      if (line === label3 || used.has(line.id) || line.words <= label3.words || line.box.w <= label3.box.w) continue;
+      const gap = line.box.x - (label3.box.x + label3.box.w);
       if (gap < -0.01 || gap > LABEL_GAP) continue;
-      const level2 = yOverlapShare(label2.box, line.box) >= ROW_OVERLAP || Math.abs(cy(label2.box) - cy(line.box)) <= ROW_CENTRE_TOL;
+      const level2 = yOverlapShare(label3.box, line.box) >= ROW_OVERLAP || Math.abs(cy(label3.box) - cy(line.box)) <= ROW_CENTRE_TOL;
       if (!level2) continue;
       if (gap < bestGap) {
         best = line;
@@ -113297,26 +114321,26 @@ function pairLabels(units2, ctx) {
     }
     if (best) {
       used.add(best.id);
-      pairs2.push({ label: label2, line: best });
+      pairs2.push({ label: label3, line: best });
     }
   }
   const columnOf = (pair) => pairs2.filter((other) => Math.abs(other.label.box.x - pair.label.box.x) <= STACK_EDGE);
   const kept = pairs2.filter((pair) => columnOf(pair).length >= 3);
   if (kept.length === 0) return units2;
   const gone = new Set(kept.flatMap((pair) => [pair.label.id, pair.line.id]));
-  const rows2 = kept.map(({ label: label2, line }) => ({
+  const rows2 = kept.map(({ label: label3, line }) => ({
     id: line.id,
     kind: "text",
-    box: union2(label2.box, line.box),
-    words: label2.words + line.words,
-    maxPt: Math.max(label2.maxPt, line.maxPt),
+    box: union2(label3.box, line.box),
+    words: label3.words + line.words,
+    maxPt: Math.max(label3.maxPt, line.maxPt),
     figure: false,
     numbered: true,
-    dated: label2.dated || line.dated,
+    dated: label3.dated || line.dated,
     iconAbove: false,
     headed: false,
     labelled: true,
-    members: [label2.id, line.id]
+    members: [label3.id, line.id]
   }));
   return [...units2.filter((u) => !gone.has(u.id)), ...rows2];
 }
@@ -113391,8 +114415,8 @@ function slideUnits(features, ctx) {
     if (!cards.includes(outer)) continue;
     const inner = cards.filter((card) => card !== outer && area(card.box) < area(outer.box) && inside(card.box, outer.box) >= CARD_CONTAINMENT2);
     if (inner.length === 0) continue;
-    const own2 = (features.containers ?? []).find((c) => c.id === outer.id)?.members ?? [];
-    const ownText = own2.some((id2) => byId.get(id2)?.kind === "text" && outer.members.includes(id2));
+    const own3 = (features.containers ?? []).find((c) => c.id === outer.id)?.members ?? [];
+    const ownText = own3.some((id2) => byId.get(id2)?.kind === "text" && outer.members.includes(id2));
     if (ownText) {
       for (const card of inner) {
         outer.members.push(...card.members);
@@ -113491,7 +114515,7 @@ function rowRead(fullRow, rules) {
   const yS = sim(ySpread, Y_ZERO);
   const gS = sim(gapRange, GAP_ZERO);
   if (wS <= 0 || yS <= 0) return null;
-  const confidence = r24(0.45 * wS + 0.3 * yS + 0.25 * gS);
+  const confidence = r25(0.45 * wS + 0.3 * yS + 0.25 * gS);
   const n6 = row.length;
   const params2 = {
     count: n6,
@@ -113595,7 +114619,7 @@ function gridRead(units2) {
   const hS = sim(hSpread, WIDTH_ZERO);
   const regular = rowCount === 1 ? 1 : 0.7;
   if (wS <= 0 || hS <= 0) return null;
-  const confidence = r24((0.4 * wS + 0.3 * hS + 0.3) * regular * clamp0112(inGrid.length / (R2 * C)));
+  const confidence = r25((0.4 * wS + 0.3 * hS + 0.3) * regular * clamp0112(inGrid.length / (R2 * C)));
   const params2 = {
     count: inGrid.length,
     countWord: countWord(inGrid.length),
@@ -113633,7 +114657,7 @@ function splitRead(units2) {
   const words2 = beside.reduce((n6, t) => n6 + t.words, 0);
   const share = area(pic.box);
   const penalty = under.length > 0 ? 0.15 : 0;
-  const confidence = r24(0.5 + 0.3 * clamp0112((share - SPLIT_PICTURE) / 0.2) + 0.2 * clamp0112(beside.length / texts.length) - penalty);
+  const confidence = r25(0.5 + 0.3 * clamp0112((share - SPLIT_PICTURE) / 0.2) + 0.2 * clamp0112(beside.length / texts.length) - penalty);
   const chart = pic.kind === "chart";
   const structure = chart ? side2 === "left" ? "chart-and-callout" : "callout-and-chart" : side2 === "right" ? "text-and-image" : "image-and-text";
   const params2 = {
@@ -113674,7 +114698,7 @@ function calloutRead(units2) {
     reads.push({
       read: "callout",
       structure: "text-and-callout",
-      confidence: r24(0.7 + 0.15 * clamp0112(level2 / beside.length) + 0.05 * clamp0112(card.words / 10)),
+      confidence: r25(0.7 + 0.15 * clamp0112(level2 / beside.length) + 0.05 * clamp0112(card.words / 10)),
       coverage: 0,
       unitIds: [...beside.map((t) => t.id), card.id],
       needs: 2,
@@ -113704,7 +114728,7 @@ function stackRead(units2, ctx) {
   const wS = sim(wSpread, WIDTH_ZERO);
   const gS = sim(gapRange, GAP_ZERO);
   if (lS <= 0 || wS <= 0) return null;
-  const confidence = r24(0.4 * lS + 0.35 * wS + 0.25 * gS);
+  const confidence = r25(0.4 * lS + 0.35 * wS + 0.25 * gS);
   const n6 = col.length;
   const labelled = col.every((u) => u.labelled || u.numbered);
   const params2 = {
@@ -113743,7 +114767,7 @@ function bigNumberRead(units2) {
   const captions = units2.filter((u) => u !== figure);
   const caption = captions.find((c) => xOverlapShare(c.box, figure.box) >= 0.3 && c.box.y >= figure.box.y + figure.box.h - 0.02 && c.box.y - (figure.box.y + figure.box.h) <= 0.1);
   const merged = figure.members.length >= 2;
-  const confidence = r24(0.6 + 0.3 * (caption || merged ? 1 : 0) + 0.1 * (captions.length <= 2 ? 1 : 0));
+  const confidence = r25(0.6 + 0.3 * (caption || merged ? 1 : 0) + 0.1 * (captions.length <= 2 ? 1 : 0));
   return {
     read: "big-number",
     structure: "big-number",
@@ -113775,7 +114799,7 @@ function tableRead(cells, body) {
   if (pts.length >= 4 && (pts[pts.length - 1] ?? 0) > TABLE_PT_RATIO * (pts[Math.floor(pts.length / 2)] ?? 0)) return null;
   const counts = rows2.map((r5) => r5.length);
   const regular = counts.filter((n6) => n6 === Math.round(median6(counts))).length / rows2.length;
-  const confidence = r24(0.4 * clamp0112(fill2) + 0.4 * regular + 0.2);
+  const confidence = r25(0.4 * clamp0112(fill2) + 0.4 * regular + 0.2);
   return {
     read: "table",
     structure: "table",
@@ -113824,7 +114848,7 @@ function wholeRead(su, quoted) {
   return { kind: "text", read: null };
 }
 function readSlideStructure(slide, features, opts) {
-  const objects = new Map(slide.objects.map((object3) => [object3.id, object3]));
+  const objects = new Map(slide.objects.map((object4) => [object4.id, object4]));
   const ctx = {
     classOf: opts.classOf,
     objectOf: (id2) => objects.get(id2),
@@ -113845,7 +114869,7 @@ function readSlideStructure(slide, features, opts) {
   for (const read of [gridRead(body), splitRead(body), calloutRead(body), stackRead(body, { early: opts.early === true, agenda, words: su.words }), bigNumberRead(body)]) {
     if (read) candidates2.push(read);
   }
-  const coverageOf = (read) => body.length > 0 ? r24(read.unitIds.length / body.length) : 0;
+  const coverageOf = (read) => body.length > 0 ? r25(read.unitIds.length / body.length) : 0;
   for (const c of candidates2) c.coverage = coverageOf(c);
   const cards = body.filter((u) => u.kind === "card").length;
   const explained = candidates2.some((c) => c.coverage >= 0.75 && c.confidence >= APPLY);
@@ -113947,7 +114971,7 @@ function bandCeiling(confidence) {
   return 1;
 }
 function hasQuoteMarks(slide, skip) {
-  return slide.objects.filter((object3) => !skip?.has(object3.id)).map((object3) => textOf7(object3)).filter((text7) => text7.trim().length > 0).some((text7) => OPENING_QUOTE.test(text7) && CLOSING_QUOTE.test(text7));
+  return slide.objects.filter((object4) => !skip?.has(object4.id)).map((object4) => textOf7(object4)).filter((text7) => text7.trim().length > 0).some((text7) => OPENING_QUOTE.test(text7) && CLOSING_QUOTE.test(text7));
 }
 function readRemoved(rows2) {
   const removed = /* @__PURE__ */ new Set();
@@ -113973,8 +114997,8 @@ function matchSlideLayout(slide, features, opts) {
   let priorAdded = 0;
   if (prior.includes(top.structure)) {
     const lifted = Math.min(confidence + PRIOR_MAX, bandCeiling(confidence));
-    priorAdded = r24(Math.max(0, lifted - confidence));
-    confidence = r24(confidence + priorAdded);
+    priorAdded = r25(Math.max(0, lifted - confidence));
+    confidence = r25(confidence + priorAdded);
   }
   const { archetype, exact } = archetypeForRead(opts.master, top.structure);
   const capacity = archetype ? slotCapacity(archetype) : 0;
@@ -114120,8 +115144,8 @@ function autoMatchLayouts(plan, source, census, opts) {
     delete next.layoutAlternative;
     const read = readOf(slide);
     if (read) next.layoutMatch = { ...read.match };
-    const own2 = read?.reason ? [read.reason] : (slide.layoutReasons ?? []).filter((one) => !SUPERSEDED_REASONS.has(one.code) && !one.code.startsWith("layout.reason.pick."));
-    const reasons = [...own2];
+    const own3 = read?.reason ? [read.reason] : (slide.layoutReasons ?? []).filter((one) => !SUPERSEDED_REASONS.has(one.code) && !one.code.startsWith("layout.reason.pick."));
+    const reasons = [...own3];
     if (row.nearest) {
       const carried = archetypeForRead(opts.master, row.structure).archetype;
       reasons.push(reviewMessage("layout.reason.missing.used", { layout: structureName(row.structure), fallback: archetypeName(carried) }));
@@ -114193,7 +115217,7 @@ function withAutoMatchEntries(report2, plan, master, source) {
   const entries = report2.entries.filter((entry2) => entry2.code !== "layout.auto-matched");
   return { ...report2, entries: [...entries, ...autoMatchReportEntries(plan, master, source)] };
 }
-var STRUCTURE_RULES, ROW_OVERLAP, ROW_CENTRE_TOL, COL_OVERLAP, WIDTH_SAME, WIDTH_ZERO, Y_ZERO, GAP_ZERO, MIN_SPAN2, MAX_COLUMN_WIDTH, CONTENT_PICTURE, SPLIT_PICTURE, BLOCK_GAP, BLOCK_OVERLAP, BLOCK_WIDTH_RATIO, SINGLE_LINE, CARD_CONTAINMENT2, TABLE_MIN_CELLS, TABLE_EDGE, TABLE_FILL, TABLE_PT_RATIO, APPLY, PROPOSE, APPLY_COVERAGE, MIN_COVERAGE, BIG_NUMBER_PT, RUNNER_UP_GAP, LABEL_GAP, STACK_EDGE, STACK_MAX, PRIOR_MAX, DENSE_UNITS, TOP_BAND, BACKGROUND_SHARE, CAPTION_WORDS, area, overlap1, yOverlapShare, xOverlapShare, cy, cx, clamp0112, sim, r24, pct, NUMBERED, DATED, AGENDA_WORDS, COUNT_WORDS, CALLOUT_MIN_WIDTH, CONTINUED_STRUCTURES, NEAREST, COUNTED_FAMILIES, LAYOUT_NAME_ALIASES, NAME_TOKENS, EARLY_SLIDES, FURNITURE_CLASSES, OPENING_QUOTE, CLOSING_QUOTE, AUTO_MATCH_BANDS, SUPERSEDED_REASONS, BAND_WORDS;
+var STRUCTURE_RULES, ROW_OVERLAP, ROW_CENTRE_TOL, COL_OVERLAP, WIDTH_SAME, WIDTH_ZERO, Y_ZERO, GAP_ZERO, MIN_SPAN2, MAX_COLUMN_WIDTH, CONTENT_PICTURE, SPLIT_PICTURE, BLOCK_GAP, BLOCK_OVERLAP, BLOCK_WIDTH_RATIO, SINGLE_LINE, CARD_CONTAINMENT2, TABLE_MIN_CELLS, TABLE_EDGE, TABLE_FILL, TABLE_PT_RATIO, APPLY, PROPOSE, APPLY_COVERAGE, MIN_COVERAGE, BIG_NUMBER_PT, RUNNER_UP_GAP, LABEL_GAP, STACK_EDGE, STACK_MAX, PRIOR_MAX, DENSE_UNITS, TOP_BAND, BACKGROUND_SHARE, CAPTION_WORDS, area, overlap1, yOverlapShare, xOverlapShare, cy, cx, clamp0112, sim, r25, pct, NUMBERED, DATED, AGENDA_WORDS, COUNT_WORDS, CALLOUT_MIN_WIDTH, CONTINUED_STRUCTURES, NEAREST, COUNTED_FAMILIES, LAYOUT_NAME_ALIASES, NAME_TOKENS, EARLY_SLIDES, FURNITURE_CLASSES, OPENING_QUOTE, CLOSING_QUOTE, AUTO_MATCH_BANDS, SUPERSEDED_REASONS, BAND_WORDS;
 var init_rebrand_structure = __esm({
   "engine/src/rebrand-structure.ts"() {
     "use strict";
@@ -114245,7 +115269,7 @@ var init_rebrand_structure = __esm({
     cx = (b) => b.x + b.w / 2;
     clamp0112 = (n6) => Math.max(0, Math.min(1, n6));
     sim = (dev, zeroAt) => clamp0112(1 - dev / zeroAt);
-    r24 = (n6) => Math.round(n6 * 100) / 100;
+    r25 = (n6) => Math.round(n6 * 100) / 100;
     pct = (n6) => Math.round(n6 * 100);
     NUMBERED = /^\s*(?:(?:step|phase|stage)\s+)?(?:\d{1,2}|[ivx]{1,4})(?:[.):]|\s|$)/i;
     DATED = /\b(?:19|20)\d{2}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|\bq[1-4]\b|\bh[12]\b/i;
@@ -114342,15 +115366,15 @@ var init_rebrand_structure = __esm({
 });
 
 // engine/src/rebrand-plan.ts
-function wordsOf2(object3) {
-  const text7 = (object3.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join(" ");
+function wordsOf2(object4) {
+  const text7 = (object4.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join(" ");
   return text7.split(/\s+/).filter((word) => word.length > 0).length;
 }
 function csvCell2(value) {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
-function chartToolOffer(object3) {
-  const data = object3.chartData;
+function chartToolOffer(object4) {
+  const data = object4.chartData;
   if (!data) return void 0;
   const type = data.type ? SIMPLE_CHART_TYPES[data.type] : void 0;
   if (!type) return void 0;
@@ -114362,8 +115386,8 @@ function chartToolOffer(object3) {
   const header = ["Category", ...series.map((one, i) => one.name ?? `Series ${i + 1}`)];
   const rows2 = [];
   for (let row = 0; row < rowCount; row += 1) {
-    const label2 = categories[row] ?? `Row ${row + 1}`;
-    const cells = [label2, ...series.map((one) => {
+    const label3 = categories[row] ?? `Row ${row + 1}`;
+    const cells = [label3, ...series.map((one) => {
       const value = one.values[row];
       return value === void 0 || !Number.isFinite(value) ? "" : String(value);
     })];
@@ -114378,17 +115402,17 @@ function chartToolOffer(object3) {
   }
   return void 0;
 }
-function proposeFor(klass, object3) {
-  const words2 = object3 ? wordsOf2(object3) : 0;
+function proposeFor(klass, object4) {
+  const words2 = object4 ? wordsOf2(object4) : 0;
   switch (klass) {
     case "page-number":
     case "date":
     case "decoration":
       return { proposal: "remove", review: "unreviewed" };
     case "template-furniture": {
-      const picture = object3 !== void 0 && (object3.kind === "pic" || object3.kind === "vector");
+      const picture = object4 !== void 0 && (object4.kind === "pic" || object4.kind === "vector");
       if (picture) return { proposal: "keep", review: "needs-attention", surplus: "tray" };
-      if (object3?.placeholder !== void 0 && words2 === 0 && object3.kind !== "pic") {
+      if (object4?.placeholder !== void 0 && words2 === 0 && object4.kind !== "pic") {
         return { proposal: "remove", review: "unreviewed" };
       }
       return { proposal: "keep", review: "needs-attention", role: "label" };
@@ -114411,7 +115435,7 @@ function proposeFor(klass, object3) {
     case "body":
       return { proposal: "keep", review: "accepted", role: "body" };
     case "chart": {
-      const offer = object3 ? chartToolOffer(object3) : void 0;
+      const offer = object4 ? chartToolOffer(object4) : void 0;
       const row = { proposal: "keep", review: "unreviewed", role: "data" };
       if (offer) row.replacement = offer;
       return row;
@@ -114427,8 +115451,8 @@ function proposeFor(klass, object3) {
       return { proposal: "keep", review: "needs-attention" };
   }
 }
-function textOf8(object3) {
-  return (object3.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join("\n");
+function textOf8(object4) {
+  return (object4.text?.paras ?? []).map((para) => para.runs.map((run3) => run3.text).join("")).join("\n");
 }
 function looksLikeOneFigure(text7) {
   const trimmed = text7.trim();
@@ -114442,18 +115466,18 @@ function isCoverSlide(slide, sourceLayout) {
 }
 function archetypeHints(slide, opts = {}) {
   const skip = opts.skipObjectIds;
-  const texts = slide.objects.filter((object3) => !skip?.has(object3.id)).map(textOf8).filter((text7) => text7.trim().length > 0);
+  const texts = slide.objects.filter((object4) => !skip?.has(object4.id)).map(textOf8).filter((text7) => text7.trim().length > 0);
   const quoteMarks = hasQuoteMarks(slide, skip);
   const bigNumber = texts.length >= 1 && texts.filter(looksLikeOneFigure).length === 1 && texts.every((text7) => looksLikeOneFigure(text7) || text7.trim().split(/\s+/).length <= 6);
   const hints = { quoteMarks, bigNumber };
   if (opts.coverSlide) hints.coverSlide = true;
   return hints;
 }
-function coverageNeed(row, object3, slide) {
-  const incidental = () => object3 !== void 0 && isIncidentalPicture(row.class, object3, slide);
+function coverageNeed(row, object4, slide) {
+  const incidental = () => object4 !== void 0 && isIncidentalPicture(row.class, object4, slide);
   const action = row.decision ?? row.proposal;
   if (action === "remove") return void 0;
-  if (action === "keep" && object3 && isNoteText(row.class, object3, row)) return "note";
+  if (action === "keep" && object4 && isNoteText(row.class, object4, row)) return "note";
   if (action === "replace") {
     const replacement = row.decision !== void 0 ? row.decisionReplacement ?? row.proposalReplacement : row.proposalReplacement;
     if (replacement?.kind === "brand-logo") return void 0;
@@ -114469,17 +115493,17 @@ function coverageNeed(row, object3, slide) {
     case "visual":
       return incidental() ? void 0 : "visual";
     case "data":
-      return object3?.kind === "table" || object3?.table !== void 0 ? "data" : "visual";
+      return object4?.kind === "table" || object4?.table !== void 0 ? "data" : "visual";
     case void 0:
       break;
     default:
       return void 0;
   }
-  if (!object3) return void 0;
-  if (object3.kind === "chart") return "visual";
-  if (object3.kind === "pic" || object3.kind === "vector") return incidental() ? void 0 : "visual";
-  if (object3.kind === "table") return "data";
-  if (object3.kind === "text" && (object3.text?.paras ?? []).some((para) => para.runs.some((run3) => run3.text.trim().length > 0))) return "body";
+  if (!object4) return void 0;
+  if (object4.kind === "chart") return "visual";
+  if (object4.kind === "pic" || object4.kind === "vector") return incidental() ? void 0 : "visual";
+  if (object4.kind === "table") return "data";
+  if (object4.kind === "text" && (object4.text?.paras ?? []).some((para) => para.runs.some((run3) => run3.text.trim().length > 0))) return "body";
   return void 0;
 }
 function lockedRows(census, preset) {
@@ -114495,8 +115519,8 @@ function lockedRows(census, preset) {
 function rasterObjectIds(source) {
   const out = [];
   for (const slide of source.slides) {
-    for (const object3 of slide.objects) {
-      if (object3.kind === "pic" || object3.fidelity.state === "raster-preserved") out.push(object3.id);
+    for (const object4 of slide.objects) {
+      if (object4.kind === "pic" || object4.fidelity.state === "raster-preserved") out.push(object4.id);
     }
   }
   return out.sort();
@@ -114533,19 +115557,19 @@ function firstPass(input) {
     previous && previous.source.lineageId === source.source.lineageId ? previous.slides.map((slide) => [slide.id, slide]) : []
   );
   const slides = source.slides.map((slide) => {
-    const objects = slide.objects.map((object3) => {
-      const row = censusById.get(object3.id);
+    const objects = slide.objects.map((object4) => {
+      const row = censusById.get(object4.id);
       const klass = row?.hypothesis.class ?? "unknown";
       const groupId = row?.groupId;
-      const base = proposeFor(klass, object3);
+      const base = proposeFor(klass, object4);
       const presetAction = preset?.actions?.[klass];
       const presetReview = preset?.review?.[klass];
       const proposal = presetAction ?? base.proposal;
-      const unavailable = object3.fidelity.state === "unavailable";
+      const unavailable = object4.fidelity.state === "unavailable";
       const overridden = presetAction !== void 0 && presetAction !== base.proposal;
       const review = presetReview ?? (unavailable || overridden ? "needs-attention" : base.review);
       const plan3 = {
-        id: object3.id,
+        id: object4.id,
         class: klass,
         evidence: row ? [...row.hypothesis.evidence] : [],
         proposal,
@@ -114554,7 +115578,7 @@ function firstPass(input) {
       if (presetAction !== void 0) plan3.author = "preset";
       else if (review === "accepted" && presetReview === void 0) plan3.author = "rule";
       if (groupId && (klass === "logo-candidate" || klass === "known-logo")) plan3.scope = groupId;
-      const inherited2 = carriedByObject.get(object3.id);
+      const inherited2 = carriedByObject.get(object4.id);
       if (inherited2) {
         plan3.decision = inherited2.action;
         if (inherited2.replacement) plan3.decisionReplacement = inherited2.replacement;
@@ -114572,7 +115596,7 @@ function firstPass(input) {
       return plan3;
     });
     const removed = readRemoved(objects);
-    const objectById = new Map(slide.objects.map((object3) => [object3.id, object3]));
+    const objectById = new Map(slide.objects.map((object4) => [object4.id, object4]));
     const needs = {};
     for (const row of objects) {
       if (removed.has(row.id)) continue;
@@ -114707,7 +115731,7 @@ function takeSlot(archetype, role, used) {
 }
 function layoutFindings(plan, source, master) {
   const objectsById = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object3 of slide.objects) objectsById.set(object3.id, object3);
+  for (const slide of source.slides) for (const object4 of slide.objects) objectsById.set(object4.id, object4);
   const out = [];
   for (const slidePlan of plan.slides) {
     if (!slidePlan.include) continue;
@@ -114717,8 +115741,8 @@ function layoutFindings(plan, source, master) {
     for (const row of slidePlan.objects) {
       const action = row.decision ?? row.proposal;
       if (action !== "keep" || !row.role) continue;
-      const object3 = objectsById.get(row.id);
-      if (!object3) continue;
+      const object4 = objectsById.get(row.id);
+      if (!object4) continue;
       const slot = takeSlot(archetype, row.role, used);
       if (!slot) continue;
       const box3 = masterBoxToPx(master, slot.box);
@@ -114733,7 +115757,7 @@ function layoutFindings(plan, source, master) {
           action
         });
       }
-      const text7 = textOf8(object3);
+      const text7 = textOf8(object4);
       const characters = text7.replace(/\s+/g, " ").trim().length;
       if (characters === 0 || slot.kind !== "text") continue;
       const perLine = Math.max(1, Math.floor(box3.w / Math.max(1, size * AVERAGE_GLYPH_EM)));
@@ -114907,11 +115931,11 @@ function emptySlot(row) {
   if (kind === "image") return str7(row, "image") === "";
   return false;
 }
-function drawMuted(box3, label2, ctx) {
+function drawMuted(box3, label3, ctx) {
   let out = hatchedBox(box3, ctx.thumbScale !== void 0);
-  if (ctx.thumbScale !== void 0 || label2.trim() === "") return out;
+  if (ctx.thumbScale !== void 0 || label3.trim() === "") return out;
   const size = Math.max(10, Math.min(18, round23(box3.h / 4)));
-  const lines = wrapByAverageWidth(label2, size, box3.w);
+  const lines = wrapByAverageWidth(label3, size, box3.w);
   const x = round23(box3.x + box3.w / 2);
   const baseline = firstBaseline("middle", box3.y, box3.h, size, lines.length);
   out += `<text x="${x}" y="${baseline}" font-family="${esc5(ctx.family)}" font-size="${size}" fill="${LABEL_INK}" text-anchor="middle">`;
@@ -114945,8 +115969,8 @@ function drawRow(row, offset, placeholder, ctx) {
     const ref = str7(row, "image");
     const href = ref ? ctx.assetHref(ref) : void 0;
     if (!href) {
-      const label2 = str7(row, "alt") || str7(row, "name") || "Picture not available here";
-      return `${open3}${drawMuted(box3, label2, ctx)}${close}`;
+      const label3 = str7(row, "alt") || str7(row, "name") || "Picture not available here";
+      return `${open3}${drawMuted(box3, label3, ctx)}${close}`;
     }
     return `${open3}<image x="${round23(box3.x)}" y="${round23(box3.y)}" width="${round23(box3.w)}" height="${round23(box3.h)}" href="${esc5(href)}" preserveAspectRatio="${aspect(str7(row, "fit"))}"/>${close}`;
   }
@@ -116490,7 +117514,7 @@ function strokeRatioOf(image, box3, ink) {
   const x1 = Math.min(image.width, Math.ceil(box3.x + box3.w));
   const y1 = Math.min(image.height, Math.ceil(box3.y + box3.h));
   let runs = 0;
-  let pixels = 0;
+  let pixels2 = 0;
   let top = y1;
   let bottom = y0 - 1;
   for (let y = y0; y < y1; y++) {
@@ -116499,7 +117523,7 @@ function strokeRatioOf(image, box3, ink) {
       const i = (y * image.width + x) * 4;
       const near = Math.abs((image.data[i] ?? 0) - rgb[0]) + Math.abs((image.data[i + 1] ?? 0) - rgb[1]) + Math.abs((image.data[i + 2] ?? 0) - rgb[2]) <= TEXT_INK_NEAR;
       if (near) {
-        pixels++;
+        pixels2++;
         if (!inRun) runs++;
         if (y < top) top = y;
         if (y > bottom) bottom = y;
@@ -116507,7 +117531,7 @@ function strokeRatioOf(image, box3, ink) {
       inRun = near;
     }
   }
-  return runs && bottom >= top ? pixels / runs / (bottom - top + 1) : null;
+  return runs && bottom >= top ? pixels2 / runs / (bottom - top + 1) : null;
 }
 function detailShare(image, box3) {
   const x0 = Math.max(0, Math.floor(box3.x));
@@ -116539,19 +117563,19 @@ function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
   const rows2 = Math.ceil(image.height / step);
   const rgb = new Float32Array(cols * rows2 * 3);
   const stride = Math.max(1, Math.floor(step / ICON_CELL_LINES));
-  const channel3 = [[], [], []];
+  const channel4 = [[], [], []];
   for (let cy3 = Math.floor(y0 / step); cy3 <= Math.floor((y1 - 1) / step); cy3++) {
     for (let cx2 = Math.floor(x0 / step); cx2 <= Math.floor((x1 - 1) / step); cx2++) {
-      for (const list2 of channel3) list2.length = 0;
+      for (const list2 of channel4) list2.length = 0;
       for (let y = cy3 * step; y < Math.min(image.height, (cy3 + 1) * step); y += stride) {
         for (let x = cx2 * step; x < Math.min(image.width, (cx2 + 1) * step); x += stride) {
           const i = (y * image.width + x) * 4;
-          channel3[0]?.push(image.data[i] ?? 0);
-          channel3[1]?.push(image.data[i + 1] ?? 0);
-          channel3[2]?.push(image.data[i + 2] ?? 0);
+          channel4[0]?.push(image.data[i] ?? 0);
+          channel4[1]?.push(image.data[i + 1] ?? 0);
+          channel4[2]?.push(image.data[i + 2] ?? 0);
         }
       }
-      rgb.set([median7(channel3[0] ?? []), median7(channel3[1] ?? []), median7(channel3[2] ?? [])], (cy3 * cols + cx2) * 3);
+      rgb.set([median7(channel4[0] ?? []), median7(channel4[1] ?? []), median7(channel4[2] ?? [])], (cy3 * cols + cx2) * 3);
     }
   }
   const ground = { cols, rows: rows2, step, rgb };
@@ -116805,8 +117829,8 @@ function lineGlyphsOf(image, box3, text7) {
       let start = 0;
       pieces.forEach((_, k) => {
         if (k === pieces.length - 1 || cuts.has(k)) {
-          const own2 = pieces.slice(start, k + 1);
-          ranges?.push({ a: own2[0]?.a ?? 0, b: own2[own2.length - 1]?.b ?? 0, pieces: own2 });
+          const own3 = pieces.slice(start, k + 1);
+          ranges?.push({ a: own3[0]?.a ?? 0, b: own3[own3.length - 1]?.b ?? 0, pieces: own3 });
           start = k + 1;
         }
       });
@@ -116898,13 +117922,13 @@ function lineGlyphsOf(image, box3, text7) {
   const weightOf = (a, b) => {
     const runs = [];
     for (let r5 = top; r5 <= bottom; r5++) {
-      let length = 0;
+      let length2 = 0;
       for (let c = Math.max(0, a); c <= Math.min(cols - 1, b) + 1; c++) {
         const on = c <= Math.min(cols - 1, b) && (dist2[c * h + r5] ?? 0) >= half;
-        if (on) length += stride;
-        else if (length) {
-          runs.push(length);
-          length = 0;
+        if (on) length2 += stride;
+        else if (length2) {
+          runs.push(length2);
+          length2 = 0;
         }
       }
     }
@@ -116961,13 +117985,13 @@ function lineGlyphsOf(image, box3, text7) {
     if (!at || !ch.trim()) return;
     if (at.exact) measured++;
     const trim2 = at.exact ? 0 : Math.floor((at.b - at.a + 1) * 0.15);
-    const own2 = inkOf2(at.a + trim2, at.b - trim2);
-    raw[k] = own2;
+    const own3 = inkOf2(at.a + trim2, at.b - trim2);
+    raw[k] = own3;
     inks[k] = lineInk;
     const g2 = groundAt(x0 + Math.round((at.a + at.b) / 2) * stride);
     const hexOfGround = hexOf3(g2);
-    const standsOff = own2 !== null && lineInk !== null && channelsApart(own2, hexOfGround) >= GLYPH_STANDS_OFF * channelsApart(lineInk, hexOfGround);
-    candidate[k] = own2 !== null && lineInk !== null && standsOff && channelsApart(own2, lineInk) > GLYPH_APART && ownShare(at.a + trim2, at.b - trim2) < GLYPH_LINE_SHARE && fillOf3(own2, at.a + trim2, at.b - trim2) <= GLYPH_MAX_FILL;
+    const standsOff = own3 !== null && lineInk !== null && channelsApart(own3, hexOfGround) >= GLYPH_STANDS_OFF * channelsApart(lineInk, hexOfGround);
+    candidate[k] = own3 !== null && lineInk !== null && standsOff && channelsApart(own3, lineInk) > GLYPH_APART && ownShare(at.a + trim2, at.b - trim2) < GLYPH_LINE_SHARE && fillOf3(own3, at.a + trim2, at.b - trim2) <= GLYPH_MAX_FILL;
   });
   const solid = (k) => Boolean(chars[k]?.trim()) && raw[k] !== null;
   for (let k = 0; k < chars.length; ) {
@@ -117507,11 +118531,11 @@ function assembleLines(input, opts) {
     }
   }
   const groups = /* @__PURE__ */ new Map();
-  items2.forEach((item, i) => {
+  items2.forEach((item2, i) => {
     const r5 = find(i);
     const list2 = groups.get(r5);
-    if (list2) list2.push(item);
-    else groups.set(r5, [item]);
+    if (list2) list2.push(item2);
+    else groups.set(r5, [item2]);
   });
   const lines = [];
   for (const group of groups.values()) {
@@ -117573,11 +118597,11 @@ function ocrTextBlocks(input, barriers = []) {
     }
   }
   const groups = /* @__PURE__ */ new Map();
-  items2.forEach((item, i) => {
+  items2.forEach((item2, i) => {
     const r5 = find(i);
     const list2 = groups.get(r5);
-    if (list2) list2.push(item.index);
-    else groups.set(r5, [item.index]);
+    if (list2) list2.push(item2.index);
+    else groups.set(r5, [item2.index]);
   });
   return [...groups.values()].map((g2) => g2.sort((a, b) => a - b)).sort((a, b) => (a[0] ?? 0) - (b[0] ?? 0));
 }
@@ -118006,7 +119030,7 @@ function productionJson(value) {
   }
   throw new Error("Production values must be finite JSON values.");
 }
-function object2(value, keys2) {
+function object3(value, keys2) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return fail4("expected an object");
   const out = value;
   if (Object.keys(out).some((key) => !keys2.includes(key))) fail4("unknown field");
@@ -118023,7 +119047,7 @@ function productionHash(value) {
 }
 function parseProductionContract(value) {
   if (productionJson(value).length > 128 * 1024) fail4("contract exceeds 128 KiB");
-  const c = object2(value, ["profile", "id", "revision", "format", "width", "height", "pages", "alpha", "sourceSha256", "contextSha256", "requirements", "comparison"]);
+  const c = object3(value, ["profile", "id", "revision", "format", "width", "height", "pages", "alpha", "sourceSha256", "contextSha256", "requirements", "comparison"]);
   if (c.profile !== "lolly/production-still-v1") fail4("unsupported profile");
   text6(c.id);
   text6(c.revision);
@@ -118036,7 +119060,7 @@ function parseProductionContract(value) {
   if (!Array.isArray(c.requirements) || c.requirements.length > 128) fail4("requirements must be a list of at most 128 items");
   const ids2 = /* @__PURE__ */ new Set();
   for (const raw of c.requirements) {
-    const r5 = object2(raw, ["id", "kind", "location", "expected"]);
+    const r5 = object3(raw, ["id", "kind", "location", "expected"]);
     text6(r5.id);
     text6(r5.location);
     if (ids2.has(r5.id)) fail4("duplicate requirement id");
@@ -118046,14 +119070,14 @@ function parseProductionContract(value) {
     if (r5.kind === "resource" || r5.kind === "node" || r5.kind === "input") productionHash(r5.expected);
   }
   if (c.comparison !== void 0) {
-    const v = object2(c.comparison, ["referenceSha256", "channelTolerance", "maxChangedFraction", "regions"]);
+    const v = object3(c.comparison, ["referenceSha256", "channelTolerance", "maxChangedFraction", "regions"]);
     productionHash(v.referenceSha256);
     number4(v.channelTolerance, 0, 255, true);
     number4(v.maxChangedFraction, 0, 1);
     if (!Array.isArray(v.regions) || v.regions.length > 64) fail4("comparison needs at most 64 regions");
     const names = /* @__PURE__ */ new Set();
     for (const raw of v.regions) {
-      const r5 = object2(raw, ["id", "x", "y", "width", "height", "minSsim", "maxInkDelta"]);
+      const r5 = object3(raw, ["id", "x", "y", "width", "height", "minSsim", "maxInkDelta"]);
       text6(r5.id);
       if (names.has(r5.id)) fail4("duplicate region id");
       names.add(r5.id);
@@ -118072,14 +119096,14 @@ function parseProductionContract(value) {
 function parseProductionSpec(value) {
   if (!value || typeof value !== "object" || value.profile !== "lolly/production-motion-v1") return parseProductionContract(value);
   if (productionJson(value).length > 128 * 1024) fail4("contract exceeds 128 KiB");
-  const c = object2(value, ["profile", "id", "revision", "format", "width", "height", "sourceSha256", "contextSha256", "requirements", "motion"]);
+  const c = object3(value, ["profile", "id", "revision", "format", "width", "height", "sourceSha256", "contextSha256", "requirements", "motion"]);
   if (c.format !== "mp4" && c.format !== "webm") fail4("motion supports MP4 and WebM");
   const { motion, ...common } = c;
   parseProductionContract({ ...common, profile: "lolly/production-still-v1", format: "png", pages: 1, alpha: "any" });
   number4(c.width, 1, 4096, true);
   number4(c.height, 1, 4096, true);
   if (c.width * c.height > 4e6) fail4("motion viewport exceeds four million pixels");
-  const m2 = object2(motion, ["seconds", "secondsTolerance", "fps", "fpsTolerance", "frameCount", "timestampTolerance", "audio", "audioSecondsTolerance", "loudness", "truePeakMax", "comparison"]);
+  const m2 = object3(motion, ["seconds", "secondsTolerance", "fps", "fpsTolerance", "frameCount", "timestampTolerance", "audio", "audioSecondsTolerance", "loudness", "truePeakMax", "comparison"]);
   number4(m2.seconds, 1e-3, 120);
   number4(m2.secondsTolerance, 0, 1);
   number4(m2.fps, 1, 120);
@@ -118090,7 +119114,7 @@ function parseProductionSpec(value) {
   if (m2.audio) number4(m2.audioSecondsTolerance, 0, 1);
   else if (m2.audioSecondsTolerance !== void 0) fail4("audio duration requires an audio track");
   if (m2.loudness !== void 0) {
-    const l = object2(m2.loudness, ["min", "max"]);
+    const l = object3(m2.loudness, ["min", "max"]);
     number4(l.min, -100, 10);
     number4(l.max, l.min, 10);
     if (!m2.audio) fail4("loudness requires an audio track");
@@ -118100,7 +119124,7 @@ function parseProductionSpec(value) {
     if (!m2.audio) fail4("true peak requires an audio track");
   }
   if (m2.comparison !== void 0) {
-    const p = object2(m2.comparison, ["referenceSha256", "times", "channelTolerance", "maxChangedFraction", "regions"]);
+    const p = object3(m2.comparison, ["referenceSha256", "times", "channelTolerance", "maxChangedFraction", "regions"]);
     if (!Array.isArray(p.times) || !p.times.length || p.times.length > 16) return fail4("motion comparison needs one to sixteen times");
     let previous = -1;
     for (const t of p.times) {
@@ -118237,11 +119261,11 @@ function motionProductionChecks(contract, facts2) {
   }
   return checks;
 }
-function compareProductionMotion(reference2, candidate, contract, signal) {
+function compareProductionMotion(reference3, candidate, contract, signal) {
   const p = contract.motion.comparison;
   if (!p) return [];
   return p.times.flatMap((time, index2) => {
-    const a = reference2?.motion?.samples?.filter((s) => s.time === time), b = candidate.motion?.samples?.filter((s) => s.time === time);
+    const a = reference3?.motion?.samples?.filter((s) => s.time === time), b = candidate.motion?.samples?.filter((s) => s.time === time);
     const valid2 = (samples) => samples?.length === 1 && Math.abs(samples[0].timestamp - time) <= contract.motion.timestampTolerance ? samples[0].pixels : void 0;
     return compareProductionPixels(valid2(a), valid2(b), p, signal).map((check) => ({
       ...check,
@@ -118311,16 +119335,16 @@ async function inspectProduction(bytes, input, collect3, options2 = {}) {
   const limitations = [...facts2.limitations, "measurements-do-not-grant-delivery-authority"];
   const comparison = contract.profile === "lolly/production-motion-v1" ? contract.motion.comparison : contract.comparison;
   if (comparison) {
-    let reference2;
+    let reference3;
     if (options2.reference && options2.reference.length <= 32 * 1024 * 1024 && await sha256Hex(options2.reference) === comparison.referenceSha256) {
       try {
-        reference2 = await collect3(options2.reference, contract, signal);
+        reference3 = await collect3(options2.reference, contract, signal);
       } catch {
         signal?.throwIfAborted();
         limitations.push("reference-collector-failed");
       }
     } else limitations.push("reference-missing-or-digest-mismatch");
-    checks.push(...contract.profile === "lolly/production-motion-v1" ? compareProductionMotion(reference2, facts2, contract, signal) : compareProductionPixels(reference2?.pixels, facts2.pixels, comparison, signal));
+    checks.push(...contract.profile === "lolly/production-motion-v1" ? compareProductionMotion(reference3, facts2, contract, signal) : compareProductionPixels(reference3?.pixels, facts2.pixels, comparison, signal));
   }
   const body = {
     profile: contract.profile,
@@ -118659,9 +119683,9 @@ function mergeTokenDocuments(base, local, incoming) {
     let inspected = 0;
     const stack = [{ value: source, depth: 0 }];
     while (stack.length) {
-      const item = stack.pop();
-      if (++inspected > 2e4 || item.depth > 48) throw new Error("The source merge exceeded its scan limit.");
-      if (item.value && typeof item.value === "object") for (const value of Object.values(item.value)) stack.push({ value, depth: item.depth + 1 });
+      const item2 = stack.pop();
+      if (++inspected > 2e4 || item2.depth > 48) throw new Error("The source merge exceeded its scan limit.");
+      if (item2.value && typeof item2.value === "object") for (const value of Object.values(item2.value)) stack.push({ value, depth: item2.depth + 1 });
     }
   }
   let nodes = 0;
@@ -119079,12 +120103,12 @@ async function forensicReport(bytes, pages, coverage, models = [], additional = 
 async function verifyForensicReport(report2, bytes) {
   try {
     const str9 = (v) => typeof v === "string" && v.length <= 65536;
-    const num11 = (v) => typeof v === "number" && Number.isFinite(v);
-    const unit2 = (v) => num11(v) && v >= 0 && v <= 1;
-    const integer = (v, max) => num11(v) && Number.isInteger(v) && v >= 0 && v <= max;
+    const num12 = (v) => typeof v === "number" && Number.isFinite(v);
+    const unit2 = (v) => num12(v) && v >= 0 && v <= 1;
+    const integer = (v, max) => num12(v) && Number.isInteger(v) && v >= 0 && v <= max;
     const array = (v, max) => Array.isArray(v) && v.length <= max;
-    const box3 = (b) => b && [b.x, b.y, b.width, b.height].every((n6) => num11(n6) && Math.abs(n6) <= 1e7) && b.width >= 0 && b.height >= 0;
-    const measurement2 = (m2) => m2 && typeof m2 === "object" && !Array.isArray(m2) && Object.keys(m2).length <= 256 && Object.entries(m2).every(([k, v]) => str9(k) && (str9(v) || num11(v) || typeof v === "boolean"));
+    const box3 = (b) => b && [b.x, b.y, b.width, b.height].every((n6) => num12(n6) && Math.abs(n6) <= 1e7) && b.width >= 0 && b.height >= 0;
+    const measurement2 = (m2) => m2 && typeof m2 === "object" && !Array.isArray(m2) && Object.keys(m2).length <= 256 && Object.entries(m2).every(([k, v]) => str9(k) && (str9(v) || num12(v) || typeof v === "boolean"));
     if (report2?.profile !== "lolly/forensic-ai-v1" || report2.version !== FORENSIC_VERSION || ![
       "text",
       "markdown",
@@ -119099,7 +120123,7 @@ async function verifyForensicReport(report2, bytes) {
     ].includes(report2.format))
       return false;
     if (!array(report2.pages, 100) || new Set(report2.pages.map((p) => p.id)).size !== report2.pages.length || report2.pages.some(
-      (p) => !p || !str9(p.id) || !str9(p.text) || !num11(p.width) || !num11(p.height) || p.width < 0 || p.height < 0 || typeof p.complete !== "boolean" || !["digital", "ocr"].includes(p.source) || !array(p.lines, 1e4) || !array(p.shapes, 1e3) || p.lines.some((l) => !str9(l.text) || !unit2(l.confidence) || !box3(l.box)) || p.shapes.some((s) => !box3(s.box) || !num11(s.radius) || !str9(s.fill))
+      (p) => !p || !str9(p.id) || !str9(p.text) || !num12(p.width) || !num12(p.height) || p.width < 0 || p.height < 0 || typeof p.complete !== "boolean" || !["digital", "ocr"].includes(p.source) || !array(p.lines, 1e4) || !array(p.shapes, 1e3) || p.lines.some((l) => !str9(l.text) || !unit2(l.confidence) || !box3(l.box)) || p.shapes.some((s) => !box3(s.box) || !num12(s.radius) || !str9(s.fill))
     ))
       return false;
     const location = (l) => {
@@ -119337,21 +120361,21 @@ async function forensicModelWindows(text7, maxTokens, measure2, score, cap = 32,
     return n6;
   };
   for (let index2 = 0; index2 < bounded2.length; ) {
-    let length = Math.min(8192, bounded2.length - index2);
-    if (count4(bounded2.slice(index2, index2 + length)) > maxTokens) {
-      let low = 1, high = length;
+    let length2 = Math.min(8192, bounded2.length - index2);
+    if (count4(bounded2.slice(index2, index2 + length2)) > maxTokens) {
+      let low = 1, high = length2;
       while (low < high) {
         const mid3 = Math.ceil((low + high) / 2);
         if (count4(bounded2.slice(index2, index2 + mid3)) <= maxTokens) low = mid3;
         else high = mid3 - 1;
       }
-      length = low;
-      const boundary2 = bounded2.lastIndexOf(" ", index2 + length);
-      if (boundary2 > index2 + length * 0.6) length = boundary2 - index2;
+      length2 = low;
+      const boundary2 = bounded2.lastIndexOf(" ", index2 + length2);
+      if (boundary2 > index2 + length2 * 0.6) length2 = boundary2 - index2;
     }
-    let tokens3 = count4(bounded2.slice(index2, index2 + length));
+    let tokens3 = count4(bounded2.slice(index2, index2 + length2));
     if (tokens3 > maxTokens) throw new Error("A token exceeds the classifier budget.");
-    if (index2 + length === bounded2.length && measured.length && tokens3 < maxTokens * 0.7) {
+    if (index2 + length2 === bounded2.length && measured.length && tokens3 < maxTokens * 0.7) {
       let low = Math.max(0, bounded2.length - 8192), high = index2;
       while (low < high) {
         const mid3 = Math.floor((low + high) / 2);
@@ -119360,13 +120384,13 @@ async function forensicModelWindows(text7, maxTokens, measure2, score, cap = 32,
       }
       const boundary2 = bounded2.indexOf(" ", low);
       index2 = boundary2 >= 0 && boundary2 < index2 ? boundary2 + 1 : low;
-      length = bounded2.length - index2;
+      length2 = bounded2.length - index2;
       tokens3 = count4(bounded2.slice(index2));
     }
-    measured.push({ index: index2, length, tokens: tokens3 });
-    if (index2 + length === bounded2.length) break;
-    const overlap = Math.min(200, Math.floor(length * 0.1)), boundary = bounded2.indexOf(" ", index2 + length - overlap);
-    index2 = boundary >= 0 && boundary < index2 + length ? boundary + 1 : index2 + length;
+    measured.push({ index: index2, length: length2, tokens: tokens3 });
+    if (index2 + length2 === bounded2.length) break;
+    const overlap = Math.min(200, Math.floor(length2 * 0.1)), boundary = bounded2.indexOf(" ", index2 + length2 - overlap);
+    index2 = boundary >= 0 && boundary < index2 + length2 ? boundary + 1 : index2 + length2;
     if (measured.length > 8192) throw new Error("Classifier planning budget exceeded.");
   }
   const selected = measured.length <= cap ? measured : Array.from(
@@ -119522,9 +120546,9 @@ function withTokenSourceValue(doc, location, value) {
   let scanned = 0;
   const pending2 = [{ value, depth: 0 }];
   while (pending2.length) {
-    const item = pending2.pop();
-    if (++scanned > 4096 || item.depth > 32) throw new Error("The source value exceeds the edit limit.");
-    if (item.value && typeof item.value === "object") for (const child of Object.values(item.value)) pending2.push({ value: child, depth: item.depth + 1 });
+    const item2 = pending2.pop();
+    if (++scanned > 4096 || item2.depth > 32) throw new Error("The source value exceeds the edit limit.");
+    if (item2.value && typeof item2.value === "object") for (const child of Object.values(item2.value)) pending2.push({ value: child, depth: item2.depth + 1 });
   }
   const valid2 = supportedValue(String(type), value);
   if (!valid2) throw new Error("This value does not match a supported token type. Keep unsupported imported values in their source file.");
@@ -121889,11 +122913,11 @@ function describe(i) {
   const s = [i.label, i.help].filter(Boolean).join(" - ");
   return s || void 0;
 }
-function withMeta(schema, item, extraDesc) {
-  const base = describe(item);
+function withMeta(schema, item2, extraDesc) {
+  const base = describe(item2);
   const desc = [base, extraDesc].filter(Boolean).join(" ");
   if (desc) schema["description"] = desc;
-  if (item.default !== void 0) schema["default"] = item.default;
+  if (item2.default !== void 0) schema["default"] = item2.default;
   return schema;
 }
 function numberField(f) {
@@ -121926,62 +122950,62 @@ function blockFieldSchema(f) {
       return { type: "string", ...declaredDefault !== void 0 ? { default: declaredDefault } : {}, ...describe(f) ? { description: describe(f) } : {} };
   }
 }
-function schemaForInput(item) {
-  switch (item.type) {
+function schemaForInput(item2) {
+  switch (item2.type) {
     case "text":
     case "longtext": {
       const s = { type: "string" };
-      if (item.maxLength) s["maxLength"] = item.maxLength;
-      if (item.minLength) s["minLength"] = item.minLength;
-      if (item.pattern) s["pattern"] = item.pattern;
-      return withMeta(s, item);
+      if (item2.maxLength) s["maxLength"] = item2.maxLength;
+      if (item2.minLength) s["minLength"] = item2.minLength;
+      if (item2.pattern) s["pattern"] = item2.pattern;
+      return withMeta(s, item2);
     }
     case "url":
-      return withMeta({ type: "string", format: "uri" }, item);
+      return withMeta({ type: "string", format: "uri" }, item2);
     case "number": {
       const s = { type: "number" };
-      if (item.min !== void 0) s["minimum"] = item.min;
-      if (item.max !== void 0) s["maximum"] = item.max;
-      return withMeta(s, item);
+      if (item2.min !== void 0) s["minimum"] = item2.min;
+      if (item2.max !== void 0) s["maximum"] = item2.max;
+      return withMeta(s, item2);
     }
     case "boolean":
-      return withMeta({ type: "boolean" }, item);
+      return withMeta({ type: "boolean" }, item2);
     case "color":
-      return withMeta({ type: "string" }, item, "Hex colour (e.g. #30ba78) or a {token.path} brand-token alias.");
+      return withMeta({ type: "string" }, item2, "Hex colour (e.g. #30ba78) or a {token.path} brand-token alias.");
     case "select": {
-      const values = (item.options ?? []).map((o) => o.value);
-      const labels = (item.options ?? []).map((o) => o.label ? `${o.value} (${o.label})` : o.value).join(", ");
-      return withMeta({ type: "string", ...values.length ? { enum: values } : {} }, item, labels ? `Options: ${labels}.` : void 0);
+      const values = (item2.options ?? []).map((o) => o.value);
+      const labels = (item2.options ?? []).map((o) => o.label ? `${o.value} (${o.label})` : o.value).join(", ");
+      return withMeta({ type: "string", ...values.length ? { enum: values } : {} }, item2, labels ? `Options: ${labels}.` : void 0);
     }
     case "date":
-      return withMeta({ type: "string", format: "date" }, item);
+      return withMeta({ type: "string", format: "date" }, item2);
     case "time":
     case "datetime-local":
-      return withMeta({ type: "string" }, item);
+      return withMeta({ type: "string" }, item2);
     case "asset":
-      return withMeta({ type: "string" }, item, "An asset id (e.g. suse/logo/primary), a Lolly tool URL, or a data: URL.");
+      return withMeta({ type: "string" }, item2, "An asset id (e.g. suse/logo/primary), a Lolly tool URL, or a data: URL.");
     case "vector": {
       const properties2 = {};
-      for (const f of item.fields ?? []) properties2[f.id] = numberField(f);
-      return withMeta({ type: "object", properties: properties2, additionalProperties: false }, item);
+      for (const f of item2.fields ?? []) properties2[f.id] = numberField(f);
+      return withMeta({ type: "object", properties: properties2, additionalProperties: false }, item2);
     }
     case "blocks": {
       const properties2 = {};
-      for (const f of item.fields ?? []) properties2[f.id] = blockFieldSchema(f);
-      return withMeta({ type: "array", items: { type: "object", properties: properties2, additionalProperties: false } }, item);
+      for (const f of item2.fields ?? []) properties2[f.id] = blockFieldSchema(f);
+      return withMeta({ type: "array", items: { type: "object", properties: properties2, additionalProperties: false } }, item2);
     }
     default:
-      return withMeta({ type: "string" }, item);
+      return withMeta({ type: "string" }, item2);
   }
 }
 function toolInputSchema(manifest) {
   const model2 = buildInputModel(manifest);
   const properties2 = {};
   const required = [];
-  for (const item of model2) {
-    if (item.type === "file") continue;
-    properties2[item.id] = schemaForInput(item);
-    if (item.required && !item.bindToProfile) required.push(item.id);
+  for (const item2 of model2) {
+    if (item2.type === "file") continue;
+    properties2[item2.id] = schemaForInput(item2);
+    if (item2.required && !item2.bindToProfile) required.push(item2.id);
   }
   return { type: "object", properties: properties2, ...required.length ? { required } : {}, additionalProperties: false };
 }
@@ -122671,11 +123695,11 @@ __export(raster_exports, {
 function needsFloatScene(toolId, editingRange, format, hdr) {
   return toolId === "design" && (editingRange === "hdr" || !!hdr) && !["html", "json", "csv", "ics", "vcf", "md", "txt"].includes(format.toLowerCase());
 }
-function deepFormatMime(fmt3) {
-  return fmt3.toLowerCase() === "exr" ? "image/x-exr" : "image/vnd.radiance";
+function deepFormatMime(fmt4) {
+  return fmt4.toLowerCase() === "exr" ? "image/x-exr" : "image/vnd.radiance";
 }
-function isDeepFormat(fmt3) {
-  const f = fmt3.toLowerCase();
+function isDeepFormat(fmt4) {
+  const f = fmt4.toLowerCase();
   return f === "exr" || f === "hdr";
 }
 function catalogFontDirs() {
@@ -122719,8 +123743,8 @@ function canCarryPrintPrep(format) {
 function printPrepRefusal(format) {
   return `--bleed/--marks cannot be applied to "${format}". Bleed boxes and crop/registration marks are page geometry, and only the page formats carry them: ${[...PRINT_PREP_FORMATS].join(", ")}. Accepting the flags here would give you a file identical to one exported without them, with nothing to say so. Export one of those formats, or drop the flags. No file was written.`;
 }
-function eligibleForResvgPng(fmt3, dims) {
-  return fmt3.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
+function eligibleForResvgPng(fmt4, dims) {
+  return fmt4.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
 }
 async function rasterizeTierAPng(svg, dims, manifest) {
   const { width, height } = pxDims(dims, manifest);
@@ -122822,17 +123846,17 @@ function hdrTune(h) {
   return t;
 }
 async function renderDeepRaster(req) {
-  const fmt3 = req.format.toLowerCase();
-  if (!isDeepFormat(fmt3)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
-  if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt3));
+  const fmt4 = req.format.toLowerCase();
+  if (!isDeepFormat(fmt4)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
+  if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt4));
   const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height);
   const sdr = fromU8Srgb(raster.data, raster.width, raster.height);
   const frame = hdrViewTransform(sdr, {
     targets: req.hdr.targets ?? [],
     ...hdrTune(req.hdr)
   });
-  if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt3, "no-headroom"));
-  if (fmt3 === "hdr") {
+  if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt4, "no-headroom"));
+  if (fmt4 === "hdr") {
     if (req.depth === "float" || req.depth === 16 || req.depth === 8) {
       req.log?.("info", `Note: depth=${req.depth} is not a Radiance .hdr option - RGBE is 8-bit mantissas with one shared exponent per pixel. Wrote RGBE.`);
     }
@@ -122910,10 +123934,10 @@ function runJxl(request, signal) {
     pending--;
   });
   if (!signal) return task;
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve7, reject) => {
     const abort = () => reject(signal.reason);
     signal.addEventListener("abort", abort, { once: true });
-    task.then(resolve6, reject).finally(() => signal.removeEventListener("abort", abort));
+    task.then(resolve7, reject).finally(() => signal.removeEventListener("abort", abort));
   });
 }
 function workerPath() {
@@ -122932,7 +123956,7 @@ function workerPath() {
 function runWorker(request, signal) {
   validateJxlRequest(request);
   signal?.throwIfAborted();
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve7, reject) => {
     const worker = new Worker2(workerPath(), { workerData: request, execArgv: [] });
     let settled = false;
     const finish2 = (error2, result) => {
@@ -122942,7 +123966,7 @@ function runWorker(request, signal) {
       signal?.removeEventListener("abort", abort);
       void worker.terminate();
       if (error2) reject(error2);
-      else resolve6(result);
+      else resolve7(result);
     };
     const abort = () => finish2(signal?.reason instanceof Error ? signal.reason : new Error("JPEG XL operation cancelled."));
     const timer = setTimeout(() => finish2(new Error("JPEG XL operation exceeded its two-minute budget.")), JXL_LIMITS.budgetMs);
@@ -123059,7 +124083,7 @@ function count3(n6, one, many = `${one}s`) {
   return `${n6} ${n6 === 1 ? one : many}`;
 }
 function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
-  if (depth > MAX_DEPTH4 || out.length >= MAX_ITEMS) return out;
+  if (depth > MAX_DEPTH5 || out.length >= MAX_ITEMS2) return out;
   const tag2 = refTag(node);
   if (tag2) {
     if (seen.has(tag2)) return out;
@@ -123069,7 +124093,7 @@ function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 
   if (!d) return out;
   const names = arrOf(ctx, d.get(PDFName.of("Names")));
   if (names) {
-    for (let i = 0; i + 1 < names.length && out.length < MAX_ITEMS; i += 2) {
+    for (let i = 0; i + 1 < names.length && out.length < MAX_ITEMS2; i += 2) {
       out.push([strOf(ctx, names[i]) ?? "", names[i + 1]]);
     }
   }
@@ -123118,7 +124142,7 @@ function* eachAnnot(ctx, pages) {
   let n6 = 0;
   for (const page3 of pages) {
     for (const ref of arrOf(ctx, page3.get(PDFName.of("Annots"))) ?? []) {
-      if (n6++ >= MAX_ITEMS) return;
+      if (n6++ >= MAX_ITEMS2) return;
       const d = dictOf(ctx, ref);
       if (d) yield d;
     }
@@ -123128,7 +124152,7 @@ function emptySink() {
   return { scripts: [], uris: [], launches: [], submits: [], remotes: [] };
 }
 function walkAction(ctx, action, sink, seen, depth = 0) {
-  if (depth > MAX_DEPTH4) return;
+  if (depth > MAX_DEPTH5) return;
   const tag2 = refTag(action);
   if (tag2) {
     if (seen.has(tag2)) return;
@@ -123200,14 +124224,14 @@ function fieldValue(ctx, v) {
   if (s != null) return s;
   const n6 = nameOf(ctx, v);
   if (n6 != null) return n6 === "Off" ? null : n6;
-  const num11 = numOf(ctx, v);
-  if (num11 != null) return String(num11);
+  const num12 = numOf(ctx, v);
+  if (num12 != null) return String(num12);
   const arr = arrOf(ctx, v);
   if (arr) return list(arr.map((x) => strOf(ctx, x) ?? "")) || null;
   return null;
 }
 function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
-  if (depth > MAX_DEPTH4 || out.length >= MAX_ITEMS) return;
+  if (depth > MAX_DEPTH5 || out.length >= MAX_ITEMS2) return;
   const tag2 = refTag(node);
   if (tag2) {
     if (seen.has(tag2)) return;
@@ -123263,9 +124287,9 @@ function pageDicts(doc) {
 }
 function scanPdfStructure(doc) {
   const out = [];
-  const add = (label2, detail, tone = "") => {
+  const add = (label3, detail, tone = "") => {
     const d = clip2(detail);
-    if (d) out.push({ label: label2, detail: d, tone });
+    if (d) out.push({ label: label3, detail: d, tone });
   };
   let ctx;
   try {
@@ -123359,12 +124383,12 @@ function scanPdfStructure(doc) {
   if (pages.length) add("Pages", count3(pages.length, "page"));
   return out;
 }
-var MAX_DEPTH4, MAX_ITEMS, LIST_CAP, DETAIL_CAP, NON_MARKUP;
+var MAX_DEPTH5, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
 var init_pdf_structure = __esm({
   "packages/node-shell/src/pdf-structure.ts"() {
     "use strict";
-    MAX_DEPTH4 = 32;
-    MAX_ITEMS = 500;
+    MAX_DEPTH5 = 32;
+    MAX_ITEMS2 = 500;
     LIST_CAP = 8;
     DETAIL_CAP = 400;
     NON_MARKUP = /* @__PURE__ */ new Set(["Link", "Widget", "Popup", "FileAttachment"]);
@@ -123408,9 +124432,9 @@ async function analyzePdf(bytes) {
   const { PDFDocument: PDFDocument4, PDFName: PDFName5 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(bytes, PDF_LOAD_OPTS);
   const findings = [];
-  const add = (label2, detail, tone = "") => {
+  const add = (label3, detail, tone = "") => {
     const d = detail == null ? "" : String(detail).trim();
-    if (d) findings.push({ label: label2, detail: d, tone });
+    if (d) findings.push({ label: label3, detail: d, tone });
   };
   for (const f of INFO_FIELDS) {
     let v;
@@ -123496,7 +124520,7 @@ async function canvasToJpeg(canvas, quality) {
   if (typeof canvas.convertToBlob === "function") {
     return canvas.convertToBlob({ type: "image/jpeg", quality });
   }
-  return new Promise((resolve6) => canvas.toBlob(resolve6, "image/jpeg", quality));
+  return new Promise((resolve7) => canvas.toBlob(resolve7, "image/jpeg", quality));
 }
 async function recodeJpeg(jpgBytes, { maxDim, quality, grayscale }) {
   let bmp;
@@ -123985,11 +125009,11 @@ async function inflatePptx(bytes) {
     return data;
   };
   if (typeof Worker === "undefined") return Promise.resolve().then(() => guard(unzipSync2(u82, { filter })));
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve7, reject) => {
     unzip(u82, { filter }, (err, data) => {
       if (err) return reject(err);
       try {
-        resolve6(guard(data));
+        resolve7(guard(data));
       } catch (e) {
         reject(e);
       }
@@ -124174,13 +125198,13 @@ var init_tensor = __esm({
 
 // packages/node-shell/src/models-dir.ts
 import { existsSync as existsSync6, statSync as statSync2 } from "node:fs";
-import { homedir } from "node:os";
+import { homedir as homedir2 } from "node:os";
 import { join as join8 } from "node:path";
 function stagedModelsDir(root2) {
   return join8(root2 ?? repoRoot(), "shells", "web", "public", "models");
 }
 function userCacheModelsDir() {
-  return join8(homedir(), ".cache", "lolly", "models");
+  return join8(homedir2(), ".cache", "lolly", "models");
 }
 function modelsDirCandidates(env = process.env) {
   const out = [];
@@ -125230,8 +126254,8 @@ function fillResources(walk2, res, resDict, depth) {
     }
   }
   for (const [name, ref] of dictEntries2(ctx, getKey(ctx, resDict, "Properties"))) {
-    const label2 = pdfString(ctx, getKey(ctx, ref, "Name"));
-    if (label2) res.ocgs[name] = label2;
+    const label3 = pdfString(ctx, getKey(ctx, ref, "Name"));
+    if (label3) res.ocgs[name] = label3;
   }
   const shading = walk2.decoders.shading ?? pdfShadingOf;
   const pattern = walk2.decoders.pattern ?? pdfPatternOf;
@@ -125291,8 +126315,8 @@ function buildFontInfo(walk2, fontRef, depth) {
     const diffs = encDict ? ctx.lookup(encDict.get(PDFName2.of("Differences"))) : null;
     if (diffs instanceof PDFArray2) {
       let code = 0;
-      for (const item of diffs.asArray()) {
-        const o = ctx.lookup(item);
+      for (const item2 of diffs.asArray()) {
+        const o = ctx.lookup(item2);
         if (o instanceof PDFNumber2) code = o.asNumber();
         else if (o instanceof PDFName2) {
           encoding[code] = o.asString().replace(/^\//, "");
@@ -126015,8 +127039,8 @@ function readPdfStructOrder(doc, pageIndex) {
     if (!d) return;
     const type = nameOf2(ctx, d.get(PDFName2.of("Type")));
     if (type === "MCR") {
-      const num11 = numOf2(ctx, d.get(PDFName2.of("MCID")));
-      if (num11 != null) acc.push(num11);
+      const num12 = numOf2(ctx, d.get(PDFName2.of("MCID")));
+      if (num12 != null) acc.push(num12);
       return;
     }
   };
@@ -126404,8 +127428,8 @@ var init_pdf_read = __esm({
     ARTIFACT_MARKER_KEY = "lolly-artifact-marker:";
     MAX_STRUCT_DEPTH = 64;
     NODE_PDF_IMAGE_CODEC = {
-      async encodePng(pixels) {
-        return packPng(pixels.data, { width: pixels.width, height: pixels.height, channels: 4 });
+      async encodePng(pixels2) {
+        return packPng(pixels2.data, { width: pixels2.width, height: pixels2.height, channels: 4 });
       },
       async decode(bytes, mime2) {
         return mime2 === "image/png" ? readSimplePng(bytes) : null;
@@ -126522,8 +127546,8 @@ async function sourceBytes(src) {
   throw new Error("host.raster: unreadable source.");
 }
 async function encodeCanvas(canvas, format, quality) {
-  const fmt3 = format === "jpg" ? "jpeg" : format;
-  const mime2 = `image/${fmt3}`;
+  const fmt4 = format === "jpg" ? "jpeg" : format;
+  const mime2 = `image/${fmt4}`;
   const q = typeof quality === "number" && Number.isFinite(quality) ? Math.max(1, Math.min(100, Math.round(quality <= 1 ? quality * 100 : quality))) : void 0;
   const buf = q === void 0 ? canvas.toBuffer(mime2) : canvas.toBuffer(mime2, q);
   return { bytes: new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), mime: mime2 };
@@ -126815,7 +127839,7 @@ function readDeepPng(bytes) {
   let chroma, oriented = false;
   let icc, cicp, trns;
   const data = [];
-  let length = 0;
+  let length2 = 0;
   for (let at2 = 8; at2 + 12 <= bytes.length; ) {
     const size = view.getUint32(at2), end = at2 + 12 + size;
     if (end > bytes.length || size > DEEP_MAX_BYTES) throw new Error("Truncated PNG chunk.");
@@ -126834,7 +127858,7 @@ function readDeepPng(bytes) {
       if (chunk6[10] || chunk6[11] || interlace > 1) throw new Error("Unsupported PNG coding.");
     } else if (type === "IDAT") {
       data.push(chunk6);
-      length += size;
+      length2 += size;
     } else if (type === "cICP") {
       if (size !== 4) throw new Error("Invalid PNG cICP.");
       cicp = chunk6;
@@ -126872,7 +127896,7 @@ function readDeepPng(bytes) {
     }
     at2 = end;
   }
-  if (!width || !height || !ended || !length) throw new Error("Incomplete PNG image.");
+  if (!width || !height || !ended || !length2) throw new Error("Incomplete PNG image.");
   if (oriented) throw new Error("Apply the PNG EXIF orientation before HDR editing.");
   if (![8, 16].includes(depth) || color3 === 3) {
     if (icc || cicp || chroma || gamma && gamma !== 0.45455) throw new Error("Convert this colour-managed palette PNG to RGB before HDR editing.");
@@ -126883,7 +127907,7 @@ function readDeepPng(bytes) {
   const passes2 = interlace ? [[0, 0, 8, 8], [4, 0, 8, 8], [0, 4, 4, 8], [2, 0, 4, 4], [0, 2, 2, 4], [1, 0, 2, 2], [0, 1, 1, 2]] : [[0, 0, 1, 1]];
   const sizes = passes2.map(([x, y, dx, dy]) => [Math.max(0, Math.ceil((width - x) / dx)), Math.max(0, Math.ceil((height - y) / dy))]);
   const expected = sizes.reduce((sum, [w, h]) => sum + (w && h ? (w * bpp + 1) * h : 0), 0);
-  const compressed = new Uint8Array(length);
+  const compressed = new Uint8Array(length2);
   let at = 0;
   for (const part of data) {
     compressed.set(part, at);
@@ -126969,10 +127993,10 @@ function readDeepTiff(bytes) {
     tags3.set(tag2, { type, count: n6, at, size });
   }
   const list2 = (tag2, fallback = []) => {
-    const item = tags3.get(tag2);
-    if (!item) return fallback;
-    if (![1, 3, 4].includes(item.type) || item.count > 65536) throw new Error(`Unsupported TIFF field ${tag2}.`);
-    return Array.from({ length: item.count }, (_, i) => item.type === 1 ? bytes[item.at + i] : item.type === 3 ? v.getUint16(item.at + i * 2, le) : v.getUint32(item.at + i * 4, le));
+    const item2 = tags3.get(tag2);
+    if (!item2) return fallback;
+    if (![1, 3, 4].includes(item2.type) || item2.count > 65536) throw new Error(`Unsupported TIFF field ${tag2}.`);
+    return Array.from({ length: item2.count }, (_, i) => item2.type === 1 ? bytes[item2.at + i] : item2.type === 3 ? v.getUint16(item2.at + i * 2, le) : v.getUint32(item2.at + i * 4, le));
   };
   const one = (tag2, fallback = 0) => list2(tag2, [fallback])[0];
   const width = one(256), height = one(257);
@@ -127083,9 +128107,9 @@ function readDeepExr(bytes) {
   at++;
   const table = at;
   const attribute = (key, type, size) => {
-    const item = attrs.get(key);
-    if (!item || item.type !== type || size !== void 0 && item.size !== size) throw new Error(`Unsupported OpenEXR ${key}.`);
-    return item;
+    const item2 = attrs.get(key);
+    if (!item2 || item2.type !== type || size !== void 0 && item2.size !== size) throw new Error(`Unsupported OpenEXR ${key}.`);
+    return item2;
   };
   const dataWindow = attribute("dataWindow", "box2i", 16);
   const xmin = v.getInt32(dataWindow.start, true), ymin = v.getInt32(dataWindow.start + 4, true);
@@ -127108,7 +128132,7 @@ function readDeepExr(bytes) {
     at += 16;
   }
   if (at !== channelList.start + channelList.size - 1 || bytes[at] !== 0) throw new Error("Invalid OpenEXR channel terminator.");
-  if (![0, 1, 2].every((c) => channels.some((channel3) => channel3.component === c))) throw new Error("OpenEXR needs RGB channels.");
+  if (![0, 1, 2].every((c) => channels.some((channel4) => channel4.component === c))) throw new Error("OpenEXR needs RGB channels.");
   let space = "srgb-linear";
   const chroma = attrs.get("chromaticities");
   if (chroma) {
@@ -127123,7 +128147,7 @@ function readDeepExr(bytes) {
   if (table + count4 * 8 > bytes.length) throw new Error("Truncated OpenEXR offset table.");
   const rgba = new Float32Array(width * height * 4);
   for (let i = 3; i < rgba.length; i += 4) rgba[i] = 1;
-  const seen = /* @__PURE__ */ new Set(), rowBytes = channels.reduce((n6, channel3) => n6 + channel3.bytes * width, 0);
+  const seen = /* @__PURE__ */ new Set(), rowBytes = channels.reduce((n6, channel4) => n6 + channel4.bytes * width, 0);
   for (let chunk6 = 0; chunk6 < count4; chunk6++) {
     const offset = Number(v.getBigUint64(table + chunk6 * 8, true));
     if (!Number.isSafeInteger(offset) || offset < table + count4 * 8 || offset + 8 > bytes.length) throw new Error("Invalid OpenEXR chunk offset.");
@@ -127142,9 +128166,9 @@ function readDeepExr(bytes) {
     if (raw.length !== expected) throw new Error("OpenEXR block length mismatch.");
     const rv = new DataView(raw.buffer, raw.byteOffset, raw.length);
     let pos = 0;
-    for (let row = 0; row < rows2; row++) for (const channel3 of channels) for (let x = 0; x < width; x++) {
-      rgba[((y + row) * width + x) * 4 + channel3.component] = channel3.type === 1 ? halfToFloat(rv.getUint16(pos, true)) : channel3.type === 2 ? rv.getFloat32(pos, true) : rv.getUint32(pos, true);
-      pos += channel3.bytes;
+    for (let row = 0; row < rows2; row++) for (const channel4 of channels) for (let x = 0; x < width; x++) {
+      rgba[((y + row) * width + x) * 4 + channel4.component] = channel4.type === 1 ? halfToFloat(rv.getUint16(pos, true)) : channel4.type === 2 ? rv.getFloat32(pos, true) : rv.getUint32(pos, true);
+      pos += channel4.bytes;
     }
   }
   for (let i = 0; i < rgba.length; i += 4) {
@@ -127380,7 +128404,7 @@ function createNodeTextTools() {
       return highlightCode(text7, language, options2);
     },
     run(request) {
-      return new Promise((resolve6, reject) => {
+      return new Promise((resolve7, reject) => {
         const worker = new Worker3(new URL("./text-tools-worker.ts", import.meta.url), {
           workerData: request
         });
@@ -127391,7 +128415,7 @@ function createNodeTextTools() {
         worker.once("message", (value) => {
           clearTimeout(timer);
           void worker.terminate();
-          if (value.result) resolve6(value.result);
+          if (value.result) resolve7(value.result);
           else reject(new Error(value.error));
         });
         worker.once("error", (error2) => {
@@ -127612,8 +128636,8 @@ async function exportDeepFrame(input, format, opts, io) {
     mime2 = "image/png";
   } else if (format === "jxl" || format === "jxl-lossless") {
     if (opts.c2pa) throw new Error("JPEG XL Content Credentials are unavailable. Choose HDR PNG for a signed export.");
-    const pixels = hdr ? pq() : sdr16(frame);
-    const result = await io.jxl({ operation: "encode", width: frame.width, height: frame.height, bytes: new Uint8Array(pixels.buffer), sample: hdr ? 3 : 1, options: { lossless: format === "jxl-lossless", quality: opts.quality } });
+    const pixels2 = hdr ? pq() : sdr16(frame);
+    const result = await io.jxl({ operation: "encode", width: frame.width, height: frame.height, bytes: new Uint8Array(pixels2.buffer), sample: hdr ? 3 : 1, options: { lossless: format === "jxl-lossless", quality: opts.quality } });
     bytes = jxlWithXmp(result.bytes, buildExportXmp(opts.meta));
     mime2 = "image/jxl";
   } else if (format === "tiff") {
@@ -127681,63 +128705,63 @@ function readLottieJson(bytes, context) {
   let nodes = 0;
   const pending2 = [{ value, depth: 0 }];
   while (pending2.length) {
-    const item = pending2.pop();
-    if (++nodes > LOTTIE_LIMITS.nodes || item.depth > LOTTIE_LIMITS.depth) throw new Error(`${context}: JSON complexity limit exceeded.`);
-    if (typeof item.value === "number" && !Number.isFinite(item.value)) throw new Error(`${context}: non-finite number.`);
-    if (item.value && typeof item.value === "object") for (const child of Object.values(item.value)) pending2.push({ value: child, depth: item.depth + 1 });
+    const item2 = pending2.pop();
+    if (++nodes > LOTTIE_LIMITS.nodes || item2.depth > LOTTIE_LIMITS.depth) throw new Error(`${context}: JSON complexity limit exceeded.`);
+    if (typeof item2.value === "number" && !Number.isFinite(item2.value)) throw new Error(`${context}: non-finite number.`);
+    if (item2.value && typeof item2.value === "object") for (const child of Object.values(item2.value)) pending2.push({ value: child, depth: item2.depth + 1 });
   }
   return lottieObject(value, context);
 }
-function admitLottieAnimation(value, label2 = "Animation") {
-  const w = lottieNumber(value.w, `${label2} width`, 1, LOTTIE_LIMITS.dimension);
-  const h = lottieNumber(value.h, `${label2} height`, 1, LOTTIE_LIMITS.dimension);
-  const fr = lottieNumber(value.fr, `${label2} frame rate`, 1, 240);
-  const ip = lottieNumber(value.ip, `${label2} in-point`, -864e3, 864e3);
-  const op = lottieNumber(value.op, `${label2} out-point`, ip + 1e-6, ip + fr * 3600);
-  if (!Array.isArray(value.layers)) throw new Error(`${label2}: missing animation layers.`);
-  if (value.ddd || value.slots || value.fonts || value.chars) throw new Error(`${label2}: 3D, slots and font-dependent animations are not supported. Use video export for this source.`);
+function admitLottieAnimation(value, label3 = "Animation") {
+  const w = lottieNumber(value.w, `${label3} width`, 1, LOTTIE_LIMITS.dimension);
+  const h = lottieNumber(value.h, `${label3} height`, 1, LOTTIE_LIMITS.dimension);
+  const fr = lottieNumber(value.fr, `${label3} frame rate`, 1, 240);
+  const ip = lottieNumber(value.ip, `${label3} in-point`, -864e3, 864e3);
+  const op = lottieNumber(value.op, `${label3} out-point`, ip + 1e-6, ip + fr * 3600);
+  if (!Array.isArray(value.layers)) throw new Error(`${label3}: missing animation layers.`);
+  if (value.ddd || value.slots || value.fonts || value.chars) throw new Error(`${label3}: 3D, slots and font-dependent animations are not supported. Use video export for this source.`);
   const assets = value.assets ?? [];
-  if (!Array.isArray(assets)) throw new Error(`${label2}: invalid assets.`);
-  if (assets.filter((asset2) => asset2 && typeof asset2 === "object" && !Array.isArray(asset2) && typeof asset2.p === "string").length > 1e3) throw new Error(`${label2}: too many image references.`);
+  if (!Array.isArray(assets)) throw new Error(`${label3}: invalid assets.`);
+  if (assets.filter((asset2) => asset2 && typeof asset2 === "object" && !Array.isArray(asset2) && typeof asset2.p === "string").length > 1e3) throw new Error(`${label3}: too many image references.`);
   const byId = /* @__PURE__ */ new Map();
   for (const entry2 of assets) {
-    const asset2 = lottieObject(entry2, `${label2} asset`);
-    if (typeof asset2.id !== "string" || !asset2.id || byId.has(asset2.id)) throw new Error(`${label2}: missing or duplicate asset id.`);
-    if (asset2.fr !== void 0 && asset2.fr !== fr) throw new Error(`${label2}: independently rated precompositions are not supported.`);
+    const asset2 = lottieObject(entry2, `${label3} asset`);
+    if (typeof asset2.id !== "string" || !asset2.id || byId.has(asset2.id)) throw new Error(`${label3}: missing or duplicate asset id.`);
+    if (asset2.fr !== void 0 && asset2.fr !== fr) throw new Error(`${label3}: independently rated precompositions are not supported.`);
     byId.set(asset2.id, asset2);
   }
   let layerCount = 0, keyCount = 0;
-  function inspectProperties(object3) {
-    if (typeof object3.ty === "string" && !["gr", "tr", "sh", "rc", "el", "fl", "st", "gf", "gs", "tm"].includes(object3.ty)) throw new Error(`${label2}: unsupported shape operation ${object3.ty}. Export video instead.`);
-    if (typeof object3.x === "string") throw new Error(`${label2}: expressions are not supported.`);
-    if (object3.sid) throw new Error(`${label2}: themed slots are not supported.`);
-    if (object3.a === 1 && Array.isArray(object3.k)) {
-      keyCount += object3.k.length;
-      if (keyCount > LOTTIE_LIMITS.keys) throw new Error(`${label2}: keyframe limit exceeded.`);
-      for (const key of object3.k) lottieNumber(lottieObject(key, `${label2} keyframe`).t, `${label2} key time`, -864e4, 864e4);
+  function inspectProperties(object4) {
+    if (typeof object4.ty === "string" && !["gr", "tr", "sh", "rc", "el", "fl", "st", "gf", "gs", "tm"].includes(object4.ty)) throw new Error(`${label3}: unsupported shape operation ${object4.ty}. Export video instead.`);
+    if (typeof object4.x === "string") throw new Error(`${label3}: expressions are not supported.`);
+    if (object4.sid) throw new Error(`${label3}: themed slots are not supported.`);
+    if (object4.a === 1 && Array.isArray(object4.k)) {
+      keyCount += object4.k.length;
+      if (keyCount > LOTTIE_LIMITS.keys) throw new Error(`${label3}: keyframe limit exceeded.`);
+      for (const key of object4.k) lottieNumber(lottieObject(key, `${label3} keyframe`).t, `${label3} key time`, -864e4, 864e4);
     }
-    for (const child of Object.values(object3)) {
-      if (Array.isArray(child)) for (const item of child) {
-        if (item && typeof item === "object" && !Array.isArray(item)) inspectProperties(item);
+    for (const child of Object.values(object4)) {
+      if (Array.isArray(child)) for (const item2 of child) {
+        if (item2 && typeof item2 === "object" && !Array.isArray(item2)) inspectProperties(item2);
       }
       else if (child && typeof child === "object") inspectProperties(child);
     }
   }
   function inspectLayers(list2, ancestry) {
-    if (!Array.isArray(list2)) throw new Error(`${label2}: invalid precomposition layers.`);
+    if (!Array.isArray(list2)) throw new Error(`${label3}: invalid precomposition layers.`);
     const parents = /* @__PURE__ */ new Map();
     const indices = /* @__PURE__ */ new Set();
-    for (const item of list2) {
-      const layer = lottieObject(item, `${label2} layer`);
-      if (++layerCount > LOTTIE_LIMITS.layers) throw new Error(`${label2}: layer limit exceeded.`);
-      if (typeof layer.ty !== "number" || ![0, 1, 2, 3, 4].includes(layer.ty)) throw new Error(`${label2}: layer ${String(layer.nm ?? layer.ind)} uses unsupported type ${String(layer.ty)}.`);
+    for (const item2 of list2) {
+      const layer = lottieObject(item2, `${label3} layer`);
+      if (++layerCount > LOTTIE_LIMITS.layers) throw new Error(`${label3}: layer limit exceeded.`);
+      if (typeof layer.ty !== "number" || ![0, 1, 2, 3, 4].includes(layer.ty)) throw new Error(`${label3}: layer ${String(layer.nm ?? layer.ind)} uses unsupported type ${String(layer.ty)}.`);
       if (layer.ddd || layer.ao || layer.tt || layer.td || layer.bm || layer.masksProperties || Array.isArray(layer.ef) && layer.ef.length) {
-        throw new Error(`${label2}: layer ${String(layer.nm ?? layer.ind)} uses 3D, masks, mattes, auto-orientation, blends or effects. Export video instead.`);
+        throw new Error(`${label3}: layer ${String(layer.nm ?? layer.ind)} uses 3D, masks, mattes, auto-orientation, blends or effects. Export video instead.`);
       }
-      for (const field2 of ["ip", "op", "st"]) if (layer[field2] !== void 0) lottieNumber(layer[field2], `${label2} layer ${field2}`, -864e4, 864e4);
-      if (layer.sr !== void 0) lottieNumber(layer.sr, `${label2} stretch`, 1e-4, 1e4);
+      for (const field2 of ["ip", "op", "st"]) if (layer[field2] !== void 0) lottieNumber(layer[field2], `${label3} layer ${field2}`, -864e4, 864e4);
+      if (layer.sr !== void 0) lottieNumber(layer.sr, `${label3} stretch`, 1e-4, 1e4);
       if (typeof layer.ind === "number") {
-        if (indices.has(layer.ind)) throw new Error(`${label2}: duplicate layer index.`);
+        if (indices.has(layer.ind)) throw new Error(`${label3}: duplicate layer index.`);
         indices.add(layer.ind);
         if (typeof layer.parent === "number") parents.set(layer.ind, layer.parent);
       }
@@ -127745,18 +128769,18 @@ function admitLottieAnimation(value, label2 = "Animation") {
       if (layer.ty === 0 || layer.ty === 2) {
         const id2 = String(layer.refId ?? "");
         const asset2 = byId.get(id2);
-        if (!asset2) throw new Error(`${label2}: missing asset ${id2}.`);
+        if (!asset2) throw new Error(`${label3}: missing asset ${id2}.`);
         if (layer.ty === 0) {
-          if (ancestry.includes(id2) || ancestry.length >= 32) throw new Error(`${label2}: cyclic or excessively nested precomposition ${id2}.`);
+          if (ancestry.includes(id2) || ancestry.length >= 32) throw new Error(`${label3}: cyclic or excessively nested precomposition ${id2}.`);
           inspectLayers(asset2.layers, [...ancestry, id2]);
-        } else if (typeof asset2.p !== "string") throw new Error(`${label2}: image ${id2} has no resource.`);
+        } else if (typeof asset2.p !== "string") throw new Error(`${label3}: image ${id2} has no resource.`);
       }
     }
     for (const id2 of parents.keys()) {
       const seen = /* @__PURE__ */ new Set([id2]);
       let parent = parents.get(id2);
       while (parent !== void 0) {
-        if (!indices.has(parent) || seen.has(parent)) throw new Error(`${label2}: missing or cyclic parent layer.`);
+        if (!indices.has(parent) || seen.has(parent)) throw new Error(`${label3}: missing or cyclic parent layer.`);
         seen.add(parent);
         parent = parents.get(parent);
       }
@@ -127860,8 +128884,8 @@ function readLottie(bytes) {
   const animations = [];
   let expandedBytes = 0;
   const ids2 = /* @__PURE__ */ new Set();
-  for (const item of manifest.animations) {
-    const entry2 = lottieObject(item, "dotLottie animation");
+  for (const item2 of manifest.animations) {
+    const entry2 = lottieObject(item2, "dotLottie animation");
     if (typeof entry2.id !== "string" || !/^[A-Za-z0-9_-]+$/.test(entry2.id) || ids2.has(entry2.id)) throw new Error("dotLottie: invalid or duplicate animation id.");
     ids2.add(entry2.id);
     if (entry2.initialTheme || entry2.theme || entry2.background) throw new Error(`dotLottie ${entry2.id}: themed appearance or a package background is not supported. Export an unthemed source first.`);
@@ -127878,7 +128902,7 @@ function readLottie(bytes) {
   return { version, manifest, animations, expandedBytes, initial: typeof declared === "string" && ids2.has(declared) ? declared : animations[0].id, warnings };
 }
 function selectLottie(pkg, id2 = pkg.initial) {
-  const selected = pkg.animations.find((item) => item.id === id2);
+  const selected = pkg.animations.find((item2) => item2.id === id2);
   if (!selected) throw new Error(`Lottie: animation ${id2} is not in this source.`);
   return selected;
 }
@@ -128103,14 +129127,14 @@ function retimeLottie(source, fps, prefix) {
   const copy = structuredClone(source);
   const ratio = fps / source.fr;
   const ids2 = new Map((copy.assets ?? []).map((asset2, index2) => [String(asset2.id), `${prefix}-asset-${index2}`]));
-  function properties2(object3) {
-    if (object3.a === 1 && Array.isArray(object3.k)) for (const item of object3.k) {
-      const key = lottieObject(item, "Lottie keyframe");
+  function properties2(object4) {
+    if (object4.a === 1 && Array.isArray(object4.k)) for (const item2 of object4.k) {
+      const key = lottieObject(item2, "Lottie keyframe");
       if (typeof key.t === "number") key.t *= ratio;
     }
-    for (const child of Object.values(object3)) {
-      if (Array.isArray(child)) for (const item of child) {
-        if (item && typeof item === "object" && !Array.isArray(item)) properties2(item);
+    for (const child of Object.values(object4)) {
+      if (Array.isArray(child)) for (const item2 of child) {
+        if (item2 && typeof item2 === "object" && !Array.isArray(item2)) properties2(item2);
       }
       else if (child && typeof child === "object") properties2(child);
     }
@@ -128139,17 +129163,17 @@ function retimeLottie(source, fps, prefix) {
   delete copy.markers;
   return copy;
 }
-function channel2(track, key, fps, startMs, base, multiplier = 1, replace = false) {
-  const keys2 = track.filter((item) => item.v[key] !== void 0);
+function channel3(track, key, fps, startMs, base, multiplier = 1, replace = false) {
+  const keys2 = track.filter((item2) => item2.v[key] !== void 0);
   if (!keys2.length) return lottieStatic(base);
   const value = (n6) => replace ? n6 * multiplier : base + n6 * multiplier;
-  return { a: 1, k: keys2.map((item, index2) => {
+  return { a: 1, k: keys2.map((item2, index2) => {
     const next = keys2[index2 + 1];
-    const points = key === "o" ? [0, 0, 1, 1] : kfEasePoints(item.ease) ?? [0, 0, 1, 1];
+    const points = key === "o" ? [0, 0, 1, 1] : kfEasePoints(item2.ease) ?? [0, 0, 1, 1];
     return {
-      t: (startMs + item.t) * fps / 1e3,
-      s: [value(item.v[key])],
-      ...next ? { e: [value(next.v[key])], ...item.ease === "eh" ? { h: 1 } : { o: { x: points[0], y: points[1] }, i: { x: points[2], y: points[3] } } } : {}
+      t: (startMs + item2.t) * fps / 1e3,
+      s: [value(item2.v[key])],
+      ...next ? { e: [value(next.v[key])], ...item2.ease === "eh" ? { h: 1 } : { o: { x: points[0], y: points[1] }, i: { x: points[2], y: points[3] } } } : {}
     };
   }) };
 }
@@ -128157,18 +129181,18 @@ function pose2(layer, fps) {
   const track = parseKf(layer.kf);
   const unsupported2 = kfChannelsUsed(track).filter((key) => !["x", "y", "s", "r", "o"].includes(key));
   if (unsupported2.length) throw new Error(`${layer.name}: dotLottie does not support outer ${unsupported2.join(", ")} keys. Use video export.`);
-  const scale = channel2(track, "s", fps, layer.startMs, 100, 100, true);
-  if (scale.a === 1 && Array.isArray(scale.k)) for (const item of scale.k) {
-    const key = item;
+  const scale = channel3(track, "s", fps, layer.startMs, 100, 100, true);
+  if (scale.a === 1 && Array.isArray(scale.k)) for (const item2 of scale.k) {
+    const key = item2;
     for (const field2 of ["s", "e"]) if (Array.isArray(key[field2])) key[field2] = [key[field2][0], key[field2][0], 100];
   }
   else scale.k = [100, 100, 100];
   return {
     a: lottieStatic([layer.w / 2, layer.h / 2, 0]),
-    p: { s: true, x: channel2(track, "x", fps, layer.startMs, layer.x + layer.w / 2), y: channel2(track, "y", fps, layer.startMs, layer.y + layer.h / 2), z: lottieStatic(0) },
+    p: { s: true, x: channel3(track, "x", fps, layer.startMs, layer.x + layer.w / 2), y: channel3(track, "y", fps, layer.startMs, layer.y + layer.h / 2), z: lottieStatic(0) },
     s: scale,
-    r: channel2(track, "r", fps, layer.startMs, layer.rotation),
-    o: channel2(track, "o", fps, layer.startMs, layer.opacity * 100, 100, true)
+    r: channel3(track, "r", fps, layer.startMs, layer.rotation),
+    o: channel3(track, "o", fps, layer.startMs, layer.opacity * 100, 100, true)
   };
 }
 function compileLottieSequence(snapshot) {
@@ -128278,14 +129302,14 @@ function lottieTracks(layer) {
   add("o", "Opacity", transform2.o, true);
   function shapes3(items2, prefix, names, depth) {
     if (!Array.isArray(items2) || depth > 32) return;
-    items2.forEach((item, index2) => {
-      const shape = lottieObject(item, "Shape"), id2 = `${prefix}/${index2}`, name = String(shape.nm || `${shape.ty} ${index2 + 1}`);
+    items2.forEach((item2, index2) => {
+      const shape = lottieObject(item2, "Shape"), id2 = `${prefix}/${index2}`, name = String(shape.nm || `${shape.ty} ${index2 + 1}`);
       if (shape.ty === "gr") shapes3(shape.it, id2, [...names, name], depth + 1);
       if (shape.ty === "fl" || shape.ty === "st") {
-        const label2 = [...names, name].join(" / ");
-        add(`${id2}/c`, `${label2}: Color`, shape.c, false, true, true);
-        add(`${id2}/o`, `${label2}: Opacity`, shape.o, true, true);
-        if (shape.ty === "st") add(`${id2}/w`, `${label2}: Width`, shape.w, true, true);
+        const label3 = [...names, name].join(" / ");
+        add(`${id2}/c`, `${label3}: Color`, shape.c, false, true, true);
+        add(`${id2}/o`, `${label3}: Opacity`, shape.o, true, true);
+        if (shape.ty === "st") add(`${id2}/w`, `${label3}: Width`, shape.w, true, true);
       }
     });
   }
@@ -128410,9 +129434,9 @@ function parseSequenceMarks(wire) {
       continue;
     }
     if (!["m", "c", "r", "n"].includes(kind ?? "") || result.markers.length >= 256) continue;
-    let label2;
+    let label3;
     try {
-      label2 = decodeURIComponent(text7 ?? "").slice(0, 160);
+      label3 = decodeURIComponent(text7 ?? "").slice(0, 160);
     } catch {
       continue;
     }
@@ -128420,7 +129444,7 @@ function parseSequenceMarks(wire) {
     result.markers.push({
       kind,
       ms,
-      label: label2,
+      label: label3,
       color: /^[a-fA-F0-9]{6}$/.test(color3 ?? "") ? color3.toLowerCase() : "888888",
       ...endMs !== void 0 && endMs > ms ? { endMs } : {}
     });
@@ -128630,9 +129654,9 @@ var init_design_lottie = __esm({
 });
 
 // packages/node-shell/src/trust-anchors.ts
-import { homedir as homedir3 } from "node:os";
+import { homedir as homedir4 } from "node:os";
 function expandHome(p) {
-  return p.startsWith("~") && (p.length === 1 || p[1] === "/") ? homedir3() + p.slice(1) : p;
+  return p.startsWith("~") && (p.length === 1 || p[1] === "/") ? homedir4() + p.slice(1) : p;
 }
 var init_trust_anchors = __esm({
   "packages/node-shell/src/trust-anchors.ts"() {
@@ -129186,14 +130210,14 @@ async function productionFile(path, maxBytes) {
     const size = (await file.stat()).size;
     if (size > maxBytes) throw new Error("Production file exceeds its byte budget.");
     const buffer = new Uint8Array(maxBytes + 1);
-    let length = 0;
-    while (length < buffer.length) {
-      const { bytesRead } = await file.read(buffer, length, buffer.length - length, null);
+    let length2 = 0;
+    while (length2 < buffer.length) {
+      const { bytesRead } = await file.read(buffer, length2, buffer.length - length2, null);
       if (!bytesRead) break;
-      length += bytesRead;
+      length2 += bytesRead;
     }
-    if (length > maxBytes) throw new Error("Production file exceeds its byte budget.");
-    return buffer.slice(0, length);
+    if (length2 > maxBytes) throw new Error("Production file exceeds its byte budget.");
+    return buffer.slice(0, length2);
   } finally {
     await file.close();
   }
@@ -129253,8 +130277,8 @@ async function productionRaster(bytes, signal) {
     return { format, ...gap ? {} : { readable: false }, limitations: [gap ? "pixel-decoder-unavailable-or-budget" : "pixel-decode-failed"] };
   }
 }
-async function inspectProductionBytes(bytes, contract, reference2, signal, resolved2) {
-  return inspectProduction(bytes, contract, collectProduction, { reference: reference2, signal, resolved: resolved2 });
+async function inspectProductionBytes(bytes, contract, reference3, signal, resolved2) {
+  return inspectProduction(bytes, contract, collectProduction, { reference: reference3, signal, resolved: resolved2 });
 }
 var collectProduction;
 var init_production2 = __esm({
@@ -129320,8 +130344,8 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
       partial = true;
       continue;
     }
-    for (const attr4 of [...el.attributes]) {
-      const name = attr4.name.toLowerCase(), value = attr4.value;
+    for (const attr5 of [...el.attributes]) {
+      const name = attr5.name.toLowerCase(), value = attr5.value;
       if (name === "href" || name === "xlink:href") {
         if (el.localName === "image" && /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(value) && value.length < 8e6) {
           const data = base64ToBytes(value.slice(value.indexOf(",") + 1));
@@ -129329,12 +130353,12 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
           if (dimensions && dimensions.w > 0 && dimensions.h > 0 && dimensions.w * dimensions.h <= 4e7)
             continue;
         }
-        el.removeAttribute(attr4.name);
+        el.removeAttribute(attr5.name);
         partial = true;
         continue;
       }
       if (!ATTRS.has(name) || /url\(/i.test(value) && !/^url\(#[\w.-]+\)$/.test(value)) {
-        el.removeAttribute(attr4.name);
+        el.removeAttribute(attr5.name);
         partial = true;
       }
     }
@@ -129732,16 +130756,16 @@ async function runPdfFileOperation(bytes, target, signal) {
   if (document2.getPageCount() > 200) throw new Error("These PDF utilities support up to 200 pages. Split the document first.");
   const seen = /* @__PURE__ */ new Set();
   let visited = 0;
-  const inspect = (object3, depth = 0) => {
-    if (seen.has(object3)) return;
-    seen.add(object3);
+  const inspect = (object4, depth = 0) => {
+    if (seen.has(object4)) return;
+    seen.add(object4);
     if (++visited > 5e5 || depth > 32) throw new Error("PDF structure exceeds the safe inspection limit.");
-    if (object3 instanceof PDFDict4) {
-      if (object3.has(PDFName4.of("ByteRange")) || object3.get(PDFName4.of("Type")) === PDFName4.of("Sig")) throw new Error("This PDF carries a digital signature. Rewriting would invalidate it; use an unsigned source.");
-      for (const [, value] of object3.entries()) inspect(value, depth + 1);
-    } else if (object3 instanceof PDFArray5) for (const value of object3.asArray()) inspect(value, depth + 1);
+    if (object4 instanceof PDFDict4) {
+      if (object4.has(PDFName4.of("ByteRange")) || object4.get(PDFName4.of("Type")) === PDFName4.of("Sig")) throw new Error("This PDF carries a digital signature. Rewriting would invalidate it; use an unsigned source.");
+      for (const [, value] of object4.entries()) inspect(value, depth + 1);
+    } else if (object4 instanceof PDFArray5) for (const value of object4.asArray()) inspect(value, depth + 1);
   };
-  for (const [, object3] of document2.context.enumerateIndirectObjects()) inspect(object3);
+  for (const [, object4] of document2.context.enumerateIndirectObjects()) inspect(object4);
   signal?.throwIfAborted();
   const output = target === "pdf-clean" ? (await stripPdf(bytes)).bytes : await document2.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false });
   signal?.throwIfAborted();
@@ -129994,6 +131018,10 @@ var BROWSERS_DIR = join3(dirname3(fileURLToPath2(import.meta.url)), "..", ".brow
 function fetchToolFile(path) {
   return readToolText(path, content());
 }
+function contentImageRoots() {
+  const c = content();
+  return [c.catalogRoot, ...c.toolRoots, ...c.assetRoots.map((a) => a.dir)];
+}
 
 // services/mcp/src/catalog.ts
 var indexCache = null;
@@ -130036,9 +131064,9 @@ async function listToolTemplates(toolId) {
 async function loadTemplateSeed(toolId, templateId, presetId) {
   if (!TEMPLATE_ID_RE.test(templateId)) throw new Error(`Invalid templateId: ${templateId}.`);
   if (presetId && !TEMPLATE_ID_RE.test(presetId)) throw new Error(`Invalid presetId: ${presetId}.`);
-  const template = (await listToolTemplates(toolId)).find((item) => item.id === templateId);
+  const template = (await listToolTemplates(toolId)).find((item2) => item2.id === templateId);
   if (!template) throw new Error(`Template not found: ${toolId}/${templateId}. Call lolly_describe_tool to list templates.`);
-  const preset = presetId ? template.presets?.find((item) => item.id === presetId) : void 0;
+  const preset = presetId ? template.presets?.find((item2) => item2.id === presetId) : void 0;
   if (presetId && !preset) throw new Error(`Preset not found: ${toolId}/${templateId}/${presetId}. Call lolly_describe_tool to list presets.`);
   let raw;
   try {
@@ -130049,7 +131077,7 @@ async function loadTemplateSeed(toolId, templateId, presetId) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error(`Template is malformed: ${toolId}/${templateId}.`);
   const file = raw;
   if (!file.values || typeof file.values !== "object" || Array.isArray(file.values)) throw new Error(`Template has no values object: ${toolId}/${templateId}.`);
-  const overlay = presetId && Array.isArray(file.presets) ? file.presets.find((item) => Boolean(item && typeof item === "object" && item.id === presetId))?.values : void 0;
+  const overlay = presetId && Array.isArray(file.presets) ? file.presets.find((item2) => Boolean(item2 && typeof item2 === "object" && item2.id === presetId))?.values : void 0;
   if (presetId && (!overlay || typeof overlay !== "object" || Array.isArray(overlay))) throw new Error(`Preset has no values object: ${toolId}/${templateId}/${presetId}.`);
   return {
     inputs: { ...file.values, ...overlay },
@@ -130241,8 +131269,8 @@ async function waitForExport(page3, format, idleMs = exportIdleTimeout(format)) 
   let settled = false;
   let rejectWait;
   let resolveWait;
-  const result = new Promise((resolve6, reject) => {
-    resolveWait = resolve6;
+  const result = new Promise((resolve7, reject) => {
+    resolveWait = resolve7;
     rejectWait = reject;
   });
   void result.catch(() => {
@@ -130565,8 +131593,8 @@ function parseSvgDropShadow(filt) {
     "fecomponenttransfer"
   ];
   if (kids2.some((k) => UNEXPECTED.includes(k))) return null;
-  const num11 = (el, attr4, dflt) => {
-    const v = Number.parseFloat(el?.getAttribute(attr4) ?? "");
+  const num12 = (el, attr5, dflt) => {
+    const v = Number.parseFloat(el?.getAttribute(attr5) ?? "");
     return Number.isFinite(v) ? v : dflt;
   };
   const find = (name) => Array.from(filt.children).find((c) => c.tagName.toLowerCase().replace(/^svg:/, "") === name);
@@ -130576,28 +131604,28 @@ function parseSvgDropShadow(filt) {
     if (!rgb2) return null;
     const sd2 = (ds.getAttribute("stdDeviation") ?? "2").trim().split(/[\s,]+/).map(Number.parseFloat);
     return {
-      dx: num11(ds, "dx", 2),
-      dy: num11(ds, "dy", 2),
+      dx: num12(ds, "dx", 2),
+      dy: num12(ds, "dy", 2),
       stdDeviation: Math.max(...sd2.filter(Number.isFinite), 0),
       rgb: rgb2,
-      alpha: num11(ds, "flood-opacity", 1)
+      alpha: num12(ds, "flood-opacity", 1)
     };
   }
-  const blur = find("fegaussianblur");
-  if (!blur) return null;
-  const sd = (blur.getAttribute("stdDeviation") ?? "0").trim().split(/[\s,]+/).map(Number.parseFloat);
+  const blur2 = find("fegaussianblur");
+  if (!blur2) return null;
+  const sd = (blur2.getAttribute("stdDeviation") ?? "0").trim().split(/[\s,]+/).map(Number.parseFloat);
   const stdDeviation = Math.max(...sd.filter(Number.isFinite), 0);
   const off = find("feoffset");
   const flood = find("feflood");
   let rgb = flood ? parseColor2(flood.getAttribute("flood-color") ?? "#000") : null;
-  const alpha = flood ? num11(flood, "flood-opacity", 1) : 1;
+  const alpha = flood ? num12(flood, "flood-opacity", 1) : 1;
   if (!flood) {
     if (kids2.includes("fecolormatrix")) return null;
     rgb = [0, 0, 0];
   }
   if (!rgb) return null;
   if (!(stdDeviation > 0) && !off) return null;
-  return { dx: num11(off, "dx", 0), dy: num11(off, "dy", 0), stdDeviation, rgb, alpha };
+  return { dx: num12(off, "dx", 0), dy: num12(off, "dy", 0), stdDeviation, rgb, alpha };
 }
 async function svgDomToIr(svgEl, ctx = {}) {
   const { host, getComputedStyle } = ctx;
@@ -130969,8 +131997,8 @@ function createTextCompositionCache() {
   let flow;
   return {
     async prepare(textDocument2, story, paragraph, services, artwork = []) {
-      const overlaps2 = (item) => item.start < paragraph.end && item.end > paragraph.start;
-      const key = JSON.stringify([paragraph, story.source.slice(paragraph.start, paragraph.end), story.defaultStyle, story.spans.filter(overlaps2), story.breaks.filter((item) => item.start >= paragraph.start && item.start < paragraph.end), story.inlines.filter((item) => item.offset >= paragraph.start && item.offset < paragraph.end), textDocument2.styles, textDocument2.fonts.map(({ source: _source, ...identity2 }) => identity2), artwork.filter(overlaps2)]);
+      const overlaps2 = (item2) => item2.start < paragraph.end && item2.end > paragraph.start;
+      const key = JSON.stringify([paragraph, story.source.slice(paragraph.start, paragraph.end), story.defaultStyle, story.spans.filter(overlaps2), story.breaks.filter((item2) => item2.start >= paragraph.start && item2.start < paragraph.end), story.inlines.filter((item2) => item2.offset >= paragraph.start && item2.offset < paragraph.end), textDocument2.styles, textDocument2.fonts.map(({ source: _source, ...identity2 }) => identity2), artwork.filter(overlaps2)]);
       let entry2 = entries.get(key);
       if (entry2) {
         entries.delete(key);
@@ -131577,11 +132605,11 @@ function transformPath(pathStr, offsetX, offsetY, scale) {
   });
 }
 function clustersFrom(pieces, textLength) {
-  const r25 = (n6) => Math.round(n6 * 100) / 100;
+  const r26 = (n6) => Math.round(n6 * 100) / 100;
   const starts = [...pieces.keys()].sort((a, b) => a - b);
   return starts.map((start, i) => {
     const p = pieces.get(start);
-    return { start, end: i + 1 < starts.length ? starts[i + 1] : textLength, d: p.d, x: r25(p.x), advance: r25(p.advance) };
+    return { start, end: i + 1 < starts.length ? starts[i + 1] : textLength, d: p.d, x: r26(p.x), advance: r26(p.advance) };
   });
 }
 function createNodeTextAPI({ repoRoot: repoRoot2, assets, parseXml }) {
@@ -131833,29 +132861,37 @@ function createNodeAudioAPI(opts) {
 init_repo_root();
 import { join as join7 } from "node:path";
 import { existsSync as existsSync5 } from "node:fs";
+import { homedir } from "node:os";
 var INSTALL_BROWSERS_DIR = join7(repoRoot(), ".browsers");
 var SIBLING_BROWSERS_DIR = join7(repoRoot(), "services", "mcp", ".browsers");
+function playwrightUserCacheDir(env = process.env, platform = process.platform, home = homedir()) {
+  if (platform === "darwin") return join7(home, "Library", "Caches", "ms-playwright");
+  if (platform === "win32") return join7(env.LOCALAPPDATA || join7(home, "AppData", "Local"), "ms-playwright");
+  return join7(env.XDG_CACHE_HOME || join7(home, ".cache"), "ms-playwright");
+}
 var BrowserError = class extends Error {
 };
 function resolveBrowsersDir() {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
   if (existsSync5(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
   if (existsSync5(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
+  const userCache = playwrightUserCacheDir();
+  if (existsSync5(userCache)) return userCache;
   return INSTALL_BROWSERS_DIR;
 }
 var browserPromise = null;
 async function getBrowser({ graphics = "software" } = {}) {
   if (!browserPromise) {
     browserPromise = (async () => {
-      const channel3 = process.env.LOLLY_BROWSER_CHANNEL;
+      const channel4 = process.env.LOLLY_BROWSER_CHANNEL;
       const executablePath = process.env.LOLLY_BROWSER_PATH;
-      if (!channel3 && !executablePath) {
+      if (!channel4 && !executablePath) {
         process.env.PLAYWRIGHT_BROWSERS_PATH ??= resolveBrowsersDir();
       }
       const { chromium } = await import("playwright-core");
       try {
         return await chromium.launch({
-          ...channel3 ? { channel: channel3 } : {},
+          ...channel4 ? { channel: channel4 } : {},
           ...executablePath ? { executablePath } : {},
           // SwiftShader gives headless runs a software WebGL2 context (recent
           // Chromium disables it without the explicit opt-in). The docs pipeline's
@@ -132016,13 +133052,13 @@ function recolorCss(p) {
   }
 }
 async function captureUrl(params2, format, dims, opts = {}) {
-  const fmt3 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
+  const fmt4 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
   if (!params2.url) throw new BrowserError("Enter a URL to capture.");
   if (opts.publicOnly) assertPublicHttpUrl(params2.url);
-  if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt3)) {
+  if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt4)) {
     throw new BrowserError(`url-shot can't produce "${format}" - use png, jpg, pdf, or svg.`);
   }
-  if (fmt3 === "webp") {
+  if (fmt4 === "webp") {
     throw new BrowserError("WebP capture needs the desktop app - in the terminal use png, jpg, pdf, or svg.");
   }
   const width = Math.max(1, Math.round(dims.width || 1280));
@@ -132078,7 +133114,7 @@ async function captureUrl(params2, format, dims, opts = {}) {
       }
     }
     if (params2.actions?.length) await runDriveSteps(page3, params2.actions, params2.driveOpts ?? {});
-    if (fmt3 === "pdf") {
+    if (fmt4 === "pdf") {
       const pdf = await page3.pdf({
         width: `${width}px`,
         height: `${height}px`,
@@ -132093,18 +133129,18 @@ async function captureUrl(params2, format, dims, opts = {}) {
     const clipW = Math.max(1, Math.round(width * (1 - l - r5)));
     const clipH = Math.max(1, Math.round(height * (1 - t - b)));
     const clip3 = { x: Math.round(width * l), y: Math.round(height * t), width: clipW, height: clipH };
-    const shotType = fmt3 === "jpg" ? "jpeg" : "png";
+    const shotType = fmt4 === "jpg" ? "jpeg" : "png";
     const png = await page3.screenshot({
       type: shotType,
       ...shotType === "jpeg" ? { quality: 97 } : {},
       clip: clip3
     });
-    if (fmt3 === "svg") {
+    if (fmt4 === "svg") {
       const b64 = Buffer.from(png).toString("base64");
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${clipW}" height="${clipH}" viewBox="0 0 ${clipW} ${clipH}"><image width="${clipW}" height="${clipH}" href="data:image/png;base64,${b64}"/></svg>`;
       return { bytes: new TextEncoder().encode(svg), mime: "image/svg+xml" };
     }
-    return { bytes: new Uint8Array(png), mime: fmt3 === "jpg" ? "image/jpeg" : "image/png" };
+    return { bytes: new Uint8Array(png), mime: fmt4 === "jpg" ? "image/jpeg" : "image/png" };
   } finally {
     await ctx.close();
   }
@@ -132169,9 +133205,9 @@ function createNodeImagesAPI() {
       const result = await runJxl({ operation: "encode", bytes: new Uint8Array(data2), width: info2.width, height: info2.height, options: { quality, lossless: format === "jxl-lossless" } });
       return { bytes: result.bytes, mime: "image/jxl", width: info2.width, height: info2.height };
     }
-    const fmt3 = format === "jpg" ? "jpeg" : format;
-    const opts = q100(quality) !== void 0 && fmt3 !== "png" ? { quality: q100(quality) } : void 0;
-    const { data, info } = await img.toFormat(fmt3, opts).toBuffer({ resolveWithObject: true });
+    const fmt4 = format === "jpg" ? "jpeg" : format;
+    const opts = q100(quality) !== void 0 && fmt4 !== "png" ? { quality: q100(quality) } : void 0;
+    const { data, info } = await img.toFormat(fmt4, opts).toBuffer({ resolveWithObject: true });
     return {
       bytes: new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
       mime: MIME[info.format] ?? `image/${info.format}`,
@@ -132198,11 +133234,11 @@ function createNodeImagesAPI() {
       if (!meta.width || !meta.height) {
         throw new Error("host.images: these bytes are not a decodable image here.");
       }
-      const fmt3 = (meta.format ?? "").toLowerCase();
+      const fmt4 = (meta.format ?? "").toLowerCase();
       return {
         width: meta.width,
         height: meta.height,
-        mime: MIME[fmt3] ?? (fmt3 ? `image/${fmt3}` : "application/octet-stream"),
+        mime: MIME[fmt4] ?? (fmt4 ? `image/${fmt4}` : "application/octet-stream"),
         // `pages` is how sharp reports multi-frame containers (GIF/APNG/animated WebP).
         // Absent for formats it doesn't page, which is why `animated` is optional.
         ...meta.pages !== void 0 ? { animated: meta.pages > 1 } : {}
@@ -133081,8 +134117,8 @@ function fillResources2(ctx, res, resDict, depth, stack, budget3, images) {
     }
   }
   for (const [name, ref] of dictEntries3(ctx, getKey2(ctx, resDict, "Properties"))) {
-    const label2 = pdfString2(ctx, getKey2(ctx, ref, "Name"));
-    if (label2) res.ocgs[name] = label2;
+    const label3 = pdfString2(ctx, getKey2(ctx, ref, "Name"));
+    if (label3) res.ocgs[name] = label3;
   }
   return res;
 }
@@ -133351,13 +134387,13 @@ function paintBars(cx2, rects, mark, cw, ch) {
   const ink = normaliseInk(mark.color) ?? REDACT_INK_FALLBACK;
   const labelInk = normaliseInk(mark.labelColor) ?? "#ffffff";
   const radius = Math.max(0, Math.round(Number(mark.radius) || 0));
-  const label2 = String(mark.label || "").trim();
+  const label3 = String(mark.label || "").trim();
   const maxLabel = Math.max(1, Math.round(Number(mark.labelMaxSize) || 14));
   cx2.globalAlpha = 1;
   for (const r5 of rects) {
     const shape = inflateForRadius(r5, radius, cw, ch);
     fillRounded(cx2, shape, ink);
-    const lay = label2 ? stampLayout(shape, label2, maxLabel) : null;
+    const lay = label3 ? stampLayout(shape, label3, maxLabel) : null;
     if (lay) {
       cx2.fillStyle = labelInk;
       cx2.textAlign = "center";
@@ -133366,7 +134402,7 @@ function paintBars(cx2, rects, mark, cw, ch) {
       if (mark.labelCanvas) {
         const ah = Math.max(0, Math.min(lay.size * 1.3, shape.h - 2, (shape.w - 2) * mark.labelCanvas.height / mark.labelCanvas.width)), aw = ah * mark.labelCanvas.width / mark.labelCanvas.height;
         cx2.drawImage(mark.labelCanvas, lay.cx - aw / 2, lay.cy - ah / 2, aw, ah);
-      } else cx2.fillText(label2, lay.cx, lay.cy);
+      } else cx2.fillText(label3, lay.cx, lay.cy);
     }
   }
 }
@@ -133376,9 +134412,9 @@ async function labelArtworkCanvas(frame) {
   const mod = await nodeCanvas();
   if (!mod) throw new Error("Label artwork needs a canvas.");
   const canvas = mod.createCanvas(frame.width, frame.height), cx2 = canvas.getContext("2d");
-  const pixels = cx2.createImageData(frame.width, frame.height);
-  pixels.data.set(frame.data);
-  cx2.putImageData(pixels, 0, 0);
+  const pixels2 = cx2.createImageData(frame.width, frame.height);
+  pixels2.data.set(frame.data);
+  cx2.putImageData(pixels2, 0, 0);
   return canvas;
 }
 
@@ -133741,13 +134777,13 @@ function withAbort(signal, message, work) {
   if (!signal) return work(() => false);
   if (signal.aborted) return Promise.reject(abortError2(message));
   let stop = false;
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve7, reject) => {
     const onAbort = () => {
       stop = true;
       reject(abortError2(message));
     };
     signal.addEventListener("abort", onAbort, { once: true });
-    work(() => stop || signal.aborted).then(resolve6, reject).finally(() => signal.removeEventListener("abort", onAbort));
+    work(() => stop || signal.aborted).then(resolve7, reject).finally(() => signal.removeEventListener("abort", onAbort));
   });
 }
 var NEEDS_PLATFORM_CODEC2 = /\.(mp3|m4a|aac|ogg|oga|opus|flac|weba|webm|mp4|mov)$/i;
@@ -133815,8 +134851,8 @@ function downmix2(channels) {
   return mono;
 }
 var RUNTIME_SPECIFIERS = ["@huggingface/transformers", "onnxruntime-node"];
-function isSpeechRuntimeAvailable(resolve6) {
-  const r5 = resolve6 ?? createRequire4(import.meta.url).resolve;
+function isSpeechRuntimeAvailable(resolve7) {
+  const r5 = resolve7 ?? createRequire4(import.meta.url).resolve;
   try {
     for (const spec of RUNTIME_SPECIFIERS) r5(spec);
     return true;
@@ -133824,8 +134860,8 @@ function isSpeechRuntimeAvailable(resolve6) {
     return false;
   }
 }
-function isPhonemizerAvailable(resolve6) {
-  const r5 = resolve6 ?? createRequire4(import.meta.url).resolve;
+function isPhonemizerAvailable(resolve7) {
+  const r5 = resolve7 ?? createRequire4(import.meta.url).resolve;
   try {
     r5("phonemizer");
     return true;
@@ -134150,14 +135186,14 @@ function createNodeScanAPI() {
 }
 
 // packages/node-shell/src/state-dir.ts
-import { homedir as homedir2 } from "node:os";
+import { homedir as homedir3 } from "node:os";
 import { join as join11 } from "node:path";
 import { existsSync as existsSync8 } from "node:fs";
 var deprecationNoted = false;
 var DESKTOP_APP_IDENTIFIER = "tools.lolly.Desktop";
 function desktopAppDataDir(env = process.env, probe = {}) {
   const platform = probe.platform ?? process.platform;
-  const home = probe.home ?? homedir2();
+  const home = probe.home ?? homedir3();
   if (platform === "darwin") return join11(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
   if (platform === "win32") {
     const appdata = env.APPDATA?.trim();
@@ -134180,7 +135216,7 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
   const exists = probe.exists ?? existsSync8;
   const app = desktopAppDataDir(env, probe);
   if (app && exists(app)) return { dir: app, explicit: false, deprecated: false, source: "app", shared: true };
-  const home = probe.home ?? homedir2();
+  const home = probe.home ?? homedir3();
   return { dir: join11(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
 }
 var stateDir = (env) => resolveStateDir(env).dir;
@@ -134339,8 +135375,8 @@ var DROP_ON_PATH = /* @__PURE__ */ new Set([
 ]);
 function prop3(el, name, getComputed) {
   for (let cur = el; cur; cur = cur.parentElement) {
-    const attr4 = cur.getAttribute(name);
-    if (attr4) return attr4;
+    const attr5 = cur.getAttribute(name);
+    if (attr5) return attr5;
     const inline = cur.getAttribute("style");
     if (inline) {
       const m2 = new RegExp(`(?:^|;)\\s*${name}\\s*:\\s*([^;]+)`, "i").exec(inline);
@@ -134445,11 +135481,11 @@ async function outlineSvgText(svg, host, opts = {}) {
     const tx = anchor === "middle" ? x - adv / 2 : anchor === "end" ? x - adv : x;
     const path = doc.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", shaped.d);
-    for (const attr4 of Array.from(el.attributes)) {
-      if (!DROP_ON_PATH.has(attr4.name)) path.setAttribute(attr4.name, attr4.value);
+    for (const attr5 of Array.from(el.attributes)) {
+      if (!DROP_ON_PATH.has(attr5.name)) path.setAttribute(attr5.name, attr5.value);
     }
-    const own2 = el.getAttribute("transform");
-    path.setAttribute("transform", `${own2 ? own2 + " " : ""}translate(${round8(tx)} ${round8(y)})`);
+    const own3 = el.getAttribute("transform");
+    path.setAttribute("transform", `${own3 ? own3 + " " : ""}translate(${round8(tx)} ${round8(y)})`);
     el.replaceWith(path);
     result.outlined++;
   }
@@ -134796,12 +135832,12 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
       if (opts.version && opts.version !== meta.version) throw new Error(`Asset version unavailable: ${baseId} (${opts.version})`);
-      const fmt3 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
-      if (!fmt3) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
-      const localPath = assetFilePath(fmt3.url);
-      let buf = await readFile13(localPath);
+      const fmt4 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
+      if (!fmt4) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
+      const localPath2 = assetFilePath(fmt4.url);
+      let buf = await readFile13(localPath2);
       let extraMeta = { name: meta.name, tags: meta.tags };
-      if (meta.type === "palette" && fmt3.format === "json") {
+      if (meta.type === "palette" && fmt4.format === "json") {
         try {
           const parsed = JSON.parse(buf.toString("utf8"));
           extraMeta = { ...extraMeta, ...parsed };
@@ -134818,36 +135854,36 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       if (treatment && meta.type === "raster") {
         const def = (await photoTreatments()).find((t) => t.id === treatment);
-        const dimSrc = fmt3.width && fmt3.height ? fmt3 : meta.formats.find((f) => f.width && f.height);
+        const dimSrc = fmt4.width && fmt4.height ? fmt4 : meta.formats.find((f) => f.width && f.height);
         const w2 = dimSrc?.width, h = dimSrc?.height;
         if (def && w2 && h) {
-          const originalUrl = `data:${mimeFor(fmt3.format)};base64,${buf.toString("base64")}`;
-          const prepared3 = await prepareJxlAsset({ id: id2, source: "library", type: "raster", format: fmt3.format, url: originalUrl }, buf);
+          const originalUrl = `data:${mimeFor(fmt4.format)};base64,${buf.toString("base64")}`;
+          const prepared3 = await prepareJxlAsset({ id: id2, source: "library", type: "raster", format: fmt4.format, url: originalUrl }, buf);
           const href = prepared3.url;
           const svg = wrapRasterWithTreatment({ href, width: w2, height: h, treatment: def });
           return {
             source: "library",
             id: id2,
             type: meta.type,
-            format: fmt3.format,
+            format: fmt4.format,
             url: `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString("base64")}`,
             version: meta.version,
-            checksum: fmt3.checksum,
+            checksum: fmt4.checksum,
             original: prepared3.original,
             meta: { ...extraMeta, treatment, baseId }
           };
         }
       }
-      const mime2 = mimeFor(fmt3.format);
+      const mime2 = mimeFor(fmt4.format);
       const url = `data:${mime2};base64,${buf.toString("base64")}`;
       return prepareJxlAsset({
         source: "library",
         id: id2,
         type: meta.type,
-        format: fmt3.format,
+        format: fmt4.format,
         url,
         version: meta.version,
-        checksum: fmt3.checksum,
+        checksum: fmt4.checksum,
         meta: extraMeta
       }, buf);
     },
@@ -134948,10 +135984,10 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       if (format === "lottie") return (await Promise.resolve().then(() => (init_design_lottie(), design_lottie_exports))).exportDesignLottie(opts, host);
       if (typeof node?.querySelectorAll === "function") {
-        const strip = (attr4) => {
-          if (node.hasAttribute?.(attr4)) node.removeAttribute(attr4);
-          node.querySelectorAll(`[${attr4}]`).forEach((el) => {
-            el.removeAttribute(attr4);
+        const strip = (attr5) => {
+          if (node.hasAttribute?.(attr5)) node.removeAttribute(attr5);
+          node.querySelectorAll(`[${attr5}]`).forEach((el) => {
+            el.removeAttribute(attr5);
           });
         };
         for (const el of [node, ...node.querySelectorAll("[data-canvas-settings]")]) {
@@ -135118,8 +136154,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         const height = px3(opts.height, parseFloat(svg.getAttribute("height")) || 720);
         if (width * height > 8e6 || width > 16384 || height > 16384) throw new Error("JPEG XL encoding is limited to 8 megapixels.");
         const frame = await rasterizeSvgToRgba2(raw, width, height);
-        const pixels = opts.imprint !== false && canCarryWatermark2(width, height) ? embedWatermark2(frame.data, { width, height, ...format === "jxl-lossless" ? { strength: LOSSLESS_STRENGTH2 } : {} }) : frame.data;
-        const result = await runJxl2({ operation: "encode", bytes: pixels, width, height, options: { quality: opts.quality, lossless: format === "jxl-lossless" } });
+        const pixels2 = opts.imprint !== false && canCarryWatermark2(width, height) ? embedWatermark2(frame.data, { width, height, ...format === "jxl-lossless" ? { strength: LOSSLESS_STRENGTH2 } : {} }) : frame.data;
+        const result = await runJxl2({ operation: "encode", bytes: pixels2, width, height, options: { quality: opts.quality, lossless: format === "jxl-lossless" } });
         return new Blob([jxlWithXmp2(result.bytes, (await Promise.resolve().then(() => (init_image_meta(), image_meta_exports))).buildExportXmp(opts.meta))], { type: "image/jxl" });
       }
       if (format === "bmp") {
@@ -135263,17 +136299,17 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       el.innerHTML = childRuntime.getHydrated();
       await childRuntime.applyEmojiToDom(el);
       await applyBrandVars(el, host);
-      const fmt3 = format ?? childTool.manifest.render.formats[0];
+      const fmt4 = format ?? childTool.manifest.render.formats[0];
       const u = unit2 || "px";
       const qual = (v) => typeof v === "number" && v > 0 ? u !== "px" ? `${v}${u}` : v : void 0;
-      const blob = await host.export.render(el, fmt3, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
+      const blob = await host.export.render(el, fmt4, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
       const buf = Buffer.from(await blob.arrayBuffer());
       return prepareJxlAsset({
         source: "remote",
         id: `compose:${toolId}`,
-        type: fmt3 === "svg" ? "vector" : "raster",
-        format: fmt3,
-        url: `data:${mimeFor(fmt3)};base64,${buf.toString("base64")}`
+        type: fmt4 === "svg" ? "vector" : "raster",
+        format: fmt4,
+        url: `data:${mimeFor(fmt4)};base64,${buf.toString("base64")}`
       }, buf);
     },
     // Render a pasted/stored Lolly tool URL to an AssetRef whose id is the
@@ -135745,7 +136781,7 @@ var BrowserJobQueue = class {
       return Promise.resolve();
     }
     if (this.#waiting.length >= this.maxQueued) return Promise.reject(new BrowserQueueFullError());
-    return new Promise((resolve6, reject) => {
+    return new Promise((resolve7, reject) => {
       const waiting = {
         reject,
         timer: setTimeout(() => {
@@ -135757,7 +136793,7 @@ var BrowserJobQueue = class {
         start: () => {
           clearTimeout(waiting.timer);
           this.#active += 1;
-          resolve6();
+          resolve7();
         }
       };
       this.#waiting.push(waiting);
@@ -135794,8 +136830,8 @@ function normFormat(f) {
   const x = String(f ?? "").toLowerCase();
   return x === "jpeg" ? "jpg" : x;
 }
-function mimeForFormat(fmt3) {
-  switch (normFormat(fmt3)) {
+function mimeForFormat(fmt4) {
+  switch (normFormat(fmt4)) {
     case "svg":
       return "image/svg+xml";
     case "png":
@@ -135863,8 +136899,8 @@ function mimeForFormat(fmt3) {
       return "application/octet-stream";
   }
 }
-function isTextFormat(fmt3) {
-  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt3));
+function isTextFormat(fmt4) {
+  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt4));
 }
 function targetPx(width, unit2, dpi) {
   if (!width || width <= 0) return void 0;
@@ -135931,12 +136967,12 @@ async function mountAndDraw(dom, host, toolId, values, emoji) {
   await runtime.applyEmojiToDom(canvas);
   return { runtime, canvas, warnings };
 }
-async function emojiCensus(toolId, values, fmt3, profile, emoji) {
+async function emojiCensus(toolId, values, fmt4, profile, emoji) {
   return withHost(profile, async (dom, host) => {
     const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji);
     return {
       ingredients: runtime.emojiIngredients(),
-      rights: runtime.rights({ delivery: { format: fmt3, canCarryCredential: C2PA_FORMATS.includes(fmt3) } })
+      rights: runtime.rights({ delivery: { format: fmt4, canCarryCredential: C2PA_FORMATS.includes(fmt4) } })
     };
   });
 }
@@ -135963,7 +136999,7 @@ function resolveEmojiSetName(named, sets) {
   }
   return { error: `Unknown emoji set "${raw}". Registered sets: ${registered}.` };
 }
-async function renderTierA(toolId, values, fmt3, opts, profile, emoji, productionContract) {
+async function renderTierA(toolId, values, fmt4, opts, profile, emoji, productionContract) {
   return withHost(profile, async (dom, host) => {
     const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji);
     let productionInputs;
@@ -135979,14 +137015,14 @@ async function renderTierA(toolId, values, fmt3, opts, profile, emoji, productio
     }
     let blob;
     try {
-      blob = await runtime.export(canvas, fmt3, opts);
+      blob = await runtime.export(canvas, fmt4, opts);
     } catch (e) {
       if (e instanceof DeepSourceError) throw new RenderError(e.message);
       throw e;
     }
     const bytes = new Uint8Array(await blob.arrayBuffer());
     try {
-      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt3, bytes });
+      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt4, bytes });
     } catch (e) {
       if (e instanceof RenderIntegrityError) throw new RenderError(e.message);
       throw e;
@@ -135994,12 +137030,12 @@ async function renderTierA(toolId, values, fmt3, opts, profile, emoji, productio
     return {
       ...productionInputs ? { productionInputs } : {},
       bytes,
-      mime: blob.type || mimeForFormat(fmt3),
+      mime: blob.type || mimeForFormat(fmt4),
       ingredients: runtime.emojiIngredients(),
       // The same evaluation the CLI and the app make, from the same rules, over
       // the sources this render placed. The audience stays unknown: an agent
       // asking for a file has said nothing about where it goes.
-      rights: runtime.rights({ delivery: { format: fmt3, canCarryCredential: C2PA_FORMATS.includes(fmt3) } }),
+      rights: runtime.rights({ delivery: { format: fmt4, canCarryCredential: C2PA_FORMATS.includes(fmt4) } }),
       warnings
     };
   });
@@ -136070,15 +137106,15 @@ function browserLaunchArgs(env = process.env) {
 async function getBrowser2() {
   if (!browserPromise2) {
     browserPromise2 = (async () => {
-      const channel3 = process.env.LOLLY_BROWSER_CHANNEL;
+      const channel4 = process.env.LOLLY_BROWSER_CHANNEL;
       const executablePath = process.env.LOLLY_BROWSER_PATH;
-      if (!channel3 && !executablePath) {
+      if (!channel4 && !executablePath) {
         process.env.PLAYWRIGHT_BROWSERS_PATH ??= BROWSERS_DIR;
       }
       const { chromium } = await import("playwright-core");
       try {
         return await chromium.launch({
-          ...channel3 ? { channel: channel3 } : {},
+          ...channel4 ? { channel: channel4 } : {},
           ...executablePath ? { executablePath } : {},
           // Rendering-intent pins, mirrored from packages/node-shell/src/browsers.ts
           // (see the full comment there): host-profile-independent sRGB colour and
@@ -136111,10 +137147,10 @@ function carriesEmojiParams(query2) {
   const p = new URLSearchParams(query2);
   return Boolean(p.get("emoji") || p.get("emojifx") || p.get("emojistyle"));
 }
-function exportUrl(base, toolId, query2, fmt3, o) {
+function exportUrl(base, toolId, query2, fmt4, o) {
   const p = new URLSearchParams(query2);
   for (const k of EXPORT_URL_RESERVED) p.delete(k);
-  p.set("format", fmt3);
+  p.set("format", fmt4);
   const unit2 = o.unit || "px";
   if (o.width && o.width > 0) p.set("width", String(o.width));
   if (o.height && o.height > 0) p.set("height", String(o.height));
@@ -136145,10 +137181,10 @@ async function exposeExportPassword(context, password) {
     held = void 0;
   };
 }
-async function renderTierB(toolId, query2, fmt3, o) {
+async function renderTierB(toolId, query2, fmt4, o) {
   return withBrowserJob(async () => {
     const base = await webShellBase();
-    const url = exportUrl(base, toolId, query2, fmt3, o);
+    const url = exportUrl(base, toolId, query2, fmt4, o);
     let browser;
     try {
       browser = await getBrowser2();
@@ -136164,12 +137200,12 @@ async function renderTierB(toolId, query2, fmt3, o) {
       await ctx.addInitScript(() => {
         Object.defineProperty(globalThis, "__LOLLY_AI_DISABLED__", { value: true, writable: false, configurable: false });
       });
-      clearPassword = await exposeExportPassword(ctx, fmt3 === "pdf" ? o.password : void 0);
+      clearPassword = await exposeExportPassword(ctx, fmt4 === "pdf" ? o.password : void 0);
       const page3 = await ctx.newPage();
       const inputIds = o.production === void 0 ? [] : parseProductionSpec(o.production).requirements.filter((r5) => r5.kind === "input").map((r5) => r5.location);
       const observeInputs = await observeProductionInputs(page3, toolId, inputIds);
       await installBrowserEgressPolicy(page3, base);
-      waiting = await waitForExport(page3, fmt3);
+      waiting = await waitForExport(page3, fmt4);
       const downloadP = waiting.result;
       await page3.goto(url, { waitUntil: "commit", timeout: 3e4 });
       let download;
@@ -136183,7 +137219,7 @@ async function renderTierB(toolId, query2, fmt3, o) {
       const bytes = await readBoundedDownload(path);
       await download.delete().catch(() => {
       });
-      return { bytes, mime: mimeForFormat(fmt3), productionInputs: observeInputs(bytes) };
+      return { bytes, mime: mimeForFormat(fmt4), productionInputs: observeInputs(bytes) };
     } finally {
       waiting?.dispose();
       clearPassword();
@@ -136191,12 +137227,12 @@ async function renderTierB(toolId, query2, fmt3, o) {
     }
   });
 }
-async function stampC2pa(bytes, fmt3, manifest, values, o, ingredients = []) {
+async function stampC2pa(bytes, fmt4, manifest, values, o, ingredients = []) {
   const opts = buildExportC2paOpts({
     surface: "mcp",
     manifest,
     model: buildInputModel(manifest, { initial: values }),
-    format: fmt3,
+    format: fmt4,
     dims: { width: o.width ?? null, height: o.height ?? null, unit: o.unit ?? null, dpi: o.dpi ?? null },
     days: o.c2pa?.days,
     profile: o.profile,
@@ -136205,7 +137241,7 @@ async function stampC2pa(bytes, fmt3, manifest, values, o, ingredients = []) {
     // Without it an MCP export that drew CC BY artwork records no licence for it.
     ...ingredients.length ? { ingredients } : {}
   });
-  return embedC2pa(bytes, fmt3, opts);
+  return embedC2pa(bytes, fmt4, opts);
 }
 async function render(toolId, query2, o = {}) {
   if (o.productionReference !== void 0 && o.production === void 0) throw new Error("A production reference requires a production contract.");
@@ -136250,14 +137286,14 @@ async function renderCandidate(toolId, query2, o = {}) {
   }
   const q = await expandQuery(query2);
   const st = parseUrlState(q, tool.manifest);
-  const fmt3 = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
-  if (!supported.has(fmt3) && !isDeepFormat(fmt3)) {
-    throw new RenderError(`Tool "${toolId}" does not support format "${fmt3}". Supported: ${formats.join(", ")} (plus the pro float formats exr, hdr, which need hdr=1)`);
+  const fmt4 = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
+  if (!supported.has(fmt4) && !isDeepFormat(fmt4)) {
+    throw new RenderError(`Tool "${toolId}" does not support format "${fmt4}". Supported: ${formats.join(", ")} (plus the pro float formats exr, hdr, which need hdr=1)`);
   }
-  const exportFmt = fmt3 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt3;
-  assertMotionRequest(fmt3, st);
-  const sampled = assertSampleRequest(fmt3, st.cuts, st.sampleTimes);
-  const deliveredFormat = sampled ? sampleOutputFormat(fmt3, st.cuts, st.sampleTimes) : fmt3;
+  const exportFmt = fmt4 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt4;
+  assertMotionRequest(fmt4, st);
+  const sampled = assertSampleRequest(fmt4, st.cuts, st.sampleTimes);
+  const deliveredFormat = sampled ? sampleOutputFormat(fmt4, st.cuts, st.sampleTimes) : fmt4;
   if ((sampled || st.motionBlur || st.sequenceRange) && o.noBrowser) throw new RenderError("Timeline samples require the browser render tier.");
   const values = { ...st.values };
   if (o.transparentBg !== void 0) values["transparentBg"] = o.transparentBg;
@@ -136325,7 +137361,7 @@ async function renderCandidate(toolId, query2, o = {}) {
     }
   } else {
     if (o.noBrowser) {
-      throw new RenderError(`Format "${fmt3}" needs the browser render tier, which is not available for this request.`);
+      throw new RenderError(`Format "${fmt4}" needs the browser render tier, which is not available for this request.`);
     }
     out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
   }
@@ -136346,7 +137382,7 @@ async function renderCandidate(toolId, query2, o = {}) {
       warnings.push(`Content Credentials not attached - ${e.message}`);
     }
   } else if (!sampled && merged.c2pa?.on) {
-    warnings.push(`Format "${fmt3}" cannot carry Content Credentials - skipped.`);
+    warnings.push(`Format "${fmt4}" cannot carry Content Credentials - skipped.`);
   }
   let production;
   if (o.production !== void 0) {
@@ -136602,9 +137638,9 @@ function glyphRunFrame(items2, run3, span) {
   const map = (x, y) => [(x - box3.x) * scale + FRAME_PAD, (y - box3.y) * scale + FRAME_PAD];
   const cov = new Float32Array(w * h);
   for (const index2 of run3.items) {
-    const item = items2.items[index2];
-    if (item?.kind !== "path") continue;
-    fillCoverage(cov, w, h, edgesOf(item.d, map), item.fillRule === "evenodd", Math.max(0, FRAME_PAD - 2), Math.min(w, w - FRAME_PAD + 2));
+    const item2 = items2.items[index2];
+    if (item2?.kind !== "path") continue;
+    fillCoverage(cov, w, h, edgesOf(item2.d, map), item2.fillRule === "evenodd", Math.max(0, FRAME_PAD - 2), Math.min(w, w - FRAME_PAD + 2));
   }
   const data = new Uint8ClampedArray(w * h * 4);
   for (let i = 0; i < w * h; i++) {
@@ -136627,9 +137663,9 @@ function glyphRunKey(items2, run3) {
     n6 += 1;
   };
   for (const index2 of run3.items) {
-    const item = items2.items[index2];
-    if (item?.kind !== "path") continue;
-    for (const sub of parseSvgPath(item.d)) {
+    const item2 = items2.items[index2];
+    if (item2?.kind !== "path") continue;
+    for (const sub of parseSvgPath(item2.d)) {
       for (const seg of sub.segments) {
         if (seg.op === "C") {
           feed(seg.x1 - run3.box.x);
@@ -136684,7 +137720,7 @@ function phrasesOf(hints, items2) {
     out.push(text7);
   };
   for (const name of hints?.names ?? []) add(name);
-  for (const item of items2.items) add(item.series);
+  for (const item2 of items2.items) add(item2.series);
   add(hints?.title ?? items2.title);
   for (const sentence of (hints?.desc ?? items2.desc ?? "").split(/(?<=[.!?])\s+/)) {
     add(sentence.replace(/[.]$/, ""));
@@ -136921,11 +137957,11 @@ function anchorOf2(run3, runs, items2) {
   const starts = kin.filter((r5) => Math.abs(r5.box.x - left) <= tol && Math.abs(r5.box.x + r5.box.w - right) > tol).length;
   if (ends > starts) return "end";
   if (starts > 0) return "start";
-  for (const item of items2.items) {
-    if (item.kind !== "path") continue;
-    const vertical = item.shape === "line" && item.box.w <= 1e-3;
-    const bar = item.shape === "rect" && item.box.w > 2 * tol;
-    if ((vertical || bar) && Math.abs(item.box.x + item.box.w / 2 - mid3) <= tol) return "middle";
+  for (const item2 of items2.items) {
+    if (item2.kind !== "path") continue;
+    const vertical = item2.shape === "line" && item2.box.w <= 1e-3;
+    const bar = item2.shape === "rect" && item2.box.w > 2 * tol;
+    if ((vertical || bar) && Math.abs(item2.box.x + item2.box.w / 2 - mid3) <= tol) return "middle";
   }
   if (kin.some((r5) => Math.abs(r5.box.x + r5.box.w / 2 - mid3) <= tol && Math.abs(r5.box.x - left) > tol)) return "middle";
   return "start";
@@ -136971,25 +138007,25 @@ function vectorTextOf(items2, runs, readings, opts = {}) {
   const replace = /* @__PURE__ */ new Map();
   const covered = /* @__PURE__ */ new Set();
   let text7 = 0;
-  for (const { run: run3, value, size: own2 } of chosen) {
+  for (const { run: run3, value, size: own3 } of chosen) {
     const group = medianOf(buckets.get(bucketOf(run3)));
-    const size = Math.abs(own2 - group) <= 0.3 * group ? group : own2;
+    const size = Math.abs(own3 - group) <= 0.3 * group ? group : own3;
     const anchor = anchorOf2(run3, runs, items2);
     const x = anchor === "end" ? run3.box.x + run3.box.w : anchor === "middle" ? run3.box.x + run3.box.w / 2 : run3.box.x;
-    const item = { kind: "text", text: value, x: r3(x), y: r3(run3.baseline), size: r3(size), fill: { hex: run3.fill } };
-    if (anchor !== "start") item.anchor = anchor;
-    if (run3.opacity !== void 0 && run3.opacity < 1) item.opacity = run3.opacity;
-    if (run3.groups?.length) item.groups = [...run3.groups];
-    replace.set(run3.items[0], item);
+    const item2 = { kind: "text", text: value, x: r3(x), y: r3(run3.baseline), size: r3(size), fill: { hex: run3.fill } };
+    if (anchor !== "start") item2.anchor = anchor;
+    if (run3.opacity !== void 0 && run3.opacity < 1) item2.opacity = run3.opacity;
+    if (run3.groups?.length) item2.groups = [...run3.groups];
+    replace.set(run3.items[0], item2);
     for (const index2 of run3.items) covered.add(index2);
     text7 += 1;
   }
   if (!text7) return { items: items2, runs: runs.length, text: 0, drawn: runs.length };
   const next = [];
-  items2.items.forEach((item, index2) => {
+  items2.items.forEach((item2, index2) => {
     const swapped = replace.get(index2);
     if (swapped) next.push(swapped);
-    else if (!covered.has(index2)) next.push(item);
+    else if (!covered.has(index2)) next.push(item2);
   });
   return { items: { ...items2, items: next }, runs: runs.length, text: text7, drawn: runs.length - text7 };
 }
@@ -137100,7 +138136,7 @@ function labelReaderFromOcr(ocr) {
 }
 function labelCounts(items2, nativeText) {
   if (!items2 || items2.items.length === 0) return { text: 0, drawn: 0 };
-  const text7 = Math.max(0, items2.items.filter((item) => item.kind === "text").length - nativeText);
+  const text7 = Math.max(0, items2.items.filter((item2) => item2.kind === "text").length - nativeText);
   return { text: text7, drawn: glyphRunsOf(items2).length };
 }
 function textOf9(parts, path) {
@@ -137128,9 +138164,9 @@ function childrenByLocal3(el, local) {
   return out;
 }
 function relIdOf(el) {
-  for (const attr4 of Array.from(el.attributes)) {
-    const full = attr4.name || "";
-    if (full === "r:id" || full.endsWith(":id") && full !== "id") return attr4.value;
+  for (const attr5 of Array.from(el.attributes)) {
+    const full = attr5.name || "";
+    if (full === "r:id" || full.endsWith(":id") && full !== "id") return attr5.value;
   }
   return null;
 }
@@ -137239,26 +138275,26 @@ function parasOf(paras) {
   return (paras ?? []).map((para) => {
     const out = {
       runs: para.runs.map((run3) => {
-        const item = { text: run3.text };
-        if (run3.bold) item.bold = true;
-        if (run3.italic) item.italic = true;
+        const item2 = { text: run3.text };
+        if (run3.bold) item2.bold = true;
+        if (run3.italic) item2.italic = true;
         if (run3.underline) {
-          item.underline = true;
-          if (run3.underlineStyle && STYLE_TOKEN.test(run3.underlineStyle)) item.underlineStyle = run3.underlineStyle;
+          item2.underline = true;
+          if (run3.underlineStyle && STYLE_TOKEN.test(run3.underlineStyle)) item2.underlineStyle = run3.underlineStyle;
         }
-        if (run3.strike) item.strike = true;
-        if (run3.baseline) item.baseline = run3.baseline;
-        if (run3.cap === "all") item.case = "upper";
-        else if (run3.cap === "small") item.case = "small-caps";
-        if (typeof run3.sizePt === "number") item.sizePt = run3.sizePt;
+        if (run3.strike) item2.strike = true;
+        if (run3.baseline) item2.baseline = run3.baseline;
+        if (run3.cap === "all") item2.case = "upper";
+        else if (run3.cap === "small") item2.case = "small-caps";
+        if (typeof run3.sizePt === "number") item2.sizePt = run3.sizePt;
         if (run3.font) {
-          item.font = run3.font;
-          item.fontProvenance = run3.font.startsWith("+") ? "theme" : "literal";
+          item2.font = run3.font;
+          item2.fontProvenance = run3.font.startsWith("+") ? "theme" : "literal";
         }
         const color3 = colorOf(run3.color);
-        if (color3) item.color = color3;
-        if (run3.href) item.href = run3.href;
-        return item;
+        if (color3) item2.color = color3;
+        if (run3.href) item2.href = run3.href;
+        return item2;
       })
     };
     if (typeof para.lvl === "number" && para.lvl > 0) out.lvl = para.lvl;
@@ -137347,12 +138383,12 @@ async function fingerprintOf2(kind, box3, content2) {
 function colorToken(color3) {
   return color3 ? `${color3.scheme ?? ""}:${color3.hex ?? ""}` : "";
 }
-function shapeMaterial(object3) {
+function shapeMaterial(object4) {
   return [
-    object3.geom ?? "",
-    colorToken(object3.fill),
-    colorToken(object3.line?.color),
-    object3.line?.widthPt === void 0 ? "" : String(object3.line.widthPt)
+    object4.geom ?? "",
+    colorToken(object4.fill),
+    colorToken(object4.line?.color),
+    object4.line?.widthPt === void 0 ? "" : String(object4.line.widthPt)
   ].join("|");
 }
 function chartMaterial(tag2, data) {
@@ -137370,8 +138406,8 @@ function poseRestatesTransform(t) {
 }
 var YIELD_EVERY_MS = 12;
 function yieldToHost() {
-  return new Promise((resolve6) => {
-    setTimeout(resolve6, 0);
+  return new Promise((resolve7) => {
+    setTimeout(resolve7, 0);
   });
 }
 async function sourceDeckFromPptx(parts, parseXml, opts) {
@@ -137484,30 +138520,30 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
       const box3 = boxOf2(node);
       let content2 = "";
       let fidelity = { state: "editable" };
-      const object3 = { id: id2, fingerprint: "", kind, box: box3, origin, fidelity };
+      const object4 = { id: id2, fingerprint: "", kind, box: box3, origin, fidelity };
       const transform2 = transformOf(node);
-      if (transform2) object3.transform = transform2;
-      if (node.groupPath?.length) object3.groupPath = [...node.groupPath];
+      if (transform2) object4.transform = transform2;
+      if (node.groupPath?.length) object4.groupPath = [...node.groupPath];
       const alt = cleanAlt(node.alt);
-      if (alt) object3.alt = alt;
+      if (alt) object4.alt = alt;
       const readingIndex = readingIndexOf.get(node);
-      if (typeof readingIndex === "number") object3.readingIndex = readingIndex;
+      if (typeof readingIndex === "number") object4.readingIndex = readingIndex;
       if (node.type === "text" || node.type === "shape") {
-        if (node.geom) object3.geom = node.geom;
+        if (node.geom) object4.geom = node.geom;
         const fill2 = colorOf(node.fill);
-        if (fill2) object3.fill = fill2;
+        if (fill2) object4.fill = fill2;
       }
       if (node.type === "shape") {
         const line = colorOf(node.line);
         if (line || typeof node.lineWidthPt === "number") {
-          object3.line = {};
-          if (line) object3.line.color = line;
-          if (typeof node.lineWidthPt === "number") object3.line.widthPt = node.lineWidthPt;
+          object4.line = {};
+          if (line) object4.line.color = line;
+          if (typeof node.lineWidthPt === "number") object4.line.widthPt = node.lineWidthPt;
         }
       }
       if (node.type === "text" || node.type === "shape") {
         const ph = placeholderOf(node.ph?.type);
-        if (ph) object3.placeholder = ph;
+        if (ph) object4.placeholder = ph;
       }
       if ((node.type === "text" || node.type === "shape") && (node.gradient || "lineGradient" in node && node.lineGradient)) {
         ownWarnings.push({
@@ -137519,22 +138555,22 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
       }
       if (node.type === "text") {
         const paras = parasOf(node.paras);
-        if (paras.length) object3.text = { paras };
+        if (paras.length) object4.text = { paras };
         content2 = paras.map((p) => p.runs.map((r5) => r5.text).join("")).join("\n");
         for (const para of node.paras ?? []) for (const run3 of para.runs) countFont(run3.font);
       } else if (node.type === "shape") {
-        content2 = shapeMaterial(object3);
+        content2 = shapeMaterial(object4);
         if (node.custGeom) {
-          const lineColor = object3.line?.color;
+          const lineColor = object4.line?.color;
           const items2 = custGeomItems(node.custGeom, { w: box3.w, h: box3.h }, {
-            ...object3.fill ? { fill: object3.fill } : {},
-            ...lineColor ? { line: { color: lineColor, widthPx: (object3.line?.widthPt ?? 0.75) * (96 / 72) } } : {}
+            ...object4.fill ? { fill: object4.fill } : {},
+            ...lineColor ? { line: { color: lineColor, widthPx: (object4.line?.widthPt ?? 0.75) * (96 / 72) } } : {}
           });
-          if (items2.items.length > 0 && items2.items.length <= MAX_VECTOR_ROWS_PER_OBJECT && withinBudget(id2, items2)) object3.vectorItems = items2;
+          if (items2.items.length > 0 && items2.items.length <= MAX_VECTOR_ROWS_PER_OBJECT && withinBudget(id2, items2)) object4.vectorItems = items2;
         }
       } else if (node.type === "table") {
-        object3.table = node.rows.map((row) => [...row]);
-        content2 = object3.table.map((row) => row.join("")).join("");
+        object4.table = node.rows.map((row) => [...row]);
+        content2 = object4.table.map((row) => row.join("")).join("");
       } else if (node.type === "pic" && node.svg) {
         const raster = node.media ? await store(node.media) : void 0;
         const svgBytes = bytesOf3(parts, node.svg);
@@ -137546,21 +138582,21 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
           if (stored.ref) media = stored;
         }
         if (media?.ref) {
-          object3.media = media.ref;
-          object3.mediaMime = media.mime;
+          object4.media = media.ref;
+          object4.mediaMime = media.mime;
         }
         if (svgText && svgHash) {
           kind = "vector";
-          object3.kind = kind;
+          object4.kind = kind;
           content2 = svgHash;
           if (svgText.length <= MAX_VECTOR_CHARS && deckVectorChars + svgText.length <= maxDeckVectorChars) {
-            object3.vector = svgText;
+            object4.vector = svgText;
             deckVectorChars += svgText.length;
           }
           let read2 = itemsByHash.get(svgHash);
           if (!read2) {
             read2 = svgItemsOf(svgText, parseXml);
-            nativeTextByHash.set(svgHash, read2.items.filter((item) => item.kind === "text").length);
+            nativeTextByHash.set(svgHash, read2.items.filter((item2) => item2.kind === "text").length);
             if (labelReader && read2.items.length > 0) {
               read2 = (await readVectorLabels(read2, labelReader, {
                 hints: svgLabelHintsOf(svgText, parseXml),
@@ -137574,10 +138610,10 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
           let placed2 = false;
           if (items2 && items2.items.length > MAX_VECTOR_ROWS_PER_OBJECT) {
             const omitted = (items2.omitted ?? []).filter((o) => o.reason !== "cap-reached");
-            object3.vectorItems = { ...items2, items: [], omitted: [...omitted, { reason: "cap-reached", count: items2.items.length }] };
+            object4.vectorItems = { ...items2, items: [], omitted: [...omitted, { reason: "cap-reached", count: items2.items.length }] };
           } else if (items2) {
             placed2 = withinBudget(id2, items2);
-            if (placed2) object3.vectorItems = items2;
+            if (placed2) object4.vectorItems = items2;
           }
           if (placed2 && items2 && items2.items.length > 0) {
             const counts = labelCounts(items2, nativeTextByHash.get(svgHash) ?? 0);
@@ -137611,8 +138647,8 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
         if (node.media) {
           const media = await store(node.media);
           if (media.ref) {
-            object3.media = media.ref;
-            object3.mediaMime = media.mime;
+            object4.media = media.ref;
+            object4.mediaMime = media.mime;
             fidelity = { state: "raster-preserved" };
             content2 = media.hash ?? media.ref;
           } else {
@@ -137624,14 +138660,14 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
         }
       } else if (node.type === "unknown") {
         const family2 = unknownFamily(node.tag);
-        if (node.tag) object3.tag = node.tag;
+        if (node.tag) object4.tag = node.tag;
         if (node.chartData) {
           const chart = {
             series: node.chartData.series.map((s) => s.name === void 0 ? { values: [...s.values] } : { name: s.name, values: [...s.values] })
           };
           if (node.chartData.type) chart.type = node.chartData.type;
           if (node.chartData.categories) chart.categories = [...node.chartData.categories];
-          object3.chartData = chart;
+          object4.chartData = chart;
         }
         if (node.fallbackMedia) {
           const media = await store(node.fallbackMedia);
@@ -137644,7 +138680,7 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
           }
         } else {
           fidelity = { state: "unavailable", reason: unavailableReason(family2) };
-          content2 = chartMaterial(node.tag ?? "", object3.chartData);
+          content2 = chartMaterial(node.tag ?? "", object4.chartData);
         }
       }
       if (transform2 && !poseRestatesTransform(transform2)) {
@@ -137655,14 +138691,14 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
         });
         if (fidelity.state === "editable") fidelity = { state: "approximate", reason: "geometry-approximation" };
       }
-      object3.fidelity = fidelity;
-      object3.fingerprint = await fingerprintOf2(kind, box3, content2);
-      objects.push(object3);
+      object4.fidelity = fidelity;
+      object4.fingerprint = await fingerprintOf2(kind, box3, content2);
+      objects.push(object4);
     }
     const slideW = px(deck.widthEmu) || 1280;
     const slideH = px(deck.heightEmu) || 720;
-    const own2 = objects.filter((o) => o.origin === "slide");
-    const flattened = own2.length === 1 && own2[0]?.kind === "pic" && own2[0].box.w * own2[0].box.h >= FLATTENED_AREA_SHARE2 * slideW * slideH;
+    const own3 = objects.filter((o) => o.origin === "slide");
+    const flattened = own3.length === 1 && own3[0]?.kind === "pic" && own3[0].box.w * own3[0].box.h >= FLATTENED_AREA_SHARE2 * slideW * slideH;
     const slide = {
       id: slideId,
       index: read.index,
@@ -137806,12 +138842,12 @@ async function fingerprintOf3(kind, box3, content2) {
   return `${kind}:${(await sha256Hex(new TextEncoder().encode(material))).slice(0, 16)}`;
 }
 function vectorMaterial(members, ox, oy) {
-  const r1 = (n6) => String(Math.round(n6 * 10) / 10);
+  const r12 = (n6) => String(Math.round(n6 * 10) / 10);
   const relPath2 = (d) => {
     let k = 0;
-    return d.replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (num11) => {
-      const v = Number(num11) - (k++ % 2 === 0 ? ox : oy);
-      return r1(v);
+    return d.replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (num12) => {
+      const v = Number(num12) - (k++ % 2 === 0 ? ox : oy);
+      return r12(v);
     });
   };
   return members.map((m2) => [
@@ -137820,7 +138856,7 @@ function vectorMaterial(members, ox, oy) {
     m2.fill ?? "",
     m2._vectorFill ?? "",
     m2._vectorStroke ? `${m2._vectorStroke.color}/${m2._vectorStroke.width}` : "",
-    m2._vectorPath ? relPath2(m2._vectorPath) : `${r1(m2.x - ox)},${r1(m2.y - oy)},${r1(m2.w)},${r1(m2.h)}`
+    m2._vectorPath ? relPath2(m2._vectorPath) : `${r12(m2.x - ox)},${r12(m2.y - oy)},${r12(m2.w)},${r12(m2.h)}`
   ].join(",")).join(";");
 }
 function isRaster(n6) {
@@ -138037,8 +139073,8 @@ function trailerId(doc) {
   }
 }
 function yieldToHost2() {
-  return new Promise((resolve6) => {
-    setTimeout(resolve6, 0);
+  return new Promise((resolve7) => {
+    setTimeout(resolve7, 0);
   });
 }
 var YIELD_EVERY_MS2 = 12;
@@ -138211,10 +139247,10 @@ async function sourceDeckFromPdf(bytes, opts) {
       slide.warnings.push(...diagWarnings(slideId, diag, decodeDiag));
     }
     const order = readingOrderOf2(slide.objects, ranks);
-    order.forEach((object3, i) => {
-      object3.readingIndex = i;
+    order.forEach((object4, i) => {
+      object4.readingIndex = i;
     });
-    slide.readingOrder = order.map((object3) => object3.id);
+    slide.readingOrder = order.map((object4) => object4.id);
     slides.push(slide);
     opts.onSlide?.(slides.length, total);
   }
@@ -138293,26 +139329,26 @@ async function readPage(page3, slideId, store, caps, fontRuns, struct) {
       const media = await store(desc);
       const box3 = boxOf3(n6.x, n6.y, n6.w, n6.h, n6.rot);
       let fidelity;
-      const own2 = [];
-      const object3 = { id: id2, fingerprint: "", kind: "pic", box: box3, origin: artifacts[i] ? "pdf-artifact" : "slide", fidelity: { state: "editable" } };
+      const own3 = [];
+      const object4 = { id: id2, fingerprint: "", kind: "pic", box: box3, origin: artifacts[i] ? "pdf-artifact" : "slide", fidelity: { state: "editable" } };
       const clip3 = clipRead(n6);
-      if (clip3.cut && clip3.visible) object3.clip = boxOf3(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
+      if (clip3.cut && clip3.visible) object4.clip = boxOf3(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
       const cutApprox = clip3.cut && !clip3.exact || !!n6._softMask;
       if (media.ref) {
-        object3.media = media.ref;
-        if (media.mime) object3.mediaMime = media.mime;
+        object4.media = media.ref;
+        if (media.mime) object4.mediaMime = media.mime;
         fidelity = media.opaque || cutApprox ? { state: "approximate", reason: "reader-approximation" } : { state: "raster-preserved" };
-        if (clip3.cut && !clip3.exact) own2.push(cutWarning(id2, "The picture", false));
-        if (n6._softMask) own2.push(cutWarning(id2, "The picture", true));
+        if (clip3.cut && !clip3.exact) own3.push(cutWarning(id2, "The picture", false));
+        if (n6._softMask) own3.push(cutWarning(id2, "The picture", true));
       } else {
         fidelity = { state: "unavailable", reason: media.reason ?? "media-missing" };
-        own2.push({ code: "media-skipped", message: `The picture ${id2} was not stored: ${media.issue ?? media.reason ?? "media-missing"}.`, objectIds: [id2] });
+        own3.push({ code: "media-skipped", message: `The picture ${id2} was not stored: ${media.issue ?? media.reason ?? "media-missing"}.`, objectIds: [id2] });
       }
-      if (media.width > 0 && media.height > 0) object3.raster = { width: media.width, height: media.height };
-      if (ocr) object3.ocr = ocr;
-      object3.fidelity = fidelity;
-      object3.fingerprint = await fingerprintOf3("pic", box3, media.hash ?? `${n6._imageXObject ?? ""}|${media.reason ?? ""}`);
-      return { object: object3, warnings: own2 };
+      if (media.width > 0 && media.height > 0) object4.raster = { width: media.width, height: media.height };
+      if (ocr) object4.ocr = ocr;
+      object4.fidelity = fidelity;
+      object4.fingerprint = await fingerprintOf3("pic", box3, media.hash ?? `${n6._imageXObject ?? ""}|${media.reason ?? ""}`);
+      return { object: object4, warnings: own3 };
     }
   });
   let pageOcr;
@@ -138384,10 +139420,10 @@ async function readPage(page3, slideId, store, caps, fontRuns, struct) {
   const objects = [];
   const ranks = /* @__PURE__ */ new Map();
   for (const [z, unit2] of units2.entries()) {
-    const { object: object3, warnings: own2 } = await unit2.build(`${slideId}.${z}`);
-    objects.push(object3);
-    warnings.push(...own2);
-    if (unit2.rank !== void 0) ranks.set(object3.id, unit2.rank);
+    const { object: object4, warnings: own3 } = await unit2.build(`${slideId}.${z}`);
+    objects.push(object4);
+    warnings.push(...own3);
+    if (unit2.rank !== void 0) ranks.set(object4.id, unit2.rank);
   }
   const out = { objects, warnings, flattened, ranks };
   if (pageOcr) out.ocr = pageOcr;
@@ -138416,20 +139452,20 @@ async function textObject(id2, line, fontRuns) {
   const runs = [];
   const texts = pdfLineRunTexts(line);
   for (const [k, run3] of line.runs.entries()) {
-    const item = { text: texts[k] ?? run3.text, sizePt: round24(run3.size) };
-    if (run3.bold) item.bold = true;
-    if (run3.italic) item.italic = true;
+    const item2 = { text: texts[k] ?? run3.text, sizePt: round24(run3.size) };
+    if (run3.bold) item2.bold = true;
+    if (run3.italic) item2.italic = true;
     if (run3.font) {
-      item.font = run3.font.slice(0, 256);
-      item.fontProvenance = "literal";
-      fontRuns.set(item.font, (fontRuns.get(item.font) ?? 0) + 1);
+      item2.font = run3.font.slice(0, 256);
+      item2.fontProvenance = "literal";
+      fontRuns.set(item2.font, (fontRuns.get(item2.font) ?? 0) + 1);
     }
     const color3 = colorOf2(run3.color, run3.opacity);
-    if (color3) item.color = color3;
-    runs.push(item);
+    if (color3) item2.color = color3;
+    runs.push(item2);
   }
   const box3 = boxOf3(line.x, line.y, line.w, line.h, line.rot);
-  const object3 = {
+  const object4 = {
     id: id2,
     fingerprint: "",
     kind: "text",
@@ -138438,27 +139474,27 @@ async function textObject(id2, line, fontRuns) {
     fidelity: { state: "editable" },
     text: { paras: [{ runs }] }
   };
-  if (line.artifact === "Footer") object3.placeholder = "ftr";
-  if (line.runs.every((r5) => r5.opacity <= 0)) object3.hidden = true;
-  object3.fingerprint = await fingerprintOf3("text", box3, runs.map((r5) => r5.text).join(""));
-  return { object: object3, warnings: [] };
+  if (line.artifact === "Footer") object4.placeholder = "ftr";
+  if (line.runs.every((r5) => r5.opacity <= 0)) object4.hidden = true;
+  object4.fingerprint = await fingerprintOf3("text", box3, runs.map((r5) => r5.text).join(""));
+  return { object: object4, warnings: [] };
 }
 async function shapeObject(id2, n6, artifact, clip3) {
   const geom = n6.shape === "ellipse" ? "ellipse" : (n6.radius ?? 0) > 0 ? "roundRect" : "rect";
   const exactCut = clip3.cut && clip3.exact && geom === "rect" && clip3.visible;
   const shown = exactCut ? clip3.visible : { x: n6.x, y: n6.y, w: n6.w, h: n6.h };
   const box3 = boxOf3(shown.x, shown.y, shown.w, shown.h, n6.rot);
-  const object3 = { id: id2, fingerprint: "", kind: "shape", box: box3, origin: artifact ? "pdf-artifact" : "slide", fidelity: { state: "editable" }, geom };
-  if (clip3.cut && !exactCut && clip3.visible) object3.clip = boxOf3(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
+  const object4 = { id: id2, fingerprint: "", kind: "shape", box: box3, origin: artifact ? "pdf-artifact" : "slide", fidelity: { state: "editable" }, geom };
+  if (clip3.cut && !exactCut && clip3.visible) object4.clip = boxOf3(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
   const fill2 = colorOf2(n6.fill, n6.opacity);
-  if (fill2) object3.fill = fill2;
+  if (fill2) object4.fill = fill2;
   const warnings = [];
   if (n6._gradient) {
-    object3.fidelity = { state: "approximate", reason: "reader-approximation" };
+    object4.fidelity = { state: "approximate", reason: "reader-approximation" };
     warnings.push({ code: "gradient-flattened", message: `A gradient on ${id2} was read as one flat colour.`, objectIds: [id2] });
   }
   if (clip3.cut && !exactCut) {
-    object3.fidelity = { state: "approximate", reason: "reader-approximation" };
+    object4.fidelity = { state: "approximate", reason: "reader-approximation" };
     warnings.push(clip3.exact ? {
       code: "group-transform-approximated",
       message: `The ${geom} ${id2} is cut by a rectangle; it keeps its own box and states the part that shows as its clip.`,
@@ -138466,11 +139502,11 @@ async function shapeObject(id2, n6, artifact, clip3) {
     } : cutWarning(id2, "The shape", false));
   }
   if (n6._softMask) {
-    object3.fidelity = { state: "approximate", reason: "reader-approximation" };
+    object4.fidelity = { state: "approximate", reason: "reader-approximation" };
     warnings.push(cutWarning(id2, "The shape", true));
   }
-  object3.fingerprint = await fingerprintOf3("shape", box3, `${geom}|${fill2?.hex ?? ""}:${fill2?.alpha ?? ""}`);
-  return { object: object3, warnings };
+  object4.fingerprint = await fingerprintOf3("shape", box3, `${geom}|${fill2?.hex ?? ""}:${fill2?.alpha ?? ""}`);
+  return { object: object4, warnings };
 }
 async function vectorObject(id2, nodes, indices, extent2, width, height, artifacts, markFill) {
   const members = indices.map((i) => nodes[i]);
@@ -138480,7 +139516,7 @@ async function vectorObject(id2, nodes, indices, extent2, width, height, artifac
   const h = round24(Math.max(1, Math.min(height - y, extent2.h + PDF_VECTOR_PAD * 2)));
   const box3 = boxOf3(x, y, w, h);
   const allArtifact = indices.every((i) => artifacts[i]);
-  const object3 = {
+  const object4 = {
     id: id2,
     fingerprint: "",
     kind: "vector",
@@ -138503,18 +139539,18 @@ async function vectorObject(id2, nodes, indices, extent2, width, height, artifac
     warnings.push({ code: "part-too-large", message: `The vector art ${id2} is ${svg.length} characters of SVG, over the ${MAX_VECTOR_CHARS2} limit, so it was not carried.`, objectIds: [id2] });
     svg = "";
   }
-  if (svg) object3.vector = svg;
-  else object3.fidelity = { state: "unavailable", reason: reason2 ?? "reader-approximation" };
+  if (svg) object4.vector = svg;
+  else object4.fidelity = { state: "unavailable", reason: reason2 ?? "reader-approximation" };
   const fill2 = colorOf2(markFill ?? members.find((m2) => m2._vectorFill && m2._vectorFill !== "none")?._vectorFill ?? members[0]?.fill);
-  if (fill2) object3.fill = fill2;
+  if (fill2) object4.fill = fill2;
   const stroke = members.find((m2) => m2._vectorStroke)?._vectorStroke;
   if (stroke) {
     const color3 = colorOf2(stroke.color);
-    object3.line = { widthPt: round24(stroke.width) };
-    if (color3) object3.line.color = color3;
+    object4.line = { widthPt: round24(stroke.width) };
+    if (color3) object4.line.color = color3;
   }
-  object3.fingerprint = await fingerprintOf3("vector", box3, vectorMaterial(members, extent2.x, extent2.y));
-  return { object: object3, warnings };
+  object4.fingerprint = await fingerprintOf3("vector", box3, vectorMaterial(members, extent2.x, extent2.y));
+  return { object: object4, warnings };
 }
 
 // packages/node-shell/src/rebrand/pipeline.ts
@@ -138536,7 +139572,7 @@ init_spline();
 
 // packages/node-shell/src/pptx-deck.ts
 init_css_color();
-var hex2 = (n6) => Math.max(0, Math.min(255, Math.round(Number.isFinite(n6) ? n6 : 0))).toString(16).padStart(2, "0").toUpperCase();
+var hex22 = (n6) => Math.max(0, Math.min(255, Math.round(Number.isFinite(n6) ? n6 : 0))).toString(16).padStart(2, "0").toUpperCase();
 var CUSTOM_PROP_RE = /^--[^\s(),]+$/;
 var MAX_VAR_HOPS = 4;
 function varCall(s) {
@@ -138557,20 +139593,20 @@ function varCall(s) {
   if (!CUSTOM_PROP_RE.test(name)) return null;
   return { name, fallback: comma < 0 ? "" : inner.slice(comma + 1).trim() };
 }
-function resolveDeckColorValue(v, resolve6) {
+function resolveDeckColorValue(v, resolve7) {
   let s = (typeof v === "string" ? v : "").trim();
   for (let hop = 0; hop < MAX_VAR_HOPS; hop++) {
     const call = varCall(s);
     if (!call) return s;
-    const got = resolve6?.(call.name);
+    const got = resolve7?.(call.name);
     const next = (typeof got === "string" ? got.trim() : "") || call.fallback;
     if (!next || next === s) return "";
     s = next;
   }
   return "";
 }
-function deckColor(v, resolve6) {
-  const s = resolveDeckColorValue(v, resolve6);
+function deckColor(v, resolve7) {
+  const s = resolveDeckColorValue(v, resolve7);
   if (!s || s === "transparent") return null;
   const hm = /^#?([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(s);
   if (hm) {
@@ -138583,7 +139619,7 @@ function deckColor(v, resolve6) {
   const c = parseColorToSrgb8(s);
   if (!c) return null;
   const a = c[3];
-  return a <= 0.01 ? null : { hex: hex2(c[0]) + hex2(c[1]) + hex2(c[2]), alpha: a < 1 ? a : void 0 };
+  return a <= 0.01 ? null : { hex: hex22(c[0]) + hex22(c[1]) + hex22(c[2]), alpha: a < 1 ? a : void 0 };
 }
 function deckTransition(v, notes) {
   const drop = (s) => {
@@ -139102,7 +140138,7 @@ function layoutFor(ctx, archetype, master, size, bindings) {
   }
   const shapes3 = [];
   for (const id2 of archetype.furniture ?? []) {
-    const f = master.furniture.find((item) => item.id === id2);
+    const f = master.furniture.find((item2) => item2.id === id2);
     if (!f) continue;
     const shape = furnitureShape(ctx, f, master, size);
     if (shape) shapes3.push(shape);
@@ -139535,9 +140571,9 @@ function coverOf(box3, slide) {
   return cover / Math.max(1, slide.width * slide.height);
 }
 function flattenedPictureOf(slide) {
-  const own2 = slide.objects.filter((o) => o.origin === "slide" || o.origin === "pdf-artifact");
-  const pics = own2.filter((o) => o.kind === "pic");
-  if (pics.length !== 1 || own2.length !== 1) return null;
+  const own3 = slide.objects.filter((o) => o.origin === "slide" || o.origin === "pdf-artifact");
+  const pics = own3.filter((o) => o.kind === "pic");
+  if (pics.length !== 1 || own3.length !== 1) return null;
   const pic = pics[0];
   if (!pic) return null;
   if (slide.origin.flattened === true) return pic;
@@ -139735,8 +140771,8 @@ async function reconstructFlattenedSlide(input) {
   const { slide, picture, sink } = input;
   input.signal?.throwIfAborted();
   const pic = flattenedPictureOf(slide);
-  const own2 = slide.objects.filter((o) => o.origin === "slide" || o.origin === "pdf-artifact");
-  if (!pic && own2.length > 0) {
+  const own3 = slide.objects.filter((o) => o.origin === "slide" || o.origin === "pdf-artifact");
+  if (!pic && own3.length > 0) {
     return {
       ...slide,
       objects: [...slide.objects],
@@ -139745,8 +140781,8 @@ async function reconstructFlattenedSlide(input) {
         ...slide.warnings,
         {
           code: "nodes-truncated",
-          message: `${slide.id} is not one picture of the whole slide (it has ${own2.length} objects of its own), so it was not rebuilt from a picture.`,
-          objectIds: own2.map((o) => o.id)
+          message: `${slide.id} is not one picture of the whole slide (it has ${own3.length} objects of its own), so it was not rebuilt from a picture.`,
+          objectIds: own3.map((o) => o.id)
         }
       ]
     };
@@ -139867,7 +140903,7 @@ async function reconstructFlattenedSlide(input) {
     const crop = paintOut.length ? smooth ? paintOutBoxes(at2, within) : maskedImageOf(at2, within) : at2;
     const stored = await store(crop);
     const slideBox = toSlide(box3);
-    const object3 = {
+    const object4 = {
       id: id2,
       fingerprint: await fingerprintOf4("pic", slideBox, stored.hash),
       kind: "pic",
@@ -139878,12 +140914,12 @@ async function reconstructFlattenedSlide(input) {
       mediaMime: "image/png",
       ocr
     };
-    return { object: object3, pictureBox: box3, layer: 2 };
+    return { object: object4, pictureBox: box3, layer: 2 };
   };
   const shapeObject2 = async (region) => {
     const box3 = toSlide(region.box);
     const hex3 = region.evidence.ink;
-    const object3 = {
+    const object4 = {
       id: `${base}.${region.id}`,
       fingerprint: await fingerprintOf4("shape", box3, `rect|:${hex3}`),
       kind: "shape",
@@ -139893,7 +140929,7 @@ async function reconstructFlattenedSlide(input) {
       geom: "rect",
       fill: { hex: hex3 }
     };
-    return { object: object3, pictureBox: region.box, layer: region.kind === "panel" ? 0 : 1, region };
+    return { object: object4, pictureBox: region.box, layer: region.kind === "panel" ? 0 : 1, region };
   };
   const runsOf = (para, block, colourOf2, fallback, bold = false, styleOf, heavy) => {
     const at2 = new Map(para.lines.map((index2, k) => [index2, k]));
@@ -139903,11 +140939,11 @@ async function reconstructFlattenedSlide(input) {
     for (const line of lines) {
       const piece = line.text.trim();
       if (!piece) continue;
-      const sep2 = joined ? runsOnAfter(joined) ? "" : " " : "";
-      joined += sep2 + piece;
+      const sep3 = joined ? runsOnAfter(joined) ? "" : " " : "";
+      joined += sep3 + piece;
       const hex3 = colourOf2(line) ?? fallback;
       const last = runs[runs.length - 1];
-      if (last) last.text += sep2;
+      if (last) last.text += sep3;
       for (const part of lineParts(line, piece, hex3, bold, styleOf?.(line) ?? null, heavy ?? (() => false))) {
         const tail = runs[runs.length - 1];
         if (tail && tail.color?.hex === part.hex && tail.bold === true === part.bold) tail.text += part.text;
@@ -139941,7 +140977,7 @@ async function reconstructFlattenedSlide(input) {
       });
       snapInks(paras);
       const text7 = group.map((p) => p.text).join("\n");
-      const object3 = {
+      const object4 = {
         id: k === 0 ? idBase : `${idBase}.part${k + 1}`,
         fingerprint: await fingerprintOf4("text", box3, text7),
         kind: "text",
@@ -139952,8 +140988,8 @@ async function reconstructFlattenedSlide(input) {
         ocr: evidenceFor(group, box3)
       };
       const role = group[0]?.role;
-      if (role && estimateRole) object3.roleEstimate = role;
-      result.push({ object: object3, pictureBox: inPicture, layer: 3 });
+      if (role && estimateRole) object4.roleEstimate = role;
+      result.push({ object: object4, pictureBox: inPicture, layer: 3 });
     }
     return result;
   };
@@ -140213,7 +141249,7 @@ async function reconstructFlattenedSlide(input) {
     const region = { ...readingRegion(`o${k + 1}`, o.box), kind: "panel" };
     const box3 = toSlide(o.box);
     const fill2 = outlineFills[k] ?? found.background;
-    const object3 = {
+    const object4 = {
       id: `${base}.o${k + 1}`,
       fingerprint: await fingerprintOf4("shape", box3, `rect|:${fill2}|${o.line}`),
       kind: "shape",
@@ -140224,7 +141260,7 @@ async function reconstructFlattenedSlide(input) {
       fill: { hex: fill2 },
       line: { color: { hex: o.line }, widthPt: Math.max(0.25, Math.round(o.thickness * sy * PT_PER_PX * 4) / 4) }
     };
-    built.push({ object: object3, pictureBox: o.box, layer: 0, region });
+    built.push({ object: object4, pictureBox: o.box, layer: 0, region });
   }
   const outlineFillPanel = (region) => region.kind === "panel" && outlines.some((o, k) => insideShare3(region.box, o.box) >= 0.9 && sameColour(region.evidence.ink, outlineFills[k] ?? ""));
   const regions = parentFirst(found.regions);
@@ -140301,9 +141337,9 @@ async function reconstructFlattenedSlide(input) {
     const localGround = (b) => lineInkColourOf(picture, b)?.ground ?? outlineColourOf(picture, padBox(b, 0.3 * b.h)) ?? found.background;
     const glyphs2 = /* @__PURE__ */ new Map();
     for (const block of liveBlocks) {
-      const own3 = apart(block.lines);
+      const own4 = apart(block.lines);
       block.lines.forEach((l, i) => {
-        glyphs2.set(l, lineGlyphsOf(picture, own3[i] ?? l.box, l.text));
+        glyphs2.set(l, lineGlyphsOf(picture, own4[i] ?? l.box, l.text));
       });
     }
     const inkedOf = (block) => apart(block.lines).map((box3, i) => {
@@ -140346,9 +141382,9 @@ async function reconstructFlattenedSlide(input) {
     const wordsOf4 = (block, typeset, para) => typeset.lines.filter((line) => para.lines.includes(line.index)).flatMap((line) => wordStems(styleIn(block, line)));
     const weight = /* @__PURE__ */ new Map();
     for (const block of liveBlocks) {
-      const own3 = apart(block.lines);
+      const own4 = apart(block.lines);
       block.lines.forEach((l, i) => {
-        const box3 = own3[i] ?? l.box;
+        const box3 = own4[i] ?? l.box;
         const ink = lineInkColourOf(picture, box3)?.ink;
         const ratio = ink ? strokeRatioOf(picture, textBoundsOf(picture, box3, localGround(box3), found.threshold) ?? box3, ink) : null;
         if (ratio !== null) weight.set(l, ratio);
@@ -140361,11 +141397,11 @@ async function reconstructFlattenedSlide(input) {
       for (const para of typeset.paragraphs) sized.push({ para, size: para.sizePx ?? 0, words: wordsOf4(block, typeset, para) });
     }
     const heavierThanPeers = (para) => {
-      const own3 = sized.find((one) => one.para === para);
-      if (!own3 || own3.size <= 0 || own3.words.length === 0) return false;
-      const peers = sized.filter((one) => one.para !== para && one.size > 0 && Math.abs(one.size - own3.size) <= PEER_SIZE * own3.size).flatMap((one) => one.words);
+      const own4 = sized.find((one) => one.para === para);
+      if (!own4 || own4.size <= 0 || own4.words.length === 0) return false;
+      const peers = sized.filter((one) => one.para !== para && one.size > 0 && Math.abs(one.size - own4.size) <= PEER_SIZE * own4.size).flatMap((one) => one.words);
       if (peers.reduce((n6, w) => n6 + w.letters, 0) < PEER_MIN_LETTERS) return false;
-      const mine = weightedMedian(own3.words.map((w) => ({ r: w.stem, n: w.letters })));
+      const mine = weightedMedian(own4.words.map((w) => ({ r: w.stem, n: w.letters })));
       return mine >= BOLD_RATIO * weightedMedian(peers.map((w) => ({ r: w.stem, n: w.letters })));
     };
     const cards = [];
@@ -140375,11 +141411,11 @@ async function reconstructFlattenedSlide(input) {
       const idBase = `${base}.${id2}`;
       const decision2 = input.decisions?.[id2];
       if (decision2?.keep === "picture" || block.lockup && decision2?.keep !== "text") {
-        const own4 = maskBoxOf(block.box);
+        const own5 = maskBoxOf(block.box);
         let box3 = block.lockup ?? block.box;
         const under = [];
         if (block.lockup && decision2?.keep !== "picture") {
-          for (const m2 of stampBoxes.filter((b) => insideShare3(b, own4) < 0.9 && insideShare3(b, box3) > 0)) {
+          for (const m2 of stampBoxes.filter((b) => insideShare3(b, own5) < 0.9 && insideShare3(b, box3) > 0)) {
             if (m2.y > box3.y + 0.5 * box3.h && m2.y > block.box.y + 0.5 * block.box.h) box3 = { ...box3, h: m2.y - box3.y };
             else under.push(m2);
           }
@@ -140394,8 +141430,8 @@ async function reconstructFlattenedSlide(input) {
         continue;
       }
       const typeset = typesetOf.get(block) ?? snapSizes(typesetOcrLines(inkedOf(block), pageTypeset));
-      const own3 = apart(block.lines);
-      const colourOf2 = (line) => lineInkColourOf(picture, own3[line.index] ?? line.box)?.ink ?? null;
+      const own4 = apart(block.lines);
+      const colourOf2 = (line) => lineInkColourOf(picture, own4[line.index] ?? line.box)?.ink ?? null;
       const boldOf = (para) => {
         if (heavierThanPeers(para)) return true;
         if (usualWeight <= 0) return false;
@@ -140935,10 +141971,10 @@ var ANGLED_MIN_ELONGATION = 1.6;
 var SOFT_PANEL_GAP = 1;
 var SOFT_PANEL_MIN_STRIPS = 3;
 var SOFT_PANEL_MIN_MARGIN = 0.02;
-function tileStarts(length, tile) {
-  if (length <= tile) return [0];
-  const n6 = Math.ceil((length - tile) / (tile / 2)) + 1;
-  return Array.from({ length: n6 }, (_, i) => Math.round(i * (length - tile) / (n6 - 1)));
+function tileStarts(length2, tile) {
+  if (length2 <= tile) return [0];
+  const n6 = Math.ceil((length2 - tile) / (tile / 2)) + 1;
+  return Array.from({ length: n6 }, (_, i) => Math.round(i * (length2 - tile) / (n6 - 1)));
 }
 async function readPage2(picture, ocr, opts) {
   const { signal } = opts;
@@ -141113,18 +142149,18 @@ function joinReadings(pieces, box3, words2 = []) {
   const confidence = parts.reduce((sum, l) => sum + l.confidence * l.text.trim().length, 0) / Math.max(1, chars);
   let text7 = "";
   pieces.forEach((piece, k) => {
-    let own2 = "";
+    let own3 = "";
     let prev;
     for (const l of piece) {
       const t = l.text.trim();
       if (!t) continue;
-      own2 = own2 ? joinAtSpace(own2, t, prev !== void 0 && prev.box.x + prev.box.w > l.box.x) : t;
+      own3 = own3 ? joinAtSpace(own3, t, prev !== void 0 && prev.box.x + prev.box.w > l.box.x) : t;
       prev = l;
     }
-    if (!own2) return;
-    if (!text7) text7 = own2;
-    else if (k === 0 || words2[k - 1] !== false) text7 = joinAtSpace(text7, own2);
-    else text7 = joinAtCut(text7, own2);
+    if (!own3) return;
+    if (!text7) text7 = own3;
+    else if (k === 0 || words2[k - 1] !== false) text7 = joinAtSpace(text7, own3);
+    else text7 = joinAtCut(text7, own3);
   });
   return { text: text7.replace(/\s+/g, " ").trim(), confidence, box: box3 };
 }
@@ -141194,8 +142230,8 @@ function groupUnits(built, base, pageArea, cards, barriers = []) {
   }));
   const rowRules = barriers.filter((r5) => r5.w >= r5.h && middles.some((at, n6) => {
     const next = middles[n6 + 1];
-    const label2 = rows2[n6]?.text.pictureBox;
-    return next !== void 0 && label2 !== void 0 && r5.y + r5.h / 2 > at && r5.y + r5.h / 2 < next && r5.x <= label2.x && r5.x + r5.w >= label2.x + label2.w;
+    const label3 = rows2[n6]?.text.pictureBox;
+    return next !== void 0 && label3 !== void 0 && r5.y + r5.h / 2 > at && r5.y + r5.h / 2 < next && r5.x <= label3.x && r5.x + r5.w >= label3.x + label3.w;
   }));
   const ruled = rowRules.length * 2 >= rows2.length - 1 && rowRules.length > 0;
   const tableRight = ruled ? Math.max(...rowRules.map((r5) => r5.x + r5.w)) : Number.POSITIVE_INFINITY;
@@ -141316,14 +142352,14 @@ function carryTextLayer(layer, built) {
     else byObject.set(best, [line]);
   }
   let carried = 0;
-  for (const [b, own2] of byObject) {
-    carried += own2.length;
+  for (const [b, own3] of byObject) {
+    carried += own3.length;
     if (b.object.ocr?.state === "text-found") continue;
     const box3 = b.object.box;
-    const chars = own2.reduce((sum, l) => sum + l.text.replace(/\s/g, "").length, 0);
+    const chars = own3.reduce((sum, l) => sum + l.text.replace(/\s/g, "").length, 0);
     const evidence = {
       state: "text-found",
-      lines: own2.map((l) => ({ ...l, box: { ...l.box } })),
+      lines: own3.map((l) => ({ ...l, box: { ...l.box } })),
       textDensity: round25(chars * 1e3 / Math.max(1, box3.w * box3.h))
     };
     if (layer.model) evidence.model = layer.model;
@@ -141406,7 +142442,7 @@ async function leftoverPictures(picture, found, ground, store, toSlide, base, oc
     }
     const stored = await store(crop);
     const slideBox = toSlide(box3);
-    const object3 = {
+    const object4 = {
       id: `${base}.rest${out.length + 1}`,
       fingerprint: await fingerprintOf4("pic", slideBox, stored.hash),
       kind: "pic",
@@ -141417,7 +142453,7 @@ async function leftoverPictures(picture, found, ground, store, toSlide, base, oc
       mediaMime: "image/png",
       ocr: { state: ocrState }
     };
-    out.push({ object: object3, pictureBox: box3, layer: 2 });
+    out.push({ object: object4, pictureBox: box3, layer: 2 });
   }
   return out;
 }
@@ -141547,11 +142583,11 @@ function jpegDimensions(b) {
       continue;
     }
     if (marker === 217 || marker === 218) return null;
-    const length = u16be2(b, at + 2);
+    const length2 = u16be2(b, at + 2);
     const frame = marker >= 192 && marker <= 207 && marker !== 196 && marker !== 200 && marker !== 204;
     if (frame && at + 9 <= b.length) return { height: u16be2(b, at + 5), width: u16be2(b, at + 7) };
-    if (length < 2) return null;
-    at += 2 + length;
+    if (length2 < 2) return null;
+    at += 2 + length2;
   }
   return null;
 }
@@ -141589,16 +142625,16 @@ function pngInflatesWithin(bytes, limit) {
   });
   try {
     for (let at = 8; at + 8 <= bytes.length; ) {
-      const length = u32be2(bytes, at);
+      const length2 = u32be2(bytes, at);
       if (tagAt(bytes, at + 4, "IEND")) break;
       if (tagAt(bytes, at + 4, "IDAT")) {
-        const body = bytes.subarray(at + 8, Math.min(bytes.length, at + 8 + length));
+        const body = bytes.subarray(at + 8, Math.min(bytes.length, at + 8 + length2));
         for (let k = 0; k < body.length; k += INFLATE_STEP2) {
           inflater.push(body.subarray(k, k + INFLATE_STEP2), false);
           if (total > limit) return false;
         }
       }
-      at += 12 + length;
+      at += 12 + length2;
     }
     inflater.push(new Uint8Array(0), true);
   } catch {
@@ -141683,9 +142719,9 @@ function keptSlideOcr(slide, pic, missing) {
   if (prior && (prior.state === "text-found" || prior.state === "no-text-found")) {
     return prior.model ? { state: prior.state, model: prior.model } : { state: prior.state };
   }
-  const own2 = pic?.ocr;
-  if (own2 && (own2.state === "text-found" || own2.state === "no-text-found")) {
-    return own2.model ? { state: own2.state, model: own2.model } : { state: own2.state };
+  const own3 = pic?.ocr;
+  if (own3 && (own3.state === "text-found" || own3.state === "no-text-found")) {
+    return own3.model ? { state: own3.state, model: own3.model } : { state: own3.state };
   }
   return { state: missing };
 }
@@ -141738,8 +142774,8 @@ async function handleFlattenedSlides(source, media, input) {
       continue;
     }
     if (!pic) {
-      const own2 = slide.objects.filter((o) => o.origin === "slide" || o.origin === "pdf-artifact").map((o) => o.id);
-      keep("not-one-picture", `${slide.id} is read as a picture of a slide, but it holds ${own2.length === 0 ? "no object" : own2.length === 1 ? "one object that is not a picture" : `${own2.length} objects of its own`} rather than one picture, so it was not rebuilt and stays as it is.`, own2);
+      const own3 = slide.objects.filter((o) => o.origin === "slide" || o.origin === "pdf-artifact").map((o) => o.id);
+      keep("not-one-picture", `${slide.id} is read as a picture of a slide, but it holds ${own3.length === 0 ? "no object" : own3.length === 1 ? "one object that is not a picture" : `${own3.length} objects of its own`} rather than one picture, so it was not rebuilt and stays as it is.`, own3);
       continue;
     }
     const held = pic.media ? media.get(pic.media) : void 0;
@@ -141894,7 +142930,7 @@ function planSourceProblems(plan, source) {
   const seenSlides = /* @__PURE__ */ new Set();
   const seenRows = /* @__PURE__ */ new Set();
   const objectSlide = /* @__PURE__ */ new Map();
-  for (const slide of source.slides) for (const object3 of slide.objects) objectSlide.set(object3.id, slide.id);
+  for (const slide of source.slides) for (const object4 of slide.objects) objectSlide.set(object4.id, slide.id);
   for (const slide of plan.slides) {
     if (seenSlides.has(slide.id)) problems.push(`the slide ${slide.id} is in the plan twice`);
     seenSlides.add(slide.id);
@@ -144303,25 +145339,25 @@ function waitingOf(counts) {
     tray: counts.tray
   };
 }
-function queueRecord(item) {
+function queueRecord(item2) {
   return {
-    id: item.id,
-    section: item.section,
-    class: item.class,
-    action: item.action,
-    proposal: item.proposal,
-    review: item.review,
-    fidelity: item.fidelity,
-    title: item.title.text,
-    titleCode: item.title.code,
-    evidence: item.evidence.text,
-    evidenceCode: item.evidence.code,
-    slideNumbers: item.slideNumbers,
-    objects: item.objectIds.length,
-    objectIds: item.objectIds.slice(0, QUEUE_ITEM_IDS_SHOWN),
+    id: item2.id,
+    section: item2.section,
+    class: item2.class,
+    action: item2.action,
+    proposal: item2.proposal,
+    review: item2.review,
+    fidelity: item2.fidelity,
+    title: item2.title.text,
+    titleCode: item2.title.code,
+    evidence: item2.evidence.text,
+    evidenceCode: item2.evidence.code,
+    slideNumbers: item2.slideNumbers,
+    objects: item2.objectIds.length,
+    objectIds: item2.objectIds.slice(0, QUEUE_ITEM_IDS_SHOWN),
     // A slide-level card (a layout group, the diagrams) holds slides, not rows.
-    ...item.type ? { type: item.type, slideIds: item.slideIds.slice(0, QUEUE_ITEM_IDS_SHOWN) } : {},
-    ...item.layout ? { layout: item.layout } : {}
+    ...item2.type ? { type: item2.type, slideIds: item2.slideIds.slice(0, QUEUE_ITEM_IDS_SHOWN) } : {},
+    ...item2.layout ? { layout: item2.layout } : {}
   };
 }
 function strongestEvidence(evidence) {
@@ -144673,14 +145709,14 @@ async function inspectStage(args, ctx) {
     }
     const rows2 = plan.slides.find((one) => one.id === slideId)?.objects ?? [];
     const states = known ? objectStates(plan, known.source) : void 0;
-    const objectOf = known ? new Map(known.source.slides.flatMap((slide) => slide.objects).map((object3) => [object3.id, object3])) : void 0;
+    const objectOf = known ? new Map(known.source.slides.flatMap((slide) => slide.objects).map((object4) => [object4.id, object4])) : void 0;
     const all = rows2.map((row) => {
-      const object3 = objectOf?.get(row.id);
-      const fidelity = known ? states?.get(row.id)?.fidelity ?? reviewFidelity(object3) : null;
+      const object4 = objectOf?.get(row.id);
+      const fidelity = known ? states?.get(row.id)?.fidelity ?? reviewFidelity(object4) : null;
       const evidence = strongestEvidence(row.evidence);
       return {
         id: row.id,
-        kind: object3?.kind ?? null,
+        kind: object4?.kind ?? null,
         class: row.class,
         action: effectiveAction(row),
         proposal: row.proposal,
@@ -144734,6 +145770,811 @@ async function callRebrand(args, env = process.env, limits = REBRAND_LIMITS) {
   } catch (err) {
     return failure2(stage || "unknown", asToolError(err, "internal"));
   }
+}
+
+// services/mcp/src/look.ts
+init_src2();
+import { readFile as readFile17 } from "node:fs/promises";
+import { extname as extname2, resolve as resolve6, sep as sep2 } from "node:path";
+import { fileURLToPath as fileURLToPath8 } from "node:url";
+
+// engine/src/agent-view.ts
+init_brand_derive();
+var NUM = "-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?";
+function rootTag(svg) {
+  const m2 = /<svg\b/i.exec(svg);
+  if (!m2) return null;
+  let i = m2.index + 4, quote = "";
+  for (; i < svg.length; i++) {
+    const c = svg[i];
+    if (quote) {
+      if (c === quote) quote = "";
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      quote = c;
+      continue;
+    }
+    if (c === ">") break;
+  }
+  if (i >= svg.length) return null;
+  const selfClosing = svg[i - 1] === "/";
+  return { start: m2.index, end: i + 1, attrs: svg.slice(m2.index + 4, selfClosing ? i - 1 : i) };
+}
+function attr4(attrs, name) {
+  const m2 = new RegExp(`(?:^|\\s)${name}\\s*=\\s*("([^"]*)"|'([^']*)')`, "i").exec(attrs);
+  return m2 ? m2[2] ?? m2[3] ?? "" : null;
+}
+function length(v) {
+  if (v == null) return null;
+  const m2 = new RegExp(`^\\s*(${NUM})\\s*(px)?\\s*$`).exec(v);
+  if (!m2) return null;
+  const n6 = Number(m2[1]);
+  return Number.isFinite(n6) && n6 > 0 ? n6 : null;
+}
+function svgDocumentFrame(svg) {
+  const tag2 = rootTag(svg);
+  if (!tag2) return null;
+  const vb = attr4(tag2.attrs, "viewBox");
+  if (vb != null) {
+    const n6 = vb.trim().split(/[\s,]+/).map(Number);
+    if (n6.length === 4 && n6.every(Number.isFinite) && n6[2] > 0 && n6[3] > 0) return { x: n6[0], y: n6[1], w: n6[2], h: n6[3] };
+  }
+  const w = length(attr4(tag2.attrs, "width")), h = length(attr4(tag2.attrs, "height"));
+  return w && h ? { x: 0, y: 0, w, h } : null;
+}
+function clampRegion(frame, region) {
+  if (!region) return { ...frame };
+  const rx = Number(region.x), ry = Number(region.y), rw = Number(region.w), rh = Number(region.h);
+  if (![rx, ry, rw, rh].every(Number.isFinite) || rw <= 0 || rh <= 0) return { ...frame };
+  const x0 = Math.max(frame.x, rx), y0 = Math.max(frame.y, ry);
+  const x1 = Math.min(frame.x + frame.w, rx + rw), y1 = Math.min(frame.y + frame.h, ry + rh);
+  if (x1 <= x0 || y1 <= y0) return { ...frame };
+  return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
+}
+function viewSize(frame, region, maxSide = 1024, maxZoom = 8) {
+  const side2 = Math.max(16, Math.min(4096, Math.round(maxSide)));
+  const whole = region.w >= frame.w && region.h >= frame.h;
+  const fit = side2 / Math.max(region.w, region.h);
+  const pxPerUnit = whole ? Math.min(1, fit) : Math.min(fit, maxZoom);
+  return {
+    width: Math.max(1, Math.round(region.w * pxPerUnit)),
+    height: Math.max(1, Math.round(region.h * pxPerUnit)),
+    pxPerUnit
+  };
+}
+var fmt3 = (v) => String(Math.round(v * 1e3) / 1e3);
+function reframeSvg(svg, region, width, height, overlay = "") {
+  const tag2 = rootTag(svg);
+  if (!tag2) throw new Error("Not an SVG document.");
+  const kept = tag2.attrs.replace(/\s(viewBox|width|height|preserveAspectRatio)\s*=\s*("[^"]*"|'[^']*')/gi, "").replace(/(\sstyle\s*=\s*)(["'])([^"']*)\2/i, (_m, pre, q, css2) => `${pre}${q}${css2.replace(/(^|;)\s*(width|height)\s*:[^;]*/gi, "$1").replace(/^;+|;+(?=;)/g, "")}${q}`).replace(/\s+$/, "");
+  const open3 = `<svg${kept} viewBox="${fmt3(region.x)} ${fmt3(region.y)} ${fmt3(region.w)} ${fmt3(region.h)}" width="${Math.round(width)}" height="${Math.round(height)}" preserveAspectRatio="none">`;
+  const selfClosing = svg[tag2.end - 2] === "/";
+  const body = selfClosing ? `${overlay}</svg>` : (() => {
+    const close = svg.lastIndexOf("</svg>");
+    if (close < tag2.end) throw new Error("SVG root is not closed.");
+    return `${svg.slice(tag2.end, close)}${overlay}${svg.slice(close)}`;
+  })();
+  return svg.slice(0, tag2.start) + open3 + body;
+}
+function rasterAsSvg(mime2, base64, width, height) {
+  if (!/^image\/[a-z0-9.+-]+$/i.test(mime2)) throw new Error(`Not an image type: ${mime2}`);
+  if (!/^[A-Za-z0-9+/=]*$/.test(base64)) throw new Error("Image data is not base64.");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><image href="data:${mime2};base64,${base64}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none"/></svg>`;
+}
+function niceGridSpacing(extent2, lines = 10) {
+  if (!(extent2 > 0)) return 1;
+  const raw = extent2 / Math.max(1, lines);
+  const p = 10 ** Math.floor(Math.log10(raw));
+  const m2 = raw / p;
+  return (m2 < 1.5 ? 1 : m2 < 3.5 ? 2 : m2 < 7.5 ? 5 : 10) * p;
+}
+var GLYPHS2 = {
+  "0": "M1 0L3 0L4 1L4 5L3 6L1 6L0 5L0 1Z",
+  "1": "M1 1L2 0L2 6M1 6L3 6",
+  "2": "M0 1L1 0L3 0L4 1L4 2L0 6L4 6",
+  "3": "M0 0L4 0L2 2.5L3 2.5L4 3.5L4 5L3 6L1 6L0 5",
+  "4": "M3 6L3 0L0 4L4 4",
+  "5": "M4 0L0 0L0 2.8L3 2.6L4 3.6L4 5L3 6L0 6",
+  "6": "M3.5 0L1.5 1L0 3.5L0 5L1 6L3 6L4 5L4 4L3 3L1 3L0 4",
+  "7": "M0 0L4 0L1.5 6",
+  "8": "M1 0L3 0L4 1L4 2L3 3L1 3L0 2L0 1ZM1 3L3 3L4 4L4 5L3 6L1 6L0 5L0 4Z",
+  "9": "M0.5 6L2.5 5L4 2.5L4 1L3 0L1 0L0 1L0 2L1 3L3 3L4 2",
+  "-": "M0.5 3L3.5 3",
+  ".": "M2 5.6L2 6"
+};
+function labelPath(text7, x, y, size) {
+  const s = size / 6, adv = 5.5 * s;
+  let d = "";
+  [...text7].forEach((ch, i) => {
+    const g2 = GLYPHS2[ch];
+    if (!g2) return;
+    d += g2.replace(/([ML])(-?[\d.]+) (-?[\d.]+)/g, (_m, op, gx, gy) => `${op}${fmt3(x + i * adv + Number(gx) * s)} ${fmt3(y + Number(gy) * s)}`);
+  });
+  return d;
+}
+var label2 = (v) => fmt3(Math.round(v * 100) / 100);
+function gridOverlaySvg(region, spacing, pxPerUnit) {
+  if (!(spacing > 0) || !(pxPerUnit > 0)) return "";
+  const u = 1 / pxPerUnit;
+  const first = (v0) => Math.ceil(v0 / spacing - 1e-9) * spacing;
+  const xs = [], ys = [];
+  for (let x = first(region.x); x <= region.x + region.w + 1e-9 && xs.length < 400; x += spacing) xs.push(x);
+  for (let y = first(region.y); y <= region.y + region.h + 1e-9 && ys.length < 400; y += spacing) ys.push(y);
+  let lines = "";
+  for (const x of xs) lines += `M${fmt3(x)} ${fmt3(region.y)}V${fmt3(region.y + region.h)}`;
+  for (const y of ys) lines += `M${fmt3(region.x)} ${fmt3(y)}H${fmt3(region.x + region.w)}`;
+  const digit = 9 * u, pad = 3 * u, charW = 5.5 * (digit / 6);
+  const widest = Math.max(...[...xs, ...ys].map((v) => label2(v).length), 1) * charW;
+  const step = (gap) => Math.max(1, Math.ceil((widest + 4 * pad) / gap));
+  const everyX = step(spacing), everyY = Math.max(1, Math.ceil((digit + 4 * pad) / spacing));
+  let labels = "";
+  xs.forEach((x, i) => {
+    if (i % everyX === 0) labels += labelPath(label2(x), x + pad, region.y + pad, digit);
+  });
+  ys.forEach((y, i) => {
+    if (i % everyY === 0 && y > region.y + digit + 2 * pad) labels += labelPath(label2(y), region.x + pad, y + pad, digit);
+  });
+  const w = (px3) => fmt3(px3 * u);
+  return `<g data-lolly-view-grid="" fill="none" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"><path d="${lines}" stroke="#000" stroke-opacity=".5" stroke-width="${w(2)}"/><path d="${lines}" stroke="#fff" stroke-opacity=".75" stroke-width="${w(0.75)}"/>` + (labels ? `<path d="${labels}" stroke="#fff" stroke-width="${w(4)}"/><path d="${labels}" stroke="#000" stroke-width="${w(1.4)}"/>` : "") + "</g>";
+}
+var hex23 = (v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0");
+function sampleDisc(img, cx2, cy3, radius) {
+  const r5 = Math.max(0, radius);
+  const x0 = Math.max(0, Math.floor(cx2 - r5)), x1 = Math.min(img.width - 1, Math.floor(cx2 + r5));
+  const y0 = Math.max(0, Math.floor(cy3 - r5)), y1 = Math.min(img.height - 1, Math.floor(cy3 + r5));
+  let sr = 0, sg = 0, sb = 0, sa = 0, n6 = 0;
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      const dx = x + 0.5 - cx2, dy = y + 0.5 - cy3;
+      if (r5 > 0 && dx * dx + dy * dy > (r5 + 0.5) * (r5 + 0.5)) continue;
+      if (r5 === 0 && (x !== Math.floor(cx2) || y !== Math.floor(cy3))) continue;
+      const i = (y * img.width + x) * 4;
+      const a = img.data[i + 3];
+      const k = img.premultiplied ? 1 : a / 255;
+      sr += img.data[i] * k;
+      sg += img.data[i + 1] * k;
+      sb += img.data[i + 2] * k;
+      sa += a;
+      n6++;
+    }
+  }
+  if (!n6 || sa === 0) return { hex: null, rgb: null, alpha: 0, oklab: null };
+  const scale = 255 / sa;
+  const rgb = [Math.round(sr * scale), Math.round(sg * scale), Math.round(sb * scale)];
+  const lab = linearSrgbToOklab(srgbToLinear(rgb[0] / 255), srgbToLinear(rgb[1] / 255), srgbToLinear(rgb[2] / 255));
+  return {
+    hex: `#${hex23(rgb[0])}${hex23(rgb[1])}${hex23(rgb[2])}`,
+    rgb,
+    alpha: Math.round(sa / n6 / 255 * 1e3) / 1e3,
+    oklab: [Math.round(lab[0] * 1e4) / 1e4, Math.round(lab[1] * 1e4) / 1e4, Math.round(lab[2] * 1e4) / 1e4]
+  };
+}
+function hexRgb3(hex3) {
+  const m2 = /^#?([0-9a-f]{3}|[0-9a-f]{6})(?:[0-9a-f]{2})?$/i.exec(hex3.trim());
+  if (!m2) return null;
+  const h = m2[1].length === 3 ? [...m2[1]].map((c) => c + c).join("") : m2[1];
+  return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+}
+function nearestSwatch(hex3, swatches) {
+  const target = hexRgb3(hex3);
+  if (!target) return null;
+  let best = null;
+  for (const swatch of swatches) {
+    const rgb = typeof swatch?.value === "string" ? hexRgb3(swatch.value) : null;
+    if (!rgb) continue;
+    const deltaE = deltaEOkSrgb(target, rgb);
+    if (!best || deltaE < best.deltaE) best = { swatch, deltaE, verdict: "different" };
+  }
+  if (!best) return null;
+  best.deltaE = Math.round(best.deltaE * 1e4) / 1e4;
+  best.verdict = best.deltaE <= 0.02 ? "match" : best.deltaE <= 0.06 ? "close" : "different";
+  return best;
+}
+
+// engine/src/edge-trace.ts
+init_authored_url();
+function luminance(img) {
+  const { width: w, height: h, data } = img;
+  const out = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    const a = data[i * 4 + 3] / 255;
+    const k = img.premultiplied ? 1 : a;
+    const y = 0.2126 * data[i * 4] * k + 0.7152 * data[i * 4 + 1] * k + 0.0722 * data[i * 4 + 2] * k;
+    out[i] = y + 255 * (1 - a);
+  }
+  return out;
+}
+function blur(src, w, h, sigma) {
+  const r5 = Math.max(1, Math.ceil(sigma * 3));
+  const k = [];
+  let sum = 0;
+  for (let i = -r5; i <= r5; i++) {
+    const v = Math.exp(-(i * i) / (2 * sigma * sigma));
+    k.push(v);
+    sum += v;
+  }
+  for (let i = 0; i < k.length; i++) k[i] /= sum;
+  const tmp = new Float32Array(w * h), out = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let i = -r5; i <= r5; i++) acc += k[i + r5] * src[y * w + Math.min(w - 1, Math.max(0, x + i))];
+      tmp[y * w + x] = acc;
+    }
+  }
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let i = -r5; i <= r5; i++) acc += k[i + r5] * tmp[Math.min(h - 1, Math.max(0, y + i)) * w + x];
+      out[y * w + x] = acc;
+    }
+  }
+  return out;
+}
+function edgeMap(img, detail) {
+  const { width: w, height: h } = img;
+  const lum = blur(luminance(img), w, h, 1.4);
+  const mag = new Float32Array(w * h), dir = new Uint8Array(w * h);
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const at = (px3, py) => lum[py * w + px3];
+      const gx = at(x + 1, y - 1) + 2 * at(x + 1, y) + at(x + 1, y + 1) - at(x - 1, y - 1) - 2 * at(x - 1, y) - at(x - 1, y + 1);
+      const gy = at(x - 1, y + 1) + 2 * at(x, y + 1) + at(x + 1, y + 1) - at(x - 1, y - 1) - 2 * at(x, y - 1) - at(x + 1, y - 1);
+      const i = y * w + x;
+      mag[i] = Math.sqrt(gx * gx + gy * gy);
+      let angle = Math.atan2(gy, gx) * 180 / Math.PI;
+      if (angle < 0) angle += 180;
+      dir[i] = angle < 22.5 || angle >= 157.5 ? 0 : angle < 67.5 ? 1 : angle < 112.5 ? 2 : 3;
+    }
+  }
+  const ridge = new Float32Array(w * h);
+  const OFF = [[1, 0], [1, 1], [0, 1], [-1, 1]];
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const i = y * w + x, m2 = mag[i];
+      if (m2 <= 0) continue;
+      const [dx, dy] = OFF[dir[i]];
+      if (m2 > mag[(y - dy) * w + x - dx] && m2 >= mag[(y + dy) * w + x + dx]) ridge[i] = m2;
+    }
+  }
+  const high = (0.02 + (100 - Math.max(0, Math.min(100, detail))) / 100 * 0.28) * 1020;
+  const low = high * 0.4;
+  const edge = new Uint8Array(w * h);
+  const stack = [];
+  for (let i = 0; i < ridge.length; i++) {
+    if (ridge[i] < high || edge[i]) continue;
+    edge[i] = 1;
+    stack.push(i);
+    while (stack.length) {
+      const at = stack.pop();
+      const ax = at % w, ay = (at - ax) / w;
+      for (let ny = Math.max(0, ay - 1); ny <= Math.min(h - 1, ay + 1); ny++) {
+        for (let nx = Math.max(0, ax - 1); nx <= Math.min(w - 1, ax + 1); nx++) {
+          const n6 = ny * w + nx;
+          if (edge[n6] || ridge[n6] < low) continue;
+          edge[n6] = 1;
+          stack.push(n6);
+        }
+      }
+    }
+  }
+  return edge;
+}
+function looseNeighbours(edge, seen, w, h, i) {
+  const x = i % w, y = (i - x) / w;
+  let count4 = 0;
+  for (let ny = Math.max(0, y - 1); ny <= Math.min(h - 1, y + 1); ny++) {
+    for (let nx = Math.max(0, x - 1); nx <= Math.min(w - 1, x + 1); nx++) {
+      const n6 = ny * w + nx;
+      if (n6 !== i && edge[n6] && !seen[n6]) count4++;
+    }
+  }
+  return count4;
+}
+function follow(edge, seen, w, h, start) {
+  const points = [];
+  let at = start, dx = 0, dy = 0;
+  for (; ; ) {
+    seen[at] = 1;
+    const x = at % w, y = (at - x) / w;
+    points.push([x + 0.5, y + 0.5]);
+    let next = -1;
+    for (let reach2 = 1; reach2 <= 2 && next < 0; reach2++) {
+      let best = -Infinity;
+      for (let ny = Math.max(0, y - reach2); ny <= Math.min(h - 1, y + reach2); ny++) {
+        for (let nx = Math.max(0, x - reach2); nx <= Math.min(w - 1, x + reach2); nx++) {
+          const n6 = ny * w + nx;
+          if (n6 === at || !edge[n6] || seen[n6]) continue;
+          const score = (Math.sign(nx - x) * dx + Math.sign(ny - y) * dy) * 4 + (nx === x || ny === y ? 1 : 0);
+          if (score > best) {
+            best = score;
+            next = n6;
+          }
+        }
+      }
+    }
+    if (next < 0) return points;
+    dx = Math.sign(next % w - x);
+    dy = Math.sign(Math.floor(next / w) - y);
+    at = next;
+  }
+}
+function simplifyPolyline(points, tolerance) {
+  if (points.length < 3 || !(tolerance > 0)) return points.slice();
+  const keep = new Uint8Array(points.length);
+  keep[0] = 1;
+  keep[points.length - 1] = 1;
+  const ranges = [[0, points.length - 1]];
+  while (ranges.length) {
+    const [first, last] = ranges.pop();
+    const a = points[first], b = points[last];
+    const abx = b[0] - a[0], aby = b[1] - a[1], ab = Math.hypot(abx, aby);
+    let far = 0, index2 = -1;
+    for (let i = first + 1; i < last; i++) {
+      const p = points[i];
+      const d = ab < 1e-6 ? Math.hypot(p[0] - a[0], p[1] - a[1]) : Math.abs(abx * (a[1] - p[1]) - (a[0] - p[0]) * aby) / ab;
+      if (d > far) {
+        far = d;
+        index2 = i;
+      }
+    }
+    if (index2 < 0 || far <= tolerance) continue;
+    keep[index2] = 1;
+    ranges.push([first, index2], [index2, last]);
+  }
+  return points.filter((_, i) => keep[i]);
+}
+function traceEdges(img, opts = {}) {
+  const { width: w, height: h } = img;
+  if (w < 3 || h < 3) return [];
+  const detail = Number.isFinite(opts.detail) ? opts.detail : 50;
+  const minLength = Math.max(0, Number.isFinite(opts.minLength) ? opts.minLength : 20);
+  const tolerance = Math.max(0, Number.isFinite(opts.simplify) ? opts.simplify : 2);
+  const maxLines = Math.max(0, Math.floor(Number.isFinite(opts.maxLines) ? opts.maxLines : 200));
+  const edge = edgeMap(img, detail);
+  const seen = new Uint8Array(w * h);
+  const chains = [];
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < edge.length; i++) {
+      if (!edge[i] || seen[i]) continue;
+      if (pass === 0 && looseNeighbours(edge, seen, w, h, i) !== 1) continue;
+      const chain2 = follow(edge, seen, w, h, i);
+      let len2 = 0;
+      for (let k = 1; k < chain2.length; k++) len2 += Math.hypot(chain2[k][0] - chain2[k - 1][0], chain2[k][1] - chain2[k - 1][1]);
+      if (len2 < minLength) continue;
+      const a = chain2[0], z = chain2[chain2.length - 1];
+      const closed = chain2.length > 8 && Math.hypot(a[0] - z[0], a[1] - z[1]) <= Math.max(3, Math.min(8, len2 * 0.05));
+      chains.push({ points: simplifyPolyline(chain2, tolerance), length: Math.round(len2 * 10) / 10, closed });
+    }
+  }
+  return chains.sort((p, q) => q.length - p.length).slice(0, maxLines);
+}
+function polylineToDesignLayer(points, closed, style = {}) {
+  if (points.length < 2) throw new Error("A path needs at least two points.");
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [x, y] of points) {
+    x0 = Math.min(x0, x);
+    y0 = Math.min(y0, y);
+    x1 = Math.max(x1, x);
+    y1 = Math.max(y1, y);
+  }
+  let w = x1 - x0, h = y1 - y0;
+  if (w < 1) {
+    x0 -= (1 - w) / 2;
+    w = 1;
+  }
+  if (h < 1) {
+    y0 -= (1 - h) / 2;
+    h = 1;
+  }
+  const r5 = (v) => Math.round(v * 100) / 100;
+  const path = encodeAuthoredPath({ kind: "line", closed, nodes: points.map(([x, y]) => ({ x: (x - x0) / w, y: (y - y0) / h })) });
+  return { kind: "path", x: r5(x0), y: r5(y0), w: r5(w), h: r5(h), path, stroke: style.stroke ?? "#e0457b", strokeW: style.strokeW ?? 2, bg: "" };
+}
+
+// services/mcp/src/raster-child.ts
+import { spawn as spawn2 } from "node:child_process";
+import { createRequire as createRequire6 } from "node:module";
+var CHILD = `
+const { Resvg } = require(process.argv[1]);
+const chunks = [];
+process.stdin.on('data', (c) => chunks.push(c));
+process.stdin.on('end', () => {
+  const job = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  const opts = { font: { fontDirs: job.fontDirs, loadSystemFonts: true } };
+  if (job.fitTo) opts.fitTo = job.fitTo;
+  if (job.crop) opts.crop = job.crop;
+  const img = new Resvg(job.svg, opts).render();
+  const body = job.want === 'png' ? img.asPng() : img.pixels;
+  const head = Buffer.alloc(8);
+  head.writeUInt32BE(img.width, 0);
+  head.writeUInt32BE(img.height, 4);
+  process.stdout.write(Buffer.concat([head, body]), () => process.exit(0));
+});
+`;
+var RasterCrash = class extends Error {
+};
+var TIMEOUT_MS = 3e4;
+var MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
+var resvgPath = null;
+function resolveResvg() {
+  resvgPath ??= createRequire6(import.meta.url).resolve("@resvg/resvg-js");
+  return resvgPath;
+}
+function rasterInChild(job) {
+  return new Promise((resolve7, reject) => {
+    const child = spawn2(process.execPath, ["-e", CHILD, resolveResvg()], { stdio: ["pipe", "pipe", "pipe"] });
+    const out = [];
+    let size = 0, err = "";
+    let settled = false;
+    const finish2 = (fn) => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        fn();
+      }
+    };
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      finish2(() => reject(new RasterCrash("The picture took too long to draw.")));
+    }, TIMEOUT_MS);
+    child.stdout.on("data", (c) => {
+      size += c.length;
+      if (size > MAX_OUTPUT_BYTES) {
+        child.kill("SIGKILL");
+        finish2(() => reject(new RasterCrash("The picture is too large to return.")));
+        return;
+      }
+      out.push(c);
+    });
+    child.stderr.on("data", (c) => {
+      if (err.length < 4e3) err += c.toString("utf8");
+    });
+    child.on("error", (e) => finish2(() => reject(e)));
+    child.on("close", (code, signal) => finish2(() => {
+      const buf = Buffer.concat(out);
+      if (code !== 0 || buf.length < 8) {
+        const why = /panicked at/.test(err) ? "the rasteriser stopped on this SVG" : signal ? `stopped by ${signal}` : `exit ${code}`;
+        reject(new RasterCrash(`The picture could not be drawn (${why}).`));
+        return;
+      }
+      resolve7({ width: buf.readUInt32BE(0), height: buf.readUInt32BE(4), bytes: new Uint8Array(buf.buffer, buf.byteOffset + 8, buf.length - 8) });
+    }));
+    child.stdin.on("error", () => {
+    });
+    child.stdin.end(JSON.stringify(job));
+  });
+}
+
+// services/mcp/src/look.ts
+var REGION_ARG = {
+  type: "object",
+  description: "A rectangle in document units (x, y, w, h). Left out for the whole document.",
+  properties: { x: { type: "number" }, y: { type: "number" }, w: { type: "number" }, h: { type: "number" } },
+  required: ["x", "y", "w", "h"],
+  additionalProperties: false
+};
+var SOURCE_NOTE = "Give a toolId with its inputs (as lolly_render takes them) or a file (PNG, JPEG, GIF, WebP or SVG).";
+function lookToolDefs(p) {
+  const source = {
+    toolId: p.toolId,
+    inputs: p.inputs,
+    ...p.template,
+    layerOperations: p.layerOperations,
+    layerPatches: p.layerPatches,
+    file: p.file
+  };
+  return [
+    {
+      name: "lolly_look",
+      description: "Look at a render with a labelled coordinate grid, or at one region of it enlarged. The grid numbers are document units: for Design, the artboard pixels that a layer's x, y, w and h use, so you can place and check layers by reading the picture. For looking only; not an export. " + SOURCE_NOTE,
+      inputSchema: {
+        type: "object",
+        properties: {
+          ...source,
+          grid: { description: "Grid spacing in document units; true (the default) picks a round spacing, false or 0 draws none.", oneOf: [{ type: "number", minimum: 0 }, { type: "boolean" }] },
+          region: REGION_ARG,
+          maxSide: { type: "number", minimum: 128, maximum: 2048, description: "Longest side of the returned image in pixels (default 1024). A region is enlarged to fill it, up to 8 times." }
+        },
+        additionalProperties: false
+      }
+    },
+    {
+      name: "lolly_sample_color",
+      description: "Read the colours at points of a render or image, each averaged over a small disc, and name the nearest colour of the active design system with its distance (\u0394E in OKLab; about 0.02 is just noticeable). Use it to check that a colour is a brand colour, or to pick one from a photo. " + SOURCE_NOTE,
+      inputSchema: {
+        type: "object",
+        properties: {
+          ...source,
+          points: { type: "array", minItems: 1, maxItems: 500, items: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 }, description: "Points as [[x, y], ...] in document units." },
+          radius: { type: "number", minimum: 0, maximum: 50, description: "Radius of the averaged disc in document units (default 2; 0 reads one pixel)." }
+        },
+        required: ["points"],
+        additionalProperties: false
+      }
+    },
+    {
+      name: "lolly_trace_edges",
+      description: "The edges in a render or image as polylines in document units, longest first, so line work and outlines can follow where a subject really is. With asDesignLayers, each line is also returned as a Design path layer (give it an id) ready for layerOperations. " + SOURCE_NOTE,
+      inputSchema: {
+        type: "object",
+        properties: {
+          ...source,
+          region: REGION_ARG,
+          detail: { type: "number", minimum: 0, maximum: 100, description: "How faint an edge may be, 0 to 100 (default 50)." },
+          minLength: { type: "number", minimum: 0, description: "Shortest line kept, in document units (default 20)." },
+          simplify: { type: "number", minimum: 0, description: "How far a line may stray from the edge, in document units (default 2). Higher means fewer points." },
+          maxLines: { type: "number", minimum: 1, maximum: 500, description: "At most this many lines (default 50)." },
+          maxSide: { type: "number", minimum: 128, maximum: 2048, description: "Resolution the edges are found at: longest side in pixels (default 1024)." },
+          asDesignLayers: { type: "boolean", description: "Also return each line as a Design path layer." }
+        },
+        additionalProperties: false
+      }
+    }
+  ];
+}
+var B642 = /^[A-Za-z0-9+/]*={0,2}$/;
+var RASTER_DATA = /^data:image\/(png|jpeg|gif|webp);base64,([A-Za-z0-9+/=\s]*)$/i;
+var SVG_DATA = /^data:image\/svg\+xml(;charset=[\w-]+)?(;base64)?,([\s\S]*)$/i;
+var IMAGE_TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml" };
+var MAX_INLINE_BYTES = 16 * 1024 * 1024;
+var MAX_NESTING = 3;
+function localPath(href) {
+  try {
+    if (/^file:\/\//i.test(href)) return fileURLToPath8(href);
+    if (href.startsWith("/")) return decodeURIComponent(href);
+  } catch {
+  }
+  return null;
+}
+async function cleanImageRefs(svg, roots2, depth = 0) {
+  const re = /(\s(?:xlink:)?href\s*=\s*)("([^"]*)"|'([^']*)')/gi;
+  const parts = [];
+  let last = 0;
+  for (const m2 of svg.matchAll(re)) {
+    parts.push(svg.slice(last, m2.index));
+    last = m2.index + m2[0].length;
+    const prefix = m2[1], value = (m2[3] ?? m2[4] ?? "").trim();
+    parts.push(cleanRef(value, roots2, depth).then((safe) => `${prefix}"${safe}"`));
+  }
+  parts.push(svg.slice(last));
+  return (await Promise.all(parts)).join("");
+}
+async function cleanRef(value, roots2, depth) {
+  if (/^#[\w.:-]*$/.test(value)) return value;
+  const raster = RASTER_DATA.exec(value);
+  if (raster) {
+    const data = raster[2].replace(/\s+/g, "");
+    return B642.test(data) ? `data:image/${raster[1].toLowerCase()};base64,${data}` : "";
+  }
+  const svgData = SVG_DATA.exec(value);
+  if (svgData) {
+    if (depth >= MAX_NESTING) return "";
+    let text7;
+    try {
+      if (svgData[2]) {
+        const data = svgData[3].replace(/\s+/g, "");
+        if (!B642.test(data)) return "";
+        text7 = Buffer.from(data, "base64").toString("utf8");
+      } else {
+        if (svgData[3].includes("&")) return "";
+        text7 = decodeURIComponent(svgData[3]);
+      }
+    } catch {
+      return "";
+    }
+    return `data:image/svg+xml;base64,${Buffer.from(await cleanImageRefs(text7, roots2, depth + 1)).toString("base64")}`;
+  }
+  const path = roots2.length ? localPath(value) : null;
+  if (!path) return "";
+  const full = resolve6(path);
+  if (!roots2.some((root2) => full.startsWith(resolve6(root2) + sep2))) return "";
+  const mime2 = IMAGE_TYPES[extname2(full).toLowerCase()];
+  if (!mime2) return "";
+  try {
+    const bytes = await readFile17(full);
+    if (bytes.length > MAX_INLINE_BYTES) return "";
+    if (mime2 === "image/svg+xml") {
+      if (depth >= MAX_NESTING) return "";
+      return `data:image/svg+xml;base64,${Buffer.from(await cleanImageRefs(bytes.toString("utf8"), roots2, depth + 1)).toString("base64")}`;
+    }
+    return `data:${mime2};base64,${bytes.toString("base64")}`;
+  } catch {
+    return "";
+  }
+}
+var MAX_SOURCE_PIXELS = 4e7;
+function sniffSvg(bytes, mime2) {
+  if (mime2 === "image/svg+xml") return true;
+  const head2 = Buffer.from(bytes.subarray(0, 512)).toString("utf8").trimStart().toLowerCase();
+  return head2.startsWith("<svg") || head2.startsWith("<?xml") && head2.includes("<svg");
+}
+function rasterMime(bytes) {
+  if (bytes[0] === 137 && bytes[1] === 80) return "image/png";
+  if (bytes[0] === 255 && bytes[1] === 216) return "image/jpeg";
+  if (bytes[0] === 71 && bytes[1] === 73) return "image/gif";
+  if (bytes[0] === 82 && bytes[1] === 73 && bytes[8] === 87 && bytes[9] === 69) return "image/webp";
+  return null;
+}
+async function sourceFromBytes(bytes, mime2, roots2, label3, warnings) {
+  if (sniffSvg(bytes, mime2)) {
+    const svg2 = await cleanImageRefs(Buffer.from(bytes).toString("utf8"), roots2);
+    const frame = svgDocumentFrame(svg2);
+    if (!frame) return { error: "The SVG has no viewBox or size to measure." };
+    if (frame.w * frame.h > 1e12) return { error: "The SVG is too large to look at." };
+    return { svg: svg2, frame, units: "document", label: label3, warnings };
+  }
+  const type = rasterMime(bytes);
+  if (!type) return { error: "Not a PNG, JPEG, GIF, WebP or SVG image." };
+  const dims = imageDimensions(bytes);
+  if (!dims || dims.w < 1 || dims.h < 1) return { error: "The image size could not be read." };
+  if (dims.w * dims.h > MAX_SOURCE_PIXELS) return { error: `The image is larger than ${MAX_SOURCE_PIXELS.toLocaleString("en")} pixels.` };
+  const svg = rasterAsSvg(type, Buffer.from(bytes).toString("base64"), dims.w, dims.h);
+  return { svg, frame: { x: 0, y: 0, w: dims.w, h: dims.h }, units: "pixels", label: label3, warnings };
+}
+async function lookSource(args, renderFn) {
+  const file = args.file;
+  if (file && args.toolId) return { error: "Give a toolId or a file, not both." };
+  if (file) {
+    if (typeof file.base64 !== "string") return { error: "file.base64 is required." };
+    const bytes = Uint8Array.from(Buffer.from(file.base64, "base64"));
+    if (!bytes.length) return { error: "The file is empty." };
+    if (bytes.length > MAX_TRANSFORM_INPUT_BYTES) return { error: `The file is larger than ${MAX_TRANSFORM_INPUT_BYTES / 1024 / 1024} MB.` };
+    return sourceFromBytes(bytes, typeof file.mime === "string" ? file.mime : void 0, [], typeof file.name === "string" ? file.name : "the file", []);
+  }
+  if (!args.toolId) return { error: SOURCE_NOTE };
+  const rendered = await renderFn(args);
+  if ("error" in rendered) return rendered;
+  const source = await sourceFromBytes(rendered.bytes, rendered.mime, contentImageRoots(), `${String(args.toolId)} (${rendered.format})`, rendered.warnings);
+  return source;
+}
+var FALLBACK_MAX_PIXELS = 16e6;
+async function drawRegion(src, region, width, height, overlay, want) {
+  const fontDirs3 = [fontsDir()];
+  try {
+    return await rasterInChild({ svg: reframeSvg(src.svg, region, width, height, overlay), want, fontDirs: fontDirs3 });
+  } catch (e) {
+    if (!(e instanceof RasterCrash)) throw e;
+  }
+  const f = src.frame;
+  const zoom = Math.min(width / region.w, Math.sqrt(FALLBACK_MAX_PIXELS / (f.w * f.h)));
+  const full = reframeSvg(src.svg, f, Math.max(1, Math.round(f.w * zoom)), Math.max(1, Math.round(f.h * zoom)));
+  const crop = {
+    left: Math.floor((region.x - f.x) * zoom),
+    top: Math.floor((region.y - f.y) * zoom),
+    right: Math.ceil((region.x + region.w - f.x) * zoom),
+    bottom: Math.ceil((region.y + region.h - f.y) * zoom)
+  };
+  const part = await rasterInChild({ svg: full, crop, want: "png", fontDirs: fontDirs3 });
+  const composed = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${region.x} ${region.y} ${region.w} ${region.h}" width="${width}" height="${height}" preserveAspectRatio="none"><image href="data:image/png;base64,${Buffer.from(part.bytes).toString("base64")}" x="${crop.left / zoom + f.x}" y="${crop.top / zoom + f.y}" width="${(crop.right - crop.left) / zoom}" height="${(crop.bottom - crop.top) / zoom}" preserveAspectRatio="none"/>${overlay}</svg>`;
+  return rasterInChild({ svg: composed, want, fontDirs: fontDirs3 });
+}
+async function pixels(src, region, width, height) {
+  const out = await drawRegion(src, region, width, height, "", "rgba");
+  return { data: out.bytes, width: out.width, height: out.height, premultiplied: true };
+}
+function areaCap() {
+  return maxRasterPixelsFor(process.env, isHostedServer()) ?? 16e6;
+}
+function cappedSize(frame, region, maxSide) {
+  let size = viewSize(frame, region, maxSide);
+  const cap = areaCap();
+  if (size.width * size.height > cap) {
+    const k = Math.sqrt(cap / (size.width * size.height));
+    const pxPerUnit = size.pxPerUnit * k;
+    size = { width: Math.max(1, Math.floor(region.w * pxPerUnit)), height: Math.max(1, Math.floor(region.h * pxPerUnit)), pxPerUnit };
+  }
+  return size;
+}
+var num11 = (v, dflt, lo, hi) => {
+  const n6 = Number(v);
+  return Number.isFinite(n6) ? Math.min(hi, Math.max(lo, n6)) : dflt;
+};
+var r1 = (v) => Math.round(v * 10) / 10;
+var fmtRegion = (r5) => `x ${r1(r5.x)}, y ${r1(r5.y)}, ${r1(r5.w)} x ${r1(r5.h)}`;
+function errorResult(message) {
+  return { content: [{ type: "text", text: message }], isError: true };
+}
+async function callLookTool(name, args, renderFn) {
+  const source = await lookSource(args, renderFn);
+  if ("error" in source) return errorResult(`${name}: ${source.error}`);
+  const unitsNote = source.units === "document" ? "Coordinates are document units (the SVG viewBox; for Design, the artboard pixels a layer's x, y, w and h use)." : "Coordinates are the pixels of this image.";
+  const warnings = source.warnings.length ? `
+Warnings: ${source.warnings.join("; ")}` : "";
+  if (name === "lolly_look") {
+    const region = clampRegion(source.frame, args.region);
+    const size = cappedSize(source.frame, region, num11(args.maxSide, 1024, 128, 2048));
+    const gridArg = args.grid;
+    const spacing = gridArg === false || gridArg === 0 ? 0 : typeof gridArg === "number" && gridArg > 0 ? Math.max(gridArg, Math.max(region.w, region.h) / 200) : niceGridSpacing(Math.max(region.w, region.h));
+    const img = await drawRegion(source, region, size.width, size.height, gridOverlaySvg(region, spacing, size.pxPerUnit), "png");
+    const text7 = [
+      `Looking at ${source.label}: document ${fmtRegion(source.frame)}.`,
+      `Showing ${region.w >= source.frame.w && region.h >= source.frame.h ? "the whole document" : `region ${fmtRegion(region)}`} at ${img.width} x ${img.height} px (${r1(size.pxPerUnit * 100) / 100} px per unit).`,
+      spacing ? `Grid every ${r1(spacing)} units, numbered on the top and left edges.` : "No grid.",
+      unitsNote
+    ].join("\n") + warnings;
+    const content2 = [{ type: "text", text: text7 }, { type: "image", data: Buffer.from(img.bytes).toString("base64"), mimeType: "image/png" }];
+    return { content: content2 };
+  }
+  if (name === "lolly_sample_color") {
+    const raw = Array.isArray(args.points) ? args.points : [];
+    const points = raw.slice(0, 500).filter((p) => Array.isArray(p) && p.length === 2 && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1]))).map((p) => [Number(p[0]), Number(p[1])]);
+    if (!points.length) return errorResult("lolly_sample_color: points must be [[x, y], ...] with at least one point.");
+    const radius = num11(args.radius, 2, 0, 50);
+    const xs = points.map((p) => p[0]), ys = points.map((p) => p[1]);
+    const box3 = clampRegion(source.frame, {
+      x: Math.min(...xs) - radius - 1,
+      y: Math.min(...ys) - radius - 1,
+      w: Math.max(...xs) - Math.min(...xs) + 2 * radius + 2,
+      h: Math.max(...ys) - Math.min(...ys) + 2 * radius + 2
+    });
+    let pxPerUnit = 1;
+    const cap = areaCap();
+    if (box3.w * box3.h > cap) pxPerUnit = Math.sqrt(cap / (box3.w * box3.h));
+    const width = Math.max(1, Math.round(box3.w * pxPerUnit)), height = Math.max(1, Math.round(box3.h * pxPerUnit));
+    const img = await pixels(source, box3, width, height);
+    const swatches = await withHost({}, async (_dom, host) => {
+      try {
+        return await host.tokens?.colors?.() ?? [];
+      } catch {
+        return [];
+      }
+    });
+    const samples = points.map(([x, y]) => {
+      const inside2 = x >= source.frame.x && y >= source.frame.y && x <= source.frame.x + source.frame.w && y <= source.frame.y + source.frame.h;
+      if (!inside2) return { x, y, hex: null, note: "outside the document" };
+      const c = sampleDisc(img, (x - box3.x) * (width / box3.w), (y - box3.y) * (height / box3.h), radius * pxPerUnit);
+      const near = c.hex ? nearestSwatch(c.hex, swatches) : null;
+      return {
+        x,
+        y,
+        hex: c.hex,
+        rgb: c.rgb,
+        alpha: c.alpha,
+        oklab: c.oklab,
+        ...near ? { nearest: { name: near.swatch.name ?? null, path: near.swatch.path ?? null, ref: near.swatch.ref ?? null, value: near.swatch.value, deltaE: near.deltaE, verdict: near.verdict } } : {}
+      };
+    });
+    const lines = samples.slice(0, 20).map((s) => {
+      if (!s.hex) return `(${r1(s.x)}, ${r1(s.y)}): ${"note" in s ? s.note : "transparent"}`;
+      const n6 = s.nearest;
+      return `(${r1(s.x)}, ${r1(s.y)}): ${s.hex}` + (n6 ? ` - ${n6.verdict === "match" ? "matches" : n6.verdict === "close" ? "close to" : "nearest brand colour"} ${n6.name ?? n6.path ?? n6.value} ${n6.value} (\u0394E ${n6.deltaE})` : "");
+    });
+    const header = `Sampled ${samples.length} point${samples.length === 1 ? "" : "s"} of ${source.label}, radius ${radius} units. ${unitsNote}` + (swatches.length ? ` Compared with ${swatches.length} design-system colour${swatches.length === 1 ? "" : "s"}.` : " No design-system colours to compare with.");
+    return {
+      content: [
+        { type: "text", text: [header, ...lines, samples.length > 20 ? `... and ${samples.length - 20} more in the JSON below.` : ""].filter(Boolean).join("\n") + warnings },
+        { type: "text", text: JSON.stringify({ frame: source.frame, units: source.units, radius, samples }, null, 2) }
+      ]
+    };
+  }
+  if (name === "lolly_trace_edges") {
+    const region = clampRegion(source.frame, args.region);
+    const size = cappedSize(source.frame, region, num11(args.maxSide, 1024, 128, 2048));
+    const img = await pixels(source, region, size.width, size.height);
+    const k = size.pxPerUnit;
+    const edges = traceEdges(img, {
+      detail: num11(args.detail, 50, 0, 100),
+      minLength: num11(args.minLength, 20, 0, 1e9) * k,
+      simplify: num11(args.simplify, 2, 0, 1e9) * k,
+      maxLines: num11(args.maxLines, 50, 1, 500)
+    });
+    const toDoc = (px3, py) => [r1(region.x + px3 * (region.w / img.width)), r1(region.y + py * (region.h / img.height))];
+    const asLayers = args.asDesignLayers === true;
+    const lines = edges.map((e) => {
+      const points = e.points.map(([x, y]) => toDoc(x, y));
+      return {
+        points,
+        length: r1(e.length / k),
+        closed: e.closed,
+        ...asLayers && points.length >= 2 ? { layer: polylineToDesignLayer(points, e.closed) } : {}
+      };
+    });
+    const text7 = `Traced ${lines.length} edge line${lines.length === 1 ? "" : "s"} in ${source.label}, ${region.w >= source.frame.w && region.h >= source.frame.h ? "whole document" : `region ${fmtRegion(region)}`}, found at ${img.width} x ${img.height} px. ${lines.filter((l) => l.closed).length} closed. ${unitsNote}` + (asLayers ? ' Each line carries a Design path layer: add an id and pass it to layerOperations as { op: "add", layer }.' : "") + warnings;
+    return { content: [{ type: "text", text: text7 }, { type: "text", text: JSON.stringify({ frame: source.frame, region, units: source.units, lines }, null, 2) }] };
+  }
+  return errorResult(`Unknown tool: ${name}`);
 }
 
 // services/mcp/src/tools.ts
@@ -144899,12 +146740,12 @@ function exportSettings(args) {
   const h = args.hdr;
   const hdr = h && typeof h === "object" ? (() => {
     const o = h;
-    const num11 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
+    const num12 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
     return {
-      peakNits: num11(o.peakNits, HDR_DEFAULTS.peakNits),
-      reach: num11(o.reach, HDR_DEFAULTS.reach),
-      lift: num11(o.lift, HDR_DEFAULTS.lift),
-      richness: num11(o.richness, HDR_DEFAULTS.richness)
+      peakNits: num12(o.peakNits, HDR_DEFAULTS.peakNits),
+      reach: num12(o.reach, HDR_DEFAULTS.reach),
+      lift: num12(o.lift, HDR_DEFAULTS.lift),
+      richness: num12(o.richness, HDR_DEFAULTS.richness)
     };
   })() : void 0;
   const cuts = typeof args.cuts === "number" && args.cuts > 1 ? args.cuts : void 0;
@@ -145066,13 +146907,21 @@ var TOOL_DEFS = [
       required: ["file"],
       additionalProperties: false
     }
-  }
+  },
+  ...lookToolDefs({
+    toolId: RENDER_ARGS.toolId,
+    inputs: RENDER_ARGS.inputs,
+    template: TEMPLATE_ARGS,
+    layerOperations: DESIGN_OPERATION_ARG,
+    layerPatches: DESIGN_PATCH_ARG,
+    file: FILE_ARG2
+  })
 ];
 var TOOL_ID_RE = /^[a-z0-9-]+$/;
 function textOnly2(text7) {
   return { content: [{ type: "text", text: text7 }] };
 }
-function errorResult(message) {
+function errorResult2(message) {
   return { content: [{ type: "text", text: message }], isError: true };
 }
 function inputObject(value) {
@@ -145362,26 +147211,26 @@ function validateToolInputs(manifest, inputs) {
   let design;
   if (manifest.id === "design") {
     const model2 = buildInputModel(manifest, { initial: inputs });
-    const boxes = model2.find((item) => item.id === "boxes")?.value;
+    const boxes = model2.find((item2) => item2.id === "boxes")?.value;
     design = inspectDesignV1(boxes, { width: manifest.render.width, height: manifest.render.height });
-    for (const item of design.findings) {
+    for (const item2 of design.findings) {
       const issue2 = {
-        path: item.path,
-        message: item.message,
-        id: item.id,
-        ...item.layerId ? { layerId: item.layerId } : {},
-        ...item.artboardId ? { artboardId: item.artboardId } : {}
+        path: item2.path,
+        message: item2.message,
+        id: item2.id,
+        ...item2.layerId ? { layerId: item2.layerId } : {},
+        ...item2.artboardId ? { artboardId: item2.artboardId } : {}
       };
-      if (item.severity === "error") errors.push(issue2);
-      else if (item.severity === "warn") warnings.push(issue2);
+      if (item2.severity === "error") errors.push(issue2);
+      else if (item2.severity === "warn") warnings.push(issue2);
       else info.push(issue2);
     }
   }
   return { ok: errors.length === 0, errors, warnings, info, ...design ? { design } : {} };
 }
 function invalidInputs(report2) {
-  const summary = report2.errors.map((item) => `${item.path}: ${item.message}`).join("\n");
-  return errorResult(`Invalid inputs (${report2.errors.length}):
+  const summary = report2.errors.map((item2) => `${item2.path}: ${item2.message}`).join("\n");
+  return errorResult2(`Invalid inputs (${report2.errors.length}):
 ${summary}
 
 Call lolly_validate for the complete report.`);
@@ -145496,19 +147345,35 @@ function c2paSetting(v) {
   const n6 = Number(s);
   return { on: true, days: [7, 30, 90, 365].includes(n6) ? n6 : null };
 }
+var renderForLook = async (args) => {
+  const toolId = String(args.toolId ?? "");
+  if (!TOOL_ID_RE.test(toolId)) return { error: `Invalid toolId: ${toolId}. Use lolly_list_tools.` };
+  const tool = await loadToolCached(toolId).catch(() => null);
+  if (!tool) return { error: `Tool not found: ${toolId}. Use lolly_list_tools.` };
+  const resolved2 = await resolveInputs(toolId, tool.manifest, args);
+  const validation = validateToolInputs(tool.manifest, resolved2.inputs);
+  if (!validation.ok) return { error: `Invalid inputs: ${validation.errors.map((e) => `${e.path}: ${e.message}`).join("; ")}` };
+  const formats = (tool.manifest.render.formats ?? []).map((f) => f.toLowerCase());
+  const format = formats.includes("svg") ? "svg" : formats.find((f) => ["png", "jpg", "jpeg", "webp"].includes(f));
+  if (!format) return { error: `${toolId} draws no image to look at (formats: ${formats.join(", ")}).` };
+  const opts = { format, maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()) };
+  const links = buildLinks(tool.manifest, resolved2.inputs, opts);
+  const result = await render(toolId, links.query, opts);
+  return { bytes: result.bytes, mime: result.mime, format: result.format, warnings: result.warnings };
+};
 async function callTool(name, args) {
   try {
     switch (name) {
       case "lolly_compile":
       case "lolly_inspect":
       case "lolly_measure": {
-        if (name === "lolly_inspect" && args.forensic && (!args.file || args.production || args.motion)) return errorResult("Forensic assessment requires file bytes and a separate request from production or motion checks.");
-        if (name === "lolly_inspect" && args.production !== void 0 && !args.file) return errorResult("Production inspection requires final file bytes.");
-        if (name === "lolly_inspect" && args.productionRepair !== void 0) return errorResult("Production repair requires lolly_render and declared tool inputs.");
-        if (name === "lolly_inspect" && args.productionReference !== void 0 && args.production === void 0) return errorResult("A production reference requires a production contract.");
+        if (name === "lolly_inspect" && args.forensic && (!args.file || args.production || args.motion)) return errorResult2("Forensic assessment requires file bytes and a separate request from production or motion checks.");
+        if (name === "lolly_inspect" && args.production !== void 0 && !args.file) return errorResult2("Production inspection requires final file bytes.");
+        if (name === "lolly_inspect" && args.productionRepair !== void 0) return errorResult2("Production repair requires lolly_render and declared tool inputs.");
+        if (name === "lolly_inspect" && args.productionReference !== void 0 && args.production === void 0) return errorResult2("A production reference requires a production contract.");
         if (name === "lolly_inspect" && args.file && typeof args.file === "object") {
           const file = args.file;
-          if (typeof file.base64 !== "string") return errorResult("file.base64 is required.");
+          if (typeof file.base64 !== "string") return errorResult2("file.base64 is required.");
           const bytes = Uint8Array.from(Buffer.from(file.base64, "base64"));
           if (args.forensic === true) return textOnly2(JSON.stringify(await (await Promise.resolve().then(() => (init_forensic2(), forensic_exports))).inspectForensicBytes(bytes, String(args.file.name ?? "file"), { pageCap: args.forensicPageCap }), null, 2));
           if (args.production !== void 0) return textOnly2(JSON.stringify(await (await Promise.resolve().then(() => (init_production2(), production_exports))).inspectProductionBytes(bytes, args.production, readProductionReference(args.productionReference)), null, 2));
@@ -145518,9 +147383,9 @@ async function callTool(name, args) {
         let document2 = args.document;
         if (name === "lolly_compile" || !document2) {
           const toolId = String(args.toolId ?? "");
-          if (!toolId || !TOOL_ID_RE.test(toolId)) return errorResult("A valid toolId or document is required.");
+          if (!toolId || !TOOL_ID_RE.test(toolId)) return errorResult2("A valid toolId or document is required.");
           const tool = await loadToolCached(toolId).catch(() => null);
-          if (!tool) return errorResult(`Tool not found: ${toolId}.`);
+          if (!tool) return errorResult2(`Tool not found: ${toolId}.`);
           const resolved2 = await resolveInputs(toolId, tool.manifest, args);
           const validation = validateToolInputs(tool.manifest, resolved2.inputs);
           if (!validation.ok) return invalidInputs(validation);
@@ -145532,9 +147397,9 @@ async function callTool(name, args) {
       }
       case "lolly_validate": {
         const toolId = String(args.toolId ?? "");
-        if (!toolId || !TOOL_ID_RE.test(toolId)) return errorResult("A valid toolId is required.");
+        if (!toolId || !TOOL_ID_RE.test(toolId)) return errorResult2("A valid toolId is required.");
         const tool = await loadToolCached(toolId).catch(() => null);
-        if (!tool) return errorResult(`Tool not found: ${toolId}.`);
+        if (!tool) return errorResult2(`Tool not found: ${toolId}.`);
         const resolved2 = await resolveInputs(toolId, tool.manifest, args);
         const validation = validateToolInputs(tool.manifest, resolved2.inputs);
         return textOnly2(JSON.stringify({ ...validation, ...resolved2.template ? { template: resolved2.template } : {} }, null, 2));
@@ -145559,10 +147424,10 @@ ${lines.join("\n")}`;
       }
       case "lolly_describe_tool": {
         const toolId = String(args.toolId ?? "");
-        if (!toolId) return errorResult("toolId is required.");
-        if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
+        if (!toolId) return errorResult2("toolId is required.");
+        if (!TOOL_ID_RE.test(toolId)) return errorResult2(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
         const tool = await loadToolCached(toolId).catch(() => null);
-        if (!tool) return errorResult(`Tool not found: ${toolId}. Use lolly_list_tools.`);
+        if (!tool) return errorResult2(`Tool not found: ${toolId}. Use lolly_list_tools.`);
         const m2 = tool.manifest;
         const schema = toolInputSchema(m2);
         const examples = exampleLooks(m2, 2);
@@ -145596,16 +147461,16 @@ ${lines.join("\n")}`;
       }
       case "lolly_build_url": {
         const toolId = String(args.toolId ?? "");
-        if (!toolId) return errorResult("toolId is required.");
-        if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}.`);
+        if (!toolId) return errorResult2("toolId is required.");
+        if (!TOOL_ID_RE.test(toolId)) return errorResult2(`Invalid toolId: ${toolId}.`);
         const tool = await loadToolCached(toolId).catch(() => null);
-        if (!tool) return errorResult(`Tool not found: ${toolId}.`);
+        if (!tool) return errorResult2(`Tool not found: ${toolId}.`);
         const resolved2 = await resolveInputs(toolId, tool.manifest, args);
         const inputs = resolved2.inputs;
         const validation = validateToolInputs(tool.manifest, inputs);
         if (!validation.ok) return invalidInputs(validation);
         const emoji = await emojiSettings(args);
-        if ("error" in emoji) return errorResult(emoji.error);
+        if ("error" in emoji) return errorResult2(emoji.error);
         const links = buildLinks(tool.manifest, inputs, {
           format: args.format,
           width: args.width,
@@ -145626,10 +147491,10 @@ ${links.renderUrl ?? "(unavailable)"}${check}`);
       }
       case "lolly_render": {
         const toolId = String(args.toolId ?? "");
-        if (!toolId) return errorResult("toolId is required.");
-        if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
+        if (!toolId) return errorResult2("toolId is required.");
+        if (!TOOL_ID_RE.test(toolId)) return errorResult2(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
         const tool = await loadToolCached(toolId).catch(() => null);
-        if (!tool) return errorResult(`Tool not found: ${toolId}. Use lolly_list_tools.`);
+        if (!tool) return errorResult2(`Tool not found: ${toolId}. Use lolly_list_tools.`);
         const resolved2 = await resolveInputs(toolId, tool.manifest, args);
         const inputs = resolved2.inputs;
         const validation = validateToolInputs(tool.manifest, inputs);
@@ -145653,7 +147518,7 @@ ${links.renderUrl ?? "(unavailable)"}${check}`);
           ...exportSettings(args)
         };
         const emoji = await emojiSettings(args);
-        if ("error" in emoji) return errorResult(emoji.error);
+        if ("error" in emoji) return errorResult2(emoji.error);
         const links = buildLinks(tool.manifest, inputs, { ...opts, ...emoji });
         const result = await render(toolId, links.query, opts);
         const provenance = [
@@ -145674,30 +147539,30 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
         const b64 = Buffer.from(result.bytes).toString("base64");
-        const fmt3 = normFormat(result.format);
+        const fmt4 = normFormat(result.format);
         const RASTER = ["png", "jpg", "webp", "avif", "gif", "apng"];
-        if (RASTER.includes(fmt3)) {
+        if (RASTER.includes(fmt4)) {
           content2.push({ type: "image", data: b64, mimeType: result.mime });
-        } else if (fmt3 === "svg") {
+        } else if (fmt4 === "svg") {
           try {
             const preview = await previewPng(new TextDecoder().decode(result.bytes));
             content2.push({ type: "image", data: Buffer.from(preview).toString("base64"), mimeType: "image/png" });
           } catch {
           }
           content2.push({ type: "resource", resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: "image/svg+xml", text: new TextDecoder().decode(result.bytes) } });
-        } else if (isTextFormat(fmt3)) {
-          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt3}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
+        } else if (isTextFormat(fmt4)) {
+          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt4}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
         } else {
-          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt3}`, mimeType: result.mime, blob: b64 } });
+          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt4}`, mimeType: result.mime, blob: b64 } });
         }
         return { content: content2 };
       }
       case "lolly_transform": {
         const toolId = String(args.toolId ?? "");
         const file = args.file;
-        if (!toolId) return errorResult("toolId is required.");
-        if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
-        if (!file?.base64) return errorResult("file.base64 is required.");
+        if (!toolId) return errorResult2("toolId is required.");
+        if (!TOOL_ID_RE.test(toolId)) return errorResult2(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
+        if (!file?.base64) return errorResult2("file.base64 is required.");
         const inputs = args.inputs ?? {};
         const res = await transform(toolId, { base64: file.base64, name: file.name, mime: file.mime }, inputs);
         return {
@@ -145709,15 +147574,19 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
       }
       case "lolly_rebrand":
         return await callRebrand(args);
+      case "lolly_look":
+      case "lolly_sample_color":
+      case "lolly_trace_edges":
+        return await callLookTool(name, args, renderForLook);
       case "lolly_redact": {
         const file = args.file;
-        if (!file?.base64) return errorResult("file.base64 is required.");
+        if (!file?.base64) return errorResult2("file.base64 is required.");
         const tool = await loadToolCached("redact").catch(() => null);
-        if (!tool) return errorResult("The redact tool is not in this catalog.");
+        if (!tool) return errorResult2("The redact tool is not in this catalog.");
         const inputs = await redactInputs(tool.manifest, args);
         const bars = inputs.bars;
         if (!Array.isArray(bars) || bars.length === 0) {
-          return errorResult(
+          return errorResult2(
             'No redaction bars given. Pass `instructions` (e.g. "bars=1,40,60,200,24") or a `bars` array - a redaction with no bars would just re-encode the file.'
           );
         }
@@ -145737,7 +147606,7 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
       }
       case "lolly_verify": {
         const file = args.file;
-        if (!file?.base64) return errorResult("file.base64 is required.");
+        if (!file?.base64) return errorResult2("file.base64 is required.");
         const bytes = Uint8Array.from(Buffer.from(file.base64, "base64"));
         const report2 = await verifyC2pa(bytes, { trustAnchors: defaultTrustAnchors({ includeLollyRoot: true }) });
         let metadata = null;
@@ -145762,14 +147631,14 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
         };
       }
       default:
-        return errorResult(`Unknown tool: ${name}`);
+        return errorResult2(`Unknown tool: ${name}`);
     }
   } catch (e) {
     if (e instanceof Error && "report" in e && "code" in e && e.code === "PRODUCTION_VERIFICATION_FAILED") {
       const failure3 = e;
-      return errorResult(JSON.stringify({ code: e.code, message: failure3.message, report: failure3.report, attempts: failure3.attempts }));
+      return errorResult2(JSON.stringify({ code: e.code, message: failure3.message, report: failure3.report, attempts: failure3.attempts }));
     }
-    return errorResult(`${name} failed: ${e.message}`);
+    return errorResult2(`${name} failed: ${e.message}`);
   }
 }
 async function serverInstructions() {
@@ -145867,7 +147736,7 @@ function readProductionReference(value) {
 // services/mcp/src/resources.ts
 init_brand_context();
 init_src2();
-import { readFile as readFile17 } from "node:fs/promises";
+import { readFile as readFile18 } from "node:fs/promises";
 import { join as join20 } from "node:path";
 init_schema();
 var RESOURCES = [
@@ -145893,7 +147762,7 @@ async function tokensResource(uri) {
   const tokenUrl = tokenAsset2.formats[0].url;
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset2.id}: ${tokenUrl} is not in this profile's catalog.`);
-  const doc = JSON.parse(await readFile17(tokenPath, "utf8"));
+  const doc = JSON.parse(await readFile18(tokenPath, "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -145916,7 +147785,7 @@ async function assetsListing(uri) {
 async function previewResource(uri, id2) {
   for (const file of [`${id2}.svg`, `${id2}.look0.svg`]) {
     try {
-      const text7 = await readFile17(join20(previewsDir(), file), "utf8");
+      const text7 = await readFile18(join20(previewsDir(), file), "utf8");
       return { uri, mimeType: "image/svg+xml", text: text7 };
     } catch {
     }
@@ -146736,16 +148605,16 @@ function memoPut(etag, rendered) {
 var AdmissionRefused = class extends Error {
 };
 function openSlot(etag) {
-  let resolve6;
+  let resolve7;
   let reject;
   const promise = new Promise((res, rej) => {
-    resolve6 = res;
+    resolve7 = res;
     reject = rej;
   });
   promise.catch(() => {
   });
   inFlight.set(etag, promise);
-  return { promise, resolve: resolve6, reject };
+  return { promise, resolve: resolve7, reject };
 }
 function closeSlot(etag, slot) {
   if (inFlight.get(etag) === slot.promise) inFlight.delete(etag);
@@ -146795,10 +148664,10 @@ async function renderGet(path, query2, opts) {
   if (env.LOLLY_DISABLE_RENDER_GET === "1") return errorResponse(404, "not_found");
   const match = matchRenderGetPath(path);
   if (!match) return errorResponse(404, "not_found");
-  const fmt3 = normFormat(match.ext);
-  const pngRequested = fmt3 === "png";
-  if (!TIER_A.has(fmt3) && !pngRequested) {
-    return errorResponse(400, `Format "${fmt3}" needs the browser render tier, which this public endpoint does not run. Available here: ${[...TIER_A].join(", ")} - plus png for SVG-native tools.`);
+  const fmt4 = normFormat(match.ext);
+  const pngRequested = fmt4 === "png";
+  if (!TIER_A.has(fmt4) && !pngRequested) {
+    return errorResponse(400, `Format "${fmt4}" needs the browser render tier, which this public endpoint does not run. Available here: ${[...TIER_A].join(", ")} - plus png for SVG-native tools.`);
   }
   if (query2.length > MAX_QUERY) return errorResponse(400, `Query too long (max ${MAX_QUERY} characters).`);
   const expanded = await expandQuery(query2);
@@ -146832,7 +148701,7 @@ async function renderGet(path, query2, opts) {
   }
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash7("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt3}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash7("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
     etag,
@@ -146840,15 +148709,15 @@ async function renderGet(path, query2, opts) {
   };
   if (etagMatches(opts.ifNoneMatch, etag)) return { status: 304, headers: cacheHeaders };
   const ok3 = (rendered2) => {
-    const mime2 = rendered2.mime || mimeForFormat(fmt3);
+    const mime2 = rendered2.mime || mimeForFormat(fmt4);
     return {
       status: 200,
       headers: {
         ...cacheHeaders,
-        "content-type": isTextFormat(fmt3) && !mime2.includes("charset") ? `${mime2}; charset=utf-8` : mime2,
+        "content-type": isTextFormat(fmt4) && !mime2.includes("charset") ? `${mime2}; charset=utf-8` : mime2,
         "content-security-policy": "sandbox",
         "x-content-type-options": "nosniff",
-        "content-disposition": `inline; filename="${match.toolId}.${fmt3}"`
+        "content-disposition": `inline; filename="${match.toolId}.${fmt4}"`
       },
       body: rendered2.bytes
     };
@@ -146896,7 +148765,7 @@ async function renderGet(path, query2, opts) {
   }
   let rendered;
   try {
-    const result = await render(match.toolId, expanded, { format: fmt3, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
+    const result = await render(match.toolId, expanded, { format: fmt4, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
     rendered = { bytes: result.bytes, mime: result.mime };
   } catch (e) {
     await opts.budget?.record(0);
@@ -147427,7 +149296,7 @@ function readBody(req, maxBytes = MCP_BODY_MAX) {
       return Promise.reject(error2);
     }
   }
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve7, reject) => {
     const declared = Number(req.headers["content-length"]);
     if (Number.isFinite(declared) && declared > maxBytes) {
       reject(new BodyTooLargeError(maxBytes));
@@ -147444,7 +149313,7 @@ function readBody(req, maxBytes = MCP_BODY_MAX) {
       }
       chunks.push(c);
     });
-    req.on("end", () => resolve6(Buffer.concat(chunks).toString("utf8")));
+    req.on("end", () => resolve7(Buffer.concat(chunks).toString("utf8")));
     req.on("error", reject);
   });
 }

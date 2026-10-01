@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: webbplatsen tillåter inte att visas inuti andra sidor",
   "{n} px wide": "{n} px bred",
   "{n} sites": "{n} webbplatser",
-  "{org} does not allow {host} here.": "{org} tillåter inte {host} här."
+  "{org} does not allow {host} here.": "{org} tillåter inte {host} här.",
+  "Allow pages from any site": "Tillåt sidor från vilken webbplats som helst",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly kunde inte nå sin server för att kontrollera. Försök igen när du är online.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "I webbversionen visar Design bara video- och kartspelare tills du slår på det här. Lolly läser då om med en friare ramprincip på den här enheten och frågar fortfarande innan en webbplats du inte har betrott laddas.",
+  "Pages from any site": "Sidor från vilken webbplats som helst",
+  "The web version of Lolly cannot show this site.": "Webbversionen av Lolly kan inte visa den här webbplatsen.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Webbversionen av Lolly visar bara video- och kartspelare här. Om du vill visa {host} tillåter du sidor från vilken webbplats som helst i din profil, eller använder skrivbordsappen.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Den här servern erbjuder inte sidor från vilken webbplats som helst. Skrivbordsappen kan visa vilken sida som helst.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "För att visa de webbplatser som webbversionen inte kan visa kan Lolly läsa om med en friare ramprincip på den här enheten och sedan fråga om varje webbplats innan du presenterar. Du kan stänga av det i din profil, under Betrodda webbplatser."
 }

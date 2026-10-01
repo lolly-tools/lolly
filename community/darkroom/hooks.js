@@ -471,6 +471,211 @@ function smoothstep(a, b, x) {
   return t * t * (3 - 2 * t);
 }
 
+// ── tone stages: levels, curves, black & white, colour balance, dehaze ──────
+// Added from plans/289. Every one is a per-pixel colour map, so each is a stage
+// of makeColorFn and bakes into the pipeline LUT with the rest (preview, .cube
+// bake, the videoLook extra and HDR's creative stages all get them).
+
+// A user tone curve: points on the 0..255 scale in the wire form `in-out_in-out`.
+// COPY of engine/src/tone-curve.ts (normaliseToneCurve, parseToneCurve and the
+// evaluator); tests/tone-curve-drift.test.ts lifts these out of this file and
+// checks they agree with the engine on a fixed corpus. Change both together.
+var TONE_CURVE_MAX_POINTS = 16;
+function normaliseToneCurve(points) {
+  var valid = [];
+  for (var i = 0; i < points.length; i++) {
+    if (valid.length >= TONE_CURVE_MAX_POINTS) break;
+    var p = points[i];
+    if (!p || !isFinite(p[0]) || !isFinite(p[1])) continue;
+    valid.push([clamp(Math.round(p[0]), 0, 255), clamp(Math.round(p[1]), 0, 255)]);
+  }
+  var sorted = valid.map(function (q, k) { return { p: q, i: k }; })
+    .sort(function (a, b) { return a.p[0] - b.p[0] || a.i - b.i; })
+    .map(function (e) { return e.p; });
+  var out = [];
+  for (var j = 0; j < sorted.length; j++) {
+    if (!out.length || sorted[j][0] > out[out.length - 1][0]) out.push(sorted[j]);
+  }
+  return out.length >= 2 ? out : [[0, 0], [255, 255]];
+}
+function parseToneCurve(text) {
+  var s = typeof text === 'string' ? text.trim() : '';
+  if (!s) return normaliseToneCurve([]);
+  var pairs = [];
+  if (s.charAt(0) === '[') {
+    try {
+      var arr = JSON.parse(s);
+      if (Array.isArray(arr)) {
+        for (var i = 0; i < arr.length; i++) {
+          if (Array.isArray(arr[i]) && arr[i].length >= 2) pairs.push([Number(arr[i][0]), Number(arr[i][1])]);
+        }
+      }
+    } catch (e) { /* unreadable JSON is the identity */ }
+    return normaliseToneCurve(pairs);
+  }
+  var chunks = s.replace(/\s*([,:-])\s*/g, '$1').split(/[_~;\s]+/);
+  for (var c = 0; c < chunks.length; c++) {
+    var parts = chunks[c].split(/[,:-]/);
+    if (parts.length !== 2 || parts[0] === '' || parts[1] === '') continue;
+    pairs.push([Number(parts[0]), Number(parts[1])]);
+  }
+  return normaliseToneCurve(pairs);
+}
+function isIdentityToneCurve(points) {
+  if (points.length < 2 || points[0][0] !== 0 || points[points.length - 1][0] !== 255) return false;
+  for (var i = 0; i < points.length; i++) if (points[i][0] !== points[i][1]) return false;
+  return true;
+}
+// The evaluator over 0..255: Darkroom's own monotone cubic, held flat outside
+// the first and last point (moving the black point right clips below it, as in
+// Photoshop) and clamped to 0..255.
+function toneCurveFn(points) {
+  var f = makeCurve(points);
+  var x0 = points[0][0], xn = points[points.length - 1][0];
+  return function (x) {
+    var y = f(x < x0 ? x0 : x > xn ? xn : x);
+    return y < 0 ? 0 : y > 255 ? 255 : y;
+  };
+}
+
+var LEVEL_CHANNELS = ['', 'Red', 'Green', 'Blue'];
+function levelsFrom(inputs) {
+  var ch = [], active = false;
+  for (var i = 0; i < LEVEL_CHANNELS.length; i++) {
+    var k = 'levels' + LEVEL_CHANNELS[i];
+    var ib = clamp(Math.round(n(inputs[k + 'InBlack'], 0)), 0, 253);
+    var iw = clamp(Math.round(n(inputs[k + 'InWhite'], 255)), ib + 2, 255);
+    var g = clamp(n(inputs[k + 'Gamma'], 1), 0.1, 9.99);
+    var ob = clamp(Math.round(n(inputs[k + 'OutBlack'], 0)), 0, 255);
+    var ow = clamp(Math.round(n(inputs[k + 'OutWhite'], 255)), 0, 255);
+    if (ib !== 0 || iw !== 255 || g !== 1 || ob !== 0 || ow !== 255) active = true;
+    ch.push({ ib: ib / 255, iw: iw / 255, g: g, ob: ob / 255, ow: ow / 255 });
+  }
+  return { active: active, ch: ch };
+}
+// One channel's levels over 0..1 (Composa's LevelsRange.Map): input black and
+// white stretch, midtone gamma (above 1 brightens), then the output range.
+function levelMap(L, v) {
+  var t = clamp((v - L.ib) / (L.iw - L.ib), 0, 1);
+  if (L.g !== 1) t = Math.pow(t, 1 / L.g);
+  return L.ob + (L.ow - L.ob) * t;
+}
+
+var CURVE_IDS = ['curveRgb', 'curveRed', 'curveGreen', 'curveBlue'];
+function curvesFrom(inputs) {
+  var pts = [], active = false;
+  for (var i = 0; i < CURVE_IDS.length; i++) {
+    var p = parseToneCurve(inputs[CURVE_IDS[i]]);
+    if (isIdentityToneCurve(p)) pts.push(null);
+    else { pts.push(p); active = true; }
+  }
+  return { active: active, pts: pts };
+}
+
+// Black & white weights, Photoshop's order and defaults (percent).
+var BW_KEYS = ['bwReds', 'bwYellows', 'bwGreens', 'bwCyans', 'bwBlues', 'bwMagentas'];
+var BW_DEFAULTS = [40, 60, 40, 60, 20, 80];
+function bwFrom(inputs) {
+  var w = [];
+  for (var i = 0; i < BW_KEYS.length; i++) w.push(clamp(n(inputs[BW_KEYS[i]], BW_DEFAULTS[i]), -200, 300) / 100);
+  var tint = !!inputs.bwMode && !!inputs.bwTint;
+  return {
+    on: !!inputs.bwMode, w: w, tint: tint,
+    hue: tint ? ((n(inputs.bwTintHue, 35) % 360) + 360) % 360 : 0,
+    sat: tint ? clamp(n(inputs.bwTintSat, 25), 0, 100) / 100 : 0,
+  };
+}
+// Black & White the way Photoshop's is (Compositor's adjust_black_white): a
+// colour is min(r,g,b) of grey, plus (mid - min) of the secondary between its two
+// brightest channels, plus (max - mid) of the primary of its brightest, and each
+// of those six families has its own weight. Pure red at the default 40% comes
+// out 40% grey. With a tint, that grey becomes the lightness of a colour at the
+// chosen hue and saturation.
+function blackWhite(bw, r, g, b) {
+  var mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+  var md = r + g + b - mx - mn;
+  var primary, secondary;
+  if (mx === r) { primary = 0; secondary = g >= b ? 1 : 5; }
+  else if (mx === g) { primary = 2; secondary = r >= b ? 1 : 3; }
+  else { primary = 4; secondary = g >= r ? 3 : 5; }
+  var grey = clamp(mn + (md - mn) * bw.w[secondary] + (mx - md) * bw.w[primary], 0, 1);
+  if (!bw.tint || bw.sat <= 0) return [grey, grey, grey];
+  var c = (1 - Math.abs(2 * grey - 1)) * bw.sat;
+  var hp = bw.hue / 60;
+  var x = c * (1 - Math.abs((hp % 2) - 1));
+  var r1 = 0, g1 = 0, b1 = 0;
+  if (hp < 1) { r1 = c; g1 = x; }
+  else if (hp < 2) { r1 = x; g1 = c; }
+  else if (hp < 3) { g1 = c; b1 = x; }
+  else if (hp < 4) { g1 = x; b1 = c; }
+  else if (hp < 5) { r1 = x; b1 = c; }
+  else { r1 = c; b1 = x; }
+  var m = grey - c / 2;
+  return [clamp(r1 + m, 0, 1), clamp(g1 + m, 0, 1), clamp(b1 + m, 0, 1)];
+}
+
+var CB_RANGES = ['Shadows', 'Midtones', 'Highlights'];
+var CB_AXES = ['CR', 'MG', 'YB'];
+function cbFrom(inputs) {
+  var ranges = [], active = false;
+  for (var i = 0; i < CB_RANGES.length; i++) {
+    var shift = [];
+    for (var a = 0; a < CB_AXES.length; a++) {
+      var v = clamp(n(inputs['cb' + CB_RANGES[i] + CB_AXES[a]], 0), -100, 100) / 100;
+      if (v !== 0) active = true;
+      shift.push(v);
+    }
+    ranges.push(shift);
+  }
+  return { active: active, sh: ranges[0], md: ranges[1], hi: ranges[2], preserve: inputs.cbPreserve !== false };
+}
+// How much a channel value belongs to the shadows, midtones and highlights:
+// three overlapping ramps that sum to about 0.7 across the range, so a shift
+// fades in and out instead of banding (Compositor's tonal_weights).
+function tonalWeights(v) {
+  var a = 0.25, b = 0.333, scale = 0.7;
+  var s = clamp((v - b) / -a + 0.5, 0, 1);
+  var h = clamp((v + b - 1) / a + 0.5, 0, 1);
+  var m1 = clamp((v - b) / a + 0.5, 0, 1);
+  var m2 = clamp((v + b - 1) / -a + 0.5, 0, 1);
+  return [s * scale, m1 * m2 * scale, h * scale];
+}
+// Color Balance (Compositor's adjust_color_balance): each channel moves towards
+// red, green or blue (positive) or cyan, magenta or yellow (negative) by how much
+// it sits in each tonal range. Preserve Luminosity puts the Rec. 601 luma back.
+function colorBalance(cb, r, g, b) {
+  var c = [r, g, b];
+  var before = 0.299 * r + 0.587 * g + 0.114 * b;
+  for (var i = 0; i < 3; i++) {
+    var w = tonalWeights(c[i]);
+    c[i] = clamp(c[i] + cb.sh[i] * w[0] + cb.md[i] * w[1] + cb.hi[i] * w[2], 0, 1);
+  }
+  if (cb.preserve) {
+    var after = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+    if (after > 0.0001) {
+      var ratio = before / after;
+      for (var k = 0; k < 3; k++) c[k] = clamp(c[k] * ratio, 0, 1);
+    }
+  }
+  return c;
+}
+
+// Dehaze as a per-pixel tone move (Compositor's effects_dehaze): contrast about a
+// pivot near mid-grey, deeper blacks for a positive amount or a lift for a
+// negative one, then saturation. `d` is -1..1.
+function dehaze(d, r, g, b) {
+  var y = LUM_R * r + LUM_G * g + LUM_B * b;
+  var y2 = clamp((0.45 - 0.1 * Math.max(d, 0)) + (y - 0.45) * (1 + 0.8 * d), 0, 1);
+  if (d < 0) y2 = clamp(y2 + (-d) * (1 - y2) * 0.45, 0, 1);
+  else y2 = clamp(y2 - d * Math.max(0, 0.4 - y2), 0, 1);
+  if (Math.abs(y2 - y) >= 1e-8) {
+    if (y < 1e-8) { if (y2 > y) { r = y2; g = y2; b = y2; } }
+    else { var k = y2 / y; r = clamp(r * k, 0, 1); g = clamp(g * k, 0, 1); b = clamp(b * k, 0, 1); }
+  }
+  var y3 = LUM_R * r + LUM_G * g + LUM_B * b, sat = 1 + 0.7 * d;
+  return [clamp(y3 + (r - y3) * sat, 0, 1), clamp(y3 + (g - y3) * sat, 0, 1), clamp(y3 + (b - y3) * sat, 0, 1)];
+}
+
 // ── film-look presets ────────────────────────────────────────────────────────
 // Each look is DATA: per-channel + master curves (control points), a
 // saturation multiplier, an optional monochrome mix, and an optional split
@@ -818,7 +1023,16 @@ function paramsFrom(inputs) {
     shadows: clamp(n(inputs.shadows, 0), -100, 100) / 100,
     saturation: clamp(n(inputs.saturation, 100), 0, 200) / 100,
     vibrance: clamp(n(inputs.vibrance, 0), -100, 100) / 100,
+    dehaze: clamp(n(inputs.dehaze, 0), -100, 100) / 100,
+    levels: levelsFrom(inputs),
+    // Auto levels is a mode: when on, each render measures its own picture and
+    // fills autoLevels in (compute) before the look is baked.
+    levelsAuto: !!inputs.levelsAuto,
+    autoLevels: null,
+    curves: curvesFrom(inputs),
     hsl: hslBandsFrom(inputs),
+    bw: bwFrom(inputs),
+    cb: cbFrom(inputs),
     preset: PRESETS[inputs.filmLook] ? inputs.filmLook : 'none',
     presetStrength: clamp(n(inputs.presetStrength, 100), 0, 100) / 100,
     lutSource: lutSource,
@@ -864,6 +1078,8 @@ function colorKey(P, stops) {
   return JSON.stringify([
     P.temperature, P.tint, P.exposure, P.contrast, P.highlights, P.shadows,
     P.saturation, P.vibrance, P.hsl.active ? P.hsl.bands : 0,
+    P.dehaze, P.autoLevels || 0, P.levels.active ? P.levels.ch : 0, P.curves.active ? P.curves.pts : 0,
+    P.bw.on ? P.bw : 0, P.cb.active ? P.cb : 0,
     P.preset, P.presetStrength, P.lutId,
     P.lutIntensity, P.treatment, P.treatmentAmount,
     P.treatShadow, P.treatMid, P.treatHighlight, stops,
@@ -893,6 +1109,10 @@ function makeColorFn(P, stops, userLut) {
   var labHi = tHi ? rgb01ToOklab(tHi[0], tHi[1], tHi[2]) : null;
   // HSL colour mixer bands (see hslBandsFrom).
   var hslBands = P.hsl.bands, hslActive = P.hsl.active;
+  // Tone stages (plans/289). Curves are tabulated once per bake.
+  var lv = P.levels.active ? P.levels.ch : null;
+  var al = P.autoLevels;
+  var cv = P.curves.active ? P.curves.pts.map(function (p) { return p ? toneCurveFn(p) : null; }) : null;
 
   return function (r, g, b) {
     // 1. white balance + exposure in linear light
@@ -916,6 +1136,26 @@ function makeColorFn(P, stops, userLut) {
       var sw2 = (1 - smoothstep(0.05, 0.55, luma)) * 0.6 * P.shadows;
       if (sw2 >= 0) { r = clamp(r + sw2 * (1 - r) * 0.8, 0, 1); g = clamp(g + sw2 * (1 - g) * 0.8, 0, 1); b = clamp(b + sw2 * (1 - b) * 0.8, 0, 1); }
       else { var kk = 1 + sw2; r = clamp(r * kk + (1 - kk) * r * luma, 0, 1); g = clamp(g * kk + (1 - kk) * g * luma, 0, 1); b = clamp(b * kk + (1 - kk) * b * luma, 0, 1); }
+    }
+
+    // 2.5 dehaze, then levels and curves: each channel first, then the master /
+    // RGB curve, which is Photoshop's order.
+    if (P.dehaze !== 0) { var dz = dehaze(P.dehaze, r, g, b); r = dz[0]; g = dz[1]; b = dz[2]; }
+    if (al) {
+      r = clamp((r - al[0][0]) / (al[0][1] - al[0][0]), 0, 1);
+      g = clamp((g - al[1][0]) / (al[1][1] - al[1][0]), 0, 1);
+      b = clamp((b - al[2][0]) / (al[2][1] - al[2][0]), 0, 1);
+    }
+    if (lv) {
+      r = levelMap(lv[0], levelMap(lv[1], r));
+      g = levelMap(lv[0], levelMap(lv[2], g));
+      b = levelMap(lv[0], levelMap(lv[3], b));
+    }
+    if (cv) {
+      if (cv[1]) r = cv[1](r * 255) / 255;
+      if (cv[2]) g = cv[2](g * 255) / 255;
+      if (cv[3]) b = cv[3](b * 255) / 255;
+      if (cv[0]) { r = cv[0](r * 255) / 255; g = cv[0](g * 255) / 255; b = cv[0](b * 255) / 255; }
     }
 
     // 3. saturation + vibrance about luma
@@ -957,6 +1197,10 @@ function makeColorFn(P, stops, userLut) {
         }
       }
     }
+
+    // 3.6 black & white, then colour balance (which can tint the grey).
+    if (P.bw.on) { var bwc = blackWhite(P.bw, r, g, b); r = bwc[0]; g = bwc[1]; b = bwc[2]; }
+    if (P.cb.active) { var cbc = colorBalance(P.cb, r, g, b); r = cbc[0]; g = cbc[1]; b = cbc[2]; }
 
     // 4. film-look preset (curves + mono mix + split tone), blended by strength
     if (pre && P.presetStrength > 0) {
@@ -1054,6 +1298,7 @@ function colorActive(P, userLut) {
   return P.temperature !== 0 || P.tint !== 0 || P.exposure !== 0 || P.contrast !== 0
     || P.highlights !== 0 || P.shadows !== 0 || P.saturation !== 1 || P.vibrance !== 0
     || P.hsl.active
+    || P.dehaze !== 0 || !!P.autoLevels || P.levels.active || P.curves.active || P.bw.on || P.cb.active
     || (P.preset !== 'none' && P.presetStrength > 0)
     || (!!userLut && P.lutIntensity > 0)
     || (P.treatment !== 'none' && P.treatmentAmount > 0);
@@ -1714,22 +1959,68 @@ function resolvedLutSync(inputs, P) {
 }
 
 // The full render: framed source → colour LUT → texture. Returns a canvas.
-function renderFrame(source, iw, ih, dims, P, stops, userLut) {
-  var key = null;
-  var framed;
-  if (source.__frameKey) { // live frames pass a canvas straight through
-    framed = source;
-  } else {
-    key = JSON.stringify([source.__srcId, dims.w, dims.h, P.framing, P.fit]);
-    if (_framedCache.key === key && _framedCache.canvas) framed = _framedCache.canvas;
-    else {
-      framed = document.createElement('canvas'); framed.width = dims.w; framed.height = dims.h;
-      var fctx = framed.getContext('2d', { willReadFrequently: true });
-      if (!fctx) return null;
-      drawFramed(fctx, source, iw, ih, dims.w, dims.h, P.framing, P.fit);
-      _framedCache = { key: key, canvas: framed };
-    }
+// The source drawn into the working frame (zoom, position, fit), cached by the
+// frame key. Live frames pass a canvas straight through. Null without a 2D context.
+function framedSource(source, iw, ih, dims, P) {
+  if (source.__frameKey) return source;
+  var key = JSON.stringify([source.__srcId, dims.w, dims.h, P.framing, P.fit]);
+  if (_framedCache.key === key && _framedCache.canvas) return _framedCache.canvas;
+  var framed = document.createElement('canvas'); framed.width = dims.w; framed.height = dims.h;
+  var fctx = framed.getContext('2d', { willReadFrequently: true });
+  if (!fctx) return null;
+  drawFramed(fctx, source, iw, ih, dims.w, dims.h, P.framing, P.fit);
+  _framedCache = { key: key, canvas: framed };
+  return framed;
+}
+
+// Auto levels (Photoshop's "Enhance per channel contrast", Composa's
+// LevelsAdjustment.Auto): per channel, the levels that clip the darkest and
+// lightest 0.1% of the picture as it reaches the Levels stage - after white
+// balance, exposure, tone and dehaze, before anything later. Returns the red,
+// green and blue [black, white] points on 0..1, or null when the pixels cannot
+// be read or no channel needs a stretch. A channel with less than two levels of
+// range keeps [0, 1].
+function autoLevelsFrom(framed, P) {
+  var ctx = framed && framed.getContext && framed.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+  var d;
+  try { d = ctx.getImageData(0, 0, framed.width, framed.height).data; } catch (e) { return null; }
+  var before = Object.assign({}, P, {
+    autoLevels: null, levels: { active: false, ch: P.levels.ch }, curves: { active: false, pts: P.curves.pts },
+    saturation: 1, vibrance: 0, hsl: { active: false, bands: P.hsl.bands },
+    bw: { on: false, w: P.bw.w, tint: false, hue: 0, sat: 0 }, cb: { active: false },
+    preset: 'none', lutIntensity: 0, treatment: 'none',
+  });
+  var fn = makeColorFn(before, _stopsForKey || {}, null);
+  var hist = [new Float64Array(256), new Float64Array(256), new Float64Array(256)];
+  var count = d.length / 4;
+  var step = Math.max(1, Math.round(count / 120000)) * 4;
+  var total = 0;
+  for (var i = 0; i < d.length; i += step) {
+    if (d[i + 3] === 0) continue;
+    var c = fn(d[i] / 255, d[i + 1] / 255, d[i + 2] / 255);
+    hist[0][Math.round(clamp(c[0], 0, 1) * 255)]++;
+    hist[1][Math.round(clamp(c[1], 0, 1) * 255)]++;
+    hist[2][Math.round(clamp(c[2], 0, 1) * 255)]++;
+    total++;
   }
+  if (!total) return null;
+  var clip = Math.max(1, total / 1000);
+  var out = [], moved = false;
+  for (var ch = 0; ch < 3; ch++) {
+    var h = hist[ch], low = 0, high = 255, sum;
+    for (sum = 0; low < 255; low++) { sum += h[low]; if (sum > clip) break; }
+    for (sum = 0; high > 0; high--) { sum += h[high]; if (sum > clip) break; }
+    if (high - low < 2) { out.push([0, 1]); continue; }
+    if (low !== 0 || high !== 255) moved = true;
+    out.push([low / 255, high / 255]);
+  }
+  return moved ? out : null;
+}
+
+function renderFrame(source, iw, ih, dims, P, stops, userLut) {
+  var framed = framedSource(source, iw, ih, dims, P);
+  if (!framed) return null;
 
   var out = document.createElement('canvas'); out.width = dims.w; out.height = dims.h;
   var octx = out.getContext('2d', { willReadFrequently: true });
@@ -1834,7 +2125,26 @@ async function computeHdr(inputs, P, stops, lut, url, rows) {
   }
 }
 
+// A .cube bake waiting for Auto levels to measure the picture (see compute).
+var _pendingBake = null;
+var _memoAutoLevels = null; // the stretch Auto levels measured for the memoised render
+
+// With Auto levels on, the look depends on the picture, so a requested .cube
+// bake waits until the picture has been measured; whichever way the render
+// ends, the bake is delivered with the look it measured (or without the
+// stretch when there was no picture to measure).
 async function compute(model) {
+  _pendingBake = null;
+  try {
+    return await computeLook(model);
+  } finally {
+    var bake = _pendingBake;
+    _pendingBake = null;
+    if (bake) await deliverBake(bake.P, bake.stops, bake.lut);
+  }
+}
+
+async function computeLook(model) {
   var inputs = inputsFrom(model);
   var P = paramsFrom(inputs);
 
@@ -1851,7 +2161,8 @@ async function compute(model) {
   // The .cube bake is pure maths - it works even headless, and must run
   // before the raster guard so the CLI can bake with --bakeLut=true.
   if (inputs.bakeLut) {
-    await deliverBake(P, stops, lutRes.lut);
+    if (P.levelsAuto && canRaster()) _pendingBake = { P: P, stops: stops, lut: lutRes.lut };
+    else await deliverBake(P, stops, lutRes.lut);
     // Fall through to the normal render; the patch below resets the switch.
   }
   // Hand over the raw shipped preset .cube on request (separate from the bake).
@@ -1935,6 +2246,7 @@ async function compute(model) {
   var stackKey = rows.length ? layerStackKey(rows, P.W, P.H) : null;
   var memoKey = JSON.stringify({ url: url, stack: stackKey, P: P, d: dims, stops: stops });
   if (memoKey === _memoKey) {
+    P.autoLevels = _memoAutoLevels; // a pending .cube bake needs the measured stretch
     // Still reset the transient action switches on a repeated render.
     var patch = {};
     if (inputs.bakeLut) patch.bakeLut = false;
@@ -1961,6 +2273,24 @@ async function compute(model) {
   } catch (e) {
     if (host.log) host.log('warn', 'darkroom: image load failed', { error: String(e) });
     return { outSrc: null, note: 'Could not read this image', bakeLut: false, downloadPresetLut: false, lutNote: lutNote, lutLabel: lutLabel, histSvg: '', videoLook: videoLook };
+  }
+
+  // Auto levels measures this picture, then the look is baked with the stretch
+  // in. The published video look is re-keyed to match, so a clip graded from this
+  // still gets the same stretch the still shows.
+  if (P.levelsAuto) {
+    P.autoLevels = autoLevelsFrom(framedSource(source, iw, ih, dims, P), P);
+    if (P.autoLevels) {
+      var autoKey = colorKey(P, stops);
+      if (autoKey !== _videoLookKey) {
+        try {
+          videoLook = JSON.stringify({ v: 1, on: colorActive(P, lutRes.lut) ? 1 : 0, cube: cubeTextFromLut(getPipelineLut(P, lutRes.lut), P), key: autoKey });
+          _videoLookKey = autoKey;
+        } catch (e) {
+          if (host.log) host.log('warn', 'darkroom: video look bake failed', { error: String(e) });
+        }
+      }
+    }
   }
 
   var out = renderFrame(source, iw, ih, dims, P, stops, lutRes.lut);
@@ -2001,6 +2331,7 @@ async function compute(model) {
   var prev = (_lastOutSrc && _lastOutSrc !== outSrc) ? _lastOutSrc : null;
   _lastOutSrc = outSrc;
   _memoKey = memoKey;
+  _memoAutoLevels = P.autoLevels;
   _memoResult = {
     outSrc: outSrc, prevSrc: prev, note: null,
     histSvg: histSvg, lutNote: lutNote, lutLabel: lutLabel,

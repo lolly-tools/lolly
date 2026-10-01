@@ -35,7 +35,9 @@ import {
   GEMINI_TELLS,
   DEEPSEEK_TELLS,
   LEXICON_VERSION,
+  spatialPointerRe,
 } from '../engine/src/claudisms.ts';
+import { RATCHETED_PHRASES } from '../scripts/check-docs-vernacular.ts';
 
 test('every Tell and fingerprint regex carries the global flag', () => {
   const all: RegExp[] = [
@@ -129,4 +131,64 @@ test('the "…here," aside catches the pointer use and leaves the place senses a
     // The copula flourish already scores this span; it must not count twice.
     'The export is the weak point here, clearly.',
   ]) assert.equal(hits(s), 0, `expected no hit: ${s}`);
+});
+
+// The pointer phrases, figurative (a tell) and spatial (legitimate).
+const POINTER_FIGURATIVE = [
+  'Each claim here has a mechanism behind it, and each mechanism ships.',
+  'Every claim this site makes, with the mechanism that enforces it beside it.',
+  'The page returns the answer with the source cited beside it.',
+  'There is no second, richer configuration behind it.',
+  'It keeps the original text next to it for reference.',
+  'The decision in front of it is simple.',
+  'The principle above it still applies.',
+  'Everything below it follows from that choice.',
+  'The people behind it wrote the first release.',
+];
+const POINTER_SPATIAL = [
+  'The colours sit in a strip, with a **Use as primary** button beside it.',
+  'The controls sit beside the preview, or above it on a phone.',
+  'Moving the camera redraws the frame and the backdrop behind it.',
+  'The rings are painted on a layer above it.',
+  'A **Search settings** field above it filters the list.',
+  'Press the camera beside it to record a video.',
+  'The guard runs before the loop below it.',
+];
+
+test('the "beside it" pointer scores the figurative use and skips spatial writing', () => {
+  const tell = CLAUDE_TELLS.find(t => t.label === '"beside it" / "behind it" pointer');
+  assert.ok(tell, 'expected the pointer tell in CLAUDE_TELLS');
+  const hits = (s: string) => [...s.matchAll(new RegExp(tell!.re.source, tell!.re.flags))].length;
+  for (const s of POINTER_FIGURATIVE) assert.equal(hits(s), 1, `expected a hit: ${s}`);
+  for (const s of POINTER_SPATIAL) assert.equal(hits(s), 0, `expected no hit: ${s}`);
+});
+
+test('the docs, comment and UI-copy gates use the same pointer rule as the detector', () => {
+  const rule = RATCHETED_PHRASES.find(p => p.what.startsWith('"beside it" / "behind it" / "above it" pointer'));
+  assert.ok(rule, 'expected the pointer rule in RATCHETED_PHRASES');
+  assert.equal(rule!.re.source, spatialPointerRe('i').source);
+  assert.equal(rule!.re.global, false, 'a per-line test() rule must not be global (lastIndex would carry over)');
+  for (const s of POINTER_FIGURATIVE) assert.ok(rule!.re.test(s), `gate should flag: ${s}`);
+  for (const s of POINTER_SPATIAL) assert.equal(rule!.re.test(s), false, `gate should pass: ${s}`);
+});
+
+test('claudisms from the docs gate list are scored by the detector', () => {
+  const all = [...CLAUDE_TELLS, ...AI_PHRASES];
+  const scored = (s: string) => all.some(t => new RegExp(t.re.source, t.re.flags).test(s));
+  for (const s of [
+    'That is worth knowing before you start.',
+    'Which brings us back to the export path.',
+    'The signature anchors it to the root.',
+    'The file is written, in full.',
+    'We ran a deep dive on the numbers.',
+    'The archive is a treasure trove of assets.',
+    'This release raises the bar for exports.',
+    'Also worth noting: the cache is local.',
+    'Teams should lean into the change.',
+    'Moving on to the next section, the cache.',
+    'The existing landscape offers no answer.',
+  ]) assert.ok(scored(s), `expected the detector to score: ${s}`);
+  const heading = CLAUDE_TELLS.find(t => t.label === 'heading that ends in "it"')!;
+  assert.ok(new RegExp(heading.re.source, heading.re.flags).test('Intro\n## How to hold us to it\nBody'));
+  assert.equal(new RegExp(heading.re.source, heading.re.flags).test('## How exports work'), false);
 });

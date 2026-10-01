@@ -246,8 +246,11 @@ export interface InputSpec {
    *  compact button that cycles its options, labelled by each option's `icon`);
    *  `pill` is a boolean variant rendered as an inline chip toggle (the web shell
    *  flows consecutive pill booleans into one wrapped chip bar); `segmented`
-   *  renders a select as labelled tabs (a radiogroup of pills). */
-  display?: 'input' | 'slider' | 'select' | 'icon-toggle' | 'pill' | 'segmented';
+   *  renders a select as labelled tabs (a radiogroup of pills); `curve` is a
+   *  text variant holding a tone curve (engine/src/tone-curve.ts) - still a
+   *  plain text input to the engine and every shell, with a curve plot beside
+   *  it in the web sidebar. */
+  display?: 'input' | 'slider' | 'select' | 'icon-toggle' | 'pill' | 'segmented' | 'curve';
   // color
   palette?: string;
   swatchesOnly?: boolean;

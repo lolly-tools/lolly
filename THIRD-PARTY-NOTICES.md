@@ -7354,6 +7354,64 @@ the Flathub contributors; the per-module owners are recorded in the vendored tre
 CODEOWNERS file.
 ```
 
+### Compositor image-processing kernels (adapted) git 11d8d7a50992b24fd9a760a1c13b1c01b70aaf30
+
+- SPDX-License-Identifier: `MIT`
+- Files: `community/filter/hooks.js (Atkinson kernel, 8x8 fill patterns, dot-pixel radius)`
+- Copyright: Copyright (c) 2026 Wonder Assembly LLC
+- Algorithms and tables translated into Lolly's own code from Compositor (https://github.com/robbietilton/Compositor), Compositor/Rendering/DitherPixels.c. No Compositor source file is copied. plans/289 lists what is adapted and from where.
+
+```text
+Copyright (c) 2026 Wonder Assembly LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### Composa edge tracer (adapted) git 4322495dae4836c0be26d1c85b0741bc63798a30
+
+- SPDX-License-Identifier: `MIT`
+- Files: `engine/src/edge-trace.ts`
+- Copyright: Copyright (c) 2026 Dennis van der Stelt
+- The Canny thresholds, the chain following with its one-pixel gap bridge and the Douglas-Peucker simplification, translated into Lolly's own code from Composa (https://github.com/dvdstelt/Composa), src/Composa.Core/Painting/EdgeTracer.cs. No Composa source file is copied. Used by the MCP server's lolly_trace_edges.
+
+```text
+Copyright (c) 2026 Dennis van der Stelt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Icons
 
 ### Lucide (icon path data)

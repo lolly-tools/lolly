@@ -34,6 +34,7 @@ import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { printVernacularWhy } from './lib/vernacular-why.ts';
+import { spatialPointerRe } from '../engine/src/claudisms.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -262,6 +263,12 @@ export const RATCHETED_PHRASES: { what: string; re: RegExp }[] = [
   // real object. A code token such as `it.skip` does not match, because a word
   // character must not follow the full stop.
   { what: 'sentence that ends in "it" (name the thing)', re: /(?<![\w.'’`-])[Ii]t[*_"'’”)\]]*[.!?](?=[\s*_"'’”)\]<|]|$)/ },
+  // "beside it", "next to it", "in front of it", "behind it", "above it", "below it" as
+  // a vague pointer (owner-banned 2026-10-01): "each claim has a mechanism behind it".
+  // Name the thing and where it is. A sentence that names a layout or physical element
+  // (button, field, screen, layer, camera...) is spatial writing and passes; the word
+  // list lives in engine/src/claudisms.ts, which the AI-signal detector scores from too.
+  { what: '"beside it" / "behind it" / "above it" pointer when not spatial (name the thing and where)', re: spatialPointerRe('i') },
 ];
 
 /**

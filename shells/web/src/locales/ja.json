@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: このサイトは他のページ内での表示を許可していません",
   "{n} px wide": "幅 {n} px",
   "{n} sites": "{n} 件のサイト",
-  "{org} does not allow {host} here.": "{org} は、ここで {host} を許可していません。"
+  "{org} does not allow {host} here.": "{org} は、ここで {host} を許可していません。",
+  "Allow pages from any site": "任意のサイトのページを許可",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lollyがサーバーに接続して確認できませんでした。オンラインになってから、もう一度お試しください。",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "Web版では、これをオンにするまでDesignは動画と地図のプレーヤーのみ表示します。オンにすると、Lollyはこの端末でより緩いフレームポリシーで再読み込みされ、信頼していないサイトを読み込む前には引き続き確認します。",
+  "Pages from any site": "任意のサイトのページ",
+  "The web version of Lolly cannot show this site.": "Web版のLollyでは、このサイトを表示できません。",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Web版のLollyでは、ここに動画と地図のプレーヤーのみ表示できます。{host} を表示するには、プロフィールで任意のサイトのページを許可するか、デスクトップアプリをご利用ください。",
+  "This server does not offer pages from any site. The desktop app can show any page.": "このサーバーは任意のサイトのページを提供していません。デスクトップアプリなら任意のページを表示できます。",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Web版で表示できないサイトを表示するため、Lollyはこの端末でより緩いフレームポリシーで再読み込みし、プレゼンの前にサイトごとに確認できます。プロフィールの「信頼済みのサイト」でオフにできます。"
 }

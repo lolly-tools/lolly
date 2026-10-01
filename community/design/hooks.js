@@ -294,14 +294,17 @@ function fontFamily(v) {
   return safe ? ("'" + safe + "', " + FONTS.sans) : FONTS.sans;
 }
 // A box font → a PLAIN PowerPoint typeface NAME for the deck model (NOT fontFamily's
-// CSS stack, which is a var()/fallback list unusable as a pptx font). The built-in
-// 'sans'/'mono' keywords resolve to CSS custom properties with no single static face
-// name in the blank profile, so they are OMITTED (undefined) - the deck theme's minor
-// font then applies. A brand family the user added carries a real name; sanitise it
-// exactly as fontFamily() does before it reaches the pptx run.
+// CSS stack, which is a var()/fallback list unusable as a pptx font). 'sans' and
+// 'display' are OMITTED (undefined): the exporter fills the deck theme's fonts from the
+// brand, so those runs take the brand face. 'mono' is written as its custom property,
+// which the exporter resolves against the exported node to that stack's first family
+// (no single static name exists here, and an omitted mono run would come out in the
+// brand sans). A brand family the user added carries a real name; sanitise it exactly as
+// fontFamily() does before it reaches the pptx run.
 function deckFont(b) {
   var key = String(b && b.font == null ? '' : b.font);
-  if (key === '' || key === 'sans' || key === 'mono' || key === 'display') return undefined;
+  if (key === 'mono') return 'var(--font-mono)';
+  if (key === '' || key === 'sans' || key === 'display') return undefined;
   var safe = key.replace(/[^\w \-]/g, '').trim();
   return safe || undefined;
 }
@@ -2550,8 +2553,24 @@ function deckLineOf(color, w, b) {
   var line = { color: color, w: w };
   var dash = String(b.strokeDash == null ? '' : b.strokeDash);
   if (dash === 'dashed' || dash === 'dotted') line.dash = dash;
+  // Arrowheads ride a path's own line ends, on the same terms the canvas draws them: a
+  // single open contour only (a loop has no ends, and a multi-contour path no single
+  // pair). A 'bar' end has no DrawingML form and is left off.
+  if (String(b.kind) === 'path' && (headKind(b.headStart) !== 'none' || headKind(b.headEnd) !== 'none')) {
+    var geom = geomApi();
+    var dec = geom && geom.decodeAuthored ? geom.decodeAuthored(b.path == null ? '' : String(b.path)) : null;
+    if (dec && dec.ok && dec.value.length === 1 && dec.value[0].closed !== true) {
+      var hs = DECK_LINE_ENDS[headKind(b.headStart)];
+      var he = DECK_LINE_ENDS[headKind(b.headEnd)];
+      if (hs) line.head = hs;
+      if (he) line.tail = he;
+    }
+  }
   return line;
 }
+// Design's head vocabulary → DrawingML line-end types ('bar' has none). Looked up only
+// with a value headKind() already whitelisted, so no inherited key can reach it.
+var DECK_LINE_ENDS = { triangle: 'triangle', open: 'arrow', circle: 'oval', diamond: 'diamond' };
 
 // A path box's outline at w by h px as one SVG path d, the same lowering pathHtmlFor
 // draws with, or '' when host.geom is missing or the value does not decode. A mirrored
@@ -2628,6 +2647,10 @@ function deckElementFor(cb, byId, lx, ly) {
     var rowBold = Number(weightOf(cb)) >= 600;
     var rowColor = safeColor(cb.fg, '#11141f');
     var sizePt = f2(num(cb.fontSize, 48) * 0.75);
+    // The canvas line-height is a multiple of the font size, so it travels as an exact
+    // pitch in points: a percentage would scale PowerPoint's own single spacing, which
+    // differs by face and between a face's Mac and Windows metrics.
+    var pitchPt = f2(clamp(num(cb.lineHeight, 1.12), 0.5, 4) * num(cb.fontSize, 48) * 0.75);
     var fnt = deckFont(cb);
     var al = H_JUSTIFY[cb.align] ? String(cb.align) : 'center';
     var paras;
@@ -2638,7 +2661,7 @@ function deckElementFor(cb, byId, lx, ly) {
       // A translucent text box carries its opacity as the alpha of every run.
       if (op < 1) run.alpha = op;
       if (fnt) run.font = fnt;
-      paras = [{ align: DECK_ALIGN[al], runs: [run] }];
+      paras = [{ align: DECK_ALIGN[al], runs: [run], lineSpacingPt: pitchPt }];
     } else {
       var lines = richParse(raw);
       var listed = lines.some(function (line) { return !!line.list; });
@@ -2673,7 +2696,7 @@ function deckElementFor(cb, byId, lx, ly) {
           runs = [{ text: '', sizePt: sizePt, color: rowColor, bold: rowBold }];
           if (op < 1) runs[0].alpha = op;
         }
-        var para = { align: DECK_ALIGN[al], runs: runs };
+        var para = { align: DECK_ALIGN[al], runs: runs, lineSpacingPt: pitchPt };
         if (line.list === 'bullet') para.bullet = true;
         else if (line.list === 'number') para.bullet = 'number';
         // A plain line among list items, or one set in, says so, so a placeholder's own
@@ -2706,12 +2729,16 @@ function deckElementFor(cb, byId, lx, ly) {
     return { t: 'image', x: lx, y: ly, w: cw, h: ch, src: url, fit: FITS[String(cb.fit)] ? String(cb.fit) : 'contain' };
   }
   // kind 'box' (the rectangle; 'circle' is a box+shape) → a deck rect. 'transparent'
-  // fill is dropped by deckFill (no fill), matching boxCss. Only a 'rounded' shape
-  // carries a numeric radius the deck can express; pill/ellipse/circle round in CSS
-  // to values (9999px/50%) the flat px radius can't carry, so they lower to a plain
-  // rect in v1 (documented). A stroke → the rect's line.
+  // fill is dropped by deckFill (no fill), matching boxCss. A 'rounded' shape carries
+  // its own radius. A 'pill' rounds by 9999px in CSS, which clamps to half the short
+  // side, so it carries exactly that radius (a full roundRect in PowerPoint). An
+  // 'ellipse' or 'circle' is 50% on both axes, which no single radius draws, so it
+  // asks for PowerPoint's ellipse preset instead. A stroke → the rect's line.
   var rect = { t: 'rect', x: lx, y: ly, w: cw, h: ch, fill: op < 1 ? (deckAlphaHex(cb.bg, op) || 'transparent') : safeColor(cb.bg, 'transparent') };
-  if (String(cb.shape) === 'rounded') rect.radius = num(cb.radius, 0);
+  var shp = String(cb.shape);
+  if (shp === 'rounded') rect.radius = num(cb.radius, 0);
+  else if (shp === 'pill') rect.radius = Math.min(cw, ch) / 2;
+  else if (shp === 'ellipse' || shp === 'circle') rect.geom = 'ellipse';
   var sw = num(cb.strokeW, 0);
   var sc = safeColor(cb.stroke, '');
   // A translucent box's outline takes the same alpha as its fill.

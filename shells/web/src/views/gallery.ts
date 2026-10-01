@@ -342,6 +342,7 @@ import { isBatchSlot } from '../lib/batch-slots.ts';
 import { yoursShelfTools, yoursShelfHtml } from './yours-shelf.ts';
 import { captureNeutralPinned, settleForCapture } from '../lib/capture-neutral.ts';
 import { wireArrowNav } from '../lib/arrow-nav.ts';
+import { appPathname } from '../lib/any-site.ts';
 
 // Lucide "info" and "history" - context-menu / bulk-bar action icons. Path data
 // lives in lib/icons.ts; 'info' is deduped against profile.ts's identical
@@ -2098,7 +2099,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   /** The shareable link for a tile: a view's own route, or a tool's short /t/ link. */
   function linkFor(ref: string): string {
     const v = isViewRef(ref) ? viewByRef(ref) : null;
-    return v ? `${location.origin}${location.pathname}${v.href}` : `${location.origin}/t/${encodeURIComponent(ref)}`;
+    return v ? `${location.origin}${appPathname()}${v.href}` : `${location.origin}/t/${encodeURIComponent(ref)}`;
   }
 
   async function copyLink(ref: string | null, feedbackBtn: HTMLElement | null = null): Promise<void> {

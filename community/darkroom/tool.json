@@ -3,7 +3,7 @@
   "name": "Darkroom",
   "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, design system colour treatments and finishing texture - then bake your look as a LUT any editor can use. Opens a Photoshop or GIMP file as layers too: position, blend and hide each one, grade the composite, and export flat images or a layered PSD.",
   "a11yLabel": "Graded photo preview - {{default preset \"custom\"}} look",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "engineVersion": "^1.214.0",
   "status": "community",
   "category": "designer",
@@ -100,7 +100,10 @@
       "Colour treatment": "paintbrush",
       "Texture": "noise",
       "View": "eye",
-      "Editing range": "layers"
+      "Editing range": "layers",
+      "Levels & curves": "animate",
+      "Black & white": "opacity",
+      "Colour balance": "droplet"
     },
     "width": 1080,
     "height": 1080,
@@ -479,6 +482,460 @@
       "max": 100,
       "step": 1,
       "help": "Smart saturation: boosts muted colours first and eases off where colour is already rich."
+    },
+    {
+      "id": "dehaze",
+      "label": "Dehaze",
+      "section": "Develop",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "dhz",
+      "help": "Cuts through haze: deeper blacks, more contrast and more colour. Negative values add a soft, hazy lift."
+    },
+    {
+      "id": "levelsChannel",
+      "label": "Levels channel",
+      "section": "Levels & curves",
+      "type": "select",
+      "display": "segmented",
+      "default": "rgb",
+      "urlKey": "lvc",
+      "options": [
+        {
+          "value": "rgb",
+          "label": "RGB"
+        },
+        {
+          "value": "red",
+          "label": "Red"
+        },
+        {
+          "value": "green",
+          "label": "Green"
+        },
+        {
+          "value": "blue",
+          "label": "Blue"
+        }
+      ],
+      "help": "Which channel the five Levels sliders below adjust. Each colour channel is applied first, then RGB, as in Photoshop."
+    },
+    {
+      "id": "levelsInBlack",
+      "label": "Input black",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 253,
+      "step": 1,
+      "urlKey": "lv0",
+      "showIf": {
+        "levelsChannel": "rgb"
+      },
+      "help": "Every level at or below this becomes the output black."
+    },
+    {
+      "id": "levelsGamma",
+      "label": "Midtones",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.1,
+      "max": 5,
+      "step": 0.01,
+      "urlKey": "lv1",
+      "showIf": {
+        "levelsChannel": "rgb"
+      },
+      "help": "Gamma for the midtones. Above 1 brightens them, below 1 darkens them."
+    },
+    {
+      "id": "levelsInWhite",
+      "label": "Input white",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 255,
+      "min": 2,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv2",
+      "showIf": {
+        "levelsChannel": "rgb"
+      },
+      "help": "Every level at or above this becomes the output white."
+    },
+    {
+      "id": "levelsOutBlack",
+      "label": "Output black",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv3",
+      "showIf": {
+        "levelsChannel": "rgb"
+      },
+      "help": "The level the darkest tones map to. Raise it for a faded black."
+    },
+    {
+      "id": "levelsOutWhite",
+      "label": "Output white",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 255,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv4",
+      "showIf": {
+        "levelsChannel": "rgb"
+      },
+      "help": "The level the lightest tones map to. Lower it to soften the highlights."
+    },
+    {
+      "id": "levelsRedInBlack",
+      "label": "Input black",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 253,
+      "step": 1,
+      "urlKey": "lv5",
+      "showIf": {
+        "levelsChannel": "red"
+      },
+      "help": "Every level at or below this becomes the output black."
+    },
+    {
+      "id": "levelsRedGamma",
+      "label": "Midtones",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.1,
+      "max": 5,
+      "step": 0.01,
+      "urlKey": "lv6",
+      "showIf": {
+        "levelsChannel": "red"
+      },
+      "help": "Gamma for the midtones. Above 1 brightens them, below 1 darkens them."
+    },
+    {
+      "id": "levelsRedInWhite",
+      "label": "Input white",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 255,
+      "min": 2,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv7",
+      "showIf": {
+        "levelsChannel": "red"
+      },
+      "help": "Every level at or above this becomes the output white."
+    },
+    {
+      "id": "levelsRedOutBlack",
+      "label": "Output black",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv8",
+      "showIf": {
+        "levelsChannel": "red"
+      },
+      "help": "The level the darkest tones map to. Raise it for a faded black."
+    },
+    {
+      "id": "levelsRedOutWhite",
+      "label": "Output white",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 255,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv9",
+      "showIf": {
+        "levelsChannel": "red"
+      },
+      "help": "The level the lightest tones map to. Lower it to soften the highlights."
+    },
+    {
+      "id": "levelsGreenInBlack",
+      "label": "Input black",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 253,
+      "step": 1,
+      "urlKey": "lv10",
+      "showIf": {
+        "levelsChannel": "green"
+      },
+      "help": "Every level at or below this becomes the output black."
+    },
+    {
+      "id": "levelsGreenGamma",
+      "label": "Midtones",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.1,
+      "max": 5,
+      "step": 0.01,
+      "urlKey": "lv11",
+      "showIf": {
+        "levelsChannel": "green"
+      },
+      "help": "Gamma for the midtones. Above 1 brightens them, below 1 darkens them."
+    },
+    {
+      "id": "levelsGreenInWhite",
+      "label": "Input white",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 255,
+      "min": 2,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv12",
+      "showIf": {
+        "levelsChannel": "green"
+      },
+      "help": "Every level at or above this becomes the output white."
+    },
+    {
+      "id": "levelsGreenOutBlack",
+      "label": "Output black",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv13",
+      "showIf": {
+        "levelsChannel": "green"
+      },
+      "help": "The level the darkest tones map to. Raise it for a faded black."
+    },
+    {
+      "id": "levelsGreenOutWhite",
+      "label": "Output white",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 255,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv14",
+      "showIf": {
+        "levelsChannel": "green"
+      },
+      "help": "The level the lightest tones map to. Lower it to soften the highlights."
+    },
+    {
+      "id": "levelsBlueInBlack",
+      "label": "Input black",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 253,
+      "step": 1,
+      "urlKey": "lv15",
+      "showIf": {
+        "levelsChannel": "blue"
+      },
+      "help": "Every level at or below this becomes the output black."
+    },
+    {
+      "id": "levelsBlueGamma",
+      "label": "Midtones",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.1,
+      "max": 5,
+      "step": 0.01,
+      "urlKey": "lv16",
+      "showIf": {
+        "levelsChannel": "blue"
+      },
+      "help": "Gamma for the midtones. Above 1 brightens them, below 1 darkens them."
+    },
+    {
+      "id": "levelsBlueInWhite",
+      "label": "Input white",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 255,
+      "min": 2,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv17",
+      "showIf": {
+        "levelsChannel": "blue"
+      },
+      "help": "Every level at or above this becomes the output white."
+    },
+    {
+      "id": "levelsBlueOutBlack",
+      "label": "Output black",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv18",
+      "showIf": {
+        "levelsChannel": "blue"
+      },
+      "help": "The level the darkest tones map to. Raise it for a faded black."
+    },
+    {
+      "id": "levelsBlueOutWhite",
+      "label": "Output white",
+      "section": "Levels & curves",
+      "type": "number",
+      "display": "slider",
+      "default": 255,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "urlKey": "lv19",
+      "showIf": {
+        "levelsChannel": "blue"
+      },
+      "help": "The level the lightest tones map to. Lower it to soften the highlights."
+    },
+    {
+      "id": "levelsAuto",
+      "label": "Auto levels",
+      "section": "Levels & curves",
+      "type": "boolean",
+      "default": false,
+      "urlKey": "lva",
+      "help": "Stretches each colour channel to this photo's own range, clipping its darkest and lightest 0.1%. The photo is measured again every time, so one look adapts to every photo in a batch. The Levels sliders adjust on top. Not used in HDR editing or with the live camera."
+    },
+    {
+      "id": "curveChannel",
+      "label": "Curve channel",
+      "section": "Levels & curves",
+      "type": "select",
+      "display": "segmented",
+      "default": "rgb",
+      "urlKey": "cvc",
+      "options": [
+        {
+          "value": "rgb",
+          "label": "RGB"
+        },
+        {
+          "value": "red",
+          "label": "Red"
+        },
+        {
+          "value": "green",
+          "label": "Green"
+        },
+        {
+          "value": "blue",
+          "label": "Blue"
+        }
+      ],
+      "help": "Which tone curve to edit. Each colour channel's curve is applied first, then the RGB curve."
+    },
+    {
+      "id": "curveRgb",
+      "label": "RGB curve",
+      "section": "Levels & curves",
+      "type": "text",
+      "display": "curve",
+      "default": "",
+      "maxLength": 200,
+      "urlKey": "cv0",
+      "showIf": {
+        "curveChannel": "rgb"
+      },
+      "help": "Click the square to add a point, then drag points into place. Drag a point off the square, or press Delete, to remove that point. Each point is an input and an output level from 0 to 255, written as 0-0_64-48_255-255; empty is a straight line."
+    },
+    {
+      "id": "curveRed",
+      "label": "Red curve",
+      "section": "Levels & curves",
+      "type": "text",
+      "display": "curve",
+      "default": "",
+      "maxLength": 200,
+      "urlKey": "cv1",
+      "showIf": {
+        "curveChannel": "red"
+      },
+      "help": "Click the square to add a point, then drag points into place. Drag a point off the square, or press Delete, to remove that point. Each point is an input and an output level from 0 to 255, written as 0-0_64-48_255-255; empty is a straight line."
+    },
+    {
+      "id": "curveGreen",
+      "label": "Green curve",
+      "section": "Levels & curves",
+      "type": "text",
+      "display": "curve",
+      "default": "",
+      "maxLength": 200,
+      "urlKey": "cv2",
+      "showIf": {
+        "curveChannel": "green"
+      },
+      "help": "Click the square to add a point, then drag points into place. Drag a point off the square, or press Delete, to remove that point. Each point is an input and an output level from 0 to 255, written as 0-0_64-48_255-255; empty is a straight line."
+    },
+    {
+      "id": "curveBlue",
+      "label": "Blue curve",
+      "section": "Levels & curves",
+      "type": "text",
+      "display": "curve",
+      "default": "",
+      "maxLength": 200,
+      "urlKey": "cv3",
+      "showIf": {
+        "curveChannel": "blue"
+      },
+      "help": "Click the square to add a point, then drag points into place. Drag a point off the square, or press Delete, to remove that point. Each point is an input and an output level from 0 to 255, written as 0-0_64-48_255-255; empty is a straight line."
     },
     {
       "id": "hslMode",
@@ -934,6 +1391,334 @@
         ]
       },
       "help": "Brighten the magenta band. 0 leaves it untouched."
+    },
+    {
+      "id": "bwMode",
+      "label": "Convert to black & white",
+      "section": "Black & white",
+      "type": "boolean",
+      "default": false,
+      "urlKey": "bw",
+      "help": "Converts to grey the way Photoshop's Black & White does: each family of colours has its own brightness, so reds and greens stay apart instead of flattening into one grey."
+    },
+    {
+      "id": "bwReds",
+      "label": "Reds",
+      "section": "Black & white",
+      "type": "number",
+      "display": "slider",
+      "default": 40,
+      "min": -200,
+      "max": 300,
+      "step": 1,
+      "urlKey": "bw0",
+      "showIf": {
+        "bwMode": true
+      },
+      "help": "How bright reds become in grey, as a percentage. The default is Photoshop's."
+    },
+    {
+      "id": "bwYellows",
+      "label": "Yellows",
+      "section": "Black & white",
+      "type": "number",
+      "display": "slider",
+      "default": 60,
+      "min": -200,
+      "max": 300,
+      "step": 1,
+      "urlKey": "bw1",
+      "showIf": {
+        "bwMode": true
+      },
+      "help": "How bright yellows become in grey, as a percentage. The default is Photoshop's."
+    },
+    {
+      "id": "bwGreens",
+      "label": "Greens",
+      "section": "Black & white",
+      "type": "number",
+      "display": "slider",
+      "default": 40,
+      "min": -200,
+      "max": 300,
+      "step": 1,
+      "urlKey": "bw2",
+      "showIf": {
+        "bwMode": true
+      },
+      "help": "How bright greens become in grey, as a percentage. The default is Photoshop's."
+    },
+    {
+      "id": "bwCyans",
+      "label": "Cyans",
+      "section": "Black & white",
+      "type": "number",
+      "display": "slider",
+      "default": 60,
+      "min": -200,
+      "max": 300,
+      "step": 1,
+      "urlKey": "bw3",
+      "showIf": {
+        "bwMode": true
+      },
+      "help": "How bright cyans become in grey, as a percentage. The default is Photoshop's."
+    },
+    {
+      "id": "bwBlues",
+      "label": "Blues",
+      "section": "Black & white",
+      "type": "number",
+      "display": "slider",
+      "default": 20,
+      "min": -200,
+      "max": 300,
+      "step": 1,
+      "urlKey": "bw4",
+      "showIf": {
+        "bwMode": true
+      },
+      "help": "How bright blues become in grey, as a percentage. The default is Photoshop's."
+    },
+    {
+      "id": "bwMagentas",
+      "label": "Magentas",
+      "section": "Black & white",
+      "type": "number",
+      "display": "slider",
+      "default": 80,
+      "min": -200,
+      "max": 300,
+      "step": 1,
+      "urlKey": "bw5",
+      "showIf": {
+        "bwMode": true
+      },
+      "help": "How bright magentas become in grey, as a percentage. The default is Photoshop's."
+    },
+    {
+      "id": "bwTint",
+      "label": "Tint",
+      "section": "Black & white",
+      "type": "boolean",
+      "default": false,
+      "urlKey": "bwt",
+      "showIf": {
+        "bwMode": true
+      },
+      "help": "Colours the grey while keeping its tones, for a sepia or cyanotype print."
+    },
+    {
+      "id": "bwTintHue",
+      "label": "Tint hue",
+      "section": "Black & white",
+      "type": "number",
+      "display": "slider",
+      "default": 35,
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "urlKey": "bwh",
+      "showIf": {
+        "bwMode": true,
+        "bwTint": true
+      },
+      "help": "The tint's hue in degrees. 35 is a warm sepia; around 210 is a cyanotype blue."
+    },
+    {
+      "id": "bwTintSat",
+      "label": "Tint strength",
+      "section": "Black & white",
+      "type": "number",
+      "display": "slider",
+      "default": 25,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "urlKey": "bws",
+      "showIf": {
+        "bwMode": true,
+        "bwTint": true
+      },
+      "help": "How strongly the tint colours the grey."
+    },
+    {
+      "id": "cbRange",
+      "label": "Tones",
+      "section": "Colour balance",
+      "type": "select",
+      "display": "segmented",
+      "default": "midtones",
+      "urlKey": "cbr",
+      "options": [
+        {
+          "value": "shadows",
+          "label": "Shadows"
+        },
+        {
+          "value": "midtones",
+          "label": "Midtones"
+        },
+        {
+          "value": "highlights",
+          "label": "Highlights"
+        }
+      ],
+      "help": "Which tonal range the three sliders below shift. Each range fades into the next, so a shift never bands."
+    },
+    {
+      "id": "cbShadowsCR",
+      "label": "Cyan to red",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb0",
+      "showIf": {
+        "cbRange": "shadows"
+      },
+      "help": "Negative moves this range towards cyan, positive towards red."
+    },
+    {
+      "id": "cbShadowsMG",
+      "label": "Magenta to green",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb1",
+      "showIf": {
+        "cbRange": "shadows"
+      },
+      "help": "Negative moves this range towards magenta, positive towards green."
+    },
+    {
+      "id": "cbShadowsYB",
+      "label": "Yellow to blue",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb2",
+      "showIf": {
+        "cbRange": "shadows"
+      },
+      "help": "Negative moves this range towards yellow, positive towards blue."
+    },
+    {
+      "id": "cbMidtonesCR",
+      "label": "Cyan to red",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb3",
+      "showIf": {
+        "cbRange": "midtones"
+      },
+      "help": "Negative moves this range towards cyan, positive towards red."
+    },
+    {
+      "id": "cbMidtonesMG",
+      "label": "Magenta to green",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb4",
+      "showIf": {
+        "cbRange": "midtones"
+      },
+      "help": "Negative moves this range towards magenta, positive towards green."
+    },
+    {
+      "id": "cbMidtonesYB",
+      "label": "Yellow to blue",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb5",
+      "showIf": {
+        "cbRange": "midtones"
+      },
+      "help": "Negative moves this range towards yellow, positive towards blue."
+    },
+    {
+      "id": "cbHighlightsCR",
+      "label": "Cyan to red",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb6",
+      "showIf": {
+        "cbRange": "highlights"
+      },
+      "help": "Negative moves this range towards cyan, positive towards red."
+    },
+    {
+      "id": "cbHighlightsMG",
+      "label": "Magenta to green",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb7",
+      "showIf": {
+        "cbRange": "highlights"
+      },
+      "help": "Negative moves this range towards magenta, positive towards green."
+    },
+    {
+      "id": "cbHighlightsYB",
+      "label": "Yellow to blue",
+      "section": "Colour balance",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "urlKey": "cb8",
+      "showIf": {
+        "cbRange": "highlights"
+      },
+      "help": "Negative moves this range towards yellow, positive towards blue."
+    },
+    {
+      "id": "cbPreserve",
+      "label": "Preserve luminosity",
+      "section": "Colour balance",
+      "type": "boolean",
+      "default": true,
+      "urlKey": "cbp",
+      "help": "Keeps each pixel's brightness as it was, so only its colour moves."
     },
     {
       "id": "filmLook",

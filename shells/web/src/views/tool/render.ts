@@ -25,6 +25,7 @@ import { mountEmoji } from '../emoji-mount.ts';
 import { boundEndpointIds, geometryFastPathPlan } from '../canvas-scene.ts';
 import type { Box } from '../free-canvas-math.ts';
 import { c2paDefaultOn, exportTargetNode, extFor, isCmykFmt, isPrintFmt } from '../tool-actions.ts';
+import { addressedFramePage } from '../../lib/export-target.ts';
 import { exportPixelSize } from '../export-dimension-fields.ts';
 import { armAutoCopy, resolveCanvasAnnotations } from './shared.ts';
 import type { RunExportOpts, } from './shared.ts';
@@ -541,8 +542,16 @@ export function paint(tview: ToolViewCtx): void {
         }
         tview.exporting.exportUnscaled(
           () =>
-            { const { exportSourceNode, runtime } = tview; return runtime
-              .export(exportTargetNode(exportSourceNode), fmt, expOpts)
+            { const { exportSourceNode, runtime } = tview;
+              // `s=` picks one artboard of a framed document: export that page at its own
+              // size (the panel's fan-out does the same), not the whole stage.
+              const page = addressedFramePage(exportSourceNode, fmt, tview.presentAddress);
+              if (page) {
+                if (!((urlWidth ?? 0) > 0)) expOpts.width = page.offsetWidth;
+                if (!((urlHeight ?? 0) > 0)) expOpts.height = page.offsetHeight;
+              }
+              return runtime
+              .export(page ?? exportTargetNode(exportSourceNode), fmt, expOpts)
               .then((blob) => tview.host.export.download(blob, `${name}.${extFor(fmt, blob)}`))
               .catch((err) => console.error('Auto-export failed:', err)); },
           // A deep link names its own size, so this export knows what it renders at: a tool

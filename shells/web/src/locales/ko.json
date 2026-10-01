@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: 이 사이트는 다른 페이지 안에 표시하는 것을 허용하지 않아요",
   "{n} px wide": "너비 {n} px",
   "{n} sites": "사이트 {n}개",
-  "{org} does not allow {host} here.": "{org}은(는) 여기서 {host}을(를) 허용하지 않아요."
+  "{org} does not allow {host} here.": "{org}은(는) 여기서 {host}을(를) 허용하지 않아요.",
+  "Allow pages from any site": "모든 사이트의 페이지 허용",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly가 서버에 연결해 확인할 수 없었어요. 온라인 상태가 되면 다시 시도해 주세요.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "웹 버전에서는 이 설정을 켜기 전까지 Design이 동영상과 지도 플레이어만 표시해요. 켜면 Lolly가 이 기기에서 더 느슨한 프레임 정책으로 다시 로드되며, 신뢰하지 않은 사이트를 로드하기 전에는 계속 물어봐요.",
+  "Pages from any site": "모든 사이트의 페이지",
+  "The web version of Lolly cannot show this site.": "웹 버전 Lolly에서는 이 사이트를 표시할 수 없어요.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "웹 버전 Lolly에서는 여기에 동영상과 지도 플레이어만 표시할 수 있어요. {host}을(를) 표시하려면 프로필에서 모든 사이트의 페이지를 허용하거나 데스크톱 앱을 사용하세요.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "이 서버는 모든 사이트의 페이지를 제공하지 않아요. 데스크톱 앱에서는 모든 페이지를 표시할 수 있어요.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "웹 버전에서 표시할 수 없는 사이트를 표시하기 위해 Lolly가 이 기기에서 더 느슨한 프레임 정책으로 다시 로드한 다음, 발표하기 전에 사이트마다 물어볼 수 있어요. 프로필의 신뢰하는 사이트에서 끌 수 있어요."
 }

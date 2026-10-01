@@ -85,7 +85,7 @@
   display: inline-flex; align-items: center; justify-content: center;
   width: var(--object-check-size); height: var(--object-check-size); padding: 0;
   border: 2px solid #fff; border-radius: var(--ui-radius-choice-round);
-  cursor: pointer; color: transparent; background: #0006;
+  cursor: pointer; color: transparent; background: #0003;
   -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
   opacity: 0;
   transition: opacity var(--ui-motion-feedback), background var(--ui-motion-feedback), color var(--ui-motion-feedback);

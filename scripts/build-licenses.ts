@@ -605,6 +605,26 @@ const MANIFEST: {
       note: 'Build-time recipes only, and only one of them is referenced: libayatana-appindicator/libayatana-appindicator-gtk3.json, which supplies the tray library the desktop app links against inside flatpak-builder. No file from this tree is compiled into or shipped with the web build, which is why it is absent from THIRD-PARTY-LICENSES.txt. Vendored at the 2026-09-11 fold because it had been a nested git submodule.',
       where: 'desktop',
     },
+    {
+      name: 'Compositor image-processing kernels (adapted)',
+      version: 'git 11d8d7a50992b24fd9a760a1c13b1c01b70aaf30',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2026 Wonder Assembly LLC',
+      files: 'community/filter/hooks.js (Atkinson kernel, 8x8 fill patterns, dot-pixel radius)',
+      text: `Copyright (c) 2026 Wonder Assembly LLC\n\n${MIT_BODY}`,
+      note: 'Algorithms and tables translated into Lolly\'s own code from Compositor (https://github.com/robbietilton/Compositor), Compositor/Rendering/DitherPixels.c. No Compositor source file is copied. plans/289 lists what is adapted and from where.',
+      where: 'web',
+    },
+    {
+      name: 'Composa edge tracer (adapted)',
+      version: 'git 4322495dae4836c0be26d1c85b0741bc63798a30',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2026 Dennis van der Stelt',
+      files: 'engine/src/edge-trace.ts',
+      text: `Copyright (c) 2026 Dennis van der Stelt\n\n${MIT_BODY}`,
+      note: 'The Canny thresholds, the chain following with its one-pixel gap bridge and the Douglas-Peucker simplification, translated into Lolly\'s own code from Composa (https://github.com/dvdstelt/Composa), src/Composa.Core/Painting/EdgeTracer.cs. No Composa source file is copied. Used by the MCP server\'s lolly_trace_edges.',
+      where: 'web',
+    },
   ],
   icons: [
     {

@@ -63,6 +63,8 @@ export function mountInputEmoji(
       : input;
     if (!spec || !['text', 'longtext', undefined].includes(spec.type)) continue;
     if ('optionsFrom' in spec && spec.optionsFrom) continue;
+    // A tone curve field holds level numbers, never prose.
+    if ('display' in spec && spec.display === 'curve') continue;
     const native = (): TextField | null => target.matches('input, textarea')
       ? target as TextField : target.shadowRoot?.querySelector<TextField>('input, textarea') ?? null;
     const field = native();

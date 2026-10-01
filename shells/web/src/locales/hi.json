@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: साइट दूसरे पेजों के अंदर दिखाए जाने की अनुमति नहीं देती",
   "{n} px wide": "{n} px चौड़ा",
   "{n} sites": "{n} साइटें",
-  "{org} does not allow {host} here.": "{org} यहाँ {host} की अनुमति नहीं देता।"
+  "{org} does not allow {host} here.": "{org} यहाँ {host} की अनुमति नहीं देता।",
+  "Allow pages from any site": "किसी भी साइट के पेज की अनुमति दें",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly जाँच के लिए अपने सर्वर तक नहीं पहुँच सका। ऑनलाइन होने पर फिर कोशिश करें।",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "वेब संस्करण में, जब तक आप इसे चालू नहीं करते, Design सिर्फ़ वीडियो और मानचित्र प्लेयर दिखाता है। इसके बाद Lolly इस डिवाइस पर ढीली फ़्रेम नीति के साथ फिर से लोड होता है, और जिस साइट पर आपने भरोसा नहीं किया उसे लोड करने से पहले अब भी पूछता है।",
+  "Pages from any site": "किसी भी साइट के पेज",
+  "The web version of Lolly cannot show this site.": "Lolly का वेब संस्करण यह साइट नहीं दिखा सकता।",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Lolly का वेब संस्करण यहाँ सिर्फ़ वीडियो और मानचित्र प्लेयर दिखाता है। {host} दिखाने के लिए अपनी प्रोफ़ाइल में किसी भी साइट के पेज की अनुमति दें, या डेस्कटॉप ऐप इस्तेमाल करें।",
+  "This server does not offer pages from any site. The desktop app can show any page.": "यह सर्वर किसी भी साइट के पेज नहीं देता। डेस्कटॉप ऐप कोई भी पेज दिखा सकता है।",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "जिन साइटों को वेब संस्करण नहीं दिखा सकता उन्हें दिखाने के लिए Lolly इस डिवाइस पर ढीली फ़्रेम नीति के साथ फिर से लोड हो सकता है, फिर प्रस्तुत करने से पहले हर साइट के बारे में पूछता है। आप इसे अपनी प्रोफ़ाइल में भरोसेमंद साइटें के तहत बंद कर सकते हैं।"
 }

@@ -423,3 +423,23 @@ test('PERF: unterminated comment openers scan linearly, not quadratically', () =
   const ms = performance.now() - t0;
   assert.ok(ms < 1000, `256KB of unterminated openers took ${Math.round(ms)}ms (was ~1400ms quadratic)`);
 });
+
+test('the "beside it" pointer feeds the Claude-phrasing score; spatial help text does not', () => {
+  const pointer = analyzeTextSignals(
+    'Every claim on the page comes with the mechanism that enforces it beside it. There is ' +
+    'no second, richer configuration behind it, and the principle above it still applies to ' +
+    'every export we make for customers across the whole year.',
+    { source: 'digital' },
+  );
+  const tell = pointer.findings.find((f) => f.kind === 'claude-tell');
+  assert.ok(tell, 'expected a Claude-phrasing finding');
+  assert.match(tell!.detail ?? '', /pointer/);
+
+  const spatial = analyzeTextSignals(
+    'Open the export panel. The format menu sits at the top, with the size field below it. ' +
+    'Pick a preset, then press the Download button beside it. On a phone the preview moves ' +
+    'and the controls stack above it instead.',
+    { source: 'digital' },
+  );
+  assert.ok(!spatial.findings.some((f) => f.kind === 'claude-tell'), 'spatial help text must not read as a Claude tell');
+});

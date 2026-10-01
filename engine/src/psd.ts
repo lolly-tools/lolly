@@ -46,6 +46,7 @@
  */
 
 import { parseIccProfile } from './icc.ts';
+import { readLayerSemantics, SEMANTIC_BLOCK_KEYS } from './psd-layer-semantics.ts';
 import { packBitsDecode } from './packbits.ts';
 import { type DeepFrame, convertSpace, linearToSrgb } from './pixels.ts';
 import {
@@ -144,6 +145,8 @@ interface LayerRec {
   };
   /** Absolute offset/length of this layer's channel image data. */
   dataAt: number;
+  /** Bounded copies of the tagged blocks psd-layer-semantics.ts reads. */
+  blocks?: Map<string, Uint8Array>;
 }
 
 export function readPsd(bytes: Uint8Array, opts: PsdReadOptions = {}): LayeredRasterDoc {
@@ -233,8 +236,9 @@ export function readPsd(bytes: Uint8Array, opts: PsdReadOptions = {}): LayeredRa
       mergedHasAlpha = rawCount < 0;
       const count = Math.abs(rawCount);
       if (count > MAX_LAYERS) throw new PsdUnsupportedError('bounds', `${count} layers (cap ${MAX_LAYERS})`);
+      const semanticBudget = { left: MAX_SEMANTIC_BYTES };
       for (let i = 0; i < count; i++) {
-        const rec = readLayerRecord(c, liEnd, psb, warn);
+        const rec = readLayerRecord(c, liEnd, psb, warn, semanticBudget);
         if (!rec) { warn('layer.bad', `record ${i} unreadable - remaining layers dropped`); break; }
         records.push(rec);
       }
@@ -286,6 +290,10 @@ export function readPsd(bytes: Uint8Array, opts: PsdReadOptions = {}): LayeredRa
         isGroup,
         groupPath: [...stack],
       };
+      if (rec.blocks && !isGroup) {
+        const semantics = readLayerSemantics(rec.blocks, { x: layer.x, y: layer.y, w: layer.width, h: layer.height }, { w: width, h: height });
+        if (semantics) layer.psd = semantics;
+      }
       if (!isGroup) {
         const px = decodeLayerPixels(c, rec, depth, colorMode, psb, icc, reserve, warn, opts);
         if (px) layer.pixels = px;
@@ -324,7 +332,12 @@ const EMPTY = new Uint8Array(0);
 
 // ─── layer record ────────────────────────────────────────────────────────────
 
-function readLayerRecord(c: Cur, end: number, psb: boolean, warn: (c: string, d?: string) => void): LayerRec | null {
+/** Bytes of semantic tagged blocks kept per layer, and per document. A type
+ *  layer's block is a few kilobytes; these bound a file that pads them. */
+const MAX_SEMANTIC_BYTES_PER_LAYER = 8 << 20;
+const MAX_SEMANTIC_BYTES = 64 << 20;
+
+function readLayerRecord(c: Cur, end: number, psb: boolean, warn: (c: string, d?: string) => void, semanticBudget: { left: number }): LayerRec | null {
   if (c.p + 18 > end) return null;
   const top = c.i32();
   const left = c.i32();
@@ -384,8 +397,11 @@ function readLayerRecord(c: Cur, end: number, psb: boolean, warn: (c: string, d?
     const padded = Math.ceil((nameLen + 1) / 4) * 4 - 1 - nameLen;
     c.p = Math.min(c.p + padded, extraEnd);
   }
-  // Tagged extra blocks: 'luni' (Unicode name), 'lsct' (section divider).
+  // Tagged extra blocks: 'luni' (Unicode name), 'lsct' (section divider), and a
+  // bounded copy of each block psd-layer-semantics.ts reads.
   let section = 0;
+  let blocks: Map<string, Uint8Array> | undefined;
+  let keptHere = 0;
   for (let n = 0; c.p + 12 <= extraEnd && n < MAX_EXTRA_BLOCKS; n++) {
     const sig = c.ascii(4);
     if (sig !== '8BIM' && sig !== '8B64') break;
@@ -406,12 +422,22 @@ function readLayerRecord(c: Cur, end: number, psb: boolean, warn: (c: string, d?
     } else if (key === 'lsct' && c.p + 4 <= blockEnd) {
       section = c.u32();
       if (section < 0 || section > 3) { warn('layer.bad', `lsct type ${section}`); section = 0; }
+    } else if (SEMANTIC_BLOCK_KEYS.has(key) && blockEnd > c.p) {
+      const n = blockEnd - c.p;
+      if (keptHere + n <= MAX_SEMANTIC_BYTES_PER_LAYER && n <= semanticBudget.left) {
+        blocks ??= new Map();
+        blocks.set(key, c.b.slice(c.p, blockEnd));
+        keptHere += n;
+        semanticBudget.left -= n;
+      } else {
+        warn('layer.semantics', `${key} block too large to read`);
+      }
     }
     c.p = blockEnd + (len % 2); // blocks are even-padded
     if (c.p > extraEnd) { c.p = extraEnd; break; }
   }
   c.p = extraEnd;
-  return { top, left, bottom, right, channels, blendKey, opacity, clipping, hidden: (flags & 0x02) !== 0, name, section, mask, dataAt: 0 };
+  return { top, left, bottom, right, channels, blendKey, opacity, clipping, hidden: (flags & 0x02) !== 0, name, section, mask, dataAt: 0, ...(blocks ? { blocks } : {}) };
 }
 
 // ─── channel decoding ────────────────────────────────────────────────────────

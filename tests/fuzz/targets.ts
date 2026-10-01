@@ -1282,7 +1282,21 @@ export const psdTarget: FuzzTarget = {
         { name: 'top', x: 4, y: -1, width: 8, height: 8, pixels: px(8, 8, 11), visible: false },
       ],
     });
-    return [flat, multi];
+    // Type, shape and path layers, so the descriptor and EngineData readers
+    // (psd-descriptor.ts, psd-layer-semantics.ts) are reached from real files.
+    const { typeLayer, origination, solidColor, strokeSettings, vectorMask } = await import('../helpers/psd-fixtures.ts');
+    const semantic = writePsd({
+      width: 40, height: 30,
+      layers: [
+        { name: 'Title', x: 2, y: 3, width: 20, height: 6, pixels: px(20, 6, 7),
+          extraBlocks: [['TySh', typeLayer({ text: 'Fuzz me', font: 'Helvetica-Bold', size: 18, justification: 2, bounds: { left: 0, top: 0, right: 30, bottom: 12 }, glyphBounds: { left: 0, top: 0, right: 10, bottom: 4 } })]] },
+        { name: 'Box', x: 5, y: 5, width: 10, height: 10, pixels: px(10, 10, 13),
+          extraBlocks: [['SoCo', solidColor('#30ba78')], ['vogk', origination(2, { left: 5, top: 5, right: 15, bottom: 15 }, 3)], ['vstk', strokeSettings({ fill: true, stroke: true, width: 2, color: '#000000' })]] },
+        { name: 'Path', x: 0, y: 0, width: 4, height: 4, pixels: px(4, 4, 17),
+          extraBlocks: [['SoCo', solidColor('#ff0000')], ['vmsk', vectorMask(40, 30, [[{ at: [1, 1] }, { at: [30, 2], in: [25, 0], out: [35, 4] }, { at: [10, 25] }]])]] },
+      ],
+    });
+    return [flat, multi, semantic];
   },
   async invoke(bytes) {
     const inflate: InflateFn = (b, maxOut) => {
@@ -1291,6 +1305,29 @@ export const psdTarget: FuzzTarget = {
     };
     try { readPsd(bytes, { inflate, maxDecodedBytes: 8 << 20 }); } catch (e) {
       if ((e as Error).name !== 'PsdUnsupportedError') throw e;
+    }
+  },
+};
+
+// Photoshop's descriptor and EngineData readers (engine/src/psd-descriptor.ts),
+// fed directly so a mutation reaches their nesting, count and string limits
+// without first having to survive a whole PSD file (plans/289 item 1).
+export const psdDescriptorTarget: FuzzTarget = {
+  name: 'psd-descriptor',
+  async seeds() {
+    const { typeLayer, origination, solidColor, strokeSettings } = await import('../helpers/psd-fixtures.ts');
+    const type = typeLayer({ text: 'Seed (one)\rtwo', font: 'Inter-Bold', size: 30, secondSize: 12, bounds: { left: 0, top: 0, right: 90, bottom: 40 }, glyphBounds: { left: 0, top: 0, right: 30, bottom: 10 } });
+    return [type, type.subarray(52), origination(2, { left: 1, top: 2, right: 30, bottom: 20 }, [1, 2, 3, 4]), solidColor('#123456'), strokeSettings({ fill: false, stroke: true, width: 3, color: '#abcdef' })];
+  },
+  async invoke(bytes) {
+    const { readDescriptor, readVersionedDescriptor, parseEngineData } = await import('../../engine/src/psd-descriptor.ts');
+    const { readLayerSemantics } = await import('../../engine/src/psd-layer-semantics.ts');
+    readDescriptor(bytes);
+    readVersionedDescriptor(bytes);
+    if (bytes.length > 8) readDescriptor(bytes, 8);
+    parseEngineData(bytes);
+    for (const key of ['TySh', 'vogk', 'vmsk', 'SoCo', 'vstk']) {
+      readLayerSemantics(new Map([[key, bytes]]), { x: 0, y: 0, w: 50, h: 20 }, { w: 200, h: 100 });
     }
   },
 };
@@ -1857,7 +1894,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
-  depthHintTarget, lutParseTarget, psdTarget, xcfTarget, docxReadTarget,
+  depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, midiTarget, zzfxmTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
   geomTarget, svgItemsTarget,

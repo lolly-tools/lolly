@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: el sitio no permite mostrarse dentro de otras páginas",
   "{n} px wide": "{n} px de ancho",
   "{n} sites": "{n} sitios",
-  "{org} does not allow {host} here.": "{org} no permite {host} aquí."
+  "{org} does not allow {host} here.": "{org} no permite {host} aquí.",
+  "Allow pages from any site": "Permitir páginas de cualquier sitio",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly no pudo conectar con su servidor para comprobarlo. Inténtalo de nuevo cuando tengas conexión.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "En la versión web, Design solo muestra reproductores de vídeo y de mapas hasta que actives esto. Lolly se recarga entonces con una política de marcos más flexible en este dispositivo y sigue preguntando antes de cargar un sitio en el que no hayas confiado.",
+  "Pages from any site": "Páginas de cualquier sitio",
+  "The web version of Lolly cannot show this site.": "La versión web de Lolly no puede mostrar este sitio.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "La versión web de Lolly solo muestra aquí reproductores de vídeo y de mapas. Para mostrar {host}, permite páginas de cualquier sitio en tu perfil o usa la app de escritorio.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Este servidor no ofrece páginas de cualquier sitio. La app de escritorio puede mostrar cualquier página.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Para mostrar los sitios que la versión web no puede mostrar, Lolly puede recargarse con una política de marcos más flexible en este dispositivo y preguntar por cada sitio antes de que presentes. Puedes desactivarlo en tu perfil, en Sitios de confianza."
 }

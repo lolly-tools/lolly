@@ -127,6 +127,9 @@ Core workflow verbs:
 | `lolly_redact` | Redact regions of an image, SVG or PDF on-device - covered content is destroyed and the file rebuilt, so nothing is recoverable underneath. |
 | `lolly_verify` | Verify a file's Content Credentials (C2PA) - the verdict, signer identity, edit history and embedded metadata. Checked in-process, never stored. |
 | `lolly_rebrand` | Renovate an old `.pptx` deck into the active design system, in stages (`capabilities`, `plan`, `compile`, `inspect`) - see `reference/rebrand.md`. Processed in memory, never stored; `capabilities` states where a deck you send would go before you send one. |
+| `lolly_look` | Look at a render with a labelled grid in document units (for Design, a layer's own `x`, `y`, `w`, `h`), or one region of it enlarged. Never an export. |
+| `lolly_sample_color` | Read the colours at points and name the nearest design-system colour with its distance. |
+| `lolly_trace_edges` | A render's or image's edges as polylines, optionally as ready Design path layers. |
 
 For Design, prefer `templateId` plus an optional `presetId` and a small set of
 input overrides. `lolly_describe_tool` lists those starting points; the same

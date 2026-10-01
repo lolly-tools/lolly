@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: situs tidak mengizinkan ditampilkan di dalam halaman lain",
   "{n} px wide": "Lebar {n} px",
   "{n} sites": "{n} situs",
-  "{org} does not allow {host} here.": "{org} tidak mengizinkan {host} di sini."
+  "{org} does not allow {host} here.": "{org} tidak mengizinkan {host} di sini.",
+  "Allow pages from any site": "Izinkan halaman dari situs mana pun",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly tidak dapat menjangkau servernya untuk memeriksa. Coba lagi saat Anda online.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "Di versi web, Design hanya menampilkan pemutar video dan peta sampai Anda mengaktifkan ini. Lolly kemudian dimuat ulang dengan kebijakan frame yang lebih longgar di perangkat ini, dan tetap bertanya sebelum memuat situs yang belum Anda percayai.",
+  "Pages from any site": "Halaman dari situs mana pun",
+  "The web version of Lolly cannot show this site.": "Lolly versi web tidak dapat menampilkan situs ini.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Lolly versi web hanya menampilkan pemutar video dan peta di sini. Untuk menampilkan {host}, izinkan halaman dari situs mana pun di profil Anda, atau gunakan aplikasi desktop.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Server ini tidak menyediakan halaman dari situs mana pun. Aplikasi desktop dapat menampilkan halaman apa pun.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Untuk menampilkan situs yang tidak dapat ditampilkan versi web, Lolly dapat dimuat ulang dengan kebijakan frame yang lebih longgar di perangkat ini, lalu bertanya soal setiap situs sebelum Anda presentasi. Anda dapat mematikannya di profil, di bagian Situs tepercaya."
 }

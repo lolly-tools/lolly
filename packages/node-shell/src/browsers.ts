@@ -16,11 +16,14 @@
  *   3. PLAYWRIGHT_BROWSERS_PATH - an existing browsers dir the env points at
  *   4. the shells' own scoped install (.browsers at the repo root), else any Chromium a
  *      sibling package already downloaded (reused read-only, no second download).
+ *   5. Playwright's own per-user cache (`npx playwright install` puts browsers there),
+ *      reused read-only, so a machine that already has Chromium needs no second copy.
  * The scoped dir is package-neutral (not tied to another package's lifetime), so the
  * terminal shells' raster path keeps working on its own.
  */
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { repoRoot } from './repo-root.ts';
 
 /** Where `lolly install-browser` puts Chromium - a package-neutral repo-root dir. */
@@ -30,14 +33,23 @@ export const INSTALL_BROWSERS_DIR = join(repoRoot(), '.browsers');
 // no second download. Never installed into.
 const SIBLING_BROWSERS_DIR = join(repoRoot(), 'services', 'mcp', '.browsers');
 
+/** Playwright's default per-user browsers dir on this platform (it need not exist). */
+export function playwrightUserCacheDir(env: NodeJS.ProcessEnv = process.env, platform: NodeJS.Platform = process.platform, home = homedir()): string {
+  if (platform === 'darwin') return join(home, 'Library', 'Caches', 'ms-playwright');
+  if (platform === 'win32') return join(env.LOCALAPPDATA || join(home, 'AppData', 'Local'), 'ms-playwright');
+  return join(env.XDG_CACHE_HOME || join(home, '.cache'), 'ms-playwright');
+}
+
 /** Raised for a caller-facing render problem (browser missing, navigation failed). */
 export class BrowserError extends Error {}
 
-/** The browsers dir Chromium is loaded from (env override › shell install › sibling reuse). */
+/** The browsers dir Chromium is loaded from (env override › shell install › sibling reuse › user cache). */
 export function resolveBrowsersDir(): string {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
   if (existsSync(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
   if (existsSync(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
+  const userCache = playwrightUserCacheDir();
+  if (existsSync(userCache)) return userCache;
   return INSTALL_BROWSERS_DIR;
 }
 

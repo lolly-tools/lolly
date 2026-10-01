@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}：该站点不允许显示在其他页面内",
   "{n} px wide": "宽 {n} px",
   "{n} sites": "{n} 个站点",
-  "{org} does not allow {host} here.": "{org} 不允许在此使用 {host}。"
+  "{org} does not allow {host} here.": "{org} 不允许在此使用 {host}。",
+  "Allow pages from any site": "允许来自任何站点的页面",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly 无法连接服务器进行检查。请在联网后重试。",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "在网页版中，开启此项前，Design 只显示视频和地图播放器。开启后，Lolly 会在此设备上以更宽松的框架策略重新加载，并且在加载你未信任的站点前仍会询问。",
+  "Pages from any site": "来自任何站点的页面",
+  "The web version of Lolly cannot show this site.": "Lolly 网页版无法显示此站点。",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Lolly 网页版在这里只显示视频和地图播放器。要显示 {host}，请在你的个人资料中允许来自任何站点的页面，或使用桌面应用。",
+  "This server does not offer pages from any site. The desktop app can show any page.": "此服务器不提供来自任何站点的页面。桌面应用可以显示任何页面。",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "要显示网页版无法显示的站点，Lolly 可以在此设备上以更宽松的框架策略重新加载，并在你演示前逐个询问每个站点。你可以在个人资料的“受信任的站点”中关闭此项。"
 }

@@ -262,6 +262,20 @@ describe('service worker: the app shell key', () => {
       'an extension in the last path segment means it is not the SPA shell');
   });
 
+  test('the /any-site/ shell is served but never stored as the shell', async () => {
+    // Its response carries the wider frame policy ("Allow pages from any site",
+    // lib/any-site.ts); stored under the shell key it would reach / offline after the
+    // setting was turned off.
+    const h = loadServiceWorker();
+    h.server.set('/', 'APP_SHELL');
+    h.server.set('/any-site/', 'WIDE_SHELL');
+    await navigate(h, 'https://lolly.tools/');
+    assert.equal(await navigate(h, 'https://lolly.tools/any-site/'), 'WIDE_SHELL', 'online, the wider shell comes from the network');
+    assert.equal(shellEntry(h), 'APP_SHELL', 'the stored shell keeps the hosted policy');
+    h.offline.value = true;
+    assert.equal(await navigate(h, 'https://lolly.tools/any-site/'), 'APP_SHELL', 'offline, the ordinary shell boots instead');
+  });
+
   test('offline, a non-shell document gets the offline sentinel, not the app', async () => {
     const h = loadServiceWorker();
     h.server.set('/', 'APP_SHELL');

@@ -33,6 +33,7 @@ import { prepareAssetForVerify, setPendingVerify } from '../../lib/verify-handof
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { CAT_ICONS, DOWNLOAD_ICON, emojiPackMeta, emojiPackSource } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
+import { appPathname } from '../../lib/any-site.ts';
 
 // Open on a favourite-swatch tile → reveal the Swatches reference panel below.
 export function revealSwatches(cat: CatCtx): void {
@@ -420,7 +421,7 @@ export async function maybeHealTtsClip(cat: CatCtx, ref: AssetRef): Promise<void
 }
 // The canonical shareable link that reopens this modal from the catalog view.
 export const assetLink = (_cat: CatCtx, ref: AssetRef): string =>
-  `${location.origin}${location.pathname}#/a?asset=${encodeURIComponent(ref.id)}`;
+  `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(ref.id)}`;
 // The previous/next asset for the details modal's lightbox paging - in on-screen grid
 // order, skipping tiles inside a collapsed group so paging matches what's visible.
 export function navRefs(cat: CatCtx, ref: AssetRef): { prev: AssetRef | null; next: AssetRef | null } {

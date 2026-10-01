@@ -38,6 +38,10 @@ import type {
 } from '../../../../engine/src/raster-layers.ts';
 import { packPng } from '../../../../engine/src/png.ts';
 import { sniffLayeredRaster } from '../../../../engine/src/media-sniff.ts';
+import { encodeAuthoredPaths } from '../../../../engine/src/geom/authored-url.ts';
+import type { DesignMapOptions } from '../../../../engine/src/design-map.ts';
+import type { PsdSubpath, PsdTextRun } from '../../../../engine/src/psd-layer-semantics.ts';
+import { markdownFromChars } from './rich-text.ts';
 import type { PickerHost } from './picker.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import type { UnpackHandle } from './unpack-open.ts';
@@ -139,6 +143,29 @@ function groupPathOf(l: RasterLayer, doc: LayeredRasterDoc): string {
 }
 
 /**
+ * One layer as a Design image node, placed at its natural bounds. The layer's
+ * opacity is a 0..1 fraction (psd.ts divides the record's byte by 255) and a
+ * DesignNode's is a percentage (design-map.ts rounds and clamps to 0..100), so
+ * it is scaled here. Passing the fraction through unscaled made every opaque
+ * layer arrive at 1%.
+ */
+export function designNodeFromLayer(l: RasterLayer, image: unknown, group: string): Record<string, unknown> {
+  return {
+    kind: 'image',
+    x: l.x,
+    y: l.y,
+    w: l.width,
+    h: l.height,
+    rot: 0,
+    opacity: Math.round(l.opacity * 100),
+    image,
+    fit: 'fill',
+    blend: l.blend === 'normal' ? undefined : l.blend,
+    group: group || undefined,
+  };
+}
+
+/**
  * The "Open as layers" journey. Parses, asks flat-vs-grouped when the file has
  * groups, stores one PNG asset per layer, and returns the darkroom layers seed - 
  * or null when the user cancelled the dialog.
@@ -205,41 +232,232 @@ export async function importLayeredFileAsSeed(
  */
 export async function parseLayeredAsDesign(
   file: File | Blob,
-  { host, warn }: { host: PickerHost; warn: (msg: string) => void },
-): Promise<{ boxes: unknown[]; width: number; height: number; background: string }> {
+  { host, warn, map, interactive }: { host: PickerHost; warn: (msg: string) => void; map?: DesignMapOptions; interactive?: boolean },
+): Promise<{ boxes: unknown[]; width: number; height: number; background: string; fontSubstitutions?: string[] }> {
   const bytes = new Uint8Array(await file.arrayBuffer());
   const doc = await parseLayeredBytes(bytes, warn);
-  const layers = doc.layers.filter(importable);
   const { finalizeBoxes } = await import('../../../../engine/src/design-map.ts');
-  const { storeUserUpload } = await import('./picker.ts');
 
-  const nodes: unknown[] = [];
-  for (let i = 0; i < layers.length; i++) {
-    const l = layers[i]!;
-    if (!l.visible) continue; // an editor import keeps what the artwork shows
+  // Plan every visible layer first: live text, shapes, paths and fills come in
+  // editable; everything else as its pixels. Nothing is stored until the
+  // person has seen what will change.
+  type Planned = { layer: RasterLayer; live: LiveDesignNode | null };
+  const planned: Planned[] = [];
+  const notes: string[] = [];
+  for (const l of doc.layers) {
+    if (l.isGroup || !l.visible) continue; // an editor import keeps what the artwork shows
+    const live = liveDesignNode(l, { w: doc.width, h: doc.height }, groupPathOf(l, doc));
+    const name = l.name || t('Untitled layer');
+    for (const note of [...(l.psd?.notes ?? []), ...(live?.notes ?? [])]) notes.push(`${name}: ${note}`);
+    if (live || l.pixels.length > 0) planned.push({ layer: l, live });
+  }
+  if (!planned.length) throw new Error(t('No layers with pixels could be read from this file.'));
+
+  // Clipping: a clipped layer clips to the nearest unclipped layer below that layer.
+  // Design follows an ellipse exactly and any other box by its rectangle.
+  const clipTo: Array<number | null> = planned.map(() => null);
+  for (let i = 0; i < planned.length; i++) {
+    if (!planned[i]!.layer.clipped) continue;
+    let base = i - 1;
+    while (base >= 0 && planned[base]!.layer.clipped) base--;
+    if (base < 0) continue;
+    clipTo[i] = base;
+    const b = planned[base]!.live;
+    const exact = b?.kind === 'shape' && (b.node.shape === 'ellipse' || b.node.shape === 'rect');
+    if (!exact) notes.push(`${planned[i]!.layer.name || t('Untitled layer')}: ${t('Clipped to the rectangle around “{base}”, not its exact outline.', { base: planned[base]!.layer.name || t('Untitled layer') })}`);
+  }
+
+  if (notes.length) {
+    if (interactive) {
+      const ok = await choiceDialog({
+        title: t('Open with these changes?'),
+        message: t('Text, shapes and paths come in editable. Some parts of “{name}” cannot be kept as they are:', { name: (file as File).name || t('this file') }),
+        items: notes,
+        choices: [{ id: 'open', label: t('Open'), primary: true }],
+        tag: 'psd-import',
+      });
+      if (!ok) throw new Error(t('Import cancelled.'));
+    } else {
+      for (const note of notes) warn(note);
+    }
+  }
+
+  // The picker (asset storage) loads only when a layer needs its pixels stored.
+  let storeUserUpload: typeof import('./picker.ts').storeUserUpload | null = null;
+  const nodes: Record<string, unknown>[] = [];
+  const paths: Array<string | null> = [];
+  const markups = new Map<Record<string, unknown>, string>();
+  for (let i = 0; i < planned.length; i++) {
+    const { layer: l, live } = planned[i]!;
+    if (live) {
+      nodes.push(live.node);
+      paths.push(live.path ?? null);
+      if (live.markup != null) markups.set(live.node, live.markup);
+      continue;
+    }
+    storeUserUpload ??= (await import('./picker.ts')).storeUserUpload;
     const png = packPng(l.pixels, { width: l.width, height: l.height, channels: 4 });
     const ref = await storeUserUpload(host, new File([png as BlobPart], `l${i}.png`, { type: 'image/png' }));
-    nodes.push({
-      kind: 'image',
-      x: l.x,
-      y: l.y,
-      w: l.width,
-      h: l.height,
-      rot: 0,
-      opacity: l.opacity,
-      image: ref,
-      fit: 'fill',
-      blend: l.blend === 'normal' ? undefined : l.blend,
-      group: groupPathOf(l, doc) || undefined,
+    nodes.push(designNodeFromLayer(l, ref, groupPathOf(l, doc)));
+    paths.push(null);
+  }
+
+  // Measure live text in the font it will be drawn with, so a substituted face
+  // that sets wider does not wrap or clip; keep the edge the alignment reads from.
+  const textNodes = nodes.filter(n => n.kind === 'text');
+  let fontSubstitutions: string[] = [];
+  if (textNodes.length) {
+    const before = textNodes.map(n => Number(n.w));
+    const { prepareSvgText } = await import('./design-import-text.ts');
+    fontSubstitutions = await prepareSvgText(textNodes as Parameters<typeof prepareSvgText>[0], map);
+    textNodes.forEach((n, k) => {
+      const grew = Number(n.w) - before[k]!;
+      if (grew > 0 && n.textAlign === 'center') n.x = Number(n.x) - grew / 2;
+      else if (grew > 0 && n.textAlign === 'right') n.x = Number(n.x) - grew;
     });
   }
-  if (!nodes.length) throw new Error(t('No layers with pixels could be read from this file.'));
-  return {
-    boxes: finalizeBoxes(nodes as Parameters<typeof finalizeBoxes>[0], { prefix: 'psd' }),
-    width: doc.width,
-    height: doc.height,
-    background: '#ffffff',
-  };
+  // Measured as plain text; the styles go on now, in the editor's own markup.
+  for (const [node, markup] of markups) node.text = markup;
+
+  const boxes: Record<string, unknown>[] = finalizeBoxes(nodes as Parameters<typeof finalizeBoxes>[0], { prefix: 'psd', ...map }).map((b) => ({ ...b }));
+  if (boxes.length === nodes.length) {
+    boxes.forEach((b, i) => {
+      // The layer's own name labels its row in the layer list, as it did in Photoshop.
+      const name = scrub(planned[i]!.layer.name).slice(0, 80);
+      if (name) b.name = name;
+      const wire = paths[i];
+      if (wire) Object.assign(b, { kind: 'path', shape: 'rect', path: wire, fillRule: 'nonzero' });
+      const base = clipTo[i];
+      if (base != null) b.clip = boxes[base]!.id;
+    });
+  }
+  return { boxes, width: doc.width, height: doc.height, background: '#ffffff', ...(fontSubstitutions.length ? { fontSubstitutions } : {}) };
+}
+
+/**
+ * Photoshop style runs as Design's inline markup, written by the same function the
+ * text editor saves with: italic, and the colour, weight, underline and
+ * strikethrough that differ from the box's own. So an imported word in italic stays
+ * italic, edits like typed text and reaches the vector export.
+ */
+export function psdRunsToMarkup(runs: ReadonlyArray<Pick<PsdTextRun, 'text' | 'weight' | 'italic' | 'color' | 'underline' | 'strike'>>, base: { weight: number; color: string | null }): string {
+  const baseColor = (base.color ?? '').toLowerCase();
+  const chars: Parameters<typeof markdownFromChars>[0] = [];
+  for (const run of runs) {
+    const color = run.color && run.color.toLowerCase() !== baseColor ? run.color.toLowerCase() : null;
+    const weight = run.weight !== base.weight ? Math.min(900, Math.max(100, Math.round(run.weight / 100) * 100)) : null;
+    for (const ch of run.text) {
+      chars.push({ ch, b: false, i: run.italic && ch !== '\n', c: color, w: weight, u: run.underline, s: run.strike, f: null });
+    }
+  }
+  return markdownFromChars(chars);
+}
+
+/** A layer that comes into Design as something editable, not as its pixels. */
+export interface LiveDesignNode {
+  kind: 'text' | 'shape' | 'path' | 'fill';
+  /** A DesignNode for `finalizeBoxes`. */
+  node: Record<string, unknown>;
+  /** For a path: the Design `path` field (an authored cubic path, nodes as fractions of the box). */
+  path?: string;
+  /** For text: the text with its per-run styles as Design inline markup. `node.text`
+   *  stays plain until the import has measured the text. */
+  markup?: string;
+  /** What this mapping cannot keep, beyond the layer's own notes. */
+  notes: string[];
+}
+
+/**
+ * The editable Design node for a Photoshop layer, or null when the layer comes
+ * in as pixels. Reads the layer's `psd` semantics (engine psd-layer-semantics.ts).
+ */
+export function liveDesignNode(l: RasterLayer, canvas: { w: number; h: number }, group: string): LiveDesignNode | null {
+  const s = l.psd;
+  if (!s) return null;
+  const opacity = Math.round(l.opacity * (s.fillOpacity ?? 1) * 100);
+  const common = { opacity, blend: l.blend === 'normal' ? undefined : l.blend, group: group || undefined };
+  const notes: string[] = [];
+  if (s.fillOpacity != null) notes.push(t('Fill opacity was combined with the layer opacity.'));
+  if (s.text) {
+    const x = s.text;
+    return {
+      kind: 'text',
+      notes,
+      markup: psdRunsToMarkup(x.runs, { weight: x.weight, color: x.color }),
+      node: {
+        kind: 'text', ...common,
+        x: x.box.x, y: x.box.y, w: x.box.w, h: x.box.h, rot: x.rotation,
+        text: x.text, fg: x.color ?? '#000000', fontSize: x.size, fontFamily: x.family ?? '', fontWeight: x.weight,
+        textAlign: x.align, lineHeight: x.lineHeight, tracking: x.tracking, pad: 0, fill: '',
+      },
+    };
+  }
+  if (s.shape) {
+    const x = s.shape;
+    return {
+      kind: 'shape',
+      notes,
+      node: {
+        kind: 'box', ...common, x: x.box.x, y: x.box.y, w: x.box.w, h: x.box.h,
+        shape: x.kind === 'ellipse' ? 'ellipse' : x.kind === 'rounded' ? 'rounded' : 'rect', radius: x.radius,
+        fill: x.fill ?? '', ...(x.stroke ? { stroke: x.stroke.color, strokeW: x.stroke.width } : {}),
+      },
+    };
+  }
+  if (s.path) {
+    const built = designPathFromSubpaths(s.path.subpaths);
+    if (!built) return null;
+    if (s.path.subpaths.length > 1) notes.push(t('Several outlines in one shape are combined with the non-zero rule.'));
+    return {
+      kind: 'path',
+      notes,
+      path: built.wire,
+      node: {
+        kind: 'box', ...common, ...built.box, fill: s.path.fill ?? '',
+        ...(s.path.stroke ? { stroke: s.path.stroke.color, strokeW: s.path.stroke.width } : {}),
+      },
+    };
+  }
+  if (s.fill) {
+    const has = l.width > 0 && l.height > 0;
+    return {
+      kind: 'fill',
+      notes,
+      node: { kind: 'box', ...common, shape: 'rect', fill: s.fill, x: has ? l.x : 0, y: has ? l.y : 0, w: has ? l.width : canvas.w, h: has ? l.height : canvas.h },
+    };
+  }
+  return null;
+}
+
+/**
+ * Photoshop path knots (document pixels, with their incoming and outgoing
+ * control points) as a Design path: the box is the bounds of every point and
+ * handle, and each node and handle is a fraction of that box, as Design stores
+ * a path so it stays editable when the box is resized.
+ */
+export function designPathFromSubpaths(subpaths: PsdSubpath[]): { wire: string; box: { x: number; y: number; w: number; h: number } } | null {
+  const pts: number[][] = [];
+  for (const sp of subpaths) for (const k of sp.knots) pts.push([k.x, k.y], [k.inX, k.inY], [k.outX, k.outY]);
+  if (!pts.length) return null;
+  const xs = pts.map(p => p[0]!), ys = pts.map(p => p[1]!);
+  const x = Math.floor(Math.min(...xs)), y = Math.floor(Math.min(...ys));
+  const w = Math.max(1, Math.ceil(Math.max(...xs)) - x), h = Math.max(1, Math.ceil(Math.max(...ys)) - y);
+  const fx = (v: number) => (v - x) / w, fy = (v: number) => (v - y) / h;
+  const authored = subpaths.map(sp => ({
+    kind: 'cubic' as const,
+    closed: sp.closed,
+    nodes: sp.knots.map(k => ({
+      x: fx(k.x), y: fy(k.y),
+      hInX: fx(k.inX) - fx(k.x), hInY: fy(k.inY) - fy(k.y),
+      hOutX: fx(k.outX) - fx(k.x), hOutY: fy(k.outY) - fy(k.y),
+      continuity: 'corner' as const,
+    })),
+  }));
+  try {
+    return { wire: encodeAuthoredPaths(authored), box: { x, y, w, h } };
+  } catch {
+    return null;
+  }
 }
 
 /**

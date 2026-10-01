@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: de site staat niet toe om in andere pagina's te worden getoond",
   "{n} px wide": "{n} px breed",
   "{n} sites": "{n} sites",
-  "{org} does not allow {host} here.": "{org} staat {host} hier niet toe."
+  "{org} does not allow {host} here.": "{org} staat {host} hier niet toe.",
+  "Allow pages from any site": "Pagina's van elke site toestaan",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly kon zijn server niet bereiken om te controleren. Probeer het opnieuw als je online bent.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "In de webversie toont Design alleen video- en kaartspelers totdat je dit aanzet. Lolly laadt dan opnieuw onder een ruimer framebeleid op dit apparaat en vraagt nog steeds eerst toestemming voordat een site wordt geladen die je niet vertrouwt.",
+  "Pages from any site": "Pagina's van elke site",
+  "The web version of Lolly cannot show this site.": "De webversie van Lolly kan deze site niet tonen.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "De webversie van Lolly toont hier alleen video- en kaartspelers. Om {host} te tonen, sta je in je profiel pagina's van elke site toe of gebruik je de desktopapp.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Deze server biedt geen pagina's van elke site aan. De desktopapp kan elke pagina tonen.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Om de sites te tonen die de webversie niet kan tonen, kan Lolly opnieuw laden onder een ruimer framebeleid op dit apparaat en daarna per site vragen voordat je presenteert. Je kunt dit uitzetten in je profiel, onder Vertrouwde sites."
 }

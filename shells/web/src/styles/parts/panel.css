@@ -471,6 +471,7 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
   min-height: calc(var(--ui-size-control) * 2.5);
   padding-block: var(--sp-2);
   resize: vertical;
+  font-family: var(--ui-type-mono-family);
 }
 
 .lp-num {

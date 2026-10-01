@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label} : le site n'autorise pas son affichage dans d'autres pages",
   "{n} px wide": "{n} px de large",
   "{n} sites": "{n} sites",
-  "{org} does not allow {host} here.": "{org} n'autorise pas {host} ici."
+  "{org} does not allow {host} here.": "{org} n'autorise pas {host} ici.",
+  "Allow pages from any site": "Autoriser les pages de n'importe quel site",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly n'a pas pu joindre son serveur pour vérifier. Réessaie quand tu es en ligne.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "Dans la version web, Design n'affiche que des lecteurs vidéo et de cartes tant que tu n'actives pas cette option. Lolly se recharge alors avec une politique de cadres plus souple sur cet appareil, et te demande toujours avant de charger un site auquel tu n'as pas fait confiance.",
+  "Pages from any site": "Pages de n'importe quel site",
+  "The web version of Lolly cannot show this site.": "La version web de Lolly ne peut pas afficher ce site.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "La version web de Lolly n'affiche ici que des lecteurs vidéo et de cartes. Pour afficher {host}, autorise les pages de n'importe quel site dans ton profil, ou utilise l'appli de bureau.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Ce serveur ne propose pas les pages de n'importe quel site. L'appli de bureau peut afficher n'importe quelle page.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Pour afficher les sites que la version web ne peut pas afficher, Lolly peut se recharger avec une politique de cadres plus souple sur cet appareil, puis te demander confirmation pour chaque site avant ta présentation. Tu peux désactiver cela dans ton profil, sous Sites de confiance."
 }

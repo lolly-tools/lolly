@@ -12,7 +12,7 @@
 import { buildPptxParts, EMU_PER_PX, parseGradientAngle, parseGradientStop, splitCssArgs, svgToNativePptx } from "@lolly/engine";
 import type { PptxSlide, PptxShape, PptxFill, PptxMedia, PptxLayout, PptxAudio } from "../../../../engine/src/pptx.ts";
 import { parseCssColorFull, objectPositionFractions } from "./export-css.ts";
-import { asStr, deckAnim, deckAudioExt, deckBox, deckFill, deckNarrationMark, deckNotes, deckPlaceholder, deckSrcRect, deckSlideTransitions, deckSyncShape, deckTheme, emuOf, parseDeckModel, type DeckBox, type DeckColorResolver, type DeckNotes, type DeckNoteSink } from "./pptx-deck.ts";
+import { asStr, deckAnim, deckAudioExt, deckBox, deckFill, deckNarrationMark, deckNotes, deckPlaceholder, deckSrcRect, deckSlideTransitions, deckSyncShape, deckTheme, emuOf, parseDeckModel, withBrandFonts, type DeckBox, type DeckColorResolver, type DeckNotes, type DeckNoteSink } from "./pptx-deck.ts";
 import {
   designFramesToPptx, framesOfDesignDoc, hasMasterBindings, parseDesignDoc, transitionsOfDeckModel,
   type DesignDocV1,
@@ -923,7 +923,7 @@ async function renderPptxFromDeck(deck: Record<string, unknown>, opts: ExportOpt
   if (animNotes.dropped.length) {
     _host?.log?.('warn', `pptx: some motion has no PowerPoint form and was left out - ${animNotes.dropped.join('; ')}.`);
   }
-  const parts = buildPptxParts(slides, { emuW, emuH, theme: deckTheme(deck.theme, resolve), layouts, meta: pptxMeta(opts, sourceAuthor), now: new Date().toISOString() });
+  const parts = buildPptxParts(slides, { emuW, emuH, theme: withBrandFonts(deckTheme(deck.theme, resolve), resolve), layouts, meta: pptxMeta(opts, sourceAuthor), now: new Date().toISOString() });
   return zipPptxParts(parts);
 }
 

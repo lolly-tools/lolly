@@ -13,17 +13,21 @@ set__csp_extra_connect_src() {
     csp_extra_connect_src=$(lolly_normalize_connect_src "${csp_extra_connect_src:-}") \
         || ynh_die "Invalid extra CSP origins."
 
-    local previous_headers
+    local previous_headers previous_any_site
     previous_headers=$(mktemp)
+    previous_any_site=$(mktemp)
     cp -p "$headers_inc" "$previous_headers"
+    cp -p "$any_site_inc" "$previous_any_site" 2>/dev/null || : > "$previous_any_site"
     lolly_add_headers_inc
     if ! nginx -t || ! ynh_systemctl --service=nginx --action=reload; then
         cp -p "$previous_headers" "$headers_inc"
-        rm -f "$previous_headers"
+        cp -p "$previous_any_site" "$any_site_inc"
+        rm -f "$previous_headers" "$previous_any_site"
         ynh_store_file_checksum "$headers_inc"
+        ynh_store_file_checksum "$any_site_inc"
         ynh_die "nginx could not apply the storage origins; the previous configuration was restored."
     fi
-    rm -f "$previous_headers"
+    rm -f "$previous_headers" "$previous_any_site"
     ynh_app_setting_set --key=csp_extra_connect_src --value="$csp_extra_connect_src"
 }
 

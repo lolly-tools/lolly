@@ -166,6 +166,8 @@ export async function parseDesignFile(
     return await parseLayeredAsDesign(file, {
       host: host as unknown as Parameters<typeof parseLayeredAsDesign>[1]['host'],
       warn,
+      map,
+      interactive,
     }) as unknown as DesignImportResult;
   }
 
@@ -274,6 +276,8 @@ export async function parseDesignArtboards(
     const res = await parseLayeredAsDesign(file, {
       host: host as unknown as Parameters<typeof parseLayeredAsDesign>[1]['host'],
       warn,
+      map,
+      interactive,
     }) as unknown as DesignImportResult;
     return one(res, baseName((file as File).name, 'Layers'));
   }

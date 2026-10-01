@@ -314,6 +314,18 @@ test('htmlFromChars emits <u>/<s> wrappers; charsFromDom round-trips them', () =
   assert.deepEqual(back.map((c) => [!!c.u, !!c.s]), [[true, false], [false, true], [true, true]]);
 });
 
+test('charsFromDom reads underline and strike from the box render\'s styled span', () => {
+  // hooks.js renders {#ff0000 u|x}{s|y} as spans with text-decoration, and edit mode
+  // starts from that render: the decoration has to survive the round trip.
+  const deco = (decoration: string, ...childNodes: any[]): any => ({
+    nodeType: 1, nodeName: 'SPAN', childNodes, getAttribute: () => null,
+    style: { color: '', fontWeight: '', fontFamily: '', textDecoration: decoration },
+  });
+  const back = charsFromDom(root(deco('underline', t('x')), deco('line-through', t('y')), deco('underline line-through', t('z')), t('w')));
+  assert.deepEqual(back.map((c) => [c.ch, !!c.u, !!c.s]), [['x', true, false], ['y', false, true], ['z', true, true], ['w', false, false]]);
+  assert.equal(markdownFromChars(back), '{u|x}{s|y}{u s|z}w');
+});
+
 test('markdownFromChars folds underline/strike into the attr token (no markdown marker)', () => {
   assert.equal(markdownFromChars([{ ch: 'A', b: false, i: false, u: true }, { ch: 'B', b: false, i: false, u: true }] as any),
     '{u|AB}');

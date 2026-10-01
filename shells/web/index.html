@@ -21,7 +21,19 @@
       var h = location.hostname;
       if (CANON && h !== CANON && /(^|\.)lolly\.[a-z]{2,}$/.test(h)) {
         location.replace('https://' + CANON + location.pathname + location.search + location.hash);
+        return;
       }
+      // "Allow pages from any site" (lib/any-site.ts is canonical): /any-site/ is the app
+      // under a wider frame policy, and only this device's own choice may run it. Without
+      // the choice (or with storage unreadable) the prefix comes off; with it, the prefix
+      // goes on. A framed instance stays where it is.
+      var wide = /^\/any-site(\/|$)/.test(location.pathname);
+      var chosen = false;
+      try { chosen = localStorage.getItem('lolly:any-site') === '1'; } catch (e) { chosen = false; }
+      var framed = window.parent !== window || /[?&]iframe(=|&|$)/.test(location.search + location.hash);
+      if (wide && chosen) document.documentElement.setAttribute('data-lolly-any-site', '');
+      if (wide && !chosen) location.replace((location.pathname.replace(/^\/any-site/, '') || '/') + location.search + location.hash);
+      else if (!wide && chosen && !framed) location.replace('/any-site' + location.pathname + location.search + location.hash);
     })();
   </script>
   <!-- Page pinch-zoom is enabled (WCAG 1.4.4 - never lock it). The mobile

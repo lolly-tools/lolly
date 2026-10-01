@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: web nepovoluje zobrazení uvnitř jiných stránek",
   "{n} px wide": "Šířka {n} px",
   "{n} sites": "{n} webů",
-  "{org} does not allow {host} here.": "{org} zde nepovoluje {host}."
+  "{org} does not allow {host} here.": "{org} zde nepovoluje {host}.",
+  "Allow pages from any site": "Povolit stránky z libovolného webu",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly se nepodařilo spojit se serverem a ověřit to. Zkus to znovu, až budeš online.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "Ve webové verzi Design zobrazuje jen přehrávače videa a map, dokud to nezapneš. Lolly se pak na tomto zařízení znovu načte s volnější politikou rámů a před načtením webu, kterému zatím nedůvěřuješ, se stále zeptá.",
+  "Pages from any site": "Stránky z libovolného webu",
+  "The web version of Lolly cannot show this site.": "Webová verze Lolly tento web zobrazit neumí.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Webová verze Lolly tu zobrazuje jen přehrávače videa a map. Chceš-li zobrazit {host}, povol v profilu stránky z libovolného webu nebo použij desktopovou aplikaci.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Tento server nenabízí stránky z libovolného webu. Desktopová aplikace může zobrazit jakoukoli stránku.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Aby šlo zobrazit weby, které webová verze neumí, může se Lolly na tomto zařízení znovu načíst s volnější politikou rámů a před prezentací se zeptat na každý web. Vypnout to můžeš v profilu v části Důvěryhodné weby."
 }

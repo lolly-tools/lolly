@@ -928,7 +928,7 @@ export function showUnsavedDialog(
     <div class="unsaved-dialog-body">
       <h2>${t('Unsaved changes')}</h2>
       <p>${t('You have unsaved changes. <br>Would you like to save before leaving?')}</p>
-      ${detail ? `<p class="unsaved-dialog-detail">${detail}</p>` : ''}
+      <!-- ${detail ? `<p class="unsaved-dialog-detail">${detail}</p>` : ''} -->
       <div class="unsaved-dialog-actions">
         ${onSave ? btn('save', t('Save &amp; leave')) : ''}
         ${btn('leave', t('Leave without saving'))}

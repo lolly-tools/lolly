@@ -503,7 +503,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
    a @container query matches against the nearest ANCESTOR container, so this
    row - its own query container - can never restyle itself, only its
    children; the F-A8 rules silently half-applied and overflowed the sheet.) */
-@container (max-width: 220px) {
+@container (max-width: 256px) {
   .copy-btn > span,
   .save-btn > [data-save-label],
   .copy-url-btn > [data-copy-url-label] { display: none; }

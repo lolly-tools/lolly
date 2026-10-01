@@ -64,7 +64,7 @@ The route's parameters, refusals and headers are described in OpenAPI 3.1 at [`/
 
 Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `hdr`/`depth`, `cuts`, `s`, `lang`, `emoji`/`emojifx`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
 
-## The fourteen tools
+## The seventeen tools
 
 **Discover and describe:**
 
@@ -90,6 +90,16 @@ Every tool input and every export control an agent can set is a URL query parame
 |---|---|
 | `lolly_build_url` | Build a shareable, editable link + raw render URL - **without** rendering. |
 | `lolly_render` | Render a tool to a file - returns the bytes plus the editable link. |
+
+**Look at a render in its own coordinates:**
+
+| Tool | Does |
+|---|---|
+| `lolly_look` | The render with a labelled grid, or one region of it enlarged to read small type. The grid numbers are document units: for Design, the artboard pixels a layer's `x`, `y`, `w` and `h` use, so a position read off the picture can go straight into `layerPatches`. For looking only, never an export. |
+| `lolly_sample_color` | The colours at points, each averaged over a small disc and compared with the active design system: the nearest colour token, its distance in OKLab (ΔE, about 0.02 is just noticeable) and whether that is a match. |
+| `lolly_trace_edges` | The edges in a render or image as polylines in document units, longest first. With `asDesignLayers`, each line also comes back as a Design path layer, ready for `layerOperations` once it has an id. |
+
+All three take a source the way `lolly_render` does, or a file you supply (PNG, JPEG, GIF, WebP or SVG, measured in its own pixels). A supplied SVG may only carry images inside itself: a reference to any other file is dropped before drawing. Design and Chart draw their SVG in the browser tier, so looking at them needs the full endpoint, as rendering them does.
 
 **On-device file utilities (bytes in, bytes out):**
 
@@ -192,7 +202,7 @@ In Claude Code the same connection is one command:
 claude mcp add --transport http lolly https://lolly.tools/api/mcp
 ```
 
-In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the fourteen tools):
+In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the seventeen tools):
 
 ```bash
 curl -s -X POST https://lolly.tools/api/mcp \
@@ -230,7 +240,7 @@ The full endpoint also accepts the raw token directly, so scripted clients skip 
 }
 ```
 
-A quick check with `curl` (expect a JSON list of the fourteen tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
+A quick check with `curl` (expect a JSON list of the seventeen tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
 
 ```bash
 curl -s -X POST https://mcp.lolly.tools/mcp \

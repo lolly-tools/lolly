@@ -1482,6 +1482,15 @@
               "pattern": {
                 "type": "string",
                 "description": "Regex."
+              },
+              "display": {
+                "type": "string",
+                "enum": [
+                  "input",
+                  "curve"
+                ],
+                "default": "input",
+                "description": "'curve' marks a text input that holds a tone curve (points on the 0..255 scale in the wire form in-out_in-out, e.g. 0-0_64-48_255-255, see engine/src/tone-curve.ts). The value stays plain text everywhere; the web shell adds an interactive curve plot beside the field that writes it."
               }
             }
           }

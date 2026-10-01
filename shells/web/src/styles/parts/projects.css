@@ -78,7 +78,7 @@
    topbar.css hides the label and the toggle shrinks to the icons alone.
    Inactive tabs mute their glyph so the active one reads at a glance (the
    a11y ask, same date) - opacity, not colour, so it works over any brand. */
-.view-toggle-ic { display: inline-flex; align-items: center; margin-inline-end: 4px; opacity: 1;color:var(--ui-color-border-default);  }
+.view-toggle-ic { display: inline-flex; align-items: center; margin-inline-end: 4px; opacity: 1;color:var(--ui-color-border-default);  filter:drop-shadow(0 .51px .5px #0004);}
 .view-toggle-opt:hover .view-toggle-ic { opacity: 1; color:var(--ui-color-action-primary);}
 .view-toggle-opt.is-active .view-toggle-ic{color:var(--ui-color-text-default); }
 
@@ -106,7 +106,7 @@
 .view-toggle-opt:hover{color:var(--ui-color-action-primary) }
 
 .view-toggle-opt.is-active {
-  background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); box-shadow: var(--ui-elevation-control);
+  background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default); box-shadow: var(--ui-elevation-control);
 
 
 }

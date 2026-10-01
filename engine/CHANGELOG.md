@@ -6,6 +6,21 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.241.0
+
+- A `text` input can declare `display: "curve"`: it holds a photo tone curve as `in-out` level pairs joined by `_` (`0-0_64-48_255-255`), which a URL query keeps unescaped. The engine and every shell still treat the value as text; the web sidebar adds a curve plot that edits the field. Declared in both schema copies.
+- Add `tone-curve.ts`: the curve's reader (canonical form, typed pairs and JSON), its normaliser, its writer and the monotone cubic through its points, flat outside the end points. Darkroom keeps a copy in its hooks; `tests/tone-curve-drift.test.ts` holds the two to the same points and levels.
+- Add `agent-view.ts`, the helpers behind the MCP looking tools: the document frame of an SVG, a region framed and drawn with an overlay, a raster wrapped as an SVG in its own pixels, a labelled grid drawn as stroked digits (no font needed), a disc-averaged colour sample read from premultiplied or straight RGBA, and the nearest design-system colour by ΔE in OKLab.
+- Add `edge-trace.ts`: Canny edges linked into polylines (adapted from Composa, MIT), longest first, with closed outlines flagged, and `polylineToDesignLayer`, which turns a line into a Design path layer with its nodes as fractions of the box.
+- Photoshop import reads what a layer is, not only its pixels. Add `psd-descriptor.ts`, a bounded reader for the Action Descriptor and EngineData formats inside a layer's tagged blocks, and `psd-layer-semantics.ts`, which reads type layers (text, font, size, colour, tracking, leading, alignment, box and rotation, plus `runs`: the text split where weight, italic, colour, underline or strikethrough change, with faux bold and faux italic read as weight and italic), shapes drawn with the shape tool, vector paths, solid colour fills and the kind of an adjustment layer, with a note for each property an importer cannot keep. `readPsd` attaches the result as the optional `RasterLayer.psd` and keeps those blocks to 8 MB per layer and 64 MB per file.
+- `writePsd` layers take optional `extraBlocks` (tagged blocks written as given) and `clipped` (clip to the layer below), so tests can build files with live layers.
+
+## 1.240.0
+
+- The AI-signal lexicon learns the vague pointer: "beside it", "next to it", "in front of it", "behind it", "above it" and "below it" when the sentence names no layout or physical element ("each claim has a mechanism behind it"). `spatialPointerRe()` and `SPATIAL_CONTEXT_WORDS` in `claudisms.ts` are shared with the docs, code-comment and UI-copy gates, which ratchet the same rule.
+- The detector also scores the docs gate's claudisms it was missing: "worth knowing", "now says so", "brings us back to", "anchors it", the short assertion after a comma, a heading that ends in "it", "deep dive", "treasure trove", "raise the bar", "reflecting a broader trend", "moving on to", bare "worth noting", "lean into", "let's turn to" and the wider "landscape" set. Phrases that ordinary human writing uses too often stay out of the score.
+- `LEXICON_VERSION` 6 -> 7, so stored AI-signal notes recompute on next read.
+
 ## 1.239.0
 
 - Reserve the `iframe` presence flag for a tool shown inside another page. Shells show only the rendered output, keep nothing on the device and stamp `data-lolly-iframe` for tools to read. It implies `full`, and the CLI and the render route ignore it.

@@ -75,7 +75,7 @@ import { getTool } from '../bridge/tool-loader.ts';
 import { brandFontFamilies } from '../user-fonts.ts';
 import { storeUserUpload, askLollyIntent } from './picker.ts';
 import { mountSidebarLiveControls } from './live-controls.ts';
-import flatpickr from 'flatpickr';
+import { mountCurvePlots, wireDateTimePickers } from './tool-input-enhancers.ts';
 
 import type { AssetRef, ComposeAPI, InputFile } from '@lolly-tools/core/host-v1';
 import type {
@@ -1200,33 +1200,8 @@ export function renderInputs(
     });
   });
 
-  el.querySelectorAll<FlatpickrHost>('.fp-datetime').forEach((control) => {
-    const id = control.dataset.inputId!;
-    const initVal = control.dataset.fpValue || null;
-    const existing = control._flatpickr;
-    if (existing) existing.destroy();
-    flatpickr(control, {
-      enableTime: true,
-      dateFormat: 'Y-m-dTH:i',
-      altInput: true,
-      altFormat: 'D j M Y h:iK',
-      defaultDate: initVal || undefined,
-      allowInput: false,
-      time_24hr: true,
-      disableMobile: true,
-      onReady(_: Date[], __: string, fp: { altInput?: HTMLInputElement }) {
-        if (fp.altInput) fp.altInput.placeholder = control.placeholder || 'Live - current time';
-      },
-      // onClose fires once when the picker closes, after the user has finished
-      // picking both the date and time. onChange would fire mid-interaction and
-      // trigger renderInputs → el.innerHTML reset → destroying the open calendar.
-      onClose(selectedDates: Date[], dateStr: string) {
-        const next = selectedDates.length ? dateStr : '';
-        runtime.setInput(id, next);
-        onDirty?.(id);
-      },
-    });
-  });
+  mountCurvePlots(el, panelModel);
+  wireDateTimePickers(el, runtime, onDirty);
 
   el.querySelectorAll<HTMLElement>('[data-clear-id]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -3474,6 +3449,11 @@ function controlHtml(
       return `<div class="vector-input" data-input-id="${id}">${fields.map(fieldHtml).join('')}</div>`;
     }
     default:
+      // A tone curve: the plain text field holds the curve's wire form and stays the
+      // control the runtime is wired to; the plot mounted into the empty slot above
+      // it (mountToneCurve, after the wiring loop) edits that field.
+      if (input.type === 'text' && input.display === 'curve')
+        return `<div class="tone-curve-field"><div class="tone-curve-slot" data-tone-curve-for="${id}"></div><input type="text" class="field-input" data-input-id="${id}" value="${val}" maxlength="${input.maxLength ?? ''}" placeholder="${escape(input.placeholder ?? ' ')}" spellcheck="false" autocomplete="off"></div>`;
       // Jelly soft-body text field (flag-gated), same live-binding story as the
       // textarea above (maxlength via data-maxlength, wired in the loop).
       if (jellyActive())

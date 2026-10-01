@@ -664,7 +664,7 @@
    tighter than the 18px it was, so an unsectioned tool reads at the density of
    a sectioned one. */
 .tool-inputs{display:grid; grid-template-columns:minmax(0,1fr); gap: var(--sp-7)}
-
+.tool-inputs textarea{font-family: var(--ui-type-mono-family)}
 /* Notice shown when a saved design referenced an image that's since been deleted. */
 .tool-recovery-notice {
   font-size: var(--fs-xs);
@@ -1641,6 +1641,7 @@ span.flatpickr-weekday {
   align-items: start;
 }
 .input-section--dense .input-section-body > .input-row:has(.vector-input),
+.input-section--dense .input-section-body > .input-row:has(.tone-curve-field),
 .input-section--dense .input-section-body > .input-row:has(textarea),
 .input-section--dense .input-section-body > .input-row:has(.blocks-input),
 .input-section--dense .input-section-body > .input-row:has(.asset-picker-row),

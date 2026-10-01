@@ -52,7 +52,7 @@
    desktop (2026-08-20 audit: icon-only left "Show hidden (N)" - and 20 shipped
    hidden assets behind it - effectively undiscoverable). Under 640px they fold
    back to icons for width; aria-label + title keep them named there. */
-@media (max-width: 640px) {
+@media (max-width: 960px) {
   .cat-showhidden .cat-btn-label { display: none; }
 }
 /* Wider screens drop the same labels only when the toolbar would overflow: views/
@@ -805,7 +805,7 @@
 /* List rows: the same tiles reflowed - thumb chip, name, sub inline. */
 .catalog.cat-layout-list .cat-grid { display: flex; flex-direction: column; gap: var(--sp-2); }
 .catalog.cat-layout-list .cat-tile { container-type: normal; }
-.catalog.cat-layout-list .cat-tile-open { display: flex; align-items: center; gap: var(--sp-6); padding: var(--sp-3) var(--sp-5); text-align: start; }
+.catalog.cat-layout-list .cat-tile-open { display: flex; flex-direction:row; align-items: center; gap: var(--sp-6); padding: var(--sp-3) var(--sp-5); text-align: start; }
 .catalog.cat-layout-list .cat-tile-fig {
   aspect-ratio: auto; position: relative; flex: none;
   width: 52px; height: 40px; overflow: hidden;

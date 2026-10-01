@@ -120,7 +120,9 @@ import { mountedDesignFindingMessage } from './design-audit-copy.ts';
 import { mountDesignTokenBindings } from './design-token-bindings.ts';
 import type { BlockFieldSpec } from '../../../../engine/src/inputs.ts';
 import { parseWebEmbed } from '../../../../engine/src/web-embed.ts';
-import { consentToLink, policyNote, trustEntryFor, webSiteVerdict } from '../lib/design-web-mount.ts';
+import { consentToLink, policyNote, trustEntryFor, webFrameState, webSiteVerdict } from '../lib/design-web-mount.ts';
+import { anySiteApplies, enterAnySite, probeAnySite } from '../lib/any-site.ts';
+import { announce } from '../a11y.ts';
 import { canTrustMore, onTrustedSitesChange, trustSite } from '../lib/trusted-sites.ts';
 import { trustedSiteHost } from '../../../../engine/src/trusted-sites.ts';
 
@@ -1433,6 +1435,27 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + '</div>';
   }
 
+  /**
+   * Bold, italic and underline for text that is not a story, on all of its text: the
+   * story inspector's B / I / U, for the boxes templates and imports bring in. Shown
+   * only when the canvas can read the text, so a box that prints its markers as
+   * typed does not offer a style that would print as asterisks.
+   */
+  function styleRow(rows: Box[]): string {
+    if (!actions.wholeTextStyle || !actions.styleWholeText) return '';
+    const ids = rows.map((row, i) => idOf(row, i));
+    const flags: Array<['b' | 'i' | 'u', string, string]> = [['b', t('Bold'), '<b>B</b>'], ['i', t('Italic'), '<i class="fc-fmt-serif">I</i>'], ['u', t('Underline'), '<u>U</u>']];
+    const states = flags.map(([flag]) => actions.wholeTextStyle!(ids, flag));
+    if (states.every(state => state == null)) return '';
+    const buttons = flags.map(([flag, label, glyph], k) => {
+      const state = states[k];
+      const pressed = state === 'mixed' ? 'mixed' : String(state === 'on');
+      return `<button type="button" class="fc-seg-btn${state === 'on' ? ' is-on' : ''}" data-act="style-${flag}" data-tip="${escape(label)}" aria-label="${escape(label)}" aria-pressed="${pressed}">${glyph}</button>`;
+    }).join('');
+    // "Emphasis", not "Style": the Style band below this section already uses that word.
+    return `<div class="fc-row"><span>${t('Emphasis')}</span><div class="fc-seg" role="group" aria-label="${escape(t('Text emphasis'))}">${buttons}</div></div>`;
+  }
+
   function textBody(b: Box, rows: Box[]): string {
     if (rows.some(row => row.textStory)) return '<div data-composed-inspector></div>';
     const mixed = (field: string | undefined): boolean => differs(rows, field);
@@ -1453,6 +1476,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     return (rows.length === 1 && actions.editText ? doorBtn(t('Edit on the canvas'), 'edittext', 'pen') : '')
       + (actions.useAsInput ? doorBtn(t('Use text as input'), 'input-text', 'sliders') : '')
       + choice(t('Font'), cfg.fontField, fonts?.options() ?? [])
+      + styleRow(rows)
       + (cfg.fontSizeField ? `<div class="fc-row"><span>${t('Size')}</span><div class="fc-stepper">`
         + `<button type="button" class="fc-cbtn" data-act="smaller" aria-label="${escape(t('Smaller text'))}">A-</button>`
         + numCell('', cfg.fontSizeField, num(cfg.fontSizeField, 48, 1, 2000), { name: t('Size'), min: 4, max: 2000, unit: 'px' })
@@ -1544,6 +1568,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function siteRows(embed: NonNullable<ReturnType<typeof parseWebEmbed>>): string {
     const verdict = webSiteVerdict(embed);
     if (verdict.state === 'blocked') return readRow(t('Site'), policyNote(embed));
+    // The web version's own policy, which no trust can change: the way through is the
+    // device-wide "Allow pages from any site" (lib/any-site.ts), or the desktop app.
+    if (webFrameState(embed, 'editor') === 'blocked') {
+      return readRow(t('Site'), t('The web version of Lolly cannot show this site.'))
+        + (anySiteApplies() ? doorBtn(t('Allow pages from any site'), 'webanysite', 'globe') : '');
+    }
     if (verdict.state === 'trusted') {
       const by = verdict.source === 'organisation'
         ? (verdict.by ? t('Trusted by {org}', { org: verdict.by }) : t('Trusted by your organisation'))
@@ -2077,6 +2107,14 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           // embed form; a Sandbox link opens the Sandbox itself, where the code can change).
           case 'webedit': actions.editWebTool?.(ids); break;
           case 'webposter': actions.refreshWebPoster?.(ids, false); break;
+          case 'webanysite':
+            void probeAnySite().then((offer) => {
+              if (offer === 'offered') enterAnySite();
+              else announce(offer === 'unreachable'
+                ? t('Lolly could not reach its server to check. Try again when you are online.')
+                : t('This server does not offer pages from any site. The desktop app can show any page.'));
+            });
+            break;
           case 'webtrust': {
             const embed = parseWebEmbed(String(fv(boxesById(ids)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin });
             const entry = embed ? trustEntryFor(embed) : null;
@@ -2097,6 +2135,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           // canvas has moved on (the same rule `write` keeps).
           case 'narrate': if (ids[0]) narration?.narrateFrame(ids[0]); break;
           case 'smaller': case 'bigger': bumpFont(btn.dataset.act === 'bigger' ? 6 : -6); break;
+          case 'style-b': case 'style-i': case 'style-u': actions.styleWholeText?.(ids, btn.dataset.act.slice(6) as 'b' | 'i' | 'u'); break;
           default: break;
         }
       });

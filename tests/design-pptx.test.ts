@@ -38,7 +38,7 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 // The bridge half of the path (plan 179 P1/A12): the SHIPPING lowering functions and the
 // engine's OOXML writer, so the notes/fill assertions below are made by the real code.
-import { deckFill, deckNotes, deckSlideTransitions, deckSyncShape, deckTransition, emuOf, type DeckNotes } from '../shells/web/src/bridge/pptx-deck.ts';
+import { deckFill, deckFontName, deckNotes, deckSlideTransitions, deckSyncShape, deckTransition, emuOf, firstFontFamily, withBrandFonts, type DeckNotes } from '../shells/web/src/bridge/pptx-deck.ts';
 import { buildPptxParts } from '../engine/src/pptx.ts';
 import type { PptxSlide } from '../engine/src/pptx.ts';
 
@@ -879,7 +879,8 @@ test('plan 275: the tool deck model lowers Design text line by line, and plain t
     [true, undefined, [['item', false, false]]],
     ['number', 1, [['deep', false, false]]],
   ]);
-  assert.deepEqual(flat.paras, [{ align: 'ctr', runs: [{ text: 'Plain\nlines', sizePt: 24, color: '#11141f', bold: true }] }], 'plain text is the one run it always was');
+  // lineSpacingPt is the canvas pitch: the default 1.12 line-height of a 32px box, in points.
+  assert.deepEqual(flat.paras, [{ align: 'ctr', runs: [{ text: 'Plain\nlines', sizePt: 24, color: '#11141f', bold: true }], lineSpacingPt: 26.88 }], 'plain text is the one run it always was');
 });
 
 // ─── plan 275 decision 32: a round trip keeps drawings as shapes ─────────────
@@ -1034,4 +1035,84 @@ test('275: a dashed outline is drawn solid and the notes say so, in both lowerin
   const notes: DeckNotes = { mapped: [], dropped: [] };
   deckSyncShape(els[0], notes);
   assert.ok(notes.dropped.some((n) => /dashed outline/.test(n)), `web: ${JSON.stringify(notes)}`);
+});
+
+// ── shapes and faces PowerPoint can name (the Sleepwalking deck rebuild, 2026-10-01) ──
+
+test('a pill lowers to a roundRect at half its short side, a circle to the ellipse preset', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, order: 0, bg: '#ffffff' },
+    { id: 'pill', kind: 'box', frame: 'f1', x: 100, y: 100, w: 400, h: 40, shape: 'pill', bg: '#c0efde' },
+    { id: 'dot', kind: 'box', frame: 'f1', x: 600, y: 100, w: 18, h: 18, shape: 'circle', bg: '#008657' },
+    { id: 'oval', kind: 'box', frame: 'f1', x: 700, y: 100, w: 120, h: 60, shape: 'ellipse', bg: '#008657' },
+  ]);
+  const [pill, dot, oval] = deckOf(html).slides[0].elements;
+  assert.equal(pill.radius, 20, 'a pill carries half its height, the radius CSS clamps 9999px to');
+  assert.equal(pill.geom, undefined);
+  assert.equal(dot.geom, 'ellipse', 'a circle names the ellipse preset rather than a square');
+  assert.equal(dot.radius, undefined);
+  assert.equal(oval.geom, 'ellipse');
+
+  const shapes = [pill, dot, oval].map((el) => deckSyncShape(el)!);
+  const xml = buildPptxParts([{ shapes, media: [] } as PptxSlide], {})['ppt/slides/slide1.xml'] as string;
+  assert.match(xml, /<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 50000"\/>/, 'a full pill');
+  assert.equal((xml.match(/<a:prstGeom prst="ellipse">/g) ?? []).length, 2, 'circle and ellipse draw as ellipses');
+});
+
+test('a mono run names --font-mono, which the export resolves to the brand mono face', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, order: 0, bg: '#ffffff' },
+    { id: 'year', kind: 'text', frame: 'f1', x: 10, y: 10, w: 200, h: 40, text: '1964', fontSize: 24, weight: '500', font: 'mono' },
+    { id: 'body', kind: 'text', frame: 'f1', x: 10, y: 60, w: 200, h: 40, text: 'Body', fontSize: 24, weight: '400', font: 'sans' },
+  ]);
+  const [year, body] = deckOf(html).slides[0].elements;
+  assert.equal(year.paras[0].runs[0].font, 'var(--font-mono)');
+  assert.equal(body.paras[0].runs[0].font, undefined, 'sans takes the theme font');
+
+  const vars: Record<string, string> = {
+    '--font-brand': "'SUSE', system-ui, sans-serif",
+    '--font-mono': "'SUSE Mono', 'Roboto Mono', ui-monospace, monospace",
+  };
+  const resolve = (name: string): string | undefined => vars[name];
+  const yearShape = deckSyncShape(year, undefined, resolve) as { paras: Array<{ runs: Array<{ font?: string }> }> };
+  assert.equal(yearShape.paras[0]!.runs[0]!.font, 'SUSE Mono', 'the stack resolves to its first concrete family');
+  const unresolved = deckSyncShape(year) as { paras: Array<{ runs: Array<{ font?: string }> }> };
+  assert.equal(unresolved.paras[0]!.runs[0]!.font, undefined, 'no cascade: the run falls back to the theme font, never "var(...)"');
+});
+
+test('withBrandFonts fills the theme from --font-brand so unnamed runs do not land in Calibri', () => {
+  const resolve = (name: string): string | undefined => (name === '--font-brand' ? "'SUSE', system-ui, sans-serif" : undefined);
+  assert.deepEqual(withBrandFonts(undefined, resolve), { fonts: { major: 'SUSE', minor: 'SUSE' } });
+  assert.deepEqual(withBrandFonts({ name: 'Kept', fonts: { major: 'Display' } }, resolve), { name: 'Kept', fonts: { major: 'Display', minor: 'SUSE' } });
+  assert.equal(withBrandFonts(undefined, () => 'system-ui, sans-serif'), undefined, 'a generic-only stack names no face');
+  assert.equal(withBrandFonts(undefined, undefined), undefined, 'no cascade, no change');
+  const xml = buildPptxParts([{ shapes: [], media: [] }], { theme: withBrandFonts(undefined, resolve) })['ppt/theme/theme1.xml'] as string;
+  assert.match(xml, /<a:majorFont><a:latin typeface="SUSE"/);
+  assert.match(xml, /<a:minorFont><a:latin typeface="SUSE"/);
+  assert.equal(firstFontFamily('"SUSE Mono", monospace'), 'SUSE Mono');
+  assert.equal(deckFontName('Brand Face'), 'Brand Face', 'a plain name passes through');
+});
+
+test('line-height travels as an exact pitch and arrowheads as line ends', async () => {
+  const { makeGeomApi } = await import('../engine/src/geom-api.ts');
+  // A path box is drawn through host.geom, which every shell provides.
+  const rt = await createRuntime(tool, { ...baseHost(), geom: makeGeomApi() }, { boxes: [
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, order: 0, bg: '#ffffff' },
+    { id: 'list', kind: 'text', frame: 'f1', x: 10, y: 10, w: 400, h: 200, text: 'One\nTwo', fontSize: 40, lineHeight: 1.5, weight: '400' },
+    { id: 'arrow', kind: 'path', frame: 'f1', x: 100, y: 300, w: 60, h: 1, path: '1!line!0_0!0_1!0', stroke: '#0c322c', strokeW: 6, headEnd: 'open' },
+    { id: 'both', kind: 'path', frame: 'f1', x: 100, y: 400, w: 60, h: 1, path: '1!line!0_0!0_1!0', stroke: '#0c322c', strokeW: 6, headStart: 'circle', headEnd: 'triangle' },
+    { id: 'loop', kind: 'path', frame: 'f1', x: 100, y: 500, w: 60, h: 60, path: '1!line!1_0!0_1!0_1!1', stroke: '#0c322c', strokeW: 6, headEnd: 'open' },
+  ] as never });
+  assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
+  const [list, arrow, both, loop] = deckOf(rt.getHydrated() as string).slides[0].elements;
+  assert.equal(list.paras[0].lineSpacingPt, 45, '1.5 x 40px = 60px = 45pt');
+  assert.deepEqual([arrow.line.head, arrow.line.tail], [undefined, 'arrow'], 'an open head is an arrow at the far end');
+  assert.deepEqual([both.line.head, both.line.tail], ['oval', 'triangle']);
+  assert.equal(loop.line.tail, undefined, 'a closed contour has no ends to decorate');
+
+  const shapes = [list, arrow, both].map((el) => deckSyncShape(el)!);
+  const xml = buildPptxParts([{ shapes, media: [] } as PptxSlide], {})['ppt/slides/slide1.xml'] as string;
+  assert.match(xml, /<a:lnSpc><a:spcPts val="4500"\/><\/a:lnSpc>/);
+  assert.match(xml, /<a:tailEnd type="arrow"\/>/);
+  assert.match(xml, /<a:headEnd type="oval"\/><a:tailEnd type="triangle"\/><\/a:ln>/);
 });

@@ -3,7 +3,7 @@
   "name": "Filter",
   "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
   "a11yLabel": "{{effect}} filter of the chosen image",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -328,6 +328,10 @@
         {
           "value": "diamond",
           "label": "Diamond"
+        },
+        {
+          "value": "line",
+          "label": "Line"
         }
       ],
       "showIf": {
@@ -363,6 +367,10 @@
         {
           "value": "floyd",
           "label": "Diffused (Floyd–Steinberg)"
+        },
+        {
+          "value": "atkinson",
+          "label": "Diffused, crisp (Atkinson)"
         },
         {
           "value": "ordered",
@@ -1472,17 +1480,90 @@
           "label": "Diffused (Floyd–Steinberg)"
         },
         {
+          "value": "atkinson",
+          "label": "Diffused, crisp (Atkinson)"
+        },
+        {
           "value": "ordered",
-          "label": "Patterned (ordered)"
+          "label": "Patterned (Bayer 4×4)"
+        },
+        {
+          "value": "bayer2",
+          "label": "Patterned, coarse (Bayer 2×2)"
+        },
+        {
+          "value": "bayer8",
+          "label": "Patterned, fine (Bayer 8×8)"
+        },
+        {
+          "value": "patterns",
+          "label": "Fill patterns (1-bit)"
         },
         {
           "value": "noise",
           "label": "Grainy (noise)"
         }
       ],
-      "help": "How each pixel's colour error is spread to its neighbours before the next match.",
+      "help": "How each pixel is snapped to the palette. Diffused spreads each pixel's colour error to its neighbours; Atkinson passes on only part of it for cleaner highlights and shadows. Patterned adds a fixed Bayer threshold grid. Fill patterns draws classic 8×8 one-bit patterns that mix two palette colours.",
       "showIf": {
         "effect": "dither"
+      }
+    },
+    {
+      "id": "di_diffusion",
+      "label": "Error spread",
+      "section": "Pattern",
+      "urlKey": "ddf",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "How much of each pixel's colour error is passed on to its neighbours. Less gives flatter, posterized areas.",
+      "showIf": {
+        "effect": "dither",
+        "di_algorithm": [
+          "floyd",
+          "atkinson"
+        ]
+      }
+    },
+    {
+      "id": "di_serpentine",
+      "label": "Serpentine scan",
+      "section": "Pattern",
+      "urlKey": "dsp",
+      "type": "boolean",
+      "default": false,
+      "help": "Scans every other row right to left, so the diffused error does not drift into diagonal streaks.",
+      "showIf": {
+        "effect": "dither",
+        "di_algorithm": [
+          "floyd",
+          "atkinson"
+        ]
+      }
+    },
+    {
+      "id": "di_strength",
+      "label": "Pattern strength",
+      "section": "Pattern",
+      "urlKey": "dst",
+      "type": "number",
+      "display": "slider",
+      "default": 22,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "How far the threshold grid pushes each pixel before it snaps to the palette. Raise it towards 100 for the classic full-range Bayer look on a two-colour palette.",
+      "showIf": {
+        "effect": "dither",
+        "di_algorithm": [
+          "ordered",
+          "bayer2",
+          "bayer8"
+        ]
       }
     },
     {
@@ -1497,6 +1578,29 @@
       "max": 40,
       "step": 0.5,
       "help": "Size of each virtual pixel. Smaller now keeps getting finer (a much larger cell budget), so the low end reads as crisp detail instead of plateauing; larger reads as a bolder, chunkier print.",
+      "showIf": {
+        "effect": "dither"
+      }
+    },
+    {
+      "id": "di_pixelShape",
+      "label": "Pixel shape",
+      "section": "Pattern",
+      "urlKey": "dps",
+      "type": "select",
+      "display": "segmented",
+      "default": "square",
+      "options": [
+        {
+          "value": "square",
+          "label": "Square"
+        },
+        {
+          "value": "dot",
+          "label": "Dot"
+        }
+      ],
+      "help": "Dot draws each virtual pixel as a round dot on the palette's darkest colour, like an LED or dot-matrix screen.",
       "showIf": {
         "effect": "dither"
       }
@@ -1532,6 +1636,14 @@
         {
           "value": "gray8",
           "label": "Greyscale (8)"
+        },
+        {
+          "value": "rgb8",
+          "label": "8-colour RGB (2 levels per channel)"
+        },
+        {
+          "value": "rgb27",
+          "label": "27-colour RGB (3 levels per channel)"
         },
         {
           "value": "brand",

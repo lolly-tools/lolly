@@ -7066,5 +7066,13 @@
   "{label}: the site does not allow being shown inside other pages": "{label}: site-ul nu permite afișarea în alte pagini",
   "{n} px wide": "Lățime {n} px",
   "{n} sites": "{n} site-uri",
-  "{org} does not allow {host} here.": "{org} nu permite {host} aici."
+  "{org} does not allow {host} here.": "{org} nu permite {host} aici.",
+  "Allow pages from any site": "Permite pagini de pe orice site",
+  "Lolly could not reach its server to check. Try again when you are online.": "Lolly nu a putut contacta serverul pentru verificare. Încearcă din nou când ești online.",
+  "On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.": "În versiunea web, Design arată doar playere video și de hărți până activezi asta. Lolly se reîncarcă apoi pe acest dispozitiv cu o politică de cadre mai permisivă și tot te întreabă înainte de a încărca un site în care nu ai încă încredere.",
+  "Pages from any site": "Pagini de pe orice site",
+  "The web version of Lolly cannot show this site.": "Versiunea web Lolly nu poate arăta acest site.",
+  "The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.": "Versiunea web Lolly arată aici doar playere video și de hărți. Ca să arăți {host}, permite în profil pagini de pe orice site sau folosește aplicația desktop.",
+  "This server does not offer pages from any site. The desktop app can show any page.": "Acest server nu oferă pagini de pe orice site. Aplicația desktop poate arăta orice pagină.",
+  "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Ca să arate site-urile pe care versiunea web nu le poate arăta, Lolly se poate reîncărca pe acest dispozitiv cu o politică de cadre mai permisivă, apoi te poate întreba despre fiecare site înainte de prezentare. Poți dezactiva asta în profil, la Site-uri de încredere."
 }

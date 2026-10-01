@@ -40,6 +40,12 @@ export interface PsdWriteLayer {
   blend?: CssBlendMode;
   /** Default true. */
   visible?: boolean;
+  /** Clip to the layer below (Photoshop's clipping mask). Default false. */
+  clipped?: boolean;
+  /** Extra tagged blocks written after `luni`, verbatim, as [key, data]: how a
+   *  test builds a type or shape layer, and how a caller carries a block it
+   *  read forward. Each is even-padded as the format requires. */
+  extraBlocks?: ReadonlyArray<readonly [string, Uint8Array]>;
 }
 
 export interface PsdWriteDoc {
@@ -119,7 +125,9 @@ export function writePsd(doc: PsdWriteDoc): Uint8Array {
     // Record
     const nameBytes = pascalName(l.name);
     const luni = luniBlock(l.name);
-    const extraLen = 4 + 4 + nameBytes.length + luni.length; // mask(0) + ranges(0) + name + luni
+    const tagged = (l.extraBlocks ?? []).map(([k, data]) => taggedBlock(k, data));
+    const taggedLen = tagged.reduce((n, b) => n + b.length, 0);
+    const extraLen = 4 + 4 + nameBytes.length + luni.length + taggedLen; // mask(0) + ranges(0) + name + luni + blocks
     const rec = new Uint8Array(16 + 2 + CH_IDS.length * 6 + 4 + 4 + 1 + 1 + 1 + 1 + 4 + extraLen);
     const rv = new DataView(rec.buffer);
     let p = 0;
@@ -137,7 +145,7 @@ export function writePsd(doc: PsdWriteDoc): Uint8Array {
     for (let i = 0; i < 4; i++) rec[p + i] = key.charCodeAt(i);
     p += 4;
     rec[p++] = Math.max(0, Math.min(255, Math.round((l.opacity ?? 1) * 255)));
-    rec[p++] = 0; // clipping: base
+    rec[p++] = l.clipped ? 1 : 0; // clipping: 0 base, 1 clipped to the layer below
     rec[p++] = (l.visible ?? true) ? 0 : 0x02; // flags: bit 1 = hidden
     rec[p++] = 0; // filler
     rv.setUint32(p, extraLen); p += 4;
@@ -145,6 +153,7 @@ export function writePsd(doc: PsdWriteDoc): Uint8Array {
     rv.setUint32(p, 0); p += 4; // blending ranges: none
     rec.set(nameBytes, p); p += nameBytes.length;
     rec.set(luni, p); p += luni.length;
+    for (const b of tagged) { rec.set(b, p); p += b.length; }
     layerParts.push(rec);
     for (const e of encoded) dataParts.push(e);
   }
@@ -206,6 +215,17 @@ function pascalName(name: string): Uint8Array {
   const out = new Uint8Array(total);
   out[0] = ascii.length;
   out.set(ascii, 1);
+  return out;
+}
+
+/** A tagged block: '8BIM', a 4-character key, the length, the data, even-padded. */
+function taggedBlock(key: string, data: Uint8Array): Uint8Array {
+  if (!/^[\x20-\x7e]{4}$/.test(key)) throw new Error(`tagged block key must be 4 characters: ${JSON.stringify(key)}`);
+  const out = new Uint8Array(12 + data.length + (data.length % 2));
+  out.set([0x38, 0x42, 0x49, 0x4d]);
+  for (let i = 0; i < 4; i++) out[4 + i] = key.charCodeAt(i);
+  new DataView(out.buffer).setUint32(8, data.length);
+  out.set(data, 12);
   return out;
 }
 

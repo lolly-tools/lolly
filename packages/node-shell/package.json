@@ -20,6 +20,7 @@
     "./session-store": "./src/session-store.ts",
     "./design-systems": "./src/design-systems.ts",
     "./browsers": "./src/browsers.ts",
+    "./transform-tool": "./src/transform-tool.ts",
     "./browser-tier": "./src/browser-tier.ts",
     "./desktop-renderer": "./src/desktop-renderer.ts",
     "./webshell-render": "./src/webshell-render.ts",

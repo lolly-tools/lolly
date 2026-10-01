@@ -686,18 +686,23 @@ stroke-width:.81;
 .filter-pop-sort { display: flex; flex-direction: column; gap: var(--sp-3); }
 
 /* Featured view-mode segmented control (Gallery | Cover Flow). */
-.view-seg { display: flex; gap: var(--sp-3); }
+.view-seg { display: flex; gap: var(--sp-3) 0; }
 .view-seg-btn {
   flex: 1;
   padding: 7px 10px;
   font: inherit;
   font-size: var(--fs-md);
   font-weight: 600;
-  border: 1px solid var(--ui-color-border-default);
+  border: 0;
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control) ;
   border-radius: var(--ui-radius-panel);
   cursor: pointer;
   transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback), border-color var(--ui-motion-feedback);
 }
+
+.view-seg-btn:nth-child(1){border-radius: var(--ui-radius-panel) 0 0 var(--ui-radius-panel)}
+.view-seg-btn:nth-child(2){border-radius: 0 var(--ui-radius-panel) var(--ui-radius-panel) 0}
+
 /* Neutral fill scoped to the UNPRESSED state. The pressed segment's fill comes
    from buttons.css's `.btn--primary` alias (the `primitives` layer). Under cascade
    layers, a bare `.view-seg-btn { background }` base would sit in `chrome` and beat

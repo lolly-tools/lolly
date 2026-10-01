@@ -64,18 +64,25 @@ export interface PptxPara {
   bulletColor?: string;
   /** Line spacing as a PERCENT: 100 = single, 150 = 1.5×. (Not a fraction: 1.5 clamps to 1%.) */
   lineSpacingPct?: number;
+  /** Exact line pitch in points (`<a:spcPts>`), which wins over `lineSpacingPct`. A CSS
+   *  line-height is a multiple of the font size, not of the face's own line height, so
+   *  an exact pitch is the one spacing that renders alike in every viewer and on every OS
+   *  (one face's single spacing differs between its Mac and Windows metrics). */
+  lineSpacingPt?: number;
   spaceBeforePt?: number;
   spaceAfterPt?: number;
 }
 
-export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; radius?: number; anim?: PptxAnim; }
+/** `geom: 'ellipse'` draws PowerPoint's own ellipse preset (a circle when cx equals cy);
+ *  otherwise the rect is square-cornered, or a roundRect when it carries a `radius`. */
+export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; radius?: number; geom?: 'ellipse'; anim?: PptxAnim; }
 /** A NATIVE custom-geometry vector shape (`p:sp` with `a:custGeom`). Its `paths` are
  *  SVG `d` strings whose coordinates already live in this shape's EMU box space
  *  (0..cx, 0..cy). The emitter parses each with parseSvgPath and lowers M/L/C/Z to
  *  a:moveTo / a:lnTo / a:cubicBezTo / a:close inside one `a:path w=cx h=cy`, so holes
  *  (opposite-wound subpaths) survive. Solid fill + solid stroke only; svg-custgeom.ts
  *  bails to a raster pic for gradients/filters/opacity/blend. */
-export interface PptxPath { kind: 'path'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; paths: Array<{ d: string }>; anim?: PptxAnim; }
+export interface PptxPath { kind: 'path'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number; head?: PptxLineEnd; tail?: PptxLineEnd }; paths: Array<{ d: string }>; anim?: PptxAnim; }
 export interface PptxText {
   kind: 'text'; x: number; y: number; cx: number; cy: number; rot?: number; paras: PptxPara[]; anchor?: 't' | 'ctr' | 'b';
   /** Bind this text to a layout placeholder (emits `<p:ph>` in nvPr). The shape KEEPS its
@@ -357,14 +364,21 @@ function fillXml(fill?: PptxFill): string {
   return `<a:gradFill><a:gsLst>${stops}</a:gsLst><a:lin ang="${ang * 60000}" scaled="1"/></a:gradFill>`;
 }
 
-const lineXml = (line?: { color: string; w: number; alpha?: number }): string =>
-  line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill></a:ln>` : '';
+/** A line end DrawingML can draw: `head` sits at the path's first point, `tail` at its last. */
+export type PptxLineEnd = 'triangle' | 'arrow' | 'oval' | 'diamond' | 'stealth';
+const LINE_ENDS: ReadonlySet<string> = new Set<PptxLineEnd>(['triangle', 'arrow', 'oval', 'diamond', 'stealth']);
+const lineEndXml = (tag: 'headEnd' | 'tailEnd', end?: PptxLineEnd): string =>
+  end && LINE_ENDS.has(end) ? `<a:${tag} type="${end}"/>` : '';
+const lineXml = (line?: { color: string; w: number; alpha?: number; head?: PptxLineEnd; tail?: PptxLineEnd }): string =>
+  line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill>` +
+    `${lineEndXml('headEnd', line.head)}${lineEndXml('tailEnd', line.tail)}</a:ln>` : '';
 
 const xfrmXml = (s: { x: number; y: number; cx: number; cy: number; rot?: number }): string =>
   `<a:xfrm${s.rot ? ` rot="${Math.round(((s.rot % 360) + 360) % 360 * 60000)}"` : ''}>` +
   `<a:off x="${Math.round(s.x)}" y="${Math.round(s.y)}"/><a:ext cx="${Math.max(1, Math.round(s.cx))}" cy="${Math.max(1, Math.round(s.cy))}"/></a:xfrm>`;
 
-function geomXml(radius?: number, cx = 0, cy = 0): string {
+function geomXml(radius?: number, cx = 0, cy = 0, geom?: PptxRect['geom']): string {
+  if (geom === 'ellipse') return `<a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom>`;
   if (radius && radius > 0) {
     const adj = clampInt(radius / Math.max(1, Math.min(cx, cy)) * 100000, 0, 50000);
     return `<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${adj}"/></a:avLst></a:prstGeom>`;
@@ -374,7 +388,7 @@ function geomXml(radius?: number, cx = 0, cy = 0): string {
 
 function rectXml(r: PptxRect, id: number): string {
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="rect${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
-    `<p:spPr>${xfrmXml(r)}${geomXml(r.radius, r.cx, r.cy)}${fillXml(r.fill)}${lineXml(r.line)}</p:spPr>` +
+    `<p:spPr>${xfrmXml(r)}${geomXml(r.radius, r.cx, r.cy, r.geom)}${fillXml(r.fill)}${lineXml(r.line)}</p:spPr>` +
     `<p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
 }
 
@@ -426,7 +440,13 @@ function runXml(run: PptxRun): string {
   // internal slide jump rather than an external URL.
   const rid = run.linkSlide != null && slideLinkRid ? slideLinkRid(run.linkSlide) : undefined;
   const hlink = rid ? `<a:hlinkClick r:id="${rid}" action="ppaction://hlinksldjump"/>` : '';
-  return `<a:r><a:rPr ${attrs}>${fill}${font}${hlink}</a:rPr><a:t>${xmlEsc(run.text)}</a:t></a:r>`;
+  const rPr = `<a:rPr ${attrs}>${fill}${font}${hlink}</a:rPr>`;
+  // A newline inside a run is a soft line break. DrawingML has no newline character in
+  // <a:t> (one viewer breaks on a raw one, another spaces it, and the line pitch goes
+  // uneven), so each becomes an <a:br/> between runs with the same properties.
+  return String(run.text).split(/\r\n?|\n/)
+    .map((part) => `<a:r>${rPr}<a:t>${xmlEsc(part)}</a:t></a:r>`)
+    .join(`<a:br><a:rPr ${attrs}>${font}</a:rPr></a:br>`);
 }
 
 // EMU per indent level for bullets: PowerPoint's default outline step (~0.3").
@@ -448,7 +468,8 @@ function paraXml(p: PptxPara): string {
   if (hasBullet) attrs.push(`indent="-${BULLET_STEP}"`);
   if (p.align) attrs.push(`algn="${p.align}"`);
   let kids = '';
-  if (p.lineSpacingPct && p.lineSpacingPct > 0) kids += `<a:lnSpc><a:spcPct val="${clampInt(p.lineSpacingPct * 1000, 1000, 1000000)}"/></a:lnSpc>`;
+  if (p.lineSpacingPt && p.lineSpacingPt > 0) kids += `<a:lnSpc><a:spcPts val="${clampInt(p.lineSpacingPt * 100, 0, 158400)}"/></a:lnSpc>`;
+  else if (p.lineSpacingPct && p.lineSpacingPct > 0) kids += `<a:lnSpc><a:spcPct val="${clampInt(p.lineSpacingPct * 1000, 1000, 1000000)}"/></a:lnSpc>`;
   if (p.spaceBeforePt && p.spaceBeforePt > 0) kids += `<a:spcBef><a:spcPts val="${clampInt(p.spaceBeforePt * 100, 0, 158400)}"/></a:spcBef>`;
   if (p.spaceAfterPt && p.spaceAfterPt > 0) kids += `<a:spcAft><a:spcPts val="${clampInt(p.spaceAfterPt * 100, 0, 158400)}"/></a:spcAft>`;
   if (hasBullet) {

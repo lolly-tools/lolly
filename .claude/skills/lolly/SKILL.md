@@ -57,8 +57,30 @@ Read the references needed for the chosen tool and surface:
    (or `lolly validate`) and correct every error before rendering.
 4. **Render, or build a link.** `lolly_render` / `lolly run` returns the bytes.
    `lolly_build_url` / `--share` returns an editable link without rendering.
-5. **Share the editable link.** When the human will iterate, hand them the
+5. **Look before you hand over a layout.** `lolly_look` (MCP) draws the render
+   with a grid in the document's own coordinates. Read positions off it rather
+   than guessing from a small picture, and fix what you see with `layerPatches`.
+6. **Share the editable link.** When the human will iterate, hand them the
    `lolly.tools` link, not just the bytes.
+
+## Looking at your work (MCP)
+
+A small picture of a render hides overlaps, clipped text and off-brand colour.
+Three MCP tools let you check a render, or an image you were given, in the
+document's own coordinates. For Design those are the artboard pixels that a
+layer's `x`, `y`, `w` and `h` use.
+
+- `lolly_look`: the render with a labelled grid, or one `region` enlarged to read
+  small type. Use it before nudging a layer and before handing over a layout.
+- `lolly_sample_color`: the colours at points, each named against the design
+  system with its distance. A ΔE of about 0.02 is just noticeable, so "match"
+  means a person would see the brand colour. Use it to check a colour, or to
+  pick one from a supplied photo.
+- `lolly_trace_edges`: a subject's edges as polylines. With `asDesignLayers`,
+  each line is a Design path layer ready for `layerOperations` once you give it an
+  id, so an outline can follow where the subject really is.
+
+These tools never export, stamp or link anything. Their pictures are for you.
 
 ## Authoring a motion piece
 

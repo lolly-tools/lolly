@@ -43,11 +43,18 @@ const DESKTOP_ONLY = 'desktop apps only';
 interface HeaderEntry { key: string; value: string }
 interface VercelConfig { headers?: Array<{ source: string; headers: HeaderEntry[] }> }
 
-function vercelHeaders(path: string): Record<string, string> {
+/** The two rules that between them cover every path: the base policy everywhere but
+ *  /any-site, and its twin there ("Allow pages from any site", plan 288). */
+const BASE_SOURCE = '/((?!any-site(?:/|$)).*)';
+const ANY_SITE_SOURCE = '/any-site(/.*)?';
+/** The one frame-src the /any-site twin may carry: the desktop app's. */
+const ANY_SITE_FRAME_SRC = "'self' blob: https: http://localhost:* http://127.0.0.1:*";
+
+function vercelHeaders(path: string, index = 0): Record<string, string> {
   const cfg = JSON.parse(read(path)) as VercelConfig;
-  const block = cfg.headers?.[0];
-  assert.ok(block, `${path} has no headers block`);
-  assert.equal(block.source, '/(.*)', `${path} headers must apply to every path`);
+  const block = cfg.headers?.[index];
+  assert.ok(block, `${path} has no headers block ${index}`);
+  assert.equal(block.source, index === 0 ? BASE_SOURCE : ANY_SITE_SOURCE, `${path} security headers must cover every path, in two complementary rules`);
   return Object.fromEntries(block.headers.map(h => [h.key, h.value]));
 }
 
@@ -62,6 +69,7 @@ function parseCsp(csp: string): Record<string, string[]> {
 }
 
 const rootHeaders = vercelHeaders('vercel.json');
+const anySiteHeaders = vercelHeaders('vercel.json', 1);
 const nginx = read('deploy/docker/nginx.conf');
 
 test('the second vercel.json stays deleted', () => {
@@ -73,6 +81,37 @@ test('the second vercel.json stays deleted', () => {
     !existsSync(join(ROOT, 'shells/web/vercel.json')),
     'shells/web/vercel.json is back - the live config is the ROOT vercel.json (project rootDirectory is the repo root)',
   );
+});
+
+test('/any-site is the base policy with a wider frame-src and nothing else, on every deployment', () => {
+  // vercel.json sources are path-to-regexp patterns that read as plain regexes here
+  // (no :params), so the two rules can be checked against real paths.
+  const base = new RegExp(`^${BASE_SOURCE}$`), wide = new RegExp(`^${ANY_SITE_SOURCE}$`);
+  for (const path of ['/', '/index.html', '/t/design', '/_app/a.js', '/info/x.html', '/any-sitex', '/any-site', '/any-site/', '/any-site/x']) {
+    assert.notEqual(base.test(path), wide.test(path), `${path} must get exactly one policy`);
+  }
+  assert.equal(wide.test('/any-site/'), true);
+  assert.deepEqual(Object.keys(anySiteHeaders), Object.keys(rootHeaders));
+  for (const key of Object.keys(rootHeaders)) {
+    if (key !== 'Content-Security-Policy') assert.equal(anySiteHeaders[key], rootHeaders[key], key);
+  }
+  const b = parseCsp(rootHeaders['Content-Security-Policy']!), w = parseCsp(anySiteHeaders['Content-Security-Policy']!);
+  assert.deepEqual(Object.keys(w), Object.keys(b));
+  for (const name of Object.keys(b)) if (name !== 'frame-src') assert.deepEqual(w[name], b[name], name);
+  assert.equal(w['frame-src']!.join(' '), ANY_SITE_FRAME_SRC);
+  assert.ok(!b['frame-src']!.includes('https:'), 'the base policy never frames any https page');
+  // No other rule sets a CSP, so nothing can widen another path.
+  const cfg = JSON.parse(read('vercel.json')) as VercelConfig;
+  const withCsp = (cfg.headers ?? []).filter(h => h.headers.some(x => x.key === 'Content-Security-Policy')).map(h => h.source);
+  assert.deepEqual(withCsp, [BASE_SOURCE, ANY_SITE_SOURCE]);
+  // nginx (the container and the RPM) keys its CSP map on the original request URI.
+  for (const conf of ['deploy/docker/nginx.conf', 'shells/web/rpm/lolly-web.nginx.conf']) {
+    const text = read(conf);
+    assert.match(text, /map \$request_uri \$lolly_csp \{/, conf);
+    const m = text.match(/"~\^\/any-site\(\/\|\\\?\|\$\)"\s+"(default-src[^"]+)"/);
+    assert.ok(m, `${conf} has no /any-site entry in its CSP map`);
+    assert.equal(m![1], anySiteHeaders['Content-Security-Policy'], conf);
+  }
 });
 
 test('nginx serves the same CSP as vercel', () => {

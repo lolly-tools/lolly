@@ -287,6 +287,17 @@ test('url-mode: a baked asset without provenance serialises to its baked id (gra
   assert.equal(new URLSearchParams(qs).get('logo'), 'baked/abc123');
 });
 
+test('url-mode: inlineBakedAssets hands a local renderer the bytes, and only when asked', () => {
+  // The CLI's browser tier renders on this same machine, so a local file loaded into an
+  // asset input travels as its data: URL there; without the flag it degrades as before.
+  const local = bakedRef({ source: 'user', id: 'photo.jpg', type: 'raster', format: 'jpeg', url: 'data:image/jpeg;base64,AAAA' });
+  delete local.meta.bakedFrom;
+  assert.equal(new URLSearchParams(serializeUrlState([{ id: 'image', type: 'asset', value: local }], { inlineBakedAssets: true })).get('image'), 'data:image/jpeg;base64,AAAA');
+  assert.notEqual(new URLSearchParams(serializeUrlState([{ id: 'image', type: 'asset', value: local }])).get('image'), 'data:image/jpeg;base64,AAAA', 'a shared link never inlines bytes');
+  const live = liveRef();
+  assert.equal(new URLSearchParams(serializeUrlState([{ id: 'logo', type: 'asset', value: live }], { inlineBakedAssets: true })).get('logo'), TOOL_URL, 'a live ref is unaffected');
+});
+
 test('url-mode: a baked ref inside a blocks row serialises as its provenance ref - never the data: bytes', () => {
   const rows = [{ kind: 'a', img: bakedRef() }, { kind: 'b', img: null }];
   const qs = serializeUrlState([{ id: 'rows', type: 'blocks', value: rows as any }]);
