@@ -42,7 +42,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
     await page.getByRole('button', { name: 'Restore brand settings', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Restore brand settings' });
     await dialog.getByLabel('Checkpoint').selectOption(id);
-    await dialog.getByRole('button', { name: 'Restore', exact: true }).focus();
+    await dialog.getByRole('button', { name: 'Restore checkpoint', exact: true }).focus();
     await page.keyboard.press('Enter');
     await dialog.getByRole('status').filter({ hasText: 'Brand settings restored.' }).waitFor();
     // Closing a modal consumes its same-URL history entry asynchronously.
@@ -70,7 +70,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
     await restored.getByLabel('Checkpoint').selectOption(undo);
     const bounds = await restored.boundingBox();
     assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 391);
-    await restored.getByRole('button', { name: 'Restore', exact: true }).click();
+    await restored.getByRole('button', { name: 'Restore checkpoint', exact: true }).click();
     await restored.getByRole('status').filter({ hasText: 'Brand settings restored.' }).waitFor();
     const secondClose = page.evaluate(() => new Promise<void>(resolve => window.addEventListener('popstate', () => resolve(), { once: true })));
     await restored.getByRole('button', { name: 'Close', exact: true }).click();

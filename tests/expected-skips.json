@@ -1368,6 +1368,27 @@
       "owner": "tests"
     },
     {
+      "file": "tests/design-rules-mobile.browser.test.ts",
+      "fullName": "an individual QR setting opens a focused reusable-tool input editor",
+      "reason": "Set LOLLY_DESIGN_TOOL_TEST_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-rules-mobile.browser.test.ts",
+      "fullName": "Rules fits an unframed document and a phone recipient edits and downloads its authored size",
+      "reason": "Set LOLLY_DESIGN_TOOL_TEST_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-rules-mobile.browser.test.ts",
+      "fullName": "Sequence keeps Track height visible and a touch hold explains without playing",
+      "reason": "Set LOLLY_DESIGN_TOOL_TEST_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/design-tool.browser.test.ts",
       "fullName": "PDF and PDF-compatible AI preserve source names and expose editable content",
       "reason": "Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.",
@@ -3177,13 +3198,6 @@
       "file": "tests/timezone-table.browser.test.ts",
       "fullName": "Timezone table: saved object ids, optional fields and large-list deletion survive editing",
       "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/token-binding.browser.test.ts",
-      "fullName": "token controls stay compact and usable across tool inputs, phone layouts and accessibility preferences",
-      "reason": "set LOLLY_EXPORT_TEST_URL",
       "capability": "environment",
       "owner": "tests"
     },

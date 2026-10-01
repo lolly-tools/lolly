@@ -21,7 +21,10 @@ export async function openToolSession(state: StateAPI, manifest: HistoryManifest
 }> {
   const toolId = manifest.id;
   const shared = !!getCollabSessionSource();
-  const remembered = !shared && !url.slot && !carriedSlot ? localHistorySlot(state, manifest) : undefined;
+  // The live address also carries `slot` as workspace state, so reloading this entry
+  // gives back the slot the entry already remembers. That is a resume, not an override link.
+  const entrySlot = !shared && !carriedSlot ? localHistorySlot(state, manifest) : undefined;
+  const remembered = entrySlot && (!url.slot || url.slot === entrySlot) ? entrySlot : undefined;
   const slot = url.slot ?? carriedSlot ?? remembered;
   if (!slot) return { url, values: url.values };
   const history = !shared ? (state as WebStateAPI).history : undefined;

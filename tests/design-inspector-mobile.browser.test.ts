@@ -30,6 +30,10 @@ async function visit(page: Page): Promise<void> {
   await page.goto(`${origin}/t/design?template=video&editingRange=hdr`);
   await page.waitForFunction(() => !!(window as EditorWindow).lolly?.ui);
   await page.waitForSelector('.tl-panel:not([hidden])');
+  // The editor paints before the mount finishes, and the shared Loading card
+  // (components/view-loading.ts) keeps the page inert until then: keys pressed on
+  // the timeline handle before it closes go to the card.
+  await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
 }
 
 test('Design keeps compact actions, panels and timeline resizing usable across the viewport matrix', { skip, timeout: 180000 }, async () => {

@@ -44,7 +44,8 @@ test('gallery drop, selection, clip edits, save/reopen and actual dotLottie down
     const ruler = await page.locator('.tl-ruler').boundingBox();
     assert.ok(ruler);
     await page.mouse.click(ruler.x + ruler.width * 0.3, ruler.y + ruler.height / 2);
-    await page.locator('.tl-split').click();
+    await page.getByRole('button', { name: 'More tools', exact: true }).click();
+    await page.locator('.tl-tool-menu .tl-split').click();
     await page.waitForFunction(() => document.querySelectorAll('.tl-clip').length === 3);
     await page.getByRole('button', { name: 'Export', exact: true }).click();
     await page.locator('[data-action="save"]').click();

@@ -636,8 +636,11 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // changes here either way: the chords stay the host's, and this handler must
     // never re-capture them.
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
-    // Focused controls own their activation keys, including Space on disclosures.
-    if (deepActiveElement()?.closest('button, summary, a[href], [role="button"], [role="slider"]')) return;
+    // Focused controls own their activation keys, including Space on disclosures. A box on
+    // the canvas is the exception: it takes focus as a role="button" when it is selected,
+    // but it has no activation key of its own, so Space-pan and the zoom keys still apply.
+    const control = deepActiveElement()?.closest('button, summary, a[href], [role="button"], [role="slider"]');
+    if (control && !(control.hasAttribute('data-box-id') && canvasEl?.contains(control))) return;
     if (e.code === 'Space' && !isTyping()) { e.preventDefault(); spaceDown = true; stageEl.classList.add('is-grabbable'); return; }
     if (isTyping()) return;
     // Shift+1 / Shift+2 are matched on `code`, not `key`: the shifted digits are '!' and

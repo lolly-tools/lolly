@@ -152,9 +152,20 @@ function defaultPosition(el: HTMLDivElement, anchor: PopoverAnchor): void {
   // Horizontal clamp rides the `right` inset (the alignment 13 callers rely on):
   // hold the panel's own left edge at >= M, and pin flush right when it is wider
   // than the viewport can hold.
-  const right = Math.max(M, Math.min(vw - r.right, vw - pw - M));
+  const inset = (edge: number): number => Math.round(Math.max(M, Math.min(edge - r.right, edge - pw - M)));
+  let right = inset(vw);
   el.style.top = `${Math.round(top)}px`;
-  el.style.right = `${Math.round(right)}px`;
+  el.style.right = `${right}px`;
+  // `right` counts from the containing block's right edge, which is left of innerWidth
+  // wherever the document keeps a classic scrollbar's gutter (base.css reserves the
+  // gutter on html, so Linux and Windows lose 15px). There a panel clamped to the left
+  // margin sat past the viewport's left edge. Measure where the panel ended up, which
+  // gives the real edge, and place the panel again against that edge.
+  const box = el.getBoundingClientRect();
+  if (box.width > 0) {
+    const edge = Math.round(box.right + right);
+    if (edge !== vw) { right = inset(edge); el.style.right = `${right}px`; }
+  }
 }
 
 /** Options for `wireDisclosure` - the in-place sibling of mountBodyPopover below. */

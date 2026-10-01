@@ -13,7 +13,7 @@ for (const key of ['HTMLElement', 'Element', 'Node', 'Event', 'history', 'locati
 dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
 dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; };
 
-const { beginViewLoading } = await import('./view-loading.ts');
+const { beginViewLoading, focusWhenViewReady } = await import('./view-loading.ts');
 const { mountModal } = await import('./modal.ts');
 const pause = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 const card = (): HTMLDialogElement | null => document.querySelector('dialog.view-loading');
@@ -78,4 +78,28 @@ test('a chooser opened during the delay prevents the loading card from appearing
   await pause(30);
   assert.equal(card(), null);
   loading.close();
+});
+
+test('focus a view places under the card is applied as the card closes, and only the latest', async () => {
+  const placed: string[] = [];
+  focusWhenViewReady(() => placed.push('no card'));
+  assert.deepEqual(placed, ['no card'], 'with nothing on screen focus is placed at once');
+  const loading = beginViewLoading(0);
+  await pause(5);
+  focusWhenViewReady(() => placed.push('first'));
+  focusWhenViewReady(() => placed.push('latest'));
+  assert.deepEqual(placed, ['no card'], 'the page under the modal card is inert');
+  loading.close();
+  assert.deepEqual(placed, ['no card', 'latest']);
+});
+
+test('a request from the view being left does not follow into the next one', async () => {
+  const placed: string[] = [];
+  beginViewLoading(0);
+  await pause(5);
+  focusWhenViewReady(() => placed.push('old view'));
+  const newer = beginViewLoading(0);
+  await pause(5);
+  newer.close();
+  assert.deepEqual(placed, []);
 });

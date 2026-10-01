@@ -46,6 +46,9 @@ test('Profile creates and reopens editable systems beside a locked deployment br
     await page.waitForURL('**/#/start?rename=1');
     const name = page.getByRole('textbox', { name: 'Design system name', exact: true });
     await name.waitFor();
+    // A slow load keeps the loading card over Start until the view has mounted, and
+    // the name field takes focus as the card closes.
+    await page.locator('dialog.view-loading').waitFor({ state: 'detached' });
     assert.equal(await name.evaluate(el => el === document.activeElement), true);
     const created = await read();
     assert.notEqual(created.record.id, 'shipped');

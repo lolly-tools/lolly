@@ -9,7 +9,8 @@
  * Sibling of tests/cli-deep-export.test.ts and hermetic the same way: a
  * self-contained fixture repo with LOLLY_ROOT pinned BEFORE the dynamic import, so
  * the whole run chain resolves against the fixture regardless of the active content
- * profile.
+ * profile. The browser tier is pinned absent as well (see the pin below), because two
+ * cases here assert that a render reached Tier B and was refused there.
  *
  * WHAT IS BEING CLAIMED, and how each claim is checked:
  *
@@ -69,7 +70,14 @@ await writeFile(join(root, 'tools', 'swatch', 'tool.json'), JSON.stringify({
 }));
 await writeFile(join(root, 'tools', 'swatch', 'template.html'), SWATCH);
 
+// Pin the run chain to the fixture BEFORE the first import, and pin the browser tier
+// to a directory with no built shell so it is deterministically absent. LOLLY_WEB_BASE
+// wins over any dist, and CI's browser shard exports it for a live public shell; that
+// shell has never heard of the fixture's `swatch`, so a Tier-B render would open its
+// "Tool not found" page and wait out the idle timeout instead of being refused.
 process.env.LOLLY_ROOT = root;
+process.env.LOLLY_WEB_DIST = join(root, 'no-such-dist');
+delete process.env.LOLLY_WEB_BASE;
 const { runToolCli } = await import('../shells/cli/src/run.ts');
 
 let seq = 0;
@@ -172,8 +180,8 @@ test('--depth=8 on an HDR JPEG opts OUT to the legacy path, exactly as the web s
   // Web parity: unlike the PNG case there IS a coherent 8-bit answer for a JPEG (the
   // legacy PQ encode), and the web shell's renderRaster gates the gain-map path on
   // this same value. So it must leave the browser-free path rather than quietly
-  // writing a gain map the caller opted out of - on this fixture (no built web shell)
-  // that shows up as the Tier-B refusal.
+  // writing a gain map the caller opted out of - with the browser tier pinned absent
+  // above, that shows up as the Tier-B refusal.
   await assert.rejects(
     () => runToolCli({ toolId: 'swatch', params: { hdr: '1', depth: '8' }, outputPath: join(root, 'jpg8.jpg'), format: 'jpg' }),
     /No built web shell/,
@@ -182,8 +190,9 @@ test('--depth=8 on an HDR JPEG opts OUT to the legacy path, exactly as the web s
 
 // ─── 3. --hdr=1 --export=jpg: the ISO 21496-1 gain-map file ──────────────────
 
-// BROWSER-FREE BY CONSTRUCTION: the fixture repo has no `shells/web/dist`, so a run
-// that reached Tier B would fail with "No built web shell at …". A plain `--export=jpg`
+// BROWSER-FREE BY CONSTRUCTION: LOLLY_WEB_DIST points at a directory with no
+// `shells/web/dist` build and LOLLY_WEB_BASE is cleared, so a run that reached Tier B
+// would fail with "No built web shell at …". A plain `--export=jpg`
 // on this fixture does exactly that (JPEG has no resvg path). This case passing is
 // therefore also the proof that the HDR JPEG is written from the Tier-A resvg frame,
 // with no Chromium anywhere in the path.
@@ -225,7 +234,7 @@ test('--hdr=1 --export=jpg writes a gain-map JPEG with MPF, XMP and ISO 21496-1'
 
 test('a plain --export=jpg still needs the browser tier - the HDR one does not', async () => {
   // The negative control for the case above, and the sharpest statement of what
-  // changed: on this fixture (no built web shell) an ordinary JPEG export cannot be
+  // changed: with no web shell to drive, an ordinary JPEG export cannot be
   // produced at all, while the HDR one is written browser-free from the same resvg
   // frame. If a later change routed the HDR JPEG through Tier B, the case above would
   // start failing with this same message.

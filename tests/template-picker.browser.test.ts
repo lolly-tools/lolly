@@ -142,6 +142,10 @@ test('template Open edits, saves and returns to its originating Projects folder 
         await page.waitForURL(/#\/tool\/qr-code/);
         const input = page.getByRole('textbox', { name: 'URL', exact: true });
         await input.waitFor();
+        // The shared Loading card (components/view-loading.ts) stays up until the whole
+        // tool mount has finished, and as a modal it leaves the painted sidebar inert:
+        // text filled before it closes goes to the card, not the field.
+        await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
         assert.equal(await input.inputValue(), 'https://example.org/original');
         await input.fill('https://example.org/edited');
         await input.press('Tab');

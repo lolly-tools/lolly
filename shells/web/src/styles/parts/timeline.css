@@ -1743,9 +1743,13 @@ html[data-a11y-motion="reduce"] .tl-always-on { transition: none; }
 }
 
 @layer views {
-  .tl-panel[data-toolbar-density] .tl-bar { flex-wrap: nowrap; overflow: visible; gap: 8px; padding: 4px 8px; }
+  .tl-panel[data-toolbar-density] .tl-bar { flex-wrap: wrap; overflow: visible; gap: 8px; padding: 4px 8px; }
   .tl-panel[data-toolbar-density] .tl-tools { flex: 1; flex-wrap: nowrap; overflow: visible; margin-left: auto; justify-content: flex-end; }
-  .tl-panel[data-toolbar-density] .tl-inspector { display: none; }
+  /* The selected clip's settings take a row of their own under the toolbar, as they
+     do under 720px. Hiding them here left desktop with no way to type a length, trim
+     or speed, and no keyboard route to Animate, Camera or Animation layers. The row
+     is [hidden] while nothing is selected, and phones still hide it above. */
+  .tl-panel[data-toolbar-density] .tl-inspector { order: 3; flex-basis: 100%; }
   .tl-panel[data-toolbar-density] .tl-time { max-width: none; font-size: var(--fs-2xs); }
   .tl-panel[data-toolbar-density] .tl-btn { flex-shrink: 0; }
   .tl-panel[data-toolbar-density] .tl-add-compact { display: none; }

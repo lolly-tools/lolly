@@ -36,8 +36,14 @@ test('token controls stay compact and usable across tool inputs, phone layouts a
   });
   if (output) await mkdir(output, { recursive: true });
   try {
+    // The token controls are shell chrome, the same for every tool, so these are
+    // static previews. A WebGL tool is not: headless Chromium composites in software
+    // and reads every WebGL frame back on the main thread, so Flythrough's always
+    // running preview held its mount (and the loading dialog) past 15s on CI.
+    // Snippet's typing time is the same kind of control: a seconds slider, default 6,
+    // in a sidebar section, shown for the typing scene.
     for (const [tool, input, path, query] of [
-      ['flythrough', 'duration', 'verification.duration', 'sec=6'],
+      ['snippet', 'typingSeconds', 'verification.duration', 'scene=typing&typingSeconds=6'],
       ['gradient', 'count', 'verification.count', 'count=5'],
       ['qr-code', 'text', messagePath, 'payload=text&text=hello'],
       ['qr-code', 'company', messagePath, 'payload=vcard&firstname=Example&company=The%20Linux%20Foundation'],

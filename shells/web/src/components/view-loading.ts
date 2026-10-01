@@ -14,9 +14,25 @@ export interface ViewLoading {
 
 let active: ViewLoading | null = null;
 let sequence = 0;
+/** The card on screen now, if any. While it is open the page under it is inert. */
+let shown: ModalHandle<void> | null = null;
+/** The latest focus a mounting view asked for while the card was open. */
+let pendingFocus: (() => void) | null = null;
+
+/**
+ * Place focus from a view that may still be mounting. The card is modal, so the page
+ * under it is inert and a direct focus() there is ignored; the latest request waits
+ * and runs as the card closes, before the router decides where focus goes.
+ */
+export function focusWhenViewReady(place: () => void): void {
+  if (shown) pendingFocus = place;
+  else place();
+}
 
 /** Shared loading feedback, available before any lazy view or its CSS downloads. */
 export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
+  // A request from the view being left must not follow into the next one.
+  pendingFocus = null;
   active?.close();
   let closed = false;
   let modal: ModalHandle<void> | null = null;
@@ -28,9 +44,17 @@ export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
       closed = true;
       clearTimeout(timer);
       observer?.disconnect();
+      const wasShown = modal !== null;
       modal?.close();
       modal = null;
       if (active === handle) active = null;
+      if (!wasShown) return;
+      shown = null;
+      // The native close has returned focus to whatever opened the card, usually a
+      // control of the view that was replaced, so the waiting request goes last.
+      const place = pendingFocus;
+      pendingFocus = null;
+      place?.();
     },
   };
   active = handle;
@@ -58,6 +82,7 @@ export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
       onEscape: () => {},
       onClose: () => handle.close(),
     });
+    shown = modal;
   }, delayMs);
 
   return handle;

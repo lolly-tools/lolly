@@ -57,7 +57,7 @@ test('reference onboarding previews locally, applies exact colours, and restores
     assert.deepEqual(external, []);
     assert.equal(await page.evaluate(() => Reflect.get(window, 'referenceExecuted')), undefined);
     await review.getByRole('radio', { name: '#2078cc', exact: true }).check();
-    await review.getByText('Source details and individual choices', { exact: true }).click();
+    await review.getByText('Palette, source details and individual choices', { exact: true }).click();
     const [download] = await Promise.all([
       page.waitForEvent('download'), review.getByRole('button', { name: 'Download design context', exact: true }).click(),
     ]);
@@ -77,7 +77,7 @@ test('reference onboarding previews locally, applies exact colours, and restores
     assert.equal(geometry.overflow, false);
     assert.ok(geometry.targets.every(h => h >= 44));
     await page.screenshot({ path: '/tmp/lolly-brand-derive-mobile.png', fullPage: true });
-    await review.getByRole('button', { name: 'Use this design system', exact: true }).click();
+    await review.getByRole('button', { name: 'Apply suggested settings', exact: true }).click();
     await dialog.waitFor({ state: 'detached' });
     const after = await read();
     assert.deepEqual(after.light.color, report.proposedTokens.light.color);
@@ -86,15 +86,16 @@ test('reference onboarding previews locally, applies exact colours, and restores
     assert.match(page.url(), /area=overview/);
     await page.getByRole('button', { name: 'Restore brand settings', exact: true }).click();
     const restore = page.getByRole('dialog', { name: 'Restore brand settings', exact: true });
-    const checkpoint = await restore.getByLabel('Checkpoint').locator('option').last().getAttribute('value');
-    assert.ok(checkpoint);
-    await restore.getByLabel('Checkpoint').selectOption(checkpoint);
-    await restore.getByRole('button', { name: 'Restore', exact: true }).click();
-    await restore.getByRole('status').filter({ hasText: 'Brand settings restored.' }).waitFor();
+    // Applying a reference is an import, so recovery leads with undoing it and
+    // keeps the checkpoint list folded away.
+    const undo = restore.getByRole('button', { name: 'Undo last import', exact: true });
+    await undo.waitFor();
+    assert.equal(await restore.getByRole('button', { name: 'Restore checkpoint', exact: true }).count(), 0);
+    await undo.click();
+    await restore.waitFor({ state: 'detached' });
     const restored = await read();
     assert.deepEqual(restored.light, before.light);
     assert.deepEqual(restored.dark, before.dark);
-    await restore.getByRole('button', { name: 'Close', exact: true }).click();
     await page.goto(`${origin}/#/start?source=page`);
     await dialog.getByText('Paste HTML or CSS instead', { exact: true }).click();
     await dialog.getByLabel('Source format', { exact: true }).selectOption('css');
@@ -115,7 +116,7 @@ test('reference onboarding previews locally, applies exact colours, and restores
       buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80"><rect width="120" height="80" fill="#ffffff"/><circle cx="60" cy="40" r="28" fill="#cc4411"/></svg>'),
     });
     await dialog.locator('[data-reference-review]').waitFor();
-    await dialog.getByText('Source details and individual choices', { exact: true }).click();
+    await dialog.getByText('Palette, source details and individual choices', { exact: true }).click();
     await dialog.getByText('Colours were read from this SVG.', { exact: false }).waitFor();
     assert.deepEqual((await read()).light, before.light, 'an image also waits for explicit application');
     await dialog.getByRole('button', { name: 'Choose individual items in the tray', exact: true }).click();

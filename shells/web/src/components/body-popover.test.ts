@@ -83,6 +83,26 @@ test('a wide panel clamps its right inset so its left edge stays on-screen', () 
   h.close();
 });
 
+test('a reserved scrollbar gutter moves the clamp to the containing block’s real right edge', () => {
+  // A classic scrollbar's gutter leaves the fixed containing block 15px narrower than
+  // innerWidth, so a `right` inset puts the panel 15px further left than innerWidth predicts.
+  const CB = VW - 15;
+  const panel = { w: 352, h: 200 };
+  const h = harness({ top: 100, bottom: 132, right: 236 }, panel);
+  const proto = (window as unknown as { HTMLElement: typeof HTMLElement }).HTMLElement.prototype;
+  const previous = proto.getBoundingClientRect;
+  proto.getBoundingClientRect = function (this: HTMLElement) {
+    const right = CB - Number.parseInt(this.style.right || '0', 10);
+    return { left: right - panel.w, right, top: 0, bottom: 0, width: panel.w, height: panel.h, x: right - panel.w, y: 0, toJSON: () => ({}) } as DOMRect;
+  };
+  try {
+    h.open();
+    // innerWidth alone gives 390 - 352 - 8 = 30, which puts the left edge at 375 - 30 - 352 = -7.
+    assert.equal(h.panel().style.right, '15px');
+    assert.equal(h.panel().getBoundingClientRect().left, 8, 'the left edge keeps its margin inside the viewport');
+  } finally { h.close(); proto.getBoundingClientRect = previous; }
+});
+
 test('an unmeasurable panel keeps the plain drop (nothing to reason from)', () => {
   const h = harness({ top: 800, bottom: 832, right: 370 }, { w: 0, h: 0 });
   h.open();

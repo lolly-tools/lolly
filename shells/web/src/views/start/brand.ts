@@ -8,6 +8,7 @@
  * from mountStart() by scripts/split-closure.ts.
  */
 import { t, tRaw } from '../../i18n.ts';
+import { focusWhenViewReady } from '../../components/view-loading.ts';
 import { mountBrandEditor } from '../../lib/brand-editor.ts';
 import { activeDesignSystemRecord } from '../../lib/design-system/active.ts';
 import { renameDesignSystem } from '../../lib/design-system/manage.ts';
@@ -65,10 +66,10 @@ export function wireRegistry(start: StartCtx): void {
         }
       });
       if (focusDsName)
-        queueMicrotask(() => {
+        queueMicrotask(() => focusWhenViewReady(() => {
           nameInput?.focus();
           nameInput?.select();
-        });
+        }));
     })
     .catch(() => {
       /* no registry - the line stays hidden */

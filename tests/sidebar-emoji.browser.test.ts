@@ -42,6 +42,11 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
   try {
     await page.goto(`${origin}/#/tool/jump`, { waitUntil: 'networkidle' });
     const heading = page.locator('input[data-input-id="heading"]');
+    // The shared Loading card (components/view-loading.ts) stays up until the whole
+    // tool mount has finished, and as a modal it leaves the painted sidebar inert:
+    // text filled before it closes goes to the card, not the field.
+    await heading.waitFor();
+    await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
     await heading.fill('Hello friend');
     await heading.evaluate((field: HTMLInputElement) => { field.focus(); field.setSelectionRange(6, 12); });
     const insert = heading.locator('..').getByRole('button', { name: 'Insert emoji', exact: true });

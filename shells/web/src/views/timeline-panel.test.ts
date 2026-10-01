@@ -914,6 +914,23 @@ test('the inspector never right-aligns its overflow off the unreachable start ed
     'the right-aligned look comes from an auto start margin, which collapses instead of clipping');
 });
 
+test('the responsive toolbar keeps the selected clip settings on a row of their own', () => {
+  // arrange() stamps data-toolbar-density at every width, so a rule keyed on it reaches
+  // desktop too. The inspector is the typed and keyboard route to Length, Trim in,
+  // Speed, Animate, Camera and Animation layers; none of those has another door.
+  const css = readFileSync(new URL('../styles/parts/timeline.css', import.meta.url), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const rules = [...css.matchAll(/([^{}]*\[data-toolbar-density[^{}]*)\{([^}]*)\}/g)];
+  const inspector = rules.filter(([, sel]) => /\.tl-inspector\b/.test(sel!));
+  assert.ok(inspector.length, 'the density layout places the inspector');
+  for (const [, sel, body] of inspector) {
+    assert.ok(!/display:\s*none/.test(body!), `${sel!.trim()} must not hide the inspector`);
+  }
+  assert.ok(inspector.some(([, , body]) => /flex-basis:\s*100%/.test(body!)), 'it takes a full-width row');
+  const bar = rules.find(([, sel]) => /\.tl-bar\s*$/.test(sel!.trim()));
+  assert.ok(bar && /flex-wrap:\s*wrap/.test(bar[2]!), 'and the bar wraps so that row can form');
+});
+
 // ── authored easing ───────────────────────────────────────────────────────────
 //
 // The state that has to survive: UNAUTHORED. The kind's built-in curve is what every

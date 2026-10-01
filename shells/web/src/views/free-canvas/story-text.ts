@@ -111,6 +111,10 @@ export function start(fc: FcCtx, id: string, options: { selectAll?: boolean; poi
   window.visualViewport?.addEventListener('resize', () => position(fc), { signal: abort.signal });
   window.visualViewport?.addEventListener('scroll', () => position(fc), { signal: abort.signal });
   window.addEventListener('resize', () => position(fc), { signal: abort.signal });
+  // A model change reaches the canvas on the next paint, and a chrome sync queued before
+  // the change can run ahead of that paint. A linked frame that moved or turned would
+  // then keep its old projection, so place the editor again after every clean paint.
+  fc.canvasEl.addEventListener('lolly-canvas-painted', () => position(fc), { signal: abort.signal });
   void editor.ready.then(() => {
     if (fc.editing?.id !== id) return;
     if (options.point) editor.selectAt(options.point.x, options.point.y);
