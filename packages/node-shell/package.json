@@ -119,7 +119,7 @@
     "@napi-rs/canvas": "^1.0.9",
     "onnxruntime-node": "^1.30.0",
     "phonemizer": "^1.2.1",
-    "sharp": "^0.35.4"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "typescript": "^5.5.0"
