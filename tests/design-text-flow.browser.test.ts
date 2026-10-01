@@ -115,6 +115,9 @@ test('three-frame text links, edits across frames, copies visible text, deletes 
     }
     assert.ok(recovered,'automatic recovery stores the complete restored story before reload');
     await page.reload();await page.locator('#tool-canvas svg[data-text-frame="c"]').waitFor();assert.deepEqual((await state(page)).document,saved.document);
+    // A reload can reopen framed on the first artboard, which leaves frame c off-screen, and the
+    // stage moves by transform, so a click cannot scroll it into view. Frame everything first.
+    await page.getByRole('button',{name:'Fit all',exact:true}).click();
     await box('c').click();await page.locator('[data-cx="text-flow"]').click();
     await page.getByRole('dialog',{name:'Continue text',exact:true}).getByRole('button',{name:'New linked frame',exact:true}).click();
     const area=(await page.locator('#tool-canvas').boundingBox())!;
