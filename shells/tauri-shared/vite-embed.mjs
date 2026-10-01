@@ -252,6 +252,14 @@ export function assertDistState({ outDirDefault, mode }) {
       };
       must('catalog/tools/index.json', 'the embedded tool index');
       must('tools/qr-code/tool.json', 'community tools embed in every mode');
+      must('viz-presets/index.json', 'the bundled MilkDrop artist preset index');
+      const presets = JSON.parse(readFileSync(join(outDir, 'viz-presets/index.json'), 'utf8'));
+      if (!Array.isArray(presets) || presets.length === 0) {
+        throw new Error('dist/viz-presets/index.json must list the bundled MilkDrop artist presets');
+      }
+      for (const preset of presets) {
+        must(`viz-presets/${preset.id}.json`, 'every listed MilkDrop artist preset must embed');
+      }
       mustNot('models', 'runtime-downloaded models must never embed (pruneEmbeddedDownloads)');
       if (mode === 'neutral') {
         must('catalog/previews/bundle.json', 'gallery thumbnails embed so first run paints instead of live-rendering every tile');

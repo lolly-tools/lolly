@@ -8,7 +8,7 @@
     "dev:android": "tauri android dev",
     "dev:ios": "tauri ios dev",
     "dev:frontend": "vite",
-    "build:frontend": "pnpm -C ../.. run build:ort && pnpm -C ../.. run build:info && VITE_MODELS_BASE=https://lolli.li vite build && node -e \"const fs=require('node:fs');for(const f of fs.readdirSync('../web/src/locales'))if(f.endsWith('.json'))fs.rmSync('dist/info/'+f.slice(0,-5),{recursive:true,force:true})\"",
+    "build:frontend": "node ../../scripts/copy-viz-presets.ts && pnpm -C ../.. run build:ort && pnpm -C ../.. run build:info && VITE_MODELS_BASE=https://lolli.li vite build && node -e \"const fs=require('node:fs');for(const f of fs.readdirSync('../web/src/locales'))if(f.endsWith('.json'))fs.rmSync('dist/info/'+f.slice(0,-5),{recursive:true,force:true})\"",
     "build:frontend:release": "pnpm -C ../.. run build:mobile:frontend:release",
     "build:android": "pnpm run build:frontend && tauri android build",
     "build:ios": "pnpm run build:frontend && tauri ios build",

@@ -73,6 +73,25 @@ test('normal Tauri package builds use the signed release frontend hook', () => {
   }
 });
 
+test('native builds refuse a missing or incomplete MilkDrop artist pack', async t => {
+  const { assertDistState } = await import(new URL('../shells/tauri-shared/vite-embed.mjs', import.meta.url).href);
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-native-viz-test-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  mkdirSync(join(dir, 'catalog/tools'), { recursive: true });
+  mkdirSync(join(dir, 'tools/qr-code'), { recursive: true });
+  writeFileSync(join(dir, 'catalog/tools/index.json'), '{}');
+  writeFileSync(join(dir, 'tools/qr-code/tool.json'), '{}');
+  const check = assertDistState({ outDirDefault: dir, mode: 'profile' });
+  assert.throws(() => check.writeBundle({}), /viz-presets\/index\.json missing/);
+  mkdirSync(join(dir, 'viz-presets'));
+  writeFileSync(join(dir, 'viz-presets/index.json'), '[]');
+  assert.throws(() => check.writeBundle({}), /must list the bundled MilkDrop/);
+  writeFileSync(join(dir, 'viz-presets/index.json'), JSON.stringify([{ id: 'geiss-collide' }]));
+  assert.throws(() => check.writeBundle({}), /geiss-collide\.json missing/);
+  writeFileSync(join(dir, 'viz-presets/geiss-collide.json'), '{}');
+  assert.doesNotThrow(() => check.writeBundle({}));
+});
+
 test('hosted Tauri release workflows provide signing material to the build hook', () => {
   for (const workflow of ['flatpak.yml', 'linux-arm64.yml', 'ios-release.yml']) {
     const source = readFileSync(new URL(`../.github/workflows/${workflow}`, import.meta.url), 'utf8');
