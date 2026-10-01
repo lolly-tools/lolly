@@ -1,13 +1,27 @@
 // SPDX-License-Identifier: MPL-2.0
 /** LOLLY_IMPORT_TEST_URL=http://127.0.0.1:5188 LOLLY_BROWSER_CHANNEL=chrome node --test tests/brand-recovery.browser.test.ts */
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import test, { after } from 'node:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { chromium } from 'playwright';
+import { chromium, type BrowserContext, type Page } from 'playwright';
+import { journeyDiagnostics } from './helpers/journey-diagnostics.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
+
+// A node:test timeout fails the test but does not stop its body, so a wait that never
+// settles keeps the persistent browser open and the file never exits: on CI that held
+// the whole browser shard for six hours. This closes whatever is still open.
+let open: BrowserContext | undefined;
+after(async () => { await open?.close().catch(() => {}); });
+
+/** Resolves on the next popstate, or fails by name instead of waiting for the test timeout. */
+function nextPopstate(page: Page, what: string): Promise<void> {
+  const seen = page.evaluate(() => new Promise<void>(resolve => window.addEventListener('popstate', () => resolve(), { once: true })));
+  const late = new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`no popstate within 20s after ${what}`)), 20_000).unref());
+  return Promise.race([seen, late]);
+}
 test('brand recovery survives a browser restart and preserves the settings it replaced', {
   skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 120_000,
 }, async () => {
@@ -18,6 +32,8 @@ test('brand recovery survives a browser restart and preserves the settings it re
     viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce',
   });
   let context = await launch();
+  open = context;
+  let diagnose = journeyDiagnostics(context, 'brand-recovery');
   try {
     await context.addInitScript(() => {
       for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
@@ -46,7 +62,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
     await page.keyboard.press('Enter');
     await dialog.getByRole('status').filter({ hasText: 'Brand settings restored.' }).waitFor();
     // Closing a modal consumes its same-URL history entry asynchronously.
-    const firstClose = page.evaluate(() => new Promise<void>(resolve => window.addEventListener('popstate', () => resolve(), { once: true })));
+    const firstClose = nextPopstate(page, 'Escape closed the dialog');
     await page.keyboard.press('Escape');
     await firstClose;
     await dialog.waitFor({ state: 'detached' });
@@ -54,6 +70,8 @@ test('brand recovery survives a browser restart and preserves the settings it re
     assert.deepEqual(errors, []);
     await context.close();
     context = await launch();
+    open = context;
+    diagnose = journeyDiagnostics(context, 'brand-recovery-restarted');
     page = context.pages()[0]!;
     await page.goto(`${origin}/#/start?area=color`, { waitUntil: 'networkidle' });
     const read = () => page.evaluate(async () => {
@@ -72,10 +90,10 @@ test('brand recovery survives a browser restart and preserves the settings it re
     assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 391);
     await restored.getByRole('button', { name: 'Restore checkpoint', exact: true }).click();
     await restored.getByRole('status').filter({ hasText: 'Brand settings restored.' }).waitFor();
-    const secondClose = page.evaluate(() => new Promise<void>(resolve => window.addEventListener('popstate', () => resolve(), { once: true })));
+    const secondClose = nextPopstate(page, 'Close closed the dialog');
     await restored.getByRole('button', { name: 'Close', exact: true }).click();
     await secondClose;
     await page.reload({ waitUntil: 'networkidle' });
     assert.equal(await read(), '#ffc220');
-  } finally { await context.close(); await rm(profile, { recursive: true, force: true }); }
+  } catch (error) { await diagnose(error); throw error; } finally { await context.close(); open = undefined; await rm(profile, { recursive: true, force: true }); }
 });
