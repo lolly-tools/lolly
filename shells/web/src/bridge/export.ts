@@ -1534,7 +1534,7 @@ async function renderSvg(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   // is wrapped in a media-sized outer <svg> with the marks (wrapArtworkSvgWithMarks).
   const geo = printGeometry(node, opts);
   if (!isSvgRooted(node)) {
-    const inner = await renderSvgFromHtml(node, { backdropBlur: true, ...opts });
+    const inner = await renderSvgFromHtml(node, { backdropBlur: true, compactPaths: true, ...opts });
     if (!geo) return inner;
     const artworkEl = new DOMParser().parseFromString(await inner.text(), 'image/svg+xml').documentElement;
     return wrapArtworkSvgWithMarks(artworkEl, geo, opts);

@@ -248,6 +248,11 @@ export interface ExportOpts {
    *  canvas, so this does not undo the ingest-time strip of `data-name` /
    *  `inkscape:label`. See engine/src/svg-layers.ts. */
   layerIds?: boolean;
+  /** Pack every `d` as relative path data (svg-portable.ts). Set by the .svg / .svgz
+   *  file formats only: EMF/EPS/DXF/PPTX re-parse the walker's output to absolute
+   *  coordinates, where it saves nothing and the summed deltas drift in the fourth
+   *  decimal. */
+  compactPaths?: boolean;
   noBoxShadow?: boolean;
   /** Resolution ceiling for INLINED raster assets (`<img>` bitmaps), in DPI, decoupled
    *  from `dpi` (which sets the vector/own-paint resolution). Opt-in: when set, an

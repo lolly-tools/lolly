@@ -34,6 +34,7 @@ import { pureRotationDeg, borderDashArray, preserveAspectRatioAlign } from './ex
 import { imprintCanvas, blobToDataUrl, _host, exportDims, makeRoundedFill, MAX_RASTER_PX, makeSvgRect, fontMetricsPx, getDomToImage, swapBlobUrls } from './export-shared.ts';
 import type { ImprintState, ExportOpts, Rgba } from './export-shared.ts';
 import { buildLinearGradientEl, buildRadialGradientEl, conicFanEl } from './export-gradients.ts';
+import { portableSvgPaint, compactSvgPaths } from './svg-portable.ts';
 
 // Imprint a LOLLY-RENDERED raster that's about to be baked into a container (a
 // PDF page, a PPTX slide, an SVG <image>). Two extra gates over the standalone
@@ -2155,6 +2156,10 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       `svg: ${tiltedRasters} tilted element${tiltedRasters === 1 ? '' : 's'} embedded as images `
       + '(SVG has no perspective transform; every untilted layer stayed vector)');
   }
+  // SVG 1.1 paint (an `rgba()` fill is opaque black in Inkscape), over everything
+  // the walk emitted including passthrough markup; packed path data for a file.
+  portableSvgPaint(svgEl);
+  if (opts.compactPaths) compactSvgPaths(svgEl);
   const xml = injectSvgMeta(new XMLSerializer().serializeToString(svgEl), opts.meta);
 
   // Parse-check before returning. This walker can emit XML that does not parse,
