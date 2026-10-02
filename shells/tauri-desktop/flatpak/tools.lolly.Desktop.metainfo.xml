@@ -85,6 +85,17 @@
   <url type="homepage">https://lolly.tools</url>
 
   <releases>
+    <release version="1.1.0" date="2026-10-02">
+      <description>
+        <p>The fancy one: slide masters and motion in Design, and reviewed design-system updates.</p>
+        <ul>
+          <li>Lay slides out from the design system's slide masters and export real PowerPoint layouts.</li>
+          <li>Every tool shares one settings panel, and Design and Snippet export animations as HTML players.</li>
+          <li>Choose token themes independently and review design-system updates before applying them.</li>
+          <li>Verify shows clearer evidence and signed reports, and more tools keep their work in Projects.</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.9" date="2026-09-20">
       <description>
         <p>The pre-pressive one: publishing tools for Design and a complete Agenda programme editor.</p>
