@@ -8,8 +8,8 @@
  * The walker fills boxes and shadows with the computed CSS colour, and the inline-<svg>
  * passthrough clones authored markup verbatim, so `fill="rgba(12,50,44,0.13)"` and
  * `style="stroke: rgba(…)"` reached the file. Browsers read that. SVG 1.1 paint is only
- * a hex, `rgb()` or a keyword, and the editors people open an export in (Inkscape before
- * 1.4, Illustrator, librsvg viewers) drop anything else as invalid paint. An invalid
+ * a hex, `rgb()` or a keyword, and the editors people open an export in (Inkscape 1.4.4,
+ * Illustrator, librsvg viewers) drop anything else as invalid paint. An invalid
  * fill falls back to opaque BLACK and an invalid stroke to NONE: Snippet's translucent
  * close button became a black disc with no ×, and every soft box-shadow a solid black
  * blur (user report, 2026-10-02). Each such colour becomes `#rrggbb`, and its alpha
@@ -22,7 +22,9 @@
  * written as absolute commands at two decimals. Rewritten relative, on the integer grid
  * of the path's own precision, the same points cost about a third less. Every
  * coordinate survives exactly; a path this cannot rewrite exactly (arcs, exponents, more
- * than four decimals) is left as it was.
+ * than four decimals) is left as it was. So is every path inside a passthrough <svg>:
+ * Design's text frames hand their settled glyph paths to SVG, PowerPoint and Penpot,
+ * and each export must carry those strings unchanged.
  */
 import { parseColor, colorToSrgb8 } from '@lolly/engine';
 
@@ -203,9 +205,11 @@ export function compactPathData(d: string): string {
   return out.length < d.length ? out : d;
 }
 
-/** Pack every <path>'s `d` in `root`'s subtree, in place. */
+/** Pack the `d` of every <path> the walker drew under `root`, in place. Paths inside a
+ *  nested <svg> came through the passthrough and keep their authored strings. */
 export function compactSvgPaths(root: Element): void {
   for (const p of root.querySelectorAll('path')) {
+    if (p.parentElement?.closest('svg') !== root) continue;
     const d = p.getAttribute('d');
     if (d) { const c = compactPathData(d); if (c !== d) p.setAttribute('d', c); }
   }

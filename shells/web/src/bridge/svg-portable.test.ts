@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { parseSvgPath } from '@lolly/engine';
-import { compactPathData, portablePaint, portableSvgPaint } from './svg-portable.ts';
+import { compactPathData, compactSvgPaths, portablePaint, portableSvgPaint } from './svg-portable.ts';
 
 const svg = (body: string): Element => {
   const { window } = new JSDOM(`<svg xmlns="http://www.w3.org/2000/svg">${body}</svg>`, { contentType: 'image/svg+xml' });
@@ -64,4 +64,13 @@ test('path data the packer cannot keep exact is left alone', () => {
   for (const d of ['M0 0A5 5 0 0 1 10 10', 'M1e3 0L0 0', 'M0.123456 0L1 1', 'L1 1', 'M0 0L1']) {
     assert.equal(compactPathData(d), d);
   }
+});
+
+test('passthrough markup keeps its path strings and paths the walker drew are packed', () => {
+  const settled = 'M2.47,0L2.47,-15.31Z';
+  const root = svg(`<g><path d="${settled}"/></g><g><svg><path d="${settled}"/></svg></g>`);
+  compactSvgPaths(root);
+  const [own, passthrough] = root.querySelectorAll('path');
+  assert.equal(own!.getAttribute('d'), 'm2.47 0v-15.31z');
+  assert.equal(passthrough!.getAttribute('d'), settled, 'a Design text frame exports its settled glyph paths verbatim');
 });
