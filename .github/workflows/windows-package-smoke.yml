@@ -56,7 +56,10 @@ jobs:
           $app = Get-ChildItem C:\lolly-smoke -Recurse -Filter lolly-desktop.exe | Select-Object -First 1
           if (-not $app) { throw 'Installed application is missing' }
           $version = $app.VersionInfo.ProductVersion
-          if ($version -notmatch '^1\.0\.9(\.|$)') { throw "Unexpected application version: $version" }
+          # The installer names its release (Lolly_<version>_x64...), so the check follows each version bump.
+          $expected = [regex]::Match((Split-Path $package -Leaf), '^Lolly_(\d+\.\d+\.\d+)_x64').Groups[1].Value
+          if (-not $expected) { throw "Cannot read the release version from $package" }
+          if ($version -notmatch "^$([regex]::Escape($expected))(\.|$)") { throw "Unexpected application version: $version (installer is $expected)" }
           $bytes = [System.IO.File]::ReadAllBytes($app.FullName)
           $offset = [BitConverter]::ToInt32($bytes, 0x3c)
           if ([BitConverter]::ToUInt16($bytes, $offset + 4) -ne 0x8664) { throw 'Application is not x64' }
