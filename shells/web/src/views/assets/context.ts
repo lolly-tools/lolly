@@ -26,6 +26,8 @@ import type { detailsOps } from './details.ts';
 import type { userAssetsOps } from './user-assets.ts';
 import type { bulkOps } from './bulk.ts';
 import type { downloadsOps } from './downloads.ts';
+import type { actionsOps } from './actions.ts';
+import type { BodyPopoverHandle } from '../../components/body-popover.ts';
 import type { wiringOps } from './wiring.ts';
 
 export interface CatCtx {
@@ -113,6 +115,8 @@ export interface CatCtx {
   sessionTextsLoading: Promise<void> | null;
   releaseSearch: () => void;
   openTargets: string[];
+  actionsPopover: BodyPopoverHandle | null;
+  actions: ReturnType<typeof actionsOps>;
   // ---- operations, one namespace per module ----
   tiles: ReturnType<typeof tilesOps>;
   thumbs: ReturnType<typeof thumbsOps>;

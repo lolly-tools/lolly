@@ -76,6 +76,73 @@ test('CORPUS human: legal/contract register stays none/weak', () => {
   assert.ok(bandAtMost(r.band, 'weak'), `legal register must not read as AI, got ${r.band} (${r.score})`);
 });
 
+test('CORPUS human: a structured README (headings, field labels, steps, FAQ) stays none/weak', () => {
+  // The shapes a human README shares with a chat answer: section headings, a
+  // numbered list, "Type:" / "Default:" / "Note:" field labels repeated per option,
+  // a question as a heading and an emoji heading. Lexicon 8 measured these on the
+  // corpus-v4 READMEs before the chat-structure family was added.
+  const text = [
+    '# tiny-cache',
+    '',
+    'A small in-memory cache with expiry, for Node and the browser.',
+    '',
+    '## 🚀 Installation',
+    '',
+    'Install it with npm and import the default export.',
+    '',
+    '## Usage',
+    '',
+    '1. Create a cache with a default lifetime.',
+    '2. Call set and get as you would on a Map.',
+    '3. Call prune on a timer if your keys are short-lived.',
+    '',
+    '## Options',
+    '',
+    '### ttl',
+    'Type: `number`',
+    'Default: `60000`',
+    'Note: the lifetime is measured in milliseconds, not seconds, and applies to every entry.',
+    '',
+    '### max',
+    'Type: `number`',
+    'Default: `Infinity`',
+    'Note: when the cache is full the oldest entry is dropped first, which keeps memory bounded.',
+    '',
+    '## FAQ',
+    '',
+    'Why not use a Map?',
+    '',
+    'A Map never forgets. This one drops old entries, so long-running servers do not grow without limit.',
+    '',
+    '## License',
+    '',
+    'MIT',
+  ].join('\n');
+  const r = analyzeTextSignals(text, { source: 'digital' });
+  assert.ok(bandAtMost(r.band, 'weak'), `a structured README must not read as AI, got ${r.band} (${r.score})`);
+  assert.ok(!r.findings.some((f) => f.kind === 'chat-structure'), 'README structure is not a chat layout');
+});
+
+test('CORPUS human: a learner essay (taught connectors, labelled reasons, even paragraphs) stays none', () => {
+  // The non-native control: "In conclusion", "First reason:", "Moreover" and five
+  // even paragraphs are what English classes teach. Before lexicon 8 this shape
+  // fired "in conclusion" and uniform paragraphs (24% and 20% of learner essays).
+  const text = [
+    'Some people think students should have a phone in the class, but I disagree with this idea. '
+      + 'In my country the school is strict. I will explain my reasons in this essay.',
+    'First reason: the phone take the attention of the students and they do not listen the teacher very well. '
+      + 'My friend look at videos all the lesson.',
+    'Second reason: many students play games in the class. This is not good for the grades, and after the '
+      + 'exam they are sad because they fail.',
+    'Moreover, the parents pay for the school. They want that the children learn something useful and not use '
+      + 'the phone all day long.',
+    'In conclusion, I think the phones should stay in the bag during the class because it is better for '
+      + 'everybody, also for the teacher.',
+  ].join('\n\n');
+  const r = analyzeTextSignals(text, { source: 'digital' });
+  assert.equal(r.band, 'none', `a learner essay must not read as AI, got ${r.band} (${r.score}): ${r.findings.map((f) => f.kind).join(', ')}`);
+});
+
 // ── AI-shaped samples ────────────────────────────────────────────────────────
 
 test('CORPUS ai: an assistant-style answer reads notable or stronger', () => {

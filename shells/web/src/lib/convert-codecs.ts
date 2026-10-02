@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** File conversion codecs shared by the workbench and library entry points. */
-import { sfntKind, convertFontContainer, imageDimensions, sniffAnimatedRaster, parseDimension, toCssPx, gzip, gunzip, sniffContainer, encodeBmp, packTiff, joinPageText } from '@lolly/engine';
+import { sfntKind, convertFontContainer, imageDimensions, sniffAnimatedRaster, parseDimension, toCssPx, gzip, gunzip, sniffContainer, encodeBmp, packTiff, joinPageText, storeZip } from '@lolly/engine';
 import { DEFAULT_IMAGE_OPTIONS, resizedDimensions, type ImageConversionOptions } from './file-conversion.ts';
 import { sourceToGrid, gridToTarget } from '@lolly/engine';
 import { isJxl } from '../../../../engine/src/jxl.ts';
@@ -58,8 +58,10 @@ export function targetsFor(kind: string): Target[] {
     // engine's read-model → deck-studio dialect, a Word file through docx-read, a
     // PDF through its text layer. Lossy by design - this is the re-flow path, not
     // the keep-the-design one (host.pptx.rebrand owns that).
+    case 'text':
+      return [{ id: 'html', label: 'HTML document (.html)', ext: 'html', mime: 'text/html' }, { id: 'rtf', label: 'RTF document (.rtf)', ext: 'rtf', mime: 'application/rtf' }, { id: 'docx', label: 'Word document (.docx)', ext: 'docx', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }, { id: 'odt', label: 'OpenDocument text (.odt)', ext: 'odt', mime: 'application/vnd.oasis.opendocument.text' }];
     case 'pdf':
-      return [MD_OUT, { id: 'pdf-clean', label: 'PDF · remove descriptive metadata', ext: 'pdf', mime: 'application/pdf' }, { id: 'pdf-optimize', label: 'PDF · structural compression', ext: 'pdf', mime: 'application/pdf' }];
+      return [MD_OUT, { id: 'pdf-split', label: 'Separate PDFs for every page (.zip)', ext: 'zip', mime: 'application/zip' }, { id: 'pdf-pages-png', label: 'PNG images for every page (.zip)', ext: 'zip', mime: 'application/zip' }, { id: 'pdf-clean', label: 'PDF · remove descriptive metadata', ext: 'pdf', mime: 'application/pdf' }, { id: 'pdf-optimize', label: 'PDF · structural compression', ext: 'pdf', mime: 'application/pdf' }];
     case 'pptx': case 'docx':
       return [MD_OUT];
     default: return [];
@@ -118,6 +120,7 @@ export function detectKind(bytes: Uint8Array, file: File): string {
   if (/\.csv$/i.test(file.name) || /^text\/csv/.test(file.type)) return 'csv';
   if (/\.json$/i.test(file.name) || (/^application\/json/.test(file.type) && /^\s*[[{]/.test(head))) return 'json';
   if (/^image\//.test(file.type) || /\.(png|jpe?g|webp|gif|avif|bmp)$/i.test(file.name)) return 'raster';
+  if (/\.(txt|md|markdown)$/i.test(file.name)) return 'text';
   // A video for the AV column. The kind is a coarse gate; the real capability check is
   // probeVideo (mediabunny), which refuses anything the copy engines cannot read.
   if (/^video\//.test(file.type) || /\.(mp4|m4v|mov|qt|mkv|webm)$/i.test(file.name)) return 'video';
@@ -168,16 +171,55 @@ export async function convert(bytes: Uint8Array, kind: string, target: Target, f
     const content = await officeToMarkdown(bytes, file.name);
     return markdownDownload(content, kind === 'pptx' ? 'deck.md' : 'doc.md');
   }
+  if (kind === 'text') {
+    if (bytes.byteLength > 4 * 1024 * 1024) throw new Error('Text conversion supports files of up to 4 MiB.');
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (text.includes('\u0000')) throw new Error('This source contains binary data.');
+    const mod = await import('./text-doc-export.ts');
+    const title = file.name.replace(/\.[^.]+$/, '');
+    if (target.id === 'html') return new Blob([mod.mdToStandaloneHtml(text, title)], { type: target.mime });
+    if (target.id === 'rtf') return new Blob([mod.mdToRtf(text)], { type: target.mime });
+    if (target.id === 'docx') return mod.mdToDocxBlob(text, title);
+    if (target.id === 'odt') return mod.mdToOdtBlob(text, title);
+    throw new Error('Unsupported text document conversion.');
+  }
   // A PDF's text layer, page by page, through the SAME engine emitter the Unpack
   // view's "Markdown" download uses. pdf-import pulls pdf-lib in at module scope, so
   // it is imported here and nowhere else in this view.
   if (kind === 'pdf') {
+    if (target.id === 'pdf-split') {
+      const { splitPdfPages } = await import('@lolly-tools/node-shell/pdf-file-operation');
+      const pages = await splitPdfPages(bytes, signal);
+      const stem = file.name.replace(/\.[^.]+$/, '') || 'document';
+      return new Blob([storeZip(pages.map((bytes, i) => ({ name: `${stem}-page-${String(i + 1).padStart(3, '0')}.pdf`, bytes }))) as BlobPart], { type: 'application/zip' });
+    }
     if (target.id === 'pdf-clean' || target.id === 'pdf-optimize') {
       const { runPdfFileOperation } = await import('@lolly-tools/node-shell/pdf-file-operation');
       return new Blob([await runPdfFileOperation(bytes, target.id, signal) as BlobPart], { type: 'application/pdf' });
     }
     const { openPdfFile } = await import('../views/pdf-import.ts');
     const handle = await openPdfFile(file);
+    if (target.id === 'pdf-pages-png') {
+      if (handle.pageCount > MAX_PDF_PAGES) throw new Error('Page rendering supports up to 200 PDF pages.');
+      const entries: { name: string; bytes: Uint8Array }[] = [];
+      let total = 0;
+      for (let index = 0; index < handle.pageCount; index++) {
+        signal?.throwIfAborted();
+        const warnings: string[] = [];
+        const page = await handle.pageToSvg(index, { warn: message => warnings.push(message) });
+        if (warnings.length) throw new Error(`Page ${index + 1} cannot be rendered faithfully: ${warnings[0]}`);
+        const source = new File([page.svg], 'page.svg', { type: 'image/svg+xml' });
+        const canvas = await sourceToCanvas('svg', new TextEncoder().encode(page.svg), source, options, false, signal);
+        try {
+          const blob = await encodeFromCanvas(canvas, { id: 'png', label: 'PNG', ext: 'png', mime: 'image/png', render: true }, options.quality, signal);
+          total += blob.size;
+          if (total > 128 * 1024 * 1024) throw new Error('Page images exceed the 128 MB packaging limit.');
+          entries.push({ name: `page-${String(index + 1).padStart(3, '0')}.png`, bytes: new Uint8Array(await blob.arrayBuffer()) });
+        } finally { canvas.width = canvas.height = 1; }
+      }
+      signal?.throwIfAborted();
+      return new Blob([storeZip(entries) as BlobPart], { type: 'application/zip' });
+    }
     const toText = handle.pageToText;
     if (!toText) throw new Error('That PDF has no readable text layer.');
     if (handle.pageCount > MAX_PDF_PAGES) throw new Error('This converter reads up to 200 PDF pages. Split the document first; no pages have been silently dropped.');

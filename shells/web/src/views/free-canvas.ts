@@ -78,6 +78,7 @@ import type { AddKind, CanvasCfg, ConnectCfg, Corner, DeepLinkState, FieldCfg, F
 import type { FcCtx } from './free-canvas/context.ts';
 import { helpersOps } from './free-canvas/helpers.ts';
 import { selectOps } from './free-canvas/select.ts';
+import { catalogIntakeOps } from './free-canvas/catalog-intake.ts';
 import { timelineOps } from './free-canvas/timeline.ts';
 import { stageOps } from './free-canvas/stage.ts';
 import { narrationOps } from './free-canvas/narration.ts';
@@ -199,6 +200,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.helpers = helpersOps(fc);
   fc.select = selectOps(fc);
   fc.timeline = timelineOps(fc);
+  fc.catalogIntake = catalogIntakeOps(fc);
   fc.stage = stageOps(fc);
   fc.narration = narrationOps(fc);
   fc.rail = railOps(fc);
@@ -1869,6 +1871,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     fc.timeline.openTimeline();
   }
   fc.editorState.applyEditorState(opts.deepLink);
+  void fc.catalogIntake.intake();
 
   // Universal drop front door (lib/drop-router.ts): a design file dropped on the
   // gallery/dashboard was stashed one-shot and is consumed here on mount, through
@@ -2268,7 +2271,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       // The wire field names (docs/url-mode.md `_ui`): what a link to this exact view
       // would carry. Panel detection is the picker's own root class - no second flag
       // to keep in step with askChoreograph's open/close.
-      const st: { sel: string[]; t?: number; panel?: string; page?: string; timeline?: boolean } = { sel: [...fc.selection], timeline: fc.timelinePanel?.isOpen() ?? false };
+      const st: { sel: string[]; t?: number; panel?: string; page?: string; timeline?: boolean } = { sel: [...fc.selection], timeline: fc.timelinePanel?.isOpen() ?? fc.timelineWantOpen };
       const page = artboardPort.active();
       if (page) st.page = page;
       if (fc.timelinePanel?.isOpen()) st.t = fc.timelinePanel.time();

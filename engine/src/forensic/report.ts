@@ -335,7 +335,13 @@ export async function verifyForensicReport(
               !integer(w.tokens, 100_000) ||
               !unit(w.rawScore) ||
               !location({ page: m.page, span: w })
-          )
+          ) ||
+          (m.chunks !== undefined &&
+            (!array(m.chunks, 128) ||
+              m.chunks.some((c) => !unit(c.rawScore) || !location({ page: m.page, span: c })))) ||
+          (m.chunkThreshold !== undefined && !unit(m.chunkThreshold)) ||
+          (m.chunkFloor !== undefined && !unit(m.chunkFloor)) ||
+          (m.chunkVersion !== undefined && !str(m.chunkVersion))
       )
     )
       return false;

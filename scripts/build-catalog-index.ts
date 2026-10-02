@@ -200,6 +200,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   const activeAtDefault = (input: any) =>
     !input.showIf || Object.entries(input.showIf).every(([k, v]) => defaultOf(k) === v);
   if (inputs.some((i: any) => i.bindToProfile && activeAtDefault(i))) entry.personalized = true;
+  if (manifest.openWith) entry.openWith = manifest.openWith;
   // Featured-row curation (manifest.featured) - carried verbatim so the gallery's
   // cinematic hero row (shells/web/src/components/featured-row.ts) can pick its tiles
   // and cross-fade variants with no per-tool manifest fetch. Not in INDEX_FIELDS (it's
@@ -314,7 +315,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
 // ADDS or REMOVES a tile / a badge: without them an unlisted mechanism would flash
 // into the grid and a desktop-only tool would flip to "Desktop app only" on the
 // upgrade paint.
-const SLIM_FIELDS = ['id', 'name', 'description', 'category', 'tags', 'status', 'capabilities', 'requires', 'new', 'listed', 'galleryArt', 'icon', 'preview', 'featured'];
+const SLIM_FIELDS = ['id', 'name', 'description', 'category', 'tags', 'status', 'capabilities', 'requires', 'new', 'listed', 'galleryArt', 'icon', 'preview', 'featured', 'openWith'];
 
 /**
  * The slim (first-paint) form of one full index entry - plans/155 Task 3.8.

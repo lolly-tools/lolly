@@ -29,6 +29,14 @@ test('the preview never exceeds its own small area, whatever the SVG size', asyn
   assert.equal(Math.round(w / h), 2, 'aspect kept');
 });
 
+test('the preview draws in a child process: a picture it cannot draw fails alone (plans/289 D6)', async () => {
+  const { RasterCrash } = await import('@lolly-tools/node-shell/raster-child');
+  await assert.rejects(previewPng('<svg this is not an SVG'), (e: unknown) => e instanceof RasterCrash);
+  // The server process is still here and still draws.
+  const { w } = pngSize(await previewPng('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20"><rect width="40" height="20"/></svg>'));
+  assert.equal(w, 40, 'a small SVG is never scaled up');
+});
+
 test('a hosted lolly_render PNG is held to the area cap and says so', async () => {
   process.env.LOLLY_MCP_HOSTED = '1';
   try {

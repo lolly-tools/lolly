@@ -126,6 +126,9 @@ fn is_sidecar_verb(value: &str) -> bool {
             | "learning"
             | "tui"
             | "rebrand"
+            | "look"
+            | "sample"
+            | "trace"
     )
 }
 

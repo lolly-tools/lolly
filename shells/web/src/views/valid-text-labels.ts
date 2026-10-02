@@ -14,7 +14,23 @@ export function textSignalLabels(panel: TextSignalPanel): { heading: string; ban
   const bandLabel: Record<TextSignalPanel['band'], string> = {
     none: t('None'), weak: t('Weak'), notable: t('Notable'), strong: t('Strong'),
   };
-  const title: Record<string, string> = {
+  const title = textSignalKindTitles();
+  const rows = panel.rows.map((r) => `
+        <li class="valid-aidecl-row">
+          <span class="valid-aidecl-model">${escapeHtml(title[r.kind] ?? r.kind)}</span>
+          ${r.detail ? `<span class="valid-aidecl-fact">${escapeHtml(r.detail)}</span>` : ''}
+        </li>`).join('');
+  return { heading: heading[panel.band], bandLabel: bandLabel[panel.band], rows };
+}
+
+/** The reader-facing title for a text-signal kind. An unknown kind reads as itself. */
+export function textSignalKindTitle(kind: string): string {
+  return textSignalKindTitles()[kind] ?? kind;
+}
+
+// Static t() so the extractor sees every key; built per call so a language switch is honoured.
+function textSignalKindTitles(): Record<string, string> {
+  return {
     'model-fingerprint': t('Model fingerprint'),
     'invisible-char': t('Invisible characters'),
     'tag-chars': t('Hidden tag characters'),
@@ -31,6 +47,8 @@ export function textSignalLabels(panel: TextSignalPanel): { heading: string; ban
     'list-heavy': t('List-heavy structure'),
     'uniform-burstiness': t('Unusually uniform sentences'),
     'chatbot-leftover': t('Chatbot boilerplate'),
+    'chat-structure': t('Chat-answer layout'),
+    'list-triads': t('Dense three-part lists'),
     'template-placeholder': t('Unfilled template placeholders'),
     'uniform-paragraphs': t('Unusually uniform paragraphs'),
     'ai-span': t('Concentrated AI-like section'),
@@ -38,10 +56,4 @@ export function textSignalLabels(panel: TextSignalPanel): { heading: string; ban
     'spelling-variant-mix': t('Mixed US/British spelling'),
     'model-estimate': t('On-device model estimate'),
   };
-  const rows = panel.rows.map((r) => `
-        <li class="valid-aidecl-row">
-          <span class="valid-aidecl-model">${escapeHtml(title[r.kind] ?? r.kind)}</span>
-          ${r.detail ? `<span class="valid-aidecl-fact">${escapeHtml(r.detail)}</span>` : ''}
-        </li>`).join('');
-  return { heading: heading[panel.band], bandLabel: bandLabel[panel.band], rows };
 }

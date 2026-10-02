@@ -20,7 +20,7 @@ import { attachFileResultActions } from './file-result-actions.ts';
 export interface ConvertSource { file: File; bytes: Uint8Array; kind: string; targets: Target[] }
 interface Completed { blob: Blob; name: string; report: FileOperationReportV1; operationId: string }
 
-export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[], host: HostV1): () => void {
+export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[], host: HostV1, initialTarget?: string): () => void {
   const first = sources[0]!;
   const imageSource = sources.every(s => ['raster', 'svg', 'svgz'].includes(s.kind));
   const targets = first.targets.filter(target => sources.every(s => s.targets.some(t => t.id === target.id)));
@@ -45,7 +45,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
   const sourcePreview = imageSource && first.kind !== 'svgz'
     ? `<img src="${urlFor(first.file)}" alt="${t('Original file preview')}">`
     : `<span class="convert-file-icon" aria-hidden="true">${escapeHtml(first.kind.toUpperCase())}</span>`;
-  const defaultTarget = imageSource ? targets.find(t => t.id === 'png') ?? targets[0]! : targets[0]!;
+  const defaultTarget = targets.find(t => t.id === initialTarget) ?? (imageSource ? targets.find(t => t.id === 'png') ?? targets[0]! : targets[0]!);
   root.innerHTML = `
     <div class="convert-workbench">
       <section class="convert-source" aria-label="${t('Original file')}">

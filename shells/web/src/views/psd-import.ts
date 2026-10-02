@@ -39,8 +39,10 @@ import type {
 import { packPng } from '../../../../engine/src/png.ts';
 import { sniffLayeredRaster } from '../../../../engine/src/media-sniff.ts';
 import { encodeAuthoredPaths } from '../../../../engine/src/geom/authored-url.ts';
+import { selfUnion } from '../../../../engine/src/geom/boolean.ts';
+import type { GeomPath } from '../../../../engine/src/geom/path.ts';
 import type { DesignMapOptions } from '../../../../engine/src/design-map.ts';
-import type { PsdSubpath, PsdTextRun } from '../../../../engine/src/psd-layer-semantics.ts';
+import type { PsdStroke, PsdSubpath, PsdTextRun } from '../../../../engine/src/psd-layer-semantics.ts';
 import { markdownFromChars } from './rich-text.ts';
 import type { PickerHost } from './picker.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
@@ -287,12 +289,14 @@ export async function parseLayeredAsDesign(
   const nodes: Record<string, unknown>[] = [];
   const paths: Array<string | null> = [];
   const markups = new Map<Record<string, unknown>, string>();
+  const fieldsFor = new Map<number, Record<string, unknown>>();
   for (let i = 0; i < planned.length; i++) {
     const { layer: l, live } = planned[i]!;
     if (live) {
       nodes.push(live.node);
       paths.push(live.path ?? null);
       if (live.markup != null) markups.set(live.node, live.markup);
+      if (live.fields) fieldsFor.set(i, live.fields);
       continue;
     }
     storeUserUpload ??= (await import('./picker.ts')).storeUserUpload;
@@ -327,6 +331,8 @@ export async function parseLayeredAsDesign(
       if (name) b.name = name;
       const wire = paths[i];
       if (wire) Object.assign(b, { kind: 'path', shape: 'rect', path: wire, fillRule: 'nonzero' });
+      const fields = fieldsFor.get(i);
+      if (fields) Object.assign(b, fields);
       const base = clipTo[i];
       if (base != null) b.clip = boxes[base]!.id;
     });
@@ -353,6 +359,76 @@ export function psdRunsToMarkup(runs: ReadonlyArray<Pick<PsdTextRun, 'text' | 'w
   return markdownFromChars(chars);
 }
 
+/**
+ * A Photoshop stroke's cap, join and dashes as Design box fields. A path box draws
+ * the exact dash array; a rectangle or ellipse box draws its stroke as a border, which
+ * knows only dashed and dotted, so the keyword goes on too (dots are dashes of length 0).
+ */
+export function strokeFields(stroke: PsdStroke): Record<string, unknown> {
+  return {
+    strokeCap: stroke.cap, strokeJoin: stroke.join,
+    ...(stroke.dash ? { strokeDash: stroke.dash[0] === 0 ? 'dotted' : 'dashed', strokeDashArray: stroke.dash.join(' ') } : {}),
+  };
+}
+
+/**
+ * Photoshop's combine joins outlines into a union whichever way each was drawn. The
+ * non-zero rule gives a union only when every outline turns the same way, so each
+ * closed outline that turns the other way is reversed (knots in reverse order, with
+ * their handles swapped).
+ */
+export function sameWinding(subpaths: readonly PsdSubpath[]): PsdSubpath[] {
+  const area = (k: readonly PsdSubpath['knots'][number][]) =>
+    k.reduce((a, p, i) => { const q = k[(i + 1) % k.length]!; return a + p.x * q.y - q.x * p.y; }, 0);
+  return subpaths.map(sp => !sp.closed || area(sp.knots) >= 0 ? sp : {
+    ...sp, knots: [...sp.knots].reverse().map(k => ({ x: k.x, y: k.y, inX: k.outX, inY: k.outY, outX: k.inX, outY: k.inY })),
+  });
+}
+
+/**
+ * Combined outlines as one outer outline, for a shape with a stroke: the non-zero
+ * rule already fills the union, but a stroke on each outline would also draw the
+ * edges where they overlap, which Photoshop does not. Null when the union is too
+ * complex to work out within the geometry kernel's limits; the caller keeps the
+ * separate outlines and says so.
+ */
+export function unionOutline(subpaths: readonly PsdSubpath[]): PsdSubpath[] | null {
+  const geom: GeomPath = subpaths.filter(sp => sp.closed && sp.knots.length >= 2).map(sp => ({
+    closed: true,
+    curves: sp.knots.map((k, i) => {
+      const n = sp.knots[(i + 1) % sp.knots.length]!;
+      return [k.x, k.y, k.outX, k.outY, n.inX, n.inY, n.x, n.y] as [number, number, number, number, number, number, number, number];
+    }),
+  }));
+  let merged: GeomPath;
+  try { merged = selfUnion(geom, { fillRule: 'nonzero' }); } catch { return null; }
+  const r = (v: number) => Math.round(v * 100) / 100;
+  const out = merged.filter(c => c.curves.length).map((c): PsdSubpath => {
+    const curves = c.curves;
+    const last = curves[curves.length - 1]!, first = curves[0]!;
+    const shut = Math.hypot(last[6] - first[0], last[7] - first[1]) < 1e-6;
+    const knots = curves.map((cv, i) => {
+      const prev = i > 0 ? curves[i - 1]! : shut ? last : null;
+      return { x: r(cv[0]), y: r(cv[1]), inX: r(prev ? prev[4] : cv[0]), inY: r(prev ? prev[5] : cv[1]), outX: r(cv[2]), outY: r(cv[3]) };
+    });
+    // An open end (the closing edge left implicit) is a knot of its own, joined by a straight line.
+    if (!shut) knots.push({ x: r(last[6]), y: r(last[7]), inX: r(last[4]), inY: r(last[5]), outX: r(last[6]), outY: r(last[7]) });
+    return { closed: true, op: 1, knots };
+  });
+  return out.length ? out : null;
+}
+
+/**
+ * A rectangle or ellipse box draws its stroke inside its edge. Photoshop centres the
+ * line on the outline unless told otherwise, so the box grows by half the width
+ * (all of the width for an outside stroke). Then Design paints the stroke in the same place as Photoshop.
+ */
+function strokedBox(box: { x: number; y: number; w: number; h: number }, radius: number, stroke: PsdStroke | null): { x: number; y: number; w: number; h: number; radius: number } {
+  const grow = !stroke ? 0 : stroke.align === 'outside' ? stroke.width : stroke.align === 'center' ? stroke.width / 2 : 0;
+  const r = (v: number) => Math.round(v * 100) / 100;
+  return { x: r(box.x - grow), y: r(box.y - grow), w: r(box.w + 2 * grow), h: r(box.h + 2 * grow), radius: radius > 0 ? r(radius + grow) : radius };
+}
+
 /** A layer that comes into Design as something editable, not as its pixels. */
 export interface LiveDesignNode {
   kind: 'text' | 'shape' | 'path' | 'fill';
@@ -363,6 +439,8 @@ export interface LiveDesignNode {
   /** For text: the text with its per-run styles as Design inline markup. `node.text`
    *  stays plain until the import has measured the text. */
   markup?: string;
+  /** Box fields set after `finalizeBoxes`, which does not map them (stroke cap, join, dashes). */
+  fields?: Record<string, unknown>;
   /** What this mapping cannot keep, beyond the layer's own notes. */
   notes: string[];
 }
@@ -394,20 +472,28 @@ export function liveDesignNode(l: RasterLayer, canvas: { w: number; h: number },
   }
   if (s.shape) {
     const x = s.shape;
+    const at = strokedBox(x.box, x.radius, x.stroke);
     return {
       kind: 'shape',
       notes,
       node: {
-        kind: 'box', ...common, x: x.box.x, y: x.box.y, w: x.box.w, h: x.box.h,
-        shape: x.kind === 'ellipse' ? 'ellipse' : x.kind === 'rounded' ? 'rounded' : 'rect', radius: x.radius,
+        kind: 'box', ...common, x: at.x, y: at.y, w: at.w, h: at.h,
+        shape: x.kind === 'ellipse' ? 'ellipse' : x.kind === 'rounded' ? 'rounded' : 'rect', radius: at.radius,
         fill: x.fill ?? '', ...(x.stroke ? { stroke: x.stroke.color, strokeW: x.stroke.width } : {}),
       },
+      ...(x.stroke ? { fields: strokeFields(x.stroke) } : {}),
     };
   }
   if (s.path) {
-    const built = designPathFromSubpaths(s.path.subpaths);
+    let outline = sameWinding(s.path.subpaths);
+    if (outline.length > 1 && s.path.stroke) {
+      const merged = unionOutline(outline);
+      if (merged) outline = merged;
+      else notes.push(t('The stroke is drawn around each part of the shape, including where the parts overlap.'));
+    }
+    const built = designPathFromSubpaths(outline);
     if (!built) return null;
-    if (s.path.subpaths.length > 1) notes.push(t('Several outlines in one shape are combined with the non-zero rule.'));
+    if (s.path.stroke && s.path.stroke.align !== 'center') notes.push(t('The stroke is drawn centred on the outline; Photoshop drew it inside or outside.'));
     return {
       kind: 'path',
       notes,
@@ -416,6 +502,7 @@ export function liveDesignNode(l: RasterLayer, canvas: { w: number; h: number },
         kind: 'box', ...common, ...built.box, fill: s.path.fill ?? '',
         ...(s.path.stroke ? { stroke: s.path.stroke.color, strokeW: s.path.stroke.width } : {}),
       },
+      ...(s.path.stroke ? { fields: strokeFields(s.path.stroke) } : {}),
     };
   }
   if (s.fill) {

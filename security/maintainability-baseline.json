@@ -98,7 +98,7 @@
       "typeEscapes": 5
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2719,
+      "lines": 2696,
       "largestFunctionLines": 1930,
       "importFanIn": 3,
       "importFanOut": 54,

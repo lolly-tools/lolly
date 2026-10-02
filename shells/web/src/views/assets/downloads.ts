@@ -824,7 +824,7 @@ export async function openPhotoDownloadDialog(cat: CatCtx, ref: AssetRef, initia
  *  byte-exact. A selected container is decoded and re-encoded on-device; the
  *  quality stop is approachable, while exact bitrate/sample depth are one
  *  discoverable disclosure away. */
-export async function openAudioDownloadDialog(cat: CatCtx, ref: AssetRef): Promise<void> {
+export async function openAudioDownloadDialog(cat: CatCtx, ref: AssetRef, initialFormat?: string): Promise<void> {
   const { host } = cat;
   const [formatSupport, audio] = await Promise.all([
     import('../../bridge/format-support.ts'), import('../../lib/audio-encode.ts'),
@@ -890,6 +890,7 @@ export async function openAudioDownloadDialog(cat: CatCtx, ref: AssetRef): Promi
     dlg.querySelectorAll<HTMLElement>('[data-wav-control]').forEach(el => { el.hidden = f !== 'wav'; });
     dlg.querySelectorAll<HTMLElement>('[data-advanced-control]').forEach(el => { el.hidden = !converting || f === 'flac'; });
   };
+  if (initialFormat && [...formatSelect.options].some(option => option.value === initialFormat)) formatSelect.value = initialFormat;
   formatSelect.addEventListener('change', syncConvertControls);
   syncConvertControls();
   dlg.addEventListener('click', (event) => {
@@ -931,7 +932,7 @@ export async function openAudioDownloadDialog(cat: CatCtx, ref: AssetRef): Promi
 /** Video download-as uses the existing streaming decoder/muxer: source cadence
  *  by default, three approachable quality stops, exact FPS/bitrate for experts.
  *  The heavy-job queue keeps concurrent transcodes from exhausting the tab. */
-export async function openVideoDownloadDialog(cat: CatCtx, ref: AssetRef): Promise<void> {
+export async function openVideoDownloadDialog(cat: CatCtx, ref: AssetRef, initialFormat?: string): Promise<void> {
   const { host } = cat;
   const formatSupport = await import('../../bridge/format-support.ts');
   await formatSupport.probeWebCodecsVideoSupport();
@@ -970,6 +971,7 @@ export async function openVideoDownloadDialog(cat: CatCtx, ref: AssetRef): Promi
   const syncConvertControls = (): void => {
     dlg.querySelectorAll<HTMLElement>('[data-convert-control]').forEach(el => { el.hidden = formatSelect.value === 'original'; });
   };
+  if (initialFormat && [...formatSelect.options].some(option => option.value === initialFormat)) formatSelect.value = initialFormat;
   formatSelect.addEventListener('change', syncConvertControls);
   syncConvertControls();
   dlg.addEventListener('click', (event) => {

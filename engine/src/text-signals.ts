@@ -52,8 +52,9 @@
  */
 
 import {
-  AI_PHRASES, AI_STRUCTURE, AI_WORDS, CHATBOT_ARTIFACTS, CHATBOT_SOFT, FAMILY_TELLS,
-  MODEL_FINGERPRINTS, SPELLING_VARIANTS, type Tell,
+  AI_PHRASES, AI_STRUCTURE, AI_WORDS, CHAT_LABEL_LINE, CHAT_LABEL_STOP, CHAT_LABEL_STOP_WORD,
+  CHAT_NUMBERED_TITLE, CHAT_QUESTION_HEADING, CHAT_SCAFFOLD_HEADINGS, CHATBOT_ARTIFACTS,
+  CHATBOT_SOFT, FAMILY_TELLS, LIST_TRIAD, MODEL_FINGERPRINTS, SPELLING_VARIANTS, type Tell,
 } from './claudisms.ts';
 
 export { LEXICON_VERSION } from './claudisms.ts';
@@ -176,8 +177,9 @@ const KIND_HEAT: Record<string, number> = {
   'ai-structure': 0.45,
   'ai-vocabulary': 0.4,
   'em-dash-density': 0.35,
-  'smart-punctuation': 0.3,
   'list-heavy': 0.35,
+  'chat-structure': 0.4,
+  'list-triads': 0.35,
   'uniform-burstiness': 0.35,
   'uniform-paragraphs': 0.35,
   'spelling-variant-mix': 0.4,
@@ -391,6 +393,10 @@ function commentSpans(text: string): RawSpan[] {
 const withinSpans = (spans: RawSpan[], index: number): boolean =>
   spans.some((s) => index >= s.index && index < s.index + s.length);
 
+/** True when [index, index + length) shares a character with any of the spans. */
+const overlapsAny = (spans: RawSpan[], index: number, length: number): boolean =>
+  spans.some((s) => index < s.index + s.length && s.index < index + length);
+
 // ─── Heuristic-tier detectors (English, long-enough text only) ─────────────────
 
 /**
@@ -475,6 +481,146 @@ function coefficientOfVariation(lens: number[]): { mean: number; cv: number } {
   const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
   const variance = lens.reduce((a, b) => a + (b - mean) ** 2, 0) / lens.length;
   return { mean, cv: mean > 0 ? Math.sqrt(variance) / mean : 0 };
+}
+
+/**
+ * True when the line breaks do not end sentences: verse, a hard-wrapped abstract,
+ * an ingredient list. Splitting such text on newlines measures line lengths, and
+ * metre or a fixed wrap width makes those uniform for reasons that have nothing to
+ * do with a model (human poetry fired the sentence-uniformity check at 16%).
+ */
+function lineBrokenNotSentences(text: string): boolean {
+  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+  if (lines.length < 6) return false;
+  let open = 0;
+  let short = 0;
+  for (const l of lines) {
+    if (!/[.!?]["'”’)]*$/u.test(l)) open++;
+    if (wordCount(l) <= 12) short++;
+  }
+  return open * 2 >= lines.length && short * 10 >= lines.length * 7;
+}
+
+/** The trimmed extent of one line, for a span that covers the whole line. */
+function trimmedLine(line: string, start: number): RawSpan {
+  const lead = line.length - line.trimStart().length;
+  return { index: start + lead, length: line.trim().length };
+}
+
+const SCAFFOLD_SET = new Set(CHAT_SCAFFOLD_HEADINGS);
+
+/** The scaffold heading on a line whose text, once Markdown markers, numbering and
+ *  a trailing colon are stripped, is exactly one of CHAT_SCAFFOLD_HEADINGS
+ *  ("Strengths:", "## Bottom line"); undefined otherwise. */
+function scaffoldHeading(line: string): string | undefined {
+  if (line.length > 80) return undefined;
+  const core = line
+    .replace(/^[ \t]*(?:#{1,6}[ \t]+)?(?:(?:[-*•+]|\d{1,2}[.)])[ \t]+)?(?:\*\*|__)?/u, '')
+    .replace(/(?:\*\*|__)?[ \t]*:?[ \t]*(?:\*\*|__)?[ \t]*#*[ \t]*$/u, '')
+    .replace(/’/gu, "'")
+    .trim()
+    .toLowerCase();
+  return SCAFFOLD_SET.has(core) ? core : undefined;
+}
+
+interface ChatStructure {
+  /** Distinct labels on label lines, 0 when labels repeat like a transcript's speakers. */
+  labels: number;
+  /** Distinct scaffold headings. */
+  headings: number;
+  /** Numbered section titles in a 1, 2, … run with text under each. */
+  numbered: number;
+  spans: RawSpan[];
+}
+
+/**
+ * The chat-answer layout, read line by line outside fenced code. Label lines must
+ * carry a sentence of four or more words after the colon and must not repeat like
+ * the speaker names of a transcript (distinct labels at least 60% of label lines).
+ * Spans: the label with its colon (and its bold markers), and the whole line for a
+ * heading, a numbered title or a question heading, because there the whole line
+ * forms the pattern. Question headings are returned separately; they only add locations.
+ */
+function chatStructure(text: string): ChatStructure & { questions: RawSpan[] } {
+  const lines = text.split('\n');
+  const labelSpans: RawSpan[] = [];
+  const labelKeys: string[] = [];
+  const headingSpans: RawSpan[] = [];
+  const headingKeys = new Set<string>();
+  const titles: Array<{ n: number; line: number; span: RawSpan }> = [];
+  const questions: RawSpan[] = [];
+  const numberedLine: boolean[] = [];
+  let inFence = false;
+  let pos = 0;
+  lines.forEach((raw, i) => {
+    const start = pos;
+    pos += raw.length + 1;
+    const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw;
+    numberedLine[i] = false;
+    if (/^\s*(?:```|~~~)/u.test(line)) { inFence = !inFence; return; }
+    if (inFence || line.length > 2000) return;
+    if (/^\s*\d{1,2}[.)]\s/u.test(line)) numberedLine[i] = true;
+    const label = CHAT_LABEL_LINE.exec(line);
+    if (label) {
+      const name = (label[2] as string).trim();
+      const after = (label[3] as string).trim();
+      const words = after.split(/\s+/u).filter((w) => /\p{L}/u.test(w)).length;
+      if (!CHAT_LABEL_STOP.test(name) && !CHAT_LABEL_STOP_WORD.test(name) && words >= 4 && !/^(?:[`<{[(]|https?:)/u.test(after)) {
+        // From the opening wrapper (or the label) through the colon and a closing wrapper.
+        const from = label[1] ? line.indexOf(label[1]) : line.indexOf(name);
+        const colon = line.indexOf(':', line.indexOf(name) + name.length);
+        const close = /^(?:\*\*|__)/u.test(line.slice(colon + 1)) ? 2 : 0;
+        labelSpans.push({ index: start + from, length: colon + 1 + close - from });
+        labelKeys.push(name.toLowerCase());
+        return;
+      }
+    }
+    const heading = scaffoldHeading(line);
+    if (heading) {
+      headingSpans.push(trimmedLine(line, start));
+      headingKeys.add(heading);
+      return;
+    }
+    const title = CHAT_NUMBERED_TITLE.exec(line);
+    if (title && (title[2] as string).trim().split(/\s+/u).length <= 8) {
+      titles.push({ n: Number(title[1]), line: i, span: trimmedLine(line, start) });
+      return;
+    }
+    const question = CHAT_QUESTION_HEADING.exec(line);
+    if (question && (question[1] as string).split(/\s+/u).length <= 10 && !(lines[i + 1] ?? '').trim()) {
+      questions.push(trimmedLine(line, start));
+    }
+  });
+  const distinct = new Set(labelKeys).size;
+  const labels = labelKeys.length > 0 && distinct / labelKeys.length >= 0.6 ? distinct : 0;
+  // A numbered title counts when at least two lines of text that are not numbered
+  // list items sit under it, and the titles run 1, 2, 3 in order.
+  const run: typeof titles = [];
+  titles.forEach((t, k) => {
+    const next = titles[k + 1]?.line ?? lines.length;
+    let body = 0;
+    for (let j = t.line + 1; j < next && body < 2; j++) {
+      if ((lines[j] as string).trim() && !numberedLine[j]) body++;
+    }
+    if (body >= 2 && t.n === run.length + 1) run.push(t);
+  });
+  const numbered = run.length >= 2 ? run.length : 0;
+  return {
+    labels,
+    headings: headingKeys.size,
+    numbered,
+    spans: [...(labels > 0 ? labelSpans : []), ...headingSpans, ...(numbered > 0 ? run.map((t) => t.span) : [])],
+    questions,
+  };
+}
+
+/** Serial lists per 1000 words above which list-triads fires, by document length:
+ *  about 1.1 times the human 99th percentile of the corpus-v4 dev split (25.6, 24.0,
+ *  11.7 and 11.6 per 1000 words below 150, 300 and 600 words and above). */
+function triadThreshold(words: number): number {
+  if (words < 150) return 28;
+  if (words < 300) return 27;
+  return 13;
 }
 
 // ─── The rolling-window heat map + the sandwich detector ─────────────────────
@@ -812,7 +958,9 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
     // but genuinely human too, so they contribute little and cap low - a human
     // business email full of courteous sign-offs must never read as strong.
     const hard = collectTells(CHATBOT_ARTIFACTS, text, keepBp);
-    const soft = collectTells(CHATBOT_SOFT, text, keepBp);
+    // A soft phrase inside a hard phrase's span ("Certainly! Here is a draft of…")
+    // is the same words, so it is not counted a second time.
+    const soft = collectTells(CHATBOT_SOFT, text, (i, l) => keepBp(i, l) && !overlapsAny(hard.spans, i, l));
     if (hard.hits + soft.hits > 0) {
       const hardW = hard.hits > 0 ? 0.4 + hard.hits * 0.9 + hard.labels.length * 0.4 : 0;
       const softW = Math.min(1.2, soft.hits * 0.35);
@@ -843,6 +991,9 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
   const heuristicFindings: TextSignalFinding[] = [];
 
   if (looksEnglish && longEnough) {
+    // Collected first so a participle that opens an "-ing" editorializing clause
+    // (", showcasing …") counts in that structure finding only, not as vocabulary too.
+    const struct = collectTells(AI_STRUCTURE, text, inProse);
     // Generic AI VOCABULARY (Wikipedia "Signs of AI writing" + the frequency studies).
     let vocabHits = 0;
     const vocabSpans: RawSpan[] = [];
@@ -850,6 +1001,7 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
       const re = new RegExp(`\\b${w}\\b`, 'giu');
       for (let m = re.exec(text); m !== null; m = re.exec(text)) {
         if (inProse && !inProse(m.index)) continue;
+        if (overlapsAny(struct.spans, m.index, m[0].length)) continue;
         vocabHits++;
         vocabSpans.push({ index: m.index, length: m[0].length });
       }
@@ -883,8 +1035,7 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
     }
 
     // Generic AI STRUCTURE / grammar (negative parallelism, -ing editorializing,
-    // copula-avoidance, bold-label lists, emoji-decorated headings).
-    const struct = collectTells(AI_STRUCTURE, text, inProse);
+    // copula-avoidance, the "whether you're a… or a…" pander).
     if (struct.hits > 0) {
       heuristicFindings.push({
         tier: 'heuristic',
@@ -917,19 +1068,10 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
     }
 
     if (docKind !== 'code') {
-      // Smart / odd punctuation (curly quotes, unicode ellipsis) - a weak "odd UTF-8" tell.
-      const smart = collect(/[‘’“”…]/gu, text);
-      if (smart.length >= 6) {
-        heuristicFindings.push({
-          tier: 'heuristic',
-          kind: 'smart-punctuation',
-          label: 'Curly quotes / smart punctuation',
-          detail: `${smart.length} curly-quote or ellipsis characters.`,
-          weight: 0.5,
-          heat: heatOf('smart-punctuation'),
-          spans: smart,
-        });
-      }
+      // Curly quotes and the ellipsis character were a weak tell until lexicon 8. On the
+      // corpus-v4 dev split they fired on 3.1% of human documents (word processors and
+      // phone keyboards curl quotes; Reddit 30%, READMEs 11%) against 0.4% of AI ones,
+      // so the check was removed rather than tuned.
 
       // Density-based (>=15 per 1000 words), not a bare count: long human prose
       // legitimately collects a few em-dashes; AI prose salts them evenly through.
@@ -959,12 +1101,60 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
         });
       }
 
-      const lens = sentenceWordLengths(text);
-      if (lens.length >= 5) {
+      // Chat-answer scaffolding: label lines, scaffold headings, numbered section
+      // titles. One pattern alone is ordinary document structure, so it takes three
+      // distinct labels, two distinct headings, or two kinds together; numbered titles
+      // only count beside a label or a heading, because "1. Introduction" sections are
+      // how human papers are built. Corpus-v4 dev split: 2 of 1,430 human documents,
+      // 54% of the fresh chat answers in Markdown, 57% of their plain-text copies.
+      const chat = chatStructure(text);
+      const fired = chat.labels >= 3 || chat.headings >= 2 || (chat.labels >= 2 && chat.headings >= 1)
+        || (chat.numbered >= 2 && chat.labels + chat.headings >= 1);
+      if (fired) {
+        const parts = [
+          chat.labels > 0 ? `${chat.labels} label line${chat.labels === 1 ? '' : 's'}` : '',
+          chat.headings > 0 ? `${chat.headings} heading${chat.headings === 1 ? '' : 's'} such as "Strengths" or "Bottom line"` : '',
+          chat.numbered > 0 ? `${chat.numbered} numbered section titles` : '',
+          chat.questions.length > 0 ? `${chat.questions.length} question heading${chat.questions.length === 1 ? '' : 's'}` : '',
+        ].filter(Boolean);
+        heuristicFindings.push({
+          tier: 'heuristic',
+          kind: 'chat-structure',
+          label: 'Chat-answer layout',
+          detail: `Laid out like a chat answer: ${parts.join(', ')}. Human documents use some of these too.`,
+          weight: 1,
+          heat: heatOf('chat-structure'),
+          spans: [...chat.spans, ...chat.questions].sort((a, b) => a.index - b.index),
+        });
+      }
+
+      // Serial lists ("X, Y, and Z") packed more densely than in 99% of the human
+      // documents of the same length. Corpus-v4 dev split: 0.4% of human documents,
+      // 25% of the fresh chat answers, 5-7% of the RAID ChatGPT and GPT-4 texts.
+      const triads = collect(new RegExp(LIST_TRIAD.source, LIST_TRIAD.flags), text);
+      if (triads.length >= 4 && (triads.length / Math.max(1, words)) * 1000 > triadThreshold(words)) {
+        heuristicFindings.push({
+          tier: 'heuristic',
+          kind: 'list-triads',
+          label: 'Dense three-part lists',
+          detail: `${triads.length} "X, Y and Z" lists in ${words} words, more than ordinary writing of this length carries.`,
+          weight: 1,
+          heat: heatOf('list-triads'),
+          spans: triads,
+        });
+      }
+
+      // Human writing is bursty (high variation); very uniform medium-length
+      // sentences read as machine-smoothed. Lexicon 8 tightened this from five
+      // sentences under a 0.35 spread to ten under 0.25, and skips text whose line
+      // breaks are not sentence ends: on the corpus-v4 dev split the old rule fired on
+      // 11.8% of human documents (news 56%, poetry 23%), the new one on 0.6%. Leaving
+      // headings and label lines out of the measure was tried and dropped, because
+      // it made the rule fire more often on human documents, not less.
+      const lens = lineBrokenNotSentences(text) ? [] : sentenceWordLengths(text);
+      if (lens.length >= 10) {
         const { mean, cv } = coefficientOfVariation(lens);
-        // Human writing is bursty (high variation); very uniform medium-length
-        // sentences read as machine-smoothed.
-        if (cv < 0.35 && mean >= 8) {
+        if (cv < 0.25 && mean >= 8) {
           heuristicFindings.push({
             tier: 'heuristic',
             kind: 'uniform-burstiness',
@@ -1005,9 +1195,11 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
       }
 
       // The paragraph-scale twin: humans vary paragraph size; near-identical
-      // blocks read as generated. Needs enough paragraphs to be a pattern.
+      // blocks read as generated. Needs enough paragraphs to be a pattern: six since
+      // lexicon 8, because four or five even paragraphs is the taught essay shape
+      // (the old floor of four fired on 20% of the learner essays, six fires on 2.7%).
       const paras = paragraphWordLengths(text);
-      if (paras.length >= 4) {
+      if (paras.length >= 6) {
         const { mean, cv } = coefficientOfVariation(paras);
         if (cv < 0.25 && mean >= 25) {
           heuristicFindings.push({

@@ -196,3 +196,5 @@ export type {
   ArchetypeV1, MasterTypeScaleV1, MasterLogoV1, SlideMasterV1, SlideMasterFileV1,
 } from './slide-master-v1.ts';
 export type { GridSpanV1, ArchetypeRepeatV1 } from './slide-master-v1.ts';
+
+export { assetOpenChoices } from './asset-open-v1.ts';

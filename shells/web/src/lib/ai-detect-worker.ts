@@ -18,8 +18,8 @@
  * only tokenise → forward → softmax.
  */
 
-import { forensicModelWindows, type ForensicModelWindow } from '@lolly/engine';
-import type { AiDetectModel } from './ai-detect-models.ts';
+import { forensicModelWindows, forensicChunkScores, type ForensicModelWindow, type ForensicModelChunk } from '@lolly/engine';
+import { aiDetectEligible, type AiDetectModel } from './ai-detect-models.ts';
 import { ORT_HF_BASE } from './ort-hf-base.ts';
 import { MODELS_BASE } from './models-base.ts';
 
@@ -29,6 +29,8 @@ export interface AiDetectWorkerRequest {
   text?: string;
   /** The roster entry to run - passed in so the worker holds no roster copy. */
   model?: AiDetectModel;
+  /** Also score each sentence chunk, for the Verify heat view. */
+  chunks?: boolean;
 }
 
 export interface AiDetectWorkerReply {
@@ -40,6 +42,7 @@ export interface AiDetectWorkerReply {
   label?: string;
   windows?: ForensicModelWindow[];
   complete?: boolean;
+  chunks?: ForensicModelChunk[];
   error?: string;
 }
 
@@ -102,7 +105,7 @@ function softmax(row: Float32Array): number[] {
 }
 
 const cancelled = new Set<number>(), active = new Set<number>();
-async function score(id: number, text: string, m: AiDetectModel): Promise<void> {
+async function score(id: number, text: string, m: AiDetectModel, wantChunks = false): Promise<void> {
   const { model, tokenize } = await ensureRuntime(id, m);
   const measure = (part: string): number => (tokenize(part, { truncation: false, max_length: m.maxTokens }).input_ids as TensorLike).dims.at(-1)!;
   // Which output index is "AI"? Read the graph's own labels; a two-label graph
@@ -117,19 +120,28 @@ async function score(id: number, text: string, m: AiDetectModel): Promise<void> 
     const { logits } = await model(tokenize(part, { truncation: false, max_length: m.maxTokens }));
     return softmax(logits.data)[aiIndex] ?? 0;
   }, 32, () => cancelled.has(id));
+  // A chunk outside the English prose gate is left unscored, the same gate the
+  // whole text passed to get here.
+  const chunks = wantChunks && !cancelled.has(id)
+    ? await forensicChunkScores(text, async (chunk) => {
+      if (!aiDetectEligible(chunk)) return null;
+      const { logits } = await model(tokenize(chunk, { truncation: true, max_length: m.maxTokens }));
+      return softmax(logits.data)[aiIndex] ?? 0;
+    }, () => cancelled.has(id))
+    : undefined;
   cancelled.delete(id);
-  post({ id, prob: result.rawMean, windows: result.windows, complete: result.complete, label: labels[String(aiIndex)] ?? String(aiIndex) } satisfies AiDetectWorkerReply);
+  post({ id, prob: result.rawMean, windows: result.windows, complete: result.complete, ...(chunks ? { chunks } : {}), label: labels[String(aiIndex)] ?? String(aiIndex) } satisfies AiDetectWorkerReply);
 }
 
 globalThis.onmessage = (e: MessageEvent<AiDetectWorkerRequest>): void => {
-  const { id, type, text, model } = e.data;
+  const { id, type, text, model, chunks } = e.data;
   if (type === 'cancel') { if (active.has(id)) cancelled.add(id); return; }
   if (type !== 'score' || typeof text !== 'string' || !text.trim() || !model) {
     post({ id, error: 'nothing to score' } satisfies AiDetectWorkerReply);
     return;
   }
   active.add(id);
-  score(id, text, model)
+  score(id, text, model, chunks === true)
     .catch((err) => { cancelled.delete(id); post({ id, error: err instanceof Error ? err.message : String(err) } satisfies AiDetectWorkerReply); })
     .finally(() => { active.delete(id); cancelled.delete(id); });
 };

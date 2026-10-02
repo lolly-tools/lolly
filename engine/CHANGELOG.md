@@ -6,6 +6,19 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.243.0
+
+- Add `forensic/heat.ts`, a per-sentence reading of a forensic report for drawing heat over text and pages. `forensicSegments` splits text into sentences and sentence-less lines with exact offsets; `forensicHeat(report, page)` combines the findings on each sentence and each page region by guidance level (a specific artifact at full strength, a style clue at 0.6, an excluded match at 0) and lists whole-text findings separately. Heat is derived from the report and never stored in it, so the report contract and its digest are unchanged.
+- Classifier observations may carry `chunks`, the raw score of each sentence-aligned group of at least 55 words (`forensicChunkSpans`, `forensicChunkScores`, `FORENSIC_CHUNK_VERSION`), with `chunkThreshold` and `chunkFloor` from the model roster (0.93 and 0.85 for e5-small, measured on the plans/287 corpus-v4 development split). Chunk scores are drawn beside the heat and never enter the evidence index. `verifyForensicReport` validates them on import.
+- AI-signal lexicon 8, measured against a 9,474-document corpus (RAID across eight domains, HC3 human and ChatGPT answers, learner essays, presumed-human READMEs and current Claude chat answers). New families `chat-structure` (repeated "Label: sentence" lines, scaffold headings such as Strengths and Weaknesses, numbered section titles alongside them, question headings) and `list-triads` (dense "X, Y, and Z" lists). The chatbot preamble learns "Here is an evaluation/analysis/assessment/review/comparison…" anywhere a sentence starts and a document-opening "Based on…," frame. `uniform-burstiness` and `uniform-paragraphs` need more sentences and paragraphs before firing; smart punctuation, "in conclusion", "at the end of the day", emoji tells and the bare "not X, but Y" are no longer counted, because they fired as often on human writing. On the development split, human documents with any weak or stronger evidence fall from 29% to 8% while notable and strong stay at 0.6%, and chat answers with no evidence fall from 40% to 15% (Markdown) and 69% to 22% (plain text). Older-generator recall drops where the sentence-rhythm rules were tightened.
+- `LEXICON_VERSION` 7 -> 8, so stored AI-signal notes recompute on next read.
+- Export the looking helpers (`agent-view.ts`, `edge-trace.ts`) from the engine index, for the MCP looking tools and the CLI's `lolly look`, `lolly sample` and `lolly trace`, which share one core in `@lolly-tools/node-shell/look`.
+- Photoshop import, checked against files saved by Photoshop: a shape's fill read from `vscg` as well as `SoCo`; several shapes in one layer read as one path; each outline's join with the ones before (`PsdSubpath.op`: 1 combines, others are kept as pixels with a note); strokes with cap, join, alignment and dashes (`PsdStroke`); a note when a stroke is a gradient or pattern; empty adjustment blocks such as Invert kept; and effects noted only when switched on, by name.
+
+## 1.242.0
+
+- Manifests may declare `openWith` intents for compatible catalog assets, binding a declared input or a supported canvas, timeline or text import. The shared resolver matches source types, formats and selection cardinality. Validation rejects duplicate intent ids and invalid input bindings.
+
 ## 1.241.0
 
 - A `text` input can declare `display: "curve"`: it holds a photo tone curve as `in-out` level pairs joined by `_` (`0-0_64-48_255-255`), which a URL query keeps unescaped. The engine and every shell still treat the value as text; the web sidebar adds a curve plot that edits the field. Declared in both schema copies.

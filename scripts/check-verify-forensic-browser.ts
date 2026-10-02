@@ -31,6 +31,12 @@ const open = async (name: string) => {
   await page.locator('input[type=file]').first().setInputFiles(join(fixtures, name));
   await panel.locator('.forensic-summary').waitFor();
   await page.waitForFunction(() => !document.querySelector('.forensic[aria-busy]'));
+  // The report inspected itself; the toolbar must not ask for it again.
+  assert.equal(await page.locator('[data-actions-primary] [data-verify-action=ai]').count(), 0, name);
+};
+const rerun = async () => {
+  await page.locator('.valid-actions-more > summary').click();
+  await page.locator('[data-actions-menu] [data-verify-action=ai-again]').click();
 };
 const exported = async () => {
   const pending = page.waitForEvent('download');
@@ -126,17 +132,17 @@ try {
   assert.equal((await exported()).report.pages.length, 6);
   await panel.locator('[data-forensic-page]').selectOption('2');
   assert.match(await panel.locator('.forensic-preview img').getAttribute('alt') ?? '', /2/);
-  await page.locator('[data-actions-primary] [data-verify-action=ai]').click();
+  await rerun();
   await page.waitForFunction(() => document.querySelectorAll('.forensic [data-forensic-page] option').length === 8);
   assert.equal((await exported()).report.pages.length, 8);
   await open('accent-left.svg');
   await page.context().setOffline(true);
-  await page.locator('[data-actions-primary] [data-verify-action=ai]').click();
+  await rerun();
   await panel.locator('.forensic-summary').waitFor();
   await page.waitForFunction(() => !document.querySelector('.forensic[aria-busy]'));
   assert.equal((await exported()).report.pages.length, 1);
   await page.context().setOffline(false);
-  await page.locator('[data-actions-primary] [data-verify-action=ai]').evaluate((button) => {
+  await page.locator('[data-actions-menu] [data-verify-action=ai-again]').evaluate((button) => {
     const workspace = document.querySelector('.forensic');
     (button as HTMLButtonElement).click();
     (workspace?.querySelector('[data-forensic=cancel]') as HTMLButtonElement | null)?.click();
@@ -145,7 +151,7 @@ try {
   await page.waitForFunction(() => !document.querySelector('.forensic[aria-busy]'));
   const cancelled = await exported();
   assert.ok(cancelled.report.coverage.some((c) => c.state === 'cancelled'));
-  await page.locator('[data-actions-primary] [data-verify-action=ai]').click();
+  await rerun();
   await page.locator('input[type=file]').first().setInputFiles(join(fixtures, 'numbering.txt'));
   await panel.locator('.forensic-summary').waitFor();
   await page.waitForFunction(() => !document.querySelector('.forensic[aria-busy]'));

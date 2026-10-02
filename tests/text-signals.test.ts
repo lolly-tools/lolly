@@ -443,3 +443,273 @@ test('the "beside it" pointer feeds the Claude-phrasing score; spatial help text
   );
   assert.ok(!spatial.findings.some((f) => f.kind === 'claude-tell'), 'spatial help text must not read as a Claude tell');
 });
+
+// ── Lexicon 8: chat-answer layout, serial lists, precision clean-up ──────────
+// Every fixture below is synthetic. The thresholds come from the corpus-v4 dev
+// split (plans/287); these tests pin the shapes, not the corpus.
+
+const spanText = (text: string, f: { spans?: Array<{ index: number; length: number }> } | undefined): string[] =>
+  (f?.spans ?? []).map((s) => text.slice(s.index, s.index + s.length));
+
+const CHAT_PLAIN = [
+  'Here is an assessment of the two hosting options, with a recommendation at the end.',
+  '',
+  '1. Managed hosting',
+  'Strengths:',
+  'Fast Setup: The provider handles patching, backups and certificates, so a small team can launch in a day.',
+  'Predictable Billing: Plans are priced per site, which keeps the monthly cost easy to forecast.',
+  'Weaknesses:',
+  'Limited Control: You cannot tune the web server or install system packages beyond the approved list.',
+  '',
+  '2. Self-hosting',
+  'Strengths:',
+  'Full Flexibility: Every layer of the stack can be configured to match unusual workloads.',
+  'Weaknesses:',
+  'Operational Load: Someone on the team has to own upgrades, monitoring and incident response.',
+  '',
+  'Which one should you pick?',
+  '',
+  'Bottom line: choose managed hosting unless a specific requirement forces you to run the servers yourself.',
+].join('\n');
+
+test('chat-structure: a plain-text chat answer is located label by label, heading by heading', () => {
+  const r = analyzeTextSignals(CHAT_PLAIN, { source: 'digital' });
+  const f = r.findings.find((x) => x.kind === 'chat-structure');
+  assert.ok(f, 'expected a chat-structure finding');
+  assert.equal(f!.tier, 'heuristic');
+  const spans = spanText(CHAT_PLAIN, f);
+  // The label with its colon, never the sentence that follows the label.
+  for (const s of ['Fast Setup:', 'Predictable Billing:', 'Limited Control:', 'Full Flexibility:', 'Operational Load:', 'Bottom line:']) {
+    assert.ok(spans.includes(s), `expected the label span ${s}`);
+  }
+  // Headings, numbered section titles and the question heading: the whole line is matched.
+  for (const s of ['Strengths:', 'Weaknesses:', '1. Managed hosting', '2. Self-hosting', 'Which one should you pick?']) {
+    assert.ok(spans.includes(s), `expected the line span ${s}`);
+  }
+  assert.ok(!spans.some((s) => s.includes('The provider handles')), 'a span must not run into the sentence');
+  assert.ok(r.band !== 'none');
+});
+
+test('chat-structure: the Markdown bold-label form spans the bold markers and the colon', () => {
+  const md = [
+    '## Overview',
+    '',
+    '- **Fast Setup:** The provider handles patching, backups and certificates for you.',
+    '- **Predictable Billing:** Plans are priced per site, so the cost is easy to forecast.',
+    '- __Limited Control__: You cannot tune the web server beyond the approved settings.',
+    '',
+    '## Bottom line',
+    '',
+    'Pick the managed plan unless you need root access to the machines.',
+  ].join('\n');
+  const f = analyzeTextSignals(md, { source: 'digital' }).findings.find((x) => x.kind === 'chat-structure');
+  assert.deepEqual(spanText(md, f), ['## Overview', '**Fast Setup:**', '**Predictable Billing:**', '__Limited Control__:', '## Bottom line']);
+});
+
+test('chat-structure: carriage-return line ends are read the same way', () => {
+  const r = analyzeTextSignals(CHAT_PLAIN.replace(/\n/g, '\r\n'), { source: 'digital' });
+  assert.ok(r.findings.some((x) => x.kind === 'chat-structure'));
+});
+
+test('chat-structure HUMAN: an interview transcript repeats its speaker labels and does not fire', () => {
+  const text = [
+    'Interview notes, recorded on the 4th.',
+    'Maria: I started at the depot when I was nineteen and never really left.',
+    'Tom: What kept you there through the bad years after the closure scare?',
+    'Maria: Mostly the people, and the fact that the work was close to home.',
+    'Tom: Did the new owners change how the shifts were planned for everyone?',
+    'Maria: They did, and not for the better if you ask most of the drivers.',
+  ].join('\n');
+  assert.ok(!analyzeTextSignals(text, { source: 'digital' }).findings.some((x) => x.kind === 'chat-structure'));
+});
+
+test('chat-structure HUMAN: a learner essay with "First reason:" lines does not fire', () => {
+  const text = [
+    'Some people think students should have a phone in the class, but I disagree with this idea.',
+    '',
+    'First reason: the phone take the attention of the students and they do not listen the teacher.',
+    'Second reason: many students play games in the class and this is not good for the grades.',
+    'Third reason: the parents pay for the school and they want that the children learn.',
+    'Example: my cousin use the phone all day and now he repeat the year in his school.',
+  ].join('\n');
+  const r = analyzeTextSignals(text, { source: 'digital' });
+  assert.ok(!r.findings.some((x) => x.kind === 'chat-structure'), JSON.stringify(r.findings.map((f) => f.kind)));
+});
+
+test('chat-structure HUMAN: a structured abstract, an API reference and a numbered paper do not fire', () => {
+  const abstract = [
+    'Objective: To measure how quickly the dune front retreats after the breakwater was removed.',
+    'Methods: Forty stations were surveyed monthly over three winters with a total station.',
+    'Results: Retreat averaged nearly two metres per year, highest beside the old breakwater.',
+    'Conclusions: Storm frequency explains about half of the variation between winters.',
+  ].join('\n');
+  const api = [
+    '### ttl',
+    'Type: `number`',
+    'Default: `60000`',
+    'Note: the lifetime is measured in milliseconds, not seconds, and applies to every entry.',
+    '### max',
+    'Type: `number`',
+    'Default: `Infinity`',
+    'Note: when the cache is full the oldest entry is dropped first, which keeps memory bounded.',
+  ].join('\n');
+  const paper = [
+    '1. Introduction',
+    'Coastal erosion has accelerated along the northern shoreline since the breakwater was removed.',
+    'We measured the retreat of the dune front at forty stations over three winters.',
+    '',
+    '2. Methods',
+    'Each station was surveyed monthly, and storm events were logged from the tide gauge.',
+    'Retreat rates were fitted with a mixed model that treats each station as a random effect.',
+    '',
+    '3. Results',
+    'Retreat averaged nearly two metres per year, with the largest losses near the old breakwater.',
+    'Storm frequency explained about half of the variation between winters.',
+  ].join('\n');
+  for (const [name, text] of [['abstract', abstract], ['api', api], ['paper', paper]] as const) {
+    const r = analyzeTextSignals(text, { source: 'digital' });
+    assert.ok(!r.findings.some((x) => x.kind === 'chat-structure'), `${name} must not read as a chat layout`);
+  }
+});
+
+test('chat-structure HUMAN: one heading or two labels alone are ordinary structure', () => {
+  const oneHeading = 'Summary\n\nThe council approved the new bus timetable on Monday after a short debate about the late services, '
+    + 'and the changes start next month once the drivers have been briefed on the revised routes.';
+  const twoLabels = 'Venue Change: The meeting moves to the library annex because the hall is being repainted this week.\n'
+    + 'Start Time: We begin half an hour later than usual so the caretaker can open the side door for us.';
+  for (const text of [oneHeading, twoLabels]) {
+    assert.ok(!analyzeTextSignals(text, { source: 'digital' }).findings.some((x) => x.kind === 'chat-structure'));
+  }
+});
+
+test('list-triads: serial lists packed densely are located list by list', () => {
+  const text = 'The plan covers hiring, training, and retention for the new depot. It sets budgets, owners, and deadlines '
+    + 'for each phase, and it names risks, mitigations, and fallbacks in plain terms. Managers review scope, cost, or timing '
+    + 'every month, while staff raise safety, comfort, and workload issues in a shared log. Results feed the next quarter.';
+  const f = analyzeTextSignals(text, { source: 'digital' }).findings.find((x) => x.kind === 'list-triads');
+  assert.ok(f, 'expected a list-triads finding');
+  const spans = spanText(text, f);
+  assert.ok(spans.includes('hiring, training, and retention'), JSON.stringify(spans));
+  assert.ok(spans.includes('scope, cost, or timing'), JSON.stringify(spans));
+  assert.ok(spans.every((s) => s.length < 60), 'each span is the list, not its sentence');
+});
+
+test('list-triads HUMAN: a couple of serial lists in ordinary prose do not fire', () => {
+  const text = 'We packed bread, cheese, and apples for the walk and set off before the fog lifted. The path climbed slowly '
+    + 'through the beech wood and out onto the open ridge, where the wind picked up and the view finally opened. '
+    + 'By noon we could see the reservoir, the old mill, and the church tower. We ate lunch behind a wall and walked '
+    + 'down the long way, past the quarry and the farm shop, arriving home tired and happy just before dark.';
+  assert.ok(!analyzeTextSignals(text, { source: 'digital' }).findings.some((x) => x.kind === 'list-triads'));
+});
+
+test('chatbot preamble: "Here is an evaluation of…" at a sentence start is a soft leftover', () => {
+  const text = 'You asked about the three vendors. Here is an evaluation of their strengths and weaknesses across '
+    + 'support, pricing and roadmap, followed by a short recommendation for a team of your size and budget.';
+  const f = analyzeTextSignals(text, { source: 'digital' }).findings.find((x) => x.kind === 'chatbot-leftover');
+  assert.ok(f, 'expected a chatbot-leftover finding');
+  assert.deepEqual(spanText(text, f), ['Here is an evaluation']);
+  assert.ok(f!.weight < 1, 'the widened preamble carries the soft weight');
+});
+
+test('chatbot preamble HUMAN: "Here is a list" and "Here\'s an example" are ordinary writing', () => {
+  const text = 'Thanks for coming to the allotment meeting. Here is a list of the plots that still need a tenant, and '
+    + "here's an example of the new watering rota, which starts on the first of the month for everyone.";
+  assert.ok(!analyzeTextSignals(text, { source: 'digital' }).findings.some((x) => x.kind === 'chatbot-leftover'));
+});
+
+test('chatbot preamble: a hard compliance opener is not counted again by the soft preamble', () => {
+  const text = 'Certainly! Here is a draft of the announcement for the spring fair, with the dates and the stall prices filled in.';
+  const f = analyzeTextSignals(text, { source: 'digital' }).findings.find((x) => x.kind === 'chatbot-leftover');
+  assert.ok(f);
+  assert.match(f!.detail ?? '', /^1 assistant-conversation phrase left/, f!.detail ?? 'no detail');
+  assert.deepEqual(spanText(text, f), ['Certainly! Here is']);
+});
+
+test('"Based on an evaluation of…" counts only as the opening of the document', () => {
+  const opening = 'Based on an evaluation of the vendor (vendor.example), they operate as a small specialist firm with a '
+    + 'narrow focus on platform teams, internal tooling and the developer experience of mid-sized companies.';
+  const f = analyzeTextSignals(opening, { source: 'digital' }).findings.find((x) => x.kind === 'chatbot-leftover');
+  assert.deepEqual(spanText(opening, f), ['Based on an evaluation of the vendor (vendor.example),']);
+  const midway = 'The vendor runs a small specialist practice. Based on the evaluation we ran in May, it suits teams that '
+    + 'already have a platform group and a clear budget for outside research over the coming year.';
+  assert.ok(!analyzeTextSignals(midway, { source: 'digital' }).findings.some((x) => x.kind === 'chatbot-leftover'));
+});
+
+test('negative parallelism needs the limiting adverb or the reframing subject', () => {
+  const structure = (s: string) => analyzeTextSignals(s, { source: 'digital' }).findings.find((x) => x.kind === 'ai-structure');
+  const filler = ' The rest of this note covers the timetable for the spring term and the room changes.';
+  assert.ok(structure(`The change is not just a new logo, but a new way of working with customers.${filler}`));
+  assert.ok(structure(`It's not a rebrand, it's a reset of how the whole team talks to people.${filler}`));
+  // Ordinary contrast from a human writer: no structure finding.
+  assert.equal(structure(`I did not like the ending, but the first half was gripping and the cast was strong.${filler}`), undefined);
+  assert.equal(structure(`We are not in the office on Friday, but the phones are diverted to the duty manager.${filler}`), undefined);
+});
+
+test('removed tells: "in conclusion", "at the end of the day", curly quotes and emoji headings no longer score', () => {
+  const essay = 'In conclusion, I think at the end of the day the students should choose their own subjects, because they '
+    + 'know what they like and what they are good at, and the school can help them with good advice.';
+  const r = analyzeTextSignals(essay, { source: 'digital' });
+  assert.ok(!r.findings.some((x) => x.kind === 'ai-phrasing'), JSON.stringify(r.findings));
+  const curly = '“Yes,” she said. “We’ll go at six.” He didn’t argue… The car’s tank was full, and the map’s folds held. '
+    + 'They left the town before the light changed and reached the coast by the middle of the afternoon.';
+  assert.ok(!analyzeTextSignals(curly, { source: 'digital' }).findings.some((x) => x.kind === 'smart-punctuation'));
+  const readme = '# 🚀 Quick start\n\n- 📦 Install the package from npm and import it.\n- 🛠 Configure the two options in your build file.\n'
+    + '\nThat is all you need for a first build of the site on your own machine today.';
+  assert.ok(!analyzeTextSignals(readme, { source: 'digital' }).findings.some((x) => x.kind === 'ai-structure'));
+});
+
+test('vocabulary: a participle in an "-ing" clause counts once, as structure', () => {
+  const text = 'The council approved the plan on Monday, highlighting the need for more buses on the late routes '
+    + 'and a better timetable for the school runs across the northern estates of the town this winter.';
+  const r = analyzeTextSignals(text, { source: 'digital' });
+  assert.ok(r.findings.some((x) => x.kind === 'ai-structure'));
+  assert.ok(!r.findings.some((x) => x.kind === 'ai-vocabulary'), 'the same word must not score in two families');
+  // Outside such a clause the participles are vocabulary hits as usual.
+  const vocab = analyzeTextSignals(`${text} Ensuring the funding matters. Enhancing the service matters. Highlighting the cost matters.`, { source: 'digital' })
+    .findings.find((x) => x.kind === 'ai-vocabulary');
+  assert.equal(vocab?.spans?.length, 3);
+});
+
+test('uniform-burstiness needs ten even sentences, and verse line breaks are not sentences', () => {
+  const s = 'The committee met in the small hall to review the budget for the coming year.';
+  const has = (t: string) => analyzeTextSignals(t, { source: 'digital' }).findings.some((x) => x.kind === 'uniform-burstiness');
+  assert.ok(has(Array(10).fill(s).join(' ')));
+  assert.ok(!has(Array(6).fill(s).join(' ')), 'six even sentences are not enough any more');
+  const verse = Array(12).fill('the slow grey river turns beneath the willow trees').join('\n');
+  assert.ok(!has(verse), 'metre makes verse lines even; that is not a model signal');
+});
+
+test('uniform-paragraphs needs six even paragraphs; the five-paragraph essay shape does not fire', () => {
+  const p = 'Students learn more when the school day starts later, because they sleep longer and arrive ready to work. '
+    + 'Teachers also notice fewer late arrivals and calmer classrooms in the first lesson of the morning.';
+  const has = (n: number) => analyzeTextSignals(Array(n).fill(p).join('\n\n'), { source: 'digital' }).findings.some((x) => x.kind === 'uniform-paragraphs');
+  assert.equal(has(5), false);
+  assert.equal(has(6), true);
+});
+
+test('the Verify evidence report maps chat-structure to one weak-clue family with located labels', async () => {
+  const { forensicTextFindings } = await import('../engine/src/forensic/text.ts');
+  const findings = forensicTextFindings({
+    id: '1', width: 0, height: 0, text: CHAT_PLAIN, source: 'digital', complete: true, lines: [], shapes: [],
+  });
+  const f = findings.find((x) => x.family === 'chat-structure');
+  assert.ok(f, 'expected a chat-structure evidence finding');
+  assert.equal(f!.contribution, 'weak-clue');
+  const located = f!.locations.map((l) => (l.span ? CHAT_PLAIN.slice(l.span.index, l.span.index + l.span.length) : ''));
+  assert.ok(located.includes('Fast Setup:'));
+});
+
+test('PERF: the line and list patterns stay linear on adversarial 64 KiB input', () => {
+  const cases = [
+    'Label Word Here: '.repeat(4000),
+    'a, b, c, d, e, f, g, '.repeat(3100),
+    `${'A'.repeat(65000)}:`,
+    'Strengths:\n1. A\n'.repeat(4000),
+  ];
+  for (const text of cases) {
+    const t0 = performance.now();
+    analyzeTextSignals(text.slice(0, 65_536), { source: 'digital' });
+    const ms = performance.now() - t0;
+    assert.ok(ms < 1500, `took ${Math.round(ms)}ms`);
+  }
+});

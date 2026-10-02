@@ -68,6 +68,18 @@ export interface AiDetectModel {
    * the corpus at a ~1% false-positive rate and pinning the measured value.
    */
   threshold: number;
+  /**
+   * The raw score at or above which one sentence chunk (about 55 words, see
+   * FORENSIC_CHUNK_MIN_WORDS) is drawn as over threshold in the heat view.
+   * Short inputs score more widely than whole documents, so the document
+   * threshold would mark ordinary human sentences; this one is measured on
+   * chunks. It never feeds the evidence index.
+   */
+  chunkThreshold: number;
+  /** The raw chunk score below which the heat view draws nothing for a chunk:
+   *  scores under it are common on human writing, so drawing them would read
+   *  as evidence they do not carry. */
+  chunkFloor: number;
   /** Which id2label name means "AI" (matched case-insensitively at runtime;
    *  verified against config.json at staging). */
   aiLabel: RegExp;
@@ -97,6 +109,16 @@ export const AI_DETECT_MODELS: readonly AiDetectModel[] = [
     // evidence. tests/ai-detect-model-gate.test.ts re-runs this contract
     // against the real graph whenever the staged files are present.
     threshold: 0.75,
+    // Measured 2026-10-02 on 55-word sentence chunks of the plans/287
+    // corpus-v4 dev split (751 human documents across abstracts, books, news,
+    // poetry, recipes, reddit, reviews, wiki, HC3 answers, READMEs and learner
+    // essays; 374 AI documents). Human documents with any chunk at or over:
+    // 336 at 0.75, 161 at 0.85, 30 at 0.9 (recipes 14/70, READMEs 6/70,
+    // learner essays 4/70), 1 at 0.93. AI documents: 52 of 374 at 0.93. Chunk
+    // scores never pass 0.95 for this model, so 0.93 is close to its ceiling.
+    // Human chunks at or over 0.85 were 6.3%, the floor the heat view draws from.
+    chunkThreshold: 0.93,
+    chunkFloor: 0.85,
     aiLabel: /ai|machine|generated|fake/i,
     license: 'MIT',
     attribution: 'e5-small-lora-ai-generated-detector, © May Zhou (MIT)',
@@ -119,6 +141,9 @@ export const AI_DETECT_MODELS: readonly AiDetectModel[] = [
     // exists on the current calibration data. 0.99 recorded as the least-bad
     // point if a larger corpus ever justifies staging it.
     threshold: 0.99,
+    // Unmeasured on chunks; unstaged, so never drawn.
+    chunkThreshold: 0.99,
+    chunkFloor: 0.99,
     aiLabel: /ai|machine|generated|fake/i,
     license: 'Apache-2.0',
     attribution: 'modernbert-ai-detection-raid-mage, © George Drayson (Apache-2.0)',

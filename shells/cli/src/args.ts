@@ -101,6 +101,9 @@ export const RESERVED_SUBCOMMANDS = [
   'tui',
   // `rebrand` renovates a deck in three stages, plan, compile and inspect (plan 274).
   'rebrand',
+  // Looking at a picture in its own coordinates, as the MCP looking tools do
+  // (plans/289 D5): a region with a grid, colours by design-system name, edges.
+  'look', 'sample', 'trace',
 ] as const;
 
 /** The six on-device ML subcommands, named here rather than in src/ml-cli.ts so

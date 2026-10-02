@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import { openAssetInText, textAssetSupported } from '../../lib/text-handoff.ts';
+import { openAssetInText } from '../../lib/text-handoff.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
  * catalog details: building the sheet and wiring its events, in mount order.
@@ -432,7 +432,8 @@ export function buildSheet(dt: DetailsCtx): void {
             emojiPackMeta(ref) ? `<button type="button" class="btn cat-act-use-emoji" data-act="use-emoji-set" aria-pressed="false">${icon('smile', { size: 14 })}<span>${t('Use this set')}</span></button>` : '',
             `<button type="button" class="btn cat-act-fav${fav ? ' is-fav' : ''}" data-act="fav" data-sfx="twinkle" aria-pressed="${fav}">${STAR_ICON}<span>${fav ? t('Favourited') : t('Favourite')}</span></button>`,
             `<button type="button" class="btn cat-act-download" data-act="download">${DOWNLOAD_ICON}<span>${configurable ? t('Download…') : t('Download')}</span></button>`,
-            textAssetSupported(ref) ? `<button type="button" class="btn" data-act="open-text">${t('Open in Text')}</button>` : '',
+            `<button type="button" class="btn" data-act="open-with" aria-haspopup="menu" ${cat.actions.choices([ref]).length ? '' : 'disabled'} title="${escapeText(cat.actions.choices([ref]).length ? t('Open in a compatible tool') : t('No tool accepts this selection.'))}">${t('Open with')}</button>`,
+            `<button type="button" class="btn" data-act="convert" ${cat.actions.canConvert([ref]) ? '' : 'disabled'} title="${escapeText(cat.actions.canConvert([ref]) ? t('Choose a supported transformation') : t('No conversion accepts this selection.'))}">${t('Convert…')}</button>`,
             isTextAsset ? `<button type="button" class="btn cat-act-dl-as" data-act="dl-as" aria-haspopup="menu" aria-expanded="false">${DOWNLOAD_ICON}<span>${t('Download as')}</span></button>` : '',
             `<button type="button" class="btn" data-act="prepare">${t('Prepare for sharing')}</button>`,
             `<button type="button" class="btn cat-act-send" data-act="send">${icon('upload', { size: 14 })}<span>${t('Send to…')}</span></button>`,
@@ -824,6 +825,8 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       announce(tRaw('{set} is now the set your new work starts from.', { set: pack.label }));
       return;
     }
+    if (act === 'open-with') { cat.actions.openWith([ref], dlg.querySelector<HTMLElement>('[data-act="open-with"]') ?? undefined); return; }
+    if (act === 'convert') { void cat.actions.convert([ref]); return; }
     if (act === 'open-text') {
       try { await openAssetInText(host, ref); cat.sections.closeDetails(); } catch (error) { announce(error instanceof Error ? error.message : t('This text could not be read.')); }
       return;

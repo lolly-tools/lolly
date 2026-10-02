@@ -9,6 +9,7 @@ import {
   readDocx,
   mdFromBlocks,
   pdfNodesToSvg,
+  FORENSIC_CHUNK_VERSION,
 } from '@lolly/engine';
 import type {
   ForensicCoverage,
@@ -263,8 +264,9 @@ export async function inspectForensicBytes(
         receipt('text-model', 'skipped', 'Outside the conservative English prose gate.', p.id);
       else if (!ready) receipt('text-model', 'unavailable', 'No cached text classifier.', p.id);
       else {
-        const estimate = await api.score(p.text);
+        const estimate = await api.score(p.text, { chunks: true });
         if (estimate?.windows) {
+          const roster = api.model();
           models.push({
             page: p.id,
             model: estimate.modelId,
@@ -273,6 +275,14 @@ export async function inspectForensicBytes(
             complete: !!estimate.complete,
             rawMean: estimate.probAi,
             threshold: estimate.threshold,
+            ...(estimate.chunks?.length && roster
+              ? {
+                  chunks: estimate.chunks,
+                  chunkThreshold: roster.chunkThreshold,
+                  chunkFloor: roster.chunkFloor,
+                  chunkVersion: FORENSIC_CHUNK_VERSION,
+                }
+              : {}),
           });
           coverage.push({
             collector: 'text-model',

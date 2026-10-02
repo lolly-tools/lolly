@@ -22,6 +22,7 @@ import type { WobbleHandle } from '../../lib/wobble.ts';
 import type { BoxFieldConfig } from '../free-canvas-math.ts';
 import type { helpersOps } from './helpers.ts';
 import type { selectOps } from './select.ts';
+import type { catalogIntakeOps } from './catalog-intake.ts';
 import type { timelineOps } from './timeline.ts';
 import type { stageOps } from './stage.ts';
 import type { narrationOps } from './narration.ts';
@@ -315,6 +316,7 @@ export interface FcCtx {
   helpers: ReturnType<typeof helpersOps>;
   select: ReturnType<typeof selectOps>;
   timeline: ReturnType<typeof timelineOps>;
+  catalogIntake: ReturnType<typeof catalogIntakeOps>;
   stage: ReturnType<typeof stageOps>;
   narration: ReturnType<typeof narrationOps>;
   rail: ReturnType<typeof railOps>;

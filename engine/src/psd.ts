@@ -422,7 +422,8 @@ function readLayerRecord(c: Cur, end: number, psb: boolean, warn: (c: string, d?
     } else if (key === 'lsct' && c.p + 4 <= blockEnd) {
       section = c.u32();
       if (section < 0 || section > 3) { warn('layer.bad', `lsct type ${section}`); section = 0; }
-    } else if (SEMANTIC_BLOCK_KEYS.has(key) && blockEnd > c.p) {
+    } else if (SEMANTIC_BLOCK_KEYS.has(key) && blockEnd >= c.p) {
+      // >=: some blocks say everything by being there (Invert's `nvrt` is empty).
       const n = blockEnd - c.p;
       if (keptHere + n <= MAX_SEMANTIC_BYTES_PER_LAYER && n <= semanticBudget.left) {
         blocks ??= new Map();

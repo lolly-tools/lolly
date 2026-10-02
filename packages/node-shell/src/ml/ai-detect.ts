@@ -26,7 +26,7 @@
  * text is never sent to the model at all: `score()` answers null, which means
  * "the check did not run" and must never be rendered as a verdict either way.
  */
-import { forensicModelWindows, type AiModelEstimate } from '@lolly/engine';
+import { forensicModelWindows, forensicChunkScores, type AiModelEstimate, type ForensicModelChunk } from '@lolly/engine';
 import {
   aiDetectEligible, aiDetectModel, type AiDetectModel,
 } from './ai-detect-models.ts';
@@ -45,7 +45,8 @@ export interface NodeAiDetectAPI {
   cached(): Promise<boolean>;
   /** Pure: may the detector honestly be asked about this text? */
   eligible(text: string): boolean;
-  score(text: string, opts?: { prefixOnly?: boolean }): Promise<AiModelEstimate | null>;
+  /** `chunks` also scores each sentence chunk for the heat view (forensic/heat.ts). */
+  score(text: string, opts?: { prefixOnly?: boolean; chunks?: boolean }): Promise<(AiModelEstimate & { chunks?: ForensicModelChunk[] }) | null>;
 }
 
 interface TensorLike { data: Float32Array; dims: number[] }
@@ -107,7 +108,7 @@ export function createNodeAiDetectAPI(): NodeAiDetectAPI | null {
     },
     eligible: (text) => aiDetectEligible(text),
 
-    async score(text: string, opts: { prefixOnly?: boolean } = {}): Promise<AiModelEstimate | null> {
+    async score(text: string, opts: { prefixOnly?: boolean; chunks?: boolean } = {}): Promise<(AiModelEstimate & { chunks?: ForensicModelChunk[] }) | null> {
       const m = aiDetectModel();
       if (!m) return null;
       if (!aiDetectEligible(text)) return null;
@@ -133,7 +134,16 @@ export function createNodeAiDetectAPI(): NodeAiDetectAPI | null {
         const { logits } = await model(tokenize(part, { truncation: false, max_length: m.maxTokens }));
         return softmax(logits.data)[aiIndex] ?? 0;
       });
-      return { probAi: result.rawMean, windows: result.windows, complete: result.complete, threshold: m.threshold, modelId: m.id, modelName: m.name };
+      // A chunk outside the English prose gate (a list of names, a code line)
+      // is left unscored rather than read by a model trained on prose.
+      const chunks = opts.chunks
+        ? await forensicChunkScores(text, async (chunk) => {
+          if (!aiDetectEligible(chunk)) return null;
+          const { logits } = await model(tokenize(chunk, { truncation: true, max_length: m.maxTokens }));
+          return softmax(logits.data)[aiIndex] ?? 0;
+        })
+        : undefined;
+      return { probAi: result.rawMean, windows: result.windows, complete: result.complete, threshold: m.threshold, modelId: m.id, modelName: m.name, ...(chunks ? { chunks } : {}) };
     },
   };
 }

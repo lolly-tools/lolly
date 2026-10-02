@@ -328,6 +328,7 @@ export interface TemplateVariant {
  * same). `id` is a permanent contract: never rename or reuse it.
  */
 export interface ToolManifest {
+  openWith?: import('./asset-open-v1.ts').AssetOpenIntentV1[];
   designTool?: import('./design-tool-v1.ts').DesignToolPolicyV1;
   id: string;
   name: string;

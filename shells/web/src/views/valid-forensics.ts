@@ -13,6 +13,7 @@ import {
   readableForensicReport,
   type ForensicViewState,
 } from './valid-forensics-render.ts';
+import { DEFAULT_LAYERS, pageHeat, stepSegment } from './valid-forensics-heat.ts';
 import '../styles/parts/valid-forensics.css';
 const reportStates = new WeakMap<HTMLElement, ForensicViewState>();
 export const forensicStateForReport = (panel: HTMLElement): ForensicViewState | undefined => reportStates.get(panel);
@@ -108,6 +109,7 @@ export function wireForensicVerify(
         overlays: true,
         annotations: [],
         skippedModel: previous?.skippedModel,
+        ...(previous?.layers ? { layers: previous.layers } : {}),
         history: previous
           ? [
               ...(previous.history ?? []),
@@ -173,6 +175,40 @@ export function wireForensicVerify(
     }
     if (!state) return;
     if (action === 'skip-model') { state.skippedModel = true; paint(panel); return; }
+    if (action === 'segment' || action === 'segment-step' || action === 'region' || action === 'inspect-close') {
+      const report = state.collection.report;
+      const previous = state.inspect;
+      if (action === 'inspect-close') state.inspect = undefined;
+      else if (action === 'region') state.inspect = { kind: 'region', index: Number(target.dataset.region) };
+      else
+        state.inspect = {
+          kind: 'segment',
+          index:
+            action === 'segment'
+              ? Number(target.dataset.seg)
+              : stepSegment(report, state.page, previous?.index ?? 0, Number(target.dataset.step)),
+        };
+      paint(panel);
+      const open = state.inspect ?? previous;
+      // Focus stays in the text (or on the page), where the reader is working;
+      // the inspector next to the text is announced rather than jumped to.
+      const anchor = open
+        ? panel.querySelector<HTMLElement>(
+            open.kind === 'region' ? `[data-forensic="region"][data-region="${open.index}"]` : `.fh-text [data-seg="${open.index}"]`
+          )
+        : null;
+      anchor?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      if (anchor?.tabIndex === 0 || anchor?.matches('button')) anchor.focus({ preventScroll: true });
+      if (state.inspect?.kind === 'segment') {
+        const segment = pageHeat(report, state.page).segments[state.inspect.index];
+        announce(
+          segment?.signals.length
+            ? t('{count} signals in this sentence: {labels}', { count: segment.signals.length, labels: segment.signals.map((s) => s.label).join(', ') })
+            : t('No located pattern in this sentence.')
+        );
+      }
+      return;
+    }
     if (action === 'select') {
       state.selected = target.dataset.finding ?? '';
       state.location = Number(target.dataset.location ?? 0);
@@ -243,8 +279,13 @@ export function wireForensicVerify(
     if (!panel) return;
     const state = states.get(panel);
     if (!state) return;
-    if (target.matches('[data-forensic-page]')) state.page = target.value;
-    else if (target.matches('[data-forensic-filter]')) {
+    if (target.matches('[data-forensic-page]')) {
+      state.page = target.value;
+      state.inspect = undefined;
+    } else if (target.matches('[data-forensic-layer]')) {
+      const key = target.dataset.forensicLayer as keyof typeof DEFAULT_LAYERS;
+      state.layers = { ...(state.layers ?? DEFAULT_LAYERS), [key]: target.checked };
+    } else if (target.matches('[data-forensic-filter]')) {
       state.filter = target.value;
       const visible = forensicVisibleFindings(state);
       if (!visible.some((f) => f.id === state.selected)) {
@@ -305,6 +346,10 @@ export function wireForensicVerify(
       panel.querySelector<HTMLElement>('[data-forensic-page]')?.focus({ preventScroll: true });
     if (target.matches('[data-forensic-overlays]'))
       panel.querySelector<HTMLElement>('[data-forensic-overlays]')?.focus({ preventScroll: true });
+    if (target.matches('[data-forensic-layer]'))
+      panel
+        .querySelector<HTMLElement>(`[data-forensic-layer="${target.dataset.forensicLayer}"]`)
+        ?.focus({ preventScroll: true });
   }
   const onClick = (event: Event) => {
       void click(event).catch((error) => announce(String(error)));
@@ -326,9 +371,22 @@ export function wireForensicVerify(
       if (preview) preview.style.width = `${target.value}%`;
     }
   };
+  // A lit sentence is a span with role=button, so Enter and Space must open the sentence too.
+  const onKeydown = (event: KeyboardEvent) => {
+    const target = event.target;
+    if (
+      (event.key === 'Enter' || event.key === ' ') &&
+      target instanceof HTMLElement &&
+      target.matches('[data-forensic="segment"][role="button"]')
+    ) {
+      event.preventDefault();
+      target.click();
+    }
+  };
   root.addEventListener('click', onClick);
   root.addEventListener('change', onChange);
   root.addEventListener('input', onInput);
+  root.addEventListener('keydown', onKeydown);
   return () => {
     alive = false;
     observer.disconnect();
@@ -336,6 +394,7 @@ export function wireForensicVerify(
     root.removeEventListener('click', onClick);
     root.removeEventListener('change', onChange);
     root.removeEventListener('input', onInput);
+    root.removeEventListener('keydown', onKeydown);
   };
 }
 

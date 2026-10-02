@@ -36,6 +36,14 @@ import {
   DEEPSEEK_TELLS,
   LEXICON_VERSION,
   spatialPointerRe,
+  CHAT_LABEL_LINE,
+  CHAT_LABEL_STOP,
+  CHAT_LABEL_STOP_WORD,
+  CHAT_NUMBERED_TITLE,
+  CHAT_QUESTION_HEADING,
+  CHAT_SCAFFOLD_HEADINGS,
+  LIST_TRIAD,
+  AI_WORDS_LEFT_OUT,
 } from '../engine/src/claudisms.ts';
 import { RATCHETED_PHRASES } from '../scripts/check-docs-vernacular.ts';
 
@@ -128,6 +136,9 @@ test('the "…here," aside catches the pointer use and leaves the place senses a
     'We have lived here, on and off, for years.',
     'Here, the layout changes.',
     'The layout is fine here.',
+    // Lexicon 8: the place sense with no parenthetical adverb after the comma.
+    "The songs from the original are all here, plus a few new ones.",
+    'I am sitting here, typing this out before work.',
     // The copula flourish already scores this span; it must not count twice.
     'The export is the weak point here, clearly.',
   ]) assert.equal(hits(s), 0, `expected no hit: ${s}`);
@@ -191,4 +202,82 @@ test('claudisms from the docs gate list are scored by the detector', () => {
   const heading = CLAUDE_TELLS.find(t => t.label === 'heading that ends in "it"')!;
   assert.ok(new RegExp(heading.re.source, heading.re.flags).test('Intro\n## How to hold us to it\nBody'));
   assert.equal(new RegExp(heading.re.source, heading.re.flags).test('## How exports work'), false);
+});
+
+// ── Lexicon 8 (corpus-v4 measurements, plans/287) ────────────────────────────
+
+test('LEXICON_VERSION moved to 8 with the chat-structure and list-triad data', () => {
+  assert.ok(LEXICON_VERSION >= 8);
+});
+
+test('vocabulary and phrase lists carry the lexicon 8 decisions', () => {
+  // Out: fired as often on human text as on AI text, or a human domain passed 5%.
+  for (const w of ['leverage', 'foster', 'seamless', 'crucial', 'robust', 'ensure', 'align', 'moreover', 'furthermore', 'actionable', 'additionally', 'key']) {
+    assert.ok(AI_WORDS_LEFT_OUT.includes(w), `${w} is recorded as measured and left out`);
+  }
+  for (const w of AI_WORDS_LEFT_OUT) assert.ok(!AI_WORDS.includes(w), `${w} must stay out of AI_WORDS`);
+  for (const w of ['ensuring', 'enhancing', 'highlighting', 'leveraging', 'fostering', 'seamlessly']) {
+    assert.ok(AI_WORDS.includes(w), `${w} is scored`);
+  }
+  const phrase = (s: string) => AI_PHRASES.some((t) => new RegExp(t.re.source, t.re.flags).test(s));
+  assert.equal(phrase('In conclusion, the school should change the timetable.'), false);
+  assert.equal(phrase('At the end of the day we all went home.'), false);
+  assert.ok(phrase('In summary, the results held.'));
+  const bold = CHATGPT_TELLS.some((t) => new RegExp(t.re.source, t.re.flags).test('- **Key Point:** ship small'));
+  assert.equal(bold, false, 'a single bold label is counted by the chat-structure family, not as a ChatGPT tell');
+});
+
+test('chat-structure line patterns are per-line (not global) and capture what the analyzer reads', () => {
+  for (const re of [CHAT_LABEL_LINE, CHAT_NUMBERED_TITLE, CHAT_QUESTION_HEADING]) {
+    assert.equal(re.global, false, `${re} is applied with exec() to one line at a time`);
+  }
+  const m = CHAT_LABEL_LINE.exec(' - **Deep Niche Expertise:** Because they focus on one field, their research goes deep.');
+  assert.equal(m?.[1], '**');
+  assert.equal(m?.[2], 'Deep Niche Expertise');
+  assert.match(m?.[3] ?? '', /^Because/);
+  assert.equal(CHAT_LABEL_LINE.exec('Gartner, Forrester, or IDC: if you need broad research.'), null, 'a comma list is not a label');
+  assert.equal(CHAT_LABEL_LINE.exec('the label must start with a capital: like this one here'), null);
+  assert.equal(CHAT_NUMBERED_TITLE.exec('1. As a Research Partner')?.[2], 'As a Research Partner');
+  assert.equal(CHAT_NUMBERED_TITLE.exec('1. Preheat the oven to 200 degrees.'), null, 'a numbered sentence is a step, not a title');
+  assert.equal(CHAT_QUESTION_HEADING.exec('Who would be a better partner?')?.[1], 'Who would be a better partner?');
+});
+
+test('chat label stop list keeps essay, abstract, reference and mail labels out', () => {
+  for (const l of ['First', 'Second', 'Finally', 'Example', 'Note', 'Objective', 'Methods', 'Results', 'Conclusions', 'Type', 'Default', 'Returns', 'Subject', 'From', 'Ingredients']) {
+    assert.ok(CHAT_LABEL_STOP.test(l), `${l} is ordinary structure`);
+  }
+  for (const l of ['Second reason', 'Step 3', 'Part two']) assert.ok(CHAT_LABEL_STOP_WORD.test(l), `${l} is a document marker`);
+  for (const l of ['Deep Niche Expertise', 'Narrow Scope', 'Domain depth', 'Red flags']) {
+    assert.ok(!CHAT_LABEL_STOP.test(l) && !CHAT_LABEL_STOP_WORD.test(l), `${l} is a chat label`);
+  }
+});
+
+test('chat scaffold headings are lower case, unique, and leave paper sections out', () => {
+  assert.equal(new Set(CHAT_SCAFFOLD_HEADINGS).size, CHAT_SCAFFOLD_HEADINGS.length);
+  for (const h of CHAT_SCAFFOLD_HEADINGS) assert.equal(h, h.toLowerCase());
+  for (const h of ['strengths', 'weaknesses', 'bottom line', 'key takeaways', 'next steps']) assert.ok(CHAT_SCAFFOLD_HEADINGS.includes(h));
+  for (const h of ['introduction', 'conclusion', 'results', 'limitations', 'installation', 'usage', 'license']) {
+    assert.ok(!CHAT_SCAFFOLD_HEADINGS.includes(h), `${h} is how human documents are sectioned`);
+  }
+});
+
+test('LIST_TRIAD finds serial lists with and without the serial comma, and skips clauses', () => {
+  assert.ok(LIST_TRIAD.global, 'walked with exec() across the text');
+  const lists = (s: string) => [...s.matchAll(new RegExp(LIST_TRIAD.source, LIST_TRIAD.flags))].map((m) => m[0]);
+  assert.deepEqual(lists('They cover Observability, Security, and FinOps today.'), ['Observability, Security, and FinOps']);
+  assert.deepEqual(lists('The goal is to be honest, clear and human about it.'), ['honest, clear and human']);
+  assert.deepEqual(lists('We saw the reservoir, the old mill, and the church.'), ['reservoir, the old mill, and the']);
+  assert.deepEqual(lists('We walked down the long way, past the quarry and the farm shop.'), []);
+});
+
+test('the soft chatbot preamble entries match the assistant form and leave ordinary writing alone', () => {
+  const soft = (s: string) => CHATBOT_SOFT.some((t) => new RegExp(t.re.source, t.re.flags).test(s));
+  assert.ok(soft('Here is an evaluation of their strengths and weaknesses.'));
+  assert.ok(soft("Open models carry distinct risks. Here's a structured assessment."));
+  assert.ok(soft('Based on an evaluation of the firm (firm.example), they focus on platform teams.'));
+  assert.ok(soft('Based on the information provided, the second option is cheaper.'));
+  assert.equal(soft('Here is a list of the plots that still need a tenant.'), false);
+  assert.equal(soft("Here's an example of the rota."), false);
+  assert.equal(soft('Based on a true story, the film follows two brothers.'), false);
+  assert.equal(soft('The team met twice. Based on the results, we changed the plan.'), false, 'only the opening of a document');
 });

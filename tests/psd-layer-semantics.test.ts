@@ -12,7 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFontName, readLayerSemantics, readVectorPath } from '../engine/src/psd-layer-semantics.ts';
-import { origination, solidColor, strokeSettings, typeLayer, vectorMask, type TypeFixture } from './helpers/psd-fixtures.ts';
+import { D, effects, origination, solidColor, strokeSettings, typeLayer, vectorFill, vectorMask, versioned, type TypeFixture } from './helpers/psd-fixtures.ts';
 
 const CANVAS = { w: 800, h: 600 };
 const blocks = (o: Record<string, Uint8Array>) => new Map(Object.entries(o));
@@ -148,13 +148,13 @@ test('shapes: rectangle, rounded rectangle and ellipse, with fill and stroke', (
   assert.equal(rounded.shape!.radius, 12);
   const ellipse = readLayerSemantics(blocks({ SoCo: solidColor('#0000ff'), vogk: origination(5, box), vstk: strokeSettings({ fill: true, stroke: true, width: 4, color: '#000000' }) }), { x: 0, y: 0, w: 0, h: 0 }, CANVAS)!;
   assert.equal(ellipse.shape!.kind, 'ellipse');
-  assert.deepEqual(ellipse.shape!.stroke, { color: '#000000', width: 4 });
+  assert.deepEqual(ellipse.shape!.stroke, { color: '#000000', width: 4, cap: 'butt', join: 'miter', align: 'center' });
   const uneven = readLayerSemantics(blocks({ SoCo: solidColor('#00ff00'), vogk: origination(2, box, [4, 4, 12, 4]) }), { x: 0, y: 0, w: 0, h: 0 }, CANVAS)!;
   assert.equal(uneven.shape!.radius, 12);
   assert.match(uneven.notes.join(' '), /corners differ/);
   const strokeOnly = readLayerSemantics(blocks({ SoCo: solidColor('#00ff00'), vogk: origination(1, box), vstk: strokeSettings({ fill: false, stroke: true, width: 2, color: '#123456' }) }), { x: 0, y: 0, w: 0, h: 0 }, CANVAS)!;
   assert.equal(strokeOnly.shape!.fill, null);
-  assert.deepEqual(strokeOnly.shape!.stroke, { color: '#123456', width: 2 });
+  assert.deepEqual(strokeOnly.shape!.stroke, { color: '#123456', width: 2, cap: 'butt', join: 'miter', align: 'center' });
 });
 
 test('paths: a sharp four-corner path is a rectangle; anything else stays a vector path', () => {
@@ -186,9 +186,68 @@ test('fills, fill opacity, adjustments, effects and smart objects', () => {
   assert.equal(readLayerSemantics(blocks({}), { x: 0, y: 0, w: 10, h: 10 }, CANVAS), null, 'a plain pixel layer has nothing to add');
 });
 
+// ── what files saved by Photoshop CS6 and later do (found on psd-tools' fixtures) ──
+
+const NONE = { x: 0, y: 0, w: 0, h: 0 };
+const triangle = [{ at: [100, 100] as [number, number] }, { at: [200, 100] as [number, number] }, { at: [150, 180] as [number, number] }];
+
+test('newer files keep the shape fill in vscg, not SoCo', () => {
+  const s = readLayerSemantics(blocks({ vscg: vectorFill('SoCo', '#b3d465'), vogk: origination(5, { left: 10, top: 20, right: 110, bottom: 80 }) }), NONE, CANVAS)!;
+  assert.deepEqual(s.shape, { kind: 'ellipse', box: { x: 10, y: 20, w: 100, h: 60 }, radius: 0, fill: '#b3d465', stroke: null });
+  const pattern = readLayerSemantics(blocks({ vscg: vectorFill('PtFl'), vmsk: vectorMask(800, 600, [triangle]) }), NONE, CANVAS)!;
+  assert.equal(pattern.path, undefined, 'a pattern fill stays pixels');
+  assert.match(pattern.notes.join(' '), /Pattern fill kept as pixels/);
+  const off = readLayerSemantics(blocks({ vscg: vectorFill('PtFl'), vstk: strokeSettings({ fill: false, stroke: true, width: 2, color: '#000000' }), vmsk: vectorMask(800, 600, [triangle]) }), NONE, CANVAS)!;
+  assert.ok(off.path, 'with the fill switched off, the stroke alone draws the shape');
+  assert.equal(off.notes.length, 0);
+});
+
+test('several shapes in one layer: combined they are one path; subtracted they stay pixels', () => {
+  const two = [triangle, triangle.map(k => ({ at: [k.at[0] + 300, k.at[1]] as [number, number] }))];
+  const combined = readLayerSemantics(blocks({ vscg: vectorFill('SoCo', '#009944'), vsms: vectorMask(800, 600, two, false, [1, 1]) }), NONE, CANVAS)!;
+  assert.equal(combined.path!.subpaths.length, 2);
+  assert.deepEqual(combined.path!.subpaths.map(sp => sp.op), [1, 1]);
+  const subtracted = readLayerSemantics(blocks({ vscg: vectorFill('SoCo', '#009944'), vsms: vectorMask(800, 600, two, false, [2, 2]) }), NONE, CANVAS)!;
+  assert.equal(subtracted.path, undefined);
+  assert.match(subtracted.notes.join(' '), /subtract, intersect or exclude are kept as pixels/);
+  // Two ellipses in one origin record are not one Design ellipse: the outline decides.
+  const ellipse = (left: number) => D.objc([['keyOriginType', D.long(5)], ['keyOriginShapeBBox', D.objc([['Top ', D.untf('#Pxl', 100)], ['Left', D.untf('#Pxl', left)], ['Btom', D.untf('#Pxl', 180)], ['Rght', D.untf('#Pxl', left + 80)]])]]);
+  const vogk = new Uint8Array([0, 0, 0, 1, ...versioned([['keyDescriptorList', D.list([ellipse(100), ellipse(400)])]])]);
+  const pair = readLayerSemantics(blocks({ vscg: vectorFill('SoCo', '#009944'), vogk, vsms: vectorMask(800, 600, two) }), NONE, CANVAS)!;
+  assert.equal(pair.shape, undefined);
+  assert.equal(pair.path!.subpaths.length, 2);
+});
+
+test('a dashed or dotted stroke keeps its pattern, cap and join; dashes scale by the width', () => {
+  const dotted = readLayerSemantics(blocks({
+    vscg: vectorFill('SoCo', '#b3d465'), vogk: origination(5, { left: 10, top: 20, right: 110, bottom: 80 }),
+    vstk: strokeSettings({ fill: true, stroke: true, width: 2, color: '#00561f', dash: [0, 2], cap: 'strokeStyleRoundCap', join: 'strokeStyleRoundJoin' }),
+  }), NONE, CANVAS)!;
+  assert.deepEqual(dotted.shape!.stroke, { color: '#00561f', width: 2, cap: 'round', join: 'round', align: 'center', dash: [0, 4] });
+  const solid = readLayerSemantics(blocks({ SoCo: solidColor('#ffffff'), vstk: strokeSettings({ fill: true, stroke: true, width: 3, color: '#000000' }), vmsk: vectorMask(800, 600, [triangle]) }), NONE, CANVAS)!;
+  assert.deepEqual(solid.path!.stroke, { color: '#000000', width: 3, cap: 'butt', join: 'miter', align: 'center' }, 'Photoshop\'s defaults: butt caps, mitred corners, no dashes');
+});
+
+test('a gradient or pattern stroke keeps the shape as pixels, and says so', () => {
+  const stroke = versioned([
+    ['strokeStyleVersion', D.long(2)], ['fillEnabled', D.bool(true)], ['strokeEnabled', D.bool(true)],
+    ['strokeStyleLineWidth', D.untf('#Pxl', 2)], ['strokeStyleContent', D.objc([['Grad', D.objc([['Nm  ', D.text('Fade')]])]])],
+  ]);
+  const s = readLayerSemantics(blocks({ SoCo: solidColor('#ff0000'), vstk: stroke, vmsk: vectorMask(800, 600, [triangle]) }), NONE, CANVAS)!;
+  assert.equal(s.path, undefined);
+  assert.match(s.notes.join(' '), /stroke is a gradient or pattern/);
+});
+
+test('layer effects: named when on, silent when every one is off', () => {
+  const on = readLayerSemantics(blocks({ lfx2: effects({ DrSh: true, FrFX: true, OrGl: false }) }), NONE, CANVAS)!;
+  assert.match(on.notes.join(' '), /Layer effects were dropped: drop shadow, stroke\./);
+  assert.equal(readLayerSemantics(blocks({ lfx2: effects({ DrSh: false, GrFl: false }) }), { x: 0, y: 0, w: 10, h: 10 }, CANVAS), null, 'all off: nothing to say');
+  assert.equal(readLayerSemantics(blocks({ lfx2: effects({ DrSh: true }, false) }), { x: 0, y: 0, w: 10, h: 10 }, CANVAS), null, 'the master switch off: nothing to say');
+});
+
 test('garbage in any block is never an exception', () => {
   const junk = Uint8Array.from({ length: 200 }, (_, i) => (i * 37 + 11) & 255);
-  for (const k of ['TySh', 'vogk', 'vmsk', 'SoCo', 'vstk', 'iOpa']) {
+  for (const k of ['TySh', 'vogk', 'vmsk', 'vscg', 'SoCo', 'vstk', 'iOpa', 'lfx2']) {
     assert.doesNotThrow(() => readLayerSemantics(blocks({ [k]: junk }), { x: 0, y: 0, w: 10, h: 10 }, CANVAS), k);
     assert.doesNotThrow(() => readLayerSemantics(blocks({ [k]: junk.subarray(0, 3) }), { x: 0, y: 0, w: 10, h: 10 }, CANVAS), k);
   }
@@ -219,6 +278,14 @@ test('readPsd attaches what each layer is, and leaves a plain pixel layer alone'
   assert.equal(head!.psd!.text!.family, 'Inter');
   assert.equal(head!.psd!.text!.weight, 600);
   assert.equal(head!.pixels.length, 150 * 30 * 4, 'the pixels are still decoded, for the conversion report and a fallback');
+});
+
+test('readPsd keeps an empty adjustment block: Invert says everything by being there', async () => {
+  const { writePsd } = await import('../engine/src/psd-write.ts');
+  const { readPsd } = await import('../engine/src/psd.ts');
+  const bytes = writePsd({ width: 4, height: 4, layers: [{ name: 'Invert 1', x: 0, y: 0, width: 0, height: 0, pixels: new Uint8Array(0), extraBlocks: [['nvrt', new Uint8Array(0)]] }] });
+  const layer = readPsd(bytes).layers.find(l => l.name === 'Invert 1')!;
+  assert.equal(layer.psd?.adjustment, 'Invert');
 });
 
 test('readPsd keeps semantic blocks within a budget, and says when one is dropped', async () => {

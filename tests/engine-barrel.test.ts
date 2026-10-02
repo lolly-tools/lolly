@@ -10,6 +10,18 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // 1.243 (plans/289 M2): the looking helpers' edge tracing and types.
+  'ColorSwatch',
+  'DesignPathLayer',
+  'EdgeTraceOptions',
+  'PixelImage',
+  'SampledColor',
+  'SwatchMatch',
+  'TracedEdge',
+  'ViewRegion',
+  'polylineToDesignLayer',
+  'simplifyPolyline',
+  'traceEdges',
   'BlockTokenBinding',
   'InputWriteOptions',
   'PinnedFontFace',

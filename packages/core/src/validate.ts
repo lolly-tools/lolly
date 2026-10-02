@@ -7,6 +7,7 @@
  * `schemas/tool.schema.json` by a drift-guard test.
  */
 import Ajv from 'ajv/dist/2020.js';
+import { assetOpenErrors, type AssetOpenIntentV1 } from './asset-open-v1.ts';
 import type { ErrorObject } from 'ajv/dist/2020.js';
 import toolSchema from '../schema/tool.schema.json' with { type: 'json' };
 import assetSchema from '../schema/asset.schema.json' with { type: 'json' };
@@ -41,9 +42,10 @@ const validateOp = ajv.compile(canvasOpSchema);
 /** Validate a `tool.json` manifest object against the bundled schema. */
 export function validateTool(manifest: unknown): ValidationResult {
   const ok = validate(manifest);
+  const openingErrors = ok ? assetOpenErrors(manifest as { id: string; openWith?: AssetOpenIntentV1[]; inputs?: { id: string; type: string; multiple?: boolean }[] }) : [];
   return {
-    valid: Boolean(ok),
-    errors: ok ? [] : ((validate.errors ?? []) as ErrorObject[]).map(formatError),
+    valid: Boolean(ok) && openingErrors.length === 0,
+    errors: ok ? openingErrors : ((validate.errors ?? []) as ErrorObject[]).map(formatError),
   };
 }
 

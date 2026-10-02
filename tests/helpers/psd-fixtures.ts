@@ -69,9 +69,12 @@ const rgb = (hex: string): [string, Item][] => {
 export const solidColor = (hex: string): Uint8Array => versioned([['Clr ', D.objc(rgb(hex))]]);
 
 /** vstk: stroke settings. */
-export const strokeSettings = (o: { fill: boolean; stroke: boolean; width: number; color: string }): Uint8Array => versioned([
+export const strokeSettings = (o: { fill: boolean; stroke: boolean; width: number; color: string; dash?: number[]; cap?: string; join?: string }): Uint8Array => versioned([
   ['strokeStyleVersion', D.long(2)], ['fillEnabled', D.bool(o.fill)], ['strokeEnabled', D.bool(o.stroke)],
   ['strokeStyleLineWidth', D.untf('#Pxl', o.width)],
+  ...(o.dash ? [['strokeStyleLineDashSet', D.list(o.dash.map(v => D.untf('#Nne', v)))] as [string, Item]] : []),
+  ...(o.cap ? [['strokeStyleLineCapType', D.enumv('strokeStyleLineCapType', o.cap)] as [string, Item]] : []),
+  ...(o.join ? [['strokeStyleLineJoinType', D.enumv('strokeStyleLineJoinType', o.join)] as [string, Item]] : []),
   ['strokeStyleContent', D.objc([['Clr ', D.objc(rgb(o.color))]])],
 ]);
 
@@ -91,20 +94,32 @@ export function origination(type: number, box: { left: number; top: number; righ
 export type Knot = { at: [number, number]; in?: [number, number]; out?: [number, number] };
 
 /** vmsk: one or more closed subpaths, coordinates as 8.24 fixed-point fractions of the canvas. */
-export function vectorMask(canvasW: number, canvasH: number, subpaths: Knot[][], open = false): Uint8Array {
+export function vectorMask(canvasW: number, canvasH: number, subpaths: Knot[][], open = false, ops: number[] = []): Uint8Array {
   const b = new Buf().u32(3).u32(0);
   b.u16(6).zeros(24); // path fill rule record
   b.u16(8).zeros(24); // initial fill rule record
   const fixed = (frac: number) => Math.round(frac * 0x1000000);
-  for (const knots of subpaths) {
-    b.u16(open ? 3 : 0).u16(knots.length).zeros(22);
+  subpaths.forEach((knots, i) => {
+    // The subpath length record: count, then the join (1 combines, as Photoshop writes by default).
+    b.u16(open ? 3 : 0).u16(knots.length).u16(ops[i] ?? 1).zeros(20);
     for (const k of knots) {
       b.u16(open ? 4 : 1);
       for (const p of [k.in ?? k.at, k.at, k.out ?? k.at]) b.i32(fixed(p[1] / canvasH)).i32(fixed(p[0] / canvasW));
     }
-  }
+  });
   return b.done();
 }
+
+/** vscg: newer Photoshop's shape fill, a kind and then that kind's descriptor. */
+export const vectorFill = (kind: 'SoCo' | 'GdFl' | 'PtFl', hex = '#000000'): Uint8Array =>
+  new Buf().bytes(Uint8Array.from([...kind].map(c => c.charCodeAt(0)))).bytes(kind === 'SoCo' ? solidColor(hex) : versioned([])).done();
+
+/** lfx2: layer effects, each switched on or off. */
+export const effects = (on: Record<string, boolean>, master = true): Uint8Array =>
+  new Buf().u32(0).u32(16).bytes(descriptor([
+    ['masterFXSwitch', D.bool(master)],
+    ...Object.entries(on).map(([key, enab]): [string, Item] => [key, D.objc([['enab', D.bool(enab)]])]),
+  ])).done();
 
 export interface TypeFixture {
   text?: string;

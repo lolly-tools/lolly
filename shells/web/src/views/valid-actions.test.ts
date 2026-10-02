@@ -84,3 +84,50 @@ test('floating actions retain file targeting, busy state, results and cleanup ac
     }
   }
 });
+
+test('Inspect is a primary command only until the report has inspected itself', async () => {
+  const forensic = (ran: boolean, again = 'Retry inspection'): string => `<details class="valid-item" open><summary>pasted.txt</summary><div class="valid-result" data-actions-index="0"><span class="valid-hero-filename">pasted.txt</span><section class="forensic" data-forensic-index="0"><h2>AI evidence</h2><button data-forensic="inspect"${ran ? ' hidden' : ''}>Inspect AI evidence</button><div data-forensic-content>${ran ? `<div class="forensic-toolbar forensic-actions"><button data-forensic="inspect">${again}</button><button data-forensic="json">Export JSON evidence</button></div>` : ''}</div></section></div></details>`;
+  const dom = new JSDOM(`<body><main><div id="report">${forensic(false)}</div></main></body>`, { url: 'https://lolly.test/#/verify' });
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  const set = (key: string, value: unknown): void => {
+    originals.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+    Object.defineProperty(globalThis, key, { value, configurable: true, writable: true });
+  };
+  for (const key of ['window', 'document', 'HTMLElement', 'HTMLButtonElement', 'HTMLAnchorElement', 'HTMLDetailsElement', 'Element', 'Node', 'MutationObserver', 'CustomEvent', 'localStorage', 'navigator']) set(key, Reflect.get(dom.window, key));
+  set('ResizeObserver', class { observe() {} disconnect() {} });
+  dom.window.HTMLElement.prototype.scrollIntoView = () => {};
+  const flush = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 0));
+  const view = document.querySelector<HTMLElement>('main')! as HTMLElement & { _cleanup?: () => void };
+  const report = document.querySelector<HTMLElement>('#report')!;
+  let reran = 0;
+  report.addEventListener('click', event => {
+    if (event.target instanceof HTMLElement && event.target.closest('.forensic-actions [data-forensic="inspect"]')) reran++;
+  });
+  try {
+    wireVerifyActions(view, report);
+    await flush();
+    const toolbar = view.querySelector<HTMLElement>('.valid-actions')!;
+    const primary = (id: string) => toolbar.querySelector<HTMLButtonElement>(`[data-actions-primary] [data-verify-action="${id}"]`);
+    const menu = (id: string) => toolbar.querySelector<HTMLButtonElement>(`[data-actions-menu] [data-verify-action="${id}"]`);
+    assert.ok(primary('ai'), 'not inspected yet: Inspect is offered');
+    assert.equal(menu('ai-again'), null);
+
+    report.querySelector('.forensic')!.setAttribute('aria-busy', 'true'); await flush();
+    assert.equal(primary('ai'), null, 'no Inspect while a run is in progress');
+
+    report.innerHTML = forensic(true); await flush();
+    assert.equal(primary('ai'), null, 'a finished run is not offered as a fresh Inspect');
+    assert.equal(menu('ai-again')?.textContent, 'Retry inspection');
+    menu('ai-again')!.click();
+    assert.equal(reran, 1);
+
+    report.innerHTML = forensic(true, 'Inspect more pages'); await flush();
+    assert.equal(menu('ai-again')?.textContent, 'Inspect more pages');
+  } finally {
+    view._cleanup?.(); dom.window.close();
+    for (const [key, descriptor] of originals) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  }
+});

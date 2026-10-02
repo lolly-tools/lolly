@@ -65,7 +65,7 @@ export function catTileMenuHtml(cat: CatCtx, id: string): string {
     menuItemHtml('open', icon('externalLink'), t('Details')),
     menuItemHtml('fav', icon('star'), cat.favSet.has(base) ? t('Remove from favourites') : t('Add to favourites')),
     menuItemHtml('download', icon('download'), t('Download…')),
-    ref.source === 'user' ? menuItemHtml('convert-copy', icon('duplicate'), t('Convert a copy…')) : '',
+    cat.actions.menuHtml([ref]),
     isUser ? menuItemHtml('saved-versions', icon('duplicate'), t('Saved versions…')) : '',
     menuItemHtml('send', icon('upload'), t('Send to…')),
     menuItemHtml('share', icon('link'), t('Copy link')),
@@ -85,6 +85,7 @@ export function catBulkMenuHtml(cat: CatCtx): string {
   const uploads = cat.bulk.allSelectedUploads();
   return `<p class="folder-menu-head">${t('{n} selected', { n: selected.size })}</p>`
     + `<div class="folder-menu-list" role="menu" aria-label="${escapeText(t('Selection actions'))}">${[
+        cat.actions.menuHtml(cat.actions.selection()),
         cat.bulk.canCompareSelection() ? menuItemHtml('compare', icon('duplicate'), t('Compare…')) : '',
         menuItemHtml('fav', icon('star'), cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')),
         menuItemHtml('add-to-project', icon('folder'), t('Add to project…')),
@@ -108,19 +109,8 @@ export async function onTileMenuAction(cat: CatCtx, act: string, id: string | nu
   if (act === 'fav') { await cat.userAssets.toggleFavourite(id); return; }
   if (act === 'download') { await cat.downloads.openAssetDownloadDialog(ref); return; }
   if (act === 'saved-versions') { const { openAssetVersions } = await import('../asset-versions.ts'); await openAssetVersions(id, host, cat.tiles.reload); return; }
-  if (act === 'convert-copy') {
-    try {
-      const { validateConvertFiles } = await import('../../lib/file-conversion.ts');
-      const response = await fetch(ref.url);
-      if (!response.ok) throw new Error(t('Could not read this file.'));
-      // User uploads resolve to device-owned Blob URLs, never an arbitrary remote fetch.
-      const blob = await response.blob(); validateConvertFiles([blob]);
-      const { openFileInUtility } = await import('../../lib/drop-router.ts');
-      const name = String(ref.meta?.name || ref.id.split('/').pop() || 'asset');
-      openFileInUtility('convert', new File([blob], name.includes('.') ? name : `${name}.${ref.format}`, { type: blob.type }));
-    } catch (error) { announce(error instanceof Error ? error.message : String(error), { assertive: true }); }
-    return;
-  }
+  if (act === 'open-with') { cat.actions.openWith([ref], viewEl.querySelector<HTMLElement>(`.cat-tile[data-id="${CSS.escape(ref.id)}"] .cat-tile-open`) ?? undefined); return; }
+  if (act === 'convert') { await cat.actions.convert([ref]); return; }
   if (act === 'send') { await cat.downloads.openSendDialog(ref); return; }
   if (act === 'share') {
     try { await navigator.clipboard.writeText(cat.sections.assetLink(ref)); announce(t('Link copied')); }

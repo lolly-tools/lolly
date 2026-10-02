@@ -172,6 +172,12 @@ Subcommands:
                         [--style=plain] [--samples=3] [--in=<file.txt>]
   lolly depth <image> [--out=depth.png]    on-device depth map, greyscale, white nearest
                         [--max-edge=N]     (no model published yet: refuses by name)
+  lolly look <file|-> [--region=x,y,w,h]    draw a picture or one region of it with a
+                      [--grid=N|0] [--output] labelled grid in its own coordinates (PNG)
+  lolly sample <file|-> --points=x,y;x,y    colours at points, each named by the nearest
+                      [--radius=2]         design-system colour
+  lolly trace <file|-> [--region=x,y,w,h]   edges as lines in its own coordinates (JSON);
+                      [--design-layers]    --design-layers adds Design path layers
   lolly completion bash|zsh|fish           print a shell-completion script to stdout
   lolly tui                                start the interactive terminal shell (needs a
                                            real terminal; same engine, same bytes)
@@ -179,7 +185,8 @@ Subcommands:
 Global flags (valid on every command):
   --json                   one JSON envelope on stdout instead of human text, on list,
                            describe, assets, validate, smoke, batch, preflight, models,
-                           speak, transcribe, ocr, detect-ai, reword and rebrand. NOT
+                           speak, transcribe, ocr, detect-ai, reword, rebrand, look
+                           (with --output), sample and trace. NOT
                            on a render: there, stdout carries the exported bytes.
   --quiet                  suppress non-error stderr (progress, notes, warnings)
   --verbose                diagnostics + stack traces (DEBUG=1 is an alias)
@@ -292,7 +299,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui', 'rebrand']);
+const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui', 'rebrand', 'look', 'sample', 'trace']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -366,7 +373,7 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand']);
+  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand', 'look', 'sample', 'trace']);
   beginCommand(VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
@@ -555,6 +562,19 @@ async function main(): Promise<void> {
   if (cmd === 'transcribe') {
     const { transcribeCli } = await import('../src/speak.ts');
     process.exitCode = await transcribeCli(positionals[1] ?? '', { json: g.json, ...(flags.lang ? { lang: flags.lang } : {}) });
+    return;
+  }
+
+  // `look`, `sample` and `trace`: the MCP looking tools on the command line, over the
+  // same core (plans/289 D5). The source is a picture file or `-` for standard input.
+  if (cmd === 'look' || cmd === 'sample' || cmd === 'trace') {
+    const { lookCli } = await import('../src/look.ts');
+    process.exitCode = await lookCli(cmd, positionals[1] ?? '', {
+      json: g.json, output: flags.output ?? flags.out, region: flags.region, grid: flags.grid, maxSide: flags['max-side'],
+      points: flags.points, radius: flags.radius, detail: flags.detail, minLength: flags['min-length'], simplify: flags.simplify,
+      maxLines: flags['max-lines'], designLayers: isOn(flags['design-layers']),
+      ...(flags['user-profile'] ? { userProfile: flags['user-profile'] } : {}),
+    });
     return;
   }
 

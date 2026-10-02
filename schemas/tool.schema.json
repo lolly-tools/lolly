@@ -1223,6 +1223,108 @@
           }
         }
       }
+    },
+    "openWith": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "types",
+          "binding"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,40}$"
+          },
+          "types": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "vector",
+                "raster",
+                "video",
+                "audio",
+                "lottie",
+                "model",
+                "lut",
+                "palette",
+                "tokens",
+                "font",
+                "profile",
+                "ratecard",
+                "text",
+                "data"
+              ]
+            }
+          },
+          "formats": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          "multiple": {
+            "type": "boolean"
+          },
+          "binding": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind",
+                  "input"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "input"
+                  },
+                  "input": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "canvas",
+                      "timeline",
+                      "text"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "animated": {
+            "type": "boolean",
+            "description": "Accept animated raster sources without flattening their animation."
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "description": "Lower numbers appear first among compatible destinations; default 100."
+          }
+        }
+      }
     }
   },
   "$defs": {

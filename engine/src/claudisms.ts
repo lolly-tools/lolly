@@ -25,6 +25,10 @@
  *  5. FAMILY_TELLS - the per-family style lists the attribution best-guess competes
  *     over (Claude's curated list today; other families join as differentiators land).
  *
+ *  6-8. SPELLING_VARIANTS, the chat-answer layout patterns (CHAT_*) and the serial-list
+ *     pattern (LIST_TRIAD): data for the document-level checks in text-signals.ts,
+ *     which count them per document rather than per match.
+ *
  * Kept SEPARATE from the enforcement gate (which bans for style and carries ALLOW/EXEMPT
  * for domain terms) - this list is tuned for DETECTION signal. Pure data: regexes and
  * word lists, no logic. `\b` word boundaries and `gi`/`giu` flags where a span is wanted.
@@ -196,7 +200,11 @@ export const CLAUDE_TELLS: Tell[] = [
   // left out (over/right/in/out/up/down/near/back here, come/get/stay/live here,
   // click/tap here, from here) and so is the copula flourish above, which already
   // scores "is the X here," so one span never counts twice.
-  { re: /(?<=[\w'’] )(?<!\b(?:over|right|in|out|up|down|near|back|from|around|come|came|get|got|getting|stay|stayed|live|lived|living|work|worked|click|tap|start|sit|wait|stop) )(?<!\b(?:is|are|was|were) (?:not )?(?:the|a|an) [\w'’-]+(?: [\w'’-]+){0,2} )here,/gi, label: 'the "…here," aside' },
+  // Lexicon 8 (corpus-v4 dev split): the bare "here," form fired on 1.0% of human
+  // documents against 0.5% of AI ones, almost all of them the place sense ("they're
+  // all here, and"). It now needs the parenthetical adverb that makes it a pointer:
+  // "here, though," / "here, then," / "here, of course,".
+  { re: /(?<=[\w'’] )(?<!\b(?:over|right|in|out|up|down|near|back|from|around|come|came|get|got|getting|stay|stayed|live|lived|living|work|worked|click|tap|start|sit|wait|stop) )(?<!\b(?:is|are|was|were) (?:not )?(?:the|a|an) [\w'’-]+(?: [\w'’-]+){0,2} )here,(?=[ \t]+(?:though|then|of course|however|again|really|admittedly|frankly|honestly|incidentally|by contrast|in particular|in practice|at least|arguably),)/gi, label: 'the "…here," aside' },
   // Abstract-register nouns Andy flagged (2026-08-21): bookkeeping and machine
   // words applied to ideas. Weak on their own - the frames are scoped so each
   // word's literal senses (accounting, physics, data layout) stay out, and
@@ -226,25 +234,49 @@ export const CLAUDE_TELLS: Tell[] = [
 // ── 3a. Generic AI vocabulary (Wikipedia + frequency studies) ─────────────────
 // Distinctive, over-represented words. The most common (key/additionally/valuable) are
 // left out to keep human prose from tripping it; density weighting handles the rest.
+// Lexicon 8, measured on the corpus-v4 dev split (1,430 human, 5,234 AI documents):
+// 'ensuring', 'enhancing' and 'highlighting' joined (one human document each, 47, 18
+// and 26 AI documents). The words that left, or were tested and kept out, are listed
+// with their measurements in AI_WORDS_LEFT_OUT below. A participle that already opens
+// an "-ing" editorializing clause is scored there, not here as well.
 export const AI_WORDS: string[] = [
   'delve', 'delving', 'delved', 'tapestry', 'testament', 'boasts', 'boasting', 'bolster',
   'bolstered', 'underscore', 'underscores', 'underscoring', 'intricate', 'intricacies',
   'meticulous', 'meticulously', 'pivotal', 'showcase', 'showcases', 'showcasing', 'nestled',
-  'renowned', 'groundbreaking', 'seamless', 'seamlessly', 'holistic', 'myriad', 'plethora',
+  'renowned', 'groundbreaking', 'seamlessly', 'holistic', 'myriad', 'plethora',
   'elevate', 'elevating', 'embark', 'harness', 'harnessing', 'garner', 'garnered', 'resonate',
   'resonates', 'resonating', 'captivate', 'captivating', 'commendable', 'noteworthy',
   'invaluable', 'multifaceted', 'transformative', 'cutting-edge', 'paramount', 'cornerstone',
-  'unwavering', 'exemplifies', 'foster', 'fostering', 'vibrant', 'nuanced', 'comprehensive',
-  'unlock', 'unlocking', 'leverage', 'leveraging', 'interplay',
+  'unwavering', 'exemplifies', 'fostering', 'vibrant', 'nuanced', 'comprehensive',
+  'unlock', 'unlocking', 'leveraging', 'interplay',
   'empower', 'empowering', 'streamline', 'streamlining', 'revolutionize', 'revolutionizing',
   'unleash', 'unparalleled', 'burgeoning', 'game-changer', 'game-changing',
+  'ensuring', 'enhancing', 'highlighting',
+];
+
+/**
+ * Words measured on the corpus-v4 dev split and kept OUT of AI_WORDS, so a later
+ * pass does not add them back without new evidence. Human / AI document rates:
+ * the first three were in the list and fired as often on human as on AI text
+ * (0.7/0.8%, 0.3/0.4%, 0.3/0.2%); the next seven had a human domain above 5%
+ * (abstracts 8%, abstracts 9%, READMEs 6%, READMEs 13%, abstracts 7%, abstracts and
+ * learner essays 9% and 6%) or no AI hits at all; the last two were excluded by design
+ * before lexicon 8 and still are.
+ */
+export const AI_WORDS_LEFT_OUT: readonly string[] = [
+  'leverage', 'foster', 'seamless',
+  'crucial', 'robust', 'ensure', 'align', 'moreover', 'furthermore', 'actionable',
+  'additionally', 'key',
 ];
 
 // ── 3b. Generic AI phrases / puffery / signposting (Wikipedia) ────────────────
 export const AI_PHRASES: Tell[] = [
   { re: /\bit'?s (?:important|worth) (?:to note|noting|mentioning)\b/gi, label: '"it\'s important/worth to note"' },
   { re: /\bit is (?:important|worth) (?:to note|noting|mentioning)\b/gi, label: '"it is important/worth to note"' },
-  { re: /\bin conclusion\b/gi, label: '"in conclusion"' },
+  // "in conclusion" and the end-of-the-day idiom were removed in lexicon 8: on the
+  // corpus-v4 dev split they fired more on human writing than on AI writing (3.8%
+  // against 2.4%, 0.5% against 0.1%), and "in conclusion" alone reached 24% of the
+  // learner essays, the taught connector of non-native writers.
   { re: /\bin summary\b/gi, label: '"in summary"' },
   { re: /\bwhen it comes to\b/gi, label: '"when it comes to"' },
   { re: /\ba testament to\b/gi, label: '"a testament to"' },
@@ -256,7 +288,6 @@ export const AI_PHRASES: Tell[] = [
   { re: /\bindelible mark\b/gi, label: '"indelible mark"' },
   { re: /\bdeeply rooted\b/gi, label: '"deeply rooted"' },
   { re: /\bcontinues to (?:captivate|inspire|shape|evolve)\b/gi, label: '"continues to captivate"' },
-  { re: /\bat the end of the day\b/gi, label: '"at the end of the day"' },
   { re: /\bin today'?s (?:world|era|fast-paced|digital)/gi, label: '"in today\'s world"' },
   { re: /\bnavigating the (?:complexities|landscape|world|challenges)\b/gi, label: '"navigating the complexities"' },
   { re: /\bshed(?:s|ding)? light on\b/gi, label: '"shed light on"' },
@@ -317,19 +348,21 @@ export const SPELLING_VARIANTS: Array<{ us: RegExp; uk: RegExp; label: string }>
 
 // ── 3c. Generic AI STRUCTURE / grammar tells (Wikipedia) ──────────────────────
 export const AI_STRUCTURE: Tell[] = [
-  // Negative parallelism: "not just X, but Y" / "it's not X, it's Y".
-  { re: /\b(?:it'?s |it is )?not (?:just |only |merely |simply )?[^,.\n]{2,40},\s+(?:but|it'?s|it is)\b/gi, label: 'negative parallelism ("not X, but Y")' },
+  // Negative parallelism: "not just X, but Y" / "it's not X, it's Y". Lexicon 8 dropped
+  // the bare "not X, but Y" form, which fired on 3.6% of human documents against 4.1%
+  // of AI ones (reviews 13%, learner essays 6%): ordinary contrast, not a tell. The
+  // limiting adverb, or a subject that sets up the reframe, is now required (human
+  // 0.8%, AI 2.4%).
+  { re: /\bnot (?:just|only|merely|simply) [^,.\n]{2,40},\s+(?:but|it'?s|it is)\b|\b(?:it|this|that)(?:'s|’s| is) not (?:about )?[^,.\n]{2,40}[,;]\s+(?:it'?s|it’s|it is|but)\b|\b(?:it|this|that) isn(?:'|’)?t (?:about )?[^,.\n]{2,40}[,;]\s+(?:it'?s|it’s|it is|but)\b/gi, label: 'negative parallelism ("not X, but Y")' },
   { re: /\bnot (?:just|only|merely) [^,.\n]{2,40}\bbut also\b/gi, label: 'negative parallelism ("not just X, but also Y")' },
   // Present-participle editorializing clause attributing significance.
   { re: /,\s+(?:highlighting|emphasizing|underscoring|reflecting|showcasing|symbolizing|demonstrating|illustrating|ensuring|cultivating|fostering|encompassing|enhancing) \b/gi, label: '"-ing" editorializing clause' },
   // Copula-avoidance verbs standing in for "is/are".
   { re: /\b(?:serves|stands|functions) as\b/gi, label: 'copula-avoidance ("serves as")' },
-  // The bold-label colon list moved to CHATGPT_TELLS (ICML 2025 idiosyncrasies
-  // study: ChatGPT bolds enumeration labels; Claude's count clusters at zero) -
-  // one list per phrase, so it must not also live here.
-  // Emoji-decorated headings / emoji-bulleted lists - chat-styled markdown.
-  { re: /^[ \t]*#{1,6}[^\n]*\p{Extended_Pictographic}/gmu, label: 'emoji-decorated heading' },
-  { re: /^[ \t]*[-*•][ \t]*\p{Extended_Pictographic}/gmu, label: 'emoji-bulleted list' },
+  // Label-colon lists (bold or plain) are counted by the chat-structure patterns
+  // below (CHAT_LABEL_LINE), which need several distinct labels in one document.
+  // The emoji-decorated heading and emoji-bulleted list tells were removed in lexicon
+  // 8: they fired on 5% of the human READMEs in corpus-v4 and on no AI document.
   // Audience-pandering false dichotomy: "whether you're a X or a Y".
   { re: /\bwhether you'?re an? [^,.\n]{2,30} or an?\b/gi, label: '"whether you\'re a… or a…"' },
 ];
@@ -369,6 +402,19 @@ export const CHATBOT_SOFT: Tell[] = [
   { re: /\byou(?:'re| are) absolutely right\b/gi, label: '"You\'re absolutely right"' },
   { re: /\bnot (?:a substitute|meant as a substitute) for professional (?:medical|legal|financial)? ?advice\b/gi, label: 'professional-advice disclaimer' },
   { re: /\bconsult (?:with )?a (?:qualified|licensed) (?:medical |legal |financial |healthcare )?(?:professional|provider|attorney|physician)\b/gi, label: 'consult-a-professional hedge' },
+  // The assistant presenting its deliverable at a sentence start: "Here is an
+  // evaluation of…", "Here's a structured assessment." Wider than the hard
+  // "Here is a draft of…" entry above (any sentence start, up to two adjectives,
+  // more nouns), so it is graded soft: on the corpus-v4 dev split it matched no
+  // human document, but "Here is a list" (one human hit) and "Here's an example"
+  // (five) are ordinary writing and stay out. A span the hard entry already
+  // scored is not counted again.
+  { re: /(?<=(?:^|[\n.!?:])["”’')*_]{0,3}[ \t]{0,8})Here(?:'s|’s| is) (?:a|an|the|my) (?:[\w-]+,? ){0,2}(?:evaluation|analysis|assessment|review|comparison|overview|breakdown|summary|look|rundown|guide|plan|draft|outline|framework|checklist|sample|template|version|approach|description)\b/gi, label: '"Here is an evaluation of…" preamble' },
+  // A document that opens on its own sourcing: "Based on an evaluation of X, …",
+  // "Based on the information provided, …". Only at the very start of the text;
+  // mid-document "Based on the results, …" is ordinary report writing. No
+  // corpus-v4 document of either kind opens this way, so it carries the soft grade.
+  { re: /^[\s\uFEFF]{0,8}Based on (?:an|the|my|your|available|current) (?:[\w-]+ ){0,2}(?:evaluation|analysis|assessment|review|research|search|information|details|description|data|knowledge|sources|context|findings|evidence|understanding)\b(?:[^.!?\n]|\.(?=\S)){0,140}?,/g, label: 'opening "Based on an evaluation of…" framing' },
 ];
 
 // ── 5. Per-family style tells (attribution best-guess, always low confidence) ──
@@ -392,9 +438,10 @@ export interface FamilyTells {
 export const CHATGPT_TELLS: Tell[] = [
   { re: /\bcamaraderie\b/gi, label: '"camaraderie" (GPT-favoured)' },
   { re: /\bpalpable\b/gi, label: '"palpable" (GPT-favoured)' },
-  // The bold-label list: **Key Point:** as a bullet or mini-heading. Fires only
-  // on raw markdown bytes (the literal asterisks gate it), so prose never trips.
-  { re: /^[ \t]*(?:[-*•][ \t]+)?\*\*[A-Z][^*\n]{1,60}\*\*:/gm, label: 'bold label + colon list ("**Key Point:** …")' },
+  // The single bold label ("**Key Point:** …") left this list in lexicon 8: one
+  // occurrence fired on 10% of the human READMEs in corpus-v4 against 0.4% of AI
+  // documents. A run of distinct labels, bold or plain, is the chat-structure
+  // pattern now (CHAT_LABEL_LINE), counted once per document.
   // The follow-up-offer closer at a line end - a chat habit left in a document.
   { re: /(?:^|\n)(?:Do you )?[Ww]ant me to [^?\n]{3,80}\?[ \t]*$/gm, label: '"Want me to…?" closer' },
   { re: /\bhere'?s the kicker\b/gi, label: '"here\'s the kicker"' },
@@ -427,9 +474,76 @@ export const FAMILY_TELLS: FamilyTells[] = [
   { family: 'DeepSeek', tells: DEEPSEEK_TELLS },
 ];
 
+// ── 7. Chat-answer scaffolding (the chat-structure family, weak) ──────────────
+// The layout a chat answer is pasted in: a run of "Label: sentence" lines, short
+// headings such as "Strengths" / "Bottom line", "1. As a Research Partner" section
+// titles and a stand-alone question as a heading. Plain-text copies keep this shape
+// after the Markdown is gone, so these are read line by line in text-signals.ts,
+// which also holds the counting rules. One family: the parts are four views of one
+// layout, so they are counted once.
+
+/** A label line: optional indent, bullet or number, an optional bold or underscore
+ *  wrapper, a 1-6 word label that starts with a capital, a colon and the rest of the
+ *  line. Groups: 1 = opening wrapper, 2 = the label, 3 = the text after the colon.
+ *  Applied to one line at a time (no `g`, no `m`). */
+export const CHAT_LABEL_LINE =
+  /^[ \t]{0,3}(?:(?:[-*•+]|\d{1,2}[.)])[ \t]+)?(\*\*|__)?([A-Z][A-Za-z0-9'’&/+-]*(?:[ \t]+[A-Za-z0-9'’&/+()-]+){0,5}?)(?:\*\*|__)?:(?:\*\*|__)?[ \t]+(.+)$/;
+
+/** Labels that are ordinary human structure, never counted: ordinal and essay
+ *  markers (learner essays write "First reason: …"), notes and warnings, the
+ *  sections of a structured abstract, API reference fields, mail headers and recipe
+ *  fields. Compared case-insensitively against the whole label. */
+export const CHAT_LABEL_STOP =
+  /^(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|finally|lastly|next|then|also|example|examples|e\.g|note|notes|nb|n\.b|ps|p\.s|caution|warning|important|tip|hint|update|edit|source|sources|q|a|question|answer|objective|objectives|aim|aims|purpose|background|method|methods|result|results|conclusion|conclusions|significance|design|setting|settings|participants|introduction|findings|discussion|context|motivation|type|types|default|returns|return|params|parameters|arguments|usage|syntax|see also|license|licence|author|authors|maintainer|maintainers|version|date|time|from|to|subject|cc|bcc|re|fwd|tl;dr|tldr|disclaimer|ingredients|directions|instructions|serves|yield|prep time|cook time|total time)$/i;
+/** A label containing one of these words is an essay or document marker, not a
+ *  chat label ("Second reason: …", "Step 3: …", "Part two: …"). */
+export const CHAT_LABEL_STOP_WORD = /\b(?:reason|step|part|chapter|section|figure|table|appendix)\b/i;
+
+/** Short headings chat answers organise themselves under. A line counts when, after
+ *  Markdown markers, numbering and a trailing colon are stripped, it is exactly one
+ *  of these (case-insensitive). From the task brief plus the headings the 108 fresh
+ *  chat answers in corpus-v4 use; none appears as a heading in its human documents
+ *  except "considerations" (one README). Paper section names (introduction,
+ *  conclusion, limitations, results) are left out. */
+export const CHAT_SCAFFOLD_HEADINGS: readonly string[] = [
+  'strengths', 'weaknesses', 'pros', 'cons', 'pros and cons', 'advantages', 'disadvantages',
+  'trade-offs', 'tradeoffs', 'caveats', 'red flags', 'considerations', 'key considerations',
+  'key takeaways', 'key takeaway', 'takeaways', 'key points', 'key factors', 'key differences',
+  'key evaluation criteria', 'recommendation', 'recommendations', 'my recommendation',
+  'overview', 'summary', 'overall summary', 'in summary', 'in short', 'short answer',
+  'the short answer', 'tl;dr', 'tldr', 'bottom line', 'the bottom line', 'verdict',
+  'final verdict', 'overall assessment', 'final thoughts', 'next steps', 'tips',
+  'practical tips', 'final tips', 'common pitfalls', 'pitfalls to avoid', 'common mistakes',
+  'rule of thumb', 'what to expect', 'how to prepare', 'why it matters', 'why this matters',
+  'things to consider', 'questions to ask',
+];
+
+/** A numbered section title on its own line: "1. As a Research Partner",
+ *  "## 2) Data protection". Groups: 1 = the number, 2 = the title. Counted only as
+ *  a run starting at 1 with body text under each title. */
+export const CHAT_NUMBERED_TITLE =
+  /^[ \t]{0,3}(?:#{1,6}[ \t]+)?(?:\*\*|__)?(\d{1,2})[.)][ \t]+(?:\*\*|__)?([A-Z][^.!?:;\n]{1,70}?)(?:\*\*|__)?[ \t]*$/;
+
+/** A short question standing alone as a heading ("Who would be a better partner?").
+ *  Group 1 = the question. Verse and FAQ pages have these too, so they only add
+ *  locations when other chat structure is present, never count on their own. */
+export const CHAT_QUESTION_HEADING =
+  /^[ \t]{0,3}(?:#{1,6}[ \t]+)?(?:\*\*|__)?([A-Z][^.!?\n]{2,80}\?)(?:\*\*|__)?[ \t]*$/;
+
+// ── 8. Serial lists ("X, Y, and Z"), the list-triads family (weak) ────────────
+// One serial list: the last word of the first item, a middle item, "and" or "or",
+// and the first word of the last item. With the serial comma the middle item may
+// run to three words ("reservoir, the old mill, and the church"); without it, to
+// two, because "the way, past the quarry and the farm" is a clause, not a list.
+// The span covers the list rather than its sentence. Scored on density against
+// the human 99th percentile of the corpus-v4 dev split, by document length, in
+// text-signals.ts.
+export const LIST_TRIAD =
+  /(?<![\p{L}\p{N}'’&/-])[\p{L}\p{N}][\p{L}\p{N}'’&/-]*, (?:[\p{L}\p{N}][\p{L}\p{N}'’&/-]*(?: [\p{L}\p{N}][\p{L}\p{N}'’&/-]*){0,2}, |[\p{L}\p{N}][\p{L}\p{N}'’&/-]*(?: [\p{L}\p{N}][\p{L}\p{N}'’&/-]*)? )(?:and|or) [\p{L}\p{N}][\p{L}\p{N}'’&/-]*(?![\p{L}\p{N}'’&/-])/gu;
+
 /**
  * Bumped on ANY change to the lists in this module. Consumers that PERSIST an
  * analysis (e.g. a catalog asset's stored AI-signal note) key it by this, so a
  * stored verdict from an older lexicon is recomputed rather than trusted.
  */
-export const LEXICON_VERSION = 7;
+export const LEXICON_VERSION = 8;

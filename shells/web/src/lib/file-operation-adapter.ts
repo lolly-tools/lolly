@@ -24,7 +24,7 @@ export async function runWebFileOperation(file: File, request: FileOperationRequ
       if (['jxl-recompress', 'jpeg-original'].includes(request.target)) return { metadata: 'preserved', findings: conversionFindings('raster', request.target) };
       const kind = ['jxl', 'png', 'jpeg', 'jpg', 'webp', 'gif', 'avif', 'bmp', 'tiff'].includes(input.format) ? 'raster' : input.format;
       const raster = kind === 'raster' || ['svg', 'svgz'].includes(kind) && !['svg', 'svgz'].includes(request.target);
-      return { metadata: request.target === 'pdf-clean' ? 'changed' : raster ? 'removed' : ['svg', 'svgz'].includes(kind) ? 'preserved' : 'not-checked', findings: conversionFindings(input.format === 'jxl' ? 'jxl' : kind, request.target) };
+      return { metadata: request.target === 'pdf-clean' ? 'changed' : ['pdf-split', 'pdf-pages-png'].includes(request.target) ? 'removed' : raster ? 'removed' : ['svg', 'svgz'].includes(kind) ? 'preserved' : 'not-checked', findings: conversionFindings(input.format === 'jxl' ? 'jxl' : kind, request.target) };
     },
     async execute(source, operation) {
       if (operation.operation === 'media.transmux') {

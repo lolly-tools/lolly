@@ -47,7 +47,7 @@ test('placement, blend and group travel with the node', () => {
 
 // ── live layers (plans/289 item 1, M3 step 4) ────────────────────────────────
 
-const { liveDesignNode, designPathFromSubpaths, parseLayeredAsDesign, psdRunsToMarkup } = await import('./psd-import.ts');
+const { liveDesignNode, designPathFromSubpaths, parseLayeredAsDesign, psdRunsToMarkup, sameWinding, unionOutline } = await import('./psd-import.ts');
 const { decodeAuthoredPaths } = await import('../../../../engine/src/geom/authored-url.ts');
 const fx = await import('../../../../tests/helpers/psd-fixtures.ts');
 
@@ -66,6 +66,30 @@ test('a text layer comes in as a Design text node with its type settings', () =>
   assert.equal(live.notes.length, 0, 'nothing is lost, so the report says nothing');
 });
 
+test('combined outlines all turn one way, so the non-zero rule draws their union', () => {
+  const k = (x: number, y: number) => ({ x, y, inX: x, inY: y, outX: x, outY: y });
+  const clockwise = { closed: true, op: 1, knots: [k(0, 0), k(10, 0), k(10, 10), k(0, 10)] };
+  const anti = { closed: true, op: 1, knots: [k(20, 0), k(20, 10), k(30, 10), k(30, 0)] };
+  const [a, b] = sameWinding([clockwise, anti]);
+  assert.equal(a, clockwise, 'an outline already turning the first way is left alone');
+  assert.deepEqual(b!.knots.map(p => [p.x, p.y]), [[30, 0], [30, 10], [20, 10], [20, 0]]);
+  const curved = sameWinding([{ closed: true, op: 1, knots: [{ x: 0, y: 0, inX: -1, inY: 1, outX: 1, outY: -1 }, k(-10, 5), k(0, 10)] }])[0]!;
+  assert.deepEqual([curved.knots.at(-1)!.inX, curved.knots.at(-1)!.outX], [1, -1], 'handles swap with the direction');
+});
+
+test('a stroked combined shape is stroked around its outside only: the outlines merge into one', () => {
+  const k = (x: number, y: number) => ({ x, y, inX: x, inY: y, outX: x, outY: y });
+  const square = (x: number, y: number) => ({ closed: true, op: 1, knots: [k(x, y), k(x + 10, y), k(x + 10, y + 10), k(x, y + 10)] });
+  const merged = unionOutline([square(0, 0), square(5, 5)])!;
+  assert.equal(merged.length, 1, 'one outline, not two');
+  const xs = merged[0]!.knots.map(p => p.x), ys = merged[0]!.knots.map(p => p.y);
+  assert.deepEqual([Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)], [0, 15, 0, 15]);
+  assert.ok(!merged[0]!.knots.some(p => p.x === 5 && p.y === 5), 'the inner corner of the overlap is gone');
+  const live = liveDesignNode(layer({ psd: { notes: [], path: { subpaths: [square(0, 0), square(5, 5)], fill: '#00aa00', stroke: { color: '#000000', width: 1, cap: 'butt', join: 'miter', align: 'center' } } } }), { w: 800, h: 600 }, '')!;
+  assert.equal(decodeAuthoredPaths(live.path!)!.length, 1);
+  assert.equal(live.notes.length, 0);
+});
+
 test('style runs become inline markup: italic, weight, colour, underline and strikethrough per word', () => {
   const run = (text: string, over: Partial<{ weight: number; italic: boolean; color: string; underline: boolean; strike: boolean }> = {}) =>
     ({ text, weight: 400, italic: false, color: '#000000', underline: false, strike: false, ...over });
@@ -79,8 +103,9 @@ test('style runs become inline markup: italic, weight, colour, underline and str
 });
 
 test('shapes, fills and fill opacity come in as Design boxes', () => {
-  const rounded = liveDesignNode(layer({ psd: { notes: [], shape: { kind: 'rounded', box: { x: 10, y: 20, w: 100, h: 50 }, radius: 12, fill: '#ff0000', stroke: { color: '#000000', width: 3 } } } }), { w: 800, h: 600 }, 'Cards')!;
-  assert.deepEqual({ ...rounded.node }, { kind: 'box', opacity: 100, blend: undefined, group: 'Cards', x: 10, y: 20, w: 100, h: 50, shape: 'rounded', radius: 12, fill: '#ff0000', stroke: '#000000', strokeW: 3 });
+  const rounded = liveDesignNode(layer({ psd: { notes: [], shape: { kind: 'rounded', box: { x: 10, y: 20, w: 100, h: 50 }, radius: 12, fill: '#ff0000', stroke: { color: '#000000', width: 3, cap: 'round', join: 'miter', align: 'center', dash: [6, 3] } } } }), { w: 800, h: 600 }, 'Cards')!;
+  assert.deepEqual({ ...rounded.node }, { kind: 'box', opacity: 100, blend: undefined, group: 'Cards', x: 8.5, y: 18.5, w: 103, h: 53, shape: 'rounded', radius: 13.5, fill: '#ff0000', stroke: '#000000', strokeW: 3 }, 'a centred 3 px stroke: the box grows by 1.5 px, because Design draws a box stroke inside its edge');
+  assert.deepEqual(rounded.fields, { strokeCap: 'round', strokeJoin: 'miter', strokeDash: 'dashed', strokeDashArray: '6 3' }, 'cap, join and dashes go on after finalizeBoxes');
   const fill = liveDesignNode(layer({ x: 0, y: 0, width: 0, height: 0, psd: { notes: [], fill: '#336699' } }), { w: 800, h: 600 }, '')!;
   assert.deepEqual([fill.node.x, fill.node.y, fill.node.w, fill.node.h, fill.node.fill], [0, 0, 800, 600, '#336699']);
   const faded = liveDesignNode(layer({ opacity: 0.5, psd: { notes: [], fillOpacity: 0.5, shape: { kind: 'ellipse', box: { x: 0, y: 0, w: 10, h: 10 }, radius: 0, fill: '#fff', stroke: null } } }), { w: 800, h: 600 }, '')!;
@@ -91,7 +116,7 @@ test('shapes, fills and fill opacity come in as Design boxes', () => {
 });
 
 test('a path keeps its curves: nodes and handles as fractions of its box', () => {
-  const built = designPathFromSubpaths([{ closed: true, knots: [
+  const built = designPathFromSubpaths([{ closed: true, op: 1, knots: [
     { x: 100, y: 100, inX: 100, inY: 100, outX: 150, outY: 80 },
     { x: 300, y: 100, inX: 250, inY: 80, outX: 300, outY: 100 },
     { x: 200, y: 300, inX: 200, inY: 300, outX: 200, outY: 300 },
@@ -103,7 +128,7 @@ test('a path keeps its curves: nodes and handles as fractions of its box', () =>
   const n0 = path!.nodes[0]!;
   assert.deepEqual([n0.x, n0.y], [0, 20 / 220].map(v => Number(v.toFixed(6))));
   assert.ok(Math.abs((n0.hOutX ?? 0) - 0.25) < 1e-6 && Math.abs((n0.hOutY ?? 0) + 20 / 220) < 1e-6, 'outgoing handle kept');
-  const live = liveDesignNode(layer({ psd: { notes: [], path: { subpaths: [{ closed: true, knots: [{ x: 0, y: 0, inX: 0, inY: 0, outX: 0, outY: 0 }, { x: 10, y: 0, inX: 10, inY: 0, outX: 10, outY: 0 }, { x: 5, y: 9, inX: 5, inY: 9, outX: 5, outY: 9 }] }], fill: '#123456', stroke: null } } }), { w: 800, h: 600 }, '')!;
+  const live = liveDesignNode(layer({ psd: { notes: [], path: { subpaths: [{ closed: true, op: 1, knots: [{ x: 0, y: 0, inX: 0, inY: 0, outX: 0, outY: 0 }, { x: 10, y: 0, inX: 10, inY: 0, outX: 10, outY: 0 }, { x: 5, y: 9, inX: 5, inY: 9, outX: 5, outY: 9 }] }], fill: '#123456', stroke: null } } }), { w: 800, h: 600 }, '')!;
   assert.equal(live.kind, 'path');
   assert.ok(live.path);
 });

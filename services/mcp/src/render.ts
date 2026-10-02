@@ -511,9 +511,15 @@ async function svgToPng(svg: string, width: number | undefined, background: stri
 
 /** A small PNG of an SVG answer, for clients that show images but not SVG.
  *  Rasterised from the bytes already rendered, so it costs no second render
- *  (and no second browser run when the SVG came from the browser tier). */
+ *  (and no second browser run when the SVG came from the browser tier). It runs
+ *  in a child process (raster-child.ts): the SVG carries caller-shaped content,
+ *  and a resvg panic would otherwise end the whole server (plans/289 D6). The
+ *  cost is a process start, about 100 ms, on a preview the caller did not ask
+ *  to wait for. */
 export async function previewPng(svg: string): Promise<Uint8Array> {
-  return (await svgToPng(svg, undefined, undefined, PREVIEW_MAX_PIXELS)).png;
+  const { rasterInChild } = await import('@lolly-tools/node-shell/raster-child');
+  const out = await rasterInChild({ svg, want: 'png', fontDirs: [fontsDir()], fitArea: { maxPixels: PREVIEW_MAX_PIXELS, maxEdge: MAX_RASTER_EDGE_PX } });
+  return out.bytes;
 }
 
 // ── Tier B: headless Chromium (lazy, env-gated, pooled) ──────────────────────

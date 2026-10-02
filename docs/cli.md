@@ -107,9 +107,32 @@ the immutable stages it ran when writing a file, and `package` writes an
 ordinary render. Device CLI runs deliberately leave credentialled `cms://` and
 governed `net://` refs to Lolly Work.
 
+### Look at a picture in its own coordinates
+
+The MCP server's looking tools are also CLI verbs, over the same code, so a script
+sees what an agent sees. Each takes an SVG, PNG, JPEG, GIF or WebP file, or `-` to
+read standard input:
+
+```bash
+lolly design --z=… --export=svg | lolly look - --output=look.png
+lolly look poster.svg --region=0,0,400,300 --grid=20 --output=corner.png
+lolly sample poster.svg --points="120,80;640,400" --radius=3
+lolly trace photo.jpg --max-lines=20 --design-layers --json
+```
+
+`look` draws the picture, or one region of it enlarged, with a grid numbered in
+the picture's own units: the SVG's viewBox, which for Design is the artboard
+pixels that a layer's x, y, w and h use, or the pixels of a raster image.
+`sample` gives the colour at each point, averaged over a small disc, and the
+nearest colour of the active design system with its distance (ΔE in OKLab).
+`trace` gives the picture's edges as lines in the same units, longest first;
+`--design-layers` adds each line as a Design path layer. With `--json`, `look`
+needs `--output`, because the picture and the envelope cannot share standard
+output.
+
 ### Verbs, and why they exist
 
-The first argument is either a **verb** or a **tool id**, and the verbs win. The verbs include `list`, `describe`, `run`, `assets`, `batch`, `smoke`, `validate`, `preflight`, `install-browser`, `completion`, `help`, `version`, `models`, `speak`, `transcribe`, `mix`, `upscale`, `matte`, `ocr`, `detect-ai`, `reword`, `depth` and `rebrand`, plus `prepare`, `files`, `start`, `system`, `compile`, `schema`, `inspect`, `diff`, `measure`, `optimize`, `package`, `icons`, `pack` and `tui` - reserved words a tool id may never take, otherwise a brand pack shipping a tool called `batch` would be permanently unreachable. Run `lolly --help` for the full, current set. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous spellings; the bare `lolly <tool-id>` sugar renders when flags follow and describes when they do not.
+The first argument is either a **verb** or a **tool id**, and the verbs win. The verbs include `list`, `describe`, `run`, `assets`, `batch`, `smoke`, `validate`, `preflight`, `install-browser`, `completion`, `help`, `version`, `models`, `speak`, `transcribe`, `mix`, `upscale`, `matte`, `ocr`, `detect-ai`, `reword`, `depth`, `rebrand`, `look`, `sample` and `trace`, plus `prepare`, `files`, `start`, `system`, `compile`, `schema`, `inspect`, `diff`, `measure`, `optimize`, `package`, `icons`, `pack` and `tui` - reserved words a tool id may never take, otherwise a brand pack shipping a tool called `batch` would be permanently unreachable. Run `lolly --help` for the full, current set. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous spellings; the bare `lolly <tool-id>` sugar renders when flags follow and describes when they do not.
 
 ### Global flags
 

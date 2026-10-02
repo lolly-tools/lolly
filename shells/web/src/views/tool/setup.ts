@@ -22,6 +22,7 @@ import { buildInputModel, tokenRestoreRefsOf } from '../../../../../engine/src/i
 import { createInteractiveToolRuntime as createRuntime } from '../../lib/mount-runtime.ts';
 import { attachCollabPlumbing } from '../../lib/collab-plumbing.ts';
 import { getCollabSessionSource } from '../../lib/collab-session-source.ts';
+import { takeAssetOpeningSeed } from '../../lib/asset-open-handoff.ts';
 import { takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
 import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
@@ -243,6 +244,8 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   tview.presentLoop = urlFlags.has('kiosk');
 
   tview.initialValues = openedSession.values;
+  const assetOpening = takeAssetOpeningSeed(toolId, routeSlot ?? '');
+  if (assetOpening) tview.initialValues = { ...tview.initialValues, ...assetOpening.values };
   // The carried model wins outright, and only here. It is not a competing source of
   // truth - it is the SAME model the route and the slot were both encoded from, one
   // step later and with nothing dropped, so anything it disagrees with is a value one

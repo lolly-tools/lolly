@@ -141,6 +141,7 @@ export function toolIndexEntryFromMeta(meta: InstalledToolMeta): Record<string, 
   for (const f of INDEX_FIELDS) if (m[f] !== undefined) entry[f] = m[f];
   const render = meta.manifest.render;
   if (render) entry.render = render;
+  if (meta.manifest.openWith) entry.openWith = meta.manifest.openWith;
   entry.formats = render?.formats ?? [];
   entry.exportable = render?.export !== false && (render?.formats?.length ?? 0) > 0;
   if (meta.icon) entry.icon = meta.icon;

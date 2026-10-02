@@ -2,7 +2,7 @@
 /** DOM-free PDF utilities shared by UI and Node. Never silently invalidates signatures. */
 import { PDFDocument, PDFDict, PDFName, PDFArray } from 'pdf-lib';
 import { stripPdf } from './pdf.ts';
-export async function runPdfFileOperation(bytes: Uint8Array, target: 'pdf-clean' | 'pdf-optimize', signal?: AbortSignal): Promise<Uint8Array> {
+async function unsignedPdf(bytes: Uint8Array, signal?: AbortSignal): Promise<PDFDocument> {
   if (bytes.byteLength > 128 * 1024 * 1024) throw new Error('PDF utilities support files up to 128 MB.');
   signal?.throwIfAborted();
   // Default encryption handling REFUSES password-protected documents. A parser's
@@ -21,8 +21,38 @@ export async function runPdfFileOperation(bytes: Uint8Array, target: 'pdf-clean'
   };
   for (const [, object] of document.context.enumerateIndirectObjects()) inspect(object);
   signal?.throwIfAborted();
+  return document;
+}
+
+export async function runPdfFileOperation(bytes: Uint8Array, target: 'pdf-clean' | 'pdf-optimize', signal?: AbortSignal): Promise<Uint8Array> {
+  const document = await unsignedPdf(bytes, signal);
   const output = target === 'pdf-clean' ? (await stripPdf(bytes)).bytes : await document.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false });
   signal?.throwIfAborted();
   // Optimization never returns a larger copy; no image quality is sacrificed.
   return target === 'pdf-optimize' && output.byteLength >= bytes.byteLength ? bytes : output;
+}
+
+
+/** Each page becomes an independent static PDF; interactive documents are refused. */
+export async function splitPdfPages(bytes: Uint8Array, signal?: AbortSignal): Promise<Uint8Array[]> {
+  const source = await unsignedPdf(bytes, signal);
+  if (source.catalog.has(PDFName.of('AcroForm')) || source.catalog.has(PDFName.of('Names')) || source.catalog.has(PDFName.of('OpenAction')) || source.catalog.has(PDFName.of('AA'))) throw new Error('PDF splitting requires a static document without forms, attachments, named actions or scripts.');
+  for (const page of source.getPages()) {
+    const annotations = page.node.lookup(PDFName.of('Annots'));
+    if ((annotations && (!(annotations instanceof PDFArray) || annotations.size() > 0)) || page.node.has(PDFName.of('AA'))) throw new Error('PDF splitting requires pages without annotations or actions. Use a static source.');
+  }
+  const results: Uint8Array[] = [];
+  let total = 0;
+  for (let index = 0; index < source.getPageCount(); index++) {
+    signal?.throwIfAborted();
+    const output = await PDFDocument.create();
+    const [page] = await output.copyPages(source, [index]);
+    output.addPage(page!);
+    const result = await output.save({ useObjectStreams: true });
+    total += result.byteLength;
+    if (total > 128 * 1024 * 1024) throw new Error('Split PDF outputs exceed the 128 MB packaging limit.');
+    results.push(result);
+  }
+  signal?.throwIfAborted();
+  return results;
 }

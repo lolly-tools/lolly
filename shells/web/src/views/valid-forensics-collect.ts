@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shell-owned decoding, OCR and inference with a coverage receipt for each page. */
 import { analyzeTextSignals, imageDimensions } from '@lolly/engine';
-import { forensicLanguage, forensicReport } from '../../../../engine/src/forensic.ts';
+import { forensicLanguage, forensicReport, FORENSIC_CHUNK_VERSION } from '../../../../engine/src/forensic.ts';
 import type {
   ForensicCoverage,
   ForensicPage,
@@ -148,6 +148,7 @@ export async function collectForensicFile(
   const ocrModel = ocr?.models().find((m) => /en/i.test(m.id)) ?? ocr?.models()[0];
   const ocrReady = !!ocr?.isAvailable() && !!ocrModel && (await ocr.cached(ocrModel.id));
   const { aiDetectStatus, scoreAiText } = await import('../lib/ai-detect.ts');
+  const { aiDetectModel } = await import('../lib/ai-detect-models.ts');
   const modelReady = (await aiDetectStatus()) === 'ready';
   async function inspect(page: ForensicPage, blob?: Blob): Promise<void> {
     pages.push(page);
@@ -264,8 +265,9 @@ export async function collectForensicFile(
         page.id
       );
     else {
-      const estimate = await scoreAiText(page.text, { signal: opts.signal });
+      const estimate = await scoreAiText(page.text, { signal: opts.signal, chunks: true });
       if (estimate?.windows) {
+        const roster = aiDetectModel();
         models.push({
           page: page.id,
           model: estimate.modelId,
@@ -274,6 +276,14 @@ export async function collectForensicFile(
           complete: estimate.complete === true,
           rawMean: estimate.probAi,
           threshold: estimate.threshold,
+          ...(estimate.chunks?.length && roster
+            ? {
+                chunks: estimate.chunks,
+                chunkThreshold: roster.chunkThreshold,
+                chunkFloor: roster.chunkFloor,
+                chunkVersion: FORENSIC_CHUNK_VERSION,
+              }
+            : {}),
         });
         coverage.push({
           collector: 'text-model',

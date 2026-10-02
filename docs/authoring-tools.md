@@ -44,3 +44,28 @@ community/your-tool-id/
 ## Generate a tool from Design
 
 Designers can author portable tools through [Share with rules](/info/create-a-tool.html) without editing a manifest. Generated tools use the normal engine and strict sideload runtime. See [Design tool contract](/info/design-tool-contract.html) for compilation, dependencies and revision semantics.
+
+## Opening catalog assets
+
+An optional `openWith` array lets Assets offer a tool as an editing destination. Each entry has a permanent `id`, accepted asset `types`, optional lowercase `formats`, and a `binding`. The entire selection must match. Omit `multiple` for one source; set it to `true` only when the destination can receive the selection in one session. Animated rasters require `animated: true`, which promises to keep their animation.
+
+For an ordinary tool input, bind its declared id explicitly:
+
+```json
+{
+  "openWith": [
+    {
+      "id": "source-photo",
+      "types": ["raster"],
+      "formats": ["png", "jpg", "jpeg", "webp"],
+      "binding": { "kind": "input", "input": "image" }
+    }
+  ]
+}
+```
+
+The binding must name an asset, file, text or longtext input. File limits and acceptance filters still apply. A multiple input binding must name a file input that declares `multiple: true`. Opening creates a fresh tool session; source asset references retain their names, versions and attribution. File input bytes remain transient, following the normal file-input contract.
+
+Editor bindings use supported shell adapters: `canvas` places image references on a blank canvas, `timeline` places timed media and opens Sequence, and `text` uses the Text editor's existing source-aware handoff. These declarations contain no route strings or executable methods. Tools without opening declarations remain valid and do not appear through guessed input bindings. The web shell checks the actual loaded manifest again before opening.
+
+Assets also offers Convert, which lists transformations supported by the source and device before showing their settings. Conversion support comes from concrete file operations, separately from `openWith` and `render.formats`. Declaring an export format does not claim that the tool can convert arbitrary files into that format. Existing on-device utility conversion keeps its watermark and provenance policy. PDF page splitting produces a ZIP of static single-page PDFs; PDF page rendering produces a ZIP of PNG images. Their fidelity notes and refusal conditions appear before conversion.

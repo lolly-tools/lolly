@@ -80,6 +80,13 @@ export interface ForensicModelWindow {
   tokens: number;
   rawScore: number;
 }
+/** One sentence-aligned chunk's raw classifier score: a located observation
+ *  for the heat view, never part of the evidence index. */
+export interface ForensicModelChunk {
+  index: number;
+  length: number;
+  rawScore: number;
+}
 export interface ForensicModelObservation {
   page: string;
   model: string;
@@ -88,6 +95,12 @@ export interface ForensicModelObservation {
   complete: boolean;
   rawMean: number;
   threshold: number;
+  chunks?: ForensicModelChunk[];
+  /** The raw chunk score at or above which a chunk is drawn as over threshold. */
+  chunkThreshold?: number;
+  /** The raw chunk score below which the heat view draws nothing. */
+  chunkFloor?: number;
+  chunkVersion?: string;
 }
 export interface ForensicOrigin {
   kind: 'generated' | 'composite' | 'container-hint';

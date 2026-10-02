@@ -19,6 +19,8 @@ interface ActionSpec {
   reveal?: string;
   keepLocal?: boolean;
   global?: boolean;
+  /** Label the command with its source's current text, which already says what it does. */
+  liveLabel?: boolean;
 }
 const SPECS: readonly ActionSpec[] = [
   {
@@ -54,13 +56,26 @@ const SPECS: readonly ActionSpec[] = [
   {
     id: 'prepare', label: 'Prepare', icon: 'shield', selector: '[data-open-prepare]', desktop: true, group: 'Open',
   },
+  // Every report inspects itself on arrival (valid-forensics.ts), so "Inspect" is
+  // only a primary command while no inspection has run: the panel's own starter
+  // button, hidden once a run finishes. Running it again ("Retry inspection", or
+  // "Inspect more pages" on a long PDF) is a follow-up and lives in More.
   {
     id: 'ai',
     label: 'Inspect',
     icon: 'search',
-    selector: '[data-forensic="inspect"]:not([hidden])',
+    selector: '.forensic > [data-forensic="inspect"]:not([hidden])',
     primary: true,
     reveal: '.forensic',
+  },
+  {
+    id: 'ai-again',
+    label: 'Retry inspection',
+    icon: 'search',
+    selector: '.forensic-actions [data-forensic="inspect"]',
+    group: 'Inspect',
+    reveal: '.forensic',
+    liveLabel: true,
   },
   {
     id: 'cancel-ai',
@@ -318,7 +333,7 @@ export function wireVerifyActions(view: HTMLElement, report: HTMLElement): void 
     actions = SPECS.flatMap((spec) => {
       const source = (spec.global ? view : scope)?.querySelector<HTMLElement>(spec.selector);
       if (!source || source.hidden) return [];
-      if (spec.id === 'ai' && scope?.querySelector('.forensic[aria-busy]')) return [];
+      if ((spec.id === 'ai' || spec.id === 'ai-again') && scope?.querySelector('.forensic[aria-busy]')) return [];
       if (!originals.has(source)) originals.set(source, source.textContent?.trim() ?? '');
       if (!spec.keepLocal) source.dataset.toolbarSource = '';
       return [{ spec, source, original: originals.get(source)! }];
@@ -353,7 +368,9 @@ export function wireVerifyActions(view: HTMLElement, report: HTMLElement): void 
         button.disabled = disabled;
         const changed = source.textContent?.trim() !== original;
         const label =
-          disabled && changed ? (source.textContent?.trim() ?? t(spec.label)) : t(spec.label);
+          (spec.liveLabel || (disabled && changed)) && source.textContent?.trim()
+            ? source.textContent.trim()
+            : t(spec.label);
         const span = button.querySelector('span')!;
         if (span.textContent !== label) span.textContent = label;
         button.title = source.textContent?.trim() ?? t(spec.label);

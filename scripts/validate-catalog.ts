@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { assetOpenErrors } from '@lolly-tools/core/asset-open-v1';
 import { parseTemplateMotion } from '../shells/web/src/lib/template-motion.ts';
 import { parseKitDefinition, createKitRows, kitIssues } from '../shells/web/src/pro/kit-model.ts';
 import type { ToolManifest } from '../engine/src/loader.ts';
@@ -243,6 +244,8 @@ for (const dir of toolDirs) {
     }
     continue;
   }
+
+  for (const issue of assetOpenErrors(manifest)) errors.push(`[${dir}] ${issue.path} ${issue.message}`);
 
   // Required files present?
   if (!toolFile(dir, 'template.html')) {
@@ -536,6 +539,7 @@ for (const entry of toolsIndex.tools) {
   // bindToProfile would otherwise silently leave a tool un-personalized. (icon is
   // disk-derived and intentionally not checked here; `preview` IS checked below.)
   const derived: any = entryFromManifest(manifest);
+  if (JSON.stringify(entry.openWith) !== JSON.stringify(derived.openWith)) errors.push(`tools/index.json: ${entry.id} opening declarations drift - run build:catalog`);
   if (entry.exportable !== derived.exportable) {
     errors.push(`tools/index.json: "${entry.id}" exportable ${entry.exportable} ≠ derived ${derived.exportable} - run \`pnpm run build:catalog\``);
   }

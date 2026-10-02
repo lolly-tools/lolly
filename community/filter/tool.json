@@ -4,7 +4,7 @@
   "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
   "a11yLabel": "{{effect}} filter of the chosen image",
   "version": "1.5.0",
-  "engineVersion": "^1.0.0",
+  "engineVersion": "^1.242.0",
   "status": "official",
   "category": "designer",
   "tags": [
@@ -2555,6 +2555,30 @@
         "effect": "glitch",
         "gl_sortThreshold": 55,
         "gl_blockAmount": 30
+      }
+    }
+  ],
+  "openWith": [
+    {
+      "id": "image",
+      "order": 20,
+      "types": [
+        "raster",
+        "vector"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "jpeg",
+        "webp",
+        "avif",
+        "gif",
+        "svg",
+        "bmp"
+      ],
+      "binding": {
+        "kind": "input",
+        "input": "image"
       }
     }
   ]

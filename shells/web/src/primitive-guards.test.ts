@@ -692,6 +692,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // (escape()d name/date/sha256, numeric index + fmtBytes) and the library rows
   // (escape()d name, numeric count/bytes, t() labels).
   'views/asset-versions.ts': 2,
+  'views/asset-convert.ts': 3, // 2026-10-02: the format list and conversion target buttons escapeHtml() every format, label, file name and message; the rest is t() copy, and the error row is filled by textContent
   // Batch history under the convert view (plans/203). Reviewed 2026-09-05: the t()-only
   // heading scaffold, the batch summary (escape()d names/target/date, numeric counts,
   // t() labels) and the member row (escape()d name/findings, t() state label).
@@ -1109,6 +1110,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // +1 2026-08-21 (plans/136 W2a): the [data-passport] fill - lampStripHtml
   // escape()s every value, chips are escape()d licence strings/t() constants.
   'views/assets.ts': 1,  // +1 2026-09-02 (plans/129 section 2.3): openSendDialog's per-target status line - the remote url is safeHref()-gated and escape()d, the label escape()d; +1 2026-08-21 (plans/132 WP-M): the mount-time loading skeleton (viewEl.innerHTML) - static markup, the only interpolation is a repeated constant tile string, no user text; +1 2026-08-20 (WP-G): the [data-usage] Used-in fill - labels escape()d, mirrors the [data-tech] sink; +1 2026-08-20: the Download-as toolbar menu (body-popover render `el.innerHTML`) - format values/labels are constants (plus the escape()d source format), no user text; +1 2026-08-18: interpBtn.innerHTML = INTERP_ICON - a trusted inline SVG constant, no interpolation; +2 2026-08-18 (plans/125): the [data-tsig] box (renderTextPanel, catTextWorkHtml escape()s every value) + read-text - the read-text <pre> is filled via textContent, never markup; +1 2026-08-18 (plans/126 markdown reading view): setTextRenderMode's [data-md-rendered] fill - user markdown through lib/markdown mdToHtml then DOMPurify.sanitize, the same pairing doc-editor's paste path uses; 2026-08-19 (inline-edits UX pass): the analyse-text fill folded into renderTextPanel, and the freed slot is openEditCard's card.innerHTML - sugCardHtml/rwCardHtml escape() every interpolated value
+  'views/assets/actions.ts': 1,   // 2026-10-02: the Open with menu - menuItemHtml escape()s the tool name and act, the icon is a trusted lib/icons glyph
   'views/assets/details-sheet.ts': 9,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/details-shared.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/details-panels.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts

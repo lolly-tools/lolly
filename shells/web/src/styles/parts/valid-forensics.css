@@ -85,6 +85,8 @@
     list-style: none;
     padding: 0;
     margin: 0.75rem 0;
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr;
   }
   .forensic-findings li {margin: 1rem 0;
     border-bottom: 1px solid var(--ui-color-border-default);
@@ -415,4 +417,292 @@
   .verify-view .verify-disclosure .section-card-chev { display: inline-flex; }
   .verify-view .verify-disclosure svg { width: 1em; height: 1em; }
   .verify-view details[open] > .verify-disclosure > .section-card-chev { transform: rotate(180deg); }
+}
+
+/* The heat reader (views/valid-forensics-heat.ts). Heat runs amber to red, the
+   scale the Assets heat bar already uses; --heat is 0-1 per sentence or region.
+   Matched words keep the OCR highlight grades: amber for a style clue, red for
+   a specific artifact, an underline for an excluded match. The classifier's
+   chunk scores draw in the focus-ring colour under the line, so a raw model
+   score never reads as the same thing as a located pattern. */
+@layer views {
+  .fh-layers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.9rem;
+    align-items: center;
+  }
+  .fh-layer input {
+    margin: 0;
+  }
+  .fh-key {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    align-items: center;
+    font-size: calc(0.8rem * var(--a11y-fs, 1));
+    color: var(--ui-color-text-muted);
+  }
+  .fh-swatch {
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    border-radius: var(--radius-xs);
+    vertical-align: -0.1em;
+    margin-inline-end: 0.3em;
+  }
+  .fh-swatch--heat {
+    background: linear-gradient(90deg, hsl(45 92% 55% / 0.45), hsl(0 92% 55% / 0.6));
+  }
+  .fh-swatch--artifact {
+    background: hsl(0 82% 60% / 0.55);
+  }
+  .fh-swatch--clue {
+    background: hsl(42 92% 55% / 0.5);
+  }
+  .fh-swatch--context {
+    background: linear-gradient(var(--ui-color-text-muted) 0 0) bottom / 100% 2px no-repeat;
+  }
+  .fh-swatch--model {
+    background: linear-gradient(var(--ui-color-focus-ring) 0 0) bottom / 100% 3px no-repeat;
+  }
+  .fh-whole {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.6rem 1rem 0;
+    font-size: calc(0.85rem * var(--a11y-fs, 1));
+  }
+  .fh-whole > span {
+    color: var(--ui-color-text-muted);
+  }
+  .fh-body {
+    display: grid;
+    grid-template-columns: 0.5rem minmax(0, 1fr);
+    column-gap: 2px;
+  }
+  .fh-body.has-model {
+    grid-template-columns: 0.5rem 0.35rem minmax(0, 1fr);
+  }
+  /* A minimap of the whole text: one cell per sentence, sized by its length. */
+  .fh-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-block: 1rem;
+  }
+  .fh-strip i {
+    min-height: 2px;
+    cursor: pointer;
+    background: hsl(calc(45 - var(--heat, 0) * 45) 90% 52% / max(0.08, calc(var(--heat, 0) * 0.9)));
+  }
+  .fh-strip--model i {
+    background: color-mix(in oklab, var(--ui-color-focus-ring) calc(8% + var(--model-level, 0) * 80%), transparent);
+  }
+  .fh-reader:not([data-layers~="heat"]) .fh-strip--heat i,
+  .fh-reader:not([data-layers~="model"]) .fh-strip--model i {
+    background: var(--ui-color-border-default);
+  }
+  .fh-text {
+    line-height: 1.7;
+  }
+  .fh-seg {
+    border-radius: var(--radius-xs);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .fh-seg[role="button"] {
+    cursor: pointer;
+  }
+  .fh-reader[data-layers~="heat"] .fh-seg.is-lit {
+    background: hsl(calc(45 - var(--heat, 0) * 45) 92% 55% / max(0.14, calc(var(--heat, 0) * 0.55)));
+  }
+  /* Longhands, so a segment that is also lit keeps its heat colour under the line. */
+  .fh-reader[data-layers~="model"] .fh-seg.is-over {
+    background-image: linear-gradient(var(--ui-color-focus-ring) 0 0);
+    background-position: bottom;
+    background-size: 100% 3px;
+    background-repeat: no-repeat;
+  }
+  .fh-seg[role="button"]:hover,
+  .fh-seg.is-inspected {
+    outline: 2px solid var(--ui-color-focus-ring);
+    outline-offset: 1px;
+  }
+  .fh-seg:focus-visible {
+    outline: 3px solid var(--ui-color-focus-ring);
+    outline-offset: 2px;
+  }
+  .fh-mark {
+    color: inherit;
+    background: transparent;
+    border-radius: var(--radius-xs);
+  }
+  .fh-reader[data-layers~="marks"] .fh-mark--artifact {
+    background: hsl(0 82% 60% / 0.42);
+  }
+  .fh-reader[data-layers~="marks"] .fh-mark--clue {
+    background: hsl(42 92% 55% / 0.42);
+  }
+  .fh-reader[data-layers~="marks"] .fh-mark--context {
+    text-decoration: underline 2px var(--ui-color-text-muted);
+    text-underline-offset: 3px;
+  }
+  .fh-mark.is-selected {
+    outline: 2px solid var(--ui-color-focus-ring);
+  }
+
+  /* Heat over the page image: one region per located box, filled by heat. */
+  .fh-region {
+    position: absolute;
+    padding: 0;
+    min-width: 0;
+    min-height: 0;
+    cursor: pointer;
+    border: 1px solid hsl(calc(45 - var(--heat, 0) * 45) 90% 45% / 0.9);
+    border-radius: var(--radius-xs);
+    background: hsl(calc(45 - var(--heat, 0) * 45) 92% 55% / calc(0.12 + var(--heat, 0) * 0.4));
+  }
+  .fh-region--context {
+    background: transparent;
+    border-color: var(--ui-color-text-muted);
+  }
+  .fh-region.is-inspected,
+  .fh-region:focus-visible {
+    outline: 3px solid var(--ui-color-focus-ring);
+    outline-offset: 1px;
+  }
+  /* With heat on, the selected finding's own boxes are outlines on top. */
+  .fh-region ~ .forensic-region {
+    background: transparent;
+  }
+
+  .fh-inspector {
+    margin-block: 0.75rem 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--forensic-border, var(--ui-color-border-default));
+    border-radius: var(--radius-md, 8px);
+    background: var(--ui-color-surface-raised);
+  }
+  .fh-inspector:focus {
+    outline: none;
+  }
+  .fh-inspector-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .fh-inspector h3 {
+    margin: 0;
+    font-size: calc(1rem * var(--a11y-fs, 1));
+  }
+  .fh-steps {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .fh-quote {
+    margin: 0.75rem 0;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--ui-color-surface-muted);
+    font-size: calc(0.9rem * var(--a11y-fs, 1));
+  }
+  .fh-heat-line {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0.5rem 0;
+  }
+  .fh-bar {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 6rem;
+    height: 0.45rem;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    background: var(--ui-color-surface-muted);
+    box-shadow: var(--ui-edge-default);
+  }
+  .fh-bar i {
+    display: block;
+    height: 100%;
+    width: calc(var(--v, 0) * 100%);
+    background: hsl(calc(45 - var(--v, 0) * 45) 90% 50%);
+  }
+  .fh-signals {
+    list-style: none;
+    margin: 0.5rem 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .fh-signals li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.25rem 0.6rem;
+    align-items: center;
+  }
+  .fh-signals li > strong {
+    grid-column: 2;
+  }
+  .fh-signals li > .fh-bar {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .fh-signals li > .btn {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+  .fh-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius-pill);
+    font-size: calc(0.75rem * var(--a11y-fs, 1));
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .fh-chip--artifact {
+    background: hsl(0 82% 60% / 0.22);
+  }
+  .fh-chip--clue {
+    background: hsl(42 92% 55% / 0.28);
+  }
+  .fh-chip--context {
+    box-shadow: var(--ui-edge-default);
+  }
+  .btn.fh-chip {
+    min-height: var(--ui-size-target);
+  }
+  .fh-model p {
+    margin: 0.5rem 0;
+  }
+  /* Raw chunk score as a bar with the chunk threshold as a tick. */
+  .fh-gauge {
+    position: relative;
+    display: block;
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--ui-color-surface-muted);
+    box-shadow: var(--ui-edge-default);
+  }
+  .fh-gauge i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--v, 0) * 100%);
+    border-radius: var(--radius-pill);
+    background: var(--ui-color-focus-ring);
+    opacity: 0.75;
+  }
+  .fh-gauge b {
+    position: absolute;
+    top: -0.2rem;
+    bottom: -0.2rem;
+    left: calc(var(--t, 1) * 100%);
+    width: 2px;
+    background: var(--ui-color-text-default);
+  }
 }

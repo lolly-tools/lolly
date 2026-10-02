@@ -3,7 +3,7 @@
   "name": "Text",
   "description": "Find, edit, understand and transform text. Browse brand characters and emoji, work with code and logs, or create ASCII lettering.",
   "version": "2.0.0",
-  "engineVersion": "^1.191.0",
+  "engineVersion": "^1.242.0",
   "status": "official",
   "category": "utility",
   "privacy": "on-device",
@@ -99,5 +99,37 @@
     "onInit": true,
     "onInput": true,
     "exportFile": true
-  }
+  },
+  "openWith": [
+    {
+      "id": "text",
+      "order": 10,
+      "types": [
+        "text",
+        "data"
+      ],
+      "formats": [
+        "txt",
+        "md",
+        "markdown",
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "html",
+        "css",
+        "js",
+        "ts",
+        "xml",
+        "yaml",
+        "yml",
+        "py",
+        "sh",
+        "sql"
+      ],
+      "binding": {
+        "kind": "text"
+      }
+    }
+  ]
 }

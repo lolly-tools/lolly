@@ -266,6 +266,8 @@ export function catTextSignalsHtml(cat: CatCtx, panel: TextSignalPanel): string 
     'list-heavy': t('List-heavy structure'),
     'uniform-burstiness': t('Unusually uniform sentences'),
     'chatbot-leftover': t('Chatbot boilerplate'),
+    'chat-structure': t('Chat-answer layout'),
+    'list-triads': t('Dense three-part lists'),
     'template-placeholder': t('Unfilled template placeholders'),
     'uniform-paragraphs': t('Unusually uniform paragraphs'),
     'ai-span': t('Concentrated AI-like section'),

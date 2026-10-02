@@ -21,6 +21,8 @@
     "./design-systems": "./src/design-systems.ts",
     "./browsers": "./src/browsers.ts",
     "./transform-tool": "./src/transform-tool.ts",
+    "./raster-child": "./src/raster-child.ts",
+    "./look": "./src/look.ts",
     "./browser-tier": "./src/browser-tier.ts",
     "./desktop-renderer": "./src/desktop-renderer.ts",
     "./webshell-render": "./src/webshell-render.ts",

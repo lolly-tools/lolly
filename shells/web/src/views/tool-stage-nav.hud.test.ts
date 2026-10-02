@@ -392,3 +392,94 @@ test('a plain wheel over a floating surface scrolls it, and still pans anywhere 
     assert.equal(pinch.defaultPrevented, true, 'a pinch over a menu still never zooms the page');
   } finally { h.teardown(); }
 });
+
+// ── Trackpad pinch: the fingers' own ratio, plus acceleration (2026-10-02) ─────────
+//
+// Chrome sends a pinch as ctrl+wheel with deltaY = -100·ln(scale). The handler answered
+// with exp(-deltaY · 0.0015), 15% of the fingers' spread, so a whole pinch barely moved
+// the view. A pinch now tracks the fingers at least 1:1 and gains more the faster it goes.
+
+const NAV = await import('./tool-stage-nav.ts');
+
+/** Feed a pinch of total `spread` as `events` ctrl+wheel deltas over `ms`, return the total log zoom. */
+function pinchTotal(spread: number, events: number, ms: number): number {
+  const t = NAV.createPinchTracker();
+  const raw = (-100 * Math.log(spread)) / events;
+  let sum = 0;
+  for (let i = 0; i < events; i++) sum += NAV.pinchLogZoom(t, raw, 1000 + (i * ms) / events);
+  return sum;
+}
+
+test('a slow pinch zooms at least as far as the fingers spread, and no longer 15% of it', () => {
+  const fingers = Math.log(1.5);
+  const slow = pinchTotal(1.5, 60, 1000);
+  assert.ok(slow >= fingers, `a slow pinch reaches the fingers' ratio (${Math.exp(slow).toFixed(3)}x for a 1.5x spread)`);
+  assert.ok(slow <= fingers * 1.5, 'and stays close to it, so a slow pinch is still precise');
+  assert.ok(slow > 5 * (0.0015 * 100 * fingers), 'several times what the old 0.0015 step gave');
+});
+
+test('the same spread made quickly zooms further, and the extra gain is bounded', () => {
+  const fingers = Math.log(1.5);
+  const slow = pinchTotal(1.5, 60, 1000);
+  const fast = pinchTotal(1.5, 6, 100);
+  assert.ok(fast > slow * 1.6, `a quick pinch earns acceleration (${Math.exp(fast).toFixed(2)}x vs ${Math.exp(slow).toFixed(2)}x)`);
+  assert.ok(fast <= fingers * 3 + 1e-9, 'never more than three times the fingers');
+  const out = pinchTotal(1 / 1.5, 6, 100);
+  assert.ok(Math.abs(out + fast) < 1e-9, 'pinching in is the exact mirror of pinching out');
+});
+
+test('speed is measured against the clock, so a 120 Hz trackpad answers like a 60 Hz one', () => {
+  for (const [spread, ms] of [[1.5, 1000], [2, 300], [3, 120]] as const) {
+    const at60 = pinchTotal(spread, Math.round(ms / (1000 / 60)), ms);
+    const at120 = pinchTotal(spread, Math.round(ms / (1000 / 120)), ms);
+    assert.ok(Math.abs(at60 - at120) / at60 < 0.05, `${spread}x over ${ms}ms: ${at60.toFixed(3)} vs ${at120.toFixed(3)}`);
+  }
+});
+
+test('a pause starts a new pinch: the speed of the last one does not carry over', () => {
+  const t = NAV.createPinchTracker();
+  for (let i = 0; i < 6; i++) NAV.pinchLogZoom(t, -8, 1000 + i * 16);
+  const afterPause = NAV.pinchLogZoom(t, -0.5, 2000);
+  const fresh = NAV.pinchLogZoom(NAV.createPinchTracker(), -0.5, 2000);
+  assert.equal(afterPause, fresh);
+});
+
+test('a clicking wheel is told apart from a pinch, and keeps the step it always had', () => {
+  for (const d of [100, -100, 120, 150, -40, 53.33]) assert.equal(NAV.isNotchedWheel({ deltaMode: 0, deltaY: d }), true, `${d}px is a click`);
+  assert.equal(NAV.isNotchedWheel({ deltaMode: 1, deltaY: 3 }), true, 'line units are a click');
+  for (const d of [-3.0928, 0.71, -12.5, 4.000244140625]) assert.equal(NAV.isNotchedWheel({ deltaMode: 0, deltaY: d }), false, `${d}px is a pinch frame`);
+  assert.ok(Math.abs(NAV.notchLogZoom({ deltaMode: 0, deltaY: 100 }) + 0.15) < 1e-12, 'a 100px click out is the old exp(-0.15)');
+});
+
+test('on the stage: a click keeps its old step, a pinch follows the curve, Safari gestures zoom the canvas', () => {
+  const h = mount({ hud: false });
+  try {
+    const wheel = (deltaY: number): WheelEvent => {
+      const e = new dom.window.WheelEvent('wheel', { deltaY, clientX: 0, clientY: 0, ctrlKey: true, bubbles: true, cancelable: true });
+      h.stage.dispatchEvent(e);
+      return e;
+    };
+    wheel(-100);
+    assert.ok(Math.abs(scaleOf(h.outer) - Math.exp(0.15)) < 1e-9, 'a mouse click in zooms by exactly the old step');
+    h.nav.reset();
+    wheel(-100 * Math.log(1.2) - 1e-7); // a fractional delta: one pinch frame worth a 1.2x spread
+    assert.ok(scaleOf(h.outer) >= 1.2 - 1e-9, `the pinch frame reaches at least the fingers' 1.2x (got ${scaleOf(h.outer).toFixed(3)})`);
+    h.nav.reset();
+
+    const gesture = (type: string, extra: Record<string, number> = {}): Event => {
+      const e = Object.assign(new dom.window.Event(type, { bubbles: true, cancelable: true }), { clientX: 0, clientY: 0, ...extra });
+      h.stage.dispatchEvent(e);
+      return e;
+    };
+    assert.equal(gesture('gesturestart').defaultPrevented, true, 'Safari does not get to zoom the page');
+    gesture('gesturechange', { scale: 1.1 });
+    gesture('gesturechange', { scale: 1.3 });
+    const afterGesture = scaleOf(h.outer);
+    assert.ok(afterGesture >= 1.3 - 1e-9, `the canvas follows the gesture's cumulative scale (got ${afterGesture.toFixed(3)})`);
+    assert.equal(wheel(-50).defaultPrevented, true, 'a ctrl+wheel during the gesture is still kept from the page');
+    assert.equal(scaleOf(h.outer), afterGesture, 'but does not zoom a second time');
+    gesture('gestureend');
+    wheel(-100);
+    assert.ok(scaleOf(h.outer) > afterGesture, 'after the gesture ends the wheel zooms again');
+  } finally { h.teardown(); }
+});

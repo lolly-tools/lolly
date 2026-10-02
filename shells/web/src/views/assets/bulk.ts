@@ -166,6 +166,8 @@ export async function addToProject(cat: CatCtx, ids: string[]): Promise<void> {
 }
 export function handleBulk(cat: CatCtx, action: string): void {
   const { selected, tileSelect, viewEl } = cat;
+  if (action === 'open-with') { cat.actions.openWith(cat.actions.selection(), viewEl.querySelector<HTMLElement>('[data-bulk="open-with"]') ?? undefined); return; }
+  if (action === 'convert') { void cat.actions.convert(cat.actions.selection()); return; }
   if (action === 'clear') {
     // Deselect in place - drop the highlight from every selected tile, no full re-render.
     for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-tile.is-selected')) {

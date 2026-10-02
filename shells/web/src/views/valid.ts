@@ -41,7 +41,7 @@ import { vendorMark } from './valid-vendors.ts';
 import { checkingHtml, updateVerifyProgress } from './valid-progress.ts';
 import { CA_ROOT_PEM } from '../ca-root.ts';
 import { escape } from '../utils.ts';
-import { textSignalLabels } from './valid-text-labels.ts';
+import { textSignalKindTitle, textSignalLabels } from './valid-text-labels.ts';
 import { wireTextHandoffs } from '../lib/text-handoff.ts';
 // Aliased (not `icon`) - this file has function parameters named `icon` (fact(),
 // the change-history `section` builder) that would otherwise shadow the import.
@@ -578,29 +578,6 @@ function aiDisclosureHtml(report: VerifyReport, identity: SignerIdentity | undef
 // band is a soft 'warn', never a red failure. Reuses the GEN-AI pill panel family
 // (valid-aidecl-*) it sits beside, so it needs no new stylesheet. Rendered only
 // for a TEXT payload; a declaration in the credential (above) always outranks it.
-const TSIG_KIND_TITLE: Record<string, string> = {
-  'model-fingerprint': 'Model fingerprint',
-  'invisible-char': 'Invisible characters',
-  'tag-chars': 'Hidden tag characters',
-  'variation-selectors': 'Unusual variation selectors',
-  'bidi-override': 'Bidirectional override characters',
-  'mixed-script': 'Mixed-script words',
-  'anomalous-space': 'Unusual spacing',
-  'ai-vocabulary': 'AI-favoured vocabulary',
-  'ai-phrasing': 'AI stock phrasing',
-  'ai-structure': 'AI sentence structure',
-  'claude-tell': 'Claude-associated phrasing',
-  'smart-punctuation': 'Curly quotes / smart punctuation',
-  'em-dash-density': 'Heavy em-dash use',
-  'list-heavy': 'List-heavy structure',
-  'uniform-burstiness': 'Unusually uniform sentences',
-  'chatbot-leftover': 'Chatbot boilerplate',
-  'template-placeholder': 'Unfilled template placeholders',
-  'uniform-paragraphs': 'Unusually uniform paragraphs',
-  'ai-span': 'Concentrated AI-like section',
-  'family-tell': 'Model-associated phrasing',
-  'spelling-variant-mix': 'Mixed US/British spelling',
-};
 
 /** The hero donut gauge for the 0-100 signal score - the "how full is the dial"
  *  read, centred in the panel with the rating INSIDE the ring. Colour follows
@@ -636,9 +613,9 @@ function heatGradeWord(bucket: 1 | 2 | 3 | 4 | 5): string {
 function highlightExtractHtml(text: string, marks: TextSignalMark[]): string {
   const runs = buildHighlightSegments(text, marks).map((s) => {
     if (!s.tier) return visibleLinkedTextHtml(s.text);
-    const title = TSIG_KIND_TITLE[s.kind ?? ''] ?? (s.kind ?? '');
+    const title = textSignalKindTitle(s.kind ?? '');
     const bucket = heatBucket(s.heat ?? 0);
-    return `<mark class="valid-hl valid-hl--${escape(s.tier)} valid-hl--t${bucket}" title="${escape(`${t(title)} · ${heatGradeWord(bucket)}`)}">${visibleLinkedTextHtml(s.text)}</mark>`;
+    return `<mark class="valid-hl valid-hl--${escape(s.tier)} valid-hl--t${bucket}" title="${escape(`${title} · ${heatGradeWord(bucket)}`)}">${visibleLinkedTextHtml(s.text)}</mark>`;
   }).join('');
   const legend = marks.length > 0
     ? `<span class="valid-tsig-legend">${escape(t('Cooler marks are weak hints you can freely ignore. Hotter marks are harder evidence. Everything here is a signal, not a verdict.'))}</span>`

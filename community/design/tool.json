@@ -3,7 +3,7 @@
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
   "version": "1.41.0",
-  "engineVersion": "^1.238.0",
+  "engineVersion": "^1.242.0",
   "status": "community",
   "category": "designer",
   "tags": [
@@ -2508,6 +2508,57 @@
       "label": "Temporal motion blur",
       "default": "",
       "showFor": []
+    }
+  ],
+  "openWith": [
+    {
+      "id": "canvas",
+      "order": 10,
+      "animated": true,
+      "types": [
+        "raster",
+        "vector"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "jpeg",
+        "webp",
+        "avif",
+        "gif",
+        "svg",
+        "bmp"
+      ],
+      "multiple": true,
+      "binding": {
+        "kind": "canvas"
+      }
+    },
+    {
+      "id": "sequence",
+      "order": 10,
+      "types": [
+        "video",
+        "lottie",
+        "audio"
+      ],
+      "formats": [
+        "mp4",
+        "webm",
+        "json",
+        "lottie",
+        "wav",
+        "mp3",
+        "ogg",
+        "flac",
+        "m4a",
+        "aac",
+        "opus"
+      ],
+      "multiple": true,
+      "binding": {
+        "kind": "timeline"
+      }
     }
   ]
 }

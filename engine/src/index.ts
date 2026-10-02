@@ -1093,3 +1093,14 @@ export type { PinnedFontFace } from './design-version.ts';
 export { withTokenSelection } from './token-context.ts';
 
 export { withTokenSourceValue } from './token-edit.ts';
+
+// Looking helpers for agents (plans/289 M2): a render's document frame, a region
+// drawn with a labelled grid, colour samples named by design-system swatch, and
+// traced edges as Design path layers. Shared by the MCP server and the CLI.
+export {
+  clampRegion, gridOverlaySvg, nearestSwatch, niceGridSpacing, rasterAsSvg, reframeSvg, sampleDisc,
+  svgDocumentFrame, viewSize,
+} from './agent-view.ts';
+export type { ColorSwatch, PixelImage, SampledColor, SwatchMatch, ViewRegion } from './agent-view.ts';
+export { polylineToDesignLayer, simplifyPolyline, traceEdges } from './edge-trace.ts';
+export type { DesignPathLayer, EdgeTraceOptions, TracedEdge } from './edge-trace.ts';

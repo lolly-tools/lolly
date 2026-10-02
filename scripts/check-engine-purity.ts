@@ -91,6 +91,8 @@ const ALLOWED_PACKAGES = new Set([
   // Portable brand vocabulary and its static validation schema.
   '@lolly-tools/core/brand-system-v1',
   '@lolly-tools/core/schema/brand-system-v1.schema.json',
+  // engine/src/validate.ts - the asset-open intent record and its pure validator.
+  '@lolly-tools/core/asset-open-v1',
   // engine/package.json dep (declared 2026-08-05, allowlist missed at the time).
   // Pure JS zip/gzip codec, no DOM/fs/network - same platform-agnostic bar as
   // handlebars/ajv above. Used directly by epub.ts (zipSync), font-convert.ts

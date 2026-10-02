@@ -73,21 +73,43 @@ export interface PsdTextInfo {
   runs: PsdTextRun[];
 }
 
+/** A vector stroke: Photoshop's dash set is in multiples of the width, `dash` is in pixels. */
+export interface PsdStroke {
+  color: string;
+  width: number;
+  cap: 'butt' | 'round' | 'square';
+  join: 'miter' | 'round' | 'bevel';
+  /** The line's position: centred on the outline, inside the outline or outside the outline. */
+  align: 'center' | 'inside' | 'outside';
+  /** Dash and gap lengths in document pixels; absent for a solid line. */
+  dash?: number[];
+}
+
+const CAPS: Record<string, PsdStroke['cap']> = { strokeStyleButtCap: 'butt', strokeStyleRoundCap: 'round', strokeStyleSquareCap: 'square' };
+const JOINS: Record<string, PsdStroke['join']> = { strokeStyleMiterJoin: 'miter', strokeStyleRoundJoin: 'round', strokeStyleBevelJoin: 'bevel' };
+const ALIGNS: Record<string, PsdStroke['align']> = { strokeStyleAlignCenter: 'center', strokeStyleAlignInside: 'inside', strokeStyleAlignOutside: 'outside' };
+
 export interface PsdShapeInfo {
   kind: 'rect' | 'rounded' | 'ellipse';
   box: PsdRect;
   radius: number;
   fill: string | null;
-  stroke: { color: string; width: number } | null;
+  stroke: PsdStroke | null;
 }
 
 export interface PsdKnot { x: number; y: number; inX: number; inY: number; outX: number; outY: number }
-export interface PsdSubpath { closed: boolean; knots: PsdKnot[] }
+export interface PsdSubpath {
+  closed: boolean;
+  knots: PsdKnot[];
+  /** How Photoshop joins this outline to the ones before: 1 combines them; other
+   *  values subtract, intersect or exclude. -1 when the file does not say. */
+  op: number;
+}
 
 export interface PsdPathInfo {
   subpaths: PsdSubpath[];
   fill: string | null;
-  stroke: { color: string; width: number } | null;
+  stroke: PsdStroke | null;
 }
 
 export interface PsdLayerSemantics {
@@ -113,7 +135,7 @@ const ADJUSTMENTS: Record<string, string> = {
 
 /** The tagged-block keys this module reads; psd.ts keeps a bounded copy of each. */
 export const SEMANTIC_BLOCK_KEYS: ReadonlySet<string> = new Set([
-  'TySh', 'tySh', 'vogk', 'vmsk', 'vsms', 'SoCo', 'vstk', 'iOpa', 'GdFl', 'PtFl', 'SoLd', 'PlLd', 'SoLE',
+  'TySh', 'tySh', 'vogk', 'vmsk', 'vsms', 'vscg', 'SoCo', 'vstk', 'iOpa', 'GdFl', 'PtFl', 'SoLd', 'PlLd', 'SoLE',
   'lfx2', 'lrFX', 'lmfx', ...Object.keys(ADJUSTMENTS),
 ]);
 
@@ -332,24 +354,77 @@ function readText(block: Uint8Array, pixels: PsdRect, notes: string[]): PsdTextI
 
 // ── shapes and paths ─────────────────────────────────────────────────────────
 
-function strokeOf(vstk: Uint8Array | undefined): { fill: boolean | null; stroke: { color: string; width: number } | null; alignment: string | null } {
+/** The vector stroke settings. `unreadable` is a stroke that is on but is not a
+ *  plain colour (a gradient or a pattern). */
+function strokeOf(vstk: Uint8Array | undefined): { fill: boolean | null; stroke: PsdStroke | null; unreadable: boolean } {
   const s = vstk ? readVersionedDescriptor(vstk)?.value ?? null : null;
-  if (!s) return { fill: null, stroke: null, alignment: null };
+  if (!s) return { fill: null, stroke: null, unreadable: false };
   const on = descBool(s, 'strokeEnabled') ?? false;
   const color = descColor(descChild(descChild(s, 'strokeStyleContent'), 'Clr '));
   const width = descNumber(s, 'strokeStyleLineWidth') ?? 1;
+  const capKey = descEnum(s, 'strokeStyleLineCapType') ?? '', joinKey = descEnum(s, 'strokeStyleLineJoinType') ?? '';
+  const alignKey = descEnum(s, 'strokeStyleLineAlignment') ?? '';
+  const set = (descList(s, 'strokeStyleLineDashSet') ?? []).slice(0, 32).filter((v): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v < 1000);
+  const stroke: PsdStroke | null = on && color && width > 0 && width < 10_000 ? {
+    color, width: r2(width),
+    cap: Object.hasOwn(CAPS, capKey) ? CAPS[capKey]! : 'butt',
+    join: Object.hasOwn(JOINS, joinKey) ? JOINS[joinKey]! : 'miter',
+    align: Object.hasOwn(ALIGNS, alignKey) ? ALIGNS[alignKey]! : 'center',
+    ...(set.some(v => v > 0) ? { dash: set.map(v => r2(v * width)) } : {}),
+  } : null;
   return {
     fill: descBool(s, 'fillEnabled'),
-    stroke: on && color && width > 0 && width < 10_000 ? { color, width: r2(width) } : null,
-    alignment: descEnum(s, 'strokeStyleLineAlignment'),
+    stroke,
+    unreadable: on && !color,
   };
+}
+
+/** `vscg`, where newer Photoshop keeps a shape's fill: a 4-byte kind (`SoCo`,
+ *  `GdFl`, `PtFl`) and then the same descriptor as that block. */
+function vectorFill(vscg: Uint8Array | undefined): { kind: string; color: string | null } | null {
+  if (!vscg || vscg.length < 8) return null;
+  const kind = String.fromCharCode(vscg[0]!, vscg[1]!, vscg[2]!, vscg[3]!);
+  const desc = readVersionedDescriptor(vscg, 4)?.value ?? null;
+  return { kind, color: kind === 'SoCo' ? descColor(descChild(desc, 'Clr ')) : null };
+}
+
+/** Effect keys, single and stacked, with the words the report uses for them. */
+const EFFECT_NAMES: Record<string, string> = {
+  DrSh: 'drop shadow', dropShadowMulti: 'drop shadow', IrSh: 'inner shadow', innerShadowMulti: 'inner shadow',
+  OrGl: 'outer glow', IrGl: 'inner glow', ebbl: 'bevel', ChFX: 'satin', SoFi: 'colour overlay',
+  solidFillMulti: 'colour overlay', GrFl: 'gradient overlay', gradientFillMulti: 'gradient overlay',
+  patternFill: 'pattern overlay', FrFX: 'stroke', frameFXMulti: 'stroke',
+};
+
+/**
+ * The layer effects that are switched on, by name, or null when the block does not
+ * read. `lfx2` and `lmfx` hold a 4-byte version, a descriptor version and a
+ * descriptor whose children are the effects (lists for the stacked kinds), each
+ * with its own `enab`. Photoshop keeps the block when every effect is off, so its
+ * presence alone says nothing.
+ */
+function effectsOn(block: Uint8Array): string[] | null {
+  const root = block.length > 8 ? readDescriptor(block, 8)?.value ?? null : null;
+  if (!root) return null;
+  if (descBool(root, 'masterFXSwitch') === false) return [];
+  const on = new Set<string>();
+  for (const key of Object.keys(root)) {
+    const name = Object.hasOwn(EFFECT_NAMES, key) ? EFFECT_NAMES[key]! : null;
+    if (!name) continue;
+    const child = descChild(root, key);
+    const items = child ? [child] : (descList(root, key) ?? []).filter((v): v is DescObject => !!v && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Uint8Array));
+    if (items.some(fx => descBool(fx, 'enab') === true)) on.add(name);
+  }
+  return [...on];
 }
 
 function originShape(vogk: Uint8Array, notes: string[]): { kind: 'rect' | 'rounded' | 'ellipse'; box: PsdRect; radius: number } | null {
   if (vogk.length < 8) return null;
   const root = readDescriptor(vogk, 8)?.value ?? null; // two versions (1 and 16) lead
-  const shape = (descList(root, 'keyDescriptorList') ?? []).find(v => v && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Uint8Array)) as DescObject | undefined;
-  if (!shape) return null;
+  const shapes = (descList(root, 'keyDescriptorList') ?? []).filter(v => v && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Uint8Array)) as DescObject[];
+  // Several shapes drawn into one layer are an outline, not one Design shape.
+  if (shapes.length !== 1) return null;
+  const shape = shapes[0]!;
   const type = descNumber(shape, 'keyOriginType');
   if (type !== 1 && type !== 2 && type !== 5) return null;
   const b = descRect(descChild(shape, 'keyOriginShapeBBox'));
@@ -377,9 +452,10 @@ export function readVectorPath(mask: Uint8Array, canvasW: number, canvasH: numbe
   const fx = (v: number) => v / 0x1000000;
   for (let o = 8; o + 26 <= mask.length && out.length < 1000; o += 26) {
     const type = dv.getInt16(o);
-    if (type === 0 || type === 3) { cur = { closed: type === 0, knots: [] }; out.push(cur); continue; }
+    // A subpath length record: the knot count, then the join with the outlines before.
+    if (type === 0 || type === 3) { cur = { closed: type === 0, knots: [], op: dv.getInt16(o + 4) }; out.push(cur); continue; }
     if (type !== 1 && type !== 2 && type !== 4 && type !== 5) continue;
-    if (!cur) { cur = { closed: type === 1 || type === 2, knots: [] }; out.push(cur); }
+    if (!cur) { cur = { closed: type === 1 || type === 2, knots: [], op: -1 }; out.push(cur); }
     if (cur.knots.length >= 20_000) continue;
     const pt = (k: number) => [fx(dv.getInt32(o + 2 + k * 8 + 4)) * canvasW, fx(dv.getInt32(o + 2 + k * 8)) * canvasH] as const;
     const [ix, iy] = pt(0), [ax, ay] = pt(1), [ox, oy] = pt(2);
@@ -421,22 +497,27 @@ export function readLayerSemantics(blocks: ReadonlyMap<string, Uint8Array>, pixe
   }
 
   const soco = get('SoCo');
-  const fill = soco ? descColor(descChild(readVersionedDescriptor(soco)?.value ?? null, 'Clr ')) : null;
+  const vscg = vectorFill(get('vscg'));
+  const { fill: fillOn, stroke, unreadable } = strokeOf(get('vstk'));
+  const fill = soco ? descColor(descChild(readVersionedDescriptor(soco)?.value ?? null, 'Clr ')) : vscg?.color ?? null;
   if (soco && !fill) notes.push('The fill colour could not be read; the layer is kept as pixels.');
-  if (get('GdFl')) notes.push('Gradient fill kept as pixels.');
-  if (get('PtFl')) notes.push('Pattern fill kept as pixels.');
-  const { fill: fillOn, stroke, alignment } = strokeOf(get('vstk'));
-  if (stroke && alignment && alignment !== 'strokeStyleAlignCenter') notes.push('The stroke is drawn centred on the edge; Photoshop drew it inside or outside.');
+  if (get('GdFl') || (vscg?.kind === 'GdFl' && fillOn !== false)) notes.push('Gradient fill kept as pixels.');
+  if (get('PtFl') || (vscg?.kind === 'PtFl' && fillOn !== false)) notes.push('Pattern fill kept as pixels.');
   const mask = get('vmsk') ?? get('vsms');
   const vogk = get('vogk');
   const hasVector = !!(mask || vogk);
   const shapeFill = fillOn === false ? null : fill;
+  const paintable = (shapeFill || stroke) && !(vscg && fillOn !== false && !vscg.color);
 
-  if (!out.text && hasVector && (shapeFill || stroke)) {
+  if (!out.text && hasVector && unreadable) {
+    notes.push('The stroke is a gradient or pattern, so the shape is kept as pixels.');
+  } else if (!out.text && hasVector && paintable) {
     const origin = vogk ? originShape(vogk, notes) : null;
     const subpaths = mask ? readVectorPath(mask, canvas.w, canvas.h) : [];
     const rect = !origin ? sharpRect(subpaths) : null;
+    const joined = subpaths.length > 1 && subpaths.some(s => s.op !== 1 && s.op !== -1);
     if (origin) out.shape = { ...origin, fill: shapeFill, stroke };
+    else if (joined) notes.push('Shapes that subtract, intersect or exclude are kept as pixels.');
     else if (rect) out.shape = { kind: 'rect', box: rect, radius: 0, fill: shapeFill, stroke };
     else if (subpaths.length) out.path = { subpaths, fill: shapeFill, stroke };
   } else if (!out.text && fill && !hasVector) {
@@ -449,7 +530,12 @@ export function readLayerSemantics(blocks: ReadonlyMap<string, Uint8Array>, pixe
   for (const [k, name] of Object.entries(ADJUSTMENTS)) {
     if (get(k)) { out.adjustment = name; notes.push(`${name} adjustment layer was not applied.`); break; }
   }
-  if (get('lfx2') || get('lrFX') || get('lmfx')) notes.push('Layer effects (shadows, glows, strokes) were dropped.');
+  // A block that does not read still gets the general note, so the report errs
+  // towards saying more.
+  const fxBlock = get('lmfx') ?? get('lfx2');
+  const effects = fxBlock ? effectsOn(fxBlock) : null;
+  if (effects?.length) notes.push(`Layer effects were dropped: ${effects.join(', ')}.`);
+  else if (effects == null && (fxBlock || get('lrFX'))) notes.push('Layer effects (shadows, glows, strokes) were dropped.');
   if (get('SoLd') || get('PlLd') || get('SoLE')) notes.push('Smart object kept as pixels.');
 
   return out.text || out.shape || out.path || out.fill || out.fillOpacity != null || out.adjustment || notes.length ? out : null;

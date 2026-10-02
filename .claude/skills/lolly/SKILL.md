@@ -57,13 +57,13 @@ Read the references needed for the chosen tool and surface:
    (or `lolly validate`) and correct every error before rendering.
 4. **Render, or build a link.** `lolly_render` / `lolly run` returns the bytes.
    `lolly_build_url` / `--share` returns an editable link without rendering.
-5. **Look before you hand over a layout.** `lolly_look` (MCP) draws the render
-   with a grid in the document's own coordinates. Read positions off it rather
+5. **Look before you hand over a layout.** `lolly_look` (MCP) or `lolly look`
+   (CLI) draws the render with a grid in the document's own coordinates. Read positions off it rather
    than guessing from a small picture, and fix what you see with `layerPatches`.
 6. **Share the editable link.** When the human will iterate, hand them the
    `lolly.tools` link, not just the bytes.
 
-## Looking at your work (MCP)
+## Looking at your work (MCP and CLI)
 
 A small picture of a render hides overlaps, clipped text and off-brand colour.
 Three MCP tools let you check a render, or an image you were given, in the
@@ -79,6 +79,10 @@ layer's `x`, `y`, `w` and `h` use.
 - `lolly_trace_edges`: a subject's edges as polylines. With `asDesignLayers`,
   each line is a Design path layer ready for `layerOperations` once you give it an
   id, so an outline can follow where the subject really is.
+
+On the CLI the same three are `lolly look`, `lolly sample` and `lolly trace`,
+over the same code. They take a picture file, or `-` to read a render piped in:
+`lolly design --z=… --export=svg | lolly look - --output=look.png`.
 
 These tools never export, stamp or link anything. Their pictures are for you.
 

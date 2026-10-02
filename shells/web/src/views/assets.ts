@@ -50,6 +50,7 @@ import { parseThemedAssetId, parseTreatedAssetId } from '@lolly/engine';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import { DOWNLOAD_ICON, PENCIL_ICON, REPLACE_ICON, STAR_ICON, TAG_ICON, TRASH_ICON } from './assets/shared.ts';
 import type { CatalogHost } from './assets/shared.ts';
+import { actionsOps } from './assets/actions.ts';
 import type { CatCtx } from './assets/context.ts';
 import { tilesOps } from './assets/tiles.ts';
 import { thumbsOps } from './assets/thumbs.ts';
@@ -86,6 +87,8 @@ interface ViewElement extends HTMLElement { _cleanup?: () => void; }
 
 export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params = ''): Promise<void> {
   const cat = {} as CatCtx;
+  cat.actions = actionsOps(cat);
+  cat.actionsPopover = null;
   cat.tiles = tilesOps(cat);
   cat.thumbs = thumbsOps(cat);
   cat.filters = filtersOps(cat);
@@ -331,6 +334,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     rootSelector: '.catalog',
     count: () => selected.size,
     actions: [
+      { id: 'open-with', icon: icon('externalLink'), label: () => t('Open with'), disabled: () => !cat.actions.choices(cat.actions.selection()).length, title: () => cat.actions.choices(cat.actions.selection()).length ? t('Open the selection in a compatible tool') : t('No tool accepts this selection.') },
+      { id: 'convert', icon: icon('duplicate'), label: () => t('Convert'), disabled: () => !cat.actions.canConvert(cat.actions.selection()), title: () => cat.actions.canConvert(cat.actions.selection()) ? t('Choose a supported transformation') : t('No conversion accepts this selection.') },
       { id: 'compare', icon: icon('duplicate'), label: () => t('Compare'), hidden: () => !cat.bulk.canCompareSelection() },
       { id: 'fav', icon: STAR_ICON, label: () => (cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')) },
       { id: 'add-to-project', icon: icon('folder'), label: () => t('Add to project'), title: () => t('Reference the selection into a project folder - nothing is copied, the files stay in Assets') },
@@ -413,6 +418,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   (viewEl as ViewElement)._cleanup = () => {
     unwireArrows();
     cat.mounted = false;
+    cat.actionsPopover?.close();
     viewEl.removeEventListener('dragstart', cat.wiring.onTileDragStart);
     // Deferred deletions must not outlive the view that owns their Undo.
     flushUndoToasts();

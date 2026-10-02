@@ -8,7 +8,7 @@
  * the process. One such document is a Design render framed to a region that
  * leaves a clipped text group outside the view (plans/289, found while building
  * lolly_look); the emoji packs already withhold glyphs for the same reason
- * (engine/emoji.md). lolly_look and its siblings rasterise SVGs that callers
+ * (engine/emoji.md). The looking tools (MCP and CLI) and the MCP preview rasterise SVGs that callers
  * supply, so in-process that would let one file take the server down.
  *
  * Each job therefore runs `node -e` with the job on stdin and the picture on
@@ -30,6 +30,16 @@ process.stdin.on('end', () => {
   const job = JSON.parse(Buffer.concat(chunks).toString('utf8'));
   const opts = { font: { fontDirs: job.fontDirs, loadSystemFonts: true } };
   if (job.fitTo) opts.fitTo = job.fitTo;
+  if (job.fitArea) {
+    // Size from the SVG's own width and height, inside the child too: parsing is
+    // part of what the child keeps away from the server.
+    const probe = new Resvg(job.svg, { font: { loadSystemFonts: false } });
+    const iw = probe.width, ih = probe.height;
+    if (!(iw > 0) || !(ih > 0)) process.exit(3);
+    const z = Math.min(1, job.fitArea.maxEdge / iw, job.fitArea.maxEdge / ih, Math.sqrt(job.fitArea.maxPixels / (iw * ih)));
+    if (iw * z < 1 || ih * z < 1) process.exit(3);
+    opts.fitTo = { mode: 'zoom', value: z };
+  }
   if (job.crop) opts.crop = job.crop;
   const img = new Resvg(job.svg, opts).render();
   const body = job.want === 'png' ? img.asPng() : img.pixels;
@@ -45,6 +55,8 @@ export interface RasterJob {
   want: 'png' | 'rgba';
   fontDirs: string[];
   fitTo?: { mode: 'zoom'; value: number };
+  /** Scale down (never up) to stay within these limits, worked out in the child. */
+  fitArea?: { maxPixels: number; maxEdge: number };
   crop?: { left: number; top: number; right: number; bottom: number };
 }
 

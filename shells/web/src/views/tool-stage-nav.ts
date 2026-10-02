@@ -41,6 +41,67 @@ function setGlyph(el: HTMLElement, markup: string): void { el.innerHTML = markup
  */
 export const STAGE_FLOATING_SURFACES = '.fc-popover, .fc-panel, .fc-text-popover';
 
+/**
+ * ── TRACKPAD PINCH: THE FINGERS' OWN RATIO, PLUS ACCELERATION ──────────────────
+ *
+ * Chrome and Firefox deliver a trackpad pinch as a ctrl+wheel whose deltaY is
+ * -100·ln(scale), so exp(-deltaY / 100) is exactly how far the fingers spread. The
+ * wheel handler used to answer with exp(-deltaY · 0.0015): 15% of that, so a whole
+ * pinch barely moved the view (Andy, 2026-10-02: "way too insensitive").
+ *
+ * A pinch now starts from the fingers' ratio and earns extra gain the faster it goes,
+ * the way Figma's does: a slow pinch places the zoom precisely, a quick one crosses
+ * from Fit to 800% in a single stroke. Speed is measured against the clock, not per
+ * event, so a 120 Hz trackpad and a 60 Hz one give the same answer for the same hand.
+ *
+ * A wheel that clicks (a mouse with Ctrl or Cmd held) is not a pinch. Its deltas are
+ * whole lines, or whole pixels far larger than one pinch frame, and it keeps the step
+ * it always had. Safari's gesture events are converted to the same units first.
+ */
+const PINCH_UNITS = 100;        // ctrl+wheel units per e-fold of zoom (Chrome's -100·ln(scale))
+const PINCH_ACCEL = 2;          // extra gain a fast pinch can earn, so the gain runs from 1 to 3
+const PINCH_ACCEL_RATE = 3;     // e-folds per second at which about 63% of that extra is earned
+const PINCH_SMOOTH_MS = 50;     // speed is averaged over about this long, so one jittery event cannot spike it
+const PINCH_GAP_MS = 120;       // a pause this long starts a new pinch
+const PINCH_FRAME_MS = 1000 / 60; // the interval assumed for the first event of a pinch
+const PINCH_MAX_STEP = 0.7;     // one event never zooms by more than e^0.7, about 2x
+const NOTCH_STEP = 0.0015;      // per pixel for a clicking wheel: a 100px click is about 16%
+
+/** The speed a pinch is moving at, carried from one event to the next. */
+export interface PinchTracker { rate: number; at: number }
+export const createPinchTracker = (): PinchTracker => ({ rate: 0, at: Number.NEGATIVE_INFINITY });
+
+/**
+ * A wheel that clicks rather than glides: line or page units, or a whole number of
+ * pixels too large to be one frame of a pinch (Chrome's pinch deltas are fractional),
+ * or any delta of 50 or more, which would be a 1.6x spread inside a single frame.
+ */
+export function isNotchedWheel(e: Pick<WheelEvent, 'deltaMode' | 'deltaY'>): boolean {
+  const d = Math.abs(e.deltaY);
+  return e.deltaMode !== 0 || d >= 50 || (Number.isInteger(e.deltaY) && d >= 10);
+}
+
+/** The zoom a clicking wheel asks for, as a natural log (positive zooms in). */
+export function notchLogZoom(e: Pick<WheelEvent, 'deltaMode' | 'deltaY'>): number {
+  const px = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? (globalThis.innerHeight || 800) : 1);
+  return Math.max(-PINCH_MAX_STEP, Math.min(PINCH_MAX_STEP, -px * NOTCH_STEP));
+}
+
+/**
+ * The zoom one pinch event asks for, as a natural log (positive zooms in, and exp() of
+ * it is the factor). `raw` is in ctrl+wheel units and `timeStamp` in ms. Updates `t`.
+ */
+export function pinchLogZoom(t: PinchTracker, raw: number, timeStamp: number): number {
+  const gap = timeStamp - t.at;
+  const continuing = gap >= 0 && gap < PINCH_GAP_MS;
+  const dt = continuing ? Math.min(50, Math.max(4, gap)) : PINCH_FRAME_MS;
+  const rate = (Math.abs(raw) / PINCH_UNITS) / (dt / 1000);
+  t.rate = continuing ? t.rate + (rate - t.rate) * (1 - Math.exp(-dt / PINCH_SMOOTH_MS)) : rate;
+  t.at = timeStamp;
+  const gain = 1 + PINCH_ACCEL * (1 - Math.exp(-t.rate / PINCH_ACCEL_RATE));
+  return Math.max(-PINCH_MAX_STEP, Math.min(PINCH_MAX_STEP, (-raw / PINCH_UNITS) * gain));
+}
+
 /** A client-space point. */
 export interface Point { x: number; y: number; }
 /** A client-space rect, the shape both fit targets answer in. */
@@ -943,11 +1004,16 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // own scroll, not a pan. They are children of the stage, so their wheel reaches this
     // listener too, and panning under them cancelled the scroll: the tail of a long context menu
     // (the stacking-order and align grids) could not be reached at all.
+    // The pinch curve itself (gain and acceleration) is pinchLogZoom, above.
+    const pinch = createPinchTracker();
+    let gesturing = false, gestureScale = 1;
     stageEl.addEventListener('wheel', e => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
+        if (gesturing) return; // Safari's gesture events below are already zooming
         holdForWheel();
-        zoomAbout(Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY);
+        const step = isNotchedWheel(e) ? notchLogZoom(e) : pinchLogZoom(pinch, e.deltaY, e.timeStamp);
+        zoomAbout(Math.exp(step), e.clientX, e.clientY);
       } else if ((e.target as Element | null)?.closest?.(STAGE_FLOATING_SURFACES)) {
         return;
       } else if (isZoomed() || opts?.editorLayout) {
@@ -958,6 +1024,30 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
         clampPan(); apply();
       }
     }, { passive: false });
+
+    // Safari, and the WebKit view the macOS desktop app runs in, send a trackpad pinch as
+    // gesturestart/gesturechange/gestureend with a cumulative `scale`, not as ctrl+wheel.
+    // Left alone, that pinch zoomed the whole page instead of the canvas. Each change is
+    // converted to ctrl+wheel units and spends the same curve. Only on a fine pointer
+    // (this block): touch Safari sends these alongside the touches the pointer handlers
+    // above already pinch with, and answering both would zoom twice.
+    type PinchGesture = Event & { scale?: number; clientX?: number; clientY?: number };
+    stageEl.addEventListener('gesturestart', e => {
+      e.preventDefault();
+      gesturing = pts.size < 2;
+      gestureScale = 1;
+    });
+    stageEl.addEventListener('gesturechange', e => {
+      e.preventDefault();
+      const g = e as PinchGesture;
+      if (!gesturing || !(g.scale! > 0)) return;
+      const raw = -PINCH_UNITS * Math.log(g.scale! / gestureScale);
+      gestureScale = g.scale!;
+      holdForWheel();
+      const c = typeof g.clientX === 'number' && typeof g.clientY === 'number' ? { x: g.clientX, y: g.clientY } : stageCentre();
+      zoomAbout(Math.exp(pinchLogZoom(pinch, raw, e.timeStamp)), c.x, c.y);
+    });
+    stageEl.addEventListener('gestureend', e => { e.preventDefault(); gesturing = false; });
 
     // Pan with middle-drag or Space+left-drag; plain left-clicks stay free so the
     // canvas click-to-focus behaviour keeps working.

@@ -11,6 +11,16 @@ import type {
   ForensicFinding,
 } from '../../../../engine/src/forensic.ts';
 import type { ForensicCollection } from './valid-forensics-collect.ts';
+import {
+  DEFAULT_LAYERS,
+  heatReaderHtml,
+  inspectorHtml,
+  layerControlsHtml,
+  pageHeat,
+  regionHeatHtml,
+  type ForensicInspect,
+  type ForensicLayers,
+} from './valid-forensics-heat.ts';
 export interface ForensicViewState {
   collection: ForensicCollection;
   page: string;
@@ -24,6 +34,10 @@ export interface ForensicViewState {
   imported?: boolean;
   skippedModel?: boolean;
   message?: string;
+  /** Which evidence layers the reader shows; the heat view's own state. */
+  layers?: ForensicLayers;
+  /** The sentence or region the reader opened in the inspector. */
+  inspect?: ForensicInspect;
 }
 const e = (value: unknown) => escapeHtml(String(value));
 const contribution = (f: ForensicFinding) =>
@@ -55,21 +69,11 @@ export function forensicVisibleFindings(state: ForensicViewState): ForensicFindi
 function textPreview(state: ForensicViewState): string {
   const page = state.collection.report.pages.find((p) => p.id === state.page);
   if (!page) return '';
-  const selected = state.collection.report.findings.find((f) => f.id === state.selected);
-  const spans = (selected?.locations ?? [])
-    .filter((l) => l.page === page.id && l.span)
-    .map((l) => l.span!)
-    .sort((a, b) => a.index - b.index);
-  let end = 0,
-    result = '';
-  for (const span of spans) {
-    if (span.index < end || span.index + span.length > page.text.length) continue;
-    result +=
-      e(page.text.slice(end, span.index)) +
-      `<mark>${e(page.text.slice(span.index, span.index + span.length))}</mark>`;
-    end = span.index + span.length;
-  }
-  return `<pre class="forensic-text">${result + e(page.text.slice(end)) || t('Text on this page has not been recovered.')}</pre>`;
+  return heatReaderHtml(state.collection.report, page, {
+    selected: state.selected,
+    layers: state.layers ?? DEFAULT_LAYERS,
+    ...(state.inspect ? { inspect: state.inspect } : {}),
+  });
 }
 function findingDetail(state: ForensicViewState, selected: ForensicFinding): string {
   const location = selected.locations[state.location ?? 0];
@@ -124,9 +128,12 @@ export function forensicWorkspaceHtml(state: ForensicViewState): string {
     notable: t('Notable'),
     strong: t('Strong'),
   };
+  const layers = state.layers ?? DEFAULT_LAYERS;
   const overlays =
     page && page.width > 0 && page.height > 0 && preview && state.overlays
-      ? findings
+      ? (layers.heat ? regionHeatHtml(report, page, state.inspect) : '') +
+        findings
+          .filter((f) => !layers.heat || f.id === state.selected)
           .flatMap((f) =>
             f.locations.map((l, i) => {
               if (l.page !== page.id || !l.box) return '';
@@ -145,7 +152,7 @@ export function forensicWorkspaceHtml(state: ForensicViewState): string {
     <dl class="forensic-summary"><div><dt>${t('Probability')}</dt><dd>${metricRing(report.likelihood.state === 'calibrated' ? report.likelihood.probability * 100 : null, report.likelihood.state === 'calibrated' ? `${Math.round(report.likelihood.probability * 100)}%` : '?', t('AI probability requires calibration for this kind of file.'))}<span>${report.likelihood.state === 'calibrated' ? t('Calibrated') : t('Unestimated')}</span></dd></div><div><dt>${t('Evidence')}</dt><dd>${metricRing(report.evidence.score, String(report.evidence.score), t('Evidence strength: {score} out of 100. This is a clue index, not AI probability.', { score: report.evidence.score }))}<span>${e(bands[report.evidence.band])}<small>${report.evidence.families} ${t('families')}</small></span></dd></div><div><dt>${t('Coverage')}</dt><dd>${metricRing(pageCount > 0 ? report.pages.length / pageCount * 100 : null, `${report.pages.length}/${pageCount}`, t('Pages inspected. Some checks may still be unavailable.'))}<span>${partial ? t('Partial') : t('Complete')}<small>${t('pages')}</small></span></dd></div></dl>
     <div class="forensic-coverage-notice"><p>${unreadText ? t('Text unread. Enable OCR in More.') : failed.length ? t('Some checks did not finish. See Coverage.') : t('Clues are not proof of authorship.')}</p>${unreadText ? `<button type="button" class="btn" data-forensic="ocr">${t('Read text with local OCR')}</button>` : ''}${missingModel && !state.skippedModel ? `<p>${t('Text classifier unavailable. Download or skip.')}</p><button type="button" class="btn" data-forensic="model">${t('Download text classifier')}</button><button type="button" class="btn" data-forensic="skip-model">${t('Skip text classifier')}</button>` : ''}</div>
     <details class="forensic-basis"><summary>${t('Method')}</summary><p>${report.likelihood.state === 'unavailable' ? e(report.likelihood.reason) : e(report.likelihood.population)}</p><p>${t('Repeated patterns count as one family. The index measures clues, not probability. Filters and review notes do not change that index.')}</p><p>${t('Declared origin')}: ${report.origins?.length ? report.origins.map((o) => e(`${o.kind}, ${o.source}, integrity ${o.integrity}, ${o.scope}`)).join('; ') : t('No AI origin declaration recorded')}. ${t('Declarations are separate from inferred evidence.')}</p></details>
-    ${report.pages.length ? `<div class="forensic-toolbar forensic-navigation"><label>${t('Page')} <select class="field-select" data-forensic-page>${report.pages.map((p) => `<option value="${e(p.id)}" ${p.id === state.page ? 'selected' : ''}>${e(p.id)}${p.source === 'ocr' ? ` · ${t('OCR')}` : ''}</option>`).join('')}</select></label>${preview ? `<label><input type="checkbox" data-forensic-overlays ${state.overlays ? 'checked' : ''}> ${t('Regions')}</label><label>${t('Zoom')} <input type="range" data-forensic-zoom min="100" max="250" value="${state.zoom ?? 100}" aria-label="${t('Preview zoom')}"><output data-forensic-zoom-value>${state.zoom ?? 100}%</output></label>` : ''}</div>` : ''}
+    ${report.pages.length ? `<div class="forensic-toolbar forensic-navigation"><label>${t('Page')} <select class="field-select" data-forensic-page>${report.pages.map((p) => `<option value="${e(p.id)}" ${p.id === state.page ? 'selected' : ''}>${e(p.id)}${p.source === 'ocr' ? ` · ${t('OCR')}` : ''}</option>`).join('')}</select></label>${preview ? `<label><input type="checkbox" data-forensic-overlays ${state.overlays ? 'checked' : ''}> ${t('Regions')}</label><label>${t('Zoom')} <input type="range" data-forensic-zoom min="100" max="250" value="${state.zoom ?? 100}" aria-label="${t('Preview zoom')}"><output data-forensic-zoom-value>${state.zoom ?? 100}%</output></label>` : ''}${page ? layerControlsHtml(layers, !!pageHeat(report, page.id).model) : ''}</div>` : ''}
     <div class="forensic-workspace"><div class="forensic-preview-scroll">${preview ? `<div class="forensic-preview" style="width:${state.zoom ?? 100}%"><img src="${e(preview)}" alt="${e(`Inspected page ${state.page}`)}" draggable="false">${overlays}</div><details class="forensic-transcript"><summary>${t('Text')}</summary>${textPreview(state)}</details>` : textPreview(state)}</div>
     <div class="forensic-evidence"><div class="forensic-evidence-heading"><h3>${t('Findings')}</h3><label>${t('Show')} <select class="field-select" data-forensic-filter aria-label="${t('Evidence filter')}">${Object.entries(
       {
@@ -160,7 +167,7 @@ export function forensicWorkspaceHtml(state: ForensicViewState): string {
           `<option value="${value}" ${state.filter === value ? 'selected' : ''}>${e(label)}</option>`
       )
       .join('')}</select></label></div>
-    <ul class="forensic-findings">${findings.map((f) => `<li><button type="button" data-forensic="select" data-finding="${e(f.id)}" aria-pressed="${f.id === state.selected}"><strong>${e(f.label)}</strong><span>${e(contribution(f))} · ${f.locations.length} ${f.locations.length === 1 ? t('location') : t('locations')}</span></button></li>`).join('') || `<li class="forensic-empty">${t('No matching findings in the inspected portions. Check coverage for unread content.')}</li>`}</ul>${selected && findings.includes(selected) ? findingDetail(state, selected) : ''}</div></div>
+    ${page ? inspectorHtml(report, page, state.inspect) : ''}<ul class="forensic-findings">${findings.map((f) => `<li><button type="button" data-forensic="select" data-finding="${e(f.id)}" aria-pressed="${f.id === state.selected}"><strong>${e(f.label)}</strong><span>${e(contribution(f))} · ${f.locations.length} ${f.locations.length === 1 ? t('location') : t('locations')}</span></button></li>`).join('') || `<li class="forensic-empty">${t('No matching findings in the inspected portions. Check coverage for unread content.')}</li>`}</ul>${selected && findings.includes(selected) ? findingDetail(state, selected) : ''}</div></div>
     <details class="forensic-coverage"><summary>${t('Coverage')}</summary><table><thead><tr><th>${t('Collector')}</th><th>${t('Page')}</th><th>${t('State')}</th><th>${t('Scope or limitation')}</th></tr></thead><tbody>${report.coverage.map((c) => `<tr><td>${e(c.collector)}<small>${e(c.version)}</small></td><td>${e(c.page ?? 'document')}</td><td>${e(c.state)}</td><td>${e(c.reason)}${c.ranges ? `<details><summary>${t('Inspected character ranges')}</summary>${c.ranges.map((r) => `${r.index}+${r.length}`).join(', ')}</details>` : ''}</td></tr>`).join('')}</tbody></table>${report.models.map((m) => `<details><summary>${e(m.model)} · ${t('raw classifier windows')}</summary><table><thead><tr><th>${t('Characters')}</th><th>${t('Tokens')}</th><th>${t('Raw score')}</th></tr></thead><tbody>${m.windows.map((w) => `<tr><td>${w.index}+${w.length}</td><td>${w.tokens}</td><td>${w.rawScore.toFixed(4)}</td></tr>`).join('')}</tbody></table></details>`).join('')}<p>${e(report.limitations.join(' '))}</p><p>${t('File SHA-256')} <code>${e(report.artifactSha256)}</code></p><p>${t('Report SHA-256')} <code>${e(report.reportSha256)}</code></p></details>
     ${state.history?.length ? `<details><summary>${t('History')} (${state.history.length})</summary>${state.history.map((h) => `<p><code>${e(h.report.reportSha256)}</code> · ${h.report.pages.length} ${t('pages')} · ${h.annotations.length} ${t('review notes')}</p>`).join('')}</details>` : ''}
     <div class="forensic-toolbar forensic-actions"><button type="button" class="btn" data-forensic="inspect">${report.pages.length < pageCount && report.pages.length < 100 ? t('Inspect more pages') : t('Retry inspection')}</button><button type="button" class="btn" data-forensic="json">${t('Export JSON evidence')}</button><button type="button" class="btn" data-forensic="readable">${t('Export readable evidence')}</button><label class="btn forensic-reload">${t('Reload evidence')}<input type="file" data-forensic-reload accept="application/json,.json" aria-label="${t('Reload evidence')}"></label></div><p class="forensic-muted">${t('Exports include recovered text and review notes. Nothing is saved automatically.')}</p>`.replaceAll('<summary>', '<summary class="section-card-summary verify-disclosure"><span>')

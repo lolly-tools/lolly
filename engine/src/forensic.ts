@@ -8,3 +8,4 @@ export * from './forensic/report.ts';
 export * from './forensic/raster.ts';
 export * from './forensic/calibration.ts';
 export * from './forensic/model.ts';
+export * from './forensic/heat.ts';
