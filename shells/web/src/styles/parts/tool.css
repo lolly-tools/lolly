@@ -4359,3 +4359,23 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 
 .table-cell[data-grid-selected] { background: hsl(var(--ring) / 0.1); }
 .table-cell:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+
+.collab-auto-status {
+  position: fixed;
+  z-index: 60;
+  bottom: calc(24px * var(--a11y-fs));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: calc(12px * var(--a11y-fs));
+  max-width: min(90vw, 640px);
+  padding: calc(12px * var(--a11y-fs)) calc(16px * var(--a11y-fs));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(12px * var(--a11y-fs));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  box-shadow: 0 4px 24px #0002;
+}
+.collab-auto-status.is-failed { border-color: hsl(var(--destructive)); }
+.collab-auto-status button { min-width: calc(44px * var(--a11y-fs)); min-height: calc(44px * var(--a11y-fs)); }

@@ -1015,14 +1015,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // `collab.join` capability bit - read inline here rather than through
       // org/collab-config.ts's `canJoinCollab()` (the same test, and the accessor
       // every consumer OUTSIDE this module should use) only because that module
-      // imports this one, and the gate belongs beside the state it reads. ABSENT
-      // means NO registration - the
-      // server ships these bits later, so every instance today reads as absent and
-      // the seam stays dormant, byte-identical to a build without this branch.
-      // A FACTORY, not a provider: a collab is per-session and nothing here can yet
-      // know a mount came from a team project - that last wire is the wave-1
-      // integration, documented in collab-provider.ts's header. Lazy-imported, so
-      // the ws client never reaches the boot chunk of an instance without the bit.
+      // imports this one, and the gate belongs beside the state it reads. A
+      // factory creates each session's provider when its tool opens. The client
+      // remains lazy on an instance without a live gateway or join capability.
       unregisterCollabFactory?.();
       unregisterCollabFactory = null;
       unregisterCollabOpener?.();
@@ -1033,6 +1028,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // this browser. Without it, one user's undelivered ops replay over the NEXT
       // user's authenticated socket and the gateway audits them as that user's edits.
       const principal = session?.kind === 'member' ? session.user.sub : undefined;
+      const memberSession = session;
+      const stillAllowed = (): boolean => session === memberSession && orgConfig()?.can?.['collab.join'] === true;
       if (orgConfigState?.can?.['collab.join'] === true) {
         import('./collab-provider.ts')
           .then(async (m) => {
@@ -1040,7 +1037,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
             // (two clients on the wire from one device is the failure it prevents).
             await m.initWorkCollab();
             // Policy (or the session) may have changed while this loaded.
-            if (orgConfig()?.can?.['collab.join'] !== true) return;
+            if (!stillAllowed()) return;
             unregisterCollabFactory = m.registerWorkCollabFactory(
               (sid, o) => m.createWorkCollabProvider(sid, { ...o, principal: o?.principal ?? principal }),
             );
@@ -1052,8 +1049,14 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
             // bits on every press - this registration is an instance fact, not a
             // per-member grant.
             const opener = await import('./collab-work-opener.ts');
+            if (!stillAllowed()) return;
             unregisterCollabOpener?.();
             unregisterCollabOpener = opener.registerWorkCollabOpener();
+            const automatic = await import('./collab-auto-join.ts');
+            if (!stillAllowed()) return;
+            const stopOpener = unregisterCollabOpener;
+            const stopAutomatic = automatic.registerAutomaticWorkCollab();
+            unregisterCollabOpener = () => { stopAutomatic(); stopOpener?.(); };
           })
           .catch(() => { /* additive; never block or break boot */ });
       }

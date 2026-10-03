@@ -253,12 +253,28 @@ test('a mount that never registered parks the connection, and says so', async ()
   assert.equal(r.provider!.closes, 0);
 });
 
-test('without collab.edit the opener refuses before it builds anything', async () => {
-  const r = rig({ canEdit: false });
+test('without collab.join the opener refuses before it builds anything', async () => {
+  const r = rig({ canJoin: false });
   const out = await openWorkCollab({ baseParts: [], sessionId: 'ses_1' }, r.deps);
   assert.equal(out.ok === false && out.reason, 'not-permitted');
-  assert.equal(out.ok === false && out.message, STRINGS.cannotEdit);
+  assert.equal(out.ok === false && out.message, STRINGS.cannotJoin);
   assert.deepEqual(r.built, []);
+  assert.deepEqual(r.delivered, []);
+});
+
+test('a viewer may join; the gateway assigns the observer seat', async () => {
+  const r = rig({ canEdit: false, canJoin: true });
+  const out = await openWorkCollab({ baseParts: [], sessionId: 'ses_1' }, r.deps);
+  assert.equal(out.ok, true);
+  assert.deepEqual(r.built, ['ses_1']);
+  assert.equal(r.delivered.length, 1);
+});
+
+test('leaving an automatically opened document closes the connection before delivery', async () => {
+  const r = rig();
+  const out = await openWorkCollab({ baseParts: [], sessionId: 'ses_1' }, { ...r.deps, stillWanted: () => false });
+  assert.equal(out.ok, false);
+  assert.equal(r.provider!.closes, 1);
   assert.deepEqual(r.delivered, []);
 });
 

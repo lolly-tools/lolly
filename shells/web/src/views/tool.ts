@@ -30,6 +30,7 @@ import { presentApis } from '@lolly-tools/core/host-v1';
 import { loadTool } from '@lolly/engine';
 import { consumeTeamSessionOrigin, releaseTeamSessionOrigin } from '../org/team-session-origin.ts';
 import { MountLifecycle } from '../lib/mount-lifecycle.ts';
+import { publishToolReady } from '../lib/tool-ready.ts';
 import { getToolIntegrity } from '../catalog/integrity.ts';
 import { installedFetchFile, isToolInstalled } from '../lib/installed-tools.ts';
 import { makeFetchFile } from '../bridge/tool-loader.ts';
@@ -452,6 +453,9 @@ async function mountToolInto(
   await tview.setup.wireEmojiSection();
   if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
   void tview.openDocument.finish();
+  const stopReady = publishToolReady({ toolId, view: viewEl, collaborative: !!tview.collabHandle });
+  const cleanup = viewEl._cleanup;
+  viewEl._cleanup = () => { stopReady(); cleanup?.(); };
 }
 
 // makeFetchFile is imported from bridge/tool-loader.ts - the one shared implementation

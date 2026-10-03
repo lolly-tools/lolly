@@ -57,8 +57,8 @@
  *
  * ── WHAT GATES WHAT ────────────────────────────────────────────────────────────
  *
- *  - STARTING one (`openWorkCollab`) needs `collab.edit`: you are proposing that other
- *    people co-edit this session, which is an editing act.
+ *  - OPENING one (`openWorkCollab`) needs `collab.join`. The gateway assigns an
+ *    editing or observing seat from the member's current authority.
  *  - JOINING one (`joinWorkCollabFromInvite`, and whether the invite action renders at
  *    all) needs `collab.join`. Absent or false ⇒ NO action element - the message still
  *    reads as ordinary text, because an invite you cannot act on is still news you are
@@ -263,6 +263,8 @@ export interface WorkCollabDeps {
   readonly timeoutMs?: number;
   readonly setTimer?: (fn: () => void, ms: number) => unknown;
   readonly clearTimer?: (handle: unknown) => void;
+  /** Automatic joins stop if their original tool has been left. */
+  readonly stillWanted?: () => boolean;
 }
 
 /** This member's principal - the partition key of the provider's durable outbox.
@@ -451,6 +453,10 @@ async function connectAndDeliver(plan: ConnectPlan, deps: WorkCollabDeps): Promi
   }
 
   const live = await awaitLive(provider, deps);
+  if (deps.stillWanted && !deps.stillWanted()) {
+    stop();
+    return fail('no-mount', tRaw(STRINGS.noMount));
+  }
   if (!live.live) {
     stop();
     if (live.timedOut) return fail('timeout', tRaw(STRINGS.slow));
@@ -524,8 +530,8 @@ export async function openWorkCollab(
   // repaint. One already-resolved promise in English and on a second call (i18n.ts's
   // loadNamespace is idempotent and a no-op for 'en'); a failed load leaves English.
   await loadNamespace('collab');
-  const canEdit = deps.canEdit ?? canEditCollab;
-  if (!canEdit()) return fail('not-permitted', tRaw(STRINGS.cannotEdit));
+  const canJoin = deps.canJoin ?? canJoinCollab;
+  if (!canJoin()) return fail('not-permitted', tRaw(STRINGS.cannotJoin));
   const sessionId = readId(ctx.sessionId);
   if (!sessionId) return fail('no-session', tRaw(STRINGS.noSession));
   const origin = pressed?.sessionId === sessionId ? { ...pressed } : undefined;
