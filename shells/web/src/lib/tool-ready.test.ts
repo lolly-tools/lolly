@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { publishToolReady, registerToolReady, type ReadyTool } from './tool-ready.ts';
 
 test('late registration sees the live tool; navigation ends its behavior', () => {
-  const a = { toolId: 'design', view: {} as HTMLElement, collaborative: false };
+  const a = { toolId: 'design', view: {} as HTMLElement, collaborating: false };
   const b = { ...a, toolId: 'deck' };
   const seen: ReadyTool[] = [];
   let isCurrent: (() => boolean) | undefined;
@@ -26,7 +26,7 @@ test('late registration sees the live tool; navigation ends its behavior', () =>
 });
 
 test('replacing a consumer tears down only the previous behavior', () => {
-  const leave = publishToolReady({ toolId: 'design', view: {} as HTMLElement, collaborative: false });
+  const leave = publishToolReady({ toolId: 'design', view: {} as HTMLElement, collaborating: false });
   let first = 0;
   let second = 0;
   const stopA = registerToolReady(() => () => { first++; });

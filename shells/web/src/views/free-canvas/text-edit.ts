@@ -230,6 +230,7 @@ export function editAfterPaint(fc: FcCtx, id: string, opts: { selectAll?: boolea
   if (tries > 0) requestAnimationFrame(() => editAfterPaint(fc, id, opts, tries - 1));
 }
 export function startTextEdit(fc: FcCtx, id: string, opts: { selectAll?: boolean; point?: { x: number; y: number } } = {}): void {
+  if (fc.opts?.canEdit?.() === false) return;
   const { canvasEl, stageEl } = fc;
   if (fc.editing?.composed) {
     void fc.storyText.finish().then(() => { if (!fc.editing && !fc.disposed) startTextEdit(fc, id, opts); });
@@ -417,6 +418,7 @@ export function restoreEditView(fc: FcCtx, done: EditingState): void {
   reapplyEmoji(fc, done.el);
 }
 export function commitTextEdit(fc: FcCtx): void {
+  if (fc.opts?.canEdit?.() === false) { cancelTextEdit(fc); return; }
   if (fc.editing?.composed) { fc.storyText.finish(); return; }
   const { cfg } = fc;
   const done = fc.editing;

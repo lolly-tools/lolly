@@ -453,7 +453,8 @@ async function mountToolInto(
   await tview.setup.wireEmojiSection();
   if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
   void tview.openDocument.finish();
-  const stopReady = publishToolReady({ toolId, view: viewEl, collaborative: !!tview.collabHandle });
+  const stopReady = publishToolReady({ toolId, view: viewEl, collaborating: !!tview.collabHandle,
+    unsaved: () => tview.userHasMadeChanges });
   const cleanup = viewEl._cleanup;
   viewEl._cleanup = () => { stopReady(); cleanup?.(); };
 }

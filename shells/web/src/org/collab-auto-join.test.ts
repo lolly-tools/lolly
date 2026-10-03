@@ -15,8 +15,8 @@ let stop: (() => void) | undefined;
 let leave: (() => void) | undefined;
 afterEach(() => { leave?.(); stop?.(); _clearTeamSessionOriginForTests(); });
 const settle = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 20));
-function ready(collaborative = false): void {
-  leave = publishToolReady({ toolId: 'design', view, collaborative });
+function ready(collaborating = false): void {
+  leave = publishToolReady({ toolId: 'design', view, collaborating });
 }
 function shared(): void { adoptTeamSessionOrigin({ toolId: 'design', sessionId: 'ses_canvas', projectId: 'prj_team', rev: 1 }); }
 
@@ -60,6 +60,16 @@ test('local documents and existing collab mounts stay dormant', async () => {
   ready(true);
   await settle();
   assert.equal(calls, 0);
+});
+
+test('a recovered unsaved team draft is kept instead of being replaced by the room snapshot', async () => {
+  shared();
+  let calls = 0;
+  leave = publishToolReady({ toolId: 'design', view, collaborating: false, unsaved: () => true });
+  stop = registerAutomaticWorkCollab({ canJoin: () => true, join: async () => { calls++; return { ok: true }; } });
+  await settle();
+  assert.equal(calls, 0);
+  assert.equal(view.querySelector('.collab-auto-status'), null);
 });
 
 test('late registration joins a shared document already open; leaving invalidates delivery', async () => {

@@ -128,6 +128,7 @@ export function freshId(fc: FcCtx, boxes: Box[]): string {
  *  caller commits only on a real change. Inert for a tool with no id field. */
 export const withIds = (fc: FcCtx, boxes: Box[]): Box[] => { const { cfg, hasIdField } = fc; return (hasIdField ? ensureRowIds(boxes, cfg.idField) : boxes); };
 export function commit(fc: FcCtx, nextBoxes: Box[]): void {
+  if (fc.opts?.canEdit?.() === false) return;
   const { blockId, onDirty, runtime } = fc;
   if (fc.frameCfg && fc.timeCfg) nextBoxes = retimeSceneMembers(getBoxes(fc), nextBoxes, { ...frameFields(fc), startField: fc.timeCfg.startField });
   if (fc.storyFlow?.reconcile(nextBoxes)) return;

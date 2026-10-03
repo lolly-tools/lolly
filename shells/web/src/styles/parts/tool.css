@@ -4363,19 +4363,19 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .collab-auto-status {
   position: fixed;
   z-index: 60;
-  bottom: calc(24px * var(--a11y-fs));
+  bottom: calc(var(--sp-8) + var(--safe-bottom) + var(--vv-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: calc(12px * var(--a11y-fs));
+  gap: var(--sp-6);
   max-width: min(90vw, 640px);
-  padding: calc(12px * var(--a11y-fs)) calc(16px * var(--a11y-fs));
+  padding: var(--sp-6) var(--sp-7);
   border: 1px solid hsl(var(--border));
-  border-radius: calc(12px * var(--a11y-fs));
+  border-radius: var(--radius-md);
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  box-shadow: 0 4px 24px #0002;
+  box-shadow: var(--shadow-3);
 }
 .collab-auto-status.is-failed { border-color: hsl(var(--destructive)); }
-.collab-auto-status button { min-width: calc(44px * var(--a11y-fs)); min-height: calc(44px * var(--a11y-fs)); }
+.collab-auto-status button { min-width: 44px; min-height: 44px; }

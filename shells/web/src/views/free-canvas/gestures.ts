@@ -21,6 +21,7 @@ import { bindOp, type FcCtx } from './context.ts';
 
 // ── pointer gestures on the canvas ───────────────────────────────────────────
 export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
+  if (fc.opts?.canEdit?.() === false && g.type !== 'marquee') return;
   const { canvasEl } = fc;
   try {
     canvasEl.setPointerCapture(e.pointerId);
@@ -158,6 +159,7 @@ export function onStageTouchUp(fc: FcCtx, e: PointerEvent): void {
 // begun, already captures the pointer anywhere. Each returns true when it handled the
 // event (the caller then stops propagation).
 export function tryPenDrawAt(fc: FcCtx, e: PointerEvent, nat: Point): boolean {
+  if (fc.opts?.canEdit?.() === false) return false;
   if (fc.mode !== 'pen') return false;
   const tol = fc.penTool.penTol();
   if (fc.penDraft && closesOnClick(fc.penDraft.nodes, nat.x, nat.y, tol)) {
@@ -184,6 +186,7 @@ export function tryPenDrawAt(fc: FcCtx, e: PointerEvent, nat: Point): boolean {
   return true;
 }
 export function tryArmedCreateAt(fc: FcCtx, e: PointerEvent, nat: Point): boolean {
+  if (fc.opts?.canEdit?.() === false) return false;
   const { rubber } = fc;
   if (!fc.armedKind) return false;
   const after=fc.armedKind.seed?.__textContinue;
@@ -205,6 +208,7 @@ export function tryArmedCreateAt(fc: FcCtx, e: PointerEvent, nat: Point): boolea
 // same way a pen node and a created box are, so a line ends up on the guides the rest of
 // the editor draws. Alt opts out of both, exactly as it does for the pen.
 export function tryLineDrawAt(fc: FcCtx, e: PointerEvent, nat: Point): boolean {
+  if (fc.opts?.canEdit?.() === false) return false;
   const { cfg } = fc;
   if (fc.mode !== 'line' || !cfg.pathField) return false;
   const at = lineSnap(fc, nat, e.altKey);

@@ -25,6 +25,7 @@ export const dupRefFields = (fc: FcCtx): string[] =>
     (f): f is string => !!f
   ); };
 export function duplicateSelection(fc: FcCtx): void {
+  if (fc.opts?.canEdit?.() === false) return;
   const { FRAME_DUP_GAP, cfg, frameCfg } = fc;
   const boxes = fc.select.getBoxes();
   const idx = fc.select.selIndices(boxes);
@@ -91,6 +92,7 @@ export function duplicateSelection(fc: FcCtx): void {
   fc.select.commit([...boxes, ...clones]);
 }
 export function deleteSelection(fc: FcCtx): void {
+  if (fc.opts?.canEdit?.() === false) return;
   const { cfg, frameCfg } = fc;
   const boxes = fc.select.getBoxes();
   const sel = new Set(fc.select.selIndices(boxes));

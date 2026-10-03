@@ -13,7 +13,7 @@ export interface AutomaticWorkCollabDeps extends WorkCollabDeps {
 export function registerAutomaticWorkCollab(deps: AutomaticWorkCollabDeps = {}): () => void {
   return registerToolReady((tool, current) => {
     const origin = activeTeamSessionOrigin(tool.toolId);
-    if (!origin || tool.collaborative || teamSessionLive(origin.sessionId) || !(deps.canJoin ?? canJoinCollab)()) return;
+    if (!origin || tool.collaborating || tool.unsaved?.() || teamSessionLive(origin.sessionId) || !(deps.canJoin ?? canJoinCollab)()) return;
     const generation = teamOriginGeneration();
     let disposed = false;
     let connecting = false;
@@ -46,7 +46,7 @@ export function registerAutomaticWorkCollab(deps: AutomaticWorkCollabDeps = {}):
       announce(reason, { assertive: true });
     };
     const join = async (): Promise<void> => {
-      if (!wanted() || connecting) return;
+      if (!wanted() || tool.unsaved?.() || connecting) return;
       connecting = true;
       retry.hidden = true;
       status.classList.remove('is-failed');

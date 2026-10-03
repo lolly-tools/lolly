@@ -400,6 +400,8 @@ export interface InitFreeCanvasOpts {
   nativeH: number;
   rulesWorkspace?: { fit(): void; preserve(): (() => void) | undefined };
   onDirty?(id: string): void;
+  /** Current document authority; absent for an ordinary device document. */
+  canEdit?(): boolean;
   editTool?(url: string, mode?: string): Promise<any>;
   setCanvasSize?(w: number, h: number, unit?: string): void;
   /** Keeps Design's persisted document unit/DPI and the export bar in lockstep. */

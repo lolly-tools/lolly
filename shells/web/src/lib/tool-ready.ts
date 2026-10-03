@@ -3,7 +3,9 @@
 export interface ReadyTool {
   readonly toolId: string;
   readonly view: HTMLElement;
-  readonly collaborative: boolean;
+  readonly collaborating: boolean;
+  /** A recovered or late-edited draft must not be replaced by a room snapshot. */
+  readonly unsaved?: () => boolean;
 }
 type Consumer = (tool: ReadyTool, current: () => boolean) => undefined | (() => void);
 let live: ReadyTool | null = null;

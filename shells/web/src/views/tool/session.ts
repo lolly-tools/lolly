@@ -1217,6 +1217,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           nativeH,
           rulesWorkspace: { fit: () => tview.stageZoom?.fit(), preserve: () => tview.stageZoom?.preserveView?.() },
           onDirty: tview.session.markUserDirty,
+          canEdit: () => !tview.collabHandle || tview.collabHandle.role === 'writer',
           // In carousel mode the strip size is owned by syncStrip (page count/size inputs);
           // withholding setCanvasSize stops the artboard-resize + design-import paths from
           // clobbering the strip. (The rail's size control is the page-size picker instead.)

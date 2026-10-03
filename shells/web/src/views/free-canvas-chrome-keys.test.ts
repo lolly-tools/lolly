@@ -96,7 +96,7 @@ interface Fixture {
   destroy(): void;
 }
 
-function mount(initial: Box[], design = false): Fixture {
+function mount(initial: Box[], design = false, canEdit?: () => boolean): Fixture {
   const viewEl = dom.window.document.createElement('div');
   const stageEl = dom.window.document.createElement('div');
   const canvasEl = dom.window.document.createElement('div');
@@ -126,6 +126,7 @@ function mount(initial: Box[], design = false): Fixture {
       fields: ['bg', 'opacity', 'shape', 'radius', 'text'].map((id) => ({ id })) as never,
     },
     nativeW: NATIVE, nativeH: NATIVE,
+    canEdit,
     ...(design ? { chrome: {} as never } : {}),
   });
   frames();
@@ -176,6 +177,26 @@ function pressFrom(
 }
 
 // ══ the guard ════════════════════════════════════════════════════════════════
+
+test('an observer can select, but cannot edit text, drag or delete; a new writer seat permits changes', () => {
+  let writable = false;
+  const f = mount([{ ...plainBox('a', 100, 100), kind: 'text', text: 'Shared text' }], false, () => writable);
+  f.canvasEl.innerHTML = '<div class="lolly-box" data-box-id="a"><div class="lolly-box-text">Shared text</div></div>';
+  selectAt(f, 150, 150);
+  assert.equal(selectionCount(f), 1);
+  f.canvasEl.querySelector('.lolly-box-text')!.dispatchEvent(new W.MouseEvent('dblclick', { bubbles: true, clientX: 150, clientY: 150 }));
+  assert.equal(f.canvasEl.querySelector('[contenteditable]'), null);
+  f.canvasEl.dispatchEvent(pointerEvent('pointerdown', { x: 150, y: 150 }));
+  f.canvasEl.dispatchEvent(pointerEvent('pointermove', { x: 250, y: 250 }));
+  f.canvasEl.dispatchEvent(pointerEvent('pointerup', { x: 250, y: 250 }));
+  pressFrom(f.canvasEl, 'Delete');
+  assert.equal(f.commits(), 0);
+  assert.equal(f.boxes()[0]!.x, 100);
+  writable = true;
+  pressFrom(f.canvasEl, 'Delete');
+  assert.equal(f.boxes().length, 0);
+  f.destroy();
+});
 
 test('Delete pressed inside a data-canvas-keys="off" root leaves the selection intact', () => {
   const f = mount([plainBox('a', 700, 700)]);
