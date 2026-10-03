@@ -765,5 +765,7 @@
   "You are in a live collab on this session.": "Jsi v živé spolupráci v této relaci.",
   "This session is open for live editing. Use Start a collab to join in.": "Tato relace je otevřená pro úpravy naživo. Připoj se pomocí Zahájit spolupráci.",
   "This session is open for live editing. Try again when it closes.": "Tato relace je otevřená pro úpravy naživo. Zkus to znovu, až se zavře.",
-  "The live collab saves your changes to this session.": "Živá spolupráce ukládá tvé změny do této relace."
+  "The live collab saves your changes to this session.": "Živá spolupráce ukládá tvé změny do této relace.",
+  "Sign out": "Odhlásit se",
+  "Could not sign out. Try again.": "Odhlášení se nezdařilo. Zkus to znovu."
 }

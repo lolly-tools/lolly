@@ -907,5 +907,7 @@
   "You are in a live collab on this session.": "أنت في تعاون مباشر على هذه الجلسة.",
   "This session is open for live editing. Use Start a collab to join in.": "هذه الجلسة مفتوحة للتحرير المباشر. استخدم «بدء تعاون» للانضمام.",
   "This session is open for live editing. Try again when it closes.": "هذه الجلسة مفتوحة للتحرير المباشر. حاول مرة أخرى عند إغلاقها.",
-  "The live collab saves your changes to this session.": "يحفظ التعاون المباشر تغييراتك في هذه الجلسة."
+  "The live collab saves your changes to this session.": "يحفظ التعاون المباشر تغييراتك في هذه الجلسة.",
+  "Sign out": "تسجيل الخروج",
+  "Could not sign out. Try again.": "تعذّر تسجيل الخروج. حاول مرة أخرى."
 }

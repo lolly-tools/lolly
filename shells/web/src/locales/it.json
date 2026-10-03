@@ -7263,5 +7263,7 @@
   "You are in a live collab on this session.": "Sei in una collaborazione dal vivo su questa sessione.",
   "This session is open for live editing. Use Start a collab to join in.": "Questa sessione è aperta alla modifica dal vivo. Usa Avvia una collaborazione per partecipare.",
   "This session is open for live editing. Try again when it closes.": "Questa sessione è aperta alla modifica dal vivo. Riprova quando si chiude.",
-  "The live collab saves your changes to this session.": "La collaborazione dal vivo salva le tue modifiche in questa sessione."
+  "The live collab saves your changes to this session.": "La collaborazione dal vivo salva le tue modifiche in questa sessione.",
+  "Sign out": "Esci dall'account",
+  "Could not sign out. Try again.": "Impossibile uscire dall'account. Riprova."
 }

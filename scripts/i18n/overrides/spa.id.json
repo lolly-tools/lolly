@@ -772,5 +772,7 @@
   "You are in a live collab on this session.": "Anda sedang dalam kolaborasi langsung di sesi ini.",
   "This session is open for live editing. Use Start a collab to join in.": "Sesi ini terbuka untuk penyuntingan langsung. Gunakan «Mulai kolaborasi» untuk bergabung.",
   "This session is open for live editing. Try again when it closes.": "Sesi ini terbuka untuk penyuntingan langsung. Coba lagi setelah ditutup.",
-  "The live collab saves your changes to this session.": "Kolaborasi langsung menyimpan perubahan Anda ke sesi ini."
+  "The live collab saves your changes to this session.": "Kolaborasi langsung menyimpan perubahan Anda ke sesi ini.",
+  "Sign out": "Keluar akun",
+  "Could not sign out. Try again.": "Tidak dapat keluar dari akun. Coba lagi."
 }

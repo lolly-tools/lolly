@@ -772,5 +772,7 @@
   "You are in a live collab on this session.": "Sie sind in dieser Sitzung in einer Live-Zusammenarbeit.",
   "This session is open for live editing. Use Start a collab to join in.": "Diese Sitzung ist für die Live-Bearbeitung geöffnet. Starten Sie eine Zusammenarbeit, um mitzumachen.",
   "This session is open for live editing. Try again when it closes.": "Diese Sitzung ist für die Live-Bearbeitung geöffnet. Versuchen Sie es erneut, wenn sie geschlossen wird.",
-  "The live collab saves your changes to this session.": "Die Live-Zusammenarbeit speichert Ihre Änderungen in dieser Sitzung."
+  "The live collab saves your changes to this session.": "Die Live-Zusammenarbeit speichert Ihre Änderungen in dieser Sitzung.",
+  "Sign out": "Abmelden",
+  "Could not sign out. Try again.": "Abmelden fehlgeschlagen. Versuchen Sie es erneut."
 }

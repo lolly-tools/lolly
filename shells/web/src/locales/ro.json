@@ -7263,5 +7263,7 @@
   "You are in a live collab on this session.": "Ești într-o colaborare live în această sesiune.",
   "This session is open for live editing. Use Start a collab to join in.": "Această sesiune este deschisă pentru editare live. Folosește Pornește o colaborare ca să te alături.",
   "This session is open for live editing. Try again when it closes.": "Această sesiune este deschisă pentru editare live. Încearcă din nou când se închide.",
-  "The live collab saves your changes to this session.": "Colaborarea live îți salvează modificările în această sesiune."
+  "The live collab saves your changes to this session.": "Colaborarea live îți salvează modificările în această sesiune.",
+  "Sign out": "Deconectează-te",
+  "Could not sign out. Try again.": "Nu te-am putut deconecta. Încearcă din nou."
 }

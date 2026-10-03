@@ -54,7 +54,8 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
 const json = (body: unknown, extra: Record<string, string> = {}, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...extra } });
 
-const { initOrg, orgConfig, orgSession, orgAdminHref, orgFlagGovernance, applyOrgToolPolicies, _resetOrgForTests } = await import('./index.ts');
+const { initOrg, orgConfig, orgSession, orgAdminHref, orgMemberSignedIn, signOutOfInstance, orgFlagGovernance, applyOrgToolPolicies, _resetOrgForTests } = await import('./index.ts');
+const { hasInstanceSession, setInstanceSession } = await import('../lib/instance.ts');
 const { flagHidden, isFlagOn, flagEnabled, hydrateFeatureFlags, NEUROSPICY_FLAG, JELLY_FLAG, STRIP_UPLOAD_META_FLAG } = await import('../feature-flags.ts');
 const { getFieldPolicy, _clearFieldPoliciesForTests } = await import('../lib/field-policy.ts');
 const { getInputPolicy, notifyToolInputMount, _clearInputPoliciesForTests } = await import('../lib/input-policy.ts');
@@ -203,6 +204,37 @@ test('gate builds a login link carrying returnTo=<current path>', async () => {
   assert.ok(href.includes(encodeURIComponent('/#/tool/qr-code')), 'returnTo preserves the requested path');
 });
 
+test('the gate\'s Sign in is a 44px finger target, keeping its width', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none' });
+  await initOrg();
+  const link = document.querySelector<HTMLAnchorElement>('.org-gate a.btn--primary')!;
+  // The .btn padding alone made it 32px tall on a phone (tester audit, 2026-10). The
+  // floor is the shared touch-target token. jsdom cannot resolve a custom property, so
+  // the token's value is read from styles/tokens.css.
+  assert.equal(link.style.minHeight, 'var(--ui-size-target)');
+  assert.equal(link.style.minWidth, '9rem');
+  const tokens = readFileSync(new URL('../styles/tokens.css', import.meta.url), 'utf8');
+  assert.match(tokens, /--ui-size-target:\s*44px;/);
+});
+
+test('a native shell\'s code sign-in on the gate has the same finger floor', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none' });
+  // What isTauriShell() looks for; the gate's own calls are relative, so none of them
+  // takes the native transport.
+  const w = window as unknown as { __TAURI_INTERNALS__?: unknown };
+  w.__TAURI_INTERNALS__ = { invoke: async () => null };
+  try {
+    await initOrg();
+    const btn = document.querySelector<HTMLButtonElement>('#org-gate-device-btn');
+    assert.ok(btn, 'the gate offers a code sign-in in a native shell');
+    assert.equal(btn.style.minHeight, 'var(--ui-size-target)');
+  } finally {
+    delete w.__TAURI_INTERNALS__;
+  }
+});
+
 // ── Member org-config → generic field-policy registry + admin accessor ────────
 
 test('member org-config populates the generic field-policy registry', async () => {
@@ -269,6 +301,113 @@ test('orgAdminHref is null for a non-admin member and when dormant', async () =>
   reset();
   await initOrg(); // dormant
   assert.equal(orgAdminHref(), null);
+});
+
+// ── Sign out (any member, from the profile view's instance card) ──────────────
+
+test('orgMemberSignedIn: every member, not only an admin; never a guest or a plain deployment', async () => {
+  for (const [label, opts, want] of [
+    ['admin', { mode: 'open', session: 'member', role: 'admin' }, true],
+    ['member', { mode: 'open', session: 'member', role: 'member' }, true],
+    ['guest', { mode: 'open', session: 'guest' }, false],
+    ['signed out', { mode: 'open', session: 'none' }, false],
+  ] as const) {
+    reset();
+    controlPlane(opts);
+    await initOrg();
+    assert.equal(orgMemberSignedIn(), want, label);
+  }
+  reset();
+  await initOrg(); // dormant: no control plane at all
+  assert.equal(orgMemberSignedIn(), false, 'no instance');
+});
+
+/** A member boot whose logout answers `logout`; records each logout request's init. */
+async function memberThenLogout(logout: () => Response): Promise<Array<RequestInit | undefined>> {
+  reset();
+  controlPlane({ mode: 'gated', session: 'member' });
+  const member = router;
+  const seen: Array<RequestInit | undefined> = [];
+  router = (url, init) => {
+    if (url.includes('/api/auth/logout')) { seen.push(init); return logout(); }
+    return member(url, init);
+  };
+  await initOrg();
+  return seen;
+}
+
+test('signOutOfInstance: the console\'s request - POST /api/auth/logout, no body, no token', async () => {
+  const seen = await memberThenLogout(() => new Response(null, { status: 204 }));
+  fetchLog = [];
+  assert.equal(await signOutOfInstance(), true);
+  assert.deepEqual(fetchLog, [{ url: '/api/auth/logout', method: 'POST' }]);
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0]!.body, undefined, 'no body, like the console');
+  const headers = new Headers(seen[0]!.headers);
+  assert.equal(headers.has('content-type'), false);
+  assert.equal(headers.has('authorization'), false, 'the cookie is the credential; the guard needs no token');
+});
+
+test('signOutOfInstance forgets what would show the old person, and nothing else', async () => {
+  await memberThenLogout(() => new Response(null, { status: 204 }));
+  const managedAi = 'lolly:managed-ai:same-origin';
+  assert.ok(store.has(ORG_CONFIG_KEY), 'the member boot cached its org-config');
+  assert.ok(store.has(managedAi), 'and noted that this instance manages AI');
+  await setInstanceSession('lw_session=abc');
+  assert.ok(hasInstanceSession());
+
+  assert.equal(await signOutOfInstance(), true);
+  assert.equal(store.has(ORG_CONFIG_KEY), false, 'the 24h org-config cache is per instance, not per person');
+  assert.equal(hasInstanceSession(), false, 'a native shell\'s parked session pair is gone');
+  assert.equal(orgSession(), null);
+  assert.equal(orgConfig(), null);
+  assert.equal(orgMemberSignedIn(), false);
+  assert.ok(store.has(managedAi), 'a fact about the instance, not the person, stays');
+});
+
+test('after a sign-out the gate asks the identity provider for its account picker, until a member signs in', async () => {
+  const signInHref = (): string => document.querySelector<HTMLAnchorElement>('.org-gate a.btn--primary')!.getAttribute('href')!;
+  // An ordinary gate: the plain link, so a returning person is not asked to pick again.
+  reset();
+  controlPlane({ mode: 'gated', session: 'none' });
+  await initOrg();
+  assert.ok(!signInHref().includes('prompt='), signInHref());
+
+  await memberThenLogout(() => new Response(null, { status: 204 }));
+  assert.equal(await signOutOfInstance(), true);
+  // The load that follows, on the same device (storage kept): nobody is signed in. The
+  // provider still has the old person's session, and only the picker lets someone else in.
+  _resetOrgForTests();
+  controlPlane({ mode: 'gated', session: 'none' });
+  await initOrg();
+  assert.ok(signInHref().endsWith('&prompt=select_account'), signInHref());
+  assert.ok(signInHref().includes(`returnTo=${encodeURIComponent('/#/tool/qr-code')}`), 'returnTo is unchanged');
+
+  // The next member session clears the note.
+  _resetOrgForTests();
+  controlPlane({ mode: 'gated', session: 'member' });
+  await initOrg();
+  _resetOrgForTests();
+  document.getElementById('view')!.innerHTML = '';
+  controlPlane({ mode: 'gated', session: 'none' });
+  await initOrg();
+  assert.ok(!signInHref().includes('prompt='), 'a later gate is the plain link again');
+});
+
+test('signOutOfInstance: a refusal or a network failure changes nothing', async () => {
+  for (const [label, logout] of [
+    ['403 from the cross-site guard', () => json({ error: { code: 'CSRF_BLOCKED' } }, {}, 403)],
+    ['5xx', () => new Response('', { status: 502 })],
+    ['network error', () => { throw new Error('offline'); }],
+  ] as const) {
+    await memberThenLogout(logout);
+    await setInstanceSession('lw_session=abc');
+    assert.equal(await signOutOfInstance(), false, label);
+    assert.ok(store.has(ORG_CONFIG_KEY), `${label}: the cache stays`);
+    assert.ok(hasInstanceSession(), `${label}: the session pair stays`);
+    assert.equal(orgMemberSignedIn(), true, `${label}: still signed in`);
+  }
+  await setInstanceSession(null);
 });
 
 // ── Member org-config → generic input-policy registry (the sidebar seam) ──────

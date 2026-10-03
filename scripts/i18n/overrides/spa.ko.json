@@ -902,5 +902,7 @@
   "You are in a live collab on this session.": "이 세션에서 라이브 협업 중이에요.",
   "This session is open for live editing. Use Start a collab to join in.": "이 세션은 라이브 편집 중이에요. 협업 시작을 눌러 참여해 보세요.",
   "This session is open for live editing. Try again when it closes.": "이 세션은 라이브 편집 중이에요. 끝난 뒤에 다시 시도해 주세요.",
-  "The live collab saves your changes to this session.": "라이브 협업에서 한 변경 내용은 이 세션에 저장돼요."
+  "The live collab saves your changes to this session.": "라이브 협업에서 한 변경 내용은 이 세션에 저장돼요.",
+  "Sign out": "로그아웃",
+  "Could not sign out. Try again.": "로그아웃하지 못했어요. 다시 시도해 주세요."
 }

@@ -774,5 +774,7 @@
   "You are in a live collab on this session.": "Nasa live collab ka sa session na ito.",
   "This session is open for live editing. Use Start a collab to join in.": "Bukas ang session na ito para sa live na pag-edit. Gamitin ang «Simulan ang collab» para sumali.",
   "This session is open for live editing. Try again when it closes.": "Bukas ang session na ito para sa live na pag-edit. Subukan ulit kapag nagsara ito.",
-  "The live collab saves your changes to this session.": "Sine-save ng live collab ang mga pagbabago mo sa session na ito."
+  "The live collab saves your changes to this session.": "Sine-save ng live collab ang mga pagbabago mo sa session na ito.",
+  "Sign out": "Mag-sign out",
+  "Could not sign out. Try again.": "Hindi nakapag-sign out. Subukan ulit."
 }

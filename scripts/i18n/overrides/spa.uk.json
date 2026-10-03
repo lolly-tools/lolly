@@ -900,5 +900,7 @@
   "You are in a live collab on this session.": "Ви у співпраці наживо в цій сесії.",
   "This session is open for live editing. Use Start a collab to join in.": "Ця сесія відкрита для редагування наживо. Скористайтеся Почати співпрацю, щоб приєднатися.",
   "This session is open for live editing. Try again when it closes.": "Ця сесія відкрита для редагування наживо. Спробуйте ще раз, коли її буде закрито.",
-  "The live collab saves your changes to this session.": "Співпраця наживо зберігає ваші зміни в цій сесії."
+  "The live collab saves your changes to this session.": "Співпраця наживо зберігає ваші зміни в цій сесії.",
+  "Sign out": "Вийти з акаунта",
+  "Could not sign out. Try again.": "Не вдалося вийти з акаунта. Спробуйте ще раз."
 }

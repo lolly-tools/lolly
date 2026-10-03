@@ -283,6 +283,29 @@ test('registerWorkCollabOpener fills the work slot and routes through openCollab
   assert.equal(getCollabOpener('work'), undefined);
 });
 
+test('the registered opener hands how the start ended to the surface that launched it', async () => {
+  reset();
+  const r = rig();
+  const off = registerWorkCollabOpener(r.deps);
+  const outcomes: unknown[] = [];
+  const onOutcome = (o: unknown): void => { outcomes.push(o); };
+  // A local document: the honest refusal comes back as the sentence to show.
+  openCollabLaunch('work', { toolId: 'qr-code', baseParts: [], onOutcome });
+  await new Promise((res) => setTimeout(res, 0));
+  assert.deepEqual(outcomes, [{ ok: false, reason: 'no-session', message: STRINGS.noSession }]);
+  // A team session: ok, and the callback stays with the press - the room's launch context
+  // is the plain data it always was.
+  openCollabLaunch('work', { toolId: 'qr-code', baseParts: [], sessionId: 'ses_7', onOutcome });
+  await new Promise((res) => setTimeout(res, 0));
+  assert.deepEqual(outcomes[1], { ok: true });
+  assert.deepEqual(r.delivered[0]!.launch, { toolId: 'qr-code', baseParts: [], sessionId: 'ses_7' });
+  // A surface whose callback throws costs nothing: the start still went through.
+  openCollabLaunch('work', { toolId: 'qr-code', baseParts: [], sessionId: 'ses_8', onOutcome: () => { throw new Error('gone'); } });
+  await new Promise((res) => setTimeout(res, 0));
+  assert.equal(r.delivered.length, 2);
+  off();
+});
+
 // ── The invite path ───────────────────────────────────────────────────────────
 
 test('an invite resolves the session first, then connects as a member', async () => {

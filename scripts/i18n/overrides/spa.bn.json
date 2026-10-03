@@ -772,5 +772,7 @@
   "You are in a live collab on this session.": "আপনি এই সেশনে লাইভ কোলাবে আছেন।",
   "This session is open for live editing. Use Start a collab to join in.": "এই সেশন লাইভ এডিটিংয়ের জন্য খোলা আছে। যোগ দিতে «কোলাব শুরু করুন» ব্যবহার করুন।",
   "This session is open for live editing. Try again when it closes.": "এই সেশন লাইভ এডিটিংয়ের জন্য খোলা আছে। বন্ধ হলে আবার চেষ্টা করুন।",
-  "The live collab saves your changes to this session.": "লাইভ কোলাব আপনার পরিবর্তনগুলি এই সেশনে সংরক্ষণ করে।"
+  "The live collab saves your changes to this session.": "লাইভ কোলাব আপনার পরিবর্তনগুলি এই সেশনে সংরক্ষণ করে।",
+  "Sign out": "সাইন আউট করুন",
+  "Could not sign out. Try again.": "সাইন আউট করা যায়নি। আবার চেষ্টা করুন।"
 }

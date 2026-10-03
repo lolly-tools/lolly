@@ -772,5 +772,7 @@
   "You are in a live collab on this session.": "你正在此工作階段中進行即時協作。",
   "This session is open for live editing. Use Start a collab to join in.": "此工作階段正開放即時編輯。點選「開始協作」即可加入。",
   "This session is open for live editing. Try again when it closes.": "此工作階段正開放即時編輯。請在協作結束後重試。",
-  "The live collab saves your changes to this session.": "即時協作會將你的變更儲存到此工作階段。"
+  "The live collab saves your changes to this session.": "即時協作會將你的變更儲存到此工作階段。",
+  "Sign out": "登出",
+  "Could not sign out. Try again.": "無法登出。請再試一次。"
 }

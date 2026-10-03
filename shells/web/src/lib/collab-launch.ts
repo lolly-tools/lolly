@@ -67,20 +67,33 @@ export interface CollabLaunchContext {
    * shared context rather than a second opener signature: the two tracks read the
    * parts of it they need.
    *
-   * POPULATED BY ONE PATH ONLY, and never guessed. The Projects view opens a team
-   * session by fetching it and rewriting the hash to `#/tool/<id>?<serialised state>`
-   * (`views/projects.ts`'s `openTeamSession`) - a faithful working copy that has
-   * deliberately forgotten where it came from, since the id is not an input and has no
-   * business in a shareable link. So the open stashes it beside the navigation
-   * (`org/team-session-origin.ts`), the tool view spends the stash at mount, and
-   * `org/collab-share.ts`'s row reads it back when the user presses "Start a collab".
-   * Everything else - a local session, a deep link, a reload of a team session, a
-   * remount - leaves the field ABSENT, and the `'work'` opener's honest refusal
-   * ("this mount is not a team session") is the answer there. The invite deep link,
-   * which carries the id in the message, remains the durable path.
+   * POPULATED ONLY FROM WHAT THE INSTANCE HANDED OVER, and never guessed. The Projects
+   * view opens a team session by fetching it and rewriting the hash to
+   * `#/tool/<id>?<serialised state>` (`views/projects.ts`'s `openTeamSession`) - a
+   * faithful working copy that has deliberately forgotten where it came from, since the
+   * id is not an input and has no business in a shareable link. So the open stashes it
+   * beside the navigation (`org/team-session-origin.ts`), the tool view spends the stash
+   * at mount, and `org/collab-share.ts`'s row reads it back when the user presses "Start
+   * a collab". Saving the document to a team project from the Share dialog's Team
+   * section (`org/team-save.ts`) gives the mount one the same way, and a reload of the
+   * tab keeps it (that file's rule 4). Everything else - a local session, a deep link,
+   * an ordinary remount - leaves the field ABSENT, and the `'work'` opener's honest
+   * refusal ("this mount is not a team session") is the answer there. The invite deep
+   * link, which carries the id in the message, remains the durable path.
    */
   sessionId?: string;
+  /**
+   * Told how the start ended, so the surface that launched it can show it: `ok`, or the
+   * sentence for why not. A callback rather than a return value because an opener is
+   * fire-and-forget and a start can take seconds. Optional on both sides: an opener with
+   * no single ending to report (the private track hands off to a ceremony) never calls
+   * it, and one that does calls it once, without passing it on with the context.
+   */
+  onOutcome?: (outcome: CollabLaunchOutcome) => void;
 }
+
+/** How a start ended, as an opener reports it through `CollabLaunchContext.onOutcome`. */
+export type CollabLaunchOutcome = { readonly ok: true } | { readonly ok: false; readonly message: string };
 
 /** Opens the given track's collab ceremony/join flow for the given context. */
 export type CollabOpener = (ctx: CollabLaunchContext) => void;

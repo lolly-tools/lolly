@@ -39,6 +39,9 @@ export interface ProfileViewCtx {
   instanceBase: string;
   activeDesignSystemLabel: string;
   adminHref: string | null;
+  /** The instance's sign-out while a member is signed in to one (org/index.ts
+   *  signOutOfInstance), else null: the instance card offers Sign out only when set. */
+  signOut: (() => Promise<boolean>) | null;
   canChangeInstance: boolean;
   shellUpdater: ShellUpdater | null;
   hasShellUpdater: boolean;

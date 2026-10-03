@@ -902,5 +902,7 @@
   "You are in a live collab on this session.": "Du er i et live samarbeid på denne økten.",
   "This session is open for live editing. Use Start a collab to join in.": "Denne økten er åpen for live redigering. Bruk Start et samarbeid for å bli med.",
   "This session is open for live editing. Try again when it closes.": "Denne økten er åpen for live redigering. Prøv igjen når den lukkes.",
-  "The live collab saves your changes to this session.": "Live samarbeidet lagrer endringene dine i denne økten."
+  "The live collab saves your changes to this session.": "Live samarbeidet lagrer endringene dine i denne økten.",
+  "Sign out": "Logg ut",
+  "Could not sign out. Try again.": "Kunne ikke logge ut. Prøv igjen."
 }

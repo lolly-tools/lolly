@@ -692,14 +692,20 @@ export function buildCollabInviteAction(
  *
  * `CollabOpener` is fire-and-forget, so the outcome is announced rather than returned:
  * the share row's own `announce('Starting a collab')` is a promise this keeps or
- * corrects a moment later.
+ * corrects a moment later. The same outcome goes to the launching surface's
+ * `onOutcome`, which is how the Share row shows a failure under its button: an
+ * announcement alone reaches a screen reader and nobody else.
  */
 export function registerWorkCollabOpener(deps: WorkCollabDeps = {}): () => void {
   const offPolicy = registerWorkCollabPolicy(canEditCollab);
-  const offOpener = registerCollabOpener('work', (ctx) => {
-    void openWorkCollab(ctx, deps)
-      .then((outcome) => { announce(outcome.ok ? tRaw(STRINGS.joined) : outcome.message, { assertive: !outcome.ok }); })
-      .catch(() => { announce(tRaw(STRINGS.unreachable), { assertive: true }); });
+  const offOpener = registerCollabOpener('work', ({ onOutcome, ...launch }) => {
+    // The callback belongs to this press. The context the room starts with, which the
+    // connection carries on as `launch`, stays plain data.
+    const report = (outcome: WorkCollabOutcome): void => {
+      announce(outcome.ok ? tRaw(STRINGS.joined) : outcome.message, { assertive: !outcome.ok });
+      try { onOutcome?.(outcome); } catch { /* the surface went away; the announcement stands */ }
+    };
+    void openWorkCollab(launch, deps).then(report, () => { report(fail('unreachable', tRaw(STRINGS.unreachable))); });
   });
   return () => { offOpener(); offPolicy(); };
 }

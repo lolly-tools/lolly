@@ -50,6 +50,11 @@ test("'jelly' surfaces the Jelly flag by name", async () => {
   assert.equal(flagHit!.subtitle, 'Feature flags');
 });
 
+test("'sign out' lands on the instance card, where a member's Sign out is", async () => {
+  const hits = await search('sign out');
+  assert.ok(hits.some((h) => h.href === '#/settings?focus=instance-section'), 'instance-section hit present');
+});
+
 test("'focus music' surfaces Neurospicy Mode (pill match, AND across tokens)", async () => {
   const hits = await search('focus music');
   assert.ok(hits.some((h) => h.title === 'Neurospicy Mode'), 'pill "focus music" carries the flag');

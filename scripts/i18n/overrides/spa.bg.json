@@ -902,5 +902,7 @@
   "You are in a live collab on this session.": "Ти си в колаборация на живо в тази сесия.",
   "This session is open for live editing. Use Start a collab to join in.": "Тази сесия е отворена за редактиране на живо. Използвай Започни колаборация, за да се включиш.",
   "This session is open for live editing. Try again when it closes.": "Тази сесия е отворена за редактиране на живо. Опитай отново, когато се затвори.",
-  "The live collab saves your changes to this session.": "Колаборацията на живо запазва промените ти в тази сесия."
+  "The live collab saves your changes to this session.": "Колаборацията на живо запазва промените ти в тази сесия.",
+  "Sign out": "Изход",
+  "Could not sign out. Try again.": "Изходът не е възможен. Опитай отново."
 }

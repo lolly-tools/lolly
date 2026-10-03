@@ -900,5 +900,7 @@
   "You are in a live collab on this session.": "Bu oturumda canlı bir iş birliğindesin.",
   "This session is open for live editing. Use Start a collab to join in.": "Bu oturum canlı düzenlemeye açık. Katılmak için İş birliği başlat'ı kullan.",
   "This session is open for live editing. Try again when it closes.": "Bu oturum canlı düzenlemeye açık. Kapandığında tekrar dene.",
-  "The live collab saves your changes to this session.": "Canlı iş birliği değişikliklerini bu oturuma kaydeder."
+  "The live collab saves your changes to this session.": "Canlı iş birliği değişikliklerini bu oturuma kaydeder.",
+  "Sign out": "Oturumu kapat",
+  "Could not sign out. Try again.": "Oturum kapatılamadı. Tekrar dene."
 }

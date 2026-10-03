@@ -7263,5 +7263,7 @@
   "You are in a live collab on this session.": "你正在此会话中进行实时协作。",
   "This session is open for live editing. Use Start a collab to join in.": "此会话正开放实时编辑。点击“开始协作”即可加入。",
   "This session is open for live editing. Try again when it closes.": "此会话正开放实时编辑。请在协作结束后重试。",
-  "The live collab saves your changes to this session.": "实时协作会将你的更改保存到此会话。"
+  "The live collab saves your changes to this session.": "实时协作会将你的更改保存到此会话。",
+  "Sign out": "退出登录",
+  "Could not sign out. Try again.": "无法退出登录。请重试。"
 }

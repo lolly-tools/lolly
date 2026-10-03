@@ -191,7 +191,8 @@ export const NAV_SECTIONS: ReadonlyArray<ProfileNavSection> = [
   { id: 'hotfolder-section', icon: 'download', label: 'Hot folder', keywords: 'hot folder watch auto import ingest desktop drop directory' },
   { id: 'activity-section', icon: 'history', label: 'Your activity', keywords: 'activity usage metrics stats history recent' },
   { id: 'feature-flags-section', icon: 'flask', label: 'Feature flags', keywords: 'features experimental beta jelly neurospicy flags toggles' },
-  { id: 'instance-section', icon: 'globe', label: 'Lolly instance', keywords: 'instance server source tools catalogue connect disconnect' },
+  // A member of an instance finds "Sign out" in this card, so searching for those words opens the card.
+  { id: 'instance-section', icon: 'globe', label: 'Lolly instance', keywords: 'instance server source tools catalogue connect disconnect sign out log out logout account switch' },
 ];
 
 /** Match navigation and search to the sections available in this shell. */

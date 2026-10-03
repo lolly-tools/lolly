@@ -289,6 +289,13 @@ let unregisterToolMount: (() => void) | null = null;
  *  trusting an old copy indefinitely. */
 const ORG_CONFIG_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const orgConfigKey = (): string => `lolly:org-config:${getInstanceBase() || 'same-origin'}`;
+/** Set by a sign-out and cleared by the next member session: while it is set, the gate's
+ *  Sign in asks the identity provider for its account picker. Without it the provider's
+ *  own session, which a sign-out here does not end, signs the next person straight back
+ *  in as the one who just left. lolly-work's login route passes the prompt on to the
+ *  provider (and on through its provider chooser). Device-wide rather than per tab: on a
+ *  shared device the next person often opens a new tab. */
+const signedOutKey = (): string => `lolly:signed-out:${getInstanceBase() || 'same-origin'}`;
 
 // ── Accessors + subscription (the tiny surface other code may consult) ────────
 
@@ -342,6 +349,15 @@ export function orgAdminHref(): string | null {
 }
 
 /**
+ * Whether a member is signed in to this instance: what offers "Sign out" in the
+ * profile view's instance card, to every member and not only an admin. False when
+ * dormant and for a guest, so a deployment with no control plane shows no such button.
+ */
+export function orgMemberSignedIn(): boolean {
+  return session?.kind === 'member';
+}
+
+/**
  * Fill `into` with the signed-in member's account card ("Linked sign-ins"), for the
  * profile view's instance section. Registered with lib/profile-sections.ts on the
  * member branch of initOrg, so the view imports nothing from org/. Returns false, and touches nothing, when there is
@@ -369,6 +385,37 @@ async function fetchSession(): Promise<Session | null> {
   if (!res || res.status === 401) return null; // 401 ⇒ no session
   const body = await jsonBody<Session>(res);
   return body && (body.kind === 'member' || body.kind === 'guest') ? body : null;
+}
+
+/**
+ * Sign the member out of this instance the way its console does: `POST /api/auth/logout`
+ * with no body, which clears the session cookies. No token rides along - the control
+ * plane's cross-site guard admits a same-site request carrying the cookie - and it goes
+ * through instanceFetch like every call here, so the instance the shell points at is the
+ * one signed out of. Resolves true when the instance confirmed it (any 2xx), false on a
+ * refusal, a network error or the time box, having changed nothing.
+ *
+ * On success it notes the sign-out, so the gate's Sign in offers the identity provider's
+ * account picker next time ({@link signedOutKey}), and it forgets what this device kept
+ * for the person, so the reload that follows cannot show them again: the org-config
+ * cache (kept per instance, not per person, so the next member to sign in here would
+ * otherwise stand on it whenever their own load failed), the session pair a native
+ * shell parked (its transport has no cookie jar, so the cleared cookie never reaches
+ * it), the install tag and this module's session and config. The install id stays: it
+ * identifies the device, not the person, and only Leave forgets it
+ * (lib/instance-leave.ts).
+ */
+export async function signOutOfInstance(): Promise<boolean> {
+  const res = await safeFetch('/api/auth/logout', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
+  if (!res?.ok) return false;
+  try { localStorage.removeItem(orgConfigKey()); } catch { /* storage unavailable - the copy expires on its TTL */ }
+  try { localStorage.setItem(signedOutKey(), '1'); } catch { /* storage unavailable - the gate's plain link */ }
+  await setInstanceSession(null);
+  setInstallTag(null);
+  session = null;
+  orgConfigState = null;
+  orgConfigEtag = null;
+  return true;
 }
 
 /** The outcome of one member org-config load. `ok` carries a usable config (a fresh
@@ -599,12 +646,15 @@ export function applyInjectables(config: OrgConfig | null): void {
 // ── The sign-in gate (rendered in place of the app for a gated instance) ──────
 
 /** Build the login URL: the deployment's loginPath (instance-prefixed) carrying
- *  returnTo=<the URL the visitor asked for>. */
+ *  returnTo=<the URL the visitor asked for>, plus `prompt=select_account` after a
+ *  sign-out on this device (see {@link signedOutKey}). */
 function loginUrl(loginPath: string): string {
   const returnTo = location.pathname + location.search + location.hash;
   const base = instancePath(loginPath);
   const sep = base.includes('?') ? '&' : '?';
-  return `${base}${sep}returnTo=${encodeURIComponent(returnTo)}`;
+  let picker = false;
+  try { picker = localStorage.getItem(signedOutKey()) === '1'; } catch { /* storage unavailable - the plain link */ }
+  return `${base}${sep}returnTo=${encodeURIComponent(returnTo)}${picker ? '&prompt=select_account' : ''}`;
 }
 
 /**
@@ -639,8 +689,11 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // Built here rather than inline so the suppression can sit on the sink's own
   // line - semgrep honours nosemgrep only there or on the line directly above,
   // and inside a template literal a JS comment would be emitted as page text.
+  // min-height is the shared 44px finger floor (--ui-size-target, styles/tokens.css):
+  // the .btn padding alone made this a 32px target on a phone, and it is the one thing
+  // on the page a signed-out visitor has to press.
   const action = linkSafe
-    ? `<a class="btn btn--primary" href="${escape(href)}" style="display:inline-flex;align-items:center;justify-content:center;min-width:9rem">${t('Sign in')}</a>` // nosemgrep: lolly-href-escape-is-not-scheme-validation - reached only when safeHref(href) passed; an unsafe loginPath drops the anchor and states why
+    ? `<a class="btn btn--primary" href="${escape(href)}" style="display:inline-flex;align-items:center;justify-content:center;min-width:9rem;min-height:var(--ui-size-target)">${t('Sign in')}</a>` // nosemgrep: lolly-href-escape-is-not-scheme-validation - reached only when safeHref(href) passed; an unsafe loginPath drops the anchor and states why
     : `<p style="margin:0;color:hsl(var(--muted-foreground));font-size:.9rem">${t('This instance did not supply a usable sign-in link. Ask whoever runs it to check its configuration.')}</p>`;
   view.innerHTML = `
     <section class="org-gate" aria-label="${escape(t('Sign in'))}" style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
@@ -675,7 +728,8 @@ interface DeviceStart {
  *  501 / no JSON) collapses the affordance to nothing after the first press. */
 function wireDeviceCodeSignIn(slot: HTMLElement): void {
   const idle = (): void => {
-    slot.innerHTML = `<button type="button" class="btn" id="org-gate-device-btn" style="min-width:9rem">${t('Sign in with a code on another device')}</button>`;
+    // The same 44px finger floor as the gate's Sign in: on a phone app this is the way in.
+    slot.innerHTML = `<button type="button" class="btn" id="org-gate-device-btn" style="min-width:9rem;min-height:var(--ui-size-target)">${t('Sign in with a code on another device')}</button>`;
     slot.querySelector('#org-gate-device-btn')?.addEventListener('click', () => { void start(); });
   };
 
@@ -689,6 +743,7 @@ function wireDeviceCodeSignIn(slot: HTMLElement): void {
     btn.type = 'button';
     btn.className = 'btn';
     btn.style.marginTop = '.75rem';
+    btn.style.minHeight = 'var(--ui-size-target)';
     btn.textContent = t('Try again');
     btn.addEventListener('click', () => { void start(); });
     p?.insertAdjacentElement('afterend', btn);
@@ -826,6 +881,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
     // fetch below is already a registering request - and never otherwise. An
     // anonymous or guest shell stays untagged; leaveInstance() forgets the id.
     if (isMember) {
+      try { localStorage.removeItem(signedOutKey()); } catch { /* storage unavailable */ }
       try { setInstallTag(await ensureInstallId()); } catch { /* untagged is always safe */ }
     } else {
       setInstallTag(null);

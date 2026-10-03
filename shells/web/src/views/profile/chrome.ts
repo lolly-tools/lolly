@@ -22,9 +22,9 @@ import { openProfileModals, openProfileToasts } from './shared.ts';
 import { bindOp, type ProfileViewCtx } from './context.ts';
 import { mountProfileSections } from '../../lib/profile-sections.ts';
 
-/** The design-systems card plus the instance Change and Leave buttons. */
+/** The design-systems card plus the instance Change, Leave and Sign out buttons. */
 export function wireInstanceCard(pv: ProfileViewCtx): void {
-  const { host, viewEl } = pv;
+  const { host, signOut, viewEl } = pv;
   // Lolly instance - "Change" re-opens the sheet (views/profile.ts is one of
   // its two callers; see components/instance-sheet.ts's header). "Leave" takes
   // the covenant's whole exit (lib/instance-leave.ts): org caches, the install
@@ -74,6 +74,29 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
     await syncCatalog(host as unknown as Parameters<typeof syncCatalog>[0]).catch(() => { /* offline - falls back to cache */ });
     window.dispatchEvent(new Event('lolly:remount')); // re-navigates the current route with the fresh (bundled) catalogue
   });
+  // Sign out: the instance's own logout (pv.signOut, handed over by views/profile.ts so
+  // this module imports nothing from the control-plane seam), then a fresh load at the
+  // app root, where boot asks again who is here - a gated instance shows its sign-in, so
+  // another person can sign in on this device. A refusal or a network failure leaves the
+  // person signed in, says so under the row and reloads nothing. Back after a sign-out
+  // can bring this very page out of the browser's back/forward cache, still showing the
+  // person who left; a page restored that way loads afresh instead.
+  const signOutBtn = viewEl.querySelector<HTMLButtonElement>('#instance-signout-btn');
+  const signOutErr = viewEl.querySelector<HTMLElement>('#instance-signout-error');
+  if (signOut && signOutBtn) {
+    signOutBtn.addEventListener('click', async () => {
+      if (signOutBtn.disabled) return;
+      signOutBtn.disabled = true;
+      if (signOutErr) { signOutErr.hidden = true; signOutErr.textContent = ''; }
+      if (await signOut().catch(() => false)) {
+        window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
+        location.replace('/');
+        return;
+      }
+      signOutBtn.disabled = false;
+      if (signOutErr) { signOutErr.textContent = t('Could not sign out. Try again.'); signOutErr.hidden = false; }
+    });
+  }
 }
 
 /** Language FAB, back pill, home FAB, the sound switch and the help tips. */

@@ -55,7 +55,7 @@ const {
   releaseTeamSessionOrigin, pendingTeamSessionOrigin, _clearTeamSessionOriginForTests,
   noteTeamSessionLive, teamSessionLive,
 } = await import('./team-session-origin.ts');
-const { buildWorkCollabShareSection } = await import('./collab-share.ts');
+const { buildWorkCollabShareSection, _clearCollabStartsForTests } = await import('./collab-share.ts');
 const { initOrg, _resetOrgForTests } = await import('./index.ts');
 const { registerCollabOpener, _clearCollabOpenersForTests } = await import('../lib/collab-launch.ts');
 
@@ -164,6 +164,7 @@ test('projectId is carried when known and omitted when not (never an undefined k
 function reset(): void {
   _resetOrgForTests();
   _clearCollabOpenersForTests();
+  _clearCollabStartsForTests();
   _clearTeamSessionOriginForTests();
   store.clear();
   router = () => new Response('', { status: 404 });
@@ -180,14 +181,20 @@ async function memberWhoCanJoin(): Promise<void> {
   await initOrg();
 }
 
-const shareCtx = { toolId: 'qr-code', baseParts: ['url=https%3A%2F%2Fsuse.com'], currentFormat: 'png', copy: async () => {} };
+// Opened over a live tool: the document reader is what lets the Team section save a local
+// document to a team project, so the row is offered for one (org/collab-share.ts's header).
+const shareCtx = { toolId: 'qr-code', baseParts: ['url=https%3A%2F%2Fsuse.com'], currentFormat: 'png', copy: async () => {}, document: () => ({ inputs: {} }) };
 
-/** Render the row, press it, and return every context the opener saw. */
+/** Render the row, press it, and return every context the opener saw - minus the row's
+ *  own `onOutcome` callback (checked present here), so the data is compared exactly. */
 function pressStartCollab(ctx = shareCtx): unknown[] {
   const seen: unknown[] = [];
-  registerCollabOpener('work', (c) => { seen.push(c); });
+  registerCollabOpener('work', ({ onOutcome, ...c }) => {
+    assert.equal(typeof onOutcome, 'function', 'the row hears how the start ended');
+    seen.push(c);
+  });
   const section = buildWorkCollabShareSection(ctx)!;
-  assert.ok(section, 'the row renders when both gates hold');
+  assert.ok(section, 'the row renders when every gate holds');
   section.querySelector('button[data-act="start-work-collab"]')!
     .dispatchEvent(new dom.window.Event('click', { bubbles: true }));
   return seen;

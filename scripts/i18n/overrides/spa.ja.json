@@ -772,5 +772,7 @@
   "You are in a live collab on this session.": "このセッションでライブコラボに参加しています。",
   "This session is open for live editing. Use Start a collab to join in.": "このセッションはライブ編集中です。「コラボを開始」から参加できます。",
   "This session is open for live editing. Try again when it closes.": "このセッションはライブ編集中です。終了後にもう一度お試しください。",
-  "The live collab saves your changes to this session.": "ライブコラボでの変更は、このセッションに保存されます。"
+  "The live collab saves your changes to this session.": "ライブコラボでの変更は、このセッションに保存されます。",
+  "Sign out": "サインアウト",
+  "Could not sign out. Try again.": "サインアウトできませんでした。もう一度お試しください。"
 }

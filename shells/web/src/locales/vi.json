@@ -7263,5 +7263,7 @@
   "You are in a live collab on this session.": "Bạn đang cộng tác trực tiếp trong phiên này.",
   "This session is open for live editing. Use Start a collab to join in.": "Phiên này đang mở để chỉnh sửa trực tiếp. Dùng Bắt đầu cộng tác để tham gia.",
   "This session is open for live editing. Try again when it closes.": "Phiên này đang mở để chỉnh sửa trực tiếp. Hãy thử lại khi phiên đóng.",
-  "The live collab saves your changes to this session.": "Cộng tác trực tiếp sẽ lưu các thay đổi của bạn vào phiên này."
+  "The live collab saves your changes to this session.": "Cộng tác trực tiếp sẽ lưu các thay đổi của bạn vào phiên này.",
+  "Sign out": "Đăng xuất",
+  "Could not sign out. Try again.": "Không thể đăng xuất. Hãy thử lại."
 }

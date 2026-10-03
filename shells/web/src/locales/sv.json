@@ -7263,5 +7263,7 @@
   "You are in a live collab on this session.": "Du är i ett live-samarbete i den här sessionen.",
   "This session is open for live editing. Use Start a collab to join in.": "Den här sessionen är öppen för live-redigering. Använd Starta ett samarbete för att gå med.",
   "This session is open for live editing. Try again when it closes.": "Den här sessionen är öppen för live-redigering. Försök igen när den stängs.",
-  "The live collab saves your changes to this session.": "Live-samarbetet sparar dina ändringar i den här sessionen."
+  "The live collab saves your changes to this session.": "Live-samarbetet sparar dina ändringar i den här sessionen.",
+  "Sign out": "Logga ut",
+  "Could not sign out. Try again.": "Kunde inte logga ut. Försök igen."
 }

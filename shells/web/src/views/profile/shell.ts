@@ -27,7 +27,7 @@ import { bindOp, type ProfileViewCtx } from './context.ts';
 
 /** The whole page markup in one write: the nav rail and every settings card. */
 export function renderShell(pv: ProfileViewCtx): void {
-  const { activeDesignSystemLabel, activeTheme, adminHref, canChangeInstance, displayName, fields, hasShellUpdater, instanceBase, metrics, profile, viewEl } = pv;
+  const { activeDesignSystemLabel, activeTheme, adminHref, canChangeInstance, displayName, fields, hasShellUpdater, instanceBase, metrics, profile, signOut, viewEl } = pv;
   viewEl.innerHTML = `
     ${backHomeHtml()}
     <div class="gallery-topbar" style="justify-content:flex-end">
@@ -267,10 +267,13 @@ export function renderShell(pv: ProfileViewCtx): void {
         <p class="profile-appearance-sub">${t('Where this install gets its tools and catalogue from.')}</p>
         <div class="store-manage--row">
           <span class="store-manage-name">${escapeText(instanceBase || t('Bundled with this app'))}</span>
-          <span style="display:flex;gap:8px">
+          <span style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px">
             ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - orgAdminHref() returns the '/admin' literal or null; no control-plane value reaches it */ ''}
             <button type="button" class="btn" id="instance-design-systems">${t('Design-system source')}</button>
             ${adminHref ? `<a class="btn" id="instance-console-link" href="${escapeText(adminHref)}">${t('Instance console')}</a>` : ''}
+            ${/* Every member, not only an admin: without it, switching people on one device
+                  meant clearing the browser's site data. Wired in chrome.ts. */ ''}
+            ${signOut ? `<button type="button" class="btn" id="instance-signout-btn">${t('Sign out')}</button>` : ''}
             ${canChangeInstance ? `<button type="button" class="btn" id="instance-change-btn">${t('Change')}</button>` : ''}
             ${/* Leave is never desktop-only: a .lolly share file carrying an instance pack
                   connects ANY shell to that pack's instance (brand-transfer.ts), and a browser
@@ -278,6 +281,7 @@ export function renderShell(pv: ProfileViewCtx): void {
             ${instanceBase ? `<button type="button" class="btn-link-danger" id="instance-disconnect-btn">${t('Leave')}</button>` : ''}
           </span>
         </div>
+        ${signOut ? `<p class="profile-inline-error" id="instance-signout-error" role="alert" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>` : ''}
         ${canChangeInstance ? '' : `<p class="profile-appearance-sub">${t('Pointing at another Lolly instance needs the desktop app - a browser blocks a page from loading tools and assets across origins.')}</p>`}
         ${/* App updates (plans/202 WP4.1) - the row and its wiring live in
               views/profile-updates.ts. */ ''}
