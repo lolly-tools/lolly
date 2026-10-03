@@ -1,6 +1,6 @@
 pkgbase = lolly-desktop-bin
 	pkgdesc = Constraint-first studio for on-brand creative assets (official binary release)
-	pkgver = 1.0.9
+	pkgver = 1.1.0
 	pkgrel = 1
 	url = https://lolly.tools
 	arch = x86_64
@@ -16,7 +16,7 @@ pkgbase = lolly-desktop-bin
 	provides = lolly-desktop
 	conflicts = lolly-desktop
 	options = !strip
-	source = https://lolli.li/lolly-desktop-1.0.9_amd64.deb
-	sha256sums = abd70c13cdeaa4e72f3d1f9a585105b4b442015980de624d5dc939bc0407773d
+	source = https://lolli.li/lolly-desktop-1.1.0_amd64.deb
+	sha256sums = 8ca439995d80ab5c3828834412e9b29bec0b32e4526d61b2c83140d62702253e
 
 pkgname = lolly-desktop-bin
