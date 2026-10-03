@@ -14,7 +14,9 @@
  * Sync is idempotent and resumable. Network failure ≠ broken app - we fall back
  * to whatever is in cache and flip `networkStatus.offline`, which surfaces a small
  * self-contained "offline" chip (and is readable by views that want their own
- * indicator).
+ * indicator). A 401/403 is not a network failure: the instance keeps its catalog
+ * for signed-in people, so it stops the sync quietly with no chip
+ * (lib/catalog-access.ts).
  */
 
 import { AssetChecksumError } from '../bridge/assets.ts';
@@ -31,6 +33,7 @@ import { runBackgroundTasks } from '../lib/background-tasks.ts';
 // model tables along. Both call sites are async, so the import is invisible.
 const offlineManager = () => import('../lib/offline-manager.ts');
 import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
+import { CatalogRefusedError, catalogRefused, catalogRefusedBefore, isAccessRefused, noteCatalogAllowed, noteCatalogRefused } from '../lib/catalog-access.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -238,27 +241,59 @@ let cachedAssetIndex: AssetIndex | null = null;
  * main.ts passes the first-run welcome's gate (lib/welcome-gate.ts); injected rather
  * than imported so this module stays free of welcome wiring. Without a gate the
  * prune runs inline, as every other caller expects.
+ *
+ * `signInRequired`, when given, is asked only when this instance refused its
+ * catalog on an earlier page load (lib/catalog-access.ts); resolving true skips
+ * the sync, so a visitor who is still signed out sends no catalog requests at
+ * all. main.ts passes the control-plane probe's sign-in gate. Without it, or with
+ * no remembered refusal, the sync starts at once as it always has.
  */
 export async function syncCatalog(
   host: SyncHost,
   onAssetsReady?: () => unknown,
   maintenanceGate?: () => Promise<unknown>,
+  signInRequired?: () => Promise<boolean>,
 ): Promise<void> {
   // Load the persisted instance base BEFORE the first fetch. Wired here (not in
   // main.ts) so the sync bootstrap is self-contained: every entry point that
   // syncs gets the right base with no boot-order coordination. Never throws.
   await initInstanceBase();
-  setOffline(false);
+  if (catalogRefused()) return;
+  // The sign-in answer and the asset sync after it are ONE pending asset sync, so a
+  // cold token read (bridge/tokens.ts) waits for the answer and then reads either
+  // the refusal or the synced metadata, instead of fetching the asset index ahead
+  // of the decision. A probe that fails says nothing: the sync goes ahead and the
+  // catalog itself answers.
+  const allowed = signInRequired && catalogRefusedBefore()
+    ? signInRequired().then(gated => { if (gated) noteCatalogRefused(); return !gated; }, () => true)
+    : null;
   try {
-    const assetsReady = duringAssetSync(syncAssets(host, onAssetsReady, maintenanceGate));
+    const assetsReady = duringAssetSync(allowed
+      ? allowed.then(go => go ? syncAssets(host, onAssetsReady, maintenanceGate) : undefined)
+      : syncAssets(host, onAssetsReady, maintenanceGate));
+    if (allowed && !await allowed) return;
+    setOffline(false);
     await Promise.all([
       assetsReady,
       onAssetsReady ? assetsReady.catch(() => {}).then(() => syncTools(host)) : syncTools(host),
     ]);
   } catch (e) {
+    if (e instanceof CatalogRefusedError || catalogRefused()) {
+      host.log('info', 'Catalog needs sign-in; not synced');
+      return;
+    }
     setOffline(true);
     host.log('warn', 'Catalog sync failed; using cached', { error: String(e) });
   }
+}
+
+/** The error for a catalog response that is not OK: a refusal (401/403) is
+ *  recorded as "signed out" and comes back as a CatalogRefusedError, which no
+ *  caller retries or reports as offline. */
+function notOk(resp: Response, url: string): Error {
+  if (!isAccessRefused(resp.status)) return new Error(`HTTP ${resp.status} fetching ${url}`);
+  noteCatalogRefused();
+  return new CatalogRefusedError(resp.status, url);
 }
 
 /**
@@ -305,7 +340,8 @@ async function conditionalFetch(url: string, etagKey: string): Promise<Response 
   // keeps the explicit validators.
   if (usesBrowserCors(url)) {
     const fresh = await instanceFetch(url, { cache: 'no-cache' });
-    if (!fresh.ok) throw new Error(`HTTP ${fresh.status} fetching ${url}`);
+    if (!fresh.ok) throw notOk(fresh, url);
+    noteCatalogAllowed();
     return fresh;
   }
   const stored = getCatalogMeta(etagKey);
@@ -314,9 +350,9 @@ async function conditionalFetch(url: string, etagKey: string): Promise<Response 
   else if (stored?.lastModified) headers['If-Modified-Since'] = stored.lastModified;
 
   const resp = await instanceFetch(url, { headers });
+  if (resp.status !== 304 && !resp.ok) throw notOk(resp, url);
+  noteCatalogAllowed();
   if (resp.status === 304) return null; // unchanged
-
-  if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${url}`);
 
   const etag = resp.headers.get('ETag');
   const lastModified = resp.headers.get('Last-Modified');
@@ -372,6 +408,9 @@ export function loadSlimToolIndex(): Promise<ToolIndex | null> {
       // The base decides WHICH deployment's catalog this is; syncCatalog awaits the
       // same memoised promise, so this costs one shared IndexedDB read, not two.
       await initInstanceBase();
+      // An instance that refused its catalog last time waits for the sign-in
+      // answer in syncCatalog; this fast path does not run ahead of that answer.
+      if (catalogRefusedBefore()) return null;
       if (await getToolIntegrity()) return null;
       // index.html's pre-paint script already started this exact request on a cold
       // visit (see its slim-index note): adopt that response rather than making a
@@ -402,6 +441,8 @@ async function syncTools(host: SyncHost): Promise<void> {
   // the re-stringify + synchronous localStorage rewrite. We keep the localStorage
   // copy (rewritten only on a fresh 200) so the gallery can fall back offline.
   for (let attempt = 0; attempt < CATALOG_FETCH_ATTEMPTS; attempt++) {
+    // Refused (401/403) is not a failure to retry or to cover with the offline copy.
+    if (catalogRefused()) return;
     try {
       const resp = await conditionalFetch(instancePath(`${CATALOG_BASE}/tools/index.json`), 'tool-index');
       if (!resp) {
@@ -428,6 +469,7 @@ async function syncTools(host: SyncHost): Promise<void> {
       host.log('info', `Tool catalog: ${index.tools.length} tools`);
       return;
     } catch (e) {
+      if (e instanceof CatalogRefusedError || catalogRefused()) return;
       if (attempt < CATALOG_FETCH_ATTEMPTS - 1) {
         await delay(CATALOG_RETRY_BASE_MS * (attempt + 1));
         continue;
@@ -602,6 +644,7 @@ async function offlineScopeFilter(): Promise<((a: AssetMetaRecord) => boolean) |
 }
 
 export async function syncCorePrefetch(host: SyncHost): Promise<void> {
+  if (catalogRefused()) return;
   try {
     // Reuse the index syncAssets already fetched this boot. Only fall back to a
     // network fetch if it ran a 304 (unchanged) and never stashed one.

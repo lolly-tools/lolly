@@ -236,6 +236,14 @@ const BYPASS_PATTERNS = [
   // JSON policy data: a NAVIGATION to it must not run through the document
   // branch below, which would cache a non-HTML body as the app shell.
   /^\/\.well-known\//,
+  // A private instance (lolly-work) serves this app and its own pages from one
+  // origin: the admin console, activation, share links, connect, renders, SCIM and
+  // the health probes. Their last segment has no dot, so the navigate branch would
+  // store the console's HTML as the offline app shell, and answer a cold-start 5xx
+  // there with the app instead of the server's own error. None of these is an app
+  // route on any deployment. lolly-work keeps the same list as
+  // SHELL_SW_BYPASS_PREFIXES (scripts/vercel-routes.ts) and tests it against this one.
+  /^\/(?:activate|admin|connect|healthz|l|metrics|readyz|render|scim)(?:\/|$)/,
   // NOTE /info is no longer in this list. It used to be bypassed outright - a
   // navigation there is REAL static HTML, and storing one under SHELL_URL once
   // poisoned the offline boot (reading the privacy policy replaced the cached

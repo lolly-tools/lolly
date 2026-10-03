@@ -41,7 +41,7 @@
 
 import type { ShareSectionContext } from '../lib/share-sections.ts';
 import { canJoinCollab } from './collab-config.ts';
-import { activeTeamSessionOrigin } from './team-session-origin.ts';
+import { activeTeamSessionOrigin, teamSessionLive } from './team-session-origin.ts';
 import { getCollabOpener, openCollabLaunch } from '../lib/collab-launch.ts';
 import { t } from '../i18n.ts';
 import { announce } from '../a11y.ts';
@@ -50,6 +50,7 @@ import { announce } from '../a11y.ts';
  * Build the "Work collab" section, or null when the caller may not join a work
  * collab on this instance, or no `'work'` opener is registered yet. Exported for
  * tests, which call it directly rather than through the share-sections registry.
+ * org/team-save.ts liveCollabJoinable repeats this gate; change both together.
  */
 export function buildWorkCollabShareSection(ctx: ShareSectionContext): HTMLElement | null {
   if (!canJoinCollab()) return null;
@@ -67,8 +68,18 @@ export function buildWorkCollabShareSection(ctx: ShareSectionContext): HTMLEleme
   row.style.cssText = 'display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap';
   const note = document.createElement('span');
   note.className = 'share-shortest-note';
-  note.textContent = t('Invite others on this instance to co-edit this session, live.');
   row.appendChild(note);
+
+  // This tab is already in the room for the session on screen: show that, and offer no
+  // second start, which would only join the same room again and remount the tool.
+  const live = activeTeamSessionOrigin(ctx.toolId);
+  if (live && teamSessionLive(live.sessionId)) {
+    section.dataset.collabLive = '';
+    note.textContent = t('You are in a live collab on this session.');
+    section.append(heading, row);
+    return section;
+  }
+  note.textContent = t('Invite others on this instance to co-edit this session, live.');
 
   const btn = document.createElement('button');
   btn.type = 'button';
@@ -87,6 +98,8 @@ export function buildWorkCollabShareSection(ctx: ShareSectionContext): HTMLEleme
     // field is OMITTED rather than set to undefined when there is none, so an ordinary
     // local session hands the opener the byte-identical context it always has.
     const origin = activeTeamSessionOrigin(ctx.toolId);
+    // A panel drawn before the room went live is not a second start either.
+    if (origin && teamSessionLive(origin.sessionId)) return;
     const opened = openCollabLaunch('work', {
       toolId: ctx.toolId,
       baseParts: ctx.baseParts,

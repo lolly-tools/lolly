@@ -1339,7 +1339,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/profile/storage.ts': 4,      // the storage meter, session and image lists (6 → 4 on 2026-09-30: the reclaim and quota lines went with the regrouped card)
   'views/profile/offline.ts': 2,      // the download-manager list and the persistence line
   'views/profile/identity.ts': 4,     // the credentials card: status, enrol form and its errors
-  'views/projects.ts': 8,   // View-options markup moved to its shared-popover adapter.
+  'views/projects.ts': 5,   // View-options markup moved to its shared-popover adapter; the Team projects modal moved to org/team-projects.ts (DOM-built, no sink).
   'views/projects-view-options.ts': 1, // Static enums + escaped t() labels and the existing theme/sound generators.
   'lib/live-preview.ts': 2, // Inert templates parse the same hydrated source already mounted by render.ts; only local raster-frame attributes are patched after complete structural comparison.
   // 6 → 7, 2026-08-27: the choose-microphone stage button's glyph injection,

@@ -35,6 +35,7 @@ import {
   instancePath, getInstanceBase,
   ensureInstallId, setInstallTag, setInstanceSession,
 } from '../lib/instance.ts';
+import { noteCatalogRefused } from '../lib/catalog-access.ts';
 import { setFieldPolicies } from '../lib/field-policy.ts';
 import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stopAiPolicyPolling } from './ai-policy.ts';
 import type { AiPolicy } from '../lib/ai-policy.ts';
@@ -42,10 +43,11 @@ import type { FieldPolicy } from '../lib/field-policy.ts';
 import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount } from '../lib/input-policy.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
+import { registerProfileSection } from '../lib/profile-sections.ts';
 import { setExportPolicy } from '../lib/export-policy.ts';
 import { failClosedSitePolicy, setSitePolicy } from '../lib/site-policy.ts';
 import { registerApprovalOpener } from '../lib/approval-request.ts';
-import { registerSessionSource } from '../lib/session-source.ts';
+import { getSessionWriter, registerSessionSource } from '../lib/session-source.ts';
 import { registerNearbyProvider } from '../lib/nearby.ts';
 import { createOrgNearbyProvider } from './nearby-source.ts';
 import {
@@ -58,7 +60,7 @@ import { setOrgGovernanceResolver, type FlagGovernance } from './governance.ts';
 // The probe half of this seam, in its own leaf so boot can run it without loading
 // this module - see org/probe.ts's header. The helpers below are shared, not
 // duplicated: one definition of "tolerant, time-boxed, JSON-only".
-import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, probeAuthConfig, rememberAbsent, safeFetch } from './probe.ts';
+import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, probeInstance, rememberAbsent, safeFetch } from './probe.ts';
 // Import from the LEAF module, not the '@lolly/engine' barrel: org/index.ts is on the boot
 // static-import chain (jelly → feature-flags → org), so a barrel import drags the whole
 // engine (render/c2pa/handlebars/ajv, ~555KB) onto first paint. tool-url.ts only pulls the
@@ -188,6 +190,17 @@ export interface OrgConfig {
    *  allow and block rules by id, each rule's reason, whether the member's own list
    *  is locked and whether the brand's entries apply. Absent ⇒ `open`. */
   network?: OrgNetworkPolicy;
+  /** What the caller may share a new team project with (lolly-work plan 74): the
+   *  groups usable for sharing. Absent on an older instance, which then offers only
+   *  "Only me" (org/session-source.ts teamProjectOptions). */
+  sharing?: { groups?: string[]; projectFiles?: boolean };
+  /** Limits on inviting people by email (lolly-work plan 74): the domains an invitee's
+   *  address must be at (empty: any), how long an invitation lasts, and the project
+   *  roles an invitation may carry. Absent on an older instance, which then has no
+   *  invite routes, so the shell offers no "People" panel there
+   *  (org/team-access.ts invitePolicy). Whether this caller may invite at all is
+   *  `can['user.invite']`. */
+  invites?: { domains?: string[]; maxTtlHours?: number; projectRoles?: string[] };
 }
 
 export interface OrgNetworkPolicy {
@@ -225,6 +238,23 @@ let unregisterShareSection: (() => void) | null = null;
  *  leaks the previous registration. */
 let unregisterApprovalOpener: (() => void) | null = null;
 let unregisterSessionSource: (() => void) | null = null;
+/** Unregister for the Share-dialog "Team" section (save to a team project), so a
+ *  re-init replaces the registration instead of stacking a second one. */
+let unregisterTeamShareSection: (() => void) | null = null;
+/** org/team-save.ts once loaded, so the Team section can be built in the same task as
+ *  the Share surface it belongs to. */
+let teamSaveModule: typeof import('./team-save.ts') | null = null;
+function loadTeamSave(): Promise<typeof import('./team-save.ts')> {
+  return import('./team-save.ts').then((m) => (teamSaveModule = m));
+}
+/** Run `fn` when the page is idle (soon, where there is no idle callback). */
+function whenIdle(fn: () => void): void {
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(() => fn(), { timeout: 4000 });
+  else setTimeout(fn, 1500);
+}
+/** Unregister for the profile view's "Linked sign-ins" card (lib/profile-sections.ts),
+ *  so a re-init replaces the registration instead of stacking a second one. */
+let unregisterProfileSection: (() => void) | null = null;
 /** Unregister for the `'org'` nearby provider (plans/26 section 8), so a re-init replaces
  *  rather than stacks it. Registered only when the instance grants `collab.nearby`. */
 let unregisterNearbySource: (() => void) | null = null;
@@ -304,6 +334,21 @@ export { orgFlagGovernance } from './governance.ts';
 export function orgAdminHref(): string | null {
   const role = session?.kind === 'member' ? session.user.role : undefined;
   return role === 'admin' || role === 'owner' ? '/admin' : null;
+}
+
+/**
+ * Fill `into` with the signed-in member's account card ("Linked sign-ins"), for the
+ * profile view's instance section. Registered with lib/profile-sections.ts on the
+ * member branch of initOrg, so the view imports nothing from org/. Returns false, and touches nothing, when there is
+ * no member session, so a deployment with no control plane renders exactly as before.
+ * The card's module loads only when it is shown.
+ */
+export function mountOrgAccount(into: HTMLElement): boolean {
+  if (session?.kind !== 'member') return false;
+  import('./linked-signins.ts')
+    .then((m) => m.mountLinkedSignIns(into))
+    .catch(() => { /* additive; the rest of the profile view stands without it */ });
+  return true;
 }
 
 function emit(): void {
@@ -709,8 +754,10 @@ export async function initOrg(): Promise<OrgState | null> {
     // plane (module state already covers a single session; this covers reloads).
     if (!knownManagedAi() && isRecentlyAbsent()) { finishAiProbe(false); return null; }
 
-    const auth = await probeAuthConfig();
-    if (!auth) { finishAiProbe(false); rememberAbsent(); return null; }
+    // Remember absence only on a definitive answer (see org/probe.ts's header):
+    // a timeout or a 5xx is dormancy for this boot, not for the next six hours.
+    const { auth, absent } = await probeInstance();
+    if (!auth) { finishAiProbe(false); if (absent) rememberAbsent(); return null; }
     finishAiProbe(true);
 
     return await initOrgWithAuth(auth);
@@ -750,7 +797,12 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
     // Gated instance, not a member → sign-in gate instead of the app.
     if (auth.mode === 'gated' && !isMember) {
       const gated = renderGate(auth);
-      if (gated) return { auth, session, config: null, gate: true };
+      if (gated) {
+        // Signed out of a gated instance: no catalog or tool reads until sign-in
+        // (which reloads), and the next boot asks before it syncs at all.
+        noteCatalogRefused();
+        return { auth, session, config: null, gate: true };
+      }
       // Could not render a gate (no loginPath) - fall through and let the app mount.
     }
 
@@ -822,12 +874,38 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       });
       // Surface the instance's shared team projects in the Projects view, through
       // the generic lib/session-source.ts seam (so the view stays control-plane-
-      // unaware). Pure data - the view owns opening a team session, reusing its own
-      // engine URL reconstruction, so no engine/DOM concern leaks in here.
+      // unaware). Pure data - opening a session lives in org/team-open.ts, loaded only
+      // when someone opens one. The write half reads this org-config live for the
+      // project-creation options (can['project.create'], sharing.groups).
       unregisterSessionSource?.();
       unregisterSessionSource = registerSessionSource(
-        createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation')),
+        createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig()),
       );
+      // The signed-in member's linked sign-ins, as a card in the profile view's
+      // instance section, through the generic lib/profile-sections.ts seam (so the
+      // view stays control-plane-unaware). The card's module loads only when shown.
+      unregisterProfileSection?.();
+      unregisterProfileSection = registerProfileSection((into) => { mountOrgAccount(into); });
+      // Save the document on screen to a team project, save changes back to the team
+      // session it came from, and copy its #/team/<id> link: a "Team" section in the
+      // Share dialog, through the same generic seam as "On this instance" above. It
+      // renders nothing unless the source just registered can write. It sits above the
+      // dialog's own link rows, and first among the extra sections: on an instance,
+      // saving to a team project is the main way to share with teammates.
+      // The builder module loads once, early when idle for a member who can write, and
+      // is kept: from then on the builder returns its node directly, so the section is
+      // laid out with the rest of the surface. The docked Share panel rebuilds that
+      // surface on every edit, and a lead section arriving a frame late would push the
+      // panel's content down each time.
+      unregisterTeamShareSection?.();
+      unregisterTeamShareSection = registerShareSection((sctx) => {
+        if (!getSessionWriter()) return null;
+        // The live org-config reader, handed in so team-save.ts needs no import of
+        // this module (a load-order cycle the maintainability budget refuses).
+        if (teamSaveModule) return teamSaveModule.buildTeamShareSection(sctx, orgConfig);
+        return loadTeamSave().then((m) => m.buildTeamShareSection(sctx, orgConfig));
+      }, { order: -10, placement: 'lead' });
+      if (getSessionWriter()) whenIdle(() => { loadTeamSave().catch(() => { /* loaded again when the dialog opens */ }); });
       // Instance-mediated "nearby" (plans/26 section 8): register the `'org'` provider when
       // this instance grants `collab.nearby` (enabled policy ∩ collab.join). Absent
       // ⇒ NO registration, so a plain build or an instance without the bit stays
@@ -980,6 +1058,10 @@ export function _resetOrgForTests(): void {
   unregisterApprovalOpener = null;
   unregisterSessionSource?.();
   unregisterSessionSource = null;
+  unregisterTeamShareSection?.();
+  unregisterTeamShareSection = null;
+  unregisterProfileSection?.();
+  unregisterProfileSection = null;
   unregisterNearbySource?.();
   unregisterNearbySource = null;
   unregisterCollabFactory?.();

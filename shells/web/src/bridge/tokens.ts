@@ -65,6 +65,7 @@ import {
 } from '../../../../engine/src/design-version.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { pendingAssetSync } from '../lib/asset-sync.ts';
+import { catalogRefused, isAccessRefused, noteCatalogRefused } from '../lib/catalog-access.ts';
 import type { DesignSystemSummary, TokensAPI, TokensSnapshot, TokenSet, TokenResolveOptions } from '@lolly-tools/core/host-v1';
 // The design systems this device holds and which one is active (plans/186). A
 // type-only import: the registry is handed in through the host slice, so a test's
@@ -596,10 +597,13 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
         if (synced) return synced;
       }
     } catch { /* IDB unavailable / not synced yet - fall through to the index */ }
+    // A catalog this instance refused (signed out) is not asked again on every read.
+    if (catalogRefused()) return null;
     try {
       // The catalog index carries only shipped assets, so it is catalog-only by
       // construction - the right cold-load source for both callers.
       const resp = await instanceFetch(instancePath(ASSET_INDEX_URL));
+      if (isAccessRefused(resp.status)) noteCatalogRefused();
       if (resp.ok) {
         const idx = await resp.json() as { brandTokens?: string | null; assets?: Array<TokensAssetMeta & { type?: string }> };
         // The SAME descendant-exclusion rule _findMetaByType applies (plans/97

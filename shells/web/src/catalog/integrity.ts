@@ -24,6 +24,7 @@
 import type { CatalogSignatureEnvelope } from '../../../../engine/src/catalog-integrity.ts';
 import type { ToolIntegrityOpts } from '../../../../engine/src/loader.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
+import { CatalogRefusedError, isAccessRefused, noteCatalogRefused } from '../lib/catalog-access.ts';
 
 declare global {
   // Merge the optional pin into vite-env.d.ts's minimal ImportMetaEnv - Vite
@@ -71,6 +72,12 @@ async function load(): Promise<ToolIntegrityOpts | null> {
   // key-pinned build verifies the REMOTE index against the remote's envelope:
   // an instance signed by a different key fails closed, as it must.
   const resp = await instanceFetch(instancePath('/catalog/tools/index.sig.json'));
+  // Refused (401/403) means signed out, not a missing envelope: catalog/sync.ts
+  // stops quietly on this error instead of reporting the network as offline.
+  if (isAccessRefused(resp.status)) {
+    noteCatalogRefused();
+    throw new CatalogRefusedError(resp.status, '/catalog/tools/index.sig.json');
+  }
   if (!resp.ok) {
     throw new Error(`catalog integrity: signature envelope missing (HTTP ${resp.status}) but a key is pinned`);
   }

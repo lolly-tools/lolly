@@ -20,6 +20,7 @@ import { mountBackPill } from '../../components/back-pill.ts';
 import { mountHomeFab } from '../../components/home-fab.ts';
 import { openProfileModals, openProfileToasts } from './shared.ts';
 import { bindOp, type ProfileViewCtx } from './context.ts';
+import { mountProfileSections } from '../../lib/profile-sections.ts';
 
 /** The design-systems card plus the instance Change and Leave buttons. */
 export function wireInstanceCard(pv: ProfileViewCtx): void {
@@ -40,6 +41,13 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
         .then(m => m.mountDesignSystemsCard(dsBody, host as unknown as Parameters<typeof m.mountDesignSystemsCard>[1]))
         .catch(() => { dsBody.innerHTML = ''; });
     }
+  }
+  // Cards other features add at the foot of the instance card (lib/profile-sections.ts).
+  // The registry is empty unless something registered, so a plain deployment's card
+  // is unchanged.
+  {
+    const instanceBody = viewEl.querySelector<HTMLElement>('#instance-section .profile-collapse-body');
+    if (instanceBody) mountProfileSections(instanceBody);
   }
   viewEl.querySelector('#instance-design-systems')?.addEventListener('click', () => {
     const section = viewEl.querySelector<HTMLDetailsElement>('#design-systems-section');

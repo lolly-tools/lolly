@@ -63,6 +63,7 @@ import { mountCaptureSignin } from '../capture-signin.ts';
 import { captureThumbnail, renderActions } from '../tool-actions.ts';
 import { setupCanvasBlocksDrop, setupCanvasFileDrop } from '../tool-canvas-drop.ts';
 import { collectExportParams, decryptEncryptedLink, setToolEmojiParams, showShareDialog } from './shared.ts';
+import { clearShareDeepLink, shareDeepLink } from '../export-share.ts';
 import { setSessionEmojiStamp } from '../../bridge/state.ts';
 import type { PanelEl, ToolRuntime } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
@@ -1089,9 +1090,10 @@ export function wireBulkRows(tview: ToolViewCtx): void {
   // reproduce a state that otherwise lives only in a click. `?share` opens the Share
   // dialog. This is the pattern for making the app's click-only surfaces addressable
   // (see plans/43-deep-linking.md) - each new one reads its flag here or in its view.
-  if (urlFlags.has('share') || urlFlags.get('_dialog') === 'share') {
-    requestAnimationFrame(() => showShareDialog(runtime, actionsEl, tview.tool.manifest));
-  }
+  // A live collab mount clears the flags instead of opening anything (shareDeepLink).
+  const shareLink = shareDeepLink(urlFlags, !!tview.collabHandle);
+  if (shareLink?.kind === 'open') requestAnimationFrame(() => showShareDialog(runtime, actionsEl, tview.tool.manifest));
+  else if (shareLink) clearShareDeepLink(urlFlags, shareLink.changes);
 }
 
 export function wireBackPill(tview: ToolViewCtx): void {

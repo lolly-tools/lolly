@@ -3,6 +3,7 @@ import './brand-refresh.css';
 import type { syncCatalog as syncCatalogType } from '../../catalog/sync.ts';
 import { t } from '../../i18n.ts';
 import { instanceFetch, instancePath, getInstanceBase } from '../instance.ts';
+import { catalogRefused } from '../catalog-access.ts';
 import { REMOUNTABLE_ROUTES, switchDesignSystem, type SwitchHost } from './switch.ts';
 
 interface RefreshDeps {
@@ -63,7 +64,7 @@ export function mountBrandRefresh(host: SwitchHost, catalogHost: Parameters<type
       const origin = getInstanceBase();
       const { syncCatalog, syncCorePrefetch, networkStatus } = await import('../../catalog/sync.ts');
       await syncCatalog(catalogHost);
-      if (networkStatus.offline) return false;
+      if (networkStatus.offline || catalogRefused()) return false;
       await syncCorePrefetch(catalogHost);
       host.designSystems.bust();
       if (origin !== getInstanceBase() || !REMOUNTABLE_ROUTES.has(route()) || (await host.designSystems.active()).source.kind !== 'shipped') return false;

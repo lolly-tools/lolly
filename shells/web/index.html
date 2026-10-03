@@ -10,16 +10,19 @@
        than redirecting. Its relative /_app/*.js module scripts then 308
        cross-origin with a text/plain body, which browsers refuse to load as ES
        modules ("disallowed MIME type text/plain"). Bounce off the alternate to
-       the canonical before those scripts are even fetched. Scoped to the lolly
-       public domain family, so Vercel preview URLs (*.vercel.app) and localhost
-       are never touched; brandChrome() (vite.config.js) rewrites CANON per
-       profile (lolly-start also canonicalises to lolly.tools) and blanks it
-       (guard off) for any brand with no canonical host. -->
+       the canonical before those scripts are even fetched. Scoped to the alias
+       hosts the lolly.tools project parks (the domain-family redirect in
+       vercel.json, kept in step by canonical-origin-guard.test.ts) and their
+       www.*, so Vercel preview URLs (*.vercel.app), localhost and a private
+       instance on a sibling domain (lolly.ing serves this same shell through
+       its own proxy) are never touched; brandChrome() (vite.config.js) rewrites
+       CANON per profile (lolly-start also canonicalises to lolly.tools) and
+       blanks it (guard off) for any brand with no canonical host. -->
   <script>
     (() => {
       var CANON = 'lolly.tools';
       var h = location.hostname;
-      if (CANON && h !== CANON && /(^|\.)lolly\.[a-z]{2,}$/.test(h)) {
+      if (CANON && h !== CANON && /(^|\.)lolly\.(ad|art|bot|codes|design|free|gallery|graphics|ink|is|media|sh|style|to|tools|work)$/.test(h)) {
         location.replace('https://' + CANON + location.pathname + location.search + location.hash);
         return;
       }
@@ -150,6 +153,9 @@
     (() => {
       try {
         if ('sbt-tool-index' in localStorage) return;   // cached index → main.ts never fetches slim
+        // This instance refused its catalog last time (signed out, lib/catalog-access.ts):
+        // loadSlimToolIndex will not adopt the answer, so asking again is only a 401.
+        if ('lolly:catalog-refused:same-origin' in localStorage) return;
         var u = '/catalog/tools/index.slim.json';
         var p = fetch(u, { credentials: 'same-origin' });
         p.catch(function () { /* offline - loadSlimToolIndex falls back to the full index */ });

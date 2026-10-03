@@ -30,6 +30,7 @@ import type { DesignSystemRecord, DesignSystemRegistry } from './registry.ts';
 import type { WebTokensAPI } from '../../bridge/tokens.ts';
 import { registerUserFonts } from '../register-user-fonts.ts';
 import { getInstanceBase, setInstanceBase } from '../instance.ts';
+import { catalogRefused } from '../catalog-access.ts';
 import { applyChromeBrandVars } from '../../brand-vars.ts';
 import { applyTheme, currentTheme } from '../../theme.ts';
 import { bustLivePalette } from '../live-palette.ts';
@@ -156,4 +157,5 @@ async function defaultResync(host: SwitchHost): Promise<void> {
   const { mergeInstalledToolsIntoIndex } = await import('../installed-tools.ts');
   await mergeInstalledToolsIntoIndex().catch(() => { /* no sideloads */ });
   if (networkStatus.offline) throw new Error('Catalogue refresh is offline');
+  if (catalogRefused()) throw new Error('Catalogue refresh needs sign-in');
 }

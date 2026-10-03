@@ -53,6 +53,7 @@ const json = (body: unknown, status = 200): Response =>
 const {
   rememberTeamSessionOrigin, consumeTeamSessionOrigin, activeTeamSessionOrigin,
   releaseTeamSessionOrigin, pendingTeamSessionOrigin, _clearTeamSessionOriginForTests,
+  noteTeamSessionLive, teamSessionLive,
 } = await import('./team-session-origin.ts');
 const { buildWorkCollabShareSection } = await import('./collab-share.ts');
 const { initOrg, _resetOrgForTests } = await import('./index.ts');
@@ -117,6 +118,25 @@ test('release ends the origin with the mount, and is idempotent', () => {
   releaseTeamSessionOrigin();
   assert.equal(activeTeamSessionOrigin('qr-code'), null);
   assert.doesNotThrow(() => releaseTeamSessionOrigin());
+});
+
+test('a live room is counted per handle, and leaving twice changes nothing', () => {
+  _clearTeamSessionOriginForTests();
+  assert.equal(teamSessionLive('sess-1'), false);
+  const first = noteTeamSessionLive('sess-1');
+  const rejoin = noteTeamSessionLive('sess-1');
+  assert.equal(teamSessionLive('sess-1'), true);
+  first();
+  first();
+  assert.equal(teamSessionLive('sess-1'), true, 'the rejoin still holds the room');
+  rejoin();
+  assert.equal(teamSessionLive('sess-1'), false);
+  noteTeamSessionLive('  ')();
+  assert.equal(teamSessionLive(''), false, 'a blank id is never live');
+  assert.equal(teamSessionLive(null), false);
+  noteTeamSessionLive('sess-2');
+  _clearTeamSessionOriginForTests();
+  assert.equal(teamSessionLive('sess-2'), false, 'a new tab knows of no room');
 });
 
 test('a half-named origin arms nothing, and clears whatever was armed', () => {

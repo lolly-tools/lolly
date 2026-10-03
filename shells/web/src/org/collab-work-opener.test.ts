@@ -445,3 +445,138 @@ test('an instance that grants nothing renders no action - the real gate, end to 
   assert.ok(buildCollabInviteAction(inviteMsg()), 'granted collab.join ⇒ the action renders');
   reset();
 });
+
+// ── The team origin and the live room (plan 74) ───────────────────────────────
+
+const {
+  adoptTeamSessionOrigin, consumeTeamSessionOrigin, noteTeamSessionSaved, pendingTeamSessionOrigin, releaseTeamSessionOrigin,
+  teamSessionLive, _clearTeamSessionOriginForTests,
+} = await import('./team-session-origin.ts');
+
+/** A rig whose deliver records the stash armed at the moment of the hand-off. */
+function armedRig(opts: Parameters<typeof rig>[0] = {}): Rig & { armed: unknown[] } {
+  const r = rig(opts) as Rig & { armed: unknown[] };
+  r.armed = [];
+  const deliver = r.deps.deliver!;
+  r.deps = { ...r.deps, deliver: (conn) => { r.armed.push(pendingTeamSessionOrigin()); return deliver(conn); } };
+  return r;
+}
+
+/** A handle whose connection state the case drives, replaying the current state on
+ *  subscribe as both real handles do. */
+function liveEvents(r: Rig, initial = 'live') {
+  const listeners = new Set<(s: string) => void>();
+  const box = { state: initial, listeners, emit(s: string) { box.state = s; for (const fn of [...listeners]) fn(s); } };
+  const base = r.deps.wiring!;
+  r.deps = {
+    ...r.deps,
+    wiring: async () => {
+      const w = await base();
+      return {
+        ...w,
+        makeHandle: (p) => {
+          const h = w.makeHandle(p) as unknown as { events: unknown };
+          h.events = { subscribe(fn: (s: string) => void) { listeners.add(fn); fn(box.state); return () => { listeners.delete(fn); }; } };
+          return h as unknown as ReturnType<WorkCollabWiring['makeHandle']>;
+        },
+      };
+    },
+  };
+  return box;
+}
+
+test('starting a collab on the team session on screen keeps its origin through the remount', async () => {
+  _clearTeamSessionOriginForTests();
+  const origin = { sessionId: 'ses_1', toolId: 'qr-code', projectId: 'prj_1', rev: 4, label: 'Poster' };
+  adoptTeamSessionOrigin(origin);
+  const r = armedRig();
+  assert.deepEqual(await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, r.deps), { ok: true });
+  assert.deepEqual(r.armed, [origin], 'armed BEFORE the hand-off, which may remount at once');
+  // The remount: the outgoing view releases, the new mount consumes.
+  releaseTeamSessionOrigin();
+  assert.deepEqual(consumeTeamSessionOrigin('qr-code'), origin, 'the room\'s document is still that team session');
+});
+
+test('leaving the tool while the room connects still arms the origin the collab started from', async () => {
+  _clearTeamSessionOriginForTests();
+  const origin = { sessionId: 'ses_1', toolId: 'qr-code', projectId: 'prj_1', rev: 4, label: 'Poster' };
+  adoptTeamSessionOrigin(origin);
+  const r = armedRig();
+  const base = r.deps.wiring!;
+  // While the room connects the person closes the panel and goes to Projects: the tool's
+  // teardown releases the origin. The delivery still brings them back into the room.
+  r.deps = { ...r.deps, wiring: async () => { releaseTeamSessionOrigin(); return base(); } };
+  assert.deepEqual(await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, r.deps), { ok: true });
+  assert.deepEqual(r.armed, [origin], 'the origin as it was at the press');
+  assert.deepEqual(consumeTeamSessionOrigin('qr-code'), origin, 'the room\'s mount still names the team session');
+
+  // Another team session of the same tool opened in that window: the room is still ses_1.
+  _clearTeamSessionOriginForTests();
+  adoptTeamSessionOrigin(origin);
+  const moved = armedRig();
+  const movedBase = moved.deps.wiring!;
+  moved.deps = { ...moved.deps, wiring: async () => { adoptTeamSessionOrigin({ sessionId: 'ses_9', toolId: 'qr-code' }); return movedBase(); } };
+  await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, moved.deps);
+  assert.deepEqual(moved.armed, [origin]);
+});
+
+test('a save while the room connects arms the newer revision', async () => {
+  _clearTeamSessionOriginForTests();
+  adoptTeamSessionOrigin({ sessionId: 'ses_1', toolId: 'qr-code', rev: 4 });
+  const r = armedRig();
+  const base = r.deps.wiring!;
+  r.deps = { ...r.deps, wiring: async () => { noteTeamSessionSaved('ses_1', 5); return base(); } };
+  await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, r.deps);
+  assert.deepEqual(r.armed, [{ sessionId: 'ses_1', toolId: 'qr-code', rev: 5 }]);
+});
+
+test('an origin for some other session is never carried into the room\'s mount', async () => {
+  _clearTeamSessionOriginForTests();
+  adoptTeamSessionOrigin({ sessionId: 'ses_9', toolId: 'qr-code' });
+  const r = armedRig();
+  await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, r.deps);
+  assert.deepEqual(r.armed, [null]);
+  adoptTeamSessionOrigin({ sessionId: 'ses_1', toolId: 'street-map' });
+  const other = armedRig();
+  await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, other.deps);
+  assert.deepEqual(other.armed, [null], 'an origin of another tool does not answer for this one');
+});
+
+test('a parked connection leaves nothing armed for a later mount', async () => {
+  _clearTeamSessionOriginForTests();
+  adoptTeamSessionOrigin({ sessionId: 'ses_1', toolId: 'qr-code' });
+  const r = armedRig({ deliver: false });
+  const out = await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, r.deps);
+  assert.equal(out.ok === false && out.reason, 'no-mount');
+  assert.equal(pendingTeamSessionOrigin(), null);
+  assert.equal(teamSessionLive('ses_1'), false, 'and the room is not marked live');
+});
+
+test('joining from an invite arms the session it joins as the mount\'s origin', async () => {
+  _clearTeamSessionOriginForTests();
+  const fetchSession = async () => ({ ok: true as const, data: {
+    id: 'ses_1', toolId: 'street-map', projectId: 'prj_2', rev: 7, meta: { label: 'Map' }, inputs: {},
+  } });
+  const r = armedRig({ fetchSession });
+  await joinWorkCollabFromInvite({ sessionId: 'ses_1', projectId: 'prj_1', toolId: 'qr-code' }, r.deps);
+  assert.deepEqual(r.armed, [{ sessionId: 'ses_1', toolId: 'street-map', projectId: 'prj_2', rev: 7, label: 'Map' }]);
+  assert.deepEqual(consumeTeamSessionOrigin('street-map')?.sessionId, 'ses_1');
+});
+
+test('the room is live in this tab until its handle closes', async () => {
+  _clearTeamSessionOriginForTests();
+  const r = rig();
+  const events = liveEvents(r);
+  await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, r.deps);
+  assert.equal(teamSessionLive('ses_1'), true);
+  events.emit('reconnecting');
+  assert.equal(teamSessionLive('ses_1'), true, 'a reconnect is still the same room');
+  events.emit('closed');
+  assert.equal(teamSessionLive('ses_1'), false);
+  assert.equal(events.listeners.size, 0, 'and the watch is gone');
+
+  const dead = rig();
+  liveEvents(dead, 'closed');
+  await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_2' }, dead.deps);
+  assert.equal(teamSessionLive('ses_2'), false, 'a handle that closed before the watch is never live');
+});

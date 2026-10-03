@@ -97,3 +97,42 @@ test('a signed release removes only the warm script and keeps the mobile documen
     release.window.close();
   }
 });
+
+/** Run the warm script in a page whose storage `seed` prepares; returns the urls it fetched. */
+async function runWarm(seed: (dom: JSDOM) => Promise<void> | void): Promise<string[]> {
+  const script = html.match(SLIM_WARM_SCRIPT)?.[0];
+  assert.ok(script);
+  const body = script.replace(/^\s*<script[^>]*>/, '').replace(/<\/script>$/, '');
+  const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://team.example/', runScripts: 'outside-only' });
+  try {
+    await seed(dom);
+    const fetched: string[] = [];
+    (dom.window as unknown as { fetch: (u: string) => Promise<Response> }).fetch = (u: string) => {
+      fetched.push(u);
+      return Promise.resolve(new Response('{}'));
+    };
+    dom.window.eval(body);
+    return fetched;
+  } finally {
+    dom.window.close();
+  }
+}
+
+test('a visitor this instance refused last time does not ask for the slim index again', async () => {
+  assert.deepEqual(await runWarm(() => {}), [SLIM_PATH], 'control: a cold visitor warms the slim index');
+  // The key is written by the real catalog-access module, so the script and the
+  // module cannot drift apart on its spelling.
+  const fetched = await runWarm(async (dom) => {
+    const g = globalThis as unknown as Record<string, unknown>;
+    const saved = { window: g.window, document: g.document, localStorage: g.localStorage };
+    Object.assign(g, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage });
+    try {
+      const { _setBaseForTests } = await import('./lib/instance.ts');
+      _setBaseForTests('');
+      (await import('./lib/catalog-access.ts')).noteCatalogRefused();
+    } finally {
+      Object.assign(g, saved);
+    }
+  });
+  assert.deepEqual(fetched, [], 'signed out on a gated instance: no request that can only answer 401');
+});

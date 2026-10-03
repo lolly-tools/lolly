@@ -510,7 +510,7 @@ export type BeamSvgSanitiser = (bytes: Uint8Array) => Uint8Array | Promise<Uint8
  * everything else degrades toward losing a nicety; this would degrade toward writing
  * a peer's script to disk.
  */
-async function defaultSanitizeSvg(bytes: Uint8Array): Promise<Uint8Array> {
+export async function defaultSanitizeSvg(bytes: Uint8Array): Promise<Uint8Array> {
   const g = globalThis as { DOMParser?: unknown; XMLSerializer?: unknown };
   if (typeof g.DOMParser !== 'function' || typeof g.XMLSerializer !== 'function') {
     throw new BeamPackError('unsafe-item', 'no SVG sanitiser on this device');
@@ -1332,7 +1332,7 @@ function scrubMetaValue(value: unknown, depth: number): unknown {
   return out;
 }
 
-function safeMeta(value: unknown): Record<string, unknown> | undefined {
+export function safeMeta(value: unknown): Record<string, unknown> | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const out = scrubMetaValue(value, 0) as Record<string, unknown> | undefined;
   if (!out) return undefined;

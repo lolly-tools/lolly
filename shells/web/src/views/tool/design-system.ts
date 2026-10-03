@@ -11,6 +11,7 @@ import { escape as escapeText } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
+import { carryTeamSessionOriginToRemount } from '../../org/team-session-origin.ts';
 
 // A switch while this tool is open (plans/186 section 3.4 step 6): the switch does
 // not tear a tool down, so it is told here and offered a reload.
@@ -27,9 +28,11 @@ export const onDesignSystemChanged = (tview: ToolViewCtx, e: Event): void => {
   el.setAttribute('role', 'status');
   el.innerHTML = `<span class="tool-notice-text">${t('Switched to <strong>{name}</strong>. Reload this tool to render with it.', { name: escapeText(rec.label) })} <button type="button" class="tool-notice-link" id="ds-switched-reload">${t('Reload')}</button></span><button type="button" class="tool-notice-close" id="ds-switched-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>`;
   body.prepend(el);
-  el.querySelector('#ds-switched-reload')?.addEventListener('click', () =>
-    window.dispatchEvent(new Event('lolly:remount'))
-  );
+  el.querySelector('#ds-switched-reload')?.addEventListener('click', () => {
+    // The same document at the same address, so a team document stays one.
+    carryTeamSessionOriginToRemount(tview.toolId);
+    window.dispatchEvent(new Event('lolly:remount'));
+  });
   el.querySelector('#ds-switched-dismiss')?.addEventListener('click', () => el.remove());
 };
 export const openShutter = (tview: ToolViewCtx): void => { const { shutter } = tview; shutter.open(); };

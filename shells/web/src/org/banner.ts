@@ -8,6 +8,12 @@
  * highest-severity message (blocking > action > info), and acks it on dismiss
  * (`POST /api/v1/inbox/:id/ack`).
  *
+ * A "<person> shared <project> with you" message (`data.kind: 'project-share'`) has
+ * done its job once that project is open, however the person got there (the
+ * banner's Open, the invite link or the Team projects list), so opening the
+ * project acks it too. The openers report the opening to org/opened-projects.ts and
+ * this module listens there, so no opener imports this one.
+ *
  * Presentation follows the message's severity but never obstructs the app:
  *   - info / action → a slim, dismissible bar pinned above the app content
  *     (inserted into #app before #view, so it survives view navigation).
@@ -20,6 +26,7 @@ import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { mountModal } from '../components/modal.ts';
 import { t } from '../i18n.ts';
 import { escape, safeHref } from '../utils.ts';
+import { _clearOpenedProjectsForTests, onProjectOpened, openedProjects } from './opened-projects.ts';
 
 export type Severity = 'info' | 'action' | 'blocking';
 
@@ -52,6 +59,42 @@ export function pickMessage(messages: readonly InboxMessage[]): InboxMessage | n
   }
   return best;
 }
+
+/** The team project a share message points at, or '' for any other message. Pure. */
+export function sharedProjectOf(m: Pick<InboxMessage, 'data'> | null | undefined): string {
+  const d = m?.data;
+  return d && d.kind === 'project-share' && typeof d.projectId === 'string' ? d.projectId : '';
+}
+
+/** Split the inbox into messages still to show and share messages whose project is
+ *  already open (done, to be acked). Pure. */
+export function splitOpenedShares(messages: readonly InboxMessage[], opened: ReadonlySet<string>): { keep: InboxMessage[]; done: InboxMessage[] } {
+  const keep: InboxMessage[] = [];
+  const done: InboxMessage[] = [];
+  for (const m of messages) (opened.has(sharedProjectOf(m)) ? done : keep).push(m);
+  return { keep, done };
+}
+
+/** The message on screen and how to remove the message (removal acks the message). */
+let shown: { m: InboxMessage; remove(): void } | null = null;
+/** The rest of the fetched inbox: messages not on screen and not acked yet. Only one
+ *  message shows at a time, so a share message can be waiting here while another
+ *  one is up, and opening its project still has to ack that message. */
+let waiting: InboxMessage[] = [];
+
+/**
+ * A team project was opened, so every share message about that project is done.
+ * Takes the matching message on screen down (which acks the message) and acks the
+ * matching messages waiting behind. org/opened-projects.ts remembers the project, so
+ * a share message that arrives with a later inbox load is acked instead of shown.
+ */
+function acknowledgeProjectOpened(projectId: string): void {
+  if (shown && sharedProjectOf(shown.m) === projectId) shown.remove();
+  const { keep, done } = splitOpenedShares(waiting, new Set([projectId]));
+  waiting = keep;
+  for (const m of done) ack(m.id);
+}
+onProjectOpened(acknowledgeProjectOpened);
 
 /** Fire-and-forget ack. Best-effort: a failed ack never blocks the UI removal. */
 function ack(id: string): void {
@@ -114,7 +157,10 @@ export async function mountOrgBanner(): Promise<void> {
     messages = Array.isArray(body?.messages) ? body.messages : [];
   } catch { return; }
 
-  const msg = pickMessage(messages);
+  const { keep, done } = splitOpenedShares(messages, openedProjects());
+  for (const m of done) ack(m.id);
+  const msg = pickMessage(keep);
+  waiting = keep.filter((m) => m !== msg);
   if (!msg) return;
   mounted = true;
 
@@ -136,29 +182,42 @@ function showBar(m: InboxMessage): void {
   // Theme-aware, self-contained styling - no stylesheet touch for this additive
   // seam. An `action` message leans on the brand accent, `info` on muted chrome.
   const accent = m.severity === 'action' ? 'var(--primary)' : 'var(--muted-foreground)';
-  bar.style.cssText = `display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;font-size:.9rem;line-height:1.4;border-bottom:1px solid hsl(var(--border));background:hsl(${accent} / .08);color:hsl(var(--foreground))`;
+  // The views float their top-row controls (navigation, filter, Settings) over the top
+  // of the page, at every width. The bar's tint runs under them, and its message sits
+  // in a row below them (the same clearance the views' own content uses), so the
+  // controls never cover its action or its dismiss button.
+  bar.style.cssText = `display:flex;align-items:center;gap:.75rem;padding:calc(var(--chrome-top, .5rem) + var(--chrome-h, 2.6rem) + .5rem) .5rem .5rem 1rem;font-size:var(--fs-lg);line-height:1.4;border-bottom:1px solid hsl(var(--border));background:hsl(${accent} / .08);color:hsl(var(--foreground))`;
 
   const body = m.body ? ` <span style="color:hsl(var(--muted-foreground))">${escape(m.body)}</span>` : '';
+  // The message and its action wrap together, the action right after the words (never
+  // pushed to the far edge), and the dismiss control keeps its place at the end of the
+  // first line at every width.
   bar.innerHTML = `
     <span style="flex:0 0 auto;width:.5rem;height:.5rem;border-radius:50%;background:hsl(${accent})" aria-hidden="true"></span>
-    <span style="flex:1 1 auto;min-width:0"><strong style="font-weight:650">${escape(m.title)}</strong>${body}</span>
-    ${ctaHtml(m)}
-    ${m.dismissible ? `<button type="button" class="org-banner-dismiss" aria-label="${escape(t('Dismiss'))}" style="flex:0 0 auto;border:0;background:transparent;color:inherit;cursor:pointer;font-size:1.2rem;line-height:1;padding:.1rem .3rem;opacity:.7">&times;</button>` : ''}`;
+    <span class="org-banner-message" style="flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .75rem"><span style="min-width:0"><strong style="font-weight:650">${escape(m.title)}</strong>${body}</span>${ctaHtml(m)}</span>
+    ${m.dismissible ? `<button type="button" class="org-banner-dismiss" aria-label="${escape(t('Dismiss'))}" style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--radius);background:transparent;color:inherit;cursor:pointer;font-size:1.3rem;line-height:1;opacity:.7">&times;</button>` : ''}`;
 
   app.insertBefore(bar, view ?? null);
-  // Before the dismiss button, so the action reads as part of the message rather than
-  // as something past the way to close it.
-  mountCollabAction(m, bar, bar.querySelector('.org-banner-dismiss'));
+  // Inside the message, after its words, so the action reads as part of the message
+  // rather than as something past the way to close it.
+  mountCollabAction(m, bar.querySelector('.org-banner-message') ?? bar, null);
 
-  bar.querySelector('.org-banner-dismiss')?.addEventListener('click', () => {
+  const remove = (): void => {
+    if (!bar.isConnected) return;
     bar.remove();
     mounted = false;
+    if (shown?.m === m) shown = null;
     ack(m.id);
-  });
+  };
+  shown = { m, remove };
+  bar.querySelector('.org-banner-dismiss')?.addEventListener('click', remove);
 }
 
-/** blocking - the house modal, Escape-closable; any close acks. */
+/** blocking - the house modal, Escape-closable; closing it acks. */
 function showBlocking(m: InboxMessage): void {
+  // Following the message's own action (its link, or a collab's Open) is acting on it,
+  // even though the navigation that follows is what closes the dialog.
+  let acted = false;
   const content = `
     <h2 class="modal-title">${escape(m.title)}</h2>
     ${m.body ? `<p class="modal-msg">${escape(m.body)}</p>` : ''}
@@ -166,21 +225,35 @@ function showBlocking(m: InboxMessage): void {
       ${ctaHtml(m)}
       <button type="button" class="btn modal-primary" data-act="ok">${escape(m.cta ? t('Dismiss') : t('Got it'))}</button>
     </div>`;
-  const modal = mountModal<void>(content, {
+  const modal = mountModal<boolean>(content, {
     className: 'modal',
     ariaLabel: m.title,
+    cancelValue: true,
     initialFocus: (el) => el.querySelector<HTMLElement>('[data-act="ok"]'),
-    // Closing however (button, Escape, backdrop) acks and frees the app.
-    onClose: () => { mounted = false; ack(m.id); },
+    // Closed by the person (button, Escape, backdrop, Back) or by opening its project:
+    // acked, and the app is theirs again. Torn down by a route change (`undefined`,
+    // say a link moving on while the inbox loaded): nobody saw it through, so it is
+    // not acked and shows again next time.
+    onClose: (closed) => {
+      mounted = false;
+      if (shown?.m === m) shown = null;
+      if (closed !== undefined || acted) ack(m.id);
+    },
   });
+  shown = { m, remove: () => modal.close(true) };
   const actions = modal.el.querySelector('.modal-actions');
   if (actions) mountCollabAction(m, actions, actions.querySelector('[data-act="ok"]'));
   modal.el.addEventListener('click', (e) => {
-    if (e.target instanceof Element && e.target.closest('[data-act="ok"]')) modal.close();
+    if (!(e.target instanceof Element)) return;
+    if (e.target.closest('[data-act="ok"]')) { modal.close(true); return; }
+    if (e.target.closest('.modal-actions a, .modal-actions button')) acted = true;
   });
 }
 
 /** TEST-ONLY: reset the once-per-session guard. */
 export function _resetBannerForTests(): void {
   mounted = false;
+  shown = null;
+  waiting = [];
+  _clearOpenedProjectsForTests();
 }

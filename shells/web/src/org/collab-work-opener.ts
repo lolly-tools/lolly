@@ -91,6 +91,9 @@ import { deliverCollabConnection, type CollabConnection } from '../lib/collab-mo
 import { canEditCollab, canJoinCollab } from './collab-config.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { orgSession } from './index.ts';
+import {
+  activeTeamSessionOrigin, noteTeamSessionLive, rememberTeamSessionOrigin, type TeamSessionOriginInput,
+} from './team-session-origin.ts';
 import { announce } from '../a11y.ts';
 import { currentLang, loadNamespace, tRaw } from '../i18n.ts';
 import type { WorkCollabHandle } from './collab-provider.ts';
@@ -364,6 +367,56 @@ interface ConnectPlan {
   readonly sessionId: string;
   readonly toolId?: string;
   readonly launch?: CollabLaunchContext;
+  /** The team session the mount the join is about to cause holds: the one an invite
+   *  names, or the Share dialog's origin as it was when the person pressed Start. */
+  readonly origin?: TeamSessionOriginInput;
+}
+
+/**
+ * Arm the team origin for the mount a delivered connection causes, right before the
+ * hand-off (org/team-session-origin.ts rule 2). The room is keyed by `plan.sessionId`,
+ * so the remounted document IS that session, and its Share dialog must keep saying so:
+ * without this the remount forgot the origin, and the dialog offered to save the live
+ * document to a project as a NEW session. The Share dialog path carries the origin the
+ * mount held at the press (openWorkCollab), and only when that origin is the session the
+ * room is keyed by; the live origin is preferred while it is still that session,
+ * since a save during the connect moved its revision on. The person may also have left
+ * the tool while the room connected: the teardown released the live origin, but the
+ * delivery still brings them back into the room, so the press-time copy is armed. The
+ * invite path arms the session it fetched. Armed without an address: the mount
+ * picks its own (lib/collab-live-mount.ts), and a tool view shows `/t/<id>`, not a
+ * hash, so no address read here would match the one the mount reads. Returns whether
+ * anything was armed.
+ */
+function armTeamOrigin(plan: ConnectPlan): boolean {
+  if (!plan.toolId) return false;
+  const live = plan.launch ? activeTeamSessionOrigin(plan.toolId) : null;
+  const origin = live?.sessionId === plan.sessionId ? live : plan.origin;
+  if (!origin) return false;
+  rememberTeamSessionOrigin({ ...origin });
+  return true;
+}
+
+/** Mark the session live in this tab until the handle reports `'closed'`, so the Share
+ *  dialog shows the room instead of offering to start one (org/collab-share.ts). The
+ *  stream replays its current state on subscribe, so a handle that is already closed
+ *  is marked and unmarked at once. */
+function watchLiveRoom(sessionId: string, handle: CollabSessionHandle): void {
+  const leave = noteTeamSessionLive(sessionId);
+  let off: (() => void) | undefined;
+  let closed = false;
+  try {
+    off = handle.events.subscribe((state) => {
+      if (state !== 'closed' || closed) return;
+      closed = true;
+      leave();
+      off?.();
+    });
+  } catch {
+    leave();
+    return;
+  }
+  if (closed) off?.();
 }
 
 /**
@@ -433,11 +486,20 @@ async function connectAndDeliver(plan: ConnectPlan, deps: WorkCollabDeps): Promi
   };
 
   const deliver = deps.deliver ?? deliverCollabConnection;
+  // Armed BEFORE the hand-off: the mount may tear this view down and start the next one
+  // inside `deliver` itself, and the teardown releases the origin the stash replaces.
+  const armed = armTeamOrigin(plan);
   // `false` means nothing owns co-editing yet, so the connection is PARKED rather than
   // dropped (lib/collab-mount.ts) and a mount registering a moment later still adopts
   // it. The user is told the truth about what they can see NOW rather than a promise
   // about a race - the same call `collab/join-route.ts`'s `handOffConnection` makes.
-  if (!deliver(conn)) return fail('no-mount', tRaw(STRINGS.noMount));
+  if (!deliver(conn)) {
+    // No remount is coming, so nothing may spend the stash: a later, unrelated mount of
+    // this tool must not inherit the session.
+    if (armed) rememberTeamSessionOrigin({ sessionId: '', toolId: '' });
+    return fail('no-mount', tRaw(STRINGS.noMount));
+  }
+  watchLiveRoom(plan.sessionId, handle);
   return { ok: true };
 }
 
@@ -455,6 +517,9 @@ export async function openWorkCollab(
   ctx: CollabLaunchContext,
   deps: WorkCollabDeps = {},
 ): Promise<WorkCollabOutcome> {
+  // The origin as it is at the press, before the first await: leaving the tool while
+  // the room connects releases it, and the delivery still mounts the room (armTeamOrigin).
+  const pressed = ctx.toolId ? activeTeamSessionOrigin(ctx.toolId) : null;
   // Every exit below produces a sentence, so the copy is a prerequisite rather than a
   // repaint. One already-resolved promise in English and on a second call (i18n.ts's
   // loadNamespace is idempotent and a no-op for 'en'); a failed load leaves English.
@@ -463,8 +528,9 @@ export async function openWorkCollab(
   if (!canEdit()) return fail('not-permitted', tRaw(STRINGS.cannotEdit));
   const sessionId = readId(ctx.sessionId);
   if (!sessionId) return fail('no-session', tRaw(STRINGS.noSession));
+  const origin = pressed?.sessionId === sessionId ? { ...pressed } : undefined;
   return connectAndDeliver(
-    { sessionId, ...(ctx.toolId ? { toolId: ctx.toolId } : {}), launch: ctx },
+    { sessionId, ...(ctx.toolId ? { toolId: ctx.toolId } : {}), launch: ctx, ...(origin ? { origin } : {}) },
     deps,
   );
 }
@@ -507,7 +573,18 @@ export async function joinWorkCollabFromInvite(
   }
 
   const toolId = got.data.toolId || invite.toolId;
-  return connectAndDeliver({ sessionId: invite.sessionId, ...(toolId ? { toolId } : {}) }, deps);
+  // The joined document IS this session (the join-ack seeds it), so its mount holds the
+  // session as its origin, like a document opened from Team projects.
+  const projectId = got.data.projectId ?? invite.projectId;
+  const label = typeof got.data.meta?.label === 'string' ? got.data.meta.label : undefined;
+  const origin: TeamSessionOriginInput | undefined = toolId ? {
+    sessionId: invite.sessionId,
+    toolId,
+    ...(projectId ? { projectId } : {}),
+    ...(got.data.rev !== undefined ? { rev: got.data.rev } : {}),
+    ...(label ? { label } : {}),
+  } : undefined;
+  return connectAndDeliver({ sessionId: invite.sessionId, ...(toolId ? { toolId } : {}), ...(origin ? { origin } : {}) }, deps);
 }
 
 // ── The inbox affordance ──────────────────────────────────────────────────────

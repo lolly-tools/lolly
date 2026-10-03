@@ -238,6 +238,26 @@ describe('service worker: the app shell key', () => {
       'the offline app must still boot into the app, not into documentation');
   });
 
+  test('a control-plane page on the same origin never replaces the cached app shell', async () => {
+    // A private instance (lolly-work) serves the app and its own pages from one
+    // origin: the console, activation, share links, connect, renders, SCIM and the
+    // probes. Their last segment has no dot, so without the bypass the console's
+    // HTML would become the offline app, and a cold-start 5xx there would be
+    // answered with the app instead of the function's own error.
+    const h = loadServiceWorker();
+    h.server.set('/', 'APP_SHELL');
+    await navigate(h, 'https://lolly.tools/');
+    for (const path of ['/admin', '/admin/people', '/activate', '/l/abc123', '/connect/pack', '/render/qr-code',
+      '/scim/v2/Users', '/healthz', '/readyz', '/metrics']) {
+      h.server.set(path, 'CONTROL_PLANE_PAGE');
+      assert.equal(await navigate(h, `https://lolly.tools${path}`), null, `${path} goes straight to the network`);
+    }
+    assert.equal(shellEntry(h), 'APP_SHELL', 'the cached app shell is untouched');
+    // The bypass is anchored: an app route that only starts with the same letters is still the app.
+    h.server.set('/lab', 'LAB_PAGE');
+    assert.equal(await navigate(h, 'https://lolly.tools/lab'), 'LAB_PAGE', '/lab is handled by the worker, not bypassed as /l');
+  });
+
   test('/info serves network-first and never populates the shell key', async () => {
     const h = loadServiceWorker();
     h.server.set('/', 'APP_SHELL');

@@ -13,7 +13,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  registerShareSection, shareSectionBuilders, _clearShareSectionsForTests,
+  registerShareSection, shareSectionBuilders, shareSectionOrder, shareSectionPlacement, mountShareSection, _clearShareSectionsForTests,
 } from './share-sections.ts';
 import {
   instanceShareRows, hasInstanceShareRows, targetFromBaseParts,
@@ -39,6 +39,61 @@ test('register returns a working unregister; iteration snapshot is stable', () =
   assert.equal(shareSectionBuilders().length, 1);
   assert.equal(snap.length, 2);
   assert.equal(shareSectionBuilders()[0], b2);
+});
+
+test('an ordering hint puts a section first; no hint keeps registration order', () => {
+  _clearShareSectionsForTests();
+  const a = () => null;
+  const b = () => null;
+  const team = () => null;
+  registerShareSection(a);
+  registerShareSection(b);
+  assert.deepEqual(shareSectionBuilders(), [a, b]);
+  registerShareSection(team, { order: -10 });
+  assert.deepEqual(shareSectionBuilders(), [team, a, b]);
+  assert.equal(shareSectionOrder(team), -10);
+  assert.equal(shareSectionOrder(a), 0);
+  _clearShareSectionsForTests();
+});
+
+test('placement is dormant by default; lead only when a section asks for it', () => {
+  _clearShareSectionsForTests();
+  const plain = () => null;
+  const ordered = () => null;
+  const lead = () => null;
+  registerShareSection(plain);
+  registerShareSection(ordered, { order: -5 });
+  registerShareSection(lead, { placement: 'lead' });
+  assert.equal(shareSectionPlacement(plain), 'after');
+  assert.equal(shareSectionPlacement(ordered), 'after');
+  assert.equal(shareSectionPlacement(lead), 'lead');
+  // Placement does not change the order the builders run in.
+  assert.deepEqual(shareSectionBuilders(), [ordered, plain, lead]);
+  _clearShareSectionsForTests();
+});
+
+/** The few parts of an element the mount helper touches. */
+function fakeHost() {
+  const kids: object[] = [];
+  return {
+    get children() { return kids; },
+    appendChild(n: object) { kids.push(n); return n; },
+    insertBefore(n: object, ref: object) { kids.splice(kids.indexOf(ref), 0, n); return n; },
+  };
+}
+
+test('mountShareSection places late arrivals by order, and equal orders append', () => {
+  const host = fakeHost();
+  const mount = (name: string, order?: number) => {
+    const node = { name };
+    mountShareSection(host as unknown as Element, node as unknown as HTMLElement, order);
+  };
+  mount('collab');
+  mount('links');
+  // The team section's module loads last, but the section still goes first.
+  mount('team', -10);
+  mount('late');
+  assert.deepEqual(host.children.map((n) => (n as { name: string }).name), ['team', 'collab', 'links', 'late']);
 });
 
 // ── capability gating (pure) ────────────────────────────────────────────────────

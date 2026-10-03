@@ -20,6 +20,8 @@ import { urlProfileValue } from '../../lib/press-profile-embed.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { openShareDialog } from '../../components/share-dialog.ts';
 import type { ShareDialogLolly } from '../../components/share-dialog.ts';
+import type { ShareDocument } from '../../lib/share-sections.ts';
+import { sessionInputValues } from '../tool-session-snapshot.ts';
 import { AUTO_PACK_MIN, encodeModelParam, tokenSelectionParam } from '../../lib/url-budget.ts';
 import type { ShareFidelity } from '../../lib/url-budget.ts';
 import type { ToolManifest, ToolRenderSpec } from '../../../../../engine/src/loader.js';
@@ -847,8 +849,16 @@ export function shareDialogOptions(
   const currentFormat =
     exportScope?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value || '';
   const { parts, fidelity } = buildShareParams(runtime, exportScope);
+  // Sections that save the document elsewhere (lib/share-sections.ts) read it when they
+  // save, not now: the values a local Save keeps, the manifest version, the name typed
+  // in the export sheet, and the emoji set the copied link carries.
+  const readDocument = (): ShareDocument => {
+    const label = exportScope?.querySelector<HTMLInputElement>('[data-action="filename"]')?.value.trim();
+    const emoji = toolEmojiParams();
+    return { inputs: sessionInputValues(runtime), toolVersion: manifest.version, ...(label ? { label } : {}), ...(emoji ? { emoji: { ...emoji } } : {}) };
+  };
   return { toolId, baseParts: parts.filter(part => part !== 'format=lolly'), manifest,
-    currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly };
+    currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly, document: readDocument };
 }
 
 // Re-create <script> elements so the browser executes them.

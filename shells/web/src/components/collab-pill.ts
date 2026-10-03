@@ -385,19 +385,23 @@ export function collabDisplayName(p: CollabParticipant): string {
 /**
  * Up to two initials for the avatar disc.
  *
- * Code points, not code units, so an emoji or an astral-plane name does not get
- * sliced into a lone surrogate; and the first letter of each of the first two
- * WORDS, which is what makes "Priya Fernandes" read as PF rather than PR. A name
- * with no letters at all (only punctuation, only spaces) yields '' and the disc is
+ * The first LETTER of each of the first two words that have one, which is what makes
+ * "Priya Fernandes" read as PF rather than PR, and "Andy (Owner)" as AO rather than
+ * "A(": a bracket, a dash or an emoji is never an initial, and a word with no letter is
+ * skipped. A letter is any script's (`\p{L}`), matched by code point, so a CJK name keeps
+ * its characters and an astral-plane letter is never sliced into a lone surrogate. A name
+ * with no letters at all (only punctuation, emoji or spaces) yields '' and the disc is
  * then colour + halo only - which is fine, because the initials were never the
  * accessible name.
  */
 export function collabInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean).slice(0, 2);
   let out = '';
-  for (const word of words) {
-    const first = [...word][0];
-    if (first) out += first.toUpperCase();
+  let count = 0;
+  for (const word of name.trim().split(/\s+/)) {
+    const letter = /\p{L}/u.exec(word)?.[0];
+    if (!letter) continue;
+    out += letter.toUpperCase();
+    if (++count === 2) break;
   }
   return out;
 }

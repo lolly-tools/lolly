@@ -129,6 +129,21 @@ test('dormant negative is remembered - a later boot skips even the probe', async
   assert.equal(fetchLog.length, 0, 'no probe when the origin is remembered-absent');
 });
 
+test('dormant on a 5xx, but the negative is NOT remembered - the next boot probes again', async () => {
+  reset();
+  router = (url) => (url.includes('/api/auth/config')
+    ? new Response('', { status: 503 })
+    : new Response('', { status: 404 }));
+  assert.equal(await initOrg(), null);
+  assert.equal(store.get('lolly:org-absent:same-origin'), undefined, 'a server error is not "no instance"');
+  _resetOrgForTests();
+  fetchLog = [];
+  controlPlane({ mode: 'open', session: 'member' });
+  const r = await initOrg();
+  assert.ok(fetchLog.some(c => c.url.includes('/api/auth/config')), 'probed again');
+  assert.ok(r, 'the control plane is found once it answers');
+});
+
 // ── Gate decision truth table (mode × session) ────────────────────────────────
 
 test('gate decision truth table', async () => {
@@ -151,6 +166,28 @@ test('gate decision truth table', async () => {
     assert.equal(r!.gate, c.gate, `${label}: gate flag`);
     assert.equal(!!document.querySelector('.org-gate'), c.gate, `${label}: gate card rendered iff gated`);
   }
+});
+
+test('a sign-in gate stops catalog reads and is remembered; no gate leaves the catalog alone', async () => {
+  const { catalogRefused, resetCatalogAccessForTests } = await import('../lib/catalog-access.ts');
+  const cases: Array<{ mode: 'open' | 'gated' | 'per-tool'; session: SessionKind; gate: boolean }> = [
+    { mode: 'gated', session: 'none', gate: true },
+    { mode: 'gated', session: 'guest', gate: true },
+    { mode: 'gated', session: 'member', gate: false },
+    { mode: 'open', session: 'none', gate: false },
+    { mode: 'per-tool', session: 'none', gate: false },
+  ];
+  for (const c of cases) {
+    reset();
+    resetCatalogAccessForTests();
+    controlPlane({ mode: c.mode, session: c.session });
+    const r = await initOrg();
+    const label = `${c.mode}/${c.session}`;
+    assert.equal(r!.gate, c.gate, `${label}: gate flag`);
+    assert.equal(catalogRefused(), c.gate, `${label}: catalog reads stop iff gated`);
+    assert.equal(store.has('lolly:catalog-refused:same-origin'), c.gate, `${label}: remembered for the next boot iff gated`);
+  }
+  resetCatalogAccessForTests();
 });
 
 test('gate builds a login link carrying returnTo=<current path>', async () => {
@@ -356,6 +393,23 @@ test('a member boot installs the tool-mount hook: a mount governs the sidebar wi
   await initOrg();
   notifyToolInputMount('event-badge');
   assert.equal(getInputPolicy('event-badge', 'logo'), undefined);
+});
+
+test('the Team share section leads, and is built in the same task once its module is loaded', async () => {
+  const { shareSectionBuilders, shareSectionPlacement, shareSectionOrder } = await import('../lib/share-sections.ts');
+  reset();
+  controlPlane({ mode: 'open', session: 'member' });
+  await initOrg();
+  const team = shareSectionBuilders().filter((b) => shareSectionPlacement(b) === 'lead');
+  assert.equal(team.length, 1, 'one lead section: Team');
+  assert.equal(shareSectionOrder(team[0]!), -10);
+  const ctx = { toolId: 'qr-code', baseParts: [], copy: async () => {} };
+  const first = team[0]!(ctx);
+  // Loaded already when the idle preload ran first; otherwise the first build waits for the module.
+  if (first && 'then' in first) await first;
+  const again = team[0]!(ctx);
+  assert.ok(!(again && 'then' in again), 'a loaded module builds directly, so the section mounts with the surface');
+  _resetOrgForTests();
 });
 
 // ── Member org-config → generic export-policy seam + approval opener ──────────

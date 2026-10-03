@@ -125,8 +125,19 @@ test('initials take the first letter of the first two WORDS, by code point', () 
   assert.equal(collabInitials('Priya Fernandes'), 'PF');
   assert.equal(collabInitials('andy'), 'A');
   assert.equal(collabInitials('  Ada  Lovelace  King '), 'AL', 'two words, not three');
-  assert.equal(collabInitials('🐙 squid'), '🐙S', 'an astral first character survives whole');
   assert.equal(collabInitials('   '), '', 'no letters is an empty disc, not a crash');
+});
+
+test('initials are letters: punctuation and emoji are skipped, any script counts', () => {
+  assert.equal(collabInitials('Andy (Owner)'), 'AO', 'a bracket is not an initial');
+  assert.equal(collabInitials('(Owner)'), 'O');
+  assert.equal(collabInitials('- Ada - Lovelace'), 'AL', 'a word with no letter is skipped, not counted');
+  assert.equal(collabInitials('"bea" o\'neil'), 'BO');
+  assert.equal(collabInitials('🐙 squid'), 'S', 'an emoji is not an initial');
+  assert.equal(collabInitials('🐙'), '', 'nor is an emoji-only name');
+  assert.equal(collabInitials('山田 太郎'), '山太', 'CJK names keep their characters');
+  assert.equal(collabInitials('𠀋子 ana'), '𠀋A', 'an astral-plane letter survives whole');
+  assert.equal(collabInitials('élodie 3rd'), 'ÉR', 'the first letter of a word that starts with a digit');
 });
 
 test('chip names truncate; the roster and the announcements keep the whole thing', () => {

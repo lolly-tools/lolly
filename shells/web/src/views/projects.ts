@@ -74,7 +74,6 @@ import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsVi
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
-import { serializeUrlState } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import type { ProjectedUserTool } from '../lib/user-tools.ts';   // type-only (erased) - the store is lazy-imported
@@ -83,9 +82,7 @@ import { TEMPLATES, templateBulkMenuHtml, templateUseHref, type SessionSaveSourc
 import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionSource, templatesCollectionFor, templatesRailChip, templatesRootTile } from './projects-templates-wiring.ts';
 import type { TemplateActionHost } from '../lib/template-actions.ts';
 import { getSessionSource } from '../lib/session-source.ts';
-// A leaf with no imports of its own (module state, no network/DOM), so this costs the
-// Projects chunk nothing and drags no control-plane code onto any path - see its header.
-import { rememberTeamSessionOrigin } from '../org/team-session-origin.ts';
+import { openRequestedTeamProject, openTeamProjects, type TeamProjectsDoor } from './projects-team.ts';
 import { getCollabTileProvider, renderCollabBadge } from '../lib/collab-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
@@ -265,6 +262,8 @@ export async function mountProjects(
     hasPreview: ref => !!previewForRef(ref), isFavourite: id => favourites.has(id), folderCover: f => folderCoverDataUrl(f),
   }));
   let mounted = true;        // false after the view is swapped out (guards async renders)
+  // The Team projects door (projects-team.ts; dormant without a session source).
+  const teamDoor: TeamProjectsDoor = { host, toolName, beforeNavigate: armReturn, isMounted: () => mounted };
   let overlayModal: ModalHandle<any> | null = null;      // the move-picker / new-folder-name dialog, if open
   let releaseSearch: (() => void) | null = null;         // the shell search-bar claim (set in boot, below)
   let featuredHandle: FeaturedRowHandle | null = null; // the Uncategorised preview ribbon (drift/coverflow/grip), if mounted
@@ -1179,7 +1178,7 @@ export async function mountProjects(
       if (create) {
         const kind = create.dataset.create;
         if (kind === 'folder') startCreateFolder(create);
-        else if (kind === 'team') void openTeamProjects();
+        else if (kind === 'team') openTeamProjects(teamDoor);
         else if (kind === 'template') void openBlueprintChooser();
         else startCreateTool();
         return;
@@ -2653,85 +2652,6 @@ export async function mountProjects(
     });
   }
 
-  // ── team projects (control-plane session source; dormant without one) ───────
-  // A self-contained modal: browse the instance's shared projects → their
-  // sessions → open one into its tool. Opening reuses the SAME reconstruction
-  // shareProjectSession() uses (createRuntime → serializeUrlState → navigate), so a team
-  // session opens as a fresh working copy at full fidelity (blocks included), with
-  // no local slot written. The source is pure data (see lib/session-source.ts).
-  const teamRowStyle = 'display:flex;justify-content:space-between;gap:1rem;width:100%;padding:.55rem .7rem;background:none;border:0;border-radius:var(--radius);color:inherit;text-align:left;cursor:pointer;font:inherit';
-  async function openTeamProjects(): Promise<void> {
-    const src = getSessionSource();
-    if (!src) return;
-    const modal = mountModal<void>(
-      `<div style="min-width:min(30rem,86vw)"><h2 style="margin-top:0">${escape(t('Team projects'))}</h2>
-        <div data-team-body><p class="projects-empty">${escape(t('Loading…'))}</p></div></div>`,
-      { className: 'team-projects-dialog' },
-    );
-    const body = modal.el.querySelector<HTMLElement>('[data-team-body]')!;
-    // Which project's session list is on screen - the modal is two screens deep and the
-    // session rows only carry their own id. Recorded so an opened session can name the
-    // project it came from in its origin stash (org/team-session-origin.ts).
-    let openProjectId: string | null = null;
-    const row = (attr: string, id: string, name: string, meta: string): string =>
-      `<li><button type="button" style="${teamRowStyle}" ${attr}="${escape(id)}"
-        onmouseover="this.style.background='color-mix(in oklab,currentColor 8%,transparent)'" onmouseout="this.style.background='none'">
-        <span>${escape(name)}</span><span style="opacity:.6">${escape(meta)}</span></button></li>`;
-    const list = (items: string): string => `<ul style="list-style:none;margin:.4rem 0 0;padding:0;display:flex;flex-direction:column;gap:2px">${items}</ul>`;
-    const showProjects = async (): Promise<void> => {
-      openProjectId = null;
-      const projects = await src.listProjects().catch(() => []);
-      if (!modal.el.isConnected) return;
-      body.innerHTML = projects.length
-        ? list(projects.map(p => row('data-team-project', p.id, p.name, p.sessionCount != null ? t('{n} sessions', { n: String(p.sessionCount) }) : '')).join(''))
-        : `<p class="projects-empty">${escape(t('No team projects are shared with you yet.'))}</p>`;
-    };
-    const showSessions = async (projectId: string, name: string): Promise<void> => {
-      openProjectId = projectId;
-      body.innerHTML = `<p class="projects-empty">${escape(t('Loading…'))}</p>`;
-      const sessions = await src.listSessions(projectId).catch(() => []);
-      if (!modal.el.isConnected) return;
-      const back = `<button type="button" data-team-back style="background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font:inherit;padding:.2rem 0;margin-bottom:.3rem">${escape(t('← All team projects'))}</button>`;
-      body.innerHTML = back + `<h3 style="margin:.1rem 0 .2rem;font-size:1rem">${escape(name)}</h3>` + (sessions.length
-        ? list(sessions.map(s => row('data-team-session', s.id, s.label || toolName(s.toolId) || s.toolId, toolName(s.toolId) || s.toolId)).join(''))
-        : `<p class="projects-empty">${escape(t('This project has no sessions yet.'))}</p>`);
-    };
-    body.addEventListener('click', (e) => {
-      const el = e.target as HTMLElement;
-      const proj = el.closest<HTMLElement>('[data-team-project]');
-      if (proj) { void showSessions(proj.dataset.teamProject!, proj.querySelector('span')?.textContent || ''); return; }
-      if (el.closest('[data-team-back]')) { void showProjects(); return; }
-      const sess = el.closest<HTMLElement>('[data-team-session]');
-      if (sess) { modal.close(); void openTeamSession(sess.dataset.teamSession!, openProjectId); }
-    });
-    void showProjects();
-  }
-
-  async function openTeamSession(sessionId: string, projectId?: string | null): Promise<void> {
-    const src = getSessionSource();
-    if (!src) return;
-    try {
-      const data = await src.fetchSession(sessionId);
-      if (!data) { announce(t('That session is no longer available.')); return; }
-      const tool = await getTool(data.toolId);
-      const runtime = await createRuntime(tool, host, data.inputs as Parameters<typeof createRuntime>[2]);
-      const query = serializeUrlState(runtime.getModel());
-      armReturn();
-      // The hash below is a faithful working copy that has otherwise forgotten where it
-      // came from: the instance's id for this session is not an input and is deliberately
-      // not serialised into a link. Hand it to the mount alongside the navigation instead
-      // - a one-shot stash the tool view spends on mount, and the only thing that lets the
-      // Share dialog's "Work collab" row key a room on the session actually being edited
-      // (org/team-session-origin.ts; plans/100 section 7). Armed LAST, immediately before the
-      // navigation it belongs to, so a failure above leaves nothing armed.
-      rememberTeamSessionOrigin({ sessionId, toolId: data.toolId, ...(projectId ? { projectId } : {}) });
-      window.location.hash = `#/tool/${data.toolId}${query ? `?${query}` : ''}`;
-    } catch (err) {
-      host.log?.('warn', 'projects: open team session failed', { sessionId, error: String(err) });
-      announce(t('That session could not be opened.'));
-    }
-  }
-
   // ── bulk actions over the current multi-selection ───────────────────────────
   // Selected FOLDERS that are descendants of another selected folder are redundant - 
   // the ancestor's subtree already covers them. Drop them so we don't double-process.
@@ -3052,4 +2972,6 @@ export async function mountProjects(
     onClear: exitSearch,
   });
   render();
+  // A team project link asked Projects to open that project.
+  openRequestedTeamProject(teamDoor);
 }

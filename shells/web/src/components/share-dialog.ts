@@ -15,7 +15,10 @@ import { bumpMetric } from '../metrics.ts';
 import { announce } from '../a11y.ts';
 import { packQuery, unpackToken, isPackAvailable, PACK_PARAM, packEncrypted, isEncryptAvailable, ENC_PARAM } from '@lolly/engine';
 import { mountModal } from './modal.ts';
-import { shareSectionBuilders } from '../lib/share-sections.ts';
+import {
+  mountShareSection, shareSectionBuilders, shareSectionOrder, shareSectionPlacement,
+  type ShareSectionContext, type ShareSectionPlacement,
+} from '../lib/share-sections.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import type { LollySummary } from '../lib/lolly-pack.ts';
 import { AUTO_PACK_MIN, SHARE_WARN_LEN, BROWSER_HARD_CAP, type ShareFidelity } from '../lib/url-budget.ts';
@@ -175,6 +178,9 @@ export interface ShareDialogOpts {
    * content-loss verdict points here.
    */
   lolly?: ShareDialogLolly;
+  /** Reads the live document for registered sections (lib/share-sections.ts). The
+   *  dialog itself never reads the document. */
+  document?: ShareSectionContext['document'];
 }
 
 /**
@@ -203,7 +209,7 @@ export function mountSharePanel(container: HTMLElement, opts: ShareDialogOpts, o
 }
 
 function renderShareSurface(
-  { toolId, baseParts = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly }: ShareDialogOpts,
+  { toolId, baseParts = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly, document: readDocument }: ShareDialogOpts,
   mount: (content: string) => { el: HTMLElement; close(): void },
   autofocus: boolean,
 ): HTMLElement {
@@ -592,23 +598,62 @@ function renderShareSurface(
   if (autofocus) { field.focus(); field.select(); }
   else dialog.querySelector<HTMLElement>('.share-dialog-actions')!.hidden = true;
 
-  // Extra sections from the generic registry (empty by default → nothing mounts,
-  // so the dialog is byte-identical without a registrant). A deployment's optional
-  // control plane registers one to offer instance-hosted links (see src/org/).
-  // Builders may be async; mount each only if it returns a node and the dialog is
-  // still open. Each gets the dialog's own copy affordance.
-  const extraHost = dialog.querySelector<HTMLElement>('[data-extra-sections]');
-  const builders = shareSectionBuilders();
-  if (extraHost && builders.length) {
-    const ctx = { toolId, baseParts, currentFormat: currentFmt, copy: copyToClipboard, close: () => modal.close() };
-    for (const build of builders) {
-      Promise.resolve(build(ctx))
-        .then(node => { if (node && dialog.isConnected) extraHost.appendChild(node); })
-        .catch(() => { /* a section that fails to build simply doesn't appear */ });
-    }
-  }
+  mountRegisteredSections(dialog, { toolId, baseParts, currentFormat: currentFmt, copy: copyToClipboard, close: () => modal.close(), ...(readDocument ? { document: readDocument } : {}) });
 
   return dialog;
+}
+
+/**
+ * Extra sections from the generic registry (empty by default, so nothing mounts and
+ * the dialog is byte-identical without a registrant). A deployment's optional control
+ * plane registers one to offer instance-hosted links (see src/org/). Builders may be
+ * async; each mounts only if it returns a node and the dialog is still open, at its
+ * place by the registry's ordering hint (equal hints keep arrival order). Each gets
+ * the dialog's own copy affordance. A node returned directly mounts at once, in the
+ * same task as the rest of the surface: the docked panel rebuilds the surface on
+ * every edit, and a section laid out a frame late pushes the rest of the panel down.
+ *
+ * A section registered with placement 'lead' goes above the dialog's own link row,
+ * under the heading, in a host made only when the first such section arrives, with a
+ * small heading over the dialog's own link so the two links are told apart. Every
+ * other section, and a lead section when the dialog has no own link row to lead,
+ * goes after the dialog's own rows, where they always went.
+ */
+function mountRegisteredSections(dialog: HTMLElement, ctx: ShareSectionContext): void {
+  const extraHost = dialog.querySelector<HTMLElement>('[data-extra-sections]');
+  const builders = shareSectionBuilders();
+  if (!extraHost || !builders.length) return;
+  const ownRow = dialog.querySelector<HTMLElement>('.share-dialog-body > .share-link-row');
+  let leadHost: HTMLElement | null = null;
+  const hostFor = (placement: ShareSectionPlacement): HTMLElement => {
+    if (placement !== 'lead' || !ownRow) return extraHost;
+    if (!leadHost) {
+      leadHost = document.createElement('div');
+      leadHost.className = 'share-lead-sections';
+      leadHost.dataset.leadSections = '';
+      const ownHeading = document.createElement('h3');
+      ownHeading.className = 'share-own-heading';
+      // The body's flex gap spaces the rows; the negative margin keeps the heading with its row.
+      ownHeading.style.cssText = 'margin:0 0 -.5rem;font-size:.82rem;font-weight:650;letter-spacing:.02em;text-transform:uppercase;color:hsl(var(--muted-foreground))';
+      ownHeading.textContent = 'Link to this version';
+      ownRow.before(leadHost, ownHeading);
+    }
+    return leadHost;
+  };
+  for (const build of builders) {
+    // The place is settled before the builder runs, so a section told it leads does.
+    const placement: ShareSectionPlacement = shareSectionPlacement(build) === 'lead' && ownRow ? 'lead' : 'after';
+    const mount = (node: HTMLElement | null): void => {
+      if (node) mountShareSection(hostFor(placement), node, shareSectionOrder(build));
+    };
+    try {
+      const built = build(placement === 'lead' ? { ...ctx, placement } : ctx);
+      // A late node mounts only while the dialog is still open. One returned directly
+      // mounts as part of building the surface, which may not be on the page yet.
+      if (built && 'then' in built) built.then((node) => { if (dialog.isConnected) mount(node); }, () => { /* a section that fails to build simply doesn't appear */ });
+      else mount(built);
+    } catch { /* a section that fails to build simply doesn't appear */ }
+  }
 }
 
 /**

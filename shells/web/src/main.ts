@@ -107,7 +107,7 @@ mountTooltips();
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply';
+type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -137,6 +137,7 @@ type Route =
   | { name: 'docs'; slug: string; lang: string | null; params?: string }
   | { name: 'join'; params?: string }
   | { name: 'join-reply'; params?: string }
+  | { name: 'team'; slug: string; params?: string }
   | { name: 'gallery'; params?: string };
 
 /** The #view container, which a mounted view may stamp a teardown fn onto. */
@@ -188,6 +189,10 @@ interface RouteSpec {
    *  'search' on the browse views, 'none' (the default) on editing views and the
    *  utility views that keep their own chrome for now. */
   footer?: 'search' | 'none';
+  /** A route that only hands off to another view (it replaces its own address once
+   *  the destination is known). Leaving such a route records no back step, so a back
+   *  pill never returns to the hand-off. */
+  handoff?: boolean;
 }
 
 /**
@@ -273,6 +278,10 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // with the new payload, never dedupe onto the first one.
   join: { label: 'Join a collab', footer: 'none' },
   'join-reply': { label: 'Collab reply', footer: 'none' },
+  // A team session link (#/team/<sessionId>, plan 74). Handed straight to org/, which
+  // opens the session on the organisation's instance and replaces this address with
+  // the tool's. Keys on the SLUG (the session id), so a second link re-mounts.
+  team: { label: 'Team session', footer: 'none', handoff: true },
 };
 
 /** Every scoping class in ROUTES → the routes that own it, in declaration order. */
@@ -299,8 +308,11 @@ let routeLoading: ViewLoading | null = null;
 
 // Announce client-side route changes (the view swaps via innerHTML, which
 // assistive tech wouldn't otherwise notice).
-function announceRoute(name: RouteName): void {
-  announce(`${ROUTES[name]?.label ?? 'Page'} loaded`);
+function announceRoute(route: Route): void {
+  // The team route carries two links: a session (#/team/<id>) and a project
+  // (#/team/project/<id>), which the page itself calls "Team project".
+  const label = route.name === 'team' && route.slug.startsWith('project/') ? 'Team project' : ROUTES[route.name]?.label;
+  announce(`${label ?? 'Page'} loaded`);
 }
 
 /** The view-toggle tab a route lights up - null for routes without the tab bar. */
@@ -361,7 +373,8 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     if (name === 'profile' || name === 'dashboard') return 'settings';
     return JSON.stringify([name, toolId, folderId, lang, slug]);
   };
-  if (prevSig && viewIdent(routeSig) !== viewIdent(prevSig)) recordLeave(leftHref);
+  const leftHandoff = !!prevSig && ROUTES[(JSON.parse(prevSig) as string[])[0] as RouteName]?.handoff === true;
+  if (prevSig && viewIdent(routeSig) !== viewIdent(prevSig) && !leftHandoff) recordLeave(leftHref);
 
   const view = document.getElementById('view') as ViewElement;
   // NEVER let an outgoing view's teardown block the navigation: if _cleanup throws, the
@@ -689,6 +702,13 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       await mountJoinReplyRoute(view, route.params ?? '');
       break;
     }
+    case 'team': {
+      // A team session link. Everything about it is control-plane awareness, so the
+      // route only delegates; the module loads when someone follows such a link.
+      const { mountTeamLink } = await import('./org/team-link.ts');
+      await mountTeamLink(view, route.slug);
+      break;
+    }
     case 'components': {
       // The browsable component library (#/components). Lazy - it's a dev/design
       // surface, off every hot path. Its back pill is the shared one - it names
@@ -767,7 +787,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // out over it. A no-op when there was no fade (same-view refresh, reduced motion).
   fade?.commit();
 
-  announceRoute(route.name);
+  announceRoute(route);
   const af = document.activeElement;
   // A framed tool (`?iframe`) never takes focus on its own: the page around it owns the
   // keyboard, and a deck presenting it would lose its arrow keys to the demo on load.
@@ -963,14 +983,16 @@ function catalogHostOf(host: Awaited<ReturnType<typeof createBridge>>) {
   return host as unknown as Parameters<typeof syncCatalog>[0] & Parameters<typeof showGalleryWelcome>[0];
 }
 
-/** Start the catalog once the shell's instance choice is settled. */
-function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean): Promise<void> {
+/** Start the catalog once the shell's instance choice is settled. `signInRequired`
+ *  is the control-plane gate, asked only by an instance that refused its catalog
+ *  before (catalog/sync.ts), so a signed-out visitor sends no catalog requests. */
+function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>): Promise<void> {
   const welcomeRoute = parseRoute().name;
   if ((welcomeRoute === 'gallery' || welcomeRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
     ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery').catch(console.error) : undefined;
-  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled)
+  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired)
     .then(async () => { try { await mergeInstalledToolsIntoIndex(); } catch { /* no installed tools / no index yet */ } });
 }
 
@@ -1017,8 +1039,10 @@ async function boot(): Promise<void> {
   let slimIndexReady = coldGallery && !isTauriShell() ? loadSlimToolIndex() : null;
 
   const host = await createBridge();
-  // The optional deployment control plane's probe (src/org/) is up to a 1,500 ms
-  // time-boxed fetch that no other boot step feeds - not i18n, not the catalog - so it
+  // The optional deployment control plane's probe (src/org/) is a time-boxed fetch
+  // (AUTH_PROBE_BUDGET_MS in org/probe.ts, retry included; an unanswered probe is not
+  // cached as "no instance", only noted so the next boots use a shorter budget) that
+  // no other boot step feeds - not i18n, not the catalog - so it
   // is started as early as it can correctly go and awaited at the gate far below
   // (plans/155 Task 3.4); awaiting it there used to serialise the probe after every
   // other boot step instead of alongside them. The gate semantics are unchanged: the
@@ -1043,8 +1067,9 @@ async function boot(): Promise<void> {
   let releaseOrgProbe!: () => void;
   const orgPromise = new Promise<void>(resolve => { releaseOrgProbe = resolve; }).then(() => initOrgProbeFirst());
   if (!isTauriShell()) void initInstanceBase().then(releaseOrgProbe, releaseOrgProbe);
+  const signInRequired = (): Promise<boolean> => orgPromise.then(org => !!org?.gate);
   // Web can sync while profile and chrome initialize. Tauri waits for its instance sheet.
-  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery) : null;
+  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired) : null;
   trackVisualViewport();
   initMobilePlatformFit();
   // A Design 3D scene box keeps its uploads as asset ids inside its scene query, and only
@@ -1402,7 +1427,7 @@ async function boot(): Promise<void> {
   // the catalog lands, so they appear in the galleries/pickers and pass the tool view's
   // existence check. Part of catalogReady so the first gallery paint already includes them.
   //
-  const catalogReady = earlyCatalog ?? startBootCatalog(host, coldGallery);
+  const catalogReady = earlyCatalog ?? startBootCatalog(host, coldGallery, signInRequired);
   // Core-asset warming: 32 fetches / ~787 KB, fire-and-forget, and nothing on screen
   // waits for any of it. Firing at catalog-land put it in direct competition with the
   // first viewport's preview art, so it waits for load + idle now (plans/155 Task 3.6,
@@ -1951,6 +1976,9 @@ function parseRoute(): Route {
     // invite already sent.
     if (parts[0] === 'join') return { name: 'join', params: query || '' };
     if (parts[0] === 'join-reply') return { name: 'join-reply', params: query || '' };
+    // A team session link (plan 74): #/team/<sessionId>, or a team project link,
+    // #/team/project/<projectId> (slug 'project/<id>'). org/team-link.ts validates the id.
+    if (parts[0] === 'team') return { name: 'team', slug: parts[1] === 'project' ? `project/${parts[2] ?? ''}` : (parts[1] ?? ''), params: query || '' };
     // The gallery itself (#/?q=… keeps its query - the search field seeds from it),
     // and the fall-through for any unrecognised hash path.
     return { name: 'gallery', params: query || '' };

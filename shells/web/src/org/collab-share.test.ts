@@ -144,3 +144,53 @@ test('resetting the org seam reverts a previously-visible section to absent', as
   _resetOrgForTests();
   assert.equal(buildWorkCollabShareSection(ctx), null);
 });
+
+// ── A live room (plan 74) ──────────────────────────────────────────────────────
+
+const {
+  adoptTeamSessionOrigin, noteTeamSessionLive, _clearTeamSessionOriginForTests,
+} = await import('./team-session-origin.ts');
+
+test('a session this tab is live on shows the room, with no second start', async () => {
+  reset();
+  _clearTeamSessionOriginForTests();
+  await memberWithCan({ 'collab.join': true });
+  const seen: unknown[] = [];
+  registerCollabOpener('work', (c) => { seen.push(c); });
+  adoptTeamSessionOrigin({ sessionId: 'ses_1', toolId: 'qr-code' });
+  const leave = noteTeamSessionLive('ses_1');
+
+  const section = buildWorkCollabShareSection(ctx)!;
+  assert.ok(section, 'the section still says what is going on');
+  assert.equal(section.querySelector('[data-act="start-work-collab"]'), null, 'no Start a collab while live');
+  assert.match(section.textContent ?? '', /You are in a live collab on this session\./);
+  assert.ok(section.hasAttribute('data-collab-live'));
+
+  leave();
+  const after = buildWorkCollabShareSection(ctx)!;
+  assert.ok(after.querySelector('[data-act="start-work-collab"]'), 'once the room closes it can be started again');
+  assert.deepEqual(seen, []);
+});
+
+test('a live room on another session does not hide the start for this one', async () => {
+  reset();
+  _clearTeamSessionOriginForTests();
+  await memberWithCan({ 'collab.join': true });
+  registerCollabOpener('work', () => {});
+  adoptTeamSessionOrigin({ sessionId: 'ses_1', toolId: 'qr-code' });
+  noteTeamSessionLive('ses_2');
+  assert.ok(buildWorkCollabShareSection(ctx)!.querySelector('[data-act="start-work-collab"]'));
+});
+
+test('a panel drawn before the room went live does not start a second one', async () => {
+  reset();
+  _clearTeamSessionOriginForTests();
+  await memberWithCan({ 'collab.join': true });
+  const seen: unknown[] = [];
+  registerCollabOpener('work', (c) => { seen.push(c); });
+  adoptTeamSessionOrigin({ sessionId: 'ses_1', toolId: 'qr-code' });
+  const btn = buildWorkCollabShareSection(ctx)!.querySelector<HTMLButtonElement>('[data-act="start-work-collab"]')!;
+  noteTeamSessionLive('ses_1');
+  btn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+  assert.deepEqual(seen, []);
+});

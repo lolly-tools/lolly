@@ -13,9 +13,9 @@
  * to a test, and where the interesting cases are the aliases: jpeg/jpg,
  * heic/heif, oga→ogg, quicktime→mov, m4a via an mp4 mime.
  *
- * Everything here is a pure function of its arguments; `relTime` takes `now` so
- * it is testable without faking the clock, and takes its own translator so this
- * module does not depend on the i18n runtime.
+ * Everything here is a pure function of its arguments; `relTime` (lib/rel-time.ts,
+ * re-exported here) takes `now` so it is testable without faking the clock, and
+ * takes its own translator so this module does not depend on the i18n runtime.
  */
 
 /** True video containers. */
@@ -126,28 +126,6 @@ export function imageFormatSeed(fmt: unknown): string | undefined {
   return IMG_FORMATS.has(f) ? (f === 'jpeg' ? 'jpg' : f) : undefined;
 }
 
-/** Translator shape - matches i18n's `t` exactly, so the app's own function is
- *  assignable without a cast; tests pass a plain formatter with the same shape. */
-export type Translate = (key: string, vars?: Record<string, string | number>) => string;
-
-/**
- * Compact relative time for a saved session ("3d ago").
- *
- * `now` is injected rather than read from Date.now() so the boundaries are
- * testable. An unparseable or missing timestamp yields '' - a session row with no
- * date should show nothing, not "NaN ago". A FUTURE timestamp (clock skew, a file
- * copied from another machine) clamps to 0 and reads "just now" rather than
- * counting backwards.
- */
-export function relTime(iso: string | undefined, now: number, t: Translate): string {
-  const ts = iso ? Date.parse(iso) : NaN;
-  if (Number.isNaN(ts)) return '';
-  const s = Math.max(0, (now - ts) / 1000);
-  if (s < 60) return t('just now');
-  const m = s / 60; if (m < 60) return t('{n}m ago', { n: Math.floor(m) });
-  const h = m / 60; if (h < 24) return t('{n}h ago', { n: Math.floor(h) });
-  const d = h / 24; if (d < 7) return t('{n}d ago', { n: Math.floor(d) });
-  const w = d / 7; if (w < 5) return t('{n}w ago', { n: Math.floor(w) });
-  const mo = d / 30; if (mo < 12) return t('{n}mo ago', { n: Math.floor(mo) });
-  return t('{n}y ago', { n: Math.floor(d / 365) });
-}
+// The translator shape and `relTime` live in lib/rel-time.ts, so modules below views/
+// can share them; re-exported here for the picker and its tests.
+export { relTime, type Translate } from '../lib/rel-time.ts';

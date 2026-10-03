@@ -8,12 +8,17 @@ import { tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
 import type { ToolRuntime, ActionsExperience } from './tool.ts';
 import type { SavedStateData } from '../bridge/state.ts';
 
+/** A document's input values by input id: what a saved session keeps for its inputs
+ *  (blocks and tables included, as the model holds them). Shared by Save and by the
+ *  Share dialog's sections, so a document saved elsewhere carries the same values. */
+export function sessionInputValues(runtime: Pick<ToolRuntime, 'getModel'>): Record<string, InputValue> {
+  return Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value]));
+}
+
 export function snapshotSession(el: HTMLElement | null, manifest: ToolManifest, runtime: ToolRuntime,
   experience: ActionsExperience, readBleed: (el: Element | null) => string,
   readMarks: (el: Element | null) => string): SavedStateData & { __export_format: string } {
-    const values: Record<string, InputValue> = Object.fromEntries(
-      runtime.getModel().map((i) => [i.id, i.value])
-    );
+    const values = sessionInputValues(runtime);
     // The effective export format (user-selected, or the tool's default). Drives
     // a vector (SVG) thumbnail for vector tools - see captureThumbnail.
     const fmt = el?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value ?? '';

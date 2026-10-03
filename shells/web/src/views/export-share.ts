@@ -14,6 +14,36 @@ export function canExportLolly(toolId: string): boolean {
   return policy?.canDownload !== false && (!formats || formats.includes('lolly'));
 }
 
+/** What a tool mount does with the Share deep link: `?share`, or the `_dialog=share` the
+ *  docked panel below writes while it is open. */
+export type ShareDeepLink = { kind: 'open' } | { kind: 'clear'; changes: Record<string, null> };
+
+/**
+ * Read the Share deep link for a mount, or null when the address has none. Pure.
+ *
+ * A mount that joined a live collab (`live`) never reopens the share UI: starting a
+ * collab from this panel remounts the tool at the address the panel was open at, and the
+ * remount read `_dialog=share` and covered the live session with the Share dialog. The
+ * flags are cleared instead (`changes`), so a reload does not bring the dialog back either.
+ */
+export function shareDeepLink(flags: URLSearchParams, live: boolean): ShareDeepLink | null {
+  const dialog = flags.get('_dialog') === 'share';
+  if (!dialog && !flags.has('share')) return null;
+  if (!live) return { kind: 'open' };
+  return { kind: 'clear', changes: { ...(flags.has('share') ? { share: null } : {}), ...(dialog ? { _dialog: null } : {}) } };
+}
+
+/**
+ * Apply a `clear` from shareDeepLink to the mount's own flags and to the address bar.
+ * Both, because the mount's first address write puts back every workspace key (and
+ * `_dialog` is one) that its flags hold and the bar lacks; clearing only the bar let
+ * `_dialog=share` return, and a reload then opened the dialog over the live collab.
+ */
+export function clearShareDeepLink(flags: URLSearchParams, changes: Record<string, null>): void {
+  for (const key of Object.keys(changes)) flags.delete(key);
+  updateRouteParams(changes);
+}
+
 export function mountExportShare(root: HTMLElement, options: () => ShareDialogOpts): () => void {
   const trigger = document.createElement('button');
   trigger.type = 'button';
