@@ -144,6 +144,9 @@ test('scripts: the header include is written before nginx is (re)configured, and
   const cu = read('scripts/change_url');
   assert.ok(cu.indexOf('lolly_add_headers_inc') < cu.indexOf('ynh_config_change_url_nginx'));
   assert.match(cu, /if \[ "\$old_domain" != "\$domain" \]/, 'change_url must not delete the include it just wrote when only the path changed');
+  for (const inc of ['headers', 'any-site']) {
+    assert.match(cu, new RegExp(`ynh_safe_rm "/etc/nginx/conf\\.d/\\$old_domain\\.d/\\$app\\.${inc}\\.inc"`), `change_url must drop the old domain's ${inc} include`);
+  }
 });
 
 test('nginx: only placeholders YunoHost substitutes, and the .inc suffix that keeps it out of the *.conf glob', () => {
