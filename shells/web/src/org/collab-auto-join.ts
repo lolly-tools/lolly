@@ -32,6 +32,7 @@ export function registerAutomaticWorkCollab(deps: AutomaticWorkCollabDeps): () =
     let connecting = false;
     const wanted = (): boolean =>
       !disposed &&
+      deps.canJoin() &&
       current() &&
       generation === teamOriginGeneration() &&
       activeTeamSessionOrigin(tool.toolId)?.sessionId === origin.sessionId;

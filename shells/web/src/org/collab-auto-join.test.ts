@@ -171,6 +171,30 @@ test('a refused join shows its reason and a working retry', async () => {
   assert.equal(view.querySelector('.collab-auto-status'), null);
 });
 
+test('losing the member account or join permission invalidates a pending delivery', async () => {
+  shared();
+  let allowed = true;
+  let wanted: (() => boolean) | undefined;
+  let finish: (() => void) | undefined;
+  stop = registerAutomaticWorkCollab({
+    canJoin: () => allowed,
+    join: async (_ctx, deps) => {
+      wanted = deps?.stillWanted;
+      await new Promise<void>((resolve) => {
+        finish = resolve;
+      });
+      return { ok: true };
+    },
+  });
+  ready();
+  await settle();
+  assert.equal(wanted?.(), true);
+  allowed = false;
+  assert.equal(wanted?.(), false);
+  finish!();
+  await settle();
+});
+
 test('an unexpected connection failure leaves a visible retry instead of rejecting at boot', async () => {
   shared();
   stop = registerAutomaticWorkCollab({
