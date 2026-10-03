@@ -237,7 +237,7 @@ export function inputsDigestHtml(
       <a class="btn valid-recreate" href="#/tool/${escape(recreate.toolId)}"
          data-recreate="${recreate.fileIndex}" data-recreate-tool="${escape(recreate.toolId)}">${t('Recreate with these settings in {tool}', { tool: recreate.toolName })}</a>` : missingTool ? `
       <p class="valid-recreate-absent">${t('Made with the {tool} tool, which is not in this catalogue.', { tool: missingTool })}</p>
-      <a class="btn valid-recreate" href="/">${t('Explore the tools here')}</a>` : '';
+      <a class="btn valid-recreate" href="/#/tools">${t('Explore the tools here')}</a>` : '';
   return `
     <div class="valid-inputs valid-panel">
       <h3>${svgIcon('sparkle')}<span>${t('Made from')}</span></h3>

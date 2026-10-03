@@ -2057,8 +2057,10 @@ function parseRoute(): Route {
     const PATH_VIEWS: Record<string, { hash: string; route: Route }> = {
       history:   { hash: '#/history', route: { name: 'history', params: '' } },
       learning:  { hash: '#/learning', route: { name: 'learning', params: '' } },
-      gallery:   { hash: '#/', route: { name: 'gallery' } },
-      tools:     { hash: '#/',     route: { name: 'gallery' } },
+      // '#/tools', not the bare '#/': the hash branch answers it with the gallery, and
+      // an instance that opens members on Projects (org/index.ts) leaves it alone.
+      gallery:   { hash: '#/tools', route: { name: 'gallery' } },
+      tools:     { hash: '#/tools', route: { name: 'gallery' } },
       u:         { hash: '#/u',    route: { name: 'utilities' } },
       utilities: { hash: '#/u',    route: { name: 'utilities' } },
       a:         { hash: '#/a',    route: { name: 'catalog' } },

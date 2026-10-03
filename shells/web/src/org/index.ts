@@ -68,6 +68,7 @@ import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, probeInstance, rememberAb
 import { parseToolUrl } from '../../../../engine/src/tool-url.ts';
 import { createInstanceSessionSource } from './session-source.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
+import { appPathname } from '../lib/any-site.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape, safeHref } from '../utils.ts';
 
@@ -161,6 +162,10 @@ export type Injectable = ToolInjectable | ChromeInjectable;
 export interface OrgConfig {
   ai?: AiPolicy;
   instance: { name: string };
+  /** The view a member's app opens on at the bare app address (no route in it): the
+   *  tools gallery or their Projects. Absent ⇒ no instance opinion (the gallery). Applied
+   *  once, at boot, by applyHomeView below. */
+  home?: 'tools' | 'projects';
   session?: Session;
   profilePolicy?: Record<string, ProfileFieldSpec>;
   tools?: Record<string, ToolPolicySpec>;
@@ -735,6 +740,38 @@ function wireDeviceCodeSignIn(slot: HTMLElement): void {
   idle();
 }
 
+// ── Home view (org-config `home`) ─────────────────────────────────────────────
+
+/** Whether this page load has had its one chance to open the instance's home view. */
+let homeViewDecided = false;
+
+/**
+ * Open the member's Projects in place of the tools gallery when the instance asks
+ * for it (`home: 'projects'`). Boot awaits this seam before its first navigate, so
+ * the first view mounted is Projects and nothing paints twice. It acts once per page
+ * load and only on the bare app address: a link to a tool, a team project, a view
+ * or a search opens where it points, and later navigation (choosing Tools) is never
+ * redirected. The history entry is replaced, so Back does not land on the
+ * bare address and bounce again. A link that means Tools uses `#/tools`, never the
+ * bare address, so it is not redirected either.
+ */
+function applyHomeView(config: OrgConfig | null): void {
+  if (homeViewDecided) return;
+  homeViewDecided = true;
+  if (config?.home !== 'projects') return;
+  try {
+    // A reload, or Back/Forward to a page the browser did not keep in memory, returns
+    // to a view the member was already on. The Tools tab's address is the bare `/#`,
+    // so F5 on Tools must stay on Tools.
+    const returning = performance.getEntriesByType('navigation')
+      .some((entry) => 'type' in entry && (entry.type === 'reload' || entry.type === 'back_forward'));
+    if (returning) return;
+    const hash = location.hash;
+    if ((hash && hash !== '#' && hash !== '#/') || location.search || appPathname() !== '/') return;
+    history.replaceState(history.state, '', `${location.pathname}#/p`);
+  } catch { /* the gallery is a fine first view; never break boot over this */ }
+}
+
 // ── Orchestration ─────────────────────────────────────────────────────────────
 
 /**
@@ -827,6 +864,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
           failClosed = true;
         }
       }
+      // Before boot's first navigate reads the address: the instance's home view.
+      applyHomeView(orgConfigState);
       applyProfilePolicy(orgConfigState);
       // Populate the generic export-policy seam (download vs. request-approval) from
       // the caller's capability bits + per-tool approval chains, and register the
@@ -1051,6 +1090,7 @@ export function _resetOrgForTests(): void {
   session = null;
   orgConfigState = null;
   orgConfigEtag = null;
+  homeViewDecided = false;
   listeners.clear();
   unregisterShareSection?.();
   unregisterShareSection = null;

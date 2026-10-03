@@ -18,6 +18,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 
 const dom = new JSDOM(
@@ -27,6 +28,7 @@ const dom = new JSDOM(
 globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.location = dom.window.location as unknown as Location;
+globalThis.history = dom.window.history as unknown as History;
 
 // Map-backed localStorage (jsdom's is fine, but an explicit stub is controllable).
 const store = new Map<string, string>();
@@ -636,4 +638,137 @@ test('feature-flag governance: dormant (no control plane) keeps historic behavio
   assert.equal(isFlagOn({ featureFlags: {} } as unknown as Parameters<typeof isFlagOn>[0], STRIP_UPLOAD_META_FLAG), false); // built-in OFF
   assert.equal(isFlagOn({ featureFlags: {} } as unknown as Parameters<typeof isFlagOn>[0], JELLY_FLAG), false); // built-in OFF since 2026-09-11 (opt-in)
   assert.equal(isFlagOn({ featureFlags: {} } as unknown as Parameters<typeof isFlagOn>[0], NEUROSPICY_FLAG), true); // built-in ON
+});
+
+// ── Home view (org-config `home`) ─────────────────────────────────────────────
+
+const START_HREF = location.href;
+/** Put the address bar at `href` (same origin) without a navigation. */
+const at = (href: string): void => { history.replaceState(null, '', href); };
+const address = (): string => location.pathname + location.search + location.hash;
+function homePlane(home?: 'tools' | 'projects'): void {
+  controlPlane({
+    mode: 'gated', session: 'member',
+    orgConfig: { instance: { name: 'Acme' }, inboxUnread: 0, ...(home ? { home } : {}) },
+  });
+}
+
+test('home view: a member arriving at the bare address opens Projects, replacing the entry', async () => {
+  for (const bare of ['/', '/#', '/#/']) {
+    reset();
+    at(bare);
+    homePlane('projects');
+    const entries = history.length;
+    const r = await initOrg();
+    assert.equal(r?.gate, false);
+    assert.equal(address(), '/#/p', `${bare} opens Projects`);
+    assert.equal(history.length, entries, 'replaced, so Back does not return to the bare address');
+  }
+  at(START_HREF);
+});
+
+test('home view: an address that points at a route stays put', async () => {
+  for (const named of ['/#/tool/qr-code', '/t/qr-code', '/#/team/s-123', '/#/team/project/p-9', '/#/p/folder-1', '/#/profile', '/#/?q=logo', '/?lang=de', '/design', '/#/tools', '/#/tools?q=logo']) {
+    reset();
+    at(named);
+    homePlane('projects');
+    await initOrg();
+    assert.equal(address(), named, `${named} is not redirected`);
+  }
+  at(START_HREF);
+});
+
+test('home view: no instance opinion, or tools, leaves the gallery as the first view', async () => {
+  for (const home of [undefined, 'tools'] as const) {
+    reset();
+    at('/');
+    homePlane(home);
+    await initOrg();
+    assert.equal(address(), '/', `home ${home ?? 'absent'} keeps the bare address`);
+  }
+  at(START_HREF);
+});
+
+test('home view: no control plane, a guest, or a failed load with no cache never redirects', async () => {
+  reset();
+  at('/');
+  assert.equal(await initOrg(), null, 'dormant');
+  assert.equal(address(), '/');
+  reset();
+  at('/');
+  controlPlane({ mode: 'open', session: 'guest' });
+  await initOrg();
+  assert.equal(address(), '/', 'a guest has no org-config');
+  reset();
+  at('/');
+  memberPlane(() => new Response('offline', { status: 503 }));
+  await initOrg();
+  assert.equal(address(), '/', 'nothing known, nothing applied');
+  at(START_HREF);
+});
+
+test('home view: applies only to the first route of a page load', async () => {
+  reset();
+  at('/');
+  homePlane('projects');
+  await initOrg();
+  assert.equal(address(), '/#/p');
+  // Choosing Tools later puts the app back on the bare address; a later pass over
+  // the seam must not send the member back to Projects.
+  at('/');
+  await initOrg();
+  assert.equal(address(), '/', 'later navigation is never redirected');
+  // A page load whose first route was not redirected stays undecided for good.
+  reset();
+  at('/#/tool/qr-code');
+  homePlane('projects');
+  await initOrg();
+  at('/');
+  await initOrg();
+  assert.equal(address(), '/', 'the first route already chose the tool');
+  at(START_HREF);
+});
+
+test('home view: a reload or a Back/Forward return keeps the view the member was on', async (t) => {
+  // The Tools tab's address is the bare '/#', so F5 on Tools reaches the seam bare.
+  for (const type of ['reload', 'back_forward']) {
+    reset();
+    at('/#');
+    homePlane('projects');
+    const stub = t.mock.method(performance, 'getEntriesByType', () => [{ entryType: 'navigation', type }]);
+    await initOrg();
+    assert.equal(location.href, `${location.origin}/#`, `${type}: Tools stays on Tools`);
+    stub.mock.restore();
+  }
+  // A fresh arrival on the same address still opens Projects.
+  reset();
+  at('/#');
+  homePlane('projects');
+  const fresh = t.mock.method(performance, 'getEntriesByType', () => [{ entryType: 'navigation', type: 'navigate' }]);
+  await initOrg();
+  assert.equal(address(), '/#/p');
+  fresh.mock.restore();
+  at(START_HREF);
+});
+
+test('home view: every link that asks for Tools uses #/tools, never the bare address', () => {
+  const read = (rel: string): string => readFileSync(new URL(rel, import.meta.url), 'utf8');
+  // The tool view is an orchestrator plus feature modules; read the whole feature.
+  const toolFeature = readdirSync(new URL('../views/tool/', import.meta.url))
+    .filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))
+    .map((f) => read(`../views/tool/${f}`));
+  const views = [read('../views/tool.ts'), ...toolFeature, read('../views/valid.ts')].join('\n');
+  const hrefs = [...views.matchAll(/href="([^"]*)"[^>]*>\$\{t\('(?:Browse all tools|Back to all tools|Explore the tools here)'\)\}/g)]
+    .map((m) => m[1]);
+  assert.equal(hrefs.length, 5, 'the tool view and Verify carry five links back to the tools');
+  assert.deepEqual([...new Set(hrefs)], ['/#/tools'], 'a full page load to the bare address would open Projects instead');
+  // The /tools and /gallery path shortlinks forward to the same address.
+  const main = read('../main.ts');
+  for (const word of ['gallery', 'tools']) {
+    assert.match(main, new RegExp(`^\\s+${word}:\\s+\\{ hash: '#/tools',`, 'm'), `/${word} forwards to #/tools`);
+  }
+  // So does the /tools share-card page a link preview opens (scripts/build-view-og.ts).
+  const og = read('../../../../scripts/build-view-og.ts');
+  const row = og.slice(og.indexOf("slug: 'tools'"), og.indexOf("slug: 'utilities'"));
+  assert.match(row, /hash: '#\/tools',/, 'the /tools page bounces to #/tools');
 });

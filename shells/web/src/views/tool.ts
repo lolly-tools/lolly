@@ -264,7 +264,7 @@ async function mountToolInto(
         `<div class="error"><strong>${offline ? t('You’re offline') : t('Couldn’t load this tool')}</strong>` +
         `<p>${offline ? t('Reconnect, then try again.') : t('Check your connection, then retry.')}</p>` +
         `<div class="error-actions" style="margin-top:12px;display:flex;gap:8px;justify-content:center">` +
-        `<button class="btn" data-retry>${t('Retry')}</button><a class="btn" href="/#/">${t('Browse all tools')}</a></div></div>`;
+        `<button class="btn" data-retry>${t('Retry')}</button><a class="btn" href="/#/tools">${t('Browse all tools')}</a></div></div>`;
       viewEl.querySelector('[data-retry]')?.addEventListener('click', () => location.reload());
       releaseTeamSessionOrigin();
       return;
@@ -467,7 +467,7 @@ function mount404(viewEl: HTMLElement, toolId: string): void {
         <p class="not-found-code">404</p>
         <h1 class="not-found-title">${t('Tool not found')}</h1>
         <p class="not-found-desc">${t("There's no tool at <code>{id}</code>.", { id: toolId })}</p>
-        <a href="/" class="not-found-home">${t('Browse all tools')}</a>
+        <a href="/#/tools" class="not-found-home">${t('Browse all tools')}</a>
       </div>
     </div>
   `;
@@ -488,7 +488,7 @@ function mountUnavailable(
         <p class="not-found-code">${t('Desktop')}</p>
         <h1 class="not-found-title">${t('{name} needs the desktop app', { name: manifest.name })}</h1>
         <p class="not-found-desc">${t('This tool uses <strong>{why}</strong>, which the web app can’t provide - a browser can’t screenshot cross-origin pages. Open it in the Lolly desktop app.', { why })}</p>
-        <a href="/" class="not-found-home">${t('Browse all tools')}</a>
+        <a href="/#/tools" class="not-found-home">${t('Browse all tools')}</a>
       </div>
     </div>
   `;
@@ -506,7 +506,7 @@ function _mountInstallPrompt(viewEl: HTMLElement, manifest: ToolManifest): void 
         <p class="not-found-desc">${t('Add the free Lolly screenshot extension and this tool captures pages right here - no desktop app needed. Install it, then reload this page.')}</p>
         ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - docsAppHref() over a build-time slug constant, always '#/docs/…' */ ''}
         <a href="${escape(docsAppHref('create/extension'))}" class="not-found-home" target="_blank" rel="noopener">${t('Get the extension')}</a>
-        <a href="/#/" class="not-found-back">${t('Back to all tools')}</a>
+        <a href="/#/tools" class="not-found-back">${t('Back to all tools')}</a>
       </div>
     </div>
   `;
