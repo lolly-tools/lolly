@@ -55,6 +55,9 @@ if (TRUST_MODE === 'unsigned-dev' && PINNED_KEY) {
 
 let cached: Promise<ToolIntegrityOpts | null> | null = null;
 
+/** Whether catalog reads need signature verification, without fetching the envelope. */
+export const catalogVerificationRequired = (): boolean => TRUST_MODE === 'verified';
+
 /** The engine verifier, loaded on first use. Only ever reached past a `PINNED_KEY`
  *  guard, so an unsigned build never fetches the chunk at all. */
 const crypto = () => import('../../../../engine/src/catalog-integrity.ts');

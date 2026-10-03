@@ -21,7 +21,7 @@
 
 import { AssetChecksumError } from '../bridge/assets.ts';
 import { duringAssetSync } from '../lib/asset-sync.ts';
-import { assertToolIndexIntegrity, getToolIntegrity } from './integrity.ts';
+import { assertToolIndexIntegrity, catalogVerificationRequired } from './integrity.ts';
 import { currentLang, t } from '../i18n.ts';
 import { pinnedAssetIds, refreshPinnedToolFiles } from '../lib/offline-pins.ts';
 import { setBrandTrustedSites } from '../lib/trusted-sites.ts';
@@ -411,7 +411,9 @@ export function loadSlimToolIndex(): Promise<ToolIndex | null> {
       // An instance that refused its catalog last time waits for the sign-in
       // answer in syncCatalog; this fast path does not run ahead of that answer.
       if (catalogRefusedBefore()) return null;
-      if (await getToolIntegrity()) return null;
+      // The slim index is unsigned. Read the build policy without downloading the
+      // full signature envelope; the verified full-index sync loads it when needed.
+      if (catalogVerificationRequired()) return null;
       // index.html's pre-paint script already started this exact request on a cold
       // visit (see its slim-index note): adopt that response rather than making a
       // second one. Null when there is nothing to adopt - a repeat visitor, a

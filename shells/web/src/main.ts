@@ -1703,30 +1703,21 @@ async function boot(): Promise<void> {
     void import('./views/tool.ts').catch(() => {});
   };
 
-  // The TOOL path is special: it statically pulls the render engine (createRuntime +
-  // Handlebars + Ajv + export, ~170 KB gz). That used to sit on the boot preload - moving
-  // it off made the gallery boot lean, but a cold first tool-open then showed a "Loading…"
-  // state while those chunks arrived. So something is warmed PROMPTLY (tight idle timeout
-  // wins the slot even while the featured row is rendering), not on deep idle - the cold
-  // window shrinks from ~1.6s to <0.6s. Lolly is a tool app; the tool engine being warm
-  // matters most.
-  //
-  // What gets warmed unconditionally is the ENGINE, not the whole view. Those 170 KB are
-  // lib/mount-runtime.ts's static graph - the chokepoint every runtime in this shell goes
-  // through. views/tool.ts pulls that AND ~145 more chunks of view code, a few hundred
-  // bytes each: nothing in bytes, but 145 connections opened on every cold visit before
-  // the visitor has touched anything, which is what scripts/check-first-load.ts counts and
-  // what no byte budget can see. The view itself warms on intent below instead, where a
-  // pointerdown still puts it in flight ahead of the click that navigates.
+  // The engine graph stays off the boot preload. Warm it promptly after the
+  // welcome closes, so its downloads do not compete with the first screen.
+  // The full tool view brings many more chunks; intent below starts that graph
+  // before the click that navigates.
   const warmEngine = (): void => {
     if (!perfUiOn()) void import('./lib/mount-runtime.ts').catch(() => {});
   };
-  // Navigation intent below still warms the tool, including its engine. Check again
-  // inside the callback in case performance mode changed while it was waiting.
-  if (!perfUiOn()) {
-    if (typeof requestIdleCallback === 'function') requestIdleCallback(warmEngine, { timeout: 600 });
-    else setTimeout(warmEngine, 200);
-  }
+  // Background warming waits for the first-run welcome to close. Intent on a tool
+  // below still starts warming immediately. Check performance mode after the wait.
+  void welcomeSettled().then(() => {
+    if (!perfUiOn()) {
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(warmEngine, { timeout: 600 });
+      else setTimeout(warmEngine, 200);
+    }
+  });
 
   // Warm a view the instant a link to it is hovered or pressed. Capture-phase, one-shot
   // per target (import() caches), and it fires ahead of the click that navigates. Covers
