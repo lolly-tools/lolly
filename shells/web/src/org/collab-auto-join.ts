@@ -4,8 +4,7 @@
 import { announce } from '../a11y.ts';
 import { loadNamespace, t, tRaw } from '../i18n.ts';
 import { registerToolReady } from '../lib/tool-ready.ts';
-import { canJoinCollab } from './collab-config.ts';
-import { openWorkCollab, type WorkCollabDeps } from './collab-work-opener.ts';
+import type { openWorkCollab, WorkCollabDeps } from './collab-work-opener.ts';
 import {
   activeTeamSessionOrigin,
   teamOriginGeneration,
@@ -13,9 +12,11 @@ import {
 } from './team-session-origin.ts';
 
 export interface AutomaticWorkCollabDeps extends WorkCollabDeps {
-  readonly join?: typeof openWorkCollab;
+  readonly canJoin: () => boolean;
+  readonly join: typeof openWorkCollab;
 }
-export function registerAutomaticWorkCollab(deps: AutomaticWorkCollabDeps = {}): () => void {
+/** The member initializer supplies current policy and the already-loaded opener. */
+export function registerAutomaticWorkCollab(deps: AutomaticWorkCollabDeps): () => void {
   return registerToolReady((tool, current) => {
     const origin = activeTeamSessionOrigin(tool.toolId);
     if (
@@ -23,7 +24,7 @@ export function registerAutomaticWorkCollab(deps: AutomaticWorkCollabDeps = {}):
       tool.collaborating ||
       tool.unsaved?.() ||
       teamSessionLive(origin.sessionId) ||
-      !(deps.canJoin ?? canJoinCollab)()
+      !deps.canJoin()
     )
       return;
     const generation = teamOriginGeneration();
@@ -79,7 +80,7 @@ export function registerAutomaticWorkCollab(deps: AutomaticWorkCollabDeps = {}):
         await loadNamespace('collab');
         if (!wanted()) return;
         message.textContent = tRaw('Connecting');
-        const outcome = await (deps.join ?? openWorkCollab)(
+        const outcome = await deps.join(
           { toolId: tool.toolId, sessionId: origin.sessionId, baseParts: [] },
           { ...deps, stillWanted: wanted }
         );

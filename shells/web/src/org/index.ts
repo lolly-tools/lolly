@@ -1055,7 +1055,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
             const automatic = await import('./collab-auto-join.ts');
             if (!stillAllowed()) return;
             const stopOpener = unregisterCollabOpener;
-            const stopAutomatic = automatic.registerAutomaticWorkCollab();
+            const stopAutomatic = automatic.registerAutomaticWorkCollab({
+              canJoin: stillAllowed, join: opener.openWorkCollab,
+            });
             unregisterCollabOpener = () => { stopAutomatic(); stopOpener?.(); };
           })
           .catch(() => { /* additive; never block or break boot */ });
