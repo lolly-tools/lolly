@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: MPL-2.0
+# Check a distribution-signed Intel DMG on real Intel hardware. Rosetta on Apple
+# silicon no longer completes a headless WebKit render (macOS 27 hangs 1.0.9 and
+# 1.1.0 alike), so the packaged app is opened and rendered on an Intel runner.
+name: macOS Intel package smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      dmg_url:
+        description: lolli.li URL of the signed Intel DMG
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    env:
+      LOLLY_CLI_TIMEOUT: '180'
+    steps:
+      - name: Download and check the DMG
+        env:
+          DMG_URL: ${{ inputs.dmg_url }}
+        run: |
+          case "$DMG_URL" in https://lolli.li/*.dmg) ;; *) echo "Expected a lolli.li DMG URL"; exit 1 ;; esac
+          mkdir evidence
+          curl -sSfL -o Lolly.dmg "$DMG_URL"
+          shasum -a 256 Lolly.dmg | tee evidence/dmg.sha256
+          spctl -a -t open --context context:primary-signature -vv Lolly.dmg 2>&1 | tee evidence/dmg-gatekeeper.txt
+          xcrun stapler validate Lolly.dmg
+          hdiutil attach -nobrowse -readonly -mountpoint /Volumes/LollySmoke Lolly.dmg
+          ditto /Volumes/LollySmoke/Lolly.app "$RUNNER_TEMP/Lolly.app"
+          hdiutil detach /Volumes/LollySmoke
+          spctl -a -t exec -vv "$RUNNER_TEMP/Lolly.app" 2>&1 | tee evidence/app-gatekeeper.txt
+      - name: Render with the packaged command line
+        run: |
+          app="$RUNNER_TEMP/Lolly.app/Contents/MacOS/lolly-desktop"
+          test "$(lipo -archs "$app")" = x86_64
+          "$app" list > evidence/list.txt
+          grep -q 'Available tools' evidence/list.txt
+          for format in svg png pdf; do
+            "$app" run qr-code --url=https://lolly.tools --export=$format --output="$PWD/evidence/qr.$format"
+            test -s "evidence/qr.$format"
+          done
+          file evidence/qr.* | tee evidence/formats.txt
+          grep -q 'SVG' evidence/formats.txt
+          grep -q 'PNG image data' evidence/formats.txt
+          grep -q 'PDF document' evidence/formats.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: ${{ !cancelled() }}
+        with:
+          name: macos-intel-render-evidence
+          path: evidence/
+          if-no-files-found: error
