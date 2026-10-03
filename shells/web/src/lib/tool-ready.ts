@@ -27,6 +27,10 @@ export function registerToolReady(fn: Consumer): () => void {
     dispose = undefined;
   };
 }
+/** A scope change can keep the same mounted tool and address. */
+export function refreshToolReady(): void {
+  attach();
+}
 export function publishToolReady(tool: ReadyTool): () => void {
   live = tool;
   attach();

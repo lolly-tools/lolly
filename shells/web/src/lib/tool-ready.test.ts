@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
-import { test } from 'node:test';
+
 import assert from 'node:assert/strict';
-import { publishToolReady, registerToolReady, type ReadyTool } from './tool-ready.ts';
+import { test } from 'node:test';
+import { publishToolReady, type ReadyTool, registerToolReady } from './tool-ready.ts';
 
 test('late registration sees the live tool; navigation ends its behavior', () => {
   const a = { toolId: 'design', view: {} as HTMLElement, collaborating: false };
@@ -10,7 +11,13 @@ test('late registration sees the live tool; navigation ends its behavior', () =>
   let isCurrent: (() => boolean) | undefined;
   let stops = 0;
   const leaveA = publishToolReady(a);
-  const stop = registerToolReady((tool, current) => { seen.push(tool); isCurrent = current; return () => { stops++; }; });
+  const stop = registerToolReady((tool, current) => {
+    seen.push(tool);
+    isCurrent = current;
+    return () => {
+      stops++;
+    };
+  });
   assert.equal(isCurrent?.(), true);
   const aCurrent = isCurrent!;
   const leaveB = publishToolReady(b);
@@ -26,11 +33,19 @@ test('late registration sees the live tool; navigation ends its behavior', () =>
 });
 
 test('replacing a consumer tears down only the previous behavior', () => {
-  const leave = publishToolReady({ toolId: 'design', view: {} as HTMLElement, collaborating: false });
+  const leave = publishToolReady({
+    toolId: 'design',
+    view: {} as HTMLElement,
+    collaborating: false,
+  });
   let first = 0;
   let second = 0;
-  const stopA = registerToolReady(() => () => { first++; });
-  const stopB = registerToolReady(() => () => { second++; });
+  const stopA = registerToolReady(() => () => {
+    first++;
+  });
+  const stopB = registerToolReady(() => () => {
+    second++;
+  });
   assert.equal(first, 1);
   stopA();
   assert.equal(second, 0);

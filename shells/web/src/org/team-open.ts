@@ -26,6 +26,7 @@ import type { TeamSessionData } from '../lib/session-source.ts';
 import { tRaw } from '../i18n.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { noteProjectOpened } from './opened-projects.ts';
+import { refreshToolReady } from '../lib/tool-ready.ts';
 import { adoptTeamSessionOrigin, rememberTeamSessionOrigin, teamAddressKey } from './team-session-origin.ts';
 
 /** How one open ended. `status` is the HTTP status of a failed fetch (0: no answer,
@@ -149,6 +150,7 @@ export async function openTeamSession(sessionId: string, opts: TeamOpenOptions =
   // document on screen IS this session, so it takes the origin now.
   if (teamAddressKey(hash) === teamAddressKey(window.location.hash)) {
     adoptTeamSessionOrigin(origin);
+    refreshToolReady();
     return { ok: true, toolId: data.toolId, hash, same: true };
   }
   await opts.beforeNavigate?.();
