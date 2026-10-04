@@ -17,7 +17,7 @@ import { readFileSync } from 'node:fs';
 
 import { buildDesignLolly } from '../packages/node-shell/src/rebrand/pipeline.ts';
 import { closeBrowser } from '../packages/node-shell/src/browsers.ts';
-import { settleEditor } from '../packages/node-shell/src/open-session.ts';
+import { openedToolSlot, settleEditor } from '../packages/node-shell/src/open-session.ts';
 import { closeWebShell, exportDesignSessionThemesViaWebShell, exportDesignSessionViaWebShell, openLollyViaWebShell, renderDesignViaSession } from '../packages/node-shell/src/webshell-render.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
@@ -122,7 +122,11 @@ test('#/open survives duplicate route events after removing its source address',
     await page.waitForTimeout(200);
     release();
     await settleEditor(page, 60_000);
-    assert.match(new URL(page.url()).hash, /^#\/tool\/design\?slot=/);
+    const opened = openedToolSlot(page.url());
+    assert.equal(opened?.toolId, 'design');
+    assert.ok(opened?.slot);
+    assert.equal(await page.locator('.tool-canvas [data-box-id="one-title"]').count(), 1);
+    assert.equal(await page.locator('.tool-canvas [data-box-id="two-title"]').count(), 1);
     assert.equal(await page.locator('[data-open-route="failed"]').count(), 0);
   } finally {
     release();
