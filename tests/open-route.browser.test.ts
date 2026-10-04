@@ -17,6 +17,7 @@ import { readFileSync } from 'node:fs';
 
 import { buildDesignLolly } from '../packages/node-shell/src/rebrand/pipeline.ts';
 import { closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { settleEditor } from '../packages/node-shell/src/open-session.ts';
 import { closeWebShell, exportDesignSessionThemesViaWebShell, exportDesignSessionViaWebShell, openLollyViaWebShell, renderDesignViaSession } from '../packages/node-shell/src/webshell-render.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
@@ -92,6 +93,39 @@ test('#/open refuses a source from another origin before anything is fetched', {
     }
     assert.deepEqual(requested.filter((url) => url.includes('example.invalid') || url.startsWith('data:application/zip')), []);
   } finally {
+    await ctx.close();
+    await closeBrowser();
+  }
+});
+
+test('#/open survives duplicate route events after removing its source address', { skip, timeout: 120_000 }, async () => {
+  const { getBrowser } = await import('../packages/node-shell/src/browsers.ts');
+  const browser = await getBrowser();
+  const ctx = await browser.newContext({ serviceWorkers: 'block' });
+  let release!: () => void;
+  const responseReady = new Promise<void>((resolve) => { release = resolve; });
+  try {
+    const bytes = await syntheticDeck();
+    const page = await ctx.newPage();
+    let requested!: () => void;
+    const requestStarted = new Promise<void>((resolve) => { requested = resolve; });
+    await page.route('**/__duplicate-navigation.lolly', async (route) => {
+      requested();
+      await responseReady;
+      await route.fulfill({ status: 200, body: Buffer.from(bytes), contentType: 'application/vnd.lolly+zip' });
+    });
+    await page.goto(`${origin}/#/open?lolly=%2F__duplicate-navigation.lolly`, { waitUntil: 'load' });
+    await requestStarted;
+    assert.equal(new URL(page.url()).hash, '#/open');
+    await page.evaluate(() => window.dispatchEvent(new PopStateEvent('popstate')));
+    // Let the router process the duplicate while the file is still in flight.
+    await page.waitForTimeout(200);
+    release();
+    await settleEditor(page, 60_000);
+    assert.match(new URL(page.url()).hash, /^#\/tool\/design\?slot=/);
+    assert.equal(await page.locator('[data-open-route="failed"]').count(), 0);
+  } finally {
+    release();
     await ctx.close();
     await closeBrowser();
   }
