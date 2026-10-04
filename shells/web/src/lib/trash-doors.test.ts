@@ -13,6 +13,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { actionTile } from '../folder-tiles.ts';
 
 const WEB = new URL('..', import.meta.url).pathname;           // shells/web/src/
 const REPO = new URL('../../../../', import.meta.url).pathname;
@@ -126,7 +127,11 @@ test('the Trash is always visible and inspectable, in Projects and in Assets', (
   const projects = read('views/projects.ts');
   const tile = between(projects, 'const trashTile =', ';\n');
   assert.doesNotMatch(tile, /trashEntries\.length\s*\?\s*`/, 'the tile no longer waits for an entry');
-  assert.match(tile, /data-open-trash/);
+  assert.match(tile, /actionTile\('trash'[\s\S]*trash:\s*true/);
+  const rendered = actionTile('trash', '', 'Trash', 'Empty', { trash: true, openLabel: 'Open Trash' });
+  assert.match(rendered, /data-open-trash/);
+  assert.match(rendered, /aria-label="Open Trash"/);
+  assert.doesNotMatch(rendered, /data-create/);
   const uploads = between(read('views/assets/filters.ts'), 'export function uploadsSectionHtml', 'export function assetsSectionHtml');
   assert.match(uploads, /data-open-trash/);
   const dialog = read('components/trash-dialog.ts');
