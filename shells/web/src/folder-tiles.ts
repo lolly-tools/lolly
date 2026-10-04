@@ -136,6 +136,7 @@ export interface SessionTileOpts {
    *  middle/Cmd-click can open it in a new tab; the view still intercepts the
    *  plain click. Omit (folder overlay, picker) and it stays a button. */
   href?: string;
+  shared?: { subtitle: string; openLabel: string };
 }
 
 /**
@@ -148,7 +149,7 @@ export interface SessionTileOpts {
  *                 same "what you'll get" spec as the gallery card. Explicit `meta`
  *                 values win over it.
  */
-export function sessionTile(entry: SessionEntry, { toolName = '', sizeBytes = 0, meta = {}, tool = null, selectable = false, selected = false, cols, href }: SessionTileOpts = {}): string {
+export function sessionTile(entry: SessionEntry, { toolName = '', sizeBytes = 0, meta = {}, tool = null, selectable = false, selected = false, cols, href, shared }: SessionTileOpts = {}): string {
   const batch = isBatchSlot(entry.slot);
   const title = batch
     ? (entry.label || 'Batch session')
@@ -182,12 +183,12 @@ export function sessionTile(entry: SessionEntry, { toolName = '', sizeBytes = 0,
   ].filter(Boolean).join('');
 
   return tileShell({
-    ref: entry.slot, kind: 'session', batch,
+    ref: entry.slot, kind: shared ? 'team-session' : 'session', batch,
     cover, title,
-    sub: relativeTime(entry.updatedAt),
+    sub: shared?.subtitle ?? relativeTime(entry.updatedAt),
     badges,
-    openAttr: 'data-open-session',
-    openLabel: batch ? `Open batch ${title}` : `Resume ${title}`,
+    openAttr: shared ? 'data-open-team-session' : 'data-open-session',
+    openLabel: shared?.openLabel ?? (batch ? `Open batch ${title}` : `Resume ${title}`),
     selectable, selected, href,
     cols: cols ?? {
       kind: batch ? 'Batch' : (toolName || 'Session'),
@@ -239,6 +240,8 @@ export interface FolderTileOpts {
   starred?: boolean;
   /** Real `<a href>` cover (see SessionTileOpts.href). */
   href?: string;
+  /** External project folders reuse the same cover and card without local mutations. */
+  shared?: { subtitle: string; activity?: string; openLabel: string };
 }
 
 /**
@@ -249,7 +252,7 @@ export interface FolderTileOpts {
  *                       the Projects view passes items + sub-folders so a nested folder
  *                       reads "N items" inclusive of its sub-folders.
  */
-export function folderTile(folder: { id: string; name: string; items?: readonly unknown[]; color?: string; emoji?: string; updatedAt?: string }, { memberPreviews = [], count, selectable = false, selected = false, starred = false, href }: FolderTileOpts = {}): string {
+export function folderTile(folder: { id: string; name: string; items?: readonly unknown[]; color?: string; emoji?: string; updatedAt?: string }, { memberPreviews = [], count, selectable = false, selected = false, starred = false, href, shared }: FolderTileOpts = {}): string {
   count = count ?? folder.items?.length ?? 0;
   const cells = memberPreviews.slice(0, 4).map(p => {
     if (p.batch) return `<span class="folder-cell folder-cell--batch" aria-hidden="true">${PACKAGE_ICON}</span>`;
@@ -265,26 +268,26 @@ export function folderTile(folder: { id: string; name: string; items?: readonly 
   const accent = folder.color ? ` style="--folder-tint:${escape(folder.color)}"` : '';
   const inner = cells
     ? `<span class="folder-mosaic">${cells}</span>`
-    : `<span class="folder-cover-glyph">${FOLDER_ICON}</span>`;
+    : `<span class="folder-cover-glyph">${shared ? icon('folderUsers') : FOLDER_ICON}</span>`;
   const cover = `<span class="folder-cover"${accent} aria-hidden="true">
       ${folder.emoji ? `<span class="folder-emoji">${escape(folder.emoji)}</span>` : ''}
       ${inner}
       ${starred ? `<span class="folder-star">★</span>` : ''}
     </span>`;
 
-  const [open, close] = primaryTag(href, `data-open-folder="${escape(folder.id)}" aria-label="Open folder ${escape(folder.name)}"`);
+  const [open, close] = primaryTag(href, `${shared ? 'data-open-team-project' : 'data-open-folder'}="${escape(folder.id)}" aria-label="${shared ? escape(shared.openLabel) : `Open folder ${escape(folder.name)}`}"`);
   return `
-    <div class="folder-tile folder-tile--folder${selected ? ' is-selected' : ''}" data-ref="${escape(folder.id)}" data-kind="folder">
+    <div class="folder-tile folder-tile--folder${shared ? ' folder-tile--shared' : ''}${selected ? ' is-selected' : ''}" data-ref="${escape(folder.id)}" data-kind="${shared ? 'team-project' : 'folder'}">
       ${selectable ? selectToggle(folder.id, 'folder', selected, folder.name) : ''}
       ${open}
         ${cover}
         <span class="tile-meta">
           <span class="tile-title" title="${escape(folder.name)}">${escape(folder.name)}</span>
-          <span class="folder-count" title="${count} item${count === 1 ? '' : 's'}" aria-label="${count} item${count === 1 ? '' : 's'}">${escape(compactCount(count))}</span>
+          ${shared ? `<span class="tile-sub">${escape(shared.subtitle)}</span>${shared.activity ? `<span class="tile-sub team-project-activity">${escape(shared.activity)}</span>` : ''}` : `<span class="folder-count" title="${count} item${count === 1 ? '' : 's'}" aria-label="${count} item${count === 1 ? '' : 's'}">${escape(compactCount(count))}</span>`}
         </span>
-        <span class="tile-cols" aria-hidden="true"><span class="tile-col">Folder</span><span class="tile-col">${count} item${count === 1 ? '' : 's'}</span><span class="tile-col">${folder.updatedAt ? relativeTime(folder.updatedAt) : ''}</span></span>
+        <span class="tile-cols" aria-hidden="true"><span class="tile-col">${shared ? escape(shared.subtitle) : 'Folder'}</span><span class="tile-col">${count} item${count === 1 ? '' : 's'}</span><span class="tile-col">${folder.updatedAt ? relativeTime(folder.updatedAt) : ''}</span></span>
       ${close}
-      <button type="button" class="tile-menu-btn" data-menu="${escape(folder.id)}" data-menu-kind="folder" aria-label="Folder actions">${MENU_ICON}</button>
+      ${shared ? '' : `<button type="button" class="tile-menu-btn" data-menu="${escape(folder.id)}" data-menu-kind="folder" aria-label="Folder actions">${MENU_ICON}</button>`}
     </div>`;
 }
 
@@ -483,7 +486,7 @@ function tileShell({ ref, kind, batch, cover, title, sub, badges, openAttr, open
         </span>
         ${cols ? tileColsHtml(cols) : ''}
       ${close}
-      <button type="button" class="tile-menu-btn" data-menu="${escape(ref)}" data-menu-kind="${kind}" aria-label="Item actions">${MENU_ICON}</button>
+      ${kind === 'team-session' ? '' : `<button type="button" class="tile-menu-btn" data-menu="${escape(ref)}" data-menu-kind="${kind}" aria-label="Item actions">${MENU_ICON}</button>`}
     </div>`;
 }
 

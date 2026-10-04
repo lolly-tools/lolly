@@ -41,12 +41,11 @@ export function buildNewProjectForm(writer: SessionSourceWriter, opts: NewProjec
   const form = document.createElement('form');
   form.className = 'team-new-project';
   form.noValidate = true;
-  form.style.cssText = 'display:flex;flex-direction:column;gap:.5rem;margin:.5rem 0 0';
 
   const nameLabel = document.createElement('label');
   nameLabel.htmlFor = `${id}-name`;
   nameLabel.textContent = tRaw('Project name');
-  nameLabel.style.cssText = 'font-size:13px;font-weight:600';
+  nameLabel.style.cssText = 'font-size:var(--fs-sm);font-weight:600';
   const name = document.createElement('input');
   name.type = 'text';
   name.id = `${id}-name`;
@@ -57,14 +56,14 @@ export function buildNewProjectForm(writer: SessionSourceWriter, opts: NewProjec
 
   const visLabel = document.createElement('label');
   visLabel.htmlFor = `${id}-vis`;
-  visLabel.textContent = tRaw('Who can see this project');
-  visLabel.style.cssText = 'font-size:13px;font-weight:600';
+  visLabel.textContent = tRaw('Who can edit this project');
+  visLabel.style.cssText = 'font-size:var(--fs-sm);font-weight:600';
   const vis = document.createElement('select');
   vis.id = `${id}-vis`;
   vis.className = 'field-select field-select--sm';
   const only = document.createElement('option');
   only.value = '';
-  only.textContent = tRaw('Only me');
+  only.textContent = tRaw('Only people I add');
   vis.append(only);
   for (const g of groups) {
     const o = document.createElement('option');
@@ -72,11 +71,13 @@ export function buildNewProjectForm(writer: SessionSourceWriter, opts: NewProjec
     o.textContent = tRaw('Everyone in {group}', { group: g });
     vis.append(o);
   }
+  const note = document.createElement('p'); note.className = 'team-project-notice';
+  note.textContent = tRaw('People you add can view or edit according to their role. Workspace admins can manage all projects.');
 
   const err = document.createElement('p');
   err.setAttribute('role', 'status');
   err.hidden = true;
-  err.style.cssText = 'margin:0;color:hsl(var(--destructive));font-size:12px';
+  err.style.cssText = 'margin:0;color:hsl(var(--destructive));font-size:var(--fs-xs)';
 
   const actions = document.createElement('div');
   actions.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end';
@@ -94,7 +95,7 @@ export function buildNewProjectForm(writer: SessionSourceWriter, opts: NewProjec
     actions.prepend(cancel);
   }
 
-  form.append(nameLabel, name, visLabel, vis, err, actions);
+  form.append(nameLabel, name, visLabel, vis, note, err, actions);
   const showError = (msg: string): void => {
     err.textContent = msg;
     err.hidden = false;

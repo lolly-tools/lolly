@@ -34,12 +34,14 @@ export interface InvitePolicy {
   maxTtlHours: number;
   /** The roles an invitation may give, in the order they are offered. */
   projectRoles: InviteRole[];
+  passwordSetup?: boolean;
+  passwordDomains?: string[];
 }
 
 /** The org-config fields read here. Structural, so this module does not import org/index.ts. */
 export interface InviteConfig {
   can?: Record<string, boolean>;
-  invites?: { domains?: unknown; maxTtlHours?: unknown; projectRoles?: unknown };
+  invites?: { domains?: unknown; maxTtlHours?: unknown; projectRoles?: unknown; passwordSetup?: unknown; passwordDomains?: unknown };
 }
 
 /**
@@ -56,7 +58,8 @@ export function invitePolicy(config: InviteConfig | null | undefined): InvitePol
   const listed = Array.isArray(inv.projectRoles) ? inv.projectRoles.map(inviteRoleOf).filter((r): r is InviteRole => !!r) : null;
   // Kept in the fixed viewer, editor, manager order whatever order the instance sent.
   const projectRoles = listed ? INVITE_ROLES.filter((r) => listed.includes(r)) : [...INVITE_ROLES];
-  return { canInvite: config?.can?.['user.invite'] === true, domains, maxTtlHours: ttl, projectRoles };
+  return { canInvite: config?.can?.['user.invite'] === true, domains, maxTtlHours: ttl, projectRoles,
+    ...(inv.passwordSetup === true ? { passwordSetup: true } : {}), ...(Array.isArray(inv.passwordDomains) ? { passwordDomains: inv.passwordDomains.filter((v): v is string => typeof v === 'string') } : {}) };
 }
 
 /** Owner or manager: decides who has access. Pure. */
@@ -294,8 +297,8 @@ export type InviteShownStatus = InviteStatus | 'already-invited';
 
 /** The addresses with an invitation still waiting, from the panel's list, ready for
  *  shownInviteStatus. Pure. */
-export function waitingAddresses(invitations: ReadonlyArray<{ email: string }>): Set<string> {
-  return new Set(invitations.map((i) => i.email.trim().toLowerCase()));
+export function waitingAddresses(invitations: ReadonlyArray<{ email: string; status?: string }>): Set<string> {
+  return new Set(invitations.filter(i => i.status !== 'expired').map((i) => i.email.trim().toLowerCase()));
 }
 
 /** How one address's outcome is shown: 'already' becomes 'already-invited' when the

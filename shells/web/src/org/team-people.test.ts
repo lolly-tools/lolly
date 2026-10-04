@@ -40,7 +40,7 @@ const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 const {
-  listProjectPeople, inviteToProject, changeMemberRole, removeMember, revokeInvitation, teamProjectLinkUrl, peopleFromBody,
+  listProjectPeople, inviteToProject, changeMemberRole, removeMember, revokeInvitation, teamProjectLinkUrl, peopleFromBody, personalInviteLink,
 } = await import('./project-members.ts');
 const { buildPeoplePanel, peoplePanelView, revealPeoplePanel, roleChoices } = await import('./team-people.ts');
 const { invitePolicy } = await import('./team-access.ts');
@@ -121,6 +121,62 @@ test('an invite with no usable link falls back to this app address; an empty lis
   assert.equal(calls.length, 0);
   router = () => json({ error: {} }, 403);
   assert.deepEqual(await inviteToProject('p1', ['a@b.co'], 'viewer'), { ok: false, status: 403 });
+});
+
+test('personal invitation links retain their recipient and never substitute the project URL', async () => {
+  reset();
+  const links = ['https://instance.test/l/invite/ana-token', 'https://instance.test/l/invite/bo-token'];
+  router = url => url.endsWith('/members') ? json(MANAGER_LIST) : json({
+    results: links.map((link, i) => ({ email: ['ana-new@acme.com', 'bo-new@acme.com'][i], status: 'invited', link, invitationId: `invite-${i}` })),
+    link: 'https://instance.test/#/team/project/p1',
+    message: { workspace: 'Event team', inviter: 'Ana', providers: ['Google'], note: 'Use your work address.' },
+  });
+  const copied: string[] = [];
+  const panel = buildPeoplePanel({ projectId: 'p1', projectName: 'Launch event', policy: invitePolicy({ can: { 'user.invite': true }, invites: {} }), copy: async text => { copied.push(text); } });
+  document.body.append(panel); await settle();
+  panel.querySelector<HTMLTextAreaElement>('textarea')!.value = 'ana-new@acme.com bo-new@acme.com';
+  panel.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { cancelable: true })); await settle();
+  // Changing the next invite's role must not change the message for invitations already sent.
+  panel.querySelector<HTMLSelectElement>('form select')!.value = 'viewer';
+  const rows = [...panel.querySelectorAll<HTMLElement>('.team-people-results li')];
+  assert.equal(rows.length, 2);
+  for (const [i, row] of rows.entries()) {
+    assert.equal(row.querySelector<HTMLInputElement>('input')!.value, links[i]);
+    row.querySelector<HTMLElement>('[data-act="people-copy-invite"]')!.click(); await settle();
+    assert.equal(copied.at(-1), links[i]);
+    row.querySelector<HTMLElement>('[data-act="people-copy-message"]')!.click(); await settle();
+    assert.match(copied.at(-1)!, /Launch event on Event team\. Your role: Editor\./);
+    assert.ok(copied.at(-1)!.includes(links[i]!));
+    assert.ok(!copied.at(-1)!.includes(links[1 - i]!));
+    assert.match(copied.at(-1)!, /Sign in with Google\./);
+    assert.match(copied.at(-1)!, /Use your work address\./);
+  }
+  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy project link');
+});
+
+test('expired invitations cannot be copied and unsafe personal links are discarded', () => {
+  for (const link of ['javascript:alert(1)', 'https://instance.test/#/team/project/p1', 'https://user:password@instance.test/l/invite/token', 'https://instance.test/l/invite/<script>']) assert.equal(personalInviteLink(link), undefined);
+  const got = peopleFromBody({ ...MANAGER_LIST, invitations: [
+    { id: 'pending', email: 'pending@acme.com', role: 'editor', status: 'pending', link: 'https://instance.test/l/invite/pending' },
+    { id: 'expired', email: 'expired@acme.com', role: 'viewer', status: 'expired', link: 'https://instance.test/l/invite/expired' },
+  ] });
+  assert.equal(got?.invitations[0]?.link, 'https://instance.test/l/invite/pending');
+  assert.equal(got?.invitations[1]?.link, undefined);
+});
+
+test('password setup is an explicit invite option and is absent for existing-user-only inviters', async () => {
+  reset(); router = url => url.endsWith('/members') ? json(MANAGER_LIST) : json({ results: [] });
+  const panel = buildPeoplePanel({ projectId: 'p1', policy: invitePolicy({ can: { 'user.invite': true }, invites: { passwordSetup: true, passwordDomains: ['acme.com'] } }) });
+  document.body.append(panel); await settle();
+  const field = panel.querySelector<HTMLTextAreaElement>('textarea')!;
+  field.value = 'new@acme.com'; field.dispatchEvent(new dom.window.Event('input'));
+  assert.equal(panel.querySelector<HTMLInputElement>('[type="checkbox"]')?.checked, true);
+  panel.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { cancelable: true })); await settle();
+  assert.deepEqual(calls.find(c => c.method === 'POST')?.body, { emails: ['new@acme.com'], role: 'editor', passwordSetup: true });
+  const memberPanel = buildPeoplePanel({ projectId: 'p1', policy: invitePolicy({ can: { 'user.invite': false }, invites: { passwordSetup: true } }) });
+  document.body.append(memberPanel); await settle();
+  assert.equal(memberPanel.querySelector('[type="checkbox"]'), null);
+  assert.match(memberPanel.textContent!, /people who already use this instance/);
 });
 
 test('role change, removal and revoking use their routes and keep a refusal status', async () => {
@@ -245,8 +301,8 @@ test('everyone added directly: no invite link, a plain sentence and the project 
   results = [{ email: 'bo@acme.com', status: 'added' }, { email: 'new@acme.com', status: 'invited' }];
   await submit('bo@acme.com, new@acme.com');
   assert.equal(panel.querySelector('[data-link-note]'), null);
-  assert.match(panel.textContent!, /Send this link to the people you invited\./);
-  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy invite link');
+  assert.match(panel.textContent!, /Send new people their personal invitation link\./);
+  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy project link');
 
   // Nobody went through: no link left over from the last invite.
   results = [{ email: 'x@other.org', status: 'refused' }];
@@ -303,21 +359,21 @@ test("'already' for an invitation still waiting is said as invited, never as acc
   assert.match(row.textContent!, /Already invited/);
   assert.doesNotMatch(panel.textContent!, /can already open|Already has access/);
   assert.equal(panel.querySelector('[data-link-note]'), null);
-  assert.match(panel.textContent!, /Send this link to the people you invited\. It opens this project after they sign in\./);
-  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy invite link');
+  assert.match(panel.textContent!, /Send new people their personal invitation link\./);
+  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy project link');
 
   // Added directly beside a waiting invitation: still the link to send.
   results = [{ email: 'bo@acme.com', status: 'added' }, { email: 'cy@acme.com', status: 'already' }];
   await submit('bo@acme.com, cy@acme.com');
   assert.equal(panel.querySelector('[data-link-note]'), null);
-  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy invite link');
+  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy project link');
 
   // A list that was out of date when the answer came: the reload corrects the outcome.
   results = [{ email: 'dee@acme.com', status: 'already' }];
   list = { ...MANAGER_LIST, invitations: [...MANAGER_LIST.invitations, { id: 'i2', email: 'dee@acme.com', role: 'editor', createdAt: '2026-10-01', expiresAt: '2026-10-31' }] };
   await submit('dee@acme.com');
   assert.equal(panel.querySelector<HTMLElement>('.team-people-results li')!.dataset.status, 'already-invited');
-  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy invite link');
+  assert.equal(panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!.textContent, 'Copy project link');
 
   // Someone who really has access keeps the access wording.
   results = [{ email: 'bo@acme.com', status: 'already' }];
@@ -381,7 +437,7 @@ test('a link the clipboard refused does not say Copied', async () => {
     const btn = panel.querySelector<HTMLElement>('[data-act="people-copy-link"]')!;
     btn.click();
     await settle();
-    assert.equal(btn.textContent, 'Copy invite link');
+    assert.equal(btn.textContent, 'Copy project link');
     assert.match(panel.querySelector('.team-people-invite-status')!.textContent!, /Could not copy\. The link is selected/);
     assert.equal(document.activeElement, panel.querySelector('.share-link-field'));
   } finally {

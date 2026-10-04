@@ -81,8 +81,8 @@ import { setPendingToolSeed } from '../lib/drop-router.ts';
 import { TEMPLATES, templateBulkMenuHtml, templateUseHref, type SessionSaveSource, type TemplatesCollection } from './projects-templates.ts';
 import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionSource, templatesCollectionFor, templatesRailChip, templatesRootTile } from './projects-templates-wiring.ts';
 import type { TemplateActionHost } from '../lib/template-actions.ts';
-import { getSessionSource } from '../lib/session-source.ts';
-import { openRequestedTeamProject, openTeamProjects, type TeamProjectsDoor } from './projects-team.ts';
+import { getSessionSource, readSourceProjects, type TeamProjectRef } from '../lib/session-source.ts';
+import { openRequestedTeamProject, openTeamProjects, mountTeamProjectFolder, teamProjectTiles, type TeamProjectsDoor } from './projects-team.ts';
 import { getCollabTileProvider, renderCollabBadge } from '../lib/collab-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
@@ -263,7 +263,30 @@ export async function mountProjects(
   }));
   let mounted = true;        // false after the view is swapped out (guards async renders)
   // The Team projects door (projects-team.ts; dormant without a session source).
-  const teamDoor: TeamProjectsDoor = { host, toolName, beforeNavigate: armReturn, isMounted: () => mounted };
+  let sharedProjects: TeamProjectRef[] = [];
+  const sharedParams = new URLSearchParams(opts.params || '');
+  const sharedProjectId = sharedParams.get('team') || '';
+  const creatingSharedProject = sharedParams.get('create') === 'team';
+  const sharedFolder = !!sharedProjectId || creatingSharedProject;
+  let cleanupSharedFolder: (() => void) | undefined;
+  let cleanupSharedPreviews: (() => void) | undefined;
+  let sharedRender = 0;
+  let sharedState: 'loading' | 'ready' | 'error' = 'loading';
+  let sharedTicket = 0;
+  const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted, refresh: () => { void refreshSharedProjects(); } };
+  async function refreshSharedProjects(): Promise<void> {
+    const source = getSessionSource();
+    if (!source || !mounted || sharedFolder) return;
+    const ticket = ++sharedTicket;
+    const got = await readSourceProjects(source);
+    if (!mounted || ticket !== sharedTicket || source !== getSessionSource()) return;
+    sharedState = got.ok ? 'ready' : 'error';
+    sharedProjects = got.ok ? got.items : [];
+    render();
+  }
+  const refreshSharedOnFocus = (): void => { if (document.visibilityState === 'visible') void refreshSharedProjects(); };
+  window.addEventListener('focus', refreshSharedOnFocus);
+  const sharedRefresh = window.setInterval(refreshSharedOnFocus, 60_000);
   let overlayModal: ModalHandle<any> | null = null;      // the move-picker / new-folder-name dialog, if open
   let releaseSearch: (() => void) | null = null;         // the shell search-bar claim (set in boot, below)
   let featuredHandle: FeaturedRowHandle | null = null; // the Uncategorised preview ribbon (drift/coverflow/grip), if mounted
@@ -581,20 +604,35 @@ export async function mountProjects(
     // Title the view for the tab bar AND for back-nav (lib/back-nav.ts labels the
     // previous view off document.title - this is how a tool opened from a folder,
     // or #/start reached from one, gets a back pill wearing the folder's name).
-    const titleName = folderId == null ? t('Projects')
+    cleanupSharedFolder?.(); cleanupSharedFolder = undefined;
+    cleanupSharedPreviews?.(); cleanupSharedPreviews = undefined;
+    const renderTicket = ++sharedRender;
+    const titleName = sharedFolder ? t('Team project') : folderId == null ? t('Projects')
       : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
       : (folders.find(f => f.id === folderId)?.name || t('Projects'));
     document.title = tRaw('{name} - Lolly', { name: titleName });
     featuredHandle?.destroy(); featuredHandle = null;  // stop the prior ribbon's rAF loop + listeners before its DOM is wiped
     searchCache = null;   // recompute matches once for this render (sort/data may have changed); the two callers below then share it
     pruneSelection();     // forget refs that vanished since the last render
-    viewEl.innerHTML = folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
+    viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     wire();
+    if (!sharedFolder && getSessionSource()) {
+      const source = getSessionSource()!;
+      void import('../org/team-previews.ts').then(module => {
+        if (mounted && renderTicket === sharedRender && source === getSessionSource()) cleanupSharedPreviews = module.hydrateSharedPreviews(viewEl, source, host, () => mounted && renderTicket === sharedRender);
+      });
+    }
+    if (sharedFolder) {
+      const container = viewEl.querySelector<HTMLElement>('[data-shared-folder]')!;
+      void mountTeamProjectFolder(teamDoor, container, { projectId: sharedProjectId, create: creatingSharedProject, tab: sharedParams.get('tab') || 'sessions', query, list: viewMode === 'list', sort: sortBy, reversed: sortRev }).then(cleanup => {
+        if (!mounted || !container.isConnected) cleanup(); else cleanupSharedFolder = cleanup;
+      });
+    }
     scenePreviews.refresh(entries);
   }
 
   function rootHtml(): string {
-    if (query) return shell(t('Projects'), 'projects', searchBodyHtml());
+    if (query) return shell(t('Projects'), 'projects', sharedProjectsHtml(query) + searchBodyHtml());
     if (toolsFilter.length) return shell(t('Projects'), 'projects', toolsBodyHtml());
     const loose = sortSessions(uncategorised());
     // Card copy says "project" for the thing the user made (plans/163 F14) - the
@@ -622,9 +660,6 @@ export async function mountProjects(
     // A "Team projects" tile appears only when a deployment's control plane has
     // registered a session source (lib/session-source.ts); dormant otherwise, so
     // the grid is byte-identical on the public shell.
-    const teamTile = getSessionSource()
-      ? actionTile('team', TEAM_ICON, t('Team projects'), t('Shared with you on this instance'))
-      : '';
     // Trash (plans/133 WP-4): a muted system tile, always there (plan 277 P3) so
     // the place a delete went to can be found even before the first delete.
     const trashCount = !trashEntries.length ? t('Empty')
@@ -642,7 +677,8 @@ export async function mountProjects(
     return shell(t('Projects'), 'projects', `
       ${/* The root toolbar (plans/245): the same create buttons a folder header carries,
             both view modes. Batch waits for the first project (plans/163 F14). */ ''}
-      <div class="projects-roothead">${listCreateBtns()}<span class="projects-head-spacer"></span>${nothingSaved ? '' : batchButtonHtml()}</div>
+      <div class="projects-roothead">${listCreateBtns()}${getSessionSource()?.write?.projectOptions().canCreate ? `<button type="button" class="btn btn--primary" data-new-team-project>${TEAM_ICON}${t('New team project')}</button>` : ''}<span class="projects-head-spacer"></span>${nothingSaved ? '' : batchButtonHtml()}</div>
+      ${sharedProjectsHtml()}
       ${favourites.size && !list ? `<div class="projects-featured" data-fav-strip></div>` : ''}
       ${invite}
       <div class="folder-grid projects-grid${list ? ' projects-list' : ''}">
@@ -652,7 +688,7 @@ export async function mountProjects(
           so the place answers to it. Grid mode only - the list table has its own
           header row - and pointless when the grid IS only the library. */ ''}
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
-        ${looseTiles}${list ? '' : `${createFolder}${createTool}${blueprintTile()}`}${teamTile}${templatesRootTile()}${trashTile}
+        ${looseTiles}${list ? '' : `${createFolder}${createTool}${blueprintTile()}`}${templatesRootTile()}${trashTile}
       </div>
       ${recentExports.length ? `
         <section class="projects-exports folder-exports">
@@ -669,6 +705,20 @@ export async function mountProjects(
               </a>`).join('')}
           </div>`}
         </section>` : ''}`);
+  }
+
+  function sharedProjectsHtml(filter = ''): string {
+    const source = getSessionSource();
+    if (!source) return '';
+    const tiles = teamProjectTiles(sharedProjects, filter);
+    const message = sharedState === 'error' ? t('Shared projects could not be loaded. Try again.')
+      : sharedState === 'loading' ? t('Loading shared projects…')
+      : filter ? t('No shared projects match your search.') : t('Create a team project or ask a teammate to add you.');
+    return `<section class="projects-shared" aria-label="${escape(t('Shared projects'))}">
+      <div class="projects-shared-head"><div><h2>${t('Shared projects')}</h2><p>${escape(source.label)}</p></div>
+        <button type="button" class="btn btn--sm btn--ghost" data-refresh-team>${icon('refresh')}${t('Refresh')}</button></div>
+      ${tiles ? `<div class="folder-grid projects-grid${viewMode === 'list' ? ' projects-list' : ''}">${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}
+    </section>`;
   }
 
   // The flat results grid for the ?tools= filter - every saved session belonging to
@@ -1134,6 +1184,10 @@ export async function mountProjects(
       if (bulk) { e.preventDefault(); e.stopPropagation(); handleBulk(bulk.dataset.bulk!); return; }
 
       // Trash tile opens the trash browser (plans/133 WP-4).
+      const shared = t.closest<HTMLElement>('[data-open-team-project]');
+      if (shared) { e.preventDefault(); openTeamProjects(teamDoor, shared.dataset.openTeamProject); return; }
+      if (t.closest('[data-new-team-project]')) { openTeamProjects(teamDoor, undefined, true); return; }
+      if (t.closest('[data-refresh-team]')) { void refreshSharedProjects(); return; }
       if (t.closest('[data-open-trash]')) { openTrashDialog(); return; }
 
       // List-view column headers: click sorts, second click reverses (WP-2).
@@ -2359,7 +2413,7 @@ export async function mountProjects(
   // Arm the return target so the tool's Save button lands back on this exact page - 
   // root `/#/p`, the Uncategorised view, or a specific folder. navigateTo-compatible URL.
   function armReturn(): void {
-    armSessionReturn('/#/p' + (folderId ? '/' + folderId : ''));
+    armSessionReturn(sharedProjectId ? `/#/p?team=${encodeURIComponent(sharedProjectId)}` : '/#/p' + (folderId ? '/' + folderId : ''));
   }
 
   function resumeSession(slot: string): void {
@@ -2940,7 +2994,7 @@ export async function mountProjects(
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   // NB tileSelect.destroy() is not optional: its mousedown is bound to viewEl (#view), which
   // the router REUSES for every route - leave it bound and the next mount stacks another.
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; cleanupSharedFolder?.(); cleanupSharedPreviews?.(); window.removeEventListener('focus', refreshSharedOnFocus); window.clearInterval(sharedRefresh); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
   await reload();
   void sweepTrash();   // age out trash entries past the 30-day retention (silent)
   // A stale /p/<id> deep link to a deleted folder falls back to root.
@@ -2972,6 +3026,7 @@ export async function mountProjects(
     onClear: exitSearch,
   });
   render();
+  void refreshSharedProjects();
   // A team project link asked Projects to open that project.
   openRequestedTeamProject(teamDoor);
 }

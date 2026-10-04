@@ -17,6 +17,7 @@ import { instanceFetch, instancePath } from '../lib/instance.ts';
 import type {
   SessionSource, SessionSourceWriter, TeamProjectCreate, TeamProjectOptions, TeamProjectRef,
   TeamProjectVisibility, TeamRole, TeamSessionData, TeamSessionRef, TeamSessionSave, TeamSessionWrite,
+  SourceList,
 } from '../lib/session-source.ts';
 
 async function getJson<T>(path: string): Promise<T | null> {
@@ -159,6 +160,19 @@ export async function fetchTeamProjectSessions(projectId: string): Promise<TeamP
   const body = await readJson(res) as { sessions?: unknown } | null;
   if (!body || !Array.isArray(body.sessions)) return { ok: false, status: 0 };
   return { ok: true, sessions: (body.sessions as TeamSessionRef[]).map(sessionRefFromRow) };
+}
+
+export async function fetchTeamProjects(): Promise<SourceList<TeamProjectRef>> {
+  let res: Response;
+  try { res = await instanceFetch(instancePath('/api/v1/projects')); }
+  catch { return { ok: false, status: 0 }; }
+  if (!res.ok) return { ok: false, status: res.status };
+  const body = await readJson(res) as { projects?: unknown } | null;
+  if (!body || !Array.isArray(body.projects)) return { ok: false, status: 0 };
+  const items = (body.projects as TeamProjectRef[]).filter(p => p && typeof p.id === 'string' && typeof p.name === 'string').map(p => ({
+    id: p.id, name: p.name, sessionCount: p.sessionCount, updatedAt: p.updatedAt, ...projectExtras(p),
+  }));
+  return { ok: true, items };
 }
 
 // ── Writes ────────────────────────────────────────────────────────────────────
@@ -338,6 +352,11 @@ export function createInstanceSessionSource(label: string, config?: () => TeamWr
   return {
     label,
     ...(config ? { write: createInstanceSessionWriter(config) } : {}),
+    readProjects: fetchTeamProjects,
+    async readSessions(projectId) {
+      const got = await fetchTeamProjectSessions(projectId);
+      return got.ok ? { ok: true, items: got.sessions } : got;
+    },
     async listProjects(): Promise<TeamProjectRef[]> {
       const data = await getJson<{ projects?: TeamProjectRef[] }>('/api/v1/projects');
       return (data?.projects ?? []).map((p) => ({

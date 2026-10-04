@@ -117,8 +117,8 @@ interface FocusKey { kind: 'member' | 'invitation'; id: string; act: string }
 
 const ROW_STYLE = 'display:flex;align-items:center;justify-content:space-between;gap:.5rem .75rem;flex-wrap:wrap;padding:.45rem 0;border-bottom:1px solid hsl(var(--border))';
 const LIST_STYLE = 'list-style:none;margin:.25rem 0 0;padding:0';
-const MUTED = 'color:hsl(var(--muted-foreground));font-size:12px';
-const SUBHEAD = 'margin:.9rem 0 .2rem;font-size:13px;font-weight:650';
+const MUTED = 'color:var(--ui-color-text-muted);font-size:var(--fs-sm)';
+const SUBHEAD = 'margin:var(--sp-5) 0 var(--sp-2);font-size:var(--fs-md);font-weight:650';
 
 /**
  * Bring a panel that was just opened into view and move focus to its heading, so the
@@ -157,7 +157,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
   panel.append(heading);
   if (opts.projectName) panel.append(el('p', { text: opts.projectName, style: `margin:0;${MUTED}` }));
 
-  const status = el('p', { className: 'team-people-status', style: 'margin:.45rem 0 0;font-size:12px' });
+  const status = el('p', { className: 'team-people-status', style: 'margin:.45rem 0 0;font-size:var(--fs-xs)' });
   status.setAttribute('role', 'status');
   status.hidden = true;
   const say = (msg: string, error: boolean): void => {
@@ -273,7 +273,13 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     li.dataset.invitation = inv.id;
     const who = el('div', { style: 'min-width:0;flex:1 1 12rem' });
     who.append(el('div', { text: inv.email, style: 'overflow-wrap:anywhere' }));
-    who.append(el('div', { text: roleLabel(inv.role), style: MUTED }));
+    who.append(el('div', { text: inv.status === 'expired' ? tRaw('Expired') : roleLabel(inv.role), style: MUTED }));
+    if (inv.link) {
+      const copyInvite = button(tRaw('Copy invite link'), 'people-copy-invite');
+      copyInvite.setAttribute('aria-label', tRaw('Copy invite link for {email}', { email: inv.email }));
+      copyInvite.addEventListener('click', async () => { say(await copy(inv.link!) ? tRaw('Link copied') : tRaw('Could not copy. Try again.'), false); });
+      li.append(copyInvite);
+    }
     const revoke = button(tRaw('Revoke'), 'people-revoke', 'btn btn--sm btn--ghost');
     revoke.setAttribute('aria-label', tRaw('Revoke the invitation to {email}', { email: inv.email }));
     revoke.addEventListener('click', async () => {
@@ -379,7 +385,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     const form = el('form', { className: 'team-people-invite', style: 'display:flex;flex-direction:column;gap:.35rem;margin-top:.4rem' });
     form.noValidate = true;
     form.append(el('h4', { text: tRaw('Invite by email'), style: SUBHEAD }));
-    const label = el('label', { text: tRaw('Email addresses'), style: 'font-size:13px;font-weight:600' });
+    const label = el('label', { text: tRaw('Email addresses'), style: 'font-size:var(--fs-sm);font-weight:600' });
     label.htmlFor = `${uid}-emails`;
     const field = el('textarea', { className: 'field-input' });
     field.id = `${uid}-emails`;
@@ -388,14 +394,14 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     field.spellcheck = false;
     field.setAttribute('aria-describedby', `${uid}-hint ${uid}-invite-status`);
     field.addEventListener('input', () => { field.removeAttribute('aria-invalid'); });
-    const hints: string[] = [tRaw('Separate addresses with commas or spaces.')];
+    const hints: string[] = [tRaw('Separate addresses with commas or spaces. Existing users get access immediately.')];
     const policy = opts.policy;
     if (policy?.domains.length) hints.push(tRaw('New people must have an address at {domains}.', { domains: policy.domains.join(', ') }));
     if (policy && !policy.canInvite) hints.push(tRaw('You can add people who already use this instance. Inviting anyone new is not turned on for you.'));
     const hint = el('p', { text: hints.join(' '), style: `margin:0;${MUTED}` });
     hint.id = `${uid}-hint`;
 
-    const roleLabelEl = el('label', { text: tRaw('Role'), style: 'font-size:13px;font-weight:600' });
+    const roleLabelEl = el('label', { text: tRaw('Role'), style: 'font-size:var(--fs-sm);font-weight:600' });
     roleLabelEl.htmlFor = `${uid}-role`;
     const role = el('select', { className: 'field-select field-select--sm' });
     role.id = `${uid}-role`;
@@ -412,13 +418,22 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     send.dataset.act = 'people-invite';
     actions.append(send);
 
-    const results = el('ul', { className: 'team-people-results', style: `${LIST_STYLE};font-size:13px` });
+    const results = el('ul', { className: 'team-people-results', style: `${LIST_STYLE};font-size:var(--fs-sm)` });
     results.hidden = true;
     const linkSlot = el('div');
+    const password = el('input'); password.type = 'checkbox';
+    const passwordLabel = el('label', { className: 'team-invite-password' });
+    passwordLabel.append(password, el('span', { text: tRaw('Let new people set a password from their invitation link') }));
+    if (policy?.canInvite && policy.passwordSetup) {
+      field.addEventListener('input', () => {
+        const emails = parseInviteEmails(field.value).emails;
+        password.checked = !!emails.length && emails.every(email => policy.passwordDomains?.includes(email.split('@').pop() ?? ''));
+      });
+    }
 
     // The form's own status line, under the field it is about: on a phone, or with a
     // long list, the panel's status line above the list is out of sight from here.
-    const formStatus = el('p', { className: 'team-people-invite-status', style: 'margin:0;font-size:12px' });
+    const formStatus = el('p', { className: 'team-people-invite-status', style: 'margin:0;font-size:var(--fs-xs)' });
     formStatus.id = `${uid}-invite-status`;
     formStatus.setAttribute('role', 'status');
     formStatus.hidden = true;
@@ -435,7 +450,9 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
       field.focus();
     };
 
-    form.append(label, field, hint, formStatus, roleLabelEl, role, actions, results, linkSlot);
+    form.append(label, field, hint, formStatus, roleLabelEl, role);
+    if (policy?.canInvite && policy.passwordSetup) form.append(passwordLabel);
+    form.append(actions, results, linkSlot);
 
     // The link under the results. With anyone invited it is the link to send them;
     // when everyone was added directly they can open the project already, so it is
@@ -447,8 +464,8 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
       input.type = 'text';
       input.readOnly = true;
       input.value = link;
-      input.setAttribute('aria-label', invited ? tRaw('Invite link') : tRaw('Project link'));
-      const copyBtn = el('button', { className: 'share-copy-btn', text: invited ? tRaw('Copy invite link') : tRaw('Copy project link') });
+      input.setAttribute('aria-label', tRaw('Project link'));
+      const copyBtn = el('button', { className: 'share-copy-btn btn btn--sm', text: tRaw('Copy project link') });
       copyBtn.type = 'button';
       copyBtn.dataset.act = 'people-copy-link';
       copyBtn.addEventListener('click', async () => {
@@ -469,13 +486,13 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
       row.append(input, copyBtn);
       if (invited) {
         linkSlot.replaceChildren(row, el('p', {
-          text: tRaw('Send this link to the people you invited. It opens this project after they sign in.'),
+          text: tRaw('Existing members can use the project link. Send new people their personal invitation link.'),
           style: `margin:.2rem 0 0;${MUTED}`,
         }));
         return;
       }
       const said = kind === 'added' ? tRaw('Added. They can open this project now.') : tRaw('They can already open this project.');
-      const note = el('p', { text: said, style: 'margin:.5rem 0 0;font-size:13px' });
+      const note = el('p', { text: said, style: 'margin:.5rem 0 0;font-size:var(--fs-sm)' });
       note.dataset.linkNote = kind;
       linkSlot.replaceChildren(note, row);
     };
@@ -483,6 +500,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     // Each address's outcome, and the link under them. An 'already' address with an
     // invitation still waiting in the list is shown as invited: it has to sign in first.
     let lastOutcome: InviteOutcome | null = null;
+    let sentRole: InviteRole = role.value as InviteRole;
     let drawn = '';
     const drawOutcome = (outcome: InviteOutcome): void => {
       const waiting = waitingAddresses(people?.invitations ?? []);
@@ -498,6 +516,25 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
           el('span', { text: r.email, style: 'overflow-wrap:anywhere' }),
           el('span', { text: inviteResultText(shown[i]!, r.reason, policy?.domains), style: r.status === 'refused' ? 'color:hsl(var(--destructive))' : MUTED }),
         );
+        if (r.link && r.status !== 'refused') {
+          const delivery = el('div', { className: 'team-invite-delivery' });
+          const personal = el('input', { className: 'field-input' }); personal.readOnly = true; personal.value = r.link;
+          personal.setAttribute('aria-label', tRaw('Invite link for {email}', { email: r.email }));
+          const copyInvite = button(tRaw('Copy invite link'), 'people-copy-invite');
+          copyInvite.addEventListener('click', async () => {
+            const ok = await copy(r.link!); if (!ok) { personal.focus(); personal.select(); }
+            formSay(ok ? tRaw('Link copied') : tRaw('Could not copy. The link is selected, ready to copy by hand.'), !ok);
+          });
+          const copyMessage = button(tRaw('Copy invite message'), 'people-copy-message');
+          copyMessage.addEventListener('click', async () => {
+            const context = outcome.message;
+            const message = [tRaw('{inviter} invited you to {project} on {workspace}. Your role: {role}.', {
+              inviter: context?.inviter || tRaw('A teammate'), project: opts.projectName || tRaw('Team project'), workspace: context?.workspace || tRaw('your organisation'), role: roleLabel(sentRole),
+            }), r.link!, context?.providers.length ? tRaw('Sign in with {providers}.', { providers: context.providers.join(', ') }) : '', tRaw('Sign in as {email}.', { email: r.email }), context?.note || ''].filter(Boolean).join('\n');
+            const ok = await copy(message); formSay(ok ? tRaw('Invite message copied') : tRaw('Could not copy. Try again.'), !ok);
+          });
+          delivery.append(personal, copyInvite, copyMessage, el('p', { text: tRaw('Send this personal link to {email}. It opens the invitation and then this project.', { email: r.email }), style: MUTED })); li.append(delivery);
+        }
         return li;
       }));
       results.hidden = !outcome.results.length;
@@ -519,7 +556,8 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
       const prev = send.textContent;
       send.textContent = tRaw('Inviting…');
       try {
-        const got = await inviteToProject(opts.projectId, emails, role.value as InviteRole);
+        sentRole = role.value as InviteRole;
+        const got = await inviteToProject(opts.projectId, emails, sentRole, policy?.passwordSetup === true && password.checked);
         if (!got.ok) { formSay(peopleMessage(got.status, 'invite', got.code), true); return; }
         drawOutcome(got.data);
         const sent = got.data.results.filter((r) => r.status === 'added' || r.status === 'invited').length;

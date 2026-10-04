@@ -7,7 +7,7 @@ import { t } from '../i18n.ts';
 /** Review chrome lives beside the artwork and never changes a tool input. */
 export function mountCanvasComments(runtime: object, capability: CanvasCommentsCapability, stage: HTMLElement, canvas: HTMLElement, _layer: HTMLElement, preview?: (id: string) => { x: number; y: number; w: number; h: number; rot: number } | undefined) {
   const doc = stage.ownerDocument, abort = new (doc.defaultView?.AbortController ?? AbortController)();
-  const open = doc.createElement('button'); open.type = 'button'; open.className = 'collab-comments-open'; open.textContent = t('Comments'); open.hidden = true;
+  const open = doc.createElement('button'); open.type = 'button'; open.className = 'collab-comments-open btn btn--sm'; open.textContent = t('Comments'); open.hidden = true;
   const panel = doc.createElement('aside'); panel.className = 'collab-comments-panel'; panel.setAttribute('aria-label', t('Comments')); panel.hidden = true;
   const heading = doc.createElement('h2'); heading.textContent = t('Comments');
   const status = doc.createElement('p'); status.setAttribute('role', 'status');
@@ -15,8 +15,8 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   const messages = doc.createElement('div'); messages.className = 'collab-comment-messages';
   const composer = doc.createElement('form'); composer.className = 'collab-comment-composer'; composer.hidden = true;
   const label = doc.createElement('label'); label.textContent = t('Comment or reply');
-  const input = doc.createElement('textarea'); input.maxLength = COMMENT_BODY_LIMIT; input.rows = 4; label.append(input);
-  const send = doc.createElement('button'); send.type = 'submit'; send.textContent = t('Send'); composer.append(label, send);
+  const input = doc.createElement('textarea'); input.className = 'field-input'; input.maxLength = COMMENT_BODY_LIMIT; input.rows = 4; label.append(input);
+  const send = doc.createElement('button'); send.className = 'btn btn--primary btn--sm'; send.type = 'submit'; send.textContent = t('Send'); composer.append(label, send);
   const pins = doc.createElement('div'); pins.className = 'collab-comment-pins'; stage.append(pins);
   let disposed = false, busy = false, placing = false, polling = false, enabled = false, selected: string | undefined, anchor: CommentAnchor | undefined;
   let permissions: CommentPermissions | undefined, threads: CommentThread[] = [], painted = '', draftKey = '', draftTicket = 0, draftFailed = false;
@@ -25,7 +25,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   let editing: { id: string; body: string } | undefined;
   let commandId = crypto.randomUUID(), messageId = crypto.randomUUID(), draftChain: Promise<void> = Promise.resolve();
   const button = (text: string, action: () => void) => {
-    const element = doc.createElement('button'); element.type = 'button'; element.textContent = t(text);
+    const element = doc.createElement('button'); element.className = 'btn btn--sm btn--ghost'; element.type = 'button'; element.textContent = t(text);
     element.addEventListener('click', action); return element;
   };
   const close = button('Close comments', () => { panel.hidden = true; placing = false; open.focus(); });
@@ -41,7 +41,9 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     const point = surface.fromClient({ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 });
     start({ kind: 'canvas', surface: surface.id(), ...point });
   });
-  panel.append(heading, close, point, onSelection, atCenter, status, list, messages, composer); stage.append(open, panel);
+  const header = doc.createElement('header'); header.className = 'collab-comment-head'; header.append(heading, close);
+  const actions = doc.createElement('div'); actions.className = 'collab-comment-actions'; actions.append(point, onSelection, atCenter);
+  panel.append(header, actions, status, list, messages, composer); stage.append(open, panel);
   function queueDraft(key: string, body: string): void {
     draftChain = draftChain.catch(() => {}).then(() => capability.saveDraft(key, body)).catch(() => {
       draftFailed = true;
@@ -96,9 +98,11 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     const signature = `${selected}:${threads.map(thread => `${thread.id}:${thread.revision}`).join(',')}`;
     if (listSignature === signature) return;
     listSignature = signature; list.replaceChildren();
+    if (!threads.length) { const empty = doc.createElement('p'); empty.className = 'team-project-notice'; empty.textContent = t('Pin a comment to start a review.'); list.append(empty); }
     threads.forEach((thread, index) => {
       const body = thread.messages.find(message => !message.deletedAt)?.body ?? t('Deleted message');
       const item = button(`${index + 1}. ${thread.resolvedAt ? t('Resolved') + ': ' : ''}${body.slice(0, 100)}`, () => select(thread.id));
+      item.classList.add('collab-comment-thread');
       item.setAttribute('data-comment-thread', thread.id); item.setAttribute('aria-pressed', String(selected === thread.id)); list.append(item);
     });
   }
@@ -133,7 +137,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
           }).catch(report);
         }));
         if (editing?.id === message.id) {
-          const editor = doc.createElement('textarea'); editor.rows = 4; editor.maxLength = COMMENT_BODY_LIMIT;
+          const editor = doc.createElement('textarea'); editor.className = 'field-input'; editor.rows = 4; editor.maxLength = COMMENT_BODY_LIMIT;
           editor.setAttribute('aria-label', t('Edit message')); editor.value = editing.body;
           const key = `edit:${thread.id}:${message.id}`;
           editor.addEventListener('input', () => { if (editing?.id === message.id) editing.body = editor.value; queueDraft(key, editor.value); });

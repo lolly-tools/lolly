@@ -43,6 +43,8 @@ export interface ProjectInvitation {
   role: InviteRole;
   createdAt?: string;
   expiresAt?: string;
+  link?: string;
+  status?: 'pending' | 'expired';
 }
 
 export interface ProjectPeople {
@@ -55,12 +57,16 @@ export interface InviteResult {
   email: string;
   status: InviteStatus;
   reason?: string;
+  invitationId?: string;
+  link?: string;
+  expiresAt?: string;
 }
 
 export interface InviteOutcome {
   results: InviteResult[];
   /** The address to send: opens the project in the app for anyone who can see the project. */
   link: string;
+  message?: { workspace: string; inviter?: string; providers: string[]; note?: string };
 }
 
 /** A failure keeps the HTTP status (0: no answer at all) and, when the instance sent
@@ -68,6 +74,15 @@ export interface InviteOutcome {
 export type PeopleGot<T> = { ok: true; data: T } | { ok: false; status: number; code?: string };
 
 const str = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+
+/** An invitation is a personal server link, never the project's general app URL. */
+export function personalInviteLink(value: unknown): string | undefined {
+  if (typeof value !== 'string' || /[<>\s]/.test(value)) return undefined;
+  try {
+    const url = new URL(value);
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password && url.pathname.startsWith('/l/invite/') ? value : undefined;
+  } catch { return undefined; }
+}
 
 /** The address that opens a team project: the instance's app with `#/team/project/<id>`. */
 export function teamProjectLinkUrl(projectId: string, base = getInstanceBase() || globalThis.location?.origin || ''): string {
@@ -98,7 +113,9 @@ function invitationFromRow(row: unknown): ProjectInvitation | null {
   if (!id || !email || !role) return null;
   const createdAt = str(r.createdAt);
   const expiresAt = str(r.expiresAt);
-  return { id, email, role, ...(createdAt ? { createdAt } : {}), ...(expiresAt ? { expiresAt } : {}) };
+  const link = personalInviteLink(r.link);
+  const status = r.status === 'expired' ? 'expired' : r.status === 'pending' ? 'pending' : undefined;
+  return { id, email, role, ...(createdAt ? { createdAt } : {}), ...(expiresAt ? { expiresAt } : {}), ...(link && status !== 'expired' ? { link } : {}), ...(status ? { status } : {}) };
 }
 
 /** The members response as this module's type, or null when it is not one. Pure. */
@@ -120,7 +137,7 @@ const STATUSES: readonly InviteStatus[] = ['added', 'invited', 'already', 'refus
  *  falls back to the one this shell would build for the project. Pure. */
 export function inviteFromBody(body: unknown, projectId: string): InviteOutcome | null {
   if (!body || typeof body !== 'object') return null;
-  const b = body as { results?: unknown; link?: unknown };
+  const b = body as { results?: unknown; link?: unknown; message?: unknown };
   if (!Array.isArray(b.results)) return null;
   const results: InviteResult[] = [];
   for (const row of b.results) {
@@ -130,10 +147,15 @@ export function inviteFromBody(body: unknown, projectId: string): InviteOutcome 
     const status = typeof r.status === 'string' && (STATUSES as readonly string[]).includes(r.status) ? r.status as InviteStatus : null;
     if (!email || !status) continue;
     const reason = str(r.reason);
-    results.push({ email, status, ...(reason ? { reason } : {}) });
+    const invitationId = str(r.invitationId), personal = personalInviteLink(r.link), expiresAt = str(r.expiresAt);
+    results.push({ email, status, ...(reason ? { reason } : {}), ...(invitationId ? { invitationId } : {}), ...(personal ? { link: personal } : {}), ...(expiresAt ? { expiresAt } : {}) });
   }
   const link = typeof b.link === 'string' && /^https?:\/\//i.test(b.link) && !/[<>\s]/.test(b.link) ? b.link : teamProjectLinkUrl(projectId);
-  return { results, link };
+  const m = b.message && typeof b.message === 'object' ? b.message as Record<string, unknown> : null;
+  const workspace = str(m?.workspace);
+  const message = workspace ? { workspace, ...(str(m?.inviter) ? { inviter: str(m?.inviter) } : {}),
+    providers: Array.isArray(m?.providers) ? m.providers.filter((v): v is string => typeof v === 'string') : [], ...(str(m?.note) ? { note: str(m?.note) } : {}) } : undefined;
+  return { results, link, ...(message ? { message } : {}) };
 }
 
 async function request(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<Response | null> {
@@ -172,9 +194,9 @@ export async function listProjectPeople(projectId: string): Promise<PeopleGot<Pr
 
 /** Invite people by email. People already on the instance become members at once;
  *  anyone else gets an invitation, as the instance's invite policy allows. */
-export async function inviteToProject(projectId: string, emails: string[], role: InviteRole): Promise<PeopleGot<InviteOutcome>> {
+export async function inviteToProject(projectId: string, emails: string[], role: InviteRole, passwordSetup = false): Promise<PeopleGot<InviteOutcome>> {
   if (!emails.length) return { ok: false, status: 400 };
-  const res = await request('POST', `${base(projectId)}/invite`, { emails, role });
+  const res = await request('POST', `${base(projectId)}/invite`, { emails, role, ...(passwordSetup ? { passwordSetup: true } : {}) });
   if (!res) return { ok: false, status: 0 };
   if (!res.ok) return failureOf(res);
   const data = inviteFromBody(await readJson(res), projectId);

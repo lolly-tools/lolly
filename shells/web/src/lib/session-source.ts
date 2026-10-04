@@ -131,10 +131,25 @@ export interface SessionSource {
   label: string;
   listProjects(): Promise<TeamProjectRef[]>;
   listSessions(projectId: string): Promise<TeamSessionRef[]>;
+  /** Optional reads that distinguish an empty list from a refused or failed load. */
+  readProjects?(): Promise<SourceList<TeamProjectRef>>;
+  readSessions?(projectId: string): Promise<SourceList<TeamSessionRef>>;
   /** Full state for one session, or null if it's gone (tombstoned/expired). */
   fetchSession(sessionId: string): Promise<TeamSessionData | null>;
   /** Present only when the source can also save. */
   write?: SessionSourceWriter;
+}
+
+export type SourceList<T> = { ok: true; items: T[] } | { ok: false; status: number };
+
+export async function readSourceProjects(source: SessionSource): Promise<SourceList<TeamProjectRef>> {
+  try { return source.readProjects ? await source.readProjects() : { ok: true, items: await source.listProjects() }; }
+  catch { return { ok: false, status: 0 }; }
+}
+
+export async function readSourceSessions(source: SessionSource, projectId: string): Promise<SourceList<TeamSessionRef>> {
+  try { return source.readSessions ? await source.readSessions(projectId) : { ok: true, items: await source.listSessions(projectId) }; }
+  catch { return { ok: false, status: 0 }; }
 }
 
 let current: SessionSource | undefined;
