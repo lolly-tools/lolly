@@ -251,7 +251,7 @@
         "bounds": "`MAX_DIM_PSD = 30_000`, `MAX_DIM_PSB = 300_000`, `MAX_LAYERS = 1_024`, `MAX_CHANNELS_PER_LAYER = 8`, `MAX_EXTRA_BLOCKS = 256`, `MAX_RESOURCE_BLOCKS = 1_024`, `MAX_CMYK_CACHE = 1 << 20` and a decode-output budget (`maxDecodedBytes`, default 256 MiB) reserved **before** every allocation",
         "directTests": "`tests/psd.test.ts`",
         "fuzzCoverage": "`psd` (`readPsd`, seeds from `writePsd` - our own writer)",
-        "notes": "Split failure contract: not-a-PSD / refused class (Lab/Indexed, 1/32-bit) is a typed `PsdUnsupportedError` (a controlled throw); damage inside a layer/resource is `onWarn` + skip that piece, never the document. ZIP channels inflate through an injected `InflateFn` whose `maxOut` the module re-checks. CMYK converts through the embedded ICC profile via `icc.ts`'s bounded evaluator."
+        "notes": "Split failure contract: not-a-PSD / refused class (Lab/Indexed, 1/32-bit) is a typed `PsdUnsupportedError` (a controlled throw); damage inside a layer/resource is `onWarn` + skip that piece, never the document. ZIP channels inflate through an injected `InflateFn` whose `maxOut` the module re-checks. CMYK converts through the embedded ICC profile via `icc.ts`'s bounded evaluator. Adjustment layers: `psd-adjustments.ts` reads eight kinds from the bounded block copies (a short block or an unknown version reads as nothing), and an adjustment layer's raster mask is decoded through the same budget only to learn whether it covers the canvas; both are reached by the `psd` and `psd-descriptor` targets."
       }
     },
     "engine/src/xcf.ts": {
