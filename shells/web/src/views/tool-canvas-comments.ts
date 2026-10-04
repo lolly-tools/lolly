@@ -218,8 +218,11 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
         panel.style.top = `${host.bottom + gap}px`;
         if (compact) { panel.style.removeProperty('inset-inline-end'); panel.style.removeProperty('max-width'); }
         else {
-          panel.style.insetInlineEnd = `${Math.max(0, style.direction === 'rtl' ? Math.max(bounds.left, host.left) : doc.defaultView!.innerWidth - Math.min(bounds.right, host.right))}px`;
-          panel.style.maxWidth = `${Math.max(0, bounds.width - gap * 2)}px`;
+          const dock = controlsHost.closest<HTMLElement>('.edge-dock')?.getBoundingClientRect(), rtl = style.direction === 'rtl';
+          const left = Math.max(bounds.left, rtl && dock ? dock.right : bounds.left);
+          const right = Math.min(bounds.right, !rtl && dock ? dock.left : bounds.right);
+          panel.style.insetInlineEnd = `${Math.max(0, rtl ? Math.max(left, host.left) : doc.defaultView!.innerWidth - Math.min(right, host.right))}px`;
+          panel.style.maxWidth = `${Math.max(0, right - left - gap * 2)}px`;
         }
       }
     }
