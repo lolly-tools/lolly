@@ -262,7 +262,7 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   gap: var(--sp-3);
   position: fixed;
   top: calc(max(var(--design-topbar-h, 0px), var(--chrome-h)) + var(--sp-4));
-  bottom: var(--sp-3);
+  bottom: calc(var(--sp-3) + var(--safe-bottom, 0px) + var(--vv-bottom, 0px));
   inset-inline-end: var(--sp-3);
   width: min(380px, calc(100% - 2 * var(--sp-3)));
   box-sizing: border-box;
@@ -288,7 +288,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-head h2 { margin: 0; font-size: var(--fs-lg); }
 .collab-comment-thread-tools { display: flex; gap: var(--sp-1); margin-inline-start: auto; }
 .collab-comment-actions { display: flex; gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--radius-round); background: var(--ui-color-surface-muted); align-self: start; }
-.collab-comment-icon { flex: none; display: inline-grid; place-items: center; inline-size: calc(36px * var(--a11y-fs)); block-size: calc(36px * var(--a11y-fs)); min-inline-size: calc(36px * var(--a11y-fs)); padding: 0; border-radius: var(--radius-round); }
+.collab-comment-icon { flex: none; display: inline-grid; place-items: center; width: calc(36px * var(--a11y-fs)); height: calc(36px * var(--a11y-fs)); min-width: calc(36px * var(--a11y-fs)); padding: 0; border-radius: var(--radius-round); }
 .collab-comment-icon svg { pointer-events: none; }
 .collab-comment-thread { display: flex; align-items: start; gap: var(--sp-2); padding: var(--sp-3); border-radius: var(--ui-radius-control); color: var(--ui-color-text-default); }
 .collab-comment-preview { display: grid; gap: var(--sp-1); min-width: 0; }
@@ -298,7 +298,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-messages:empty { display: none; }
 .collab-comment-message { position: relative; display: flex; align-items: start; gap: var(--sp-2); font-size: var(--fs-sm); }
 .collab-comment-message[data-own="true"] { flex-direction: row-reverse; }
-.collab-comment-avatar { flex: none; display: inline-grid; place-items: center; inline-size: calc(30px * var(--a11y-fs)); block-size: calc(30px * var(--a11y-fs)); border-radius: var(--radius-round); font-size: var(--fs-xs); font-weight: 700; }
+.collab-comment-avatar { flex: none; display: inline-grid; place-items: center; width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); border-radius: var(--radius-round); font-size: var(--fs-xs); font-weight: 700; }
 .collab-comment-bubble { min-width: 0; max-width: calc(100% - 38px); padding: var(--sp-3); border-radius: var(--ui-radius-surface); border-start-start-radius: var(--sp-1); border-inline-start: 2px solid var(--comment-person-color); }
 .collab-comment-message[data-own="true"] .collab-comment-bubble { border-start-start-radius: var(--ui-radius-surface); border-start-end-radius: var(--sp-1); }
 .collab-comment-meta { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
