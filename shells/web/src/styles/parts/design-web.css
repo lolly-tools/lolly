@@ -14,6 +14,19 @@
      click and drag on the canvas, and a frame would swallow them. */
   .lolly-box-web[data-web-inert] > .lolly-box-web-frame { pointer-events: none; }
 
+  .lolly-box-web-open {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+    display: grid;
+    place-items: center;
+    box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
+  }
+
   .lolly-box-web.is-entered {
     outline: 3px solid var(--ui-color-selection-border, var(--ui-color-focus-ring));
     outline-offset: -3px;

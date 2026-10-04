@@ -19,7 +19,7 @@ import { icon } from '../lib/icons.ts';
 import { parseWebEmbed, type WebEmbed } from '../../../../engine/src/web-embed.ts';
 import { trustedSiteHost } from '../../../../engine/src/trusted-sites.ts';
 import { canTrustMore, trustSite } from '../lib/trusted-sites.ts';
-import { consentToLink, frameHost, policyNote, trustEntryFor, webFrameState, type WebFrameState } from '../lib/design-web-mount.ts';
+import { consentToLink, frameHost, policyNote, trustEntryFor, webPageHref, webFrameState, type WebFrameState } from '../lib/design-web-mount.ts';
 import { anySiteApplies, enterAnySite, probeAnySite } from '../lib/any-site.ts';
 
 type CheckState = Extract<WebFrameState, 'ask' | 'policy' | 'blocked' | 'refused' | 'browser'>;
@@ -107,13 +107,15 @@ function rowHtml(row: WebCheckRow, i: number): string {
       + (entry && canTrustMore() ? `<button type="button" class="btn" data-pwc-always="${i}">${esc(t('Always trust {host}', { host: trustedSiteHost(entry) }))}</button>` : '')
       + `</div>`
     : '';
+  const open = `<a class="btn btn--sm" href="${esc(webPageHref(row.embed))}" target="_blank" rel="noopener noreferrer">`
+    + `${icon('externalLink')}<span>${t('Open in new tab')}</span></a>`;
   const meta = [slidesText(row.slides), row.label].filter(Boolean).join(' · ');
   return `<li class="pwc-row" data-pwc-row="${i}">`
     + `<span class="pwc-glyph" aria-hidden="true">${icon(row.state === 'ask' ? 'globe' : 'shield')}</span>`
     + `<div class="pwc-text"><strong class="pwc-host">${esc(row.host)}</strong>`
     + `<span class="pwc-meta">${esc(meta)}</span>`
     + `<span class="pwc-state" data-pwc-state="${i}">${esc(stateText(row))}</span>`
-    + `</div>${actions}</li>`;
+    + `</div>${actions}<div class="pwc-actions">${open}</div></li>`;
 }
 
 /**

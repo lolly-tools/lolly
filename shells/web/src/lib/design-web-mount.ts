@@ -36,6 +36,7 @@ import { anySiteActive } from './any-site.ts';
 import { siteVerdict, onTrustedSitesChange } from './trusted-sites.ts';
 import { normaliseTrustedSite } from '../../../../engine/src/trusted-sites.ts';
 import { onSitePolicyChange } from './site-policy.ts';
+import { icon } from './icons.ts';
 import '../styles/parts/design-web.css';
 
 export type WebFrameState = 'live' | 'poster' | 'ask' | 'policy' | 'refused' | 'blocked' | 'browser' | 'invalid';
@@ -149,6 +150,25 @@ function boxIdOf(marker: Element): string {
 
 function keyFor(marker: HTMLElement, embed: WebEmbed | null): string {
   return `${boxIdOf(marker)}|${embed?.src ?? ''}`;
+}
+
+/** Open the author's page, rather than its transformed player, in the person's browser. */
+export function webPageHref(embed: WebEmbed): string {
+  return /^https?:\/\//i.test(embed.source) ? embed.source : `https://${embed.source}`;
+}
+
+function syncPageLink(marker: HTMLElement, embed: WebEmbed | null, mode: WebMountMode): void {
+  const current = marker.querySelector<HTMLAnchorElement>('.lolly-box-web-open');
+  if (mode !== 'present' || !embed || embed.sameOrigin) { current?.remove(); return; }
+  const link = current ?? document.createElement('a');
+  link.className = 'btn btn--ghost lolly-box-web-open';
+  link.href = webPageHref(embed);
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.title = t('Open in new tab');
+  link.setAttribute('aria-label', `${t('Open in new tab')}: ${embed.host}`);
+  link.setAttribute('data-export-hide', '');
+  if (!current) { link.innerHTML = icon('externalLink'); marker.appendChild(link); }
 }
 
 function note(state: WebFrameState, embed: WebEmbed | null): string {
@@ -301,6 +321,7 @@ export function mountWebFrames(root: Element, opts: WebMountOptions): void {
     const current = marker.querySelector<HTMLIFrameElement>(FRAME);
     if (current && (state !== 'live' || current.dataset.webLive !== key)) dropFrame(current);
     marker.dataset.webState = state === 'live' ? 'live' : state;
+    syncPageLink(marker, embed, opts.mode);
     if (opts.mode === 'editor') {
       marker.toggleAttribute('data-web-inert', !marker.classList.contains('is-entered'));
       setNote(marker, state === 'live' ? '' : note(state, embed));
