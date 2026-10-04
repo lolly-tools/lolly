@@ -5,6 +5,9 @@
  * much of it, which save a team document offers by project role, the "Edited by"
  * line, and reading several addresses out of one field.
  *
+ * Also the plans/75 additions: the password tick's starting state, the lines under a
+ * waiting invitation and an access request, and the sentences for answering one.
+ *
  * Run directly:  node --test shells/web/src/org/team-access.test.ts
  */
 import test from 'node:test';
@@ -13,7 +16,8 @@ import assert from 'node:assert/strict';
 const {
   invitePolicy, peopleAccess, teamSaveChoice, canWriteProject, isManagerPlus, activityLabel,
   parseInviteEmails, inviteLinkKind, inviteResultText, shownInviteStatus, waitingAddresses, peopleMessage, roleLabel, inviteRoleOf,
-  sessionCountLabel, teamPickerEmpty, conflictCopy, longRelTime,
+  sessionCountLabel, teamPickerEmpty, conflictCopy, longRelTime, passwordTickDefault, dayLabel, invitationLines,
+  requestAskText, requestAskedText, requestAnsweredText, requestRefusalText, roleHelpText,
 } = await import('./team-access.ts');
 
 const NOW = Date.parse('2026-10-02T12:00:00Z');
@@ -21,11 +25,12 @@ const NOW = Date.parse('2026-10-02T12:00:00Z');
 test('invitePolicy: absent on an older instance, defaults filled in on a newer one', () => {
   assert.equal(invitePolicy(null), null);
   assert.equal(invitePolicy({ can: { 'user.invite': true } }), null, 'no invites block: no people UI');
+  const quiet = { workspace: '', passwordSetup: false, passwordDomains: [], askToEdit: false };
   assert.deepEqual(invitePolicy({ can: { 'user.invite': true }, invites: {} }), {
-    canInvite: true, domains: [], maxTtlHours: 720, projectRoles: ['viewer', 'editor', 'manager'],
+    canInvite: true, domains: [], maxTtlHours: 720, projectRoles: ['viewer', 'editor', 'manager'], ...quiet,
   });
   assert.deepEqual(invitePolicy({ invites: { domains: [' Acme.com ', 'acme.com', 7, ''], maxTtlHours: 48, projectRoles: ['manager', 'owner', 'viewer'] } }), {
-    canInvite: false, domains: ['acme.com'], maxTtlHours: 48, projectRoles: ['viewer', 'manager'],
+    canInvite: false, domains: ['acme.com'], maxTtlHours: 48, projectRoles: ['viewer', 'manager'], ...quiet,
   }, 'owner is never offered; order is fixed; bad entries dropped');
   assert.equal(invitePolicy({ invites: { maxTtlHours: -1 } })!.maxTtlHours, 720);
   assert.deepEqual(invitePolicy({ invites: { projectRoles: [] } })!.projectRoles, []);
@@ -225,4 +230,81 @@ test('inviteLinkKind: the invite link only when someone got an invitation', () =
   assert.equal(inviteLinkKind([{ status: 'already' }, { status: 'refused' }]), 'already');
   assert.equal(inviteLinkKind([{ status: 'refused' }]), 'none');
   assert.equal(inviteLinkKind([]), 'none');
+});
+
+test('invitePolicy: the workspace name, the password link and access requests (plans/75)', () => {
+  const policy = invitePolicy({
+    can: { 'user.invite': true },
+    instance: { name: ' lolly.ing ' },
+    invites: { passwordSetup: true, passwordDomains: ['SUSE.com', ' suse.com', 3] },
+    requests: { project: true },
+  })!;
+  assert.equal(policy.workspace, 'lolly.ing');
+  assert.equal(policy.passwordSetup, true);
+  assert.deepEqual(policy.passwordDomains, ['suse.com']);
+  assert.equal(policy.askToEdit, true);
+  // Only a literal true turns either on: an older instance sends neither.
+  const older = invitePolicy({ invites: { passwordSetup: 'yes' }, requests: { project: 1 } })!;
+  assert.equal(older.passwordSetup, false);
+  assert.equal(older.askToEdit, false);
+  assert.equal(invitePolicy({ instance: { name: 42 }, invites: {} })!.workspace, '');
+});
+
+test('passwordTickDefault: ticked only when every address is at a password domain', () => {
+  const domains = ['suse.com'];
+  assert.equal(passwordTickDefault(['sam@suse.com'], domains), true);
+  assert.equal(passwordTickDefault(['sam@SUSE.com', 'ana@suse.com'], domains), true);
+  assert.equal(passwordTickDefault(['sam@suse.com', 'bo@gmail.com'], domains), false, 'one address outside: the person decides');
+  assert.equal(passwordTickDefault(['sam@mail.suse.com'], domains), false, 'the exact domain, as the instance matches it');
+  assert.equal(passwordTickDefault([], domains), false, 'nothing typed yet');
+  assert.equal(passwordTickDefault(['sam@suse.com'], []), false, 'no password domains');
+});
+
+// The day in this machine's time zone, the way the panel shows a day.
+const day = (iso: string, lang = 'en'): string => new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(Date.parse(iso));
+
+test('invitationLines: the end day, opened or waiting, and who invited', () => {
+  assert.equal(dayLabel('2026-11-01T12:00:00Z', 'en'), day('2026-11-01T12:00:00Z'));
+  assert.match(dayLabel('2026-11-01T12:00:00Z', 'en'), /^(Oct 31|Nov 1|Nov 2), 2026$/);
+  assert.deepEqual(invitationLines({ status: 'pending', expiresAt: '2026-11-01T12:00:00Z', invitedByName: ' Ana ' }, NOW, 'en'), {
+    ends: `Ends ${day('2026-11-01T12:00:00Z')}`, state: 'Waiting', by: 'Invited by Ana',
+  });
+  assert.equal(invitationLines({ status: 'pending', openedAt: '2026-10-02T10:00:00Z' }, NOW, 'en').state, 'Opened 2 hours ago');
+  assert.deepEqual(invitationLines({ status: 'expired', expiresAt: '2026-09-30T12:00:00Z', openedAt: '2026-09-01T10:00:00Z' }, NOW, 'en'), {
+    ends: `Ended ${day('2026-09-30T12:00:00Z')}`, state: 'Expired', by: '',
+  }, 'an expired one says so, whether or not it was opened');
+  assert.deepEqual(invitationLines({ status: 'pending' }, NOW, 'en'), { ends: '', state: 'Waiting', by: '' }, 'an older instance sends no dates');
+  assert.equal(dayLabel('not a date', 'en'), '');
+  assert.equal(dayLabel('2026-11-01T12:00:00Z', 'de'), day('2026-11-01T12:00:00Z', 'de'));
+  assert.match(dayLabel('2026-11-01T12:00:00Z', 'de'), /^\d\d\.1[01]\.2026$/, 'the reader\'s own date order');
+});
+
+test('requests: what was asked, when, and the answer sentences', () => {
+  assert.equal(requestAskText('editor'), 'Asks to edit');
+  assert.equal(requestAskText('viewer'), 'Asks to view');
+  assert.equal(requestAskedText('2026-10-02T09:00:00Z', NOW, 'en'), 'Asked 3 hours ago');
+  assert.equal(requestAskedText(undefined, NOW, 'en'), '');
+  assert.equal(requestAnsweredText('approve', 'editor'), 'Approved as Editor.');
+  assert.equal(requestAnsweredText('decline', 'editor'), 'Declined.');
+  assert.equal(roleHelpText(), 'Viewers open and copy. Editors save changes. Managers also add people.');
+});
+
+test('requestRefusalText: who answered first, or why this person cannot answer', () => {
+  assert.equal(requestRefusalText(409, { status: 'approved', answeredBy: 'Priya', answerRole: 'editor' }), 'Priya already approved this as Editor.');
+  assert.equal(requestRefusalText(409, { status: 'declined', answeredBy: 'Priya' }), 'Priya already declined this.');
+  assert.equal(requestRefusalText(409, { status: 'withdrawn' }), 'This request was withdrawn.');
+  assert.equal(requestRefusalText(409, { status: 'expired' }), 'This request has ended.');
+  assert.equal(requestRefusalText(409, { status: 'superseded' }), 'This request has ended.');
+  assert.equal(requestRefusalText(409, { status: 'approved' }), 'This request has ended.', 'no name: never a blank where the name goes');
+  assert.equal(requestRefusalText(409), 'This request has ended.');
+  assert.equal(requestRefusalText(404), 'This request has ended.');
+  assert.equal(requestRefusalText(403, { status: 'open' }), 'You can no longer answer this request.');
+  assert.equal(requestRefusalText(0), 'Could not answer the request. Try again.');
+  assert.equal(requestRefusalText(500), 'Could not answer the request. Try again.');
+});
+
+test('peopleMessage: a new link has its own daily limit and treats a missing invitation as a change', () => {
+  assert.equal(peopleMessage(429, 'link'), 'That is a lot of new links for one day. Try again tomorrow.');
+  assert.equal(peopleMessage(404, 'link'), 'That person or invitation has already changed.');
+  assert.match(peopleMessage(429, 'invite'), /addresses for one hour/);
 });

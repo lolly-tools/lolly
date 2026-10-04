@@ -168,7 +168,7 @@ export function teamOpenMessage(status: number): string {
   switch (status) {
     case 404: return tRaw('That team session was not found. It may have been moved, or the link is incomplete.');
     case 410: return tRaw('That team session was deleted.');
-    case 403: return tRaw('You do not have access to that team session.');
+    case 403: return tRaw('You do not have access to this team session.');
     case 401: return tRaw('Your sign-in has expired. Sign in again, then open the link.');
     case 0: return tRaw('The instance could not be reached. Try again when you are back online.');
     case -3: return tRaw('A shared file this session uses is not available, so the session could not be opened.');

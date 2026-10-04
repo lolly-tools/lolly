@@ -29,6 +29,8 @@ globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.location = dom.window.location as unknown as Location;
 globalThis.history = dom.window.history as unknown as History;
+// announce() (a11y.ts) waits a frame before it speaks: the inbox announces new messages.
+globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => { setTimeout(() => cb(0), 0); return 0; }) as unknown as typeof requestAnimationFrame;
 
 // Map-backed localStorage (jsdom's is fine, but an explicit stub is controllable).
 const store = new Map<string, string>();
@@ -54,7 +56,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
 const json = (body: unknown, extra: Record<string, string> = {}, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...extra } });
 
-const { initOrg, orgConfig, orgSession, orgAdminHref, orgMemberSignedIn, signOutOfInstance, orgFlagGovernance, applyOrgToolPolicies, _resetOrgForTests } = await import('./index.ts');
+const { initOrg, orgConfig, orgSession, orgAdminHref, orgMemberSignedIn, orgProfileAccount, signOutOfInstance, orgFlagGovernance, applyOrgToolPolicies, _resetOrgForTests } = await import('./index.ts');
 const { hasInstanceSession, setInstanceSession } = await import('../lib/instance.ts');
 const { flagHidden, isFlagOn, flagEnabled, hydrateFeatureFlags, NEUROSPICY_FLAG, JELLY_FLAG, STRIP_UPLOAD_META_FLAG } = await import('../feature-flags.ts');
 const { getFieldPolicy, _clearFieldPoliciesForTests } = await import('../lib/field-policy.ts');
@@ -83,11 +85,15 @@ function controlPlane(opts: {
   session?: SessionKind;
   role?: string;
   orgConfig?: unknown;
+  /** Extra auth-config fields: instanceName, inviteOnly. */
+  auth?: Record<string, unknown>;
+  /** Extra fields on the session's user (a name). */
+  user?: Record<string, unknown>;
 }): void {
   router = (url) => {
-    if (url.includes('/api/auth/config')) return json({ mode: opts.mode, provider: 'oidc', loginPath: '/login' });
+    if (url.includes('/api/auth/config')) return json({ mode: opts.mode, provider: 'oidc', loginPath: '/login', ...opts.auth });
     if (url.includes('/api/auth/session')) {
-      if (opts.session === 'member') return json({ kind: 'member', user: { sub: 'u1', email: 'me@corp', groups: [], role: opts.role ?? 'member' } });
+      if (opts.session === 'member') return json({ kind: 'member', user: { sub: 'u1', email: 'me@corp', groups: [], role: opts.role ?? 'member', ...opts.user } });
       if (opts.session === 'guest') return json({ kind: 'guest', guest: {} });
       return new Response('', { status: 401 });
     }
@@ -233,6 +239,201 @@ test('a native shell\'s code sign-in on the gate has the same finger floor', asy
   } finally {
     delete w.__TAURI_INTERNALS__;
   }
+});
+
+// ── The gate says which workspace and which account to use (plan 74 M18) ────
+
+/** The gate card's heading and its lines of copy, as a person reads them. */
+function gateCopy(): { heading: string; lines: string[] } {
+  const card = document.querySelector('.org-gate-card')!;
+  return {
+    heading: card.querySelector('h1')!.textContent!,
+    lines: [...card.querySelectorAll('p')].map((p) => p.textContent!),
+  };
+}
+
+test('the gate names the workspace and says which account to sign in with', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none', auth: { instanceName: 'lolly.ing', inviteOnly: true } });
+  await initOrg();
+  assert.deepEqual(gateCopy(), {
+    heading: 'Sign in to lolly.ing',
+    lines: ['lolly.ing is a private Lolly workspace. Sign in with the account your invitation went to.'],
+  });
+  assert.ok(document.querySelector('.org-gate a.btn--primary'), 'the Sign in link stays');
+});
+
+test('an older instance with no name keeps the gate\'s plain copy', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none' });
+  await initOrg();
+  assert.deepEqual(gateCopy(), {
+    heading: 'Sign in to continue',
+    lines: ['This Lolly instance asks you to sign in before you continue.'],
+  });
+});
+
+test('a workspace that is not invite-only names itself but does not mention an invitation', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none', auth: { instanceName: 'Acme', inviteOnly: false } });
+  await initOrg();
+  assert.deepEqual(gateCopy(), {
+    heading: 'Sign in to Acme',
+    lines: ['This Lolly instance asks you to sign in before you continue.'],
+  });
+});
+
+test('a team link on the gate says the project opens after sign-in', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none', auth: { instanceName: 'lolly.ing' } });
+  dom.reconfigure({ url: 'https://instance.test/#/team/project/p1' });
+  try {
+    await initOrg();
+    assert.deepEqual(gateCopy().lines, [
+      'lolly.ing is a private Lolly workspace. Sign in with the account your invitation went to.',
+      'Sign in to open the team project you were sent.',
+    ]);
+    const href = document.querySelector<HTMLAnchorElement>('.org-gate a.btn--primary')!.getAttribute('href')!;
+    assert.ok(href.includes(encodeURIComponent('/#/team/project/p1')), 'and the sign-in comes back to the link');
+  } finally {
+    dom.reconfigure({ url: 'https://instance.test/#/tool/qr-code' });
+  }
+});
+
+test('the workspace name on the gate is text, never markup', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none', auth: { instanceName: '<img src=x onerror=alert(1)>' } });
+  await initOrg();
+  const card = document.querySelector('.org-gate-card')!;
+  assert.equal(card.querySelector('img'), null);
+  assert.equal(gateCopy().heading, 'Sign in to <img src=x onerror=alert(1)>');
+});
+
+// ── The profile card's account half (plan 74 M18) ────────────────────────────
+
+test('orgProfileAccount: null without a control plane, so the profile card is unchanged', async () => {
+  reset();
+  await initOrg();
+  assert.equal(orgProfileAccount(), null);
+});
+
+test('orgProfileAccount: the workspace, who is signed in and the inbox count', async () => {
+  reset();
+  controlPlane({
+    mode: 'gated', session: 'member', user: { email: 'sam@work.test' }, auth: { instanceName: 'from-auth' },
+    orgConfig: { instance: { name: ' lolly.ing ' }, inboxUnread: 3, session: { sub: 'u1', email: 'sam@work.test', name: 'Sam Kim' } },
+  });
+  await initOrg();
+  const account = orgProfileAccount()!;
+  assert.equal(account.workspace, 'lolly.ing', 'the org-config name wins, trimmed');
+  assert.deepEqual(account.member, { email: 'sam@work.test', name: 'Sam Kim' });
+  assert.ok(account.inbox);
+});
+
+test('orgProfileAccount: a name that is only the address again is dropped; the session\'s own name wins', async () => {
+  reset();
+  controlPlane({
+    mode: 'open', session: 'member', user: { email: 'Sam@Work.test' },
+    orgConfig: { instance: { name: 'Acme' }, inboxUnread: 0, session: { sub: 'u1', email: 'Sam@Work.test', name: 'sam@work.test' } },
+  });
+  await initOrg();
+  assert.deepEqual(orgProfileAccount()!.member, { email: 'Sam@Work.test', name: '' });
+
+  reset();
+  controlPlane({
+    mode: 'open', session: 'member', user: { email: 'sam@work.test', name: 'Sam' },
+    orgConfig: { instance: { name: 'Acme' }, inboxUnread: 0, session: { sub: 'u1', email: 'sam@work.test', name: 'Samuel Kim' } },
+  });
+  await initOrg();
+  assert.equal(orgProfileAccount()!.member!.name, 'Sam');
+});
+
+test('orgProfileAccount: nobody signed in on an open workspace, or a guest: the name from the auth config only', async () => {
+  for (const session of ['none', 'guest'] as const) {
+    reset();
+    controlPlane({ mode: 'open', session, auth: { instanceName: 'lolly.ing' } });
+    await initOrg();
+    assert.deepEqual(orgProfileAccount(), { workspace: 'lolly.ing', member: null, inbox: null }, session);
+  }
+});
+
+// ── The inbox starts for every member (plan 74 M14, M18) ─────────────────────
+
+const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+async function settle(): Promise<void> { for (let i = 0; i < 20; i++) await tick(); }
+// A member boot starts the inbox, which polls while the tab is visible: stop it, so
+// the file ends when its last case does.
+test.after(() => { _resetOrgForTests(); });
+
+test('a member boot starts the inbox: it fetches at once when the org-config counts unread messages', async () => {
+  reset();
+  controlPlane({ mode: 'open', session: 'member', orgConfig: { instance: { name: 'Acme' }, inboxUnread: 2 } });
+  const member = router;
+  router = (url, init) => url.includes('/api/v1/inbox') ? json({ messages: [], unread: 0 }) : member(url, init);
+  await initOrg();
+  await settle();
+  assert.ok(fetchLog.some((c) => c.url.includes('/api/v1/inbox')), 'the inbox was fetched');
+  reset();
+});
+
+test('the profile\'s Inbox follows the live inbox and opens the sheet', async () => {
+  reset();
+  const Dlg = dom.window.HTMLDialogElement.prototype as unknown as { showModal(): void; close(): void };
+  Dlg.showModal = function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
+  Dlg.close = function (this: HTMLDialogElement) { this.removeAttribute('open'); };
+  controlPlane({ mode: 'open', session: 'member', auth: { instanceName: 'lolly.ing' }, orgConfig: { instance: { name: 'lolly.ing' }, inboxUnread: 2 } });
+  const member = router;
+  const messages = [
+    { id: 'm1', kind: 'notice', severity: 'info', title: 'Welcome to lolly.ing', dismissible: true },
+    { id: 'm2', kind: 'notice', severity: 'info', title: 'Sam accepted your invitation', dismissible: true },
+  ];
+  router = (url, init) => url.includes('/api/v1/inbox') ? json({ messages, unread: 2 }) : member(url, init);
+  const account = (await initOrg(), orgProfileAccount())!;
+  assert.equal(account.inbox!.count(), 2, 'the org-config count stands in while the inbox loads');
+  const counts: number[] = [];
+  const off = account.inbox!.onChange((n) => counts.push(n));
+  await settle();
+  assert.equal(account.inbox!.count(), 2);
+  const { dismissMessage } = await import('./inbox.ts');
+  dismissMessage('m1');
+  assert.equal(account.inbox!.count(), 1);
+  assert.equal(counts.at(-1), 1, 'a dismiss elsewhere reaches the profile\'s count');
+  off();
+  dismissMessage('m2');
+  assert.equal(counts.at(-1), 1, 'and an unsubscribed view hears nothing more');
+
+  account.inbox!.open();
+  await settle();
+  const sheet = document.querySelector('dialog.inbox-sheet, .inbox-sheet');
+  assert.ok(sheet, 'the inbox sheet opened');
+  assert.match(sheet.textContent!, /Messages from lolly\.ing/);
+  const { _resetInboxSheetForTests } = await import('./inbox-sheet.ts');
+  _resetInboxSheetForTests();
+  document.querySelectorAll('dialog').forEach((d) => { d.remove(); });
+  reset();
+});
+
+test('a member with nothing unread: the inbox waits for the tab to come back before it asks', async () => {
+  reset();
+  controlPlane({ mode: 'open', session: 'member', orgConfig: { instance: { name: 'Acme' }, inboxUnread: 0 } });
+  await initOrg();
+  await settle();
+  assert.equal(fetchLog.some((c) => c.url.includes('/api/v1/inbox')), false);
+  reset();
+});
+
+test('no inbox without a member: a guest, nobody, or no control plane', async () => {
+  for (const session of ['guest', 'none'] as const) {
+    reset();
+    controlPlane({ mode: 'open', session, orgConfig: { instance: { name: 'Acme' }, inboxUnread: 5 } });
+    await initOrg();
+    await settle();
+    assert.equal(fetchLog.some((c) => c.url.includes('/api/v1/inbox')), false, session);
+  }
+  reset();
+  await initOrg();
+  await settle();
+  assert.equal(fetchLog.some((c) => c.url.includes('/api/v1/inbox')), false, 'dormant');
 });
 
 // ── Member org-config → generic field-policy registry + admin accessor ────────

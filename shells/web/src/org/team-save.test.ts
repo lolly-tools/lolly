@@ -14,6 +14,8 @@
  *  4. Device-local images are counted and named before any save.
  *  5. "Save changes" quotes the revision and moves to the new one; a 409 asks, and
  *     "Save mine as a copy" saves a new session in the same project.
+ *  6. A viewer asks to edit (plans/75 G13), from the team document and from the
+ *     empty project picker, only when the instance takes access requests.
  *
  * Run directly:  node --test shells/web/src/org/team-save.test.ts
  */
@@ -530,4 +532,94 @@ test('the emoji set travels with the save and comes back in the address', async 
   assert.equal(params.get('emojistyle'), '{"schemaVersion":1}');
   assert.equal(teamSessionQuery('title=Hi', { emoji: { emoji: 5 } }), 'title=Hi', 'a malformed stamp adds nothing');
   assert.equal(teamSessionQuery('', undefined), '');
+});
+
+// ── 6. Ask to edit ────────────────────────────────────────────────────────────
+
+/** The org-config the section reads: requests on or off. `can` keeps the literal
+ *  in common with the section's config type. */
+const requestsOn = { can: {}, requests: { project: true } };
+const requestsOff = { can: {} };
+
+function viewerOf(projects: Array<{ id: string; name: string; myRole: string }>, writer: Record<string, unknown> = {}): void {
+  reset();
+  registerSessionSource(createInstanceSessionSource('Acme', () => writer));
+  router = (url, init) => {
+    if (url === '/api/v1/projects' && (init?.method ?? 'GET') === 'GET') return json({ projects });
+    if (url.startsWith('/api/v1/access-requests/mine')) return json({ requests: [] });
+    if (url === '/api/v1/projects/p1/access-requests') return json({ ok: true }, 202);
+    return new Response('', { status: 404 });
+  };
+  adoptTeamSessionOrigin({ sessionId: 's1', toolId: 'qr-code', projectId: 'p1', rev: 1, label: 'Cover' });
+}
+
+test('a viewer asks to edit from the team document, and the button says the request went', async () => {
+  viewerOf([{ id: 'p1', name: 'Summit', myRole: 'viewer' }, { id: 'p2', name: 'Mine', myRole: 'editor' }]);
+  const section = mount(buildTeamShareSection(ctxFor(() => DOC), () => requestsOn));
+  await settle();
+  assert.ok(section.querySelector('[data-act="team-save-copy"]'), 'a viewer still gets Save a copy');
+  const ask = section.querySelector<HTMLButtonElement>('[data-act="team-ask-edit"]')!;
+  assert.equal(ask.textContent, 'Ask to edit');
+  assert.equal(ask.getAttribute('aria-expanded'), 'false');
+  ask.click();
+  await settle();
+  assert.equal(ask.getAttribute('aria-expanded'), 'true');
+  const form = section.querySelector<HTMLElement>('[data-team-ask]')!;
+  assert.equal(form.querySelector('h4')!.textContent, 'Ask to edit Summit');
+  assert.match(form.textContent ?? '', /The managers of Summit will see your request\./);
+  assert.equal(form.querySelector('select'), null, 'the role is edit, so there is nothing to pick');
+  form.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+  await settle();
+  assert.deepEqual(writes, [{ url: '/api/v1/projects/p1/access-requests', method: 'POST', body: { role: 'editor' } }]);
+  assert.equal(ask.textContent, 'Edit request sent');
+  assert.equal(ask.disabled, true);
+  // The docked panel rebuilds the section on an edit: the button still says the request went.
+  section.remove();
+  const again = mount(buildTeamShareSection(ctxFor(() => DOC), () => requestsOn));
+  await settle();
+  const after = again.querySelector<HTMLButtonElement>('[data-act="team-ask-edit"]')!;
+  assert.equal(after.textContent, 'Edit request sent');
+  assert.equal(after.disabled, true);
+});
+
+test('no Ask to edit when the instance takes no requests, or for an editor', async () => {
+  viewerOf([{ id: 'p1', name: 'Summit', myRole: 'viewer' }]);
+  const off = mount(buildTeamShareSection(ctxFor(() => DOC), () => requestsOff));
+  await settle();
+  assert.ok(off.querySelector('[data-act="team-save-copy"]'));
+  assert.equal(off.querySelector('[data-act="team-ask-edit"]'), null);
+  const none = mount(buildTeamShareSection(ctxFor(() => DOC)));
+  await settle();
+  assert.equal(none.querySelector('[data-act="team-ask-edit"]'), null, 'no config reader, no requests');
+
+  viewerOf([{ id: 'p1', name: 'Summit', myRole: 'editor' }]);
+  const editor = mount(buildTeamShareSection(ctxFor(() => DOC), () => requestsOn));
+  await settle();
+  assert.ok(editor.querySelector('[data-act="team-save-changes"]'));
+  assert.equal(editor.querySelector('[data-act="team-ask-edit"]'), null);
+});
+
+test('the empty picker offers Ask to edit beside "Ask a project owner for edit access."', async () => {
+  viewerOf([{ id: 'p1', name: 'Summit', myRole: 'viewer' }], { can: { 'project.create': false } });
+  const section = mount(buildTeamShareSection(ctxFor(() => DOC), () => requestsOn));
+  await settle();
+  click(section, '[data-act="team-save-copy"]');
+  await settle();
+  assert.match(section.textContent ?? '', /Ask a project owner for edit access\./);
+  const ask = section.querySelector<HTMLButtonElement>('[data-act="team-ask-edit"]')!;
+  assert.ok(ask && !ask.hidden, 'a visible way to ask');
+  ask.click();
+  await settle();
+  assert.equal(section.querySelector('[data-team-ask] h4')!.textContent, 'Ask to edit Summit');
+});
+
+test('the empty picker offers no Ask to edit to someone who can make a project', async () => {
+  viewerOf([{ id: 'p1', name: 'Summit', myRole: 'viewer' }]);
+  const section = mount(buildTeamShareSection(ctxFor(() => DOC), () => requestsOn));
+  await settle();
+  click(section, '[data-act="team-save-copy"]');
+  await settle();
+  assert.match(section.textContent ?? '', /Create a project to save this document\./);
+  const ask = section.querySelector<HTMLButtonElement>('[data-act="team-ask-edit"]');
+  assert.ok(!ask || ask.hidden);
 });

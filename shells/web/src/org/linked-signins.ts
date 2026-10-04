@@ -2,7 +2,7 @@
 /**
  * org/linked-signins - the "Linked sign-ins" card in the profile view's instance
  * section: the providers this person can sign in to the instance with, removing one,
- * and a "Link" action for each provider the instance offers.
+ * and a "Link" action for each provider the instance offers, email and password aside.
  *
  * Mounted only by org/index.ts mountOrgAccount, which does nothing without a member
  * session, so a deployment with no control plane never loads this module. Data comes
@@ -15,7 +15,7 @@ import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
 import { relTime } from '../lib/rel-time.ts';
 import {
-  linkSignInHref, listIdentities, listSignInProviders, unlinkIdentity,
+  linkSignInHref, linkableProviders, listIdentities, listSignInProviders, unlinkIdentity,
   type LinkedIdentity, type SignInProvider,
 } from './identities.ts';
 
@@ -113,8 +113,9 @@ export async function mountLinkedSignIns(into: HTMLElement, opts: { returnTo?: (
     return li;
   };
 
-  const links = (providers: SignInProvider[]): void => {
+  const links = (all: SignInProvider[]): void => {
     linkRow.replaceChildren();
+    const providers = linkableProviders(all);
     if (!providers.length) return;
     linkRow.append(el('span', tRaw('Link another sign-in:'), 'profile-appearance-sub'));
     for (const p of providers) {

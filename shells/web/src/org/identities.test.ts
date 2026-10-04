@@ -16,7 +16,7 @@
  *
  * Run directly:  node --test shells/web/src/org/identities.test.ts
  */
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 
@@ -64,6 +64,9 @@ const { mountProfileSections } = await import('../lib/profile-sections.ts');
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 async function settle(): Promise<void> { for (let i = 0; i < 10; i++) await tick(); }
+// A member boot starts the inbox, which polls while the tab is visible: stop it, so
+// the file ends when its last case does.
+after(() => { _resetOrgForTests(); });
 
 function reset(): void {
   _resetOrgForTests();
@@ -204,6 +207,44 @@ test('the sign-in the account was created with says why it stays, and a refused 
   assert.match(account.textContent!, /created with this sign-in, so it stays/);
   assert.equal(account.querySelector('[data-act="identity-unlink"]'), null);
   into.remove();
+});
+
+test('email and password is never offered as a sign-in to link', async () => {
+  reset();
+  // What lolly-work's auth config lists on an instance with a password sign-in beside
+  // Google and GitHub. A password comes from a link an admin sends; /api/auth/link
+  // refuses it, so the card never draws a button that only leads to that refusal.
+  const withPassword = { ...PROVIDERS, providers: [
+    { id: 'primary', name: 'Google', kind: 'oidc', loginPath: '/api/auth/login?idp=primary' },
+    { id: 'email', name: 'Email and password', kind: 'password', loginPath: '/api/auth/login?idp=email' },
+    { id: 'github', name: 'GitHub', kind: 'github', loginPath: '/api/auth/login?idp=github' },
+  ] };
+  router = (url) => {
+    if (url === '/api/v1/me/identities') return json(IDENTITIES);
+    if (url === '/api/auth/config') return json(withPassword);
+    return new Response('', { status: 404 });
+  };
+  assert.deepEqual((await listSignInProviders()).map((p) => [p.id, p.kind]), [['primary', 'oidc'], ['email', 'password'], ['github', 'github']]);
+  const into = document.createElement('div');
+  document.body.append(into);
+  await mountLinkedSignIns(into, { returnTo: () => '/#/profile' });
+  const links = [...into.querySelectorAll<HTMLAnchorElement>('[data-act="identity-link"]')].map((a) => a.textContent);
+  assert.deepEqual(links, ['Link Google', 'Link GitHub']);
+  assert.doesNotMatch(into.textContent!, /Email and password/);
+  into.remove();
+
+  // A password-only instance has nothing to link: no "Link another sign-in" line at all.
+  router = (url) => {
+    if (url === '/api/v1/me/identities') return json(IDENTITIES);
+    if (url === '/api/auth/config') return json({ ...PROVIDERS, providers: [withPassword.providers[1]] });
+    return new Response('', { status: 404 });
+  };
+  const alone = document.createElement('div');
+  document.body.append(alone);
+  await mountLinkedSignIns(alone, { returnTo: () => '/#/profile' });
+  assert.equal(alone.querySelector('[data-act="identity-link"]'), null);
+  assert.doesNotMatch(alone.textContent!, /Link another sign-in/);
+  alone.remove();
 });
 
 test('an older instance with no identities route shows nothing', async () => {

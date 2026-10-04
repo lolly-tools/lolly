@@ -27,7 +27,10 @@ import { bindOp, type ProfileViewCtx } from './context.ts';
 
 /** The whole page markup in one write: the nav rail and every settings card. */
 export function renderShell(pv: ProfileViewCtx): void {
-  const { activeDesignSystemLabel, activeTheme, adminHref, canChangeInstance, displayName, fields, hasShellUpdater, instanceBase, metrics, profile, signOut, viewEl } = pv;
+  const { account, activeDesignSystemLabel, activeTheme, adminHref, canChangeInstance, displayName, fields, hasShellUpdater, instanceBase, metrics, profile, signOut, viewEl } = pv;
+  // The workspace a control plane names. t() escapes interpolated params, so the
+  // instance-supplied name and address are safe in the markup below.
+  const workspace = account?.workspace ?? '';
   viewEl.innerHTML = `
     ${backHomeHtml()}
     <div class="gallery-topbar" style="justify-content:flex-end">
@@ -262,18 +265,17 @@ export function renderShell(pv: ProfileViewCtx): void {
       </details>
 
       <details class="profile-card profile-collapse" id="instance-section"${pv.rows.startOpen('instance-section')}>
-        ${summaryRow('instance-section', t('Lolly instance'), instanceBase ? escapeText(instanceBase) : t('Bundled'))}
+        ${summaryRow('instance-section', t('Lolly instance'), instanceBase ? escapeText(instanceBase) : workspace ? escapeText(workspace) : t('Bundled'))}
         <div class="profile-collapse-body section-card-body">
         <p class="profile-appearance-sub">${t('Where this install gets its tools and catalogue from.')}</p>
         <div class="store-manage--row">
-          <span class="store-manage-name">${escapeText(instanceBase || t('Bundled with this app'))}</span>
+          ${/* A workspace served from this same address is not "bundled": it is where the
+                tools, projects and sign-in come from, so the row says which workspace. */ ''}
+          <span class="store-manage-name" id="instance-name">${workspace ? t('Connected to {base}.', { base: workspace }) : escapeText(instanceBase || t('Bundled with this app'))}</span>
           <span style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px">
             ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - orgAdminHref() returns the '/admin' literal or null; no control-plane value reaches it */ ''}
             <button type="button" class="btn" id="instance-design-systems">${t('Design-system source')}</button>
             ${adminHref ? `<a class="btn" id="instance-console-link" href="${escapeText(adminHref)}">${t('Instance console')}</a>` : ''}
-            ${/* Every member, not only an admin: without it, switching people on one device
-                  meant clearing the browser's site data. Wired in chrome.ts. */ ''}
-            ${signOut ? `<button type="button" class="btn" id="instance-signout-btn">${t('Sign out')}</button>` : ''}
             ${canChangeInstance ? `<button type="button" class="btn" id="instance-change-btn">${t('Change')}</button>` : ''}
             ${/* Leave is never desktop-only: a .lolly share file carrying an instance pack
                   connects ANY shell to that pack's instance (brand-transfer.ts), and a browser
@@ -281,8 +283,11 @@ export function renderShell(pv: ProfileViewCtx): void {
             ${instanceBase ? `<button type="button" class="btn-link-danger" id="instance-disconnect-btn">${t('Leave')}</button>` : ''}
           </span>
         </div>
+        ${accountRowHtml(account, signOut)}
         ${signOut ? `<p class="profile-inline-error" id="instance-signout-error" role="alert" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>` : ''}
-        ${canChangeInstance ? '' : `<p class="profile-appearance-sub">${t('Pointing at another Lolly instance needs the desktop app - a browser blocks a page from loading tools and assets across origins.')}</p>`}
+        ${/* Why a browser has no Change. Not on a workspace: there the person came to use
+              that workspace, and the line read as if something were missing. */ ''}
+        ${canChangeInstance || workspace ? '' : `<p class="profile-appearance-sub">${t('Pointing at another Lolly instance needs the desktop app - a browser blocks a page from loading tools and assets across origins.')}</p>`}
         ${/* App updates (plans/202 WP4.1) - the row and its wiring live in
               views/profile-updates.ts. */ ''}
         ${updatesRowHtml(hasShellUpdater)}
@@ -292,6 +297,37 @@ export function renderShell(pv: ProfileViewCtx): void {
       </div>
     </div>
   `;
+}
+
+/** "Signed in as Sam (sam@work.com)" in the plain form when the instance knows no name. */
+export function signedInAs(member: { email: string; name: string }): string {
+  if (member.name && member.email) return t('Signed in as {name} ({email})', { name: member.name, email: member.email });
+  return member.email || member.name ? t('Signed in as {email}', { email: member.email || member.name }) : '';
+}
+
+/** The label of the Inbox button: the count when messages wait. */
+export function inboxLabel(count: number): string {
+  return count > 0 ? t('Inbox ({n})', { n: count }) : t('Inbox');
+}
+
+/**
+ * The instance card's account row: who is signed in, their Inbox, and Sign out. Every
+ * member, not only an admin, gets Sign out: without it, switching people on one device
+ * meant clearing the browser's site data. Nothing on a plain deployment. Wired in
+ * chrome.ts.
+ */
+function accountRowHtml(account: ProfileViewCtx['account'], signOut: ProfileViewCtx['signOut']): string {
+  const who = account?.member ? signedInAs(account.member) : '';
+  const inbox = account?.member ? account.inbox : null;
+  if (!who && !inbox && !signOut) return '';
+  return `
+        <div class="store-manage--row" id="instance-account-row" style="flex-wrap:wrap">
+          <span class="store-manage-name" id="instance-signed-in" style="min-width:0;overflow-wrap:anywhere">${who}</span>
+          <span style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px">
+            ${inbox ? `<button type="button" class="btn" id="instance-inbox-btn" style="min-height:var(--ui-size-target)">${inboxLabel(inbox.count())}</button>` : ''}
+            ${signOut ? `<button type="button" class="btn" id="instance-signout-btn" style="min-height:var(--ui-size-target)">${t('Sign out')}</button>` : ''}
+          </span>
+        </div>`;
 }
 
 /** The settings nav rail: jump, scroll-spy and the search filter. */

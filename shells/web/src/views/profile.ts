@@ -19,7 +19,7 @@ import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, PERFORMANCE_UI_FLAG, PERF_
 import { ensureJelly } from '../lib/jelly.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
-import { orgAdminHref, orgMemberSignedIn, signOutOfInstance } from '../org/index.ts';
+import { orgAdminHref, orgMemberSignedIn, orgProfileAccount, signOutOfInstance } from '../org/index.ts';
 import type { UserFontsHost } from '../user-fonts.ts';
 import { updaterGlobal } from './profile-updates.ts';
 import type { SessionRowContext } from './profile-storage-model.ts';
@@ -110,6 +110,9 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   // deployment, so the button never renders there. Handed to the card on pv, so the
   // card's wiring (profile/chrome.ts) imports nothing from org/.
   pv.signOut = orgMemberSignedIn() ? signOutOfInstance : null;
+  // The workspace's name, who is signed in and their inbox, for the same card; null
+  // on a plain deployment, so the card reads as it always has there.
+  pv.account = orgProfileAccount();
   // Changing the instance base is a DESKTOP capability, not a browser one. A
   // remote base makes every catalogue, tool, asset and org request cross-origin,
   // and the shell's Content-Security-Policy allows a fixed host list that cannot

@@ -17,7 +17,7 @@
  *      the visitor is not a member,
  *   4. for a member, loads `GET /api/v1/org-config` (ETag-cached) and applies its
  *      profile field policy through the generic src/lib/field-policy.ts registry,
- *      then surfaces any unread inbox messages as a single banner.
+ *      then starts the inbox (org/inbox.ts), which shows its messages as a banner.
  *
  * All traffic goes through instanceFetch/instancePath (src/lib/instance.ts) so a
  * shell pointed at a remote instance consults THAT instance's control plane, and
@@ -78,11 +78,19 @@ export interface AuthConfig {
   mode: 'open' | 'gated' | 'per-tool';
   provider: 'oidc' | 'dev' | 'proxy' | null;
   loginPath: string | null;
+  /** The workspace's own name ("lolly.ing"), for the sign-in gate and the profile card
+   *  before (or without) a member's org-config. Absent on an older instance. */
+  instanceName?: string;
+  /** True when only invited people (or listed addresses) are let in. Absent on an older
+   *  instance, which the gate reads as invite-only, the usual case for a gated one. */
+  inviteOnly?: boolean;
 }
 
 export interface OrgUser {
   sub: string;
   email?: string;
+  /** The person's own name, when the instance sends one. */
+  name?: string;
   groups?: string[];
   role?: string;
 }
@@ -232,7 +240,14 @@ export interface OrgState {
 // ── Module state (per session) ────────────────────────────────────────────────
 
 let session: Session | null = null;
+/** What the instance's auth config said at boot: where its name comes from before (or
+ *  without) a member's org-config. Null when dormant. */
+let authState: AuthConfig | null = null;
 let orgConfigState: OrgConfig | null = null;
+/** org/inbox.ts, loading or loaded: started at boot for every member. Null otherwise. */
+let inboxLoad: Promise<typeof import('./inbox.ts')> | null = null;
+/** The same module once it has loaded, so a test reset can stop its refetches. */
+let inboxModule: typeof import('./inbox.ts') | null = null;
 /** Last org-config ETag, for the conditional request (module-state cache). */
 let orgConfigEtag: string | null = null;
 const listeners = new Set<(config: OrgConfig | null) => void>();
@@ -355,6 +370,69 @@ export function orgAdminHref(): string | null {
  */
 export function orgMemberSignedIn(): boolean {
   return session?.kind === 'member';
+}
+
+/** A name or address from the instance as plain text: trimmed and kept short, or ''. */
+function cleanText(v: unknown, max = 120): string {
+  return typeof v === 'string' ? v.trim().slice(0, max) : '';
+}
+
+/** One field of an instance-supplied object, or undefined when there is no object. */
+function fieldOf(v: unknown, key: string): unknown {
+  return v && typeof v === 'object' ? (v as Record<string, unknown>)[key] : undefined;
+}
+
+/** The workspace's own name: the member's org-config first, then the auth config. */
+function workspaceName(): string {
+  return cleanText(orgConfigState?.instance?.name) || cleanText(authState?.instanceName);
+}
+
+/**
+ * The workspace this shell is connected to, who is signed in, and their inbox: what the
+ * profile view's instance card shows ("Connected to lolly.ing", "Signed in as ...",
+ * Inbox). Handed to the view on its context by views/profile.ts, so the card's own
+ * modules import nothing from org/. Null when dormant, so a deployment with no control
+ * plane shows the card exactly as before. `member` is null on an open workspace nobody
+ * is signed in to, and for a guest.
+ *
+ * The name comes from the session when the instance sends one there, else from the
+ * org-config's session block, which the instance fills with the address when it knows
+ * no name; a name that is only the address again is dropped, so the card says it once.
+ */
+export function orgProfileAccount(): {
+  workspace: string;
+  member: { email: string; name: string } | null;
+  inbox: { count(): number; onChange(fn: (count: number) => void): () => void; open(): void } | null;
+} | null {
+  if (!authState) return null;
+  if (session?.kind !== 'member') return { workspace: workspaceName(), member: null, inbox: null };
+  // The org-config's session block is the instance's `{ sub, email, name, ... }`.
+  const fromConfig: unknown = orgConfigState?.session;
+  const email = cleanText(session.user.email, 254) || cleanText(fieldOf(fromConfig, 'email'), 254);
+  const name = cleanText(session.user.name) || cleanText(fieldOf(fromConfig, 'name'));
+  return {
+    workspace: workspaceName(),
+    member: { email, name: name.toLowerCase() === email.toLowerCase() ? '' : name },
+    inbox: {
+      // Until the inbox module has loaded, the count the org-config carried.
+      count: () => inboxModule ? inboxModule.inboxMessages().length : Math.max(0, Number(orgConfigState?.inboxUnread) || 0),
+      onChange(fn) {
+        let off: (() => void) | null = null;
+        let done = false;
+        inboxLoad?.then((m) => {
+          if (done) return;
+          fn(m.inboxMessages().length);
+          off = m.onInboxChange((msgs) => fn(msgs.length));
+        }).catch(() => { /* no inbox this session; the count stays as shown */ });
+        return () => { done = true; off?.(); };
+      },
+      open() {
+        import('./inbox-sheet.ts')
+          .then((m) => m.openInboxSheet({ workspace: workspaceName() || undefined }))
+          .catch(() => { /* additive; the profile view stands without it */ });
+      },
+    },
+  };
 }
 
 /**
@@ -662,6 +740,11 @@ function loginUrl(loginPath: string): string {
  * strings localised; the primary action is a plain link to the login URL, so it
  * behaves like any navigation (open-in-tab, etc.). Returns true when the gate
  * was shown (boot should stop), false when it could not be (no loginPath).
+ *
+ * With the workspace's name the gate says whose sign-in this is and, on an invite-only
+ * workspace, which account to use: most people reach it from an invitation, and the
+ * usual wrong turn is signing in with another address. A visitor who followed a team
+ * link is told the link opens once they are in.
  */
 function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   const view = document.getElementById('view');
@@ -685,6 +768,12 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   const heading = instanceName
     ? t('Sign in to {name}', { name: instanceName })
     : t('Sign in to continue');
+  const body = instanceName && auth.inviteOnly !== false
+    ? t('{name} is a private Lolly workspace. Sign in with the account your invitation went to.', { name: instanceName })
+    : t('This Lolly instance asks you to sign in before you continue.');
+  const lines = location.hash.startsWith('#/team')
+    ? [body, t('Sign in to open the team project you were sent.')]
+    : [body];
   document.title = `${t('Sign in')} - Lolly`;
   // Built here rather than inline so the suppression can sit on the sink's own
   // line - semgrep honours nosemgrep only there or on the line directly above,
@@ -699,7 +788,7 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
     <section class="org-gate" aria-label="${escape(t('Sign in'))}" style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
       <div class="org-gate-card" style="width:100%;max-width:26rem;text-align:center;background:hsl(var(--card));color:hsl(var(--card-foreground));border:1px solid hsl(var(--border));border-radius:var(--radius);padding:2rem 1.75rem;box-shadow:0 26px 60px -30px hsl(var(--foreground) / .35)">
         <h1 style="margin:0 0 .5rem;font-size:1.4rem;font-weight:750;letter-spacing:-.01em">${heading}</h1>
-        <p style="margin:0 0 1.5rem;color:hsl(var(--muted-foreground));font-size:.95rem;line-height:1.55">${t('This Lolly instance asks you to sign in before you continue.')}</p>
+        ${lines.map((line, i) => `<p style="margin:0 0 ${i === lines.length - 1 ? '1.5rem' : '.5rem'};color:hsl(var(--muted-foreground));font-size:.95rem;line-height:1.55">${line}</p>`).join('')}
         ${action}
         ${isTauriShell() ? '<div id="org-gate-device" style="margin-top:1.25rem"></div>' : ''}
       </div>
@@ -834,7 +923,7 @@ function applyHomeView(config: OrgConfig | null): void {
  *   - `null` - no control plane (dormant): the shell proceeds exactly as today.
  *   - `OrgState` with `gate: true` - a sign-in gate was rendered; STOP boot.
  *   - `OrgState` with `gate: false` - control plane present, proceed to mount the
- *     app; any member profile policy + inbox banner have been applied.
+ *     app; any member profile policy has been applied and the inbox started.
  *
  * Tolerant by construction: any unexpected failure resolves to dormancy so this
  * optional seam can never block or break boot.
@@ -868,6 +957,7 @@ export async function initOrg(): Promise<OrgState | null> {
 export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null> {
   stopAiPolicyPolling();
   finishAiProbe(true);
+  authState = auth;
   try {
     session = await fetchSession();
     const isMember = session?.kind === 'member';
@@ -889,7 +979,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
 
     // Gated instance, not a member → sign-in gate instead of the app.
     if (auth.mode === 'gated' && !isMember) {
-      const gated = renderGate(auth);
+      const gated = renderGate(auth, workspaceName() || undefined);
       if (gated) {
         // Signed out of a gated instance: no catalog or tool reads until sign-in
         // (which reloads), and the next boot asks before it syncs at all.
@@ -1074,13 +1164,18 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
         return buildWorkCollabShareSection(sctx);
       });
       emit();
-      if ((orgConfigState?.inboxUnread ?? 0) > 0) {
-        // Lazy - the banner (and its modal dep) stay out of the boot chunk, and
-        // load only for the rare member with unread messages.
-        import('./banner.ts')
-          .then((m) => m.mountOrgBanner())
-          .catch(() => { /* banner is additive; never block or break boot */ });
-      }
+      // The inbox, for every member: it refetches when the tab comes back and while it
+      // is visible, so a request, an answer or a welcome arrives without a reload, and
+      // it mounts the banner itself. Lazy - the inbox, the banner and their modal stay
+      // out of the boot chunk. It fetches at once only when the org-config counted
+      // unread messages; otherwise when the tab comes back or its first poll is due.
+      inboxLoad = import('./inbox.ts');
+      inboxLoad
+        .then((m) => {
+          inboxModule = m;
+          m.startInbox({ initialUnread: Math.max(0, Number(orgConfigState?.inboxUnread) || 0) });
+        })
+        .catch(() => { /* the inbox is additive; never block or break boot */ });
       // Array.isArray guards a malformed (non-array) injectables value - a `.some`
       // on a non-array would throw and abort the branch (never break boot).
       if (Array.isArray(orgConfigState?.injectables) && orgConfigState.injectables.some((d) => d?.kind === 'chrome')) {
@@ -1144,6 +1239,10 @@ export function _resetOrgForTests(): void {
   stopAiPolicyPolling();
   setInstallTag(null);
   session = null;
+  authState = null;
+  inboxModule?._resetInboxForTests();
+  inboxModule = null;
+  inboxLoad = null;
   orgConfigState = null;
   orgConfigEtag = null;
   homeViewDecided = false;

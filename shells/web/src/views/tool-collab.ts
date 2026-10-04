@@ -52,6 +52,7 @@ import { collabDisplayName, mountCollabPill } from '../components/collab-pill.ts
 import type { CollabPill } from '../components/collab-pill.ts';
 import { attachCollabBeam } from '../lib/collab-live-mount.ts';
 import type { CollabBeamAttachment } from '../lib/collab-live-mount.ts';
+import { collabPillInviteFor } from '../lib/collab-pill-invite.ts';
 import type { BeamPackHost } from '../lib/beam-pack.ts';
 import type { CollabRuntime, CollabDocumentSnapshot } from '../lib/collab-plumbing.ts';
 import { createCollabSession } from '../lib/collab-session.ts';
@@ -440,13 +441,19 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     });
     if (beam) steps.unshift(() => beam.close());
 
-    // No `onInvite`: the ceremony lives behind the launch registry, which no build
-    // wires yet, and the pill renders no invite button without one rather than a
+    // `onInvite` comes from lib/collab-pill-invite.ts: an instance registers one for a
+    // work collab on a team session ("Invite to edit now", org/collab-invite.ts), and
+    // every other collab gets none, so the pill renders no invite button rather than a
     // control that does nothing. The beam's action follows the identical rule one slot
     // over - supplied only when there is something for it to do.
+    const onInvite = collabPillInviteFor({
+      toolId: opts.toolManifest?.id ?? '',
+      role: () => session.state().role,
+    });
     const pill: CollabPill = mountCollabPill(stage, {
       source: session,
       className: 'collab-pill--stage',
+      ...(onInvite ? { onInvite } : {}),
       ...(beam ? { actions: beam.actions } : {}),
     });
     steps.unshift(() => pill.destroy());
