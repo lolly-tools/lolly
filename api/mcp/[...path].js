@@ -37050,741 +37050,16 @@ var init_tool_url = __esm({
   }
 });
 
-// engine/src/grade.ts
-function smoothstep(a, b, x) {
-  const t = clamp((x - a) / (b - a), 0, 1);
-  return t * t * (3 - 2 * t);
+// engine/src/asset-modifiers.ts
+function parseThemedAssetId(id2) {
+  if (typeof id2 !== "string" || id2.includes("://")) return { baseId: id2, theme: null };
+  const i = id2.indexOf(THEME_SUFFIX);
+  if (i <= 0) return { baseId: id2, theme: null };
+  const baseId = id2.slice(0, i);
+  const theme = id2.slice(i + THEME_SUFFIX.length);
+  if (baseId.includes("?") || !THEME_ID_RE.test(theme)) return { baseId: id2, theme: null };
+  return { baseId, theme };
 }
-function gradeMulberry32(seed) {
-  let a = seed;
-  return () => {
-    a |= 0;
-    a = a + 1831565813 | 0;
-    let t = Math.imul(a ^ a >>> 15, 1 | a);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-function parseCubeLut(text8) {
-  const lines = String(text8).split(/\r?\n/);
-  let size = 0;
-  let kind = null;
-  let title = "";
-  let domainMin = [0, 0, 0];
-  let domainMax = [1, 1, 1];
-  const data = [];
-  const triple = (parts) => [
-    Number(parts[1]),
-    Number(parts[2]),
-    Number(parts[3])
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line || line[0] === "#") continue;
-    const up = line.toUpperCase();
-    if (up.indexOf("TITLE") === 0) {
-      const m2 = line.match(/"(.*)"/);
-      title = m2 ? m2[1] : line.slice(5).trim();
-      continue;
-    }
-    if (up.indexOf("LUT_1D_SIZE") === 0) {
-      kind = "1d";
-      size = parseInt(line.split(/\s+/)[1], 10);
-      continue;
-    }
-    if (up.indexOf("LUT_3D_SIZE") === 0) {
-      kind = "3d";
-      size = parseInt(line.split(/\s+/)[1], 10);
-      continue;
-    }
-    if (up.indexOf("DOMAIN_MIN") === 0) {
-      domainMin = triple(line.split(/\s+/));
-      continue;
-    }
-    if (up.indexOf("DOMAIN_MAX") === 0) {
-      domainMax = triple(line.split(/\s+/));
-      continue;
-    }
-    if (up.indexOf("LUT_") === 0) continue;
-    const parts = line.split(/\s+/);
-    if (parts.length < 3) continue;
-    const r5 = Number(parts[0]);
-    const g2 = Number(parts[1]);
-    const b = Number(parts[2]);
-    if (!isFinite(r5) || !isFinite(g2) || !isFinite(b)) continue;
-    data.push(r5, g2, b);
-  }
-  if (!kind || !(size >= 2)) throw new Error("Not a .cube LUT (no LUT_1D_SIZE / LUT_3D_SIZE)");
-  if (size > CUBE_MAX_N) throw new Error(`LUT grid too large (max ${CUBE_MAX_N})`);
-  const expect = kind === "3d" ? size * size * size * 3 : size * 3;
-  if (data.length < expect) {
-    throw new Error(`LUT is truncated (${data.length / 3} of ${expect / 3} rows)`);
-  }
-  return {
-    kind,
-    size,
-    data: new Float32Array(data.slice(0, expect)),
-    domainMin,
-    domainMax,
-    title
-  };
-}
-function parse3dlLut(text8) {
-  const lines = String(text8).split(/\r?\n/);
-  let mesh = null;
-  const rows2 = [];
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line || line[0] === "#" || /^[A-Za-z]/.test(line)) continue;
-    const parts = line.split(/\s+/).map(Number);
-    if (parts.some((v) => !isFinite(v))) continue;
-    if (!mesh && parts.length > 3) {
-      mesh = parts;
-      continue;
-    }
-    if (parts.length >= 3) rows2.push(parts.slice(0, 3));
-  }
-  const size = mesh ? mesh.length : Math.round(Math.pow(rows2.length, 1 / 3));
-  if (!(size >= 2) || rows2.length < size * size * size) throw new Error("Not a .3dl LUT");
-  if (size > TDL_MAX_N) throw new Error(`LUT grid too large (max ${TDL_MAX_N} for .3dl)`);
-  let peak = 0;
-  for (let i = 0; i < rows2.length; i++) {
-    const row = rows2[i];
-    peak = Math.max(peak, row[0], row[1], row[2]);
-  }
-  const scale = peak > 4095 ? 65535 : peak > 1023 ? 4095 : peak > 255 ? 1023 : 255;
-  const data = new Float32Array(size * size * size * 3);
-  let k = 0;
-  for (let rI = 0; rI < size; rI++) {
-    for (let gI = 0; gI < size; gI++) {
-      for (let bI = 0; bI < size; bI++) {
-        const row = rows2[k++];
-        const out = ((bI * size + gI) * size + rI) * 3;
-        data[out] = row[0] / scale;
-        data[out + 1] = row[1] / scale;
-        data[out + 2] = row[2] / scale;
-      }
-    }
-  }
-  return { kind: "3d", size, data, domainMin: [0, 0, 0], domainMax: [1, 1, 1], title: "" };
-}
-function parseLutText(text8, name) {
-  const lower3 = String(name || "").toLowerCase();
-  if (lower3.slice(-4) === ".3dl") return parse3dlLut(text8);
-  try {
-    return parseCubeLut(text8);
-  } catch {
-    return parse3dlLut(text8);
-  }
-}
-function sampleLut(lut, r5, g2, b) {
-  const dm = lut.domainMin;
-  const dM = lut.domainMax;
-  const rr = clamp((r5 - dm[0]) / (dM[0] - dm[0] || 1), 0, 1);
-  const gg = clamp((g2 - dm[1]) / (dM[1] - dm[1] || 1), 0, 1);
-  const bb = clamp((b - dm[2]) / (dM[2] - dm[2] || 1), 0, 1);
-  const N2 = lut.size;
-  const d = lut.data;
-  if (lut.kind === "1d") {
-    const out = [rr, gg, bb];
-    for (let c = 0; c < 3; c++) {
-      const x2 = out[c] * (N2 - 1);
-      const i0 = Math.floor(x2);
-      const f = x2 - i0;
-      const i1 = Math.min(i0 + 1, N2 - 1);
-      out[c] = d[i0 * 3 + c] * (1 - f) + d[i1 * 3 + c] * f;
-    }
-    return out;
-  }
-  const x = rr * (N2 - 1);
-  const y = gg * (N2 - 1);
-  const z = bb * (N2 - 1);
-  let x0 = Math.min(Math.floor(x), N2 - 2);
-  let y0 = Math.min(Math.floor(y), N2 - 2);
-  let z0 = Math.min(Math.floor(z), N2 - 2);
-  if (N2 === 2) {
-    x0 = 0;
-    y0 = 0;
-    z0 = 0;
-  }
-  const fx = x - x0;
-  const fy = y - y0;
-  const fz = z - z0;
-  const at = (xi, yi, zi, c) => d[((zi * N2 + yi) * N2 + xi) * 3 + c];
-  const out3 = [0, 0, 0];
-  for (let ch = 0; ch < 3; ch++) {
-    const c000 = at(x0, y0, z0, ch);
-    const c111 = at(x0 + 1, y0 + 1, z0 + 1, ch);
-    let v;
-    if (fx >= fy) {
-      if (fy >= fz) {
-        v = (1 - fx) * c000 + (fx - fy) * at(x0 + 1, y0, z0, ch) + (fy - fz) * at(x0 + 1, y0 + 1, z0, ch) + fz * c111;
-      } else if (fx >= fz) {
-        v = (1 - fx) * c000 + (fx - fz) * at(x0 + 1, y0, z0, ch) + (fz - fy) * at(x0 + 1, y0, z0 + 1, ch) + fy * c111;
-      } else {
-        v = (1 - fz) * c000 + (fz - fx) * at(x0, y0, z0 + 1, ch) + (fx - fy) * at(x0 + 1, y0, z0 + 1, ch) + fy * c111;
-      }
-    } else {
-      if (fz >= fy) {
-        v = (1 - fz) * c000 + (fz - fy) * at(x0, y0, z0 + 1, ch) + (fy - fx) * at(x0, y0 + 1, z0 + 1, ch) + fx * c111;
-      } else if (fz >= fx) {
-        v = (1 - fy) * c000 + (fy - fz) * at(x0, y0 + 1, z0, ch) + (fz - fx) * at(x0, y0 + 1, z0 + 1, ch) + fx * c111;
-      } else {
-        v = (1 - fy) * c000 + (fy - fx) * at(x0, y0 + 1, z0, ch) + (fx - fz) * at(x0 + 1, y0 + 1, z0, ch) + fz * c111;
-      }
-    }
-    out3[ch] = v;
-  }
-  return out3;
-}
-function isUnitDomain(lut) {
-  const a = lut.domainMin;
-  const b = lut.domainMax;
-  return a[0] === 0 && a[1] === 0 && a[2] === 0 && b[0] === 1 && b[1] === 1 && b[2] === 1;
-}
-function applyLutFrame(data, lut, intensity = 1) {
-  const t = intensity < 0 ? 0 : intensity > 1 ? 1 : intensity;
-  if (!(t > 0)) return;
-  const mix2 = t < 1;
-  const d = data;
-  if (lut.kind !== "3d" || !isUnitDomain(lut)) {
-    for (let i = 0; i < d.length; i += 4) {
-      const r0 = d[i];
-      const g0 = d[i + 1];
-      const b0 = d[i + 2];
-      const s = sampleLut(lut, r0 / 255, g0 / 255, b0 / 255);
-      const nr = 255 * s[0];
-      const ng = 255 * s[1];
-      const nb = 255 * s[2];
-      if (mix2) {
-        d[i] = r0 + (nr - r0) * t;
-        d[i + 1] = g0 + (ng - g0) * t;
-        d[i + 2] = b0 + (nb - b0) * t;
-      } else {
-        d[i] = nr;
-        d[i + 1] = ng;
-        d[i + 2] = nb;
-      }
-    }
-    return;
-  }
-  const tab = lut.data;
-  const N2 = lut.size;
-  const N1 = N2 - 1;
-  const sx = 3;
-  const sy = N2 * 3;
-  const sz = N2 * N2 * 3;
-  for (let i = 0; i < d.length; i += 4) {
-    const r0 = d[i];
-    const g0 = d[i + 1];
-    const b0 = d[i + 2];
-    const x = r0 / 255 * N1;
-    const y = g0 / 255 * N1;
-    const z = b0 / 255 * N1;
-    let x0 = x | 0;
-    let y0 = y | 0;
-    let z0 = z | 0;
-    if (x0 > N2 - 2) x0 = N2 - 2;
-    if (y0 > N2 - 2) y0 = N2 - 2;
-    if (z0 > N2 - 2) z0 = N2 - 2;
-    const fx = x - x0;
-    const fy = y - y0;
-    const fz = z - z0;
-    const i000 = ((z0 * N2 + y0) * N2 + x0) * 3;
-    const i111 = i000 + sx + sy + sz;
-    let w0;
-    let w1;
-    let w2;
-    let w3;
-    let ia;
-    let ib;
-    if (fx >= fy) {
-      if (fy >= fz) {
-        w0 = 1 - fx;
-        w1 = fx - fy;
-        w2 = fy - fz;
-        w3 = fz;
-        ia = i000 + sx;
-        ib = i000 + sx + sy;
-      } else if (fx >= fz) {
-        w0 = 1 - fx;
-        w1 = fx - fz;
-        w2 = fz - fy;
-        w3 = fy;
-        ia = i000 + sx;
-        ib = i000 + sx + sz;
-      } else {
-        w0 = 1 - fz;
-        w1 = fz - fx;
-        w2 = fx - fy;
-        w3 = fy;
-        ia = i000 + sz;
-        ib = i000 + sx + sz;
-      }
-    } else {
-      if (fz >= fy) {
-        w0 = 1 - fz;
-        w1 = fz - fy;
-        w2 = fy - fx;
-        w3 = fx;
-        ia = i000 + sz;
-        ib = i000 + sy + sz;
-      } else if (fz >= fx) {
-        w0 = 1 - fy;
-        w1 = fy - fz;
-        w2 = fz - fx;
-        w3 = fx;
-        ia = i000 + sy;
-        ib = i000 + sy + sz;
-      } else {
-        w0 = 1 - fy;
-        w1 = fy - fx;
-        w2 = fx - fz;
-        w3 = fz;
-        ia = i000 + sy;
-        ib = i000 + sx + sy;
-      }
-    }
-    const nr = 255 * (w0 * tab[i000] + w1 * tab[ia] + w2 * tab[ib] + w3 * tab[i111]);
-    const ng = 255 * (w0 * tab[i000 + 1] + w1 * tab[ia + 1] + w2 * tab[ib + 1] + w3 * tab[i111 + 1]);
-    const nb = 255 * (w0 * tab[i000 + 2] + w1 * tab[ia + 2] + w2 * tab[ib + 2] + w3 * tab[i111 + 2]);
-    if (mix2) {
-      d[i] = r0 + (nr - r0) * t;
-      d[i + 1] = g0 + (ng - g0) * t;
-      d[i + 2] = b0 + (nb - b0) * t;
-    } else {
-      d[i] = nr;
-      d[i + 1] = ng;
-      d[i + 2] = nb;
-    }
-  }
-}
-function grainCellPx(grainSize, width, height, refLongEdge) {
-  const base = grainSize > 0 ? grainSize : 1;
-  const ref = refLongEdge ?? 0;
-  if (!(ref > 0)) return base;
-  const scaled = base * (Math.max(width, height) / ref);
-  return scaled > GRAIN_CELL_MIN_PX ? scaled : GRAIN_CELL_MIN_PX;
-}
-function applyGrainVignette(data, width, height, p, frameIndex, refLongEdge) {
-  const W = width | 0;
-  const H = height | 0;
-  if (W <= 0 || H <= 0) return;
-  if (data.length < W * H * 4) {
-    throw new Error(`grain/vignette: frame is ${data.length} bytes, ${W}\xD7${H} needs ${W * H * 4}`);
-  }
-  if (!(p.grain > 0) && !(p.vignette > 0)) return;
-  const gd = data;
-  const cx2 = W / 2;
-  const cy22 = H / 2;
-  const maxR2 = cx2 * cx2 + cy22 * cy22;
-  const cell = grainCellPx(p.grainSize, W, H, refLongEdge);
-  const gw = Math.ceil(W / cell) + 2;
-  const gh = Math.ceil(H / cell) + 2;
-  let lattice = null;
-  if (p.grain > 0) {
-    lattice = new Float32Array(gw * gh);
-    const seedInput = p.seed + (frameIndex ?? 0) * 9973;
-    const rng = gradeMulberry32(seedInput * 2654435761 >>> 0 || 1);
-    for (let li = 0; li < lattice.length; li++) lattice[li] = rng() * 2 - 1;
-  }
-  const gAmt = p.grain * 34;
-  const vAmt = p.vignette;
-  for (let y2 = 0; y2 < H; y2++) {
-    const gy = y2 / cell;
-    const gy0 = gy | 0;
-    const gfy = gy - gy0;
-    for (let x3 = 0; x3 < W; x3++) {
-      const i5 = (y2 * W + x3) * 4;
-      let r5 = gd[i5];
-      let g5 = gd[i5 + 1];
-      let b5 = gd[i5 + 2];
-      if (lattice) {
-        const gx = x3 / cell;
-        const gx0 = gx | 0;
-        const gfx = gx - gx0;
-        const l00 = lattice[gy0 * gw + gx0];
-        const l10 = lattice[gy0 * gw + gx0 + 1];
-        const l01 = lattice[(gy0 + 1) * gw + gx0];
-        const l11 = lattice[(gy0 + 1) * gw + gx0 + 1];
-        const nv = (l00 * (1 - gfx) + l10 * gfx) * (1 - gfy) + (l01 * (1 - gfx) + l11 * gfx) * gfy;
-        const lum2 = (LUM_R * r5 + LUM_G * g5 + LUM_B * b5) / 255;
-        const gw2 = 4 * lum2 * (1 - lum2);
-        const add = nv * gAmt * (0.35 + 0.65 * gw2);
-        r5 += add;
-        g5 += add;
-        b5 += add;
-      }
-      if (vAmt > 0) {
-        const dx2 = x3 - cx2;
-        const dy2 = y2 - cy22;
-        const vr = (dx2 * dx2 + dy2 * dy2) / maxR2;
-        const vk = 1 - vAmt * smoothstep(0.28, 1.05, vr) * 0.82;
-        r5 *= vk;
-        g5 *= vk;
-        b5 *= vk;
-      }
-      gd[i5] = r5;
-      gd[i5 + 1] = g5;
-      gd[i5 + 2] = b5;
-    }
-  }
-}
-var CUBE_MAX_N, TDL_MAX_N, LUM_R, LUM_G, LUM_B, GRAIN_REF_LONG_EDGE, GRAIN_CELL_MIN_PX;
-var init_grade = __esm({
-  "engine/src/grade.ts"() {
-    "use strict";
-    init_clamp();
-    CUBE_MAX_N = 129;
-    TDL_MAX_N = 65;
-    LUM_R = 0.2126;
-    LUM_G = 0.7152;
-    LUM_B = 0.0722;
-    GRAIN_REF_LONG_EDGE = 1080;
-    GRAIN_CELL_MIN_PX = 0.5;
-  }
-});
-
-// engine/src/photo-look.ts
-function cubeRoot2(value) {
-  if (!(value > 0)) return value < 0 ? -cubeRoot2(-value) : 0;
-  let scale = 1;
-  let r5 = value;
-  while (r5 < 0.125) {
-    r5 *= 8;
-    scale *= 0.5;
-  }
-  while (r5 > 1) {
-    r5 /= 8;
-    scale *= 2;
-  }
-  let x = 0.4526 + r5 * (0.8288 - 0.2816 * r5);
-  x = (2 * x + r5 / (x * x)) / 3;
-  x = (2 * x + r5 / (x * x)) / 3;
-  x = (2 * x + r5 / (x * x)) / 3;
-  x = (2 * x + r5 / (x * x)) / 3;
-  x = (2 * x + r5 / (x * x)) / 3;
-  return x * scale;
-}
-function squareRoot(value) {
-  if (!(value > 0)) return 0;
-  let scale = 1;
-  let r5 = value;
-  while (r5 < 0.25) {
-    r5 *= 4;
-    scale *= 0.5;
-  }
-  while (r5 > 1) {
-    r5 /= 4;
-    scale *= 2;
-  }
-  let x = 0.35 + 0.65 * r5;
-  for (let step = 0; step < 6; step += 1) x = (x + r5 / x) / 2;
-  return x * scale;
-}
-function fifthRoot(value) {
-  if (!(value > 0)) return 0;
-  let scale = 1;
-  let r5 = value;
-  while (r5 < 1 / 32) {
-    r5 *= 32;
-    scale *= 0.5;
-  }
-  while (r5 > 1) {
-    r5 /= 32;
-    scale *= 2;
-  }
-  let x = 0.55 + 0.45 * r5;
-  for (let step = 0; step < 8; step += 1) {
-    const x2 = x * x;
-    x = (4 * x + r5 / (x2 * x2)) / 5;
-  }
-  return x * scale;
-}
-function decodeSrgb(c) {
-  if (c <= 0.04045) return c / 12.92;
-  const x = (c + 0.055) / 1.055;
-  const x2 = x * x;
-  return x2 * fifthRoot(x2);
-}
-function encodeSrgb(c) {
-  if (c <= 31308e-7) return 12.92 * c;
-  const third = cubeRoot2(c);
-  return 1.055 * third * squareRoot(squareRoot(third)) - 0.055;
-}
-function linear8() {
-  if (LINEAR_8) return LINEAR_8;
-  const table = new Float64Array(256);
-  for (let v = 0; v < 256; v += 1) table[v] = decodeSrgb(v / 255);
-  LINEAR_8 = table;
-  return table;
-}
-function oklabL(r5, g2, b) {
-  const l = cubeRoot2(0.4122214708 * r5 + 0.5363325363 * g2 + 0.0514459929 * b);
-  const m2 = cubeRoot2(0.2119034982 * r5 + 0.6806995451 * g2 + 0.1073969566 * b);
-  const s = cubeRoot2(0.0883024619 * r5 + 0.2817188376 * g2 + 0.6299787005 * b);
-  return 0.2104542553 * l + 0.793617785 * m2 - 0.0040720468 * s;
-}
-function oklab8(r5, g2, b) {
-  const lin = linear8();
-  const lr = lin[r5], lg = lin[g2], lb = lin[b];
-  const l = cubeRoot2(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
-  const m2 = cubeRoot2(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
-  const s = cubeRoot2(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
-  return [
-    0.2104542553 * l + 0.793617785 * m2 - 0.0040720468 * s,
-    1.9779984951 * l - 2.428592205 * m2 + 0.4505937099 * s,
-    0.0259040371 * l + 0.7827717662 * m2 - 0.808675766 * s
-  ];
-}
-function oklabToRgb01(L, a, b) {
-  const l0 = L + 0.3963377774 * a + 0.2158037573 * b;
-  const m0 = L - 0.1055613458 * a - 0.0638541728 * b;
-  const s0 = L - 0.0894841775 * a - 1.291485548 * b;
-  const l = l0 * l0 * l0, m2 = m0 * m0 * m0, s = s0 * s0 * s0;
-  return [
-    clamp015(encodeSrgb(4.0767416621 * l - 3.3077115913 * m2 + 0.2309699292 * s)),
-    clamp015(encodeSrgb(-1.2684380046 * l + 2.6097574011 * m2 - 0.3413193965 * s)),
-    clamp015(encodeSrgb(-0.0041960863 * l - 0.7034186147 * m2 + 1.707614701 * s))
-  ];
-}
-function photoLookHex8(hex3) {
-  if (typeof hex3 !== "string") return null;
-  const t = hex3.trim();
-  const six = HEX63.exec(t)?.[1] ?? HEX3.exec(t)?.[1]?.replace(/./g, (c) => c + c);
-  if (!six) return null;
-  const n6 = parseInt(six, 16);
-  return [n6 >> 16 & 255, n6 >> 8 & 255, n6 & 255];
-}
-function photoLookStops(look2) {
-  const raw = Array.isArray(look2.stops) && look2.stops.length ? look2.stops : [look2.shadow, look2.mid, look2.highlight].filter((c) => typeof c === "string" && !!c);
-  const n6 = raw.length;
-  return raw.map((s, i) => {
-    const color4 = typeof s === "string" ? s : s.color;
-    const pos = typeof s === "object" && typeof s.pos === "number" ? s.pos / 100 : n6 > 1 ? i / (n6 - 1) : 0;
-    return { color: color4, pos };
-  });
-}
-function resolvePhotoLook(look2, theme) {
-  const { themes, ...base } = look2;
-  const variant = theme && themes && Object.hasOwn(themes, theme) ? themes[theme] : void 0;
-  if (!variant) return base;
-  const out = { ...base };
-  for (const key of VARIANT_KEYS) if (variant[key] !== void 0) out[key] = variant[key];
-  return out;
-}
-function photoLookThemeKey(look2, selection) {
-  if (!look2.themes || !selection) return "base";
-  const chosen = new Set(typeof selection === "string" ? [selection] : Object.values(selection).filter((v) => typeof v === "string"));
-  for (const key of Object.keys(look2.themes).sort()) if (chosen.has(key)) return key;
-  return "base";
-}
-function canonical(value) {
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  if (value && typeof value === "object") {
-    const rec2 = value;
-    return `{${Object.keys(rec2).sort().filter((k) => rec2[k] !== void 0).map((k) => `${JSON.stringify(k)}:${canonical(rec2[k])}`).join(",")}}`;
-  }
-  return JSON.stringify(value) ?? "null";
-}
-function photoLookDefinitionHash(look2) {
-  const text8 = `${PHOTO_LOOK_RECIPE}|${canonical(look2)}`;
-  let h = 2166136261;
-  for (let i = 0; i < text8.length; i += 1) {
-    h ^= text8.charCodeAt(i);
-    h = Math.imul(h, 16777619) >>> 0;
-  }
-  return h.toString(16).padStart(8, "0");
-}
-function photoLookCacheKey(baseId, version, look2, themeKey2) {
-  const source = baseId.startsWith("user/") ? "user" : "library";
-  return `${source}:${baseId}:${version}:look:${look2.id}:${photoLookDefinitionHash(look2)}:${themeKey2 || "base"}`;
-}
-function isRasterPhotoLook(look2) {
-  return look2?.kind === "gradient-map" || look2?.kind === "lut";
-}
-function photoLookToneTable(stops) {
-  const labs = stops.map((s) => {
-    const c = photoLookHex8(s.color) ?? [0, 0, 0];
-    return oklab8(c[0], c[1], c[2]);
-  });
-  const lut = new Float32Array(768);
-  const last = stops.length - 1;
-  for (let li = 0; li < 256; li += 1) {
-    const L = li / 255;
-    let o;
-    if (last < 1) o = labs[0] ?? [0, 0, 0];
-    else {
-      let k = 0;
-      while (k < last - 1 && L >= stops[k + 1].pos) k += 1;
-      o = segment(labs, stops, k, L);
-    }
-    const rgb = oklabToRgb01(o[0], o[1], o[2]);
-    lut[li * 3] = rgb[0];
-    lut[li * 3 + 1] = rgb[1];
-    lut[li * 3 + 2] = rgb[2];
-  }
-  return lut;
-}
-function segment(labs, stops, k, L) {
-  const a = labs[k], b = labs[k + 1];
-  const p0 = stops[k].pos, p1 = stops[k + 1].pos;
-  const span = p1 - p0;
-  let u = span > 0 ? (L - p0) / span : 1;
-  if (u < 0) u = 0;
-  else if (u > 1) u = 1;
-  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
-}
-function gradeTables(contrast3, lightness) {
-  const c = contrast3 < -100 ? -100 : contrast3 > 100 ? 100 : contrast3;
-  const light = (lightness < -100 ? -100 : lightness > 100 ? 100 : lightness) / 100;
-  if (!c && !light) return null;
-  const cf = 259 * (c + 255) / (255 * (259 - c));
-  const clut = new Uint8ClampedArray(256);
-  for (let v = 0; v < 256; v += 1) clut[v] = c ? cf * (v - 128) + 128 : v;
-  const unit2 = new Float64Array(256);
-  const linear = new Float64Array(256);
-  for (let v = 0; v < 256; v += 1) {
-    let n6 = clut[v];
-    if (light > 0) n6 += (255 - n6) * light;
-    else if (light < 0) n6 *= 1 + light;
-    unit2[v] = clamp015(n6 / 255);
-    linear[v] = decodeSrgb(unit2[v]);
-  }
-  return { unit: unit2, linear };
-}
-function applyPhotoLook(rgba2, width, height, look2, opts = {}) {
-  if (!(rgba2 instanceof Uint8ClampedArray)) throw new Error("photo look: pixels must be a Uint8ClampedArray");
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 0 || height < 0 || rgba2.length !== width * height * 4)
-    throw new Error(`photo look: ${width}x${height} does not match ${rgba2.length} bytes of RGBA`);
-  const def = resolvePhotoLook(look2, opts.theme);
-  const amount = typeof def.amount === "number" && Number.isFinite(def.amount) ? (def.amount < 0 ? 0 : def.amount > 100 ? 100 : def.amount) / 100 : 1;
-  const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  const grade = gradeTables(finite7(def.contrast), finite7(def.lightness));
-  if (def.kind === "lut") {
-    if (!opts.lut) throw new Error(`photo look ${def.id}: the LUT ${def.lut ?? ""} was not supplied`);
-    if (grade) for (let i = 0; i < rgba2.length; i += 4) for (let k = 0; k < 3; k += 1) rgba2[i + k] = grade.unit[rgba2[i + k]] * 255;
-    if (amount > 0) applyLutFrame(rgba2, opts.lut, amount);
-    return;
-  }
-  if (def.kind === "gradient-map") {
-    gradientMap(rgba2, def, amount, grade);
-    return;
-  }
-  if (def.kind === "greyscale" || def.kind === "duotone") {
-    lumaMap(rgba2, def, amount, grade);
-    return;
-  }
-  throw new Error(`photo look ${String(def.id)}: unknown kind ${String(def.kind)}`);
-}
-function gradientMap(d, def, ta, grade) {
-  const stops = photoLookStops(def);
-  if (stops.length < 2) throw new Error(`photo look ${def.id}: a gradient map needs two stops`);
-  const tlut = photoLookToneTable(stops);
-  const lin = grade ? grade.linear : linear8();
-  const unit2 = grade ? grade.unit : null;
-  const keys2 = new Int32Array(LCACHE_SIZE).fill(-1);
-  const vals = new Float64Array(LCACHE_SIZE);
-  for (let i = 0; i < d.length; i += 4) {
-    const r5 = d[i], g2 = d[i + 1], b = d[i + 2];
-    const key = r5 << 16 | g2 << 8 | b;
-    const slot = (key ^ key >>> 13 ^ key >>> 7) & LCACHE_SIZE - 1;
-    let Lp;
-    if (keys2[slot] === key) Lp = vals[slot];
-    else {
-      Lp = oklabL(lin[r5], lin[g2], lin[b]);
-      keys2[slot] = key;
-      vals[slot] = Lp;
-    }
-    const lf = Lp <= 0 ? 0 : Lp >= 1 ? 255 : Lp * 255;
-    const i0 = lf | 0, fr = lf - i0, i1 = i0 < 255 ? i0 + 1 : i0, a0 = i0 * 3, a1 = i1 * 3, ifr = 1 - fr;
-    const tr = tlut[a0] * ifr + tlut[a1] * fr;
-    const tg = tlut[a0 + 1] * ifr + tlut[a1 + 1] * fr;
-    const tb = tlut[a0 + 2] * ifr + tlut[a1 + 2] * fr;
-    const r01 = unit2 ? unit2[r5] : r5 / 255, g01 = unit2 ? unit2[g2] : g2 / 255, b01 = unit2 ? unit2[b] : b / 255;
-    d[i] = (r01 + (tr - r01) * ta) * 255;
-    d[i + 1] = (g01 + (tg - g01) * ta) * 255;
-    d[i + 2] = (b01 + (tb - b01) * ta) * 255;
-  }
-}
-function lumaMap(d, def, ta, grade) {
-  const grey = def.kind === "greyscale";
-  const table = grey ? null : [def.shadow ?? "#000000", ...def.mid ? [def.mid] : [], def.highlight ?? "#ffffff"].map((c) => {
-    const v = photoLookHex8(c) ?? [0, 0, 0];
-    return [v[0] / 255, v[1] / 255, v[2] / 255];
-  });
-  const n6 = table ? table.length - 1 : 0;
-  for (let i = 0; i < d.length; i += 4) {
-    const r01 = grade ? grade.unit[d[i]] : d[i] / 255;
-    const g01 = grade ? grade.unit[d[i + 1]] : d[i + 1] / 255;
-    const b01 = grade ? grade.unit[d[i + 2]] : d[i + 2] / 255;
-    let tr, tg, tb;
-    if (!table) {
-      tr = tg = tb = clamp015(0.213 * r01 + 0.715 * g01 + 0.072 * b01);
-    } else {
-      const y = clamp015(0.2126 * r01 + 0.7152 * g01 + 0.0722 * b01);
-      const pos = y * n6;
-      const k = pos >= n6 ? n6 - 1 : pos | 0;
-      const u = pos - k;
-      const lo = table[k], hi = table[k + 1];
-      tr = lo[0] + (hi[0] - lo[0]) * u;
-      tg = lo[1] + (hi[1] - lo[1]) * u;
-      tb = lo[2] + (hi[2] - lo[2]) * u;
-    }
-    if (ta === 1) {
-      d[i] = tr * 255;
-      d[i + 1] = tg * 255;
-      d[i + 2] = tb * 255;
-      continue;
-    }
-    d[i] = (r01 + (tr - r01) * ta) * 255;
-    d[i + 1] = (g01 + (tg - g01) * ta) * 255;
-    d[i + 2] = (b01 + (tb - b01) * ta) * 255;
-  }
-}
-function photoLookPreviewTable(look2, count4 = 17) {
-  const stops = photoLookStops(look2);
-  if (stops.length < 2) return [];
-  const tlut = photoLookToneTable(stops);
-  const amount = typeof look2.amount === "number" && Number.isFinite(look2.amount) ? (look2.amount < 0 ? 0 : look2.amount > 100 ? 100 : look2.amount) / 100 : 1;
-  const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  const contrast3 = Math.max(-100, Math.min(100, finite7(look2.contrast)));
-  const light = Math.max(-100, Math.min(100, finite7(look2.lightness))) / 100;
-  const cf = 259 * (contrast3 + 255) / (255 * (259 - contrast3));
-  const graded = (s) => {
-    let n6 = s * 255;
-    if (contrast3) n6 = Math.max(0, Math.min(255, cf * (n6 - 128) + 128));
-    if (light > 0) n6 += (255 - n6) * light;
-    else if (light < 0) n6 *= 1 + light;
-    return clamp015(n6 / 255);
-  };
-  const out = [];
-  for (let j = 0; j < count4; j += 1) {
-    const s = graded(count4 > 1 ? j / (count4 - 1) : 0);
-    const L = cubeRoot2(decodeSrgb(s));
-    const lf = L <= 0 ? 0 : L >= 1 ? 255 : L * 255;
-    const i0 = lf | 0, fr = lf - i0, i1 = i0 < 255 ? i0 + 1 : i0;
-    const pick = (c) => s + (tlut[i0 * 3 + c] * (1 - fr) + tlut[i1 * 3 + c] * fr - s) * amount;
-    out.push([pick(0), pick(1), pick(2)]);
-  }
-  return out;
-}
-var PHOTO_LOOK_RECIPE, LINEAR_8, clamp015, HEX63, HEX3, VARIANT_KEYS, LCACHE_SIZE;
-var init_photo_look = __esm({
-  "engine/src/photo-look.ts"() {
-    "use strict";
-    init_grade();
-    PHOTO_LOOK_RECIPE = "photo-look-v1";
-    LINEAR_8 = null;
-    clamp015 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
-    HEX63 = /^#([0-9a-f]{6})$/i;
-    HEX3 = /^#([0-9a-f]{3})$/i;
-    VARIANT_KEYS = ["stops", "shadow", "mid", "highlight", "amount", "contrast", "lightness", "lut", "previewBg"];
-    LCACHE_SIZE = 1 << 16;
-  }
-});
-
-// engine/src/photo-treatment.ts
 function parseTreatedAssetId(id2) {
   if (typeof id2 !== "string" || id2.includes("://")) return { baseId: id2, treatment: null };
   const i = id2.indexOf(TREATMENT_SUFFIX);
@@ -37794,120 +37069,19 @@ function parseTreatedAssetId(id2) {
   if (baseId.includes("?") || !TREATMENT_ID_RE.test(treatment)) return { baseId: id2, treatment: null };
   return { baseId, treatment };
 }
-function buildTreatedAssetId(baseId, treatmentId) {
-  if (!treatmentId) return baseId;
-  if (!TREATMENT_ID_RE.test(treatmentId)) throw new Error(`Bad photo treatment id: ${treatmentId}`);
-  return `${baseId}${TREATMENT_SUFFIX}${treatmentId}`;
-}
-function isValidTreatmentId(treatmentId) {
-  return typeof treatmentId === "string" && TREATMENT_ID_RE.test(treatmentId);
-}
 function stripAssetModifiers(id2) {
   if (typeof id2 !== "string" || id2.includes("://")) return id2;
   const i = id2.indexOf("?");
   return i > 0 ? id2.slice(0, i) : id2;
 }
-function parsePhotoTreatmentsDoc(doc) {
-  if (!doc || !Array.isArray(doc.treatments)) return [];
-  return doc.treatments.filter(isPhotoTreatment);
-}
-function isPhotoTreatment(t) {
-  if (!t || !isValidTreatmentId(t.id)) return false;
-  const kind = t.kind;
-  const entry2 = t;
-  if (entry2.themes !== void 0 && !validThemes(entry2)) return false;
-  if (kind === "greyscale") return true;
-  if (kind === "duotone") return !!hexToUnitRgb(entry2.shadow) && !!hexToUnitRgb(entry2.highlight);
-  if (kind === "gradient-map") return validVariant(entry2) && validStops(entry2.stops, true);
-  if (kind === "lut") return validVariant(entry2) && validLutId(entry2.lut);
-  return false;
-}
-function validStops(stops, required) {
-  if (stops === void 0) return !required;
-  if (!Array.isArray(stops) || stops.length < 2 || stops.length > MAX_LOOK_STOPS) return false;
-  let last = -Infinity;
-  const n6 = stops.length;
-  for (let i = 0; i < n6; i += 1) {
-    const s = stops[i];
-    const color4 = typeof s === "string" ? s : s && typeof s === "object" ? s.color : void 0;
-    if (!hexToUnitRgb(color4)) return false;
-    const pos = s && typeof s === "object" ? s.pos : void 0;
-    if (pos !== void 0 && (typeof pos !== "number" || !Number.isFinite(pos) || pos < 0 || pos > 100)) return false;
-    const effective = typeof pos === "number" ? pos : i / (n6 - 1) * 100;
-    if (effective < last) return false;
-    last = effective;
-  }
-  return true;
-}
-function validLutId(id2) {
-  return typeof id2 === "string" && /^[a-z0-9][a-z0-9/_.-]*$/i.test(id2) && !id2.includes("://");
-}
-function validVariant(v) {
-  if (v.amount !== void 0 && (typeof v.amount !== "number" || !Number.isFinite(v.amount) || v.amount < 0 || v.amount > 100)) return false;
-  for (const key of ["contrast", "lightness"]) {
-    const n6 = v[key];
-    if (n6 !== void 0 && (typeof n6 !== "number" || !Number.isFinite(n6) || n6 < -100 || n6 > 100)) return false;
-  }
-  for (const key of ["shadow", "mid", "highlight", "previewBg"]) if (v[key] !== void 0 && !hexToUnitRgb(v[key])) return false;
-  if (v.lut !== void 0 && !validLutId(v.lut)) return false;
-  return validStops(v.stops, false);
-}
-function validThemes(t) {
-  const themes = t.themes;
-  if (!themes || typeof themes !== "object" || Array.isArray(themes)) return false;
-  const keys2 = Object.keys(themes);
-  if (keys2.length > MAX_LOOK_THEMES) return false;
-  return keys2.every((k) => {
-    const v = themes[k];
-    return THEME_KEY_RE.test(k) && !!v && typeof v === "object" && !Array.isArray(v) && !("themes" in v) && validVariant(v);
-  });
-}
-function treatmentFilterSvg(treatment, filterId) {
-  return `<filter id="${filterId}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">${treatmentFilterBody(treatment)}</filter>`;
-}
-function treatmentFilterBody(treatment) {
-  if (treatment.kind === "greyscale") {
-    return '<feColorMatrix type="saturate" values="0"/>';
-  }
-  if (treatment.kind === "lut") {
-    return '<feColorMatrix type="identity"/>';
-  }
-  if (treatment.kind === "gradient-map") {
-    const rows2 = photoLookPreviewTable(treatment);
-    const col = (i) => rows2.map((r5) => trim(r5[i])).join(" ");
-    return `<feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${col(0)}"/><feFuncG type="table" tableValues="${col(1)}"/><feFuncB type="table" tableValues="${col(2)}"/></feComponentTransfer>`;
-  }
-  const s = hexToUnitRgb(treatment.shadow) ?? [0, 0, 0];
-  const h = hexToUnitRgb(treatment.highlight) ?? [1, 1, 1];
-  const m2 = hexToUnitRgb(treatment.mid);
-  const table = (i) => m2 ? `${trim(s[i])} ${trim(m2[i])} ${trim(h[i])}` : `${trim(s[i])} ${trim(h[i])}`;
-  return `<feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${table(0)}"/><feFuncG type="table" tableValues="${table(1)}"/><feFuncB type="table" tableValues="${table(2)}"/></feComponentTransfer>`;
-}
-function wrapRasterWithTreatment({ href, width, height, treatment }) {
-  const fid = "t";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs>${treatmentFilterSvg(treatment, fid)}</defs><image width="${width}" height="${height}" preserveAspectRatio="none" href="${href}" filter="url(#${fid})"/></svg>`;
-}
-function hexToUnitRgb(hex3) {
-  if (typeof hex3 !== "string") return null;
-  const m2 = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex3.trim());
-  if (!m2) return null;
-  const h = m2[1].length === 3 ? m2[1].replace(/./g, (c) => c + c) : m2[1];
-  const n6 = parseInt(h, 16);
-  return [(n6 >> 16 & 255) / 255, (n6 >> 8 & 255) / 255, (n6 & 255) / 255];
-}
-function trim(v) {
-  return String(Math.round(v * 1e4) / 1e4);
-}
-var TREATMENT_ID_RE, TREATMENT_SUFFIX, MAX_LOOK_STOPS, MAX_LOOK_THEMES, THEME_KEY_RE;
-var init_photo_treatment = __esm({
-  "engine/src/photo-treatment.ts"() {
+var THEME_ID_RE, TREATMENT_ID_RE, THEME_SUFFIX, TREATMENT_SUFFIX;
+var init_asset_modifiers = __esm({
+  "engine/src/asset-modifiers.ts"() {
     "use strict";
-    init_photo_look();
-    TREATMENT_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
+    THEME_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
+    TREATMENT_ID_RE = THEME_ID_RE;
+    THEME_SUFFIX = "?theme=";
     TREATMENT_SUFFIX = "?treatment=";
-    MAX_LOOK_STOPS = 16;
-    MAX_LOOK_THEMES = 16;
-    THEME_KEY_RE = /^[A-Za-z0-9][A-Za-z0-9 _./-]{0,63}$/;
   }
 });
 
@@ -37961,7 +37135,7 @@ var MARKER;
 var init_asset_version = __esm({
   "engine/src/asset-version.ts"() {
     "use strict";
-    init_photo_treatment();
+    init_asset_modifiers();
     MARKER = "#lolly-version=";
   }
 });
@@ -41713,10 +40887,10 @@ function toU8Srgb(frame) {
   const src = f.data;
   const out = new Uint8ClampedArray(src.length);
   for (let i = 0; i < src.length; i += 4) {
-    out[i] = Math.round(linearToSrgb3(clamp016(src[i])) * 255);
-    out[i + 1] = Math.round(linearToSrgb3(clamp016(src[i + 1])) * 255);
-    out[i + 2] = Math.round(linearToSrgb3(clamp016(src[i + 2])) * 255);
-    out[i + 3] = Math.round(clamp016(src[i + 3]) * 255);
+    out[i] = Math.round(linearToSrgb3(clamp015(src[i])) * 255);
+    out[i + 1] = Math.round(linearToSrgb3(clamp015(src[i + 1])) * 255);
+    out[i + 2] = Math.round(linearToSrgb3(clamp015(src[i + 2])) * 255);
+    out[i + 3] = Math.round(clamp015(src[i + 3]) * 255);
   }
   return out;
 }
@@ -41732,7 +40906,7 @@ function toU16(frame) {
   if (frame.space === "lab") throw new Error("toU16: lab channels are not 0..1; convertSpace first");
   const src = frame.data;
   const out = new Uint16Array(src.length);
-  for (let i = 0; i < src.length; i++) out[i] = Math.round(clamp016(src[i]) * 65535);
+  for (let i = 0; i < src.length; i++) out[i] = Math.round(clamp015(src[i]) * 65535);
   return out;
 }
 function roundTiesToEven(x) {
@@ -41874,7 +41048,7 @@ function convertSpace(frame, target) {
   }
   return { width: frame.width, height: frame.height, data: out, space: target };
 }
-var PIXEL_SPACES, srgbToLinear3, linearToSrgb3, LINEAR_LUT, clamp016, F16, mul3, SRGB_TO_XYZ_D65, XYZ_D65_TO_SRGB, P3_TO_XYZ_D65, XYZ_D65_TO_P3, REC2020_TO_XYZ_D65, XYZ_D65_TO_REC2020, XYZ_D65_TO_D50, XYZ_D50_TO_D65, TO_XYZ_D65, FROM_XYZ_D65, D50_WHITE3, LAB_K2, LAB_E2;
+var PIXEL_SPACES, srgbToLinear3, linearToSrgb3, LINEAR_LUT, clamp015, F16, mul3, SRGB_TO_XYZ_D65, XYZ_D65_TO_SRGB, P3_TO_XYZ_D65, XYZ_D65_TO_P3, REC2020_TO_XYZ_D65, XYZ_D65_TO_REC2020, XYZ_D65_TO_D50, XYZ_D50_TO_D65, TO_XYZ_D65, FROM_XYZ_D65, D50_WHITE3, LAB_K2, LAB_E2;
 var init_pixels = __esm({
   "engine/src/pixels.ts"() {
     "use strict";
@@ -41889,7 +41063,7 @@ var init_pixels = __esm({
     linearToSrgb3 = (c) => c <= 31308e-7 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
     LINEAR_LUT = new Float64Array(256);
     for (let i = 0; i < 256; i++) LINEAR_LUT[i] = srgbToLinear3(i / 255);
-    clamp016 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
+    clamp015 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
     F16 = globalThis.Float16Array;
     mul3 = (a, b) => [
       a[0] * b[0] + a[1] * b[3] + a[2] * b[6],
@@ -44687,11 +43861,11 @@ i32Z9VBB37ynTveKVC7ofTW0ZFfIIYYpWUR1+C4m2yRkOQ==
 -----END CERTIFICATE-----
 
 # C2PA / Content Authenticity trust list - https://verify.contentauthenticity.org/trust/anchors.pem
-## This interim trust list is now frozen.  C2PA has published an official trust list, and new anchor certificates should be added to that list. NOTE: Content Credentials are still valid which were signed using certificates chaining back to root certs on this list. Validators can still refer to this trust list, but should distinguish between Content Credentials signed with certs tracing back to these and those signed with certs tracing back to root certs on the official C2PA trust list.
-## Currently, the verifier at https://verify.contentauthenticity.org/ uses this list.
-##
+## This interim trust list is now frozen.  C2PA has published an official trust list, and new anchor certificates should be added to that list. NOTE: Content Credentials are still valid which were signed using certificates chaining back to root certs on this list. Validators can still refer to this trust list, but should distinguish between Content Credentials signed with certs tracing back to these and those signed with certs tracing back to root certs on the official C2PA trust list.  
+## Currently, the verifier at https://verify.contentauthenticity.org/ uses this list.  
+## 
 
-Leica C2PA Root
+Leica C2PA Root 
 -----BEGIN CERTIFICATE-----
 MIIDCDCCAq2gAwIBAgIQfj2771gNZMLyE3lSWlq8UDAKBggqhkjOPQQDAjCBojEL
 MAkGA1UEBhMCREUxGDAWBgNVBAoTD0xlaWNhIENhbWVyYSBBRzEbMBkGA1UEAxMS
@@ -44712,7 +43886,7 @@ EFo+xkgDMaihJTTpbWDfSCcNrMfb9KEl+wIhAORyQm7Wchx4fmMQKYubFjeYCZtP
 u+FSiisFK83vwhTQ
 -----END CERTIFICATE-----
 
-Microsoft Root
+Microsoft Root 
 -----BEGIN CERTIFICATE-----
 MIIFrzCCA5egAwIBAgIQaCjVTH5c2r1DOa4MwVoqNTANBgkqhkiG9w0BAQwFADBf
 MQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMTAw
@@ -44747,7 +43921,7 @@ F0Tsci41yQvQgR3pcgMJQdnfCUjmzbeyHGAlGVLzPRJJ7Z2UIo5xKPjBB1Rz3TgI
 tIWPFGyqAK9Aq7WHzrY5XHP5kA==
 -----END CERTIFICATE-----
 
-Adobe Root
+Adobe Root 
 -----BEGIN CERTIFICATE-----
 MIIFpDCCA4ygAwIBAgIQXfEvX1enw+GwAtiTJwzd4TANBgkqhkiG9w0BAQsFADBs
 MQswCQYDVQQGEwJVUzEjMCEGA1UEChMaQWRvYmUgU3lzdGVtcyBJbmNvcnBvcmF0
@@ -44782,7 +43956,7 @@ WRvQTsaK7K8w+WSilfCtt4u4AAxByxlwmt/KHeMfHZskty/rHLyk7kwgtRzXdvpA
 ofZLvqTHvT4=
 -----END CERTIFICATE-----
 
-Truepic Root
+Truepic Root 
 -----BEGIN CERTIFICATE-----
 MIIFbzCCA1egAwIBAgIUQfJJVcjenVsqV04ke2B6+nMusbowDQYJKoZIhvcNAQEM
 BQAwPzEPMA0GA1UEAwwGUm9vdENBMQ0wCwYDVQQLDARMZW5zMRAwDgYDVQQKDAdU
@@ -48411,22 +47585,13 @@ var init_logo_variant = __esm({
 });
 
 // engine/src/icon-theme.ts
-function parseThemedAssetId(id2) {
-  if (typeof id2 !== "string" || id2.includes("://")) return { baseId: id2, theme: null };
-  const i = id2.indexOf(THEME_SUFFIX);
-  if (i <= 0) return { baseId: id2, theme: null };
-  const baseId = id2.slice(0, i);
-  const theme = id2.slice(i + THEME_SUFFIX.length);
-  if (baseId.includes("?") || !THEME_ID_RE.test(theme)) return { baseId: id2, theme: null };
-  return { baseId, theme };
-}
 function buildThemedAssetId(baseId, themeId) {
   if (!themeId) return baseId;
-  if (!THEME_ID_RE.test(themeId)) throw new Error(`Bad icon theme id: ${themeId}`);
-  return `${baseId}${THEME_SUFFIX}${themeId}`;
+  if (!THEME_ID_RE2.test(themeId)) throw new Error(`Bad icon theme id: ${themeId}`);
+  return `${baseId}${THEME_SUFFIX2}${themeId}`;
 }
 function isValidThemeId(themeId) {
-  return typeof themeId === "string" && THEME_ID_RE.test(themeId);
+  return typeof themeId === "string" && THEME_ID_RE2.test(themeId);
 }
 function parseIconThemesDoc(doc) {
   if (!doc || !Array.isArray(doc.themes)) return [];
@@ -48513,13 +47678,14 @@ function monochromeRecolor(svgText, baseColor) {
     return hslToHex(bh, bs, l);
   });
 }
-var AUTO_ASSET_THEME, THEME_ID_RE, THEME_SUFFIX, DEFAULT_STYLE_RE, HEX_TOKEN_RE;
+var AUTO_ASSET_THEME, THEME_ID_RE2, THEME_SUFFIX2, DEFAULT_STYLE_RE, HEX_TOKEN_RE;
 var init_icon_theme = __esm({
   "engine/src/icon-theme.ts"() {
     "use strict";
+    init_asset_modifiers();
     AUTO_ASSET_THEME = "auto";
-    THEME_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
-    THEME_SUFFIX = "?theme=";
+    THEME_ID_RE2 = /^[a-z0-9][a-z0-9-]*$/;
+    THEME_SUFFIX2 = "?theme=";
     DEFAULT_STYLE_RE = /<defs><style>\.c1\{fill:([^}]*)\}\.c2\{fill:([^}]*)\}<\/style><\/defs>/;
     HEX_TOKEN_RE = /#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-fA-F])/g;
   }
@@ -59084,7 +58250,7 @@ function endpointSample(src, t, dir, span) {
   const len2 = Math.hypot(tx, ty);
   let step = span * 1e-7;
   if (len2 > 1e-12) {
-    const probe = src.sample(clamp017(t + dir * step));
+    const probe = src.sample(clamp016(t + dir * step));
     const pl = Math.hypot(probe.dx, probe.dy);
     if (pl > 1e-12) {
       const sin = Math.abs(tx * probe.dy - ty * probe.dx) / (len2 * pl);
@@ -59097,7 +58263,7 @@ function endpointSample(src, t, dir, span) {
     return { x: s.x, y: s.y, tx, ty };
   }
   for (let i = 0; i < 6 && Math.hypot(tx, ty) < 1e-12; i++) {
-    const probe = src.sample(clamp017(t + dir * step));
+    const probe = src.sample(clamp016(t + dir * step));
     tx = probe.dx;
     ty = probe.dy;
     if (Math.hypot(tx, ty) < 1e-12) {
@@ -59108,7 +58274,7 @@ function endpointSample(src, t, dir, span) {
   }
   return { x: s.x, y: s.y, tx, ty };
 }
-function clamp017(t) {
+function clamp016(t) {
   return t < 0 ? 0 : t > 1 ? 1 : t;
 }
 function frameFor(src, t0, t1) {
@@ -68763,14 +67929,14 @@ function linearSrgbToOklab2(r5, g2, b) {
     0.0259040371 * l + 0.7827717662 * m2 - 0.808675766 * s
   ];
 }
-function smoothstep2(lo, hi, x) {
+function smoothstep(lo, hi, x) {
   if (x <= lo) return 0;
   if (x >= hi) return 1;
   const t = (x - lo) / (hi - lo);
   return t * t * (3 - 2 * t);
 }
 function falloff(dE, inner, outer) {
-  return 1 - smoothstep2(inner, outer, dE);
+  return 1 - smoothstep(inner, outer, dE);
 }
 function resolveTargets(opts) {
   const sdrWhiteNits = opts.sdrWhiteNits ?? DEFAULTS.sdrWhiteNits;
@@ -68786,7 +67952,7 @@ function resolveTargets(opts) {
     const rgb = parseHex(hex3);
     if (!rgb) continue;
     const lab = linearSrgbToOklab2(LINEAR_LUT2[rgb[0]], LINEAR_LUT2[rgb[1]], LINEAR_LUT2[rgb[2]]);
-    const frac = boostFloor + (1 - boostFloor) * smoothstep2(kneeLo, kneeHi, lab[0]);
+    const frac = boostFloor + (1 - boostFloor) * smoothstep(kneeLo, kneeHi, lab[0]);
     const gain = 1 + (maxGain - 1) * frac;
     out.push({ lab, gain });
   }
@@ -74652,12 +73818,12 @@ function applyPinnedAssets(doc, pins) {
   });
   return mapBrandResourceIds(next, (id2) => frozen.get(id2) ?? id2);
 }
-function canonical2(v) {
-  if (Array.isArray(v)) return v.map(canonical2);
+function canonical(v) {
+  if (Array.isArray(v)) return v.map(canonical);
   if (!isRec3(v)) return v;
   const out = {};
   for (const k of Object.keys(v).sort()) {
-    const cv = canonical2(v[k]);
+    const cv = canonical(v[k]);
     if (cv !== void 0) out[k] = cv;
   }
   return out;
@@ -74697,7 +73863,7 @@ var init_design_version = __esm({
     str3 = (v) => typeof v === "string" ? v : null;
     clone3 = (v) => v === void 0 ? v : JSON.parse(JSON.stringify(v));
     FROZEN_KEY_LEN = 12;
-    canonicalJson3 = (v) => JSON.stringify(canonical2(v)) ?? "null";
+    canonicalJson3 = (v) => JSON.stringify(canonical(v)) ?? "null";
   }
 });
 
@@ -80026,7 +79192,7 @@ function readClrMods(clr2) {
   }
   return out;
 }
-function clamp018(v) {
+function clamp017(v) {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 function hexToRgb3(hex3) {
@@ -80090,8 +79256,8 @@ function linearToSrgb4(lin) {
 function applyClrMods(hex3, mods) {
   let [r5, g2, b] = hexToRgb3(hex3);
   if (mods.shade !== void 0 || mods.tint !== void 0) {
-    const shade = mods.shade === void 0 ? 1 : clamp018(mods.shade);
-    const tint = mods.tint === void 0 ? 1 : clamp018(mods.tint);
+    const shade = mods.shade === void 0 ? 1 : clamp017(mods.shade);
+    const tint = mods.tint === void 0 ? 1 : clamp017(mods.tint);
     const mix2 = (c) => {
       const code = Math.max(0, Math.min(255, Math.round(c)));
       const lin = SRGB_TO_LINEAR2[code] ?? 0;
@@ -80103,7 +79269,7 @@ function applyClrMods(hex3, mods) {
   }
   if (mods.lumMod !== void 0 || mods.lumOff !== void 0) {
     const [h, s, l] = rgbToHsl2(r5, g2, b);
-    const lit = clamp018(l * (mods.lumMod ?? 1) + (mods.lumOff ?? 0));
+    const lit = clamp017(l * (mods.lumMod ?? 1) + (mods.lumOff ?? 0));
     [r5, g2, b] = hslToRgb(h, s, lit);
   }
   return rgbToHex(r5, g2, b);
@@ -91850,7 +91016,7 @@ function gradientMarkup(g2, id2, images) {
   const stops = (g2.stops ?? []).filter((s) => s && isFinite(s.offset));
   if (stops.length < 2) return "";
   const gt = ` gradientTransform="matrix(${m2.slice(0, 6).map(g6).join(" ")})"`;
-  const stopsXml = stops.map((s) => `<stop offset="${clamp019(s.offset)}" stop-color="${safeAttrColor(s.color, "#000000")}"/>`).join("");
+  const stopsXml = stops.map((s) => `<stop offset="${clamp018(s.offset)}" stop-color="${safeAttrColor(s.color, "#000000")}"/>`).join("");
   const c = g2.coords ?? [];
   if (g2.type === 2) {
     if (c.length < 4 || !c.slice(0, 4).every((v) => isFinite(v))) return "";
@@ -92251,7 +91417,7 @@ function cullPdfNodes(nodes, win) {
   }
   return { nodes: out, total, dropped: total - out.length, unbounded };
 }
-var r, escapeXml2, safeAttrColor, opacityAttr, rotateAttr, g4, g6, clamp019, CULL_PAD_PT, EMPTY_EXTENT, finite2, PDF_SVG_MAX_NODES, PDF_SVG_MAX_MASK_NODES, PDF_SVG_MAX_GRADIENT_STOPS, PDF_SVG_MAX_OUTLINE_LINES, PDF_SVG_MAX_TEXT_LINES, PDF_SVG_MAX_SOURCE_CHARS, PDF_SVG_MAX_CLIPS, PDF_SVG_MAX_CLIP_D, PDF_SVG_MAX_PATH_D, PDF_SVG_MAX_OUTLINE_D, PDF_SVG_MAX_COORD, PLANE, planeBox, AA_PAD;
+var r, escapeXml2, safeAttrColor, opacityAttr, rotateAttr, g4, g6, clamp018, CULL_PAD_PT, EMPTY_EXTENT, finite2, PDF_SVG_MAX_NODES, PDF_SVG_MAX_MASK_NODES, PDF_SVG_MAX_GRADIENT_STOPS, PDF_SVG_MAX_OUTLINE_LINES, PDF_SVG_MAX_TEXT_LINES, PDF_SVG_MAX_SOURCE_CHARS, PDF_SVG_MAX_CLIPS, PDF_SVG_MAX_CLIP_D, PDF_SVG_MAX_PATH_D, PDF_SVG_MAX_OUTLINE_D, PDF_SVG_MAX_COORD, PLANE, planeBox, AA_PAD;
 var init_pdf_svg = __esm({
   "engine/src/pdf-svg.ts"() {
     "use strict";
@@ -92272,7 +91438,7 @@ var init_pdf_svg = __esm({
     rotateAttr = (n6) => n6.rot ? ` transform="rotate(${r(n6.rot)} ${r(n6.x + n6.w / 2)} ${r(n6.y + n6.h / 2)})"` : "";
     g4 = (v) => Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 1e4) / 1e4;
     g6 = (v) => Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 1e6) / 1e6;
-    clamp019 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+    clamp018 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
     CULL_PAD_PT = 2;
     EMPTY_EXTENT = { x: 0, y: 0, w: 0, h: 0 };
     finite2 = (v) => typeof v === "number" && isFinite(v);
@@ -93839,9 +93005,9 @@ function getLattice(profile, direction2, intent) {
 }
 function tetraEval(lat, u, v, w, out, o) {
   const s = LATTICE_N - 1;
-  const x = clamp0110(u) * s;
-  const y = clamp0110(v) * s;
-  const z = clamp0110(w) * s;
+  const x = clamp019(u) * s;
+  const y = clamp019(v) * s;
+  const z = clamp019(w) * s;
   let i = Math.floor(x);
   let j = Math.floor(y);
   let k = Math.floor(z);
@@ -94025,7 +93191,7 @@ function convertViaIcc(frame, srcProfile, dstProfile, intent) {
     return null;
   }
 }
-var ICC_DEVICE_SPACE, FALLBACK, LATTICE_N, L_S2, L_S1, L_S0, LATTICES, clamp0110, san2, profileSane, deviceInputOk, pcsInputOk;
+var ICC_DEVICE_SPACE, FALLBACK, LATTICE_N, L_S2, L_S1, L_S0, LATTICES, clamp019, san2, profileSane, deviceInputOk, pcsInputOk;
 var init_icc_pixels = __esm({
   "engine/src/icc-pixels.ts"() {
     "use strict";
@@ -94043,7 +93209,7 @@ var init_icc_pixels = __esm({
     L_S1 = LATTICE_N * 3;
     L_S0 = LATTICE_N * LATTICE_N * 3;
     LATTICES = /* @__PURE__ */ new WeakMap();
-    clamp0110 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
+    clamp019 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
     san2 = (v) => Number.isFinite(v) ? v : 0;
     profileSane = (p) => !!p && typeof p.toLab === "function" && typeof p.fromLab === "function";
     deviceInputOk = (frame) => frame.space === ICC_DEVICE_SPACE;
@@ -94754,7 +93920,7 @@ function guidedCoefficientsColor(mask, r5, g2, bl, width, height, radius, epsilo
 function guidedFilter(mask, guide, width, height, radius, epsilon) {
   const { a, b } = guidedCoefficients(mask, guide, width, height, radius, epsilon);
   const out = new Float32Array(width * height);
-  for (let i = 0; i < out.length; i++) out[i] = clamp0111(a[i] * guide[i] + b[i]);
+  for (let i = 0; i < out.length; i++) out[i] = clamp0110(a[i] * guide[i] + b[i]);
   return out;
 }
 function resizePlane(src, sw, sh, dw, dh) {
@@ -94829,22 +93995,417 @@ function refineMatte(alpha, rgba2, width, height, opts = {}) {
     for (let i = 0; i < n6; i++) {
       const w = floor > 0 ? vU[i] / (vU[i] + floor) : 1;
       const q = arU[i] * gr[i] + agU[i] * gg[i] + abU[i] * gb[i] + bU[i];
-      refined[i] = clamp0111(w * q + (1 - w) * model2[i]);
+      refined[i] = clamp0110(w * q + (1 - w) * model2[i]);
     }
   }
   const out = new Uint8Array(n6);
   for (let i = 0; i < n6; i++) {
-    const v = clamp0111((refined[i] - 0.5) * contrast3 + 0.5 + shift * 0.5);
+    const v = clamp0110((refined[i] - 0.5) * contrast3 + 0.5 + shift * 0.5);
     out[i] = Math.round(v * 255);
   }
   return out;
 }
-var TEXTURE_FLOOR, clamp0111;
+var TEXTURE_FLOOR, clamp0110;
 var init_guided_matte = __esm({
   "engine/src/guided-matte.ts"() {
     "use strict";
     TEXTURE_FLOOR = 4e-4;
-    clamp0111 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+    clamp0110 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+  }
+});
+
+// engine/src/grade.ts
+function smoothstep2(a, b, x) {
+  const t = clamp((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+function gradeMulberry32(seed) {
+  let a = seed;
+  return () => {
+    a |= 0;
+    a = a + 1831565813 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function parseCubeLut(text8) {
+  const lines = String(text8).split(/\r?\n/);
+  let size = 0;
+  let kind = null;
+  let title = "";
+  let domainMin = [0, 0, 0];
+  let domainMax = [1, 1, 1];
+  const data = [];
+  const triple = (parts) => [
+    Number(parts[1]),
+    Number(parts[2]),
+    Number(parts[3])
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line || line[0] === "#") continue;
+    const up = line.toUpperCase();
+    if (up.indexOf("TITLE") === 0) {
+      const m2 = line.match(/"(.*)"/);
+      title = m2 ? m2[1] : line.slice(5).trim();
+      continue;
+    }
+    if (up.indexOf("LUT_1D_SIZE") === 0) {
+      kind = "1d";
+      size = parseInt(line.split(/\s+/)[1], 10);
+      continue;
+    }
+    if (up.indexOf("LUT_3D_SIZE") === 0) {
+      kind = "3d";
+      size = parseInt(line.split(/\s+/)[1], 10);
+      continue;
+    }
+    if (up.indexOf("DOMAIN_MIN") === 0) {
+      domainMin = triple(line.split(/\s+/));
+      continue;
+    }
+    if (up.indexOf("DOMAIN_MAX") === 0) {
+      domainMax = triple(line.split(/\s+/));
+      continue;
+    }
+    if (up.indexOf("LUT_") === 0) continue;
+    const parts = line.split(/\s+/);
+    if (parts.length < 3) continue;
+    const r5 = Number(parts[0]);
+    const g2 = Number(parts[1]);
+    const b = Number(parts[2]);
+    if (!isFinite(r5) || !isFinite(g2) || !isFinite(b)) continue;
+    data.push(r5, g2, b);
+  }
+  if (!kind || !(size >= 2)) throw new Error("Not a .cube LUT (no LUT_1D_SIZE / LUT_3D_SIZE)");
+  if (size > CUBE_MAX_N) throw new Error(`LUT grid too large (max ${CUBE_MAX_N})`);
+  const expect = kind === "3d" ? size * size * size * 3 : size * 3;
+  if (data.length < expect) {
+    throw new Error(`LUT is truncated (${data.length / 3} of ${expect / 3} rows)`);
+  }
+  return {
+    kind,
+    size,
+    data: new Float32Array(data.slice(0, expect)),
+    domainMin,
+    domainMax,
+    title
+  };
+}
+function parse3dlLut(text8) {
+  const lines = String(text8).split(/\r?\n/);
+  let mesh = null;
+  const rows2 = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line || line[0] === "#" || /^[A-Za-z]/.test(line)) continue;
+    const parts = line.split(/\s+/).map(Number);
+    if (parts.some((v) => !isFinite(v))) continue;
+    if (!mesh && parts.length > 3) {
+      mesh = parts;
+      continue;
+    }
+    if (parts.length >= 3) rows2.push(parts.slice(0, 3));
+  }
+  const size = mesh ? mesh.length : Math.round(Math.pow(rows2.length, 1 / 3));
+  if (!(size >= 2) || rows2.length < size * size * size) throw new Error("Not a .3dl LUT");
+  if (size > TDL_MAX_N) throw new Error(`LUT grid too large (max ${TDL_MAX_N} for .3dl)`);
+  let peak = 0;
+  for (let i = 0; i < rows2.length; i++) {
+    const row = rows2[i];
+    peak = Math.max(peak, row[0], row[1], row[2]);
+  }
+  const scale = peak > 4095 ? 65535 : peak > 1023 ? 4095 : peak > 255 ? 1023 : 255;
+  const data = new Float32Array(size * size * size * 3);
+  let k = 0;
+  for (let rI = 0; rI < size; rI++) {
+    for (let gI = 0; gI < size; gI++) {
+      for (let bI = 0; bI < size; bI++) {
+        const row = rows2[k++];
+        const out = ((bI * size + gI) * size + rI) * 3;
+        data[out] = row[0] / scale;
+        data[out + 1] = row[1] / scale;
+        data[out + 2] = row[2] / scale;
+      }
+    }
+  }
+  return { kind: "3d", size, data, domainMin: [0, 0, 0], domainMax: [1, 1, 1], title: "" };
+}
+function parseLutText(text8, name) {
+  const lower3 = String(name || "").toLowerCase();
+  if (lower3.slice(-4) === ".3dl") return parse3dlLut(text8);
+  try {
+    return parseCubeLut(text8);
+  } catch {
+    return parse3dlLut(text8);
+  }
+}
+function sampleLut(lut, r5, g2, b) {
+  const dm = lut.domainMin;
+  const dM = lut.domainMax;
+  const rr = clamp((r5 - dm[0]) / (dM[0] - dm[0] || 1), 0, 1);
+  const gg = clamp((g2 - dm[1]) / (dM[1] - dm[1] || 1), 0, 1);
+  const bb = clamp((b - dm[2]) / (dM[2] - dm[2] || 1), 0, 1);
+  const N2 = lut.size;
+  const d = lut.data;
+  if (lut.kind === "1d") {
+    const out = [rr, gg, bb];
+    for (let c = 0; c < 3; c++) {
+      const x2 = out[c] * (N2 - 1);
+      const i0 = Math.floor(x2);
+      const f = x2 - i0;
+      const i1 = Math.min(i0 + 1, N2 - 1);
+      out[c] = d[i0 * 3 + c] * (1 - f) + d[i1 * 3 + c] * f;
+    }
+    return out;
+  }
+  const x = rr * (N2 - 1);
+  const y = gg * (N2 - 1);
+  const z = bb * (N2 - 1);
+  let x0 = Math.min(Math.floor(x), N2 - 2);
+  let y0 = Math.min(Math.floor(y), N2 - 2);
+  let z0 = Math.min(Math.floor(z), N2 - 2);
+  if (N2 === 2) {
+    x0 = 0;
+    y0 = 0;
+    z0 = 0;
+  }
+  const fx = x - x0;
+  const fy = y - y0;
+  const fz = z - z0;
+  const at = (xi, yi, zi, c) => d[((zi * N2 + yi) * N2 + xi) * 3 + c];
+  const out3 = [0, 0, 0];
+  for (let ch = 0; ch < 3; ch++) {
+    const c000 = at(x0, y0, z0, ch);
+    const c111 = at(x0 + 1, y0 + 1, z0 + 1, ch);
+    let v;
+    if (fx >= fy) {
+      if (fy >= fz) {
+        v = (1 - fx) * c000 + (fx - fy) * at(x0 + 1, y0, z0, ch) + (fy - fz) * at(x0 + 1, y0 + 1, z0, ch) + fz * c111;
+      } else if (fx >= fz) {
+        v = (1 - fx) * c000 + (fx - fz) * at(x0 + 1, y0, z0, ch) + (fz - fy) * at(x0 + 1, y0, z0 + 1, ch) + fy * c111;
+      } else {
+        v = (1 - fz) * c000 + (fz - fx) * at(x0, y0, z0 + 1, ch) + (fx - fy) * at(x0 + 1, y0, z0 + 1, ch) + fy * c111;
+      }
+    } else {
+      if (fz >= fy) {
+        v = (1 - fz) * c000 + (fz - fy) * at(x0, y0, z0 + 1, ch) + (fy - fx) * at(x0, y0 + 1, z0 + 1, ch) + fx * c111;
+      } else if (fz >= fx) {
+        v = (1 - fy) * c000 + (fy - fz) * at(x0, y0 + 1, z0, ch) + (fz - fx) * at(x0, y0 + 1, z0 + 1, ch) + fx * c111;
+      } else {
+        v = (1 - fy) * c000 + (fy - fx) * at(x0, y0 + 1, z0, ch) + (fx - fz) * at(x0 + 1, y0 + 1, z0, ch) + fz * c111;
+      }
+    }
+    out3[ch] = v;
+  }
+  return out3;
+}
+function isUnitDomain(lut) {
+  const a = lut.domainMin;
+  const b = lut.domainMax;
+  return a[0] === 0 && a[1] === 0 && a[2] === 0 && b[0] === 1 && b[1] === 1 && b[2] === 1;
+}
+function applyLutFrame(data, lut, intensity = 1) {
+  const t = intensity < 0 ? 0 : intensity > 1 ? 1 : intensity;
+  if (!(t > 0)) return;
+  const mix2 = t < 1;
+  const d = data;
+  if (lut.kind !== "3d" || !isUnitDomain(lut)) {
+    for (let i = 0; i < d.length; i += 4) {
+      const r0 = d[i];
+      const g0 = d[i + 1];
+      const b0 = d[i + 2];
+      const s = sampleLut(lut, r0 / 255, g0 / 255, b0 / 255);
+      const nr = 255 * s[0];
+      const ng = 255 * s[1];
+      const nb = 255 * s[2];
+      if (mix2) {
+        d[i] = r0 + (nr - r0) * t;
+        d[i + 1] = g0 + (ng - g0) * t;
+        d[i + 2] = b0 + (nb - b0) * t;
+      } else {
+        d[i] = nr;
+        d[i + 1] = ng;
+        d[i + 2] = nb;
+      }
+    }
+    return;
+  }
+  const tab = lut.data;
+  const N2 = lut.size;
+  const N1 = N2 - 1;
+  const sx = 3;
+  const sy = N2 * 3;
+  const sz = N2 * N2 * 3;
+  for (let i = 0; i < d.length; i += 4) {
+    const r0 = d[i];
+    const g0 = d[i + 1];
+    const b0 = d[i + 2];
+    const x = r0 / 255 * N1;
+    const y = g0 / 255 * N1;
+    const z = b0 / 255 * N1;
+    let x0 = x | 0;
+    let y0 = y | 0;
+    let z0 = z | 0;
+    if (x0 > N2 - 2) x0 = N2 - 2;
+    if (y0 > N2 - 2) y0 = N2 - 2;
+    if (z0 > N2 - 2) z0 = N2 - 2;
+    const fx = x - x0;
+    const fy = y - y0;
+    const fz = z - z0;
+    const i000 = ((z0 * N2 + y0) * N2 + x0) * 3;
+    const i111 = i000 + sx + sy + sz;
+    let w0;
+    let w1;
+    let w2;
+    let w3;
+    let ia;
+    let ib;
+    if (fx >= fy) {
+      if (fy >= fz) {
+        w0 = 1 - fx;
+        w1 = fx - fy;
+        w2 = fy - fz;
+        w3 = fz;
+        ia = i000 + sx;
+        ib = i000 + sx + sy;
+      } else if (fx >= fz) {
+        w0 = 1 - fx;
+        w1 = fx - fz;
+        w2 = fz - fy;
+        w3 = fy;
+        ia = i000 + sx;
+        ib = i000 + sx + sz;
+      } else {
+        w0 = 1 - fz;
+        w1 = fz - fx;
+        w2 = fx - fy;
+        w3 = fy;
+        ia = i000 + sz;
+        ib = i000 + sx + sz;
+      }
+    } else {
+      if (fz >= fy) {
+        w0 = 1 - fz;
+        w1 = fz - fy;
+        w2 = fy - fx;
+        w3 = fx;
+        ia = i000 + sz;
+        ib = i000 + sy + sz;
+      } else if (fz >= fx) {
+        w0 = 1 - fy;
+        w1 = fy - fz;
+        w2 = fz - fx;
+        w3 = fx;
+        ia = i000 + sy;
+        ib = i000 + sy + sz;
+      } else {
+        w0 = 1 - fy;
+        w1 = fy - fx;
+        w2 = fx - fz;
+        w3 = fz;
+        ia = i000 + sy;
+        ib = i000 + sx + sy;
+      }
+    }
+    const nr = 255 * (w0 * tab[i000] + w1 * tab[ia] + w2 * tab[ib] + w3 * tab[i111]);
+    const ng = 255 * (w0 * tab[i000 + 1] + w1 * tab[ia + 1] + w2 * tab[ib + 1] + w3 * tab[i111 + 1]);
+    const nb = 255 * (w0 * tab[i000 + 2] + w1 * tab[ia + 2] + w2 * tab[ib + 2] + w3 * tab[i111 + 2]);
+    if (mix2) {
+      d[i] = r0 + (nr - r0) * t;
+      d[i + 1] = g0 + (ng - g0) * t;
+      d[i + 2] = b0 + (nb - b0) * t;
+    } else {
+      d[i] = nr;
+      d[i + 1] = ng;
+      d[i + 2] = nb;
+    }
+  }
+}
+function grainCellPx(grainSize, width, height, refLongEdge) {
+  const base = grainSize > 0 ? grainSize : 1;
+  const ref = refLongEdge ?? 0;
+  if (!(ref > 0)) return base;
+  const scaled = base * (Math.max(width, height) / ref);
+  return scaled > GRAIN_CELL_MIN_PX ? scaled : GRAIN_CELL_MIN_PX;
+}
+function applyGrainVignette(data, width, height, p, frameIndex, refLongEdge) {
+  const W = width | 0;
+  const H = height | 0;
+  if (W <= 0 || H <= 0) return;
+  if (data.length < W * H * 4) {
+    throw new Error(`grain/vignette: frame is ${data.length} bytes, ${W}\xD7${H} needs ${W * H * 4}`);
+  }
+  if (!(p.grain > 0) && !(p.vignette > 0)) return;
+  const gd = data;
+  const cx2 = W / 2;
+  const cy22 = H / 2;
+  const maxR2 = cx2 * cx2 + cy22 * cy22;
+  const cell = grainCellPx(p.grainSize, W, H, refLongEdge);
+  const gw = Math.ceil(W / cell) + 2;
+  const gh = Math.ceil(H / cell) + 2;
+  let lattice = null;
+  if (p.grain > 0) {
+    lattice = new Float32Array(gw * gh);
+    const seedInput = p.seed + (frameIndex ?? 0) * 9973;
+    const rng = gradeMulberry32(seedInput * 2654435761 >>> 0 || 1);
+    for (let li = 0; li < lattice.length; li++) lattice[li] = rng() * 2 - 1;
+  }
+  const gAmt = p.grain * 34;
+  const vAmt = p.vignette;
+  for (let y2 = 0; y2 < H; y2++) {
+    const gy = y2 / cell;
+    const gy0 = gy | 0;
+    const gfy = gy - gy0;
+    for (let x3 = 0; x3 < W; x3++) {
+      const i5 = (y2 * W + x3) * 4;
+      let r5 = gd[i5];
+      let g5 = gd[i5 + 1];
+      let b5 = gd[i5 + 2];
+      if (lattice) {
+        const gx = x3 / cell;
+        const gx0 = gx | 0;
+        const gfx = gx - gx0;
+        const l00 = lattice[gy0 * gw + gx0];
+        const l10 = lattice[gy0 * gw + gx0 + 1];
+        const l01 = lattice[(gy0 + 1) * gw + gx0];
+        const l11 = lattice[(gy0 + 1) * gw + gx0 + 1];
+        const nv = (l00 * (1 - gfx) + l10 * gfx) * (1 - gfy) + (l01 * (1 - gfx) + l11 * gfx) * gfy;
+        const lum2 = (LUM_R * r5 + LUM_G * g5 + LUM_B * b5) / 255;
+        const gw2 = 4 * lum2 * (1 - lum2);
+        const add = nv * gAmt * (0.35 + 0.65 * gw2);
+        r5 += add;
+        g5 += add;
+        b5 += add;
+      }
+      if (vAmt > 0) {
+        const dx2 = x3 - cx2;
+        const dy2 = y2 - cy22;
+        const vr = (dx2 * dx2 + dy2 * dy2) / maxR2;
+        const vk = 1 - vAmt * smoothstep2(0.28, 1.05, vr) * 0.82;
+        r5 *= vk;
+        g5 *= vk;
+        b5 *= vk;
+      }
+      gd[i5] = r5;
+      gd[i5 + 1] = g5;
+      gd[i5 + 2] = b5;
+    }
+  }
+}
+var CUBE_MAX_N, TDL_MAX_N, LUM_R, LUM_G, LUM_B, GRAIN_REF_LONG_EDGE, GRAIN_CELL_MIN_PX;
+var init_grade = __esm({
+  "engine/src/grade.ts"() {
+    "use strict";
+    init_clamp();
+    CUBE_MAX_N = 129;
+    TDL_MAX_N = 65;
+    LUM_R = 0.2126;
+    LUM_G = 0.7152;
+    LUM_B = 0.0722;
+    GRAIN_REF_LONG_EDGE = 1080;
+    GRAIN_CELL_MIN_PX = 0.5;
   }
 });
 
@@ -94981,7 +94542,7 @@ function simulateCvd(rgb, type, severity) {
   ];
 }
 function toGrayscale(rgb) {
-  const y = Math.round(clamp0112((REC709.r * rgb[0] + REC709.g * rgb[1] + REC709.b * rgb[2]) / 255) * 255);
+  const y = Math.round(clamp0111((REC709.r * rgb[0] + REC709.g * rgb[1] + REC709.b * rgb[2]) / 255) * 255);
   return [y, y, y];
 }
 function simulateCvdHex(hex3, type, severity) {
@@ -94994,7 +94555,7 @@ function toGrayscaleHex(hex3) {
   if (!rgba2) return null;
   return toHex(toGrayscale([rgba2[0], rgba2[1], rgba2[2]]));
 }
-var PROTAN, DEUTAN, TRITAN, TABLES, REC709, clamp0112, round255, toHex;
+var PROTAN, DEUTAN, TRITAN, TABLES, REC709, clamp0111, round255, toHex;
 var init_color_vision = __esm({
   "engine/src/color-vision.ts"() {
     "use strict";
@@ -95077,8 +94638,8 @@ var init_color_vision = __esm({
       tritan: TRITAN
     };
     REC709 = { r: 0.2126, g: 0.7152, b: 0.0722 };
-    clamp0112 = (n6) => n6 < 0 ? 0 : n6 > 1 ? 1 : n6;
-    round255 = (n6) => Math.round(clamp0112(n6) * 255);
+    clamp0111 = (n6) => n6 < 0 ? 0 : n6 > 1 ? 1 : n6;
+    round255 = (n6) => Math.round(clamp0111(n6) * 255);
     toHex = (rgb) => "#" + rgb.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("");
   }
 });
@@ -98152,6 +97713,460 @@ var init_app_surface = __esm({
   "engine/src/app-surface.ts"() {
     "use strict";
     init_penpot_file();
+  }
+});
+
+// engine/src/photo-look.ts
+function cubeRoot2(value) {
+  if (!(value > 0)) return value < 0 ? -cubeRoot2(-value) : 0;
+  let scale = 1;
+  let r5 = value;
+  while (r5 < 0.125) {
+    r5 *= 8;
+    scale *= 0.5;
+  }
+  while (r5 > 1) {
+    r5 /= 8;
+    scale *= 2;
+  }
+  let x = 0.4526 + r5 * (0.8288 - 0.2816 * r5);
+  x = (2 * x + r5 / (x * x)) / 3;
+  x = (2 * x + r5 / (x * x)) / 3;
+  x = (2 * x + r5 / (x * x)) / 3;
+  x = (2 * x + r5 / (x * x)) / 3;
+  x = (2 * x + r5 / (x * x)) / 3;
+  return x * scale;
+}
+function squareRoot(value) {
+  if (!(value > 0)) return 0;
+  let scale = 1;
+  let r5 = value;
+  while (r5 < 0.25) {
+    r5 *= 4;
+    scale *= 0.5;
+  }
+  while (r5 > 1) {
+    r5 /= 4;
+    scale *= 2;
+  }
+  let x = 0.35 + 0.65 * r5;
+  for (let step = 0; step < 6; step += 1) x = (x + r5 / x) / 2;
+  return x * scale;
+}
+function fifthRoot(value) {
+  if (!(value > 0)) return 0;
+  let scale = 1;
+  let r5 = value;
+  while (r5 < 1 / 32) {
+    r5 *= 32;
+    scale *= 0.5;
+  }
+  while (r5 > 1) {
+    r5 /= 32;
+    scale *= 2;
+  }
+  let x = 0.55 + 0.45 * r5;
+  for (let step = 0; step < 8; step += 1) {
+    const x2 = x * x;
+    x = (4 * x + r5 / (x2 * x2)) / 5;
+  }
+  return x * scale;
+}
+function decodeSrgb(c) {
+  if (c <= 0.04045) return c / 12.92;
+  const x = (c + 0.055) / 1.055;
+  const x2 = x * x;
+  return x2 * fifthRoot(x2);
+}
+function encodeSrgb(c) {
+  if (c <= 31308e-7) return 12.92 * c;
+  const third = cubeRoot2(c);
+  return 1.055 * third * squareRoot(squareRoot(third)) - 0.055;
+}
+function linear8() {
+  if (LINEAR_8) return LINEAR_8;
+  const table = new Float64Array(256);
+  for (let v = 0; v < 256; v += 1) table[v] = decodeSrgb(v / 255);
+  LINEAR_8 = table;
+  return table;
+}
+function oklabL(r5, g2, b) {
+  const l = cubeRoot2(0.4122214708 * r5 + 0.5363325363 * g2 + 0.0514459929 * b);
+  const m2 = cubeRoot2(0.2119034982 * r5 + 0.6806995451 * g2 + 0.1073969566 * b);
+  const s = cubeRoot2(0.0883024619 * r5 + 0.2817188376 * g2 + 0.6299787005 * b);
+  return 0.2104542553 * l + 0.793617785 * m2 - 0.0040720468 * s;
+}
+function oklab8(r5, g2, b) {
+  const lin = linear8();
+  const lr = lin[r5], lg = lin[g2], lb = lin[b];
+  const l = cubeRoot2(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+  const m2 = cubeRoot2(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+  const s = cubeRoot2(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+  return [
+    0.2104542553 * l + 0.793617785 * m2 - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m2 + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m2 - 0.808675766 * s
+  ];
+}
+function oklabToRgb01(L, a, b) {
+  const l0 = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m0 = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s0 = L - 0.0894841775 * a - 1.291485548 * b;
+  const l = l0 * l0 * l0, m2 = m0 * m0 * m0, s = s0 * s0 * s0;
+  return [
+    clamp0112(encodeSrgb(4.0767416621 * l - 3.3077115913 * m2 + 0.2309699292 * s)),
+    clamp0112(encodeSrgb(-1.2684380046 * l + 2.6097574011 * m2 - 0.3413193965 * s)),
+    clamp0112(encodeSrgb(-0.0041960863 * l - 0.7034186147 * m2 + 1.707614701 * s))
+  ];
+}
+function photoLookHex8(hex3) {
+  if (typeof hex3 !== "string") return null;
+  const t = hex3.trim();
+  const six = HEX63.exec(t)?.[1] ?? HEX3.exec(t)?.[1]?.replace(/./g, (c) => c + c);
+  if (!six) return null;
+  const n6 = parseInt(six, 16);
+  return [n6 >> 16 & 255, n6 >> 8 & 255, n6 & 255];
+}
+function photoLookStops(look2) {
+  const raw = Array.isArray(look2.stops) && look2.stops.length ? look2.stops : [look2.shadow, look2.mid, look2.highlight].filter((c) => typeof c === "string" && !!c);
+  const n6 = raw.length;
+  return raw.map((s, i) => {
+    const color4 = typeof s === "string" ? s : s.color;
+    const pos = typeof s === "object" && typeof s.pos === "number" ? s.pos / 100 : n6 > 1 ? i / (n6 - 1) : 0;
+    return { color: color4, pos };
+  });
+}
+function resolvePhotoLook(look2, theme) {
+  const { themes, ...base } = look2;
+  const variant = theme && themes && Object.hasOwn(themes, theme) ? themes[theme] : void 0;
+  if (!variant) return base;
+  const out = { ...base };
+  for (const key of VARIANT_KEYS) if (variant[key] !== void 0) out[key] = variant[key];
+  return out;
+}
+function photoLookThemeKey(look2, selection) {
+  if (!look2.themes || !selection) return "base";
+  const chosen = new Set(typeof selection === "string" ? [selection] : Object.values(selection).filter((v) => typeof v === "string"));
+  for (const key of Object.keys(look2.themes).sort()) if (chosen.has(key)) return key;
+  return "base";
+}
+function canonical2(value) {
+  if (Array.isArray(value)) return `[${value.map(canonical2).join(",")}]`;
+  if (value && typeof value === "object") {
+    const rec2 = value;
+    return `{${Object.keys(rec2).sort().filter((k) => rec2[k] !== void 0).map((k) => `${JSON.stringify(k)}:${canonical2(rec2[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+function photoLookDefinitionHash(look2) {
+  const text8 = `${PHOTO_LOOK_RECIPE}|${canonical2(look2)}`;
+  let h = 2166136261;
+  for (let i = 0; i < text8.length; i += 1) {
+    h ^= text8.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
+}
+function photoLookCacheKey(baseId, version, look2, themeKey2) {
+  const source = baseId.startsWith("user/") ? "user" : "library";
+  return `${source}:${baseId}:${version}:look:${look2.id}:${photoLookDefinitionHash(look2)}:${themeKey2 || "base"}`;
+}
+function isRasterPhotoLook(look2) {
+  return look2?.kind === "gradient-map" || look2?.kind === "lut";
+}
+function photoLookToneTable(stops) {
+  const labs = stops.map((s) => {
+    const c = photoLookHex8(s.color) ?? [0, 0, 0];
+    return oklab8(c[0], c[1], c[2]);
+  });
+  const lut = new Float32Array(768);
+  const last = stops.length - 1;
+  for (let li = 0; li < 256; li += 1) {
+    const L = li / 255;
+    let o;
+    if (last < 1) o = labs[0] ?? [0, 0, 0];
+    else {
+      let k = 0;
+      while (k < last - 1 && L >= stops[k + 1].pos) k += 1;
+      o = segment(labs, stops, k, L);
+    }
+    const rgb = oklabToRgb01(o[0], o[1], o[2]);
+    lut[li * 3] = rgb[0];
+    lut[li * 3 + 1] = rgb[1];
+    lut[li * 3 + 2] = rgb[2];
+  }
+  return lut;
+}
+function segment(labs, stops, k, L) {
+  const a = labs[k], b = labs[k + 1];
+  const p0 = stops[k].pos, p1 = stops[k + 1].pos;
+  const span = p1 - p0;
+  let u = span > 0 ? (L - p0) / span : 1;
+  if (u < 0) u = 0;
+  else if (u > 1) u = 1;
+  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
+}
+function gradeTables(contrast3, lightness) {
+  const c = contrast3 < -100 ? -100 : contrast3 > 100 ? 100 : contrast3;
+  const light = (lightness < -100 ? -100 : lightness > 100 ? 100 : lightness) / 100;
+  if (!c && !light) return null;
+  const cf = 259 * (c + 255) / (255 * (259 - c));
+  const clut = new Uint8ClampedArray(256);
+  for (let v = 0; v < 256; v += 1) clut[v] = c ? cf * (v - 128) + 128 : v;
+  const unit2 = new Float64Array(256);
+  const linear = new Float64Array(256);
+  for (let v = 0; v < 256; v += 1) {
+    let n6 = clut[v];
+    if (light > 0) n6 += (255 - n6) * light;
+    else if (light < 0) n6 *= 1 + light;
+    unit2[v] = clamp0112(n6 / 255);
+    linear[v] = decodeSrgb(unit2[v]);
+  }
+  return { unit: unit2, linear };
+}
+function applyPhotoLook(rgba2, width, height, look2, opts = {}) {
+  if (!(rgba2 instanceof Uint8ClampedArray)) throw new Error("photo look: pixels must be a Uint8ClampedArray");
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 0 || height < 0 || rgba2.length !== width * height * 4)
+    throw new Error(`photo look: ${width}x${height} does not match ${rgba2.length} bytes of RGBA`);
+  const def = resolvePhotoLook(look2, opts.theme);
+  const amount = typeof def.amount === "number" && Number.isFinite(def.amount) ? (def.amount < 0 ? 0 : def.amount > 100 ? 100 : def.amount) / 100 : 1;
+  const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
+  const grade = gradeTables(finite7(def.contrast), finite7(def.lightness));
+  if (def.kind === "lut") {
+    if (!opts.lut) throw new Error(`photo look ${def.id}: the LUT ${def.lut ?? ""} was not supplied`);
+    if (grade) for (let i = 0; i < rgba2.length; i += 4) for (let k = 0; k < 3; k += 1) rgba2[i + k] = grade.unit[rgba2[i + k]] * 255;
+    if (amount > 0) applyLutFrame(rgba2, opts.lut, amount);
+    return;
+  }
+  if (def.kind === "gradient-map") {
+    gradientMap(rgba2, def, amount, grade);
+    return;
+  }
+  if (def.kind === "greyscale" || def.kind === "duotone") {
+    lumaMap(rgba2, def, amount, grade);
+    return;
+  }
+  throw new Error(`photo look ${String(def.id)}: unknown kind ${String(def.kind)}`);
+}
+function gradientMap(d, def, ta, grade) {
+  const stops = photoLookStops(def);
+  if (stops.length < 2) throw new Error(`photo look ${def.id}: a gradient map needs two stops`);
+  const tlut = photoLookToneTable(stops);
+  const lin = grade ? grade.linear : linear8();
+  const unit2 = grade ? grade.unit : null;
+  const keys2 = new Int32Array(LCACHE_SIZE).fill(-1);
+  const vals = new Float64Array(LCACHE_SIZE);
+  for (let i = 0; i < d.length; i += 4) {
+    const r5 = d[i], g2 = d[i + 1], b = d[i + 2];
+    const key = r5 << 16 | g2 << 8 | b;
+    const slot = (key ^ key >>> 13 ^ key >>> 7) & LCACHE_SIZE - 1;
+    let Lp;
+    if (keys2[slot] === key) Lp = vals[slot];
+    else {
+      Lp = oklabL(lin[r5], lin[g2], lin[b]);
+      keys2[slot] = key;
+      vals[slot] = Lp;
+    }
+    const lf = Lp <= 0 ? 0 : Lp >= 1 ? 255 : Lp * 255;
+    const i0 = lf | 0, fr = lf - i0, i1 = i0 < 255 ? i0 + 1 : i0, a0 = i0 * 3, a1 = i1 * 3, ifr = 1 - fr;
+    const tr = tlut[a0] * ifr + tlut[a1] * fr;
+    const tg = tlut[a0 + 1] * ifr + tlut[a1 + 1] * fr;
+    const tb = tlut[a0 + 2] * ifr + tlut[a1 + 2] * fr;
+    const r01 = unit2 ? unit2[r5] : r5 / 255, g01 = unit2 ? unit2[g2] : g2 / 255, b01 = unit2 ? unit2[b] : b / 255;
+    d[i] = (r01 + (tr - r01) * ta) * 255;
+    d[i + 1] = (g01 + (tg - g01) * ta) * 255;
+    d[i + 2] = (b01 + (tb - b01) * ta) * 255;
+  }
+}
+function lumaMap(d, def, ta, grade) {
+  const grey = def.kind === "greyscale";
+  const table = grey ? null : [def.shadow ?? "#000000", ...def.mid ? [def.mid] : [], def.highlight ?? "#ffffff"].map((c) => {
+    const v = photoLookHex8(c) ?? [0, 0, 0];
+    return [v[0] / 255, v[1] / 255, v[2] / 255];
+  });
+  const n6 = table ? table.length - 1 : 0;
+  for (let i = 0; i < d.length; i += 4) {
+    const r01 = grade ? grade.unit[d[i]] : d[i] / 255;
+    const g01 = grade ? grade.unit[d[i + 1]] : d[i + 1] / 255;
+    const b01 = grade ? grade.unit[d[i + 2]] : d[i + 2] / 255;
+    let tr, tg, tb;
+    if (!table) {
+      tr = tg = tb = clamp0112(0.213 * r01 + 0.715 * g01 + 0.072 * b01);
+    } else {
+      const y = clamp0112(0.2126 * r01 + 0.7152 * g01 + 0.0722 * b01);
+      const pos = y * n6;
+      const k = pos >= n6 ? n6 - 1 : pos | 0;
+      const u = pos - k;
+      const lo = table[k], hi = table[k + 1];
+      tr = lo[0] + (hi[0] - lo[0]) * u;
+      tg = lo[1] + (hi[1] - lo[1]) * u;
+      tb = lo[2] + (hi[2] - lo[2]) * u;
+    }
+    if (ta === 1) {
+      d[i] = tr * 255;
+      d[i + 1] = tg * 255;
+      d[i + 2] = tb * 255;
+      continue;
+    }
+    d[i] = (r01 + (tr - r01) * ta) * 255;
+    d[i + 1] = (g01 + (tg - g01) * ta) * 255;
+    d[i + 2] = (b01 + (tb - b01) * ta) * 255;
+  }
+}
+function photoLookPreviewTable(look2, count4 = 17) {
+  const stops = photoLookStops(look2);
+  if (stops.length < 2) return [];
+  const tlut = photoLookToneTable(stops);
+  const amount = typeof look2.amount === "number" && Number.isFinite(look2.amount) ? (look2.amount < 0 ? 0 : look2.amount > 100 ? 100 : look2.amount) / 100 : 1;
+  const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
+  const contrast3 = Math.max(-100, Math.min(100, finite7(look2.contrast)));
+  const light = Math.max(-100, Math.min(100, finite7(look2.lightness))) / 100;
+  const cf = 259 * (contrast3 + 255) / (255 * (259 - contrast3));
+  const graded = (s) => {
+    let n6 = s * 255;
+    if (contrast3) n6 = Math.max(0, Math.min(255, cf * (n6 - 128) + 128));
+    if (light > 0) n6 += (255 - n6) * light;
+    else if (light < 0) n6 *= 1 + light;
+    return clamp0112(n6 / 255);
+  };
+  const out = [];
+  for (let j = 0; j < count4; j += 1) {
+    const s = graded(count4 > 1 ? j / (count4 - 1) : 0);
+    const L = cubeRoot2(decodeSrgb(s));
+    const lf = L <= 0 ? 0 : L >= 1 ? 255 : L * 255;
+    const i0 = lf | 0, fr = lf - i0, i1 = i0 < 255 ? i0 + 1 : i0;
+    const pick = (c) => s + (tlut[i0 * 3 + c] * (1 - fr) + tlut[i1 * 3 + c] * fr - s) * amount;
+    out.push([pick(0), pick(1), pick(2)]);
+  }
+  return out;
+}
+var PHOTO_LOOK_RECIPE, LINEAR_8, clamp0112, HEX63, HEX3, VARIANT_KEYS, LCACHE_SIZE;
+var init_photo_look = __esm({
+  "engine/src/photo-look.ts"() {
+    "use strict";
+    init_grade();
+    PHOTO_LOOK_RECIPE = "photo-look-v1";
+    LINEAR_8 = null;
+    clamp0112 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+    HEX63 = /^#([0-9a-f]{6})$/i;
+    HEX3 = /^#([0-9a-f]{3})$/i;
+    VARIANT_KEYS = ["stops", "shadow", "mid", "highlight", "amount", "contrast", "lightness", "lut", "previewBg"];
+    LCACHE_SIZE = 1 << 16;
+  }
+});
+
+// engine/src/photo-treatment.ts
+function buildTreatedAssetId(baseId, treatmentId) {
+  if (!treatmentId) return baseId;
+  if (!TREATMENT_ID_RE2.test(treatmentId)) throw new Error(`Bad photo treatment id: ${treatmentId}`);
+  return `${baseId}${TREATMENT_SUFFIX2}${treatmentId}`;
+}
+function isValidTreatmentId(treatmentId) {
+  return typeof treatmentId === "string" && TREATMENT_ID_RE2.test(treatmentId);
+}
+function parsePhotoTreatmentsDoc(doc) {
+  if (!doc || !Array.isArray(doc.treatments)) return [];
+  return doc.treatments.filter(isPhotoTreatment);
+}
+function isPhotoTreatment(t) {
+  if (!t || !isValidTreatmentId(t.id)) return false;
+  const kind = t.kind;
+  const entry2 = t;
+  if (entry2.themes !== void 0 && !validThemes(entry2)) return false;
+  if (kind === "greyscale") return true;
+  if (kind === "duotone") return !!hexToUnitRgb(entry2.shadow) && !!hexToUnitRgb(entry2.highlight);
+  if (kind === "gradient-map") return validVariant(entry2) && validStops(entry2.stops, true);
+  if (kind === "lut") return validVariant(entry2) && validLutId(entry2.lut);
+  return false;
+}
+function validStops(stops, required) {
+  if (stops === void 0) return !required;
+  if (!Array.isArray(stops) || stops.length < 2 || stops.length > MAX_LOOK_STOPS) return false;
+  let last = -Infinity;
+  const n6 = stops.length;
+  for (let i = 0; i < n6; i += 1) {
+    const s = stops[i];
+    const color4 = typeof s === "string" ? s : s && typeof s === "object" ? s.color : void 0;
+    if (!hexToUnitRgb(color4)) return false;
+    const pos = s && typeof s === "object" ? s.pos : void 0;
+    if (pos !== void 0 && (typeof pos !== "number" || !Number.isFinite(pos) || pos < 0 || pos > 100)) return false;
+    const effective = typeof pos === "number" ? pos : i / (n6 - 1) * 100;
+    if (effective < last) return false;
+    last = effective;
+  }
+  return true;
+}
+function validLutId(id2) {
+  return typeof id2 === "string" && /^[a-z0-9][a-z0-9/_.-]*$/i.test(id2) && !id2.includes("://");
+}
+function validVariant(v) {
+  if (v.amount !== void 0 && (typeof v.amount !== "number" || !Number.isFinite(v.amount) || v.amount < 0 || v.amount > 100)) return false;
+  for (const key of ["contrast", "lightness"]) {
+    const n6 = v[key];
+    if (n6 !== void 0 && (typeof n6 !== "number" || !Number.isFinite(n6) || n6 < -100 || n6 > 100)) return false;
+  }
+  for (const key of ["shadow", "mid", "highlight", "previewBg"]) if (v[key] !== void 0 && !hexToUnitRgb(v[key])) return false;
+  if (v.lut !== void 0 && !validLutId(v.lut)) return false;
+  return validStops(v.stops, false);
+}
+function validThemes(t) {
+  const themes = t.themes;
+  if (!themes || typeof themes !== "object" || Array.isArray(themes)) return false;
+  const keys2 = Object.keys(themes);
+  if (keys2.length > MAX_LOOK_THEMES) return false;
+  return keys2.every((k) => {
+    const v = themes[k];
+    return THEME_KEY_RE.test(k) && !!v && typeof v === "object" && !Array.isArray(v) && !("themes" in v) && validVariant(v);
+  });
+}
+function treatmentFilterSvg(treatment, filterId) {
+  return `<filter id="${filterId}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">${treatmentFilterBody(treatment)}</filter>`;
+}
+function treatmentFilterBody(treatment) {
+  if (treatment.kind === "greyscale") {
+    return '<feColorMatrix type="saturate" values="0"/>';
+  }
+  if (treatment.kind === "lut") {
+    return '<feColorMatrix type="identity"/>';
+  }
+  if (treatment.kind === "gradient-map") {
+    const rows2 = photoLookPreviewTable(treatment);
+    const col = (i) => rows2.map((r5) => trim(r5[i])).join(" ");
+    return `<feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${col(0)}"/><feFuncG type="table" tableValues="${col(1)}"/><feFuncB type="table" tableValues="${col(2)}"/></feComponentTransfer>`;
+  }
+  const s = hexToUnitRgb(treatment.shadow) ?? [0, 0, 0];
+  const h = hexToUnitRgb(treatment.highlight) ?? [1, 1, 1];
+  const m2 = hexToUnitRgb(treatment.mid);
+  const table = (i) => m2 ? `${trim(s[i])} ${trim(m2[i])} ${trim(h[i])}` : `${trim(s[i])} ${trim(h[i])}`;
+  return `<feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${table(0)}"/><feFuncG type="table" tableValues="${table(1)}"/><feFuncB type="table" tableValues="${table(2)}"/></feComponentTransfer>`;
+}
+function wrapRasterWithTreatment({ href, width, height, treatment }) {
+  const fid = "t";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs>${treatmentFilterSvg(treatment, fid)}</defs><image width="${width}" height="${height}" preserveAspectRatio="none" href="${href}" filter="url(#${fid})"/></svg>`;
+}
+function hexToUnitRgb(hex3) {
+  if (typeof hex3 !== "string") return null;
+  const m2 = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex3.trim());
+  if (!m2) return null;
+  const h = m2[1].length === 3 ? m2[1].replace(/./g, (c) => c + c) : m2[1];
+  const n6 = parseInt(h, 16);
+  return [(n6 >> 16 & 255) / 255, (n6 >> 8 & 255) / 255, (n6 & 255) / 255];
+}
+function trim(v) {
+  return String(Math.round(v * 1e4) / 1e4);
+}
+var TREATMENT_ID_RE2, TREATMENT_SUFFIX2, MAX_LOOK_STOPS, MAX_LOOK_THEMES, THEME_KEY_RE;
+var init_photo_treatment = __esm({
+  "engine/src/photo-treatment.ts"() {
+    "use strict";
+    init_asset_modifiers();
+    init_asset_modifiers();
+    init_photo_look();
+    TREATMENT_ID_RE2 = /^[a-z0-9][a-z0-9-]*$/;
+    TREATMENT_SUFFIX2 = "?treatment=";
+    MAX_LOOK_STOPS = 16;
+    MAX_LOOK_THEMES = 16;
+    THEME_KEY_RE = /^[A-Za-z0-9][A-Za-z0-9 _./-]{0,63}$/;
   }
 });
 
@@ -132460,6 +132475,7 @@ __export(src_exports, {
   withTokenSelection: () => withTokenSelection,
   withTokenSourceValue: () => withTokenSourceValue,
   withVersionIndex: () => withVersionIndex,
+  withoutRunRefs: () => withoutRunRefs,
   woffToSfnt: () => woffToSfnt,
   wordTimingsFromDurations: () => wordTimingsFromDurations,
   workerRpcMethods: () => workerRpcMethods,
@@ -133852,16 +133868,23 @@ function themeSlotFills(filled2, candidates2) {
     return at < 0 ? SLOT_FILL_GROUPS.length : at;
   };
   const seen = /* @__PURE__ */ new Set();
-  const ordered = candidates2.map((c, index2) => ({ ...c, hex: c.hex.toUpperCase(), index: index2 })).filter((c) => /^[0-9A-F]{6}$/.test(c.hex)).sort((a, b) => rank(a.path) - rank(b.path) || a.index - b.index).filter((c) => seen.has(c.hex) ? false : (seen.add(c.hex), true));
+  const ordered = candidates2.map((c, index2) => ({ ...c, hex: c.hex.toUpperCase(), index: index2 })).filter((c) => /^[0-9A-F]{6}$/.test(c.hex)).sort((a, b) => rank(a.path) - rank(b.path) || a.index - b.index).filter((c) => {
+    if (seen.has(c.hex)) return false;
+    seen.add(c.hex);
+    return true;
+  });
   if (!ordered.length) return out;
   const used = new Set(filled2.values());
   if (!filled2.has("lt2")) {
-    const lt1 = filled2.get("lt1");
+    const lt1 = filled2.get("lt1") ?? "FFFFFF";
+    const rgb = (hex3) => [0, 2, 4].map((at) => Number.parseInt(hex3.slice(at, at + 2), 16));
+    const light = slotLuminance(lt1) >= 0.5;
     let best = null;
     for (const c of ordered) {
       if (c.hex === lt1) continue;
-      const lum = slotLuminance(c.hex);
-      if (lum >= 0.5 && (!best || lum > best.lum)) best = { hex: c.hex, lum };
+      if (slotLuminance(c.hex) >= 0.5 !== light) continue;
+      const gap = deltaEOkSrgb(rgb(c.hex), rgb(lt1));
+      if (!best || gap < best.gap) best = { hex: c.hex, gap };
     }
     const lt2 = best?.hex ?? lt1;
     if (lt2) {
@@ -134535,6 +134558,7 @@ var init_design_pptx = __esm({
     init_authored_url();
     init_path();
     init_spline();
+    init_brand_derive();
     init_pptx_deck();
     init_pptx_deck();
     SCHEME_SLOTS = [
@@ -140665,8 +140689,7 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
         }
       } else if (node.type === "table") {
         object4.table = node.rows.map((row) => [...row]);
-        content2 = object4.table.map((row) => row.join("")).join("
-");
+        content2 = object4.table.map((row) => row.join("")).join("");
       } else if (node.type === "pic" && node.svg) {
         const raster = node.media ? await store(node.media) : void 0;
         const svgBytes = bytesOf(parts, node.svg);
@@ -143783,7 +143806,7 @@ async function sampleContrastReviews(page3, value) {
           const large = size >= 24 || size >= 18.66 && weight >= 700;
           return { clip: { x: x0, y: y0, width: x1 - x0, height: y1 - y0 }, colours: [...seen.values()], minimum: large ? 3 : 4.5 };
         });
-        if (!geometry3 || !geometry3.colours.length) continue;
+        if (!geometry3?.colours.length) continue;
         const png = await page3.screenshot({ clip: geometry3.clip, animations: "disabled", caret: "hide", scale: "css", timeout: 3e4 });
         const pixels2 = await page3.evaluate(async (b64) => {
           const bin = atob(b64);
@@ -154240,7 +154263,6 @@ var init_design_compose2 = __esm({
     init_design_system2();
     init_text_measure();
     init_compose_photo_surface();
-    init_design_compose();
     DesignComposeError = class extends Error {
       code;
       constructor(code, message) {
@@ -158485,7 +158507,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       return assetById.has(parseThemedAssetId(id2).baseId);
     },
     // The user-image library (device upload → downscale → IndexedDB) is a GUI
-    // concern. The CLI is ephemeral and headless, so it has no user images -
+    // concern. The CLI is ephemeral and headless, so it has no user images - 
     // these stubs keep the internal surface consistent with the web bridge.
     async _listUserAssets() {
       return [];
