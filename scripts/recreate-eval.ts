@@ -179,6 +179,7 @@ export interface RecreateFileScoreV1 {
   outcome?: CheckReportV1['outcome'];
   summary?: CheckReportV1['summary'];
   families?: Record<string, string>;
+  familyReasons?: Record<string, string>;
   /** The check families that failed to run on this file, with the reason each gave. */
   failedFamilies?: Record<string, string>;
   slides?: { source: number; result: number };
@@ -870,6 +871,7 @@ export async function scoreRecreation(opts: ScoreRecreationOptionsV1): Promise<R
         outcome: report.outcome,
         summary: report.summary,
         families: Object.fromEntries(Object.entries(report.families).map(([family, state]) => [family, state.state])),
+        familyReasons: Object.fromEntries(Object.entries(report.families).flatMap(([family, state]) => state.reason ? [[family, state.reason]] : [])),
         ...(() => {
           const failed = Object.entries(report.families).filter(([, state]) => state.state === 'failed');
           return failed.length ? { failedFamilies: Object.fromEntries(failed.map(([family, state]) => [family, state.reason ?? 'no reason given'])) } : {};
@@ -1010,7 +1012,7 @@ export async function scoreRecreation(opts: ScoreRecreationOptionsV1): Promise<R
     { id: 'verifyFindings', pass: files.length > 0 && files.every(f => f.families?.verify === 'ran') && reported.verifyFindings === 0, detail: `${reported.verifyFindings} Verify findings; ${files.filter(f => f.families?.verify !== 'ran').length} files without a Verify check` },
     { id: 'houseRuleFindings', pass: files.length > 0 && files.every(f => f.families?.brand === 'ran') && reported.houseRuleFindings === 0, detail: `${reported.houseRuleFindings} house-rule findings; ${files.filter(f => f.families?.brand !== 'ran').length} files without a brand check` },
     { id: 'clippedText', pass: files.length > 0 && reported.clippedText === 0, detail: `${reported.clippedText} clipped text layers` },
-    { id: 'rendered', pass: lollies.length > 0 && notPainted.length === 0, detail: notPainted.length ? notPainted.map((f) => `${f.name} (${f.theme}): render ${f.families?.render ?? 'not run'}, reopen ${f.reopen?.state ?? 'not run'}`).join('; ') : 'every document theme was painted and reopened' },
+    { id: 'rendered', pass: lollies.length > 0 && notPainted.length === 0, detail: notPainted.length ? notPainted.map((f) => `${f.name} (${f.theme}): render ${f.families?.render ?? 'not run'}, reopen ${f.reopen?.state ?? 'not run'}${f.familyReasons?.render ? `; ${f.familyReasons.render}` : ''}`).join('; ') : 'every document theme was painted and reopened' },
     { id: 'themeGrounds', pass: files.length > 0 && reported.themeGroundMismatches === 0, detail: `${reported.themeGroundMismatches} theme-ground mismatches` },
     { id: 'noteLines', pass: files.length > 0 && noteChanges === 0, detail: `${noteChanges} changed note paragraphs or line breaks` },
     { id: 'fidelityEdits', pass: files.length > 0 && fidelityEdits === 0, detail: `${fidelityEdits} undeclared or unmatched edits` },

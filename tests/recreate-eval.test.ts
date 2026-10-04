@@ -598,6 +598,7 @@ test('acceptance refuses a document whose render and reopen did not run, separat
   assert.equal(score.pass, false);
   assert.equal(gate(score, 'rendered').pass, false);
   assert.match(gate(score, 'rendered').detail, /render skipped, reopen not run/);
+  assert.match(gate(score, 'rendered').detail, /browser tier was turned off/);
   assert.equal(gate(score, 'oneDocument').pass, false);
   assert.equal(gate(score, 'noScaffolding').pass, false);
   assert.match(gate(score, 'noScaffolding').detail, /build.js/);
