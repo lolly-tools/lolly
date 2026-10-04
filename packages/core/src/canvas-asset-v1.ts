@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Portable asset references on the canvas scalar lane. URLs and bytes stay local. */
-import type { AssetRef } from './host-v1.ts';
+import type { AssetRef } from './host-v1/asset-ref.ts';
 
 const PREFIX = 'lolly-asset-v1:';
 const TYPES = new Set(['raster', 'vector', 'video', 'audio', 'lottie', 'font', 'data', 'model', 'radiance']);
