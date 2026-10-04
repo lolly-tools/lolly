@@ -115,13 +115,6 @@
       "owner": "services/mcp"
     },
     {
-      "file": "services/mcp/test/design-authoring.browser.test.ts",
-      "fullName": "lolly_render draws an add.layer carrying $in and $points",
-      "reason": "set LOLLY_BROWSER_CHANNEL=chrome or LOLLY_BROWSER_PATH to render through the browser tier",
-      "capability": "browser",
-      "owner": "services/mcp"
-    },
-    {
       "file": "shells/web/src/asset-index-dev.test.ts",
       "fullName": "a profile switch is a miss, even though both profiles share the newest input",
       "reason": "brands/suse is not checked out, so there is no second profile to switch to",
