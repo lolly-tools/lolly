@@ -208,6 +208,18 @@ jobs:
           } finally { await browser.close(); }
           JS
 
+      - name: Check browser entry points before the full suite
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_TIER_B_DEBUG: '1'
+        run: |
+          set -o pipefail
+          node --import ./tests/css-stub.mjs --test --test-concurrency=1 \
+            services/mcp/test/motion-samples.browser.test.ts \
+            tests/design-theme.browser.test.ts \
+            tests/open-route.browser.test.ts 2>&1 | tee artifacts/browser-readiness.log
+
       - name: Install Rust toolchain (Tauri shard)
         if: matrix.shard == 'tauri'
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
@@ -260,6 +272,7 @@ jobs:
           # Software rendering and video/JXL encoding use several threads per file.
           # Keep timed browser workloads serial on this shared CPU/GPU runner.
           LOLLY_TEST_CONCURRENCY: ${{ matrix.shard == 'browser' && '1' || '' }}
+          LOLLY_TIER_B_DEBUG: ${{ matrix.shard == 'browser' && '1' || '' }}
         run: |
           set -o pipefail
           mkdir -p artifacts
@@ -285,6 +298,10 @@ jobs:
           path: |
             artifacts/test-skips.json
             artifacts/public-journey-shell.log
+            artifacts/public-render-shell.log
+            artifacts/public-journey-build.log
+            artifacts/browser-readiness.log
+            lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error
 
