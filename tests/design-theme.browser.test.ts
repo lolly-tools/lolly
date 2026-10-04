@@ -83,7 +83,9 @@ test('a saved theme reaches the address and canvas on reopen, and the Document c
           const leaf = canvas && [...canvas.querySelectorAll<HTMLElement>('*')].find((el) => el.children.length === 0 && el.textContent === 'Theme probe');
           const hash = location.hash;
           const query = hash.startsWith('#/') ? hash.slice(hash.indexOf('?') + 1) : location.search.slice(1);
-          return !!leaf && getComputedStyle(leaf).color === colour && new URLSearchParams(query).get('_themes') === choice;
+          const brandText = canvas ? getComputedStyle(canvas).getPropertyValue('--brand-text').trim() : '';
+          return !!leaf && getComputedStyle(leaf).color === colour && new URLSearchParams(query).get('_themes') === choice
+            && brandText === (choice === '{"":"dark"}' ? '#ffffff' : '#1d1d1d');
         }, [want, theme] as const);
       };
 
