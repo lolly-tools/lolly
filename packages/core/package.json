@@ -15,6 +15,7 @@
     "./collab-presence-v1": "./src/collab-presence-v1.ts",
     "./canvas-interaction-v1": "./src/canvas-interaction-v1.ts",
     "./canvas-review-v1": "./src/canvas-review-v1.ts",
+    "./canvas-asset-v1": "./src/canvas-asset-v1.ts",
     "./canvas-op-v1": "./src/canvas-op-v1.ts",
     "./canvas-op-testkit": "./src/canvas-op-testkit.ts",
     "./preflight": "./src/preflight.ts",
