@@ -1093,7 +1093,6 @@
   "shells/web/src/lib/zip.ts": 1,
   "shells/web/src/locales.test.ts": 2,
   "shells/web/src/main.ts": 38,
-  "shells/web/src/org/banner.ts": 2,
   "shells/web/src/org/collab-handle.test.ts": 4,
   "shells/web/src/org/collab-handle.ts": 6,
   "shells/web/src/org/collab-protocol.ts": 7,
