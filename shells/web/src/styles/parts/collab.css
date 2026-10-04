@@ -217,3 +217,72 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
     transform: translateY(calc(var(--chrome-h) + 8px));
   }
 }
+.collab-recovery {
+  position: absolute;
+  inset-inline: 12px;
+  bottom: 12px;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  padding: 8px 12px;
+  border-radius: var(--ui-radius-surface);
+  background: var(--ui-color-surface-raised);
+  color: hsl(var(--foreground));
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
+}
+.collab-recovery[hidden] { display: none; }
+.collab-comments-open {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
+  z-index: 40;
+}
+.collab-comments-open--docked {
+  position: static;
+  flex: none;
+  min-height: var(--chrome-h);
+}
+.collab-pill:has(> .collab-comments-open--docked) {
+  max-width: calc(100% - var(--chrome-inset) * 2 - var(--collab-pill-offset, 0px));
+  flex-wrap: wrap;
+  transform: translateY(var(--design-topbar-h, 0px));
+}
+@media (min-width: 641px) {
+  #tool-layout.is-editor:not(.is-document) .collab-pill:has(> .collab-comments-open--docked) {
+    transform: translateY(max(var(--design-topbar-h, 0px), calc(var(--chrome-h) + 8px)));
+  }
+}
+.collab-comments-panel {
+  position: absolute;
+  top: 48px;
+  bottom: 12px;
+  inset-inline-end: 12px;
+  width: min(360px, calc(100% - 24px));
+  overflow: auto;
+  z-index: 45;
+  border-radius: var(--ui-radius-surface);
+  padding: 12px;
+  background: var(--ui-color-surface-raised);
+  color: hsl(var(--foreground));
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet);
+}
+.collab-comments-panel[hidden], .collab-comments-open[hidden] { display: none; }
+.collab-comment-list { display: grid; gap: 4px; margin-block: 12px; }
+.collab-comment-list button { text-align: start; white-space: normal; }
+.collab-comment-messages p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.collab-comment-composer textarea { display: block; box-sizing: border-box; width: 100%; }
+.collab-comment-pins { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
+.collab-comment-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  border-radius: var(--radius-round);
+  min-width: 28px;
+  min-height: 28px;
+  background: #6554c0;
+  color: white;
+}

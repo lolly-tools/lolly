@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { Presence } from './canvas-op-v1.ts';
+import { readCanvasPreview, type CanvasPreview } from './canvas-interaction-v1.ts';
 
 /** Presence is ephemeral; its version and sequence are independent of edit clocks. */
 export const PRESENCE_VERSION = 1;
@@ -7,6 +8,7 @@ export type PresenceState = Omit<Presence, 'cursor' | 'selection'> &
   Partial<Pick<Presence, 'cursor' | 'selection'>> & {
     /** Unit coordinates in the named document surface, before its view transform. */
     readonly surface?: { readonly id: string; readonly space: 'unit' };
+    readonly preview?: CanvasPreview;
   };
 export interface PresenceFrame {
   readonly v?: number;
@@ -54,6 +56,8 @@ export function sanitizePresenceState(raw: unknown, identity?: { userId: string;
     out.viewport = { x: s.viewport.x, y: s.viewport.y, zoom: s.viewport.zoom };
   if (object(s.drag) && Array.isArray(s.drag.dxy) && finite(s.drag.dxy[0], -1e6, 1e6) && finite(s.drag.dxy[1], -1e6, 1e6))
     out.drag = { ids: ids(s.drag.ids), dxy: [s.drag.dxy[0], s.drag.dxy[1]] };
+  const preview = readCanvasPreview(s.preview);
+  if (preview) out.preview = preview;
   return out;
 }
 

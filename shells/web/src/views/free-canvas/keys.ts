@@ -241,6 +241,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
   // Escape - the reported "Esc does not leave point editing". A floating surface that is
   // no longer in the document is not a rung.
   if (e.key === 'Escape') {
+    if (fc.gesture) { e.preventDefault(); fc.gestures.cancelGesture(); return; }
     // Rung 1 stays the colour popover - it is the innermost surface, and it can be
     // open over the gradient panel while picking a stop's brand swatch.
     if (stageEl.querySelector('.color-popover:not([hidden])') && fc.document.dismissFloating()) {

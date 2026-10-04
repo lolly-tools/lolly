@@ -58,8 +58,11 @@ describe('Agenda browser presentation', { skip }, () => {
         const first = sample(.2); sample(.8); return first === sample(.2);
       }), true);
       await page.emulateMedia({ reducedMotion: 'reduce' });
-      await page.waitForFunction(() => getComputedStyle(document.querySelector('.ag-title-text')!).whiteSpace === 'normal');
-      assert.equal(await page.locator('.ag-title-text').first().evaluate(n => getComputedStyle(n).transform), 'none');
+      await page.waitForFunction(() => {
+        // Playback replaces title nodes; read both styles from the current node.
+        const style = getComputedStyle(document.querySelector('.ag-title-text')!);
+        return style.whiteSpace === 'normal' && style.transform === 'none';
+      });
     } finally { await page.close(); }
   });
 

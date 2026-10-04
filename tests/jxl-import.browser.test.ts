@@ -68,7 +68,10 @@ test('Design keeps a JXL original through export, history and fresh-profile port
     // Native PNG encoding and canvas readback can round translucent colour differently.
     assert.ok(colourDelta <= 1, `translucent colour differs by ${colourDelta} levels`);
     await page.reload({ waitUntil: 'networkidle' }); await visibleImage();
-    await page.getByRole('button', { name: 'Share', exact: true }).first().click();
+    // The restored export panel also carries Share and can hide while the inspector
+    // mounts. Target the Design toolbar instead of whichever Share appears first.
+    await page.getByRole('toolbar', { name: 'Design tools', exact: true })
+      .getByRole('button', { name: 'Share', exact: true }).click();
     const [portable] = await Promise.all([page.waitForEvent('download'), page.locator('[data-lolly-download]').click()]);
     const archive = await readFile((await portable.path())!);
     const sources = readZip(archive).filter(entry => isJxl(entry.bytes));

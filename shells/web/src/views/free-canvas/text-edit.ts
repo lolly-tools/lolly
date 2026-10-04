@@ -20,6 +20,7 @@ import type { EmojiRuntime } from '../emoji-mount.ts';
 import { FC_CLIP_PREFIX, H_JUSTIFY, V_ALIGN, boolOf, featureSettings } from './shared.ts';
 import type { EditingState, FmtBar, FmtRefs } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { claimCanvasText, finishCanvasText } from './collaboration.ts';
 import { parseWebEmbed } from '../../../../../engine/src/web-embed.ts';
 import { consentToLink, lollyToolRef } from '../../lib/design-web-mount.ts';
 
@@ -237,6 +238,7 @@ export function startTextEdit(fc: FcCtx, id: string, opts: { selectAll?: boolean
     return;
   }
   if (fc.editing) commitTextEdit(fc);
+  if (!claimCanvasText(fc, id, () => startTextEdit(fc, id, opts))) return;
   if (fc.cv.textStoryField && fc.select.getBoxes().find(box => box[fc.cfg.idField] === id)?.[fc.cv.textStoryField]) { fc.storyText.start(id, opts); return; }
   const el = canvasEl.querySelector<HTMLElement>(
     `.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"] .lolly-box-text`
@@ -386,10 +388,11 @@ export function onEditBlur(fc: FcCtx, e: FocusEvent): void {
   if (e?.relatedTarget && fc.fmtbar?.contains(e.relatedTarget as Node)) return;
   commitTextEdit(fc);
 }
-export function finishEdit(fc: FcCtx): EditingState | null {
+export function finishEdit(fc: FcCtx, committed = false): EditingState | null {
   if (fc.editing?.composed) { const done = fc.editing; fc.storyText.finish(); return done; }
   const { stageEl } = fc;
   if (!fc.editing) return null;
+  finishCanvasText(fc, committed);
   const done = fc.editing;
   done.disposeEmojiDisplay?.();
   fc.editing = null;
@@ -445,7 +448,7 @@ export function commitTextEdit(fc: FcCtx): void {
     const boxNativeH = parseFloat(done.boxEl.style.height) || 0;
     if (boxNativeH && needed > boxNativeH + 1) grownH = needed;
   }
-  finishEdit(fc);
+  finishEdit(fc, changed);
   if (i < 0) {
     fc.chromeSync.renderChrome();
     return;

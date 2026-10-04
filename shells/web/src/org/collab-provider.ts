@@ -41,6 +41,9 @@ import {
   sanitizeOps,
   withoutHeldKeys,
 } from './collab-protocol.ts';
+import { createWorkClaims } from './collab-claims.ts';
+import { claimCoversOp } from '@lolly-tools/core/canvas-interaction-v1';
+import type { CanvasClaimCapability } from '../lib/canvas-interaction.ts';
 import type {
   ClientFrame,
   CollabPresencePayload,
@@ -85,6 +88,7 @@ export interface WorkCollabState {
 }
 
 export type WorkCollabEvent =
+  | { readonly kind: 'recovery'; readonly id: string; readonly ops: readonly CanvasOp[] }
   | { readonly kind: 'state'; readonly state: WorkCollabState }
   /** Ops for the runtime: remote peers' ops, and the `join-ack` snapshot seed.
    *  Never this device's own ops. Feed straight into `attachCollabPlumbing`'s
@@ -238,6 +242,9 @@ function floorFilter(ops: readonly CanvasOp[]): CanvasOp[] {
 }
 
 export interface WorkCollabHandle {
+  readonly claims?: CanvasClaimCapability;
+  recovery?(): { id: string; ops: readonly CanvasOp[] } | undefined;
+  recoveries?(): readonly { id: string; ops: readonly CanvasOp[] }[];
   readonly clientId?: string;
   readonly sessionId: string;
   readonly history?: CollabHistoryCapability;
@@ -387,7 +394,7 @@ export function defaultOutboxStore(): CollabOutboxStore {
 
 
 interface Queued {
-  readonly op: CanvasOp & { deliveryId?: string };
+  readonly op: CanvasOp & { deliveryId?: string; claimId?: string };
   /** Written to an open socket at least once. See the header's retirement rules. */
   sent: boolean;
   saved: boolean;
@@ -437,6 +444,13 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
   let localSaveFailed = false;
   let outboxReadFailed = false;
   let outboxKey: string | null = null;
+  let recovery: { id: string; ops: readonly CanvasOp[] } | undefined;
+  let recoveryArchives: CanvasOp[] = [];
+  const recoveries: { id: string; ops: readonly CanvasOp[] }[] = [];
+  let recoveryChain: Promise<void> = Promise.resolve();
+  let savingRecovery = false;
+  const archivedReceipts = new WeakSet<object>();
+  const recoveryFrames: ServerFrame[] = [];
 
   // - events - 
 
@@ -539,7 +553,11 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     // would refuse them, so persisting them would only replay a refusal forever.
     // A dead session's writes have nowhere to go at all.
     if (role === 'observer' || dead || !ops.length) return;
-    for (const op of ops) outbox.push({ op: { ...op, deliveryId: (op as Queued['op']).deliveryId ?? globalThis.crypto.randomUUID() }, sent: false, saved: false });
+    for (const op of ops) {
+      const claim = claims.list().find(c => c.owner === self?.id && claimCoversOp(c.target, op));
+      outbox.push({ op: { ...op, deliveryId: (op as Queued['op']).deliveryId ?? globalThis.crypto.randomUUID(),
+        ...(claim ? { claimId: claim.id } : {}) }, sent: false, saved: false });
+    }
     trim();
     persist();
   }
@@ -555,9 +573,10 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
       return false;
     }
   }
+  const claims = createWorkClaims(frame => status === 'live' && post(frame));
 
   // `sent` tracks this socket delivery only. A durable receipt retires an entry.
-  const wireOp = (op: Queued['op']): CanvasOp => { const { deliveryId: _id, ...value } = op; return value as CanvasOp; };
+  const wireOp = (op: Queued['op']): CanvasOp => { const { deliveryId: _id, claimId: _claim, ...value } = op; return value as CanvasOp; };
   const inflight = new Map<string, Set<string>>();
   let windowOps = 0, windowUntil = 0;
   let pumpTimer: unknown = null;
@@ -575,12 +594,19 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     if (!durableReceipts || !entries.length) return delivered;
     let i = 0;
     if (Date.now() >= windowUntil) { windowOps = 0; windowUntil = Date.now() + 1050; }
-    for (const chunk of chunkOps(entries.map((e) => wireOp(e.op)))) {
+    const groups: Queued[][] = [];
+    for (const entry of entries) {
+      const last = groups[groups.length - 1];
+      if (last && last[0]!.op.claimId === entry.op.claimId) last.push(entry);
+      else groups.push([entry]);
+    }
+    for (const chunk of groups.flatMap(group => chunkOps(group.map(e => wireOp(e.op))))) {
       if (windowOps + chunk.length > MAX_OPS_PER_FRAME) { deferPump(); return delivered; }
       const ids = entries.slice(i, i + chunk.length).map(e => e.op.deliveryId!);
       const batchId = `${ids[0]}:${ids[ids.length - 1]}`;
       inflight.set(batchId, new Set(ids));
-      if (!post({ t: 'ops', batchId, ids, ops: chunk })) { inflight.delete(batchId); return delivered; }
+      const claimId = entries[i]?.op.claimId;
+      if (!post({ t: 'ops', batchId, ids, ops: chunk, ...(claimId ? { claimId } : {}) })) { inflight.delete(batchId); return delivered; }
       windowOps += chunk.length;
       for (let n = 0; n < chunk.length; n++) {
         const entry = entries[i + n]!;
@@ -639,7 +665,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
 
   function join(): void {
     setStatus('joining');
-    post({ t: 'join', opVersion: COLLAB_OP_VERSION, presenceVersion: 1, receipts: 1 });
+    post({ t: 'join', opVersion: COLLAB_OP_VERSION, presenceVersion: 1, receipts: 1, interactionVersion: 1 });
   }
 
   /** Keep the local Lamport clock above every observed edit after rebuilding. */
@@ -736,7 +762,13 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
   // - inbound - 
 
   function handle(frame: ServerFrame): void {
+    if (savingRecovery) {
+      if (recoveryFrames.length < 500) recoveryFrames.push(frame);
+      else sock?.close(COLLAB_CLOSE.PROTOCOL);
+      return;
+    }
     switch (frame.t) {
+      case 'claims': case 'claim-result': claims.receive(frame); return;
       case 'receipt': {
         if (!Number.isSafeInteger(frame.durableRevision) || frame.durableRevision < 1
           || !Array.isArray(frame.acceptedIds) || !Array.isArray(frame.rejectedIds)) return;
@@ -745,6 +777,33 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
           || [...frame.acceptedIds, ...frame.rejectedIds].some(id => !sent.has(id))) return;
         const ids = new Set([...frame.acceptedIds, ...frame.rejectedIds]);
         if (ids.size !== sent.size) return;
+        if (frame.rejectedIds.length && !archivedReceipts.has(frame)) {
+          // Archive the optimistic document before its rejected IDs retire or a
+          // checkpoint refreshes the canvas. The archive is scoped to the account, instance and room.
+          const ops = docStateToOps(docStateToWire(doc.state()), { client: SEED_CLIENT, clock: 0 })
+            .map(op => ({ ...op, deliveryId: globalThis.crypto.randomUUID() }));
+          const copy = { id: ops[0]?.deliveryId ?? globalThis.crypto.randomUUID(), ops };
+          savingRecovery = true;
+          recoveryChain = persistChain.then(async () => {
+            const archive: CanvasOp = { k: 'param', key: `recovery:${copy.id}`, value: JSON.stringify(ops), origin: { client: SEED_CLIENT, clock: 0 } };
+            const next = [...recoveryArchives, { ...archive, deliveryId: copy.id }].slice(-8);
+            while (next.length > 1 && JSON.stringify(next).length > 16_000_000) next.shift();
+            await store.save(`${await keyFor()}:recovery`, next);
+            recoveryArchives = next; recoveries.push(copy); if (recoveries.length > 8) recoveries.shift();
+            recovery = copy; emit({ kind: 'recovery', ...copy });
+            archivedReceipts.add(frame); savingRecovery = false;
+            if (ended) { recoveryFrames.length = 0; return; }
+            handle(frame);
+            while (!savingRecovery && recoveryFrames.length) handle(recoveryFrames.shift()!);
+          }).catch(() => {
+            savingRecovery = false; recoveryFrames.length = 0;
+            localSaveFailed = true; role = 'observer'; dead = true; reason = 'recovery-save-failed';
+            claims.disconnect(); setStatus('closed');
+            emit({ kind: 'error', code: reason, message: 'Interrupted edits could not be saved on this device. Save a copy before reopening.' });
+            sock?.close(COLLAB_CLOSE.NORMAL);
+          });
+          return;
+        }
         inflight.delete(frame.batchId);
         const keep = outbox.filter(e => !ids.has(e.op.deliveryId!));
         if (keep.length !== outbox.length) {
@@ -763,6 +822,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
       }
       case 'join-ack':
         onJoinAck(frame);
+        if (status === 'live') claims.join(frame.interactionVersion, frame.claims, self?.id);
         return;
       case 'ops': {
         // Admitted BEFORE anything below can touch `doc` (section 11.21) - including the
@@ -950,6 +1010,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     s.onerror = () => { /* a close always follows; nothing useful to report here */ };
     s.onclose = (ev) => {
       if (sock !== s) return;
+      claims.disconnect();
       stopPump();
       detachSocket(s);
       sock = null;
@@ -1018,6 +1079,9 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
   return {
     sessionId,
     clientId,
+    claims,
+    recovery: () => recovery,
+    recoveries: () => recoveries,
     history: opts.history,
     adapter,
     snapshot: () => ({ ops: docStateToOps(docStateToWire(doc.state()), { client: SEED_CLIENT, clock: 0 }), clock: clockCeiling }),
@@ -1032,6 +1096,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     close(): void {
       if (ended) return;
       ended = true;
+      claims.disconnect();
       dead = true;
       stopPump();
       if (timer !== null) { clearTimer(timer); timer = null; }
@@ -1056,7 +1121,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     },
     sendPresence,
     outbox: () => outbox.map((e) => wireOp(e.op)),
-    persisted: () => persistChain,
+    persisted: async () => { await persistChain; await recoveryChain; await persistChain; },
   };
 
   async function runConnect(): Promise<void> {
@@ -1065,7 +1130,18 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
       // A store that throws must not stop the session opening - the outbox is a
       // durability nicety, the socket is the feature.
       let stored: CanvasOp[] | null;
-      try { stored = await store.load(await keyFor()); }
+      try {
+        stored = await store.load(await keyFor());
+        recoveryArchives = sanitizeOps(await store.load(`${await keyFor()}:recovery`)).slice(-8);
+        for (const archive of recoveryArchives) {
+          if (archive.k !== 'param' || !archive.key.startsWith('recovery:') || typeof archive.value !== 'string' || archive.value.length > 16_000_000) continue;
+          let ops: CanvasOp[];
+          try { ops = sanitizeOps(JSON.parse(archive.value)); } catch { continue; }
+          if (!ops.length) continue;
+          recovery = { id: archive.key.slice('recovery:'.length), ops };
+          recoveries.push(recovery); emit({ kind: 'recovery', ...recovery });
+        }
+      }
       catch {
         outboxReadFailed = true; localSaveFailed = true; role = 'observer'; dead = true;
         reason = 'outbox-load-failed'; setStatus('closed');

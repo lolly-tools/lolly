@@ -40,9 +40,12 @@
  * with the document it decorates.
  */
 
+import { canvasRecoveryValues, retainCanvasRecovery } from '../lib/canvas-recovery.ts';
+import { mountCollabRecovery } from './tool-collab-recovery.ts';
 import { surfaceMapping } from '../lib/collab-surface-geometry.ts';
 import { collabSurface, surfacePresence } from '../lib/collab-surface.ts';
 import type { CanvasOp } from '@lolly-tools/core/canvas-op-v1';
+import { tRaw } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createCollabFocus } from '../components/collab-focus.ts';
 import type { CollabFocus } from '../components/collab-focus.ts';
@@ -60,6 +63,8 @@ import type {
   CollabToolManifest,
 } from '../lib/collab-session.ts';
 import { livePalette } from '../lib/live-palette.ts';
+import { mountCanvasComments } from './tool-canvas-comments.ts';
+import { mountCanvasInteractions } from './tool-canvas-interactions.ts';
 
 /** Gap between the collab pill and whatever else owns the stage's top lane. */
 export const PILL_LANE_GAP_PX = 8;
@@ -321,6 +326,10 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     // and returns null rather than mounting inside the render surface (see the header).
     const layer: OverlayLayer | null = mountOverlayLayer(canvas, stage);
     steps.unshift(() => layer?.unmount());
+    const interactions = layer && mountCanvasInteractions(runtime, handle, session, layer.el);
+    steps.unshift(() => interactions?.teardown());
+    const comments = handle.comments && layer && mountCanvasComments(runtime, handle.comments, stage, canvas, layer.el, interactions?.geometry);
+    steps.unshift(() => comments?.teardown());
 
     const focus: CollabFocus = createCollabFocus({
       sidebar,
@@ -423,6 +432,12 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       return { state, ...(manifest?.name ? { label: manifest.name } : {}) };
     };
 
+    const recoveryView = mountCollabRecovery(runtime, opts.libraryHost ?? opts.host, stage, currentSession);
+    steps.unshift(() => recoveryView.teardown());
+    if (handle.recoveryIn) steps.unshift(handle.recoveryIn.subscribe(copy => {
+      retainCanvasRecovery(runtime, canvasRecoveryValues(runtime.getModel(), copy.ops), 'Recovered edit', copy.id);
+    }));
+
     // Both hosts are WEB-BRIDGE slices (`_exportUserAssets` and friends), wider than the
     // tool-facing HostV1 this module is typed against - the same structural cast
     // `lib/data-transfer.ts` makes for a backup.
@@ -450,13 +465,21 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       ...(beam ? { actions: beam.actions } : {}),
     });
     steps.unshift(() => pill.destroy());
+    comments?.dockControls(pill.el);
     if (handle.saveIn) {
       const status = canvas.ownerDocument.createElement('span');
       status.className = 'collab-save-status';
       status.setAttribute('role', 'status');
       status.style.paddingInline = '0.5em';
       pill.el.appendChild(status);
-      const stop = handle.saveIn.subscribe(state => { status.textContent = state.message; });
+      const stop = handle.saveIn.subscribe(state => {
+        status.textContent = state.message;
+        if (state.retry) {
+          const retry = canvas.ownerDocument.createElement('button');
+          retry.type = 'button'; retry.textContent = tRaw('Retry image transfer');
+          retry.addEventListener('click', state.retry); status.appendChild(retry);
+        }
+      });
       steps.unshift(() => { stop(); status.remove(); });
     }
 
@@ -478,6 +501,8 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
      * on their chip rather than a blank one.
      */
     const paint = (state: CollabSessionState): void => {
+      if (state.connection === 'closed') comments?.endAccess();
+      else comments?.reanchor();
       const cursorOf = new Map(session.presence.roster().map(p => [p.id, p.state.cursor]));
       const peers = state.peers.map(p => ({
         id: p.clientId,
@@ -563,6 +588,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
        */
       reanchor(): void {
         syncSurface();
+        interactions?.reanchor(); comments?.reanchor();
         try { focus.reanchor(); } catch (e) { console.warn('[lolly:collab] focus reanchor', e); }
         try { cursors.reanchor(); } catch (e) { console.warn('[lolly:collab] cursor reanchor', e); }
         try { syncPillLane(); } catch (e) { console.warn('[lolly:collab] pill lane', e); }

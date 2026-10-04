@@ -186,7 +186,7 @@ test('join is sent on open, and join-ack takes the session live as a writer', as
 
   h.socket().opened();
   assert.equal(h.handle.state().status, 'joining');
-  assert.deepEqual(h.socket().framesOfType('join'), [{ t: 'join', opVersion: '1.1.0', presenceVersion: 1, receipts: 1 }]);
+  assert.deepEqual(h.socket().framesOfType('join'), [{ t: 'join', opVersion: '1.1.0', presenceVersion: 1, receipts: 1, interactionVersion: 1 }]);
 
   h.socket().deliver({
     t: 'join-ack', receipts: 1, roster: [{ id: 'c1', userId: 'u1', name: 'Priya' }], docState: null,
@@ -1064,4 +1064,42 @@ test('an accepted retry reconciles a newer REST save while retaining other pendi
   assert.ok(h.events.findLast(e => e.kind === 'ops' && e.snapshot));
   assert.equal(h.events.some(e => e.kind === 'error'), false);
   h.handle.close();
+});
+
+test('rejected edits are archived before their journal IDs retire, and survive reopening for the same account', async () => {
+  const store = memoryStore(), h = await harness({ store, principal: 'alice' }); joinNow(h);
+  h.handle.adapter.apply(param('title', 'My interrupted draft', 'dev-a', 1));
+  await h.handle.persisted();
+  const sent = h.socket().framesOfType('ops')[0]!;
+  let finish!: () => void;
+  const save = store.save;
+  store.save = async (key, ops) => { if (key.endsWith(':recovery')) await new Promise<void>(resolve => { finish = resolve; }); await save(key, ops); };
+  h.socket().deliver({ t: 'receipt', batchId: sent.batchId, acceptedIds: [], rejectedIds: sent.ids, durableRevision: 1 });
+  for (let i = 0; i < 12; i++) await Promise.resolve();
+  assert.equal(h.handle.state().pending, 1, 'a storage write is still outstanding');
+  assert.equal(h.handle.recovery?.(), undefined);
+  finish(); await h.handle.persisted();
+  assert.equal(h.handle.state().pending, 0);
+  assert.ok(h.events.some(event => event.kind === 'recovery'));
+  h.handle.close(); await h.handle.persisted();
+  const reopened = await harness({ store, principal: 'alice' });
+  const recovered = new ReferenceCanvasDoc(); recovered.applyRemotePatch(reopened.handle.recovery?.()?.ops ?? []);
+  assert.equal(recovered.state().params.get('title'), 'My interrupted draft');
+  reopened.handle.close(); await reopened.handle.persisted();
+  const another = await harness({ store, principal: 'bob' });
+  assert.equal(another.handle.recovery?.(), undefined); another.handle.close();
+});
+
+test('a failed recovery write keeps rejected edits in the journal and pauses editing', async () => {
+  const store = memoryStore(), h = await harness({ store }); joinNow(h);
+  h.handle.adapter.apply(param('title', 'Do not discard me', 'dev-a', 1)); await h.handle.persisted();
+  const sent = h.socket().framesOfType('ops')[0]!;
+  const save = store.save;
+  store.save = async (key, ops) => { if (key.endsWith(':recovery')) throw new Error('quota'); await save(key, ops); };
+  h.socket().deliver({ t: 'receipt', batchId: sent.batchId, acceptedIds: [], rejectedIds: sent.ids, durableRevision: 1 });
+  await h.handle.persisted();
+  assert.equal(h.handle.state().pending, 1); assert.equal(h.handle.state().role, 'observer');
+  assert.equal(h.handle.state().reason, 'recovery-save-failed');
+  assert.ok(h.events.some(event => event.kind === 'error' && event.code === 'recovery-save-failed'));
+  h.handle.close(); await h.handle.persisted(); assert.equal(store.data.get(KEY())?.length, 1);
 });

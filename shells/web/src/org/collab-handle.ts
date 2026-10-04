@@ -142,6 +142,8 @@ export function readPresencePayload(payload: unknown): ReadPresencePayload | nul
 }
 
 export interface WorkCollabHandleOptions {
+  assets?: import('../lib/canvas-assets.ts').CanvasAssetsCapability;
+  comments?: import('../lib/canvas-comments.ts').CanvasCommentsCapability;
   /**
    * This device's collab client id. Defaults to `getCollabClientId()` - the SAME
    * singleton `createWorkCollabProvider` defaults to, so in the ordinary path the
@@ -182,16 +184,20 @@ export function createWorkCollabHandle(
 ): WorkCollabSessionHandle {
   const clientId = opts.clientId ?? provider.clientId ?? getCollabClientId();
 
-  const saveSubs = new Set<(state: { pending: number; message: string }) => void>();
+  const recoverySubs = new Set<(value: { id: string; ops: readonly CanvasOp[] }) => void>();
+  const saveSubs = new Set<(state: import('../lib/collab-session.ts').CollabSaveState) => void>();
+  let assetState = { pending: 0, message: '' };
   let saveError = '', saveErrorCode = '';
   const saveState = () => {
     const state = provider.state();
-    return { pending: state.pending, message: saveError || (state.pending ? 'Edits pending'
+    return { pending: state.pending + assetState.pending, ...(assetState.message && !assetState.pending ? { retry: () => opts.assets?.retry?.() } : {}),
+      message: assetState.message || (assetState.pending ? 'Image changes pending' : '') || saveError || (state.pending ? 'Edits pending'
       : state.status !== 'live' ? 'Work disconnected'
       : state.reason === 'durable-receipts-required' ? 'View only: update the work server'
       : state.role === 'observer' ? 'View only' : 'Saved to work') };
   };
   const publishSave = () => { for (const fn of saveSubs) fn(saveState()); };
+  const stopAssets = opts.assets?.status.subscribe(value => { assetState = value; publishSave(); });
   const presenceSubs = new Set<(frame: PresenceFrame) => void>();
   const stateSubs = new Set<(state: CollabConnectionState) => void>();
   const opsSubs = new Set<(ops: readonly CanvasOp[]) => void>();
@@ -379,6 +385,7 @@ export function createWorkCollabHandle(
   }
 
   const stopProvider = provider.on((event) => {
+    if (event.kind === 'recovery') { for (const fn of recoverySubs) fn(event); return; }
     if (event.kind === 'error') { saveErrorCode = event.code; saveError = event.message || event.code; publishSave(); return; }
     if (event.kind === 'warning') { saveError = 'Pending edits are full. Save a copy before continuing.'; publishSave(); return; }
     if (event.kind === 'state') {
@@ -418,7 +425,9 @@ export function createWorkCollabHandle(
   };
 
   return {
+    assets: opts.assets,
     admission: 'work-room',
+    recoveryIn: { subscribe(fn) { recoverySubs.add(fn); for (const copy of provider.recoveries?.() ?? []) fn(copy); return () => { recoverySubs.delete(fn); }; } },
     saveIn: { subscribe(fn) { saveSubs.add(fn); fn(saveState()); return () => { saveSubs.delete(fn); }; } },
     adapter: provider.adapter,
     history: provider.history,
@@ -427,7 +436,8 @@ export function createWorkCollabHandle(
     get role(): CollabRole {
       // Fail closed, exactly as the provider reads the ack: anything that is not a
       // stated writer is an observer.
-      return provider.state().role === 'writer' ? 'writer' : 'observer';
+      const state = provider.state();
+      return state.role === 'writer' && state.status !== 'closed' ? 'writer' : 'observer';
     },
 
     // hostClientId is deliberately ABSENT - a work collab has no host (header).
@@ -497,6 +507,8 @@ export function createWorkCollabHandle(
       // presence is ephemeral by definition and is never queued).
       provider.sendPresence(frame);
     },
+    claims: provider.claims,
+    comments: opts.comments,
 
     /**
      * A peer's role, or honest ignorance. The presence roster is keyed by device
@@ -524,6 +536,7 @@ export function createWorkCollabHandle(
     close(): void {
       if (closing) return;
       closing = true;
+      stopAssets?.(); opts.assets?.close();
       // Closed BEFORE the listeners are dropped, so the provider's final state event
       // still reaches whoever is subscribed - a stream that ends without saying so
       // is how a UI ends up showing a live room that isn't.
@@ -535,7 +548,7 @@ export function createWorkCollabHandle(
       if (connection !== 'closed') publishConnection('closed');
       stopProvider();
       presenceSubs.clear();
-      saveSubs.clear();
+      saveSubs.clear(); recoverySubs.clear();
       stateSubs.clear();
       opsSubs.clear();
       snapshotSubs.clear();

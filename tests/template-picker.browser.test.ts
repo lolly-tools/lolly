@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { setTimeout as pollDelay } from 'node:timers/promises';
+import type { Page } from 'playwright-core';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
@@ -8,6 +10,23 @@ const origin = process.env.LOLLY_IMPORT_TEST_URL;
 /** The Navigation API fields the reload guard reads. TypeScript's DOM lib does not
  *  declare the API yet, and the suite only runs in Chromium, which ships it. */
 type HistoryPosition = { navigation: { currentEntry: { index: number } | null; transition: unknown } };
+
+/** Async IndexedDB reads need an awaited poll: waitForFunction treats their Promise
+ *  as a truthy result before the saved record arrives. */
+async function waitForQrCreations(page: Page, expected: number): Promise<void> {
+  const deadline = Date.now() + 30_000;
+  let count = 0;
+  do {
+    count = await page.evaluate(async () => {
+      const path = '/src/bridge/index.ts';
+      const host = await (await import(path)).createBridge();
+      return (await host.state.list()).filter((row: { toolId?: string }) => row.toolId === 'qr-code').length;
+    });
+    if (count === expected) return;
+    await pollDelay(100);
+  } while (Date.now() < deadline);
+  assert.equal(count, expected, 'both quick-add saves must finish before reload');
+}
 
 test('the Projects template picker renders previews and adds independent creations without changing the template', {
   skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 120_000,
@@ -35,6 +54,16 @@ test('the Projects template picker renders previews and adds independent creatio
     // history.back() one task later. A reload issued before that pop finishes is
     // cancelled by it (net::ERR_ABORTED), so record the current history index and
     // reload only after the close has returned to it.
+    // Delay the real save to exercise the pending-write boundary on a fast runner.
+    await page.evaluate(async () => {
+      const path = '/src/lib/host-ref.ts';
+      const host = (await import(path)).getHostRef();
+      const save = host.state.save.bind(host.state);
+      host.state.save = async (...args: Parameters<typeof save>) => {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return save(...args);
+      };
+    });
     const historyBefore = await page.evaluate(() => (window as unknown as HistoryPosition).navigation.currentEntry?.index);
     assert.equal(typeof historyBefore, 'number');
     await page.locator('[data-create-btn="tool"]').click();
@@ -48,18 +77,10 @@ test('the Projects template picker renders previews and adds independent creatio
     await page.locator('.asset-picker-search').fill('Company QR');
     await preview.waitFor({ state: 'visible' });
     await page.locator(`[data-quickadd-template="user:${id}"]`).click();
-    await page.waitForFunction(async () => {
-      const path = '/src/bridge/index.ts';
-      const host = await (await import(path)).createBridge();
-      return (await host.state.list()).filter((row: { toolId?: string }) => row.toolId === 'qr-code').length === 1;
-    }, undefined, { polling: 250 });
+    await waitForQrCreations(page, 1);
     assert.equal(await page.locator('.asset-picker-panel').isVisible(), true);
     await page.locator(`[data-quickadd-template="user:${id}"]`).click();
-    await page.waitForFunction(async () => {
-      const path = '/src/bridge/index.ts';
-      const host = await (await import(path)).createBridge();
-      return (await host.state.list()).filter((row: { toolId?: string }) => row.toolId === 'qr-code').length === 2;
-    }, undefined, { polling: 250 });
+    await waitForQrCreations(page, 2);
     await page.keyboard.press('Escape');
     await page.locator('.asset-picker-panel').waitFor({ state: 'detached' });
     await page.waitForFunction((index) => {

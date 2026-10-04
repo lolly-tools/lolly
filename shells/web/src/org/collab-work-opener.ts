@@ -286,9 +286,11 @@ function memberPrincipal(): string | undefined {
  * the caller, so the fallback grants nothing the factory would not have.
  */
 async function loadWiring(): Promise<WorkCollabWiring> {
-  const [provider, adapter] = await Promise.all([
+  const [provider, adapter, comments, assets] = await Promise.all([
     import('./collab-provider.ts'),
     import('./collab-handle.ts'),
+    import('./canvas-comments.ts'),
+    import('./canvas-assets.ts'),
   ]);
   // The durable per-device client id must exist before a provider is built - two
   // clients on the wire from one device is what it prevents. Idempotent.
@@ -300,7 +302,8 @@ async function loadWiring(): Promise<WorkCollabWiring> {
         ? registered(sessionId, { history: createWorkCollabHistory(sessionId) })
         : provider.createWorkCollabProvider(sessionId, { principal: memberPrincipal(), history: createWorkCollabHistory(sessionId) });
     },
-    makeHandle: (p) => adapter.createWorkCollabHandle(p),
+    makeHandle: (p) => adapter.createWorkCollabHandle(p, { comments: comments.createWorkComments(p.sessionId, memberPrincipal),
+      assets: assets.createWorkCanvasAssets(p.sessionId, memberPrincipal) }),
     crossOriginReason: provider.CROSS_ORIGIN_REASON,
   };
 }

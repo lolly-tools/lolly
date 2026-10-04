@@ -643,3 +643,17 @@ test('live demotion notifies the mounted session without a connection-state chan
   assert.equal(mounted.session.state().role, 'observer');
   mounted.session.close();
 });
+
+test('terminal closure makes the mounted document read-only while reconnecting keeps its writer', async () => {
+  const fake = fakeProvider({ status: 'live', role: 'writer' });
+  const runtime = harness([text('title', 'Saved title')]);
+  const handle = createWorkCollabHandle(fake.provider);
+  const mounted = createCollabSession({ handle, runtime });
+  fake.setState({ status: 'reconnecting' });
+  assert.equal(handle.role, 'writer');
+  fake.setState({ status: 'closed', reason: 'forbidden' });
+  assert.equal(mounted.state().role, 'observer');
+  await runtime.setInput('title', 'An edit that cannot be delivered');
+  assert.equal(runtime.getModel()[0]!.value, 'Saved title');
+  mounted.close();
+});

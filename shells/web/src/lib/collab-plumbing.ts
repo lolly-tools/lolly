@@ -38,10 +38,10 @@
  *  - a `blocks` input → the box ops, scoped by `col` = the input id (v1.1), keyed by
  *    the row's stable ULID (lib/row-id.ts), with geometry fields on the geometry
  *    lane via the contract's own `laneForField`/`damageToOps`.
- * Object-valued inputs (asset refs, `vector`, `table`, `file`) do NOT: `ParamValue`
- * and `BoxRow` are scalar by contract, and file bytes/live frames are excluded
- * outright. A blocks row's non-scalar fields are simply not projected, so they are
- * neither sent nor clobbered by an inbound rebuild.
+ * Object-valued inputs (`vector`, `table`, `file`) do not cross. An optional project
+ * asset boundary prepares declared block assets and encodes bounded references on
+ * the scalar lane. File bytes and disposable URLs never travel in operations.
+ * Other non-scalar row fields remain outside the projection.
  *
  * TWO CONTRACT GAPS, worked around here and reported rather than papered over:
  *  1. `CanvasSyncAdapter` has no local entry point for a `param` write, and none for
@@ -86,6 +86,10 @@ import { getCanvasSyncProvider } from './canvas-sync-provider.ts';
 // canvas: a row minted under one name and addressed under another is a row nothing
 // can resolve, so there is exactly one definition and it lives in a DOM-free module.
 import { rowIdField, ulid } from './row-id.ts';
+import { encodeCanvasAsset, decodeCanvasAsset } from '@lolly-tools/core/canvas-asset-v1';
+import { canvasAssetFields, hasCanvasAssetChange, needsCanvasAssetTransfer, prepareCanvasValue } from './canvas-asset-projection.ts';
+import type { CanvasAssetsCapability } from './canvas-assets.ts';
+import type { AssetRef } from '@lolly-tools/core/host-v1';
 
 /** The runtime slice this module drives - a structural subset of the web shell's
  *  ToolRuntime, so nothing here needs the view, the DOM, or a real engine mount. */
@@ -96,6 +100,7 @@ export interface CollabRuntime {
 }
 
 export interface CollabPlumbingOpts {
+  assets?: CanvasAssetsCapability;
   /** The adapter to talk to. Defaults to the registered provider; passing one
    *  explicitly is how tests (and a loopback pair, plan 100 section 10) drive this. */
   adapter?: CanvasSyncAdapter;
@@ -258,7 +263,7 @@ function resolveGeomFields(item: Pick<InputModelItem, 'canvas'>): readonly strin
  * one from the sidebar's lazy migration, then syncs). The id field itself is the
  * KEY, never a row field.
  */
-function toRowMap(value: unknown, idField: string): Map<BoxId, BoxRow> {
+function toRowMap(value: unknown, idField: string, assets: ReadonlySet<string> = new Set()): Map<BoxId, BoxRow> {
   const out = new Map<BoxId, BoxRow>();
   if (!Array.isArray(value)) return out;
   for (const raw of value) {
@@ -271,6 +276,7 @@ function toRowMap(value: unknown, idField: string): Map<BoxId, BoxRow> {
       if (field === idField) continue;
       const v = rec[field];
       if (isScalar(v)) row[field] = v;
+      else if (assets.has(field)) { const link = encodeCanvasAsset(v); if (link) row[field] = link; }
     }
     out.set(id, row);
   }
@@ -434,7 +440,7 @@ export function attachCollabPlumbing(
     ? import('./text-collab.ts').then(module => { textProjection = module.createTextSyncProjection(runtime); }) : null;
   let flushing = Promise.resolve();
   const scheduleFlush = (): void => {
-    if (!textReady) { void flush().catch(error => warn('flush', error)); return; }
+    if (!textReady && !opts.assets) { void flush().catch(error => warn('flush', error)); return; }
     flushing = flushing.then(flush).catch(error => warn('flush', error));
   };
 
@@ -459,8 +465,19 @@ export function attachCollabPlumbing(
     const col = item.id;
     const idField = rowIdField(item);
     const geomFields = resolveGeomFields(item);
-    const prev = toRowMap(item.value, idField);
-    const next = toRowMap(value, idField);
+    const fields = opts.assets ? canvasAssetFields(item) : undefined;
+    const prev = toRowMap(item.value, idField, fields);
+    const next = toRowMap(value, idField, fields);
+    if (fields?.size) {
+      const converged = adapter.state().collections?.get(col)?.boxes;
+      for (const [id, row] of next) for (const field of fields) {
+        const before = prev.get(id);
+        const shared = converged?.get(id)?.[field];
+        if (before && Object.is(before[field], row[field]) && shared !== undefined) {
+          before[field] = shared; row[field] = shared;
+        }
+      }
+    }
     const emitted: CanvasOp[] = [];
 
     // The damage hint the adapter's local-edit door takes. Derived through the
@@ -520,9 +537,31 @@ export function attachCollabPlumbing(
   // was there; it is invoked through the runtime so a method-style setter still
   // sees its receiver.
   const inner = runtime.setInput;
+  const assetJobs = new Map<string, number>();
   const outer = (id: string, value: InputValue, options?: InputWriteOptions): Promise<void> => {
     if (!applyingRemote && opts.canEdit?.() === false) return Promise.resolve();
     if (!applyingRemote && !detached) textProjection?.assertReady();
+    const item = model().find(input => input.id === id);
+    if (!applyingRemote && !detached && opts.assets && item && hasCanvasAssetChange(item, value)) assetJobs.set(id, (assetJobs.get(id) ?? 0) + 1);
+    if (!applyingRemote && !detached && opts.assets && item && needsCanvasAssetTransfer(item, value)) {
+      const generation = assetJobs.get(id);
+      const run = async (): Promise<void> => {
+        if (detached || assetJobs.get(id) !== generation) return;
+        let release: (() => void) | undefined;
+        try {
+          release = opts.assets!.holdEdit?.();
+          const prepared = await prepareCanvasValue(item, value, opts.assets!, () => model().find(input => input.id === id));
+          if (detached || assetJobs.get(id) !== generation || opts.canEdit?.() === false) return;
+          emitLocal(id, prepared);
+          await inner.call(runtime, id, prepared, options);
+        } catch (error) {
+          if (detached || assetJobs.get(id) !== generation) return;
+          warn('image transfer', error);
+          opts.assets!.failed(() => { void run(); });
+        } finally { release?.(); }
+      };
+      return run();
+    }
     if (!applyingRemote && !applyingLocalPatch && !detached) {
       // A sync failure must never cost the user their edit.
       try { emitLocal(id, value); } catch (e) { warn('outbound', e); }
@@ -535,6 +574,9 @@ export function attachCollabPlumbing(
     if (applyingRemote || detached) return innerPatch.call(runtime, values, options);
     if (opts.canEdit?.() === false) return Promise.resolve();
     textProjection?.assertReady();
+    if (opts.assets && model().some(item => Object.hasOwn(values, item.id) && needsCanvasAssetTransfer(item, values[item.id] as InputValue))) {
+      return (async () => { for (const [id, value] of Object.entries(values)) await outer(id, value as InputValue, options); })();
+    }
     for (const [id, value] of Object.entries(values)) emitLocal(id, value as InputValue);
     applyingLocalPatch = true;
     try { return innerPatch.call(runtime, values, options); }
@@ -704,6 +746,7 @@ export function attachCollabPlumbing(
       const col = state.collections?.get(item.id);
       if (!col) continue;
       const idField = rowIdField(item);
+      const allowed = new Set([idField, ...(item.fields ?? []).map(field => field.id)]);
       const old = new Map<string, Record<string, unknown>>();
       for (const row of Array.isArray(item.value) ? item.value : []) {
         if (row && typeof row === 'object' && typeof (row as Record<string, unknown>)[idField] === 'string')
@@ -713,12 +756,42 @@ export function attachCollabPlumbing(
       const anonymous = (Array.isArray(item.value) ? item.value : []).filter(row => !row || typeof row !== 'object' || typeof (row as Record<string,unknown>)[idField] !== 'string');
       values.set(item.id, [...ids.map(id => ({
         ...(replace ? Object.fromEntries(Object.entries(old.get(id) ?? {}).filter(([, value]) => !isScalar(value))) : old.get(id)),
-        ...col.boxes.get(id), [idField]: id,
+        ...Object.fromEntries(Object.entries(col.boxes.get(id) ?? {}).filter(([field]) => allowed.has(field))), [idField]: id,
       })), ...(replace ? [] : anonymous)]);
     }
     return Object.fromEntries(values);
   }
 
+  const assetCache = new Map<string, AssetRef>();
+  function assetLinks(values: Record<string, unknown>): string[] {
+    const links = new Set<string>();
+    for (const item of model()) {
+      if (item.type !== 'blocks' || !Array.isArray(values[item.id])) continue;
+      for (const raw of values[item.id] as unknown[]) {
+        if (!raw || typeof raw !== 'object') continue;
+        for (const field of canvasAssetFields(item)) {
+          const value = (raw as Record<string, unknown>)[field];
+          if (typeof value === 'string' && decodeCanvasAsset(value)) links.add(value);
+        }
+      }
+    }
+    return [...links];
+  }
+  function materializeAssets(values: Record<string, unknown>): Record<string, unknown> {
+    return Object.fromEntries(Object.entries(values).map(([id, value]) => {
+      const item = model().find(input => input.id === id);
+      if (item?.type !== 'blocks' || !Array.isArray(value)) return [id, value];
+      return [id, value.map(raw => {
+        if (!raw || typeof raw !== 'object') return raw;
+        const row = { ...raw } as Record<string, unknown>;
+        for (const field of canvasAssetFields(item)) {
+          const key = row[field];
+          if (typeof key === 'string' && decodeCanvasAsset(key)) row[field] = assetCache.get(key) ?? decodeCanvasAsset(key);
+        }
+        return row;
+      })];
+    }));
+  }
   async function flush(): Promise<void> {
     if (textReady) await textReady;
     if (detached) return;
@@ -726,7 +799,7 @@ export function attachCollabPlumbing(
     queue = []; queueBytes = 0;
     const project = projectionPending; projectionPending = false;
     const replace = replacePending; replacePending = false;
-    if (!ops.length && !project) return;
+    if (!ops.length && !project && !blockedProjection) return;
     for (const op of ops) observeClock(op.origin.clock);
     try { adapter.applyRemotePatch(ops); } catch (e) { warn('adapter apply', e); }
     // Read the document AFTER the apply and BEFORE the patch is built: the ops name
@@ -738,6 +811,24 @@ export function attachCollabPlumbing(
     let values: Record<string, unknown> | null = null;
     try { values = (project || blockedProjection) && snapshot ? fullProjection(snapshot, replace) : buildPatch(ops, convergedRead(snapshot)); } catch (e) { warn('inbound', e); }
     if (!values) return;
+    if (opts.assets) {
+      for (;;) {
+        const missing = assetLinks(values).filter(key => !assetCache.has(key));
+        if (!missing.length) break;
+        try { await Promise.all(missing.map(async key => { assetCache.set(key, await opts.assets!.resolve(decodeCanvasAsset(key)!)); })); }
+        catch (error) {
+          blockedProjection = true;
+          opts.assets.failed(() => { scheduleFlush(); });
+          throw error;
+        }
+        if (detached) return;
+        // Read again after downloads: writes made while waiting retain their current registers.
+        const latest = adapter.state();
+        values = (project || blockedProjection) ? fullProjection(latest, replace) : buildPatch(ops, convergedRead(latest));
+        if (!values) return;
+      }
+      values = materializeAssets(values);
+    }
     if (textProjection && !textProjection.validate(values, ops)) { blockedProjection = true; return; }
     blockedProjection = false;
     // The guard is held across the SYNCHRONOUS part of the apply only. That is the
