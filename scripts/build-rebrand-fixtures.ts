@@ -1895,7 +1895,7 @@ function buildNotes(): { bytes: Uint8Array; labels: RebrandFixtureLabelsV1 } {
         { kind: 'pic', x: px(NOTES_PHOTO.x), y: px(NOTES_PHOTO.y), cx: px(NOTES_PHOTO.w), cy: px(NOTES_PHOTO.h), media: 0, name: 'photo' },
         titleShape('Who crosses here?'),
       ],
-      media: [{ bytes: photo, ext: 'png' }], layout: 0, notes: NOTES_FIXTURE_SLIDE2.join('\n'),
+      media: [{ bytes: photo, ext: 'png' }], layout: 0, notes: NOTES_FIXTURE_SLIDE2.join('\n\n'),
     },
     {
       shapes: [titleShape('What we do next'), box(NOTES_CAPTION, 'Source: a synthetic fixture', 9)],

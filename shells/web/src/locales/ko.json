@@ -7276,5 +7276,6 @@
   "The live collab saves your changes to this session.": "라이브 협업에서 한 변경 내용은 이 세션에 저장돼요.",
   "Sign out": "로그아웃",
   "Could not sign out. Try again.": "로그아웃하지 못했어요. 다시 시도해 주세요.",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design은 내보내기 검사에서 레이어별로 이 규칙을 확인하며, lolly check도 저장된 문서에 같은 검사를 수행합니다. 아래 예시는 이 규칙에 따라 검사하지 않습니다."
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design은 내보내기 검사에서 레이어별로 이 규칙을 확인하며, lolly check도 저장된 문서에 같은 검사를 수행합니다. 아래 예시는 이 규칙에 따라 검사하지 않습니다.",
+  "{names} typing…": "{names} 입력 중…"
 }

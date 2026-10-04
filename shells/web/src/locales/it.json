@@ -7276,5 +7276,6 @@
   "The live collab saves your changes to this session.": "La collaborazione dal vivo salva le tue modifiche in questa sessione.",
   "Sign out": "Esci dall'account",
   "Could not sign out. Try again.": "Impossibile uscire dall'account. Riprova.",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design verifica questa regola per ogni livello durante i controlli di esportazione, e lolly check fa lo stesso per un documento salvato. Gli esempi seguenti non vengono verificati in base a questa regola."
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design verifica questa regola per ogni livello durante i controlli di esportazione, e lolly check fa lo stesso per un documento salvato. Gli esempi seguenti non vengono verificati in base a questa regola.",
+  "{names} typing…": "{names} stanno scrivendo…"
 }

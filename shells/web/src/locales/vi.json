@@ -7276,5 +7276,6 @@
   "The live collab saves your changes to this session.": "Cộng tác trực tiếp sẽ lưu các thay đổi của bạn vào phiên này.",
   "Sign out": "Đăng xuất",
   "Could not sign out. Try again.": "Không thể đăng xuất. Hãy thử lại.",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design kiểm tra quy tắc này trên từng lớp khi kiểm tra xuất, và lolly check cũng làm như vậy với tài liệu đã lưu. Các ví dụ bên dưới không được kiểm tra theo quy tắc này."
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design kiểm tra quy tắc này trên từng lớp khi kiểm tra xuất, và lolly check cũng làm như vậy với tài liệu đã lưu. Các ví dụ bên dưới không được kiểm tra theo quy tắc này.",
+  "{names} typing…": "{names} đang nhập…"
 }

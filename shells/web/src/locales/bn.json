@@ -7276,5 +7276,6 @@
   "The live collab saves your changes to this session.": "লাইভ কোলাব আপনার পরিবর্তনগুলি এই সেশনে সংরক্ষণ করে।",
   "Sign out": "সাইন আউট করুন",
   "Could not sign out. Try again.": "সাইন আউট করা যায়নি। আবার চেষ্টা করুন।",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design রপ্তানি যাচাইয়ের সময় প্রতিটি স্তরে এই নিয়ম পরীক্ষা করে, আর lolly check সংরক্ষিত নথির জন্য একই পরীক্ষা করে। নিচের উদাহরণগুলি এই নিয়ম অনুযায়ী পরীক্ষা করা হয় না।"
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design রপ্তানি যাচাইয়ের সময় প্রতিটি স্তরে এই নিয়ম পরীক্ষা করে, আর lolly check সংরক্ষিত নথির জন্য একই পরীক্ষা করে। নিচের উদাহরণগুলি এই নিয়ম অনুযায়ী পরীক্ষা করা হয় না।",
+  "{names} typing…": "{names} লিখছেন…"
 }

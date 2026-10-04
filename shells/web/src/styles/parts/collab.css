@@ -271,6 +271,13 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet);
 }
 .collab-comments-panel[hidden], .collab-comments-open[hidden] { display: none; }
+/* Discussion temporarily takes the compact editor sheet; closing restores it. */
+.tool-stage[data-design-layout="compact"] .collab-comments-panel {
+  position: fixed; top: calc(var(--chrome-h) + var(--sp-3) + var(--vv-top, 0px));
+  bottom: calc(var(--sp-3) + var(--safe-bottom, 0px) + var(--vv-bottom, 0px)); inset-inline: var(--sp-3); width: auto;
+}
+body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([hidden])) :is(.fc-insp.is-compact-sheet, .design-compact-actions, .fc-nav) { visibility: hidden; }
+.collab-comment-typing { min-height: 1.5em; margin-block: var(--sp-2); color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
 .collab-comment-list { display: grid; gap: 4px; margin-block: 12px; }
 .collab-comment-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-block-end: var(--sp-3); }
 .collab-comment-head h2 { margin: 0; font-size: var(--fs-lg); }

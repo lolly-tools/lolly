@@ -7276,5 +7276,6 @@
   "The live collab saves your changes to this session.": "Živá spolupráce ukládá tvé změny do této relace.",
   "Sign out": "Odhlásit se",
   "Could not sign out. Try again.": "Odhlášení se nezdařilo. Zkus to znovu.",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design při kontrole exportu ověřuje toto pravidlo vrstvu po vrstvě a lolly check provádí totéž u uloženého dokumentu. Níže uvedené příklady se podle tohoto pravidla nekontrolují."
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design při kontrole exportu ověřuje toto pravidlo vrstvu po vrstvě a lolly check provádí totéž u uloženého dokumentu. Níže uvedené příklady se podle tohoto pravidla nekontrolují.",
+  "{names} typing…": "{names} píší…"
 }

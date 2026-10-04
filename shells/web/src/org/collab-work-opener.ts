@@ -90,7 +90,8 @@ import { registerWorkCollabPolicy } from '../lib/collab-availability.ts';
 import { deliverCollabConnection, type CollabConnection } from '../lib/collab-mount.ts';
 import { canEditCollab, canJoinCollab } from './collab-config.ts';
 import { fetchTeamSession } from './session-source.ts';
-import { orgSession } from './index.ts';
+import { orgConfig, orgSession } from './index.ts';
+import { invitePolicy } from './team-access.ts';
 import {
   activeTeamSessionOrigin, noteTeamSessionLive, rememberTeamSessionOrigin, type TeamSessionOriginInput,
 } from './team-session-origin.ts';
@@ -303,7 +304,13 @@ async function loadWiring(): Promise<WorkCollabWiring> {
         : provider.createWorkCollabProvider(sessionId, { principal: memberPrincipal(), history: createWorkCollabHistory(sessionId) });
     },
     makeHandle: (p) => adapter.createWorkCollabHandle(p, { comments: comments.createWorkComments(p.sessionId, memberPrincipal),
-      assets: assets.createWorkCanvasAssets(p.sessionId, memberPrincipal) }),
+      assets: assets.createWorkCanvasAssets(p.sessionId, memberPrincipal),
+      people: () => {
+        const person = orgSession();
+        void import('./team-session-people.ts')
+          .then(({ openSessionPeople }) => openSessionPeople(p.sessionId, invitePolicy(orgConfig()), () => person === orgSession()))
+          .catch(() => announce(tRaw(STRINGS.unreachable)));
+      } }),
     crossOriginReason: provider.CROSS_ORIGIN_REASON,
   };
 }

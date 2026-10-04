@@ -780,5 +780,6 @@
   "The live collab saves your changes to this session.": "Kolaborasi langsung menyimpan perubahan anda ke sesi ini.",
   "Sign out": "Log keluar",
   "Could not sign out. Try again.": "Tidak dapat log keluar. Cuba lagi.",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design menyemak peraturan ini lapisan demi lapisan dalam semakan eksport, dan lolly check melakukan perkara yang sama untuk dokumen yang disimpan. Contoh di bawah tidak disemak mengikut peraturan ini."
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design menyemak peraturan ini lapisan demi lapisan dalam semakan eksport, dan lolly check melakukan perkara yang sama untuk dokumen yang disimpan. Contoh di bawah tidak disemak mengikut peraturan ini.",
+  "{names} typing…": "{names} sedang menaip…"
 }

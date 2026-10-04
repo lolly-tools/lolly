@@ -176,6 +176,8 @@ export interface CollabSelf {
 export interface CollabSaveState { pending: number; message: string; retry?: () => void }
 
 export interface CollabSessionHandle {
+  /** Open the document's authorized People controls while its room stays mounted. */
+  readonly people?: () => void;
   readonly assets?: import('./canvas-assets.ts').CanvasAssetsCapability;
   readonly comments?: import('./canvas-comments.ts').CanvasCommentsCapability;
   readonly claims?: import('./canvas-interaction.ts').CanvasClaimCapability;

@@ -19,6 +19,7 @@
 .team-project-tabs { display: flex; gap: var(--sp-2); flex-wrap: wrap; border-bottom: 1px solid var(--ui-color-border-default); padding-block-end: var(--sp-3); margin-block-end: var(--sp-5); }
 .team-project-tabs [aria-current="page"] { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); box-shadow: var(--ui-effect-accent-ring); }
 .team-new-project { display: flex; flex-direction: column; gap: var(--sp-3); margin-block: var(--sp-5); max-width: 36rem; }
+.team-invite-dialog { width: min(40rem, calc(100vw - var(--sp-6))); max-height: calc(100dvh - var(--sp-6)); overflow: auto; }
 .team-new-project label, .team-people-invite label { font-size: var(--fs-sm); font-weight: 600; }
 .team-new-project label > :is(input, select) { display: block; width: 100%; margin-block-start: var(--sp-2); }
 .team-people { max-width: 48rem; }

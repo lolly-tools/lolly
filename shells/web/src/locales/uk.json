@@ -7276,5 +7276,6 @@
   "The live collab saves your changes to this session.": "Співпраця наживо зберігає ваші зміни в цій сесії.",
   "Sign out": "Вийти з акаунта",
   "Could not sign out. Try again.": "Не вдалося вийти з акаунта. Спробуйте ще раз.",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design перевіряє це правило для кожного шару під час перевірок експорту, а lolly check робить те саме для збереженого документа. Наведені нижче приклади не перевіряються за цим правилом."
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design перевіряє це правило для кожного шару під час перевірок експорту, а lolly check робить те саме для збереженого документа. Наведені нижче приклади не перевіряються за цим правилом.",
+  "{names} typing…": "{names} пишуть…"
 }

@@ -7276,5 +7276,6 @@
   "The live collab saves your changes to this session.": "لائیو کولیب آپ کی تبدیلیاں اس سیشن میں محفوظ کرتا ہے۔",
   "Sign out": "سائن آؤٹ کریں",
   "Could not sign out. Try again.": "سائن آؤٹ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design برآمد کی جانچ کے دوران ہر تہہ پر اس اصول کو جانچتا ہے، اور lolly check محفوظ دستاویز کے لیے یہی جانچ کرتا ہے۔ نیچے دی گئی مثالوں کو اس اصول کے مطابق نہیں جانچا جاتا۔"
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design برآمد کی جانچ کے دوران ہر تہہ پر اس اصول کو جانچتا ہے، اور lolly check محفوظ دستاویز کے لیے یہی جانچ کرتا ہے۔ نیچے دی گئی مثالوں کو اس اصول کے مطابق نہیں جانچا جاتا۔",
+  "{names} typing…": "{names} لکھ رہے ہیں…"
 }

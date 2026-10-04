@@ -328,7 +328,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     steps.unshift(() => layer?.unmount());
     const interactions = layer && mountCanvasInteractions(runtime, handle, session, layer.el);
     steps.unshift(() => interactions?.teardown());
-    const comments = handle.comments && layer && mountCanvasComments(runtime, handle.comments, stage, canvas, layer.el, interactions?.geometry);
+    const comments = handle.comments && layer && mountCanvasComments(runtime, handle.comments, stage, canvas, layer.el, interactions?.geometry, session);
     steps.unshift(() => comments?.teardown());
 
     const focus: CollabFocus = createCollabFocus({
@@ -353,7 +353,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       const el = surface?.element();
       const point = el && surfaceMapping(el)?.fromClient({ x: event.clientX, y: event.clientY });
       session.updateSurface(surface ? { ...surfacePresence(surface),
-        cursor: point && point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1 ? point : undefined } : { cursor: undefined });
+        chat: undefined, cursor: point && point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1 ? point : undefined } : { cursor: undefined, chat: undefined });
     };
     const clearPointer = (): void => session.updateSurface({ cursor: undefined });
     canvas.addEventListener('pointermove', onPointer);
@@ -466,6 +466,10 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     });
     steps.unshift(() => pill.destroy());
     comments?.dockControls(pill.el);
+    if (handle.people) {
+      const people = canvas.ownerDocument.createElement('button'); people.type = 'button'; people.className = 'btn btn--sm'; people.textContent = tRaw('People');
+      people.addEventListener('click', handle.people); pill.el.append(people);
+    }
     if (handle.saveIn) {
       const status = canvas.ownerDocument.createElement('span');
       status.className = 'collab-save-status';

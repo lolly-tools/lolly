@@ -3,9 +3,11 @@ import { COMMENT_BODY_LIMIT, type CommentAnchor, type CommentThread } from '@lol
 import type { CanvasCommentsCapability, CommentPermissions } from '../lib/canvas-comments.ts';
 import { collabSurface } from '../lib/collab-surface.ts';
 import { t } from '../i18n.ts';
+import type { CollabSession } from '../lib/collab-session.ts';
+import { mountCommentPresence } from './tool-comment-presence.ts';
 
 /** Review chrome lives beside the artwork and never changes a tool input. */
-export function mountCanvasComments(runtime: object, capability: CanvasCommentsCapability, stage: HTMLElement, canvas: HTMLElement, _layer: HTMLElement, preview?: (id: string) => { x: number; y: number; w: number; h: number; rot: number } | undefined) {
+export function mountCanvasComments(runtime: object, capability: CanvasCommentsCapability, stage: HTMLElement, canvas: HTMLElement, _layer: HTMLElement, preview?: (id: string) => { x: number; y: number; w: number; h: number; rot: number } | undefined, session?: CollabSession) {
   const doc = stage.ownerDocument, abort = new (doc.defaultView?.AbortController ?? AbortController)();
   const open = doc.createElement('button'); open.type = 'button'; open.className = 'collab-comments-open btn btn--sm'; open.textContent = t('Comments'); open.hidden = true;
   const panel = doc.createElement('aside'); panel.className = 'collab-comments-panel'; panel.setAttribute('aria-label', t('Comments')); panel.hidden = true;
@@ -44,6 +46,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   const header = doc.createElement('header'); header.className = 'collab-comment-head'; header.append(heading, close);
   const actions = doc.createElement('div'); actions.className = 'collab-comment-actions'; actions.append(point, onSelection, atCenter);
   panel.append(header, actions, status, list, messages, composer); stage.append(open, panel);
+  const presence = session && mountCommentPresence(panel, session, () => selected ?? anchor?.surface ?? 'document');
   function queueDraft(key: string, body: string): void {
     draftChain = draftChain.catch(() => {}).then(() => capability.saveDraft(key, body)).catch(() => {
       draftFailed = true;
@@ -187,6 +190,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   panel.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); panel.hidden = true; placing = false; open.focus(); } }, { signal: abort.signal });
   function reanchor(): void {
     if (disposed || !enabled) return;
+    presence?.refresh();
     const used = new Set<string>();
     const surface = collabSurface(runtime), bounds = pins.getBoundingClientRect(); if (!surface?.toClient) return;
     renderMessages();
@@ -219,5 +223,6 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   }, endAccess() { if (draftKey) queueDraft(draftKey, input.value); report({ status: 403 }); }, teardown() {
     if (disposed) return; disposed = true; if (draftKey) queueDraft(draftKey, input.value);
     clearInterval(timer); abort.abort(); pins.remove(); panel.remove(); open.remove();
+    presence?.dispose();
   } };
 }

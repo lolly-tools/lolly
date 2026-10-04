@@ -7276,5 +7276,6 @@
   "The live collab saves your changes to this session.": "ライブコラボでの変更は、このセッションに保存されます。",
   "Sign out": "サインアウト",
   "Could not sign out. Try again.": "サインアウトできませんでした。もう一度お試しください。",
-  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design は書き出しのチェックでこのルールをレイヤーごとに確認し、lolly check も保存済みドキュメントに対して同じ確認を行います。以下の例はこのルールに従ってチェックされません。"
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design は書き出しのチェックでこのルールをレイヤーごとに確認し、lolly check も保存済みドキュメントに対して同じ確認を行います。以下の例はこのルールに従ってチェックされません。",
+  "{names} typing…": "{names} が入力中…"
 }
