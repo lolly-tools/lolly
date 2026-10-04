@@ -183,6 +183,9 @@ export function takeStage(w: number, h: number, readback = false): BlurStage | n
   stage.ctx.setTransform(1, 0, 0, 1, 0, 0);
   stage.ctx.globalAlpha = 1;
   stage.ctx.globalCompositeOperation = 'source-over';
+  // A retained effect changes pool reuse order; sampling must match a fresh scratch.
+  stage.ctx.imageSmoothingEnabled = true;
+  if ('imageSmoothingQuality' in stage.ctx) stage.ctx.imageSmoothingQuality = 'low';
   setFilter(stage.ctx, 'none');
   return stage;
 }

@@ -95,7 +95,7 @@ test('a saved theme reaches the address and canvas on reopen, and the Document c
 
       // The Document section's control: one segment per declared theme.
       if (!await page.locator('.fc-insp').isVisible()) await page.getByRole('button', { name: 'Inspector', exact: true }).click();
-      await page.locator('.fc-insp-tabs button', { hasText: 'Document' }).click();
+      await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Document', exact: true }).click();
       const group = page.locator('.fc-insp .fc-seg[data-seg="lolly-doc-theme-0"]');
       assert.equal(await group.getAttribute('aria-label'), 'Colour theme');
       assert.deepEqual(await group.locator('.fc-seg-btn').allTextContents(), ['Light', 'Dark']);
