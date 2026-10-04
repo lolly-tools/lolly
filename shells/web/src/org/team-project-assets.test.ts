@@ -27,7 +27,8 @@ test('an asset page retains the project return path and previews files without a
   assert.equal(page.querySelector('a')?.getAttribute('href'), '#/p?team=prj_1');
   assert.equal(page.querySelector('h3')?.textContent, file.name);
   assert.equal(page.querySelector('img')?.getAttribute('src'), '/api/v1/projects/prj_1/files/fil_123');
-  assert.equal(page.querySelector('a[download]')?.getAttribute('download'), file.name);
+  assert.equal(page.querySelector('button')?.textContent, 'Download');
+  assert.equal(page.querySelector('a[download]'), null);
   assert.equal(page.querySelector('dialog'), null);
   const movie = buildProjectAsset(file.projectId, { ...file, contentType: 'video/mp4' });
   assert.equal(movie.querySelector('video')?.preload, 'none');

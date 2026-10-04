@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Project assets use the ordinary folder cards and open on their own project page. */
 import { imageTile } from '../folder-tiles.ts';
-import { getInstanceBase, instancePath } from '../lib/instance.ts';
+import { instancePath } from '../lib/instance.ts';
+import { getHostRef } from '../lib/host-ref.ts';
+import { anchorSave } from '../bridge/anchor-save.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { tRaw } from '../i18n.ts';
-import type { TeamFile } from './team-files.ts';
+import { downloadTeamFile, teamFileMessage, type TeamFile } from './team-files.ts';
 
 export function projectFileUrl(projectId: string, fileId: string): string {
   return instancePath(`/api/v1/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}`);
@@ -35,8 +37,19 @@ export function buildProjectAsset(projectId: string, file: TeamFile): HTMLElemen
   } else if (file.contentType.startsWith('video/') || file.contentType.startsWith('audio/')) {
     const media = document.createElement(file.contentType.startsWith('video/') ? 'video' : 'audio'); media.src = url; media.controls = true; media.preload = 'none'; preview.append(media);
   }
-  const download = document.createElement('a'); download.href = url; download.download = file.name; download.className = 'btn btn--primary'; download.textContent = tRaw('Download');
-  // A browser connected to another origin cannot use the download attribute there.
-  if (getInstanceBase()) { download.target = '_blank'; download.rel = 'noopener'; }
-  panel.append(back, heading, meta, preview, download); return panel;
+  const download = document.createElement('button'); download.type = 'button'; download.className = 'btn btn--primary'; download.textContent = tRaw('Download');
+  const status = document.createElement('p'); status.className = 'team-project-notice'; status.setAttribute('role', 'status');
+  download.addEventListener('click', () => { void (async () => {
+    download.disabled = true; status.textContent = tRaw('Downloading…');
+    try {
+      const blob = await downloadTeamFile(projectId, file);
+      if (!panel.isConnected) return;
+      const host = getHostRef();
+      if (host?.export.download) await host.export.download(blob, file.name);
+      else anchorSave(blob, file.name);
+      status.textContent = '';
+    } catch (error) { status.textContent = teamFileMessage(error, 'read'); }
+    finally { download.disabled = false; }
+  })(); });
+  panel.append(back, heading, meta, preview, download, status); return panel;
 }
