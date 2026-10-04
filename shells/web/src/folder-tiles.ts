@@ -201,6 +201,7 @@ export function sessionTile(entry: SessionEntry, { toolName = '', sizeBytes = 0,
 /** Options for {@link imageTile} - the Projects grid opts in to selection; the folder
  *  overlay / picker leave both false (unchanged). */
 export interface ImageTileOpts {
+  href?: string;
   selectable?: boolean;
   selected?: boolean;
   /** Sub-line under the name; defaults to "Image". The Projects grid passes "Catalog
@@ -213,7 +214,7 @@ export interface ImageTileOpts {
  * A user (or referenced catalog) image tile.
  * @param ref  AssetRef: { id, url, format, meta:{ name } }
  */
-export function imageTile(ref: ImageTileRef, { selectable = false, selected = false, sub = 'Image', shared }: ImageTileOpts = {}): string {
+export function imageTile(ref: ImageTileRef, { selectable = false, selected = false, sub = 'Image', shared, href }: ImageTileOpts = {}): string {
   const name = ref.meta?.name || 'Image';
   const cover = ref.url
     ? `<img class="tile-cover" src="${escape(ref.url)}" alt="" loading="lazy" decoding="async">`
@@ -224,8 +225,8 @@ export function imageTile(ref: ImageTileRef, { selectable = false, selected = fa
     sub,
     badges: fmtBadge(ref.format),
     openAttr: shared ? 'data-open-team-file' : 'data-open-image',
-    openLabel: shared?.openLabel ?? `Use image ${name}`,
-    ...(shared ? { href: shared.href } : {}),
+    openLabel: shared?.openLabel ?? (href ? `Open asset ${name}` : `Use image ${name}`),
+    ...(shared ? { href: shared.href } : href ? { href } : {}),
     selectable, selected,
     cols: { kind: 'Image', count: ref.format ? fmtLabel(ref.format) : '', when: '' },
   });
