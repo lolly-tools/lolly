@@ -3,7 +3,7 @@ import { updateRouteParams } from '../lib/url-state.ts';
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
-import { buildLocalProjectAsset, localProjectAssetHref } from './projects-asset-view.ts';
+import { mountLocalProjectAsset, localProjectAssetHref } from './projects-asset-view.ts';
 /**
  * Projects view (route /p and /p/<folderId>).
  *
@@ -580,16 +580,7 @@ export async function mountProjects(
     pruneSelection();     // forget refs that vanished since the last render
     viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     const assetId = !sharedFolder ? new URLSearchParams(opts.params || '').get('asset') : null;
-    if (assetId) {
-      const asset = imageRefs.get(assetId);
-      const slot = viewEl.querySelector<HTMLElement>('.projects-grid');
-      if (slot) {
-        slot.className = 'projects-asset-view';
-        const belongs = folders.find(folder => folder.id === folderId)?.items.some(item => item.type === 'image' && item.ref === assetId);
-        if (asset && belongs) slot.replaceChildren(buildLocalProjectAsset(host, folderId, asset));
-        else { slot.textContent = t('This asset is unavailable. Return to the project or refresh to check your access.'); }
-      }
-    }
+    if (assetId) mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
     wire();
     shared.afterRender({ query, list: viewMode === 'list', sort: sortBy, reversed: sortRev });
     scenePreviews.refresh(entries);
