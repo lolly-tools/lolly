@@ -144761,6 +144761,7 @@ async function serveSessionOnce(page3, origin, path, bytes) {
   const body = Buffer.from(bytes);
   const matches4 = (url) => url.origin === origin && url.pathname === path;
   let removed = false;
+  let consumed = false;
   let asked = () => {
   };
   const requested = new Promise((resolve8) => {
@@ -144773,7 +144774,7 @@ async function serveSessionOnce(page3, origin, path, bytes) {
     });
   };
   const handler = async (route, request) => {
-    if (removed) {
+    if (removed || consumed) {
       await route.fallback();
       return;
     }
@@ -144781,11 +144782,9 @@ async function serveSessionOnce(page3, origin, path, bytes) {
       await route.fulfill({ status: 405, body: "", headers: { Allow: "GET", "Cache-Control": "no-store" } });
       return;
     }
-    removed = true;
+    consumed = true;
     await route.fulfill({ status: 200, body, contentType: "application/vnd.lolly+zip", headers: { "Cache-Control": "no-store" } });
     asked();
-    await page3.unroute(matches4, handler).catch(() => {
-    });
   };
   await page3.route(matches4, handler);
   return { remove, requested };
