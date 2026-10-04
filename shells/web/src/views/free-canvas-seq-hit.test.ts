@@ -201,7 +201,8 @@ const settle = async (): Promise<void> => { for (let i = 0; i < 6; i++) await ne
 
 function clickAt(f: Fixture, x: number, y: number): void {
   f.canvasEl.dispatchEvent(pointer('pointerdown', x, y));
-  dom.window.document.dispatchEvent(pointer('pointerup', x, y));
+  // Pointer capture delivers the release to the canvas in a real browser.
+  f.canvasEl.dispatchEvent(pointer('pointerup', x, y));
 }
 function press(key: string): void {
   // The auto-opened timeline panel focuses its ruler; while focus is inside

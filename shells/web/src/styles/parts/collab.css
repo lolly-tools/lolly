@@ -229,10 +229,10 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   width: fit-content;
   max-width: calc(100% - 24px);
   padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--bg, white);
-  color: var(--fg, #222);
-  box-shadow: 0 2px 12px #0003;
+  border-radius: var(--ui-radius-surface);
+  background: var(--ui-color-surface-raised);
+  color: hsl(var(--foreground));
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
 }
 .collab-recovery[hidden] { display: none; }
 .collab-comments-open {
@@ -249,11 +249,11 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   width: min(360px, calc(100% - 24px));
   overflow: auto;
   z-index: 45;
-  border-radius: 8px;
+  border-radius: var(--ui-radius-surface);
   padding: 12px;
-  background: var(--bg, white);
-  color: var(--fg, #222);
-  box-shadow: 0 2px 12px #0003;
+  background: var(--ui-color-surface-raised);
+  color: hsl(var(--foreground));
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet);
 }
 .collab-comments-panel[hidden], .collab-comments-open[hidden] { display: none; }
 .collab-comment-list { display: grid; gap: 4px; margin-block: 12px; }
@@ -265,7 +265,7 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   position: absolute;
   transform: translate(-50%, -50%);
   pointer-events: auto;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   min-width: 28px;
   min-height: 28px;
   background: #6554c0;

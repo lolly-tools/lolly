@@ -27,13 +27,19 @@ test('interrupted work saves to a new device slot without changing the shared ca
 });
 test('a device quota failure keeps the downloadable draft and never says saved', async () => {
   const dom = new JSDOM('<div></div>'), stage = dom.window.document.querySelector('div')!;
-  const host = { state: { load: async () => null, save: async () => { throw new Error('quota'); } } } as unknown as HostV1;
+  const downloads: Array<{ name: string; value: unknown }> = [];
+  const host = { state: { load: async () => null, save: async () => { throw new Error('quota'); } },
+    export: { download: async (blob: Blob, name: string) => { downloads.push({ name, value: JSON.parse(await blob.text()) }); } } } as unknown as HostV1;
   const runtime = {}, ui = mountCollabRecovery(runtime, host, stage, () => ({ state: {} }));
   try {
     retainCanvasRecovery(runtime, { title: 'Keep this' }, 'Interrupted text');
     await new Promise(resolve => setImmediate(resolve));
     assert.match(stage.querySelector('[role="status"]')!.textContent!, /could not be saved/);
     assert.ok(stage.querySelector('button')); assert.equal(stage.querySelector('a')!.hidden, true);
+    stage.querySelector('button')!.click();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(downloads[0]!.name, 'lolly-recovery.json');
+    assert.equal((downloads[0]!.value as { title: string }).title, 'Keep this');
   } finally { ui.teardown(); dom.window.close(); }
 });
 test('an archived projection restores declared row IDs and keeps compound fields without resurrecting deleted rows', () => {

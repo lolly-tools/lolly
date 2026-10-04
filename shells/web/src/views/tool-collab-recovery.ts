@@ -14,9 +14,10 @@ export function mountCollabRecovery(runtime: object, host: HostV1 | null | undef
   let disposed = false, latest: Record<string, unknown> | undefined, generation = 0;
   download.addEventListener('click', () => {
     if (!latest) return;
-    const url = URL.createObjectURL(new Blob([JSON.stringify(latest, null, 2)], { type: 'application/json' }));
-    const link = parent.ownerDocument.createElement('a'); link.href = url; link.download = 'lolly-recovery.json'; link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    const blob = new Blob([JSON.stringify(latest, null, 2)], { type: 'application/json' });
+    void (host?.export?.download ? host.export.download(blob, 'lolly-recovery.json')
+      : import('../bridge/export.ts').then(({ anchorSave }) => anchorSave(blob, 'lolly-recovery.json')))
+      .catch(() => { if (!disposed) status.textContent = t('Recovery download failed. Try again.'); });
   });
   const off = subscribeCanvasRecovery(runtime, draft => {
     const ticket = ++generation, current = capture();
