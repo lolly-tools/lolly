@@ -4,6 +4,11 @@ import { collabSurface } from '../lib/collab-surface.ts';
 import type { CollabSession, CollabSessionHandle } from '../lib/collab-session.ts';
 import type { CanvasClaim, CanvasPreview } from '@lolly-tools/core/canvas-interaction-v1';
 
+interface OwnedInteraction {
+  claim: CanvasClaim; lost: () => void; generation: number; renew: ReturnType<typeof setInterval>;
+  fallback?: ReturnType<typeof setTimeout>; committing: boolean; sawPending: boolean; preview?: CanvasPreview;
+}
+
 /** Ghosts and labels live outside artwork. Neither received previews nor claims mutate the model. */
 export function mountCanvasInteractions(runtime: object, handle: CollabSessionHandle, session: CollabSession, layer: HTMLElement) {
   const capability = handle.claims;
@@ -12,8 +17,7 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
   root.className = 'collab-canvas-interactions'; root.setAttribute('aria-hidden', 'true');
   root.style.cssText = 'position:absolute;inset:0;pointer-events:none'; layer.append(root);
   let disposed = false, pending = 0, previewId: string | undefined;
-  const active = new Map<string, { claim: CanvasClaim; lost: () => void; renew: ReturnType<typeof setInterval>;
-    fallback?: ReturnType<typeof setTimeout>; committing: boolean; sawPending: boolean; preview?: CanvasPreview }>();
+  const active = new Map<string, OwnedInteraction>();
   const nodes = new Map<string, { node: HTMLElement; source?: string }>();
   function stop(id: string, lost = false): void {
     const entry = active.get(id); if (!entry) return;
@@ -32,19 +36,20 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
       if (disposed || session.state().role === 'observer' || session.state().connection !== 'live') {
         capability.release(claim.id); throw new Error('Work disconnected');
       }
-      const entry = reusable ?? { claim, lost, committing: false, sawPending: false,
-        renew: setInterval(() => { void capability.renew(claim.id).catch(() => stop(claim.id, true)); }, 3_000) } as typeof active extends Map<string, infer T> ? T : never;
+      const entry: OwnedInteraction = reusable ?? { claim, lost, generation: 0, committing: false, sawPending: false,
+        renew: setInterval(() => { void capability.renew(claim.id).catch(() => stop(claim.id, true)); }, 3_000) };
       clearTimeout(entry.fallback); entry.fallback = undefined; entry.lost = lost; entry.committing = false; entry.sawPending = false;
       active.set(claim.id, entry);
+      const generation = ++entry.generation;
       const lease: CanvasInteractionLease = {
         id: claim.id,
         preview(value) {
-          if (!active.has(claim.id)) return;
+          if (active.get(claim.id) !== entry || entry.generation !== generation) return;
           entry.preview = { ...value, claimId: claim.id, collection: target.collection };
           previewId = claim.id; session.updateSurface({ preview: entry.preview });
         },
         finish(committed) {
-          if (!active.has(claim.id)) return;
+          if (active.get(claim.id) !== entry || entry.generation !== generation) return;
           if (!committed) { stop(claim.id); return; }
           entry.committing = true; entry.sawPending ||= pending > 0;
           if (entry.preview) { entry.preview = { ...entry.preview, phase: 'committing' }; session.updateSurface({ preview: entry.preview }); }

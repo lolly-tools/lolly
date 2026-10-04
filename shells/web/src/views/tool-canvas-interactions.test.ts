@@ -90,6 +90,7 @@ test('the next gesture reuses its pending claim and an earlier receipt cannot en
     f.save(1); first.finish(true);
     const second = await port.acquire(f.target, () => assert.fail('unexpected cancellation'));
     assert.equal(second.id, first.id);
+    first.finish(false); assert.deepEqual(f.released, [], 'an obsolete callback cannot cancel the new lease');
     f.save(0); assert.deepEqual(f.released, []);
     f.save(1); second.finish(true); assert.deepEqual(f.released, []);
     f.save(0); assert.deepEqual(f.released, [first.id]);
