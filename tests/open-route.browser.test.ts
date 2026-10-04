@@ -11,18 +11,46 @@
  *   LOLLY_EXPORT_TEST_URL=http://127.0.0.1:5173 node --import ./tests/css-stub.mjs --test tests/open-route.browser.test.ts
  */
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import test, { beforeEach } from 'node:test';
 import { strFromU8, unzipSync } from 'fflate';
 import { readFileSync } from 'node:fs';
 
 import { buildDesignLolly } from '../packages/node-shell/src/rebrand/pipeline.ts';
-import { closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { closeBrowser, getBrowser } from '../packages/node-shell/src/browsers.ts';
 import { openedToolSlot, settleEditor } from '../packages/node-shell/src/open-session.ts';
 import { closeWebShell, exportDesignSessionThemesViaWebShell, exportDesignSessionViaWebShell, openLollyViaWebShell, renderDesignViaSession } from '../packages/node-shell/src/webshell-render.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'set LOLLY_EXPORT_TEST_URL';
 const LABEL = 'Open route synthetic deck';
+
+// Keep the actual hand-off state when an unattended browser context is closed.
+// This records failures without changing the route, its assertions or timeouts.
+const diagnosticBrowsers = new WeakSet<object>();
+beforeEach(async () => {
+  if (skip || !process.env.LOLLY_TIER_B_DEBUG) return;
+  const browser = await getBrowser();
+  if (diagnosticBrowsers.has(browser)) return;
+  diagnosticBrowsers.add(browser);
+  const newContext = browser.newContext.bind(browser);
+  browser.newContext = async options => {
+    const context = await newContext(options);
+    const close = context.close.bind(context);
+    context.close = async options => {
+      for (const page of context.pages()) {
+        if (new URL(page.url()).hash.startsWith('#/open')) {
+          console.error('Open route hand-off state', await page.evaluate(() => ({
+            url: location.href, text: document.body.innerText.slice(0, 6000),
+            dialogs: [...document.querySelectorAll('dialog[open]')].map(el => el.outerHTML.slice(0, 2000)),
+            opening: document.querySelector('[data-open-route]')?.outerHTML.slice(0, 4000),
+          })).catch(() => null));
+        }
+      }
+      await close(options);
+    };
+    return context;
+  };
+});
 
 /** Two frames, a heading on each: synthetic text only, no brand material. */
 async function syntheticDeck(): Promise<Uint8Array> {
