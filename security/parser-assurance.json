@@ -119,7 +119,7 @@
         "bounds": "`MAX_PART_BYTES = 24 MB`, `MAX_PART_CHARS = 16 M`, `MAX_SLIDES = 2000`, `MAX_NODES_PER_SLIDE = 8000`, `MAX_GROUP_DEPTH = 16`, `MAX_PARAS = 4000`, `MAX_RUNS_PER_PARA = 4000`, `MAX_TABLE_ROWS = 2000`, `MAX_TABLE_COLS = 512`, `MAX_TEXT_LEN = 200_000`, `MAX_DFS_VISITS = 200_000`, `MAX_COORD = 1e11`",
         "directTests": "`tests/pptx-read.test.ts`",
         "fuzzCoverage": "`pptx-read` (`readPptx` + `isPptx`)",
-        "notes": "The exemplar. See \"The standard to follow\". Entity expansion is explicitly delegated to the injected parser, and the module compensates with a visited-node counter."
+        "notes": "The exemplar. See \"The standard to follow\". Entity expansion is explicitly delegated to the injected parser, and the module compensates with a visited-node counter. Speaker notes come back twice: as joined text, and as paragraphs (`notesParas`) in which an `a:br` stays a line-break run, so `lolly read` and `lolly_read` can keep paragraphs and line breaks apart; both go through the same `readTxBody` bounds."
       }
     },
     "engine/src/svg-items.ts": {

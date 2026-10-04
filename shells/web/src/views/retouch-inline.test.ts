@@ -66,3 +66,11 @@ test('catalog offers Retouch on static rasters with no capability gate', () => {
   assert.match(catalog, /const canRetouch = zoomable && ref\.type === 'raster' && !ref\.meta\?\.animated/);
   assert.match(catalog, /data-act="retouch"/);
 });
+
+test('the fill method: four choices kept on the device, sent to the worker, and recorded (plans/289 M4)', () => {
+  for (const m of ['content-aware', 'proximity', 'texture', 'smooth']) assert.match(mode, new RegExp(`<option value="${m}">`));
+  assert.match(mode, /localStorage\.setItem\(METHOD_KEY, methodEl\.value\)/, 'the choice is remembered like the brush');
+  assert.match(mode, /runInpaint\([\s\S]*?method,\s*seed: fillCount \+ 1/, 'the worker is told the method and a seed');
+  assert.match(mode, /usedMethods\.pop\(\)/, 'an undone fill leaves the record');
+  assert.match(mode, /const methodRecord = \(m: RetouchMethod\): string => \(m === 'smooth' \? 'telea' : m\)/, 'a smooth fill keeps the name it always had');
+});

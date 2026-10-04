@@ -153,6 +153,8 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
     'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx',
     'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence',
+    // The theme choice per token group (plan 291 M4, E24), JSON such as `{"":"dark"}`.
+    '_themes',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 

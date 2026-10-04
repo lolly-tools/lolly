@@ -20,6 +20,13 @@
  *     the renovation presets) and then file names, with the folder-run flags
  *     (--jobs, --resume, --recursive) among its flags, all read from args.ts, the one
  *     home the stage and flag lists share with rebrand.ts
+ *   - the `read` and `check` flags, from READ_VALUE_FLAGS, CHECK_VALUE_FLAGS and their
+ *     on/off lists in args.ts: --source, --file, --edits and --media as paths, --theme,
+ *     --browser, --page-cap, --ocr, --force and --thumbnails as words, and
+ *     auto, off and require after --browser=
+ *   - the `compose` flags, from COMPOSE_VALUE_FLAGS and COMPOSE_BOOL_FLAGS: --inventory,
+ *     --master and --edits-out as paths beside --source, --file and --output, and
+ *     --size, --theme, --fit, --list and --suggest as words
  *
  * A generated script is a snapshot of the catalog at generation time: installing a
  * tool later needs `lolly completion <shell>` run again to see it. That is the same
@@ -32,6 +39,10 @@ import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 import {
   RESERVED_SUBCOMMANDS, VALUE_FLAGS,
   REBRAND_STAGES, REBRAND_VALUE_FLAGS, REBRAND_PATH_FLAGS, REBRAND_BOOL_FLAGS,
+  READ_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_VALUE_FLAGS, CHECK_BOOL_FLAGS, CHECK_BROWSER_VALUES,
+  PACKAGE_VALUE_FLAGS, PACKAGE_BOOL_FLAGS, PACKAGE_PATH_FLAGS,
+  MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS,
+  COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, COMPOSE_PATH_FLAGS,
 } from './args.ts';
 
 export type CompletionShell = 'bash' | 'zsh' | 'fish';
@@ -42,7 +53,16 @@ const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict'] as const;
 /** Value flags whose value is a filesystem path - completed as files/dirs, never a word list. */
 const PATH_FLAGS = new Set([
   'output', 'out-dir', 'inputs', 'template', 'trust-anchor', 'sign-key', 'sign-cert', 'rebuild',
+  // `lolly read --media=<dir>`: the folder the pictures are written to (plan 291 W2).
+  'media',
+  // `lolly check --file=<tokens.json>`: the design system to check against (plan 291 W1).
+  'file',
+  // `lolly check --edits=<edits.json>`: the source wording changed on purpose (plan 291 W1).
+  'edits',
 ]);
+
+/** `lolly check` and `lolly read` flags whose value is a path: the deck or inventory, the tokens, the edits list, the folder. */
+const VERB_PATH_FLAGS = ['source', 'file', 'edits', 'media'] as const;
 
 /**
  * Tool ids from the active profile's catalog, best-effort. Empty (not thrown) when no
@@ -74,11 +94,13 @@ function pathFlagNames(): string[] {
   return [...PATH_FLAGS].map(f => `--${f}`);
 }
 
-/** Rebrand's own stages and flags, as `rebrandWords` reads them from args.ts. */
+/** Rebrand's own stages and flags, and the read and check flags, as `rebrandWords` reads them from args.ts. */
 interface RebrandWords {
   stages: string[];
   flags: string[];
   pathFlags: string[];
+  /** The values `--browser=` takes on `lolly check`. */
+  browser: string[];
 }
 
 /**
@@ -86,14 +108,20 @@ interface RebrandWords {
  * lists, so generating a script never loads the renovation pipeline.
  */
 function rebrandWords(): RebrandWords {
-  const paths = new Set<string>(REBRAND_PATH_FLAGS);
+  // `lolly package` (plan 291 W8): --asset-dir and --source as paths, --asset, --label,
+  // --allow-missing-media as words (an --asset value is KEY=PATH, not a bare path).
+  const paths = new Set<string>([...REBRAND_PATH_FLAGS, ...VERB_PATH_FLAGS, ...PACKAGE_PATH_FLAGS, ...COMPOSE_PATH_FLAGS]);
   const known = new Set<string>([...VALUE_FLAGS, ...GLOBAL_BOOL_FLAGS, ...PATH_FLAGS]);
-  const bools: string[] = [...REBRAND_BOOL_FLAGS];
-  const words = [...REBRAND_VALUE_FLAGS.filter(f => !paths.has(f)), ...bools].filter(f => !known.has(f));
+  // `lolly measure --text` and `--text-layers` (plan 291 W5).
+  // `lolly compose` (plan 291 W6).
+  const bools: string[] = [...REBRAND_BOOL_FLAGS, ...READ_BOOL_FLAGS, ...CHECK_BOOL_FLAGS, ...PACKAGE_BOOL_FLAGS, ...MEASURE_BOOL_FLAGS, ...COMPOSE_BOOL_FLAGS];
+  const values: string[] = [...REBRAND_VALUE_FLAGS, ...READ_VALUE_FLAGS, ...CHECK_VALUE_FLAGS, ...PACKAGE_VALUE_FLAGS, ...MEASURE_VALUE_FLAGS, ...COMPOSE_VALUE_FLAGS];
+  const words = [...new Set([...values.filter(f => !paths.has(f)), ...bools])].filter(f => !known.has(f));
   return {
     stages: [...REBRAND_STAGES],
     flags: words.map(f => `--${f}`),
     pathFlags: [...paths].filter(f => !PATH_FLAGS.has(f)).map(f => `--${f}`),
+    browser: [...CHECK_BROWSER_VALUES],
   };
 }
 
@@ -105,6 +133,7 @@ function completionWords(toolIds: string[], rebrand: RebrandWords) {
     pathFlags: [...pathFlagNames(), ...rebrand.pathFlags],
     tools: toolIds,
     stages: rebrand.stages,
+    browser: rebrand.browser,
   };
 }
 
@@ -132,6 +161,15 @@ _lolly_complete() {
       return 0
       ;;
   esac
+  # \`lolly check --browser=<mode>\`: bash splits at '=' by default, so the flag sits two words back.
+  if [[ "\${prev}" == "=" && "\${COMP_WORDS[COMP_CWORD-2]}" == --browser ]]; then
+    COMPREPLY=( $(compgen -W "${w.browser.join(' ')}" -- "\${cur}") )
+    return 0
+  fi
+  if [[ "\${cur}" == --browser=* ]]; then
+    COMPREPLY=( $(compgen -W "${w.browser.map(v => `--browser=${v}`).join(' ')}" -- "\${cur}") )
+    return 0
+  fi
   if [[ "\${cur}" == -* ]]; then
     COMPREPLY=( $(compgen -W "\${flags} \${pathflags}" -- "\${cur}") )
     return 0
@@ -170,6 +208,11 @@ _lolly() {
 
   if [[ "\${words[CURRENT-1]}" == @(${pathFlagsAlt}) ]]; then
     _files
+    return
+  fi
+
+  if [[ "\${words[CURRENT]}" == --browser=* ]]; then
+    compadd -P '--browser=' ${w.browser.join(' ')}
     return
   fi
 
@@ -212,7 +255,8 @@ function fishScript(toolIds: string[], rebrand: RebrandWords): string {
     lines.push(`complete -c lolly -n "__fish_use_subcommand" -a "${t}" -d "tool"`);
   }
   for (const f of w.flags) {
-    lines.push(`complete -c lolly -l "${f.replace(/^--/, '')}"`);
+    if (f === '--browser') lines.push(`complete -c lolly -l "browser" -x -a "${w.browser.join(' ')}"`);
+    else lines.push(`complete -c lolly -l "${f.replace(/^--/, '')}"`);
   }
   for (const f of w.pathFlags) {
     lines.push(`complete -c lolly -l "${f.replace(/^--/, '')}" -r -F`);

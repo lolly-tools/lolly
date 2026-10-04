@@ -39,8 +39,7 @@ import type {
 import { packPng } from '../../../../engine/src/png.ts';
 import { sniffLayeredRaster } from '../../../../engine/src/media-sniff.ts';
 import { encodeAuthoredPaths } from '../../../../engine/src/geom/authored-url.ts';
-import { selfUnion } from '../../../../engine/src/geom/boolean.ts';
-import type { GeomPath } from '../../../../engine/src/geom/path.ts';
+import { sameWinding, unionOutline } from '../../../../engine/src/psd-outline.ts';
 import type { DesignMapOptions } from '../../../../engine/src/design-map.ts';
 import type { PsdStroke, PsdSubpath, PsdTextRun } from '../../../../engine/src/psd-layer-semantics.ts';
 import { markdownFromChars } from './rich-text.ts';
@@ -185,6 +184,21 @@ export async function importLayeredFileAsSeed(
     throw new Error(t('No layers with pixels could be read from this file.'));
   }
 
+  // Adjustment layers at the top of the stack become Darkroom's grade (plans/289
+  // M3); the person sees what was kept and what was not before anything is stored.
+  const { darkroomGradeFromLayers } = await import('./psd-grade.ts');
+  const grade = darkroomGradeFromLayers(doc.layers);
+  if (grade.kept.length || grade.notes.length) {
+    const ok = await choiceDialog({
+      title: t('Open with these changes?'),
+      message: tRaw('Adjustment layers in “{name}” become Darkroom’s grade where Darkroom has the same control:', { name: file.name }),
+      items: [...grade.kept, ...grade.notes],
+      choices: [{ id: 'open', label: t('Open'), primary: true }],
+      tag: 'psd-import',
+    });
+    if (!ok) return null;
+  }
+
   let keepGroups = false;
   if (doc.layers.some((l) => l.isGroup)) {
     const chosen = await choiceDialog({
@@ -223,7 +237,7 @@ export async function importLayeredFileAsSeed(
     });
   }
 
-  return { layers: rows, width: doc.width, height: doc.height };
+  return { ...grade.inputs, layers: rows, width: doc.width, height: doc.height };
 }
 
 /**
@@ -266,14 +280,14 @@ export async function parseLayeredAsDesign(
     clipTo[i] = base;
     const b = planned[base]!.live;
     const exact = b?.kind === 'shape' && (b.node.shape === 'ellipse' || b.node.shape === 'rect');
-    if (!exact) notes.push(`${planned[i]!.layer.name || t('Untitled layer')}: ${t('Clipped to the rectangle around “{base}”, not its exact outline.', { base: planned[base]!.layer.name || t('Untitled layer') })}`);
+    if (!exact) notes.push(`${planned[i]!.layer.name || t('Untitled layer')}: ${tRaw('Clipped to the rectangle around “{base}”, not its exact outline.', { base: planned[base]!.layer.name || t('Untitled layer') })}`);
   }
 
   if (notes.length) {
     if (interactive) {
       const ok = await choiceDialog({
         title: t('Open with these changes?'),
-        message: t('Text, shapes and paths come in editable. Some parts of “{name}” cannot be kept as they are:', { name: (file as File).name || t('this file') }),
+        message: tRaw('Text, shapes and paths come in editable. Some parts of “{name}” cannot be kept as they are:', { name: (file as File).name || t('this file') }),
         items: notes,
         choices: [{ id: 'open', label: t('Open'), primary: true }],
         tag: 'psd-import',
@@ -369,53 +383,6 @@ export function strokeFields(stroke: PsdStroke): Record<string, unknown> {
     strokeCap: stroke.cap, strokeJoin: stroke.join,
     ...(stroke.dash ? { strokeDash: stroke.dash[0] === 0 ? 'dotted' : 'dashed', strokeDashArray: stroke.dash.join(' ') } : {}),
   };
-}
-
-/**
- * Photoshop's combine joins outlines into a union whichever way each was drawn. The
- * non-zero rule gives a union only when every outline turns the same way, so each
- * closed outline that turns the other way is reversed (knots in reverse order, with
- * their handles swapped).
- */
-export function sameWinding(subpaths: readonly PsdSubpath[]): PsdSubpath[] {
-  const area = (k: readonly PsdSubpath['knots'][number][]) =>
-    k.reduce((a, p, i) => { const q = k[(i + 1) % k.length]!; return a + p.x * q.y - q.x * p.y; }, 0);
-  return subpaths.map(sp => !sp.closed || area(sp.knots) >= 0 ? sp : {
-    ...sp, knots: [...sp.knots].reverse().map(k => ({ x: k.x, y: k.y, inX: k.outX, inY: k.outY, outX: k.inX, outY: k.inY })),
-  });
-}
-
-/**
- * Combined outlines as one outer outline, for a shape with a stroke: the non-zero
- * rule already fills the union, but a stroke on each outline would also draw the
- * edges where they overlap, which Photoshop does not. Null when the union is too
- * complex to work out within the geometry kernel's limits; the caller keeps the
- * separate outlines and says so.
- */
-export function unionOutline(subpaths: readonly PsdSubpath[]): PsdSubpath[] | null {
-  const geom: GeomPath = subpaths.filter(sp => sp.closed && sp.knots.length >= 2).map(sp => ({
-    closed: true,
-    curves: sp.knots.map((k, i) => {
-      const n = sp.knots[(i + 1) % sp.knots.length]!;
-      return [k.x, k.y, k.outX, k.outY, n.inX, n.inY, n.x, n.y] as [number, number, number, number, number, number, number, number];
-    }),
-  }));
-  let merged: GeomPath;
-  try { merged = selfUnion(geom, { fillRule: 'nonzero' }); } catch { return null; }
-  const r = (v: number) => Math.round(v * 100) / 100;
-  const out = merged.filter(c => c.curves.length).map((c): PsdSubpath => {
-    const curves = c.curves;
-    const last = curves[curves.length - 1]!, first = curves[0]!;
-    const shut = Math.hypot(last[6] - first[0], last[7] - first[1]) < 1e-6;
-    const knots = curves.map((cv, i) => {
-      const prev = i > 0 ? curves[i - 1]! : shut ? last : null;
-      return { x: r(cv[0]), y: r(cv[1]), inX: r(prev ? prev[4] : cv[0]), inY: r(prev ? prev[5] : cv[1]), outX: r(cv[2]), outY: r(cv[3]) };
-    });
-    // An open end (the closing edge left implicit) is a knot of its own, joined by a straight line.
-    if (!shut) knots.push({ x: r(last[6]), y: r(last[7]), inX: r(last[4]), inY: r(last[5]), outX: r(last[6]), outY: r(last[7]) });
-    return { closed: true, op: 1, knots };
-  });
-  return out.length ? out : null;
 }
 
 /**

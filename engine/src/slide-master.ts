@@ -54,7 +54,22 @@ import type {
 import { findArchetype, roleFontSize } from '@lolly-tools/core';
 import { withSlideLayoutComponents } from './slide-layout-components.ts';
 import { contrastRatio } from './brand-derive.ts';
-import { bgIsDark, pickLogoVariant, type LogoSetV1 } from './logo-variant.ts';
+import { bgIsDark, pickLogoVariant, type LogoSetV1, type LogoVariantChoiceV1 } from './logo-variant.ts';
+import { surfaceAutoId } from './surface-variant.ts';
+import { withBlockTokenBinding } from './token-block-bindings.ts';
+
+/**
+ * The id a surface-aware mark is written under: the light side of the pair the pick
+ * came from (`onDark` writes `onLight`, `monoOnDark` writes `monoOnLight`). The runtime
+ * picks again from the surface, so the base only has to say which pair and whether it
+ * is mono. A brand whose preferred dark mark is its white mono mark (SUSE after E18)
+ * would otherwise have that mark read as a mono choice, which turns into the black
+ * mark on light instead of the rule's first light mark.
+ */
+function surfaceAutoMark(picked: LogoVariantChoiceV1<string>, logos: LogoSetV1<string>): string {
+  const light = picked.variant === 'onDark' ? logos.onLight : picked.variant === 'monoOnDark' ? logos.monoOnLight : undefined;
+  return surfaceAutoId(typeof light === 'string' && light ? light : picked.value);
+}
 
 /** Resolves a design-system token path to a hex colour. Absent means "leave it unset". */
 export type TokenResolver = (path: string) => string | undefined;
@@ -81,6 +96,21 @@ export interface SeedFrameOptsV1 {
   logos?: LogoSetV1<string>;
   /** Overrides the mono preference the background would otherwise decide. */
   monoLogo?: boolean;
+  /**
+   * Write the picked mark as `<id>?theme=auto` (plan 291 W4): a document shown in more
+   * than one theme then takes, in each, the mark the surface under the logo asks for.
+   * The id written is the light side of the picked pair (`onLight` for an `onDark`
+   * pick, `monoOnLight` for `monoOnDark`), so a white mono mark the brand prefers on
+   * dark is not read as a mono choice on light. That id is what renders where `auto`
+   * is not understood.
+   */
+  surfaceAuto?: boolean;
+  /**
+   * Store each colour a master token path gives as the literal plus a `tokenLinks`
+   * entry to that path (plan 291 W4, E20), so a document shown in more than one theme
+   * re-resolves the colour in each. A colour the master states as a literal is not linked.
+   */
+  linkTokens?: boolean;
   /**
    * Leave out the placeholders the master marks `optional`, so a cell label the
    * content has nothing for is not drawn as an empty placeholder. Seeded by default.
@@ -119,6 +149,8 @@ export interface RelayoutOptsV1 {
   logos?: LogoSetV1<string>;
   /** Overrides the mono preference the background would otherwise decide. */
   monoLogo?: boolean;
+  /** Write the picked mark as `<id>?theme=auto`, as `SeedFrameOptsV1.surfaceAuto` does. */
+  surfaceAuto?: boolean;
 }
 
 const ROUND = (n: number): number => Math.round(n * 1e4) / 1e4;
@@ -137,6 +169,13 @@ function furnitureKind(kind: FurnitureLayerV1['kind']): string {
   if (kind === 'bar' || kind === 'rect') return 'box';
   return 'text';
 }
+
+/** Records a colour a master token path gave on a row, the way `seedFrame`'s `linkTokens` stores the link. */
+type ColourLinker = (row: DesignBoxRowV1, field: string, tokenPath: string, value: string) => void;
+
+const linkColour: ColourLinker = (row, field, tokenPath, value) => {
+  Object.assign(row, withBlockTokenBinding(row as never, 'tokenLinks', field, { ref: `{${tokenPath}}`, value }));
+};
 
 function colourOf(hex: string | undefined, tokenPath: string | undefined, resolve?: TokenResolver): string | undefined {
   if (typeof hex === 'string' && hex) return hex;
@@ -185,6 +224,7 @@ function applyTextStyle(
   role: ArchetypeRoleV1 | undefined,
   style: MasterTextStyleV1 | undefined,
   resolve?: TokenResolver,
+  link?: ColourLinker,
 ): void {
   if (role) row.fontSize = roleFontSize(master, role, style);
   else if (style && typeof style.fontSize === 'number') row.fontSize = style.fontSize;
@@ -195,6 +235,7 @@ function applyTextStyle(
   if (style.font) row.font = style.font;
   const fg = colourOf(style.fg, style.fgTokenPath, resolve);
   if (fg) row.fg = fg;
+  if (fg && link && !style.fg && style.fgTokenPath) link(row, 'fg', style.fgTokenPath, fg);
 }
 
 /**
@@ -319,6 +360,8 @@ export function seedFrame(
     order: typeof opts.order === 'number' ? opts.order : 0,
   };
   if (bg) frame.bg = bg;
+  const link = opts.linkTokens ? linkColour : undefined;
+  if (bg && link && !archetype.background?.hex && archetype.background?.tokenPath) link(frame, 'bg', archetype.background.tokenPath, bg);
 
   const darkness = logoDarkness(master, archetype, resolve);
   const markFor = (f: FurnitureLayerV1): string | null => {
@@ -329,7 +372,8 @@ export function seedFrame(
       logos: opts.logos,
       mono: opts.monoLogo,
     });
-    return picked ? picked.value : null;
+    if (!picked) return null;
+    return opts.surfaceAuto ? surfaceAutoMark(picked, opts.logos) : picked.value;
   };
 
   const shown = shownFurniture(master, archetype);
@@ -355,10 +399,11 @@ export function seedFrame(
     } else if (f.kind === 'bar' || f.kind === 'rect') {
       const fill = colourOf(f.hex, f.tokenPath, resolve);
       if (fill) row.bg = fill;
+      if (fill && link && !f.hex && f.tokenPath) link(row, 'bg', f.tokenPath, fill);
     } else {
       row.text = f.text ?? '';
       const role: ArchetypeRoleV1 = f.kind === 'page-number' ? 'number' : 'label';
-      applyTextStyle(row, master, role, f.style, resolve);
+      applyTextStyle(row, master, role, f.style, resolve, link);
     }
     layers.push(row);
   };
@@ -395,7 +440,7 @@ export function seedFrame(
       row.fit = ph.fit ?? 'contain';
     } else {
       row.text = '';
-      applyTextStyle(row, master, ph.role, ph.style, resolve);
+      applyTextStyle(row, master, ph.role, ph.style, resolve, link);
     }
     layers.push(row);
   };
@@ -502,6 +547,25 @@ function roleOrdinals(layers: DesignBoxRowV1[]): Map<number, number> {
     out.set(index, n);
   }
   return out;
+}
+
+/**
+ * The archetype slot a role-bound row fills, 1-based within its role: 1 for the first
+ * body placeholder, 2 for the second. 0 for a row that fills no slot (furniture, or no
+ * role).
+ *
+ * The answer `applyArchetype` and Reset Slide relay by, so a PowerPoint export binds
+ * each row to the placeholder Design puts it in. The seeded id states the slot first
+ * (`f.body-2` is the second body even when `f.body` was dropped); a row whose id says
+ * nothing takes the lowest slot no other row of its role claims, in the order of
+ * `rows`. A row that is not in `rows` is counted as if it came last.
+ */
+export function slotOrdinalOf(row: Record<string, unknown>, rows: readonly Record<string, unknown>[]): number {
+  let index = rows.indexOf(row);
+  const list = (index >= 0 ? rows : [...rows, row]) as DesignBoxRowV1[];
+  if (index < 0) index = list.length - 1;
+  const ordinal = roleOrdinals(list).get(index);
+  return ordinal === undefined ? 0 : ordinal + 1;
 }
 
 /**
@@ -890,7 +954,7 @@ export function applyArchetype(
             logos,
             mono: opts?.monoLogo,
           });
-          if (picked) next.image = picked.value;
+          if (picked) next.image = opts?.surfaceAuto ? surfaceAutoMark(picked, logos) : picked.value;
           else delete next.image;
         }
       } else {
@@ -945,4 +1009,46 @@ export function masterBoxToPx(master: SlideMasterV1, box: MasterBoxV1): { x: num
 export function pxToMasterFraction(master: SlideMasterV1, px: number, axis: 'x' | 'y'): number {
   const span = axis === 'x' ? master.size.width : master.size.height;
   return span > 0 ? ROUND(px / span) : 0;
+}
+
+/**
+ * The master restated at one page size (plan 291 W6; moved here from the editor's
+ * `sizedMaster` so Design's New slide from layout and `composeDesignSlides` land on
+ * the same numbers).
+ *
+ * Every master box is a fraction, so one master serves 1280x720, 1920x1080 and a print
+ * page. The type scale is the one place a pixel appears, so it moves by the same factor,
+ * and the smaller of the two axes decides it, which keeps a title inside a page that got
+ * wider without getting taller. Sizes are whole px, at least 1, which is what Reset slide
+ * restates, so a composed slide and a reset one agree. A size equal to the master's own,
+ * or one that is not a positive size, returns the master itself.
+ */
+export function masterAtSize(master: SlideMasterV1, size: { width: number; height: number }): SlideMasterV1 {
+  const w = Math.round(Number(size?.width));
+  const h = Math.round(Number(size?.height));
+  if (!(w > 0) || !(h > 0)) return master;
+  if (w === master.size.width && h === master.size.height) return master;
+  const k = Math.min(w / master.size.width, h / master.size.height);
+  if (!Number.isFinite(k) || k <= 0) return master;
+  const px = (n: number): number => Math.max(1, Math.round(n * k));
+  const scaled = (style: MasterTextStyleV1 | undefined): MasterTextStyleV1 | undefined =>
+    style && typeof style.fontSize === 'number' ? { ...style, fontSize: px(style.fontSize) } : style;
+  const scale = master.typeScale;
+  return {
+    ...master,
+    size: { width: w, height: h },
+    typeScale: {
+      title: px(scale.title),
+      subtitle: px(scale.subtitle),
+      body: px(scale.body),
+      caption: px(scale.caption),
+      number: px(scale.number),
+      label: px(scale.label),
+    },
+    archetypes: master.archetypes.map((a) => ({
+      ...a,
+      placeholders: a.placeholders.map((p) => (p.style ? { ...p, style: scaled(p.style) } : p)),
+    })),
+    furniture: master.furniture.map((f) => (f.style ? { ...f, style: scaled(f.style) } : f)),
+  };
 }

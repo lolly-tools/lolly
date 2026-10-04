@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Verander codefragmenten in nette afbeeldingen met syntaxiskleuring, klaar om te delen.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Code",
   "inputs.code.placeholder": "Plak je code hier…",
   "inputs.fileName.label": "Bestandsnaam",

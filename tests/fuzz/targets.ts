@@ -1296,7 +1296,21 @@ export const psdTarget: FuzzTarget = {
           extraBlocks: [['SoCo', solidColor('#ff0000')], ['vmsk', vectorMask(40, 30, [[{ at: [1, 1] }, { at: [30, 2], in: [25, 0], out: [35, 4] }, { at: [10, 25] }]])]] },
       ],
     });
-    return [flat, multi, semantic];
+    // Adjustment layers with and without a raster mask (psd-adjustments.ts and
+    // psd.ts's adjustment-mask read, plans/289 M3).
+    const { adjustmentBlocks } = await import('../helpers/psd-fixtures.ts');
+    const blocks = adjustmentBlocks();
+    const adjust = writePsd({
+      width: 16, height: 12,
+      layers: [
+        { name: 'Photo', x: 0, y: 0, width: 16, height: 12, pixels: px(16, 12, 19) },
+        { name: 'Levels', x: 0, y: 0, width: 0, height: 0, pixels: new Uint8Array(0), extraBlocks: [['levl', blocks.levl]] },
+        { name: 'Curves', x: 0, y: 0, width: 0, height: 0, pixels: new Uint8Array(0), extraBlocks: [['curv', blocks.curv]],
+          mask: { x: 2, y: 2, width: 8, height: 6, defaultColor: 255, pixels: px(8, 6, 23).filter((_, i) => i % 4 === 0) } },
+        { name: 'Contrast', x: 0, y: 0, width: 0, height: 0, pixels: new Uint8Array(0), extraBlocks: [['brit', blocks.brit], ['CgEd', blocks.CgEd]] },
+      ],
+    });
+    return [flat, multi, semantic, adjust];
   },
   async invoke(bytes) {
     const inflate: InflateFn = (b, maxOut) => {
@@ -1317,7 +1331,9 @@ export const psdDescriptorTarget: FuzzTarget = {
   async seeds() {
     const { typeLayer, origination, solidColor, strokeSettings } = await import('../helpers/psd-fixtures.ts');
     const type = typeLayer({ text: 'Seed (one)\rtwo', font: 'Inter-Bold', size: 30, secondSize: 12, bounds: { left: 0, top: 0, right: 90, bottom: 40 }, glyphBounds: { left: 0, top: 0, right: 30, bottom: 10 } });
-    return [type, type.subarray(52), origination(2, { left: 1, top: 2, right: 30, bottom: 20 }, [1, 2, 3, 4]), solidColor('#123456'), strokeSettings({ fill: false, stroke: true, width: 3, color: '#abcdef' })];
+    const { adjustmentBlocks } = await import('../helpers/psd-fixtures.ts');
+    return [type, type.subarray(52), origination(2, { left: 1, top: 2, right: 30, bottom: 20 }, [1, 2, 3, 4]), solidColor('#123456'), strokeSettings({ fill: false, stroke: true, width: 3, color: '#abcdef' }),
+      ...Object.values(adjustmentBlocks())];
   },
   async invoke(bytes) {
     const { readDescriptor, readVersionedDescriptor, parseEngineData } = await import('../../engine/src/psd-descriptor.ts');
@@ -1326,9 +1342,10 @@ export const psdDescriptorTarget: FuzzTarget = {
     readVersionedDescriptor(bytes);
     if (bytes.length > 8) readDescriptor(bytes, 8);
     parseEngineData(bytes);
-    for (const key of ['TySh', 'vogk', 'vmsk', 'SoCo', 'vstk']) {
+    for (const key of ['TySh', 'vogk', 'vmsk', 'SoCo', 'vstk', 'levl', 'curv', 'hue2', 'expA', 'blnc', 'blwh']) {
       readLayerSemantics(new Map([[key, bytes]]), { x: 0, y: 0, w: 50, h: 20 }, { w: 200, h: 100 });
     }
+    readLayerSemantics(new Map([['brit', bytes], ['CgEd', bytes]]), { x: 0, y: 0, w: 0, h: 0 }, { w: 200, h: 100 });
   },
 };
 

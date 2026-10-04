@@ -28,7 +28,7 @@
  * stub, a partial shell) is an ordinary answer, and a read that throws counts as
  * absent rather than failing the journey.
  */
-import { neutralSlideMaster, type DeckLookV1, type LogoSetV1, type RebrandDesignSystemInputV1 } from '@lolly/engine';
+import { logoSetInBrandOrder, neutralSlideMaster, type DeckLookV1, type LogoSetV1, type RebrandDesignSystemInputV1 } from '@lolly/engine';
 import type { RebrandThemeFactsV1 } from '../../../../../engine/src/deck-compile.ts';
 import type { ArchetypeRefV1, SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
 import { sha256Hex } from '../../../../../engine/src/bytes.ts';
@@ -61,6 +61,8 @@ export interface MasterTokensApi {
     get?(path: string): TokenEntryLike | undefined;
   }>;
   themes?(): Promise<Array<{ name: string; group?: string | null }>>;
+  /** The effective token document (v1.184); its brand system orders the logos (plan 291 E18). */
+  snapshot?(): Promise<{ document?: unknown } | null | undefined>;
 }
 
 /** Whatever a caller holds as its host. Both reads are narrowed below. */
@@ -166,7 +168,7 @@ async function firstIdFor(assets: MasterAssetsApi, tags: string[], notId?: strin
  * side the pack cannot answer stays absent, and `pickLogoVariant` inside `seedFrame`
  * then leaves that frame's logo empty rather than putting a light mark on a dark slide.
  */
-export async function resolveLogos(assets: MasterAssetsApi, master: SlideMasterV1): Promise<LogoSetV1<string>> {
+export async function resolveLogos(assets: MasterAssetsApi, master: SlideMasterV1, tokens?: unknown): Promise<LogoSetV1<string>> {
   const tags = master.logo?.assetTags;
   if (!tags) return {};
   const out: LogoSetV1<string> = {};
@@ -182,7 +184,28 @@ export async function resolveLogos(assets: MasterAssetsApi, master: SlideMasterV
     if (colourId) out[side] = colourId;
     if (monoId) out[monoSide] = monoId;
   }
-  return out;
+  if (tokens === undefined) return out;
+  const doc = await readTokenDocument(isMasterTokens(tokens) ? tokens : undefined, assets).catch(() => undefined);
+  return doc === undefined ? out : logoSetInBrandOrder(out, doc);
+}
+
+/**
+ * The design system's token document: the token API's snapshot when it offers one,
+ * else the catalog's brand token file (a `tokens` asset tagged `brand`, else the first
+ * `tokens` asset), which is what the Node reader reads. Undefined when neither answers.
+ */
+export async function readTokenDocument(tokens: MasterTokensApi | undefined, assets: MasterAssetsApi): Promise<unknown> {
+  if (tokens?.snapshot) {
+    const snapshot = await tokens.snapshot().catch(() => null);
+    if (snapshot?.document !== undefined && snapshot.document !== null) return snapshot.document;
+  }
+  if (!assets.bytes) return undefined;
+  const branded = await assets.query({ type: 'tokens', tags: ['brand'] });
+  const entry = (Array.isArray(branded) && branded[0]) || (await assets.query({ type: 'tokens' }))?.[0];
+  if (!entry) return undefined;
+  const ref = entry.url ? entry : assets.get && entry.id ? await assets.get(entry.id) : null;
+  if (!ref) return undefined;
+  return JSON.parse(new TextDecoder().decode(await assets.bytes(ref)));
 }
 
 /** One snapshot of the design system's colour tokens, path to hex. */
@@ -193,7 +216,7 @@ export async function readColors(tokens: MasterTokensApi | undefined): Promise<M
   const entries = set?.query?.({ type: 'color' });
   if (!Array.isArray(entries)) return out;
   for (const entry of entries) {
-    if (typeof entry?.path === 'string' && typeof entry.value === 'string') out.set(entry.path, entry.value);
+    if (typeof entry?.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out.set(entry.path, entry.value);
   }
   return out;
 }
@@ -215,7 +238,7 @@ export async function readDarkColors(tokens: MasterTokensApi | undefined): Promi
   const set = await tokens.get({ theme: dark.name });
   const out: Record<string, string> = {};
   for (const entry of set?.query?.({ type: 'color' }) ?? []) {
-    if (typeof entry?.path === 'string' && typeof entry.value === 'string') out[entry.path] = entry.value;
+    if (typeof entry?.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out[entry.path] = entry.value;
   }
   return Object.keys(out).length > 0 ? out : undefined;
 }
@@ -331,7 +354,7 @@ export async function readActiveDesignSystem(host: DesignSystemHost): Promise<Ac
   const neutral = !shipped;
 
   const [logos, colors, fonts, identity, darkColors] = await Promise.all([
-    assets ? resolveLogos(assets, master).catch((): LogoSetV1<string> => ({})) : Promise.resolve<LogoSetV1<string>>({}),
+    assets ? resolveLogos(assets, master, tokens ?? null).catch((): LogoSetV1<string> => ({})) : Promise.resolve<LogoSetV1<string>>({}),
     readColors(tokens).catch(() => new Map<string, string>()),
     readFonts(tokens).catch((): { brand?: string; mono?: string } => ({})),
     identityOf(host),

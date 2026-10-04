@@ -40,6 +40,12 @@ export const CONTENT_FREE_COMMANDS: ReadonlySet<string> = new Set([
   // and `icons`/`pack` build a Linux package from files named on the command line.
   'validate', 'models', 'speak', 'transcribe', 'mix', 'icons', 'pack',
   'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth',
+  // `read` turns a deck you already have into an inventory: no tools, no catalog.
+  'read',
+  // `check` reads the file it is given; with no profile the brand family says it is unavailable.
+  'check',
+  // `compose` lays slides out on a master: with no profile its ladder ends at the engine's neutral master.
+  'compose',
 ]);
 
 /** Does this command need tools/ and catalog/ to be present? */

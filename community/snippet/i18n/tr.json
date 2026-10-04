@@ -1,6 +1,6 @@
 {
   "name": "Kod Parçası",
-  "description": "Kod parçacıklarını temiz, sözdizimi vurgulamalı, paylaşılabilir görüntülere dönüştür.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Kod",
   "inputs.code.placeholder": "Kodunu buraya yapıştır…",
   "inputs.fileName.label": "Dosya adı",

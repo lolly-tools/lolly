@@ -1,12 +1,38 @@
 {
   "name": "Photo Colour Treatments",
-  "description": "Colour treatments for photo assets, derived from the brand palette: greyscale plus soft two-colour duotone washes (shadow maps to shadows, highlight to highlights) and a three-stop deep tritone. Chosen at pick time and baked into a self-contained SVG at resolve. 'None' is the plain photo (no id suffix).",
+  "description": "Colour treatments for photo assets, derived from the brand palette: greyscale plus soft two-colour duotone washes (shadow maps to shadows, highlight to highlights), a three-stop deep tritone and a Tone photo look (an OKLab gradient map from the brand ink to a soft light tone that keeps white type legible, with a darker variant for a dark theme). Chosen at pick time and baked at resolve. 'None' is the plain photo (no id suffix).",
   "treatments": [
     {
       "id": "greyscale",
       "label": "Greyscale",
       "kind": "greyscale",
       "previewBg": "#f0f0f0"
+    },
+    {
+      "id": "tone",
+      "label": "Tone",
+      "kind": "gradient-map",
+      "stops": [
+        "#121212",
+        "#636363",
+        "#b1b1b1"
+      ],
+      "amount": 100,
+      "contrast": 16,
+      "lightness": -4,
+      "previewBg": "#121212",
+      "themes": {
+        "dark": {
+          "stops": [
+            "#030303",
+            "#242424",
+            "#696969"
+          ],
+          "amount": 100,
+          "contrast": 18,
+          "lightness": 0
+        }
+      }
     }
   ]
 }

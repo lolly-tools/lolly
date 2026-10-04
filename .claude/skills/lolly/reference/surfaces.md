@@ -40,6 +40,12 @@ Contract (`services/mcp/src/render-get.ts`):
   build URLs with `lolly_build_url` rather than adding your own.
 - **Headers.** `content-security-policy: sandbox`, `x-content-type-options:
   nosniff`, `content-disposition: inline`.
+- **Themes.** `_themes` (the theme per token group as JSON, `_themes={"":"dark"}`)
+  renders a tool this route can draw, such as `qr-code`, with its token colours
+  in that theme; a value that is not such JSON is a 400, and a choice the design
+  system does not declare draws that group's default theme with no warning. Design
+  needs the browser tier, so this route refuses a Design document in any theme:
+  export one per theme with `lolly run <file.lolly> --themes=light,dark` instead.
 - An operator can switch the route off entirely (`LOLLY_DISABLE_RENDER_GET=1`),
   in which case every URL is a 404. The route is live on lolly.tools.
 
@@ -57,12 +63,13 @@ render.
   Its limits: 60 calls a minute per address, a daily compute and data budget for
   the whole endpoint (`503` with `error: daily_budget_reached` and `Retry-After`
   to 00:00 UTC once spent), `png` at most 1600 x 1600 pixels of area, 4.4 MB per
-  answer and rebrand decks up to 100 slides. `https://mcp.lolly.tools/mcp` (full
-  browser tier) requires an OAuth 2.1 bearer token (`Authorization: Bearer …`),
-  with the usual discovery endpoints under `/.well-known/`. For HTML-layout tools
+  answer and decks up to 100 slides (`lolly_rebrand`, `lolly_read`,
+  `lolly_check`). `https://mcp.lolly.tools/mcp` (full browser tier) requires an
+  OAuth 2.1 bearer token (`Authorization: Bearer …`), with the usual discovery
+  endpoints under `/.well-known/`. For HTML-layout tools
   (`design`, `chart`), large files or heavy automation, use the CLI.
 
-### The 17 tools
+### The 21 tools
 
 | Tool | Required | Does |
 |---|---|---|
@@ -73,11 +80,15 @@ render.
 | `lolly_inspect` | - | Inspect a document without rasterising; accepts a `file`. |
 | `lolly_measure` | - | Measure a document without rasterising. |
 | `lolly_diff` | `a`, `b` | Semantically diff two compiled documents or recipe query strings. |
-| `lolly_package` | `document` | Package a compiled document into portable `.lolly` bytes. |
+| `lolly_package` | `document`, or `toolId: "design"` | A Design document as a `.lolly` the app reopens as the same document, with its pictures and its name: `assets` carries the bytes of each placeholder picture (base64, by the `image` value that draws it), `source` a deck whose pictures resolve `user/media/<sha256>` refs and the `photo:<12 hex>` keys `lolly_compose` suggests, `label` the name. Every other picture must be a catalog id; anything unresolved is refused unless `allowMissingMedia`. Returns the file and a report of what was carried and read back. A compiled document of another tool is packaged as before (`legacy: true`). |
 | `lolly_build_url` | `toolId` | Build a shareable, editable link plus a raw render URL, without rendering. |
 | `lolly_render` | `toolId` | Render to an asset (PNG/SVG/PDF/…). Returns the image plus an editable link. |
 | `lolly_transform` | `toolId`, `file` | Run an on-device file utility (`strip-data`, `compress-pdf`). Never watermarked. |
 | `lolly_rebrand` | `stage` | Renovate a `.pptx` deck into the design system in stages: `capabilities`, `plan`, `compile` (to a `.lolly`, optionally a `.pptx`) and `inspect`. A hosted server receives the file. |
+| `lolly_read` | `file` | What a deck says (`.pptx`, PDF, `.psd`), slide by slide: text in reading order with role and runs, notes with paragraphs and line breaks kept apart, pictures by hash with placement and crop, tables, charts, the class of every object. `media: "inline"` adds the picture bytes. A hosted server receives the file. |
+| `lolly_check` | `file`, `toolId` or `document` | Every check in one findings list: `structure`, `render`, `brand` (with house rules), `verify`, and `fidelity` with `source` or `inventory`. Each finding: stable `code`, `severity`, `layerId`, the app's message, a safe `fix`. `theme` checks one token theme; `themes` (a list, or `"all"`) runs the render, brand and Verify families in each theme (structure and fidelity once), and each of those findings names its `theme`. `exitCode` as `lolly check`. |
+| `lolly_measure_text` | `text` and `width`, or `document` | Where a plain Design text layer's lines break and how tall it is, before it is drawn: lines with widths and a `nearEdge` flag, `height`, the `scrollHeight` the canvas reports, and with `height` whether the box clips it. `style` sets the box up as an authored row, sized for `artboardWidth` (default 1920). The same measure as `lolly measure --text --json`. |
+| `lolly_compose` | `spec`, or `mode` | Slides laid out from the slide master's archetypes as a Design document with the master's furniture and bindings: `spec.slides[]` gives an `archetype` per slide and its `slots` (a role or `role#n`: text, `null` to drop, or `{from: "<inventory object id>"}`, with `join: ": "` to run its lines into one; `from` may list several text objects and `para` several paragraphs, and a table slot takes `{$table: {...}}`), with `inventory` or `source` for the deck's text and notes; `furniture`, `emphasis` and `case` on the spec are deck defaults a slide's own merge over, and `themes: ["light", "dark"]` writes logo furniture as `<id>?theme=auto`. Returns the document, a report (archetype, filled, dropped, which text slots clip; `fit: "shrink"` steps them down), the source wording changed as `edits` for `lolly_check`, and the pictures named. `mode: "list"` gives the archetypes; `mode: "suggest"` a first spec for a deck. The same composer as `lolly compose --json`. |
 | `lolly_redact` | `file` | Destroy regions of an image/SVG/PDF. Rebuilds and re-checks; a failed check returns no file. |
 | `lolly_verify` | `file` | Verify a file's Content Credentials: made with Lolly, who signed, changed since export. |
 | `lolly_look` | `toolId` or `file` | The render with a labelled grid in document units, or one `region` enlarged. For looking; not an export. |
@@ -91,6 +102,26 @@ the artboard pixels a layer's `x`, `y`, `w` and `h` use, so a position read off
 the grid can go straight into a `layerPatches` entry. A raster file is measured in
 its own pixels. Design and Chart draw their SVG in the browser tier, so looking at
 them needs the full endpoint, as rendering them does.
+
+To rebuild a deck in Design: read `lolly://design-context`, call `lolly_read` on the
+source deck, call `lolly_compose` with `mode: "suggest"` and the `inventory` for a
+first spec, edit it, compose with `lolly_compose` (`spec` and `inventory`), package
+with `lolly_package`, then call `lolly_check` with the result, the inventory
+`lolly_read` returned (`inventory`) and the `edits` compose returned, each with a
+reason of your own. The spec is described in `design.md`. `lolly_check` takes exactly one of `file` (a
+Design document, `.lolly` or export), `toolId: "design"` with `inputs`,
+`templateId`, `layerOperations` and `layerPatches`, or a compiled `document`.
+`exitCode` is `0` clean, `5` to review, `4` an error finding (or any warning with
+`strict`), `3` no browser under `browser: "require"`, `1` a family failed. The
+render family needs the browser tier, so on the open endpoint it is `unavailable`
+and the rest still run. Verify never runs text recognition here. Fix each finding
+at its `layerId` with `layerPatches`, then check again.
+
+While composing, `lolly_measure_text` says where a text box's lines break before
+you place the box. To hand the person a file, `lolly_package` writes a `.lolly` the app
+reopens with the pictures and the name. On the open endpoint the pictures and the
+source travel in one request and the `.lolly` comes back in one answer of at most
+4.4 MB, so package a large deck on the CLI.
 
 Shared argument shapes: `RENDER_ARGS` are `toolId`, `inputs` (an object of the
 tool's inputs), `format`, `width`, `height`, `unit`, `dpi`; `TEMPLATE_ARGS` are
@@ -116,7 +147,14 @@ accepted by `lolly_compile`, `lolly_inspect`, `lolly_measure`, `lolly_validate`,
   `reparent` / `reorder`, each addressing a layer by its stable id.
 - `layerPatches`: an array of `{ id, set }` that merges fields into one layer.
 
-See `design.md` for the worked example.
+Design rows, an `add` layer and a patch's `set` may carry authoring keys: `$in`
+(positions relative to an artboard), `$style` (a text style from the design
+brief or `$styles`), `$points` or `$d` (a path in px) and the layouts `$stack`,
+`$grid` and `$table`, with `$styles` and `$theme` beside `boxes`. They are lowered
+to stored layers in global canvas coordinates before anything else runs, on every
+tool above and on `lolly_check` and `lolly_package`.
+
+See `design.md` for the worked examples and the authoring keys.
 
 ### Scoped file tools
 
@@ -133,6 +171,14 @@ Read-only context, no render:
 - `lolly://catalog`: the full generated tool index.
 - `lolly://assets`: the brand asset listing.
 - `lolly://tokens`: the brand design tokens.
+- `lolly://design-context`: the design brief, the same one `lolly system context`
+  prints: resolved tokens, coverage and brand rules, plus approved colour pairings
+  (which foreground on which background, text or graphics only), type per role,
+  logos per surface, icons and their themes, media families, the slide master's
+  archetypes and the house rules as machine-checkable records. Its `origin` is
+  always the server's content profile and head tokens asset, the design system
+  `lolly_check` checks against; the CLI tries `--file` and the terminal's active
+  system first. Read it before composing anything on-brand.
 - `lolly://tool/{id}` and `lolly://tool/{id}/preview`: one tool's schema, or its
   preview SVG.
 - `lolly://asset/{id}`: one asset's bytes.
@@ -157,7 +203,39 @@ lolly deck-studio --spec="$(cat deck.md)" --export=pptx --output=deck.pptx
 
 Verbs that matter to an agent: `list`, `describe <id> [--all]`, `run <id>`,
 `compile`, `schema <id>`, `inspect`/`measure`/`diff` (document API), `validate`,
-`batch <rows.csv>`, `smoke`, `assets`, `preflight`. A bare `lolly <id>` with flags
+`batch <rows.csv>`, `smoke`, `assets`, `preflight`, `read <deck>` (the content
+inventory, `--media=<dir>` writes the pictures), `check <file>` (every check in one
+findings list, `--source=<deck|inventory.json>` adds fidelity) and
+`system context` (the design brief as JSON). For Design: `run design
+--document=<file|-> [--s=<slide>]` renders a document whose rows may carry
+authoring keys (a placeholder picture such as `photo:title` is drawn only once
+`package --asset` has given it bytes, so preview and check the `.lolly`);
+`measure --text=<text> --width=<px>` (or `measure <file> --text-layers`) measures
+text before it is drawn; `compose <spec.json> [--source=<deck>] --output=<design.json>
+[--edits-out=<edits.json>]` lays slides out from the slide master's archetypes
+(`compose --list` lists them, `compose --suggest --source=<deck>` writes a first
+spec, `compose --help` lists the spec's keys; see `design.md`); `package
+<design.json> --output=<file.lolly> [--asset=KEY=PATH]… [--source=<deck>]` writes a
+`.lolly` the app reopens, its `user/media/<sha256>` refs and `photo:<12 hex>` keys
+resolved from the deck given as `--source`; and `run <session.lolly>
+--export=pptx|pdf|png|svg|jpg|webp [--s=<slide>]` exports a saved Design
+session through the web shell's own exporter (an `--output` whose folder does
+not exist is refused with exit 2 before a browser starts, and `--force` is
+accepted, as on `compose` and `package`, since `run` always replaces its
+output). On both, `--s` is a 1-based slide
+number or a frame id; a frame's name is not an address, and an `--s` that matches
+no slide exits 2 before a browser starts. On both, `--themes=light,dark` (or
+`all`) exports once per theme of the content profile's design system, to
+`<stem>-<theme>.<ext>` beside `--output`, which it needs; `check <file>
+--themes=light,dark` checks a document in each theme. That export opens the file through
+the app's `#/open?lolly=<path>` route, which takes a path on the same site or a
+`blob:` URL from the same page, and opens a plain saved session with no prompt
+(a file that carries a tool or a design system still asks the person). A Design
+render on the CLI (`run design --document`, a saved session, and the `render`
+family of `check`) reaches the web shell the same way, as a saved session served
+once from the same site, so a document with full-size pictures (up to 64 MB)
+needs no address that holds it. A bare
+`lolly <id>` with flags
 is sugar for `run`; with no flags it is `describe`. A pasted
 `https://lolly.tools/#/tool/…` URL runs that tool, and later `--flags` override the
 link.
@@ -168,7 +246,7 @@ Export flags:
   `format`); `--output=<path>` writes there (`-` is stdout, extension can pick the
   format); `--filename=<name>` names the file in the working directory.
 - `--width` / `--height` / `--unit` / `--dpi` size the output, exactly as the URL
-  params.
+  params. On `measure --text`, `--width` and `--height` are the text box in px.
 - `--c2pa` and `--imprint` are on by default. **`--no-provenance` is the
   deterministic-bytes switch**: no credential, no imprint, no durable mark, so the
   render is byte-identical run to run (both marks embed a fresh timestamp
@@ -177,8 +255,11 @@ Export flags:
   `--seconds`, `--wait`, `--codec`, `--vq`.
 
 Exit codes are meaningful: `0` ok, `2` usage, `3` unavailable in this install (no
-browser tier here, retry elsewhere), `4` refused by a protective check, `5` a
-legitimate negative (no credential present), `6` auth.
+browser tier here, retry elsewhere), `4` refused by a protective check (`check`: an
+error finding; `package`: a picture without bytes, an unknown catalog id or an
+output that exists without `--force`; `compose`: a spec it refuses, with the JSON
+pointer of the key, or an output that exists), `5` a legitimate negative (no credential
+present; `check` and `rebrand compile`: findings to review), `6` auth.
 
 Batch renders one file per CSV row into a directory:
 
@@ -195,8 +276,13 @@ row's. Print a starter grid with `lolly batch --template=<tool>`.
 Browser-tier note: `pptx`, full raster of HTML-layout tools, PDF layout and video
 need the Tier-B browser path. Run `lolly install-browser --with-deps` plus
 `pnpm run build:web` first, or an exit `3` tells you to render on a runner that has
-it. The `TIER_A` formats, the data formats and PNG of SVG-native tools all render
-browser-free.
+the browser tier. In a checkout, `LOLLY_WEB_BASE=<address>` points the CLI at a web shell you
+already run (`pnpm run dev:web`, or without pnpm `node ../../node_modules/vite/bin/vite.js`
+from `shells/web`) instead; start it under the same `LOLLY_PROFILE`
+as the CLI, so both sides use one catalog and one slide master. With no `lolly`
+on your PATH in a checkout, every verb runs as `node shells/cli/bin/lolly.ts <verb>`
+from the repository root. The `TIER_A`
+formats, the data formats and PNG of SVG-native tools all render browser-free.
 
 ## Render action
 

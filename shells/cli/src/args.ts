@@ -76,6 +76,9 @@ export const VALUE_FLAGS = new Set([
   // A bare form parsing to "1" would be a value the reader refuses anyway, but
   // refusing it here names the one spelling instead of reporting an odd value.
   'rights',
+  // `--themes=light,dark` lists the themes to export (plan 291 M4). A bare form parsing
+  // to "1" would name a theme no design system declares.
+  'themes',
 ]);
 
 /** Subcommand words a tool id may never take (contract section 1.1). `completion` is reserved
@@ -104,6 +107,12 @@ export const RESERVED_SUBCOMMANDS = [
   // Looking at a picture in its own coordinates, as the MCP looking tools do
   // (plans/289 D5): a region with a grid, colours by design-system name, edges.
   'look', 'sample', 'trace',
+  // `read` hands an agent what a deck says, slide by slide: text, notes, pictures (plan 291 W2).
+  'read',
+  // `check` runs every check for a Design document, a .lolly or an export in one call (plan 291 W1).
+  'check',
+  // `compose` lays slides out from the slide master's archetypes as a Design document (plan 291 W6).
+  'compose',
 ] as const;
 
 /** The six on-device ML subcommands, named here rather than in src/ml-cli.ts so
@@ -127,6 +136,69 @@ export const REBRAND_VALUE_FLAGS = ['plan-out', 'plan', 'preset', 'out-dir', 'ex
 export const REBRAND_PATH_FLAGS = ['plan-out', 'plan', 'preset', 'out-dir', 'source'] as const;
 /** Rebrand's on/off flags. `accept-suggestions` also takes `=all`, `auto-match` also takes a band; `ocr` reads the text in slides that are pictures. */
 export const REBRAND_BOOL_FLAGS = ['accept-suggestions', 'auto-match', 'dry-run', 'keep-going', 'offline', 'force', 'resume', 'recursive', 'ocr'] as const;
+/**
+ * `lolly read` flags that take a value. A bare form is refused in bin/lolly.ts: a bare
+ * `--media` parsing to "1" would write the pictures into a folder called "1". `media`
+ * is a folder for `read` only, so it stays off the global VALUE_FLAGS list.
+ */
+export const READ_VALUE_FLAGS = ['media'] as const;
+/**
+ * `lolly check` flags that take a value, refused bare in bin/lolly.ts. `page-cap` is
+ * here because a bare one parsing to "1" would read one page and call the rest clean;
+ * `file` because a bare one would read a design system from a file called "1".
+ */
+export const CHECK_VALUE_FLAGS = ['source', 'file', 'theme', 'browser', 'page-cap', 'edits', 'themes'] as const;
+/** `lolly read`'s on/off flags: `force` overwrites pictures, `thumbnails` draws each slide beside them. */
+export const READ_BOOL_FLAGS = ['force', 'thumbnails'] as const;
+/** `lolly check`'s on/off flags: `ocr` lets Verify read the text in pictures. */
+export const CHECK_BOOL_FLAGS = ['ocr'] as const;
+/**
+ * `lolly package` flags that take a value, on a Design document (plan 291 W8). A bare
+ * form is refused in src/package.ts: a bare `--asset` parsing to "1" would name no
+ * picture. `asset` repeats, one `KEY=PATH` per picture. A compiled document keeps the
+ * flags it always took.
+ */
+export const PACKAGE_VALUE_FLAGS = ['asset', 'asset-dir', 'source', 'label', 'theme', 'file', 'output'] as const;
+/** `lolly package`'s on/off flags: `force` replaces the output, `allow-missing-media` writes unresolved pictures as references. */
+export const PACKAGE_BOOL_FLAGS = ['force', 'allow-missing-media'] as const;
+/** `lolly package` flags whose value is a path, for completion. */
+export const PACKAGE_PATH_FLAGS = ['asset-dir', 'source', 'file', 'output'] as const;
+/**
+ * `lolly measure --text` and `--text-layers` flags that take a value (plan 291 W5),
+ * refused bare in bin/lolly.ts. `width` and `height` are the text box in px on these
+ * branches only; `layer` repeats, one layer id each.
+ */
+export const MEASURE_VALUE_FLAGS = ['text', 'font', 'weight', 'size', 'width', 'height', 'line-height', 'pad', 'tracking', 'valign', 'style', 'artboard-width', 'file', 'theme', 'layer'] as const;
+/** `lolly measure`'s text on/off flags: `italic` sets every run in emphasis (`*...*`), `text-layers` measures a document's plain text layers. */
+export const MEASURE_BOOL_FLAGS = ['italic', 'text-layers'] as const;
+/**
+ * `lolly compose` flags that take a value (plan 291 W6), refused bare in bin/lolly.ts:
+ * a bare `--master` parsing to "1" would read a master from a file called "1", and a
+ * bare `--size` would name no size. `size` is WIDTHxHEIGHT, `theme` light or dark.
+ */
+export const COMPOSE_VALUE_FLAGS = ['inventory', 'source', 'size', 'theme', 'themes', 'file', 'master', 'fit', 'output', 'edits-out', 'asset'] as const;
+/** `lolly compose`'s on/off flags: `list` prints the archetypes, `suggest` a first spec for a deck, `force` replaces the outputs. */
+export const COMPOSE_BOOL_FLAGS = ['list', 'suggest', 'force'] as const;
+/** `lolly compose` flags whose value is a path, for completion. */
+export const COMPOSE_PATH_FLAGS = ['inventory', 'source', 'file', 'master', 'output', 'edits-out'] as const;
+/** The `--fit` values `lolly compose` takes, for its own check and for completion. */
+export const COMPOSE_FIT_VALUES = ['report', 'shrink'] as const;
+/** The `--browser` values `lolly check` takes, for its own check and for completion. */
+export const CHECK_BROWSER_VALUES = ['auto', 'off', 'require'] as const;
+/** The global on/off flags every command takes (contract section 1.2). */
+export const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict'] as const;
+
+/**
+ * Refuse a flag `verb` does not take (exit 2, `UNKNOWN_FLAG`), as `lolly rebrand`
+ * does: a misspelled `--srouce` or `--brower=require` would otherwise be dropped in
+ * silence and a CI run would pass without the check it asked for.
+ */
+export function refuseUnknownFlags(verb: string, flags: Record<string, string>, own: readonly string[]): void {
+  const allowed = new Set<string>([...own, ...GLOBAL_BOOL_FLAGS]);
+  const unknown = Object.keys(flags).find(key => !allowed.has(key));
+  if (unknown === undefined) return;
+  throw usageError(`--${unknown} is not a flag of lolly ${verb}. It takes: ${own.map(f => `--${f}`).join(' ')}.`, 'UNKNOWN_FLAG');
+}
 
 /** Global flags valid on every command (contract section 1.2). */
 export interface GlobalFlags {

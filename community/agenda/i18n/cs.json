@@ -1,6 +1,6 @@
 {
   "name": "Agenda",
-  "description": "Proměňte jeden program na značkové obrazovky, interaktivní webové stránky, animované přehledy, PowerPoint snímků a kalendáře.",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} – {{sessionCount}} relací, {{trackCount}} skladeb",
   "inputs.title.label": "Událost",
   "inputs.title.help": "Vytištěno v záhlaví každého rozvržení a pojmenuje exportovaný soubor.",

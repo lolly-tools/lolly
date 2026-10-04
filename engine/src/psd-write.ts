@@ -46,6 +46,10 @@ export interface PsdWriteLayer {
    *  test builds a type or shape layer, and how a caller carries a block it
    *  read forward. Each is even-padded as the format requires. */
   extraBlocks?: ReadonlyArray<readonly [string, Uint8Array]>;
+  /** A raster layer mask: its document-space rectangle, the value outside that
+   *  rectangle (0 or 255) and one grey byte per pixel inside the rectangle. Leave
+   *  this out for a layer with no mask. */
+  mask?: { x: number; y: number; width: number; height: number; defaultColor: number; pixels: Uint8Array };
 }
 
 export interface PsdWriteDoc {
@@ -74,6 +78,9 @@ export function writePsd(doc: PsdWriteDoc): Uint8Array {
     }
     if (l.pixels.length !== l.width * l.height * 4) {
       throw new TypeError(`writePsd: layer "${l.name}" pixels length ${l.pixels.length} != ${l.width}x${l.height}x4`);
+    }
+    if (l.mask && l.mask.pixels.length !== l.mask.width * l.mask.height) {
+      throw new TypeError(`writePsd: layer "${l.name}" mask length ${l.mask.pixels.length} != ${l.mask.width}x${l.mask.height}`);
     }
   }
   if (doc.composite && doc.composite.length !== width * height * 4) {
@@ -121,23 +128,26 @@ export function writePsd(doc: PsdWriteDoc): Uint8Array {
   // Channel order per layer: alpha first (Photoshop's own habit), then RGB.
   const CH_IDS = [-1, 0, 1, 2] as const;
   for (const l of doc.layers) {
-    const encoded = CH_IDS.map((id) => encodeChannel(l, id));
+    const ids: number[] = l.mask ? [...CH_IDS, -2] : [...CH_IDS];
+    // The mask channel is written raw (compression 0): small, and every reader accepts raw channels.
+    const encoded = ids.map((id) => (id === -2 ? concat([u16(0), l.mask!.pixels]) : encodeChannel(l, id as (typeof CH_IDS)[number])));
+    const maskLen = l.mask ? 20 : 0;
     // Record
     const nameBytes = pascalName(l.name);
     const luni = luniBlock(l.name);
     const tagged = (l.extraBlocks ?? []).map(([k, data]) => taggedBlock(k, data));
     const taggedLen = tagged.reduce((n, b) => n + b.length, 0);
-    const extraLen = 4 + 4 + nameBytes.length + luni.length + taggedLen; // mask(0) + ranges(0) + name + luni + blocks
-    const rec = new Uint8Array(16 + 2 + CH_IDS.length * 6 + 4 + 4 + 1 + 1 + 1 + 1 + 4 + extraLen);
+    const extraLen = 4 + maskLen + 4 + nameBytes.length + luni.length + taggedLen; // mask + ranges(0) + name + luni + blocks
+    const rec = new Uint8Array(16 + 2 + ids.length * 6 + 4 + 4 + 1 + 1 + 1 + 1 + 4 + extraLen);
     const rv = new DataView(rec.buffer);
     let p = 0;
     rv.setInt32(p, l.y); p += 4;
     rv.setInt32(p + 0, l.x); p += 4;
     rv.setInt32(p, l.y + l.height); p += 4;
     rv.setInt32(p, l.x + l.width); p += 4;
-    rv.setUint16(p, CH_IDS.length); p += 2;
-    for (let i = 0; i < CH_IDS.length; i++) {
-      rv.setInt16(p, CH_IDS[i]!); p += 2;
+    rv.setUint16(p, ids.length); p += 2;
+    for (let i = 0; i < ids.length; i++) {
+      rv.setInt16(p, ids[i]!); p += 2;
       rv.setUint32(p, encoded[i]!.length); p += 4;
     }
     rec.set([0x38, 0x42, 0x49, 0x4d], p); p += 4; // '8BIM'
@@ -149,7 +159,14 @@ export function writePsd(doc: PsdWriteDoc): Uint8Array {
     rec[p++] = (l.visible ?? true) ? 0 : 0x02; // flags: bit 1 = hidden
     rec[p++] = 0; // filler
     rv.setUint32(p, extraLen); p += 4;
-    rv.setUint32(p, 0); p += 4; // mask data: none
+    rv.setUint32(p, maskLen); p += 4;
+    if (l.mask) {
+      const m = l.mask;
+      rv.setInt32(p, m.y); rv.setInt32(p + 4, m.x); rv.setInt32(p + 8, m.y + m.height); rv.setInt32(p + 12, m.x + m.width);
+      rec[p + 16] = m.defaultColor ? 255 : 0;
+      rec[p + 17] = 0; // flags: position relative to the layer, enabled, not inverted
+      p += 20; // two bytes of padding stay zero
+    }
     rv.setUint32(p, 0); p += 4; // blending ranges: none
     rec.set(nameBytes, p); p += nameBytes.length;
     rec.set(luni, p); p += luni.length;

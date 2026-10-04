@@ -723,6 +723,12 @@ stroke-width:.81;
 }
 /* Sort key select + a direction toggle on one row. */
 .gallery-sort-row { display: flex; gap: var(--sp-3); align-items: stretch; }
+/* Card size (components/view-options.ts cardSizeHtml): the slider between a dense-grid
+   and a large-grid glyph. The glyphs stay muted so the slider reads as the control. */
+.view-options-size { display: flex; align-items: center; gap: var(--sp-4); color: hsl(var(--muted-foreground)); }
+.view-options-size[hidden] { display: none; }
+.view-options-size > svg { flex: none; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.view-options-size > .custom-slider, .view-options-size > .field-range { flex: 1 1 auto; min-width: 0; }
 /* Box, chevron, hover-lift and focus halo come from `.field-select`
    (parts/fields.css) - only the row geometry and the heavier weight that
    matches `.filter-pop-head` above it are local. */
@@ -928,6 +934,22 @@ html[data-a11y-previews="hidden"] .gallery .ftile-iconfill svg { max-width: 52px
 @media (min-width: 2100px) { .tool-masonry { --cols: 7; } }
 @media (min-width: 2400px) { .tool-masonry { --cols: 8; } }
 @media (min-width: 2700px) { .tool-masonry { --cols: 9; } }
+
+/* Card size (components/view-options.ts). Step 2 is each grid's own layout and carries
+   no attribute, so the ladder above is untouched by default. The other steps set a column
+   shift and a width scale for the grids to read. The Tools grid packs its two smaller steps
+   by a minimum card width instead of a shift, so a card keeps its name beside "+ New"
+   (200px on a desktop; a phone allows 165px, two columns at most). Its two larger
+   steps move along the breakpoint ladder. */
+[data-card-size="0"] { --card-shift: 2; --card-scale: .6; }
+[data-card-size="1"] { --card-shift: 1; --card-scale: .8; }
+[data-card-size="3"] { --card-shift: -1; --card-scale: 1.35; }
+[data-card-size="4"] { --card-shift: -2; --card-scale: 1.8; }
+.tool-masonry[data-card-size="0"] { --tool-card-min: 200px; }
+.tool-masonry[data-card-size="1"] { --tool-card-min: 240px; }
+@media (max-width: 640px) { .tool-masonry[data-card-size="0"] { --tool-card-min: 165px; } }
+.tool-masonry:is([data-card-size="0"], [data-card-size="1"]) { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--tool-card-min)), 1fr)); }
+.tool-masonry:is([data-card-size="3"], [data-card-size="4"]) { grid-template-columns: repeat(max(1, var(--cols) + var(--card-shift)), minmax(0, 1fr)); }
 
 .gtile {
   width: 100%;

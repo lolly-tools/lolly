@@ -628,9 +628,11 @@ html[data-a11y-motion="reduce"] .fc-nav-dot-btn { transition: none; }
 }
 
 @layer views {
-  .fc-nav-modes { display: flex; flex: none; gap: var(--sp-2); min-height: var(--ui-size-target); }
+  .fc-nav-modes { display: flex; flex: none; gap: 0; min-height: var(--ui-size-target); }
   .fc-nav-modes[hidden] { display: none; }
   .fc-nav-modes .btn { flex: 1; }
+  .fc-nav-modes .btn:first-child {  border-radius:  var(--ui-radius-panel) 0 0 var(--ui-radius-panel)  ;  }
+  .fc-nav-modes .btn:last-child {   border-radius: 0 var(--ui-radius-panel) var(--ui-radius-panel) 0 ;  }
   .fc-nav-modes [aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
   .fc-nav-group > summary { display: flex; align-items: center; gap: var(--sp-1); cursor: pointer; list-style: none; border-radius: var(--ui-radius-control); }
   .fc-nav-group > summary::-webkit-details-marker { display: none; }

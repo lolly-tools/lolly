@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { mountBodyPopover, type BodyPopoverHandle, type PopoverAnchor } from '../components/body-popover.ts';
-import { favouritesViewSection, sortSection, syncSortDir, viewOptionsSection } from '../components/view-options.ts';
+import { applyCardSize, cardSizeAttr, cardSizeHtml, favouritesViewSection, readCardSize, sortSection, syncSortDir, viewOptionsSection, wireCardSize } from '../components/view-options.ts';
 import type { FeaturedViewMode } from '../components/featured-row.ts';
 import { segHtml } from '../lib/seg.ts';
 import { playSfx } from '../lib/sfx.ts';
@@ -47,7 +47,7 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
       viewOptionsSection(t('Layout'), segHtml('projects-layout', [
         { id: 'preview', label: t('Grid') },
         { id: 'list', label: t('List') },
-      ], options.view, t('Layout'), { attr: 'data-vm' })),
+      ], options.view, t('Layout'), { attr: 'data-vm' }) + cardSizeHtml(readCardSize('projects'), options.view === 'list')),
       sortSection('projects-sort', [
         { id: 'name', label: t('Name') },
         { id: 'added', label: t('Date added') },
@@ -63,17 +63,28 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
     el.addEventListener('click', event => {
       const target = event.target as HTMLElement;
       const vm = target.closest<HTMLElement>('[data-vm]')?.dataset.vm as ProjectsViewMode | undefined;
-      if (vm) { press('projects-layout', 'data-vm', vm); options.onView(vm); return; }
+      if (vm) {
+        press('projects-layout', 'data-vm', vm);
+        el.querySelector<HTMLElement>('.view-options-size')?.toggleAttribute('hidden', vm === 'list');
+        options.onView(vm);
+        return;
+      }
       const fav = target.closest<HTMLElement>('[data-be-seg="featured-view"] [data-view]')?.dataset.view;
       if (fav === 'gallery' || fav === 'coverflow') { press('featured-view', 'data-view', fav); options.onFavView(fav); return; }
       if (target.closest('.view-options-dir')) { reversed = !reversed; syncSortDir(dir, reversed); options.onReverse(reversed); }
     });
+    // Card size reflows the live grids as the slider moves; the view reads the saved
+    // step back through projectsCardSizeAttr on its next render.
+    wireCardSize(el, 'projects', step => { for (const g of document.querySelectorAll('.projects-grid')) applyCardSize(g, step); });
     el.querySelector<HTMLSelectElement>('#projects-sort')?.addEventListener('change', event => {
       options.onSort((event.target as HTMLSelectElement).value as ProjectsSort);
     });
     return el.querySelector<HTMLElement>('[aria-pressed="true"]');
   }, { className: 'view-options projects-viewmenu', role: 'dialog', ariaLabel: t('View options'), trackScroll: true });
 }
+
+/** The saved card size as a grid attribute (empty at the default step). */
+export const projectsCardSizeAttr = (): string => cardSizeAttr(readCardSize('projects'));
 
 /** An anchor that follows whichever button `current` finds now: the Projects view
  *  re-renders its top bar on every change, replacing the button the panel hangs from. */

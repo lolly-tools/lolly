@@ -32,6 +32,7 @@ import { tsigFactsHtml } from '../tsig-facts.ts';
 import { aiModelSlot } from '../tsig-model-note.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
+import { photoTreatmentSwatch } from '../../lib/photo-treatment-swatch.ts';
 import { CHECK_ICON, emojiPackMeta } from './shared.ts';
 import type { AiSignalsNote, RewordUiState } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
@@ -415,14 +416,11 @@ export const iconSwatchRow = (cat: CatCtx, active: string | null): string =>
       `<button type="button" class="cat-dl-theme${th.id === active ? ' is-active' : ''}" data-theme="${escapeText(th.id)}" data-sfx="shimmer" aria-pressed="${th.id === active}" title="${escapeText(th.label ?? th.id)}"><span class="cat-dl-duo" style="background:${escapeText(th.previewBg ?? '#fff')}"><i style="background:${escapeText(String(th.c2 ?? '#888'))}"></i><i style="background:${escapeText(String(th.c1 ?? '#333'))}"></i></span></button>`).join('')}</div>`;
 // The bitmap sibling of iconSwatchRow: a photo-treatment strip for raster groups. Leads
 // with an "Original" (no-treatment) button, then one gradient swatch per treatment
-// (greyscale ramp / duotone shadow→highlight). Reuses the .cat-dl-theme chrome; the extra
+// (lib/photo-treatment-swatch.ts, shared with the picker: a grey ramp, the duotone colours, or
+// a look's sampled ramp). Reuses the .cat-dl-theme chrome; the extra
 // .cat-dl-treat class routes clicks to the treatment handler (not the icon one).
 export const treatmentSwatchRow = (cat: CatCtx, active: string | null): string => {
-  const swatch = (t: PhotoTreatment): string => {
-    if (t.kind === 'greyscale') return 'linear-gradient(135deg,#2b2b2b,#e9e9e9)';
-    const stops = [t.shadow ?? '#333', t.mid, t.highlight ?? '#eee'].filter(Boolean).map(c => escapeText(String(c)));
-    return `linear-gradient(135deg,${stops.join(',')})`;
-  };
+  const swatch = (t: PhotoTreatment): string => escapeText(photoTreatmentSwatch(t));
   return `<div class="cat-dl-themes" role="group" aria-label="${escapeText(t('Photo colour treatment'))}">`
     + `<button type="button" class="cat-dl-theme cat-dl-treat${!active ? ' is-active' : ''}" data-treatment="" aria-pressed="${!active}" title="${escapeText(t('Original - no treatment'))}" style="width:auto;padding:0 9px;font-size:11px;font-weight:600">${t('Original')}</button>`
     + cat.photoTreatments.map(tr =>

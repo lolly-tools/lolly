@@ -29,6 +29,7 @@ import {
   EMU_PER_PX,
   type PptxFill,
   type PptxLayout,
+  type PptxLineEnd,
   type PptxPath,
   type PptxMedia,
   type PptxPara,
@@ -55,10 +56,14 @@ import type {
 } from '@lolly-tools/core';
 import { findArchetype, roleFontSize } from '@lolly-tools/core';
 import { hasDesignMarkup, parseDesignText, THEME_SLOT_TOKENS as ENGINE_THEME_SLOT_TOKENS } from '@lolly/engine';
+import { imageDimensions, neutralSlideMaster, slotOrdinalOf, withSlideLayoutComponents } from '@lolly/engine';
+import { bgIsDark } from '@lolly/engine';
 import { decodeAuthoredPaths } from '../../../engine/src/geom/authored-url.ts';
 import { contourArea, toSvgPathData, type Contour } from '../../../engine/src/geom/path.ts';
 import { toCubics } from '../../../engine/src/geom/spline.ts';
-import { deckColor, deckTransition, type DeckColorResolver, type DeckNotes } from './pptx-deck.ts';
+import { deltaEOkSrgb } from '../../../engine/src/brand-derive.ts';
+import { deckColor, deckTransition, deckWeight, nameStaticFaces, type DeckColorResolver, type DeckNotes, type ShipsFace, type WeightedRun } from './pptx-deck.ts';
+import { deckPicLook, deckPlacePicture, deckSvgBakeRaster, deckSvgIntrinsicSize, gradSpecFill, isLinearGradSpec, PICTURE_FITS, type DeckIntrinsicSize, type PictureFit } from './pptx-deck.ts';
 
 // ─── the pieces a caller hands in ─────────────────────────────────────────────
 
@@ -84,8 +89,12 @@ export interface DesignPptxOptsV1 {
   resolveAsset?: DesignAssetResolver;
   /** Raster bytes for an SVG picture. Without one an SVG layer is reported, not drawn. */
   rasterizeSvg?: (bytes: Uint8Array, w: number, h: number) => Promise<Uint8Array | null>;
-  /** Theme font names. Design names a slot; only the caller knows the family. */
-  fonts?: { major?: string; minor?: string };
+  /**
+   * Theme font names. Design names a slot; only the caller knows the family. `mono` is
+   * the family for a run in the `mono` slot. The theme never carries `mono`, and a mono
+   * run takes `minor` when no `mono` family is given.
+   */
+  fonts?: { major?: string; minor?: string; mono?: string };
   /** Slide size, when the first frame does not state one. */
   size?: { w: number; h: number };
   /**
@@ -95,6 +104,26 @@ export interface DesignPptxOptsV1 {
    * both shells hand that list over. A frame that states its own still wins.
    */
   slideTransitions?: ReadonlyArray<string | undefined>;
+  /**
+   * Does the brand pack ship this static face file (`SUSE-Medium.ttf`)? A run whose
+   * weight is neither 400 nor 700 is written as that face ("SUSE Medium", b=0) only when
+   * it answers yes (plan 291 D3). Without one, every run keeps its family and the bold
+   * flag stays `weight >= 600`, as it always did.
+   */
+  shipsFace?: ShipsFace;
+  /**
+   * The families a run with no face of its own draws in, used only to pick its static face.
+   * Never written to the theme; `fonts` wins when both are given.
+   */
+  faceFonts?: { major?: string; minor?: string };
+  /**
+   * The design system's colour tokens, path and resolved value, in the order the design
+   * system states them. A theme slot no `color.semantic.*` token fills (`lt2`, and
+   * `accent3` to `accent6` on most brands) takes one of these (`themeSlotFills`), so
+   * PowerPoint's colour picker offers brand colours only. Without them those slots keep
+   * the engine's defaults, as they always did.
+   */
+  tokenColors?: ReadonlyArray<{ path: string; value: string }>;
 }
 
 /** The ten DrawingML colour slots this lowering maps. `hlink` and `folHlink` are
@@ -115,9 +144,10 @@ export type SchemeSlotV1 = (typeof SCHEME_SLOTS)[number];
  *
  * Only `color.semantic.*` is listed, because that is what the shipped resolvers
  * answer: both shells read the `--brand-<slot>` custom property the canvas carries.
- * The four slots with no entry (`lt2`, `accent4`, `accent5`, `accent6`) take the
- * engine's own theme defaults rather than a token path nothing can resolve. Adding a
- * ramp resolver is what fills them in, and the engine table is what it would extend.
+ * The four slots with no entry (`lt2`, `accent4`, `accent5`, `accent6`), and any
+ * listed slot whose token the design system does not state, take a brand colour from
+ * `DesignPptxOptsV1.tokenColors` (`themeSlotFills`) when the caller hands that list
+ * over, and the engine's own theme defaults when it does not.
  */
 export const THEME_SLOT_TOKENS: Readonly<Partial<Record<SchemeSlotV1, string>>> = ENGINE_THEME_SLOT_TOKENS;
 
@@ -154,9 +184,19 @@ export interface DesignPptxResultV1 {
 
 // ─── reading a row ────────────────────────────────────────────────────────────
 
+/**
+ * A number off a row. A row imported from a data file (`--boxes-data=rows.csv`) carries
+ * every field as text (`x: '44'`), so a finite numeric string counts too, the way `bool`
+ * takes '1'/'0'. Reading only real numbers put every such shape at 0,0 with a 1px box.
+ */
 const num = (row: DesignBoxRowV1, key: string, fallback = 0): number => {
   const v = row[key];
-  return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : fallback;
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  }
+  return fallback;
 };
 
 const str = (row: DesignBoxRowV1, key: string): string => {
@@ -294,9 +334,19 @@ class Palette {
     return { ...hit, ...(slot ? { slot, via: 'value' as const } : {}) };
   }
 
-  theme(fonts?: { major?: string; minor?: string }): PptxTheme | undefined {
+  theme(fonts?: { major?: string; minor?: string }, tokenColors?: ReadonlyArray<{ path: string; value: string }>): PptxTheme | undefined {
     const colors: NonNullable<PptxTheme['colors']> = {};
     for (const [slot, hex] of this.bySlot) colors[slot] = hex;
+    // The slots no semantic token fills take brand colours, for the theme part only: a
+    // row's colour still maps to a slot through the semantic tokens alone.
+    if (tokenColors?.length) {
+      const fills = themeSlotFills(this.bySlot, tokenColors.flatMap((t) => {
+        const hit = deckColor(t.value, this.cssVars);
+        // A theme slot is opaque, so a translucent token is no candidate.
+        return hit && hit.alpha === undefined ? [{ path: t.path, hex: hit.hex }] : [];
+      }));
+      for (const [slot, hex] of Object.entries(fills)) colors[slot as SchemeSlotV1] = hex;
+    }
     const out: PptxTheme = {};
     if (Object.keys(colors).length) out.colors = colors;
     const major = fonts?.major;
@@ -304,6 +354,109 @@ class Palette {
     if (major || minor) out.fonts = { ...(major ? { major } : {}), ...(minor ? { minor } : {}) };
     return Object.keys(out).length ? out : undefined;
   }
+}
+
+/**
+ * The design system's colour tokens as a canvas carries them: every
+ * `--brand-token-<utf-8 hex of the path>` custom property on `style` (the form
+ * `tokenColorVar` writes), in declaration order, as `{ path, value }`. For
+ * `DesignPptxOptsV1.tokenColors` where only the canvas is at hand.
+ */
+export function tokenColorsFromStyle(style: { readonly length: number; item(index: number): string; getPropertyValue(name: string): string }): Array<{ path: string; value: string }> {
+  const out: Array<{ path: string; value: string }> = [];
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  for (let i = 0; i < style.length && out.length < 4096; i++) {
+    const name = style.item(i);
+    const m = /^--brand-token-((?:[0-9a-f]{2})+)$/i.exec(name);
+    if (!m) continue;
+    let path: string;
+    try {
+      path = decoder.decode(Uint8Array.from(m[1]!.match(/../g)!.map((b) => Number.parseInt(b, 16))));
+    } catch { continue; }
+    const value = style.getPropertyValue(name).trim();
+    if (path && value) out.push({ path, value });
+  }
+  return out;
+}
+
+/** The order token groups are offered to the empty theme slots in: the brand's own first. */
+const SLOT_FILL_GROUPS = ['color.brand.', 'color.spectrum.', 'color.ramp.', 'color.role.', 'color.semantic.', 'color.'];
+
+/** A colour's relative luminance, 0 to 1, from an uppercase `RRGGBB`. */
+function slotLuminance(hex: string): number {
+  const channel = (at: number): number => {
+    const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
+}
+
+/**
+ * Brand colours for the theme slots no semantic token fills (plan 291 section 6).
+ *
+ * `lt2` ("Background 2") takes the candidate nearest `lt1` (OKLab distance) that is
+ * not `lt1` itself, on the same side of mid grey, so a dark theme's second ground is
+ * dark too. `accent3` to `accent6` take, in order, the candidates
+ * no slot holds yet: the `color.brand.*` group first, then spectrum, ramp, role and
+ * semantic tokens, each in the order the design system states them. When the brand
+ * runs out of distinct colours the slots repeat the accents already set, so no slot
+ * ever falls back to a colour the brand does not have. Slots `filled` already holds
+ * are left alone. Deterministic: the same tokens give the same theme.
+ */
+export function themeSlotFills(
+  filled: ReadonlyMap<SchemeSlotV1, string>,
+  candidates: ReadonlyArray<{ path: string; hex: string }>,
+): Partial<Record<SchemeSlotV1, string>> {
+  const out: Partial<Record<SchemeSlotV1, string>> = {};
+  const rank = (path: string): number => {
+    const at = SLOT_FILL_GROUPS.findIndex((g) => path.startsWith(g));
+    return at < 0 ? SLOT_FILL_GROUPS.length : at;
+  };
+  const seen = new Set<string>();
+  const ordered = candidates
+    .map((c, index) => ({ ...c, hex: c.hex.toUpperCase(), index }))
+    .filter((c) => /^[0-9A-F]{6}$/.test(c.hex))
+    .sort((a, b) => rank(a.path) - rank(b.path) || a.index - b.index)
+    .filter((c) => {
+      if (seen.has(c.hex)) return false;
+      seen.add(c.hex);
+      return true;
+    });
+  if (!ordered.length) return out;
+  const used = new Set<string>(filled.values());
+
+  if (!filled.has('lt2')) {
+    // Background 2 is a second ground: the candidate nearest Background 1 (OKLab
+    // distance), on the same side of mid grey, so a dark theme gets a dark one.
+    const lt1 = filled.get('lt1') ?? 'FFFFFF';
+    const rgb = (hex: string): [number, number, number] => [0, 2, 4].map((at) => Number.parseInt(hex.slice(at, at + 2), 16)) as [number, number, number];
+    const light = slotLuminance(lt1) >= 0.5;
+    let best: { hex: string; gap: number } | null = null;
+    for (const c of ordered) {
+      if (c.hex === lt1) continue;
+      if ((slotLuminance(c.hex) >= 0.5) !== light) continue;
+      const gap = deltaEOkSrgb(rgb(c.hex), rgb(lt1));
+      if (!best || gap < best.gap) best = { hex: c.hex, gap };
+    }
+    const lt2 = best?.hex ?? lt1;
+    if (lt2) {
+      out.lt2 = lt2;
+      used.add(lt2);
+    }
+  }
+
+  const fresh = ordered.filter((c) => !used.has(c.hex)).map((c) => c.hex);
+  const accents = (['accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'accent6'] as const)
+    .map((slot) => filled.get(slot))
+    .filter((hex): hex is string => typeof hex === 'string');
+  const repeat = accents.length ? accents : ordered.map((c) => c.hex);
+  let k = 0;
+  for (const slot of ['accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'accent6'] as const) {
+    if (filled.has(slot)) continue;
+    const hex = fresh.shift() ?? repeat[k++ % repeat.length]!;
+    out[slot] = hex;
+  }
+  return out;
 }
 
 // ─── text ─────────────────────────────────────────────────────────────────────
@@ -318,10 +471,11 @@ const ANCHOR: Readonly<Record<string, PptxText['anchor']>> = {
 };
 
 /** Design states a font SLOT; only the caller knows which family that is. */
-function familyOf(slot: string, fonts?: { major?: string; minor?: string }): string | undefined {
+function familyOf(slot: string, fonts?: { major?: string; minor?: string; mono?: string }): string | undefined {
   if (!slot) return undefined;
   if (slot === 'display') return fonts?.major;
-  if (slot === 'sans' || slot === 'mono') return fonts?.minor;
+  if (slot === 'mono') return fonts?.mono || fonts?.minor;
+  if (slot === 'sans') return fonts?.minor;
   return slot;
 }
 
@@ -350,7 +504,7 @@ const INDENTED_LINE = /(^|\n) {2,}\S/;
  */
 function parasOf(
   text: string,
-  run: Omit<PptxRun, 'text'>,
+  run: Omit<WeightedRun, 'text'>,
   align: PptxPara['align'],
   resolveColour?: (hex: string) => string | undefined,
   onRestart?: () => void,
@@ -379,11 +533,16 @@ function parasOf(
         strip = cut < part.text.length ? 0 : strip - cut;
         if (!partText) continue;
       }
-      const out: PptxRun = { ...run, text: partText };
+      const out: WeightedRun = { ...run, text: partText };
       if (part.weight !== undefined) {
         if (part.weight >= 600) out.bold = true;
         else delete out.bold;
       } else if (part.bold) out.bold = true;
+      // The weight the face pass reads: `**` is Bold 700 even inside a Medium row, so it
+      // keeps the family and b=1 rather than being named the row's Medium face.
+      const weight = deckWeight(part.weight ?? (part.bold ? 700 : run.weight));
+      if (weight !== undefined) out.weight = weight;
+      else delete out.weight;
       if (part.italic) out.italic = true;
       if (part.underline) out.underline = true;
       if (part.strike) out.strike = true;
@@ -473,6 +632,21 @@ const SHADOW_TARGETS: ReadonlySet<string> = new Set(['box', 'text', 'content', '
  *  two values the deck lowering uses, so the two paths agree on an unstyled layer. */
 const DEFAULT_TEXT_WEIGHT = 700;
 const DEFAULT_TEXT_HEX = '11141F';
+/** Design's line height when a row states none (`num(cb.lineHeight, 1.12)` in the renderer). */
+const DEFAULT_LINE_HEIGHT = 1.12;
+
+/**
+ * Design's arrowheads as DrawingML line ends, the same map as the renderer's
+ * `DECK_LINE_ENDS`. A `bar` has no DrawingML form; it is left off with a note.
+ */
+const LINE_ENDS_OF_HEADS: Readonly<Record<string, PptxLineEnd>> = { triangle: 'triangle', open: 'arrow', circle: 'oval', diamond: 'diamond' };
+
+/** One head field as a line end. An own-property lookup, so an inherited key never matches. */
+function lineEndOf(ctx: LowerCtx, row: DesignBoxRowV1, key: 'headStart' | 'headEnd'): PptxLineEnd | undefined {
+  const head = str(row, key);
+  if (head === 'bar') ctx.notes.add('a bar arrowhead has no PowerPoint line end, so it was left off');
+  return Object.hasOwn(LINE_ENDS_OF_HEADS, head) ? LINE_ENDS_OF_HEADS[head] : undefined;
+}
 
 /**
  * Effects a flat deck element cannot state. A row wearing one is left out, with a note.
@@ -494,7 +668,15 @@ function inexpressible(row: DesignBoxRowV1, byId?: ReadonlySet<string>): string 
   // which a deck element does carry (plan 275 decision 32: a chart's translucent
   // labels and gridlines); a picture has no colour to fold it into.
   if (num(row, 'opacity', 100) !== 100 && !FOLDS_OPACITY.has(str(row, 'kind') || 'box')) return 'partial opacity';
-  if (str(row, 'grad').trim() !== '') return 'a gradient fill';
+  // A linear gradient on a flat, unturned box is a native gradFill (plan 291 M4: a scrim
+  // over a photo). Radial and conic have no lowering, a turned gradient would need the
+  // fill to turn with its shape, and a translucent gradient over a fill of its own
+  // cannot be split into two shapes without changing how the two blend.
+  const grad = str(row, 'grad').trim();
+  if (grad !== '') {
+    if (!linearGradBox(row)) return 'a gradient fill';
+    if (num(row, 'opacity', 100) !== 100 && str(row, 'bg').trim() !== '') return 'partial opacity';
+  }
   if (num(row, 'blur') > 0 || num(row, 'bgBlur') > 0) return 'a blur';
   if (BLEND_MODES.has(str(row, 'blend'))) return 'a blend mode';
   if (SHADOW_TARGETS.has(str(row, 'shadow'))) return 'a shadow';
@@ -503,12 +685,21 @@ function inexpressible(row: DesignBoxRowV1, byId?: ReadonlySet<string>): string 
   return null;
 }
 
-/** Row kinds whose opacity folds into the alpha of their fill, line or text colour. */
-const FOLDS_OPACITY: ReadonlySet<string> = new Set(['box', 'path', 'text']);
+/** Row kinds whose opacity folds into the alpha of their fill, line or text colour, or, for a picture, its alphaModFix. */
+const FOLDS_OPACITY: ReadonlySet<string> = new Set(['box', 'path', 'text', 'image']);
 /** Row kinds a deck shape turns as the canvas does, by the `rot` on its transform. */
 const TURNS: ReadonlySet<string> = new Set(['box', 'path', 'text']);
-/** Row kinds whose mirror the lowering can draw: a box is symmetric, a path's outline takes it. */
-const MIRRORS: ReadonlySet<string> = new Set(['box', 'path']);
+/** Row kinds whose mirror the lowering can draw: a box is symmetric, a path's outline takes it, a picture flips on its xfrm. */
+const MIRRORS: ReadonlySet<string> = new Set(['box', 'path', 'image']);
+
+/**
+ * A row whose `grad` lowers natively: a box (not text, a picture or a path) that is not
+ * turned, with a linear spec. The renderer's `deckLinearGrad` is the same predicate.
+ */
+function linearGradBox(row: DesignBoxRowV1): boolean {
+  const kind = str(row, 'kind') || 'box';
+  return kind === 'box' && num(row, 'rot') === 0 && isLinearGradSpec(str(row, 'grad'));
+}
 
 /** The turn a row states, in degrees, for a deck shape's transform; absent when it has none. */
 function rotOf(row: DesignBoxRowV1): { rot?: number } {
@@ -530,9 +721,10 @@ function foldAlpha(alpha: number | undefined, opacity: number): number | undefin
 /**
  * A path row's authored nodes (fractions of its box) as SVG path data in its own
  * EMU box, lowered to cubics the way Design draws them. Null when the value does
- * not decode.
+ * not decode. `open` says the value is one open contour, the only shape with two
+ * ends for arrowheads, judged on the decoded value the way the renderer judges a value.
  */
-function pathDataOf(row: DesignBoxRowV1, cx: number, cy: number): { d: string; contours: Contour[] } | null {
+function pathDataOf(row: DesignBoxRowV1, cx: number, cy: number): { d: string; contours: Contour[]; open: boolean } | null {
   const paths = decodeAuthoredPaths(str(row, 'path'));
   if (!paths || paths.length === 0) return null;
   // A mirrored row is drawn mirrored within its own box, so the deck shape needs no flip.
@@ -558,7 +750,7 @@ function pathDataOf(row: DesignBoxRowV1, cx: number, cy: number): { d: string; c
   }
   // One decimal, not none: `toSvgPathData` trims trailing zeros, and at no decimals it
   // trims them off whole numbers too, so 1524000 EMU would be written as 1524.
-  return contours.length ? { d: toSvgPathData(contours, 1), contours } : null;
+  return contours.length ? { d: toSvgPathData(contours, 1), contours, open: paths.length === 1 && paths[0]!.closed !== true } : null;
 }
 
 /** `true` for a row the render does not paint at all. */
@@ -566,7 +758,7 @@ const hidden = (row: DesignBoxRowV1): boolean => bool(row, 'hidden');
 
 interface LowerCtx {
   palette: Palette;
-  fonts?: { major?: string; minor?: string };
+  fonts?: { major?: string; minor?: string; mono?: string };
   notes: Notes;
   schemeRefs: SchemeRefV1[];
   resolveAsset?: DesignAssetResolver;
@@ -622,11 +814,41 @@ async function picOf(
     ctx.notes.add(`a picture in ${got.mime} was left out (PowerPoint reads PNG, JPEG and SVG)`);
     return null;
   }
+  // The fit the canvas draws: `imgCss` in the Design renderer reads an unset or unknown
+  // fit as contain, so a logo or a photo in a contain slot is letterboxed there, and the
+  // deck places it the same way instead of stretching it over the whole box.
+  const fitRaw = str(row, 'fit');
+  const fit: PictureFit = (PICTURE_FITS as readonly string[]).includes(fitRaw) ? fitRaw as PictureFit : 'contain';
+  const intrinsic = ext === 'svg' ? deckSvgIntrinsicSize(got.bytes) : rasterIntrinsicSize(got.bytes, got.mime);
+  if (!intrinsic && fit !== 'fill') {
+    ctx.notes.add(`a picture set to ${fit} was placed over its whole box, because its size could not be read`);
+  }
+  // Mirrored inside its own box when the row is flipped, as the canvas mirrors the box
+  // (plan 291 M4); the flips and the opacity ride on the picture itself.
+  const placed = deckPlacePicture(row, box, intrinsic, fit);
+  const look = deckPicLook({ name: str(row, 'name'), flipH: bool(row, 'flipH'), flipV: bool(row, 'flipV'), opacity: opacityOf(row) * 100 });
+  const srcRect = placed.srcRect;
+  // A treated photo (an SVG wrapper that draws a raster through a filter) travels as one
+  // baked raster with no svg part, because PowerPoint's SVG renderer is not known to
+  // honour the filter (plan 291 M4). The rasteriser gives PNG.
+  const bake = ext === 'svg' ? deckSvgBakeRaster(got.bytes, MAX_FALLBACK_PX) : null;
+  if (bake) {
+    const baked = ctx.rasterizeSvg ? await ctx.rasterizeSvg(got.bytes, bake.w, bake.h) : null;
+    if (!baked) {
+      ctx.notes.add('a treated picture was left out because this run cannot render it to a raster');
+      return null;
+    }
+    return { kind: 'pic', ...placed.box, media: addMedia(sink, baked, 'png'), ...look, ...(srcRect ? { srcRect } : {}) };
+  }
   if (ext === 'svg') {
     // svgBlip needs a raster fallback beside it, which only a caller with a rasteriser
-    // can supply. Without one the vector is reported rather than drawn wrong.
-    const w = Math.max(1, Math.round(box.cx / EMU_PER_PX));
-    const h = Math.max(1, Math.round(box.cy / EMU_PER_PX));
+    // can supply. Without one the vector is reported rather than drawn wrong. The
+    // fallback is drawn at twice the size the picture shows at, as the web export draws
+    // its own, so it keeps the vector's aspect and stays sharp where a viewer shows the
+    // PNG; a source crop applies to it the same way it applies to the vector.
+    const scale = Math.min(FALLBACK_SCALE, MAX_FALLBACK_PX / Math.max(placed.drawn.cx / EMU_PER_PX, placed.drawn.cy / EMU_PER_PX, 1));
+    const w = Math.max(1, Math.round((placed.drawn.cx / EMU_PER_PX) * scale));
+    const h = Math.max(1, Math.round((placed.drawn.cy / EMU_PER_PX) * scale));
     const png = ctx.rasterizeSvg ? await ctx.rasterizeSvg(got.bytes, w, h) : null;
     if (!png) {
       ctx.notes.add('a vector picture was left out because this run cannot render its PNG fallback');
@@ -634,12 +856,25 @@ async function picOf(
     }
     const svgIdx = addMedia(sink, got.bytes, 'svg');
     const pngIdx = addMedia(sink, png, 'png');
-    return { kind: 'pic', ...box, media: pngIdx, svg: svgIdx, name: str(row, 'name') || undefined };
+    return {
+      kind: 'pic', ...placed.box, media: pngIdx, svg: svgIdx, name: str(row, 'name') || undefined,
+      ...look, ...(srcRect ? { srcRect } : {}),
+    };
   }
-  if (str(row, 'fit') === 'cover') {
-    ctx.notes.add('a picture set to cover was placed whole, because its crop needs the rendered page');
-  }
-  return { kind: 'pic', ...box, media: addMedia(sink, got.bytes, ext), name: str(row, 'name') || undefined };
+  return {
+    kind: 'pic', ...placed.box, media: addMedia(sink, got.bytes, ext), name: str(row, 'name') || undefined,
+    ...look, ...(srcRect ? { srcRect } : {}),
+  };
+}
+
+/** The longest side, in pixels, an SVG picture's PNG fallback is drawn at. */
+const MAX_FALLBACK_PX = 4096;
+/** Pixels of PNG fallback per pixel the picture shows at. */
+const FALLBACK_SCALE = 2;
+
+function rasterIntrinsicSize(bytes: Uint8Array, mime: string): DeckIntrinsicSize | null {
+  const dims = imageDimensions(bytes, mime);
+  return dims && dims.w > 0 && dims.h > 0 ? { w: dims.w, h: dims.h, natural: true } : null;
 }
 
 /**
@@ -700,11 +935,20 @@ async function lowerLayer(
     const strokeHit = ctx.palette.resolve(row.stroke);
     const strokeW = num(row, 'strokeW');
     noteDash(ctx, row);
+    const line: PptxPath['line'] = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : undefined;
+    // Arrowheads ride the line's own ends, on the terms the canvas and the deck model
+    // draw them: a stroked single open contour only (plan 291 W5).
+    if (line && data.open) {
+      const head = lineEndOf(ctx, row, 'headStart');
+      const tail = lineEndOf(ctx, row, 'headEnd');
+      if (head) line.head = head;
+      if (tail) line.tail = tail;
+    }
     const shape: PptxPath = {
       kind: 'path', ...box, ...rotOf(row),
       paths: [{ d: data.d }],
       ...(fill ? { fill: withFillAlpha(fill, opacity) } : {}),
-      ...(strokeHit && strokeW > 0 ? { line: lineOf(strokeHit, strokeW, opacity) } : {}),
+      ...(line ? { line } : {}),
     };
     sink.shapes.push(shape);
     return;
@@ -729,20 +973,28 @@ async function lowerLayer(
     const weight = num(row, 'weight', 0) || Number(str(row, 'weight'))
       || Number(masterStyle?.weight) || DEFAULT_TEXT_WEIGHT;
     const textAlpha = foldAlpha(colour?.alpha, opacity);
-    const run: Omit<PptxRun, 'text'> = {
+    const run: Omit<WeightedRun, 'text'> = {
       sizePt: Math.round(sizePx * 0.75 * 100) / 100,
       color: colour?.hex ?? DEFAULT_TEXT_HEX,
       ...(weight >= 600 ? { bold: true } : {}),
       ...(textAlpha !== undefined ? { alpha: textAlpha } : {}),
     };
+    const runWeight = deckWeight(weight);
+    if (runWeight !== undefined) run.weight = runWeight;
     const family = familyOf(str(row, 'font') || masterStyle?.font || '', ctx.fonts);
     if (family) run.font = family;
     const align = ALIGN[str(row, 'align') || masterStyle?.align || ''];
     const anchor = ANCHOR[str(row, 'valign') || masterStyle?.valign || ''];
+    // The canvas line height is a multiple of the font size, so it travels as an exact
+    // pitch in points, as the deck model writes it: a percentage would scale PowerPoint's
+    // own single spacing, which differs by face and by platform (plan 291 W5).
+    const lineHeight = Math.min(4, Math.max(0.5, num(row, 'lineHeight', DEFAULT_LINE_HEIGHT)));
+    const lineSpacingPt = Math.round(lineHeight * sizePx * 0.75 * 100) / 100;
     const text: PptxText = {
       kind: 'text', ...box, ...rotOf(row),
       paras: parasOf(str(row, 'text'), run, align, (hex) => ctx.palette.resolve(hex)?.hex,
-        () => ctx.notes.add('a numbered list that starts past 1 was numbered from 1')),
+        () => ctx.notes.add('a numbered list that starts past 1 was numbered from 1'))
+        .map((para) => ({ ...para, lineSpacingPt })),
       ...(anchor ? { anchor } : {}),
       ...(binding ? { ph: binding } : {}),
     };
@@ -755,11 +1007,22 @@ async function lowerLayer(
   const strokeHit = ctx.palette.resolve(row.stroke);
   const strokeW = num(row, 'strokeW');
   noteDash(ctx, row);
+  const radius = str(row, 'shape') === 'rounded' ? { radius: emu(num(row, 'radius')) } : {};
+  // A linear gradient (plan 291 M4). CSS paints the flat fill under the gradient, so a
+  // box with both is two rectangles, the fill first; the outline rides the top one. The
+  // mirror folds into the gradient's angle and the opacity into its stops.
+  const gradFill = linearGradBox(row)
+    ? gradSpecFill(str(row, 'grad').trim(), { flipH: bool(row, 'flipH'), flipV: bool(row, 'flipV') })
+    : null;
+  if (gradFill && fill) {
+    sink.shapes.push({ kind: 'rect', ...box, ...rotOf(row), fill: withFillAlpha(fill, opacity), ...radius });
+  }
+  const top = gradFill ?? fill;
   const rect: PptxShape = {
     kind: 'rect', ...box, ...rotOf(row),
-    ...(fill ? { fill: withFillAlpha(fill, opacity) } : {}),
+    ...(top ? { fill: withFillAlpha(top, opacity) } : {}),
     ...(strokeHit && strokeW > 0 ? { line: lineOf(strokeHit, strokeW, opacity) } : {}),
-    ...(str(row, 'shape') === 'rounded' ? { radius: emu(num(row, 'radius')) } : {}),
+    ...radius,
   };
   sink.shapes.push(rect);
 }
@@ -772,9 +1035,18 @@ function noteDash(ctx: LowerCtx, row: DesignBoxRowV1): void {
   }
 }
 
-/** A solid fill with the row's opacity folded into its alpha. A gradient is returned as it is. */
+/** A fill with the row's opacity folded into its alpha: a solid's own, or every gradient stop's. */
 function withFillAlpha(fill: PptxFill, opacity: number): PptxFill {
-  if (!('solid' in fill)) return fill;
+  if (!('solid' in fill)) {
+    if (opacity >= 1) return fill;
+    return {
+      grad: fill.grad.map((stop) => {
+        const alpha = foldAlpha(stop.alpha, opacity);
+        return { pos: stop.pos, color: stop.color, ...(alpha !== undefined ? { alpha } : {}) };
+      }),
+      angle: fill.angle,
+    };
+  }
   const alpha = foldAlpha(fill.alpha, opacity);
   return { solid: fill.solid, ...(alpha !== undefined ? { alpha } : {}) };
 }
@@ -792,6 +1064,7 @@ function layoutFor(
   master: SlideMasterV1,
   size: { w: number; h: number },
   bindings: Map<string, PhBinding>,
+  kept?: ReadonlySet<string>,
 ): PptxLayout {
   // A placeholder's box is a fraction of the master size and scales with the slide;
   // its type size is stated in px AT THE MASTER SIZE, so it has to be scaled by the
@@ -817,19 +1090,27 @@ function layoutFor(
     const family = familyOf(style?.font ?? '', ctx.fonts);
     const sizePt = Math.round(roleFontSize(master, ph.role, style) * typeScale * 0.75 * 100) / 100;
     const align = style?.align ? ALIGN[style.align] : undefined;
-    entry.style = {
+    const styleWeight = deckWeight(Number(style?.weight) || undefined);
+    const phStyle: NonNullable<PptxPlaceholder['style']> & { weight?: number } = {
       sizePt,
       ...(family ? { font: family } : {}),
       ...(colour ? { color: colour.hex } : {}),
       ...(align === 'l' || align === 'ctr' || align === 'r' ? { align } : {}),
+      // For the face pass only; it is removed before the engine sees the style.
+      ...(styleWeight !== undefined ? { weight: styleWeight } : {}),
     };
+    entry.style = phStyle;
     placeholders.push(entry);
   }
 
   // Furniture rides the layout too, so the exported deck doubles as a template: a new
   // slide built from the gallery in PowerPoint arrives with the bars and the footer.
   const shapes: PptxShape[] = [];
+  // A piece a slide of this layout left out (compose's `omit`, or a layer someone
+  // deleted) is left off the layout too: PowerPoint draws the layout under the slide,
+  // so the piece would come back on that slide, and on every new slide from the layout.
   for (const id of archetype.furniture ?? []) {
+    if (kept && !kept.has(id)) continue;
     const f = master.furniture.find((item) => item.id === id);
     if (!f) continue;
     const shape = furnitureShape(ctx, f, master, size);
@@ -846,6 +1127,67 @@ function layoutFor(
   };
 }
 
+/**
+ * The context a layout is built in. A slide that is dark by design (a title, a full-page
+ * picture, a closing slide) stays dark in every theme of a composed document, which
+ * holds it at the master's colours (plan 291 M4); a master whose ground is a
+ * theme-following token (`color.semantic.text`) would still give it a light layout in a
+ * dark theme, so a slide reset or added in PowerPoint came back inverted. When the
+ * theme turns such an archetype's ground light while the frame's own ground is dark,
+ * the layout takes the frame's ground and the colours of its role and furniture layers
+ * for the master's token paths. Every other layout is built as before.
+ */
+function heldLayoutCtx(ctx: LowerCtx, archetype: ArchetypeV1, master: SlideMasterV1, frame: DesignFrameV1): LowerCtx {
+  const ground = archetype.background;
+  if (ground?.dark !== true || ground.hex) return ctx;
+  const themed = ctx.palette.resolve(ground.tokenPath);
+  if (!themed || bgIsDark(themed.hex) || !frameGroundIsDark(frame.row)) return ctx;
+  const byPath = new Map<string, string>();
+  const take = (path: string | undefined, value: unknown): void => {
+    if (path && typeof value === 'string' && value && !byPath.has(path) && ctx.palette.resolve(value)) byPath.set(path, value);
+  };
+  take(ground.tokenPath, frame.row.bg);
+  const seen = new Map<string, number>();
+  for (const ph of archetype.placeholders) {
+    const nth = (seen.get(ph.role) ?? 0) + 1;
+    seen.set(ph.role, nth);
+    if (ph.kind === 'image' || ph.style?.fg) continue;
+    take(ph.style?.fgTokenPath, frame.layers.filter((l) => l.role === ph.role && !l.furniture)[nth - 1]?.fg);
+  }
+  for (const id of archetype.furniture ?? []) {
+    const f = master.furniture.find((item) => item.id === id);
+    const layer = frame.layers.find((l) => l.furniture === id);
+    if (!f || !layer) continue;
+    if (!f.hex) take(f.tokenPath, layer.bg);
+    if (!f.style?.fg) take(f.style?.fgTokenPath, layer.fg);
+  }
+  if (!byPath.has(ground.tokenPath ?? '')) return ctx;
+  const base = ctx.palette;
+  const held = Object.create(base) as Palette;
+  held.resolve = (raw: unknown): ColourHit | null => (typeof raw === 'string' && byPath.has(raw) ? base.resolve(byPath.get(raw)) : base.resolve(raw));
+  return { ...ctx, palette: held };
+}
+
+/**
+ * The furniture ids every frame bound to one archetype carries as a layer (each
+ * seeded furniture layer gives its piece's id in `furniture`). A layout carries only these,
+ * so it never shows a piece one of its slides left out.
+ */
+function furnitureOnEvery(frames: readonly DesignFrameV1[], archetypeId: string, masterId: string): Set<string> {
+  let common: Set<string> | undefined;
+  for (const frame of frames) {
+    if (str(frame.row, 'master') !== masterId || str(frame.row, 'archetype') !== archetypeId) continue;
+    const here = new Set<string>();
+    for (const row of frame.layers) {
+      const id = str(row, 'furniture');
+      if (id && !hidden(row)) here.add(id);
+    }
+    const prior: Set<string> | undefined = common;
+    common = prior ? new Set([...prior].filter((id: string) => here.has(id))) : here;
+  }
+  return common ?? new Set<string>();
+}
+
 /** One piece of master furniture as a flat shape. A logo needs bytes, so it is a slide
  *  layer rather than layout furniture and is left to the frame's own rows. */
 function furnitureShape(
@@ -858,17 +1200,20 @@ function furnitureShape(
   const typeScale = typeFactor(master, size);
   if (f.kind === 'bar' || f.kind === 'rect') {
     const hit = ctx.palette.resolve(f.hex ?? f.tokenPath);
-    return hit ? { kind: 'rect', ...box, fill: { solid: hit.hex } } : null;
+    // A translucent bar (a caption scrim is `#1d1d1db8`) keeps its alpha on the layout.
+    return hit ? { kind: 'rect', ...box, fill: { solid: hit.hex, ...(hit.alpha !== undefined ? { alpha: hit.alpha } : {}) } } : null;
   }
   if (f.kind === 'logo') return null;
   const role: ArchetypeRoleV1 = f.kind === 'page-number' ? 'number' : 'label';
   const colour = ctx.palette.resolve(f.style?.fg || f.style?.fgTokenPath);
   const weight = Number(f.style?.weight) || DEFAULT_TEXT_WEIGHT;
-  const run: Omit<PptxRun, 'text'> = {
+  const run: Omit<WeightedRun, 'text'> = {
     sizePt: Math.round(roleFontSize(master, role, f.style) * typeScale * 0.75 * 100) / 100,
     color: colour?.hex ?? DEFAULT_TEXT_HEX,
     ...(weight >= 600 ? { bold: true } : {}),
   };
+  const runWeight = deckWeight(weight);
+  if (runWeight !== undefined) run.weight = runWeight;
   const family = familyOf(f.style?.font ?? '', ctx.fonts);
   if (family) run.font = family;
   const align = f.style?.align ? ALIGN[f.style.align] : undefined;
@@ -888,6 +1233,13 @@ function orderedFrames(frames: DesignFrameV1[]): DesignFrameV1[] {
       || (num(a.f.row, 'x') - num(b.f.row, 'x'))
       || (a.index - b.index))
     .map((e) => e.f);
+}
+
+/** Does a frame's own ground read dark: its `bg` hex, or the fallback of a `var(--brand-*, #hex)`. */
+function frameGroundIsDark(row: DesignBoxRowV1): boolean {
+  const bg = typeof row.bg === 'string' ? row.bg : '';
+  const hex = /#[0-9a-f]{6}\b|#[0-9a-f]{3}\b/i.exec(bg)?.[0];
+  return !!hex && bgIsDark(hex);
 }
 
 /**
@@ -920,7 +1272,15 @@ export async function designFramesToPptx(opts: DesignPptxOptsV1): Promise<Design
     ctx.notes.add(`this deck was cut to the first ${MAX_SLIDES} slides`);
   }
 
-  const master = opts.master;
+  // A content-sized recipe (`flow-cards-4-2`, `flow-columns-3-3`) is not in the master's
+  // own list: `seedFrame` builds it from the content archetype on demand, so the same
+  // expansion is what finds it here. Without it those frames lowered with no layout.
+  const master = opts.master
+    ? withSlideLayoutComponents(opts.master, frames
+      .filter((f) => str(f.row, 'master') === opts.master!.id)
+      .map((f) => str(f.row, 'archetype'))
+      .filter(Boolean))
+    : undefined;
   const layouts: PptxLayout[] = [];
   const layoutIndex = new Map<ArchetypeRefV1, number>();
   const bindingCache = new Map<ArchetypeRefV1, Map<string, PhBinding>>();
@@ -934,6 +1294,9 @@ export async function designFramesToPptx(opts: DesignPptxOptsV1): Promise<Design
 
   const slides: PptxSlide[] = [];
   const transitionNotes: DeckNotes = { mapped: [], dropped: [] };
+  // Slides of a light archetype drawn dark (compose's Dark theme), by number, with the layout names.
+  const drawnDark: number[] = [];
+  const drawnDarkLayouts = new Set<string>();
 
   for (let i = 0; i < frames.length; i++) {
     const entry = frames[i]!;
@@ -947,30 +1310,33 @@ export async function designFramesToPptx(opts: DesignPptxOptsV1): Promise<Design
         bindings = bindingsFor(archetype);
         bindingCache.set(archetype.id, bindings);
         index = layouts.length;
-        layouts.push(layoutFor(ctx, archetype, master, size, bindings));
+        layouts.push(layoutFor(heldLayoutCtx(ctx, archetype, master, entry), archetype, master, size, bindings, furnitureOnEvery(frames, archetype.id, master.id)));
         layoutIndex.set(archetype.id, index);
       }
     }
 
     const sink: SlideSink = { shapes: [], media: [] };
+    if (archetype && archetype.background?.dark !== true && frameGroundIsDark(frameRow)) {
+      drawnDark.push(i + 1);
+      drawnDarkLayouts.add(archetype.name || archetype.id);
+    }
     const bg = fillOf(ctx, frameRow);
     if (bg) sink.shapes.push({ kind: 'rect', x: 0, y: 0, cx: emu(size.w), cy: emu(size.h), fill: bg });
 
     const origin = { x: num(frameRow, 'x'), y: num(frameRow, 'y') };
 
-    // Ordinals per role, counted in DOCUMENT order, because that is the order
-    // `roleOrdinals`/`applyArchetype` count in (engine/src/slide-master.ts). Counting
-    // them in paint order instead would bind two same-role layers to different
-    // placeholders than Reset Slide and Apply archetype do, whenever someone changed a
-    // layer's paint order without moving it in the document.
+    // The slot each role-bound layer fills, by the engine's own rule (`slotOrdinalOf`,
+    // engine/src/slide-master.ts), which is what Reset Slide and Apply archetype relay
+    // by: the seeded id first, so `body-2` stays the second body when `body` was
+    // dropped, then the lowest free slot in DOCUMENT order. Paint order would bind two
+    // same-role layers differently whenever someone restacked a layer in place.
     const ordinalOf = new Map<DesignBoxRowV1, number>();
-    const used = new Map<string, number>();
-    for (const row of entry.layers) {
-      const role = str(row, 'role');
-      if (!role) continue;
-      const ordinal = (used.get(role) ?? 0) + 1;
-      used.set(role, ordinal);
-      ordinalOf.set(row, ordinal);
+    if (archetype) {
+      for (const row of entry.layers) {
+        if (!str(row, 'role')) continue;
+        const ordinal = slotOrdinalOf(row, entry.layers);
+        if (ordinal > 0) ordinalOf.set(row, ordinal);
+      }
     }
 
     const siblings = new Set<string>();
@@ -992,8 +1358,8 @@ export async function designFramesToPptx(opts: DesignPptxOptsV1): Promise<Design
       const role = str(row, 'role');
       let binding: PhBinding | undefined;
       let masterStyle: MasterTextStyleV1 | undefined;
-      if (role && archetype && bindings) {
-        const ordinal = ordinalOf.get(row) ?? 1;
+      const ordinal = ordinalOf.get(row);
+      if (role && archetype && bindings && ordinal !== undefined) {
         binding = bindings.get(`${role}#${ordinal}`);
         masterStyle = placeholderStyle(archetype, role as ArchetypeRoleV1, ordinal);
       }
@@ -1022,6 +1388,15 @@ export async function designFramesToPptx(opts: DesignPptxOptsV1): Promise<Design
   }
 
   for (const line of transitionNotes.dropped) ctx.notes.add(line);
+  // Plan 291 M4: a dark layout for each themed archetype is not written yet, so the
+  // light layout is bound and the slide carries its own dark ground and ink.
+  if (drawnDark.length) {
+    const which = drawnDark.length === 1 ? `slide ${drawnDark[0]} is` : `slides ${drawnDark.slice(0, -1).join(', ')} and ${drawnDark[drawnDark.length - 1]} are`;
+    ctx.notes.add(
+      `${which} drawn dark on a light layout (${[...drawnDarkLayouts].join(', ')}): the dark ground and ink are set on the slide itself,`
+      + ' so Reset Slide in PowerPoint, or a new slide from that layout, comes back light',
+    );
+  }
 
   // Only one master is loaded per deck, so a frame that names a second one lowers with
   // no layout and no placeholders. Say which, rather than let the export quietly stop
@@ -1038,10 +1413,15 @@ export async function designFramesToPptx(opts: DesignPptxOptsV1): Promise<Design
     );
   }
 
+  // PowerPoint states Regular or Bold only, so a weight between them becomes the static
+  // face the brand ships, or stays the family when it ships none. This also removes the
+  // weight every run carried to get here.
+  await nameStaticFaces({ slides, layouts }, { ...opts.faceFonts, ...opts.fonts }, opts.shipsFace);
+
   return {
     slides,
     layouts,
-    theme: palette.theme(opts.fonts),
+    theme: palette.theme(opts.fonts, opts.tokenColors),
     size,
     layoutOfArchetype: [...layoutIndex].map(([archetype, index]) => ({ archetype, index })),
     schemeRefs: ctx.schemeRefs,
@@ -1130,4 +1510,28 @@ export function transitionsOfDeckModel(raw: string | null | undefined): Array<st
 /** Does this document carry slide-master bindings, which is what the native path needs? */
 export function hasMasterBindings(doc: DesignDocV1): boolean {
   return doc.boxes.some((row) => str(row, 'kind') === 'frame' && !!str(row, 'master') && !!str(row, 'archetype'));
+}
+
+/**
+ * The slide master a bound document is lowered against, given what the active catalog
+ * answered for the id its frames name (plan 291 M3, B5).
+ *
+ * The catalog's own master wins. When the catalog has none and the id is the engine's
+ * neutral master (`lolly/slides/neutral`, which `lolly compose` falls back to when a
+ * design system ships no master), the engine's copy is used and `note` says so, so a
+ * neutral deck still exports Tier A under a profile whose catalog carries another
+ * master. Null for any other id the catalog cannot answer: the caller keeps to the
+ * deck model, as before.
+ */
+export function slideMasterForExport(
+  id: string,
+  fromCatalog: SlideMasterV1 | null | undefined,
+): { master: SlideMasterV1; note?: string } | null {
+  if (fromCatalog) return { master: fromCatalog };
+  const neutral = neutralSlideMaster();
+  if (!id || id !== neutral.id) return null;
+  return {
+    master: neutral,
+    note: `${id} is not in this profile's catalog, so the engine's own neutral slide master ${neutral.version} gave the layouts`,
+  };
 }

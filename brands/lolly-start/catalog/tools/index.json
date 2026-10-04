@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-02T07:58:24.918Z",
+  "generatedAt": "2026-10-03T13:41:26.205Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2251,108 +2251,108 @@
       "preview": "/catalog/previews/rebrand-deck.svg",
       "i18n": {
         "ar": {
-          "name": "إعادة العلامة التجارية",
-          "description": "ارفع عرض PowerPoint واضبط ألوانه وخطوطه على علامتك التجارية - يُعاد بناؤه على جهازك، دون رفع أي شيء."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "bg": {
-          "name": "Ребрандиране",
-          "description": "Качи PowerPoint презентация и подравни цветовете и шрифтовете й към бранда си - възстановена на твоето устройство, нищо не се качва."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "bn": {
-          "name": "রিব্র্যান্ড",
-          "description": "একটি PowerPoint ডেক আপলোড করুন এবং এর রঙ ও ফন্ট আপনার ব্র্যান্ডের সাথে মিলিয়ে নিন - আপনার ডিভাইসেই পুনর্নির্মিত, কিছুই আপলোড হয় না।"
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "cs": {
-          "name": "Rebrand",
-          "description": "Nahraj prezentaci PowerPoint a přizpůsob její barvy a fonty své značce - přestavěno na tvém zařízení, nic se nikam nenahrává."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "de": {
-          "name": "Rebranding",
-          "description": "Laden Sie eine PowerPoint-Präsentation hoch und richten Sie ihre Farben und Schriften an Ihrer Marke aus - neu aufgebaut auf Ihrem Gerät, nichts wird hochgeladen."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "es": {
-          "name": "Rebranding",
-          "description": "Sube una presentación de PowerPoint y ajusta sus colores y fuentes a tu marca - reconstruida en tu dispositivo, sin subir nada."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "fr": {
-          "name": "Rebrand",
-          "description": "Chargez un diaporama PowerPoint et calez ses couleurs et polices sur votre marque - reconstruit sur votre appareil, rien n'est envoyé en ligne."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "hi": {
-          "name": "Rebrand",
-          "description": "PowerPoint डेक अपलोड करें और उसके रंग व फ़ॉन्ट अपने ब्रांड के अनुरूप कर लें - आपकी डिवाइस पर फिर से बनाया गया, कुछ भी अपलोड नहीं होता।"
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "id": {
-          "name": "Rebranding",
-          "description": "Unggah dek PowerPoint dan sesuaikan warna serta fontnya dengan brand Anda - dibangun ulang di perangkat Anda, tidak ada yang diunggah."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "it": {
-          "name": "Rebranding",
-          "description": "Carica una presentazione PowerPoint e adatta colori e font al tuo brand - ricostruita sul tuo dispositivo, senza caricamenti."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "ja": {
-          "name": "リブランド",
-          "description": "PowerPointデッキをアップロードして色とフォントをブランドに合わせます - デバイス上で再構築、何もアップロードされません。"
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "ko": {
-          "name": "리브랜드",
-          "description": "PowerPoint 덱을 업로드하면 색상과 폰트를 브랜드에 맞춰 스냅합니다 - 기기 내에서 재구성되며, 아무것도 업로드되지 않습니다."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "ms": {
-          "name": "Rebrand",
-          "description": "Muat naik koleksi PowerPoint dan padankan warna serta fonnya dengan jenama anda - dibina semula pada peranti anda, tiada apa dimuat naik."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "nl": {
-          "name": "Rebrand",
-          "description": "Upload een PowerPoint-presentatie en pas de kleuren en fonts aan je merk aan - herbouwd op je eigen apparaat, niets wordt geüpload."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "no": {
-          "name": "Rebranding",
-          "description": "Last opp en PowerPoint-presentasjon og tilpass fargene og skriftene til merkevaren din - gjenoppbygd på din enhet, ingenting lastes opp."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "pl": {
-          "name": "Rebranding",
-          "description": "Prześlij prezentację PowerPoint i dopasuj jej kolory i czcionki do swojej marki - odbudowane na Twoim urządzeniu, nic nie jest przesyłane."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "pt": {
-          "name": "Rebrand",
-          "description": "Envie uma apresentação PowerPoint e ajuste suas cores e fontes à sua marca - reconstruída no seu dispositivo, nada é enviado."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "ro": {
-          "name": "Rebrand",
-          "description": "Încarcă o prezentare PowerPoint și adaptează-i culorile și fonturile la brandul tău - reconstruită pe dispozitivul tău, nimic nu este încărcat."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "sv": {
-          "name": "Rebrand",
-          "description": "Ladda upp en PowerPoint-presentation och matcha dess färger och typsnitt mot ditt varumärke - ombyggd på din enhet, inget laddas upp."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "tl": {
-          "name": "Rebrand",
-          "description": "Mag-upload ng PowerPoint deck at i-snap ang kulay at font nito sa iyong brand - muling binuo sa iyong device, walang na-upload."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "tr": {
-          "name": "Marka Yenileme",
-          "description": "Bir PowerPoint destesi yükleyin ve renklerini ile yazı tiplerini markanıza uydurun - cihazınızda yeniden oluşturulur, hiçbir şey yüklenmez."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "uk": {
-          "name": "Ребрендинг",
-          "description": "Завантажте презентацію PowerPoint і приведіть її кольори й шрифти до вашого бренду - перебудовано на вашому пристрої, нічого не завантажується."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "ur": {
-          "name": "ری برانڈ",
-          "description": "ایک PowerPoint ڈیک اپ لوڈ کریں اور اس کے رنگ اور فونٹس اپنے برانڈ کے مطابق کر لیں - آپ کے آلے پر دوبارہ بنایا گیا، کچھ بھی اپ لوڈ نہیں ہوتا۔"
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "vi": {
-          "name": "Đổi thương hiệu",
-          "description": "Tải lên một bộ PowerPoint và khớp màu sắc, font chữ theo thương hiệu của bạn - dựng lại ngay trên thiết bị của bạn, không tải lên đâu cả."
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "zh-hant": {
-          "name": "品牌遷移",
-          "description": "上傳 PowerPoint 簡報，讓其色彩與字型套用您的品牌 - 在您的裝置上重建，不會上傳任何內容。"
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         },
         "zh": {
-          "name": "品牌迁移",
-          "description": "上传 PowerPoint 演示文稿,将其颜色和字体适配为你的品牌 - 在你的设备上重建,无需上传任何内容。"
+          "name": "Theme swap",
+          "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more."
         }
       }
     },
@@ -10834,107 +10834,107 @@
       "i18n": {
         "ar": {
           "name": "المقتطف",
-          "description": "حول مقتطفات الكود إلى صور أنيقة مع تمييز الصياغة، جاهزة للمشاركة."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "bg": {
           "name": "Кодов откъс",
-          "description": "Превърни кодови фрагменти в чисти, синтактично оцветени изображения за споделяне."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "bn": {
           "name": "স্নিপেট",
-          "description": "কোড স্নিপেটকে পরিচ্ছন্ন, সিনট্যাক্স-হাইলাইট করা, শেয়ারযোগ্য ছবিতে বদলে নিন।"
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "cs": {
           "name": "Snippet",
-          "description": "Proměň úryvky kódu v čisté obrázky se zvýrazněnou syntaxí, připravené ke sdílení."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "de": {
           "name": "Schnipsel",
-          "description": "Verwandeln Sie Codeschnipsel in klare, syntaxhervorgehobene, teilbare Bilder."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "es": {
           "name": "Fragmento",
-          "description": "Convierte fragmentos de código en imágenes limpias, con resaltado de sintaxis y listas para compartir."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "fr": {
           "name": "Snippet",
-          "description": "Transforme tes extraits de code en images nettes, avec coloration syntaxique, prêtes à partager."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "hi": {
           "name": "Snippet",
-          "description": "कोड स्निपेट्स को साफ़, सिंटैक्स-हाइलाइट की गई, शेयर करने लायक इमेज में बदलें।"
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "id": {
           "name": "Snippet",
-          "description": "Ubah cuplikan kode menjadi gambar bersih, dengan penyorotan sintaks, siap dibagikan."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "it": {
           "name": "Snippet",
-          "description": "Trasforma frammenti di codice in immagini pulite, con syntax highlighting, pronte da condividere."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "ja": {
           "name": "スニペット",
-          "description": "コードスニペットをシンプルでシンタックスハイライト付きの共有可能な画像に変換します。"
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "ko": {
           "name": "스니펫",
-          "description": "코드 스니펫을 깔끔하고 신택스 하이라이트가 적용된 공유 가능한 이미지로 변환하세요."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "ms": {
           "name": "Snippet",
-          "description": "Tukar coretan kod kepada imej kemas yang diserlahkan sintaksnya dan sedia dikongsi."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "nl": {
           "name": "Snippet",
-          "description": "Verander codefragmenten in nette afbeeldingen met syntaxiskleuring, klaar om te delen."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "no": {
           "name": "Kodesnutt",
-          "description": "Gjør kodesnutter om til rene, syntaksmarkerte bilder, klare til å dele."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "pl": {
           "name": "Fragment kodu",
-          "description": "Zmień fragmenty kodu w czyste obrazy z podświetloną składnią, gotowe do udostępnienia."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "pt": {
           "name": "Snippet",
-          "description": "Transforme trechos de código em imagens limpas, com destaque de sintaxe, prontas para compartilhar."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "ro": {
           "name": "Snippet",
-          "description": "Transformă fragmente de cod în imagini curate, cu evidențierea sintaxei, gata de distribuit."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "sv": {
           "name": "Snippet",
-          "description": "Gör kodsnuttar till rena, syntaxmarkerade bilder som är enkla att dela."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "tl": {
           "name": "Snippet",
-          "description": "I-convert ang mga code snippet sa malinis, may syntax highlighting, at shareable na mga larawan."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "tr": {
           "name": "Kod Parçası",
-          "description": "Kod parçacıklarını temiz, sözdizimi vurgulamalı, paylaşılabilir görüntülere dönüştür."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "uk": {
           "name": "Фрагмент коду",
-          "description": "Перетворює фрагменти коду на чисті зображення з підсвіткою синтаксису, зручні для поширення."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "ur": {
           "name": "اسنپٹ",
-          "description": "کوڈ کے ٹکڑوں کو صاف ستھری، سنٹیکس-ہائی لائٹڈ، قابلِ اشتراک تصاویر میں بدلیں۔"
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "vi": {
           "name": "Đoạn mã",
-          "description": "Biến đoạn mã thành hình ảnh gọn gàng, có tô sáng cú pháp và dễ chia sẻ."
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "zh-hant": {
           "name": "程式碼片段",
-          "description": "將程式碼片段轉換成簡潔、具語法高亮、可分享的圖片。"
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         },
         "zh": {
           "name": "代码片段",
-          "description": "将代码片段转换为简洁、带语法高亮、可分享的图片。"
+          "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion."
         }
       }
     },
@@ -12442,107 +12442,107 @@
       "i18n": {
         "ar": {
           "name": "جدول الأعمال",
-          "description": "قم بتحويل برنامج واحد إلى شاشات ذات علامات تجارية وصفحات ويب تفاعلية ونظرات عامة متحركة وشرائح وتقويمات PowerPoint."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "bg": {
-          "name": "Дневен ред",
-          "description": "Превърнете една програма в брандирани екрани, интерактивни уеб страници, анимирани прегледи, PowerPoint слайдове и календари."
+          "name": "Програма",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "bn": {
-          "name": "এজেন্ডা",
-          "description": "একটি প্রোগ্রামকে ব্র্যান্ডেড স্ক্রিন, ইন্টারেক্টিভ ওয়েব পেজ, অ্যানিমেটেড ওভারভিউ, PowerPoint স্লাইড এবং ক্যালেন্ডারে পরিণত করুন৷"
+          "name": "সূচি",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "cs": {
           "name": "Agenda",
-          "description": "Proměňte jeden program na značkové obrazovky, interaktivní webové stránky, animované přehledy, PowerPoint snímků a kalendáře."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "de": {
-          "name": "Tagesordnung",
-          "description": "Verwandeln Sie ein Programm in Markenbildschirme, interaktive Webseiten, animierte Übersichten, PowerPoint Folien und Kalender."
+          "name": "Agenda",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "es": {
           "name": "Agenda",
-          "description": "Convierta un programa en pantallas personalizadas, páginas web interactivas, resúmenes animados, PowerPoint diapositivas y calendarios."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "fr": {
-          "name": "Ordre du jour",
-          "description": "Transformez un programme en écrans de marque, pages Web interactives, aperçus animés, diapositives PowerPoint et calendriers."
+          "name": "Agenda",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "hi": {
-          "name": "एजेंडा",
-          "description": "एक प्रोग्राम को ब्रांडेड स्क्रीन, इंटरैक्टिव वेब पेज, एनिमेटेड ओवरव्यू, PowerPoint स्लाइड और कैलेंडर में बदलें।"
+          "name": "Agenda",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "id": {
           "name": "Agenda",
-          "description": "Ubah satu program menjadi layar bermerek, halaman web interaktif, ikhtisar animasi, slide PowerPoint, dan kalender."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "it": {
-          "name": "ordine del giorno",
-          "description": "Trasforma un programma in schermate brandizzate, pagine web interattive, panoramiche animate, diapositive PowerPoint e calendari."
+          "name": "Agenda",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "ja": {
-          "name": "議題",
-          "description": "1 つのプログラムをブランド画面、インタラクティブな Web ページ、アニメーション概要、PowerPoint スライド、カレンダーに変えます。"
+          "name": "アジェンダ",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "ko": {
-          "name": "의제",
-          "description": "하나의 프로그램을 브랜드 화면, 대화형 웹 페이지, 애니메이션 개요, PowerPoint 슬라이드 및 달력으로 바꿔보세요."
+          "name": "일정",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "ms": {
           "name": "Agenda",
-          "description": "Tukar satu program kepada skrin berjenama, halaman web interaktif, gambaran keseluruhan animasi, PowerPoint slaid dan kalendar."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "nl": {
           "name": "Agenda",
-          "description": "Verander één programma in merkschermen, interactieve webpagina's, geanimeerde overzichten, PowerPoint slides en kalenders."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "no": {
           "name": "Agenda",
-          "description": "Gjør ett program om til merkede skjermer, interaktive nettsider, animerte oversikter, PowerPoint lysbilder og kalendere."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "pl": {
-          "name": "Porządek obrad",
-          "description": "Zamień jeden program w markowe ekrany, interaktywne strony internetowe, animowane przeglądy, PowerPoint slajdy i kalendarze."
+          "name": "Agenda",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "pt": {
           "name": "Agenda",
-          "description": "Transforme um programa em telas de marca, páginas da web interativas, visões gerais animadas, PowerPoint slides e calendários."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "ro": {
           "name": "Agenda",
-          "description": "Transformați un program în ecrane de marcă, pagini web interactive, prezentări de ansamblu animate, diapozitive PowerPoint și calendare."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "sv": {
           "name": "Agenda",
-          "description": "Förvandla ett program till märkesskärmar, interaktiva webbsidor, animerade översikter, PowerPoint bilder och kalendrar."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "tl": {
           "name": "Agenda",
-          "description": "Gawing mga branded na screen ang isang programa, interactive na web page, animated na pangkalahatang-ideya, PowerPoint slide at kalendaryo."
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "tr": {
-          "name": "Gündem",
-          "description": "Bir programı markalı ekranlara, etkileşimli web sayfalarına, animasyonlu genel bakışlara, PowerPoint slaytlara ve takvimlere dönüştürün."
+          "name": "Ajanda",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "uk": {
-          "name": "Порядок денний",
-          "description": "Перетворіть одну програму на фірмові екрани, інтерактивні веб-сторінки, анімовані огляди, PowerPoint слайди та календарі."
+          "name": "Програма",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "ur": {
           "name": "ایجنڈا",
-          "description": "ایک پروگرام کو برانڈڈ اسکرینز، انٹرایکٹو ویب پیجز، اینیمیٹڈ اوور ویوز، PowerPoint سلائیڈز اور کیلنڈرز میں تبدیل کریں۔"
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "vi": {
-          "name": "chương trình nghị sự",
-          "description": "Biến một chương trình thành màn hình có thương hiệu, trang web tương tác, tổng quan sinh động, trang trình bày PowerPoint và lịch."
+          "name": "Chương trình",
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "zh-hant": {
           "name": "議程",
-          "description": "將一個程式變成品牌螢幕、互動式網頁、動畫概述、PowerPoint 投影片和日曆。"
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         },
         "zh": {
           "name": "议程",
-          "description": "将一个程序变成品牌屏幕、交互式网页、动画概述、PowerPoint 幻灯片和日历。"
+          "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars."
         }
       }
     },
@@ -14542,7 +14542,113 @@
           "category": "Promotion",
           "description": "Your words in the brand font, lit dramatically, with copies drifting in depth and a slow camera move. Export as video or GIF for a promotional backdrop."
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "bg": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "bn": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "cs": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "de": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "es": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "fr": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "hi": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "id": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "it": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "ja": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "ko": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "ms": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "nl": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "no": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "pl": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "pt": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "ro": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "sv": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "tl": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "tr": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "uk": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "ur": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "vi": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "zh-hant": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        },
+        "zh": {
+          "name": "3D Studio",
+          "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
+        }
+      }
     }
   ]
 }

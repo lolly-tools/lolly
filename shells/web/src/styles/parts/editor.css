@@ -1704,7 +1704,7 @@ button.fc-readout:empty { display: none; }
 /* Docked into the edge column: always solid (no rest-dimming), laid out as a row
    regardless of the mobile stacking rules, and no floating pill offset (the dock slot
    owns position). */
-.stage-nav[data-docked] { position: static; opacity: 1; flex-direction: row; }
+.stage-nav[data-docked] { position: static; opacity: 1; flex-direction: row; justify-content: space-between }
 
 /* Editor layout keeps the HUD but hides it while it is OUT of the right sidebar - the
    top bar owns zoom then (tool-stage-nav.ts `paintHudVisible`). Nothing is needed here

@@ -665,6 +665,22 @@ export function documentSurface(tview: ToolViewCtx): void {
     measure: async (document?: unknown, opts?: Record<string, unknown>) =>
       measureDocument((document ?? (await tview.history.compileForSurface())) as never, opts),
     diff: async (a: unknown, b: unknown) => diffDocuments(a as never, b as never),
+    // The checks that need this painted canvas (plan 291 W1), for `lolly check` through
+    // the browser tier. Loaded on first call, so no other tool and no person pays for the import.
+    check: async () => {
+      const { checkDocumentSurface } = await import('../design-checks.ts');
+      return checkDocumentSurface({
+        toolId: tview.toolId,
+        canvasEl: tview.canvasEl,
+        boxes: () => tview.runtime.getModel().find((input) => input.id === 'boxes')?.value,
+        whenSettled: () => tview.runtime.whenSettled(),
+        paintPending: () => tview.rafId !== 0 || tview.pendingFrame !== null,
+        resolveFont: async (style, text) => {
+          const { fontCoversText } = await import('../../bridge/font-coverage.ts');
+          return fontCoversText(style, text, tview.host.text);
+        },
+      });
+    },
   }; tview.documentSurface = documentSurface;
   const removeDocumentSurface = installDocumentSurface(window, documentSurface); tview.removeDocumentSurface = removeDocumentSurface;
   mountLifecycle.add('document automation surface', removeDocumentSurface);

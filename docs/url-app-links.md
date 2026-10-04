@@ -136,6 +136,7 @@ Settings navigation writes `focus`, card toggles write `_open`, and the settings
 | Route | Params |
 |---|---|
 | `#/verify` | `src=<path>` checks a file **served by this site** (an absolute same-origin path - anything else is refused, because the page's promise is that it fetches nothing on your behalf). `check=1` alongside it also resolves the credential reference the page names, without the second "Fetch and check" click. |
+| `#/open` | `lolly=<path>` opens a `.lolly` **served by this site** (an absolute same-origin path starting with a single `/`) or a `blob:` URL the same page made; `data:`, `javascript:`, `//host` and every other origin are refused before anything is fetched. The address becomes a bare `#/open` before the fetch, so a reload never imports the file twice. A plain saved design opens straight into the editor; a file that carries a tool, a design system, templates, a renovation or a project still asks, as a drop does, and nothing in the link grants trust. The route is for automation (`lolly run <file.lolly> --export=…` uses it) and is not a `lolly://` route. |
 | `#/docs/<slug>` | Renders in the app's current language; `#/docs/<lang>/<slug>` pins one, and `?lang=` does the same thing. `?h=<heading>` jumps to a heading. |
 | `#/ask` | `?q=<question>` seeds the question box. |
 | `#/lab` | `?c=<any CSS colour>` opens the Colour Lab on that colour. |

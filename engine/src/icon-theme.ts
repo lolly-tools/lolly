@@ -28,7 +28,20 @@ export interface IconTheme {
   c1: string;
   c2: string;
   previewBg?: string;
+  /**
+   * Where the pairing reads on a slide (plan 291 W4): `light`, `dark`, and optionally
+   * `photo`. A `<id>?theme=auto` icon takes the first theme listing the surface under
+   * it; without the list, the surface test is contrast (`surface-variant.ts`).
+   */
+  surfaces?: string[];
 }
+
+/**
+ * The reserved theme id of a surface-aware reference, `<id>?theme=auto` (plan 291 W4):
+ * the variant comes from the surface under the layer, never from a palette entry, so
+ * no icon-themes palette may declare a theme with this id.
+ */
+export const AUTO_ASSET_THEME = 'auto';
 
 /** The JSON payload structure of a palette-type asset tagged "icon-themes". */
 export interface IconThemesDoc {
@@ -78,12 +91,13 @@ export function isValidThemeId(themeId: unknown): themeId is string {
  * shape contract both shell bridges and the catalog validator share:
  * `{ themes: [{ id, label?, c1, c2, previewBg? }, …] }`, first entry = the
  * default pairing (must match the fills baked into every themable icon).
- * Entries with an invalid id or unusable colours are dropped.
+ * Entries with an invalid id, the reserved id `auto`, or unusable colours are dropped.
  */
 export function parseIconThemesDoc(doc: IconThemesDoc | null | undefined): IconTheme[] {
   if (!doc || !Array.isArray(doc.themes)) return [];
   return (doc.themes as unknown[]).filter((t): t is IconTheme =>
-    !!t && isValidThemeId((t as IconTheme).id) && !!safeCssColor((t as IconTheme).c1) && !!safeCssColor((t as IconTheme).c2),
+    !!t && isValidThemeId((t as IconTheme).id) && (t as IconTheme).id !== AUTO_ASSET_THEME
+    && !!safeCssColor((t as IconTheme).c1) && !!safeCssColor((t as IconTheme).c2),
   );
 }
 

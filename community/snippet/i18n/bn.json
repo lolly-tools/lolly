@@ -1,6 +1,6 @@
 {
   "name": "স্নিপেট",
-  "description": "কোড স্নিপেটকে পরিচ্ছন্ন, সিনট্যাক্স-হাইলাইট করা, শেয়ারযোগ্য ছবিতে বদলে নিন।",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "কোড",
   "inputs.code.placeholder": "আপনার কোড এখানে পেস্ট করুন…",
   "inputs.fileName.label": "ফাইলের নাম",

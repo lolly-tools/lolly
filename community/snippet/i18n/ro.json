@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Transformă fragmente de cod în imagini curate, cu evidențierea sintaxei, gata de distribuit.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Cod",
   "inputs.code.placeholder": "Lipește codul aici…",
   "inputs.fileName.label": "Nume fișier",

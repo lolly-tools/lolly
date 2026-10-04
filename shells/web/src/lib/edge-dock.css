@@ -11,7 +11,7 @@
   width: var(--dock-w, 340px);
   display: flex; flex-direction: column;
   background: var(--ui-color-surface-canvas);
-  box-shadow: var(--ui-elevation-sheet);
+  box-shadow: var(--ui-elevation-panel);
 }
 /* Inset padding so each docked occupant reads as a distinct card/pane (the column
    background shows around it), not an edge-to-edge slab. */
@@ -57,7 +57,7 @@
 .edge-dock-slot--compact > * {
   position: static !important; inset: auto !important; margin: 0 !important;
   height: auto !important; width: auto !important; max-width: 100% !important;
-  visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;
+  visibility: visible !important; border:0;opacity: 1 !important; pointer-events: auto !important;
 }
 .edge-dock-slot:not(.edge-dock-slot--compact) > * {
   position: static !important; inset: auto !important; margin: 0 !important;

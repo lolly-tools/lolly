@@ -1,6 +1,6 @@
 {
   "name": "جدول الأعمال",
-  "description": "قم بتحويل برنامج واحد إلى شاشات ذات علامات تجارية وصفحات ويب تفاعلية ونظرات عامة متحركة وشرائح وتقويمات PowerPoint.",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} جلسات، {{trackCount}} المسارات",
   "inputs.title.label": "حدث",
   "inputs.title.help": "تتم طباعته على رأس كل تخطيط، ويسمى الملف المُصدَّر.",

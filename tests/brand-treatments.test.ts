@@ -211,6 +211,7 @@ test('ingest-brand skips the icon-themes asset for an accent-free palette', (t) 
   const treatments = parsePhotoTreatmentsDoc(
     JSON.parse(readFileSync(join(out, 'catalog/assets/greybrand/palette/photo-treatments.json'), 'utf8')),
   );
-  assert.equal(treatments.length, 1);
-  assert.equal(treatments[0]!.id, 'greyscale');
+  // Greyscale plus the neutral Tone photo look (plan 291 W7), which needs no accent.
+  assert.deepEqual(treatments.map(t => t.id), ['greyscale', 'tone']);
+  assert.equal(treatments[1]!.kind, 'gradient-map');
 });

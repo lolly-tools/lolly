@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `lolly_rebrand`: renovate a deck (a PowerPoint file or a PDF, told apart by its
+ * `lolly_rebrand`: renovate a deck (a PowerPoint file, a PDF or a Photoshop document, told apart by its
  * bytes) into the design system this server
  * is set up with (plan 274 sections 2.3 and 5, work package 9, and the hosted
  * half of milestone 6).
@@ -491,7 +491,7 @@ export const REBRAND_OUTPUT_SCHEMA: Schema = {
 
 const FILE_ARG = {
   type: 'object',
-  description: 'The deck: a .pptx or a PDF.',
+  description: 'The deck: a .pptx, a PDF or a Photoshop document (.psd), read as one slide.',
   properties: {
     base64: { type: 'string', description: 'The file bytes, base64-encoded.' },
     name: { type: 'string', description: 'The file name, e.g. quarterly.pptx or quarterly.pdf.' },
@@ -509,7 +509,7 @@ const PLAN_ARG = {
 export const REBRAND_TOOL_DEF = {
   name: 'lolly_rebrand',
   description:
-    `Renovate a deck (a .pptx or a PDF, up to ${mebibytes(MAX_TRANSFORM_INPUT_BYTES)}) into the design system this server is set up with, in four stages: ` +
+    `Renovate a deck (a .pptx, a PDF or a Photoshop .psd, up to ${mebibytes(MAX_TRANSFORM_INPUT_BYTES)}) into the design system this server is set up with, in four stages: ` +
     'capabilities says what this server can do and where the file goes, plan returns the review queue and an editable plan, ' +
     'compile turns a plan for the same file into a Design document (.lolly) and optionally a .pptx, and inspect pages through a plan one slide at a time.',
   inputSchema: {

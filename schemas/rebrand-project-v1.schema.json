@@ -232,7 +232,8 @@
         "pptx",
         "pdf",
         "image",
-        "docx"
+        "docx",
+        "psd"
       ]
     }
   },

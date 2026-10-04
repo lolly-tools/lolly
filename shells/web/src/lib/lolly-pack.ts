@@ -1400,6 +1400,32 @@ export interface LollyIngestProgress {
 }
 
 /**
+ * A saved session's own name, `__label`, trimmed; '' when it has none. The opening
+ * card and the editor's name field read it for a file written outside the app.
+ */
+export function lollySessionLabel(session: unknown): string {
+  if (!session || typeof session !== 'object' || Array.isArray(session)) return '';
+  const label = (session as Record<string, unknown>).__label;
+  return typeof label === 'string' ? label.trim() : '';
+}
+
+/**
+ * A session file a writer outside the app made (`lolly package`, rebrand compile in an
+ * older release) may name the document with `__label` alone. The editor seeds its name
+ * field and top bar from `__export_filename` only, so such a file opened as "Design-lolly"
+ * and the first save dropped the label (plan 291 W8). The label becomes the export name
+ * when that key is ABSENT; a file the app wrote carries '' for an unnamed document,
+ * which stays unnamed. Only a session file is touched. Pure.
+ */
+export function withLabelAsExportName<T>(session: T, kind: LollyManifest['kind'] | undefined): T {
+  if (kind !== undefined && kind !== 'session') return session;
+  if (!session || typeof session !== 'object' || Array.isArray(session)) return session;
+  if (Object.hasOwn(session, '__export_filename')) return session;
+  const label = lollySessionLabel(session);
+  return label ? { ...session, __export_filename: label } : session;
+}
+
+/**
  * Rewrite a session's asset refs to the receiver-local ids a `.lolly` import minted.
  * Generalises the beam's user-only `rewriteSessionAssetRefs`: a `.lolly` carries
  * catalog (`library`) bytes too, which land as user assets, so ANY ref - user or
@@ -1531,8 +1557,9 @@ export async function ingestLollyFile(
     const slot = mintLollySlot(manifest.tool.id, taken);
     const thumb = typeof manifest.thumb === 'string' ? manifest.thumb : null;
     opts.onProgress?.({ phase: 'session', current: 1, total: 1 });
-    await host.state.save(slot, rewritten as object, thumb);
-    return { slot, toolId: manifest.tool.id, imported, deduped, session: rewritten, ...carried };
+    const named = withLabelAsExportName(rewritten, manifest.kind);
+    await host.state.save(slot, named as object, thumb);
+    return { slot, toolId: manifest.tool.id, imported, deduped, session: named, ...carried };
   } catch (err) {
     await rollbackBeamIngest(ctx);
     throw err;

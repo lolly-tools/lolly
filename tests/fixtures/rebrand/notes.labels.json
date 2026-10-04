@@ -1,0 +1,174 @@
+{
+  "fixture": "notes.pptx",
+  "version": 1,
+  "builder": "scripts/build-rebrand-fixtures.ts",
+  "objectIdForm": "<slide part base name>.<p:cNvPr id>",
+  "slides": [
+    {
+      "id": "slide1",
+      "index": 0,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide1.2",
+          "name": "text2",
+          "authored": "eyebrow",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 80,
+            "w": 600,
+            "h": 28
+          },
+          "mustKeep": true,
+          "note": "a 12 pt all-caps line above the title, which an inventory reads as a label"
+        },
+        {
+          "id": "slide1.3",
+          "name": "text3",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide1.4",
+          "name": "text4",
+          "authored": "body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 600,
+            "h": 200
+          },
+          "mustKeep": true
+        }
+      ]
+    },
+    {
+      "id": "slide2",
+      "index": 1,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide2.2",
+          "name": "photo",
+          "authored": "photo",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "photo",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 720
+          },
+          "mustKeep": true,
+          "note": "a full-bleed photograph behind the title"
+        },
+        {
+          "id": "slide2.3",
+          "name": "text3",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        }
+      ]
+    },
+    {
+      "id": "slide3",
+      "index": 2,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide3.2",
+          "name": "text2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide3.3",
+          "name": "text3",
+          "authored": "source-line",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 620,
+            "w": 600,
+            "h": 24
+          },
+          "mustKeep": true,
+          "note": "a 9 pt source line, which an inventory reads as a caption"
+        }
+      ]
+    }
+  ],
+  "inherited": [],
+  "mustKeep": [
+    "slide1.2",
+    "slide1.3",
+    "slide1.4",
+    "slide2.2",
+    "slide2.3",
+    "slide3.2",
+    "slide3.3"
+  ]
+}

@@ -22,8 +22,13 @@ export interface AssetsAPI {
    * themable two-colour icon, bake the pairing into the returned bytes; the
    * returned ref keeps the themed id (it is the persistent identity in URL
    * mode). An unknown theme resolves to the plain asset under the themed id.
+   *
+   * 1.244: a `<baseId>?treatment=<lookId>` id may name a photo look whose definition
+   * carries theme variants. `tokenSelection` is the document's theme choice (the
+   * runtime passes it when the document has one), so a bridge bakes the variant of
+   * that theme. A bridge that ignores it bakes the base look.
    */
-  get(id: string, opts?: { format?: string; version?: string }): Promise<AssetRef>;
+  get(id: string, opts?: { format?: string; version?: string; tokenSelection?: Readonly<Record<string, string>> }): Promise<AssetRef>;
 
   /** Query the catalog by filter. Returns a list of resolved AssetRefs. */
   query(filter: AssetQuery): Promise<AssetRef[]>;

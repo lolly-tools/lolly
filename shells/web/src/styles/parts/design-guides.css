@@ -68,11 +68,12 @@
   overflow: hidden;
 }
 .fc-ruler line {
-  stroke: currentColor;
+  stroke: var(--ui-color-border-default);
   stroke-width: 1;
   opacity: 0.65;
   vector-effect: non-scaling-stroke;
 }
+.fc-ruler line[y1="7"]{opacity:1 }
 .fc-ruler text {
   fill: currentColor;
   font:

@@ -20,6 +20,8 @@ interface ImportMetaEnv {
   readonly VITE_CATALOG_PUBLIC_KEY_JWK?: string;
   // `verified` on deployable builds; `unsigned-dev` on local build/preview.
   readonly VITE_CATALOG_TRUST_MODE?: 'verified' | 'unsigned-dev';
+  /** '1' offers Connect an AI agent in a production build whose CSP allows ws://127.0.0.1 (plans/289 D1). */
+  readonly VITE_LIVE_AGENT?: string;
   // Which app build this is; set by shells/tauri-mobile/vite.config.js, unset on
   // the web. Read only by lib/instance-choice.ts isTauriMobileShell().
   readonly VITE_LOLLY_APP_SHELL?: 'tauri-mobile';

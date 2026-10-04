@@ -6,7 +6,10 @@
  * one transferable round trip. Same id-keyed protocol as the other workers.
  */
 
-import { inpaintTelea, type InpaintFrame } from '@lolly/engine';
+import { healFrame, inpaintTelea, type InpaintFrame } from '@lolly/engine';
+
+/** How a fill is made: `smooth` is Telea's marching fill; the rest are spot healing (plans/289 M4). */
+export type RetouchMethod = 'smooth' | 'content-aware' | 'proximity' | 'texture';
 
 export interface InpaintWorkerRequest {
   id: number;
@@ -17,6 +20,10 @@ export interface InpaintWorkerRequest {
   /** width*height bytes, nonzero = fill, transferred in. */
   mask: Uint8Array;
   radius?: number;
+  /** Default `smooth`. */
+  method?: RetouchMethod;
+  /** Grain seed for `texture`. */
+  seed?: number;
 }
 
 export interface InpaintWorkerReply {
@@ -29,12 +36,14 @@ export interface InpaintWorkerReply {
 const post = postMessage as (message: unknown, transfer?: Transferable[]) => void;
 
 onmessage = (e: MessageEvent<InpaintWorkerRequest>): void => {
-  const { id, width, height, data, mask, radius } = e.data;
+  const { id, width, height, data, mask, radius, method = 'smooth', seed } = e.data;
   try {
-    const out = inpaintTelea({ width, height, data }, mask, {
-      radius,
-      onProgress: (filled, total) => post({ id, progress: { filled, total } } satisfies InpaintWorkerReply),
-    });
+    const out = method === 'smooth'
+      ? inpaintTelea({ width, height, data }, mask, {
+        radius,
+        onProgress: (filled, total) => post({ id, progress: { filled, total } } satisfies InpaintWorkerReply),
+      })
+      : healFrame({ width, height, data }, mask, { mode: method, ...(seed !== undefined ? { seed } : {}) });
     post({ id, result: out } satisfies InpaintWorkerReply, [out.data.buffer]);
   } catch (err) {
     post({ id, error: err instanceof Error ? err.message : String(err) } satisfies InpaintWorkerReply);

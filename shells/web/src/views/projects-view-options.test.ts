@@ -96,3 +96,26 @@ test('scroll follows the anchor without moving when the settings themselves scro
   assert.equal(f.panel()!.style.top, '88px');
   f.close();
 });
+
+test('card size hides in list layout, returns with Grid, and reports each step it is dragged to', () => {
+  const f = fixture();
+  f.popover.open();
+  const row = () => f.panel()!.querySelector<HTMLElement>('.view-options-size')!;
+  assert.equal(row().hidden, true, 'list layout has no cards to size');
+  f.panel()!.querySelector<HTMLElement>('[data-vm="preview"]')!.click();
+  assert.equal(row().hidden, false, 'Grid brings the slider back');
+  const grid = f.w.document.body.appendChild(f.w.document.createElement('div'));
+  grid.className = 'projects-grid';
+  const range = row().querySelector<HTMLInputElement>('input[type="range"]')!;
+  assert.equal(range.getAttribute('aria-label'), 'Card size');
+  range.value = '4';
+  range.dispatchEvent(new f.w.Event('input', { bubbles: true }));
+  assert.equal(grid.getAttribute('data-card-size'), '4', 'the grid reflows while the slider moves');
+  range.dispatchEvent(new f.w.Event('change', { bubbles: true }));
+  assert.equal(f.w.localStorage.getItem('lolly-card-size-projects'), '4', 'the settled step is saved for Projects');
+  range.value = '2';
+  range.dispatchEvent(new f.w.Event('change', { bubbles: true }));
+  assert.equal(grid.hasAttribute('data-card-size'), false, 'the default step leaves the grid as it was');
+  assert.deepEqual(f.changes, ['view:preview']);
+  f.close();
+});

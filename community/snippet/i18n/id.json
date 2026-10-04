@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Ubah cuplikan kode menjadi gambar bersih, dengan penyorotan sintaks, siap dibagikan.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Kode",
   "inputs.code.placeholder": "Tempel kode Anda di sini…",
   "inputs.fileName.label": "Nama file",

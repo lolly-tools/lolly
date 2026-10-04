@@ -9,7 +9,7 @@
  * content-stream rewrite. The DOM walkers themselves (drawHtmlVectors /
  * drawSvgVectorsInRegion) stay in export.ts and import these.
  */
-import { splitCssArgs, parseGradientStop, parseGradientAngle, parseRadialGradient, rgbToCmyk, roundedRectPath, parseColorToSrgb8, parseSvgPath } from '@lolly/engine';
+import { splitCssArgs, parseGradientStop, parseGradientAngle, parseRadialGradient, rgbToCmyk, roundedRectPath, uniformRadius, parseColorToSrgb8, parseSvgPath } from '@lolly/engine';
 import { objectPositionFractions } from './export-css.ts';
 import { FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey } from '@lolly/engine';
 import type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from '@lolly/engine';
@@ -295,6 +295,25 @@ export function withPdfAlpha(pdf: any, a: number, draw: () => void): void {
   finally { if (on) pdf.setGState(new pdf.GState({ opacity: 1, 'stroke-opacity': 1 })); }
 }
 
+/** The alpha (0 to 1) of a CSS colour, 0 when it is transparent or unreadable. */
+export function cssColorAlpha(cssColor: string | null | undefined): number {
+  return parseColorToSrgb8(cssColor)?.[3] ?? 0;
+}
+
+// Fill a box with its CSS background colour, alpha included. A translucent
+// background (an rgba or #rrggbbaa scrim over a photo) is drawn under a GState with
+// its alpha, so the picture under it stays visible. Returns false when there is
+// nothing to paint (transparent or unreadable), which callers use as "no solid".
+export function pdfFillCssBackground(pdf: { setFillColor(r: number, g: number, b: number): unknown }, cssColor: string | null | undefined, x: number, y: number, w: number, h: number, radii: CornerRadii, uniform: CornerPair | null): boolean {
+  const col = parseColorToSrgb8(cssColor);
+  if (!col) return false;
+  withPdfAlpha(pdf, col[3], () => {
+    pdf.setFillColor(col[0], col[1], col[2]);
+    pdfRoundedRect(pdf, x, y, w, h, radii, uniform, 'F');
+  });
+  return true;
+}
+
 // Run `draw` with drawing clipped to the rect (x, y, w, h) in pt, then restore.
 // `rect(...,null)` adds the path with no paint op; clip()+discardPath() set it as
 // the clip region (W n). Used for object-fit: cover, where the fitted image/SVG
@@ -322,6 +341,42 @@ export async function withPdfRoundedClip(pdf: any, x: number, y: number, w: numb
   pdf.discardPath();
   try { await draw(); }
   finally { pdf.restoreGraphicsState(); }
+}
+
+/** The drawing calls the outer-shadow clip makes on the PDF document. */
+interface PdfClipTarget {
+  saveGraphicsState(): unknown;
+  rect(x: number, y: number, w: number, h: number, style: null): unknown;
+  roundedRect(x: number, y: number, w: number, h: number, rx: number, ry: number, style: null): unknown;
+  clipEvenOdd(): unknown;
+  discardPath(): unknown;
+}
+
+// Clip the outer box-shadows of a box whose background is translucent to everything
+// OUTSIDE the box (pt, with its corners). CSS paints an outer shadow outside the border
+// box only, and a translucent fill (pdfFillCssBackground) no longer hides the part
+// under the box. An opaque box covers that part anyway, so its output is unchanged.
+// The clip is an even-odd ring from the box grown past the farthest shadow (`scale`
+// is pt per CSS px) down to the box. Returns whether a graphics state was saved: the
+// caller restores the state once the shadows are drawn.
+export function clipOuterShadowsOfTranslucentBox(
+  pdf: PdfClipTarget, background: string | null | undefined,
+  shadows: readonly { x: number; y: number; spread: number; blur: number }[],
+  x: number, y: number, w: number, h: number, radii: CornerRadii, scale: number,
+): boolean {
+  const alpha = cssColorAlpha(background);
+  if (!(alpha > 0 && alpha < 1) || !shadows.length) return false;
+  const reach = shadows.reduce((m, sh) => Math.max(m, Math.abs(sh.x) + Math.abs(sh.y) + Math.max(0, sh.spread) + 2 * sh.blur), 0) + 2;
+  const margin = reach * scale;
+  pdf.saveGraphicsState();
+  pdf.rect(x - margin, y - margin, w + 2 * margin, h + 2 * margin, null);
+  const uniform = uniformRadius(radii);
+  if (uniform && uniform[0] <= 0 && uniform[1] <= 0) pdf.rect(x, y, w, h, null);
+  else if (uniform) pdf.roundedRect(x, y, w, h, uniform[0], uniform[1], null);
+  else drawSvgPathToPdf(pdf, roundedRectPath(x, y, w, h, radii), v => v, v => v);
+  pdf.clipEvenOdd();
+  pdf.discardPath();
+  return true;
 }
 
 // Set the current PDF clip region to a CSS basic-shape / polygon clip-path. `shape`

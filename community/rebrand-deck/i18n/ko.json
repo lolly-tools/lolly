@@ -1,6 +1,6 @@
 {
-  "name": "리브랜드",
-  "description": "PowerPoint 덱을 업로드하면 색상과 폰트를 브랜드에 맞춰 스냅합니다 - 기기 내에서 재구성되며, 아무것도 업로드되지 않습니다.",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "{{fileName}}용 덱 리브랜딩",
   "inputs.source.label": "PowerPoint 파일",
   "inputs.source.help": ".pptx 파일이에요. 기기에서 읽히며 업로드되지 않아요.",

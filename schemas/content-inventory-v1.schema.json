@@ -1,0 +1,633 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/content-inventory-v1.schema.json",
+  "title": "content-inventory-v1",
+  "description": "What a source deck says, slide by slide: text frames in reading order with role and runs, speaker notes with paragraphs and line breaks kept apart, pictures by content hash, tables and charts as data, and the census class per object. Plan 291 W2. Mirrors packages/core/src/content-inventory-v1.ts; each exported const array there has one named $defs entry holding its enum in the same order.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "source",
+    "slides",
+    "media",
+    "warnings"
+  ],
+  "$defs": {
+    "sourceKind": {
+      "enum": [
+        "pptx",
+        "pdf",
+        "psd"
+      ]
+    },
+    "textRole": {
+      "enum": [
+        "title",
+        "subtitle",
+        "body",
+        "label",
+        "caption",
+        "page-number",
+        "footer",
+        "other"
+      ]
+    },
+    "pictureKind": {
+      "enum": [
+        "photo",
+        "icon",
+        "logo",
+        "background",
+        "picture"
+      ]
+    },
+    "align": {
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "justify"
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Lower-case hex SHA-256."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "pixels": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "mime": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+/[a-z0-9.+-]+$"
+    },
+    "box": {
+      "description": "A rectangle in fractions of the slide; 0 to 1 on the slide, outside that range for an object partly off it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "font": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "size": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Points."
+        }
+      }
+    },
+    "paragraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runs"
+      ],
+      "properties": {
+        "lvl": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "bullet": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "const": "number"
+            }
+          ]
+        },
+        "align": {
+          "$ref": "#/$defs/align"
+        },
+        "runs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/run"
+          }
+        }
+      }
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectId",
+        "role",
+        "class",
+        "box",
+        "paragraphs",
+        "plain"
+      ],
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "$ref": "#/$defs/textRole"
+        },
+        "class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "readingIndex": {
+          "$ref": "#/$defs/count"
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        },
+        "paragraphs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/paragraph"
+          }
+        },
+        "plain": {
+          "type": "string"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "The page does not show this text: a PDF's invisible text, as a scanned page's OCR layer is. Other hidden objects are left out of text and listed only under objects."
+        }
+      }
+    },
+    "notes": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text",
+            "paragraphs"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "paragraphs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "lines"
+                ],
+                "properties": {
+                  "lines": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "crop": {
+      "description": "Source-image crop as fractions of each edge; a negative value pads.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "l": {
+          "type": "number"
+        },
+        "t": {
+          "type": "number"
+        },
+        "r": {
+          "type": "number"
+        },
+        "b": {
+          "type": "number"
+        }
+      }
+    },
+    "picture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectId",
+        "ref",
+        "sha256",
+        "mime",
+        "bytes",
+        "box",
+        "kind",
+        "class"
+      ],
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mime": {
+          "$ref": "#/$defs/mime"
+        },
+        "bytes": {
+          "$ref": "#/$defs/count"
+        },
+        "width": {
+          "$ref": "#/$defs/pixels"
+        },
+        "height": {
+          "$ref": "#/$defs/pixels"
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        },
+        "crop": {
+          "$ref": "#/$defs/crop"
+        },
+        "kind": {
+          "$ref": "#/$defs/pictureKind"
+        },
+        "class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "alt": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fallbackRef": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The raster the source carries beside a drawing (media[].ref), for a reader that cannot use the SVG this picture reports."
+        }
+      }
+    },
+    "table": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectId",
+        "rows"
+      ],
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "chart": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectId"
+      ],
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "values"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "class"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "The source does not show this object (a layer switched off, invisible text)."
+        }
+      }
+    },
+    "thumbnail": {
+      "description": "A rendered picture of one slide, written under --media when thumbnails were asked for.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "width": {
+          "$ref": "#/$defs/pixels"
+        },
+        "height": {
+          "$ref": "#/$defs/pixels"
+        }
+      }
+    },
+    "slide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "number",
+        "id",
+        "text",
+        "notes",
+        "pictures",
+        "tables",
+        "charts",
+        "objects"
+      ],
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "layoutName": {
+          "type": "string"
+        },
+        "text": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        },
+        "notes": {
+          "$ref": "#/$defs/notes"
+        },
+        "pictures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/picture"
+          }
+        },
+        "tables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/table"
+          }
+        },
+        "charts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/chart"
+          }
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/object"
+          }
+        },
+        "thumbnail": {
+          "$ref": "#/$defs/thumbnail"
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "sha256",
+        "mime",
+        "bytes"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mime": {
+          "$ref": "#/$defs/mime"
+        },
+        "bytes": {
+          "$ref": "#/$defs/count"
+        },
+        "width": {
+          "$ref": "#/$defs/pixels"
+        },
+        "height": {
+          "$ref": "#/$defs/pixels"
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "properties": {
+    "version": {
+      "const": "lolly/content-inventory-v1"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sha256",
+        "bytes",
+        "kind",
+        "slides",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "$ref": "#/$defs/count"
+        },
+        "kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "slides": {
+          "$ref": "#/$defs/count"
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Reference px (96 dpi)."
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Reference px (96 dpi)."
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "slides": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/slide"
+      }
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/media"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/warning"
+      }
+    }
+  }
+}

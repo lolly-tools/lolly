@@ -7,7 +7,8 @@
  * module: ml/matte-math.ts owns the letterbox plan, the per-model normalization
  * and the mask activation, and matter.ts imports it too. A single forward pass at
  * the model's fixed square, so there is no tiling here - the work is letterbox →
- * normalize → run → activate → unpad → scale the mask back → straight alpha.
+ * normalize → run → activate → unpad → scale the mask back → refine the edges →
+ * straight alpha.
  *
  * The output's RGB is the (work-size) input's, untouched; only the alpha is new,
  * exactly as the contract states.
@@ -23,11 +24,10 @@ import type {
 import {
   MATTE_MODEL_BYTES, MATTE_MODEL_FILES, MATTE_MODEL_SPEC, matteModel, matteModelsFor, resolveMatteModel,
 } from './matte-models.ts';
-import { activateMask, packNchwNormalized, planLetterbox, unpadMask } from './matte-math.ts';
+import { activateMask, finishMatteAlpha, packNchwNormalized, planLetterbox } from './matte-math.ts';
 import {
   blackFrame, checkSignal, createSession, deviceMemoryGb, firstOutput, loadOrt, modelFileExists,
   modelPath, pasteFrame, pixelMlAvailable, refuseMissing, resizeRgba, tensorFloats,
-  type RgbaFrame,
 } from './session.ts';
 
 const ABS_MAX_EDGE = 12000;
@@ -116,16 +116,10 @@ export function createNodeMatteAPI(): MatteAPI | null {
       const raw = tensorFloats(firstOutput(result, session.outputNames[0]));
       opts.onProgress?.({ phase: 'inference', fraction: 0.85 });
 
-      // Activate → unpad → scale the mask back to work size → compose.
+      // Activate, then the tail the web matte shares: unpad, scale back, refine the
+      // edges against the work image (matte-math.ts finishMatteAlpha).
       const maskEdge = activateMask(raw, edge * edge, spec.activation);
-      const cropped = unpadMask(maskEdge, plan);
-      const grey: RgbaFrame = { width: plan.contentW, height: plan.contentH, data: new Uint8ClampedArray(plan.contentW * plan.contentH * 4) };
-      for (let i = 0; i < cropped.length; i++) {
-        const o = i * 4;
-        grey.data[o] = grey.data[o + 1] = grey.data[o + 2] = cropped[i] as number;
-        grey.data[o + 3] = 255;
-      }
-      const scaledMask = await resizeRgba(grey, workW, workH);
+      const alpha = finishMatteAlpha(maskEdge, plan, work.data, workW, workH, opts.refine, spec.refineByDefault);
 
       const out = new Uint8ClampedArray(workW * workH * 4);
       for (let i = 0; i < workW * workH; i++) {
@@ -133,7 +127,7 @@ export function createNodeMatteAPI(): MatteAPI | null {
         out[o] = work.data[o] as number;
         out[o + 1] = work.data[o + 1] as number;
         out[o + 2] = work.data[o + 2] as number;
-        out[o + 3] = scaledMask.data[o] as number; // R of the grey mask is the alpha
+        out[o + 3] = alpha[i] as number;
       }
       opts.onProgress?.({ phase: 'inference', fraction: 1 });
       return { width: workW, height: workH, data: out };

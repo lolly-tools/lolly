@@ -71,13 +71,18 @@ test('smoke --format=svg stays green: a transform whose fixture is not svg is sk
   assert.match(out, /– redact\s+-\s+skipped: runs over a png fixture, so it writes png, not "svg"/);
 });
 
-test('text-helper is checked for the change it made; darkroom names its real precondition', async () => {
+test('text-helper is checked for the change it made; darkroom renders, since it also exports a still of its canvas', async () => {
   let out = '';
   const code = await smokeCli({ only: 'text-helper,darkroom', out: (line: string) => { out += line; } });
   assert.equal(code, 0, out);
   assert.match(out, /✓ text-helper\s+html\s+18 B/);
   assert.doesNotMatch(out, /not verifiable/);
-  assert.match(out, /– darkroom\s+-\s+skipped: its file input "lutFile" is shown only for some settings/);
+  // The shared rule (isFileTransform): a tool that also exports a still of its canvas
+  // is smoked as a render, as every other surface treats such a tool. darkroom is one,
+  // so smoke renders darkroom at its defaults, as svg or (under load) as html, a
+  // layout tool's pass. It is never skipped for its file input.
+  assert.match(out, /[✓~] darkroom\s+svg/);
+  assert.doesNotMatch(out, /darkroom\s+-\s+skipped/);
 });
 
 test('a transform input type with no committed fixture is a skip, never a pass', async () => {

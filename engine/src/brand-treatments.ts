@@ -170,7 +170,8 @@ function duotoneShadow(a: Cand): string {
  * Every entry survives parsePhotoTreatmentsDoc unchanged.
  */
 export function derivePhotoTreatmentsDoc(source: unknown): DerivedPhotoTreatments {
-  const accents = pickAccents(toCandidates(source));
+  const cands = toCandidates(source);
+  const accents = pickAccents(cands);
   const treatments: PhotoTreatment[] = [
     { id: 'greyscale', label: 'Greyscale', kind: 'greyscale', previewBg: '#f0f0f0' },
   ];
@@ -196,11 +197,44 @@ export function derivePhotoTreatmentsDoc(source: unknown): DerivedPhotoTreatment
       shadow: '#000000', mid, highlight, previewBg: mid,
     });
   }
+  treatments.push(toneLook(cands, accents[0]));
   return {
     name: 'Photo Colour Treatments',
     description:
-      'Colour treatments for photo assets, derived from the brand palette: greyscale plus soft two-colour duotone washes (shadow maps to shadows, highlight to highlights) and a three-stop deep tritone. Chosen at pick time and baked into a self-contained SVG at resolve. \'None\' is the plain photo (no id suffix).',
+      'Colour treatments for photo assets, derived from the brand palette: greyscale plus soft two-colour duotone washes (shadow maps to shadows, highlight to highlights), a three-stop deep tritone and a Tone photo look (an OKLab gradient map from the brand ink to a soft light tone that keeps white type legible, with a darker variant for a dark theme). Chosen at pick time and baked at resolve. \'None\' is the plain photo (no id suffix).',
     treatments,
+  };
+}
+
+/**
+ * The derived photo look (plan 291 W7): an OKLab gradient map from a deep ink through a
+ * mid tone to a soft light tone, all in the hue of the brand ink (grey for a colourless
+ * palette) with the mid leaning to the primary accent when there is one, and a low-key
+ * variant for a `dark` theme. Every stop is computed in OKLCH, so no brand swatch is
+ * copied verbatim.
+ *
+ * The light end stops at L 0.76 rather than paper, so a white title over a sky stays
+ * legible: on the public twin's cover (tests/fixtures/rebrand/recreate.pptx) the sky under
+ * the title measures 0.29 luminance at the 90th percentile, 3.1:1 against white, where the
+ * earlier paper-ended look gave 0.64 (1.5:1). The dark variant ends at L 0.52 and averages
+ * a quarter of the light grade's luminance over that photo (0.045 against 0.18).
+ */
+function toneLook(cands: Cand[], primary: Cand | undefined): PhotoTreatment {
+  const ink = pickInk(cands);
+  const inkHue = ink && ink.c >= 0.02 ? ink.h : primary?.h ?? 0;
+  const inkChroma = ink && ink.c >= 0.02 ? clamp(ink.c, 0.02, 0.05) : 0;
+  const midHue = primary?.h ?? inkHue;
+  const midChroma = primary ? clamp(primary.c * 0.5, 0.03, 0.09) : inkChroma;
+  const paperChroma = inkChroma ? 0.012 : 0;
+  const stop = (l: number, c: number, h: number): string => oklchToHex({ l, c, h });
+  return {
+    id: 'tone', label: 'Tone', kind: 'gradient-map',
+    stops: [stop(0.18, inkChroma, inkHue), stop(0.5, midChroma, midHue), stop(0.76, paperChroma, inkHue)],
+    amount: 100, contrast: 16, lightness: -4,
+    previewBg: stop(0.18, inkChroma, inkHue),
+    themes: {
+      dark: { stops: [stop(0.1, inkChroma, inkHue), stop(0.26, inkChroma, inkHue), stop(0.52, midChroma, midHue)], amount: 100, contrast: 18, lightness: 0 },
+    },
   };
 }
 

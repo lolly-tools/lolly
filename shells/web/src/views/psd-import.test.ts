@@ -47,7 +47,8 @@ test('placement, blend and group travel with the node', () => {
 
 // ── live layers (plans/289 item 1, M3 step 4) ────────────────────────────────
 
-const { liveDesignNode, designPathFromSubpaths, parseLayeredAsDesign, psdRunsToMarkup, sameWinding, unionOutline } = await import('./psd-import.ts');
+const { liveDesignNode, designPathFromSubpaths, parseLayeredAsDesign, psdRunsToMarkup } = await import('./psd-import.ts');
+const { sameWinding, unionOutline } = await import('../../../../engine/src/psd-outline.ts');
 const { decodeAuthoredPaths } = await import('../../../../engine/src/geom/authored-url.ts');
 const fx = await import('../../../../tests/helpers/psd-fixtures.ts');
 
@@ -173,6 +174,33 @@ test('a whole file: text, shapes and paths arrive editable, clipping follows the
     assert.ok(decodeAuthoredPaths(String(star!.path)));
     assert.ok(warnings.some(w => /Star: Layer effects/.test(w)), 'notes reach the caller when nobody is asked');
     assert.deepEqual(res.fontSubstitutions, ['Helvetica'], 'a family the design system lacks is reported');
+  } finally {
+    g.document = saved.document;
+    g.getComputedStyle = saved.getComputedStyle;
+  }
+});
+
+test('real Photoshop files: combined ellipses come in as one outline, an inside stroke keeps its box', async () => {
+  const { JSDOM } = await import('jsdom');
+  const { readFileSync } = await import('node:fs');
+  const dom = new JSDOM('<!DOCTYPE html><body></body>');
+  const g = globalThis as Record<string, unknown>;
+  const saved = { document: g.document, getComputedStyle: g.getComputedStyle };
+  g.document = dom.window.document;
+  g.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
+  try {
+    const open = async (name: string) => (await parseLayeredAsDesign(new Blob([readFileSync(new URL(`../../../../tests/fixtures/psd/${name}`, import.meta.url))]), { host: {} as never, warn: () => {} })).boxes as Record<string, unknown>[];
+    const [ellipses] = await open('path-operations_combine.psd');
+    assert.equal(ellipses!.kind, 'path');
+    assert.equal(decodeAuthoredPaths(String(ellipses!.path))!.length, 1, 'one outline, so the stroke runs round the outside only');
+    // stroke.psd also has pixel layers, which the import would store; map its shapes directly.
+    const { readPsd } = await import('../../../../engine/src/psd.ts');
+    const doc = readPsd(new Uint8Array(readFileSync(new URL('../../../../tests/fixtures/psd/stroke.psd', import.meta.url))));
+    const live = (name: string) => liveDesignNode(doc.layers.find(l => l.name === name)!, { w: doc.width, h: doc.height }, '')!;
+    const rect = live('Rectangle 1');
+    assert.deepEqual([rect.node.x, rect.node.y, rect.node.w, rect.node.h], [44, 44, 73, 38], 'Photoshop drew this stroke inside, as Design does');
+    assert.deepEqual(rect.fields, { strokeCap: 'butt', strokeJoin: 'miter', strokeDash: 'dashed', strokeDashArray: '5.88 2.94' });
+    assert.equal(live('Ellipse 1').fields!.strokeDash, 'dotted');
   } finally {
     g.document = saved.document;
     g.getComputedStyle = saved.getComputedStyle;

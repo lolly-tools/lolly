@@ -1,0 +1,1150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/design-authoring-v1.schema.json",
+  "title": "design-authoring-v1",
+  "description": "The $ keys and layout macros an agent may write into Design rows, lowered by the engine's expandDesignAuthoring to stored rows in global canvas coordinates. A row with no $ key is a stored row and expands to itself. Plan 291 W5. Mirrors packages/core/src/design-authoring-v1.ts; each exported const array there has one named $defs entry holding its enum in the same order.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/rows"
+    },
+    {
+      "$ref": "#/$defs/document"
+    }
+  ],
+  "$defs": {
+    "format": {
+      "const": "lolly/design-authoring-v1",
+      "description": "The contract name a document may cite."
+    },
+    "maxRows": {
+      "const": 5000,
+      "description": "Rows after expansion per call, unless the caller sets another cap."
+    },
+    "rowKey": {
+      "enum": [
+        "$in",
+        "$style",
+        "$artboard",
+        "$points",
+        "$d",
+        "$closed",
+        "$curve",
+        "$tension",
+        "$tint"
+      ],
+      "description": "The authoring keys a single row may carry. Any other key starting with $ is refused."
+    },
+    "pathKey": {
+      "enum": [
+        "$points",
+        "$d",
+        "$closed",
+        "$curve",
+        "$tension"
+      ],
+      "description": "The path keys, read by kind path rows only."
+    },
+    "patchKey": {
+      "enum": [
+        "$in",
+        "$style",
+        "$points",
+        "$d",
+        "$closed",
+        "$curve",
+        "$tension",
+        "$tint"
+      ],
+      "description": "The authoring keys a layerPatches[].set may carry."
+    },
+    "templateKey": {
+      "enum": [
+        "$style",
+        "$points",
+        "$d",
+        "$closed",
+        "$curve",
+        "$tension",
+        "$tint"
+      ],
+      "description": "The authoring keys a macro template or item value may carry; the macro row holds $in."
+    },
+    "macroKey": {
+      "enum": [
+        "$stack",
+        "$grid",
+        "$table"
+      ],
+      "description": "The layout helpers. A macro row holds an optional id, an optional $in and exactly one of these."
+    },
+    "documentKey": {
+      "enum": [
+        "$styles",
+        "$theme",
+        "$themes"
+      ],
+      "description": "Top-level inputs beside boxes, stripped before validation."
+    },
+    "textStyleId": {
+      "enum": [
+        "title",
+        "subtitle",
+        "body",
+        "caption",
+        "label",
+        "quote",
+        "number",
+        "attribution"
+      ],
+      "description": "The style ids derived from a design brief, one per archetype text role."
+    },
+    "textStyleField": {
+      "enum": [
+        "basedOn",
+        "fontSize",
+        "weight",
+        "lineHeight",
+        "tracking",
+        "font",
+        "align",
+        "valign",
+        "pad",
+        "fg",
+        "italic"
+      ],
+      "description": "The fields a text style may set."
+    },
+    "align": {
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "justify"
+      ]
+    },
+    "valign": {
+      "enum": [
+        "top",
+        "middle",
+        "bottom"
+      ]
+    },
+    "curve": {
+      "enum": [
+        "line",
+        "cubic",
+        "catmull-rom",
+        "bspline",
+        "hyperbezier",
+        "spiro"
+      ],
+      "description": "How $points are joined."
+    },
+    "stackAxis": {
+      "enum": [
+        "y",
+        "x"
+      ],
+      "description": "The direction a $stack advances in."
+    },
+    "gridOrder": {
+      "enum": [
+        "row",
+        "column"
+      ],
+      "description": "The order a $grid takes its items and paints its cells in."
+    },
+    "anchor": {
+      "enum": [
+        "item",
+        "artboard"
+      ],
+      "description": "What a template's x, y, $points and $d are relative to."
+    },
+    "noteCode": {
+      "enum": [
+        "authoring.fg.derived",
+        "authoring.fg.contrast",
+        "authoring.fg.ground",
+        "authoring.path",
+        "authoring.theme.unused",
+        "authoring.frame.children",
+        "authoring.colour.deferred",
+        "authoring.themes.unused"
+      ],
+      "description": "The codes an expansion note carries."
+    },
+    "number": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+        }
+      ],
+      "description": "A number, or a numeric string as rows decoded from a URL carry."
+    },
+    "note": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "JSON pointer of the row or key the note is about."
+        },
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "textStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A named text style. It fills only the fields a row leaves out; fg is written as the literal colour; italic sets the text in * emphasis.",
+      "properties": {
+        "basedOn": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fontSize": {
+          "$ref": "#/$defs/number"
+        },
+        "weight": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[1-9]00$"
+            },
+            {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900,
+              "multipleOf": 100
+            }
+          ]
+        },
+        "lineHeight": {
+          "$ref": "#/$defs/number"
+        },
+        "tracking": {
+          "$ref": "#/$defs/number"
+        },
+        "font": {
+          "type": "string",
+          "minLength": 1,
+          "description": "sans, display, mono or a family name."
+        },
+        "align": {
+          "$ref": "#/$defs/align"
+        },
+        "valign": {
+          "$ref": "#/$defs/valign"
+        },
+        "pad": {
+          "$ref": "#/$defs/number"
+        },
+        "fg": {
+          "type": "string",
+          "minLength": 1
+        },
+        "italic": {
+          "type": "boolean"
+        }
+      }
+    },
+    "styleTable": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/textStyle"
+      },
+      "description": "Style id to style. An id the brief also derives extends the brief's style unless it names basedOn."
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "authoredRow": {
+      "type": "object",
+      "description": "A Design row with optional authoring keys. Every key without $ is a Design row field, kept as written. With $in, x and y (and $points and $d) are relative to that artboard.",
+      "propertyNames": {
+        "anyOf": [
+          {
+            "not": {
+              "pattern": "^\\$"
+            }
+          },
+          {
+            "$ref": "#/$defs/rowKey"
+          }
+        ]
+      },
+      "properties": {
+        "$in": {
+          "type": "string",
+          "minLength": 1
+        },
+        "$style": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "$ref": "#/$defs/textStyle"
+            }
+          ],
+          "description": "A style id from the table, or an inline style. Text rows only."
+        },
+        "$artboard": {
+          "const": true,
+          "description": "An authored artboard: kind frame, rot 0, shape rect, clipChildren true. Needs w and h."
+        },
+        "$points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/point"
+          },
+          "minItems": 2,
+          "description": "Nodes in px; the box and path are computed from them."
+        },
+        "$d": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SVG path data in px, in place of $points."
+        },
+        "$closed": {
+          "type": "boolean"
+        },
+        "$curve": {
+          "$ref": "#/$defs/curve"
+        },
+        "$tension": {
+          "type": "number"
+        },
+        "$tint": {
+          "type": "string",
+          "pattern": "^\\{?[^{}\\s]+\\}?$",
+          "description": "A colour token ({path} or path) that recolours every stop of the row's linear grad and keeps each stop's alpha; stored as a tint link, so the gradient follows the theme."
+        }
+      },
+      "not": {
+        "required": [
+          "$points",
+          "$d"
+        ]
+      },
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "not": {
+              "const": "text"
+            }
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "$style"
+          ]
+        }
+      }
+    },
+    "template": {
+      "type": "object",
+      "description": "One row a macro writes per item: row fields and authoring keys. x, y, $points and $d are relative to the item's origin unless at is artboard. id may hold {i}, {r} and {c}. z, role and frame are refused, and a group must not start with narration:.",
+      "propertyNames": {
+        "anyOf": [
+          {
+            "not": {
+              "pattern": "^\\$"
+            }
+          },
+          {
+            "$ref": "#/$defs/templateKey"
+          }
+        ]
+      },
+      "properties": {
+        "slot": {
+          "type": "string",
+          "minLength": 1
+        },
+        "at": {
+          "$ref": "#/$defs/anchor"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "group": {
+          "type": "string",
+          "not": {
+            "pattern": "^narration:"
+          }
+        },
+        "$style": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "$ref": "#/$defs/textStyle"
+            }
+          ],
+          "description": "A style id from the table, or an inline style. Text rows only."
+        },
+        "$points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/point"
+          },
+          "minItems": 2,
+          "description": "Nodes in px; the box and path are computed from them."
+        },
+        "$d": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SVG path data in px, in place of $points."
+        },
+        "$closed": {
+          "type": "boolean"
+        },
+        "$curve": {
+          "$ref": "#/$defs/curve"
+        },
+        "$tension": {
+          "type": "number"
+        },
+        "$tint": {
+          "type": "string",
+          "pattern": "^\\{?[^{}\\s]+\\}?$",
+          "description": "A colour token ({path} or path) that recolours every stop of the row's linear grad and keeps each stop's alpha; stored as a tint link, so the gradient follows the theme."
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "z"
+            ]
+          },
+          {
+            "required": [
+              "role"
+            ]
+          },
+          {
+            "required": [
+              "frame"
+            ]
+          }
+        ]
+      },
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "not": {
+              "const": "text"
+            }
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "$style"
+          ]
+        }
+      }
+    },
+    "slotValue": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/template"
+            },
+            {
+              "not": {
+                "required": [
+                  "slot"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "A string fills the slot's content (text, $d for a path, image for an image), null leaves the slot out, an object overrides the template's fields."
+    },
+    "item": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/slotValue"
+          }
+        }
+      ],
+      "description": "A string fills the first text slot; an object maps slot names to slot values."
+    },
+    "divider": {
+      "type": "object",
+      "description": "A straight rule before every item (or table row) but the first; id takes {i}, the index of the item it precedes. Place it with x, y, w, h, dx and dy; any other field is its paint.",
+      "propertyNames": {
+        "not": {
+          "anyOf": [
+            {
+              "pattern": "^\\$"
+            },
+            {
+              "enum": [
+                "kind",
+                "path",
+                "slot",
+                "at",
+                "z",
+                "role",
+                "frame"
+              ]
+            }
+          ]
+        }
+      },
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "x": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "y": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "w": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "h": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "dx": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "dy": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "group": {
+          "type": "string",
+          "not": {
+            "pattern": "^narration:"
+          }
+        }
+      }
+    },
+    "stack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pitch",
+        "item",
+        "items"
+      ],
+      "description": "Items one after another, pitch px apart along axis. A text slot without w takes the stack's w.",
+      "properties": {
+        "x": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "y": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "w": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "h": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "pitch": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "axis": {
+          "$ref": "#/$defs/stackAxis"
+        },
+        "divider": {
+          "$ref": "#/$defs/divider"
+        },
+        "item": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/template"
+          },
+          "minItems": 1
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/item"
+          }
+        }
+      }
+    },
+    "grid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "columns",
+        "colWidth",
+        "rowPitch",
+        "cell",
+        "items"
+      ],
+      "description": "Items in cells, colWidth + colGap apart across and rowPitch down, taken row by row or column by column. A text slot without w takes colWidth.",
+      "properties": {
+        "x": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "y": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "columns": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*[1-9]\\d*\\s*$"
+            }
+          ],
+          "description": "A whole number of at least 1, or such a number as a string."
+        },
+        "rows": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*[1-9]\\d*\\s*$"
+            }
+          ],
+          "description": "A whole number of at least 1, or such a number as a string."
+        },
+        "colWidth": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "colGap": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "rowPitch": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "order": {
+          "$ref": "#/$defs/gridOrder"
+        },
+        "cell": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/template"
+          },
+          "minItems": 1
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/item"
+          }
+        }
+      }
+    },
+    "tableColumn": {
+      "oneOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/template"
+            },
+            {
+              "not": {
+                "required": [
+                  "cell"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cell"
+          ],
+          "properties": {
+            "x": {
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+                }
+              ],
+              "description": "A number, or a numeric string as rows decoded from a URL carry."
+            },
+            "y": {
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+                }
+              ],
+              "description": "A number, or a numeric string as rows decoded from a URL carry."
+            },
+            "cell": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/template"
+              },
+              "minItems": 1
+            }
+          }
+        }
+      ],
+      "description": "One template, whose x and y are the cell's offset in the row, or several templates under cell placed at the column's x and y."
+    },
+    "tableRow": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/slotValue"
+              },
+              {
+                "$ref": "#/$defs/item"
+              }
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cells"
+          ],
+          "properties": {
+            "label": {
+              "$ref": "#/$defs/slotValue"
+            },
+            "cells": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/slotValue"
+                  },
+                  {
+                    "$ref": "#/$defs/item"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "table": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pitch",
+        "columns",
+        "rows"
+      ],
+      "description": "Rows pitch px apart, each a divider (after the first), the label, then one cell per column, in paint order.",
+      "properties": {
+        "x": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "y": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "pitch": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\s*-?(\\d+\\.?\\d*|\\.\\d+)\\s*$"
+            }
+          ],
+          "description": "A number, or a numeric string as rows decoded from a URL carry."
+        },
+        "divider": {
+          "$ref": "#/$defs/divider"
+        },
+        "label": {
+          "$ref": "#/$defs/template"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tableColumn"
+          },
+          "minItems": 1
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tableRow"
+          }
+        }
+      }
+    },
+    "macroRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "$in": {
+          "type": "string",
+          "minLength": 1
+        },
+        "$stack": {
+          "$ref": "#/$defs/stack"
+        },
+        "$grid": {
+          "$ref": "#/$defs/grid"
+        },
+        "$table": {
+          "$ref": "#/$defs/table"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "$stack"
+          ]
+        },
+        {
+          "required": [
+            "$grid"
+          ]
+        },
+        {
+          "required": [
+            "$table"
+          ]
+        }
+      ]
+    },
+    "row": {
+      "if": {
+        "type": "object",
+        "anyOf": [
+          {
+            "required": [
+              "$stack"
+            ]
+          },
+          {
+            "required": [
+              "$grid"
+            ]
+          },
+          {
+            "required": [
+              "$table"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/macroRow"
+      },
+      "else": {
+        "$ref": "#/$defs/authoredRow"
+      }
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    },
+    "document": {
+      "type": "object",
+      "description": "A Design document: boxes beside any other Design inputs, or the same under values (a saved session). $styles and $theme are stripped by the expansion.",
+      "properties": {
+        "boxes": {
+          "$ref": "#/$defs/rows"
+        },
+        "$styles": {
+          "$ref": "#/$defs/styleTable"
+        },
+        "$theme": {
+          "type": "string",
+          "minLength": 1
+        },
+        "$themes": {
+          "oneOf": [
+            {
+              "const": "all"
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ],
+          "description": "The themes the document is shown in. With more than one, a text colour the expansion fills from a style is written as a link to the brief theme's slot, so it follows the theme."
+        },
+        "values": {
+          "$ref": "#/$defs/document"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "boxes"
+          ]
+        },
+        {
+          "required": [
+            "values"
+          ]
+        }
+      ]
+    }
+  }
+}

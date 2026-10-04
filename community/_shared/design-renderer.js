@@ -260,6 +260,13 @@ function deckFont(b) {
   var safe = key.replace(/[^\w \-]/g, '').trim();
   return safe || undefined;
 }
+// A deck run's weight, stated only when PowerPoint's bold flag cannot say it (anything
+// but 400 and 700). The exporter writes the brand's static face for it ("SUSE Medium")
+// when the pack ships one, and otherwise keeps `bold`, which stays as it always was.
+function deckRunWeight(run, w) {
+  var n = Number(w);
+  if (isFinite(n) && n !== 400 && n !== 700) run.weight = n;
+}
 var FITS = { cover: 1, contain: 1, fill: 1, none: 1, 'scale-down': 1 };
 // Whitelisted CSS object-position anchors - the free-canvas 3×3 picker writes one of
 // these. The value lands in a style="" attr, so (like safeColor) only known keywords
@@ -2415,8 +2422,9 @@ function pasteboardFor(boxes, ext) {
 // v1 maps the kinds the flat deck model can EXPRESS: text → an editable text box,
 // box → a rect, a still image → a picture. Anything the model cannot carry emits
 // NOTHING native here - a path (pen) box, a lottie/video image, and any box wearing
-// rotation, a gradient fill, a clip mask, layer/backdrop blur, a blend mode or a
-// shadow. Rasterise-to-image for those is a documented FOLLOW-UP; it does NOT block
+// rotation, a radial or conic gradient fill, a clip mask, layer/backdrop blur, a blend
+// mode or a shadow (since plan 291 M4 a linear gradient on a box, and a mirrored or
+// translucent picture, are carried). Rasterise-to-image for those is a documented FOLLOW-UP; it does NOT block
 // the deck (the missing element just isn't in the .pptx). A single no-frames design
 // emits no model at all and still exports via export-pptx's DOM-walk fallback.
 
@@ -2445,7 +2453,9 @@ function deckInexpressible(b, byId) {
   // their own colours (plan 275 decision 32: a chart's translucent labels and gridlines);
   // anything else carries no alpha in the flat deck element (rasterise follow-up).
   if (clamp(num(b.opacity, 100), 0, 100) !== 100 && !deckOpacityFolds(b)) return true;
-  if (b.grad != null && String(b.grad).trim() !== '') return true;
+  // A linear gradient on a flat, unturned box is a native gradFill (plan 291 M4: a scrim
+  // over a photo); radial and conic, and a gradient on anything but a box, are skipped.
+  if (b.grad != null && String(b.grad).trim() !== '' && !deckLinearGrad(b)) return true;
   if (num(b.blur, 0) > 0 || num(b.bgBlur, 0) > 0) return true;
   if (Object.prototype.hasOwnProperty.call(BLENDS, String(b.blend))) return true;
   // Every shadow target, 'depth' included: a .pptx element carries no filter, so a
@@ -2473,9 +2483,24 @@ function deckAlphaHex(v, opacity) {
 }
 
 // Row kinds a deck element turns (rot on its transform) and mirrors (a box is symmetric,
-// a path's outline takes the mirror). Mirrors design-pptx.ts TURNS and MIRRORS.
+// a path's outline takes the mirror, a picture flips on its own transform, plan 291 M4).
+// Mirrors design-pptx.ts TURNS and MIRRORS.
 var DECK_TURNS = { '': 1, box: 1, path: 1, text: 1 };
-var DECK_MIRRORS = { '': 1, box: 1, path: 1 };
+var DECK_MIRRORS = { '': 1, box: 1, path: 1, image: 1 };
+
+// Whether a box's `grad` lowers natively: a box (not text, a picture or a path) that is
+// not turned, whose spec is linear by its head (`lin`, `linear`, with any `.space`
+// modifier), the call engine/src/gradient-spec.ts parseGradientSpec makes. A turned
+// gradient would need the fill to turn with its shape, so it stays skipped. Mirrors
+// design-pptx.ts linearGradBox and pptx-deck.ts isLinearGradSpec.
+function deckLinearGrad(b) {
+  var kind = String(b.kind == null ? '' : b.kind);
+  if (kind !== '' && kind !== 'box') return false;
+  if (num(b.rot, 0) !== 0) return false;
+  var parts = String(b.grad == null ? '' : b.grad).trim().split('_').filter(function (p) { return p.length > 0; });
+  var head = String(parts[0] || '').toLowerCase().split('.')[0];
+  return head === 'lin' || head === 'linear';
+}
 
 // Whether a box's partial opacity can ride on its colours in the flat deck element, as it
 // does in design-pptx.ts: text carries it as the alpha of every run, and a box or a path
@@ -2484,9 +2509,14 @@ var DECK_MIRRORS = { '': 1, box: 1, path: 1 };
 function deckOpacityFolds(b) {
   var kind = String(b.kind == null ? '' : b.kind);
   if (kind === 'text') return true;
+  // A picture carries it as its own alpha (alphaModFix, plan 291 M4).
+  if (kind === 'image') return true;
   var bg = String(b.bg == null ? '' : b.bg).trim();
   var sc = String(b.stroke == null ? '' : b.stroke).trim();
   var stroked = !!sc && num(b.strokeW, 0) > 0;
+  // A gradient over a fill of its own is two deck rectangles, and two translucent
+  // rectangles blend differently from one translucent box, so that one is skipped.
+  if (bg && b.grad != null && String(b.grad).trim() !== '') return false;
   if (bg && !deckAlphaHex(bg, 1)) return false;
   if (kind === 'path' || kind === '' || kind === 'box') return !stroked || !!deckAlphaHex(sc, 1);
   return false;
@@ -2596,7 +2626,8 @@ function deckElementFor(cb, byId, lx, ly) {
     // their list marker and level, and each run keeps the bold, italic, underline,
     // strike and colour the canvas draws, so no marker reaches the .pptx as a character.
     var raw = cb.text == null ? '' : String(cb.text);
-    var rowBold = Number(weightOf(cb)) >= 600;
+    var rowWeight = Number(weightOf(cb));
+    var rowBold = rowWeight >= 600;
     var rowColor = safeColor(cb.fg, '#11141f');
     var sizePt = f2(num(cb.fontSize, 48) * 0.75);
     // The canvas line-height is a multiple of the font size, so it travels as an exact
@@ -2610,6 +2641,7 @@ function deckElementFor(cb, byId, lx, ly) {
     // subset path too: its spaces become the paragraph's level, not characters.
     if (!richHasMarkup(raw) && !/(^|\n) {2,}\S/.test(raw)) {
       var run = { text: raw, sizePt: sizePt, color: rowColor, bold: rowBold };
+      deckRunWeight(run, rowWeight);
       // A translucent text box carries its opacity as the alpha of every run.
       if (op < 1) run.alpha = op;
       if (fnt) run.font = fnt;
@@ -2636,6 +2668,8 @@ function deckElementFor(cb, byId, lx, ly) {
             color: r.color ? safeColor(r.color, rowColor) : rowColor,
             bold: r.weight != null ? r.weight >= 600 : (r.bold === true || rowBold),
           };
+          // A `**` run is Bold 700 even inside a Medium row, so it keeps the family and b=1.
+          deckRunWeight(out, r.weight != null ? r.weight : (r.bold === true ? 700 : rowWeight));
           if (op < 1) out.alpha = op;
           if (r.italic) out.italic = true;
           if (r.underline) out.underline = true;
@@ -2646,6 +2680,7 @@ function deckElementFor(cb, byId, lx, ly) {
         });
         if (!runs.length) {
           runs = [{ text: '', sizePt: sizePt, color: rowColor, bold: rowBold }];
+          deckRunWeight(runs[0], rowWeight);
           if (op < 1) runs[0].alpha = op;
         }
         var para = { align: DECK_ALIGN[al], runs: runs, lineSpacingPt: pitchPt };
@@ -2678,7 +2713,26 @@ function deckElementFor(cb, byId, lx, ly) {
     var isLottie = (img && img.type === 'lottie') || /\.json($|\?|#)/i.test(url);
     var isVideo = (img && img.type === 'video') || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url);
     if (isLottie || isVideo) return null;
-    return { t: 'image', x: lx, y: ly, w: cw, h: ch, src: url, fit: FITS[String(cb.fit)] ? String(cb.fit) : 'contain' };
+    var iel = { t: 'image', x: lx, y: ly, w: cw, h: ch, src: url, fit: FITS[String(cb.fit)] ? String(cb.fit) : 'contain' };
+    // What the canvas does to the picture inside its box, each key only when it is set,
+    // so a plain picture's element is unchanged (plan 291 M4). The exporter crops a cover
+    // fit from the picture's own pixels, mirrors and fades it, and names it after the row.
+    var iname = cb.name == null ? '' : String(cb.name).trim();
+    if (iname) iel.name = iname.slice(0, 255);
+    if (cb.imageFraming && typeof cb.imageFraming === 'object') {
+      iel.imageFraming = {
+        x: clamp(num(cb.imageFraming.x, 50), 0, 100),
+        y: clamp(num(cb.imageFraming.y, 50), 0, 100),
+        zoom: Math.max(1, num(cb.imageFraming.zoom, 100)),
+      };
+    } else {
+      var ipos = String(cb.imgpos == null ? '' : cb.imgpos).trim();
+      if (OBJPOS[ipos] && ipos !== 'center') iel.imgpos = ipos;
+    }
+    if (kind === 'image' && boolVal(cb.flipH, false)) iel.flipH = true;
+    if (kind === 'image' && boolVal(cb.flipV, false)) iel.flipV = true;
+    if (kind === 'image' && op < 1) iel.alpha = op;
+    return iel;
   }
   // kind 'box' (the rectangle; 'circle' is a box+shape) → a deck rect. 'transparent'
   // fill is dropped by deckFill (no fill), matching boxCss. A 'rounded' shape carries
@@ -2695,6 +2749,25 @@ function deckElementFor(cb, byId, lx, ly) {
   var sc = safeColor(cb.stroke, '');
   // A translucent box's outline takes the same alpha as its fill.
   if (sc && sw > 0) rect.line = deckLineOf(op < 1 ? (deckAlphaHex(cb.stroke, op) || sc) : sc, sw, cb);
+  // A linear gradient (plan 291 M4) travels as its spec, with the box's mirror and
+  // opacity beside it; the exporter lowers it to a gradFill with one alpha per stop.
+  // boxCss paints the flat fill under the gradient, so a box with both is two
+  // rectangles, the fill first and the gradient over it carrying the outline.
+  if (deckLinearGrad(cb)) {
+    var gfill = { gradSpec: String(cb.grad).trim() };
+    if (boolVal(cb.flipH, false)) gfill.flipH = true;
+    if (boolVal(cb.flipV, false)) gfill.flipV = true;
+    if (op < 1) gfill.opacity = op;
+    var base = safeColor(cb.bg, '');
+    var under = null;
+    if (base && base !== 'transparent') {
+      under = {};
+      for (var rk in rect) if (Object.prototype.hasOwnProperty.call(rect, rk) && rk !== 'line') under[rk] = rect[rk];
+      under.fill = base;
+    }
+    rect.fill = gfill;
+    return under ? [deckTurn(under, cb), deckTurn(rect, cb)] : deckTurn(rect, cb);
+  }
   return deckTurn(rect, cb);
 }
 
@@ -2819,8 +2892,12 @@ function deckModelFor(boxes, byId, docTransition) {
       var el = deckElementFor(cb, byId, lx, ly);
       if (el) {
         var an = deckAnimFor(cb, fbx);
-        if (an) el.anim = an;
-        elements.push(el);
+        // A box with a fill under its gradient is two elements, which move as one.
+        var els = Array.isArray(el) ? el : [el];
+        for (var ei = 0; ei < els.length; ei++) {
+          if (an) els[ei].anim = an;
+          elements.push(els[ei]);
+        }
       }
     }
     // Speaker notes reach PowerPoint (plan 179 P1). The deck model had no `notes` key at

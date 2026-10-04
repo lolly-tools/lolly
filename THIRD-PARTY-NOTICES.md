@@ -7357,9 +7357,9 @@ CODEOWNERS file.
 ### Compositor image-processing kernels (adapted) git 11d8d7a50992b24fd9a760a1c13b1c01b70aaf30
 
 - SPDX-License-Identifier: `MIT`
-- Files: `community/filter/hooks.js (Atkinson kernel, 8x8 fill patterns, dot-pixel radius)`
+- Files: `community/filter/hooks.js (Atkinson kernel, 8x8 fill patterns, dot-pixel radius); engine/src/heal.ts (spot healing); engine/src/guided-matte.ts (matte edges)`
 - Copyright: Copyright (c) 2026 Wonder Assembly LLC
-- Algorithms and tables translated into Lolly's own code from Compositor (https://github.com/robbietilton/Compositor), Compositor/Rendering/DitherPixels.c. No Compositor source file is copied. plans/289 lists what is adapted and from where.
+- Algorithms and tables translated into Lolly's own code from Compositor (https://github.com/robbietilton/Compositor), Compositor/Rendering/DitherPixels.c and HealPixels.c, and Compositor/Document/GuidedMatte.swift. No Compositor source file ships in the app; HealPixels.c and HealPixels.h are kept unchanged in tests/fixtures/heal/ as the test oracle for heal.ts, with their licence beside them. plans/289 lists what is adapted and from where.
 
 ```text
 Copyright (c) 2026 Wonder Assembly LLC

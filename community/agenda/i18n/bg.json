@@ -1,6 +1,6 @@
 {
-  "name": "Дневен ред",
-  "description": "Превърнете една програма в брандирани екрани, интерактивни уеб страници, анимирани прегледи, PowerPoint слайдове и календари.",
+  "name": "Програма",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} сесии, {{trackCount}} песни",
   "inputs.title.label": "Събитие",
   "inputs.title.help": "Отпечатва се в началото на всяко оформление и наименува експортирания файл.",

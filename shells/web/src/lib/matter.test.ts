@@ -53,7 +53,7 @@ test('packNchwNormalized: the ImageNet models subtract the ImageNet mean/std', (
 });
 
 test('packNchwNormalized: NCHW plane layout (all R, then all G, then all B)', () => {
-  const spec = { inputSize: [2, 2] as [number, number], mean: [0, 0, 0] as [number, number, number], std: [1, 1, 1] as [number, number, number], activation: 'minmax' as const };
+  const spec = { inputSize: [2, 2] as [number, number], mean: [0, 0, 0] as [number, number, number], std: [1, 1, 1] as [number, number, number], activation: 'minmax' as const, refineByDefault: false };
   // edge=1 → 1 pixel, 3 values: [R, G, B].
   const t = packNchwNormalized([10, 20, 30, 255], 1, spec);
   assert.equal(t.length, 3);

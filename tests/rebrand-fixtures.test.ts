@@ -27,7 +27,7 @@ import { readPptx, isPptx, type PptxChartData, type PptxReadNode, type PptxReadP
 import { EMU_PER_PX } from '../engine/src/pptx.ts';
 import { inflatePptx } from '../packages/node-shell/src/pptx.ts';
 import { LAYOUT_MATCH_BANDS } from '../packages/core/src/rebrand-v1.ts';
-import { buildRebrandFixtures, PLAN_275_FIXTURES, type FixtureLabels275 } from '../scripts/build-rebrand-fixtures.ts';
+import { buildRebrandFixtures, PLAN_275_FIXTURES, PLAN_291_FIXTURES, type FixtureLabels275 } from '../scripts/build-rebrand-fixtures.ts';
 import {
   allLabelledObjects,
   fixturePath,
@@ -49,8 +49,8 @@ const PPTX_FIXTURES = ['simple.pptx', 'adversarial.pptx', 'palette.pptx', ...PLA
 type PptxFixtureName = (typeof PPTX_FIXTURES)[number];
 type Plan275FixtureName = (typeof PLAN_275_FIXTURES)[number];
 
-/** Every file the builder writes: plan 274's four, then plan 275's two. */
-const ALL_FIXTURES = [...SYNTHETIC_FIXTURES, ...PLAN_275_FIXTURES] as const;
+/** Every file the builder writes: plan 274's four, then plan 275's three, then plan 291's two. */
+const ALL_FIXTURES = [...SYNTHETIC_FIXTURES, ...PLAN_275_FIXTURES, ...PLAN_291_FIXTURES] as const;
 
 const isPlan275 = (name: string): name is Plan275FixtureName => (PLAN_275_FIXTURES as readonly string[]).includes(name);
 const pathOf = (name: string): string => path.join(REBRAND_FIXTURE_DIR, name);

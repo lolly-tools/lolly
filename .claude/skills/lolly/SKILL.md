@@ -25,12 +25,19 @@ Read the references needed for the chosen tool and surface:
   embed links, and ten worked URLs.
 - `reference/tools.md`: every catalogue tool with its formats and purpose.
 - `reference/chart.md`, `reference/design.md`, `reference/deck.md`: the three tools
-  whose input is a structured document, each with a worked example.
+  whose input is a structured document, each with a worked example. `design.md`
+  also holds the authoring keys and the spec `lolly compose` lays slides out from.
 - `reference/motion.md`: timed Design work, with editable recipes for kinetic
   type, a product demonstration and a quiet explainer. Read before authoring motion.
 - `reference/rebrand.md`: renovating someone else's PowerPoint deck into the
   active design system - the plan/compile/inspect stages, the object classes
   and their evidence, and the MCP tool.
+- `reference/recreate.md`: rebuilding someone else's deck on brand in Design,
+  light and dark, as one `.lolly` and a `.pptx` per theme - the loop with its
+  commands (compose from the slide master, then package, check and export every
+  theme), the traps a literal copy
+  falls into and their check codes, `edits.json`, and the hand-over checklist an
+  evaluator grades.
 
 ## Which surface
 
@@ -44,6 +51,13 @@ Read the references needed for the chosen tool and surface:
 | Durable async jobs, batching, idempotent retries | The lolly-work API |
 | A file transform (strip metadata, compress, redact) | `lolly_transform` / `lolly_redact` (MCP) or the utility on the CLI |
 | Renovating an old deck into the design system | `lolly_rebrand` (MCP) or `lolly rebrand plan\|compile\|inspect` (CLI) - see `reference/rebrand.md` |
+| Rebuilding a deck in Design from its content | `lolly://design-context` / `lolly system context` for the brief, `lolly_read` / `lolly read` for the source, `lolly_compose` / `lolly compose` for the slides, `lolly_check` / `lolly check` for the result - see `reference/recreate.md` |
+| Slides laid out from the brand's slide master, with its furniture and real PowerPoint placeholders | `lolly_compose` (MCP) or `lolly compose <spec.json>` (CLI) - see `reference/design.md` |
+| Checking a Design document, `.lolly` or export before handing it over | `lolly_check` (MCP) or `lolly check` (CLI) |
+| Writing a Design document in artboard coordinates, by text style or with layouts | The authoring keys (`$in`, `$style`, `$stack`, …) - see `reference/design.md` |
+| Knowing where a text box's lines break before drawing it | `lolly_measure_text` (MCP) or `lolly measure --text` (CLI) |
+| A `.lolly` file a person opens in the app, pictures included | `lolly_package` (MCP) or `lolly package <design.json> --output=<file.lolly>` (CLI) |
+| One Design document in every theme: colours, logos, icons and photo looks that follow it | Token references, `<id>?theme=auto` and `?treatment=<look>` (see `reference/design.md`), then `lolly run <file> --themes=light,dark --output=<file>` and `lolly check --themes` (CLI), `_themes` in URL mode |
 
 ## The workflow
 
@@ -60,7 +74,11 @@ Read the references needed for the chosen tool and surface:
 5. **Look before you hand over a layout.** `lolly_look` (MCP) or `lolly look`
    (CLI) draws the render with a grid in the document's own coordinates. Read positions off it rather
    than guessing from a small picture, and fix what you see with `layerPatches`.
-6. **Share the editable link.** When the human will iterate, hand them the
+6. **Check before you hand over.** `lolly_check` (MCP) or `lolly check` (CLI)
+   runs every check in one findings list: structure, the painted page, brand and
+   house rules, Verify layout clues and, given the source, fidelity to it. Fix each
+   finding at its `layerId`, then check again; `exitCode` `0` is clean.
+7. **Share the editable link.** When the human will iterate, hand them the
    `lolly.tools` link, not just the bytes.
 
 ## Looking at your work (MCP and CLI)
@@ -82,9 +100,62 @@ layer's `x`, `y`, `w` and `h` use.
 
 On the CLI the same three are `lolly look`, `lolly sample` and `lolly trace`,
 over the same code. They take a picture file, or `-` to read a render piped in:
-`lolly design --z=… --export=svg | lolly look - --output=look.png`.
+`lolly design --z=… --export=svg | lolly look - --output=look.png`. `lolly sample`
+names colours against the content profile's design system (`LOLLY_PROFILE`); it
+reads no `--file` system.
 
 These tools never export, stamp or link anything. Their pictures are for you.
+
+## Rebuilding a deck in Design
+
+When the task is to recreate someone else's deck in the design system (rather than
+renovate it in place with `lolly_rebrand`), work from facts, not from a picture of
+the deck. `reference/recreate.md` holds the whole loop with its commands, the traps
+a literal copy falls into and the hand-over checklist; in short:
+
+1. **Brief yourself.** Read `lolly://design-context` (or run `lolly system context
+   --json`): approved colour pairings, type per role (`type.styles` holds the sizes
+   a `$style` writes), logos per surface, icons and their themes, the slide
+   master's archetypes and the house rules. Compose with
+   token names and catalog ids from it, never invented values.
+2. **Read the source.** `lolly_read` (or `lolly read <deck> --json --media=<dir>`)
+   gives each slide's text in reading order with its role, the speaker notes with
+   their paragraphs and line breaks, the pictures by hash, tables and charts, and
+   the class of every object. Content classes are what to carry over; decoration
+   and page furniture are what the design system replaces.
+3. **Compose from the slide master.** `lolly_compose` (or `lolly compose
+   <spec.json> --source=<deck>`) lays each slide out from an archetype of the
+   brief's master: you name the archetype and fill its slots, by text or by `from`
+   an inventory object, and the master supplies margins, type, colour bars, page
+   numbers and logo, with the bindings that give the `.pptx` real placeholders.
+   `mode: "suggest"` (`--suggest`) drafts the spec from the deck; `lolly compose
+   --help` and `reference/design.md` give its keys. What no archetype holds you
+   write with the authoring keys, in a slide's `under` and `over` or as slides of
+   your own: layers relative to the artboard with `$in`, text by style with
+   `$style` (the brief's roles, or your own `$styles`), paths with `$points` or
+   `$d`, and repeated rows with `$stack`, `$grid` and `$table`. They lower to plain
+   layers, so do not restate defaults or add offsets by hand. Before you settle a
+   text box, `lolly_measure_text` (or `lolly measure --text`) says where its lines
+   break.
+4. **Check the result.** `lolly_check` with `inventory` set to what `lolly_read`
+   returned (or `lolly check <file> --source=<inventory.json>`) lists every source
+   string missing from the result, every edited string, every speaker note not
+   carried over and any change in slide count or order, beside the structure,
+   brand, house-rule and Verify findings. A deliberate edit stays in the list, for
+   the person to review; do not hide one.
+5. **Hand over a file.** `lolly_package` (or `lolly package <file>
+   --output=<name>.lolly --source=<deck> --asset=<key>=<picture>`) writes a `.lolly`
+   the app reopens as the same document, with its pictures and its name (`label`);
+   `--source` gives it the deck's own pictures. `lolly run <name>.lolly
+   --export=pptx` exports it with the app's own exporter, which needs the web shell
+   (`reference/recreate.md` says how to run one). One document serves light and
+   dark when its colours are token references and its logos `?theme=auto`:
+   `lolly run <name>.lolly --themes=light,dark --export=pptx --output=<name>.pptx`
+   writes `<name>-light.pptx` and `<name>-dark.pptx`, and `lolly check --themes`
+   checks it in each theme. A `.lolly` carries no design system, so when a
+   `--file` system styled it, pass the same `--file` to `lolly run` and `lolly
+   check`, and name that system at hand-over: the app opens the file in its own
+   active system.
 
 ## Authoring a motion piece
 

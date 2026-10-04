@@ -366,7 +366,7 @@ export function isFontContentType(ct: string): boolean {
   const t = ct.toLowerCase();
   return t !== '' && !t.startsWith('text/') && !t.includes('html');
 }
-async function fontUrlUsable(url: string): Promise<boolean> {
+export async function fontUrlUsable(url: string): Promise<boolean> {
   let p = urlProbes.get(url);
   if (!p) {
     p = (async () => {

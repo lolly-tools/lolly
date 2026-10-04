@@ -70,7 +70,7 @@ import type { ModalHandle } from '../components/modal.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml } from './projects-create.ts';
-import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsViewFromUrl, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
+import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsCardSizeAttr, projectsViewFromUrl, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
@@ -681,7 +681,7 @@ export async function mountProjects(
       ${sharedProjectsHtml()}
       ${favourites.size && !list ? `<div class="projects-featured" data-fav-strip></div>` : ''}
       ${invite}
-      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}">
+      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${projectsCardSizeAttr()}>
         ${list ? listHeadHtml() : ''}
         ${folderTiles}${/* "My library" names the loose block when folders sit above
           it (plans/170 keeping-model): the save dialog files here by that name,
@@ -740,7 +740,7 @@ export async function mountProjects(
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for {names}', { count: countText, names: escape(label) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = ms.map(e => sessionTile(e, sessionTileOpts(e))).join('');
-    return `${status}<div class="${gridClass}">${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
+    return `${status}<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
   }
 
   // The per-tile options every surface (root, folder, results) passes, so a tile
@@ -877,7 +877,7 @@ export async function mountProjects(
     const hasTiles = subfolders.length > 0 || sessions.length > 0 || images.length > 0;
     // Empty folder → a blank state inviting the two create actions (no grid at all).
     const body = hasTiles
-      ? `<div class="${gridClass}">${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`
+      ? `<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`
       : emptyFolderHtml(isUncat);
 
     return shell(title, 'projects', `${ribbon}${stripSwitch}${rail}${header}${body}`, { inFolder: true });
@@ -910,7 +910,7 @@ export async function mountProjects(
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for “{query}” in {scope}', { count: countText, query: escape(query), scope: escape(scope) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = [...mf.map(folderResultTile), ...ms.map(sessionResultTile)].join('');
-    return `${status}<div class="${gridClass}">${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
+    return `${status}<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
   }
 
   // A search hit = the normal tile + a location breadcrumb beneath it. Reusing the shared

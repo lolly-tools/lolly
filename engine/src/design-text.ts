@@ -459,6 +459,12 @@ export interface DesignTextRunV1 {
   weight?: number;
   /** `mono` or `sans`, when an attribute run names one. */
   font?: 'mono' | 'sans';
+  /**
+   * On an italic run with a `font`: the attribute run sits inside the emphasis
+   * (`*{mono|x}*`), so its family wins over the italic face. Absent when the emphasis
+   * sits inside the attribute run (`{mono|*x*}`), where the italic face wins.
+   */
+  fontInsideItalic?: boolean;
 }
 
 /**
@@ -530,6 +536,8 @@ function parseInline(source: string): DesignTextRunV1[] {
   let bold = 0;
   let italic = 0;
   let span: SpanFormatV1 | undefined;
+  /** The emphasis depth where the open attribute run began. */
+  let spanItalic = 0;
   let text = '';
   const flush = (): void => {
     if (!text) return;
@@ -541,6 +549,7 @@ function parseInline(source: string): DesignTextRunV1[] {
     if (span?.color) run.color = span.color;
     if (span?.weight !== undefined) run.weight = span.weight;
     if (span?.font) run.font = span.font;
+    if (span?.font && italic > 0 && italic <= spanItalic) run.fontInsideItalic = true;
     const last = runs[runs.length - 1];
     if (last && JSON.stringify({ ...last, text: '' }) === JSON.stringify({ ...run, text: '' })) last.text += run.text;
     else runs.push(run);
@@ -556,6 +565,7 @@ function parseInline(source: string): DesignTextRunV1[] {
       else if (ch === I_CLOSE) italic = Math.max(0, italic - 1);
       else if (ch === S_OPEN) {
         span = spans[(s.charCodeAt(i + 1) - 0xe100)];
+        spanItalic = italic;
         i += 1;
       } else span = undefined;
       continue;

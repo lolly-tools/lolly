@@ -1,6 +1,6 @@
 # `schemas/`
 
-The machine-readable contracts a tool, an asset, a design-tokens document and a deck renovation have to satisfy. The table below covers those four, all owned by the umbrella (`lolly`) repo, all declaring the JSON Schema draft 2020-12 dialect except `canonical-inputs.json`, which is a registry rather than a schema. The directory holds more than the table lists: the other files there are documented beside the code that reads them, not here, so the table stays a reading order rather than an inventory that goes stale on the next addition.
+The machine-readable contracts a tool, an asset, a design-tokens document, a deck renovation and the agent read and check reports have to satisfy. The table below covers those, all owned by the umbrella (`lolly`) repo, all declaring the JSON Schema draft 2020-12 dialect except `canonical-inputs.json`, which is a registry rather than a schema. The directory holds more than the table lists: the other files there are documented beside the code that reads them, not here, so the table stays a reading order rather than an inventory that goes stale on the next addition.
 
 | File | `$id` | Validates |
 |---|---|---|
@@ -16,6 +16,12 @@ The machine-readable contracts a tool, an asset, a design-tokens document and a 
 | `rebrand-compiled-v1.schema.json` | `https://lolly.tools/schemas/rebrand-compiled-v1.schema.json` | The accepted plan lowered to Design authored values, with lineage both ways and the report (stage 5) |
 | `rebrand-report-v1.schema.json` | `https://lolly.tools/schemas/rebrand-report-v1.schema.json` | Every source object accounted for, with stable machine codes beside localisable messages |
 | `rebrand-project-v1.schema.json` | `https://lolly.tools/schemas/rebrand-project-v1.schema.json` | The durable local unit of work: source, checkpoint, design-system snapshot, stored-record ids |
+| `content-inventory-v1.schema.json` | `https://lolly.tools/schemas/content-inventory-v1.schema.json` | What a deck says, slide by slide: text in reading order with roles and runs, speaker notes as paragraphs of lines, pictures by content hash, tables, charts and object classes (`lolly read`, `lolly_read`; plan 291 W2) |
+| `check-report-v1.schema.json` | `https://lolly.tools/schemas/check-report-v1.schema.json` | One findings list for a Design document, `.lolly` or export, in five families, with the outcome and its exit code (`lolly check`, `lolly_check`; plan 291 W1) |
+| `design-package-v1.schema.json` | `https://lolly.tools/schemas/design-package-v1.schema.json` | What writing a Design document as a reopenable `.lolly` carried and read back: pictures by upload ref, catalog references, the session name and size (`lolly package`, `lolly_package`; plan 291 W8) |
+| `text-measure-v1.schema.json` | `https://lolly.tools/schemas/text-measure-v1.schema.json` | Where a plain Design text layer's lines break and how tall it is, before it is drawn: lines with their widths and a near-edge flag, the line box, `scrollHeight` and whether the box clips it (`lolly measure --text`, `lolly_measure_text`, the `text-measure` checker; plan 291 W5) |
+| `design-authoring-v1.schema.json` | `https://lolly.tools/schemas/design-authoring-v1.schema.json` | The `$` keys and layout macros an agent may write into Design rows (`$in` artboard coordinates, `$style` named text styles, `$points` and `$d` paths, `$stack`, `$grid` and `$table`), lowered to stored rows by the engine's `expandDesignAuthoring`; a row with no `$` key is a stored row (plan 291 W5) |
+| `design-compose-v1.schema.json` | `https://lolly.tools/schemas/design-compose-v1.schema.json` | A deck spec written as slide-master archetypes and slot content, the report composing it gives back (slots filled and dropped, furniture drawn, notes carried) and the compact archetype catalogue an agent picks from (`lolly compose`, `lolly_compose`, the engine's `composeDesignSlides`; plan 291 W6) |
 
 ## `tool.schema.json` is the authority
 
@@ -83,24 +89,24 @@ There are two independent code paths, and every tool passes through both.
 
 Both use `{ allErrors: true, strict: false }`, and both instantiate Ajv from `ajv/dist/2020.js` rather than the default export, because the schemas declare draft 2020-12 and the default build only knows draft-07 and throws on the unknown meta-schema. If you add a schema here, import it the same way.
 
-## Duplication: three schemas exist in two byte-identical copies
+## Duplication: schemas that exist in two byte-identical copies
 
 **This is a known drift hazard. Edit both copies or the test suite fails.**
 
-`tool.schema.json`, `asset.schema.json` and `asset-ref.schema.json` each exist twice:
+`tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json`, `canvas-op.schema.json`, `chart-v1.schema.json`, `check-report-v1.schema.json`, `content-inventory-v1.schema.json`, `design-package-v1.schema.json`, `text-measure-v1.schema.json`, `design-authoring-v1.schema.json` and `design-compose-v1.schema.json` each exist twice, guarded by a test:
 
 - `schemas/<name>` - the canonical source everything in this repo validates against.
 - `packages/core/schema/<name>` - bundled into the published tool-author SDK `@lolly-tools/core`, so a third party can validate a manifest without cloning this repo.
 
 There is no generator and no copy script. The `packages/core` copies are maintained by hand. `tests/lolly-tools-core.test.ts` guards them with one test per file, named `@lolly-tools/core bundles an identical <name> (no drift)`, doing a `deepEqual` between the two; the same file also asserts that `core.validateTool()` and `engine.validateManifest()` agree on the SDK's example manifest. Editing the root schema alone makes those tests fail, which is the intended outcome.
 
-`tokens.schema.json` and `canonical-inputs.json` are **not** duplicated into `packages/core`. They exist once.
+`tokens.schema.json` and `canonical-inputs.json` are **not** duplicated into `packages/core`. They exist once. Several other files in `packages/core/schema/` (the brand-system, design-tool, emoji, file-operation and text schemas) are also copies of the root files, with no test that compares the two, so check both by hand when you edit one. The two learning-module schemas exist only in `packages/core/schema/`.
 
 Copies you will see in `find` output but should ignore: `dist/engine-pack/schemas/` (produced by `scripts/pack-engine.ts`) and `shells/web/dist/schemas/` (a web build output). Both are generated artefacts, not sources.
 
 ## If you change a schema
 
-1. Apply the identical edit to `packages/core/schema/` as well, if the file is one of the three duplicated ones.
+1. Apply the identical edit to `packages/core/schema/` as well, if the file has a copy there.
 2. Update the prose in [`../docs/authoring-tools.md`](../docs/authoring-tools.md) if you changed anything a tool author would notice.
 3. Run `pnpm run build:catalog:all` then `pnpm run validate:catalog:all`, not the singular forms. The catalog index is generated per brand, so a change that only rebuilds the active profile leaves every other brand stale and the singular validator cannot see it.
 4. Run `pnpm test`, which includes the drift guards, and `pnpm run typecheck`.

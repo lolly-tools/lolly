@@ -52,10 +52,13 @@ test('walkSwatches finds the starter brand’s ramps and one theme’s roles', (
   // ramp: a fresh install is ink and paper, and a new design system grows by ADDING
   // colour, not by clearing a big preset (chart tools fall back to their own palette
   // until a spectrum exists).
+  // Plan 291 W4 added the 17 themed role tokens (`color.role.*`: inks, hairlines, card
+  // tints) to each theme set; they are roles like the 7 semantic slots.
   assert.equal(ramps.length, 9, 'neutral only, 9 steps');
   assert.equal(spectrum.length, 0, 'the starter ships no spectrum - the user adds one');
-  assert.equal(roles.length, 7);
-  assert.equal(s.length, 16, '9 ramp steps + 7 roles is the whole starter palette');
+  assert.equal(roles.length, 24);
+  assert.equal(roles.filter(x => x.key.startsWith('color.role.')).length, 17, 'the themed role tokens are roles');
+  assert.equal(s.length, 33, '9 ramp steps + 7 semantic slots + 17 role tokens is the whole starter palette');
   assert.equal(s.length, ramps.length + spectrum.length + roles.length, 'no swatch is walked twice or missed');
 
   // Dark roles are filtered out entirely (they'd duplicate primary/surface/…).

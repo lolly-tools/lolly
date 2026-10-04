@@ -28,7 +28,7 @@ import {
   MATTE_MODEL_SPEC, MATTE_MODEL_STORE, resolveMatteModel, type MatteModelSpec,
 } from './matte-models.ts';
 import {
-  activateMask, packNchwNormalized, planLetterbox, type LetterboxPlan,
+  activateMask, finishMatteAlpha, packNchwNormalized, planLetterbox, type LetterboxPlan,
 } from '@lolly-tools/node-shell/ml/matte-math';
 
 type OrtModule = typeof import('onnxruntime-web');
@@ -194,6 +194,8 @@ export interface MattePre {
   edge: number;
   /** The model spec (its activation is read back in postprocessMatte). */
   spec: MatteModelSpec;
+  /** Edge refinement after the model (`MatteOpts.refine`); absent means the default. */
+  refine?: MatteOpts['refine'];
 }
 
 /** Source frame → the model's normalized NCHW input, keeping the work-size RGB and
@@ -232,43 +234,24 @@ export function preprocessMatte(frame: MatteFrame, spec: MatteModelSpec, opts: M
   const inRgba = inCtx.getImageData(0, 0, edge, edge).data;
 
   const input = packNchwNormalized(inRgba, edge, spec);
-  return { workRgba, workW, workH, plan, input, edge, spec };
+  return { workRgba, workW, workH, plan, input, edge, spec, ...(opts.refine !== undefined ? { refine: opts.refine } : {}) };
 }
 
 /** The model's single-channel output → the finished straight-alpha cutout:
- *  activate → unpad → scale the mask back to work size → compose over the work RGB. */
+ *  activate, then the tail the Node matte shares (matte-math.ts finishMatteAlpha:
+ *  unpad, scale back with the engine's mask scaler, refine the edges), then compose
+ *  over the work RGB. */
 export function postprocessMatte(rawMask: ArrayLike<number>, pre: MattePre): MatteFrame {
   const { workRgba, workW, workH, plan, edge, spec } = pre;
-  // Activate to a 0..1 mask at model resolution.
   const maskEdge = activateMask(rawMask, edge * edge, spec.activation);
-
-  // Unpad (crop the content rect) → grayscale ImageData → scale to work size.
-  const maskCanvas = makeCanvas(plan.contentW, plan.contentH);
-  const maskCtx = maskCanvas.getContext('2d') as CanvasRenderingContext2D;
-  const maskImg = maskCtx.createImageData(plan.contentW, plan.contentH);
-  for (let y = 0; y < plan.contentH; y++) {
-    for (let x = 0; x < plan.contentW; x++) {
-      const v = Math.round(Math.min(1, Math.max(0, maskEdge[(plan.offsetY + y) * edge + (plan.offsetX + x)]!)) * 255);
-      const o = (y * plan.contentW + x) * 4;
-      maskImg.data[o] = maskImg.data[o + 1] = maskImg.data[o + 2] = v;
-      maskImg.data[o + 3] = 255;
-    }
-  }
-  maskCtx.putImageData(maskImg, 0, 0);
-  const scaledMaskCanvas = makeCanvas(workW, workH);
-  const scaledMaskCtx = scaledMaskCanvas.getContext('2d') as CanvasRenderingContext2D;
-  scaledMaskCtx.imageSmoothingQuality = 'high';
-  scaledMaskCtx.drawImage(maskCanvas as unknown as CanvasImageSource, 0, 0, workW, workH);
-  const scaledMask = scaledMaskCtx.getImageData(0, 0, workW, workH).data;
-
-  // Compose: work RGB (untouched) + mask as straight alpha.
+  const alpha = finishMatteAlpha(maskEdge, plan, workRgba, workW, workH, pre.refine, spec.refineByDefault);
   const outData = new Uint8ClampedArray(workW * workH * 4);
   for (let i = 0; i < workW * workH; i++) {
     const o = i * 4;
     outData[o] = workRgba[o]!;
     outData[o + 1] = workRgba[o + 1]!;
     outData[o + 2] = workRgba[o + 2]!;
-    outData[o + 3] = scaledMask[o]!; // R of the grayscale mask is the alpha
+    outData[o + 3] = alpha[i]!;
   }
   return { width: workW, height: workH, data: outData };
 }

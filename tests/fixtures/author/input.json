@@ -1,0 +1,78 @@
+{
+  "$styles": {
+    "head": { "fontSize": 56, "weight": 500, "lineHeight": 1.1, "fg": "#202124" },
+    "item": { "fontSize": 26, "weight": 500, "fg": "#202124" },
+    "note": { "fontSize": 20, "weight": 400, "lineHeight": 1.3, "fg": "#5f6368" },
+    "cellText": { "basedOn": "item", "valign": "middle" },
+    "aside": { "basedOn": "note", "italic": true }
+  },
+  "boxes": [
+    { "id": "a1", "$artboard": true, "name": "Light", "x": 2160, "y": 1240, "w": 1920, "h": 1080, "bg": "#ffffff", "order": 0 },
+    { "id": "a1-title", "$in": "a1", "$style": "head", "x": 120, "y": 96, "w": 1680, "h": 72, "text": "Quarterly planning" },
+    { "id": "a1-list", "$in": "a1", "$stack": {
+      "x": 120, "y": 220, "w": 760, "pitch": 120,
+      "divider": { "id": "a1-rule{i}", "stroke": "#cccccc", "strokeW": 2 },
+      "item": [{ "slot": "text", "id": "a1-li{i}", "$style": "item", "y": 8, "h": 100 }],
+      "items": ["First point", "Second point", "Third point"]
+    } },
+    { "id": "a1-m", "$in": "a1", "$grid": {
+      "x": 960, "y": 220, "columns": 2, "rows": 2, "colWidth": 400, "colGap": 40, "rowPitch": 150, "order": "column",
+      "cell": [
+        { "slot": "box", "id": "a1-cell{r}{c}", "kind": "box", "w": 400, "h": 130, "bg": "#eeeeee" },
+        { "slot": "t", "id": "a1-ct{r}{c}", "$style": "item", "x": 20, "y": 16, "w": 360, "h": 40 },
+        { "slot": "s", "id": "a1-cs{r}{c}", "$style": "note", "x": 20, "y": 60, "w": 360, "h": 50 }
+      ],
+      "items": [
+        { "t": "Alpha", "s": "First cell" },
+        { "t": "Beta", "s": "Second cell" },
+        { "t": { "text": "Unknown", "$style": "cellText", "y": 0, "h": 130 }, "s": null },
+        { "t": "Delta", "s": "Fourth cell" }
+      ]
+    } },
+    { "id": "a1-t", "$in": "a1", "$table": {
+      "x": 120, "y": 620, "pitch": 90,
+      "divider": { "id": "a1-tr{i}", "stroke": "#cccccc", "strokeW": 1 },
+      "label": { "id": "a1-tl{i}", "$style": "item", "w": 200, "h": 60 },
+      "columns": [
+        { "id": "a1-tc{r}{c}", "$style": "note", "x": 240, "y": 6, "w": 300, "h": 60 },
+        { "id": "a1-td{r}{c}", "$style": "note", "x": 560, "y": 6, "w": 300, "h": 60 }
+      ],
+      "rows": [
+        { "label": "Row one", "cells": ["North", "South"] },
+        { "label": "Row two", "cells": ["East", null] },
+        { "label": "Row three", "cells": ["West", "Centre"] }
+      ]
+    } },
+    { "id": "a1-foot", "$in": "a1", "$style": "aside", "x": 120, "y": 960, "w": 800, "h": 40, "text": "Figures are illustrative" },
+    { "id": "a1-mark", "$in": "a1", "image": "lolly/logo/mark", "x": 1700, "y": 980, "w": 100, "h": 40 },
+    { "id": "a2-g", "$in": "a2", "$grid": {
+      "x": 120, "y": 200, "columns": 2, "colWidth": 800, "colGap": 80, "rowPitch": 200,
+      "cell": [
+        { "slot": "rule", "id": "a2-rr{i}", "$points": [[0, 0], [800, 0]], "stroke": "#555555", "strokeW": 2 },
+        { "slot": "n", "id": "a2-rn{i}", "$style": "item", "fg": "#ffffff", "y": 20, "h": 40 },
+        { "slot": "d", "id": "a2-rd{i}", "kind": "text", "y": 64, "h": 90 }
+      ],
+      "items": [
+        { "n": "One", "d": "Plain body" },
+        { "n": "Two", "d": "Plain body" },
+        { "n": "Three", "d": { "text": "Moved down", "y": 90 } },
+        { "n": "Four", "d": "Plain body" }
+      ]
+    } },
+    { "id": "a2-c", "$in": "a2", "$stack": {
+      "x": 120, "y": 640, "w": 500, "pitch": 100,
+      "item": [
+        { "slot": "n", "id": "a2-cn{i}", "$style": "item", "fg": "#ffffff", "h": 40 },
+        { "slot": "l", "id": "a2-cl{i}", "kind": "path", "at": "artboard", "stroke": "#4da3ff", "strokeW": 3 }
+      ],
+      "items": [
+        { "n": "Up", "l": "M640 660 C800 660 840 760 1000 760" },
+        { "n": "Level", "l": "M640 760 C800 760 840 760 1000 760" },
+        { "n": "Down", "l": "M640 860 C800 860 840 760 1000 760" }
+      ]
+    } },
+    { "id": "a2-hub", "$in": "a2", "kind": "box", "x": "1000", "y": "744", "w": 32, "h": 32, "shape": "circle", "bg": "#4da3ff" },
+    { "id": "free", "kind": "box", "x": 10, "y": 10, "w": 50, "h": 50, "bg": "#999999" },
+    { "id": "a2", "$artboard": true, "name": "Dark", "x": 4320, "y": 0, "w": 1920, "h": 1080, "bg": "#101820", "order": 1 }
+  ]
+}

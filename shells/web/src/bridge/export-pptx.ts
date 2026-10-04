@@ -9,21 +9,23 @@
  * time, never at module init, so resolution order is safe. (To remove the cycle
  * later, lift those shared helpers into a common render-util module.)
  */
-import { buildPptxParts, EMU_PER_PX, parseGradientAngle, parseGradientStop, splitCssArgs, svgToNativePptx } from "@lolly/engine";
+import { buildPptxParts, EMU_PER_PX, imageDimensions, parseGradientAngle, parseGradientStop, splitCssArgs, svgToNativePptx } from "@lolly/engine";
 import type { PptxSlide, PptxShape, PptxFill, PptxMedia, PptxLayout, PptxAudio } from "../../../../engine/src/pptx.ts";
 import { parseCssColorFull, objectPositionFractions } from "./export-css.ts";
-import { asStr, deckAnim, deckAudioExt, deckBox, deckFill, deckNarrationMark, deckNotes, deckPlaceholder, deckSrcRect, deckSlideTransitions, deckSyncShape, deckTheme, emuOf, parseDeckModel, withBrandFonts, type DeckBox, type DeckColorResolver, type DeckNotes, type DeckNoteSink } from "./pptx-deck.ts";
+import { asStr, deckAnim, deckAudioExt, deckBox, deckFill, deckNarrationMark, deckNotes, deckPlaceholder, deckSrcRect, deckSlideTransitions, deckSyncShape, deckTheme, emuOf, firstFontFamily, nameStaticFaces, parseDeckModel, STATIC_FACE_DIR, withBrandFonts, type DeckBox, type DeckColorResolver, type DeckNotes, type DeckNoteSink } from "./pptx-deck.ts";
+import { deckPicLook, deckPlacePicture, deckSvgBakeRaster, deckSvgIntrinsicSize, PICTURE_FITS, type PictureFit } from "./pptx-deck.ts";
 import {
   designFramesToPptx, framesOfDesignDoc, hasMasterBindings, parseDesignDoc, transitionsOfDeckModel,
   type DesignDocV1,
 } from '@lolly-tools/node-shell/design-pptx';
+import { slideMasterForExport, tokenColorsFromStyle } from '@lolly-tools/node-shell/design-pptx';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
 import { presentationOf } from './presentation.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock } from './frame-clock.ts';
 import { renderVideo } from './export.ts';
 import { pickWebCodecsVideo } from './video-shared.ts';
 import { narrationDwellMs } from "../lib/motion-model.ts";
-import { pureRotationDeg, detectUnsupportedCss, inlineBlobUrlsInEl, rasterizeNodeToDataUrl, imprintEmbedCanvas, stripCommentNodes, _host, type ExportOpts, type ImprintState } from "./export.ts";
+import { pureRotationDeg, detectUnsupportedCss, inlineBlobUrlsInEl, rasterizeNodeToDataUrl, imprintEmbedCanvas, stripCommentNodes, _host, _exportNotice, type ExportOpts, type ImprintState } from "./export.ts";
 
 type Rgba = [number, number, number, number];
 
@@ -83,6 +85,10 @@ function sniffImgExt(buf: Uint8Array, url: string): 'png' | 'jpeg' | 'svg' | nul
 // inline <svg> art (svgPic) - never for a fetched background / user-logo SVG, whose
 // PNG fallback must stay byte-faithful (those callers pass undefined).
 async function svgBytesToPng(svgBytes: Uint8Array, w: number, h: number, imprint?: ImprintState): Promise<Uint8Array | null> {
+  return svgBytesToRaster(svgBytes, w, h, 'image/png', imprint);
+}
+// The same, encoded as `mime` (plan 291 M4: a treated JPEG photo stays a JPEG).
+async function svgBytesToRaster(svgBytes: Uint8Array, w: number, h: number, mime: 'image/png' | 'image/jpeg', imprint?: ImprintState): Promise<Uint8Array | null> {
   if (typeof document === 'undefined') return null;
   const url = URL.createObjectURL(new Blob([svgBytes as BlobPart], { type: 'image/svg+xml' }));
   try {
@@ -96,7 +102,7 @@ async function svgBytesToPng(svgBytes: Uint8Array, w: number, h: number, imprint
     if (!cx) return null;
     cx.drawImage(img, 0, 0, canvas.width, canvas.height);
     imprintEmbedCanvas(canvas, imprint);   // Lolly-rendered inline art only (opt-in, size-floored)
-    return dataUrlToBytes(canvas.toDataURL('image/png'));
+    return dataUrlToBytes(mime === 'image/jpeg' ? canvas.toDataURL('image/jpeg', 0.92) : canvas.toDataURL('image/png'));
   } catch { return null; } finally { URL.revokeObjectURL(url); }
 }
 
@@ -670,20 +676,44 @@ const MAX_DECK_IMG_BYTES = 32 * 1024 * 1024; // 32 MB per embedded image (`src` 
 // An image element - the sole async lowering (it fetches bytes). SVG rides in as a real
 // vector (svgBlip + PNG fallback); raster embeds its original bytes; an unreachable/oversized
 // asset drops the element but keeps the deck.
+//
+// Placed the way the canvas places it (plan 291 M4), with the same helpers Tier A uses:
+// a `cover` fit is cropped from the picture's own pixels (srcRect) instead of squashed,
+// `contain` and every other fit is letterboxed, a mirrored box moves a letterboxed
+// picture to the mirrored side, and the flips, the opacity and the layer name ride the
+// picture. An element with no `fit` keeps the stretch it always had, and an explicit
+// `srcRect` on the element still wins. A treated photo (an SVG wrapper drawing a raster
+// through a filter) travels as one baked raster with no svg part.
 async function deckImageShape(el: Record<string, unknown>, box: DeckBox, addMedia: (b: Uint8Array, e: PptxMedia['ext']) => number, animNotes?: DeckNoteSink): Promise<PptxShape | null> {
   const src = asStr(el?.src); if (!src) return null;
   // Native animation rides pictures exactly as it rides the sync shapes (plans/175 WP-E).
   const anim = deckAnim(el?.anim, animNotes);
+  const fitRaw = asStr(el?.fit) ?? 'fill';
+  const fit: PictureFit = (PICTURE_FITS as readonly string[]).includes(fitRaw) ? fitRaw as PictureFit : 'fill';
+  const look = deckPicLook(el);
   try {
     const res = await fetch(src);
     if (!res.ok) return null;
     const buf = new Uint8Array(await res.arrayBuffer());
     if (buf.byteLength > MAX_DECK_IMG_BYTES) return null;
     const ext = sniffImgExt(buf, src);
-    if (ext === 'png' || ext === 'jpeg') return { kind: 'pic', ...box, media: addMedia(buf, ext), srcRect: deckSrcRect(el?.srcRect), ...(anim ? { anim } : {}) };
+    if (ext === 'png' || ext === 'jpeg') {
+      const dims = imageDimensions(buf, ext === 'png' ? 'image/png' : 'image/jpeg');
+      const placed = deckPlacePicture(el, box, dims && dims.w > 0 && dims.h > 0 ? { w: dims.w, h: dims.h, natural: true } : null, fit);
+      const srcRect = deckSrcRect(el?.srcRect) ?? placed.srcRect ?? undefined;
+      return { kind: 'pic', ...placed.box, media: addMedia(buf, ext), srcRect, ...look, ...(anim ? { anim } : {}) };
+    }
     if (ext === 'svg') {
-      const png = await svgBytesToPng(buf, (box.cx / EMU_PER_PX) * 2, (box.cy / EMU_PER_PX) * 2);
-      if (png) return { kind: 'pic', ...box, media: addMedia(png, 'png'), svg: addMedia(buf, 'svg'), ...(anim ? { anim } : {}) };
+      const placed = deckPlacePicture(el, box, deckSvgIntrinsicSize(buf), fit);
+      const srcRect = placed.srcRect ?? undefined;
+      const bake = deckSvgBakeRaster(buf, MAX_PPTX_PX);
+      if (bake) {
+        const raster = await svgBytesToRaster(buf, bake.w, bake.h, bake.mime);
+        if (raster) return { kind: 'pic', ...placed.box, media: addMedia(raster, bake.mime === 'image/jpeg' ? 'jpeg' : 'png'), ...(srcRect ? { srcRect } : {}), ...look, ...(anim ? { anim } : {}) };
+        return null;
+      }
+      const png = await svgBytesToPng(buf, (placed.drawn.cx / EMU_PER_PX) * 2, (placed.drawn.cy / EMU_PER_PX) * 2);
+      if (png) return { kind: 'pic', ...placed.box, media: addMedia(png, 'png'), svg: addMedia(buf, 'svg'), ...(srcRect ? { srcRect } : {}), ...look, ...(anim ? { anim } : {}) };
     }
   } catch { /* asset unreachable - drop the element, keep the deck */ }
   return null;
@@ -812,6 +842,21 @@ function brandTokenResolver(resolve?: DeckColorResolver): (path: string) => stri
 }
 
 /**
+ * The active design system's colour tokens, for the theme slots no semantic token
+ * fills: the `--brand-token-*` properties the canvas carries for the theme it is drawn
+ * in (brand-faces.ts), else the host's own swatches.
+ */
+async function brandTokenColors(node?: Element): Promise<Array<{ path: string; value: string }> | undefined> {
+  try {
+    const scoped = (node?.closest?.('[data-brand-face-scope]') ?? (typeof document === 'undefined' ? null : document.querySelector('[data-brand-face-scope]'))) as HTMLElement | null;
+    const fromCanvas = scoped?.style ? tokenColorsFromStyle(scoped.style) : [];
+    if (fromCanvas.length) return fromCanvas;
+    const swatches = await _host?.tokens?.colors?.();
+    return Array.isArray(swatches) ? swatches.map((s) => ({ path: s.path, value: s.value })) : undefined;
+  } catch { return undefined; }
+}
+
+/**
  * Lower a Design document with slide-master bindings, or null to let the caller keep
  * to the deck-model path. Null is the answer whenever the master cannot be read, so a
  * profile without one exports exactly what it did before.
@@ -820,10 +865,22 @@ async function renderPptxFromDesign(doc: DesignDocV1, opts: ExportOpts, sourceAu
   const frames = framesOfDesignDoc(doc).slice(0, MAX_DECK_SLIDES);
   const masterId = frames.map((f) => (typeof f.row.master === 'string' ? f.row.master : '')).find(Boolean);
   if (!masterId) return null;
-  const master = await loadSlideMaster(masterId);
-  if (!master) return null;
+  // The active catalog's master, or the engine's neutral one when the frames name it and
+  // this profile ships another (plan 291 M3): a composed neutral deck stays native.
+  const bound = slideMasterForExport(masterId, await loadSlideMaster(masterId));
+  if (!bound) return null;
+  const master = bound.master;
+  if (bound.note) _host?.log?.('warn', `pptx: ${bound.note}.`);
 
   const cssVars = canvasColorResolver(node);
+  // The theme fonts are the canvas's own brand faces, read the way the deck-model path
+  // reads them. Without them a run whose font is a slot keyword, or absent, has no
+  // typeface and opens in the theme's Calibri. A generic-only stack gives none.
+  // `--font-mono` is the face the canvas draws a `mono` run in: the deck writes that
+  // face on those runs only, never in the theme.
+  const themeFonts = withBrandFonts(undefined, cssVars)?.fonts;
+  const monoFont = firstFontFamily(cssVars?.('--font-mono'));
+  const brandFonts = themeFonts || monoFont ? { ...themeFonts, ...(monoFont ? { mono: monoFont } : {}) } : undefined;
   const assets = _host?.assets;
   // The document-level transition is an input, not a row, and Design resolves it per
   // slide into its own deck model. Read it back so a deck that states the transition
@@ -835,6 +892,7 @@ async function renderPptxFromDesign(doc: DesignDocV1, opts: ExportOpts, sourceAu
     master,
     tokens: brandTokenResolver(cssVars),
     cssVars,
+    ...(brandFonts ? { fonts: brandFonts } : {}),
     ...(slideTransitions ? { slideTransitions } : {}),
     resolveAsset: assets?.bytes
       ? async (ref: string) => {
@@ -845,9 +903,20 @@ async function renderPptxFromDesign(doc: DesignDocV1, opts: ExportOpts, sourceAu
       }
       : undefined,
     rasterizeSvg: async (bytes: Uint8Array, w: number, h: number) => svgBytesToPng(bytes, w, h),
+    // Plan 291 D3: a Medium 500 run is written as the brand's static Medium face when
+    // the pack ships that file. The canvas's brand faces stand in for a run with no family.
+    shipsFace: catalogShipsFace,
+    faceFonts: withBrandFonts(undefined, cssVars)?.fonts,
+    // The theme slots no semantic token fills take the brand's own colours.
+    tokenColors: await brandTokenColors(node),
   });
 
-  for (const line of result.notes) _host?.log?.('warn', `pptx: ${line}.`);
+  // Each note also reaches the person (the export card and an aria-live announce), and
+  // the CLI's browser tier reads the `pptx:` console line back and prints the note.
+  for (const line of result.notes) {
+    _host?.log?.('warn', `pptx: ${line}.`);
+    _exportNotice(`PowerPoint: ${line}.`);
+  }
   opts.onProgress?.(result.slides.length, result.slides.length);
   const parts = buildPptxParts(result.slides, {
     emuW: Math.max(1, emuOf(result.size.w)),
@@ -858,6 +927,17 @@ async function renderPptxFromDesign(doc: DesignDocV1, opts: ExportOpts, sourceAu
     now: new Date().toISOString(),
   });
   return zipPptxParts(parts);
+}
+
+/**
+ * Does the active brand pack ship this static face (`SUSE-Medium.ttf`)? A HEAD probe of
+ * the catalog URL, memoised per URL by the font registry, which also refuses the dev
+ * server's HTML fallback for a file that is not there. Loaded only when a deck has a
+ * weight PowerPoint cannot state, so an all-Regular-and-Bold deck asks nothing.
+ */
+async function catalogShipsFace(file: string): Promise<boolean> {
+  const { fontUrlUsable } = await import('./font-registry.ts');
+  return fontUrlUsable(STATIC_FACE_DIR + file);
 }
 
 /** The media type of image bytes, sniffed first and taken from the name second. */
@@ -923,7 +1003,11 @@ async function renderPptxFromDeck(deck: Record<string, unknown>, opts: ExportOpt
   if (animNotes.dropped.length) {
     _host?.log?.('warn', `pptx: some motion has no PowerPoint form and was left out - ${animNotes.dropped.join('; ')}.`);
   }
-  const parts = buildPptxParts(slides, { emuW, emuH, theme: withBrandFonts(deckTheme(deck.theme, resolve), resolve), layouts, meta: pptxMeta(opts, sourceAuthor), now: new Date().toISOString() });
+  const theme = withBrandFonts(deckTheme(deck.theme, resolve), resolve);
+  // Plan 291 D3: a weight between Regular and Bold becomes the brand's static face when
+  // the pack ships it; this also removes the weight every run carried to get here.
+  await nameStaticFaces({ slides, layouts }, theme?.fonts, catalogShipsFace);
+  const parts = buildPptxParts(slides, { emuW, emuH, theme, layouts, meta: pptxMeta(opts, sourceAuthor), now: new Date().toISOString() });
   return zipPptxParts(parts);
 }
 

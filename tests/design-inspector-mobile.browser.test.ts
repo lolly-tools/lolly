@@ -74,7 +74,7 @@ test('Design keeps compact actions, panels and timeline resizing usable across t
             const rect = (await button.boundingBox())!;
             assert.ok(rect.width >= 44 && rect.height >= 44);
           }
-          await page.getByRole('button', { name: 'Layers / Pages', exact: true }).click();
+          await page.getByRole('button', { name: 'Layer/Page', exact: true }).click();
           await page.waitForSelector('.tl-panel', { state: 'hidden' });
           await page.getByRole('button', { name: 'Inspect', exact: true }).click();
         } else {

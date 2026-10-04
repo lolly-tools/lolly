@@ -8,9 +8,12 @@
  * returned as data by describe_tool. See plans/77-mcp-server.md section 3.
  */
 
-import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, expandQuery, buildEmbedUrl, ENGINE_VERSION, verifyC2pa, resolveVerdict, defaultTrustAnchors, extractFileMetadata, HDR_DEFAULTS, compileDocument, inspectDocument, diffDocuments, measureDocument, packageDocument, validateDocument } from '@lolly/engine';
+import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, expandQuery, buildEmbedUrl, ENGINE_VERSION, verifyC2pa, resolveVerdict, defaultTrustAnchors, extractFileMetadata, HDR_DEFAULTS, compileDocument, inspectDocument, diffDocuments, measureDocument, validateDocument } from '@lolly/engine';
 import type { C2paVerdict } from '@lolly/engine';
+import { applyAuthoredLayerOperations, applyAuthoredLayerPatches, designBrief, expandDesignAuthoringDocument, hasDesignAuthoring, type DesignAuthoringNote, type DesignAuthoringOptions } from '@lolly/engine';
+import { readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
 import { inspectDesignV1 } from '@lolly-tools/core';
+import type { DesignRow } from '../../../engine/src/design-layer-ops.ts';
 import { MOTION_EXPORT_ARGS, motionExportSettings, type MotionExportSettings } from './motion-export.ts';
 // Relative import (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
@@ -25,6 +28,12 @@ import { withHost } from './host.ts';
 import type { RenderOpts } from './render.ts';
 import { REBRAND_TOOL_DEF, callRebrand, isHostedServer } from './rebrand.ts';
 import { callLookTool, lookToolDefs, type LookRender } from './look.ts';
+import { READ_TOOL_DEF, callRead } from './read.ts';
+import { callCheck, checkToolDef, type CheckDesignResolver } from './check.ts';
+import { MEASURE_TEXT_TOOL_DEF, callMeasureText } from './measure-text.ts';
+import { COMPOSE_TOOL_DEF, callCompose } from './compose.ts';
+import { callPackage, packageToolDef } from './package.ts';
+import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 
 const WEB_BASE = (process.env.LOLLY_WEB_BASE || 'https://lolly.tools').replace(/\/$/, '');
 
@@ -72,7 +81,7 @@ const DESIGN_PATCH_ARG = {
     type: 'object',
     properties: {
       id: { type: 'string', description: 'Existing Design layer id (discover it with lolly_inspect).' },
-      set: { type: 'object', description: 'Declared Design layer fields to replace, e.g. {"text":"New headline"}. The stable id itself cannot be changed.', additionalProperties: true },
+      set: { type: 'object', description: 'Declared Design layer fields to replace, e.g. {"text":"New headline"}. The stable id itself cannot be changed. Authoring keys $in (the layer\'s own artboard), $style and $points/$d are lowered against the layer first.', additionalProperties: true },
     },
     required: ['id', 'set'],
     additionalProperties: false,
@@ -88,7 +97,7 @@ const DESIGN_OPERATION_ARG = {
         type: 'object',
         properties: {
           op: { const: 'add' },
-          layer: { type: 'object', description: 'The new Design layer. id is required; omitted kind/x/y/w/h use the Design defaults.', additionalProperties: true },
+          layer: { type: 'object', description: 'The new Design layer. id is required; omitted kind/x/y/w/h use the Design defaults. Authoring keys are lowered first: $in (artboard id; x, y and path points become relative to it), $style (a text style id or object), $points or $d (a path in px), and $stack, $grid or $table (a layout of several rows, added without beforeId/afterId).', additionalProperties: true },
           beforeId: { type: 'string', description: 'Insert before this sibling id.' },
           afterId: { type: 'string', description: 'Insert after this sibling id.' },
         },
@@ -297,10 +306,11 @@ export const TOOL_DEFS: McpToolDef[] = [
     name: 'lolly_diff', description: 'Semantically diff two compiled Lolly documents or recipe query strings.',
     inputSchema: { type: 'object', properties: { a: {}, b: {} }, required: ['a', 'b'], additionalProperties: false },
   },
-  {
-    name: 'lolly_package', description: 'Package a compiled Lolly document into portable .lolly bytes.',
-    inputSchema: { type: 'object', properties: { document: { type: 'object' } }, required: ['document'], additionalProperties: false },
-  },
+  // A Design document as a reopenable .lolly (plan 291 W8); a compiled document as before.
+  packageToolDef({
+    toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, template: TEMPLATE_ARGS,
+    layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG,
+  }),
   {
     name: 'lolly_list_tools',
     description: 'List Lolly tools in the on-brand catalog. Filter by free-text q, status, category, format, or capability.',
@@ -377,6 +387,13 @@ export const TOOL_DEFS: McpToolDef[] = [
     },
   },
   REBRAND_TOOL_DEF,
+  READ_TOOL_DEF,
+  checkToolDef({
+    toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, template: TEMPLATE_ARGS,
+    layerOperations: DESIGN_OPERATION_ARG, layerPatches: DESIGN_PATCH_ARG,
+  }),
+  MEASURE_TEXT_TOOL_DEF,
+  COMPOSE_TOOL_DEF,
   {
     name: 'lolly_redact',
     description:
@@ -468,17 +485,26 @@ async function resolveInputs(
   toolId: string,
   manifest: ToolManifest,
   args: Record<string, unknown>,
-): Promise<{ inputs: Record<string, unknown>; motion?: ReturnType<typeof compileMotionCues>; template?: { id: string; name: string; preset?: string } }> {
+): Promise<{ inputs: Record<string, unknown>; motion?: ReturnType<typeof compileMotionCues>; template?: { id: string; name: string; preset?: string }; authoring?: { notes: DesignAuthoringNote[] } }> {
   const explicit = inputObject(args.inputs);
   const templateId = args.templateId;
   const presetId = args.presetId;
   let motion: ReturnType<typeof compileMotionCues> | undefined;
-  const finish = (base: Record<string, unknown>): Record<string, unknown> => {
+  // Authoring keys (plan 291 W5) are lowered here, once, so every verb that resolves
+  // inputs sees stored rows only. The profile's brief is read only when a key is present.
+  const authored = toolId === 'design' && hasDesignAuthoring({ inputs: explicit, layerOperations: args.layerOperations, layerPatches: args.layerPatches });
+  const brief = authored ? profileBriefForAuthoring() : null;
+  const notes: DesignAuthoringNote[] = [];
+  const finish = (raw: Record<string, unknown>): Record<string, unknown> => {
+    const lowered = authored ? lowerAuthoredInputs(raw, brief) : { base: raw, options: {} };
+    notes.push(...(lowered.notes ?? []));
     const inputs = applyDesignLayerPatches(
       toolId,
       manifest,
-      applyDesignLayerOperations(toolId, manifest, base, args.layerOperations),
+      applyDesignLayerOperations(toolId, manifest, lowered.base, args.layerOperations, lowered.options, notes),
       args.layerPatches,
+      lowered.options,
+      notes,
     );
     if (args.motionTiming !== undefined) {
       if (toolId !== 'design') throw new Error('motionTiming requires Design.');
@@ -487,21 +513,68 @@ async function resolveInputs(
     }
     return inputs;
   };
+  const authoring = (): { authoring?: { notes: DesignAuthoringNote[] } } => (notes.length ? { authoring: { notes } } : {});
   if (templateId === undefined) {
     if (presetId !== undefined) throw new Error('presetId requires templateId.');
-    return { inputs: finish(explicit), motion };
+    const inputs = finish(explicit);
+    return { inputs, motion, ...authoring() };
   }
   if (typeof templateId !== 'string' || !templateId) throw new Error('templateId must be a non-empty string.');
   if (presetId !== undefined && (typeof presetId !== 'string' || !presetId)) throw new Error('presetId must be a non-empty string.');
   const seed = await loadTemplateSeed(toolId, templateId, presetId as string | undefined);
+  const inputs = finish({ ...seed.inputs, ...explicit });
   return {
-    inputs: finish({ ...seed.inputs, ...explicit }),
+    inputs,
     motion,
     template: { id: seed.template.id, name: seed.template.name, ...(seed.preset ? { preset: seed.preset.id } : {}) },
+    ...authoring(),
   };
 }
 
-type DesignRow = Record<string, unknown>;
+/**
+ * The profile's design brief, which authored text styles take their sizes and colours
+ * from. A server with no tokens asset (or one that cannot be read) gives null, and
+ * authored text then takes black or white by contrast, with a note saying so.
+ */
+function profileBriefForAuthoring(): unknown | null {
+  try {
+    const tokens = readProfileTokenDocument();
+    return tokens ? designBrief(tokens.doc, readProfileBriefCatalog()) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Design inputs with their authoring lowered: `$styles` and `$theme` are taken off and
+ * kept for the layer operations and patches, and authored `boxes` rows become stored
+ * rows. Errors carry the JSON pointer of the input (`/boxes/3/$stack/items/2`).
+ */
+function lowerAuthoredInputs(
+  raw: Record<string, unknown>,
+  brief: unknown | null,
+): { base: Record<string, unknown>; options: DesignAuthoringOptions; notes?: DesignAuthoringNote[] } {
+  const { $styles, $theme, ...rest } = raw;
+  let boxes = rest.boxes;
+  if (typeof boxes === 'string' && boxes.includes('"$')) {
+    try {
+      const parsed: unknown = JSON.parse(boxes);
+      if (Array.isArray(parsed)) boxes = parsed;
+    } catch {
+      // Not JSON: left for validation to report against the boxes input.
+    }
+  }
+  const lowered = expandDesignAuthoringDocument(
+    { boxes: Array.isArray(boxes) ? boxes : [], ...($styles !== undefined ? { $styles } : {}), ...($theme !== undefined ? { $theme } : {}) },
+    { brief },
+  );
+  const options: DesignAuthoringOptions = {
+    brief,
+    ...($styles !== undefined ? { styles: $styles as DesignAuthoringOptions['styles'] } : {}),
+    ...(typeof $theme === 'string' ? { theme: $theme } : {}),
+  };
+  return { base: Array.isArray(boxes) ? { ...rest, boxes: lowered.rows } : rest, options, notes: lowered.notes };
+}
 
 function designRows(
   manifest: ToolManifest,
@@ -516,304 +589,43 @@ function designRows(
     : row);
 }
 
-function rowAt(rows: unknown[], id: unknown, path: string): { index: number; row: DesignRow } {
-  if (typeof id !== 'string' || !id.trim()) throw new Error(`${path}: a stable layer id is required.`);
-  const matches = rows
-    .map((row, index) => ({ row, index }))
-    .filter(({ row }) => Boolean(row && typeof row === 'object' && !Array.isArray(row) && (row as DesignRow).id === id));
-  if (matches.length !== 1)
-    throw new Error(`${path}: layer "${id}" ${matches.length ? 'is duplicated' : 'does not exist'}.`);
-  return matches[0] as { index: number; row: DesignRow };
-}
-
-function anchorOf(record: DesignRow, path: string): { side: 'before' | 'after'; id: string } {
-  const before = record.beforeId;
-  const after = record.afterId;
-  if (before !== undefined && (typeof before !== 'string' || !before.trim()))
-    throw new Error(`${path}/beforeId: a stable layer id is required.`);
-  if (after !== undefined && (typeof after !== 'string' || !after.trim()))
-    throw new Error(`${path}/afterId: a stable layer id is required.`);
-  if ((before === undefined) === (after === undefined))
-    throw new Error(`${path}: provide exactly one of beforeId or afterId.`);
-  return before !== undefined
-    ? { side: 'before', id: before as string }
-    : { side: 'after', id: after as string };
-}
-
-function optionalAnchorOf(
-  record: DesignRow,
-  path: string,
-): { side: 'before' | 'after'; id: string } | null {
-  if (record.beforeId === undefined && record.afterId === undefined) return null;
-  return anchorOf(record, path);
-}
-
-function assertNewDesignId(rows: unknown[], value: unknown, path: string): string {
-  if (typeof value !== 'string' || !value.trim())
-    throw new Error(`${path}: a new stable layer id is required.`);
-  if (rows.some((row) => row && typeof row === 'object' && !Array.isArray(row) && (row as DesignRow).id === value))
-    throw new Error(`${path}: layer "${value}" already exists.`);
-  return value;
-}
-
-function sameReorderDomain(a: DesignRow, b: DesignRow): boolean {
-  const aFrame = a.kind === 'frame';
-  const bFrame = b.kind === 'frame';
-  if (aFrame || bFrame) return aFrame && bFrame;
-  return String(a.frame ?? '') === String(b.frame ?? '');
-}
-
-/** Move one row relative to a sibling and rewrite the renderer's actual order field:
- * `order` for artboards, `z` for layers in the same artboard/pasteboard. */
-function reorderDesignRow(rows: unknown[], id: string, anchor: { side: 'before' | 'after'; id: string }, path: string): void {
-  const target = rowAt(rows, id, `${path}/id`);
-  const relative = rowAt(rows, anchor.id, `${path}/${anchor.side}Id`);
-  if (target.index === relative.index) throw new Error(`${path}: a layer cannot be reordered relative to itself.`);
-  if (!sameReorderDomain(target.row, relative.row))
-    throw new Error(`${path}: reorder targets must be sibling layers or two artboards.`);
-
-  const isFrame = target.row.kind === 'frame';
-  const parent = String(target.row.frame ?? '');
-  const domain = rows
-    .map((row, index) => ({ row, index }))
-    .filter(({ row }) => {
-      if (!row || typeof row !== 'object' || Array.isArray(row)) return false;
-      const r = row as DesignRow;
-      return isFrame ? r.kind === 'frame' : r.kind !== 'frame' && String(r.frame ?? '') === parent;
-    })
-    .sort((a, b) => {
-      const field = isFrame ? 'order' : 'z';
-      const av = typeof (a.row as DesignRow)[field] === 'number' ? (a.row as DesignRow)[field] as number : a.index;
-      const bv = typeof (b.row as DesignRow)[field] === 'number' ? (b.row as DesignRow)[field] as number : b.index;
-      return av - bv || a.index - b.index;
-    })
-    .map(({ row }) => row as DesignRow);
-  const movingAt = domain.indexOf(target.row);
-  domain.splice(movingAt, 1);
-  const anchorAt = domain.indexOf(relative.row);
-  domain.splice(anchorAt + (anchor.side === 'after' ? 1 : 0), 0, target.row);
-  const field = isFrame ? 'order' : 'z';
-  domain.forEach((row, index) => { row[field] = index; });
-
-  // Keep the flat document's order aligned with the semantic order as well. Other
-  // sibling domains stay in place; only the target crosses the named anchor.
-  const [moving] = rows.splice(target.index, 1);
-  const anchorNow = rows.indexOf(relative.row);
-  rows.splice(anchorNow + (anchor.side === 'after' ? 1 : 0), 0, moving);
-}
-
-/** Strict, stateful Design mutations for agents. Operations run in array order, so
- * a later operation can address a layer added by an earlier one. */
+/** Design layer operations on a render's inputs: the shared engine edit applied to the
+ * inputs' boxes (engine/src/design-layer-ops.ts), through the authoring wrapper, which
+ * lowers an `add.layer` carrying authoring keys and applies each operation in turn. */
 function applyDesignLayerOperations(
   toolId: string,
   manifest: ToolManifest,
   inputs: Record<string, unknown>,
   value: unknown,
+  authoring: DesignAuthoringOptions = {},
+  notes: DesignAuthoringNote[] = [],
 ): Record<string, unknown> {
   if (value === undefined) return inputs;
   if (toolId !== 'design') throw new Error('layerOperations is available only for the Design tool.');
   if (!Array.isArray(value)) throw new Error('layerOperations must be an array.');
-  const rows = designRows(manifest, inputs, 'layerOperations');
   const boxesInput = manifest.inputs?.find((input) => input.id === 'boxes' && input.type === 'blocks');
   const fieldDefault = (id: string, fallback: unknown): unknown =>
     boxesInput?.fields?.find((field) => field.id === id)?.default ?? fallback;
-
-  for (let index = 0; index < value.length; index++) {
-    const path = `/layerOperations/${index}`;
-    const operation = value[index];
-    if (!operation || typeof operation !== 'object' || Array.isArray(operation))
-      throw new Error(`${path}: operation must be an object.`);
-    const record = operation as DesignRow;
-    const op = record.op;
-    if (op !== 'add' && op !== 'duplicate' && op !== 'remove' && op !== 'reparent' && op !== 'reorder')
-      throw new Error(`${path}/op: expected add, duplicate, remove, reparent or reorder.`);
-    const allowed = new Set(
-      op === 'add'
-        ? ['op', 'layer', 'beforeId', 'afterId']
-        : op === 'duplicate'
-          ? ['op', 'id', 'newId', 'childIds', 'beforeId', 'afterId']
-          : op === 'remove'
-            ? ['op', 'id', 'cascade']
-            : op === 'reparent'
-              ? ['op', 'id', 'artboardId', 'beforeId', 'afterId']
-              : ['op', 'id', 'beforeId', 'afterId']
-    );
-    const extra = Object.keys(record).find((key) => !allowed.has(key));
-    if (extra) throw new Error(`${path}/${extra}: unknown ${op} field.`);
-
-    if (op === 'add') {
-      const valueLayer = record.layer;
-      if (!valueLayer || typeof valueLayer !== 'object' || Array.isArray(valueLayer))
-        throw new Error(`${path}/layer: a layer object is required.`);
-      const supplied = valueLayer as DesignRow;
-      const id = supplied.id;
-      if (typeof id !== 'string' || !id.trim()) throw new Error(`${path}/layer/id: a stable layer id is required.`);
-      if (rows.some((row) => row && typeof row === 'object' && !Array.isArray(row) && (row as DesignRow).id === id))
-        throw new Error(`${path}/layer/id: layer "${id}" already exists.`);
-      const layer: DesignRow = {
-        kind: fieldDefault('kind', 'box'),
-        x: fieldDefault('x', 120),
-        y: fieldDefault('y', 120),
-        w: fieldDefault('w', 320),
-        h: fieldDefault('h', 200),
-        ...supplied,
-      };
-      const hasAnchor = record.beforeId !== undefined || record.afterId !== undefined;
-      if (!hasAnchor) rows.push(layer);
-      else {
-        const anchor = anchorOf(record, path);
-        const relative = rowAt(rows, anchor.id, `${path}/${anchor.side}Id`);
-        if (!sameReorderDomain(layer, relative.row))
-          throw new Error(`${path}: an added layer and its anchor must be siblings or two artboards.`);
-        rows.splice(relative.index + (anchor.side === 'after' ? 1 : 0), 0, layer);
-        reorderDesignRow(rows, id, anchor, path);
-      }
-      continue;
-    }
-
-    if (op === 'duplicate') {
-      const source = rowAt(rows, record.id, `${path}/id`);
-      const newId = assertNewDesignId(rows, record.newId, `${path}/newId`);
-      const anchor = optionalAnchorOf(record, path) ?? {
-        side: 'after' as const,
-        id: String(source.row.id),
-      };
-      const isFrame = source.row.kind === 'frame';
-      const children = isFrame
-        ? rows.filter((row) => row && typeof row === 'object' && !Array.isArray(row)
-          && (row as DesignRow).kind !== 'frame'
-          && (row as DesignRow).frame === source.row.id) as DesignRow[]
-        : [];
-      const childIdsValue = record.childIds;
-      if (!isFrame && childIdsValue !== undefined)
-        throw new Error(`${path}/childIds: only an artboard duplicate may supply child ids.`);
-      if (childIdsValue !== undefined && (!childIdsValue || typeof childIdsValue !== 'object' || Array.isArray(childIdsValue)))
-        throw new Error(`${path}/childIds: expected an old child id to new child id object.`);
-      if (children.length && childIdsValue === undefined)
-        throw new Error(`${path}/childIds: duplicating artboard "${String(source.row.id)}" requires a new id for each of its ${children.length} child layers.`);
-      const childIds = (childIdsValue ?? {}) as Record<string, unknown>;
-      const sourceChildIds = children.map((child, childIndex) => {
-        const id = child.id;
-        if (typeof id !== 'string' || !id.trim())
-          throw new Error(`${path}/childIds: source child at index ${childIndex} has no stable id.`);
-        return id;
-      });
-      const extraChild = Object.keys(childIds).find((id) => !sourceChildIds.includes(id));
-      if (extraChild) throw new Error(`${path}/childIds/${extraChild}: source artboard has no child with this id.`);
-      const proposed = [newId];
-      const mappedChildIds = new Map<string, string>();
-      for (const sourceId of sourceChildIds) {
-        const mapped = childIds[sourceId];
-        if (typeof mapped !== 'string' || !mapped.trim())
-          throw new Error(`${path}/childIds/${sourceId}: a new stable layer id is required.`);
-        proposed.push(mapped);
-        mappedChildIds.set(sourceId, mapped);
-      }
-      const duplicateProposed = proposed.find((id, proposedIndex) => proposed.indexOf(id) !== proposedIndex);
-      if (duplicateProposed)
-        throw new Error(`${path}: new layer id "${duplicateProposed}" is used more than once.`);
-      const collision = proposed.find((id) => rows.some((row) => row && typeof row === 'object'
-        && !Array.isArray(row) && (row as DesignRow).id === id));
-      if (collision)
-        throw new Error(`${path}: layer "${collision}" already exists.`);
-
-      const clone: DesignRow = { ...source.row, id: newId };
-      rows.push(clone);
-      reorderDesignRow(rows, newId, anchor, path);
-      for (const child of children) {
-        rows.push({
-          ...child,
-          id: mappedChildIds.get(String(child.id))!,
-          frame: newId,
-        });
-      }
-      continue;
-    }
-
-    if (op === 'remove') {
-      const target = rowAt(rows, record.id, `${path}/id`);
-      const children = target.row.kind === 'frame'
-        ? rows.filter((row) => row && typeof row === 'object' && !Array.isArray(row) && (row as DesignRow).frame === target.row.id)
-        : [];
-      if (children.length && record.cascade !== true)
-        throw new Error(`${path}/cascade: artboard "${String(target.row.id)}" has ${children.length} child layer${children.length === 1 ? '' : 's'}; pass cascade:true to remove them.`);
-      const removeIds = new Set([target.row.id, ...children.map((row) => (row as DesignRow).id)]);
-      for (let rowIndex = rows.length - 1; rowIndex >= 0; rowIndex--) {
-        const row = rows[rowIndex];
-        if (row && typeof row === 'object' && !Array.isArray(row) && removeIds.has((row as DesignRow).id)) rows.splice(rowIndex, 1);
-      }
-      continue;
-    }
-
-    if (op === 'reparent') {
-      const target = rowAt(rows, record.id, `${path}/id`);
-      if (target.row.kind === 'frame')
-        throw new Error(`${path}/id: artboards cannot be reparented.`);
-      const artboardId = record.artboardId;
-      if (artboardId !== null && (typeof artboardId !== 'string' || !artboardId.trim()))
-        throw new Error(`${path}/artboardId: expected an artboard stable id or null for the pasteboard.`);
-      if (typeof artboardId === 'string') {
-        const destination = rowAt(rows, artboardId, `${path}/artboardId`);
-        if (destination.row.kind !== 'frame')
-          throw new Error(`${path}/artboardId: layer "${artboardId}" is not an artboard.`);
-      }
-      target.row.frame = artboardId ?? '';
-      const anchor = optionalAnchorOf(record, path);
-      if (anchor) {
-        reorderDesignRow(rows, String(target.row.id), anchor, path);
-      } else {
-        const parent = String(target.row.frame ?? '');
-        const siblings = rows.filter((row) => row && typeof row === 'object' && !Array.isArray(row)
-          && row !== target.row && (row as DesignRow).kind !== 'frame'
-          && String((row as DesignRow).frame ?? '') === parent) as DesignRow[];
-        target.row.z = siblings.reduce((max, sibling) =>
-          Math.max(max, typeof sibling.z === 'number' ? sibling.z : -1), -1) + 1;
-        const [moving] = rows.splice(target.index, 1);
-        let lastSibling = -1;
-        rows.forEach((row, rowIndex) => {
-          if (siblings.includes(row as DesignRow)) lastSibling = rowIndex;
-        });
-        rows.splice(lastSibling >= 0 ? lastSibling + 1 : rows.length, 0, moving);
-      }
-      continue;
-    }
-
-    const id = record.id;
-    if (typeof id !== 'string' || !id.trim()) throw new Error(`${path}/id: a stable layer id is required.`);
-    reorderDesignRow(rows, id, anchorOf(record, path), path);
-  }
-  return { ...inputs, boxes: rows };
+  const applied = applyAuthoredLayerOperations(designRows(manifest, inputs, 'layerOperations') as DesignRow[], value, fieldDefault, authoring);
+  notes.push(...applied.notes);
+  return { ...inputs, boxes: applied.rows };
 }
 
-/** Stable-id edits are the small semantic delta an agent needs after choosing a
- * template. Geometry stays in the template; the patch can replace a headline,
- * image or other declared field without rebuilding a 99-field block row. */
+/** Design layer patches on a render's inputs (engine/src/design-layer-ops.ts), through the authoring wrapper. */
 function applyDesignLayerPatches(
   toolId: string,
   manifest: ToolManifest,
   inputs: Record<string, unknown>,
   value: unknown,
+  authoring: DesignAuthoringOptions = {},
+  notes: DesignAuthoringNote[] = [],
 ): Record<string, unknown> {
   if (value === undefined) return inputs;
   if (toolId !== 'design') throw new Error('layerPatches is available only for the Design tool.');
   if (!Array.isArray(value)) throw new Error('layerPatches must be an array.');
-  const rows = designRows(manifest, inputs, 'layerPatches');
-  for (let index = 0; index < value.length; index++) {
-    const patch = value[index];
-    if (!patch || typeof patch !== 'object' || Array.isArray(patch))
-      throw new Error(`/layerPatches/${index}: patch must be an object.`);
-    const record = patch as Record<string, unknown>;
-    const extra = Object.keys(record).find((key) => key !== 'id' && key !== 'set');
-    if (extra) throw new Error(`/layerPatches/${index}/${extra}: unknown patch field.`);
-    const id = record.id;
-    if (typeof id !== 'string' || !id) throw new Error(`/layerPatches/${index}/id: a stable layer id is required.`);
-    const set = record.set;
-    if (!set || typeof set !== 'object' || Array.isArray(set)) throw new Error(`/layerPatches/${index}/set: fields must be an object.`);
-    if (Object.hasOwn(set, 'id')) throw new Error(`/layerPatches/${index}/set/id: a stable layer id cannot be changed.`);
-    const match = rowAt(rows, id, `/layerPatches/${index}/id`);
-    rows[match.index] = { ...match.row, ...(set as Record<string, unknown>) };
-  }
-  return { ...inputs, boxes: rows };
+  const applied = applyAuthoredLayerPatches(designRows(manifest, inputs, 'layerPatches') as DesignRow[], value, authoring);
+  notes.push(...applied.notes);
+  return { ...inputs, boxes: applied.rows };
 }
 
 function validateToolInputs(manifest: ToolManifest, inputs: Record<string, unknown>): InputValidationReport {
@@ -1026,6 +838,19 @@ const renderForLook: LookRender = async (args) => {
   return { bytes: result.bytes, mime: result.mime, format: result.format, warnings: result.warnings };
 };
 
+/**
+ * A Design source for lolly_check (check.ts): the same template, inputs, layer
+ * operations and patches lolly_validate resolves, with the boxes the input model
+ * gives when the caller sent none.
+ */
+const resolveDesignForCheck: CheckDesignResolver = async (args) => {
+  const tool = await loadToolCached('design').catch(() => null);
+  if (!tool) throw new Error('The Design tool is not in this server\'s catalog.');
+  const resolved = await resolveInputs('design', tool.manifest, args);
+  const model = buildInputModel(tool.manifest, { initial: resolved.inputs as never });
+  return { values: { ...resolved.inputs, boxes: model.find((item) => item.id === 'boxes')?.value ?? [] }, manifest: tool.manifest };
+};
+
 export async function callTool(name: string, args: Record<string, unknown>): Promise<ToolCallResult> {
   try {
     switch (name) {
@@ -1055,7 +880,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
           const validation = validateToolInputs(tool.manifest, resolved.inputs);
           if (!validation.ok) return invalidInputs(validation);
           const compiled = await withHost({}, async (_dom, host) => compileDocument(tool, resolved.inputs as Record<string, never>, { host }));
-          if (name === 'lolly_compile') return textOnly(JSON.stringify({ ...compiled, validation, ...(resolved.motion ? { motion: { times: resolved.motion.times, changes: resolved.motion.changes, detached: resolved.motion.detached } } : {}), ...(resolved.template ? { template: resolved.template } : {}) }, null, 2));
+          if (name === 'lolly_compile') return textOnly(JSON.stringify({ ...compiled, validation, ...(resolved.motion ? { motion: { times: resolved.motion.times, changes: resolved.motion.changes, detached: resolved.motion.detached } } : {}), ...(resolved.template ? { template: resolved.template } : {}), ...(resolved.authoring ? { authoring: resolved.authoring } : {}) }, null, 2));
           document = compiled.document;
         }
         return textOnly(JSON.stringify(name === 'lolly_inspect' ? inspectCompiledDocument(document) : measureDocument(document as never), null, 2));
@@ -1068,16 +893,19 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         if (!tool) return errorResult(`Tool not found: ${toolId}.`);
         const resolved = await resolveInputs(toolId, tool.manifest, args);
         const validation = validateToolInputs(tool.manifest, resolved.inputs);
-        return textOnly(JSON.stringify({ ...validation, ...(resolved.template ? { template: resolved.template } : {}) }, null, 2));
+        return textOnly(JSON.stringify({ ...validation, ...(resolved.template ? { template: resolved.template } : {}), ...(resolved.authoring ? { authoring: resolved.authoring } : {}) }, null, 2));
       }
 
       case 'lolly_diff':
         return textOnly(JSON.stringify(diffDocuments(args.a as never, args.b as never), null, 2));
 
-      case 'lolly_package': {
-        const packed = await packageDocument(args.document);
-        return { content: [{ type: 'text', text: JSON.stringify(packed.manifest) }, { type: 'resource', resource: { uri: 'data:application/vnd.lolly+zip;base64,' + Buffer.from(packed.bytes).toString('base64'), mimeType: 'application/vnd.lolly+zip', blob: Buffer.from(packed.bytes).toString('base64') } }] } as ToolCallResult;
-      }
+      case 'lolly_package':
+        return await callPackage(args, resolveDesignForCheck, process.env, undefined, {
+          toolVersion: async () => {
+            const version = (await loadToolCached('design').catch(() => null))?.manifest.version;
+            return typeof version === 'string' ? version : undefined;
+          },
+        });
 
       case 'lolly_list_tools': {
         const tools = await listTools(args as never);
@@ -1104,7 +932,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         const doc = {
           id: m.id, name: m.name, description: m.description, status: m.status, version: m.version,
           formats: m.render.formats, width: m.render.width, height: m.render.height,
-          transform: Boolean(m.hooks?.exportFile),
+          transform: isFileTransform(m),
           note: m.status === 'experimental' ? 'Experimental - exports are watermarked.' : undefined,
           inputSchema: schema,
           examples,
@@ -1116,7 +944,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
             id: emojiSetName(set), label: set.label, glyphs: set.glyphs, license: set.license,
           })),
           workflow: templates.length
-            ? 'Prefer templateId + optional presetId. For Design, inspect once, use layerOperations to add/duplicate/remove/reparent/reorder and layerPatches for stable-id field edits; validate before render.'
+            ? 'Prefer templateId + optional presetId. For Design, inspect once, use layerOperations to add/duplicate/remove/reparent/reorder and layerPatches for stable-id field edits; validate before render. Design rows may carry authoring keys ($in, $style, $points, $d, $stack, $grid, $table, with $styles and $theme beside boxes); they are lowered to stored rows in global canvas coordinates before anything else runs (schema: https://lolly.tools/schemas/design-authoring-v1.schema.json).'
             : 'Validate inputs before render.',
         };
         return textOnly(JSON.stringify(doc, null, 2));
@@ -1252,6 +1080,18 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
       case 'lolly_rebrand':
         return await callRebrand(args);
 
+      case 'lolly_read':
+        return await callRead(args);
+
+      case 'lolly_check':
+        return await callCheck(args, resolveDesignForCheck);
+
+      case 'lolly_measure_text':
+        return await callMeasureText(args);
+
+      case 'lolly_compose':
+        return await callCompose(args);
+
       case 'lolly_look':
       case 'lolly_sample_color':
       case 'lolly_trace_edges':
@@ -1345,8 +1185,10 @@ export async function serverInstructions(): Promise<string> {
     `A successful render is complete when its requested checks pass; review is only needed for a named requirement this instance cannot measure. ` +
     `Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, ` +
     `lolly_rebrand to renovate a .pptx deck into this design system in stages (capabilities, plan, compile, inspect), ` +
+    `lolly_read to read what a deck says (text in reading order with roles, speaker notes, pictures, tables), lolly_check to check a Design document, .lolly or export in one findings list (read lolly://design-context first to brief yourself on the brand), ` +
     `lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, ` +
     `and lolly_verify to check a file's Content Credentials (C2PA). ` +
+    `For Design, rows may carry authoring keys ($in for artboard coordinates, $style for the brand's text styles, $points or $d for paths, $stack, $grid and $table for layouts); lolly_measure_text says where a text box's lines break before you place it, lolly_compose lays slides out from the slide master's archetypes as a Design document, and lolly_package writes a .lolly the app reopens. ` +
     `Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, ` +
     `lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context).`
   );
