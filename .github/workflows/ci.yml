@@ -162,14 +162,17 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
 
       - name: Install PDF production inspection tools
-        if: matrix.shard == 'unit:engine'
+        if: matrix.shard == 'unit:engine' || matrix.shard == 'browser'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
 
       - name: Start public shell for journey regressions
         if: matrix.shard == 'browser'
         run: |
           mkdir -p artifacts
-          LOLLY_PROFILE=lolly-start pnpm --dir shells/web dev --host 127.0.0.1 --port 4187 --strictPort > artifacts/public-journey-shell.log 2>&1 &
+          # Exercise the compiled shell; a cold Vite dependency graph can exceed
+          # the export driver's mount deadline on a shared runner.
+          LOLLY_PROFILE=lolly-start pnpm run build:web > artifacts/public-journey-build.log 2>&1
+          LOLLY_PROFILE=lolly-start pnpm --dir shells/web preview --host 127.0.0.1 --port 4187 --strictPort > artifacts/public-journey-shell.log 2>&1 &
           for attempt in $(seq 1 40); do
             if curl --silent --fail http://127.0.0.1:4187/ > /dev/null; then
               echo 'LOLLY_IMPORT_TEST_URL=http://127.0.0.1:4187' >> "$GITHUB_ENV"

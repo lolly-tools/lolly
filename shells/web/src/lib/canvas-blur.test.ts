@@ -425,6 +425,21 @@ test('takeStage recycles a released scratch instead of allocating another', () =
   }
 });
 
+test('a reused scratch does not inherit another effect’s interpolation settings', () => {
+  const { done } = useStubCanvases();
+  try {
+    const first = takeStage(64, 64)!;
+    first.ctx.imageSmoothingEnabled = false;
+    first.ctx.imageSmoothingQuality = 'high';
+    releaseStage(first);
+    const next = takeStage(64, 64)!;
+    assert.equal(next.canvas, first.canvas, 'same-size reuse exercises the uncleared context');
+    assert.equal(next.ctx.imageSmoothingEnabled, true);
+    assert.equal(next.ctx.imageSmoothingQuality, 'low');
+    releaseStage(next);
+  } finally { _resetBlurPool(); done(); }
+});
+
 test('takeStage hands back a CLEARED scratch at identity, resized in place', () => {
   const { done } = useStubCanvases();
   try {
