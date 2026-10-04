@@ -3,6 +3,7 @@ import { updateRouteParams } from '../lib/url-state.ts';
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
+import { mountLocalProjectAsset, localProjectAssetHref } from './projects-asset-view.ts';
 /**
  * Projects view (route /p and /p/<folderId>).
  *
@@ -578,6 +579,8 @@ export async function mountProjects(
     searchCache = null;   // recompute matches once for this render (sort/data may have changed); the two callers below then share it
     pruneSelection();     // forget refs that vanished since the last render
     viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
+    const assetId = !sharedFolder ? new URLSearchParams(opts.params || '').get('asset') : null;
+    if (assetId) mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
     wire();
     shared.afterRender({ query, list: viewMode === 'list', sort: sortBy, reversed: sortRev });
     scenePreviews.refresh(entries);
@@ -780,6 +783,7 @@ export async function mountProjects(
       ...sessions.map(e => sessionTile(e, sessionTileOpts(e))),
       ...images.map(a => imageTile(a, {
         selectable: true, selected: isSelected(a.id),
+        href: localProjectAssetHref(id, a.id),
         sub: a.id.startsWith('user/') ? t('Image') : t('Catalog image'),
       })),
     ].join('');
@@ -1192,9 +1196,9 @@ export async function mountProjects(
       const os = t.closest<HTMLElement>('[data-open-session]');
       if (os) { e.preventDefault(); resumeSession(os.dataset.openSession!); return; }
 
-      // Open a folder image (catalog reference or your upload) in a lightbox preview.
+      // Open a folder asset on its page, retaining the folder in the address.
       const oi = t.closest<HTMLElement>('[data-open-image]');
-      if (oi) { openImagePreview(oi.dataset.openImage!); return; }
+      if (oi) { e.preventDefault(); openImagePreview(oi.dataset.openImage!); return; }
 
       // A tap on a preview-ribbon tile resumes that session. The Featured strip's own
       // capture-phase handler has already swallowed a drag / a Cover-Flow re-centre before
@@ -1719,21 +1723,9 @@ export async function mountProjects(
     });
   }
 
-  // A lightbox preview for a folder image - the resolved AssetRef carries the url + name.
-  // Modal chrome + Escape-to-close come from mountModal (matching the app-wide convention).
+  // Asset pages share the folder's route and survive refresh and browser history.
   function openImagePreview(ref: string): void {
-    const a = imageRefs.get(ref);
-    if (!a?.url) return;
-    const name = String(a.meta?.name ?? '');
-    const modal = mountModal<void>(
-      `<figure class="projects-imgpreview">
-        <img src="${escape(a.url)}" alt="${escape(name)}" decoding="async">
-        ${name ? `<figcaption>${escape(name)}</figcaption>` : ''}
-      </figure>`,
-      { className: 'projects-imgpreview-modal', ariaLabel: name || t('Image preview') },
-    );
-    overlayModal = modal;
-    modal.el.querySelector('.projects-imgpreview')?.addEventListener('click', () => modal.close());
+    if (imageRefs.has(ref)) window.location.hash = localProjectAssetHref(folderId, ref);
   }
 
   // Open the per-tile context menu from a ⋯ kebab button (anchored below it, with the

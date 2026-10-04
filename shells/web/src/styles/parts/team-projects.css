@@ -47,3 +47,9 @@
 .team-files-name { flex: 1; min-inline-size: 8rem; overflow-wrap: anywhere; font-size: var(--ui-type-body); }
 .team-files-in-use { flex-basis: 100%; padding: var(--sp-3); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-surface); }
 .team-files-uses { margin: var(--sp-2) 0; padding-inline-start: var(--sp-4); }
+.team-project-asset { display: grid; gap: var(--sp-3); justify-items: start; min-width: 0; }
+.team-project-asset h3 { margin: 0; overflow-wrap: anywhere; max-width: 100%; }
+.team-project-asset-preview { width: 100%; border-radius: var(--ui-radius-surface); overflow: hidden; background: var(--ui-color-surface-canvas); }
+.team-project-asset-preview :is(img, video) { display: block; max-width: 100%; max-height: 65dvh; margin-inline: auto; object-fit: contain; }
+.team-project-asset-preview audio { width: 100%; }
+.folder-tile[data-kind="team-file"] img.tile-cover { object-fit: contain; background: var(--ui-color-surface-canvas); }

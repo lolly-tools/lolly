@@ -13,6 +13,25 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createAssetsAPI, typeMatches, withoutReservedMeta } from './assets.ts';
 
+test('provider catalog queries retain small thumbnails and source metadata without fetching originals', async context => {
+  context.mock.method(globalThis, 'fetch', async () => { throw new Error('A catalog query must not download files'); });
+  const common = { provider: 'brand', tier: 'on-demand', version: 'upstream1', description: 'From the shared brand library', tags: ['provider:brand'] };
+  const rows = [
+    { ...common, id: 'ext/brand/photo', type: 'raster', name: 'Photo', formats: [{ format: 'jpeg', url: '/photo.jpeg' }, { format: 'thumb', url: '/photo-thumb' }] },
+    { ...common, id: 'ext/brand/logo', type: 'vector', name: 'Logo', formats: [{ format: 'eps', url: '/source.eps' }, { format: 'svg', url: '/logo.svg' }, { format: 'thumb', url: '/logo-thumb' }] },
+    { ...common, id: 'ext/brand/movie', type: 'video', name: 'Movie', formats: [{ format: 'mp4', url: '/movie.mp4' }, { format: 'thumb', url: '/movie-thumb' }] },
+  ];
+  const refs = await createAssetsAPI({ getAll: async () => rows } as never).query();
+  assert.deepEqual(refs.map(ref => ref.url), ['/photo.jpeg', '/logo.svg', '/movie.mp4']);
+  assert.deepEqual(refs.map(ref => ref.meta?.thumbUrl), ['/photo-thumb', '/logo-thumb', '/movie-thumb']);
+  assert.equal(refs[2]?.meta?.posterUrl, '/movie-thumb');
+  for (const ref of refs) {
+    assert.equal(ref.meta?.provider, 'brand');
+    assert.equal(ref.meta?.description, common.description);
+    assert.equal(ref.version, 'upstream1');
+  }
+});
+
 test('verified catalog bytes remain usable when the browser cannot cache a Blob', async context => {
   const body = '{"emoji":"pack"}';
   const checksum = `sha256-${createHash('sha256').update(body).digest('base64')}`;

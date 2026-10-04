@@ -18,6 +18,8 @@ import { getInstanceBase } from '../lib/instance.ts';
 import { openTeamSession, teamOpenMessage } from './team-open.ts';
 import { noteProjectOpened } from './opened-projects.ts';
 import { buildTeamFilesPanel } from './team-files-panel.ts';
+import { listTeamFiles, teamFileMessage } from './team-files.ts';
+import { buildProjectAsset, teamAssetTiles } from './team-project-assets.ts';
 import { hydrateSharedPreviews } from './team-previews.ts';
 import { tokenize } from '../lib/search/match.ts';
 import { buildFolderHaystack, matchesHaystack } from '../lib/search/projects-source.ts';
@@ -39,6 +41,7 @@ interface ProjectViewOptions {
   list?: boolean;
   sort?: string;
   reversed?: boolean;
+  assetId?: string;
 }
 
 export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOptions): () => void {
@@ -121,7 +124,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       const link = node('a', label, 'btn btn--sm btn--ghost'); link.href = `#/p?team=${encodeURIComponent(project.id)}&tab=${tab}`;
       if (opts.tab === tab || opts.tab === 'sessions' && tab === 'sessions') link.setAttribute('aria-current', 'page'); tabs.append(link);
     };
-    addTab(tRaw('Sessions'), 'sessions');
+    addTab(tRaw('Contents'), 'sessions');
     if (peopleAccess(project.myRole, invitePolicy(orgConfig())) !== 'hidden') addTab(tRaw('People'), 'people');
     if (orgConfig()?.sharing?.projectFiles) addTab(tRaw('Files'), 'files');
     const notice = node('p', undefined, 'team-project-notice'); notice.setAttribute('role', 'status');
@@ -132,28 +135,38 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (opts.tab === 'files' && orgConfig()?.sharing?.projectFiles) {
       content.append(buildTeamFilesPanel({ projectId: project.id, canUpload: canWrite, canManage: isManagerPlus(projectRole), onBack: () => { window.location.hash = `#/p?team=${encodeURIComponent(project.id)}`; } })); return;
     }
-    const got = await readSourceSessions(source!, project.id);
+    const [got, assets] = await Promise.all([
+      readSourceSessions(source!, project.id),
+      orgConfig()?.sharing?.projectFiles ? listTeamFiles(project.id).then(data => ({ files: data.files, error: '' }), error => ({ files: [], error: teamFileMessage(error, 'list') })) : Promise.resolve({ files: [], error: '' }),
+    ]);
     if (!current() || my !== ticket) return;
     if (!got.ok) { content.append(node('p', teamOpenMessage(got.status), 'team-project-notice'), button(tRaw('Try again'), () => { void load(); })); return; }
+    if (assets.error) content.append(node('p', assets.error, 'team-project-notice'), button(tRaw('Try again'), () => { void load(); }));
+    if (opts.assetId) {
+      const file = assets.files.find(file => file.id === opts.assetId);
+      content.append(file ? buildProjectAsset(project.id, file) : node('p', tRaw('This asset is unavailable. Return to the project or refresh to check your access.'), 'team-project-notice'));
+      return;
+    }
     const tokens = tokenize(opts.query || '');
     const sessions = got.items.filter(session => !tokens.length || matchesHaystack(buildFolderHaystack(`${session.label || ''} ${opts.toolName(session.toolId)}`), tokens));
     sessions.sort((a, b) => (opts.reversed ? -1 : 1) * (opts.sort === 'name' ? (a.label || a.toolId).localeCompare(b.label || b.toolId) : opts.sort === 'tool' ? opts.toolName(a.toolId).localeCompare(opts.toolName(b.toolId)) : (b.updatedAt || '').localeCompare(a.updatedAt || '')));
     const grid = node('div', undefined, `folder-grid projects-grid${opts.list ? ' projects-list' : ''}`);
+    const files = assets.files.filter(file => !tokens.length || matchesHaystack(buildFolderHaystack(file.name), tokens));
     grid.innerHTML = sessions.map(session => {
       const name = session.label || opts.toolName(session.toolId) || session.toolId;
       return sessionTile({ slot: session.id, toolId: session.toolId, label: name, updatedAt: session.updatedAt }, {
         toolName: opts.toolName(session.toolId), href: `#/team/${encodeURIComponent(session.id)}`,
         shared: { subtitle: [opts.toolName(session.toolId), activityLabel(session)].filter(Boolean).join(' · '), openLabel: tRaw('Open shared session {name}', { name }) },
       });
-    }).join('');
+    }).join('') + teamAssetTiles(project.id, files);
     applyCardSize(grid, readCardSize('projects'));
-    for (const tile of grid.querySelectorAll<HTMLElement>('.folder-tile')) {
+    for (const tile of grid.querySelectorAll<HTMLElement>('.folder-tile[data-kind="team-session"]')) {
       const more = button(tRaw('Session actions'), () => {
         const rect = more.getBoundingClientRect(); sessionMenu?.openAt(rect.right, rect.bottom, { ref: tile.dataset.ref!, tile }, more);
       });
       more.className = 'tile-menu-btn'; more.innerHTML = icon('menu'); more.setAttribute('aria-label', tRaw('Session actions')); more.setAttribute('aria-haspopup', 'menu'); tile.append(more);
     }
-    sessionMenu = wireTileContextMenu({ host: grid, tileSelector: '.folder-tile[data-ref]', refOf: tile => tile.dataset.ref ?? null,
+    sessionMenu = wireTileContextMenu({ host: grid, tileSelector: '.folder-tile[data-kind="team-session"][data-ref]', refOf: tile => tile.dataset.ref ?? null,
       singleHtml: () => (isManagerPlus(projectRole) ? menuItemHtml('invite', icon('users'), tRaw('Share')) + menuItemHtml('invite', icon('link'), tRaw('Copy invite link')) : '')
         + menuItemHtml('copy', icon('link'), tRaw('Copy session link'))
         + (canWrite ? menuItemHtml('rename', icon('pen'), tRaw('Rename')) : '')
@@ -192,7 +205,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
       event.preventDefault(); event.stopPropagation(); void open(link.dataset.openTeamSession!, notice);
     }, { signal: abort.signal });
-    content.append(sessions.length ? grid : node('p', tokens.length ? tRaw('No shared sessions match your search.') : tRaw('No sessions yet. Create one to start working together.'), 'team-project-empty'));
+    content.append(sessions.length || files.length ? grid : node('p', tokens.length ? tRaw('No shared sessions or assets match your search.') : tRaw('No sessions or assets yet. Create a session or add files to start working together.'), 'team-project-empty'));
     clearPreviews = hydrateSharedPreviews(grid, source!, opts.host, current);
 
     function showNewSession(): void {

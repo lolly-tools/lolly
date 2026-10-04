@@ -26,6 +26,13 @@ for (const k of ['window', 'document', 'DOMParser', 'HTMLElement', 'Element', 'N
 }
 
 const { emojiPackMeta, emojiPackPin, emojiPackSource, gridAdmits, isCanonicalGlyphKey } = await import('./shared.ts');
+
+test('the connected library exposes provider documents, fonts, audio and metadata alongside images', () => {
+  for (const type of ['raster', 'vector', 'video', 'audio', 'font', 'data', 'text']) {
+    assert.equal(gridAdmits({ source: 'library', id: 'ext/brand/file', type, format: 'bin', url: '/file', meta: { provider: 'brand' } } as AssetRef), true, type);
+  }
+  assert.equal(gridAdmits({ source: 'library', id: 'brand/tokens', type: 'tokens', format: 'json', url: '/tokens', meta: {} } as AssetRef), false, 'internal pack data stays out of the browsing grid');
+});
 const { CANONICAL_EMOJI_GLYPHS, assetRightsRows, emojiPackRows, useEmojiSet } = await import('./details-sheet.ts');
 const { thumbHtml } = await import('./thumbs.ts');
 const { haystack, matchesQuery } = await import('./filters.ts');

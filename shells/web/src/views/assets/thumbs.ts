@@ -41,6 +41,10 @@ import { bindOp, type CatCtx } from './context.ts';
 // otherwise a plain <img>/<div>. Both are used: tiles nest it in the open-details button.
 export function thumbHtml(cat: CatCtx, ref: AssetRef, asSpan = false, full = false): string {
   const tag = asSpan ? 'span' : 'div';
+  if (ref.meta?.provider && typeof ref.meta.thumbUrl === 'string' && ref.meta.thumbUrl
+    && (!full || ref.type === 'font' || ref.type === 'data')) {
+    return `<img class="cat-thumb" src="${escapeText(ref.meta.thumbUrl)}" alt="" loading="lazy" decoding="async">`;
+  }
   if (ref.meta?._placeholder) return `<${tag} class="cat-thumb cat-thumb-stub">${escapeText(ref.type)}</${tag}>`;
   // A brand PALETTE asset. Its swatches are the live brand palette (the same
   // source the Swatches panel paints from), so it needs no fetch. A grid tile is
