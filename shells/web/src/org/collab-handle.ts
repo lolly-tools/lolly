@@ -436,7 +436,8 @@ export function createWorkCollabHandle(
     get role(): CollabRole {
       // Fail closed, exactly as the provider reads the ack: anything that is not a
       // stated writer is an observer.
-      return provider.state().role === 'writer' ? 'writer' : 'observer';
+      const state = provider.state();
+      return state.role === 'writer' && state.status !== 'closed' ? 'writer' : 'observer';
     },
 
     // hostClientId is deliberately ABSENT - a work collab has no host (header).
