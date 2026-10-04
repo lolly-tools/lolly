@@ -35,6 +35,30 @@ beforeEach(async () => {
   const newContext = browser.newContext.bind(browser);
   browser.newContext = async options => {
     const context = await newContext(options);
+    await context.addInitScript(() => {
+      const estimate = navigator.storage?.estimate?.bind(navigator.storage);
+      if (estimate) navigator.storage.estimate = async () => {
+        console.debug('Open diagnostic: storage estimate started');
+        const value = await estimate();
+        console.debug('Open diagnostic: storage estimate finished');
+        return value;
+      };
+      const bytes = Blob.prototype.arrayBuffer;
+      Blob.prototype.arrayBuffer = async function () {
+        console.debug('Open diagnostic: blob read started', this.size);
+        const value = await bytes.call(this);
+        console.debug('Open diagnostic: blob read finished', this.size);
+        return value;
+      };
+      window.addEventListener('lolly:navigate', () => console.debug('Open diagnostic: navigation', location.href));
+      document.addEventListener('DOMContentLoaded', () => {
+        const view = document.getElementById('view');
+        if (!view) return;
+        new MutationObserver(() => {
+          if (location.hash === '#/open') console.debug('Open diagnostic: route status', document.body.innerText.slice(-500));
+        }).observe(view, { childList: true, subtree: true });
+      });
+    });
     const close = context.close.bind(context);
     context.close = async options => {
       for (const page of context.pages()) {
