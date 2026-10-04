@@ -16,6 +16,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildDesignLolly } from '../packages/node-shell/src/rebrand/pipeline.ts';
+import { settleEditor } from '../packages/node-shell/src/open-session.ts';
 import { closeBrowser, getBrowser } from '../packages/node-shell/src/browsers.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
@@ -64,6 +65,7 @@ test('a saved theme reaches the address and canvas on reopen, and the Document c
       route.fulfill({ status: 200, body: Buffer.from(bytes), contentType: 'application/vnd.lolly+zip', headers: { 'Cache-Control': 'no-store' } }));
     await page.goto(`${root}/#/open?lolly=${encodeURIComponent(path)}`, { waitUntil: 'load' });
     await page.waitForFunction(() => !!(window as unknown as { lolly?: { document?: unknown } }).lolly?.document && !!document.querySelector('#tool-canvas'), undefined, { timeout: 120_000 });
+    await settleEditor(page, 120_000);
     {
       const themesInAddress = (): Promise<string | null> => page.evaluate(() => {
         const hash = location.hash;
