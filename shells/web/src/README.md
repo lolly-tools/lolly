@@ -9,7 +9,7 @@ Roughly 703,000 lines of TypeScript, tests included, and 58,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 458 files, 191,286 lines | 215 files, 73,942 lines | 6 files, 1,427 lines |
+| `views/` | 458 files, 191,289 lines | 215 files, 73,946 lines | 6 files, 1,427 lines |
 | `lib/` | 718 files, 155,281 lines | 407 files, 83,494 lines | 12 files, 1,804 lines |
 | `bridge/` | 199 files, 51,774 lines | 118 files, 25,026 lines | none |
 | `components/` | 96 files, 25,358 lines | 46 files, 12,277 lines | 16 files, 1,023 lines |
@@ -76,7 +76,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,315 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 2,256 | `main.ts` | yes |
 | 2,239 | `lib/drop-router.ts` | yes |
-| 2,146 | `views/present-mode.ts` | yes |
+| 2,149 | `views/present-mode.ts` | yes |
 | 2,103 | `lib/clip-thumbs.ts` | yes |
 <!-- web-src-largest:end -->
 

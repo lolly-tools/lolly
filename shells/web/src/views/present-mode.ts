@@ -879,6 +879,9 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
       // the audience an empty canvas rushing past.
       clone.toggleAttribute('hidden', st.hidden && !overview && !inFlight(st.index));
       clone.setAttribute('aria-hidden', st.state === 'present' ? 'false' : 'true');
+      // Faded neighbours remain mounted for transitions, but must never intercept
+      // the active slide's web controls or receive keyboard focus.
+      clone.inert = st.state !== 'present' && !overview;
       clone.tabIndex = st.state === 'present' ? 0 : -1;
       // Builds: the active slide reveals up to `build`; every other slide shows all its
       // fragments (a past slide is complete; a future one arrives complete then resets to 0
@@ -1862,7 +1865,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     if (on) {
       // Everything visible in the map; recompute positions, drop hidden. Media + kiosk
       // dwell pause while the map is up (a wall of playing videos would be chaos).
-      for (const c of cloneByIndex) c.removeAttribute('hidden');
+      for (const c of cloneByIndex) { c.removeAttribute('hidden'); c.inert = false; }
       layoutScales();
       conductMedia();
       clearAdvance();
