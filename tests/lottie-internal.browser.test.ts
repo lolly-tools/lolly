@@ -15,7 +15,10 @@ test('nested layer/property edits, curves, undo, independent duplicates and save
 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
   const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
-  await context.addInitScript(() => { Object.defineProperty(window, 'showSaveFilePicker', { value: undefined }); });
+  await context.addInitScript(() => {
+    Object.defineProperty(window, 'showSaveFilePicker', { value: undefined });
+    localStorage.setItem('lolly-welcome-dismissed', '1');
+  });
   const page = await context.newPage(); page.setDefaultTimeout(30000);
   const source = nestedLottie(); delete source.layers[0]!.tm;
   const child = (source.assets![0]!.layers as LottieObject[])[0]!;
