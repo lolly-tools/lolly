@@ -291,6 +291,8 @@ export const SVG = {
     '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/>',
   sound:
     '<path d="M4 9.5h3L11 6v12l-4-3.5H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18 6.7a7.5 7.5 0 0 1 0 10.6"/>',
+  // Connect an AI agent (plans/289 D1): a spark with a plus.
+  agent: '<path d="M10 3.5l1.7 4.8 4.8 1.7-4.8 1.7L10 16.5l-1.7-4.8L3.5 10l4.8-1.7z"/><path d="M18 14v6"/><path d="M15 17h6"/>',
 };
 
 export function icon(paths: string): string {

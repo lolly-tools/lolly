@@ -10,13 +10,15 @@ import { t } from '../i18n.ts';
 import type { ModelPort } from './design-ports.ts';
 import type { Box } from './free-canvas-math.ts';
 import type { Runtime } from '../../../../engine/src/runtime.ts';
-import { withTokenSelection } from '../../../../engine/src/token-context.ts';
+import { liveThemedHost } from '../lib/document-theme.ts';
 
 /** Keep token actions on the canvas commit path, with explicit gesture boundaries. */
 export function designTokenInspectorOptions(runtime: Pick<Runtime, 'getModel' | 'tokenSelection'>, host: HostV1, model: ModelPort, history: { endGesture(): void }, fields: unknown[]): { fields: unknown[]; tokens?: Pick<DesignTokenBindingOptions, 'host' | 'metadataField' | 'commit'> } {
   const metadataField = runtime.getModel().find(input => input.id === model.blockId)?.tokenBindingsField;
   if (!metadataField) return { fields };
-  return { fields, tokens: { host: runtime.tokenSelection ? withTokenSelection(host, runtime.tokenSelection) : host, metadataField, commit: rows => {
+  // Live, not captured: the inspector outlives a theme switch, and a link made after
+  // one must store the value of the theme the document shows then (plan 291 W4).
+  return { fields, tokens: { host: liveThemedHost(host, runtime), metadataField, commit: rows => {
     history.endGesture();
     try { model.commit(rows); } finally { history.endGesture(); }
   } } };

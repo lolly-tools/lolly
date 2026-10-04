@@ -513,12 +513,51 @@
       },
       "description": "A colour with provenance: a theme slot reference keeps its slot name beside the resolved hex."
     },
+    "sourceGradient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stops"
+      ],
+      "properties": {
+        "stops": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pos",
+              "color"
+            ],
+            "properties": {
+              "pos": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "color": {
+                "$ref": "#/$defs/sourceColor"
+              }
+            }
+          }
+        },
+        "angle": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        }
+      },
+      "description": "A gradient fill as the source stated it: stops in position order, each colour keeping its alpha, and a CSS angle for a linear one."
+    },
     "sourceKind": {
       "enum": [
         "pptx",
         "pdf",
         "image",
-        "docx"
+        "docx",
+        "psd"
       ]
     },
     "sourceMeta": {
@@ -652,6 +691,9 @@
         },
         "fill": {
           "$ref": "#/$defs/sourceColor"
+        },
+        "fillGradient": {
+          "$ref": "#/$defs/sourceGradient"
         },
         "line": {
           "type": "object",
@@ -969,7 +1011,8 @@
         "video-dropped",
         "notes-dropped",
         "metafile-not-converted",
-        "vector-budget-reached"
+        "vector-budget-reached",
+        "feature-dropped"
       ]
     },
     "vectorBox": {

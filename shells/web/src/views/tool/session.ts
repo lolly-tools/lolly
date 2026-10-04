@@ -8,7 +8,7 @@
  * from mountTool() by scripts/split-closure.ts.
  */
 import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
-import { copyWorkspaceParams, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
+import { copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
 import { encodeAddressModelParam } from '../../lib/url-budget.ts';
 import type { FontStyleSlice } from '../../bridge/text-svg.ts';
 import { designTokenInspectorOptions } from '../design-token-bindings.ts';
@@ -25,7 +25,8 @@ import { DESIGN_INTENT_OPTIONS, designNarrationEnabled, designOutcome, designTim
 import { backHomeHtml, mountBackPill } from '../../components/back-pill.ts';
 import { mountHomeFab } from '../../components/home-fab.ts';
 import { t, tRaw } from '../../i18n.ts';
-import { isTauriShell } from '../../lib/instance-choice.ts';
+import { isTauriMobileShell, isTauriShell } from '../../lib/instance-choice.ts';
+import { tauriInvoke } from '../../lib/nearby-boot.ts';
 import { announce } from '../../a11y.ts';
 import { edgeDockCollapsed, isDocked, onDockChange } from '../../lib/edge-dock.ts';
 import { AUTO_PACK_MIN, BROWSER_TARGET, costUrlState } from '../../lib/url-budget.ts';
@@ -37,6 +38,7 @@ import { fmtBytes, openEmbedEditor } from '../tool-inputs.ts';
 import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog, showUnsavedDialog, shrinkUrl, wireUpCopyUrl } from './shared.ts';
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
+import { createDocumentThemeController } from '../../lib/document-theme.ts';
 
 async function resolveDesignFont(tview: ToolViewCtx, style: FontStyleSlice, text: string): Promise<boolean> {
   const { fontCoversText } = await import('../../bridge/font-coverage.ts');
@@ -187,14 +189,15 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
   // and only if packing is available AND genuinely shorter. Async + seq-guarded so
   // a slow pack from an older keystroke can never clobber a newer bar.
   if (qs.length >= AUTO_PACK_MIN && isPackAvailable()) {
-    const packedParams = new URLSearchParams(params);
-    for (const key of WORKSPACE_PARAMS) packedParams.delete(key);
+    // `_themes` stays readable beside the token: the web token bridge reads it plain.
+    const packedParams = packableContent(params);
     packQuery(packedParams.toString())
       .then((token) => {
       const { TOOL_URL_BASE, barSeq } = tview;
         if (token == null || seq !== barSeq.v) return; // unavailable, or superseded
         const latest = new URLSearchParams({ [PACK_PARAM]: token });
         copyWorkspaceParams(latest, routeParams());
+        copyBesidePackParams(latest, params);
         const packed = latest.toString();
         if (packed.length >= qs.length) return; // packing didn't help - keep readable
         replaceRouteUrl(`${TOOL_URL_BASE}?${packed}`);
@@ -1205,6 +1208,90 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         const profileApi = tview.host.profile as typeof tview.host.profile & {
           set?: (p: Profile) => Promise<void>;
         };
+        // AI agents in this document (plans/289 D1). In a browser the tab pairs with a
+        // code (agentLink); in the desktop app the app listens while Allow AI control
+        // is on and this view answers (desktopServing). Both end with the view.
+        const desktopAgents = isTauriShell() && !isTauriMobileShell();
+        let agentLink: import('../../lib/live-agent-connect.ts').AgentLink | null = null;
+        let desktopServing: import('../../lib/live-agent-desktop.ts').DesktopServing | null = null;
+        let desktopPill: import('../agent-connect.ts').AgentPill | null = null;
+        mountLifecycle.add('agent-link', () => { agentLink?.disconnect(); desktopServing?.stop(); desktopPill?.remove(); });
+        const liveEditorFactory = async () => {
+          const [{ designLiveEditor }, { ENGINE_VERSION, validateDocument }, { exportTargetNode }] = await Promise.all([
+            import('../design-live.ts'), import('@lolly/engine'), import('../../lib/export-target.ts'),
+          ]);
+          return () => designLiveEditor({
+            toolId,
+            engine: ENGINE_VERSION,
+            surface: desktopAgents ? 'desktop' : 'web',
+            runtime,
+            blockId: fc.design.model.blockId,
+            fields: fc.design.fields,
+            selection: () => fc.design.selection.get(),
+            size: () => ({ width: nativeW, height: nativeH }),
+            history: { commit: tview.history.commitInputs, top: () => tview.inputHistory.peekUndo(), undo: () => tview.history.undoHistory() },
+            readOnly: () => tview.collabHandle?.role === 'observer',
+            label: (note) => tRaw('AI agent: {note}', { note }),
+            validateInputs: (value) => validateDocument({ kind: 'inputs', manifest: tview.tool.manifest, value }),
+            exportSvg: () => tview.exporting.exportUnscaled(
+              () => runtime.export(exportTargetNode(canvasEl) ?? canvasEl, 'svg', { width: nativeW, height: nativeH, embedMeta: false, watermark: false }),
+              { shutter: false },
+            ),
+          });
+        };
+        const startDesktopServing = async (): Promise<void> => {
+          const invoke = tauriInvoke();
+          if (!invoke || desktopServing || !viewEl.isConnected) return;
+          const [{ serveDesktop, setListener }, { mountAgentPill }, editor] = await Promise.all([
+            import('../../lib/live-agent-desktop.ts'), import('../agent-connect.ts'), liveEditorFactory(),
+          ]);
+          if (!viewEl.isConnected || desktopServing) return;
+          await setListener(invoke, true);
+          const serving = serveDesktop(invoke, editor, {
+            onActivity: (event) => {
+              if (event.method === 'hello' && !desktopPill) {
+                desktopPill = mountAgentPill(viewEl, {
+                  client: () => serving.session().client(),
+                  disconnect: () => { serving.disconnect(); desktopPill?.remove(); desktopPill = null; announce(t('The AI agent was disconnected.')); },
+                });
+              }
+              desktopPill?.activity(event.method, event.note);
+            },
+          });
+          desktopServing = serving;
+        };
+        if (desktopAgents && toolId === 'design' && !isPresent) {
+          void import('../../lib/live-agent-desktop.ts').then(({ allowAiControl }) => { if (allowAiControl()) void startDesktopServing().catch(() => {}); });
+        }
+        const openAgentLink = async (): Promise<void> => {
+          if (desktopAgents) {
+            const [{ openAgentControl }, { allowAiControl, setAllowAiControlPref, setListener }] = await Promise.all([
+              import('../agent-connect.ts'), import('../../lib/live-agent-desktop.ts'),
+            ]);
+            if (!viewEl.isConnected) return;
+            openAgentControl({
+              allowed: allowAiControl,
+              async setAllowed(on) {
+                const invoke = tauriInvoke();
+                if (!invoke) throw new Error(t('This build cannot listen for agents.'));
+                if (on) { setAllowAiControlPref(true); await startDesktopServing(); return; }
+                setAllowAiControlPref(false);
+                desktopServing?.stop();
+                desktopServing = null;
+                desktopPill?.remove();
+                desktopPill = null;
+                await setListener(invoke, false);
+              },
+              connectedClient: () => (desktopServing?.session().connected() ? desktopServing.session().client() : ''),
+              disconnect: () => { desktopServing?.disconnect(); desktopPill?.remove(); desktopPill = null; },
+              renew: () => desktopServing?.renew(),
+            });
+            return;
+          }
+          const [{ openAgentConnect }, editor] = await Promise.all([import('../agent-connect.ts'), liveEditorFactory()]);
+          if (!viewEl.isConnected) return;
+          openAgentConnect({ viewEl, link: () => agentLink, setLink: (link) => { agentLink = link; }, editor });
+        };
         const fc = initFreeCanvas({
           viewEl,
           stageEl,
@@ -1362,6 +1449,17 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             bulk: canBulk
               ? () => {
                   tview.session.openBulk();
+                }
+              : undefined,
+            // Connect an AI agent (plans/289 D1): Design only, because the agent's
+            // vocabulary is Design's layer operations. The module loads on first use.
+            // Offered in the desktop app (its own listener), and in a browser only where
+            // the tab may reach loopback: a development build, or a build made with
+            // VITE_LIVE_AGENT=1 whose CSP allows ws://127.0.0.1 (the served CSPs do not
+            // yet; widening them is a reviewed security change).
+            agent: toolId === 'design' && !isPresent && (desktopAgents || !import.meta.env?.PROD || import.meta.env?.VITE_LIVE_AGENT === '1')
+              ? () => {
+                  void openAgentLink();
                 }
               : undefined,
             canSave: canSaveSession,
@@ -1667,9 +1765,18 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               value: emojiDocumentStyle,
               onChange: setEmojiDocumentStyle,
             } : undefined;
+            // The theme the document is shown in (plan 291 W4): runtime, address, canvas
+            // variables and saved session move together (lib/document-theme.ts).
+            const documentTheme = createDocumentThemeController({
+              runtime, host: tview.host, canvas: () => tview.contentEl ?? null,
+              markDirty: () => { markUserDirty(tview); syncUrl(tview); },
+              onChange: () => designInspector?.sync(),
+            });
+            tview.mountLifecycle.add('document theme', () => documentTheme.dispose());
             designInspector = initDesignInspector({
               stageEl,
               ...(emojiPort ? { emoji: emojiPort } : {}),
+              theme: documentTheme,
               canvasEl,
               model: design.model,
               selection: design.selection,

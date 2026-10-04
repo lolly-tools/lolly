@@ -3,8 +3,9 @@
  * The host-side half of the renovation journey (plan 274): read a source file
  * into the stage-1 `SourceDeckV1` model.
  *
- * `sourceDeckFromPptx` reads a PowerPoint package and `sourceDeckFromPdf` a PDF,
- * over the page walk in `../pdf-read.ts`.
+ * `sourceDeckFromPptx` reads a PowerPoint package, `sourceDeckFromPdf` a PDF,
+ * over the page walk in `../pdf-read.ts`, and `sourceDeckFromPsd` a Photoshop
+ * document as one slide (plans/289 D2).
  *
  * Everything past stage 1 that is pure lives in the engine
  * (`engine/src/deck-compile.ts`, `engine/src/rebrand-report.ts`). What belongs
@@ -44,6 +45,8 @@ export {
   type SourcePdfCapsV1,
 } from './source-pdf.ts';
 
+export { sourceDeckFromPsd, PSD_SLIDE_ID, type SourcePsdOptsV1 } from './source-psd.ts';
+
 export {
   readDeck,
   planDeck,
@@ -68,6 +71,7 @@ export {
   RebrandPipelineError,
   PIPELINE_READER,
   PDF_PIPELINE_READER,
+  PSD_PIPELINE_READER,
   pipelineReaderFor,
   decodePipelinePicture,
   FLATTENED_MAX_PIXELS,

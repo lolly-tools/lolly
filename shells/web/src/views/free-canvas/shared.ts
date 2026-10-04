@@ -367,6 +367,8 @@ export interface HistoryApi {
   /** Automatic history's change signal, for a user action that writes through
    *  `applyPatch` and so goes round the tool view's setInput wrapper (plan 277 P4). */
   changed?(): void;
+  /** The entry the next undo would take, by identity (plans/289 D1: an agent undoes only its own). */
+  top?(): object | null;
 }
 
 /**
@@ -480,6 +482,7 @@ export interface ToolbarActions {
   present?(atFrameId?: string): void;
   newFromTemplate?(): void; // re-open the Start template chooser mid-session (plans/142 WP-1); absent = the tool has no templates, shipped or the person's own (plans/226 WP-1)
   bulk?(): void; // hand this template to /batch (plans/147 M1); absent = the batch can't run this tool
+  agent?(): void; // Connect an AI agent (plans/289 D1); absent = this tool takes no live agent
   canSave?: boolean; // omit the Save icon for tools that don't persist a session
   dirtyRef?: HTMLElement | null; // element whose `is-unsaved` class the Save icon mirrors
 }

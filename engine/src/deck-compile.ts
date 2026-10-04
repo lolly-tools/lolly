@@ -41,6 +41,7 @@
  */
 
 import { slideContentGroups, slideLayoutRecipe, withSlideLayoutComponents } from './slide-layout-components.ts';
+import { formatGradientSpec } from './gradient-spec.ts';
 import type {
   AlgorithmVersionsV1,
   ArchetypeIdV1,
@@ -69,6 +70,7 @@ import type {
   SlideSourceV1,
   SourceDeckV1,
   SourceObjectKindV1,
+  SourceGradientV1,
   SourceObjectV1,
   SourceParaV1,
   SourceRunV1,
@@ -315,6 +317,9 @@ function reportCodeForWarning(code: SourceWarningCodeV1): ReportCodeV1 {
       return 'source.media-skipped';
     case 'gradient-flattened':
     case 'group-transform-approximated':
+    // A kept object that lost a property (a Photoshop layer effect, say) is
+    // approximated, not removed.
+    case 'feature-dropped':
       return 'object.transformed';
     // A metafile and a drawing past the deck budget both arrived and stayed pictures
     // (plan 275 decision 32): the report says so in the drawing's own words.
@@ -432,6 +437,37 @@ function keptReason(object: SourceObjectV1): string {
   if (object.fidelity.reason === 'geometry-approximation') return 'geometry';
   if (object.vectorItems?.omitted?.some((o) => o.reason === 'cap-reached')) return 'cap-reached';
   return 'not-read';
+}
+
+/**
+ * A source gradient as a Design `grad` spec (plan 291 section 6), or null when a stop
+ * has no resolved colour. Interpolated in sRGB, as PowerPoint draws it, each stop
+ * written `#rrggbbaa` when it is translucent, so a scrim keeps the alpha of every stop.
+ * A gradient with no angle (a path gradient) is drawn radial from the centre.
+ */
+function sourceGradSpec(gradient: SourceGradientV1): string | null {
+  const stops: Array<{ color: string; pos: number }> = [];
+  for (const stop of gradient.stops) {
+    const hex = stop.color.hex;
+    if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return null;
+    const alpha = stop.color.alpha;
+    const a = typeof alpha === 'number' && alpha < 1 ? Math.max(0, Math.min(255, Math.round(alpha * 255))).toString(16).padStart(2, '0') : '';
+    stops.push({ color: `${hex.toLowerCase()}${a}`, pos: Math.max(0, Math.min(100, stop.pos * 100)) });
+  }
+  if (stops.length < 2) return null;
+  const linear = typeof gradient.angle === 'number' && Number.isFinite(gradient.angle);
+  return formatGradientSpec({ kind: linear ? 'linear' : 'radial', angle: linear ? gradient.angle! : 0, stops, space: 'srgb' });
+}
+
+/**
+ * A source object's fill on its faithful row: the whole gradient as `grad` when the
+ * source filled it with one (no `bg` under it, since Design paints `bg` beneath the
+ * gradient and a transparent stop would show it), else the flat colour.
+ */
+function paintSourceFill(row: DesignBoxRowV1, object: SourceObjectV1): void {
+  const spec = object.fillGradient ? sourceGradSpec(object.fillGradient) : null;
+  if (spec) row.grad = spec;
+  else if (object.fill?.hex) row.bg = object.fill.hex;
 }
 
 /** A drawing's rows written as `#rrggbb` or `#rrggbbaa`: the target takes the alpha the row's own colour had. */
@@ -811,13 +847,13 @@ export function compileFaithful(source: SourceDeckV1, opts: CompileFaithfulOptsV
         // Text read from a picture has a box tight to its ink, with no inset of its own.
         if (object.origin === 'raster-region') row.pad = 0;
         holdOneLine(row, object, { x: at.ox, w: frameW });
-        if (object.fill?.hex) row.bg = object.fill.hex;
+        paintSourceFill(row, object);
         if (rich.dropped.length > 0) droppedBy.set(object.id, rich.dropped);
       } else {
         row.kind = 'box';
         if (object.geom === 'ellipse') row.shape = 'ellipse';
         if (object.geom === 'roundRect') row.shape = 'rounded';
-        if (object.fill?.hex) row.bg = object.fill.hex;
+        paintSourceFill(row, object);
         if (object.line?.color?.hex) row.stroke = object.line.color.hex;
         if (object.line?.widthPt) row.strokeW = round2(object.line.widthPt * PT_TO_PX * at.sy);
       }

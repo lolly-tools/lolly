@@ -42,10 +42,12 @@ test('surfaces.md names every MCP tool the server registers', () => {
     ...TOOL_DEFS.map((t: { name: string }) => t.name),
     ...PRIVATE_FILE_TOOLS.map((t: { name: string }) => t.name),
   ];
-  // The 17 always-on tools plus the 5 scoped file tools; a change to either set
+  // The 21 always-on tools plus the 5 scoped file tools; a change to either set
   // must be reflected in the skill. (14 became 17 with the looking tools,
-  // plans/289: lolly_look, lolly_sample_color, lolly_trace_edges.)
-  assert.equal(names.length, 22, `expected 22 MCP tool names, saw ${names.length}: ${names.join(', ')}`);
+  // plans/289: lolly_look, lolly_sample_color, lolly_trace_edges; 17 became 19
+  // with lolly_read and lolly_check, plan 291; 19 became 20 with lolly_measure_text,
+  // plan 291 W5; 20 became 21 with lolly_compose, plan 291 W6.)
+  assert.equal(names.length, 26, `expected 26 MCP tool names, saw ${names.length}: ${names.join(', ')}`);
   for (const name of names) {
     assert.ok(surfaces.includes(`\`${name}\``), `surfaces.md does not document MCP tool ${name}`);
   }

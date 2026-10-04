@@ -1,6 +1,6 @@
 {
-  "name": "Rebranding",
-  "description": "Laden Sie eine PowerPoint-Präsentation hoch und richten Sie ihre Farben und Schriften an Ihrer Marke aus - neu aufgebaut auf Ihrem Gerät, nichts wird hochgeladen.",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "Deck-Rebrander für {{fileName}}",
   "inputs.source.label": "PowerPoint-Datei",
   "inputs.source.help": "Eine .pptx-Datei. Sie wird auf Ihrem Gerät gelesen und nie hochgeladen.",

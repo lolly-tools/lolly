@@ -1,6 +1,6 @@
 # Rebrand fixtures (plan 274 section 9, plan 275)
 
-Six synthetic files and their labels, built by `scripts/build-rebrand-fixtures.ts`
+Nine synthetic files and their labels, built by `scripts/build-rebrand-fixtures.ts`
 (`pnpm run build:rebrand-fixtures`) and committed. They are what the rebrand
 census, plan, compile and report tests read, so those tests run on every machine
 with nothing extra installed.
@@ -30,6 +30,8 @@ Each file stays under 400 KB.
 | `flattened.pdf` | Three pages, each one full-page image of a rendered slide and nothing else. A hand-written pdf: a library that stamps a creation date or a file id would defeat the rebuild check, and a real text renderer would make the bytes depend on the machine. The page titles are painted with a five by seven bitmap face declared in the builder, and each label carries the title as `text` so a recovery test reads its expectation as data. |
 | `formatting.pptx` | Plan 275 section 7: the run and paragraph formatting a renovation carries to Design. Three slides on one content layout whose master body style gives bullets on three levels. See below. |
 | `structures.pptx` | Plan 275 section 3: one slide per structure the layout matcher names, each labelled with its library id, the band a correct matcher reaches and its units. See below. |
+| `notes.pptx` | Plan 291 W2: speaker notes a flat reading merges. Slide 1's notes are one paragraph broken into lines by `a:br`, with a blank line inside it, then a second paragraph; its slide carries a 12 pt all-caps eyebrow above the title. Slide 2 has a full-bleed photograph and two plain notes paragraphs, slide 3 a 9 pt source line and no notes. The engine writer never emits `a:br`, so the builder writes slide 1's notes body by hand. `lolly read` and `tests/content-inventory.test.ts` read it. |
+| `recreate.pptx` | Plan 291 W10: the deck the recreation eval (`skills/lolly/evals/recreate.json`) hands an agent. Eight slides of invented copy, each setting a trap a branded rebuild has to see past. See below. |
 
 Each file has a sibling `<name>.labels.json`: the hand-authored ground truth for
 every object the builder wrote. Per object it states the id, the authored name,
@@ -118,6 +120,44 @@ assertion can compare directly and still read plainly when it fails.
 - A long URL in a run carrying `a:hlinkClick` to an external target.
 - A native `a:tbl` table.
 - A right-to-left Arabic paragraph and a Japanese paragraph.
+
+## What recreate.pptx carries
+
+Eight 16:9 slides on the content layout, with generated pictures only (no licensed
+photograph) and copy written for the fixture. `scripts/recreate-eval.ts` grades a
+rebuild of it, and its labels add three optional fields per slide: `archetype` (the
+neutral master archetype a rebuild would most likely compose the slide from),
+`alternatives`, and `traps` (each with the objects that make it, the `lolly check`
+codes a literal copy raises in `naive`, and what a careful rebuild does instead).
+Slides with notes whose structure matters also carry `notes`, the paragraphs as
+lists of lines. The builder exports the types (`RecreateTrapLabelV1`,
+`RecreateSlideLabelV1`, `RecreateFixtureLabelsV1`).
+
+The two photographs are camera-sized JPEGs (1600x1200 and 1920x1080, quality 80), so
+a rebuild on a 1920 px slide places them full bleed without scaling them past twice
+their pixels, as a real deck's photographs would be. They are drawn from a seeded
+generator and written by the builder's own baseline encoder
+(`scripts/lib/baseline-jpeg.ts`), so the bytes come from no versioned dependency.
+
+The eval's design system, `tests/fixtures/recreate/tokens.json`, declares no logo. A
+design system passed with `--file` never resolves asset ids (only the content
+profile's own catalog does), so a logo id there would name a mark that compose,
+package and check cannot find; a rebuild against it carries no logo.
+
+1. A cover: a 4:3 photograph cropped top and bottom (`a:srcRect`) to fill the
+   slide, with a white title, the speaker's name and role over it. Its notes are
+   one paragraph broken by `a:br` with a blank line inside, then a second
+   paragraph.
+2. An agenda of three rounded cards, each with an 8 px coloured strip along its top
+   edge and a decorative `01` to `03` label in the strip colour.
+3. A 12 pt bold all-caps eyebrow over the heading, then a body line. Its notes are
+   two headed sections in one paragraph.
+4. A title and four bulleted items in the body placeholder.
+5. One centred statement on an empty slide.
+6. A full-bleed photograph with one small white caption.
+7. A matrix of three rows by four columns of tinted cells, whose text reads only
+   with its row and column header.
+8. A closing slide with two plain notes paragraphs.
 
 ## What formatting.pptx carries
 

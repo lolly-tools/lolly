@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Gör kodsnuttar till rena, syntaxmarkerade bilder som är enkla att dela.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Kod",
   "inputs.code.placeholder": "Klistra in din kod här…",
   "inputs.fileName.label": "Filnamn",

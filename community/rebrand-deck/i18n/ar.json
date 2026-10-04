@@ -1,6 +1,6 @@
 {
-  "name": "إعادة العلامة التجارية",
-  "description": "ارفع عرض PowerPoint واضبط ألوانه وخطوطه على علامتك التجارية - يُعاد بناؤه على جهازك، دون رفع أي شيء.",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "أداة إعادة العلامة التجارية للعرض {{fileName}}",
   "inputs.source.label": "ملف PowerPoint",
   "inputs.source.help": "ملف .pptx. تتم قراءته على جهازك ولا يرفع أبدا.",

@@ -54,7 +54,7 @@ import { renderFeaturedVariant, renderFeaturedPages, displayFormatOf } from '../
 import { currentTheme } from '../theme.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { wireStripMenu } from './gallery-strip-menu.ts';
-import { favouritesViewSection, sortSection, syncSortDir, viewOptionsButtonHtml, viewOptionsSection } from '../components/view-options.ts';
+import { applyCardSize, cardSizeAttr, cardSizeHtml, favouritesViewSection, readCardSize, sortSection, syncSortDir, viewOptionsButtonHtml, viewOptionsSection, wireCardSize } from '../components/view-options.ts';
 import { wireDisclosure } from '../components/body-popover.ts';
 import type { FeaturedEntry, FeaturedManifest, FeaturedVariant, FeaturedRowHandle, FeaturedViewMode } from '../components/featured-row.ts';
 import { loadFavourites, saveFavourites } from '../lib/favourites.ts';
@@ -561,6 +561,22 @@ function createGalleryLifecycle(viewEl: HTMLElement) {
   return { cleanups, previewQueue };
 }
 
+/** The gallery with nothing to show: the tool index failed to load, or every category
+ *  is switched off in the feature flags. */
+function galleryEmptyHtml(loadFailed: boolean): string {
+  return loadFailed ? `
+        <div class="gallery-empty" role="status">
+          <p class="gallery-empty-title">${t("Couldn't load the tools.")}</p>
+          <p class="gallery-empty-hint">${tRaw('Check your connection, then {button}.', { button: `<button type="button" class="gallery-retry">${t('retry')}</button>` })}</p>
+        </div>
+      ` : `
+        <div class="gallery-empty" role="status">
+          <p class="gallery-empty-title">${t('It looks like there are no tools available.')}</p>
+          <p class="gallery-empty-hint">${tRaw('Try turning on categories in {link}.', { link: `<a href="#/profile?focus=feature-flags">${t('your feature flags')}</a>` })}</p>
+        </div>
+      `;
+}
+
 export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts: GalleryMountOpts = {}): Promise<void> {
   document.title = opts.only ? 'Utilities - Lolly' : 'Lolly';
   // #/?q=<text> restores a handed-off search (plans/99 section 2c): raw for the field's
@@ -913,6 +929,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // card at the top of the gallery (A4); the privacy strip is fixed either way.
   const firstRunBanner = privacyNoticeMarkup() || personalizeNudgeMarkup(profile) || offlineNudgeMarkup(profile);
 
+  const cardSizeView = opts.only ? 'utilities' : 'tools', cardSize = readCardSize(cardSizeView);
   // Render shell. The pill bar + masonry are filled by render(); the footer
   // (Pro link, search, info link) is left exactly as before.
   viewEl.classList.add('has-masonry');
@@ -927,6 +944,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         popover: visibleCats.length ? `
           <div class="filter-popover view-options" id="filter-popover" role="group" aria-label="${escape(t('View options'))}" hidden>
             ${featuredEntries.length ? favouritesViewSection(featuredView) : ''}
+            ${viewOptionsSection(t('Layout'), cardSizeHtml(cardSize))}
             ${sortSection('gallery-sort', SORT_KEYS.map(k => ({ id: k, label: t(SORT_LABELS[k]) })), 'recent', false)}
             ${viewOptionsSection(t('Filter'), `<div class="filter-pop-pills" aria-label="${escape(t('Filter tools by category'))}"></div>`)}
           </div>` : '',
@@ -936,17 +954,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
       ${firstRunBanner}
 
-      ${visibleCats.length === 0 ? (index.tools.length === 0 ? `
-        <div class="gallery-empty" role="status">
-          <p class="gallery-empty-title">${t("Couldn't load the tools.")}</p>
-          <p class="gallery-empty-hint">${tRaw('Check your connection, then {button}.', { button: `<button type="button" class="gallery-retry">${t('retry')}</button>` })}</p>
-        </div>
-      ` : `
-        <div class="gallery-empty" role="status">
-          <p class="gallery-empty-title">${t('It looks like there are no tools available.')}</p>
-          <p class="gallery-empty-hint">${tRaw('Try turning on categories in {link}.', { link: `<a href="#/profile?focus=feature-flags">${t('your feature flags')}</a>` })}</p>
-        </div>
-      `) : `
+      ${visibleCats.length === 0 ? galleryEmptyHtml(index.tools.length === 0) : `
         <div class="featured-mount"></div>
         ${opts.only ? '' : yoursShelfHtml(yoursShelfTools(
           [...new Set(sortedSaved.filter(e => !isBatchSlot(e.slot)).map(e => e.toolId))],
@@ -955,7 +963,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
           hiddenTools,
         ))}
         <p class="gallery-search-status visually-hidden" role="status" aria-live="polite"></p>
-        <div class="tool-masonry${opts.only === 'utility' ? ' tool-masonry--utility' : ''}"></div>
+        <div class="tool-masonry${opts.only === 'utility' ? ' tool-masonry--utility' : ''}"${cardSizeAttr(cardSize)}></div>
       `}
     </div>
   `;
@@ -1803,6 +1811,8 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // Accessibility card as the "Hide colourful previews" pref (lib/a11y-prefs.ts),
   // and the CSS that collapses cards + the featured strip now keys off
   // html[data-a11y-previews="hidden"] directly - nothing to wire here.
+
+  if (filterPop) wireCardSize(filterPop, cardSizeView, step => applyCardSize(viewEl.querySelector('.tool-masonry'), step));
 
   // Global sort - persisted like the theme; re-renders the grid in place.
   const sortSelect = viewEl.querySelector<HTMLSelectElement>('.gallery-sort');

@@ -1,6 +1,6 @@
 {
-  "name": "Rebranding",
-  "description": "Unggah dek PowerPoint dan sesuaikan warna serta fontnya dengan brand Anda - dibangun ulang di perangkat Anda, tidak ada yang diunggah.",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "Pengubah merek presentasi untuk {{fileName}}",
   "inputs.source.label": "File PowerPoint",
   "inputs.source.help": "File .pptx. Dibaca di perangkat Anda dan tidak pernah diunggah.",

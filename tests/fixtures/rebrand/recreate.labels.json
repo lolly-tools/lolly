@@ -1,0 +1,1426 @@
+{
+  "fixture": "recreate.pptx",
+  "version": 1,
+  "builder": "scripts/build-rebrand-fixtures.ts",
+  "objectIdForm": "<slide part base name>.<p:cNvPr id>",
+  "slides": [
+    {
+      "id": "slide1",
+      "index": 0,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide1.2",
+          "name": "cover-photo",
+          "authored": "cover-photo",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "photo",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 720
+          },
+          "mustKeep": true,
+          "note": "a 4:3 generated photograph (a 1600x1200 JPEG) cropped top and bottom to fill the 16:9 slide"
+        },
+        {
+          "id": "slide1.3",
+          "name": "text3",
+          "authored": "cover-title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 430,
+            "w": 900,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide1.4",
+          "name": "text4",
+          "authored": "speaker-name",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 560,
+            "w": 600,
+            "h": 36
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide1.5",
+          "name": "text5",
+          "authored": "speaker-role",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 600,
+            "w": 600,
+            "h": 30
+          },
+          "mustKeep": true
+        }
+      ],
+      "archetype": "title",
+      "alternatives": [
+        "cover-title-image"
+      ],
+      "traps": [
+        {
+          "id": "cover-photo-crop",
+          "objects": [
+            "cover-photo"
+          ],
+          "naive": [],
+          "note": "the source crops a 4:3 photo to the 16:9 slide; a copy that stretches it distorts the picture, which only a reviewer sees, so place it with cover fit"
+        },
+        {
+          "id": "text-over-photo",
+          "objects": [
+            "cover-title",
+            "speaker-name",
+            "speaker-role"
+          ],
+          "naive": [
+            "design.text.contrast-review"
+          ],
+          "note": "white text over a photograph has no single contrast ratio; keep a scrim or the darker part of the picture behind it"
+        },
+        {
+          "id": "notes-line-breaks",
+          "objects": [],
+          "naive": [],
+          "note": "one notes paragraph broken into lines with a blank line inside, then a second paragraph; carry the lines apart, which only the notes structure shows"
+        }
+      ],
+      "notes": [
+        [
+          "OPENING",
+          "Welcome the room and name the harbour.",
+          "",
+          "TIMING",
+          "Two minutes, then the questions."
+        ],
+        [
+          "Photo: a generated picture, free to reuse."
+        ]
+      ]
+    },
+    {
+      "id": "slide2",
+      "index": 1,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide2.2",
+          "name": "text2",
+          "authored": "agenda-title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 60,
+            "w": 1120,
+            "h": 70
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.3",
+          "name": "rect3",
+          "authored": "card-1",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 200,
+            "w": 352,
+            "h": 320
+          },
+          "note": "a rounded light card"
+        },
+        {
+          "id": "slide2.4",
+          "name": "rect4",
+          "authored": "card-1-stripe",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 200,
+            "w": 352,
+            "h": 8
+          },
+          "note": "an 8 px accent strip along the top edge of the rounded card"
+        },
+        {
+          "id": "slide2.5",
+          "name": "text5",
+          "authored": "card-1-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 110,
+            "y": 236,
+            "w": 120,
+            "h": 50
+          },
+          "mustKeep": true,
+          "note": "a decorative two-digit label in the stripe colour"
+        },
+        {
+          "id": "slide2.6",
+          "name": "text6",
+          "authored": "card-1-title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 110,
+            "y": 300,
+            "w": 300,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.7",
+          "name": "text7",
+          "authored": "card-1-line",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 110,
+            "y": 400,
+            "w": 300,
+            "h": 80
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.8",
+          "name": "rect8",
+          "authored": "card-2",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 464,
+            "y": 200,
+            "w": 352,
+            "h": 320
+          },
+          "note": "a rounded light card"
+        },
+        {
+          "id": "slide2.9",
+          "name": "rect9",
+          "authored": "card-2-stripe",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 464,
+            "y": 200,
+            "w": 352,
+            "h": 8
+          },
+          "note": "an 8 px accent strip along the top edge of the rounded card"
+        },
+        {
+          "id": "slide2.10",
+          "name": "text10",
+          "authored": "card-2-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 494,
+            "y": 236,
+            "w": 120,
+            "h": 50
+          },
+          "mustKeep": true,
+          "note": "a decorative two-digit label in the stripe colour"
+        },
+        {
+          "id": "slide2.11",
+          "name": "text11",
+          "authored": "card-2-title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 494,
+            "y": 300,
+            "w": 300,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.12",
+          "name": "text12",
+          "authored": "card-2-line",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 494,
+            "y": 400,
+            "w": 300,
+            "h": 80
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.13",
+          "name": "rect13",
+          "authored": "card-3",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 848,
+            "y": 200,
+            "w": 352,
+            "h": 320
+          },
+          "note": "a rounded light card"
+        },
+        {
+          "id": "slide2.14",
+          "name": "rect14",
+          "authored": "card-3-stripe",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 848,
+            "y": 200,
+            "w": 352,
+            "h": 8
+          },
+          "note": "an 8 px accent strip along the top edge of the rounded card"
+        },
+        {
+          "id": "slide2.15",
+          "name": "text15",
+          "authored": "card-3-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 878,
+            "y": 236,
+            "w": 120,
+            "h": 50
+          },
+          "mustKeep": true,
+          "note": "a decorative two-digit label in the stripe colour"
+        },
+        {
+          "id": "slide2.16",
+          "name": "text16",
+          "authored": "card-3-title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 878,
+            "y": 300,
+            "w": 300,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.17",
+          "name": "text17",
+          "authored": "card-3-line",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 878,
+            "y": 400,
+            "w": 300,
+            "h": 80
+          },
+          "mustKeep": true
+        }
+      ],
+      "archetype": "columns-3",
+      "alternatives": [
+        "cards-3",
+        "agenda"
+      ],
+      "traps": [
+        {
+          "id": "fingernail-cards",
+          "objects": [
+            "card-1",
+            "card-1-stripe",
+            "card-2",
+            "card-2-stripe",
+            "card-3",
+            "card-3-stripe"
+          ],
+          "naive": [
+            "verify.fingernail-card",
+            "brand.rule.stroke-on-rounded"
+          ],
+          "note": "drop the accent strips or the rounding"
+        },
+        {
+          "id": "decorative-numbering",
+          "objects": [
+            "card-1-number",
+            "card-2-number",
+            "card-3-number"
+          ],
+          "naive": [
+            "verify.decorative-numbering"
+          ],
+          "note": "the numbers order nothing; drop them and declare each as an edit"
+        }
+      ]
+    },
+    {
+      "id": "slide3",
+      "index": 2,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide3.2",
+          "name": "text2",
+          "authored": "eyebrow",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 80,
+            "w": 600,
+            "h": 28
+          },
+          "mustKeep": true,
+          "note": "a 12 pt bold all-caps line above the heading, which an inventory reads as a label"
+        },
+        {
+          "id": "slide3.3",
+          "name": "text3",
+          "authored": "heading",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide3.4",
+          "name": "text4",
+          "authored": "body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 700,
+            "h": 200
+          },
+          "mustKeep": true
+        }
+      ],
+      "archetype": "content",
+      "alternatives": [
+        "title-subtitle-body"
+      ],
+      "traps": [
+        {
+          "id": "eyebrow",
+          "objects": [
+            "eyebrow",
+            "heading"
+          ],
+          "naive": [
+            "verify.eyebrow-heading"
+          ],
+          "note": "fold the eyebrow into the heading or the body, and declare the change as an edit"
+        },
+        {
+          "id": "notes-headings",
+          "objects": [],
+          "naive": [],
+          "note": "two headed sections in one notes paragraph; each heading stays on its own line"
+        }
+      ],
+      "notes": [
+        [
+          "SAY",
+          "The window is shorter than the chart suggests.",
+          "ASK",
+          "Who checked the timetable this morning?"
+        ]
+      ]
+    },
+    {
+      "id": "slide4",
+      "index": 3,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide4.2",
+          "name": "text2",
+          "authored": "list-title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 60,
+            "w": 1120,
+            "h": 70
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide4.3",
+          "name": "text3",
+          "authored": "list",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 200,
+            "w": 1120,
+            "h": 360
+          },
+          "mustKeep": true,
+          "note": "four bulleted items in the body placeholder"
+        }
+      ],
+      "archetype": "content",
+      "alternatives": [
+        "agenda"
+      ],
+      "traps": []
+    },
+    {
+      "id": "slide5",
+      "index": 4,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide5.2",
+          "name": "text2",
+          "authored": "statement",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 140,
+            "y": 290,
+            "w": 1000,
+            "h": 140
+          },
+          "mustKeep": true,
+          "note": "one centred line on an otherwise empty slide"
+        }
+      ],
+      "archetype": "main-point",
+      "alternatives": [
+        "section",
+        "title-only"
+      ],
+      "traps": [
+        {
+          "id": "centred-text",
+          "objects": [
+            "statement"
+          ],
+          "naive": [
+            "brand.rule.text-align"
+          ],
+          "note": "the house rule sets text left; a statement archetype places the line instead"
+        }
+      ]
+    },
+    {
+      "id": "slide6",
+      "index": 5,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide6.2",
+          "name": "quay-photo",
+          "authored": "quay-photo",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "photo",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 720
+          },
+          "mustKeep": true,
+          "note": "a 16:9 generated photograph (a 1920x1080 JPEG) over the whole slide"
+        },
+        {
+          "id": "slide6.3",
+          "name": "text3",
+          "authored": "caption",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 640,
+            "w": 800,
+            "h": 32
+          },
+          "mustKeep": true,
+          "note": "one small white caption over the photograph"
+        }
+      ],
+      "archetype": "full-image",
+      "alternatives": [
+        "image-caption"
+      ],
+      "traps": [
+        {
+          "id": "caption-over-photo",
+          "objects": [
+            "caption"
+          ],
+          "naive": [
+            "design.text.contrast-review"
+          ],
+          "note": "small white text over a photograph needs a scrim or a darker part of the picture"
+        }
+      ]
+    },
+    {
+      "id": "slide7",
+      "index": 6,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide7.2",
+          "name": "text2",
+          "authored": "matrix-title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 60,
+            "w": 1120,
+            "h": 70
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.3",
+          "name": "text3",
+          "authored": "column-plan",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 260,
+            "y": 150,
+            "w": 220,
+            "h": 36
+          },
+          "mustKeep": true,
+          "note": "a column header"
+        },
+        {
+          "id": "slide7.4",
+          "name": "text4",
+          "authored": "column-board",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 500,
+            "y": 150,
+            "w": 220,
+            "h": 36
+          },
+          "mustKeep": true,
+          "note": "a column header"
+        },
+        {
+          "id": "slide7.5",
+          "name": "text5",
+          "authored": "column-berth",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 740,
+            "y": 150,
+            "w": 220,
+            "h": 36
+          },
+          "mustKeep": true,
+          "note": "a column header"
+        },
+        {
+          "id": "slide7.6",
+          "name": "text6",
+          "authored": "column-depart",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 980,
+            "y": 150,
+            "w": 220,
+            "h": 36
+          },
+          "mustKeep": true,
+          "note": "a column header"
+        },
+        {
+          "id": "slide7.7",
+          "name": "text7",
+          "authored": "row-1",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 215,
+            "w": 160,
+            "h": 36
+          },
+          "mustKeep": true,
+          "note": "a row header"
+        },
+        {
+          "id": "slide7.8",
+          "name": "rect8",
+          "authored": "cell-1-1",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 260,
+            "y": 200,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.9",
+          "name": "rect9",
+          "authored": "cell-1-2",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 500,
+            "y": 200,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.10",
+          "name": "rect10",
+          "authored": "cell-1-3",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 740,
+            "y": 200,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.11",
+          "name": "rect11",
+          "authored": "cell-1-4",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 980,
+            "y": 200,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.12",
+          "name": "text12",
+          "authored": "cell-1-1-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 275,
+            "y": 215,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.13",
+          "name": "text13",
+          "authored": "cell-1-2-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 515,
+            "y": 215,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.14",
+          "name": "text14",
+          "authored": "cell-1-3-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 755,
+            "y": 215,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.15",
+          "name": "text15",
+          "authored": "cell-1-4-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 995,
+            "y": 215,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.16",
+          "name": "text16",
+          "authored": "row-2",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 355,
+            "w": 160,
+            "h": 36
+          },
+          "mustKeep": true,
+          "note": "a row header"
+        },
+        {
+          "id": "slide7.17",
+          "name": "rect17",
+          "authored": "cell-2-1",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 260,
+            "y": 340,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.18",
+          "name": "rect18",
+          "authored": "cell-2-2",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 500,
+            "y": 340,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.19",
+          "name": "rect19",
+          "authored": "cell-2-3",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 740,
+            "y": 340,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.20",
+          "name": "rect20",
+          "authored": "cell-2-4",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 980,
+            "y": 340,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.21",
+          "name": "text21",
+          "authored": "cell-2-1-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 275,
+            "y": 355,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.22",
+          "name": "text22",
+          "authored": "cell-2-2-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 515,
+            "y": 355,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.23",
+          "name": "text23",
+          "authored": "cell-2-3-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 755,
+            "y": 355,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.24",
+          "name": "text24",
+          "authored": "cell-2-4-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 995,
+            "y": 355,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.25",
+          "name": "text25",
+          "authored": "row-3",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 495,
+            "w": 160,
+            "h": 36
+          },
+          "mustKeep": true,
+          "note": "a row header"
+        },
+        {
+          "id": "slide7.26",
+          "name": "rect26",
+          "authored": "cell-3-1",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 260,
+            "y": 480,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.27",
+          "name": "rect27",
+          "authored": "cell-3-2",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 500,
+            "y": 480,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.28",
+          "name": "rect28",
+          "authored": "cell-3-3",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 740,
+            "y": 480,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.29",
+          "name": "rect29",
+          "authored": "cell-3-4",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 980,
+            "y": 480,
+            "w": 220,
+            "h": 120
+          },
+          "note": "a tinted cell"
+        },
+        {
+          "id": "slide7.30",
+          "name": "text30",
+          "authored": "cell-3-1-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 275,
+            "y": 495,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.31",
+          "name": "text31",
+          "authored": "cell-3-2-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 515,
+            "y": 495,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.32",
+          "name": "text32",
+          "authored": "cell-3-3-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 755,
+            "y": 495,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide7.33",
+          "name": "text33",
+          "authored": "cell-3-4-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 995,
+            "y": 495,
+            "w": 190,
+            "h": 90
+          },
+          "mustKeep": true
+        }
+      ],
+      "archetype": "table",
+      "alternatives": [
+        "grid-3x2"
+      ],
+      "traps": [
+        {
+          "id": "matrix-reading",
+          "objects": [
+            "matrix-title"
+          ],
+          "naive": [],
+          "note": "a reader takes the cells row by row; each cell reads only with its row and column header, so keep both in the rebuild"
+        }
+      ]
+    },
+    {
+      "id": "slide8",
+      "index": 7,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide8.2",
+          "name": "text2",
+          "authored": "thanks",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 280,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide8.3",
+          "name": "text3",
+          "authored": "thanks-line",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 400,
+            "w": 1120,
+            "h": 40
+          },
+          "mustKeep": true
+        }
+      ],
+      "archetype": "closing-thanks",
+      "alternatives": [
+        "section"
+      ],
+      "traps": []
+    }
+  ],
+  "inherited": [],
+  "mustKeep": [
+    "slide1.2",
+    "slide1.3",
+    "slide1.4",
+    "slide1.5",
+    "slide2.2",
+    "slide2.5",
+    "slide2.6",
+    "slide2.7",
+    "slide2.10",
+    "slide2.11",
+    "slide2.12",
+    "slide2.15",
+    "slide2.16",
+    "slide2.17",
+    "slide3.2",
+    "slide3.3",
+    "slide3.4",
+    "slide4.2",
+    "slide4.3",
+    "slide5.2",
+    "slide6.2",
+    "slide6.3",
+    "slide7.2",
+    "slide7.3",
+    "slide7.4",
+    "slide7.5",
+    "slide7.6",
+    "slide7.7",
+    "slide7.12",
+    "slide7.13",
+    "slide7.14",
+    "slide7.15",
+    "slide7.16",
+    "slide7.21",
+    "slide7.22",
+    "slide7.23",
+    "slide7.24",
+    "slide7.25",
+    "slide7.30",
+    "slide7.31",
+    "slide7.32",
+    "slide7.33",
+    "slide8.2",
+    "slide8.3"
+  ]
+}

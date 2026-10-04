@@ -72,7 +72,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { Unzlib } from 'fflate';
+import { Unzlib, unzlibSync } from 'fflate';
 
 import {
   CENSUS_RULES,
@@ -117,15 +117,17 @@ import type {
 // Deep import: the barrel does not carry it yet, and this is the one call the stage
 // worker and this pipeline must share to compile a themed plan to the same bytes.
 import { compileSystemOpts } from '../../../../engine/src/deck-compile.ts';
-import { contentRoots, contentUrlFile, readAssetIndex, type ContentRoots } from '../content-roots.ts';
+import { contentRoots, contentUrlFile, contentUrlFileExact, readAssetIndex, type ContentRoots } from '../content-roots.ts';
 import { designFramesToPptx, framesOfDesignDoc, type DesignAssetResolver } from '../design-pptx.ts';
 import { sniffFormat } from '../format-sniff.ts';
 import { sriSha256 } from '../lolly-file.ts';
 import { NODE_PDF_IMAGE_CODEC, loadPdfDocument } from '../pdf-read.ts';
 import { inflatePptx } from '../pptx.ts';
+import { STATIC_FACE_DIR, type ShipsFace } from '../pptx-deck.ts';
 import { repoRoot } from '../repo-root.ts';
 import { flattenedPictureOf, reconstructFlattenedSlide, type FlattenedOcrV1 } from './flattened.ts';
 import { sourceDeckFromPdf } from './source-pdf.ts';
+import { sourceDeckFromPsd } from './source-psd.ts';
 import { labelReaderFromOcr, newInstanceId, sourceDeckFromPptx, type MediaSinkV1 } from './source-pptx.ts';
 
 // ─── errors ──────────────────────────────────────────────────────────────────
@@ -165,9 +167,12 @@ export const PIPELINE_READER = { name: 'pptx-read', version: ENGINE_VERSION } as
 /** The reader identity recorded on every pdf source deck and plan this pipeline writes. */
 export const PDF_PIPELINE_READER = { name: 'pdf-read', version: ENGINE_VERSION } as const;
 
+/** The reader identity recorded on every Photoshop source deck and plan this pipeline writes (plans/289 D2). */
+export const PSD_PIPELINE_READER = { name: 'psd-read', version: ENGINE_VERSION } as const;
+
 /** The reader identity for a source kind this pipeline reads. */
 export function pipelineReaderFor(kind: SourceKindV1): { name: string; version: string } {
-  return kind === 'pdf' ? PDF_PIPELINE_READER : PIPELINE_READER;
+  return kind === 'pdf' ? PDF_PIPELINE_READER : kind === 'psd' ? PSD_PIPELINE_READER : PIPELINE_READER;
 }
 
 /** The namespace every media ref of this pipeline lives in. */
@@ -294,9 +299,11 @@ async function pdfEncrypted(bytes: Uint8Array, base: number): Promise<boolean> {
  * lie), or a refusal with its code before the work starts. A PDF may have up
  * to 1024 bytes of something else before its header, as readers allow.
  */
-async function sourceKindOf(bytes: Uint8Array, name: string): Promise<'pptx' | 'pdf'> {
+async function sourceKindOf(bytes: Uint8Array, name: string): Promise<'pptx' | 'pdf' | 'psd'> {
   const sniffed = sniffFormat(bytes);
   if (sniffed === 'zip') return 'pptx';
+  // Photoshop's own signature, `8BPS`, which a .psb shares.
+  if (bytes[0] === 0x38 && bytes[1] === 0x42 && bytes[2] === 0x50 && bytes[3] === 0x53) return 'psd';
   const header = sniffed === 'pdf' ? 0 : pdfHeaderAt(bytes);
   if (header >= 0) {
     if (await pdfEncrypted(bytes, header)) {
@@ -310,7 +317,7 @@ async function sourceKindOf(bytes: Uint8Array, name: string): Promise<'pptx' | '
   if (startsWith(bytes, CFB_MAGIC)) {
     throw new RebrandPipelineError('source.encrypted', `${name} is password protected or in the old binary format. Save it as an unprotected .pptx and try again.`);
   }
-  throw new RebrandPipelineError('source.unreadable', `${name} is not a PowerPoint package or a PDF.`);
+  throw new RebrandPipelineError('source.unreadable', `${name} is not a PowerPoint package, a PDF or a Photoshop document.`);
 }
 
 /** What happens to a slide the source marks flattened: rebuilt from its regions, or kept as one picture. */
@@ -633,6 +640,27 @@ async function readPdfSource(input: ReadDeckInputV1, sink: MediaSinkV1): Promise
   return source;
 }
 
+/** Read one Photoshop document into a source deck of one slide (plans/289 D2). */
+async function readPsdSource(input: ReadDeckInputV1, sink: MediaSinkV1): Promise<SourceDeckV1> {
+  const { bytes, name } = input;
+  try {
+    return await sourceDeckFromPsd(bytes, {
+      hash: sourceHashOf(bytes),
+      instanceId: input.instanceId ?? newInstanceId(),
+      name,
+      bytes: bytes.byteLength,
+      reader: { name: PSD_PIPELINE_READER.name, version: PSD_PIPELINE_READER.version },
+      sink,
+      inflate: (data: Uint8Array) => unzlibSync(data),
+      ...(input.signal ? { signal: input.signal } : {}),
+    });
+  } catch (err) {
+    if (input.signal?.aborted) throw err;
+    if (err instanceof RebrandPipelineError) throw err;
+    throw new RebrandPipelineError('source.unreadable', `${name}: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
 /**
  * The slide-level OCR state of a flattened slide that stays one picture: what
  * the slide already states when that is a reading, then the picture's own text
@@ -800,7 +828,7 @@ function elapsed(started: number): number {
 }
 
 /**
- * Read one pptx or PDF into a source deck and its census, holding the pictures
+ * Read one pptx, PDF or Photoshop document into a source deck and its census, holding the pictures
  * in memory, with each slide the source marks flattened rebuilt or kept (see
  * the module header).
  */
@@ -813,7 +841,9 @@ export async function readDeck(input: ReadDeckInputV1): Promise<ReadDeckResultV1
     if (!media.has(ref)) media.set(ref, { bytes: data, mime });
     return ref;
   };
-  const read = kind === 'pdf' ? await readPdfSource(input, sink) : await readPptxSource(input, sink);
+  const read = kind === 'pdf' ? await readPdfSource(input, sink)
+    : kind === 'psd' ? await readPsdSource(input, sink)
+      : await readPptxSource(input, sink);
   const { source, reports } = await handleFlattenedSlides(read, media, input);
   const onSlide = input.onSlide;
   if (onSlide) {
@@ -1371,6 +1401,9 @@ export function designSessionFromCompiled(compiled: CompiledDeckV1, opts: Design
     boxes,
     __toolId: DESIGN_TOOL_ID,
     __label: opts.label,
+    // The editor seeds its name field and top bar from this key only (plan 291 W8), so
+    // it holds the label as typed; a download makes it file-safe at save time.
+    __export_filename: opts.label,
     ...(first && first.width > 0 && first.height > 0
       ? { __export_width: String(first.width), __export_height: String(first.height), __export_unit: 'px' }
       : {}),
@@ -1409,6 +1442,12 @@ export interface DesignLollyInputV1 {
   toolVersion?: string;
   /** When the file was written; the caller owns the clock. */
   exportedAt: string;
+  /**
+   * The modification time every zip entry carries (plan 291 W8). Left out, fflate
+   * stamps the current time, so two writes of one document differ; given, the same
+   * document writes the same bytes. Must fall within 1980 to 2099, the zip date range.
+   */
+  zipTime?: Date;
 }
 
 export interface DesignLollyResultV1 {
@@ -1471,7 +1510,7 @@ export async function buildDesignLolly(input: DesignLollyInputV1): Promise<Desig
   const bytes = zipSync({
     'manifest.json': [strToU8(JSON.stringify(manifest, null, 2)), { level: 6 }],
     ...entries,
-  });
+  }, input.zipTime ? { mtime: input.zipTime } : {});
   return { bytes, missingMedia };
 }
 
@@ -1504,6 +1543,20 @@ export function catalogAssetBytes(ref: string, roots?: ContentRoots): PipelineMe
   return mime ? { bytes: new Uint8Array(readFileSync(file)), mime } : null;
 }
 
+/**
+ * Does the active profile's catalog ship this static face (`SUSE-Medium.ttf`) under
+ * `/catalog/fonts/ttf/`? What decides whether a Medium 500 run is written as that face
+ * (plan 291 D3); a pack that ships no statics answers no for every file.
+ */
+export function catalogStaticFace(file: string, roots?: ContentRoots): boolean {
+  try {
+    // Exact case: a Mac would otherwise ship `suse-Medium.ttf` and Linux would not.
+    return contentUrlFileExact(STATIC_FACE_DIR + file, roots ?? contentRoots()) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export interface CompiledPptxInputV1 {
   compiled: CompiledDeckV1;
   system: RebrandDesignSystemV1;
@@ -1516,6 +1569,8 @@ export interface CompiledPptxInputV1 {
   title?: string;
   /** The docProps timestamp; the caller owns the clock. */
   now: string;
+  /** Which static faces the brand ships; the active profile's catalog when absent. */
+  shipsFace?: ShipsFace;
 }
 
 export interface CompiledPptxResultV1 {
@@ -1540,6 +1595,7 @@ export async function compiledDeckToPptx(input: CompiledPptxInputV1): Promise<Co
     resolveAsset,
     ...(input.rasterizeSvg ? { rasterizeSvg: input.rasterizeSvg } : {}),
     ...(input.system.compile.fonts ? { fonts: input.system.compile.fonts } : {}),
+    shipsFace: input.shipsFace ?? ((file: string) => catalogStaticFace(file)),
   });
   const parts = buildPptxParts(result.slides, {
     emuW: Math.max(1, Math.round(result.size.w * EMU_PER_PX)),

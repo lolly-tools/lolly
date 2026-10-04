@@ -36,7 +36,7 @@ import { mountModal } from '../components/modal.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { escapeHtml } from '../lib/html.ts';
 import { t, tRaw } from '../i18n.ts';
-import { MATTE_DEFAULT_MODEL } from '../lib/matte-models.ts';
+import { MATTE_DEFAULT_MODEL, MATTE_MODEL_SPEC } from '../lib/matte-models.ts';
 import {
   startMatteJob, outputFormatFor,
   type MatteJobHost, type MatteJobRequest, type OutFormat,
@@ -169,6 +169,13 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
               <input type="color" data-key value="#ffffff">
             </label>
             <label class="matte-field">
+              <span class="matte-field-label">${t('Edges')}</span>
+              <select class="field-select" data-edges>
+                <option value="refined">${t('Follow the photo')}</option>
+                <option value="as-drawn">${t('As drawn')}</option>
+              </select>
+            </label>
+            <label class="matte-field">
               <span class="matte-field-label">${t('Save as')}</span>
               <select class="field-select" data-format>
                 <option value="png">PNG</option>
@@ -205,6 +212,18 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
     const keyInput   = overlay.querySelector<HTMLInputElement>('[data-key]')!;
     const modelSel   = overlay.querySelector<HTMLSelectElement>('[data-model]')!;
     const formatSel  = overlay.querySelector<HTMLSelectElement>('[data-format]')!;
+    const edgesSel   = overlay.querySelector<HTMLSelectElement>('[data-edges]')!;
+    // Edges follow each method's own default: the photo for U²-Net lite, whose coarse
+    // mask gains most; as drawn for MODNet, whose soft matte only gains a halo; and as
+    // keyed for a colour key, often a logo with crisp edges. Once the person picks,
+    // their choice stands.
+    let edgesTouched = false;
+    edgesSel.addEventListener('change', () => { edgesTouched = true; });
+    const syncEdges = (): void => {
+      if (edgesTouched) return;
+      const spec = MATTE_MODEL_SPEC[currentModel()];
+      edgesSel.value = currentMethod() !== 'chroma' && spec?.refineByDefault ? 'refined' : 'as-drawn';
+    };
     const consentEl  = overlay.querySelector<HTMLElement>('[data-consent]')!;
     const noteEl     = overlay.querySelector<HTMLElement>('[data-note]')!;
     const feasEl     = overlay.querySelector<HTMLElement>('[data-feasibility]')!;
@@ -240,6 +259,7 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
     // A colour key is always feasible, so its Run gate is just "a source loaded".
     const syncMethod = (): void => {
       const chroma = currentMethod() === 'chroma';
+      syncEdges();
       modelField.hidden = chroma || !modelAvailable;
       keyField.hidden = !chroma;
       if (chroma) {
@@ -308,7 +328,7 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
       }
     };
 
-    modelSel.addEventListener('change', () => { saveMatteModel(modelSel.value); void paintConsent(); void recheck(); });
+    modelSel.addEventListener('change', () => { saveMatteModel(modelSel.value); syncEdges(); void paintConsent(); void recheck(); });
     methodSel.addEventListener('change', syncMethod);
     formatSel.addEventListener('change', paintFormatNote);
 
@@ -368,6 +388,7 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
         outFormat: formatSel.value as OutFormat,
         method: currentMethod(),
         ...(currentMethod() === 'chroma' ? { keyColor } : {}),
+        edges: edgesSel.value === 'as-drawn' ? 'as-drawn' : 'refined',
       };
       startMatteJob(host, req, {
         onComplete: (ref) => opts.onComplete?.(ref),

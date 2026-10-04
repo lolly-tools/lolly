@@ -1,6 +1,6 @@
 {
   "name": "代码片段",
-  "description": "将代码片段转换为简洁、带语法高亮、可分享的图片。",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "代码",
   "inputs.code.placeholder": "在此粘贴代码…",
   "inputs.fileName.label": "文件名",

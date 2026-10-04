@@ -146,6 +146,13 @@ export interface MatteModelSpec {
   std: [number, number, number];
   /** How the single-channel output becomes 0..1 alpha. */
   activation: 'minmax' | 'sigmoid';
+  /**
+   * Whether edge refinement (plans/289 M4) is on when the caller does not say.
+   * Measured on a studio photo, 2026-10-02: U²-Net lite's coarse segmentation
+   * gains a solid subject and tighter edges; MODNet's soft matte is already
+   * close and only gains a halo, so it stays as drawn.
+   */
+  refineByDefault: boolean;
 }
 
 const IMAGENET_MEAN: [number, number, number] = [0.485, 0.456, 0.406];
@@ -157,6 +164,7 @@ export const MATTE_MODEL_SPEC: Record<MatteModelId, MatteModelSpec> = {
     mean: IMAGENET_MEAN,
     std: IMAGENET_STD,
     activation: 'minmax',
+    refineByDefault: true,
   },
   'modnet': {
     // MODNet: [-1,1] normalization (mean 0.5 / std 0.5), a bounded alpha head → minmax.
@@ -166,6 +174,7 @@ export const MATTE_MODEL_SPEC: Record<MatteModelId, MatteModelSpec> = {
     mean: [0.5, 0.5, 0.5],
     std: [0.5, 0.5, 0.5],
     activation: 'minmax',
+    refineByDefault: false,
   },
 };
 

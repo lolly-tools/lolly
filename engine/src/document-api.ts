@@ -59,7 +59,10 @@ export function documentSchema(tool: LoadedTool | ToolManifest): Record<string, 
   return { $schema: 'https://json-schema.org/draft/2020-12/schema', title: manifest.name, type: 'object', properties, additionalProperties: false, ...(required.length ? { required } : {}) };
 }
 function inputSchema(input: InputSpec): Record<string, unknown> {
-  const base = { title: input.label ?? input.id, ...(input.help ? { description: input.help } : {}) };
+  // A block field states its syntax in the manifest's `description` (Design's `grad`
+  // spec grammar, for one); `help` is the shorter UI hint and wins when both exist.
+  const about = input.help ?? (input as InputSpec & { description?: string }).description;
+  const base = { title: input.label ?? input.id, ...(about ? { description: about } : {}) };
   if (input.type === 'number') {
     const number = { type: 'number', ...(input.min !== undefined ? { minimum: input.min } : {}), ...(input.max !== undefined ? { maximum: input.max } : {}) };
     return { ...base, ...(input.default === '' ? { anyOf: [number, { const: '' }] } : number), ...(input.default !== undefined ? { default: input.default } : {}) };

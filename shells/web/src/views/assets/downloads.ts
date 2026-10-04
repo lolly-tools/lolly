@@ -15,7 +15,7 @@ import { mountModal } from '../../components/modal.ts';
 import { mountZoomHud } from '../../components/zoom-hud.ts';
 import { icon } from '../../lib/icons.ts';
 import { startJob } from '../../lib/jobs.ts';
-import { restyleIconTheme, wrapRasterWithTreatment } from '@lolly/engine';
+import { restyleIconTheme } from '@lolly/engine';
 import type { C2paActionInput } from '../../../../../engine/src/c2pa.ts';
 import { signDerived as sharedSignDerived, sourceIngredients as sharedSourceIngredients } from '../../lib/derived-asset.ts';
 import type { DerivedSignInputs } from '../../lib/derived-asset.ts';
@@ -640,22 +640,36 @@ export async function openDownloadDialog(cat: CatCtx, ref: AssetRef, initialThem
     }
   });
 }
-// Bake a photo treatment into a self-contained SVG wrapper (the source photo inlined as a
-// data URI + the treatment <filter>), at the photo's natural pixel size - the same wrapper
-// the bridge bakes at resolve, but built here so it works for user uploads too (which carry
-// no catalog format dimensions). Returns null when there's no valid treatment.
+// Bake a photo treatment into a self-contained SVG source at the photo's natural pixel
+// size, built here so it works for user uploads too (which carry no catalog format
+// dimensions). The legacy kinds keep their <filter>; a look only pixels reproduce
+// (gradient-map, lut) is baked into the photo by the engine's applyPhotoLook, the same
+// bake the bridge serves, so the file matches the 'Applied' step its credential records
+// (lib/photo-look-download.ts). Returns null when there's no valid treatment; a bake
+// that cannot run throws.
 export async function treatedWrapperSvg(cat: CatCtx, ref: AssetRef, treatmentId: string | PhotoTreatment | null, source?: Blob): Promise<{ svg: string; w: number; h: number } | null> {
+  const { host } = cat;
   const def = typeof treatmentId === 'object' ? treatmentId : cat.photoTreatments.find(t => t.id === treatmentId);
   if (!def) return null;
   const blob = source ?? await (await fetch(ref.url)).blob();
-  const href = await blobToDataUrl(blob);
-  const { w, h } = await new Promise<{ w: number; h: number }>((res, reject) => {
-    const im = new Image();
-    im.onload = () => res({ w: im.naturalWidth || 1, h: im.naturalHeight || 1 });
-    im.onerror = () => reject(new Error('Could not decode the source image'));
-    im.src = href;
+  const { treatedPhotoSvg } = await import('../../lib/photo-look-download.ts');
+  const { svg, w, h } = await treatedPhotoSvg(blob, def, {
+    toDataUrl: blobToDataUrl,
+    measure: href => new Promise<{ w: number; h: number }>((res, reject) => {
+      const im = new Image();
+      im.onload = () => res({ w: im.naturalWidth || 1, h: im.naturalHeight || 1 });
+      im.onerror = () => reject(new Error('Could not decode the source image'));
+      im.src = href;
+    }),
+    loadLut: async lutId => {
+      const lutRef = await host.assets.get(lutId, { format: 'cube' }).catch(() => host.assets.get(lutId));
+      const response = await fetch(lutRef.url);
+      if (!response.ok) return null;
+      const { parseLutText } = await import('../../../../../engine/src/grade.ts');
+      return parseLutText(await response.text(), lutId);
+    },
   });
-  return { svg: wrapRasterWithTreatment({ href, width: w, height: h, treatment: def }), w, h };
+  return { svg, w, h };
 }
 // Raster "Download as": Original is byte-exact; choosing PNG/JPG/WebP always
 // runs a real encoder and checks the resulting container before naming it. The

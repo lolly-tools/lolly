@@ -1,6 +1,6 @@
 {
   "name": "Agenda",
-  "description": "Gjør ett program om til merkede skjermer, interaktive nettsider, animerte oversikter, PowerPoint lysbilder og kalendere.",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} økter, {{trackCount}} spor",
   "inputs.title.label": "Hendelse",
   "inputs.title.help": "Trykket på toppen av hver layout, og den navngir den eksporterte filen.",

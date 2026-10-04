@@ -174,10 +174,12 @@ test('a file that is not a deck is named and never started, and a PDF deck is re
   const controller = new StubController(idleState());
   const { rb, view } = mount(controller);
   await rb.intake.take(new dom.window.File(['words'], 'notes.txt', { type: 'text/plain' }));
-  assert.equal(text(view.querySelector('.rb-intake-notice')), 'Choose a .pptx or .pdf file.');
+  assert.equal(text(view.querySelector('.rb-intake-notice')), 'Choose a .pptx, .pdf or .psd file.');
   assert.equal(controller.calls.some((c) => c.startsWith('start:')), false);
   await rb.intake.take(new dom.window.File(['%PDF'], 'deck.pdf', { type: 'application/pdf' }));
   assert.ok(controller.calls.includes('start:deck.pdf'), 'a PDF starts a read like a pptx');
+  await rb.intake.take(new dom.window.File(['8BPS'], 'poster.psd', { type: 'image/vnd.adobe.photoshop' }));
+  assert.ok(controller.calls.includes('start:poster.psd'), 'a Photoshop document starts a read too (plans/289 D2)');
   await rb.intake.take(new dom.window.File(['PK'], 'deck.pptx'));
   assert.ok(controller.calls.includes('start:deck.pptx'));
 });
@@ -247,7 +249,7 @@ test('an error is named by its code with a way on, and leaves the drop area its 
   assert.equal(text(error.querySelector('[data-way]')), 'Choose another file');
   assert.deepEqual(primaries(view), ['Choose a deck'], 'one primary: the error way steps down beside the drop area');
   const { errorCopy } = await import('./intake.ts');
-  assert.equal(errorCopy({ code: 'unsupported-file', message: '' }).text, 'Choose a .pptx or .pdf file.');
+  assert.equal(errorCopy({ code: 'unsupported-file', message: '' }).text, 'Choose a .pptx, .pdf or .psd file.');
 });
 
 test('once the review is showing, readiness rows and a problem appear in the band under the top bar', () => {
@@ -286,7 +288,7 @@ test('several decks chosen at once start one read, and a file that is not a deck
     new dom.window.File(['x'], 'notes.txt', { type: 'text/plain' }),
   ]);
   assert.ok(controller.calls.includes('startMany:one.pptx,two.pptx'));
-  assert.equal(text(view.querySelector('.rb-intake-notice')), '1 file is not a PowerPoint deck or a PDF, so it was left out.');
+  assert.equal(text(view.querySelector('.rb-intake-notice')), '1 file is not a PowerPoint deck, a PDF or a Photoshop document, so it was left out.');
 });
 
 test('the intake lists each deck of a multi-file read with its state, and a ready one opens', async () => {

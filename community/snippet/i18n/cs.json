@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Proměň úryvky kódu v čisté obrázky se zvýrazněnou syntaxí, připravené ke sdílení.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Kód",
   "inputs.code.placeholder": "Sem vlož svůj kód…",
   "inputs.fileName.label": "Název souboru",

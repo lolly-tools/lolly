@@ -201,7 +201,7 @@ pub fn write_frame(stream: &mut impl Write, payload: &[u8]) -> Result<(), String
 
 /// A fresh per-launch token: 32 hex characters from the operating system's random
 /// source. It lives only in the advert file and in memory, and dies with the process.
-fn fresh_token() -> String {
+pub(crate) fn fresh_token() -> String {
     use rand::RngCore;
     let mut bytes = [0u8; 16];
     rand::rngs::OsRng.fill_bytes(&mut bytes);
@@ -390,7 +390,7 @@ pub fn advert_json(port: u16, token: &str, version: &str) -> serde_json::Value {
     })
 }
 
-fn write_advert(path: &std::path::Path, port: u16, token: &str, version: &str) -> Result<(), String> {
+pub(crate) fn write_advert(path: &std::path::Path, port: u16, token: &str, version: &str) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("could not create {}: {e}", parent.display()))?;
     }

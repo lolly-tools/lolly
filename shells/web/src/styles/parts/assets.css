@@ -802,6 +802,12 @@
 /* ── Layout + density (plans/132 WP-I) - view-options choices, pure CSS ──────*/
 .catalog.cat-density-compact .cat-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--grid-gap-tight); }
 .catalog.cat-density-compact .cat-tile-cap { padding: var(--sp-3) var(--sp-4); }
+/* Card size (components/view-options.ts): the density's own auto-fill width (200px,
+   150px on a phone, 140px compact) scaled by the step. Compact keeps its spacing. */
+.catalog[data-card-size] { --cat-card-min: 200px; }
+@media (max-width: 640px) { .catalog[data-card-size] { --cat-card-min: 150px; } }
+.catalog.cat-density-compact[data-card-size] { --cat-card-min: 140px; }
+.catalog[data-card-size] .cat-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--cat-card-min) * var(--card-scale))), 1fr)); }
 /* List rows: the same tiles reflowed - thumb chip, name, sub inline. */
 .catalog.cat-layout-list .cat-grid { display: flex; flex-direction: column; gap: var(--sp-2); }
 .catalog.cat-layout-list .cat-tile { container-type: normal; }

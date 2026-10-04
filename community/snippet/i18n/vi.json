@@ -1,6 +1,6 @@
 {
   "name": "Đoạn mã",
-  "description": "Biến đoạn mã thành hình ảnh gọn gàng, có tô sáng cú pháp và dễ chia sẻ.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Mã",
   "inputs.code.placeholder": "Dán mã của bạn vào đây…",
   "inputs.fileName.label": "Tên tệp",

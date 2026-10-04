@@ -1,6 +1,6 @@
 {
-  "name": "ری برانڈ",
-  "description": "ایک PowerPoint ڈیک اپ لوڈ کریں اور اس کے رنگ اور فونٹس اپنے برانڈ کے مطابق کر لیں - آپ کے آلے پر دوبارہ بنایا گیا، کچھ بھی اپ لوڈ نہیں ہوتا۔",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "{{fileName}} کے لیے ڈیک ری برانڈر",
   "inputs.source.label": "PowerPoint فائل",
   "inputs.source.help": "ایک .pptx فائل۔ یہ آپ کے ڈیوائس پر پڑھی جاتی ہے اور کبھی اپ لوڈ نہیں ہوتی۔",

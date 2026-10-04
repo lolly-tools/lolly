@@ -375,6 +375,25 @@ test('speaker notes read from the body placeholder, ignoring the slide-number fi
   assert.equal(deck.slides[0]!.notes, 'Speaker note here');
 });
 
+test('notes keep a:br line breaks apart from paragraph ends (plan 291 W2)', () => {
+  // The talk-deck trap: one paragraph broken by a:br, a blank line before the
+  // second section, then a second paragraph. Flattened, "OPENING" ran into "Start".
+  const body = '<a:p><a:r><a:rPr lang="en-US"/><a:t>OPENING</a:t></a:r><a:br><a:rPr lang="en-US"/></a:br>'
+    + '<a:r><a:rPr lang="en-US"/><a:t>Start at the river</a:t></a:r><a:br/><a:br/>'
+    + '<a:r><a:rPr lang="en-US"/><a:t>TIMING</a:t></a:r></a:p>'
+    + '<a:p><a:r><a:rPr lang="en-US"/><a:t>Second paragraph</a:t></a:r></a:p><a:p><a:endParaRPr lang="en-US"/></a:p>';
+  const notes = NOTES1.replace('<a:p><a:r><a:rPr lang="en-US"/><a:t>Speaker note here</a:t></a:r></a:p>', `<a:p><a:endParaRPr/></a:p>${body}`);
+  assert.notEqual(notes, NOTES1, 'the fixture swap took');
+  const slide = readPptx(deckParts({ 'ppt/notesSlides/notesSlide1.xml': notes }), parseXml).slides[0]!;
+  assert.equal(slide.notes, 'OPENING\nStart at the river\n\nTIMING\nSecond paragraph');
+  const paras = slide.notesParas!;
+  assert.equal(paras.length, 2, 'blank paragraphs at either end are dropped');
+  assert.deepEqual(paras.map((p) => p.runs.map((r) => r.text).join('')), ['OPENING\nStart at the river\n\nTIMING', 'Second paragraph']);
+  assert.deepEqual(paras[0]!.runs.map((r) => r.text), ['OPENING', '\n', 'Start at the river', '\n', '\n', 'TIMING'], 'each a:br is its own run');
+  const plain = readPptx(deckParts(), parseXml).slides[0]!;
+  assert.deepEqual(plain.notesParas?.map((p) => p.runs.map((r) => r.text).join('')), ['Speaker note here'], 'present whenever notes is');
+});
+
 test('a slide with no notes rel has no notes', () => {
   const parts = deckParts();
   delete parts['ppt/notesSlides/notesSlide1.xml'];
@@ -1048,6 +1067,8 @@ test('a deck with no layout parts reads exactly as it did before the cascade', (
       },
     ],
     notes: 'Speaker note here',
+    // Additive (plan 291 W2): the same notes as paragraphs.
+    notesParas: [{ runs: [{ text: 'Speaker note here' }] }],
   });
 });
 

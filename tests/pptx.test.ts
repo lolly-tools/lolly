@@ -105,6 +105,51 @@ test('a pic with srcRect crops the source (object-fit:cover) and keeps a full bl
   assert.match(xml, /<a:srcRect[^>]*\/><a:stretch><a:fillRect\/><\/a:stretch>/);
 });
 
+// Plan 291 M4 (W7): a mirrored or translucent picture travels as a real picture.
+test('a pic with flipH/flipV writes the flips on its xfrm, and alpha as alphaModFix inside the blip', () => {
+  const slide: PptxSlide = {
+    shapes: [
+      { kind: 'pic', x: 0, y: 0, cx: 400, cy: 200, media: 0, flipH: true, alpha: 0.5 },
+      { kind: 'pic', x: 0, y: 0, cx: 400, cy: 200, media: 0, flipV: true },
+      { kind: 'pic', x: 0, y: 0, cx: 400, cy: 200, media: 0, flipH: true, flipV: true, rot: 90 },
+    ],
+    media: [{ bytes, ext: 'jpeg' }],
+  };
+  const xml = buildPptxParts([slide], {})['ppt/slides/slide1.xml'] as string;
+  assert.match(xml, /<a:xfrm flipH="1"><a:off/, 'a horizontal mirror');
+  assert.match(xml, /<a:xfrm flipV="1"><a:off/, 'a vertical mirror');
+  assert.match(xml, /<a:xfrm rot="5400000" flipH="1" flipV="1"><a:off/, 'rot, then the flips, on one xfrm');
+  assert.match(xml, /<a:blip r:embed="rId2"><a:alphaModFix amt="50000"\/><\/a:blip>/, 'half opacity on the blip');
+  assert.equal((xml.match(/alphaModFix/g) ?? []).length, 1, 'an opaque picture carries no alphaModFix');
+});
+
+test('alphaModFix sits before the svgBlip extLst (CT_Blip order)', () => {
+  const slide: PptxSlide = {
+    shapes: [{ kind: 'pic', x: 0, y: 0, cx: 100, cy: 100, media: 0, svg: 1, alpha: 0.25 }],
+    media: [{ bytes, ext: 'png' }, { bytes, ext: 'svg' }],
+  };
+  const xml = buildPptxParts([slide], {})['ppt/slides/slide1.xml'] as string;
+  assert.match(xml, /<a:blip r:embed="rId2"><a:alphaModFix amt="25000"\/><a:extLst><a:ext uri="[^"]+"><asvg:svgBlip /);
+});
+
+test('a pic with no flips and no alpha writes exactly what it wrote before those fields existed', () => {
+  const xml = buildPptxParts([picSlide()], {})['ppt/slides/slide1.xml'] as string;
+  assert.match(xml, /<p:blipFill><a:blip r:embed="rId2"\/><a:stretch><a:fillRect\/><\/a:stretch><\/p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"\/><a:ext cx="100" cy="100"\/><\/a:xfrm>/);
+  const opaque = buildPptxParts([{ shapes: [{ kind: 'pic', x: 0, y: 0, cx: 100, cy: 100, media: 0, flipH: false, flipV: false, alpha: 1 }], media: [{ bytes, ext: 'png' }] }], {})['ppt/slides/slide1.xml'];
+  assert.equal(opaque, xml, 'false flips and an alpha of 1 are the same as none');
+});
+
+test('a gradFill keeps each stop\'s alpha, the fully transparent stop included', () => {
+  const slide: PptxSlide = {
+    shapes: [{ kind: 'rect', x: 0, y: 0, cx: 100, cy: 100, fill: { grad: [
+      { pos: 0, color: '102030', alpha: 0.949 }, { pos: 0.3, color: '102030', alpha: 0.702 }, { pos: 0.62, color: '102030', alpha: 0 },
+    ], angle: 90 } }],
+    media: [],
+  };
+  const xml = buildPptxParts([slide], {})['ppt/slides/slide1.xml'] as string;
+  assert.match(xml, /<a:gs pos="0"><a:srgbClr val="102030"><a:alpha val="94900"\/><\/a:srgbClr><\/a:gs><a:gs pos="30000"><a:srgbClr val="102030"><a:alpha val="70200"\/><\/a:srgbClr><\/a:gs><a:gs pos="62000"><a:srgbClr val="102030"><a:alpha val="0"\/><\/a:srgbClr><\/a:gs>/);
+});
+
 test('a rect shape carries fill, border and rounded geometry', () => {
   const slide: PptxSlide = {
     shapes: [
@@ -136,13 +181,15 @@ test('a noted slide emits a notesSlide + the shared notesMaster, and the slide r
   ]) {
     assert.ok(required in parts, `missing part ${required}`);
   }
-  // Each newline is its own paragraph; the note lives in the body ph PowerPoint's
-  // Notes pane reads (a bare text box would render but leave the pane empty).
+  // A single newline is a line break inside its paragraph (plan 291 M4); the note
+  // lives in the body ph PowerPoint's Notes pane reads (a bare text box would
+  // render but leave the pane empty).
   const notes = parts['ppt/notesSlides/notesSlide1.xml'] as string;
   assert.match(notes, /<p:ph type="body" idx="1"\/>/);
   assert.match(notes, /<a:t>Hello<\/a:t>/);
   assert.match(notes, /<a:t>World<\/a:t>/);
-  assert.equal([...notes.matchAll(/<a:p>/g)].length, 2, 'one paragraph per line');
+  assert.equal([...notes.matchAll(/<a:p>/g)].length, 1, 'one paragraph, its lines kept by a:br');
+  assert.match(notes, /<a:t>Hello<\/a:t><\/a:r><a:br><a:rPr lang="en-US" dirty="0"\/><\/a:br><a:r>/);
   // No media → the notesSlide rel takes rId2, straight after the layout.
   const rels = parts['ppt/slides/_rels/slide1.xml.rels'] as string;
   assert.match(rels, /Id="rId2" Type="[^"]*\/notesSlide" Target="\.\.\/notesSlides\/notesSlide1\.xml"/);
@@ -152,6 +199,15 @@ test('a noted slide emits a notesSlide + the shared notesMaster, and the slide r
   const nRels = parts['ppt/notesSlides/_rels/notesSlide1.xml.rels'] as string;
   assert.match(nRels, /Id="rId1" Type="[^"]*\/slide" Target="\.\.\/slides\/slide1\.xml"/);
   assert.match(nRels, /Id="rId2" Type="[^"]*\/notesMaster" Target="\.\.\/notesMasters\/notesMaster1\.xml"/);
+});
+
+test('a notes line of only a no-break space is an empty line inside its paragraph: two a:br in a row (plan 291 M4)', () => {
+  const parts = buildPptxParts([{ shapes: [], media: [], notes: 'OPENING\nWelcome.\n \nTIMING\nTwo minutes.\n\nPhoto: harbour' }], {});
+  const notes = parts['ppt/notesSlides/notesSlide1.xml'] as string;
+  assert.equal([...notes.matchAll(/<a:p>/g)].length, 2, 'the blank line ends the first paragraph; the no-break line does not');
+  const br = '<a:br><a:rPr lang="en-US" dirty="0"/></a:br>';
+  assert.ok(notes.includes(`<a:t>Welcome.</a:t></a:r>${br}${br}<a:r><a:rPr lang="en-US" dirty="0"/><a:t>TIMING</a:t>`), notes);
+  assert.ok(!notes.includes(' '), 'the marker is not written as text');
 });
 
 test('notes wire the presentation: notesMasterIdLst precedes sldIdLst, rel + content types resolve', () => {
@@ -176,6 +232,29 @@ test('the notes master gets its OWN theme part, not the slide master\'s', () => 
   assert.match(parts['[Content_Types].xml'] as string, /PartName="\/ppt\/theme\/theme2\.xml" ContentType="[^"]*\.theme\+xml"/);
   // The slide master keeps theme1 - the two must not cross.
   assert.match(parts['ppt/slideMasters/_rels/slideMaster1.xml.rels'] as string, /Target="\.\.\/theme\/theme1\.xml"/);
+});
+
+test('notes paragraphs: a long blank run inside a note is split in linear time, with the same paragraphs as before', () => {
+  const notesXml = (notes: string): string => String(buildPptxParts([{ shapes: [], media: [], notes }], {})['ppt/notesSlides/notesSlide1.xml']);
+  // The earlier end-anchored regex took about 20 s on 100 KB of interior '\n '.
+  const long = `a${'\n '.repeat(100_000)}x`;
+  const t0 = performance.now();
+  const xml = notesXml(long);
+  const ms = performance.now() - t0;
+  assert.ok(ms < 250, `200 KB of interior blank lines took ${Math.round(ms)} ms`);
+  assert.equal([...xml.matchAll(/<a:p>/g)].length, 2, 'the blank run is one paragraph break');
+  // The same paragraphs and line breaks the regex split gave, on the edge cases.
+  const cases: Array<[string, string[][]]> = [
+    ['\n\nHello\nworld\n \n\t\nNext\n\n', [['Hello', 'world'], ['Next']]],
+    ['one\r\n\r\ntwo\rthree', [['one'], ['two', 'three']]],
+    ['  \n  lead kept  ', [['lead kept']]],
+    ['solo', [['solo']]],
+  ];
+  for (const [notes, want] of cases) {
+    const body = /<p:txBody><a:bodyPr\/><a:lstStyle\/>(.*)<\/p:txBody>/.exec(notesXml(notes))![1]!;
+    const got = [...body.matchAll(/<a:p>(.*?)<\/a:p>/g)].map((m) => [...m[1]!.matchAll(/<a:t>([^<]*)<\/a:t>/g)].map((t) => t[1]!));
+    assert.deepEqual(got, want, JSON.stringify(notes));
+  }
 });
 
 test('notes text is XML-escaped', () => {
@@ -566,4 +645,19 @@ test('a newline inside a run is written as <a:br/>, never as a raw newline in <a
   assert.match(xml, /<a:t>One<\/a:t><\/a:r><a:br><a:rPr [^>]*sz="2000"[^>]*><a:latin typeface="SUSE"\/>/);
   assert.match(xml, /<a:t>Three<\/a:t>/);
   assert.match(xml, /<a:lnSpc><a:spcPts val="3000"\/><\/a:lnSpc>/, 'an exact pitch is written in hundredths of a point');
+});
+
+// Plan 291 M4: a source note's a:br line breaks came back as paragraphs of their
+// own. A blank line now separates paragraphs and a single newline is an a:br
+// inside one, so a reader gets the source's paragraphs back.
+test('notes: a blank line separates paragraphs and a single newline stays an a:br', () => {
+  const parts = buildPptxParts([{ shapes: [], media: [], notes: 'WHAT I SAY\nOpen with the tide.\nThen the chart.\n\nPhoto: free to reuse.' }], {});
+  const xml = parts['ppt/notesSlides/notesSlide1.xml'] as string;
+  const paras = [...xml.matchAll(/<a:p>(.*?)<\/a:p>/g)].map((m) => m[1]!);
+  assert.equal(paras.length, 2);
+  assert.equal([...paras[0]!.matchAll(/<a:br>/g)].length, 2, 'the first paragraph keeps its two line breaks');
+  assert.doesNotMatch(paras[1]!, /<a:br>/);
+  // Three or more newlines still make one paragraph break, and the ends are trimmed of blank paragraphs.
+  const loose = buildPptxParts([{ shapes: [], media: [], notes: '\nOne\n\n\nTwo\n\n' }], {})['ppt/notesSlides/notesSlide1.xml'] as string;
+  assert.equal([...loose.matchAll(/<a:p>/g)].length, 2);
 });

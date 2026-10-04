@@ -8,7 +8,7 @@
  */
 
 import type { InpaintFrame } from '@lolly/engine';
-import type { InpaintWorkerReply } from './inpaint-worker.ts';
+import type { InpaintWorkerReply, RetouchMethod } from './inpaint-worker.ts';
 
 export interface InpaintRun {
   done: Promise<InpaintFrame>;
@@ -18,7 +18,7 @@ export interface InpaintRun {
 export function runInpaint(
   frame: InpaintFrame,
   mask: Uint8Array,
-  opts: { radius?: number; onProgress?: (filled: number, total: number) => void } = {},
+  opts: { radius?: number; method?: RetouchMethod; seed?: number; onProgress?: (filled: number, total: number) => void } = {},
 ): InpaintRun {
   const worker = new Worker(new URL('./inpaint-worker.ts', import.meta.url), { type: 'module' });
   let settled = false;
@@ -35,7 +35,7 @@ export function runInpaint(
     };
     worker.onerror = (): void => { finish(); reject(new Error('inpaint worker error')); };
     worker.postMessage(
-      { id: 1, width: frame.width, height: frame.height, data: frame.data, mask, radius: opts.radius },
+      { id: 1, width: frame.width, height: frame.height, data: frame.data, mask, radius: opts.radius, method: opts.method, seed: opts.seed },
       [frame.data.buffer, mask.buffer],
     );
   });

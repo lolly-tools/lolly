@@ -188,6 +188,13 @@
     grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--grid-gap-tight);
   }
 }
+/* Card size (components/view-options.ts): the 180px column scaled by the step, and on a
+   phone the two columns shifted by it, three at most so a tile keeps its name. Grid mode
+   only, like the rules above. */
+.projects-grid[data-card-size]:not(.projects-list) { grid-template-columns: repeat(auto-fill, calc(180px * var(--card-scale))); }
+@media (max-width: 560px) {
+  .projects-grid[data-card-size]:not(.projects-list) { grid-template-columns: repeat(clamp(1, 2 + var(--card-shift), 3), minmax(0, 1fr)); }
+}
 
 /* ── List view = one table (plans/133 WP-12) ──────────────────────────────
    Header and rows share ONE column template (--list-cols) so they can only ever

@@ -61,6 +61,7 @@ import { userAssetsOps } from './assets/user-assets.ts';
 import { bulkOps } from './assets/bulk.ts';
 import { downloadsOps } from './assets/downloads.ts';
 import { wiringOps } from './assets/wiring.ts';
+import { readCardSize } from '../components/view-options.ts';
 
 
 // Type only - the trim module itself is a lazy chunk, loaded when the action is used.
@@ -264,6 +265,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   const DENSITY_PREF_KEY = 'lolly-catalog-density'; cat.DENSITY_PREF_KEY = DENSITY_PREF_KEY;
   cat.catLayout = localStorage.getItem(LAYOUT_PREF_KEY) === 'list' ? 'list' : 'grid';
   cat.catDensity = localStorage.getItem(DENSITY_PREF_KEY) === 'compact' ? 'compact' : 'comfortable';
+  cat.cardSize = readCardSize('catalog');
   const CAT_SORTS: readonly CatSort[] = ['default', 'name', 'added', 'modified', 'size', 'type']; cat.CAT_SORTS = CAT_SORTS;
   cat.catSort = 'modified';
   try {

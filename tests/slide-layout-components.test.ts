@@ -68,6 +68,57 @@ test('recipes reject unbounded geometry and do not mutate the brand master', () 
   assert.equal(withSlideLayoutComponents(expanded, ['flow-cards-9-3']), expanded);
 });
 
+test('a component label takes the master\'s own label weight, so a Medium 500 master gets Medium labels', () => {
+  const master = STARTER_DESIGN_SYSTEM.input.master;
+  const labelsOf = (m: typeof master): Array<string | undefined> =>
+    withSlideLayoutComponents(m, ['flow-cards-6-3']).archetypes.find(a => a.id === 'flow-cards-6-3')!.placeholders
+      .filter(p => p.role === 'label').map(p => p.style?.weight);
+  assert.deepEqual([...new Set(labelsOf(master))], ['700'], 'the starter master sets labels in 700');
+  const medium = structuredClone(master);
+  for (const a of medium.archetypes) for (const p of a.placeholders) if (p.role === 'label' && p.style) p.style.weight = '500';
+  assert.deepEqual([...new Set(labelsOf(medium))], ['500']);
+  const unweighted = structuredClone(master);
+  for (const a of unweighted.archetypes) for (const p of a.placeholders) if (p.role === 'label' && p.style) delete p.style.weight;
+  assert.deepEqual([...new Set(labelsOf(unweighted))], ['700'], 'a master with no weighted label falls back to 700');
+});
+
+test('a -dark id gives a content-sized layout its dark twin from content-dark; light ids expand as before', () => {
+  const master = STARTER_DESIGN_SYSTEM.input.master;
+  const lightOnly = withSlideLayoutComponents(master, ['flow-cards-4-2']);
+  const plain = lightOnly.archetypes.find(a => a.id === 'flow-cards-4-2')!;
+  assert.equal(plain.variants, undefined, 'a light id alone gets no twin');
+  assert.equal(lightOnly.archetypes.some(a => a.id.endsWith('-dark') && a.id.startsWith('flow-')), false);
+
+  const both = withSlideLayoutComponents(master, ['flow-cards-4-2', 'flow-cards-4-2-dark']);
+  const light = both.archetypes.find(a => a.id === 'flow-cards-4-2')!;
+  const dark = both.archetypes.find(a => a.id === 'flow-cards-4-2-dark')!;
+  const { variants, ...rest } = light;
+  assert.deepEqual(variants, { dark: 'flow-cards-4-2-dark' });
+  assert.deepEqual(rest, plain, 'the light layout is the same with or without its twin');
+  assert.equal(dark.variantOf, 'flow-cards-4-2');
+  const contentDark = master.archetypes.find(a => a.id === 'content-dark')!;
+  assert.deepEqual(dark.background, contentDark.background);
+  assert.deepEqual(dark.furniture!.filter(id => !id.startsWith('flow-')), contentDark.furniture);
+  assert.deepEqual(dark.placeholders.map(p => p.box), light.placeholders.map(p => p.box), 'the same geometry');
+  const darkInk = contentDark.placeholders.find(p => p.role === 'body')!.style!.fgTokenPath;
+  assert.deepEqual([...new Set(dark.placeholders.filter(p => p.role !== 'title').map(p => p.style?.fgTokenPath))], [darkInk]);
+  assert.equal(dark.placeholders[0]!.style?.fgTokenPath, contentDark.placeholders.find(p => p.role === 'title')!.style!.fgTokenPath);
+  // The twin's card rules are its own, in the dark body ink.
+  const rules = both.furniture.filter(f => f.id.startsWith('flow-cards-4-2-dark-rule-'));
+  assert.equal(rules.length, 4);
+  for (const rule of rules) assert.equal(rule.tokenPath, darkInk);
+  // A -dark id alone expands both; a master with no dark content slide has no twin to give.
+  assert.ok(withSlideLayoutComponents(master, ['flow-cards-4-2-dark']).archetypes.some(a => a.id === 'flow-cards-4-2-dark'));
+  const noDark = { ...master, archetypes: master.archetypes.filter(a => a.id !== 'content-dark').map(a => (a.id === 'content' ? { ...a, variants: undefined } : a)) };
+  const lone = withSlideLayoutComponents(noDark, ['flow-cards-4-2', 'flow-cards-4-2-dark']);
+  assert.equal(lone.archetypes.some(a => a.id === 'flow-cards-4-2-dark'), false);
+  assert.equal(lone.archetypes.find(a => a.id === 'flow-cards-4-2')!.variants, undefined);
+  // Seeding the twin by id works, which is what a composed frame and Tier A PowerPoint do.
+  const seeded = seedFrame(master, 'flow-cards-4-2-dark', { frameId: 'f', x: 0, y: 0 });
+  assert.equal(seeded?.frame.archetype, 'flow-cards-4-2-dark');
+  assert.equal(seeded?.cells?.length, 4);
+});
+
 test('Design can seed and reset a generated layout while preserving authored content', () => {
   const master = STARTER_DESIGN_SYSTEM.input.master;
   const seeded = seedFrame(master, 'flow-cards-9-3', { frameId: 'f', x: 0, y: 0 });

@@ -620,3 +620,65 @@ test('contract: every CMYK sink obtains its palette through buildCmykPaletteMap'
     assert.match(body, /FINISH_MASK_CMYK/, `${fn} must mask a declared finish`);
   }
 });
+
+// Plan 291 M4: a box background with alpha (an rgba or #rrggbbaa scrim over a
+// photo) printed opaque in PDF, because the walker read it through parseCssColor,
+// which drops alpha. pdfFillCssBackground keeps the alpha through withPdfAlpha,
+// and both background branches of the PDF walker call that helper.
+test('pdfFillCssBackground: a translucent background fills under a GState with its alpha', async () => {
+  const { pdfFillCssBackground } = await import('./export-pdf-vector.ts');
+  const { ops, pdf } = pdfRecorder();
+  const states: any[] = [];
+  pdf.GState = function (this: any, o: any) { (this as any).o = o; };
+  pdf.setGState = (g: any) => { states.push(g.o); ops.push(['setGState', g.o.opacity]); };
+  pdf.setFillColor = (...a: unknown[]) => ops.push(['setFillColor', ...a]);
+  const zero: CornerRadii = [[0, 0], [0, 0], [0, 0], [0, 0]] as unknown as CornerRadii;
+  // #13294b99 is the navy scrim that covered a cover photo solid in b2's PDF.
+  assert.equal(pdfFillCssBackground(pdf, 'rgba(19, 41, 75, 0.6)', 0, 0, 100, 50, zero, [0, 0]), true);
+  assert.deepEqual(names(ops), ['setGState', 'setFillColor', 'rect', 'setGState']);
+  assert.deepEqual(ops[1], ['setFillColor', 19, 41, 75]);
+  assert.equal(states[0].opacity, 0.6);
+  assert.equal(states[1].opacity, 1, 'the alpha is reset after the fill');
+  ops.length = 0; states.length = 0;
+  assert.equal(pdfFillCssBackground(pdf, 'rgb(1, 2, 3)', 0, 0, 10, 10, zero, [0, 0]), true);
+  assert.deepEqual(names(ops), ['setFillColor', 'rect'], 'an opaque fill touches no GState');
+  ops.length = 0;
+  assert.equal(pdfFillCssBackground(pdf, 'rgba(0, 0, 0, 0)', 0, 0, 10, 10, zero, [0, 0]), false);
+  assert.equal(pdfFillCssBackground(pdf, 'transparent', 0, 0, 10, 10, zero, [0, 0]), false);
+  assert.deepEqual(ops, [], 'nothing is painted for a transparent background');
+});
+
+test('the PDF walker paints box backgrounds through pdfFillCssBackground, never the alpha-dropping parse', () => {
+  const src = readFileSync(new URL('./export.ts', import.meta.url), 'utf8');
+  assert.ok(!src.includes('parseCssColor(style.backgroundColor)'), 'a background read with parseCssColor loses its alpha');
+  assert.ok((src.match(/pdfFillCssBackground\(pdf, style\.backgroundColor/g) || []).length >= 2);
+});
+
+// Plan 291 M4 integrate: once a translucent background really prints translucent
+// (pdfFillCssBackground above), an outer box-shadow drawn as a full shape behind the
+// box shows through that translucent fill. CSS paints an outer shadow outside the border box
+// only, so the walker clips the outer shadows of such a box to an even-odd ring from
+// a margin rectangle down to the box with its corners. The real-pixel check is the
+// "outer shadow under a translucent background" row of export-pdf-shadow-fidelity.
+test('clipOuterShadowsOfTranslucentBox: a ring outside a translucent box, nothing for an opaque one', async () => {
+  const { clipOuterShadowsOfTranslucentBox, cssColorAlpha } = await import('./export-pdf-vector.ts');
+  const corners = (r: number): CornerRadii => ({ topLeft: [r, r], topRight: [r, r], bottomRight: [r, r], bottomLeft: [r, r] });
+  const shadow = { x: 0, y: 6, spread: 0, blur: 16 };
+  const { ops, pdf } = pdfRecorder();
+  pdf.clipEvenOdd = () => ops.push(['clipEvenOdd']);
+  assert.equal(clipOuterShadowsOfTranslucentBox(pdf, 'rgba(255, 255, 255, 0.35)', [shadow], 10, 20, 100, 50, corners(0), 0.5), true);
+  assert.deepEqual(names(ops), ['saveGraphicsState', 'rect', 'rect', 'clipEvenOdd', 'discardPath']);
+  // Reach in CSS px: |x| + |y| + spread + 2 * blur + 2 = 40, so a 20 pt margin at 0.5 pt per px.
+  assert.deepEqual(ops[1], ['rect', -10, 0, 140, 90, null], 'the outer edge of the ring is the box grown past the shadow');
+  assert.deepEqual(ops[2], ['rect', 10, 20, 100, 50, null], 'the inner edge is the box itself');
+  ops.length = 0;
+  assert.equal(clipOuterShadowsOfTranslucentBox(pdf, '#ffffff59', [shadow], 0, 0, 40, 40, corners(6), 1), true);
+  assert.deepEqual(ops[2], ['roundedRect', 0, 0, 40, 40, 6, 6, null], 'rounded corners stay rounded');
+  ops.length = 0;
+  assert.equal(clipOuterShadowsOfTranslucentBox(pdf, 'rgb(255, 255, 255)', [shadow], 0, 0, 40, 40, corners(0), 1), false);
+  assert.equal(clipOuterShadowsOfTranslucentBox(pdf, 'rgba(0, 0, 0, 0)', [shadow], 0, 0, 40, 40, corners(0), 1), false);
+  assert.equal(clipOuterShadowsOfTranslucentBox(pdf, 'rgba(0, 0, 0, 0.5)', [], 0, 0, 40, 40, corners(0), 1), false);
+  assert.deepEqual(ops, [], 'an opaque, a transparent or a shadowless box writes exactly what it wrote before');
+  assert.equal(cssColorAlpha('rgba(255, 255, 255, 0.35)'), 0.35);
+  assert.equal(cssColorAlpha('not a colour'), 0);
+});

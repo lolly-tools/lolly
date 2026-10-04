@@ -163,6 +163,8 @@ const PATHS = {
   uploadImage: '<path d="M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="m14 19.5 3-3 3 3"/><path d="M17 22.5v-6"/><circle cx="9" cy="9" r="2"/>',
   // merged: category-icons.ts "other" (GRID) === catalog-summary.ts "categoryOther"
   grid: GRID_4,
+  // Lucide "grid-3x3": the small end of the view options' card-size slider (grid is the large end).
+  gridDense: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>',
 
   // ---- catalog-summary.ts tool/status/asset-type glyphs ----
   // merged: catalog-summary.ts "everyone" === valid.ts ICONS.globe (a slightly different curve-radius rendering of the same Lucide "globe")

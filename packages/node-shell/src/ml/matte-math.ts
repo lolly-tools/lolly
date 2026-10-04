@@ -17,6 +17,8 @@
  */
 
 import type { MatteModelSpec } from './matte-models.ts';
+import type { MatteOpts } from '@lolly-tools/core/host-v1';
+import { refineMatte, resizeMask } from '../../../../engine/src/guided-matte.ts';
 
 export interface LetterboxPlan {
   /** Model input square edge (spec.inputSize is [H,W], H===W for this roster). */
@@ -91,4 +93,25 @@ export function unpadMask(maskEdge: ArrayLike<number>, plan: LetterboxPlan): Uin
     }
   }
   return out;
+}
+
+/**
+ * The matte's alpha at work size, from the activated model mask: unpad, scale back
+ * with the engine's one bilinear mask scaler, then pull the edges onto the photo
+ * with the guided filter (plans/289 M4) unless `refine` is `false`, or absent for a
+ * model whose spec says `refineByDefault: false`. The web and
+ * Node mattes both end here, so after the model they run the same code.
+ */
+export function finishMatteAlpha(
+  maskEdge: ArrayLike<number>,
+  plan: LetterboxPlan,
+  workRgba: ArrayLike<number>,
+  workW: number,
+  workH: number,
+  refine: MatteOpts['refine'],
+  refineByDefault = true,
+): Uint8Array {
+  const scaled = resizeMask(unpadMask(maskEdge, plan), plan.contentW, plan.contentH, workW, workH);
+  if (refine === false || (refine === undefined && !refineByDefault)) return scaled;
+  return refineMatte(scaled, workRgba, workW, workH, refine ?? {});
 }

@@ -62,6 +62,7 @@ test('brand checks separate custom values from unknown references and offer one 
   const boxes = [
     { id: 'a', bg: '#ca3020', text: 'Hi', font: 'Other Sans', fg: '{color.ink}', image: 'example/logo/primary' },
     { id: 'b', bg: '{color.missing}', image: 'user/photo' },
+    { id: 'c', image: 'example/other/thing' },
     { id: 'locked', bg: '#ca3020', locked: true },
     { id: 'hidden', bg: '#00ff00', hidden: true },
   ];
@@ -70,7 +71,11 @@ test('brand checks separate custom values from unknown references and offer one 
   const color = report.findings.find(f => f.layerId === 'a' && f.field === 'bg')!;
   assert.equal(color.status, 'review');
   assert.equal(report.findings.find(f => f.layerId === 'b' && f.kind === 'reference')?.status, 'unknown');
-  assert.ok(report.findings.find(f => f.layerId === 'b' && f.kind === 'asset'));
+  // An upload (`user/...`) is the author's own media: counted, never reviewed as a catalog asset (plan 291).
+  assert.ok(!report.findings.some(f => f.layerId === 'b' && f.kind === 'asset'));
+  assert.equal(report.uploads, 1);
+  // A catalog-style id the design system does not declare is still an asset to review.
+  assert.deepEqual(report.findings.filter(f => f.kind === 'asset').map(f => [f.layerId, f.status, f.value]), [['c', 'review', 'example/other/thing']]);
   assert.ok(report.findings.find(f => f.layerId === 'a' && f.kind === 'font')?.fix);
   assert.equal(report.findings.find(f => f.layerId === 'locked')?.fix, undefined);
   assert.ok(!report.findings.some(f => f.layerId === 'hidden'));
@@ -117,4 +122,18 @@ test('an asynchronous brand fix preserves newer edits and refuses a newer lock',
     assert.equal(boxes[0]?.x, 120);
     assert.equal(writes, locked ? 0 : 1);
   }
+});
+
+test('a transparent token never wins the nearest-colour search', () => {
+  // The SUSE tokens list color.brand.transparent first; its distance to any opaque colour
+  // is NaN, which made every layer colour, exact brand values included, a review item
+  // suggesting "transparent".
+  const withClear = { color: { clear: { $type: 'color', $value: 'transparent' }, ...doc.color } };
+  const report = checkBrandDesign([
+    { id: 'exact', bg: '#cc3322' },
+    { id: 'near', bg: '#cc3323' },
+  ], withClear);
+  assert.equal(report.findings.some(f => f.layerId === 'exact'), false, 'an exact brand value is on brand');
+  const near = report.findings.find(f => f.layerId === 'near');
+  assert.equal(near?.suggestion?.toLowerCase(), '#cc3322', 'a near miss is pointed at the brand colour, not at transparent');
 });

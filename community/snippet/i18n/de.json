@@ -1,6 +1,6 @@
 {
   "name": "Schnipsel",
-  "description": "Verwandeln Sie Codeschnipsel in klare, syntaxhervorgehobene, teilbare Bilder.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Code",
   "inputs.code.placeholder": "Fügen Sie Ihren Code hier ein…",
   "inputs.fileName.label": "Dateiname",

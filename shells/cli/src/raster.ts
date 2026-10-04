@@ -23,6 +23,8 @@ import { pickFramePage } from './frame-page.ts';
 import { note, warn } from './output.ts';
 
 interface Runtime {
+  /** The theme choice per token group this runtime renders in (url-mode `_themes`). */
+  readonly tokenSelection?: Record<string, string>;
   getHydrated(): string;
   getModel(): unknown;
   /** Draw every emoji in a freshly hydrated tree from the chosen set. */
@@ -90,6 +92,9 @@ export async function renderRaster(opts: {
   /** The values the runtime was created from. Tier B restores from them any Lolly
    *  tool link this process could not compose itself (see restoreToolLinks). */
   initial?: Record<string, unknown>;
+  /** A Design document's design system when it is not the content profile's (`--file`, a
+   *  terminal system): the browser tier's page resolves token links in it (plan 291 M4). */
+  designSystem?: Record<string, unknown>;
 }): Promise<RasterResult> {
   const { runtime, dom, manifest } = opts;
   const floatEditing = (runtime.getModel() as ModelItem[]).some(item => item.id === 'editingRange' && item.value === 'hdr') || manifest.id === 'design' && !!opts.dims.hdr;
@@ -143,9 +148,14 @@ export async function renderRaster(opts: {
   // link: Tier B is the web shell rendering the same address, so it has to be told
   // which set to draw from or it would fall back to the browser's own emoji font.
   const model = opts.initial ? restoreToolLinks(runtime.getModel() as ModelItem[], opts.initial) : runtime.getModel();
+  // A Design document goes to the web shell as a session (plan 291 W9): its pictures
+  // travel as files, so neither the address cap nor a dropped upload limits a deck.
+  if (manifest.id === 'design' && process.env.LOLLY_VIDEO_CAPTURE !== 'screenshot') {
+    return { bytes: await renderDesignSession(runtime, model as ModelItem[], fmt, dims, opts), usedBrowser: true };
+  }
   // inlineBakedAssets: this query is handed to a browser on this machine, not shared, so
   // a local file given to an asset input travels as its bytes instead of being dropped.
-  const query = serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle, inlineBakedAssets: true });
+  const query = serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}) });
   const MOTION = ['gif', 'apng', 'webm', 'mp4'];
   // PROTOTYPE opt-in: real Playwright screenshots instead of dom-to-image for the
   // frame-by-frame capture (see renderVideoViaScreenshot's doc comment). Motion
@@ -159,6 +169,46 @@ export async function renderRaster(opts: {
   const { renderViaWebShell } = await import('@lolly-tools/node-shell/webshell-render');
   const { bytes } = await renderViaWebShell(manifest.id, query, fmt, dims);
   return { bytes, usedBrowser: true };
+}
+
+/** The emoji params of a render, spelled as the URL spells them, with the empty ones left out. */
+function emojiQueryParams(emoji: { emoji?: string | null; emojiFx?: string | null; emojiStyle?: string | null } | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (emoji?.emoji) out.emoji = emoji.emoji;
+  if (emoji?.emojiFx) out.emojifx = emoji.emojiFx;
+  if (emoji?.emojiStyle) out.emojistyle = emoji.emojiStyle;
+  return out;
+}
+
+/**
+ * Tier B for Design through the session transport: the model's values are packaged as
+ * a `.lolly` and opened in the web shell, and the export address carries only the slot,
+ * the theme choice and the export settings (renderDesignViaSession).
+ *
+ * The desktop renderer keeps the address transport (plan 291 E27), so unless
+ * LOLLY_RENDERER pins Chromium the document also travels as the URL-mode query every
+ * other tool sends: a running or installed desktop app renders it when the address
+ * fits its request, and Chromium takes the session otherwise.
+ */
+async function renderDesignSession(
+  runtime: Runtime, model: readonly ModelItem[], fmt: string, dims: RenderDims,
+  opts: { emoji?: { emoji?: string | null; emojiFx?: string | null; emojiStyle?: string | null }; initial?: Record<string, unknown>; designSystem?: Record<string, unknown> },
+): Promise<Uint8Array> {
+  const { renderDesignViaSession } = await import('@lolly-tools/node-shell/webshell-render');
+  const { rendererPreference } = await import('@lolly-tools/node-shell/desktop-renderer');
+  const values = Object.fromEntries(model.map((item) => [item.id, item.value]));
+  const urlQuery = rendererPreference() === 'chromium'
+    ? undefined
+    : serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}) });
+  const result = await renderDesignViaSession(values, fmt, dims, {
+    ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}),
+    emoji: emojiQueryParams(opts.emoji),
+    ...(opts.initial ? { fill: opts.initial } : {}),
+    ...(urlQuery !== undefined ? { urlQuery } : {}),
+    ...(opts.designSystem ? { designSystem: opts.designSystem } : {}),
+  });
+  for (const line of result.notes ?? []) note(`Note: ${line}`);
+  return result.bytes;
 }
 
 interface ModelItem { id: string; type: string; value: unknown; fields?: Array<{ id: string; type?: string }> }
@@ -253,6 +303,8 @@ async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null)
 async function renderHdrStill(opts: {
   runtime: Runtime; dom: JSDOM; manifest: Manifest; format: string; dims: RenderDims & HdrStillRequest;
   emoji?: { emoji?: string | null; emojiFx?: string | null; emojiStyle?: string | null };
+  initial?: Record<string, unknown>;
+  designSystem?: Record<string, unknown>;
 }): Promise<RasterResult> {
   const { runtime, dom, manifest } = opts;
   const dims = opts.dims;
@@ -270,9 +322,16 @@ async function renderHdrStill(opts: {
     const { width, height } = pxDims(dims, manifest);
     frame = await rasterizeSvgToRgba(svg, width, height);
   } else {
-    const query = serializeUrlState(runtime.getModel() as never, { emoji:opts.emoji?.emoji, emojiFx:opts.emoji?.emojiFx, emojiStyle:opts.emoji?.emojiStyle, inlineBakedAssets: true });
-    const { renderViaWebShell } = await import('@lolly-tools/node-shell/webshell-render');
-    const { bytes } = await renderViaWebShell(manifest.id, query, 'png', { ...dims, hdrParam: undefined, depth: undefined, imprint: false, c2pa: false });
+    const sourceDims: RenderDims = { ...dims, hdrParam: undefined, depth: undefined, imprint: false, c2pa: false };
+    let bytes: Uint8Array;
+    if (manifest.id === 'design') {
+      // The same session transport as the plain Tier B above (plan 291 W9).
+      bytes = await renderDesignSession(runtime, runtime.getModel() as ModelItem[], 'png', sourceDims, opts);
+    } else {
+      const query = serializeUrlState(runtime.getModel() as never, { emoji:opts.emoji?.emoji, emojiFx:opts.emoji?.emojiFx, emojiStyle:opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}) });
+      const { renderViaWebShell } = await import('@lolly-tools/node-shell/webshell-render');
+      ({ bytes } = await renderViaWebShell(manifest.id, query, 'png', sourceDims));
+    }
     const decoded = await decodeRgba(bytes);
     frame = { data: decoded.data as Uint8Array, width: decoded.width, height: decoded.height };
     usedBrowser = true;
@@ -327,21 +386,69 @@ async function renderHdrStill(opts: {
 // Anything else (a tool that is not Design, a document with no frames, a master that
 // is not on this profile) answers null and the caller keeps to Tier B.
 
-/** One image an exported layer names, read off the catalog of this profile. */
-async function catalogAssetBytes(ref: string): Promise<{ bytes: Uint8Array; mime: string } | null> {
-  const { contentUrlFile } = await import('@lolly-tools/node-shell/content-roots');
+/** The picture types a deck can carry, by file extension. */
+function deckMimeOfFile(file: string): string {
+  const lower = file.toLowerCase();
+  return lower.endsWith('.png') ? 'image/png'
+    : lower.endsWith('.jpg') || lower.endsWith('.jpeg') ? 'image/jpeg'
+      : lower.endsWith('.svg') ? 'image/svg+xml' : '';
+}
+
+/** The bytes and type of a `data:` URL, base64 or percent-encoded, or null when it is not one. */
+export function dataUrlBytes(url: string): { bytes: Uint8Array; mime: string } | null {
+  const m = /^data:([^,]*?),/i.exec(url);
+  if (!m) return null;
+  const params = m[1]!.split(';').map((p) => p.trim());
+  const mime = (params[0] || 'text/plain').toLowerCase();
+  const body = url.slice(m[0].length);
+  try {
+    const bytes = params.slice(1).some((p) => p.toLowerCase() === 'base64')
+      ? new Uint8Array(Buffer.from(decodeURIComponent(body), 'base64'))
+      : new TextEncoder().encode(decodeURIComponent(body));
+    return bytes.length ? { bytes, mime } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Which format of a catalog entry a deck takes: a vector first, then PNG, then JPEG. */
+const DECK_FORMAT_ORDER = ['svg', 'png', 'jpg', 'jpeg'];
+
+/**
+ * One image an exported layer names, read off the catalog of this profile.
+ *
+ * A layer gives its picture as a bare catalog id (`lolly/logo/primary`), a catalog
+ * path (`/catalog/...`), or, once the bridge has resolved the id, a `data:` URL. A bare id
+ * takes the entry's vector when it has one, so a logo travels as an SVG with a PNG
+ * fallback. An id carrying a theme or a treatment is left to `fallback`, the bridge's
+ * own resolver, because only the bridge bakes those.
+ */
+export async function catalogAssetBytes(
+  ref: string,
+  fallback?: (ref: string) => Promise<{ bytes: Uint8Array; mime: string } | null>,
+): Promise<{ bytes: Uint8Array; mime: string } | null> {
+  if (/^data:/i.test(ref)) return dataUrlBytes(ref);
+  const { contentUrlFile, readAssetIndex } = await import('@lolly-tools/node-shell/content-roots');
   const { readFile } = await import('node:fs/promises');
   let file: string | null = null;
   try {
-    file = ref.startsWith('/') ? contentUrlFile(ref) : null;
+    if (ref.startsWith('/')) {
+      file = contentUrlFile(ref);
+    } else if (!ref.includes('?') && !/^[a-z][a-z0-9+.-]*:/i.test(ref)) {
+      const index = readAssetIndex() as { assets?: Array<{ id?: string; formats?: Array<{ format?: string; url?: string }> }> };
+      const entry = (index.assets ?? []).find((a) => a.id === ref);
+      const formats = (entry?.formats ?? [])
+        .filter((f) => f.url && DECK_FORMAT_ORDER.includes(String(f.format).toLowerCase()))
+        .sort((a, b) => DECK_FORMAT_ORDER.indexOf(String(a.format).toLowerCase()) - DECK_FORMAT_ORDER.indexOf(String(b.format).toLowerCase()));
+      for (const f of formats) {
+        file = contentUrlFile(f.url!);
+        if (file) break;
+      }
+    }
   } catch { file = null; }
-  if (!file) return null;
-  const bytes = new Uint8Array(await readFile(file));
-  const lower = file.toLowerCase();
-  const mime = lower.endsWith('.png') ? 'image/png'
-    : lower.endsWith('.jpg') || lower.endsWith('.jpeg') ? 'image/jpeg'
-      : lower.endsWith('.svg') ? 'image/svg+xml' : '';
-  return mime ? { bytes, mime } : null;
+  const mime = file ? deckMimeOfFile(file) : '';
+  if (file && mime) return { bytes: new Uint8Array(await readFile(file)), mime };
+  return fallback ? fallback(ref) : null;
 }
 
 /** The slide master with this id, from whichever catalog entry is tagged `slide-master`. */
@@ -373,8 +480,20 @@ export interface DesignPptxRequest {
   toolId: string;
   /** Reads one brand custom property off the canvas, for the token colours. */
   brandVar: (name: string) => string;
+  /**
+   * Answers one `font.<slot>` token of the active brand, with the authored family names
+   * (see `authoredBrandFont`). The canvas carries the brand colours only, so the theme
+   * fonts and the mono face come from here; without it the deck keeps the theme's own
+   * default faces.
+   */
+  brandFont?: (slot: 'brand' | 'display' | 'mono') => unknown;
   meta?: { title?: string; description?: string; source?: string; contact?: string; author?: string; sourceAuthor?: string } | null;
   now?: string;
+  /**
+   * The bridge's own asset lookup (`host.assets.get`), for a picture the catalog cannot
+   * answer by itself: an upload in a session, or an id with a theme or a treatment.
+   */
+  assets?: { get(id: string): Promise<{ url?: string } | null | undefined> };
 }
 
 /**
@@ -391,11 +510,38 @@ function pptxDeckMeta(req: DesignPptxRequest): DesignPptxRequest['meta'] {
   return { ...(req.meta ?? {}), ...(sourceAuthor ? { sourceAuthor } : {}) };
 }
 
+/**
+ * The `font.<slot>` resolver a native deck reads, over the bridge's `host.tokens`.
+ *
+ * Under a design version that pins font faces, `host.tokens.resolve` answers from the
+ * render projection, where a pinned family is the internal 'Lolly Release <sha256>' alias
+ * that only this renderer can load. A .pptx is portable output, so it takes the authored
+ * families instead: `snapshot()` restores them (`restorePinnedFontFamilies`) and records
+ * the active theme selection, which `createTokenSet` honours. A host with no snapshot, or
+ * one that fails, falls back to `resolve`.
+ */
+export async function authoredBrandFont(
+  tokens: { resolve(ref: string): unknown; snapshot?(): Promise<{ document: unknown }> } | undefined,
+): Promise<DesignPptxRequest['brandFont']> {
+  if (!tokens) return undefined;
+  let document: unknown;
+  try { document = (await tokens.snapshot?.())?.document; } catch { document = undefined; }
+  if (document && typeof document === 'object') {
+    const { createTokenSet } = await import('@lolly/engine');
+    const set = createTokenSet(document);
+    return (slot) => set.resolve(`{font.${slot}}`);
+  }
+  return (slot) => tokens.resolve(`{font.${slot}}`);
+}
+
 /** The .pptx bytes, or null when this document is not one this tier can write. */
 export async function renderDesignPptx(req: DesignPptxRequest): Promise<Uint8Array | null> {
   if (req.toolId !== 'design') return null;
   const { designFramesToPptx, framesOfDesignDoc, hasMasterBindings, parseDesignDoc, transitionsOfDeckModel, MAX_SLIDES } =
     await import('@lolly-tools/node-shell/design-pptx');
+  const { slideMasterForExport, tokenColorsFromStyle } = await import('@lolly-tools/node-shell/design-pptx');
+  const { STATIC_FACE_DIR, withBrandFonts } = await import('@lolly-tools/node-shell/pptx-deck');
+  const { contentUrlFileExact } = await import('@lolly-tools/node-shell/content-roots');
   const script = req.canvas.querySelector?.('[data-penpot-doc]');
   const doc = parseDesignDoc(script?.textContent);
   if (!doc) return null;
@@ -410,12 +556,26 @@ export async function renderDesignPptx(req: DesignPptxRequest): Promise<Uint8Arr
 
   const deckTransitions = transitionsOfDeckModel(req.canvas.querySelector?.('[data-pptx-deck]')?.textContent);
   const masterId = frames.map((f) => (typeof f.row.master === 'string' ? f.row.master : '')).find(Boolean);
-  const master = masterId ? await catalogSlideMaster(masterId) : null;
-  if (masterId && !master) return null;   // a binding we cannot honour is not Tier A
+  // The active catalog's master, or the engine's neutral one when the frames name it and
+  // this profile ships another (plan 291 M3): a composed neutral deck stays Tier A.
+  const bound = masterId ? slideMasterForExport(masterId, await catalogSlideMaster(masterId)) : null;
+  if (masterId && !bound) return null;   // a binding we cannot honour is not Tier A
+  const master = bound?.master ?? null;
+  if (bound?.note) note(`pptx: ${bound.note}.`);
+
+  // The theme fonts, from the brand's token document the way rebrand compile takes them
+  // (font.display heads the major font when present). Without them a run whose font is
+  // a slot keyword, or absent, has no typeface and opens in the theme's Calibri. A
+  // generic-only stack gives none, so that brand keeps the theme it had.
+  const brandFont = req.brandFont;
+  const brandFonts = brandFont
+    ? await (await import('@lolly-tools/node-shell/pptx-deck')).tokenBrandFonts(brandFont)
+    : undefined;
 
   const result = await designFramesToPptx({
     frames,
     ...(master ? { master } : {}),
+    ...(brandFonts ? { fonts: brandFonts } : {}),
     tokens: (path: string) => {
       const m = /^color\.semantic\.([a-z0-9-]+)$/i.exec(path);
       return m ? (req.brandVar(`--brand-${m[1]}`) || undefined) : undefined;
@@ -424,11 +584,35 @@ export async function renderDesignPptx(req: DesignPptxRequest): Promise<Uint8Arr
     // this the literal inside the var() is what gets written, so the deck comes out in
     // the fallback colours rather than the brand's own - wrong, and silently so.
     cssVars: req.brandVar,
+    // The design system's colour tokens the canvas carries (`--brand-token-*`), for the
+    // theme slots no semantic token fills, so PowerPoint offers brand colours only.
+    tokenColors: tokenColorsFromStyle((req.canvas as HTMLElement).style ?? { length: 0, item: () => '', getPropertyValue: () => '' }),
     // The document-level transition is an input, not a row, and the tool has already
     // resolved it per slide in its own deck model. Read it back so a deck that sets
     // the transition once still leaves each slide the way it was authored to.
     ...(deckTransitions ? { slideTransitions: deckTransitions } : {}),
-    resolveAsset: catalogAssetBytes,
+    // A bare catalog id, a catalog path or a resolved data: URL is read here; anything
+    // else goes to the bridge, which resolves it the way the render did.
+    resolveAsset: (ref: string) => catalogAssetBytes(ref, req.assets ? async (id) => {
+      const got = await req.assets!.get(id).catch(() => null);
+      return got?.url ? dataUrlBytes(got.url) : null;
+    } : undefined),
+    // An SVG picture travels as the vector with a PNG fallback beside it, which resvg
+    // draws here at the size the picture shows at on the slide.
+    rasterizeSvg: async (bytes: Uint8Array, w: number, h: number) => {
+      try {
+        const { rasterizeSvgToPng } = await import('@lolly-tools/node-shell/raster');
+        return await rasterizeSvgToPng(new TextDecoder().decode(bytes), w, h);
+      } catch {
+        return null;
+      }
+    },
+    // Plan 291 D3, the same as the web shell: a Medium 500 run is written as the brand's
+    // static Medium face when the active pack ships that file, and keeps its family when
+    // it does not. The canvas's brand faces stand in for a run with no family.
+    // Matched letter for letter, so a Mac and a Linux host write the same deck.
+    shipsFace: (file: string) => contentUrlFileExact(STATIC_FACE_DIR + file) !== null,
+    faceFonts: withBrandFonts(undefined, req.brandVar)?.fonts,
   });
   for (const line of result.notes) note(`pptx: ${line}.`);
 

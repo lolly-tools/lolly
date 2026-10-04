@@ -425,6 +425,18 @@ export {
 // codes rather than thrown - because a throw out of a hook is logged and discarded,
 // which would make a pen tool go quiet instead of telling the user anything.
 export { makeGeomApi } from './geom-api.ts';
+// A path box's frame fitted to its curve, one rule for the pen tool and for agents
+// (plan 291 W5), and absolute points or `d` placed as a stored Design path row.
+export { authoredFromSubPaths, lowerAuthored, refitAuthoredFrame, scaleAuthored } from './geom/authored-frame.ts';
+export type { AuthoredFrame, AuthoredRefit, LoweredAuthored } from './geom/authored-frame.ts';
+export { designPathPlacement } from './design-path-author.ts';
+export type { DesignPathErrorCode, DesignPathGeometry, DesignPathPaint, DesignPathPlacement } from './design-path-author.ts';
+// Design authoring (plan 291 W5): `$in`, `$style`, `$points`/`$d`, `$artboard` and the
+// `$stack`/`$grid`/`$table` macros lowered to stored rows, and the named text styles.
+export { expandDesignAuthoring, expandDesignAuthoringDocument, hasDesignAuthoring, applyAuthoredLayerOperations, applyAuthoredLayerPatches } from './design-authoring.ts';
+export type { DesignAuthoringOptions, DesignAuthoringNote, DesignAuthoringResult } from './design-authoring.ts';
+export { textStylesFromBrief, resolveTextStyle, DESIGN_TEXT_LINE_HEIGHTS } from './design-text-style.ts';
+export type { DesignTextStyleV1 } from './design-text-style.ts';
 // Connector / line / arrow geometry (plan 90 R1) - one source for the editor preview, the
 // committed/export render, and the CLI. The host bridge primitive exposes buildConnectorSvg.
 export {
@@ -640,6 +652,10 @@ export {
 export { inspectTokenDocument, diffTokenDocuments, TOKEN_INSPECTION_LIMIT } from './token-inspect.ts';
 export { readBlockTokenBindings, reconcileBlockTokenBindings, resolveBlockTokenBindings, withBlockTokenBinding } from './token-block-bindings.ts';
 export type { BlockTokenBinding } from './token-block-bindings.ts';
+// 1.244 (plan 291 W4): colour references written into Design rows become literals plus links;
+// run colours and gradient tints follow the theme.
+export { RUN_LINKS_KEY, blockColourFields, hasDesignColourRefs, normaliseDesignColourRefs, readBlockRunBindings, tintGradientSpec } from './token-block-bindings.ts';
+export type { DesignColourRefIssue, DesignColourRefOptions } from './token-block-bindings.ts';
 export type { TokenImpact } from './token-inspect.ts';
 export { resolveTokenSelection, tokenSelectionKey, parseTokenSelection } from './token-selection.ts';
 export {
@@ -709,6 +725,12 @@ export { chromaKeyAlpha } from './chroma-key.ts';
 // Retouch (plans/124 WP-E). Ported, not depended on: stock opencv.js omits
 // cv.inpaint. Windows itself to the mask bounding box and returns a new frame.
 export { inpaintTelea } from './inpaint.ts';
+// Spot healing (plans/289 M4): Compositor's content-aware, proximity and texture fills.
+export { healFrame, spotHealPremultiplied, healCoverageBounds } from './heal.ts';
+export type { HealFrame, HealMode, HealOptions } from './heal.ts';
+// Matte edges pulled onto the photo (plans/289 M4): the guided filter both mattes run after the model.
+export { boxMean, guidedFilter, refineMatte, resizeMask } from './guided-matte.ts';
+export type { MatteRefineOptions } from './guided-matte.ts';
 export type { InpaintFrame } from './inpaint.ts';
 // Colour grading - the .cube/.3dl readers, the tetrahedral sampler, the RGBA
 // frame apply and the film grain + vignette pass, promoted out of the darkroom
@@ -783,6 +805,10 @@ export {
   parsePhotoTreatmentsDoc, treatmentFilterSvg, wrapRasterWithTreatment,
 } from './photo-treatment.ts';
 export type { PhotoTreatment } from './photo-treatment.ts';
+// Photo looks baked into pixels, deterministic on every host (1.244, plan 291 W7).
+export { PHOTO_LOOK_RECIPE, applyPhotoLook, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, isRasterPhotoLook, photoLookDefinitionHash, photoLookStops } from './photo-look.ts';
+export type { PhotoLookOptions } from './photo-look.ts';
+export type { PhotoTreatmentStop, PhotoTreatmentVariant } from './photo-treatment.ts';
 export { derivePhotoTreatmentsDoc, deriveIconThemesDoc } from './brand-treatments.ts';
 export {
   hashR6, preparePassword, buildEncryptDictValues, encryptObjectBytes,
@@ -897,7 +923,23 @@ export type { StudioPoseV1 } from './studio3d-motion.ts';
 
 export { brandContext, contextTokens } from './brand-context.ts';
 export { checkBrandDesign, applyBrandFix } from './brand-check.ts';
-export type { BrandFinding, BrandFix } from './brand-check.ts';
+export type { BrandCheckCatalogOpts, BrandFinding, BrandFix } from './brand-check.ts';
+// The design brief and the Design house rules (plan 291 W3): the context plus the pack's
+// pairings, type, logos, icons, media, master and machine-checkable rules.
+export { designBrief, brandCheckCatalog } from './design-brief.ts';
+export type { DesignBriefAssetV1, DesignBriefCatalogV1, DesignBriefOpts, DesignBriefV1 } from './design-brief.ts';
+export { checkDesignHouseRules, designHouseRules, combinationPolicy, DESIGN_HOUSE_RULE_KINDS } from './design-house-rules.ts';
+export type { DesignHouseRuleKind, DesignHouseRuleOpts, DesignHouseRuleResult, HouseRuleFinding } from './design-house-rules.ts';
+// One finding shape for every Design checker, and fidelity to a source inventory (plan 291 W1).
+export { checkFindingFromDesign, checkFindingFromMounted, checkFindingFromBrand, checkFindingFromHouseRule, checkFindingsFromHouseRules, checkFindingFromUnknownHouseRule, checkFindingsFromForensic, verifyDesignDocument, designLayerLookup, mountedFindingMessage, brandFindingMessage, forensicFindingMessage } from './design-check.ts';
+export type { DesignLayerPlace, MountedDesignFindingInput, HouseRuleFindingInput, ForensicMapOptions, DesignVerifyOptions, DesignVerifyResult } from './design-check.ts';
+export { checkFidelity, normaliseFidelityText, FIDELITY_IGNORED_CLASSES, FIDELITY_IGNORED_ROLES, FIDELITY_EDIT_SIMILARITY } from './check-fidelity.ts';
+export { parseFidelityEdits, FIDELITY_MAX_SOURCE_STRINGS, FIDELITY_MAX_RESULT_LINES, FIDELITY_MAX_EDITS } from './check-fidelity.ts';
+export type { CheckFidelityOptions, CheckFidelityResult } from './check-fidelity.ts';
+// Measure a plain Design text layer before it is drawn (plan 291 W5): the CSS pre-wrap
+// breaker and Chromium's line box over an injected shaper.
+export { measureDesignText, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, TEXT_MEASURE_DEFAULTS, TEXT_MEASURE_MAX_UNITS } from './design-text-measure.ts';
+export type { TextShaperV1, TextShapeRunV1, TextShapeResultV1, TextFontMetricsV1, TextMeasureErrorCode } from './design-text-measure.ts';
 export { BRAND_STYLE_PROPERTIES, summarizeBrandStyles, readBrandStyleEvidence } from './brand-evidence.ts';
 export type { BrandStyleProperty, BrandStyleValue, BrandStyleEvidence } from './brand-evidence.ts';
 
@@ -1027,6 +1069,19 @@ export { PPTX_FORMATTING_READER_SINCE, PPTX_READER_SINCE } from './pptx-read.ts'
 // the frame around the slots the layers fill and reports only what kept its place.
 export { archetypeSlots } from './slide-master.ts';
 export type { ArchetypeSlotsV1 } from './slide-master.ts';
+// Plan 291 M3: the slot a role-bound row fills, which Reset Slide and the Tier A
+// PowerPoint export both bind by.
+export { slotOrdinalOf } from './slide-master.ts';
+// Plan 291 W6: the master at a page size (the editor's New slide from layout rule), and
+// slides composed from master archetypes and slot content, with the archetype catalogue.
+export { masterAtSize } from './slide-master.ts';
+export { composeDesignSlides, composeArchetypeCatalog } from './design-compose.ts';
+export { sentenceCaseDesignText, withoutRunRefs } from './design-compose.ts';
+export type { DesignComposeContext, DesignComposeDocumentV1, DesignComposeResultV1, DesignComposeArchetypeV1 } from './design-compose.ts';
+// Plan 291 W6: a first compose spec for a source deck (`lolly compose --suggest`), an
+// archetype per slide with its slots filled by inventory reference and its reasons.
+export { suggestComposeSlides } from './design-compose-suggest.ts';
+export type { ComposeSuggestAssetV1, ComposeSuggestInputV1, ComposeSuggestReasonV1, ComposeSuggestionV1 } from './design-compose-suggest.ts';
 export type { GridCellV1 } from './deck-compile.ts';
 // Flattened slides (plan 274 milestone 5): regions of a slide picture and the typesetting
 // recovered from OCR lines, both pure, so the node pipeline and the web stage share them.
@@ -1104,3 +1159,15 @@ export {
 export type { ColorSwatch, PixelImage, SampledColor, SwatchMatch, ViewRegion } from './agent-view.ts';
 export { polylineToDesignLayer, simplifyPolyline, traceEdges } from './edge-trace.ts';
 export type { DesignPathLayer, EdgeTraceOptions, TracedEdge } from './edge-trace.ts';
+
+// The content inventory (plan 291 W2): what a read deck says, slide by slide, projected
+// from the rebrand source and census. `lolly read`, `lolly_read` and `lolly check` share the one projection.
+export { inventoryFromSource } from './content-inventory.ts';
+export type { InventoryFromSourceOptsV1, InventoryMediaInputV1, InventoryNotesParaInputV1 } from './content-inventory.ts';
+
+// Surface-aware logos and icons (plan 291 W4): `<id>?theme=auto` takes the variant the
+// surface under the layer asks for, through one resolver the runtime, check, compose and
+// the masters' logo sets share (the brand's logo-surface order over the master's tags).
+export { applySurfaceRuleToLogoSet, brandRulesOfTokenDocument, buildSurfaceVariantTable, iconThemeSurfaces, isSurfaceAutoId, logoSetInBrandOrder, pickSurfaceVariant, planSurfaceVariants, surfaceAutoId, surfaceColourResolver, surfaceUnderDesignLayer, themeSurfaceColours, SURFACE_COVER_SHARE } from './surface-variant.ts';
+export type { DesignCanvasFields, DesignSurfaceV1, SurfaceLogoMemberV1, SurfacePickV1, SurfaceVariantTableInputV1, SurfaceVariantTableV1 } from './surface-variant.ts';
+export { AUTO_ASSET_THEME } from './icon-theme.ts';

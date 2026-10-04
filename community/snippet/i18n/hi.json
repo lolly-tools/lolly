@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "कोड स्निपेट्स को साफ़, सिंटैक्स-हाइलाइट की गई, शेयर करने लायक इमेज में बदलें।",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "कोड",
   "inputs.code.placeholder": "अपना कोड यहाँ पेस्ट करें…",
   "inputs.fileName.label": "फ़ाइल नाम",

@@ -1,6 +1,6 @@
 {
-  "name": "リブランド",
-  "description": "PowerPointデッキをアップロードして色とフォントをブランドに合わせます - デバイス上で再構築、何もアップロードされません。",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "{{fileName}} 用デッキリブランダー",
   "inputs.source.label": "PowerPointファイル",
   "inputs.source.help": ".pptx ファイルです。お使いの端末上で読み込まれ、アップロードされることはありません。",

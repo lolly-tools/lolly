@@ -190,3 +190,22 @@ export function typeLayer(o: TypeFixture = {}): Uint8Array {
   b.u16(1).u32(16).bytes(descriptor([['warpStyle', D.enumv('warpStyle', o.warp ? 'warpArc' : 'warpNone')]]));
   return b.done();
 }
+
+/** One readable block for each adjustment kind psd-adjustments.ts reads (fuzz seeds and tests). */
+export function adjustmentBlocks(): Record<'levl' | 'curv' | 'hue2' | 'brit' | 'CgEd' | 'expA' | 'blnc' | 'blwh', Uint8Array> {
+  const levl = new Uint8Array(2 + 29 * 10);
+  const lv = new DataView(levl.buffer);
+  lv.setUint16(0, 2);
+  for (let ch = 0; ch < 29; ch++) { const o = 2 + ch * 10; lv.setUint16(o + 2, 255); lv.setUint16(o + 6, 255); lv.setUint16(o + 8, 100); }
+  lv.setUint16(2, 12); lv.setUint16(2 + 8, 140);
+  const curv = new Buf().u8(0).u16(1).u32(1).u16(3).u16(0).u16(0).u16(160).u16(128).u16(255).u16(255).done();
+  const hue2 = new Uint8Array(4 + 12 + 6 * 14);
+  const hv = new DataView(hue2.buffer);
+  hv.setUint16(0, 2); hv.setInt16(10, -20); hv.setInt16(12, 15);
+  const brit = Uint8Array.from([0, 20, 0, 10, 0, 127, 0]);
+  const CgEd = versioned([['Vrsn', D.long(1)], ['Brgh', D.long(34)], ['Cntr', D.long(18)], ['useLegacy', D.bool(false)]]);
+  const exp = new Uint8Array(14); const ev = new DataView(exp.buffer); ev.setUint16(0, 1); ev.setFloat32(2, 0.5); ev.setFloat32(6, 0); ev.setFloat32(10, 1);
+  const blnc = new Uint8Array(19); const bv = new DataView(blnc.buffer); bv.setInt16(6, 10); bv.setInt16(10, -9); blnc[18] = 1;
+  const blwh = versioned([['Rd  ', D.long(40)], ['Yllw', D.long(60)], ['useTint', D.bool(true)], ['tintColor', D.objc(rgb('#e1d3b3'))]]);
+  return { levl, curv, hue2, brit, CgEd, expA: exp, blnc, blwh };
+}

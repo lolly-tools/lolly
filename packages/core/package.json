@@ -21,6 +21,7 @@
     "./emoji-v1": "./src/emoji-v1.ts",
     "./rights-v1": "./src/rights-v1.ts",
     "./rebrand-v1": "./src/rebrand-v1.ts",
+    "./live-v1": "./src/live-v1.ts",
     "./slide-master-v1": "./src/slide-master-v1.ts",
     "./mock-host": "./src/mock-host.ts",
     "./schema/emoji-pack-v1.schema.json": "./schema/emoji-pack-v1.schema.json",
@@ -45,7 +46,19 @@
     "./schema/text-frame-v1.schema.json": "./schema/text-frame-v1.schema.json",
     "./brand-system-v1": "./src/brand-system-v1.ts",
     "./schema/brand-system-v1.schema.json": "./schema/brand-system-v1.schema.json",
-    "./asset-open-v1": "./src/asset-open-v1.ts"
+    "./asset-open-v1": "./src/asset-open-v1.ts",
+    "./check-v1": "./src/check-v1.ts",
+    "./schema/check-report-v1.schema.json": "./schema/check-report-v1.schema.json",
+    "./content-inventory-v1": "./src/content-inventory-v1.ts",
+    "./schema/content-inventory-v1.schema.json": "./schema/content-inventory-v1.schema.json",
+    "./design-package-v1": "./src/design-package-v1.ts",
+    "./schema/design-package-v1.schema.json": "./schema/design-package-v1.schema.json",
+    "./text-measure-v1": "./src/text-measure-v1.ts",
+    "./schema/text-measure-v1.schema.json": "./schema/text-measure-v1.schema.json",
+    "./design-authoring-v1": "./src/design-authoring-v1.ts",
+    "./schema/design-authoring-v1.schema.json": "./schema/design-authoring-v1.schema.json",
+    "./design-compose-v1": "./src/design-compose-v1.ts",
+    "./schema/design-compose-v1.schema.json": "./schema/design-compose-v1.schema.json"
   },
   "files": [
     "src",

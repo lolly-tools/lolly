@@ -299,7 +299,7 @@ export function buildToolbar(fc: FcCtx): void {
           run: () => fc.document.openSizeMenu(anchorEl()),
         });
     }
-    if (info || actions?.newFromTemplate || actions?.bulk) {
+    if (info || actions?.newFromTemplate || actions?.bulk || actions?.agent) {
       if (items.length) items.push({ sep: true });
       if (info)
         items.push({
@@ -326,6 +326,14 @@ export function buildToolbar(fc: FcCtx): void {
           icon: icon(SVG.rows),
           key: 'bulk',
           run: () => actions.bulk!(),
+        });
+      // An AI agent working in this document while the person watches (plans/289 D1).
+      if (actions?.agent)
+        items.push({
+          label: t('Connect an AI agent'),
+          icon: icon(SVG.agent),
+          key: 'agent',
+          run: () => actions.agent!(),
         });
     }
     // Custom CSS (plan 112 M4): only for a tool that declares the `customCss` input

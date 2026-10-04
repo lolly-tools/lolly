@@ -281,7 +281,19 @@ export interface PptxTextNode extends NodeBox {
   fill?: PptxReadColor;
   /** `true` when the source stated an `a:gradFill`; `fill`, when present, is its lowest stop. */
   gradient?: true;
+  /** That gradient's stops, alpha and all, when it stated two or more readable ones. */
+  gradientFill?: PptxReadGradient;
   ph?: PptxPlaceholder;
+}
+
+/**
+ * An `a:gradFill` as read: its stops in position order (`pos` 0 to 1, each colour with
+ * its own `alpha`) and, for a linear one (`a:lin`), its direction as a CSS angle (0 up,
+ * 90 right). A path gradient (`a:path`) has no `angle`.
+ */
+export interface PptxReadGradient {
+  stops: Array<{ pos: number; color: PptxReadColor }>;
+  angle?: number;
 }
 export interface PptxShapeNode extends NodeBox {
   type: 'shape';
@@ -301,6 +313,8 @@ export interface PptxShapeNode extends NodeBox {
   lineGradient?: true;
   /** `true` when the source stated an `a:gradFill`; `fill`, when present, is its lowest stop. */
   gradient?: true;
+  /** That gradient's stops, alpha and all, when it stated two or more readable ones. */
+  gradientFill?: PptxReadGradient;
   ph?: PptxPlaceholder;
 }
 export interface PptxPicNode extends NodeBox {
@@ -412,6 +426,14 @@ export interface PptxReadSlide {
   index: number;
   nodes: PptxReadNode[];
   notes?: string;
+  /**
+   * The same speaker notes as paragraphs (plan 291 W2): `notes` joins paragraph
+   * ends and `a:br` line breaks alike with `\n`, so the two cannot be told apart
+   * there. Here each `a:p` is one paragraph, and each `a:br` stays a `{ text: '\n' }`
+   * run inside its paragraph. Blank paragraphs at either end are dropped. Present
+   * exactly when `notes` is.
+   */
+  notesParas?: PptxReadPara[];
   /**
    * The furniture the slide INHERITS from its layout and master (1.166): every
    * non-placeholder shape, picture and graphic frame of the master (unless the
@@ -1041,7 +1063,12 @@ function withAlpha(color: PptxReadColor, clr: Element): PptxReadColor {
 interface ReadFill {
   color?: PptxReadColor;
   gradient?: true;
+  /** Every stop of an `a:gradFill`, when it states two or more readable ones. */
+  ramp?: PptxReadGradient;
 }
+
+/** The most stops a gradient keeps; the rest are dropped, as a Design spec drops them. */
+const MAX_GRADIENT_STOPS = 12;
 
 /**
  * A fill: `a:solidFill`, else the FIRST STOP of an `a:gradFill` (the lowest
@@ -1061,15 +1088,27 @@ function readFill(container: Element | null, theme: PptxReadTheme): ReadFill {
   if (!grad) return {};
   const gsLst = firstChildByLocal(grad, 'gsLst');
   let best: { pos: number; color: PptxReadColor } | undefined;
+  const stops: Array<{ pos: number; color: PptxReadColor }> = [];
   if (gsLst) {
     for (const gs of childrenByLocal(gsLst, 'gs')) {
       const color = readColor(gs, theme);
       if (!color) continue;
       const pos = toInt(attrByLocal(gs, 'pos'), 0);
       if (!best || pos < best.pos) best = { pos, color };
+      if (stops.length < MAX_GRADIENT_STOPS) stops.push({ pos: Math.max(0, Math.min(1, pos / 100000)), color });
     }
   }
-  return best ? { color: best.color, gradient: true } : { gradient: true };
+  const out: ReadFill = best ? { color: best.color, gradient: true } : { gradient: true };
+  if (stops.length >= 2) {
+    stops.sort((a, b) => a.pos - b.pos);
+    const ramp: PptxReadGradient = { stops };
+    // `a:lin ang` is 60000ths of a degree, 0 pointing right and turning clockwise; the
+    // CSS angle Design states is 0 pointing up, so it is the same turn plus 90.
+    const lin = firstChildByLocal(grad, 'lin');
+    if (lin) ramp.angle = ((((toInt(attrByLocal(lin, 'ang'), 0) / 60000) + 90) % 360) + 360) % 360;
+    out.ramp = ramp;
+  }
+  return out;
 }
 
 // ─── theme ───────────────────────────────────────────────────────────────────
@@ -2038,6 +2077,7 @@ function readSp(sp: Element, ctx: WalkCtx, cascade?: Cascade, group?: GroupCtx):
   let custGeom: PptxCustGeom | undefined;
   let fill: PptxReadColor | undefined;
   let gradient: true | undefined;
+  let gradientFill: PptxReadGradient | undefined;
   let line: PptxReadColor | undefined;
   let lineGradient: true | undefined;
   let lineWidthPt: number | undefined;
@@ -2049,6 +2089,7 @@ function readSp(sp: Element, ctx: WalkCtx, cascade?: Cascade, group?: GroupCtx):
     const filled = readFill(spPr, theme);
     fill = filled.color;
     gradient = filled.gradient;
+    gradientFill = filled.ramp;
     const ln = firstChildByLocal(spPr, 'ln');
     if (ln) {
       const stroke = readFill(ln, theme);
@@ -2108,6 +2149,7 @@ function readSp(sp: Element, ctx: WalkCtx, cascade?: Cascade, group?: GroupCtx):
     if (custGeom) node.custGeom = custGeom;
     if (fill) node.fill = fill;
     if (gradient) node.gradient = gradient;
+    if (gradientFill) node.gradientFill = gradientFill;
     if (ph) node.ph = ph;
     return node;
   }
@@ -2116,6 +2158,7 @@ function readSp(sp: Element, ctx: WalkCtx, cascade?: Cascade, group?: GroupCtx):
   if (custGeom) node.custGeom = custGeom;
   if (fill) node.fill = fill;
   if (gradient) node.gradient = gradient;
+  if (gradientFill) node.gradientFill = gradientFill;
   if (line) node.line = line;
   if (lineWidthPt) node.lineWidthPt = lineWidthPt;
   if (lineGradient) node.lineGradient = lineGradient;
@@ -2604,14 +2647,17 @@ function readSlideAudio(rels: readonly Rel[]): PptxSlideAudio | undefined {
 
 // ─── notes ───────────────────────────────────────────────────────────────────
 
-function readNotes(store: PartStore, notesPath: string, parseXml: XmlParser): string | undefined {
+function readNotes(store: PartStore, notesPath: string, parseXml: XmlParser): { text: string; paras: PptxReadPara[] } | undefined {
   const doc = parsePart(store, notesPath, parseXml);
   if (!doc?.documentElement) return undefined;
   const spTree = descendantByLocal(doc.documentElement, 'spTree');
   if (!spTree) return undefined;
-  // Prefer the body placeholder; fall back to all text on the notes slide.
-  let bodyText: string | null = null;
+  // Prefer the body placeholder; fall back to all text on the notes slide. The
+  // paragraphs travel beside the joined text, so a reader that needs to tell a
+  // paragraph end from an `a:br` still can.
+  let body: { text: string; paras: PptxReadPara[] } | null = null;
   const allParts: string[] = [];
+  const allParas: PptxReadPara[] = [];
   for (const sp of childrenByLocal(spTree, 'sp')) {
     const nvSpPr = firstChildByLocal(sp, 'nvSpPr');
     const nvPr = nvSpPr ? firstChildByLocal(nvSpPr, 'nvPr') : null;
@@ -2619,11 +2665,21 @@ function readNotes(store: PartStore, notesPath: string, parseXml: XmlParser): st
     const phType = ph ? attrByLocal(ph, 'type') : null;
     const paras = readTxBody(firstChildByLocal(sp, 'txBody'), { colors: {} });
     const text = paras.map((p) => p.runs.map((r) => r.text).join('')).join('\n').trim();
-    if (phType === 'body' && bodyText == null) bodyText = text;
-    else if (phType !== 'sldNum' && phType !== 'dt' && text) allParts.push(text);
+    if (phType === 'body' && body == null) body = { text, paras };
+    else if (phType !== 'sldNum' && phType !== 'dt' && text) {
+      allParts.push(text);
+      allParas.push(...paras);
+    }
   }
-  const result = (bodyText && bodyText.length ? bodyText : allParts.join('\n')).trim();
-  return result.length ? result : undefined;
+  const chosen = body && body.text.length ? body : { text: allParts.join('\n'), paras: allParas };
+  const result = chosen.text.trim();
+  if (!result.length) return undefined;
+  const paraText = (p: PptxReadPara): string => p.runs.map((r) => r.text).join('');
+  let start = 0;
+  let end = chosen.paras.length;
+  while (start < end && paraText(chosen.paras[start]!).trim() === '') start++;
+  while (end > start && paraText(chosen.paras[end - 1]!).trim() === '') end--;
+  return { text: result, paras: chosen.paras.slice(start, end) };
 }
 
 // ─── slide ordering ──────────────────────────────────────────────────────────
@@ -2906,7 +2962,10 @@ export function readPptx(parts: PptxParts, parseXml: XmlParser): PptxDeckRead {
         const notesRel = rels.find((r) => /notesSlide$/i.test(r.type) && !r.external);
         if (notesRel) {
           const notes = readNotes(store, notesRel.target, parseXml);
-          if (notes) slide.notes = notes;
+          if (notes) {
+            slide.notes = notes.text;
+            slide.notesParas = notes.paras;
+          }
         }
       }
     } catch {

@@ -1,6 +1,6 @@
 {
   "name": "ایجنڈا",
-  "description": "ایک پروگرام کو برانڈڈ اسکرینز، انٹرایکٹو ویب پیجز، اینیمیٹڈ اوور ویوز، PowerPoint سلائیڈز اور کیلنڈرز میں تبدیل کریں۔",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} سیشنز، {{trackCount}} ٹریکس",
   "inputs.title.label": "واقعہ",
   "inputs.title.help": "ہر ترتیب کے سر پر پرنٹ کیا جاتا ہے، اور یہ برآمد شدہ فائل کا نام دیتا ہے۔",

@@ -25,6 +25,7 @@ import {
   engineBool, engineList, engineNumber, engineString, engineWalk, parseEngineData,
   readDescriptor, readVersionedDescriptor, type DescObject, type EngineValue,
 } from './psd-descriptor.ts';
+import { readPsdAdjustment, type PsdAdjustmentValue } from './psd-adjustments.ts';
 
 export interface PsdRect { x: number; y: number; w: number; h: number }
 
@@ -122,6 +123,11 @@ export interface PsdLayerSemantics {
   fillOpacity?: number;
   /** An adjustment layer's kind, in words ("Levels"). */
   adjustment?: string;
+  /** The adjustment's values, for the eight kinds psd-adjustments.ts reads. */
+  adjustmentValue?: PsdAdjustmentValue;
+  /** How the adjustment's layer mask limits where it applies (set by psd.ts):
+   *  `none` everywhere, `hidden` nowhere, `partial` in some places only. */
+  adjustmentMask?: 'none' | 'hidden' | 'partial';
   /** What an importer cannot keep from this layer, in plain words. */
   notes: string[];
 }
@@ -136,7 +142,7 @@ const ADJUSTMENTS: Record<string, string> = {
 /** The tagged-block keys this module reads; psd.ts keeps a bounded copy of each. */
 export const SEMANTIC_BLOCK_KEYS: ReadonlySet<string> = new Set([
   'TySh', 'tySh', 'vogk', 'vmsk', 'vsms', 'vscg', 'SoCo', 'vstk', 'iOpa', 'GdFl', 'PtFl', 'SoLd', 'PlLd', 'SoLE',
-  'lfx2', 'lrFX', 'lmfx', ...Object.keys(ADJUSTMENTS),
+  'lfx2', 'lrFX', 'lmfx', 'CgEd', ...Object.keys(ADJUSTMENTS),
 ]);
 
 const r2 = (v: number) => Math.round(v * 100) / 100;
@@ -528,7 +534,13 @@ export function readLayerSemantics(blocks: ReadonlyMap<string, Uint8Array>, pixe
   if (iOpa && iOpa.length >= 1 && iOpa[0]! < 255) out.fillOpacity = r2(iOpa[0]! / 255);
 
   for (const [k, name] of Object.entries(ADJUSTMENTS)) {
-    if (get(k)) { out.adjustment = name; notes.push(`${name} adjustment layer was not applied.`); break; }
+    if (get(k)) {
+      out.adjustment = name;
+      notes.push(`${name} adjustment layer was not applied.`);
+      const value = readPsdAdjustment(get);
+      if (value) out.adjustmentValue = value;
+      break;
+    }
   }
   // A block that does not read still gets the general note, so the report errs
   // towards saying more.

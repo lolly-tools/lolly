@@ -84,6 +84,8 @@ import { loadPdfDocument, type PdfImageCodec, type PdfResourceDecoders } from '@
 import { inflatePptx, looksLikePptxFile } from '@lolly-tools/node-shell/pptx';
 import { flattenedPictureOf, reconstructFlattenedSlide, type FlattenedOcrV1 } from '@lolly-tools/node-shell/rebrand/flattened';
 import { sourceDeckFromPdf } from '@lolly-tools/node-shell/rebrand/source-pdf';
+import { sourceDeckFromPsd } from '@lolly-tools/node-shell/rebrand/source-psd';
+import { unzlibSync } from 'fflate';
 import {
   newInstanceId,
   readDeckVectorLabels,
@@ -453,7 +455,7 @@ async function sha256Of(bytes: Uint8Array): Promise<string> {
 }
 
 /** Refuse what this stage cannot read, before anything is stored. Returns the bytes and what they are. */
-async function admit(file: File): Promise<{ bytes: Uint8Array; kind: Extract<SourceKindV1, 'pptx' | 'pdf'> }> {
+async function admit(file: File): Promise<{ bytes: Uint8Array; kind: Extract<SourceKindV1, 'pptx' | 'pdf' | 'psd'> }> {
   if (file.size > REBRAND_MAX_SOURCE_BYTES) {
     throw new RebrandIngestError('source.too-large', `The deck is ${file.size} bytes; the limit is ${REBRAND_MAX_SOURCE_BYTES}.`);
   }
@@ -462,6 +464,8 @@ async function admit(file: File): Promise<{ bytes: Uint8Array; kind: Extract<Sou
   // A zip package first, as the node pipeline sniffs it, so a package holding the PDF
   // signature near its start is a pptx on every shell.
   const zipped = bytes[0] === 0x50 && bytes[1] === 0x4b;
+  // A Photoshop document (.psd or .psb) by its own signature, `8BPS` (plans/289 D2).
+  if (bytes[0] === 0x38 && bytes[1] === 0x42 && bytes[2] === 0x50 && bytes[3] === 0x53) return { bytes, kind: 'psd' };
   if (!zipped && hasPdfSignature(bytes)) {
     if (await pdfEncrypted(bytes)) {
       throw new RebrandIngestError(
@@ -481,7 +485,7 @@ async function admit(file: File): Promise<{ bytes: Uint8Array; kind: Extract<Sou
   }
   if (!zipped) {
     if (named) throw new RebrandIngestError('source.unreadable', 'The deck is not a zip package, so it cannot be read.');
-    throw new RebrandIngestError('unsupported-file', 'This file is not a pptx deck or a PDF.');
+    throw new RebrandIngestError('unsupported-file', 'This file is not a pptx deck, a PDF or a Photoshop document.');
   }
   return { bytes, kind: 'pptx' };
 }
@@ -509,6 +513,9 @@ function writeFailure(result: { refusal?: string; message?: string }): Error {
 
 /** The reader identity a PDF read records, beside `pptx-read` for a pptx. */
 export const PDF_READER_NAME = 'pdf-read';
+
+/** The reader identity a Photoshop read records (plans/289 D2). */
+export const PSD_READER_NAME = 'psd-read';
 
 /**
  * What a read gives back: the project and its deck, and the outlined labels of its
@@ -605,7 +612,19 @@ export async function ingestDeck(
     let vectorLabels: VectorLabelSummaryV1 = { runs: 0, text: 0, drawn: 0, read: labelReader !== null };
     let deck: SourceDeckV1;
     try {
-      deck = parts
+      deck = kind === 'psd'
+        ? await sourceDeckFromPsd(bytes, {
+          hash,
+          instanceId,
+          ...(file.name ? { name: file.name } : {}),
+          bytes: file.size,
+          reader: { name: PSD_READER_NAME, version: ENGINE_VERSION },
+          signal,
+          onSlide,
+          sink,
+          inflate: (data: Uint8Array) => unzlibSync(data),
+        })
+        : parts
         ? await sourceDeckFromPptx(parts, deps.parseXml, {
           hash,
           instanceId,

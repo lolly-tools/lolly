@@ -1466,6 +1466,15 @@ for (const asset of assetsIndex.assets) {
         }
         const themes = parseIconThemesDoc(doc);
         const declared = Array.isArray(doc?.themes) ? doc.themes.length : 0;
+        // Plan 291 W4: `?theme=auto` means "the variant the surface under the layer
+        // asks for", so a palette entry may not take that id, and `surfaces` lists
+        // only the surfaces the resolver knows.
+        for (const entry of Array.isArray(doc?.themes) ? doc.themes : []) {
+          if (entry && entry.id === 'auto') errors.push(`[asset ${asset.id}] icon-themes doc declares a theme "auto"; that id is reserved for surface-aware references (<id>?theme=auto)`);
+          if (entry && entry.surfaces !== undefined && (!Array.isArray(entry.surfaces) || entry.surfaces.some((s: unknown) => !['light', 'dark', 'photo'].includes(String(s))))) {
+            errors.push(`[asset ${asset.id}] icon-themes theme "${String(entry.id)}" has surfaces other than light, dark and photo`);
+          }
+        }
         if (!declared) {
           errors.push(`[asset ${asset.id}] icon-themes doc has no themes[] array`);
         } else if (themes.length !== declared) {
@@ -1856,7 +1865,7 @@ for (const [toolId, manifest] of toolManifests) {
         errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);
       } else if (!assetById.has(baseId)) {
         errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" not in catalog`);
-      } else if (theme && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
+      } else if (theme && theme !== 'auto' && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
         errors.push(`[${toolId}] input "${input.id}" default asset theme "${theme}" not in any icon-themes palette`);
       }
     }
@@ -1902,7 +1911,7 @@ for (const [toolId, manifest] of toolManifests) {
       errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);
     } else if (!assetById.has(baseId)) {
       errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") not in catalog`);
-    } else if (theme && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
+    } else if (theme && theme !== 'auto' && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
       errors.push(`[${toolId}] ${at}: asset theme "${theme}" (input "${spec.id}") not in any icon-themes palette`);
     }
   };

@@ -49,3 +49,26 @@ test('a missing/unreadable catalog index degrades catalogToolIds to an empty lis
   const ids = await catalogToolIds();
   assert.ok(Array.isArray(ids));
 });
+
+for (const shell of COMPLETION_SHELLS) {
+  test(`generateCompletion('${shell}') offers the read and check flags, and the --browser modes`, async () => {
+    const script = await generateCompletion(shell);
+    for (const flag of ['theme', 'browser', 'page-cap', 'ocr', 'source', 'file', 'media', 'thumbnails', 'force', 'strict', 'edits'])
+      assert.match(script, shell === 'fish' ? new RegExp(`-l "${flag}"`) : new RegExp(`--${flag}\\b`), `${shell}: --${flag}`);
+    for (const mode of ['auto', 'off', 'require']) assert.match(script, new RegExp(`\\b${mode}\\b`), `${shell}: ${mode}`);
+    // The path flags complete file names, never a word list.
+    if (shell === 'fish') assert.match(script, /-l "source" -r -F/);
+    else assert.match(script, /--source/);
+  });
+}
+
+for (const shell of COMPLETION_SHELLS) {
+  test(`generateCompletion('${shell}') offers the compose verb and its flags (plan 291 W6)`, async () => {
+    const script = await generateCompletion(shell);
+    assert.match(script, /\bcompose\b/, `${shell}: the compose verb`);
+    for (const flag of ['inventory', 'size', 'master', 'fit', 'edits-out', 'list', 'suggest'])
+      assert.match(script, shell === 'fish' ? new RegExp(`-l "${flag}"`) : new RegExp(`--${flag}\\b`), `${shell}: --${flag}`);
+    // The master file completes file names, never a word list.
+    if (shell === 'fish') assert.match(script, /-l "master" -r -F/);
+  });
+}

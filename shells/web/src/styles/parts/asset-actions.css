@@ -1,9 +1,12 @@
 @layer views {
-  .asset-convert-dialog { width: min(1120px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 24px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); color: hsl(var(--foreground)); background: hsl(var(--background)); }
+  .asset-convert-dialog { width: min(920px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 24px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); color: hsl(var(--foreground)); background: hsl(var(--background)); }
   .asset-convert-dialog::backdrop { background: rgb(0 0 0 / 0.5); }
   .asset-convert-dialog > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .asset-convert-dialog h2 { margin: 0; }
-  .asset-conversion-list { display: grid; gap: 8px; margin-top: 16px; }
+  .asset-conversion-list { display: grid; gap: 8px; margin-top: 16px; grid-template-columns: 1fr 1fr 1fr;}
+@media (max-width:600px){  .asset-conversion-list {grid-template-columns: 1fr 1fr}}
+@media (max-width:360px){  .asset-conversion-list {grid-template-columns: 1fr }
+.asset-conversion-list .btn span{display:none}}
   .asset-conversion-list .btn { display: flex; flex-direction: column; align-items: flex-start; white-space: normal; text-align: left; padding: 14px; gap: 6px; }
   .asset-conversion-list .btn span { font-weight: normal; color: hsl(var(--muted-foreground)); }
 }

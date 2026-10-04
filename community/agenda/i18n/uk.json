@@ -1,6 +1,6 @@
 {
-  "name": "Порядок денний",
-  "description": "Перетворіть одну програму на фірмові екрани, інтерактивні веб-сторінки, анімовані огляди, PowerPoint слайди та календарі.",
+  "name": "Програма",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} сеансів, {{trackCount}} треків",
   "inputs.title.label": "Подія",
   "inputs.title.help": "Друкується на початку кожного макета та називає експортований файл.",

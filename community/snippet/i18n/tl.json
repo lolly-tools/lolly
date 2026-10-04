@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "I-convert ang mga code snippet sa malinis, may syntax highlighting, at shareable na mga larawan.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Code",
   "inputs.code.placeholder": "I-paste ang iyong code dito…",
   "inputs.fileName.label": "Pangalan ng file",

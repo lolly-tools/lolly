@@ -1,6 +1,6 @@
 {
-  "name": "Tagesordnung",
-  "description": "Verwandeln Sie ein Programm in Markenbildschirme, interaktive Webseiten, animierte Übersichten, PowerPoint Folien und Kalender.",
+  "name": "Agenda",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} Sitzungen, {{trackCount}} Tracks",
   "inputs.title.label": "Veranstaltung",
   "inputs.title.help": "Wird am Kopf jedes Layouts gedruckt und benennt die exportierte Datei.",

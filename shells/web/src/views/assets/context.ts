@@ -93,6 +93,8 @@ export interface CatCtx {
   DENSITY_PREF_KEY: "lolly-catalog-density";
   catLayout: 'grid' | 'list';
   catDensity: 'comfortable' | 'compact';
+  /** Card size step from the view options (components/view-options.ts). */
+  cardSize: number;
   CAT_SORTS: readonly CatSort[];
   catSort: CatSort;
   /** The view-options direction toggle: true shows the sort's last results first. */

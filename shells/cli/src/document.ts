@@ -9,6 +9,20 @@ import { inspectPath } from '@lolly-tools/node-shell/inspect';
 
 const jsonFile = async (path: string): Promise<any> => JSON.parse(await readFile(path, 'utf8'));
 
+/**
+ * `--inputs` for Design with its authoring keys (`$in`, `$style`, `$stack` and the rest,
+ * plan 291 W5) lowered to stored rows first; any other tool's inputs, and Design inputs
+ * with no authoring key, are returned as they were.
+ */
+async function toolInputs(toolId: string, inputsPath: string | undefined): Promise<Record<string, unknown>> {
+  const inputs = inputsPath ? await jsonFile(inputsPath) : {};
+  if (toolId !== 'design') return inputs;
+  const { hasDesignAuthoring } = await import('@lolly/engine');
+  if (!hasDesignAuthoring(inputs)) return inputs;
+  const { lowerDesignDocument } = await import('./authoring.ts');
+  return (await lowerDesignDocument(inputs, { what: '--inputs' })).values;
+}
+
 async function compile(toolId: string, inputsPath?: string, profilePath?: string) {
   const { JSDOM } = await import('jsdom');
   const dom = new JSDOM('<!doctype html><html><body><div id="canvas"></div></body></html>');
@@ -17,7 +31,7 @@ async function compile(toolId: string, inputsPath?: string, profilePath?: string
   try {
     const tool = await loadToolOrThrow(toolId, readToolFile);
     const host = await createCliBridge({ dom: dom as never, profile: await readProfile(profilePath), networkAllowlist: tool.manifest.network?.allowlist });
-    return compileDocument(tool, inputsPath ? await jsonFile(inputsPath) : {}, { host });
+    return compileDocument(tool, await toolInputs(toolId, inputsPath) as Parameters<typeof compileDocument>[1], { host });
   } finally { g.window = prev.window; g.document = prev.document; g.Element = prev.Element; dom.window.close(); }
 }
 
@@ -39,7 +53,7 @@ export async function documentCli(command: string, positionals: string[], flags:
       value = validateDocument({ kind: 'document', value: await jsonFile(positionals[0]) });
     } else {
       const tool = await loadToolOrThrow(positionals[0], readToolFile);
-      value = validateDocument({ kind: 'inputs', manifest: tool.manifest, value: flags.inputs ? await jsonFile(flags.inputs) : {} });
+      value = validateDocument({ kind: 'inputs', manifest: tool.manifest, value: await toolInputs(positionals[0], flags.inputs) });
     }
   } else {
     if (!positionals[0]) throw new Error(`usage: lolly ${command} <document.json>`);

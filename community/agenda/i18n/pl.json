@@ -1,6 +1,6 @@
 {
-  "name": "Porządek obrad",
-  "description": "Zamień jeden program w markowe ekrany, interaktywne strony internetowe, animowane przeglądy, PowerPoint slajdy i kalendarze.",
+  "name": "Agenda",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} sesje, {{trackCount}} utwory",
   "inputs.title.label": "Wydarzenie",
   "inputs.title.help": "Jest drukowany na początku każdego układu i zawiera nazwę eksportowanego pliku.",

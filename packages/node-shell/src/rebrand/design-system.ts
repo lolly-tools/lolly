@@ -46,6 +46,7 @@ import { readFileSync } from 'node:fs';
 import {
   SHIPPED_DESIGN_SYSTEM_ID,
   createTokenSet,
+  logoSetInBrandOrder,
   neutralSlideMaster,
   resolveRebrandDesignSystem,
   type RebrandDesignSystemInputV1,
@@ -66,7 +67,7 @@ import { RebrandPipelineError } from './pipeline.ts';
 export function colorTokensFromDtcg(file: unknown): Map<string, string> {
   const out = new Map<string, string>();
   for (const entry of createTokenSet(file).query({ type: 'color' })) {
-    if (typeof entry.path === 'string' && typeof entry.value === 'string') out.set(entry.path, entry.value);
+    if (typeof entry.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out.set(entry.path, entry.value);
   }
   return out;
 }
@@ -86,7 +87,7 @@ export function darkColorsFromDtcg(file: unknown): Map<string, string> | undefin
   if (!dark) return undefined;
   const out = new Map<string, string>();
   for (const entry of createTokenSet(file, { theme: dark.name }).query({ type: 'color' })) {
-    if (typeof entry.path === 'string' && typeof entry.value === 'string') out.set(entry.path, entry.value);
+    if (typeof entry.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out.set(entry.path, entry.value);
   }
   return out.size > 0 ? out : undefined;
 }
@@ -109,7 +110,7 @@ export function fontsFromDtcg(file: unknown): { brand?: string; mono?: string } 
 // ─── the catalog ─────────────────────────────────────────────────────────────
 
 /** One asset index entry, typed only as far as this module reads it. */
-interface IndexAsset {
+export interface IndexAsset {
   id: string;
   type?: string;
   tags?: string[];
@@ -117,7 +118,7 @@ interface IndexAsset {
   formats?: Array<{ format?: string; url?: string }>;
 }
 
-function assetsOf(roots: ContentRoots): IndexAsset[] {
+export function assetsOf(roots: ContentRoots): IndexAsset[] {
   let index: { assets?: unknown[] };
   try {
     index = readAssetIndex(roots) as { assets?: unknown[] };
@@ -130,14 +131,14 @@ function assetsOf(roots: ContentRoots): IndexAsset[] {
   return (index.assets ?? []).filter((a): a is IndexAsset => !!a && typeof (a as IndexAsset).id === 'string');
 }
 
-const tagsOf = (asset: IndexAsset): string[] => (Array.isArray(asset.tags) ? asset.tags : []);
+export const tagsOf = (asset: IndexAsset): string[] => (Array.isArray(asset.tags) ? asset.tags : []);
 
 /**
  * The assets a web `host.assets.query` returns for the same filter: every tag
  * present, the type equal when one is asked for, deprecated entries left out,
  * in asset id order.
  */
-function query(assets: IndexAsset[], filter: { type?: string; tags: readonly string[] }): IndexAsset[] {
+export function query(assets: IndexAsset[], filter: { type?: string; tags: readonly string[] }): IndexAsset[] {
   return assets
     .filter((asset) => asset.deprecated !== true
       && (filter.type === undefined || asset.type === filter.type)
@@ -146,7 +147,7 @@ function query(assets: IndexAsset[], filter: { type?: string; tags: readonly str
 }
 
 /** The file on disk behind an asset's first format that has one. */
-function fileOf(asset: IndexAsset, roots: ContentRoots): string | null {
+export function fileOf(asset: IndexAsset, roots: ContentRoots): string | null {
   for (const format of asset.formats ?? []) {
     const file = format.url ? contentUrlFile(format.url, roots) : null;
     if (file) return file;
@@ -171,7 +172,7 @@ function parseJson(bytes: Uint8Array, file: string, what: string): unknown {
 }
 
 /** The brand token file: a `tokens` asset tagged `brand`, else the first `tokens` asset. */
-function tokenAsset(assets: IndexAsset[]): IndexAsset | undefined {
+export function tokenAsset(assets: IndexAsset[]): IndexAsset | undefined {
   const tokens = assets.filter((asset) => asset.type === 'tokens');
   return tokens.find((asset) => tagsOf(asset).includes('brand')) ?? tokens[0];
 }
@@ -180,7 +181,7 @@ function tokenAsset(assets: IndexAsset[]): IndexAsset | undefined {
  * Is this parsed object a master the engine can seed from? The web reader's
  * test: a master short of one of these is reported the way an absent one is.
  */
-function isUsableMaster(value: unknown): value is SlideMasterV1 {
+export function isUsableMaster(value: unknown): value is SlideMasterV1 {
   const m = value as Partial<SlideMasterV1> | null | undefined;
   if (!m || typeof m.id !== 'string' || !m.id) return false;
   if (!Array.isArray(m.archetypes) || !m.archetypes.length) return false;
@@ -199,8 +200,14 @@ function firstIdFor(assets: IndexAsset[], tags: readonly string[], notId?: strin
   return found.find((asset) => asset.id !== notId)?.id ?? found[0]?.id;
 }
 
-/** The master's logo tags resolved to catalog ids, per side and per mono variant. */
-function resolveLogos(assets: IndexAsset[], master: SlideMasterV1): NonNullable<RebrandDesignSystemInputV1['logos']> {
+/**
+ * The master's logo tags resolved to catalog ids, per side and per mono variant. Given
+ * the design system's token document, the set is then restated in the order its
+ * `logo-surface` house rule states (plan 291 E18, `logoSetInBrandOrder`): the brand's own
+ * preference wins over the master's tags, so compose and the runtime's `?theme=auto` pick
+ * put the same mark on dark. The web reader does the same.
+ */
+export function resolveLogos(assets: IndexAsset[], master: SlideMasterV1, doc?: unknown): NonNullable<RebrandDesignSystemInputV1['logos']> {
   const tags = master.logo?.assetTags;
   const out: NonNullable<RebrandDesignSystemInputV1['logos']> = {};
   if (!tags) return out;
@@ -216,7 +223,7 @@ function resolveLogos(assets: IndexAsset[], master: SlideMasterV1): NonNullable<
     if (colourId) out[side] = colourId;
     if (monoId) out[monoSide] = monoId;
   }
-  return out;
+  return doc === undefined ? out : logoSetInBrandOrder(out, doc);
 }
 
 // ─── resolving ───────────────────────────────────────────────────────────────
@@ -290,10 +297,12 @@ export async function resolveProfileDesignSystem(
   let colors = new Map<string, string>();
   let darkColors: Map<string, string> | undefined;
   let faces: { brand?: string; mono?: string } = {};
+  let tokenDoc: unknown;
   const tokensEntry = tokenAsset(assets);
   const tokensFile = tokensEntry ? fileOf(tokensEntry, roots) : null;
   if (tokensEntry && tokensFile) {
     const doc = parseJson(readBytes(tokensFile, 'token file'), tokensFile, 'token file');
+    tokenDoc = doc;
     colors = colorTokensFromDtcg(doc);
     darkColors = darkColorsFromDtcg(doc);
     faces = fontsFromDtcg(doc);
@@ -302,8 +311,8 @@ export async function resolveProfileDesignSystem(
     notes.push(`The ${roots.profile} design system has no brand token file, so no colour can be mapped.`);
   }
 
-  // The logos, by the master's own tags.
-  const logos = resolveLogos(assets, master);
+  // The logos, by the master's own tags, in the brand's logo-surface order.
+  const logos = resolveLogos(assets, master, tokenDoc);
   for (const id of Object.values(logos)) if (id && !used.logos.includes(id)) used.logos.push(id);
   if (!logos.onLight && !logos.onDark) {
     notes.push(`The ${roots.profile} design system has no logo the slide master can place.`);

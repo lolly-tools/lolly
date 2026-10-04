@@ -1,6 +1,6 @@
 {
   "name": "スニペット",
-  "description": "コードスニペットをシンプルでシンタックスハイライト付きの共有可能な画像に変換します。",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "コード",
   "inputs.code.placeholder": "ここにコードを貼り付けてください…",
   "inputs.fileName.label": "ファイル名",

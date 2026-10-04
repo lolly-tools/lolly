@@ -1,6 +1,6 @@
 {
   "name": "议程",
-  "description": "将一个程序变成品牌屏幕、交互式网页、动画概述、PowerPoint 幻灯片和日历。",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} 会话，{{trackCount}} 曲目",
   "inputs.title.label": "活动",
   "inputs.title.help": "打印在每个布局的开头，并命名导出的文件。",

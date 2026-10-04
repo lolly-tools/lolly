@@ -16,6 +16,8 @@
 
 import { parseThemedAssetId, applyIconTheme, parseIconThemesDoc } from '../../../../engine/src/icon-theme.ts';
 import { parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, stripAssetModifiers } from '../../../../engine/src/photo-treatment.ts';
+import { isRasterPhotoLook, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook } from '../../../../engine/src/photo-look.ts';
+import type { GradeLut } from '../../../../engine/src/grade.ts';
 // c2pa-verify is LAZY on purpose. It is the entry to the whole provenance
 // cluster (c2pa + c2pa-extract + c2pa-containers + c2pa-verdict + c2pa-trust +
 // video-meta, ~65 KB gz), and this module is on the boot path, so a static
@@ -199,6 +201,9 @@ interface AssetsDb {
 }
 
 const OBJECT_URL_CACHE = new Map<string, string>(); // key → blob URL, kept alive while bridge is.
+// The format of a baked photo look's bytes (jpg or png), by its OBJECT_URL_CACHE key, so a
+// cache hit reports the format the url really holds.
+const OBJECT_URL_FORMAT = new Map<string, string>();
 
 // Library-asset credential lookups (host.assets.credential) - the extracted
 // C2PA store per id, or null once an asset is known clean. Manifest stores are
@@ -343,6 +348,90 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     inFlight.set(blobKey, started);
     return started;
   };
+
+  // Photo looks (plan 291 W7): a `?treatment=<lookId>` whose look only a pixel bake
+  // reproduces (gradient-map, lut), or any look on an upload or an inline picture,
+  // is baked into raster bytes here, once per (picture, look, theme): concurrent
+  // resolves of one bake share it, and a finished bake is an object URL keyed by
+  // photoLookCacheKey. A bake that fails serves the plain picture under the
+  // treated id, the same contract as an unknown treatment.
+  const lookBakes = new Map<string, Promise<Blob>>();
+  const lutReads = new Map<string, Promise<GradeLut | null>>();
+  const lutFor = (lutId: string | undefined): Promise<GradeLut | null> => {
+    if (!lutId) return Promise.resolve(null);
+    let pending = lutReads.get(lutId);
+    if (!pending) {
+      pending = (async () => {
+        const blob = await api._getBlob(lutId, { format: 'cube', fetchIfMissing: true }) ?? await api._getBlob(lutId, { fetchIfMissing: true });
+        if (!blob) return null;
+        const { parseLutText } = await import('../../../../engine/src/grade.ts');
+        return parseLutText(await blob.text(), lutId);
+      })().catch(() => null);
+      lutReads.set(lutId, pending);
+    }
+    return pending;
+  };
+  const bakeLook = (cacheKey: string, blob: Blob, look: PhotoTreatment, themeKey: string): Promise<Blob> => {
+    let pending = lookBakes.get(cacheKey);
+    if (!pending) {
+      pending = (async () => {
+        const lut = look.kind === 'lut' ? await lutFor(resolvePhotoLook(look, themeKey).lut) : null;
+        if (look.kind === 'lut' && !lut) throw new Error(`the LUT of photo look ${look.id} is unavailable`);
+        const { bakePhotoLookBlob } = await import('./photo-look-bake.ts');
+        return bakePhotoLookBlob({ blob, look, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}) });
+      })().finally(() => { lookBakes.delete(cacheKey); });
+      lookBakes.set(cacheKey, pending);
+    }
+    return pending;
+  };
+  const bakedFormat = (blob: Blob): string => (blob.type === 'image/png' ? 'png' : 'jpg');
+  /** A short stable key for an inline picture, so a data: URL is never a map key. */
+  const inlineKey = (dataUrl: string): string => {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < dataUrl.length; i += 1) h = Math.imul(h ^ dataUrl.charCodeAt(i), 0x01000193) >>> 0;
+    return `inline/${h.toString(16).padStart(8, '0')}-${dataUrl.length}`;
+  };
+
+  /** An upload (`user/...`) or an inline picture (`data:`) with a photo look. */
+  const lookedPicture = async (id: string, baseId: string, treatment: string, opts: { version?: string; tokenSelection?: Readonly<Record<string, string>> }): Promise<AssetRef> => {
+    const def = (await api._photoTreatments()).find(t => t.id === treatment);
+    if (baseId.startsWith('user/')) {
+      const rec = await (await assetHistory()).readUserAssetVersion(db, baseId, opts.version);
+      if (!rec) throw new Error(`User asset not found: ${baseId}`);
+      const plainKey = `user:${baseId}:${rec.format}:${rec.version ?? 'x'}`;
+      if (!def || healLegacyType(rec) !== 'raster' || !rec.blob) return toAssetRef({ ...rec, id, cacheKey: plainKey }, 'user');
+      const themeKey = photoLookThemeKey(def, opts.tokenSelection);
+      const cacheKey = photoLookCacheKey(baseId, rec.version ?? 'x', def, themeKey);
+      const meta = { ...rec.meta, treatment, baseId, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
+      if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef({ ...rec, id, cacheKey, meta, format: OBJECT_URL_FORMAT.get(cacheKey) ?? rec.format }, 'user');
+      try {
+        const baked = await bakeLook(cacheKey, rec.blob, def, themeKey);
+        OBJECT_URL_FORMAT.set(cacheKey, bakedFormat(baked));
+        return await toAssetRef({ ...rec, id, blob: baked, format: bakedFormat(baked), cacheKey, meta }, 'user');
+      } catch (error) {
+        console.warn(`[assets] photo look ${treatment} was not applied to ${baseId}:`, error);
+        return toAssetRef({ ...rec, id, cacheKey: plainKey }, 'user');
+      }
+    }
+    const ref = await (await import('./url-asset.ts')).resolveUrlAsset(baseId);
+    if (!def || ref.type !== 'raster') return { ...ref, id };
+    const themeKey = photoLookThemeKey(def, opts.tokenSelection);
+    const cacheKey = photoLookCacheKey(inlineKey(baseId), 'x', def, themeKey);
+    const meta = { ...ref.meta, treatment, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
+    const cached = OBJECT_URL_CACHE.get(cacheKey);
+    if (cached) return { ...ref, id, url: cached, format: OBJECT_URL_FORMAT.get(cacheKey) ?? ref.format, meta };
+    try {
+      const baked = await bakeLook(cacheKey, await (await fetch(ref.url)).blob(), def, themeKey);
+      const url = URL.createObjectURL(baked);
+      OBJECT_URL_CACHE.set(cacheKey, url);
+      OBJECT_URL_FORMAT.set(cacheKey, bakedFormat(baked));
+      return { ...ref, id, url, format: bakedFormat(baked), meta };
+    } catch (error) {
+      console.warn('[assets] photo look was not applied to an inline picture:', error);
+      return { ...ref, id };
+    }
+  };
+
   const api = {
     async resolveProvider(ref: { provider: string; scope: string; path: string }): Promise<AssetRef | null> {
       if (ref.provider === 'catalog' || ref.provider === 'library') {
@@ -357,7 +446,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       }
       return null;
     },
-    async get(id: string, opts: { format?: string; version?: string } = {}): Promise<AssetRef> {
+    async get(id: string, opts: { format?: string; version?: string; tokenSelection?: Readonly<Record<string, string>> } = {}): Promise<AssetRef> {
       // A PROCEDURAL asset: `zzfxm:<seed>[:<style>]` names a song that is
       // synthesised on demand, not a file anything stores. There are no bytes
       // to look up, so the ref resolves to ITSELF (`url === id`), and the
@@ -375,6 +464,12 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           source: 'library', id: canonical, type: 'audio', format: 'zzfxm', url: canonical,
           meta: { name: 'Generated music', generated: true, seed: ref.seed, ...(ref.style ? { style: ref.style } : {}) },
         };
+      }
+      // A photo look on an upload or an inline picture (plan 291 W7). Parsed BEFORE the
+      // user branch, which would look the whole treated id up, miss, and drop the picture.
+      const looked = parseTreatedAssetId(id);
+      if (looked.treatment && (looked.baseId.startsWith('user/') || /^data:/i.test(looked.baseId))) {
+        return lookedPicture(id, looked.baseId, looked.treatment, opts);
       }
       if (id.startsWith('user/')) {
         const userAsset = await (await assetHistory()).readUserAssetVersion(db, id, opts.version);
@@ -479,7 +574,28 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       }
 
       if (treatment && meta.type === 'raster') {
-        const def = (await api._photoTreatments()).find(t => t.id === treatment);
+        let def = (await api._photoTreatments()).find(t => t.id === treatment);
+        let themeSuffix = '';
+        if (def && (isRasterPhotoLook(def) || def.themes)) {
+          // A theme variant picks the definition (plan 291 W7); a look only pixels reproduce bakes here.
+          const themeKey = photoLookThemeKey(def, opts.tokenSelection);
+          if (isRasterPhotoLook(def)) {
+            const cacheKey = photoLookCacheKey(`${baseId}:${format.format}`, version ?? 'x', def, themeKey);
+            const lookMeta = { ...refMeta, treatment, baseId, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
+            if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef({ ...meta, id, format: OBJECT_URL_FORMAT.get(cacheKey) ?? format.format, cacheKey, meta: lookMeta }, 'library');
+            try {
+              const baked = await bakeLook(cacheKey, await loadBlob(), def, themeKey);
+              OBJECT_URL_FORMAT.set(cacheKey, bakedFormat(baked));
+              return await toAssetRef({ ...meta, id, blob: baked, format: bakedFormat(baked), cacheKey, meta: lookMeta }, 'library');
+            } catch (error) {
+              console.warn(`[assets] photo look ${treatment} was not applied to ${baseId}:`, error);
+              def = undefined;
+            }
+          } else {
+            def = resolvePhotoLook(def, themeKey);
+            if (themeKey !== 'base') themeSuffix = `:${themeKey}`;
+          }
+        }
         // The wrapper is a fixed-size SVG, so it needs the photo's pixel
         // dimensions. The primary (jpg) format entry frequently omits them,
         // so fall back to whatever sibling format that carries a pair (e.g. the
@@ -494,7 +610,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           // still the jpg blob that backs it, and pruning protects
           // `<baseId>:jpg:<version>`, the key the derived object URL
           // depends on.
-          const cacheKey = `library:${blobKey}:pt:${treatment}`;
+          const cacheKey = `library:${blobKey}:pt:${treatment}${themeSuffix}`;
           const common = { ...meta, id, format: format.format, cacheKey, meta: { ...refMeta, treatment, baseId } };
           if (format.format === 'jxl') {
             const original = await toAssetRef({ ...meta, blob: await loadBlob(), format: 'jxl', cacheKey: `library:${blobKey}` }, 'library');
@@ -1278,6 +1394,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           evictObjectUrl(`library:${k}`);
           evictObjectUrlsByPrefix(`library:${k}:t:`);   // themed icon bakes
           evictObjectUrlsByPrefix(`library:${k}:pt:`);  // photo treatment bakes
+          evictObjectUrlsByPrefix(`library:${k}:look:`); // photo look bakes (plan 291 W7)
         }
       }
       if (staleMeta.length) {
@@ -1396,6 +1513,7 @@ function evictObjectUrl(cacheKey: string): void {
     URL.revokeObjectURL(url);
     OBJECT_URL_CACHE.delete(cacheKey);
   }
+  OBJECT_URL_FORMAT.delete(cacheKey);
 }
 
 /** Revoke + drop every object-URL cache entry whose key starts with `prefix`. */
@@ -1404,6 +1522,7 @@ function evictObjectUrlsByPrefix(prefix: string): void {
     if (key.startsWith(prefix)) {
       URL.revokeObjectURL(url);
       OBJECT_URL_CACHE.delete(key);
+      OBJECT_URL_FORMAT.delete(key);
     }
   }
 }

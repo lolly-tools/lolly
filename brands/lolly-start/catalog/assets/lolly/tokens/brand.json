@@ -142,6 +142,76 @@
         "edge": {
           "$value": "{color.ramp.neutral.7}"
         }
+      },
+      "role": {
+        "muted-ink": {
+          "$value": "{color.ramp.neutral.4}",
+          "$description": "Captions, labels, axis years and descriptions: quieter than the text colour."
+        },
+        "secondary-ink": {
+          "$value": "{color.ramp.neutral.3}",
+          "$description": "Secondary text on a card."
+        },
+        "strong-card-ink": {
+          "$value": "{color.ramp.neutral.3}",
+          "$description": "Secondary text on a strong card."
+        },
+        "accent-ink": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "Accent text: subtitles, emphasised runs and markers."
+        },
+        "accent": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "Accent marks: dots, ticks and check marks."
+        },
+        "alert-ink": {
+          "$value": "{color.ramp.neutral.1}",
+          "$description": "Text that warns: a risk, a lock-in, the thing to avoid."
+        },
+        "hairline": {
+          "$value": "{color.ramp.neutral.7}",
+          "$description": "Rules, axes and dividers on the slide ground."
+        },
+        "card-hairline": {
+          "$value": "{color.ramp.neutral.7}",
+          "$description": "A rule drawn on a card."
+        },
+        "track": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "Bars and tracks of a timeline or chart."
+        },
+        "card": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "A neutral card or table cell."
+        },
+        "quiet-card": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "A neutral panel that takes the brand ground in the dark theme."
+        },
+        "mint-card": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "A lightly tinted card."
+        },
+        "strong-card": {
+          "$value": "{color.ramp.neutral.7}",
+          "$description": "An emphasised card: the column or cell the slide argues for."
+        },
+        "alert-card": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "A card that warns."
+        },
+        "quiet-alert-card": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "A card that warns, quieter in the dark theme."
+        },
+        "alert-tint": {
+          "$value": "{color.ramp.neutral.7}",
+          "$description": "A fill that warns: the bar or block to avoid."
+        },
+        "alt-surface": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "An alternative slide ground."
+        }
       }
     }
   },
@@ -169,6 +239,76 @@
         },
         "edge": {
           "$value": "{color.ramp.neutral.2}"
+        }
+      },
+      "role": {
+        "muted-ink": {
+          "$value": "{color.ramp.neutral.6}",
+          "$description": "Captions, labels, axis years and descriptions: quieter than the text colour."
+        },
+        "secondary-ink": {
+          "$value": "{color.ramp.neutral.7}",
+          "$description": "Secondary text on a card."
+        },
+        "strong-card-ink": {
+          "$value": "{color.ramp.neutral.9}",
+          "$description": "Secondary text on a strong card."
+        },
+        "accent-ink": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "Accent text: subtitles, emphasised runs and markers."
+        },
+        "accent": {
+          "$value": "{color.ramp.neutral.8}",
+          "$description": "Accent marks: dots, ticks and check marks."
+        },
+        "alert-ink": {
+          "$value": "{color.ramp.neutral.9}",
+          "$description": "Text that warns: a risk, a lock-in, the thing to avoid."
+        },
+        "hairline": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "Rules, axes and dividers on the slide ground."
+        },
+        "card-hairline": {
+          "$value": "{color.ramp.neutral.1}",
+          "$description": "A rule drawn on a card."
+        },
+        "track": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "Bars and tracks of a timeline or chart."
+        },
+        "card": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "A neutral card or table cell."
+        },
+        "quiet-card": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "A neutral panel that takes the brand ground in the dark theme."
+        },
+        "mint-card": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "A lightly tinted card."
+        },
+        "strong-card": {
+          "$value": "{color.ramp.neutral.3}",
+          "$description": "An emphasised card: the column or cell the slide argues for."
+        },
+        "alert-card": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "A card that warns."
+        },
+        "quiet-alert-card": {
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "A card that warns, quieter in the dark theme."
+        },
+        "alert-tint": {
+          "$value": "{color.ramp.neutral.3}",
+          "$description": "A fill that warns: the bar or block to avoid."
+        },
+        "alt-surface": {
+          "$value": "{color.ramp.neutral.1}",
+          "$description": "An alternative slide ground."
         }
       }
     }

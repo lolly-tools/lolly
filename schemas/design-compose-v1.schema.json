@@ -1,0 +1,715 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/design-compose-v1.schema.json",
+  "title": "design-compose-v1",
+  "description": "A deck spec an agent writes as slide-master archetypes and slot content (lolly compose, lolly_compose), the report composing it gives back, and the compact archetype catalogue it picks from. The engine's composeDesignSlides lowers a spec to stored Design rows bound to the master. Plan 291 W6. Mirrors packages/core/src/design-compose-v1.ts; each exported const array there has one named $defs entry holding its enum in the same order.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/spec"
+    },
+    {
+      "$ref": "#/$defs/report"
+    },
+    {
+      "$ref": "#/$defs/catalog"
+    }
+  ],
+  "$defs": {
+    "ground": {
+      "enum": [
+        "light",
+        "dark"
+      ]
+    },
+    "masterOrigin": {
+      "enum": [
+        "flag",
+        "catalog",
+        "neutral"
+      ]
+    },
+    "logoMode": {
+      "enum": [
+        "auto",
+        "mono",
+        "none"
+      ]
+    },
+    "emphasis": {
+      "enum": [
+        "accent",
+        "bold",
+        "keep"
+      ]
+    },
+    "textCase": {
+      "enum": [
+        "sentence",
+        "keep"
+      ]
+    },
+    "transition": {
+      "description": "Design's slide transitions (the options of its transition input).",
+      "enum": [
+        "slide",
+        "fade",
+        "morph",
+        "flight"
+      ]
+    },
+    "slotKind": {
+      "enum": [
+        "text",
+        "image",
+        "table"
+      ]
+    },
+    "reservedField": {
+      "enum": [
+        "id",
+        "kind",
+        "frame",
+        "master",
+        "archetype",
+        "role",
+        "furniture",
+        "order",
+        "z",
+        "group"
+      ]
+    },
+    "noteCode": {
+      "enum": [
+        "compose.dark.none",
+        "compose.dark.themed",
+        "compose.ground.ignored",
+        "compose.emphasis.accent",
+        "compose.emphasis.no-accent",
+        "compose.case.sentence",
+        "compose.footer.empty",
+        "compose.logo.unresolved",
+        "compose.logo.photo-contrast",
+        "compose.text.photo-contrast",
+        "compose.furniture.unknown",
+        "compose.notes.none",
+        "compose.edits.partial",
+        "compose.master.neutral",
+        "compose.master.no-logos",
+        "compose.fit.overflow",
+        "compose.fit.unmeasured",
+        "compose.asset.needed",
+        "compose.logo.photo-unmeasured"
+      ]
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "size": {
+      "type": "object",
+      "required": [
+        "width",
+        "height"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "height": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000
+        }
+      }
+    },
+    "box": {
+      "type": "object",
+      "required": [
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "w": {
+          "type": "number"
+        },
+        "h": {
+          "type": "number"
+        }
+      }
+    },
+    "slotKey": {
+      "type": "string",
+      "pattern": "^[a-z]+(#[1-9][0-9]*)?$",
+      "description": "A role for the first slot of that role, or role#n for the n-th, counted from 1 across the archetype."
+    },
+    "slotObject": {
+      "type": "object",
+      "description": "text or image, or from (an inventory object id, or a list of text object ids whose paragraphs are taken in that order) with para (a 0-based paragraph, or a list of them) or join (the text put between its lines when they are run into one); case and emphasis over the slide's; every other key is a Design row field written over the seeded slot (x and y slide-local), and $style names or inlines a text style. A table slot (data) takes $table instead: its rows set out in the slot's box.",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "from": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "para": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          ]
+        },
+        "join": {
+          "type": "string"
+        },
+        "$table": {
+          "type": "object",
+          "description": "A table slot's rows: a $table authoring macro (pitch, columns, rows, label, divider) whose x and y are relative to the slot's box. Nothing else is given beside it."
+        },
+        "case": {
+          "$ref": "#/$defs/textCase"
+        },
+        "emphasis": {
+          "$ref": "#/$defs/emphasis"
+        },
+        "$style": {
+          "type": [
+            "string",
+            "object"
+          ]
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "text"
+          ]
+        },
+        {
+          "required": [
+            "image"
+          ]
+        },
+        {
+          "required": [
+            "from"
+          ]
+        },
+        {
+          "required": [
+            "$table"
+          ]
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/reservedField"
+            },
+            {
+              "pattern": "^\\$(?!style$|table$)"
+            }
+          ]
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "text",
+              "image"
+            ]
+          },
+          {
+            "required": [
+              "text",
+              "from"
+            ]
+          },
+          {
+            "required": [
+              "image",
+              "from"
+            ]
+          }
+        ]
+      },
+      "dependentRequired": {
+        "para": [
+          "from"
+        ],
+        "join": [
+          "from"
+        ]
+      }
+    },
+    "slotValue": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/slotObject"
+        }
+      ]
+    },
+    "slotRecord": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/slotKey"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/slotValue"
+      }
+    },
+    "furniture": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "omit": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "footer": {
+          "type": "string"
+        },
+        "logo": {
+          "$ref": "#/$defs/logoMode"
+        }
+      }
+    },
+    "slide": {
+      "type": "object",
+      "required": [
+        "archetype"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "ground": {
+          "$ref": "#/$defs/ground"
+        },
+        "source": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "slots": {
+          "$ref": "#/$defs/slotRecord"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/slotRecord"
+          }
+        },
+        "notes": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "const": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "furniture": {
+          "$ref": "#/$defs/furniture"
+        },
+        "under": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Design authoring rows (design-authoring-v1) painted before the archetype's layers, slide-local."
+        },
+        "over": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Design authoring rows painted after the archetype's layers, slide-local."
+        },
+        "intent": {
+          "type": "string"
+        },
+        "emphasis": {
+          "$ref": "#/$defs/emphasis"
+        },
+        "case": {
+          "$ref": "#/$defs/textCase"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "required": [
+        "slides"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "size": {
+          "$ref": "#/$defs/size"
+        },
+        "theme": {
+          "$ref": "#/$defs/ground"
+        },
+        "themes": {
+          "description": "The token themes the document is composed for. With more than one, logo furniture is written as <id>?theme=auto, so each theme shows the mark its surface asks for (plan 291 W4).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        "slides": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/slide"
+          }
+        },
+        "$styles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "footer": {
+          "type": "string"
+        },
+        "pageNumbers": {
+          "type": "boolean"
+        },
+        "transition": {
+          "$ref": "#/$defs/transition"
+        },
+        "gap": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "furniture": {
+          "$ref": "#/$defs/furniture"
+        },
+        "emphasis": {
+          "$ref": "#/$defs/emphasis"
+        },
+        "case": {
+          "$ref": "#/$defs/textCase"
+        }
+      }
+    },
+    "fit": {
+      "type": "object",
+      "required": [
+        "layerId",
+        "lines",
+        "overflow"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "layerId": {
+          "type": "string"
+        },
+        "lines": {
+          "$ref": "#/$defs/count"
+        },
+        "overflow": {
+          "type": "boolean"
+        },
+        "fontSize": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "shrunk": {
+          "type": "boolean"
+        }
+      }
+    },
+    "reportSlide": {
+      "type": "object",
+      "required": [
+        "index",
+        "id",
+        "archetype",
+        "requested",
+        "ground",
+        "filled",
+        "dropped",
+        "furniture",
+        "notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "$ref": "#/$defs/count"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "archetype": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requested": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ground": {
+          "$ref": "#/$defs/ground"
+        },
+        "filled": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/slotKey"
+          }
+        },
+        "dropped": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/slotKey"
+          }
+        },
+        "furniture": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "boolean"
+        },
+        "fit": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fit"
+          }
+        }
+      }
+    },
+    "note": {
+      "type": "object",
+      "required": [
+        "path",
+        "code",
+        "message"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/noteCode"
+            },
+            {
+              "type": "string",
+              "pattern": "^authoring\\."
+            }
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "report": {
+      "type": "object",
+      "required": [
+        "format",
+        "version",
+        "master",
+        "size",
+        "slides",
+        "notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "const": "lolly-compose"
+        },
+        "version": {
+          "const": 1
+        },
+        "master": {
+          "type": "object",
+          "required": [
+            "id",
+            "version",
+            "origin"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string"
+            },
+            "origin": {
+              "$ref": "#/$defs/masterOrigin"
+            }
+          }
+        },
+        "size": {
+          "$ref": "#/$defs/size"
+        },
+        "slides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reportSlide"
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/note"
+          }
+        }
+      }
+    },
+    "archetypeSlot": {
+      "type": "object",
+      "required": [
+        "key",
+        "role",
+        "kind",
+        "optional",
+        "box"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/slotKey"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "$ref": "#/$defs/slotKind"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        }
+      }
+    },
+    "archetype": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "ground",
+        "slots"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "dark": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ground": {
+          "$ref": "#/$defs/ground"
+        },
+        "slots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/archetypeSlot"
+          }
+        },
+        "cells": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "useWhen": {
+          "type": "string"
+        }
+      }
+    },
+    "catalog": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/archetype"
+      }
+    }
+  }
+}

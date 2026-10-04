@@ -1,6 +1,6 @@
 {
-  "name": "chương trình nghị sự",
-  "description": "Biến một chương trình thành màn hình có thương hiệu, trang web tương tác, tổng quan sinh động, trang trình bày PowerPoint và lịch.",
+  "name": "Chương trình",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} phiên, {{trackCount}} bài hát",
   "inputs.title.label": "Sự kiện",
   "inputs.title.help": "Được in ở đầu mỗi bố cục và đặt tên cho tệp được xuất.",

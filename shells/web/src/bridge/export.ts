@@ -33,6 +33,8 @@ import { assembleAnimatedSvg } from '../lib/svg-anim-core.ts';
 import { recTransition } from '../lib/transitions.ts';
 import { suspendNodeRasters, drainNodeRasters } from '../lib/clip-thumbs.ts';
 import { RASTER_DEFAULT_SCALE } from './export-scale.ts';
+import { applyRasterBackdrop } from './export-backdrop.ts';
+import { subtreePaintsNothing } from './export-pdf-leaf.ts';
 import { videoMimeCandidates, AUDIO_FRAME_HEADROOM, videoBitrate, videoFramePlan, bppForQuality, codecAdjustedBitrate, LIVE_BITS_PER_PIXEL } from './video-mime.ts';
 import { bedDuckEnvelope, scheduleGainEvents } from './audio-envelope.ts';
 import type { ExportAudioMixIn } from './audio-envelope.ts';
@@ -59,7 +61,7 @@ import { n2, parseCssColorFull, resolveRadii, parseCssColor, objectPositionFract
 import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
 import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
 import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngXmp, insertPngCicp, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
-import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, brandSwatchPalette, parseSvgColor, blendSvgWithWhite, drawSvgPathToPdf, svgLen, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
+import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, brandSwatchPalette, parseSvgColor, blendSvgWithWhite, drawSvgPathToPdf, svgLen, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
 import type { PaletteHit, BrandPaletteEntry } from './export-pdf-vector.ts';
 import { applyPdfX } from './export-pdfx.ts';
 import { createPdfDoc } from './export-pdf-doc.ts';
@@ -890,7 +892,7 @@ const JPEG_QUALITY = 0.97;
 async function renderRaster(node: Element, format: string, opts: ExportOpts): Promise<Blob> {
   const lib = await getDomToImage();
   const d = exportDims(node, opts);
-  const dtoOpts = rasterStyle(d, opts);
+  const dtoOpts = rasterStyle(d, opts, node);
   // Mutate blob: URLs to data URLs on the live node so dom-to-image-more can
   // serialise them inside the SVG foreignObject. Restore immediately after so
   // the canvas stays clean. The live node MUST be passed (not a clone) so that
@@ -989,7 +991,7 @@ async function renderRaster(node: Element, format: string, opts: ExportOpts): Pr
 async function renderBitmap(node: Element, mimeType: string, opts: ExportOpts, lossless = false): Promise<Blob> {
   const lib = await getDomToImage();
   const d = exportDims(node, opts);
-  const dtoOpts = rasterStyle(d, opts);
+  const dtoOpts = rasterStyle(d, opts, node);
   if (mimeType === 'image/jxl' && (dtoOpts.width * dtoOpts.height > 8_000_000 || dtoOpts.width > 16384 || dtoOpts.height > 16384)) throw new Error('JPEG XL encoding is limited to 8 megapixels.');
   const restore = await swapBlobUrls(node);
   const fc = beginFrameClock(node); renderFrameAt(fc, 0, undefined, { width: dtoOpts.width, height: dtoOpts.height });
@@ -1031,7 +1033,7 @@ async function renderBitmap(node: Element, mimeType: string, opts: ExportOpts, l
 async function renderTiff(node: Element, opts: ExportOpts): Promise<Blob> {
   const lib = await getDomToImage();
   const d = exportDims(node, opts);
-  const dtoOpts = rasterStyle(d, opts);
+  const dtoOpts = rasterStyle(d, opts, node);
   const restore = await swapBlobUrls(node);
   // Deterministic base frame (t=0) at the EXPORT size, exactly as renderRaster does,
   // so a frame-clock tool (the 3D studio) draws this file at its real size instead of
@@ -1079,7 +1081,7 @@ async function renderTiff(node: Element, opts: ExportOpts): Promise<Blob> {
 async function renderBmp(node: Element, opts: ExportOpts): Promise<Blob> {
   const lib = await getDomToImage();
   const d = exportDims(node, opts);
-  const dtoOpts = rasterStyle(d, opts);
+  const dtoOpts = rasterStyle(d, opts, node);
   const restore = await swapBlobUrls(node);
   // Deterministic base frame (t=0) at the export size - see renderTiff.
   const fc = beginFrameClock(node); renderFrameAt(fc, 0, undefined, { width: dtoOpts.width, height: dtoOpts.height });
@@ -1169,8 +1171,8 @@ async function renderCmykTiff(node: Element, opts: ExportOpts): Promise<Blob> {
   // PDF's scale-to-bleed); without it, the plain trim-size raster as before. Read
   // before the capture starts, because the frame clock below needs the size.
   const dtoOpts = geo
-    ? coverRasterStyle(d, opts, ptDim(geo.artwork.w), ptDim(geo.artwork.h))
-    : rasterStyle(d, opts);
+    ? coverRasterStyle(d, opts, ptDim(geo.artwork.w), ptDim(geo.artwork.h), node)
+    : rasterStyle(d, opts, node);
   const restore = await swapBlobUrls(node);
   // Deterministic base frame (t=0) at the export size - see renderTiff.
   const fc = beginFrameClock(node); renderFrameAt(fc, 0, undefined, { width: dtoOpts.width, height: dtoOpts.height });
@@ -1468,7 +1470,9 @@ async function pressConditionLabel(profile: string | undefined): Promise<string 
 // (via CSS transform) to the target output resolution. The target is the
 // requested dimension converted to pixels at the chosen DPI; if none was
 // requested we fall back to the canvas at its default 2× scale.
-function rasterStyle(d: ExportDims, opts: ExportOpts): DtoRenderOpts {
+// `root` is the export node: a one-artboard export keeps that page's own fill under a
+// transparent request (bridge/export-backdrop.ts).
+function rasterStyle(d: ExportDims, opts: ExportOpts, root?: Element): DtoRenderOpts {
   const requested = (opts.width != null && opts.width !== '') || (opts.height != null && opts.height !== '');
   // The default factor is stated in bridge/export-scale.ts, because preflight has to
   // report the pixel count this line will produce and a second literal is how the
@@ -1487,11 +1491,7 @@ function rasterStyle(d: ExportDims, opts: ExportOpts): DtoRenderOpts {
       height: `${d.node.h}px`,
     },
   };
-  if (opts.background === 'transparent') {
-    result.style.background = 'transparent';
-  } else if (opts.background != null) {
-    result.bgcolor = opts.background;
-  }
+  applyRasterBackdrop(result, opts.background, root);
   return result;
 }
 
@@ -1499,7 +1499,7 @@ function rasterStyle(d: ExportDims, opts: ExportOpts): DtoRenderOpts {
 // (the bleed box) - non-uniform scale, matching the PDF's scale-to-bleed. Used by
 // the print-finished CMYK TIFF; any transparency is flattened onto the white sheet
 // by the CMYK pass, so the background is immaterial here.
-function coverRasterStyle(d: ExportDims, opts: ExportOpts, targetW: number, targetH: number): DtoRenderOpts {
+function coverRasterStyle(d: ExportDims, opts: ExportOpts, targetW: number, targetH: number, root?: Element): DtoRenderOpts {
   const result: DtoRenderOpts = {
     width: targetW,
     height: targetH,
@@ -1510,8 +1510,7 @@ function coverRasterStyle(d: ExportDims, opts: ExportOpts, targetW: number, targ
       height: `${d.node.h}px`,
     },
   };
-  if (opts.background === 'transparent') result.style.background = 'transparent';
-  else if (opts.background != null) result.bgcolor = opts.background;
+  applyRasterBackdrop(result, opts.background, root);
   return result;
 }
 
@@ -3160,7 +3159,9 @@ async function gradientPng(bgImg: string, w: number, h: number, pxW: number, pxH
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('xmlns', NS);
-  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  // The PNG is capped per axis (MAX_RASTER_PX), so it need not be the box's shape: stretch
+  // to it rather than letterbox, or a wide box's gradient is drawn as a band (plan 291 M4).
+  for (const [k, v] of [['viewBox', `0 0 ${w} ${h}`], ['preserveAspectRatio', 'none']]) svg.setAttribute(k!, v!);
   const defs = document.createElementNS(NS, 'defs');
   svg.appendChild(defs);
   // Same layer rule as the SVG walker: `background-image` is a list, listed top-first
@@ -3565,7 +3566,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // as a GState alpha on the element's own draws. Correct for a LEAF (text/solid box - 
     // no descendants to composite); non-leaves keep the current opaque behaviour rather
     // than mis-composite overlapping descendants (a per-op alpha ≠ CSS group opacity).
-    const alpha = (elOpacity < 1 && el.children.length === 0 && typeof pdf.GState === 'function' && typeof pdf.setGState === 'function') ? elOpacity : 1;
+    const alpha = (elOpacity < 1 && (el.children.length === 0 || subtreePaintsNothing(el)) && typeof pdf.GState === 'function' && typeof pdf.setGState === 'function') ? elOpacity : 1;
     if (!clipShape && alpha === 1) { await paintEl(el, tag, style, rect, x, y, w, h, false); return; }
     pdf.saveGraphicsState();
     try {
@@ -3600,6 +3601,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       // (a clipped evenodd ring); the PDF walker has no clip+filter equivalent wired
       // up here yet, and drawing an inset shadow as an outer one would be worse than
       // omitting it.
+      const shadowClip = clipOuterShadowsOfTranslucentBox(pdf, style.backgroundColor, parseBoxShadow(style.boxShadow), x, y, w, h, scaleRadii(shRadiiCss), Math.max(scaleX, scaleY));
       for (const sh of parseBoxShadow(style.boxShadow).reverse()) {
         if (sh.inset) continue;
         if (sh.blur <= 0) {
@@ -3641,6 +3643,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
           }
         }
       }
+      if (shadowClip) pdf.restoreGraphicsState();
     }
 
     // ── Rasterise escape-hatch (mirrors visitSvgNode) ───────────────────────────
@@ -3723,8 +3726,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       // (CSS order) so a gradient with transparent stops sits on the right colour. If the
       // gradient can't be parsed/rasterised we fall back to the flat solid-midpoint so we
       // are never WORSE than before.
-      const solid = parseCssColor(style.backgroundColor);
-      if (solid) { pdf.setFillColor(solid[0], solid[1], solid[2]); pdfRoundedRect(pdf, x, y, w, h, radii, uniform, 'F'); }
+      const solid = pdfFillCssBackground(pdf, style.backgroundColor, x, y, w, h, radii, uniform);
       let placed = false;
       // 1) TRUE VECTOR - a PDF shading pattern, unless the gradient has transparent
       //    stops (PDF shading carries no per-stop alpha → would lose them).
@@ -3753,9 +3755,8 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
         if (mid) { pdf.setFillColor(mid[0], mid[1], mid[2]); pdfRoundedRect(pdf, x, y, w, h, radii, uniform, 'F'); }
       }
     } else {
-      // Solid background-color first (bottom layer).
-      const solid = parseCssColor(style.backgroundColor);
-      if (solid) { pdf.setFillColor(solid[0], solid[1], solid[2]); pdfRoundedRect(pdf, x, y, w, h, radii, uniform, 'F'); }
+      // Solid background-color first (bottom layer), alpha kept (plan 291 M4).
+      const solid = pdfFillCssBackground(pdf, style.backgroundColor, x, y, w, h, radii, uniform);
       // background-image: url() → a real embedded image (vector-first for the box: its
       // text/children stay vector instead of the whole node being rasterised). cover/contain
       // fitted from the image's natural size, clipped to the box.

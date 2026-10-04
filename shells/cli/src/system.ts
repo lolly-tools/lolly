@@ -16,8 +16,11 @@ import {
 } from '@lolly-tools/node-shell/design-systems';
 import type { NodeDesignSystem } from '@lolly-tools/node-shell/design-systems';
 import { resolveStateDir } from '@lolly-tools/node-shell/state-dir';
-import { brandContext, contextTokens } from '../../../engine/src/brand-context.ts';
+import { contextTokens } from '../../../engine/src/brand-context.ts';
 import { checkBrandDesign } from '../../../engine/src/brand-check.ts';
+import { brandCheckCatalog, designBrief } from '../../../engine/src/design-brief.ts';
+import { checkDesignHouseRules } from '../../../engine/src/design-house-rules.ts';
+import { brandSystemOf } from '../../../engine/src/brand-system.ts';
 import { emitResult } from './envelope.ts';
 import { writeOut } from './output.ts';
 import { usageError } from './exit-codes.ts';
@@ -213,6 +216,38 @@ export async function startCli(json = false): Promise<void> {
   else await writeOut(`${START_TEXT}\n${humanStatus(result)}`);
 }
 
+/** Where the brief's token document came from: the `origin` key of `system context` and `system check`. */
+export type BriefOrigin = { kind: 'file' } | { kind: 'terminal' } | { kind: 'profile'; profile: string; tokensAsset: string };
+
+/**
+ * The `designSystem` key of `system check` and of `lolly check` (CheckReportV1): one
+ * shape for both, `{ origin, profile?, tokensAsset? }`.
+ */
+export function designSystemOf(origin: BriefOrigin): { origin: BriefOrigin['kind']; profile?: string; tokensAsset?: string } {
+  return { origin: origin.kind, ...(origin.kind === 'profile' ? { profile: origin.profile, tokensAsset: origin.tokensAsset } : {}) };
+}
+
+/**
+ * The token document `system context` and `system check` describe, by the render ladder:
+ * `--file`, then the active terminal system, then the active content profile's head
+ * tokens asset (the same choice the render bridge makes). `sync` and the other
+ * token-editing actions never fall back to the profile: they write terminal state.
+ */
+export async function briefSource(flags: Flags): Promise<{ doc: unknown; origin: BriefOrigin | null; name?: string }> {
+  if (flags.file) return { doc: (await importSystemTokens(flags.file)).doc, origin: { kind: 'file' } };
+  const { readActiveDesignSystemTokens } = await import('@lolly-tools/node-shell/design-systems');
+  const local = await readActiveDesignSystemTokens();
+  if (local) return { doc: local, origin: { kind: 'terminal' } };
+  const { readProfileTokenDocument } = await import('@lolly-tools/node-shell/design-brief');
+  const profile = readProfileTokenDocument();
+  if (!profile) return { doc: null, origin: null };
+  return {
+    doc: profile.doc,
+    origin: { kind: 'profile', profile: profile.profile, tokensAsset: profile.tokensAsset },
+    ...(profile.label ? { name: profile.label } : {}),
+  };
+}
+
 export async function systemCli(positionals: string[], flags: Flags, json = false): Promise<void> {
   const action = positionals[0] ?? 'status';
   if (['inspect', 'diff', 'generate', 'sync'].includes(action)) {
@@ -259,11 +294,16 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
     await emit({ scope: 'token-document', applied: flags.apply === '1', conflicts, changes, ...(flags.output ? { output: flags.output } : {}) }, JSON.stringify({ applied: flags.apply === '1', conflicts, changes }, null, 2) + '\n', json); return;
   }
   if (action === 'context' || action === 'check') {
-    const { readActiveDesignSystemTokens } = await import('@lolly-tools/node-shell/design-systems');
     if (flags.file === '1' || flags.output === '1') throw usageError('--file and --output need a path.', 'MISSING_FLAG_VALUE');
-    const doc = flags.file ? (await importSystemTokens(flags.file)).doc : await readActiveDesignSystemTokens();
-    if (!doc) throw usageError('No terminal design system is active. Import a system or pass --file=design-context.json.', 'NO_TOKENS');
-    let result: unknown = brandContext(doc, { theme: flags.theme });
+    const { doc, origin, name } = await briefSource(flags);
+    if (!doc) throw usageError('No design system is available: no terminal system is active and no content profile answers. Import a system or pass --file=design-context.json.', 'NO_TOKENS');
+    // The profile's catalog facts (master, logos, icons, media, asset ids) describe the
+    // profile's own design system only: a --file or terminal system gets them only when it
+    // is that same token document, so another brand never inherits them.
+    const { briefCatalogSummary, readBriefCatalogFor } = await import('@lolly-tools/node-shell/design-brief');
+    const catalog = readBriefCatalogFor(origin?.kind, doc);
+    const brief = designBrief(doc, catalog, { ...(name ? { name } : {}), theme: flags.theme });
+    let result: unknown = { ...brief, origin, catalog: briefCatalogSummary(catalog) };
     if (action === 'check') {
       const path = positionals[1];
       if (!path) throw usageError('usage: lolly system check <design-inputs.json> [--file=design-context.json]', 'MISSING_ARGUMENT');
@@ -272,7 +312,14 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
       const values = record.values && typeof record.values === 'object' ? record.values as Record<string, unknown> : record;
       const boxes = Array.isArray(raw) ? raw : values.boxes;
       if (!Array.isArray(boxes)) throw usageError('Supply Design input values with a boxes array, or a compiled Design document.', 'NO_COMPOSITION');
-      result = checkBrandDesign(boxes, doc, { theme: flags.theme });
+      result = {
+        ...checkBrandDesign(boxes, doc, { theme: flags.theme, ...brandCheckCatalog(catalog) }),
+        // Every rule the brand states goes in, so a rule this build cannot check is listed
+        // as unknown rather than silently passing.
+        // A document with no frames sits on its canvas background (Design's default when unset).
+        houseRules: checkDesignHouseRules(boxes, brandSystemOf(doc)?.rules ?? [], doc, { theme: flags.theme, catalog, background: values.background ?? '{color.semantic.surface}' }),
+        designSystem: origin ? designSystemOf(origin) : null,
+      };
     }
     const text = JSON.stringify(result, null, 2) + '\n';
     if (flags.output) { await writeFile(flags.output, text); await emit({ output: flags.output }, `Saved ${flags.output}.\n`, json); }

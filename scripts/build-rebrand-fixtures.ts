@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Build the synthetic rebrand fixtures of plan 274 section 9 and the three plan 275
+ * Build the synthetic rebrand fixtures of plan 274 section 9, the three plan 275
  * adds (formatting.pptx for section 7, structures.pptx for section 3, vector.pptx
- * for decision 32), plus the labels sidecar that states, per authored object, what
- * a correct reading of it is.
+ * for decision 32) and the two plan 291 adds (notes.pptx, speaker notes broken by
+ * `a:br`, and recreate.pptx, the recreation eval's deck), plus the labels sidecar
+ * that states, per authored object, what a correct reading of it is.
  *
  * Determinism is the whole point: `tests/rebrand-fixtures.test.ts` rebuilds
  * every fixture into a scratch directory and compares the bytes with the
@@ -38,8 +39,9 @@ import { zipSync } from 'fflate';
 
 import { zlibCompress } from '../engine/src/deflate.ts';
 import { emitEmf } from '../engine/src/emf.ts';
-import { buildPptxParts, EMU_PER_PX, type PptxPara, type PptxSlide, type PptxLayout, type PptxTheme } from '../engine/src/pptx.ts';
+import { buildPptxParts, EMU_PER_PX, type PptxPara, type PptxRun, type PptxSlide, type PptxLayout, type PptxTheme } from '../engine/src/pptx.ts';
 import { packPng } from '../engine/src/png.ts';
+import { encodeBaselineJpeg } from './lib/baseline-jpeg.ts';
 import {
   FIDELITY_STATES,
   LAYOUT_MATCH_BANDS,
@@ -68,9 +70,10 @@ import type {
  *  gives the same bytes in every zone. */
 const ZIP_MTIME = '2026-01-01T00:00:00';
 /** Stored, not deflated: the bytes then depend on the content alone, not on the
- *  compressor version a future install pulls in. The one compressed payload in the
- *  set, the pdf's page images, goes through the in-repo `zlibCompress` for the same
- *  reason, so no fixture byte comes from a versioned dependency. */
+ *  compressor version a future install pulls in. The compressed payloads in the
+ *  set, the pdf's page images and recreate.pptx's photographs, go through in-repo
+ *  code for the same reason (`zlibCompress`, and the baseline JPEG encoder in
+ *  scripts/lib/baseline-jpeg.ts), so no fixture byte comes from a versioned dependency. */
 const ZIP_LEVEL = 0;
 /** The timestamp the pptx writer stamps into docProps. */
 const NOW = '2026-01-01T00:00:00Z';
@@ -1841,6 +1844,435 @@ function buildVector(): { bytes: Uint8Array; labels: FixtureLabels275 } {
   return { bytes: zipParts(parts), labels: finishLabels('vector.pptx', PPTX_ID_FORM, slideLabels, inherited) };
 }
 
+// ─── fixture: notes.pptx (plan 291 W2) ───────────────────────────────────────
+
+/** The fixtures plan 291 adds: speaker notes whose line breaks a flat reading merges, and the recreation eval's deck. */
+export const PLAN_291_FIXTURES = ['notes.pptx', 'recreate.pptx'] as const;
+
+/** The first paragraph of slide 1's notes, as the lines a correct reading keeps apart. */
+export const NOTES_FIXTURE_LINES = ['OPENING', 'Start at the river, then cross the first span.', '', 'TIMING', 'Reveal the spans one at a time.'] as const;
+/** The second paragraph of slide 1's notes. */
+export const NOTES_FIXTURE_SOURCE = 'Sources: a synthetic fixture, written for plan 291.';
+/** Slide 2's notes, two plain paragraphs the writer emits itself. */
+export const NOTES_FIXTURE_SLIDE2 = ['Pause here.', 'Ask the room before moving on.'] as const;
+
+const EYEBROW: BoxPx = { x: 80, y: 80, w: 600, h: 28 };
+const NOTES_TITLE: BoxPx = { x: 80, y: 120, w: 1120, h: 110 };
+const NOTES_BODY: BoxPx = { x: 80, y: 260, w: 600, h: 200 };
+const NOTES_PHOTO: BoxPx = { x: 0, y: 0, w: DECK_W, h: DECK_H };
+const NOTES_CAPTION: BoxPx = { x: 80, y: 620, w: 600, h: 24 };
+
+/**
+ * Three slides whose speaker notes carry the trap a real talk deck sprang:
+ * one notes paragraph broken into lines with `a:br`, a blank line inside that
+ * paragraph, and a second paragraph after the first. A reader that joins paragraphs and breaks alike reads
+ * the right text but loses the structure; one that drops the breaks runs "OPENING"
+ * into the next line. Slide 1 also carries a small all-caps eyebrow above its
+ * title, slide 2 a full-bleed photograph and two plain notes paragraphs, slide 3 a
+ * source line and no notes at all.
+ *
+ * The engine writer emits one `a:p` per note line and never an `a:br`, so slide 1's
+ * notes body is replaced by hand-written OOXML after the writer has made the part.
+ */
+function buildNotes(): { bytes: Uint8Array; labels: RebrandFixtureLabelsV1 } {
+  const photo = photoPng();
+  const run = (text: string, sizePt: number, bold?: boolean): PptxRun => (bold ? { text, sizePt, bold } : { text, sizePt });
+  const titleShape = (text: string): PptxSlide['shapes'][number] =>
+    ({ kind: 'text', x: px(NOTES_TITLE.x), y: px(NOTES_TITLE.y), cx: px(NOTES_TITLE.w), cy: px(NOTES_TITLE.h), ph: { type: 'title' }, paras: [{ runs: [run(text, 36)] }] });
+  const box = (b: BoxPx, text: string, sizePt: number, bold?: boolean): PptxSlide['shapes'][number] =>
+    ({ kind: 'text', x: px(b.x), y: px(b.y), cx: px(b.w), cy: px(b.h), paras: [{ runs: [run(text, sizePt, bold)] }] });
+  const slides: PptxSlide[] = [
+    {
+      shapes: [
+        box(EYEBROW, 'A SHORT HISTORY OF BRIDGES', 12, true),
+        titleShape('Five spans we built before the road'),
+        box(NOTES_BODY, 'Timber, stone, iron, steel and concrete.', 20),
+      ],
+      media: [], layout: 0, notes: 'NOTES-PLACEHOLDER',
+    },
+    {
+      shapes: [
+        { kind: 'pic', x: px(NOTES_PHOTO.x), y: px(NOTES_PHOTO.y), cx: px(NOTES_PHOTO.w), cy: px(NOTES_PHOTO.h), media: 0, name: 'photo' },
+        titleShape('Who crosses here?'),
+      ],
+      media: [{ bytes: photo, ext: 'png' }], layout: 0, notes: NOTES_FIXTURE_SLIDE2.join('\n'),
+    },
+    {
+      shapes: [titleShape('What we do next'), box(NOTES_CAPTION, 'Source: a synthetic fixture', 9)],
+      media: [], layout: 0,
+    },
+  ];
+  const parts = buildPptxParts(slides, {
+    emuW: px(DECK_W), emuH: px(DECK_H), now: NOW, layouts: [CONTENT_LAYOUT],
+    meta: { title: 'Rebrand fixture: notes' },
+  });
+
+  const notesPart = 'ppt/notesSlides/notesSlide1.xml';
+  const before = partText(parts, notesPart);
+  const placeholder = /<a:p><a:r><a:rPr[^>]*\/><a:t>NOTES-PLACEHOLDER<\/a:t><\/a:r><\/a:p>/;
+  if (!placeholder.test(before)) throw new Error('build-rebrand-fixtures: the notes writer changed its paragraph form');
+  const noteRun = (text: string): string => `<a:r><a:rPr lang="en-US" dirty="0"/><a:t>${escapeXml(text)}</a:t></a:r>`;
+  const broken = NOTES_FIXTURE_LINES.map((line) => (line ? noteRun(line) : '')).join('<a:br><a:rPr lang="en-US" dirty="0"/></a:br>');
+  parts[notesPart] = before.replace(placeholder, `<a:p>${broken}</a:p><a:p>${noteRun(NOTES_FIXTURE_SOURCE)}</a:p><a:p><a:endParaRPr lang="en-US" dirty="0"/></a:p>`);
+
+  const text = (authored: string, b: BoxPx, klass: FixtureObjectLabelV1['class'], note?: string): AuthoredSpec =>
+    ({ authored, origin: 'slide', kind: 'text', class: klass, fidelity: { state: 'editable' }, boxPx: b, mustKeep: true, ...(note ? { note } : {}) });
+  const specs: AuthoredSpec[][] = [
+    [
+      text('eyebrow', EYEBROW, 'body', 'a 12 pt all-caps line above the title, which an inventory reads as a label'),
+      text('title', NOTES_TITLE, 'title'),
+      text('body', NOTES_BODY, 'body'),
+    ],
+    [
+      { authored: 'photo', origin: 'slide', kind: 'pic', class: 'photo', fidelity: { state: 'raster-preserved' }, boxPx: NOTES_PHOTO, mustKeep: true, note: 'a full-bleed photograph behind the title' },
+      text('title', NOTES_TITLE, 'title'),
+    ],
+    [
+      text('title', NOTES_TITLE, 'title'),
+      text('source-line', NOTES_CAPTION, 'body', 'a 9 pt source line, which an inventory reads as a caption'),
+    ],
+  ];
+  const slideLabels: FixtureSlideLabelV1[] = specs.map((objects, i) => ({
+    id: `slide${i + 1}`, index: i, widthPx: DECK_W, heightPx: DECK_H, flattened: false,
+    objects: labelObjects(`slide${i + 1}`, partText(parts, `ppt/slides/slide${i + 1}.xml`), objects),
+  }));
+  return { bytes: zipParts(parts), labels: finishLabels('notes.pptx', PPTX_ID_FORM, slideLabels, []) };
+}
+
+// ─── fixture: recreate.pptx (plan 291 W10) ───────────────────────────────────
+
+/** One trap a slide sets for a recreation, and what a literal copy of it trips. */
+export interface RecreateTrapLabelV1 {
+  /** A stable name for the trap, such as `eyebrow` or `notes-line-breaks`. */
+  id: string;
+  /** The authored names of the objects that make the trap. */
+  objects: string[];
+  /** The `lolly check` codes a literal copy of those objects raises; empty when only a reviewer would see the problem. */
+  naive: string[];
+  /** What a careful recreation does instead, in plain words. */
+  note: string;
+}
+
+/** A recreate.pptx slide label: the plan 274 slide plus the traps and an archetype hint. */
+export interface RecreateSlideLabelV1 extends FixtureSlideLabelV1 {
+  /** The neutral master archetype a recreation would most likely compose this slide from. */
+  archetype: string;
+  /** Other archetypes that fit the slide as well. */
+  alternatives: string[];
+  traps: RecreateTrapLabelV1[];
+  /** The speaker notes as paragraphs of lines, the structure a correct reading keeps. */
+  notes?: string[][];
+}
+
+export interface RecreateFixtureLabelsV1 extends RebrandFixtureLabelsV1 {
+  slides: RecreateSlideLabelV1[];
+}
+
+/** Cover notes: one paragraph broken by `a:br` with a blank line, then a second paragraph. */
+export const RECREATE_COVER_NOTES: readonly (readonly string[])[] = [
+  ['OPENING', 'Welcome the room and name the harbour.', '', 'TIMING', 'Two minutes, then the questions.'],
+  ['Photo: a generated picture, free to reuse.'],
+];
+/** Slide 3 notes: two headed sections in one paragraph, each heading on its own line. */
+export const RECREATE_EYEBROW_NOTES: readonly (readonly string[])[] = [
+  ['SAY', 'The window is shorter than the chart suggests.', 'ASK', 'Who checked the timetable this morning?'],
+];
+
+const RC_PHOTO: BoxPx = { x: 0, y: 0, w: DECK_W, h: DECK_H };
+const RC_COVER_TITLE: BoxPx = { x: 80, y: 430, w: 900, h: 110 };
+const RC_COVER_NAME: BoxPx = { x: 80, y: 560, w: 600, h: 36 };
+const RC_COVER_ROLE: BoxPx = { x: 80, y: 600, w: 600, h: 30 };
+const RC_TITLE: BoxPx = { x: 80, y: 60, w: 1120, h: 70 };
+const RC_EYEBROW: BoxPx = { x: 80, y: 80, w: 600, h: 28 };
+const RC_HEADING: BoxPx = { x: 80, y: 120, w: 1120, h: 110 };
+const RC_BODY: BoxPx = { x: 80, y: 260, w: 700, h: 200 };
+const RC_LIST: BoxPx = { x: 80, y: 200, w: 1120, h: 360 };
+const RC_STATEMENT: BoxPx = { x: 140, y: 290, w: 1000, h: 140 };
+const RC_CAPTION: BoxPx = { x: 80, y: 640, w: 800, h: 32 };
+const RC_THANKS: BoxPx = { x: 80, y: 280, w: 1120, h: 110 };
+const RC_THANKS_LINE: BoxPx = { x: 80, y: 400, w: 1120, h: 40 };
+
+const RC_CARDS = [
+  { title: 'When does the window open?', line: 'Reading the timetable together.', stripe: '#C0392B' },
+  { title: 'Who moves first?', line: 'Pilots, tugs and the quay crew.', stripe: '#2E86C1' },
+  { title: 'What do we change?', line: 'Two habits to start on Monday.', stripe: '#27AE60' },
+] as const;
+const RC_LIST_ITEMS = [
+  'One shared tide table for every crew',
+  'Pilot boarding moves to the outer mark',
+  'Tugs wait at the south berth, clear of the channel',
+  'A ten-minute call before each high water',
+] as const;
+const RC_COLUMNS = ['Plan', 'Board', 'Berth', 'Depart'] as const;
+const RC_ROWS = ['Pilots', 'Tugs', 'Quay crew'] as const;
+const RC_CELLS: readonly (readonly string[])[] = [
+  ['Reads the forecast', 'Boards at the mark', 'Advises the master', 'Signs off the exit'],
+  ['Confirms the crews', 'Holds station', 'Pushes on the turn', 'Escorts to the mark'],
+  ['Clears the berth', 'Readies the lines', 'Makes fast', 'Lets go'],
+];
+const RC_TINTS = ['#E8F6F3', '#D1F2EB', '#A3E4D7'] as const;
+
+/** The JPEG quality of recreate.pptx's photographs: a camera-like setting that keeps the deck small. */
+const RC_PHOTO_QUALITY = 80;
+
+/**
+ * A generated landscape: sky, a far shore, water with a light path, and fine grain,
+ * as a baseline JPEG. The pictures are big enough to fill a 1920 px slide without
+ * being scaled up past their pixels, the way a real deck's photographs are.
+ */
+function harbourPhotoJpeg(seed: number, w: number, h: number, warm: boolean): Uint8Array {
+  const noise = rng(seed);
+  const shoreline = (u: number): number => 0.52 + 0.05 * Math.sin(u * 7.1 + (seed % 5)) + 0.03 * Math.sin(u * 17.3);
+  const clamp = (n: number): number => Math.max(0, Math.min(255, Math.round(n)));
+  const out = new Uint8Array(w * h * 3);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const u = x / (w - 1);
+      const v = y / (h - 1);
+      // A light grain: enough to read as a photograph, little enough that JPEG keeps it cheap.
+      const grain = (noise() - 0.5) * 6;
+      const horizon = shoreline(u);
+      let r: number; let g: number; let b: number;
+      if (v < horizon - 0.06) {
+        const k = v / horizon;
+        r = warm ? 240 - 60 * k : 120 + 60 * k; g = warm ? 170 + 30 * k : 160 + 50 * k; b = warm ? 120 + 70 * k : 210 + 20 * k;
+      } else if (v < horizon) {
+        r = 50; g = 70; b = 80;
+      } else {
+        const k = (v - horizon) / (1 - horizon);
+        const glint = Math.max(0, 1 - Math.abs(u - 0.62) * 6) * (1 - k) * 60;
+        r = 30 + 30 * (1 - k) + glint; g = 70 + 40 * (1 - k) + glint; b = 100 + 50 * (1 - k) + glint * 0.6;
+      }
+      const i = (y * w + x) * 3;
+      out[i] = clamp(r + grain); out[i + 1] = clamp(g + grain); out[i + 2] = clamp(b + grain);
+    }
+  }
+  return encodeBaselineJpeg(out, w, h, RC_PHOTO_QUALITY);
+}
+
+/**
+ * The deck a recreation eval hands an agent (plan 291 W10): eight slides of invented
+ * copy that set the traps a branded rebuild has to see past. A cover over a cropped
+ * full-bleed photo with a title and the speaker's name; an agenda of numbered rounded
+ * cards with coloured top stripes; an eyebrow over a heading; a list of four; a
+ * centred statement; a full-bleed photo with one caption; a matrix whose cell text
+ * reads only with both headers; and a closing slide. The cover's and slide 3's notes
+ * are broken with `a:br`, written by hand after the writer has made the parts, as
+ * buildNotes does. The labels name each slide's traps, the check codes a literal copy
+ * raises, and an archetype hint from the neutral master.
+ */
+function buildRecreate(): { bytes: Uint8Array; labels: RecreateFixtureLabelsV1 } {
+  const coverPhoto = harbourPhotoJpeg(29104, 1600, 1200, true);
+  const quayPhoto = harbourPhotoJpeg(29107, 1920, 1080, false);
+  type Shape = PptxSlide['shapes'][number];
+  const text = (b: BoxPx, value: string, sizePt: number, o: { bold?: boolean; color?: string; align?: 'l' | 'ctr'; ph?: 'title' | 'body' } = {}): Shape => ({
+    kind: 'text', x: px(b.x), y: px(b.y), cx: px(b.w), cy: px(b.h),
+    ...(o.ph ? { ph: o.ph === 'title' ? { type: 'title' as const } : { type: 'body' as const, idx: 1 } } : {}),
+    paras: [{ runs: [{ text: value, sizePt, ...(o.bold ? { bold: true } : {}), ...(o.color ? { color: o.color } : {}) }], ...(o.align ? { align: o.align } : {}) }],
+  });
+  const rect = (b: BoxPx, fill: string, radius?: number): Shape =>
+    ({ kind: 'rect', x: px(b.x), y: px(b.y), cx: px(b.w), cy: px(b.h), fill: { solid: fill }, ...(radius ? { radius: px(radius) } : {}) });
+  const photo = (name: string, srcRect?: { t: number; b: number }): Shape =>
+    ({ kind: 'pic', x: px(RC_PHOTO.x), y: px(RC_PHOTO.y), cx: px(RC_PHOTO.w), cy: px(RC_PHOTO.h), media: 0, name, ...(srcRect ? { srcRect } : {}) });
+
+  const cardBox = (i: number): BoxPx => ({ x: 80 + i * 384, y: 200, w: 352, h: 320 });
+  const stripeBox = (i: number): BoxPx => ({ x: 80 + i * 384, y: 200, w: 352, h: 8 });
+  const numberBox = (i: number): BoxPx => ({ x: 110 + i * 384, y: 236, w: 120, h: 50 });
+  const cardTitleBox = (i: number): BoxPx => ({ x: 110 + i * 384, y: 300, w: 300, h: 90 });
+  const cardLineBox = (i: number): BoxPx => ({ x: 110 + i * 384, y: 400, w: 300, h: 80 });
+  const columnBox = (j: number): BoxPx => ({ x: 260 + j * 240, y: 150, w: 220, h: 36 });
+  const rowBox = (i: number): BoxPx => ({ x: 80, y: 215 + i * 140, w: 160, h: 36 });
+  const cellBox = (i: number, j: number): BoxPx => ({ x: 260 + j * 240, y: 200 + i * 140, w: 220, h: 120 });
+  const cellTextBox = (i: number, j: number): BoxPx => ({ x: 275 + j * 240, y: 215 + i * 140, w: 190, h: 90 });
+
+  const listShape: Shape = {
+    kind: 'text', x: px(RC_LIST.x), y: px(RC_LIST.y), cx: px(RC_LIST.w), cy: px(RC_LIST.h), ph: { type: 'body', idx: 1 },
+    paras: RC_LIST_ITEMS.map((item) => ({ runs: [{ text: item, sizePt: 24 }], bullet: true })),
+  };
+  const slides: PptxSlide[] = [
+    {
+      shapes: [
+        photo('cover-photo', { t: 0.125, b: 0.125 }),
+        text(RC_COVER_TITLE, 'Harbour lights: planning for the tide', 40, { bold: true, color: '#FFFFFF', ph: 'title' }),
+        text(RC_COVER_NAME, 'Robin Vale', 20, { bold: true, color: '#FFFFFF' }),
+        text(RC_COVER_ROLE, 'Tidal operations, Port of Example', 16, { color: '#FFFFFF' }),
+      ],
+      media: [{ bytes: coverPhoto, ext: 'jpeg' }], layout: 0, notes: 'NOTES-PLACEHOLDER-1',
+    },
+    {
+      shapes: [
+        text(RC_TITLE, 'Three questions for today', 32, { ph: 'title' }),
+        ...RC_CARDS.flatMap((card, i): Shape[] => [
+          rect(cardBox(i), '#F2F3F5', 18),
+          rect(stripeBox(i), card.stripe),
+          text(numberBox(i), `0${i + 1}`, 28, { bold: true, color: card.stripe }),
+          text(cardTitleBox(i), card.title, 22, { bold: true }),
+          text(cardLineBox(i), card.line, 16),
+        ]),
+      ],
+      media: [], layout: 0, notes: 'Name the three questions, then move on.',
+    },
+    {
+      shapes: [
+        text(RC_EYEBROW, 'WHY TIDES MATTER', 12, { bold: true }),
+        text(RC_HEADING, 'Every crossing starts with a timetable', 36, { ph: 'title' }),
+        text(RC_BODY, 'The window opens twice a day and closes faster than it looks.', 20),
+      ],
+      media: [], layout: 0, notes: 'NOTES-PLACEHOLDER-3',
+    },
+    {
+      shapes: [text(RC_TITLE, 'What changes on the quay', 32, { ph: 'title' }), listShape],
+      media: [], layout: 0,
+    },
+    {
+      shapes: [text(RC_STATEMENT, 'The tide does not wait for the agenda', 44, { align: 'ctr', ph: 'title' })],
+      media: [], layout: 0, notes: 'Let this one land. Count to three.',
+    },
+    {
+      shapes: [
+        photo('quay-photo'),
+        text(RC_CAPTION, 'Low water at the north quay, early morning', 14, { color: '#FFFFFF' }),
+      ],
+      media: [{ bytes: quayPhoto, ext: 'jpeg' }], layout: 0,
+    },
+    {
+      shapes: [
+        text(RC_TITLE, 'Who holds each stage', 32, { ph: 'title' }),
+        ...RC_COLUMNS.map((column, j) => text(columnBox(j), column, 18, { bold: true })),
+        ...RC_ROWS.flatMap((row, i): Shape[] => [
+          text(rowBox(i), row, 18, { bold: true }),
+          ...RC_COLUMNS.map((_, j) => rect(cellBox(i, j), RC_TINTS[i]!)),
+          ...RC_COLUMNS.map((_, j) => text(cellTextBox(i, j), RC_CELLS[i]![j]!, 16)),
+        ]),
+      ],
+      media: [], layout: 0, notes: 'Walk one row, not all twelve cells.',
+    },
+    {
+      shapes: [
+        text(RC_THANKS, 'Thank you', 44, { bold: true, ph: 'title' }),
+        text(RC_THANKS_LINE, 'Questions to the harbour desk, any tide.', 20),
+      ],
+      media: [], layout: 0, notes: 'Thank the crews by name.\nPoint to the shared tide table.',
+    },
+  ];
+  const parts = buildPptxParts(slides, {
+    emuW: px(DECK_W), emuH: px(DECK_H), now: NOW, layouts: [CONTENT_LAYOUT],
+    meta: { title: 'Harbour lights' },
+  });
+
+  const noteRun = (value: string): string => `<a:r><a:rPr lang="en-GB" dirty="0"/><a:t>${escapeXml(value)}</a:t></a:r>`;
+  const brNotes = (slide: number, paragraphs: readonly (readonly string[])[]): void => {
+    const part = `ppt/notesSlides/notesSlide${slide}.xml`;
+    const before = partText(parts, part);
+    const placeholder = new RegExp(`<a:p><a:r><a:rPr[^>]*/><a:t>NOTES-PLACEHOLDER-${slide}</a:t></a:r></a:p>`);
+    if (!placeholder.test(before)) throw new Error(`build-rebrand-fixtures: the notes writer changed its paragraph form (${part})`);
+    const paras = paragraphs.map((lines) => `<a:p>${lines.map((line) => (line ? noteRun(line) : '')).join('<a:br><a:rPr lang="en-GB" dirty="0"/></a:br>')}</a:p>`).join('');
+    parts[part] = before.replace(placeholder, paras);
+  };
+  brNotes(1, RECREATE_COVER_NOTES);
+  brNotes(3, RECREATE_EYEBROW_NOTES);
+
+  const t = (authored: string, b: BoxPx, klass: FixtureObjectLabelV1['class'], note?: string): AuthoredSpec =>
+    ({ authored, origin: 'slide', kind: 'text', class: klass, fidelity: { state: 'editable' }, boxPx: b, mustKeep: true, ...(note ? { note } : {}) });
+  const shape = (authored: string, b: BoxPx, note: string): AuthoredSpec =>
+    ({ authored, origin: 'slide', kind: 'shape', class: 'decoration', fidelity: { state: 'editable' }, boxPx: b, note });
+  const pic = (authored: string, note: string): AuthoredSpec =>
+    ({ authored, origin: 'slide', kind: 'pic', class: 'photo', fidelity: { state: 'raster-preserved' }, boxPx: RC_PHOTO, mustKeep: true, note });
+
+  interface SlidePlan { specs: AuthoredSpec[]; archetype: string; alternatives: string[]; traps: RecreateTrapLabelV1[]; notes?: readonly (readonly string[])[] }
+  const plans: SlidePlan[] = [
+    {
+      specs: [
+        pic('cover-photo', 'a 4:3 generated photograph (a 1600x1200 JPEG) cropped top and bottom to fill the 16:9 slide'),
+        t('cover-title', RC_COVER_TITLE, 'title'), t('speaker-name', RC_COVER_NAME, 'body'), t('speaker-role', RC_COVER_ROLE, 'body'),
+      ],
+      archetype: 'title', alternatives: ['cover-title-image'],
+      traps: [
+        { id: 'cover-photo-crop', objects: ['cover-photo'], naive: [], note: 'the source crops a 4:3 photo to the 16:9 slide; a copy that stretches it distorts the picture, which only a reviewer sees, so place it with cover fit' },
+        { id: 'text-over-photo', objects: ['cover-title', 'speaker-name', 'speaker-role'], naive: ['design.text.contrast-review'], note: 'white text over a photograph has no single contrast ratio; keep a scrim or the darker part of the picture behind it' },
+        { id: 'notes-line-breaks', objects: [], naive: [], note: 'one notes paragraph broken into lines with a blank line inside, then a second paragraph; carry the lines apart, which only the notes structure shows' },
+      ],
+      notes: RECREATE_COVER_NOTES,
+    },
+    {
+      specs: [
+        t('agenda-title', RC_TITLE, 'title'),
+        ...RC_CARDS.flatMap((_, i): AuthoredSpec[] => [
+          shape(`card-${i + 1}`, cardBox(i), 'a rounded light card'),
+          shape(`card-${i + 1}-stripe`, stripeBox(i), 'an 8 px accent strip along the top edge of the rounded card'),
+          t(`card-${i + 1}-number`, numberBox(i), 'body', 'a decorative two-digit label in the stripe colour'),
+          t(`card-${i + 1}-title`, cardTitleBox(i), 'body'),
+          t(`card-${i + 1}-line`, cardLineBox(i), 'body'),
+        ]),
+      ],
+      archetype: 'columns-3', alternatives: ['cards-3', 'agenda'],
+      traps: [
+        { id: 'fingernail-cards', objects: ['card-1', 'card-1-stripe', 'card-2', 'card-2-stripe', 'card-3', 'card-3-stripe'], naive: ['verify.fingernail-card', 'brand.rule.stroke-on-rounded'], note: 'drop the accent strips or the rounding' },
+        { id: 'decorative-numbering', objects: ['card-1-number', 'card-2-number', 'card-3-number'], naive: ['verify.decorative-numbering'], note: 'the numbers order nothing; drop them and declare each as an edit' },
+      ],
+    },
+    {
+      specs: [
+        t('eyebrow', RC_EYEBROW, 'body', 'a 12 pt bold all-caps line above the heading, which an inventory reads as a label'),
+        t('heading', RC_HEADING, 'title'),
+        t('body', RC_BODY, 'body'),
+      ],
+      archetype: 'content', alternatives: ['title-subtitle-body'],
+      traps: [
+        { id: 'eyebrow', objects: ['eyebrow', 'heading'], naive: ['verify.eyebrow-heading'], note: 'fold the eyebrow into the heading or the body, and declare the change as an edit' },
+        { id: 'notes-headings', objects: [], naive: [], note: 'two headed sections in one notes paragraph; each heading stays on its own line' },
+      ],
+      notes: RECREATE_EYEBROW_NOTES,
+    },
+    {
+      specs: [t('list-title', RC_TITLE, 'title'), t('list', RC_LIST, 'body', 'four bulleted items in the body placeholder')],
+      archetype: 'content', alternatives: ['agenda'],
+      traps: [],
+    },
+    {
+      specs: [t('statement', RC_STATEMENT, 'title', 'one centred line on an otherwise empty slide')],
+      archetype: 'main-point', alternatives: ['section', 'title-only'],
+      traps: [
+        { id: 'centred-text', objects: ['statement'], naive: ['brand.rule.text-align'], note: 'the house rule sets text left; a statement archetype places the line instead' },
+      ],
+    },
+    {
+      specs: [pic('quay-photo', 'a 16:9 generated photograph (a 1920x1080 JPEG) over the whole slide'), t('caption', RC_CAPTION, 'body', 'one small white caption over the photograph')],
+      archetype: 'full-image', alternatives: ['image-caption'],
+      traps: [
+        { id: 'caption-over-photo', objects: ['caption'], naive: ['design.text.contrast-review'], note: 'small white text over a photograph needs a scrim or a darker part of the picture' },
+      ],
+    },
+    {
+      specs: [
+        t('matrix-title', RC_TITLE, 'title'),
+        ...RC_COLUMNS.map((column, j) => t(`column-${column.toLowerCase()}`, columnBox(j), 'body', 'a column header')),
+        ...RC_ROWS.flatMap((_, i): AuthoredSpec[] => [
+          t(`row-${i + 1}`, rowBox(i), 'body', 'a row header'),
+          ...RC_COLUMNS.map((__, j) => shape(`cell-${i + 1}-${j + 1}`, cellBox(i, j), 'a tinted cell')),
+          ...RC_COLUMNS.map((__, j) => t(`cell-${i + 1}-${j + 1}-text`, cellTextBox(i, j), 'body')),
+        ]),
+      ],
+      archetype: 'table', alternatives: ['grid-3x2'],
+      traps: [
+        { id: 'matrix-reading', objects: ['matrix-title'], naive: [], note: 'a reader takes the cells row by row; each cell reads only with its row and column header, so keep both in the rebuild' },
+      ],
+    },
+    {
+      specs: [t('thanks', RC_THANKS, 'title'), t('thanks-line', RC_THANKS_LINE, 'body')],
+      archetype: 'closing-thanks', alternatives: ['section'],
+      traps: [],
+    },
+  ];
+  const slideLabels: RecreateSlideLabelV1[] = plans.map((plan, i) => ({
+    id: `slide${i + 1}`, index: i, widthPx: DECK_W, heightPx: DECK_H, flattened: false,
+    objects: labelObjects(`slide${i + 1}`, partText(parts, `ppt/slides/slide${i + 1}.xml`), plan.specs),
+    archetype: plan.archetype, alternatives: plan.alternatives, traps: plan.traps,
+    ...(plan.notes ? { notes: plan.notes.map((lines) => [...lines]) } : {}),
+  }));
+  return { bytes: zipParts(parts), labels: finishLabels('recreate.pptx', PPTX_ID_FORM, slideLabels, []) };
+}
+
 // ─── entry point ─────────────────────────────────────────────────────────────
 
 const MAX_FIXTURE_BYTES = 400 * 1024;
@@ -1855,6 +2287,8 @@ export async function buildRebrandFixtures(outDir: string): Promise<Array<{ name
     { name: 'formatting.pptx', ...buildFormatting() },
     { name: 'structures.pptx', ...buildStructures() },
     { name: 'vector.pptx', ...buildVector() },
+    { name: 'notes.pptx', ...buildNotes() },
+    { name: 'recreate.pptx', ...buildRecreate() },
   ];
   const written: Array<{ name: string; bytes: number }> = [];
   for (const fixture of built) {

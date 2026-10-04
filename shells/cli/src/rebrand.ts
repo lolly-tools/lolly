@@ -6,7 +6,7 @@
  * Three explicit stages over one path, `@lolly-tools/node-shell/rebrand`, the same
  * `planDeck` and `compileDeck` the eval script and the test suite run:
  *
- *   plan     read each deck (a .pptx or a PDF, told apart by its bytes), take
+ *   plan     read each deck (a .pptx, a PDF or a Photoshop document, told apart by its bytes), take
  *            the census, run the first pass, and write the
  *            plan (`<name>.plan.json`) and the report it would compile to
  *            (`<name>.plan.report.json`). An agent edits the plan, never
@@ -72,11 +72,12 @@
  * recorded as failed and the run goes on. A failed deck is never counted as a
  * success.
  *
- * FOLDER RUNS. An input that is a directory expands to the .pptx and .pdf files
+ * FOLDER RUNS. An input that is a directory expands to the .pptx, .pdf and Photoshop (.psd, .psb) files
  * at its top level (every subfolder too with `--recursive`), sorted by name. Dot
  * files, PowerPoint's `~$` lock files and `x.rebranded.pptx` (this command's own
- * output) are not decks, and a PDF beside a .pptx of the same name is taken as an
- * export of that deck and left out, so the two never claim one output name. The
+ * output) are not decks, and a PDF beside a .pptx or Photoshop document of the same
+ * name is taken as an export of it and left out (as is a Photoshop document beside a
+ * .pptx of the same name), so the two never claim one output name. The
  * output folder is never walked for input. A deck found in
  * a subfolder writes into the same subfolder under `--out-dir` (or `--plan-out`),
  * so two decks with one name in two subfolders never collide. Compiling a folder
@@ -1076,16 +1077,24 @@ interface DeckInput {
 const OWN_OUTPUT = /\.rebranded\.pptx$/i;
 
 function isDeckName(name: string): boolean {
-  return /\.(pptx|pdf)$/i.test(name) && !OWN_OUTPUT.test(name) && !name.startsWith('.') && !name.startsWith('~$');
+  return /\.(pptx|pdf|psd|psb)$/i.test(name) && !OWN_OUTPUT.test(name) && !name.startsWith('.') && !name.startsWith('~$');
 }
 
 /**
- * The decks of one folder listing: a PDF beside a .pptx of the same name is an
- * export of that deck, so it is left out and the two never claim one output name.
+ * The decks of one folder listing, one per name, so no two claim one output name.
+ * A PDF beside a .pptx or a Photoshop document of the same name is an export of
+ * it, and a Photoshop document beside a .pptx of the same name gives way to the
+ * deck, so each is left out.
  */
 function withoutExports(names: string[]): string[] {
-  const decks = new Set(names.filter((name) => /\.pptx$/i.test(name)).map((name) => name.slice(0, -5).toLowerCase()));
-  return names.filter((name) => !/\.pdf$/i.test(name) || !decks.has(name.slice(0, -4).toLowerCase()));
+  const stem = (name: string): string => name.replace(/\.[^.]+$/, '').toLowerCase();
+  const decks = new Set(names.filter((name) => /\.pptx$/i.test(name)).map(stem));
+  const layered = new Set(names.filter((name) => /\.(psd|psb)$/i.test(name)).map(stem));
+  return names.filter((name) => {
+    if (/\.pdf$/i.test(name)) return !decks.has(stem(name)) && !layered.has(stem(name));
+    if (/\.(psd|psb)$/i.test(name)) return !decks.has(stem(name));
+    return true;
+  });
 }
 
 const byName = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
@@ -1907,7 +1916,7 @@ async function inspectTarget(target: string, flags: Record<string, string>): Pro
     }
     const candidates = flags.source ? [flags.source] : siblingSources(target);
     if (candidates.length === 0) {
-      throw usageError(`inspect needs the deck ${target} was made from: pass --source=<deck.pptx|deck.pdf>.`, 'SOURCE_REQUIRED');
+      throw usageError(`inspect needs the deck ${target} was made from: pass --source=<deck.pptx|deck.pdf|file.psd>.`, 'SOURCE_REQUIRED');
     }
     let found: { sourcePath: string; bytes: Uint8Array } | null = null;
     for (const candidate of candidates) {
@@ -2134,7 +2143,7 @@ function autoMatchFlag(value: string | undefined): AutoMatchBandsV1 | undefined 
   throw usageError(`--auto-match takes no value, or one of clear, likely or all; not "${value}".`, 'BAD_FLAG_VALUE');
 }
 
-const USAGE_LINE = 'usage: lolly rebrand plan|compile|inspect <deck.pptx|deck.pdf|folder>... [flags], or lolly rebrand presets   (lolly --help lists the flags)';
+const USAGE_LINE = 'usage: lolly rebrand plan|compile|inspect <deck.pptx|deck.pdf|file.psd|folder>... [flags], or lolly rebrand presets   (lolly --help lists the flags)';
 
 /** Where a preset came from, in a few words. */
 function presetOrigin(preset: ResolvedPresetV1): string {

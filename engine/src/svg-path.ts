@@ -135,14 +135,25 @@ export function parseSvgPath(d: string): SubPath[] {
     segmentCount++;
     return sub;
   };
+  // A drawing command after Z with no new M starts a new subpath at the closed one's
+  // start (SVG 1.1 8.3.3); it never extends the closed subpath.
+  const reopen = (): void => {
+    if (!cur?.closed) return;
+    const next = open(sx, sy);
+    if (next) cur = next;
+  };
   const line = (x: number, y: number): void => {
     if (!cur || overflow) return;
+    reopen();
+    if (overflow) return;
     if (segmentCount >= SVG_PATH_MAX_SEGMENTS) { overflow = true; return; }
     cur.segments.push({ op: 'L', x, y });
     segmentCount++;
   };
   const cubic = (x1: number, y1: number, x2: number, y2: number, x: number, y: number): void => {
     if (!cur || overflow) return;
+    reopen();
+    if (overflow) return;
     if (segmentCount >= SVG_PATH_MAX_SEGMENTS) { overflow = true; return; }
     cur.segments.push({ op: 'C', x1, y1, x2, y2, x, y });
     segmentCount++;

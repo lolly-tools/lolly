@@ -72,3 +72,29 @@ test('an explicit export failure reaches the caller immediately and removes list
   await assert.rejects(waiting.result, /before the timeline end/);
   assert.equal(page.eventNames().length, 0);
 });
+
+test('one page runs several export waits: the progress binding is exposed once and reaches the current wait (plan 291 M4)', async context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  let exposed = 0;
+  class StrictPage extends FakePage {
+    override async exposeFunction(name: string, fn: (report: ExportProgress) => void) {
+      if (exposed++) throw new Error(`page.exposeFunction: Function "${name}" has been already registered`);
+      this.report = fn;
+    }
+  }
+  const page = new StrictPage();
+  const first = await waitForExport(page.asPage(), 'mp4', 1000);
+  page.emit('download', {} as Download);
+  await first.result;
+  const second = await waitForExport(page.asPage(), 'mp4', 1000);
+  let failed = false; void second.result.catch(() => { failed = true; });
+  for (let frame = 1; frame <= 3; frame++) {
+    context.mock.timers.tick(900);
+    page.report({ phase: 'progress', done: frame, total: 3 });
+    await Promise.resolve(); assert.equal(failed, false, 'progress reaches the second wait');
+  }
+  const download = {} as Download;
+  page.emit('download', download);
+  assert.equal(await second.result, download);
+  assert.equal(exposed, 1);
+});

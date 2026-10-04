@@ -4,7 +4,7 @@
  * constants and pure helpers that used to sit above mountTool(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The tool view: one mounted tool - sidebar, canvas, actions bar, history and collab.
  */
-import { copyWorkspaceParams, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
+import { copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS } from '../../lib/tool-url-state.ts';
 import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
 import type { ClipboardAPI, ComposeAPI, HostV1, StateAPI } from '@lolly-tools/core/host-v1';
 import { DEFAULT_CMYK_CONDITION, ENC_PARAM, HDR_DEFAULTS, PACK_PARAM, expandQuery, hasPackedState, isPackAvailable, packQuery, serializeHdr, unpackEncrypted } from '@lolly/engine';
@@ -597,13 +597,14 @@ export async function shrinkUrl(
   // Re-pack if the shrunk-but-still-large query would still risk the URL ceiling and
   // packing actually wins; otherwise leave the readable form (shorter and editable).
   if (newQs.length >= AUTO_PACK_MIN && isPackAvailable()) {
-    const content = new URLSearchParams(newQs);
-    for (const key of WORKSPACE_PARAMS) content.delete(key);
+    // `_themes` stays readable beside the token: the web token bridge reads it plain.
+    const content = packableContent(new URLSearchParams(newQs));
     const token = await packQuery(content.toString());
     if (barSeq && seq !== barSeq.v) return; // a newer bar write happened mid-pack
     if (window.location.pathname + window.location.hash.split('?')[0]! !== base) return;
     const latest = new URLSearchParams(token ? { [PACK_PARAM]: token } : {});
     copyWorkspaceParams(latest, routeParams());
+    if (token) copyBesidePackParams(latest, new URLSearchParams(newQs));
     const packed = token && latest.toString();
     if (packed && packed.length < newQs.length) {
       replaceRouteUrl(`${base}?${packed}`);

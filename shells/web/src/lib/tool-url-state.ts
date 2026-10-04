@@ -29,3 +29,28 @@ export function copyWorkspaceParams(target: URLSearchParams, source: URLSearchPa
     if (value !== null) target.set(key, value);
   }
 }
+
+/**
+ * Document state a packed address (`?z=`) keeps readable beside its token. `_themes`
+ * scopes the web token bridge (bridge/tokens.ts), which reads the plain key and never
+ * inflates a token; packed, a dark document's swatches and links fell back to the
+ * default theme after the first edit (plan 291 W4). A link opened later still reads it:
+ * expandQuery appends every plain key after the decoded state.
+ */
+export const BESIDE_PACK_PARAMS = ['_themes'] as const;
+
+/** The part of a query that goes into a packed token: everything but the workspace keys and BESIDE_PACK_PARAMS. */
+export function packableContent(params: URLSearchParams): URLSearchParams {
+  const content = new URLSearchParams(params);
+  for (const key of [...WORKSPACE_PARAMS, ...BESIDE_PACK_PARAMS]) content.delete(key);
+  return content;
+}
+
+/** Put the BESIDE_PACK_PARAMS of `source` (the query that was packed) next to a packed token. */
+export function copyBesidePackParams(target: URLSearchParams, source: URLSearchParams): void {
+  for (const key of BESIDE_PACK_PARAMS) {
+    target.delete(key);
+    const value = source.get(key);
+    if (value !== null) target.set(key, value);
+  }
+}

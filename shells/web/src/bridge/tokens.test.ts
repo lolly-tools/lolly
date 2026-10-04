@@ -14,7 +14,7 @@
  */
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { createTokensAPI, installUserTokens, BrandLockedError, VersionExistsError } from './tokens.ts';
+import { createTokensAPI, installUserTokens, BrandLockedError, VersionExistsError, AUTOMATION_DESIGN_SYSTEM_GLOBAL } from './tokens.ts';
 import { createAssetsAPI } from './assets.ts';
 import { applyBrandVars } from '../brand-vars.ts';
 import { TOKEN_EXT } from '../../../../engine/src/tokens.ts';
@@ -169,6 +169,27 @@ test('snapshot() returns the render document, its declared theme selection and t
   assert.deepEqual(snap.selection, { activeThemes: ['dark'], activeSets: ['base'] });
   assert.equal(snap.version, 'latest', 'nothing published ⇒ the head/latest');
   assert.ok(snap.system, 'the active design system is named');
+});
+
+test('an automation design system set before boot is the render document, read once and removed (plan 291 M4)', async () => {
+  stubFetch({});
+  const g = globalThis as Record<string, unknown>;
+  g[AUTOMATION_DESIGN_SYSTEM_GLOBAL] = DOC2;
+  const assets = {
+    _findMetaByType: async (type: string) => (type === 'tokens' ? { id: 'acme/tokens/brand', formats: [] } : null),
+    _getBlob: async (id: string) => (id === 'acme/tokens/brand' ? docBlob(DOC) : null),
+  };
+  const api = createTokensAPI({ assets });
+  assert.equal(AUTOMATION_DESIGN_SYSTEM_GLOBAL in g, false, 'taken off the global at boot');
+  assert.equal(await api.resolve('{color.brand.jungle}'), '#123456', 'links resolve in the driver\'s system');
+  assert.deepEqual((await api.snapshot()).document, DOC2);
+  assert.deepEqual(await api.raw(), DOC, 'the edit head is untouched');
+  // Set after boot, it changes nothing: only a script that runs before the app counts.
+  g[AUTOMATION_DESIGN_SYSTEM_GLOBAL] = { color: { brand: { jungle: { $type: 'color', $value: '#ff0000' } } } };
+  api.bust();
+  assert.equal(await api.resolve('{color.brand.jungle}'), '#123456');
+  delete g[AUTOMATION_DESIGN_SYSTEM_GLOBAL];
+  assert.equal(await createTokensAPI({ assets }).resolve('{color.brand.jungle}'), '#30ba78', 'without one, the profile system');
 });
 
 // ── User tokens (the runtime brand) - real assets bridge over an in-memory db ──
@@ -644,4 +665,36 @@ test('applyBrandVars removes every slot when tokens are absent (missing slot ⇒
   const { el, props } = stubEl({ '--brand-primary': '#30ba78', '--brand-text': '#111111' });
   await applyBrandVars(el, {}); // a host without the tokens capability
   assert.equal(props.size, 0);
+});
+
+// ── `_themes` in either address form (plan 291 W4) ───────────────────────────
+
+test('the route _themes scopes the render surface in the hash form and in a tool\'s path form', async () => {
+  stubFetch({});
+  const THEMED = {
+    base: { color: { brand: { jungle: { $type: 'color', $value: '#30ba78' } } } },
+    light: { color: { semantic: { text: { $type: 'color', $value: '#111111' } } } },
+    dark: { color: { semantic: { text: { $type: 'color', $value: '#eeeeee' } } } },
+    $themes: [
+      { name: 'light', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
+      { name: 'dark', selectedTokenSets: { base: 'enabled', dark: 'enabled' } },
+    ],
+    $metadata: { tokenSetOrder: ['base', 'light', 'dark'] },
+  };
+  const api = createTokensAPI({ assets: createAssetsAPI(memDb({ ...CATALOG_TOKENS(), blobs: { 'lolly/tokens/brand:json:1.0.0': docBlob(THEMED) } })) });
+  const dark = encodeURIComponent(JSON.stringify({ '': 'dark' }));
+  const place = (where: { hash: string; search?: string }): void => { (globalThis as { location?: unknown }).location = { search: '', ...where }; };
+  try {
+    assert.equal(await api.resolve('{color.semantic.text}'), '#111111', 'no choice: the first theme');
+    place({ hash: `#/tool/design?_themes=${dark}` });
+    assert.equal(await api.resolve('{color.semantic.text}'), '#eeeeee', 'the hash form, as before');
+    // A tool rewrites its address to `/design?…`, which has no hash at all.
+    place({ hash: '', search: `?slot=design%3A1&_themes=${dark}` });
+    assert.equal(await api.resolve('{color.semantic.text}'), '#eeeeee', 'the path form scopes the same reads');
+    place({ hash: '', search: '?slot=design%3A1' });
+    assert.equal(await api.resolve('{color.semantic.text}'), '#111111', 'and leaving the theme out restores the default');
+    // A hash route's own query wins over a stray search, as routeParams reads the address.
+    place({ hash: '#/tool/design', search: `?_themes=${dark}` });
+    assert.equal(await api.resolve('{color.semantic.text}'), '#111111');
+  } finally { at(''); }
 });

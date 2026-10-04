@@ -1,0 +1,610 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/check-report-v1.schema.json",
+  "title": "check-report-v1",
+  "description": "One findings list for a Design document, a .lolly or an export, across five families (structure, render, brand, verify, fidelity), each with its own state. Plan 291 W1. Mirrors packages/core/src/check-v1.ts; each exported const array there has one named $defs entry holding its enum in the same order.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "version",
+    "input",
+    "outcome",
+    "exitCode",
+    "strict",
+    "families",
+    "summary",
+    "findings"
+  ],
+  "$defs": {
+    "family": {
+      "enum": [
+        "structure",
+        "render",
+        "brand",
+        "verify",
+        "fidelity"
+      ]
+    },
+    "familyState": {
+      "enum": [
+        "ran",
+        "skipped",
+        "unavailable",
+        "failed"
+      ]
+    },
+    "checker": {
+      "enum": [
+        "design-v1",
+        "mounted-audit",
+        "brand-check",
+        "house-rules",
+        "forensic",
+        "fidelity",
+        "text-measure",
+        "design-authoring",
+        "image-resolution"
+      ]
+    },
+    "findingNeeds": {
+      "enum": [
+        "review",
+        "unknown",
+        "visual-check"
+      ]
+    },
+    "outcome": {
+      "enum": [
+        "clean",
+        "review",
+        "refused",
+        "failed"
+      ]
+    },
+    "exitCode": {
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "inputKind": {
+      "enum": [
+        "design",
+        "lolly",
+        "pdf",
+        "pptx",
+        "image"
+      ]
+    },
+    "designSystemOrigin": {
+      "enum": [
+        "file",
+        "terminal",
+        "profile"
+      ]
+    },
+    "severity": {
+      "description": "The preflight Severity (packages/core/src/preflight.ts).",
+      "enum": [
+        "error",
+        "warn",
+        "info"
+      ]
+    },
+    "code": {
+      "description": "Stable, lower case, dotted, at least two parts (CHECK_CODE_PATTERN).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9][a-z0-9_-]*)+$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Lower-case hex SHA-256."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error",
+        "warn",
+        "info"
+      ],
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/count"
+        },
+        "warn": {
+          "$ref": "#/$defs/count"
+        },
+        "info": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "box": {
+      "description": "A rectangle in artboard-local px (a document) or page-local px (an export).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "evidence": {
+      "description": "The preflight Evidence: raw, structured values behind the message, never pre-formatted.",
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean",
+          "null"
+        ]
+      }
+    },
+    "fix": {
+      "description": "A change the brand fix can apply as is. before is null when the field was unset.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layerId",
+        "field",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "layerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "before": {},
+        "after": {}
+      }
+    },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checker",
+        "id"
+      ],
+      "properties": {
+        "checker": {
+          "$ref": "#/$defs/checker"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The checker's own finding id or rule id."
+        },
+        "method": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "contribution": {
+          "type": "string"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "family",
+        "severity",
+        "message",
+        "origin"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/code"
+        },
+        "family": {
+          "$ref": "#/$defs/family"
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "English, the same text the app shows."
+        },
+        "needs": {
+          "$ref": "#/$defs/findingNeeds"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^(/.*)?$",
+          "description": "A JSON pointer into the input, /boxes/<index>/<field> for a document."
+        },
+        "layerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artboardId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "type": "string",
+          "minLength": 1
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "suggestion": {
+          "type": "string"
+        },
+        "fix": {
+          "$ref": "#/$defs/fix"
+        },
+        "theme": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The token theme the finding was found in, when one report checks a document in more than one theme (plan 291 W4)."
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        }
+      }
+    },
+    "familyStatus": {
+      "description": "One family's state and the tally of the findings it contributed.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "error",
+        "warn",
+        "info"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/familyState"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/$defs/count"
+        },
+        "warn": {
+          "$ref": "#/$defs/count"
+        },
+        "info": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "fidelityExcepted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slide",
+        "source",
+        "reason"
+      ],
+      "properties": {
+        "slide": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "properties": {
+    "format": {
+      "const": "lolly-check"
+    },
+    "version": {
+      "const": 1
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/inputKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "artboards": {
+          "$ref": "#/$defs/count"
+        },
+        "pages": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "outcome": {
+      "$ref": "#/$defs/outcome"
+    },
+    "exitCode": {
+      "$ref": "#/$defs/exitCode"
+    },
+    "strict": {
+      "type": "boolean"
+    },
+    "families": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "structure",
+        "render",
+        "brand",
+        "verify",
+        "fidelity"
+      ],
+      "properties": {
+        "structure": {
+          "$ref": "#/$defs/familyStatus"
+        },
+        "render": {
+          "$ref": "#/$defs/familyStatus"
+        },
+        "brand": {
+          "$ref": "#/$defs/familyStatus"
+        },
+        "verify": {
+          "$ref": "#/$defs/familyStatus"
+        },
+        "fidelity": {
+          "$ref": "#/$defs/familyStatus"
+        }
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/counts"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "fidelity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slides",
+        "missingStrings",
+        "editedStrings",
+        "notes"
+      ],
+      "properties": {
+        "slides": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "result"
+          ],
+          "properties": {
+            "source": {
+              "$ref": "#/$defs/count"
+            },
+            "result": {
+              "$ref": "#/$defs/count"
+            }
+          }
+        },
+        "missingStrings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "editedStrings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "result"
+            ],
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "result": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "notes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "carried",
+            "missing"
+          ],
+          "properties": {
+            "carried": {
+              "$ref": "#/$defs/count"
+            },
+            "missing": {
+              "$ref": "#/$defs/count"
+            }
+          }
+        },
+        "excepted": {
+          "description": "Source strings and speaker notes a declared deliberate edit covers (lolly check --edits, the MCP edits argument). A covered note is not counted in notes.missing. Their findings stay in the report as info with evidence.excepted: excepted, never passed.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fidelityExcepted"
+          }
+        }
+      }
+    },
+    "designSystem": {
+      "description": "The design system the brand family checked against; null when none resolved.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "origin"
+          ],
+          "properties": {
+            "profile": {
+              "type": "string",
+              "minLength": 1
+            },
+            "origin": {
+              "$ref": "#/$defs/designSystemOrigin"
+            },
+            "tokensAsset": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "outcome"
+        ],
+        "properties": {
+          "outcome": {
+            "const": "clean"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "outcome"
+        ],
+        "properties": {
+          "outcome": {
+            "const": "review"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 5
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "outcome"
+        ],
+        "properties": {
+          "outcome": {
+            "const": "refused"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 4
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "outcome"
+        ],
+        "properties": {
+          "outcome": {
+            "const": "failed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "enum": [
+              1,
+              2,
+              3
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

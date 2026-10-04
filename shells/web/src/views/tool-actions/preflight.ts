@@ -9,7 +9,6 @@
  */
 import { computeCost, isRateCardError, parseRateCard, preflight, validateRateCard } from '@lolly/engine';
 import type { CostWorking, Count, Fact, PreflightInput, PreflightJob, PreflightManifest, StageFacts } from '@lolly/engine';
-import { inspectDesignV1 } from '@lolly-tools/core';
 import type { MoneyContext } from '@lolly-tools/core';
 import type { Unit } from '../../../../../engine/src/units.js';
 import { RASTER_DEFAULT_SCALE, SUPERSAMPLED_EXPORT_FORMATS } from '../../bridge/export-scale.ts';
@@ -19,9 +18,9 @@ import { isVectorImageSrc, placedImageLabel } from '../../lib/placed-image.ts';
 import { getRateCardBlob, listCatalogRateCards, listRateCards } from '../../lib/rate-cards.ts';
 import { applyCostPanel, costView } from '../cost-panel.ts';
 import type { CostAuthoringContext } from '../cost-panel.ts';
-import { brandCheckRows } from '../brand-check-rows.ts';
+import { brandCheckRows, hostBrandCatalog, type BrandCatalogHost } from '../brand-check-rows.ts';
 import { mountedDesignFindingMessage } from '../design-audit-copy.ts';
-import { auditMountedDesign } from '../design-mounted-audit.ts';
+import { runDesignChecks } from '../design-checks.ts';
 import { applyPreflight, isPreflightEnabled, preflightView } from '../export-preflight.ts';
 import type { PreflightRow } from '../export-preflight.ts';
 import { fmtLabel, isCmykFmt, printEnabled } from './shared.ts';
@@ -79,24 +78,20 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
   const generation = ++ta.designAuditGeneration;
   const boxes = runtime.getModel().find((input) => input.id === 'boxes')?.value;
   const rect = canvasEl.getBoundingClientRect();
-  const report = inspectDesignV1(boxes, {
+  let structuralRows: PreflightRow[] = [];
+  // The same checks `window.lolly.document.check()` runs for `lolly check` (design-checks.ts).
+  const { mounted } = await runDesignChecks(canvasEl, boxes, {
     width: rect.width || manifest.render.width,
     height: rect.height || manifest.render.height,
-  });
-  const structuralRows: PreflightRow[] = report.findings.map((finding) => ({
-    id: finding.id,
-    tone: designTone(ta, finding.severity),
-    text: finding.message,
-  }));
-  ta.designAuditRows = structuralRows.length ? structuralRows : [{ id: 'design.checking', tone: 'note', text: tRaw('Checking this design…') }];
-  refreshPreflight(ta);
-
-  try {
-    await document.fonts?.ready;
-  } catch {
-    /* mounted geometry still answers */
-  }
-  const mounted = await auditMountedDesign(canvasEl, report, {
+    onStructure: (report) => {
+      structuralRows = report.findings.map((finding) => ({
+        id: finding.id,
+        tone: designTone(ta, finding.severity),
+        text: finding.message,
+      }));
+      ta.designAuditRows = structuralRows.length ? structuralRows : [{ id: 'design.checking', tone: 'note', text: tRaw('Checking this design…') }];
+      refreshPreflight(ta);
+    },
     resolveFont: async (style, text) => {
       const { fontCoversText } = await import('../../bridge/font-coverage.ts');
       return fontCoversText(style, text, ta.host.text);
@@ -106,6 +101,8 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
     boxes: () => runtime.getModel().find(input => input.id === 'boxes')?.value,
     snapshot: async () => ta.host.tokens?.snapshot?.(),
     write: next => runtime.setInput('boxes', next as Parameters<typeof runtime.setInput>[1]),
+    // The same catalog facts `lolly check` uses, so a themed catalog icon is a known asset here too.
+    catalog: () => hostBrandCatalog(ta.host as BrandCatalogHost),
   });
   if (!ta.designAuditOpen || generation !== ta.designAuditGeneration) return;
   ta.designAuditRows = [

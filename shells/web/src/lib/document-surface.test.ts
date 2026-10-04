@@ -53,3 +53,22 @@ test('a top-level app answers nobody but its own origin', async () => {
   const { ask } = mount(self);
   assert.deepEqual(await ask('https://other.example', self), [], 'a window that is its own parent is not embedded');
 });
+
+test('the check verb is allowed, and a surface without it says so instead of throwing', async () => {
+  let listener: Listener | undefined;
+  const w: any = { location: { origin: 'https://app.test' }, addEventListener: (_: string, fn: Listener) => { listener = fn; }, removeEventListener: () => {} };
+  const base = { compile: async () => ({}), inspect: async () => ({}), measure: async () => ({}), diff: async () => ({}) };
+  const call = async (surface: Record<string, unknown>) => {
+    installDocumentSurface(w, surface as never);
+    const replies: unknown[] = [];
+    listener?.({ data: { type: 'lolly:document', id: 'c1', verb: 'check', args: [] }, origin: 'https://app.test', source: { postMessage: (m: unknown) => replies.push(m) } } as any);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    return replies;
+  };
+  assert.deepEqual(await call({ ...base, check: async () => ({ format: 'lolly-design-check-page' }) }), [
+    { type: 'lolly:document:result', id: 'c1', ok: true, value: { format: 'lolly-design-check-page' } },
+  ]);
+  const [reply] = (await call(base)) as Array<{ ok: boolean; error: string }>;
+  assert.equal(reply!.ok, false);
+  assert.match(reply!.error, /does not answer check/);
+});

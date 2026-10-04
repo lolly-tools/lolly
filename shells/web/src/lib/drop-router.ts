@@ -294,6 +294,8 @@ export interface Sniff {
   c2pa: boolean;
   /** A layered bitmap (Photoshop PSD/PSB or GIMP XCF). */
   layers: boolean;
+  /** A Photoshop document (PSD/PSB), which Rebrand also reads (plans/289 D2). */
+  psd?: boolean;
   /** A plain archive (.zip/.tar/.tar.gz) we can explode into member assets. */
   archive: boolean;
   /** A plain-text document (prose/markdown/code) that ingests to the library as a
@@ -438,10 +440,10 @@ export async function sniffFile(file: File, deep: boolean, picker: Pick<PickerMo
   // Layered bitmaps: '8BPS' (PSD/PSB) or 'gimp xcf ' at offset 0 - the same
   // prefix check as the engine's sniffLayeredRaster, inlined so a JPEG drop
   // never pulls the engine chunk. Extension fallback for a blank OS MIME.
-  const layers = head
-    ? ((head[0] === 0x38 && head[1] === 0x42 && head[2] === 0x50 && head[3] === 0x53)
-      || text.startsWith('gimp xcf '))
-    : /\.(psd|psb|xcf)$/i.test(file.name);
+  const psd = head
+    ? head[0] === 0x38 && head[1] === 0x42 && head[2] === 0x50 && head[3] === 0x53
+    : /\.(psd|psb)$/i.test(file.name);
+  const layers = psd || (head ? text.startsWith('gimp xcf ') : /\.xcf$/i.test(file.name));
   const data = !lolly && (DATA_DROP_RE.test(file.name) || DATA_MIME_RE.test(file.type));
   // A backup .zip that Export my data wrote (plans/277 P11): its manifest says
   // `lolly-backup`. The manifest is read through the zip's central directory, so the
@@ -488,7 +490,7 @@ export async function sniffFile(file: File, deep: boolean, picker: Pick<PickerMo
     && (TEXT_DROP_RE.test(file.name) || /^text\//i.test(file.type));
   // A PSD/XCF often carries an image/* MIME - the layered routes own it, not
   // the plain media ones (the library route still exists, as a flatten).
-  return { animation, design, pdf, pptx, docx, media: (isMediaFile(file) || !!head && (await import('../../../../engine/src/jxl.ts')).isJxl(head)) && !layers, c2pa, layers, archive, designSystem, lolly, textDoc, tool, data, backup };
+  return { animation, design, pdf, pptx, docx, media: (isMediaFile(file) || !!head && (await import('../../../../engine/src/jxl.ts')).isJxl(head)) && !layers, c2pa, layers, psd, archive, designSystem, lolly, textDoc, tool, data, backup };
 }
 
 const toolExists = (id: string): boolean =>
@@ -593,7 +595,7 @@ export function dropChooserChoices(s: Sniff, ctx: ChooserContext): DialogChoice[
   // #/rebrand, which is a view, so no tool has to be in the build. It sits with the other
   // "open it somewhere" doors and never leads: a dropped deck is first a document. A PDF
   // is a deck too (the ingest reads it page by page), so it gets the same door.
-  if (single && (s.pptx || s.pdf)) {
+  if (single && (s.pptx || s.pdf || s.psd)) {
     choices.push({ id: 'rebrand', label: t('Rebrand') });
   }
   // A .penpot can carry per-shape export marks; the ingest bakes them through an
@@ -1045,6 +1047,33 @@ async function announceTemplateImport(result: { added: number; replaced: number;
   });
 }
 
+/** How a caller opens a `.lolly` through the one intake. */
+export interface OpenLollyFileOptions {
+  preferred?: 'session' | 'design-system';
+  /**
+   * Open a plain shared design without the chooser (the `#/open` route, plan 291 W8).
+   * Only a session file that carries nothing else skips it: no tool, design system,
+   * templates, renovation or project. Any other file still asks, and a carried tool
+   * still goes through its own trust question.
+   */
+  unattended?: boolean;
+  /** Told the sentence the intake announced when the file did not open. */
+  onFailure?: (message: string) => void;
+}
+
+/** Whether the manifest describes a plain shared design: one session and nothing else. */
+export function isPlainSessionPreview(preview: LollyPreview): boolean {
+  return preview.format === 'lolly-share' && preview.kind === 'session'
+    && !preview.includesTool && !preview.includesDesignSystem && !preview.renovation
+    && declaredTemplateCount(preview.manifest) === 0;
+}
+
+/** The loaded parts agree with a plain preview: a session and nothing else. */
+function isPlainSessionContents(contents: LollyFileContents): boolean {
+  return !!contents.session && !contents.project && !contents.renovation
+    && !contents.designSystem && !contents.templates.length && !contents.manifest.bundledTool;
+}
+
 /**
  * The one `.lolly` intake used by Open, drag/drop, native document-open and the
  * contextual Design System picker. The context may recommend a capability, but
@@ -1052,7 +1081,7 @@ async function announceTemplateImport(result: { added: number; replaced: number;
  */
 export async function openLollyFile(
   file: File, host: PickerHost,
-  opts: { preferred?: 'session' | 'design-system' } = {},
+  opts: OpenLollyFileOptions = {},
 ): Promise<void> {
   // No model download sheet opens over a .lolly import.
   const releaseOffers = await holdOffers();
@@ -1079,7 +1108,9 @@ export async function openLollyFile(
     }
     const storage = await storageFact(preview);
     const renovation = preview.format === 'lolly-share' ? preview.renovation : null;
-    const chosen = await choiceDialog({
+    // The #/open route asks for no chooser, and gets none only for a plain shared design.
+    const unattended = !!opts.unattended && isPlainSessionPreview(preview);
+    const chosen = unattended ? 'open-session' : await choiceDialog({
       title: renovation && !renovation.withDocument ? t('Rebrand project')
         : preview.kind === 'project' ? t('Shared project')
         : preview.kind === 'session' ? t('Shared design')
@@ -1103,6 +1134,11 @@ export async function openLollyFile(
     if ('files' in loaded) {
       await importBrandLollyDrop(file, loaded.files, host);
       return;
+    }
+    // The manifest promised a plain session; the verified parts must agree before
+    // anything is saved without the person having been asked.
+    if (unattended && !isPlainSessionContents(loaded.contents)) {
+      throw new Error(t('This file carries more than a shared design.'));
     }
     if (chosen === 'use-design-system') {
       await importCarriedDesignSystem(file, preview as LollySessionPreview, loaded.contents, host);
@@ -1154,16 +1190,21 @@ export async function openLollyFile(
     }
     if (available) {
       announce(tRaw('Opened {name}', { name: file.name }));
-      noteOpenIntent({ slot: res.slot, name: file.name.replace(/\.lolly$/i, '') });
+      // The document's own name first, then the file's (plan 291 W8).
+      noteOpenIntent({ slot: res.slot, name: lp.lollySessionLabel(res.session) || file.name.replace(/\.lolly$/i, '') });
       const hash = `#/tool/${res.toolId}?slot=${encodeURIComponent(res.slot)}`;
       routeToConsumer(hash, window.location.hash === hash);
     } else {
       // The tool wasn't installed (declined / unsupported), so opening it would 404.
       // The session is saved regardless - it waits in Projects for when the tool is added.
-      announce(tRaw('Saved “{name}” to your projects. Its tool isn’t installed here, so it can’t open yet.', { name: file.name }), { assertive: true });
+      const notOpened = tRaw('Saved “{name}” to your projects. Its tool isn’t installed here, so it can’t open yet.', { name: file.name });
+      announce(notOpened, { assertive: true });
+      opts.onFailure?.(notOpened);
     }
   } catch (err) {
-    announce(tRaw('Could not open this .lolly file: {message}', { message: (err as Error).message }), { assertive: true });
+    const failed = tRaw('Could not open this .lolly file: {message}', { message: (err as Error).message });
+    announce(failed, { assertive: true });
+    opts.onFailure?.(failed);
   } finally {
     releaseOffers();
   }

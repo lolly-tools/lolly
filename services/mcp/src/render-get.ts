@@ -64,7 +64,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { ENGINE_VERSION, RESERVED, expandQuery, parseDimension, toPixels } from '@lolly/engine';
+import { ENGINE_VERSION, RESERVED, expandQuery, parseDimension, parseTokenSelection, toPixels } from '@lolly/engine';
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 import { loadIndex, loadToolCached } from './catalog.ts';
 import { TIER_A, render, normFormat, mimeForFormat, isTextFormat, RenderError } from './render.ts';
@@ -276,6 +276,12 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
   const params = new URLSearchParams(expanded);
   const dimErr = dimensionError(params, pngRequested);
   if (dimErr) return errorResponse(400, dimErr);
+  // `_themes` (plan 291 M4) is the theme per token group, so one link can ask for a
+  // document's dark rendering. Malformed JSON is the caller's mistake, said as one.
+  const themes = params.get('_themes');
+  if (themes !== null) {
+    try { parseTokenSelection(themes); } catch (e) { return errorResponse(400, `_themes must be a JSON object of theme choices, such as {"":"dark"}: ${(e as Error).message}`); }
+  }
 
   // Existence + status from the generated catalog index (cheap; no tool files
   // touched for garbage ids). Non-official/community is the SAME 404 as unknown.

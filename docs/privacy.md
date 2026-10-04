@@ -1,6 +1,6 @@
 # Privacy Policy
 
-*Last updated: 29 September 2026*
+*Last updated: 3 October 2026*
 
 > **The short version.** Ordinary Lolly editing, rendering and downloads happen on
 > your device and need no account. Features such as sharing, Sync, hosted rendering
@@ -243,11 +243,16 @@ Self-hosting Lolly and don't want a public render surface? Set
 Lolly can also be reached by an AI agent over the Model Context Protocol - an
 operator-run endpoint (lolly.tools runs one; anyone can self-host their own,
 including fully air-gapped). It shares the render path's no-accounts posture,
-plus four tools that necessarily handle file bytes:
+plus the tools that necessarily handle file bytes:
 
 - <!--i:cpu--> **`lolly_transform`** (run an on-device utility server-side, on the calling
-  agent's behalf), **`lolly_verify`** (check Content Credentials) and **`lolly_redact`**
-  (black out regions of an image or PDF) all accept
+  agent's behalf), **`lolly_verify`** (check Content Credentials), **`lolly_redact`**
+  (black out regions of an image or PDF), **`lolly_read`** (read what a slide deck
+  says), **`lolly_check`** (check a document or an export, optionally against
+  its source deck), **`lolly_package`** (package a Design document as a
+  `.lolly`, with the pictures and the source deck the caller supplies) and
+  **`lolly_compose`** (lay slides out from a slide master, reading the text of a
+  source deck the caller supplies) all accept
   a file's bytes from the caller. They are processed **in-process, in memory**,
   and the result is returned in that same call - the file is never written to
   disk and never stored once the request completes.

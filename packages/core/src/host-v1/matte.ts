@@ -74,6 +74,16 @@ export interface MatteOpts {
    */
   maxEdge?: number;
   /**
+   * Edge refinement after the model (plans/289 M4): a guided filter pulls the
+   * matte's edges onto the photo's own edges, which recovers hair and fur a model
+   * cuts through. Absent, each model's own default applies (on for the coarse
+   * U²-Net lite, off for MODNet, whose soft matte gains nothing); `false` or
+   * `{ radius: 0 }` returns the model's mask as drawn, an object turns it on. `shift` (-1 to 1) moves the edge out or in, and
+   * `contrast` (1 to 10) hardens the edge. Since engine 1.244; a shell from before
+   * ignores the field and returns the model's mask.
+   */
+  refine?: false | { radius?: number; epsilon?: number; shift?: number; contrast?: number };
+  /**
    * Abort a long run: the promise rejects promptly (AbortError). Aborting during
    * the first-use download rejects promptly but the download completes in the
    * background and is cached (like `upscale`/`speech`).

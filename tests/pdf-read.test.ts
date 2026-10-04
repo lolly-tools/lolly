@@ -264,6 +264,30 @@ test('a picture stream inflates no further than its declared size needs', async 
   assert.equal(decoded?.mime, 'image/png');
 });
 
+test('a FlateDecode stream whose zlib checksum is cut short still decodes under a cap (plan 291)', async () => {
+  // The deflate data is whole; only the four-byte Adler-32 trailer lost two bytes,
+  // as in a real export whose ToUnicode map then read as nothing.
+  const text = 'BT /F1 18 Tf 40 300 Td (Five spans we built before the road) Tj ET';
+  const whole = zlibSync(new TextEncoder().encode(text));
+  const cut = whole.subarray(0, whole.length - 2);
+  const doc = await PDFDocument.create();
+  const page = doc.addPage([720, 405]);
+  const ctx = doc.context;
+  const font = ctx.register(ctx.obj({ Type: 'Font', Subtype: 'Type1', BaseFont: 'Helvetica', Encoding: 'WinAnsiEncoding' }));
+  const contents = ctx.register(ctx.stream(cut, { Filter: 'FlateDecode' }));
+  page.node.set(PDFName.of('Contents'), contents);
+  page.node.set(PDFName.of('Resources'), ctx.obj({ Font: { F1: font } }));
+  const loaded = await loadPdfDocument(await doc.save({ useObjectStreams: false }));
+  const stream = loaded.context.lookup(loaded.getPage(0).node.get(PDFName.of('Contents'))) as Parameters<typeof pdfStreamBytes>[0];
+  assert.equal(pdfLatin1(pdfStreamBytes(stream, 1_000_000)!), text, 'the capped path decodes what pdf-lib decodes');
+  assert.equal(pdfLatin1(pdfStreamBytes(stream, 10)!), text.slice(0, 10), 'and still stops at the cap');
+  const lines = interpretPdfDocPage(loaded, 0, { maxContentChars: 1_000_000 }).nodes.filter((n) => n.kind === 'text').map((n) => n.text);
+  assert.ok(lines.join(' ').includes('Five spans'), `the line survives a content budget, read ${JSON.stringify(lines)}`);
+  // A stream that is not zlib at all is still refused rather than guessed at.
+  const junk = ctx.stream(new Uint8Array([1, 2, 3, 4, 5, 6]), { Filter: 'FlateDecode' });
+  assert.equal(pdfStreamBytes(junk as Parameters<typeof pdfStreamBytes>[0], 100), null);
+});
+
 test('a form, not only the page stream, counts against the content budget', async () => {
   const big = Array.from({ length: 20000 }, () => '0 0 1 1 re f').join('\n');
   const doc = await loadPdfDocument(await buildProbePdf([{ content: '/Fm0 Do', forms: { Fm0: big } }]));

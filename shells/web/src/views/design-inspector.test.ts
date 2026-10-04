@@ -1662,3 +1662,72 @@ test('every inspector paint preserves P3 in HDR editing and maps it in SDR editi
     } finally { h.handle.destroy(); }
   }
 });
+
+// ── the document theme (plan 291 W4) ─────────────────────────────────────────
+
+/** A theme port over one light/dark group, recording every choice it is handed. */
+function themePort(opts: { fail?: boolean; options?: Array<{ id: string; label: string }> } = {}) {
+  let active = 'light';
+  const chosen: Array<[string, string]> = [];
+  const options = opts.options ?? [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
+  const port = {
+    groups: () => (options.length > 1 ? [{ id: '', label: 'Colour theme', options, active }] : []),
+    choose: async (group: string, option: string) => {
+      chosen.push([group, option]);
+      if (opts.fail) throw new Error('refused');
+      active = option;
+    },
+  };
+  return { port, chosen, active: () => active };
+}
+
+const themeButtons = (h: Harness): HTMLButtonElement[] =>
+  [...h.el.querySelectorAll<HTMLButtonElement>('.fc-seg[data-seg="lolly-doc-theme-0"] .fc-seg-btn')];
+
+test('Document offers the declared themes as one segmented row, and a press reaches the port', async () => {
+  const theme = themePort();
+  const h = mount(BOXES, { theme: theme.port });
+  try {
+    const buttons = themeButtons(h);
+    assert.deepEqual(buttons.map((b) => b.textContent), ['Light', 'Dark']);
+    assert.deepEqual(buttons.map((b) => b.getAttribute('aria-pressed')), ['true', 'false']);
+    const group = h.el.querySelector('.fc-seg[data-seg="lolly-doc-theme-0"]')!;
+    assert.equal(group.getAttribute('role'), 'group');
+    assert.equal(group.getAttribute('aria-label'), 'Colour theme');
+    assert.ok(buttons.every((b) => b.tagName === 'BUTTON' && b.type === 'button'), 'native buttons: one Tab stop each, Enter and Space press');
+    assert.match(h.el.textContent!, /Colours linked to the design system follow this choice\./);
+    click(buttons[1]!);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual(theme.chosen, [['', 'dark']]);
+    assert.equal(h.setInputs.length, 0, 'a theme is not a document input, so no input write and no undo step');
+    assert.equal(h.commits.length + h.arrays.length, 0);
+    h.handle.sync();
+    assert.deepEqual(themeButtons(h).map((b) => b.getAttribute('aria-pressed')), ['false', 'true']);
+    click(themeButtons(h)[1]!);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(theme.chosen.length, 1, 'pressing the theme already shown asks for nothing');
+  } finally { h.handle.destroy(); }
+});
+
+test('no theme row without a port, or for a design system that declares one theme', () => {
+  for (const extra of [{}, { theme: themePort({ options: [{ id: 'light', label: 'Light' }] }).port }]) {
+    const h = mount(BOXES, extra);
+    try {
+      assert.equal(themeButtons(h).length, 0);
+      assert.doesNotMatch(h.el.textContent!, /follow this choice/);
+    } finally { h.handle.destroy(); }
+  }
+});
+
+test('a refused theme change puts the segment back on the theme in force', async () => {
+  const theme = themePort({ fail: true });
+  const warn = console.warn;
+  console.warn = () => {};
+  const h = mount(BOXES, { theme: theme.port });
+  try {
+    click(themeButtons(h)[1]!);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual(theme.chosen, [['', 'dark']]);
+    assert.deepEqual(themeButtons(h).map((b) => b.getAttribute('aria-pressed')), ['true', 'false']);
+  } finally { console.warn = warn; h.handle.destroy(); }
+});

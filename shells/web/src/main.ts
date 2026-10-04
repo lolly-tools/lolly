@@ -107,7 +107,7 @@ mountTooltips();
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team';
+type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -138,6 +138,7 @@ type Route =
   | { name: 'join'; params?: string }
   | { name: 'join-reply'; params?: string }
   | { name: 'team'; slug: string; params?: string }
+  | { name: 'open'; params: string }
   | { name: 'gallery'; params?: string };
 
 /** The #view container, which a mounted view may stamp a teardown fn onto. */
@@ -282,6 +283,11 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // opens the session on the organisation's instance and replaces this address with
   // the tool's. Keys on the SLUG (the session id), so a second link re-mounts.
   team: { label: 'Team session', footer: 'none', handoff: true },
+  // Open a .lolly this site serves (#/open?lolly=<same-origin path or blob: URL>, plan
+  // 291 W8). Hash-only, like document-model: no pretty path and no APP_PATH_WORDS entry.
+  // A hand-off: it replaces its own address before it fetches, then the intake moves on
+  // to the tool, so Back never returns to it and a reload never imports twice.
+  open: { label: 'Open file', footer: 'none', handoff: true },
 };
 
 /** Every scoping class in ROUTES → the routes that own it, in declaration order. */
@@ -707,6 +713,12 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       // route only delegates; the module loads when someone follows such a link.
       const { mountTeamLink } = await import('./org/team-link.ts');
       await mountTeamLink(view, route.slug);
+      break;
+    }
+    case 'open': {
+      // Lazy: the route only fetches and hands over; the intake is the drop router's.
+      const { mountOpenRoute } = await import('./lib/open-route.ts');
+      await mountOpenRoute(view, host, route.params);
       break;
     }
     case 'components': {
@@ -1976,6 +1988,8 @@ function parseRoute(): Route {
     // invite already sent.
     if (parts[0] === 'join') return { name: 'join', params: query || '' };
     if (parts[0] === 'join-reply') return { name: 'join-reply', params: query || '' };
+    // Open a served .lolly (lib/open-route.ts decides which sources are allowed).
+    if (parts[0] === 'open' && !parts[1]) return { name: 'open', params: query || '' };
     // A team session link (plan 74): #/team/<sessionId>, or a team project link,
     // #/team/project/<projectId> (slug 'project/<id>'). org/team-link.ts validates the id.
     if (parts[0] === 'team') return { name: 'team', slug: parts[1] === 'project' ? `project/${parts[2] ?? ''}` : (parts[1] ?? ''), params: query || '' };

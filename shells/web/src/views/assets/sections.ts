@@ -34,6 +34,7 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { CAT_ICONS, DOWNLOAD_ICON, emojiPackMeta, emojiPackSource } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { appPathname } from '../../lib/any-site.ts';
+import { cardSizeAttr } from '../../components/view-options.ts';
 
 // Open on a favourite-swatch tile → reveal the Swatches reference panel below.
 export function revealSwatches(cat: CatCtx): void {
@@ -196,7 +197,7 @@ export function render(cat: CatCtx): void {
   const { viewEl } = cat;
   cat.bulk.pruneSelection();
   viewEl.innerHTML = `
-      <div class="catalog${cat.catLayout === 'list' ? ' cat-layout-list' : ''}${cat.catDensity === 'compact' ? ' cat-density-compact' : ''}">
+      <div class="catalog${cat.catLayout === 'list' ? ' cat-layout-list' : ''}${cat.catDensity === 'compact' ? ' cat-density-compact' : ''}"${cardSizeAttr(cat.cardSize)}>
         ${cat.tiles.catalogTopbarHtml()}
         <h1 class="visually-hidden">${t('Assets')}</h1>
         <div class="catalog-body">${bodyHtml(cat)}</div>

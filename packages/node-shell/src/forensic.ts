@@ -24,7 +24,18 @@ import { inflatePptx } from './pptx.ts';
 export async function inspectForensicBytes(
   bytes: Uint8Array,
   name: string,
-  opts: { pageCap?: number; signal?: AbortSignal; classifier?: boolean } = {}
+  opts: {
+    pageCap?: number;
+    signal?: AbortSignal;
+    classifier?: boolean;
+    /**
+     * Read the text of pages that carry none (pictures, flattened slides) with the
+     * cached OCR model. On by default, as before. `false` keeps a run deterministic
+     * across machines (`lolly check`): such a page is then reported unread, never
+     * guessed, whether or not a model happens to be cached here.
+     */
+    ocr?: boolean;
+  } = {}
 ): Promise<ForensicReport> {
   if (bytes.length > 64_000_000) throw new Error('Forensic input exceeds 64 MB.');
   if (opts.pageCap !== undefined && (!Number.isInteger(opts.pageCap) || opts.pageCap < 1 || opts.pageCap > 100)) throw new Error('Forensic page cap must be an integer from 1 to 100.');
@@ -90,7 +101,10 @@ export async function inspectForensicBytes(
         page.height = info.height;
       }
       const frame = { width: info.width, height: info.height, data: new Uint8ClampedArray(data) };
-      if (!page.text.trim()) {
+      if (!page.text.trim() && opts.ocr === false) {
+        page.complete = false;
+        receipt('ocr', 'skipped', 'OCR is off for this run; image text remains unread.', page.id);
+      } else if (!page.text.trim()) {
         const ocr = createNodeOcrAPI(),
           model = ocr?.models()[0];
         if (ocr && model && (await ocr.cached(model.id))) {

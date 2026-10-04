@@ -1,6 +1,7 @@
 mod capture;
 mod cli;
 mod desktop_integration;
+mod live_server;
 mod menu;
 mod native_transport;
 mod nearby;
@@ -182,7 +183,13 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             native_transport::native_plate,
             native_transport::native_close,
             native_transport::native_poll_inbound,
-            native_transport::native_adopt
+            native_transport::native_adopt,
+            // Allow AI control (plans/289 D1): the loopback listener an agent's local
+            // MCP server reaches, and the page's long poll and reply. GUI only: a
+            // headless render has no person watching, so it never takes live edits.
+            live_server::live_set,
+            live_server::live_next,
+            live_server::live_reply
         ]))
         // Desktop integration boot (plans/174): first-launch argv (a .lolly
         // double-clicked before the app ran, a lolly:// link that launched us),
@@ -224,6 +231,9 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = &event {
                 desktop_integration::classify_opened(app, urls);
+            }
+            if let tauri::RunEvent::Exit = &event {
+                live_server::shutdown();
             }
             #[cfg(not(target_os = "macos"))]
             let _ = (app, &event);
