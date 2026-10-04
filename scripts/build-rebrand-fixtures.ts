@@ -2152,7 +2152,7 @@ function buildRecreate(): { bytes: Uint8Array; labels: RecreateFixtureLabelsV1 }
         text(RC_THANKS, 'Thank you', 44, { bold: true, ph: 'title' }),
         text(RC_THANKS_LINE, 'Questions to the harbour desk, any tide.', 20),
       ],
-      media: [], layout: 0, notes: 'Thank the crews by name.\nPoint to the shared tide table.',
+      media: [], layout: 0, notes: 'Thank the crews by name.\n\nPoint to the shared tide table.',
     },
   ];
   const parts = buildPptxParts(slides, {

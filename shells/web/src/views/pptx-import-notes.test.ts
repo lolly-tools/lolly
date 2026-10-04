@@ -98,21 +98,15 @@ test('import then export keeps every source note paragraph (recreate.pptx)', asy
   const file = fileURLToPath(new URL('../../../../tests/fixtures/rebrand/recreate.pptx', import.meta.url));
   const parseXml = (s: string) => new (new JSDOM('').window.DOMParser)().parseFromString(s, 'application/xml');
   const deck = readPptx(unzipSync(new Uint8Array(readFileSync(file))) as never, parseXml as never);
-  // The exported note's paragraphs, each as its lines (a:br between runs).
-  const exported = (xml: string): string[] => {
-    const doc = parseXml(xml);
-    const body = [...doc.getElementsByTagName('p:sp')].find((sp) => sp.getElementsByTagName('p:ph')[0]?.getAttribute('type') === 'body');
-    return body ? [...body.getElementsByTagName('a:p')].map((p) => [...p.getElementsByTagName('a:t')].map((t) => t.textContent).join('\n')) : [];
-  };
   let checked = 0;
   for (const [i, s] of deck.slides.entries()) {
     const paras = s.notesParas ?? [];
     if (paras.length < 2) continue;
-    // Every source paragraph stays one; a blank line inside one (two a:br in a row)
-    // reads back as a paragraph break, which looks the same in the Notes pane.
-    const want = paras.flatMap((p) => p.runs.map((r) => r.text).join('').split(/\n[ \t]*\n+/)).map((t) => t.trim()).filter(Boolean);
+    const want = paras.map(p => p.runs.map(r => r.text).join(''));
     const parts = buildPptxParts([{ shapes: [], media: [], notes: pptxSlideNotes(s) }], {});
-    assert.deepEqual(exported(String(parts['ppt/notesSlides/notesSlide1.xml'])), want, `slide ${i + 1}: the exported note keeps its source paragraphs`);
+    const again = readPptx(parts as never, parseXml as never).slides[0]!;
+    assert.deepEqual(again.notesParas?.map(p => p.runs.map(r => r.text).join('')), want,
+      `slide ${i + 1}: paragraph boundaries and empty lines inside a paragraph survive export`);
     checked++;
   }
   assert.ok(checked >= 2, 'the fixture carries notes with more than one paragraph');

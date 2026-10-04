@@ -2182,7 +2182,7 @@ async function renderSequenceAuthored(
           else if (streaming) bitmaps.push(await createImageBitmap(c as ImageBitmapSource));
           else if (format === 'apng') apngFrames.push(new Uint8Array(await (await canvasBlob(c, 'image/png')).arrayBuffer()));
           else if (format === 'webp-anim') webpFrames.push(await webpFrame(c, opts.quality ?? 0.9));
-          else gifPixels.push((float ? canvas.getContext('2d')! : cx as CanvasRenderingContext2D).getImageData(0, 0, outW, targetH).data);
+          else gifPixels.push(((float ? canvas.getContext('2d')! : cx) as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D).getImageData(0, 0, outW, targetH).data);
         },
       });
 

@@ -48,7 +48,8 @@ test("every shipped public look has a swatch with colours", () => {
 });
 
 test('the picker strip and the Assets colour rows both draw swatches through the shared helper', () => {
-  const picker = readFileSync(join(HERE, '../views/picker.ts'), 'utf8');
+  const picker = readFileSync(join(HERE, '../components/photo-treatment-strip.ts'), 'utf8');
+  assert.match(readFileSync(join(HERE, '../views/picker.ts'), 'utf8'), /photoTreatmentStripHtml\(/, 'picker delegates its swatches to the shared strip');
   const assetsDir = join(HERE, '../views/assets');
   const assets = readdirSync(assetsDir).filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts')).map(f => readFileSync(join(assetsDir, f), 'utf8')).join('\n');
   for (const [name, src] of [['picker', picker], ['assets', assets]] as const) {
