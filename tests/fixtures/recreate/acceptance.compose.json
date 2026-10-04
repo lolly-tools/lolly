@@ -1,0 +1,284 @@
+{
+  "slides": [
+    {
+      "archetype": "title",
+      "id": "s01",
+      "source": 1,
+      "notes": true,
+      "slots": {
+        "title": {
+          "from": "ppt/slides/slide1.xml.1"
+        },
+        "subtitle": {
+          "from": [
+            "ppt/slides/slide1.xml.2",
+            "ppt/slides/slide1.xml.3"
+          ]
+        }
+      },
+      "under": [
+        {
+          "id": "s01.photo",
+          "kind": "image",
+          "x": 0,
+          "y": 0,
+          "w": 1920,
+          "h": 1080,
+          "image": "photo:97023a0decb6?treatment=tone",
+          "fit": "cover"
+        },
+        {
+          "id": "s01.scrim",
+          "kind": "box",
+          "x": 0,
+          "y": 0,
+          "w": 1920,
+          "h": 1080,
+          "bg": "",
+          "grad": "lin_90_13294be6-0_13294ba6-55_13294b00-100"
+        }
+      ]
+    },
+    {
+      "archetype": "columns-3",
+      "id": "s02",
+      "source": 2,
+      "notes": true,
+      "slots": {
+        "title": {
+          "from": "ppt/slides/slide2.xml.0"
+        }
+      },
+      "cells": [
+        {
+          "label": {
+            "from": "ppt/slides/slide2.xml.4",
+            "weight": "400"
+          },
+          "body": {
+            "from": "ppt/slides/slide2.xml.5"
+          }
+        },
+        {
+          "label": {
+            "from": "ppt/slides/slide2.xml.9",
+            "weight": "400"
+          },
+          "body": {
+            "from": "ppt/slides/slide2.xml.10"
+          }
+        },
+        {
+          "label": {
+            "from": "ppt/slides/slide2.xml.14",
+            "weight": "400"
+          },
+          "body": {
+            "from": "ppt/slides/slide2.xml.15"
+          }
+        }
+      ]
+    },
+    {
+      "archetype": "content",
+      "id": "s03",
+      "source": 3,
+      "notes": true,
+      "slots": {
+        "title": {
+          "from": [
+            "ppt/slides/slide3.xml.0",
+            "ppt/slides/slide3.xml.1"
+          ],
+          "join": ": "
+        },
+        "body": {
+          "from": "ppt/slides/slide3.xml.2"
+        }
+      }
+    },
+    {
+      "archetype": "content",
+      "id": "s04",
+      "source": 4,
+      "notes": null,
+      "slots": {
+        "title": {
+          "from": "ppt/slides/slide4.xml.0"
+        },
+        "body": {
+          "from": "ppt/slides/slide4.xml.1"
+        }
+      }
+    },
+    {
+      "archetype": "main-point",
+      "id": "s05",
+      "source": 5,
+      "notes": true,
+      "slots": {
+        "title": {
+          "from": "ppt/slides/slide5.xml.0",
+          "fg": "{color.semantic.text}"
+        }
+      },
+      "under": [
+        {
+          "id": "s05.ground",
+          "kind": "box",
+          "x": 0,
+          "y": 0,
+          "w": 1920,
+          "h": 1080,
+          "bg": "{color.semantic.surface}"
+        }
+      ]
+    },
+    {
+      "archetype": "full-image",
+      "id": "s06",
+      "source": 6,
+      "notes": null,
+      "slots": {
+        "visual": "photo:5b6f49bbefca?treatment=tone",
+        "caption": {
+          "from": "ppt/slides/slide6.xml.1",
+          "weight": "400"
+        }
+      }
+    },
+    {
+      "archetype": "table",
+      "id": "s07",
+      "source": 7,
+      "notes": true,
+      "slots": {
+        "title": {
+          "from": "ppt/slides/slide7.xml.0"
+        },
+        "data": {
+          "$table": {
+            "x": 0,
+            "y": 0,
+            "pitch": 177,
+            "columns": [
+              {
+                "id": "s07.table-r{r}-c1",
+                "kind": "text",
+                "x": 358,
+                "y": 0,
+                "w": 338,
+                "h": 158,
+                "$style": "body"
+              },
+              {
+                "id": "s07.table-r{r}-c2",
+                "kind": "text",
+                "x": 715,
+                "y": 0,
+                "w": 338,
+                "h": 158,
+                "$style": "body"
+              },
+              {
+                "id": "s07.table-r{r}-c3",
+                "kind": "text",
+                "x": 1072,
+                "y": 0,
+                "w": 338,
+                "h": 158,
+                "$style": "body"
+              },
+              {
+                "id": "s07.table-r{r}-c4",
+                "kind": "text",
+                "x": 1429,
+                "y": 0,
+                "w": 338,
+                "h": 158,
+                "$style": "body"
+              }
+            ],
+            "rows": [
+              {
+                "label": null,
+                "cells": [
+                  {
+                    "text": "Plan",
+                    "$style": "label"
+                  },
+                  {
+                    "text": "Board",
+                    "$style": "label"
+                  },
+                  {
+                    "text": "Berth",
+                    "$style": "label"
+                  },
+                  {
+                    "text": "Depart",
+                    "$style": "label"
+                  }
+                ]
+              },
+              {
+                "label": "Pilots",
+                "cells": [
+                  "Reads the forecast",
+                  "Boards at the mark",
+                  "Advises the master",
+                  "Signs off the exit"
+                ]
+              },
+              {
+                "label": "Tugs",
+                "cells": [
+                  "Confirms the crews",
+                  "Holds station",
+                  "Pushes on the turn",
+                  "Escorts to the mark"
+                ]
+              },
+              {
+                "label": "Quay crew",
+                "cells": [
+                  "Clears the berth",
+                  "Readies the lines",
+                  "Makes fast",
+                  "Lets go"
+                ]
+              }
+            ],
+            "label": {
+              "id": "s07.table-r{r}-c0",
+              "kind": "text",
+              "x": 0,
+              "y": 0,
+              "w": 339,
+              "h": 158,
+              "$style": "label"
+            }
+          }
+        }
+      }
+    },
+    {
+      "archetype": "closing-thanks",
+      "id": "s08",
+      "source": 8,
+      "notes": true,
+      "slots": {
+        "title": {
+          "from": "ppt/slides/slide8.xml.0"
+        },
+        "subtitle": {
+          "from": "ppt/slides/slide8.xml.1"
+        }
+      }
+    }
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ]
+}

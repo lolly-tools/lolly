@@ -4,10 +4,10 @@
  * Grade a deck an agent rebuilt on brand (plan 291 W10), against a case of
  * `skills/lolly/evals/recreate.json`.
  *
- * Run as: pnpm run eval:recreate -- <output-dir> [--case=<id>] [--eval=<recreate.json>] [--source=<deck>] [--edits=<edits.json>] [--file=<tokens.json>] [--profile=<name>] [--browser=auto|off|require] [--label=<run label>] [--out=<score.json>] [--json]
+ * Run as: pnpm run eval:recreate -- <output-dir> [--case=<id>] [--eval=<recreate.json>] [--source=<deck>] [--edits=<edits.json>] [--file=<tokens.json>] [--profile=<name>] [--browser=auto|off|require] [--acceptance] [--label=<run label>] [--out=<score.json>] [--json]
  *      or: node scripts/recreate-eval.ts <output-dir> [same flags]
  *
- * The output folder holds what the agent delivered: one `.lolly` and one `.pptx` per
+ * The output folder holds what the agent delivered: a `.lolly` and a `.pptx` per
  * theme, named with the theme as a word of the file name (`harbour-light.lolly`,
  * `Harbour dark.pptx`), and optionally `edits.json`, the strings it changed or dropped
  * on purpose (`[{ source, result?, reason }]`, the shape `lolly check --edits` reads).
@@ -30,7 +30,9 @@
  * reads back and reopens; and a well-formed edits.json when one is given. Verify
  * findings, draft house-rule findings, colour review, undeclared edits, the notes'
  * line structure, the frame grounds against the theme and any scaffolding scripts
- * left in the folder are reported and never gate (decision D1).
+ * left in the folder are reported. --acceptance also gates on zero Verify and
+ * house-rule findings, painted and reopened themes, unchanged note line structure
+ * and theme grounds, accounted edits, no scaffolding, and one shared document.
  *
  * The case's design system is resolved explicitly (`--file`, else the case's
  * `designSystem`), never through the CLI's terminal-system ladder, and recorded in
@@ -71,7 +73,10 @@ const REPO = fileURLToPath(new URL('../', import.meta.url));
 export const RECREATE_EVAL_FILE = path.join(REPO, 'skills', 'lolly', 'evals', 'recreate.json');
 export const RECREATE_DEFAULT_CASE = 'recreate-synthetic';
 /** The keys a case's `pass` may hold: each is one gate this scorer computes. */
-export const RECREATE_PASS_KEYS = ['checkErrors', 'missingStrings', 'missingNotes', 'slides', 'themes', 'reopens', 'edits'] as const;
+export const RECREATE_BASE_PASS_KEYS = ['checkErrors', 'missingStrings', 'missingNotes', 'slides', 'themes', 'reopens', 'edits'] as const;
+/** Acceptance requires the painted document, with no unresolved quality or fidelity findings. */
+export const RECREATE_ACCEPTANCE_KEYS = ['verifyFindings', 'houseRuleFindings', 'clippedText', 'rendered', 'themeGrounds', 'noteLines', 'fidelityEdits', 'noScaffolding', 'oneDocument'] as const;
+export const RECREATE_PASS_KEYS = [...RECREATE_BASE_PASS_KEYS, ...RECREATE_ACCEPTANCE_KEYS] as const;
 export type RecreatePassKeyV1 = (typeof RECREATE_PASS_KEYS)[number];
 /**
  * The one value each gate takes in a case's `pass`: the threshold the scorer holds the
@@ -81,9 +86,10 @@ export type RecreatePassKeyV1 = (typeof RECREATE_PASS_KEYS)[number];
  */
 export const RECREATE_PASS_VALUES: Readonly<Record<Exclude<RecreatePassKeyV1, 'themes'>, number | string | boolean>> = {
   checkErrors: 0, missingStrings: 0, missingNotes: 0, slides: 'source', reopens: true, edits: 'valid',
+  verifyFindings: 0, houseRuleFindings: 0, clippedText: 0, rendered: true, themeGrounds: 0, noteLines: 0, fidelityEdits: 0, noScaffolding: true, oneDocument: true,
 };
-/** The keys a case's `report` may hold: each is a field of the score's `reported`, a measure that never gates. */
-export const RECREATE_REPORT_KEYS = ['verifyFindings', 'sourceVerifyFindings', 'houseRuleFindings', 'brandColorReview', 'undeclaredEdits', 'unmatchedEdits', 'notesLinesMerged', 'notesLinesSplit', 'themeGroundMismatches', 'themeGroundsExempt', 'pptxTier', 'renderStates', 'scaffolding', 'undelivered', 'unthemed'] as const;
+/** The keys a case's `report` may hold: each is a measure in the score's `reported`. */
+export const RECREATE_REPORT_KEYS = ['verifyFindings', 'sourceVerifyFindings', 'houseRuleFindings', 'clippedText', 'brandColorReview', 'undeclaredEdits', 'unmatchedEdits', 'notesLinesMerged', 'notesLinesSplit', 'themeGroundMismatches', 'themeGroundsExempt', 'pptxTier', 'renderStates', 'scaffolding', 'undelivered', 'unthemed'] as const;
 export const RECREATE_FORMATS = ['lolly', 'pptx'] as const;
 export type RecreateFormatV1 = (typeof RECREATE_FORMATS)[number];
 
@@ -185,6 +191,7 @@ export interface RecreateFileScoreV1 {
   /** Findings by code, for the Verify family and for house rules. */
   verify: Record<string, number>;
   houseRules: Record<string, number>;
+  clippedText: number;
   brandColorReview: number;
   /**
    * Source notes the file keeps exactly, paragraph for paragraph and line for line
@@ -245,6 +252,7 @@ export interface RecreateScoreV1 {
     /** Verify findings on the source deck checked against itself, the zero point of `verifyFindings`; null when that check failed. */
     sourceVerifyFindings: number | null;
     houseRuleFindings: number;
+    clippedText: number;
     brandColorReview: number;
     undeclaredEdits: number;
     unmatchedEdits: number;
@@ -282,8 +290,10 @@ export interface ScoreRecreationOptionsV1 {
   label?: string;
   /** Reopen a `.lolly` in the web shell. Default: `openLollyViaWebShell`, when a browser and a web shell are here. */
   reopen?: (bytes: Uint8Array, name: string, label: string | null) => Promise<{ state: RecreateReopenStateV1; reason?: string }>;
-  /** The gates to score: the keys of the case's `pass`, from `recreateCaseGates`. Default: every gate. */
+  /** The gates to score: the keys of the case's `pass`. Default: the base gates. */
   gates?: readonly RecreatePassKeyV1[];
+  /** Require every base and acceptance gate, even when a case omits them. */
+  acceptance?: boolean;
 }
 
 const SCAFFOLDING = /\.(py|js|mjs|cjs|ts|sh)$/i;
@@ -714,16 +724,18 @@ export function isDesignSystemDocument(doc: unknown): boolean {
   try { return createTokenSet(doc).colors().length > 0; } catch { return false; }
 }
 
-function countFindings(report: CheckReportV1): Pick<RecreateFileScoreV1, 'verify' | 'houseRules' | 'brandColorReview'> {
+function countFindings(report: CheckReportV1): Pick<RecreateFileScoreV1, 'verify' | 'houseRules' | 'clippedText' | 'brandColorReview'> {
   const verify: Record<string, number> = {};
   const houseRules: Record<string, number> = {};
   let brandColorReview = 0;
+  let clippedText = 0;
   for (const finding of report.findings) {
     if (finding.code.startsWith('verify.')) bump(verify, finding.code);
     else if (finding.code.startsWith('brand.rule.')) bump(houseRules, finding.code);
+    else if (finding.code === 'design.text.overflow') clippedText += 1;
     else if (finding.code === 'brand.color.review') brandColorReview += 1;
   }
-  return { verify, houseRules, brandColorReview };
+  return { verify, houseRules, clippedText, brandColorReview };
 }
 
 function fidelityOf(report: CheckReportV1): Pick<RecreateFileScoreV1, 'slides' | 'missingStrings' | 'missingNotes' | 'undeclaredEdits' | 'unmatchedEdits'> {
@@ -827,7 +839,7 @@ export async function scoreRecreation(opts: ScoreRecreationOptionsV1): Promise<R
       if (files && typeof files === 'object') manifest = files as Record<string, string | string[]>;
     } catch { manifest = {}; }
   }
-  const names = readdirSync(dir).filter((name) => /\.(lolly|pptx)$/i.test(name) && statSync(path.join(dir, name)).isFile()).sort();
+  const names = readdirSync(dir).filter((name) => !name.startsWith('~$') && /\.(lolly|pptx)$/i.test(name) && statSync(path.join(dir, name)).isFile()).sort();
 
   const files: RecreateFileScoreV1[] = [];
   let closeBrowserTier = false;
@@ -837,7 +849,7 @@ export async function scoreRecreation(opts: ScoreRecreationOptionsV1): Promise<R
     for (const name of names) for (const theme of themesOfDelivered(name, themes, manifest)) {
       const format = name.toLowerCase().endsWith('.lolly') ? 'lolly' : 'pptx';
       const bytes = new Uint8Array(readFileSync(path.join(dir, name)));
-      const base: RecreateFileScoreV1 = { name, format, theme, missingStrings: [], missingNotes: 0, undeclaredEdits: [], unmatchedEdits: 0, verify: {}, houseRules: {}, brandColorReview: 0 };
+      const base: RecreateFileScoreV1 = { name, format, theme, missingStrings: [], missingNotes: 0, undeclaredEdits: [], unmatchedEdits: 0, verify: {}, houseRules: {}, clippedText: 0, brandColorReview: 0 };
       let report: CheckReportV1;
       try {
         report = await checkFile(bytes, name, {
@@ -969,14 +981,13 @@ export async function scoreRecreation(opts: ScoreRecreationOptionsV1): Promise<R
     },
     { id: 'edits', pass: editProblems.length === 0, detail: editProblems.length ? editProblems.join('; ') : editsPath ? `${edits.length} declared edit${edits.length === 1 ? '' : 's'}` : 'no edits.json' },
   ];
-  const gates = opts.gates ? allGates.filter((g) => opts.gates!.includes(g.id)) : allGates;
-
   const renderStates: Record<string, number> = {};
   for (const f of files) if (f.families?.render) bump(renderStates, f.families.render);
   const reported: RecreateScoreV1['reported'] = {
     verifyFindings: sum(files, (f) => total(f.verify)),
     sourceVerifyFindings: sourceBaseline ? total(sourceBaseline.verify) : null,
     houseRuleFindings: sum(files, (f) => total(f.houseRules)),
+    clippedText: sum(files, (f) => f.clippedText),
     brandColorReview: sum(files, (f) => f.brandColorReview),
     undeclaredEdits: sum(files, (f) => f.undeclaredEdits.length),
     unmatchedEdits: sum(files, (f) => f.unmatchedEdits),
@@ -990,6 +1001,25 @@ export async function scoreRecreation(opts: ScoreRecreationOptionsV1): Promise<R
     undelivered,
     unthemed,
   };
+  const notPainted = lollies.filter((f) => f.families?.render !== 'ran' || f.reopen?.state !== 'passed');
+  const noteChanges = reported.notesLinesMerged + reported.notesLinesSplit;
+  const fidelityEdits = reported.undeclaredEdits + reported.unmatchedEdits;
+  const oneDocument = lollies.length === themes.length && new Set(lollies.map((f) => f.name)).size === 1
+    && themes.every((theme) => lollies.some((f) => f.theme === theme));
+  allGates.push(
+    { id: 'verifyFindings', pass: files.length > 0 && files.every(f => f.families?.verify === 'ran') && reported.verifyFindings === 0, detail: `${reported.verifyFindings} Verify findings; ${files.filter(f => f.families?.verify !== 'ran').length} files without a Verify check` },
+    { id: 'houseRuleFindings', pass: files.length > 0 && files.every(f => f.families?.brand === 'ran') && reported.houseRuleFindings === 0, detail: `${reported.houseRuleFindings} house-rule findings; ${files.filter(f => f.families?.brand !== 'ran').length} files without a brand check` },
+    { id: 'clippedText', pass: files.length > 0 && reported.clippedText === 0, detail: `${reported.clippedText} clipped text layers` },
+    { id: 'rendered', pass: lollies.length > 0 && notPainted.length === 0, detail: notPainted.length ? notPainted.map((f) => `${f.name} (${f.theme}): render ${f.families?.render ?? 'not run'}, reopen ${f.reopen?.state ?? 'not run'}`).join('; ') : 'every document theme was painted and reopened' },
+    { id: 'themeGrounds', pass: files.length > 0 && reported.themeGroundMismatches === 0, detail: `${reported.themeGroundMismatches} theme-ground mismatches` },
+    { id: 'noteLines', pass: files.length > 0 && noteChanges === 0, detail: `${noteChanges} changed note paragraphs or line breaks` },
+    { id: 'fidelityEdits', pass: files.length > 0 && fidelityEdits === 0, detail: `${fidelityEdits} undeclared or unmatched edits` },
+    { id: 'noScaffolding', pass: reported.scaffolding.length === 0, detail: reported.scaffolding.length ? reported.scaffolding.join(', ') : 'no scaffolding in the delivery' },
+    { id: 'oneDocument', pass: oneDocument, detail: oneDocument ? 'one document serves every theme' : 'deliver one .lolly listed with every theme in delivery.json' },
+  );
+  const wanted = new Set<RecreatePassKeyV1>(opts.gates ?? RECREATE_BASE_PASS_KEYS);
+  if (opts.acceptance) for (const key of RECREATE_PASS_KEYS) wanted.add(key);
+  const gates = allGates.filter((g) => wanted.has(g.id));
   const pass = gates.every((g) => g.pass);
   const score: RecreateScoreV1 = {
     format: 'lolly-recreate-score',
@@ -1020,7 +1050,7 @@ export function summariseRecreation(score: RecreateScoreV1): string {
     ? `All ${score.gates.length} gates pass for ${score.files.length} delivered file${score.files.length === 1 ? '' : 's'} against ${score.source.name} (${score.source.slides} slides).`
     : `${failed.length} of ${score.gates.length} gates fail for ${score.files.length} delivered file${score.files.length === 1 ? '' : 's'} against ${score.source.name}: ${failed.map((g) => `${g.id} (${g.detail})`).join('; ')}.`;
   const r = score.reported;
-  const reported = `Reported, not gated: ${r.verifyFindings} Verify finding${r.verifyFindings === 1 ? '' : 's'} (the source itself has ${r.sourceVerifyFindings ?? 'an unknown number of'}), ${r.houseRuleFindings} house-rule finding${r.houseRuleFindings === 1 ? '' : 's'}, ${r.brandColorReview} colour${r.brandColorReview === 1 ? '' : 's'} to review, ${r.undeclaredEdits} undeclared edit${r.undeclaredEdits === 1 ? '' : 's'}, ${r.notesLinesMerged} note${r.notesLinesMerged === 1 ? '' : 's'} whose line breaks were merged, ${r.notesLinesSplit} note${r.notesLinesSplit === 1 ? '' : 's'} whose line breaks came back as paragraphs and ${r.themeGroundMismatches} frame${r.themeGroundMismatches === 1 ? '' : 's'} whose ground disagrees with its theme${r.themeGroundsExempt ? ` (${r.themeGroundsExempt} more exempt: the master has no form of that slide for the theme, or a photo covers it)` : ''}.`;
+  const reported = `Reported measures: ${r.verifyFindings} Verify finding${r.verifyFindings === 1 ? '' : 's'} (the source itself has ${r.sourceVerifyFindings ?? 'an unknown number of'}), ${r.houseRuleFindings} house-rule finding${r.houseRuleFindings === 1 ? '' : 's'}, ${r.clippedText} clipped text layer${r.clippedText === 1 ? '' : 's'}, ${r.brandColorReview} colour${r.brandColorReview === 1 ? '' : 's'} to review, ${r.undeclaredEdits} undeclared edit${r.undeclaredEdits === 1 ? '' : 's'}, ${r.notesLinesMerged} note${r.notesLinesMerged === 1 ? '' : 's'} whose line breaks were merged, ${r.notesLinesSplit} note${r.notesLinesSplit === 1 ? '' : 's'} whose line breaks came back as paragraphs and ${r.themeGroundMismatches} frame${r.themeGroundMismatches === 1 ? '' : 's'} whose ground disagrees with its theme${r.themeGroundsExempt ? ` (${r.themeGroundsExempt} more exempt: the master has no form of that slide for the theme, or a photo covers it)` : ''}.`;
   const tiers = (['A', 'B'] as const).map((tier) => {
     const names = Object.keys(r.pptxTier ?? {}).filter((name) => r.pptxTier[name] === tier);
     if (!names.length) return '';
@@ -1038,7 +1068,7 @@ export function summariseRecreation(score: RecreateScoreV1): string {
 
 // ─── the command ─────────────────────────────────────────────────────────────
 
-const USAGE = 'Usage: node scripts/recreate-eval.ts <output-dir> [--case=<id>] [--eval=<recreate.json>] [--source=<deck>] [--edits=<edits.json>] [--file=<tokens.json>] [--profile=<name>] [--browser=auto|off|require] [--label=<run label>] [--out=<score.json>] [--json]';
+const USAGE = 'Usage: node scripts/recreate-eval.ts <output-dir> [--case=<id>] [--eval=<recreate.json>] [--source=<deck>] [--edits=<edits.json>] [--file=<tokens.json>] [--profile=<name>] [--browser=auto|off|require] [--acceptance] [--label=<run label>] [--out=<score.json>] [--json]';
 const VALUE_FLAGS = new Set(['case', 'eval', 'source', 'edits', 'file', 'profile', 'browser', 'label', 'out']);
 /** The exit code when the scorer itself could not finish (an unexpected fault, or a score it could not write). */
 export const RECREATE_EXIT_UNFINISHED = 3;
@@ -1046,9 +1076,11 @@ export const RECREATE_EXIT_UNFINISHED = 3;
 async function main(argv: string[]): Promise<number> {
   const flags = new Map<string, string>();
   let json = false;
+  let acceptance = false;
   const positional: string[] = [];
   for (const arg of argv) {
     if (arg === '--json') { json = true; continue; }
+    if (arg === '--acceptance') { acceptance = true; continue; }
     const m = /^--([a-z-]+)=(.*)$/.exec(arg);
     if (m && VALUE_FLAGS.has(m[1]!)) { flags.set(m[1]!, m[2]!); continue; }
     if (arg.startsWith('-')) { process.stderr.write(`recreate-eval: ${arg} is not an option. ${USAGE}\n`); return 2; }
@@ -1092,6 +1124,7 @@ async function main(argv: string[]): Promise<number> {
       browser,
       caseId,
       gates,
+      acceptance,
       ...(flags.has('label') ? { label: flags.get('label')! } : {}),
     });
     const record = { ...score, run: runFacts() };

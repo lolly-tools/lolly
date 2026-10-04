@@ -25,6 +25,8 @@ import { buildPptxParts, EMU_PER_PX, type PptxSlide } from '../engine/src/pptx.t
 import { neutralSlideMaster } from '../engine/src/rebrand-design-system.ts';
 import { CHECK_CODE_PATTERN } from '../packages/core/src/check-v1.ts';
 import type { ContentInventoryV1 } from '../packages/core/src/content-inventory-v1.ts';
+import { composeDesign } from '../packages/node-shell/src/design-compose.ts';
+import { checkFile, parseFidelityEdits } from '../packages/node-shell/src/check.ts';
 import { inventoryAsBoxes } from '../packages/node-shell/src/check.ts';
 import { readContentInventory } from '../packages/node-shell/src/content-inventory.ts';
 import { packageDesign } from '../packages/node-shell/src/design-lolly.ts';
@@ -36,7 +38,8 @@ import {
   pptxStructureOf,
   RECREATE_EVAL_FILE,
   RECREATE_EXIT_UNFINISHED,
-  RECREATE_PASS_KEYS,
+  RECREATE_BASE_PASS_KEYS as RECREATE_PASS_KEYS,
+  RECREATE_ACCEPTANCE_KEYS,
   RECREATE_REPORT_KEYS,
   RecreateUsageError,
   scoreRecreation,
@@ -584,4 +587,50 @@ test('one document made for every theme, listed with its themes in delivery.json
   assert.deepEqual(lollies.map((f) => [f.name, f.theme]), [['harbour.lolly', 'light'], ['harbour.lolly', 'dark']]);
   // Each theme's grounds are read with the links resolved in that theme.
   for (const f of lollies) assert.deepEqual(f.themeGrounds, { frames: 8, mismatched: [], exempt: [] }, f.theme ?? '');
+});
+
+
+test('acceptance refuses a document whose render and reopen did not run, separate theme documents and scaffolding', async () => {
+  const dir = await deliver('acceptance-skipped');
+  writeFileSync(join(dir, 'build.js'), '// scaffolding');
+  const score = await scoreRecreation({ dir, source: DECK, designSystem: { file: TOKENS }, browser: 'off', gates: ['themes'], acceptance: true });
+  assert.deepEqual(score.gates.map((g) => g.id), [...RECREATE_PASS_KEYS, ...RECREATE_ACCEPTANCE_KEYS]);
+  assert.equal(score.pass, false);
+  assert.equal(gate(score, 'rendered').pass, false);
+  assert.match(gate(score, 'rendered').detail, /render skipped, reopen not run/);
+  assert.equal(gate(score, 'oneDocument').pass, false);
+  assert.equal(gate(score, 'noScaffolding').pass, false);
+  assert.match(gate(score, 'noScaffolding').detail, /build.js/);
+});
+
+
+test('PowerPoint owner files are not scored as delivered decks', async () => {
+  const dir = await deliver('owner-file');
+  writeFileSync(join(dir, '~$harbour-light.pptx'), new Uint8Array([1, 2, 3]));
+  const score = await scoreRecreation({ dir, source: DECK, designSystem: { file: TOKENS }, browser: 'off' });
+  assert.equal(score.pass, true, score.summary);
+  assert.equal(score.files.length, 4);
+});
+
+
+test('acceptance rejects clipped text even when the base fidelity gates pass', async () => {
+  const dir = await deliver('acceptance-clipped', (_theme, rows) => rows.map((row) => row.kind === 'text' ? { ...row, w: 1, h: 1, fontSize: 100 } : row));
+  const score = await scoreRecreation({ dir, source: DECK, designSystem: { file: TOKENS }, browser: 'off', acceptance: true });
+  assert.equal(gate(score, 'clippedText').pass, false);
+  assert.ok(score.reported.clippedText > 0);
+});
+
+
+test('the maintained recreation spec composes both themes without clipped text, Verify or house-rule findings', async () => {
+  const spec = JSON.parse(readFileSync(join(REPO, 'tests/fixtures/recreate/acceptance.compose.json'), 'utf8'));
+  const { document, edits } = await composeDesign(spec, { source: { bytes: new Uint8Array(readFileSync(DECK)), name: 'recreate.pptx' }, file: TOKENS });
+  const fidelity = parseFidelityEdits(edits);
+  assert.deepEqual(fidelity.problems, []);
+  for (const theme of ['light', 'dark']) {
+    const checked = await checkFile(new TextEncoder().encode(JSON.stringify(document)), 'design.json', {
+      source: inventory, edits: fidelity.edits, theme, designSystem: { doc: JSON.parse(readFileSync(TOKENS, 'utf8')), origin: 'file' }, browser: 'off',
+    });
+    assert.equal(checked.summary.error, 0);
+    assert.deepEqual(checked.findings.filter((f) => f.code.startsWith('verify.') || f.code.startsWith('brand.rule.') || f.code === 'design.text.overflow'), [], theme);
+  }
 });
