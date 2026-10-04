@@ -31,6 +31,7 @@ interface ProjectViewOptions {
   projectId: string;
   create: boolean;
   tab: string;
+  fileId?: string;
   toolName: (id: string) => string;
   tools?: Array<{ id: string; name: string }>;
   beforeNavigate: () => void;
@@ -129,8 +130,10 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (opts.tab === 'people') {
       content.append(buildPeoplePanel({ projectId: project.id, projectName: project.name, policy: invitePolicy(orgConfig()) })); return;
     }
-    if (opts.tab === 'files' && orgConfig()?.sharing?.projectFiles) {
-      content.append(buildTeamFilesPanel({ projectId: project.id, canUpload: canWrite, canManage: isManagerPlus(projectRole), onBack: () => { window.location.hash = `#/p?team=${encodeURIComponent(project.id)}`; } })); return;
+    if (opts.tab === 'files') {
+      if (orgConfig()?.sharing?.projectFiles) content.append(buildTeamFilesPanel({ projectId: project.id, fileId: opts.fileId, canUpload: canWrite, canManage: isManagerPlus(projectRole), onBack: () => { window.location.hash = `#/p?team=${encodeURIComponent(project.id)}`; } }));
+      else content.append(node('p', tRaw('Shared files are not available on this instance.'), 'team-project-notice'));
+      return;
     }
     const got = await readSourceSessions(source!, project.id);
     if (!current() || my !== ticket) return;

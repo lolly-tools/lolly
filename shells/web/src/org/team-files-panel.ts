@@ -13,7 +13,8 @@ import { tRaw } from '../i18n.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { getHostRef } from '../lib/host-ref.ts';
 import { anchorSave } from '../bridge/anchor-save.ts';
-import { listProjectPeople } from './project-members.ts';
+import { copyText } from '../lib/copy-text.ts';
+import { listProjectPeople, teamProjectFileLinkUrl } from './project-members.ts';
 import {
   deleteTeamFile, downloadTeamFile, knownUploaderId, listTeamFiles, teamFileMessage, TeamFileError, uploadTeamFile,
   type TeamFile, type TeamFileList,
@@ -21,6 +22,8 @@ import {
 
 export interface TeamFilesPanelOptions {
   projectId: string;
+  /** The file a shared link selects after the project has been authorised. */
+  fileId?: string;
   /** May add files: an editor or better, where the instance lets this person save. */
   canUpload: boolean;
   /** Manages the project (owner, manager, or the instance's project.manage): may
@@ -52,11 +55,14 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
   const heading = document.createElement('h3'); heading.textContent = tRaw('Shared files'); heading.tabIndex = -1;
   const note = para(tRaw('These files are available to everyone who can see this project.'), '');
   note.className = 'share-shortest-note';
+  const linkNote = para(tRaw('File links use the same project access. Sharing a link does not give someone access.'));
   const room = para('', '');
   room.hidden = true;
   const status = document.createElement('p'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
   const list = document.createElement('ul'); list.className = 'team-files-list';
-  panel.append(back, heading, note, room, list, status);
+  panel.append(back, heading, note, linkNote, room, list, status);
+  let selectedOnce = false;
+  let linkedFileAvailable = false;
 
   // Who the signed-in person is on the instance, for Delete on their own files: an
   // upload tells us, or their own row in the project's people list (`isMe`). Not
@@ -129,6 +135,7 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
 
   const draw = ({ files, limits }: TeamFileList, mine: string | null): void => {
     list.replaceChildren();
+    linkedFileAvailable = files.some(file => file.id === opts.fileId);
     room.hidden = limits.projectBudgetBytes >= Number.MAX_SAFE_INTEGER;
     room.textContent = tRaw('Each file can be up to {max}. This project uses {used} of {total}.', {
       max: fmtBytes(limits.maxBytes), used: fmtBytes(limits.projectUsedBytes), total: fmtBytes(limits.projectBudgetBytes),
@@ -142,13 +149,25 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
       meta.className = 'team-project-notice';
       const get = button(tRaw('Download'), 'file-download', tRaw('Download {name}', { name: file.name }));
       get.addEventListener('click', () => void download(file, get));
-      li.append(name, meta, get);
+      const copy = button(tRaw('Copy file link'), 'file-copy-link', tRaw('Copy link to {name}', { name: file.name }));
+      copy.addEventListener('click', () => {
+        void copyText(teamProjectFileLinkUrl(opts.projectId, file.id)).then(copied => {
+          if (panel.isConnected) status.textContent = tRaw(copied ? 'Link copied' : 'Could not copy. Try again.');
+        });
+      });
+      li.append(name, meta, get, copy);
       if (opts.canManage || (mine !== null && file.createdBy === mine)) {
         const del = button(tRaw('Delete'), 'file-delete', tRaw('Delete {name}', { name: file.name }));
         del.addEventListener('click', () => void remove(file, li, del));
         li.append(del);
       }
       list.append(li);
+      if (file.id === opts.fileId) {
+        li.setAttribute('aria-current', 'true'); li.tabIndex = -1;
+        if (!selectedOnce) {
+          selectedOnce = true; li.focus(); li.scrollIntoView?.({ block: 'nearest' });
+        }
+      }
     }
     if (!files.length) { const li = document.createElement('li'); li.textContent = tRaw('This project has no shared files yet.'); list.append(li); }
   };
@@ -202,6 +221,6 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
     panel.insertBefore(bar, list); panel.append(input);
   }
   status.textContent = tRaw('Loading…');
-  void refresh().then(() => { status.textContent = ''; }).catch((error: unknown) => { status.textContent = teamFileMessage(error, 'list'); });
+  void refresh().then(() => { status.textContent = opts.fileId && !linkedFileAvailable ? tRaw('That file is no longer available.') : ''; }).catch((error: unknown) => { status.textContent = teamFileMessage(error, 'list'); });
   return panel;
 }
