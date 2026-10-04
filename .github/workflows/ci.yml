@@ -191,10 +191,11 @@ jobs:
         if: matrix.shard == 'browser'
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_BROWSER_CHANNEL: chromium
         run: |
           node --input-type=module <<'JS'
           import { chromium } from 'playwright';
-          const browser = await chromium.launch({ headless: true });
+          const browser = await chromium.launch({ headless: true, channel: 'chromium' });
           try {
             for (const base of [process.env.LOLLY_EXPORT_TEST_URL, process.env.LOLLY_WEB_BASE]) {
               const context = await browser.newContext({ serviceWorkers: 'block' });
@@ -213,6 +214,7 @@ jobs:
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
           LOLLY_TIER_B_DEBUG: '1'
+          LOLLY_BROWSER_CHANNEL: chromium
         run: |
           set -o pipefail
           node --import ./tests/css-stub.mjs --test --test-concurrency=1 \
@@ -273,6 +275,8 @@ jobs:
           # Keep timed browser workloads serial on this shared CPU/GPU runner.
           LOLLY_TEST_CONCURRENCY: ${{ matrix.shard == 'browser' && '1' || '' }}
           LOLLY_TIER_B_DEBUG: ${{ matrix.shard == 'browser' && '1' || '' }}
+          # Use the installed full Chromium for the same file and storage paths as Chrome.
+          LOLLY_BROWSER_CHANNEL: ${{ matrix.shard == 'browser' && 'chromium' || '' }}
         run: |
           set -o pipefail
           mkdir -p artifacts
