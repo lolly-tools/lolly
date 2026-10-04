@@ -157,6 +157,13 @@ function stubHtml(
 <script>
   // A human who followed a shared link lands here → boot the app at the tool route,
   // carrying any shared params. Crawlers don't run this; they just read the tags above.
+  try {
+    var type = performance.getEntriesByType('navigation')[0]?.type;
+    if (type === 'reload' || type === 'back_forward') {
+      sessionStorage.setItem('lolly:tool-reload', JSON.stringify({ toolId: '${id}', type: type,
+        address: location.pathname + location.search, at: Date.now() }));
+    } else sessionStorage.removeItem('lolly:tool-reload');
+  } catch (_) {}
   location.replace('/#/tool/${id}' + location.search);
 </script>
 </head>

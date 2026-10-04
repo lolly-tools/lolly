@@ -704,6 +704,7 @@ export function attachCollabPlumbing(
       const col = state.collections?.get(item.id);
       if (!col) continue;
       const idField = rowIdField(item);
+      const allowed = new Set([idField, ...(item.fields ?? []).map(field => field.id)]);
       const old = new Map<string, Record<string, unknown>>();
       for (const row of Array.isArray(item.value) ? item.value : []) {
         if (row && typeof row === 'object' && typeof (row as Record<string, unknown>)[idField] === 'string')
@@ -713,7 +714,7 @@ export function attachCollabPlumbing(
       const anonymous = (Array.isArray(item.value) ? item.value : []).filter(row => !row || typeof row !== 'object' || typeof (row as Record<string,unknown>)[idField] !== 'string');
       values.set(item.id, [...ids.map(id => ({
         ...(replace ? Object.fromEntries(Object.entries(old.get(id) ?? {}).filter(([, value]) => !isScalar(value))) : old.get(id)),
-        ...col.boxes.get(id), [idField]: id,
+        ...Object.fromEntries(Object.entries(col.boxes.get(id) ?? {}).filter(([field]) => allowed.has(field))), [idField]: id,
       })), ...(replace ? [] : anonymous)]);
     }
     return Object.fromEntries(values);

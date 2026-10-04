@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { consumeToolReload, toolAddressKey } from '../lib/tool-reload.ts';
 /**
  * org/team-session-origin.ts - where a mounted tool CAME FROM, when it came from a
  * team session on the instance (plans/100 section 7; the stitch-2 gap named in
@@ -132,7 +133,7 @@ export const TEAM_ORIGIN_STORAGE_KEY = 'lolly:team-origin';
 
 /** The address bar's hash, or '' outside a browser. */
 function currentHash(): string {
-  try { return String(globalThis.window?.location?.hash ?? globalThis.location?.hash ?? ''); } catch { return ''; }
+  try { const here = globalThis.window?.location ?? globalThis.location; return here ? here.hash || `${here.pathname}${here.search}` : ''; } catch { return ''; }
 }
 
 /**
@@ -140,16 +141,7 @@ function currentHash(): string {
  * view-only param (`_ui`, `_panel` and the rest start with `_`) removed and the rest
  * sorted, so a different encoding or order of the same document still matches. Pure.
  */
-export function teamAddressKey(hash: string): string {
-  const raw = String(hash ?? '').replace(/^#/, '');
-  const q = raw.indexOf('?');
-  let path = q < 0 ? raw : raw.slice(0, q);
-  try { path = decodeURIComponent(path); } catch { /* keep it as written */ }
-  const params = new URLSearchParams(q < 0 ? '' : raw.slice(q + 1));
-  for (const key of [...params.keys()]) if (key.startsWith('_')) params.delete(key);
-  params.sort();
-  return `${path}?${params.toString()}`;
-}
+export const teamAddressKey = toolAddressKey;
 
 /** How this page was loaded, as the browser reports it: 'navigate', 'reload',
  *  'back_forward' or 'prerender'. 'navigate' when the browser cannot say. */
@@ -255,12 +247,13 @@ export function rememberTeamSessionOrigin(origin: TeamSessionOriginInput, opts: 
  */
 export function consumeTeamSessionOrigin(toolId: string): TeamSessionOrigin | null {
   generation++;
+  const redirected = consumeToolReload(toolId, currentHash());
   let stash = pending;
   pending = null;
   // The mirror only for a reload (or a back/forward step) of this page: any other load
   // in the tab is a new document, whatever tool it opens (rule 4).
   if (!stash && !restoreSpent) {
-    const type = pageLoadType();
+    const type = redirected ?? pageLoadType();
     if (type === 'reload' || type === 'back_forward') stash = readMirror();
   }
   restoreSpent = true;

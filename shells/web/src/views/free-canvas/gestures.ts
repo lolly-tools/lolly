@@ -18,6 +18,7 @@ import { t } from '../../i18n.ts';
 import { SNAP_PX, boolOf } from './shared.ts';
 import type { AABB, Gesture, GestureInit, HandleName, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { beginCanvasGesture, canvasGestureReady, finishCanvasGesture, previewCanvasRect } from './collaboration.ts';
 
 // ── pointer gestures on the canvas ───────────────────────────────────────────
 export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
@@ -37,8 +38,10 @@ export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
   document.body.classList.add('fc-manipulating');
   fc.textEdit.setFramesClipped(false);
   fc.frameOffCache = new Map(); // frame offsets are stable during a drag - cache to avoid per-move reflow
+  beginCanvasGesture(fc);
 }
-export function endGesture(fc: FcCtx): void {
+export function endGesture(fc: FcCtx, committed = false): void {
+  finishCanvasGesture(fc, committed);
   const { rubber, stageEl } = fc;
   document.body.classList.remove('fc-manipulating');
   fc.gesture = null;
@@ -63,6 +66,14 @@ export function endGesture(fc: FcCtx): void {
     requestAnimationFrame(() => {
       if (!fc.disposed && !fc.gesture) fc.chromeSync.renderChrome();
     });
+}
+export function cancelGesture(fc: FcCtx): void {
+  if (fc.moveRaf) cancelAnimationFrame(fc.moveRaf);
+  fc.moveRaf = 0; fc.pendingMove = null;
+  const pointer = fc.gesture?.pointerId;
+  if (pointer !== undefined) { try { fc.canvasEl.releasePointerCapture(pointer); } catch { /* capture already lost */ } }
+  fc.connectors.endLiveConnectors();
+  endGesture(fc); fc.chromeSync.renderChrome();
 }
 export function onDblClick(fc: FcCtx, e: MouseEvent): void {
   const { cfg, vectorCfg } = fc;
@@ -553,6 +564,8 @@ export function flushGestureMove(fc: FcCtx): void {
 export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
   const { CAM_TILT_DEG_PER_PX, PEN_PULL_MIN, cfg, minSize } = fc;
   if (!fc.gesture || e.pointerId !== fc.gesture.pointerId) return;
+  if (!canvasGestureReady(fc, e)) return;
+  if (fc.opts?.canEdit?.() === false && fc.gesture.type !== 'marquee') { cancelGesture(fc); return; }
   const nat = fc.stage.clientToNative(e.clientX, e.clientY);
   const dxN =
     nat.x - (fc.gesture.origin?.x ?? fc.stage.clientToNative(fc.gesture.startClient.x, fc.gesture.startClient.y).x);
@@ -837,6 +850,9 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
 export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
   const { CAM_TILT_DEG_PER_PX, canvasEl, cfg, frameCfg, minSize, timeCfg } = fc;
   if (!fc.gesture || e.pointerId !== fc.gesture.pointerId) return;
+  if (e.type === 'pointercancel' || !canvasGestureReady(fc) || fc.opts?.canEdit?.() === false && fc.gesture.type !== 'marquee') {
+    cancelGesture(fc); return;
+  }
   const g = fc.gesture;
   // Apply any pending (coalesced) move first so the drop commits the final pointer
   // position, then drop the scheduled frame.
@@ -1167,7 +1183,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     const d = g.moveDelta || { dx: 0, dy: 0 };
     const sel = g.sel;
     const narrow = g.narrow;
-    endGesture(fc);
+    endGesture(fc, true);
     if (Math.abs(d.dx) > 0.5 || Math.abs(d.dy) > 0.5) {
       // PLAYHEAD-CONTEXTUAL WRITES (plans/104 section 8). The gesture is untouched - the
       // preview path never knew about this and still does not - and the redirection
@@ -1235,7 +1251,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     const onDiamond = (fc.timelinePanel?.kfPoseIds([rotId]).length ?? 0) > 0;
     const rotKf = g.type === 'rotate' && Math.abs(dr) > 0.01 && onDiamond;
     const sizeKf = g.type === 'resize' && (Math.abs(dw) > 0.5 || Math.abs(dh) > 0.5) && onDiamond;
-    endGesture(fc);
+    endGesture(fc, true);
     if (rotKf && fc.timelinePanel) {
       fc.select.commit(fc.timelinePanel.kfPoseWrite(boxes, [rotId], { r: dr }));
       return;
@@ -1265,10 +1281,17 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
   if (g.type === 'gscale' || g.type === 'grotate') {
     const next = g.liveBoxes;
     const sel = g.sel;
-    endGesture(fc);
+    endGesture(fc, true);
     // Containment-on-group-transform: every scaled/rotated box re-buckets. g.liveBoxes
     // is a full index-aligned array, so g.sel indices stay valid.
-    if (next) fc.select.commit(fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, next, sel), new Set(sel)));
+    if (next) {
+      // Only this gesture's geometry is final. Keep content another editor changed
+      // after the last pointer frame, and address rows by their stable identity.
+      const byId = new Map(sel.map(i => [fc.select.idOf(next[i], i), boxRect(next[i], cfg)]));
+      const merged = boxes.map((box, i) => { const rect = byId.get(fc.select.idOf(box, i)); return rect ? withRect(box, rect, cfg) : box; });
+      const selected = boxes.flatMap((box, i) => byId.has(fc.select.idOf(box, i)) ? [i] : []);
+      fc.select.commit(fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, merged, selected), new Set(selected)));
+    }
     else fc.chromeSync.renderChrome();
     return;
   }
@@ -1276,6 +1299,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
 }
 // Apply a rect to a live box DOM element during a gesture (no model write).
 export function applyLiveRect(fc: FcCtx, index: number, r: Rect): void {
+  previewCanvasRect(fc, index, r);
   const { frameCfg, pages } = fc;
   const boxes = fc.select.getBoxes();
   const id = fc.select.idOf(boxes[index], index);
@@ -1374,6 +1398,7 @@ export function gesturesOps(fc: FcCtx) {
   return {
     beginGesture: bindOp(fc, beginGesture),
     endGesture: bindOp(fc, endGesture),
+    cancelGesture: bindOp(fc, cancelGesture),
     onDblClick: bindOp(fc, onDblClick),
     onStageTouchDown: bindOp(fc, onStageTouchDown),
     onStageTouchMove: bindOp(fc, onStageTouchMove),

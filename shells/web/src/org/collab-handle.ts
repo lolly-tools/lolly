@@ -142,6 +142,7 @@ export function readPresencePayload(payload: unknown): ReadPresencePayload | nul
 }
 
 export interface WorkCollabHandleOptions {
+  comments?: import('../lib/canvas-comments.ts').CanvasCommentsCapability;
   /**
    * This device's collab client id. Defaults to `getCollabClientId()` - the SAME
    * singleton `createWorkCollabProvider` defaults to, so in the ordinary path the
@@ -182,6 +183,7 @@ export function createWorkCollabHandle(
 ): WorkCollabSessionHandle {
   const clientId = opts.clientId ?? provider.clientId ?? getCollabClientId();
 
+  const recoverySubs = new Set<(value: { id: string; ops: readonly CanvasOp[] }) => void>();
   const saveSubs = new Set<(state: { pending: number; message: string }) => void>();
   let saveError = '', saveErrorCode = '';
   const saveState = () => {
@@ -379,6 +381,7 @@ export function createWorkCollabHandle(
   }
 
   const stopProvider = provider.on((event) => {
+    if (event.kind === 'recovery') { for (const fn of recoverySubs) fn(event); return; }
     if (event.kind === 'error') { saveErrorCode = event.code; saveError = event.message || event.code; publishSave(); return; }
     if (event.kind === 'warning') { saveError = 'Pending edits are full. Save a copy before continuing.'; publishSave(); return; }
     if (event.kind === 'state') {
@@ -419,6 +422,7 @@ export function createWorkCollabHandle(
 
   return {
     admission: 'work-room',
+    recoveryIn: { subscribe(fn) { recoverySubs.add(fn); for (const copy of provider.recoveries?.() ?? []) fn(copy); return () => { recoverySubs.delete(fn); }; } },
     saveIn: { subscribe(fn) { saveSubs.add(fn); fn(saveState()); return () => { saveSubs.delete(fn); }; } },
     adapter: provider.adapter,
     history: provider.history,
@@ -497,6 +501,8 @@ export function createWorkCollabHandle(
       // presence is ephemeral by definition and is never queued).
       provider.sendPresence(frame);
     },
+    claims: provider.claims,
+    comments: opts.comments,
 
     /**
      * A peer's role, or honest ignorance. The presence roster is keyed by device
@@ -535,7 +541,7 @@ export function createWorkCollabHandle(
       if (connection !== 'closed') publishConnection('closed');
       stopProvider();
       presenceSubs.clear();
-      saveSubs.clear();
+      saveSubs.clear(); recoverySubs.clear();
       stateSubs.clear();
       opsSubs.clear();
       snapshotSubs.clear();

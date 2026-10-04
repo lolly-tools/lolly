@@ -6,6 +6,11 @@ export interface CollabSurface {
   element(): HTMLElement | null;
   selection(): string[];
   viewport?(): { x: number; y: number; zoom: number };
+  readonly collection?: string;
+  object?(id: string): { element: HTMLElement | null; x: number; y: number; w: number; h: number; rot: number } | null;
+  fromClient?(point: { x: number; y: number }): { x: number; y: number };
+  reveal?(id: string): void;
+  toClient?(point: { x: number; y: number }): { x: number; y: number };
   subscribe(fn: () => void): () => void;
 }
 const surfaces = new WeakMap<object, CollabSurface>();

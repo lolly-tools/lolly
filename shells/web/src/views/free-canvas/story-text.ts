@@ -14,10 +14,12 @@ import { pinEditorFont } from '../../lib/text-editor-fonts.ts';
 import { nativeTextCaretRect } from '../../lib/text-native-dom.ts';
 import { parseCssColorFull } from '../../bridge/export-css.ts';
 import { rgbaToHex } from '../../lib/color-formats.ts';
+import { retainCanvasRecovery } from '../../lib/canvas-recovery.ts';
 import { retainTextRecovery } from '../../lib/text-collab.ts';
 import type { Box } from '../free-canvas-math.ts';
 import type { FmtBar } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { claimCanvasText, finishCanvasText } from './collaboration.ts';
 function report(fc: FcCtx, error: unknown): void {
   const message = error instanceof Error ? error.message : String(error); announce(message);
   fc.fmtbar?.setAttribute('data-text-error', message); console.warn('Text edit:', message);
@@ -48,6 +50,7 @@ export async function write(fc: FcCtx, value: TextEditorSnapshot, label: string,
   await fc.history.commit(values, label, typingGroup);
 }
 export function start(fc: FcCtx, id: string, options: { selectAll?: boolean; point?: { x: number; y: number } } = {}): void {
+  if (fc.opts?.canEdit?.() === false || !claimCanvasText(fc, id, () => start(fc, id, options))) return;
   if (!available(fc)) { report(fc, new Error(t('This host cannot edit composed text.'))); return; }
   const el = fc.canvasEl.querySelector<HTMLElement>(`.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"] .lolly-box-text`);
   if (!el) return;
@@ -69,6 +72,7 @@ export function start(fc: FcCtx, id: string, options: { selectAll?: boolean; poi
         return { ...previous, [fc.cfg.idField]: id, [fc.cfg.kindField]: 'text', [fc.cfg.textField]: '', [fc.cv.textStoryField!]: storyId, [fc.cv.textFrameField!]: JSON.stringify(settings), [fc.cfg.wField]: width, [fc.cfg.hField]: height, hidden, locked };
       });
       retainTextRecovery(fc.runtime, { [fc.cv.textDocumentInput!]: serializeTextDocument(value.document), [fc.blockId]: boxes }, value.document.stories.map(story => story.source).join(' ').slice(0, 80));
+      retainCanvasRecovery(fc.runtime, { [fc.cv.textDocumentInput!]: serializeTextDocument(value.document), [fc.blockId]: boxes }, 'Interrupted text');
     },
     frameElement: id => fc.canvasEl.querySelector<HTMLElement>(`.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"] .lolly-box-text`),
     nativeRoot: fc.overlay,
@@ -161,6 +165,7 @@ export async function finish(fc: FcCtx, cancel = false, removed = false): Promis
   if(fc.editing!==editing)return;
   if(!cancel&&!removed&&editor.frame.path)fc.textPathSelection={id:editing.id,story:editor.story.id,revision:editor.story.revision,...editor.range};
   fc.editing = null; editing.composed.destroy(); fc.textEdit.hideFmtBar();
+  finishCanvasText(fc, !cancel && !removed);
   if(cancel){editing.el.innerHTML=editing.prevHtml;if(editing.boxEl)editing.boxEl.style.cssText=editing.prevBoxStyle;}
   editing.boxEl?.classList.remove('fc-box-editing'); fc.stageEl.classList.remove('is-text-editing');
   fc.history?.endGesture?.(); fc.chromeSync.renderChrome(); fc.canvasEl.focus({ preventScroll: true });

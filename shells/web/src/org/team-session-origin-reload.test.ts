@@ -265,3 +265,24 @@ test('a save that resolves after the next mount adopts nothing', () => {
   assert.equal(activeTeamSessionOrigin('qr-code'), null);
   assert.equal(mirror(), null);
 });
+
+test('a reload through a tool preview redirect restores only the same pretty tool address', () => {
+  _clearTeamSessionOriginForTests();
+  dom.window.history.replaceState(null, '', '/t/qr-code?text=team');
+  rememberTeamSessionOrigin(ORIGIN); consumeTeamSessionOrigin('qr-code');
+  reload('navigate');
+  realStorage.setItem('lolly:tool-reload', JSON.stringify({ toolId: 'qr-code', type: 'reload', address: '/t/qr-code?text=team', at: Date.now() }));
+  dom.window.history.replaceState(null, '', '/#/tool/qr-code?text=team');
+  assert.deepEqual(consumeTeamSessionOrigin('qr-code'), ORIGIN);
+  assert.equal(realStorage.getItem('lolly:tool-reload'), null, 'the redirect hint is spent once');
+  at(HOME);
+});
+test('a preview redirect cannot restore an origin at a different document address', () => {
+  _clearTeamSessionOriginForTests();
+  dom.window.history.replaceState(null, '', '/t/qr-code?text=team');
+  rememberTeamSessionOrigin(ORIGIN); consumeTeamSessionOrigin('qr-code'); reload('navigate');
+  realStorage.setItem('lolly:tool-reload', JSON.stringify({ toolId: 'qr-code', type: 'reload', address: '/t/qr-code?text=team', at: Date.now() }));
+  dom.window.history.replaceState(null, '', '/#/tool/qr-code?text=local');
+  assert.equal(consumeTeamSessionOrigin('qr-code'), null); assert.equal(mirror(), null);
+  at(HOME);
+});

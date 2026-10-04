@@ -176,6 +176,9 @@ export interface CollabSelf {
 export interface CollabSaveState { pending: number; message: string }
 
 export interface CollabSessionHandle {
+  readonly comments?: import('./canvas-comments.ts').CanvasCommentsCapability;
+  readonly claims?: import('./canvas-interaction.ts').CanvasClaimCapability;
+  readonly recoveryIn?: CollabStream<{ id: string; ops: readonly CanvasOp[] }>;
   /** A work gateway already meters each authenticated sender. Its combined feed
    * includes checkpoint projections; still validate every op against this model. */
   readonly admission?: 'work-room';
@@ -724,7 +727,7 @@ export function createCollabSession(opts: CollabSessionOptions): CollabSession {
   }
 
   /** Inbound ops, filtered to the ones allowed to become state. */
-  function admitOps(ops: readonly CanvasOp[]): readonly CanvasOp[] {
+  function admitOps(ops: readonly CanvasOp[]): readonly CanvasOp[] | null {
     // An empty message carries no arrivals to charge and nothing to inspect. Charging
     // it one unit anyway would let a peer's harmless empty frame eat the budget of a
     // legitimate 200-op second and get them disconnected for it - a false accusation,
@@ -743,7 +746,7 @@ export function createCollabSession(opts: CollabSessionOptions): CollabSession {
       for (let i = 0; i < ops.length; i += size) {
         const checked = guard.checkOps(ops.slice(i, i + size));
         if (checked.rejected.length) refuse('ops', checked.rejected);
-        if (checked.rejected.some(r => ABUSE_REASONS.has(r.reason))) return [];
+        if (checked.rejected.some(r => ABUSE_REASONS.has(r.reason))) return null;
         accepted.push(...checked.ok);
       }
       return accepted;
@@ -1068,12 +1071,12 @@ export function createCollabSession(opts: CollabSessionOptions): CollabSession {
       // The one door ops come through, so the guard runs here - before the plumbing
       // queues anything, and therefore before `adapter.applyRemotePatch` can put a
       // hostile write into the converging document (where LWW would keep it).
-      plumbing?.applyRemotePatch(admitOps(ops));
+      plumbing?.applyRemotePatch(admitOps(ops) ?? []);
     },
     applySnapshot(snapshot) {
       if (closed || handle.admission !== 'work-room' || !Number.isSafeInteger(snapshot.clock) || snapshot.clock < 0) return;
       const ops = admitOps(snapshot.ops);
-      if (ops.length !== snapshot.ops.length) return;
+      if (!ops) return;
       plumbing?.applySnapshot({ ops, clock: snapshot.clock });
     },
     close() {

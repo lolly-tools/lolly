@@ -54,7 +54,8 @@
 
 import { mountDesignRules } from './design-rules.ts';
 import { registerCollabSurface } from '../lib/collab-surface.ts';
-import { sequenceFramesInOrder } from './free-canvas-math.ts';
+import { disposeCanvasInteractions } from './free-canvas/collaboration.ts';
+import { boxRect, sequenceFramesInOrder } from './free-canvas-math.ts';
 import type { Box } from './free-canvas-math.ts';
 import type { ArtboardPort, DesignCanvasPorts, FramePort, InspectorActions, ModelPort, NavigatorActions, SelectionPort } from './design-ports.ts';
 import { frameThumb, shadowChoicesFrom, shapeChoicesFrom } from './free-canvas-fields.ts';
@@ -2154,6 +2155,26 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     saveMaster: () => fc.actions?.save?.(),
   });
   const unregisterCollabSurface = registerCollabSurface(runtime, {
+    collection: blockId,
+    object: id => {
+      const boxes = fc.select.getBoxes(), index = fc.select.indexOfId(boxes, id);
+      if (index < 0) return null;
+      const r = boxRect(boxes[index], cfg);
+      return { element: fc.stage.liveBoxEl(id), x: r.x, y: r.y, w: r.w, h: r.h, rot: r.rot ?? 0 };
+    },
+    fromClient: point => fc.stage.clientToNative(point.x, point.y),
+    reveal: id => {
+      const boxes = fc.select.getBoxes(), index = fc.select.indexOfId(boxes, id);
+      if (index < 0) return;
+      const frame = fc.frameCfg && String(boxes[index]?.[fc.frameCfg.frameField] ?? '');
+      if (frame) artboardPort.focus(frame);
+      fc.selection.clear(); fc.selection.add(id); fc.chromeSync.renderChrome();
+      fc.stage.liveBoxEl(id)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    },
+    toClient: point => {
+      const m = fc.stage.metrics(), at = fc.stage.nativeToStage(point.x, point.y, m);
+      return { x: at.x + m.sr.left, y: at.y + m.sr.top };
+    },
     id: () => artboardPort.active() || `canvas:${blockId}`,
     element: () => {
       const id = artboardPort.active();
@@ -2185,6 +2206,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   return {
     design: designPorts,
     destroy() {
+      disposeCanvasInteractions(fc);
       fc.rules?.destroy();
       unregisterCollabSurface();
       unwatchScenes();

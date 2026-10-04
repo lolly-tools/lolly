@@ -159,6 +159,7 @@ interface Wire {
 }
 
 function wire(over: Partial<{
+  admission: 'work-room';
   role: 'writer' | 'observer';
   name: string;
   colorIndex: number;
@@ -177,6 +178,7 @@ function wire(over: Partial<{
     connect: (state) => { events.push(state); },
     inboundSubs: () => presenceIn.count(),
     handle: {
+      ...(over.admission ? { admission: over.admission } : {}),
       adapter,
       role: over.role ?? 'writer',
       self: {
@@ -283,6 +285,36 @@ const focusOut = (el: Element, to: Element | null = null): void => {
 };
 
 // ── the cases ─────────────────────────────────────────────────────────────────
+
+test('a restored work snapshot replaces starter rows despite undeclared metadata and omits undeclared fields', async () => {
+  const w = wire({ role: 'observer', admission: 'work-room' }), frame = scheduler(), warnings = captureWarn();
+  const runtime = harness([blocks('items', [{ __rid: 'starter', label: 'Starter' }])]);
+  const origin = { client: 'server', clock: 1 };
+  const ops: CanvasOp[] = [
+    { k: 'add', col: 'items', id: 'team', row: { label: 'Shared', undeclared: 'Hidden' }, orderKey: 'a', origin },
+    { k: 'param', key: '__width', value: 640, origin },
+  ];
+  w.adapter.doc.applyRemotePatch(ops);
+  const session = createCollabSession({ handle: w.handle, runtime, sidebarRoot: null, doc: null, raf: frame.raf });
+  try {
+    session.applySnapshot({ ops, clock: 1 }); await frame.frame();
+    assert.deepEqual(runtime.getModel()[0]!.value, [{ __rid: 'team', label: 'Shared' }]);
+    assert.equal(warnings.lines.length, 1);
+  } finally { session.close(); warnings.restore(); }
+});
+
+test('structural abuse still rejects the entire restored snapshot', async () => {
+  const w = wire({ admission: 'work-room' }), frame = scheduler(), warnings = captureWarn();
+  const runtime = harness([text('title', 'Original')]);
+  const origin = { client: 'server', clock: 1 };
+  const ops: CanvasOp[] = [{ k: 'param', key: 'title', value: 'Changed', origin }, { k: 'param', key: '__proto__', value: 'Unsafe', origin }];
+  w.adapter.doc.applyRemotePatch(ops);
+  const session = createCollabSession({ handle: w.handle, runtime, sidebarRoot: null, doc: null, raf: frame.raf });
+  try {
+    session.applySnapshot({ ops, clock: 1 }); await frame.frame();
+    assert.equal(runtime.getModel()[0]!.value, 'Original'); assert.equal(runtime.patches.length, 0);
+  } finally { session.close(); warnings.restore(); }
+});
 
 test('alone: focus changes cost nothing on the wire, and arm no timer', () => {
   const clock = fakeClock();

@@ -136,17 +136,21 @@ export interface WireDocState extends WireBoxes {
  */
 export type CollabPresencePayload = unknown;
 
-export interface JoinFrame { readonly t: 'join'; readonly opVersion: string; readonly presenceVersion?: number; readonly receipts?: number }
-export interface ClientOpsFrame { readonly t: 'ops'; readonly ops: readonly CanvasOp[]; readonly batchId?: string; readonly ids?: readonly string[] }
+export interface JoinFrame { readonly t: 'join'; readonly opVersion: string; readonly presenceVersion?: number; readonly receipts?: number; readonly interactionVersion?: number }
+export interface ClientOpsFrame { readonly t: 'ops'; readonly ops: readonly CanvasOp[]; readonly batchId?: string; readonly ids?: readonly string[]; readonly claimId?: string }
 export interface ClientPresenceFrame { readonly t: 'presence'; readonly frame: CollabPresencePayload }
 export interface LeaveFrame { readonly t: 'leave' }
 
-export type ClientFrame = JoinFrame | ClientOpsFrame | ClientPresenceFrame | LeaveFrame;
+export type ClientFrame = JoinFrame | ClientOpsFrame | ClientPresenceFrame | LeaveFrame
+  | { readonly t: 'claim'; readonly requestId: string; readonly action: 'acquire' | 'renew' | 'release';
+      readonly target?: import('@lolly-tools/core/canvas-interaction-v1').CanvasClaimTarget; readonly claimId?: string };
 
 // ── Frames: server → client (all fields optional - untrusted) ─────────────────
 
 export interface JoinAckFrame {
   readonly t: 'join-ack';
+  readonly interactionVersion?: number;
+  readonly claims?: readonly import('@lolly-tools/core/canvas-interaction-v1').CanvasClaim[];
   readonly receipts?: number;
   readonly checkpoint?: CanvasCheckpoint;
   readonly presenceVersion?: number;
@@ -243,6 +247,8 @@ export interface ErrorFrame {
 
 export interface ReceiptFrame { readonly t: 'receipt'; readonly batchId: string; readonly durableRevision: number; readonly acceptedIds: readonly string[]; readonly rejectedIds: readonly string[]; readonly checkpoint?: CanvasCheckpoint; readonly serverClock?: number }
 export type ServerFrame =
+  | { readonly t: 'claims'; readonly claims?: unknown }
+  | { readonly t: 'claim-result'; readonly requestId?: unknown; readonly claim?: unknown; readonly reason?: unknown; readonly blockedBy?: unknown }
   | { readonly t: 'peer-role'; readonly id: string; readonly role: CollabRole }
   | ReceiptFrame
   | JoinAckFrame
@@ -252,7 +258,7 @@ export type ServerFrame =
   | PeerLeaveFrame
   | ErrorFrame;
 
-const SERVER_FRAME_TYPES = new Set(['join-ack', 'ops', 'presence', 'peer-join', 'peer-leave', 'peer-role', 'error', 'receipt']);
+const SERVER_FRAME_TYPES = new Set(['join-ack', 'ops', 'presence', 'peer-join', 'peer-leave', 'peer-role', 'error', 'receipt', 'claims', 'claim-result']);
 
 /**
  * Parse one inbound message. Returns null for anything that is not a JSON object
