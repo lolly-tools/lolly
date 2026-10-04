@@ -168,7 +168,10 @@ function syncPageLink(marker: HTMLElement, embed: WebEmbed | null, mode: WebMoun
   link.title = t('Open in new tab');
   link.setAttribute('aria-label', `${t('Open in new tab')}: ${embed.host}`);
   link.setAttribute('data-export-hide', '');
-  if (!current) { link.innerHTML = icon('externalLink'); marker.appendChild(link); }
+  if (!current) {
+    link.append(new window.DOMParser().parseFromString(icon('externalLink'), 'image/svg+xml').documentElement);
+    marker.appendChild(link);
+  }
 }
 
 function note(state: WebFrameState, embed: WebEmbed | null): string {
