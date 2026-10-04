@@ -31,8 +31,10 @@ export interface CanvasPreview {
 }
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const unsafe = new Set(['__proto__', 'constructor', 'prototype']);
+// biome-ignore lint/suspicious/noControlCharactersInRegex: claim identifiers must reject control characters
+const controls = /[\x00-\x1f\x7f-\x9f]/;
 export const interactionKey = (v: unknown): v is string => typeof v === 'string' && v.length > 0
-  && v.length <= 256 && !unsafe.has(v) && !/[\x00-\x1f\x7f-\x9f]/.test(v);
+  && v.length <= 256 && !unsafe.has(v) && !controls.test(v);
 export function readClaimTarget(v: unknown): CanvasClaimTarget | null {
   if (!object(v) || !['transform', 'text'].includes(String(v.kind)) || !interactionKey(v.collection)
       || !Array.isArray(v.ids) || !v.ids.length || v.ids.length > CANVAS_INTERACTION_OBJECT_LIMIT

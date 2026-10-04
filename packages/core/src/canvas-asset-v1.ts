@@ -4,8 +4,10 @@ import type { AssetRef } from './host-v1/asset-ref.ts';
 
 const PREFIX = 'lolly-asset-v1:';
 const TYPES = new Set(['raster', 'vector', 'video', 'audio', 'lottie', 'font', 'data', 'model', 'radiance']);
+// biome-ignore lint/suspicious/noControlCharactersInRegex: portable identifiers must reject control characters
+const controls = /[\u0000-\u001f\u007f]/;
 const clean = (value: unknown, limit: number): value is string => typeof value === 'string'
-  && value.length > 0 && value.length <= limit && !/[\u0000-\u001f\u007f]/.test(value);
+  && value.length > 0 && value.length <= limit && !controls.test(value);
 
 export function portableCanvasAsset(value: unknown): AssetRef | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
