@@ -780,5 +780,6 @@
   "Sign out": "Deconectează-te",
   "Could not sign out. Try again.": "Nu te-am putut deconecta. Încearcă din nou.",
   "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design verifică această regulă pentru fiecare strat în verificările de export, iar lolly check face același lucru pentru un document salvat. Exemplele de mai jos nu sunt verificate conform acestei reguli.",
-  "{names} typing…": "{names} scriu…"
+  "{names} typing…": "{names} scriu…",
+  "View {name}": "Vizualizează {name}"
 }

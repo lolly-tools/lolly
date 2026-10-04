@@ -15,6 +15,7 @@ export function mountCommentPresence(panel: HTMLElement, session: CommentPresenc
   panel.append(typing, layer);
   const surfaceId = () => `comments:${context()}`;
   let engaged = false, disposed = false, timer: ReturnType<typeof setTimeout> | undefined;
+  let publishedContext = '';
   const cursors = createCollabCursors({ stage: panel, layer, mapPoint: (id, point) => {
     const peer = session.presence.roster().find(p => p.id === id);
     if (panel.hidden || peer?.state.surface?.id !== surfaceId()) return null;
@@ -34,12 +35,19 @@ export function mountCommentPresence(panel: HTMLElement, session: CommentPresenc
   function clear(): void {
     if (timer) clearTimeout(timer); timer = undefined;
     if (engaged) { session.updateSurface({ cursor: undefined, chat: undefined }); session.setFocus(null); }
-    engaged = false; paint(session.state());
+    engaged = false; publishedContext = ''; paint(session.state());
   }
+  function publishContext(): void {
+    if (disposed || panel.hidden || session.state().connection !== 'live' || publishedContext === surfaceId()) return;
+    publishedContext = surfaceId(); engaged = true;
+    session.updateSurface({ surface: { id: publishedContext, space: 'unit' }, location: tRaw('Comments'), selection: [], cursor: undefined });
+  }
+  panel.addEventListener('focusin', publishContext, { signal: abort.signal });
   panel.addEventListener('pointermove', event => {
     if (panel.hidden || disposed) return;
     const rect = panel.getBoundingClientRect(); if (!rect.width || !rect.height) return;
     engaged = true;
+    publishedContext = surfaceId();
     session.updateSurface({ surface: { id: surfaceId(), space: 'unit' }, location: tRaw('Comments'), selection: [],
       cursor: { x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)) } });
   }, { signal: abort.signal });
@@ -47,6 +55,7 @@ export function mountCommentPresence(panel: HTMLElement, session: CommentPresenc
   panel.addEventListener('input', event => {
     if (!(event.target instanceof doc.defaultView!.HTMLTextAreaElement) || panel.hidden || disposed) return;
     engaged = true; session.setFocus(surfaceId());
+    publishedContext = surfaceId();
     session.updateSurface({ surface: { id: surfaceId(), space: 'unit' }, location: tRaw('Comments'), selection: [], chat: 'typing' });
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => { timer = undefined; session.updateSurface({ chat: undefined }); }, 3_000);
@@ -59,7 +68,7 @@ export function mountCommentPresence(panel: HTMLElement, session: CommentPresenc
   const observer = new doc.defaultView!.MutationObserver(() => { if (panel.hidden) clear(); else paint(session.state()); });
   observer.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
   const off = session.subscribe(paint); paint(session.state());
-  return { refresh() { paint(session.state()); cursors.reanchor(); }, dispose() {
+  return { activate() { publishContext(); }, refresh() { if (engaged) publishContext(); paint(session.state()); cursors.reanchor(); }, dispose() {
     if (disposed) return; disposed = true; clear(); off(); observer.disconnect(); abort.abort(); cursors.dispose(); typing.remove(); layer.remove();
   } };
 }

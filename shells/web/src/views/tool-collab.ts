@@ -64,6 +64,8 @@ import type {
 } from '../lib/collab-session.ts';
 import { livePalette } from '../lib/live-palette.ts';
 import { mountCanvasComments } from './tool-canvas-comments.ts';
+import { jumpToPeer, mountPresentationPresence } from './tool-peer-view.ts';
+import { collabPalette } from '../lib/collab-colors.ts';
 import { mountCanvasInteractions } from './tool-canvas-interactions.ts';
 
 /** Gap between the collab pill and whatever else owns the stage's top lane. */
@@ -328,7 +330,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     steps.unshift(() => layer?.unmount());
     const interactions = layer && mountCanvasInteractions(runtime, handle, session, layer.el);
     steps.unshift(() => interactions?.teardown());
-    const comments = handle.comments && layer && mountCanvasComments(runtime, handle.comments, stage, canvas, layer.el, interactions?.geometry, session);
+    const comments = handle.comments && layer && mountCanvasComments(runtime, handle.comments, stage, canvas, layer.el, interactions?.geometry, session, opts.colors ?? collabPalette({ palette, accent }));
     steps.unshift(() => comments?.teardown());
 
     const focus: CollabFocus = createCollabFocus({
@@ -364,6 +366,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     let subscribedSurface = collabSurface(runtime);
     let offSurface = subscribedSurface?.subscribe(refreshSurface);
     refreshSurface();
+    steps.unshift(mountPresentationPresence(runtime, canvas, session));
     const syncSurface = (): void => {
       const next = collabSurface(runtime);
       if (next === subscribedSurface) { if (next?.id() !== localSurfaceId || next && !next.element()) refreshSurface(); return; }
@@ -461,6 +464,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     // over - supplied only when there is something for it to do.
     const pill: CollabPill = mountCollabPill(stage, {
       source: session,
+      onPeer: id => jumpToPeer(runtime, session, id, comments || undefined),
       className: 'collab-pill--stage',
       ...(beam ? { actions: beam.actions } : {}),
     });

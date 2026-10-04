@@ -4,6 +4,16 @@ import type { ToolViewCtx } from './context.ts';
 import type { ProductionOptions } from '../present-production.ts';
 import type { PresentController } from '../present-mode.ts';
 
+export function presenceAddress(canvas: HTMLElement | null, write: (address: string) => void) {
+  return (frameId: string, _index: number, build: number): void => {
+    write(build > 0 ? `${frameId}.${build}` : frameId);
+    canvas?.dispatchEvent(new CustomEvent('collab-present-view', { detail: frameId }));
+  };
+}
+export function presenceClose(canvas: HTMLElement | null, close: () => void): () => void {
+  return () => { canvas?.dispatchEvent(new CustomEvent('collab-present-view')); close(); };
+}
+
 function productionOptions(tview: ToolViewCtx, controlsWindow: Window): ProductionOptions {
   return {
     scene: tview.presentationScene, controlsWindow,
@@ -64,6 +74,8 @@ function mountCountdown(tview: ToolViewCtx): void {
 }
 
 export const presentationOps = (tview: ToolViewCtx) => ({
+  presenceAddress,
+  presenceClose,
   productionOptions: (win: Window) => productionOptions(tview, win),
   mountCountdown: () => mountCountdown(tview),
 });

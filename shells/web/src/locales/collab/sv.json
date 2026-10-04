@@ -224,5 +224,6 @@
   "Tap to enlarge for scanning": "Tryck för att förstora för skanning",
   "Enlarge {label} for scanning": "Förstora {label} för skanning",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Rikta en annan enhet hit för att skanna den. Tryck var som helst eller tryck Esc för att stänga.",
-  "This link is too long to scan. Copy it instead, or use the Code tab.": "Den här länken är för lång för att skanna. Kopiera den i stället, eller använd fliken Kod."
+  "This link is too long to scan. Copy it instead, or use the Code tab.": "Den här länken är för lång för att skanna. Kopiera den i stället, eller använd fliken Kod.",
+  "View {name}": "Visa {name}"
 }

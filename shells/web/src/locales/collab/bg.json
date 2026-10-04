@@ -224,5 +224,6 @@
   "Tap to enlarge for scanning": "Докоснете за уголемяване за сканиране",
   "Enlarge {label} for scanning": "Уголеми {label} за сканиране",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Насочи друго устройство насам, за да го сканираш. Докосни някъде или натисни Esc за затваряне.",
-  "This link is too long to scan. Copy it instead, or use the Code tab.": "Тази връзка е твърде дълга за сканиране. Копирай я вместо това или използвай раздела Код."
+  "This link is too long to scan. Copy it instead, or use the Code tab.": "Тази връзка е твърде дълга за сканиране. Копирай я вместо това или използвай раздела Код.",
+  "View {name}": "Виж {name}"
 }

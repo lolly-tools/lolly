@@ -15,8 +15,9 @@ function fixture() {
   const patches: Partial<PresenceState>[] = [], listeners = new Set<(state: CollabSessionState) => void>();
   const session: CommentPresenceSession = { presence: { roster: () => peers }, state: () => state,
     subscribe(fn) { listeners.add(fn); return () => { listeners.delete(fn); }; }, updateSurface: patch => { patches.push(patch); }, setFocus() {} };
-  const ui = mountCommentPresence(panel, session, () => 'thread');
-  return { dom, panel, input, patches, ui, peer(surface: string, typing = true) {
+  let context = 'thread';
+  const ui = mountCommentPresence(panel, session, () => context);
+  return { dom, panel, input, patches, ui, context(value: string) { context = value; ui.refresh(); }, peer(surface: string, typing = true) {
     peers = [{ id: 'peer', state: { userId: 'peer', name: 'Bea', color: '#008657', selection: [], surface: { id: surface, space: 'unit' }, cursor: { x: .4, y: .6 }, ...(typing ? { chat: 'typing' } : {}) }, seq: 1, away: false, firstSeen: 0, lastSeen: 0 }];
     for (const fn of listeners) fn(state);
   }, close() { state = { ...state, connection: 'closed' }; for (const fn of listeners) fn(state); },
@@ -31,6 +32,15 @@ test('discussion presence is scoped to the selected thread and disappears when t
     assert.equal(f.dom.window.document.querySelector('main')!.textContent, 'Artwork');
     f.close(); assert.equal(f.panel.querySelector('.collab-comment-typing')!.textContent, '');
     assert.equal(f.panel.querySelectorAll('.collab-cursor:not([hidden])').length, 0);
+  } finally { f.dispose(); }
+});
+test('keyboard focus and changing the discussion publish its current context without sharing draft text', () => {
+  const f = fixture();
+  try {
+    f.input.value = 'Private draft'; f.ui.activate();
+    assert.equal(f.patches.at(-1)!.surface!.id, 'comments:thread');
+    f.context('second'); assert.equal(f.patches.at(-1)!.surface!.id, 'comments:second');
+    assert.equal(JSON.stringify(f.patches).includes('Private draft'), false);
   } finally { f.dispose(); }
 });
 test('typing presence expires and never includes the unsent reply', t => {

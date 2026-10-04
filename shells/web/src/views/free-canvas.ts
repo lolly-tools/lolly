@@ -54,6 +54,7 @@
 
 import { mountDesignRules } from './design-rules.ts';
 import { registerCollabSurface } from '../lib/collab-surface.ts';
+import { revealCanvasPeer } from './free-canvas/peer-view.ts';
 import { disposeCanvasInteractions } from './free-canvas/collaboration.ts';
 import { boxRect, sequenceFramesInOrder } from './free-canvas-math.ts';
 import type { Box } from './free-canvas-math.ts';
@@ -2155,6 +2156,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     saveMaster: () => fc.actions?.save?.(),
   });
   const unregisterCollabSurface = registerCollabSurface(runtime, {
+    revealPeer: state => revealCanvasPeer(fc, state),
     collection: blockId,
     object: id => {
       const boxes = fc.select.getBoxes(), index = fc.select.indexOfId(boxes, id);

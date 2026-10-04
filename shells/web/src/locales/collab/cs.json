@@ -224,5 +224,6 @@
   "Couldn't save the transfer.": "Přenos se nepodařilo uložit.",
   "Couldn't read the transfer back.": "Přenos se nepodařilo znovu načíst.",
   "Part of the transfer is missing.": "Část přenosu chybí.",
-  "The transfer was cancelled.": "Přenos byl zrušen."
+  "The transfer was cancelled.": "Přenos byl zrušen.",
+  "View {name}": "Zobrazit {name}"
 }

@@ -9,6 +9,7 @@
  */
 import { replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { acquireCollabSession } from '../../lib/collab-session-source.ts';
+import { mountPeerViewport } from '../tool-peer-view.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
 import { releaseTeamSessionOrigin } from '../../org/team-session-origin.ts';
@@ -825,6 +826,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       }
     );
     const zoom = tview.stageZoom;
+    tview.mountLifecycle.add('peer viewport', mountPeerViewport(tview.runtime, stageEl, canvasEl, zoom));
     let lastView = '';
     const offView = zoom.subscribe(() => {
       if (isIframeMode() || !zoom.isUserZoomed() || zoom.isSuspended()) return;

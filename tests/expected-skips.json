@@ -1480,13 +1480,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/design-compose-suggest-sleepwalking.test.ts",
-      "fullName": "the Sleepwalking suggestion sets covers over their photographs and the question cards as a list",
-      "reason": "the private Sleepwalking source deck is not on this machine (set LOLLY_SUGGEST_SLEEPWALKING)",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
       "file": "tests/design-frame-export-bg.browser.test.ts",
       "fullName": "one artboard exported as PNG and JPG paints its own bg",
       "reason": "set LOLLY_EXPORT_TEST_URL",
@@ -3555,6 +3548,41 @@
       "file": "tests/design-brief-suse.test.ts",
       "fullName": "frames seeded from the SUSE master keep every house rule, the logo on photography included",
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suggest-sleepwalking.test.ts",
+      "fullName": "the Sleepwalking 2x2 grid numbered 01 to 04 drops its counters, and the closing subtitle fits its slot",
+      "reason": "the private Sleepwalking source deck is not on this machine (set LOLLY_SUGGEST_SLEEPWALKING)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suggest-sleepwalking.test.ts",
+      "fullName": "the Sleepwalking suggestion sets covers over their photographs, its statements over theirs, and the question cards as columns",
+      "reason": "the private Sleepwalking source deck is not on this machine (set LOLLY_SUGGEST_SLEEPWALKING)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-theme-follow.test.ts",
+      "fullName": "SUSE (gated): no ink stays a brand constant on a ground that follows the theme, and every slot reads in both themes",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-themes.test.ts",
+      "fullName": "SUSE (gated): two themes link the master colours, and a light slide with constant colours keeps its dark twin",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-pptx-brand-fonts.test.ts",
+      "fullName": "CLI Tier A under suse: a mono-slot run names font.mono, never the sans face",
+      "reason": "brands/suse is not checked out",
       "capability": "brand:suse",
       "owner": "tests"
     }

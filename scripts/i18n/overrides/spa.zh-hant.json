@@ -781,5 +781,6 @@
   "Sign out": "登出",
   "Could not sign out. Try again.": "無法登出。請再試一次。",
   "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design 在匯出檢查中逐一檢查各圖層是否符合此規則，lolly check 也會對已儲存的文件執行相同檢查。以下範例不會依此規則檢查。",
-  "{names} typing…": "{names} 正在輸入…"
+  "{names} typing…": "{names} 正在輸入…",
+  "View {name}": "檢視 {name}"
 }

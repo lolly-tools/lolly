@@ -224,5 +224,6 @@
   "Tap to enlarge for scanning": "स्कैन करने के लिए बड़ा करने हेतु टैप करें",
   "Enlarge {label} for scanning": "स्कैन करने के लिए {label} बड़ा करें",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "इसे स्कैन करने के लिए यहाँ दूसरा डिवाइस लगाएँ। बंद करने के लिए कहीं भी टैप करें या Esc दबाएँ।",
-  "This link is too long to scan. Copy it instead, or use the Code tab.": "यह लिंक स्कैन करने के लिए बहुत लंबा है। इसके बजाय इसे कॉपी करें, या कोड टैब का उपयोग करें।"
+  "This link is too long to scan. Copy it instead, or use the Code tab.": "यह लिंक स्कैन करने के लिए बहुत लंबा है। इसके बजाय इसे कॉपी करें, या कोड टैब का उपयोग करें।",
+  "View {name}": "{name} देखें"
 }

@@ -224,5 +224,6 @@
   "Tap to enlarge for scanning": "Atinge pentru a mări în vederea scanării",
   "Enlarge {label} for scanning": "Mărește {label} pentru scanare",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Îndreaptă alt dispozitiv aici pentru a-l scana. Atinge oriunde sau apasă Esc pentru a închide.",
-  "This link is too long to scan. Copy it instead, or use the Code tab.": "Acest link este prea lung pentru a fi scanat. Copiază-l, sau folosește fila Cod."
+  "This link is too long to scan. Copy it instead, or use the Code tab.": "Acest link este prea lung pentru a fi scanat. Copiază-l, sau folosește fila Cod.",
+  "View {name}": "Vizualizează {name}"
 }

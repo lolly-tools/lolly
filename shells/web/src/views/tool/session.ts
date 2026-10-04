@@ -1122,9 +1122,8 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         transition: deckTransitionOptions().has(transitionVal)
           ? (transitionVal as 'slide' | 'fade' | 'morph' | 'flight')
           : 'slide',
-        onAddress: (frameId, _index, build) =>
-          writePresentAddress(build > 0 ? `${frameId}.${build}` : frameId),
-        onClose: () => {
+        onAddress: tview.presentation.presenceAddress(contentEl, writePresentAddress),
+        onClose: tview.presentation.presenceClose(contentEl, () => {
           presenter = null;
           if (sTimer) {
             clearTimeout(sTimer);
@@ -1137,7 +1136,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             sp.delete('kiosk');
             sp.delete('s');
           });
-        },
+        }),
       });
       // "Speaker view" opens the deck AND its notes panel in one gesture. Done here rather
       // than as an option on openPresentMode because the controller's own `s` key toggles

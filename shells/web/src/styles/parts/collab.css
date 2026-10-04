@@ -257,15 +257,19 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   }
 }
 .collab-comments-panel {
-  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  position: fixed;
   top: calc(max(var(--design-topbar-h, 0px), var(--chrome-h)) + var(--sp-4));
-  bottom: 12px;
-  inset-inline-end: 12px;
-  width: min(360px, calc(100% - 24px));
-  overflow: auto;
+  bottom: var(--sp-3);
+  inset-inline-end: var(--sp-3);
+  width: min(380px, calc(100% - 2 * var(--sp-3)));
+  box-sizing: border-box;
+  overflow: hidden;
   z-index: 45;
   border-radius: var(--ui-radius-surface);
-  padding: 12px;
+  padding: var(--sp-3);
   background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
   box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet);
@@ -277,28 +281,52 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   bottom: calc(var(--sp-3) + var(--safe-bottom, 0px) + var(--vv-bottom, 0px)); inset-inline: var(--sp-3); width: auto;
 }
 body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([hidden])) :is(.fc-insp.is-compact-sheet, .design-compact-actions, .fc-nav) { visibility: hidden; }
-.collab-comment-typing { min-height: 1.5em; margin-block: var(--sp-2); color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
-.collab-comment-list { display: grid; gap: 4px; margin-block: 12px; }
-.collab-comment-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-block-end: var(--sp-3); }
+.collab-comment-typing { order: 4; min-height: 1.5em; margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
+.collab-comment-list { display: grid; align-content: start; gap: var(--sp-2); overflow: auto; min-height: 0; flex: 1; }
+.collab-comment-list[hidden], .collab-comment-head button[hidden] { display: none; }
+.collab-comment-head { display: flex; align-items: center; gap: var(--sp-2); }
 .collab-comment-head h2 { margin: 0; font-size: var(--fs-lg); }
-.collab-comment-actions { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
-.collab-comment-thread { display: block; padding: var(--sp-3); border-radius: var(--ui-radius-control); color: var(--ui-color-text-default); }
+.collab-comment-thread-tools { display: flex; gap: var(--sp-1); margin-inline-start: auto; }
+.collab-comment-actions { display: flex; gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--radius-round); background: var(--ui-color-surface-muted); align-self: start; }
+.collab-comment-icon { flex: none; display: inline-grid; place-items: center; inline-size: calc(36px * var(--a11y-fs)); block-size: calc(36px * var(--a11y-fs)); min-inline-size: calc(36px * var(--a11y-fs)); padding: 0; border-radius: var(--radius-round); }
+.collab-comment-icon svg { pointer-events: none; }
+.collab-comment-thread { display: flex; align-items: start; gap: var(--sp-2); padding: var(--sp-3); border-radius: var(--ui-radius-control); color: var(--ui-color-text-default); }
+.collab-comment-preview { display: grid; gap: var(--sp-1); min-width: 0; }
+.collab-comment-preview > span { color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
 .collab-comment-thread[aria-pressed="true"] { background: var(--ui-color-selection-surface); box-shadow: var(--ui-effect-accent-ring); }
-.collab-comment-messages article { padding-block: var(--sp-3); border-bottom: 1px solid var(--ui-color-border-default); font-size: var(--fs-sm); }
-.collab-comment-messages article .btn { margin-inline-end: var(--sp-1); }
-.collab-comment-composer { display: grid; gap: var(--sp-3); font-size: var(--fs-sm); }
-.collab-comment-composer > button { justify-self: end; }
+.collab-comment-messages { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: var(--sp-3); padding-block: var(--sp-1); }
+.collab-comment-messages:empty { display: none; }
+.collab-comment-message { position: relative; display: flex; align-items: start; gap: var(--sp-2); font-size: var(--fs-sm); }
+.collab-comment-message[data-own="true"] { flex-direction: row-reverse; }
+.collab-comment-avatar { flex: none; display: inline-grid; place-items: center; inline-size: calc(30px * var(--a11y-fs)); block-size: calc(30px * var(--a11y-fs)); border-radius: var(--radius-round); font-size: var(--fs-xs); font-weight: 700; }
+.collab-comment-bubble { min-width: 0; max-width: calc(100% - 38px); padding: var(--sp-3); border-radius: var(--ui-radius-surface); border-start-start-radius: var(--sp-1); border-inline-start: 2px solid var(--comment-person-color); }
+.collab-comment-message[data-own="true"] .collab-comment-bubble { border-start-start-radius: var(--ui-radius-surface); border-start-end-radius: var(--sp-1); }
+.collab-comment-meta { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
+.collab-comment-meta strong { min-width: 0; overflow-wrap: anywhere; }
+.collab-comment-meta time { flex: none; font-size: var(--fs-xs); }
+.collab-comment-bubble p { margin-block: var(--sp-2) 0; line-height: 1.5; }
+.collab-comment-message-tools { position: absolute; inset-block-start: 0; inset-inline-end: var(--sp-2); display: flex; gap: var(--sp-1); opacity: 0; border-radius: var(--radius-round); background: var(--ui-color-surface-raised); box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet); }
+.collab-comment-message:is(:hover, :focus-within) .collab-comment-message-tools { opacity: 1; }
+@media (hover: none) { .collab-comment-message-tools { position: static; opacity: 1; flex-direction: column; } }
+.collab-comment-composer { order: 5; display: flex; align-items: end; gap: var(--sp-2); padding-block-start: var(--sp-2); border-block-start: 1px solid var(--ui-color-border-default); font-size: var(--fs-sm); }
+.collab-comment-composer[hidden] { display: none; }
+.collab-comment-input-label { flex: 1; min-width: 0; }
+.collab-comments-panel > [role="status"] { margin: 0; font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
+.collab-comments-panel > [role="status"]:empty { display: none; }
 .collab-comment-list button { text-align: start; white-space: normal; }
 .collab-comment-messages p { white-space: pre-wrap; overflow-wrap: anywhere; }
 .collab-comment-composer textarea { display: block; box-sizing: border-box; width: 100%; }
 .collab-comment-pins { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
 .collab-comment-pin {
+  display: grid;
+  place-items: center;
   position: absolute;
   transform: translate(-50%, -50%);
   pointer-events: auto;
   border-radius: var(--radius-round);
-  min-width: 28px;
-  min-height: 28px;
+  min-width: calc(32px * var(--a11y-fs));
+  min-height: calc(32px * var(--a11y-fs));
   background: var(--ui-color-action-primary);
   color: var(--ui-color-action-on-primary);
 }
+.collab-comment-pin::after { content: attr(data-number); position: absolute; inset-block-start: calc(-1 * var(--sp-1)); inset-inline-end: calc(-1 * var(--sp-1)); background: inherit; color: inherit; border-radius: var(--radius-round); padding-inline: var(--sp-1); font-size: var(--fs-xs); font-weight: 700; }

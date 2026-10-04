@@ -781,5 +781,6 @@
   "Sign out": "Abmelden",
   "Could not sign out. Try again.": "Abmelden fehlgeschlagen. Versuchen Sie es erneut.",
   "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design prüft diese Regel bei den Exportprüfungen für jede Ebene, und lolly check macht dasselbe für ein gespeichertes Dokument. Die Beispiele unten werden nicht anhand dieser Regel geprüft.",
-  "{names} typing…": "{names} schreiben…"
+  "{names} typing…": "{names} schreiben…",
+  "View {name}": "{name} ansehen"
 }
