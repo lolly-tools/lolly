@@ -7,7 +7,9 @@
  * The route itself is then mounted into a jsdom view against a stubbed fetch, for the
  * outcomes that need no tool to be built: the two notices, and the clear sentences
  * for a deleted (410) and an unknown (404) session. Also the Team projects modal's
- * "New project" action, which shares the create form with the Share dialog.
+ * "New project" action, which shares the create form with the Share dialog. And a
+ * member the instance turns away (plans/75 G13): a 403 asks for access to the
+ * session's project through the session, and a 401 offers Sign in.
  *
  * Run directly:  node --test shells/web/src/org/team-link.test.ts
  */
@@ -26,6 +28,7 @@ globalThis.Element = dom.window.Element as unknown as typeof Element;
 globalThis.HTMLElement = dom.window.HTMLElement as unknown as typeof HTMLElement;
 globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => { setTimeout(() => cb(0), 0); return 0; }) as unknown as typeof requestAnimationFrame;
 globalThis.sessionStorage = dom.window.sessionStorage;
+globalThis.localStorage = dom.window.localStorage;
 const Dlg = dom.window.HTMLDialogElement.prototype as unknown as { showModal(): void; close(): void };
 Dlg.showModal = function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
 Dlg.close = function (this: HTMLDialogElement) { this.removeAttribute('open'); };
@@ -48,6 +51,7 @@ const { createInstanceSessionSource } = await import('./session-source.ts');
 const { registerSessionSource, _clearSessionSourceForTests } = await import('../lib/session-source.ts');
 const { setHostRef } = await import('../lib/host-ref.ts');
 const { pendingTeamSessionOrigin, _clearTeamSessionOriginForTests } = await import('./team-session-origin.ts');
+const { initOrg, _resetOrgForTests } = await import('./index.ts');
 type HostV1 = Parameters<typeof setHostRef>[0];
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
@@ -215,4 +219,53 @@ test('Team projects: no "New project" when the instance says the person may not 
   openTeamProjectsModal({ host: {} as HostV1, toolName: (id) => id });
   await settle();
   assert.equal(document.querySelector('dialog.team-projects-dialog [data-team-new]'), null);
+});
+
+// ── Turned away: no access, a lapsed sign-in ──────────────────────────────────
+
+/** A signed-in member of Acme whose org-config takes project requests; then `route`
+ *  answers everything else. */
+async function member(route: Handler): Promise<void> {
+  reset();
+  _resetOrgForTests();
+  setHostRef({ log: () => {} } as unknown as HostV1);
+  router = (url) => {
+    if (url.includes('/api/auth/config')) return json({ mode: 'open', provider: 'oidc', loginPath: '/api/auth/login' });
+    if (url.includes('/api/auth/session')) return json({ kind: 'member', user: { sub: 'u1', email: 'bo@acme.test', role: 'member' } });
+    if (url.includes('/api/v1/org-config')) return json({ instance: { name: 'Acme' }, inboxUnread: 0, requests: { project: true } });
+    return new Response('', { status: 404 });
+  };
+  await initOrg();
+  posts.length = 0;
+  router = route;
+}
+
+test('a session this member may not open: the sentence, who they are, and a request through the session', async () => {
+  await member((url, init) => {
+    if (url.endsWith('/api/v1/sessions/sess-1')) return json({ error: { code: 'FORBIDDEN' } }, 403);
+    if (url === '/api/v1/access-requests/mine?sessionId=sess-1') return json({ requests: [] });
+    if (url === '/api/v1/sessions/sess-1/access-requests' && init?.method === 'POST') return json({ ok: true }, 202);
+    return new Response('', { status: 404 });
+  });
+  await mountTeamLink(view(), 'sess-1');
+  await settle();
+  const text = view().textContent ?? '';
+  assert.match(text, /You do not have access to this team session\./);
+  assert.match(text, /You are signed in to Acme as bo@acme\.test\./);
+  assert.ok(view().querySelector('[data-team-switch-account]'));
+  const form = view().querySelector('[data-team-ask] form')!;
+  form.querySelector('select')!.value = 'viewer';
+  form.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+  await settle();
+  assert.deepEqual(posts, [{ url: '/api/v1/sessions/sess-1/access-requests', body: { role: 'viewer' } }]);
+  _resetOrgForTests();
+});
+
+test('a lapsed sign-in on a session link offers Sign in, coming back to the link', async () => {
+  await member((url) => url.endsWith('/api/v1/sessions/sess-1') ? json({ error: {} }, 401) : new Response('', { status: 404 }));
+  await mountTeamLink(view(), 'sess-1');
+  await settle();
+  assert.match(view().textContent ?? '', /Your sign-in has expired\. Sign in again to open the link\./);
+  assert.equal(view().querySelector('a.btn')?.getAttribute('href'), '/api/auth/login?returnTo=%2F%23%2Fteam%2Fsess-1');
+  _resetOrgForTests();
 });

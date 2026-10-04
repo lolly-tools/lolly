@@ -21,10 +21,11 @@ import { mountHomeFab } from '../../components/home-fab.ts';
 import { openProfileModals, openProfileToasts } from './shared.ts';
 import { bindOp, type ProfileViewCtx } from './context.ts';
 import { mountProfileSections } from '../../lib/profile-sections.ts';
+import { inboxLabel } from './shell.ts';
 
-/** The design-systems card plus the instance Change, Leave and Sign out buttons. */
+/** The design-systems card plus the instance Change, Leave, Inbox and Sign out buttons. */
 export function wireInstanceCard(pv: ProfileViewCtx): void {
-  const { host, signOut, viewEl } = pv;
+  const { account, host, signOut, viewEl } = pv;
   // Lolly instance - "Change" re-opens the sheet (views/profile.ts is one of
   // its two callers; see components/instance-sheet.ts's header). "Leave" takes
   // the covenant's whole exit (lib/instance-leave.ts): org caches, the install
@@ -74,6 +75,17 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
     await syncCatalog(host as unknown as Parameters<typeof syncCatalog>[0]).catch(() => { /* offline - falls back to cache */ });
     window.dispatchEvent(new Event('lolly:remount')); // re-navigates the current route with the fresh (bundled) catalogue
   });
+  // Inbox: the sheet that lists the member's messages (pv.account, handed over by
+  // views/profile.ts like Sign out below). The label keeps the count current while the
+  // card is on screen; the view's teardown lets go of the inbox (wireCleanup).
+  const inboxBtn = viewEl.querySelector<HTMLButtonElement>('#instance-inbox-btn');
+  const inbox = account?.inbox;
+  pv.inboxUnsub?.();
+  pv.inboxUnsub = null;
+  if (inbox && inboxBtn) {
+    inboxBtn.addEventListener('click', () => { inbox.open(); });
+    pv.inboxUnsub = inbox.onChange((n) => { inboxBtn.textContent = inboxLabel(n); });
+  }
   // Sign out: the instance's own logout (pv.signOut, handed over by views/profile.ts so
   // this module imports nothing from the control-plane seam), then a fresh load at the
   // app root, where boot asks again who is here - a gated instance shows its sign-in, so
@@ -163,7 +175,7 @@ export function wireUpdatesAndHotFolder(pv: ProfileViewCtx): void {
   }
 }
 
-/** View teardown: close body-level dialogs and toasts, detach from the offline run. */
+/** View teardown: close body-level dialogs and toasts, detach from the offline run and the inbox. */
 export function wireCleanup(pv: ProfileViewCtx): void {
   const { viewEl } = pv;
   // The Storage manager opens body-level modals (the shared confirmDialog, plus its own
@@ -189,6 +201,8 @@ export function wireCleanup(pv: ProfileViewCtx): void {
     pv.aiPolicyUnsub = null;
     pv.trustedSitesUnsub?.();
     pv.trustedSitesUnsub = null;
+    pv.inboxUnsub?.();
+    pv.inboxUnsub = null;
   };
 }
 

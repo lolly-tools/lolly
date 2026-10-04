@@ -22,7 +22,9 @@
  *    offered "Save changes": "Save a copy to a project" saves it as a new session in
  *    a project they can write to instead (org/team-access.ts teamSaveChoice). "People"
  *    opens the project's "People with access" (org/team-people.ts) for anyone the
- *    instance lets see the panel.
+ *    instance lets see the panel. When the instance takes access requests, a viewer
+ *    also gets "Ask to edit" (org/access-request.ts), here and beside the empty
+ *    project picker's "Ask a project owner for edit access." line.
  *
  * Images and files added on this device are referenced, not uploaded (they live in
  * the device's own asset store), unless the instance shares project files: then the
@@ -48,6 +50,7 @@ import { openTeamSession, teamOpenMessage, teamSessionLabel } from './team-open.
 import { buildNewProjectForm } from './team-project-form.ts';
 import { canWriteProject, conflictCopy, invitePolicy, peopleAccess, teamPickerEmpty, teamSaveChoice, type InviteConfig } from './team-access.ts';
 import { COLLAB_ACTIVE, saveErrorCode } from './session-source.ts';
+import { buildAskForm, projectRequestsOn } from './access-request.ts';
 import { getCollabOpener } from '../lib/collab-launch.ts';
 
 // ── Pure helpers (exported for tests) ─────────────────────────────────────────
@@ -176,13 +179,22 @@ let projectsMemo: { source: object; at: number; list: Promise<TeamProjectRef[]> 
 /** The person's role in each project, from the last project list that said. Read
  *  synchronously, so a section rebuilt on an edit renders the right save at once. */
 const knownRoles = new Map<string, TeamRole>();
+/** Each project's name from the same list, for "Ask to edit {project}". */
+const knownNames = new Map<string, string>();
+/** Projects this person asked to edit from this dialog, while the page is open. The
+ *  docked panel rebuilds its sections on every edit, and the button keeps saying the
+ *  request went. */
+const editAsked = new Set<string>();
 
 function teamProjects(): Promise<TeamProjectRef[]> {
   const source = getSessionSource();
   if (!source) return Promise.resolve([]);
   if (projectsMemo && projectsMemo.source === source && Date.now() - projectsMemo.at < PROJECTS_TTL_MS) return projectsMemo.list;
   const list = source.listProjects().catch(() => [] as TeamProjectRef[]).then((l) => {
-    for (const p of l) if (p.myRole) knownRoles.set(p.id, p.myRole);
+    for (const p of l) {
+      if (p.myRole) knownRoles.set(p.id, p.myRole);
+      if (p.name) knownNames.set(p.id, p.name);
+    }
     return l;
   });
   projectsMemo = { source, at: Date.now(), list };
@@ -193,6 +205,7 @@ function teamProjects(): Promise<TeamProjectRef[]> {
  *  owns it, so "People" is offered at once instead of after the kept list expires. */
 function rememberProject(project: TeamProjectRef): void {
   knownRoles.set(project.id, project.myRole ?? 'owner');
+  if (project.name) knownNames.set(project.id, project.name);
   if (!projectsMemo) return;
   const prev = projectsMemo.list;
   projectsMemo = { ...projectsMemo, list: prev.then((l) => [project, ...l.filter((x) => x.id !== project.id)]) };
@@ -223,6 +236,8 @@ function trackSave(toolId: string, work: () => Promise<SaveOutcome | null>): Pro
 export function _clearTeamProjectsForTests(): void {
   projectsMemo = null;
   knownRoles.clear();
+  knownNames.clear();
+  editAsked.clear();
   inflight.clear();
 }
 
@@ -335,6 +350,45 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
     return note ? el('p', { className: 'share-shortest-note', text: note, style: 'display:block;margin:.4rem 0 0' }) : null;
   };
 
+  /**
+   * "Ask to edit" for a viewer of `projectId`, when the instance takes access
+   * requests: a button that opens the ask form (org/access-request.ts) in `slot`, and
+   * reads "Edit request sent" once the request has gone. Null otherwise.
+   */
+  const askEditButton = (projectId: string, slot: HTMLElement): HTMLButtonElement | null => {
+    if (!projectRequestsOn(readConfig())) return null;
+    const sent = (b: HTMLButtonElement): void => {
+      b.textContent = tRaw('Edit request sent');
+      b.disabled = true;
+    };
+    const ask = button(tRaw('Ask to edit'), 'team-ask-edit');
+    ask.setAttribute('aria-expanded', 'false');
+    if (editAsked.has(projectId)) sent(ask);
+    ask.addEventListener('click', () => {
+      if (slot.firstChild) {
+        slot.replaceChildren();
+        ask.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      ask.setAttribute('aria-expanded', 'true');
+      const project = knownNames.get(projectId);
+      slot.replaceChildren(buildAskForm({
+        target: { projectId },
+        defaultRole: 'editor',
+        fixedRole: 'editor',
+        level: 4,
+        heading: project ? tRaw('Ask to edit {project}', { project }) : tRaw('Ask to edit'),
+        ...(project ? { intro: tRaw('The managers of {project} will see your request.', { project }) } : {}),
+        onState: (state) => {
+          if (state !== 'sent') return;
+          editAsked.add(projectId);
+          sent(ask);
+        },
+      }));
+    });
+    return ask;
+  };
+
   // ── A team document: save changes, copy its link ─────────────────────────────
   // Bumped on every render, so a role that arrives after a render only redraws the
   // section when nothing else has redrawn it since.
@@ -366,6 +420,10 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
       copy.addEventListener('click', () => renderFresh(null, origin));
       actions.append(copy);
     }
+    // A viewer may ask the project's managers for edit access.
+    const askSlot = el('div');
+    const askEdit = role === 'viewer' && origin.projectId ? askEditButton(origin.projectId, askSlot) : null;
+    if (askEdit) actions.append(askEdit);
     const peopleSlot = el('div');
     const policy = invitePolicy(readConfig());
     if (origin.projectId && peopleAccess(role, policy) !== 'hidden') {
@@ -393,7 +451,7 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
       });
       actions.append(people);
     }
-    body.append(actions);
+    body.append(actions, askSlot);
     const w = choice === 'save-changes' && !live ? warning() : null;
     if (w) body.append(w);
     // Read the role again on every render (the kept list bounds this to one request
@@ -405,7 +463,8 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
         const next = knownRoles.get(origin.projectId!);
         if (seq !== renderSeq || !next || next === role || !section.isConnected || inflight.has(inflightKey(toolId))) return;
         const nextChoice = teamSaveChoice(next, { hasDocument: !!ctx.document, canEdit, canSave });
-        if (nextChoice !== choice || peopleAccess(next, policy) !== peopleAccess(role, policy)) renderOrigin(origin, outcome);
+        const askChanged = (next === 'viewer') !== (role === 'viewer');
+        if (nextChoice !== choice || peopleAccess(next, policy) !== peopleAccess(role, policy) || askChanged) renderOrigin(origin, outcome);
       });
     }
 
@@ -600,9 +659,19 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
     const startNew = button(tRaw('New project'), 'team-new-project');
     startNew.addEventListener('click', () => { project.value = NEW; sync(); });
     emptyRow.append(emptyNote, startNew);
+    // A viewer of the document's project, with nowhere to save and no way to make a
+    // project, can ask that project's managers for edit access from the hint.
+    const askSlot = el('div');
+    const askProjectId = copyOf?.projectId;
+    const askEdit = askProjectId ? askEditButton(askProjectId, askSlot) : null;
+    if (askEdit) {
+      askEdit.hidden = true;
+      emptyRow.append(askEdit);
+    }
     // Its inline display:flex would outrank [hidden], so the row is shown and hidden by display.
     emptyRow.style.display = 'none';
     grid.insertBefore(emptyRow, formSlot);
+    grid.insertBefore(askSlot, formSlot);
     const fill = (selectId?: string): void => {
       project.replaceChildren();
       const empty = projects.length ? null : teamPickerEmpty({ listed, canCreate });
@@ -614,6 +683,12 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
       emptyRow.style.display = empty ? 'flex' : 'none';
       emptyNote.textContent = empty?.note ?? '';
       startNew.hidden = !empty?.offerNew;
+      if (askEdit) {
+        // The hint that asks for edit access: projects listed, none to save to, none to make.
+        const offer = !!empty && !empty.offerNew && listed > 0 && !!askProjectId && knownRoles.get(askProjectId) === 'viewer';
+        askEdit.hidden = !offer;
+        if (!offer) askSlot.replaceChildren();
+      }
       // Nowhere to save and no way to make somewhere: the line says who can help, and
       // a Name field over a Save button that can never be pressed is left out.
       const dead = !!empty && !empty.offerNew;

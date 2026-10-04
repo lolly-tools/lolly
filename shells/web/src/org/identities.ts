@@ -11,7 +11,7 @@
  * cannot be removed, `unlinkBlocked`: 'account' for the sign-in the account was
  * created with, 'last' for the only one left. A refused remove answers 409 with
  * `{ error: { code: 'ACCOUNT_SIGN_IN' | 'LAST_SIGN_IN' } }`.
- *   GET    /api/auth/config                           -> { providers: [{ id, name, loginPath }] }
+ *   GET    /api/auth/config                           -> { providers: [{ id, name, kind, loginPath }] }
  *   GET    /api/auth/link?idp=<id>&returnTo=<path>    (a page navigation, not a fetch)
  */
 import { instanceFetch, instancePath } from '../lib/instance.ts';
@@ -35,6 +35,8 @@ export interface LinkedIdentity {
 export interface SignInProvider {
   id: string;
   name: string;
+  /** 'oidc', 'github' or 'password', when the instance says. */
+  kind?: string;
 }
 
 /** A failure keeps the HTTP status (0: no answer) and the instance's error code, if any. */
@@ -74,9 +76,17 @@ export function providersFromConfig(body: unknown): SignInProvider[] {
     if (!p || typeof p !== 'object') continue;
     const id = str((p as Record<string, unknown>).id);
     if (!id || out.some((x) => x.id === id)) continue;
-    out.push({ id, name: str((p as Record<string, unknown>).name) ?? id });
+    const kind = str((p as Record<string, unknown>).kind);
+    out.push({ id, name: str((p as Record<string, unknown>).name) ?? id, ...(kind ? { kind } : {}) });
   }
   return out;
+}
+
+/** The providers a signed-in person can link to their account. Not email and password:
+ *  that sign-in comes from a link an admin sends, so there is nothing to link from
+ *  here, and the instance refuses the attempt. Pure. */
+export function linkableProviders(providers: readonly SignInProvider[]): SignInProvider[] {
+  return providers.filter((p) => p.kind !== 'password');
 }
 
 /** The address that links another sign-in to this account and comes back to

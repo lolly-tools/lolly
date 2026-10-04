@@ -31,6 +31,10 @@
  * running when the docked Share panel rebuilds this section carries over to the new
  * one (see `running` below).
  *
+ * Once the collab is live, the row offers "Invite to edit now" (org/collab-invite.ts)
+ * to a member who may invite: in place of Start when a start from this row succeeds,
+ * and under the live note when the section is built while the room is live.
+ *
  * ── The session id (the one thing this row adds to the context) ────────────────
  *
  * A work collab is a room keyed by the id the INSTANCE holds for the session, and
@@ -49,6 +53,7 @@ import { canJoinCollab } from './collab-config.ts';
 import { activeTeamSessionOrigin, teamOriginGeneration, teamSessionLive } from './team-session-origin.ts';
 import { getCollabOpener, openCollabLaunch, type CollabLaunchOutcome } from '../lib/collab-launch.ts';
 import { getSessionWriter } from '../lib/session-source.ts';
+import { buildInviteToEditButton, type CollabInviteTarget } from './collab-invite.ts';
 import { t } from '../i18n.ts';
 import { announce } from '../a11y.ts';
 
@@ -56,6 +61,8 @@ import { announce } from '../a11y.ts';
 interface RunningStart {
   readonly press: number;
   readonly listeners: Set<(outcome: CollabLaunchOutcome) => void>;
+  /** The session the press started the collab on, for the invite offered once it is live. */
+  readonly origin?: CollabInviteTarget;
 }
 
 /**
@@ -113,11 +120,17 @@ export function buildWorkCollabShareSection(ctx: ShareSectionContext): HTMLEleme
 
   // This tab is already in the room for the session on screen: show that, and offer no
   // second start, which would only join the same room again and remount the tool.
+  // A member who may invite is offered "Invite to edit now" (org/collab-invite.ts).
   const live = activeTeamSessionOrigin(ctx.toolId);
   if (live && teamSessionLive(live.sessionId)) {
     section.dataset.collabLive = '';
     note.textContent = t('You are in a live collab on this session.');
     section.append(heading, row);
+    const invite = buildInviteToEditButton(ctx.toolId, live);
+    if (invite) {
+      invite.style.marginTop = '.5rem';
+      section.append(invite);
+    }
     return section;
   }
   note.textContent = t('Invite others on this instance to co-edit this session, live.');
@@ -146,10 +159,23 @@ export function buildWorkCollabShareSection(ctx: ShareSectionContext): HTMLEleme
   // The press this line answers for. A later press takes the line over, so an earlier
   // start that answers late writes nothing.
   let following = 0;
+  // A start that worked turns the button into "Invite to edit now" for the same
+  // session, when this member may invite: the collab is live, and the next thing to do
+  // is ask someone in. A section built after the room is live takes the branch above.
+  const offerInvite = (origin: CollabInviteTarget | undefined): void => {
+    if (!origin || !btn.parentNode) return;
+    const invite = buildInviteToEditButton(ctx.toolId, origin);
+    if (!invite) return;
+    invite.style.marginTop = '.5rem';
+    note.textContent = t('You are in a live collab on this session.');
+    btn.replaceWith(invite);
+  };
   const listen = (start: RunningStart): void => {
     following = start.press;
     start.listeners.add((outcome) => {
-      if (following === start.press) showStatus(outcome.ok ? '' : outcome.message, !outcome.ok);
+      if (following !== start.press) return;
+      showStatus(outcome.ok ? '' : outcome.message, !outcome.ok);
+      if (outcome.ok) offerInvite(start.origin);
     });
   };
   const toolId = ctx.toolId ?? '';
@@ -173,7 +199,11 @@ export function buildWorkCollabShareSection(ctx: ShareSectionContext): HTMLEleme
     // Listening before the opener runs, which may answer before it returns. The key is
     // fixed at the press, so a remount in between cannot strand the entry.
     const key = runningKey(toolId);
-    const start: RunningStart = { press: ++pressCount, listeners: new Set() };
+    const start: RunningStart = {
+      press: ++pressCount,
+      listeners: new Set(),
+      ...(origin ? { origin: { sessionId: origin.sessionId, ...(origin.projectId ? { projectId: origin.projectId } : {}) } } : {}),
+    };
     listen(start);
     running.set(key, start);
     const settle = (): void => { if (running.get(key) === start) running.delete(key); };

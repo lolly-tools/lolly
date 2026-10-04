@@ -10,7 +10,9 @@
  *  - a signed-in member: check the project can be read (a 404 and a 403 say which, in
  *    plain words), then go on to Projects with the Team projects dialog
  *    (org/team-projects.ts) open on that project, through the session source's
- *    project request (lib/session-source.ts). The card stays only for a failure;
+ *    project request (lib/session-source.ts). The card stays only for a failure. A
+ *    403 offers Ask for access and Use a different account, and opens the project
+ *    once an answer gives access; a 401 offers Sign in (org/team-link-shared.ts);
  *  - a gated instance and no session: the sign-in gate renders first and carries this
  *    address in its `returnTo`, so signing in opens the invited project;
  *  - an open instance and no session: a card with a sign-in link that returns here;
@@ -22,7 +24,7 @@ import { getSessionSource, requestSourceProject } from '../lib/session-source.ts
 import { canGoBack, getPrevView } from '../lib/back-nav.ts';
 import { tRaw } from '../i18n.ts';
 import { isRecentlyAbsent, probeInstance } from './probe.ts';
-import { card, planTeamLink, teamLinkSessionId } from './team-link-shared.ts';
+import { canAskForAccess, card, noAccessCard, planTeamLink, signInAgainCard, teamLinkSessionId } from './team-link-shared.ts';
 import { teamOpenMessage } from './team-open.ts';
 import { fetchTeamProjectSessions } from './session-source.ts';
 
@@ -117,26 +119,46 @@ export async function mountTeamProjectLink(view: HTMLElement, rawProjectId: stri
     return;
   }
 
-  card(view, heading, tRaw('Opening the team project…'));
-  // Not awaited, as for a session link: the route resolves with the card up, and the
-  // address moves on once the project has answered, so the router is never asked to
-  // mount Projects while it is still mounting this route.
-  void fetchTeamProjectSessions(plan.projectId).then((got) => {
-    if (cancelled || !view.isConnected || window.location.hash !== linkHash) return;
-    if (!got.ok) {
-      card(view, heading, teamProjectMessage(got.status), got.status === 0
-        ? { label: tRaw('Try again'), id: 'teamRetry', run: () => window.location.reload() }
-        : toProjects);
-      return;
-    }
-    // Land on Projects with the project open in the Team projects dialog, so Back does
-    // not open the link again. No card is left behind. Followed from Projects (the
-    // inbox bar's Open, say), the link steps back to that entry instead of replacing
-    // itself with a second copy of it, which would cost a Back press that changes
-    // nothing. From anywhere else it replaces itself with Projects.
-    requestSourceProject(plan.projectId);
-    view.replaceChildren();
-    if (canGoBack() && isProjectsHref(getPrevView()?.href)) window.history.back();
-    else window.location.replace('#/p');
-  });
+  const target = plan.projectId;
+  const current = (): boolean => !cancelled && view.isConnected && window.location.hash === linkHash;
+  const open = (): void => {
+    card(view, heading, tRaw('Opening the team project…'));
+    // Not awaited, as for a session link: the route resolves with the card up, and the
+    // address moves on once the project has answered, so the router is never asked to
+    // mount Projects while it is still mounting this route.
+    void fetchTeamProjectSessions(target).then((got) => {
+      if (!current()) return;
+      if (!got.ok && got.status === 403) {
+        // Ask for access, when the instance takes requests; otherwise the sentence
+        // says who can help. An approval opens the project from here.
+        noAccessCard(view, {
+          heading,
+          message: canAskForAccess() ? tRaw('You do not have access to this team project.') : teamProjectMessage(403),
+          target: { projectId: target },
+          onApproved: () => { if (current()) open(); },
+        });
+        return;
+      }
+      if (!got.ok && got.status === 401) {
+        signInAgainCard(view, heading);
+        return;
+      }
+      if (!got.ok) {
+        card(view, heading, teamProjectMessage(got.status), got.status === 0
+          ? { label: tRaw('Try again'), id: 'teamRetry', run: () => window.location.reload() }
+          : toProjects);
+        return;
+      }
+      // Land on Projects with the project open in the Team projects dialog, so Back does
+      // not open the link again. No card is left behind. Followed from Projects (the
+      // inbox bar's Open, say), the link steps back to that entry instead of replacing
+      // itself with a second copy of it, which would cost a Back press that changes
+      // nothing. From anywhere else it replaces itself with Projects.
+      requestSourceProject(target);
+      view.replaceChildren();
+      if (canGoBack() && isProjectsHref(getPrevView()?.href)) window.history.back();
+      else window.location.replace('#/p');
+    });
+  };
+  open();
 }

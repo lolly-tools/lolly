@@ -26,6 +26,18 @@ import type { connectionsOps } from './connections.ts';
 import type { identityOps } from './identity.ts';
 import type { mountProfile } from '../profile.ts';
 
+/** The instance card's account half, as a deployment's control plane hands it over. */
+export interface ProfileAccount {
+  /** The workspace's own name ("lolly.ing"), or '' when it gives none. */
+  workspace: string;
+  /** Who is signed in; `name` is '' when the instance knows only the address. Null
+   *  when nobody is (an open workspace, a guest). */
+  member: { email: string; name: string } | null;
+  /** The signed-in member's inbox: how many messages wait, a subscription to that
+   *  count (returns its unsubscribe), and the sheet that lists them. */
+  inbox: { count(): number; onChange(fn: (count: number) => void): () => void; open(): void } | null;
+}
+
 export interface ProfileViewCtx {
   // ---- state (was: closure variables of mountProfile) ----
   viewEl: HTMLElement;
@@ -42,6 +54,9 @@ export interface ProfileViewCtx {
   /** The instance's sign-out while a member is signed in to one (org/index.ts
    *  signOutOfInstance), else null: the instance card offers Sign out only when set. */
   signOut: (() => Promise<boolean>) | null;
+  /** The workspace this shell is connected to and who is signed in (org/index.ts
+   *  orgProfileAccount), else null: a plain deployment's card is unchanged. */
+  account: ProfileAccount | null;
   canChangeInstance: boolean;
   shellUpdater: ShellUpdater | null;
   hasShellUpdater: boolean;
@@ -75,6 +90,8 @@ export interface ProfileViewCtx {
   aiPolicyUnsub: (() => void) | null;
   /** Detaches the Trusted sites card from trust and policy changes (plan 288). */
   trustedSitesUnsub: (() => void) | null;
+  /** Detaches the instance card's Inbox button from the inbox count. */
+  inboxUnsub: (() => void) | null;
   connectionsDetails: HTMLDetailsElement | null;
   connectionsLoaded: boolean;
   syncLoaded: boolean;

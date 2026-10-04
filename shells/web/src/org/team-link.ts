@@ -21,13 +21,15 @@
  *    unreachable sentence and a Try again action, never "no instance".
  *
  * A deleted (410) or unknown (404) session, or a refusal, says which in plain words.
- * Every string reaches the page through textContent.
+ * A refusal (403) offers Ask for access and Use a different account, and opens the
+ * session once an answer gives access; a lapsed sign-in (401) offers Sign in
+ * (org/team-link-shared.ts). Every string reaches the page through textContent.
  */
 import { getSessionSource } from '../lib/session-source.ts';
 import { tRaw } from '../i18n.ts';
 import { isRecentlyAbsent, probeInstance } from './probe.ts';
 import { openTeamSession, teamOpenMessage } from './team-open.ts';
-import { card, planTeamLink, teamLinkSessionId } from './team-link-shared.ts';
+import { card, noAccessCard, planTeamLink, signInAgainCard, teamLinkSessionId } from './team-link-shared.ts';
 
 // The id check, the plan and the card live in org/team-link-shared.ts, which the
 // project route imports too. The two pure helpers are re-exported for this route's tests.
@@ -91,18 +93,38 @@ export async function mountTeamLink(view: HTMLElement, rawSessionId: string): Pr
     return;
   }
 
-  card(view, heading, tRaw('Opening the team session…'));
-  // Not awaited: the route resolves with the card up, and the open replaces this
-  // address with the tool's once the session has loaded, so the router is never asked
-  // to mount the tool while it is still mounting this route.
-  void openTeamSession(plan.sessionId, {
-    replace: true,
-    stillWanted: () => !cancelled && view.isConnected && window.location.hash === linkHash,
-    // The session is on its way: take the card down, so it does not sit behind the
-    // tool's own loading state. A failure after this point still draws a card.
-    beforeNavigate: () => view.replaceChildren(),
-  }).then((got) => {
-    if (got.ok || got.status === -2 || cancelled) return;
-    card(view, heading, teamOpenMessage(got.status), { label: tRaw('Go to Projects'), href: '#/p' });
-  });
+  const target = plan.sessionId;
+  const current = (): boolean => !cancelled && view.isConnected && window.location.hash === linkHash;
+  const open = (): void => {
+    card(view, heading, tRaw('Opening the team session…'));
+    // Not awaited: the route resolves with the card up, and the open replaces this
+    // address with the tool's once the session has loaded, so the router is never asked
+    // to mount the tool while it is still mounting this route.
+    void openTeamSession(target, {
+      replace: true,
+      stillWanted: current,
+      // The session is on its way: take the card down, so it does not sit behind the
+      // tool's own loading state. A failure after this point still draws a card.
+      beforeNavigate: () => view.replaceChildren(),
+    }).then((got) => {
+      if (got.ok || got.status === -2 || cancelled) return;
+      if (got.status === 403) {
+        // The instance works out the session's project; an approval opens the
+        // session from here.
+        noAccessCard(view, {
+          heading,
+          message: teamOpenMessage(403),
+          target: { sessionId: target },
+          onApproved: () => { if (current()) open(); },
+        });
+        return;
+      }
+      if (got.status === 401) {
+        signInAgainCard(view, heading);
+        return;
+      }
+      card(view, heading, teamOpenMessage(got.status), { label: tRaw('Go to Projects'), href: '#/p' });
+    });
+  };
+  open();
 }
