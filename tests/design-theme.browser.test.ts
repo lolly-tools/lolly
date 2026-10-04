@@ -119,6 +119,16 @@ test('a saved theme reaches the address and canvas on reopen, and the Document c
       assert.equal(await themesInAddress(), '{"":"dark"}');
       assert.equal(await textColour(), DARK_TEXT);
     }
+  } catch (error) {
+    for (const page of context.pages()) {
+      console.error('Design theme failure state', await page.evaluate(() => ({
+        url: location.href,
+        text: document.body.innerText.slice(0, 8000),
+        inspector: document.querySelector('.fc-insp')?.outerHTML.slice(0, 8000),
+        dialogs: [...document.querySelectorAll('dialog[open]')].map(dialog => dialog.outerHTML.slice(0, 2000)),
+      })).catch(() => null));
+    }
+    throw error;
   } finally {
     await context.close();
     await closeBrowser();
