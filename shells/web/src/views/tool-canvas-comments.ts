@@ -210,7 +210,9 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     if (id) { event.stopPropagation(); select(id); }
   }, { signal: abort.signal });
   const timer = setInterval(() => { void refresh(); }, 2_000); void refresh();
-  return { reanchor, refresh, endAccess() { if (draftKey) queueDraft(draftKey, input.value); report({ status: 403 }); }, teardown() {
+  return { reanchor, refresh, dockControls(container: HTMLElement) {
+    open.classList.add('collab-comments-open--docked'); container.append(open);
+  }, endAccess() { if (draftKey) queueDraft(draftKey, input.value); report({ status: 403 }); }, teardown() {
     if (disposed) return; disposed = true; if (draftKey) queueDraft(draftKey, input.value);
     clearInterval(timer); abort.abort(); pins.remove(); panel.remove(); open.remove();
   } };

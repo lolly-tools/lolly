@@ -465,6 +465,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       ...(beam ? { actions: beam.actions } : {}),
     });
     steps.unshift(() => pill.destroy());
+    comments?.dockControls(pill.el);
     if (handle.saveIn) {
       const status = canvas.ownerDocument.createElement('span');
       status.className = 'collab-save-status';

@@ -241,6 +241,21 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   inset-inline-end: 12px;
   z-index: 40;
 }
+.collab-comments-open--docked {
+  position: static;
+  flex: none;
+  min-height: var(--chrome-h);
+}
+.collab-pill:has(> .collab-comments-open--docked) {
+  max-width: calc(100% - var(--chrome-inset) * 2 - var(--collab-pill-offset, 0px));
+  flex-wrap: wrap;
+  transform: translateY(var(--design-topbar-h, 0px));
+}
+@media (min-width: 641px) {
+  #tool-layout.is-editor:not(.is-document) .collab-pill:has(> .collab-comments-open--docked) {
+    transform: translateY(max(var(--design-topbar-h, 0px), calc(var(--chrome-h) + 8px)));
+  }
+}
 .collab-comments-panel {
   position: absolute;
   top: 48px;
