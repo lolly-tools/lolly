@@ -914,5 +914,6 @@
   "This session is open for live editing. Try again when it closes.": "هذه الجلسة مفتوحة للتحرير المباشر. حاول مرة أخرى عند إغلاقها.",
   "The live collab saves your changes to this session.": "يحفظ التعاون المباشر تغييراتك في هذه الجلسة.",
   "Sign out": "تسجيل الخروج",
-  "Could not sign out. Try again.": "تعذّر تسجيل الخروج. حاول مرة أخرى."
+  "Could not sign out. Try again.": "تعذّر تسجيل الخروج. حاول مرة أخرى.",
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "يفحص Design هذه القاعدة لكل طبقة ضمن فحوص التصدير، ويجري lolly check الفحص نفسه للمستند المحفوظ. لا تُفحص الأمثلة أدناه وفق هذه القاعدة."
 }

@@ -83,3 +83,11 @@ paths = ['''^tests/prepare-text\.test\.ts$''']
 commits = [
   "02a16b8ba7aed1b4c8c112d1b95d54d7d675f4b0",
 ]
+
+[[allowlists]]
+description = "Public SHA-256 of the keynote-spotlight template; the generated catalogue map is not an API credential"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['^brands/lolly-start/catalog/tools/index\.sig\.json$']
+regexTarget = "secret"
+regexes = ['^91ac6f1cf2b4bc36c740a22949b8d18b1116849194148483f7b173d07396738b$']

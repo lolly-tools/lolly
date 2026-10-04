@@ -10,6 +10,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.244 image repair and matte refinement APIs.
+  'HealFrame', 'HealMode', 'HealOptions', 'MatteRefineOptions', 'boxMean', 'guidedFilter',
+  'healCoverageBounds', 'healFrame', 'refineMatte', 'resizeMask', 'spotHealPremultiplied',
   // 1.244 (plan 291 W3): the design brief, the Design house rules and the brand check's catalog options.
   'BrandCheckCatalogOpts',
   'DESIGN_HOUSE_RULE_KINDS',

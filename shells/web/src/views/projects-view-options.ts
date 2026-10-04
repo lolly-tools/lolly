@@ -11,6 +11,34 @@ import { t } from '../i18n.ts';
 export type ProjectsViewMode = 'preview' | 'list';
 export type ProjectsSort = 'name' | 'added' | 'modified' | 'size' | 'tool';
 
+interface ProjectViewPrefs { view: ProjectsViewMode; sort: ProjectsSort; reversed: boolean }
+const isSort = (value: unknown): value is ProjectsSort => ['name', 'tool', 'added', 'modified', 'size'].includes(String(value));
+
+export function readProjectsViewPrefs(scope: string, fallback: ProjectViewPrefs, shared = false): ProjectViewPrefs {
+  const prefs = { ...fallback };
+  try {
+    if (localStorage.getItem('lolly:projectsView') === 'list') prefs.view = 'list';
+    const sort = localStorage.getItem('lolly:projectsSort');
+    if (isSort(sort)) prefs.sort = sort; else if (sort === 'date') prefs.sort = 'modified';
+    const own = (JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, { v?: unknown; s?: unknown; r?: unknown }>)[scope];
+    if (own) {
+      if (own.v === 'list' || own.v === 'preview') prefs.view = own.v;
+      if (isSort(own.s)) prefs.sort = own.s;
+      prefs.reversed = !!own.r;
+    }
+  } catch { /* Storage unavailable. */ }
+  if (shared && (prefs.sort === 'size' || prefs.sort === 'added')) prefs.sort = 'modified';
+  return prefs;
+}
+
+export function writeProjectsViewPrefs(scope: string, prefs: ProjectViewPrefs): void {
+  try {
+    const map = JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, unknown>;
+    map[scope] = { v: prefs.view, s: prefs.sort, r: prefs.reversed };
+    localStorage.setItem('lolly:projectsViewPrefs', JSON.stringify(map));
+  } catch { /* Storage unavailable. */ }
+}
+
 /** URL choices override the saved view for this visit. */
 export function projectsViewFromUrl(query: string | undefined, current: {
   view: ProjectsViewMode; sort: ProjectsSort; reversed: boolean;
@@ -34,6 +62,7 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
   sort: ProjectsSort;
   reversed: boolean;
   atRoot: boolean;
+  shared?: boolean;
   favView: FeaturedViewMode | null;
   onView(value: ProjectsViewMode): void;
   onSort(value: ProjectsSort): void;
@@ -50,9 +79,9 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
       ], options.view, t('Layout'), { attr: 'data-vm' }) + cardSizeHtml(readCardSize('projects'), options.view === 'list')),
       sortSection('projects-sort', [
         { id: 'name', label: t('Name') },
-        { id: 'added', label: t('Date added') },
+        ...(options.shared ? [] : [{ id: 'added', label: t('Date added') }]),
         { id: 'modified', label: t('Last modified') },
-        { id: 'size', label: t('Size') },
+        ...(options.shared ? [] : [{ id: 'size', label: t('Size') }]),
         ...(options.atRoot ? [] : [{ id: 'tool', label: t('By tool') }]),
       ], options.sort, reversed),
     ].join('');

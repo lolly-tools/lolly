@@ -3,9 +3,9 @@
   "model": "embed",
   "upstream": "Xenova/all-MiniLM-L6-v2",
   "dim": 384,
-  "count": 1256,
+  "count": 1263,
   "dtype": "q8",
-  "corpusHash": "f0fb12181df8ae12e3358b26a0b376af1cb03e3cfbc4b9799bb49695e5f3aa58",
-  "recordsHash": "ca3cb9094c0e936498d8f33d5f9b429c9ad42ae0b0e0b35febdff1b04e7ce959",
-  "builtAt": "2026-10-02T19:20:48.331Z"
+  "corpusHash": "2711dfdb1fbcd3850a5ce66176199c741acc6fb91584ee28af8610c335d49513",
+  "recordsHash": "ef09adecbb2754741c5fe2b2a0426c405bd15e2540a9632b1715a744290ff7bd",
+  "builtAt": "2026-10-04T09:26:13.317Z"
 }

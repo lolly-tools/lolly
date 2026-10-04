@@ -230,3 +230,23 @@ export function removeMember(projectId: string, userId: string): Promise<PeopleG
 export function revokeInvitation(projectId: string, invitationId: string): Promise<PeopleGot<null>> {
   return deleteAt(`${base(projectId)}/invitations/${encodeURIComponent(invitationId)}`);
 }
+
+export async function renameTeamProject(projectId: string, name: string): Promise<PeopleGot<null>> {
+  const res = await request('PATCH', base(projectId), { name });
+  return res?.ok ? { ok: true, data: null } : res ? failureOf(res) : { ok: false, status: 0 };
+}
+
+/** Metadata-only CAS preserves artwork and refuses a document with an active room. */
+export async function renameTeamSession(id: string, label: string, rev: number, meta: Record<string, unknown> = {}): Promise<PeopleGot<null>> {
+  let res: Response;
+  try {
+    res = await instanceFetch(instancePath(`/api/v1/sessions/${encodeURIComponent(id)}`), {
+      method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rev, meta: { ...meta, label } }),
+    });
+  } catch { return { ok: false, status: 0 }; }
+  return res.ok ? { ok: true, data: null } : failureOf(res);
+}
+
+export function deleteTeamSession(id: string): Promise<PeopleGot<null>> {
+  return deleteAt(`/api/v1/sessions/${encodeURIComponent(id)}`);
+}

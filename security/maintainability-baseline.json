@@ -30,7 +30,7 @@
     "shells/web/src/bridge/export.ts": {
       "lines": 4468,
       "largestFunctionLines": 647,
-      "importFanIn": 26,
+      "importFanIn": 27,
       "importFanOut": 65,
       "typeEscapes": 60
     },
@@ -69,6 +69,13 @@
       "importFanOut": 11,
       "typeEscapes": 68
     },
+    "shells/web/src/views/design-inspector.ts": {
+      "lines": 1500,
+      "largestFunctionLines": 1995,
+      "importFanIn": 1,
+      "importFanOut": 17,
+      "typeEscapes": 0
+    },
     "shells/web/src/views/gallery.ts": {
       "lines": 1989,
       "largestFunctionLines": 1754,
@@ -77,15 +84,15 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2523,
-      "largestFunctionLines": 2162,
+      "lines": 2504,
+      "largestFunctionLines": 2153,
       "importFanIn": 28,
       "importFanOut": 58,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2084,
-      "largestFunctionLines": 2763,
+      "lines": 2078,
+      "largestFunctionLines": 2758,
       "importFanIn": 1,
       "importFanOut": 52,
       "typeEscapes": 8
@@ -96,6 +103,13 @@
       "importFanIn": 7,
       "importFanOut": 37,
       "typeEscapes": 5
+    },
+    "shells/web/src/views/tool/session.ts": {
+      "lines": 1552,
+      "largestFunctionLines": 1605,
+      "importFanIn": 1,
+      "importFanOut": 62,
+      "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
       "lines": 2696,
@@ -306,7 +320,7 @@
     "shells/web/src/lib/instance.ts": 1,
     "shells/web/src/lib/learning-entry.ts": 1,
     "shells/web/src/lib/linkedin-send.ts": 3,
-    "shells/web/src/lib/matter.ts": 4,
+    "shells/web/src/lib/matter.ts": 3,
     "shells/web/src/lib/neurospicy-dock-host.ts": 1,
     "shells/web/src/lib/neurospicy.ts": 1,
     "shells/web/src/lib/nextcloud-send.ts": 3,

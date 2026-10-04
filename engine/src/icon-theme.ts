@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+export { parseThemedAssetId } from './asset-modifiers.ts';
 /**
  * Two-colour themable icons.
  *
@@ -63,15 +64,6 @@ const DEFAULT_STYLE_RE = /<defs><style>\.c1\{fill:([^}]*)\}\.c2\{fill:([^}]*)\}<
  * Returns { baseId, theme } - theme is null when the id carries none.
  * Full URLs (tool embeds) are never themed ids; they pass through untouched.
  */
-export function parseThemedAssetId(id: string): ParsedThemedAssetId {
-  if (typeof id !== 'string' || id.includes('://')) return { baseId: id, theme: null };
-  const i = id.indexOf(THEME_SUFFIX);
-  if (i <= 0) return { baseId: id, theme: null };
-  const baseId = id.slice(0, i);
-  const theme = id.slice(i + THEME_SUFFIX.length);
-  if (baseId.includes('?') || !THEME_ID_RE.test(theme)) return { baseId: id, theme: null };
-  return { baseId, theme };
-}
 
 /** Compose a themed id; a falsy theme returns the base id unchanged. */
 export function buildThemedAssetId(baseId: string, themeId: string | null | undefined): string {

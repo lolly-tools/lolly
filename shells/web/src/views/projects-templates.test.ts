@@ -365,7 +365,7 @@ test('the Templates doors are navigation, and neither accepts a drop', () => {
   const chip = bodyAfter(WIRING, 'export function templatesRailChip(): string');
   assert.doesNotMatch(chip, /data-drop-folder/, 'the rail chip is NOT a drop target');
   assert.match(VIEW, /\.join\(''\)\}\$\{templatesRailChip\(\)\}/, 'and it always ends the folder rail');
-  assert.match(VIEW, /\$\{teamTile\}\$\{templatesRootTile\(\)\}\$\{trashTile\}/, 'the root grid carries the tile beside Trash');
+  assert.match(VIEW, /\$\{templatesRootTile\(\)\}\$\{trashTile\}/, 'the root grid carries the tile beside Trash');
   const rendered = templatesRootTile();
   assert.doesNotMatch(rendered, /data-drop-folder|data-ref=/, 'it is neither a drop target nor a selectable item');
   assert.match(rendered, /data-open-folder-nav="__templates__"/, 'it opens the collection');

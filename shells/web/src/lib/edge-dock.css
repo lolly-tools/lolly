@@ -11,7 +11,7 @@
   width: var(--dock-w, 340px);
   display: flex; flex-direction: column;
   background: var(--ui-color-surface-canvas);
-  box-shadow: var(--ui-elevation-panel);
+  box-shadow: var(--ui-elevation-sheet);
 }
 /* Inset padding so each docked occupant reads as a distinct card/pane (the column
    background shows around it), not an edge-to-edge slab. */

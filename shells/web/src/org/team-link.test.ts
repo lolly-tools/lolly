@@ -198,7 +198,7 @@ test('Team projects: "New project" creates one with the chosen visibility, then 
   const form = dialog.querySelector<HTMLFormElement>('form.team-new-project')!;
   assert.ok(form, 'the create form opens in place');
   const select = form.querySelector('select')!;
-  assert.deepEqual([...select.options].map((o) => o.textContent), ['Only me', 'Everyone in design']);
+  assert.deepEqual([...select.options].map((o) => o.textContent), ['Only people I add', 'Everyone in design']);
   form.querySelector<HTMLInputElement>('input')!.value = 'Launch';
   select.value = 'g:design';
   form.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));

@@ -34,7 +34,7 @@ import '../styles/picker.css';   // async CSS chunk (lazy view - not on the land
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
 import DOMPurify from 'dompurify';
-import { serializeUrlState, buildEmbedUrl, parseThemedAssetId, buildThemedAssetId, restyleIconTheme, sniffAnimatedRaster, sniffVideoContainer, parseTreatedAssetId, buildTreatedAssetId, treatmentFilterSvg, stripAssetModifiers, extractC2paStore, prepareC2paIngredientFromStore, stripMetadata, midiToZzfxm, bakeAssetRef, decodeBmp, isBmp, decodeIco, isIco, gunzip, packPng, analyzeTextSignals, LEXICON_VERSION, extractFileMetadata } from '@lolly/engine';
+import { serializeUrlState, buildEmbedUrl, parseThemedAssetId, buildThemedAssetId, restyleIconTheme, sniffAnimatedRaster, sniffVideoContainer, parseTreatedAssetId, buildTreatedAssetId, stripAssetModifiers, extractC2paStore, prepareC2paIngredientFromStore, stripMetadata, midiToZzfxm, bakeAssetRef, decodeBmp, isBmp, decodeIco, isIco, gunzip, packPng, analyzeTextSignals, LEXICON_VERSION, extractFileMetadata } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 // Format + embeddability rules - pure and unit-tested in ./picker-formats.test.ts.
 import {
@@ -84,7 +84,7 @@ import type { AssetRef, AssetPickerOpts, ComposeUrlOpts, ExportFormat, HostV1, P
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { IconTheme } from '../../../../engine/src/icon-theme.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
-import { photoTreatmentSwatch } from '../lib/photo-treatment-swatch.ts';
+import { createPhotoTreatmentLoader, photoTreatmentStripHtml, previewPhotoTreatment, installPhotoTreatmentFilters } from '../components/photo-treatment-strip.ts';
 import type { Folder, FolderItem, FolderHost } from '../folders.ts';
 import type { WebStateAPI } from '../bridge/state.ts';
 import type { VideoJobHost } from '../lib/video-jobs.ts';
@@ -490,16 +490,11 @@ async function render(
   // Looks apply to the user's own photos too (plan 291 W7: `user/media/<sha256>?treatment=<id>`),
   // so the list is fetched once for whichever pane first holds a raster: the Catalogue or
   // Private assets. A Private assets pane drawn before the list arrived is redrawn with the looks.
-  let photoTreatmentsLoad: Promise<void> | null = null;
-  const loadPhotoTreatments = (): Promise<void> => {
-    if (typeof host.assets._photoTreatments !== 'function') return Promise.resolve();
-    photoTreatmentsLoad ??= host.assets._photoTreatments().catch(() => [] as PhotoTreatment[]).then(list => {
-      photoTreatments = list;
-      if (activeTreatment && !photoTreatments.some(t => t.id === activeTreatment)) activeTreatment = null;
-      if (photoTreatments.length && userAssets.some(isTreatableRef)) renderUserAssets();
-    });
-    return photoTreatmentsLoad;
-  };
+  const loadPhotoTreatments = createPhotoTreatmentLoader(() => host.assets._photoTreatments?.() ?? Promise.resolve([]), list => {
+    photoTreatments = list;
+    if (activeTreatment && !photoTreatments.some(t => t.id === activeTreatment)) activeTreatment = null;
+    if (photoTreatments.length && userAssets.some(isTreatableRef)) renderUserAssets();
+  });
 
   // Which sources get a tab. The Catalog is always present; the rest are conditional.
   // ("library" stays the internal id/data-pane - the visible label is "Catalogue".)
@@ -1741,53 +1736,23 @@ async function render(
   // "None" button clears the treatment; the rest are the catalog's treatments,
   // each with a swatch previewing its look (lib/photo-treatment-swatch.ts: a grey
   // ramp, the duotone's colours, or a gradient-map look's sampled ramp).
-  function treatmentStripHtml(): string {
-    const swatch = (t: PhotoTreatment): string => photoTreatmentSwatch(t);
-    const btn = (id: string, label: string, swClass: string, swStyle: string, on: boolean): string =>
-      `<button type="button" class="asset-picker-theme asset-picker-treat${on ? ' is-active' : ''}" data-treatment-id="${escapeHtml(id)}" aria-pressed="${on}">`
-      + `<span class="asset-picker-treat-sw${swClass}"${swStyle ? ` style="${swStyle}"` : ''}></span><span>${escapeHtml(label)}</span></button>`;
-    return `<div class="asset-picker-treatments" role="group" aria-label="${escapeHtml(t('Photo colour treatment'))}">`
-      + `<span class="asset-picker-themes-label">${t('Colour')}</span>`
-      + btn('', t('None'), ' is-none', '', !activeTreatment)
-      + photoTreatments.map(t => btn(t.id, t.label ?? t.id, '', `background:${swatch(t)}`, t.id === activeTreatment)).join('')
-      + `</div>`;
-  }
+  function treatmentStripHtml(): string { return photoTreatmentStripHtml(photoTreatments, activeTreatment); }
 
   // Live-preview the chosen treatment on every photo thumbnail via a CSS filter
   // that points at an injected SVG <filter> def - cheap, no re-encode (the real
   // bake happens once, at resolve, when the photo is actually picked). Mirrors
   // retintThemableCards but for raster cards.
   function retreatPhotoCards(): void {
-    const def = activeTreatment ? photoTreatments.find(t => t.id === activeTreatment) : null;
-    for (const cardEl of libraryPane.querySelectorAll<HTMLElement>('[data-asset-id]')) {
-      if (!isTreatableRef(candidateById.get(cardEl.dataset.assetId!))) continue;
-      const img = cardEl.querySelector<HTMLImageElement>('img.asset-picker-thumb');
-      if (img) img.style.filter = def ? `url(#${TREATMENT_FILTER_PREFIX}${def.id})` : '';
-    }
-    // The user's own photos preview the look the same way.
-    for (const cardEl of userEl?.querySelectorAll<HTMLElement>('[data-asset-id]') ?? []) {
-      if (!isTreatableRef(userAssets.find(a => a.id === cardEl.dataset.assetId))) continue;
-      const img = cardEl.querySelector<HTMLImageElement>('img.asset-picker-thumb');
-      if (img) img.style.filter = def ? `url(#${TREATMENT_FILTER_PREFIX}${def.id})` : '';
-    }
+    const treatment = photoTreatments.find(t => t.id === activeTreatment);
+    previewPhotoTreatment(libraryPane, TREATMENT_FILTER_PREFIX, treatment, id => isTreatableRef(candidateById.get(id)));
+    previewPhotoTreatment(userEl, TREATMENT_FILTER_PREFIX, treatment, id => isTreatableRef(userAssets.find(a => a.id === id)));
   }
 
   // A hidden <svg><defs> of the treatment filters, injected once so the preview
   // CSS `filter: url(#…)` above can reference them. Rebuilt from the catalog's
   // treatments (ids are validated [a-z0-9-], so the fragment refs are safe).
   const TREATMENT_FILTER_PREFIX = 'lolly-pt-';
-  function ensureTreatmentDefs(): void {
-    if (!photoTreatments.length || root.querySelector('#lolly-pt-defs')) return;
-    const defs = photoTreatments.map(t => treatmentFilterSvg(t, `${TREATMENT_FILTER_PREFIX}${t.id}`)).join('');
-    const holder = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    holder.id = 'lolly-pt-defs';
-    holder.setAttribute('width', '0');
-    holder.setAttribute('height', '0');
-    holder.setAttribute('aria-hidden', 'true');
-    holder.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
-    holder.innerHTML = `<defs>${defs}</defs>`;
-    root.appendChild(holder);
-  }
+  function ensureTreatmentDefs(): void { installPhotoTreatmentFilters(root, photoTreatments, TREATMENT_FILTER_PREFIX); }
 
   // ── Search matching (all four panes) ───────────────────────────────────────
   // One matcher instead of the old four per-tab `.includes()` copies (plans/99

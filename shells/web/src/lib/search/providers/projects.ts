@@ -30,6 +30,7 @@ import {
   buildFolderHaystack, buildSessionHaystack, matchesHaystack, sessionOpenHref,
 } from '../projects-source.ts';
 import type { SearchHit, SearchProvider } from '../registry.ts';
+import { getSessionSource, readSourceProjects, readSourceSessions } from '../../session-source.ts';
 
 /** A host.state.list() row as this provider reads it (the WebStateAPI shape,
  *  reduced to what the haystack + hit need). */
@@ -77,6 +78,33 @@ function toolNames(): Map<string, string> {
 export function createProjectsProvider(host: ProjectsSearchHost): SearchProvider {
   const store = createFolderStore(host);
   let cache: { promise: Promise<Snapshot>; expires: number } | null = null;
+  let sharedTicket = 0;
+
+  /** Read authorized metadata, never document inputs or a previous account's cache. */
+  async function sharedHits(tokens: readonly string[], nameOf: (id: string) => string): Promise<SearchHit[]> {
+    const source = getSessionSource(), ticket = ++sharedTicket;
+    if (!source || !tokens.length) return [];
+    const current = () => source === getSessionSource() && ticket === sharedTicket;
+    const got = await readSourceProjects(source);
+    if (!got.ok || !current()) return [];
+    const hits: SearchHit[] = [];
+    let index = 0;
+    // Bound concurrent metadata requests while searching every accessible folder.
+    await Promise.all(Array.from({ length: Math.min(4, got.items.length) }, async () => {
+      while (current() && index < got.items.length) {
+        const project = got.items[index++]!;
+        const score = matchesHaystack(buildFolderHaystack(project.name), tokens);
+        if (score) hits.push({ title: project.name, subtitle: t('Shared project'), icon: icon('folderUsers'), href: `#/p?team=${encodeURIComponent(project.id)}`, score });
+        const sessions = await readSourceSessions(source, project.id);
+        if (!sessions.ok || !current()) continue;
+        for (const session of sessions.items) {
+          const score = matchesHaystack(buildFolderHaystack(`${session.label || ''} ${nameOf(session.toolId)} ${session.toolId} ${project.name}`), tokens);
+          if (score) hits.push({ title: session.label || nameOf(session.toolId), subtitle: `${t('Shared project')} · ${project.name} · ${nameOf(session.toolId)}`, icon: icon('history'), href: `#/team/${encodeURIComponent(session.id)}`, score });
+        }
+      }
+    }));
+    return current() ? hits : [];
+  }
 
   function load(): Promise<Snapshot> {
     if (cache && Date.now() < cache.expires) return cache.promise;
@@ -115,9 +143,11 @@ export function createProjectsProvider(host: ProjectsSearchHost): SearchProvider
     id: 'projects',
     async search(tokens, limit): Promise<SearchHit[]> {
       const snap = await load();
+      const shared = await sharedHits(tokens, snap.nameOf);
       // Score everything, sort, THEN build only the sliced hits (the subtitle's
       // folderPath walk is per-hit work that shouldn't run for losers).
       const scored: Array<{ score: number; hit: () => SearchHit }> = [];
+      for (const hit of shared) scored.push({ score: hit.score, hit: () => hit });
       for (const { folder, haystack } of snap.folderRows) {
         const score = matchesHaystack(haystack, tokens);
         if (score > 0) {

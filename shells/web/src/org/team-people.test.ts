@@ -40,7 +40,7 @@ const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 const {
-  listProjectPeople, inviteToProject, changeMemberRole, removeMember, revokeInvitation, teamProjectLinkUrl, peopleFromBody, personalInviteLink,
+  listProjectPeople, inviteToProject, changeMemberRole, removeMember, revokeInvitation, teamProjectLinkUrl, peopleFromBody, personalInviteLink, renameTeamProject, renameTeamSession, deleteTeamSession,
 } = await import('./project-members.ts');
 const { buildPeoplePanel, peoplePanelView, revealPeoplePanel, roleChoices } = await import('./team-people.ts');
 const { invitePolicy } = await import('./team-access.ts');
@@ -669,4 +669,20 @@ test('a list the instance refuses says so', async () => {
   document.body.append(panel);
   await settle();
   assert.match(panel.querySelector('.team-people-status')!.textContent!, /no longer on this instance/);
+});
+
+
+test('shared rename sends metadata only, preserves revision and reports an active room', async () => {
+  reset();
+  router = () => json({ error: { code: 'COLLAB_ACTIVE' } }, 409);
+  assert.deepEqual(await renameTeamSession('s/1', 'Event guide', 7, { emoji: '🎪', label: 'Before' }), { ok: false, status: 409, code: 'COLLAB_ACTIVE' });
+  assert.deepEqual(calls[0], { url: '/api/v1/sessions/s%2F1', method: 'PUT', body: { rev: 7, meta: { emoji: '🎪', label: 'Event guide' } } });
+  assert.ok(!Object.hasOwn(calls[0]!.body as object, 'inputs'), 'renaming cannot overwrite document inputs');
+  router = () => json({}, 200);
+  assert.deepEqual(await renameTeamProject('p/1', 'Autumn event'), { ok: true, data: null });
+  assert.deepEqual(calls[1], { url: '/api/v1/projects/p%2F1', method: 'PATCH', body: { name: 'Autumn event' } });
+  router = () => new Response(null, { status: 204 });
+  assert.deepEqual(await deleteTeamSession('s/1'), { ok: true, data: null });
+  assert.equal(calls[2]!.url, '/api/v1/sessions/s%2F1');
+  assert.equal(calls[2]!.method, 'DELETE');
 });

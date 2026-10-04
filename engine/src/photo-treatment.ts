@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+export { stripAssetModifiers } from './asset-modifiers.ts';
+export { parseTreatedAssetId } from './asset-modifiers.ts';
 /**
  * Colour treatments for raster photo assets: the raster analogue of the
  * two-colour icon themes in ./icon-theme.ts.
@@ -88,15 +90,6 @@ const TREATMENT_SUFFIX = '?treatment=';
  * Returns { baseId, treatment }; treatment is null when the id carries none.
  * Full URLs (tool embeds) are never treated ids; they pass through untouched.
  */
-export function parseTreatedAssetId(id: string): ParsedTreatedAssetId {
-  if (typeof id !== 'string' || id.includes('://')) return { baseId: id, treatment: null };
-  const i = id.indexOf(TREATMENT_SUFFIX);
-  if (i <= 0) return { baseId: id, treatment: null };
-  const baseId = id.slice(0, i);
-  const treatment = id.slice(i + TREATMENT_SUFFIX.length);
-  if (baseId.includes('?') || !TREATMENT_ID_RE.test(treatment)) return { baseId: id, treatment: null };
-  return { baseId, treatment };
-}
 
 /** Compose a treated id; a falsy treatment returns the base id unchanged. */
 export function buildTreatedAssetId(baseId: string, treatmentId: string | null | undefined): string {
@@ -117,11 +110,6 @@ export function isValidTreatmentId(treatmentId: unknown): treatmentId is string 
  * all key off this. Full URLs (tool embeds) may legitimately contain `?` and
  * pass through untouched.
  */
-export function stripAssetModifiers(id: string): string {
-  if (typeof id !== 'string' || id.includes('://')) return id;
-  const i = id.indexOf('?');
-  return i > 0 ? id.slice(0, i) : id;
-}
 
 /**
  * Extract the treatment list from a photo-treatments palette document (the JSON

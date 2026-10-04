@@ -907,5 +907,6 @@
   "This session is open for live editing. Try again when it closes.": "Bu oturum canlı düzenlemeye açık. Kapandığında tekrar dene.",
   "The live collab saves your changes to this session.": "Canlı iş birliği değişikliklerini bu oturuma kaydeder.",
   "Sign out": "Oturumu kapat",
-  "Could not sign out. Try again.": "Oturum kapatılamadı. Tekrar dene."
+  "Could not sign out. Try again.": "Oturum kapatılamadı. Tekrar dene.",
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design dışa aktarma kontrollerinde bu kuralı katman katman denetler; lolly check de kaydedilmiş bir belge için aynı denetimi yapar. Aşağıdaki örnekler bu kurala göre denetlenmez."
 }

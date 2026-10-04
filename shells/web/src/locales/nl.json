@@ -7275,5 +7275,6 @@
   "This session is open for live editing. Try again when it closes.": "Deze sessie is open voor live bewerken. Probeer het opnieuw als hij gesloten is.",
   "The live collab saves your changes to this session.": "De live samenwerking slaat je wijzigingen op in deze sessie.",
   "Sign out": "Uitloggen",
-  "Could not sign out. Try again.": "Uitloggen is mislukt. Probeer het opnieuw."
+  "Could not sign out. Try again.": "Uitloggen is mislukt. Probeer het opnieuw.",
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design controleert deze regel per laag bij de exportcontroles, en lolly check doet hetzelfde voor een opgeslagen document. De onderstaande voorbeelden worden niet aan deze regel getoetst."
 }

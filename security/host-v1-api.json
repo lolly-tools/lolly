@@ -55,7 +55,7 @@
     "AssetsAPI": {
       "module": "assets.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "6f274190480adba3d5d8dd37a9d877040c9d125a478326510e0f68398194f745"
+      "sha256": "5363a9028c87ca336ad74de42598598ccf7ccca699ce6117fad9c875723297b7"
     },
     "IngredientCredential": {
       "module": "assets.ts",
@@ -590,7 +590,7 @@
     "MatteOpts": {
       "module": "matte.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "6a6241e34c04ff0a6f6f00122130e99db597314cf6990865ad6505549530a456"
+      "sha256": "be0918c58cb60f45f70b11817ba23ac0ccf7317e7965f223085386749f7fc1d9"
     },
     "MatteFeasibility": {
       "module": "matte.ts",

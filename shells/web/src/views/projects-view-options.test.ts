@@ -2,16 +2,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
-import { mountProjectsViewOptions } from './projects-view-options.ts';
+import { mountProjectsViewOptions, readProjectsViewPrefs, writeProjectsViewPrefs } from './projects-view-options.ts';
 
-function fixture(atRoot = false, favView: 'gallery' | 'coverflow' | null = null) {
+function fixture(atRoot = false, favView: 'gallery' | 'coverflow' | null = null, shared = false) {
   const dom = new JSDOM('<button id="trigger">View options</button><button id="outside">Outside</button>', { pretendToBeVisual: true, url: 'https://example.test' });
   const w = dom.window;
   Object.assign(globalThis, { window: w, document: w.document, HTMLElement: w.HTMLElement, Element: w.Element, Node: w.Node, localStorage: w.localStorage });
   const anchor = w.document.querySelector<HTMLButtonElement>('#trigger')!;
   const changes: string[] = [];
   const popover = mountProjectsViewOptions(anchor, {
-    atRoot, view: 'list', sort: 'modified', reversed: false, favView,
+    atRoot, shared, view: 'list', sort: 'modified', reversed: false, favView,
     onView: value => changes.push('view:' + value),
     onSort: value => changes.push('sort:' + value),
     onReverse: value => changes.push('reverse:' + value),
@@ -117,5 +117,30 @@ test('card size hides in list layout, returns with Grid, and reports each step i
   range.dispatchEvent(new f.w.Event('change', { bubbles: true }));
   assert.equal(grid.hasAttribute('data-card-size'), false, 'the default step leaves the grid as it was');
   assert.deepEqual(f.changes, ['view:preview']);
+  f.close();
+});
+
+
+test('shared folders retain their own layout and sort without changing other folders', () => {
+  const f = fixture();
+  const fallback = { view: 'preview' as const, sort: 'modified' as const, reversed: false };
+  writeProjectsViewPrefs('team:event', { view: 'list', sort: 'name', reversed: true });
+  writeProjectsViewPrefs('personal', { view: 'preview', sort: 'added', reversed: false });
+  assert.deepEqual(readProjectsViewPrefs('team:event', fallback), { view: 'list', sort: 'name', reversed: true });
+  assert.deepEqual(readProjectsViewPrefs('personal', fallback), { view: 'preview', sort: 'added', reversed: false });
+  assert.deepEqual(readProjectsViewPrefs('__root__', fallback), fallback);
+  f.w.localStorage.setItem('lolly:projectsViewPrefs', '{broken');
+  assert.deepEqual(readProjectsViewPrefs('team:event', fallback), fallback);
+  f.close();
+});
+
+
+test('shared sessions offer sorts supported by their metadata', () => {
+  const f = fixture(false, null, true);
+  f.popover.open();
+  const options = [...f.panel()!.querySelector<HTMLSelectElement>('#projects-sort')!.options].map(o => o.value);
+  assert.deepEqual(options, ['name', 'modified', 'tool']);
+  f.w.localStorage.setItem('lolly:projectsSort', 'size');
+  assert.equal(readProjectsViewPrefs('team:event', { view: 'preview', sort: 'modified', reversed: false }, true).sort, 'modified');
   f.close();
 });

@@ -14,9 +14,7 @@
  *   - on-demand → fetched lazily, then cached
  */
 
-import { parseThemedAssetId, applyIconTheme, parseIconThemesDoc } from '../../../../engine/src/icon-theme.ts';
-import { parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, stripAssetModifiers } from '../../../../engine/src/photo-treatment.ts';
-import { isRasterPhotoLook, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook } from '../../../../engine/src/photo-look.ts';
+import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers } from '../../../../engine/src/asset-modifiers.ts';
 import type { GradeLut } from '../../../../engine/src/grade.ts';
 // c2pa-verify is LAZY on purpose. It is the entry to the whole provenance
 // cluster (c2pa + c2pa-extract + c2pa-containers + c2pa-verdict + c2pa-trust +
@@ -375,6 +373,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     let pending = lookBakes.get(cacheKey);
     if (!pending) {
       pending = (async () => {
+        const { resolvePhotoLook } = await import('../../../../engine/src/photo-look.ts');
         const lut = look.kind === 'lut' ? await lutFor(resolvePhotoLook(look, themeKey).lut) : null;
         if (look.kind === 'lut' && !lut) throw new Error(`the LUT of photo look ${look.id} is unavailable`);
         const { bakePhotoLookBlob } = await import('./photo-look-bake.ts');
@@ -400,6 +399,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (!rec) throw new Error(`User asset not found: ${baseId}`);
       const plainKey = `user:${baseId}:${rec.format}:${rec.version ?? 'x'}`;
       if (!def || healLegacyType(rec) !== 'raster' || !rec.blob) return toAssetRef({ ...rec, id, cacheKey: plainKey }, 'user');
+      const { photoLookThemeKey, photoLookCacheKey } = await import('../../../../engine/src/photo-look.ts');
       const themeKey = photoLookThemeKey(def, opts.tokenSelection);
       const cacheKey = photoLookCacheKey(baseId, rec.version ?? 'x', def, themeKey);
       const meta = { ...rec.meta, treatment, baseId, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
@@ -415,7 +415,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     }
     const ref = await (await import('./url-asset.ts')).resolveUrlAsset(baseId);
     if (!def || ref.type !== 'raster') return { ...ref, id };
-    const themeKey = photoLookThemeKey(def, opts.tokenSelection);
+    const { photoLookThemeKey, photoLookCacheKey } = await import('../../../../engine/src/photo-look.ts');
+      const themeKey = photoLookThemeKey(def, opts.tokenSelection);
     const cacheKey = photoLookCacheKey(inlineKey(baseId), 'x', def, themeKey);
     const meta = { ...ref.meta, treatment, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
     const cached = OBJECT_URL_CACHE.get(cacheKey);
@@ -558,6 +559,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           const cacheKey = `library:${blobKey}:t:${theme}:${def.c1},${def.c2}`;
           const common = { ...meta, id, format: format.format, cacheKey, meta: { ...refMeta, theme, baseId } };
           if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef(common, 'library');
+          const { applyIconTheme } = await import('../../../../engine/src/icon-theme.ts');
           const baked = applyIconTheme(await (await loadBlob()).text(), def);
           if (baked) {
             return toAssetRef({ ...common, blob: new Blob([baked], { type: 'image/svg+xml' }) }, 'library');
@@ -574,6 +576,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       }
 
       if (treatment && meta.type === 'raster') {
+        const { isRasterPhotoLook, photoLookThemeKey, photoLookCacheKey, resolvePhotoLook } = await import('../../../../engine/src/photo-look.ts');
+        const { wrapRasterWithTreatment } = await import('../../../../engine/src/photo-treatment.ts');
         let def = (await api._photoTreatments()).find(t => t.id === treatment);
         let themeSuffix = '';
         if (def && (isRasterPhotoLook(def) || def.themes)) {
@@ -653,6 +657,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           return [];
         }
         const blob = await api._getBlob(pal.id);
+        const { parseIconThemesDoc } = await import('../../../../engine/src/icon-theme.ts');
         return parseIconThemesDoc(JSON.parse(await blob!.text()));
       })().catch(() => {
         ICON_THEMES_CACHE = null; // unavailable ≠ broken: icons stay default, retry later
@@ -676,6 +681,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           return [];
         }
         const blob = await api._getBlob(pal.id);
+        const { parsePhotoTreatmentsDoc } = await import('../../../../engine/src/photo-treatment.ts');
         return parsePhotoTreatmentsDoc(JSON.parse(await blob!.text()));
       })().catch(() => {
         PHOTO_TREATMENTS_CACHE = null; // unavailable ≠ broken: photos stay untreated, retry later

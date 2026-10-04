@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * org/team-files-panel - a team project's "Shared files" screen in the Team projects
- * modal (org/team-projects.ts): the files everyone who can see the project may
+ * org/team-files-panel - a team project's "Shared files" screen in Projects: the files everyone who can see the project may
  * download, an upload with progress and Cancel for people who can save to the project,
  * and Delete for the person who uploaded a file or anyone who manages the project.
  *
@@ -39,24 +38,24 @@ async function saveFile(blob: Blob, name: string): Promise<void> {
 }
 
 export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
-  const panel = document.createElement('div');
+  const panel = document.createElement('div'); panel.className = 'team-files';
   const button = (text: string, act: string, label?: string): HTMLButtonElement => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn--sm'; b.textContent = text; b.dataset.act = act;
     if (label) b.setAttribute('aria-label', label);
     return b;
   };
-  const para = (text: string, style = 'margin:.25rem 0'): HTMLParagraphElement => {
-    const p = document.createElement('p'); p.textContent = text; p.style.cssText = style; return p;
+  const para = (text: string, style = ''): HTMLParagraphElement => {
+    const p = document.createElement('p'); p.textContent = text; p.className = 'team-project-notice'; if (style) p.style.cssText = style; return p;
   };
   const back = button(tRaw('← Back to sessions'), 'files-back');
   back.addEventListener('click', opts.onBack);
   const heading = document.createElement('h3'); heading.textContent = tRaw('Shared files'); heading.tabIndex = -1;
   const note = para(tRaw('These files are available to everyone who can see this project.'), '');
   note.className = 'share-shortest-note';
-  const room = para('', 'margin:.25rem 0;font-size:var(--fs-sm);color:hsl(var(--muted-foreground))');
+  const room = para('', '');
   room.hidden = true;
   const status = document.createElement('p'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
-  const list = document.createElement('ul'); list.style.cssText = 'list-style:none;padding:0;margin:.75rem 0';
+  const list = document.createElement('ul'); list.className = 'team-files-list';
   panel.append(back, heading, note, room, list, status);
 
   // Who the signed-in person is on the instance, for Delete on their own files: an
@@ -89,16 +88,16 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
     const box = document.createElement('div');
     box.dataset.fileInUse = '';
     box.setAttribute('role', 'group');
-    box.style.cssText = 'flex-basis:100%;padding:.5rem .75rem;border:1px solid hsl(var(--border));border-radius:var(--radius)';
+    box.className = 'team-files-in-use';
     const lead = para(tRaw('These sessions use “{name}”:', { name: file.name }), 'margin:0');
     lead.id = `team-file-in-use-${file.id}`;
     box.setAttribute('aria-labelledby', lead.id);
-    const uses = document.createElement('ul'); uses.style.cssText = 'margin:.25rem 0;padding-left:1.25rem';
+    const uses = document.createElement('ul'); uses.className = 'team-files-uses';
     for (const s of error.sessions) { const item = document.createElement('li'); item.textContent = s.title; uses.append(item); }
     const after = para(opts.canManage
       ? tRaw('If you delete the file, those sessions cannot be opened.')
       : tRaw('Only a project manager can delete a file that a session uses.'));
-    const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap';
+    const actions = document.createElement('div'); actions.className = 'team-project-actions';
     const keep = button(tRaw('Cancel'), 'file-keep');
     keep.addEventListener('click', () => { box.remove(); del.focus(); });
     if (opts.canManage) {
@@ -135,12 +134,12 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
       max: fmtBytes(limits.maxBytes), used: fmtBytes(limits.projectUsedBytes), total: fmtBytes(limits.projectBudgetBytes),
     });
     for (const file of files) {
-      const li = document.createElement('li'); li.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:.5rem;padding:.5rem 0';
+      const li = document.createElement('li'); li.className = 'team-files-row';
       li.dataset.teamFile = file.id;
-      const name = document.createElement('span'); name.textContent = file.name; name.style.cssText = 'flex:1;min-width:8rem;overflow-wrap:anywhere';
+      const name = document.createElement('span'); name.textContent = file.name; name.className = 'team-files-name';
       const meta = document.createElement('span');
       meta.textContent = [fmtBytes(file.size), file.createdByName].filter(Boolean).join(' · ');
-      meta.style.cssText = 'font-size:var(--fs-sm);color:hsl(var(--muted-foreground))';
+      meta.className = 'team-project-notice';
       const get = button(tRaw('Download'), 'file-download', tRaw('Download {name}', { name: file.name }));
       get.addEventListener('click', () => void download(file, get));
       li.append(name, meta, get);
@@ -198,7 +197,7 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
         }
       })();
     });
-    const bar = document.createElement('div'); bar.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap;align-items:center';
+    const bar = document.createElement('div'); bar.className = 'team-project-actions';
     bar.append(upload, cancel);
     panel.insertBefore(bar, list); panel.append(input);
   }

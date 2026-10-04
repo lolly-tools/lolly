@@ -70,7 +70,7 @@ import type { ModalHandle } from '../components/modal.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml } from './projects-create.ts';
-import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsCardSizeAttr, projectsViewFromUrl, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
+import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsCardSizeAttr, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
@@ -81,8 +81,8 @@ import { setPendingToolSeed } from '../lib/drop-router.ts';
 import { TEMPLATES, templateBulkMenuHtml, templateUseHref, type SessionSaveSource, type TemplatesCollection } from './projects-templates.ts';
 import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionSource, templatesCollectionFor, templatesRailChip, templatesRootTile } from './projects-templates-wiring.ts';
 import type { TemplateActionHost } from '../lib/template-actions.ts';
-import { getSessionSource, readSourceProjects, type TeamProjectRef } from '../lib/session-source.ts';
-import { openRequestedTeamProject, openTeamProjects, mountTeamProjectFolder, teamProjectTiles, type TeamProjectsDoor } from './projects-team.ts';
+import { getSessionSource } from '../lib/session-source.ts';
+import { openRequestedTeamProject, openTeamProjects, createSharedProjectsView, type TeamProjectsDoor } from './projects-team.ts';
 import { getCollabTileProvider, renderCollabBadge } from '../lib/collab-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
@@ -263,30 +263,10 @@ export async function mountProjects(
   }));
   let mounted = true;        // false after the view is swapped out (guards async renders)
   // The Team projects door (projects-team.ts; dormant without a session source).
-  let sharedProjects: TeamProjectRef[] = [];
-  const sharedParams = new URLSearchParams(opts.params || '');
-  const sharedProjectId = sharedParams.get('team') || '';
-  const creatingSharedProject = sharedParams.get('create') === 'team';
-  const sharedFolder = !!sharedProjectId || creatingSharedProject;
-  let cleanupSharedFolder: (() => void) | undefined;
-  let cleanupSharedPreviews: (() => void) | undefined;
-  let sharedRender = 0;
-  let sharedState: 'loading' | 'ready' | 'error' = 'loading';
-  let sharedTicket = 0;
-  const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted, refresh: () => { void refreshSharedProjects(); } };
-  async function refreshSharedProjects(): Promise<void> {
-    const source = getSessionSource();
-    if (!source || !mounted || sharedFolder) return;
-    const ticket = ++sharedTicket;
-    const got = await readSourceProjects(source);
-    if (!mounted || ticket !== sharedTicket || source !== getSessionSource()) return;
-    sharedState = got.ok ? 'ready' : 'error';
-    sharedProjects = got.ok ? got.items : [];
-    render();
-  }
-  const refreshSharedOnFocus = (): void => { if (document.visibilityState === 'visible') void refreshSharedProjects(); };
-  window.addEventListener('focus', refreshSharedOnFocus);
-  const sharedRefresh = window.setInterval(refreshSharedOnFocus, 60_000);
+  const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted };
+  const shared = createSharedProjectsView(teamDoor, viewEl, opts.params || '', render);
+  const sharedProjectId = shared.projectId, sharedFolder = shared.active;
+  const sharedProjectsHtml = (q = '') => shared.rootHtml(q, viewMode === 'list', listHeadHtml(), projectsCardSizeAttr(), sortBy, sortRev);
   let overlayModal: ModalHandle<any> | null = null;      // the move-picker / new-folder-name dialog, if open
   let releaseSearch: (() => void) | null = null;         // the shell search-bar claim (set in boot, below)
   let featuredHandle: FeaturedRowHandle | null = null; // the Uncategorised preview ribbon (drift/coverflow/grip), if mounted
@@ -340,19 +320,8 @@ export async function mountProjects(
   const RECENTS_COLLAPSED_KEY = 'lolly-projects-recents-collapsed';
   let recentsCollapsed = ((): boolean => { try { return localStorage.getItem(RECENTS_COLLAPSED_KEY) === '1'; } catch { return false; } })();
 
-  try {
-    if (localStorage.getItem('lolly:projectsView') === 'list') viewMode = 'list';
-    const s = localStorage.getItem('lolly:projectsSort');
-    if (s === 'name' || s === 'tool' || s === 'added' || s === 'modified' || s === 'size') sortBy = s;
-    else if (s === 'date') sortBy = 'modified';   // pre-'added' prefs stored 'date'
-    // Per-folder memory (plans/133 WP-2) wins over the device-global default.
-    const perFolder = (JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, { v?: string; s?: string; r?: boolean }>)[folderId ?? '__root__'];
-    if (perFolder) {
-      if (perFolder.v === 'list' || perFolder.v === 'preview') viewMode = perFolder.v;
-      if (perFolder.s === 'name' || perFolder.s === 'tool' || perFolder.s === 'added' || perFolder.s === 'modified' || perFolder.s === 'size') sortBy = perFolder.s;
-      sortRev = !!perFolder.r;
-    }
-  } catch { /* localStorage unavailable */ }
+  const prefsScope = sharedProjectId ? `team:${sharedProjectId}` : folderId ?? '__root__';
+  ({ view: viewMode, sort: sortBy, reversed: sortRev } = readProjectsViewPrefs(prefsScope, { view: viewMode, sort: sortBy, reversed: sortRev }, sharedFolder));
   // `#/p?view=&sort=&rev` seed the same three for THIS mount, outranking both stored
   // layers above - what a shared link, a docs recipe or a screenshot run needs to land
   // on a known layout. Never written back to either localStorage key: a link someone
@@ -496,12 +465,7 @@ export async function mountProjects(
   /** Persist view + sort for THIS folder (plans/133 WP-2). */
   function saveViewPrefs(): void {
     updateRouteParams({ view: viewMode, sort: sortBy, rev: sortRev ? '1' : '0' });
-    try {
-      const key = folderId ?? '__root__';
-      const map = JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, unknown>;
-      map[key] = { v: viewMode, s: sortBy, r: sortRev };
-      localStorage.setItem('lolly:projectsViewPrefs', JSON.stringify(map));
-    } catch { /* storage off */ }
+    writeProjectsViewPrefs(prefsScope, { view: viewMode, sort: sortBy, reversed: sortRev });
   }
 
   /** The list view's clickable column header (plans/133 WP-2 → WP-12). Click
@@ -604,9 +568,7 @@ export async function mountProjects(
     // Title the view for the tab bar AND for back-nav (lib/back-nav.ts labels the
     // previous view off document.title - this is how a tool opened from a folder,
     // or #/start reached from one, gets a back pill wearing the folder's name).
-    cleanupSharedFolder?.(); cleanupSharedFolder = undefined;
-    cleanupSharedPreviews?.(); cleanupSharedPreviews = undefined;
-    const renderTicket = ++sharedRender;
+    shared.beforeRender();
     const titleName = sharedFolder ? t('Team project') : folderId == null ? t('Projects')
       : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
       : (folders.find(f => f.id === folderId)?.name || t('Projects'));
@@ -616,18 +578,7 @@ export async function mountProjects(
     pruneSelection();     // forget refs that vanished since the last render
     viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     wire();
-    if (!sharedFolder && getSessionSource()) {
-      const source = getSessionSource()!;
-      void import('../org/team-previews.ts').then(module => {
-        if (mounted && renderTicket === sharedRender && source === getSessionSource()) cleanupSharedPreviews = module.hydrateSharedPreviews(viewEl, source, host, () => mounted && renderTicket === sharedRender);
-      });
-    }
-    if (sharedFolder) {
-      const container = viewEl.querySelector<HTMLElement>('[data-shared-folder]')!;
-      void mountTeamProjectFolder(teamDoor, container, { projectId: sharedProjectId, create: creatingSharedProject, tab: sharedParams.get('tab') || 'sessions', query, list: viewMode === 'list', sort: sortBy, reversed: sortRev }).then(cleanup => {
-        if (!mounted || !container.isConnected) cleanup(); else cleanupSharedFolder = cleanup;
-      });
-    }
+    shared.afterRender({ query, list: viewMode === 'list', sort: sortBy, reversed: sortRev });
     scenePreviews.refresh(entries);
   }
 
@@ -707,19 +658,7 @@ export async function mountProjects(
         </section>` : ''}`);
   }
 
-  function sharedProjectsHtml(filter = ''): string {
-    const source = getSessionSource();
-    if (!source) return '';
-    const tiles = teamProjectTiles(sharedProjects, filter);
-    const message = sharedState === 'error' ? t('Shared projects could not be loaded. Try again.')
-      : sharedState === 'loading' ? t('Loading shared projects…')
-      : filter ? t('No shared projects match your search.') : t('Create a team project or ask a teammate to add you.');
-    return `<section class="projects-shared" aria-label="${escape(t('Shared projects'))}">
-      <div class="projects-shared-head"><div><h2>${t('Shared projects')}</h2><p>${escape(source.label)}</p></div>
-        <button type="button" class="btn btn--sm btn--ghost" data-refresh-team>${icon('refresh')}${t('Refresh')}</button></div>
-      ${tiles ? `<div class="folder-grid projects-grid${viewMode === 'list' ? ' projects-list' : ''}">${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}
-    </section>`;
-  }
+
 
   // The flat results grid for the ?tools= filter - every saved session belonging to
   // the named tools, under an explicit status line with its own way out. Mirrors
@@ -977,6 +916,7 @@ export async function mountProjects(
   // feeds the spotlight overlay (plans/99 section 2a M2), and only the explicit ?q=
   // handoff puts this view into results mode.
   function searchPlaceholder(): string {
+    if (sharedFolder) return t('Search this shared project…');
     const scopeName = folderId == null ? t('all projects')
       : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
       : (folders.find(f => f.id === folderId)?.name || t('this folder'));
@@ -1184,10 +1124,10 @@ export async function mountProjects(
       if (bulk) { e.preventDefault(); e.stopPropagation(); handleBulk(bulk.dataset.bulk!); return; }
 
       // Trash tile opens the trash browser (plans/133 WP-4).
-      const shared = t.closest<HTMLElement>('[data-open-team-project]');
-      if (shared) { e.preventDefault(); openTeamProjects(teamDoor, shared.dataset.openTeamProject); return; }
+      const sharedTile = t.closest<HTMLElement>('[data-open-team-project]');
+      if (sharedTile) { e.preventDefault(); openTeamProjects(teamDoor, sharedTile.dataset.openTeamProject); return; }
       if (t.closest('[data-new-team-project]')) { openTeamProjects(teamDoor, undefined, true); return; }
-      if (t.closest('[data-refresh-team]')) { void refreshSharedProjects(); return; }
+      if (t.closest('[data-refresh-team]')) { void shared.refresh(); return; }
       if (t.closest('[data-open-trash]')) { openTrashDialog(); return; }
 
       // List-view column headers: click sorts, second click reverses (WP-2).
@@ -2079,7 +2019,7 @@ export async function mountProjects(
     };
     const remember = (key: string, value: string): void => { try { localStorage.setItem(key, value); } catch { /* storage off */ } };
     viewPopover = mountProjectsViewOptions(liveAnchor(current), {
-      view: viewMode, sort: sortBy, reversed: sortRev, atRoot: folderId == null,
+      view: viewMode, sort: sortBy, reversed: sortRev, atRoot: folderId == null && !sharedFolder, shared: sharedFolder,
       favView: featuredHandle ? readFeaturedView() : null,
       onView: value => { viewMode = value; remember('lolly:projectsView', value); repaint(); },
       onSort: value => { sortBy = value; remember('lolly:projectsSort', value); repaint(); },
@@ -2994,7 +2934,7 @@ export async function mountProjects(
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   // NB tileSelect.destroy() is not optional: its mousedown is bound to viewEl (#view), which
   // the router REUSES for every route - leave it bound and the next mount stacks another.
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; cleanupSharedFolder?.(); cleanupSharedPreviews?.(); window.removeEventListener('focus', refreshSharedOnFocus); window.clearInterval(sharedRefresh); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; shared.dispose(); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
   await reload();
   void sweepTrash();   // age out trash entries past the 30-day retention (silent)
   // A stale /p/<id> deep link to a deleted folder falls back to root.
@@ -3026,7 +2966,7 @@ export async function mountProjects(
     onClear: exitSearch,
   });
   render();
-  void refreshSharedProjects();
+  void shared.refresh();
   // A team project link asked Projects to open that project.
   openRequestedTeamProject(teamDoor);
 }

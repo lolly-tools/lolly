@@ -121,10 +121,10 @@ export function teamRoleOf(value: unknown): TeamRole | undefined {
 
 /** The newer list fields of a project row (the caller's role, who changed it last),
  *  each carried only when the server sent it in the right type. Pure. */
-function projectExtras(p: { myRole?: unknown; updatedByName?: unknown }): Pick<TeamProjectRef, 'myRole' | 'updatedByName'> {
+function projectExtras(p: { myRole?: unknown; updatedByName?: unknown; createdAt?: unknown }): Pick<TeamProjectRef, 'myRole' | 'updatedByName' | 'createdAt'> {
   const myRole = teamRoleOf(p.myRole);
   const name = typeof p.updatedByName === 'string' && p.updatedByName.trim() ? p.updatedByName.trim() : undefined;
-  return { ...(myRole ? { myRole } : {}), ...(name ? { updatedByName: name } : {}) };
+  return { ...(myRole ? { myRole } : {}), ...(name ? { updatedByName: name } : {}), ...(typeof p.createdAt === 'string' ? { createdAt: p.createdAt } : {}) };
 }
 
 /** One session row of a project's list, without its inputs. The instance sends

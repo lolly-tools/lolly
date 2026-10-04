@@ -60,12 +60,26 @@ export class PairError extends Error {
   constructor(reason: PairFailure) { super(reason); this.reason = reason; }
 }
 
+function browserSocket(url: string): SocketLike {
+  const socket = new WebSocket(url);
+  const adapter: SocketLike = {
+    get readyState() { return socket.readyState; },
+    send: data => socket.send(data), close: (code, reason) => socket.close(code, reason),
+    onopen: null, onmessage: null, onclose: null, onerror: null,
+  };
+  socket.addEventListener('open', event => adapter.onopen?.(event));
+  socket.addEventListener('message', event => adapter.onmessage?.({ data: event.data }));
+  socket.addEventListener('close', event => adapter.onclose?.({ code: event.code, reason: event.reason }));
+  socket.addEventListener('error', event => adapter.onerror?.(event));
+  return adapter;
+}
+
 /**
  * Pair with an agent. Resolves with the live link once the agent accepted the code;
  * rejects with a PairError naming why it did not.
  */
 export function pairWithAgent(code: PairingCode, editor: LiveEditor, opts: PairOpts = {}): Promise<AgentLink> {
-  const socket = (opts.makeSocket ?? ((url) => new WebSocket(url) as unknown as SocketLike))(`ws://127.0.0.1:${code.port}`);
+  const socket = (opts.makeSocket ?? browserSocket)(`ws://127.0.0.1:${code.port}`);
   const session = createLiveSession(editor, opts);
   let paired = false;
   let ended = false;

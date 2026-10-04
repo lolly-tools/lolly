@@ -15,7 +15,7 @@ export function wireProjectContextMenu(d: ProjectMenuDeps): TileContextMenuHandl
   return wireTileContextMenu({
     host: d.host,
     tileSelector: '.folder-tile[data-ref][data-kind], [data-fav-strip] .ftile[data-tool]',
-    refOf: (tile) => tile.classList.contains('folder-tile--create')
+    refOf: (tile) => tile.classList.contains('folder-tile--create') || tile.dataset.kind?.startsWith('team-')
       ? null : tile.dataset.ref ?? tile.dataset.tool ?? null,
     tileAt: (x, y) => {
       const tile = d.strip()?.tileAt(x, y);

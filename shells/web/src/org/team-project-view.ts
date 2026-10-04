@@ -5,11 +5,16 @@ import { getSessionSource, readSourceProjects, readSourceSessions } from '../lib
 import { sessionTile } from '../folder-tiles.ts';
 import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
+import { applyCardSize, readCardSize } from '../components/view-options.ts';
+import { confirmDialog, promptDialog } from '../components/confirm-dialog.ts';
+import { menuItemHtml, wireTileContextMenu, type TileContextMenuHandle } from '../lib/context-menu.ts';
 import { orgConfig } from './index.ts';
 import { activityLabel, canWriteProject, invitePolicy, isManagerPlus, peopleAccess, roleLabel } from './team-access.ts';
 import { buildNewProjectForm } from './team-project-form.ts';
 import { buildPeoplePanel, copyText } from './team-people.ts';
-import { teamProjectLinkUrl } from './project-members.ts';
+import { deleteTeamSession, renameTeamProject, renameTeamSession, teamProjectLinkUrl } from './project-members.ts';
+import { fetchTeamSession } from './session-source.ts';
+import { getInstanceBase } from '../lib/instance.ts';
 import { openTeamSession, teamOpenMessage } from './team-open.ts';
 import { noteProjectOpened } from './opened-projects.ts';
 import { buildTeamFilesPanel } from './team-files-panel.ts';
@@ -36,6 +41,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   const source = getSessionSource(), abort = new AbortController();
   let disposed = false, ticket = 0, opening = false;
   let clearPreviews: (() => void) | undefined;
+  let sessionMenu: TileContextMenuHandle | undefined;
   const current = () => !disposed && container.isConnected && opts.isMounted() && source === getSessionSource();
   const node = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] => {
     const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (className) el.className = className; return el;
@@ -53,24 +59,32 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   if (!source) { body.append(node('p', tRaw('Sign in to your workspace to open shared projects.'), 'team-project-notice')); return () => { disposed = true; abort.abort(); }; }
   if (opts.create) {
     const writer = source.write;
-    body.append(node('h2', tRaw('New team project')), node('p', tRaw('Create a shared folder for your team’s sessions. Choose people after creating it.'), 'team-project-notice'));
+    body.append(node('h2', tRaw('New team project')), node('p', tRaw('Create a shared folder for your team’s sessions. Choose people after creating the project.'), 'team-project-notice'));
     if (!writer?.projectOptions().canCreate) body.append(node('p', tRaw('This instance does not let you create projects.'), 'team-project-notice'));
     else body.append(buildNewProjectForm(writer, { onCreated: project => {
       if (current()) window.location.hash = `#/p?team=${encodeURIComponent(project.id)}&tab=people`;
     }, onCancel: () => { window.location.hash = '#/p'; } }));
   } else void load();
 
+  const refresh = () => {
+    if (!opts.create && opts.tab === 'sessions' && !opening && current() && document.visibilityState === 'visible' && !body.querySelector('form') && !document.querySelector('dialog[open]')) void load();
+  };
+  window.addEventListener('focus', refresh, { signal: abort.signal });
+  const timer = window.setInterval(refresh, 60_000);
+
   async function load(): Promise<void> {
     if (!source || !current()) return;
     const my = ++ticket;
     clearPreviews?.(); clearPreviews = undefined;
+    sessionMenu?.destroy(); sessionMenu = undefined;
     body.replaceChildren(node('p', tRaw('Loading…'), 'team-project-notice'));
     const projects = await readSourceProjects(source);
     if (!current() || my !== ticket) return;
     if (!projects.ok) { failure(projects.status, () => { void load(); }); return; }
     const project = projects.items.find(p => p.id === opts.projectId);
     if (!project) { failure(403, () => { void load(); }); return; }
-    const projectId = project.id;
+    const projectId = project.id, projectRole = project.myRole;
+    const crumb = node('span', project.name); crumb.setAttribute('aria-current', 'page'); breadcrumbs.replaceChildren(root, crumb);
     noteProjectOpened(project.id);
     document.title = tRaw('{name} - Lolly', { name: project.name });
     const head = node('header', undefined, 'team-project-head'), identity = node('div', undefined, 'team-project-identity');
@@ -84,6 +98,13 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     }); }); actions.append(copy);
     const canWrite = canWriteProject(project.myRole) && orgConfig()?.can?.['session.create'] !== false;
     if (source.write && canWrite) actions.append(button(tRaw('New session'), () => showNewSession(), true));
+    if (isManagerPlus(projectRole)) actions.append(button(tRaw('Rename'), () => { void (async () => {
+      const name = await promptDialog({ title: tRaw('Rename shared project'), message: tRaw('Project name'), value: project.name, confirmLabel: tRaw('Save') });
+      if (!current() || !name?.trim() || name.trim() === project.name) return;
+      const got = await renameTeamProject(projectId, name.trim().slice(0, 200));
+      if (!current()) return;
+      if (got.ok) void load(); else notice.textContent = tRaw('Could not rename this project. Refresh and try again.');
+    })(); }));
     actions.append(button(tRaw('Refresh'), () => { void load(); })); head.append(actions);
     const tabs = node('nav', undefined, 'team-project-tabs'); tabs.setAttribute('aria-label', tRaw('Shared project'));
     const addTab = (label: string, tab: string) => {
@@ -99,14 +120,14 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       content.append(buildPeoplePanel({ projectId: project.id, projectName: project.name, policy: invitePolicy(orgConfig()) })); return;
     }
     if (opts.tab === 'files' && orgConfig()?.sharing?.projectFiles) {
-      content.append(buildTeamFilesPanel({ projectId: project.id, canUpload: canWrite, canManage: isManagerPlus(project.myRole), onBack: () => { window.location.hash = `#/p?team=${encodeURIComponent(project.id)}`; } })); return;
+      content.append(buildTeamFilesPanel({ projectId: project.id, canUpload: canWrite, canManage: isManagerPlus(projectRole), onBack: () => { window.location.hash = `#/p?team=${encodeURIComponent(project.id)}`; } })); return;
     }
     const got = await readSourceSessions(source!, project.id);
     if (!current() || my !== ticket) return;
     if (!got.ok) { content.append(node('p', teamOpenMessage(got.status), 'team-project-notice'), button(tRaw('Try again'), () => { void load(); })); return; }
     const tokens = tokenize(opts.query || '');
     const sessions = got.items.filter(session => !tokens.length || matchesHaystack(buildFolderHaystack(`${session.label || ''} ${opts.toolName(session.toolId)}`), tokens));
-    sessions.sort((a, b) => (opts.reversed ? -1 : 1) * (opts.sort === 'name' ? (a.label || a.toolId).localeCompare(b.label || b.toolId) : (b.updatedAt || '').localeCompare(a.updatedAt || '')));
+    sessions.sort((a, b) => (opts.reversed ? -1 : 1) * (opts.sort === 'name' ? (a.label || a.toolId).localeCompare(b.label || b.toolId) : opts.sort === 'tool' ? opts.toolName(a.toolId).localeCompare(opts.toolName(b.toolId)) : (b.updatedAt || '').localeCompare(a.updatedAt || '')));
     const grid = node('div', undefined, `folder-grid projects-grid${opts.list ? ' projects-list' : ''}`);
     grid.innerHTML = sessions.map(session => {
       const name = session.label || opts.toolName(session.toolId) || session.toolId;
@@ -115,6 +136,43 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
         shared: { subtitle: [opts.toolName(session.toolId), activityLabel(session)].filter(Boolean).join(' · '), openLabel: tRaw('Open shared session {name}', { name }) },
       });
     }).join('');
+    applyCardSize(grid, readCardSize('projects'));
+    for (const tile of grid.querySelectorAll<HTMLElement>('.folder-tile')) {
+      const more = button(tRaw('Session actions'), () => {
+        const rect = more.getBoundingClientRect(); sessionMenu?.openAt(rect.right, rect.bottom, { ref: tile.dataset.ref!, tile }, more);
+      });
+      more.className = 'tile-menu-btn'; more.innerHTML = icon('menu'); more.setAttribute('aria-label', tRaw('Session actions')); more.setAttribute('aria-haspopup', 'menu'); tile.append(more);
+    }
+    sessionMenu = wireTileContextMenu({ host: grid, tileSelector: '.folder-tile[data-ref]', refOf: tile => tile.dataset.ref ?? null,
+      singleHtml: () => menuItemHtml('copy', icon('share'), tRaw('Copy session link'))
+        + (canWrite ? menuItemHtml('rename', icon('pen'), tRaw('Rename')) : '')
+        + (isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false ? menuItemHtml('delete', icon('trash'), tRaw('Delete'), { danger: true }) : ''),
+      onAction: (action, target) => { if (target) void sessionAction(action, target.ref); },
+      className: 'folder-menu projects-menu', presentation: 'sheet',
+      head: target => ({ name: sessions.find(s => s.id === target?.ref)?.label || tRaw('Shared session') }),
+    });
+    async function sessionAction(action: string, id: string): Promise<void> {
+      const session = sessions.find(s => s.id === id); if (!session || !current()) return;
+      if (action === 'copy') {
+        const ok = await copyText(`${getInstanceBase() || window.location.origin}/#/team/${encodeURIComponent(id)}`);
+        if (current()) notice.textContent = ok ? tRaw('Link copied') : tRaw('Could not copy. Try again.');
+        return;
+      }
+      if (action === 'rename' && canWrite) {
+        const label = await promptDialog({ title: tRaw('Rename shared session'), message: tRaw('Session name'), value: session.label || opts.toolName(session.toolId), confirmLabel: tRaw('Save') });
+        if (!current() || !label?.trim()) return;
+        const fresh = await fetchTeamSession(id); if (!current()) return;
+        if (!fresh.ok || fresh.data.rev === undefined) { notice.textContent = teamOpenMessage(fresh.ok ? 0 : fresh.status); return; }
+        const got = await renameTeamSession(id, label.trim().slice(0, 200), fresh.data.rev, fresh.data.meta);
+        if (!current()) return;
+        if (got.ok) void load(); else notice.textContent = got.code === 'COLLAB_ACTIVE' ? tRaw('Close the live session before renaming it, then try again.') : tRaw('This session changed or your access changed. Refresh and try again.');
+      } else if (action === 'delete' && isManagerPlus(projectRole)) {
+        const accepted = await confirmDialog({ title: tRaw('Delete shared session?'), message: tRaw('Delete {name} for everyone in this project?', { name: session.label || opts.toolName(session.toolId) }), confirmLabel: tRaw('Delete') });
+        if (!accepted || !current()) return;
+        const got = await deleteTeamSession(id); if (!current()) return;
+        if (got.ok) void load(); else notice.textContent = tRaw('Could not delete this session. Refresh and try again.');
+      }
+    }
     grid.addEventListener('click', event => {
       const link = (event.target as Element).closest<HTMLElement>('[data-open-team-session]');
       if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
@@ -136,11 +194,13 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       content.replaceChildren(form); titleInput.focus();
       form.addEventListener('submit', async event => {
         event.preventDefault(); if (create.disabled || !tool.value || !titleInput.value.trim()) return; create.disabled = true;
-        const saved = await source!.write!.createSession(projectId, { toolId: tool.value, inputs: {}, meta: { label: titleInput.value.trim() } });
-        if (!current()) return;
-        if (saved.kind === 'saved') { await open(saved.id, status); }
-        else status.textContent = saved.kind === 'file-error' ? saved.message : teamOpenMessage(saved.kind === 'error' ? saved.status : 409);
-        create.disabled = false;
+        try {
+          const saved = await source!.write!.createSession(projectId, { toolId: tool.value, inputs: {}, meta: { label: titleInput.value.trim() } });
+          if (!current()) return;
+          if (saved.kind === 'saved') { await open(saved.id, status); }
+          else status.textContent = saved.kind === 'file-error' ? saved.message : teamOpenMessage(saved.kind === 'error' ? saved.status : 409);
+        } catch { if (current()) status.textContent = tRaw('Could not create the session. Check your connection and try again.'); }
+        finally { create.disabled = false; }
       }, { signal: abort.signal });
     }
   }
@@ -151,5 +211,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearPreviews?.(); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearPreviews?.(); sessionMenu?.destroy(); window.clearInterval(timer); abort.abort(); };
 }

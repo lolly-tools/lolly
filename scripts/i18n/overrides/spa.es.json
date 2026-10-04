@@ -779,5 +779,6 @@
   "This session is open for live editing. Try again when it closes.": "Esta sesión está abierta a la edición en vivo. Inténtalo de nuevo cuando se cierre.",
   "The live collab saves your changes to this session.": "La colaboración en vivo guarda tus cambios en esta sesión.",
   "Sign out": "Cerrar sesión",
-  "Could not sign out. Try again.": "No se pudo cerrar sesión. Inténtalo de nuevo."
+  "Could not sign out. Try again.": "No se pudo cerrar sesión. Inténtalo de nuevo.",
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design comprueba esta regla capa por capa al revisar la exportación, y lolly check hace lo mismo con un documento guardado. Los ejemplos siguientes no se comprueban con esta regla."
 }

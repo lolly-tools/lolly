@@ -7275,5 +7275,6 @@
   "This session is open for live editing. Try again when it closes.": "Тази сесия е отворена за редактиране на живо. Опитай отново, когато се затвори.",
   "The live collab saves your changes to this session.": "Колаборацията на живо запазва промените ти в тази сесия.",
   "Sign out": "Изход",
-  "Could not sign out. Try again.": "Изходът не е възможен. Опитай отново."
+  "Could not sign out. Try again.": "Изходът не е възможен. Опитай отново.",
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design проверява това правило слой по слой при проверките за експорт, а lolly check прави същото за запазен документ. Примерите по-долу не се проверяват по това правило."
 }

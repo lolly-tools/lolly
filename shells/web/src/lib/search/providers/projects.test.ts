@@ -26,6 +26,7 @@ globalThis.sessionStorage = dom.window.sessionStorage;
 
 const { createProjectsProvider } = await import('./projects.ts');
 const { tokenize } = await import('../match.ts');
+const { registerSessionSource, _clearSessionSourceForTests } = await import('../../session-source.ts');
 
 const folders = [
   { id: 'f1', name: 'Événement', parentId: null, items: [{ type: 'session' as const, ref: 's1' }], createdAt: '2026-01-01', updatedAt: '2026-01-02' },
@@ -52,6 +53,28 @@ const host = {
 };
 
 const provider = createProjectsProvider(host);
+
+test('shared folders and documents are discoverable by name and project context', async () => {
+  const off = registerSessionSource({ label: 'Workspace', listProjects: async () => [{ id: 'event', name: 'Team launch event' }],
+    listSessions: async id => { assert.equal(id, 'event'); return [{ id: 'agenda', toolId: 'qr-code', label: 'Speaker badges' }]; }, fetchSession: async () => { throw new Error('search must not load artwork'); } });
+  try {
+    const folders = await provider.search(tokenize('launch event'), 8);
+    assert.ok(folders.some(hit => hit.href === '#/p?team=event'));
+    assert.ok(folders.some(hit => hit.href === '#/team/agenda'));
+    const hits = await provider.search(tokenize('speaker badges'), 8);
+    assert.equal(hits[0]?.title, 'Speaker badges');
+    assert.match(hits[0]?.subtitle || '', /Shared project · Team launch event · QR Code/);
+  } finally { off(); }
+});
+
+test('a source replaced during a shared search cannot disclose the former account’s results', async () => {
+  let resolve!: (value: Array<{ id: string; name: string }>) => void;
+  registerSessionSource({ label: 'Former account', listProjects: () => new Promise(r => { resolve = r; }), listSessions: async () => [], fetchSession: async () => null });
+  const pending = provider.search(tokenize('confidential'), 8);
+  while (!resolve) await new Promise(r => setTimeout(r, 0));
+  _clearSessionSourceForTests(); resolve([{ id: 'secret', name: 'Confidential project' }]);
+  assert.deepEqual(await pending, []);
+});
 
 test('folder hits: folded name match, #/p/<id> href, Project subtitle', async () => {
   const hits = await provider.search(tokenize('evenement'), 8);

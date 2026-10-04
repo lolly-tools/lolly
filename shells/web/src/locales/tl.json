@@ -7275,5 +7275,6 @@
   "This session is open for live editing. Try again when it closes.": "Bukas ang session na ito para sa live na pag-edit. Subukan ulit kapag nagsara ito.",
   "The live collab saves your changes to this session.": "Sine-save ng live collab ang mga pagbabago mo sa session na ito.",
   "Sign out": "Mag-sign out",
-  "Could not sign out. Try again.": "Hindi nakapag-sign out. Subukan ulit."
+  "Could not sign out. Try again.": "Hindi nakapag-sign out. Subukan ulit.",
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Sinusuri ng Design ang tuntuning ito sa bawat layer sa mga pagsusuri sa pag-export, at gayon din ang ginagawa ng lolly check para sa naka-save na dokumento. Hindi sinusuri ang mga halimbawa sa ibaba ayon sa tuntuning ito."
 }

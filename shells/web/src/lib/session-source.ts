@@ -29,6 +29,7 @@ export interface TeamProjectRef {
   id: string;
   name: string;
   sessionCount?: number;
+  createdAt?: string;
   /** When anything in the project last changed. */
   updatedAt?: string;
   /** The display name of whoever made that change, when the source knows the name. */

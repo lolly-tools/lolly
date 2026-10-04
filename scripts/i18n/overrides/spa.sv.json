@@ -771,5 +771,6 @@
   "This session is open for live editing. Try again when it closes.": "Den här sessionen är öppen för live-redigering. Försök igen när den stängs.",
   "The live collab saves your changes to this session.": "Live-samarbetet sparar dina ändringar i den här sessionen.",
   "Sign out": "Logga ut",
-  "Could not sign out. Try again.": "Kunde inte logga ut. Försök igen."
+  "Could not sign out. Try again.": "Kunde inte logga ut. Försök igen.",
+  "Design checks this rule layer by layer in its export checks, and lolly check does the same for a saved document. The examples below are not checked against this rule.": "Design kontrollerar denna regel lager för lager vid exportkontrollerna, och lolly check gör samma sak för ett sparat dokument. Exemplen nedan kontrolleras inte mot denna regel."
 }
