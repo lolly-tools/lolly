@@ -45,6 +45,7 @@ import { mountCollabRecovery } from './tool-collab-recovery.ts';
 import { surfaceMapping } from '../lib/collab-surface-geometry.ts';
 import { collabSurface, surfacePresence } from '../lib/collab-surface.ts';
 import type { CanvasOp } from '@lolly-tools/core/canvas-op-v1';
+import { tRaw } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createCollabFocus } from '../components/collab-focus.ts';
 import type { CollabFocus } from '../components/collab-focus.ts';
@@ -470,7 +471,14 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       status.setAttribute('role', 'status');
       status.style.paddingInline = '0.5em';
       pill.el.appendChild(status);
-      const stop = handle.saveIn.subscribe(state => { status.textContent = state.message; });
+      const stop = handle.saveIn.subscribe(state => {
+        status.textContent = state.message;
+        if (state.retry) {
+          const retry = canvas.ownerDocument.createElement('button');
+          retry.type = 'button'; retry.textContent = tRaw('Retry image transfer');
+          retry.addEventListener('click', state.retry); status.appendChild(retry);
+        }
+      });
       steps.unshift(() => { stop(); status.remove(); });
     }
 

@@ -173,9 +173,10 @@ export interface CollabSelf {
 /**
  * Everything a transport supplies. See the header for how each track fills it in.
  */
-export interface CollabSaveState { pending: number; message: string }
+export interface CollabSaveState { pending: number; message: string; retry?: () => void }
 
 export interface CollabSessionHandle {
+  readonly assets?: import('./canvas-assets.ts').CanvasAssetsCapability;
   readonly comments?: import('./canvas-comments.ts').CanvasCommentsCapability;
   readonly claims?: import('./canvas-interaction.ts').CanvasClaimCapability;
   readonly recoveryIn?: CollabStream<{ id: string; ops: readonly CanvasOp[] }>;
@@ -943,6 +944,7 @@ export function createCollabSession(opts: CollabSessionOptions): CollabSession {
 
   const adapter = handle.role === 'observer' ? observerAdapter(handle.adapter) : handle.adapter;
   const plumbing: CollabPlumbing | null = attachCollabPlumbing(runtime, {
+    assets: handle.assets,
     adapter,
     canEdit: () => handle.role === 'writer',
     clientId: selfId,

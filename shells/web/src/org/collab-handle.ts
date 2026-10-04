@@ -142,6 +142,7 @@ export function readPresencePayload(payload: unknown): ReadPresencePayload | nul
 }
 
 export interface WorkCollabHandleOptions {
+  assets?: import('../lib/canvas-assets.ts').CanvasAssetsCapability;
   comments?: import('../lib/canvas-comments.ts').CanvasCommentsCapability;
   /**
    * This device's collab client id. Defaults to `getCollabClientId()` - the SAME
@@ -184,16 +185,19 @@ export function createWorkCollabHandle(
   const clientId = opts.clientId ?? provider.clientId ?? getCollabClientId();
 
   const recoverySubs = new Set<(value: { id: string; ops: readonly CanvasOp[] }) => void>();
-  const saveSubs = new Set<(state: { pending: number; message: string }) => void>();
+  const saveSubs = new Set<(state: import('../lib/collab-session.ts').CollabSaveState) => void>();
+  let assetState = { pending: 0, message: '' };
   let saveError = '', saveErrorCode = '';
   const saveState = () => {
     const state = provider.state();
-    return { pending: state.pending, message: saveError || (state.pending ? 'Edits pending'
+    return { pending: state.pending + assetState.pending, ...(assetState.message && !assetState.pending ? { retry: () => opts.assets?.retry?.() } : {}),
+      message: assetState.message || (assetState.pending ? 'Image changes pending' : '') || saveError || (state.pending ? 'Edits pending'
       : state.status !== 'live' ? 'Work disconnected'
       : state.reason === 'durable-receipts-required' ? 'View only: update the work server'
       : state.role === 'observer' ? 'View only' : 'Saved to work') };
   };
   const publishSave = () => { for (const fn of saveSubs) fn(saveState()); };
+  const stopAssets = opts.assets?.status.subscribe(value => { assetState = value; publishSave(); });
   const presenceSubs = new Set<(frame: PresenceFrame) => void>();
   const stateSubs = new Set<(state: CollabConnectionState) => void>();
   const opsSubs = new Set<(ops: readonly CanvasOp[]) => void>();
@@ -421,6 +425,7 @@ export function createWorkCollabHandle(
   };
 
   return {
+    assets: opts.assets,
     admission: 'work-room',
     recoveryIn: { subscribe(fn) { recoverySubs.add(fn); for (const copy of provider.recoveries?.() ?? []) fn(copy); return () => { recoverySubs.delete(fn); }; } },
     saveIn: { subscribe(fn) { saveSubs.add(fn); fn(saveState()); return () => { saveSubs.delete(fn); }; } },
@@ -530,6 +535,7 @@ export function createWorkCollabHandle(
     close(): void {
       if (closing) return;
       closing = true;
+      stopAssets?.(); opts.assets?.close();
       // Closed BEFORE the listeners are dropped, so the provider's final state event
       // still reaches whoever is subscribed - a stream that ends without saying so
       // is how a UI ends up showing a live room that isn't.

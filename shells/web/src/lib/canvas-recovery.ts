@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { ReferenceCanvasDoc, type CanvasOp } from '@lolly-tools/core/canvas-op-v1';
+import { decodeCanvasAsset } from '@lolly-tools/core/canvas-asset-v1';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
 import { rowIdField } from './row-id.ts';
 
@@ -34,11 +35,13 @@ export function canvasRecoveryValues(model: readonly InputModelItem[], ops: read
     if (item.type !== 'blocks') continue;
     const collection = snapshot.collections?.get(item.id); if (!collection) continue;
     const idField = rowIdField(item);
+    const assetFields = new Set((item.fields ?? []).filter(field => field.type === 'asset').map(field => field.id));
     const prior = new Map((Array.isArray(item.value) ? item.value : []).filter(row => row && typeof row === 'object')
       .map(row => [String((row as Record<string, unknown>)[idField]), row as Record<string, unknown>]));
     values[item.id] = collection.order.map(id => ({
       ...Object.fromEntries(Object.entries(prior.get(id) ?? {}).filter(([, value]) => value !== null && typeof value === 'object')),
-      ...collection.boxes.get(id), [idField]: id,
+      ...Object.fromEntries(Object.entries(collection.boxes.get(id) ?? {}).map(([field, value]) =>
+        [field, assetFields.has(field) ? decodeCanvasAsset(value) ?? value : value])), [idField]: id,
     }));
   }
   return values;

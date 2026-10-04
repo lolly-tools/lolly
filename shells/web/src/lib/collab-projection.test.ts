@@ -7,7 +7,7 @@ import { attachCollabPlumbing } from './collab-plumbing.ts';
 test('hidden-tab backlog folds into the document and paints one current projection', async () => {
   const doc = new ReferenceCanvasDoc('local');
   doc.apply({ k: 'add', col: 'rows', id: 'a', row: { x: 0 }, orderKey: 'a', origin: { client: 'remote', clock: 0 } });
-  const model = [{ id: 'rows', type: 'blocks', canvas: { idField: 'id' }, fields: [{ id: 'id' }], value: [{ id: 'a', x: 0, localOnly: { asset: 'kept' } }] }];
+  const model = [{ id: 'rows', type: 'blocks', canvas: { idField: 'id' }, fields: [{ id: 'id' }, { id: 'x', type: 'number' }], value: [{ id: 'a', x: 0, localOnly: { asset: 'kept' } }] }];
   let patches = 0; const frames: (() => void)[] = [];
   const runtime = { getModel: () => model as never, setInput: async () => {}, applyPatch: async (v: Record<string, unknown>) => { patches++; model[0]!.value = v.rows as typeof model[0]['value']; } };
   const plumbing = attachCollabPlumbing(runtime, { adapter: doc, raf: fn => frames.push(fn) })!;
@@ -34,7 +34,7 @@ test('authoritative snapshots replace default rows, discard older queued deltas 
   const doc = new ReferenceCanvasDoc('local');
   doc.apply({ k: 'add', col: 'rows', id: 'shared', row: { x: 20 }, orderKey: 'a', origin: { client: 'server', clock: 500 } });
   const model = [
-    { id: 'rows', type: 'blocks', canvas: { idField: 'id' }, fields: [{ id: 'id' }], value: [
+    { id: 'rows', type: 'blocks', canvas: { idField: 'id' }, fields: [{ id: 'id' }, { id: 'x', type: 'number' }], value: [
       { id: 'default', x: 0 }, { id: 'shared', x: 0, obsolete: 'old scalar', localOnly: { asset: 'kept' } }, { x: 90 },
     ] },
     { id: 'title', type: 'text', value: 'before' },
