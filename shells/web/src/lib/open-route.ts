@@ -131,7 +131,11 @@ export async function runOpenRoute(view: HTMLElement, host: object, params: stri
   const raw = new URLSearchParams(params).get(OPEN_ROUTE_PARAM);
   // Leave the source address before anything is fetched: a reload of `#/open` finds
   // no source and opens nothing.
-  if (raw !== null) history.replaceState(history.state, '', '#/open');
+  if (raw !== null) {
+    history.replaceState(history.state, '', '#/open');
+    // A duplicate navigation event must not remount the consumed hand-off.
+    window.dispatchEvent(new window.Event('lolly:url-state'));
+  }
   const projects = { label: t('Go to Projects'), href: '#/p' };
   const source = openRouteSource(raw, window.location.origin);
   if (!source.ok) {
