@@ -101,9 +101,9 @@ function fakePage() {
   };
 }
 
-test('the file route answers one GET, refuses other methods, and then is gone', async () => {
+test('the file route answers one GET and detaches only when the caller finishes', async () => {
   const page = fakePage();
-  const { requested } = await serveSessionOnce(page as never, 'http://127.0.0.1:9', '/__lolly-open/abc/x.lolly', new Uint8Array([1, 2, 3]));
+  const { requested, remove } = await serveSessionOnce(page as never, 'http://127.0.0.1:9', '/__lolly-open/abc/x.lolly', new Uint8Array([1, 2, 3]));
   let asked = false;
   void requested.then(() => { asked = true; });
   assert.equal((await page.ask('http://127.0.0.1:9/__lolly-open/abc/other.lolly')).status, 'fell through');
@@ -116,7 +116,11 @@ test('the file route answers one GET, refuses other methods, and then is gone', 
   assert.deepEqual([...(first as unknown as { body: Buffer }).body], [1, 2, 3]);
   await requested;
   assert.equal((await page.ask('http://127.0.0.1:9/__lolly-open/abc/x.lolly')).status, 'fell through', 'one-shot');
+  assert.equal(page.routes.length, 1, 'the intake can load its modules without toggling interception');
+  await remove();
   assert.equal(page.routes.length, 0);
+  await remove();
+  assert.equal(page.routes.length, 0, 'cleanup is idempotent');
 
   await assert.rejects(
     serveSessionOnce(fakePage() as never, 'http://127.0.0.1:9', '/p', new Uint8Array(OPEN_ROUTE_MAX_BYTES + 1)),

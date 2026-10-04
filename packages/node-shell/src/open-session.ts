@@ -82,9 +82,11 @@ export function openRouteRefusal(bytes: Uint8Array): string | null {
 /**
  * Serve `bytes` once to `page` at `path` on `origin`. Only a GET is answered (anything
  * else gets 405 and leaves the route in place); the first GET is fulfilled and the
- * route removed, so a later request for the path falls through to the web shell
- * itself, which knows nothing of the file. `remove` takes the route away for a caller that
- * gives up first; `requested` settles when the page has asked for the file.
+ * route consumed, so a later request for the path falls through to the web shell
+ * itself, which knows nothing of the file. `remove` detaches the handler once the
+ * open finishes or the caller gives up; `requested` settles when the page has asked
+ * for the file. Detaching inside the handler would toggle browser interception
+ * while the intake is fetching its modules, leaving some of those fetches stalled.
  */
 export async function serveSessionOnce(
   page: Page, origin: string, path: string, bytes: Uint8Array,
@@ -95,6 +97,7 @@ export async function serveSessionOnce(
   const body = Buffer.from(bytes);
   const matches = (url: URL): boolean => url.origin === origin && url.pathname === path;
   let removed = false;
+  let consumed = false;
   let asked: () => void = () => {};
   const requested = new Promise<void>((resolve) => { asked = resolve; });
   const remove = async (): Promise<void> => {
@@ -103,17 +106,16 @@ export async function serveSessionOnce(
     await page.unroute(matches, handler).catch(() => {});
   };
   const handler = async (route: Route, request: Request): Promise<void> => {
-    if (removed) { await route.fallback(); return; }
+    if (removed || consumed) { await route.fallback(); return; }
     if (request.method() !== 'GET') {
       await route.fulfill({ status: 405, body: '', headers: { Allow: 'GET', 'Cache-Control': 'no-store' } });
       return;
     }
-    // Answer first, then take the route away: removing it while this request is in
-    // the handler would hand the request on before it is answered.
-    removed = true;
+    // Consume before answering so concurrent GETs cannot receive a second copy.
+    // Keep the handler attached until the open finishes; later requests fall through.
+    consumed = true;
     await route.fulfill({ status: 200, body, contentType: 'application/vnd.lolly+zip', headers: { 'Cache-Control': 'no-store' } });
     asked();
-    await page.unroute(matches, handler).catch(() => {});
   };
   await page.route(matches, handler);
   return { remove, requested };
