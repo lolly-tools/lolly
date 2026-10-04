@@ -71,6 +71,8 @@ interface AssetMetaRecord {
   id: string;
   type: AssetRef['type'];
   name?: string;
+  provider?: string;
+  description?: string;
   tags?: string[];
   version?: string;
   tier?: string;
@@ -521,6 +523,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const refMeta = {
         name: meta.name,
         tags: meta.tags,
+        ...(meta.provider ? { provider: meta.provider } : {}),
+        ...(meta.description ? { description: meta.description } : {}),
         ...(meta.aiGenerated ? { aiGenerated: meta.aiGenerated } : {}),
         // Licensing signals ride onto the resolved ref so downstream (e.g.
         // the `.lolly` share file, plans/114) can tell a freely-shareable
@@ -703,14 +707,13 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         // Pick the format the picker should point at: for video the actual
         // clip (a <video> plays it), for everything else formats[0], never a
         // companion still.
-        const primary = m.type === 'video'
-          ? (m.formats.find(f => /^(mp4|webm|mov)$/i.test(f.format)) ?? m.formats[0])
-          : m.formats[0];
+        const primary = m.formats.length ? pickFormat(m) : undefined;
         // A still poster (a non-animation companion format) for the types
         // that need one: a lottie thumbnails from it (an <img> can't show
         // the json); a video can use it as its <video poster>. Excludes the
         // animation/clip formats.
-        const still = m.formats.find(f => !/^(json|mp4|webm|mov)$/i.test(f.format))?.url ?? '';
+        const still = m.formats.find(f => f.format === 'thumb')?.url
+          ?? m.formats.find(f => /^(svg|png|webp|jpe?g|gif|avif)$/i.test(f.format))?.url ?? '';
         const lottiePoster = m.type === 'lottie' ? still : '';
         const videoPoster = m.type === 'video' ? still : '';
         // A 3-D model (GLB) or a LUT (.cube colour grade) tiles from a rendered still:
@@ -756,6 +759,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
             // than on the resolved-ref path below.
             ...withoutReservedMeta(m.meta),
             name: m.name, tags: m.tags, _placeholder: !directUrl,
+            ...(m.provider ? { provider: m.provider } : {}),
+            ...(m.description ? { description: m.description } : {}),
             // The primary format's byte length, straight off the index. A shell
             // that must refuse a file BEFORE downloading it (an emoji pack has a
             // 32 MiB ceiling) has nothing else to read: `bytes()` materialises
@@ -1582,12 +1587,14 @@ export async function assertQuotaRoom(incomingBytes: number): Promise<void> {
 }
 
 function pickFormat(meta: AssetMetaRecord, requested?: string): AssetFormat {
+  if (!meta.formats.length) throw new Error(`Asset has no files: ${meta.id}`);
   if (requested) {
     const exact = meta.formats.find(f => f.format === requested);
     if (exact) return exact;
   }
   // Sensible default per type.
   if (meta.type === 'vector') return meta.formats.find(f => f.format === 'svg') ?? meta.formats[0]!;
+  if (meta.type === 'raster') return meta.formats.find(f => /^(png|webp|jpe?g|gif|avif|heic|heif|tiff?|jxl)$/i.test(f.format)) ?? meta.formats[0]!;
   // A lottie entry carries the animation (json) plus a static poster variant;
   // tools always want the animation regardless of listing order.
   if (meta.type === 'lottie') return meta.formats.find(f => f.format === 'json') ?? meta.formats[0]!;

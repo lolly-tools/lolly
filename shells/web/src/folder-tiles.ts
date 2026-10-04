@@ -206,24 +206,26 @@ export interface ImageTileOpts {
   /** Sub-line under the name; defaults to "Image". The Projects grid passes "Catalog
    *  image" for a referenced catalog asset so it reads distinctly from an upload. */
   sub?: string;
+  shared?: { href: string; openLabel: string };
 }
 
 /**
  * A user (or referenced catalog) image tile.
  * @param ref  AssetRef: { id, url, format, meta:{ name } }
  */
-export function imageTile(ref: ImageTileRef, { selectable = false, selected = false, sub = 'Image' }: ImageTileOpts = {}): string {
+export function imageTile(ref: ImageTileRef, { selectable = false, selected = false, sub = 'Image', shared }: ImageTileOpts = {}): string {
   const name = ref.meta?.name || 'Image';
   const cover = ref.url
     ? `<img class="tile-cover" src="${escape(ref.url)}" alt="" loading="lazy" decoding="async">`
     : `<span class="tile-cover tile-cover--empty" aria-hidden="true"></span>`;
   return tileShell({
-    ref: ref.id, kind: 'image', batch: false,
+    ref: ref.id, kind: shared ? 'team-file' : 'image', batch: false,
     cover, title: name,
     sub,
     badges: fmtBadge(ref.format),
-    openAttr: 'data-open-image',
-    openLabel: `Use image ${name}`,
+    openAttr: shared ? 'data-open-team-file' : 'data-open-image',
+    openLabel: shared?.openLabel ?? `Use image ${name}`,
+    ...(shared ? { href: shared.href } : {}),
     selectable, selected,
     cols: { kind: 'Image', count: ref.format ? fmtLabel(ref.format) : '', when: '' },
   });
