@@ -21,6 +21,10 @@ import { buildTeamFilesPanel } from './team-files-panel.ts';
 import { hydrateSharedPreviews } from './team-previews.ts';
 import { tokenize } from '../lib/search/match.ts';
 import { buildFolderHaystack, matchesHaystack } from '../lib/search/projects-source.ts';
+import { mountInviteLinkControl } from '../components/invite-link-control.ts';
+import { projectInviteLinks } from './project-invite-links.ts';
+import { showProjectInviteLink } from './project-sharing.ts';
+import type { BodyPopoverHandle } from '../components/body-popover.ts';
 
 interface ProjectViewOptions {
   host: HostV1;
@@ -42,6 +46,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   let disposed = false, ticket = 0, opening = false;
   let clearPreviews: (() => void) | undefined;
   let sessionMenu: TileContextMenuHandle | undefined;
+  let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
   const current = () => !disposed && container.isConnected && opts.isMounted() && source === getSessionSource();
   const node = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] => {
     const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (className) el.className = className; return el;
@@ -77,6 +82,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     const my = ++ticket;
     clearPreviews?.(); clearPreviews = undefined;
     sessionMenu?.destroy(); sessionMenu = undefined;
+    clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
     body.replaceChildren(node('p', tRaw('Loading…'), 'team-project-notice'));
     const projects = await readSourceProjects(source);
     if (!current() || my !== ticket) return;
@@ -93,6 +99,10 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     title.append(name, node('p', [tRaw('Shared project'), project.myRole ? roleLabel(project.myRole) : ''].filter(Boolean).join(' · '), 'team-project-notice'));
     identity.append(glyph, title); head.append(identity);
     const actions = node('div', undefined, 'team-project-actions');
+    if (isManagerPlus(projectRole)) {
+      actions.append(button(tRaw('Share'), () => { window.location.hash = `#/p?team=${encodeURIComponent(projectId)}&tab=people`; }));
+      clearInvite = mountInviteLinkControl(actions, projectInviteLinks(projectId, invitePolicy(orgConfig()), () => current() && my === ticket));
+    }
     const copy = button(tRaw('Copy project link'), () => { void copyText(teamProjectLinkUrl(project.id)).then(ok => {
       if (current()) notice.textContent = ok ? tRaw('Link copied') : tRaw('Could not copy. Try again.');
     }); }); actions.append(copy);
@@ -144,15 +154,19 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       more.className = 'tile-menu-btn'; more.innerHTML = icon('menu'); more.setAttribute('aria-label', tRaw('Session actions')); more.setAttribute('aria-haspopup', 'menu'); tile.append(more);
     }
     sessionMenu = wireTileContextMenu({ host: grid, tileSelector: '.folder-tile[data-ref]', refOf: tile => tile.dataset.ref ?? null,
-      singleHtml: () => menuItemHtml('copy', icon('share'), tRaw('Copy session link'))
+      singleHtml: () => (isManagerPlus(projectRole) ? menuItemHtml('invite', icon('users'), tRaw('Share')) + menuItemHtml('invite', icon('link'), tRaw('Copy invite link')) : '')
+        + menuItemHtml('copy', icon('link'), tRaw('Copy session link'))
         + (canWrite ? menuItemHtml('rename', icon('pen'), tRaw('Rename')) : '')
         + (isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false ? menuItemHtml('delete', icon('trash'), tRaw('Delete'), { danger: true }) : ''),
-      onAction: (action, target) => { if (target) void sessionAction(action, target.ref); },
+      onAction: (action, target) => { if (target) void sessionAction(action, target.ref, target.tile); },
       className: 'folder-menu projects-menu', presentation: 'sheet',
       head: target => ({ name: sessions.find(s => s.id === target?.ref)?.label || tRaw('Shared session') }),
     });
-    async function sessionAction(action: string, id: string): Promise<void> {
+    async function sessionAction(action: string, id: string, tile: HTMLElement | null): Promise<void> {
       const session = sessions.find(s => s.id === id); if (!session || !current()) return;
+      if (action === 'invite' && tile && isManagerPlus(projectRole)) {
+        invitation?.close(); invitation = showProjectInviteLink(tile.querySelector<HTMLElement>('.tile-menu-btn') || tile, projectId, () => current() && my === ticket, id); return;
+      }
       if (action === 'copy') {
         const ok = await copyText(`${getInstanceBase() || window.location.origin}/#/team/${encodeURIComponent(id)}`);
         if (current()) notice.textContent = ok ? tRaw('Link copied') : tRaw('Could not copy. Try again.');
@@ -211,5 +225,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearPreviews?.(); sessionMenu?.destroy(); window.clearInterval(timer); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearPreviews?.(); sessionMenu?.destroy(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }

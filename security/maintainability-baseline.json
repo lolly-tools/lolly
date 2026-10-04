@@ -91,8 +91,8 @@
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2078,
-      "largestFunctionLines": 2758,
+      "lines": 2077,
+      "largestFunctionLines": 2757,
       "importFanIn": 1,
       "importFanOut": 52,
       "typeEscapes": 8

@@ -653,6 +653,8 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  // One fixed registry link icon; response URLs and labels are assigned as text/value.
+  'components/invite-link-control.ts': 1,
   // Fixed registry icons only; button labels and comment content use textContent.
   'views/tool-comment-chat.ts': 2,
   // System IDs, labels and translated status copy are escaped; icons are registry markup.

@@ -283,11 +283,11 @@ export function folderTile(folder: { id: string; name: string; items?: readonly 
         ${cover}
         <span class="tile-meta">
           <span class="tile-title" title="${escape(folder.name)}">${escape(folder.name)}</span>
-          ${shared ? `<span class="tile-sub">${escape(shared.subtitle)}</span>${shared.activity ? `<span class="tile-sub team-project-activity">${escape(shared.activity)}</span>` : ''}` : `<span class="folder-count" title="${count} item${count === 1 ? '' : 's'}" aria-label="${count} item${count === 1 ? '' : 's'}">${escape(compactCount(count))}</span>`}
+          ${shared ? `<span class="tile-sub">${escape(shared.subtitle)}${shared.activity ? `<span class="team-project-activity"> · ${escape(shared.activity)}</span>` : ''}</span>` : `<span class="folder-count" title="${count} item${count === 1 ? '' : 's'}" aria-label="${count} item${count === 1 ? '' : 's'}">${escape(compactCount(count))}</span>`}
         </span>
         <span class="tile-cols" aria-hidden="true"><span class="tile-col">${shared ? escape(shared.subtitle) : 'Folder'}</span><span class="tile-col">${count} item${count === 1 ? '' : 's'}</span><span class="tile-col">${folder.updatedAt ? relativeTime(folder.updatedAt) : ''}</span></span>
       ${close}
-      ${shared ? '' : `<button type="button" class="tile-menu-btn" data-menu="${escape(folder.id)}" data-menu-kind="folder" aria-label="Folder actions">${MENU_ICON}</button>`}
+      <button type="button" class="tile-menu-btn" ${shared ? 'data-team-menu' : `data-menu="${escape(folder.id)}" data-menu-kind="folder"`} aria-label="Folder actions">${MENU_ICON}</button>
     </div>`;
 }
 
@@ -437,6 +437,7 @@ interface TileShellOpts {
 export interface ActionTileOpts {
   /** Navigate to this Projects route on click, instead of a [data-create] action. */
   nav?: string;
+  trash?: boolean;
   /** The primary button's aria-label, when the visible title is not enough. */
   openLabel?: string;
   /** The list view's aligned columns, for a tile that also shows as a table row. */
@@ -452,10 +453,10 @@ export interface ActionTileOpts {
  * reads both hooks already.
  */
 export function actionTile(kind: string, glyph: string, title: string, sub: string, opts: ActionTileOpts = {}): string {
-  const { nav, openLabel = title, cols } = opts;
+  const { nav, trash, openLabel = title, cols } = opts;
   return `
-    <div class="folder-tile folder-tile--create"${nav ? '' : ` data-create="${escape(kind)}"`}>
-      <button type="button" class="tile-primary"${nav ? ` data-open-folder-nav="${escape(nav)}"` : ''} aria-label="${escape(openLabel)}">
+    <div class="folder-tile folder-tile--create${trash ? ' folder-tile--trash' : ''}"${nav || trash ? '' : ` data-create="${escape(kind)}"`}>
+      <button type="button" class="tile-primary"${trash ? ' data-open-trash' : nav ? ` data-open-folder-nav="${escape(nav)}"` : ''} aria-label="${escape(openLabel)}">
         <span class="tile-cover tile-cover--create" aria-hidden="true">${glyph}</span>
         <span class="tile-meta">
           <span class="tile-title">${escape(title)}</span>

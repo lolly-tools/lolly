@@ -1,0 +1,12 @@
+.invite-link-control {
+  display: inline-flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+  min-width: 0; max-width: 100%; color: var(--ui-color-text-default);
+}
+.invite-link-control[hidden], .invite-link-fallback[hidden] { display: none; }
+.invite-link-role { width: auto; min-height: var(--ui-size-control); font-size: var(--ui-type-label); }
+.invite-link-copy { flex: none; min-height: var(--ui-size-control); }
+.invite-link-copy svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.invite-link-fallback { flex-basis: 100%; width: 100%; min-width: 0; }
+.invite-link-status { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.invite-link-status:empty { display: none; }
+.project-invite-popover { padding: var(--sp-4); min-width: min(18rem, calc(100vw - var(--sp-4))); }

@@ -45,7 +45,6 @@ import { mountCollabRecovery } from './tool-collab-recovery.ts';
 import { surfaceMapping } from '../lib/collab-surface-geometry.ts';
 import { collabSurface, surfacePresence } from '../lib/collab-surface.ts';
 import type { CanvasOp } from '@lolly-tools/core/canvas-op-v1';
-import { tRaw } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createCollabFocus } from '../components/collab-focus.ts';
 import type { CollabFocus } from '../components/collab-focus.ts';
@@ -68,6 +67,7 @@ import { mountCanvasComments } from './tool-canvas-comments.ts';
 import { jumpToPeer, mountPresentationPresence } from './tool-peer-view.ts';
 import { collabPalette } from '../lib/collab-colors.ts';
 import { mountCanvasInteractions } from './tool-canvas-interactions.ts';
+import { mountCollabControls } from './tool-collab-controls.ts';
 
 /** Gap between the collab pill and whatever else owns the stage's top lane. */
 export const PILL_LANE_GAP_PX = 8;
@@ -477,26 +477,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     });
     steps.unshift(() => pill.destroy());
     comments?.dockControls(pill.el);
-    if (handle.people) {
-      const people = canvas.ownerDocument.createElement('button'); people.type = 'button'; people.className = 'btn btn--sm'; people.textContent = tRaw('People');
-      people.addEventListener('click', handle.people); pill.el.append(people);
-    }
-    if (handle.saveIn) {
-      const status = canvas.ownerDocument.createElement('span');
-      status.className = 'collab-save-status';
-      status.setAttribute('role', 'status');
-      status.style.paddingInline = '0.5em';
-      pill.el.appendChild(status);
-      const stop = handle.saveIn.subscribe(state => {
-        status.textContent = state.message;
-        if (state.retry) {
-          const retry = canvas.ownerDocument.createElement('button');
-          retry.type = 'button'; retry.textContent = tRaw('Retry image transfer');
-          retry.addEventListener('click', state.retry); status.appendChild(retry);
-        }
-      });
-      steps.unshift(() => { stop(); status.remove(); });
-    }
+    steps.unshift(mountCollabControls(pill.el, handle, comments?.reanchor));
 
     const syncPillLane = (): void => {
       const next = pillLaneOffset(stage, el => el.getBoundingClientRect().width);

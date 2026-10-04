@@ -287,11 +287,12 @@ function memberPrincipal(): string | undefined {
  * the caller, so the fallback grants nothing the factory would not have.
  */
 async function loadWiring(): Promise<WorkCollabWiring> {
-  const [provider, adapter, comments, assets] = await Promise.all([
+  const [provider, adapter, comments, assets, links] = await Promise.all([
     import('./collab-provider.ts'),
     import('./collab-handle.ts'),
     import('./canvas-comments.ts'),
     import('./canvas-assets.ts'),
+    import('./project-invite-links.ts'),
   ]);
   // The durable per-device client id must exist before a provider is built - two
   // clients on the wire from one device is what it prevents. Idempotent.
@@ -303,14 +304,18 @@ async function loadWiring(): Promise<WorkCollabWiring> {
         ? registered(sessionId, { history: createWorkCollabHistory(sessionId) })
         : provider.createWorkCollabProvider(sessionId, { principal: memberPrincipal(), history: createWorkCollabHistory(sessionId) });
     },
-    makeHandle: (p) => adapter.createWorkCollabHandle(p, { comments: comments.createWorkComments(p.sessionId, memberPrincipal),
+    makeHandle(p) {
+      const person = orgSession();
+      return adapter.createWorkCollabHandle(p, { comments: comments.createWorkComments(p.sessionId, memberPrincipal),
       assets: assets.createWorkCanvasAssets(p.sessionId, memberPrincipal),
+      inviteLinks: links.sessionInviteLinks(p.sessionId, invitePolicy(orgConfig()), () => person === orgSession()),
       people: () => {
         const person = orgSession();
         void import('./team-session-people.ts')
           .then(({ openSessionPeople }) => openSessionPeople(p.sessionId, invitePolicy(orgConfig()), () => person === orgSession()))
           .catch(() => announce(tRaw(STRINGS.unreachable)));
-      } }),
+      } });
+    },
     crossOriginReason: provider.CROSS_ORIGIN_REASON,
   };
 }

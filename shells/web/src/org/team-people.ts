@@ -31,6 +31,7 @@ import { getSessionSource, type TeamRole } from '../lib/session-source.ts';
 import { confirmDialog } from '../components/confirm-dialog.ts';
 import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
+import { copyText } from '../lib/copy-text.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { styleTeamBack } from './team-back.ts';
 import type { InboxWatch } from './access-request.ts';
@@ -136,23 +137,7 @@ function hostOf(link: string): string {
  * on a LAN, or a clipboard permission turned down), and the panel must not say
  * "Copied!" then.
  */
-export async function copyText(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); return true; }
-  } catch { /* try the selection copy below */ }
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-  document.body.append(ta);
-  try {
-    ta.select();
-    return typeof document.execCommand === 'function' && document.execCommand('copy') === true;
-  } catch {
-    return false;
-  } finally {
-    ta.remove();
-  }
-}
+export { copyText } from '../lib/copy-text.ts';
 
 /** Which control in the list has focus: the row and the control, by data attributes, so
  *  it can be put back after the list is drawn again. */

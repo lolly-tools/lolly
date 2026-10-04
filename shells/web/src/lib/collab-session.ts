@@ -174,10 +174,15 @@ export interface CollabSelf {
  * Everything a transport supplies. See the header for how each track fills it in.
  */
 export interface CollabSaveState { pending: number; message: string; retry?: () => void }
+export interface CollabInviteLinks {
+  roles(): Promise<readonly ('editor' | 'viewer')[]>;
+  create(role: 'editor' | 'viewer'): Promise<{ url: string; allowNewPeople: boolean }>;
+}
 
 export interface CollabSessionHandle {
   /** Open the document's authorized People controls while its room stays mounted. */
   readonly people?: () => void;
+  readonly inviteLinks?: CollabInviteLinks;
   readonly assets?: import('./canvas-assets.ts').CanvasAssetsCapability;
   readonly comments?: import('./canvas-comments.ts').CanvasCommentsCapability;
   readonly claims?: import('./canvas-interaction.ts').CanvasClaimCapability;

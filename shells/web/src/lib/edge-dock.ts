@@ -67,8 +67,8 @@ const WIDTH_STEP = 24;        // px per arrow key on the width grip
 // the Design inspector, the export panel, the transcript. Everything but the zoom bar is
 // a full panel: one or two of them share the resizable split, three or more become tabs.
 // The zoom bar is fixed-height and sits above all of it, out of the split and the strip.
-export type PanelId = 'zoom' | 'neuro' | 'inspector' | 'history' | 'export' | 'share' | 'transcript';
-const ORDER: readonly PanelId[] = ['zoom', 'neuro', 'inspector', 'history', 'export', 'share', 'transcript'];
+export type PanelId = 'zoom' | 'people' | 'neuro' | 'inspector' | 'history' | 'export' | 'share' | 'transcript';
+const ORDER: readonly PanelId[] = ['zoom', 'people', 'neuro', 'inspector', 'history', 'export', 'share', 'transcript'];
 
 /**
  * Why a panel left the column. `user` is a gesture that means "put this away" - the drag

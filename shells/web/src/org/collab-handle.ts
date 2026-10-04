@@ -143,6 +143,7 @@ export function readPresencePayload(payload: unknown): ReadPresencePayload | nul
 
 export interface WorkCollabHandleOptions {
   people?: () => void;
+  inviteLinks?: import('../lib/collab-session.ts').CollabInviteLinks;
   assets?: import('../lib/canvas-assets.ts').CanvasAssetsCapability;
   comments?: import('../lib/canvas-comments.ts').CanvasCommentsCapability;
   /**
@@ -511,6 +512,7 @@ export function createWorkCollabHandle(
     claims: provider.claims,
     comments: opts.comments,
     people: opts.people,
+    inviteLinks: opts.inviteLinks,
 
     /**
      * A peer's role, or honest ignorance. The presence roster is keyed by device

@@ -16,6 +16,8 @@ import { announce } from '../a11y.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { escape as escapeHtml } from '../utils.ts';
+import type { Folder } from '../folders.ts';
+import { getInstanceBase } from '../lib/instance.ts';
 
 /** What the Projects view hands in: the things it owns. */
 export interface TeamProjectsDoor {
@@ -73,7 +75,10 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
   const query = new URLSearchParams(params);
   const projectId = query.get('team') || '', create = query.get('create') === 'team', active = !!projectId || create;
   let projects: TeamProjectRef[] = [], state: 'loading' | 'ready' | 'error' = 'loading', read = 0, generation = 0;
-  let clearFolder: (() => void) | undefined, clearPreviews: (() => void) | undefined;
+  let clearFolder: (() => void) | undefined, clearPreviews: (() => void) | undefined, clearMenus: (() => void) | undefined;
+  let localFolders: readonly Folder[] = [];
+  const linked = (folder: Folder) => folder.teamCopy?.complete && folder.teamCopy.instance === (getInstanceBase() || location.origin)
+    ? projects.find(project => project.id === folder.teamCopy!.projectId) : undefined;
   async function refresh(): Promise<void> {
     const source = getSessionSource(), ticket = ++read;
     if (!source || !door.isMounted() || active) return;
@@ -86,12 +91,23 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
   const focused = () => { if (document.visibilityState === 'visible') void refresh(); };
   window.addEventListener('focus', focused);
   const timer = window.setInterval(focused, 60_000);
-  function beforeRender(): void { ++generation; clearFolder?.(); clearPreviews?.(); clearFolder = clearPreviews = undefined; }
+  function beforeRender(): void { ++generation; clearFolder?.(); clearPreviews?.(); clearMenus?.(); clearFolder = clearPreviews = clearMenus = undefined; }
   return {
     projectId, active, create, refresh, beforeRender,
+    folders(items: readonly Folder[]): void { localFolders = items; },
+    async shareFolder(id: string): Promise<void> {
+      const module = await import('../org/team-folder-share.ts');
+      if (door.isMounted()) await module.shareLocalFolder(door.host as Parameters<typeof module.shareLocalFolder>[0], id, view.querySelector<HTMLElement>('.projects') || view, door.isMounted);
+    },
+    folderTile(folder: Folder, opts: Parameters<typeof folderTile>[1]): string {
+      const project = linked(folder);
+      return project ? folderTile({ ...folder, ...project }, { ...opts, selectable: false, href: `#/p?team=${encodeURIComponent(project.id)}`,
+        shared: { subtitle: tRaw('Shared project'), activity: project.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
+    },
     rootHtml(filter: string, list: boolean, head: string, size: string, sort: string, reversed: boolean): string {
       const source = getSessionSource(); if (!source) return '';
-      const tiles = teamProjectTiles(projects, filter, sort, reversed);
+      const copied = new Set(localFolders.map(linked).filter(Boolean).map(project => project!.id));
+      const tiles = teamProjectTiles(projects.filter(project => !copied.has(project.id)), filter, sort, reversed);
       const message = state === 'error' ? t('Shared projects could not be loaded. Try again.') : state === 'loading' ? t('Loading shared projects…')
         : filter ? t('No shared projects match your search.') : t('Create a team project or ask a teammate to add you.');
       return `<section class="projects-shared" aria-label="${escapeHtml(tRaw('Shared projects'))}"><div class="projects-shared-head"><div><h2>${t('Shared projects')}</h2><p>${escapeHtml(source.label)}</p></div>
@@ -105,8 +121,13 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
         void mountTeamProjectFolder(door, slot, { ...opts, projectId, create, tab: query.get('tab') || 'sessions' }).then(clear => {
           if (!door.isMounted() || ticket !== generation || !slot.isConnected) clear(); else clearFolder = clear;
         });
-      } else if (source) void import('../org/team-previews.ts').then(module => {
-        if (door.isMounted() && ticket === generation && source === getSessionSource()) clearPreviews = module.hydrateSharedPreviews(view, source, door.host, () => door.isMounted() && ticket === generation);
+      } else if (source) void Promise.all([import('../org/team-previews.ts'), import('../org/project-sharing.ts')]).then(([module, sharing]) => {
+        if (door.isMounted() && ticket === generation && source === getSessionSource()) {
+          const current = () => door.isMounted() && ticket === generation && source === getSessionSource();
+          clearPreviews = module.hydrateSharedPreviews(view, source, door.host, current);
+          const backups = new Map(localFolders.flatMap(folder => linked(folder) ? [[folder.teamCopy!.projectId, folder.id] as const] : []));
+          clearMenus = sharing.mountSharedProjectMenus(view, projects, current, () => { void refresh(); }, backups);
+        }
       }).catch(error => door.host.log?.('warn', 'projects: shared previews could not load', { error: String(error) }));
     },
     dispose(): void { beforeRender(); ++read; window.removeEventListener('focus', focused); window.clearInterval(timer); },

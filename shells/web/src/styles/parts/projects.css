@@ -156,16 +156,12 @@
    featured hero (.featured, 3.4rem top pad) or the .tool-masonry (3.6rem top pad, when
    no hero) already holds that space, so a .gallery padding-top just doubled it up. */
 
-/* Fixed-width tiles packed top-left (file-manager convention). Folders are now
-   DELIBERATELY a different shape from sessions (2026-08-20, plans/133 WP-1 -
-   supersedes the 2026-08-09 "all tiles the same size" call): a folder wears the
-   short tabbed silhouette (.folder-cover, folders.css) while sessions keep the
-   4/3 document card. Rows top-align, so the folders-first band sits compact
-   above the taller session cards - the Finder read. */
+/* Folders, documents and actions share card geometry. The folder tab and shared
+   glyph distinguish the containers without making their thumbnails smaller. */
 .projects-grid {
   grid-template-columns: repeat(auto-fill, 180px); justify-content: start;
   gap: var(--grid-gap);   /* tokens.css - collapses to --grid-gap-tight ≤640px */
-  align-items: start;
+  align-items: stretch;
   padding:3.6rem 0 1rem;
 }
 /* Create covers keep the sessions' 4/3 - projects grid only, and NOT in list mode
@@ -173,10 +169,18 @@
 .projects-grid:not(.projects-list) .tile-cover--create {
   aspect-ratio: 4 / 3; height: auto;
 }
-/* The Trash system tile: muted, no preview noise. */
-.folder-tile--trash .tile-cover { height: 74px; margin-top: 9px; aspect-ratio: auto; }
+/* Projects owns the larger folder previews; overlay and picker chips retain theirs. */
+.projects-grid:not(.projects-list) .folder-cover {
+  width: 100%; height: calc(75cqw - 9px); flex: none; box-sizing: border-box;
+}
+.projects-grid:not(.projects-list) .folder-tile--folder .tile-check { top: calc(75cqw - var(--object-check-size) - 6px); }
+.projects-grid:not(.projects-list) .tile-primary { height: 100%; }
+/* Reserve the document's title, caption and badge space on every card. */
+.projects-grid:not(.projects-list) .tile-meta { flex: 1; min-block-size: calc(var(--fs-lg) * 1.2 + var(--fs-sm) * 1.5 + var(--fs-2xs) + var(--sp-8) + var(--sp-6)); }
+.projects-grid:not(.projects-list) .folder-tile--shared .tile-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.projects-grid:not(.projects-list) .folder-tile--folder { contain-intrinsic-size: auto 216px; }
+/* Trash uses the same action card as New folder and New asset. */
 .folder-tile--trash .tile-cover svg { opacity: 0.45; }
-.projects-list .folder-tile--trash .tile-cover { height: calc(40px * var(--a11y-fs)); margin-top: 0; }
 
 /* Mobile: the fixed 180px columns drop to a SINGLE column below ~376px (a 360px
    phone can't fit two 180px tiles + gap). Force two equal fractional columns on

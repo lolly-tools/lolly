@@ -41,9 +41,9 @@ import { livePalette } from '../lib/live-palette.ts';
 import { MULTI_EDIT_MIN, MULTI_EDIT_MAX } from '../lib/multi-edit-limits.ts';
 import { svgDataUrl } from '../lib/format.ts';
 import {
-  actionTile, folderTile, sessionTile, imageTile, tileColsHtml, FOLDER_ICON, MENU_ICON,
+  actionTile, sessionTile, imageTile, FOLDER_ICON, MENU_ICON,
   isBatchSlot, BATCH_SLOT_PREFIX, fmtBytes,
-  type MemberPreview,
+  type MemberPreview, type FolderTileOpts,
 } from '../folder-tiles.ts';
 import type { PickerHost } from './picker.ts';   // type-only (erased); the value is lazy-imported in openAddPicker
 import { wireTileSelect } from '../lib/tile-select.ts';
@@ -563,6 +563,7 @@ export async function mountProjects(
 
   // ── render ───────────────────────────────────────────────────────────────
   function render(): void {
+    shared.folders(folders);
     viewPopover?.close();
     if (!mounted) return; // an async callback fired after we navigated away - don't clobber the new view
     // Title the view for the tab bar AND for back-nav (lib/back-nav.ts labels the
@@ -592,7 +593,7 @@ export async function mountProjects(
     const createTool = actionTile('tool', FILE_PLUS_ICON, t('New asset'), t('Start a new project'));
     // Only TOP-LEVEL folders at the root; nested folders show inside their parent.
     const topFolders = sortFolders(childFolders(folders, null));
-    const folderTiles = topFolders.map(f => folderTile(f, folderTileOpts(f))).join('');
+    const folderTiles = topFolders.map(f => shared.folderTile(f, folderTileOpts(f))).join('');
     // Loose (uncategorised) saved sessions render as tiles directly on the root grid -
     // a just-added creation shows here at once instead of vanishing into an
     // "Uncategorised" bucket. They're the SAME sessionTile a folder uses, so
@@ -615,11 +616,7 @@ export async function mountProjects(
     // the place a delete went to can be found even before the first delete.
     const trashCount = !trashEntries.length ? t('Empty')
       : trashEntries.length === 1 ? t('1 item') : tRaw('{n} items', { n: trashEntries.length });
-    const trashTile = `<div class="folder-tile folder-tile--trash"><button type="button" class="tile-primary" data-open-trash aria-label="${escape(t('Open Trash'))}">
-           <span class="tile-cover tile-cover--batch" aria-hidden="true">${TRASH_ICON}</span>
-           <span class="tile-meta"><span class="tile-title">${t('Trash')}</span><span class="tile-sub">${trashCount}</span></span>
-           ${tileColsHtml({ kind: t('Trash'), count: trashCount, when: '' })}
-         </button></div>`;
+    const trashTile = actionTile('trash', TRASH_ICON, t('Trash'), trashCount, { trash: true, openLabel: t('Open Trash'), cols: { kind: t('Trash'), count: trashCount, when: '' } });
     // The favourites hero is a grid-mode thing: above a table it would push the
     // rows below the fold for a carousel of two covers (Part C, C2h). Starred
     // folders still pin first in the sort either way. List mode carries no create
@@ -685,7 +682,7 @@ export async function mountProjects(
   // The per-tile options every surface (root, folder, results) passes, so a tile
   // is identical wherever it appears. `href` makes the cover a real link (WP-13):
   // middle/Cmd-click opens a new tab, the plain click is intercepted in wire().
-  function folderTileOpts(f: Folder): Parameters<typeof folderTile>[1] {
+  function folderTileOpts(f: Folder): FolderTileOpts {
     return {
       memberPreviews: f.items.map(i => previewForRef(i.ref)).filter(Boolean) as MemberPreview[],
       count: tileItemCount(f),
@@ -779,7 +776,7 @@ export async function mountProjects(
       .map(i => imageRefs.get(i.ref))
       .filter(Boolean) as AssetRef[]);
     const tiles = [
-      ...subfolders.map(f => folderTile(f, folderTileOpts(f))),
+      ...subfolders.map(f => shared.folderTile(f, folderTileOpts(f))),
       ...sessions.map(e => sessionTile(e, sessionTileOpts(e))),
       ...images.map(a => imageTile(a, {
         selectable: true, selected: isSelected(a.id),
@@ -855,7 +852,7 @@ export async function mountProjects(
   // A search hit = the normal tile + a location breadcrumb beneath it. Reusing the shared
   // folderTile/sessionTile keeps open / select / drag / menu working with no extra wiring.
   function folderResultTile(f: Folder): string {
-    const tile = folderTile(f, folderTileOpts(f));
+    const tile = shared.folderTile(f, folderTileOpts(f));
     const anc = folderPath(folders, f.id).slice(0, -1);   // this folder's ancestors
     const parent = anc.length ? anc[anc.length - 1]!.id : null;
     return `<div class="projects-result">${tile}${locationChip(parent, anc.length ? anc.map(a => a.name).join(' / ') : t('Top level'))}</div>`;
@@ -1529,6 +1526,7 @@ export async function mountProjects(
       const canPaste = !!clipboard?.items.length && !clipboard.items.some(i => i.ref === ref);
       return [
         menuItem('open-folder', OPEN_ICON, t('Open')),
+        getSessionSource()?.write?.projectOptions().canCreate ? menuItem('share-team-folder', TEAM_ICON, t('Share as a team project')) : '',
         menuItem('rename', EDIT_ICON, t('Rename folder')),
         fav(),
         menuItem('move-folder', MOVE_ICON, t('Move to…')),
@@ -1644,6 +1642,7 @@ export async function mountProjects(
     else if (act === 'download-folder') await downloadOriginals(downloadView(), folders.find(f => f.id === ref)?.name || t('Folder'), [], [], [ref]);
     else if (act === 'save-template') await saveAsBlueprint(ref);
     else if (act === 'open-folder') { window.location.hash = '#/p/' + ref; }
+    else if (act === 'share-team-folder') await shared.shareFolder(ref);
     else if (act === 'move-folder') {
       // A folder can't move into itself or its own subtree - block those targets.
       const blocked = new Set([ref, ...descendantFolderIds(folders, ref)]);
