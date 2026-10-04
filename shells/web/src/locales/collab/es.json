@@ -224,5 +224,6 @@
   "Couldn't save the transfer.": "No se pudo guardar la transferencia.",
   "Couldn't read the transfer back.": "No se pudo volver a leer la transferencia.",
   "Part of the transfer is missing.": "Falta parte de la transferencia.",
-  "The transfer was cancelled.": "La transferencia se canceló."
+  "The transfer was cancelled.": "La transferencia se canceló.",
+  "View {name}": "Ver {name}"
 }

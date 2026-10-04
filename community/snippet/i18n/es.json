@@ -1,6 +1,6 @@
 {
   "name": "Fragmento",
-  "description": "Convierte fragmentos de código en imágenes limpias, con resaltado de sintaxis y listas para compartir.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Código",
   "inputs.code.placeholder": "Pega tu código aquí…",
   "inputs.fileName.label": "Nombre de archivo",

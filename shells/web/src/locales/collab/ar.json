@@ -224,5 +224,6 @@
   "Tap to enlarge for scanning": "انقر للتكبير من أجل المسح الضوئي",
   "Enlarge {label} for scanning": "تكبير {label} للمسح الضوئي",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "وجّه جهازاً آخر إلى هنا لمسحه ضوئياً. انقر في أي مكان أو اضغط Esc للإغلاق.",
-  "This link is too long to scan. Copy it instead, or use the Code tab.": "هذا الرابط أطول من أن يُمسح ضوئياً. انسخه بدلاً من ذلك، أو استخدم علامة تبويب الرمز."
+  "This link is too long to scan. Copy it instead, or use the Code tab.": "هذا الرابط أطول من أن يُمسح ضوئياً. انسخه بدلاً من ذلك، أو استخدم علامة تبويب الرمز.",
+  "View {name}": "عرض {name}"
 }

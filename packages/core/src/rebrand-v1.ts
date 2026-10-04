@@ -24,7 +24,8 @@ export const REBRAND_REFERENCE_DPI = 96 as const;
 // Stage 1: the source, as faithfully as it could be read
 // ---------------------------------------------------------------------------
 
-export const SOURCE_KINDS = ['pptx', 'pdf', 'image', 'docx'] as const;
+/** `psd` (plans/289 D2) is a Photoshop document read as one slide: its type layers as text, its shapes, its pixel layers as pictures. */
+export const SOURCE_KINDS = ['pptx', 'pdf', 'image', 'docx', 'psd'] as const;
 export type SourceKindV1 = (typeof SOURCE_KINDS)[number];
 
 export const SOURCE_OBJECT_KINDS = ['text', 'shape', 'pic', 'vector', 'table', 'chart', 'unknown'] as const;
@@ -75,6 +76,17 @@ export interface BoxV1 { x: number; y: number; w: number; h: number; rot: number
 
 /** A colour with provenance: a theme slot reference keeps its slot name beside the resolved hex. */
 export interface SourceColorV1 { hex?: string; scheme?: string; alpha?: number }
+
+/**
+ * A gradient fill as the source stated it (plan 291 section 6): its stops in position
+ * order, `pos` 0 to 1, each colour keeping its own `alpha`, and for a linear gradient
+ * its direction as a CSS angle (0 up, 90 right). A gradient with no `angle` is a path
+ * or radial one. The object's `fill` stays the lowest stop, for a flat consumer.
+ */
+export interface SourceGradientV1 {
+  stops: Array<{ pos: number; color: SourceColorV1 }>;
+  angle?: number;
+}
 
 export interface SourceRunV1 {
   text: string;
@@ -178,6 +190,8 @@ export const SOURCE_WARNING_CODES = [
   'notes-dropped',
   'metafile-not-converted',
   'vector-budget-reached',
+  /** A property the reader could not carry onto an object it kept: a layer effect, an adjustment layer, a second type size (plans/289 D2). */
+  'feature-dropped',
 ] as const;
 export type SourceWarningCodeV1 = (typeof SOURCE_WARNING_CODES)[number];
 
@@ -209,6 +223,8 @@ export interface SourceObjectV1 {
   text?: { paras: SourceParaV1[] };
   alt?: string;
   fill?: SourceColorV1;
+  /** The whole gradient when the source filled the object with one; `fill` is its lowest stop. */
+  fillGradient?: SourceGradientV1;
   line?: { color?: SourceColorV1; widthPt?: number };
   /** Preset geometry name (`rect`, `ellipse`, `roundRect`, ...). */
   geom?: string;

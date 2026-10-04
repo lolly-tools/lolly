@@ -68,6 +68,7 @@ import { announce as announceLive } from '../a11y.ts';
 // render an apostrophe in a collaborator's name as `O&#39;Brien`.
 import { currentLang, loadNamespace, tRaw } from '../i18n.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { collabLabelColor } from '../lib/collab-label-color.ts';
 import type { CollabParticipant, CollabSessionState } from '../lib/collab-session.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { mountBodyPopover } from './body-popover.ts';
@@ -97,6 +98,7 @@ export const STRINGS = {
   sendFailed: 'That could not be sent.',
   /** The roster popover. */
   roster: 'Collaborators',
+  view: 'View {name}',
   /** The avatar stack's accessible name - everyone here, by name. */
   stack: 'Collaborators: {names}',
 
@@ -463,6 +465,8 @@ export interface CollabPillOptions {
    * component deliberately imports nothing from it.
    */
   onInvite?: () => void;
+  /** Jump to this person's current view, using their latest presence. */
+  onPeer?: (clientId: string) => void;
   /**
    * Extra controls, in order, after the invite slot.
    *
@@ -496,13 +500,21 @@ function avatarEl(p: CollabParticipant): HTMLElement {
   el.className = 'collab-av';
   el.dataset.clientId = p.clientId;
   if (p.away) el.dataset.away = '1';
-  if (p.color) el.style.background = p.color;
+  if (p.color) { const label = collabLabelColor(p.color); el.style.background = label.fill; el.style.color = label.ink; }
   el.title = collabDisplayName(p);
   const letters = document.createElement('span');
   letters.setAttribute('aria-hidden', 'true');
   letters.textContent = collabInitials(collabDisplayName(p));
   el.appendChild(letters);
   return el;
+}
+
+function refreshAvatar(el: HTMLElement, p: CollabParticipant): void {
+  el.title = collabDisplayName(p);
+  if (p.away) el.dataset.away = '1'; else delete el.dataset.away;
+  const label = p.color ? collabLabelColor(p.color) : undefined;
+  el.style.background = label?.fill ?? ''; el.style.color = label?.ink ?? '';
+  const letters = el.firstElementChild; if (letters) letters.textContent = collabInitials(collabDisplayName(p));
 }
 
 function tagEl(text: string): HTMLElement {
@@ -681,17 +693,38 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
   // ── roster popover ──────────────────────────────────────────────────────────
 
   let rosterEl: HTMLElement | null = null;
+  const rosterSignatures = new WeakMap<HTMLElement, string>();
+  const avatars = new Map<string, HTMLElement>();
+  const moreAvatar = document.createElement('span'); moreAvatar.className = 'collab-av collab-av--more'; moreAvatar.setAttribute('aria-hidden', 'true');
+
+  function visitPeer(id: string): boolean {
+    const state = opts.source.state();
+    if (!opts.onPeer || state.connection !== 'live' || !state.peers.some(p => p.clientId === id && !p.away && !p.isSelf)) return false;
+    popover.close(true); opts.onPeer(id); return true;
+  }
 
   function renderRoster(host: HTMLElement, state: CollabSessionState): void {
+    const signature = JSON.stringify([currentLang(), state.connection, ...[state.self, ...state.peers].map(p => [p.clientId, p.name, p.color, p.away, p.isSelf, p.isHost, p.role])]);
+    if (rosterSignatures.get(host) === signature) return;
+    rosterSignatures.set(host, signature);
+    const focused = host.ownerDocument.activeElement;
+    const focusedId = focused instanceof host.ownerDocument.defaultView!.HTMLElement && host.contains(focused) ? focused.dataset.peerId : undefined;
     host.textContent = '';
     const list = document.createElement('ul');
     list.className = 'collab-roster-list';
     for (const p of [state.self, ...state.peers]) {
       const row = document.createElement('li');
       row.className = 'collab-roster-row';
-      const name = document.createElement('span');
+      const actionable = !!opts.onPeer && !p.isSelf;
+      const name = document.createElement(actionable ? 'button' : 'span');
       name.className = 'collab-roster-name';
       name.textContent = collabDisplayName(p);
+      if (name instanceof document.defaultView!.HTMLButtonElement) {
+        name.type = 'button'; name.classList.add('btn', 'btn--ghost'); name.dataset.peerId = p.clientId;
+        name.disabled = p.away || state.connection !== 'live';
+        name.setAttribute('aria-label', tRaw(STRINGS.view, { name: collabDisplayName(p) }));
+        name.addEventListener('click', () => { visitPeer(p.clientId); });
+      }
       const rowTags = document.createElement('span');
       rowTags.className = 'collab-roster-tags';
       if (p.isSelf) rowTags.appendChild(tagEl(tRaw(STRINGS.you)));
@@ -704,6 +737,10 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       list.appendChild(row);
     }
     host.appendChild(list);
+    if (focusedId) {
+      const next = Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(button => button.dataset.peerId === focusedId && !button.disabled);
+      (next ?? host).focus();
+    }
   }
 
   const popover: BodyPopoverHandle = mountBodyPopover(
@@ -727,7 +764,9 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       position: positionRoster,
     },
   );
-  stack.addEventListener('click', () => {
+  stack.addEventListener('click', event => {
+    const id = (event.target as Element).closest<HTMLElement>('[data-client-id]')?.dataset.clientId;
+    if (id && visitPeer(id)) return;
     if (popover.isOpen()) popover.close(true);
     else popover.open();
   });
@@ -751,20 +790,22 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       : everyone;
     const overflow = everyone.length - shown.length;
 
-    stack.textContent = '';
+    const wanted: HTMLElement[] = [];
     const fresh = !stillness();
     for (const p of shown) {
-      const av = avatarEl(p);
-      if (fresh && seen && !p.isSelf && !seen.has(p.clientId)) av.classList.add('is-new');
-      stack.appendChild(av);
+      let av = avatars.get(p.clientId);
+      if (!av) { av = avatarEl(p); avatars.set(p.clientId, av); }
+      else refreshAvatar(av, p);
+      if (opts.onPeer && !p.isSelf && !p.away && state.connection === 'live') av.title = tRaw(STRINGS.view, { name: collabDisplayName(p) });
+      av.classList.toggle('is-new', !!(fresh && seen && !p.isSelf && !seen.has(p.clientId)));
+      wanted.push(av);
     }
     if (overflow > 0) {
-      const more = document.createElement('span');
-      more.className = 'collab-av collab-av--more';
-      more.setAttribute('aria-hidden', 'true');
-      more.textContent = `+${overflow}`;
-      stack.appendChild(more);
+      moreAvatar.textContent = `+${overflow}`; wanted.push(moreAvatar);
     }
+    for (const child of Array.from(stack.children)) if (!wanted.includes(child as HTMLElement)) child.remove();
+    wanted.forEach((node, index) => { if (stack.children[index] !== node) stack.insertBefore(node, stack.children[index] ?? null); });
+    for (const id of avatars.keys()) if (!everyone.some(p => p.clientId === id)) avatars.delete(id);
     stack.setAttribute(
       'aria-label',
       tRaw(STRINGS.stack, { names: everyone.map(collabDisplayName).join(', ') }),

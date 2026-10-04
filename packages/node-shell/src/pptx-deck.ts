@@ -38,7 +38,10 @@
 import { EMU_PER_PX, MAX_TABLE_COLS, MAX_TABLE_ROWS } from "../../../engine/src/pptx.ts";
 import { parseColorToSrgb8 } from "../../../engine/src/css-color.ts";
 import { parseSvgPath } from "../../../engine/src/svg-path.ts";
-import type { PptxAnim, PptxEffect, PptxFill, PptxPara, PptxRect, PptxRun, PptxShape, PptxSlideTransition, PptxTable, PptxTableCell, PptxLine, PptxPic, PptxTheme, PptxPhType, PptxPlaceholder } from "../../../engine/src/pptx.ts";
+import { gradientSpecStops, parseGradientSpec } from "../../../engine/src/gradient-spec.ts";
+import { colorToHexString } from "../../../engine/src/css-color.ts";
+import { SUSE_FONT_DIR } from "./text-svg.ts";
+import type { PptxAnim, PptxEffect, PptxFill, PptxPara, PptxRect, PptxRun, PptxShape, PptxSlideTransition, PptxTable, PptxTableCell, PptxLine, PptxPic, PptxTheme, PptxPhType, PptxPlaceholder, PptxLayout } from "../../../engine/src/pptx.ts";
 
 export type DeckBox = { x: number; y: number; cx: number; cy: number };
 
@@ -101,9 +104,10 @@ export function firstFontFamily(stack: string | undefined): string | undefined {
 export function deckFontName(v: unknown, resolve?: DeckColorResolver): string | undefined {
   const raw = asStr(v)?.trim();
   if (!raw) return undefined;
-  const ref = /^var\(\s*(--[\w-]+)\s*(?:,\s*([^)]*))?\)$/.exec(raw);
-  if (!ref) return raw;
-  return firstFontFamily(resolve?.(ref[1]!) || ref[2]);
+  if (!/^var\(/i.test(raw)) return raw;
+  // The colour path's own var() reader: one linear scan per hop, at most MAX_VAR_HOPS
+  // hops, so a nested fallback resolves and a hostile string cannot make it backtrack.
+  return firstFontFamily(resolveDeckColorValue(raw, resolve));
 }
 
 /**
@@ -119,6 +123,269 @@ export function withBrandFonts(theme: PptxTheme | undefined, resolve?: DeckColor
   if (!brand) return theme;
   const display = firstFontFamily(resolve?.('--font-display')) ?? brand;
   return { ...theme, fonts: { major: theme?.fonts?.major ?? display, minor: theme?.fonts?.minor ?? brand } };
+}
+
+/** A resolved DTCG `fontFamily` value (a string or an array of names) as a CSS stack;
+ *  alias residue (`{font.brand}` that never resolved) and anything else is ''. A name
+ *  must be a plain family name, the rule the web shell's `brandFontStack` applies, so a
+ *  release's internal 'Lolly Release <sha256>' alias, or any other odd value, is never
+ *  written as a PowerPoint face. */
+function tokenFontStack(value: unknown): string {
+  const names = (Array.isArray(value) ? value : [value])
+    .filter((v): v is string => typeof v === 'string' && !v.trim().startsWith('{'))
+    .flatMap((v) => v.split(','))
+    .map((v) => v.trim().replace(/^(['"])(.*)\1$/, '$2').trim())
+    .filter((v) => FACE_FAMILY_RE.test(v));
+  return names.join(', ');
+}
+
+/** The fonts a Design deck is lowered with: the theme's major and minor faces, and the
+ *  mono face, which a run in the `mono` slot names and the theme never carries. */
+export interface DeckBrandFonts { major?: string; minor?: string; mono?: string }
+
+/**
+ * The theme fonts a brand's token document names, by the same rule `withBrandFonts`
+ * reads off the canvas: `font.display` heads the major font when the brand declares
+ * one, `font.brand` fills the rest, and a stack of generics only gives none (a generic
+ * family is never written as a PowerPoint face). `font.mono` is returned as `mono` for
+ * the runs in that slot. `resolve` answers one `font.<slot>` token, as a host's
+ * `tokens.resolve` does; one that throws counts as absent.
+ */
+export async function tokenBrandFonts(
+  resolve: (slot: 'brand' | 'display' | 'mono') => unknown,
+): Promise<DeckBrandFonts | undefined> {
+  const stack = async (slot: 'brand' | 'display' | 'mono'): Promise<string> => {
+    try { return tokenFontStack(await resolve(slot)); } catch { return ''; }
+  };
+  const vars: Record<string, string> = { '--font-brand': await stack('brand'), '--font-display': await stack('display') };
+  const fonts = withBrandFonts(undefined, (name) => vars[name])?.fonts;
+  const mono = firstFontFamily(await stack('mono'));
+  const out: DeckBrandFonts = {
+    ...(fonts?.major && fonts.minor ? { major: fonts.major, minor: fonts.minor } : {}),
+    ...(mono ? { mono } : {}),
+  };
+  return Object.keys(out).length ? out : undefined;
+}
+
+// ── weights PowerPoint cannot state (plan 291 decision D3) ───────────────────
+//
+// A run in PowerPoint is Regular or Bold: `b` is a flag, not a weight. So a Medium 500
+// headline written as the family with b=0 opens Regular. The way out is the static
+// face's own family name ("SUSE Medium"), which PowerPoint resolves to that file. It is
+// named ONLY when the brand pack ships that static file: naming a face nobody has
+// installed swaps the brand face for the viewer's fallback, which is worse than Regular.
+//
+// The lowerings carry the weight on each run (`weight`, beside the engine's own flag),
+// and one pass just before buildPptxParts decides the face and strips the field.
+
+/** The suffix each static face file carries, by weight. 400 and 700 are absent:
+ *  those are the family itself, the second one with b=1. */
+const STATIC_WEIGHT_NAMES: Readonly<Record<number, string>> = {
+  100: 'Thin', 200: 'ExtraLight', 300: 'Light', 500: 'Medium',
+  600: 'SemiBold', 800: 'ExtraBold', 900: 'Black',
+};
+
+/** A family name that can safely become part of a catalog file name. */
+const FACE_FAMILY_RE = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+
+/** A run's weight before the face pass: CSS 100 to 900, in steps of 100. */
+export type WeightedRun = PptxRun & { weight?: number };
+
+/** A weight off untrusted JSON, rounded to the nearest 100 within 100 to 900. */
+export function deckWeight(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
+  if (!Number.isFinite(n)) return undefined;
+  return Math.max(100, Math.min(900, Math.round(n / 100) * 100));
+}
+
+/**
+ * The static file a weight of a family would ship as, under the catalog's
+ * `/catalog/fonts/ttf/` folder: `SUSE-Medium.ttf`, `SUSEMono-SemiBoldItalic.ttf`. Null
+ * for 400 and 700, which keep the family name, and for a family that is not a plain name.
+ */
+export function staticFaceFile(family: string | undefined, weight: number | undefined, italic?: boolean): string | null {
+  const w = deckWeight(weight);
+  const name = w === undefined ? undefined : STATIC_WEIGHT_NAMES[w];
+  const fam = family?.trim();
+  if (!name || !fam || !FACE_FAMILY_RE.test(fam)) return null;
+  return `${fam.replace(/ /g, '')}-${name}${italic ? 'Italic' : ''}.ttf`;
+}
+
+/**
+ * The typeface and bold flag one run should carry in PowerPoint (plan 291 D3).
+ *
+ * 400 keeps the family; 700 keeps the family with b=1. Any other weight becomes
+ * "<Family> <WeightName>" with b=0, but only when `shipped` holds that static file;
+ * otherwise the family stays and the bold flag is the old `weight >= 600`. Italic is
+ * left to the caller's own flag, which PowerPoint applies to the named face.
+ */
+export function staticFaceFor(
+  family: string | undefined,
+  weight: number | undefined,
+  italic: boolean | undefined,
+  shipped: ReadonlySet<string>,
+): { face: string | undefined; bold: boolean } {
+  const w = deckWeight(weight) ?? 400;
+  const file = staticFaceFile(family, w, italic);
+  if (file && shipped.has(file)) return { face: `${family!.trim()} ${STATIC_WEIGHT_NAMES[w]}`, bold: false };
+  return { face: family, bold: w >= 600 };
+}
+
+/** The catalog folder the static faces ship in, as a site URL: `/catalog/fonts/ttf/`. */
+export const STATIC_FACE_DIR = SUSE_FONT_DIR;
+
+/** Does the brand pack ship this static face file? Answered by the shell, which knows where the catalog lives. */
+export type ShipsFace = (file: string) => boolean | Promise<boolean>;
+
+/** The parts of a lowered deck the face pass reads: slides and layouts as the engine takes them. */
+export interface FaceNamingModel {
+  /** `layout` is the 0-based layout index the engine binds the slide to (absent = 0). */
+  slides: ReadonlyArray<{ shapes: PptxShape[]; layout?: number }>;
+  layouts?: ReadonlyArray<PptxLayout> | null;
+}
+
+type WeightedStyle = NonNullable<PptxPlaceholder['style']> & { weight?: number };
+type WeightedCell = PptxTableCell & { weight?: number };
+
+/** The theme font a run with no typeface of its own draws in: title text takes the major font. */
+const themeFamily = (ph: { type?: PptxPhType } | undefined, fonts?: { major?: string; minor?: string }): string | undefined =>
+  (ph?.type === 'title' || ph?.type === 'ctrTitle' ? fonts?.major : fonts?.minor) || undefined;
+
+/**
+ * Name the static face of every run whose weight PowerPoint cannot state, in place.
+ *
+ * `fonts` is the theme's major and minor family, used only to name the family of a run
+ * that states none; it is never written anywhere. `ships` is asked once per distinct
+ * file. Every `weight` field is removed whether or not a face was named, so a deck whose
+ * brand ships no static faces (or a caller with no `ships`) builds exactly the bytes it
+ * built before weights were carried.
+ */
+export async function nameStaticFaces(
+  model: FaceNamingModel,
+  fonts: { major?: string; minor?: string } | undefined,
+  ships?: ShipsFace,
+): Promise<void> {
+  type Site = { family: string | undefined; weight: number; italic: boolean; apply: (face: { face: string | undefined; bold: boolean }) => void };
+  const sites: Site[] = [];
+
+  const visitRun = (run: WeightedRun, fallback: string | undefined): void => {
+    const weight = run.weight;
+    delete run.weight;
+    if (weight === undefined) return;
+    sites.push({
+      family: run.font ?? fallback, weight, italic: !!run.italic,
+      apply: (got) => {
+        if (got.face === undefined || got.face === (run.font ?? fallback)) return;
+        run.font = got.face;
+        if (got.bold) run.bold = true; else delete run.bold;
+      },
+    });
+  };
+  const visitParas = (paras: readonly PptxPara[] | undefined, fallback: string | undefined): void => {
+    for (const para of paras ?? []) for (const run of para.runs ?? []) visitRun(run as WeightedRun, fallback);
+  };
+  const visitShapes = (shapes: readonly PptxShape[] | undefined): void => {
+    for (const shape of shapes ?? []) {
+      if (shape.kind === 'text') visitParas(shape.paras, themeFamily(shape.ph, fonts));
+      else if (shape.kind === 'table') {
+        for (const row of shape.rows ?? []) {
+          for (const cell of (row.cells ?? []) as WeightedCell[]) {
+            visitParas(cell.paras, fonts?.minor);
+            const weight = cell.weight;
+            delete cell.weight;
+            if (weight === undefined) continue;
+            const family = cell.font ?? fonts?.minor;
+            sites.push({
+              family, weight, italic: false,
+              apply: (got) => {
+                if (got.face === undefined || got.face === family) return;
+                cell.font = got.face;
+                if (got.bold) cell.bold = true; else delete cell.bold;
+              },
+            });
+          }
+        }
+      }
+    }
+  };
+
+  for (const slide of model.slides) visitShapes(slide.shapes);
+  // A layout placeholder style named as a face, and the family it stated before.
+  const renamed = new Map<PptxPlaceholder, string | undefined>();
+  for (const layout of model.layouts ?? []) {
+    visitShapes(layout.shapes);
+    for (const ph of layout.placeholders ?? []) {
+      const style = ph.style as WeightedStyle | undefined;
+      if (!style) continue;
+      const weight = style.weight;
+      delete style.weight;
+      if (weight === undefined) continue;
+      const family = style.font ?? themeFamily(ph, fonts);
+      const before = style.font;
+      // A placeholder style states no bold flag, so only a named face carries the weight.
+      sites.push({
+        family, weight, italic: false,
+        apply: (got) => {
+          if (got.face === undefined || got.face === family) return;
+          style.font = got.face;
+          renamed.set(ph, before ?? family);
+        },
+      });
+    }
+  }
+
+  if (!sites.length) return;
+  const files = new Set<string>();
+  for (const site of sites) {
+    const file = ships ? staticFaceFile(site.family, site.weight, site.italic) : null;
+    if (file) files.add(file);
+  }
+  const shipped = new Set<string>();
+  await Promise.all([...files].map(async (file) => {
+    try { if (await ships!(file)) shipped.add(file); } catch { /* a probe that fails is a face that is not there */ }
+  }));
+  for (const site of sites) site.apply(staticFaceFor(site.family, site.weight, site.italic, shipped));
+  if (renamed.size) pinInheritedFamilies(model, renamed);
+}
+
+/** The layout placeholder a slide placeholder inherits from: by idx, else by type. */
+function layoutPlaceholderFor(
+  ph: { type: PptxPhType; idx?: number },
+  placeholders: readonly PptxPlaceholder[],
+): PptxPlaceholder | undefined {
+  const titleish = (t: PptxPhType): boolean => t === 'title' || t === 'ctrTitle';
+  if (ph.idx !== undefined) {
+    const byIdx = placeholders.find((p) => p.idx === ph.idx);
+    if (byIdx) return byIdx;
+  }
+  return placeholders.find((p) => p.idx === undefined && (p.type === ph.type || (titleish(p.type) && titleish(ph.type))));
+}
+
+/**
+ * Once a layout placeholder style is set to a face ("SUSE Medium"), every slide run bound to
+ * it that states no typeface would inherit that face, so a 700 title draws as a faux-bold
+ * Medium and a 400 title as Medium. Each such run is given the family the layout stated
+ * before, which is the face it drew in before the layout was renamed. A run that was
+ * given its own face, or states a typeface already, is left alone.
+ */
+function pinInheritedFamilies(model: FaceNamingModel, renamed: ReadonlyMap<PptxPlaceholder, string | undefined>): void {
+  const layouts = model.layouts ?? [];
+  if (!layouts.length) return;
+  for (const slide of model.slides) {
+    const raw = Number.isFinite(slide.layout) ? Math.round(slide.layout!) : 0;
+    const layout = layouts[Math.max(0, Math.min(layouts.length - 1, raw))];
+    const placeholders = layout?.placeholders ?? [];
+    for (const shape of slide.shapes ?? []) {
+      if (shape.kind !== 'text' || !shape.ph) continue;
+      const bound = layoutPlaceholderFor(shape.ph, placeholders);
+      if (!bound || !renamed.has(bound)) continue;
+      const family = renamed.get(bound);
+      if (!family) continue;
+      for (const para of shape.paras ?? []) {
+        for (const run of para.runs ?? []) if (run.font === undefined) run.font = family;
+      }
+    }
+  }
 }
 
 // A custom-property name: '--' plus anything that is not whitespace, a paren or a comma.
@@ -196,9 +463,63 @@ export function deckColor(v: unknown, resolve?: DeckColorResolver): { hex: strin
   return a <= 0.01 ? null : { hex: hex2(c[0]) + hex2(c[1]) + hex2(c[2]), alpha: a < 1 ? a : undefined };
 }
 
-// A DeckFill - a CSS colour string OR { grad:{ stops:[{pos,color}], angle } }.
+// ── Design gradient specs (plan 291 M4, W7) ───────────────────────────────────
+//
+// A Design box's `grad` is a spec string (`lin_90_102030f2-0_10203000-62`, see
+// engine/src/gradient-spec.ts). A LINEAR spec lowers to a native gradFill with one alpha
+// per stop, which is what a scrim over a photo is. Radial and conic specs have no
+// lowering here and stay out of the deck, with their note, in both tiers.
+
+/** The longest grad spec a deck element may carry; a real spec is a few dozen characters. */
+const MAX_GRAD_SPEC_CHARS = 4096;
+
+/**
+ * Whether a grad spec is a linear gradient, judged on its head the way
+ * `parseGradientSpec` reads it (`lin`, `linear`, with any `.space` modifier). Lexical on
+ * purpose: the renderer's `deckLinearGrad` makes the same call without the engine, and
+ * the two tiers must agree on which rows they let through.
+ */
+export function isLinearGradSpec(spec: unknown): boolean {
+  const s = typeof spec === 'string' ? spec.trim() : '';
+  const first = s.split('_').filter((p) => p.length > 0)[0] ?? '';
+  const head = first.toLowerCase().split('.')[0];
+  return head === 'lin' || head === 'linear';
+}
+
+/**
+ * A linear grad spec as a native gradient fill, or null when the spec is not linear or
+ * cannot be read.
+ *
+ * Stops are the engine's baked sRGB stops, so an OKLab spec keeps the curve the canvas
+ * paints. `opacity` (0..1, the box's own) folds into every stop's alpha. A mirror folds
+ * into the angle, because a flipped rectangle is the same rectangle: flipH maps the CSS
+ * angle a to 360 - a, flipV to 180 - a, and both to a + 180.
+ */
+export function gradSpecFill(spec: string, opts: { opacity?: number; flipH?: boolean; flipV?: boolean } = {}): PptxFill | null {
+  if (typeof spec !== 'string' || spec.length > MAX_GRAD_SPEC_CHARS) return null;
+  const g = parseGradientSpec(spec);
+  if (g?.kind !== 'linear') return null;
+  const op = typeof opts.opacity === 'number' && Number.isFinite(opts.opacity) ? Math.max(0, Math.min(1, opts.opacity)) : 1;
+  const grad = gradientSpecStops(g).map((s) => {
+    const hex = colorToHexString({ ...s.color, alpha: 1 }).slice(1, 7).toUpperCase();
+    const a = Math.max(0, Math.min(1, (s.color.alpha ?? 1) * op));
+    return a < 1 ? { pos: Math.max(0, Math.min(1, s.pos / 100)), color: hex, alpha: a } : { pos: Math.max(0, Math.min(1, s.pos / 100)), color: hex };
+  });
+  if (grad.length < 2) return null;
+  let angle = g.angle;
+  if (opts.flipH === true) angle = (360 - angle) % 360;
+  if (opts.flipV === true) angle = (540 - angle) % 360;
+  return { grad, angle };
+}
+
+// A DeckFill - a CSS colour string, { grad:{ stops:[{pos,color}], angle } }, or a Design
+// grad spec { gradSpec, flipH?, flipV?, opacity? } (plan 291 M4).
 export function deckFill(f: unknown, resolve?: DeckColorResolver): PptxFill | undefined {
   if (typeof f === 'string') { const c = deckColor(f, resolve); return c ? { solid: c.hex, alpha: c.alpha } : undefined; }
+  const gs = f && typeof f === 'object' ? f as { gradSpec?: unknown; flipH?: unknown; flipV?: unknown; opacity?: unknown } : null;
+  if (gs && typeof gs.gradSpec === 'string') {
+    return gradSpecFill(gs.gradSpec, { opacity: asFinite(gs.opacity, 1), flipH: gs.flipH === true, flipV: gs.flipV === true }) ?? undefined;
+  }
   const g = (f as { grad?: { stops?: unknown; angle?: unknown } } | null)?.grad;
   if (!g) return undefined;
   const stops = (Array.isArray(g.stops) ? g.stops : []).slice(0, MAX_GRAD_STOPS);
@@ -238,6 +559,9 @@ export function deckRun(r: Record<string, unknown>, resolve?: DeckColorResolver)
   };
   const alpha = runAlpha(colour, r?.alpha);
   if (alpha !== undefined) run.alpha = alpha;
+  // Carried for nameStaticFaces, which removes it again before the engine sees the run.
+  const weight = deckWeight(r?.weight);
+  if (weight !== undefined) (run as WeightedRun).weight = weight;
   return run;
 }
 
@@ -267,6 +591,7 @@ function deckCell(c: Record<string, unknown>, resolve?: DeckColorResolver): Pptx
   if (typeof c?.colSpan === 'number') cell.colSpan = c.colSpan;
   if (typeof c?.rowSpan === 'number') cell.rowSpan = c.rowSpan;
   if (typeof c?.bold === 'boolean') cell.bold = c.bold;
+  const weight = deckWeight(c?.weight); if (weight !== undefined) (cell as WeightedCell).weight = weight;
   if (typeof c?.sizePt === 'number') cell.sizePt = c.sizePt;
   const font = deckFontName(c?.font, resolve); if (font) cell.font = font;
   if (typeof c?.margin === 'number') cell.margin = emuOf(c.margin);
@@ -290,6 +615,302 @@ export const deckSrcRect = (s: unknown): PptxPic['srcRect'] => {
 export const deckBox = (el: Record<string, unknown>): DeckBox => ({
   x: emuOf(el?.x), y: emuOf(el?.y), cx: Math.max(1, emuOf(el?.w, 1)), cy: Math.max(1, emuOf(el?.h, 1)),
 });
+
+// ── pictures placed the way Design's canvas places them (plan 291 M3, shared in M4) ──
+//
+// Both tiers read the same keys off a Design row or off the renderer's image element:
+// `fit`, `imgpos`, `imageFraming {x, y, zoom}`, `flipH`, `flipV`, `name`. So Tier A
+// (design-pptx.ts, rows) and Tier B (export-pptx.ts, deck elements) crop, letterbox and
+// mirror a picture alike.
+
+/** A source crop, as fractions 0..1 cut off each edge. */
+export type PptxSrcRect = { l: number; t: number; r: number; b: number };
+
+/** The object-fit values the Design renderer accepts (`FITS` in design-renderer.js). */
+export const PICTURE_FITS = ['cover', 'contain', 'fill', 'none', 'scale-down'] as const;
+export type PictureFit = typeof PICTURE_FITS[number];
+
+/**
+ * A picture's own size: `w` and `h` give its aspect, and `natural` says whether they
+ * are also a size in CSS pixels (a raster's pixels, or an SVG's absolute width and
+ * height). An SVG with only a viewBox has an aspect and no size.
+ */
+export interface DeckIntrinsicSize { w: number; h: number; natural: boolean }
+
+/**
+ * A picture's place on the slide: the shape's box, the part of the picture cut off
+ * each edge, and the size the whole picture is drawn at before any cut.
+ */
+export interface DeckPicturePlacement {
+  box: { x: number; y: number; cx: number; cy: number };
+  srcRect: PptxSrcRect | null;
+  drawn: { cx: number; cy: number };
+}
+
+/** A boolean as Design's `boolVal` reads one: true, 1, '1', 'true', 'yes' or 'on'. */
+function truthy(v: unknown): boolean {
+  if (v === true || v === 1) return true;
+  if (typeof v !== 'string') return false;
+  const t = v.toLowerCase();
+  return t === '1' || t === 'true' || t === 'yes' || t === 'on';
+}
+
+/** CSS pixels per unit for the absolute lengths an SVG root's width and height can carry. */
+const SVG_UNIT_PX: Record<string, number> = { '': 1, px: 1, pt: 4 / 3, pc: 16, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
+
+/**
+ * An SVG's intrinsic size, read the way an `<img>` reads one: absolute width and
+ * height first, then the viewBox for the aspect. Unrounded, because a wordmark's
+ * viewBox (210.179 by 37.666) loses a percent of its aspect when rounded to pixels.
+ */
+export function deckSvgIntrinsicSize(bytes: Uint8Array): DeckIntrinsicSize | null {
+  const head = new TextDecoder().decode(bytes.subarray(0, Math.min(bytes.length, 8192)));
+  const tag = /<svg\b([^>]*)>/i.exec(head);
+  if (!tag) return null;
+  const attr = (name: string): string | undefined => {
+    const m = new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i').exec(tag[1]!);
+    return m ? (m[1] ?? m[2]) : undefined;
+  };
+  const length = (value: string | undefined): number => {
+    const m = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm)?\s*$/i.exec(value ?? '');
+    if (!m) return 0;
+    const n = parseFloat(m[1]!) * (SVG_UNIT_PX[(m[2] ?? '').toLowerCase()] ?? 0);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  };
+  const vb = (attr('viewBox') ?? '').trim().split(/[\s,]+/).map(Number);
+  const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2]! > 0 ? vb[2]! : 0;
+  const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3]! > 0 ? vb[3]! : 0;
+  const w = length(attr('width'));
+  const h = length(attr('height'));
+  if (w && h) return { w, h, natural: true };
+  if (w && vbW && vbH) return { w, h: (w * vbH) / vbW, natural: true };
+  if (h && vbW && vbH) return { w: (h * vbW) / vbH, h, natural: true };
+  if (vbW && vbH) return { w: vbW, h: vbH, natural: false };
+  return null;
+}
+
+/** A position keyword (`left top`, `center`) or `x% y%` as fractions, read the way CSS object-position reads a value. */
+function positionFractions(value: string): [number, number] {
+  let fx = 0.5;
+  let fy = 0.5;
+  const pct: number[] = [];
+  for (const tok of value.trim().toLowerCase().split(/\s+/).slice(0, 2)) {
+    if (tok === 'left') fx = 0;
+    else if (tok === 'right') fx = 1;
+    else if (tok === 'top') fy = 0;
+    else if (tok === 'bottom') fy = 1;
+    else if (tok.endsWith('%') && Number.isFinite(parseFloat(tok))) pct.push(parseFloat(tok) / 100);
+  }
+  if (pct.length === 1) fx = pct[0]!;
+  else if (pct.length === 2) [fx, fy] = [pct[0]!, pct[1]!];
+  return [Math.min(1, Math.max(0, fx)), Math.min(1, Math.max(0, fy))];
+}
+
+/** A picture's anchor in its box (`imgpos`, or a framing's x and y) and its zoom, as the canvas reads them. */
+export function deckPictureAnchor(row: Record<string, unknown>): { fx: number; fy: number; zoom: number } {
+  const framing = row.imageFraming && typeof row.imageFraming === 'object'
+    ? row.imageFraming as { x?: unknown; y?: unknown; zoom?: unknown }
+    : null;
+  const pctOf = (v: unknown): number => {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) / 100 : 0.5;
+  };
+  const [fx, fy] = framing
+    ? [pctOf(framing.x ?? 50), pctOf(framing.y ?? 50)]
+    : positionFractions(typeof row.imgpos === 'string' ? row.imgpos : '');
+  const zoomRaw = framing ? Number(framing.zoom ?? 100) : 100;
+  return { fx, fy, zoom: Math.max(1, Number.isFinite(zoomRaw) ? zoomRaw : 100) / 100 };
+}
+
+/**
+ * The source crop that shows a `fit: cover` picture the way the canvas does, as
+ * fractions cut off each edge, or null when nothing is cut.
+ *
+ * The canvas draws `object-fit: cover` placed by `imgpos` (or by a framing's x and y),
+ * then scales a framing's zoom about that same point (`imgCss` in the Design renderer).
+ * PowerPoint keeps the whole picture in the file and crops only the view, so the
+ * person can still re-crop it there. `box` and `pixels` need only share their own units.
+ */
+export function deckCoverSrcRect(
+  row: Record<string, unknown>,
+  box: { w: number; h: number },
+  pixels: { width: number; height: number },
+): PptxSrcRect | null {
+  if (!(pixels.width > 0 && pixels.height > 0 && box.w > 0 && box.h > 0)) return null;
+  const { fx, fy, zoom } = deckPictureAnchor(row);
+
+  const imgA = pixels.width / pixels.height;
+  const boxA = box.w / box.h;
+  // The part of the picture the cover fit shows, on each axis, before any zoom.
+  let l = 0;
+  let r = 0;
+  let t = 0;
+  let b = 0;
+  if (Math.abs(imgA - boxA) >= 1e-3) {
+    if (imgA > boxA) {
+      const crop = 1 - boxA / imgA;
+      l = crop * fx;
+      r = crop * (1 - fx);
+    } else {
+      const crop = 1 - imgA / boxA;
+      t = crop * fy;
+      b = crop * (1 - fy);
+    }
+  }
+  if (zoom > 1) {
+    // A scale about the point (fx, fy) of the box shows the box span from
+    // f * (1 - 1/zoom) to that plus 1/zoom, within the window the fit left.
+    const narrow = (lo: number, hi: number, f: number): [number, number] => {
+      const span = 1 - lo - hi;
+      const start = f * (1 - 1 / zoom);
+      return [lo + start * span, hi + (1 - start - 1 / zoom) * span];
+    };
+    [l, r] = narrow(l, r, fx);
+    [t, b] = narrow(t, b, fy);
+  }
+  const tidy = (v: number): number => (Math.abs(v) < 1e-9 ? 0 : v);
+  [l, r, t, b] = [tidy(l), tidy(r), tidy(t), tidy(b)];
+  return l || r || t || b ? { l, t, r, b } : null;
+}
+
+/**
+ * A picture placed the way the canvas places it for every fit but cover: `contain`
+ * letterboxes it at its own aspect, `none` draws it at its own pixel size,
+ * `scale-down` takes the smaller of those two, and `fill` stretches it over the box.
+ * `imgpos` (or a framing's x and y) places it in the space left over, a framing's zoom
+ * scales it about that same point, and the box clips what overflows. The shape shrinks
+ * to the visible part and a source crop cuts the rest. `box` is in EMU.
+ */
+export function deckFittedPlacement(
+  row: Record<string, unknown>,
+  box: { x: number; y: number; cx: number; cy: number },
+  intrinsic: DeckIntrinsicSize,
+  fit: Exclude<PictureFit, 'cover'>,
+): DeckPicturePlacement {
+  const { fx, fy, zoom } = deckPictureAnchor(row);
+  let dw = box.cx;
+  let dh = box.cy;
+  if (fit !== 'fill') {
+    const containScale = Math.min(box.cx / intrinsic.w, box.cy / intrinsic.h);
+    // An SVG with no size of its own has nothing to draw at in `none`, so it fits.
+    const scale = !intrinsic.natural || fit === 'contain'
+      ? containScale
+      : fit === 'none' ? EMU_PER_PX : Math.min(containScale, EMU_PER_PX);
+    dw = intrinsic.w * scale;
+    dh = intrinsic.h * scale;
+  }
+  // object-position puts the given fraction of the leftover space before the picture,
+  // and the zoom scales about the same point of the box.
+  let x0 = (box.cx - dw) * fx;
+  let y0 = (box.cy - dh) * fy;
+  if (zoom > 1) {
+    const px = box.cx * fx;
+    const py = box.cy * fy;
+    x0 = px + (x0 - px) * zoom;
+    y0 = py + (y0 - py) * zoom;
+    dw *= zoom;
+    dh *= zoom;
+  }
+  const vx0 = Math.max(0, x0);
+  const vy0 = Math.max(0, y0);
+  const vx1 = Math.min(box.cx, x0 + dw);
+  const vy1 = Math.min(box.cy, y0 + dh);
+  if (!(vx1 > vx0 && vy1 > vy0 && dw > 0 && dh > 0)) return { box, srcRect: null, drawn: { cx: box.cx, cy: box.cy } };
+  const tidy = (v: number): number => (Math.abs(v) < 1e-9 ? 0 : v);
+  const l = tidy((vx0 - x0) / dw);
+  const r = tidy((x0 + dw - vx1) / dw);
+  const t = tidy((vy0 - y0) / dh);
+  const b = tidy((y0 + dh - vy1) / dh);
+  const left = Math.round(vx0);
+  const top = Math.round(vy0);
+  return {
+    box: {
+      x: box.x + left,
+      y: box.y + top,
+      cx: Math.max(1, Math.round(vx1) - left),
+      cy: Math.max(1, Math.round(vy1) - top),
+    },
+    srcRect: l || r || t || b ? { l, t, r, b } : null,
+    drawn: { cx: dw, cy: dh },
+  };
+}
+
+/**
+ * A picture placed for its fit, then mirrored inside its own box when the row is
+ * flipped. The canvas flips the whole box (a negative scale about its centre), so a
+ * letterboxed picture anchored left shows on the right of a mirrored box; the slide
+ * shape, which PowerPoint flips in place, has to move there itself. A cover picture
+ * fills its box and does not move. The crop needs no swap: DrawingML applies srcRect
+ * in source space before the flip, as CSS applies object-fit before the scale.
+ * `intrinsic` null (a size that could not be read) places it over the whole box.
+ */
+export function deckPlacePicture(
+  row: Record<string, unknown>,
+  box: { x: number; y: number; cx: number; cy: number },
+  intrinsic: DeckIntrinsicSize | null,
+  fit: PictureFit,
+): DeckPicturePlacement {
+  let placed: DeckPicturePlacement = { box, srcRect: null, drawn: { cx: box.cx, cy: box.cy } };
+  if (intrinsic) {
+    if (fit === 'cover') {
+      // The whole picture is drawn at its own aspect, scaled up to cover the box and then
+      // by the framing zoom, so a raster drawn at this size (an SVG's PNG fallback) takes
+      // the same source crop as the vector instead of being letterboxed and cut again.
+      const { zoom } = deckPictureAnchor(row);
+      const cover = intrinsic.w > 0 && intrinsic.h > 0 ? Math.max(box.cx / intrinsic.w, box.cy / intrinsic.h) : 0;
+      const drawn = cover > 0
+        ? { cx: intrinsic.w * cover * zoom, cy: intrinsic.h * cover * zoom }
+        : { cx: box.cx, cy: box.cy };
+      placed = { box, srcRect: deckCoverSrcRect(row, { w: box.cx, h: box.cy }, { width: intrinsic.w, height: intrinsic.h }), drawn };
+    } else {
+      placed = deckFittedPlacement(row, box, intrinsic, fit);
+    }
+  }
+  const fh = truthy(row.flipH);
+  const fv = truthy(row.flipV);
+  if (!fh && !fv) return placed;
+  const b = { ...placed.box };
+  if (fh) b.x = 2 * box.x + box.cx - placed.box.x - placed.box.cx;
+  if (fv) b.y = 2 * box.y + box.cy - placed.box.y - placed.box.cy;
+  return { ...placed, box: b };
+}
+
+/**
+ * The look a picture carries onto its slide shape: its layer name, its mirrors and its
+ * opacity (0..1, as alphaModFix), each set only when stated, so a plain picture lowers
+ * exactly as it did. Reads a Design row (`opacity` 0..100) or a deck element (`alpha`).
+ */
+export function deckPicLook(el: Record<string, unknown>): Pick<PptxPic, 'name' | 'flipH' | 'flipV' | 'alpha'> {
+  const out: Pick<PptxPic, 'name' | 'flipH' | 'flipV' | 'alpha'> = {};
+  const name = typeof el.name === 'string' ? el.name.trim().slice(0, 255) : '';
+  if (name) out.name = name;
+  if (truthy(el.flipH)) out.flipH = true;
+  if (truthy(el.flipV)) out.flipV = true;
+  const raw = typeof el.alpha === 'number' ? el.alpha
+    : (el.opacity !== undefined && el.opacity !== null && el.opacity !== '' ? Number(el.opacity) / 100 : 1);
+  if (Number.isFinite(raw) && raw < 1) out.alpha = Math.round(Math.max(0, raw) * 1000) / 1000;
+  return out;
+}
+
+/**
+ * The raster an SVG picture has to travel as, or null when it can travel as a vector.
+ *
+ * A brand photo treatment arrives as an SVG wrapper whose embedded photo is drawn
+ * through a `<filter>` (`wrapRasterWithTreatment`). PowerPoint's own SVG renderer is not
+ * known to honour feColorMatrix or feComponentTransfer, so an svgBlip would show the
+ * photo ungraded in one viewer and graded in another. Such a picture is baked to one
+ * raster at its own size (the longest side capped at `maxPx`): JPEG when the photo
+ * inside is a JPEG, PNG otherwise, and the slide carries no svg part for the picture.
+ */
+export function deckSvgBakeRaster(bytes: Uint8Array, maxPx = 4096): { w: number; h: number; mime: 'image/jpeg' | 'image/png' } | null {
+  const text = new TextDecoder().decode(bytes);
+  if (!/<filter\b/i.test(text) || !/<image\b[^>]*\bfilter\s*=/i.test(text)) return null;
+  const size = deckSvgIntrinsicSize(bytes);
+  if (!size) return null;
+  const scale = Math.min(1, maxPx / Math.max(size.w, size.h, 1));
+  const mime = /<image\b[^>]*\bhref\s*=\s*["']data:image\/jpe?g[;,]/i.test(text) ? 'image/jpeg' as const : 'image/png' as const;
+  return { w: Math.max(1, Math.round(size.w * scale)), h: Math.max(1, Math.round(size.h * scale)), mime };
+}
 
 // A placeholder binding on a deck text element: { type, idx? }. Whitelisted types only
 // (the engine drops unknowns too; filtering here keeps the model honest at the boundary).
@@ -318,6 +939,7 @@ export function deckPlaceholder(p: unknown, resolve?: DeckColorResolver): PptxPl
     style.color = deckColor(st.color, resolve)?.hex;
     const align = oneOf(st.align, ['l', 'ctr', 'r'] as const); if (align) style.align = align;
     const bullet = asBool(st.bullet); if (bullet != null) style.bullet = bullet;
+    const weight = deckWeight(st.weight); if (weight !== undefined) (style as WeightedStyle).weight = weight;
     out.style = style;
   }
   return out;

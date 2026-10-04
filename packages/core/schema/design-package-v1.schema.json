@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/design-package-v1.schema.json",
+  "title": "design-package-v1",
+  "description": "What lolly package and lolly_package report after writing a Design document as a reopenable .lolly session: the carried pictures, the classified references, the session markers and the readback. Plan 291 W8. Mirrors packages/core/src/design-package-v1.ts; each exported const array there has one named $defs entry holding its enum in the same order.",
+  "$defs": {
+    "mediaOrigin": {
+      "enum": [
+        "asset",
+        "asset-dir",
+        "source"
+      ]
+    },
+    "errorCode": {
+      "enum": [
+        "input.unsupported",
+        "input.unreadable",
+        "authoring.invalid",
+        "asset.invalid",
+        "asset.not-image",
+        "media.mismatch",
+        "media.missing",
+        "reference.unknown",
+        "path.invalid",
+        "export.failed"
+      ]
+    },
+    "warningCode": {
+      "enum": [
+        "asset.unused",
+        "media.missing",
+        "reference.unknown",
+        "reference.unchecked",
+        "reference.external",
+        "path.empty",
+        "authoring.note",
+        "design-system.not-carried"
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Lower-case hex SHA-256."
+    },
+    "mediaRef": {
+      "type": "string",
+      "pattern": "^user/media/[0-9a-f]{64}$",
+      "description": "An upload ref: user/media/<sha256>."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "layerIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "media": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "sha256",
+        "mime",
+        "bytes",
+        "origin",
+        "keys",
+        "layers"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/mediaRef"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mime": {
+          "type": "string"
+        },
+        "bytes": {
+          "$ref": "#/$defs/count"
+        },
+        "origin": {
+          "$ref": "#/$defs/mediaOrigin"
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "layers": {
+          "$ref": "#/$defs/layerIds"
+        }
+      }
+    },
+    "missing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "layers"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string"
+        },
+        "layers": {
+          "$ref": "#/$defs/layerIds"
+        }
+      }
+    },
+    "references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalog",
+        "unchecked",
+        "external",
+        "unknown"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string"
+        },
+        "catalog": {
+          "$ref": "#/$defs/count"
+        },
+        "unchecked": {
+          "$ref": "#/$defs/count"
+        },
+        "external": {
+          "$ref": "#/$defs/count"
+        },
+        "unknown": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/missing"
+          }
+        }
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/warningCode"
+        },
+        "message": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      }
+    },
+    "readback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "layers",
+        "media",
+        "label",
+        "filename"
+      ],
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "layers": {
+          "$ref": "#/$defs/count"
+        },
+        "media": {
+          "$ref": "#/$defs/count"
+        },
+        "label": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        }
+      }
+    },
+    "size": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "unit"
+      ],
+      "properties": {
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "const": "px"
+        }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "version",
+    "bytes",
+    "sha256",
+    "exportedAt",
+    "tool",
+    "label",
+    "filename",
+    "size",
+    "artboards",
+    "layers",
+    "expanded",
+    "media",
+    "references",
+    "missingMedia",
+    "unusedAssets",
+    "warnings",
+    "readback",
+    "next"
+  ],
+  "properties": {
+    "format": {
+      "const": "lolly-package"
+    },
+    "version": {
+      "const": 1
+    },
+    "output": {
+      "type": "string"
+    },
+    "bytes": {
+      "$ref": "#/$defs/count"
+    },
+    "sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "exportedAt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO 8601 time."
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "const": "design"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "filename": {
+      "type": "string"
+    },
+    "size": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/size"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "artboards": {
+      "$ref": "#/$defs/count"
+    },
+    "layers": {
+      "$ref": "#/$defs/count"
+    },
+    "expanded": {
+      "type": "boolean"
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/media"
+      }
+    },
+    "references": {
+      "$ref": "#/$defs/references"
+    },
+    "missingMedia": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/missing"
+      }
+    },
+    "unusedAssets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/warning"
+      }
+    },
+    "readback": {
+      "$ref": "#/$defs/readback"
+    },
+    "next": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

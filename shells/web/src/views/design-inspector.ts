@@ -94,6 +94,7 @@ import { inspectDesignV1 } from '@lolly-tools/core';
 import type { HostV1, SpeechVoiceInfo } from '@lolly-tools/core/host-v1';
 import type { EmojiStyleV1 } from '@lolly-tools/core/emoji-v1';
 import type { EmojiStyleControl, EmojiStyleControlOpts } from '../components/emoji-style-control.ts';
+import type { DocumentThemePort } from '../lib/document-theme.ts';
 import { icon } from '../lib/icons.ts';
 import type { IconName } from '../lib/icons.ts';
 import { colorFieldHtml, wireColorField, resolveColorVar, colorVarLabel } from '../components/color-field.ts';
@@ -265,6 +266,9 @@ export interface DesignInspectorOpts {
   /** The document's emoji set and treatment. Absent on a host with no `host.emoji`,
    *  and the Document section then shows no Emoji row. */
   emoji?: InspectorEmojiPort;
+  /** The theme the document is shown in (plan 291 W4, lib/document-theme.ts). Absent,
+   *  or a design system with one theme, and the Document section shows no Theme row. */
+  theme?: DocumentThemePort;
   fonts?: InspectorFonts;
   /** Resolve a rendered run through the vector-export font registry. This is
    * async because user/discovered webfonts may need their bytes checked. */
@@ -322,6 +326,13 @@ interface InspFrameCfg extends FramePort {
  * `wire` routes, and `write()` can never be handed it by accident.
  */
 const APPEAR_SEG = 'lolly-appear';
+
+/**
+ * The Document section's theme control (plan 291 W4): one segmented row per theme
+ * group, named by the group's index so a design system's own ids never reach markup.
+ * Routed by `wire` like the Appears segments, since a theme is not a box field.
+ */
+const THEME_SEG = 'lolly-doc-theme-';
 
 /**
  * `rows` is EVERY selected box, not just `box`. A cell that reads one row and writes
@@ -1216,6 +1227,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       }) + narrationDocRows();
     return (actions.openDocumentSize ? doorRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
       + `<div class="fc-row"><span>${t('Background')}</span><span class="fc-cfield">${colorField('fc-insp-bg', model.getInput('background'), t('Background'))}</span></div>`
+      + themeDocRows()
       + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Editing range'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]]) + `<p class="fc-insp-hint">${t('Preview depends on your display. Export HDR is chosen separately.')}</p>`)
       + emojiDocRows()
       + (opts.videoWorkspace?.()
@@ -1233,6 +1245,33 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * the artwork belongs to the document: every text box, every artboard and every export
    * draws from the one set.
    */
+  /**
+   * The theme the document is shown in: a segment per declared theme, in the group's
+   * own order, beside the Background it changes. The value is the option's index, so
+   * the markup carries nothing the design system wrote except escaped labels.
+   */
+  function themeDocRows(): string {
+    const groups = opts.theme?.groups() ?? [];
+    if (!groups.length) return '';
+    return groups.map((g, gi) => `<div class="fc-row"><span>${escape(g.label)}</span>`
+      + segHtml(`${THEME_SEG}${gi}`, String(g.options.findIndex((o) => o.id === g.active)), g.options.map((o, oi) => [String(oi), o.label]), g.label)
+      + '</div>').join('')
+      + `<p class="fc-insp-hint">${t('Colours linked to the design system follow this choice.')}</p>`;
+  }
+
+  /** Apply a theme segment press: index back to ids, then the port does the rest. */
+  function chooseTheme(field: string, v: string | undefined): void {
+    const port = opts.theme;
+    const group = port?.groups()[Number(field.slice(THEME_SEG.length))];
+    const option = group?.options[Number(v)];
+    if (!port || !group || !option || option.id === group.active) return;
+    void port.choose(group.id, option.id).catch((error: unknown) => {
+      console.warn('[design] the theme could not be changed:', error);
+      // The press already moved the segment; put it back on the theme still in force.
+      sync(true);
+    });
+  }
+
   function emojiDocRows(): string {
     if (!opts.emoji) return '';
     return `<p class="lp-subhead">${t('Emoji')}</p><div data-emoji-slot></div>`;
@@ -2000,6 +2039,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       // The Appears segments are the one control here that is not a field: they write
       // four at once (see `applyAppear`), so they are routed rather than written.
       if (field === APPEAR_SEG) { applyAppearMode(v); return; }
+      if (field?.startsWith(THEME_SEG)) { chooseTheme(field, v); return; }
       write(field, v);
     });
 
@@ -2200,7 +2240,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // Document's readout is the one value that is NOT in the model - it measures the
     // canvas - so it is hashed here and woken by the canvas's own `canvas-resize`.
     const size = g.secs.includes('document') ? canvasSize() : null;
-    const doc = size ? [model.getInput('background'), model.getInput('projectFps'), size.w, size.h, model.getBoxes()] : [];
+    const doc = size ? [model.getInput('background'), model.getInput('projectFps'), size.w, size.h, model.getBoxes(), opts.theme?.groups() ?? null] : [];
     // Narration status is the OTHER value no watched field carries: it is derived from
     // the `narration:<frameId>` clip's resolved asset meta, on a different row entirely.
     // Without it the Present section kept saying "Not narrated yet." after a successful

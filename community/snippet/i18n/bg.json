@@ -1,6 +1,6 @@
 {
   "name": "Кодов откъс",
-  "description": "Превърни кодови фрагменти в чисти, синтактично оцветени изображения за споделяне.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Код",
   "inputs.code.placeholder": "Постави кода си тук…",
   "inputs.fileName.label": "Име на файла",

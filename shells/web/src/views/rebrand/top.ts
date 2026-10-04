@@ -314,7 +314,7 @@ export function pickNewerVersion(rb: RbCtx): void {
 function makeVersionInput(rb: RbCtx): HTMLInputElement {
   const input = node('input', 'rb-version-input');
   input.type = 'file';
-  input.accept = '.pptx,.pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf';
+  input.accept = '.pptx,.pdf,.psd,.psb,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf,image/vnd.adobe.photoshop';
   input.hidden = true;
   input.addEventListener('change', () => {
     const file = input.files?.[0];

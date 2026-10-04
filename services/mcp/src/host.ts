@@ -39,7 +39,11 @@ function safeJson(v: unknown): string {
  * Run `fn` with a fresh jsdom DOM + a headless host bound to `profile`. Globals
  * are installed for the duration and restored afterward. Serialized process-wide.
  */
-export function withHost<T>(profile: Profile, fn: (dom: Jsdom, host: HostV1) => Promise<T>): Promise<T> {
+export function withHost<T>(
+  profile: Profile, fn: (dom: Jsdom, host: HostV1) => Promise<T>,
+  /** The theme choice per token group (url-mode `_themes`) the host's tokens resolve in. */
+  opts: { tokenSelection?: Record<string, string> } = {},
+): Promise<T> {
   return enqueue(async () => {
     const { JSDOM } = await import('jsdom');
     const dom = new JSDOM('<!DOCTYPE html><html><body><div id="canvas"></div></body></html>') as unknown as Jsdom;
@@ -51,7 +55,7 @@ export function withHost<T>(profile: Profile, fn: (dom: Jsdom, host: HostV1) => 
     try {
       // A hosted process: a hook's host.capture.page may only reach public http(s)
       // pages, never the worker's own network (cloud metadata, localhost, RFC 1918).
-      const host = await createCliBridge({ dom: dom as never, profile, capturePublicOnly: true, aiEnabled: false });
+      const host = await createCliBridge({ dom: dom as never, profile, capturePublicOnly: true, aiEnabled: false, ...(opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {}) });
       // Redirect logging to stderr (never stdout - it is the stdio protocol channel).
       (host as { log: HostV1['log'] }).log = (level, msg, ctx) => {
         process.stderr.write(`[mcp:${level}] ${msg}${ctx ? ' ' + safeJson(ctx) : ''}\n`);

@@ -45,7 +45,6 @@ import { mountCollabRecovery } from './tool-collab-recovery.ts';
 import { surfaceMapping } from '../lib/collab-surface-geometry.ts';
 import { collabSurface, surfacePresence } from '../lib/collab-surface.ts';
 import type { CanvasOp } from '@lolly-tools/core/canvas-op-v1';
-import { tRaw } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createCollabFocus } from '../components/collab-focus.ts';
 import type { CollabFocus } from '../components/collab-focus.ts';
@@ -55,6 +54,7 @@ import { collabDisplayName, mountCollabPill } from '../components/collab-pill.ts
 import type { CollabPill } from '../components/collab-pill.ts';
 import { attachCollabBeam } from '../lib/collab-live-mount.ts';
 import type { CollabBeamAttachment } from '../lib/collab-live-mount.ts';
+import { collabPillInviteFor } from '../lib/collab-pill-invite.ts';
 import type { BeamPackHost } from '../lib/beam-pack.ts';
 import type { CollabRuntime, CollabDocumentSnapshot } from '../lib/collab-plumbing.ts';
 import { createCollabSession } from '../lib/collab-session.ts';
@@ -64,7 +64,10 @@ import type {
 } from '../lib/collab-session.ts';
 import { livePalette } from '../lib/live-palette.ts';
 import { mountCanvasComments } from './tool-canvas-comments.ts';
+import { jumpToPeer, mountPresentationPresence } from './tool-peer-view.ts';
+import { collabPalette } from '../lib/collab-colors.ts';
 import { mountCanvasInteractions } from './tool-canvas-interactions.ts';
+import { mountCollabControls } from './tool-collab-controls.ts';
 
 /** Gap between the collab pill and whatever else owns the stage's top lane. */
 export const PILL_LANE_GAP_PX = 8;
@@ -328,7 +331,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     steps.unshift(() => layer?.unmount());
     const interactions = layer && mountCanvasInteractions(runtime, handle, session, layer.el);
     steps.unshift(() => interactions?.teardown());
-    const comments = handle.comments && layer && mountCanvasComments(runtime, handle.comments, stage, canvas, layer.el, interactions?.geometry);
+    const comments = handle.comments && layer && mountCanvasComments(runtime, handle.comments, stage, canvas, layer.el, interactions?.geometry, session, opts.colors ?? collabPalette({ palette, accent }));
     steps.unshift(() => comments?.teardown());
 
     const focus: CollabFocus = createCollabFocus({
@@ -353,7 +356,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       const el = surface?.element();
       const point = el && surfaceMapping(el)?.fromClient({ x: event.clientX, y: event.clientY });
       session.updateSurface(surface ? { ...surfacePresence(surface),
-        cursor: point && point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1 ? point : undefined } : { cursor: undefined });
+        chat: undefined, cursor: point && point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1 ? point : undefined } : { cursor: undefined, chat: undefined });
     };
     const clearPointer = (): void => session.updateSurface({ cursor: undefined });
     canvas.addEventListener('pointermove', onPointer);
@@ -364,6 +367,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     let subscribedSurface = collabSurface(runtime);
     let offSurface = subscribedSurface?.subscribe(refreshSurface);
     refreshSurface();
+    steps.unshift(mountPresentationPresence(runtime, canvas, session));
     const syncSurface = (): void => {
       const next = collabSurface(runtime);
       if (next === subscribedSurface) { if (next?.id() !== localSurfaceId || next && !next.element()) refreshSurface(); return; }
@@ -455,33 +459,25 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     });
     if (beam) steps.unshift(() => beam.close());
 
-    // No `onInvite`: the ceremony lives behind the launch registry, which no build
-    // wires yet, and the pill renders no invite button without one rather than a
+    // `onInvite` comes from lib/collab-pill-invite.ts: an instance registers one for a
+    // work collab on a team session ("Invite to edit now", org/collab-invite.ts), and
+    // every other collab gets none, so the pill renders no invite button rather than a
     // control that does nothing. The beam's action follows the identical rule one slot
     // over - supplied only when there is something for it to do.
+    const onInvite = collabPillInviteFor({
+      toolId: opts.toolManifest?.id ?? '',
+      role: () => session.state().role,
+    });
     const pill: CollabPill = mountCollabPill(stage, {
       source: session,
+      onPeer: id => jumpToPeer(runtime, session, id, comments || undefined),
       className: 'collab-pill--stage',
+      ...(onInvite ? { onInvite } : {}),
       ...(beam ? { actions: beam.actions } : {}),
     });
     steps.unshift(() => pill.destroy());
     comments?.dockControls(pill.el);
-    if (handle.saveIn) {
-      const status = canvas.ownerDocument.createElement('span');
-      status.className = 'collab-save-status';
-      status.setAttribute('role', 'status');
-      status.style.paddingInline = '0.5em';
-      pill.el.appendChild(status);
-      const stop = handle.saveIn.subscribe(state => {
-        status.textContent = state.message;
-        if (state.retry) {
-          const retry = canvas.ownerDocument.createElement('button');
-          retry.type = 'button'; retry.textContent = tRaw('Retry image transfer');
-          retry.addEventListener('click', state.retry); status.appendChild(retry);
-        }
-      });
-      steps.unshift(() => { stop(); status.remove(); });
-    }
+    steps.unshift(mountCollabControls(pill.el, handle, comments?.reanchor));
 
     const syncPillLane = (): void => {
       const next = pillLaneOffset(stage, el => el.getBoundingClientRect().width);

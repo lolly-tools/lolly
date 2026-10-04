@@ -30,6 +30,7 @@ import type { SessionEmojiStamp } from '../../../../../engine/src/session-record
 import type { DroppedAsset } from '../../../../../engine/src/runtime.ts';
 import type { CompiledDocument, DocumentDiff, DocumentInspection, DocumentMeasurement } from '../../../../../engine/src/document-api.ts';
 import type { HistoryModel } from '../tool-history.ts';
+import type { DesignCheckPageResult } from '../design-checks.ts';
 import type { CollabPlumbing } from '../../lib/collab-plumbing.ts';
 import type { Shutter } from '../../lib/shutter.ts';
 import type { CollabSessionHandle } from '../../lib/collab-session.ts';
@@ -146,7 +147,7 @@ export interface ToolViewCtx {
   mountedSystemId: ToolDesignSystemContext['mountedSystemId'];
   madeWith: ToolDesignSystemContext['madeWith'];
   runtime: ToolRuntime;
-  documentSurface: { compile: (inputs?: Record<string, unknown>) => Promise<CompiledDocument>; inspect: (document?: unknown) => Promise<DocumentInspection>; measure: (document?: unknown, opts?: Record<string, unknown>) => Promise<DocumentMeasurement>; diff: (a: unknown, b: unknown) => Promise<DocumentDiff>; };
+  documentSurface: { compile: (inputs?: Record<string, unknown>) => Promise<CompiledDocument>; inspect: (document?: unknown) => Promise<DocumentInspection>; measure: (document?: unknown, opts?: Record<string, unknown>) => Promise<DocumentMeasurement>; diff: (a: unknown, b: unknown) => Promise<DocumentDiff>; check: () => Promise<DesignCheckPageResult | null>; };
   removeDocumentSurface: () => void;
   inputHistory: HistoryModel;
   revisionChanged: () => void;

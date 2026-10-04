@@ -101,6 +101,13 @@ export interface PptxPic {
   /** Source crop (object-fit:cover), as fractions 0..1 cropped off each edge. The
    *  blip stays the full image (un-croppable in PowerPoint), only the view is cropped. */
   srcRect?: { l?: number; t?: number; r?: number; b?: number };
+  /** Mirror the picture about its own vertical (flipH) or horizontal (flipV) axis, on
+   *  the shape's xfrm. DrawingML applies `srcRect` in source space before the flip, as
+   *  CSS applies object-fit before a scale(-1, 1), so a crop needs no swap. */
+  flipH?: boolean;
+  flipV?: boolean;
+  /** The picture's opacity 0..1, written as `<a:alphaModFix>` on the blip. 1 or absent = opaque. */
+  alpha?: number;
   /** Native animation (plans/175 WP-E) - see PptxAnim below. */
   anim?: PptxAnim;
 }
@@ -373,8 +380,10 @@ const lineXml = (line?: { color: string; w: number; alpha?: number; head?: PptxL
   line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill>` +
     `${lineEndXml('headEnd', line.head)}${lineEndXml('tailEnd', line.tail)}</a:ln>` : '';
 
-const xfrmXml = (s: { x: number; y: number; cx: number; cy: number; rot?: number }): string =>
-  `<a:xfrm${s.rot ? ` rot="${Math.round(((s.rot % 360) + 360) % 360 * 60000)}"` : ''}>` +
+// The flips are written only when true, so a shape that states none serialises as it
+// did before they existed (plan 291 M4: a mirrored picture).
+const xfrmXml = (s: { x: number; y: number; cx: number; cy: number; rot?: number; flipH?: boolean; flipV?: boolean }): string =>
+  `<a:xfrm${s.rot ? ` rot="${Math.round(((s.rot % 360) + 360) % 360 * 60000)}"` : ''}${s.flipH === true ? ' flipH="1"' : ''}${s.flipV === true ? ' flipV="1"' : ''}>` +
   `<a:off x="${Math.round(s.x)}" y="${Math.round(s.y)}"/><a:ext cx="${Math.max(1, Math.round(s.cx))}" cy="${Math.max(1, Math.round(s.cy))}"/></a:xfrm>`;
 
 function geomXml(radius?: number, cx = 0, cy = 0, geom?: PptxRect['geom']): string {
@@ -515,10 +524,14 @@ function textXml(t: PptxText, id: number): string {
 // media index → relationship id (rId1 is the slide layout).
 const mediaRid = (i: number): string => `rId${i + 2}`;
 function picXml(p: PptxPic, id: number): string {
+  // A translucent picture: alphaModFix is a blip effect, and CT_Blip puts every effect
+  // before the extLst that carries the svgBlip.
+  const alpha = typeof p.alpha === 'number' && Number.isFinite(p.alpha) && p.alpha < 1
+    ? `<a:alphaModFix amt="${clampInt(p.alpha * 100000, 0, 100000)}"/>` : '';
   const blip = p.svg != null
-    ? `<a:blip r:embed="${mediaRid(p.media)}"><a:extLst><a:ext uri="${SVG_EXT_URI}">` +
+    ? `<a:blip r:embed="${mediaRid(p.media)}">${alpha}<a:extLst><a:ext uri="${SVG_EXT_URI}">` +
       `<asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="${mediaRid(p.svg)}"/></a:ext></a:extLst></a:blip>`
-    : `<a:blip r:embed="${mediaRid(p.media)}"/>`;
+    : alpha ? `<a:blip r:embed="${mediaRid(p.media)}">${alpha}</a:blip>` : `<a:blip r:embed="${mediaRid(p.media)}"/>`;
   const pct = (v?: number): string => v && v > 0 ? String(clampInt(v * 100000, 0, 99000)) : '0';
   const sr = p.srcRect;
   const srcRect = sr && (sr.l || sr.t || sr.r || sr.b)
@@ -1049,8 +1062,7 @@ function slideRelsXml(slideIdx: number, media: PptxMedia[], hasNotes = false, li
 // that ph, matched by type+idx to the master's, is what PowerPoint's Notes pane
 // reads. A bare text box would render on the notes page but leave the pane empty.
 function notesSlideXml(notes: string): string {
-  const paras = notes.split(/\r?\n/)
-    .map(line => `<a:p><a:r><a:rPr lang="en-US" dirty="0"/><a:t>${xmlEsc(line)}</a:t></a:r></a:p>`).join('');
+  const paras = notesParagraphsXml(notes);
   return (
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
     `<p:notes xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">` +
@@ -1063,6 +1075,41 @@ function notesSlideXml(notes: string): string {
     `<p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>` +
     `</p:notes>`
   );
+}
+
+// A note's paragraphs (plan 291 M4): a blank line separates two paragraphs, and a
+// single newline is a line break (`a:br`) inside one, so a source note whose
+// paragraph was broken by a:br comes back as that one paragraph. A line holding only
+// no-break spaces (U+00A0) is an empty line inside a paragraph: it is written as two
+// a:br in a row with no run, the form a source note's blank line inside a paragraph
+// has, so that blank line survives a round trip.
+function notesParagraphsXml(notes: string): string {
+  const emptyInside = (line: string): boolean => line.length > 0 && /^[\u00a0 \t]*$/.test(line) && line.includes('\u00a0');
+  const run = (line: string): string => (emptyInside(line) ? '' : `<a:r><a:rPr lang="en-US" dirty="0"/><a:t>${xmlEsc(line)}</a:t></a:r>`);
+  const br = '<a:br><a:rPr lang="en-US" dirty="0"/></a:br>';
+  // A line scan, not an end-anchored regex: a note is open-ended input, and a pattern
+  // like `(?:\n[ \t]*)+$` retries at every newline of a long blank run (quadratic).
+  const lines = notes.replace(/\r\n?/g, '\n').split('\n');
+  const blank = (line: string): boolean => {
+    for (let i = 0; i < line.length; i++) if (line[i] !== ' ' && line[i] !== '\t') return false;
+    return true;
+  };
+  // Blank lines off both ends; a blank last line stays only when it is the one line left.
+  let start = 0;
+  while (start < lines.length - 1 && blank(lines[start]!)) start++;
+  let end = lines.length;
+  while (end - 1 > start && blank(lines[end - 1]!)) end--;
+  // Inside, a run of blank lines ends one paragraph and starts the next.
+  const paras: string[][] = [[]];
+  for (let i = start; i < end; i++) {
+    const line = lines[i]!;
+    if (end - start > 1 && blank(line)) {
+      if (paras[paras.length - 1]!.length) paras.push([]);
+    } else {
+      paras[paras.length - 1]!.push(line);
+    }
+  }
+  return paras.map(para => `<a:p>${para.map(run).join(br)}</a:p>`).join('');
 }
 
 // notesSlide rels: rId1 → the slide it annotates, rId2 → the shared notes master.

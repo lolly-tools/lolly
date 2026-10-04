@@ -76,3 +76,38 @@ test('a non-string notes field (a hostile/typo\'d read model) is no note', () =>
   assert.equal(pptxSlideNotes(slide({ notes: 42 as unknown as string })), undefined);
   assert.equal(pptxSlideNotes(undefined), undefined);
 });
+
+test('a note is built from its paragraphs: a blank line ends each, a line break stays one newline', () => {
+  const para = (...texts: string[]) => ({ runs: texts.map((text) => ({ text })) });
+  const s = slide({
+    notes: 'First paragraph.\nSecond, line one.\nline two.',
+    notesParas: [para('First ', 'paragraph.'), para('Second, line one.', '\n', 'line two.')] as never,
+  });
+  assert.equal(pptxSlideNotes(s), 'First paragraph.\n\nSecond, line one.\nline two.');
+  // A read model with no paragraphs keeps the flat text.
+  assert.equal(pptxSlideNotes(slide({ notes: 'Flat.\nText.' })), 'Flat.\nText.');
+});
+
+test('import then export keeps every source note paragraph (recreate.pptx)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const { unzipSync } = await import('fflate');
+  const { JSDOM } = await import('jsdom');
+  const { readPptx } = await import('../../../../engine/src/pptx-read.ts');
+  const { buildPptxParts } = await import('../../../../engine/src/pptx.ts');
+  const file = fileURLToPath(new URL('../../../../tests/fixtures/rebrand/recreate.pptx', import.meta.url));
+  const parseXml = (s: string) => new (new JSDOM('').window.DOMParser)().parseFromString(s, 'application/xml');
+  const deck = readPptx(unzipSync(new Uint8Array(readFileSync(file))) as never, parseXml as never);
+  let checked = 0;
+  for (const [i, s] of deck.slides.entries()) {
+    const paras = s.notesParas ?? [];
+    if (paras.length < 2) continue;
+    const want = paras.map(p => p.runs.map(r => r.text).join(''));
+    const parts = buildPptxParts([{ shapes: [], media: [], notes: pptxSlideNotes(s) }], {});
+    const again = readPptx(parts as never, parseXml as never).slides[0]!;
+    assert.deepEqual(again.notesParas?.map(p => p.runs.map(r => r.text).join('')), want,
+      `slide ${i + 1}: paragraph boundaries and empty lines inside a paragraph survive export`);
+    checked++;
+  }
+  assert.ok(checked >= 2, 'the fixture carries notes with more than one paragraph');
+});

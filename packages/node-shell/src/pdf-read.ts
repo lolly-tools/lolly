@@ -75,7 +75,7 @@ import {
   PDFDocument, PDFName, PDFDict, PDFArray, PDFNumber, PDFRef, PDFRawStream, decodePDFRawStream,
 } from 'pdf-lib';
 import type { PDFContext, PDFObject } from 'pdf-lib';
-import { unzlibSync, Unzlib } from 'fflate';
+import { Inflate, unzlibSync, Unzlib } from 'fflate';
 import {
   interpretPdfPage, parseToUnicode, toUnicodeDecoder, pdfWordBreak, PDF_MAP_MAX_PAGE_NODES, PDF_WORD_GAP_EM,
   type PdfNode, type PdfFontInfo, type PdfXObject, type PdfShading, type PdfPattern, type PdfSoftMaskDef,
@@ -209,29 +209,56 @@ export function pdfLatin1(bytes: Uint8Array): string {
 /** Input taken per inflate step: deflate expands at most about 1032 to 1, so one step yields 16 MiB at most. */
 const INFLATE_STEP = 16 * 1024;
 
-/** Inflate a zlib stream until `cap` bytes are out. What inflated before damage is kept, as pdf-lib keeps it. */
+/**
+ * Inflate a zlib stream until `cap` bytes are out. What inflated before damage is kept, as pdf-lib keeps it.
+ *
+ * A stream whose zlib trailer (the Adler-32 checksum) is cut short or missing turns up in real exports:
+ * the deflate data is whole, but a zlib reader holds the last four bytes back as the checksum and so
+ * reads the data short. When the zlib read fails, the deflate data after the two-byte header is read
+ * again with no trailer expected, under the same cap, and the longer result wins. Without that second
+ * read a font's ToUnicode map was lost, and every line set in that font went with the map.
+ */
 function inflateCapped(input: Uint8Array, cap: number): Uint8Array | null {
+  const zlib = inflateStepped(input, cap, 'zlib');
+  if (!zlib.failed) return zlib.bytes;
+  const raw = hasZlibHeader(input) ? inflateStepped(input.subarray(2), cap, 'raw') : null;
+  const best = raw && raw.bytes.length > zlib.bytes.length ? raw.bytes : zlib.bytes;
+  return best.length > 0 ? best : null;
+}
+
+/** True when the first two bytes are a zlib header: the deflate method, no preset dictionary, and the check bits agree. */
+function hasZlibHeader(input: Uint8Array): boolean {
+  if (input.length < 2) return false;
+  const cmf = input[0]!;
+  const flg = input[1]!;
+  return (cmf & 0x0f) === 8 && ((cmf << 8) | flg) % 31 === 0 && (flg & 0x20) === 0;
+}
+
+/** One stepped inflate, zlib-wrapped or raw deflate, kept to `cap` bytes; `failed` when the inflater threw. */
+function inflateStepped(input: Uint8Array, cap: number, kind: 'zlib' | 'raw'): { bytes: Uint8Array; failed: boolean } {
   const parts: Uint8Array[] = [];
   let total = 0;
-  const inflater = new Unzlib((chunk) => {
+  const onData = (chunk: Uint8Array): void => {
     if (total >= cap) return;
     const take = chunk.length > cap - total ? chunk.subarray(0, cap - total) : chunk;
     parts.push(take);
     total += take.length;
-  });
+  };
+  const inflater = kind === 'zlib' ? new Unzlib(onData) : new Inflate(onData);
+  let failed = false;
   try {
     for (let at = 0; at < input.length && total < cap; at += INFLATE_STEP) {
       const end = Math.min(input.length, at + INFLATE_STEP);
       inflater.push(input.subarray(at, end), end >= input.length);
     }
   } catch {
-    if (!total) return null;
+    failed = true;
   }
-  if (parts.length === 1) return parts[0]!;
+  if (parts.length === 1) return { bytes: parts[0]!, failed };
   const out = new Uint8Array(total);
   let off = 0;
   for (const part of parts) { out.set(part, off); off += part.length; }
-  return out;
+  return { bytes: out, failed };
 }
 
 /**

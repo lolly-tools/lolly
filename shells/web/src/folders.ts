@@ -22,6 +22,13 @@
  */
 
 export interface FolderItem { type: 'session' | 'image'; ref: string; }
+/** Local originals remain available while a shared copy is made and afterwards. */
+export interface FolderTeamCopy {
+  instance: string;
+  projectId: string;
+  complete: boolean;
+  copied: Record<string, string>;
+}
 export interface Folder {
   id: string;
   name: string;
@@ -38,6 +45,7 @@ export interface Folder {
   /** Free-form search tags (2026-08-20) - matched by projects search + the
    *  spotlight alongside the name. */
   tags?: string[];
+  teamCopy?: FolderTeamCopy;
 }
 
 /** FALLBACK folder accents only (2026-08-20): the style dialog offers the
@@ -284,6 +292,14 @@ export function createFolderStore(host: FolderHost) {
       await mutate(folders => {
         const f = folders.find(x => x.id === folderId);
         if (f) { f.name = label; f.updatedAt = now(); }
+      });
+    },
+
+    async setTeamCopy(folderId: string, teamCopy: FolderTeamCopy): Promise<void> {
+      await mutate(folders => {
+        const folder = folders.find(item => item.id === folderId);
+        if (!folder) throw Error('Folder no longer exists');
+        folder.teamCopy = { ...teamCopy, copied: { ...teamCopy.copied } };
       });
     },
 

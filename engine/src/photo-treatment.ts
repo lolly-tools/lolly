@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+export { stripAssetModifiers } from './asset-modifiers.ts';
+export { parseTreatedAssetId } from './asset-modifiers.ts';
 /**
  * Colour treatments for raster photo assets: the raster analogue of the
  * two-colour icon themes in ./icon-theme.ts.
@@ -16,12 +18,36 @@
  * are catalog data (a palette-type asset tagged "photo-treatments"), never
  * engine code. Only the filter mechanics live here.
  */
+import { photoLookPreviewTable } from './photo-look.ts';
+
+/** One stop of a gradient-map look: a hex colour, optionally at a position 0..100. */
+export type PhotoTreatmentStop = string | { color: string; pos?: number };
+
+/** The fields a theme variant of a look may replace (plan 291 W7). */
+export interface PhotoTreatmentVariant {
+  stops?: PhotoTreatmentStop[];
+  shadow?: string;
+  mid?: string;
+  highlight?: string;
+  amount?: number;
+  contrast?: number;
+  lightness?: number;
+  lut?: string;
+  previewBg?: string;
+}
 
 /** A single treatment entry from the "photo-treatments" palette document. */
 export interface PhotoTreatment {
   id: string;
   label?: string;
-  kind: 'greyscale' | 'duotone';
+  /**
+   * `greyscale` and `duotone` bake into an SVG filter for catalog photos. The additive
+   * kinds (1.244, plan 291 W7) are baked into pixels by engine/src/photo-look.ts:
+   * `gradient-map` is Filter's OKLab gradient map over `stops`, and `lut` applies the
+   * catalog .cube named by `lut`. Readers older than 1.244 drop entries of a kind they
+   * do not know, so a pack can ship both.
+   */
+  kind: 'greyscale' | 'duotone' | 'gradient-map' | 'lut';
   /** duotone: colour mapped onto the shadows (luminance 0). */
   shadow?: string;
   /** duotone: colour mapped onto the highlights (luminance 1). */
@@ -31,6 +57,18 @@ export interface PhotoTreatment {
   mid?: string;
   /** surface a light treatment needs behind it to read in pickers/previews. */
   previewBg?: string;
+  /** gradient-map: 2 to 16 colours from shadow to highlight, interpolated in OKLab by lightness. */
+  stops?: PhotoTreatmentStop[];
+  /** How much of the look is applied, 0..100 (default 100). */
+  amount?: number;
+  /** Filter's contrast grade before the look, -100..100 (default 0). */
+  contrast?: number;
+  /** Filter's lightness grade before the look, -100..100 (default 0): toward white above 0, toward black below. */
+  lightness?: number;
+  /** lut: the catalog asset id of the .cube file. */
+  lut?: string;
+  /** Per-theme variants, keyed by theme id (`dark`), merged over the base when that theme is active. */
+  themes?: Record<string, PhotoTreatmentVariant>;
 }
 
 /** The JSON payload structure of a palette-type asset tagged "photo-treatments". */
@@ -52,15 +90,6 @@ const TREATMENT_SUFFIX = '?treatment=';
  * Returns { baseId, treatment }; treatment is null when the id carries none.
  * Full URLs (tool embeds) are never treated ids; they pass through untouched.
  */
-export function parseTreatedAssetId(id: string): ParsedTreatedAssetId {
-  if (typeof id !== 'string' || id.includes('://')) return { baseId: id, treatment: null };
-  const i = id.indexOf(TREATMENT_SUFFIX);
-  if (i <= 0) return { baseId: id, treatment: null };
-  const baseId = id.slice(0, i);
-  const treatment = id.slice(i + TREATMENT_SUFFIX.length);
-  if (baseId.includes('?') || !TREATMENT_ID_RE.test(treatment)) return { baseId: id, treatment: null };
-  return { baseId, treatment };
-}
 
 /** Compose a treated id; a falsy treatment returns the base id unchanged. */
 export function buildTreatedAssetId(baseId: string, treatmentId: string | null | undefined): string {
@@ -81,11 +110,6 @@ export function isValidTreatmentId(treatmentId: unknown): treatmentId is string 
  * all key off this. Full URLs (tool embeds) may legitimately contain `?` and
  * pass through untouched.
  */
-export function stripAssetModifiers(id: string): string {
-  if (typeof id !== 'string' || id.includes('://')) return id;
-  const i = id.indexOf('?');
-  return i > 0 ? id.slice(0, i) : id;
-}
 
 /**
  * Extract the treatment list from a photo-treatments palette document (the JSON
@@ -103,9 +127,70 @@ export function parsePhotoTreatmentsDoc(doc: PhotoTreatmentsDoc | null | undefin
 function isPhotoTreatment(t: unknown): t is PhotoTreatment {
   if (!t || !isValidTreatmentId((t as PhotoTreatment).id)) return false;
   const kind = (t as PhotoTreatment).kind;
+  const entry = t as PhotoTreatment;
+  if (entry.themes !== undefined && !validThemes(entry)) return false;
   if (kind === 'greyscale') return true;
-  if (kind === 'duotone') return !!hexToUnitRgb((t as PhotoTreatment).shadow) && !!hexToUnitRgb((t as PhotoTreatment).highlight);
+  if (kind === 'duotone') return !!hexToUnitRgb(entry.shadow) && !!hexToUnitRgb(entry.highlight);
+  if (kind === 'gradient-map') return validVariant(entry) && validStops(entry.stops, true);
+  if (kind === 'lut') return validVariant(entry) && validLutId(entry.lut);
   return false;
+}
+
+const MAX_LOOK_STOPS = 16;
+const MAX_LOOK_THEMES = 16;
+const THEME_KEY_RE = /^[A-Za-z0-9][A-Za-z0-9 _./-]{0,63}$/;
+
+/**
+ * 2 to 16 stops, each a hex colour, positions (when given) 0..100. The positions the
+ * bake uses may not decrease: a stop with no `pos` sits at its even share (index over
+ * count minus one, as photoLookStops places it), so a mix of placed and unplaced stops
+ * is held to the same order and no stop can silently drop out of the map.
+ */
+function validStops(stops: unknown, required: boolean): boolean {
+  if (stops === undefined) return !required;
+  if (!Array.isArray(stops) || stops.length < 2 || stops.length > MAX_LOOK_STOPS) return false;
+  let last = -Infinity;
+  const n = stops.length;
+  for (let i = 0; i < n; i += 1) {
+    const s: unknown = stops[i];
+    const color = typeof s === 'string' ? s : s && typeof s === 'object' ? (s as { color?: unknown }).color : undefined;
+    if (!hexToUnitRgb(color)) return false;
+    const pos = s && typeof s === 'object' ? (s as { pos?: unknown }).pos : undefined;
+    if (pos !== undefined && (typeof pos !== 'number' || !Number.isFinite(pos) || pos < 0 || pos > 100)) return false;
+    const effective = typeof pos === 'number' ? pos : (i / (n - 1)) * 100;
+    if (effective < last) return false;
+    last = effective;
+  }
+  return true;
+}
+
+/** A catalog asset id with no modifier. */
+function validLutId(id: unknown): boolean {
+  return typeof id === 'string' && /^[a-z0-9][a-z0-9/_.-]*$/i.test(id) && !id.includes('://');
+}
+
+/** amount 0..100, contrast and lightness -100..100, and the optional colours of one definition or variant. */
+function validVariant(v: PhotoTreatmentVariant): boolean {
+  if (v.amount !== undefined && (typeof v.amount !== 'number' || !Number.isFinite(v.amount) || v.amount < 0 || v.amount > 100)) return false;
+  for (const key of ['contrast', 'lightness'] as const) {
+    const n = v[key];
+    if (n !== undefined && (typeof n !== 'number' || !Number.isFinite(n) || n < -100 || n > 100)) return false;
+  }
+  for (const key of ['shadow', 'mid', 'highlight', 'previewBg'] as const) if (v[key] !== undefined && !hexToUnitRgb(v[key])) return false;
+  if (v.lut !== undefined && !validLutId(v.lut)) return false;
+  return validStops(v.stops, false);
+}
+
+/** `themes` is a small record of valid variants; a variant may not nest its own themes. */
+function validThemes(t: PhotoTreatment): boolean {
+  const themes = t.themes as unknown;
+  if (!themes || typeof themes !== 'object' || Array.isArray(themes)) return false;
+  const keys = Object.keys(themes);
+  if (keys.length > MAX_LOOK_THEMES) return false;
+  return keys.every((k) => {
+    const v = (themes as Record<string, unknown>)[k];
+    return THEME_KEY_RE.test(k) && !!v && typeof v === 'object' && !Array.isArray(v) && !('themes' in v) && validVariant(v as PhotoTreatmentVariant);
+  });
 }
 
 /**
@@ -121,6 +206,22 @@ export function treatmentFilterSvg(treatment: PhotoTreatment, filterId: string):
 function treatmentFilterBody(treatment: PhotoTreatment): string {
   if (treatment.kind === 'greyscale') {
     return '<feColorMatrix type="saturate" values="0"/>';
+  }
+  if (treatment.kind === 'lut') {
+    // A LUT has no filter form. The preview shows the plain photo; a bake applies the LUT.
+    return '<feColorMatrix type="identity"/>';
+  }
+  if (treatment.kind === 'gradient-map') {
+    // A preview of the OKLab map: Rec.709 luma through a table sampled where a grey of
+    // that value takes in the map. Exact for grey, close for colour; a bake is exact.
+    const rows = photoLookPreviewTable(treatment);
+    const col = (i: 0 | 1 | 2): string => rows.map((r) => trim(r[i])).join(' ');
+    return '<feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0"/>'
+      + '<feComponentTransfer>'
+      + `<feFuncR type="table" tableValues="${col(0)}"/>`
+      + `<feFuncG type="table" tableValues="${col(1)}"/>`
+      + `<feFuncB type="table" tableValues="${col(2)}"/>`
+      + '</feComponentTransfer>';
   }
   // Duotone: collapse to luminance, then map that single channel across a table
   // shadow→highlight (feComponentTransfer interpolates linearly). An optional `mid`

@@ -10,7 +10,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  getSessionSource, registerSessionSource, _clearSessionSourceForTests, type SessionSource,
+  getSessionSource, registerSessionSource, readSourceProjects, readSourceSessions, _clearSessionSourceForTests, type SessionSource,
 } from './session-source.ts';
 
 const stub = (label: string): SessionSource => ({
@@ -40,4 +40,16 @@ test('last registration wins; a stale unregister is a no-op', () => {
   assert.equal(getSessionSource()?.label, 'Second');
   off1(); // stale - must NOT clear the current (Second) source
   assert.equal(getSessionSource()?.label, 'Second');
+});
+
+test('shared folder reads distinguish empty lists, refusals and unavailable sources', async () => {
+  const source = stub('Team');
+  assert.deepEqual(await readSourceProjects(source), { ok: true, items: [] });
+  assert.deepEqual(await readSourceSessions(source, 'event'), { ok: true, items: [] });
+  source.readProjects = async () => ({ ok: false, status: 401 });
+  source.readSessions = async id => { assert.equal(id, 'event'); return { ok: false, status: 403 }; };
+  assert.deepEqual(await readSourceProjects(source), { ok: false, status: 401 });
+  assert.deepEqual(await readSourceSessions(source, 'event'), { ok: false, status: 403 });
+  source.readSessions = async () => { throw new Error('offline'); };
+  assert.deepEqual(await readSourceSessions(source, 'event'), { ok: false, status: 0 });
 });

@@ -38,9 +38,11 @@ import { applyArchetype, resetFrame, seedFrame } from '../engine/src/slide-maste
 import { neutralSlideMaster } from '../engine/src/rebrand-design-system.ts';
 import {
   DATA_FILE,
+  BODY_WEIGHT,
   MASTER_BUILDS,
   buildMaster,
   libraryProblems,
+  masterWeights,
   planWrites,
   readLibrary,
   renderStructuresData,
@@ -260,14 +262,23 @@ for (const { config, file } of PACKS) {
       'the captionless full-page picture takes an id of its own, because full-image is taken');
   });
 
-  test(`${config.pack}: every text placeholder states a weight, titles 700 and every body 400`, () => {
+  test(`${config.pack}: every text placeholder states a weight, titles, labels and numbers in the pack's strong weights and every body 400`, () => {
+    const weights = masterWeights(config);
     for (const a of master.archetypes) {
       for (const ph of a.placeholders) {
         if (ph.kind === 'image') continue;
         assert.ok(ph.style?.weight, `${a.id} ${ph.role} states a weight`);
-        if (ph.role === 'title') assert.equal(ph.style.weight, '700', `${a.id} title`);
-        if (ph.role === 'body' || ph.role === 'subtitle' || ph.role === 'quote') assert.equal(ph.style.weight, '400', `${a.id} ${ph.role}`);
+        if (ph.role === 'title') assert.equal(ph.style.weight, weights.title, `${a.id} title`);
+        if (ph.role === 'label') assert.equal(ph.style.weight, weights.label, `${a.id} label`);
+        if (ph.role === 'number') assert.equal(ph.style.weight, weights.number, `${a.id} number`);
+        if (ph.role === 'body' || ph.role === 'subtitle' || ph.role === 'quote') assert.equal(ph.style.weight, BODY_WEIGHT, `${a.id} ${ph.role}`);
+        if (ph.role === 'caption' || ph.role === 'attribution') {
+          assert.ok([BODY_WEIGHT, weights.emphasis].includes(ph.style.weight), `${a.id} ${ph.role} is body or emphasis, not ${ph.style.weight}`);
+        }
       }
+    }
+    for (const f of master.furniture) {
+      if (f.kind === 'page-number' && f.style?.weight !== undefined) assert.equal(f.style.weight, weights.pageNumber, `${f.id} page number`);
     }
   });
 
@@ -392,6 +403,43 @@ test('the generated type follows the master type scale: a master drawn at twice 
     assert.ok(Math.abs(b - 2 * a) <= 1, `${id} ${role}: ${a} at the shipped scale, ${b} at twice it`);
   }
   assert.equal(size(normal, 'cover-title-image', 'title'), 59, 'and the shipped scale gives the sizes it always did');
+});
+
+test('the strong weights are 700 unless a pack states its own, and SUSE sets them in Medium 500 (plan 291 D6)', () => {
+  assert.deepEqual(masterWeights({}), { title: '700', label: '700', number: '700', pageNumber: '700', emphasis: '700' });
+  const lollyStart = MASTER_BUILDS.find((c) => c.pack === 'lolly-start');
+  assert.ok(lollyStart);
+  assert.equal(lollyStart.weights, undefined, 'the starter master keeps the 700 default');
+  const suse = MASTER_BUILDS.find((c) => c.pack === 'suse');
+  assert.ok(suse);
+  assert.deepEqual(masterWeights(suse), { title: '500', label: '500', number: '500', pageNumber: '500', emphasis: '500' });
+  assert.notEqual(suse.version, '1.3.0', 'the weight change moved the SUSE master version, so an older rebrand plan is refused as a mismatch');
+});
+
+test('a pack weight reaches the tuned archetypes, the generated ones and the page numbers, and a rebuild keeps it', () => {
+  const lollyStart = PACKS.find((p) => p.config.pack === 'lolly-start');
+  assert.ok(lollyStart, 'the lolly-start master is always on disk');
+  const current = lollyStart.file.masters[0];
+  assert.ok(current);
+  const config = { ...lollyStart.config, weights: { title: '500', label: '600', number: '800', pageNumber: '500', emphasis: '500' } };
+  const built = buildMaster(current, LIBRARY, config);
+  const weightOf = (id: string, role: string): string | undefined =>
+    built.archetypes.find((a) => a.id === id)?.placeholders.find((ph) => ph.role === role)?.style?.weight;
+  assert.equal(weightOf('content', 'title'), '500', 'a tuned title takes the configured weight over the one it stated');
+  assert.equal(weightOf('columns-3', 'title'), '500', 'a generated title too');
+  assert.equal(weightOf('columns-3', 'label'), '600');
+  assert.equal(weightOf('big-number', 'number'), '800', 'the tuned big number');
+  assert.equal(weightOf('stats-4', 'number'), '800', 'a generated figure');
+  assert.equal(weightOf('quote', 'attribution'), '500', 'a tuned emphasis slot');
+  assert.equal(weightOf('quote', 'quote'), BODY_WEIGHT, 'a body slot stays at the body weight');
+  assert.equal(weightOf('content', 'body'), BODY_WEIGHT);
+  const pageNumbers = built.furniture.filter((f) => f.kind === 'page-number');
+  assert.ok(pageNumbers.length >= 2, 'the master has page numbers, light and dark');
+  for (const f of pageNumbers) assert.equal(f.style?.weight, '500', `${f.id} takes the page-number weight`);
+  assert.deepEqual(buildMaster(built, LIBRARY, config), built, 'building again from the result writes the same master');
+
+  const unweighted = buildMaster(current, LIBRARY, lollyStart.config);
+  assert.deepEqual(unweighted, current, 'a pack that states no weights keeps what its tuned archetypes state');
 });
 
 test('neutralSlideMaster is the built lolly-start master', () => {

@@ -23,6 +23,7 @@ import { escapeHtml } from '../lib/html.ts';
 import { t, tRaw } from '../i18n.ts';
 import { extractC2paStore, prepareC2paIngredientFromStore, type InpaintFrame } from '@lolly/engine';
 import { runInpaint, type InpaintRun } from '../lib/inpaint-client.ts';
+import type { RetouchMethod } from '../lib/inpaint-worker.ts';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 
 /** The user-asset record this mode writes (mirrors MatteAssetRecordInput). */
@@ -67,6 +68,18 @@ export interface RetouchInlineHandle {
 
 /** Telea neighbourhood radius. Fixed for v1 - the brush is the user's control. */
 const FILL_RADIUS = 5;
+
+/** How a fill is made (plans/289 M4). The choice is a device preference, like the brush. */
+const METHODS: RetouchMethod[] = ['content-aware', 'proximity', 'texture', 'smooth'];
+const METHOD_KEY = 'lolly-retouch-method';
+function savedMethod(): RetouchMethod {
+  try {
+    const v = localStorage.getItem(METHOD_KEY) as RetouchMethod | null;
+    return v && METHODS.includes(v) ? v : 'content-aware';
+  } catch { return 'content-aware'; }
+}
+/** The name a library item records: Telea keeps the name it always had. */
+const methodRecord = (m: RetouchMethod): string => (m === 'smooth' ? 'telea' : m);
 /** Working-size ceiling. The mode holds the image, the mask and (per fill) an
  *  undo copy plus the worker transfer at full resolution, and iOS caps a
  *  canvas near 16.7M pixels - so refuse honestly above 16MP rather than OOM
@@ -160,6 +173,15 @@ export function mountInlineRetouch(host: RetouchHost, opts: RetouchOpts, env: Re
         <span class="rt-field-label">${t('Brush')}</span>
         <input type="range" class="rt-brush" data-brush min="6" max="80" step="2" value="24" title="${escapeHtml(t('Brush size ([ and ] adjust it)'))}">
       </label>
+      <label class="rt-field">
+        <span class="rt-field-label">${t('Method')}</span>
+        <select class="field-select field-select--sm rt-method" data-method title="${escapeHtml(t('How the painted area is filled'))}">
+          <option value="content-aware">${t('Content-Aware')}</option>
+          <option value="proximity">${t('Proximity Match')}</option>
+          <option value="texture">${t('Create Texture')}</option>
+          <option value="smooth">${t('Smooth')}</option>
+        </select>
+      </label>
       <button type="button" class="rt-tool" data-erase aria-pressed="false" title="${escapeHtml(t('Erase strokes (E)'))}">${t('Erase')}</button>
       <button type="button" class="rt-tool" data-clear>${t('Clear')}</button>
       <button type="button" class="rt-tool" data-undo hidden title="${escapeHtml(t('Undo the last fill (Cmd or Ctrl+Z)'))}">${t('Undo fill')}</button>
@@ -191,6 +213,13 @@ export function mountInlineRetouch(host: RetouchHost, opts: RetouchOpts, env: Re
   const fillEl   = work.querySelector<HTMLElement>('[data-progress-fill]')!;
   const statusEl = work.querySelector<HTMLElement>('[data-status]')!;
   const runBtn   = work.querySelector<HTMLButtonElement>('[data-run]')!;
+  const methodEl = work.querySelector<HTMLSelectElement>('[data-method]')!;
+  methodEl.value = savedMethod();
+  methodEl.addEventListener('change', () => {
+    try { localStorage.setItem(METHOD_KEY, methodEl.value); } catch { /* private mode: the choice lasts this session */ }
+  });
+  /** The methods the fills so far used, in order, for the saved item's record. */
+  const usedMethods: RetouchMethod[] = [];
 
   const showStatus = (msg: string, isError = false): void => {
     statusEl.hidden = false;
@@ -401,6 +430,7 @@ export function mountInlineRetouch(host: RetouchHost, opts: RetouchOpts, env: Re
     workingCtx.putImageData(undoState, 0, 0);
     undoState = null;
     fillCount = Math.max(0, fillCount - 1);
+    usedMethods.pop();
     hideStatus();
     showStatus(t('Undone.'));
     repaintStage();
@@ -421,8 +451,11 @@ export function mountInlineRetouch(host: RetouchHost, opts: RetouchOpts, env: Re
     // previous successful fill instead of stranding the user with none.
     const prevUndo = undoState;
     undoState = img;
+    const method = METHODS.includes(methodEl.value as RetouchMethod) ? methodEl.value as RetouchMethod : 'content-aware';
     run = runInpaint({ width: img.width, height: img.height, data: new Uint8ClampedArray(img.data) }, mask, {
       radius: FILL_RADIUS,
+      method,
+      seed: fillCount + 1,
       onProgress: (f, total) => {
         const pct = total ? Math.round((f / total) * 100) : 0;
         fillEl.style.width = `${pct}%`;
@@ -438,6 +471,7 @@ export function mountInlineRetouch(host: RetouchHost, opts: RetouchOpts, env: Re
       maskCtx.clearRect(0, 0, maskFull.width, maskFull.height);
       painted = false;
       fillCount++;
+      usedMethods.push(method);
       hideStatus();
       showStatus(t('Filled. Brush again for another pass, or save.'));
       repaintStage();
@@ -489,7 +523,10 @@ export function mountInlineRetouch(host: RetouchHost, opts: RetouchOpts, env: Re
         meta: {
           name,
           bytes: blob.size,
-          retouch: { method: 'telea', radius: FILL_RADIUS },
+          // One method, as it always was; several fills with different methods list them all.
+          retouch: new Set(usedMethods).size > 1
+            ? { method: 'mixed', methods: [...new Set(usedMethods.map(methodRecord))], radius: FILL_RADIUS }
+            : { method: methodRecord(usedMethods[0] ?? 'smooth'), radius: FILL_RADIUS },
           // The SOURCE's AI-origin flag survives the edit: retouching a
           // Gen-AI image must never launder its disclosure out of the
           // library copy (the credential ingredient carries it too).

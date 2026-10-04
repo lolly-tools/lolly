@@ -1,6 +1,6 @@
 {
   "name": "Fragment kodu",
-  "description": "Zmień fragmenty kodu w czyste obrazy z podświetloną składnią, gotowe do udostępnienia.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Kod",
   "inputs.code.placeholder": "Wklej swój kod tutaj…",
   "inputs.fileName.label": "Nazwa pliku",

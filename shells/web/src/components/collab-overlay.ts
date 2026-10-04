@@ -71,6 +71,7 @@
  */
 
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { collabLabelColor } from '../lib/collab-label-color.ts';
 import { stepCursorSwing, type CursorSwing } from './collab-cursor-motion.ts';
 
 // ── Stylesheet (see the header: this module owns these classes outright) ───────
@@ -148,9 +149,9 @@ const CSS = `
   margin-block-start: calc(12px * var(--a11y-fs));
   padding: calc(2px * var(--a11y-fs)) calc(6px * var(--a11y-fs));
   border-radius: 999px;
-  background: var(--collab-color, hsl(var(--primary)));
-  color: hsl(222 47% 8%);
-  font-size: calc(10.5px * var(--a11y-fs));
+  background: var(--collab-label-fill, var(--collab-color, hsl(var(--primary))));
+  color: var(--collab-label-ink, hsl(222 47% 8%));
+  font-size: calc(12px * var(--a11y-fs));
   font-weight: 700;
   line-height: 1.45;
   box-shadow: 0 0 0 1px hsl(var(--card));
@@ -715,6 +716,9 @@ export function createCollabCursors(opts: CollabCursorOptions): CollabCursors {
           entry.color = peer.color;
           // The one collab-specific colour, carried the way the sheet expects it.
           entry.node.root.style.setProperty('--collab-color', peer.color);
+          const label = collabLabelColor(peer.color);
+          entry.node.root.style.setProperty('--collab-label-fill', label.fill);
+          entry.node.root.style.setProperty('--collab-label-ink', label.ink);
         }
         if (entry.name !== peer.name) {
           entry.name = peer.name;

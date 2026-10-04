@@ -81,14 +81,14 @@ import { personalPresetId } from '../../lib/rebrand/presets.ts';
 import type { ReadinessActionV1, ReadinessItemV1 } from '../../lib/rebrand/readiness.ts';
 import { segHtml } from '../../lib/seg.ts';
 import { layoutThumb, svgNode } from '../../lib/slide-structures-ui.ts';
-import { isPdfUpload, isPptxUpload } from '../../lib/upload-types.ts';
+import { isPdfUpload, isPptxUpload, isPsdUpload } from '../../lib/upload-types.ts';
 import { escape as htmlEscape } from '../../utils.ts';
 import { archetypeThumbSvg } from '../free-canvas/archetype-thumb.ts';
 import { bindOp, type RbCtx } from './context.ts';
 import { framesForSlide } from './shared.ts';
 
 /** What the file input offers: a PowerPoint deck or a PDF. */
-const DECK_ACCEPT = '.pptx,.pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf';
+const DECK_ACCEPT = '.pptx,.pdf,.psd,.psb,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf,image/vnd.adobe.photoshop';
 
 /**
  * The sample decks a first-time user can try, and a `?sample=<name>` link opens, by
@@ -376,7 +376,7 @@ function stageCopy(error: RebrandErrorV1): { text: string; ways: ErrorWay[] } {
 
 /** The line for a file that is not a deck. */
 function notADeckText(): string {
-  return tRaw('Choose a .pptx or .pdf file.');
+  return tRaw('Choose a .pptx, .pdf or .psd file.');
 }
 
 /** One plain sentence per error code, and what the person can do next. */
@@ -589,7 +589,7 @@ export async function takeFiles(rb: RbCtx, files: File[]): Promise<void> {
   // A new file moves past whatever went wrong with the last one, and past the rows it needed.
   if (rb.state.error) local.dismissedError = errorKey(rb.state.error);
   local.setAside.clear();
-  const decks = files.filter((file) => isPptxUpload(file) || isPdfUpload(file));
+  const decks = files.filter((file) => isPptxUpload(file) || isPdfUpload(file) || isPsdUpload(file));
   const others = files.length - decks.length;
   if (decks.length === 0) {
     local.notice = notADeckText();
@@ -600,8 +600,8 @@ export async function takeFiles(rb: RbCtx, files: File[]): Promise<void> {
   local.notice = others === 0
     ? null
     : others === 1
-      ? tRaw('1 file is not a PowerPoint deck or a PDF, so it was left out.')
-      : tRaw('{n} files are not PowerPoint decks or PDFs, so they were left out.', { n: others });
+      ? tRaw('1 file is not a PowerPoint deck, a PDF or a Photoshop document, so it was left out.')
+      : tRaw('{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.', { n: others });
   if (local.notice) rb.announce(local.notice);
   renderIntake(rb);
   try {

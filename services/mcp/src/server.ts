@@ -11,10 +11,17 @@ import type { JsonRpcRequest, JsonRpcResponse } from './protocol.ts';
 import { TOOL_DEFS, callTool, serverInstructions, listPrompts, getPrompt } from './tools.ts';
 import { RESOURCES, RESOURCE_TEMPLATES, readResource } from './resources.ts';
 import { PRIVATE_FILE_TOOLS, privateFiles } from './file-resources.ts';
+import { LIVE_TOOLS, callLiveTool } from './live.ts';
+import type { LiveBridge } from './live-bridge.ts';
 
 export { PROTOCOL_VERSION, SERVER_INFO } from './negotiation.ts';
 
-export async function dispatch(req: JsonRpcRequest, context: { fileScope?: string; protocolVersion?: string } = {}): Promise<JsonRpcResponse | null> {
+/** What a transport lends the dispatcher. `live` exists only in the local stdio server (plans/289 D1). */
+export interface DispatchContext { fileScope?: string; protocolVersion?: string; live?: LiveBridge }
+
+const toolsFor = (context: DispatchContext) => [...TOOL_DEFS, ...(context.fileScope ? PRIVATE_FILE_TOOLS : []), ...(context.live ? LIVE_TOOLS : [])];
+
+export async function dispatch(req: JsonRpcRequest, context: DispatchContext = {}): Promise<JsonRpcResponse | null> {
   if (!validRequest(req)) return fail(null, ERR.INVALID_REQUEST, 'Invalid JSON-RPC request');
   const isNotification = req.id === undefined;
   const id = req.id ?? null;
@@ -46,12 +53,13 @@ export async function dispatch(req: JsonRpcRequest, context: { fileScope?: strin
       case 'ping':
         return modern ? fail(id, ERR.METHOD_NOT_FOUND, 'ping is not part of this MCP version') : done({});
       case 'tools/list':
-        return done({ tools: [...TOOL_DEFS, ...(context.fileScope ? PRIVATE_FILE_TOOLS : [])] });
+        return done({ tools: toolsFor(context) });
       case 'tools/call': {
         const params = (req.params ?? {}) as { name?: string; arguments?: Record<string, unknown> };
         if (typeof params.name !== 'string' || !params.name) return fail(id, ERR.INVALID_PARAMS, 'tools/call requires a name');
         if (params.arguments !== undefined && !object(params.arguments)) return fail(id, ERR.INVALID_PARAMS, 'arguments must be an object');
-        if (![...TOOL_DEFS, ...(context.fileScope ? PRIVATE_FILE_TOOLS : [])].some(tool => tool.name === params.name)) return fail(id, ERR.INVALID_PARAMS, `Unknown tool: ${params.name}`);
+        if (!toolsFor(context).some(tool => tool.name === params.name)) return fail(id, ERR.INVALID_PARAMS, `Unknown tool: ${params.name}`);
+        if (context.live && params.name.startsWith('lolly_live_')) return done(await callLiveTool(context.live, params.name, params.arguments ?? {}));
         if (params.name.startsWith('files_')) {
           if (!context.fileScope) return fail(id, ERR.INVALID_PARAMS, 'Private files are not enabled for this authenticated scope.');
           const result = await privateFiles.call(context.fileScope, params.name, params.arguments ?? {});

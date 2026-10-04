@@ -14,7 +14,7 @@ import { t } from '../../i18n.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
 import { viewTopbarHtml } from '../../components/view-topbar.ts';
-import { favouritesViewSection, sortSection, viewOptionsButtonHtml, viewOptionsSection } from '../../components/view-options.ts';
+import { cardSizeHtml, favouritesViewSection, sortSection, viewOptionsButtonHtml, viewOptionsSection } from '../../components/view-options.ts';
 import { segHtml } from '../../lib/seg.ts';
 import { loadAssetCategories } from '../../lib/asset-category.ts';
 import { assetBaseId, loadFavouriteAssets, loadHiddenAssets } from '../../lib/asset-favourites.ts';
@@ -262,7 +262,7 @@ export function catalogTopbarHtml(cat: CatCtx): string {
           ], cat.catLayout, t('Assets layout'), { attr: 'data-catlayout' }) + segHtml('catalog-density', [
             { id: 'comfortable', label: t('Comfortable') },
             { id: 'compact', label: t('Compact') },
-          ], cat.catDensity, t('Tile density'), { attr: 'data-catdensity' }))}
+          ], cat.catDensity, t('Tile density'), { attr: 'data-catdensity' }) + cardSizeHtml(cat.cardSize, cat.catLayout === 'list'))}
           ${sortSection('catalog-sort', [
             { id: 'default', label: t('Default') },
             { id: 'name', label: t('Name') },

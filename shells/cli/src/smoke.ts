@@ -48,6 +48,7 @@ import { fileURLToPath } from 'node:url';
 import { createRuntime, loadTool, parseUrlState } from '@lolly/engine';
 import { NODE_FORMATS } from '@lolly-tools/node-shell/raster';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
+import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { EXIT, exitCodeFor } from './exit-codes.ts';
 import { checkTransformOutput } from './transform-output.ts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
@@ -65,7 +66,7 @@ export interface SmokeManifest {
   status?: string;
   capabilities?: string[];
   hooks?: Record<string, unknown> | null;
-  render: { formats: string[] };
+  render: { formats: string[]; export?: unknown };
   inputs?: Array<{ id: string; type: string; accept?: string | string[]; showIf?: unknown }>;
 }
 
@@ -220,9 +221,13 @@ export function skipReason(manifest: SmokeManifest, forcedFormat?: string): stri
   return null;
 }
 
-/** A transform tool: its output comes from hooks.exportFile, not from a render. */
+/**
+ * A transform tool: its output comes from hooks.exportFile, not from a render. The
+ * shared rule (`isFileTransform`), so a tool that also exports a still of its canvas
+ * is smoked as a render, the way every other surface treats such a tool.
+ */
 export function isTransform(manifest: SmokeManifest): boolean {
-  return !!manifest.hooks && 'exportFile' in manifest.hooks;
+  return isFileTransform(manifest);
 }
 
 interface SmokeArgs {

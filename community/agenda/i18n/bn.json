@@ -1,6 +1,6 @@
 {
-  "name": "এজেন্ডা",
-  "description": "একটি প্রোগ্রামকে ব্র্যান্ডেড স্ক্রিন, ইন্টারেক্টিভ ওয়েব পেজ, অ্যানিমেটেড ওভারভিউ, PowerPoint স্লাইড এবং ক্যালেন্ডারে পরিণত করুন৷",
+  "name": "সূচি",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} সেশন, {{trackCount}} ট্র্যাক",
   "inputs.title.label": "ঘটনা",
   "inputs.title.help": "প্রতিটি লেআউটের মাথায় মুদ্রিত, এবং এটি এক্সপোর্ট করা ফাইলের নাম দেয়।",

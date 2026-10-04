@@ -181,6 +181,8 @@ export interface HistoryModel {
   endHold(): void;
   canUndo(): boolean;
   canRedo(): boolean;
+  /** The entry the next undo would take, compared by identity (a live agent may undo only its own). */
+  peekUndo(): HistoryEntry | null;
   /** Depths, for tests and diagnostics. */
   sizes(): { undo: number; redo: number };
 }
@@ -255,6 +257,7 @@ export function createHistory(opts: { limit?: number; coalesceMs?: number } = {}
     endHold() { holding = false; lastRecordId = null; },
     canUndo() { return undoStack.length > 0; },
     canRedo() { return redoStack.length > 0; },
+    peekUndo() { return undoStack[undoStack.length - 1] ?? null; },
     sizes() { return { undo: undoStack.length, redo: redoStack.length }; },
   };
 }

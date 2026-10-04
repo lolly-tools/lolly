@@ -9,6 +9,7 @@
  */
 import { replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { acquireCollabSession } from '../../lib/collab-session-source.ts';
+import { mountPeerViewport } from '../tool-peer-view.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
 import { releaseTeamSessionOrigin } from '../../org/team-session-origin.ts';
@@ -21,6 +22,7 @@ import { docsAppHref, t, tRaw } from '../../i18n.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
 import { applyBrandVars } from '../../brand-vars.ts';
+import { syncThemesRoute, themedHost } from '../../lib/document-theme.ts';
 import { createThemeToggle } from '../../components/theme-toggle.ts';
 import { createSoundToggle } from '../../components/sound-toggle.ts';
 import { createProfileControl } from '../../components/profile-menu.ts';
@@ -559,8 +561,13 @@ export function wireFilmstrip(tview: ToolViewCtx): void {
   // capture beyond quiescence) so a `?export=` capture doesn't race the tokens
   // fetch and ship fallback colours. Namespaced --brand-* so the vars can never
   // collide with the shell's :root shadcn HSL triples (see brand-vars.ts).
+  // The document's own theme (plan 291 W4) scopes these vars, as it scopes the
+  // runtime's token reads: a reopened session's `__tokenSelection` is in the runtime
+  // but not yet in the address, and the address form `/design?…` carries no hash for
+  // the token bridge to read. Its selection goes into the address here as well.
+  syncThemesRoute(runtime.tokenSelection);
   const brandVarsReady: Promise<unknown> = Promise.race([
-    applyBrandVars(contentEl, tview.host),
+    applyBrandVars(contentEl, themedHost(tview.host, runtime.tokenSelection)),
     new Promise<void>((resolve) => setTimeout(resolve, 3000)),
   ]).catch(() => {
     /* cosmetic - never block a mount or fail an export on brand vars */
@@ -819,6 +826,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       }
     );
     const zoom = tview.stageZoom;
+    tview.mountLifecycle.add('peer viewport', mountPeerViewport(tview.runtime, stageEl, canvasEl, zoom));
     let lastView = '';
     const offView = zoom.subscribe(() => {
       if (isIframeMode() || !zoom.isUserZoomed() || zoom.isSuspended()) return;

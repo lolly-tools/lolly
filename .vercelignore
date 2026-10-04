@@ -77,6 +77,8 @@ shells/web/public/ort-hf
 # model files on disk. Local dev and the self-hosted nginx deploy still self-serve
 # from this directory; only the Vercel upload excludes it.
 shells/web/public/models
+deploy/models-host
+dist-packs
 
 # The PRIVATE SUSE brand pack (~102 MB: catalog assets, OG cards, fonts, previews,
 # the Geeko GLBs). Since 2026-08-29 every deploy target builds the lolly-start

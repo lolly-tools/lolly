@@ -19,6 +19,12 @@ for (const name of [
   'asset-ref.schema.json',
   'canvas-op.schema.json',
   'chart-v1.schema.json',
+  'check-report-v1.schema.json',
+  'content-inventory-v1.schema.json',
+  'design-package-v1.schema.json',
+  'text-measure-v1.schema.json',
+  'design-authoring-v1.schema.json',
+  'design-compose-v1.schema.json',
 ]) {
   test(`@lolly-tools/core bundles an identical ${name} (no drift)`, () => {
     const source = read(`../schemas/${name}`);

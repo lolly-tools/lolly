@@ -293,6 +293,11 @@ export function readPsd(bytes: Uint8Array, opts: PsdReadOptions = {}): LayeredRa
       if (rec.blocks && !isGroup) {
         const semantics = readLayerSemantics(rec.blocks, { x: layer.x, y: layer.y, w: layer.width, h: layer.height }, { w: width, h: height });
         if (semantics) layer.psd = semantics;
+        if (semantics?.adjustment) {
+          semantics.adjustmentMask = rec.blocks.has('vmsk') || rec.blocks.has('vsms')
+            ? 'partial'
+            : adjustmentMask(c, rec, depth, psb, { w: width, h: height }, reserve, warn, opts);
+        }
       }
       if (!isGroup) {
         const px = decodeLayerPixels(c, rec, depth, colorMode, psb, icc, reserve, warn, opts);
@@ -609,6 +614,45 @@ function decodeLayerPixels(
     if (mPlane) applyMask(out, w, h, rec, mPlane);
   }
   return out;
+}
+
+/**
+ * Where an adjustment layer's raster mask lets it apply, over the canvas. An
+ * adjustment layer has no pixels of its own, so its mask is read on its own: no
+ * mask (or a disabled one) is `none`; a mask that is white across the canvas is
+ * `none`, black across the canvas `hidden`, anything else `partial`. A mask that
+ * does not decode counts as `partial`, so a reader never applies it everywhere by
+ * mistake.
+ */
+function adjustmentMask(
+  c: Cur, rec: LayerRec, depth: number, psb: boolean, canvas: { w: number; h: number },
+  reserve: (n: number) => boolean, warn: (code: string, d?: string) => void, opts: PsdReadOptions,
+): 'none' | 'hidden' | 'partial' {
+  const m = rec.mask;
+  if (!m || m.disabled) return 'none';
+  const tone = (v: number): number => (m.inverted ? 255 - v : v);
+  const outside = tone(m.defaultColor);
+  const mw = Math.max(0, m.right - m.left), mh = Math.max(0, m.bottom - m.top);
+  const covers = m.left <= 0 && m.top <= 0 && m.right >= canvas.w && m.bottom >= canvas.h;
+  const verdict = (white: boolean, black: boolean): 'none' | 'hidden' | 'partial' =>
+    white && (covers || outside === 255) ? 'none' : black && (covers || outside === 0) ? 'hidden' : 'partial';
+  if (!mw || !mh) return verdict(true, true);
+  let at = rec.dataAt;
+  for (const ch of rec.channels) {
+    if (ch.id === -2 || ch.id === -3) {
+      const plane = decodePlane(c.b, at, ch.length, mh, mw, depth, psb, opts.inflate, reserve, warn);
+      if (!plane) return 'partial';
+      let white = true, black = true;
+      for (let i = 0; i < plane.length && (white || black); i++) {
+        const v = tone(plane[i]!);
+        if (v !== 255) white = false;
+        if (v !== 0) black = false;
+      }
+      return verdict(white, black);
+    }
+    at += ch.length;
+  }
+  return 'partial';
 }
 
 function applyMask(out: Uint8Array, w: number, h: number, rec: LayerRec, mPlane: Uint8Array): void {

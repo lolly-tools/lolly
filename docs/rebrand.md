@@ -27,7 +27,7 @@ No deck to hand? Choose **No deck to hand? Try the sample deck**. It opens a mad
 
 There are three ways in:
 
-- Choose **Choose a deck** on the Rebrand screen and pick a `.pptx` or PDF file. You can pick several at once, and they are read one after another.
+- Choose **Choose a deck** on the Rebrand screen and pick a `.pptx`, PDF or Photoshop (`.psd`) file. You can pick several at once, and they are read one after another. A Photoshop document is read as one slide: its type layers become text, its shapes stay shapes, and its other layers become pictures.
 - Drop a deck anywhere in Lolly and choose **Rebrand** from the choices that appear.
 - Open a `.lolly` file that holds a Rebrand project, and choose **Open in Rebrand**.
 
@@ -152,7 +152,7 @@ The **Report**, in the footer, accounts for every object in the original deck: t
 
 Choose **Keep the design** on the Rebrand screen, or switch to it in the top bar. Rebrand swaps the theme, colours and fonts and says what it changed, for example "Changed 5 theme colours, 4 slide colours and 2 fonts". Compare the result with **Original**, **Result**, **Both** or **Wipe**, then choose **Download .pptx**, or **Open the result in Design**.
 
-Keep the design works on PowerPoint files. A PDF cannot take this path, so open it with Renovate the layout.
+Keep the design works on PowerPoint files. A PDF or a Photoshop document cannot take this path, so open it with Renovate the layout.
 
 ## Decks made of pictures
 
@@ -183,6 +183,6 @@ The same stages run from the command line and from AI agents: `lolly rebrand pla
 
 ## Good to know
 
-- Rebrand reads `.pptx` and PDF files. A deck from Keynote or Google Slides works once it is exported as PowerPoint.
+- Rebrand reads `.pptx`, PDF and Photoshop files. A deck from Keynote or Google Slides works once it is exported as PowerPoint. In a Photoshop document, layer effects and adjustment layers are not carried; the report lists each one.
 - Its suggestions, layout matches and recognised text are its best reading of the deck, not a guarantee. The review is there so you can check them, and the report shows every outcome.
 - The original file is never changed, and deleting a project leaves the file alone.

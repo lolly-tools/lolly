@@ -81,10 +81,30 @@ const stage = (): HTMLElement => {
 };
 
 /** A pill mounted with the announcer and the motion read stubbed out. */
+test('avatars and roster actions refuse departed or away peers and preserve keyboard focus', () => {
+  const jumps: string[] = [], peer = participant({ clientId: 'BEA', name: 'Bea' });
+  const f = mount(sessionState({ peers: [peer] }), { onPeer: id => { jumps.push(id); } });
+  try {
+    const avatar = f.pill.el.querySelector<HTMLElement>('[data-client-id="BEA"]')!;
+    f.src.push(sessionState({ peers: [{ ...peer, focus: 'comments:thread' }] }));
+    assert.equal(f.pill.el.querySelector('[data-client-id="BEA"]'), avatar, 'focus and presence updates preserve a pending pointer click');
+    avatar.click(); assert.deepEqual(jumps, ['BEA']);
+    f.pill.el.querySelector<HTMLButtonElement>('.collab-stack')!.click();
+    const action = document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!; assert.equal(action.getAttribute('aria-label'), 'View Bea'); action.focus();
+    f.src.push(sessionState({ peers: [peer] })); assert.equal((document.activeElement as HTMLElement).dataset.peerId, 'BEA');
+    document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!.click(); assert.deepEqual(jumps, ['BEA', 'BEA']);
+    f.pill.el.querySelector<HTMLButtonElement>('.collab-stack')!.click(); const stale = document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!;
+    f.src.push(sessionState({ peers: [{ ...peer, away: true }] })); assert.equal(document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!.disabled, true);
+    stale.click(); assert.equal(jumps.length, 2);
+    f.src.push(sessionState({ connection: 'closed', peers: [peer] })); f.pill.el.querySelector<HTMLElement>('[data-client-id="BEA"]')!.click(); assert.equal(jumps.length, 2);
+  } finally { f.pill.destroy(); }
+});
+
 function mount(
   state: CollabSessionState,
   over: {
     onInvite?: () => void;
+    onPeer?: (id: string) => void;
     reducedMotion?: () => boolean;
     actions?: readonly import('./collab-pill.ts').CollabPillAction[];
   } = {},

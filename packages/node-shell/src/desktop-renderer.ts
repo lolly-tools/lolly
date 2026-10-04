@@ -306,7 +306,22 @@ function readTextOrNull(path: string): string | null {
  * is not an endpoint, so the process id is checked before the port is believed.
  */
 export function readRenderServer(probe: ServerProbe = {}): RenderServer | null {
-  const file = renderServerPath(probe);
+  return readAdvert(renderServerPath(probe), probe);
+}
+
+/**
+ * The desktop app's live listener (plans/289 D1), when the person has turned on
+ * Allow AI control: `live.json` beside `render.json`, the same fields, the same
+ * checks. `LOLLY_LIVE_SERVER` points at a specific file, for tests.
+ */
+export function readLiveServer(probe: ServerProbe = {}): RenderServer | null {
+  const env = probe.env ?? process.env;
+  const override = env.LOLLY_LIVE_SERVER?.trim();
+  const dir = probe.dataDir === undefined ? desktopAppDataDir(env) : probe.dataDir;
+  return readAdvert(override || (dir ? join(dir, 'live.json') : null), probe);
+}
+
+function readAdvert(file: string | null, probe: ServerProbe): RenderServer | null {
   if (!file) return null;
   const raw = (probe.readFile ?? readTextOrNull)(file);
   if (!raw) return null;
@@ -359,8 +374,8 @@ interface ServerReply {
   version?: string;
 }
 
-/** Send one framed request to a render endpoint and read its one framed reply. */
-function call(port: number, request: unknown, timeoutMs: number): Promise<ServerReply> {
+/** Send one framed request to a desktop endpoint and read its one framed reply. */
+function call(port: number, request: unknown, timeoutMs: number, what = 'desktop render endpoint', maxReply = MAX_REPLY_BYTES): Promise<ServerReply> {
   return new Promise((resolve, reject) => {
     const body = Buffer.from(JSON.stringify(request), 'utf8');
     const header = Buffer.alloc(4);
@@ -377,10 +392,10 @@ function call(port: number, request: unknown, timeoutMs: number): Promise<Server
       if (err) reject(err); else resolve(reply!);
     };
     socket.setTimeout(timeoutMs, () => finish(new DesktopRendererError(
-      `The desktop render endpoint on 127.0.0.1:${port} stopped answering after ${Math.round(timeoutMs / 1000)}s.`,
+      `The ${what} on 127.0.0.1:${port} stopped answering after ${Math.round(timeoutMs / 1000)}s.`,
     )));
     socket.on('error', e => finish(new DesktopRendererError(
-      `Could not reach the desktop render endpoint on 127.0.0.1:${port}: ${e.message}`,
+      `Could not reach the ${what} on 127.0.0.1:${port}: ${e.message}`,
     )));
     socket.on('connect', () => socket.write(Buffer.concat([header, body])));
     socket.on('data', chunk => {
@@ -390,8 +405,8 @@ function call(port: number, request: unknown, timeoutMs: number): Promise<Server
       if (expected === null && received >= 4) {
         const all = Buffer.concat(chunks);
         expected = all.readUInt32BE(0);
-        if (expected > MAX_REPLY_BYTES) {
-          finish(new DesktopRendererError(`The desktop render endpoint offered ${expected} bytes, over the ${MAX_REPLY_BYTES}-byte limit.`));
+        if (expected > maxReply) {
+          finish(new DesktopRendererError(`The ${what} offered ${expected} bytes, over the ${maxReply}-byte limit.`));
           return;
         }
         chunks = [all];
@@ -401,14 +416,23 @@ function call(port: number, request: unknown, timeoutMs: number): Promise<Server
         try {
           finish(null, JSON.parse(all.subarray(4, 4 + expected).toString('utf8')) as ServerReply);
         } catch (e) {
-          finish(new DesktopRendererError(`The desktop render endpoint sent a reply that is not JSON: ${(e as Error).message}`));
+          finish(new DesktopRendererError(`The ${what} sent a reply that is not JSON: ${(e as Error).message}`));
         }
       }
     });
     socket.on('close', () => finish(new DesktopRendererError(
-      'The desktop render endpoint closed the connection before it answered.',
+      `The ${what} closed the connection before it answered.`,
     )));
   });
+}
+
+/**
+ * One `live-v1` request to the desktop app's live listener (plans/289 D1): the token
+ * and the request in one frame, the editor's reply back. The reply is the JSON-RPC
+ * reply object itself.
+ */
+export function callLiveServer(server: RenderServer, request: unknown, timeoutMs = 60_000, maxReply = 16 * 1024 * 1024): Promise<unknown> {
+  return call(server.port, { token: server.token, request }, timeoutMs, 'Lolly app', maxReply + 1024);
 }
 
 const MIME: Record<string, string> = {

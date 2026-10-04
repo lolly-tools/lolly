@@ -131,6 +131,7 @@ const PATHS = {
   folderPlus: '<path d="M4 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.7.9H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2Z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>',
   filePlus: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>',
   folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  folderUsers: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><circle cx="9" cy="11" r="2"/><path d="M5.5 17v-1a3.5 3.5 0 0 1 7 0v1M15 9a2 2 0 0 1 0 4M18 17v-1a3 3 0 0 0-2-2.8"/>',
   // merged: folder-tiles.ts / projects.ts / gallery.ts all defined the identical PACKAGE_ICON;
   // also now used for valid.ts's c2pa.placed/c2pa.published action glyph (was a near-identical rounding variant)
   package: PACKAGE_BOX,
@@ -163,6 +164,8 @@ const PATHS = {
   uploadImage: '<path d="M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="m14 19.5 3-3 3 3"/><path d="M17 22.5v-6"/><circle cx="9" cy="9" r="2"/>',
   // merged: category-icons.ts "other" (GRID) === catalog-summary.ts "categoryOther"
   grid: GRID_4,
+  // Lucide "grid-3x3": the small end of the view options' card-size slider (grid is the large end).
+  gridDense: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>',
 
   // ---- catalog-summary.ts tool/status/asset-type glyphs ----
   // merged: catalog-summary.ts "everyone" === valid.ts ICONS.globe (a slightly different curve-radius rendering of the same Lucide "globe")

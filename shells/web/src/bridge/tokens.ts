@@ -578,8 +578,34 @@ function readActiveSelection(doc: unknown): { activeThemes?: string[]; activeSet
   return out;
 }
 
+/**
+ * The global an automation driver sets, before the app loads, to give the page a design
+ * system for its renders (plan 291 M4): the Node shells' browser tier does so for
+ * `lolly run --file`, `lolly check --file` and an active terminal system, so a page
+ * resolves token links in the system the caller lowered and checked against. Read once
+ * at boot by createTokensAPI and removed.
+ */
+export const AUTOMATION_DESIGN_SYSTEM_GLOBAL = '__lollyAutomationDesignSystem';
+
+/** Take the automation design system off the global, once; null when none was given. */
+function takeAutomationDesignSystem(): Record<string, unknown> | null {
+  const g = globalThis as Record<string, unknown>;
+  if (!(AUTOMATION_DESIGN_SYSTEM_GLOBAL in g)) return null;
+  const value = g[AUTOMATION_DESIGN_SYSTEM_GLOBAL];
+  try { delete g[AUTOMATION_DESIGN_SYSTEM_GLOBAL]; } catch { g[AUTOMATION_DESIGN_SYSTEM_GLOBAL] = undefined; }
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
 export function createTokensAPI(host: TokensHost): WebTokensAPI {
   let catalogMetaPromise: Promise<TokensAssetMeta | null> | null = null;
+  /**
+   * The render document an automation driver started this page with, or null. Only an
+   * init script that runs before the app can set it, and it is read here, at boot, then
+   * removed, so nothing a file, a link or a tool does later can change the system a page
+   * renders in. Memory only: nothing is installed or stored, and the edit head (`raw()`)
+   * is untouched.
+   */
+  const automationDoc = takeAutomationDesignSystem();
 
   /** The first catalog asset with `type: 'tokens'`, or null if there is none
    *  reachable. Synced metadata first - present and offline-safe once boot
@@ -757,9 +783,10 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
    * pays one extra `readVersionIndex` over an object already in memory.
    */
   async function loadRenderDoc(): Promise<unknown> {
-    const headDoc = await head.raw();
+    const headDoc = automationDoc ?? await head.raw();
     if (!headDoc) return null;
-    const slug = ladder(headDoc);
+    // An automation document is the whole design system of the page: no version ladder.
+    const slug = automationDoc ? DESIGN_VERSION_LATEST : ladder(headDoc);
     const document = await (slug === DESIGN_VERSION_LATEST ? headDoc : versionSurface(slug).raw());
     const choices = await routeChoices();
     if (!choices || !document || typeof document !== 'object') return document;
@@ -778,6 +805,9 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
   }
   function routeChoiceText(): string | null {
     const hash = typeof location === 'undefined' ? '' : location.hash;
+    // A tool rewrites its address to the path form (`/design?…`, `/t/<id>?…`), which
+    // has no hash: there the query is the route's own (plan 291 W4).
+    if (!hash.startsWith('#/') && typeof location !== 'undefined' && location.search) return new URLSearchParams(location.search).get('_themes');
     return new URLSearchParams(hash.includes('?') ? hash.slice(hash.indexOf('?') + 1) : '').get('_themes');
   }
   let builtFor = JSON.stringify([urlDesignVersion(), routeChoiceText()]);
@@ -819,6 +849,7 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     /** The version this page resolves against (see WebTokensAPI.activeSlug). */
     async activeSlug() {
       syncOverride();
+      if (automationDoc) return DESIGN_VERSION_LATEST;
       return ladder(await head.raw().catch(() => null));
     },
     /** A read-only surface over one named document (see WebTokensAPI.forVersion). */
@@ -849,7 +880,7 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     async snapshot(): Promise<TokensSnapshot> {
       syncOverride();
       const [renderDocument, system] = await Promise.all([render.raw(), activeSummary()]);
-      const headDoc = await head.raw().catch(() => null);
+      const headDoc = automationDoc ?? await head.raw().catch(() => null);
       const version = ladder(headDoc);
       const pins = readVersionIndex(headDoc).versions.find(v => v.slug === version)?.assets ?? [];
       const { restorePinnedFontFamilies } = await import('../../../../engine/src/token-font-pins.ts');

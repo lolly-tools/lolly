@@ -224,5 +224,6 @@
   "Couldn't save the transfer.": "Die Übertragung konnte nicht gespeichert werden.",
   "Couldn't read the transfer back.": "Die Übertragung konnte nicht zurückgelesen werden.",
   "Part of the transfer is missing.": "Ein Teil der Übertragung fehlt.",
-  "The transfer was cancelled.": "Die Übertragung wurde abgebrochen."
+  "The transfer was cancelled.": "Die Übertragung wurde abgebrochen.",
+  "View {name}": "{name} ansehen"
 }

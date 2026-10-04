@@ -236,6 +236,8 @@ test('initial render: state-class contract + hidden window + HUD counter', () =>
   const c = clones();
   // active = 0 → present; 1 → future+next (live); 2 → future, hidden (|2−0| > 1).
   assert.ok(c[0]!.classList.contains('pr-active'), 'slide1 active');
+  assert.equal(c[0]!.inert, false, 'active slide controls can receive input');
+  assert.equal(c[1]!.inert, true, 'faded neighbour cannot intercept input');
   assert.ok(c[1]!.classList.contains('pr-future'), 'slide2 future');
   assert.ok(c[1]!.classList.contains('pr-next'), 'slide2 is the next neighbour');
   assert.equal(c[1]!.hasAttribute('hidden'), false, 'the ±1 neighbour stays live');
@@ -258,6 +260,8 @@ test('ArrowRight advances; classes + counter + address follow', () => {
   document.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'ArrowRight' }));
   const c = clones();
   assert.ok(c[1]!.classList.contains('pr-active'), 'slide2 now active');
+  assert.equal(c[1]!.inert, false, 'arriving slide controls become interactive');
+  assert.equal(c[0]!.inert, true, 'departing slide controls stop receiving input');
   assert.ok(c[0]!.classList.contains('pr-past'), 'slide1 now past');
   assert.equal(stageEl()!.dataset.navDir, 'right', 'travel direction recorded on the root');
   assert.equal(stageEl()!.querySelector('.pr-counter')!.textContent, '2 / 3');

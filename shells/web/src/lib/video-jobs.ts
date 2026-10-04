@@ -653,7 +653,9 @@ export function makeMatteOp(
   return async (frame: DecodedFrame): Promise<DecodedFrame> => {
     // matte.run TRANSFERS (neuters) the frame buffer to the worker - hand it a copy.
     const runFrame = { width: frame.width, height: frame.height, data: new Uint8ClampedArray(frame.data) };
-    const out = await matte.run(runFrame, { model: params.model, maxEdge: params.longEdge, ...(signal ? { signal } : {}) });
+    // No edge refinement per frame (plans/289 M4): it costs about a quarter second a
+    // 1080p frame, and the temporal smoother below is this path's own edge treatment.
+    const out = await matte.run(runFrame, { model: params.model, maxEdge: params.longEdge, refine: false, ...(signal ? { signal } : {}) });
     smoother.apply(out);
     return { data: out.data, width: out.width, height: out.height, timestampUs: frame.timestampUs, durationUs: frame.durationUs };
   };

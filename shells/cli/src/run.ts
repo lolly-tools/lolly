@@ -45,6 +45,7 @@ import { isOn, rightsMode } from './args.ts';
 import type { HostV1, Profile, ExportOpts } from '@lolly-tools/core/host-v1';
 import { note, warn, writeOut, isStrict } from './output.ts';
 import { EXIT, usageError, unavailableHere, refused, authError } from './exit-codes.ts';
+import { themeRuns, themedOutputPath, themesPlan } from './themes.ts';
 
 /**
  * LOLLY_HOOK_WORKER=1 runs every tool's hooks.js in a `worker_threads` Worker
@@ -229,6 +230,10 @@ export function quietVirtualConsole(jsdom: typeof import('jsdom')): InstanceType
 }
 
 export async function runToolCli(args: RunToolCliArgs): Promise<void> {
+  // `--themes=light,dark` (plan 291 M4, E24): one export per theme, each the run below
+  // with that theme's `_themes` choice, written to <stem>-<theme>.<ext>.
+  const themes = themesPlan(args.params, args.outputPath);
+  if (themes !== null) return runToolCliThemes(args, themes);
   const path = args.params['production-repairs'];
   if (!path) return runToolCliCandidate(args);
   if (!args.params.production || args.share) throw new Error('Production repairs require --production and rendered output.');
@@ -258,6 +263,68 @@ export async function runToolCli(args: RunToolCliArgs): Promise<void> {
   } else process.stderr.write(JSON.stringify({ report: last.report, attempts: run.attempts.map(a => a.report) }) + '\n');
   try { await requireProduction(last.report, last.bytes, contract); } catch (error) { throw refused((error as Error).message, 'PRODUCTION_VERIFICATION_FAILED'); }
   if (args.outputPath) await writeFile(args.outputPath, last.bytes); else await writeOut(Buffer.from(last.bytes));
+}
+
+/** `runToolCli` once per theme of a `--themes` value, against the active design system's themes. */
+async function runToolCliThemes(args: RunToolCliArgs, spec: string): Promise<void> {
+  if (args.share) throw usageError('--themes writes files; --share prints one link. Use --_themes=<json> with --share for a link in one theme.', 'CONFLICTING_FLAGS');
+  if (args.params['production-repairs']) throw usageError('--themes cannot be combined with --production-repairs. Run the repair once per theme with --_themes=<json>.', 'CONFLICTING_FLAGS');
+  // The themes of the system the run resolves in: --file, the terminal system, the profile's.
+  const { briefSource } = await import('./system.ts');
+  const runs = themeRuns((await briefSource(args.params.file ? { file: args.params.file } : {})).doc ?? null, spec);
+  // Stdin drains once, and each theme is a whole run: an input given as `-` (--document=-,
+  // --<file input>=-) would find stdin empty from the second theme on. Read it once here
+  // and hand every run the same bytes, still one read per run.
+  const replay = takesStdin(args) ? await readStdin() : null;
+  try {
+    for (const run of runs) {
+      const { themes: _spec, ...rest } = args.params;
+      const params: Record<string, string> = { ...rest, _themes: JSON.stringify(run.selection) };
+      if (replay) stdinReplay = { bytes: replay, used: false };
+      await runToolCli({ ...args, params, outputPath: themedOutputPath(args.outputPath!, run.theme) });
+    }
+  } finally {
+    stdinReplay = null;
+  }
+}
+
+/** Whether a run reads stdin: any flag given as `-` (the output is never stdin here). */
+function takesStdin(args: RunToolCliArgs): boolean {
+  return Object.values(args.params).includes('-') || Object.values(args.repeated ?? {}).some((values) => values.includes('-'));
+}
+
+/**
+ * Stdin read once for a `--themes` run, replayed to each theme's run. `used` keeps the
+ * one-read-per-run rule: a second `-` in the same run sees an empty stdin, as it would
+ * without the replay.
+ */
+let stdinReplay: { bytes: Buffer; used: boolean } | null = null;
+
+/**
+ * The design system a run resolves in (plan 291 M4). `--file=<tokens.json>` is the whole
+ * system of a Design run: the runtime resolves token links in that system, and the
+ * browser tier's page is given the same one. With no `--file`, an active terminal system is what this runtime
+ * resolves in, so the page is given that one; with neither, the page keeps its content
+ * profile's system, which is this runtime's too. `--file` belongs to Design alone, and a
+ * share link cannot carry a design system.
+ */
+async function designSystemForRun(
+  toolId: string, file: string | undefined, share: boolean | undefined,
+): Promise<{ runDesignSystem: Record<string, unknown> | null; pageDesignSystem: Record<string, unknown> | null }> {
+  if (file !== undefined) {
+    if (toolId !== 'design') throw usageError(`--file names the design system a Design document renders in; "${toolId}" takes no --file.`, 'UNSUPPORTED_FLAG');
+    if (!file || file === '1' || file === 'true') throw usageError('--file needs a path: write --file=<tokens.json>.', 'MISSING_FLAG_VALUE');
+    if (share) throw usageError('--share prints a link, and a link cannot carry the --file design system. Drop --file, or render a file.', 'CONFLICTING_FLAGS');
+    const { importSystemTokens } = await import('./system.ts');
+    const { doc } = await importSystemTokens(file);
+    return { runDesignSystem: doc, pageDesignSystem: doc };
+  }
+  if (toolId !== 'design') return { runDesignSystem: null, pageDesignSystem: null };
+  const { activeNodeDesignSystem, readActiveDesignSystemTokens } = await import('@lolly-tools/node-shell/design-systems');
+  const active = await activeNodeDesignSystem().catch(() => null);
+  const local = active ? await readActiveDesignSystemTokens().catch(() => null) : null;
+  const doc = local && typeof local === 'object' && !Array.isArray(local) ? local as Record<string, unknown> : null;
+  return { runDesignSystem: null, pageDesignSystem: doc };
 }
 
 async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, fetchFile: fetchFileOverride, browserTier = true }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
@@ -369,6 +436,12 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   })();
   const { values, format: paramFormat, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, depth, hdr, filename, cuts, sampleTimes, motionBlur, sequenceRange, profile: pressProfileParam, designVersion: designvParam, slide, video, emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam, licence: licenceParam } = parsedUrl;
 
+  // `lolly run design --file=<tokens.json>` (plan 291 M4): the design system the document
+  // is lowered, resolved and exported in, the way `lolly package --file` and
+  // `lolly check --file` read the flag. With no --file, an active terminal system travels to
+  // the browser tier below, so the web shell resolves links where this runtime does.
+  const { runDesignSystem, pageDesignSystem } = await designSystemForRun(tool.manifest.id, params.file, share);
+
   // The host is built HERE, after the query is decrypted, expanded and parsed,
   // because `--designv=` is a render param like any other: the design-system
   // version this run resolves against is read off the same parsed state a packed
@@ -388,6 +461,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     // the documented "test against the edit head" lever and beats the pin.
     designVersion: { override: designvParam, pin: tool.manifest.designVersion ?? null },
     tokenSelection: parsedUrl.tokenSelection,
+    ...(runDesignSystem ? { tokensDocument: runDesignSystem } : {}),
   });
 
   // `--input.<id>=<value>` - the explicit input namespace (contract B7). Never
@@ -564,6 +638,12 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     values[input.id] = text as (typeof values)[string];
     note(`✓ Filled --${input.id} from ${dataPath} (${text.length} chars)`);
   }
+
+  // `--document=<design.json|->` (plan 291 W5): a whole Design document, in any shape
+  // `lolly check` reads (a rows array, {boxes}, {values: {boxes}}, a saved session), its
+  // authoring keys lowered to stored rows here, before the values reach a runtime or a
+  // URL. Inputs given as their own flags keep their values.
+  if (params.document !== undefined) await applyDesignDocument(params.document, tool.manifest, values as Record<string, unknown>, params, params.file);
 
   // --share/--link: print a shareable lolly.tools link for the current inputs instead of
   // rendering (the CLI half of the web Share dialog + the TUI's `u`). Handled BEFORE the
@@ -1089,6 +1169,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         runtime, dom, manifest: tool.manifest, format: targetFormat, dims,
         emoji: { emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam },
         initial: values as Record<string, unknown>,
+        ...(pageDesignSystem ? { designSystem: pageDesignSystem } : {}),
       });
       const bytes = Buffer.from(res.bytes);
       usedBrowser = res.usedBrowser;
@@ -1170,9 +1251,15 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
           ? await (await import('./raster.ts')).renderDesignPptx({
             canvas, toolId: tool.manifest.id,
             brandVar: (name: string) => canvas.style.getPropertyValue(name).trim(),
+            // The theme fonts and the mono face come from the brand's own font.brand,
+            // font.display and font.mono tokens, as authored: never a release's render alias.
+            ...(host.tokens ? { brandFont: await (await import('./raster.ts')).authoredBrandFont(host.tokens) } : {}),
             // docProps come from the same assembly runtime.export would have used, so a
             // native deck is attributed the way the browser tier's deck was.
             meta: bareRender ? null : await deckDocProps(host, tool.manifest, runtime.getModel()),
+            // Pictures the catalog cannot answer alone (a session's uploads, a themed
+            // icon) resolve through the bridge, the way the render resolved them.
+            assets: host.assets,
           })
           : null;
         if (nativeDeck) {
@@ -1502,6 +1589,11 @@ const firstLine = (s: string): string => String(s ?? '').split('\n')[0]!.trim();
 
 /** Read all of stdin as bytes - the `-` path for `file`-typed inputs and `validate -`. */
 export async function readStdin(): Promise<Buffer> {
+  if (stdinReplay) {
+    if (stdinReplay.used) return Buffer.alloc(0);
+    stdinReplay.used = true;
+    return stdinReplay.bytes;
+  }
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) chunks.push(Buffer.from(chunk as Buffer));
   return Buffer.concat(chunks);
@@ -1548,6 +1640,14 @@ export const CLI_FLAGS = new Set([
   // `--rights=private` states that this render is not being delivered to anyone
   // (plan 253). Listed here so it is never reported as "not an input of <tool>".
   'rights',
+  // `lolly run design --document=<design.json|->` (plan 291 W5): a whole Design
+  // document, authoring keys lowered, read by applyDesignDocument above.
+  'document',
+  // `--themes=<a,b|all>` (plan 291 M4): one export per theme, read by runToolCli.
+  'themes',
+  // `lolly run design --file=<tokens.json>` (plan 291 M4): the design system the
+  // document renders in, read by designSystemForRun.
+  'file',
   // Global flags (contract section 1.2), consumed by the entry point but still present in the
   // params object a programmatic caller passes through.
   'quiet', 'verbose', 'strict', 'json',
@@ -1656,6 +1756,43 @@ export function shadowedInputs(
   const declared = new Set<string>();
   for (const i of manifest.inputs ?? []) { declared.add(i.id); if (i.urlKey) declared.add(i.urlKey); }
   return Object.keys(params).filter(k => RESERVED.has(k) && declared.has(k));
+}
+
+/**
+ * `lolly run design --document=<design.json|->`: the document's values fill the inputs
+ * no flag set, with its authoring keys lowered first (shells/cli/src/authoring.ts). A
+ * key that cannot be lowered refuses the run (exit 4) with its JSON pointer.
+ */
+async function applyDesignDocument(
+  path: string,
+  manifest: { id: string; inputs?: Array<{ id: string }> },
+  values: Record<string, unknown>,
+  params: Record<string, string>,
+  designSystemFile?: string,
+): Promise<void> {
+  if (manifest.id !== 'design') throw usageError(`--document takes a Design document; "${manifest.id}" takes its inputs as flags.`, 'UNSUPPORTED_FLAG');
+  if (!path) throw usageError('--document needs a value: write --document=<design.json|->.', 'MISSING_FLAG_VALUE');
+  if (values.boxes !== undefined || params['boxes-data'] !== undefined) throw usageError('--document carries the layers; leave out --boxes and --boxes-data.', 'CONFLICTING_FLAGS');
+  if (/\.lolly$/i.test(path)) throw usageError(`--document reads a Design document as JSON; render a .lolly with \`lolly run ${path}\`.`, 'BAD_FLAG_VALUE');
+  let text: string;
+  if (path === '-') {
+    const buf = await readStdin();
+    if (!buf.length) throw usageError('--document=- reads the document from stdin, but stdin was empty.', 'EMPTY_STDIN');
+    text = buf.toString('utf8');
+  } else {
+    try { text = await readFile(resolve(process.cwd(), path), 'utf8'); }
+    catch (e) { throw usageError(`--document: cannot read "${path}" (${(e as Error).message}).`, 'INPUT_UNREADABLE'); }
+  }
+  let doc: unknown;
+  try { doc = JSON.parse(text); } catch { throw usageError(`--document: ${path === '-' ? 'stdin' : path} is not JSON.`, 'BAD_FLAG_VALUE'); }
+  const { lowerDesignDocument, authoringNoteLines } = await import('./authoring.ts');
+  const lowered = await lowerDesignDocument(doc, { what: '--document', ...(designSystemFile ? { file: designSystemFile } : {}) });
+  const declared = new Set((manifest.inputs ?? []).map(i => i.id));
+  for (const [id, value] of Object.entries(lowered.values)) {
+    if (declared.has(id) && values[id] === undefined) values[id] = value;
+  }
+  for (const line of authoringNoteLines(lowered.notes)) note(line);
+  note(`✓ Read ${lowered.rows.length} layer${lowered.rows.length === 1 ? '' : 's'} from ${path === '-' ? 'stdin' : path}${lowered.expanded ? ', authoring keys lowered' : ''}`);
 }
 
 function warnShadowedInputs(params: Record<string, string>, manifest: { id: string; inputs?: Array<{ id: string; urlKey?: string }> }): void {

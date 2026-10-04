@@ -152,8 +152,9 @@ export const colorIdentity = (key: string, value: string): string => `${key}␟$
 /** A `color.semantic.*` leaf - a ROLE, which re-points at a swatch and is never
  *  material of its own. The same test `walkSwatches` makes when it stamps
  *  `kind: 'semantic'`, spelled against the key so it also holds for a caller
- *  whose colours came from `createTokenSet` rather than the walker. */
-export const isRoleKey = (key: string): boolean => /(^|\.)semantic(\.|$)/.test(key);
+ *  whose colours came from `createTokenSet` rather than the walker. A themed role
+ *  token (`color.role.*`, plan 291 W4) is a role in the same sense. */
+export const isRoleKey = (key: string): boolean => /(^|\.)semantic(\.|$)/.test(key) || /^color\.role\./.test(key);
 
 /**
  * A step of the NEUTRAL ramp - ink and paper (plan 182 section 12).

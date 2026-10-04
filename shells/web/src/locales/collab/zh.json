@@ -224,5 +224,6 @@
   "Tap to enlarge for scanning": "点击放大以便扫描",
   "Enlarge {label} for scanning": "放大{label}以便扫描",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "将另一台设备对准这里进行扫描。点击任意处或按 Esc 关闭。",
-  "This link is too long to scan. Copy it instead, or use the Code tab.": "此链接太长，无法扫描。请改为复制，或使用“代码”标签页。"
+  "This link is too long to scan. Copy it instead, or use the Code tab.": "此链接太长，无法扫描。请改为复制，或使用“代码”标签页。",
+  "View {name}": "查看{name}"
 }

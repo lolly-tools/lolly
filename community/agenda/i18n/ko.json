@@ -1,6 +1,6 @@
 {
-  "name": "의제",
-  "description": "하나의 프로그램을 브랜드 화면, 대화형 웹 페이지, 애니메이션 개요, PowerPoint 슬라이드 및 달력으로 바꿔보세요.",
+  "name": "일정",
+  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} 세션, {{trackCount}} 트랙",
   "inputs.title.label": "이벤트",
   "inputs.title.help": "모든 레이아웃의 선두에 인쇄되며 내보낸 파일의 이름이 지정됩니다.",

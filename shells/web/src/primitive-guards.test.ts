@@ -653,6 +653,10 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  // One fixed registry link icon; response URLs and labels are assigned as text/value.
+  'components/invite-link-control.ts': 1,
+  // Fixed registry icons only; button labels and comment content use textContent.
+  'views/tool-comment-chat.ts': 2,
   // System IDs, labels and translated status copy are escaped; icons are registry markup.
   'components/design-system-menu.ts': 3,
   // Read the already-hydrated studio marker in an inert template; never mount its content.
@@ -1305,7 +1309,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 29 → 28 2026-09-12 (plans/245): the Tools pane's two sinks (the "no tools match"
   // state and the card grid) became one, when the pane's markup moved to the shared
   // builder in views/picker-cards.ts.
-  'views/picker.ts': 28,
+  'components/photo-treatment-strip.ts': 1, // Moved from picker.ts: SVG filters from the validated catalogue treatment builder.
+  'views/picker.ts': 27,
   'views/picker-webcam.ts': 1,
   // The Templates tab's pane (plans/245): ONE sink for the whole pane - loading, the
   // empty state, or the grid. Reviewed: the only dynamic values are template names,
@@ -1339,6 +1344,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/profile/storage.ts': 4,      // the storage meter, session and image lists (6 → 4 on 2026-09-30: the reclaim and quota lines went with the regrouped card)
   'views/profile/offline.ts': 2,      // the download-manager list and the persistence line
   'views/profile/identity.ts': 4,     // the credentials card: status, enrol form and its errors
+  // Shared covers use only registry icons and sessionTile's escaped ids/labels.
+  'org/team-project-view.ts': 3,
+  'org/team-previews.ts': 1,
   'views/projects.ts': 5,   // View-options markup moved to its shared-popover adapter; the Team projects modal moved to org/team-projects.ts (DOM-built, no sink).
   'views/projects-view-options.ts': 1, // Static enums + escaped t() labels and the existing theme/sound generators.
   'lib/live-preview.ts': 2, // Inert templates parse the same hydrated source already mounted by render.ts; only local raster-frame attributes are patched after complete structural comparison.

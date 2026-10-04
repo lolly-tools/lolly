@@ -222,6 +222,32 @@ test('a param the render never reads is dropped by a cacheable 308, not rendered
   assert.equal(kept.status, 200);
 });
 
+test('`_themes` is a render param here: kept, honoured, and refused when malformed (plan 291 M4)', async () => {
+  const q = 'url=https%3A%2F%2Fsuse.com%2Fthemes';
+  const light = await renderGet('/tool/qr-code.svg', q, { ip: ip(), env });
+  const dark = await renderGet('/tool/qr-code.svg', `${q}&_themes=${encodeURIComponent('{"":"dark"}')}`, { ip: ip(), env });
+  assert.equal(dark.status, 200, 'the theme choice is not dropped by the canonical redirect');
+  assert.notEqual(dark.headers.etag, light.headers.etag);
+  assert.notDeepEqual(dark.body, light.body, 'the dark theme paints different colours');
+  const bad = await renderGet('/tool/qr-code.svg', `${q}&_themes=dark`, { ip: ip(), env });
+  assert.equal(bad.status, 400);
+  assert.match(String(bad.body), /_themes must be a JSON object/);
+});
+
+test('`_themes` with an undeclared choice draws the default theme, and Design is refused in any theme (the docs say both)', async () => {
+  const q = 'url=https%3A%2F%2Fsuse.com%2Funknown-theme';
+  const plain = await renderGet('/tool/qr-code.svg', q, { ip: ip(), env });
+  const unknown = await renderGet('/tool/qr-code.svg', `${q}&_themes=${encodeURIComponent('{"":"no-such-theme"}')}`, { ip: ip(), env });
+  assert.equal(unknown.status, 200, 'an undeclared choice is not refused');
+  assert.deepEqual(unknown.body, plain.body, 'an undeclared choice paints the default theme');
+  // Design needs the browser tier, which this route never runs, so a themed Design
+  // link cannot render here; docs/url-parameters.md and the skill send it to the CLI.
+  const boxes = encodeURIComponent(JSON.stringify([{ id: 'a', kind: 'frame', x: 0, y: 0, w: 320, h: 180, bg: '{color.semantic.surface}' }]));
+  const design = await renderGet('/tool/design.svg', `boxes=${boxes}&_themes=${encodeURIComponent('{"":"dark"}')}`, { ip: ip(), env });
+  assert.ok(design.status >= 400, `a themed Design render is refused (got ${design.status})`);
+  assert.match(String(design.body), /browser/i);
+});
+
 test('one image asked for in two param orders shares an ETag', async () => {
   const a = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Forder&width=300', { ip: ip(), env });
   const b = await renderGet('/tool/qr-code.svg', 'width=300&url=https%3A%2F%2Fsuse.com%2Forder', { ip: ip(), env });

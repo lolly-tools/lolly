@@ -62,6 +62,18 @@ test('Z returns current point to subpath start (relative-after-close)', () => {
   assert.deepEqual(sp[1]!.segments[0], { op: 'M', x: 5, y: 5 });
 });
 
+test('a drawing command after Z with no new M starts a new subpath at the closed start', () => {
+  const sp = parseSvgPath('M0 0 L10 0 Z L10 10');
+  assert.equal(sp.length, 2);
+  assert.deepEqual(sp[0], { segments: [{ op: 'M', x: 0, y: 0 }, { op: 'L', x: 10, y: 0 }], closed: true });
+  assert.deepEqual(sp[1], { segments: [{ op: 'M', x: 0, y: 0 }, { op: 'L', x: 10, y: 10 }], closed: false });
+  // Relative and curve commands reopen the same way; a later Z closes only the new subpath.
+  const rel = parseSvgPath('M5 5 h10 v10 z l0 -5 c1 0 2 0 3 0 z');
+  assert.equal(rel.length, 2);
+  assert.deepEqual(rel[1]!.segments.map((s: any) => [s.op, s.x, s.y]), [['M', 5, 5], ['L', 5, 0], ['C', 8, 0]]);
+  assert.deepEqual(rel.map((s: any) => s.closed), [true, true]);
+});
+
 test('arc A decomposes into cubic segments', () => {
   const [sub] = parseSvgPath('M0 0 A5 5 0 0 1 10 0');
   assert.ok(sub!.segments.length >= 2);

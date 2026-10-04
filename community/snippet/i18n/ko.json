@@ -1,6 +1,6 @@
 {
   "name": "스니펫",
-  "description": "코드 스니펫을 깔끔하고 신택스 하이라이트가 적용된 공유 가능한 이미지로 변환하세요.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "코드",
   "inputs.code.placeholder": "여기에 코드를 붙여넣으세요…",
   "inputs.fileName.label": "파일명",

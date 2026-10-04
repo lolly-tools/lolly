@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Tukar coretan kod kepada imej kemas yang diserlahkan sintaksnya dan sedia dikongsi.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Kod",
   "inputs.code.placeholder": "Tampal kod anda di sini…",
   "inputs.fileName.label": "Nama fail",

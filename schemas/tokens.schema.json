@@ -27,6 +27,10 @@
     "$metadata": {
       "type": "object",
       "description": "Document metadata. `tokenSetOrder` orders the top-level sets for layering."
+    },
+    "$extensions": {
+      "type": "object",
+      "description": "Document-level vendor data, never a token group: for example the brand system and its house rules at `com.suse.lolly.brandSystem` (engine/brand-system.md)."
     }
   },
   "additionalProperties": { "$ref": "#/$defs/node" }

@@ -224,5 +224,6 @@
   "Tap to enlarge for scanning": "Taramak için büyütmek üzere dokunun",
   "Enlarge {label} for scanning": "Taramak için {label} büyüt",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Taramak için buraya başka bir cihaz tutun. Kapatmak için herhangi bir yere dokunun veya Esc'ye basın.",
-  "This link is too long to scan. Copy it instead, or use the Code tab.": "Bu bağlantı taranamayacak kadar uzun. Bunun yerine kopyalayın veya Kod sekmesini kullanın."
+  "This link is too long to scan. Copy it instead, or use the Code tab.": "Bu bağlantı taranamayacak kadar uzun. Bunun yerine kopyalayın veya Kod sekmesini kullanın.",
+  "View {name}": "{name} görünümünü aç"
 }

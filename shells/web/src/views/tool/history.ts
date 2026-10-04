@@ -452,8 +452,8 @@ export function wireHistory(tview: ToolViewCtx): void {
 
 /** Bind history commands outside the mount orchestrator. `changed` is automatic
  *  history's signal, for an editor action that writes through applyPatch. */
-export function transactionActions(tview: ToolViewCtx, register: (sync: (canUndo: boolean, canRedo: boolean) => void) => void): { register: typeof register; commit: (values: Record<string, unknown>, label: string, typingGroup?: string) => Promise<void>; endGesture: () => void; changed: () => void } {
-  return { register, commit:tview.history.commitInputs, endGesture:()=>tview.inputHistory.endGesture(), changed: () => tview.revisionChanged() };
+export function transactionActions(tview: ToolViewCtx, register: (sync: (canUndo: boolean, canRedo: boolean) => void) => void): { register: typeof register; commit: (values: Record<string, unknown>, label: string, typingGroup?: string) => Promise<void>; endGesture: () => void; changed: () => void; top: () => object | null } {
+  return { register, commit:tview.history.commitInputs, endGesture:()=>tview.inputHistory.endGesture(), changed: () => tview.revisionChanged(), top: () => tview.inputHistory.peekUndo() };
 }
 export function historyOps(tview: ToolViewCtx) {
   return {

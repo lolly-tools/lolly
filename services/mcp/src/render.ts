@@ -32,6 +32,7 @@ import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
 import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
+import { checksInOpenedPage, openSessionInPage, OpenSessionError, packageDesignSession, sessionQuery, shortenUrls } from '@lolly-tools/node-shell/open-session';
 import { readFile, stat } from 'node:fs/promises';
 import { loadToolCached } from './catalog.ts';
 import { withHost } from './host.ts';
@@ -291,13 +292,15 @@ async function mountAndDraw(
   toolId: string,
   values: Record<string, unknown>,
   emoji: EmojiRequest,
+  tokenSelection?: Record<string, string>,
 ): Promise<{
   runtime: Awaited<ReturnType<typeof createRuntime>>;
   canvas: Element;
   warnings: string[];
 }> {
   const tool = await loadToolCached(toolId);
-  const runtime = await createRuntime(tool, host, values as never);
+  // The `_themes` choice (plan 291 M4): the runtime resolves token references in that theme.
+  const runtime = await createRuntime(tool, host, values as never, tokenSelection ? { tokenSelection } : undefined);
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) throw new RenderError('render canvas missing');
   // The set is chosen BEFORE the first pass: setEmojiStyle redraws a tree it has
@@ -329,14 +332,15 @@ export async function emojiCensus(
   fmt: string,
   profile: Profile,
   emoji: EmojiRequest,
+  tokenSelection?: Record<string, string>,
 ): Promise<{ ingredients: C2paSourceIngredient[]; rights: RightsEvaluationV1 }> {
   return withHost(profile, async (dom, host) => {
-    const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji);
+    const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     return {
       ingredients: runtime.emojiIngredients(),
       rights: runtime.rights({ delivery: { format: fmt, canCarryCredential: C2PA_FORMATS.includes(fmt) } }),
     };
-  });
+  }, tokenSelection ? { tokenSelection } : {});
 }
 
 /**
@@ -401,9 +405,10 @@ async function renderTierA(
   profile: Profile,
   emoji: EmojiRequest,
   productionContract?: import('@lolly/engine').ProductionSpec,
+  tokenSelection?: Record<string, string>,
 ): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string> }> {
   return withHost(profile, async (dom, host) => {
-    const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji);
+    const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     let productionInputs: Record<string, string> | undefined;
     if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
       const { productionInputFacts } = await import('@lolly/engine');
@@ -446,7 +451,7 @@ async function renderTierA(
       rights: runtime.rights({ delivery: { format: fmt, canCarryCredential: C2PA_FORMATS.includes(fmt) } }),
       warnings,
     };
-  });
+  }, tokenSelection ? { tokenSelection } : {});
 }
 
 /** Pixel area of the PNG preview `lolly_render` attaches to an SVG answer. The
@@ -686,6 +691,7 @@ async function renderTierB(
   return withBrowserJob(async () => {
   const base = await webShellBase();
   const url = exportUrl(base, toolId, query, fmt, o);
+  const designSession = toolId === 'design' && !process.env.LOLLY_TOOL_URL_TEMPLATE ? await designSessionOf(query) : null;
   let browser: import('playwright-core').Browser;
   try {
     browser = await getBrowser();
@@ -705,11 +711,20 @@ async function renderTierB(
     const inputIds = o.production === undefined ? [] : parseProductionSpec(o.production).requirements.filter(r => r.kind === 'input').map(r => r.location);
     const observeInputs = await observeProductionInputs(page, toolId, inputIds);
     await installBrowserEgressPolicy(page, base);
+    // Design goes to the web shell as a session (plan 291 W9), its route registered
+    // after the egress policy so it answers first; the address then carries only the
+    // slot and the export settings. A custom LOLLY_TOOL_URL_TEMPLATE keeps the address.
+    let target = url;
+    if (designSession) {
+      const opened = await openSessionInPage(page, base, designSession.bytes, 'Design.lolly', { timeoutMs: 120_000 })
+        .catch((error: unknown) => { throw new RenderError(`The web shell could not open the document: ${shortenUrls(error instanceof Error ? error.message : String(error))}`); });
+      target = exportUrl(base, 'design', sessionQuery(opened.slot, query), fmt, o);
+    }
     waiting = await waitForExport(page, fmt);
     const downloadP = waiting.result;
     // 'commit' returns as soon as navigation starts; the export fires later, after
     // the tool mounts + settles (onInit, fonts). waitForEvent above is the real gate.
-    await page.goto(url, { waitUntil: 'commit', timeout: 30_000 });
+    await page.goto(target, { waitUntil: 'commit', timeout: 30_000 });
     let download: Awaited<typeof downloadP>;
     try {
       download = await downloadP;
@@ -727,6 +742,17 @@ async function renderTierB(
     await ctx.close();
   }
   });
+}
+
+/**
+ * A Design query's document as the session the web shell opens (plan 291 W9): the
+ * query's values packaged as a `.lolly`, every `data:` picture in it carried as an
+ * upload. Exported for tests.
+ */
+export async function designSessionOf(query: string): Promise<{ bytes: Uint8Array; notes: string[] }> {
+  const tool = await loadToolCached('design');
+  const values = parseUrlState(await expandQuery(query), tool.manifest).values as Record<string, unknown>;
+  return packageDesignSession(values, { label: 'Design' });
 }
 
 /** Exported for the test that pins the source-ingredient wiring; `render` is its only caller. */
@@ -848,7 +874,7 @@ async function renderCandidate(toolId: string, query: string, o: RenderOpts = {}
     out = { ...(await renderTierB(toolId, q, exportFmt, merged)), mime: mimeForFormat(deliveredFormat), tier: 'B' };
   } else if (TIER_A.has(exportFmt) && !floatScene) {
     try {
-      const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract);
+      const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract, st.tokenSelection);
       placed = r.ingredients;
       evaluation = r.rights;
       warnings.push(...r.warnings);
@@ -869,7 +895,7 @@ async function renderCandidate(toolId: string, query: string, o: RenderOpts = {}
   } else if (exportFmt === 'png' && formats.includes('svg') && !floatScene && values.editingRange !== 'hdr') {
     // SVG-native fast path: engine SVG → resvg PNG, no browser.
     try {
-      const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile, emoji, productionContract);
+      const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile, emoji, productionContract, st.tokenSelection);
       // The raster below is that SVG, so it placed the same artwork.
       placed = svg.ingredients;
       evaluation = svg.rights;
@@ -908,7 +934,7 @@ async function renderCandidate(toolId: string, query: string, o: RenderOpts = {}
   // no artwork and should not pay a second hydrate to be told so.
   if (out.tier.startsWith('B') && !evaluation && carriesEmojiParams(q)) {
     try {
-      const census = await emojiCensus(toolId, values, exportFmt, profile, emoji);
+      const census = await emojiCensus(toolId, values, exportFmt, profile, emoji, st.tokenSelection);
       placed = census.ingredients;
       evaluation = census.rights;
     } catch (e) {
@@ -1053,6 +1079,53 @@ async function transformTierB(
   } finally {
     await ctx.close();
   }
+  });
+}
+
+/** What the web shell's Design check hook answered, or why it could not (lolly_check's render family). */
+export type DesignChecksAnswer = { kind: 'answered'; value: unknown } | { kind: 'no-hook'; reason: string };
+
+/**
+ * The checks that need a painted canvas (plan 291 W1), run on this server's Tier B:
+ * the document is opened in the web shell this server drives (LOLLY_WEB_BASE or the
+ * built dist) as a saved session through `#/open` (plan 291 W9), pictures included,
+ * and `window.lolly.document.check()` is evaluated, the function the app's "Before you
+ * export" card runs. A shell without the route or the hook (deployed before plan 291)
+ * is `no-hook`, so lolly_check reports the render family unavailable rather than
+ * failing. The same browser, queue and egress policy as `renderTierB`; nothing is
+ * downloaded.
+ */
+export async function designChecksTierB(
+  session: { bytes: Uint8Array; name: string; tokenSelection?: Record<string, string> }, opts: { timeoutMs?: number } = {},
+): Promise<DesignChecksAnswer> {
+  const timeout = opts.timeoutMs ?? 90_000;
+  return withBrowserJob(async () => {
+    const base = await webShellBase();
+    let browser: import('playwright-core').Browser;
+    try {
+      browser = await getBrowser();
+    } catch (e) {
+      if (e instanceof RenderError) throw e;
+      throw new RenderError(`Tier-B browser unavailable: ${(e as Error).message}`);
+    }
+    const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1440, height: 1000 } });
+    try {
+      await ctx.addInitScript(() => {
+        Object.defineProperty(globalThis, '__LOLLY_AI_DISABLED__', { value: true, writable: false, configurable: false });
+      });
+      const page = await ctx.newPage();
+      await installBrowserEgressPolicy(page, base);
+      try {
+        return await checksInOpenedPage(page, base, session.bytes, session.name, session.tokenSelection, timeout);
+      } catch (error) {
+        // A shell that cannot open the file (no #/open route, a refused file) cannot
+        // paint it either: the family is unavailable on this server, said in words.
+        if (error instanceof OpenSessionError) return { kind: 'no-hook', reason: `${error.message.replace(/\.$/, '')}, so the render family cannot run on this server.` };
+        throw error;
+      }
+    } finally {
+      await ctx.close();
+    }
   });
 }
 

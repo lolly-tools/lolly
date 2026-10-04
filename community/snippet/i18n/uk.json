@@ -1,6 +1,6 @@
 {
   "name": "Фрагмент коду",
-  "description": "Перетворює фрагменти коду на чисті зображення з підсвіткою синтаксису, зручні для поширення.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Код",
   "inputs.code.placeholder": "Вставте свій код тут…",
   "inputs.fileName.label": "Назва файлу",

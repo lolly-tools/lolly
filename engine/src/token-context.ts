@@ -10,9 +10,9 @@ export function scopedTokenOptions(selection: Record<string, string> | undefined
 
 /** A document's choices scope token reads without changing the shell's active system. */
 export function withTokenSelection(host: HostV1, selection: Record<string, string>): HostV1 {
-  if (!host.tokens) return host;
+  if (!host.tokens) return host.assets ? { ...host, assets: withAssetSelection(host.assets, selection) } : host;
   const base = host.tokens, choices = structuredClone(selection);
-  return { ...host, tokens: {
+  return { ...host, ...(host.assets ? { assets: withAssetSelection(host.assets, choices) } : {}), tokens: {
     ...base,
     get: (opts = {}) => base.get(scopedTokenOptions(choices, opts)),
     colors: (opts = {}) => base.colors(scopedTokenOptions(choices, opts)),
@@ -32,4 +32,14 @@ export function withTokenSelection(host: HostV1, selection: Record<string, strin
       return { ...snapshot, document, ...(snapshot.renderDocument !== undefined ? { renderDocument: scoped(snapshot.renderDocument) } : {}), selection: { ...snapshot.selection, choices: resolveTokenSelection(document, { selection: choices }).choices } };
     } } : {}),
   } };
+}
+
+/**
+ * Asset reads that carry the document's theme choice (plan 291 W7), so a photo look
+ * with theme variants bakes the variant of that theme. Every other member is the
+ * host's own, copied the way the shells' own asset wrappers copy the asset bridge.
+ */
+function withAssetSelection(assets: HostV1['assets'], selection: Record<string, string>): HostV1['assets'] {
+  const choices = structuredClone(selection);
+  return { ...assets, get: (id, opts) => assets.get(id, { ...opts, tokenSelection: choices }) };
 }

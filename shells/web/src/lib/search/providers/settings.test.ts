@@ -55,6 +55,11 @@ test("'sign out' lands on the instance card, where a member's Sign out is", asyn
   assert.ok(hits.some((h) => h.href === '#/settings?focus=instance-section'), 'instance-section hit present');
 });
 
+test("'inbox' opens the instance card, where a member's Inbox is", async () => {
+  const hits = await search('inbox');
+  assert.ok(hits.some((h) => h.href === '#/settings?focus=instance-section'), 'instance-section hit present');
+});
+
 test("'focus music' surfaces Neurospicy Mode (pill match, AND across tokens)", async () => {
   const hits = await search('focus music');
   assert.ok(hits.some((h) => h.title === 'Neurospicy Mode'), 'pill "focus music" carries the flag');

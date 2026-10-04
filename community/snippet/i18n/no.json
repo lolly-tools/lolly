@@ -1,6 +1,6 @@
 {
   "name": "Kodesnutt",
-  "description": "Gjør kodesnutter om til rene, syntaksmarkerte bilder, klare til å dele.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Kode",
   "inputs.code.placeholder": "Lim inn koden din her…",
   "inputs.fileName.label": "Filnavn",

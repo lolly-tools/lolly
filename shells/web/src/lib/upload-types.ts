@@ -7,6 +7,10 @@ export const UPLOAD_ACCEPT =
 export const isPdfUpload = (file: File): boolean =>
   /\.(pdf|ai)$/i.test(file.name) || /^application\/(pdf|illustrator)$/i.test(file.type);
 
+/** A Photoshop document (.psd or .psb), which Rebrand reads as one slide (plans/289 D2). */
+export const isPsdUpload = (file: File): boolean =>
+  /\.(psd|psb)$/i.test(file.name) || /^image\/(vnd\.adobe\.photoshop|x-photoshop)$/i.test(file.type);
+
 export const isPptxUpload = (file: File): boolean =>
   /\.pptx$/i.test(file.name) ||
   file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation';

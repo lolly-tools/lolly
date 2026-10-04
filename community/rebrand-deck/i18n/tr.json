@@ -1,6 +1,6 @@
 {
-  "name": "Marka Yenileme",
-  "description": "Bir PowerPoint destesi yükleyin ve renklerini ile yazı tiplerini markanıza uydurun - cihazınızda yeniden oluşturulur, hiçbir şey yüklenmez.",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "{{fileName}} için sunum yeniden markalayıcısı",
   "inputs.source.label": "PowerPoint dosyası",
   "inputs.source.help": "Bir .pptx dosyası. Cihazında okunur ve asla yüklenmez.",

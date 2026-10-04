@@ -1,6 +1,6 @@
 {
   "name": "程式碼片段",
-  "description": "將程式碼片段轉換成簡潔、具語法高亮、可分享的圖片。",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "程式碼",
   "inputs.code.placeholder": "在此貼上程式碼……",
   "inputs.fileName.label": "檔案名稱",

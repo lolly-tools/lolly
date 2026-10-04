@@ -112,7 +112,7 @@ export const RENDER_GET_BYTE_STABLE: readonly string[] = ['svg', 'emf', 'eps', '
 export const MCP_TOOLS: readonly string[] = [
   'lolly_compile', 'lolly_inspect', 'lolly_measure', 'lolly_validate', 'lolly_diff', 'lolly_package',
   'lolly_list_tools', 'lolly_describe_tool', 'lolly_build_url', 'lolly_render',
-  'lolly_transform', 'lolly_rebrand', 'lolly_redact', 'lolly_verify',
+  'lolly_transform', 'lolly_rebrand', 'lolly_read', 'lolly_check', 'lolly_measure_text', 'lolly_compose', 'lolly_redact', 'lolly_verify',
   'lolly_look', 'lolly_sample_color', 'lolly_trace_edges',
 ];
 
@@ -266,6 +266,17 @@ ${u}/#/tool/{id}?{input}={value}&{input}={value}&format={ext}&export
   default; the hot-link route never does. \`lolly_verify\` and \`lolly validate --json\`
   read them back with one shared verdict vocabulary.
 - Tools with status \`experimental\` watermark their exports.
+- To rebuild a deck in Design, read \`lolly://design-context\` for the brief, call
+  \`lolly_read\` for the source deck's text, notes and pictures, lay the slides out
+  from the slide master with \`lolly_compose\` (\`mode: "suggest"\` drafts the spec),
+  and finish with \`lolly_check\`: one findings list, each finding with a stable code
+  and a layer id. Composed slides keep their master bindings, so their PowerPoint
+  export has real slide layouts and placeholders.
+- Design rows may carry authoring keys (\`$in\` for artboard coordinates, \`$style\` for
+  the brief's text styles, \`$points\` or \`$d\` for paths, \`$stack\`, \`$grid\` and
+  \`$table\` for layouts), lowered to plain layers before anything runs.
+  \`lolly_measure_text\` says where a text box's lines break before you place the box,
+  and \`lolly_package\` writes a \`.lolly\` the app reopens with its pictures.
 - A link's inputs are public by construction. Put no secrets in one.
 - Uploads never travel in a URL. Device-local files are for the app, \`lolly_transform\`
   and the CLI.

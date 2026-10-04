@@ -31,6 +31,7 @@ import { bgIsDark } from '../engine/src/logo-variant.ts';
 import { applyArchetype, masterBoxToPx, resetFrame, seedFrame } from '../engine/src/slide-master.ts';
 import { findStructure, slideStructureLibrary } from '../engine/src/slide-structures.ts';
 import { resolveProfileDesignSystem } from '../packages/node-shell/src/rebrand/index.ts';
+import { MASTER_BUILDS, masterWeights } from '../scripts/build-slide-masters.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -512,12 +513,13 @@ test('a re-layout states the target type and drops what only the old archetype s
   const seeded = seedFrame(M, 'content', { frameId: 'f', x: 0, y: 0, resolveToken: resolveInk });
   assert.ok(seeded);
   const before = seeded.layers.find((r) => r.role === 'title');
-  assert.equal(before?.weight, '700', 'the content title is bold in both packs');
+  const titleWeight = masterWeights(MASTER_BUILDS.find((c) => c.masterId === M.id) ?? {}).title;
+  assert.equal(before?.weight, titleWeight, 'the content title takes the master\'s title weight');
 
   const moved = applyArchetype(M, 'content', 'main-point', seeded.layers, { x: 0, y: 0, resolveToken: resolveInk });
   const after = moved.find((r) => r.role === 'title');
   assert.equal(after?.fontSize, 59, 'the main-point title states its own size');
-  assert.equal(after?.weight, '700', 'and its own weight');
+  assert.equal(after?.weight, titleWeight, 'and its own weight');
   assert.equal(after?.align, 'left', 'what the target does state is written');
 
   // Every master placeholder states a weight since plan 275, so a target that leaves

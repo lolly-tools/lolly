@@ -20,6 +20,7 @@ import { assetBytes } from '@lolly-tools/node-shell/asset-bytes';
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
 import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId } from '@lolly/engine';
+import { isRasterPhotoLook, parseLutText, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, type GradeLut, type PhotoTreatment } from '@lolly/engine';
 import type {
   HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts, ExportMeta,
   StateEntry, ComposeSpec, ExportFormat, TokenSet, TokenResolveOptions, C2paSignOpts,
@@ -266,10 +267,16 @@ interface CliBridgeOpts {
   /** Hosted renderers without a member AI lease omit model-backed APIs.
    * Standalone CLI/TUI behaviour remains enabled by default. */
   aiEnabled?: boolean;
+  /**
+   * A DTCG token document this run resolves in, ahead of the terminal system and the
+   * catalog: `lolly run design --file=<tokens.json>` (plan 291 M4), so the runtime
+   * resolves links in the system the document was lowered against.
+   */
+  tokensDocument?: Record<string, unknown> | null;
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -375,6 +382,57 @@ export async function createCliBridge(
     return photoTreatmentsCache;
   }
 
+  // Photo looks (plan 291 W7): a look only pixels reproduce (gradient-map, lut), or any
+  // look on an inline picture, is baked into raster bytes over @napi-rs/canvas with the
+  // engine's own look, the same pixels the web bridge bakes. One bake per (picture,
+  // look, theme) per process. With no canvas in this install the plain picture is
+  // served under the treated id and a warning says the look was left out.
+  const lookBakes = new Map<string, Promise<{ url: string; format: string } | null>>();
+  const lutReads = new Map<string, Promise<GradeLut | null>>();
+  let lookCanvasWarned = false;
+  function lutFor(lutId: string | undefined): Promise<GradeLut | null> {
+    if (!lutId) return Promise.resolve(null);
+    let pending = lutReads.get(lutId);
+    if (!pending) {
+      pending = (async () => {
+        const meta = assetById.get(lutId);
+        const fmt = meta?.formats.find(f => f.format === 'cube') ?? meta?.formats[0];
+        if (!fmt) return null;
+        return parseLutText(await readFile(assetFilePath(fmt.url), 'utf8'), lutId);
+      })().catch(() => null);
+      lutReads.set(lutId, pending);
+    }
+    return pending;
+  }
+  function bakeCliLook(cacheKey: string, bytes: Uint8Array, mime: string, look: PhotoTreatment, themeKey: string): Promise<{ url: string; format: string } | null> {
+    let pending = lookBakes.get(cacheKey);
+    if (!pending) {
+      pending = (async () => {
+        const lut = look.kind === 'lut' ? await lutFor(resolvePhotoLook(look, themeKey).lut) : null;
+        if (look.kind === 'lut' && !lut) throw new Error(`the LUT of photo look ${look.id} is unavailable`);
+        const { bakePhotoLookBytes } = await import('../../../packages/node-shell/src/photo-look.ts');
+        const baked = await bakePhotoLookBytes(bytes, look, { mime, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}) });
+        if (!baked) {
+          if (!lookCanvasWarned) host.log('warn', `photo look ${look.id} was left out: this install has no canvas (@napi-rs/canvas) to bake it, so the plain picture is used.`);
+          lookCanvasWarned = true;
+          return null;
+        }
+        return { url: `data:${baked.mime};base64,${Buffer.from(baked.bytes).toString('base64')}`, format: baked.format };
+      })().catch((e) => {
+        host.log('warn', `photo look ${look.id} was not applied: ${e instanceof Error ? e.message : e}`);
+        return null;
+      });
+      lookBakes.set(cacheKey, pending);
+    }
+    return pending;
+  }
+  /** A short stable key for an inline picture, so a data: URL is never a map key. */
+  function inlineKey(dataUrl: string): string {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < dataUrl.length; i += 1) h = Math.imul(h ^ dataUrl.charCodeAt(i), 0x01000193) >>> 0;
+    return `inline/${h.toString(16).padStart(8, '0')}-${dataUrl.length}`;
+  }
+
   // Design tokens - the catalog's HEAD `type:'tokens'` asset, read from disk and
   // resolved by the engine per theme. Missing or unreadable → an empty set:
   // token-bound colour inputs fall back to their cached hex and the semantic
@@ -404,6 +462,8 @@ export async function createCliBridge(
       tokensDocCache = null;
     }
     tokensDocCache ??= (async () => {
+      // A document given for this run (`--file`) is the whole design system.
+      if (tokensDocument) return tokensDocument;
       // CLI and TUI share one editable Node-side head. A terminal system is an
       // override only when one is active; otherwise the mounted catalog remains
       // the exact source it was before the start experience existed.
@@ -514,20 +574,6 @@ export async function createCliBridge(
   // calls via installToolApis), so a canvas tool's hooks.js renders identical connector
   // geometry, arrowheads and corner-fitted dashes in a headless `--export`.
   host.connectors = makeConnectorsApi();
-
-  // host.text - text-to-path (HarfBuzz WASM), the SAME shaping the web shell uses, so a
-  // tool that outlines text via host.text renders identically in the terminal. Without
-  // it, brand-lockup (and any host.text-in-hooks tool) throws in onInit and emits an
-  // empty SVG. Fonts resolve off disk under the repo root (see text.ts). Node-only fonts
-  // are all sfnt; the WASM loads lazily on first shape.
-  host.text = createNodeTextAPI({ repoRoot: REPO_ROOT, assets: host.assets, parseXml: source => new w.DOMParser().parseFromString(source, 'image/svg+xml') });
-  await resolvedDoc();
-  if (releasePins.some(pin => pin.font)) {
-    const { releaseTextAPI } = await import('../../../packages/node-shell/src/release-fonts.ts');
-    host.text = await releaseTextAPI(host.text, releasePins, async id => {
-      try { return host.assets.bytes ? await host.assets.bytes(id) : null; } catch { return null; }
-    });
-  }
 
   // host.audio (v1.71) - the SAME per-frame analysis the web shell runs (the engine's
   // analysePcm), so an audio-reactive tool draws identical frames headlessly. The
@@ -642,6 +688,20 @@ export async function createCliBridge(
       // agent path - `lolly frame --image=https://…/logo.png`. No CSP applies
       // here; a failed fetch throws and resolveOne drops the asset with its
       // logged warning, exactly as on the web.
+      // An inline picture with a photo look (plan 291 W7): resolve the picture, then bake.
+      const lookedInline = parseTreatedAssetId(id);
+      if (lookedInline.treatment && /^data:/i.test(lookedInline.baseId)) {
+        const plain = await host.assets.get(lookedInline.baseId);
+        const def = (await photoTreatments()).find(t => t.id === lookedInline.treatment);
+        if (!def || plain.type !== 'raster') return { ...plain, id };
+        const themeKey = photoLookThemeKey(def, opts.tokenSelection ?? tokenSelection);
+        const mime = /^data:([^;,]+)/i.exec(lookedInline.baseId)?.[1] ?? '';
+        const bytes = new Uint8Array(await (await fetch(lookedInline.baseId)).arrayBuffer());
+        const baked = await bakeCliLook(photoLookCacheKey(inlineKey(lookedInline.baseId), 'x', def, themeKey), bytes, mime, def, themeKey);
+        return baked
+          ? { ...plain, id, url: baked.url, format: baked.format, original: undefined, meta: { ...plain.meta, treatment: lookedInline.treatment, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) } }
+          : { ...plain, id };
+      }
       if (/^data:/i.test(id)) {
         const mime = /^data:([^;,]+)/i.exec(id)?.[1] ?? '';
         const bytes = new Uint8Array(await (await fetch(id)).arrayBuffer());
@@ -697,7 +757,22 @@ export async function createCliBridge(
         // persisted state - same contract as the web bridge).
       }
       if (treatment && meta.type === 'raster') {
-        const def = (await photoTreatments()).find(t => t.id === treatment);
+        let def = (await photoTreatments()).find(t => t.id === treatment);
+        if (def && (isRasterPhotoLook(def) || def.themes)) {
+          // A theme variant picks the definition (plan 291 W7); a look only pixels reproduce bakes here.
+          const themeKey = photoLookThemeKey(def, opts.tokenSelection ?? tokenSelection);
+          if (isRasterPhotoLook(def)) {
+            const baked = await bakeCliLook(photoLookCacheKey(`${baseId}:${fmt.format}`, meta.version ?? 'x', def, themeKey), new Uint8Array(buf), mimeFor(fmt.format), def, themeKey);
+            if (baked) {
+              return {
+                source: 'library', id, type: meta.type, format: baked.format, url: baked.url,
+                version: meta.version, checksum: fmt.checksum,
+                meta: { ...extraMeta, treatment, baseId, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) },
+              };
+            }
+            def = undefined;
+          } else def = resolvePhotoLook(def, themeKey);
+        }
         // Fall back to a sibling format's dims when the primary format omits them
         // (jpg entries usually do) - otherwise the bake no-ops and the untreated
         // photo is served. Same reasoning as the web bridge.
@@ -764,6 +839,22 @@ export async function createCliBridge(
     async _userAssetsSize() { return 0; },
     async _deleteUserAsset() { /* no-op: no user images in CLI */ },
   };
+
+  // host.text - text-to-path (HarfBuzz WASM), the SAME shaping the web shell uses, so a
+  // tool that outlines text via host.text renders identically in the terminal. Without
+  // it, brand-lockup (and any host.text-in-hooks tool) throws in onInit and emits an
+  // empty SVG. Fonts resolve off disk under the repo root (see text.ts). Node-only fonts
+  // are all sfnt; the WASM loads lazily on first shape.
+  // It sits below host.assets on purpose: a release's pinned faces are read through
+  // host.assets, and reading them before it exists failed every pinned version.
+  host.text = createNodeTextAPI({ repoRoot: REPO_ROOT, assets: host.assets, parseXml: source => new w.DOMParser().parseFromString(source, 'image/svg+xml') });
+  await resolvedDoc();
+  if (releasePins.some(pin => pin.font)) {
+    const { releaseTextAPI } = await import('../../../packages/node-shell/src/release-fonts.ts');
+    host.text = await releaseTextAPI(host.text, releasePins, async id => {
+      try { return host.assets.bytes ? await host.assets.bytes(await host.assets.get(id)) : null; } catch { return null; }
+    });
+  }
 
   // host.state - the saved-session files this machine already has, in the layout the
   // desktop app writes: <state dir>/saved-state/<token>.json (plans/202 WP3.1). So a

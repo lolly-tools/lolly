@@ -97,6 +97,8 @@ export interface ContentRoots {
   assetRoots: SharedAssetRoot[];
   /** Tool ids this profile drops (profiles.json `exclude`). */
   exclude: ReadonlySet<string>;
+  /** The profile's display label from profiles.json (`SUSE`), when it states one. */
+  label?: string;
 }
 
 /** The asset index as it is read: every brand key preserved, `assets` merged. */
@@ -303,6 +305,7 @@ export function contentRoots(opts?: { profile?: string; root?: string }): Conten
     catalogRoot: join(root, profile.catalog),
     assetRoots: sharedRoots(root, profile.assets ?? [], name),
     exclude: new Set(profile.exclude ?? []),
+    ...(typeof profile.label === 'string' && profile.label ? { label: profile.label } : {}),
   };
   rootOf.set(resolved, root);
   cache.set(key, resolved);
@@ -712,6 +715,22 @@ export function contentUrlFile(url: string, r?: ContentRoots): string | null {
     }
   } catch { /* no profile resolves here, or no such tool: a miss like any other */ }
   return null;
+}
+
+/**
+ * contentUrlFile, but the file name has to match the entry on disk letter for letter.
+ * A case-insensitive volume (APFS, NTFS) answers a stat for `suse-Medium.ttf` with
+ * `SUSE-Medium.ttf`, while Linux and the site's HTTP server do not, so any question
+ * whose answer ends up in an export's bytes asks here, and every OS answers alike.
+ */
+export function contentUrlFileExact(url: string, r?: ContentRoots): string | null {
+  const file = contentUrlFile(url, r);
+  if (!file) return null;
+  try {
+    return readdirSync(dirname(file)).includes(basename(file)) ? file : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Copy a tree as real bytes. `filter` forces Node's JS copy path, because the

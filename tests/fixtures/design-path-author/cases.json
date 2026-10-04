@@ -1,0 +1,535 @@
+{
+ "about": "Synthetic path geometry and the stored rows designPathPlacement writes for it (plan 291 W5). Inputs are canvas px once origin is added.",
+ "cases": [
+  {
+   "name": "a horizontal rule, frame-relative points",
+   "geometry": {
+    "points": [
+     [
+      100,
+      200
+     ],
+     [
+      900,
+      200
+     ]
+    ]
+   },
+   "origin": {
+    "x": 2000,
+    "y": 0
+   },
+   "paint": {
+    "stroke": "#222222",
+    "strokeW": 2
+   },
+   "expect": {
+    "x": 2100,
+    "y": 200,
+    "w": 800,
+    "h": 1,
+    "path": "1!line!0_0!0_1!0",
+    "paint": {
+     "x": 2099,
+     "y": 199,
+     "w": 802,
+     "h": 3
+    }
+   }
+  },
+  {
+   "name": "a vertical tick at a sub-pixel x",
+   "geometry": {
+    "d": "M410.79 500L410.79 512"
+   },
+   "origin": {
+    "x": 2000,
+    "y": 0
+   },
+   "paint": {
+    "stroke": "#222222",
+    "strokeW": 2
+   },
+   "expect": {
+    "x": 2410,
+    "y": 500,
+    "w": 1,
+    "h": 12,
+    "path": "1!line!0_.79!0_.79!1",
+    "paint": {
+     "x": 2409,
+     "y": 499,
+     "w": 3,
+     "h": 14
+    }
+   }
+  },
+  {
+   "name": "a closed quad, filled",
+   "geometry": {
+    "points": [
+     [
+      40,
+      10
+     ],
+     [
+      100,
+      10
+     ],
+     [
+      80,
+      90
+     ],
+     [
+      0,
+      90
+     ]
+    ],
+    "closed": true
+   },
+   "origin": {
+    "x": 3000,
+    "y": 1200
+   },
+   "paint": {
+    "stroke": "#ffffff",
+    "strokeW": 4
+   },
+   "expect": {
+    "x": 3000,
+    "y": 1210,
+    "w": 100,
+    "h": 80,
+    "path": "1!line!1_.4!0_1!0_.8!1_0!1",
+    "paint": {
+     "x": 2998,
+     "y": 1208,
+     "w": 104,
+     "h": 84
+    }
+   }
+  },
+  {
+   "name": "a closed run that repeats its first point",
+   "geometry": {
+    "points": [
+     [
+      0,
+      0
+     ],
+     [
+      60,
+      0
+     ],
+     [
+      30,
+      40
+     ],
+     [
+      0,
+      0
+     ]
+    ],
+    "closed": true
+   },
+   "origin": {
+    "x": 0,
+    "y": 0
+   },
+   "paint": {},
+   "expect": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 40,
+    "path": "1!line!1_0!0_1!0_.5!1",
+    "paint": {
+     "x": 0,
+     "y": 0,
+     "w": 60,
+     "h": 40
+    }
+   }
+  },
+  {
+   "name": "two triangles in one value, a fractional height",
+   "geometry": {
+    "d": "M0 0L20 0L10 18.4Z M0 18.4L20 18.4L10 36.8Z"
+   },
+   "origin": {
+    "x": 1000,
+    "y": 300
+   },
+   "paint": {
+    "stroke": "#666666",
+    "strokeW": 1.5
+   },
+   "expect": {
+    "x": 1000,
+    "y": 300,
+    "w": 20,
+    "h": 37,
+    "path": "1!line!1_0!0_1!0_.5!.497297*1!line!1_0!.497297_1!.497297_.5!.994595",
+    "paint": {
+     "x": 999.25,
+     "y": 299.25,
+     "w": 21.5,
+     "h": 38.5
+    }
+   }
+  },
+  {
+   "name": "an arrow with an open head",
+   "geometry": {
+    "points": [
+     [
+      10,
+      50
+     ],
+     [
+      60,
+      50
+     ]
+    ]
+   },
+   "origin": {
+    "x": 0,
+    "y": 1000
+   },
+   "paint": {
+    "stroke": "#123456",
+    "strokeW": 6,
+    "headEnd": "open"
+   },
+   "expect": {
+    "x": 10,
+    "y": 1050,
+    "w": 50,
+    "h": 1,
+    "path": "1!line!0_0!0_1!0",
+    "paint": {
+     "x": -9.8,
+     "y": 1030.2,
+     "w": 89.6,
+     "h": 40.6
+    }
+   }
+  },
+  {
+   "name": "a connector cubic",
+   "geometry": {
+    "d": "M0 0C231 0 189 256 420 256"
+   },
+   "origin": {
+    "x": 500,
+    "y": 600
+   },
+   "paint": {
+    "stroke": "#00aa55",
+    "strokeW": 3
+   },
+   "expect": {
+    "x": 500,
+    "y": 600,
+    "w": 420,
+    "h": 256,
+    "path": "1!cubic!0_0!0!!!.55_1!1!-.55",
+    "paint": {
+     "x": 498.5,
+     "y": 598.5,
+     "w": 423,
+     "h": 259
+    }
+   }
+  },
+  {
+   "name": "a connector cubic with no height",
+   "geometry": {
+    "d": "M0 0C231 0 189 0 420 0"
+   },
+   "origin": {
+    "x": 500,
+    "y": 600
+   },
+   "paint": {
+    "stroke": "#00aa55",
+    "strokeW": 3
+   },
+   "expect": {
+    "x": 500,
+    "y": 600,
+    "w": 420,
+    "h": 1,
+    "path": "1!cubic!0_0!0!!!.55_1!0!-.55",
+    "paint": {
+     "x": 498.5,
+     "y": 598.5,
+     "w": 423,
+     "h": 4
+    }
+   }
+  },
+  {
+   "name": "a four-point route",
+   "geometry": {
+    "points": [
+     [
+      578,
+      390
+     ],
+     [
+      578,
+      457
+     ],
+     [
+      826,
+      457
+     ],
+     [
+      826,
+      792
+     ]
+    ]
+   },
+   "origin": {
+    "x": 0,
+    "y": 3720
+   },
+   "paint": {
+    "stroke": "#ff7700",
+    "strokeW": 5
+   },
+   "expect": {
+    "x": 578,
+    "y": 4110,
+    "w": 248,
+    "h": 402,
+    "path": "1!line!0_0!0_0!.166667_1!.166667_1!1",
+    "paint": {
+     "x": 575.5,
+     "y": 4107.5,
+     "w": 253,
+     "h": 407
+    }
+   }
+  },
+  {
+   "name": "an artboard off the origin at a fractional position",
+   "geometry": {
+    "points": [
+     [
+      10.2,
+      10.2
+     ],
+     [
+      50.7,
+      30.1
+     ]
+    ]
+   },
+   "origin": {
+    "x": -2080.4,
+    "y": 1240.6
+   },
+   "paint": {},
+   "expect": {
+    "x": -2070,
+    "y": 1251,
+    "w": 41,
+    "h": 20,
+    "path": "1!line!0_-.004878!-.01_.982927!.985",
+    "paint": {
+     "x": -2070,
+     "y": 1251,
+     "w": 41,
+     "h": 20
+    }
+   }
+  },
+  {
+   "name": "a catmull-rom run",
+   "geometry": {
+    "points": [
+     [
+      0,
+      0
+     ],
+     [
+      50,
+      40
+     ],
+     [
+      100,
+      0
+     ]
+    ],
+    "curve": "catmull-rom"
+   },
+   "origin": {
+    "x": 0,
+    "y": 0
+   },
+   "paint": {},
+   "expect": {
+    "x": 0,
+    "y": 0,
+    "w": 100,
+    "h": 40,
+    "path": "1!catmull-rom!0_0!0_.5!1_1!0",
+    "paint": {
+     "x": 0,
+     "y": 0,
+     "w": 100,
+     "h": 40
+    }
+   }
+  },
+  {
+   "name": "relative commands closing a rectangle",
+   "geometry": {
+    "d": "m10 10 h100 v50 h-100 z"
+   },
+   "origin": {
+    "x": 0,
+    "y": 0
+   },
+   "paint": {},
+   "expect": {
+    "x": 10,
+    "y": 10,
+    "w": 100,
+    "h": 50,
+    "path": "1!line!1_0!0_1!0_1!1_0!1",
+    "paint": {
+     "x": 10,
+     "y": 10,
+     "w": 100,
+     "h": 50
+    }
+   }
+  },
+  {
+   "name": "a quadratic whose handles sit outside the frame",
+   "geometry": {
+    "d": "M0 0 Q50 100 100 0"
+   },
+   "origin": {
+    "x": 0,
+    "y": 0
+   },
+   "paint": {},
+   "expect": {
+    "x": 0,
+    "y": 0,
+    "w": 100,
+    "h": 50,
+    "path": "1!cubic!0_0!0!!!.333333!1.333333_1!0!-.333333!1.333333",
+    "paint": {
+     "x": 0,
+     "y": 0,
+     "w": 100,
+     "h": 50
+    }
+   }
+  },
+  {
+   "name": "an arc above its chord",
+   "geometry": {
+    "d": "M0 0 A50 50 0 0 1 100 0"
+   },
+   "origin": {
+    "x": 0,
+    "y": 0
+   },
+   "paint": {},
+   "expect": {
+    "x": 0,
+    "y": -50,
+    "w": 100,
+    "h": 50,
+    "path": "1!cubic!0_0!1!!!!-.552285_.5!0!-.276142!!.276142_1!1!!-.552285",
+    "paint": {
+     "x": 0,
+     "y": -50,
+     "w": 100,
+     "h": 50
+    }
+   }
+  },
+  {
+   "name": "a closed leaf of two quadratics through one other node",
+   "geometry": {
+    "d": "M0 0 Q50 -40 100 0 Q50 40 0 0 Z"
+   },
+   "origin": {
+    "x": 500,
+    "y": 300
+   },
+   "paint": {},
+   "expect": {
+    "x": 500,
+    "y": 280,
+    "w": 100,
+    "h": 40,
+    "path": "1!cubic!1_0!.5!!!.333333!-.666667_1!.5!-.333333!-.666667!-.333333!.666667_0!.5!.333333!.666667",
+    "paint": {
+     "x": 500,
+     "y": 280,
+     "w": 100,
+     "h": 40
+    }
+   }
+  },
+  {
+   "name": "a closed D shape, a straight edge and one quadratic back to the start",
+   "geometry": {
+    "d": "M0 0 L100 0 Q50 60 0 0 Z"
+   },
+   "origin": {
+    "x": 0,
+    "y": 0
+   },
+   "paint": {
+    "stroke": "#222222",
+    "strokeW": 2
+   },
+   "expect": {
+    "x": 0,
+    "y": 0,
+    "w": 100,
+    "h": 30,
+    "path": "1!cubic!1_0!0_1!0!!!-.333333!1.333333_0!0!.333333!1.333333",
+    "paint": {
+     "x": -1,
+     "y": -1,
+     "w": 102,
+     "h": 32
+    }
+   }
+  },
+  {
+   "name": "a closed loop of two cubics that returns to its start",
+   "geometry": {
+    "d": "M0 0C10 0 10 10 0 10C-10 10 -10 0 0 0Z"
+   },
+   "origin": {
+    "x": 40,
+    "y": 40
+   },
+   "paint": {},
+   "expect": {
+    "x": 33,
+    "y": 40,
+    "w": 15,
+    "h": 10,
+    "path": "1!cubic!1_.466667!0!!!.666667_.466667!1!.666667!!-.666667_.466667!0!-.666667",
+    "paint": {
+     "x": 33,
+     "y": 40,
+     "w": 15,
+     "h": 10
+    }
+   }
+  }
+ ]
+}

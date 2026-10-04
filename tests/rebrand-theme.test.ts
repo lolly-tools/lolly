@@ -64,7 +64,8 @@ function darkColorsOf(tokensFile: string): Record<string, string> {
   const doc: unknown = JSON.parse(readFileSync(path.join(ROOT, tokensFile), 'utf8'));
   const out: Record<string, string> = {};
   for (const entry of createTokenSet(doc, { theme: 'dark' }).query({ type: 'color' })) {
-    if (typeof entry.value === 'string') out[entry.path] = entry.value;
+    // The shells' readers leave the themed role tokens out (plan 291 W4), and so does this one.
+    if (typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out[entry.path] = entry.value;
   }
   return out;
 }
@@ -688,5 +689,8 @@ test('SUSE: on the Brand colour ground the frame draws the mono mark, and an unt
     opts: { ...compileSystemOpts(suse.input), applyUnreviewed: true, applyNeedsAttention: true },
   });
   const plainMarks = plain.frames.flatMap((frame) => frame.layers.filter((row) => String(row.furniture ?? '').startsWith('logo')).map((row) => String(row.image ?? '')));
-  assert.ok(plainMarks.every((image) => !mono.has(image)), `an unthemed deck keeps the colour marks: ${plainMarks.join(', ')}`);
+  // The colour marks are the logo set's on-light and on-dark picks. Since plan 291 E18 the
+  // set follows the brand's logo-surface order, and SUSE's own dark preference is the white
+  // mark, which is also its mono mark on dark, so this asks for the colour picks by name.
+  assert.ok(plainMarks.length > 0 && plainMarks.every((image) => image === logos.onLight || image === logos.onDark), `an unthemed deck keeps the colour marks: ${plainMarks.join(', ')}`);
 });

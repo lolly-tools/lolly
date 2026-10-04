@@ -11,7 +11,7 @@
  * live alongside this one.
  */
 
-import { stripAssetModifiers } from '../../../../engine/src/photo-treatment.ts';
+import { stripAssetModifiers } from '../../../../engine/src/asset-modifiers.ts';
 import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
 
 /** One display group; may declare tag-matched `sub` groups (rendered as nested

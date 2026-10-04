@@ -14,8 +14,11 @@
  *     with the library `structure` they restyle, every structure in the library's
  *     `expanded` list that no tuned archetype restyles expanded in that master's own
  *     margins, type scale and furniture, a dark variant for each light content
- *     archetype, and a weight on every text placeholder (700 for a title, 400 where
- *     a tuned slot left it out, so Design stops drawing a body bold). A library box
+ *     archetype, and a weight on every text placeholder (the master's strong weight
+ *     for a title, 400 where a tuned slot left it out, so Design stops drawing a body
+ *     bold). The strong weights are per pack (`MasterBuildConfigV1.weights`): 700 by
+ *     default, and SUSE sets its headlines, labels, figures and page numbers in
+ *     Medium 500 (plan 291 D6). A library box
  *     stated as explicit fractions is moved from the library grid to the master's:
  *     x through the margins, and a box that starts on the title band onto the
  *     master's title band. The mirror of a structure a tuned archetype restyles is
@@ -100,6 +103,41 @@ export interface MasterBuildConfigV1 {
   overlays: Record<string, ArchetypeRoleV1[]>;
   /** The master's translucent rectangle laid under a page number or footer that falls on a picture. */
   scrim?: string;
+  /**
+   * The weights this master sets its strong text in. A weight stated here also
+   * replaces the matching weight on the tuned archetypes and on every page-number
+   * furniture entry, so a pack can move its headline weight in one place.
+   * Left out, a weight is 700 and the tuned archetypes keep what they state.
+   */
+  weights?: Partial<MasterWeightsV1>;
+}
+
+/** The weights a master sets its strong text in, as CSS weight strings. */
+export interface MasterWeightsV1 {
+  title: string;
+  label: string;
+  number: string;
+  pageNumber: string;
+  /** A tuned slot set apart from the body, such as a quote's attribution or a picture caption. */
+  emphasis: string;
+}
+
+/** The weight a body, subtitle, quote or caption is set in, in every master. */
+export const BODY_WEIGHT = '400';
+
+const DEFAULT_WEIGHTS: MasterWeightsV1 = { title: '700', label: '700', number: '700', pageNumber: '700', emphasis: '700' };
+
+/** The strong weights a master build uses: the pack's own over the 700 default. */
+export function masterWeights(config: Pick<MasterBuildConfigV1, 'weights'>): MasterWeightsV1 {
+  return { ...DEFAULT_WEIGHTS, ...config.weights };
+}
+
+/** The strong weight a placeholder role takes; a role outside title, label and number takes the emphasis weight. */
+function strongWeight(role: ArchetypeRoleV1, weights: MasterWeightsV1): string {
+  if (role === 'title') return weights.title;
+  if (role === 'label') return weights.label;
+  if (role === 'number') return weights.number;
+  return weights.emphasis;
 }
 
 /** The twelve archetypes both masters hand-tune, and the library structure each restyles. */
@@ -150,7 +188,7 @@ const DARK_FURNITURE: Record<string, string | null> = {
 function onDarkFurniture(ink: string): FurnitureLayerV1[] {
   return [
     { id: 'footer-on-dark', kind: 'footer', box: { x: 0.16, y: 0.9325, w: 0.25, h: 0.028 }, style: { align: 'left', valign: 'middle', fgTokenPath: ink } },
-    { id: 'page-number-on-dark', kind: 'page-number', box: { x: 0.4232, y: 0.917, w: 0.06, h: 0.0516 }, style: { weight: '700', align: 'center', valign: 'middle', fgTokenPath: ink } },
+    { id: 'page-number-on-dark', kind: 'page-number', box: { x: 0.4232, y: 0.917, w: 0.06, h: 0.0516 }, style: { weight: DEFAULT_WEIGHTS.pageNumber, align: 'center', valign: 'middle', fgTokenPath: ink } },
   ];
 }
 
@@ -183,7 +221,9 @@ export const MASTER_BUILDS: readonly MasterBuildConfigV1[] = [
     pack: 'suse',
     file: 'brands/suse/catalog/assets/suse/slides/masters.json',
     masterId: 'suse/slides/brand',
-    version: '1.3.0',
+    // 1.4.0: headlines, labels, figures and page numbers move from 700 to Medium 500
+    // (plan 291 D6), so a rebrand plan saved against 1.3.0 is refused as a mismatch.
+    version: '1.4.0',
     grid: TEMPLATE_GRID,
     colours: {
       ground: { light: 'color.semantic.surface', dark: 'color.brand.pine' },
@@ -201,6 +241,9 @@ export const MASTER_BUILDS: readonly MasterBuildConfigV1[] = [
     darkFurniture: DARK_FURNITURE,
     overlays: { 'big-number': ['caption'] },
     scrim: 'caption-scrim',
+    // The SUSE brand sets headlines in Medium 500 and keeps primary settings within
+    // 400 to 500; the heavier weights are for expressive display work only.
+    weights: { title: '500', label: '500', number: '500', pageNumber: '500', emphasis: '500' },
   },
 ];
 
@@ -377,35 +420,36 @@ function styleFor(ph: PlaceholderLayerV1, structure: SlideStructureV1, config: M
   const scale = master.typeScale;
   const inBand = Math.abs(ph.box.y - config.grid.titleY) < 1e-6 && Math.abs(ph.box.h - config.grid.titleH) < 1e-6;
   const stats = structure.id.startsWith('stats-');
+  const weights = masterWeights(config);
   switch (ph.role) {
     case 'title': {
       // A cover or a closing slide sets its title large; a title beside a picture takes the scale.
       const cover = !inBand && (structure.section === 'titles' || structure.section === 'closing');
       return cover
-        ? { fontSize: Math.round(scale.title * TYPE_RATIOS.coverTitle), weight: '700', align: 'left', valign: 'bottom', fgTokenPath: ink }
-        : { weight: '700', align: 'left', valign: 'bottom', fgTokenPath: ink };
+        ? { fontSize: Math.round(scale.title * TYPE_RATIOS.coverTitle), weight: weights.title, align: 'left', valign: 'bottom', fgTokenPath: ink }
+        : { weight: weights.title, align: 'left', valign: 'bottom', fgTokenPath: ink };
     }
     case 'subtitle': {
       const underTitle = Math.abs(ph.box.y - (config.grid.titleY + config.grid.titleH)) < 1e-3;
       const fontSize = underTitle ? Math.round(scale.subtitle * TYPE_RATIOS.subtitleUnderTitle) : scale.subtitle;
-      return { fontSize, weight: '400', align: 'left', valign: 'top', fgTokenPath: ink };
+      return { fontSize, weight: BODY_WEIGHT, align: 'left', valign: 'top', fgTokenPath: ink };
     }
     case 'label': {
       const fontSize = sizeByWidth(ph.box.w, scale.body, TYPE_RATIOS.label);
-      return { fontSize, weight: '700', align: stats ? 'center' : 'left', valign: stats ? 'top' : 'bottom', fgTokenPath: ink };
+      return { fontSize, weight: weights.label, align: stats ? 'center' : 'left', valign: stats ? 'top' : 'bottom', fgTokenPath: ink };
     }
     case 'number': {
       const least = Math.round(scale.title * TYPE_RATIOS.numberMin);
       const most = Math.round(scale.title * TYPE_RATIOS.numberMax);
       const byBox = Math.min(Math.round(ph.box.h * master.size.height * 0.55), Math.round(ph.box.w * master.size.width * 0.6));
       const fontSize = Math.max(least, Math.min(most, byBox));
-      return { fontSize, weight: '700', align: stats ? 'center' : 'left', valign: stats ? 'bottom' : 'top', fgTokenPath: figure };
+      return { fontSize, weight: weights.number, align: stats ? 'center' : 'left', valign: stats ? 'bottom' : 'top', fgTokenPath: figure };
     }
     case 'caption':
-      return { weight: '400', align: 'left', valign: 'top', fgTokenPath: ink };
+      return { weight: BODY_WEIGHT, align: 'left', valign: 'top', fgTokenPath: ink };
     default: {
       const fontSize = sizeByWidth(ph.box.w, scale.body, TYPE_RATIOS.body);
-      return { fontSize, weight: '400', align: 'left', valign: 'top', fgTokenPath: ink };
+      return { fontSize, weight: BODY_WEIGHT, align: 'left', valign: 'top', fgTokenPath: ink };
     }
   }
 }
@@ -509,6 +553,23 @@ function clearOfTitle(ph: PlaceholderLayerV1, title: PlaceholderLayerV1 | undefi
   return { ...ph.box, y: grid.contentY, h: Math.round((bottom - grid.contentY) * 10000) / 10000 };
 }
 
+/**
+ * The weight a tuned text slot keeps. A slot that states none takes the master's
+ * title weight for a title and the body weight otherwise. A slot that states a
+ * weight keeps it, unless the pack configures the strong weight for that slot: a
+ * title, label or number then takes the configured weight, and any other slot set
+ * apart from the body takes the configured emphasis weight.
+ */
+function tunedWeight(ph: PlaceholderLayerV1, config: MasterBuildConfigV1): string {
+  const weights = masterWeights(config);
+  const stated = ph.style?.weight;
+  if (stated === undefined) return ph.role === 'title' ? weights.title : BODY_WEIGHT;
+  const key = ph.role === 'title' || ph.role === 'label' || ph.role === 'number' ? ph.role : 'emphasis';
+  if (config.weights?.[key] === undefined) return stated;
+  if (key === 'emphasis' && stated === BODY_WEIGHT) return stated;
+  return strongWeight(ph.role, weights);
+}
+
 /** A tuned archetype with its structure, a weight on every text slot and its stated overlays. */
 function tunedArchetype(a: ArchetypeV1, config: MasterBuildConfigV1): ArchetypeV1 {
   const overlays = new Set(config.overlays[a.id] ?? []);
@@ -516,7 +577,7 @@ function tunedArchetype(a: ArchetypeV1, config: MasterBuildConfigV1): ArchetypeV
   const next: ArchetypeV1 = { ...a, placeholders: a.placeholders.map((ph) => {
     const out: PlaceholderLayerV1 = { ...ph, box: clearOfTitle(ph, title, config.grid) };
     if (ph.kind !== 'image') {
-      out.style = { ...ph.style, weight: ph.style?.weight ?? (ph.role === 'title' ? '700' : '400') };
+      out.style = { ...ph.style, weight: tunedWeight(ph, config) };
     }
     if (overlays.has(ph.role)) out.overlay = true;
     return out;
@@ -663,6 +724,13 @@ function darkVariant(a: ArchetypeV1, config: MasterBuildConfigV1, book: Furnitur
   };
 }
 
+/** A page number in the pack's configured page-number weight; other furniture as it is. */
+function pageNumberWeighted(f: FurnitureLayerV1, config: MasterBuildConfigV1): FurnitureLayerV1 {
+  const weight = config.weights?.pageNumber;
+  if (f.kind !== 'page-number' || weight === undefined || f.style?.weight === weight) return f;
+  return { ...f, style: { ...f.style, weight } };
+}
+
 /** One master rebuilt from its tuned archetypes and the library. */
 export function buildMaster(current: SlideMasterV1, library: SlideStructureLibraryV1, config: MasterBuildConfigV1): SlideMasterV1 {
   const known = new Set<string>(KNOWN_ARCHETYPE_IDS);
@@ -672,8 +740,11 @@ export function buildMaster(current: SlideMasterV1, library: SlideStructureLibra
   const onGrid = libraryOnGrid(library, config.grid);
 
   const configured = new Set(config.extraFurniture.map((f) => f.id));
-  const keptFurniture = current.furniture.filter((f) => !configured.has(f.id) && !f.id.startsWith('rule-') && !f.id.startsWith(MIRROR_PREFIX));
-  const base = new Map([...keptFurniture, ...config.extraFurniture].map((f) => [f.id, f]));
+  const keptFurniture = current.furniture
+    .filter((f) => !configured.has(f.id) && !f.id.startsWith('rule-') && !f.id.startsWith(MIRROR_PREFIX))
+    .map((f) => pageNumberWeighted(f, config));
+  const extraFurniture = config.extraFurniture.map((f) => pageNumberWeighted(f, config));
+  const base = new Map([...keptFurniture, ...extraFurniture].map((f) => [f.id, f]));
   const book: FurnitureBookV1 = { added: new Map(), get: (id) => base.get(id) ?? book.added.get(id) };
 
   const generated: ArchetypeV1[] = [];
@@ -705,7 +776,7 @@ export function buildMaster(current: SlideMasterV1, library: SlideStructureLibra
     ...current,
     version: config.version,
     archetypes: [...light, ...variants].map(archetype),
-    furniture: [...keptFurniture, ...config.extraFurniture, ...book.added.values()].map(furniture),
+    furniture: [...keptFurniture, ...extraFurniture, ...book.added.values()].map(furniture),
   };
   if (config.description) master.description = config.description;
   return ordered(master, ['id', 'version', 'name', 'description', 'size', 'archetypes', 'furniture', 'typeScale', 'logo']);

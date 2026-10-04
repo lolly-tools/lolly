@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "purpose": "Briefs for evaluating an agent that rebuilds a deck on brand with the skill. scripts/recreate-eval.ts grades the folder an agent delivers against the measured gates of each case. These are not records of completed agent runs.",
+  "cases": [
+    {
+      "id": "recreate-synthetic",
+      "prompt": "Make this deck on brand, light and dark, as .lolly and .pptx. Keep every string and every speaker note, or declare each change with its reason in edits.json.",
+      "source": "../../../tests/fixtures/rebrand/recreate.pptx",
+      "designSystem": { "file": "../../../tests/fixtures/recreate/tokens.json" },
+      "env": { "LOLLY_PROFILE": "lolly-start" },
+      "themes": ["light", "dark"],
+      "deliver": {
+        "formats": ["lolly", "pptx"],
+        "names": "one <name>.lolly for every theme, listed with its themes in delivery.json ({ \"files\": { \"harbour.lolly\": [\"light\", \"dark\"] } }), and <name>-<theme>.pptx per theme, for example harbour-light.pptx and harbour-dark.pptx; a document per theme may instead be named <name>-<theme>.lolly",
+        "edits": "edits.json, optional: a JSON array of { source, result?, reason }, one entry per string changed or dropped on purpose"
+      },
+      "pass": {
+        "checkErrors": 0,
+        "missingStrings": 0,
+        "missingNotes": 0,
+        "slides": "source",
+        "themes": ["light", "dark"],
+        "reopens": true,
+        "edits": "valid"
+      },
+      "report": ["verifyFindings", "sourceVerifyFindings", "houseRuleFindings", "brandColorReview", "undeclaredEdits", "unmatchedEdits", "notesLinesMerged", "notesLinesSplit", "themeGroundMismatches", "themeGroundsExempt", "pptxTier", "renderStates", "scaffolding"],
+      "requires": [
+        "A repository checkout, so the source deck and the design system resolve",
+        "For the .pptx export and the reopen check: a web build that has the #/open route, or LOLLY_WEB_BASE pointing at a dev server run with the same LOLLY_PROFILE"
+      ],
+      "checks": [
+        "Eight slides in every delivered file, in the source order",
+        "Every source string present, or declared in edits.json with a reason",
+        "Every speaker note carried, with its line breaks",
+        "No check error in any delivered file",
+        "Both themes delivered as .lolly and as .pptx",
+        "Each .lolly reopens as a saved Design session with its label",
+        "The cover photo keeps its proportions, and text over a photograph stays legible",
+        "No numbered cards with coloured strips, no eyebrow over a heading, and text set left"
+      ]
+    },
+    {
+      "id": "recreate-private",
+      "prompt": "Make this deck on brand, light and dark, as .lolly and .pptx. Keep every string and every speaker note, or declare each change with its reason in edits.json.",
+      "source": { "env": "LOLLY_RECREATE_SOURCE" },
+      "designSystem": { "profile": "suse" },
+      "env": { "LOLLY_PROFILE": "suse" },
+      "themes": ["light", "dark"],
+      "deliver": {
+        "formats": ["lolly", "pptx"],
+        "names": "one <name>.lolly for every theme, listed with its themes in delivery.json, and <name> <theme>.pptx per theme; any other file's theme is read from its name",
+        "edits": "edits.json, optional"
+      },
+      "pass": {
+        "checkErrors": 0,
+        "missingStrings": 0,
+        "missingNotes": 0,
+        "slides": "source",
+        "themes": ["light", "dark"],
+        "reopens": true,
+        "edits": "valid"
+      },
+      "report": ["verifyFindings", "sourceVerifyFindings", "houseRuleFindings", "brandColorReview", "undeclaredEdits", "unmatchedEdits", "notesLinesMerged", "notesLinesSplit", "themeGroundMismatches", "themeGroundsExempt", "pptxTier", "renderStates", "scaffolding"],
+      "requires": [
+        "The private brand pack and a private source deck, named by LOLLY_RECREATE_SOURCE; neither is in a public clone"
+      ],
+      "checks": [
+        "The same measured gates as recreate-synthetic, against the private deck and the brand's own design system"
+      ]
+    }
+  ],
+  "rubric": {
+    "measured": ["Check errors per delivered file", "Missing source strings and speaker notes, after declared edits", "Slide count against the source", "Both themes in both formats", "Each .lolly reads back in Node and reopens through #/open", "A well-formed edits.json"],
+    "reviewed": ["Message hierarchy", "Legibility of text over photographs", "Photos cropped, never stretched", "Design-system adherence beyond the measured rules", "Verify findings and draft house-rule findings, which are reported and never gate"],
+    "report": "Record the score JSON, the delivered files, the findings that were reported but not gated, the checks that could not run and why, and any scaffolding the agent left in the folder. Passing the measured gates does not establish design quality."
+  }
+}

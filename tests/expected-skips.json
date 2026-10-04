@@ -129,125 +129,6 @@
       "owner": "shells/web"
     },
     {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: CONTROL: no-shadow box",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: CONTROL: plain text",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: drop-shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: elliptical radial gradient",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: hard outer shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: inset shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur + drop-shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur over a box-shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: outer shadow under a translucent background",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: rotated box",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: rotated box, other direction",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: shadow with spread",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: skewed box (raw matrix)",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: soft outer shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: text-shadow, blurred",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: text-shadow, hard offset",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
       "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
       "fullName": "strokeOf: a class-declared stroke on the real catalog artwork resolves (PDF outlines)",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
@@ -598,6 +479,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/check-file.test.ts",
+      "fullName": "the delivered Sleepwalking decks check with no error finding, and list their wording edits against the source",
+      "reason": "the delivered Sleepwalking deck fixture is not on this machine (set LOLLY_CHECK_SLEEPWALKING)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
       "file": "tests/cli-deep-export.test.ts",
       "fullName": "depth=16 and depth=8 do NOT become EXR sample types - half is kept",
       "reason": "ffprobe/ffmpeg not on PATH - the independent EXR/Radiance decoder is the whole point of these cases",
@@ -651,34 +539,6 @@
       "fullName": "a case-variant name on a case-insensitive volume is caught as the source deck",
       "reason": "platform: this volume is case-sensitive (Linux CI), so a case-variant name is another file",
       "capability": "platform",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "--seconds and --fps shape the clip: the URL-mode video params reach the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "a Tier-B failure fails, and fails PROMPTLY, with the debug log it was asked for",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "a deck exports a real pptx through the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "an animated tool exports a real mp4 through the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
-      "capability": "browser",
       "owner": "tests"
     },
     {
@@ -924,6 +784,20 @@
       "fullName": "History compares retained or current snapshots without changing saved or live state",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
       "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compose-cli.test.ts",
+      "fullName": "--list --json on the suse profile lists that profile's catalog master",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/content-inventory.test.ts",
+      "fullName": "the Sleepwalking deck reads as 16 slides with five notes and its pictures (plan 291 acceptance)",
+      "reason": "the private Sleepwalking deck fixture is not on this machine (set LOLLY_SLEEPWALKING_DECK)",
+      "capability": "fixture",
       "owner": "tests"
     },
     {
@@ -1361,10 +1235,101 @@
       "owner": "tests"
     },
     {
+      "file": "tests/design-authoring-sleepwalking.test.ts",
+      "fullName": "one package call carries the authored Sleepwalking deck to the delivered session, media and findings",
+      "reason": "the private Sleepwalking authoring fixture is not on this machine (set LOLLY_AUTHOR_SLEEPWALKING and LOLLY_CHECK_SLEEPWALKING)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-authoring-sleepwalking.test.ts",
+      "fullName": "the Sleepwalking light deck, authored with no compensation, lowers to the delivered rows",
+      "reason": "the private Sleepwalking authoring fixture is not on this machine (set LOLLY_AUTHOR_SLEEPWALKING and LOLLY_CHECK_DELIVERED)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-colour-roles-suse.test.ts",
+      "fullName": "one linked document resolves to the delivered light rows in light and the dark rows in dark",
+      "reason": "brands/suse is not mounted on this machine",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-authoring.test.ts",
+      "fullName": "the delivered Sleepwalking documents are their own expansion",
+      "reason": "the delivered Sleepwalking design fixture is not on this machine (set LOLLY_CHECK_DELIVERED)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-check.test.ts",
+      "fullName": "the delivered Sleepwalking documents show no card, eyebrow or numbering pattern",
+      "reason": "the delivered Sleepwalking design fixture is not on this machine (set LOLLY_CHECK_DELIVERED)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suse.test.ts",
+      "fullName": "SUSE title at 1920x1080: the title lands where New slide from layout puts it, over a photo, with the mono mark",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suse.test.ts",
+      "fullName": "SUSE agenda at 1920x1080: bars, footer and page number in deck order; a dark ground takes agenda-dark",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suse.test.ts",
+      "fullName": "SUSE full-image at 1920x1080: the photo and caption fill, the scrim and hero logo are left off",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suse.test.ts",
+      "fullName": "SUSE closing-thanks at 1920x1080: three slots fill over a photo, numbered last",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suse.test.ts",
+      "fullName": "SUSE E15: source bold in a Medium headline takes the accent the pairings allow on its ground, and the house rules pass",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suse.test.ts",
+      "fullName": "SUSE dark deck: a flow layout takes its dark twin, main-point is themed dark, and a full photo takes the on-photo mark",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suse.test.ts",
+      "fullName": "SUSE logos follow the brand logo-surface order over the master tags, and a two-theme deck writes auto marks (plan 291 E18)",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
       "file": "tests/design-panels.browser.test.ts",
       "fullName": "artboard parents, overflowing tracks and the narrow inspector stay usable",
       "reason": "Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.",
       "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-pptx-tier-a.test.ts",
+      "fullName": "B5: a neutral-master frame exported under the suse profile is Tier A, and the notes say why",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
       "owner": "tests"
     },
     {
@@ -3188,6 +3153,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/surface-variant.test.ts",
+      "fullName": "SUSE: one auto reference per logo and icon layer reproduces the 44 delivered picks of both decks",
+      "reason": "the delivered Sleepwalking design fixture is not on this machine (set LOLLY_CHECK_DELIVERED)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
       "file": "tests/timezone-table.browser.test.ts",
       "fullName": "Timezone table: first visit, keyboard entry, list paste, row actions and reload",
       "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
@@ -3220,6 +3192,13 @@
       "fullName": "274 WP6: LibreOffice converts the bound deck to a PDF",
       "reason": "the soffice binary is not on PATH, so no independent consumer can open the deck here",
       "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-path-author.test.ts",
+      "fullName": "eight delivered path rows reproduce from the generator inputs within 1e-3 px after renderer rounding",
+      "reason": "the delivered deck boxes fixture is not on this machine (set LOLLY_DESIGN_PATHS_GOLDEN to its light boxes JSON)",
+      "capability": "fixture",
       "owner": "tests"
     },
     {
@@ -3317,6 +3296,111 @@
       "file": "tests/rebrand-theme.test.ts",
       "fullName": "SUSE: on the Brand colour ground the frame draws the mono mark, and an unthemed deck keeps the colour marks",
       "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-brief-suse.test.ts",
+      "fullName": "the SUSE tokens carry a valid brand system whose rules are all Design house rules",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-brief-suse.test.ts",
+      "fullName": "the SUSE brand system lists no asset resources, so a SUSE brand export keeps reader 1",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pptx-static-faces.test.ts",
+      "fullName": "every shipped SUSE static face is named \"<Family> <Weight>\" in its own name table",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pptx-static-faces.test.ts",
+      "fullName": "the suse profile ships the Medium face at the catalog URL the shells probe",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pptx-static-faces.test.ts",
+      "fullName": "a face file is matched letter for letter, so a Mac and Linux write the same deck",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-brief-cli.test.ts",
+      "fullName": "a --file design system that is another brand gets none of the active profile catalog",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-brief-suse.test.ts",
+      "fullName": "every SUSE icon theme states the surfaces it suits",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-brief-suse.test.ts",
+      "fullName": "the SUSE brief declares pairings, icons, media, the master and the house rules",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-brief-suse.test.ts",
+      "fullName": "the SUSE check knows themed icons and reports the four house-rule traps",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-brief-suse.test.ts",
+      "fullName": "frames seeded from the SUSE master keep every house rule, the logo on photography included",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suggest-sleepwalking.test.ts",
+      "fullName": "the Sleepwalking 2x2 grid numbered 01 to 04 drops its counters, and the closing subtitle fits its slot",
+      "reason": "the private Sleepwalking source deck is not on this machine (set LOLLY_SUGGEST_SLEEPWALKING)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-suggest-sleepwalking.test.ts",
+      "fullName": "the Sleepwalking suggestion sets covers over their photographs, its statements over theirs, and the question cards as columns",
+      "reason": "the private Sleepwalking source deck is not on this machine (set LOLLY_SUGGEST_SLEEPWALKING)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-theme-follow.test.ts",
+      "fullName": "SUSE (gated): no ink stays a brand constant on a ground that follows the theme, and every slot reads in both themes",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-compose-themes.test.ts",
+      "fullName": "SUSE (gated): two themes link the master colours, and a light slide with constant colours keeps its dark twin",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-pptx-brand-fonts.test.ts",
+      "fullName": "CLI Tier A under suse: a mono-slot run names font.mono, never the sans face",
+      "reason": "brands/suse is not checked out",
       "capability": "brand:suse",
       "owner": "tests"
     }

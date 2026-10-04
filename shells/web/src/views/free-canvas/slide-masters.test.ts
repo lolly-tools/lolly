@@ -33,6 +33,7 @@ import type { FcCtx } from './context.ts';
 import type { Box } from '../free-canvas-math.ts';
 import { ARCHETYPE_IDS, ARCHETYPE_ROLES } from '@lolly-tools/core';
 import type { SlideMasterFileV1 } from '@lolly-tools/core';
+import { buildSurfaceVariantTable, pickSurfaceVariant } from '@lolly/engine';
 
 const REPO = new URL('../../../../../', import.meta.url);
 
@@ -131,7 +132,7 @@ function rectOf(left: number, top: number, width: number, height: number): DOMRe
 
 function fixture(
   initial: Box[] = [],
-  opts: { masterFile?: unknown; canvas?: { w: number; h: number } } = {}
+  opts: { masterFile?: unknown; canvas?: { w: number; h: number }; tokens?: Record<string, unknown> } = {}
 ): Fixture {
   let boxes: Box[] = initial.slice();
   const commits: Box[][] = [];
@@ -196,6 +197,7 @@ function fixture(
         async get() {
           return { query: () => TOKENS };
         },
+        ...(opts.tokens ?? {}),
       },
     },
     helpers: { canvasWH: () => opts.canvas ?? { w: 1000, h: 500 } },
@@ -992,4 +994,31 @@ test('every message is one short plain sentence, and the menu words are pinned',
     resetSlide: 'Reset slide',
     noMaster: 'This design system has no slide master.',
   });
+});
+
+test('under a design system with two themes, a new slide writes its logo as ?theme=auto, in the brand rule order (plan 291 W4)', async () => {
+  const rule = {
+    id: 'logo-surface', kind: 'logo-surface', label: 'Marks by surface', roleIds: [], requirement: 'advisory',
+    parameters: { light: ['brand/logo/primary'], dark: ['brand/logo/mono-dark', 'brand/logo/reverse'] },
+  };
+  const f = fixture([], {
+    tokens: {
+      themes: async () => [{ name: 'light', group: null }, { name: 'dark', group: null }],
+      snapshot: async () => ({ document: { $extensions: { 'com.suse.lolly': { brandSystem: { rules: [rule] } } } } }),
+    },
+  });
+  await newSlideFromArchetype(f.fc, 'title');
+  const logo = f.boxes().find((b) => b.furniture === 'logo')!;
+  // The tags find `reverse` first on dark; the rule puts the mono mark first, and the
+  // runtime re-picks the auto id per theme from the surface under the logo. The id is
+  // written under the light side of the pair, so the mono mark the rule prefers on dark
+  // is not read as a mono choice on a light surface.
+  assert.equal(logo.image, 'brand/logo/primary?theme=auto');
+  const table = buildSurfaceVariantTable({ tokens: null, rules: [rule as never] });
+  assert.equal(pickSurfaceVariant(String(logo.image), 'dark', table), 'brand/logo/mono-dark');
+  assert.equal(pickSurfaceVariant(String(logo.image), 'light', table), 'brand/logo/primary');
+  // One theme: the id stays concrete, as before.
+  const single = fixture([], { tokens: { themes: async () => [{ name: 'light', group: null }] } });
+  await newSlideFromArchetype(single.fc, 'title');
+  assert.equal(single.boxes().find((b) => b.furniture === 'logo')!.image, 'brand/logo/reverse');
 });

@@ -1,0 +1,99 @@
+/* ── Connect an AI agent (views/agent-connect.ts, plans/289 D1) ────────────
+   The dialog reuses the script-audio overlay; this sheet adds the code field,
+   the status line and the corner pill shown while an agent is linked. A lazy
+   chunk, imported by the module itself. */
+.agent-connect-lead {
+  margin: 0 0 8px;
+  font-size: var(--fs-md);
+  line-height: 1.45;
+}
+.agent-connect-note {
+  margin: 0 0 12px;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+.agent-connect-code {
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.agent-connect-status {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+.agent-pill {
+  position: fixed;
+  z-index: 900;
+  left: calc(16px + var(--safe-left, 0px));
+  bottom: calc(16px + var(--safe-bottom, 0px));
+  max-width: min(420px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  box-shadow: var(--ui-elevation-overlay);
+  font-size: var(--fs-sm);
+}
+.agent-pill-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: hsl(var(--primary));
+}
+.agent-pill.is-active .agent-pill-dot {
+  animation: agent-pill-pulse 1s ease-in-out infinite;
+}
+.agent-pill-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-pill-off {
+  flex: none;
+  padding: 4px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.agent-pill-off:hover {
+  background: hsl(var(--muted));
+}
+.agent-pill-off:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+@keyframes agent-pill-pulse {
+  50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-pill.is-active .agent-pill-dot { animation: none; }
+}
+
+.agent-connect-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.agent-connect-switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: hsl(var(--primary));
+}

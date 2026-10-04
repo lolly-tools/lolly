@@ -1,6 +1,6 @@
 {
-  "name": "Rebrand",
-  "description": "PowerPoint डेक अपलोड करें और उसके रंग व फ़ॉन्ट अपने ब्रांड के अनुरूप कर लें - आपकी डिवाइस पर फिर से बनाया गया, कुछ भी अपलोड नहीं होता।",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "{{fileName}} के लिए डेक रीब्रांडर",
   "inputs.source.label": "PowerPoint फ़ाइल",
   "inputs.source.help": "एक .pptx फ़ाइल। यह आपकी डिवाइस पर पढ़ी जाती है और कभी अपलोड नहीं होती।",

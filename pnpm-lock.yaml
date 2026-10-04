@@ -213,6 +213,9 @@ importers:
       jsdom:
         specifier: 26.1.0
         version: 26.1.0(supports-color@8.1.1)
+      ws:
+        specifier: ^8.21.1
+        version: 8.21.1
     devDependencies:
       '@modelcontextprotocol/inspector':
         specifier: ^2.8.0

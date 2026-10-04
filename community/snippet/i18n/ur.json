@@ -1,6 +1,6 @@
 {
   "name": "اسنپٹ",
-  "description": "کوڈ کے ٹکڑوں کو صاف ستھری، سنٹیکس-ہائی لائٹڈ، قابلِ اشتراک تصاویر میں بدلیں۔",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "کوڈ",
   "inputs.code.placeholder": "اپنا کوڈ یہاں پیسٹ کریں…",
   "inputs.fileName.label": "فائل کا نام",

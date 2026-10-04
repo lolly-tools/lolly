@@ -779,6 +779,16 @@ export async function sourceDeckFromPptx(
         if (node.geom) object.geom = node.geom;
         const fill = colorOf(node.fill);
         if (fill) object.fill = fill;
+        // The whole ramp travels beside its lowest stop, alpha and all, so a faithful
+        // drawing of the slide shows a scrim as a scrim rather than as a solid.
+        const ramp = node.gradientFill;
+        if (ramp) {
+          const stops = ramp.stops.flatMap((s) => {
+            const color = colorOf(s.color);
+            return color ? [{ pos: s.pos, color }] : [];
+          });
+          if (stops.length >= 2) object.fillGradient = { stops, ...(typeof ramp.angle === 'number' ? { angle: ramp.angle } : {}) };
+        }
       }
       if (node.type === 'shape') {
         const line = colorOf(node.line);

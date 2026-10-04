@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Transforme tes extraits de code en images nettes, avec coloration syntaxique, prêtes à partager.",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
   "inputs.code.label": "Code",
   "inputs.code.placeholder": "Colle ton code ici…",
   "inputs.fileName.label": "Nom du fichier",

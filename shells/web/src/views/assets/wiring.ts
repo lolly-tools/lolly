@@ -14,7 +14,7 @@ import { announce } from '../../a11y.ts';
 import type { FeaturedViewMode } from '../../components/featured-row.ts';
 import { mountViewTopbar } from '../../components/view-topbar.ts';
 import { clearSearchBar } from '../../components/search-bar.ts';
-import { syncSortDir } from '../../components/view-options.ts';
+import { applyCardSize, syncSortDir, wireCardSize } from '../../components/view-options.ts';
 import { wireDisclosure } from '../../components/body-popover.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import type { PickerHost } from '../picker.ts';
@@ -312,6 +312,8 @@ export function wire(cat: CatCtx): void {
   // in sync so a re-render of the topbar reproduces the popover's current state.
   const voDisclosure = wireDisclosure(voBtn, voPop, { onToggle: (open) => { cat.viewOptsOpen = open; } });
   cat.closeViewOpts = () => voDisclosure.close();
+  // Card size: the grid reflows live while the slider moves; no re-render.
+  if (voPop) wireCardSize(voPop, 'catalog', step => { cat.cardSize = step; applyCardSize(viewEl.querySelector('.catalog'), step); });
   // Gallery ↔ Cover Flow: switch the live strip in place (no full re-render).
   voPop?.addEventListener('click', (e) => {
   const { DENSITY_PREF_KEY, FAV_VIEW_KEY, LAYOUT_PREF_KEY, SORT_PREF_KEY } = cat;

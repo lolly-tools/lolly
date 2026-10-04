@@ -14,7 +14,7 @@
  * Run directly:
  *   node --import ./tests/css-stub.mjs --test shells/web/src/views/profile-sign-out.test.ts
  */
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
@@ -57,7 +57,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
 
 const json = (body: unknown): Response => new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
 
-const { initOrg, orgAdminHref, orgMemberSignedIn, signOutOfInstance, _resetOrgForTests } = await import('../org/index.ts');
+const { initOrg, orgAdminHref, orgMemberSignedIn, orgProfileAccount, signOutOfInstance, _resetOrgForTests } = await import('../org/index.ts');
 const { renderShell, wireInstanceCard } = { ...(await import('./profile/shell.ts')), ...(await import('./profile/chrome.ts')) };
 const { getMetrics } = await import('../metrics.ts');
 type ProfileViewCtx = import('./profile/context.ts').ProfileViewCtx;
@@ -95,6 +95,7 @@ function mountCard(): HTMLElement {
     instanceBase: '', activeDesignSystemLabel: '', adminHref: orgAdminHref(),
     // Exactly what views/profile.ts puts on the context.
     signOut: orgMemberSignedIn() ? signOutOfInstance : null,
+    account: orgProfileAccount(),
     canChangeInstance: false, shellUpdater: null, hasShellUpdater: false, headshotUrl: '', focusSync: false,
     displayName: '', metrics: getMetrics(),
     rows: blank, prefs: blank, summaries: blank,
@@ -107,6 +108,9 @@ function mountCard(): HTMLElement {
 }
 
 const settle = (): Promise<void> => new Promise((res) => setTimeout(res, 10));
+// A member boot starts the inbox, which polls while the tab is visible: stop it, so
+// the file ends when its last case does.
+after(() => { _resetOrgForTests(); });
 
 test('Sign out shows for every signed-in member, beside the console for an admin', async () => {
   await boot('member');

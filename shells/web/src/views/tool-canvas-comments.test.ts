@@ -8,6 +8,42 @@ import type { CanvasCommentsCapability } from '../lib/canvas-comments.ts';
 import type { CommentAnchor, CommentThread } from '@lolly-tools/core/canvas-review-v1';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
+test('Comments stay outside the dock as it resizes in either text direction', async () => {
+  for (const direction of ['ltr', 'rtl']) {
+    const f = fixture();
+    try {
+      await tick();
+      Object.defineProperty(f.dom.window, 'innerWidth', { value: 1440 });
+      const dock = f.doc.createElement('aside'); dock.className = 'edge-dock';
+      const controls = f.doc.createElement('div'); dock.append(controls); f.doc.body.append(dock);
+      let width = 340;
+      dock.getBoundingClientRect = () => new f.dom.window.DOMRect(direction === 'rtl' ? 0 : 1440 - width, 0, width, 1000);
+      controls.getBoundingClientRect = () => new f.dom.window.DOMRect(direction === 'rtl' ? 10 : 1440 - width + 10, 80, width - 20, 40);
+      // The stage can retain a wider bound than the visible area during a resize.
+      f.stage.getBoundingClientRect = () => new f.dom.window.DOMRect(direction === 'rtl' ? 312 : 0, 0, 1128, 1000);
+      const panel = f.stage.querySelector<HTMLElement>('.collab-comments-panel')!;
+      panel.style.direction = direction; panel.style.paddingTop = '8px';
+      f.ui.dockControls(controls);
+      for (const next of [340, 400]) {
+        width = next; f.ui.reanchor();
+        assert.equal(panel.style.insetInlineEnd, `${width}px`, direction);
+        assert.equal(panel.style.maxWidth, `${1440 - width - 16}px`, direction);
+      }
+    } finally { f.destroy(); }
+  }
+});
+test('locating a shared thread preserves a private reply and respects revoked access', async () => {
+  const f = fixture();
+  try {
+    await tick(); await f.ui.locate('thread'); await tick();
+    const panel = f.stage.querySelector<HTMLElement>('.collab-comments-panel')!, input = panel.querySelector('textarea')!;
+    assert.equal(panel.hidden, false); assert.match(panel.textContent!, /Align this image/);
+    input.value = 'Unsent private reply'; input.dispatchEvent(new f.dom.window.Event('input'));
+    await f.ui.locate(); assert.equal(panel.hidden, true);
+    await f.ui.locate('thread'); assert.equal(input.value, 'Unsent private reply');
+    f.deny(); await f.ui.locate('thread'); assert.equal(input.disabled, true); assert.equal(f.threads()[0]!.messages.length, 1);
+  } finally { f.destroy(); }
+});
 function fixture() {
   const dom = new JSDOM('<div id="stage"><div id="canvas"><div data-box-id="image">Artwork</div></div><div id="layer" aria-hidden="true"></div></div>', { pretendToBeVisual: true });
   const doc = dom.window.document, stage = doc.getElementById('stage')!, canvas = doc.getElementById('canvas')!, layer = doc.getElementById('layer')!;

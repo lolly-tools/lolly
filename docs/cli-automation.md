@@ -94,6 +94,16 @@ Three things it deliberately refuses rather than silently ignoring: `--rate-card
 
 The finding to know about: if your brand declares a spot ink that is actually a FINISH (a foil, an emboss, a spot varnish, a cutting rule), Lolly writes it as its own named plate whose process fallback is a 100% black mask, in every CMYK sink - the CMYK PDF, the CMYK TIFF and `eps-cmyk` in both the browser and this CLI. It is never given the swatch's own colour build, so a RIP that flattens spots paints an unmistakable mask rather than a plausible metallic. What is still wrong, and what the error actually says: **overprint is implemented nowhere in the platform, so the finish plate knocks out the artwork beneath it**. Agree with your printer how they want the finish supplied before sending the file.
 
+## Check a Design document in CI (`lolly check`)
+
+`lolly check` gives one findings list for a Design document, a `.lolly` or an export: structure, the painted-page checks (when a browser tier is present), brand and house rules, the Verify layout clues and, with `--source`, fidelity to the source deck. [Read a deck, then check the recreation](/info/cli.html#read-a-deck-then-check-the-recreation) describes each family.
+
+```bash
+lolly check slides.lolly --source=old.inventory.json --json > check.json
+```
+
+The exit code is the branch: **0** nothing to fix, **5** findings to review and none of them errors, **4** an error finding (or any warning under `--strict`), **3** `--browser=require` on a runner with no browser tier to render a document, **2** a usage error (a misspelled flag is refused, never ignored) and **1** a family that failed to run, or an export with no page that could be decoded. A runner with no browser reports the render family as `unavailable`, with the reason, and still runs the rest, so use `--browser=require` where those checks must run. An export has no render family, so the requirement does not apply to an export, and one command line can check documents and their PDF exports together. Text recognition is off unless `--ocr` is given, so the Verify family gives the same answer on every runner. Read the findings at `.result.findings`, each with a stable `code`, its `severity` and the `layerId` it points at.
+
 ## Organisation jobs with lolly.work
 
 The `lolly` CLI renders on the machine running the command. For jobs an organisation needs to retain, inspect, retry or deliver centrally, optional **lolly.work** provides a separate `lw` client and authenticated APIs at `/api/v1/renders` and `/api/v1/render-batches`.
@@ -178,8 +188,8 @@ One code per outcome, so a pipeline can branch instead of grepping stderr. Froze
 | 1 | `FAILED` | It was possible, it ran, it failed (a hook threw, the render produced nothing). |
 | 2 | `USAGE` | Wrong invocation: unknown tool, undeclared format, missing argument, unreadable path. |
 | 3 | `UNAVAILABLE_HERE` | Impossible in **this** installation - no browser, an unmet capability, a Tier B render that could not produce the file, an on-device model that is not staged (`error.kind` `MODEL_NOT_STAGED` or `MODEL_NOT_INSTALLED`), a runtime this install does not carry (`CAPABILITY_UNAVAILABLE`), or `--hdr` with `--durable` (`HDR_DURABLE_UNAVAILABLE`). May well succeed on another runner; this is the code to retry elsewhere on. |
-| 4 | `REFUSED` | A protective check **this shell** ran said no: the bytes were not the format claimed, a credential is present but broken, `--strict` promoted a gate-class warning, `--depth=float` over an 8-bit render. A gate inside a tool's own hook (`--verify`) throws like any other hook and exits with `1`. |
-| 5 | `NOT_FOUND` | A legitimate negative answer. `validate`: no credential present. Not an error. |
+| 4 | `REFUSED` | A protective check **this shell** ran said no: the bytes were not the format claimed, a credential is present but broken, `--strict` promoted a gate-class warning, `--depth=float` over an 8-bit render, `lolly check` with an error finding (or any warning under `--strict`), `lolly package` on a Design document whose pictures have no bytes or are not catalog ids, or whose output already exists, `lolly compose` on a spec it refuses (with the JSON pointer of the key) or an output that already exists, and a Design document whose authoring keys cannot be lowered (`AUTHORING_INVALID`). A gate inside a tool's own hook (`--verify`) throws like any other hook and exits with `1`. |
+| 5 | `NOT_FOUND` | A legitimate negative answer. `validate`: no credential present. `rebrand compile`: every deck compiled, and at least one needs review. `check`: findings to review, none of them errors. Not an error; with `--json` the envelope carries the full result and `ok: false`. |
 | 6 | `AUTH` | Missing or wrong password. |
 | 70 | `INTERNAL` | Unclassified exception: a bug in Lolly. Distinct so an agent stops retrying it. |
 
@@ -187,7 +197,7 @@ Messages go to stderr (`--verbose`, or `DEBUG=1`, adds stack traces). Input vali
 
 ### Machine interface (`--json`)
 
-`--json` is valid on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `speak`, `transcribe`, `ocr`, `detect-ai`, `reword` and `rebrand`. It puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It is deliberately **not** available on a render, because a render's stdout is the exported file - asking for both is a usage error rather than a silently ignored flag. `lolly speak --out=- --json` is refused for the same reason: the WAV and the document cannot both be stdout.
+`--json` is valid on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `speak`, `transcribe`, `ocr`, `detect-ai`, `reword`, `rebrand`, `read`, `check` and `compose`, and on `measure --text`, `measure --text-layers` and `package` of a Design document. It puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It is deliberately **not** available on a render, because a render's stdout is the exported file - asking for both is a usage error rather than a silently ignored flag. `lolly speak --out=- --json` is refused for the same reason: the WAV and the document cannot both be stdout.
 
 Every one of those except `ocr`, `detect-ai` and `reword` answers in the shared envelope below. Those three currently emit their own smaller `{ "ok": true, "command": …, … }` document instead - one JSON document on stdout either way, but do not expect `schemaVersion` or `warnings` from those three yet.
 

@@ -18,7 +18,7 @@
  */
 
 import { recordNewFavourites } from './featured-activity.ts';
-import { stripAssetModifiers } from '../../../../engine/src/photo-treatment.ts';
+import { stripAssetModifiers } from '../../../../engine/src/asset-modifiers.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 
 type FavHost = HostV1 & { profile: { set(p: Profile): Promise<unknown> } };

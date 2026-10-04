@@ -33,6 +33,7 @@
  */
 import {
   applyArchetype as relayoutToArchetype,
+  masterAtSize,
   resetFrame as relayoutToMaster,
   seedFrame,
   type LogoSetV1,
@@ -41,7 +42,6 @@ import {
 import type {
   ArchetypeRefV1,
   DesignBoxRowV1,
-  MasterTextStyleV1,
   SlideMasterV1,
 } from '@lolly-tools/core';
 import { findArchetype } from '@lolly-tools/core';
@@ -125,6 +125,12 @@ export interface LoadedMaster {
   master: SlideMasterV1;
   logos: LogoSetV1<string>;
   colors: Map<string, string>;
+  /**
+   * The design system declares more than one token theme (plan 291 W4), so seeded logos
+   * are written as `<id>?theme=auto` and take, in each theme, the mark their surface
+   * asks for. Absent on a host that cannot say.
+   */
+  surfaceAuto?: boolean;
 }
 
 /** Why a re-lay did nothing. Each one gets its own sentence rather than silence. */
@@ -184,8 +190,14 @@ export function loadMaster(fc: FcCtx): Promise<LoadedMaster | null> {
         fc.slideMasterStatus = 'none';
         return null;
       }
-      const [logos, colors] = await Promise.all([resolveLogos(assets, master), readColors(hostOf(fc).tokens)]);
-      const loaded: LoadedMaster = { master, logos, colors };
+      const tokens = hostOf(fc).tokens;
+      const [logos, colors, themes] = await Promise.all([
+        // The master's tags in the brand's logo-surface order (plan 291 E18), as compose reads them.
+        resolveLogos(assets, master, tokens ?? null),
+        readColors(tokens),
+        tokens?.themes ? tokens.themes().catch(() => []) : Promise.resolve([]),
+      ]);
+      const loaded: LoadedMaster = { master, logos, colors, ...(themes.length > 1 ? { surfaceAuto: true } : {}) };
       fc.slideMaster = loaded;
       fc.slideMasterStatus = 'ready';
       return loaded;
@@ -234,42 +246,12 @@ export function archetypeChoices(fc: FcCtx): Array<{ id: ArchetypeRefV1; label: 
 // ── size ─────────────────────────────────────────────────────────────────────
 
 /**
- * The master restated at one page size.
- *
- * Every master box is a fraction, so one master serves 1280x720, 1920x1080 and a print
- * page. The type scale is the one place a pixel appears, so it moves by the same factor,
- * and the smaller of the two axes decides it, which keeps a title inside a page that got
- * wider without getting taller. A size equal to the master's own returns the master
- * itself, so the common case allocates nothing.
+ * The master restated at one page size: the engine's `masterAtSize` (whole px, the
+ * smaller axis decides), which `composeDesignSlides` also uses, so a slide made here
+ * and a composed one land on the same numbers.
  */
 function sizedMaster(master: SlideMasterV1, width: number, height: number): SlideMasterV1 {
-  const w = Math.round(width);
-  const h = Math.round(height);
-  if (!(w > 0) || !(h > 0)) return master;
-  if (w === master.size.width && h === master.size.height) return master;
-  const k = Math.min(w / master.size.width, h / master.size.height);
-  if (!Number.isFinite(k) || k <= 0) return master;
-  const px = (n: number): number => Math.max(1, Math.round(n * k));
-  const scaled = (style: MasterTextStyleV1 | undefined): MasterTextStyleV1 | undefined =>
-    style && typeof style.fontSize === 'number' ? { ...style, fontSize: px(style.fontSize) } : style;
-  const scale = master.typeScale;
-  return {
-    ...master,
-    size: { width: w, height: h },
-    typeScale: {
-      title: px(scale.title),
-      subtitle: px(scale.subtitle),
-      body: px(scale.body),
-      caption: px(scale.caption),
-      number: px(scale.number),
-      label: px(scale.label),
-    },
-    archetypes: master.archetypes.map((a) => ({
-      ...a,
-      placeholders: a.placeholders.map((p) => (p.style ? { ...p, style: scaled(p.style) } : p)),
-    })),
-    furniture: master.furniture.map((f) => (f.style ? { ...f, style: scaled(f.style) } : f)),
-  };
+  return masterAtSize(master, { width, height });
 }
 
 /** The page size a new slide takes: the frames already on the canvas, else the document's. */
@@ -405,6 +387,7 @@ export async function newSlideFromArchetype(fc: FcCtx, archetypeId: ArchetypeRef
     idPrefix: frameId,
     resolveToken: resolverFor(loaded),
     logos: loaded.logos,
+    ...(loaded.surfaceAuto ? { surfaceAuto: true } : {}),
   });
   if (!seeded) return null;
   const frame = toBox(fc, seeded.frame, true);
@@ -494,6 +477,7 @@ export async function applyArchetypeToFrame(
     y: num(frameRow[cfg.yField]),
     resolveToken: resolverFor(loaded),
     logos: loaded.logos,
+    ...(loaded.surfaceAuto ? { surfaceAuto: true } : {}),
   };
   const relaid =
     fromId === toArchetypeId
@@ -526,6 +510,7 @@ export async function applyArchetypeToFrame(
     idPrefix: frameId,
     resolveToken: origin.resolveToken,
     logos: loaded.logos,
+    ...(loaded.surfaceAuto ? { surfaceAuto: true } : {}),
   });
 
   const byId = new Map<string, number>();

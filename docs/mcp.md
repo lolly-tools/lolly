@@ -25,7 +25,9 @@ Start with the **open** endpoint: it needs no setup and covers every SVG-native 
 - **A daily budget for the whole endpoint**, shared by every caller: a fixed amount of compute and data transfer per UTC day. When the budget is spent, every call returns `503` with `error: daily_budget_reached` and a `Retry-After` that counts down to 00:00 UTC.
 - **PNG up to 1600 x 1600 pixels of area** (enough for 1920 x 1080). A larger request is scaled down to fit, and the render result says so. Ask for `svg` for a file that scales to any size.
 - **4.4 MB per answer**, the platform's response limit less the envelope. A larger result comes back as a tool error that says so, not as a broken response.
-- **Rebrand decks up to 100 slides** per call.
+- **Decks up to 100 slides** per call, for `lolly_rebrand`, `lolly_read`, `lolly_check` and `lolly_compose`. A PDF counts its pages, and a source deck or inventory given to `lolly_check` or `lolly_compose` is held to the same limit.
+- **Up to 262,144 characters of slide text measured** per `lolly_compose` call, counting each extra measure that `fit: "shrink"` makes. A text slot past that comes back unmeasured with a `compose.fit.unmeasured` note, and the result says how many slots were not measured.
+- **Files up to about 3.2 MiB** each for the tools that take a file, so that a file and its base64 encoding fit in one request. The tool descriptions give the local limit; a refusal here gives this endpoint's exact figure in bytes.
 
 None of these apply to Lolly on your own machine.
 
@@ -53,6 +55,7 @@ This is the same "raw render URL" `lolly_build_url` returns - drop it into a REA
 - **Browser-free formats only**: the vector, float-raster and data set - `svg`, `emf`, `eps`, `eps-cmyk`, `dxf`, `exr`, `hdr`, `penpot`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf` - plus `png` for SVG-native tools such as `qr-code`. Formats that need the browser tier return an honest `400` - use `lolly_render` or the app for those.
 - **Content Credentials are off here**, because a credential is signed with a fresh timestamp and nothing signed is cacheable. With them off, the vector and PNG formats this route serves are byte-stable run to run, which is what makes responses cacheable (a day at the CDN, `ETag` revalidation after that). `ics` is the exception in the list below: RFC 5545 requires a `DTSTAMP`, so an `.ics` differs between any two requests a second apart. A credentialed render is one `lolly_render` call away.
 - Renders are **rate-limited per address** and count against the same daily budget as the open MCP endpoint. A `png` is capped at 2048 x 2048 pixels of area.
+- **Themes.** `_themes`, the theme per token group as JSON (`_themes={"":"dark"}`), renders a tool this route can draw, such as `qr-code`, with its token colours in that theme. A value that is not such JSON is a `400`, and a choice the design system does not declare draws that group's default theme with no warning. Design needs the browser tier, so this route refuses a Design document in any theme; export one in each theme with `lolly run <file.lolly> --themes=light,dark` on the CLI.
 - **One URL per image.** A parameter the render never reads (an unknown name, or a reserved one such as `export` or `c2pa` that this route ignores) is removed with a `308` redirect, so the CDN caches one URL for each image.
 - Responses are marked **`noindex`**, so search engines don't index your renders.
 
@@ -64,7 +67,7 @@ The route's parameters, refusals and headers are described in OpenAPI 3.1 at [`/
 
 Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `hdr`/`depth`, `cuts`, `s`, `lang`, `emoji`/`emojifx`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
 
-## The seventeen tools
+## The twenty-one tools
 
 **Discover and describe:**
 
@@ -82,7 +85,9 @@ Every tool input and every export control an agent can set is a URL query parame
 | `lolly_inspect` | Inspect a document (or a file you supply) without rasterising: its semantic read model. |
 | `lolly_measure` | Measure a document without rasterising - sizes, counts, duration. |
 | `lolly_diff` | Semantically diff two compiled documents or recipe query strings. |
-| `lolly_package` | Package a compiled document into portable `.lolly` bytes. |
+| `lolly_package` | Package a Design document as a `.lolly` the Lolly app reopens as the same document, with its pictures and its name. Give `document` (a boxes array, `{boxes}` or `{values: {boxes}}`) or `toolId: "design"` with `inputs`; `assets` carries the bytes of each placeholder picture, base64, by the `image` value that draws it; `source` is a deck whose pictures resolve `user/media/<sha256>` references and the `photo:<12 hex>` keys `lolly_compose` suggests; `label` is the name. Every other picture must be a catalog id of the server's profile, and anything unresolved is refused unless `allowMissingMedia`. Returns the file and a report of what was carried and read back, the same report as `lolly package --json`. A compiled document of another tool is packaged as before and answers `{legacy: true, manifest}`. |
+| `lolly_measure_text` | Where a plain Design text layer's lines break and how tall it is, before it is drawn: each line with its width and a `nearEdge` flag, the height, the `scrollHeight` the canvas reports and, with `height`, whether the box clips the text. Pass `text` and `width` (plus any of the layer's fields, or a `style` id to measure it as an authored layer), or a `document` to measure every plain text layer. The same measure as `lolly measure --text --json`. It reads no file, so it works on the open endpoint. |
+| `lolly_compose` | Slides laid out from the slide master's archetypes, as a Design document with the master's furniture, margins and bindings. Pass a `spec` (`slides`, each with an `archetype` and its `slots`) and, for `from` references and notes, the deck's `inventory` or the deck itself as `source`. It returns the document, a report of what each slide filled and dropped and which text slots clip (`fit: "shrink"` steps them down), the source wording the slides change as `edits` for `lolly_check`, and the pictures named. `mode: "list"` returns the archetypes; `mode: "suggest"` a first spec for a deck. The same composer as `lolly compose --json`. A hosted server receives a deck passed as `source`. |
 
 **Build a link or render:**
 
@@ -109,6 +114,8 @@ All three take a source the way `lolly_render` does, or a file you supply (PNG, 
 | `lolly_redact` | Destroy regions of an image, SVG or PDF you supply. Takes the same instruction string a share link carries (`bars=1,40,60,200,24~…`), so one string can be applied to every file of an identical layout. The tool rebuilds the file and re-checks its own output; a failed check returns an error with no file attached. |
 | `lolly_verify` | Verify a file's Content Credentials (C2PA): was it genuinely made with Lolly, who signed it and has it changed since export. Returns the verdict, signer identity, edit history and embedded metadata (including any AI-generated declaration and appended-data flags) - the same C2PA verifier as the CLI's `lolly validate`. (The web verify page's pixel-level reads - the Lolly Imprint, SEAL, the opt-in deep scan - are interactive, web-only.) The file is checked in-process and never stored. |
 | `lolly_rebrand` | Renovate a PowerPoint deck you supply into this server's design system, in four stages: `capabilities`, `plan`, `compile` and `inspect`. On a hosted server, calling this tool uploads your deck; call `{stage: 'capabilities'}` first to see where it goes and the size limit. |
+| `lolly_read` | Read what a deck you supply says (a `.pptx`, a PDF or a Photoshop `.psd`), slide by slide: text in reading order with roles and runs, speaker notes with paragraphs and line breaks kept apart, pictures by content hash with placement and crop, tables and charts as data, and the class of every object. The same reader as `lolly read --json`. On a hosted server, calling this tool uploads your deck. |
+| `lolly_check` | Check a Design document, a `.lolly` or an export with every check Lolly has, in one findings list: structure, render, brand and house rules, Verify, and fidelity to a source deck or a `lolly_read` inventory. The same report as `lolly check --json`, with the exit code that command would give. |
 
 The intended flow is `lolly_list_tools` (usually with a focused `q` and small `limit`) → `lolly_describe_tool` (read the exact input schema) → `lolly_validate` when needed → `lolly_render`, which is exactly what the server's own prompts walk you through; `lolly_verify` closes the loop when an agent needs to prove a file it holds is an untouched Lolly export. On an authenticated connection with a file scope, five more `files_*` tools appear for importing a private file once and operating on its handle: `files_import`, `files_list`, `files_convert`, `files_report` and `files_delete`.
 
@@ -129,6 +136,44 @@ The same rule governs when a call escalates to the browser tier: one predicate, 
 **On `mcp.lolly.tools` and `lolly.tools/api/mcp`, calling `lolly_rebrand` uploads your deck to Lolly's server.** It is processed in memory for that call only and not kept. On `lolly.tools/api/mcp`, which runs on Vercel, a deck over about 3.4 MB cannot be sent as base64 at all; run `lolly rebrand` on the CLI instead for a larger deck, or point an agent at a local MCP server.
 
 Call `{stage: 'capabilities'}` first on a server you have not used. It states, in a plain sentence, where the file goes: a local server (stdio, or an HTTP server on a developer's own machine) keeps it in that process; a hosted server says calling the tool sends the file there, processed in memory for that call and nothing kept, with its byte and slide limits named, and, on Vercel, the platform's own request-size ceiling. `ocr` is `false` on every server - this pipeline reads no text out of pictures. Then `{stage: 'plan', file}` returns the review queue, the counts and the plan itself (as a JSON resource when it is too large to inline); an agent edits that plan - never regenerates it - before `{stage: 'compile', file, plan}` turns it into a Design document (`.lolly`) and, with `export: 'pptx'`, a native PowerPoint file; `{stage: 'inspect', plan}` pages through a large plan's queue and slides without pulling the whole thing back. A plan compiled against different bytes than it was made from is refused (`plan.hash-mismatch`), not silently reconciled.
+
+### Read a deck, check a recreation
+
+When an agent rebuilds a deck in Design rather than renovating the deck with `lolly_rebrand`, three calls carry the work. Read `lolly://design-context` first: the design brief, with approved colour pairings, type per role, logos per surface, icons, the slide master and the brand's house rules. Then `lolly_read` gives the source deck's content, and `lolly_check` checks the result.
+
+`lolly_read` takes `{file}` and returns the content inventory (schema `content-inventory-v1`) with counts per kind. An inventory over 128 KB comes back as an embedded JSON resource instead of inside the structured result. Pictures come back as facts (hash, type, size, placement); `media: "inline"` also returns the bytes of each distinct picture, one embedded resource each. No text recognition runs, so a slide that is one picture of a slide reads as a picture (`ocr` is `false`).
+
+`lolly_check` takes exactly one of `file` (a Design document, a `.lolly` or an export), `toolId: "design"` with `inputs`, `templateId`, `layerOperations` and `layerPatches` as `lolly_render` takes them, or a compiled `document`. Add `source` (a deck) or `inventory` (what `lolly_read` returned) to check fidelity. With either, `edits` (a list of `{ source, result, reason }`) records wording changed on purpose: those findings stay in the report as `info`, marked excepted, and are listed under `fidelity.excepted`, never as passed. The result is the same report `lolly check --json` writes (schema `check-report-v1`): five families (`structure`, `render`, `brand`, `verify`, `fidelity`), each `ran`, `skipped`, `unavailable` or `failed` with a reason, and one findings list. Each finding has a stable `code`, a `severity`, the `layerId` where there is one, the message the app shows and a `fix` where one is safe. `exitCode` is the code the CLI would exit with: `0` clean, `5` to review, `4` an error finding (or any warning with `strict`), `3` `browser: "require"` when a document has no browser to render it (an export has no render family, so the requirement does not apply to an export), `1` a family that failed or an export with no page that could be decoded. `inventory` takes the inventory, or the whole `lolly_read` result it came in. `theme` checks the document in one token theme, its linked colours resolved there; `themes` (a list of theme names, or `"all"`) checks it in each in one report, where the render, brand and Verify families run in each theme and their findings carry the `theme` they were found in (structure and fidelity run once) and a link that does not resolve in a theme is a `brand.token-link.unresolved` warning. Give one of `theme` and `themes`, not both. Findings are data, so the call is a tool error only when the request or the file cannot be read.
+
+The render family (clipped text, contrast and font coverage on the painted page, with the document's pictures painted) needs the browser tier. On `lolly.tools/api/mcp` it reports `unavailable` and the other families still run. Verify runs with text recognition off on every server. On a hosted server the file and the source travel in one request, so pass the `lolly_read` inventory rather than the source deck there.
+
+### Compose, measure and package a Design document
+
+Between the read and the check, the agent writes the Design document. For slides, start with `lolly_compose`: it lays each slide out from an archetype of the design system's slide master, with the master's margins, type, furniture and bindings. Call it with `mode: "list"` for the archetypes and their slots, with `mode: "suggest"` and the `inventory` (or the deck as `source`) for a first spec, then with the edited `spec` and the same `inventory` to compose. A spec gives an `archetype` per slide and fills its `slots`, by text or by `from` an inventory object; `source` on a slide carries that slide's notes; `join` on a slot (`{from, join: ": "}`) runs a heading's lines into one; `cells`, `ground`, `furniture`, `emphasis`, `case`, `under` and `over` cover the rest, `themes: ["light", "dark"]` on the spec makes one document that serves both themes (logo furniture as `<id>?theme=auto`, and the master's token colours and the `under` and `over` token references stored as literals plus links), and `furniture`, `emphasis` and `case` at the top of the spec are deck defaults each slide merges over (schema `https://lolly.tools/schemas/design-compose-v1.schema.json`, described in the agent skill's Design reference). The result is the document, a report of what each slide filled, dropped and clipped, the `edits` to give `lolly_check` (each with a generic reason to replace), and the pictures it names. Because composed slides keep their master bindings, `lolly_check` judges them by the master's house rules and their PowerPoint export has real slide layouts and placeholders. A hosted server receives a deck passed as `source`; pass the `lolly_read` inventory there instead.
+
+For what no archetype holds (a slide's `under` and `over` rows) and for slides written by hand, rows may carry **authoring keys**, which all start with `$`: `$in` gives a layer's position relative to its artboard, `$style` sets its text by a style from the design brief (`title`, `subtitle`, `body`, `caption`, `label`, `quote`, `number`, `attribution`) or from `$styles` beside `boxes`, `$points` and `$d` draw a path in px, and `$stack`, `$grid` and `$table` lay out repeated rows. Every tool that takes a Design source lowers them first, to ordinary layers in global canvas coordinates with every text field written out: in `inputs.boxes`, in an `add` operation's `layer` and in a patch's `set`. They are never stored. A key that cannot be lowered is an error with the JSON pointer of the key, and `lolly_check` reports it as a `design.authoring.invalid` finding. `lolly_compile` and `lolly_validate` return any notes the lowering made under `authoring`. The keys are described in the agent skill's Design reference, and their schema is `https://lolly.tools/schemas/design-authoring-v1.schema.json`.
+
+`lolly_measure_text` answers where a text box's lines break before it is placed, with the faces the canvas loads. A line marked `nearEdge` is within a few px of breaking another way, so widen that box rather than trust the fit. `lolly_package` then writes the `.lolly` a person opens in the app. On a hosted server the pictures and the source travel in one request, and the `.lolly` comes back in one answer of at most 4.4 MB, so package a large deck with `lolly package` on the CLI.
+
+## Work in the open document
+
+A local MCP server (stdio) has seven more tools. With them an agent works in the Design document a person has open in Lolly, while the person watches. The hosted endpoints do not have them, because their process is not on the person's computer.
+
+| Tool | Does |
+|---|---|
+| `lolly_live_connect` | Connects to the desktop app when Allow AI control is on, or opens a browser pairing and returns its code. |
+| `lolly_live_status` | Says whether an editor is connected. With `wait`, waits up to 120 seconds for the person to type the code. |
+| `lolly_live_document` | The open document: its rows with their stable ids, the canvas size, the person's selection and a `revision`. |
+| `lolly_live_apply` | `layerOperations` and `layerPatches`, the same vocabulary `lolly_render` takes. The whole edit becomes one undo step labelled "AI agent: " and your `label`, or nothing changes. Pass `ifRevision` to refuse the edit when the person changed the document after your read. |
+| `lolly_live_look` | The document as it draws now, with the same labelled grid as `lolly_look`, or one region enlarged. |
+| `lolly_live_undo` | Undoes your own newest edit. When the newest change is the person's, the call is refused and nothing changes. |
+| `lolly_live_disconnect` | Ends the connection. |
+
+**In the desktop app**, the person opens Design, chooses **Connect an AI agent** in the File menu and turns on **Allow AI control on this device**. The setting is off until they turn it on. While it is on, the app listens on this computer only and `lolly_live_connect` finds the app with no code.
+
+**In a browser**, `lolly_live_connect` returns a code such as `52817-K7QF-9XMB`. The person opens Design, chooses **Connect an AI agent** and types the code. The code works once, and three wrong codes end the pairing. The page connects to the agent's server on `127.0.0.1`, which accepts pages from lolly.tools, from the sites named in `LOLLY_LIVE_ORIGINS` and from localhost. The content security policy of the served builds does not allow that connection yet, so the browser path works in a development build, or in a self-hosted build made with `VITE_LIVE_AGENT=1` whose policy allows `ws://127.0.0.1:*`.
+
+What the person keeps: a pill in the corner shows which agent is connected and its latest change, with **Disconnect**. Each agent edit is one step in their history, so Undo takes it back. The agent cannot open or save files, export, change settings, reach the network or run a tool's hooks, and each row an edit touches is checked against the Design manifest first. Text in the document is data to these tools; nothing in it is run. Text can still mislead an agent that reads it, so connect only an agent you trust.
 
 ## Any format, transparently
 
@@ -169,6 +214,7 @@ Agents shouldn't guess asset ids or brand colours. Alongside the callable tools,
 | `lolly://catalog` | The full generated tool index. |
 | `lolly://assets` | Every catalog asset id with its type, name, tags and formats - enumerate here first, so you never hallucinate an id. |
 | `lolly://tokens` | The brand's design tokens (DTCG): named colour swatches with CMYK. |
+| `lolly://design-context` | The design brief for this server's design system: resolved tokens, source evidence, coverage and brand rules, plus approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. The same brief `lolly system context --json` prints, with `origin` naming where its tokens came from: always the server's content profile and its head tokens asset, the design system `lolly_check` checks against. The CLI tries `--file` and the terminal's active system before the profile; the server reads neither. Read it before composing, and before `lolly_check`. |
 | `lolly://tool/{id}` | One tool's manifest summary + input JSON Schema + examples. |
 | `lolly://tool/{id}/preview` | The tool's committed catalog preview (SVG), where one exists. |
 | `lolly://asset/{id}` | A catalog asset (logo, palette, font) resolved to bytes. |
@@ -202,7 +248,7 @@ In Claude Code the same connection is one command:
 claude mcp add --transport http lolly https://lolly.tools/api/mcp
 ```
 
-In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the seventeen tools):
+In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the twenty-one tools):
 
 ```bash
 curl -s -X POST https://lolly.tools/api/mcp \
@@ -240,7 +286,7 @@ The full endpoint also accepts the raw token directly, so scripted clients skip 
 }
 ```
 
-A quick check with `curl` (expect a JSON list of the seventeen tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
+A quick check with `curl` (expect a JSON list of the twenty-one tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
 
 ```bash
 curl -s -X POST https://mcp.lolly.tools/mcp \

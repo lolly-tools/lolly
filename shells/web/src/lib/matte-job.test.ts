@@ -119,7 +119,7 @@ test('the saved cutout carries the same credential and meta the modal path wrote
   const meta = up.meta as Record<string, unknown>;
   assert.equal(meta.name, matteAssetIds('my photo.jpg', 0).name);
   assert.equal(meta.bytes, 7);
-  assert.deepEqual(meta.matte, { model: 'u2netp', version: '1.0' });
+  assert.deepEqual(meta.matte, { model: 'u2netp', version: '1.0', edges: 'model-default' }, 'the record says how the edges were made (plans/289 M4): here, as the model chooses');
   assert.equal(ref?.id, up.id, 'the job resolves the saved asset it just wrote');
 });
 

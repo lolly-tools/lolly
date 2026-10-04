@@ -28,6 +28,8 @@ import {
   extractBundledTool,
   LOLLY_FILE_FORMAT,
   LOLLY_MIME,
+  lollySessionLabel,
+  withLabelAsExportName,
   LOLLY_MIN_READER,
   TEMPLATES_PART,
   type LollyLibraryAsset,
@@ -482,4 +484,33 @@ test('.lolly carries the sender\'s design system as its own integrity-covered pa
   const plain = await buildLollyFile({ session: { a: 1 }, toolId: 'design', userAssets: [] });
   assert.equal(plain.manifest.designSystem, undefined);
   assert.equal((await readLollyFile(new Uint8Array(await plain.blob.arrayBuffer()))).designSystem, undefined);
+});
+
+test('a session file named only by __label opens titled by its label after ingest (plan 291 W8)', async () => {
+  // What `lolly package` and rebrand compile in an older release wrote: __label, no __export_filename.
+  const built = await buildLollyFile({ session: { __toolId: 'design', __label: 'Quarterly review', boxes: [] }, toolId: 'design', userAssets: [] });
+  const store = memHost();
+  const res = await ingestLollyFile(new Uint8Array(await built.blob.arrayBuffer()), store.host);
+  const saved = store.slots.get(res.slot)?.data as Record<string, unknown>;
+  assert.equal(saved.__export_filename, 'Quarterly review', 'the editor seeds its name field and top bar from this key');
+  assert.equal(saved.__label, 'Quarterly review');
+  assert.equal((res.session as Record<string, unknown>).__export_filename, 'Quarterly review', 'the result names it too');
+  assert.equal(lollySessionLabel(res.session), 'Quarterly review');
+
+  // A file the app wrote for an unnamed document carries '' and stays unnamed.
+  const unnamed = await buildLollyFile({ session: { __toolId: 'design', __label: 'Design', __export_filename: '', boxes: [] }, toolId: 'design', userAssets: [] });
+  const second = await ingestLollyFile(new Uint8Array(await unnamed.blob.arrayBuffer()), store.host);
+  const kept = store.slots.get(second.slot)?.data as Record<string, unknown>;
+  assert.equal(kept.__export_filename, '');
+});
+
+test('withLabelAsExportName copies the label only into a session that has no export name', () => {
+  assert.deepEqual(withLabelAsExportName({ __label: ' Deck ' }, 'session'), { __label: ' Deck ', __export_filename: 'Deck' });
+  assert.deepEqual(withLabelAsExportName({ __label: 'Deck' }, undefined), { __label: 'Deck', __export_filename: 'Deck' });
+  assert.deepEqual(withLabelAsExportName({ __label: 'Deck', __export_filename: 'Other' }, 'session'), { __label: 'Deck', __export_filename: 'Other' });
+  assert.deepEqual(withLabelAsExportName({ __label: 'Deck' }, 'tool'), { __label: 'Deck' });
+  assert.deepEqual(withLabelAsExportName({ __label: 'Deck' }, 'project'), { __label: 'Deck' });
+  assert.deepEqual(withLabelAsExportName({ __label: '  ' }, 'session'), { __label: '  ' });
+  assert.equal(withLabelAsExportName(null, 'session'), null);
+  assert.equal(lollySessionLabel({ __label: 42 }), '');
 });

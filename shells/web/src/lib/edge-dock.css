@@ -57,8 +57,13 @@
 .edge-dock-slot--compact > * {
   position: static !important; inset: auto !important; margin: 0 !important;
   height: auto !important; width: auto !important; max-width: 100% !important;
-  visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;
+  visibility: visible !important; border:0;opacity: 1 !important; pointer-events: auto !important;
 }
+.edge-dock-slot--compact > .collab-pill {
+  transform: none !important; flex-wrap: wrap; justify-content: center;
+  box-sizing: border-box; gap: var(--sp-2);
+}
+.collab-save-status { padding-inline: var(--sp-2); }
 .edge-dock-slot:not(.edge-dock-slot--compact) > * {
   position: static !important; inset: auto !important; margin: 0 !important;
   width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important;

@@ -1,6 +1,6 @@
 {
-  "name": "Rebranding",
-  "description": "Last opp en PowerPoint-presentasjon og tilpass fargene og skriftene til merkevaren din - gjenoppbygd på din enhet, ingenting lastes opp.",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "Presentasjons-rebrander for {{fileName}}",
   "inputs.source.label": "PowerPoint-fil",
   "inputs.source.help": "En .pptx-fil. Den leses på enheten din og lastes aldri opp.",

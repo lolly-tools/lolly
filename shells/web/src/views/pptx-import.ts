@@ -1116,7 +1116,19 @@ export function pptxSlideBackground(slide: PptxReadSlide, deck: PptxDeckRead): s
  */
 const MAX_NOTES_CHARS = 20_000;
 export function pptxSlideNotes(slide: PptxReadSlide | undefined): string | undefined {
-  const raw = typeof slide?.notes === 'string' ? slide.notes : '';
+  // `slide.notes` joins the note's paragraphs with one newline, which the PPTX writer
+  // reads as a line break inside one paragraph. Built from the paragraphs, a blank line
+  // marks each paragraph end (as compose writes a note) and a line break inside one
+  // stays a single newline, so an import then export keeps the source paragraphs.
+  const paras = Array.isArray(slide?.notesParas) ? slide.notesParas : [];
+  const fromParas = typeof slide?.notes === 'string' && paras.length > 0
+    ? paras.map(p => {
+      const lines = (Array.isArray(p?.runs) ? p.runs.map(r => typeof r?.text === 'string' ? r.text : '').join('') : '').replace(/\r\n?/g, '\n').split('\n');
+      // The writer's no-break space keeps an empty line within its source paragraph.
+      return lines.map((line, i) => line.trim() === '' && i > 0 && i < lines.length - 1 ? '\u00a0' : line).join('\n');
+    }).join('\n\n')
+    : '';
+  const raw = fromParas.trim() ? fromParas : typeof slide?.notes === 'string' ? slide.notes : '';
   // CRLF is normal in OOXML text; the frame field and the speaker view both want \n.
   const text = raw.replace(/\r\n?/g, '\n').trim();
   if (!text) return undefined;

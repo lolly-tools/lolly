@@ -162,25 +162,65 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
 
       - name: Install PDF production inspection tools
-        if: matrix.shard == 'unit:engine'
+        if: matrix.shard == 'unit:engine' || matrix.shard == 'browser'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
 
       - name: Start public shell for journey regressions
         if: matrix.shard == 'browser'
         run: |
           mkdir -p artifacts
+          # Source-level journeys import Vite modules; production render drivers
+          # use a separate compiled shell so they do not compile that graph.
+          LOLLY_PROFILE=lolly-start pnpm run build:web > artifacts/public-journey-build.log 2>&1
           LOLLY_PROFILE=lolly-start pnpm --dir shells/web dev --host 127.0.0.1 --port 4187 --strictPort > artifacts/public-journey-shell.log 2>&1 &
+          LOLLY_PROFILE=lolly-start pnpm --dir shells/web preview --host 127.0.0.1 --port 4188 --strictPort > artifacts/public-render-shell.log 2>&1 &
           for attempt in $(seq 1 40); do
-            if curl --silent --fail http://127.0.0.1:4187/ > /dev/null; then
+            if curl --silent --fail http://127.0.0.1:4187/src/bridge/index.ts > /dev/null && curl --silent --fail http://127.0.0.1:4188/ > /dev/null; then
               echo 'LOLLY_IMPORT_TEST_URL=http://127.0.0.1:4187' >> "$GITHUB_ENV"
               echo 'LOLLY_EXPORT_TEST_URL=http://127.0.0.1:4187' >> "$GITHUB_ENV"
-              echo 'LOLLY_WEB_BASE=http://127.0.0.1:4187' >> "$GITHUB_ENV"
+              echo 'LOLLY_WEB_BASE=http://127.0.0.1:4188' >> "$GITHUB_ENV"
               exit 0
             fi
             sleep 1
           done
           cat artifacts/public-journey-shell.log
+          cat artifacts/public-render-shell.log
           exit 1
+
+      - name: Warm source and production Design shells
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_BROWSER_CHANNEL: chromium
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({ headless: true, channel: 'chromium' });
+          try {
+            for (const base of [process.env.LOLLY_EXPORT_TEST_URL, process.env.LOLLY_WEB_BASE]) {
+              const context = await browser.newContext({ serviceWorkers: 'block' });
+              try {
+                const page = await context.newPage();
+                await page.goto(base + '/#/tool/design', { waitUntil: 'domcontentloaded', timeout: 60000 });
+                await page.waitForFunction(() => !!window.lolly?.document && !!document.querySelector('#tool-canvas'), undefined, { timeout: 120000 });
+                await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden', timeout: 120000 });
+              } finally { await context.close(); }
+            }
+          } finally { await browser.close(); }
+          JS
+
+      - name: Check browser entry points before the full suite
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_TIER_B_DEBUG: '1'
+          LOLLY_BROWSER_CHANNEL: chromium
+        run: |
+          set -o pipefail
+          node --import ./tests/css-stub.mjs --test --test-concurrency=1 \
+            services/mcp/test/motion-samples.browser.test.ts \
+            tests/design-theme.browser.test.ts \
+            tests/open-route.browser.test.ts 2>&1 | tee artifacts/browser-readiness.log
 
       - name: Install Rust toolchain (Tauri shard)
         if: matrix.shard == 'tauri'
@@ -234,6 +274,9 @@ jobs:
           # Software rendering and video/JXL encoding use several threads per file.
           # Keep timed browser workloads serial on this shared CPU/GPU runner.
           LOLLY_TEST_CONCURRENCY: ${{ matrix.shard == 'browser' && '1' || '' }}
+          LOLLY_TIER_B_DEBUG: ${{ matrix.shard == 'browser' && '1' || '' }}
+          # Use the installed full Chromium for the same file and storage paths as Chrome.
+          LOLLY_BROWSER_CHANNEL: ${{ matrix.shard == 'browser' && 'chromium' || '' }}
         run: |
           set -o pipefail
           mkdir -p artifacts
@@ -259,6 +302,10 @@ jobs:
           path: |
             artifacts/test-skips.json
             artifacts/public-journey-shell.log
+            artifacts/public-render-shell.log
+            artifacts/public-journey-build.log
+            artifacts/browser-readiness.log
+            lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error
 

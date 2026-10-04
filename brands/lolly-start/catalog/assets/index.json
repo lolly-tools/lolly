@@ -23,8 +23,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-J8E/u7e0FtZVt0ilif281WBBhZV5A4NVc+jMqrLp6K8=",
-          "size": 5670
+          "checksum": "sha256-T6yeljG5VDXxbvti0vSHG2mtZamIfJYMOwpYzX0kNEU=",
+          "size": 10852
         }
       ],
       "added": "2026-07-08"
@@ -126,9 +126,9 @@
     {
       "id": "lolly/palette/photo-treatments",
       "name": "Photo Colour Treatments",
-      "description": "Colour treatments for photo assets, derived from the starter tokens. The starter palette is colourless, so this is greyscale alone; duotone washes appear the moment the tokens carry an accent. Regenerate after replacing the tokens (engine derivePhotoTreatmentsDoc).",
+      "description": "Colour treatments for photo assets, derived from the starter tokens. The starter palette is colourless, so this is greyscale plus the neutral Tone photo look (an OKLab gradient map from ink to paper, with a darker variant for the dark theme); duotone washes appear the moment the tokens carry an accent. Regenerate after replacing the tokens (engine derivePhotoTreatmentsDoc).",
       "type": "palette",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "palette",
@@ -138,8 +138,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/photo-treatments.json",
-          "checksum": "sha256-+V3LtUAPuFrZa8bcqaBO+rFTyEDmOKAzpSqHbs5wZuw=",
-          "size": 509
+          "checksum": "sha256-LOk5sOLqE+QOs2CsTvUVu2s0rNPyfnWUIgZYeva89U4=",
+          "size": 1132
         }
       ],
       "added": "2026-07-17"

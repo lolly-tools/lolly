@@ -1,6 +1,6 @@
 {
-  "name": "品牌遷移",
-  "description": "上傳 PowerPoint 簡報，讓其色彩與字型套用您的品牌 - 在您的裝置上重建，不會上傳任何內容。",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "{{fileName}} 的簡報品牌重塑工具",
   "inputs.source.label": "PowerPoint 檔案",
   "inputs.source.help": "一個 .pptx 檔案。會在您的裝置上讀取,絕不上傳。",

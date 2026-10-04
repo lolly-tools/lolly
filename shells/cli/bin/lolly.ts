@@ -22,7 +22,7 @@ import { argv } from 'node:process';
 import { readFile } from 'node:fs/promises';
 import { parseToolUrl, normalizeLang } from '@lolly/engine';
 import { runToolCli, listToolsCli, showToolInputsCli, listAssetsCli, readStdin } from '../src/run.ts';
-import { parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS } from '../src/args.ts';
+import { parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS, READ_VALUE_FLAGS, CHECK_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_BOOL_FLAGS, MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, refuseUnknownFlags } from '../src/args.ts';
 import { EXIT, exitCodeFor, usageError } from '../src/exit-codes.ts';
 import { configureOutput, strictExitCode, note, writeOut, keepConsoleOffStdout } from '../src/output.ts';
 import { beginCommand, emitError, jsonRequested, envelopeEmitted } from '../src/envelope.ts';
@@ -38,8 +38,13 @@ Usage:
   lolly system import <file>                import .lolly, tokens, Penpot, token zip or SVG
   lolly system add <file…>                  retain logos, fonts and other source material
   lolly system export [--output=brand.lolly] export a portable system pack
-  lolly system context [--file=tokens.json] export tokens, source evidence and rules as JSON
-  lolly system check <design-inputs.json>   review colours, type and asset references locally
+  lolly system context [--file=tokens.json] the design brief as JSON: tokens, evidence and
+                                           rules, plus pairings, type per role, logos per
+                                           surface, icons, media, the slide master and
+                                           house rules. With no --file and no terminal
+                                           system, the content profile's own system
+  lolly system check <design-inputs.json>   review colours, type, asset references and the
+                                           brand's house rules locally
   lolly system list | use <id>              list or switch on-device systems
   lolly system inspect                     inspect token sources, references and choices
   lolly system diff <tokens.json>           compare authored and resolved token changes
@@ -49,18 +54,51 @@ Usage:
   lolly describe <tool-id> [--all]         show essential inputs; --all shows every input
   lolly run <tool-id> [--flags]            render
   lolly run <tool.lolly> --trust-tool [--export=png] [--output=file]
+  lolly run <session.lolly> [--export=pptx|pdf|png|svg|jpg|webp] [--output=file] [--s=<artboard>]
+                                           export a saved Design session with the
+                                           app's own exporter (needs the browser tier)
+                        [--themes=<a,b|all>]
+                                           one export per theme, to <stem>-<theme>.<ext>
+                                           beside --output
+                        [--theme=<name>]   one export in that theme, to --output as given
+                        [--file=<tokens.json>]
+                                           the design system its links resolve in
+                                           (default: as system context)
+                                           lolly run <session.lolly> --help for more
+  lolly run design --document=<design.json|-> [--export=png] [--output=file]
+                                           render a Design document; its authoring
+                                           keys ($in, $style, $stack and the rest) are
+                                           lowered to stored layers first
+                        [--file=<tokens.json>]
+                                           the design system it is lowered, resolved
+                                           and exported in
   lolly compile <tool-id> [--inputs=x.json] compile a hydrated document (JSON)
   lolly schema <tool-id>                    print its typed input JSON Schema
   lolly inspect|measure <document.json>     inspect without rasterising
+  lolly measure --text=<text|-> --width=<px> [--height=<px>]
+                                           where a text layer's lines break and how
+                                           tall it is, before it is drawn
+                        [--font] [--weight] [--size] [--line-height] [--pad]
+                        [--tracking] [--italic] [--valign] [--style=<id>]
+                        [--artboard-width=<px>]
+                                           the layer's fields; absent ones take the
+                                           renderer's defaults, or the style's, sized
+                                           for an artboard 1920 px wide by default
+  lolly measure <design.json|.lolly> --text-layers [--layer=<id>]
+                                           every plain text layer, with its own fields
   lolly prepare <file…>                   inspect and prepare private files locally
   lolly inspect <file> --forensic          inspect located AI clues and coverage
   lolly diff <a.json> <b.json>              semantic document diff
   lolly optimize <document.json>            run named immutable stages
   lolly package <document.json> [--output]  write a portable .lolly package
+  lolly package <design.json|-> --output=<file.lolly> [--asset=KEY=PATH]… [--asset-dir]
+                [--source] [--label] [--theme] [--file] [--force] [--allow-missing-media]
+                                           a Design document as a .lolly the app
+                                           reopens, pictures and name included
   lolly validate <document.json> --document validate a compiled document (or a
                            tool id with --inputs=x.json) through the document API
-  lolly rebrand plan <deck|dir>…           read, census and first-pass a deck (.pptx or
-                                           .pdf): writes
+  lolly rebrand plan <deck|dir>…           read, census and first-pass a deck (.pptx,
+                                           .pdf or Photoshop .psd): writes
                                            <name>.plan.json and <name>.plan.report.json
                         [--plan-out=<file|dir>]
                                            where the plan goes (a directory for several)
@@ -114,6 +152,57 @@ Usage:
                                            Every stage reads the content profile's design
                                            system (LOLLY_PROFILE) and never the network;
                                            --offline is accepted and changes nothing
+  lolly read <deck|-> [--json]             what a deck says, slide by slide (.pptx, .pdf
+                                           or .psd): text in reading order with its role,
+                                           speaker notes, pictures, tables and charts
+                        [--media=<dir>]    write each picture once, as <sha256>.<ext>;
+                                           other bytes under that name refuse (exit 4)
+                        [--thumbnails]     also draw each slide there as a PNG
+                        [--force]          replace those files instead
+  lolly check <file|-> [--json]            every check for a Design document (.json), a
+                                           .lolly or an export (.pdf, .pptx, .png, .jpg,
+                                           .webp, .svg), in one findings list: structure,
+                                           render, brand, Verify and fidelity
+                        [--source=<deck|inventory.json>]
+                                           also check that the source deck's text and
+                                           notes are carried over
+                        [--edits=<edits.json>]
+                                           wording changed on purpose: those findings
+                                           stay, marked excepted (needs --source)
+                        [--file=<tokens.json>] [--theme=<name>]
+                                           the design system for the brand checks
+                                           (default: as system context)
+                        [--themes=<a,b|all>]
+                                           check in each theme: linked colours resolve
+                                           per theme, findings say which
+                        [--browser=auto|off|require]
+                                           the render family needs a browser; require
+                                           exits 3 without one
+                        [--page-cap=N]     artboards or pages Verify reads (1 to 100)
+                        [--ocr]            let Verify read text in pictures
+                                           Exit 0 clean, 5 to review, 4 an error finding
+                                           (or any warning under --strict)
+  lolly compose <spec.json|-> [--json]     slides laid out from the slide master's
+                                           archetypes, as a Design document for
+                                           package, check and run design --document
+                        [--inventory=<inventory.json>|--source=<deck>]
+                                           the source text that from references copy
+                        [--size=1920x1080] [--theme=light|dark]
+                                           the artboard size; dark picks dark twins
+                        [--themes=light,dark]
+                                           the themes the document is for: logo
+                                           furniture follows the surface in each
+                        [--file=<tokens.json>] [--master=<masters.json>]
+                                           the design system and the master (default:
+                                           the system's catalog master, else neutral)
+                        [--fit=report|shrink]
+                                           shrink steps a clipping slot down to the
+                                           master's smallest size for its role
+                        [--output=<design.json>] [--edits-out=<edits.json>] [--force]
+                                           the source wording changed, for check --edits
+  lolly compose --list [--json]            the master's archetypes and their slots
+  lolly compose --suggest --source=<deck>  a first spec for a deck [--output=<spec.json>]
+  lolly compose --help                     the spec's keys, slot values and notes
   lolly <tool-id> [--flags]                sugar for run (or describe, with no flags)
   lolly <https://lolly.tools/#/tool/…>     run a pasted link; later --flags override it
 
@@ -162,7 +251,8 @@ Subcommands:
                         [--out=mix.wav]    browser (WAV/ZzFXM sources; --normalize=-16)
   lolly upscale <image> [--scale=2|4]      on-device AI enlargement, PNG out
                         [--model=<id>] [--max-edge=N] [--out=big.png] [--models to list]
-  lolly matte <image> [--out=cut.png]      on-device background removal (alpha cutout)
+  lolly matte <image> [--out=cut.png]      on-device background removal (alpha cutout);
+                      [--edges=as-drawn]   edges follow the photo unless as-drawn
                         [--model=u2netp|modnet] [--max-edge=N] [--models to list]
   lolly ocr <image> [--json]               on-device text recognition; the text is stdout
                         [--single-line] [--min-confidence=0.5] [--models to list]
@@ -185,8 +275,8 @@ Subcommands:
 Global flags (valid on every command):
   --json                   one JSON envelope on stdout instead of human text, on list,
                            describe, assets, validate, smoke, batch, preflight, models,
-                           speak, transcribe, ocr, detect-ai, reword, rebrand, look
-                           (with --output), sample and trace. NOT
+                           speak, transcribe, ocr, detect-ai, reword, rebrand, read,
+                           check, compose, look (with --output), sample and trace. NOT
                            on a render: there, stdout carries the exported bytes.
   --quiet                  suppress non-error stderr (progress, notes, warnings)
   --verbose                diagnostics + stack traces (DEBUG=1 is an alias)
@@ -199,6 +289,8 @@ Export options:
                            (jpg and jpeg are one format; either spelling works on any
                            tool, whichever one its manifest happens to declare)
   --filename=<name>        name the output file in the working directory (no --output)
+  --themes=<a,b|all>       one export per theme of the design system, written to
+                           <stem>-<theme>.<ext> beside --output (needs --output)
   --width= --height=       size, in --unit= (px default, or mm/cm/in/pt) at --dpi= (300)
   --text=outline|live      vector text as paths or editable text. svg defaults to
                            outline; emf defaults to live (editable in Office/Slides)
@@ -265,9 +357,12 @@ Exit codes:
   3  UNAVAILABLE_HERE  impossible in THIS installation (no browser, no capability) - 
                        the retry-on-another-runner code
   4  REFUSED           a protective check said no (--verify, format mismatch, forged
-                       credential)
+                       credential; check: an error finding; package: a picture with
+                       no bytes; compose: a spec it refuses; package and compose: an
+                       output that exists without --force)
   5  NOT_FOUND         a legitimate negative answer (validate: no credential present;
-                       rebrand compile: every deck compiled, some need review)
+                       rebrand compile: every deck compiled, some need review;
+                       check: findings to review, none of them errors)
   6  AUTH              missing or wrong password
   70 INTERNAL          unclassified exception: a bug in Lolly
 
@@ -299,7 +394,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui', 'rebrand', 'look', 'sample', 'trace']);
+const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -314,7 +409,12 @@ try {
   // the token as a tool id (`lolly --help` used to print "Tool not found: --help").
   if (args.some(a => a === '--help' || a === '-h' || a === 'help')) {
     if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
-    else await writeOut(USAGE);
+    else if (rawFirst === 'compose') { const { COMPOSE_HELP } = await import('../src/compose.ts'); await writeOut(COMPOSE_HELP); }
+    else {
+      // read, check, package, measure and run on a session file have help of their own.
+      const { verbHelp } = await import('../src/verb-help.ts');
+      await writeOut(verbHelp(args) ?? USAGE);
+    }
   } else if (args.some(a => a === '--version' || a === '-v')) {
     const { ENGINE_VERSION } = await import('@lolly/engine');
     const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
@@ -373,7 +473,7 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand', 'look', 'sample', 'trace']);
+  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
   beginCommand(VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
@@ -417,6 +517,53 @@ async function main(): Promise<void> {
     return;
   }
 
+  // `read`: what a deck says, slide by slide, as one JSON inventory (plan 291 W2). A bare
+  // `--media` is refused here the way rebrand refuses its value flags.
+  if (cmd === 'read') {
+    const valueFlags = new Set<string>(READ_VALUE_FLAGS.map(flag => `--${flag}`));
+    const bare = args.find(arg => valueFlags.has(arg));
+    if (bare) throw usageError(`${bare} needs a value: write ${bare}=<value>.`, 'MISSING_FLAG_VALUE');
+    // An empty `--media=` (an unset `$DIR`) is refused as the bare form is, never read as absent.
+    const empty = READ_VALUE_FLAGS.find(flag => flags[flag] === '');
+    if (empty) throw usageError(`--${empty} needs a value: write --${empty}=<value>.`, 'MISSING_FLAG_VALUE');
+    refuseUnknownFlags('read', flags, [...READ_VALUE_FLAGS, ...READ_BOOL_FLAGS]);
+    const { readCli } = await import('../src/read.ts');
+    process.exitCode = await readCli(positionals.slice(1), {
+      json: g.json, ...(flags.media !== undefined ? { media: flags.media } : {}), force: isOn(flags.force), thumbnails: isOn(flags.thumbnails),
+    });
+    return;
+  }
+
+  // `check`: structure, render, brand, Verify and fidelity in one findings list (plan 291
+  // W1). Its value flags are refused bare here, as read's and rebrand's are, and empty
+  // (`--source=` from an unset variable), and a flag it does not take is refused by name.
+  if (cmd === 'check') {
+    const valueFlags = new Set<string>(CHECK_VALUE_FLAGS.map(flag => `--${flag}`));
+    const bare = args.find(arg => valueFlags.has(arg));
+    if (bare) throw usageError(`${bare} needs a value: write ${bare}=<value>.`, 'MISSING_FLAG_VALUE');
+    const empty = CHECK_VALUE_FLAGS.find(flag => flags[flag] === '');
+    if (empty) throw usageError(`--${empty} needs a value: write --${empty}=<value>.`, 'MISSING_FLAG_VALUE');
+    refuseUnknownFlags('check', flags, [...CHECK_VALUE_FLAGS, ...CHECK_BOOL_FLAGS]);
+    const { checkCli } = await import('../src/check.ts');
+    process.exitCode = await checkCli(positionals.slice(1), flags, { json: g.json, strict: g.strict });
+    return;
+  }
+
+  // `compose`: slides laid out from the slide master's archetypes, as a Design document
+  // (plan 291 W6). Its value flags are refused bare and empty here, as check's are, and a
+  // flag it does not take is refused by name.
+  if (cmd === 'compose') {
+    const valueFlags = new Set<string>(COMPOSE_VALUE_FLAGS.map(flag => `--${flag}`));
+    const bare = args.find(arg => valueFlags.has(arg));
+    if (bare) throw usageError(`${bare} needs a value: write ${bare}=<value>.`, 'MISSING_FLAG_VALUE');
+    const empty = COMPOSE_VALUE_FLAGS.find(flag => flags[flag] === '');
+    if (empty) throw usageError(`--${empty} needs a value: write --${empty}=<value>.`, 'MISSING_FLAG_VALUE');
+    refuseUnknownFlags('compose', flags, [...COMPOSE_VALUE_FLAGS, ...COMPOSE_BOOL_FLAGS]);
+    const { composeCli } = await import('../src/compose.ts');
+    process.exitCode = await composeCli(positionals.slice(1), flags, { json: g.json, ...(repeated.asset ? { assets: repeated.asset } : {}) });
+    return;
+  }
+
   if (cmd === 'start') {
     const { startCli } = await import('../src/system.ts');
     await startCli(g.json);
@@ -444,6 +591,9 @@ async function main(): Promise<void> {
   if (cmd === 'run') {
     const toolId = positionals[1];
     if (!toolId) throw usageError('usage: lolly run <tool-id> [--flags]', 'MISSING_ARGUMENT');
+    // `--document` takes a file path on `run` (it is an on/off flag on `validate`), so a bare
+    // one parsing to "1" would read a file called "1".
+    if (args.includes('--document')) throw usageError('--document needs a value: write --document=<design.json|->.', 'MISSING_FLAG_VALUE');
     await render(toolId, flags, undefined, repeated);
     return;
   }
@@ -451,6 +601,33 @@ async function main(): Promise<void> {
   if (cmd === 'prepare') {
     const { prepareCli } = await import('../src/prepare.ts');
     await prepareCli(positionals.slice(1), flags);
+    return;
+  }
+
+  // `package` on a Design document writes a .lolly the app reopens, pictures and name
+  // included (plan 291 W8). Anything else falls through to the compiled-document zip.
+  if (cmd === 'package') {
+    const { packageCli } = await import('../src/package.ts');
+    const exit = await packageCli(positionals.slice(1), flags, repeated, args, { json: g.json });
+    if (exit !== null) {
+      process.exitCode = exit;
+      return;
+    }
+  }
+
+  // `measure --text` and `measure <doc> --text-layers`: where a plain text layer's lines
+  // break and how tall it is (plan 291 W5). Branched here so the compiled-document
+  // `measure` below is unchanged; on these branches --width and --height are the box in px.
+  if (cmd === 'measure' && (flags.text !== undefined || flags['text-layers'] !== undefined || flags.layer !== undefined)) {
+    const valueFlags = new Set<string>(MEASURE_VALUE_FLAGS.map(flag => `--${flag}`));
+    const bare = args.find(arg => valueFlags.has(arg));
+    if (bare) throw usageError(`${bare} needs a value: write ${bare}=<value>.`, 'MISSING_FLAG_VALUE');
+    // An empty value (an unset variable) is refused as the bare form is; an empty --text= is text.
+    const empty = MEASURE_VALUE_FLAGS.find(flag => flag !== 'text' && flags[flag] === '');
+    if (empty) throw usageError(`--${empty} needs a value: write --${empty}=<value>.`, 'MISSING_FLAG_VALUE');
+    refuseUnknownFlags('measure', flags, [...MEASURE_VALUE_FLAGS, ...MEASURE_BOOL_FLAGS]);
+    const { measureTextCli } = await import('../src/measure-text.ts');
+    process.exitCode = await measureTextCli(positionals.slice(1), flags, { json: g.json, ...(repeated.layer ? { layers: repeated.layer } : {}) });
     return;
   }
 

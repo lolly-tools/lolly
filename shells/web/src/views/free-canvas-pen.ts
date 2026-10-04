@@ -42,12 +42,18 @@
 import {
   type AuthoredPath, type Continuity, type Cubic, type GeomPath, type HyperbezierSolution,
   type SplineKind, type SplineNode,
-  colorToHexString, enforceContinuity, hyperbezierCubics,
-  nearestOnCubic, parseColor, pathBounds, solveHyperbezier, splitCubic, toCubics,
+  colorToHexString, enforceContinuity,
+  nearestOnCubic, parseColor, splitCubic,
 } from '@lolly/engine';
 // The `path` sub-field's codec, via the wrappers the rest of the overlay already uses - one
 // codec, one set of shell-side signatures. See the file header on what it quantises.
 import { decodeAuthoredPath as decodeAuthoredPaths, encodeAuthoredPath as encodeAuthoredPaths } from './vector-ops.ts';
+// The frame fit, the lowering and the node scaling live in the engine so the agent path
+// placement (plan 291 W5) fits frames with the same function the pen tool does.
+import {
+  type AuthoredFrame, type AuthoredRefit, type LoweredAuthored,
+  lowerAuthored, refitAuthoredFrame, scaleAuthored,
+} from '../../../../engine/src/geom/authored-frame.ts';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 
 /**
@@ -91,7 +97,7 @@ export function defaultContinuity(kind: SplineKind): Continuity {
 /** A path box's frame as the RENDERER sees it - the same rounding `boxCss`/`pathHtmlFor`
  *  apply, so an edit lands on the painted pixels rather than near them. Deliberately
  *  identical to vector-ops' `boxFrame`: the two must not disagree about where a path is. */
-export interface PenFrame { x: number; y: number; w: number; h: number; rot: number }
+export type PenFrame = AuthoredFrame;
 
 function fnum(v: InputValue | undefined, fallback: number): number {
   const n = typeof v === 'number' ? v : parseFloat(v as string);
@@ -134,25 +140,17 @@ export function frameToLocal(fr: PenFrame, nx: number, ny: number): { x: number;
 // ── normalised ↔ box-local ────────────────────────────────────────────────────
 
 /** Stored fractions → box-local px. Mirrors `hooks.js` `pathHtmlFor` term for term,
- *  including that a handle scales on the axis it points along. */
+ *  including that a handle scales on the axis it points along. The scaling itself is the
+ *  engine's `scaleAuthored` (engine/src/geom/authored-frame.ts), shared with the agent
+ *  path placement. */
 export function denormNodes(p: AuthoredPath, w: number, h: number): AuthoredPath {
-  return { ...p, nodes: p.nodes.map((n) => scaleNode(n, w, h)) };
+  return scaleAuthored(p, w, h);
 }
 
 /** Box-local px → stored fractions. `w`/`h` are floored at 1 by `penFrame`, so this
  *  never divides by zero. */
 export function normNodes(p: AuthoredPath, w: number, h: number): AuthoredPath {
-  return { ...p, nodes: p.nodes.map((n) => scaleNode(n, 1 / w, 1 / h)) };
-}
-
-function scaleNode(n: SplineNode, sx: number, sy: number): SplineNode {
-  const out: SplineNode = { x: n.x * sx, y: n.y * sy };
-  if (n.hInX !== undefined) out.hInX = n.hInX * sx;
-  if (n.hInY !== undefined) out.hInY = n.hInY * sy;
-  if (n.hOutX !== undefined) out.hOutX = n.hOutX * sx;
-  if (n.hOutY !== undefined) out.hOutY = n.hOutY * sy;
-  if (n.continuity !== undefined) out.continuity = n.continuity;
-  return out;
+  return scaleAuthored(p, 1 / w, 1 / h);
 }
 
 // ── the wire format ───────────────────────────────────────────────────────────
@@ -201,32 +199,13 @@ export function encodePathFields(paths: AuthoredPath[]): string {
 // ── lowering, with the warm start ─────────────────────────────────────────────
 
 /**
- * Lower an authored path to cubics, keeping the hyperbezier solution.
- *
- * `toCubics` takes a `warm` solution but discards the one it computes, which is exactly
- * wrong for a drag: re-converging a 40-node solve from the chord-bend guess on every
- * pointermove is an O(n) Newton run per frame, where reusing the previous frame's answer
- * converges in one or two steps. So the pen path calls the two halves itself and hands the
- * solution back for the next frame.
- *
- * `'spiro'` (and any future declared-but-unlowerable kind) returns no cubics rather than
- * throwing: a pen tool that renders nothing is recoverable, one that throws out of a
- * pointermove is not.
+ * Lower an authored path to cubics, keeping the hyperbezier solution (`lowerAuthored`,
+ * moved to engine/src/geom/authored-frame.ts and re-exported here). A drag hands the
+ * previous frame's solution back in so the solve converges in one or two steps, and a
+ * kind with no lowering returns no cubics rather than throwing out of a pointermove.
  */
-export interface LoweredPath { cubics: Cubic[]; solution: HyperbezierSolution | null }
-
-export function lowerAuthored(p: AuthoredPath, warm?: HyperbezierSolution | null): LoweredPath {
-  if (p.nodes.length < 2) return { cubics: [], solution: null };
-  if (p.kind === 'hyperbezier') {
-    const solution = solveHyperbezier(p.nodes, p.closed, warm ?? undefined);
-    return { cubics: hyperbezierCubics(p.nodes, p.closed, solution), solution };
-  }
-  try {
-    return { cubics: toCubics(p), solution: null };
-  } catch {
-    return { cubics: [], solution: null };
-  }
-}
+export type LoweredPath = LoweredAuthored;
+export { lowerAuthored };
 
 /** One authored path as a single-contour `GeomPath` - the form every engine operator and
  *  `toSvgPathData` takes. */
@@ -240,114 +219,22 @@ export function authoredToPath(p: AuthoredPath, warm?: HyperbezierSolution | nul
 
 // ── the refit: the frame IS the curve's tight bbox ────────────────────────────
 
-/**
- * A refitted frame and the same contours re-expressed in it (still box-local px).
- *
- * `paths` is in the NEW frame's local space, so a caller normalises it against
- * `frame.w`/`frame.h` and writes `frame.x`/`y`/`w`/`h` alongside - the two halves are one
- * answer and using one without the other moves the shape.
- */
-export interface PenRefit { frame: PenFrame; paths: AuthoredPath[] }
+/** A refitted frame and the same contours re-expressed in it (still box-local px). */
+export type PenRefit = AuthoredRefit;
 
 /**
  * Refit a path box's frame to its curve, keeping the RENDERED shape exactly where it is.
  *
- * ## The invariant
+ * This is the engine's `refitAuthoredFrame` (engine/src/geom/authored-frame.ts, which
+ * documents the tight-bbox invariant, rotation, rounding and the degenerate axis), so the
+ * pen tool and an agent writing `$points` or `$d` fit a frame with one function.
  *
- * The frame equals the LOWERED curve's tight bounding box, over EVERY contour. That is the
- * single claim the rest of the editor reads: selection chrome, marquee hit-testing,
- * align/distribute, group bounds and the export bbox all address `x`/`y`/`w`/`h`, and
- * `hooks.js` clips the shape to it (`pathHtmlFor` emits a `viewBox` of exactly that size).
- * So a frame that is too small clips the curve and a frame that is too big makes every one
- * of those features address empty space.
- *
- * `pathBounds` is the TIGHT bbox - the kernel takes it from the derivative's roots - and
- * that is deliberate rather than convenient: a smooth node's handle legitimately sits
- * outside the frame without the curve following it there, so fitting the CONTROL HULL
- * instead would make every curved shape's box visibly too big and would grow it every time
- * a handle was pulled. Handles outside `[0,1]` stay legal; the curve never leaves it.
- *
- * ## Why this is not called per frame
- *
- * A refit during a drag would make the box chase the pointer and jump under it, so callers
- * refit once, when the gesture COMMITS. Which means the live gesture must paint somewhere
- * that does not clip - free-canvas.ts draws it on the overlay's native pen layer and hides
- * the box's own `<svg>` for the duration (`setPathSvgHidden`).
- *
- * ## Rotation
- *
- * `w`/`h` describe the UNROTATED frame and `rot` spins it about its own centre, so changing
- * `w`/`h` moves the centre of rotation and a naive refit makes a rotated shape jump. The
- * compensation is exact: with `R` the rotation, `c`/`c'` the old/new half-sizes and `b` the
- * bbox origin in old local px, the new frame origin is
- *
- *     (x', y') = (x, y) + (I − R)(c − c') + R·b
- *
- * which is just "solve `localToFrame(fr, l) === localToFrame(fr', l − b)` for `fr'`".
- *
- * ## Rounding, and why the offset is solved rather than assumed
- *
- * `boxCss`/`penFrame` round `x`/`y` and force `w`/`h` to `Math.max(1, round(v))`, so the
- * renderer reads a rounded frame and normalising against the un-rounded bbox would be off
- * by up to half a pixel per side. Since a refit runs on EVERY edit, that error would
- * accumulate. So the frame is rounded FIRST and the local offset is then back-solved from
- * the rounded numbers (`off = R⁻¹[(x', y') − (x, y) − (I − R)(c − c')]`): the shape is then
- * unmoved to floating point regardless of how the rounding fell, and the only residue left
- * is the wire format's six decimals of a fraction. The frame is consequently tight to
- * within half a pixel rather than exactly, and the second refit of an unchanged shape is a
- * fixed point - `round` of an already-rounded frame plus a sub-half-pixel nudge is itself.
- *
- * ## A degenerate axis
- *
- * A straight horizontal line has a zero-height bbox, as do a two-coincident-node path and
- * any all-collinear one. `w`/`h` clamp up to 1 (they must: the renderer divides by them),
- * and on such an axis the curve is CENTRED in the pixel it was given rather than pinned to
- * the frame's leading edge - a hairline down the middle of its own box reads as the shape
- * it is, and a 0.5px offset is invisible either way. No division by an extent ever happens,
- * so nothing here can produce a `NaN` from a degenerate axis.
- *
- * Returns null when there is no curve to fit (fewer than two nodes, an unlowerable kind, a
- * non-finite bound) - the caller's answer to that is to leave the frame alone.
+ * Callers refit once, when the gesture COMMITS: a refit during a drag would make the box
+ * chase the pointer and jump under it. So the live gesture paints somewhere that does not
+ * clip; free-canvas.ts draws it on the overlay's native pen layer and hides the box's own
+ * `<svg>` for the duration (`setPathSvgHidden`).
  */
-export function refitFrame(paths: AuthoredPath[], fr: PenFrame, warm?: HyperbezierSolution | null): PenRefit | null {
-  const geom: GeomPath = [];
-  for (let i = 0; i < paths.length; i++) {
-    // Only the first contour is the one being edited, so it is the only one the warm start
-    // belongs to; handing a 40-node solution to a 4-node hole would be worse than nothing.
-    const low = lowerAuthored(paths[i]!, i === 0 ? warm : null);
-    if (low.cubics.length) geom.push({ curves: low.cubics, closed: paths[i]!.closed });
-  }
-  if (!geom.length) return null;
-  const bb = pathBounds(geom);
-  if (!bb || ![bb.x0, bb.y0, bb.x1, bb.y1].every((v) => Number.isFinite(v))) return null;
-
-  const ew = bb.x1 - bb.x0, eh = bb.y1 - bb.y0;
-  const w = Math.max(1, Math.round(ew));
-  const h = Math.max(1, Math.round(eh));
-  // Where the bbox origin sits inside the new frame: the origin, except on an axis whose
-  // extent is under a pixel and was therefore clamped up to 1 - see the degenerate note.
-  const ox = ew < 1 ? (w - ew) / 2 : 0;
-  const oy = eh < 1 ? (h - eh) / 2 : 0;
-  const bx = bb.x0 - ox, by = bb.y0 - oy;
-
-  const r = (fr.rot * Math.PI) / 180;
-  const cs = fr.rot ? Math.cos(r) : 1, sn = fr.rot ? Math.sin(r) : 0;
-  // (I − R)(c − c'): how far the centre of rotation travels when the frame resizes.
-  const kx = fr.w / 2 - w / 2, ky = fr.h / 2 - h / 2;
-  const gx = kx - (kx * cs - ky * sn), gy = ky - (kx * sn + ky * cs);
-  const x = Math.round(fr.x + gx + (bx * cs - by * sn));
-  const y = Math.round(fr.y + gy + (bx * sn + by * cs));
-  // The offset the ROUNDED frame actually implies, R⁻¹ = [[c, s], [−s, c]].
-  const vx = x - fr.x - gx, vy = y - fr.y - gy;
-  const offX = vx * cs + vy * sn;
-  const offY = -vx * sn + vy * cs;
-
-  return {
-    frame: { x, y, w, h, rot: fr.rot },
-    // Handles are OFFSETS from their node, so a frame translation never touches one.
-    paths: paths.map((p) => ({ ...p, nodes: p.nodes.map((n) => ({ ...n, x: n.x - offX, y: n.y - offY })) })),
-  };
-}
+export const refitFrame: (paths: AuthoredPath[], fr: PenFrame, warm?: HyperbezierSolution | null) => PenRefit | null = refitAuthoredFrame;
 
 // ── drawing → a box ───────────────────────────────────────────────────────────
 

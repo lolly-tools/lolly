@@ -76,6 +76,7 @@
     "check:mcp": "node scripts/check-mcp-live.ts",
     "check:first-load": "node scripts/check-first-load.ts",
     "eval:rebrand": "node scripts/rebrand-eval.ts",
+    "eval:recreate": "node scripts/recreate-eval.ts",
     "eval:sequence-perf": "node scripts/eval-sequence-perf.ts",
     "check:ui-performance": "node scripts/check-ui-performance.ts",
     "gate": "node scripts/gate.ts",

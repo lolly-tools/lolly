@@ -31,7 +31,7 @@ export function mountDesignPanels(opts: {
     b.addEventListener('click', () => run(b)); actions.append(b); return b;
   };
   button(t('Add'), b => { activate('timeline'); design.openAddMenu?.(b); });
-  const layers = button(t('Layers / Pages'), () => navigator.setOpen(!navigator.isOpen()));
+  const layers = button(t('Layer/Page'), () => navigator.setOpen(!navigator.isOpen()));
   const inspect = button(t('Inspect'), () => inspector.setOpen(!inspector.isOpen()));
   button(t('More'), opts.more);
   const done = button(t('Done'), () => design.finishTextEditing?.());

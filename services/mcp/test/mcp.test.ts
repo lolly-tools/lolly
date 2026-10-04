@@ -117,6 +117,18 @@ test('lolly://design-context carries catalog tokens, explicit rules and coverage
   assert.ok(context.coverage.notAssessed.includes('subjective quality'));
 });
 
+test('lolly://design-context is the same brief `lolly system context` prints', async () => {
+  const read = await rpc('resources/read', { uri: 'lolly://design-context' });
+  const brief = JSON.parse((read.contents as { text?: string }[])[0]!.text!);
+  for (const key of ['themes', 'combinations', 'type', 'logos', 'icons', 'media', 'master', 'houseRules']) assert.ok(key in brief, key);
+  assert.ok(Array.isArray(brief.houseRules));
+  assert.ok(brief.master.archetypes.length > 0, 'the profile master, or the neutral one, with its archetypes');
+  assert.ok(['declared', 'derived', 'unavailable'].includes(brief.coverage.combinations));
+  assert.ok(brief.catalog?.profile, 'the content profile the catalog facts came from');
+  assert.equal(brief.origin?.kind, 'profile', 'the design system lolly_check checks against');
+  assert.equal(brief.origin.profile, brief.catalog.profile);
+});
+
 test('a published version never gets picked as the design system', async () => {
   // The rule the resource applies, over the two-asset index the real catalog
   // cannot supply today. `user/tokens/brand/jupiter` is a snapshot of the head,

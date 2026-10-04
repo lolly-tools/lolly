@@ -119,7 +119,7 @@
         "bounds": "`MAX_PART_BYTES = 24 MB`, `MAX_PART_CHARS = 16 M`, `MAX_SLIDES = 2000`, `MAX_NODES_PER_SLIDE = 8000`, `MAX_GROUP_DEPTH = 16`, `MAX_PARAS = 4000`, `MAX_RUNS_PER_PARA = 4000`, `MAX_TABLE_ROWS = 2000`, `MAX_TABLE_COLS = 512`, `MAX_TEXT_LEN = 200_000`, `MAX_DFS_VISITS = 200_000`, `MAX_COORD = 1e11`",
         "directTests": "`tests/pptx-read.test.ts`",
         "fuzzCoverage": "`pptx-read` (`readPptx` + `isPptx`)",
-        "notes": "The exemplar. See \"The standard to follow\". Entity expansion is explicitly delegated to the injected parser, and the module compensates with a visited-node counter."
+        "notes": "The exemplar. See \"The standard to follow\". Entity expansion is explicitly delegated to the injected parser, and the module compensates with a visited-node counter. Speaker notes come back twice: as joined text, and as paragraphs (`notesParas`) in which an `a:br` stays a line-break run, so `lolly read` and `lolly_read` can keep paragraphs and line breaks apart; both go through the same `readTxBody` bounds."
       }
     },
     "engine/src/svg-items.ts": {
@@ -251,7 +251,7 @@
         "bounds": "`MAX_DIM_PSD = 30_000`, `MAX_DIM_PSB = 300_000`, `MAX_LAYERS = 1_024`, `MAX_CHANNELS_PER_LAYER = 8`, `MAX_EXTRA_BLOCKS = 256`, `MAX_RESOURCE_BLOCKS = 1_024`, `MAX_CMYK_CACHE = 1 << 20` and a decode-output budget (`maxDecodedBytes`, default 256 MiB) reserved **before** every allocation",
         "directTests": "`tests/psd.test.ts`",
         "fuzzCoverage": "`psd` (`readPsd`, seeds from `writePsd` - our own writer)",
-        "notes": "Split failure contract: not-a-PSD / refused class (Lab/Indexed, 1/32-bit) is a typed `PsdUnsupportedError` (a controlled throw); damage inside a layer/resource is `onWarn` + skip that piece, never the document. ZIP channels inflate through an injected `InflateFn` whose `maxOut` the module re-checks. CMYK converts through the embedded ICC profile via `icc.ts`'s bounded evaluator."
+        "notes": "Split failure contract: not-a-PSD / refused class (Lab/Indexed, 1/32-bit) is a typed `PsdUnsupportedError` (a controlled throw); damage inside a layer/resource is `onWarn` + skip that piece, never the document. ZIP channels inflate through an injected `InflateFn` whose `maxOut` the module re-checks. CMYK converts through the embedded ICC profile via `icc.ts`'s bounded evaluator. Adjustment layers: `psd-adjustments.ts` reads eight kinds from the bounded block copies (a short block or an unknown version reads as nothing), and an adjustment layer's raster mask is decoded through the same budget only to learn whether it covers the canvas; both are reached by the `psd` and `psd-descriptor` targets."
       }
     },
     "engine/src/xcf.ts": {

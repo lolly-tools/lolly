@@ -1,0 +1,437 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/text-measure-v1.schema.json",
+  "title": "text-measure-v1",
+  "description": "Where a plain Design text layer's lines break and how tall it is, before anything is drawn: HarfBuzz advances from the faces the canvas loads, CSS pre-wrap greedy breaking, and Chromium's line box and scrollHeight (lolly measure --text, lolly_measure_text, the text-measure checker of lolly check). Plan 291 W5. Mirrors packages/core/src/text-measure-v1.ts; each exported const array there has one named $defs entry holding its enum in the same order. $defs.spec describes the input, TextMeasureSpecV1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "version",
+    "method",
+    "font",
+    "faces",
+    "size",
+    "weight",
+    "lineHeight",
+    "lineHeightPx",
+    "pad",
+    "tracking",
+    "width",
+    "availableWidth",
+    "lines",
+    "lineCount",
+    "height",
+    "scrollHeight",
+    "nearEdge",
+    "tolerance",
+    "notes"
+  ],
+  "$defs": {
+    "break": {
+      "enum": [
+        "end",
+        "forced",
+        "space",
+        "opportunity",
+        "anywhere"
+      ]
+    },
+    "valign": {
+      "enum": [
+        "top",
+        "middle",
+        "bottom"
+      ]
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "face": {
+      "description": "One face a measure used.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token",
+        "family",
+        "weight",
+        "italic",
+        "file"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The font token or family the layer named (sans, mono, display, italic, or a family)."
+        },
+        "family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weight": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "file": {
+          "type": "string",
+          "description": "The font file, as the shaper names it (/fonts/SUSE[wght].ttf)."
+        },
+        "variations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Variation axis settings applied to the file."
+        }
+      }
+    },
+    "line": {
+      "description": "One laid-out line. Offsets are UTF-16 indices into the drawn text of its paragraph (markup removed, list marker included).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "paragraph",
+        "text",
+        "start",
+        "end",
+        "width",
+        "slack",
+        "break",
+        "nearEdge"
+      ],
+      "properties": {
+        "index": {
+          "$ref": "#/$defs/count"
+        },
+        "paragraph": {
+          "$ref": "#/$defs/count"
+        },
+        "text": {
+          "type": "string",
+          "description": "The drawn text, trailing white space included."
+        },
+        "start": {
+          "$ref": "#/$defs/count"
+        },
+        "end": {
+          "$ref": "#/$defs/count"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Advance width without trailing white space, px."
+        },
+        "slack": {
+          "type": "number",
+          "description": "availableWidth - width, px."
+        },
+        "break": {
+          "$ref": "#/$defs/break"
+        },
+        "nearEdge": {
+          "type": "boolean",
+          "description": "The break is fragile: a renderer a little wider or narrower could break this line elsewhere."
+        }
+      }
+    },
+    "box": {
+      "description": "The box the text sits in, when a height was given.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "clientHeight"
+      ],
+      "properties": {
+        "width": {
+          "type": "number",
+          "minimum": 1
+        },
+        "height": {
+          "type": "number",
+          "minimum": 1
+        },
+        "clientHeight": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "overflow": {
+      "description": "What does not fit, when a height was given.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "y",
+        "x",
+        "clipped",
+        "hiddenLines"
+      ],
+      "properties": {
+        "y": {
+          "type": "number",
+          "description": "scrollHeight - clientHeight, px; negative is room to spare."
+        },
+        "x": {
+          "type": "boolean",
+          "description": "A line is wider than the text area."
+        },
+        "clipped": {
+          "type": "boolean",
+          "description": "The mounted audit's verdict: scrollHeight > clientHeight + 0.5, or x."
+        },
+        "hiddenLines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/count"
+          }
+        }
+      }
+    },
+    "tolerance": {
+      "description": "How far a prediction may be from the canvas.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "widthPx",
+        "lineEndPx",
+        "nearEdgePx"
+      ],
+      "properties": {
+        "widthPx": {
+          "type": "number",
+          "minimum": 0
+        },
+        "lineEndPx": {
+          "type": "number",
+          "minimum": 0
+        },
+        "nearEdgePx": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "fonts": {
+      "description": "The brand's font families by slot, as the web shell's --font-* variables carry them.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brand"
+      ],
+      "properties": {
+        "brand": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mono": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display": {
+          "type": "string",
+          "minLength": 1
+        },
+        "italic": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "spec": {
+      "description": "What to measure: the fields of a Design text row that change its layout. An absent field takes the renderer's default.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "width"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 65536,
+          "description": "The text, in Design's subset (**bold**, *italic*, {w600|...}, {mono|...}, - lists)."
+        },
+        "font": {
+          "type": "string",
+          "description": "sans (default), display, mono, or a family name."
+        },
+        "fonts": {
+          "$ref": "#/$defs/fonts"
+        },
+        "weight": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "CSS weight, rounded to 100 and clamped to 100 to 900 (mono to 800). Default 700."
+        },
+        "italic": {
+          "type": "boolean",
+          "description": "Set every run in emphasis, as an italic style lowers to *...*: runs take the italic face, the list marker and the layer's own face stay upright."
+        },
+        "plain": {
+          "type": "boolean",
+          "description": "The row's plainText: the text is drawn verbatim, with no markup, lists or emphasis."
+        },
+        "size": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "px, rounded. Default 48."
+        },
+        "lineHeight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Unitless, clamped to 0.5 to 4. Default 1.12."
+        },
+        "pad": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Inner padding on every side, px. Default 8."
+        },
+        "tracking": {
+          "type": "number",
+          "description": "Letter spacing, px, clamped to -100 to 400. Default 0."
+        },
+        "ligatures": {
+          "type": "boolean"
+        },
+        "alternates": {
+          "type": "boolean"
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "The box width, px."
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "The box height, px."
+        },
+        "strokeW": {
+          "type": "number",
+          "minimum": 0,
+          "description": "A border inside the box, px."
+        },
+        "valign": {
+          "$ref": "#/$defs/valign"
+        }
+      }
+    }
+  },
+  "properties": {
+    "format": {
+      "const": "lolly-text-measure"
+    },
+    "version": {
+      "const": 1
+    },
+    "method": {
+      "const": "harfbuzz-css-greedy"
+    },
+    "font": {
+      "$ref": "#/$defs/face"
+    },
+    "faces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/face"
+      }
+    },
+    "size": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "weight": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 900
+    },
+    "lineHeight": {
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 4
+    },
+    "lineHeightPx": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "floor(lineHeight * size * 64) / 64, as Chromium's layout unit."
+    },
+    "pad": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 400
+    },
+    "tracking": {
+      "type": "number",
+      "minimum": -100,
+      "maximum": 400
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The box width, px, rounded as the renderer rounds it."
+    },
+    "availableWidth": {
+      "type": "number",
+      "minimum": 0,
+      "description": "The box width less padding and border on both sides."
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/line"
+      }
+    },
+    "lineCount": {
+      "$ref": "#/$defs/count"
+    },
+    "height": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Padding plus the line boxes, px."
+    },
+    "scrollHeight": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What the canvas reports as the text's scrollHeight, the number the mounted audit compares with clientHeight."
+    },
+    "nearEdge": {
+      "type": "boolean"
+    },
+    "uncovered": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Characters a measured face has no glyph for. The canvas draws them in a fallback font, so the lines holding them are nearEdge and the height is not a verdict to trust."
+    },
+    "box": {
+      "$ref": "#/$defs/box"
+    },
+    "overflow": {
+      "$ref": "#/$defs/overflow"
+    },
+    "tolerance": {
+      "$ref": "#/$defs/tolerance"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

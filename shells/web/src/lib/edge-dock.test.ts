@@ -47,7 +47,7 @@ function panel(id: string): HTMLElement {
   return el;
 }
 function reset(): void {
-  for (const id of ['zoom', 'neuro', 'inspector', 'export', 'share', 'transcript'] as const) ED.releaseDock(id);
+  for (const id of ['zoom', 'people', 'neuro', 'inspector', 'export', 'share', 'transcript'] as const) ED.releaseDock(id);
   document.querySelector('.edge-dock-drop')?.remove();
   document.documentElement.dir = '';
   mobile = false;
@@ -61,6 +61,34 @@ const collapseBtn = (): HTMLElement => document.querySelector<HTMLElement>('.edg
 const expandColumn = (): void => { if (ED.edgeDockCollapsed()) collapseBtn().click(); };
 const visibleSlots = (): string[] =>
   [...document.querySelectorAll<HTMLElement>('.edge-dock-slot')].filter((s) => !s.hidden).map((s) => s.dataset.slot ?? '');
+
+test('live room controls follow the open dock below Zoom and return home on collapse and teardown', async () => {
+  reset();
+  const { mountCollabControls } = await import('../views/tool-collab-controls.ts');
+  const home = panel('pt'), bar = document.createElement('div'); home.append(bar);
+  const close = mountCollabControls(bar, {} as import('./collab-session.ts').CollabSessionHandle);
+  try {
+    ED.requestDock('inspector', panel('pi')); expandColumn();
+    ED.requestDock('zoom', panel('pz'), { compact: true });
+    assert.deepEqual(visibleSlots(), ['zoom', 'people', 'inspector']);
+    assert.equal(ED.dockedFullCount(), 1, 'the people bar does not turn the inspector into a tab');
+    collapseBtn().click();
+    assert.equal(bar.parentNode, home, 'collaborators remain reachable while the dock is collapsed');
+    expandColumn(); assert.equal(bar.parentElement?.dataset.slot, 'people');
+    close(); assert.equal(bar.parentNode, home); assert.equal(ED.isDocked('people'), false);
+    ED.releaseDock('inspector'); ED.releaseDock('zoom');
+    assert.equal(hasCol(), false, 'teardown leaves no empty column');
+  } finally { close(); reset(); }
+});
+
+test('live room controls stay in the stage on a phone', async () => {
+  reset(); mobile = true;
+  const { mountCollabControls } = await import('../views/tool-collab-controls.ts');
+  const home = panel('pt'), bar = document.createElement('div'); home.append(bar);
+  const close = mountCollabControls(bar, {} as import('./collab-session.ts').CollabSessionHandle);
+  try { assert.equal(bar.parentNode, home); assert.equal(hasCol(), false); }
+  finally { close(); reset(); }
+});
 
 test('Share and Export use separate tabs and refresh only when Share is activated', () => {
   reset();

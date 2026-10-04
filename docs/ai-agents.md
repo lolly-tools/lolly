@@ -121,12 +121,17 @@ Core workflow verbs:
 | `lolly_describe_tool` | One tool's full input JSON Schema, built-in templates/presets, supported formats, canvas size and examples. |
 | `lolly_validate` | Validate inputs and return path-specific errors before a compile, URL build or render. Design also returns its artboard/layer tree and structural findings. |
 | `lolly_compile` / `lolly_inspect` / `lolly_measure` | Compile once, inspect the semantic document and measure it without rasterising. |
+| `lolly_measure_text` | Where a Design text box's lines break and how tall it is, before it is drawn, with the faces the canvas loads. The same measure as `lolly measure --text`. |
+| `lolly_package` | A Design document as a `.lolly` the app reopens as the same document, with the pictures you supply and its name. The same writer as `lolly package`. |
+| `lolly_compose` | Slides laid out from the design system's slide master: name an archetype per slide and fill its slots, and get a Design document with the master's margins, type, furniture and bindings, so its PowerPoint export has real slide layouts and placeholders. `mode: "list"` gives the archetypes, `mode: "suggest"` drafts a spec from a deck. The same composer as `lolly compose`. A hosted server receives a deck passed as `source`. |
 | `lolly_build_url` | Build a shareable, editable link + raw render URL - without rendering. |
 | `lolly_render` | Render a tool to a file (returns the bytes plus the editable link). |
 | `lolly_transform` | Run an on-device file utility (`strip-data`, `compress-pdf`) on a file you supply. |
 | `lolly_redact` | Redact regions of an image, SVG or PDF on-device - covered content is destroyed and the file rebuilt, so nothing is recoverable underneath. |
 | `lolly_verify` | Verify a file's Content Credentials (C2PA) - the verdict, signer identity, edit history and embedded metadata. Checked in-process, never stored. |
 | `lolly_rebrand` | Renovate an old `.pptx` deck into the active design system, in stages (`capabilities`, `plan`, `compile`, `inspect`) - see `reference/rebrand.md`. Processed in memory, never stored; `capabilities` states where a deck you send would go before you send one. |
+| `lolly_read` | Read what a deck says (`.pptx`, PDF or `.psd`), slide by slide: text in reading order with roles, speaker notes with their paragraphs, pictures by hash with placement, tables and charts. The same reader as `lolly read`. Processed in memory, never stored. |
+| `lolly_check` | Check a Design document, a `.lolly` or an export in one findings list: structure, render, brand and house rules, Verify, and fidelity to the source deck. Each finding has a stable code, the layer id and the message the app shows; `exitCode` matches `lolly check`. Read the `lolly://design-context` resource first for the design brief. |
 | `lolly_look` | Look at a render with a labelled grid in document units (for Design, a layer's own `x`, `y`, `w`, `h`), or one region of it enlarged. Never an export. |
 | `lolly_sample_color` | Read the colours at points and name the nearest design-system colour with its distance. |
 | `lolly_trace_edges` | A render's or image's edges as polylines, optionally as ready Design path layers. |
@@ -164,6 +169,14 @@ created or moved layer can be patched in the same call:
   ]
 }
 ```
+
+Design layers may also carry authoring keys, which start with `$` and are lowered
+to ordinary layers before anything else runs: `$in` gives a position relative to an
+artboard, `$style` sets text by a named style from the design brief, `$points` and
+`$d` draw a path in px, and `$stack`, `$grid` and `$table` lay out repeated rows.
+The stored document stays in global canvas coordinates with every field written
+out. The agent skill's [Design reference](/info/skills/lolly/reference/design.md)
+describes every key.
 
 ### Any format, transparently
 

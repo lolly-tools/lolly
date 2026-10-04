@@ -253,6 +253,11 @@ export function swatchesFromColors(colors: Record<string, string>): BrandSwatchV
 
 // ─── the snapshot ────────────────────────────────────────────────────────────
 
+/** A colour record without the themed role tokens (`color.role.*`). */
+function withoutRoleTokens(record: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(record ?? {}).filter(([path]) => !path.startsWith('color.role.')));
+}
+
 /** A copy of a string record with its keys in code-unit order. */
 function sortedRecord(record: Record<string, string> | undefined): Record<string, string> {
   const out: Record<string, string> = {};
@@ -303,6 +308,12 @@ export async function colorTokenHash(colors: Record<string, string>): Promise<st
  */
 export async function resolveRebrandDesignSystem(raw: RebrandDesignSystemInputV1): Promise<RebrandDesignSystemV1> {
   const input: RebrandDesignSystemInputV1 = structuredClone(raw);
+  // Themed role tokens (`color.role.*`, plan 291 W4) name a use on a Design slide and
+  // alias a ramp step the swatches already hold. A renovation reads colours, not uses,
+  // so they stay out: the swatches, the theme slots and the token hash a saved plan
+  // is checked against are what they were before the packs gained them.
+  input.colors = withoutRoleTokens(input.colors);
+  if (input.darkColors) input.darkColors = withoutRoleTokens(input.darkColors);
   const colors = sortedRecord(input.colors);
   const tokenHash = await colorTokenHash(colors);
 
@@ -1002,7 +1013,30 @@ export function themedColors(source: ThemeSourceV1, theme: DeckThemeV1 | null | 
     const hex = modeColors[remap.get(tokenPath) ?? tokenPath];
     if (hex !== undefined) colors[tokenPath] = hex;
   }
+  if (mode === 'dark') darkenUnmappedGrounds(source, colors, remap);
   return { theme, mode, modeColors, colors, master: themeMaster(source.master, colors, flip, { base: source.colors }), notes };
+}
+
+/**
+ * A slide ground the pack's dark mode leaves at its light value (plan 291 M4): a ramp
+ * step the mode does not remap, such as the neutral master's main-point tint
+ * `color.ramp.neutral.8`, would keep that slide light in a dark deck. Such a ground
+ * takes the mirrored step of its ramp when that step is dark, else the mode's surface
+ * when that is dark. A semantic path, a remapped path and a ground the mode already
+ * darkens are left alone, and no master is changed.
+ */
+function darkenUnmappedGrounds(source: ThemeSourceV1, colors: Record<string, string>, remap: ReadonlyMap<string, string>): void {
+  for (const [tokenPath, uses] of masterTokenPaths(source.master)) {
+    if (!uses.has('ground') || remap.has(tokenPath) || tokenPath.startsWith('color.semantic.')) continue;
+    const light = themeHex(source.colors[tokenPath]);
+    const now = themeHex(colors[tokenPath] ?? source.colors[tokenPath]);
+    if (!light || now !== light || bgIsDark(light)) continue;
+    const mirror = mirroredRampStep(tokenPath, source.colors, colors);
+    const mirrorHex = mirror ? themeHex(colors[mirror]) : undefined;
+    const surface = themeHex(colors[semanticPath('surface')]);
+    const hex = mirrorHex && bgIsDark(mirrorHex) ? mirrorHex : surface && bgIsDark(surface) ? surface : undefined;
+    if (hex) colors[tokenPath] = hex;
+  }
 }
 
 function isRebrandShape(value: object): value is RebrandDesignSystemV1 {

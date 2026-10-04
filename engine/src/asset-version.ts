@@ -3,7 +3,7 @@
  * The suffix leaves legacy ids (including user/ privacy filtering and theme
  * modifiers) intact. Only an explicit pin changes latest-resolution semantics. */
 import type { AssetRef } from './bridge/host-v1.ts';
-import { stripAssetModifiers } from './photo-treatment.ts';
+import { stripAssetModifiers } from './asset-modifiers.ts';
 
 export type AssetVersionPin = NonNullable<AssetRef['pin']>;
 const MARKER = '#lolly-version=';

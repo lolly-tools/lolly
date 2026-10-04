@@ -11,7 +11,9 @@
  *
  * What it draws, and nothing else:
  *
- *   - a box row as a `rect` with its fill, stroke, corner radius and opacity;
+ *   - a box row as a `rect` with its fill, stroke, corner radius and opacity, and a
+ *     linear or radial `grad` as an SVG gradient over the fill, each stop keeping its
+ *     own opacity, so a scrim over a picture previews as a scrim;
  *   - a path row as a `path`: its authored nodes (Design's own path value, each
  *     node a fraction of the row box) lowered to cubics at the row's size, with
  *     its fill, fill rule, stroke, caps, joins and dash, so a chart carried as
@@ -78,6 +80,8 @@ import { decodeAuthoredPaths } from './geom/authored-url.ts';
 import { toSvgPathData, type Contour } from './geom/path.ts';
 import { toCubics } from './geom/spline.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
+import { gradientSpecStops, parseGradientSpec } from './gradient-spec.ts';
+import { colorToHexString } from './css-color.ts';
 
 /** The wrap the preview and the compile's fit pass share, re-exported where callers found it first. */
 export { wrapByAverageWidth };
@@ -329,7 +333,7 @@ function drawEmptySlot(box: { x: number; y: number; w: number; h: number }, ctx:
 function emptySlot(row: DesignBoxRowV1): boolean {
   if (!str(row, 'role')) return false;
   const kind = str(row, 'kind');
-  if (kind === 'text') return str(row, 'text').trim() === '' && str(row, 'bg') === '';
+  if (kind === 'text') return str(row, 'text').trim() === '' && str(row, 'bg') === '' && str(row, 'grad') === '';
   if (kind === 'image') return str(row, 'image') === '';
   return false;
 }
@@ -500,13 +504,73 @@ function drawGlyphBar(row: DesignBoxRowV1, box: { x: number; y: number; w: numbe
     + ` height="${Math.max(1, Math.round(h))}" fill="${esc(str(row, 'bg'))}" opacity="${GLYPH_BAR_OPACITY}"/>`;
 }
 
+/** A 32-bit FNV-1a hash in base 36, for an id derived from the content it labels. */
+function contentId(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(36);
+}
+
+/**
+ * A row's `grad` spec as an SVG gradient: the definition and the `url(#id)` paint,
+ * or null when the spec is absent, unreadable or conic (which SVG has no primitive
+ * for). Stops are the engine's baked sRGB stops, each with its own `stop-opacity`. A
+ * linear gradient runs along the CSS gradient line of the box (its length
+ * |w sin a| + |h cos a|); a radial one is the ellipse through the box's corners, as
+ * `gradientSpecToCss` writes the radial form. The id is a hash of the definition itself, so two
+ * drawings mounted in one document can share an id only when they share the gradient.
+ */
+function gradientPaint(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h: number }): { defs: string; paint: string } | null {
+  const spec = str(row, 'grad');
+  if (!spec) return null;
+  const g = parseGradientSpec(spec);
+  if (!g || g.kind === 'conic') return null;
+  const baked = gradientSpecStops(g);
+  if (baked.length < 2) return null;
+  const stops = baked.map((s) => {
+    const hex = colorToHexString(s.color);
+    const alpha = hex.length === 9 ? Number.parseInt(hex.slice(7, 9), 16) / 255 : 1;
+    return `<stop offset="${round2(Math.max(0, Math.min(100, s.pos)) / 100)}" stop-color="${hex.slice(0, 7)}"`
+      + (alpha < 1 ? ` stop-opacity="${round2(alpha)}"` : '') + '/>';
+  }).join('');
+  let head: string;
+  if (g.kind === 'linear') {
+    const rad = (g.angle * Math.PI) / 180;
+    const dx = Math.sin(rad);
+    const dy = -Math.cos(rad);
+    const half = (Math.abs(box.w * dx) + Math.abs(box.h * dy)) / 2;
+    const cx = box.x + box.w / 2;
+    const cy = box.y + box.h / 2;
+    head = `<linearGradient gradientUnits="userSpaceOnUse" x1="${round2(cx - dx * half)}" y1="${round2(cy - dy * half)}"`
+      + ` x2="${round2(cx + dx * half)}" y2="${round2(cy + dy * half)}"`;
+  } else {
+    head = '<radialGradient cx="0.5" cy="0.5" r="0.71"';
+  }
+  const tag = g.kind === 'linear' ? 'linearGradient' : 'radialGradient';
+  const body = `${head}>${stops}</${tag}>`;
+  const id = `lg${contentId(body)}`;
+  return { defs: `<defs>${body.replace(`<${tag} `, `<${tag} id="${id}" `)}</defs>`, paint: `url(#${id})` };
+}
+
 function drawBox(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h: number }): string {
-  const fill = str(row, 'bg');
+  const grad = gradientPaint(row, box);
+  if (grad) {
+    // Design paints `bg` under the gradient, so a row with both draws both, in that order.
+    const under = str(row, 'bg') ? drawBoxPaint({ ...row, stroke: '' }, box, str(row, 'bg')) : '';
+    return `${grad.defs}${under}${drawBoxPaint(row, box, grad.paint, true)}`;
+  }
+  return drawBoxPaint(row, box, str(row, 'bg'));
+}
+
+function drawBoxPaint(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h: number }, fill: string, raw = false): string {
   const stroke = str(row, 'stroke');
   const strokeW = num(row, 'strokeW');
   const radius = num(row, 'radius');
   const shape = str(row, 'shape');
-  let paint = `fill="${fill ? esc(fill) : 'none'}"`
+  let paint = `fill="${fill ? (raw ? fill : esc(fill)) : 'none'}"`
     + (stroke && strokeW > 0 ? ` stroke="${esc(stroke)}" stroke-width="${round2(strokeW)}"` : '');
   // A dashed outline draws dashed, with the same lengths `drawPath` uses.
   if (stroke && strokeW > 0 && str(row, 'strokeDash') === 'dashed') {
@@ -533,9 +597,9 @@ function drawText(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h
   const text = str(row, 'text');
   const size = num(row, 'fontSize', DEFAULT_FONT_SIZE) || DEFAULT_FONT_SIZE;
   const fill = str(row, 'bg');
-  const lead = fill
-    ? `<rect x="${round2(box.x)}" y="${round2(box.y)}" width="${round2(box.w)}" height="${round2(box.h)}" fill="${esc(fill)}"/>`
-    : '';
+  const grad = gradientPaint(row, box);
+  const rect = (paint: string): string => `<rect x="${round2(box.x)}" y="${round2(box.y)}" width="${round2(box.w)}" height="${round2(box.h)}" fill="${paint}"/>`;
+  const lead = (fill ? rect(esc(fill)) : '') + (grad ? `${grad.defs}${rect(grad.paint)}` : '');
   if (!text) return lead;
   // The fill covers the whole box; the words sit inside the pad, as Design lays them.
   const pad = designTextPad(row);

@@ -1,6 +1,6 @@
 {
-  "name": "রিব্র্যান্ড",
-  "description": "একটি PowerPoint ডেক আপলোড করুন এবং এর রঙ ও ফন্ট আপনার ব্র্যান্ডের সাথে মিলিয়ে নিন - আপনার ডিভাইসেই পুনর্নির্মিত, কিছুই আপলোড হয় না।",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "{{fileName}}-এর জন্য ডেক রিব্র্যান্ডার",
   "inputs.source.label": "PowerPoint ফাইল",
   "inputs.source.help": "একটি .pptx ফাইল। এটি আপনার ডিভাইসে পড়া হয় এবং কখনও আপলোড করা হয় না।",

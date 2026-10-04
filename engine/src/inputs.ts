@@ -13,8 +13,8 @@
 
 import { isTokenValue, isAlias, aliasPath } from './tokens.ts';
 import type { TokenValue } from './tokens.ts';
-import type { AssetRef, InputFile } from './bridge/host-v1.ts';
-import { reconcileBlockTokenBindings } from './token-block-bindings.ts';
+import type { AssetRef, InputFile, TokenSet } from './bridge/host-v1.ts';
+import { blockColourFields, normaliseDesignColourRefs, reconcileBlockTokenBindings, resolveBlockTokenBindings } from './token-block-bindings.ts';
 
 /** An input's declared type (schemas/tool.schema.json `$defs/input.type`). */
 export type InputType =
@@ -604,12 +604,29 @@ function pickControl(input: InputSpec): InputControl {
 export interface InputWriteOptions {
   /** Explicit restoration metadata when replaying an authored edit. Null clears a previous link. */
   restoreTokenRefs?: Record<string, string | null>;
+  /**
+   * The token set a colour reference written into a blocks input with a
+   * `tokenBindingsField` resolves against (plan 291 W4). A `{path}` alias or a
+   * `var(--brand-token-…)` in a colour sub-field, and a `{@path …|}` text run, are
+   * stored as the literal plus a link; with no set, as the previous literal plus an
+   * unresolved link that the runtime's next resolve completes. Never the raw alias.
+   */
+  tokenSet?: TokenSet;
+  /** The colour face a link stores: sRGB (default) or the wide-gamut one. */
+  colorTarget?: 'srgb' | 'rec2020';
+  /**
+   * With `tokenSet`: also re-resolve the links the written rows already carry (field,
+   * run and gradient tint links), so rows saved under another theme (an undo, a paste,
+   * a peer's rows) land in the document's current one. A row already in this theme is
+   * kept as the same object. The runtime passes it with the set of the theme in force.
+   */
+  refreshTokenLinks?: boolean;
 }
 
 export function updateInput(model: InputModelItem[], id: string, value: InputValue, options?: InputWriteOptions): InputModelItem[] {
   return model.map(input => {
     if (input.id !== id) return input;
-    const constrained = constrain(input, value);
+    const constrained = constrain(input, value, options);
     const requested = options?.restoreTokenRefs;
     const previous = requested && Object.hasOwn(requested, id) ? requested[id] : isTokenValue(input.value) ? input.value.ref : input.restoreTokenRef;
     const restoreTokenRef = !isTokenValue(constrained) && isAlias(previous) && previous.length <= 1024 ? previous : undefined;
@@ -636,7 +653,7 @@ export function updateInput(model: InputModelItem[], id: string, value: InputVal
  * Hook patches do NOT come through here (runtime.ts's mergePatch is the tool's own
  * trust boundary - a hook may compute anything for its own tool).
  */
-function constrain(input: InputModelItem, value: InputValue): InputValue {
+function constrain(input: InputModelItem, value: InputValue, options?: InputWriteOptions): InputValue {
   if (['number', 'text', 'longtext', 'select'].includes(input.type) && isTokenValue(value)) return value;
   if (input.type === 'number' && isAlias(value)) return value;
   if (input.type === 'select') {
@@ -671,7 +688,13 @@ function constrain(input: InputModelItem, value: InputValue): InputValue {
     // A repeating field group is an ARRAY of rows, always. A non-array would break
     // every consumer that iterates it (template `{{#each}}`, the sidebar panel, the
     // collab row projection), so it keeps the prior value.
-    return Array.isArray(value) ? input.tokenBindingsField ? reconcileBlockTokenBindings(value, input.tokenBindingsField) : value : input.value;
+    if (!Array.isArray(value)) return input.value;
+    if (!input.tokenBindingsField) return value;
+    if (options?.tokenSet && options.refreshTokenLinks) return resolveBlockTokenBindings(value, input.tokenBindingsField, input.fields ?? [], options.tokenSet, options.colorTarget ?? 'srgb');
+    const reconciled = reconcileBlockTokenBindings(value, input.tokenBindingsField);
+    // Write time (plan 291 W4): a reference just written is lowered here, so a live patch,
+    // an MCP set or a brand-check fix never stores an alias the renderer paints as nothing.
+    return normaliseDesignColourRefs(reconciled, blockColourFields(input.fields ?? []), options?.tokenSet, options?.colorTarget ?? 'srgb', { metadataField: input.tokenBindingsField, refresh: false });
   }
   if (input.type === 'text' || input.type === 'longtext') {
     if (typeof value !== 'string') return input.value;

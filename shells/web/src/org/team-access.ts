@@ -3,7 +3,9 @@
  * org/team-access - the pure decisions behind "People with access" and the role a
  * person holds in a team project: who sees the People panel and what they may do
  * there, which save the Share dialog offers, what the instance allows an invitation
- * to carry, and the "Edited by" line under a project or session.
+ * to carry (including a link that sets a password), the lines under a waiting
+ * invitation and an access request, and the "Edited by" line under a project or
+ * session.
  *
  * No DOM and no network, so every decision is tested on its own
  * (org/team-access.test.ts) and the panels in org/team-people.ts,
@@ -34,12 +36,33 @@ export interface InvitePolicy {
   maxTtlHours: number;
   /** The roles an invitation may give, in the order they are offered. */
   projectRoles: InviteRole[];
+  /** The workspace's own name (`instance.name`, "lolly.ing"), for sentences about
+   *  where people are invited to. '' when the instance sends none. */
+  workspace: string;
+  /** `invites.passwordSetup`: password sign-in is on and this person is an admin or
+   *  owner who may invite, so an invite link may also set the invitee's password. */
+  passwordSetup: boolean;
+  /** `invites.passwordDomains`: when every address is at one of these, the password
+   *  tick starts ticked. */
+  passwordDomains: string[];
+  /** `requests.project`: a member may ask for access to a project, so a viewer is
+   *  offered "Ask to edit". False on an instance that does not say. */
+  askToEdit: boolean;
 }
 
 /** The org-config fields read here. Structural, so this module does not import org/index.ts. */
 export interface InviteConfig {
   can?: Record<string, boolean>;
-  invites?: { domains?: unknown; maxTtlHours?: unknown; projectRoles?: unknown };
+  instance?: { name?: unknown };
+  invites?: { domains?: unknown; maxTtlHours?: unknown; projectRoles?: unknown; passwordSetup?: unknown; passwordDomains?: unknown };
+  requests?: { project?: unknown };
+}
+
+/** A domain list as the instance sent it: trimmed, lower case, no blanks or repeats. */
+function domainList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? [...new Set(value.filter((d): d is string => typeof d === 'string' && d.trim() !== '').map((d) => d.trim().toLowerCase()))]
+    : [];
 }
 
 /**
@@ -49,14 +72,32 @@ export interface InviteConfig {
 export function invitePolicy(config: InviteConfig | null | undefined): InvitePolicy | null {
   const inv = config?.invites;
   if (!inv || typeof inv !== 'object') return null;
-  const domains = Array.isArray(inv.domains)
-    ? [...new Set(inv.domains.filter((d): d is string => typeof d === 'string' && d.trim() !== '').map((d) => d.trim().toLowerCase()))]
-    : [];
   const ttl = typeof inv.maxTtlHours === 'number' && Number.isFinite(inv.maxTtlHours) && inv.maxTtlHours > 0 ? inv.maxTtlHours : 720;
   const listed = Array.isArray(inv.projectRoles) ? inv.projectRoles.map(inviteRoleOf).filter((r): r is InviteRole => !!r) : null;
   // Kept in the fixed viewer, editor, manager order whatever order the instance sent.
   const projectRoles = listed ? INVITE_ROLES.filter((r) => listed.includes(r)) : [...INVITE_ROLES];
-  return { canInvite: config?.can?.['user.invite'] === true, domains, maxTtlHours: ttl, projectRoles };
+  const name = config?.instance?.name;
+  return {
+    canInvite: config?.can?.['user.invite'] === true,
+    domains: domainList(inv.domains),
+    maxTtlHours: ttl,
+    projectRoles,
+    workspace: typeof name === 'string' ? name.trim() : '',
+    passwordSetup: inv.passwordSetup === true,
+    passwordDomains: domainList(inv.passwordDomains),
+    askToEdit: config?.requests?.project === true,
+  };
+}
+
+/** Whether the password tick starts ticked for the addresses typed so far: there is
+ *  at least one, and every one is at a password domain (the same exact-domain match
+ *  the instance applies to `domains`). Pure. */
+export function passwordTickDefault(emails: readonly string[], passwordDomains: readonly string[]): boolean {
+  if (!emails.length || !passwordDomains.length) return false;
+  return emails.every((e) => {
+    const at = e.lastIndexOf('@');
+    return at > 0 && passwordDomains.includes(e.slice(at + 1).trim().toLowerCase());
+  });
 }
 
 /** Owner or manager: decides who has access. Pure. */
@@ -111,6 +152,80 @@ export function roleLabel(role: TeamRole): string {
     case 'editor': return tRaw('Editor');
     default: return tRaw('Viewer');
   }
+}
+
+/** What each role may do, in one line, under every select that hands out a role. Plain text. */
+export function roleHelpText(): string {
+  return tRaw('Viewers open and copy. Editors save changes. Managers also add people.');
+}
+
+/** "2 Nov 2026": a day for "Ends {date}" and the invite message, in the reader's
+ *  language. '' for a missing or unreadable time. Pure. */
+export function dayLabel(iso: string | undefined, lang: string = loadedLang()): string {
+  const ts = iso ? Date.parse(iso) : NaN;
+  if (Number.isNaN(ts)) return '';
+  try {
+    return new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(ts);
+  } catch {
+    return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(ts);
+  }
+}
+
+/**
+ * The lines under an invitation's address in "Waiting to accept": when it ends (or
+ * ended), whether anyone has opened the link yet (or that it expired), and who
+ * invited. A part the instance did not send is ''. `now` and `lang` are passed in
+ * for tests. Plain text.
+ */
+export function invitationLines(
+  inv: { status: 'pending' | 'expired'; expiresAt?: string; openedAt?: string; invitedByName?: string },
+  now: number = Date.now(),
+  lang?: string,
+): { ends: string; state: string; by: string } {
+  const day = dayLabel(inv.expiresAt, lang);
+  const expired = inv.status === 'expired';
+  const ends = day ? (expired ? tRaw('Ended {date}', { date: day }) : tRaw('Ends {date}', { date: day })) : '';
+  const opened = inv.openedAt ? longRelTime(inv.openedAt, now, lang) : '';
+  const state = expired ? tRaw('Expired') : opened ? tRaw('Opened {time}', { time: opened }) : tRaw('Waiting');
+  const name = inv.invitedByName?.trim();
+  return { ends, state, by: name ? tRaw('Invited by {name}', { name }) : '' };
+}
+
+/** What a member asked for, in the words a project manager reads. Plain text. */
+export function requestAskText(role: TeamRole): string {
+  return role === 'viewer' ? tRaw('Asks to view') : tRaw('Asks to edit');
+}
+
+/** "Asked 3 hours ago", or '' without a readable time. Plain text. */
+export function requestAskedText(createdAt: string | undefined, now: number = Date.now(), lang?: string): string {
+  const time = longRelTime(createdAt, now, lang);
+  return time ? tRaw('Asked {time}', { time }) : '';
+}
+
+/** The sentence after this person answered a request themselves. Plain text. */
+export function requestAnsweredText(action: 'approve' | 'decline', role: TeamRole): string {
+  return action === 'decline' ? tRaw('Declined.') : tRaw('Approved as {role}.', { role: roleLabel(role) });
+}
+
+/**
+ * The sentence for an answer the instance refused. A 409 means someone answered
+ * first or the request ended: the instance sends the request as it now stands, so
+ * the sentence says who approved or declined, or that it was withdrawn or ended. A
+ * 403 means this person may no longer answer the request. Plain text.
+ */
+export function requestRefusalText(
+  status: number,
+  request?: { status?: string; answeredBy?: string; answerRole?: TeamRole } | null,
+): string {
+  if (status === 403) return tRaw('You can no longer answer this request.');
+  if (status !== 409 && status !== 404) return tRaw('Could not answer the request. Try again.');
+  const name = request?.answeredBy?.trim();
+  if (request?.status === 'approved' && name && request.answerRole) {
+    return tRaw('{name} already approved this as {role}.', { name, role: roleLabel(request.answerRole) });
+  }
+  if (request?.status === 'declined' && name) return tRaw('{name} already declined this.', { name });
+  if (request?.status === 'withdrawn') return tRaw('This request was withdrawn.');
+  return tRaw('This request has ended.');
 }
 
 /**
@@ -294,8 +409,8 @@ export type InviteShownStatus = InviteStatus | 'already-invited';
 
 /** The addresses with an invitation still waiting, from the panel's list, ready for
  *  shownInviteStatus. Pure. */
-export function waitingAddresses(invitations: ReadonlyArray<{ email: string }>): Set<string> {
-  return new Set(invitations.map((i) => i.email.trim().toLowerCase()));
+export function waitingAddresses(invitations: ReadonlyArray<{ email: string; status?: string }>): Set<string> {
+  return new Set(invitations.filter(i => i.status !== 'expired').map((i) => i.email.trim().toLowerCase()));
 }
 
 /** How one address's outcome is shown: 'already' becomes 'already-invited' when the
@@ -358,9 +473,11 @@ export function inviteResultText(status: InviteShownStatus, reason?: string, dom
  * `ROLE_NOT_ALLOWED` when the instance does not hand out that role, else not being
  * allowed to manage the project. Plain text.
  */
-export function peopleMessage(status: number, action: 'load' | 'change' | 'invite', code?: string): string {
+export function peopleMessage(status: number, action: 'load' | 'change' | 'invite' | 'link', code?: string): string {
   if (status === 0) return tRaw('The instance could not be reached. Try again when you are back online.');
   if (status === 401) return tRaw('Your sign-in has expired. Sign in again, then try again.');
+  // A new link is limited per invitation and day; an invite, per hour and address.
+  if (status === 429 && action === 'link') return tRaw('That is a lot of new links for one day. Try again tomorrow.');
   if (status === 429) return tRaw('That is a lot of addresses for one hour. Try again later.');
   if (status === 403 && code === 'ROLE_NOT_ALLOWED') return tRaw('This instance does not give that role. Choose another role.');
   // An invite to an archived project; a change only answers 409 for the owner's row,
@@ -368,10 +485,11 @@ export function peopleMessage(status: number, action: 'load' | 'change' | 'invit
   if (status === 409 && (action === 'invite' || code === 'PROJECT_ARCHIVED')) {
     return tRaw('This project is archived. Restore it before inviting people.');
   }
-  // On a change, 404 is the person or the invitation, not the project: the instance
-  // answers "no such member" or "no such open invitation" while the project stays.
+  // On a change or a new link, 404 is the person or the invitation, not the project:
+  // the instance answers "no such member" or "no such open invitation" while the
+  // project stays.
   if (status === 404) {
-    return action === 'change'
+    return action === 'change' || action === 'link'
       ? tRaw('That person or invitation has already changed.')
       : tRaw('That project is no longer on this instance.');
   }

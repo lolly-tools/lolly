@@ -13,7 +13,10 @@ import { refused, usageError } from './exit-codes.ts';
 export async function runDesignToolPackage(path: string, flags: Record<string,string>): Promise<void> {
   const bytes = new Uint8Array(await readFile(path));
   const contents = readLollyFile(bytes, {allowTool:true});
-  if (contents.manifest.kind !== 'tool') throw usageError('Choose a reusable tool .lolly file.', 'BAD_INPUT');
+  // A saved Design session opens in the web shell and exports there (plan 291 W8).
+  const session = await import('./design-session.ts');
+  if (session.isDesignSessionFile(contents)) { await session.runDesignSession(path, bytes, flags, contents); return; }
+  if (contents.manifest.kind !== 'tool') throw usageError('Choose a reusable tool .lolly file, or a saved Design session.', 'BAD_INPUT');
   const files = bundledToolFiles(contents)!; const id = contents.manifest.tool.id;
   const tool = await loadTool(id, async file => {
     const bytes = files.get(file.slice(id.length + 1)); if (!bytes) throw new Error(`Missing tool file: ${file}`); return new TextDecoder().decode(bytes);

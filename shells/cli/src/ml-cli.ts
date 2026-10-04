@@ -114,20 +114,43 @@ export async function upscaleCli(positionals: string[], flags: Record<string, st
 
 // ── lolly matte ──────────────────────────────────────────────────────────────
 
+/**
+ * The edge flags (plans/289 M4) as `MatteOpts.refine`: `--edges=as-drawn` keeps the
+ * model's mask; otherwise the edges follow the photo, with `--edge-radius` (0 to 40),
+ * `--edge-shift` (-1 to 1) and `--edge-contrast` (1 to 10). Undefined: the default.
+ */
+export function matteRefineFlags(flags: Record<string, string>): false | { radius?: number; shift?: number; contrast?: number } | undefined {
+  const edges = flags.edges;
+  if (edges !== undefined && edges !== 'refined' && edges !== 'as-drawn') throw usageError('--edges takes refined or as-drawn.', 'BAD_EDGES');
+  if (edges === 'as-drawn') return false;
+  const number = (name: string, lo: number, hi: number): number | undefined => {
+    const v = flags[name];
+    if (v === undefined) return undefined;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < lo || n > hi) throw usageError(`--${name} takes a number from ${lo} to ${hi}.`, 'BAD_EDGES');
+    return n;
+  };
+  const radius = number('edge-radius', 0, 40), shift = number('edge-shift', -1, 1), contrast = number('edge-contrast', 1, 10);
+  if (radius === undefined && shift === undefined && contrast === undefined) return undefined;
+  return { ...(radius !== undefined ? { radius } : {}), ...(shift !== undefined ? { shift } : {}), ...(contrast !== undefined ? { contrast } : {}) };
+}
+
 export async function matteCli(positionals: string[], flags: Record<string, string>): Promise<number> {
   const api = createNodeMatteAPI();
   if (!api) throw notHere('Background removal needs onnxruntime-node and sharp, and neither resolves in this install.', 'CAPABILITY_UNAVAILABLE');
   if (flags.models !== undefined) return listModels(api.models(), (m) => `${m.id}  ${m.name}  ${m.tier}  ${formatBytes(m.approxBytes)}  ${m.license}`);
   const input = positionals[0];
-  if (!input) throw usageError('usage: lolly matte <image> [--model=u2netp|modnet] [--max-edge=N] [--out=<file.png>] [--models]', 'MISSING_ARGUMENT');
+  if (!input) throw usageError('usage: lolly matte <image> [--model=u2netp|modnet] [--max-edge=N] [--edges=refined|as-drawn] [--edge-radius=12] [--edge-shift=0] [--edge-contrast=1] [--out=<file.png>] [--models]', 'MISSING_ARGUMENT');
 
   const model = flags.model as Parameters<typeof api.modelBytes>[0] | undefined;
+  const refine = matteRefineFlags(flags);
   const frame = await readFrame(input);
   if (await api.cached(resolveMatteModel(model ?? MATTE_DEFAULT_MODEL))) note(`cutting out ${frame.width}×${frame.height}…`);
   try {
     const out = await api.run(frame, {
       ...(model ? { model } : {}),
       ...(positiveInt(flags['max-edge'], 'max-edge') ? { maxEdge: positiveInt(flags['max-edge'], 'max-edge')! } : {}),
+      ...(refine !== undefined ? { refine } : {}),
     });
     await writePng(out, flags.out);
     return EXIT.OK;

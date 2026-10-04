@@ -31,8 +31,22 @@ export interface ExportWait {
   dispose(): void;
 }
 
+/**
+ * The page binding the web shell reports export progress through, exposed once per page
+ * (Playwright refuses a second exposeFunction of one name) and handed to the wait that is
+ * current, so one opened page can export several times (plan 291 M4, one file per theme).
+ */
+const progressSinks = new WeakMap<Page, { current: ((report: ExportProgress) => void) | null }>();
+
 /** Register before navigation so fast downloads and early progress are observed. */
 export async function waitForExport(page: Page, format: string, idleMs = exportIdleTimeout(format)): Promise<ExportWait> {
+  let sink = progressSinks.get(page);
+  if (!sink) {
+    const created: { current: ((report: ExportProgress) => void) | null } = { current: null };
+    progressSinks.set(page, created);
+    sink = created;
+    await page.exposeFunction('__lollyExportProgress', (report: ExportProgress) => { created.current?.(report); });
+  }
   const advanced = advancingProgress();
   let timer: ReturnType<typeof setTimeout>;
   let settled = false;
@@ -41,8 +55,10 @@ export async function waitForExport(page: Page, format: string, idleMs = exportI
   const result = new Promise<Download>((resolve, reject) => { resolveWait = resolve; rejectWait = reject; });
   // Navigation may fail before its caller awaits the download.
   void result.catch(() => {});
+  const onProgress = (report: ExportProgress): void => { if (!settled && advanced(report)) touch(); };
   const cleanup = () => {
     clearTimeout(timer);
+    if (sink.current === onProgress) sink.current = null;
     page.off('console', exportError); page.off('download', downloaded); page.off('close', closed); page.off('crash', crashed);
   };
   const fail = (error: Error) => { if (settled) return; settled = true; cleanup(); rejectWait(error); };
@@ -57,7 +73,7 @@ export async function waitForExport(page: Page, format: string, idleMs = exportI
     const text = message.text();
     if (/^Auto-export (?:failed|did not start):/.test(text)) fail(new Error(text));
   };
-  await page.exposeFunction('__lollyExportProgress', (report: ExportProgress) => { if (!settled && advanced(report)) touch(); });
+  sink.current = onProgress;
   page.on('console', exportError); page.on('download', downloaded); page.on('close', closed); page.on('crash', crashed);
   touch();
   return { result, dispose: () => fail(new Error('The export wait was cancelled.')) };

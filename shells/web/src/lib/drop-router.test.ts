@@ -687,3 +687,10 @@ test('the stage order the preview spells out is the store\u2019s own', () => {
     assert.equal(said, next, `a finished ${PROJECT_STAGES[i]} reads as a pending ${PROJECT_STAGES[i + 1]}`);
   }
 });
+
+test('a Photoshop file gets the Rebrand door; a GIMP file, layered too, does not (plans/289 D2)', () => {
+  const ids = (s: Sniff) => dropChooserChoices(s, deckCtx(['design', 'darkroom'])).map(c => c.id);
+  assert.ok(ids(deckSniff({ layers: true, psd: true })).includes('rebrand'));
+  assert.ok(!ids(deckSniff({ layers: true })).includes('rebrand'), 'Rebrand reads Photoshop documents, not GIMP ones');
+  assert.ok(ids(deckSniff({ layers: true, psd: true })).includes('layers'), 'the layered doors stay');
+});

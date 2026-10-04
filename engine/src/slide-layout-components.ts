@@ -70,9 +70,39 @@ export function slideLayoutChoices(slide: SlideSourceV1, plan: SlidePlanV1): str
     .filter(id => slideLayoutRecipe(id));
 }
 
-/** Expand only the recipes in use. Master tokens, faces, title and footer remain authoritative. */
+/**
+ * The weight the master sets a label in, read from its own label placeholders, so
+ * a component label matches the master (SUSE sets labels in Medium 500). A master
+ * with no weighted label gives 700.
+ */
+function masterLabelWeight(master: SlideMasterV1): string {
+  for (const a of master.archetypes) {
+    const label = a.placeholders.find(p => p.role === 'label' && p.style?.weight);
+    if (label?.style?.weight) return label.style.weight;
+  }
+  return '700';
+}
+
+/** The light layout id of a content-sized layout's dark twin (`flow-cards-4-2-dark` to `flow-cards-4-2`), else undefined. */
+function slideLayoutDarkBase(id: string): string | undefined {
+  if (!id.endsWith('-dark')) return undefined;
+  const base = id.slice(0, -'-dark'.length);
+  return slideLayoutRecipe(base) ? base : undefined;
+}
+
+/**
+ * Expand only the recipes in use. Master tokens, faces, title and footer remain authoritative.
+ *
+ * A `-dark` id (`flow-cards-4-2-dark`) asks for that layout's dark twin as well: the same
+ * geometry on the master's `content-dark` ground, with its inks and furniture, bound to
+ * the light layout through `variants.dark` and `variantOf`. A master with no dark content
+ * archetype (with a title and a body) has no twin to give. Only an id that asks for a twin
+ * gets one, so a plan that names light layouts expands exactly as before.
+ */
 export function withSlideLayoutComponents(master: SlideMasterV1, ids: readonly string[]): SlideMasterV1 {
-  const recipes = [...new Set(ids)].flatMap(id => {
+  const unique = [...new Set(ids)];
+  const darkOf = new Set(unique.map(slideLayoutDarkBase).filter((id): id is string => id !== undefined));
+  const recipes = [...new Set(unique.map(id => slideLayoutDarkBase(id) ?? id))].flatMap(id => {
     const recipe = slideLayoutRecipe(id);
     return recipe && !master.archetypes.some(a => a.id === id) ? [{ id, recipe }] : [];
   });
@@ -81,34 +111,57 @@ export function withSlideLayoutComponents(master: SlideMasterV1, ids: readonly s
   const title = base?.placeholders.find(p => p.role === 'title');
   const body = base?.placeholders.find(p => p.role === 'body');
   if (!base || !title || !body) return master;
+  const darkBase = master.archetypes.find(a => a.id === (base.variants?.dark ?? 'content-dark'));
+  const darkTitle = darkBase?.placeholders.find(p => p.role === 'title');
+  const darkBody = darkBase?.placeholders.find(p => p.role === 'body');
   const furniture: FurnitureLayerV1[] = [...master.furniture];
   const archetypes: ArchetypeV1[] = [...master.archetypes];
+  const labelWeight = masterLabelWeight(master);
   for (const { id, recipe } of recipes) {
-    const { count, columns, kind } = recipe;
-    const rows = Math.ceil(count / columns);
-    const cells = slideGridCells(count, columns, body.box);
-    const { w: cellW, h: cellH } = cells[0]!;
-    const insetX = kind === 'cards' ? .012 : 0;
-    const insetY = kind === 'cards' ? .016 : .008;
-    const bodySize = Math.round(Math.min(master.typeScale.body, master.typeScale.body * (rows >= 3 ? .70 : columns >= 3 ? .85 : 1)));
-    const labelSize = Math.round(bodySize * 1.15);
-    const labelH = Math.min(cellH * .33, labelSize * 1.5 / master.size.height);
-    const placeholders: PlaceholderLayerV1[] = [{ ...title, box: { ...title.box }, optional: true }];
-    const decor: string[] = [];
-    for (let k = 0; k < count; k++) {
-      const { x, y } = cells[k]!;
-      const common = { group: `c${k + 1}`, index: k };
-      const textBox = { x: x + insetX, w: cellW - 2 * insetX };
-      const ink = body.style ?? {};
-      placeholders.push({ ...common, role: 'label', kind: 'text', optional: true, box: { ...textBox, y: y + insetY, h: labelH }, style: { ...ink, fontSize: labelSize, weight: '700', valign: 'top' } });
-      placeholders.push({ ...common, role: 'body', kind: 'text', box: { ...textBox, y: y + insetY + labelH + .008, h: cellH - insetY * 2 - labelH - .008 }, style: { ...ink, fontSize: bodySize, weight: '400', valign: 'top' } });
-      if (kind === 'cards') {
-        const ruleId = `${id}-rule-${k}`;
-        furniture.push({ id: ruleId, kind: 'bar', box: { x, y, w: cellW, h: .002 }, tokenPath: ink.fgTokenPath, hex: ink.fg });
-        decor.push(ruleId);
-      }
-    }
-    archetypes.push({ id, name: slideLayoutName(recipe), background: base.background, furniture: [...(base.furniture ?? []), ...decor], placeholders, repeat: { count, across: columns, cell: ['label:.25', 'body:.75'] } });
+    const light = flowArchetype(id, recipe, { base, title, body }, master, labelWeight, furniture);
+    archetypes.push(light);
+    const darkId = `${id}-dark`;
+    if (!darkOf.has(id) || !darkBase || !darkTitle || !darkBody || master.archetypes.some(a => a.id === darkId)) continue;
+    const dark = flowArchetype(darkId, recipe, { base: darkBase, title: darkTitle, body: darkBody }, master, labelWeight, furniture);
+    light.variants = { dark: darkId };
+    archetypes.push({ ...dark, name: `${dark.name}, dark`, variantOf: id });
   }
   return { ...master, archetypes, furniture };
+}
+
+/** One content-sized layout on `on.base`'s ground, furniture and inks. A cards layout adds its rules to `furniture`. */
+function flowArchetype(
+  id: string,
+  recipe: SlideLayoutRecipe,
+  on: { base: ArchetypeV1; title: PlaceholderLayerV1; body: PlaceholderLayerV1 },
+  master: SlideMasterV1,
+  labelWeight: string,
+  furniture: FurnitureLayerV1[],
+): ArchetypeV1 {
+  const { base, title, body } = on;
+  const { count, columns, kind } = recipe;
+  const rows = Math.ceil(count / columns);
+  const cells = slideGridCells(count, columns, body.box);
+  const { w: cellW, h: cellH } = cells[0]!;
+  const insetX = kind === 'cards' ? .012 : 0;
+  const insetY = kind === 'cards' ? .016 : .008;
+  const bodySize = Math.round(Math.min(master.typeScale.body, master.typeScale.body * (rows >= 3 ? .70 : columns >= 3 ? .85 : 1)));
+  const labelSize = Math.round(bodySize * 1.15);
+  const labelH = Math.min(cellH * .33, labelSize * 1.5 / master.size.height);
+  const placeholders: PlaceholderLayerV1[] = [{ ...title, box: { ...title.box }, optional: true }];
+  const decor: string[] = [];
+  for (let k = 0; k < count; k++) {
+    const { x, y } = cells[k]!;
+    const common = { group: `c${k + 1}`, index: k };
+    const textBox = { x: x + insetX, w: cellW - 2 * insetX };
+    const ink = body.style ?? {};
+    placeholders.push({ ...common, role: 'label', kind: 'text', optional: true, box: { ...textBox, y: y + insetY, h: labelH }, style: { ...ink, fontSize: labelSize, weight: labelWeight, valign: 'top' } });
+    placeholders.push({ ...common, role: 'body', kind: 'text', box: { ...textBox, y: y + insetY + labelH + .008, h: cellH - insetY * 2 - labelH - .008 }, style: { ...ink, fontSize: bodySize, weight: '400', valign: 'top' } });
+    if (kind === 'cards') {
+      const ruleId = `${id}-rule-${k}`;
+      furniture.push({ id: ruleId, kind: 'bar', box: { x, y, w: cellW, h: .002 }, tokenPath: ink.fgTokenPath, hex: ink.fg });
+      decor.push(ruleId);
+    }
+  }
+  return { id, name: slideLayoutName(recipe), background: base.background, furniture: [...(base.furniture ?? []), ...decor], placeholders, repeat: { count, across: columns, cell: ['label:.25', 'body:.75'] } };
 }

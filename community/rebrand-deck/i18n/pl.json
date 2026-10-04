@@ -1,6 +1,6 @@
 {
-  "name": "Rebranding",
-  "description": "Prześlij prezentację PowerPoint i dopasuj jej kolory i czcionki do swojej marki - odbudowane na Twoim urządzeniu, nic nie jest przesyłane.",
+  "name": "Theme swap",
+  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
   "a11yLabel": "Rebranding prezentacji dla {{fileName}}",
   "inputs.source.label": "Plik PowerPoint",
   "inputs.source.help": "Plik .pptx. Jest odczytywany na twoim urządzeniu i nigdy nie jest przesyłany.",

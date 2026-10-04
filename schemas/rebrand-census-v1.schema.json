@@ -560,7 +560,8 @@
         "video-dropped",
         "notes-dropped",
         "metafile-not-converted",
-        "vector-budget-reached"
+        "vector-budget-reached",
+        "feature-dropped"
       ]
     }
   },

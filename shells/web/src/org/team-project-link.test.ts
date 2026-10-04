@@ -12,6 +12,10 @@
  *  3. The list adapter carries `myRole` and `updatedByName` only when sent.
  *  4. The Share dialog's Team section offers a viewer "Save a copy to a project"
  *     instead of "Save changes", and leaves the viewer's projects out of the list.
+ *  6. A member the instance turns away (plans/75 G13): a 403 says who they are
+ *     signed in as and offers Ask for access (when the instance takes requests) and
+ *     Use a different account; an approval opens the link again; a 401 offers
+ *     Sign in, coming back to the link.
  *
  * Run directly:  node --test shells/web/src/org/team-project-link.test.ts
  */
@@ -59,6 +63,9 @@ const { registerSessionSource, takeSourceProjectRequest, _clearSessionSourceForT
 const { openTeamProjectsModal } = await import('./team-projects.ts');
 const { buildTeamShareSection, _clearTeamProjectsForTests } = await import('./team-save.ts');
 const { adoptTeamSessionOrigin, _clearTeamSessionOriginForTests } = await import('./team-session-origin.ts');
+const { initOrg, _resetOrgForTests } = await import('./index.ts');
+const { noAccessCard, switchAccountHref } = await import('./team-link-shared.ts');
+type AnswerMessage = import('./access-request.ts').AnswerMessage;
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 async function settle(): Promise<void> { for (let i = 0; i < 10; i++) await tick(); }
@@ -458,4 +465,111 @@ test('a second open while the dialog is up does not stack another dialog', async
   assert.equal(document.querySelectorAll('dialog.team-projects-dialog').length, 1, 'closed, it opens again');
   document.querySelector('dialog')!.dispatchEvent(new dom.window.Event('cancel', { cancelable: true }));
   await settle();
+});
+
+// ── 6. Turned away: no access, a lapsed sign-in ──────────────────────────────
+
+const posts: Array<{ url: string; body: unknown }> = [];
+
+/** A signed-in member of Acme, with `config` in their org-config. Then `route`
+ *  answers everything else, and POSTs are recorded. */
+async function member(config: Record<string, unknown>, route: Handler): Promise<void> {
+  reset();
+  _resetOrgForTests();
+  posts.length = 0;
+  router = (url) => {
+    if (url.includes('/api/auth/config')) return json({ mode: 'open', provider: 'oidc', loginPath: '/api/auth/login' });
+    if (url.includes('/api/auth/session')) return json({ kind: 'member', user: { sub: 'u1', email: 'ana@acme.test', role: 'member' } });
+    if (url.includes('/api/v1/org-config')) return json({ instance: { name: 'Acme' }, inboxUnread: 0, ...config });
+    return new Response('', { status: 404 });
+  };
+  await initOrg();
+  router = (url, init) => {
+    if ((init?.method ?? 'GET') === 'POST') posts.push({ url, body: typeof init?.body === 'string' ? JSON.parse(init.body) : null });
+    return route(url, init);
+  };
+}
+
+test('no access, requests on: who they are, Ask for access, and Use a different account', async () => {
+  await member({ requests: { project: true } }, (url, init) => {
+    if (url === '/api/v1/projects/p1/sessions') return json({ error: { code: 'FORBIDDEN' } }, 403);
+    if (url.startsWith('/api/v1/access-requests/mine')) return json({ requests: [] });
+    if (url === '/api/v1/projects/p1/access-requests' && init?.method === 'POST') return json({ ok: true }, 202);
+    return new Response('', { status: 404 });
+  });
+  await mountTeamLink(view(), 'project/p1');
+  await settle();
+  const text = view().textContent!;
+  assert.match(text, /You do not have access to this team project\./);
+  assert.match(text, /You are signed in to Acme as ana@acme\.test\./);
+  const ask = view().querySelector<HTMLElement>('[data-team-ask]')!;
+  assert.ok(ask, 'the ask form');
+  assert.equal(ask.querySelector('h2')!.textContent, 'Ask for access', 'under the card\'s h1');
+  assert.equal(ask.querySelector('select')!.value, 'editor', 'Edit is the default');
+  assert.equal(view().querySelector('[data-team-switch-account]')!.textContent, 'Use a different account');
+  ask.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+  await settle();
+  assert.deepEqual(posts, [{ url: '/api/v1/projects/p1/access-requests', body: { role: 'editor' } }]);
+  assert.match(view().textContent!, /Request sent\./);
+  _resetOrgForTests();
+});
+
+test('no access, requests off: the sentence says who can help, and no form', async () => {
+  await member({}, (url) => url === '/api/v1/projects/p1/sessions' ? json({ error: {} }, 403) : new Response('', { status: 404 }));
+  await mountTeamLink(view(), 'project/p1');
+  await settle();
+  assert.match(view().textContent!, /You do not have access to that team project\. Ask whoever sent the link to add you\./);
+  assert.equal(view().querySelector('[data-team-ask]'), null);
+  assert.ok(view().querySelector('[data-team-switch-account]'));
+  _resetOrgForTests();
+});
+
+test('Use a different account signs out first, and says so when that fails', async () => {
+  await member({ requests: { project: true } }, (url) => {
+    if (url === '/api/v1/projects/p1/sessions') return json({ error: {} }, 403);
+    if (url.startsWith('/api/v1/access-requests/mine')) return json({ requests: [] });
+    if (url === '/api/auth/logout') return json({ error: {} }, 500);
+    return new Response('', { status: 404 });
+  });
+  await mountTeamLink(view(), 'project/p1');
+  await settle();
+  const button = view().querySelector<HTMLButtonElement>('[data-team-switch-account]')!;
+  button.click();
+  await settle();
+  assert.deepEqual(posts.map((p) => p.url), ['/api/auth/logout']);
+  assert.match(view().textContent!, /Could not sign out\. Try again\./);
+  assert.equal(button.disabled, false, 'ready to try again');
+  assert.equal(switchAccountHref('/#/team/project/p1'), '/api/auth/login?prompt=select_account&returnTo=%2F%23%2Fteam%2Fproject%2Fp1');
+  _resetOrgForTests();
+});
+
+test('a lapsed sign-in offers Sign in, coming back to the link', async () => {
+  await member({ requests: { project: true } }, (url) => url === '/api/v1/projects/p1/sessions' ? json({ error: {} }, 401) : new Response('', { status: 404 }));
+  await mountTeamLink(view(), 'project/p1');
+  await settle();
+  assert.match(view().textContent!, /Your sign-in has expired\. Sign in again to open the link\./);
+  assert.equal(view().querySelector('a.btn')!.getAttribute('href'), '/api/auth/login?returnTo=%2F%23%2Fteam%2Fproject%2Fp1');
+  assert.equal(view().querySelector('[data-team-ask]'), null);
+  _resetOrgForTests();
+});
+
+test('an approval seen in the inbox opens the link again', async () => {
+  await member({ requests: { project: true } }, (url) => url.startsWith('/api/v1/access-requests/mine')
+    ? json({ requests: [{ id: 'req_7', status: 'open', role: 'editor', createdAt: new Date().toISOString() }] })
+    : new Response('', { status: 404 }));
+  let listener: ((msgs: readonly AnswerMessage[]) => void) | null = null;
+  let opened = 0;
+  noAccessCard(view(), {
+    heading: 'Team project',
+    message: 'You do not have access to this team project.',
+    target: { projectId: 'p1' },
+    onApproved: () => { opened++; },
+    watch: (fn) => { listener = fn; return () => { listener = null; }; },
+  });
+  await settle();
+  assert.match(view().textContent!, /Nobody has answered yet/);
+  listener!([{ id: 'msg_ans_req_7', data: { kind: 'access-answer', requestId: 'req_7', projectId: 'p1', outcome: 'approved' } }]);
+  assert.equal(opened, 1);
+  assert.equal(listener, null, 'the watch let go');
+  _resetOrgForTests();
 });

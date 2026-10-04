@@ -41,9 +41,9 @@ import { livePalette } from '../lib/live-palette.ts';
 import { MULTI_EDIT_MIN, MULTI_EDIT_MAX } from '../lib/multi-edit-limits.ts';
 import { svgDataUrl } from '../lib/format.ts';
 import {
-  actionTile, folderTile, sessionTile, imageTile, tileColsHtml, FOLDER_ICON, MENU_ICON,
+  actionTile, sessionTile, imageTile, FOLDER_ICON, MENU_ICON,
   isBatchSlot, BATCH_SLOT_PREFIX, fmtBytes,
-  type MemberPreview,
+  type MemberPreview, type FolderTileOpts,
 } from '../folder-tiles.ts';
 import type { PickerHost } from './picker.ts';   // type-only (erased); the value is lazy-imported in openAddPicker
 import { wireTileSelect } from '../lib/tile-select.ts';
@@ -70,7 +70,7 @@ import type { ModalHandle } from '../components/modal.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml } from './projects-create.ts';
-import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsViewFromUrl, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
+import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsCardSizeAttr, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
@@ -82,7 +82,7 @@ import { TEMPLATES, templateBulkMenuHtml, templateUseHref, type SessionSaveSourc
 import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionSource, templatesCollectionFor, templatesRailChip, templatesRootTile } from './projects-templates-wiring.ts';
 import type { TemplateActionHost } from '../lib/template-actions.ts';
 import { getSessionSource } from '../lib/session-source.ts';
-import { openRequestedTeamProject, openTeamProjects, type TeamProjectsDoor } from './projects-team.ts';
+import { openRequestedTeamProject, openTeamProjects, createSharedProjectsView, type TeamProjectsDoor } from './projects-team.ts';
 import { getCollabTileProvider, renderCollabBadge } from '../lib/collab-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
@@ -263,7 +263,10 @@ export async function mountProjects(
   }));
   let mounted = true;        // false after the view is swapped out (guards async renders)
   // The Team projects door (projects-team.ts; dormant without a session source).
-  const teamDoor: TeamProjectsDoor = { host, toolName, beforeNavigate: armReturn, isMounted: () => mounted };
+  const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted };
+  const shared = createSharedProjectsView(teamDoor, viewEl, opts.params || '', render);
+  const sharedProjectId = shared.projectId, sharedFolder = shared.active;
+  const sharedProjectsHtml = (q = '') => shared.rootHtml(q, viewMode === 'list', listHeadHtml(), projectsCardSizeAttr(), sortBy, sortRev);
   let overlayModal: ModalHandle<any> | null = null;      // the move-picker / new-folder-name dialog, if open
   let releaseSearch: (() => void) | null = null;         // the shell search-bar claim (set in boot, below)
   let featuredHandle: FeaturedRowHandle | null = null; // the Uncategorised preview ribbon (drift/coverflow/grip), if mounted
@@ -317,19 +320,8 @@ export async function mountProjects(
   const RECENTS_COLLAPSED_KEY = 'lolly-projects-recents-collapsed';
   let recentsCollapsed = ((): boolean => { try { return localStorage.getItem(RECENTS_COLLAPSED_KEY) === '1'; } catch { return false; } })();
 
-  try {
-    if (localStorage.getItem('lolly:projectsView') === 'list') viewMode = 'list';
-    const s = localStorage.getItem('lolly:projectsSort');
-    if (s === 'name' || s === 'tool' || s === 'added' || s === 'modified' || s === 'size') sortBy = s;
-    else if (s === 'date') sortBy = 'modified';   // pre-'added' prefs stored 'date'
-    // Per-folder memory (plans/133 WP-2) wins over the device-global default.
-    const perFolder = (JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, { v?: string; s?: string; r?: boolean }>)[folderId ?? '__root__'];
-    if (perFolder) {
-      if (perFolder.v === 'list' || perFolder.v === 'preview') viewMode = perFolder.v;
-      if (perFolder.s === 'name' || perFolder.s === 'tool' || perFolder.s === 'added' || perFolder.s === 'modified' || perFolder.s === 'size') sortBy = perFolder.s;
-      sortRev = !!perFolder.r;
-    }
-  } catch { /* localStorage unavailable */ }
+  const prefsScope = sharedProjectId ? `team:${sharedProjectId}` : folderId ?? '__root__';
+  ({ view: viewMode, sort: sortBy, reversed: sortRev } = readProjectsViewPrefs(prefsScope, { view: viewMode, sort: sortBy, reversed: sortRev }, sharedFolder));
   // `#/p?view=&sort=&rev` seed the same three for THIS mount, outranking both stored
   // layers above - what a shared link, a docs recipe or a screenshot run needs to land
   // on a known layout. Never written back to either localStorage key: a link someone
@@ -473,12 +465,7 @@ export async function mountProjects(
   /** Persist view + sort for THIS folder (plans/133 WP-2). */
   function saveViewPrefs(): void {
     updateRouteParams({ view: viewMode, sort: sortBy, rev: sortRev ? '1' : '0' });
-    try {
-      const key = folderId ?? '__root__';
-      const map = JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, unknown>;
-      map[key] = { v: viewMode, s: sortBy, r: sortRev };
-      localStorage.setItem('lolly:projectsViewPrefs', JSON.stringify(map));
-    } catch { /* storage off */ }
+    writeProjectsViewPrefs(prefsScope, { view: viewMode, sort: sortBy, reversed: sortRev });
   }
 
   /** The list view's clickable column header (plans/133 WP-2 → WP-12). Click
@@ -576,25 +563,28 @@ export async function mountProjects(
 
   // ── render ───────────────────────────────────────────────────────────────
   function render(): void {
+    shared.folders(folders);
     viewPopover?.close();
     if (!mounted) return; // an async callback fired after we navigated away - don't clobber the new view
     // Title the view for the tab bar AND for back-nav (lib/back-nav.ts labels the
     // previous view off document.title - this is how a tool opened from a folder,
     // or #/start reached from one, gets a back pill wearing the folder's name).
-    const titleName = folderId == null ? t('Projects')
+    shared.beforeRender();
+    const titleName = sharedFolder ? t('Team project') : folderId == null ? t('Projects')
       : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
       : (folders.find(f => f.id === folderId)?.name || t('Projects'));
     document.title = tRaw('{name} - Lolly', { name: titleName });
     featuredHandle?.destroy(); featuredHandle = null;  // stop the prior ribbon's rAF loop + listeners before its DOM is wiped
     searchCache = null;   // recompute matches once for this render (sort/data may have changed); the two callers below then share it
     pruneSelection();     // forget refs that vanished since the last render
-    viewEl.innerHTML = folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
+    viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     wire();
+    shared.afterRender({ query, list: viewMode === 'list', sort: sortBy, reversed: sortRev });
     scenePreviews.refresh(entries);
   }
 
   function rootHtml(): string {
-    if (query) return shell(t('Projects'), 'projects', searchBodyHtml());
+    if (query) return shell(t('Projects'), 'projects', sharedProjectsHtml(query) + searchBodyHtml());
     if (toolsFilter.length) return shell(t('Projects'), 'projects', toolsBodyHtml());
     const loose = sortSessions(uncategorised());
     // Card copy says "project" for the thing the user made (plans/163 F14) - the
@@ -603,7 +593,7 @@ export async function mountProjects(
     const createTool = actionTile('tool', FILE_PLUS_ICON, t('New asset'), t('Start a new project'));
     // Only TOP-LEVEL folders at the root; nested folders show inside their parent.
     const topFolders = sortFolders(childFolders(folders, null));
-    const folderTiles = topFolders.map(f => folderTile(f, folderTileOpts(f))).join('');
+    const folderTiles = topFolders.map(f => shared.folderTile(f, folderTileOpts(f))).join('');
     // Loose (uncategorised) saved sessions render as tiles directly on the root grid -
     // a just-added creation shows here at once instead of vanishing into an
     // "Uncategorised" bucket. They're the SAME sessionTile a folder uses, so
@@ -622,18 +612,11 @@ export async function mountProjects(
     // A "Team projects" tile appears only when a deployment's control plane has
     // registered a session source (lib/session-source.ts); dormant otherwise, so
     // the grid is byte-identical on the public shell.
-    const teamTile = getSessionSource()
-      ? actionTile('team', TEAM_ICON, t('Team projects'), t('Shared with you on this instance'))
-      : '';
     // Trash (plans/133 WP-4): a muted system tile, always there (plan 277 P3) so
     // the place a delete went to can be found even before the first delete.
     const trashCount = !trashEntries.length ? t('Empty')
       : trashEntries.length === 1 ? t('1 item') : tRaw('{n} items', { n: trashEntries.length });
-    const trashTile = `<div class="folder-tile folder-tile--trash"><button type="button" class="tile-primary" data-open-trash aria-label="${escape(t('Open Trash'))}">
-           <span class="tile-cover tile-cover--batch" aria-hidden="true">${TRASH_ICON}</span>
-           <span class="tile-meta"><span class="tile-title">${t('Trash')}</span><span class="tile-sub">${trashCount}</span></span>
-           ${tileColsHtml({ kind: t('Trash'), count: trashCount, when: '' })}
-         </button></div>`;
+    const trashTile = actionTile('trash', TRASH_ICON, t('Trash'), trashCount, { trash: true, openLabel: t('Open Trash'), cols: { kind: t('Trash'), count: trashCount, when: '' } });
     // The favourites hero is a grid-mode thing: above a table it would push the
     // rows below the fold for a carousel of two covers (Part C, C2h). Starred
     // folders still pin first in the sort either way. List mode carries no create
@@ -642,17 +625,18 @@ export async function mountProjects(
     return shell(t('Projects'), 'projects', `
       ${/* The root toolbar (plans/245): the same create buttons a folder header carries,
             both view modes. Batch waits for the first project (plans/163 F14). */ ''}
-      <div class="projects-roothead">${listCreateBtns()}<span class="projects-head-spacer"></span>${nothingSaved ? '' : batchButtonHtml()}</div>
+      <div class="projects-roothead">${listCreateBtns()}${getSessionSource()?.write?.projectOptions().canCreate ? `<button type="button" class="btn btn--primary" data-new-team-project>${TEAM_ICON}${t('New team project')}</button>` : ''}<span class="projects-head-spacer"></span>${nothingSaved ? '' : batchButtonHtml()}</div>
+      ${sharedProjectsHtml()}
       ${favourites.size && !list ? `<div class="projects-featured" data-fav-strip></div>` : ''}
       ${invite}
-      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}">
+      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${projectsCardSizeAttr()}>
         ${list ? listHeadHtml() : ''}
         ${folderTiles}${/* "My library" names the loose block when folders sit above
           it (plans/170 keeping-model): the save dialog files here by that name,
           so the place answers to it. Grid mode only - the list table has its own
           header row - and pointless when the grid IS only the library. */ ''}
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
-        ${looseTiles}${list ? '' : `${createFolder}${createTool}${blueprintTile()}`}${teamTile}${templatesRootTile()}${trashTile}
+        ${looseTiles}${list ? '' : `${createFolder}${createTool}${blueprintTile()}`}${templatesRootTile()}${trashTile}
       </div>
       ${recentExports.length ? `
         <section class="projects-exports folder-exports">
@@ -670,6 +654,8 @@ export async function mountProjects(
           </div>`}
         </section>` : ''}`);
   }
+
+
 
   // The flat results grid for the ?tools= filter - every saved session belonging to
   // the named tools, under an explicit status line with its own way out. Mirrors
@@ -690,13 +676,13 @@ export async function mountProjects(
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for {names}', { count: countText, names: escape(label) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = ms.map(e => sessionTile(e, sessionTileOpts(e))).join('');
-    return `${status}<div class="${gridClass}">${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
+    return `${status}<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
   }
 
   // The per-tile options every surface (root, folder, results) passes, so a tile
   // is identical wherever it appears. `href` makes the cover a real link (WP-13):
   // middle/Cmd-click opens a new tab, the plain click is intercepted in wire().
-  function folderTileOpts(f: Folder): Parameters<typeof folderTile>[1] {
+  function folderTileOpts(f: Folder): FolderTileOpts {
     return {
       memberPreviews: f.items.map(i => previewForRef(i.ref)).filter(Boolean) as MemberPreview[],
       count: tileItemCount(f),
@@ -790,7 +776,7 @@ export async function mountProjects(
       .map(i => imageRefs.get(i.ref))
       .filter(Boolean) as AssetRef[]);
     const tiles = [
-      ...subfolders.map(f => folderTile(f, folderTileOpts(f))),
+      ...subfolders.map(f => shared.folderTile(f, folderTileOpts(f))),
       ...sessions.map(e => sessionTile(e, sessionTileOpts(e))),
       ...images.map(a => imageTile(a, {
         selectable: true, selected: isSelected(a.id),
@@ -827,7 +813,7 @@ export async function mountProjects(
     const hasTiles = subfolders.length > 0 || sessions.length > 0 || images.length > 0;
     // Empty folder → a blank state inviting the two create actions (no grid at all).
     const body = hasTiles
-      ? `<div class="${gridClass}">${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`
+      ? `<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`
       : emptyFolderHtml(isUncat);
 
     return shell(title, 'projects', `${ribbon}${stripSwitch}${rail}${header}${body}`, { inFolder: true });
@@ -860,13 +846,13 @@ export async function mountProjects(
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for “{query}” in {scope}', { count: countText, query: escape(query), scope: escape(scope) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = [...mf.map(folderResultTile), ...ms.map(sessionResultTile)].join('');
-    return `${status}<div class="${gridClass}">${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
+    return `${status}<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
   }
 
   // A search hit = the normal tile + a location breadcrumb beneath it. Reusing the shared
   // folderTile/sessionTile keeps open / select / drag / menu working with no extra wiring.
   function folderResultTile(f: Folder): string {
-    const tile = folderTile(f, folderTileOpts(f));
+    const tile = shared.folderTile(f, folderTileOpts(f));
     const anc = folderPath(folders, f.id).slice(0, -1);   // this folder's ancestors
     const parent = anc.length ? anc[anc.length - 1]!.id : null;
     return `<div class="projects-result">${tile}${locationChip(parent, anc.length ? anc.map(a => a.name).join(' / ') : t('Top level'))}</div>`;
@@ -927,6 +913,7 @@ export async function mountProjects(
   // feeds the spotlight overlay (plans/99 section 2a M2), and only the explicit ?q=
   // handoff puts this view into results mode.
   function searchPlaceholder(): string {
+    if (sharedFolder) return t('Search this shared project…');
     const scopeName = folderId == null ? t('all projects')
       : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
       : (folders.find(f => f.id === folderId)?.name || t('this folder'));
@@ -1134,6 +1121,10 @@ export async function mountProjects(
       if (bulk) { e.preventDefault(); e.stopPropagation(); handleBulk(bulk.dataset.bulk!); return; }
 
       // Trash tile opens the trash browser (plans/133 WP-4).
+      const sharedTile = t.closest<HTMLElement>('[data-open-team-project]');
+      if (sharedTile) { e.preventDefault(); openTeamProjects(teamDoor, sharedTile.dataset.openTeamProject); return; }
+      if (t.closest('[data-new-team-project]')) { openTeamProjects(teamDoor, undefined, true); return; }
+      if (t.closest('[data-refresh-team]')) { void shared.refresh(); return; }
       if (t.closest('[data-open-trash]')) { openTrashDialog(); return; }
 
       // List-view column headers: click sorts, second click reverses (WP-2).
@@ -1535,6 +1526,7 @@ export async function mountProjects(
       const canPaste = !!clipboard?.items.length && !clipboard.items.some(i => i.ref === ref);
       return [
         menuItem('open-folder', OPEN_ICON, t('Open')),
+        getSessionSource()?.write?.projectOptions().canCreate ? menuItem('share-team-folder', TEAM_ICON, t('Share as a team project')) : '',
         menuItem('rename', EDIT_ICON, t('Rename folder')),
         fav(),
         menuItem('move-folder', MOVE_ICON, t('Move to…')),
@@ -1650,6 +1642,7 @@ export async function mountProjects(
     else if (act === 'download-folder') await downloadOriginals(downloadView(), folders.find(f => f.id === ref)?.name || t('Folder'), [], [], [ref]);
     else if (act === 'save-template') await saveAsBlueprint(ref);
     else if (act === 'open-folder') { window.location.hash = '#/p/' + ref; }
+    else if (act === 'share-team-folder') await shared.shareFolder(ref);
     else if (act === 'move-folder') {
       // A folder can't move into itself or its own subtree - block those targets.
       const blocked = new Set([ref, ...descendantFolderIds(folders, ref)]);
@@ -2025,7 +2018,7 @@ export async function mountProjects(
     };
     const remember = (key: string, value: string): void => { try { localStorage.setItem(key, value); } catch { /* storage off */ } };
     viewPopover = mountProjectsViewOptions(liveAnchor(current), {
-      view: viewMode, sort: sortBy, reversed: sortRev, atRoot: folderId == null,
+      view: viewMode, sort: sortBy, reversed: sortRev, atRoot: folderId == null && !sharedFolder, shared: sharedFolder,
       favView: featuredHandle ? readFeaturedView() : null,
       onView: value => { viewMode = value; remember('lolly:projectsView', value); repaint(); },
       onSort: value => { sortBy = value; remember('lolly:projectsSort', value); repaint(); },
@@ -2359,7 +2352,7 @@ export async function mountProjects(
   // Arm the return target so the tool's Save button lands back on this exact page - 
   // root `/#/p`, the Uncategorised view, or a specific folder. navigateTo-compatible URL.
   function armReturn(): void {
-    armSessionReturn('/#/p' + (folderId ? '/' + folderId : ''));
+    armSessionReturn(sharedProjectId ? `/#/p?team=${encodeURIComponent(sharedProjectId)}` : '/#/p' + (folderId ? '/' + folderId : ''));
   }
 
   function resumeSession(slot: string): void {
@@ -2940,7 +2933,7 @@ export async function mountProjects(
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   // NB tileSelect.destroy() is not optional: its mousedown is bound to viewEl (#view), which
   // the router REUSES for every route - leave it bound and the next mount stacks another.
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; shared.dispose(); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
   await reload();
   void sweepTrash();   // age out trash entries past the 30-day retention (silent)
   // A stale /p/<id> deep link to a deleted folder falls back to root.
@@ -2972,6 +2965,7 @@ export async function mountProjects(
     onClear: exitSearch,
   });
   render();
+  void shared.refresh();
   // A team project link asked Projects to open that project.
   openRequestedTeamProject(teamDoor);
 }

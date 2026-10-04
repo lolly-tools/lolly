@@ -96,6 +96,26 @@ test('presenting loads only what the deck says is live, and adds autoplay', () =
   root.remove();
 });
 
+test('a blocked presentation page opens the author link without granting iframe trust', () => {
+  const root = canvas([{ id: 'a', web: 'https://codepen.io/team/pen/abc' }]);
+  mountWebFrames(root, { mode: 'present' });
+  const marker = markerOf(root, 'a');
+  const link = marker.querySelector<HTMLAnchorElement>('.lolly-box-web-open')!;
+  assert.equal(marker.dataset.webState, 'blocked');
+  assert.equal(marker.querySelector('iframe'), null);
+  assert.equal(link.href, 'https://codepen.io/team/pen/abc', 'the author page, not a player URL');
+  assert.equal(link.target, '_blank');
+  assert.equal(link.rel, 'noopener noreferrer', 'the destination gets neither the deck address nor its window');
+  assert.match(link.getAttribute('aria-label')!, /Open in new tab.*codepen/);
+  assert.ok(link.hasAttribute('data-export-hide'));
+  mountWebFrames(root, { mode: 'present' });
+  assert.equal(marker.querySelectorAll('.lolly-box-web-open').length, 1);
+  marker.dataset.lollyWeb = 'javascript:alert(1)';
+  mountWebFrames(root, { mode: 'present' });
+  assert.equal(marker.querySelector('a'), null, 'a rejected replacement cannot leave a stale active link');
+  root.remove();
+});
+
 test('clones and closing never keep a live frame', () => {
   const root = canvas([{ id: 'a', web: 'https://lolly.tools/#/tool/chart?ct=bar' }]);
   mountWebFrames(root, { mode: 'editor' });
