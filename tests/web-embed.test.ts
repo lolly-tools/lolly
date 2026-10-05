@@ -33,6 +33,20 @@ test('Lolly tool links become same-origin iframe-mode frames on this app, with e
   assert.equal(parseWebEmbed('https://example.com/about', local)!.kind, 'page', 'a bare path on another host is not a Lolly tool');
 });
 
+test('Lolly documentation links load locally without admitting application or API routes', () => {
+  const workspace = { appOrigin: 'https://lolly.ing' };
+  const docs = parseWebEmbed('https://lolly.tools/info', workspace)!;
+  assert.equal(docs.src, 'https://lolly.ing/info/index.html');
+  assert.equal(docs.provider, 'lolly-docs');
+  assert.equal(docs.sameOrigin, true);
+  assert.ok(docs.sandbox);
+  assert.equal(parseWebEmbed('https://lolly.tools/info/trust/ai-features.html#models', workspace)!.src,
+    'https://lolly.ing/info/trust/ai-features.html#models');
+  for (const path of ['/api/v1/org-config', '/info/../api/v1/org-config', '/info/%2e%2e/api/v1/org-config', '/info/%2fapi.html', '/info/app.js', '/profile', '/']) {
+    assert.equal(parseWebEmbed('https://lolly.tools' + path, workspace), null, path);
+  }
+});
+
 test('providers turn share links into their embed forms', () => {
   assert.equal(src('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1m30s'), 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&enablejsapi=1&start=90');
   assert.equal(src('youtu.be/dQw4w9WgXcQ'), 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&enablejsapi=1');
@@ -78,5 +92,8 @@ test('the hosted list is exactly the frame-src the web CSP adds, and nothing tha
   }
   assert.equal(allowedOnHostedWeb(parseWebEmbed('https://youtu.be/dQw4w9WgXcQ', ctx)!), true);
   assert.equal(allowedOnHostedWeb(parseWebEmbed('https://codepen.io/team/pen/abcXYZ', ctx)!), false);
+  assert.equal(allowedOnHostedWeb(parseWebEmbed('https://fr.wikipedia.org/wiki/Accueil', ctx)!), true);
+  assert.equal(allowedOnHostedWeb(parseWebEmbed('https://commons.wikimedia.org/wiki/Main_Page', ctx)!), true);
+  assert.equal(allowedOnHostedWeb(parseWebEmbed('https://en.wikipedia.org.attacker.example/page', ctx)!), false);
   assert.equal(allowedOnHostedWeb(parseWebEmbed('https://lolly.tools/#/tool/sandbox', ctx)!), true);
 });

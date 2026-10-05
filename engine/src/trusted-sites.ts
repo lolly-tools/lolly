@@ -21,6 +21,12 @@
 /** The most entries one list keeps. A longer list is truncated, not refused. */
 export const TRUSTED_SITES_MAX = 500;
 
+/** Reference sources offered by default. Personal removals and organisation blocks win. */
+export const DEFAULT_REFERENCE_SITES = [
+  '*.wikipedia.org', 'commons.wikimedia.org', 'upload.wikimedia.org',
+  'www.wikidata.org', 'www.mediawiki.org', 'www.openstreetmap.org',
+] as const;
+
 const MAX_ENTRY = 2048;
 const LOOPBACK = new Set(['localhost', '127.0.0.1']);
 const HOST_RE = /^(?=.{1,253}$)[a-z0-9-]+(\.[a-z0-9-]+)*$/;

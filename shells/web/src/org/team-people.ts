@@ -33,6 +33,7 @@ import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
 import { copyText } from '../lib/copy-text.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { accountAvatar } from '../lib/account-headshots.ts';
 import { styleTeamBack } from './team-back.ts';
 import type { InboxWatch } from './access-request.ts';
 import { inviteMessage } from './invite-message.ts';
@@ -299,6 +300,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
   // ── Members and invitations ─────────────────────────────────────────────────
   const memberRow = (m: ProjectMember, manage: boolean, roles: InviteRole[]): HTMLLIElement => {
     const li = el('li', { style: ROW_STYLE });
+    li.append(accountAvatar(li.ownerDocument, m.userId, m.name));
     li.dataset.member = m.userId;
     const who = el('div', { style: 'min-width:0;flex:1 1 12rem' });
     who.append(el('div', { text: m.name, style: 'font-weight:600;overflow-wrap:anywhere' }));
@@ -439,6 +441,8 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
 
   const invitationRow = (inv: ProjectInvitation): HTMLLIElement => {
     const li = el('li', { style: ROW_STYLE });
+    const avatar = accountAvatar(li.ownerDocument, `invite:${inv.id}`, inv.email.split('@')[0]!);
+    avatar.dataset.waiting = 'true'; li.append(avatar);
     li.dataset.invitation = inv.id;
     li.dataset.status = inv.status;
     const who = el('div', { style: 'min-width:0;flex:1 1 12rem' });
@@ -484,6 +488,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
   // ── Asking for access ───────────────────────────────────────────────────────
   const requestRow = (req: ProjectRequest, roles: InviteRole[], helpId: string): HTMLLIElement => {
     const li = el('li', { style: 'display:flex;align-items:center;justify-content:space-between;gap:.35rem .75rem;flex-wrap:wrap' });
+    li.append(accountAvatar(li.ownerDocument, req.userId ?? `request:${req.id}`, req.name));
     li.dataset.request = req.id;
     const who = el('div', { style: 'min-width:0;flex:1 1 12rem' });
     const name = el('div', { text: req.name, style: 'font-weight:600;overflow-wrap:anywhere' });

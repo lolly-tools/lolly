@@ -13,6 +13,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { HANDLES } from './shared.ts';
 import type { Bounds, Corner, HandleName, Metrics, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { fieldFocusToken } from '../../lib/collab-field-focus.ts';
 
 export function scheduleSync(fc: FcCtx): void {
   if (fc.syncScheduled || fc.disposed) return;
@@ -191,9 +192,11 @@ export function syncFrameLabels(fc: FcCtx, boxes: Box[]): void {
     const el = kids[n] as HTMLElement | undefined;
     if (!el) continue;
     const fb = frames[n]!.b;
-    const tl = fc.stage.nativeToStage(num(fb[cfg.xField]), num(fb[cfg.yField]), m);
+    const live = fc.stage.liveBoxEl(fc.select.idOf(fb, frames[n]!.i))?.getBoundingClientRect();
+    const tl = live?.width ? { x: live.left - m.sr.left, y: live.top - m.sr.top }
+      : fc.stage.nativeToStage(num(fb[cfg.xField]), num(fb[cfg.yField]), m);
     const left = `${Math.round(tl.x)}px`;
-    const top = `${Math.round(Math.max(2, tl.y - 20))}px`;
+    const top = `${Math.round(tl.y - 20)}px`;
     el.style.left = left;
     el.style.top = top;
     // The rename input rides on the same rect as the tab it replaces, so a pan or zoom
@@ -226,6 +229,7 @@ export function startFrameRename(fc: FcCtx, el: HTMLElement, fid: string): void 
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'fc-frame-rename field-input';
+  input.dataset.collabFocus = fieldFocusToken(fc.blockId, fc.select.idOf(boxes[i], i), nameField);
   input.value = String(boxes[i]![nameField] ?? '');
   input.placeholder = el.textContent || '';
   input.setAttribute('aria-label', t('Artboard name'));

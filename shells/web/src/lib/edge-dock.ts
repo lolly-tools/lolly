@@ -67,8 +67,8 @@ const WIDTH_STEP = 24;        // px per arrow key on the width grip
 // the Design inspector, the export panel, the transcript. Everything but the zoom bar is
 // a full panel: one or two of them share the resizable split, three or more become tabs.
 // The zoom bar is fixed-height and sits above all of it, out of the split and the strip.
-export type PanelId = 'zoom' | 'people' | 'neuro' | 'inspector' | 'history' | 'export' | 'share' | 'transcript';
-const ORDER: readonly PanelId[] = ['zoom', 'people', 'neuro', 'inspector', 'history', 'export', 'share', 'transcript'];
+export type PanelId = 'zoom' | 'people' | 'neuro' | 'inspector' | 'history' | 'export' | 'share' | 'comments' | 'transcript';
+const ORDER: readonly PanelId[] = ['zoom', 'people', 'neuro', 'inspector', 'history', 'export', 'share', 'comments', 'transcript'];
 
 /**
  * Why a panel left the column. `user` is a gesture that means "put this away" - the drag
@@ -233,7 +233,7 @@ function relayout(): void {
   // crowded dock already uses.
   // The export sheet is always a tab beside anything else: it is a full workflow of its
   // own, and it is in the column whenever the column is on (lib/export-panel-float.ts).
-  const tabbed = fulls.length > 2 || (fulls.some(id => id === 'history' || id === 'share' || id === 'export') && fulls.length > 1);
+  const tabbed = fulls.length > 2 || (fulls.some(id => id === 'history' || id === 'share' || id === 'export' || id === 'comments') && fulls.length > 1);
 
   body.textContent = '';
   const slots = new Map<PanelId, HTMLElement>();

@@ -55,11 +55,34 @@ const REMOUNT_QUIET_MS = 700;
 
 /** Sites agreed to "just this time", by origin: this session only. "Always trust" writes
  *  to the person's trusted sites instead (lib/trusted-sites.ts). */
-const consented = new Set<string>();
+const CONSENT_KEY = 'lolly:web-consent';
+function sessionConsents(): string[] {
+  try {
+    const stored: unknown = JSON.parse(window.sessionStorage.getItem(CONSENT_KEY) ?? '[]');
+    return Array.isArray(stored) ? stored.slice(0, 128).filter((value): value is string => {
+      if (typeof value !== 'string' || value.length > 512) return false;
+      const url = new URL(value);
+      return url.origin === value && (url.protocol === 'https:' || (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)));
+    }) : [];
+  } catch { return []; }
+}
+const consented = new Set<string>(sessionConsents());
+const consentListeners = new Set<() => void>();
+
+export function onWebConsentChange(callback: () => void): () => void {
+  consentListeners.add(callback);
+  return () => { consentListeners.delete(callback); };
+}
 
 export function consentToLink(link: string): void {
   const embed = parse(link);
-  if (embed && !embed.sameOrigin) consented.add(originOf(embed.src));
+  if (!embed || embed.sameOrigin || webSiteVerdict(embed).state === 'blocked') return;
+  const origin = originOf(embed.src);
+  if (consented.has(origin)) return;
+  consented.add(origin);
+  // Survive the wider-policy reload in this tab; never sync consent to a collaborator.
+  try { window.sessionStorage.setItem(CONSENT_KEY, JSON.stringify([...consented].slice(-128))); } catch { /* consent remains in this window */ }
+  for (const callback of consentListeners) callback();
 }
 
 /** The entry "Always trust" writes for a box: the exact host its frame contacts (or the
@@ -182,7 +205,7 @@ function note(state: WebFrameState, embed: WebEmbed | null): string {
     case 'ask': return t('Double-click to load {host}').replace('{host}', frameHost(embed));
     case 'policy': return policyNote(embed);
     case 'refused': return t('{host} does not allow being shown inside other pages. Presenting shows this picture.').replace('{host}', host);
-    case 'blocked': return t('The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.').replace('{host}', host);
+    case 'blocked': return t('Approve {host} in the document inspector to load this page.').replace('{host}', host);
     case 'browser': return t('This browser cannot show other sites inside Lolly. Chrome, Edge and Safari can.');
     case 'invalid': return embed === null ? t('Add a link to a web page, video or Sandbox demo in the inspector.') : '';
     default: return '';
@@ -519,10 +542,12 @@ export function wireWebEditing(canvas: HTMLElement, remount: () => void): () => 
   // rule) loads or unloads here without a reload.
   const offTrust = onTrustedSitesChange(remount);
   const offPolicy = onSitePolicyChange(remount);
+  const offConsent = onWebConsentChange(remount);
   presentingListeners.add(remount);
   return () => {
     offTrust();
     offPolicy();
+    offConsent();
     presentingListeners.delete(remount);
     exit();
     document.removeEventListener('dblclick', onDbl, true);
