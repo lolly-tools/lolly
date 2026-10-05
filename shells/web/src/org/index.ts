@@ -925,13 +925,10 @@ function applyHomeView(config: OrgConfig | null): void {
     if (returning) return;
     const hash = location.hash;
     if ((hash && hash !== '#' && hash !== '#/') || location.search || appPathname() !== '/') return;
-    const target = new URL(homeHref(), location.href);
-    if (target.href === location.href) return;
-    if (target.origin === location.origin && target.pathname === '/' && target.hash.startsWith('#/')) {
-      history.replaceState(history.state, '', target.pathname + target.search + target.hash);
-    } else {
-      location.replace(target.href);
-    }
+    const target = homeHref();
+    if (target === '/' || target === location.href) return;
+    if (target.startsWith('/#/')) history.replaceState(history.state, '', target);
+    else location.replace(target);
   } catch { /* the gallery is a fine first view; never break boot over this */ }
 }
 
