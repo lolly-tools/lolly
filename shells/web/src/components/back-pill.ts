@@ -42,9 +42,7 @@ import { canGoBack, getPrevView } from '../lib/back-nav.ts';
 import { navigateTo } from '../nav.ts';
 import { homeFabEl, homeFabHtml } from './home-fab.ts';
 
-/** The front door. Root-absolute: a bare '#/' resolves against the current path,
- *  and a tool's canonical URL is the PATH form /t/<id> (see home() below). */
-const HOME_HREF = '/#/';
+import { homeHref, navigateHome } from '../lib/home-destination.ts';
 
 export interface BackTarget {
   /** Where the pill points. Always a real href so middle-click/copy-link work. */
@@ -111,7 +109,7 @@ export function resolveBackTarget(opts: BackPillOpts = {}): BackTarget {
   // became /t/<id>#/, which parseRoute (main.ts) reads as … the same tool: hash
   // '/' is skipped, the /t/<id> path branch wins. That left anyone who opened a
   // tool link directly with no way out of the editor at all.
-  const home = (): BackTarget => ({ href: HOME_HREF, label: opts.label ?? t('Home'), useHistory: false, isHome: true });
+  const home = (): BackTarget => ({ href: homeHref(), label: opts.label ?? t('Home'), useHistory: false, isHome: true });
 
   if (opts.href) {
     // A forced target that IS the current view would loop → Home instead.
@@ -152,7 +150,7 @@ export function backPillHtml(opts: BackPillOpts = {}): string {
   const arrow = `<span class="back-pill-icon" aria-hidden="true">${icon(glyph, { size: 18 })}</span>`;
   if (opts.iconOnly) {
     const aria = target.isHome ? target.label : tRaw('Back to {view}', { view: target.label });
-    // nosemgrep: lolly-href-escape-is-not-scheme-validation - resolveBackTarget() returns only an origin-relative in-app route (back-nav toRelative(), the '/#/p…' returnTo marker, or the '/#/' literal)
+    // nosemgrep: lolly-href-escape-is-not-scheme-validation - history targets are origin-relative; Home validates root-relative or credential-free HTTPS URLs
     return `<a href="${escape(target.href)}" class="${cls}" data-back-pill="${mode}" aria-label="${escape(aria)}">${arrow}</a>`;
   }
   // A pill that is ALREADY the way out: the front-door escape (isHome), or a back
@@ -160,7 +158,7 @@ export function backPillHtml(opts: BackPillOpts = {}): string {
   // the same t('Home') label (lib/back-nav.ts labelFor). mountBackPill() reads this
   // rather than re-resolving, so the render can't disagree with the mount.
   const atHome = target.isHome || target.label === t('Home') ? ' data-back-home' : '';
-  // nosemgrep: lolly-href-escape-is-not-scheme-validation - same resolveBackTarget() origin-relative route as above
+  // nosemgrep: lolly-href-escape-is-not-scheme-validation - same validated resolveBackTarget destination as above
   return `<a href="${escape(target.href)}" class="tools-home${cls ? ` ${cls}` : ''}" data-back-pill="${mode}"${atHome}>${arrow}<span class="back-pill-label">${escape(target.label)}</span></a>`;
 }
 
@@ -191,7 +189,8 @@ function leave(el: HTMLElement): void {
     window.history.back();
     return;
   }
-  navigateTo(el.getAttribute('href') || HOME_HREF);
+  if (el.hasAttribute('data-back-home')) navigateHome(navigateTo);
+  else navigateTo(el.getAttribute('href') || homeHref());
 }
 
 /**
@@ -246,7 +245,10 @@ export function mountBackPill(root: HTMLElement, opts: MountBackPillOpts = {}): 
       // history mode, i.e. you navigated INTO the tool). navigateTo moves the URL, which is
       // exactly the signal mountModal.consume() watches to leave its own entry alone.
       if (opts.intercept) {
-        const goByHref = (): void => navigateTo(el.getAttribute('href') || HOME_HREF);
+        const goByHref = (): void => {
+          if (el.hasAttribute('data-back-home')) navigateHome(navigateTo);
+          else navigateTo(el.getAttribute('href') || homeHref());
+        };
         if (opts.intercept(goByHref)) return;
       }
       // No intercept, or it declined (no unsaved work): the plain, history-aware back step.

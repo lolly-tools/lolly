@@ -90,7 +90,7 @@ import { registerWorkCollabPolicy } from '../lib/collab-availability.ts';
 import { deliverCollabConnection, type CollabConnection } from '../lib/collab-mount.ts';
 import { canEditCollab, canJoinCollab } from './collab-config.ts';
 import { fetchTeamSession } from './session-source.ts';
-import { orgConfig, orgSession } from './index.ts';
+import { orgConfig, orgSession, orgAgentInvitesEnabled } from './index.ts';
 import { invitePolicy } from './team-access.ts';
 import {
   activeTeamSessionOrigin, noteTeamSessionLive, rememberTeamSessionOrigin, type TeamSessionOriginInput,
@@ -306,9 +306,15 @@ async function loadWiring(): Promise<WorkCollabWiring> {
     },
     makeHandle(p) {
       const person = orgSession();
+      const inviter = person?.kind === 'member' ? person.user.sub : undefined;
+      const sameInviter = () => {
+        const now = orgSession();
+        return !!inviter && now?.kind === 'member' && now.user.sub === inviter && activeTeamSessionOrigin('design')?.sessionId === p.sessionId;
+      };
       return adapter.createWorkCollabHandle(p, { comments: comments.createWorkComments(p.sessionId, memberPrincipal),
       assets: assets.createWorkCanvasAssets(p.sessionId, memberPrincipal),
       inviteLinks: links.sessionInviteLinks(p.sessionId, invitePolicy(orgConfig()), () => person === orgSession()),
+      ...(orgAgentInvitesEnabled() ? { inviteAgent: () => { void import('./document-agents.ts').then(m => m.openAgentInvites(p.sessionId, sameInviter)).catch(() => announce(tRaw(STRINGS.unreachable))); } } : {}),
       people: () => {
         const person = orgSession();
         void import('./team-session-people.ts')

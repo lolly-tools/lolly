@@ -25,7 +25,7 @@ test('shared assets use the folder card and a direct page route with safely rend
 
 test('an asset page retains the project return path and opens the shared inspector', () => {
   const preview = { link: () => projectAssetHref(file.projectId, file.id), open: () => ({ ready: Promise.resolve(), destroy() {} }) };
-  const page = buildProjectAsset(file.projectId, file, preview);
+  const page = buildProjectAsset(file.projectId, file, undefined, preview);
   assert.equal(page.querySelector('a')?.getAttribute('href'), '#/p?team=prj_1');
   assert.equal(page.querySelector('h3')?.textContent, file.name);
   assert.ok(page.querySelector('[data-asset-preview]'));
@@ -33,7 +33,7 @@ test('an asset page retains the project return path and opens the shared inspect
   assert.equal(page.querySelector('[data-asset-preview] button')?.textContent, 'Preview');
   assert.equal(page.querySelector('a[download]'), null);
   assert.equal(page.querySelector('dialog'), null);
-  const movie = buildProjectAsset(file.projectId, { ...file, contentType: 'video/mp4' }, preview);
+  const movie = buildProjectAsset(file.projectId, { ...file, contentType: 'video/mp4' }, undefined, preview);
   assert.ok(movie.querySelector('[data-asset-preview]'));
   assert.equal(movie.querySelector('video'), null);
   page.dispose(); movie.dispose();

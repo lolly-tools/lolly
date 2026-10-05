@@ -37051,8 +37051,15 @@ var init_tool_url = __esm({
 });
 
 // engine/src/asset-modifiers.ts
+function styledFile(id2, style) {
+  if (id2.includes("://")) return null;
+  const match = new RegExp(`^([^?]+\\?file=[a-f0-9]{24})&${style}=([a-z0-9][a-z0-9-]*)$`).exec(id2);
+  return match ? { baseId: match[1], value: match[2] } : null;
+}
 function parseThemedAssetId(id2) {
   if (typeof id2 !== "string" || id2.includes("://")) return { baseId: id2, theme: null };
+  const file = styledFile(id2, "theme");
+  if (file) return { baseId: file.baseId, theme: file.value };
   const i = id2.indexOf(THEME_SUFFIX);
   if (i <= 0) return { baseId: id2, theme: null };
   const baseId = id2.slice(0, i);
@@ -37062,6 +37069,8 @@ function parseThemedAssetId(id2) {
 }
 function parseTreatedAssetId(id2) {
   if (typeof id2 !== "string" || id2.includes("://")) return { baseId: id2, treatment: null };
+  const file = styledFile(id2, "treatment");
+  if (file) return { baseId: file.baseId, treatment: file.value };
   const i = id2.indexOf(TREATMENT_SUFFIX);
   if (i <= 0) return { baseId: id2, treatment: null };
   const baseId = id2.slice(0, i);
@@ -47588,7 +47597,7 @@ var init_logo_variant = __esm({
 function buildThemedAssetId(baseId, themeId) {
   if (!themeId) return baseId;
   if (!THEME_ID_RE2.test(themeId)) throw new Error(`Bad icon theme id: ${themeId}`);
-  return `${baseId}${THEME_SUFFIX2}${themeId}`;
+  return `${baseId}${/\?file=[a-f0-9]{24}$/.test(baseId) ? "&theme=" : THEME_SUFFIX2}${themeId}`;
 }
 function isValidThemeId(themeId) {
   return typeof themeId === "string" && THEME_ID_RE2.test(themeId);
@@ -98190,7 +98199,7 @@ var init_photo_look = __esm({
 function buildTreatedAssetId(baseId, treatmentId) {
   if (!treatmentId) return baseId;
   if (!TREATMENT_ID_RE2.test(treatmentId)) throw new Error(`Bad photo treatment id: ${treatmentId}`);
-  return `${baseId}${TREATMENT_SUFFIX2}${treatmentId}`;
+  return `${baseId}${/\?file=[a-f0-9]{24}$/.test(baseId) ? "&treatment=" : TREATMENT_SUFFIX2}${treatmentId}`;
 }
 function isValidTreatmentId(treatmentId) {
   return typeof treatmentId === "string" && TREATMENT_ID_RE2.test(treatmentId);

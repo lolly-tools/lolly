@@ -21,10 +21,10 @@
   ],
   "modules": {
     "shells/web/src/bridge/export-svg-walker.ts": {
-      "lines": 1727,
-      "largestFunctionLines": 1704,
+      "lines": 1724,
+      "largestFunctionLines": 1700,
       "importFanIn": 1,
-      "importFanOut": 17,
+      "importFanOut": 16,
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
@@ -63,18 +63,11 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/design-import.ts": {
-      "lines": 1743,
+      "lines": 1739,
       "largestFunctionLines": 145,
       "importFanIn": 5,
       "importFanOut": 11,
       "typeEscapes": 68
-    },
-    "shells/web/src/views/design-inspector.ts": {
-      "lines": 1500,
-      "largestFunctionLines": 1995,
-      "importFanIn": 1,
-      "importFanOut": 17,
-      "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
       "lines": 1989,
@@ -84,17 +77,17 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2504,
-      "largestFunctionLines": 2153,
+      "lines": 2501,
+      "largestFunctionLines": 2145,
       "importFanIn": 28,
-      "importFanOut": 58,
+      "importFanOut": 62,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
       "lines": 2069,
-      "largestFunctionLines": 2747,
+      "largestFunctionLines": 2746,
       "importFanIn": 1,
-      "importFanOut": 53,
+      "importFanOut": 54,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { selectAssetFile, assetFiles } from '../lib/asset-files.ts';
+import { parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
 /**
  * Assets view (route /#/a or /#/assets; the old /#/c and /#/catalog links forward here) -
  * the third top-level destination alongside Tools and Projects.
@@ -513,7 +515,9 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     const ref = cat.assetById.get(baseId)
       ?? cat.assetById.get(linkedAsset)
       ?? [...cat.assetById.values()].find(a => assetBaseId(a.id) === baseId);
-    if (ref) cat.details.openDetails(ref, theme, treatment);
+    const fileId = parseFileAssetId(parseThemedAssetId(linkedAsset).theme ? parseThemedAssetId(linkedAsset).baseId : parseTreatedAssetId(linkedAsset).baseId).file;
+    const file = fileId && assetFiles(ref?.meta).find(f => f.id === fileId);
+    if (ref && (!fileId || file)) cat.details.openDetails(file ? selectAssetFile(ref, file) : ref, theme, treatment);
     else {
       // The deep-linked asset isn't in this user's catalogue (never synced, a deleted upload,
       // or an unknown id) - report it instead of a silent no-op: announce() for assistive tech,

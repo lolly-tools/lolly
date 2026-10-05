@@ -11,6 +11,7 @@
   border-radius: var(--ui-radius-surface); color: var(--ui-color-text-muted); font-size: var(--fs-md);
 }
 .team-project-content { min-width: 0; }
+
 .team-project-glyph {
   display: grid; place-items: center; width: calc(var(--ui-size-target) * 1.3); aspect-ratio: 1;
   color: var(--ui-color-action-primary); background: var(--ui-color-status-notice-surface); border-radius: var(--ui-radius-surface);
@@ -20,6 +21,22 @@
 .team-project-tabs [aria-current="page"] { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); box-shadow: var(--ui-effect-accent-ring); }
 .team-new-project { display: flex; flex-direction: column; gap: var(--sp-3); margin-block: var(--sp-5); max-width: 36rem; }
 .team-invite-dialog { width: min(40rem, calc(100vw - var(--sp-6))); max-height: calc(100dvh - var(--sp-6)); overflow: auto; }
+.document-agent-form, .document-agent-setup { display: grid; gap: var(--sp-4); margin-block: var(--sp-5); }
+.modal.document-agents { width: min(40rem, calc(100vw - var(--sp-6))); max-height: calc(100dvh - var(--sp-6)); box-sizing: border-box; overflow: auto; }
+.document-agent-form[hidden], .document-agent-setup[hidden] { display: none; }
+.document-agent-field { display: grid; gap: var(--sp-2); min-width: 0; }
+.document-agent-field :is(.field-input, .field-select) { width: 100%; min-width: 0; min-height: var(--ui-size-target); box-sizing: border-box; }
+.document-agents .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--ui-size-target); }
+.document-agents .btn svg, .team-invite-dialog .team-project-head .btn svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); flex-shrink: 0; }
+.document-agent-form > .btn { justify-self: start; max-width: 100%; }
+.document-agent-status:empty { display: none; }
+.document-agent-row { display: flex; align-items: flex-start; gap: var(--sp-3); padding-block: var(--sp-4); border-block-end: 1px solid var(--ui-color-border-default); }
+.document-agent-info { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.document-agent-info p { margin-block: var(--sp-1); }
+.document-agent-avatar { display: grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); border-radius: var(--radius-round); background: var(--ui-color-surface-muted); flex-shrink: 0; }
+.document-agent-avatar svg { width: 1.5rem; height: 1.5rem; }
+.document-agent-reveal { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ui-size-target); }
+.document-agent-setup { padding: var(--sp-4); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-surface); }
 .team-new-project label, .team-people-invite label { font-size: var(--fs-sm); font-weight: 600; }
 .team-new-project label > :is(input, select) { display: block; width: 100%; margin-block-start: var(--sp-2); }
 .team-people { max-width: 48rem; }
@@ -53,3 +70,7 @@
 .team-project-asset-preview :is(img, video) { display: block; max-width: 100%; max-height: 65dvh; margin-inline: auto; object-fit: contain; }
 .team-project-asset-preview audio { width: 100%; }
 .folder-tile[data-kind="team-file"] img.tile-cover { object-fit: contain; background: var(--ui-color-surface-canvas); }
+
+.team-project-content.has-selection { padding-block-end: calc(var(--ui-size-target) * 2); }
+.team-move-dialog .document-agent-field { margin-block: var(--sp-4); }
+.team-move-dialog .field-select { width: 100%; min-height: var(--ui-size-target); }

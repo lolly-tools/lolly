@@ -1089,7 +1089,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     for (let i = 0; i < cloneByIndex.length; i++) {
       const page = cloneByIndex[i]!;
       if (!page.querySelector('.lolly-box-web')) continue;
-      mountWebFrames(page, { mode: 'present', shouldBeLive: (m) => webShouldBeLive(i, m) });
+      mountWebFrames(page, { mode: 'present', shouldBeLive: (m) => webShouldBeLive(i, m), shouldPlay: () => i === active || inFlight(i) });
       const current = i === active || inFlight(i);
       for (const marker of page.querySelectorAll<HTMLElement>('.lolly-box-web')) {
         const frame = marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]');

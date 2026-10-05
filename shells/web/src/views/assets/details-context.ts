@@ -26,6 +26,7 @@ export interface DetailsCtx {
   TREATMENT_FILTER_PREFIX: string;
   host: CatCtx['host'];
   emojiBrowser?: { destroy(): void };
+  previewStatusDispose?: () => void;
   nav: { prev: AssetRef | null; next: AssetRef | null; };
   base: string;
   isUser: boolean;

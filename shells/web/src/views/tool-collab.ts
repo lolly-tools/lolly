@@ -41,6 +41,7 @@
  */
 
 import { canvasRecoveryValues, retainCanvasRecovery } from '../lib/canvas-recovery.ts';
+import { mountWorkHeadshots } from '../lib/account-headshots.ts';
 import { mountCollabRecovery } from './tool-collab-recovery.ts';
 import { surfaceMapping } from '../lib/collab-surface-geometry.ts';
 import { collabSurface, surfacePresence } from '../lib/collab-surface.ts';
@@ -292,6 +293,8 @@ export function pillLaneOffset(stage: HTMLElement, width: (el: HTMLElement) => n
 export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolCollab> {
   const { handle, runtime, stage, canvas } = opts;
   const sidebar = opts.sidebar ?? null;
+  // Design floats its Inspector on the body, outside the tool layout.
+  const focusRoot = stage.closest('#tool-layout.is-editor') ? stage.ownerDocument.body : sidebar;
 
   const { palette, accent } = opts.colors ? { palette: undefined, accent: null } : await packColors(opts.host);
 
@@ -316,7 +319,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       // ONE delegated focusin/focusout pair on the sidebar root. That is what makes
       // "which control are you in" the presence primitive every tool gets for free
       // (section 4.1), and delegation is what makes it survive the sidebar's rebuilds.
-      sidebarRoot: sidebar,
+      sidebarRoot: focusRoot,
       ...(opts.colors ? { colors: opts.colors } : { palette, accent }),
       ...(opts.now ? { now: opts.now } : {}),
       ...(opts.setTimer ? { setTimer: opts.setTimer } : {}),
@@ -328,6 +331,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     steps.unshift(agents.attach(session, () => session.presence.roster()));
     session.updateSurface({ agents: agents.local() });
     steps.unshift(agents.subscribeLocal(presence => session.updateSurface({ agents: presence })));
+    steps.unshift(mountWorkHeadshots(session, handle, opts.host, stage.ownerDocument));
 
     // ONE layer for both canvas surfaces - the z-order the two component sheets
     // assume (focus boxes under cursors), and one node instead of two. `canvas` is
@@ -343,7 +347,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     steps.unshift(() => comments?.teardown());
 
     const focus: CollabFocus = createCollabFocus({
-      sidebar,
+      sidebar: focusRoot,
       canvas,
       layer: layer?.el ?? null,
       // A blocks row is addressed by its stable id on the wire and by array index in
@@ -357,6 +361,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       const surface = collabSurface(runtime);
       session.updateSurface(surface ? { ...surfacePresence(surface), ...(localSurfaceId !== surface.id() ? { cursor: undefined } : {}) } : { cursor: undefined, surface: undefined, location: undefined, selection: [] });
       localSurfaceId = surface?.id();
+      comments?.reanchor(); interactions?.reanchor(); cursors.reanchor();
     };
     const onPointer = (event: PointerEvent): void => {
       const surface = collabSurface(runtime);
@@ -374,7 +379,6 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     win?.addEventListener('blur', clearPointer);
     let subscribedSurface = collabSurface(runtime);
     let offSurface = subscribedSurface?.subscribe(refreshSurface);
-    refreshSurface();
     steps.unshift(mountPresentationPresence(runtime, canvas, session));
     const syncSurface = (): void => {
       const next = collabSurface(runtime);
@@ -396,6 +400,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       },
     });
     steps.unshift(() => cursors.dispose());
+    refreshSurface();
 
     /**
      * THE BEAM'S ENTRY POINT (section 6.4), and the reason it is HERE.
@@ -524,7 +529,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       // `requestAnimationFrame` inside `announce()` cost the cursor layer every frame,
       // silently).
       try {
-        focus.setPeers(peers.map((base, i) => ({ ...base, focus: state.peers[i]?.focus ?? null })));
+        focus.setPeers(peers.map((base, i) => ({ ...base, userId: state.peers[i]?.userId, focus: state.peers[i]?.focus ?? null })));
       } catch (e) { console.warn('[lolly:collab] focus paint', e); }
       try {
         cursors.setPeers(peers.map(base => ({ ...base, cursor: cursorOf.get(base.id) ?? null })));

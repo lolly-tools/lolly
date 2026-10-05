@@ -24,6 +24,17 @@ import {
 } from './asset-metadata.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 
+test('large assets and provider originals of unknown size show recorded facts without downloading the original', async (t) => {
+  let downloads = 0;
+  t.mock.method(globalThis, 'fetch', async () => { downloads++; throw new Error('Unexpected original download'); });
+  for (const meta of [{ provider: 'brandfolder', bytes: 64_000_000 }, { provider: 'brandfolder' }, { bytes: 64_000_000 }]) {
+    const fields = await extractAssetMetadata({ source: 'library', id: 'large', type: 'raster', format: 'png', url: 'https://example.test/large.png', width: 4000, height: 3000, meta });
+    assert.ok(fields.some(field => field.label === 'Dimensions' && field.value === '4000 × 3000'));
+    assert.ok(fields.some(field => field.label === 'Format' && field.value === 'PNG'));
+  }
+  assert.equal(downloads, 0);
+});
+
 // ── little-endian / big-endian byte helpers for the fixtures ────────────────
 const le16 = (n: number): number[] => [n & 0xff, (n >> 8) & 0xff];
 const le32 = (n: number): number[] => [n & 0xff, (n >> 8) & 0xff, (n >> 16) & 0xff, (n >> 24) & 0xff];

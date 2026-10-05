@@ -72,6 +72,9 @@ import { collabLabelColor } from '../lib/collab-label-color.ts';
 import type { CollabParticipant, CollabSessionState } from '../lib/collab-session.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { mountBodyPopover } from './body-popover.ts';
+import { paintAccountAvatar } from '../lib/account-headshots.ts';
+import { collabInitials } from '../lib/collab-identity.ts';
+export { collabInitials } from '../lib/collab-identity.ts';
 import type { BodyPopoverHandle, PopoverAnchor } from './body-popover.ts';
 
 // ── Copy ──────────────────────────────────────────────────────────────────────
@@ -314,10 +317,12 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
 /* ── Roster popover ───────────────────────────────────────────────────────── */
 .collab-roster {
   position: fixed;
-  z-index: 9000;
   box-sizing: border-box;
-  min-width: min(calc(200px * var(--a11y-fs)), 90vw);
-  max-width: min(calc(320px * var(--a11y-fs)), 90vw);
+  z-index: 9502;
+  min-width: min(calc(200px * var(--a11y-fs)), calc(100vw - 16px));
+  max-width: min(calc(384px * var(--a11y-fs)), calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
   padding: calc(6px * var(--a11y-fs));
   border: 1px solid hsl(var(--border));
   border-radius: calc(12px * var(--a11y-fs));
@@ -339,9 +344,8 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
 .collab-roster-name {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .collab-roster-tags { display: inline-flex; gap: calc(4px * var(--a11y-fs)); flex: none; }
 .collab-roster-row[data-kind="agent"] { display:grid; grid-template-columns:calc(24px * var(--a11y-fs)) minmax(0,1fr); }
@@ -392,30 +396,6 @@ export function collabDisplayName(p: CollabParticipant): string {
   if (p.name) return p.name;
   if (p.isHost) return tRaw(STRINGS.host);
   return p.inviteeIndex > 1 ? tRaw(STRINGS.inviteeNumbered, { n: p.inviteeIndex }) : tRaw(STRINGS.invitee);
-}
-
-/**
- * Up to two initials for the avatar disc.
- *
- * The first LETTER of each of the first two words that have one, which is what makes
- * "Priya Fernandes" read as PF rather than PR, and "Andy (Owner)" as AO rather than
- * "A(": a bracket, a dash or an emoji is never an initial, and a word with no letter is
- * skipped. A letter is any script's (`\p{L}`), matched by code point, so a CJK name keeps
- * its characters and an astral-plane letter is never sliced into a lone surrogate. A name
- * with no letters at all (only punctuation, emoji or spaces) yields '' and the disc is
- * then colour + halo only - which is fine, because the initials were never the
- * accessible name.
- */
-export function collabInitials(name: string): string {
-  let out = '';
-  let count = 0;
-  for (const word of name.trim().split(/\s+/)) {
-    const letter = /\p{L}/u.exec(word)?.[0];
-    if (!letter) continue;
-    out += letter.toUpperCase();
-    if (++count === 2) break;
-  }
-  return out;
 }
 
 /** The chip's truncation point (section 4.5: "chips truncate at ~12 chars"). The full name
@@ -519,6 +499,7 @@ function avatarEl(p: CollabParticipant): HTMLElement {
   letters.setAttribute('aria-hidden', 'true');
   letters.textContent = collabInitials(collabDisplayName(p));
   el.appendChild(letters);
+  paintAccountAvatar(el, p.userId);
   return el;
 }
 
@@ -529,6 +510,7 @@ function refreshAvatar(el: HTMLElement, p: CollabParticipant): void {
   const label = p.color ? collabLabelColor(p.color) : undefined;
   el.style.background = label?.fill ?? ''; el.style.color = label?.ink ?? '';
   const letters = el.firstElementChild; if (letters) letters.textContent = collabInitials(collabDisplayName(p));
+  paintAccountAvatar(el, p.userId);
 }
 
 function tagEl(text: string): HTMLElement {
@@ -599,13 +581,15 @@ function positionRoster(el: HTMLDivElement, anchor: PopoverAnchor): void {
   const r = anchor.getBoundingClientRect();
   const rtl = typeof getComputedStyle === 'function'
     && getComputedStyle(document.documentElement).direction === 'rtl';
-  el.style.top = `${Math.round(r.bottom + 8)}px`;
+  const width = el.offsetWidth, height = el.offsetHeight;
+  const top = r.bottom + 8;
+  el.style.top = `${Math.round(top + height <= window.innerHeight - 8 ? top : Math.max(8, r.top - height - 8))}px`;
   if (rtl) {
     el.style.right = '';
-    el.style.left = `${Math.max(8, Math.round(r.left))}px`;
+    el.style.left = `${Math.max(8, Math.round(Math.min(r.left, window.innerWidth - width - 8)))}px`;
   } else {
     el.style.left = '';
-    el.style.right = `${Math.max(8, Math.round(window.innerWidth - r.right))}px`;
+    el.style.right = `${Math.max(8, Math.round(Math.min(window.innerWidth - r.right, window.innerWidth - width - 8)))}px`;
   }
 }
 

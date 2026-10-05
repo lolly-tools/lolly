@@ -130,7 +130,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `apng.ts` | 194 | APNG packer - pure, DOM-free, platform-agnostic. | yes | `tests/apng.test.ts` | – |
 | `app-surface.ts` | 137 | A small, DOM-free description of an exportable Lolly application surface. | yes | `tests/app-surface.test.ts` | – |
 | `appstream.ts` | 120 |  | yes | `tests/appstream.test.ts` | – |
-| `asset-modifiers.ts` | 33 | Asset reference syntax, without icon rendering or photo processing dependencies. | no | none | – |
+| `asset-modifiers.ts` | 51 | Asset reference syntax, without icon rendering or photo processing dependencies. | no | none | – |
 | `asset-provider.ts` | 15 | Pure grammar for logical asset references. | yes | `tests/asset-provider.test.ts` | – |
 | `asset-version.ts` | 54 | Explicit asset versions, portable through typed state and URL-mode values. | yes | `tests/asset-version.test.ts` | – |
 | `audio-analyse.ts` | 536 | Audio analysis - decoded PCM in, a per-frame reactivity track out. | yes | `tests/audio-analyse.test.ts` | – |
@@ -526,7 +526,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `tokens.ts` | 449 | Design tokens: a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
 | `tone-curve.ts` | 140 | tone-curve.ts - a photo tone curve: control points on the 0..255 scale, the text form an input stores them in, and the curve drawn through them. | no | indirect | – |
 | `tool-url.ts` | 173 | Lolly tool-URL recognition. | yes | `tests/tool-url.test.ts` | – |
-| `trusted-sites.ts` | 135 | Trusted sites (plan 288 section 5.3): the entries a person, a brand or an organisation lists as "may be contacted without asking", and the one matcher every consumer shares (the Sandbox's fetch-and-inline, a Design web… | no | `tests/trusted-sites.test.ts` | – |
+| `trusted-sites.ts` | 141 | Trusted sites (plan 288 section 5.3): the entries a person, a brand or an organisation lists as "may be contacted without asking", and the one matcher every consumer shares (the Sandbox's fetch-and-inline, a Design web… | no | `tests/trusted-sites.test.ts` | – |
 | `trustmark.ts` | 971 | Adobe TrustMark: BCH data-layer decode (pure GF(2^7) math, DOM-free). | yes | `tests/trustmark.test.ts` | – |
 | `units.ts` | 98 | Physical unit conversions for output dimensions - platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
 | `url-mode.ts` | 1127 | URL mode. | yes | indirect | – |
@@ -540,7 +540,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `video-meta.ts` | 437 | Video provenance - embeds the export authorship record (metadata.js) into the two MediaRecorder containers, which are produced bare (no metadata slot exists during recording, so the shell post-processes the finished… | yes | `tests/video-meta.test.ts` | yes |
 | `watermark-search.ts` | 257 | Lolly pixel watermark - multi-scale + offset recovery search | yes | `tests/watermark-search.test.ts` | – |
 | `wav.ts` | 267 | WAV reader/writer. | yes | `tests/wav.test.ts` | yes |
-| `web-embed.ts` | 265 | Web page boxes (plan 288): what a Design box may frame, and in what form. | no | `tests/web-embed.test.ts` | – |
+| `web-embed.ts` | 291 | Web page boxes (plan 288): what a Design box may frame, and in what form. | no | `tests/web-embed.test.ts` | – |
 | `webp-anim-decode.ts` | 219 | Animated WebP demuxer - pure, DOM-free, platform-agnostic. | yes | `tests/webp-anim-decode.test.ts` | – |
 | `webp-anim.ts` | 164 | Animated WebP packer - pure, DOM-free, platform-agnostic. | yes | `tests/webp-anim.test.ts` | – |
 | `wmf.ts` | 333 | WMF (Windows Metafile, 16-bit) emitter - pure, DOM-free, platform-agnostic. | yes | `tests/wmf.test.ts` | – |

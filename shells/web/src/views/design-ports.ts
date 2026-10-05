@@ -91,6 +91,8 @@ export interface FramePort {
 
 /** Model access the columns are handed: read the rows, commit a whole new array (one undo step). */
 export interface ModelPort {
+  /** Collection identity for collaborator focus on inspector properties. */
+  collection?: string;
   blockId: string;
   cfg: BoxFieldConfig;
   frame: FramePort | null;

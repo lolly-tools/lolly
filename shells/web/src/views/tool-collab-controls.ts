@@ -10,6 +10,12 @@ import { mountInviteLinkControl } from '../components/invite-link-control.ts';
 export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandle, reanchor?: () => void): () => void {
   const doc = bar.ownerDocument;
   const stopInvite = handle.inviteLinks && mountInviteLinkControl(bar, handle.inviteLinks);
+  const agent = handle.inviteAgent && doc.createElement('button');
+  if (agent) {
+    agent.type = 'button'; agent.className = 'btn btn--sm'; agent.textContent = tRaw('Invite agent');
+    commentIcon(agent, 'Invite agent', 'aiSpark'); agent.title = tRaw('Connect your agent to this document');
+    agent.addEventListener('click', handle.inviteAgent!); bar.append(agent);
+  }
   const people = handle.people && doc.createElement('button');
   if (people) {
     people.type = 'button'; people.className = 'btn btn--sm';
@@ -36,5 +42,5 @@ export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandl
   const offDock = onDockChange(sync);
   // Existing full panels may already be mounted when the live room joins.
   sync((['inspector', 'history', 'export', 'share', 'transcript', 'neuro'] as const).filter(isDocked));
-  return () => { offDock(); releaseDock('people', 'host'); stopSave?.(); stopInvite?.(); people?.remove(); status?.remove(); };
+  return () => { offDock(); releaseDock('people', 'host'); stopSave?.(); stopInvite?.(); people?.remove(); agent?.remove(); status?.remove(); };
 }

@@ -53,13 +53,13 @@ const BUNDLED = 'Bundled with this app';
 const DESKTOP_LINE = /needs the desktop app/;
 
 /** Boot the org seam: no instance at all, or a workspace with `who` signed in or not. */
-async function boot(who: 'no-instance' | 'member' | 'nobody', opts: { name?: string; unread?: number; workspace?: string } = {}): Promise<void> {
+async function boot(who: 'no-instance' | 'member' | 'nobody', opts: { name?: string; unread?: number; workspace?: string; security?: string } = {}): Promise<void> {
   _resetOrgForTests();
   store.clear();
   const email = 'ana@acme.test';
   router = (url) => {
     if (who === 'no-instance') return new Response('', { status: 404 });
-    if (url.includes('/api/auth/config')) return json({ mode: 'open', provider: 'oidc', loginPath: '/login', instanceName: opts.workspace ?? 'Acme' });
+    if (url.includes('/api/auth/config')) return json({ mode: 'open', provider: 'oidc', loginPath: '/login', instanceName: opts.workspace ?? 'Acme', passkeyManagementPath: opts.security });
     if (url.includes('/api/auth/session')) {
       return who === 'member' ? json({ kind: 'member', user: { sub: 'u1', email, role: 'member' } }) : new Response('', { status: 401 });
     }
@@ -209,4 +209,15 @@ test('a remount replaces the inbox listener rather than stacking a second one', 
   renderShell(pv);
   wireInstanceCard(pv);
   assert.equal(listeners.size, 1);
+});
+
+ test('passkey management appears only for a signed-in member when the workspace advertises the trusted route', async () => {
+  await boot('member', {security: '/api/auth/security'});
+  let card = mountCard();
+  assert.equal(card.view.querySelector('#instance-security-link')?.getAttribute('href'), '/api/auth/security');
+  assert.match(card.view.querySelector('#instance-security-link')?.textContent ?? '', /Account security/);
+  await boot('member', {security: 'https://untrusted.test/security'}); card=mountCard();
+  assert.equal(card.view.querySelector('#instance-security-link'), null);
+  await boot('nobody', {security: '/api/auth/security'}); card=mountCard();
+  assert.equal(card.view.querySelector('#instance-security-link'), null);
 });

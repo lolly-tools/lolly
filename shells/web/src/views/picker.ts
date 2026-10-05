@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { assetFiles } from '../lib/asset-files.ts';
+import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
 /**
  * Asset Picker - a host-owned modal UI.
  *
@@ -29,7 +31,7 @@
  *   the grids below still offer choosing a different image instead.
  */
 
-import { collectOk, collectLabel, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
+import { createCollectToast, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
 import '../styles/picker.css';   // async CSS chunk (lazy view - not on the landing)
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
@@ -59,7 +61,9 @@ import { mountTextThumbs } from '../lib/text-thumbs.ts';
 import { loadAudioCovers, resolveAudioLook, type AudioCover } from '../lib/audio-covers.ts';
 import { livePalette } from '../lib/live-palette.ts';
 import { cachedPeaks, derivePeaks, memoPeaks, MAX_CONCURRENT_DERIVES, peaksFingerprint } from '../lib/audio-peaks.ts';
-import { libCategory, LIB_GROUPS, loadAssetCategories, categoryLabel } from '../lib/asset-category.ts';
+import { libCategory, loadAssetCategories, categoryLabel } from '../lib/asset-category.ts';
+import { providerCategory } from './assets-provider.ts';
+import { pickerLibraryGroups, pickerCategoryButtons, PickerLibrarySearch } from './picker-library.ts';
 import type { LibGroup } from '../lib/asset-category.ts';
 import { categoryGlyph } from '../lib/category-icons.ts';
 import { icon } from '../lib/icons.ts';
@@ -608,7 +612,7 @@ async function render(
   function syncTabCounts(q: string): void {
     const counts = new Map<TabId, number>();
     if (q) {
-      counts.set('library', typeFiltered(libraryCandidates).filter(c => searchMatches(q, String(c.meta?.name ?? c.id), c.id)).length);
+      counts.set('library', typeFiltered(librarySearch.filter(libraryCandidates, q, c => categoryLabel(cat(c)))).length);
       if (showUserAssets) counts.set('uploads', userAssets.filter(a => searchMatches(q, String(a.meta?.name ?? a.id), a.id)).length);
       if (sessions) counts.set('sessions', sessions.filter(s2 => searchMatches(q, s2.toolName, s2.label, s2.toolId)).length);
       // Projects was the one tab with no search badge (plan 216 item 5): count the
@@ -745,23 +749,7 @@ async function render(
 
   // ── collect-mode feedback ────────────────────────────────────────────────────
   // A transient toast (upload / webcam / pasted-link adds have no tile to flash).
-  let toastTimer: ReturnType<typeof setTimeout> | undefined;
-  function collectToast(r: CollectResult | boolean): void {
-    const ok = collectOk(r), label = collectLabel(r);
-    let toast = root.querySelector<HTMLElement>('.asset-picker-toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.className = 'asset-picker-toast';
-      toast.setAttribute('role', 'status');
-      root.querySelector('.asset-picker-panel')?.appendChild(toast);
-    }
-    toast.textContent = (ok ? '✓ ' : '') + label;
-    toast.classList.toggle('is-fail', !ok);
-    toast.classList.add('is-shown');
-    announce(label);
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast?.classList.remove('is-shown'), 1600);
-  }
+  const collectToast = createCollectToast(root);
 
   // The Templates tab (plans/245) borrows three picker pieces - its pane, the per-card
   // flash, the teardown an opening pick needs - and owns everything else itself.
@@ -1131,6 +1119,7 @@ async function render(
       // take it - reject on select with a note beside the tile, rather than
       // committing an asset the tool would refuse. (aria-disabled already signals it.)
       const pickRefAny = pickRef ?? userAssets.find(a => a.id === pickId);
+      if (pickRefAny && assetFiles(pickRefAny.meta).length > 1) { showFileChoices(pickRefAny); return; }
       if (opts.type && pickRefAny && !isAcceptable(pickRefAny.type)) {
         announce(t('This slot can’t use that kind of file.'), { assertive: true });
         const cardEl = pick.closest<HTMLElement>('.asset-picker-card') ?? pick;
@@ -1518,7 +1507,8 @@ async function render(
   // Library sections + bucketing live in lib/asset-category.ts (shared with the Catalog
   // view so both group identically). A per-user override (profile.assetCategories) layers
   // over the tag inference - loaded once per open, refreshed on each render() below.
-  const cat = (ref: AssetRef): string => libCategory(ref, assetCategoryOverrides);
+  const cat = (ref: AssetRef): string => providerCategory(ref)?.key ?? libCategory(ref, assetCategoryOverrides);
+  const nativeCategoryLabels = new Map<string, string>();
   const collapsedGroups = new Set<string>(); // group keys the user collapsed; persists across re-render
   // The present top-level library category keys, in display order - the model behind
   // the category filter row. Refreshed on every renderLibrary (search narrows it).
@@ -1558,13 +1548,7 @@ async function render(
     const searching = searchInput.value.trim() !== '';
     if (searching || libraryGroupKeys.length < 2) { catbarEl.hidden = true; catbarEl.innerHTML = ''; return; }
     catbarEl.hidden = false;
-    catbarEl.innerHTML = libraryGroupKeys.map(key => {
-      const on = !collapsedGroups.has(key);
-      const label = t(categoryLabel(key));
-      return `<button type="button" class="asset-picker-catbtn${on ? ' is-active' : ''}" data-cat-filter="${escapeHtml(key)}" aria-pressed="${on}" aria-label="${escapeHtml(label)}" data-tip="${escapeHtml(label)}" data-tip-below>
-        <span class="asset-picker-catbtn-glyph">${categoryGlyph(key)}</span>
-      </button>`;
-    }).join('');
+    catbarEl.innerHTML = pickerCategoryButtons(libraryGroupKeys, collapsedGroups, nativeCategoryLabels);
   }
 
   // Reflect collapsedGroups onto the filter row's active states (called after a
@@ -1618,7 +1602,7 @@ async function render(
       if (!buckets.has(k)) buckets.set(k, []);
       buckets.get(k)!.push(c);
     }
-    const present = LIB_GROUPS.filter(g => buckets.get(g.key)?.length);
+    const present = pickerLibraryGroups(candidates, buckets, nativeCategoryLabels);
     libraryGroupKeys = present.map(g => g.key);
     // First render seeds the "one category open" default: everything collapses except
     // the current asset's category (or the first present one). After that the user's
@@ -1778,6 +1762,7 @@ async function render(
   let libraryCandidates: AssetRef[] = [];
   let candidateById = new Map<string, AssetRef>();
   let libraryLoaded = false;
+  const librarySearch = new PickerLibrarySearch();
   // Type filter (plans/134 P5): the catalog's All/Image/Vector/Motion/Audio
   // buckets, offered only when the slot itself is untyped (a typed pick is
   // already narrowed at the query). Client-side over the loaded candidates.
@@ -1796,8 +1781,7 @@ async function render(
 
   function restoreLibrary(q: string): void {
     if (!libraryLoaded) { libraryEl.innerHTML = `<div class="asset-picker-loading">${t('Loading…')}</div>`; return; }
-    if (!q) { renderLibrary(typeFiltered(libraryCandidates)); return; }
-    renderLibrary(typeFiltered(libraryCandidates).filter(c => searchMatches(q, String(c.meta?.name ?? c.id), c.id)));
+    renderLibrary(typeFiltered(librarySearch.filter(libraryCandidates, q, c => categoryLabel(cat(c)))));
   }
 
   // ── Favourites - a pinned, collapsible section at the top of the library pane ──
@@ -2012,6 +1996,17 @@ async function render(
   function dismissTakeover(): void {
     searchInput.value = '';
     setTab(activeTab);
+  }
+
+  function showFileChoices(ref: AssetRef): void {
+    showTakeover('<div class="asset-picker-toolcard asset-picker-filecard"></div>');
+    const card = toolcardHost.querySelector<HTMLElement>('.asset-picker-filecard')!;
+    mountAssetFilePicker(card, ref, { back: dismissTakeover, current: () => !toolcardHost.hidden,
+      accepts: selected => !opts.type || isAcceptable(selected.type),
+      resolve: selected => host.assets.get(activeTheme && isThemableRef(selected) ? buildThemedAssetId(selected.id, activeTheme)
+        : activeTreatment && isTreatableRef(selected) ? buildTreatedAssetId(selected.id, activeTreatment) : selected.id),
+      picked: async resolved => { recordRecentAsset(resolved.id); if (collect) { await collect.onAsset(resolved); return true; } close(resolved); return false; },
+    });
   }
 
   // Build the "render this Lolly tool/session as your image" card: detected-tool
@@ -2381,6 +2376,7 @@ async function render(
     await profileReady;
     const candidates = queried.filter(a => !hiddenSet.has(assetBaseId(a.id)));
     libraryCandidates = candidates;
+    librarySearch.reset();
     candidateById = new Map(candidates.map((c): [string, AssetRef] => [c.id, c]));
     libraryLoaded = true;
 
@@ -2862,6 +2858,8 @@ function formatBadge(ref: AssetRef): string {
   // the risk belongs at the moment an ingredient is chosen (plans/126 WP-B).
   const ai = assetAiKind(ref);
   const aiBadge = ai ? genAiPill(ai, true) : aiSignalsChip(ref);
+  const fileCount = assetFiles(ref.meta).length;
+  if (fileCount > 1) return `<span class="asset-picker-fmt">${fileCount} files</span>${aiBadge}`;
   // Playback length, shown in the same corner badge as the format - video, lottie
   // and audio only, and only when a duration actually resolved at ingest time.
   const durMs = typeof ref.meta?.durationMs === 'number' && Number.isFinite(ref.meta.durationMs) && ref.meta.durationMs > 0

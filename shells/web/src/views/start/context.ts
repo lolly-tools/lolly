@@ -104,6 +104,7 @@ export interface StartCtx {
   importPanel: HTMLElement;
   importModal: ModalHandle<void> | null;
   SOURCE_NAME: Record<PickerSource, () => string>;
+  importReady: Promise<void>;
   SOURCE_NOTE: Record<PickerSource, () => string>;
   handedOver: File;
   installing: boolean;
