@@ -13,7 +13,9 @@ function fixture(t: TestContext) {
   t.after(() => rmSync(root, { recursive: true, force: true }));
   execFileSync('git', ['init', '-q', root]);
   writeFileSync(join(root, '.gitignore'), 'shells/**/target/\nshells/**/build/\nplans/\n');
-  const paths = nativeCachePaths(root, 'mobile');
+  const [rust, android] = nativeCachePaths(root, 'mobile');
+  assert.ok(rust && android);
+  const paths: [string, string] = [rust, android];
   for (const path of paths) mkdirSync(path, { recursive: true });
   writeFileSync(join(paths[0], 'CACHEDIR.TAG'), 'Signature: 8a477f597d28d172789f06886806bc55');
   mkdirSync(join(paths[0], 'aarch64-linux-android/release/deps'), { recursive: true });
