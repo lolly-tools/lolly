@@ -565,6 +565,9 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   border-bottom-left-radius: 0;
 }
 
+::placeholder{color:var(--ui-color-border-default)}
+
+
 /* Grouped format picker (views/export-format-picker.ts). The native select is
    hidden (value carrier only); the trigger takes its visual place as the fused
    right half of the name.format pill - the SAME dress as the select it
