@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 import { icon, type IconName } from '../lib/icons.ts';
 import { collabLabelColor } from '../lib/collab-label-color.ts';
-import { collabInitials } from '../components/collab-pill.ts';
+import { collabInitials } from '../lib/collab-identity.ts';
 import type { CollabSession } from '../lib/collab-session.ts';
 import type { CollabColor } from '../lib/collab-colors.ts';
 import type { CommentMessage } from '@lolly-tools/core/canvas-review-v1';
 import { currentLang } from '../i18n.ts';
+import { paintAccountAvatar } from '../lib/account-headshots.ts';
 
 const controls: Record<string, IconName> = {
   'Comments': 'messageCircle', 'Close comments': 'close', 'Pin a comment': 'pin',
@@ -36,10 +37,12 @@ export function commentPeople(session?: CollabSession, palette: readonly CollabC
   };
 }
 
-export function commentAvatar(doc: Document, name: string, color: string): HTMLElement {
+export function commentAvatar(doc: Document, name: string, color: string, userId?: string): HTMLElement {
   const avatar = doc.createElement('span'), label = collabLabelColor(color);
   avatar.className = 'collab-comment-avatar'; avatar.setAttribute('aria-hidden', 'true');
-  avatar.textContent = collabInitials(name); avatar.style.background = label.fill; avatar.style.color = label.ink;
+  const letters = doc.createElement('span'); letters.textContent = collabInitials(name); avatar.append(letters);
+  avatar.style.background = label.fill; avatar.style.color = label.ink;
+  if (userId) paintAccountAvatar(avatar, userId);
   return avatar;
 }
 
@@ -57,6 +60,6 @@ export function commentBubble(doc: Document, message: CommentMessage, color: str
   time.dateTime = message.createdAt;
   const date = new Date(message.createdAt);
   if (Number.isFinite(date.getTime())) { time.textContent = new Intl.DateTimeFormat(currentLang(), { hour: 'numeric', minute: '2-digit' }).format(date); time.title = date.toLocaleString(currentLang()); }
-  meta.append(author, time); bubble.append(meta); article.append(commentAvatar(doc, message.authorName, color), bubble);
+  meta.append(author, time); bubble.append(meta); article.append(commentAvatar(doc, message.authorName, color, message.authorId), bubble);
   return { article, bubble };
 }

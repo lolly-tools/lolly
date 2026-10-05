@@ -15,10 +15,10 @@
  * separately from "not trusted yet".
  */
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { matchTrustedSite, normaliseTrustedSite, normaliseTrustedSites } from '../../../../engine/src/trusted-sites.ts';
+import { DEFAULT_REFERENCE_SITES, matchTrustedSite, normaliseTrustedSite, normaliseTrustedSites } from '../../../../engine/src/trusted-sites.ts';
 import { sitePolicy, type SiteRule } from './site-policy.ts';
 
-export type TrustSource = 'you' | 'brand' | 'organisation';
+export type TrustSource = 'you' | 'brand' | 'organisation' | 'default';
 
 export interface SiteVerdict {
   /** `trusted`: contact it without asking. `ask`: nobody has decided. `blocked`: an
@@ -74,8 +74,16 @@ function brandList(): string[] {
 
 function personalList(p: Profile | null = profile): string[] {
   const stored = normaliseTrustedSites(p?.trustedSites);
-  const brand = brandList();
+  const brand = [...referenceList(), ...brandList()];
   return p?.trustedSitesSeeded || !brand.length ? stored : normaliseTrustedSites([...brand, ...stored]);
+}
+
+function referenceList(): readonly string[] {
+  return sitePolicy()?.brandDefaults === 'ignore' ? [] : DEFAULT_REFERENCE_SITES;
+}
+
+function sourceOf(entry: string): TrustSource {
+  return brandList().includes(entry) ? 'brand' : referenceList().includes(entry) ? 'default' : 'you';
 }
 
 function firstRule(rules: readonly SiteRule[], urls: readonly string[]): SiteRule | null {
@@ -102,7 +110,7 @@ export function siteVerdict(url: string, alsoBlock?: string): SiteVerdict {
     if (policy.mode === 'allowlist-only') return { state: 'blocked', source: 'organisation', ...by };
   }
   const hit = matchTrustedSite(url, personalList());
-  if (hit) return { state: 'trusted', entry: hit, source: brandList().includes(hit) ? 'brand' : 'you' };
+  if (hit) return { state: 'trusted', entry: hit, source: sourceOf(hit) };
   return { state: 'ask' };
 }
 
@@ -121,7 +129,7 @@ export function trustedSiteRows(): TrustedSiteRow[] {
   const orgEntries = new Set(rows.map((r) => r.entry));
   if (policy?.mode === 'allowlist-only' || policy?.mode === 'none') return rows;
   for (const entry of personalList()) {
-    if (!orgEntries.has(entry)) rows.push({ entry, source: brandList().includes(entry) ? 'brand' : 'you', locked: policy?.memberEntries === 'locked' });
+    if (!orgEntries.has(entry)) rows.push({ entry, source: sourceOf(entry), locked: policy?.memberEntries === 'locked' });
   }
   return rows;
 }

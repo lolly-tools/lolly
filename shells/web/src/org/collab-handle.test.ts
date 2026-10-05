@@ -520,9 +520,11 @@ test('self: the device client id, and the SSO name once the gateway states one',
   const fake = fakeProvider();
   const handle = createWorkCollabHandle(fake.provider, { clientId: 'DEVICE-SELF', name: 'me@local' });
   assert.equal(handle.self.clientId, 'DEVICE-SELF');
+  assert.equal(handle.self.userId, undefined);
   assert.equal(handle.self.name, 'me@local', 'the caller hint stands until the ack');
   fake.setState({ status: 'live', self: member({ id: 'conn-me', userId: 'andy', name: 'Andy Fitzsimon' }) });
   assert.equal(handle.self.name, 'Andy Fitzsimon', 'the gateway seat wins (section 7.8)');
+  assert.equal(handle.self.userId, 'andy', 'comments use account IDs rather than device IDs');
   assert.equal(handle.self.colorIndex, undefined, 'this wire carries a hex, never a slot');
 });
 

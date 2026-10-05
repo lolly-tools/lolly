@@ -657,6 +657,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/invite-link-control.ts': 1,
   // Fixed registry icons only; button labels and comment content use textContent.
   'views/tool-comment-chat.ts': 2,
+  // Comments panel buttons and resize grips use only fixed registry markup.
+  'views/tool-comment-panel.ts': 2,
   // System IDs, labels and translated status copy are escaped; icons are registry markup.
   'components/design-system-menu.ts': 3,
   // Read the already-hydrated studio marker in an inert template; never mount its content.

@@ -413,6 +413,7 @@ export function createWorkCollabHandle(
   // ── the handle ──────────────────────────────────────────────────────────────
 
   const self: CollabSelf = {
+    get userId(): string | undefined { return provider.state().self?.userId; },
     get clientId(): string {
       return clientId;
     },

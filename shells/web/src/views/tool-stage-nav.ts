@@ -39,7 +39,7 @@ function setGlyph(el: HTMLElement, markup: string): void { el.innerHTML = markup
  * (`.fc-popover`, the context menu included), panels (`.fc-panel`) and the text
  * controls (`.fc-text-popover`). A plain wheel over one scrolls it instead of panning.
  */
-export const STAGE_FLOATING_SURFACES = '.fc-popover, .fc-panel, .fc-text-popover';
+export const STAGE_FLOATING_SURFACES = '.fc-popover, .fc-panel, .fc-text-popover, .collab-comments-panel';
 
 /**
  * ── TRACKPAD PINCH: THE FINGERS' OWN RATIO, PLUS ACCELERATION ──────────────────
@@ -333,6 +333,8 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   function notifyZoom(): void {
     zoomNotifyPending = false;
     zoomNotifyRaf = 0;
+    const EventType = stageEl.ownerDocument.defaultView?.CustomEvent;
+    if (EventType) stageEl.dispatchEvent(new EventType('lolly:stage-view'));
     if (!zoomListeners.size) return;
     const abs = absScale();
     for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
@@ -343,7 +345,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     outerEl.style.transform = (scale === 1 && tx === 0 && ty === 0)
       ? '' : `translate(${tx}px, ${ty}px) scale(${scale})`;
     syncHud();
-    if (zoomListeners.size && !zoomNotifyPending) {
+    if (!zoomNotifyPending) {
       // No animation frames (a test harness, a detached document): tell them now.
       if (typeof requestAnimationFrame !== 'function') { notifyZoom(); return; }
       zoomNotifyPending = true;

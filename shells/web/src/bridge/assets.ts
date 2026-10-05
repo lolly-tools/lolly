@@ -521,6 +521,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const durationMs = typeof format.durationMs === 'number' && Number.isFinite(format.durationMs) && format.durationMs > 0
         ? format.durationMs : undefined;
       const refMeta = {
+        ...withoutReservedMeta(meta.meta),
         name: meta.name,
         tags: meta.tags,
         ...(meta.provider ? { provider: meta.provider } : {}),

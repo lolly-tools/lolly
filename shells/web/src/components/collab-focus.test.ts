@@ -150,6 +150,27 @@ function mount(opts: { observe?: boolean } = {}): Fixture {
 const peer = (id: string, name: string, color: string, focus: string | null, extra: Partial<FocusPeer> = {}): FocusPeer =>
   ({ id, name, color, focus, ...extra });
 
+test('property focus decorates only the matching object and field, with an account avatar', async () => {
+  const { fieldFocusToken } = await import('../lib/collab-field-focus.ts');
+  const f = mount();
+  const width = document.createElement('span'), height = document.createElement('span');
+  width.className = height.className = 'num-field';
+  width.dataset.collabFocus = fieldFocusToken('scenes', 'R1', 'width');
+  height.dataset.collabFocus = fieldFocusToken('scenes', 'R1', 'height');
+  width.append(document.createElement('input')); height.append(document.createElement('input'));
+  f.sidebar.append(width, height);
+  try {
+    f.focus.setPeers([peer('device', 'Priya', '#4ea1ff', width.dataset.collabFocus, { userId: 'account-priya' })]);
+    assert.ok(width.classList.contains(REMOTE_FOCUS_CLASS));
+    assert.ok(!height.classList.contains(REMOTE_FOCUS_CLASS));
+    assert.equal(width.querySelector('[data-account-avatar]')?.getAttribute('data-account-avatar'), 'account-priya');
+    f.focus.setPeers([peer('device', 'Priya', '#4ea1ff', height.dataset.collabFocus)]);
+    assert.ok(!width.classList.contains(REMOTE_FOCUS_CLASS));
+    assert.ok(height.classList.contains(REMOTE_FOCUS_CLASS));
+    f.focus.setPeers([]); assert.ok(!height.classList.contains(REMOTE_FOCUS_CLASS));
+  } finally { f.focus.dispose(); }
+});
+
 // ── 0. pure addressing ────────────────────────────────────────────────────────
 
 test('parseFocus splits an input from a row at the LAST colon', () => {

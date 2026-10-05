@@ -124,6 +124,7 @@ import type {
   OpGuard, OpGuardCaps, OpGuardInput, OpRejectReason, OpRejection, RateKind,
 } from '../collab/op-guard.ts';
 import { assignColor, collabPalette } from './collab-colors.ts';
+import { parseFieldFocus } from './collab-field-focus.ts';
 import type { CollabColor, CollabPaletteEntry } from './collab-colors.ts';
 import { attachCollabPlumbing } from './collab-plumbing.ts';
 import type { CollabDocumentSnapshot } from './collab-plumbing.ts';
@@ -162,6 +163,8 @@ export interface CollabStream<T> {
 export interface CollabSelf {
   /** The per-device collab client id (a random ULID, `collab-plumbing.ts`). */
   readonly clientId: string;
+  /** Authenticated account identity on a work gateway; absent in a private pairing. */
+  readonly userId?: string;
   /** The display name chosen at ceremony time, or absent for an anonymous peer
    *  (the UI then renders the role fallback - section 4.5). Never a profile field. */
   readonly name?: string;
@@ -243,6 +246,7 @@ export interface CollabParticipant {
   readonly clientId: string;
   /** The identity a human sees; equal to `clientId` in a private collab. */
   readonly userId: string;
+  readonly headshot?: string;
   /** The chosen display name, or `''` when this person is anonymous. */
   readonly name: string;
   /** sRGB hex from the derived palette, or `''` when no palette could be built. */
@@ -495,6 +499,12 @@ export function focusTokenFor(
 ): string | undefined {
   if (!el || typeof (el as Element).closest !== 'function') return undefined;
   if (root && !root.contains(el)) return undefined;
+  const property = el.closest<HTMLElement>('[data-collab-focus]')?.dataset.collabFocus;
+  const target = parseFieldFocus(property);
+  if (target) {
+    const item = model.find(i => i.id === target.inputId);
+    if (item?.type === 'blocks' && item.fields?.some(field => field.id === target.field)) return property;
+  }
   const host = el.closest<HTMLElement>('[data-input-id]');
   const id = host?.dataset.inputId;
   if (!id) return undefined;
@@ -827,13 +837,14 @@ export function createCollabSession(opts: CollabSessionOptions): CollabSession {
     ...(opts.clearTimer ? { clearTimer: opts.clearTimer } : {}),
   });
 
-  /** This client's presence payload. `userId` is the client id: a private collab
+  /** This client's presence payload. Work rooms use the authenticated account;
+   *  private collab uses the client id:
    *  has no account, and section 11.23 says nothing else from the profile ever crosses. */
   let surfaceState: Partial<PresenceState> = {};
   function localState(): PresenceState {
     const c = selfColor();
     const base: PresenceState = {
-      userId: selfId,
+      userId: handle.self.userId ?? selfId,
       name: selfName,
       color: c?.hex ?? '',
     };
@@ -871,6 +882,7 @@ export function createCollabSession(opts: CollabSessionOptions): CollabSession {
       name,
       color: color?.hex ?? '',
       colorIndex: color ? colors.indexOf(color) : -1,
+      ...(typeof state.headshot === 'string' ? { headshot: state.headshot } : {}),
       ...(role ? { role } : {}),
       away,
       ...(typeof state.focus === 'string' ? { focus: state.focus } : {}),

@@ -10,7 +10,7 @@ import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-prev
  * from openDetails() by scripts/split-closure.ts.
  */
 import { escape as escapeText } from '../../utils.ts';
-import { assetAddedAt, assetModifiedAt } from '../assets-filter.ts';
+import { assetAddedAt, assetModifiedAt, withCatalogFacet } from '../assets-filter.ts';
 import { wireAudioTransport } from '../../lib/audio-transport.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { aiSignalsChip, assetAiKind } from '../../lib/genai-pill.ts';
@@ -236,7 +236,7 @@ export function readAsset(dt: DetailsCtx): void {
   const fav = cat.favSet.has(base); dt.fav = fav;
   const hidden = cat.hiddenSet.has(base); dt.hidden = hidden;
   const name = String(ref.meta?.name ?? ref.id); dt.name = name;
-  const tags = (ref.meta?.tags as string[] | undefined) ?? []; dt.tags = tags;
+  const tags = ((ref.meta?.tags as string[] | undefined) ?? []).filter(tag => !tag.startsWith('provider:')); dt.tags = tags;
   const aiKind = assetAiKind(ref); dt.aiKind = aiKind;
   // Offer the credential checker for every asset whose container the reader can
   // inspect (not just AI-flagged ones), plus any AI-flagged asset so its claim can
@@ -800,7 +800,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     const tagBtn = target.closest<HTMLElement>('[data-tag]');
     if (tagBtn?.dataset.tag) {
       cat.sections.closeDetails();
-      setSearchBarQuery(`tag:${tagBtn.dataset.tag}`);
+      setSearchBarQuery(withCatalogFacet('', 'tag', tagBtn.dataset.tag));
       return;
     }
     const act = target.closest<HTMLElement>('[data-act]')?.dataset.act;

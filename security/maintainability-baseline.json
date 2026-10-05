@@ -69,13 +69,6 @@
       "importFanOut": 11,
       "typeEscapes": 68
     },
-    "shells/web/src/views/design-inspector.ts": {
-      "lines": 1500,
-      "largestFunctionLines": 1995,
-      "importFanIn": 1,
-      "importFanOut": 17,
-      "typeEscapes": 0
-    },
     "shells/web/src/views/gallery.ts": {
       "lines": 1989,
       "largestFunctionLines": 1754,
@@ -84,10 +77,10 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2504,
-      "largestFunctionLines": 2153,
+      "lines": 2502,
+      "largestFunctionLines": 2149,
       "importFanIn": 28,
-      "importFanOut": 58,
+      "importFanOut": 60,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {

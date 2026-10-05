@@ -114,14 +114,18 @@ export async function mountEditor(start: StartCtx): Promise<void> {
         },
         // Beat 0's "or bring a file" - the same picker the rail's "Add from…"
         // opens, on its source list (plan 182 section 3a).
-        openImport: () => {
+        openImport: async () => {
+          await start.importReady;
+          if (!shell.isConnected) return;
           start.sources.openImport();
           playSfx('click');
         },
         // "From an image" beside the add row. THIS view owns the image pipeline
         // (the source picker's image tile runs the same call), so the room asks
         // for it rather than carrying a second copy - plan 182 section 5.3.
-        scanImage: (file) => {
+        scanImage: async (file) => {
+          await start.importReady;
+          if (!shell.isConnected) return;
           start.sources.openImport('image');
           void start.images.scanImageFile(file, start.sources.srcNote);
         },

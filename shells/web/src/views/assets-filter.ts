@@ -81,7 +81,7 @@ export function buildSearchHaystack(
     const keywords = prov?.metaDigest?.keywords ?? '';
     index.set(
       a.id,
-      fold(`${String(a.meta?.name ?? '')} ${a.id} ${tags} ${keywords} ${categoryOf(a)} ${a.format ?? a.type}`),
+      fold(`${String(a.meta?.name ?? '')} ${a.id} ${tags} ${keywords} ${categoryOf(a)} ${a.meta?.providerLabel ?? ''} ${metadataNames(a, 'providerSections').join(' ')} ${metadataNames(a, 'providerCollections').join(' ')} ${a.format ?? a.type}`),
     );
   }
   return index;
@@ -97,24 +97,56 @@ export interface ParsedCatQuery {
   text: string[];
   /** `tag:` values (folded) - each must prefix-match one of the asset's tags. */
   tags: string[];
+  exactTags: string[];
   /** `type:` values - a TypeFilter bucket name or a raw format/type string. */
   types: string[];
   /** `is:` values - 'genai' (declared AI origins) and 'upload' are recognised;
    *  anything else matches nothing (a typo narrows to empty, honestly). */
   flags: string[];
+  categories: string[];
+  collections: string[];
+  sources: string[];
+}
+
+export type CatalogFacet = 'tag' | 'category' | 'collection' | 'source';
+
+export function catalogQueryTokens(query: string): string[] {
+  return query.match(/(?:[^\s"\\]+|\\.|"(?:\\.|[^"\\])*"?)+/g) ?? [];
+}
+
+/** Keep the other search terms when a facet changes, including quoted names. */
+export function withCatalogFacet(query: string, facet: CatalogFacet, value: string): string {
+  const terms = catalogQueryTokens(query).filter(term => !term.toLowerCase().startsWith(`${facet}:`));
+  if (value) terms.push(`${facet}:${JSON.stringify(value)}`);
+  return terms.join(' ');
+}
+
+function metadataNames(asset: AssetRef, key: string): string[] {
+  const value = asset.meta?.[key];
+  return Array.isArray(value) ? value.filter((name): name is string => typeof name === 'string') : [];
 }
 
 export function parseCatQuery(query: string): ParsedCatQuery {
-  const out: ParsedCatQuery = { text: [], tags: [], types: [], flags: [] };
-  for (const raw of query.split(/\s+/)) {
+  const out: ParsedCatQuery = { text: [], tags: [], exactTags: [], types: [], flags: [], categories: [], collections: [], sources: [] };
+  for (const raw of catalogQueryTokens(query)) {
     if (!raw) continue;
-    const m = /^(tag|type|is):(.+)$/i.exec(raw);
+    const m = /^(tag|type|is|category|collection|source):(.+)$/i.exec(raw);
     if (m) {
-      const value = fold(m[2]!);
+      let name = m[2]!;
+      if (name.startsWith('"')) {
+        try { name = JSON.parse(name) as string; } catch { name = name.slice(1); }
+      }
+      const value = fold(name);
       const key = m[1]!.toLowerCase();
-      if (key === 'tag') out.tags.push(value);
+      if (key === 'tag') {
+        out.tags.push(value);
+        if (m[2]!.startsWith('"')) out.exactTags.push(value);
+      }
       else if (key === 'type') out.types.push(value);
-      else out.flags.push(value);
+      else if (key === 'is') out.flags.push(value);
+      else if (key === 'category') out.categories.push(value);
+      else if (key === 'collection') out.collections.push(value);
+      else out.sources.push(value);
     } else {
       out.text.push(...tokenize(raw));
     }
@@ -126,7 +158,7 @@ export function parseCatQuery(query: string): ParsedCatQuery {
 // the parse (fold + split + prefix carve) is memoised on the last query seen
 // rather than recomputed per asset.
 let lastQuery = '';
-let lastParsed: ParsedCatQuery = { text: [], tags: [], types: [], flags: [] };
+let lastParsed: ParsedCatQuery = parseCatQuery('');
 function parsedQuery(query: string): ParsedCatQuery {
   if (query !== lastQuery) {
     lastQuery = query;
@@ -142,8 +174,18 @@ function foldedTags(asset: AssetRef): string[] {
 
 /** Does the asset satisfy every STRUCTURED term of a parsed query? */
 function matchesStructured(asset: AssetRef, q: ParsedCatQuery): boolean {
+  for (const [values, names] of [
+    [q.categories, metadataNames(asset, 'providerSections')],
+    [q.collections, metadataNames(asset, 'providerCollections')],
+    [q.sources, [String(asset.meta?.providerLabel ?? ''), String(asset.meta?.provider ?? '')]],
+  ]) {
+    if (!values!.every(value => names!.some(name => fold(name) === value))) return false;
+  }
   for (const tag of q.tags) {
-    if (!foldedTags(asset).some((t) => t.startsWith(tag))) return false;
+    const exact = q.exactTags.includes(tag);
+    const tags = exact && Array.isArray(asset.meta?.providerTags)
+      ? metadataNames(asset, 'providerTags').map(name => fold(name)) : foldedTags(asset);
+    if (!tags.some(t => exact ? t === tag : t.startsWith(tag))) return false;
   }
   for (const ty of q.types) {
     const bucket = TYPE_FILTER_TYPES[ty as Exclude<TypeFilter, 'all'>];

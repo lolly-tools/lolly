@@ -47,7 +47,7 @@ function panel(id: string): HTMLElement {
   return el;
 }
 function reset(): void {
-  for (const id of ['zoom', 'people', 'neuro', 'inspector', 'export', 'share', 'transcript'] as const) ED.releaseDock(id);
+  for (const id of ['zoom', 'people', 'neuro', 'inspector', 'export', 'share', 'comments', 'transcript'] as const) ED.releaseDock(id);
   document.querySelector('.edge-dock-drop')?.remove();
   document.documentElement.dir = '';
   mobile = false;
@@ -627,4 +627,18 @@ test('the column runs from the top edge down to the timeline band - never below 
   // itself, because the bar ends where the column begins.
   assert.match(css, /\.edge-dock \{[^}]*inset-block: 0 var\(--design-timeline-h, 0px\)/, 'the column starts at 0');
   assert.doesNotMatch(css, /inset-block: var\(--design-topbar-h/, 'nothing starts below the top bar any more');
+});
+
+test('Comments gets a full-height tab beside Inspector and releases only its own slot', () => {
+  reset();
+  const inspector = panel('pi'), comments = panel('pt');
+  try {
+    ED.requestDock('inspector', inspector, { label: 'Inspector' });
+    ED.requestDock('comments', comments, { label: 'Comments' });
+    assert.deepEqual(visibleSlots(), ['comments']);
+    assert.ok([...document.querySelectorAll('[role="tab"]')].some(tab => tab.textContent === 'Comments'));
+    ED.releaseDock('comments');
+    assert.deepEqual(visibleSlots(), ['inspector']);
+    assert.equal(comments.parentElement, document.body);
+  } finally { reset(); }
 });
