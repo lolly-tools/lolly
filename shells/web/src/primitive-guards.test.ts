@@ -1347,7 +1347,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/profile/offline.ts': 2,      // the download-manager list and the persistence line
   'views/profile/identity.ts': 4,     // the credentials card: status, enrol form and its errors
   // Shared covers use only registry icons and sessionTile's escaped ids/labels.
-  'org/team-project-view.ts': 3,
+  'org/team-project-view.ts': 2,
   'org/team-previews.ts': 1,
   'views/projects.ts': 5,   // View-options markup moved to its shared-popover adapter; the Team projects modal moved to org/team-projects.ts (DOM-built, no sink).
   'views/projects-view-options.ts': 1, // Static enums + escaped t() labels and the existing theme/sound generators.

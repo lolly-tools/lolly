@@ -947,7 +947,7 @@ mark.cat-hl--t5 { background: hsl(0 92% 55% / 0.48); }
 /* DAM variations keep filenames visible beside lightweight previews. */
 .asset-file-list { display: grid; gap: var(--sp-3); margin-block: var(--sp-4); min-width: 0; }
 .asset-file-list h3, .asset-file-list p { margin: 0; overflow-wrap: anywhere; }
-.asset-file-list .input { width: 100%; box-sizing: border-box; min-height: var(--ui-size-target); }
+.asset-file-list .field-input { width: 100%; box-sizing: border-box; min-height: var(--ui-size-target); }
 .asset-file-rows { display: grid; gap: var(--sp-2); max-height: min(24rem, 40dvh); overflow: auto; overscroll-behavior: contain; }
 .asset-file-choice { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2); text-align: start; color: var(--ui-color-text-default); background: var(--ui-color-surface-default); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); min-height: var(--ui-size-target); }
 .asset-file-choice[aria-pressed="true"] { border-color: var(--ui-color-action-primary); background: var(--ui-color-selection-surface); }

@@ -14,8 +14,7 @@
  *   - on-demand → fetched lazily, then cached
  */
 
-import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers, parseFileAssetId, buildFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
-import { assetFiles, fileAssetType } from '../lib/asset-files.ts';
+import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers, parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
 import type { GradeLut } from '../../../../engine/src/grade.ts';
 // c2pa-verify is LAZY on purpose. It is the entry to the whole provenance
 // cluster (c2pa + c2pa-extract + c2pa-containers + c2pa-verdict + c2pa-trust +
@@ -68,7 +67,7 @@ interface AssetFormat {
 }
 
 /** A catalog asset's stored metadata (the 'asset-meta' IDB store). */
-interface AssetMetaRecord {
+export interface AssetMetaRecord {
   id: string;
   type: AssetRef['type'];
   name?: string;
@@ -112,16 +111,12 @@ interface AssetMetaRecord {
   formats: AssetFormat[];
 }
 
-/** Choose only a declared format; same-extension attachments keep separate cache keys. */
-function fileMeta(meta: AssetMetaRecord, file: string | null): AssetMetaRecord {
-  if (!file) return meta;
-  const selected = assetFiles(meta.meta).find(f => f.id === file && f.url.startsWith(`/catalog/${meta.id}/`));
-  const format = selected && meta.formats.find(f => f.url === selected.url && f.format === selected.format);
-  if (!selected || !format) throw new Error('Asset file unavailable');
-  return { ...meta, id: buildFileAssetId(meta.id, file), type: fileAssetType(format.format), name: selected.name,
-    width: selected.width, height: selected.height, formats: [format], checksum: format.checksum,
-    meta: { ...meta.meta, assetGroupId: meta.id, assetGroupName: meta.name, selectedFile: file, size: selected.size, bytes: selected.size,
-      ...(selected.thumbnail ? { thumbUrl: selected.thumbnail, posterUrl: selected.thumbnail } : {}) } };
+/** File choices load with an actual file selection, rather than at app boot. */
+async function fileMeta(meta: AssetMetaRecord, file: string | null): Promise<AssetMetaRecord> {
+  return file ? (await import('./asset-file-meta.ts')).selectedFileMeta(meta, file) : meta;
+}
+async function variantMetas(meta: AssetMetaRecord): Promise<AssetMetaRecord[]> {
+  return Array.isArray(meta.meta?.assetFiles) ? (await import('./asset-file-meta.ts')).assetFileMetas(meta) : [meta];
 }
 
 /** A user-uploaded asset (the 'user-assets' IDB store) - already resolved to one blob/format. */
@@ -519,7 +514,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const parsedFile = parseFileAssetId(baseId);
       const storedMeta = await db.get('asset-meta', parsedFile.baseId);
       if (!storedMeta) throw new Error(`Asset not in catalog: ${id}`);
-      const currentMeta = fileMeta(storedMeta, parsedFile.file);
+      const currentMeta = await fileMeta(storedMeta, parsedFile.file);
       const historical = opts.version !== undefined && opts.version !== currentMeta.version;
       const meta = historical ? { ...currentMeta, version: opts.version!, checksum: undefined } : currentMeta;
 
@@ -1189,8 +1184,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       for (const incoming of assets) {
         const previous = old.get(incoming.id);
         if (!previous || previous.version !== incoming.version || JSON.stringify(previous.formats) === JSON.stringify(incoming.formats)) continue;
-        for (const format of previous.formats) {
-          const key = `${previous.id}:${format.format}:${previous.version}`;
+        const variants = await variantMetas(previous);
+        for (const variant of variants) for (const format of variant.formats) {
+          const key = `${variant.id}:${format.format}:${variant.version}`;
           await db.delete('asset-blob', key);
           inFlight.delete(key);
           evictObjectUrlsByPrefix(`library:${key}`);
@@ -1267,7 +1263,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const storedMeta = await db.get('asset-meta', parsedFile.baseId);
       if (!storedMeta) return null;
       let meta: AssetMetaRecord;
-      try { meta = fileMeta(storedMeta, parsedFile.file); } catch { return null; }
+      try { meta = await fileMeta(storedMeta, parsedFile.file); } catch { return null; }
       const format = pickFormat(meta, opts.format);
       if (opts.format && format.format !== opts.format) return null;
       const version = opts.version ?? meta.version;
@@ -1360,9 +1356,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Returns { blobs, meta } counts of records deleted.
      */
     async _pruneStale(currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string> = new Set(), keepIds: Set<string> = new Set()): Promise<{ blobs: number; meta: number }> {
-      const cacheAssets = currentAssets.flatMap(a => [a, ...assetFiles(a.meta).flatMap(f => {
-        try { return [fileMeta(a, f.id)]; } catch { return []; }
-      })]);
+      const cacheAssets = (await Promise.all(currentAssets.map(variantMetas))).flat();
+
       // All keys that exist at the current catalog version.
       const currentVersionKeys = new Set(
         cacheAssets.flatMap(a => a.formats.map(f => `${a.id}:${f.format}:${a.version}`)),
@@ -1733,7 +1728,8 @@ async function fetchAndCache(meta: AssetMetaRecord, format: AssetFormat, blobKey
   // Downloaded catalog bytes remain usable when the browser refuses its cache
   // (for example, WebKit cannot persist a Blob). User uploads still require a save.
   try {
-    const current = await db.get('asset-meta', meta.id);
+    const parsed = parseFileAssetId(meta.id), stored = await db.get('asset-meta', parsed.baseId);
+    const current = stored && await fileMeta(stored, parsed.file);
     if (current && current.version === meta.version && JSON.stringify(current.formats) === JSON.stringify(meta.formats)) await db.put('asset-blob', blob, blobKey);
   }
   catch (error) { console.warn('Asset cache write failed; using verified downloaded bytes', meta.id, error); }

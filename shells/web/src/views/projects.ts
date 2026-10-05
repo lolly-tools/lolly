@@ -1308,17 +1308,17 @@ export async function mountProjects(
 
   const tileSelect = wireTileSelect({
     host: viewEl,
-    tiles: selectableTiles,
+    tiles: () => sharedFolder ? [] : selectableTiles(),
     refOf: (t) => t.dataset.ref!,
     current: () => new Set(selected.keys()),
     setRefs: applySelectionRefs,
     clear: () => { dropSelection(); render(); },
     // Never start a box on a tile, control, chip, bar, breadcrumb, etc. - only in a gap.
-    noStart: '.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar',
+    noStart: sharedFolder ? '*' : '.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar',
     // Keyboard grid (plans/133 WP-3 + WP-13): arrows/Space/Cmd-A come from the shared
     // model; Delete routes through the Trash path, F2 into the inline renames, the
     // Menu key opens the tile's menu, Cmd-I its info sheet, Cmd-X/C/V the clipboard.
-    keyboard: {
+    keyboard: sharedFolder ? undefined : {
       remove: (refs) => {
         selected.clear();
         for (const ref of refs) selected.set(ref, kindOfRef(ref));

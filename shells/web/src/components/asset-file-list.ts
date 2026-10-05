@@ -4,7 +4,7 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { assetFiles, selectAssetFile, selectedAssetFile, type AssetFile } from '../lib/asset-files.ts';
 import { instancePath } from '../lib/instance.ts';
 import { tRaw } from '../i18n.ts';
-import { iconNode } from '../lib/icons.ts';
+import { iconNode } from '../lib/icon-node.ts';
 export function mountAssetFileList(into: HTMLElement, ref: AssetRef, choose: (file: AssetRef) => void, accepts?: (file: AssetRef) => boolean): void {
   const files = assetFiles(ref.meta); if (files.length < 2) return;
   const section = document.createElement('section'); section.className = 'asset-file-list'; section.setAttribute('aria-label', tRaw('Asset variations'));

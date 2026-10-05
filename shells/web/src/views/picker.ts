@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { assetFiles } from '../lib/asset-files.ts';
-import { mountAssetFileList } from '../components/asset-file-list.ts';
+import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
 /**
  * Asset Picker - a host-owned modal UI.
  *
@@ -31,7 +31,7 @@ import { mountAssetFileList } from '../components/asset-file-list.ts';
  *   the grids below still offer choosing a different image instead.
  */
 
-import { collectOk, collectLabel, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
+import { createCollectToast, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
 import '../styles/picker.css';   // async CSS chunk (lazy view - not on the landing)
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
@@ -749,23 +749,7 @@ async function render(
 
   // ── collect-mode feedback ────────────────────────────────────────────────────
   // A transient toast (upload / webcam / pasted-link adds have no tile to flash).
-  let toastTimer: ReturnType<typeof setTimeout> | undefined;
-  function collectToast(r: CollectResult | boolean): void {
-    const ok = collectOk(r), label = collectLabel(r);
-    let toast = root.querySelector<HTMLElement>('.asset-picker-toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.className = 'asset-picker-toast';
-      toast.setAttribute('role', 'status');
-      root.querySelector('.asset-picker-panel')?.appendChild(toast);
-    }
-    toast.textContent = (ok ? '✓ ' : '') + label;
-    toast.classList.toggle('is-fail', !ok);
-    toast.classList.add('is-shown');
-    announce(label);
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast?.classList.remove('is-shown'), 1600);
-  }
+  const collectToast = createCollectToast(root);
 
   // The Templates tab (plans/245) borrows three picker pieces - its pane, the per-card
   // flash, the teardown an opening pick needs - and owns everything else itself.
@@ -2017,25 +2001,12 @@ async function render(
   function showFileChoices(ref: AssetRef): void {
     showTakeover('<div class="asset-picker-toolcard asset-picker-filecard"></div>');
     const card = toolcardHost.querySelector<HTMLElement>('.asset-picker-filecard')!;
-    const back = document.createElement('button'); back.type = 'button'; back.className = 'btn btn--sm'; back.textContent = tRaw('Back to assets');
-    back.addEventListener('click', dismissTakeover);
-    const heading = document.createElement('h2'); heading.textContent = String(ref.meta?.assetGroupName ?? ref.meta?.name ?? ref.id);
-    const status = document.createElement('p'); status.setAttribute('role', 'status');
-    card.append(back, heading, status); let busy = false;
-    mountAssetFileList(card, ref, async selected => {
-      if (busy) return; busy = true; status.textContent = tRaw('Loading selected file…');
-      let id = selected.id;
-      if (activeTheme && isThemableRef(selected)) id = buildThemedAssetId(id, activeTheme);
-      else if (activeTreatment && isTreatableRef(selected)) id = buildTreatedAssetId(id, activeTreatment);
-      try {
-        const resolved = await host.assets.get(id);
-        if (!card.isConnected || toolcardHost.hidden) return;
-        recordRecentAsset(id);
-        if (collect) { await collect.onAsset(resolved); status.textContent = tRaw('File added.'); }
-        else close(resolved);
-      } catch { if (card.isConnected) status.textContent = tRaw('Could not load this file. Try again or choose another variation.'); }
-      finally { busy = false; }
-    }, selected => !opts.type || isAcceptable(selected.type)); back.focus();
+    mountAssetFilePicker(card, ref, { back: dismissTakeover, current: () => !toolcardHost.hidden,
+      accepts: selected => !opts.type || isAcceptable(selected.type),
+      resolve: selected => host.assets.get(activeTheme && isThemableRef(selected) ? buildThemedAssetId(selected.id, activeTheme)
+        : activeTreatment && isTreatableRef(selected) ? buildTreatedAssetId(selected.id, activeTreatment) : selected.id),
+      picked: async resolved => { recordRecentAsset(resolved.id); if (collect) { await collect.onAsset(resolved); return true; } close(resolved); return false; },
+    });
   }
 
   // Build the "render this Lolly tool/session as your image" card: detected-tool

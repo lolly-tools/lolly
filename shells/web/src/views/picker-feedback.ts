@@ -132,3 +132,24 @@ export function mountGuidedCollection(
     menu?.close(false);
   };
 }
+
+/** Transient feedback for additions that have no tile, such as pasted assets. */
+export function createCollectToast(root: HTMLElement): (result: CollectResult | boolean) => void {
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+  return (r) => {
+    const ok = collectOk(r), label = collectLabel(r);
+    let toast = root.querySelector<HTMLElement>('.asset-picker-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'asset-picker-toast';
+      toast.setAttribute('role', 'status');
+      root.querySelector('.asset-picker-panel')?.appendChild(toast);
+    }
+    toast.textContent = (ok ? '✓ ' : '') + label;
+    toast.classList.toggle('is-fail', !ok);
+    toast.classList.add('is-shown');
+    announce(label);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast?.classList.remove('is-shown'), 1600);
+  };
+}

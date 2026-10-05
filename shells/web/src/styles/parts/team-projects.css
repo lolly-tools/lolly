@@ -11,10 +11,6 @@
   border-radius: var(--ui-radius-surface); color: var(--ui-color-text-muted); font-size: var(--fs-md);
 }
 .team-project-content { min-width: 0; }
-.team-folder-move { display: grid; gap: var(--sp-1); padding: var(--sp-2); font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
-.team-folder-move select { width: 100%; min-width: 0; min-height: var(--ui-size-target); }
-.projects-grid:not(.projects-list) .folder-tile:has(> .team-folder-move) { display: flex; flex-direction: column; }
-.projects-grid:not(.projects-list) .folder-tile:has(> .team-folder-move) > .tile-primary { height: auto; flex: 1; }
 
 .team-project-glyph {
   display: grid; place-items: center; width: calc(var(--ui-size-target) * 1.3); aspect-ratio: 1;
@@ -74,3 +70,7 @@
 .team-project-asset-preview :is(img, video) { display: block; max-width: 100%; max-height: 65dvh; margin-inline: auto; object-fit: contain; }
 .team-project-asset-preview audio { width: 100%; }
 .folder-tile[data-kind="team-file"] img.tile-cover { object-fit: contain; background: var(--ui-color-surface-canvas); }
+
+.team-project-content.has-selection { padding-block-end: calc(var(--ui-size-target) * 2); }
+.team-move-dialog .document-agent-field { margin-block: var(--sp-4); }
+.team-move-dialog .field-select { width: 100%; min-height: var(--ui-size-target); }
