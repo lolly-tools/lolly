@@ -21,6 +21,7 @@ export function nativeBuildIsRunning(): boolean {
       .filter(line => basename(line.trim().replace(/^\d+\s+/, '')) === 'java');
     return java.some(line => {
       const pid = line.trim().split(/\s+/)[0];
+      if (!pid || !/^\d+$/.test(pid)) return true;
       const args = execFileSync('ps', ['-p', pid, '-o', 'args='], { encoding: 'utf8' });
       return /org\.gradle\.(?:launcher\.(?:daemon\.bootstrap\.GradleDaemon|GradleMain)|wrapper\.GradleWrapperMain)/.test(args);
     });
