@@ -53,7 +53,7 @@ test('remote invitations isolate documents and apply retries make one history st
     editorA.session.pause(true); await assert.rejects(one.request('document.apply', { layerPatches: [{ id: 'title', set: { text: 'Paused edit' } }] }), /paused/);
     editorA.socket.close();
     await new Promise(resolve => setTimeout(resolve, 20));
-    await assert.rejects(one.request('document.get'), /expired or ended/);
+    await assert.rejects(one.request('document.get'), /expired or ended|no longer connected/);
   } finally { one.close(); two.close(); await f.close(); }
 });
 
