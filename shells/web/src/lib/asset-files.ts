@@ -34,7 +34,7 @@ export function fileAssetType(format: string): AssetRef['type'] {
 export function selectAssetFile(ref: AssetRef, file: AssetFile): AssetRef {
   const group = stripAssetModifiers(ref.id), selected = assetFiles(ref.meta).find(f => f.id === file.id);
   if (!selected?.url.startsWith(`/catalog/${group}/`)) throw new Error('This file is unavailable');
-  return { ...ref, id: buildFileAssetId(group, file.id), type: fileAssetType(selected.format), format: selected.format, url: instancePath(selected.url),
+  return { ...ref, id: buildFileAssetId(group, file.id), type: fileAssetType(selected.format), format: selected.format, url: instancePath(selected.url), width: selected.width, height: selected.height,
     meta: { ...ref.meta, name: selected.name, assetGroupName: ref.meta?.assetGroupName ?? ref.meta?.name, assetGroupId: group, selectedFile: selected.id,
       size: selected.size, bytes: selected.size, width: selected.width, height: selected.height,
       thumbUrl: selected.thumbnail ? instancePath(selected.thumbnail) : ref.meta?.thumbUrl, posterUrl: selected.thumbnail ? instancePath(selected.thumbnail) : ref.meta?.posterUrl } };

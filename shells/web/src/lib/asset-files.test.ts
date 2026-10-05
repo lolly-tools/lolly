@@ -11,7 +11,7 @@ const ref: AssetRef = { source: 'library', id: group, type: 'raster', format: 'j
 test('same-extension files keep distinct identities and their own dimensions', () => {
   const a = selectAssetFile(ref, files[0]!), b = selectAssetFile(ref, files[1]!);
   assert.notEqual(a.id, b.id); assert.notEqual(a.url, b.url);
-  assert.equal(a.meta?.width, 3240); assert.equal(b.meta?.width, 1080);
+  assert.equal(a.meta?.width, 3240); assert.equal(b.meta?.width, 1080); assert.equal(b.width, 1080); assert.equal(b.height, 1080);
   assert.equal(b.meta?.assetGroupName, 'Launch imagery'); assert.equal(b.meta?.name, 'Square.jpg');
   assert.deepEqual(parseFileAssetId(b.id), { baseId: group, file: second });
   assert.equal(stripAssetModifiers(b.id), group);

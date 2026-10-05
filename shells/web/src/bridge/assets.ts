@@ -1106,8 +1106,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       patch: { blob: Blob; credential?: Uint8Array; credentialFormat?: string; meta?: Record<string, unknown> },
       replaceOpts: { keepModifiedAt?: boolean } = {},
     ): Promise<void> {
+      await opts.preservePinned?.(id);
       const { replaceUserAssetBytes } = await import('./asset-cache-maintenance.ts');
-      return replaceUserAssetBytes(db, id, patch, replaceOpts, QUOTA_SAFETY_FRACTION, { preserve: opts.preservePinned, clearMemo: key => { AI_KIND_MEMO.delete(key); }, evictPrefix: evictObjectUrlsByPrefix });
+      return replaceUserAssetBytes(db, id, patch, replaceOpts, QUOTA_SAFETY_FRACTION, { clearMemo: key => { AI_KIND_MEMO.delete(key); }, evictPrefix: evictObjectUrlsByPrefix });
     },
 
     /**

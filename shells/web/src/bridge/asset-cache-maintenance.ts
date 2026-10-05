@@ -208,8 +208,7 @@ export async function updateUserAssetMeta(db: AssetsDb, id: string, meta: Record
 }
 
 /** Replace bytes only after pin preservation; keep history and cached views coherent. */
-export async function replaceUserAssetBytes(db: AssetsDb, id: string, patch: { blob: Blob; credential?: Uint8Array; credentialFormat?: string; meta?: Record<string, unknown> }, replaceOpts: { keepModifiedAt?: boolean }, fraction: number, actions: { preserve?: (id: string) => Promise<void>; clearMemo(id: string): void; evictPrefix(prefix: string): void }): Promise<void> {
-  await actions.preserve?.(id);
+export async function replaceUserAssetBytes(db: AssetsDb, id: string, patch: { blob: Blob; credential?: Uint8Array; credentialFormat?: string; meta?: Record<string, unknown> }, replaceOpts: { keepModifiedAt?: boolean }, fraction: number, actions: { clearMemo(id: string): void; evictPrefix(prefix: string): void }): Promise<void> {
   const rec = await db.get('user-assets', id);
   if (!rec) return;
   await checkQuotaRoom(patch.blob.size, fraction); // the old bytes remain in version history
