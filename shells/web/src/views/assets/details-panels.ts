@@ -167,7 +167,7 @@ export const renderOrigins = (dt: DetailsCtx): void => {
 // flat lamp strip over an INLINE credential check of the asset's own
 // bytes, plus the licensing chips. The check is lazy + stale-guarded like
 // the tech panel, and cached per id+version so paging back is free.
-export const renderPassport = (dt: DetailsCtx, cred: 'checking' | { found: boolean; state: string; trusted: boolean } | null): void => {
+export const renderPassport = (dt: DetailsCtx, cred: 'checking' | 'unchecked' | { found: boolean; state: string; trusted: boolean } | null): void => {
   const { dlg, ref } = dt;
   const box = dlg.querySelector<HTMLElement>('[data-passport]');
   if (!box) return;
@@ -176,7 +176,9 @@ export const renderPassport = (dt: DetailsCtx, cred: 'checking' | { found: boole
   const sigFresh = sig && sig.v === LEXICON_VERSION ? sig : undefined;
   const maker = ref.meta?.makerLikely as { vendor?: string; hint?: string } | undefined;
   const lamps: TrustLamp[] = [
-    cred === 'checking'
+    cred === 'unchecked'
+      ? { id: 'provenance', label: t('Provenance'), state: 'unlit', word: t('not checked'), detail: t('Use Check Content Credentials to inspect the original file.') }
+      : cred === 'checking'
       ? { id: 'provenance', label: t('Provenance'), state: 'unlit', word: t('checking…') }
       : cred?.found && cred.state === 'invalid'
         ? { id: 'provenance', label: t('Provenance'), state: 'warn', word: t('credential problem'), detail: t('Open Check credentials for the full report.') }
@@ -185,7 +187,7 @@ export const renderPassport = (dt: DetailsCtx, cred: 'checking' | { found: boole
           : cred?.found
             ? { id: 'provenance', label: t('Provenance'), state: 'fact', word: t('credential intact') }
             : { id: 'provenance', label: t('Provenance'), state: 'unlit', word: t('none carried'), detail: t('An unlit lamp means that check has nothing to read here - it is not a verdict.') },
-    cred === 'checking' || !cred?.found
+    cred === 'checking' || cred === 'unchecked' || !cred?.found
       ? { id: 'integrity', label: t('Integrity'), state: 'unlit', word: t('nothing to check against') }
       : cred.state === 'valid'
         ? { id: 'integrity', label: t('Integrity'), state: 'fact', word: t('bytes match') }

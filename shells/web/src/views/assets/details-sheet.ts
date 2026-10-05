@@ -45,6 +45,7 @@ import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
 import { bindOp, type DetailsCtx } from './details-context.ts';
+import { mountAssetPreviewStatus } from '../../lib/asset-preview-status.ts';
 import { appPathname } from '../../lib/any-site.ts';
 
 /**
@@ -539,6 +540,7 @@ export function buildSheet(dt: DetailsCtx): void {
     className: 'cat-details',
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onClose: () => {
+      dt.previewStatusDispose?.();
       dt.emojiBrowser?.destroy();
       cat.detailsMeterDispose?.();
       cat.detailsMeterDispose = null;
@@ -564,6 +566,7 @@ export function buildSheet(dt: DetailsCtx): void {
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
   cat.detailsDialog = dlg;
   cat.detailsModal = modal;
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
@@ -575,11 +578,12 @@ export function buildSheet(dt: DetailsCtx): void {
 
 export function paintPassport(dt: DetailsCtx): void {
   const { PASSPORT_CRED_CACHE, TREATMENT_FILTER_PREFIX, cat, dlg, initialTheme, ref, showVerify, themable, treatable } = dt;
-  dt.panels.renderPassport('checking');
+  const skipAutomaticBytes = Number(ref.meta?.bytes ?? ref.meta?.size ?? 0) >= 12_000_000 || !!ref.meta?.provider && !Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
+  dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : 'checking');
   void (async () => {
     const cacheKey = `${ref.id}|${ref.version ?? 'x'}`;
     let cred = PASSPORT_CRED_CACHE.get(cacheKey) ?? null;
-    if (cred === null && !PASSPORT_CRED_CACHE.has(cacheKey)) {
+    if (cred === null && !PASSPORT_CRED_CACHE.has(cacheKey) && !skipAutomaticBytes) {
       try {
         const bytes = new Uint8Array(await (await fetch(ref.url)).arrayBuffer());
         const r = await verifyC2pa(bytes);
@@ -588,7 +592,7 @@ export function paintPassport(dt: DetailsCtx): void {
       PASSPORT_CRED_CACHE.set(cacheKey, cred);
     }
     if (cat.detailsDialog !== dlg) return; // paged away while hashing
-    dt.panels.renderPassport(cred);
+    dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : cred);
   })();
 
   // Technical metadata (resolution, DPI, EXIF, audio/video props, page count, viewBox…):
@@ -629,7 +633,7 @@ export function paintPassport(dt: DetailsCtx): void {
   // binds) before the heavier verify. Video/audio are skipped (a whole-file fetch just
   // for a badge isn't worth it - the checker button still covers them). Guarded on the
   // modal still being THIS dialog, since ←/→ paging swaps it out.
-  if (showVerify && ref.type !== 'video' && ref.type !== 'audio' && Number(ref.meta?.bytes ?? 0) < 12_000_000) {
+  if (!skipAutomaticBytes && showVerify && ref.type !== 'video' && ref.type !== 'audio' && Number(ref.meta?.bytes ?? 0) < 12_000_000) {
     void (async () => {
       try {
         const bytes = new Uint8Array(await (await fetch(ref.url)).arrayBuffer());

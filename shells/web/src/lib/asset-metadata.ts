@@ -53,7 +53,12 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
   let size: number | null = metaBytes(ref);
 
   try {
-    if (type === 'audio' || type === 'video') {
+    if ((size !== null && size >= 12_000_000) || (ref.meta?.provider && size === null)) {
+      const width = ref.width ?? ref.meta?.width, height = ref.height ?? ref.meta?.height;
+      if (width && height) push(t('Dimensions'), `${width} × ${height}`);
+      const duration = metaDurationSec(ref);
+      if (duration) push(t('Duration'), formatDuration(duration));
+    } else if (type === 'audio' || type === 'video') {
       if (size == null) size = await headSize(ref.url);
       if (size == null || size <= AV_CAP) {
         const blob = await fetchBlob(ref.url);
