@@ -4,6 +4,10 @@ Build, validation and content-ingest scripts for this repo. There are 52 top-lev
 
 Everything here runs on Node directly, without a build step, using Node's native type-stripping. `scripts/tsconfig.json` is what `pnpm run typecheck` uses for this directory.
 
+Native packaging commands clean their ignored Rust and Android intermediates after a successful build. Desktop `bundle/` and Android `outputs/` packages stay in place. Failed builds keep their caches for diagnosis. Set `LOLLY_KEEP_NATIVE_CACHE=1` when you need incremental native builds. External `CARGO_TARGET_DIR` caches stay untouched.
+
+Run `node scripts/clean-native-builds.ts` to preview old caches in the current checkout, then add `--apply` to clean them. Use `--mobile` or `--desktop` to choose a shell. Cleanup refuses tracked files, symlinks, unrecognised directories, and active native compilers. This command works in each worktree; it never searches or deletes other checkouts.
+
 Read this alongside [`../CONTRIBUTING.md`](../CONTRIBUTING.md), which explains which file lives where.
 
 ## How to read the tables
