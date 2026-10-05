@@ -81,6 +81,7 @@ export interface AuthConfig {
   loginPath: string | null;
   /** Same-origin management route, advertised only by an instance with native passkeys. */
   passkeyManagementPath?: string;
+  documentAgentPath?: string;
   /** The workspace's own name ("lolly.ing"), for the sign-in gate and the profile card
    *  before (or without) a member's org-config. Absent on an older instance. */
   instanceName?: string;
@@ -326,6 +327,9 @@ export function orgConfig(): OrgConfig | null {
 export function orgSession(): Session | null {
   return session;
 }
+
+export { orgAgentInvitesEnabled } from './document-agent-config.ts';
+import { setAgentInviteAvailability } from './document-agent-config.ts';
 
 /** Control-plane governance for one feature flag, or null when this control plane
  *  has no opinion on it. Consumed by feature-flags.ts to resolve the default and
@@ -963,9 +967,11 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
   stopAiPolicyPolling();
   finishAiProbe(true);
   authState = auth;
+  setAgentInviteAvailability(false, null);
   try {
     session = await fetchSession();
     const isMember = session?.kind === 'member';
+    setAgentInviteAvailability(isMember, auth.documentAgentPath);
     // A session change must withdraw the previous member's fixed targets before
     // any early gate/return. A successful member load installs its fresh (or
     // bounded-cache) projection below.
@@ -1252,6 +1258,7 @@ export function _resetOrgForTests(): void {
   setInstallTag(null);
   session = null;
   authState = null;
+  setAgentInviteAvailability(false, null);
   inboxModule?._resetInboxForTests();
   inboxModule = null;
   inboxLoad = null;

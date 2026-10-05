@@ -185,6 +185,7 @@ export interface CollabInviteLinks {
 export interface CollabSessionHandle {
   /** Open the document's authorized People controls while its room stays mounted. */
   readonly people?: () => void;
+  readonly inviteAgent?: () => void;
   readonly inviteLinks?: CollabInviteLinks;
   readonly assets?: import('./canvas-assets.ts').CanvasAssetsCapability;
   readonly comments?: import('./canvas-comments.ts').CanvasCommentsCapability;

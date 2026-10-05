@@ -6,6 +6,8 @@ import type { InvitePolicy } from './team-access.ts';
 import { buildPeoplePanel } from './team-people.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { teamOpenMessage } from './team-open.ts';
+import { orgAgentInvitesEnabled } from './document-agent-config.ts';
+import { icon } from '../lib/icons.ts';
 
 let open: HTMLDialogElement | undefined;
 /** Manage the current document's people without leaving its live room. */
@@ -18,6 +20,12 @@ export async function openSessionPeople(sessionId: string, policy: InvitePolicy 
   const heading = document.createElement('h2'); heading.className = 'modal-title'; heading.textContent = tRaw('People with access');
   const close = document.createElement('button'); close.type = 'button'; close.className = 'btn btn--sm'; close.textContent = tRaw('Close'); close.addEventListener('click', () => modal.close());
   header.append(heading, close);
+  if (orgAgentInvitesEnabled()) {
+    const agent = document.createElement('button'); agent.type = 'button'; agent.className = 'btn btn--sm';
+    agent.innerHTML = icon('aiSpark'); agent.append(document.createTextNode(tRaw('Invite agent')));
+    agent.addEventListener('click', () => { modal.close(); void import('./document-agents.ts').then(m => m.openAgentInvites(sessionId, isCurrent)); });
+    header.insertBefore(agent, close);
+  }
   const body = document.createElement('div'), loading = document.createElement('p'); loading.textContent = tRaw('Loading…'); body.append(loading);
   modal.el.append(header, body); close.focus();
   const got = await fetchTeamSession(sessionId);
