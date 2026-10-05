@@ -244,7 +244,7 @@ export interface FolderTileOpts {
   /** Real `<a href>` cover (see SessionTileOpts.href). */
   href?: string;
   /** External project folders reuse the same cover and card without local mutations. */
-  shared?: { subtitle: string; activity?: string; openLabel: string };
+  shared?: { subtitle: string; activity?: string; openLabel: string; subfolder?: boolean };
 }
 
 /**
@@ -278,9 +278,9 @@ export function folderTile(folder: { id: string; name: string; items?: readonly 
       ${starred ? `<span class="folder-star">★</span>` : ''}
     </span>`;
 
-  const [open, close] = primaryTag(href, `${shared ? 'data-open-team-project' : 'data-open-folder'}="${escape(folder.id)}" aria-label="${shared ? escape(shared.openLabel) : `Open folder ${escape(folder.name)}`}"`);
+  const [open, close] = primaryTag(href, `${shared?.subfolder ? 'data-open-team-folder' : shared ? 'data-open-team-project' : 'data-open-folder'}="${escape(folder.id)}" aria-label="${shared ? escape(shared.openLabel) : `Open folder ${escape(folder.name)}`}"`);
   return `
-    <div class="folder-tile folder-tile--folder${shared ? ' folder-tile--shared' : ''}${selected ? ' is-selected' : ''}" data-ref="${escape(folder.id)}" data-kind="${shared ? 'team-project' : 'folder'}">
+    <div class="folder-tile folder-tile--folder${shared ? ' folder-tile--shared' : ''}${selected ? ' is-selected' : ''}" data-ref="${escape(folder.id)}" data-kind="${shared?.subfolder ? 'team-folder' : shared ? 'team-project' : 'folder'}">
       ${selectable ? selectToggle(folder.id, 'folder', selected, folder.name) : ''}
       ${open}
         ${cover}
@@ -290,7 +290,7 @@ export function folderTile(folder: { id: string; name: string; items?: readonly 
         </span>
         <span class="tile-cols" aria-hidden="true"><span class="tile-col">${shared ? escape(shared.subtitle) : 'Folder'}</span><span class="tile-col">${count} item${count === 1 ? '' : 's'}</span><span class="tile-col">${folder.updatedAt ? relativeTime(folder.updatedAt) : ''}</span></span>
       ${close}
-      <button type="button" class="tile-menu-btn" ${shared ? 'data-team-menu' : `data-menu="${escape(folder.id)}" data-menu-kind="folder"`} aria-label="Folder actions">${MENU_ICON}</button>
+      ${shared?.subfolder ? '' : `<button type="button" class="tile-menu-btn" ${shared ? 'data-team-menu' : `data-menu="${escape(folder.id)}" data-menu-kind="folder"`} aria-label="Folder actions">${MENU_ICON}</button>`}
     </div>`;
 }
 

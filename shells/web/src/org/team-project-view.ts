@@ -174,7 +174,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     const grid = node('div', undefined, `folder-grid projects-grid${opts.list ? ' projects-list' : ''}`);
     const files = assets.files.filter(file => belongs('file', file.id) && (!tokens.length || matchesHaystack(buildFolderHaystack(file.name), tokens)));
     const children = folders.filter(f => f.parentId === folderId && (!tokens.length || matchesHaystack(buildFolderHaystack(f.name), tokens))).sort((a, b) => a.name.localeCompare(b.name));
-    grid.innerHTML = children.map(f => folderTile(f, { count: f.items.length + folders.filter(child => child.parentId === f.id).length, href: teamFolderHref(project.id, f.id), shared: { subtitle: tRaw('Shared folder'), openLabel: tRaw('Open shared folder {name}', { name: f.name }) } })).join('') + sessions.map(session => {
+    grid.innerHTML = children.map(f => folderTile(f, { count: f.items.length + folders.filter(child => child.parentId === f.id).length, href: teamFolderHref(project.id, f.id), shared: { subfolder: true, subtitle: tRaw('Shared folder'), openLabel: tRaw('Open shared folder {name}', { name: f.name }) } })).join('') + sessions.map(session => {
       const name = session.label || opts.toolName(session.toolId) || session.toolId;
       return sessionTile({ slot: session.id, toolId: session.toolId, label: name, updatedAt: session.updatedAt }, {
         toolName: opts.toolName(session.toolId), href: `#/team/${encodeURIComponent(session.id)}`,
