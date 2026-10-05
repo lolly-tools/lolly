@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { assetViewerKind } from '../../lib/asset-viewer-source.ts';
 import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts';
+import { mountAssetViewerDetails } from '../../components/asset-viewer-details.ts';
 import { openAssetInText } from '../../lib/text-handoff.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
@@ -579,6 +580,7 @@ export function buildSheet(dt: DetailsCtx): void {
   cat.detailsModal = modal;
   if (ownsPreview && !ref.meta?._placeholder) {
     dlg.classList.add('has-format-viewer');
+    mountAssetViewerDetails(dlg);
     dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-details-preview')!, ref, cat.host);
   }
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
