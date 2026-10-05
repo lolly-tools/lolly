@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:07982985-4a72-4d1c-8f18-241afcf7fd65",
+  "serialNumber": "urn:uuid:875fadc2-3384-48b4-85b2-8695855682d4",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-05T11:30:44.011Z",
+    "timestamp": "2026-10-05T12:59:18.175Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23641,25 +23641,6 @@
         {
           "alg": "SHA-512",
           "content": "091804fbb4cfe2dbeaf4c8c153a7f4e0d2d3148a9530b287937840aa5862974d2780af40093ad73c7de81e928c3eba3120ba1d77762306829b330488e0811c7c"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-fs@2.5.2",
-      "name": "@tauri-apps/plugin-fs",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40tauri-apps/plugin-fs@2.5.2",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "5d7bcc4a7162a1bf86d47f981c20dff9bcd656e9ac790b84221ce96ce2737af51f2f893453eb13029656247a682e26a68209d53c99b9749e6c0ec9e24725b196"
         }
       ]
     },
