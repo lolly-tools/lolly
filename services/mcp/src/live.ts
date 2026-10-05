@@ -30,7 +30,7 @@ export interface LiveToolBridge {
   connectInvite?(invitation: string, client?: string): Promise<LiveStatus>;
   waitConnected(ms: number): Promise<LiveStatus>;
   request(method: string, params?: Record<string, unknown>): Promise<unknown>;
-  close(): void;
+  close(): void | Promise<void>;
 }
 const QUERY = {
   documentId: { type: 'string' },
@@ -198,7 +198,7 @@ export async function callLiveTool(bridge: LiveToolBridge, name: string, args: R
         return text('Your newest edit was undone.', result);
       }
       case 'lolly_live_disconnect':
-        bridge.close();
+        await bridge.close();
         return text('Disconnected.');
       default:
         return failure(`Unknown tool: ${name}`);

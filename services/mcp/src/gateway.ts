@@ -33,6 +33,7 @@ import {
 import { createHash } from 'node:crypto';
 import { createRateLimiter, RateLimitUnavailableError, type RateLimiter } from './rate-limit.ts';
 import { budgetRefusal, createUsageBudget, type UsageBudget } from './usage-budget.ts';
+import { LIVE_LIMITS } from '@lolly-tools/core';
 
 const CORS: Record<string, string> = {
   'access-control-allow-origin': '*',
@@ -269,6 +270,30 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
       if (method === 'HEAD' || r.body === undefined) res.end();
       else res.end(typeof r.body === 'string' ? r.body : Buffer.from(r.body));
       return;
+    }
+
+    // The installed collaborator has no account-wide credential or active tab.
+    // Every call supplies its own document capability and keeps the public limits.
+    if (path === '/api/mcp/agents' || path === '/agents') {
+      if (env.LOLLY_DISABLE_AGENT_CONNECTOR === '1') return send(res, { status: 404, json: { error: 'not_found' } });
+      if (method !== 'POST') return send(res, { status: 405, headers: { allow: 'POST, OPTIONS' }, json: { error: 'method_not_allowed' } });
+      const refusal = await limited(limiter, 'agents', clientIp(req, env), positiveInt(env.LOLLY_AGENT_RPM, 120))
+        || await limited(limiter, 'agents-all', 'all', positiveInt(env.LOLLY_AGENT_GLOBAL_RPM, 1200))
+        || await overBudget(budget);
+      if (refusal) return send(res, refusal);
+      if (!String(req.headers['content-type'] ?? '').toLowerCase().startsWith('application/json')) return send(res, { status: 415, json: { error: 'Use application/json.' } });
+      let message: unknown;
+      try { message = JSON.parse(await readBody(req, LIVE_LIMITS.maxRequestBytes)); }
+      catch (error) { return send(res, bodyFailure(error, 'body is not JSON')); }
+      if (!validRequest(message)) return send(res, { status: 400, json: fail(null, ERR.INVALID_REQUEST, 'Invalid JSON-RPC request') });
+      const headerError = validateHttpHeaders(message, req.headers);
+      if (headerError) return send(res, { status: 400, json: headerError });
+      const response = await dispatch(message, { invitedLive: true, protocolVersion: typeof req.headers['mcp-protocol-version'] === 'string' ? req.headers['mcp-protocol-version'] : undefined });
+      if (!response) { await budget.record(0); res.writeHead(202, { ...CORS, 'cache-control': 'no-store' }); res.end(); return; }
+      let body = JSON.stringify(response);
+      if (env.VERCEL && Buffer.byteLength(body) > VERCEL_MCP_RESPONSE_MAX) body = JSON.stringify(ok(message.id ?? null, { isError: true, content: [{ type: 'text', text: 'Read fewer layers or fields, or request a smaller preview. This result exceeds the hosted response limit.' }] }));
+      await budget.record(Buffer.byteLength(body));
+      res.writeHead(200, { ...CORS, 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(body); return;
     }
 
     if (!mcpEnabled) {

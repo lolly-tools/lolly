@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "lolly": { "url": "https://lolly.tools/api/mcp/agents" }
+  }
+}

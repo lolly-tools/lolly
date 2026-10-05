@@ -459,6 +459,8 @@ export function buildWellKnown(o: AgentDocsOpts): Record<string, unknown> {
       resources: [...MCP_RESOURCES],
       collaboration: {
         enabled: !!liveRelay,
+        connector: `${u}/api/mcp/agents`,
+        connector_auth: 'document invitation on every tool call',
         ...(liveRelay ? { relay: liveRelay, invite: 'Share > Invite an agent' } : {}),
         local_stdio: true,
         tools: ['lolly_live_connect', 'lolly_live_status', 'lolly_live_context', 'lolly_live_find', 'lolly_live_document', 'lolly_live_apply', 'lolly_live_look', 'lolly_live_undo', 'lolly_live_disconnect'],
