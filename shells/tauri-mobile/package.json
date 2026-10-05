@@ -12,7 +12,7 @@
     "build:frontend:release": "pnpm -C ../.. run build:mobile:frontend:release",
     "build:android": "pnpm run build:frontend && node ../../scripts/build-native.ts mobile android",
     "build:ios": "pnpm run build:frontend && node ../../scripts/build-native.ts mobile ios",
-    "tauri": "tauri"
+    "tauri": "node ../../scripts/tauri-cli.ts mobile"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.1",

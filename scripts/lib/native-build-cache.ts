@@ -28,7 +28,7 @@ export function nativeBuildIsRunning(): boolean {
   } catch { return true; }
 }
 
-export function hasFreshNativePackage(paths: string[], startedAt: number): boolean {
+export function hasFreshNativePackage(paths: string[], startedAt: number, packagePaths: string[] = []): boolean {
   function packaged(path: string): boolean {
     if (!existsSync(path)) return false;
     for (const entry of readdirSync(path, { withFileTypes: true })) {
@@ -41,7 +41,7 @@ export function hasFreshNativePackage(paths: string[], startedAt: number): boole
     }
     return false;
   }
-  return paths.some(path => {
+  return packagePaths.some(packaged) || paths.some(path => {
     if (!existsSync(path)) return false;
     if (packaged(join(path, 'outputs')) || packaged(join(path, 'release/bundle'))) return true;
     return readdirSync(path, { withFileTypes: true }).some(entry => entry.isDirectory() && !entry.isSymbolicLink() && packaged(join(path, entry.name, 'release/bundle')));
@@ -70,7 +70,7 @@ function contents(path: string, apply: boolean): number {
   for (const entry of readdirSync(path, { withFileTypes: true })) {
     const file = join(path, entry.name);
     if (entry.name === 'bundle' || entry.name === 'outputs' || entry.name === 'CACHEDIR.TAG' || entry.name === '.rustc_info.json') continue;
-    if (entry.isSymbolicLink()) throw new Error(`Refusing a symlink inside the cache: ${file}`);
+    if (entry.isSymbolicLink()) continue;
     if (entry.isDirectory()) bytes += contents(file, apply);
     else { bytes += statSync(file).size; if (apply) rmSync(file); }
     if (apply && entry.isDirectory() && readdirSync(file).length === 0) rmSync(file, { recursive: true });

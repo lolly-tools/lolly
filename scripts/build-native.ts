@@ -38,7 +38,8 @@ try {
   if (status === 0 && process.env.LOLLY_KEEP_NATIVE_CACHE !== '1') {
     try {
       const paths = nativeCachePaths(root, shell, process.env.CARGO_TARGET_DIR);
-      if (args.includes('--no-bundle') || !hasFreshNativePackage(paths, startedAt)) throw new Error('No new packaged release found; intermediates retained.');
+      const packagePaths = platform === 'ios' ? [join(cwd, 'src-tauri/gen/apple/build')] : [];
+      if (args.includes('--no-bundle') || !hasFreshNativePackage(paths, startedAt, packagePaths)) throw new Error('No new packaged release found; intermediates retained.');
       const results = cleanNativeCaches(root, paths, true);
       console.log(`Native packaging complete. Cleaned ${(results.reduce((sum, item) => sum + item.bytes, 0) / 2 ** 30).toFixed(2)} GiB of build intermediates; packaged releases preserved.`);
     } catch (error) { console.warn(`Native packaging complete; cache cleanup postponed: ${(error as Error).message}`); }

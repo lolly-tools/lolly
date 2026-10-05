@@ -12,7 +12,7 @@
     "build:frontend:release": "pnpm -C ../.. run build:desktop:frontend:release",
     "build:quicklook": "sh scripts/build-macos-quicklook.sh",
     "build:cli-sidecar": "node ../../scripts/build-cli-sidecar.ts --install",
-    "tauri": "tauri",
+    "tauri": "node ../../scripts/tauri-cli.ts desktop",
     "build:profile": "LOLLY_EMBED_CATALOG=profile pnpm run build",
     "build:frontend:profile": "LOLLY_EMBED_CATALOG=profile pnpm run build:frontend",
     "build:frontend:profile:release": "LOLLY_EMBED_CATALOG=profile pnpm run build:frontend:release"

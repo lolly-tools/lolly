@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test, { type TestContext } from 'node:test';
-import { cleanNativeCaches, nativeCachePaths } from '../scripts/lib/native-build-cache.ts';
+import { cleanNativeCaches, hasFreshNativePackage, nativeCachePaths } from '../scripts/lib/native-build-cache.ts';
 
 function fixture(t: TestContext) {
   const root = mkdtempSync(join(tmpdir(), 'lolly-native-cache-'));
@@ -48,11 +48,29 @@ test('native cleanup refuses tracked cache content before deleting any cache', t
   assert.ok(existsSync(file));
 });
 
-test('native cleanup refuses symlinks, external targets and another build lock', t => {
+test('iOS packaging proves a fresh archive before Rust cleanup and keeps Apple packages', t => {
+  const { root, paths } = fixture(t);
+  const apple = join(root, 'shells/tauri-mobile/src-tauri/gen/apple/build');
+  mkdirSync(join(apple, 'arm64'), { recursive: true });
+  const ipa = join(apple, 'arm64/Lolly.ipa');
+  writeFileSync(ipa, 'signed iOS release');
+  const start = Date.now();
+  assert.equal(hasFreshNativePackage([], start, [apple]), true);
+  utimesSync(ipa, 0, 0);
+  assert.equal(hasFreshNativePackage([], start, [apple]), false);
+  cleanNativeCaches(root, paths, true);
+  assert.equal(readFileSync(ipa, 'utf8'), 'signed iOS release');
+});
+
+test('native cleanup leaves linked files alone and refuses linked cache roots, external targets and another build lock', t => {
   const { root, paths } = fixture(t);
   symlinkSync(join(paths[1], 'outputs'), join(paths[0], 'linked-output'), 'dir');
-  assert.throws(() => cleanNativeCaches(root, paths, true), /symlink/);
+  cleanNativeCaches(root, paths, true);
+  assert.ok(existsSync(join(paths[0], 'linked-output/apk/release.apk')));
   rmSync(join(paths[0], 'linked-output'));
+  const linkedRoot = join(root, 'linked-cache');
+  symlinkSync(paths[0], linkedRoot, 'dir');
+  assert.throws(() => cleanNativeCaches(root, [linkedRoot], true), /symlink/);
   assert.throws(() => cleanNativeCaches(root, [tmpdir()], true), /inside this checkout/);
   mkdirSync(join(root, 'plans/.native-build.lock'), { recursive: true });
   writeFileSync(join(root, 'plans/.native-build.lock/pid'), '999999');
@@ -64,7 +82,7 @@ test('packaging wrapper cleans only after success, forwards flags, and supports 
   for (const mode of ['success', 'failed', 'retain', 'unbundled']) {
     const { root, paths } = fixture(t);
     mkdirSync(join(root, 'scripts/lib'), { recursive: true });
-    for (const file of ['build-native.ts', 'lib/native-build-cache.ts']) {
+    for (const file of ['build-native.ts', 'tauri-cli.ts', 'lib/native-build-cache.ts']) {
       copyFileSync(fileURLToPath(new URL(`../scripts/${file}`, import.meta.url)), join(root, 'scripts', file));
     }
     const cliDir = join(root, 'shells/tauri-mobile/node_modules/@tauri-apps/cli');
@@ -74,7 +92,7 @@ test('packaging wrapper cleans only after success, forwards flags, and supports 
       utimesSync(join(paths[1], 'outputs/apk/release.apk'), 0, 0);
       utimesSync(join(paths[0], 'release/bundle/release.dmg'), 0, 0);
     }
-    const run = spawnSync(process.execPath, [join(root, 'scripts/build-native.ts'), 'mobile', 'android', '--target', 'aarch64'], {
+    const run = spawnSync(process.execPath, [join(root, 'scripts/tauri-cli.ts'), 'mobile', 'android', 'build', '--target', 'aarch64'], {
       env: { ...process.env, LOLLY_KEEP_NATIVE_CACHE: mode === 'retain' ? '1' : '0' }, encoding: 'utf8',
     });
     assert.equal(run.status, mode === 'failed' ? 7 : 0, run.stderr);
