@@ -6,8 +6,25 @@ const THEME_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 const TREATMENT_ID_RE = THEME_ID_RE;
 const THEME_SUFFIX = '?theme=';
 const TREATMENT_SUFFIX = '?treatment=';
+const FILE_ID_RE = /^[a-f0-9]{24}$/;
+export function parseFileAssetId(id: string): { baseId: string; file: string | null } {
+  if (typeof id !== 'string' || id.includes('://')) return { baseId: id, file: null };
+  const match = /^([^?]+)\?file=([a-f0-9]{24})$/.exec(id);
+  return match ? { baseId: match[1]!, file: match[2]! } : { baseId: id, file: null };
+}
+export function buildFileAssetId(baseId: string, file: string): string {
+  if (!baseId || baseId.includes('?') || baseId.includes('://') || !FILE_ID_RE.test(file)) throw new Error('Invalid asset file identity');
+  return `${baseId}?file=${file}`;
+}
+
+function styledFile(id: string, style: 'theme' | 'treatment'): { baseId: string; value: string } | null {
+  if (id.includes('://')) return null;
+  const match = new RegExp(`^([^?]+\\?file=[a-f0-9]{24})&${style}=([a-z0-9][a-z0-9-]*)$`).exec(id);
+  return match ? { baseId: match[1]!, value: match[2]! } : null;
+}
 export function parseThemedAssetId(id: string): ParsedThemedAssetId {
   if (typeof id !== 'string' || id.includes('://')) return { baseId: id, theme: null };
+  const file = styledFile(id, 'theme'); if (file) return { baseId: file.baseId, theme: file.value };
   const i = id.indexOf(THEME_SUFFIX);
   if (i <= 0) return { baseId: id, theme: null };
   const baseId = id.slice(0, i);
@@ -18,6 +35,7 @@ export function parseThemedAssetId(id: string): ParsedThemedAssetId {
 
 export function parseTreatedAssetId(id: string): ParsedTreatedAssetId {
   if (typeof id !== 'string' || id.includes('://')) return { baseId: id, treatment: null };
+  const file = styledFile(id, 'treatment'); if (file) return { baseId: file.baseId, treatment: file.value };
   const i = id.indexOf(TREATMENT_SUFFIX);
   if (i <= 0) return { baseId: id, treatment: null };
   const baseId = id.slice(0, i);

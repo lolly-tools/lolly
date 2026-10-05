@@ -498,6 +498,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    field, its unit and the confirm button on one line, so the whole prompt is one row
    under its heading. */
 .fc-num-panel { min-width: 250px; }
+.fc-confirm-panel { width: 420px; max-width: calc(100% - 12px); min-width: min(250px, calc(100% - 12px)); box-sizing: border-box; }
 .fc-num-panel .fc-panel-head { font-weight: 700; font-size: var(--fs-md); }
 .fc-num-hint { margin: -3px 0 0; font-size: var(--fs-sm); line-height: 1.4; color: hsl(var(--muted-foreground)); }
 .fc-num-row { display: flex; align-items: center; gap: 7px; }

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { selectAssetFile, assetFiles } from '../lib/asset-files.ts';
+import { parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
 /**
  * Assets view (route /#/a or /#/assets; the old /#/c and /#/catalog links forward here) -
  * the third top-level destination alongside Tools and Projects.
@@ -51,7 +53,7 @@ import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import { DOWNLOAD_ICON, PENCIL_ICON, REPLACE_ICON, STAR_ICON, TAG_ICON, TRASH_ICON } from './assets/shared.ts';
 import type { CatalogHost } from './assets/shared.ts';
 import { actionsOps } from './assets/actions.ts';
-import type { CatCtx } from './assets/context.ts';
+import type { AssetPreviewOptions, CatCtx } from './assets/context.ts';
 import { tilesOps } from './assets/tiles.ts';
 import { thumbsOps } from './assets/thumbs.ts';
 import { filtersOps } from './assets/filters.ts';
@@ -86,8 +88,9 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" s
 
 interface ViewElement extends HTMLElement { _cleanup?: () => void; }
 
-export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params = ''): Promise<void> {
+export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params = '', preview?: AssetPreviewOptions): Promise<void> {
   const cat = {} as CatCtx;
+  cat.preview = preview;
   cat.actions = actionsOps(cat);
   cat.actionsPopover = null;
   cat.tiles = tilesOps(cat);
@@ -105,7 +108,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
 
   const host = hostIn as CatalogHost; cat.host = host;
   // Titles the tab AND labels this view for the next view's back pill (lib/back-nav.ts).
-  document.title = tRaw('{name} - Lolly', { name: t('Assets') });
+  if (!preview) document.title = tRaw('{name} - Lolly', { name: t('Assets') });
   // Deep link: /#/a?asset=<id> focuses (scrolls to + highlights) that asset on load.
   const linkedAsset = new URLSearchParams(params).get('asset'); cat.linkedAsset = linkedAsset as CatCtx['linkedAsset'];
   // Deep link: /#/a?section=<key>[,<key>…] lands with those sections EXPANDED (over the
@@ -388,6 +391,22 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.sessionTextsLoading = null;
 
   // ── mount ──────────────────────────────────────────────────────────────────────
+  if (preview) {
+    cat.releaseSearch = () => {};
+    (viewEl as ViewElement)._cleanup = () => {
+      cat.mounted = false;
+      cat.actionsPopover?.close();
+      tileSelect.destroy();
+      tileMenu.destroy();
+      unwireEscape();
+      cat.sections.closeDetails();
+      cat.downloads.closeDownloadDialog();
+    };
+    await cat.tiles.reload();
+    if (!cat.mounted) return;
+    cat.details.openDetails(cat.assetById.get(preview.ref.id) ?? preview.ref);
+    return;
+  }
   // A lighter, brighter arrival "ahhh" led in by four rising "stacking" clicks - the catalog's
   // counterpart to the gallery's bassy one. One-shot, gesture-gated, silent when sound's off.
   const browse = new URLSearchParams(params);
@@ -496,7 +515,9 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     const ref = cat.assetById.get(baseId)
       ?? cat.assetById.get(linkedAsset)
       ?? [...cat.assetById.values()].find(a => assetBaseId(a.id) === baseId);
-    if (ref) cat.details.openDetails(ref, theme, treatment);
+    const fileId = parseFileAssetId(parseThemedAssetId(linkedAsset).theme ? parseThemedAssetId(linkedAsset).baseId : parseTreatedAssetId(linkedAsset).baseId).file;
+    const file = fileId && assetFiles(ref?.meta).find(f => f.id === fileId);
+    if (ref && (!fileId || file)) cat.details.openDetails(file ? selectAssetFile(ref, file) : ref, theme, treatment);
     else {
       // The deep-linked asset isn't in this user's catalogue (never synced, a deleted upload,
       // or an unknown id) - report it instead of a silent no-op: announce() for assistive tech,

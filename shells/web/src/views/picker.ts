@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { assetFiles } from '../lib/asset-files.ts';
+import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
 /**
  * Asset Picker - a host-owned modal UI.
  *
@@ -29,7 +31,7 @@
  *   the grids below still offer choosing a different image instead.
  */
 
-import { collectOk, collectLabel, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
+import { createCollectToast, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
 import '../styles/picker.css';   // async CSS chunk (lazy view - not on the landing)
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
@@ -747,23 +749,7 @@ async function render(
 
   // ── collect-mode feedback ────────────────────────────────────────────────────
   // A transient toast (upload / webcam / pasted-link adds have no tile to flash).
-  let toastTimer: ReturnType<typeof setTimeout> | undefined;
-  function collectToast(r: CollectResult | boolean): void {
-    const ok = collectOk(r), label = collectLabel(r);
-    let toast = root.querySelector<HTMLElement>('.asset-picker-toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.className = 'asset-picker-toast';
-      toast.setAttribute('role', 'status');
-      root.querySelector('.asset-picker-panel')?.appendChild(toast);
-    }
-    toast.textContent = (ok ? '✓ ' : '') + label;
-    toast.classList.toggle('is-fail', !ok);
-    toast.classList.add('is-shown');
-    announce(label);
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast?.classList.remove('is-shown'), 1600);
-  }
+  const collectToast = createCollectToast(root);
 
   // The Templates tab (plans/245) borrows three picker pieces - its pane, the per-card
   // flash, the teardown an opening pick needs - and owns everything else itself.
@@ -1133,6 +1119,7 @@ async function render(
       // take it - reject on select with a note beside the tile, rather than
       // committing an asset the tool would refuse. (aria-disabled already signals it.)
       const pickRefAny = pickRef ?? userAssets.find(a => a.id === pickId);
+      if (pickRefAny && assetFiles(pickRefAny.meta).length > 1) { showFileChoices(pickRefAny); return; }
       if (opts.type && pickRefAny && !isAcceptable(pickRefAny.type)) {
         announce(t('This slot can’t use that kind of file.'), { assertive: true });
         const cardEl = pick.closest<HTMLElement>('.asset-picker-card') ?? pick;
@@ -2011,6 +1998,17 @@ async function render(
     setTab(activeTab);
   }
 
+  function showFileChoices(ref: AssetRef): void {
+    showTakeover('<div class="asset-picker-toolcard asset-picker-filecard"></div>');
+    const card = toolcardHost.querySelector<HTMLElement>('.asset-picker-filecard')!;
+    mountAssetFilePicker(card, ref, { back: dismissTakeover, current: () => !toolcardHost.hidden,
+      accepts: selected => !opts.type || isAcceptable(selected.type),
+      resolve: selected => host.assets.get(activeTheme && isThemableRef(selected) ? buildThemedAssetId(selected.id, activeTheme)
+        : activeTreatment && isTreatableRef(selected) ? buildTreatedAssetId(selected.id, activeTreatment) : selected.id),
+      picked: async resolved => { recordRecentAsset(resolved.id); if (collect) { await collect.onAsset(resolved); return true; } close(resolved); return false; },
+    });
+  }
+
   // Build the "render this Lolly tool/session as your image" card: detected-tool
   // header, format + size controls, a live preview, and a commit button. "Use this
   // render" resolves the picker with a tool-sourced AssetRef whose id is the
@@ -2860,6 +2858,8 @@ function formatBadge(ref: AssetRef): string {
   // the risk belongs at the moment an ingredient is chosen (plans/126 WP-B).
   const ai = assetAiKind(ref);
   const aiBadge = ai ? genAiPill(ai, true) : aiSignalsChip(ref);
+  const fileCount = assetFiles(ref.meta).length;
+  if (fileCount > 1) return `<span class="asset-picker-fmt">${fileCount} files</span>${aiBadge}`;
   // Playback length, shown in the same corner badge as the format - video, lottie
   // and audio only, and only when a duration actually resolved at ingest time.
   const durMs = typeof ref.meta?.durationMs === 'number' && Number.isFinite(ref.meta.durationMs) && ref.meta.durationMs > 0

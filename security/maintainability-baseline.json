@@ -77,17 +77,17 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2502,
-      "largestFunctionLines": 2149,
+      "lines": 2501,
+      "largestFunctionLines": 2145,
       "importFanIn": 28,
-      "importFanOut": 60,
+      "importFanOut": 62,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2070,
-      "largestFunctionLines": 2747,
+      "lines": 2069,
+      "largestFunctionLines": 2746,
       "importFanIn": 1,
-      "importFanOut": 53,
+      "importFanOut": 54,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
@@ -98,10 +98,10 @@
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1551,
-      "largestFunctionLines": 1604,
+      "lines": 1542,
+      "largestFunctionLines": 1596,
       "importFanIn": 1,
-      "importFanOut": 62,
+      "importFanOut": 63,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {

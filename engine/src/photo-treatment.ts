@@ -95,7 +95,7 @@ const TREATMENT_SUFFIX = '?treatment=';
 export function buildTreatedAssetId(baseId: string, treatmentId: string | null | undefined): string {
   if (!treatmentId) return baseId;
   if (!TREATMENT_ID_RE.test(treatmentId)) throw new Error(`Bad photo treatment id: ${treatmentId}`);
-  return `${baseId}${TREATMENT_SUFFIX}${treatmentId}`;
+  return `${baseId}${/\?file=[a-f0-9]{24}$/.test(baseId) ? '&treatment=' : TREATMENT_SUFFIX}${treatmentId}`;
 }
 
 /** Is this treatment id valid for use in a treated asset id? */

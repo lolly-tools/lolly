@@ -225,5 +225,10 @@
   "Enlarge {label} for scanning": "放大{label}以便扫描",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "将另一台设备对准这里进行扫描。点击任意处或按 Esc 关闭。",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "此链接太长，无法扫描。请改为复制，或使用“代码”标签页。",
-  "View {name}": "查看{name}"
+  "View {name}": "查看{name}",
+  "AI agent": "AI 代理",
+  "Pause agent": "暂停代理",
+  "Resume agent": "恢复代理",
+  "Disconnect agent": "断开代理连接",
+  "Paused": "已暂停"
 }

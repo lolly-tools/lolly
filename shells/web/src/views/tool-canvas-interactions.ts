@@ -3,6 +3,7 @@ import { registerCanvasInteractions, type CanvasInteractionLease } from '../lib/
 import { collabSurface } from '../lib/collab-surface.ts';
 import type { CollabSession, CollabSessionHandle } from '../lib/collab-session.ts';
 import type { CanvasClaim, CanvasPreview } from '@lolly-tools/core/canvas-interaction-v1';
+import { clonePreviewContent, sizePreviewContent } from './collab-preview-content.ts';
 
 interface OwnedInteraction {
   claim: CanvasClaim; lost: () => void; generation: number; renew: ReturnType<typeof setInterval>;
@@ -78,9 +79,45 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
     const surface = collabSurface(runtime), rect = layer.getBoundingClientRect(), used = new Set<string>();
     if (!surface?.object || !surface.toClient) { for (const value of nodes.values()) value.node.remove(); nodes.clear(); return; }
     const claims = capability!.list();
+    const readObject = surface.object.bind(surface), toClient = surface.toClient.bind(surface);
+    const objects = new Map<string, ReturnType<typeof readObject>>();
+    function object(id: string) {
+      if (!objects.has(id)) objects.set(id, readObject(id));
+      return objects.get(id) ?? null;
+    }
+    const placements: Array<{ key: string; id: string; name: string; color: string; ghost: boolean;
+      geometry: { w: number; h: number; rot: number }; left: number; top: number; width: number; height: number;
+      source?: string; clone?: HTMLElement }> = [];
+    // Camera metrics and scoped clone styles are read before any mounted write.
     function place(key: string, id: string, geometry: { x: number; y: number; w: number; h: number; rot: number }, name: string, color: string, ghost = false) {
-      const object = surface!.object!(id); if (!object) return;
+      const artwork = object(id); if (!artwork) return;
       used.add(key);
+      const entry = nodes.get(key), source = ghost ? artwork.element?.outerHTML : undefined;
+      const clone = source !== undefined && artwork.element && entry?.source !== source ? clonePreviewContent(artwork.element) : undefined;
+      const point = toClient({ x: geometry.x, y: geometry.y });
+      const extent = toClient({ x: geometry.x + geometry.w, y: geometry.y + geometry.h });
+      placements.push({ key, id, geometry, name, color, ghost, source, clone,
+        left: point.x - rect.left, top: point.y - rect.top, width: Math.abs(extent.x - point.x), height: Math.abs(extent.y - point.y) });
+    }
+    for (const peer of session.presence.roster()) {
+      const state = peer.state; if (peer.away) continue;
+      const color = /^#[0-9a-f]{6}$/i.test(state.color) ? state.color : '#6554c0';
+      const preview = state.preview, claim = preview && claims.find(claim => claim.id === preview.claimId);
+      if (preview && claim && claim.owner !== capability!.owner?.() && preview.collection === surface.collection) {
+        const matches = preview.phase === 'committing' && preview.objects.every(row => {
+          const current = object(row.id); return current && (['x', 'y', 'w', 'h', 'rot'] as const).every(key => Math.abs(current[key] - row[key]) < 0.1);
+        });
+        if (!matches) for (const row of preview.objects) place(`preview:${preview.claimId}:${row.id}`, row.id, row, claim.name, color, true);
+      }
+      if (state.location !== surface.id()) continue;
+      for (const id of state.selection ?? []) {
+        const current = object(id); if (current) place(`selection:${peer.id}:${id}`, id, current, state.name, color);
+      }
+    }
+    for (const claim of claims) if (claim.owner !== capability!.owner?.() && claim.target.kind === 'text' && claim.target.collection === surface.collection) {
+      for (const id of claim.target.ids) { const current = object(id); if (current) place(`text:${claim.id}:${id}`, id, current, `${claim.name} · editing text`, '#6554c0'); }
+    }
+    for (const { key, id, geometry, name, color, ghost, source, clone, left, top, width, height } of placements) {
       let entry = nodes.get(key);
       if (!entry) {
         const node = root.ownerDocument.createElement('div');
@@ -92,43 +129,17 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
         label.style.cssText = 'position:absolute;inset-inline-start:0;bottom:100%;font:12px system-ui;padding:2px 4px;white-space:nowrap;color:white';
         node.append(label); root.append(node); entry = { node }; nodes.set(key, entry);
       }
-      if (ghost && object.element && entry.source !== object.element.outerHTML) {
-        entry.source = object.element.outerHTML;
+      if (clone) {
+        entry.source = source;
         entry.node.querySelector('.collab-preview-content')?.remove();
-        const clone = object.element.cloneNode(true) as HTMLElement; clone.classList.add('collab-preview-content');
-        for (const el of [clone, ...clone.querySelectorAll<HTMLElement>('*')]) {
-          el.removeAttribute('id'); el.removeAttribute('contenteditable'); el.removeAttribute('autofocus'); el.setAttribute('tabindex', '-1');
-        }
-        clone.querySelectorAll('script,iframe,object,embed,video,audio').forEach(el => { el.remove(); });
-        clone.inert = true; clone.style.position = 'absolute'; clone.style.left = '0'; clone.style.top = '0';
-        clone.style.width = '100%'; clone.style.height = '100%'; clone.style.transform = 'none';
-        clone.style.pointerEvents = 'none'; entry.node.prepend(clone);
+        entry.node.prepend(clone);
       }
-      const point = surface!.toClient!({ x: geometry.x, y: geometry.y });
-      const extent = surface!.toClient!({ x: geometry.x + geometry.w, y: geometry.y + geometry.h });
-      Object.assign(entry.node.style, { left: `${point.x - rect.left}px`, top: `${point.y - rect.top}px`,
-        width: `${Math.abs(extent.x - point.x)}px`, height: `${Math.abs(extent.y - point.y)}px`,
+      const content = entry.node.querySelector<HTMLElement>('.collab-preview-content');
+      if (content) sizePreviewContent(content, geometry.w, geometry.h, width, height);
+      Object.assign(entry.node.style, { left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px`,
         transform: `rotate(${geometry.rot}deg)`, outline: `2px ${ghost ? 'dashed' : 'solid'} ${color}`, opacity: ghost ? '0.65' : '1' });
       const label = entry.node.querySelector<HTMLElement>('.collab-object-label')!;
       label.textContent = name; label.style.backgroundColor = color;
-    }
-    for (const peer of session.presence.roster()) {
-      const state = peer.state; if (peer.away) continue;
-      const color = /^#[0-9a-f]{6}$/i.test(state.color) ? state.color : '#6554c0';
-      const preview = state.preview, claim = preview && claims.find(claim => claim.id === preview.claimId);
-      if (preview && claim && claim.owner !== capability!.owner?.() && preview.collection === surface.collection) {
-        const matches = preview.phase === 'committing' && preview.objects.every(row => {
-          const object = surface.object!(row.id); return object && (['x', 'y', 'w', 'h', 'rot'] as const).every(key => Math.abs(object[key] - row[key]) < 0.1);
-        });
-        if (!matches) for (const row of preview.objects) place(`preview:${preview.claimId}:${row.id}`, row.id, row, claim.name, color, true);
-      }
-      if (state.location !== surface.id()) continue;
-      for (const id of state.selection ?? []) {
-        const object = surface.object(id); if (object) place(`selection:${peer.id}:${id}`, id, object, state.name, color);
-      }
-    }
-    for (const claim of claims) if (claim.owner !== capability!.owner?.() && claim.target.kind === 'text' && claim.target.collection === surface.collection) {
-      for (const id of claim.target.ids) { const object = surface.object(id); if (object) place(`text:${claim.id}:${id}`, id, object, `${claim.name} · editing text`, '#6554c0'); }
     }
     for (const [key, entry] of nodes) if (!used.has(key)) { entry.node.remove(); nodes.delete(key); }
   }

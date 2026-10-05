@@ -1347,7 +1347,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/profile/offline.ts': 2,      // the download-manager list and the persistence line
   'views/profile/identity.ts': 4,     // the credentials card: status, enrol form and its errors
   // Shared covers use only registry icons and sessionTile's escaped ids/labels.
-  'org/team-project-view.ts': 3,
+  'org/team-project-view.ts': 2,
   'org/team-previews.ts': 1,
   'views/projects.ts': 5,   // View-options markup moved to its shared-popover adapter; the Team projects modal moved to org/team-projects.ts (DOM-built, no sink).
   'views/projects-view-options.ts': 1, // Static enums + escaped t() labels and the existing theme/sound generators.
@@ -1665,6 +1665,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/text/inspection.ts': 1,
   // Inert template comparison of already hydrated tool markup; never mounted.
   'views/canvas-translation.ts': 2,
+  // Detached, inert engine HTML/style parsing; source/DOM geometry must agree before mutation.
+  'views/canvas-translation-source.ts': 2,
   // Fixed registry icons, escaped report names/indices, and escaped action labels.
   'views/valid-actions.ts': 4,
   // Static unavailable state with a registry icon and a fixed translation.
@@ -1967,7 +1969,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 300 to 299: help-tip paint is shared by the component and uses semantic elevation.
     // Shared surfaces replace repeated paint in the pending editor and report work.
     // 263 to 262: the docs reading components print with an outline, not a shadow.
-    pin: 262,
+    // 262 to 261: the editor backdrop uses the shared surface elevation.
+    pin: 261,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

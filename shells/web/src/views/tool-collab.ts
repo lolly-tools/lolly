@@ -69,6 +69,8 @@ import { jumpToPeer, mountPresentationPresence } from './tool-peer-view.ts';
 import { collabPalette } from '../lib/collab-colors.ts';
 import { mountCanvasInteractions } from './tool-canvas-interactions.ts';
 import { mountCollabControls } from './tool-collab-controls.ts';
+import { agentRosterFor } from '../lib/agent-collaborators.ts';
+import { mountAgentChanges } from '../components/agent-changes.ts';
 
 /** Gap between the collab pill and whatever else owns the stage's top lane. */
 export const PILL_LANE_GAP_PX = 8;
@@ -325,6 +327,10 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       ...(opts.raf ? { raf: opts.raf } : {}),
     });
     steps.unshift(() => session.close());
+    const agents = agentRosterFor(stage);
+    steps.unshift(agents.attach(session, () => session.presence.roster()));
+    session.updateSurface({ agents: agents.local() });
+    steps.unshift(agents.subscribeLocal(presence => session.updateSurface({ agents: presence })));
     steps.unshift(mountWorkHeadshots(session, handle, opts.host, stage.ownerDocument));
 
     // ONE layer for both canvas surfaces - the z-order the two component sheets
@@ -332,6 +338,8 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     // handed over as the thing to MEASURE: mountOverlayLayer walks the host OUT of it
     // and returns null rather than mounting inside the render surface (see the header).
     const layer: OverlayLayer | null = mountOverlayLayer(canvas, stage);
+    const agentChanges = mountAgentChanges(stage, canvas, agents, layer);
+    steps.unshift(() => agentChanges.dispose());
     steps.unshift(() => layer?.unmount());
     const interactions = layer && mountCanvasInteractions(runtime, handle, session, layer.el);
     steps.unshift(() => interactions?.teardown());
@@ -474,7 +482,9 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       role: () => session.state().role,
     });
     const pill: CollabPill = mountCollabPill(stage, {
-      source: session,
+      source: agents,
+      onDisconnectAgent: id => agents.disconnect(id),
+      onPauseAgent: id => agents.pause(id),
       onPeer: id => jumpToPeer(runtime, session, id, comments || undefined),
       className: 'collab-pill--stage',
       ...(onInvite ? { onInvite } : {}),
@@ -592,6 +602,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
         interactions?.reanchor(); comments?.reanchor();
         try { focus.reanchor(); } catch (e) { console.warn('[lolly:collab] focus reanchor', e); }
         try { cursors.reanchor(); } catch (e) { console.warn('[lolly:collab] cursor reanchor', e); }
+        try { agentChanges.reanchor(); } catch (e) { console.warn('[lolly:collab] agent changes reanchor', e); }
         try { syncPillLane(); } catch (e) { console.warn('[lolly:collab] pill lane', e); }
       },
       teardown(): void {

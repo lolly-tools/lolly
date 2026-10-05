@@ -349,7 +349,7 @@ export function fillStorageChip(cat: CatCtx): void {
 // Re-render from state, preserving the document scroll position so an in-page action
 // (star / hide / recategorise) doesn't jump the page to the top.
 export function rerender(cat: CatCtx): void {
-  if (!cat.mounted) return;
+  if (!cat.mounted || cat.preview) return;
   const y = window.scrollY;
   render(cat);
   window.scrollTo(0, y);
@@ -362,7 +362,13 @@ export function closeDetails(cat: CatCtx): void {
  *  bar reopens the same view. replaceState, deliberately: paging must not
  *  stack history entries, and the hash router only reacts to hashchange,
  *  which replaceState never fires. Other catalog params are preserved. */
-export function syncAssetUrl(_cat: CatCtx, id: string | null): void {
+export function syncAssetUrl(cat: CatCtx, id: string | null): void {
+  if (cat.preview) {
+    const ref = id ? cat.assetById.get(id) : null;
+    const link = ref ? cat.preview.link?.(ref) : null;
+    if (link) replaceRouteUrl(`${location.pathname}${link}`);
+    return;
+  }
   const [path = '', query = ''] = location.hash.split('?');
   if (path !== '#/a' && path !== '#/assets') return; // only rewrite this view's own URL
   const params = new URLSearchParams(query);
@@ -383,7 +389,8 @@ export async function checkCredentials(cat: CatCtx, ref: AssetRef): Promise<void
     // Shared preparation (lib/verify-handoff.ts): fetch, TTS heal, captured-
     // credential re-attach - the same pipeline the #/verify?asset= deep link
     // runs cold, so this warm hop and a shared link reach the same verdict.
-    const prep = await prepareAssetForVerify(host, ref);
+    const sourceRef = ref.source === 'remote' && ref.original ? { ...ref, url: ref.original.url, format: ref.original.format } : ref;
+    const prep = await prepareAssetForVerify(host, sourceRef);
     if (!prep) {
       announce(t('Could not open the credential checker for this asset.'));
       return;
@@ -421,11 +428,20 @@ export async function maybeHealTtsClip(cat: CatCtx, ref: AssetRef): Promise<void
   } catch { /* best-effort - checkCredentials heals on click too */ }
 }
 // The canonical shareable link that reopens this modal from the catalog view.
-export const assetLink = (_cat: CatCtx, ref: AssetRef): string =>
-  `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(ref.id)}`;
+export const assetLink = (cat: CatCtx, ref: AssetRef): string =>
+  `${location.origin}${appPathname()}${cat.preview?.link?.(ref) ?? `#/a?asset=${encodeURIComponent(ref.id)}`}`;
 // The previous/next asset for the details modal's lightbox paging - in on-screen grid
 // order, skipping tiles inside a collapsed group so paging matches what's visible.
 export function navRefs(cat: CatCtx, ref: AssetRef): { prev: AssetRef | null; next: AssetRef | null } {
+  if (cat.preview) {
+    const refs = cat.preview.refs ?? [cat.preview.ref];
+    const i = refs.findIndex(asset => asset.id === ref.id);
+    const at = (index: number) => {
+      const asset = refs[index];
+      return asset ? cat.assetById.get(asset.id) ?? asset : null;
+    };
+    return { prev: i > 0 ? at(i - 1) : null, next: i >= 0 ? at(i + 1) : null };
+  }
   const { viewEl } = cat;
   const ids = [...viewEl.querySelectorAll<HTMLElement>('[data-open]')]
     .filter(el => !el.closest('.cat-group.is-collapsed'))

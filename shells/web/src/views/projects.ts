@@ -3,7 +3,7 @@ import { updateRouteParams } from '../lib/url-state.ts';
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
-import { mountLocalProjectAsset, localProjectAssetHref } from './projects-asset-view.ts';
+import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } from './projects-asset-view.ts';
 /**
  * Projects view (route /p and /p/<folderId>).
  *
@@ -564,7 +564,9 @@ export async function mountProjects(
   }
 
   // ── render ───────────────────────────────────────────────────────────────
+  let disposeAssetPreview: (() => void) | undefined;
   function render(): void {
+    disposeAssetPreview?.(); disposeAssetPreview = undefined;
     shared.folders(folders);
     viewPopover?.close();
     if (!mounted) return; // an async callback fired after we navigated away - don't clobber the new view
@@ -572,16 +574,13 @@ export async function mountProjects(
     // previous view off document.title - this is how a tool opened from a folder,
     // or #/start reached from one, gets a back pill wearing the folder's name).
     shared.beforeRender();
-    const titleName = sharedFolder ? t('Team project') : folderId == null ? t('Projects')
-      : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
-      : (folders.find(f => f.id === folderId)?.name || t('Projects'));
-    document.title = tRaw('{name} - Lolly', { name: titleName });
+    const titleName = setProjectViewTitle(folderId, folders, sharedFolder ? t('Team project') : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates') : undefined);
     featuredHandle?.destroy(); featuredHandle = null;  // stop the prior ribbon's rAF loop + listeners before its DOM is wiped
     searchCache = null;   // recompute matches once for this render (sort/data may have changed); the two callers below then share it
     pruneSelection();     // forget refs that vanished since the last render
     viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     const assetId = !sharedFolder ? new URLSearchParams(opts.params || '').get('asset') : null;
-    if (assetId) mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
+    if (assetId) disposeAssetPreview = mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
     wire();
     shared.afterRender({ query, list: viewMode === 'list', sort: sortBy, reversed: sortRev });
     scenePreviews.refresh(entries);
@@ -1308,17 +1307,17 @@ export async function mountProjects(
 
   const tileSelect = wireTileSelect({
     host: viewEl,
-    tiles: selectableTiles,
+    tiles: () => sharedFolder ? [] : selectableTiles(),
     refOf: (t) => t.dataset.ref!,
     current: () => new Set(selected.keys()),
     setRefs: applySelectionRefs,
     clear: () => { dropSelection(); render(); },
     // Never start a box on a tile, control, chip, bar, breadcrumb, etc. - only in a gap.
-    noStart: '.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar',
+    noStart: sharedFolder ? '*' : '.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar',
     // Keyboard grid (plans/133 WP-3 + WP-13): arrows/Space/Cmd-A come from the shared
     // model; Delete routes through the Trash path, F2 into the inline renames, the
     // Menu key opens the tile's menu, Cmd-I its info sheet, Cmd-X/C/V the clipboard.
-    keyboard: {
+    keyboard: sharedFolder ? undefined : {
       remove: (refs) => {
         selected.clear();
         for (const ref of refs) selected.set(ref, kindOfRef(ref));
@@ -2925,7 +2924,7 @@ export async function mountProjects(
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   // NB tileSelect.destroy() is not optional: its mousedown is bound to viewEl (#view), which
   // the router REUSES for every route - leave it bound and the next mount stacks another.
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; shared.dispose(); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; disposeAssetPreview?.(); shared.dispose(); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
   await reload();
   void sweepTrash();   // age out trash entries past the 30-day retention (silent)
   // A stale /p/<id> deep link to a deleted folder falls back to root.

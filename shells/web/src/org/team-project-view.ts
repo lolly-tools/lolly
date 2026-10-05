@@ -8,7 +8,7 @@ import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
 import { applyCardSize, readCardSize } from '../components/view-options.ts';
 import { confirmDialog, promptDialog } from '../components/confirm-dialog.ts';
-import { menuItemHtml, wireTileContextMenu, type TileContextMenuHandle } from '../lib/context-menu.ts';
+import { mountTeamProjectActions } from './team-project-actions.ts';
 import { orgConfig } from './index.ts';
 import { activityLabel, canWriteProject, invitePolicy, isManagerPlus, peopleAccess, roleLabel } from './team-access.ts';
 import { buildNewProjectForm } from './team-project-form.ts';
@@ -19,7 +19,8 @@ import { getInstanceBase } from '../lib/instance.ts';
 import { openTeamSession, teamOpenMessage } from './team-open.ts';
 import { noteProjectOpened } from './opened-projects.ts';
 import { buildTeamFilesPanel } from './team-files-panel.ts';
-import { listTeamFiles, teamFileMessage } from './team-files.ts';
+import { listTeamFiles, teamFileMessage, type TeamFile } from './team-files.ts';
+import type { ProjectAssetPageOptions } from '../components/project-asset-page.ts';
 import { buildProjectAsset, teamAssetTiles } from './team-project-assets.ts';
 import { hydrateSharedPreviews } from './team-previews.ts';
 import { tokenize } from '../lib/search/match.ts';
@@ -43,6 +44,7 @@ interface ProjectViewOptions {
   sort?: string;
   reversed?: boolean;
   assetId?: string;
+  assetPreview?(projectId: string, file: TeamFile): ProjectAssetPageOptions['preview'];
   folderId?: string;
 }
 
@@ -50,7 +52,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   const source = getSessionSource(), abort = new AbortController();
   let disposed = false, ticket = 0, opening = false;
   let clearPreviews: (() => void) | undefined;
-  let sessionMenu: TileContextMenuHandle | undefined;
+  let clearAssetPreview: (() => void) | undefined;
+  let clearActions: (() => void) | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
   let createFolderAction: (() => void) | undefined;
   container.addEventListener('lolly:team-folder-create', () => createFolderAction?.(), { signal: abort.signal });
@@ -89,7 +92,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     const my = ++ticket;
     createFolderAction = undefined;
     clearPreviews?.(); clearPreviews = undefined;
-    sessionMenu?.destroy(); sessionMenu = undefined;
+    clearAssetPreview?.(); clearAssetPreview = undefined;
+    clearActions?.(); clearActions = undefined;
     clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
     body.replaceChildren(node('p', tRaw('Loading…'), 'team-project-notice'));
     const projects = await readSourceProjects(source);
@@ -163,7 +167,11 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (canWrite) createFolderAction = showNewFolder;
     if (opts.assetId) {
       const file = assets.files.find(file => file.id === opts.assetId);
-      content.append(file ? buildProjectAsset(project.id, file, folderId) : node('p', tRaw('This asset is unavailable. Return to the project or refresh to check your access.'), 'team-project-notice'));
+      if (file) {
+        const page = buildProjectAsset(project.id, file, folderId, opts.assetPreview?.(project.id, file));
+        clearAssetPreview = () => page.dispose();
+        content.append(page);
+      } else content.append(node('p', tRaw('This asset is unavailable. Return to the project or refresh to check your access.'), 'team-project-notice'));
       return;
     }
     const tokens = tokenize(opts.query || '');
@@ -182,37 +190,12 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       });
     }).join('') + teamAssetTiles(project.id, files, folderId);
     applyCardSize(grid, readCardSize('projects'));
-    if (canWrite) for (const tile of grid.querySelectorAll<HTMLElement>('[data-kind="team-session"], [data-kind="team-file"]')) {
-      const isSession = tile.dataset.kind === 'team-session', ref = tile.dataset.ref;
-      if (!ref) continue;
-      const label = node('label', tRaw('Move to folder'), 'team-folder-move');
-      const select = node('select', undefined, 'field-select'); select.setAttribute('aria-label', tRaw('Move {name} to folder', { name: isSession ? sessions.find(s => s.id === ref)?.label || tRaw('Session') : files.find(f => f.id === ref)?.name || tRaw('File') }));
-      const top = node('option', project.name); top.value = ''; select.append(top);
-      for (const target of folders) {
-        const names = [target.name], seen = new Set([target.id]); let parent = folders.find(f => f.id === target.parentId);
-        while (parent && !seen.has(parent.id)) { seen.add(parent.id); names.unshift(parent.name); parent = folders.find(f => f.id === parent!.parentId); }
-        const option = node('option', names.join(' / ')); option.value = target.id; select.append(option);
-      }
-      select.value = folderId || ''; select.addEventListener('click', event => event.stopPropagation());
-      select.addEventListener('change', async () => { select.disabled = true; try { await moveTeamFolderItem(project.id, select.value || null, isSession ? 'session' : 'file', ref); if (current()) void load(); } catch (error) { if (current()) notice.textContent = String(error instanceof Error ? error.message : error); select.disabled = false; } }, { signal: abort.signal });
-      label.append(select); tile.append(label);
-    }
-    for (const tile of grid.querySelectorAll<HTMLElement>('.folder-tile[data-kind="team-session"]')) {
-      const more = button(tRaw('Session actions'), () => {
-        const rect = more.getBoundingClientRect(); sessionMenu?.openAt(rect.right, rect.bottom, { ref: tile.dataset.ref!, tile }, more);
-      });
-      more.className = 'tile-menu-btn'; more.innerHTML = icon('menu'); more.setAttribute('aria-label', tRaw('Session actions')); more.setAttribute('aria-haspopup', 'menu'); tile.append(more);
-    }
-    sessionMenu = wireTileContextMenu({ host: grid, tileSelector: '.folder-tile[data-kind="team-session"][data-ref]', refOf: tile => tile.dataset.ref ?? null,
-      singleHtml: () => (isManagerPlus(projectRole) ? menuItemHtml('invite', icon('users'), tRaw('Share')) + menuItemHtml('invite', icon('link'), tRaw('Copy invite link')) : '')
-        + menuItemHtml('copy', icon('link'), tRaw('Copy session link'))
-        + (canWrite ? menuItemHtml('rename', icon('pen'), tRaw('Rename')) : '')
-        + (isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false ? menuItemHtml('delete', icon('trash'), tRaw('Delete'), { danger: true }) : ''),
-      onAction: (action, target) => { if (target) void sessionAction(action, target.ref, target.tile); },
-      className: 'folder-menu projects-menu', presentation: 'sheet',
-      head: target => ({ name: sessions.find(s => s.id === target?.ref)?.label || tRaw('Shared session') }),
+    clearActions = mountTeamProjectActions({ grid, content, projectId, projectName: project.name, folderId, folders, files,
+      canWrite, canManage: isManagerPlus(projectRole), canDeleteSession: isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false,
+      current: () => current() && my === ticket, reload: () => { void load(); },
+      notice: message => { if (current() && my === ticket) notice.textContent = message; }, sessionAction,
     });
-    async function sessionAction(action: string, id: string, tile: HTMLElement | null): Promise<void> {
+    async function sessionAction(action: string, id: string, tile: HTMLElement | null): Promise<boolean | undefined> {
       const session = sessions.find(s => s.id === id); if (!session || !current()) return;
       if (action === 'invite' && tile && isManagerPlus(projectRole)) {
         invitation?.close(); invitation = showProjectInviteLink(tile.querySelector<HTMLElement>('.tile-menu-btn') || tile, projectId, () => current() && my === ticket, id); return;
@@ -230,10 +213,11 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
         const got = await renameTeamSession(id, label.trim().slice(0, 200), fresh.data.rev, fresh.data.meta);
         if (!current()) return;
         if (got.ok) void load(); else notice.textContent = got.code === 'COLLAB_ACTIVE' ? tRaw('Close the live session before renaming it, then try again.') : tRaw('This session changed or your access changed. Refresh and try again.');
-      } else if (action === 'delete' && isManagerPlus(projectRole)) {
-        const accepted = await confirmDialog({ title: tRaw('Delete shared session?'), message: tRaw('Delete {name} for everyone in this project?', { name: session.label || opts.toolName(session.toolId) }), confirmLabel: tRaw('Delete') });
+      } else if ((action === 'delete' || action === 'delete-confirmed') && isManagerPlus(projectRole)) {
+        const accepted = action === 'delete-confirmed' || await confirmDialog({ title: tRaw('Delete shared session?'), message: tRaw('Delete {name} for everyone in this project?', { name: session.label || opts.toolName(session.toolId) }), confirmLabel: tRaw('Delete') });
         if (!accepted || !current()) return;
         const got = await deleteTeamSession(id); if (!current()) return;
+        if (action === 'delete-confirmed') { if (!got.ok) throw new Error(tRaw('Could not delete this session. Refresh and try again.')); return true; }
         if (got.ok) void load(); else notice.textContent = tRaw('Could not delete this session. Refresh and try again.');
       }
     }
@@ -295,5 +279,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearPreviews?.(); sessionMenu?.destroy(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearAssetPreview?.(); clearPreviews?.(); clearActions?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }

@@ -31,6 +31,8 @@ import type { BodyPopoverHandle } from '../../components/body-popover.ts';
 import type { wiringOps } from './wiring.ts';
 
 export interface CatCtx {
+  preview?: AssetPreviewOptions;
+  detailsOpening?: boolean;
   // ---- state (was: closure variables of mountCatalog) ----
   viewEl: HTMLElement;
   hostIn: HostV1;
@@ -129,6 +131,13 @@ export interface CatCtx {
   bulk: ReturnType<typeof bulkOps>;
   downloads: ReturnType<typeof downloadsOps>;
   wiring: ReturnType<typeof wiringOps>;
+}
+
+export interface AssetPreviewOptions {
+  ref: AssetRef;
+  refs?: readonly AssetRef[];
+  link?(ref: AssetRef): string;
+  onClose?(ref: AssetRef): void;
 }
 
 /** A module function minus its leading context parameter. */

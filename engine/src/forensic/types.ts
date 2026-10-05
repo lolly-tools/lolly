@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Located observations and explicit coverage for a forensic assessment. */
-export const FORENSIC_VERSION = 'forensic-ai/1';
+export const FORENSIC_VERSION = 'forensic-ai/2';
 export interface ForensicBox {
   x: number;
   y: number;

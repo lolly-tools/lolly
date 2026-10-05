@@ -9,6 +9,7 @@ import {
   forensicReport,
   verifyForensicReport,
   FORENSIC_GUIDANCE_WEIGHT,
+  FORENSIC_VERSION,
 } from '../engine/src/forensic.ts';
 import type { ForensicFinding, ForensicPage, ForensicReport } from '../engine/src/forensic.ts';
 
@@ -75,7 +76,7 @@ const finding = (over: Partial<ForensicFinding>): ForensicFinding => ({
   id: over.id ?? 'f',
   rule: over.family ?? 'x',
   family: over.family ?? 'x',
-  version: 'forensic-ai/1',
+  version: FORENSIC_VERSION,
   modality: 'text',
   label: over.label ?? 'X',
   detail: 'd',

@@ -11,7 +11,7 @@ import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
  */
 import { C2PA_FORMATS, DEFAULT_CMYK_CONDITION, VIDEO_CODEC_STRINGS, hasVideoParams, normalizeTableValue } from '@lolly/engine';
 import { t } from '../../i18n.ts';
-import { patchCanvasTranslations } from '../canvas-translation.ts';
+import { cacheCanvasTranslations, patchCanvasTranslations } from '../canvas-translation.ts';
 import { livePalette } from '../../lib/live-palette.ts';
 import { patchTextEditingCanvas } from '../../lib/text-edit-paint.ts';
 import { patchLivePreview } from '../../lib/live-preview.ts';
@@ -176,6 +176,7 @@ export function paint(tview: ToolViewCtx): void {
       // every keystroke.
       const parkedWeb = webModule ? webModule.parkWebFrames(contentEl) : null;
       if (!patchTextEditingCanvas(contentEl, safeHtml)) contentEl.innerHTML = safeHtml;
+      if (fastCfgPaint) cacheCanvasTranslations(contentEl, hydrated);
       webModule?.restoreWebFrames(contentEl, parkedWeb);
       // A <style> inside template.html would otherwise apply unscoped and unlayered,
       // beating every app layer - one tool's `*` reset strips the chrome's padding.

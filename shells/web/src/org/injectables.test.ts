@@ -115,6 +115,11 @@ test('member injectables populate the tool registry + render a chrome banner', a
   assert.ok(bar, 'a chrome banner is inserted');
   assert.match(bar!.textContent || '', /Welcome to Acme/);
   assert.match(bar!.innerHTML, /#\/docs/); // the link href
+  assert.equal((bar as HTMLElement).style.position, 'relative');
+  assert.equal((bar as HTMLElement).style.zIndex, 'var(--z-max)');
+  const dismiss = bar!.querySelector<HTMLElement>('.org-chrome-dismiss')!;
+  assert.equal(dismiss.style.width, 'var(--ui-size-target)');
+  assert.equal(dismiss.style.flex, '0 0 auto');
 });
 
 test('a url-source tool resolves to its served id + URL-mode query (opens preconfigured)', async () => {

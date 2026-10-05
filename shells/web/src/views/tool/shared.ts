@@ -30,6 +30,7 @@ import { isTextEditingTarget } from '../../lib/typing-target.ts';
 import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
 import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from '../tool-actions.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
+import { agentInvitationHost } from '../../lib/agent-invitation-host.ts';
 
 // ── The chosen emoji set, for every writer of this tool's URL ────────────────
 //
@@ -856,7 +857,8 @@ export function shareDialogOptions(
   const readDocument = (): ShareDocument => {
     const label = exportScope?.querySelector<HTMLInputElement>('[data-action="filename"]')?.value.trim();
     const emoji = toolEmojiParams();
-    return { inputs: sessionInputValues(runtime), toolVersion: manifest.version, ...(label ? { label } : {}), ...(emoji ? { emoji: { ...emoji } } : {}) };
+    const agentInvitation = agentInvitationHost(runtime);
+    return { inputs: sessionInputValues(runtime), toolVersion: manifest.version, ...(agentInvitation ? { agentInvitation } : {}), ...(label ? { label } : {}), ...(emoji ? { emoji: { ...emoji } } : {}) };
   };
   return { toolId, baseParts: parts.filter(part => part !== 'format=lolly'), manifest,
     currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly, document: readDocument };

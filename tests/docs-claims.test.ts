@@ -561,7 +561,7 @@ function ledgerHosts(): { web: Set<string>; desktopOnly: Set<string> } {
     const into = row.includes(DESKTOP_ONLY) ? desktopOnly : web;
     for (const m of row.matchAll(/`([a-z0-9*-]+(?:\.[a-z0-9*-]+)+)`/gi)) {
       const tok = m[1]!.toLowerCase();
-      if (/\.(com|org|net|tools|io|dev|li)$/.test(tok)) into.add(tok); // a host, not `.icc`
+      if (/\.(com|org|net|tools|io|dev|li|ing)$/.test(tok)) into.add(tok); // a host, not `.icc`
     }
   }
   return { web, desktopOnly };

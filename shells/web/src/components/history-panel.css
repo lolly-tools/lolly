@@ -4,7 +4,7 @@
 .revision-history-status,.revision-history-note { font-size:var(--ui-type-caption); line-height:1.5; margin:0; }
 .revision-history-note { opacity:.7; }
 .revision-history-list { display:flex; flex-direction:column; gap:var(--ui-space-control-block); }
-.revision-history-entry { border:1px solid var(--ui-color-border-default); border-radius:var(--ui-radius-control); padding:var(--ui-space-control-block); display:flex; gap:var(--ui-space-control-block); }
+.revision-history-entry { border:1px solid var(--ui-color-surface-overlay); border-radius:var(--ui-radius-control); padding:var(--ui-space-control-block); display:flex; gap:var(--ui-space-control-block); }
 .revision-history-entry > div { display:flex; flex-direction:column; gap:var(--sp-2); min-width:0; flex:1; }
 .revision-history-entry strong { overflow-wrap:anywhere; font-size:var(--ui-type-label); }
 .revision-history-entry time,.revision-history-entry span { font-size:var(--ui-type-caption); opacity:.75; }

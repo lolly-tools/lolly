@@ -6504,6 +6504,7 @@ async function build() {
     url: SITE_URL,
     description: SITE_DESCRIPTION,
     engineVersion: ENGINE_VERSION,
+    liveRelay: process.env.VITE_LIVE_RELAY || undefined,
     pages: pages.map((p) => ({ slug: p.slug, title: p.title, pathway: p.pathway ?? 'builders', path: pathSlug(p.slug), isLanding: !!p.isLanding })),
     mdBySlug,
     sections: LLMS_SECTIONS,

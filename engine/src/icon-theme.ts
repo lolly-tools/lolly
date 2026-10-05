@@ -69,7 +69,7 @@ const DEFAULT_STYLE_RE = /<defs><style>\.c1\{fill:([^}]*)\}\.c2\{fill:([^}]*)\}<
 export function buildThemedAssetId(baseId: string, themeId: string | null | undefined): string {
   if (!themeId) return baseId;
   if (!THEME_ID_RE.test(themeId)) throw new Error(`Bad icon theme id: ${themeId}`);
-  return `${baseId}${THEME_SUFFIX}${themeId}`;
+  return `${baseId}${/\?file=[a-f0-9]{24}$/.test(baseId) ? '&theme=' : THEME_SUFFIX}${themeId}`;
 }
 
 /** Is this theme id valid for use in a themed asset id? */

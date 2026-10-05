@@ -57,6 +57,8 @@ import {
   CHATBOT_SOFT, FAMILY_TELLS, LIST_TRIAD, MODEL_FINGERPRINTS, SPELLING_VARIANTS, type Tell,
 } from './claudisms.ts';
 
+import { inspectHiddenUnicode } from './text-hidden-unicode.ts';
+
 export { LEXICON_VERSION } from './claudisms.ts';
 
 export type TextSignalSource = 'digital' | 'ocr';
@@ -190,24 +192,11 @@ const heatOf = (kind: string): number => KIND_HEAT[kind] ?? 0.4;
 
 // ─── Artifact-tier detectors (digital text only) ──────────────────────────────
 
-/** Zero-width / invisible characters that are essentially never legitimate in prose.
- *  Soft hyphen (U+00AD) is handled separately - see `softHyphenSpans`. */
-const INVISIBLE_CORE = /[\u200b\u2060\ufeff\u180e]/gu;
-/** ZWNJ / ZWJ - legitimate in emoji sequences and in Arabic/Indic shaping, so context-checked. */
-const ZW_JOINERS = /[\u200c\u200d]/gu;
-/** Unicode tag characters - a known scheme for smuggling invisible ASCII. */
-const TAG_CHARS = /[\u{E0000}-\u{E007F}]/gu;
-/** Ideographic variation selectors (VS17-256) - almost never legitimate outside rare CJK IVD. */
-const VS_SUPPLEMENTARY = /[\u{E0100}-\u{E01EF}]/gu;
-/** Runs of two or more BMP variation selectors - a byte-smuggling pattern. */
-const VS_BMP_RUN = /[︀-️]{2,}/gu;
 /** Bidi OVERRIDES (LRO/RLO) - the trojan-source vector; embeddings/isolates are left alone (RTL uses them). */
 const BIDI_OVERRIDE = /[\u202d\u202e]/gu;
 /** Non-standard spaces. NBSP and narrow-NBSP are carved out where French typography wants them. */
 const ANOMALOUS_SPACE = /[\u2000-\u200a\u205f\u3000]/gu;
 
-/** Extended-pictographic test, to skip ZWJ that is joining an emoji sequence. */
-const PICTOGRAPHIC = /\p{Extended_Pictographic}/u;
 /**
  * Codepoints whose GLYPH passes for a Latin letter - the curated homoglyph set,
  * not whole scripts. Script-level matching flagged every Greek-letter unit in
@@ -237,35 +226,7 @@ function charAt(text: string, i: number): string {
   return String.fromCodePoint(text.codePointAt(i) as number);
 }
 
-/**
- * ZWJ/ZWNJ occurrences that are NOT joining an emoji sequence and NOT between
- * two non-Latin letters (Arabic/Indic shaping). What remains is suspicious.
- */
-function suspiciousJoiners(text: string): RawSpan[] {
-  return collect(ZW_JOINERS, text).filter(({ index }) => {
-    const before = charAt(text, index - 1);
-    const after = charAt(text, index + 1);
-    if (PICTOGRAPHIC.test(before) || PICTOGRAPHIC.test(after)) return false;
-    // Between two letters of a shaping script, a joiner is plausibly legitimate.
-    const shaping = /[\p{Script=Arabic}\p{Script=Devanagari}\p{Script=Bengali}\p{Script=Tamil}]/u;
-    if (shaping.test(before) && shaping.test(after)) return false;
-    return true;
-  });
-}
 
-/**
- * Soft hyphens (U+00AD). BETWEEN TWO LETTERS they are ordinary discretionary
- * hyphenation - the classic residue of copying text out of a PDF or Word, which
- * must NOT read as an AI tell (the MS-Word/PDF trap). Only a soft hyphen in a
- * non-hyphenation position counts as an invisible-character artifact.
- */
-function softHyphenSpans(text: string): RawSpan[] {
-  return collect(/\u00ad/gu, text).filter(({ index }) => {
-    const before = charAt(text, index - 1);
-    const after = charAt(text, index + 1);
-    return !(/\p{L}/u.test(before) && /\p{L}/u.test(after));
-  });
-}
 
 /** Tokens (letter runs) that mix Latin with a confusable script - a homoglyph tell. */
 function mixedScriptTokens(text: string): RawSpan[] {
@@ -832,10 +793,7 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
 
   // ── Byte-level artifact tier (digital only) ──
   if (!pixelSourced && text.length > 0) {
-    // A U+FEFF at index 0 is a byte-order mark - an encoder's signature, not
-    // smuggled data - so the one leading BOM is carved out of the invisible set.
-    const invisible = [...collect(INVISIBLE_CORE, text), ...suspiciousJoiners(text), ...softHyphenSpans(text)]
-      .filter((s) => !(s.index === 0 && text.charCodeAt(0) === 0xfeff));
+    const { invisible, tags, variations: vs } = inspectHiddenUnicode(text);
     if (invisible.length > 0) {
       const mdNote = mostlyMarkdownAdjacent(invisible, text)
         ? ' Most sit beside Markdown formatting characters - typical of AI chat output copied with its markup.'
@@ -844,14 +802,13 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
         tier: 'artifact',
         kind: 'invisible-char',
         label: 'Invisible characters',
-        detail: `${invisible.length} zero-width or invisible character${invisible.length === 1 ? '' : 's'} that ordinary text does not contain.${mdNote}`,
+        detail: `${invisible.length} zero-width or invisible character${invisible.length === 1 ? '' : 's'} outside expected Unicode contexts.${mdNote}`,
         weight: 2 + (invisible.length >= 4 ? 1 : 0),
         heat: heatOf('invisible-char'),
         spans: invisible,
       });
     }
 
-    const tags = collect(TAG_CHARS, text);
     if (tags.length > 0) {
       findings.push({
         tier: 'artifact',
@@ -864,7 +821,6 @@ export function analyzeTextSignals(text: string, opts: AnalyzeTextSignalsOpts): 
       });
     }
 
-    const vs = [...collect(VS_SUPPLEMENTARY, text), ...collect(VS_BMP_RUN, text)];
     if (vs.length > 0) {
       findings.push({
         tier: 'artifact',

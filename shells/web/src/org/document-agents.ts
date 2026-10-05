@@ -2,7 +2,8 @@
 /** Invite an agent to the live document using the inviter's existing identity. */
 import { mountModal } from '../components/modal.ts';
 import { instanceFetch, instancePath, getInstanceBase } from '../lib/instance.ts';
-import { iconNode, type IconName } from '../lib/icons.ts';
+import type { IconName } from '../lib/icons.ts';
+import { iconNode } from '../lib/icon-node.ts';
 import { tRaw } from '../i18n.ts';
 import { agentConnection, agentInviteState, orgAgentInvitesEnabled } from './document-agent-config.ts';
 

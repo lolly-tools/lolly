@@ -57,7 +57,7 @@
  *
  * Run its tests:  node --import ./tests/css-stub.mjs --test shells/web/src/views/design-navigator.test.ts
  */
-import { mountLayerGroups } from './design-layer-groups.ts';
+import { mergeLayerOrder, mountLayerGroups } from './design-layer-groups.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import { framesAreSequenced, num, renumberFrameOrder } from './free-canvas-math.ts';
 import type {
@@ -129,6 +129,7 @@ const MENU_GAP = 4;
  * literal names the Design manifest uses - rather than a column that renders nothing.
  */
 interface NavCfg extends BoxFieldConfig {
+  groupField?: string;
   kindField?: string;
   textField?: string;
   durField?: string;
@@ -476,7 +477,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   bodyEl.append(listEl, emptyEl, makeAllBtn);
   if (skin === 'column') bodyEl.append(layersEl);
   else layersEl.hidden = true;
-  const layerGroups = skin === 'column' ? mountLayerGroups({host:bodyEl,pages:listEl,section:layersEl,list:layersList,heading:layersHead,id:b=>fieldStr(b,F.id),name:(b,i)=>frameName(b,i),children:b=>childrenOf(model.getBoxes(),fieldStr(b,F.id)),row:buildLayerRow,jump:selectFrame}) : null;
+  const layerGroups = skin === 'column' ? mountLayerGroups({host:bodyEl,pages:listEl,section:layersEl,list:layersList,heading:layersHead,id:b=>fieldStr(b,F.id),name:(b,i)=>frameName(b,i),children:b=>childrenOf(model.getBoxes(),fieldStr(b,F.id)),row:buildLayerRow,jump:selectFrame,group:b=>fieldStr(b,cfg.groupField||'group'),select:ids=>selection.set(ids)}) : null;
   el.append(head);
   if (skin === 'column') el.append(railSlot);
   el.append(bodyEl);
@@ -1032,7 +1033,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     const first = model.getBoxes().find(b => fieldStr(b,F.id) === displayIds[0]);
     const frameId = first ? fieldStr(first,F.frame) : artboard.active();
     if (!frameId || !actions.reorderChildren) return false;
-    actions.reorderChildren(frameId, [...displayIds].reverse());
+    actions.reorderChildren(frameId, mergeLayerOrder(childrenOf(model.getBoxes(),frameId).map(b=>fieldStr(b,F.id)), [...displayIds].reverse()));
     return true;
   }
 
@@ -1406,7 +1407,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     const sig = [
       sigs.join('|'), activeId, String(kids.length),
       kids.map((b) => `${fieldStr(b, F.id)}:${fieldStr(b, F.kind)}:${String(b[F.label] ?? '')}:${String(b[F.text] ?? '')}`
-        + `:${String(b[F.hidden] ?? '')}:${String(b[F.locked] ?? '')}:${String(b[F.start] ?? '')}:${String(b[F.dur] ?? '')}:${String(b['lane'] ?? '')}`).join('~'),
+        + `:${String(b[F.hidden] ?? '')}:${String(b[F.locked] ?? '')}:${String(b[F.start] ?? '')}:${String(b[F.dur] ?? '')}:${String(b['lane'] ?? '')}:${fieldStr(b,cfg.groupField||'group')}`).join('~'),
       String(model.getInput('transition') ?? ''), String(model.getInput('autoAdvance') ?? ''),
       deck ? 'd' : 'a', open ? 'o' : 'c',
     ].join('#');

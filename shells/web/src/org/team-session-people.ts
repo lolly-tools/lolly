@@ -7,7 +7,7 @@ import { buildPeoplePanel } from './team-people.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { teamOpenMessage } from './team-open.ts';
 import { orgAgentInvitesEnabled } from './document-agent-config.ts';
-import { iconNode } from '../lib/icons.ts';
+import { iconNode } from '../lib/icon-node.ts';
 
 let open: HTMLDialogElement | undefined;
 /** Manage the current document's people without leaving its live room. */

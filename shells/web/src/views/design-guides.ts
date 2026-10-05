@@ -151,10 +151,12 @@ function svgEl<K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagName
 
 export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle {
   const { stageEl, canvasEl } = opts;
-  let guides = parseGuideRecords(opts.read());
+  let guideSource = opts.read();
+  let guides = parseGuideRecords(guideSource);
   let selectedId: string | null = null;
   const listeners = new Set<() => void>();
   const lineNodes = new Map<string, HTMLButtonElement>();
+  const rulerViews = new WeakMap<SVGSVGElement, { length: number; origin: number; scale: number }>();
   let visible = opts.initiallyVisible !== false;
   let destroyed = false;
 
@@ -221,7 +223,9 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
   function commit(next: DesignGuide[]): void {
     guides = next.map(normaliseGuide);
     if (!guides.some(g => g.id === selectedId)) selectedId = null;
-    opts.commit(serializeGuideRecords(guides));
+    const value = serializeGuideRecords(guides);
+    guideSource = value;
+    opts.commit(value);
     paint();
     notify();
   }
@@ -288,8 +292,19 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
   function finishDrag(event: PointerEvent): void {
     if (!drag || event.pointerId !== drag.pointerId) return;
     updateDrag(event);
-    const { guide, isNew } = drag;
+    const { guide, isNew, previousSelection } = drag;
+    const overRuler = [top, left].some(ruler => {
+      const rect = ruler.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0 && event.clientX >= rect.left && event.clientX <= rect.right
+        && event.clientY >= rect.top && event.clientY <= rect.bottom;
+    });
     releaseDrag();
+    if (overRuler) {
+      selectedId = previousSelection;
+      if (isNew) { paint(); notify(); }
+      else remove(guide.id);
+      return;
+    }
     selectedId = guide.id;
     const next = isNew ? [...guides, guide] : guides.map(g => g.id === guide.id ? guide : g);
     if (serializeGuideRecords(next) !== serializeGuideRecords(guides)) commit(next);
@@ -364,7 +379,10 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
     origin: number,
     scale: number
   ): void {
-    svg.replaceChildren();
+    const previous = rulerViews.get(svg);
+    if (previous?.length === length && previous.origin === origin && previous.scale === scale) return;
+    rulerViews.set(svg, { length, origin, scale });
+    const content = document.createDocumentFragment();
     svg.setAttribute('viewBox', axis === 'x' ? `0 0 ${length} ${RULER}` : `0 0 ${RULER} ${length}`);
     const step = rulerStep(scale);
     const nativeStart = (0 - origin) / scale;
@@ -390,7 +408,7 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
         tick.setAttribute('y1', String(at));
         tick.setAttribute('y2', String(at));
       }
-      svg.appendChild(tick);
+      content.appendChild(tick);
       if (!major) continue;
       const label = svgEl('text');
       label.textContent = String(Math.round(value * 100) / 100);
@@ -402,8 +420,9 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
         label.setAttribute('y', String(at - 3));
         label.setAttribute('transform', `rotate(-90 9 ${at - 3})`);
       }
-      svg.appendChild(label);
+      content.appendChild(label);
     }
+    svg.replaceChildren(content);
   }
 
   function chromeTop(stageRect: DOMRect): number {
@@ -420,14 +439,17 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
     return Math.max(0, Math.min(stageRect.width - RULER, reserve));
   }
 
-  function paintLines(): void {
+  function readLayout() {
     const stage = stageEl.getBoundingClientRect();
     const canvas = canvasEl.getBoundingClientRect();
     const xScale = canvas.width / canvasSize('x') || 1;
     const yScale = canvas.height / canvasSize('y') || 1;
-    const topInset = chromeTop(stage) + RULER;
-    const leftInset = chromeLeft(stage) + RULER;
-    lines.style.clipPath = `inset(${topInset}px 0 0 ${leftInset}px)`;
+    return { stage, canvas, xScale, yScale, topInset: chromeTop(stage), leftInset: chromeLeft(stage) };
+  }
+
+  function paintLines(layout = readLayout()): void {
+    const { stage, canvas, xScale, yScale, topInset, leftInset } = layout;
+    lines.style.clipPath = `inset(${topInset + RULER}px 0 0 ${leftInset + RULER}px)`;
     const all = drag ? [...guides.filter(g => g.id !== drag!.guide.id), drag.guide] : guides;
     const seen = new Set<string>();
     for (const guide of all) {
@@ -475,10 +497,8 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
       stageEl.style.removeProperty('--stage-rulers-right');
       return;
     }
-    const stage = stageEl.getBoundingClientRect();
-    const canvas = canvasEl.getBoundingClientRect();
-    const topInset = chromeTop(stage);
-    const leftInset = chromeLeft(stage);
+    const layout = readLayout();
+    const { stage, canvas, xScale, yScale, topInset, leftInset } = layout;
     stageEl.style.setProperty('--stage-rulers-bottom', `${topInset + RULER}px`);
     stageEl.style.setProperty('--stage-rulers-right', `${leftInset + RULER}px`);
     corner.style.top = `${topInset}px`;
@@ -494,16 +514,16 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
       'x',
       Math.max(1, stage.width - leftInset - RULER),
       canvas.left - stage.left - leftInset - RULER,
-      canvas.width / canvasSize('x') || 1
+      xScale
     );
     paintRuler(
       leftSvg,
       'y',
       Math.max(1, stage.height - topInset - RULER),
       canvas.top - stage.top - topInset - RULER,
-      canvas.height / canvasSize('y') || 1
+      yScale
     );
-    paintLines();
+    paintLines(layout);
   }
 
   top.addEventListener('pointerdown', onRulerDown);
@@ -550,7 +570,10 @@ export function mountDesignGuides(opts: DesignGuidesOptions): DesignGuidesHandle
     },
     hasGuides: () => guides.length > 0,
     sync(): void {
-      const next = parseGuideRecords(opts.read());
+      const source = opts.read();
+      if (typeof source === 'string' && source === guideSource) { paint(); return; }
+      const next = parseGuideRecords(source);
+      guideSource = source;
       const changed = serializeGuideRecords(next) !== serializeGuideRecords(guides);
       if (changed) {
         cancelDrag();
