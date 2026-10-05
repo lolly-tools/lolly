@@ -89,7 +89,7 @@ export function providerBrowserHtml(assets: readonly AssetRef[], query: string):
     const current = selected[facet][0];
     const options = [...facets[facet]];
     if (current && !options.some(option => fold(option.name) === current)) options.unshift({ name: current, count: 0 });
-    return `<label class="cat-provider-filter"><span>${escapeText(labels[facet])}</span><select data-provider-facet="${facet}">
+    return `<label class="cat-provider-filter"><span>${escapeText(labels[facet])}</span><select class="field-select" data-provider-facet="${facet}">
       <option value="">${t('All')}</option>${options.map(option => `<option value="${escapeText(option.name)}"${fold(option.name) === current ? ' selected' : ''}>${escapeText(option.name)} (${option.count})</option>`).join('')}
     </select></label>`;
   }).join('');

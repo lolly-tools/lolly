@@ -9,10 +9,10 @@ Roughly 706,000 lines of TypeScript, tests included, and 58,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 468 files, 192,010 lines | 221 files, 74,343 lines | 6 files, 1,427 lines |
-| `lib/` | 730 files, 155,911 lines | 412 files, 83,956 lines | 12 files, 1,805 lines |
+| `views/` | 469 files, 192,102 lines | 221 files, 74,343 lines | 6 files, 1,427 lines |
+| `lib/` | 733 files, 156,020 lines | 414 files, 84,003 lines | 12 files, 1,805 lines |
 | `bridge/` | 201 files, 51,871 lines | 120 files, 25,120 lines | none |
-| `components/` | 100 files, 25,571 lines | 46 files, 12,298 lines | 16 files, 1,023 lines |
+| `components/` | 108 files, 25,994 lines | 47 files, 12,313 lines | 18 files, 1,080 lines |
 | `org/` | 55 files, 15,029 lines | 37 files, 11,956 lines | none |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
 | `pro/` | 22 files, 8,537 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
@@ -20,7 +20,7 @@ Roughly 706,000 lines of TypeScript, tests included, and 58,000 lines of CSS.
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
 | `styles/` | none | 6 files, 1,234 lines | 124 files, 52,825 lines |
 
-Plus 51 `.ts`/`.js` files at the top level of `src/`, 16,921 lines all told, of which 25 are tests and 3 are ambient declarations. `main.ts` is 2,256 of that.
+Plus 51 `.ts`/`.js` files at the top level of `src/`, 16,926 lines all told, of which 25 are tests and 3 are ambient declarations. `main.ts` is 2,256 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -60,7 +60,7 @@ Do not be ambushed by these. The largest source files, by line count:
 |---|---|---|
 | 7,160 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 3,966 | `views/valid.ts` | `valid-verdict.test.ts` only |
-| 3,923 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
+| 3,935 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,859 | `views/tool-inputs.ts` | none |
 | 3,654 | `views/color-lab.ts` | yes |
 | 3,174 | `views/gallery.ts` | none |

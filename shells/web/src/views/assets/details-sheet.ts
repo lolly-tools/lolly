@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { assetViewerKind } from '../../lib/asset-viewer-source.ts';
+import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts';
 import { openAssetInText } from '../../lib/text-handoff.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
@@ -316,7 +318,8 @@ export function buildSheet(dt: DetailsCtx): void {
   // a Lottie renders as SVG). A video reads better auto-playing at fit-size, so it opts out; audio
   // is a player, not an image, so it opts out too; a placeholder/dataless-lottie stub has nothing
   // to zoom. attachZoom handles the <svg> player.
-  const zoomable = !ref.meta?._placeholder
+  const ownsPreview = (['pdf', 'font', 'converted'].includes(assetViewerKind(String(ref.format ?? '').toLowerCase())) || ref.format === 'svgz') || ref.type === 'font';
+  const zoomable = !ownsPreview && !ref.meta?._placeholder
     && ref.type !== 'audio'
     && ref.type !== 'text' && ref.type !== 'data'
     && ref.type !== 'palette'   // a scrollable swatch card, not a zoom stage
@@ -541,6 +544,7 @@ export function buildSheet(dt: DetailsCtx): void {
     className: 'cat-details',
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onClose: () => {
+      dt.formatViewer?.destroy();
       dt.previewStatusDispose?.();
       dt.emojiBrowser?.destroy();
       cat.detailsMeterDispose?.();
@@ -571,8 +575,12 @@ export function buildSheet(dt: DetailsCtx): void {
   dlg.querySelector('.cat-details-body')?.prepend(fileSlot);
   mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
   dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
-  cat.detailsDialog = dlg;
+  cat.detailsDialog = dlg; dlg.dataset.viewerProvider = String(ref.meta?.provider ?? '');
   cat.detailsModal = modal;
+  if (ownsPreview && !ref.meta?._placeholder) {
+    dlg.classList.add('has-format-viewer');
+    dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-details-preview')!, ref, cat.host);
+  }
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
   // asset is open, so copy/pasting the URL shares this exact view. Paging
   // re-syncs it per asset (Andy, 2026-08-19).
@@ -582,7 +590,7 @@ export function buildSheet(dt: DetailsCtx): void {
 
 export function paintPassport(dt: DetailsCtx): void {
   const { PASSPORT_CRED_CACHE, TREATMENT_FILTER_PREFIX, cat, dlg, initialTheme, ref, showVerify, themable, treatable } = dt;
-  const skipAutomaticBytes = Number(ref.meta?.bytes ?? ref.meta?.size ?? 0) >= 12_000_000 || !!ref.meta?.provider && !Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
+  const skipAutomaticBytes = !!dt.formatViewer || Number(ref.meta?.bytes ?? ref.meta?.size ?? 0) >= 12_000_000 || !!ref.meta?.provider && !Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
   dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : 'checking');
   void (async () => {
     const cacheKey = `${ref.id}|${ref.version ?? 'x'}`;
@@ -602,7 +610,7 @@ export function paintPassport(dt: DetailsCtx): void {
   // Technical metadata (resolution, DPI, EXIF, audio/video props, page count, viewBox…):
   // extract off-thread and fill the initially-hidden panel. Cancel/stale-safe - ←/→ paging
   // re-runs openDetails per asset, so a slow result must not overwrite a newer asset's panel.
-  void extractAssetMetadata(ref).then(techFields => {
+  if (!dt.formatViewer) void extractAssetMetadata(ref).then(techFields => {
     if (cat.detailsDialog !== dlg) return;          // modal closed or paged to another asset
     if (!techFields.length) return;             // nothing readable - leave the panel hidden
     const box = dlg.querySelector<HTMLElement>('[data-tech]');
@@ -1553,6 +1561,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // down mid-question. Its Escape is handled by the card itself (and cancelled in
     // the capture listener enterInlineTrim arms), so nothing to do here.
     if (dt.inlineTrim) return;
+    if ((e.target as HTMLElement).closest('.asset-format-viewer')) return;
     if (e.key === 'ArrowLeft' && nav.prev) { e.preventDefault(); dt.openDetails(cat, nav.prev, dt.dTheme, dt.dTreatment); }
     else if (e.key === 'ArrowRight' && nav.next) { e.preventDefault(); dt.openDetails(cat, nav.next, dt.dTheme, dt.dTreatment); }
   });
@@ -1563,7 +1572,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
   // Passive: it never preventDefaults, so vertical scroll (e.g. the swatch card)
   // and pinch-zoom still work; the horizontal-dominance test keeps the two apart.
   const swipeEl = dlg.querySelector<HTMLElement>('.cat-details-preview'); dt.swipeEl = swipeEl as DetailsCtx['swipeEl'];
-  if (swipeEl && (nav.prev || nav.next)) {
+  if (!dt.formatViewer && swipeEl && (nav.prev || nav.next)) {
     let sx = 0, sy = 0, armed = false;
     swipeEl.addEventListener('touchstart', (e) => {
       const p = e.touches[0];

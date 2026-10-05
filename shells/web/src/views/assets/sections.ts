@@ -191,7 +191,7 @@ export function fontsSectionHtml(cat: CatCtx): string {
 // The scrollable content. Swatches + Fonts are reference material, not searchable
 // assets - drop them while a search is active so the results grid stands alone.
 export const bodyHtml = (cat: CatCtx): string =>
-  `${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all') ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
+  `${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
 export const bulkBarHtml = (cat: CatCtx): string => { const { bulkBarCfg } = cat; return buildBulkBar(bulkBarCfg); };
 export function render(cat: CatCtx): void {
   const { viewEl } = cat;
@@ -200,10 +200,12 @@ export function render(cat: CatCtx): void {
       <div class="catalog${cat.catLayout === 'list' ? ' cat-layout-list' : ''}${cat.catDensity === 'compact' ? ' cat-density-compact' : ''}"${cardSizeAttr(cat.cardSize)}>
         ${cat.tiles.catalogTopbarHtml()}
         <h1 class="visually-hidden">${t('Assets')}</h1>
-        <div class="catalog-body">${bodyHtml(cat)}</div>
+        <button type="button" class="btn btn--ghost btn--sm" data-browse-sources>${t('Browse sources')}</button>
+        <div class="catalog-workspace"><aside class="asset-sources" aria-label="${t('Sources')}"></aside><div class="catalog-body">${bodyHtml(cat)}</div></div>
         ${bulkBarHtml(cat)}
       </div>`;
   cat.wiring.wire();
+  cat.sources.wire();
   mountFavStrip(cat);
   cat.bulk.syncBulkBar();
   cat.wiring.reapplyTreatment();

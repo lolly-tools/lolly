@@ -26,7 +26,7 @@ export function buildLocalProjectAsset(host: HostV1, folderId: string | null, as
   const contentType = asset.type === 'vector' ? 'image/svg+xml' : asset.type === 'raster' ? 'image/' + asset.format
     : asset.type === 'video' ? 'video/' + asset.format : asset.type === 'audio' ? 'audio/' + asset.format : 'application/octet-stream';
   const name = String(asset.meta?.name || tRaw('Asset'));
-  return buildProjectAssetPage({ name, url: asset.url, contentType, backHref: `#/p${folderId ? '/' + encodeURIComponent(folderId) : ''}`,
+  return buildProjectAssetPage({ asset, host, name, url: asset.url, contentType, backHref: `#/p${folderId ? '/' + encodeURIComponent(folderId) : ''}`,
     metadata: asset.format,
     async download() {
       const response = await fetch(asset.url);
