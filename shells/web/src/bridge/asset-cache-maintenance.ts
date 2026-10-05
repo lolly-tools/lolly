@@ -120,7 +120,7 @@ import { isZzfxmRef } from '../../../../engine/src/zzfxm-ref.ts';
 import { parseThemedAssetId, parseTreatedAssetId } from '../../../../engine/src/asset-modifiers.ts';
 type Credential = { store: Uint8Array; format: string } | null;
 export async function assetCredential(db: AssetsDb, id: string, resolve: (id: string) => Promise<AssetRef>, cache: Map<string, Credential>, maxBytes: number): Promise<Credential> {
-  // A procedural ref names a song that is COMPOSED on demand - there are no
+  // A procedural ref identifies a song that is COMPOSED on demand - there are no
   // stored bytes to carry a credential, and fetching the scheme only produces
   // the browser's own "cannot load" console error before the catch below.
   if (isZzfxmRef(id)) return null;

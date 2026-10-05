@@ -35,5 +35,5 @@ export function mountAssetFileList(into: HTMLElement, ref: AssetRef, choose: (fi
 }
 function fileSummary(file: AssetFile): string {
   return [file.format.toUpperCase(), file.width && file.height ? `${file.width} × ${file.height}` : '',
-    file.size ? `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(file.size / 1_000_000)} MB` : ''].filter(Boolean).join(' · ');
+    file.size ? `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(file.size / (file.size < 1_000_000 ? 1000 : 1_000_000))} ${file.size < 1_000_000 ? 'KB' : 'MB'}` : ''].filter(Boolean).join(' · ');
 }
