@@ -17,7 +17,7 @@
 
 export const LIVE_PROTOCOL = 'live-v1' as const;
 
-export const LIVE_METHODS = ['hello', 'document.get', 'document.apply', 'look', 'history.undo'] as const;
+export const LIVE_METHODS = ['hello', 'document.get', 'document.find', 'document.context', 'document.apply', 'look', 'history.undo'] as const;
 export type LiveMethodV1 = (typeof LIVE_METHODS)[number];
 
 /** Limits both ends hold to. */
@@ -73,9 +73,11 @@ export interface LiveHelloResultV1 {
   engine: string;
   /** Which surface answered. */
   surface: 'desktop' | 'web';
+  documentId?: string;
 }
 
 export interface LiveDocumentV1 {
+  documentId?: string;
   /** The Design rows, as `layerOperations` and `layerPatches` address them. */
   rows: unknown[];
   width: number;
@@ -87,6 +89,9 @@ export interface LiveDocumentV1 {
 }
 
 export interface LiveApplyParamsV1 {
+  documentId?: string;
+  /** Repeating this transaction returns its first receipt without another edit. */
+  transactionId?: string;
   layerOperations?: unknown[];
   layerPatches?: unknown[];
   /** A short note for the history entry, after "AI agent: ". */

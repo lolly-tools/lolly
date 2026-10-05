@@ -5,6 +5,7 @@
 declare module 'ws' {
   import type { IncomingMessage } from 'node:http';
   import type { AddressInfo } from 'node:net';
+  import type { Duplex } from 'node:stream';
 
   export class WebSocket {
     /** The client side, used by the tests to stand in for a tab. */
@@ -19,12 +20,17 @@ declare module 'ws' {
     on(event: 'error', listener: (error: Error) => void): this;
     on(event: 'open', listener: () => void): this;
     on(event: 'unexpected-response', listener: (req: unknown, res: IncomingMessage) => void): this;
+    once(event: 'message', listener: (data: Buffer | ArrayBuffer | Buffer[], isBinary: boolean) => void): this;
+    once(event: 'close', listener: (code: number, reason: Buffer) => void): this;
+    once(event: 'error', listener: (error: Error) => void): this;
+    once(event: 'open', listener: () => void): this;
   }
 
   export interface VerifyClientInfo { origin: string; secure: boolean; req: IncomingMessage }
 
   export interface ServerOptions {
     host?: string;
+    noServer?: boolean;
     port?: number;
     maxPayload?: number;
     perMessageDeflate?: boolean;
@@ -36,6 +42,7 @@ declare module 'ws' {
     readonly clients: Set<WebSocket>;
     address(): AddressInfo | string | null;
     close(cb?: (error?: Error) => void): void;
+    handleUpgrade(req: IncomingMessage, socket: Duplex, head: Buffer, callback: (socket: WebSocket) => void): void;
     on(event: 'connection', listener: (socket: WebSocket, req: IncomingMessage) => void): this;
     on(event: 'listening', listener: () => void): this;
     on(event: 'error', listener: (error: Error) => void): this;

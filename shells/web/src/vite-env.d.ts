@@ -8,6 +8,8 @@
  * violate the strict-TS contract.
  */
 interface ImportMetaEnv {
+  readonly DEV?: boolean;
+  readonly VITE_LIVE_RELAY?: string;
   readonly PROD: boolean;
   readonly BASE_URL?: string;
   // External base URL for the on-device model files (Vercel Blob); '' / undefined

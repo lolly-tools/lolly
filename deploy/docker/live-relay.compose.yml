@@ -1,0 +1,31 @@
+# Apply beside the Work VM's compose file. The source is an isolated OSS release.
+services:
+  server:
+    environment:
+      LW_LIVE_RELAY_ORIGIN: https://lolly.ing
+  live-relay:
+    build:
+      context: ./agent-relay-src
+      dockerfile: deploy/docker/mcp.Dockerfile
+      args:
+        LOLLY_PROFILE: lolly-start
+    image: lolly-live:local
+    command: [node, services/mcp/src/live-http.ts]
+    environment:
+      PORT: 8790
+      LOLLY_MCP_BIND_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:8790:8790"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    pids_limit: 128
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

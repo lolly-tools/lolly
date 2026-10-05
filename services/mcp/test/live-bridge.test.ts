@@ -79,7 +79,8 @@ test('a tab pairs with the code, answers hello, and serves document, apply, look
   const status = await bridge.waitConnected(2000);
   await until(() => !!bridge.status().editor);
   assert.equal(bridge.status().state, 'connected');
-  assert.deepEqual(bridge.status().editor, { tool: 'design', engine: '1.244.0' });
+  assert.match(bridge.status().editor!.documentId!, /^doc:/);
+  assert.deepEqual({ ...bridge.status().editor, documentId: undefined }, { tool: 'design', engine: '1.244.0', documentId: undefined });
   assert.equal(status.surface, 'web');
 
   const doc = await callLiveTool(bridge, 'lolly_live_document', {});
@@ -161,7 +162,7 @@ test('the dispatcher lists and answers the live tools only when a bridge is lent
   };
   assert.deepEqual(await listed(), []);
   const live = new LiveBridge({ readDesktop: () => null });
-  assert.equal((await listed(live)).length, 7);
+  assert.equal((await listed(live)).length, 9);
   const hosted = await dispatch({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'lolly_live_connect', arguments: {} } }) as { error?: { message: string } };
   assert.match(hosted.error?.message ?? '', /Unknown tool/);
 });

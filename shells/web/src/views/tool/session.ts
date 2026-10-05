@@ -1211,33 +1211,15 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         // code (agentLink); in the desktop app the app listens while Allow AI control
         // is on and this view answers (desktopServing). Both end with the view.
         const desktopAgents = isTauriShell() && !isTauriMobileShell();
+        const documentId = `doc:${globalThis.crypto.randomUUID()}`;
         let agentLink: import('../../lib/live-agent-connect.ts').AgentLink | null = null;
         let desktopServing: import('../../lib/live-agent-desktop.ts').DesktopServing | null = null;
         let desktopPill: import('../agent-connect.ts').AgentPill | null = null;
         mountLifecycle.add('agent-link', () => { agentLink?.disconnect(); desktopServing?.stop(); desktopPill?.remove(); });
-        const liveEditorFactory = async () => {
-          const [{ designLiveEditor }, { ENGINE_VERSION, validateDocument }, { exportTargetNode }] = await Promise.all([
-            import('../design-live.ts'), import('@lolly/engine'), import('../../lib/export-target.ts'),
-          ]);
-          return () => designLiveEditor({
-            toolId,
-            engine: ENGINE_VERSION,
-            surface: desktopAgents ? 'desktop' : 'web',
-            runtime,
-            blockId: fc.design.model.blockId,
-            fields: fc.design.fields,
-            selection: () => fc.design.selection.get(),
-            size: () => ({ width: nativeW, height: nativeH }),
-            history: { commit: tview.history.commitInputs, top: () => tview.inputHistory.peekUndo(), undo: () => tview.history.undoHistory() },
-            readOnly: () => tview.collabHandle?.role === 'observer',
-            label: (note) => tRaw('AI agent: {note}', { note }),
-            validateInputs: (value) => validateDocument({ kind: 'inputs', manifest: tview.tool.manifest, value }),
-            exportSvg: () => tview.exporting.exportUnscaled(
-              () => runtime.export(exportTargetNode(canvasEl) ?? canvasEl, 'svg', { width: nativeW, height: nativeH, embedMeta: false, watermark: false }),
-              { shutter: false },
-            ),
-          });
-        };
+        const liveEditorFactory = () => import('../tool-agent-editor.ts').then(({ toolAgentEditor }) => toolAgentEditor(tview, {
+          documentId, desktop: desktopAgents, canvas: canvasEl,
+          design: () => fc.design, size: () => ({ width: nativeW, height: nativeH }),
+        }));
         const startDesktopServing = async (): Promise<void> => {
           const invoke = tauriInvoke();
           if (!invoke || desktopServing || !viewEl.isConnected) return;
@@ -1251,10 +1233,11 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               if (event.method === 'hello' && !desktopPill) {
                 desktopPill = mountAgentPill(viewEl, {
                   client: () => serving.session().client(),
+                  pause: value => serving.session().pause(value),
                   disconnect: () => { serving.disconnect(); desktopPill?.remove(); desktopPill = null; announce(t('The AI agent was disconnected.')); },
                 });
               }
-              desktopPill?.activity(event.method, event.note);
+              desktopPill?.activity(event.method, event.note, event.change);
             },
           });
           desktopServing = serving;
@@ -1287,6 +1270,8 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             });
             return;
           }
+          const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
+          if (agentRelayBase()) { showShareDialog(runtime, actionsEl, tview.tool.manifest); return; }
           const [{ openAgentConnect }, editor] = await Promise.all([import('../agent-connect.ts'), liveEditorFactory()]);
           if (!viewEl.isConnected) return;
           openAgentConnect({ viewEl, link: () => agentLink, setLink: (link) => { agentLink = link; }, editor });
@@ -1457,7 +1442,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             // the tab may reach loopback: a development build, or a build made with
             // VITE_LIVE_AGENT=1 whose CSP allows ws://127.0.0.1 (the served CSPs do not
             // yet; widening them is a reviewed security change).
-            agent: toolId === 'design' && !isPresent && (desktopAgents || !import.meta.env?.PROD || import.meta.env?.VITE_LIVE_AGENT === '1')
+            agent: toolId === 'design' && !isPresent && (desktopAgents || !import.meta.env?.PROD || import.meta.env?.VITE_LIVE_AGENT === '1' || import.meta.env?.VITE_LIVE_RELAY)
               ? () => {
                   void openAgentLink();
                 }
@@ -1466,6 +1451,13 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             dirtyRef: tview.renderSaveBtn,
           },
         } as Parameters<typeof initFreeCanvas>[0]);
+
+        if (toolId === 'design' && !isPresent) {
+          void Promise.all([import('../agent-share.ts'), import('../../lib/agent-invitation-host.ts'), liveEditorFactory()]).then(([{ installAgentInvitations }, { agentRelayBase }, editor]) => {
+            const base = agentRelayBase();
+            if (base && viewEl.isConnected) mountLifecycle.add('agent-invitations', installAgentInvitations(runtime, viewEl, base, editor));
+          });
+        }
 
         // ── The Design chrome: top bar + navigator + inspector (plan 179 M1-M3) ──────
         //

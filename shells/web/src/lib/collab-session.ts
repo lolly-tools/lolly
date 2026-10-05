@@ -243,6 +243,12 @@ export interface CollabSessionHandle {
  * it - {@link isHost} and {@link inviteeIndex} - instead of pre-baking English.
  */
 export interface CollabParticipant {
+  readonly kind?: 'person' | 'agent';
+  readonly phase?: import('@lolly-tools/core/agent-presence-v1').AgentPresence['phase'];
+  readonly activity?: string;
+  readonly agentChange?: import('@lolly-tools/core/agent-presence-v1').AgentChange;
+  /** The person whose connected device delegates this agent. */
+  readonly delegatedBy?: string;
   /** Roster key: the per-device client id the frames are stamped with. */
   readonly clientId: string;
   /** The identity a human sees; equal to `clientId` in a private collab. */

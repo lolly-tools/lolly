@@ -26,9 +26,11 @@ import type { IncomingMessage } from 'node:http';
 import type { WebSocket, WebSocketServer } from 'ws';
 import { LIVE_ERRORS, LIVE_LIMITS, LIVE_PROTOCOL, type LiveReplyV1 } from '@lolly-tools/core';
 import { callLiveServer, readLiveServer, type RenderServer } from '@lolly-tools/node-shell/desktop-renderer';
+import { readLiveInvitation, type LiveInvitation } from '@lolly-tools/core/live-invite-v1';
+import { closeRemoteLive, remoteLiveRequest } from './live-remote.ts';
 
 /** The sites whose pages may pair, before LOLLY_LIVE_ORIGINS adds a self-hosted one. */
-export const LIVE_DEFAULT_ORIGINS = ['https://lolly.tools', 'https://www.lolly.tools'] as const;
+export const LIVE_DEFAULT_ORIGINS = ['https://lolly.tools', 'https://www.lolly.tools', 'https://lolly.ing', 'https://www.lolly.ing'] as const;
 
 const CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const PAIR_TIMEOUT_MS = 30_000;
@@ -82,7 +84,7 @@ export interface LiveStatus {
   surface?: LiveSurface;
   code?: string;
   /** What the editor said in hello: tool, engine. */
-  editor?: { tool: string; engine: string };
+  editor?: { tool: string; engine: string; documentId?: string };
   /** Why the last connection ended, if one did. */
   ended?: string;
 }
@@ -103,6 +105,7 @@ export class LiveBridge {
   private code = '';
   private attempts = 0;
   private desktop: RenderServer | null = null;
+  private remote: LiveInvitation | null = null;
   private editor: LiveStatus['editor'];
   private ended = '';
   private seq = 0;
@@ -114,6 +117,7 @@ export class LiveBridge {
   constructor(opts: LiveBridgeOpts = {}) { this.opts = opts; }
 
   status(): LiveStatus {
+    if (this.remote) return { state: 'connected', surface: 'web', ...(this.editor ? { editor: this.editor } : {}) };
     if (this.desktop) return { state: 'connected', surface: 'desktop', ...(this.editor ? { editor: this.editor } : {}) };
     if (this.socket) return { state: 'connected', surface: 'web', ...(this.editor ? { editor: this.editor } : {}) };
     if (this.wss) return { state: 'pairing', surface: 'web', code: this.code };
@@ -146,8 +150,27 @@ export class LiveBridge {
     return this.status();
   }
 
+  async connectInvite(value: string, client?: string): Promise<LiveStatus> {
+    const invitation = readLiveInvitation(value);
+    if (!invitation) throw new LiveBridgeError('Use the complete invitation copied from Share > Invite an agent.');
+    this.close(); this.ended = ''; this.remote = invitation;
+    try {
+      const reply = await remoteLiveRequest(invitation, ++this.seq, 'hello', { protocol: LIVE_PROTOCOL, client: client || this.opts.clientName?.() || 'AI agent' });
+      if (reply.error) throw new LiveBridgeError(reply.error.message, reply.error.code);
+      const result = reply.result as { tool: string; engine: string; documentId: string };
+      this.editor = { tool: result.tool, engine: result.engine, documentId: result.documentId };
+      return this.status();
+    } catch (error) { this.remote = null; throw error; }
+  }
+
   /** Wait up to `ms` for a pairing to finish. Resolves to the status either way. */
   async waitConnected(ms: number): Promise<LiveStatus> {
+    if (this.remote) {
+      try { await this.request('document.context'); } catch (error) {
+        if (error instanceof Error && /invitation has expired or ended/.test(error.message)) return this.status();
+        throw error;
+      }
+    }
     if (this.status().state !== 'pairing' || ms <= 0) return this.status();
     await new Promise<void>((resolve) => {
       const done = (): void => { clearTimeout(timer); this.waiters.delete(done); resolve(); };
@@ -159,12 +182,16 @@ export class LiveBridge {
 
   /** One live-v1 request; the result, or a LiveBridgeError carrying the editor's message. */
   async request(method: string, params?: Record<string, unknown>): Promise<unknown> {
-    if (!this.desktop && !this.socket) {
+    if (!this.desktop && !this.socket && !this.remote) {
       throw new LiveBridgeError(this.wss
         ? `Not paired yet. Ask the person to open Design, choose Connect an AI agent in the Lolly menu and type ${this.code}.`
         : 'Not connected. Call lolly_live_connect first.');
     }
-    let reply = await this.send(method, params);
+    let reply: LiveReplyV1;
+    try { reply = await this.send(method, params); } catch (error) {
+      if (this.remote && error instanceof Error && /invitation has expired or ended/.test(error.message)) { this.remote = null; this.editor = undefined; this.ended = error.message; }
+      throw error;
+    }
     // The desktop app answers from whichever Design view is open; after the person
     // opens another one, that view's session has not heard hello yet. Say it again
     // once, then retry. A person's Disconnect refuses hello too, so it still holds.
@@ -177,6 +204,7 @@ export class LiveBridge {
   }
 
   close(reason = 'The agent disconnected.'): void {
+    if (this.remote) { void closeRemoteLive(this.remote).catch(() => {}); this.remote = null; this.ended = reason; }
     for (const [, p] of this.pending) { clearTimeout(p.timer); p.reject(new LiveBridgeError(reason)); }
     this.pending.clear();
     if (this.socket) { try { this.socket.close(1000, 'closed'); } catch { /* already gone */ } }
@@ -196,12 +224,14 @@ export class LiveBridge {
   private wake(): void { for (const w of [...this.waiters]) w(); }
 
   private async hello(): Promise<void> {
-    const result = await this.request('hello', { protocol: LIVE_PROTOCOL, client: this.opts.clientName?.() || 'AI agent' }) as { tool?: unknown; engine?: unknown };
-    this.editor = { tool: String(result?.tool ?? ''), engine: String(result?.engine ?? '') };
+    const result = await this.request('hello', { protocol: LIVE_PROTOCOL, client: this.opts.clientName?.() || 'AI agent' }) as { tool?: unknown; engine?: unknown; documentId?: string };
+    this.editor = { tool: String(result?.tool ?? ''), engine: String(result?.engine ?? ''), ...(result.documentId ? { documentId: result.documentId } : {}) };
   }
 
   private send(method: string, params?: Record<string, unknown>): Promise<LiveReplyV1> {
     const id = ++this.seq;
+    if (method !== 'hello' && this.editor?.documentId) params = { documentId: this.editor.documentId, ...params };
+    if (this.remote) return remoteLiveRequest(this.remote, id, method, params);
     const request = { jsonrpc: '2.0', id, method, ...(params ? { params } : {}) };
     const text = JSON.stringify(request);
     if (text.length > LIVE_LIMITS.maxRequestBytes) return Promise.reject(new LiveBridgeError('The request is larger than the 4 MB limit.'));

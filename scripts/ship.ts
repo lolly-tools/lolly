@@ -223,6 +223,7 @@ const vercelDriver: Driver = {
         '--build-env', 'ONNXRUNTIME_NODE_INSTALL_CUDA=skip',
         '--yes',
       );
+      if (target.liveRelay) args.push('--build-env', `VITE_LIVE_RELAY=${target.liveRelay}`);
       // The CLI holds the build-log stream, so a ship shows the build happening. Its
       // exit code is read only as "was a deployment CREATED", never as the build's
       // outcome - ship() takes that from the ready state, because a held log stream

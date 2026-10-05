@@ -6,7 +6,8 @@
       "name": "bt",
       "project": "prj_13zlzrOV2VHeK0CGUCyHGx4cPLu7",
       "profile": "lolly-start",
-      "domain": "lolly.tools"
+      "domain": "lolly.tools",
+      "liveRelay": "https://lolly.ing/live"
     }
   ]
 }
