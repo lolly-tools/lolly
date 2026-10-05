@@ -79,6 +79,8 @@ export interface AuthConfig {
   mode: 'open' | 'gated' | 'per-tool';
   provider: 'oidc' | 'dev' | 'proxy' | null;
   loginPath: string | null;
+  /** Same-origin management route, advertised only by an instance with native passkeys. */
+  passkeyManagementPath?: string;
   /** The workspace's own name ("lolly.ing"), for the sign-in gate and the profile card
    *  before (or without) a member's org-config. Absent on an older instance. */
   instanceName?: string;
@@ -401,6 +403,7 @@ function workspaceName(): string {
  * no name; a name that is only the address again is dropped, so the card says it once.
  */
 export function orgProfileAccount(): {
+  securityHref?: string;
   workspace: string;
   member: { email: string; name: string } | null;
   inbox: { count(): number; onChange(fn: (count: number) => void): () => void; open(): void } | null;
@@ -412,6 +415,7 @@ export function orgProfileAccount(): {
   const email = cleanText(session.user.email, 254) || cleanText(fieldOf(fromConfig, 'email'), 254);
   const name = cleanText(session.user.name) || cleanText(fieldOf(fromConfig, 'name'));
   return {
+    ...(authState.passkeyManagementPath === '/api/auth/security' ? { securityHref: instancePath('/api/auth/security') } : {}),
     workspace: workspaceName(),
     member: { email, name: name.toLowerCase() === email.toLowerCase() ? '' : name },
     inbox: {

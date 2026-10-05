@@ -850,3 +850,7 @@ html[data-a11y-motion="reduce"] .cat-crop-img { transition: none; }
 @media (prefers-reduced-motion: reduce) { .cat-crop-img { transition: none; } }
 
 } /* @layer chrome */
+
+.asset-preview-status { position: absolute; left: 50%; bottom: var(--sp-6); transform: translateX(-50%); display: flex; align-items: center; gap: var(--sp-3); max-width: calc(100% - 48px); padding: var(--sp-3) var(--sp-4); border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: var(--fs-sm); box-shadow: var(--shadow-sm); z-index: 2; }
+.asset-preview-status[hidden] { display: none; }
+.asset-preview-status button { font: inherit; color: inherit; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); min-height: 44px; padding: var(--sp-2) var(--sp-3); cursor: pointer; white-space: nowrap; }
