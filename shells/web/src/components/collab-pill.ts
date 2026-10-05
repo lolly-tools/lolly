@@ -737,10 +737,10 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
         rowTags.appendChild(tagEl(tRaw(STRINGS.agent)));
         if (p.phase === 'paused') rowTags.appendChild(tagEl(tRaw(STRINGS.paused)));
         if (p.activity) { const activity = tagEl(p.activity); activity.title = p.activity; rowTags.appendChild(activity); }
-        for (const [action, label] of [[opts.onPauseAgent, p.phase === 'paused' ? STRINGS.resumeAgent : STRINGS.pauseAgent], [opts.onDisconnectAgent, STRINGS.disconnectAgent]] as const) {
+        for (const [action, label] of [[opts.onPauseAgent, p.phase === 'paused' ? tRaw(STRINGS.resumeAgent) : tRaw(STRINGS.pauseAgent)], [opts.onDisconnectAgent, tRaw(STRINGS.disconnectAgent)]] as const) {
           if (!action || p.delegatedBy !== state.self.clientId) continue;
           const control = document.createElement('button');
-          control.type = 'button'; control.className = 'btn btn--ghost btn--sm'; control.textContent = tRaw(label);
+          control.type = 'button'; control.className = 'btn btn--ghost btn--sm'; control.textContent = label;
           control.dataset.peerId = p.clientId;
           control.dataset.agentAction = action === opts.onPauseAgent ? 'pause' : 'disconnect';
           control.addEventListener('click', () => action(p.clientId)); rowTags.appendChild(control);

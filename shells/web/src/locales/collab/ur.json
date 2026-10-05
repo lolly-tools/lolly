@@ -225,5 +225,10 @@
   "Enlarge {label} for scanning": "اسکین کرنے کے لیے {label} بڑا کریں",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "اسے اسکین کرنے کے لیے یہاں کوئی دوسرا ڈیوائس رکھیں۔ بند کرنے کے لیے کہیں بھی ٹیپ کریں یا Esc دبائیں۔",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "یہ لنک اسکین کرنے کے لیے بہت لمبا ہے۔ اس کے بجائے اسے کاپی کریں، یا کوڈ ٹیب استعمال کریں۔",
-  "View {name}": "{name} دیکھیں"
+  "View {name}": "{name} دیکھیں",
+  "AI agent": "اے آئی ایجنٹ",
+  "Pause agent": "ایجنٹ کو روکیں",
+  "Resume agent": "ایجنٹ دوبارہ چلائیں",
+  "Disconnect agent": "ایجنٹ کا رابطہ منقطع کریں",
+  "Paused": "روکا گیا"
 }

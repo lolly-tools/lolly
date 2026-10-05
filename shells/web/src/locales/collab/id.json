@@ -225,5 +225,10 @@
   "Enlarge {label} for scanning": "Perbesar {label} untuk dipindai",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Arahkan perangkat lain ke sini untuk memindainya. Ketuk di mana saja atau tekan Esc untuk menutup.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Tautan ini terlalu panjang untuk dipindai. Salin saja, atau gunakan tab Kode.",
-  "View {name}": "Lihat {name}"
+  "View {name}": "Lihat {name}",
+  "AI agent": "Agen AI",
+  "Pause agent": "Jeda agen",
+  "Resume agent": "Lanjutkan agen",
+  "Disconnect agent": "Putuskan agen",
+  "Paused": "Dijeda"
 }
