@@ -538,7 +538,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `video-meta.ts` | 437 | Video provenance - embeds the export authorship record (metadata.js) into the two MediaRecorder containers, which are produced bare (no metadata slot exists during recording, so the shell post-processes the finished… | yes | `tests/video-meta.test.ts` | yes |
 | `watermark-search.ts` | 257 | Lolly pixel watermark - multi-scale + offset recovery search | yes | `tests/watermark-search.test.ts` | – |
 | `wav.ts` | 267 | WAV reader/writer. | yes | `tests/wav.test.ts` | yes |
-| `web-embed.ts` | 281 | Web page boxes (plan 288): what a Design box may frame, and in what form. | no | `tests/web-embed.test.ts` | – |
+| `web-embed.ts` | 291 | Web page boxes (plan 288): what a Design box may frame, and in what form. | no | `tests/web-embed.test.ts` | – |
 | `webp-anim-decode.ts` | 219 | Animated WebP demuxer - pure, DOM-free, platform-agnostic. | yes | `tests/webp-anim-decode.test.ts` | – |
 | `webp-anim.ts` | 164 | Animated WebP packer - pure, DOM-free, platform-agnostic. | yes | `tests/webp-anim.test.ts` | – |
 | `wmf.ts` | 333 | WMF (Windows Metafile, 16-bit) emitter - pure, DOM-free, platform-agnostic. | yes | `tests/wmf.test.ts` | – |

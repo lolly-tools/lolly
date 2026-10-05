@@ -94,6 +94,7 @@ const LOLLY_DROP = /^(format|export|copy|output|download|filename|nostage|full|o
 const REFUSERS = new Set([
   'github.com', 'gist.github.com', 'colab.research.google.com', 'x.com', 'twitter.com',
   'developer.mozilla.org', 'stackoverflow.com', 'news.ycombinator.com', 'play.grafana.org',
+  'suse.com',
 ]);
 
 /** Parse a pasted link or `<iframe>` snippet. Null when it cannot be framed safely. */
@@ -207,6 +208,15 @@ function providerEmbed(url: URL, host: string): ProviderPart | null {
       // enablejsapi lets a presenting deck pause a kept player when its slide is left.
       const q = new URLSearchParams({ rel: '0', enablejsapi: '1' });
       if (start > 0) q.set('start', String(start));
+      for (const key of ['autoplay', 'mute', 'loop', 'controls', 'fs', 'playsinline', 'cc_load_policy']) {
+        const value = url.searchParams.get(key);
+        if (value === '0' || value === '1') q.set(key, value);
+      }
+      const end = ytSeconds(url.searchParams.get('end'));
+      if (end > start && end <= 86400) q.set('end', String(end));
+      if (q.get('autoplay') === '1' && !q.has('mute')) q.set('mute', '1');
+      if (q.get('loop') === '1') q.set('playlist', id);
+      q.set('playsinline', '1');
       const list = url.searchParams.get('list');
       if (list && /^[A-Za-z0-9_-]+$/.test(list)) q.set('list', list);
       return player('youtube', 'YouTube video', `https://www.youtube-nocookie.com/embed/${id}?${q}`);

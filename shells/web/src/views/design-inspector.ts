@@ -1,4 +1,5 @@
 import { mountTextInspector } from '../lib/text-inspector.ts';
+import { webPlaybackRows, wireWebPlayback } from './design-web-playback.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The Design editor's INSPECTOR column - plan 179 M3, slice (c).
@@ -1593,6 +1594,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         ['slide', t('With its slide')], ['early', t('One slide early')],
         ['keep', t('Keep running')], ['click', t('Wait for a click')],
       ], String(fv(b, 'webLoad') ?? '') || 'slide')
+      + (embed ? webPlaybackRows(embed) : '')
       + (embed && !embed.sameOrigin ? webApprovalRows(embed, readRow, doorBtn) : '')
       + doorBtn(cfg.imageField && b[cfg.imageField] ? t('Change poster') : t('Choose poster'), 'pickimage', 'image')
       + (embed?.kind === 'lolly'
@@ -2035,6 +2037,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     scroll.querySelectorAll<HTMLSelectElement>('select[data-fld]').forEach((sel) => {
       sel.addEventListener('change', () => write(sel.dataset.fld, sel.dataset.kind === 'num' ? Number(sel.value) : sel.value));
     });
+    wireWebPlayback(scroll, () => parseWebEmbed(String(fv(boxesById(renderedIds)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin }), link => write(F_WEB, link));
 
     // The DOCUMENT's own settings (plans/180's narration inputs, and the captions flag).
     // They write a top-level input, so they never travel through `write` and can never be
@@ -2068,6 +2071,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     }
 
     scroll.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[data-fld], textarea[data-fld]').forEach((inp) => {
+      if (inp.dataset.webParam) return;
       const kind = inp.dataset.kind;
       const type = (inp as HTMLInputElement).type;
       if (kind === 'bool') {

@@ -2,7 +2,8 @@
 /** Shared projects are folder screens inside Projects, with ordinary cards and routes. */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { getSessionSource, readSourceProjects, readSourceSessions } from '../lib/session-source.ts';
-import { sessionTile } from '../folder-tiles.ts';
+import { folderTile, sessionTile } from '../folder-tiles.ts';
+import { createTeamFolder, listTeamFolders, moveTeamFolderItem, teamFolderHref } from './team-folders.ts';
 import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
 import { applyCardSize, readCardSize } from '../components/view-options.ts';
@@ -42,6 +43,7 @@ interface ProjectViewOptions {
   sort?: string;
   reversed?: boolean;
   assetId?: string;
+  folderId?: string;
 }
 
 export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOptions): () => void {
@@ -50,6 +52,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   let clearPreviews: (() => void) | undefined;
   let sessionMenu: TileContextMenuHandle | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
+  let createFolderAction: (() => void) | undefined;
+  container.addEventListener('lolly:team-folder-create', () => createFolderAction?.(), { signal: abort.signal });
   const current = () => !disposed && container.isConnected && opts.isMounted() && source === getSessionSource();
   const node = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] => {
     const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (className) el.className = className; return el;
@@ -83,6 +87,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   async function load(): Promise<void> {
     if (!source || !current()) return;
     const my = ++ticket;
+    createFolderAction = undefined;
     clearPreviews?.(); clearPreviews = undefined;
     sessionMenu?.destroy(); sessionMenu = undefined;
     clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
@@ -109,8 +114,10 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     const copy = button(tRaw('Copy project link'), () => { void copyText(teamProjectLinkUrl(project.id)).then(ok => {
       if (current()) notice.textContent = ok ? tRaw('Link copied') : tRaw('Could not copy. Try again.');
     }); }); actions.append(copy);
-    const canWrite = canWriteProject(project.myRole) && orgConfig()?.can?.['session.create'] !== false;
-    if (source.write && canWrite) actions.append(button(tRaw('New session'), () => showNewSession(), true));
+    const canWrite = canWriteProject(project.myRole) && orgConfig()?.can?.['session.edit'] !== false;
+    const canCreateSession = canWrite && orgConfig()?.can?.['session.create'] !== false;
+    if (source.write && canCreateSession) actions.append(button(tRaw('New session'), () => showNewSession(), true));
+    if (canWrite) actions.append(button(tRaw('New folder'), () => createFolderAction?.()));
     if (isManagerPlus(projectRole)) actions.append(button(tRaw('Rename'), () => { void (async () => {
       const name = await promptDialog({ title: tRaw('Rename shared project'), message: tRaw('Project name'), value: project.name, confirmLabel: tRaw('Save') });
       if (!current() || !name?.trim() || name.trim() === project.name) return;
@@ -135,31 +142,61 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (opts.tab === 'files' && orgConfig()?.sharing?.projectFiles) {
       content.append(buildTeamFilesPanel({ projectId: project.id, canUpload: canWrite, canManage: isManagerPlus(projectRole), onBack: () => { window.location.hash = `#/p?team=${encodeURIComponent(project.id)}`; } })); return;
     }
-    const [got, assets] = await Promise.all([
+    const [got, assets, folderData] = await Promise.all([
       readSourceSessions(source!, project.id),
       orgConfig()?.sharing?.projectFiles ? listTeamFiles(project.id).then(data => ({ files: data.files, error: '' }), error => ({ files: [], error: teamFileMessage(error, 'list') })) : Promise.resolve({ files: [], error: '' }),
+      listTeamFolders(project.id).then(folders => ({ folders, error: '' }), error => ({ folders: [], error: String(error instanceof Error ? error.message : error) })),
     ]);
     if (!current() || my !== ticket) return;
     if (!got.ok) { content.append(node('p', teamOpenMessage(got.status), 'team-project-notice'), button(tRaw('Try again'), () => { void load(); })); return; }
     if (assets.error) content.append(node('p', assets.error, 'team-project-notice'), button(tRaw('Try again'), () => { void load(); }));
+    if (folderData.error) content.append(node('p', folderData.error, 'team-project-notice'));
+    const folders = folderData.folders, folderId = opts.folderId || null;
+    const folder = folders.find(f => f.id === folderId);
+    if (folderId && !folder) { content.append(node('p', tRaw('This shared folder is unavailable. Return to the project or refresh.'), 'team-project-notice')); return; }
+    const chain = []; let ancestor = folder; const seen = new Set<string>();
+    while (ancestor && !seen.has(ancestor.id)) { seen.add(ancestor.id); chain.unshift(ancestor); ancestor = folders.find(f => f.id === ancestor!.parentId); }
+    breadcrumbs.replaceChildren(root);
+    const projectCrumb = node('a', project.name); projectCrumb.href = teamFolderHref(project.id); breadcrumbs.append(projectCrumb);
+    for (const entry of chain) { const crumb = node('a', entry.name); crumb.href = teamFolderHref(project.id, entry.id); if (entry.id === folderId) crumb.setAttribute('aria-current', 'page'); breadcrumbs.append(crumb); }
+    if (folder) head.querySelector('h2')!.textContent = folder.name;
+    if (canWrite) createFolderAction = showNewFolder;
     if (opts.assetId) {
       const file = assets.files.find(file => file.id === opts.assetId);
-      content.append(file ? buildProjectAsset(project.id, file) : node('p', tRaw('This asset is unavailable. Return to the project or refresh to check your access.'), 'team-project-notice'));
+      content.append(file ? buildProjectAsset(project.id, file, folderId) : node('p', tRaw('This asset is unavailable. Return to the project or refresh to check your access.'), 'team-project-notice'));
       return;
     }
     const tokens = tokenize(opts.query || '');
-    const sessions = got.items.filter(session => !tokens.length || matchesHaystack(buildFolderHaystack(`${session.label || ''} ${opts.toolName(session.toolId)}`), tokens));
+    const belongs = (kind: 'session' | 'file', ref: string) => folder ? folder.items.some(item => item.kind === kind && item.ref === ref)
+      : !folders.some(f => f.items.some(item => item.kind === kind && item.ref === ref));
+    const sessions = got.items.filter(session => belongs('session', session.id) && (!tokens.length || matchesHaystack(buildFolderHaystack(`${session.label || ''} ${opts.toolName(session.toolId)}`), tokens)));
     sessions.sort((a, b) => (opts.reversed ? -1 : 1) * (opts.sort === 'name' ? (a.label || a.toolId).localeCompare(b.label || b.toolId) : opts.sort === 'tool' ? opts.toolName(a.toolId).localeCompare(opts.toolName(b.toolId)) : (b.updatedAt || '').localeCompare(a.updatedAt || '')));
     const grid = node('div', undefined, `folder-grid projects-grid${opts.list ? ' projects-list' : ''}`);
-    const files = assets.files.filter(file => !tokens.length || matchesHaystack(buildFolderHaystack(file.name), tokens));
-    grid.innerHTML = sessions.map(session => {
+    const files = assets.files.filter(file => belongs('file', file.id) && (!tokens.length || matchesHaystack(buildFolderHaystack(file.name), tokens)));
+    const children = folders.filter(f => f.parentId === folderId && (!tokens.length || matchesHaystack(buildFolderHaystack(f.name), tokens))).sort((a, b) => a.name.localeCompare(b.name));
+    grid.innerHTML = children.map(f => folderTile(f, { count: f.items.length + folders.filter(child => child.parentId === f.id).length, href: teamFolderHref(project.id, f.id), shared: { subfolder: true, subtitle: tRaw('Shared folder'), openLabel: tRaw('Open shared folder {name}', { name: f.name }) } })).join('') + sessions.map(session => {
       const name = session.label || opts.toolName(session.toolId) || session.toolId;
       return sessionTile({ slot: session.id, toolId: session.toolId, label: name, updatedAt: session.updatedAt }, {
         toolName: opts.toolName(session.toolId), href: `#/team/${encodeURIComponent(session.id)}`,
         shared: { subtitle: [opts.toolName(session.toolId), activityLabel(session)].filter(Boolean).join(' · '), openLabel: tRaw('Open shared session {name}', { name }) },
       });
-    }).join('') + teamAssetTiles(project.id, files);
+    }).join('') + teamAssetTiles(project.id, files, folderId);
     applyCardSize(grid, readCardSize('projects'));
+    if (canWrite) for (const tile of grid.querySelectorAll<HTMLElement>('[data-kind="team-session"], [data-kind="team-file"]')) {
+      const isSession = tile.dataset.kind === 'team-session', ref = tile.dataset.ref;
+      if (!ref) continue;
+      const label = node('label', tRaw('Move to folder'), 'team-folder-move');
+      const select = node('select', undefined, 'field-select'); select.setAttribute('aria-label', tRaw('Move {name} to folder', { name: isSession ? sessions.find(s => s.id === ref)?.label || tRaw('Session') : files.find(f => f.id === ref)?.name || tRaw('File') }));
+      const top = node('option', project.name); top.value = ''; select.append(top);
+      for (const target of folders) {
+        const names = [target.name], seen = new Set([target.id]); let parent = folders.find(f => f.id === target.parentId);
+        while (parent && !seen.has(parent.id)) { seen.add(parent.id); names.unshift(parent.name); parent = folders.find(f => f.id === parent!.parentId); }
+        const option = node('option', names.join(' / ')); option.value = target.id; select.append(option);
+      }
+      select.value = folderId || ''; select.addEventListener('click', event => event.stopPropagation());
+      select.addEventListener('change', async () => { select.disabled = true; try { await moveTeamFolderItem(project.id, select.value || null, isSession ? 'session' : 'file', ref); if (current()) void load(); } catch (error) { if (current()) notice.textContent = String(error instanceof Error ? error.message : error); select.disabled = false; } }, { signal: abort.signal });
+      label.append(select); tile.append(label);
+    }
     for (const tile of grid.querySelectorAll<HTMLElement>('.folder-tile[data-kind="team-session"]')) {
       const more = button(tRaw('Session actions'), () => {
         const rect = more.getBoundingClientRect(); sessionMenu?.openAt(rect.right, rect.bottom, { ref: tile.dataset.ref!, tile }, more);
@@ -205,8 +242,23 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
       event.preventDefault(); event.stopPropagation(); void open(link.dataset.openTeamSession!, notice);
     }, { signal: abort.signal });
-    content.append(sessions.length || files.length ? grid : node('p', tokens.length ? tRaw('No shared sessions or assets match your search.') : tRaw('No sessions or assets yet. Create a session or add files to start working together.'), 'team-project-empty'));
+    content.append(children.length || sessions.length || files.length ? grid : node('p', tokens.length ? tRaw('No shared folders, sessions or assets match your search.') : tRaw('No contents yet. Create a folder or session to start working together.'), 'team-project-empty'));
     clearPreviews = hydrateSharedPreviews(grid, source!, opts.host, current);
+
+    function showNewFolder(): void {
+      if (!canWrite || !current() || my !== ticket) return;
+      const form = node('form', undefined, 'team-new-project'), label = node('label', tRaw('Folder name'));
+      const input = node('input', undefined, 'field-input'); input.required = true; input.maxLength = 200; input.setAttribute('aria-label', tRaw('New shared folder name')); label.append(input);
+      const status = node('p', undefined, 'team-project-notice'); status.setAttribute('role', 'status');
+      const create = node('button', tRaw('Create folder'), 'btn btn--primary'); create.type = 'submit';
+      const controls = node('div', undefined, 'modal-actions'); controls.append(button(tRaw('Cancel'), () => { void load(); }), create); form.append(label, status, controls);
+      content.replaceChildren(form); input.focus();
+      form.addEventListener('submit', async event => {
+        event.preventDefault(); if (create.disabled || !input.value.trim()) return; create.disabled = true;
+        try { await createTeamFolder(projectId, input.value.trim(), folderId); if (current()) void load(); }
+        catch (error) { if (current()) { status.textContent = String(error instanceof Error ? error.message : error); create.disabled = false; } }
+      }, { signal: abort.signal });
+    }
 
     function showNewSession(): void {
       const form = node('form', undefined, 'team-new-project');
@@ -219,14 +271,19 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       form.append(titleLabel, toolLabel, status, node('div', undefined, 'modal-actions'));
       form.lastElementChild!.append(button(tRaw('Cancel'), () => { void load(); }), create);
       content.replaceChildren(form); titleInput.focus();
+      let savedId: string | undefined;
       form.addEventListener('submit', async event => {
         event.preventDefault(); if (create.disabled || !tool.value || !titleInput.value.trim()) return; create.disabled = true;
         try {
-          const saved = await source!.write!.createSession(projectId, { toolId: tool.value, inputs: {}, meta: { label: titleInput.value.trim() } });
-          if (!current()) return;
-          if (saved.kind === 'saved') { await open(saved.id, status); }
-          else status.textContent = saved.kind === 'file-error' ? saved.message : teamOpenMessage(saved.kind === 'error' ? saved.status : 409);
-        } catch { if (current()) status.textContent = tRaw('Could not create the session. Check your connection and try again.'); }
+          if (!savedId) {
+            const saved = await source!.write!.createSession(projectId, { toolId: tool.value, inputs: {}, meta: { label: titleInput.value.trim() } });
+            if (!current()) return;
+            if (saved.kind !== 'saved') { status.textContent = saved.kind === 'file-error' ? saved.message : teamOpenMessage(saved.kind === 'error' ? saved.status : 409); return; }
+            savedId = saved.id; titleInput.disabled = true; tool.disabled = true;
+          }
+          if (folderId) await moveTeamFolderItem(projectId, folderId, 'session', savedId);
+          if (current()) await open(savedId, status);
+        } catch { if (current()) status.textContent = savedId ? tRaw('Your session is saved. Try again to move the session into this folder and open the document.') : tRaw('Could not create the session. Check your connection and try again.'); }
         finally { create.disabled = false; }
       }, { signal: abort.signal });
     }

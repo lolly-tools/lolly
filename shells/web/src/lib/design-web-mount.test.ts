@@ -31,6 +31,7 @@ function canvas(boxes: Array<{ id: string; web: string; view?: number; load?: st
 const markerOf = (root: Element, id: string) => root.querySelector<HTMLElement>(`[data-box-id="${id}"] .lolly-box-web`)!;
 const ctx = { appOrigin: 'https://lolly.tools' };
 
+
 test('each kind of link gets its state before anyone is asked', () => {
   assert.equal(webFrameState(null, 'editor'), 'invalid');
   assert.equal(webFrameState(parseWebEmbed('https://lolly.tools/#/tool/sandbox?html=x', ctx), 'editor'), 'live', 'a Lolly frame needs no agreement');
@@ -161,5 +162,30 @@ test("while presenting, the editor's own frames unload and come back after", () 
   mountWebFrames(root, { mode: 'editor' });
   assert.ok(markerOf(root, 'a').querySelector('iframe'));
   unmountWebFrames(root);
+  root.remove();
+});
+
+test('autoplay is suppressed in the editor and on preloaded slides, while active slides honor playback settings', () => {
+  const link = 'https://youtu.be/M7lc1UVf-VE?autoplay=1&mute=1&loop=1';
+  consentToLink(link);
+  const root = canvas([{ id: 'autoplay', web: link }]);
+  mountWebFrames(root, { mode: 'editor' });
+  let frame = markerOf(root, 'autoplay').querySelector<HTMLIFrameElement>('iframe')!;
+  assert.equal(new URL(frame.src).searchParams.get('autoplay'), '0');
+  assert.equal(new URL(frame.src).searchParams.get('mute'), '1');
+  unmountWebFrames(root);
+  mountWebFrames(root, { mode: 'present', shouldPlay: () => false });
+  frame = markerOf(root, 'autoplay').querySelector<HTMLIFrameElement>('iframe')!;
+  assert.equal(new URL(frame.src).searchParams.get('autoplay'), '0');
+  const commands: string[] = []; frame.contentWindow!.postMessage = message => { commands.push(String(message)); };
+  mountWebFrames(root, { mode: 'present', shouldPlay: () => true });
+  assert.equal(new URL(frame.src).searchParams.get('autoplay'), '1', 'first activation starts through the URL even before the player is ready');
+  frame.contentWindow!.postMessage = message => { commands.push(String(message)); };
+  mountWebFrames(root, { mode: 'present', shouldPlay: () => false });
+  mountWebFrames(root, { mode: 'present', shouldPlay: () => true });
+  assert.ok(commands.some(message => JSON.parse(message).func === 'playVideo'), 'later visits resume the existing player');
+  unmountWebFrames(root);
+  mountWebFrames(root, { mode: 'present', shouldPlay: () => true });
+  assert.equal(new URL(markerOf(root, 'autoplay').querySelector<HTMLIFrameElement>('iframe')!.src).searchParams.get('autoplay'), '1');
   root.remove();
 });
