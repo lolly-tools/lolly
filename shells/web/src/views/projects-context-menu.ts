@@ -26,7 +26,9 @@ export function wireProjectContextMenu(d: ProjectMenuDeps): TileContextMenuHandl
       ? menuItemHtml('fav', icon('star'), t('Unfavourite')) + menuItemHtml('share', icon('share'), t('Share'))
       : d.singleHtml(tgt.data ?? tgt.tile?.dataset.kind ?? 'session', tgt.ref),
     bulkHtml: d.bulkHtml,
-    backgroundHtml: d.backgroundHtml,
+    // #view is reused by Design and other routes. Only a mounted Projects grid
+    // can offer folder actions, even if an outgoing listener has not torn down.
+    backgroundHtml: () => d.host.querySelector('.projects') ? d.backgroundHtml?.() ?? '' : '',
     onAction: d.onAction,
     className: 'folder-menu projects-menu',
   });

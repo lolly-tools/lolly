@@ -336,6 +336,9 @@ export function wireTileContextMenu(opts: TileContextMenuOptions): TileContextMe
 
   // ── right-click ───────────────────────────────────────────────────────────
   const onContextMenu = (e: MouseEvent): void => {
+    // An embedded editor owns a context menu it already handled. Its event still
+    // bubbles through the persistent view host; do not add a menu over the editor.
+    if (e.defaultPrevented) return;
     // A keyboard-made contextmenu has no pointer type; it leaves the last one standing.
     const kindOf = (e as PointerEvent).pointerType;
     if (kindOf) lastPointer = kindOf;
