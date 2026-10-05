@@ -26,9 +26,12 @@
 .team-new-project { display: flex; flex-direction: column; gap: var(--sp-3); margin-block: var(--sp-5); max-width: 36rem; }
 .team-invite-dialog { width: min(40rem, calc(100vw - var(--sp-6))); max-height: calc(100dvh - var(--sp-6)); overflow: auto; }
 .document-agent-form, .document-agent-setup { display: grid; gap: var(--sp-4); margin-block: var(--sp-5); }
+.document-agent-form[hidden], .document-agent-setup[hidden] { display: none; }
 .document-agent-field { display: grid; gap: var(--sp-2); min-width: 0; }
 .document-agent-field .input { width: 100%; min-width: 0; min-height: var(--ui-size-target); box-sizing: border-box; }
-.document-agents .btn { min-height: var(--ui-size-target); }
+.document-agents .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--ui-size-target); }
+.document-agents .btn svg, .team-invite-dialog .team-project-head .btn svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); flex-shrink: 0; }
+.document-agent-form > .btn { justify-self: start; max-width: 100%; }
 .document-agent-status:empty { display: none; }
 .document-agent-row { display: flex; align-items: flex-start; gap: var(--sp-3); padding-block: var(--sp-4); border-block-end: 1px solid var(--ui-color-border-default); }
 .document-agent-info { flex: 1; min-width: 0; overflow-wrap: anywhere; }
