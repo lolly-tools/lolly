@@ -31,9 +31,9 @@ export async function openAgentInvites(sessionId: string, isCurrent: () => boole
   const hint = element('p', 'muted', 'Your agent acts on your behalf in this document. Its access cannot exceed yours. You can revoke it at any time.');
   const status = element('p', 'document-agent-status', 'Loading agent invitations…'); status.setAttribute('role', 'status');
   const form = element('form', 'document-agent-form'); form.hidden = true;
-  const label = element('input', 'input'); label.type = 'text'; label.maxLength = 80; label.required = true; label.autocomplete = 'off'; label.placeholder = tRaw('e.g. Keynote assistant');
-  const role = element('select', 'input');
-  const hours = element('select', 'input');
+  const label = element('input', 'field-input'); label.type = 'text'; label.maxLength = 80; label.required = true; label.autocomplete = 'off'; label.placeholder = tRaw('e.g. Keynote assistant');
+  const role = element('select', 'field-select');
+  const hours = element('select', 'field-select');
   for (const [value, text] of [['1', '1 hour'], ['24', '24 hours'], ['168', '7 days']]) { const o = element('option', '', text); o.value = value!; hours.append(o); } hours.value = '24';
   const field = (text: string, control: HTMLElement) => {
     const wrap = element('div', 'document-agent-field'), l = element('label', '', text);
@@ -43,11 +43,12 @@ export async function openAgentInvites(sessionId: string, isCurrent: () => boole
   form.append(field('Agent name', label), field('Access', role), field('Expires in', hours), submit);
   const accessHint = element('p', 'muted', 'Viewers read the document. Editors make changes alongside its collaborators.');
   const setup = element('section', 'document-agent-setup'); setup.hidden = true; setup.setAttribute('aria-label', tRaw('Agent connection'));
-  const key = element('input', 'input'); key.type = 'password'; key.readOnly = true; key.autocomplete = 'off';
-  const endpoint = element('input', 'input'); endpoint.readOnly = true;
+  const key = element('input', 'field-input'); key.type = 'password'; key.readOnly = true; key.autocomplete = 'off';
+  const endpoint = element('input', 'field-input'); endpoint.readOnly = true;
   const revealLabel = element('label', 'document-agent-reveal'), reveal = element('input'); reveal.type = 'checkbox';
   reveal.addEventListener('change', () => { key.type = reveal.checked ? 'text' : 'password'; });
   revealLabel.append(reveal, document.createTextNode(tRaw('Show connection key')));
+  reveal.className = 'field-check';
   const copy = button('Copy MCP configuration', 'clipboard'), instructions = button('Copy instructions', 'clipboard');
   const copyText = async (value: string) => {
     try { await navigator.clipboard.writeText(value); if (current()) status.textContent = tRaw('Copied. Paste it into your agent’s MCP settings.'); }
