@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { assetFiles } from '../lib/asset-files.ts';
+import { mountAssetFileList } from '../components/asset-file-list.ts';
 /**
  * Asset Picker - a host-owned modal UI.
  *
@@ -1133,6 +1135,7 @@ async function render(
       // take it - reject on select with a note beside the tile, rather than
       // committing an asset the tool would refuse. (aria-disabled already signals it.)
       const pickRefAny = pickRef ?? userAssets.find(a => a.id === pickId);
+      if (pickRefAny && assetFiles(pickRefAny.meta).length > 1) { showFileChoices(pickRefAny); return; }
       if (opts.type && pickRefAny && !isAcceptable(pickRefAny.type)) {
         announce(t('This slot can’t use that kind of file.'), { assertive: true });
         const cardEl = pick.closest<HTMLElement>('.asset-picker-card') ?? pick;
@@ -2011,6 +2014,30 @@ async function render(
     setTab(activeTab);
   }
 
+  function showFileChoices(ref: AssetRef): void {
+    showTakeover('<div class="asset-picker-toolcard asset-picker-filecard"></div>');
+    const card = toolcardHost.querySelector<HTMLElement>('.asset-picker-filecard')!;
+    const back = document.createElement('button'); back.type = 'button'; back.className = 'btn btn--sm'; back.textContent = tRaw('Back to assets');
+    back.addEventListener('click', dismissTakeover);
+    const heading = document.createElement('h2'); heading.textContent = String(ref.meta?.assetGroupName ?? ref.meta?.name ?? ref.id);
+    const status = document.createElement('p'); status.setAttribute('role', 'status');
+    card.append(back, heading, status); let busy = false;
+    mountAssetFileList(card, ref, async selected => {
+      if (busy) return; busy = true; status.textContent = tRaw('Loading selected file…');
+      let id = selected.id;
+      if (activeTheme && isThemableRef(selected)) id = buildThemedAssetId(id, activeTheme);
+      else if (activeTreatment && isTreatableRef(selected)) id = buildTreatedAssetId(id, activeTreatment);
+      try {
+        const resolved = await host.assets.get(id);
+        if (!card.isConnected || toolcardHost.hidden) return;
+        recordRecentAsset(id);
+        if (collect) { await collect.onAsset(resolved); status.textContent = tRaw('File added.'); }
+        else close(resolved);
+      } catch { if (card.isConnected) status.textContent = tRaw('Could not load this file. Try again or choose another variation.'); }
+      finally { busy = false; }
+    }, selected => !opts.type || isAcceptable(selected.type)); back.focus();
+  }
+
   // Build the "render this Lolly tool/session as your image" card: detected-tool
   // header, format + size controls, a live preview, and a commit button. "Use this
   // render" resolves the picker with a tool-sourced AssetRef whose id is the
@@ -2860,6 +2887,8 @@ function formatBadge(ref: AssetRef): string {
   // the risk belongs at the moment an ingredient is chosen (plans/126 WP-B).
   const ai = assetAiKind(ref);
   const aiBadge = ai ? genAiPill(ai, true) : aiSignalsChip(ref);
+  const fileCount = assetFiles(ref.meta).length;
+  if (fileCount > 1) return `<span class="asset-picker-fmt">${fileCount} files</span>${aiBadge}`;
   // Playback length, shown in the same corner badge as the format - video, lottie
   // and audio only, and only when a duration actually resolved at ingest time.
   const durMs = typeof ref.meta?.durationMs === 'number' && Number.isFinite(ref.meta.durationMs) && ref.meta.durationMs > 0

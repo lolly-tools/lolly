@@ -47,6 +47,7 @@ import { audioCardArt, wireAudioViz } from './details-shared.ts';
 import { bindOp, type DetailsCtx } from './details-context.ts';
 import { mountAssetPreviewStatus } from '../../lib/asset-preview-status.ts';
 import { appPathname } from '../../lib/any-site.ts';
+import { mountAssetFileList } from '../../components/asset-file-list.ts';
 
 /**
  * The rights rows of the details sheet (plan 253, section 7.1): who is credited,
@@ -566,6 +567,9 @@ export function buildSheet(dt: DetailsCtx): void {
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  const fileSlot = document.createElement('div');
+  dlg.querySelector('.cat-details-body')?.prepend(fileSlot);
+  mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
   dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
   cat.detailsDialog = dlg;
   cat.detailsModal = modal;

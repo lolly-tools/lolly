@@ -14,7 +14,8 @@
  *   - on-demand → fetched lazily, then cached
  */
 
-import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers } from '../../../../engine/src/asset-modifiers.ts';
+import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers, parseFileAssetId, buildFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
+import { assetFiles, fileAssetType } from '../lib/asset-files.ts';
 import type { GradeLut } from '../../../../engine/src/grade.ts';
 // c2pa-verify is LAZY on purpose. It is the entry to the whole provenance
 // cluster (c2pa + c2pa-extract + c2pa-containers + c2pa-verdict + c2pa-trust +
@@ -109,6 +110,18 @@ interface AssetMetaRecord {
   height?: number;
   meta?: Record<string, unknown>;
   formats: AssetFormat[];
+}
+
+/** Choose only a declared format; same-extension attachments keep separate cache keys. */
+function fileMeta(meta: AssetMetaRecord, file: string | null): AssetMetaRecord {
+  if (!file) return meta;
+  const selected = assetFiles(meta.meta).find(f => f.id === file && f.url.startsWith(`/catalog/${meta.id}/`));
+  const format = selected && meta.formats.find(f => f.url === selected.url && f.format === selected.format);
+  if (!selected || !format) throw new Error('Asset file unavailable');
+  return { ...meta, id: buildFileAssetId(meta.id, file), type: fileAssetType(format.format), name: selected.name,
+    width: selected.width, height: selected.height, formats: [format], checksum: format.checksum,
+    meta: { ...meta.meta, assetGroupId: meta.id, assetGroupName: meta.name, selectedFile: file, size: selected.size, bytes: selected.size,
+      ...(selected.thumbnail ? { thumbUrl: selected.thumbnail, posterUrl: selected.thumbnail } : {}) } };
 }
 
 /** A user-uploaded asset (the 'user-assets' IDB store) - already resolved to one blob/format. */
@@ -503,9 +516,10 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
       const { baseId: treatedBase, treatment } = parseTreatedAssetId(id);
       const baseId = theme ? themedBase : treatedBase;
-
-      const currentMeta = await db.get('asset-meta', baseId);
-      if (!currentMeta) throw new Error(`Asset not in catalog: ${id}`);
+      const parsedFile = parseFileAssetId(baseId);
+      const storedMeta = await db.get('asset-meta', parsedFile.baseId);
+      if (!storedMeta) throw new Error(`Asset not in catalog: ${id}`);
+      const currentMeta = fileMeta(storedMeta, parsedFile.file);
       const historical = opts.version !== undefined && opts.version !== currentMeta.version;
       const meta = historical ? { ...currentMeta, version: opts.version!, checksum: undefined } : currentMeta;
 
@@ -1249,8 +1263,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (id.startsWith('user/')) {
         return (await (await assetHistory()).readUserAssetVersion(db, id, opts.version))?.blob ?? null;
       }
-      const meta = await db.get('asset-meta', id);
-      if (!meta) return null;
+      const parsedFile = parseFileAssetId(id);
+      const storedMeta = await db.get('asset-meta', parsedFile.baseId);
+      if (!storedMeta) return null;
+      let meta: AssetMetaRecord;
+      try { meta = fileMeta(storedMeta, parsedFile.file); } catch { return null; }
       const format = pickFormat(meta, opts.format);
       if (opts.format && format.format !== opts.format) return null;
       const version = opts.version ?? meta.version;
@@ -1343,14 +1360,17 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Returns { blobs, meta } counts of records deleted.
      */
     async _pruneStale(currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string> = new Set(), keepIds: Set<string> = new Set()): Promise<{ blobs: number; meta: number }> {
+      const cacheAssets = currentAssets.flatMap(a => [a, ...assetFiles(a.meta).flatMap(f => {
+        try { return [fileMeta(a, f.id)]; } catch { return []; }
+      })]);
       // All keys that exist at the current catalog version.
       const currentVersionKeys = new Set(
-        currentAssets.flatMap(a => a.formats.map(f => `${a.id}:${f.format}:${a.version}`)),
+        cacheAssets.flatMap(a => a.formats.map(f => `${a.id}:${f.format}:${a.version}`)),
       );
 
       // Core-tier blobs are kept unconditionally (needed for offline).
       const keepBlobKeys = new Set(
-        currentAssets
+        cacheAssets
           .filter(a => a.tier === 'core')
           .flatMap(a => a.formats.map(f => `${a.id}:${f.format}:${a.version}`)),
       );
@@ -1378,12 +1398,12 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // version forever.
       const presentBlobKeys = new Set(allBlobKeys as string[]);
       const currentKeyFor = new Map<string, string>();  // `${id}:${format}` → current-version key
-      for (const a of currentAssets) {
+      for (const a of cacheAssets) {
         for (const f of a.formats) currentKeyFor.set(`${a.id}:${f.format}`, `${a.id}:${f.format}:${a.version}`);
       }
       const keptById = (k: string): boolean => {
         for (const id of keepIds) {
-          if (!k.startsWith(`${id}:`)) continue;
+          if (!k.startsWith(`${id}:`) && !k.startsWith(`${id}?file=`)) continue;
           const idFormat = k.slice(0, k.lastIndexOf(':'));
           const current = currentKeyFor.get(idFormat);
           return !current || !presentBlobKeys.has(current) || k === current;
@@ -1469,7 +1489,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (cached !== undefined) return cached;
       let out: { store: Uint8Array; format: string } | null = null;
       try {
-        const ref = await api.get(stripAssetModifiers(id));
+        const themed = parseThemedAssetId(id), treated = parseTreatedAssetId(id);
+        const ref = await api.get(themed.theme ? themed.baseId : treated.baseId);
         const blob = await (await fetch(ref.url)).blob();
         if (blob.size <= MAX_CREDENTIAL_SCAN_BYTES) {
           const { extractC2paStore } = await loadC2paVerify();

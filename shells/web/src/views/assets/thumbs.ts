@@ -17,6 +17,7 @@ import { buildHighlightSegments, heatBucket } from '../valid-text.ts';
 import type { TextSignalMark, TextSignalPanel } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
+import { assetFiles } from '../../lib/asset-files.ts';
 import { icon } from '../../lib/icons.ts';
 import { audioThumbPlaceholder } from '../../lib/audio-thumb.ts';
 import { peaksFingerprint } from '../../lib/audio-peaks.ts';
@@ -541,7 +542,7 @@ export function assetTile(cat: CatCtx, ref: AssetRef): string {
               const added = assetAddedAt(ref);
               return added ? `${name} - ${tRaw('added {date}', { date: new Date(added).toLocaleDateString() })}` : name;
             })())}">${escapeText(name)}</span>
-            <span class="cat-tile-sub"><span class="cat-src cat-src--${isUser ? 'user' : 'lib'}">${sourceLabel}</span>${fmt ? ` · ${escapeText(fmt)}` : ''}${aiKind ? genAiPill(aiKind) : ''}${aiSignalsChip(ref)}${(() => {
+            <span class="cat-tile-sub"><span class="cat-src cat-src--${isUser ? 'user' : 'lib'}">${sourceLabel}</span>${assetFiles(ref.meta).length > 1 ? ` · ${assetFiles(ref.meta).length} files` : fmt ? ` · ${escapeText(fmt)}` : ''}${aiKind ? genAiPill(aiKind) : ''}${aiSignalsChip(ref)}${(() => {
               // Match context (plans/132 WP-C item 4): while searching, say WHY a tile
               // is in the result set when the name alone doesn't show it.
               if (!cat.query) return '';
