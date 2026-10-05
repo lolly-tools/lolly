@@ -14,6 +14,7 @@ import { JSDOM } from 'jsdom';
 
 import { wireTileContextMenu, menuItemHtml } from './context-menu.ts';
 import type { TileContextMenuHandle } from './context-menu.ts';
+import { wireProjectContextMenu } from '../views/projects-context-menu.ts';
 
 interface Harness {
   host: HTMLElement;
@@ -87,6 +88,16 @@ test('right-click on a tile opens its menu; a declined tile keeps the native men
   const e2 = fire(h.tile('declined'), 'contextmenu');
   assert.ok(!e2.defaultPrevented, 'refOf → null falls through to the native menu');
   assert.equal(h.openMenuEl(), null);
+  h.menu.destroy();
+});
+
+test('a tile menu yields to a context menu already handled by an embedded editor', () => {
+  const h = harness();
+  let handled = 0;
+  h.tile('a').addEventListener('contextmenu', e => { e.preventDefault(); handled++; });
+  fire(h.tile('a'), 'contextmenu');
+  assert.equal(handled, 1);
+  assert.equal(h.openMenuEl(), null, 'the host cannot add a second menu');
   h.menu.destroy();
 });
 
@@ -171,6 +182,24 @@ test('destroy() unbinds the host listeners', () => {
 
 const BG_HTML = menuItemHtml('new-folder', '', 'New folder');
 
+test('Projects background actions do not follow the persistent host into Design', () => {
+  const h = harness();
+  h.menu.destroy();
+  h.host.innerHTML = '<div class="projects"><div class="projects-grid"></div></div>';
+  const menu = wireProjectContextMenu({
+    host: h.host, selected: h.selected, strip: () => null,
+    singleHtml: () => '', backgroundHtml: () => BG_HTML, onAction: () => {},
+  });
+  fire(h.host.querySelector<HTMLElement>('.projects-grid')!, 'contextmenu');
+  assert.ok(h.openMenuEl(), 'folder actions still open in Projects');
+  menu.close();
+  h.host.innerHTML = '<div class="tool-canvas"></div>';
+  const event = fire(h.host.querySelector<HTMLElement>('.tool-canvas')!, 'contextmenu');
+  assert.equal(h.openMenuEl(), null, 'folder actions stay hidden after the host changes route');
+  assert.equal(event.defaultPrevented, false, 'the editor keeps control of its context menu');
+  menu.destroy();
+});
+
 interface BgHarness {
   host: HTMLElement;
   doc: Document;
@@ -225,6 +254,18 @@ function harnessWithBackground(backgroundHtml: () => string): BgHarness {
     openMenuEl: () => doc.querySelector('.folder-menu') as HTMLElement | null,
   };
 }
+
+test('a background menu yields to a context menu already handled by an embedded editor', () => {
+  const h = harnessWithBackground(() => BG_HTML);
+  const editor = h.doc.createElement('div');
+  h.host.appendChild(editor);
+  let handled = 0;
+  editor.addEventListener('contextmenu', e => { e.preventDefault(); handled++; });
+  fire(editor, 'contextmenu');
+  assert.equal(handled, 1);
+  assert.equal(h.openMenuEl(), null, 'the host cannot overlay folder actions on the editor');
+  h.menu.destroy();
+});
 
 test('right-click on the host background (no tile) opens the background menu; picking a row calls onAction(act, null, "background")', () => {
   const h = harnessWithBackground(() => BG_HTML);
