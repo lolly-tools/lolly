@@ -97,6 +97,7 @@ export interface ParsedCatQuery {
   text: string[];
   /** `tag:` values (folded) - each must prefix-match one of the asset's tags. */
   tags: string[];
+  exactTags: string[];
   /** `type:` values - a TypeFilter bucket name or a raw format/type string. */
   types: string[];
   /** `is:` values - 'genai' (declared AI origins) and 'upload' are recognised;
@@ -126,7 +127,7 @@ function metadataNames(asset: AssetRef, key: string): string[] {
 }
 
 export function parseCatQuery(query: string): ParsedCatQuery {
-  const out: ParsedCatQuery = { text: [], tags: [], types: [], flags: [], categories: [], collections: [], sources: [] };
+  const out: ParsedCatQuery = { text: [], tags: [], exactTags: [], types: [], flags: [], categories: [], collections: [], sources: [] };
   for (const raw of catalogQueryTokens(query)) {
     if (!raw) continue;
     const m = /^(tag|type|is|category|collection|source):(.+)$/i.exec(raw);
@@ -137,7 +138,10 @@ export function parseCatQuery(query: string): ParsedCatQuery {
       }
       const value = fold(name);
       const key = m[1]!.toLowerCase();
-      if (key === 'tag') out.tags.push(value);
+      if (key === 'tag') {
+        out.tags.push(value);
+        if (m[2]!.startsWith('"')) out.exactTags.push(value);
+      }
       else if (key === 'type') out.types.push(value);
       else if (key === 'is') out.flags.push(value);
       else if (key === 'category') out.categories.push(value);
@@ -178,7 +182,10 @@ function matchesStructured(asset: AssetRef, q: ParsedCatQuery): boolean {
     if (!values!.every(value => names!.some(name => fold(name) === value))) return false;
   }
   for (const tag of q.tags) {
-    if (!foldedTags(asset).some((t) => t.startsWith(tag))) return false;
+    const exact = q.exactTags.includes(tag);
+    const tags = exact && Array.isArray(asset.meta?.providerTags)
+      ? metadataNames(asset, 'providerTags').map(name => fold(name)) : foldedTags(asset);
+    if (!tags.some(t => exact ? t === tag : t.startsWith(tag))) return false;
   }
   for (const ty of q.types) {
     const bucket = TYPE_FILTER_TYPES[ty as Exclude<TypeFilter, 'all'>];

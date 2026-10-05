@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { providerBrowserHtml, providerFacets, providerGroups } from './assets-provider.ts';
+import { providerBrowserHtml, providerFacets, providerGroups, withProviderFacet } from './assets-provider.ts';
 import { buildSearchHaystack, matchesQuery, parseCatQuery, withCatalogFacet } from './assets-filter.ts';
 
 const asset = (id: string, meta: Record<string, unknown> = {}): AssetRef => ({ source: 'library', id, type: 'raster', format: 'png', url: '', meta });
@@ -44,6 +44,18 @@ test('names containing quotes and backslashes round trip without becoming text t
   const parsed = parseCatQuery(query);
   assert.deepEqual(parsed.tags, [name.toLowerCase()]);
   assert.deepEqual(parsed.text, []);
+});
+
+test('selecting a native tag matches the complete tag and stays inside the connected library', () => {
+  const parent = asset('ext/brand/a', { provider: 'brand', providerLabel: 'Brand library', providerTags: ['Launch'], tags: ['Launch'] });
+  const child = asset('ext/brand/b', { provider: 'brand', providerLabel: 'Brand library', providerTags: ['Launch video'], tags: ['Launch video'] });
+  const categoryOnly = asset('ext/brand/c', { provider: 'brand', providerLabel: 'Brand library', providerTags: [], tags: ['Launch'], providerSections: ['Launch'] });
+  const pack = asset('pack/a', { tags: ['Launch'] });
+  const all = [parent, child, categoryOnly, pack];
+  const query = withProviderFacet(all, '', 'tag', 'Launch');
+  const haystack = buildSearchHaystack(all, () => 'Images');
+  assert.deepEqual(all.filter(a => matchesQuery(a, query, haystack)).map(a => a.id), [parent.id]);
+  assert.equal(matchesQuery(child, 'tag:Launch', haystack), true, 'typed tag prefixes retain their existing behavior');
 });
 
 test('plain search includes collections and categories and tolerates missing metadata', () => {

@@ -24,6 +24,7 @@ import { staggerReveal } from '../../lib/reveal.ts';
 import { restyleIconTheme, treatmentFilterSvg } from '@lolly/engine';
 import { CAT_ICONS, isThemable, setCatToggle, svgTextToDataUrl } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
+import { withProviderFacet } from '../assets-provider.ts';
 
 // ── wiring ───────────────────────────────────────────────────────────────────
 // Recolour every themable icon in a category group in place (the category "Colours"
@@ -97,7 +98,7 @@ export function wire(cat: CatCtx): void {
   body.addEventListener('change', e => {
     const select = (e.target as HTMLElement).closest<HTMLSelectElement>('[data-provider-facet]');
     if (!select) return;
-    setSearchBarQuery(withCatalogFacet(cat.query, select.dataset.providerFacet as CatalogFacet, select.value));
+    setSearchBarQuery(withProviderFacet(cat.allAssets, cat.query, select.dataset.providerFacet as CatalogFacet, select.value));
     const facet = select.dataset.providerFacet;
     requestAnimationFrame(() => body.querySelector<HTMLSelectElement>(`[data-provider-facet="${facet}"]`)?.focus());
   });
@@ -106,7 +107,7 @@ export function wire(cat: CatCtx): void {
   const { tileSelect } = cat;
     const target = e.target as HTMLElement;
     const tag = target.closest<HTMLElement>('[data-provider-tag]');
-    if (tag) { setSearchBarQuery(withCatalogFacet(cat.query, 'tag', tag.getAttribute('aria-pressed') === 'true' ? '' : tag.dataset.providerTag!)); return; }
+    if (tag) { setSearchBarQuery(withProviderFacet(cat.allAssets, cat.query, 'tag', tag.getAttribute('aria-pressed') === 'true' ? '' : tag.dataset.providerTag!)); return; }
     if (target.closest('[data-provider-clear]')) {
       let query = cat.query;
       for (const facet of ['source', 'category', 'collection', 'tag'] as const) query = withCatalogFacet(query, facet, '');

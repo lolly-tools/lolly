@@ -3,7 +3,7 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { escape as escapeText } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { fold } from '../lib/search/match.ts';
-import { parseCatQuery, type CatalogFacet } from './assets-filter.ts';
+import { parseCatQuery, withCatalogFacet, type CatalogFacet } from './assets-filter.ts';
 
 export function providerNames(asset: AssetRef, key: string): string[] {
   const value = asset.meta?.[key];
@@ -39,6 +39,16 @@ export function providerGroups(assets: readonly AssetRef[]): ProviderGroup[] {
 }
 
 export interface ProviderFacetOption { name: string; count: number }
+
+/** A connected-library filter stays within that library when there is one source. */
+export function withProviderFacet(assets: readonly AssetRef[], query: string, facet: CatalogFacet, value: string): string {
+  let result = withCatalogFacet(query, facet, value);
+  if (value && facet !== 'source' && !parseCatQuery(result).sources.length) {
+    const sources = providerFacets(assets).source;
+    if (sources.length === 1) result = withCatalogFacet(result, 'source', sources[0]!.name);
+  }
+  return result;
+}
 
 export function providerFacets(assets: readonly AssetRef[]): Record<CatalogFacet, ProviderFacetOption[]> {
   const counts: Record<CatalogFacet, Map<string, ProviderFacetOption>> = {
