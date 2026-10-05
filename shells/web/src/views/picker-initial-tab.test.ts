@@ -22,6 +22,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
+import { SEARCH_DEBOUNCE_MS } from '../lib/search/match.ts';
 
 // picker.ts imports its own stylesheet (the lazy-view pattern). Node has no idea what a
 // .css module is; Vite is what resolves it for real.
@@ -173,6 +174,27 @@ test('cancelling a nested camera keeps the picker open and stops a late camera s
 });
 
 // ── the requested tab opens ───────────────────────────────────────────────────
+
+test('connected assets keep their native categories and can be found by tag or collection', async () => {
+  const logo = asset('ext/brand/mark');
+  logo.meta = { name: 'Primary mark', provider: 'brand', providerLabel: 'Brand library', providerSections: ['Standard Logos'], providerCollections: ['Launch Kit'], tags: ['SUSE Virtualization'] };
+  const video = asset('ext/brand/photo');
+  video.meta = { name: 'Landscape', provider: 'brand', providerLabel: 'Brand library', providerSections: ['Photos'], tags: ['Scenery'] };
+  const picker = await open({ initialTab: 'library' }, [logo, video]);
+  const library = picker.panel.querySelector<HTMLElement>('[data-pane="library"]')!;
+  assert.ok(library.textContent?.includes('Brand library · Standard Logos'));
+  assert.ok(library.textContent?.includes('Brand library · Photos'));
+  assert.ok(picker.panel.querySelector('.asset-picker-catbtn--named')?.textContent?.includes('Photos'));
+  const input = picker.panel.querySelector<HTMLInputElement>('.asset-picker-search')!;
+  for (const query of ['tag:"SUSE Virtualization"', 'launch kit', 'category:"Standard Logos"']) {
+    input.value = query;
+    input.dispatchEvent(new W.Event('input', { bubbles: true }));
+    await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_MS + 30));
+    const ids = [...library.querySelectorAll<HTMLElement>('[data-asset-id]')].map(tile => tile.dataset.assetId);
+    assert.deepEqual(ids, [logo.id], query);
+  }
+  await picker.close();
+});
 
 test('initialTab: tools opens ON the Tools pane, not just with the tab selected', async () => {
   setToolIndex(TOOLS);

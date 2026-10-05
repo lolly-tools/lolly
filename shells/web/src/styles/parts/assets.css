@@ -21,6 +21,16 @@
    .catalog side gutters) instead of centring in a fixed 1200px column. */
 .catalog-body { max-width: none; }
 
+.cat-provider-browser { margin: var(--sp-6) 0; padding: var(--sp-5); border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); }
+.cat-provider-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.cat-provider-heading h2 { margin: 0; font-size: var(--fs-lg); }
+.cat-provider-heading > span { color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+.cat-provider-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: var(--sp-3); align-items: end; }
+.cat-provider-filter { display: flex; flex-direction: column; gap: var(--sp-2); font-size: var(--fs-sm); min-width: 0; }
+.cat-provider-filter select { width: 100%; min-height: 42px; padding: var(--sp-3); font: inherit; color: hsl(var(--foreground)); background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); }
+.cat-provider-tags { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-4); }
+.cat-provider-tags .cat-tag > span { opacity: .65; margin-left: var(--sp-1); }
+
 /* ── Toolbar - a floating pill that sticks to the top as you scroll past the header, so
    the filetype filter + Expand/Collapse-all + Hide-hidden stay reachable everywhere. It's
    centred (width:fit-content + auto margins) so it clears the fixed corner chrome (view

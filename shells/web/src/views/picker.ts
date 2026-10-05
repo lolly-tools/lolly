@@ -60,6 +60,8 @@ import { loadAudioCovers, resolveAudioLook, type AudioCover } from '../lib/audio
 import { livePalette } from '../lib/live-palette.ts';
 import { cachedPeaks, derivePeaks, memoPeaks, MAX_CONCURRENT_DERIVES, peaksFingerprint } from '../lib/audio-peaks.ts';
 import { libCategory, LIB_GROUPS, loadAssetCategories, categoryLabel } from '../lib/asset-category.ts';
+import { providerCategory, providerGroups } from './assets-provider.ts';
+import { buildSearchHaystack, matchesQuery } from './assets-filter.ts';
 import type { LibGroup } from '../lib/asset-category.ts';
 import { categoryGlyph } from '../lib/category-icons.ts';
 import { icon } from '../lib/icons.ts';
@@ -1518,7 +1520,8 @@ async function render(
   // Library sections + bucketing live in lib/asset-category.ts (shared with the Catalog
   // view so both group identically). A per-user override (profile.assetCategories) layers
   // over the tag inference - loaded once per open, refreshed on each render() below.
-  const cat = (ref: AssetRef): string => libCategory(ref, assetCategoryOverrides);
+  const cat = (ref: AssetRef): string => providerCategory(ref)?.key ?? libCategory(ref, assetCategoryOverrides);
+  const nativeCategoryLabels = new Map<string, string>();
   const collapsedGroups = new Set<string>(); // group keys the user collapsed; persists across re-render
   // The present top-level library category keys, in display order - the model behind
   // the category filter row. Refreshed on every renderLibrary (search narrows it).
@@ -1560,9 +1563,10 @@ async function render(
     catbarEl.hidden = false;
     catbarEl.innerHTML = libraryGroupKeys.map(key => {
       const on = !collapsedGroups.has(key);
-      const label = t(categoryLabel(key));
-      return `<button type="button" class="asset-picker-catbtn${on ? ' is-active' : ''}" data-cat-filter="${escapeHtml(key)}" aria-pressed="${on}" aria-label="${escapeHtml(label)}" data-tip="${escapeHtml(label)}" data-tip-below>
-        <span class="asset-picker-catbtn-glyph">${categoryGlyph(key)}</span>
+      const nativeLabel = nativeCategoryLabels.get(key);
+      const label = nativeLabel ?? t(categoryLabel(key));
+      return `<button type="button" class="asset-picker-catbtn${on ? ' is-active' : ''}${nativeLabel ? ' asset-picker-catbtn--named' : ''}" data-cat-filter="${escapeHtml(key)}" aria-pressed="${on}" aria-label="${escapeHtml(label)}" data-tip="${escapeHtml(label)}" data-tip-below>
+        <span class="asset-picker-catbtn-glyph">${categoryGlyph(key)}</span>${nativeLabel ? `<span>${escapeHtml(label)}</span>` : ''}
       </button>`;
     }).join('');
   }
@@ -1618,7 +1622,13 @@ async function render(
       if (!buckets.has(k)) buckets.set(k, []);
       buckets.get(k)!.push(c);
     }
-    const present = LIB_GROUPS.filter(g => buckets.get(g.key)?.length);
+    const native = providerGroups(candidates);
+    nativeCategoryLabels.clear();
+    for (const group of native) nativeCategoryLabels.set(group.key, group.label);
+    const present: LibGroup[] = [
+      ...native.map(group => ({ key: group.key, label: `${group.source} · ${group.label}` })),
+      ...LIB_GROUPS.filter(g => buckets.get(g.key)?.length),
+    ];
     libraryGroupKeys = present.map(g => g.key);
     // First render seeds the "one category open" default: everything collapses except
     // the current asset's category (or the first present one). After that the user's
@@ -1778,6 +1788,7 @@ async function render(
   let libraryCandidates: AssetRef[] = [];
   let candidateById = new Map<string, AssetRef>();
   let libraryLoaded = false;
+  let librarySearchHaystack: ReadonlyMap<string, string> | null = null;
   // Type filter (plans/134 P5): the catalog's All/Image/Vector/Motion/Audio
   // buckets, offered only when the slot itself is untyped (a typed pick is
   // already narrowed at the query). Client-side over the loaded candidates.
@@ -1797,7 +1808,8 @@ async function render(
   function restoreLibrary(q: string): void {
     if (!libraryLoaded) { libraryEl.innerHTML = `<div class="asset-picker-loading">${t('Loading…')}</div>`; return; }
     if (!q) { renderLibrary(typeFiltered(libraryCandidates)); return; }
-    renderLibrary(typeFiltered(libraryCandidates).filter(c => searchMatches(q, String(c.meta?.name ?? c.id), c.id)));
+    librarySearchHaystack ??= buildSearchHaystack(libraryCandidates, c => categoryLabel(cat(c)));
+    renderLibrary(typeFiltered(libraryCandidates).filter(c => matchesQuery(c, q, librarySearchHaystack!)));
   }
 
   // ── Favourites - a pinned, collapsible section at the top of the library pane ──
@@ -2381,6 +2393,7 @@ async function render(
     await profileReady;
     const candidates = queried.filter(a => !hiddenSet.has(assetBaseId(a.id)));
     libraryCandidates = candidates;
+    librarySearchHaystack = null;
     candidateById = new Map(candidates.map((c): [string, AssetRef] => [c.id, c]));
     libraryLoaded = true;
 

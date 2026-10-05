@@ -35,6 +35,7 @@ import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
 import { CHEVRON, HEADSHOT_ID, downloadName, gridAdmits, isThemable } from './shared.ts';
 import type { CatFont } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
+import { providerGroups } from '../assets-provider.ts';
 
 export const setOverrides = (cat: CatCtx, v: Record<string, string>) => { cat.overrides = v; cat.searchHaystack = null; };
 // ── multi-select gestures (marquee + Shift-range) ───────────────────────────
@@ -226,6 +227,10 @@ export async function reload(cat: CatCtx): Promise<void> {
   // Catalog first, then user uploads; the rule itself is gridAdmits in shared.ts,
   // so a test can ask what the grid shows without mounting the view.
   cat.allAssets = [...catalog, ...userVisual].filter(gridAdmits);
+  const knownSections = new Set(cat.ALL_SECTION_KEYS);
+  for (const group of providerGroups(cat.allAssets)) {
+    if (!knownSections.has(group.key)) { cat.ALL_SECTION_KEYS.push(group.key); knownSections.add(group.key); }
+  }
   if (pendingDeletes.size) cat.allAssets = cat.allAssets.filter(a => !pendingDeletes.has(a.id));
   cat.assetById = new Map(cat.allAssets.map(a => [a.id, a]));
   cat.searchHaystack = null; // asset set changed - drop the stale search index

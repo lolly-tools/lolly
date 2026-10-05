@@ -334,6 +334,8 @@
   transition: color var(--dur-1), border-color var(--dur-1), background var(--dur-1);
 }
 .asset-picker-catbtn:hover { color: hsl(var(--foreground)); border-color: hsl(var(--primary)); }
+.asset-picker-catbtn--named { width: auto; max-width: 280px; gap: var(--sp-2); padding: 0 var(--sp-3); font: inherit; font-size: var(--fs-sm); }
+.asset-picker-catbtn--named > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .asset-picker-catbtn.is-active {
   color: hsl(var(--primary));
   border-color: hsl(var(--primary));
