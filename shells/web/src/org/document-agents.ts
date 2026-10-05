@@ -2,7 +2,7 @@
 /** Invite an agent to the live document using the inviter's existing identity. */
 import { mountModal } from '../components/modal.ts';
 import { instanceFetch, instancePath, getInstanceBase } from '../lib/instance.ts';
-import { icon } from '../lib/icons.ts';
+import { iconNode, type IconName } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
 import { agentConnection, agentInviteState, orgAgentInvitesEnabled } from './document-agent-config.ts';
 
@@ -12,9 +12,9 @@ let open: HTMLDialogElement | undefined, sequence = 0;
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
   const el = document.createElement(tag); el.className = cls; el.textContent = tRaw(text); return el;
 };
-const button = (text: string, symbol?: Parameters<typeof icon>[0]) => {
+const button = (text: string, symbol?: IconName) => {
   const el = element('button', 'btn btn--sm'); el.type = 'button';
-  if (symbol) el.innerHTML = icon(symbol);
+  const glyph = symbol && iconNode(symbol); if (glyph) el.append(glyph);
   el.append(document.createTextNode(tRaw(text))); return el;
 };
 
@@ -70,7 +70,8 @@ export async function openAgentInvites(sessionId: string, isCurrent: () => boole
     list.replaceChildren();
     if (!agents.length) list.append(element('p', 'muted', 'No agents invited yet.'));
     for (const agent of agents) {
-      const row = element('div', 'document-agent-row'), avatar = element('span', 'document-agent-avatar'); avatar.innerHTML = icon('aiSpark'); avatar.setAttribute('aria-hidden', 'true');
+      const row = element('div', 'document-agent-row'), avatar = element('span', 'document-agent-avatar');
+      const glyph = iconNode('aiSpark'); if (glyph) avatar.append(glyph); avatar.setAttribute('aria-hidden', 'true');
       const info = element('div', 'document-agent-info'), name = element('strong', '', agent.label);
       const state = agentInviteState(agent), stateText = { ready: 'Ready to connect', connected: 'Connected', expired: 'Expired', revoked: 'Revoked' }[state];
       info.append(name, element('p', 'muted', `${agent.role === 'editor' ? 'Editor' : 'Viewer'} · ${stateText}`), element('p', 'muted', `Acts for ${agent.actingFor}`));

@@ -37,7 +37,7 @@
 .document-agent-row { display: flex; align-items: flex-start; gap: var(--sp-3); padding-block: var(--sp-4); border-block-end: 1px solid var(--ui-color-border-default); }
 .document-agent-info { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .document-agent-info p { margin-block: var(--sp-1); }
-.document-agent-avatar { display: grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); border-radius: 50%; background: var(--ui-color-surface-muted); flex-shrink: 0; }
+.document-agent-avatar { display: grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); border-radius: var(--radius-round); background: var(--ui-color-surface-muted); flex-shrink: 0; }
 .document-agent-avatar svg { width: 1.5rem; height: 1.5rem; }
 .document-agent-reveal { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ui-size-target); }
 .document-agent-setup { padding: var(--sp-4); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-surface); }
