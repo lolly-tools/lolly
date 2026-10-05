@@ -225,5 +225,10 @@
   "Enlarge {label} for scanning": "Збільшити {label} для сканування",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Наведіть сюди інший пристрій, щоб відсканувати. Торкніться будь-де або натисніть Esc, щоб закрити.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Це посилання задовге для сканування. Скопіюйте його або скористайтеся вкладкою Код.",
-  "View {name}": "Перегляд {name}"
+  "View {name}": "Перегляд {name}",
+  "AI agent": "ШІ-агент",
+  "Pause agent": "Призупинити агента",
+  "Resume agent": "Відновити агента",
+  "Disconnect agent": "Від’єднати агента",
+  "Paused": "Призупинено"
 }

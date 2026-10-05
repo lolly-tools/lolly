@@ -198,10 +198,7 @@ test('geometryFastPathPlan refuses resize and rotate (only translation is safe)'
   assert.equal(geometryFastPathPlan(prev, [pbox({ id: 'a', x: 10, y: 10, w: 100, h: 80, rot: 15 })], fastCfg), null);
 });
 
-test('geometryFastPathPlan refuses frame members / clip sources / clip masks / connector endpoints', () => {
-  // frame member
-  const fm: Box[] = [pbox({ id: 'a', frame: 'f1' })];
-  assert.equal(geometryFastPathPlan(fm, [pbox({ id: 'a', x: 9, frame: 'f1' })], fastCfg), null);
+test('geometryFastPathPlan refuses clip sources / clip masks / connector endpoints', () => {
   // clip source (its own clip-path depends on its x/y)
   const cs: Box[] = [pbox({ id: 'a', clip: 'm' })];
   assert.equal(geometryFastPathPlan(cs, [pbox({ id: 'a', x: 9, clip: 'm' })], fastCfg), null);
@@ -214,6 +211,16 @@ test('geometryFastPathPlan refuses frame members / clip sources / clip masks / c
     geometryFastPathPlan(ce, [pbox({ id: 'a', x: 9 })], { ...fastCfg, connectorEndpointIds: new Set(['a']) }),
     null,
   );
+});
+
+test('geometryFastPathPlan carries frame-member deltas without assuming a border inset', () => {
+  const prev = [pbox({ id: 'f1', kind: 'frame', x: 100, y: 200, strokeW: 2.5 }),
+    pbox({ id: 'a', x: 150.4, y: 260.7, frame: 'f1' })];
+  const next = [prev[0]!, { ...prev[1], x: 170.6, y: 280.4 }];
+  assert.deepEqual(geometryFastPathPlan(prev, next, fastCfg),
+    [{ id: 'a', x: 171, y: 280, localDelta: { dx: 21, dy: 19 } }]);
+  assert.equal(geometryFastPathPlan(prev, [prev[0]!, { ...next[1], frame: '' }], fastCfg), null, 'reparenting still repaints');
+  assert.equal(geometryFastPathPlan(prev, next, { ...fastCfg, connectorEndpointIds: new Set(['a']) }), null);
 });
 
 test('geometryFastPathPlan refuses empty-id boxes and any non-geometry change', () => {

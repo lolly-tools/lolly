@@ -220,6 +220,9 @@ test('the bar keeps its action next to the message and clears the floating top-r
   assert.equal(cta.parentElement?.className, 'org-banner-message', 'the action sits with the message');
   assert.match(cta.previousElementSibling?.textContent || '', /shared Launch with you/, 'right after its words');
   assert.equal(bar.lastElementChild?.className, 'org-banner-dismiss', 'dismiss stays at the end');
+  assert.equal(bar.style.position, 'relative');
+  assert.equal(bar.style.zIndex, 'var(--z-max)', 'the banner sits above the tool panels');
+  assert.equal((bar.lastElementChild as HTMLElement).style.flex, '0 0 auto', 'long messages cannot shrink dismiss');
 });
 
 // ── One at a time, from the inbox (plan 74 invite spec 5.2) ─────────────────────

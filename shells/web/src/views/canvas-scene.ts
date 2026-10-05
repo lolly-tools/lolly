@@ -196,7 +196,11 @@ export interface FastPathCfg {
 /** One node to move: its id and the new rounded left/top (matches hooks.js boxCss).
  *  `frame: true` targets the artboard page element (`.lolly-frame-page[data-frame-id]`,
  *  whose inline left/top are GLOBAL) instead of a `.lolly-box[data-box-id]`. */
-export interface FastPatch { id: string; x: number; y: number; frame?: boolean; }
+export interface FastPatch {
+  id: string; x: number; y: number; frame?: boolean;
+  /** A member moves by this delta from its rendered frame-local origin. */
+  localDelta?: { dx: number; dy: number };
+}
 
 /**
  * The set of box ids that are connector endpoints (plans/98 section 9): every non-empty
@@ -259,7 +263,7 @@ export function resolveCanvasFastCfg(canvas: Record<string, unknown>): Omit<Fast
  * `left/top`, leaving every other node exactly as the last full paint produced it. It
  * therefore refuses when a moved box:
  *   - resized or rotated (would change `--fit`, a path child's `d`, or its own clip-path);
- *   - is a frame member (its effective left/top is a frame-local override, not the raw x/y);
+ *   - has frame-local coordinates that the complete render cannot verify;
  *   - is a clip source (its own clip-path polygon depends on its x/y) or a clip mask
  *     (a dependent box's baked clip-path depends on this box's geometry);
  *   - is a connector endpoint (the shared connector SVG is rebuilt from its geometry).
@@ -333,10 +337,16 @@ export function geometryFastPathPlan(
       // inset folded in by the hook), so its DOM cannot be verified against global
       // coords - and does not need to be: when it moved EXACTLY with its (also
       // moved) frame, the page element carried it and its local style is unchanged
-      // by construction. Prove the ride model-side, emit nothing. Any other member
-      // move (a drag inside the frame, a desynced cascade) → full repaint.
+      // by construction. Prove the ride model-side and emit nothing. Independent
+      // member moves carry a rounded delta for the rendered local position. A
+      // member that disagrees with its moving frame still requires a full paint.
       const fd = frameDelta.get(owner);
-      if (!fd) return null;
+      if (!fd) {
+        plan.push({ id, x: Math.round(num(box[f.xField], 0)), y: Math.round(num(box[f.yField], 0)),
+          localDelta: { dx: Math.round(num(box[f.xField], 0)) - Math.round(num(p[f.xField], 0)),
+            dy: Math.round(num(box[f.yField], 0)) - Math.round(num(p[f.yField], 0)) } });
+        continue;
+      }
       const dx = num(box[f.xField], 0) - num(p[f.xField], 0);
       const dy = num(box[f.yField], 0) - num(p[f.yField], 0);
       if (Math.abs(dx - fd.dx) > 1e-6 || Math.abs(dy - fd.dy) > 1e-6) return null;

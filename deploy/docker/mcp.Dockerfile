@@ -29,7 +29,7 @@
 
 FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS build
 WORKDIR /src
-RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
+RUN apk add --no-cache 'libcrypto3>=3.5.8-r0' 'libssl3>=3.5.8-r0'
 # Neutral by default; a public image must not ship the private SUSE pack.
 ARG LOLLY_PROFILE=lolly-start
 ENV LOLLY_PROFILE=${LOLLY_PROFILE}
@@ -56,6 +56,7 @@ COPY brands ./brands
 # materialise. PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD keeps the optional playwright-core
 # from fetching a browser we don't ship.
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV ONNXRUNTIME_NODE_INSTALL_CUDA=skip
 RUN npm install --global pnpm@11.26.0
 RUN pnpm install --frozen-lockfile --prod
 # Hosted MCP deliberately omits model APIs. These native inference packages and
@@ -73,7 +74,7 @@ RUN rm -rf services/mcp/deploy services/mcp/test
 # ── runtime stage ───────────────────────────────────────────────────────────
 FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS runtime
 WORKDIR /app
-RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
+RUN apk add --no-cache 'libcrypto3>=3.5.8-r0' 'libssl3>=3.5.8-r0'
 ENV NODE_ENV=production
 # Default transport port; the chart sets PORT explicitly too.
 ENV PORT=8790

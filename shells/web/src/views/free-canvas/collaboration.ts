@@ -3,10 +3,22 @@ import { retainCanvasRecovery } from '../../lib/canvas-recovery.ts';
 import { charsFromDom, markdownFromChars } from '../rich-text.ts';
 import { canvasInteractions, type CanvasInteractionLease } from '../../lib/canvas-interaction.ts';
 import { boxRect, withRect } from '../free-canvas-math.ts';
+import type { Box } from '../free-canvas-math.ts';
 import type { FcCtx } from './context.ts';
 import type { Gesture, Rect } from './shared.ts';
 
-interface GestureLease { gesture: Gesture; lease?: CanvasInteractionLease; move?: PointerEvent; ids: string[]; selected: string[]; baseline: Map<string, Rect>; rects: Map<string, Rect> }
+interface GestureLease {
+  gesture: Gesture;
+  lease?: CanvasInteractionLease;
+  move?: PointerEvent;
+  ids: string[];
+  claimed: Set<string>;
+  selected: string[];
+  baseline: Map<string, Rect>;
+  rects: Map<string, Rect>;
+  prepared?: Box[];
+  dirty: boolean;
+}
 const gestures = new WeakMap<FcCtx, GestureLease>();
 const texts = new WeakMap<FcCtx, { id: string; lease?: CanvasInteractionLease }>();
 function indices(g: Gesture): number[] {
@@ -23,8 +35,9 @@ export function beginCanvasGesture(fc: FcCtx): void {
     const frames = new Set(selected.filter(i => boxes[i]?.[fc.cfg.kindField] === fc.frameCfg!.frameKind).map(i => ids[selected.indexOf(i)]));
     boxes.forEach((box, i) => { if (frames.has(String(box[fc.frameCfg!.frameField] ?? ''))) ids.push(fc.select.idOf(box, i)); });
   }
-  const state: GestureLease = { gesture: g, ids: [...new Set(ids)], selected: selected.map(i => fc.select.idOf(boxes[i], i)),
-    baseline: new Map(), rects: new Map() };
+  const claimed = new Set(ids);
+  const state: GestureLease = { gesture: g, ids: [...claimed], claimed, selected: selected.map(i => fc.select.idOf(boxes[i], i)),
+    baseline: new Map(), rects: new Map(), dirty: false };
   gestures.set(fc, state);
   void port.acquire({ kind: 'transform', collection: fc.blockId, ids: state.ids }, () => {
     if (gestures.get(fc) === state) {
@@ -55,7 +68,12 @@ export function canvasGestureReady(fc: FcCtx, move?: PointerEvent): boolean {
   const state = gestures.get(fc);
   if (state && !state.lease) { if (move) state.move = move; return false; }
   if (state) {
-    const boxes = fc.select.getBoxes(), selected = state.selected.map(id => fc.select.indexOfId(boxes, id));
+    const boxes = fc.select.getBoxes();
+    // Row arrays are replaced on model writes. Rebase once per projection, while
+    // keeping claim-grant origins and stable ids across remote edits and reorders.
+    if (state.prepared === boxes) return true;
+    const byId = new Map(boxes.map((box, i) => [fc.select.idOf(box, i), i]));
+    const selected = state.selected.map(id => byId.get(id) ?? -1);
     if (selected.some(i => i < 0)) { fc.gestures.cancelGesture(); return false; }
     const g = state.gesture;
     if (g.type === 'move') {
@@ -69,6 +87,7 @@ export function canvasGestureReady(fc: FcCtx, move?: PointerEvent): boolean {
         const baseline = state.baseline.get(fc.select.idOf(box, i)); return baseline ? withRect(box, baseline, fc.cfg) : box;
       });
     }
+    state.prepared = boxes;
   }
   return true;
 }
@@ -77,16 +96,25 @@ export function previewCanvasRect(fc: FcCtx, index: number, rect: Rect): void {
   if (!state?.lease) return;
   const boxes = fc.select.getBoxes(), id = fc.select.idOf(boxes[index], index);
   state.rects.set(id, rect);
+  state.dirty = true;
+}
+/** Publish a complete gesture frame after every selected object's live DOM write. */
+export function flushCanvasPreview(fc: FcCtx): void {
+  const state = gestures.get(fc);
+  if (!state?.lease || !state.dirty) return;
+  const boxes = fc.select.getBoxes();
   const next = boxes.map((box, i) => state.rects.has(fc.select.idOf(box, i)) ? withRect(box, state.rects.get(fc.select.idOf(box, i))!, fc.cfg) : box);
   const cascaded = fc.select.cascadeFrameChildren(boxes, next, indices(state.gesture));
   const g = state.gesture;
+  state.dirty = false;
   state.lease.preview({ kind: g.type === 'move' ? 'move' : g.type === 'resize' || g.type === 'gscale' ? 'resize' : 'rotate', phase: 'active',
     objects: cascaded.flatMap((box, i) => {
-      const id = fc.select.idOf(box, i); if (!state.ids.includes(id)) return [];
+      const id = fc.select.idOf(box, i); if (!state.claimed.has(id)) return [];
       const r = boxRect(box, fc.cfg); return [{ id, x: r.x, y: r.y, w: r.w, h: r.h, rot: r.rot ?? 0 }];
     }) });
 }
 export function finishCanvasGesture(fc: FcCtx, committed: boolean): void {
+  if (committed) flushCanvasPreview(fc);
   const state = gestures.get(fc); gestures.delete(fc);
   state?.lease?.finish(committed);
   if (!committed && fc.gesture) {

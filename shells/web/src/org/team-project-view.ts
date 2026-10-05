@@ -18,7 +18,8 @@ import { getInstanceBase } from '../lib/instance.ts';
 import { openTeamSession, teamOpenMessage } from './team-open.ts';
 import { noteProjectOpened } from './opened-projects.ts';
 import { buildTeamFilesPanel } from './team-files-panel.ts';
-import { listTeamFiles, teamFileMessage } from './team-files.ts';
+import { listTeamFiles, teamFileMessage, type TeamFile } from './team-files.ts';
+import type { ProjectAssetPageOptions } from '../components/project-asset-page.ts';
 import { buildProjectAsset, teamAssetTiles } from './team-project-assets.ts';
 import { hydrateSharedPreviews } from './team-previews.ts';
 import { tokenize } from '../lib/search/match.ts';
@@ -42,12 +43,14 @@ interface ProjectViewOptions {
   sort?: string;
   reversed?: boolean;
   assetId?: string;
+  assetPreview?(projectId: string, file: TeamFile): ProjectAssetPageOptions['preview'];
 }
 
 export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOptions): () => void {
   const source = getSessionSource(), abort = new AbortController();
   let disposed = false, ticket = 0, opening = false;
   let clearPreviews: (() => void) | undefined;
+  let clearAssetPreview: (() => void) | undefined;
   let sessionMenu: TileContextMenuHandle | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
   const current = () => !disposed && container.isConnected && opts.isMounted() && source === getSessionSource();
@@ -84,6 +87,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (!source || !current()) return;
     const my = ++ticket;
     clearPreviews?.(); clearPreviews = undefined;
+    clearAssetPreview?.(); clearAssetPreview = undefined;
     sessionMenu?.destroy(); sessionMenu = undefined;
     clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
     body.replaceChildren(node('p', tRaw('Loading…'), 'team-project-notice'));
@@ -144,7 +148,11 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (assets.error) content.append(node('p', assets.error, 'team-project-notice'), button(tRaw('Try again'), () => { void load(); }));
     if (opts.assetId) {
       const file = assets.files.find(file => file.id === opts.assetId);
-      content.append(file ? buildProjectAsset(project.id, file) : node('p', tRaw('This asset is unavailable. Return to the project or refresh to check your access.'), 'team-project-notice'));
+      if (file) {
+        const page = buildProjectAsset(project.id, file, opts.assetPreview?.(project.id, file));
+        clearAssetPreview = () => page.dispose();
+        content.append(page);
+      } else content.append(node('p', tRaw('This asset is unavailable. Return to the project or refresh to check your access.'), 'team-project-notice'));
       return;
     }
     const tokens = tokenize(opts.query || '');
@@ -238,5 +246,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearPreviews?.(); sessionMenu?.destroy(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearAssetPreview?.(); clearPreviews?.(); sessionMenu?.destroy(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }

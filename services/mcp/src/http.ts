@@ -17,18 +17,23 @@
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { createGateway } from './gateway.ts';
+import { createLiveRelay } from './live-relay.ts';
 
 /** @deprecated name kept for back-compat; the gateway now also serves OAuth. */
 export const createMcpHttpHandler = createGateway;
 
 export function startHttpServer(port = Number(process.env.PORT || 8790)): void {
   const handler = createGateway();
-  createServer((req, res) => {
-    handler(req, res).catch(err => {
+  const relay = createLiveRelay();
+  const server = createServer((req, res) => {
+    relay.handle(req, res).then(handled => handled ? undefined : handler(req, res)).catch(err => {
       try { res.writeHead(500, { 'content-type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: String(err) } })); }
       catch { /* headers already sent */ }
     });
-  }).listen(port, process.env.LOLLY_MCP_BIND_HOST || '127.0.0.1', () => {
+  });
+  const dispose = relay.mount(server);
+  server.on('close', dispose);
+  server.listen(port, process.env.LOLLY_MCP_BIND_HOST || '127.0.0.1', () => {
     process.stderr.write(`lolly-mcp (http) on http://localhost:${port}/mcp\n`);
     if (!process.env.LOLLY_WEB_BASE) process.stderr.write('  note: LOLLY_WEB_BASE unset - Tier-B (browser) formats disabled; svg/data + resvg-png still work.\n');
   });

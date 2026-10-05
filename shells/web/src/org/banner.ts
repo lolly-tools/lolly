@@ -66,7 +66,7 @@ onProjectOpened(acknowledgeProjectOpened);
 function ctaHtml(m: InboxMessage): string {
   if (!m.cta?.url || !m.cta.label || !safeHref(m.cta.url)) return '';
   // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated in the guard above
-  return `<a class="btn btn--sm org-banner-cta" href="${escapeHtml(m.cta.url)}">${escapeHtml(m.cta.label)}</a>`;
+  return `<a class="btn btn--sm org-banner-cta" style="min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere" href="${escapeHtml(m.cta.url)}">${escapeHtml(m.cta.label)}</a>`;
 }
 
 /**
@@ -165,7 +165,7 @@ function showBar(m: InboxMessage, count: number): boolean {
   // of the page, at every width. The bar's tint runs under them, and its message sits
   // in a row below them (the same clearance the views' own content uses), so the
   // controls never cover its action or its dismiss button.
-  bar.style.cssText = `display:flex;align-items:center;gap:.75rem;padding:calc(var(--chrome-top, .5rem) + var(--chrome-h, 2.6rem) + .5rem) .5rem .5rem 1rem;font-size:var(--fs-lg);line-height:1.4;border-bottom:1px solid hsl(var(--border));background:hsl(${accent} / .08);color:hsl(var(--foreground))`;
+  bar.style.cssText = `position:relative;z-index:var(--z-max);display:flex;align-items:center;gap:.75rem;padding:calc(var(--chrome-top, .5rem) + var(--chrome-h, 2.6rem) + .5rem) .5rem .5rem 1rem;font-size:var(--fs-lg);line-height:1.4;border-bottom:1px solid hsl(var(--border));background:color-mix(in srgb, hsl(${accent}) 8%, hsl(var(--background)));color:hsl(var(--foreground));overflow-wrap:anywhere`;
 
   const body = m.body ? ` <span style="color:hsl(var(--muted-foreground))">${escapeHtml(m.body)}</span>` : '';
   // The message and its action wrap together, the action right after the words (never
@@ -174,7 +174,7 @@ function showBar(m: InboxMessage, count: number): boolean {
   bar.innerHTML = `
     <span style="flex:0 0 auto;width:.5rem;height:.5rem;border-radius:50%;background:hsl(${accent})" aria-hidden="true"></span>
     <span class="org-banner-message" style="flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .75rem"><span style="min-width:0"><strong style="font-weight:650">${escapeHtml(m.title)}</strong>${body}</span>${ctaHtml(m)}</span>
-    ${m.dismissible ? `<button type="button" class="org-banner-dismiss" aria-label="${escapeHtml(t('Dismiss'))}" style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:var(--ui-size-target);height:var(--ui-size-target);border:0;border-radius:var(--radius);background:transparent;color:inherit;cursor:pointer;font-size:1.3rem;line-height:1;opacity:.7">&times;</button>` : ''}`;
+    ${m.dismissible ? `<button type="button" class="org-banner-dismiss" aria-label="${escapeHtml(t('Dismiss'))}" style="flex:0 0 auto;align-self:flex-start;display:inline-flex;align-items:center;justify-content:center;width:var(--ui-size-target);height:var(--ui-size-target);border:0;border-radius:var(--radius);background:transparent;color:inherit;cursor:pointer;font-size:1.3rem;line-height:1;opacity:.7">&times;</button>` : ''}`;
 
   app.insertBefore(bar, view ?? null);
   const message = bar.querySelector('.org-banner-message') ?? bar;

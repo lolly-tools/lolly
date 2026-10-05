@@ -225,5 +225,10 @@
   "Enlarge {label} for scanning": "Phóng to {label} để quét",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Hướng một thiết bị khác vào đây để quét. Chạm vào bất kỳ đâu hoặc nhấn Esc để đóng.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Liên kết này quá dài để quét. Hãy sao chép, hoặc dùng thẻ Mã.",
-  "View {name}": "Xem {name}"
+  "View {name}": "Xem {name}",
+  "AI agent": "Tác nhân AI",
+  "Pause agent": "Tạm dừng tác nhân",
+  "Resume agent": "Tiếp tục tác nhân",
+  "Disconnect agent": "Ngắt kết nối tác nhân",
+  "Paused": "Đã tạm dừng"
 }

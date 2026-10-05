@@ -225,5 +225,10 @@
   "Couldn't read the transfer back.": "Die Übertragung konnte nicht zurückgelesen werden.",
   "Part of the transfer is missing.": "Ein Teil der Übertragung fehlt.",
   "The transfer was cancelled.": "Die Übertragung wurde abgebrochen.",
-  "View {name}": "{name} ansehen"
+  "View {name}": "{name} ansehen",
+  "AI agent": "KI-Agent",
+  "Pause agent": "Agent pausieren",
+  "Resume agent": "Agent fortsetzen",
+  "Disconnect agent": "Agent trennen",
+  "Paused": "Pausiert"
 }

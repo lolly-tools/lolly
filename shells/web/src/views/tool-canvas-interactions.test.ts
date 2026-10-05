@@ -32,11 +32,14 @@ function fixture() {
   } } } as unknown as CollabSessionHandle;
   const session = { state: () => state, presence: { roster: () => remote }, updateSurface: (patch: unknown) => presence.push(patch),
     subscribe(fn: (state: CollabSessionState) => void) { sessionSubs.add(fn); return () => { sessionSubs.delete(fn); }; } } as unknown as CollabSession;
+  const reads: string[] = [];
+  let readCheck: (() => void) | undefined;
   const off = registerCollabSurface(runtime, { id: () => 'page', collection: 'boxes', element: () => art, selection: () => [], subscribe: () => () => {},
-    object: id => id === 'one' ? { ...geometry, element: doc.getElementById('original') } : null,
-    toClient: point => ({ x: point.x * 2, y: point.y * 2 }) });
+    object: id => { reads.push(id); readCheck?.(); return id === 'one' ? { ...geometry, element: doc.getElementById('original') } : null; },
+    toClient: point => { readCheck?.(); return { x: point.x * 2, y: point.y * 2 }; } });
   const ui = mountCanvasInteractions(runtime, handle, session, layer)!;
-  return { doc, art, layer, runtime, target, released, presence, ui,
+  return { doc, art, layer, runtime, target, released, presence, ui, reads,
+    checkReads(fn: () => void) { readCheck = fn; },
     peer(preview: CanvasPreview) { claims = [{ id: preview.claimId, owner: 'peer', name: 'Alice', expiresAt: Date.now() + 10_000, target }];
       remote = [{ id: 'peer', away: false, state: { name: 'Alice', color: '#123456', selection: ['one'], location: 'page', preview } }]; publish(); },
     updateGeometry(value: typeof geometry) { geometry = value; ui.reanchor(); },
@@ -69,6 +72,25 @@ test('committing preview remains until matching geometry arrives', () => {
     f.updateGeometry(geometry); assert.equal(f.layer.querySelector('.collab-preview-ghost'), null);
   } finally { f.destroy(); }
 });
+test('remote previews retain scoped typography at native size and scale separately into the viewport', () => {
+  const f = fixture();
+  try {
+    const style = f.doc.createElement('style');
+    style.textContent = '#art .lolly-box { font-size:32px; color:rgb(20, 30, 40) } #art .lolly-box p { font-size:28px; line-height:42px }';
+    f.doc.head.append(style);
+    const original = f.doc.getElementById('original')!; original.innerHTML = '<p>Move this text</p>';
+    const artwork = f.art.outerHTML;
+    f.peer({ claimId:'peer-claim',collection:'boxes',kind:'move',phase:'active',objects:[{id:'one',x:40,y:50,w:100,h:80,rot:0}] });
+    const clone = f.layer.querySelector<HTMLElement>('.collab-preview-content')!;
+    assert.equal(clone.style.fontSize,'32px'); assert.equal(clone.style.width,'100px');
+    assert.equal(clone.style.transform,'scale(2, 2)');
+    assert.equal(clone.querySelector('p')!.style.fontSize,'28px');
+    assert.equal(clone.querySelector('p')!.style.lineHeight,'42px');
+    f.peer({ claimId:'peer-claim',collection:'boxes',kind:'resize',phase:'active',objects:[{id:'one',x:40,y:50,w:200,h:160,rot:0}] });
+    assert.equal(clone.style.width,'200px'); assert.equal(clone.style.transform,'scale(2, 2)');
+    assert.equal(clone.querySelector('p')!.style.fontSize,'28px'); assert.equal(f.art.outerHTML,artwork);
+  } finally { f.destroy(); }
+});
 test('a local claim stays through durable saving, then releases; disconnect cancels an active edit', async () => {
   const f = fixture(); let lost = 0;
   try {
@@ -94,5 +116,26 @@ test('the next gesture reuses its pending claim and an earlier receipt cannot en
     f.save(0); assert.deepEqual(f.released, []);
     f.save(1); second.finish(true); assert.deepEqual(f.released, []);
     f.save(0); assert.deepEqual(f.released, [first.id]);
+  } finally { f.destroy(); }
+});
+
+test('preview and selection reads share one object snapshot and finish before overlay writes', () => {
+  const f = fixture();
+  try {
+    const mutations = new f.doc.defaultView!.MutationObserver(() => {});
+    mutations.observe(f.layer, { subtree: true, childList: true, attributes: true, characterData: true });
+    const rect = f.layer.getBoundingClientRect.bind(f.layer);
+    f.layer.getBoundingClientRect = () => { mutations.takeRecords(); return rect(); };
+    f.checkReads(() => assert.equal(mutations.takeRecords().length, 0, 'mounted overlay writes must follow all layout reads'));
+    const preview: CanvasPreview = { claimId: 'peer-claim', collection: 'boxes', kind: 'move', phase: 'active',
+      objects: [{ id: 'one', x: 40, y: 50, w: 100, h: 80, rot: 0 }] };
+    f.peer(preview);
+    assert.equal(f.reads.filter(id => id === 'one').length, 2, 'one snapshot per paint, despite preview and selection references');
+    const ghost = f.layer.querySelector('.collab-preview-ghost')!, content = ghost.firstElementChild;
+    mutations.takeRecords(); f.reads.length = 0;
+    f.ui.reanchor();
+    assert.deepEqual(f.reads, ['one']);
+    assert.equal(ghost.firstElementChild, content, 'steady updates reuse the styled clone');
+    mutations.disconnect(); f.checkReads(() => {});
   } finally { f.destroy(); }
 });

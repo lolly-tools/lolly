@@ -27,7 +27,7 @@
    strip of four is a guessing game. */
 .edge-dock-tabs {
   flex: 0 0 auto; display: flex; gap: var(--sp-1); margin-block-end: var(--ui-space-control-inline);
-  padding: var(--sp-1); border-radius: var(--ui-radius-control); background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+  padding: var(--sp-1); border-radius: var(--ui-radius-control); background:transparent;
   overflow-x: auto; scrollbar-width: none;
 }
 .edge-dock-tab {
@@ -65,6 +65,7 @@
 }
 .collab-save-status { padding-inline: var(--sp-2); }
 .edge-dock-slot:not(.edge-dock-slot--compact) > * {
+  background:transparent;
   position: static !important; inset: auto !important; margin: 0 !important;
   width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important;
   /* The dock owns visibility here: the export panel's reveal is scoped to its #tool-layout

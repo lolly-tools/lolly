@@ -244,3 +244,62 @@ test('keyboard editing affects only the selected guide, and updates stay bound t
   assert.deepEqual(f.handle.snapTargets(), { x: [123], y: [] });
   f.handle.destroy();
 });
+
+test('unchanged ruler ticks survive model and guide updates, with one layout read per sync', () => {
+  const f = guideFixture();
+  const x = f.handle.el.querySelector('.fc-ruler-x svg')!;
+  const y = f.handle.el.querySelector('.fc-ruler-y svg')!;
+  const xTick = x.firstChild, yTick = y.firstChild;
+  const stageRect = f.stage.getBoundingClientRect, canvasRect = f.canvas.getBoundingClientRect;
+  let stageReads = 0, canvasReads = 0;
+  f.stage.getBoundingClientRect = () => { stageReads++; return stageRect(); };
+  f.canvas.getBoundingClientRect = () => { canvasReads++; return canvasRect(); };
+  f.handle.sync();
+  assert.equal(stageReads, 1);
+  assert.equal(canvasReads, 1, 'painting guide lines reuses the measured viewport');
+  assert.equal(x.firstChild, xTick);
+  assert.equal(y.firstChild, yTick);
+  f.handle.update('x0', { x: 250 });
+  f.restore('1|x=300;y=200');
+  assert.equal(x.firstChild, xTick, 'guide writes and undo do not change ruler coordinates');
+  assert.equal(y.firstChild, yTick);
+  assert.deepEqual(f.handle.snapTargets(), { x: [300], y: [200] });
+  f.stage.style.setProperty('--stage-reserve-left', '100');
+  f.handle.sync();
+  assert.notEqual(x.firstChild, xTick, 'the horizontal ruler follows the navigator reserve');
+  assert.equal(y.firstChild, yTick, 'each axis caches its own geometry');
+  const nextXTick = x.firstChild;
+  f.canvas.getBoundingClientRect = () => ({ ...canvasRect(), left: 200, top: 150 });
+  f.handle.sync();
+  assert.notEqual(x.firstChild, nextXTick, 'pan invalidates the ruler origin');
+  assert.notEqual(y.firstChild, yTick);
+  f.handle.setVisible(false);
+  f.handle.setVisible(true);
+  assert.equal(f.handle.el.hidden, false);
+  f.handle.destroy();
+});
+
+test('returning a guide to a ruler removes it in one write, and abandoning a new guide writes nothing', () => {
+  const f = guideFixture();
+  const top = f.handle.el.querySelector<HTMLElement>('.fc-ruler-x')!;
+  const left = f.handle.el.querySelector<HTMLElement>('.fc-ruler-y')!;
+  const rect = (x: number, y: number, width: number, height: number): DOMRect =>
+    ({ x, y, left: x, top: y, right: x + width, bottom: y + height, width, height, toJSON() {} });
+  top.getBoundingClientRect = () => rect(22, 0, 1178, 22);
+  left.getBoundingClientRect = () => rect(0, 22, 22, 878);
+  const line = f.handle.el.querySelector<HTMLElement>('[data-guide-id="x0"]')!;
+  f.pointer(line, 'pointerdown', 150, 250);
+  f.pointer(line, 'pointermove', 10, 250);
+  assert.equal(f.commits.length, 0, 'removal waits for pointer release');
+  f.pointer(line, 'pointerup', 10, 250);
+  assert.equal(f.commits.length, 1);
+  assert.deepEqual(f.handle.snapTargets(), { x: [], y: [200] });
+  assert.equal(f.handle.el.querySelector('[data-guide-id="x0"]'), null);
+  assert.equal(f.inspections(), 0, 'removed guides do not open the inspector');
+  f.pointer(top, 'pointerdown', 300, 10);
+  f.pointer(top, 'pointermove', 300, 300);
+  f.pointer(top, 'pointerup', 300, 10);
+  assert.equal(f.commits.length, 1, 'a guide released back on its ruler was never authored');
+  assert.deepEqual(f.handle.snapTargets(), { x: [], y: [200] });
+  f.handle.destroy();
+});

@@ -8,7 +8,7 @@
  * through untouched, only metadata is removed:
  *   JPEG: drop APP1 (EXIF/XMP), APP2 (ICC), APP13 (IPTC/Photoshop) and COM
  *         comment segments; keep APP0 (JFIF) and all image segments.
- *   PNG : drop tEXt / zTXt / iTXt / eXIf / tIME chunks; keep everything else.
+ *   PNG : drop tEXt / zTXt / iTXt / eXIf / tIME / caBX chunks; keep everything else.
  *   SVG : drop comments, <metadata>, editor-private namespaces/attributes
  *         (Inkscape sodipodi/Adobe i:,x:), DOCTYPE/PI noise, insignificant
  *         whitespace; every painting tag is emitted byte-for-byte.
@@ -186,7 +186,7 @@ function stripJpeg(bytes) {
 // ─── PNG chunk scan + strip ─────────────────────────────────────────────────
 
 const PNG_SIG = [137, 80, 78, 71, 13, 10, 26, 10];
-const PNG_STRIP = new Set(['tEXt', 'zTXt', 'iTXt', 'eXIf', 'tIME']);
+const PNG_STRIP = new Set(['tEXt', 'zTXt', 'iTXt', 'eXIf', 'tIME', 'caBX']);
 
 function isPng(b) {
   for (let i = 0; i < 8; i++) if (b[i] !== PNG_SIG[i]) return false;
@@ -252,11 +252,12 @@ function analyzeRaster(bytes) {
     if (comment) findings.push({ label: 'Comment', detail: 'embedded text', tone: '' });
   } else if (isPng(bytes)) {
     kind = 'PNG';
-    let exif = null, texts = 0, time = false;
+    let exif = null, texts = 0, time = false, credentials = false;
     for (const c of scanPng(bytes)) {
       if (c.type === 'eXIf') exif = readTiff(bytes, c.dataStart, c.dataLen);
       else if (c.type === 'tEXt' || c.type === 'zTXt' || c.type === 'iTXt') texts++;
       else if (c.type === 'tIME') time = true;
+      else if (c.type === 'caBX') credentials = true;
     }
     if (exif) {
       if (exif.hasGps) findings.push({ label: 'GPS location', detail: gpsDetail(exif.gps), tone: 'warn' });
@@ -264,6 +265,7 @@ function analyzeRaster(bytes) {
       findings.push({ label: 'EXIF block', detail: 'embedded camera data', tone: '' });
     }
     if (texts) findings.push({ label: 'Text chunks', detail: `${texts} text/metadata chunk${texts > 1 ? 's' : ''}`, tone: '' });
+    if (credentials) findings.push({ label: 'Content credentials', detail: 'embedded provenance packet', tone: '' });
     if (time) findings.push({ label: 'Timestamp', detail: 'last-modified time', tone: '' });
   }
   return { kind, findings };
@@ -373,6 +375,53 @@ function tokenize(s) {
   return toks;
 }
 
+
+// Embedded raster metadata uses the same strip and residual checks as standalone images.
+function embeddedRaster(value, budget) {
+  value = value.replace(/&#(x[0-9a-f]+|[0-9]+);|&(amp|lt|gt|quot|apos);/gi, (raw, number, name) => {
+    if (number) { const point = parseInt(number.startsWith('x') ? number.slice(1) : number, number.startsWith('x') ? 16 : 10); return point <= 0x10ffff ? String.fromCodePoint(point) : raw; }
+    return { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" }[name.toLowerCase()];
+  });
+  const match = /^data:image\/(png|jpe?g)(;base64)?,([\s\S]*)$/i.exec(value);
+  if (!match) return null;
+  if (!match[2] && /%(?![0-9a-f]{2})/i.test(match[3])) throw new Error('Invalid embedded image encoding.');
+  if (++budget.count > 128 || match[3].length > 24 * 1024 * 1024) throw new Error('Embedded image cleaning exceeds the supported size limit.');
+  let binary;
+  if (match[2]) binary = atob(decodeURIComponent(match[3]).replace(/\s/g, ''));
+  else binary = match[3].replace(/%([0-9a-f]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+  budget.bytes += binary.length;
+  if (binary.length > 16 * 1024 * 1024 || budget.bytes > 32 * 1024 * 1024) throw new Error('Embedded image cleaning exceeds the supported size limit.');
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    if (binary.charCodeAt(i) > 255) throw new Error('Invalid embedded image encoding.');
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const format = match[1].toLowerCase() === 'png' ? 'png' : 'jpeg';
+  if (format === 'png') {
+    if (!bytes.subarray(0, 8).every((byte, i) => byte === [137,80,78,71,13,10,26,10][i]) || bytes.length < 20) throw new Error('Invalid embedded PNG.');
+    let offset = 8, ended = false;
+    while (offset + 12 <= bytes.length) {
+      const size = new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0);
+      const end = offset + size + 12;
+      if (end > bytes.length) throw new Error('Truncated embedded PNG.');
+      const type = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
+      offset = end;
+      if (type === 'IEND') { ended = true; break; }
+    }
+    if (!ended) throw new Error('Truncated embedded PNG.');
+  } else if (bytes[0] !== 255 || bytes[1] !== 216 || bytes[bytes.length - 2] !== 255 || bytes[bytes.length - 1] !== 217) throw new Error('Invalid embedded JPEG.');
+  return { bytes, format };
+}
+function cleanEmbeddedRaster(value, budget) {
+  const image = embeddedRaster(value, budget);
+  if (!image) return value;
+  const clean = image.format === 'png' ? stripPng(image.bytes) : stripJpeg(image.bytes);
+  if (clean.length === image.bytes.length && clean.every((byte, i) => byte === image.bytes[i])) return value;
+  let binary = '';
+  for (let i = 0; i < clean.length; i += 0x8000) binary += String.fromCharCode(...clean.subarray(i, i + 0x8000));
+  return `data:image/${image.format === 'png' ? 'png' : 'jpeg'};base64,${btoa(binary)}`;
+}
+
 function rebuildTag(tk) {
   const kept = [];
   for (const a of tk.attrs) {
@@ -386,6 +435,7 @@ function rebuildTag(tk) {
 }
 
 function clean(toks) {
+  const embeddedBudget = { count: 0, bytes: 0 };
   const out = [];
   const stack = [];          // names of currently-open kept elements
   let dropName = null, dropDepth = 0;
@@ -422,8 +472,11 @@ function clean(toks) {
           if (tk.t === 'open') { dropName = tk.name; dropDepth = 1; }
           break;
         }
+        const attrs = tk.attrs.map(a => (a.name === 'href' || a.name === 'xlink:href') && a.value
+          ? { ...a, value: cleanEmbeddedRaster(a.value, embeddedBudget) } : a);
+        const embeddedChanged = attrs.some((a, i) => a.value !== tk.attrs[i].value);
         const hasDroppable = tk.attrs.some(a => shouldDropAttr(a.name));
-        out.push(hasDroppable ? rebuildTag(tk) : tk.raw);
+        out.push(hasDroppable || embeddedChanged ? rebuildTag({ ...tk, attrs }) : tk.raw);
         if (tk.t === 'open') stack.push(tk.name.toLowerCase());
         break;
       }
@@ -441,6 +494,7 @@ function clean(toks) {
 
 function analyzeSvg(toks) {
   const findings = [];
+  const embeddedBudget = { count: 0, bytes: 0 };
   let editor = null, docName = null;
   let comments = 0, pathInComment = false, stylesheetPI = false, hasDoctype = false;
   let hasMetadata = false, metaParts = [];
@@ -481,6 +535,12 @@ function analyzeSvg(toks) {
           embeddedImgs++;
           const comma = a.value.indexOf(',');
           if (comma > -1) embeddedBytes += Math.floor((a.value.length - comma - 1) * 0.75);
+        }
+        if ((a.name === 'href' || a.name === 'xlink:href') && a.value) {
+          const image = embeddedRaster(a.value, embeddedBudget);
+          if (image) for (const finding of analyzeRaster(image.bytes).findings) findings.push({
+            ...finding, label: `Embedded ${finding.label}`, detail: `${image.format.toUpperCase()} image: ${finding.detail}`,
+          });
         }
       }
     } else if (tk.t === 'close') {
@@ -585,6 +645,7 @@ function residualMetadata(bytes, kind) {
     return null;
   }
   if (kind === 'SVG') {
+    const embeddedBudget = { count: 0, bytes: 0 };
     let text;
     try { text = decodeText(bytes); } catch (e) { return null; }
     for (const tk of tokenize(text)) {
@@ -594,6 +655,10 @@ function residualMetadata(bytes, kind) {
       if (tk.t === 'open' || tk.t === 'self') {
         if (shouldDropElement(tk.name)) return `an editor-private <${tk.name}> element`;
         for (const a of tk.attrs) if (shouldDropAttr(a.name)) return `an editor-private ${a.name} attribute`;
+        for (const a of tk.attrs) if ((a.name === 'href' || a.name === 'xlink:href') && a.value) {
+          const image = embeddedRaster(a.value, embeddedBudget);
+          if (image) { const residual = residualMetadata(image.bytes, image.format === 'png' ? 'PNG' : 'JPEG'); if (residual) return `embedded ${residual}`; }
+        }
       }
     }
     return null;
@@ -635,10 +700,10 @@ async function patch({ model, host }) {
       findings,
       nothingFound: findings.length === 0,
       cleanSize: '', // a re-save's size isn't meaningful to preview, so it's omitted
-      tailNote: 'Your PDF is re-saved without its metadata - the pages are preserved; only the document info and any XMP packet are removed. (A re-save isn\'t byte-for-byte and invalidates any digital signature.)',
+      tailNote: 'Your PDF is re-saved without its metadata - the pages are preserved; document info and XMP packets are removed. Attachments, form values and scripts remain. (A re-save isn\'t byte-for-byte and invalidates any digital signature.)',
       cleanNote: 'You can still download a re-saved copy below.',
       metaSummary: findings.length
-        ? `Found ${findings.length} item${findings.length > 1 ? 's' : ''} of hidden data - they'll be removed.`
+        ? `Found ${findings.length} embedded item${findings.length > 1 ? 's' : ''}. Document info and XMP are removed; other document content remains.`
         : '',
     };
   }
@@ -656,7 +721,7 @@ async function patch({ model, host }) {
   const pct = f.bytes.length > 0 ? Math.round((removed / f.bytes.length) * 100) : 0;
   const sizeNote = removed > 0 ? `That's ${fmtBytes(removed)} smaller${pct >= 1 ? ` (−${pct}%)` : ''}. ` : '';
   const tailNote = isVector
-    ? `${sizeNote}The artwork renders identically - only metadata, comments and editor cruft are removed.`
+    ? `${sizeNote}Vector geometry and embedded image pixels are retained. Metadata is removed from embedded JPEG and PNG images; other embedded formats are unchanged.`
     : 'The clean copy keeps the image pixels byte-for-byte - only the metadata is removed, nothing is re-compressed.';
 
   return {

@@ -237,6 +237,8 @@ export type CanvasOp = GeomOp | FieldOp | AddOp | RemoveOp | OrderOp | ParamOp;
  * op and never converges.
  */
 export interface Presence {
+  /** Agents this participant connected to the document. Bound to this sender. */
+  readonly agents?: readonly import('./agent-presence-v1.ts').AgentPresence[];
   readonly userId: string;
   readonly name: string;
   readonly color: string;

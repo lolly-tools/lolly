@@ -147,11 +147,11 @@
     }
   }
 
-  /* Progressive enhancement, and only once the instrument is being played:
-     Safari has no Web MIDI at all, and no device is asked for until `live` is
-     switched on. Registered once per session behind a window flag, because the
-     template re-runs on every paint. */
-  if (cfg.live && !window.__lollySynthMidi && navigator.requestMIDIAccess) {
+  /* Request devices only in the interactive instrument. Gallery previews and
+     background exports also run this template, with `live` on by default.
+     Registered once per session because the template re-runs on every paint. */
+  var interactive = !canvas.closest('[data-lolly-offscreen]') && document.getElementById('tool-inputs');
+  if (cfg.live && interactive && !canvas.__lollyFrameDriven && !window.__lollySynthMidi && navigator.requestMIDIAccess) {
     window.__lollySynthMidi = true;
     navigator.requestMIDIAccess().then(function (access) {
       var onMsg = function (ev) {

@@ -1044,13 +1044,16 @@ function runTemplate(opts: {
   /** The permission prompt was refused or dismissed. */
   midiFails?: boolean;
   mounted?: boolean;
+  /** Gallery previews and composed or batch renders use an offscreen stage. */
+  offscreen?: boolean;
   /** The exporter owns the canvas and is stepping the frame clock. */
   frameDriven?: boolean;
   /** Reuse a realm, the way successive paints of one session share a window. */
   win?: Record<string, any>;
 }): { win: Record<string, any>; asked: number; canvas: any } {
   const src = TEMPLATE.match(/<script>([\s\S]*?)<\/script>/)![1]!;
-  const canvas: any = { id: 'synth-canvas', __lollyFrameDriven: opts.frameDriven === true };
+  const canvas: any = { id: 'synth-canvas', __lollyFrameDriven: opts.frameDriven === true,
+    closest: (selector: string) => selector === '[data-lolly-offscreen]' && opts.offscreen ? {} : null };
   const stateEl = { textContent: JSON.stringify({ emitters: [], ...(opts.cfg ?? {}) }) };
   let asked = 0;
   const doc: any = {
@@ -1197,6 +1200,21 @@ test('a MIDI knob turns the sidebar control itself, and only once the tool is li
   assert.equal(orphan.keys.length, 0, 'a detached tool must not drive another tool\'s sidebar');
 });
 
+test('default Synth previews and exports never request MIDI access or consume the session request', { skip: SKIP }, async () => {
+  const cfg = await state(), panel = fakePanel({}), { access } = fakeMidi();
+  assert.equal(cfg.live, true, 'the gallery renders the default playing instrument');
+  const preview = runTemplate({ cfg, offscreen: true, midi: access });
+  assert.equal(preview.asked, 0);
+  assert.equal(preview.win.__lollySynthMidi, undefined);
+  // Background renders remain passive while another tool has an input panel.
+  assert.equal(runTemplate({ cfg, panel, offscreen: true, midi: access, win: preview.win }).asked, 0);
+  assert.equal(runTemplate({ cfg, midi: access, win: preview.win }).asked, 0);
+  assert.equal(runTemplate({ cfg, panel, frameDriven: true, midi: access, win: preview.win }).asked, 0);
+  // Opening the instrument can still request access after those previews.
+  assert.equal(runTemplate({ cfg, panel, midi: access, win: preview.win }).asked, 1);
+  await Promise.resolve(); await Promise.resolve();
+});
+
 test('a knob turned mid-export does not kill the export', { skip: SKIP }, async () => {
   // A commit re-renders the tool: the next paint disposes the instrument and
   // loses the GL context, while the exporter goes on calling the frame clock on
@@ -1204,9 +1222,10 @@ test('a knob turned mid-export does not kill the export', { skip: SKIP }, async 
   const speed = fakeSlider(0, 2, 0.05, 1);
   const panel = fakePanel({ speed });
   const { access, send } = fakeMidi();
-  const { canvas } = runTemplate({ cfg: { live: true }, panel, midi: access, frameDriven: true });
+  const { canvas } = runTemplate({ cfg: { live: true }, panel, midi: access });
   await Promise.resolve(); await Promise.resolve();
 
+  canvas.__lollyFrameDriven = true;
   send([0xb0, 2, 127]);
   assert.equal(speed.keys.length, 0, 'the knob wrote into a canvas the exporter owns');
   assert.equal(speed.value, 1);
@@ -1221,11 +1240,12 @@ test('a knob turned mid-export does not kill the export', { skip: SKIP }, async 
 test('a refused MIDI prompt is asked exactly once', { skip: SKIP }, async () => {
   // The template re-runs on EVERY paint, so a flag cleared on rejection is a
   // permission prompt per slider nudge.
-  const first = runTemplate({ cfg: { live: true }, midiFails: true });
+  const panel = fakePanel({});
+  const first = runTemplate({ cfg: { live: true }, panel, midiFails: true });
   assert.equal(first.asked, 1);
   await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
   assert.equal(first.win.__lollySynthMidi, true, 'a refusal must not re-arm the request');
-  assert.equal(runTemplate({ cfg: { live: true }, midiFails: true, win: first.win }).asked, 0);
+  assert.equal(runTemplate({ cfg: { live: true }, panel, midiFails: true, win: first.win }).asked, 0);
 });
 
 test('the CC map is fixed, documented, and points only at controls it can actually write', { skip: SKIP }, () => {

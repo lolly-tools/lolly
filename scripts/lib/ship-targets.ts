@@ -25,6 +25,8 @@ export interface ShipTarget {
   domain: string;
   /** Deploy adapter; 'vercel' when unset. */
   driver?: string;
+  /** Hosted document invitation relay, pinned into the web build. */
+  liveRelay?: string;
 }
 
 interface ShipTargetsFile {

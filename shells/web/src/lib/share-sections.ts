@@ -18,6 +18,7 @@
 
 /** The document a Share dialog was opened over, read at the moment a section asks. */
 export interface ShareDocument {
+  agentInvitation?: import('./agent-invitation-host.ts').AgentInvitationHost;
   /** Input values by input id, exactly as a saved session keeps them. */
   inputs: Record<string, unknown>;
   /** The loaded manifest's version. */

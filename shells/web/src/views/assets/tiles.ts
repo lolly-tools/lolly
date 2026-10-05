@@ -228,6 +228,11 @@ export async function reload(cat: CatCtx): Promise<void> {
   cat.allAssets = [...catalog, ...userVisual].filter(gridAdmits);
   if (pendingDeletes.size) cat.allAssets = cat.allAssets.filter(a => !pendingDeletes.has(a.id));
   cat.assetById = new Map(cat.allAssets.map(a => [a.id, a]));
+  if (cat.preview) {
+    for (const ref of [cat.preview.ref, ...cat.preview.refs ?? []]) {
+      if (!cat.assetById.has(ref.id)) cat.assetById.set(ref.id, ref);
+    }
+  }
   cat.searchHaystack = null; // asset set changed - drop the stale search index
 
   // Colour pairings for the themable-icon styler - only if the catalog supplies them.

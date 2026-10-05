@@ -63,19 +63,18 @@ function renderBanner(d: ChromeInjectable): boolean {
   // Theme-aware, self-contained styling - no stylesheet touch for this additive
   // seam. `warn`/`accent` lean on the brand accent; `info` (default) on muted chrome.
   const accent = d.tone === 'warn' || d.tone === 'accent' ? 'var(--primary)' : 'var(--muted-foreground)';
-  bar.style.cssText = `display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;font-size:.9rem;line-height:1.4;border-bottom:1px solid hsl(var(--border));background:hsl(${accent} / .08);color:hsl(var(--foreground))`;
+  bar.style.cssText = `position:relative;z-index:var(--z-max);display:flex;align-items:center;gap:.75rem;padding:calc(var(--chrome-top, .5rem) + var(--chrome-h, 2.6rem) + .5rem) .5rem .5rem 1rem;font-size:var(--fs-lg);line-height:1.4;border-bottom:1px solid hsl(var(--border));background:color-mix(in srgb, hsl(${accent}) 8%, hsl(var(--background)));color:hsl(var(--foreground));overflow-wrap:anywhere`;
 
   // A link is rendered only when its href is a safe scheme - a javascript:/data:
   // href is dropped (the text still shows), never turned into a clickable anchor.
   const link = d.link?.label && d.link?.href && safeHref(d.link.href)
     // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated in the condition above
-    ? `<a class="btn btn--sm org-chrome-cta" href="${escape(d.link.href)}">${escape(d.link.label)}</a>`
+    ? `<a class="btn btn--sm org-chrome-cta" style="min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere" href="${escape(d.link.href)}">${escape(d.link.label)}</a>`
     : '';
   bar.innerHTML = `
     <span style="flex:0 0 auto;width:.5rem;height:.5rem;border-radius:50%;background:hsl(${accent})" aria-hidden="true"></span>
-    <span style="flex:1 1 auto;min-width:0">${escape(d.text)}</span>
-    ${link}
-    <button type="button" class="org-chrome-dismiss" aria-label="${escape(t('Dismiss'))}" style="flex:0 0 auto;border:0;background:transparent;color:inherit;cursor:pointer;font-size:1.2rem;line-height:1;padding:.1rem .3rem;opacity:.7">&times;</button>`;
+    <span class="org-chrome-message" style="flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .75rem"><span style="min-width:0">${escape(d.text)}</span>${link}</span>
+    <button type="button" class="org-chrome-dismiss" aria-label="${escape(t('Dismiss'))}" style="flex:0 0 auto;align-self:flex-start;display:inline-flex;align-items:center;justify-content:center;width:var(--ui-size-target);height:var(--ui-size-target);border:0;border-radius:var(--radius);background:transparent;color:inherit;cursor:pointer;font-size:1.3rem;line-height:1;opacity:.7">&times;</button>`;
 
   app.insertBefore(bar, view ?? null);
   bar.querySelector('.org-chrome-dismiss')?.addEventListener('click', () => {

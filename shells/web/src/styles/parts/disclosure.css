@@ -135,5 +135,5 @@
   margin: 0;
   font-size: var(--fs-xs);
   line-height: 1.45;
-  color: var(--ui-color-text-muted);
+  color: var(--ui-color-border-default);
 }

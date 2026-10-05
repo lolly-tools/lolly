@@ -18,7 +18,7 @@ import { t } from '../../i18n.ts';
 import { SNAP_PX, boolOf } from './shared.ts';
 import type { AABB, Gesture, GestureInit, HandleName, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
-import { beginCanvasGesture, canvasGestureReady, finishCanvasGesture, previewCanvasRect } from './collaboration.ts';
+import { beginCanvasGesture, canvasGestureReady, finishCanvasGesture, flushCanvasPreview, previewCanvasRect } from './collaboration.ts';
 
 // ── pointer gestures on the canvas ───────────────────────────────────────────
 export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
@@ -772,6 +772,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     } else clearGuides(fc);
     fc.gesture.moveDelta = { dx: mdx, dy: mdy };
     for (const [i, r] of fc.gesture.start) applyLiveRect(fc, i, { ...r, x: r.x + mdx, y: r.y + mdy });
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     fc.connectors.liveConnUpdate();
     return;
@@ -807,6 +808,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     });
     applyLiveRect(fc, fc.gesture.index, { ...nr, rot: fc.gesture.startRect.rot });
     fc.gesture.liveRect = { ...nr, rot: fc.gesture.startRect.rot };
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     fc.connectors.liveConnUpdate();
     return;
@@ -822,6 +824,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     const live = { ...fc.gesture.startRect, rot: deg };
     applyLiveRect(fc, fc.gesture.index, live);
     fc.gesture.liveRect = live;
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     return;
   }
@@ -830,6 +833,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     const next = scaleGroup(fc.gesture.startBoxes, fc.gesture.sel, fc.gesture.anchor, k, cfg, { minSize });
     for (const i of fc.gesture.sel) applyLiveRect(fc, i, boxRect(next[i], cfg));
     fc.gesture.liveBoxes = next;
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     fc.connectors.liveConnUpdate();
     return;
@@ -842,6 +846,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     const next = rotateGroup(fc.gesture.startBoxes, fc.gesture.sel, fc.gesture.centre, deg, cfg);
     for (const i of fc.gesture.sel) applyLiveRect(fc, i, boxRect(next[i], cfg));
     fc.gesture.liveBoxes = next;
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     fc.connectors.liveConnUpdate();
     return;
