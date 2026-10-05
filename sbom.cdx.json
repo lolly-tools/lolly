@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:8f870b23-11d9-47d8-897b-3eac70cd9a49",
+  "serialNumber": "urn:uuid:46dcbf72-cb1b-4e39-8ae7-ae9659ade2bb",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-02T22:33:30.808Z",
+    "timestamp": "2026-10-05T09:57:11.012Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23593,39 +23593,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/api@2.11.1",
+      "bom-ref": "pkg:npm/%40tauri-apps/api@2.12.1",
       "name": "@tauri-apps/api",
-      "version": "2.11.1",
-      "purl": "pkg:npm/%40tauri-apps/api@2.11.1",
+      "version": "2.12.1",
+      "purl": "pkg:npm/%40tauri-apps/api@2.12.1",
       "scope": "required",
-      "licenses": [
-        {
-          "expression": "Apache-2.0 OR MIT"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "33614fb98343da6fb087985f5bd66949dc4c3dd109a2f3c15b0a07266c14a72b1360d1da3a4545378d7d9bf2b42c88236ffeca536bc182c51ea495ae8100af00"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/api@2.12.0",
-      "name": "@tauri-apps/api",
-      "version": "2.12.0",
-      "purl": "pkg:npm/%40tauri-apps/api@2.12.0",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "Apache-2.0 OR MIT"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "7d44b1157f1500161ef56f4ae5139d11a29590d50545c3124687e3aeebdac73b5703e2345e74077181c5f26fdaea2131454c6c51fd07b055a13c1b87f4883327"
+          "content": "0dec851dadf0ca7a72a2a4c38a40c40c64c922ae0b4395127e89501919862164fa24c003cb16414c36b9700753ded0e0ef7ad45ee7cf682c0deda5c1a2ce0e9d"
         }
       ]
     },
@@ -33676,6 +33652,26 @@
         {
           "alg": "SHA-512",
           "content": "fdbbc7f44f6d9825d11a9dae5d8dd66ce95daa94f01646e16bff0035a110e95931847eb42b2a8bc2066aea51b6cbee2e4f9e71f7ef5e50732943bb869ce08a8c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vite@8.3.2",
+      "name": "vite",
+      "version": "8.3.2",
+      "purl": "pkg:npm/vite@8.3.2",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "490af5c7a5b9bd549b44e83bbecc9721ac4af5bd06ef3b13ebc69c7565919a7054b200e278b0911be45ea7d59d660729a2cbeffc64a7af8194501a81def5eaeb"
         }
       ],
       "properties": [
