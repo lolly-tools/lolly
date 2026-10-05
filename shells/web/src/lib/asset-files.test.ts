@@ -7,7 +7,7 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 const group = 'ext/brand/example', first = 'a'.repeat(24), second = 'b'.repeat(24);
 const files = [{ id: first, format: 'jpeg', url: `/catalog/${group}/original`, name: 'Wide.jpg', width: 3240, height: 1080 },
   { id: second, format: 'jpeg', url: `/catalog/${group}/square`, name: 'Square.jpg', width: 1080, height: 1080 }];
-const ref: AssetRef = { id: group, type: 'raster', format: 'jpeg', url: files[0]!.url, version: '1', meta: { name: 'Launch imagery', assetFiles: files } };
+const ref: AssetRef = { source: 'library', id: group, type: 'raster', format: 'jpeg', url: files[0]!.url, version: '1', meta: { name: 'Launch imagery', assetFiles: files } };
 test('same-extension files keep distinct identities and their own dimensions', () => {
   const a = selectAssetFile(ref, files[0]!), b = selectAssetFile(ref, files[1]!);
   assert.notEqual(a.id, b.id); assert.notEqual(a.url, b.url);
