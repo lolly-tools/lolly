@@ -20,12 +20,12 @@ const button = (text: string, symbol?: IconName) => {
 
 export async function openAgentInvites(sessionId: string, isCurrent: () => boolean): Promise<void> {
   if (!orgAgentInvitesEnabled() || open?.isConnected) return;
-  const base = getInstanceBase(), address = location.href, abort = new AbortController();
+  const base = getInstanceBase(), abort = new AbortController();
   let connection = '', busy = false;
   const modal = mountModal('', { className: 'modal team-invite-dialog document-agents', ariaLabel: tRaw('Invite agent'),
     onClose: () => { open = undefined; connection = ''; abort.abort(); } });
   open = modal.el;
-  const current = () => modal.el.isConnected && isCurrent() && base === getInstanceBase() && address === location.href;
+  const current = () => modal.el.isConnected && isCurrent() && base === getInstanceBase();
   const header = element('header', 'team-project-head'), heading = element('h2', 'modal-title', 'Invite agent'), close = button('Close');
   close.addEventListener('click', () => modal.close()); header.append(heading, close);
   const hint = element('p', 'muted', 'Your agent acts on your behalf in this document. Its access cannot exceed yours. You can revoke it at any time.');
