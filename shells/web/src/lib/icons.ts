@@ -378,6 +378,15 @@ const PATHS = {
 
 export type IconName = keyof typeof PATHS;
 
+/** A registry glyph as a namespaced DOM node, without a caller-owned HTML sink. */
+export function iconNode(name: IconName, doc: Document = document): Element | null {
+  const Parser = doc.defaultView?.DOMParser;
+  if (!Parser) return null;
+  const root = new Parser().parseFromString(icon(name), 'image/svg+xml').documentElement;
+  if (root.localName !== 'svg' || root.namespaceURI !== 'http://www.w3.org/2000/svg') return null;
+  return doc.importNode(root, true);
+}
+
 /** Shared visual metaphors. Consumers choose a stable concept; the glyph choice
  *  stays here alongside its paths, independent of section titles and copy.
  *  Use `icon(ICON_METAPHORS.colour, opts)` anywhere that concept appears. */
