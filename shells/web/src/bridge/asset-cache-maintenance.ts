@@ -122,7 +122,7 @@ type Credential = { store: Uint8Array; format: string } | null;
 export async function assetCredential(db: AssetsDb, id: string, resolve: (id: string) => Promise<AssetRef>, cache: Map<string, Credential>, maxBytes: number): Promise<Credential> {
   // A procedural ref names a song that is COMPOSED on demand - there are no
   // stored bytes to carry a credential, and fetching the scheme only produces
-  // the browser's own "cannot load" console error before the catch below.
+  // the browser's own "cannot load" console error before the error handler.
   if (isZzfxmRef(id)) return null;
   if (id.startsWith('user/')) {
     const rec = await db.get('user-assets', id);
