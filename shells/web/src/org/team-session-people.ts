@@ -7,7 +7,7 @@ import { buildPeoplePanel } from './team-people.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { teamOpenMessage } from './team-open.ts';
 import { orgAgentInvitesEnabled } from './document-agent-config.ts';
-import { icon } from '../lib/icons.ts';
+import { iconNode } from '../lib/icons.ts';
 
 let open: HTMLDialogElement | undefined;
 /** Manage the current document's people without leaving its live room. */
@@ -22,7 +22,7 @@ export async function openSessionPeople(sessionId: string, policy: InvitePolicy 
   header.append(heading, close);
   if (orgAgentInvitesEnabled()) {
     const agent = document.createElement('button'); agent.type = 'button'; agent.className = 'btn btn--sm';
-    agent.innerHTML = icon('aiSpark'); agent.append(document.createTextNode(tRaw('Invite agent')));
+    const glyph = iconNode('aiSpark'); if (glyph) agent.append(glyph); agent.append(document.createTextNode(tRaw('Invite agent')));
     agent.addEventListener('click', () => { modal.close(); void import('./document-agents.ts').then(m => m.openAgentInvites(sessionId, isCurrent)); });
     header.insertBefore(agent, close);
   }

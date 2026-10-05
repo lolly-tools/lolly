@@ -25,6 +25,7 @@ import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { navigateTo } from '../nav.ts';
+import { homeHref, navigateHome } from '../lib/home-destination.ts';
 
 export interface MountHomeFabOpts {
   /** Take over the click while unsaved work is resolved; call go() to leave. */
@@ -36,7 +37,7 @@ export interface MountHomeFabOpts {
 function goHomeOnClick(e: MouseEvent, opts: MountHomeFabOpts): void {
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
   e.preventDefault();
-  const go = (): void => navigateTo('/#/');
+  const go = (): void => navigateHome(navigateTo);
   if (opts.intercept?.(go)) return;
   go();
 }
@@ -51,8 +52,8 @@ function goHomeOnClick(e: MouseEvent, opts: MountHomeFabOpts): void {
  *  set. mountHomeFab() keys off `[data-home-fab]`, so wiring is class-agnostic. */
 export function homeFabHtml(opts: { className?: string } = {}): string {
   const cls = opts.className ?? 'home-fab';
-  // nosemgrep: lolly-href-escape-is-not-scheme-validation - the href is the literal in-app front-door route '/#/', never user input
-  return `<a href="/#/" class="${escape(cls)}" data-home-fab aria-label="${escape(t('Home'))}" title="${escape(t('Home'))}">${icon('home')}</a>`;
+  // nosemgrep: lolly-href-escape-is-not-scheme-validation - homeHref validates a root-relative or credential-free HTTPS instance destination
+  return `<a href="${escape(homeHref())}" class="${escape(cls)}" data-home-fab aria-label="${escape(t('Home'))}" title="${escape(t('Home'))}">${icon('home')}</a>`;
 }
 
 /** Wire every home FAB inside `root`. Call once per mount (like mountBackPill /
@@ -60,6 +61,7 @@ export function homeFabHtml(opts: { className?: string } = {}): string {
  *  own mount. */
 export function mountHomeFab(root: HTMLElement, opts: MountHomeFabOpts = {}): void {
   root.querySelectorAll<HTMLElement>('[data-home-fab]').forEach(el => {
+    el.setAttribute('href', homeHref());
     el.addEventListener('click', e => goHomeOnClick(e as MouseEvent, opts));
   });
 }
@@ -72,7 +74,7 @@ export function mountHomeFab(root: HTMLElement, opts: MountHomeFabOpts = {}): vo
 export function homeFabEl(opts: { className?: string } & MountHomeFabOpts = {}): HTMLAnchorElement {
   const a = document.createElement('a');
   a.className = opts.className ?? 'home-fab';
-  a.setAttribute('href', '/#/');
+  a.setAttribute('href', homeHref());
   a.setAttribute('data-home-fab', '');
   const label = t('Home');
   a.setAttribute('aria-label', label);

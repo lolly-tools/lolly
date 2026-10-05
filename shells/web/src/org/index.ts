@@ -178,6 +178,8 @@ export interface OrgConfig {
    *  tools gallery or their Projects. Absent ⇒ no instance opinion (the gallery). Applied
    *  once, at boot, by applyHomeView below. */
   home?: 'tools' | 'projects';
+  /** Optional root-relative or HTTPS Home destination, overriding home. */
+  homeUrl?: string;
   session?: Session;
   profilePolicy?: Record<string, ProfileFieldSpec>;
   tools?: Record<string, ToolPolicySpec>;
@@ -330,6 +332,7 @@ export function orgSession(): Session | null {
 
 export { orgAgentInvitesEnabled } from './document-agent-config.ts';
 import { setAgentInviteAvailability } from './document-agent-config.ts';
+import { homeHref, setHomeDestination } from '../lib/home-destination.ts';
 
 /** Control-plane governance for one feature flag, or null when this control plane
  *  has no opinion on it. Consumed by feature-flags.ts to resolve the default and
@@ -909,9 +912,10 @@ let homeViewDecided = false;
  * bare address, so it is not redirected either.
  */
 function applyHomeView(config: OrgConfig | null): void {
+  setHomeDestination(config?.home, config?.homeUrl);
   if (homeViewDecided) return;
   homeViewDecided = true;
-  if (config?.home !== 'projects') return;
+  if (homeHref() === '/#/' || homeHref() === '/#/tools') return;
   try {
     // A reload, or Back/Forward to a page the browser did not keep in memory, returns
     // to a view the member was already on. The Tools tab's address is the bare `/#`,
@@ -921,7 +925,13 @@ function applyHomeView(config: OrgConfig | null): void {
     if (returning) return;
     const hash = location.hash;
     if ((hash && hash !== '#' && hash !== '#/') || location.search || appPathname() !== '/') return;
-    history.replaceState(history.state, '', `${location.pathname}#/p`);
+    const target = new URL(homeHref(), location.href);
+    if (target.href === location.href) return;
+    if (target.origin === location.origin && target.pathname === '/' && target.hash.startsWith('#/')) {
+      history.replaceState(history.state, '', target.pathname + target.search + target.hash);
+    } else {
+      location.replace(target.href);
+    }
   } catch { /* the gallery is a fine first view; never break boot over this */ }
 }
 
@@ -1258,6 +1268,7 @@ export function _resetOrgForTests(): void {
   setInstallTag(null);
   session = null;
   authState = null;
+  setHomeDestination();
   setAgentInviteAvailability(false, null);
   inboxModule?._resetInboxForTests();
   inboxModule = null;

@@ -306,10 +306,12 @@ async function loadWiring(): Promise<WorkCollabWiring> {
     },
     makeHandle(p) {
       const person = orgSession();
+      const inviter = person?.kind === 'member' ? person.user.sub : undefined;
+      const sameInviter = () => { const now = orgSession(); return !!inviter && now?.kind === 'member' && now.user.sub === inviter; };
       return adapter.createWorkCollabHandle(p, { comments: comments.createWorkComments(p.sessionId, memberPrincipal),
       assets: assets.createWorkCanvasAssets(p.sessionId, memberPrincipal),
       inviteLinks: links.sessionInviteLinks(p.sessionId, invitePolicy(orgConfig()), () => person === orgSession()),
-      ...(orgAgentInvitesEnabled() ? { inviteAgent: () => { void import('./document-agents.ts').then(m => m.openAgentInvites(p.sessionId, () => person === orgSession())).catch(() => announce(tRaw(STRINGS.unreachable))); } } : {}),
+      ...(orgAgentInvitesEnabled() ? { inviteAgent: () => { void import('./document-agents.ts').then(m => m.openAgentInvites(p.sessionId, sameInviter)).catch(() => announce(tRaw(STRINGS.unreachable))); } } : {}),
       people: () => {
         const person = orgSession();
         void import('./team-session-people.ts')

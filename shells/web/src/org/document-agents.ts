@@ -2,7 +2,7 @@
 /** Invite an agent to the live document using the inviter's existing identity. */
 import { mountModal } from '../components/modal.ts';
 import { instanceFetch, instancePath, getInstanceBase } from '../lib/instance.ts';
-import { icon } from '../lib/icons.ts';
+import { iconNode, type IconName } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
 import { agentConnection, agentInviteState, orgAgentInvitesEnabled } from './document-agent-config.ts';
 
@@ -12,9 +12,9 @@ let open: HTMLDialogElement | undefined, sequence = 0;
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
   const el = document.createElement(tag); el.className = cls; el.textContent = tRaw(text); return el;
 };
-const button = (text: string, symbol?: Parameters<typeof icon>[0]) => {
+const button = (text: string, symbol?: IconName) => {
   const el = element('button', 'btn btn--sm'); el.type = 'button';
-  if (symbol) el.innerHTML = icon(symbol);
+  const glyph = symbol && iconNode(symbol); if (glyph) el.append(glyph);
   el.append(document.createTextNode(tRaw(text))); return el;
 };
 
@@ -31,9 +31,9 @@ export async function openAgentInvites(sessionId: string, isCurrent: () => boole
   const hint = element('p', 'muted', 'Your agent acts on your behalf in this document. Its access cannot exceed yours. You can revoke it at any time.');
   const status = element('p', 'document-agent-status', 'Loading agent invitations…'); status.setAttribute('role', 'status');
   const form = element('form', 'document-agent-form'); form.hidden = true;
-  const label = element('input', 'input'); label.type = 'text'; label.maxLength = 80; label.required = true; label.autocomplete = 'off'; label.placeholder = tRaw('e.g. Keynote assistant');
-  const role = element('select', 'input');
-  const hours = element('select', 'input');
+  const label = element('input', 'field-input'); label.type = 'text'; label.maxLength = 80; label.required = true; label.autocomplete = 'off'; label.placeholder = tRaw('e.g. Keynote assistant');
+  const role = element('select', 'field-select');
+  const hours = element('select', 'field-select');
   for (const [value, text] of [['1', '1 hour'], ['24', '24 hours'], ['168', '7 days']]) { const o = element('option', '', text); o.value = value!; hours.append(o); } hours.value = '24';
   const field = (text: string, control: HTMLElement) => {
     const wrap = element('div', 'document-agent-field'), l = element('label', '', text);
@@ -43,11 +43,12 @@ export async function openAgentInvites(sessionId: string, isCurrent: () => boole
   form.append(field('Agent name', label), field('Access', role), field('Expires in', hours), submit);
   const accessHint = element('p', 'muted', 'Viewers read the document. Editors make changes alongside its collaborators.');
   const setup = element('section', 'document-agent-setup'); setup.hidden = true; setup.setAttribute('aria-label', tRaw('Agent connection'));
-  const key = element('input', 'input'); key.type = 'password'; key.readOnly = true; key.autocomplete = 'off';
-  const endpoint = element('input', 'input'); endpoint.readOnly = true;
+  const key = element('input', 'field-input'); key.type = 'password'; key.readOnly = true; key.autocomplete = 'off';
+  const endpoint = element('input', 'field-input'); endpoint.readOnly = true;
   const revealLabel = element('label', 'document-agent-reveal'), reveal = element('input'); reveal.type = 'checkbox';
   reveal.addEventListener('change', () => { key.type = reveal.checked ? 'text' : 'password'; });
   revealLabel.append(reveal, document.createTextNode(tRaw('Show connection key')));
+  reveal.className = 'field-check';
   const copy = button('Copy MCP configuration', 'clipboard'), instructions = button('Copy instructions', 'clipboard');
   const copyText = async (value: string) => {
     try { await navigator.clipboard.writeText(value); if (current()) status.textContent = tRaw('Copied. Paste it into your agent’s MCP settings.'); }
@@ -69,7 +70,8 @@ export async function openAgentInvites(sessionId: string, isCurrent: () => boole
     list.replaceChildren();
     if (!agents.length) list.append(element('p', 'muted', 'No agents invited yet.'));
     for (const agent of agents) {
-      const row = element('div', 'document-agent-row'), avatar = element('span', 'document-agent-avatar'); avatar.innerHTML = icon('aiSpark'); avatar.setAttribute('aria-hidden', 'true');
+      const row = element('div', 'document-agent-row'), avatar = element('span', 'document-agent-avatar');
+      const glyph = iconNode('aiSpark'); if (glyph) avatar.append(glyph); avatar.setAttribute('aria-hidden', 'true');
       const info = element('div', 'document-agent-info'), name = element('strong', '', agent.label);
       const state = agentInviteState(agent), stateText = { ready: 'Ready to connect', connected: 'Connected', expired: 'Expired', revoked: 'Revoked' }[state];
       info.append(name, element('p', 'muted', `${agent.role === 'editor' ? 'Editor' : 'Viewer'} · ${stateText}`), element('p', 'muted', `Acts for ${agent.actingFor}`));

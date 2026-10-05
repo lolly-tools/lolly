@@ -30,6 +30,8 @@ import { t, LANG_META, currentLang, type LangSwitchHost } from '../i18n.ts';
 import { attachDesignSystemMenu } from './design-system-menu.ts';
 import type { SwitchHost } from '../lib/design-system/switch.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { homeHref, navigateHome } from '../lib/home-destination.ts';
+import { navigateTo } from '../nav.ts';
 
 // The chevron every navigation row wears (was hand-copied per row).
 const CHEVRON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>';
@@ -148,12 +150,12 @@ export function attachProfileMenu(
       pop.close();
       onHistory?.();
     });
-    // Home / Brand wizard / Settings are plain hash links; just let them
-    // navigate, closing the menu first. Home is `/#/` (root-absolute like the
-    // back pill's HOME_HREF - a bare '#/' resolves against a /t/<id> path). The
-    // wizard entry shows always - a branded user re-running it is a supported
-    // path (it overwrites the user tokens).
-    el.querySelector('[data-act="home"]')?.addEventListener('click', () => pop.close());
+    const home = el.querySelector<HTMLAnchorElement>('[data-act="home"]');
+    home?.setAttribute('href', homeHref());
+    home?.addEventListener('click', e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+      e.preventDefault(); pop.close(); navigateHome(navigateTo);
+    });
     // The active design system's label (plans/186): read async, filled in place,
     // so the row costs the menu nothing at open. The active
     // label updates in place after a quick switch.
