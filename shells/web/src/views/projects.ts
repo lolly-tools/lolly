@@ -29,6 +29,7 @@ import { mountLocalProjectAsset, localProjectAssetHref } from './projects-asset-
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
+import { groupSelectionInFolder } from './projects-folder-create.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
 import type { Folder, FolderItem, TrashEntry, ProjectTemplate } from '../folders.ts';
 import { PTPL_SLOT_PREFIX, isHiddenSlot } from '../lib/batch-slots.ts';
@@ -1161,6 +1162,7 @@ export async function mountProjects(
       if (cbtn) {
         const kind = cbtn.dataset.createBtn;
         if (kind === 'folder') {
+          if (sharedFolder) { shared.createFolder(); return; }
           const name = await promptFolderName();
           if (name && mounted) { await store.create(name, currentFolderTarget()); await reload(); render(); }
         } else if (kind === 'template') void openBlueprintChooser();
@@ -1582,6 +1584,7 @@ export async function mountProjects(
   }
   async function onBackgroundAction(act: string): Promise<void> {
     if (act === 'new-folder') {
+      if (sharedFolder) { shared.createFolder(); return; }
       // The create tile's inline editor where there is one; Uncategorised and the
       // ?tools= grid render no create tiles, so they get the name prompt instead.
       const tile = viewEl.querySelector<HTMLElement>('[data-create="folder"]');
@@ -2693,14 +2696,11 @@ export async function mountProjects(
   }
 
   async function newFolderFromSelection(): Promise<void> {
+    if (sharedFolder) { shared.createFolder(); return; }
     if (!selected.size) return;
     const name = await promptFolderName();
     if (!name || !mounted) return;
-    const parent = (folderId && folderId !== UNCAT) ? folderId : null;
-    const created = await store.create(name, parent);
-    for (const ref of selectedByKind('session')) await store.moveItem(ref, created.id, 'session');
-    for (const ref of selectedByKind('image'))   await store.moveItem(ref, created.id, 'image');
-    for (const id of topLevelSelectedFolders()) { if (id !== created.id) await store.moveFolder(id, created.id); }
+    await groupSelectionInFolder(store, name, (folderId && folderId !== UNCAT) ? folderId : null, { sessions: selectedByKind('session'), images: selectedByKind('image'), folders: topLevelSelectedFolders() });
     dropSelection();
     if (!mounted) return;
     await reload(); render();
