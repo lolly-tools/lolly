@@ -16,7 +16,14 @@ export function nativeCachePaths(root: string, shell: 'mobile' | 'desktop', cust
 export function nativeBuildIsRunning(): boolean {
   try {
     const processes = execFileSync('ps', ['-axo', 'comm'], { encoding: 'utf8' });
-    return processes.split('\n').some(line => /^(cargo|rustc|xcodebuild|clang|clang\+\+|swiftc|gradle|gradlew|tauri)$/.test(basename(line.trim())));
+    if (processes.split('\n').some(line => /^(cargo|rustc|xcodebuild|clang|clang\+\+|swiftc|gradle|gradlew|tauri)$/.test(basename(line.trim())))) return true;
+    const java = execFileSync('ps', ['-axo', 'pid,comm'], { encoding: 'utf8' }).split('\n')
+      .filter(line => basename(line.trim().replace(/^\d+\s+/, '')) === 'java');
+    return java.some(line => {
+      const pid = line.trim().split(/\s+/)[0];
+      const args = execFileSync('ps', ['-p', pid, '-o', 'args='], { encoding: 'utf8' });
+      return /org\.gradle\.(?:launcher\.(?:daemon\.bootstrap\.GradleDaemon|GradleMain)|wrapper\.GradleWrapperMain)/.test(args);
+    });
   } catch { return true; }
 }
 

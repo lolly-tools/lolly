@@ -26,7 +26,9 @@ try {
   const cwd = join(root, `shells/tauri-${shell}`);
   const cli = join(cwd, 'node_modules/@tauri-apps/cli/tauri.js');
   const command = platform === 'android' || platform === 'ios' ? [platform, 'build', ...args] : ['build', ...args];
-  const child = spawn(process.execPath, [cli, ...command], { cwd, stdio: 'inherit' });
+  const env = { ...process.env };
+  if (platform === 'android' && env.LOLLY_KEEP_NATIVE_CACHE !== '1') env.GRADLE_OPTS = `${env.GRADLE_OPTS ?? ''} -Dorg.gradle.daemon=false`.trim();
+  const child = spawn(process.execPath, [cli, ...command], { cwd, env, stdio: 'inherit' });
   const interrupt = () => child.kill('SIGINT');
   const terminate = () => child.kill('SIGTERM');
   process.on('SIGINT', interrupt); process.on('SIGTERM', terminate);
