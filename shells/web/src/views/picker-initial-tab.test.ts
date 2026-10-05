@@ -176,20 +176,24 @@ test('cancelling a nested camera keeps the picker open and stops a late camera s
 // ── the requested tab opens ───────────────────────────────────────────────────
 
 test('connected assets keep their native categories and can be found by tag or collection', async () => {
+  setToolIndex(TOOLS);
   const logo = asset('ext/brand/mark');
   logo.meta = { name: 'Primary mark', provider: 'brand', providerLabel: 'Brand library', providerSections: ['Standard Logos'], providerCollections: ['Launch Kit'], tags: ['SUSE Virtualization'] };
   const video = asset('ext/brand/photo');
   video.meta = { name: 'Landscape', provider: 'brand', providerLabel: 'Brand library', providerSections: ['Photos'], tags: ['Scenery'] };
-  const picker = await open({ initialTab: 'library' }, [logo, video]);
+  const picker = await open({ initialTab: 'library', allowUpload: true }, [logo, video]);
   const library = picker.panel.querySelector<HTMLElement>('[data-pane="library"]')!;
   assert.ok(library.textContent?.includes('Brand library · Standard Logos'));
   assert.ok(library.textContent?.includes('Brand library · Photos'));
   assert.ok(picker.panel.querySelector('.asset-picker-catbtn--named')?.textContent?.includes('Photos'));
   const input = picker.panel.querySelector<HTMLInputElement>('.asset-picker-search')!;
   for (const query of ['tag:"SUSE Virtualization"', 'launch kit', 'category:"Standard Logos"']) {
+    picker.tab('tools')!.click();
     input.value = query;
     input.dispatchEvent(new W.Event('input', { bubbles: true }));
     await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_MS + 30));
+    assert.equal(picker.tab('library')!.querySelector('.asset-picker-tabcount')?.textContent, '1', 'the search badge agrees with the native taxonomy results');
+    picker.tab('library')!.click();
     const ids = [...library.querySelectorAll<HTMLElement>('[data-asset-id]')].map(tile => tile.dataset.assetId);
     assert.deepEqual(ids, [logo.id], query);
   }
