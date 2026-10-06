@@ -1,7 +1,7 @@
 {
   "alg": "ECDSA-P256-SHA256",
   "keyId": "5zVngG6s-652_L8Zdok5PTfQ6vxdPAYfcpBWxMtzs5c",
-  "signedAt": "2026-10-06T13:31:03.511Z",
+  "signedAt": "2026-10-06T14:09:37.740Z",
   "indexHash": "f0115ee51ee584b27a8176574e55079efb1370677d3694be4fbec729d564d419",
   "files": {
     "3d/tool.json": "4785299047e8bd29552b7f5563bbc1e957b781c7b99bce640df782415db653b5",
@@ -34,7 +34,7 @@
     "3d/i18n/vi.json": "8de23cab23618e9287ef616fcac9778aef9a8e9a549f3680ede2442a963f8779",
     "3d/i18n/zh-hant.json": "88de5e11fdb0d9d65525954ef83659fcae8b70ba90faa7ed4626c3cf4ecc4f1c",
     "3d/i18n/zh.json": "a5604d85a0581e1bf5abf06bafdbcaf4a5777f3784bfb7d4ce34d2203f7b888e",
-    "3d-studio/tool.json": "092fa13f3351f8ca560c50f396efbab06a1737737c4ceb6d19c47fed1bf31af3",
+    "3d-studio/tool.json": "d0325239eed541b938377dec4cc90d15e6073f17369b21a09cfe45112506befd",
     "3d-studio/template.html": "979a8f49049818ca93284954e7eb99a50b8d44d937195e95fbbf8e8ef6c52935",
     "3d-studio/styles.css": "ef36a58e2528f8eb654a4663ebed21386eb60de42bbdad29fc0aa9251049ac6c",
     "3d-studio/hooks.js": "89c4b14e57d4c795ad90e13eadcba105c644d798427d603006bb59f48ce77ace",
@@ -2172,5 +2172,5 @@
     "work-avatar/i18n/zh.json": "8aed0e349e295ce4e1d2e7d204494687805e9a815d1ff968f2156e0ae6d4aaca",
     "work-avatar/templates/brand-starter.json": "51e781f09fdb62fbee21e3019c3df7172e4c2f87fe6310fd477c2a3275e9d12c"
   },
-  "signature": "v702rD8EzdBwpuxoY5SRMF-TfGgRMysfFE0-ZEAADvFlFP7HR1T8DaZpyY2trOSXbTAWd9aTp2vOL_eOHZ45Dg"
+  "signature": "FMC-CMjAO4LsCTszNIKiWyxoCyYRc-H51w8qBOzhl6ptE16YZzKc6S8yUfCwGjBonYhR4A5TV0BU1HqdhloLpQ"
 }

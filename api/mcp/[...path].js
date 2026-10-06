@@ -1864,6 +1864,7 @@ var init_tool_schema = __esm({
                       "video",
                       "audio",
                       "lottie",
+                      "model",
                       "any"
                     ]
                   },
@@ -2073,6 +2074,7 @@ var init_tool_schema = __esm({
                             "video",
                             "audio",
                             "lottie",
+                            "model",
                             "any"
                           ]
                         },
