@@ -143,7 +143,7 @@ export function wire(fc: FcCtx, store?: StoreFile): () => void {
             const ref = store
               ? await store(file)
               : await (await import('../picker.ts')).storeUserUpload(
-                  fc.host as unknown as PickerHost,
+                  fc.host as PickerHost,
                   file,
                   { batch: true }
                 );
