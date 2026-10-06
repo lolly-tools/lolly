@@ -877,5 +877,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Ta connexion a expiré. Connecte-toi à nouveau pour inviter des personnes.",
   "Only people who can edit this session can invite others.": "Seules les personnes qui peuvent modifier cette session peuvent en inviter d'autres.",
   "This session was deleted.": "Cette session a été supprimée.",
-  "Could not send the invite. Try again.": "Impossible d'envoyer l'invitation. Réessaie."
+  "Could not send the invite. Try again.": "Impossible d'envoyer l'invitation. Réessaie.",
+  "Live now - 1 person here": "En direct - 1 personne présente",
+  "Live now - {n} people here": "En direct - {n} personnes présentes"
 }

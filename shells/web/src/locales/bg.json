@@ -7372,5 +7372,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Влизането ти е изтекло. Влез отново, за да каниш хора.",
   "Only people who can edit this session can invite others.": "Само хора, които могат да редактират тази сесия, могат да канят други.",
   "This session was deleted.": "Тази сесия беше изтрита.",
-  "Could not send the invite. Try again.": "Поканата не можа да се изпрати. Опитай отново."
+  "Could not send the invite. Try again.": "Поканата не можа да се изпрати. Опитай отново.",
+  "Live now - 1 person here": "На живо - 1 човек е тук",
+  "Live now - {n} people here": "На живо - {n} души са тук"
 }

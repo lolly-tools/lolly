@@ -7372,5 +7372,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Log masuk anda telah tamat tempoh. Log masuk semula untuk menjemput orang.",
   "Only people who can edit this session can invite others.": "Hanya orang yang boleh menyunting sesi ini boleh menjemput orang lain.",
   "This session was deleted.": "Sesi ini telah dipadam.",
-  "Could not send the invite. Try again.": "Tidak dapat menghantar jemputan. Cuba lagi."
+  "Could not send the invite. Try again.": "Tidak dapat menghantar jemputan. Cuba lagi.",
+  "Live now - 1 person here": "Aktif sekarang - 1 orang di sini",
+  "Live now - {n} people here": "Aktif sekarang - {n} orang di sini"
 }
