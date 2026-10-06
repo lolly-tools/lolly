@@ -46,7 +46,10 @@ const page = (f: string) => readFileSync(builtFile(f), 'utf-8');
 /** The shared chrome CSS/JS ship as fingerprinted files linked per page (plan 131 B.1),
  *  not inline. Resolve the file a page links and read it from the build. */
 const linked = (html: string, ext: 'css' | 'js'): string => {
-  const m = new RegExp(`/info/(docs\\.[A-Za-z0-9_-]{16}\\.${ext})`).exec(html);
+  // The first script sets the theme before paint; feature scripts use the deferred bundle.
+  const m = ext === 'js'
+    ? /<script\b(?=[^>]*\bdefer\b)[^>]*\bsrc="\/info\/(docs\.[A-Za-z0-9_-]{16}\.js)"[^>]*>/.exec(html)
+    : /\/info\/(docs\.[A-Za-z0-9_-]{16}\.css)/.exec(html);
   if (!m) throw new Error(`page links no docs.<hash>.${ext}`);
   return readFileSync(join(BUILT, m[1]!), 'utf-8');
 };
