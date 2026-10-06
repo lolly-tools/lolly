@@ -8,7 +8,7 @@ export function mountTeamSessionPresence(grid: HTMLElement, projectId: string, c
   let busy = false, generation = 0, stopped = false;
   const paint = (sessions: Array<{ sessionId: string; peers: CollabTilePeer[] }>) => {
     const bySession = new Map(sessions.map(row => [row.sessionId, row.peers]));
-    for (const tile of grid.querySelectorAll<HTMLElement>('[data-kind="session"]')) {
+    for (const tile of grid.querySelectorAll<HTMLElement>('.folder-tile[data-kind="team-session"]')) {
       renderCollabBadge(tile, bySession.get(tile.dataset.ref || tile.dataset.slot || '') ?? []);
     }
   };

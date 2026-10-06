@@ -31,7 +31,6 @@ import { projectInviteLinks } from './project-invite-links.ts';
 import { showProjectInviteLink } from './project-sharing.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { mountProjectAgentsPanel } from './project-agents-panel.ts';
-import { mountTeamSessionPresence } from './team-session-presence.ts';
 
 interface ProjectViewOptions {
   host: HostV1;
@@ -240,7 +239,9 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       event.preventDefault(); event.stopPropagation(); void open(link.dataset.openTeamSession!, notice);
     }, { signal: abort.signal });
     content.append(children.length || sessions.length || files.length ? grid : node('p', tokens.length ? tRaw('No shared folders, sessions or assets match your search.') : tRaw('No contents yet. Create a folder or session to start working together.'), 'team-project-empty'));
-    clearPresence = mountTeamSessionPresence(grid, projectId, () => current() && my === ticket);
+    void import('./team-session-presence.ts').then(({ mountTeamSessionPresence }) => {
+      if (current() && my === ticket) clearPresence = mountTeamSessionPresence(grid, projectId, () => current() && my === ticket);
+    });
     clearPreviews = hydrateSharedPreviews(grid, source!, opts.host, current);
 
     function showNewFolder(): void {
