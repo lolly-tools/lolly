@@ -168442,7 +168442,7 @@ var AGENT_TOOLS = LIVE_TOOLS.map((tool) => ({
   inputSchema: { ...tool.inputSchema, properties: { ...tool.inputSchema.properties, invitation: invitationArg }, required: tool.name === "lolly_live_apply" ? ["invitation", "documentId", "ifRevision", "transactionId"] : ["invitation"], additionalProperties: false },
   annotations: {
     readOnlyHint: !["lolly_live_connect", "lolly_live_apply", "lolly_live_undo", "lolly_live_disconnect"].includes(tool.name),
-    destructiveHint: tool.name === "lolly_live_disconnect",
+    destructiveHint: ["lolly_live_apply", "lolly_live_undo", "lolly_live_disconnect"].includes(tool.name),
     idempotentHint: !["lolly_live_apply", "lolly_live_undo"].includes(tool.name),
     openWorldHint: true
   },

@@ -18,7 +18,7 @@ test('installed connector advertises only invited tools with explicit scope and 
     assert.equal(tool.annotations.openWorldHint, true);
     assert.deepEqual(tool.securitySchemes, [{ type: 'noauth' }]);
   }
-  assert.equal(AGENT_TOOLS.find(t => t.name === 'lolly_live_disconnect')!.annotations.destructiveHint, true);
+  assert.deepEqual(AGENT_TOOLS.filter(tool => tool.annotations.destructiveHint).map(tool => tool.name), ['lolly_live_apply', 'lolly_live_undo', 'lolly_live_disconnect']);
   const files = await dispatch({ jsonrpc: '2.0', id: 1, method: 'resources/read', params: { uri: 'lolly://files/private' } }, { invitedLive: true });
   assert.ok(files!.error);
 });

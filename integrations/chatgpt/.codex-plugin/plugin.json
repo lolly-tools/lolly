@@ -1,6 +1,6 @@
 {
   "name": "lolly",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Collaborate with your team in the Lolly document you invite your agent into. Find layers, create slide alternatives, place text and images in frames, and check the live result.",
   "author": {
     "name": "Andy Fitzsimon",
@@ -19,9 +19,9 @@
   "interface": {
     "displayName": "Lolly",
     "shortDescription": "Design together with your team",
-    "longDescription": "Invite your agent into an open Lolly Design document. It appears alongside your collaborators, finds and edits layers, creates artboard alternatives, places text and images in frames, and previews its work. You choose read or edit access and can pause or disconnect the agent. The connection on lolly.tools accepts invitations from public HTTPS Lolly instances on any domain, including lolly.ing.",
+    "longDescription": "Collaborate on graphic designs and presentation slides in an open Lolly Design document. Invite your agent to join alongside your team, find and edit layers, create artboard alternatives, place text and images in frames, and preview its work. You choose read or edit access and can pause or disconnect the agent. The connection on lolly.tools accepts invitations from public HTTPS Lolly instances on any domain, including lolly.ing.",
     "developerName": "Andy Fitzsimon",
-    "category": "Productivity",
+    "category": "Creativity",
     "capabilities": [
       "Read an invited design",
       "Find layers",
@@ -46,7 +46,7 @@
   "extensions": {
     "com.openai": {
       "publication": {
-        "release_notes": "Initial document-scoped collaborator connection. Supports invitations from public HTTPS Lolly instances, live context and layer search, atomic edits with revision checks and retry receipts, visual previews, scoped undo, and disconnection."
+        "release_notes": "Initial document-scoped design collaborator. Supports invitations from public HTTPS Lolly instances, live context and layer search, atomic edits with revision checks and retry receipts, visual previews, scoped undo, and disconnection. Editing and undo tools declare that they can remove document content."
       },
       "review": {
         "test_cases": {
