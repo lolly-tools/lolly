@@ -38,8 +38,8 @@ import {
 // ──────────────────────────────────────────────────────────────────────────────
 
 test('Edge Case #1: Oversized file (>32MB) should reject with clear error', async () => {
-  // Create a file larger than 32MB (33 MB)
-  const oversizedBuffer = new ArrayBuffer(33 * 1024 * 1024);
+  // Create a file larger than 32MB (one byte over)
+  const oversizedBuffer = new ArrayBuffer(32 * 1024 * 1024 + 1);
   const oversizedFile = new File([oversizedBuffer], 'OversizedFont.ttf', {
     type: 'font/ttf',
   });
@@ -544,7 +544,7 @@ test('Edge Case #7d: Real TTF passes upload validation end to end', () => {
   const result = validateFontFile(file);
 
   assert.equal(result.valid, true, `Real font should pass validation, got: ${result.error}`);
-  assert.ok(buf.byteLength < 5 * 1024 * 1024, 'Guard: fixture must stay under the 5MB cap this asserts against');
+  assert.ok(buf.byteLength < 32 * 1024 * 1024, 'Guard: fixture must stay under the 32MB cap this asserts against');
   console.log(`  ok Real TTF validated (${buf.byteLength} bytes)`);
 });
 

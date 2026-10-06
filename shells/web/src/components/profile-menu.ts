@@ -34,6 +34,7 @@ import { homeHref, navigateHome } from '../lib/home-destination.ts';
 import { navigateTo } from '../nav.ts';
 import { configureNotifications, notificationCount, onNotificationsChange } from '../lib/notifications.ts';
 import { icon } from '../lib/icons.ts';
+import { historySettled } from '../lib/overlay-back.ts';
 
 // The chevron every navigation row wears (was hand-copied per row).
 const CHEVRON = icon('chevronRight', { size: 15 });
@@ -121,7 +122,9 @@ export function attachProfileMenu(
     notificationCountSlot = el.querySelector('[data-notification-count]');
     el.querySelector('[data-act="notifications"]')?.addEventListener('click', () => {
       pop.close(true);
-      void import('./notification-center.ts').then(module => module.openNotifications(trigger));
+      void Promise.all([import('./notification-center.ts'), historySettled()]).then(([module]) => {
+        if (trigger.isConnected) module.openNotifications(trigger);
+      });
     });
 
     // Theme: apply immediately + persist to the profile (canonical store), like the

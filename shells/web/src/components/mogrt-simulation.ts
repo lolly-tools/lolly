@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
-import type { MogrtPreview } from '../../lib/mogrt.ts';
-import { defaultMogrtSimulation, simulateMogrt, type MogrtLayout } from '../../lib/mogrt-simulation.ts';
-import { setAssetOpening } from '../../lib/asset-open-handoff.ts';
-import { navigateTo } from '../../nav.ts';
-import { t } from '../../i18n.ts';
+import type { MogrtPreview } from '../lib/mogrt.ts';
+import { defaultMogrtSimulation, simulateMogrt, type MogrtLayout } from '../lib/mogrt-simulation.ts';
+import { setAssetOpening } from '../lib/asset-open-handoff.ts';
+import { navigateTo } from '../nav.ts';
+import { t } from '../i18n.ts';
 
 export function mountMogrtSimulation(panel: HTMLElement, template: MogrtPreview): void {
   const options = defaultMogrtSimulation(template);

@@ -241,6 +241,8 @@ test('profile notifications retain readable scroll space with enlarged text in p
           document.documentElement.style.fontSize = '200%';
         });
         const profile = page.locator('.design-topbar .profile-link:visible');
+        const trigger = await profile.elementHandle();
+        assert.ok(trigger);
         await profile.click();
         await page.locator('[data-act="notifications"]').click();
         const center = page.locator('dialog.notification-center');
@@ -254,8 +256,13 @@ test('profile notifications retain readable scroll space with enlarged text in p
         const listBounds = (await list.boundingBox())!, actionBounds = (await dismiss.boundingBox())!;
         assert.ok(actionBounds.height >= 44 && actionBounds.y >= listBounds.y && actionBounds.y + actionBounds.height <= listBounds.y + listBounds.height + 1,
           'the full dismiss button is visible inside the scrolling message list');
+        await page.evaluate(() => {
+          window.addEventListener('popstate', () => { document.documentElement.dataset.notificationBackSettled = '1'; }, { once: true });
+        });
         await page.keyboard.press('Escape');
-        assert.equal(await profile.evaluate(el => el === document.activeElement), true);
+        await page.waitForFunction(() => document.documentElement.dataset.notificationBackSettled === '1');
+        assert.equal(await trigger.evaluate(el => el.isConnected && el === document.activeElement), true);
+        assert.ok(await trigger.isVisible(), 'focus returns to the visible profile button after the dock moves it');
       } finally { await context.close(); }
     }
   } finally { await closeBrowser(); }
