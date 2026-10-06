@@ -5567,6 +5567,9 @@ interface AudioEntry { slug: string; title: string; url: string; duration: numbe
 // slug → playlist entry for the CURRENT build() pass. Module-level like
 // activeCatalog (wrapPage has no channel for per-build state), reset at the top
 // of every build() so a --watch reimport can never serve a previous pass's set.
+// Listen is withdrawn pending a replacement. Keep source recordings available,
+// but do not ship the player, narration assets, or device-voice controls.
+const DOCS_LISTEN_ENABLED = false;
 let audioBySlug = new Map<string, AudioEntry>();
 
 /** The committed English narration set, in pages[] (sidebar) order - that order
@@ -5734,6 +5737,7 @@ function assertAudioCues(page: Page, content: string, md: string): void {
 // speechSynthesis. `data-listen-produced` lets the loader tell the two apart for its
 // codec ladder; the minutes badge only makes sense for a fixed-length produced track.
 function listenButtonHtml(page: Page, a?: AudioEntry, edition = ''): string {
+  if (!DOCS_LISTEN_ENABLED) return edition ? `<div class="listen-bar${page.isLanding ? ' listen-bar-float' : ''}">${edition}</div>` : '';
   const mins = a && a.duration > 0 ? `${Math.max(1, Math.round(a.duration / 60))} min` : '';
   const producedAttr = a ? ' data-listen-produced' : '';
   return `<div class="listen-bar${page.isLanding ? ' listen-bar-float' : ''}">${edition}<button type="button" class="docs-listen"${producedAttr} data-listen-slug="${esc(page.slug)}" data-listen-title="${esc(page.title)}" aria-label="${esc(`Listen to ${page.title}`)}">${LISTEN_ICON}<span>Listen</span>${mins ? `<span class="listen-mins">${esc(mins)}</span>` : ''}</button></div>`;
@@ -5892,7 +5896,7 @@ const DOCS_JS = [
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
   DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
-  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, LISTEN_SCRIPT, readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
+  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, ...(DOCS_LISTEN_ENABLED ? [LISTEN_SCRIPT] : []), readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
@@ -6290,7 +6294,7 @@ async function build() {
   // stay behind in the gitignored output dir to be served stale. The player
   // bundle and audio-index.json exist only while at least one page has audio,
   // so a no-audio checkout builds a byte-identical /info with none of this.
-  audioBySlug = collectDocsAudio();
+  audioBySlug = DOCS_LISTEN_ENABLED ? collectDocsAudio() : new Map();
   rmSync(resolve(outDir, 'audio'), { recursive: true, force: true });
   rmSync(resolve(outDir, 'audio-index.json'), { force: true });
   for (const f of readdirSync(outDir)) {
