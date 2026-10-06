@@ -876,5 +876,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Autentificarea ta a expirat. Autentifică-te din nou pentru a invita persoane.",
   "Only people who can edit this session can invite others.": "Doar persoanele care pot edita această sesiune pot invita pe alții.",
   "This session was deleted.": "Această sesiune a fost ștearsă.",
-  "Could not send the invite. Try again.": "Nu am putut trimite invitația. Încearcă din nou."
+  "Could not send the invite. Try again.": "Nu am putut trimite invitația. Încearcă din nou.",
+  "Live now - 1 person here": "Acum în direct - 1 persoană prezentă",
+  "Live now - {n} people here": "Acum în direct - {n} persoane prezente"
 }

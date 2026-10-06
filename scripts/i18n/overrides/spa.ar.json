@@ -1012,5 +1012,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "انتهت صلاحية تسجيل دخولك. سجّل الدخول مرة أخرى لدعوة الأشخاص.",
   "Only people who can edit this session can invite others.": "يمكن فقط للأشخاص القادرين على تحرير هذه الجلسة دعوة الآخرين.",
   "This session was deleted.": "تم حذف هذه الجلسة.",
-  "Could not send the invite. Try again.": "تعذّر إرسال الدعوة. حاول مرة أخرى."
+  "Could not send the invite. Try again.": "تعذّر إرسال الدعوة. حاول مرة أخرى.",
+  "Live now - 1 person here": "مباشر الآن - شخص واحد حاضر",
+  "Live now - {n} people here": "مباشر الآن - {n} أشخاص حاضرون"
 }

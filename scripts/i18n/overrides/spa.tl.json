@@ -879,5 +879,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Nag-expire na ang sign-in mo. Mag-sign in ulit para makapag-imbita.",
   "Only people who can edit this session can invite others.": "Ang mga taong makakapag-edit lang ng session na ito ang makakapag-imbita ng iba.",
   "This session was deleted.": "Natanggal ang session na ito.",
-  "Could not send the invite. Try again.": "Hindi naipadala ang imbitasyon. Subukan ulit."
+  "Could not send the invite. Try again.": "Hindi naipadala ang imbitasyon. Subukan ulit.",
+  "Live now - 1 person here": "Live ngayon - 1 taong narito",
+  "Live now - {n} people here": "Live ngayon - {n} taong narito"
 }
