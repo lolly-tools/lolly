@@ -191,6 +191,7 @@ const NPM_COMPONENTS: NpmComponent[] = [
   // shells/web direct dependencies - bundled into the PWA.
   { pkg: 'dompurify', where: 'web', elect: 'MPL-2.0' },
   { pkg: 'pdf-lib', where: 'web' },
+  { pkg: 'pdfjs-dist', where: 'web' },
   { pkg: '@pdf-lib/fontkit', where: 'web', fallbackText: PDF_LIB_FONTKIT_TEXT },
   { pkg: 'dom-to-image-more', where: 'web' },
   { pkg: 'fflate', where: 'web' },

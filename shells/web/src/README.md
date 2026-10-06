@@ -10,17 +10,17 @@ Roughly 711,000 lines of TypeScript, tests included, and 58,000 lines of CSS.
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
 | `views/` | 482 files, 193,437 lines | 227 files, 75,650 lines | 6 files, 1,427 lines |
-| `lib/` | 740 files, 156,637 lines | 418 files, 84,222 lines | 12 files, 1,805 lines |
+| `lib/` | 740 files, 156,642 lines | 418 files, 84,222 lines | 12 files, 1,805 lines |
 | `bridge/` | 202 files, 51,905 lines | 120 files, 25,204 lines | none |
-| `components/` | 110 files, 26,178 lines | 49 files, 12,422 lines | 19 files, 1,105 lines |
-| `org/` | 60 files, 15,268 lines | 42 files, 12,172 lines | none |
+| `components/` | 110 files, 26,164 lines | 49 files, 12,422 lines | 19 files, 1,105 lines |
+| `org/` | 60 files, 15,270 lines | 42 files, 12,176 lines | none |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
 | `pro/` | 22 files, 8,537 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
 | `catalog/` | 2 files, 968 lines | 3 files, 417 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 6 files, 1,234 lines | 125 files, 52,848 lines |
+| `styles/` | none | 6 files, 1,234 lines | 125 files, 52,850 lines |
 
-Plus 51 `.ts`/`.js` files at the top level of `src/`, 16,925 lines all told, of which 25 are tests and 3 are ambient declarations. `main.ts` is 2,256 of that.
+Plus 51 `.ts`/`.js` files at the top level of `src/`, 16,924 lines all told, of which 25 are tests and 3 are ambient declarations. `main.ts` is 2,255 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -74,7 +74,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,466 | `views/design-import.ts` | **none** |
 | 2,363 | `views/free-canvas-math.ts` | yes |
 | 2,326 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
-| 2,256 | `main.ts` | yes |
+| 2,255 | `main.ts` | yes |
 | 2,239 | `lib/drop-router.ts` | yes |
 | 2,149 | `views/present-mode.ts` | yes |
 | 2,103 | `lib/clip-thumbs.ts` | yes |

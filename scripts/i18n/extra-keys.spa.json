@@ -275,5 +275,7 @@
   "source text with a C2PA manifest marker",
   "spacing",
   "stroke",
-  "{name} (away)"
+  "{name} (away)",
+  "Live now - 1 person here",
+  "Live now - {n} people here"
 ]
