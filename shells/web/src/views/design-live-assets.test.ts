@@ -13,7 +13,7 @@ import { trackCollabUndo } from '../lib/collab-undo.ts';
 
 const picture = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==';
 const fields = [{ id: 'image', type: 'asset', assetType: 'image' }];
-const assets: Pick<HostV1['assets'], 'get'> = { get: async id => ({ id, source: 'remote', type: 'image', url: id }) };
+const assets: Pick<HostV1['assets'], 'get'> = { get: async id => ({ id, source: 'remote', type: 'raster', format: 'png', url: id }) };
 
 async function setup() {
   const host = { version: '1', profile: { get: async () => ({}) }, log: () => {}, assets } as unknown as HostV1;
@@ -51,9 +51,9 @@ test('live image references reach the render and undo as one history entry with 
 test('asset preparation preserves untouched references and resolves new catalog references', async () => {
   const before = [{ id: 'old', image: 'unavailable', text: 'Before' }];
   const calls: string[] = [];
-  const prepared = await prepareLiveAssets([{ ...before[0], text: 'After' }, { id: 'new', image: 'library/logo' }], before, fields, { get: async id => { calls.push(id); return { id, source: 'library', type: 'image', url: 'blob:logo' }; } });
+  const prepared = await prepareLiveAssets([{ ...before[0], text: 'After' }, { id: 'new', image: 'library/logo' }], before, fields, { get: async id => { calls.push(id); return { id, source: 'library', type: 'raster', format: 'png', url: 'blob:logo' }; } });
   assert.deepEqual(calls, ['library/logo']);
-  assert.deepEqual(prepared, [{ id: 'old', image: 'unavailable', text: 'After' }, { id: 'new', image: { id: 'library/logo', source: 'library', type: 'image', url: 'blob:logo' } }]);
+  assert.deepEqual(prepared, [{ id: 'old', image: 'unavailable', text: 'After' }, { id: 'new', image: { id: 'library/logo', source: 'library', type: 'raster', format: 'png', url: 'blob:logo' } }]);
 });
 
 test('an unavailable image refuses the complete live edit without history', async () => {
