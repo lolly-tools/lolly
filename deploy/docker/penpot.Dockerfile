@@ -2,7 +2,8 @@
 FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80
 WORKDIR /app
 RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
-ENV NODE_ENV=production PORT=8791 LOLLY_PENPOT_BIND_HOST=0.0.0.0
+ENV NODE_ENV=production PORT=8791 LOLLY_PENPOT_BIND_HOST=0.0.0.0 \
+    NODE_OPTIONS=--max-old-space-size=64
 # No packages, content packs, Work environment or CA key material enter this image.
 COPY services/penpot ./services/penpot
 COPY LICENSE ./LICENSE

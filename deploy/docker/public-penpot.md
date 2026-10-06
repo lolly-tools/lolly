@@ -55,11 +55,29 @@ disconnect. A disconnect aborts the upstream header request or body stream, so
 abandoned imports cannot keep fetching after their slot is released. Up to
 32 MiB of chunks and the combined 32 MiB Buffer may coexist;
 fetch receives a view over that Buffer rather than another payload copy. The
-256 MiB container cap needs measured staging evidence at the body ceiling.
-These are single-container resource bounds,
+image and Compose recipe set `NODE_OPTIONS=--max-old-space-size=64`, bounding
+V8's old-generation heap to 64 MiB within the 256 MiB container cap. Buffer and
+network memory also count against that cap; the heap setting does not limit
+total process memory. Keep the single POST slot, body ceiling and both memory
+limits together. These are single-container resource bounds,
 not a distributed admission control or an assurance that every import completes.
 Keep CA and MCP's approved durable rate limiter; this recipe changes no limiter
 policy or anonymous render/agent permissions.
+
+A disposable actual-image rehearsal on October 6, 2026 used the same 256 MiB
+cap, no swap and half a CPU. Two repetitions of ten serial 32 MiB synthetic
+`get-all-projects` requests with an invalid test token all returned 401. With
+the 64 MiB heap, cgroup peaks were 173.3 and 191.3 MiB, anonymous memory peaked
+at 165.6 MiB, and memory-limit and OOM events stayed at zero. Without the heap
+setting, the same
+rehearsal reached the full 256 MiB cap and recorded 109 memory-limit events,
+although no OOM occurred. Three held uploads also demonstrated busy responses,
+available health/preflight endpoints and capacity recovery after disconnects.
+The bounded heap repetitions averaged 0.963 and 0.602 seconds per request; two
+later unbounded-heap requests averaged 0.503 seconds. This small,
+network-dependent timing sample is
+not a throughput guarantee. Authenticated listing, real multipart imports and
+upstream response streaming still require the staging qualification below.
 
 ## Candidate qualification and remaining public routes
 

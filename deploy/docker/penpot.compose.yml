@@ -2,6 +2,8 @@
 services:
   penpot:
     image: ${LOLLY_PENPOT_IMAGE:?Set the qualified Penpot image digest}
+    environment:
+      NODE_OPTIONS: --max-old-space-size=64
     ports:
       - "127.0.0.1:8791:8791"
     read_only: true
