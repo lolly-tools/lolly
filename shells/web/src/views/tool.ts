@@ -456,7 +456,13 @@ async function mountToolInto(
   const stopReady = publishToolReady({ toolId, view: viewEl, collaborating: !!tview.collabHandle,
     unsaved: () => tview.userHasMadeChanges });
   const cleanup = viewEl._cleanup;
-  viewEl._cleanup = () => { stopReady(); cleanup?.(); };
+  viewEl._cleanup = () => {
+    // A connected-session remount leaves the old DOM in place while hydrating.
+    // Remove its content from paint before chrome teardown resets the camera.
+    if (tview.designChrome && tview.canvasEl) tview.canvasEl.style.visibility = 'hidden';
+    stopReady();
+    cleanup?.();
+  };
 }
 
 // makeFetchFile is imported from bridge/tool-loader.ts - the one shared implementation

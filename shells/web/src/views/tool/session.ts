@@ -1177,8 +1177,8 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
     let offEmojiDoc: (() => void) | null = null;
 
 
-    import('../free-canvas.ts')
-      .then(({ initFreeCanvas }) => {
+    await import('../free-canvas.ts')
+      .then(async ({ initFreeCanvas }) => {
         if (!viewEl.isConnected) return; // navigated away before the chunk loaded
         // The host-UI profile setter is a web-shell extension (WebProfileAPI), not on
         // the engine's read-only ProfileAPI - surface it via a narrow cast so the
@@ -1452,7 +1452,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         // both halves. Order matters: the bar measures its own height into
         // `--stage-reserve-top` before the columns report their widths, so the first fit
         // the canvas performs already accounts for all three bands.
-        void Promise.all([
+        const chromeReady = Promise.all([
           import('../design-topbar.ts'),
           import('../design-navigator.ts'),
           import('../design-inspector.ts'),
@@ -1859,8 +1859,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               tview.applyDesignIntentLayout = () => {};
               prevChromeCleanup?.();
             };
-          })
-          .catch((err: unknown) => console.error('[design] chrome failed to load:', err));
+          });
 
         tview.poseTemplate = () => fc.applyUi(tview.templatePose);
         const detachEditorApi = attachCanvasEditorApi(fc);
@@ -1875,8 +1874,12 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           }
           prevCleanup?.();
         };
+        await chromeReady;
       })
-      .catch((err: unknown) => console.error('[design] editor overlay failed to load:', err));
+      .catch((err: unknown) => {
+        console.error('[design] editor overlay failed to load:', err);
+        throw err;
+      });
 
     // `?present` auto-entry: open the deck once the canvas has rendered its frame pages
     // (the runtime paints on mount asynchronously, so poll a few frames for them).
