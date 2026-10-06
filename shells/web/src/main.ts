@@ -100,7 +100,7 @@ if (isIframeMode()) forwardDeckKeys();
 // seam the tool renders the flat photo, and with DEPTH_STAGED false the seam
 // resolves null rather than offering a download that cannot succeed.
 installDepthSeam();
-onWindowLoad(() => { void import('./lib/tooltips.ts').then(m => m.mountTooltips()); });
+onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts')).then(m => m.mountTooltips()); });
 
 /** The web capability bridge, as produced by createBridge. */
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
@@ -1005,7 +1005,6 @@ function catalogHostOf(host: Awaited<ReturnType<typeof createBridge>>) {
  *  before (catalog/sync.ts), so a signed-out visitor sends no catalog requests. */
 function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>): Promise<void> {
   const welcomeRoute = parseRoute().name;
-  if ((welcomeRoute === 'gallery' || welcomeRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
     ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery').catch(console.error) : undefined;
@@ -1050,6 +1049,8 @@ async function boot(): Promise<void> {
   // the base for good. Correctness costs Tauri nothing measurable - the sheet is one
   // fast IndexedDB read on every boot after the first.
   const coldGallery = !window.__toolIndex;
+  const firstRoute = parseRoute().name;
+  if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   if (coldGallery && parseRoute().name === 'gallery') {
     void import('./components/welcome-dialog.ts');
   }
@@ -1134,7 +1135,7 @@ async function boot(): Promise<void> {
   // downstream of a user gesture that is many seconds away, and mountJobToast's own
   // last line is `render(jobsSnapshot())` - so a job somehow started first is picked
   // up by the mount rather than missed by it.
-  onWindowLoad(() => { void import('./lib/job-toast.ts').then(m => m.mountJobToast()); });
+  onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/job-toast.ts')).then(m => m.mountJobToast()); });
 
   // Installing the PWA re-arms the one-time offline nudge (views/offline-nudge.ts):
   // an install puts an icon on the device while precaching only the shell, so a
