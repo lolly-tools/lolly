@@ -10,8 +10,7 @@
  * inspector out of the sidebar". That is the bug the old two-column
  * editor had: the inspector and the export dock fought for the same edge.
  *
- * Everything else about this module is deliberately untested here (the float box, the
- * grips, maximise): it is unchanged, device-persisted geometry.
+ * The header controls follow the panel's dock state; floating geometry is persisted.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/lib/export-panel-float.test.ts
  */
@@ -165,6 +164,7 @@ test('a free layout has no berth: Dock to the side means the one right sidebar',
   const h = mount({ freeLayout: true });
   try {
     assert.equal(h.dockBtn.hidden, false, 'offered while the sheet is out of the column');
+    assert.equal(h.head.querySelector('.export-popup-max'), null, 'resize grips replace the expand arrow');
     h.dockBtn.click();
     assert.equal(ED.isDocked('export'), true, 'the sheet took a slot in the right column');
     assert.ok(h.popup.closest('.edge-dock-slot'), 'and is mounted in it, not left over the canvas');

@@ -71,7 +71,7 @@ export function documentThemeGroups(doc: unknown, selection?: ThemeSelection): D
     .filter((group) => group.options.length > 1)
     .map((group) => ({
       id: group.id,
-      label: group.id || t('Colour theme'),
+      label: group.id || t('Theme'),
       options: group.options.map((option) => ({ id: option.id, label: themeOptionLabel(option.name) })),
       active: resolved.choices[group.id] ?? group.options[0]!.id,
     }));

@@ -50,6 +50,9 @@ export function thumbHtml(cat: CatCtx, ref: AssetRef, asSpan = false, full = fal
   if ((ref.original?.format ?? ref.format) === 'mogrt' && typeof ref.meta?.posterUrl === 'string')
     return `<img class="cat-thumb" src="${escapeText(ref.meta.posterUrl)}" alt="" loading="lazy" decoding="async">`;
   if (ref.meta?._placeholder) return `<${tag} class="cat-thumb cat-thumb-stub">${escapeText(ref.type)}</${tag}>`;
+  if (ref.type === 'font') return `<${tag} class="cat-thumb cat-thumb-stub" aria-hidden="true">Aa</${tag}>`;
+  if ((ref.original?.format ?? ref.format) === 'mogrt' && typeof ref.meta?.posterUrl === 'string')
+    return `<img class="cat-thumb" src="${escapeText(ref.meta.posterUrl)}" alt="" loading="lazy" decoding="async">`;
   // A brand PALETTE asset. Its swatches are the live brand palette (the same
   // source the Swatches panel paints from), so it needs no fetch. A grid tile is
   // a compact mosaic of the presets; the details modal (full) is Colour Lab in a

@@ -212,6 +212,7 @@
   .export-popup-tool:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
   .export-popup-tool:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
   .export-popup-tool svg { width: var(--fs-xl); height: var(--fs-xl); display: block; }
+  .export-popup-tool[hidden] { display: none; }
 
   /* Lifted off the dock into an explicitly-placed, resizable floating window. The
      box is driven by inline left/top/width/height; visibility follows .export-open
@@ -230,7 +231,6 @@
     opacity: 1; visibility: visible; pointer-events: auto;
   }
   .export-popup.is-floating .export-popup-body { flex: 1 1 auto; min-height: 0; }
-  .export-popup.is-maximized { border-radius: 0; }
   .export-popup.is-dragging, .export-popup.is-resizing {
     transition: none !important; user-select: none;
   }

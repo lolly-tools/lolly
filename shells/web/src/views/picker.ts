@@ -1664,7 +1664,7 @@ async function render(
   // renderLibrary (search / tab return); the active pairing lives in `activeTheme`
   // and clicks are handled by the delegated body listener, so no per-render wiring.
   function themeStripHtml(): string {
-    return `<div class="asset-picker-themes" role="group" aria-label="${escapeHtml(t('Colour theme'))}">`
+    return `<div class="asset-picker-themes" role="group" aria-label="${escapeHtml(t('Theme'))}">`
       + `<span class="asset-picker-themes-label">${t('Colours')}</span>`
       + iconThemes.map((t, i) => {
           const on = activeTheme ? t.id === activeTheme : i === 0;
