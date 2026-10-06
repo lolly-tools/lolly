@@ -46,7 +46,6 @@ import { mountCollabRecovery } from './tool-collab-recovery.ts';
 import { surfaceMapping } from '../lib/collab-surface-geometry.ts';
 import { collabSurface, surfacePresence } from '../lib/collab-surface.ts';
 import type { CanvasOp } from '@lolly-tools/core/canvas-op-v1';
-import { tRaw } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createCollabFocus } from '../components/collab-focus.ts';
 import type { CollabFocus } from '../components/collab-focus.ts';
