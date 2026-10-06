@@ -19,4 +19,5 @@ test('transport-specific tests stay in their intended shard', () => {
   assert.equal(classifyTest('tests/fuzz-regression.test.ts'), 'fuzz:regression');
   assert.equal(classifyTest('shells/web/src/bridge/hook-worker.test.ts'), 'security');
   assert.equal(classifyTest('packages/core/test/mock-host.test.ts'), 'contracts');
+  assert.equal(classifyTest('tests/webmcp.browser.test.ts'), 'browser');
 });

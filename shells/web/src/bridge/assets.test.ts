@@ -13,6 +13,15 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createAssetsAPI, typeMatches, withoutReservedMeta } from './assets.ts';
 
+test('agent metadata discovery includes dimensions and formats without fetching a JXL original', async context => {
+  context.mock.method(globalThis, 'fetch', async () => { throw new Error('Metadata listing fetched an original'); });
+  const api = createAssetsAPI({ getAll: async () => [{ id: 'photo', type: 'raster', name: 'Photo',
+    formats: [{ format: 'jxl', url: '/photo.jxl', width: 1200, height: 800 }, { format: 'png', url: '/photo.png' }, { format: 'thumb', url: '/thumb.webp' }] }] } as never);
+  const [ref] = await api._queryMetadata();
+  assert.equal(ref!.width, 1200); assert.equal(ref!.height, 800);
+  assert.deepEqual(ref!.meta?.formats, ['jxl', 'png']);
+});
+
 test('provider catalog queries retain small thumbnails and source metadata without fetching originals', async context => {
   context.mock.method(globalThis, 'fetch', async () => { throw new Error('A catalog query must not download files'); });
   const common = { provider: 'brand', tier: 'on-demand', version: 'upstream1', description: 'From the shared brand library', tags: ['provider:brand'], meta: { providerLabel: 'Brand library', providerSections: ['Logos'], providerTags: ['Launch'], providerCollections: ['Launch Kit'] } };

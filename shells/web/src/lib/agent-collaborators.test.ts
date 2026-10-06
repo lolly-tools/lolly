@@ -5,6 +5,7 @@ import { JSDOM } from 'jsdom';
 import { agentRosterFor } from './agent-collaborators.ts';
 import { mountCollabPill } from '../components/collab-pill.ts';
 import { mountAgentChanges } from '../components/agent-changes.ts';
+import { mountAgentRosterControls } from './agent-roster-controls.ts';
 import type { CollabParticipant, CollabSessionState } from './collab-session.ts';
 import type { PresencePeer } from './collab-presence.ts';
 import { readAgentPresence } from '@lolly-tools/core/agent-presence-v1';
@@ -13,6 +14,25 @@ import { createOpGuard } from '../collab/op-guard.ts';
 const dom = new JSDOM('<!doctype html><body></body>', { url: 'http://localhost/t/design', pretendToBeVisual: true });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, getComputedStyle: dom.window.getComputedStyle.bind(dom.window), MutationObserver: dom.window.MutationObserver, requestAnimationFrame: dom.window.requestAnimationFrame.bind(dom.window) });
 const person = (id: string, self = false): CollabParticipant => ({ clientId: id, userId: id, name: id, color: '#88ccff', colorIndex: self ? 0 : 1, isSelf: self, isHost: self, away: false, inviteeIndex: 1, role: 'writer' });
+
+test('local transports share controls that follow human sessions and disappear after the last agent', () => {
+  const stage = document.createElement('main'); document.body.appendChild(stage);
+  const roster = agentRosterFor(stage);
+  const first = mountAgentRosterControls(stage, null), second = mountAgentRosterControls(stage, null);
+  const agent = roster.join('Browser agent', { pause() {}, disconnect() {} });
+  try {
+    assert.equal(stage.querySelectorAll('.collab-pill').length, 1);
+    first(); first();
+    assert.equal(stage.querySelectorAll('.collab-pill').length, 1);
+    const state: CollabSessionState = { connection: 'live', role: 'writer', self: person('Ada', true), peers: [] };
+    const detach = roster.attach({ state: () => state, subscribe: () => () => {} }, () => []);
+    assert.equal(stage.querySelector('.collab-pill'), null);
+    detach();
+    assert.equal(stage.querySelectorAll('.collab-pill').length, 1);
+    agent.remove();
+    assert.equal(stage.querySelector('.collab-pill'), null);
+  } finally { agent.remove(); first(); second(); stage.remove(); }
+});
 
 test('four busy agents fit the existing guarded presence lane', () => {
   const agents = readAgentPresence(Array.from({ length: 4 }, (_, index) => ({ id: String(index).repeat(128), name: 'A'.repeat(60), colorIndex: index, phase: 'working', activity: 'A'.repeat(80), change: { id: 'A'.repeat(128), label: 'A'.repeat(80), width: 1200, height: 800, targets: Array.from({ length: 50 }, (_, i) => ({ id: String(i).padStart(256, 'A'), kind: 'changed', x: 0, y: 0, w: 100, h: 100 })) } })));

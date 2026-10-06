@@ -18,6 +18,8 @@ import type { DetailsCtx } from './details-context.ts';
 import { panelsOps } from './details-panels.ts';
 import { inlineModesOps } from './details-inline-modes.ts';
 import { sheetOps } from './details-sheet.ts';
+import { controlsOps } from './details-controls.ts';
+import { provenanceOps } from './details-provenance.ts';
 export { wireAudioViz, audioCardArt, audioElOf, meterElOf, setAudioCover } from './details-shared.ts';
 
 
@@ -27,6 +29,8 @@ export function openDetails(cat: CatCtx, ref: AssetRef, initialTheme?: string | 
   dt.panels = panelsOps(dt);
   dt.inlineModes = inlineModesOps(dt);
   dt.sheet = sheetOps(dt);
+  dt.controls = controlsOps(dt);
+  dt.provenance = provenanceOps(dt);
   dt.cat = cat;
   dt.ref = ref;
   dt.initialTheme = initialTheme;
@@ -38,6 +42,7 @@ export function openDetails(cat: CatCtx, ref: AssetRef, initialTheme?: string | 
 
   dt.sheet.buildSheet();
   dt.panels.renderOrigins();
+  dt.provenance.renderAuthorship();
 
   dt.sheet.paintPassport();
   // Load the full emoji set only after its details sheet opens.

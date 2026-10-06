@@ -41,6 +41,7 @@ import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
 import { createDocumentThemeController } from '../../lib/document-theme.ts';
+import { mountToolSiteEditor } from '../tool-site-tools.ts';
 
 async function resolveDesignFont(tview: ToolViewCtx, style: FontStyleSlice, text: string): Promise<boolean> {
   return fontCoversText(style, text, tview.host.text);
@@ -1195,10 +1196,10 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         let desktopServing: import('../../lib/live-agent-desktop.ts').DesktopServing | null = null;
         let desktopPill: import('../agent-connect.ts').AgentPill | null = null;
         mountLifecycle.add('agent-link', () => { agentLink?.disconnect(); desktopServing?.stop(); desktopPill?.remove(); });
-        const liveEditorFactory = () => import('../tool-agent-editor.ts').then(({ toolAgentEditor }) => toolAgentEditor(tview, {
+        const liveEditorFactory = mountToolSiteEditor(tview, stageEl, () => import('../tool-agent-editor.ts').then(({ toolAgentEditor }) => toolAgentEditor(tview, {
           documentId, desktop: desktopAgents, canvas: canvasEl,
           design: () => fc.design, size: () => ({ width: nativeW, height: nativeH }),
-        }));
+        })));
         const startDesktopServing = async (): Promise<void> => {
           const invoke = tauriInvoke();
           if (!invoke || desktopServing || !viewEl.isConnected) return;

@@ -63,6 +63,22 @@ Operators who don't want a public render surface switch the route off entirely w
 
 The route's parameters, refusals and headers are described in OpenAPI 3.1 at [`/openapi.json`](/openapi.json); the other machine-readable entry points (the discovery record, `llms.txt`, `llms-full.txt`, `agents.md`) are listed on [AI Agents](/info/ai-agents.html).
 
+## Browser site tools (WebMCP)
+
+Lolly also registers site tools in browsers that support `document.modelContext`. These actions use the open page and its signed-in workspace session. They follow the current view and end when the page closes. OpenAI's [Site tools guide](https://learn.chatgpt.com/docs/webmcp) describes compatible clients. Registration runs in the top-level shell; embedded tool pages do not register actions.
+
+Start with `lolly_read_context` to learn the active project, tool, design system, inspected asset and available document actions. Use `lolly_search_tools` and `lolly_describe_tool` to discover tool ids and exact engine input definitions. Search results include device availability, formats and links; descriptions of the mounted tool include current values. Other tools use their engine defaults.
+
+`lolly_read_project` returns paged folders, session summaries and asset ids for the current project. At the Projects root it lists local project folders. `lolly_search_assets` and `lolly_describe_asset` require an explicit `scope`: `project`, `uploads` or `catalog`. Project scope includes local subfolders or the current shared project's ready files. Shared project caches do not appear in uploads scope. Describing a shared file verifies its checksum and prepares the ordinary local asset reference for placement.
+
+Asset results include dimensions, formats, rights, attribution, AI disclosures and author declarations. An author declaration remains a user assertion. Credential verification is reported as `not-checked`; discovery does not certify a file. Metadata discovery omits original file contents and uses bounded responses.
+
+In a mounted Design editor, `lolly_read_document` and `lolly_find_layers` return stable layer ids, selection, canvas size and revision. `lolly_read_document_context` provides the exact layer field definitions and supported authoring operations. `lolly_apply_document_changes` requires `documentId`, `ifRevision`, `transactionId` and a history `label`. Keep the same transaction id and arguments when retrying. Changes use the live editor's validation and become one undo step. `lolly_preview_document` returns the rendered SVG; `lolly_undo_document_changes` takes back only the browser agent's newest step.
+
+The browser agent appears in People on its first document action. The person can pause or disconnect the agent there. Paused agents can read, and cannot edit. Leaving the document closes its agent session; late requests cannot act in the next view. Other tools support discovery and inspection through this adapter. Their inputs remain editable through the ordinary UI.
+
+Browsers without site tools keep the normal interface. The existing MCP server and project invitations continue to support agents working independently of an open page.
+
 ## The parameter contract is the URL
 
 Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `hdr`/`depth`, `cuts`, `s`, `lang`, `emoji`/`emojifx`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
