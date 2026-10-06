@@ -1051,9 +1051,6 @@ async function boot(): Promise<void> {
   const coldGallery = !window.__toolIndex;
   const firstRoute = parseRoute().name;
   if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
-  if (coldGallery && parseRoute().name === 'gallery') {
-    void import('./components/welcome-dialog.ts');
-  }
   let slimIndexReady = coldGallery && !isTauriShell() ? loadSlimToolIndex() : null;
 
   const host = await createBridge();
