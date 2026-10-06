@@ -155,6 +155,11 @@ export function teamProjectLinkUrl(projectId: string, base = getInstanceBase() |
   return `${base.replace(/\/+$/, '')}/#/team/project/${encodeURIComponent(projectId)}`;
 }
 
+/** A file link opens the project's Files screen with the existing project access. */
+export function teamProjectFileLinkUrl(projectId: string, fileId: string, base = getInstanceBase() || globalThis.location?.origin || ''): string {
+  return `${teamProjectLinkUrl(projectId, base)}?file=${encodeURIComponent(fileId)}`;
+}
+
 /** One member row, or null when it is not usable (no id or no known role). Pure. */
 export function memberFromRow(row: unknown): ProjectMember | null {
   if (!row || typeof row !== 'object') return null;

@@ -52,7 +52,7 @@ export function openTeamProjects(door: TeamProjectsDoor, projectId?: string, cre
   window.location.hash = create ? '#/p?create=team' : projectId ? `#/p?team=${encodeURIComponent(projectId)}` : '#/p';
 }
 
-export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; query: string; list: boolean; sort: string; reversed: boolean; assetId?: string; folderId?: string }): Promise<() => void> {
+export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; fileId?: string; query: string; list: boolean; sort: string; reversed: boolean; assetId?: string; folderId?: string }): Promise<() => void> {
   try {
     const module = await import('../org/team-project-view.ts');
     const { prepareProjectAsset, projectAssetHref } = await import('../org/team-project-assets.ts');
@@ -124,7 +124,7 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
       const ticket = generation, source = getSessionSource();
       if (active) {
         const slot = view.querySelector<HTMLElement>('[data-shared-folder]'); if (!slot) return;
-        void mountTeamProjectFolder(door, slot, { ...opts, projectId, create, tab: query.get('tab') || 'sessions', assetId: query.get('asset') || undefined, folderId: query.get('folder') || undefined }).then(clear => {
+        void mountTeamProjectFolder(door, slot, { ...opts, projectId, create, tab: query.get('tab') || 'sessions', assetId: query.get('asset') || undefined, folderId: query.get('folder') || undefined, fileId: query.get('file') || undefined }).then(clear => {
           if (!door.isMounted() || ticket !== generation || !slot.isConnected) clear(); else clearFolder = clear;
         });
       } else if (source) void Promise.all([import('../org/team-previews.ts'), import('../org/project-sharing.ts')]).then(([module, sharing]) => {

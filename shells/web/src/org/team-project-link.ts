@@ -81,6 +81,8 @@ export async function mountTeamProjectLink(view: HTMLElement, rawProjectId: stri
   let cancelled = false;
   (view as RouteView)._cleanup = () => { cancelled = true; };
   const linkHash = window.location.hash;
+  const rawFileId = new URLSearchParams(linkHash.split('?')[1] ?? '').get('file');
+  const fileId = teamLinkSessionId(rawFileId);
 
   const hasSource = !!getSessionSource();
   let loginPath: string | null | undefined;
@@ -154,6 +156,15 @@ export async function mountTeamProjectLink(view: HTMLElement, rawProjectId: stri
       // inbox bar's Open, say), the link steps back to that entry instead of replacing
       // itself with a second copy of it, which would cost a Back press that changes
       // nothing. From anywhere else it replaces itself with Projects.
+      if (rawFileId !== null) {
+        if (!fileId) {
+          card(view, heading, tRaw('This team link is incomplete. Ask whoever sent it for the full link.'), toProjects);
+          return;
+        }
+        view.replaceChildren();
+        window.location.replace(`#/p?team=${encodeURIComponent(target)}&tab=files&file=${encodeURIComponent(fileId)}`);
+        return;
+      }
       requestSourceProject(target);
       view.replaceChildren();
       if (canGoBack() && isProjectsHref(getPrevView()?.href)) window.history.back();
