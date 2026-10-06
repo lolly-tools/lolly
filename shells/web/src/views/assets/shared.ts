@@ -177,6 +177,7 @@ export const emojiPackSource = (meta: EmojiPackTileMeta): EmojiSpecimenSource =>
  */
 export function gridAdmits(a: AssetRef): boolean {
   return (a.source === 'library' && typeof a.meta?.provider === 'string')
+    || (a.type === 'font' && a.meta?.uploadedFont === true)
     || VISUAL_TYPES.has(a.type)
     || (a.type === 'audio' && (a.source === 'user' || (Array.isArray(a.meta?.tags) && (a.meta.tags as string[]).includes('neurospicy'))))
     // A user's OWN text/code/markdown and data uploads are first-class here

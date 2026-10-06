@@ -1682,7 +1682,7 @@ function themePort(opts: { fail?: boolean; options?: Array<{ id: string; label: 
   const chosen: Array<[string, string]> = [];
   const options = opts.options ?? [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
   const port = {
-    groups: () => (options.length > 1 ? [{ id: '', label: 'Colour theme', options, active }] : []),
+    groups: () => (options.length > 1 ? [{ id: '', label: 'Theme', options, active }] : []),
     choose: async (group: string, option: string) => {
       chosen.push([group, option]);
       if (opts.fail) throw new Error('refused');
@@ -1704,7 +1704,7 @@ test('Document offers the declared themes as one segmented row, and a press reac
     assert.deepEqual(buttons.map((b) => b.getAttribute('aria-pressed')), ['true', 'false']);
     const group = h.el.querySelector('.fc-seg[data-seg="lolly-doc-theme-0"]')!;
     assert.equal(group.getAttribute('role'), 'group');
-    assert.equal(group.getAttribute('aria-label'), 'Colour theme');
+    assert.equal(group.getAttribute('aria-label'), 'Theme');
     assert.ok(buttons.every((b) => b.tagName === 'BUTTON' && b.type === 'button'), 'native buttons: one Tab stop each, Enter and Space press');
     assert.match(h.el.textContent!, /Colours linked to the design system follow this choice\./);
     click(buttons[1]!);

@@ -69,7 +69,7 @@ import { loadFavouriteAssets, loadHiddenAssets, assetBaseId } from '../lib/asset
 import { matchesType as pickerMatchesType, type TypeFilter as PickerTypeFilter } from './assets-filter.ts';
 
 import { VISUAL_TYPES, isPlaceableAsset } from '../lib/asset-kinds.ts';
-import { PICKER_TYPE_FILTERS, pickerAcceptsType, queryPickerAssets } from './picker-query.ts';
+import { PICKER_TYPE_FILTERS, isMogrtAsset, pickerAcceptsAsset, pickerAcceptsType, pickerUsesMogrt, queryPickerAssets } from './picker-query.ts';
 import { autoplayLottieThumbs } from './lottie-mount.ts';
 import { motionVideoThumb, armMotionPreviews } from '../lib/preview-media.ts';
 import { escapeHtml } from '../lib/html.ts';
@@ -640,10 +640,12 @@ async function render(
   let pendingTrim: (() => void) | null = null;
   let modal: ModalHandle<AssetRef | null> | undefined;
   let closed = false;
+  const templateAbort = new AbortController();
   let cleanupGuided = () => {};
   const close = (value: AssetRef | null): void => {
     if (closed) return;
     closed = true;
+    templateAbort.abort();
     cleanupGuided();
     stopAudition();
     lottieThumbs?.destroy();
@@ -1131,7 +1133,7 @@ async function render(
       // take it - reject on select with a note beside the tile, rather than
       // committing an asset the tool would refuse. (aria-disabled already signals it.)
       const pickRefAny = pickRef ?? userAssets.find(a => a.id === pickId);
-      if (opts.type && pickRefAny && !isAcceptable(pickRefAny.type)) {
+      if (opts.type && pickRefAny && !pickerAcceptsAsset(opts, pickRefAny)) {
         announce(t('This slot can’t use that kind of file.'), { assertive: true });
         const cardEl = pick.closest<HTMLElement>('.asset-picker-card') ?? pick;
         cardEl.querySelector('.asset-picker-card-error')?.remove();
@@ -1150,7 +1152,12 @@ async function render(
         pickId = buildTreatedAssetId(pickId, activeTreatment);
       }
       try {
-        const resolved = await host.assets.get(pickId);
+        let resolved = await host.assets.get(pickId);
+        if (isMogrtAsset(resolved) && pickerUsesMogrt(opts)) {
+          announce(t('Importing the supplied template preview. Adobe effects remain in the original MOGRT.'));
+          resolved = await (await import('../lib/special-upload.ts')).storeMogrtPreview(host, resolved, templateAbort.signal);
+          if (closed) return;
+        }
         recordRecentAsset(pickId);   // feeds the "Recent" section (plans/134 P1)
         if (collect) { flashCard(pick, await collect.onAsset(resolved)); return; }
         close(resolved);
@@ -1411,7 +1418,13 @@ async function render(
         // one the input handed over (offerTrim's doc comment says why the order matters).
         const answered = await offerTrim(file);
         if (!answered) return;   // backed out of the card: nothing stored, dialog stays open
-        const ref = await storeUserUpload(host, answered, { image: isAcceptable('raster') && !isAcceptable('data') });
+        let ref = await storeUserUpload(host, answered, { image: isAcceptable('raster') && !isAcceptable('data') });
+        if (isMogrtAsset(ref) && pickerUsesMogrt(opts)) {
+          announce(t('Importing the supplied template preview. Adobe effects remain in the original MOGRT.'));
+          ref = await (await import('../lib/special-upload.ts')).storeMogrtPreview(host, ref, templateAbort.signal);
+          if (closed) return;
+        }
+        if (opts.type && !pickerAcceptsAsset(opts, ref)) throw new Error(t('This slot can’t use that kind of file.'));
         if (collect) { collectToast(await collect.onAsset(ref)); return; }
         close(ref);
       } catch (e) {
@@ -1667,7 +1680,7 @@ async function render(
       const id = el.dataset.assetId;
       const ref = id ? (candidateById.get(id) ?? userAssets.find(a => a.id === id)) : undefined;
       if (!ref) continue;
-      const ok = isAcceptable(ref.type);
+      const ok = pickerAcceptsAsset(opts, ref);
       const cardEl = el.closest<HTMLElement>('.asset-picker-card') ?? el;
       cardEl.classList.toggle('is-incompatible', !ok);
       if (!ok) { el.setAttribute('aria-disabled', 'true'); cardEl.setAttribute('aria-disabled', 'true'); }
@@ -1680,7 +1693,7 @@ async function render(
   // renderLibrary (search / tab return); the active pairing lives in `activeTheme`
   // and clicks are handled by the delegated body listener, so no per-render wiring.
   function themeStripHtml(): string {
-    return `<div class="asset-picker-themes" role="group" aria-label="${escapeHtml(t('Colour theme'))}">`
+    return `<div class="asset-picker-themes" role="group" aria-label="${escapeHtml(t('Theme'))}">`
       + `<span class="asset-picker-themes-label">${t('Colours')}</span>`
       + iconThemes.map((t, i) => {
           const on = activeTheme ? t.id === activeTheme : i === 0;
@@ -2318,7 +2331,7 @@ async function render(
         const keepUpload = (t: string): boolean => visualSlot
           ? VISUAL_TYPES.has(t)
           : (opts.type ? isAcceptable(t) : isPlaceableAsset({ type: t }));
-        userAssets = list.filter(a => keepUpload(a.type)).filter(a => !hiddenSet.has(assetBaseId(a.id)));
+        userAssets = list.filter(a => keepUpload(a.type) || (isMogrtAsset(a) && pickerUsesMogrt(opts))).filter(a => !hiddenSet.has(assetBaseId(a.id)));
         renderUserAssets();
         // An upload takes a look too: fetch the looks for this pane when the Catalogue
         // holds no photo of its own (loadPhotoTreatments redraws this pane with them).
@@ -2779,6 +2792,12 @@ function modelThumb(ref: AssetRef): string {
     ? `<img class="asset-picker-thumb" src="${escapeHtml(poster)}" alt="" loading="lazy" decoding="async">`
     : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">${icon(isRadianceAsset(ref) ? 'sunburst' : 'box', { size: 30 })}</span>`;
 }
+function mogrtThumb(ref: AssetRef): string {
+  const poster = typeof ref.meta?.thumbUrl === 'string' ? ref.meta.thumbUrl : typeof ref.meta?.posterUrl === 'string' ? ref.meta.posterUrl : '';
+  return poster
+    ? `<img class="asset-picker-thumb" src="${escapeHtml(poster)}" alt="" loading="lazy" decoding="async">`
+    : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">MOGRT</span>`;
+}
 
 function card(ref: AssetRef): string {
   const isPlaceholder = ref.meta?._placeholder;
@@ -2790,6 +2809,7 @@ function card(ref: AssetRef): string {
   // <img> (gif/apng/animated-webp animate natively there).
   const thumb = isPlaceholder
     ? `<div class="asset-picker-thumb asset-picker-thumb-stub">${escapeHtml(ref.type)}</div>`
+    : isMogrtAsset(ref) ? mogrtThumb(ref)
     : ref.type === 'lottie'
       ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
       : ref.type === 'video'
@@ -2862,6 +2882,7 @@ function formatBadge(ref: AssetRef): string {
   // the risk belongs at the moment an ingredient is chosen (plans/126 WP-B).
   const ai = assetAiKind(ref);
   const aiBadge = ai ? genAiPill(ai, true) : aiSignalsChip(ref);
+  if (isMogrtAsset(ref)) return `<span class="asset-picker-fmt">MOGRT · ${escapeHtml(t('Preview'))}</span>${aiBadge}`;
   // Playback length, shown in the same corner badge as the format - video, lottie
   // and audio only, and only when a duration actually resolved at ingest time.
   const durMs = typeof ref.meta?.durationMs === 'number' && Number.isFinite(ref.meta.durationMs) && ref.meta.durationMs > 0
@@ -2884,7 +2905,7 @@ function userCard(ref: AssetRef): string {
   // A user-uploaded lottie's url is the JSON itself, so it plays as a looping motion marker
   // (autoplayLottieThumbs mounts it on screen); the ▶ stub is only the pre-mount resting frame.
   // An uploaded track shows its measured waveform once mountAudioThumbs has peaks for it.
-  const thumb = ref.type === 'lottie'
+  const thumb = isMogrtAsset(ref) ? mogrtThumb(ref) : ref.type === 'lottie'
     ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
     : ref.type === 'video'
       ? videoThumb(ref.url, 'asset-picker-thumb')
@@ -3146,6 +3167,8 @@ export async function storeUserUpload(
     batch?: boolean;
   } = {},
 ): Promise<AssetRef> {
+  const special = await (await import('../lib/special-upload.ts')).tryStoreSpecialUpload(host, file);
+  if (special) return special;
   const precision = await (await import('../lib/deep-upload.ts')).preparePrecisionUpload(host,file,o.image);
   if (precision.ref) return precision.ref;
   file = precision.file;

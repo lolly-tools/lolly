@@ -43,8 +43,9 @@ globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) =>
 globalThis.cancelAnimationFrame = ((id: number) =>
   dom.window.clearTimeout(id)) as typeof cancelAnimationFrame;
 
-function fixture() {
+function fixture(saved?: { mode: string; box: { x: number; y: number; w: number; h: number } }) {
   localStorage.clear();
+  if (saved) localStorage.setItem(DESIGN_INSPECTOR_FLOAT_KEY, JSON.stringify(saved));
   document.querySelector('.edge-dock')?.remove();
   if (isDocked('inspector')) releaseDock('inspector', 'host');
   const el = document.createElement('aside');
@@ -97,16 +98,23 @@ test('Inspector moves between the one right dock and a persisted floating box', 
   assert.equal(f.handle.setOpen(true), true);
   assert.equal(isDocked('inspector'), true);
   assert.equal(f.open(), true);
+  const dock = f.el.querySelector<HTMLButtonElement>('[data-act-col="dock"]')!;
+  assert.equal(dock.hidden, true);
+  assert.equal(f.el.querySelector('[data-act-col="detach"], [data-act-col="maximize"]'), null);
 
-  (f.el.querySelector('[data-act-col="detach"]') as HTMLButtonElement).click();
+  for (const type of ['pointerdown', 'pointermove', 'pointerup']) {
+    f.head.dispatchEvent(new dom.window.MouseEvent(type, { clientX: 400, clientY: 200, bubbles: true, button: 0 }));
+  }
   assert.equal(isDocked('inspector'), false);
   assert.equal(f.handle.mode(), 'floating');
   assert.equal(f.el.parentElement, document.body);
   assert.ok(f.el.classList.contains('is-floating'));
+  assert.equal(dock.hidden, false);
 
-  (f.el.querySelector('[data-act-col="dock"]') as HTMLButtonElement).click();
+  dock.click();
   assert.equal(isDocked('inspector'), true);
   assert.equal(f.handle.mode(), 'edge');
+  assert.equal(dock.hidden, true);
   assert.match(localStorage.getItem(DESIGN_INSPECTOR_FLOAT_KEY) || '', /"mode":"edge"/);
 
   assert.equal(f.handle.setOpen(false), false);
@@ -116,15 +124,18 @@ test('Inspector moves between the one right dock and a persisted floating box', 
   f.handle.destroy();
 });
 
-test('maximise and restore use the same live Inspector, then teardown clears the dock', () => {
-  const f = fixture();
+test('a saved full-height Inspector remains movable and resizable without header arrows', () => {
+  const f = fixture({ mode: 'maximized', box: { x: 500, y: 8, w: 340, h: 884 } });
   f.handle.setOpen(true);
-  (f.el.querySelector('[data-act-col="maximize"]') as HTMLButtonElement).click();
-  assert.equal(f.handle.mode(), 'maximized');
-  assert.equal(isDocked('inspector'), false);
-  assert.ok(f.el.classList.contains('is-maximized'));
-  (f.el.querySelector('[data-act-col="maximize"]') as HTMLButtonElement).click();
   assert.equal(f.handle.mode(), 'floating');
+  assert.equal(isDocked('inspector'), false);
+  assert.equal(f.el.style.height, '884px');
+  assert.equal(f.el.querySelector('[data-act-col="maximize"]'), null);
+  assert.equal(f.el.querySelectorAll('.panel-grip').length, 8);
+  f.head.dispatchEvent(new dom.window.MouseEvent('pointerdown', { clientX: 500, clientY: 30, bubbles: true, button: 0 }));
+  f.head.dispatchEvent(new dom.window.MouseEvent('pointermove', { clientX: 400, clientY: 30, bubbles: true, button: 0 }));
+  f.head.dispatchEvent(new dom.window.MouseEvent('pointerup', { clientX: 400, clientY: 30, bubbles: true, button: 0 }));
+  assert.equal(f.el.style.left, '400px');
   f.handle.dock();
   assert.equal(isDocked('inspector'), true);
   f.handle.destroy();

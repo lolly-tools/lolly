@@ -139,7 +139,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
   const cmykRow = hasCmyk
     ? `
       <div class="section-card export-cmyk" data-cmyk-only style="display:${isCmykFmt(initialFmt) ? 'flex' : 'none'}">
-        <span class="cmyk-head help-tip-host">${ICON_DROP}<span>Color profile</span>${cmykTip!.button}${cmykTip!.pop}</span>
+        <span class="cmyk-head help-tip-host">${ICON_DROP}<span>Profile</span>${cmykTip!.button}${cmykTip!.pop}</span>
         <select class="field-select" data-action="cmyk-profile" aria-label="CMYK press profile">
           ${cmykOptions}
         </select>
@@ -172,7 +172,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
     hasPdf || hasZip
       ? `
       <div class="section-card export-pdfpass${pdfPassInitOpen ? ' is-open' : ''}" data-pdf-only style="display:${initialFmt === 'pdf' || initialFmt === 'zip' ? 'flex' : 'none'}">
-        <button type="button" class="pdfpass-head" data-action="pdfpass-toggle" aria-expanded="${pdfPassInitOpen}">${ICON_LOCK}<span>Password protect</span></button>
+        <button type="button" class="pdfpass-head" data-action="pdfpass-toggle" aria-expanded="${pdfPassInitOpen}">${ICON_LOCK}<span>Password</span></button>
         <div class="pdfpass-body" data-pdfpass-body style="display:${pdfPassInitOpen ? 'flex' : 'none'}">
           <input type="password" class="field-input" data-action="pdf-password" autocomplete="new-password" spellcheck="false"
                  value="${escapeText(exportDefaults.password ?? '')}"
@@ -313,7 +313,7 @@ export function buildHdrRow(ta: ActionsCtx): void {
       <div class="section-card export-hdr" data-hdr-only style="display:${isHdrFmt(initialFmt) ? 'flex' : 'none'}">
         <label class="hdr-enable field-toggle help-tip-host">
           <input type="checkbox" class="field-check" data-action="hdr" ${exportDefaults.hdr ? 'checked' : ''}>
-          <span class="hdr-head">${icon('sunburst', { className: 'hdr-icon' })}<span>${t('HDR (bright colours)')}</span></span>
+          <span class="hdr-head">${icon('sunburst', { className: 'hdr-icon' })}<span>${t('HDR')}</span></span>
           ${hdrTip!.button}
           ${hdrTip!.pop}
         </label>
@@ -366,7 +366,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
       <div class="section-card export-print" data-printmarks-only style="display:${isPrintFmt(initialFmt) ? 'flex' : 'none'}">
         <label class="print-enable field-toggle">
           <input type="checkbox" class="field-check" data-action="print-enable" ${printInitOn ? 'checked' : ''}>
-          <span class="print-head">${ICON_CROP}<span>Print marks &amp; bleed</span></span>
+          <span class="print-head">${ICON_CROP}<span>Marks &amp; bleed</span></span>
         </label>
         <div class="print-body" data-print-body style="display:${printInitOn ? 'flex' : 'none'}">
           <label class="print-bleed">
@@ -450,7 +450,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   const protectionRow = hasProtection
     ? `
       <div class="section-card export-protection${protectionOpen ? ' is-open' : ''}" data-protection-section style="display:${protectionVisibleInitial ? 'flex' : 'none'}">
-        <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Content protection')}</span></button>
+        <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Protection')}</span></button>
         <div class="protection-body" data-protection-body style="display:${protectionOpen ? 'flex' : 'none'}">
           ${licenceRow}${ta.rights.rowHtml()}${pdfPassRow}${c2paRow}${imprintRow}${durableRow}
         </div>
@@ -736,7 +736,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
           </select>
         </label>
         <div class="section-card export-pro-settings">
-          <button type="button" class="prosettings-head" data-action="prosettings-toggle" aria-expanded="false">${ICON_SLIDERS}<span>${escapeText(t('Pro settings'))}</span></button>
+          <button type="button" class="prosettings-head" data-action="prosettings-toggle" aria-expanded="false">${ICON_SLIDERS}<span>${escapeText(t('Advanced'))}</span></button>
           <div class="prosettings-body" data-prosettings-body style="display:none">
             <label class="vp-field"><span>${escapeText(t('Codec'))}</span>
               <select class="field-select field-select--sm" data-action="video-codec" aria-label="${escapeText(t('Video codec'))}">
@@ -890,7 +890,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
       <div class="section-card export-notes-handout" data-notes-handout-only style="display:${initialFmt === 'pdf' && canvasEl?.querySelector('[data-pdf-page]') ? 'flex' : 'none'}">
         <label class="field-toggle">
           <input type="checkbox" class="field-check" data-action="pdf-notes-handout">
-          <span class="notes-handout-head">${icon('transcript', { size: 18 })}<span>${escapeText(t('Speaker notes handout'))}</span></span>
+          <span class="notes-handout-head">${icon('transcript', { size: 18 })}<span>${escapeText(t('Notes handout'))}</span></span>
         </label>
         <p class="print-hint">${escapeText(t('Makes a portrait PDF with each slide above its speaker notes. Long notes continue onto extra pages.'))}</p>
       </div>`
@@ -916,7 +916,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   const recordingRow = isAudioCaptureTool
     ? `
       <div class="section-card export-recording" data-recording-row>
-        <span class="c2pa-head">${icon('mic', { className: 'c2pa-icon' })}<span>${escapeText(t('Your recording'))}</span></span>
+        <span class="c2pa-head">${icon('mic', { className: 'c2pa-icon' })}<span>${escapeText(t('Recording'))}</span></span>
         <div class="export-recording-body" data-recording-body></div>
       </div>`
     : ''; ta.recordingRow = recordingRow;

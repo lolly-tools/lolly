@@ -375,6 +375,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
    * to - a canvas text box, say - and into this list.
    */
   let pendingFocus: { id: string; layers: boolean; index: number } | null = null;
+  type FrameControl = { id: string; area: 'pages' | 'parents' | 'rail' | 'summary' };
 
   /** Thumbnails are expensive clones of the live page - keep one per row signature. */
   const thumbs = new Map<string, { sig: string; el: HTMLElement }>();
@@ -727,12 +728,64 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   }
 
   // ── selection ───────────────────────────────────────────────────────────────
-  function selectFrame(id: string): void {
+  function selectFrame(id: string, keepOpen = false): void {
     selection.set([id]);
     artboard.focus(id);
     // On a phone this navigator is a temporary bottom sheet, not permanent
     // workspace. Once the requested artboard is on screen, give the canvas back.
-    if (skin === 'strip') setOpen(false);
+    if (skin === 'strip' && !keepOpen) setOpen(false);
+  }
+
+  function frameControlAt(target: Element | null): FrameControl | null {
+    const page = target?.closest<HTMLElement>('.fc-nav-row');
+    if (page?.dataset.id) return { id: page.dataset.id, area: 'pages' };
+    const parent = target?.closest<HTMLElement>('[data-jump-artboard]');
+    if (parent?.dataset.jumpArtboard) return { id: parent.dataset.jumpArtboard, area: 'parents' };
+    const dot = target?.closest<HTMLElement>('.fc-nav-dot-btn');
+    if (dot?.dataset.id) return { id: dot.dataset.id, area: 'rail' };
+    const summary = target?.closest('summary');
+    const id = summary?.parentElement?.dataset.artboard;
+    return id ? { id, area: 'summary' } : null;
+  }
+
+  function focusFrameControl({ id, area }: FrameControl, scroll = true): void {
+    const escaped = cssId(id);
+    const selector = area === 'pages' ? `.fc-nav-row[data-id="${escaped}"]`
+      : area === 'parents' ? `[data-jump-artboard="${escaped}"]`
+      : area === 'rail' ? `.fc-nav-dot-btn[data-id="${escaped}"]`
+      : `[data-artboard="${escaped}"] > summary`;
+    const control = el.querySelector<HTMLElement>(selector);
+    control?.focus({ preventScroll: true });
+    if (scroll) control?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  }
+
+  /** Keep keyboard focus in the navigator while the stage frames the destination. */
+  function navigateFrame(from: FrameControl, delta: number): void {
+    const ids = framesOf(model.getBoxes()).map(b => fieldStr(b, F.id));
+    const index = ids.indexOf(from.id);
+    if (index < 0) return;
+    const id = ids[Math.max(0, Math.min(ids.length - 1, index + delta))];
+    if (!id || id === from.id) return;
+    selectFrame(id, true);
+    focusFrameControl({ id, area: from.area });
+  }
+
+  function onFrameControlKey(ev: KeyboardEvent): void {
+    if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    const target = ev.target as Element | null;
+    const mode = target?.closest('.fc-nav-modes');
+    const from: FrameControl | null = frameControlAt(target) ?? (mode ? {
+      id: artboard.active(), area: listEl.hidden ? 'parents' : 'pages',
+    } : null);
+    if (!from || (from.area === 'pages' && !mode)) return;
+    // A disclosure summary keeps its left/right expand/collapse keys.
+    if (from.area === 'summary' && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) return;
+    const delta = ev.key === 'ArrowDown' || ev.key === 'ArrowRight' ? 1
+      : ev.key === 'ArrowUp' || ev.key === 'ArrowLeft' ? -1
+      : ev.key === 'Home' ? -Infinity : ev.key === 'End' ? Infinity : 0;
+    if (!delta) return;
+    swallow(ev);
+    navigateFrame(from, delta);
   }
 
   // ── row menu ────────────────────────────────────────────────────────────────
@@ -1154,6 +1207,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     row.addEventListener('click', () => {
       if (dragSuppressClick) { dragSuppressClick = false; return; }
       selectFrame(id);
+      if (skin === 'column') focusFrameControl({ id, area: 'pages' });
     });
     row.addEventListener('dblclick', () => startRename(id, row, i));
     row.addEventListener('contextmenu', (ev: Event) => { ev.preventDefault(); openRowMenu(id, row, i); });
@@ -1285,19 +1339,23 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     const rows = rowsOf(list);
     const here = rows.indexOf(row);
     const step = (delta: number): void => {
+      if (kind === 'frames') { navigateFrame({ id, area: 'pages' }, delta); return; }
       const next = rows[Math.max(0, Math.min(rows.length - 1, here + delta))];
       if (next && next !== row) { next.tabIndex = 0; row.tabIndex = -1; next.focus(); }
     };
-    const fwd = horizontal() ? 'ArrowRight' : 'ArrowDown';
-    const back = horizontal() ? 'ArrowLeft' : 'ArrowUp';
+    const fwd = kind === 'frames' ? (ev.key === 'ArrowRight' || ev.key === 'ArrowDown')
+      : ev.key === (horizontal() ? 'ArrowRight' : 'ArrowDown');
+    const back = kind === 'frames' ? (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp')
+      : ev.key === (horizontal() ? 'ArrowLeft' : 'ArrowUp');
     if (ev.altKey && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) {
       swallow(ev);
       const delta = ev.key === 'ArrowUp' ? -1 : 1;
       if (kind === 'frames') moveFrame(id, delta); else moveLayer(id, delta);
       return;
     }
-    if (ev.key === fwd) { swallow(ev); step(1); return; }
-    if (ev.key === back) { swallow(ev); step(-1); return; }
+    if (ev.altKey) return;
+    if (fwd) { swallow(ev); step(1); return; }
+    if (back) { swallow(ev); step(-1); return; }
     if (ev.key === 'Home') { swallow(ev); step(-rows.length); return; }
     if (ev.key === 'End') { swallow(ev); step(rows.length); return; }
     if (kind === 'frames' && (ev.key === 'F2' || ev.key === 'Enter')) {
@@ -1402,6 +1460,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       deck ? 'd' : 'a', open ? 'o' : 'c',
     ].join('#');
     if (!force && sig === listSig) { paintActive(); return; }
+    const heldFrame = el.contains(document.activeElement) ? frameControlAt(document.activeElement) : null;
     listSig = sig;
     closeMenu();
 
@@ -1467,7 +1526,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
         back.tabIndex = 0;
         back.focus();
       } else toggleBtn.focus();
-    }
+    } else if (heldFrame && navHasFocus()) focusFrameControl(heldFrame, false);
   }
 
   /**
@@ -1642,6 +1701,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   grip.addEventListener('dblclick', () => setWidth(NAV_WIDTH));
 
   toggleBtn.addEventListener('click', () => setOpen(!open));
+  el.addEventListener('keydown', onFrameControlKey, true);
   el.addEventListener('keydown', onRootKey);
 
   // ── mount ───────────────────────────────────────────────────────────────────

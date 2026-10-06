@@ -11,6 +11,11 @@ export function pickerAcceptsType(opts: PickerQuery, assetType: string): boolean
     ? opts.types.some(type => typeMatches(assetType, type, opts.motion === true))
     : typeMatches(assetType, opts.type, opts.motion === true);
 }
+export const isMogrtAsset = (ref: AssetRef): boolean => (ref.original?.format ?? ref.format) === 'mogrt';
+export const pickerUsesMogrt = (opts: PickerQuery): boolean => opts.type === 'video' || opts.motion === true || opts.types?.includes('video') === true;
+export function pickerAcceptsAsset(opts: PickerQuery, ref: AssetRef): boolean {
+  return pickerAcceptsType(opts, ref.type) || (isMogrtAsset(ref) && pickerUsesMogrt(opts) && pickerAcceptsType(opts, 'video'));
+}
 
 /** Visual slots retain incompatible visual assets so the picker can dim them.
  * Explicit text/data unions retain only their requested types and deduplicate ids. */
@@ -19,12 +24,13 @@ export async function queryPickerAssets(
 ): Promise<AssetRef[]> {
   const queryOpts = { ...opts, type: visualSlot || opts.type === 'image' ? undefined : opts.type };
   if (opts.types?.length) {
-    const groups = await Promise.all(opts.types.map(type => assets.query({ ...queryOpts, type })));
+    const types = pickerUsesMogrt(opts) && !opts.types.includes('data') ? [...opts.types, 'data'] as const : opts.types;
+    const groups = await Promise.all(types.map(type => assets.query({ ...queryOpts, type })));
     return [...new Map(groups.flat().map(ref => [ref.id, ref])).values()]
-      .filter(ref => pickerAcceptsType(opts, ref.type));
+      .filter(ref => pickerAcceptsAsset(opts, ref));
   }
   const raw = await assets.query(queryOpts);
-  return visualSlot || !opts.type ? raw.filter(ref => VISUAL_TYPES.has(ref.type)) : raw;
+  return visualSlot || !opts.type ? raw.filter(ref => VISUAL_TYPES.has(ref.type) || (isMogrtAsset(ref) && pickerUsesMogrt(opts) && pickerAcceptsType(opts, 'video'))) : raw;
 }
 
 /** The type pills an untyped pick offers (plans/134 P5) - the catalog's buckets. */

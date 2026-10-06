@@ -86,6 +86,20 @@ test('Design keeps compact actions, panels and timeline resizing usable across t
         await select(page);
         const inspector = (await page.locator('.fc-insp:not([hidden])').boundingBox())!;
         if (compact) {
+          const background = await page.locator('.fc-insp.is-compact-sheet').evaluate(el => getComputedStyle(el).backgroundColor);
+          assert.notEqual(background, 'rgba(0, 0, 0, 0)', 'the inspector sheet has a background');
+          await page.getByRole('button', { name: 'Add', exact: true }).click();
+          const menu = page.locator('.fc-popover');
+          const menuBox = (await menu.boundingBox())!;
+          const actionBox = (await page.locator('.design-compact-actions').boundingBox())!;
+          assert.ok(menuBox.y >= 0 && menuBox.y + menuBox.height <= actionBox.y, `Add stays above the bottom bar at ${width}`);
+          const webpage = menu.getByRole('menuitem', { name: 'Web page', exact: true });
+          await webpage.scrollIntoViewIfNeeded();
+          const webpageBox = (await webpage.boundingBox())!;
+          assert.ok(webpageBox.y >= menuBox.y && webpageBox.y + webpageBox.height <= actionBox.y, 'Web page is reachable by scrolling');
+          await webpage.click();
+          await menu.waitFor({ state: 'hidden' });
+          await page.getByRole('button', { name: 'Inspect', exact: true }).click();
           assert.ok(inspector.y > 90, 'a visible preview remains above the sheet');
           assert.equal(await page.locator('.fc-nav:not(.is-collapsed):visible').count(), 0);
         } else if (width! <= 1024) {

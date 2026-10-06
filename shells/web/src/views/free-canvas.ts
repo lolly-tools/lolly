@@ -82,6 +82,7 @@ import type { FcCtx } from './free-canvas/context.ts';
 import { helpersOps } from './free-canvas/helpers.ts';
 import { selectOps } from './free-canvas/select.ts';
 import { catalogIntakeOps } from './free-canvas/catalog-intake.ts';
+import { fileDropOps } from './free-canvas/file-drop.ts';
 import { timelineOps } from './free-canvas/timeline.ts';
 import { stageOps } from './free-canvas/stage.ts';
 import { narrationOps } from './free-canvas/narration.ts';
@@ -204,6 +205,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.select = selectOps(fc);
   fc.timeline = timelineOps(fc);
   fc.catalogIntake = catalogIntakeOps(fc);
+  fc.fileDrop = fileDropOps(fc);
   fc.stage = stageOps(fc);
   fc.narration = narrationOps(fc);
   fc.rail = railOps(fc);
@@ -1875,6 +1877,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   }
   fc.editorState.applyEditorState(opts.deepLink);
   void fc.catalogIntake.intake();
+  const unwireFileDrop = fc.fileDrop.wire();
 
   // Universal drop front door (lib/drop-router.ts): a design file dropped on the
   // gallery/dashboard was stashed one-shot and is consumed here on mount, through
@@ -2214,6 +2217,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   return {
     design: designPorts,
     destroy() {
+      unwireFileDrop();
       disposeCanvasInteractions(fc);
       fc.rules?.destroy();
       unregisterCollabSurface();

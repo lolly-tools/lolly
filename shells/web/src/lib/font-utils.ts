@@ -4,6 +4,8 @@
  * Supports TTF, OTF, WOFF, WOFF2 with minimal footprint.
  */
 
+export const FONT_FILE_LIMIT = 32 * 1024 * 1024;
+
 export interface FontMetadata {
   family: string;
   weight: number;
@@ -265,9 +267,9 @@ function readString(view: DataView, offset: number, length: number, isUnicode: b
  * Validate uploaded font file.
  */
 export function validateFontFile(file: File): { valid: boolean; error?: string; format?: FontFormat } {
-  // Size check: max 5MB
-  if (file.size > 5 * 1024 * 1024) {
-    return { valid: false, error: 'Font file must be smaller than 5MB' };
+  // Bound both original and decoded font storage.
+  if (file.size > FONT_FILE_LIMIT) {
+    return { valid: false, error: 'Font file must be smaller than 32MB' };
   }
 
   // MIME type check (permissive, will validate by magic bytes)

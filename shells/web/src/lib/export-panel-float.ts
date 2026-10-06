@@ -3,7 +3,7 @@
  * Free-floating behaviour for the DESKTOP export panel.
  *
  * By default the panel stays docked bottom-left under the sidebar (the CSS in
- * styles/parts/tool.css owns that). This layers four capabilities on top, without
+ * styles/parts/tool.css owns that). This layers three capabilities on top, without
  * touching the panel's open/close/modality wiring in views/tool.ts:
  *
  *   • drag the header to move it - the first drag lifts it off the dock into a
@@ -12,8 +12,6 @@
  *     out of the way of the stage);
  *   • eight grips to resize it - the SAME primitive the neurospicy player uses
  *     (lib/panel-grips.ts), so every shapeable panel in the app behaves alike;
- *   • a maximise toggle that grows it to the full height of the screen ("expand to
- *     the top"), keeping its left edge + width;
  *   • a dock button that snaps it back home - the berth under the sidebar where there
  *     is a sidebar, and the app's ONE right-hand column (lib/edge-dock.ts) where there
  *     is not, because a free layout has no berth to snap to.
@@ -35,7 +33,7 @@ import { requestDock, releaseDock, showPanel, isDocked, dockedFullCount, edgeDoc
 interface Box { x: number; y: number; w: number; h: number }
 // 'edge' = docked into the full-height inline-end column (lib/edge-dock.ts). Distinct
 // from 'docked', which is the panel's home berth under the sidebar.
-type Mode = 'docked' | 'floating' | 'maximized' | 'edge';
+type Mode = 'docked' | 'floating' | 'edge';
 
 const KEY = 'lolly:exportPanelFloat';
 const MIN = { w: 300, h: 240 };
@@ -75,13 +73,12 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   const preferEdge = !!opts.preferEdge;
   let mode: Mode = 'docked';
   let box: Box | null = null;        // current floating box (viewport px)
-  let restoreBox: Box | null = null; // box to return to when un-maximising
   /**
    * "The user keeps this sheet in the right sidebar." Remembered SEPARATELY from `mode`,
    * because closing the sheet undocks it (the popup has to be back in its overlay for
    * the host's `export-open` class to hide it), so `mode` forgets the chosen side after
    * a single close. Only a deliberate undock - a head drag out of the column, the dock
-   * button, maximise - clears this; the host's close and the mobile-breakpoint guard
+   * button - clears this; the host's close and the mobile-breakpoint guard
    * leave it standing.
    */
   let edgePref = false;
@@ -106,7 +103,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   const loadSaved = (): { mode: Mode; box: Box | null; edge?: boolean } | null => {
     try {
       const r = JSON.parse(localStorage.getItem(KEY) || 'null');
-      if (r && (r.mode === 'docked' || r.mode === 'floating' || r.mode === 'maximized' || r.mode === 'edge')) return r;
+      if (r && (r.mode === 'docked' || r.mode === 'floating' || r.mode === 'maximized' || r.mode === 'edge')) return { ...r, mode: r.mode === 'maximized' ? 'floating' : r.mode };
     } catch { /* corrupt */ }
     return null;
   };
@@ -175,13 +172,10 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   // ── mode transitions ─────────────────────────────────────────────────────
   const render = (): void => {
     popup.classList.toggle('is-floating', mode !== 'docked');
-    popup.classList.toggle('is-maximized', mode === 'maximized');
     // "Dock to the side" means the sidebar berth where there is a sidebar, and the one
     // right-hand column where there is not - so in a free layout the button is offered
     // whenever the sheet is OUT of that column, and retired once it is in it.
-    dockBtn.hidden = freeLayout ? mode === 'edge' : mode === 'docked';
-    maxBtn.setAttribute('aria-pressed', mode === 'maximized' ? 'true' : 'false');
-    maxBtn.setAttribute('aria-label', mode === 'maximized' ? 'Restore panel size' : 'Expand to full height');
+    dockBtn.hidden = isMobile() || mode === 'edge' || mode === 'docked';
     if (mode === 'docked' || isMobile()) { clearInline(); return; }
     if (mode === 'edge') return;   // the dock column owns the slot layout, not the box
     if (box) applyBox(box);
@@ -225,7 +219,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   /**
    * Out of the column before a mode that needs the sheet's own box. Without it the
    * popup stayed physically inside the column while its mode said otherwise, so
-   * maximise and the dock button both left it stranded there.
+   * the dock button left it stranded there.
    */
   const leaveEdge = (deliberate: boolean): void => {
     if (mode !== 'edge') return;
@@ -254,31 +248,10 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     // second left panel over the navigator, and persisted it (Andy, 2026-09-02).
     if (freeLayout) { enterEdge(); return; }
     leaveEdge(true);
-    mode = 'docked'; box = null; restoreBox = null;
+    mode = 'docked'; box = null;
     render(); save();
     wobble.impulse(-16, 16);   // snap toward the bottom-left dock anchor
   };
-  const toggleMax = (): void => {
-    if (isMobile()) return;
-    leaveEdge(true);           // a full-height column panel has no box to grow
-    let kickY: number;
-    if (mode === 'maximized') {
-      box = restoreBox ? clamp(restoreBox) : clamp({ ...currentRect() });
-      mode = 'floating'; restoreBox = null;
-      kickY = -14;   // restore: a small kick up into the smaller box
-    } else {
-      const base = box ?? currentRect();
-      restoreBox = { ...base };
-      mode = 'maximized';
-      // "Expand to the top of the screen": keep the left edge + width, take the full
-      // height between the margins.
-      box = clamp({ x: base.x, y: MARGIN, w: base.w, h: vh() - MARGIN * 2 });
-      kickY = 18;    // maximize: a downward kick into the full-height box
-    }
-    render(); save();
-    wobble.impulse(0, kickY);
-  };
-
   // ── header: tool buttons + drag ──────────────────────────────────────────
   const mkBtn = (cls: string, glyph: string, label: string): HTMLButtonElement => {
     const b = document.createElement('button');
@@ -289,17 +262,15 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     b.title = label;
     return b;
   };
-  const maxBtn = mkBtn('export-popup-max', icon('arrowsV'), 'Expand to full height');
-  const dockBtn = mkBtn('export-popup-dock', icon('dock'), 'Dock to the side');
+  const dockBtn = mkBtn('export-popup-dock', icon('dock'), t('Dock to the side'));
   dockBtn.hidden = true;
   // Group the tool buttons with the existing close button on the right of the head.
   const closeBtn = head.querySelector<HTMLElement>('.export-popup-close');
   const tools = document.createElement('span');
   tools.className = 'export-popup-tools';
-  tools.append(maxBtn, dockBtn);
+  tools.append(dockBtn);
   if (closeBtn) head.insertBefore(tools, closeBtn), tools.append(closeBtn);
   else head.append(tools);
-  maxBtn.addEventListener('click', toggleMax);
   dockBtn.addEventListener('click', dock);
 
   // Drag the header to move; the first drag off the dock floats the panel.
@@ -311,7 +282,6 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     if ((e.target as HTMLElement).closest('button')) return;   // let the head's buttons click
     leaveEdge(true);                                           // drag out of the column to undock, then move freely
     if (mode === 'docked') enterFloating();
-    if (mode === 'maximized') toggleMax();                     // dragging a maximised panel restores it first
     drag = { px: e.clientX, py: e.clientY, lx: e.clientX, ly: e.clientY, b: { ...(box ?? currentRect()) }, id: e.pointerId };
     try { head.setPointerCapture(e.pointerId); } catch { /* stray pointer id */ }
     popup.classList.add('is-dragging');
@@ -350,7 +320,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     clamp,
     min: MIN,
     locked: () => isMobile() || mode === 'edge',   // the column's own grip sizes an edge-docked panel
-    onEnd: () => { if (mode === 'maximized') mode = 'floating'; save(); },
+    onEnd: save,
   });
 
   // ── window resize + breakpoint changes ───────────────────────────────────
@@ -359,8 +329,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     if (mode === 'docked' || isMobile()) { clearInline(); return; }
     // A viewport change must never strand the panel off-screen: pull it FULLY back in
     // (clampFully), not merely to the lenient drag sliver.
-    if (mode === 'maximized') box = clampFully({ x: (box ?? currentRect()).x, y: MARGIN, w: (box ?? currentRect()).w, h: vh() - MARGIN * 2 });
-    else if (box) box = clampFully(box);
+    if (box) box = clampFully(box);
     render();
   };
   window.addEventListener('resize', onResize);

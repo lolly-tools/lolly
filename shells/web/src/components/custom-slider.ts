@@ -23,6 +23,7 @@
 import { playSliderTick } from '../lib/sfx.ts';
 import { jellyEnabled } from '../lib/jelly.ts';
 import { escape } from '../utils.ts';
+import { linkInputLabels } from './input-labels.ts';
 // The shared read (OS query OR the app's own pref) rather than a local matchMedia,
 // so the profile toggle reaches the egg-trail spring too.
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
@@ -206,6 +207,10 @@ export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}
     thumb.style.left = pct + '%';
   }
 
+  // Pointerdown cancellation does not cancel the click generated on release.
+  // Inside a label, that default action can activate a neighbouring button.
+  el.addEventListener('click', e => e.preventDefault());
+
   el.addEventListener('pointerdown', e => {
     e.preventDefault();
     el.focus({ preventScroll: true }); // so the keyboard handler is live right after a click
@@ -315,6 +320,10 @@ export function upgradeRangeInput(input: HTMLInputElement): void {
     attrs: 'data-cs-for-range',
   });
   const el = host.firstElementChild as HTMLElement;
+  for (const attr of ['aria-labelledby', 'aria-describedby']) {
+    const value = input.getAttribute(attr);
+    if (value) el.setAttribute(attr, value);
+  }
   input.after(el);
   // The input keeps the value and the events; it just stops being the control.
   // Out of the a11y tree too - the slider beside it carries the same label, and
@@ -322,6 +331,8 @@ export function upgradeRangeInput(input: HTMLInputElement): void {
   input.classList.add('is-upgraded');
   input.tabIndex = -1;
   input.setAttribute('aria-hidden', 'true');
+  const row = input.closest<HTMLElement>('label.input-row');
+  if (row) linkInputLabels(row);
 
   // slider → input. `echo` marks the write as ours so the mirror below doesn't
   // bounce it straight back into the slider mid-drag.

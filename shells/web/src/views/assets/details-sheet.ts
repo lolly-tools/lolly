@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { openAssetInText } from '../../lib/text-handoff.ts';
 import { mountModelPreview } from '../../lib/model-preview.ts';
+import { hasSpecialPreview, mountSpecialPreview } from './special-preview.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
  * catalog details: building the sheet and wiring its events, in mount order.
@@ -316,6 +317,7 @@ export function buildSheet(dt: DetailsCtx): void {
   // is a player, not an image, so it opts out too; a placeholder/dataless-lottie stub has nothing
   // to zoom. attachZoom handles the <svg> player.
   const zoomable = !ref.meta?._placeholder
+    && !hasSpecialPreview(ref)
     && ref.type !== 'audio'
     && ref.type !== 'text' && ref.type !== 'data'
     && ref.type !== 'palette'   // a scrollable swatch card, not a zoom stage
@@ -534,6 +536,7 @@ export function buildSheet(dt: DetailsCtx): void {
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;
   let destroyModelPreview: (() => void) | undefined;
+  let destroySpecialPreview: (() => void) | undefined;
   // Exits inline trim mode, or null when no card is up. Assigned by enterInlineTrim
   // below; declared here so the modal's onClose can answer an open card (its teardown
   // revokes the two preview object URLs) when the dialog goes away under it.
@@ -547,6 +550,7 @@ export function buildSheet(dt: DetailsCtx): void {
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onClose: () => {
       destroyModelPreview?.();
+      destroySpecialPreview?.();
       dt.emojiBrowser?.destroy();
       cat.detailsMeterDispose?.();
       cat.detailsMeterDispose = null;
@@ -576,6 +580,10 @@ export function buildSheet(dt: DetailsCtx): void {
   if (ref.type === 'model') {
     const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
     if (preview) destroyModelPreview = mountModelPreview(preview, ref);
+  }
+  if (hasSpecialPreview(ref)) {
+    const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
+    if (preview) destroySpecialPreview = mountSpecialPreview(preview, ref, cat);
   }
   cat.detailsDialog = dlg;
   cat.detailsModal = modal;
