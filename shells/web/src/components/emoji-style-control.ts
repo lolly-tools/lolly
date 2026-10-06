@@ -271,6 +271,7 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
     const setHelp = helpTip(chosen
       ? t('Emoji are drawn from the set you choose, so every device shows the same artwork. The set\'s licence is recorded with exports that can carry it.')
       : t('Until you choose a set, emoji in your text are drawn as a plain placeholder rather than this machine\'s own emoji font.'));
+    const importHelp = helpTip(t('Import a Lolly emoji set with its artwork, version and source credits. Earlier versions stay available to saved documents.'));
     // Protection is a property of a DOCUMENT's treatment, and only a document has
     // colours to protect anything from. A preference carries no protection field
     // at all, so offering the switch there showed a tick that did nothing and came
@@ -310,6 +311,7 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
       ${shareAlikeNote}
       ${protectRow}
       ` : ''}
+      ${opts.host.emoji?.install ? `<span class="help-tip-host emoji-style-import-label" data-emoji-import-help><span>${t('Import emoji set')}</span>${importHelp.button}${importHelp.pop}</span>` : ''}
     `;
     if (opts.mode === 'document' && isStyle(value)) {
       mountEmojiFallbacks(el, value, sets, next => { value = next; opts.onChange(next); render(); });
@@ -321,7 +323,8 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
       imports.open = importOpen;
       imports.addEventListener('toggle', () => { if (!destroyed) rememberDisclosures(); });
       const heading = document.createElement('summary');
-      heading.textContent = t('Import emoji set');
+      const importLabel = el.querySelector<HTMLElement>('[data-emoji-import-help]')!;
+      heading.append(importLabel);
       const caret = document.createElement('i'); caret.className = 'lp-caret'; caret.setAttribute('aria-hidden', 'true'); heading.append(caret);
       const body = document.createElement('div'); body.className = 'emoji-style-management';
       imports.append(heading, body); el.append(imports);

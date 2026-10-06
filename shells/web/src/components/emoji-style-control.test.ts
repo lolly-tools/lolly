@@ -61,8 +61,12 @@ test('document emoji settings fold together and import stays a separate closed c
     assert.ok(section.contains(r.root.querySelector('[data-emoji-set]')));
     const imports = section.querySelector<HTMLDetailsElement>('[data-emoji-import]')!;
     assert.equal(imports.open, false);
-    assert.equal(imports.querySelector('button')!.textContent, 'Import file…');
+    assert.equal(imports.querySelector('.field-row .btn')!.textContent, 'Import file…');
     assert.equal(imports.querySelector('[role="status"]')!.textContent, '');
+    const importInfo = imports.querySelector<HTMLButtonElement>('summary .help-tip-btn')!;
+    importInfo.click();
+    assert.equal(importInfo.getAttribute('aria-expanded'), 'true');
+    assert.equal(imports.open, false, 'import help does not open the file-import section');
     const info = section.querySelector<HTMLButtonElement>('.help-tip-btn')!;
     assert.equal(info.getAttribute('aria-expanded'), 'false');
     info.click();
