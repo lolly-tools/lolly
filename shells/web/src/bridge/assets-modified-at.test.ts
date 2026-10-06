@@ -50,3 +50,12 @@ test('a provenance heal keeps modifiedAt', async () => {
   await api._restampUserAsset('user/upload/1-a', { blob: new Blob(['healed']), credential: new Uint8Array([1]), credentialFormat: 'wav' });
   assert.equal(stamp(rows), 1000);
 });
+
+test('head lookups preserve uploaded bytes and metadata with or without the current version', async () => {
+  const record = upload();
+  const { db } = fakeDb(record);
+  const api = createAssetsAPI(db as never, {});
+  assert.equal(await api._getUserRecord(record.id), record);
+  assert.equal(await api._getUserRecord(record.id, record.version), record);
+  assert.equal(await api._getUserRecord('user/missing'), null);
+});

@@ -3,6 +3,8 @@
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { activeDesignSystemSource } from '../lib/design-system/active.ts';
 import { decideWelcome } from '../lib/welcome-gate.ts';
+// The welcome is first content on a new public visit; fetch its code and CSS with boot.
+import * as welcome from '../components/welcome-dialog.ts';
 import type { GalleryHost } from './gallery.ts';
 import type { PickerHost } from './picker.ts';
 
@@ -23,7 +25,7 @@ async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => boolean):
   } catch { return false; }
 }
 
-type WelcomeModule = typeof import('../components/welcome-dialog.ts');
+type WelcomeModule = typeof welcome;
 type WelcomeStep =
   | { unbranded: false }
   | { unbranded: true; welcome: WelcomeModule; closed: Promise<unknown> | null };
@@ -32,7 +34,6 @@ type WelcomeStep =
 export function galleryWelcomeStep(host: GalleryHost & PickerHost, isCurrent: () => boolean, force = false): Promise<WelcomeStep | null> {
   return decideWelcome(async (): Promise<WelcomeStep | null> => {
     if (!await galleryNeedsWelcome(host, isCurrent)) return { unbranded: false };
-    const welcome = await import('../components/welcome-dialog.ts');
     if (!isCurrent()) return null;
     const due = force || !welcome.isWelcomeDismissed();
     return { unbranded: true, welcome, closed: due ? welcome.showWelcomeDialog(host.profile, host) : null };

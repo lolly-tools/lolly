@@ -15,7 +15,7 @@ import { overlayAbsorbsPopstate } from './lib/overlay-back.ts';
 import { createBridge } from './bridge/index.ts';
 import { setSceneManifestLoader, SCENE_TOOL_ID } from './bridge/scene-manifest.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
+import { prepareAssetCatalogFetch, syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
 import { mergeInstalledToolsIntoIndex } from './lib/installed-tools.ts';
 import { saveFavouriteAssets } from './lib/asset-favourites.ts';
 import { settingsRoute } from './views/settings-route.ts';
@@ -100,7 +100,7 @@ if (isIframeMode()) forwardDeckKeys();
 // seam the tool renders the flat photo, and with DEPTH_STAGED false the seam
 // resolves null rather than offering a download that cannot succeed.
 installDepthSeam();
-onWindowLoad(() => { void import('./lib/tooltips.ts').then(m => m.mountTooltips()); });
+onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts')).then(m => m.mountTooltips()); });
 
 /** The web capability bridge, as produced by createBridge. */
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
@@ -1003,13 +1003,12 @@ function catalogHostOf(host: Awaited<ReturnType<typeof createBridge>>) {
 /** Start the catalog once the shell's instance choice is settled. `signInRequired`
  *  is the control-plane gate, asked only by an instance that refused its catalog
  *  before (catalog/sync.ts), so a signed-out visitor sends no catalog requests. */
-function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>): Promise<void> {
+function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>, preparedAssets?: ReturnType<typeof prepareAssetCatalogFetch>): Promise<void> {
   const welcomeRoute = parseRoute().name;
-  if ((welcomeRoute === 'gallery' || welcomeRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
     ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery').catch(console.error) : undefined;
-  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired)
+  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets)
     .then(async () => { try { await mergeInstalledToolsIntoIndex(); } catch { /* no installed tools / no index yet */ } });
 }
 
@@ -1050,12 +1049,11 @@ async function boot(): Promise<void> {
   // the base for good. Correctness costs Tauri nothing measurable - the sheet is one
   // fast IndexedDB read on every boot after the first.
   const coldGallery = !window.__toolIndex;
-  if (coldGallery && parseRoute().name === 'gallery') {
-    void import('./components/welcome-dialog.ts');
-  }
+  const firstRoute = parseRoute().name;
+  if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   let slimIndexReady = coldGallery && !isTauriShell() ? loadSlimToolIndex() : null;
 
-  const host = await createBridge();
+  const hostReady = createBridge();
   // The optional deployment control plane's probe (src/org/) is a time-boxed fetch
   // (AUTH_PROBE_BUDGET_MS in org/probe.ts, retry included; an unanswered probe is not
   // cached as "no instance", only noted so the next boots use a shorter budget) that
@@ -1082,11 +1080,19 @@ async function boot(): Promise<void> {
   // the sheet's setInstanceBase() write. Web/PWA never shows the sheet, and is where
   // the overlap was worth having.
   let releaseOrgProbe!: () => void;
-  const orgPromise = new Promise<void>(resolve => { releaseOrgProbe = resolve; }).then(() => initOrgProbeFirst());
+  const orgPromise = new Promise<void>(resolve => { releaseOrgProbe = resolve; }).then(async () => {
+    await hostReady;
+    return initOrgProbeFirst();
+  });
   if (!isTauriShell()) void initInstanceBase().then(releaseOrgProbe, releaseOrgProbe);
   const signInRequired = (): Promise<boolean> => orgPromise.then(org => !!org?.gate);
+  // The cold gallery needs brand metadata first; fetch while the bridge opens.
+  // No storage sync starts until its design-system migration has finished.
+  const earlyAssets = !isTauriShell() && coldGallery && firstRoute === 'gallery'
+    ? prepareAssetCatalogFetch(signInRequired) : undefined;
+  const host = await hostReady;
   // Web can sync while profile and chrome initialize. Tauri waits for its instance sheet.
-  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired) : null;
+  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets) : null;
   trackVisualViewport();
   initMobilePlatformFit();
   // A Design 3D scene box keeps its uploads as asset ids inside its scene query, and only
@@ -1134,7 +1140,7 @@ async function boot(): Promise<void> {
   // downstream of a user gesture that is many seconds away, and mountJobToast's own
   // last line is `render(jobsSnapshot())` - so a job somehow started first is picked
   // up by the mount rather than missed by it.
-  onWindowLoad(() => { void import('./lib/job-toast.ts').then(m => m.mountJobToast()); });
+  onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/job-toast.ts')).then(m => m.mountJobToast()); });
 
   // Installing the PWA re-arms the one-time offline nudge (views/offline-nudge.ts):
   // an install puts an icon on the device while precaching only the shell, so a
