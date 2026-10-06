@@ -45,7 +45,8 @@ test('inline mode, not a window: mounts into the preview, no overlay of its own'
 
 test('the catalog drives it like crop: mode classes, Escape consult, close reap', () => {
   assert.match(catalog, /is-retouching/, 'the preview + dialog carry the mode class');
-  assert.match(catalog, /if \((?:dt\.)?inlineRetouch\) \{\s*\n\s*if \(e\.key === 'Escape'\)[\s\S]{0,120}busy\(\)/, 'Escape exits the mode only when not busy');
+  assert.match(catalog, /onEscape: \(\) => dt\.sheet\.dismissLayer\(\)/, 'Escape delegates to the active layer');
+  assert.match(catalog, /else if \(dt\.inlineRetouch\) \{ if \(!dt\.inlineRetouch\.busy\(\)\) dt\.inlineRetouch\.exit\(\); \}/, 'Escape exits the mode only when not busy');
   assert.match(catalog, /inlineRetouch\?\.exit\(\)/, 'the modal close reaps a live session');
   assert.match(catalog, /enterInlineRetouch/, 'the action enters the inline mode');
 });
@@ -64,7 +65,8 @@ test('the worker transfer keeps the undo copy intact', () => {
 
 test('catalog offers Retouch on static rasters with no capability gate', () => {
   assert.match(catalog, /const canRetouch = zoomable && ref\.type === 'raster' && !ref\.meta\?\.animated/);
-  assert.match(catalog, /data-act="retouch"/);
+  assert.match(catalog, /act: 'retouch'[^\n]*available: dt\.canRetouch/);
+  assert.match(catalog, /actions\.filter\(a => a\.available\)/);
 });
 
 test('the fill method: four choices kept on the device, sent to the worker, and recorded (plans/289 M4)', () => {
