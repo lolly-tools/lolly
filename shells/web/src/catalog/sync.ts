@@ -373,7 +373,9 @@ async function conditionalFetch(url: string, etagKey: string, persistValidator =
   if (stored?.etag) headers['If-None-Match'] = stored.etag;
   else if (stored?.lastModified) headers['If-Modified-Since'] = stored.lastModified;
 
-  const resp = await instanceFetch(url, { headers });
+  const assetPath = `${CATALOG_BASE}/assets/index.json`;
+  const boot = !stored && url === instancePath(assetPath) ? adoptBootFetch(assetPath) : null;
+  const resp = await (boot ?? instanceFetch(url, { headers }));
   if (resp.status !== 304 && !resp.ok) throw notOk(resp, url);
   noteCatalogAllowed();
   if (resp.status === 304) return null; // unchanged

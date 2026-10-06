@@ -25,12 +25,14 @@ const ASSETS = { assets: [{ id: 'lolly/logo/primary', version: '1', tier: 'core'
 let assetStatus = 200;
 let toolRequests = 0;
 let assetRequests = 0;
+let lastAssetHeaders = new Headers();
 
-globalThis.fetch = (async (input: string | URL | Request) => {
+globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
   const url = String(input instanceof Request ? input.url : input);
   if (url.endsWith('/catalog/tools/index.json')) { toolRequests++; return Response.json(TOOLS); }
   if (url.endsWith('/catalog/assets/index.json')) {
     assetRequests++;
+    lastAssetHeaders = new Headers(init?.headers);
     if (assetStatus === 304) return new Response(null, { status: 304 });
     return Response.json(ASSETS, { headers: { ETag: '"assets-1"' } });
   }
@@ -186,5 +188,34 @@ test('a prepared 304 response keeps the cached metadata and opens the welcome de
     assert.equal(assetRequests, before + 1);
     assert.deepEqual(asked, ['assets-ready']);
     assert.deepEqual(calls, []);
+  } finally { assetStatus = 200; }
+});
+
+
+test('a fresh asset request begun by the document is adopted once', async () => {
+  localStorage.clear();
+  const before = assetRequests, calls: Call[] = [];
+  const path = '/catalog/assets/index.json';
+  window.__lollyBootFetch = { [path]: fetch(path) };
+  const prepared = prepareAssetCatalogFetch();
+  await prepared;
+  await syncCatalog(mockHost(calls), undefined, undefined, undefined, prepared);
+  assert.equal(assetRequests, before + 1);
+  assert.equal(window.__lollyBootFetch[path], undefined, 'adoption consumes the early response');
+  assert.deepEqual(calls.map(call => call.name), ['meta-stored', 'prune']);
+});
+
+
+test('a cached asset index keeps its conditional request', async () => {
+  localStorage.clear();
+  localStorage.setItem('sbt-catalog:assets-index', JSON.stringify({ etag: '"cached-assets"' }));
+  assetStatus = 304;
+  const before = assetRequests;
+  try {
+    const prepared = prepareAssetCatalogFetch();
+    await prepared;
+    await syncCatalog(mockHost([]), undefined, undefined, undefined, prepared);
+    assert.equal(assetRequests, before + 1);
+    assert.equal(lastAssetHeaders.get('If-None-Match'), '"cached-assets"');
   } finally { assetStatus = 200; }
 });

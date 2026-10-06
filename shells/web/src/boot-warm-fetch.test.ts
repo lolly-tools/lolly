@@ -136,3 +136,30 @@ test('a visitor this instance refused last time does not ask for the slim index 
   });
   assert.deepEqual(fetched, [], 'signed out on a gated instance: no request that can only answer 401');
 });
+
+
+async function runAssetWarm(seed: (dom: JSDOM) => void): Promise<string[]> {
+  const script = html.match(/<script id="lolly-asset-index-warm">([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script, 'the asset warm fetch must survive signed builds');
+  const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://team.example/', runScripts: 'outside-only' });
+  try {
+    seed(dom);
+    const fetched: string[] = [];
+    (dom.window as unknown as { fetch: (u: string) => Promise<Response> }).fetch = url => {
+      fetched.push(url);
+      return Promise.resolve(Response.json({ assets: [] }));
+    };
+    dom.window.eval(script);
+    return fetched;
+  } finally { dom.window.close(); }
+}
+
+test('a fresh document warms only its uncached asset index', async () => {
+  assert.deepEqual(await runAssetWarm(() => {}), ['/catalog/assets/index.json']);
+  for (const key of ['sbt-tool-index', 'sbt-catalog:assets-index', 'lolly:catalog-refused:same-origin']) {
+    assert.deepEqual(await runAssetWarm(dom => dom.window.localStorage.setItem(key, '1')), [], key);
+  }
+  assert.deepEqual(await runAssetWarm(dom => {
+    (dom.window as unknown as { __TAURI_INTERNALS__: object }).__TAURI_INTERNALS__ = {};
+  }), [], 'native shells wait for their instance choice');
+});
