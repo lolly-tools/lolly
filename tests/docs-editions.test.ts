@@ -72,12 +72,6 @@ test('the offline docs manifest leaves print editions out', (t) => {
   const manifest = join(infoDir, 'manifest.json');
   if (!existsSync(manifest)) { t.skip('no built /info on disk - run `pnpm run build:info`'); return; }
   assert.ok(!readFileSync(manifest, 'utf8').includes('/info/editions/'), 'an edition is in the offline docs download');
-});
-
-
-test('withdrawn narration is absent from the offline docs manifest and build output', (t) => {
-  const manifest = join(infoDir, 'manifest.json');
-  if (!existsSync(manifest)) { t.skip('no built /info on disk - run `pnpm run build:info`'); return; }
   const built = JSON.parse(readFileSync(manifest, 'utf8'));
   assert.deepEqual(built.groups.audio, [], 'withdrawn narration remains downloadable offline');
   assert.ok(!existsSync(join(infoDir, 'audio')), 'narration recordings are still shipped');
