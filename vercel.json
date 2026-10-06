@@ -21,6 +21,13 @@
   },
   "headers": [
     {
+      "source": "/.well-known/openai-apps-challenge",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
       "source": "/((?!any-site(?:/|$)).*)",
       "headers": [
         {
@@ -163,7 +170,7 @@
     { "source": "/.well-known/oauth-protected-resource", "destination": "/api/mcp/[...path]" },
     { "source": "/.well-known/oauth-protected-resource/:path*", "destination": "/api/mcp/[...path]" },
     {
-      "source": "/((?!api/|_app/|fonts/|catalog/|ort/|ort-hf/|models/|icons/|info/).*)",
+      "source": "/((?!api/|_app/|fonts/|catalog/|ort/|ort-hf/|models/|icons/|info/|\\.well-known/).*)",
       "destination": "/index.html"
     }
   ]
