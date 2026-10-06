@@ -1,0 +1,21 @@
+# Add beside the public web, CA and MCP deployment on an UpCloud or Evroc VM.
+services:
+  penpot:
+    image: ${LOLLY_PENPOT_IMAGE:?Set the qualified Penpot image digest}
+    environment:
+      NODE_OPTIONS: --max-old-space-size=64
+    ports:
+      - "127.0.0.1:8791:8791"
+    read_only: true
+    tmpfs:
+      - /tmp:size=8m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    pids_limit: 64
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

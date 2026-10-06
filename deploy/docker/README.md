@@ -68,7 +68,7 @@ extracted root. It does not verify application access or the image's provenance.
 
 ## Optional service images
 
-CA and MCP use the pinned Node 24 Alpine base and explicit OpenSSL updates used
+CA, MCP and Penpot use the pinned Node Alpine base and explicit OpenSSL updates used
 by Work. CA carries only its dependency-free handler and certificate helpers;
 it does not need the tool packs or browser model files. Its health route is active
 only when the CA is configured. Successful liveness does not verify the issuer,
@@ -92,3 +92,9 @@ to stand in for the approved production control. TCP/HTTP health checks do not
 establish these controls.
 Keep unused services out of the deployed scope. The existing private-content
 access boundary still applies to every public render route and direct asset URL.
+
+Penpot has a dependency-free standalone listener and optional hardened Compose
+service. The [public Penpot VM recipe](public-penpot.md) supplies the Caddy mount,
+two-command RPC boundary and staged qualification checklist for UpCloud or Evroc.
+The recipe preserves opaque user tokens and streamed import progress. It does
+not establish parity for the complete public host or authorize a DNS cutover.
