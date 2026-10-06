@@ -935,7 +935,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const frameLabels = document.createElement('div'); fc.frameLabels = frameLabels;
   frameLabels.className = 'fc-frame-labels';
   overlay.appendChild(frameLabels);
-  frameLabels.addEventListener('pointerdown', (e) => e.stopPropagation());
+  frameLabels.addEventListener('pointerdown', (e) => { fc.gestures.onFrameLabelPointerDown(e); e.stopPropagation(); });
   frameLabels.addEventListener('click', (e) => {
     const el = (e.target as HTMLElement | null)?.closest<HTMLElement>('.fc-frame-label');
     if (!el) return;

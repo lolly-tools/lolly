@@ -52,7 +52,8 @@ const ANY_SITE_FRAME_SRC = "'self' blob: https: http://localhost:* http://127.0.
 
 function vercelHeaders(path: string, index = 0): Record<string, string> {
   const cfg = JSON.parse(read(path)) as VercelConfig;
-  const block = cfg.headers?.[index];
+  const source = index === 0 ? BASE_SOURCE : ANY_SITE_SOURCE;
+  const block = cfg.headers?.find(entry => entry.source === source);
   assert.ok(block, `${path} has no headers block ${index}`);
   assert.equal(block.source, index === 0 ? BASE_SOURCE : ANY_SITE_SOURCE, `${path} security headers must cover every path, in two complementary rules`);
   return Object.fromEntries(block.headers.map(h => [h.key, h.value]));

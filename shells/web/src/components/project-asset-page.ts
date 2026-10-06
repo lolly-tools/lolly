@@ -6,7 +6,6 @@ import { instanceFetch } from '../lib/instance.ts';
 import { assetViewerKind } from '../lib/asset-viewer-source.ts';
 /** The same asset page for local folders and shared projects. */
 import { tRaw } from '../i18n.ts';
-import type { AssetRef } from '@lolly-tools/core/host-v1';
 
 export interface AssetPreviewHandle { ready: Promise<void>; destroy(): void; }
 
@@ -21,6 +20,7 @@ export interface ProjectAssetPageOptions {
 }
 
 export function buildProjectAssetPage(opts: ProjectAssetPageOptions): ProjectAssetPage {
+  let selectedAsset = opts.asset;
   const panel = document.createElement('section') as ProjectAssetPage; panel.className = 'team-project-asset project-asset-page';
   const back = document.createElement('a'); back.className = 'btn btn--ghost'; back.href = opts.backHref; back.textContent = tRaw('Back to project');
   const heading = document.createElement('h3'); heading.textContent = opts.name;
@@ -44,7 +44,9 @@ export function buildProjectAssetPage(opts: ProjectAssetPageOptions): ProjectAss
   })(); });
   let previewHandle: AssetPreviewHandle | undefined;
   let disposed = false;
-  panel.dispose = () => { if (disposed) return; disposed = true; previewHandle?.destroy(); };
+  let handle: AssetFormatViewerHandle | undefined, revision = 0;
+  let observer: MutationObserver | undefined;
+  panel.dispose = () => { if (disposed) return; disposed = true; revision++; previewHandle?.destroy(); handle?.destroy(); observer?.disconnect(); };
   if (opts.preview) {
     preview.dataset.assetPreview = '';
     const open = document.createElement('button'); open.type = 'button'; open.className = 'btn'; open.textContent = tRaw('Preview');
@@ -63,6 +65,26 @@ export function buildProjectAssetPage(opts: ProjectAssetPageOptions): ProjectAss
     open.addEventListener('click', show);
     preview.append(open);
     queueMicrotask(show);
+  }
+  if (!opts.preview) {
+    const format = opts.asset?.format ?? opts.name.split('.').pop()?.toLowerCase() ?? '';
+    const kind = opts.asset?.type === 'font' ? 'font' : opts.contentType === 'application/pdf' ? 'pdf' : opts.contentType.startsWith('font/') ? 'font' : assetViewerKind(format);
+    const open = async (ref: AssetRef) => {
+      const version = ++revision; selectedAsset = ref; heading.textContent = String(ref.meta?.name ?? opts.name); meta.textContent = ref.format; handle?.destroy(); handle = undefined;
+      if (ref.type === 'raster') { const image = document.createElement('img'); image.src = ref.url; image.alt = heading.textContent; preview.replaceChildren(image); return; }
+      const module = await import('./asset-format-viewer.ts'); if (disposed || version !== revision || !panel.isConnected) return;
+      handle = module.mountAssetFormatViewer(preview, ref, opts.host);
+    };
+    if (kind === 'pdf' || kind === 'font' || kind === 'converted' || (opts.asset?.meta?.assetFiles as unknown[] | undefined)?.length) {
+      const ref = opts.asset ?? { id: opts.url, source: 'user' as const, type: kind === 'font' ? 'font' as const : 'data' as const, format: kind === 'pdf' ? 'pdf' : format, url: opts.url, meta: { name: opts.name } };
+      let mounted = false;
+      observer = new MutationObserver(() => {
+        if (panel.isConnected && !mounted) { mounted = true; if (kind === 'pdf' || kind === 'font' || kind === 'converted') void open(ref); }
+        else if (mounted && !panel.isConnected) panel.dispose();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      if (opts.asset) mountAssetFileList(panel, ref, selected => { void open(selected); });
+    }
   }
   panel.append(back, heading, meta, preview, download, status); return panel;
 }

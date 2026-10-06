@@ -768,8 +768,9 @@ export function onQueryRect(fc: FcCtx, e: Event): void {
  * Gated on frameCfg?.orderField (no orderField → no frames → no rail button). Reuses the
  * `morePanel` slot so the shared outside-click / rebuild dismissal takes it down.
  */
-export function openFramesPanel(fc: FcCtx, _anchor: HTMLElement): void {
+export function openFramesPanel(fc: FcCtx, anchor: HTMLElement): void {
   const { addKinds, canvasEl, cfg, frameCfg, stageEl } = fc;
+  const opener = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('button, [role="button"]') ?? anchor;
   closeMorePanel(fc);
   if (!frameCfg?.orderField) return;
   const of = frameCfg.orderField;
@@ -779,6 +780,7 @@ export function openFramesPanel(fc: FcCtx, _anchor: HTMLElement): void {
     THUMB_MAX_H = 90; // letterbox any aspect (landscape slide → portrait poster)
   const p = document.createElement('div');
   p.className = 'fc-panel fc-frames-panel';
+  p.setAttribute('data-canvas-keys', 'off');
   let active = -1;
 
   // Frames in the SAME page order the hook uses: order asc, x asc tie-break.
@@ -798,7 +800,8 @@ export function openFramesPanel(fc: FcCtx, _anchor: HTMLElement): void {
     return thumb;
   };
 
-  function goTo(i: number, frames: Box[]): void {
+  function goTo(i: number, frames: Box[], keyboard = false): void {
+    if (!frames.length) return;
     active = Math.max(0, Math.min(i, frames.length - 1));
     const fb = frames[active];
     const r = fb ? frameClientRect(fc, fb) : null;
@@ -814,10 +817,16 @@ export function openFramesPanel(fc: FcCtx, _anchor: HTMLElement): void {
           },
         })
       );
-    p.querySelectorAll('.fc-frame-cell').forEach((c, idx) =>
-      { c.classList.toggle('is-active', idx === active); }
+    p.querySelectorAll<HTMLElement>('.fc-frame-cell').forEach((c, idx) =>
+      {
+        c.classList.toggle('is-active', idx === active);
+        c.tabIndex = idx === active ? 0 : -1;
+        if (idx === active) c.setAttribute('aria-current', 'true'); else c.removeAttribute('aria-current');
+      }
     );
-    p.querySelector<HTMLElement>(`.fc-frame-cell[data-fi="${active}"]`)?.scrollIntoView({
+    const cell = p.querySelector<HTMLElement>(`.fc-frame-cell[data-fi="${active}"]`);
+    if (keyboard) cell?.focus({ preventScroll: true });
+    cell?.scrollIntoView?.({
       block: 'nearest',
       inline: 'nearest',
     });
@@ -860,7 +869,7 @@ export function openFramesPanel(fc: FcCtx, _anchor: HTMLElement): void {
       frames
         .map(
           (_b, i) =>
-            `<button type="button" class="fc-frame-cell${i === active ? ' is-active' : ''}" data-fi="${i}" data-tip="${escapeText(t('Focus artboard'))}"><span class="fc-frame-cell-slot"></span><span class="fc-frame-cell-n">${i + 1}</span></button>`
+            `<button type="button" class="fc-frame-cell${i === active ? ' is-active' : ''}" tabindex="${i === active ? 0 : -1}"${i === active ? ' aria-current="true"' : ''} data-fi="${i}" data-tip="${escapeText(t('Focus artboard'))}"><span class="fc-frame-cell-slot"></span><span class="fc-frame-cell-n">${i + 1}</span></button>`
         )
         .join('') +
       `</div>`;
@@ -880,15 +889,34 @@ export function openFramesPanel(fc: FcCtx, _anchor: HTMLElement): void {
   }
 
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
+  p.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.key === 'Escape') {
+      event.preventDefault(); event.stopPropagation();
+      closeMorePanel(fc); opener.focus();
+      return;
+    }
+    const delta = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1
+      : event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1
+      : event.key === 'Home' ? -Infinity : event.key === 'End' ? Infinity : 0;
+    if (!delta) return;
+    const frames = framesInOrder();
+    if (!frames.length) return;
+    event.preventDefault(); event.stopPropagation();
+    const cell = (event.target as Element).closest<HTMLElement>('[data-fi]');
+    goTo((cell ? num(cell.dataset.fi) : active) + delta, frames, true);
+  });
   render();
   stageEl.appendChild(p);
   fc.morePanel = p;
+  const current = p.querySelector<HTMLElement>(`.fc-frame-cell[data-fi="${active}"]`);
+  current?.focus({ preventScroll: true });
+  current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
 
 }
 /** Is the Artboards filmstrip the panel currently in the one-slot `morePanel`? */
 export const isFramesPanelOpen = (fc: FcCtx): boolean => !!fc.morePanel?.classList.contains('fc-frames-panel');
-/** Open/close the filmstrip. The anchor is unused by the panel (it docks to the stage
- *  bottom, not to its trigger), so the top bar's toggle needs none. */
+/** Open/close the filmstrip at the stage bottom. The opener receives focus on Escape. */
 export function toggleFramesPanel(fc: FcCtx, anchor?: HTMLElement): void {
   const { toolbar } = fc;
   if (isFramesPanelOpen(fc)) closeMorePanel(fc);

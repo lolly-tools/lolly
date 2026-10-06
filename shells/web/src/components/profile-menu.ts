@@ -22,7 +22,7 @@
  */
 import { THEMES, THEME_LABELS, THEME_ICONS, currentTheme } from '../theme.ts';
 import { setTheme, type SetThemeHost } from '../lib/set-theme.ts';
-import { escape } from '../utils.ts';
+import { escape, NAV_EVENTS } from '../utils.ts';
 import { mountBodyPopover } from './body-popover.ts';
 import { soundSwitchHtml, wireSoundSwitch } from './sound-toggle.ts';
 import { LOLLY_MARK_SVG } from '../lib/lolly-mark.ts';
@@ -32,6 +32,7 @@ import type { SwitchHost } from '../lib/design-system/switch.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { homeHref, navigateHome } from '../lib/home-destination.ts';
 import { navigateTo } from '../nav.ts';
+import { configureNotifications, notificationCount, onNotificationsChange } from '../lib/notifications.ts';
 
 // The chevron every navigation row wears (was hand-copied per row).
 const CHEVRON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>';
@@ -73,6 +74,16 @@ export function attachProfileMenu(
   // fresh each time), torn down with the menu so the child can't outlive it.
   let detachLang: (() => void) | null = null;
   let detachDesignSystem: (() => void) | null = null;
+  void configureNotifications();
+  const originalLabel = trigger.getAttribute('aria-label');
+  const badge = document.createElement('span'); badge.className = 'notification-badge'; badge.setAttribute('aria-hidden', 'true');
+  trigger.append(badge);
+  let notificationCountSlot: HTMLElement | null = null;
+  const updateNotifications = () => {
+    const count = notificationCount(); badge.hidden = count === 0; badge.textContent = count > 99 ? '99+' : String(count);
+    trigger.setAttribute('aria-label', count ? t('Profile and settings, {count} notifications', { count: String(count) }) : originalLabel ?? t('Profile and settings'));
+    if (notificationCountSlot?.isConnected) notificationCountSlot.textContent = String(count);
+  };
 
   const popover = mountBodyPopover(trigger, (el, pop) => {
     const theme = currentTheme();
@@ -81,6 +92,9 @@ export function attachProfileMenu(
         ${THEMES.map(seg => { const name = escape(t(THEME_LABELS[seg] ?? seg)); return `<button type="button" class="profile-menu-seg" role="menuitemradio" data-theme-seg="${seg}" aria-checked="${seg === theme}" aria-label="${name}" title="${name}">${THEME_ICONS[seg]}</button>`; }).join('')}
       </div>
       ${hasAssets(host) ? `<div class="profile-menu-sound">${soundSwitchHtml()}</div>` : ''}
+      <button type="button" class="profile-menu-item" role="menuitem" data-act="notifications">
+        <span>${t('Notifications')}</span><span class="profile-menu-count" data-notification-count>${notificationCount()}</span>
+      </button>
       <a class="profile-menu-item" role="menuitem" href="/#/" data-act="home">
         <span>${t('Home')}</span>
         ${CHEVRON}
@@ -102,6 +116,12 @@ export function attachProfileMenu(
         <span>${t('Settings')}</span>
         ${CHEVRON}
       </a>`;
+
+    notificationCountSlot = el.querySelector('[data-notification-count]');
+    el.querySelector('[data-act="notifications"]')?.addEventListener('click', () => {
+      pop.close(true);
+      void import('./notification-center.ts').then(module => module.openNotifications(trigger));
+    });
 
     // Theme: apply immediately + persist to the profile (canonical store), like the
     // profile view's segmented control. Keep the menu open so it can be re-tried.
@@ -208,8 +228,22 @@ export function attachProfileMenu(
     popover.isOpen() ? popover.close(true) : popover.open();
   };
   trigger.addEventListener('click', onClick);
+  const offNotifications = onNotificationsChange(updateNotifications); updateNotifications();
 
-  return () => { popover.close(); trigger.removeEventListener('click', onClick); };
+  let navigationTimer: ReturnType<typeof setTimeout> | undefined;
+  const detach = () => {
+    if (navigationTimer) clearTimeout(navigationTimer);
+    NAV_EVENTS.forEach(event => { window.removeEventListener(event, afterNavigation); });
+    offNotifications(); badge.remove();
+    if (originalLabel === null) trigger.removeAttribute('aria-label'); else trigger.setAttribute('aria-label', originalLabel);
+    popover.close(); trigger.removeEventListener('click', onClick);
+  };
+  const afterNavigation = () => {
+    if (navigationTimer) clearTimeout(navigationTimer);
+    navigationTimer = setTimeout(() => { if (!trigger.isConnected) detach(); }, 1000);
+  };
+  NAV_EVENTS.forEach(event => { window.addEventListener(event, afterNavigation); });
+  return detach;
 }
 
 /**
@@ -281,7 +315,7 @@ export function createProfileControl(host: ProfileMenuHost, opts: { className?: 
   link.href = '#/settings';
   link.className = `profile-link${opts.className ? ` ${opts.className}` : ''}`;
   link.setAttribute('aria-label', t('Open settings'));
-  attachProfileMenu(link, host);   // sets aria-haspopup/expanded + opens the menu on click
   paintProfileMark(link, host, `<span class="profile-link-mark" aria-hidden="true">${LOLLY_MARK_SVG}</span>`, 'profile-link-avatar');
+  attachProfileMenu(link, host);
   return link;
 }

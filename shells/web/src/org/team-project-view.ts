@@ -8,6 +8,7 @@ import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
 import { applyCardSize, readCardSize } from '../components/view-options.ts';
 import { confirmDialog, promptDialog } from '../components/confirm-dialog.ts';
+import { duplicateProjectItem } from './team-project-duplicate.ts';
 import { mountTeamProjectActions } from './team-project-actions.ts';
 import { orgConfig } from './index.ts';
 import { activityLabel, canWriteProject, invitePolicy, isManagerPlus, peopleAccess, roleLabel } from './team-access.ts';
@@ -54,8 +55,6 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   let disposed = false, ticket = 0, opening = false;
   let clearPreviews: (() => void) | undefined;
   let clearAssetPreview: (() => void) | undefined;
-  let clearAgents: (() => void) | undefined;
-  let sessionMenu: TileContextMenuHandle | undefined;
   let clearActions: (() => void) | undefined;
   let clearAgents: (() => void) | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
@@ -97,8 +96,6 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     createFolderAction = undefined;
     clearPreviews?.(); clearPreviews = undefined;
     clearAssetPreview?.(); clearAssetPreview = undefined;
-    clearAgents?.(); clearAgents = undefined;
-    sessionMenu?.destroy(); sessionMenu = undefined;
     clearActions?.(); clearActions = undefined;
     clearAgents?.(); clearAgents = undefined;
     clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
@@ -204,6 +201,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     clearActions = mountTeamProjectActions({ grid, content, projectId, projectName: project.name, folderId, folders, files,
       canWrite, canManage: isManagerPlus(projectRole), canDeleteSession: isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false,
       current: () => current() && my === ticket, reload: () => { void load(); },
+      duplicate: (id, kind) => duplicateProjectItem({ projectId, id, kind, folderId, folders, writer: source?.write,
+        name: grid.querySelector<HTMLElement>(`[data-ref="${CSS.escape(id)}"] .tile-title`)?.textContent || id, current: () => current() && my === ticket }),
       notice: message => { if (current() && my === ticket) notice.textContent = message; }, sessionAction,
     });
     async function sessionAction(action: string, id: string, tile: HTMLElement | null): Promise<boolean | undefined> {
@@ -290,5 +289,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); sessionMenu?.destroy(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }

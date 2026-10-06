@@ -255,6 +255,23 @@ export function lineSnap(fc: FcCtx, nat: Point, alt: boolean): Point {
   drawGuides(fc, snap.guides);
   return { x: snap.x, y: snap.y };
 }
+export function onFrameLabelPointerDown(fc: FcCtx, e: PointerEvent): void {
+  if (e.button > 0 || fc.spacePan || fc.gesture || (e.target as Element).closest('input')) return;
+  const label = (e.target as Element).closest<HTMLElement>('.fc-frame-label');
+  if (!label) return;
+  const boxes = fc.select.getBoxes();
+  const index = boxes.findIndex((box, i) => fc.select.idOf(box, i) === label.dataset.frameId);
+  if (index < 0) return;
+  fc.edges.deselectEdge();
+  fc.selection = new Set(fc.select.selectionForHit(boxes, index, true));
+  fc.chromeSync.renderChrome();
+  if (fc.frameCfg?.lockedField && boolOf(boxes[index]?.[fc.frameCfg.lockedField], false)) return;
+  const sel = fc.select.selIndices(boxes);
+  beginGesture(fc, e, { type: 'move', sel, start: new Map(sel.map(i => [i, boxRect(boxes[i], fc.cfg)])),
+    selAABB: selectionAABB(boxes, sel, fc.cfg), others: otherAABBs(fc, boxes, new Set(sel)) });
+  e.stopPropagation();
+}
+
 export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
   const { PEN_CURVE_PX, cfg, connectCfg, rubber, touchPts, vectorCfg } = fc;
   if (e.button > 0) return; // primary button / touch only
@@ -1421,6 +1438,7 @@ export function gesturesOps(fc: FcCtx) {
     tryArmedCreateAt: bindOp(fc, tryArmedCreateAt),
     tryLineDrawAt: bindOp(fc, tryLineDrawAt),
     lineSnap: bindOp(fc, lineSnap),
+    onFrameLabelPointerDown: bindOp(fc, onFrameLabelPointerDown),
     onCanvasPointerDown: bindOp(fc, onCanvasPointerDown),
     onBackdropPointerDown: bindOp(fc, onBackdropPointerDown),
     onBackdropContextMenu: bindOp(fc, onBackdropContextMenu),

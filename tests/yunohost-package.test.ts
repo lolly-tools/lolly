@@ -180,8 +180,8 @@ test('nginx: every location that sets a header re-includes the header file', () 
 });
 
 test('/any-site: the hosted twin policy, served by a location nothing else can override', () => {
-  const hosted = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as { headers: Array<{ headers: Array<{ key: string; value: string }> }> };
-  const want = hosted.headers[1]!.headers.find((h) => h.key === 'Content-Security-Policy')!.value;
+  const hosted = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as { headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }> };
+  const want = hosted.headers.find(row => row.source === "/any-site(/.*)?")!.headers.find((h) => h.key === 'Content-Security-Policy')!.value;
   const inc = read('conf/any-site-headers.inc');
   const lines = [...inc.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '').matchAll(/^more_set_headers "([A-Za-z-]+): ([^\n]*)";$/gm)];
   assert.deepEqual(lines.map((m) => m[1]), ['Content-Security-Policy'], 'the twin file changes the CSP and nothing else');
@@ -196,8 +196,8 @@ test('/any-site: the hosted twin policy, served by a location nothing else can o
 });
 
 test('headers: without extra origins, the headers are the hosted policy, byte for byte', () => {
-  const hosted = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as { headers: Array<{ headers: Array<{ key: string; value: string }> }> };
-  const want = Object.fromEntries(hosted.headers[0]!.headers.map((h) => [h.key, h.value]));
+  const hosted = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as { headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }> };
+  const want = Object.fromEntries(hosted.headers.find(row => row.source === "/((?!any-site(?:/|$)).*)")!.headers.map((h) => [h.key, h.value]));
   const got: Record<string, string> = {};
   const defaultHeaders = headers.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '');
   for (const m of defaultHeaders.matchAll(/^more_set_headers "([A-Za-z-]+): ([^\n]*)";$/gm)) got[m[1]!] = m[2]!;

@@ -58,6 +58,7 @@ globalThis.cancelAnimationFrame = ((h: number) => dom.window.cancelAnimationFram
 (globalThis as Record<string, unknown>).ResizeObserver = class { observe() {} disconnect() {} };
 
 const { initFreeCanvas } = await import('./free-canvas.ts');
+const { initDesignNavigator } = await import('./design-navigator.ts');
 
 const NATIVE = 1000;
 const rect = (left: number, top: number, width: number, height: number): DOMRect => ({
@@ -752,6 +753,37 @@ test('a top bar with no toggles to lend adds no preference rows', () => {
 
 // ══ 8. the filmstrip toggle ═══════════════════════════════════════════════════
 
+test('Pages arrow navigation selects and frames the destination through the real canvas ports', () => {
+  const initial = [frameBox('f2', 600, 1), frameBox('f1', 0, 0)];
+  const f = mount(initial);
+  const nav = initDesignNavigator({
+    stageEl: f.stageEl, canvasEl: f.canvasEl, model: f.design.model,
+    selection: f.design.selection, artboard: f.design.artboard,
+    actions: f.design.navigatorActions, thumb: f.design.thumb,
+  });
+  try {
+    for (const frame of initial) {
+      const page = document.createElement('div');
+      page.className = 'lolly-frame-page'; page.dataset.frameId = String(frame.id);
+      page.getBoundingClientRect = () => rect(Number(frame.x), 0, 400, 300);
+      f.canvasEl.append(page);
+    }
+    const focused: unknown[] = [];
+    f.stageEl.addEventListener('fc-focus-rect', event => focused.push((event as CustomEvent).detail));
+    click([...nav.el.querySelectorAll('button')].find(button => button.textContent === 'Pages')!);
+    click(nav.el.querySelector('[data-nav-row][data-id="f1"]')!);
+    for (const [arrow, id, x] of [['ArrowRight', 'f2', 600], ['ArrowUp', 'f1', 0]] as const) {
+      document.activeElement!.dispatchEvent(new W.KeyboardEvent('keydown', { key: arrow, bubbles: true }));
+      assert.deepEqual(f.design.selection.get(), [id]);
+      assert.equal(f.design.artboard.active(), id);
+      assert.deepEqual(focused.at(-1), { x, y: 0, w: 400, h: 300 });
+      assert.equal((document.activeElement as HTMLElement).dataset.id, id);
+    }
+    assert.deepEqual(f.boxes(), initial);
+    assert.equal(f.commits(), 0);
+  } finally { nav.destroy(); f.destroy(); }
+});
+
 test('toggleFramesPanel opens and closes the Artboards filmstrip', () => {
   const f = mount([frameBox('f1', 0, 0), frameBox('f2', 600, 1)]);
   try {
@@ -772,6 +804,62 @@ test('the Artboards filmstrip opens on the artboard whose content is selected', 
     f.design.toggleFramesPanel();
     const cells = [...f.stageEl.querySelectorAll('.fc-frame-cell')];
     assert.deepEqual(cells.map(cell => cell.classList.contains('is-active')), [false, true]);
+  } finally { f.destroy(); }
+});
+
+test('the Artboards filmstrip arrows frame pages on both axes and keep the keyboard in the strip', () => {
+  const initial = [frameBox('f2', 600, 1), frameBox('f3', 1200, 2), frameBox('f1', 0, 0)];
+  const f = mount(initial);
+  try {
+    const opener = document.createElement('button');
+    f.viewEl.append(opener); opener.focus();
+    const focused: Array<{ x: number; y: number; w: number; h: number }> = [];
+    f.stageEl.addEventListener('fc-focus-rect', event => focused.push((event as CustomEvent).detail));
+    for (const frame of initial) {
+      const page = document.createElement('div');
+      page.className = 'lolly-frame-page'; page.dataset.frameId = String(frame.id);
+      page.getBoundingClientRect = () => rect(Number(frame.x), 0, 400, 300);
+      f.canvasEl.append(page);
+    }
+    f.design.toggleFramesPanel();
+    const strip = f.stageEl.querySelector<HTMLElement>('.fc-frames-panel')!;
+    const cells = [...strip.querySelectorAll<HTMLElement>('.fc-frame-cell')];
+    assert.equal(document.activeElement, cells[0]);
+    for (const [arrow, index] of [
+      ['ArrowDown', 1], ['ArrowRight', 2], ['ArrowUp', 1], ['ArrowLeft', 0], ['End', 2], ['Home', 0],
+    ] as const) {
+      document.activeElement!.dispatchEvent(new W.KeyboardEvent('keydown', { key: arrow, bubbles: true, cancelable: true }));
+      assert.equal(document.activeElement, cells[index]);
+      assert.deepEqual(cells.filter(cell => cell.tabIndex === 0), [cells[index]]);
+      assert.equal(cells[index]!.getAttribute('aria-current'), 'true');
+      assert.deepEqual(focused.at(-1), { x: index * 600, y: 0, w: 400, h: 300 });
+      assert.equal(f.design.isFramesPanelOpen(), true);
+    }
+    document.activeElement!.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    assert.equal(document.activeElement, cells[0], 'the first frame is a boundary');
+    assert.deepEqual(f.boxes(), initial, 'arrows never nudge the artwork');
+    assert.equal(f.commits(), 0, 'navigation creates no undo entries');
+    document.activeElement!.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(f.design.isFramesPanelOpen(), false);
+    assert.equal(document.activeElement, opener);
+  } finally { f.destroy(); }
+});
+
+test('Artboards modifier chords do not navigate or edit, and arrows also work on step buttons', () => {
+  const f = mount([frameBox('f1', 0, 0), frameBox('f2', 600, 1)]);
+  try {
+    f.design.toggleFramesPanel();
+    const strip = f.stageEl.querySelector<HTMLElement>('.fc-frames-panel')!;
+    const cells = [...strip.querySelectorAll<HTMLElement>('.fc-frame-cell')];
+    for (const mod of ['metaKey', 'ctrlKey', 'altKey']) {
+      cells[0]!.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, [mod]: true }));
+      assert.equal(document.activeElement, cells[0]);
+    }
+    const next = strip.querySelector<HTMLElement>('[data-fstep="1"]')!;
+    next.focus();
+    next.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    assert.equal(document.activeElement, cells[1]);
+    assert.equal(f.commits(), 0);
   } finally { f.destroy(); }
 });
 

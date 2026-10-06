@@ -509,7 +509,7 @@ test('the app’s own accent follows the ACTIVE version, not the draft head', as
 test('every user-asset write path that destroys bytes calls the preserver, and the bridge wires it', async () => {
   const src = await readFile(new URL('../../bridge/assets.ts', import.meta.url), 'utf8');
   const maintenance = await readFile(new URL('../../bridge/asset-cache-maintenance.ts', import.meta.url), 'utf8');
-  assert.match(src, /preserve: opts\.preservePinned/);
+  assert.match(src, /preservePinned\?:/);
   const calls = (src + maintenance).match(/(?:preservePinned|actions\.preserve)\?\.\(/g) ?? [];
   assert.equal(calls.length, 4,
     'upload / delete / restamp / import - a fifth way to overwrite user bytes must call it too');

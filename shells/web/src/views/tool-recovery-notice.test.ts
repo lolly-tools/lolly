@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
 import type { CollabHistoryCapability } from '../lib/collab-history.ts';
+import { notificationEntries, dismissNotification, _resetNotificationsForTests } from '../lib/notifications.ts';
 import { recoveryNotice, mountRecoveryNotice } from './tool-recovery-notice.ts';
 
 const manifest = { id: 'design', inputs: [{ id: 'title', type: 'text' }] };
@@ -23,23 +24,19 @@ test('shared history is described by its durability, without promising local rec
   assert.match(recoveryNotice({ ...base, shared: true, collab: { durability: 'durable' } as CollabHistoryCapability })!, /kept by your organisation/);
 });
 
-test('guidance stays outside the canvas, supports tools without a sidebar and is removed on teardown', () => {
-  const dom = new JSDOM('<div id="view"><div class="tool-stage"><div id="tool-canvas"></div></div></div>');
-  const previous = globalThis.document;
-  globalThis.document = dom.window.document;
+test('recovery guidance is queued, supports Save a copy and cleans up on teardown', async () => {
+  _resetNotificationsForTests();
+  const dom = new JSDOM('<div id="view"><div id="tool-canvas"></div></div>');
+  const previous = globalThis.document; globalThis.document = dom.window.document;
   try {
-    const root = document.querySelector<HTMLElement>('#view')!;
-    const dispose = mountRecoveryNotice(root, { ...base, native: true });
-    assert.equal(root.querySelectorAll('[data-recovery-notice]').length, 1);
-    assert.equal(root.querySelector('#tool-canvas [data-recovery-notice]'), null);
-    assert.ok(root.querySelector('[data-recovery-notice][data-export-hide]'));
-    dispose();
+    const root = document.querySelector<HTMLElement>('#view')!; let saved = 0;
+    const dispose = mountRecoveryNotice(root, { ...base, native: true, onSave: () => { saved++; } });
     assert.equal(root.querySelector('[data-recovery-notice]'), null);
-    root.insertAdjacentHTML('afterbegin', '<div class="sidebar-body"></div>');
-    const release = mountRecoveryNotice(root, base);
-    assert.ok(root.querySelector('.sidebar-body > [data-recovery-notice]'));
-    release();
-    mountRecoveryNotice(root, { ...base, automatic: true });
-    assert.equal(root.querySelector('[data-recovery-notice]'), null);
-  } finally { globalThis.document = previous; dom.window.close(); }
+    const notice = notificationEntries()[0]!; assert.equal(notice.title, 'Saving and recovery');
+    assert.equal(notice.action?.label, 'Save a copy'); await notice.action?.run?.(); assert.equal(saved, 1);
+    dismissNotification(notice.id); assert.equal(notificationEntries()[0]?.dismissed, true);
+    root.remove(); await notice.action?.run?.(); assert.equal(saved, 1, 'no save from a stale editor');
+    dispose(); assert.equal(notificationEntries().length, 0);
+    mountRecoveryNotice(root, { ...base, automatic: true }); assert.equal(notificationEntries().length, 0);
+  } finally { _resetNotificationsForTests(); globalThis.document = previous; dom.window.close(); }
 });

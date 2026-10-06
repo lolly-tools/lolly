@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
-import './brand-refresh.css';
 import type { syncCatalog as syncCatalogType } from '../../catalog/sync.ts';
 import { t } from '../../i18n.ts';
+import { configureNotifications, publishNotification } from '../notifications.ts';
 import { instanceFetch, instancePath, getInstanceBase } from '../instance.ts';
 import { catalogRefused } from '../catalog-access.ts';
 import { REMOUNTABLE_ROUTES, switchDesignSystem, type SwitchHost } from './switch.ts';
@@ -12,7 +12,7 @@ interface RefreshDeps {
   fetchRevision(): Promise<string | null>;
   canRefresh(): Promise<boolean>;
   refresh(): Promise<boolean>;
-  notify(pending: boolean): void;
+  notify(pending: boolean, revision?: string): void;
 }
 
 /** Recheck on host events; apply only where the mounted view holds no work. */
@@ -26,10 +26,10 @@ export function createBrandRefresh(deps: RefreshDeps) {
     try {
       const revision = await deps.fetchRevision();
       if (!revision || origin !== deps.origin() || revision === known) return;
-      if (!await deps.canRefresh()) { deps.notify(true); return; }
+      if (!await deps.canRefresh()) { deps.notify(true, revision); return; }
       if (origin !== deps.origin()) return;
-      if (await deps.refresh() && origin === deps.origin()) { known = revision; deps.notify(false); }
-      else deps.notify(true);
+      if (await deps.refresh() && origin === deps.origin()) { known = revision; deps.notify(false, revision); }
+      else deps.notify(true, revision);
     } catch { /* Keep the last known source and cached material while offline. */ }
     finally { running = false; }
   };
@@ -37,16 +37,9 @@ export function createBrandRefresh(deps: RefreshDeps) {
 
 export function mountBrandRefresh(host: SwitchHost, catalogHost: Parameters<typeof syncCatalogType>[0], revision: string, route: () => string): () => void {
   let lastCheck = 0;
-  const note = document.createElement('aside');
-  note.setAttribute('role', 'status');
-  note.className = 'brand-refresh-note';
-  note.hidden = true;
-  note.textContent = t('The instance design system changed. Your current work and editable copies are preserved. Review design systems in your profile.');
-  const link = document.createElement('a');
-  link.href = '#/profile';
-  link.textContent = t('Review design systems');
-  note.append(' ', link);
-  document.body.append(note);
+  void configureNotifications();
+  let clearNotice: (() => void) | undefined;
+  let noticeId = '';
   const check = createBrandRefresh({
     initial: revision, origin: getInstanceBase,
     fetchRevision: async () => {
@@ -71,7 +64,15 @@ export function mountBrandRefresh(host: SwitchHost, catalogHost: Parameters<type
       await switchDesignSystem(host, 'shipped', { route: route() });
       return true;
     },
-    notify: pending => { note.hidden = !pending; },
+    notify: (pending, next) => {
+      const id = `brand-refresh:${getInstanceBase()}:${next}`;
+      if (!pending) { clearNotice?.(); clearNotice = undefined; noticeId = ''; return; }
+      if (id === noticeId) return;
+      clearNotice?.(); noticeId = id;
+      clearNotice = publishNotification({ id, title: t('Design system updated'),
+        body: t('Your current work and editable copies are preserved.'), tone: 'info', reminder: true,
+        action: { label: t('Review design systems'), href: '#/profile' } });
+    },
   });
   const focus = () => {
     if (document.hidden || Date.now() - lastCheck < 30_000) return;
@@ -84,6 +85,6 @@ export function mountBrandRefresh(host: SwitchHost, catalogHost: Parameters<type
   document.addEventListener('visibilitychange', focus);
   return () => {
     window.removeEventListener('focus', focus); window.removeEventListener('online', reconnect);
-    window.removeEventListener('hashchange', reconnect); document.removeEventListener('visibilitychange', focus); note.remove();
+    window.removeEventListener('hashchange', reconnect); document.removeEventListener('visibilitychange', focus); clearNotice?.();
   };
 }

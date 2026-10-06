@@ -30,8 +30,10 @@
  * textContent or escape().
  */
 import { announce } from '../a11y.ts';
-import { tRaw } from '../i18n.ts';
-import { instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
+import { t, tRaw } from '../i18n.ts';
+import { instanceFetch, instancePath, usesBrowserCors, getInstanceBase } from '../lib/instance.ts';
+import { registerNotificationSource, notificationsChanged } from '../lib/notifications.ts';
+import { safeHref } from '../utils.ts';
 import { openedProjects } from './opened-projects.ts';
 
 export type Severity = 'info' | 'action' | 'blocking';
@@ -145,6 +147,7 @@ let failures = 0;
 let inflight: Promise<boolean> | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let detach: (() => void) | null = null;
+let detachNotifications: (() => void) | null = null;
 /** Every message this tab has listed, so a message is announced once. */
 const seen = new Set<string>();
 /** Messages dismissed here. A fetch that was already on its way may still carry one,
@@ -169,6 +172,7 @@ export function onInboxChange(fn: (msgs: readonly InboxMessage[]) => void): () =
 }
 
 function notify(): void {
+  notificationsChanged();
   for (const fn of [...listeners]) {
     try { fn(messages); } catch { /* one broken view must not stop the others */ }
   }
@@ -208,6 +212,7 @@ function apply(list: InboxMessage[]): void {
 function stop(): void {
   stopped = true;
   clearTimer();
+  messages = []; notify();
 }
 
 /** One fetch. True when the list is current afterwards (a 200 or a 304). */
@@ -281,9 +286,18 @@ function schedule(): void {
  * and draws from the list. Members only (org/index.ts decides). Calling again does
  * nothing.
  */
-export function startInbox(opts: { initialUnread: number }): void {
+export function startInbox(opts: { initialUnread: number; principal?: string; review?(): void }): void {
   if (started || typeof window === 'undefined' || typeof document === 'undefined') return;
   started = true;
+  const scope = `${getInstanceBase()}:${opts.principal ?? ''}`;
+  detachNotifications = registerNotificationSource('workspace', () => messages.map(m => ({
+    id: `workspace:${scope}:${m.id}`, title: m.title, body: m.body,
+    tone: m.severity === 'blocking' ? 'warning' as const : m.severity === 'action' ? 'action' as const : 'info' as const,
+    dismissible: m.dismissible, onDismiss: () => { if (messages.find(row => row.id === m.id)?.dismissible) dismissMessage(m.id); },
+    ...(m.data?.kind === 'access-request' || m.kind === 'collab' || m.data?.kind === 'collab-invite'
+      ? { action: { label: t('Review'), run: () => { if (messages.some(row => row.id === m.id)) opts.review?.(); } } }
+      : m.cta && safeHref(m.cta.url) ? { action: { label: m.cta.label, href: m.cta.url } } : {}),
+  })));
   // A wake-up is the moment a person looks again: fetch when the last fetch is a
   // minute old, else make sure a poll is due. A poll already due keeps its time, so
   // switching back and forth between windows never pushes the poll back.
@@ -310,6 +324,7 @@ export function startInbox(opts: { initialUnread: number }): void {
 
 /** TEST-ONLY: forget everything and stop listening. */
 export function _resetInboxForTests(): void {
+  detachNotifications?.(); detachNotifications = null;
   detach?.();
   detach = null;
   clearTimer();

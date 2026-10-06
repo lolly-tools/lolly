@@ -327,10 +327,6 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       ...(opts.raf ? { raf: opts.raf } : {}),
     });
     steps.unshift(() => session.close());
-    const agents = agentRosterFor(stage);
-    steps.unshift(agents.attach(session, () => session.presence.roster()));
-    session.updateSurface({ agents: agents.local() });
-    steps.unshift(agents.subscribeLocal(presence => session.updateSurface({ agents: presence })));
     steps.unshift(mountWorkHeadshots(session, handle, opts.host, stage.ownerDocument));
     const agents = agentRosterFor(stage);
     steps.unshift(agents.attach(session, () => session.presence.roster()));

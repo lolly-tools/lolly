@@ -333,6 +333,7 @@
 .tool-view.is-chrome-hidden .fc-insp { display: none !important; }
 
 .fc-insp.is-compact-sheet {
+  background: var(--ui-color-surface-overlay);
   position: fixed;
   z-index: 80;
   border: 1px solid var(--ui-color-border-default);

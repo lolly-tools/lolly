@@ -1628,6 +1628,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // The two artwork sinks use the validated compiler's template and scoped
   // renderer styles; source files are never inserted as chrome markup.
   'views/design-rules.ts': 4,
+  // Incremental content parses the same compiled tool HTML used by full hydration.
+  // Its source proof rejects changed surrounding markup before replacing safe targets.
+  'views/canvas-content.ts': 1,
   'views/design-rules-preview.ts': 1, // moved strict compiled-tool hydration from design-rules.ts
   'lib/design-tool-preflight.ts': 2,
   // 2 as of 2026-09-13 (new file: the shared emoji control, plans/252). One sink is

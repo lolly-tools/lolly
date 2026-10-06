@@ -985,3 +985,26 @@ export type MotionCaptureOpts = {
   repeat?: number;
   fps?: number;
 };
+
+/**
+ * Column open state is a DEVICE preference, not document data: it must never dirty the
+ * document, ride a collab op or travel in a saved session, which is what `host.state`
+ * would mean. Same reasoning (and the same try/catch) as the sidebar width.
+ */
+export const readColumnPref = (key: string): boolean => {
+  try {
+    const v = localStorage.getItem(key);
+    if (v === 'open') return true;
+    if (v === 'closed') return false;
+  } catch {
+    /* private mode / blocked storage: fall through to the width default */
+  }
+  return window.innerWidth > 1180;
+};
+export const writeColumnPref = (key: string, open: boolean): void => {
+  try {
+    localStorage.setItem(key, open ? 'open' : 'closed');
+  } catch {
+    /* best-effort */
+  }
+};

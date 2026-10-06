@@ -103397,7 +103397,8 @@ function asset(value) {
   return {
     id: String(v.id || ""),
     url: typeof v.url === "string" ? v.url : "",
-    name: String(v.name || v.filename || v.url || "")
+    name: String(v.name || v.filename || record15(v.meta).name || v.url || ""),
+    format: String(v.format || "").toLowerCase()
   };
 }
 function studioFinish(finish2) {
@@ -103450,7 +103451,12 @@ function textSettings(v) {
 }
 function sourceFrom2(kindValue, picked, modelFormatValue, primitiveValue, where, allowEmpty = false, words3) {
   const kind = choice2(kindValue, ["artwork", "model", "primitive", "text"], "primitive");
-  const modelFormat = choice2(modelFormatValue, ["auto", "glb", "stl"], "auto");
+  const requestedFormat = choice2(modelFormatValue, ["auto", "glb", "stl", "3mf"], "auto");
+  const modelFormat = requestedFormat === "auto" ? choice2(
+    picked.format,
+    ["glb", "stl", "3mf"],
+    [picked.name, picked.url].some((name) => /\.3mf(?:$|[?#])/i.test(name)) ? "3mf" : [picked.name, picked.url].some((name) => /\.stl(?:$|[?#])/i.test(name)) ? "stl" : "glb"
+  ) : requestedFormat;
   if (kind === "text") {
     const text8 = String(words3?.text ?? "").replace(/\r/g, "").split("\n").map((line) => line.trim()).join("\n").trim().slice(0, 200);
     if (!text8 && !allowEmpty) throw new Error(`${where}Type the words to set.`);
@@ -103463,14 +103469,14 @@ function sourceFrom2(kindValue, picked, modelFormatValue, primitiveValue, where,
     };
   }
   const source = {
-    kind: kind === "artwork" ? "svg" : kind === "model" ? modelFormat === "stl" || modelFormat === "auto" && /\.stl(?:$|[?#])/i.test(picked.name) ? "stl" : "glb" : "primitive",
+    kind: kind === "artwork" ? "svg" : kind === "model" ? modelFormat : "primitive",
     id: picked.id,
     url: picked.url,
     primitive: choice2(primitiveValue, ["badge", "sphere", "box", "torus"], "badge")
   };
   if (source.kind !== "primitive" && !source.url && !allowEmpty)
     throw new Error(
-      `${where}${kind === "artwork" ? "Choose an SVG or upload your artwork." : "Choose or upload a GLB or STL model."}`
+      `${where}${kind === "artwork" ? "Choose an SVG or upload your artwork." : "Choose or upload a GLB, STL or 3MF model."}`
     );
   return source;
 }

@@ -4,7 +4,7 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 /** A detail inspector owns the live studio and releases it as soon as it closes. */
 export function mountModelPreview(container: HTMLElement, ref: AssetRef): () => void {
   const controller = new AbortController();
-  const fallback = container.innerHTML;
+  const fallback = Array.from(container.childNodes);
   let teardown: (() => void) | undefined;
   void (async () => {
     const studio = await import('./studio3d/mount.ts');
@@ -41,7 +41,7 @@ export function mountModelPreview(container: HTMLElement, ref: AssetRef): () => 
   })().catch((error) => {
     teardown?.();
     if (controller.signal.aborted) return;
-    container.innerHTML = fallback;
+    container.replaceChildren(...fallback);
     const note = document.createElement('p');
     note.textContent = error instanceof Error ? error.message : 'Interactive preview unavailable.';
     container.append(note);

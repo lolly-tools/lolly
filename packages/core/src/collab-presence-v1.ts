@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { Presence } from './canvas-op-v1.ts';
 import { readCanvasPreview, type CanvasPreview } from './canvas-interaction-v1.ts';
-import { readAgentPresence } from './agent-presence-v1.ts';
 import { decodeCanvasAsset, encodeCanvasAsset } from './canvas-asset-v1.ts';
 import { readAgentPresence } from './agent-presence-v1.ts';
 

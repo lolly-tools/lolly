@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { readRecentAssets, recordRecentAsset, readTabMemory, recordTabMemory } from '../lib/picker-memory.ts';
 import { assetViewerKind } from '../lib/asset-viewer-source.ts';
 import { assetFiles } from '../lib/asset-files.ts';
 import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
@@ -32,7 +33,7 @@ import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
  *   the grids below still offer choosing a different image instead.
  */
 
-import { createCollectToast, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
+import { focusPickerCard as focusCard, movePickerSelection, createCollectToast, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
 import '../styles/picker.css';   // async CSS chunk (lazy view - not on the landing)
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
@@ -786,27 +787,7 @@ async function render(
     return pane ? [...pane.querySelectorAll<HTMLElement>('[data-asset-id],[data-tool-id],[data-session-slot],[data-template-ref]')]
       .filter(el => el.offsetParent !== null && el.getAttribute('aria-disabled') !== 'true') : [];
   };
-  function focusCard(el: HTMLElement | null | undefined): void { if (el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }); } }
-  function moveSelection(cur: HTMLElement, key: string): void {
-    const cards = navCards();
-    const i = cards.indexOf(cur);
-    if (key === 'ArrowRight') return focusCard(cards[i + 1]);
-    if (key === 'ArrowLeft')  return focusCard(cards[i - 1]);
-    const r = cur.getBoundingClientRect();
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    const down = key === 'ArrowDown';
-    let best: HTMLElement | null = null, bestScore = Infinity;
-    for (const c of cards) {
-      if (c === cur) continue;
-      const cr = c.getBoundingClientRect();
-      const vy = (cr.top + cr.height / 2) - cy;
-      if (down ? vy <= r.height * 0.4 : vy >= -r.height * 0.4) continue; // must be a further row
-      const dx = Math.abs((cr.left + cr.width / 2) - cx);
-      const score = dx + Math.abs(vy) * 1.5; // nearest column first, then nearest row
-      if (score < bestScore) { bestScore = score; best = c; }
-    }
-    focusCard(best);
-  }
+  const moveSelection = (cur: HTMLElement, key: string) => movePickerSelection(cur, key, navCards());
 
   // Drag a card out of the picker (plans/134 P7): carries `text/lolly-asset`,
   // the same payload catalog tiles set - a slot behind the dialog can take it.
@@ -2746,31 +2727,6 @@ function vidMatteButton(ref: AssetRef, name: string): string {
 // ── Recents (plans/134 P1) ───────────────────────────────────────────────────
 // Most-recently PICKED asset base ids, device-local. Rendered as a pinned
 // section above Favourites; recorded on every successful pick / collect add.
-const RECENTS_KEY = 'lolly:recentAssets';
-function readRecentAssets(): string[] {
-  try { const v = JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]'); return Array.isArray(v) ? v.filter(x => typeof x === 'string') : []; }
-  catch { return []; }
-}
-function recordRecentAsset(id: string): void {
-  try {
-    const base = assetBaseId(id);
-    localStorage.setItem(RECENTS_KEY, JSON.stringify([base, ...readRecentAssets().filter(x => x !== base)].slice(0, 24)));
-  } catch { /* storage off */ }
-}
-// Last-used tab per pick type (plans/134 P1) - a default, exactly like initialTab.
-const TABMEM_KEY = 'lolly:pickerTab';
-function readTabMemory(kind: string): string | null {
-  try { return (JSON.parse(localStorage.getItem(TABMEM_KEY) || '{}') as Record<string, string>)[kind] ?? null; }
-  catch { return null; }
-}
-function recordTabMemory(kind: string, tab: string): void {
-  try {
-    const m = JSON.parse(localStorage.getItem(TABMEM_KEY) || '{}') as Record<string, string>;
-    m[kind] = tab;
-    localStorage.setItem(TABMEM_KEY, JSON.stringify(m));
-  } catch { /* storage off */ }
-}
-
 // A 3-D model or LUT thumbnail: an <img> at a .glb / .cube is the broken-image
 // icon, so paint the baked still the catalog ships beside it (host.assets.query
 // surfaces it as meta.posterUrl for model/lut) or, when there is none, a 3-D box

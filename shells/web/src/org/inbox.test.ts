@@ -267,7 +267,9 @@ test('the started inbox feeds its attached banner exactly once', async () => {
   router = () => json({ messages: [msg('hello', { title: 'Welcome to lolly.ing' })] });
   startInbox({ initialUnread: 1 });
   await settle();
-  assert.match(document.getElementById('org-banner')?.textContent ?? '', /Welcome to lolly\.ing/);
+  const { notificationEntries } = await import('../lib/notifications.ts');
+  assert.ok(notificationEntries().some(row => row.title === 'Welcome to lolly.ing'));
+  assert.equal(document.getElementById('org-banner'), null);
   startInbox({ initialUnread: 1 });
   await settle();
   assert.equal(gets(), 1, 'starting again does nothing');

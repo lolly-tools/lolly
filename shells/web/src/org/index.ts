@@ -1197,7 +1197,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
         .then((m) => {
           if (session !== memberSession) return;
           inboxModule = m;
-          m.startInbox({ initialUnread: Math.max(0, Number(orgConfigState?.inboxUnread) || 0) });
+          m.startInbox({ initialUnread: Math.max(0, Number(orgConfigState?.inboxUnread) || 0), principal, review: () => orgProfileAccount()?.inbox?.open() });
           void import('./banner.ts').then((banner) => { if (session === memberSession) banner.attachBanner(); }).catch(() => {});
         })
         .catch(() => { /* the inbox is additive; never block or break boot */ });
