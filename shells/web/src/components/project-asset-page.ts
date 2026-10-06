@@ -1,4 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
+import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
+import type { AssetFormatViewerHandle } from './asset-format-viewer.ts';
+import { mountAssetFileList } from './asset-file-list.ts';
+import { instanceFetch } from '../lib/instance.ts';
+import { assetViewerKind } from '../lib/asset-viewer-source.ts';
 /** The same asset page for local folders and shared projects. */
 import { tRaw } from '../i18n.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
@@ -8,6 +13,7 @@ export interface AssetPreviewHandle { ready: Promise<void>; destroy(): void; }
 export interface ProjectAssetPage extends HTMLElement { dispose(): void; }
 
 export interface ProjectAssetPageOptions {
+  asset?: AssetRef; host?: HostV1;
   name: string; url: string; contentType: string; backHref: string; metadata?: string;
   download(): Promise<void>;
   downloadError?(error: unknown): string;
@@ -29,7 +35,10 @@ export function buildProjectAssetPage(opts: ProjectAssetPageOptions): ProjectAss
   const status = document.createElement('p'); status.className = 'team-project-notice'; status.setAttribute('role', 'status');
   download.addEventListener('click', () => { void (async () => {
     download.disabled = true; status.textContent = tRaw('Downloading…');
-    try { await opts.download(); if (panel.isConnected) status.textContent = ''; }
+    try {
+      if (opts.host && selectedAsset && selectedAsset.url !== opts.asset?.url) { const response = await instanceFetch(selectedAsset.url); if (!response.ok) throw new Error('Asset file is unavailable'); await opts.host.export.download(await response.blob(), String(selectedAsset.meta?.name ?? opts.name)); }
+      else await opts.download();
+      if (panel.isConnected) status.textContent = ''; }
     catch (error) { status.textContent = opts.downloadError?.(error) ?? tRaw('Could not download this asset. Try again.'); }
     finally { download.disabled = false; }
   })(); });

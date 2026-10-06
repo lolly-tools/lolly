@@ -473,6 +473,30 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
   }
 }
 /** Live editing: the runtime subscriptions, the canvas edit tools and the collab wiring. */
+/**
+ * Column open state is a DEVICE preference, not document data: it must never dirty the
+ * document, ride a collab op or travel in a saved session, which is what `host.state`
+ * would mean. Same reasoning (and the same try/catch) as the sidebar width.
+ */
+const readColumnPref = (key: string): boolean => {
+  try {
+    const v = localStorage.getItem(key);
+    if (v === 'open') return true;
+    if (v === 'closed') return false;
+  } catch {
+    /* private mode / blocked storage: fall through to the width default */
+  }
+  return window.innerWidth > 1180;
+};
+const writeColumnPref = (key: string, open: boolean): void => {
+  try {
+    localStorage.setItem(key, open ? 'open' : 'closed');
+  } catch {
+    /* best-effort */
+  }
+};
+
+
 export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
   if (tview.runtime.getHydrated().includes('data-text-workspace') && tview.contentEl?.parentElement) {
     const { mountTextWorkspace } = await import('../text.ts');
@@ -1175,28 +1199,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
     let designInspectorFloat: import('../design-inspector-float.ts').DesignInspectorFloatHandle | null = null;
     let offEmojiDoc: (() => void) | null = null;
 
-    /**
-     * Column open state is a DEVICE preference, not document data: it must never dirty the
-     * document, ride a collab op or travel in a saved session, which is what `host.state`
-     * would mean. Same reasoning (and the same try/catch) as the sidebar width.
-     */
-    const readColumnPref = (key: string): boolean => {
-      try {
-        const v = localStorage.getItem(key);
-        if (v === 'open') return true;
-        if (v === 'closed') return false;
-      } catch {
-        /* private mode / blocked storage: fall through to the width default */
-      }
-      return window.innerWidth > 1180;
-    };
-    const writeColumnPref = (key: string, open: boolean): void => {
-      try {
-        localStorage.setItem(key, open ? 'open' : 'closed');
-      } catch {
-        /* best-effort */
-      }
-    };
 
     import('../free-canvas.ts')
       .then(({ initFreeCanvas }) => {

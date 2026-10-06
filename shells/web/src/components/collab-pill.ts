@@ -323,6 +323,7 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
   max-width: min(calc(384px * var(--a11y-fs)), calc(100vw - 16px));
   max-height: calc(100dvh - 16px);
   overflow: auto;
+  box-sizing: border-box;
   padding: calc(6px * var(--a11y-fs));
   border: 1px solid hsl(var(--border));
   border-radius: calc(12px * var(--a11y-fs));
@@ -499,7 +500,7 @@ function avatarEl(p: CollabParticipant): HTMLElement {
   letters.setAttribute('aria-hidden', 'true');
   letters.textContent = collabInitials(collabDisplayName(p));
   el.appendChild(letters);
-  paintAccountAvatar(el, p.userId);
+  if (p.kind !== 'agent') paintAccountAvatar(el, p.userId);
   return el;
 }
 
@@ -510,7 +511,7 @@ function refreshAvatar(el: HTMLElement, p: CollabParticipant): void {
   const label = p.color ? collabLabelColor(p.color) : undefined;
   el.style.background = label?.fill ?? ''; el.style.color = label?.ink ?? '';
   const letters = el.firstElementChild; if (letters) letters.textContent = collabInitials(collabDisplayName(p));
-  paintAccountAvatar(el, p.userId);
+  if (p.kind !== 'agent') paintAccountAvatar(el, p.userId);
 }
 
 function tagEl(text: string): HTMLElement {

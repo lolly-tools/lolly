@@ -57,6 +57,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   let clearAgents: (() => void) | undefined;
   let sessionMenu: TileContextMenuHandle | undefined;
   let clearActions: (() => void) | undefined;
+  let clearAgents: (() => void) | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
   let createFolderAction: (() => void) | undefined;
   container.addEventListener('lolly:team-folder-create', () => createFolderAction?.(), { signal: abort.signal });
@@ -99,6 +100,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     clearAgents?.(); clearAgents = undefined;
     sessionMenu?.destroy(); sessionMenu = undefined;
     clearActions?.(); clearActions = undefined;
+    clearAgents?.(); clearAgents = undefined;
     clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
     body.replaceChildren(node('p', tRaw('Loading…'), 'team-project-notice'));
     const projects = await readSourceProjects(source);

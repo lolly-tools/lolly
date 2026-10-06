@@ -35,7 +35,7 @@ export function buildLocalProjectAsset(host: HostV1, folderId: string | null, as
     : asset.type === 'video' ? 'video/' + asset.format : asset.type === 'audio' ? 'audio/' + asset.format : 'application/octet-stream';
   const name = String(asset.meta?.name || tRaw('Asset'));
   const link = (ref: AssetRef) => localProjectAssetHref(folderId, ref.id);
-  return buildProjectAssetPage({ name, url: asset.url, contentType, backHref: `#/p${folderId ? '/' + encodeURIComponent(folderId) : ''}`,
+  return buildProjectAssetPage({ asset, host, name, url: asset.url, contentType, backHref: `#/p${folderId ? '/' + encodeURIComponent(folderId) : ''}`,
     metadata: asset.format,
     preview: { link, open: onClose => mountAssetPreview(host, async () => ({ ref: asset }), { refs, link, onClose }) },
     async download() {

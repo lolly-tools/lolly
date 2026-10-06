@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { assetViewerKind } from '../lib/asset-viewer-source.ts';
 import { assetFiles } from '../lib/asset-files.ts';
 import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
 /**
@@ -644,10 +645,11 @@ async function render(
   let pendingTrim: (() => void) | null = null;
   let modal: ModalHandle<AssetRef | null> | undefined;
   let closed = false;
+  let fileInspection: { destroy(): void } | undefined;
   let cleanupGuided = () => {};
   const close = (value: AssetRef | null): void => {
     if (closed) return;
-    closed = true;
+    closed = true; fileInspection?.destroy();
     cleanupGuided();
     stopAudition();
     lottieThumbs?.destroy();
@@ -1109,6 +1111,8 @@ async function render(
       }
       return;
     }
+    const inspect = (e.target as HTMLElement).closest<HTMLElement>('[data-preview-asset]');
+    if (inspect) { const ref = candidateById.get(inspect.dataset.previewAsset!) ?? userAssets.find(a => a.id === inspect.dataset.previewAsset); if (ref) showFileChoices(ref); return; }
     const pick = (e.target as HTMLElement).closest<HTMLElement>('[data-asset-id]');
     if (pick) {
       // A non-default icon theme / photo treatment rides in the picked id so it
@@ -1182,6 +1186,7 @@ async function render(
   // (is-active / aria-selected / roving tabindex) is applied exactly once, in one
   // place. With a single source there's no strip at all - apply the pane switch direct.
   function setTab(id: TabId): void {
+    fileInspection?.destroy(); fileInspection = undefined;
     if (selectTab) selectTab(id);
     else applyTab(id, true);
   }
@@ -1994,6 +1999,7 @@ async function render(
     toolcardHost.innerHTML = html;
   }
   function dismissTakeover(): void {
+    fileInspection?.destroy(); fileInspection = undefined;
     searchInput.value = '';
     setTab(activeTab);
   }
@@ -2001,7 +2007,8 @@ async function render(
   function showFileChoices(ref: AssetRef): void {
     showTakeover('<div class="asset-picker-toolcard asset-picker-filecard"></div>');
     const card = toolcardHost.querySelector<HTMLElement>('.asset-picker-filecard')!;
-    mountAssetFilePicker(card, ref, { back: dismissTakeover, current: () => !toolcardHost.hidden,
+    fileInspection?.destroy();
+    fileInspection = mountAssetFilePicker(card, ref, { back: dismissTakeover, current: () => !toolcardHost.hidden,
       accepts: selected => !opts.type || isAcceptable(selected.type),
       resolve: selected => host.assets.get(activeTheme && isThemableRef(selected) ? buildThemedAssetId(selected.id, activeTheme)
         : activeTreatment && isTreatableRef(selected) ? buildTreatedAssetId(selected.id, activeTreatment) : selected.id),
@@ -2784,7 +2791,9 @@ function card(ref: AssetRef): string {
   // A video plays itself in a muted looping <video>; audio draws its own waveform
   // (audioThumb - an <img> at an .mp3 is the broken-image icon); everything else is an
   // <img> (gif/apng/animated-webp animate natively there).
-  const thumb = isPlaceholder
+  const thumb = ref.type === 'font' || ['pdf', 'converted'].includes(assetViewerKind(ref.format))
+    ? (typeof ref.meta?.thumbUrl === 'string' ? `<img class="asset-picker-thumb" src="${escapeHtml(ref.meta.thumbUrl)}" alt="" loading="lazy">` : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">${ref.type === 'font' ? 'Aa' : '▦'}</span>`)
+    : isPlaceholder
     ? `<div class="asset-picker-thumb asset-picker-thumb-stub">${escapeHtml(ref.type)}</div>`
     : ref.type === 'lottie'
       ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
@@ -2798,6 +2807,8 @@ function card(ref: AssetRef): string {
           : (ref.type === 'model' || ref.type === 'lut')
             ? modelThumb(ref)
             : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
+  const inspectBtn = ['pdf', 'font', 'converted'].includes(assetViewerKind(ref.format)) || assetFiles(ref.meta).length > 1
+    ? `<button type="button" class="btn btn--ghost btn--sm" data-preview-asset="${escapeHtml(ref.id)}">${t('Preview files')}</button>` : '';
   const upBtn = upscaleButton(ref, String(name));
   const cutBtn = matteButton(ref, String(name));
   const vidBtn = vidMatteButton(ref, String(name));
@@ -2815,7 +2826,7 @@ function card(ref: AssetRef): string {
   // so the Upscale / Remove-background siblings are valid HTML; a video card does the
   // same for its Remove-background sibling (and an audio card for its audition ▶).
   // Everything with no action stays the exact single plain pick button it was before.
-  if (!upBtn && !cutBtn && !vidBtn && !audBtn) {
+  if (!inspectBtn && !upBtn && !cutBtn && !vidBtn && !audBtn) {
     return `
     <button type="button" class="asset-picker-card" data-asset-id="${escapeHtml(ref.id)}" draggable="true">
       ${inner}
@@ -2828,6 +2839,7 @@ function card(ref: AssetRef): string {
       <button type="button" class="asset-picker-card-pick" data-asset-id="${escapeHtml(ref.id)}" draggable="true">
         ${inner}
       </button>
+      ${inspectBtn}
       ${upBtn}
       ${cutBtn}
       ${vidBtn}

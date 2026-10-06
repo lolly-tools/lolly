@@ -25,7 +25,7 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { fold, tokenize, scoreHaystack } from '../lib/search/match.ts';
 
 /** The sticky filetype-filter buckets. 'all' admits everything. */
-export type TypeFilter = 'all' | 'image' | 'vector' | 'motion' | '3d' | 'lut' | 'audio' | 'text';
+export type TypeFilter = 'all' | 'image' | 'vector' | 'motion' | '3d' | 'lut' | 'audio' | 'text' | 'font';
 
 /** Which asset `type` values each bucket admits. */
 export const TYPE_FILTER_TYPES: Record<Exclude<TypeFilter, 'all'>, ReadonlySet<string>> = {
@@ -36,6 +36,7 @@ export const TYPE_FILTER_TYPES: Record<Exclude<TypeFilter, 'all'>, ReadonlySet<s
   lut: new Set(['lut']),
   audio: new Set(['audio']),
   text: new Set(['text', 'data']),
+  font: new Set(['font']),
 };
 
 /** Filetype-filter predicate. */

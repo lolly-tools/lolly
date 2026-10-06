@@ -332,6 +332,10 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     session.updateSurface({ agents: agents.local() });
     steps.unshift(agents.subscribeLocal(presence => session.updateSurface({ agents: presence })));
     steps.unshift(mountWorkHeadshots(session, handle, opts.host, stage.ownerDocument));
+    const agents = agentRosterFor(stage);
+    steps.unshift(agents.attach(session, () => session.presence.roster()));
+    session.updateSurface({ agents: agents.local() });
+    steps.unshift(agents.subscribeLocal(presence => session.updateSurface({ agents: presence })));
 
     // ONE layer for both canvas surfaces - the z-order the two component sheets
     // assume (focus boxes under cursors), and one node instead of two. `canvas` is

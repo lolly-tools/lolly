@@ -3,6 +3,7 @@ import type { Presence } from './canvas-op-v1.ts';
 import { readCanvasPreview, type CanvasPreview } from './canvas-interaction-v1.ts';
 import { readAgentPresence } from './agent-presence-v1.ts';
 import { decodeCanvasAsset, encodeCanvasAsset } from './canvas-asset-v1.ts';
+import { readAgentPresence } from './agent-presence-v1.ts';
 
 /** Presence is ephemeral; its version and sequence are independent of edit clocks. */
 export const PRESENCE_VERSION = 1;
@@ -63,6 +64,7 @@ export function sanitizePresenceState(raw: unknown, identity?: { userId: string;
   if (Array.isArray(s.agents)) out.agents = readAgentPresence(s.agents);
   const headshot = typeof s.headshot === 'string' && s.headshot.length <= 512 ? decodeCanvasAsset(s.headshot) : null;
   if (headshot && ['raster', 'vector'].includes(headshot.type)) out.headshot = encodeCanvasAsset(headshot)!;
+  if (Array.isArray(s.agents)) out.agents = readAgentPresence(s.agents);
   return out;
 }
 
