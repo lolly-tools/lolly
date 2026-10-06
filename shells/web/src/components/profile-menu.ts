@@ -76,7 +76,7 @@ export function attachProfileMenu(
   let detachDesignSystem: (() => void) | null = null;
   void configureNotifications();
   const originalLabel = trigger.getAttribute('aria-label');
-  const badge = document.createElement('span'); badge.className = 'notification-badge'; badge.setAttribute('aria-hidden', 'true');
+  const badge = document.createElement('span'); badge.className = 'notification-badge btn--primary'; badge.setAttribute('aria-hidden', 'true');
   trigger.append(badge);
   let notificationCountSlot: HTMLElement | null = null;
   const updateNotifications = () => {

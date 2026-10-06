@@ -1075,12 +1075,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // user dismisses the trim card).
   'lib/upload-dropzone.ts': 2,
   'org/approval-dialog.ts': 3,
-  'org/banner.ts': 1,
-  // Reviewed 2026-08-02: every interpolated value is escape()d (text, link label,
-  // link href, the Dismiss aria-label); safeHref() drops javascript:/data: schemes
-  // before an anchor is built at all; and the only unescaped interpolation is
-  // `accent`, a two-literal ternary with no user input in it.
-  'org/chrome.ts': 1,
   // Reviewed 2026-08-24 (1 → 4, the gate's device-code option, plans/145): the
   // gate card itself (unchanged review - t() escapes its params, the action is
   // safeHref-gated); the device slot's idle button and note() are static markup

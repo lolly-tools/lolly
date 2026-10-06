@@ -45,6 +45,11 @@ test('Design keeps compact actions, panels and timeline resizing usable across t
         const page = await context.newPage();
         await visit(page);
         const compact = await page.locator('.tool-stage').getAttribute('data-design-layout') === 'compact';
+        if (compact) {
+          const profile = page.locator('.design-topbar .profile-link:visible');
+          const box = (await profile.boundingBox())!;
+          assert.ok(box.width >= 44 && box.height >= 44 && box.x + box.width <= width!, 'profile queue stays reachable on phones');
+        }
         const title = (await page.locator('.dtb-name').boundingBox())!;
         const exp = (await page.locator('[data-topbar="export"]').boundingBox())!;
         assert.ok(title.width >= 90, `readable title at ${width}`);

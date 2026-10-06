@@ -303,14 +303,16 @@
 .design-topbar[data-density="compact"] .dtb-name,
 .design-topbar[data-density="min"] .dtb-name { flex: 1 1 auto; }
 
-/* A compact header has one menu, a readable name, Undo and Export. */
+/* A compact header keeps the document name, Undo, Export and the profile queue reachable. */
 .design-topbar[data-density="phone"] { gap: 4px; padding-inline: max(8px, env(safe-area-inset-left, 0px)) max(8px, env(safe-area-inset-right, 0px)); }
-.design-topbar[data-density="phone"] :is(.chrome-topleft, [data-topbar="file"], .dtb-intent, .dtb-split, .dtb-profile) { display: none; }
+.design-topbar[data-density="phone"] :is(.chrome-topleft, [data-topbar="file"], .dtb-intent, .dtb-split) { display: none; }
 .design-topbar[data-density="phone"] .dtb-name { flex: 1 1 90px; min-width: 90px; width: 0; padding-inline: 4px; }
 .design-topbar[data-density="phone"] .dtb-right { flex: none; gap: 4px; }
 .design-topbar[data-density="phone"] .dtb-btn { flex: none; width: 44px; height: 44px; padding: 0; }
 .design-topbar[data-density="phone"] .dtb-label { display: none; }
 .design-topbar[data-density="phone"] .dtb-name { min-height: 44px; }
+.design-topbar[data-density="phone"] .dtb-profile { margin-inline-start: 0; }
+.design-topbar[data-density="phone"] .profile-link { width: 44px; height: 44px; }
 
 @media (any-pointer: coarse) {
   .dtb-btn { min-width: 44px; min-height: 44px; }

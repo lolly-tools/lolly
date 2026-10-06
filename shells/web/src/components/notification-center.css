@@ -1,14 +1,14 @@
-@layer chrome {
-  .notification-center { width: min(36rem, calc(100vw - 1.5rem)); max-width: none; max-height: calc(100dvh - 1.5rem); padding: 0; overflow: hidden; }
-  .notification-center > header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: 1rem; }
-  .notification-center .modal-title { margin: 0; }
-  .notification-center-close { width: var(--ui-size-target); height: var(--ui-size-target); padding: 0; flex-shrink: 0; }
-  .notification-center-tabs { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0 1rem 1rem; }
-  .notification-center-tabs [aria-pressed="true"] { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
-  .notification-center-list { display: flex; flex-direction: column; gap: .75rem; overflow: auto; overscroll-behavior: contain; max-height: calc(100dvh - 12rem); padding: 0 1rem 1rem; }
-  .notification-card { border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); padding: 1rem; overflow-wrap: anywhere; background: hsl(var(--card)); color: hsl(var(--card-foreground)); }
-  .notification-card h3 { margin: 0 0 .35rem; font-size: var(--fs-lg); }
-  .notification-card p { margin: .35rem 0; }
-  .notification-card-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
-  .notification-card-actions .btn { min-height: var(--ui-size-target); white-space: normal; }
-}
+.notification-center { width: min(36rem, calc(100vw - 1.5rem)); max-width: none; max-height: calc(100dvh - 1.5rem); flex-direction: column; padding: 0; overflow: hidden; }
+.notification-center[open] { display: flex; }
+.notification-center > header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: 1rem; flex-shrink: 0; }
+.notification-center .modal-title { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.notification-center-close { width: max(44px, var(--ui-size-target)); height: max(44px, var(--ui-size-target)); padding: 0; flex-shrink: 0; }
+.notification-center-tabs { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0 1rem 1rem; flex-shrink: 0; }
+.notification-center-tabs .btn { min-height: max(44px, var(--ui-size-target)); }
+.notification-center-tabs [aria-pressed="true"] { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+.notification-center-list { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; gap: .75rem; overflow: auto; overscroll-behavior: contain; max-height: calc(100dvh - 12rem); padding: 0 1rem 1rem; }
+.notification-card { flex: 0 0 auto; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); padding: 1rem; overflow-wrap: anywhere; background: hsl(var(--card)); color: hsl(var(--card-foreground)); }
+.notification-card h3 { margin: 0 0 .35rem; font-size: var(--fs-lg); }
+.notification-card p { margin: .35rem 0; }
+.notification-card-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+.notification-card-actions .btn { min-height: max(44px, var(--ui-size-target)); max-width: 100%; white-space: normal; }
