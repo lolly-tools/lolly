@@ -48,7 +48,7 @@ import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts
 import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
 import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
 import { createPreviewQueue } from '../lib/preview-queue.ts';
-import { decideWelcome } from '../lib/welcome-gate.ts';
+import { galleryWelcomeStep } from './gallery-welcome.ts';
 import { loadGalleryLook } from './gallery-look-loader.ts';
 import { renderFeaturedVariant, renderFeaturedPages, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
@@ -75,7 +75,7 @@ import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { createAssetsAPI } from '../bridge/assets.ts';
 import type { WebTokensAPI } from '../bridge/tokens.ts';
 import type { PreviewsAPI } from '../bridge/previews.ts';
-import { activeDesignSystemSource } from '../lib/design-system/active.ts';
+export { showGalleryWelcome } from './gallery-welcome.ts';
 
 /**
  * The slice of a catalog index entry that this view reads. Kept local: the index
@@ -228,54 +228,6 @@ export type GalleryHost = HostV1 & {
   tokens?: WebTokensAPI;
   previews?: PreviewsAPI;
 };
-
-async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => boolean): Promise<boolean> {
-  try {
-    if (await host.tokens?.isLocked?.()) return false;
-    const source = await activeDesignSystemSource(host);
-    if (source) return source === 'shipped';
-    let tokensId = (await host.assets._findMetaByType('tokens'))?.id;
-    if (tokensId === undefined && isCurrent()) {
-      const response = await instanceFetch(instancePath('/catalog/assets/index.json'));
-      if (response.ok) {
-        const index = await response.json() as { assets?: Array<{ id?: string; type?: string }> };
-        tokensId = index.assets?.find(asset => asset.type === 'tokens')?.id;
-      }
-    }
-    return tokensId === 'lolly/tokens/brand';
-  } catch { return false; }
-}
-
-type WelcomeModule = typeof import('../components/welcome-dialog.ts');
-/** What the welcome decision found. A branded install loads no dialog module at all;
- *  an unbranded one carries the module and, when the welcome opened, the promise
- *  that settles as the dialog closes. */
-type WelcomeStep =
-  | { unbranded: false }
-  | { unbranded: true; welcome: WelcomeModule; closed: Promise<unknown> | null };
-
-/**
- * Decide whether the unbranded first-run welcome opens, and open it when it should.
- * Runs under lib/welcome-gate.ts's decision hold so background maintenance waits for
- * the answer: an opened dialog keeps the gate shut until it closes, and a branded
- * install, a settled welcome, a route change or an error releases it here. Null when
- * the caller's view went away first. `force` is the `#/?welcome` deep link.
- */
-function galleryWelcomeStep(host: GalleryHost & PickerHost, isCurrent: () => boolean, force = false): Promise<WelcomeStep | null> {
-  return decideWelcome(async (): Promise<WelcomeStep | null> => {
-    if (!await galleryNeedsWelcome(host, isCurrent)) return { unbranded: false };
-    const welcome = await import('../components/welcome-dialog.ts');
-    if (!isCurrent()) return null;
-    const due = force || !welcome.isWelcomeDismissed();
-    return { unbranded: true, welcome, closed: due ? welcome.showWelcomeDialog(host.profile, host) : null };
-  }, force);
-}
-
-/** First-run guidance can open once the brand assets arrive, before tool metadata.
- *  Resolves once the decision is made; it never waits for the dialog to close. */
-export async function showGalleryWelcome(host: GalleryHost & PickerHost, isCurrent: () => boolean): Promise<void> {
-  await galleryWelcomeStep(host, isCurrent);
-}
 
 // Section order for the filter pills. 'utility' is intentionally absent: the
 // on-device Offline Utilities pill always sorts last (see categoryRank()).

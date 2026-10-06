@@ -70,10 +70,10 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1989,
+      "lines": 1957,
       "largestFunctionLines": 1754,
       "importFanIn": 1,
-      "importFanOut": 65,
+      "importFanOut": 64,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
