@@ -1851,12 +1851,14 @@ test('vector text choices render their help as the standard (i)', () => {
     {}
   );
   const chip = panel.querySelector(
-    '.export-option:has([data-input-id="convertPaths"])'
+    '.export-text-mode:has([data-input-id="convertPaths"])'
   ) as HTMLElement;
-  assert.ok(chip, 'the chip still renders');
+  assert.ok(chip, 'the text setting renders');
   assert.match(chip.textContent ?? '', /Text/);
   assert.deepEqual(Array.from(chip.querySelectorAll('option'), option => option.textContent), ['Outline', 'Keep text']);
-  assert.ok(chip.classList.contains('help-tip-host'), 'the chip anchors its own tip');
+  assert.ok(chip.classList.contains('help-tip-host'), 'the setting anchors its own tip');
+  assert.equal(chip.querySelector('.help-tip-btn')?.closest('label'), null, 'changing text mode cannot implicitly activate the info button');
+  assert.equal(chip.querySelector<HTMLSelectElement>('select')?.value, 'outline', 'an existing outline choice is retained');
   assert.match(
     chip.querySelector('.help-tip-pop')?.textContent ?? '',
     /Embeds supported fonts when possible/
