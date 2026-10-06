@@ -130,7 +130,7 @@ export const LIVE_TOOLS = [
   },
 ] as const;
 
-const text = (t: string, data?: unknown): ToolCallResult => ({ content: [{ type: 'text', text: t }], ...(data !== undefined ? { structuredContent: data } : {}) });
+const text = (t: string, data?: unknown): ToolCallResult => ({ content: [{ type: 'text', text: data === undefined ? t : `${t}\n${JSON.stringify(data, null, 2)}` }], ...(data !== undefined ? { structuredContent: data } : {}) });
 const failure = (t: string): ToolCallResult => ({ content: [{ type: 'text', text: t }], isError: true });
 
 export function statusText(s: LiveStatus): string {
@@ -165,7 +165,7 @@ export async function callLiveTool(bridge: LiveToolBridge, name: string, args: R
       case 'lolly_live_document': {
         const doc = await bridge.request(name === 'lolly_live_find' ? 'document.find' : 'document.get', args) as { rows?: unknown[]; width?: number; height?: number; selection?: string[] };
         const summary = `${doc.rows?.length ?? 0} rows, canvas ${doc.width} x ${doc.height}, ${doc.selection?.length ? `selected: ${doc.selection.join(', ')}` : 'nothing selected'}.`;
-        return { content: [{ type: 'text', text: summary }, { type: 'text', text: JSON.stringify(doc, null, 2) }], structuredContent: doc };
+        return text(summary, doc);
       }
       case 'lolly_live_context': {
         const context = await bridge.request('document.context', args);

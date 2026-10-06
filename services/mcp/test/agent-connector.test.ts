@@ -62,7 +62,11 @@ test('independent hosted calls preserve invitation scope, retries, pause, read a
     assert.equal((await call('context', a.invitation)).isError, undefined);
     assert.equal((await call('find', a.invitation, { query: 'doc:one' })).isError, undefined);
     const modelDefaults = { ids: [], artboardId: '', kind: '', fields: ['text'], selection: false, offset: 0, limit: 20 };
-    const found = (await call('find', a.invitation, { query: 'doc:one', ...modelDefaults })).structuredContent as { rows: unknown[] };
+    const foundReply = await call('find', a.invitation, { query: 'doc:one', ...modelDefaults });
+    const found = foundReply.structuredContent as { rows: unknown[] };
+    const firstText = foundReply.content[0] as { type: string; text: string };
+    assert.equal(firstText.type, 'text');
+    assert.deepEqual(JSON.parse(firstText.text.slice(firstText.text.indexOf('\n') + 1)), found, 'the first text content gives direct callers the complete layer data');
     assert.deepEqual(found.rows, [{ id: 'title', text: 'doc:one' }]);
     const unfiltered = (await call('document', a.invitation, { ids: [], artboardId: '' })).structuredContent as { rows: unknown[] };
     assert.equal(unfiltered.rows.length, 1);
@@ -70,7 +74,9 @@ test('independent hosted calls preserve invitation scope, retries, pause, read a
       const scoped = (await call('find', a.invitation, { query: 'doc:one', ...modelDefaults, ...filter })).structuredContent as { rows: unknown[] };
       assert.deepEqual(scoped.rows, []);
     }
-    const doc = (await call('document', a.invitation)).structuredContent as { revision: string };
+    const docReply = await call('document', a.invitation);
+    const doc = docReply.structuredContent as { revision: string };
+    assert.match((docReply.content[0] as { text: string }).text, /"id": "title"/);
     const args = { documentId: 'doc:one', ifRevision: doc.revision, transactionId: 'one', layerPatches: [{ id: 'title', set: { text: 'Alternative' } }] };
     assert.equal((await call('apply', a.invitation, args)).isError, undefined);
     assert.equal(((await call('apply', a.invitation, args)).structuredContent as { replayed: boolean }).replayed, true);

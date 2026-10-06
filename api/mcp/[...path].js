@@ -168336,7 +168336,8 @@ var LIVE_TOOLS = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false }
   }
 ];
-var text7 = (t, data) => ({ content: [{ type: "text", text: t }], ...data !== void 0 ? { structuredContent: data } : {} });
+var text7 = (t, data) => ({ content: [{ type: "text", text: data === void 0 ? t : `${t}
+${JSON.stringify(data, null, 2)}` }], ...data !== void 0 ? { structuredContent: data } : {} });
 var failure4 = (t) => ({ content: [{ type: "text", text: t }], isError: true });
 function statusText(s) {
   if (s.state === "connected") {
@@ -168368,7 +168369,7 @@ async function callLiveTool(bridge, name, args) {
       case "lolly_live_document": {
         const doc = await bridge.request(name === "lolly_live_find" ? "document.find" : "document.get", args);
         const summary = `${doc.rows?.length ?? 0} rows, canvas ${doc.width} x ${doc.height}, ${doc.selection?.length ? `selected: ${doc.selection.join(", ")}` : "nothing selected"}.`;
-        return { content: [{ type: "text", text: summary }, { type: "text", text: JSON.stringify(doc, null, 2) }], structuredContent: doc };
+        return text7(summary, doc);
       }
       case "lolly_live_context": {
         const context = await bridge.request("document.context", args);
