@@ -5,7 +5,7 @@ import { fetchAssetBytes, MOGRT_LIMIT, readMogrt } from '../../lib/mogrt.ts';
 import { detectFontFormat, parseFontMetadata } from '../../lib/font-utils.ts';
 import { t } from '../../i18n.ts';
 import type { CatCtx } from './context.ts';
-import { mountMogrtSimulation } from './mogrt-simulation.ts';
+import { mountMogrtSimulation } from '../../components/mogrt-simulation.ts';
 import type { UserFontsHost } from '../../user-fonts.ts';
 
 function canInstallFonts(host: CatCtx['host']): host is CatCtx['host'] & UserFontsHost {
