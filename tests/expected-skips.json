@@ -3203,7 +3203,7 @@
     },
     {
       "file": "tests/docs-editions.test.ts",
-      "fullName": "the built English page links its edition beside Listen",
+      "fullName": "the built English page preserves its print edition while Listen is withdrawn",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"

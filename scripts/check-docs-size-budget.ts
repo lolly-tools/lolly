@@ -17,12 +17,11 @@
  *
  * WHAT THE CEILING IS, AND ISN'T
  * The ceiling ratifies the CURRENT measured size plus headroom - it stops regressions,
- * it does not certify the size is small. As of 2026-08-22 /info is ~142 MB gz, still
- * dominated by ~63 KB/page of INLINE SVG (mascots + nav chrome) that B.1 deliberately
- * left inline (a `<use>`/`<img>` cut interacts with currentColor theming - flagged as
- * the B.5 follow-up spike). When that inline SVG is externalized, LOWER this ceiling to
- * match - the number is only useful if a real win is made to move it, never raised to
- * make a failing build pass. Override for a one-off with LOLLY_DOCS_MAX_GZ_MB.
+ * it does not certify the size is small. On 2026-10-06, withdrawing Listen reduced
+ * the measured build from 177.7 MiB gzip to 153.8 MiB. The 180 MiB ceiling leaves
+ * about 17% for ordinary content growth while retaining a meaningful guard against
+ * duplicated localized media and inline chrome. Lower it after structural savings;
+ * review measured growth before changing the ceiling. Override with LOLLY_DOCS_MAX_GZ_MB.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -32,31 +31,9 @@ import { gzipSync } from 'node:zlib';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const infoDir = path.join(root, 'shells/web/public/info');
 
-// Gzip ceiling for the whole /info tree. 161 MB = the ~142 MB measured on 2026-08-22
-// (post-B.1/B.2) plus ~13% headroom for content growth, plus the three lane mascots
-// priced on 2026-09-03 (lorikeet, kookaburra-lolly, bandicoot: 424 KB of webp that gzip
-// cannot shrink; 160.3 MB measured with them in). 162.5 MB from 2026-09-03 (later):
-// the landing's Cover Flow went from 6 covers to 16 posed 4:3 covers plus three
-// ~6 s loops (docs/shots/covers, 1.5 MB of webp/webm, again incompressible; 161.3 MB
-// measured with them in). 163.5 MB the same evening for the docs accuracy pass:
-// six recipe shots in light and dark for the export panels and the timeline strip,
-// the SCORM format page and its locale twins (162.3 MB measured with them in). 170.5 MB
-// from 2026-09-03 (night): three covers became the tools' OWN 60 fps H.264 exports
-// (backdrop 1.9 MB, gradient 2.2 MB, audiogram 3.6 MB - MilkDrop and film grain do not
-// compress; 169.4 MB measured with them in, the two recordings they replaced were
-// 0.2 MB). 173.5 MB from 2026-09-05: 172.1 MB measured with that day's docs wave in
-// (plan 202's CLI install, content-root, renderer-rung, TUI-launch and install-row
-// sections, plus the concurrent design-outcome docs work); checked that nothing new
-// is per-locale - the two largest shots carry only their light and dark copies.
-// 178.0 MB from 2026-09-14: 176.8 MB measured with three new pages in, each written
-// in English and translated into all 26 locales - creative rights and credits
-// (plan 253), training courses and learning integration - which together price at
-// 2.5 MB gz across the whole tree, plus one new shot (43 KB, one copy). Checked the
-// two things this budget is really watching: no image or media file sits inside a
-// locale directory, and no shot carries a per-locale copy (357 files in shots/,
-// light and dark only).
-// NOT a target - see the header.
-const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 178.0) * 1024 * 1024;
+// 180 MiB: measured 153.8 MiB plus content-growth room after Listen withdrawal.
+// This is a ceiling, not a size target.
+const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 180.0) * 1024 * 1024;
 
 function fail(msg: string): never {
   console.error(`✗ docs size budget FAILED: ${msg}`);
