@@ -83,6 +83,13 @@ function deployment(resources: Resource[], component: Component) {
   return resource.spec;
 }
 
+function singleContainer(pod: Pod): Container {
+  assert.equal(pod.containers.length, 1, 'expected one application container');
+  const container = pod.containers[0];
+  assert.ok(container, 'missing application container');
+  return container;
+}
+
 test('public chart keeps default replicas, tags, volumes and backend opt-in', { skip }, () => {
   const defaultResources = render();
   assert.equal(defaultResources.filter((item) => item.kind === 'Deployment').length, 1);
@@ -92,12 +99,12 @@ test('public chart keeps default replicas, tags, volumes and backend opt-in', { 
     const spec = deployment(enabled, component);
     assert.equal(spec.replicas, 2);
     assert.equal(
-      spec.template.spec.containers[0].image,
+      singleContainer(spec.template.spec).image,
       `ghcr.io/lolly-tools/lolly-${component}:0.1.0`
     );
     for (const volume of spec.template.spec.volumes) assert.deepEqual(volume.emptyDir, {});
     assert.equal(
-      spec.template.spec.containers[0].resources.requests['ephemeral-storage'],
+      singleContainer(spec.template.spec).resources.requests['ephemeral-storage'],
       undefined
     );
   }
@@ -114,7 +121,7 @@ for (const component of components) {
       },
     });
     assert.equal(
-      deployment(resources, component).template.spec.containers[0].image,
+      singleContainer(deployment(resources, component).template.spec).image,
       `registry.example.com/lolly-${component}@${digest}`
     );
     const tagged = render({
@@ -125,7 +132,7 @@ for (const component of components) {
       },
     });
     assert.equal(
-      deployment(tagged, component).template.spec.containers[0].image,
+      singleContainer(deployment(tagged, component).template.spec).image,
       `ghcr.io/lolly-tools/lolly-${component}:release-20261006`
     );
   });
@@ -188,7 +195,7 @@ test('lean profile reserves bounded resources without enabling backend services'
   for (const component of components) {
     const spec = deployment(resources, component);
     assert.equal(spec.replicas, 1);
-    assert.deepEqual(spec.template.spec.containers[0].resources, expected[component]);
+    assert.deepEqual(singleContainer(spec.template.spec).resources, expected[component]);
     const expectedSizes =
       component === 'mcp' ? ['512Mi'] : component === 'web' ? ['64Mi', '64Mi'] : ['64Mi'];
     assert.deepEqual(
@@ -211,12 +218,14 @@ test('every component can bound scratch volumes and refuses invalid storage quan
     deployment(resources, 'web').template.spec.volumes.map((v) => v.emptyDir),
     [{ sizeLimit: '32M' }, { sizeLimit: '128Mi' }]
   );
-  assert.deepEqual(deployment(resources, 'mcp').template.spec.volumes[0].emptyDir, {
-    sizeLimit: '1Gi',
-  });
-  assert.deepEqual(deployment(resources, 'ca').template.spec.volumes[0].emptyDir, {
-    sizeLimit: '4096',
-  });
+  assert.deepEqual(
+    deployment(resources, 'mcp').template.spec.volumes.map((v) => v.emptyDir),
+    [{ sizeLimit: '1Gi' }]
+  );
+  assert.deepEqual(
+    deployment(resources, 'ca').template.spec.volumes.map((v) => v.emptyDir),
+    [{ sizeLimit: '4096' }]
+  );
   for (const component of components) {
     for (const sizeLimit of ['0', '-1Gi', '128m', '1.5Gi', false, 0]) {
       const result = template({
@@ -252,16 +261,16 @@ test('registry pull secrets and runtime security survive the lean profile', { sk
       runAsNonRoot: true,
       seccompProfile: { type: 'RuntimeDefault' },
     });
-    assert.deepEqual(pod.containers[0].securityContext, {
+    assert.deepEqual(singleContainer(pod).securityContext, {
       allowPrivilegeEscalation: false,
       readOnlyRootFilesystem: true,
       capabilities: { drop: ['ALL'] },
     });
   }
-  assert.deepEqual(deployment(resources, 'mcp').template.spec.containers[0].envFrom, [
+  assert.deepEqual(singleContainer(deployment(resources, 'mcp').template.spec).envFrom, [
     { secretRef: { name: 'mcp-provider-config' } },
   ]);
-  const caEnv = deployment(resources, 'ca').template.spec.containers[0].env ?? [];
+  const caEnv = singleContainer(deployment(resources, 'ca').template.spec).env ?? [];
   for (const key of ['CA_SERVICE_SECRET', 'CA_ROOT_KEY_PEM', 'CA_ROOT_CERT_PEM']) {
     assert.deepEqual(caEnv.find((item) => item.name === key)?.valueFrom, {
       secretKeyRef: { name: 'fixture-ca', key },
