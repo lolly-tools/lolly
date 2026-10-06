@@ -11,7 +11,6 @@
 
 import { recordFeaturedRoute } from './lib/featured-activity.ts';
 import { mountIOSTextScale } from './lib/ios-text-scale.ts';
-import { mountTooltips } from './lib/tooltips.ts';
 import { overlayAbsorbsPopstate } from './lib/overlay-back.ts';
 import { createBridge } from './bridge/index.ts';
 import { setSceneManifestLoader, SCENE_TOOL_ID } from './bridge/scene-manifest.ts';
@@ -101,7 +100,7 @@ if (isIframeMode()) forwardDeckKeys();
 // seam the tool renders the flat photo, and with DEPTH_STAGED false the seam
 // resolves null rather than offering a download that cannot succeed.
 installDepthSeam();
-mountTooltips();
+onWindowLoad(() => { void import('./lib/tooltips.ts').then(m => m.mountTooltips()); });
 
 /** The web capability bridge, as produced by createBridge. */
 type WebHost = Awaited<ReturnType<typeof createBridge>>;

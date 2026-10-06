@@ -20,6 +20,9 @@ test('shared item menu shows three dots and provides permitted duplicate and del
     const trigger = grid.querySelector<HTMLButtonElement>('.tile-menu-btn')!;
     assert.equal(trigger.textContent, ''); assert.equal(trigger.querySelectorAll('circle').length, 3);
     assert.equal(trigger.getAttribute('aria-label'), 'Item actions for First Day');
+    const select = grid.querySelector<HTMLButtonElement>('.tile-check')!;
+    assert.equal(select.textContent, ''); assert.ok(select.querySelector('svg'));
+    assert.equal(select.title, 'Select First Day');
     trigger.click();
     assert.ok(document.querySelector('[data-act="delete"]'));
     document.querySelector<HTMLButtonElement>('[data-act="duplicate"]')!.click();

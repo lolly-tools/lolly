@@ -64,6 +64,8 @@ export function mountTeamProjectActions(o: Options): () => void {
   for (const tile of tiles()) {
     const id = tile.dataset.ref!, dot = control('Select {name}', 'check');
     dot.className = 'tile-check'; dot.dataset.select = id; dot.setAttribute('aria-pressed', 'false'); dot.setAttribute('aria-label', tRaw('Select {name}', { name: name(id) }));
+    dot.title = dot.getAttribute('aria-label')!;
+    const tick = iconNode('check'); if (tick) dot.replaceChildren(tick);
     dot.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); selection.onDotClick(id, event.shiftKey, () => { const next = new Set(selected); if (next.has(id)) next.delete(id); else next.add(id); setRefs(next); }); }, { signal: abort.signal });
     tile.prepend(dot);
     const more = tile.querySelector<HTMLButtonElement>('.tile-menu-btn') ?? control('Item actions', 'menu');

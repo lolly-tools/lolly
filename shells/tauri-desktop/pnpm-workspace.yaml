@@ -1,4 +1,6 @@
 packages: []
+overrides:
+  source-map-js: '^1.2.2'
 nodeLinker: hoisted
 engineStrict: true
 enablePrePostScripts: true
