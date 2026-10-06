@@ -13,6 +13,7 @@
  * default in tokens.css. Stored 'suse' values migrate on apply.
  */
 
+import { icon } from './lib/icons.ts';
 import { syncJellyMode } from './lib/jelly.ts';
 
 export type Theme = 'light' | 'dark' | 'brand';
@@ -25,9 +26,9 @@ export const THEME_LABELS: Record<Theme, string> = { light: 'Light', dark: 'Dark
 // enough to read at a glance when the toggle reduces to icon-only: sun / crescent
 // moon / a painter's palette for the brand theme.
 export const THEME_ICONS: Record<Theme, string> = {
-  light: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
-  dark:  `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
-  brand: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a10 10 0 1 1 10-10c0 2.5-2 3-3.5 3H16a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 22z"/><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/></svg>`,
+  light: icon('sunburst', { size: 16 }),
+  dark: icon('moon', { size: 16 }),
+  brand: icon('palette', { size: 16 }),
 };
 
 /** The next theme in the cycle (wraps light → dark → brand → light). */
