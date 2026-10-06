@@ -19,7 +19,7 @@ test('network and executable CSS never reaches a shared page', () => {
     'body { background: image-set("https://x.test/a" 1x); }',
     'body { --photo: url(https://x.test/a); }',
     'body { behavior: url(x); }', 'body { width: expression(alert(1)); }',
-  ]) assert.throws(() => compileWebCss(source), undefined, source);
+  ]) assert.throws(() => compileWebCss(source), source);
 });
 
 test('unfinished and excessive page rules are refused', () => {
