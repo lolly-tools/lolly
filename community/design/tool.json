@@ -2,7 +2,7 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.41.0",
+  "version": "1.42.0",
   "engineVersion": "^1.242.0",
   "status": "community",
   "category": "designer",
@@ -2349,6 +2349,22 @@
             { "value": "click", "label": "Wait for a click" }
           ],
           "help": "For a WEB PAGE box: when the page loads while presenting. With its slide loads it when the slide appears and unloads it after; One slide early starts it a slide ahead; Keep running holds its state for the rest of the talk; Wait for a click shows the poster until the presenter clicks."
+        },
+        {
+          "id": "webCss",
+          "type": "text",
+          "label": "Page CSS",
+          "default": "",
+          "showFor": [],
+          "help": "Appearance rules for an accessible live page in this object. Other sites control their own styles. Exports use the chosen poster. Appended to preserve compact URL field positions."
+        },
+        {
+          "id": "webHideCookies",
+          "type": "boolean",
+          "label": "Hide cookie banners",
+          "default": false,
+          "showFor": [],
+          "help": "Hide known consent banners on an accessible live page without accepting cookies or changing the site's consent choice. Appended to preserve compact URL field positions."
         }
       ],
       "default": [

@@ -397,7 +397,7 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   // with no `canvas` key of its own, so there is no cfg name to read it through.
   scene: () => ['scene'],
   // The web page box (plan 288): its link, layout width, load rule and poster.
-  web: (c) => ['web', 'webView', 'webLoad', c.imageField],
+  web: (c) => ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', c.imageField],
   // `build` and `lane` have no cfg key of their own (the manifest names them literally,
   // as `notes` and `cls` are named), and the Appears control is derived from all four of
   // build/start/dur/lane - so a build step written anywhere else has to move this memo.
@@ -1594,6 +1594,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       ], String(fv(b, 'webLoad') ?? '') || 'slide')
       + (embed ? webPlaybackRows(embed) : '')
       + (embed && !embed.sameOrigin ? webApprovalRows(embed, readRow, doorBtn) : '')
+      + (embed && !embed.refuses ? doorBtn(t('Use page'), 'webuse', 'externalLink') : '')
+      + (embed?.sameOrigin && embed.provider !== 'sandbox'
+        ? toggleRow(t('Hide cookie banners'), 'webHideCookies', boolOf(fv(b, 'webHideCookies'), false))
+          + doorBtn(fv(b, 'webCss') ? t('Edit page CSS') : t('Add page CSS'), 'webcss', 'code')
+          + readRow(t('Appearance'), t('Live page only. Hiding a banner does not accept cookies.'))
+        : embed && !embed.refuses ? readRow(t('Cookie banners'), t('Use page to reject cookies or close the banner. This site controls its own CSS.')) : '')
       + doorBtn(cfg.imageField && b[cfg.imageField] ? t('Change poster') : t('Choose poster'), 'pickimage', 'image')
       + (embed?.kind === 'lolly'
         ? doorBtn(embed.provider === 'sandbox' ? t('Edit in Sandbox') : t('Edit in the tool'), 'webedit', 'code')
@@ -2128,6 +2134,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           // A web page box's link, opened as the person gave it (the watch page, not the
           // embed form; a Sandbox link opens the Sandbox itself, where the code can change).
           case 'webedit': actions.editWebTool?.(ids); break;
+          case 'webuse': actions.useWebPage?.(ids); break;
+          case 'webcss': actions.editWebCss?.(ids); break;
           case 'webposter': actions.refreshWebPoster?.(ids, false); break;
           case 'webapprove':
           case 'webtrust': {

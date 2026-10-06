@@ -22,7 +22,7 @@ import { t } from '../../i18n.ts';
 import { boolOf } from './shared.ts';
 import type { SvgLayerPlan, SvgSourceBox } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
-import { composedPosterId, consentToLink, isComposedPoster, lollyToolRef } from '../../lib/design-web-mount.ts';
+import { composedPosterId, consentToLink, enterWebBox, isComposedPoster, lollyToolRef, mountWebFrames } from '../../lib/design-web-mount.ts';
 
 // `initialTab` is the picker pane this add-kind should OPEN on (picker.ts's
 // PickerOpts.initialTab - a default the user can leave immediately, not a lock):
@@ -267,6 +267,33 @@ export async function editWebTool(fc: FcCtx, ids: readonly string[]): Promise<vo
   fc.select.commit(rows.map((b, i) => fc.select.idOf(b, i) === id
     ? { ...b, web: next, ...(cfg.imageField ? { [cfg.imageField]: edited } : {}) }
     : b));
+}
+
+export function useWebPage(fc: FcCtx, ids: readonly string[]): void {
+  if (!ids[0] || !enterWebBox(fc.canvasEl, ids[0], () => mountWebFrames(fc.canvasEl, { mode: 'editor' }))) {
+    announce(t('This page cannot be used here. Review the link and site permission.'));
+  }
+}
+
+export async function editWebCss(fc: FcCtx, ids: readonly string[]): Promise<void> {
+  const id = ids[0];
+  if (!id) return;
+  const boxes = fc.select.getBoxes();
+  const box = boxes[fc.select.indexOfId(boxes, id)];
+  if (!box || String(box[fc.cfg.kindField]) !== 'web') return;
+  const source = String(box.webCss ?? '');
+  const link = String(box.web ?? '');
+  const { editWebCss: edit } = await import('../../lib/design-web-css-dialog.ts');
+  const result = await edit(source);
+  if (result === null || result === source) return;
+  const now = fc.select.getBoxes();
+  const current = now[fc.select.indexOfId(now, id)];
+  // Keep an intervening collaborator's edit; a modal always targets the original object.
+  if (!current || String(current.web ?? '') !== link || String(current.webCss ?? '') !== source) {
+    announce(t('The page changed while CSS was open. Open Page CSS again to review.'));
+    return;
+  }
+  fc.editorState.setFieldOn([id], 'webCss', result);
 }
 // Cut the background out of the single selected image box on-device (host.matte)
 // and drop the cutout back over that box - the exact tail of pickImage, so the
@@ -857,6 +884,8 @@ export function objectsOps(fc: FcCtx) {
     openStudio: bindOp(fc, openStudio),
     refreshWebPoster: bindOp(fc, refreshWebPoster),
     editWebTool: bindOp(fc, editWebTool),
+    useWebPage: bindOp(fc, useWebPage),
+    editWebCss: bindOp(fc, editWebCss),
     removeBackgroundOnSelection: bindOp(fc, removeBackgroundOnSelection),
     isOutlinableTextBox: bindOp(fc, isOutlinableTextBox),
     paintsBesidesText: bindOp(fc, paintsBesidesText),

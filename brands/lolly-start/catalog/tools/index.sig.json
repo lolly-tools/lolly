@@ -1,8 +1,8 @@
 {
   "alg": "ECDSA-P256-SHA256",
   "keyId": "5zVngG6s-652_L8Zdok5PTfQ6vxdPAYfcpBWxMtzs5c",
-  "signedAt": "2026-10-06T12:03:13.606Z",
-  "indexHash": "4e96385cde1aeb9eba705ee3b797bab38b6e36a86d58e37fc077b0c448eeaff5",
+  "signedAt": "2026-10-06T13:31:03.511Z",
+  "indexHash": "f0115ee51ee584b27a8176574e55079efb1370677d3694be4fbec729d564d419",
   "files": {
     "3d/tool.json": "4785299047e8bd29552b7f5563bbc1e957b781c7b99bce640df782415db653b5",
     "3d/template.html": "e1aa2cbac3d90b8baa02aa0aed868db68d68f83f0bcf417bf06905502fd23c74",
@@ -729,10 +729,10 @@
     "deck-studio/i18n/vi.json": "01dbaf7e3f8d8960036e68de33749e1af69c20a919b76f17c6113534ba5b8ca3",
     "deck-studio/i18n/zh-hant.json": "b1e19efe230a792fe9b44a34ecd737519dddea41e2be2895b815d2f0d2101e7d",
     "deck-studio/i18n/zh.json": "a75a2b8ef68e3d05851f281b47084c697457c73402ff1718e43ff3703c1311d0",
-    "design/tool.json": "80a570e9a0c062c878ac935f402ed03020414d4ac4c0dcec26d99f64424ec124",
+    "design/tool.json": "12b5ffb6ce2f0732a9803afb2e9ce86a9d4f4a7abc07d5e9219bc7b8bf06923d",
     "design/template.html": "2f28fafca018d9a4dc12e3cebf30a2b07d3ed8b325dcaf25b82c85a7b3a81a75",
     "design/styles.css": "7e248f48bc8ec20460b4a8dd2a601bfa0bf11110948389d6ecd5ab259844b0a6",
-    "design/hooks.js": "94d2b90f300d68d6798ddeb57e402e1e79cfaa4fc4402ff7d9466ceaf13d9293",
+    "design/hooks.js": "d5265611ed5e7bf209f4b768d2c31c5c2dbd0b4e388e3779d3e178710c18447c",
     "design/i18n/ar.json": "7241ab957fba8b8915361b8a6f88d2f03b68db4be7419c52bcafb12203efbdf6",
     "design/i18n/bg.json": "e21d92c67ec0c40bfb843c6f4b6cdadc23d0e596cb3cbd80e33394e382775b34",
     "design/i18n/bn.json": "53103c6e7df4a06927ad0d9699a835c0b2b8a4d08467db5c37113daf909a0a29",
@@ -2172,5 +2172,5 @@
     "work-avatar/i18n/zh.json": "8aed0e349e295ce4e1d2e7d204494687805e9a815d1ff968f2156e0ae6d4aaca",
     "work-avatar/templates/brand-starter.json": "51e781f09fdb62fbee21e3019c3df7172e4c2f87fe6310fd477c2a3275e9d12c"
   },
-  "signature": "0fgvmPxxT9Vni6X8xNHT1CMqCv62hNRoq1Hmib3FvZr6qlxNIsrpwpgI4E8T8LdfyPdd0gidTXv28U8pojDC4g"
+  "signature": "v702rD8EzdBwpuxoY5SRMF-TfGgRMysfFE0-ZEAADvFlFP7HR1T8DaZpyY2trOSXbTAWd9aTp2vOL_eOHZ45Dg"
 }

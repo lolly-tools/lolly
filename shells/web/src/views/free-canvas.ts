@@ -2071,6 +2071,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     openStudio: (ids) => { void fc.objects.openStudio(ids); },
     refreshWebPoster: (ids, onlyComposed) => { void fc.objects.refreshWebPoster(ids, onlyComposed); },
     editWebTool: (ids) => { void fc.objects.editWebTool(ids); },
+    useWebPage: (ids) => fc.objects.useWebPage(ids),
+    editWebCss: (ids) => { void fc.objects.editWebCss(ids); },
     useAsInput: (ids, property) => { fc.selection = new Set(ids); fc.rules?.expose(property); },
   }; fc.inspectorActions = inspectorActions;
 

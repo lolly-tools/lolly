@@ -366,6 +366,9 @@ importers:
       butterchurn-presets:
         specifier: ^2.4.7
         version: 2.4.7
+      css-tree:
+        specifier: ^3.2.1
+        version: 3.2.1
       dom-to-image-more:
         specifier: ^3.11.0
         version: 3.11.0
@@ -430,6 +433,9 @@ importers:
         specifier: 3.1.4
         version: 3.1.4(@types/emscripten@1.41.5)
     devDependencies:
+      '@types/css-tree':
+        specifier: ^3.2.0
+        version: 3.2.0
       vite:
         specifier: ^8.3.1
         version: 8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
