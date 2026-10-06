@@ -1,0 +1,12 @@
+# Import inside the public hostname's Caddy site block. Preserve the path.
+handle /api/penpot/* {
+	request_body {
+		max_size 33554432
+	}
+	reverse_proxy 127.0.0.1:8791 {
+		header_up -Cookie
+		header_up -Proxy-Authorization
+		header_down -Set-Cookie
+		flush_interval -1
+	}
+}

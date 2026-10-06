@@ -57,7 +57,9 @@ const UPSTREAM_TIMEOUT_MS = 25_000;
 
 // Vercel caps request bodies at ~4.5 MB anyway; this is just a sanity ceiling
 // so a misbehaving client can't balloon the buffer.
-const MAX_BODY = 32 * 1024 * 1024;
+export const MAX_BODY = 32 * 1024 * 1024;
+
+class BodyTooLargeError extends Error {}
 
 // Tell @vercel/node NOT to parse the body: import-binfile is
 // multipart/form-data and must reach Penpot byte-exact - a parse/re-serialise
@@ -72,20 +74,34 @@ function readRawBody(req: IncomingMessage): Promise<Buffer> {
   // could not be re-serialised byte-exact.
   const pre = (req as unknown as { body?: unknown }).body;
   if (pre !== undefined && pre !== null && typeof (req as unknown as { on?: unknown }).on !== 'function') {
-    if (typeof pre === 'string') return Promise.resolve(Buffer.from(pre));
-    if (Buffer.isBuffer(pre)) return Promise.resolve(pre);
+    const bytes = typeof pre === 'string' ? Buffer.from(pre) : Buffer.isBuffer(pre) ? pre : undefined;
+    if (bytes) return bytes.length > MAX_BODY
+      ? Promise.reject(new BodyTooLargeError('Request body too large'))
+      : Promise.resolve(bytes);
     return Promise.reject(new Error('Pre-parsed request body cannot be forwarded byte-exact'));
+  }
+  const contentLength = Number(req.headers['content-length']);
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY) {
+    req.on('error', () => {});
+    req.resume();
+    return Promise.reject(new BodyTooLargeError('Request body too large'));
   }
   return new Promise((resolve, reject) => {
     let size = 0;
     const chunks: Buffer[] = [];
     req.on('data', (c: Buffer) => {
+      if (size > MAX_BODY) return;
       size += c.length;
-      if (size > MAX_BODY) { reject(new Error('Request body too large')); req.destroy(); return; }
+      if (size > MAX_BODY) {
+        chunks.length = 0;
+        reject(new BodyTooLargeError('Request body too large'));
+        return;
+      }
       chunks.push(c);
     });
     req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
+    req.on('aborted', () => reject(new Error('Request aborted')));
   });
 }
 
@@ -122,7 +138,10 @@ export function createPenpotProxy(
     try {
       body = await readRawBody(req);
     } catch (err) {
-      sendJson(res, 400, { error: 'bad-request', hint: String((err as Error)?.message ?? err) });
+      sendJson(res, err instanceof BodyTooLargeError ? 413 : 400, {
+        error: err instanceof BodyTooLargeError ? 'request-too-large' : 'bad-request',
+        hint: err instanceof BodyTooLargeError ? 'Request body exceeds 32 MiB' : 'Request body could not be read',
+      });
       return;
     }
 
@@ -146,6 +165,7 @@ export function createPenpotProxy(
         method: 'POST',
         headers,
         body: body.length > 0 ? new Uint8Array(body) : undefined,
+        redirect: 'error',
         signal: ac.signal,
       });
     } catch (err) {
