@@ -95,7 +95,9 @@ spec:
               mountPath: /tmp
       volumes:
         - name: nginx-cache
-          emptyDir: {}
+          emptyDir:
+            {{- include "lolly.emptyDir" $c.cache | nindent 12 }}
         - name: nginx-run
-          emptyDir: {}
+          emptyDir:
+            {{- include "lolly.emptyDir" $c.tmp | nindent 12 }}
 {{- end }}

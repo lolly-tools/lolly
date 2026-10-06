@@ -106,5 +106,6 @@ spec:
               mountPath: /tmp
       volumes:
         - name: tmp
-          emptyDir: {}
+          emptyDir:
+            {{- include "lolly.emptyDir" $c.tmp | nindent 12 }}
 {{- end }}

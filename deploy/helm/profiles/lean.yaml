@@ -1,0 +1,51 @@
+# Small-cluster resource profile for the components this chart implements.
+# Apply after values.yaml and before your instance-specific values:
+#   helm upgrade --install lolly deploy/helm \
+#     -f deploy/helm/profiles/lean.yaml -f instance-values.yaml
+#
+# This profile keeps mcp and ca opt-in, with one pod per enabled component.
+# It does not provide node redundancy or a complete lolly.tools deployment.
+# Measure render workloads before increasing traffic or enabling browser work.
+web:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+      ephemeral-storage: 256Mi
+  tmp:
+    sizeLimit: 64Mi
+  cache:
+    sizeLimit: 64Mi
+
+mcp:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+      ephemeral-storage: 128Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+      ephemeral-storage: 1Gi
+  tmp:
+    sizeLimit: 512Mi
+
+ca:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+      ephemeral-storage: 32Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+      ephemeral-storage: 128Mi
+  tmp:
+    sizeLimit: 64Mi
