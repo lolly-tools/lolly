@@ -233,6 +233,27 @@ function setCatalogMeta(key: string, value: CatalogMeta): void {
 // syncCorePrefetch can consume the core subset without re-fetching index.json.
 let cachedAssetIndex: AssetIndex | null = null;
 
+export type PreparedAssetFetch =
+  | { origin: string; response: Response | null }
+  | { origin: string; error: unknown }
+  | null;
+
+/** Overlap the conditional asset request with bridge startup, without writing asset metadata.
+ *  Refusals and validators follow the normal sync; errors wait for its error handler. */
+export async function prepareAssetCatalogFetch(signInRequired?: () => Promise<boolean>): Promise<PreparedAssetFetch> {
+  await initInstanceBase();
+  if (catalogRefused()) return null;
+  let origin = getInstanceBase() || window.location.origin;
+  try {
+    if (signInRequired && catalogRefusedBefore() && await signInRequired().catch(() => false)) {
+      noteCatalogRefused();
+      return null;
+    }
+    origin = getInstanceBase() || window.location.origin;
+    return { origin, response: await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), 'assets-index', false) };
+  } catch (error) { return { origin, error }; }
+}
+
 /**
  * Sync the tool and asset indexes. `onAssetsReady` fires as soon as the asset
  * metadata is stored (before the stale-asset prune), so first-run guidance can open
@@ -247,12 +268,15 @@ let cachedAssetIndex: AssetIndex | null = null;
  * the sync, so a visitor who is still signed out sends no catalog requests at
  * all. main.ts passes the control-plane probe's sign-in gate. Without it, or with
  * no remembered refusal, the sync starts at once as it always has.
+ * A prepared conditional asset response can overlap bridge startup; only the same
+ * instance may adopt it, and its validator is stored when the sync consumes the response.
  */
 export async function syncCatalog(
   host: SyncHost,
   onAssetsReady?: () => unknown,
   maintenanceGate?: () => Promise<unknown>,
   signInRequired?: () => Promise<boolean>,
+  preparedAssets?: Promise<PreparedAssetFetch>,
 ): Promise<void> {
   // Load the persisted instance base BEFORE the first fetch. Wired here (not in
   // main.ts) so the sync bootstrap is self-contained: every entry point that
@@ -269,8 +293,8 @@ export async function syncCatalog(
     : null;
   try {
     const assetsReady = duringAssetSync(allowed
-      ? allowed.then(go => go ? syncAssets(host, onAssetsReady, maintenanceGate) : undefined)
-      : syncAssets(host, onAssetsReady, maintenanceGate));
+      ? allowed.then(go => go ? syncAssets(host, onAssetsReady, maintenanceGate, preparedAssets) : undefined)
+      : syncAssets(host, onAssetsReady, maintenanceGate, preparedAssets));
     if (allowed && !await allowed) return;
     setOffline(false);
     await Promise.all([
@@ -326,7 +350,7 @@ function notOk(resp: Response, url: string): Error {
  * smaller first-paint payload (loadSlimToolIndex below), not a hint that cannot
  * speak this protocol.
  */
-async function conditionalFetch(url: string, etagKey: string): Promise<Response | null> {
+async function conditionalFetch(url: string, etagKey: string, persistValidator = true): Promise<Response | null> {
   // A remote instance reached through the browser's own fetch gets NO validator
   // headers. If-None-Match / If-Modified-Since are not CORS-safelisted, so they turn
   // this simple GET into a preflighted one, and Vercel answers the OPTIONS for a
@@ -354,12 +378,14 @@ async function conditionalFetch(url: string, etagKey: string): Promise<Response 
   noteCatalogAllowed();
   if (resp.status === 304) return null; // unchanged
 
+  if (persistValidator) storeCatalogValidator(resp, etagKey);
+  return resp;
+}
+
+function storeCatalogValidator(resp: Response, etagKey: string): void {
   const etag = resp.headers.get('ETag');
   const lastModified = resp.headers.get('Last-Modified');
-  if (etag || lastModified) {
-    setCatalogMeta(etagKey, { etag, lastModified });
-  }
-  return resp;
+  if (etag || lastModified) setCatalogMeta(etagKey, { etag, lastModified });
 }
 
 // Fetched at most once per page - the cold-visit fast path, not a sync.
@@ -541,9 +567,17 @@ function absolutizeAssetUrls(index: AssetIndex): AssetIndex {
 // it, and pruning against the old one would delete the newer index's metadata.
 let freshAssetSyncs = 0;
 
-async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, maintenanceGate?: () => Promise<unknown>): Promise<void> {
+async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, maintenanceGate?: () => Promise<unknown>, preparedAssets?: Promise<PreparedAssetFetch>): Promise<void> {
   const origin = getInstanceBase() || window.location.origin;
-  const resp = await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), 'assets-index');
+  const prepared = await preparedAssets;
+  let resp: Response | null;
+  if (prepared?.origin === origin) {
+    if ('error' in prepared) throw prepared.error;
+    resp = prepared.response;
+    if (resp) storeCatalogValidator(resp, 'assets-index');
+  } else {
+    resp = await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), 'assets-index');
+  }
   if (!resp) {
     host.log('info', 'Asset catalog unchanged (304)');
     // An unchanged index is not parsed again, so its trusted-site defaults come from

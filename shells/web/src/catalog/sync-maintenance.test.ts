@@ -24,18 +24,21 @@ const TOOLS = { version: '1', generatedAt: 'g1', tools: [{ id: 'qr-code', name: 
 const ASSETS = { assets: [{ id: 'lolly/logo/primary', version: '1', tier: 'core', formats: [{ format: 'svg', url: '/catalog/assets/logo.svg' }] }] };
 let assetStatus = 200;
 let toolRequests = 0;
+let assetRequests = 0;
 
 globalThis.fetch = (async (input: string | URL | Request) => {
   const url = String(input instanceof Request ? input.url : input);
   if (url.endsWith('/catalog/tools/index.json')) { toolRequests++; return Response.json(TOOLS); }
   if (url.endsWith('/catalog/assets/index.json')) {
+    assetRequests++;
     if (assetStatus === 304) return new Response(null, { status: 304 });
     return Response.json(ASSETS, { headers: { ETag: '"assets-1"' } });
   }
   return new Response('not found', { status: 404 });
 }) as typeof fetch;
 
-const { syncCatalog } = await import('./sync.ts');
+const { prepareAssetCatalogFetch, syncCatalog } = await import('./sync.ts');
+const { _setBaseForTests } = await import('../lib/instance.ts');
 
 type Call = { name: string; assets?: unknown[] };
 function mockHost(calls: Call[]) {
@@ -68,6 +71,35 @@ function within<T>(promise: Promise<T>, ms: number, what: string): Promise<T> {
 }
 
 const settle = (ms = 20) => new Promise((resolve) => setTimeout(resolve, ms));
+
+test('the prepared asset request is adopted once after bridge startup', async () => {
+  localStorage.clear();
+  assetStatus = 200;
+  const calls: Call[] = [], before = assetRequests;
+  const prepared = prepareAssetCatalogFetch();
+  await prepared;
+  assert.equal(assetRequests, before + 1);
+  assert.deepEqual(calls, [], 'fetching metadata does not require or write the bridge');
+  assert.equal(localStorage.getItem('sbt-catalog:assets-index'), null, 'an unconsumed response must not leave a validator for missing metadata');
+  await syncCatalog(mockHost(calls), undefined, undefined, undefined, prepared);
+  assert.equal(assetRequests, before + 1, 'sync adopts the response without a second request');
+  assert.equal(JSON.parse(localStorage.getItem('sbt-catalog:assets-index') ?? '{}').etag, '"assets-1"');
+  assert.deepEqual(calls.map(call => call.name), ['meta-stored', 'prune']);
+});
+
+test('a prepared response from another instance is discarded', async () => {
+  localStorage.clear();
+  const before = assetRequests;
+  const prepared = prepareAssetCatalogFetch();
+  await prepared;
+  _setBaseForTests('https://other.example');
+  try {
+    const calls: Call[] = [];
+    await syncCatalog(mockHost(calls), undefined, undefined, undefined, prepared);
+    assert.equal(assetRequests, before + 2, 'the new instance gets its own request');
+    assert.equal(calls.find(call => call.name === 'meta-stored')?.assets?.length, 1);
+  } finally { _setBaseForTests(''); }
+});
 
 test('a cold welcome decision paints before the full tool catalog competes for bandwidth', async () => {
   const decision = deferred(), started = deferred(), calls: Call[] = [], before = toolRequests;
@@ -141,4 +173,18 @@ test('a gate that fails skips the prune without failing the sync', async () => {
   await within(syncCatalog(mockHost(calls), undefined, () => Promise.reject(new Error('gate broke'))), 2000, 'syncCatalog');
   await settle();
   assert.deepEqual(calls.map((c) => c.name), ['meta-stored']);
+});
+
+
+test('a prepared 304 response keeps the cached metadata and opens the welcome decision', async () => {
+  assetStatus = 304;
+  const calls: Call[] = [], asked: string[] = [], before = assetRequests;
+  try {
+    const prepared = prepareAssetCatalogFetch();
+    await prepared;
+    await syncCatalog(mockHost(calls), () => asked.push('assets-ready'), undefined, undefined, prepared);
+    assert.equal(assetRequests, before + 1);
+    assert.deepEqual(asked, ['assets-ready']);
+    assert.deepEqual(calls, []);
+  } finally { assetStatus = 200; }
 });

@@ -15,7 +15,7 @@ import { overlayAbsorbsPopstate } from './lib/overlay-back.ts';
 import { createBridge } from './bridge/index.ts';
 import { setSceneManifestLoader, SCENE_TOOL_ID } from './bridge/scene-manifest.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
+import { prepareAssetCatalogFetch, syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
 import { mergeInstalledToolsIntoIndex } from './lib/installed-tools.ts';
 import { saveFavouriteAssets } from './lib/asset-favourites.ts';
 import { settingsRoute } from './views/settings-route.ts';
@@ -1003,12 +1003,12 @@ function catalogHostOf(host: Awaited<ReturnType<typeof createBridge>>) {
 /** Start the catalog once the shell's instance choice is settled. `signInRequired`
  *  is the control-plane gate, asked only by an instance that refused its catalog
  *  before (catalog/sync.ts), so a signed-out visitor sends no catalog requests. */
-function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>): Promise<void> {
+function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>, preparedAssets?: ReturnType<typeof prepareAssetCatalogFetch>): Promise<void> {
   const welcomeRoute = parseRoute().name;
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
     ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery').catch(console.error) : undefined;
-  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired)
+  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets)
     .then(async () => { try { await mergeInstalledToolsIntoIndex(); } catch { /* no installed tools / no index yet */ } });
 }
 
@@ -1053,7 +1053,7 @@ async function boot(): Promise<void> {
   if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   let slimIndexReady = coldGallery && !isTauriShell() ? loadSlimToolIndex() : null;
 
-  const host = await createBridge();
+  const hostReady = createBridge();
   // The optional deployment control plane's probe (src/org/) is a time-boxed fetch
   // (AUTH_PROBE_BUDGET_MS in org/probe.ts, retry included; an unanswered probe is not
   // cached as "no instance", only noted so the next boots use a shorter budget) that
@@ -1080,11 +1080,19 @@ async function boot(): Promise<void> {
   // the sheet's setInstanceBase() write. Web/PWA never shows the sheet, and is where
   // the overlap was worth having.
   let releaseOrgProbe!: () => void;
-  const orgPromise = new Promise<void>(resolve => { releaseOrgProbe = resolve; }).then(() => initOrgProbeFirst());
+  const orgPromise = new Promise<void>(resolve => { releaseOrgProbe = resolve; }).then(async () => {
+    await hostReady;
+    return initOrgProbeFirst();
+  });
   if (!isTauriShell()) void initInstanceBase().then(releaseOrgProbe, releaseOrgProbe);
   const signInRequired = (): Promise<boolean> => orgPromise.then(org => !!org?.gate);
+  // The cold gallery needs brand metadata first; fetch while the bridge opens.
+  // No storage sync starts until its design-system migration has finished.
+  const earlyAssets = !isTauriShell() && coldGallery && firstRoute === 'gallery'
+    ? prepareAssetCatalogFetch(signInRequired) : undefined;
+  const host = await hostReady;
   // Web can sync while profile and chrome initialize. Tauri waits for its instance sheet.
-  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired) : null;
+  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets) : null;
   trackVisualViewport();
   initMobilePlatformFit();
   // A Design 3D scene box keeps its uploads as asset ids inside its scene query, and only
