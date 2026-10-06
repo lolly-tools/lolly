@@ -69,6 +69,7 @@ export interface CollabTilePeer {
    *  a second shape: enough to not be the ONLY signal, without a state machine
    *  this small badge has no room for. */
   readonly away?: boolean;
+  readonly role?: 'writer' | 'observer';
 }
 
 export interface CollabTileProvider {
@@ -227,7 +228,7 @@ export function renderCollabBadge(
   // takes the general one. Kept as two whole sentences rather than a count glued to a
   // noun, so a translator can move `{n}` wherever their grammar needs it.
   const label =
-    list.length === 1 ? tRaw('Live now - 1 person editing') : tRaw('Live now - {n} people editing', { n: list.length });
+    list.length === 1 ? tRaw('Live now - 1 person here') : tRaw('Live now - {n} people here', { n: list.length });
   badge.setAttribute('aria-label', label);
 
   // Rebuilt in place, node by node: `replaceChildren` clears the previous pass exactly

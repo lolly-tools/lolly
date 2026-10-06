@@ -31,6 +31,7 @@ import { projectInviteLinks } from './project-invite-links.ts';
 import { showProjectInviteLink } from './project-sharing.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { mountProjectAgentsPanel } from './project-agents-panel.ts';
+import { mountTeamSessionPresence } from './team-session-presence.ts';
 
 interface ProjectViewOptions {
   host: HostV1;
@@ -57,6 +58,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   let clearAssetPreview: (() => void) | undefined;
   let clearActions: (() => void) | undefined;
   let clearAgents: (() => void) | undefined;
+  let clearPresence: (() => void) | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
   let createFolderAction: (() => void) | undefined;
   container.addEventListener('lolly:team-folder-create', () => createFolderAction?.(), { signal: abort.signal });
@@ -97,6 +99,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     clearPreviews?.(); clearPreviews = undefined;
     clearAssetPreview?.(); clearAssetPreview = undefined;
     clearActions?.(); clearActions = undefined;
+    clearPresence?.(); clearPresence = undefined;
     clearAgents?.(); clearAgents = undefined;
     clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
     body.replaceChildren(node('p', tRaw('Loading…'), 'team-project-notice'));
@@ -237,6 +240,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       event.preventDefault(); event.stopPropagation(); void open(link.dataset.openTeamSession!, notice);
     }, { signal: abort.signal });
     content.append(children.length || sessions.length || files.length ? grid : node('p', tokens.length ? tRaw('No shared folders, sessions or assets match your search.') : tRaw('No contents yet. Create a folder or session to start working together.'), 'team-project-empty'));
+    clearPresence?.(); clearPresence = mountTeamSessionPresence(grid, projectId, () => current() && my === ticket);
     clearPreviews = hydrateSharedPreviews(grid, source!, opts.host, current);
 
     function showNewFolder(): void {
@@ -289,5 +293,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearPresence?.(); clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }
