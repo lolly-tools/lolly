@@ -21,7 +21,7 @@
  * the measured build from 177.7 MiB gzip to 153.8 MiB. The 180 MiB ceiling leaves
  * about 17% for ordinary content growth while retaining a meaningful guard against
  * duplicated localized media and inline chrome. Lower it after structural savings;
- * review measured growth before changing it. Override with LOLLY_DOCS_MAX_GZ_MB.
+ * review measured growth before changing the ceiling. Override with LOLLY_DOCS_MAX_GZ_MB.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
