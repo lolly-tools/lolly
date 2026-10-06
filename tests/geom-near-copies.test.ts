@@ -31,23 +31,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { type Cubic, boundsCubic, evalCubic, extremaCubic } from '../engine/src/geom/bezier.ts';
-import { CLIP_BUDGET, cubicRoots01, intersectCubics, intersectLineCubic } from '../engine/src/geom/intersect.ts';
+import { cubicRoots01, intersectCubics, intersectLineCubic } from '../engine/src/geom/intersect.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
-
-/**
- * Run `f` with the clip budget at zero, so every cubic against cubic pair is answered by the
- * overrun search rather than by the clip search.
- *
- * The cases wrapped in this are ones the clip search finishes inside `CLIP_BUDGET.maxNodes`
- * on, so what SHIPS for them is the clip search's answer, which is what it always was. What
- * they pin is the overrun search's promise, which the shipped build keeps for the pairs that
- * do cross the budget. Each case says above it what the shipped answer is instead.
- */
-function overrunOnly<T>(f: () => T): T {
-  const was = CLIP_BUDGET.maxNodes;
-  CLIP_BUDGET.maxNodes = 0;
-  try { return f(); } finally { CLIP_BUDGET.maxNodes = was; }
-}
 
 
 const api = makeGeomApi();
@@ -117,8 +102,7 @@ test('a contour whose first curve is a cusp is oriented by a probe off the apex'
   }
 });
 
-test('two cusps touching at their apexes and crossing twice further along, both orders', () => overrunOnly(() => {
-  // Under the shipped budget the clip search answers this pair.
+test('two cusps touching at their apexes and crossing twice further along, both orders', () => {
   // The nf-tips pair that lost a fifth of one operand: the apexes coincide to 1e-12, the
   // branches cross at t = 0.51 and t = 0.953, and the search before this reported 129
   // points at the apex and none of the crossings.
@@ -145,7 +129,7 @@ test('two cusps touching at their apexes and crossing twice further along, both 
   }
   near(areaOf(run('difference', A, B).d), 59999967.85, 0.05, 'A minus B');
   near(areaOf(run('difference', B, A).d), 89999534.7, 0.05, 'B minus A');
-}));
+});
 
 test('a loop against a reversed near-copy is searched through the offset polynomial', () => {
   // loop L = 100 in the frame (0.9, 3700, -1100), against a copy offset by 1e-7 times
