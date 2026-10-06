@@ -124,6 +124,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.profile = null;
   cat.allAssets = [];
   cat.assetById = new Map<string, AssetRef>();
+  cat.assetPageSizes = new Map<string, number>();
   // Uploads on their way to the Trash (plan 277 P3): out of sight at once, while
   // the move is written. reload() filters them so a refresh in that moment can't
   // resurrect the tile.
@@ -440,7 +441,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   const unwireArrows = wireArrowNav(viewEl, { items: '.cat-tile', primary: '.cat-tile-open' });
 
   (viewEl as ViewElement)._cleanup = () => {
-    unwireArrows();
+    unwireArrows(); cat.uploadToolbarDispose?.();
     cat.mounted = false; cat.sourceDispose?.();
     cat.actionsPopover?.close();
     viewEl.removeEventListener('dragstart', cat.wiring.onTileDragStart);

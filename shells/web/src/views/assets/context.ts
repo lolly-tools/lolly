@@ -68,6 +68,8 @@ export interface CatCtx {
   catPhotoTreatment: string | null;
   TREATMENT_FILTER_PREFIX: "lolly-pt-";
   collapsed: Set<string>;
+  assetPageSizes: Map<string, number>;
+  uploadToolbarDispose?: () => void;
   mounted: boolean;
   firstPaint: boolean;
   dlDialog: HTMLDialogElement | null;

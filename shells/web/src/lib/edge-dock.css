@@ -43,7 +43,7 @@
 }
 .edge-dock-tab:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 .edge-dock-tab-ic { flex: none; display: inline-flex; }
-.edge-dock-tab-ic svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.edge-dock-tab-ic svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .edge-dock-tab-lb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* A docked occupant is a pane now, not a floating pill/rounded card: drop its large
    outer radius to a small pane corner. Overrides the panel's own (pill or big) radius. */
@@ -100,7 +100,7 @@
   display: inline-flex; align-items: center; justify-content: center;
 }
 .edge-dock-rail-btn:hover { background: var(--ui-color-surface-muted); }
-.edge-dock-rail-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.edge-dock-rail-btn svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 .edge-dock-drop {
   position: fixed; inset-block: 0 var(--design-timeline-h, 0px); inset-inline-end: 0; width: var(--dock-w, 340px);
   z-index: 9399; pointer-events: none;

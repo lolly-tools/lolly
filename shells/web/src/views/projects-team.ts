@@ -15,7 +15,7 @@ import { tokenize } from '../lib/search/match.ts';
 import { buildFolderHaystack, matchesHaystack } from '../lib/search/projects-source.ts';
 import { announce } from '../a11y.ts';
 import { t } from '../i18n.ts';
-import { icon } from '../lib/icons.ts';
+import { actionButtonContent } from '../components/action-button.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import type { Folder } from '../folders.ts';
 import { getInstanceBase } from '../lib/instance.ts';
@@ -117,7 +117,7 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
       const message = state === 'error' ? t('Shared projects could not be loaded. Try again.') : state === 'loading' ? t('Loading shared projects…')
         : filter ? t('No shared projects match your search.') : t('Create a team project or ask a teammate to add you.');
       return `<section class="projects-shared" aria-label="${escapeHtml(tRaw('Shared projects'))}"><div class="projects-shared-head"><div><h2>${t('Shared projects')}</h2><p>${escapeHtml(source.label)}</p></div>
-        <button type="button" class="btn btn--sm btn--ghost" data-refresh-team>${icon('refresh')}${t('Refresh')}</button></div>
+        <button type="button" class="btn btn--labelled btn--ghost" data-refresh-team>${actionButtonContent(tRaw('Refresh'), 'refresh')}</button></div>
         ${tiles ? `<div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${size}>${list ? head : ''}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}</section>`;
     },
     afterRender(opts: { query: string; list: boolean; sort: string; reversed: boolean }): void {
