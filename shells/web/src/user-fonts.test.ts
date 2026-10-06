@@ -447,8 +447,8 @@ test('a WOFF1 upload is unwrapped and STORED as an sfnt, not as wOFF', async () 
 test('the size cap is applied to what gets STORED, not only to what arrived', async () => {
   // woff1 is zlib-per-table and is unwrapped on the way in, so the bytes that
   // land on the device are bigger than the bytes that were vetted - here, a
-  // compressible table makes a small file expand past the 5MB cap. Without the
-  // second check a 5MB cap admits a ~10MB asset, which is not a cap on storage.
+  // compressible table makes a small file expand past the 32MB cap. Without the
+  // second check a 32MB cap admits a ~34MB asset, which is not a cap on storage.
   const { sfntToWoff } = await import('@lolly/engine');
   const align4 = (n: number): number => (n + 3) & ~3;
   /** The fixture plus one zero-filled table, which compresses to nothing. */
@@ -474,10 +474,10 @@ test('the size cap is applied to what gets STORED, not only to what arrived', as
     return out;
   };
 
-  const fat = withJunkTable(outfitBytes(), 6 * 1024 * 1024);
+  const fat = withJunkTable(outfitBytes(), 33 * 1024 * 1024);
   const woff = sfntToWoff(new Uint8Array(fat));
-  assert.ok(woff.byteLength < 5 * 1024 * 1024, `guard: the compressed file passes the gate (${woff.byteLength})`);
-  assert.ok(fat.byteLength > 5 * 1024 * 1024, 'guard: the unwrapped face does not');
+  assert.ok(woff.byteLength < 32 * 1024 * 1024, `guard: the compressed file passes the gate (${woff.byteLength})`);
+  assert.ok(fat.byteLength > 32 * 1024 * 1024, 'guard: the unwrapped face does not');
 
   const host = memoryHost();
   assert.equal(await installFontFromBytes(host, woff, { filename: 'Fat.woff' }), null);
@@ -493,8 +493,8 @@ test('bad bytes return null and write nothing, never throwing', async () => {
   const truncated = new ArrayBuffer(12);
   new DataView(truncated).setUint32(0, 0x00010000, false);
   assert.equal(await installFontFromBytes(host, truncated), null, 'truncated sfnt');
-  // Over validateFontFile's 5MB cap - the cap is refused, not enforced twice.
-  assert.equal(await installFontFromBytes(host, new ArrayBuffer(5 * 1024 * 1024 + 1)), null, 'oversized');
+  // Over validateFontFile's 32MB cap - the cap is refused, not enforced twice.
+  assert.equal(await installFontFromBytes(host, new ArrayBuffer(32 * 1024 * 1024 + 1)), null, 'oversized');
 
   assert.equal(host.store.size, 0);
   assert.equal(await primaryFontFamily(host), '');

@@ -5,6 +5,10 @@ import { readFontEmbedding, parseFontMetadata } from '../lib/font-utils.ts';
 import type { AssetViewerSource } from '../lib/asset-viewer-source.ts';
 import { viewerButton, viewerField, viewerSelect } from './asset-viewer-controls.ts';
 import { t } from '../i18n.ts';
+import type { UserFontsHost } from '../user-fonts.ts';
+function canInstallFonts(host: HostV1): host is HostV1 & UserFontsHost {
+  return ['_uploadUserAsset', '_deleteUserAsset', '_exportUserAssets', '_getBlob'].every(key => typeof Reflect.get(host.assets, key) === 'function');
+}
 interface Axis { name: string; min: number; default: number; max: number }
 
 export async function mountFontAssetViewer(root: HTMLElement, bytes: Uint8Array, source: AssetViewerSource, signal: AbortSignal, host?: HostV1): Promise<() => void> {
@@ -74,7 +78,9 @@ export async function mountFontAssetViewer(root: HTMLElement, bytes: Uint8Array,
     if (host?.state) {
       const install = viewerButton('Add to my fonts', () => { void (async () => {
         install.disabled = true;
-        try { const { installFontAsset } = await import('../lib/font-asset-handler.ts'); signal.throwIfAborted(); const result = await installFontAsset(host, new File([sfnt as Uint8Array<ArrayBuffer>], source.name, { type: 'application/octet-stream' })); if (!signal.aborted) install.textContent = t(result ? 'Font added' : 'Font could not be added'); }
+        try { signal.throwIfAborted(); const result = canInstallFonts(host)
+          ? await (await import('../user-fonts.ts')).installFontFromBytes(host, bytes, { filename: source.name })
+          : await (await import('../lib/font-asset-handler.ts')).installFontAsset(host, new File([sfnt as Uint8Array<ArrayBuffer>], source.name, { type: 'application/octet-stream' })); if (!signal.aborted) install.textContent = t(result ? 'Font added' : 'Font could not be added'); }
         catch { if (!signal.aborted) { install.textContent = t('Try again'); install.disabled = false; } }
       })(); }, toolbar);
     }
