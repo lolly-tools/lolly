@@ -3111,6 +3111,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/slider-label-activation.browser.test.ts",
+      "fullName": "slider gestures never activate help or token actions through a wrapping label",
+      "reason": "set LOLLY_EXPORT_TEST_URL",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/studio3d-geometry-fixtures.test.ts",
       "fullName": "private SUSE icons keep a bevel on every shape",
       "reason": "STUDIO_SUSE is not set; private SUSE fixtures are opt-in.",

@@ -76,6 +76,8 @@ const DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|svg|zip)$/i;
 // .bmp/.ico usually arrive with an image/* MIME (already accepted); the ext entries are
 // the blank-MIME backstop. .svgz is media/library only (svgz-as-design would need a
 // gunzip step in parseDesignFile).
+// Reusable binary assets own their containers; a 3MF/MOGRT ZIP is not a design document.
+const LIBRARY_ASSET_EXT_RE = /\.(mogrt|3mf|glb|stl|ttf|otf|woff2?)$/i;
 const MEDIA_EXT_RE = /\.(png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|svg|svgz|bmp|ico|cur|mp4|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|json|lottie)$/i;
 // Plain archives the shell can explode into member assets. EXCLUDES the design
 // bundles (.penpot/.fig/.idml/.indd) and the OOXML/OCF packages (.xlsx/.docx/.pptx/
@@ -328,7 +330,7 @@ export interface Sniff {
 }
 
 const isMediaFile = (f: File): boolean =>
-  /^(image|video|audio)\//.test(f.type) || MEDIA_EXT_RE.test(f.name);
+  /^(image|video|audio)\//.test(f.type) || MEDIA_EXT_RE.test(f.name) || LIBRARY_ASSET_EXT_RE.test(f.name);
 
 /**
  * True when a zip's head lists the parts a design-system container is made of.
@@ -408,6 +410,7 @@ async function looksLikeTokensFile(file: File, head: string): Promise<boolean> {
  * Exported for the co-located test.
  */
 export async function sniffFile(file: File, deep: boolean, picker: Pick<PickerModule, 'isPptxUpload' | 'isPdfUpload'>): Promise<Sniff> {
+  const libraryAsset = LIBRARY_ASSET_EXT_RE.test(file.name);
   const pptx = picker.isPptxUpload(file);
   // Name/MIME only, the same gate office-text's looksLikeDocxFile applies - a .docx is
   // a zip, so without this the generic design route claims it (and errors in Design).
@@ -449,27 +452,27 @@ export async function sniffFile(file: File, deep: boolean, picker: Pick<PickerMo
   // `lolly-backup`. The manifest is read through the zip's central directory, so the
   // check is three small reads whatever the size of the archive. Open imports the zip
   // the way it imports a Sync copy, so this is settled before the zip sniffs below.
-  const backup = deep && zipMagic && !lolly && !pdf && !pptx && !docx && !layers && !data
+  const backup = !libraryAsset && deep && zipMagic && !lolly && !pdf && !pptx && !docx && !layers && !data
     && !PURE_DESIGN_EXT_RE.test(file.name) && !CONTAINER_DOC_EXT_RE.test(file.name)
     && !!(await (await import('./lolly-intake.ts')).peekBackupZip(file));
   let animation = /\.lottie$/i.test(file.name) || file.type === 'application/zip+dotlottie';
-  if (!animation && !backup && deep && zipMagic && file.size <= 64 * 1024 * 1024) {
+  if (!libraryAsset && !animation && !backup && deep && zipMagic && file.size <= 64 * 1024 * 1024) {
     animation = (await import('./zip-classify.ts')).classifyZipBytes(new Uint8Array(await file.arrayBuffer())) === 'lottie';
   }
   if (!animation && deep && /\.json$/i.test(file.name) && file.size <= 32 * 1024 * 1024) {
     try { const raw = JSON.parse(await file.text()); animation = Array.isArray(raw.layers) && typeof raw.fr === 'number' && typeof raw.op === 'number'; } catch { /* another JSON document */ }
   }
-  const design = !animation && !backup && !lolly && !pdf && !pptx && !docx && !layers && !data && (DESIGN_EXT_RE.test(file.name) || zipMagic || svgText);
+  const design = !libraryAsset && !animation && !backup && !lolly && !pdf && !pptx && !docx && !layers && !data && (DESIGN_EXT_RE.test(file.name) || zipMagic || svgText);
   // A plain archive: a zip/tar by name, or PK-magic bytes that aren't a design
   // bundle. Design bundles and office/OCF packages (zips too) are excluded so the
   // "unpack" route never competes for a .penpot or shreds a .xlsx.
-  const archive = !animation && !backup && !lolly && !layers && !PURE_DESIGN_EXT_RE.test(file.name) && !CONTAINER_DOC_EXT_RE.test(file.name)
+  const archive = !libraryAsset && !animation && !backup && !lolly && !layers && !PURE_DESIGN_EXT_RE.test(file.name) && !CONTAINER_DOC_EXT_RE.test(file.name)
     && (ARCHIVE_EXT_RE.test(file.name) || (zipMagic && !DESIGN_EXT_RE.test(file.name)));
   // Design-system material (plan 97 section 8), sniffed LAST and only on the deep
   // (single-file) path - the route is a single-file journey, and every flag
   // above is computed exactly as it was before this one existed. A .penpot is
   // one by extension; a zip needs its parts named; a .json has to parse.
-  const designSystem = !lolly && !backup && deep && !pdf && !pptx && !docx && !layers
+  const designSystem = !libraryAsset && !lolly && !backup && deep && !pdf && !pptx && !docx && !layers
     && (PENPOT_EXT_RE.test(file.name)
       ? true
       : zipMagic || /\.zip$/i.test(file.name)
@@ -479,7 +482,7 @@ export async function sniffFile(file: File, deep: boolean, picker: Pick<PickerMo
   // and never for a container the office/OCF readers own. A zip whose tool.json sits
   // past the head read simply doesn't get the route offered - the cost of a miss is
   // one route, and no real tool folder is 64 KB of headers deep.
-  const tool = deep && !lolly && !backup && !pdf && !pptx && !docx && !layers
+  const tool = !libraryAsset && deep && !lolly && !backup && !pdf && !pptx && !docx && !layers
     && !CONTAINER_DOC_EXT_RE.test(file.name)
     && (zipMagic || /\.zip$/i.test(file.name))
     && TOOL_ZIP_HEAD_RE.test(text);

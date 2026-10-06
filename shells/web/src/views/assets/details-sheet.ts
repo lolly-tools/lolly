@@ -4,6 +4,7 @@ import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts'
 import { mountAssetViewerDetails } from '../../components/asset-viewer-details.ts';
 import { openAssetInText } from '../../lib/text-handoff.ts';
 import { mountModelPreview } from '../../lib/model-preview.ts';
+import { mountSpecialPreview } from './special-preview.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
  * catalog details: building the sheet and wiring its events, in mount order.
@@ -540,6 +541,7 @@ export function buildSheet(dt: DetailsCtx): void {
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;
   let destroyModelPreview: (() => void) | undefined;
+  let destroySpecialPreview: (() => void) | undefined;
   // Exits inline trim mode, or null when no card is up. Assigned by enterInlineTrim
   // below; declared here so the modal's onClose can answer an open card (its teardown
   // revokes the two preview object URLs) when the dialog goes away under it.
@@ -553,6 +555,7 @@ export function buildSheet(dt: DetailsCtx): void {
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onClose: () => {
       destroyModelPreview?.();
+      destroySpecialPreview?.();
       dt.formatViewer?.destroy();
       dt.previewStatusDispose?.();
       dt.emojiBrowser?.destroy();
@@ -584,6 +587,10 @@ export function buildSheet(dt: DetailsCtx): void {
   if (ref.type === 'model') {
     const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
     if (preview) destroyModelPreview = mountModelPreview(preview, ref);
+  }
+  if ((ref.original?.format ?? ref.format) === 'mogrt') {
+    const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
+    if (preview) destroySpecialPreview = mountSpecialPreview(preview, ref, cat);
   }
   const fileSlot = document.createElement('div');
   dlg.querySelector('.cat-details-body')?.prepend(fileSlot);

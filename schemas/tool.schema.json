@@ -1808,6 +1808,7 @@
                   "video",
                   "audio",
                   "lottie",
+                  "model",
                   "any"
                 ]
               },
@@ -2017,6 +2018,7 @@
                         "video",
                         "audio",
                         "lottie",
+                        "model",
                         "any"
                       ]
                     },
