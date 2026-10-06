@@ -768,7 +768,7 @@ test('inputs: convertPaths toggle is auto-injected for vector-format tools', () 
   const model: any = buildInputModel({ render: { formats: ['png', 'svg'] }, inputs: [{ id: 'name', type: 'text' }] });
   const cp = model.find((i: any) => i.id === 'convertPaths');
   assert.ok(cp, 'convertPaths injected when svg is a format');
-  assert.equal(cp.value, true);
+  assert.equal(cp.value, false);
   assert.equal(cp.group, 'export');
   assert.equal(cp.control, 'checkbox');
   // pdf and pdf-cmyk also count as vector formats.

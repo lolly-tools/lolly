@@ -9871,8 +9871,7 @@ function syntheticInputs(manifest) {
       id: "convertPaths",
       label: "Convert paths",
       type: "boolean",
-      // Always true here: the guard above already excluded convertPaths === false.
-      default: true,
+      default: false,
       group: "export",
       help: "Outline text as vector paths so SVG/PDF render identically without the fonts installed. Turn off to keep selectable, editable text."
     });

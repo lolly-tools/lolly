@@ -166,6 +166,9 @@
 
 .fc-insp .fc-row input[type="text"],
 .fc-insp .fc-row select { flex: 1 1 auto; min-width: 0; }
+.fc-insp .fc-row-help-label { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.fc-insp .fc-row-help-label > span { min-width: 0; }
+.fc-insp .fc-row-help-label > .help-tip-btn { margin: 0; }
 /* The number cell (components/num-field.ts) is capped rather than greedy, and the
    cap is a flex-basis so it follows the type multiplier - `max-width` may not
    (a11y-prefs-contract.test.ts: the multiplier sizes type and icons, never arbitrary

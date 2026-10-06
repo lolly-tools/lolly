@@ -4280,7 +4280,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     flex-shrink: 0;
   }
   /* .export-popup-title/-close: hoisted out of both breakpoints, near the top of this file. */
-  .export-popup-body { overflow-y: auto; padding: var(--sp-7); }
+  .export-popup-body { overflow-y: auto; padding: 0 var(--sp-7) var(--sp-7); }
   /* Drop the sidebar-specific spacing now that the panel lives in the popup. */
   .export-popup-body .tool-actions { margin: 0; padding: 0; border-top: none; }
 }

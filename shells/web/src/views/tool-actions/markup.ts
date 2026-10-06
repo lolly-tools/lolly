@@ -361,13 +361,14 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
     ...(exportDefaults.marks || {}),
     provenance: true,
   }; ta.pim = pim;
+  const printTip = helpTip(t('Adds bleed and the chosen marks for a print shop; the artwork is scaled to fill the bleed. Registration marks print on all four plates in the Print PDF and Print TIFF. (An open-password can’t be combined with marks.)'));
   const printRow = hasPrint
     ? `
-      <div class="section-card export-print" data-printmarks-only style="display:${isPrintFmt(initialFmt) ? 'flex' : 'none'}">
-        <label class="print-enable field-toggle">
+      <div class="section-card export-print help-tip-host" data-printmarks-only style="display:${isPrintFmt(initialFmt) ? 'flex' : 'none'}">
+        <div class="export-setting-head"><label class="print-enable field-toggle">
           <input type="checkbox" class="field-check" data-action="print-enable" ${printInitOn ? 'checked' : ''}>
           <span class="print-head">${ICON_CROP}<span>Marks &amp; bleed</span></span>
-        </label>
+        </label>${printTip.button}</div>${printTip.pop}
         <div class="print-body" data-print-body style="display:${printInitOn ? 'flex' : 'none'}">
           <label class="print-bleed">
             <span>Bleed</span>
@@ -381,7 +382,6 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
             <label class="export-option"><input type="checkbox" class="field-check" data-action="mark-bars" ${pim.colorBars ? 'checked' : ''}> Color bars</label>
             <label class="export-option"><input type="checkbox" class="field-check" data-action="mark-prov" ${pim.provenance ? 'checked' : ''}> Stamp details</label>
           </div>
-          <p class="print-hint">Adds bleed and the chosen marks for a print shop; the artwork is scaled to fill the bleed. Registration marks print on all four plates in the Print PDF and Print TIFF. (An open-password can't be combined with marks.)</p>
         </div>
       </div>`
     : ''; ta.printRow = printRow;
@@ -474,16 +474,15 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
       const vectorOnly = i.id === 'convertPaths';
       const hide = vectorOnly && !ta.formatRules.isVectorFmt(initialFmt);
       if (vectorOnly) {
-        const tip = helpTip(t('Embeds supported fonts when possible. Text that cannot be embedded faithfully stays outlined.'));
+        const tip = helpTip(t('Embeds supported fonts when possible. Text that cannot be embedded faithfully stays outlined.') + (runtime.getModel().some(item => item.id === 'textDocument' && item.value) ? ' ' + t('Composed text exports as paths to preserve its exact appearance. Exported paths do not have ordinary text editing.') : ''));
         return `
-        <label class="export-option help-tip-host" data-vector-only${hide ? ' style="display:none"' : ''}>
-          <span>${t('Text')}</span>${tip.button}${tip.pop}
-          ${runtime.getModel().some(item=>item.id==='textDocument'&&item.value)?`<small>${escapeText(t('Composed text exports as paths to preserve its exact appearance. Exported paths do not have ordinary text editing.'))}</small>`:''}
+        <div class="export-text-mode help-tip-host" data-vector-only${hide ? ' style="display:none"' : ''}>
+          <span class="export-text-label">${t('Text')}${tip.button}</span>${tip.pop}
           <select class="field-select" data-input-id="convertPaths" aria-label="${escapeText(t('Export text'))}">
             <option value="outline"${i.value ? ' selected' : ''}>${t('Outline')}</option>
             <option value="embed"${i.value ? '' : ' selected'} data-embed-label>${initialFmt === 'pdf' ? t('Embed (subset)') : t('Keep text')}</option>
           </select>
-        </label>`;
+        </div>`;
       }
       const tip = i.help ? helpTip(i.help) : null;
       return `
@@ -884,15 +883,15 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // control the user has not reached yet. Hidden until the engine's rules have
   // something true to say; see views/export-preflight.ts + refreshPreflight().
   const isDesignTool = manifest.id === 'design'; ta.isDesignTool = isDesignTool;
+  const notesHandoutTip = helpTip(t('Makes a portrait PDF with each slide above its speaker notes. Long notes continue onto extra pages.'));
   const notesHandoutRow =
     isDesignTool && formats.includes('pdf')
       ? `
-      <div class="section-card export-notes-handout" data-notes-handout-only style="display:${initialFmt === 'pdf' && canvasEl?.querySelector('[data-pdf-page]') ? 'flex' : 'none'}">
-        <label class="field-toggle">
+      <div class="section-card export-notes-handout help-tip-host" data-notes-handout-only style="display:${initialFmt === 'pdf' && canvasEl?.querySelector('[data-pdf-page]') ? 'flex' : 'none'}">
+        <div class="export-setting-head"><label class="field-toggle">
           <input type="checkbox" class="field-check" data-action="pdf-notes-handout">
           <span class="notes-handout-head">${icon('transcript', { size: 18 })}<span>${escapeText(t('Notes handout'))}</span></span>
-        </label>
-        <p class="print-hint">${escapeText(t('Makes a portrait PDF with each slide above its speaker notes. Long notes continue onto extra pages.'))}</p>
+        </label>${notesHandoutTip.button}</div>${notesHandoutTip.pop}
       </div>`
       : ''; ta.notesHandoutRow = notesHandoutRow;
   const preflightRow = preflightRowHtml({ force: isDesignTool }); ta.preflightRow = preflightRow;

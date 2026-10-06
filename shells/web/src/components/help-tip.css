@@ -3,6 +3,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: none;
     vertical-align: middle;
     margin-left: var(--sp-2);
     width: var(--sp-7);
@@ -41,8 +42,8 @@
     left: 0;
     right: 0;
   
-    margin:0 -.8rem ;
-    margin-top: -2rem;
+    top: calc(100% + var(--sp-1));
+    margin: 0;
     z-index: var(--ui-layer-overlay);
     padding: var(--sp-6);
     /* Room for the close button in the corner, so a long first line never runs under it. */
@@ -122,8 +123,10 @@
 
   @media (pointer: coarse) {
     .help-tip-btn {
-      padding: var(--sp-4);
-      margin: -8px -8px -8px -4px;
+      width: var(--ui-size-control);
+      height: var(--ui-size-control);
+      padding: 0;
+      margin-left: var(--sp-2);
     }
   }
   @media (hover: hover) {

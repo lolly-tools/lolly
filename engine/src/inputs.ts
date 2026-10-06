@@ -444,7 +444,7 @@ export function syntheticInputs(manifest: InputManifest): InputSpec[] {
 
   // 'Convert paths' - auto-injected for any tool that exports a vector format.
   // Outlines text to paths in SVG/PDF so output renders identically without the
-  // fonts installed. On by default; the export bridge reads its value as
+  // fonts installed. Off by default to keep live text; the export bridge reads its value as
   // opts.convertPaths. A tool can set render.convertPaths:false to suppress the
   // toggle entirely (e.g. capture tools, where text-outlining doesn't apply).
   const VECTOR_FORMATS = ['svg', 'emf', 'eps', 'eps-cmyk', 'pdf', 'pdf-cmyk'];
@@ -457,8 +457,7 @@ export function syntheticInputs(manifest: InputManifest): InputSpec[] {
       id: 'convertPaths',
       label: 'Convert paths',
       type: 'boolean',
-      // Always true here: the guard above already excluded convertPaths === false.
-      default: true,
+      default: false,
       group: 'export',
       help: 'Outline text as vector paths so SVG/PDF render identically without the fonts installed. Turn off to keep selectable, editable text.',
     });

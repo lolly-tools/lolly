@@ -101,6 +101,7 @@ import type { IconName } from '../lib/icons.ts';
 import { colorFieldHtml, wireColorField, resolveColorVar, colorVarLabel } from '../components/color-field.ts';
 import { designColorValue } from '../lib/design-color.ts';
 import { numField } from '../components/num-field.ts';
+import { helpTip, wireHelpTips, unwireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import type { NumFieldHandle } from '../components/num-field.ts';
 import {
   FIELD_GLYPH, TILT_RANGE, dimOf, iconRow, opt, posGridHtml, segHtml, segRow,
@@ -1058,11 +1059,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     + `<input type="checkbox" class="field-check" data-doc="${escape(input)}" data-kind="bool"`
     + `${boolOf(model.getInput(input), false) ? ' checked' : ''}></label>`;
 
-  const docSelectRow = (label: string, input: string, options: ReadonlyArray<[string, string]>): string => {
+  const docSelectRow = (label: string, input: string, options: ReadonlyArray<[string, string]>, help?: string): string => {
     const cur = String(model.getInput(input) ?? '');
-    return `<label class="fc-row"><span>${label}</span><select class="field-select" data-doc="${escape(input)}">`
+    const tip = help ? helpTip(help) : null;
+    const tag = tip ? 'div' : 'label';
+    return `<${tag} class="fc-row${tip ? ' help-tip-host' : ''}"><span class="fc-row-help-label"><span>${label}</span>${tip?.button ?? ''}</span><select class="field-select" data-doc="${escape(input)}" aria-label="${escape(label)}">`
       + options.map(([value, text]) => `<option value="${escape(value)}"${value === cur ? ' selected' : ''}>${escape(text)}</option>`).join('')
-      + '</select></label>';
+      + `</select>${tip?.pop ?? ''}</${tag}>`;
   };
 
   /**
@@ -1099,7 +1102,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const other = parts[1]?.id || '';
     const weight = parts[1] ? Math.round(parts[1].w * 100) : 30;
     const opt = (id: string): string => `<option value="${escape(id)}" selected>${escape(voiceNameOf(id))}</option>`;
-    return `<div class="fc-row"><span>${t('Voice')}</span><select class="field-select" data-doc-voice="main" aria-label="${escape(t('Voice'))}">${opt(main)}</select></div>`
+    const tip = helpTip(t('English voices only.'));
+    return `<div class="fc-row help-tip-host"><span class="fc-row-help-label"><span>${t('Voice')}</span>${tip.button}</span><select class="field-select" data-doc-voice="main" aria-label="${escape(t('Voice'))}">${opt(main)}</select>${tip.pop}</div>`
       + `<div class="fc-row"><span>${t('Blend with')}</span><select class="field-select" data-doc-voice="blend" aria-label="${escape(t('Blend with'))}">`
       + `<option value=""${other ? '' : ' selected'}>${escape(t('None'))}</option>${other ? opt(other) : ''}</select></div>`
       + (other
@@ -1227,7 +1231,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     return (actions.openDocumentSize ? doorRow(t('Size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
       + `<div class="fc-row"><span>${t('Background')}</span><span class="fc-cfield">${colorField('fc-insp-bg', model.getInput('background'), t('Background'))}</span></div>`
       + themeDocRows()
-      + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Colour'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]]) + `<p class="fc-insp-hint">${t('Preview depends on your display. Export HDR is chosen separately.')}</p>`)
+      + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Colour'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]], t('Preview depends on your display. Export HDR is chosen separately.')))
       + emojiDocRows()
       + (opts.videoWorkspace?.()
         ? `<details class="lp-details fc-insp-document-options" data-document-options${documentOptionsOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('More settings')}</span><i class="lp-caret" aria-hidden="true"></i></summary>${options}</details>`
@@ -1252,10 +1256,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function themeDocRows(): string {
     const groups = opts.theme?.groups() ?? [];
     if (!groups.length) return '';
-    return groups.map((g, gi) => `<div class="fc-row"><span>${escape(g.label)}</span>`
-      + segHtml(`${THEME_SEG}${gi}`, String(g.options.findIndex((o) => o.id === g.active)), g.options.map((o, oi) => [String(oi), o.label]), g.label)
-      + '</div>').join('')
-      + `<p class="fc-insp-hint">${t('Colours linked to the design system follow this choice.')}</p>`;
+    return groups.map((g, gi) => {
+      const tip = helpTip(t('Colours linked to the design system follow this choice.'));
+      return `<div class="fc-row help-tip-host"><span class="fc-row-help-label"><span>${escape(g.label)}</span>${tip.button}</span>`
+        + segHtml(`${THEME_SEG}${gi}`, String(g.options.findIndex((o) => o.id === g.active)), g.options.map((o, oi) => [String(oi), o.label]), g.label)
+        + `${tip.pop}</div>`;
+    }).join('');
   }
 
   /** Apply a theme segment press: index back to ids, then the port does the rest. */
@@ -1312,7 +1318,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function narrationDocRows(): string {
     if (!narration || opts.narrationEnabled?.() === false) return '';
     return `<p class="lp-subhead">${t('Narration')}</p>`
-      + `<p class="fc-insp-hint">${t('English voices only.')}</p>`
       + docVoiceRows()
       + docNumRow(t('Speed'), 'narrationSpeed', 1, { min: 0.5, max: 2, step: 0.05, precision: 2 })
       // The ranges are the MANIFEST's own (community/design/tool.json), so this column
@@ -1801,7 +1806,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       })
       + colorRow(t('Colour'), 'fc-insp-guide', guide.color || 'var(--ui-color-action-primary)')
       + toggleRow(t('Snap objects to guide'), 'guide-snap', guide.snap)
-      + `<p class="fc-insp-hint">${t('Rotation is clockwise around X / Y. Hold Shift while dragging for 10 px steps. Hold Alt while moving objects to bypass snapping.')}</p>`
       + doorBtn(t('Delete guide'), 'delete-guide', 'trash');
   }
 
@@ -1922,6 +1926,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     }).join('') || `<p class="lp-empty">${t('Nothing selected')}</p>`;
     mountNums();
     mountEmojiControl();
+    wireHelpTips(el);
+    linkHelpDescriptions(scroll);
     const textSlot = scroll.querySelector<HTMLElement>('[data-composed-inspector]');
     if (textSlot && actions.text) textMounted = mountTextInspector(textSlot, g.ids, actions.text, fonts);
     wire();
@@ -2537,6 +2543,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       unsubSel();
       unsubGuides?.();
       unsubArt();
+      unwireHelpTips(el);
       el.remove();
       opts.onWidthChange?.(0);
     },
