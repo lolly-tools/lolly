@@ -10,7 +10,7 @@ import { audioSupport, cmykTiffSupport, proFormatSupport, tiffSupport, videoSupp
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { marksToCsv } from '../../lib/print-marks-csv.ts';
 import { isProFormat } from '../export-depth.ts';
-import type { PrintMarks } from '../tool.ts';
+import type { ExportExperience, PrintMarks } from '../tool.ts';
 
 /** Structural mirror of the engine MediaFrame (not re-exported from the engine index) - the
  *  RGBA frame host.media.renderFrameAt hands the tool's onFrame during a deterministic export. */
@@ -231,6 +231,16 @@ export const keepFormat = (f: string, deepExportOk = false): boolean =>
               : true;
 
 export const fmtLabel = (f: string): string => f === 'lolly' ? '.lolly' : FMT_LABEL[f] ?? f.toUpperCase();
+
+/** Keep the deliverable caption and action tied to the selected format. */
+export function formatExperience(next: ExportExperience, format: string): ExportExperience {
+  const matches = !next.recommendedFormats?.length || next.recommendedFormats[0] === format;
+  return {
+    ...next,
+    summary: matches ? next.summary?.split(' · ')[0] : '',
+    downloadLabel: matches && next.downloadLabel ? next.downloadLabel : `Download ${fmtLabel(format)}`,
+  };
+}
 
 // Download extension follows the produced Blob - a deep-linked video request may
 // fall back to the other container, so trust the Blob's MIME over the format id.

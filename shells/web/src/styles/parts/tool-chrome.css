@@ -157,11 +157,7 @@ html[data-a11y-motion="reduce"] .url-budget-fill { transition: none; }
 html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 
 /* ─── Actions bar ───────────────────────────────────────────────────────── */
-/* The export panel is a strict priority stack: action buttons (docked to the top,
-   so they stay in reach down a long sheet) → filename·format → dimensions →
-   timing → the format cards → ancillary settings → destinations. DOM order
-   encodes the hierarchy, so a flex column keeps the layout stable no matter which
-   optional rows a given tool/format contributes. */
+/* Format and content settings lead; protection, preflight and delivery follow. */
 .tool-actions {
   display: flex;
   flex-direction: column;
@@ -169,7 +165,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   padding: 14px 0;
   border-top: 1px solid hsl(var(--border));
   margin-top: auto;
-  margin-bottom:5em;
+  margin-bottom: 0;
   width: 100%;
 }
 
@@ -202,6 +198,39 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   background: hsl(var(--background));
   transition: border-color var(--dur-1), background var(--dur-1);
 }
+
+.export-text-mode {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-width: 0;
+}
+.export-text-label { display: inline-flex; align-items: center; white-space: nowrap; }
+.export-text-mode > .field-select { width: 100%; min-width: 0; height: var(--ui-size-control); padding-block: 0; }
+.export-setting-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-width: 0; }
+.export-setting-head > .field-toggle { min-width: 0; flex: 1; }
+.tool-actions :is(.section-card-head, .protection-head, .pdfpass-head, .print-head, .notes-handout-head, .c2pa-head, .video-quality-head, .export-video-options > summary) {
+  font-size: var(--ui-type-section);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  min-width: 0;
+  color: var(--ui-color-text-default);
+}
+.tool-actions .section-card-head { padding: 0; box-shadow: none; }
+.notes-handout-head { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.tool-actions .export-preflight .preflight-open {
+  display: grid;
+  grid-template-columns: var(--ui-size-icon-sm) minmax(0, 1fr) var(--ui-size-icon-sm);
+  column-gap: var(--sp-3);
+  row-gap: var(--sp-1);
+}
+.preflight-open > .section-card-icon { grid-column: 1; grid-row: 1; }
+.preflight-open > span:not(.preflight-verdict) { grid-column: 2; grid-row: 1; }
+.preflight-open > .preflight-verdict { grid-column: 2; grid-row: 2; margin: 0; white-space: normal; }
+.preflight-open > .preflight-chevron { grid-column: 3; grid-row: 1 / 3; align-self: center; }
 
 .export-option:hover {
   border-color: hsl(var(--ring) / 0.4);
@@ -666,13 +695,11 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .fmt-show-all:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 .export-outcome-summary {
   margin: 0 0 var(--sp-3);
-  padding: 8px 10px;
-  border-radius: var(--radius);
-  background: hsl(var(--muted) / .65);
+  padding: 0;
   color: hsl(var(--muted-foreground));
   font-size: var(--fs-sm);
   line-height: 1.35;
-  text-align: left;
+  text-align: start;
 }
 /* The retained-file line under Download (plans/236): what was delivered, and the
    way back to the same bytes if no file appeared. Same register as the outcome
@@ -753,20 +780,14 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   font-variant-numeric: tabular-nums;
 }
 
-/* Sticky action dock - Copy/Save/Share + Download are the sheet's primary
-   actions, so they lead it and stay pinned to the top edge while the long
-   sheets scroll. Background matches the popup card so settings slide beneath. */
+/* Delivery follows the selected settings without covering the scrollable panel. */
 .export-actions-dock {
-      border-radius: calc(var(--radius) * 1.35);
-  position: sticky;
-  top: 0;
-  z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
-  background: hsl(var(--card));
-  padding-bottom: 8px;
-  box-shadow: 0 10px 12px -12px hsl(var(--foreground) / 0.4);
+  gap: var(--sp-3);
+  min-width: 0;
+  padding-top: var(--sp-5);
+  border-top: 1px solid hsl(var(--border));
 }
 
 /* The depth fact - what the export WILL carry beyond an ordinary 8-bit image
@@ -827,6 +848,14 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   gap: var(--sp-3);
 }
 .export-settings:empty { display: none; }
+.export-file-group { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+.export-options-group { display: contents; }
+.tool-actions .export-settings { flex-direction: column; align-items: stretch; }
+.tool-actions .export-settings > .export-option { width: 100%; border: 0; padding: var(--sp-3); background: hsl(var(--muted) / .5); }
+.tool-actions .protection-body > .section-card { background: none; border-radius: 0; padding-inline: 0; box-shadow: none; }
+.tool-actions .protection-body :is(.c2pa-head, .section-card-head) { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.tool-actions .protection-body { gap: var(--sp-3); }
+.tool-actions .protection-body > .section-card + .section-card { border-top: 1px solid hsl(var(--border)); padding-top: var(--sp-3); }
 
 /* Tier 3.5 - "Before you export" (views/export-preflight.ts). The one export
    card that is a STATEMENT rather than a setting, so it sits last, below every

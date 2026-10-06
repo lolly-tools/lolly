@@ -4,12 +4,19 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import test from 'node:test';
+import test, { before, after } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { build } from 'esbuild';
 import { chromium, webkit } from 'playwright';
 import sharp from 'sharp';
+import { holdEncodeTier } from '../../../../tests/helpers/sequence-browser.ts';
+
+// Full-suite software rendering can return empty WebKit captures under contention.
+// Share the existing browser tier; keep every pixel and export assertion unchanged.
+let releaseTier: (() => void) | undefined;
+before(async () => { releaseTier = await holdEncodeTier(); });
+after(() => releaseTier?.());
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const hook = vm.createContext({});

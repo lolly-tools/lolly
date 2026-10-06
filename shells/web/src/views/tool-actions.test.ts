@@ -1748,26 +1748,37 @@ test('a host with no profile store exports exactly as before', async () => {
 // ranked under the music bed's ducking level. They are a size-like decision, so the
 // row belongs directly under the dimensions and above every format card.
 
-/** Index of the first element matching `sel` among the panel's direct children. */
-function rowIndex(panel: HTMLElement, sel: string): number {
-  return [...panel.children].findIndex((c) => c.matches(sel));
-}
-
-test('the timing row sits directly after dims and above the format cards', () => {
+test('the timing row follows dims and precedes format options and delivery', () => {
   const h = mount({ seqMs: null, formats: ['webm', 'mp4', 'png'] });
-  const dims = rowIndex(h.panel, '.export-dims');
-  const timing = rowIndex(h.panel, '[data-anim-params]');
-  assert.ok(dims >= 0 && timing >= 0, 'both rows are in the panel at all');
-  assert.equal(timing, dims + 1, 'timing is the row immediately after the dimensions');
-  for (const later of ['.export-hdr', '.export-protection', '.export-audio', '.export-settings']) {
-    const i = rowIndex(h.panel, later);
-    if (i >= 0) assert.ok(i > timing, `${later} must rank below the timing row`);
+  const dims = h.panel.querySelector('.export-dims');
+  const timing = h.panel.querySelector('[data-anim-params]');
+  assert.ok(dims && timing, 'both rows are present');
+  assert.equal(dims.nextElementSibling, timing, 'timing immediately follows the dimensions');
+  for (const selector of ['.export-hdr', '.export-protection', '.export-audio', '.export-settings', '.export-actions-dock']) {
+    const later = h.panel.querySelector(selector);
+    if (later) assert.ok(timing.compareDocumentPosition(later) & dom.window.Node.DOCUMENT_POSITION_FOLLOWING, `${selector} follows the timing controls`);
   }
-  assert.equal(
-    h.panel.querySelector('.export-settings [data-anim-params]'),
-    null,
-    'and it has left the ancillary chip strip entirely'
-  );
+  assert.equal(h.panel.querySelector('.export-settings [data-anim-params]'), null);
+});
+
+test('deliverable labels follow the selected format and retain counts for their intended format', async () => {
+  const { formatExperience } = await import('./tool-actions/shared.ts');
+  const outcome = { recommendedFormats: ['pptx', 'pdf'], summary: '8 slides · PowerPoint keeps every artboard as an editable slide.', downloadLabel: 'Download PowerPoint' };
+  assert.equal(formatExperience(outcome, 'pdf').downloadLabel, 'Download PDF');
+  assert.equal(formatExperience(outcome, 'pdf').summary, '');
+  assert.equal(formatExperience(outcome, 'pptx').summary, '8 slides');
+  assert.equal(formatExperience(outcome, 'pptx').downloadLabel, 'Download PowerPoint');
+});
+
+test('a completed export keeps the label responsive to later format changes', async () => {
+  const h = mount({ seqMs: null, formats: ['png', 'svg'] });
+  h.download();
+  const button = h.panel.querySelector<HTMLButtonElement>('[data-action="download"]')!;
+  for (let attempt = 0; attempt < 100 && button.disabled; attempt++) await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(button.disabled, false, 'the export completed');
+  assert.ok(h.downloads().length);
+  h.setFormat('svg');
+  assert.equal(button.querySelector('[data-download-label]')?.textContent, 'Download SVG');
 });
 
 test('the timing labels read as words, with a help tip on the pair', () => {
@@ -1851,12 +1862,14 @@ test('vector text choices render their help as the standard (i)', () => {
     {}
   );
   const chip = panel.querySelector(
-    '.export-option:has([data-input-id="convertPaths"])'
+    '.export-text-mode:has([data-input-id="convertPaths"])'
   ) as HTMLElement;
-  assert.ok(chip, 'the chip still renders');
+  assert.ok(chip, 'the text setting renders');
   assert.match(chip.textContent ?? '', /Text/);
   assert.deepEqual(Array.from(chip.querySelectorAll('option'), option => option.textContent), ['Outline', 'Keep text']);
-  assert.ok(chip.classList.contains('help-tip-host'), 'the chip anchors its own tip');
+  assert.ok(chip.classList.contains('help-tip-host'), 'the setting anchors its own tip');
+  assert.equal(chip.querySelector('.help-tip-btn')?.closest('label'), null, 'changing text mode cannot implicitly activate the info button');
+  assert.equal(chip.querySelector<HTMLSelectElement>('select')?.value, 'outline', 'an existing outline choice is retained');
   assert.match(
     chip.querySelector('.help-tip-pop')?.textContent ?? '',
     /Embeds supported fonts when possible/

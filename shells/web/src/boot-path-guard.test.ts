@@ -42,6 +42,7 @@ const FORBIDDEN: { name: string; test: (spec: string) => boolean }[] = [
   // bridge/revision-history.ts kept it on boot until 2026-09-28. Load it where the
   // archive work happens; strToU8 is TextEncoder.encode.
   { name: 'the zip/deflate codec', test: (s) => s === 'fflate' || s.startsWith('fflate/') },
+  { name: 'gallery card rendering and previews', test: (s) => /(?:^|\/)gallery\.ts$/.test(s) },
 ];
 
 /** Static, value-level import specifiers of one module (type-only and dynamic imports excluded). */

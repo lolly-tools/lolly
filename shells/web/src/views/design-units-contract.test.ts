@@ -119,7 +119,7 @@ test('units: Design persists one document unit and DPI, and mirrors them to expo
   assert.match(dimensionFields, /export interface ExportDimensionUpdate[\s\S]*dpi\?: number/, 'the dimension seam accepts the document DPI');
   assert.match(actions, /applyExportDimensionFields\(el!?, (?:ta\.)?curUnit, update\)/, 'the export bar applies dimensions through the typed seam');
   assert.match(inspector, /const DOCUMENT_UNITS = \['px', 'mm', 'cm', 'in', 'pt'\]/, 'the Inspector exposes the document unit vocabulary');
-  assert.match(inspector, /docSelectRow\(t\('Document unit'\), 'documentUnit'/, 'the Inspector can change the persisted document unit');
-  assert.match(inspector, /docNumRow\(t\('Document DPI'\), 'documentDpi'/, 'the Inspector can change the persisted document DPI');
+  assert.match(inspector, /docSelectRow\(t\('Units'\), 'documentUnit'/, 'the Inspector can change the persisted document unit');
+  assert.match(inspector, /docNumRow\(t\('DPI'\), 'documentDpi'/, 'the Inspector can change the persisted document DPI');
   assert.match(inspector, /write\(field, o\.scale \? v \* o\.scale : v\)/, 'Inspector geometry converts its displayed document unit back to CSS px once');
 });

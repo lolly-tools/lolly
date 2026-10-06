@@ -274,7 +274,7 @@ export function openSizeMenu(fc: FcCtx, anchor: HTMLElement): void {
     `<label class="fc-row"><span>${t('DPI')}</span><input type="number" min="36" max="2400" step="1" data-sz="dpi" value="${dpi}"><b>${t('dpi')}</b></label>`;
   if (runtime.getModel().some(input => input.id === 'editingRange')) {
     const label = document.createElement('label'); label.className = 'fc-row';
-    const caption = document.createElement('span'); caption.textContent = tRaw('Editing range');
+    const caption = document.createElement('span'); caption.textContent = tRaw('Colour');
     const select = document.createElement('select'); select.className = 'field-select field-select--sm';
     for (const [value,text] of [['sdr',tRaw('Standard')],['hdr',tRaw('Wide colour / HDR')]]) select.add(new Option(text,value));
     label.append(caption,select);

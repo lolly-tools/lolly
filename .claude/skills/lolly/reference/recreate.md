@@ -275,10 +275,18 @@ findings you left in place with your reason for each.
 `skills/lolly/evals/recreate.json` is the brief an evaluator hands an agent. Its
 synthetic case rebuilds `tests/fixtures/rebrand/recreate.pptx` against
 `tests/fixtures/recreate/tokens.json` under `LOLLY_PROFILE=lolly-start`. In a
-checkout, `pnpm run eval:recreate -- <folder>` (or `node scripts/recreate-eval.ts
+checkout, `tests/fixtures/recreate/acceptance.compose.json` is a complete
+declarative example for that source and brief, including its live photo look,
+scrim and theme-linked ground. `pnpm run eval:recreate -- <folder>` (or `node scripts/recreate-eval.ts
 <folder> --json`) grades the delivered folder against the case's gates, which are
-the hand-over list above, and reports the Verify findings, house rules, undeclared
-edits and notes that lost their line breaks beside them without gating on them.
+the hand-over list above. Add `--acceptance --browser=require` for final delivery:
+this also requires zero Verify and house-rule findings, no clipped text, every document theme
+painted and reopened, unchanged note paragraphs and line breaks, matching theme
+grounds, accounted edits, no scaffolding, and one `.lolly` serving every theme.
+A skipped render or reopen fails acceptance. Without `--acceptance`, those quality
+measures are reported beside the base gates. A case can also name the acceptance
+gates in its `pass` object. Review the rendered slides in both themes as well;
+measured acceptance does not establish visual quality.
 It exits `0` when every gate passes and `1` when one does not. It exits `2` when
 it cannot use what it was given (a source deck that does not read as a deck, a
 design system file with no colour tokens, an `--out` folder that does not exist,

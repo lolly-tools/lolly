@@ -47,7 +47,7 @@ test('a design system with light and dark offers one group of two, labelled for 
   const groups = documentThemeGroups(LIGHT_DARK);
   assert.equal(groups.length, 1);
   assert.equal(groups[0]!.id, '');
-  assert.equal(groups[0]!.label, 'Colour theme');
+  assert.equal(groups[0]!.label, 'Theme');
   assert.deepEqual(groups[0]!.options, [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }]);
   assert.equal(groups[0]!.active, 'light', 'no selection means the first theme, as createTokenSet does');
   assert.equal(documentThemeGroups(LIGHT_DARK, { '': 'dark' })[0]!.active, 'dark');

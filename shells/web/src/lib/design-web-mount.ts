@@ -54,6 +54,19 @@ export interface WebMountOptions {
 const MARKER = '.lolly-box-web[data-lolly-web]';
 const FRAME = 'iframe[data-web-live]';
 const REMOUNT_QUIET_MS = 700;
+let appearance: typeof import('./design-web-css.ts') | undefined;
+let appearanceLoad: Promise<typeof import('./design-web-css.ts')> | undefined;
+
+/** Load the CSS parser only for an object with appearance overrides. */
+function styleFrame(frame: HTMLIFrameElement, marker: HTMLElement): void {
+  if (appearance) { appearance.updateWebAppearance(frame, marker); return; }
+  if (!marker.dataset.webCss && marker.dataset.webHideCookies !== '1') return;
+  appearanceLoad ??= import('./design-web-css.ts');
+  void appearanceLoad.then(module => {
+    appearance = module;
+    if (frame.isConnected && frame.parentElement === marker) module.updateWebAppearance(frame, marker);
+  }).catch(() => { appearanceLoad = undefined; });
+}
 
 /** Sites agreed to "just this time", by origin: this session only. "Always trust" writes
  *  to the person's trusted sites instead (lib/trusted-sites.ts). */
@@ -290,6 +303,7 @@ function createFrame(embed: WebEmbed, marker: HTMLElement, mode: WebMountMode): 
   }
   frame.src = address.href;
   sizeFrame(frame, marker);
+  styleFrame(frame, marker);
   return frame;
 }
 
@@ -320,6 +334,7 @@ export function pauseWebFrame(frame: HTMLIFrameElement): void {
 
 /** Blank a frame first so audio stops at once, then remove the element. */
 function dropFrame(frame: HTMLIFrameElement): void {
+  appearance?.clearWebAppearance(frame);
   try { frame.src = 'about:blank'; } catch { /* detached */ }
   frame.remove();
 }
@@ -364,6 +379,7 @@ export function mountWebFrames(root: Element, opts: WebMountOptions): void {
     seenLive.add(key);
     const kept = marker.querySelector<HTMLIFrameElement>(FRAME);
     if (kept) {
+      styleFrame(kept, marker);
       if (embed.provider === 'youtube' && marker.dataset.webPlay === '1' && kept.dataset.webPlay !== '1'
         && new URL(embed.src).searchParams.get('autoplay') === '1') {
         // A player preloaded with autoplay off may not yet accept commands. Its first
@@ -434,7 +450,7 @@ export function restoreWebFrames(root: Element, parked: HTMLIFrameElement[] | nu
   for (const frame of parked) {
     const marker = byKey.get(frame.dataset.webLive ?? '');
     if (!marker) { dropFrame(frame); continue; }
-    try { if (canMove(marker)) { marker.moveBefore(frame, null); sizeFrame(frame, marker); } else dropFrame(frame); } catch { dropFrame(frame); }
+    try { if (canMove(marker)) { marker.moveBefore(frame, null); sizeFrame(frame, marker); styleFrame(frame, marker); } else dropFrame(frame); } catch { dropFrame(frame); }
   }
 }
 

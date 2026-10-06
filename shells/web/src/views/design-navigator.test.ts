@@ -1105,6 +1105,22 @@ test('clicking a page keeps keyboard focus through selection and later thumbnail
   } finally { f.nav.destroy(); }
 });
 
+test('arrows from the Pages and Layers view buttons continue from the active artboard', () => {
+  const f = mount(THREE, { active: 'f1' });
+  try {
+    const mode = (name: string): HTMLButtonElement => [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')]
+      .find(button => button.textContent === name)!;
+    const pages = mode('Pages'); click(pages); pages.focus();
+    key(pages, 'ArrowDown');
+    assert.equal(f.c.focused.at(-1), 'f2');
+    assert.equal(document.activeElement, f.rowById('f2'));
+    const layers = mode('Layers'); click(layers); layers.focus();
+    key(layers, 'ArrowRight');
+    assert.equal(f.c.focused.at(-1), 'f3');
+    assert.equal(document.activeElement, f.nav.el.querySelector('[data-jump-artboard="f3"]'));
+  } finally { f.nav.destroy(); }
+});
+
 for (const area of ['parents', 'rail'] as const) {
   test(`${area}: repeated arrows navigate artboards and survive a rebuilt control`, () => {
     const f = mount(THREE);

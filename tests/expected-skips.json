@@ -1319,6 +1319,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/design-file-drop.browser.test.ts",
+      "fullName": "dropping image, video and audio adds objects, undoes together, and reopens with their media",
+      "reason": "no browser origin (set LOLLY_EXPORT_TEST_URL to a local web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
       "file": "tests/design-panels.browser.test.ts",
       "fullName": "artboard parents, overflowing tracks and the narrow inspector stay usable",
       "reason": "Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.",
@@ -3107,6 +3114,13 @@
       "file": "tests/session-tool.browser.test.ts",
       "fullName": "saved QR session becomes a restricted portable tool; original stays intact and reader works offline",
       "reason": "Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/slider-label-activation.browser.test.ts",
+      "fullName": "slider gestures never activate help or token actions through a wrapping label",
+      "reason": "set LOLLY_EXPORT_TEST_URL",
       "capability": "environment",
       "owner": "tests"
     },

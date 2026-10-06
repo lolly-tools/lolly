@@ -101,6 +101,7 @@ import type { IconName } from '../lib/icons.ts';
 import { colorFieldHtml, wireColorField, resolveColorVar, colorVarLabel } from '../components/color-field.ts';
 import { designColorValue } from '../lib/design-color.ts';
 import { numField } from '../components/num-field.ts';
+import { helpTip, wireHelpTips, unwireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import type { NumFieldHandle } from '../components/num-field.ts';
 import {
   FIELD_GLYPH, TILT_RANGE, dimOf, iconRow, opt, posGridHtml, segHtml, segRow,
@@ -397,7 +398,7 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   // with no `canvas` key of its own, so there is no cfg name to read it through.
   scene: () => ['scene'],
   // The web page box (plan 288): its link, layout width, load rule and poster.
-  web: (c) => ['web', 'webView', 'webLoad', c.imageField],
+  web: (c) => ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', c.imageField],
   // `build` and `lane` have no cfg key of their own (the manifest names them literally,
   // as `notes` and `cls` are named), and the Appears control is derived from all four of
   // build/start/dur/lane - so a build step written anywhere else has to move this memo.
@@ -1058,11 +1059,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     + `<input type="checkbox" class="field-check" data-doc="${escape(input)}" data-kind="bool"`
     + `${boolOf(model.getInput(input), false) ? ' checked' : ''}></label>`;
 
-  const docSelectRow = (label: string, input: string, options: ReadonlyArray<[string, string]>): string => {
+  const docSelectRow = (label: string, input: string, options: ReadonlyArray<[string, string]>, help?: string): string => {
     const cur = String(model.getInput(input) ?? '');
-    return `<label class="fc-row"><span>${label}</span><select class="field-select" data-doc="${escape(input)}">`
+    const tip = help ? helpTip(help) : null;
+    const tag = tip ? 'div' : 'label';
+    return `<${tag} class="fc-row${tip ? ' help-tip-host' : ''}"><span class="fc-row-help-label"><span>${label}</span>${tip?.button ?? ''}</span><select class="field-select" data-doc="${escape(input)}" aria-label="${escape(label)}">`
       + options.map(([value, text]) => `<option value="${escape(value)}"${value === cur ? ' selected' : ''}>${escape(text)}</option>`).join('')
-      + '</select></label>';
+      + `</select>${tip?.pop ?? ''}</${tag}>`;
   };
 
   /**
@@ -1099,7 +1102,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const other = parts[1]?.id || '';
     const weight = parts[1] ? Math.round(parts[1].w * 100) : 30;
     const opt = (id: string): string => `<option value="${escape(id)}" selected>${escape(voiceNameOf(id))}</option>`;
-    return `<div class="fc-row"><span>${t('Voice')}</span><select class="field-select" data-doc-voice="main" aria-label="${escape(t('Voice'))}">${opt(main)}</select></div>`
+    const tip = helpTip(t('English voices only.'));
+    return `<div class="fc-row help-tip-host"><span class="fc-row-help-label"><span>${t('Voice')}</span>${tip.button}</span><select class="field-select" data-doc-voice="main" aria-label="${escape(t('Voice'))}">${opt(main)}</select>${tip.pop}</div>`
       + `<div class="fc-row"><span>${t('Blend with')}</span><select class="field-select" data-doc-voice="blend" aria-label="${escape(t('Blend with'))}">`
       + `<option value=""${other ? '' : ' selected'}>${escape(t('None'))}</option>${other ? opt(other) : ''}</select></div>`
       + (other
@@ -1214,9 +1218,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const unit = documentUnit();
     const scale = CSS_PX_PER_UNIT[unit];
     const fmt = (n: number): string => String(Math.round(n / scale * 1000) / 1000);
-    const options = (model.getInput('projectFps') == null || !(opts.videoWorkspace?.() || model.getBoxes().some(row => frame && kindOf(row) === frame.frameKind)) ? '' : docSelectRow(t('Project frame rate'), 'projectFps', ['24', '25', '30', '50', '60'].map(rate => [rate, `${rate} fps`])))
-      + docSelectRow(t('Document unit'), 'documentUnit', DOCUMENT_UNITS.map((u) => [u, u]))
-      + docNumRow(t('Document DPI'), 'documentDpi', 300, {
+    const options = (model.getInput('projectFps') == null || !(opts.videoWorkspace?.() || model.getBoxes().some(row => frame && kindOf(row) === frame.frameKind)) ? '' : docSelectRow(t('Frame rate'), 'projectFps', ['24', '25', '30', '50', '60'].map(rate => [rate, `${rate} fps`])))
+      + docSelectRow(t('Units'), 'documentUnit', DOCUMENT_UNITS.map((u) => [u, u]))
+      + docNumRow(t('DPI'), 'documentDpi', 300, {
         min: 36, max: 2400, step: 1, precision: 0, unit: 'dpi',
         onCommit: (dpi) => {
           const next = Math.round(dpi);
@@ -1224,13 +1228,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           canvasEl.dispatchEvent(new CustomEvent('fc-document-dpi', { detail: next }));
         },
       }) + narrationDocRows();
-    return (actions.openDocumentSize ? doorRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
+    return (actions.openDocumentSize ? doorRow(t('Size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
       + `<div class="fc-row"><span>${t('Background')}</span><span class="fc-cfield">${colorField('fc-insp-bg', model.getInput('background'), t('Background'))}</span></div>`
       + themeDocRows()
-      + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Editing range'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]]) + `<p class="fc-insp-hint">${t('Preview depends on your display. Export HDR is chosen separately.')}</p>`)
+      + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Colour'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]], t('Preview depends on your display. Export HDR is chosen separately.')))
       + emojiDocRows()
       + (opts.videoWorkspace?.()
-        ? `<details class="lp-details fc-insp-document-options" data-document-options${documentOptionsOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('More document settings')}</span><i class="lp-caret" aria-hidden="true"></i></summary>${options}</details>`
+        ? `<details class="lp-details fc-insp-document-options" data-document-options${documentOptionsOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('More settings')}</span><i class="lp-caret" aria-hidden="true"></i></summary>${options}</details>`
         : options)
       + designHealthHtml(size);
   }
@@ -1252,10 +1256,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function themeDocRows(): string {
     const groups = opts.theme?.groups() ?? [];
     if (!groups.length) return '';
-    return groups.map((g, gi) => `<div class="fc-row"><span>${escape(g.label)}</span>`
-      + segHtml(`${THEME_SEG}${gi}`, String(g.options.findIndex((o) => o.id === g.active)), g.options.map((o, oi) => [String(oi), o.label]), g.label)
-      + '</div>').join('')
-      + `<p class="fc-insp-hint">${t('Colours linked to the design system follow this choice.')}</p>`;
+    return groups.map((g, gi) => {
+      const tip = helpTip(t('Colours linked to the design system follow this choice.'));
+      return `<div class="fc-row help-tip-host"><span class="fc-row-help-label"><span>${escape(g.label)}</span>${tip.button}</span>`
+        + segHtml(`${THEME_SEG}${gi}`, String(g.options.findIndex((o) => o.id === g.active)), g.options.map((o, oi) => [String(oi), o.label]), g.label)
+        + `${tip.pop}</div>`;
+    }).join('');
   }
 
   /** Apply a theme segment press: index back to ids, then the port does the rest. */
@@ -1312,7 +1318,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function narrationDocRows(): string {
     if (!narration || opts.narrationEnabled?.() === false) return '';
     return `<p class="lp-subhead">${t('Narration')}</p>`
-      + `<p class="fc-insp-hint">${t('English voices only.')}</p>`
       + docVoiceRows()
       + docNumRow(t('Speed'), 'narrationSpeed', 1, { min: 0.5, max: 2, step: 0.05, precision: 2 })
       // The ranges are the MANIFEST's own (community/design/tool.json), so this column
@@ -1362,7 +1367,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const choices = optionsOf(F_TRANS);
     if (!choices.length) return '';
     const cur = String(fv(b, F_TRANS) ?? '');
-    return selectRow(t('Transition to next'), F_TRANS, choices, cur)
+    return selectRow(t('Transition'), F_TRANS, choices, cur)
       + (cur === 'custom' ? doorBtn(t('Reset to the deck transition'), 'resettrans', 'undo') : '');
   }
 
@@ -1519,7 +1524,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         + `<button type="button" class="fc-cbtn" data-act="smaller" aria-label="${escape(t('Smaller text'))}">A-</button>`
         + numCell('', cfg.fontSizeField, num(cfg.fontSizeField, 48, 1, 2000), { name: t('Size'), min: 4, max: 2000, unit: 'px' })
         + `<button type="button" class="fc-cbtn" data-act="bigger" aria-label="${escape(t('Bigger text'))}">A+</button></div></div>` : '')
-      + (cfg.textColorField ? colorRow(t('Text colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField)) : '')
+      + (cfg.textColorField ? colorRow(t('Colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField)) : '')
       + (cfg.textColorField && actions.useAsInput ? doorBtn(t('Use colour as input'), 'input-fg', 'sliders') : '')
       + align
       // Vertical align sits WITH horizontal align, because that is the pair
@@ -1534,7 +1539,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       // which is a typographic property, next to Font and Size.
       + (cfg.valignField ? segRow(FIELD_GLYPH.textM, mixed(cfg.valignField) ? t('Vertical (Mixed)') : t('Vertical'), segHtml(cfg.valignField, mixed(cfg.valignField) ? '' : String(fv(b, cfg.valignField) ?? 'middle'), [
         ['top', t('Align top'), FIELD_GLYPH.textT], ['middle', t('Centre vertically'), FIELD_GLYPH.textM], ['bottom', t('Align bottom'), FIELD_GLYPH.textB]], t('Vertical'))) : '')
-      + `<details class="lp-details" data-advanced-text${advancedTextOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('Advanced typography')}</span><i class="lp-caret" aria-hidden="true"></i></summary>`
+      + `<details class="lp-details" data-advanced-text${advancedTextOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('Advanced')}</span><i class="lp-caret" aria-hidden="true"></i></summary>`
       + choice(t('Weight'), cfg.weightField, weights, '700')
       + (cfg.lineHeightField ? ctrlRow(FIELD_GLYPH.textM, t('Line height'), numCell('', cfg.lineHeightField, num(cfg.lineHeightField, 1.12, 0.7, 3), { name: t('Line height'), min: 0.7, max: 3, step: 0.01 })) : '')
       + (cfg.trackingField ? ctrlRow(FIELD_GLYPH.textC, t('Letter spacing'), numCell('', cfg.trackingField, num(cfg.trackingField, 0, -20, 100), { name: t('Letter spacing'), min: -20, max: 100, step: 0.5, precision: 2, unit: 'px' })) : '')
@@ -1594,6 +1599,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       ], String(fv(b, 'webLoad') ?? '') || 'slide')
       + (embed ? webPlaybackRows(embed) : '')
       + (embed && !embed.sameOrigin ? webApprovalRows(embed, readRow, doorBtn) : '')
+      + (embed && !embed.refuses ? doorBtn(t('Use page'), 'webuse', 'externalLink') : '')
+      + (embed?.sameOrigin && embed.provider !== 'sandbox'
+        ? toggleRow(t('Hide cookie banners'), 'webHideCookies', boolOf(fv(b, 'webHideCookies'), false))
+          + doorBtn(fv(b, 'webCss') ? t('Edit page CSS') : t('Add page CSS'), 'webcss', 'code')
+          + readRow(t('Appearance'), t('Live page only. Hiding a banner does not accept cookies.'))
+        : embed && !embed.refuses ? readRow(t('Cookie banners'), t('Use page to reject cookies or close the banner. This site controls its own CSS.')) : '')
       + doorBtn(cfg.imageField && b[cfg.imageField] ? t('Change poster') : t('Choose poster'), 'pickimage', 'image')
       + (embed?.kind === 'lolly'
         ? doorBtn(embed.provider === 'sandbox' ? t('Edit in Sandbox') : t('Edit in the tool'), 'webedit', 'code')
@@ -1606,7 +1617,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const { subject, studio } = sceneSummary(query);
     return doorBtn(t('Edit in 3D Studio'), 'editscene', 'box')
       + readRow(t('Scene'), query ? (subject || t('Studio defaults')) : t('Empty scene'))
-      + (studio ? readRow(t('Lighting studio'), studio) : '');
+      + (studio ? readRow(t('Lighting'), studio) : '');
   }
 
   /**
@@ -1744,15 +1755,15 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       // the button that speaks them have to be one control away from each other. Still
       // the only door onto `notes` - two doors onto one field is the drift this column
       // exists to end.
-      return areaRow(t('Speaker notes'), 'notes', b['notes'], t('What to say on this slide…'))
+      return areaRow(t('Notes'), 'notes', b['notes'], t('What to say on this slide…'))
         + narrateRows(b)
-        + textRow(t('Slide style'), 'state', b['state'], 'dark title-slide')
+        + textRow(t('Style'), 'state', b['state'], 'dark title-slide')
         + readRow(t('Stack'), String(b['stackOf'] ?? '') || '-');
     }
     return numRow(t('Build step'), 'build', Math.round(clampN(b['build'], 0, 0, 999)), { min: 0, max: 999 },
         t('A click step while presenting. A video or a PDF export shows the box from the start.'))
       + textRow(t('Morph match'), 'matchOf', b['matchOf'], 'hero')
-      + textRow(t('Slide audio'), 'presentAudio', b['presentAudio']);
+      + textRow(t('Audio'), 'presentAudio', b['presentAudio']);
   }
 
   /**
@@ -1795,7 +1806,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       })
       + colorRow(t('Colour'), 'fc-insp-guide', guide.color || 'var(--ui-color-action-primary)')
       + toggleRow(t('Snap objects to guide'), 'guide-snap', guide.snap)
-      + `<p class="fc-insp-hint">${t('Rotation is clockwise around X / Y. Hold Shift while dragging for 10 px steps. Hold Alt while moving objects to bypass snapping.')}</p>`
       + doorBtn(t('Delete guide'), 'delete-guide', 'trash');
   }
 
@@ -1916,6 +1926,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     }).join('') || `<p class="lp-empty">${t('Nothing selected')}</p>`;
     mountNums();
     mountEmojiControl();
+    wireHelpTips(el);
+    linkHelpDescriptions(scroll);
     const textSlot = scroll.querySelector<HTMLElement>('[data-composed-inspector]');
     if (textSlot && actions.text) textMounted = mountTextInspector(textSlot, g.ids, actions.text, fonts);
     wire();
@@ -2128,6 +2140,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           // A web page box's link, opened as the person gave it (the watch page, not the
           // embed form; a Sandbox link opens the Sandbox itself, where the code can change).
           case 'webedit': actions.editWebTool?.(ids); break;
+          case 'webuse': actions.useWebPage?.(ids); break;
+          case 'webcss': actions.editWebCss?.(ids); break;
           case 'webposter': actions.refreshWebPoster?.(ids, false); break;
           case 'webapprove':
           case 'webtrust': {
@@ -2529,6 +2543,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       unsubSel();
       unsubGuides?.();
       unsubArt();
+      unwireHelpTips(el);
       el.remove();
       opts.onWidthChange?.(0);
     },

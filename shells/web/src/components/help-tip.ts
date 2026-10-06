@@ -37,6 +37,7 @@ let _seq = 0;
 // generic .help-tip-host class. Kept in one place so all the .closest() lookups
 // and the hover-reveal CSS agree.
 const HOST_SEL = '.input-row, .block-control, .help-tip-host';
+const CONTROL_SEL = 'input:not(.is-upgraded), select, textarea, [data-field-id]:not(.is-upgraded), [data-input-id]:not(.is-upgraded), [role="slider"]';
 
 interface HelpTipLink {
   href: string;
@@ -160,7 +161,7 @@ export function linkHelpDescriptions(scope: HTMLElement): void {
   linkInputLabels(scope);
   scope.querySelectorAll<HTMLElement>('.help-tip-pop[id]').forEach((pop) => {
     const row = pop.closest(HOST_SEL);
-    const ctrl = row?.querySelector('input, select, textarea, [data-field-id], [data-input-id]');
+    const ctrl = row?.querySelector(CONTROL_SEL);
     if (ctrl && !ctrl.hasAttribute('aria-describedby')) {
       ctrl.setAttribute('aria-describedby', pop.id);
     }
@@ -173,7 +174,7 @@ export function linkHelpDescriptions(scope: HTMLElement): void {
   // can describe the same control.
   scope.querySelectorAll<HTMLElement>('.input-notice[id]').forEach((note) => {
     const row = note.closest(HOST_SEL);
-    const ctrl = row?.querySelector('input, select, textarea, [data-field-id], [data-input-id]');
+    const ctrl = row?.querySelector(CONTROL_SEL);
     if (!ctrl) return;
     const existing = ctrl.getAttribute('aria-describedby');
     if (!existing) ctrl.setAttribute('aria-describedby', note.id);

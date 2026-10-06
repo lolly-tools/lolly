@@ -325,6 +325,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-composer textarea { display: block; box-sizing: border-box; width: 100%; }
 .collab-comment-pins { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
 .collab-comment-pin {
+  border:0;
   display: grid;
   place-items: center;
   position: absolute;

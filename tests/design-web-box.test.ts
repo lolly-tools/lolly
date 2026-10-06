@@ -35,14 +35,14 @@ async function marker(box: Record<string, unknown>): Promise<HTMLElement> {
   return el!;
 }
 
-test('web is a Design kind with an Add entry and three appended fields', () => {
+test('web keeps its original fields and appends page appearance fields', () => {
   const kind = boxesField.fields.find((f: { id: string }) => f.id === 'kind');
   assert.ok(kind.options.some((o: { value: string }) => o.value === 'web'));
   const add = boxesField.canvas.addKinds.find((k: { id: string }) => k.id === 'web');
   assert.equal(add.seed.kind, 'web');
   const ids = boxesField.fields.map((f: { id: string }) => f.id);
-  assert.deepEqual(ids.slice(-3), ['web', 'webView', 'webLoad']);
-  for (const id of ['web', 'webView', 'webLoad']) {
+  assert.deepEqual(ids.slice(114), ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies']);
+  for (const id of ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies']) {
     assert.deepEqual(boxesField.fields.find((f: { id: string }) => f.id === id).showFor, [], `${id} is edited in the inspector, not the sidebar`);
   }
   const load = boxesField.fields.find((f: { id: string }) => f.id === 'webLoad');
@@ -80,6 +80,17 @@ test('a hostile link stays an attribute value', async () => {
   assert.equal(el.querySelector('.lolly-box-web-title')?.textContent, '<b>t</b>');
 });
 
+test('page appearance is inert, escaped and absent from unchanged objects', async () => {
+  const css = 'h1::after { content: "</style><img src=x onerror=alert(1)>"; }';
+  const el = await marker(webBox({ webCss: css, webHideCookies: true }));
+  assert.equal(el.dataset.webCss, css);
+  assert.equal(el.dataset.webHideCookies, '1');
+  assert.equal(el.querySelectorAll('style,img').length, 0);
+  const plain = await marker(webBox());
+  assert.equal(plain.hasAttribute('data-web-css'), false);
+  assert.equal(plain.hasAttribute('data-web-hide-cookies'), false);
+});
+
 test('the read model reports the link, a missing link and a missing poster', () => {
   const report = inspectDesignV1([webBox(), webBox({ id: 'b2', web: '' })]);
   const layer = report.layers.find((l) => l.id === 'demo')!;
@@ -93,9 +104,12 @@ test('the read model reports the link, a missing link and a missing poster', () 
 
 test('a link with commas and tildes survives the compact URL', () => {
   const link = 'https://example.com/a,b~c?x=1,2&y=~3';
-  const model = buildInputModel(designTool.manifest, { initial: { boxes: [webBox({ web: link })] as never } });
+  const css = 'h1 { color: red; } /* commas, and ~tildes */';
+  const model = buildInputModel(designTool.manifest, { initial: { boxes: [webBox({ web: link, webCss: css, webHideCookies: true })] as never } });
   const query = serializeUrlState(model as InputModelItem[], { keepUserIds: true });
   const back = parseUrlState(query, designTool.manifest).values.boxes as Record<string, unknown>[];
   assert.equal(back[0]!.kind, 'web');
   assert.equal(back[0]!.web, link);
+  assert.equal(back[0]!.webCss, css);
+  assert.equal(String(back[0]!.webHideCookies), 'true');
 });

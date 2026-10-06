@@ -19,7 +19,7 @@ export function mountAssetFormatViewer(into: HTMLElement, ref: AssetRef, host?: 
         dispose = await mountConvertedAssetViewer(frame, source, controller.signal);
         return;
       }
-      const bytes = await readAssetViewerBytes(source.originalUrl, controller.signal, source.kind === 'font' ? 16 * 1024 * 1024 : undefined);
+      const bytes = await readAssetViewerBytes(source.originalUrl, controller.signal, source.kind === 'font' ? 32 * 1024 * 1024 : undefined);
       const detected = detectedViewerKind(bytes);
       controller.signal.throwIfAborted();
       if (source.kind === 'pdf' && detected !== 'pdf' || source.kind === 'font' && detected !== 'font') throw new Error('The file content does not match its declared format.');

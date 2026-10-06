@@ -1864,6 +1864,7 @@ var init_tool_schema = __esm({
                       "video",
                       "audio",
                       "lottie",
+                      "model",
                       "any"
                     ]
                   },
@@ -2073,6 +2074,7 @@ var init_tool_schema = __esm({
                             "video",
                             "audio",
                             "lottie",
+                            "model",
                             "any"
                           ]
                         },
@@ -9869,8 +9871,7 @@ function syntheticInputs(manifest) {
       id: "convertPaths",
       label: "Convert paths",
       type: "boolean",
-      // Always true here: the guard above already excluded convertPaths === false.
-      default: true,
+      default: false,
       group: "export",
       help: "Outline text as vector paths so SVG/PDF render identically without the fonts installed. Turn off to keep selectable, editable text."
     });
@@ -57098,7 +57099,7 @@ var init_intersect = __esm({
     BOX_SLACK = 16;
     POINT_OFF_SLACK = 1e3;
     SHALLOW = 1e-3;
-    CLIP_BUDGET = { maxNodes: 16384 };
+    CLIP_BUDGET = { maxNodes: 512 };
     CLIP_COUNTS = { pairs: 0, overruns: 0, ceilings: 0, nodes: 0, lastNodes: 0, overrunNodes: 0, lastOverrunNodes: 0, maxOverrunNodes: 0 };
     TWIN_BAND = 1e-4;
     TWIN_TURN = 0.5;

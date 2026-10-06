@@ -299,7 +299,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `geom/bezier.ts` | 483 | Cubic Bézier kernel - the geometric substrate for boolean operations, offsetting and stroke outlining. | yes | `tests/geom-bezier.test.ts` | – |
 | `geom/boolean.ts` | 1812 | Boolean operations on regions bounded by cubic Béziers - union, intersection, difference, exclusive-or - and the winding-number test they are all decided by. | yes | `tests/geom-boolean.test.ts` | – |
 | `geom/fit.ts` | 1260 | Fitting cubics to a curve that has no Bézier form - an exact offset, a stroke edge, a distorted path. | yes | `tests/geom-fit.test.ts` | – |
-| `geom/intersect.ts` | 2351 | Curve intersection. | yes | `tests/geom-intersect.test.ts` | – |
+| `geom/intersect.ts` | 2367 | Curve intersection. | yes | `tests/geom-intersect.test.ts` | – |
 | `geom/offset.ts` | 1315 | Offsetting: moving a path a fixed distance sideways. | yes | `tests/geom-offset.test.ts` | – |
 | `geom/path.ts` | 226 | The path model the geometry operates on, and its conversions to and from the rest of the engine. | yes | indirect | – |
 | `geom/spiro.ts` | 437 | Spiro. | no | `tests/spiro.test.ts` | – |
@@ -321,7 +321,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `image-cloud.ts` | 274 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
 | `image-meta.ts` | 1111 | Image-metadata byte stampers and the metadata-carry core - DOM-free, shared by the web export bridge and the Node shells. | yes | indirect | – |
 | `inpaint.ts` | 422 | Telea inpainting: fill a brushed-out region of an RGBA frame from the pixels around it, by fast marching inward from the region boundary. | yes | `tests/inpaint.test.ts` | – |
-| `inputs.ts` | 885 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
+| `inputs.ts` | 884 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer - one shared primitive, DOM-free. | no | `tests/jpeg-segments.test.ts` | – |
 | `jxl-container.ts` | 43 | Bounded uncompressed metadata boxes. | no | indirect | – |
 | `jxl.ts` | 37 | JPEG XL identity and bounded operation policy. | no | `tests/jxl.test.ts` | yes |

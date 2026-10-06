@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { readRecentAssets, recordRecentAsset, readTabMemory, recordTabMemory } from '../lib/picker-memory.ts';
+import { videoThumb, lottieThumb, audioThumb, modelThumb, mogrtThumb, projectImageCardHtml } from './picker-thumbnails.ts';
 import { assetViewerKind } from '../lib/asset-viewer-source.ts';
 import { assetFiles } from '../lib/asset-files.ts';
 import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
@@ -57,12 +58,12 @@ import { openWebcamCapture } from './picker-webcam.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { maybeNudgeAssetMilestone } from '../lib/asset-milestone.ts';
 import { invalidateNeurospicyTracks } from '../lib/neurospicy.ts';
-import { audioThumbSvg, audioThumbPlaceholder } from '../lib/audio-thumb.ts';
+import { audioThumbSvg } from '../lib/audio-thumb.ts';
 import { audioThumbPool, type ThumbTheme } from '../lib/audio-thumb-colour.ts';
 import { mountTextThumbs } from '../lib/text-thumbs.ts';
 import { loadAudioCovers, resolveAudioLook, type AudioCover } from '../lib/audio-covers.ts';
 import { livePalette } from '../lib/live-palette.ts';
-import { cachedPeaks, derivePeaks, memoPeaks, MAX_CONCURRENT_DERIVES, peaksFingerprint } from '../lib/audio-peaks.ts';
+import { cachedPeaks, derivePeaks, memoPeaks, MAX_CONCURRENT_DERIVES } from '../lib/audio-peaks.ts';
 import { libCategory, loadAssetCategories, categoryLabel } from '../lib/asset-category.ts';
 import { providerCategory } from './assets-provider.ts';
 import { pickerLibraryGroups, pickerCategoryButtons, PickerLibrarySearch } from './picker-library.ts';
@@ -75,9 +76,9 @@ import { loadFavouriteAssets, loadHiddenAssets, assetBaseId } from '../lib/asset
 import { matchesType as pickerMatchesType, type TypeFilter as PickerTypeFilter } from './assets-filter.ts';
 
 import { VISUAL_TYPES, isPlaceableAsset } from '../lib/asset-kinds.ts';
-import { PICKER_TYPE_FILTERS, pickerAcceptsType, queryPickerAssets } from './picker-query.ts';
+import { PICKER_TYPE_FILTERS, isMogrtAsset, pickerAcceptsAsset, pickerAcceptsType, pickerUsesMogrt, queryPickerAssets } from './picker-query.ts';
 import { autoplayLottieThumbs } from './lottie-mount.ts';
-import { motionVideoThumb, armMotionPreviews } from '../lib/preview-media.ts';
+import { armMotionPreviews } from '../lib/preview-media.ts';
 import { escapeHtml } from '../lib/html.ts';
 // The cards that START something (a tool, a saved creation, a template) and the tab
 // that lists templates - moved out so this file keeps to the dialog's wiring.
@@ -646,11 +647,13 @@ async function render(
   let pendingTrim: (() => void) | null = null;
   let modal: ModalHandle<AssetRef | null> | undefined;
   let closed = false;
+  const templateAbort = new AbortController();
   let fileInspection: { destroy(): void } | undefined;
   let cleanupGuided = () => {};
   const close = (value: AssetRef | null): void => {
     if (closed) return;
-    closed = true; fileInspection?.destroy();
+    closed = true;
+    templateAbort.abort(); fileInspection?.destroy();
     cleanupGuided();
     stopAudition();
     lottieThumbs?.destroy();
@@ -1105,7 +1108,7 @@ async function render(
       // committing an asset the tool would refuse. (aria-disabled already signals it.)
       const pickRefAny = pickRef ?? userAssets.find(a => a.id === pickId);
       if (pickRefAny && assetFiles(pickRefAny.meta).length > 1) { showFileChoices(pickRefAny); return; }
-      if (opts.type && pickRefAny && !isAcceptable(pickRefAny.type)) {
+      if (opts.type && pickRefAny && !pickerAcceptsAsset(opts, pickRefAny)) {
         announce(t('This slot can’t use that kind of file.'), { assertive: true });
         const cardEl = pick.closest<HTMLElement>('.asset-picker-card') ?? pick;
         cardEl.querySelector('.asset-picker-card-error')?.remove();
@@ -1124,7 +1127,12 @@ async function render(
         pickId = buildTreatedAssetId(pickId, activeTreatment);
       }
       try {
-        const resolved = await host.assets.get(pickId);
+        let resolved = await host.assets.get(pickId);
+        if (isMogrtAsset(resolved) && pickerUsesMogrt(opts)) {
+          announce(t('Importing the supplied template preview. Adobe effects remain in the original MOGRT.'));
+          resolved = await (await import('../lib/special-upload.ts')).storeMogrtPreview(host, resolved, templateAbort.signal);
+          if (closed) return;
+        }
         recordRecentAsset(pickId);   // feeds the "Recent" section (plans/134 P1)
         if (collect) { flashCard(pick, await collect.onAsset(resolved)); return; }
         close(resolved);
@@ -1386,7 +1394,13 @@ async function render(
         // one the input handed over (offerTrim's doc comment says why the order matters).
         const answered = await offerTrim(file);
         if (!answered) return;   // backed out of the card: nothing stored, dialog stays open
-        const ref = await storeUserUpload(host, answered, { image: isAcceptable('raster') && !isAcceptable('data') });
+        let ref = await storeUserUpload(host, answered, { image: isAcceptable('raster') && !isAcceptable('data') });
+        if (isMogrtAsset(ref) && pickerUsesMogrt(opts)) {
+          announce(t('Importing the supplied template preview. Adobe effects remain in the original MOGRT.'));
+          ref = await (await import('../lib/special-upload.ts')).storeMogrtPreview(host, ref, templateAbort.signal);
+          if (closed) return;
+        }
+        if (opts.type && !pickerAcceptsAsset(opts, ref)) throw new Error(t('This slot can’t use that kind of file.'));
         if (collect) { collectToast(await collect.onAsset(ref)); return; }
         close(ref);
       } catch (e) {
@@ -1637,7 +1651,7 @@ async function render(
       const id = el.dataset.assetId;
       const ref = id ? (candidateById.get(id) ?? userAssets.find(a => a.id === id)) : undefined;
       if (!ref) continue;
-      const ok = isAcceptable(ref.type);
+      const ok = pickerAcceptsAsset(opts, ref);
       const cardEl = el.closest<HTMLElement>('.asset-picker-card') ?? el;
       cardEl.classList.toggle('is-incompatible', !ok);
       if (!ok) { el.setAttribute('aria-disabled', 'true'); cardEl.setAttribute('aria-disabled', 'true'); }
@@ -1650,7 +1664,7 @@ async function render(
   // renderLibrary (search / tab return); the active pairing lives in `activeTheme`
   // and clicks are handled by the delegated body listener, so no per-render wiring.
   function themeStripHtml(): string {
-    return `<div class="asset-picker-themes" role="group" aria-label="${escapeHtml(t('Colour theme'))}">`
+    return `<div class="asset-picker-themes" role="group" aria-label="${escapeHtml(t('Theme'))}">`
       + `<span class="asset-picker-themes-label">${t('Colours')}</span>`
       + iconThemes.map((t, i) => {
           const on = activeTheme ? t.id === activeTheme : i === 0;
@@ -1872,42 +1886,8 @@ async function render(
       </button>`;
   }
 
-  // An image inside a folder - a plain pick tile (no delete affordance; deletion
-  // lives in the Your images list). Picking routes through the shared [data-asset-id] handler.
   function projectImageCard(ref: AssetRef): string {
-    const name = String(ref.meta?.name ?? t('Image'));
-    const thumb = ref.type === 'lottie'
-      ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
-      : ref.type === 'video'
-        ? videoThumb(ref.url, 'asset-picker-thumb')
-        : ref.type === 'audio'
-          ? audioThumb(ref, 'asset-picker-thumb')
-          : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
-    const upBtn = upscaleButton(ref, name);
-    const cutBtn = matteButton(ref, name);
-    const vidBtn = vidMatteButton(ref, name);
-    const inner = `${thumb}
-        <span class="asset-picker-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>`;
-    // A raster folder image splits into wrapper + pick button (like a user card) so the
-    // Upscale / Remove-background siblings are valid HTML; a video image does the same
-    // for its Remove-background sibling. Everything else stays the single plain pick button.
-    if (!upBtn && !cutBtn && !vidBtn) {
-      return `
-      <button type="button" class="asset-picker-card" data-asset-id="${escapeHtml(ref.id)}" title="${escapeHtml(name)}">
-        ${inner}
-        ${formatBadge(ref)}
-      </button>`;
-    }
-    return `
-      <div class="asset-picker-card asset-picker-card-actionable">
-        <button type="button" class="asset-picker-card-pick" data-asset-id="${escapeHtml(ref.id)}" title="${escapeHtml(name)}">
-          ${inner}
-        </button>
-        ${upBtn}
-        ${cutBtn}
-        ${vidBtn}
-        ${formatBadge(ref)}
-      </div>`;
+    return projectImageCardHtml(ref, { upscaleButton, matteButton, vidMatteButton, formatBadge });
   }
 
   function renderProjects(q: string): void {
@@ -2301,7 +2281,7 @@ async function render(
         const keepUpload = (t: string): boolean => visualSlot
           ? VISUAL_TYPES.has(t)
           : (opts.type ? isAcceptable(t) : isPlaceableAsset({ type: t }));
-        userAssets = list.filter(a => keepUpload(a.type)).filter(a => !hiddenSet.has(assetBaseId(a.id)));
+        userAssets = list.filter(a => keepUpload(a.type) || (isMogrtAsset(a) && pickerUsesMogrt(opts))).filter(a => !hiddenSet.has(assetBaseId(a.id)));
         renderUserAssets();
         // An upload takes a look too: fetch the looks for this pane when the Catalogue
         // holds no photo of its own (loadPhotoTreatments redraws this pane with them).
@@ -2444,50 +2424,6 @@ async function render(
 }
 
 
-
-// A muted, looping <video> thumbnail, PLAYED ONLY ON INTENT - hover/focus on a mouse, the
-// most-centered tile on touch (lib/preview-media.ts owns that one policy; the
-// refreshMotionThumbs arm wires this grid into it). It used to be
-// `autoplay preload="metadata"` with no visibility gate at all, so opening the picker
-// fetched a header for every clip in the library and played every one of them, on screen or
-// not. Class-scoped CSS (.asset-picker-thumb / .cat-thumb) sizes <video> the same as <img>,
-// so no per-element rule is needed.
-function videoThumb(url: string, className: string): string {
-  return motionVideoThumb(url, className);
-}
-
-// A looping Lottie thumbnail: an on-screen-gated player (autoplayLottieThumbs, wired by the
-// picker) mounts over the still poster while the tile is on screen - the poster background, or
-// a ▶ for a posterless user upload, is the resting frame. Returns null when no json url is
-// resolvable, so the caller keeps its own stub. A library lottie's url is the poster and the
-// json lives on meta.animationUrl; a user upload's url IS the json.
-function lottieThumb(ref: AssetRef, className: string): string | null {
-  const json = ref.source === 'user' ? ref.url : (typeof ref.meta?.animationUrl === 'string' ? ref.meta.animationUrl : '');
-  if (!json) return null;
-  const poster = ref.source !== 'user' && typeof ref.meta?.posterUrl === 'string' ? ref.meta.posterUrl : '';
-  const style = poster ? ` style="background-image:url('${escapeHtml(poster)}')"` : '';
-  return `<span class="${className} asset-picker-thumb-motion" data-lottie-src="${escapeHtml(json)}" data-lottie-fit="contain"${style} aria-hidden="true">${poster ? '' : '▶'}</span>`;
-}
-
-// An audio thumbnail: the honest glyph now, a REAL waveform once peaks exist.
-//
-// An <img src="…mp3"> can never load, so every audio tile used to render the broken-image
-// icon - and in the lolly-start profile that is 20 of 23 assets, i.e. nearly the whole
-// picker. What ships in the markup is `audioThumbPlaceholder` (a glyph, never a fabricated
-// waveform); `mountAudioThumbs` swaps in `audioThumbSvg` drawn from measured peaks when
-// they arrive. The shape is derived from the asset id so a given track always looks the
-// same and a grid of 52 doesn't read as 52 identical tiles - the id picks the FORM only,
-// never the data.
-//
-// The wrapper span carries the id (the observer's handle) and reuses
-// .asset-picker-thumb-motion, whose `> svg { width:100%; height:100% }` rule already sizes
-// an inline SVG into the 100px thumb box - the same job it does for a Lottie player.
-function audioThumb(ref: AssetRef, className: string): string {
-  const label = String(ref.meta?.name ?? ref.id);
-  return `<span class="${className} asset-picker-thumb-motion asset-picker-thumb-audio" data-audio-thumb="${escapeHtml(ref.id)}" data-audio-fp="${escapeHtml(peaksFingerprint(ref))}">`
-    + audioThumbPlaceholder({ label })
-    + `</span>`;
-}
 
 /**
  * Upgrade every `[data-audio-thumb]` tile under `root` to a real waveform, decoding only
@@ -2727,18 +2663,6 @@ function vidMatteButton(ref: AssetRef, name: string): string {
 // ── Recents (plans/134 P1) ───────────────────────────────────────────────────
 // Most-recently PICKED asset base ids, device-local. Rendered as a pinned
 // section above Favourites; recorded on every successful pick / collect add.
-// A 3-D model or LUT thumbnail: an <img> at a .glb / .cube is the broken-image
-// icon, so paint the baked still the catalog ships beside it (host.assets.query
-// surfaces it as meta.posterUrl for model/lut) or, when there is none, a 3-D box
-// glyph - the honest "this is a model" marker, never a blank tile (plan 216 item 9).
-// A radiance map (.hdr/.exr) lights a scene rather than showing in one: a sun glyph.
-function modelThumb(ref: AssetRef): string {
-  const poster = typeof ref.meta?.posterUrl === 'string' ? ref.meta.posterUrl : '';
-  return poster
-    ? `<img class="asset-picker-thumb" src="${escapeHtml(poster)}" alt="" loading="lazy" decoding="async">`
-    : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">${icon(isRadianceAsset(ref) ? 'sunburst' : 'box', { size: 30 })}</span>`;
-}
-
 function card(ref: AssetRef): string {
   const isPlaceholder = ref.meta?._placeholder;
   const name = ref.meta?.name ?? ref.id;
@@ -2751,6 +2675,7 @@ function card(ref: AssetRef): string {
     ? (typeof ref.meta?.thumbUrl === 'string' ? `<img class="asset-picker-thumb" src="${escapeHtml(ref.meta.thumbUrl)}" alt="" loading="lazy">` : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">${ref.type === 'font' ? 'Aa' : '▦'}</span>`)
     : isPlaceholder
     ? `<div class="asset-picker-thumb asset-picker-thumb-stub">${escapeHtml(ref.type)}</div>`
+    : isMogrtAsset(ref) ? mogrtThumb(ref)
     : ref.type === 'lottie'
       ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
       : ref.type === 'video'
@@ -2826,6 +2751,7 @@ function formatBadge(ref: AssetRef): string {
   // the risk belongs at the moment an ingredient is chosen (plans/126 WP-B).
   const ai = assetAiKind(ref);
   const aiBadge = ai ? genAiPill(ai, true) : aiSignalsChip(ref);
+  if (isMogrtAsset(ref)) return `<span class="asset-picker-fmt">MOGRT · ${escapeHtml(t('Preview'))}</span>${aiBadge}`;
   const fileCount = assetFiles(ref.meta).length;
   if (fileCount > 1) return `<span class="asset-picker-fmt">${fileCount} files</span>${aiBadge}`;
   // Playback length, shown in the same corner badge as the format - video, lottie
@@ -2850,7 +2776,7 @@ function userCard(ref: AssetRef): string {
   // A user-uploaded lottie's url is the JSON itself, so it plays as a looping motion marker
   // (autoplayLottieThumbs mounts it on screen); the ▶ stub is only the pre-mount resting frame.
   // An uploaded track shows its measured waveform once mountAudioThumbs has peaks for it.
-  const thumb = ref.type === 'lottie'
+  const thumb = isMogrtAsset(ref) ? mogrtThumb(ref) : ref.type === 'lottie'
     ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
     : ref.type === 'video'
       ? videoThumb(ref.url, 'asset-picker-thumb')
@@ -3112,6 +3038,8 @@ export async function storeUserUpload(
     batch?: boolean;
   } = {},
 ): Promise<AssetRef> {
+  const special = await (await import('../lib/special-upload.ts')).tryStoreSpecialUpload(host, file);
+  if (special) return special;
   const precision = await (await import('../lib/deep-upload.ts')).preparePrecisionUpload(host,file,o.image);
   if (precision.ref) return precision.ref;
   file = precision.file;

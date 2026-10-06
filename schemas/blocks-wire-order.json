@@ -157,7 +157,9 @@
       "tokenLinks",
       "web",
       "webView",
-      "webLoad"
+      "webLoad",
+      "webCss",
+      "webHideCookies"
     ],
     "diagram-builder:nodes": [
       "shape",
