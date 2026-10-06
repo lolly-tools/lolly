@@ -7,6 +7,7 @@ import type { CollabSession } from '../lib/collab-session.ts';
 import { mountCommentPresence } from './tool-comment-presence.ts';
 import { commentIcon, commentPeople, commentAvatar, commentBubble, commentPin } from './tool-comment-chat.ts';
 import type { CollabColor } from '../lib/collab-colors.ts';
+import { wireCommentPanel } from './tool-comment-panel.ts';
 
 /** Review chrome lives beside the artwork and never changes a tool input. */
 export function mountCanvasComments(runtime: object, capability: CanvasCommentsCapability, stage: HTMLElement, canvas: HTMLElement, _layer: HTMLElement, preview?: (id: string) => { x: number; y: number; w: number; h: number; rot: number } | undefined, session?: CollabSession, colors?: readonly CollabColor[]) {
@@ -17,6 +18,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   const status = doc.createElement('p'); status.setAttribute('role', 'status');
   const list = doc.createElement('div'); list.className = 'collab-comment-list';
   const messages = doc.createElement('div'); messages.className = 'collab-comment-messages';
+  messages.tabIndex = 0; messages.setAttribute('aria-label', t('Conversation'));
   const composer = doc.createElement('form'); composer.className = 'collab-comment-composer'; composer.hidden = true;
   const label = doc.createElement('label'), caption = doc.createElement('span'); caption.className = 'visually-hidden'; caption.textContent = t('Comment or reply'); label.append(caption);
   const input = doc.createElement('textarea'); input.className = 'field-input'; input.maxLength = COMMENT_BODY_LIMIT; input.rows = 2; input.placeholder = t('Comment or reply'); label.className = 'collab-comment-input-label'; label.append(input);
@@ -27,7 +29,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   let disposed = false, busy = false, placing = false, enabled = false, selected: string | undefined, anchor: CommentAnchor | undefined;
   let permissions: CommentPermissions | undefined, threads: CommentThread[] = [], painted = '', draftKey = '', draftTicket = 0, draftFailed = false;
   const pinNodes = new Map<string, HTMLButtonElement>();
-  let listSignature = '';
+  let listSignature = '', followLatest = true;
   let activePoll: Promise<void> | undefined;
   let controlsHost: HTMLElement | undefined;
   let editing: { id: string; body: string } | undefined;
@@ -37,7 +39,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     commentIcon(element, text);
     element.addEventListener('click', action); return element;
   };
-  const close = button('Close comments', () => { panel.hidden = true; placing = false; open.focus(); });
+  const close = button('Close comments', () => { layout.setOpen(false); placing = false; open.focus(); });
   const point = button('Pin a comment', () => { placing = !placing; status.textContent = placing ? t('Choose an object or a point on the canvas.') : ''; });
   const onSelection = button('Comment on selection', () => {
     const surface = collabSurface(runtime), id = surface?.selection()[0];
@@ -53,9 +55,10 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   const back = button('Comments', () => { selected = undefined; anchor = undefined; painted = ''; messages.replaceChildren(); renderList(); renderMessages(); }); back.hidden = true;
   commentIcon(back, 'Comments', 'arrowLeft');
   const reviewTools = doc.createElement('div'); reviewTools.className = 'collab-comment-thread-tools';
-  const header = doc.createElement('header'); header.className = 'collab-comment-head'; header.append(back, heading, reviewTools, close);
-  const actions = doc.createElement('div'); actions.className = 'collab-comment-actions'; actions.append(point, onSelection, atCenter);
+  const header = doc.createElement('header'); header.className = 'collab-comment-head'; header.append(back, heading, close);
+  const actions = doc.createElement('div'); actions.className = 'collab-comment-actions'; actions.append(point, onSelection, atCenter, reviewTools);
   panel.append(header, actions, status, list, messages, composer); stage.append(open, panel);
+  const layout = wireCommentPanel(panel, header, close);
   const presence = session && mountCommentPresence(panel, session, () => selected ?? anchor?.surface ?? 'document');
   function queueDraft(key: string, body: string): void {
     draftChain = draftChain.catch(() => {}).then(() => capability.saveDraft(key, body)).catch(() => {
@@ -74,13 +77,14 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   function start(value: CommentAnchor): void {
     if (!permissions?.create) return;
     anchor = value; selected = undefined; placing = false; painted = ''; messages.replaceChildren();
-    commandId = crypto.randomUUID(); messageId = crypto.randomUUID(); chooseDraft('new'); composer.hidden = false; panel.hidden = false;
+    commandId = crypto.randomUUID(); messageId = crypto.randomUUID(); chooseDraft('new'); composer.hidden = false; layout.setOpen(true);
     renderList(); status.textContent = t('New comment'); input.focus();
   }
   function select(id: string): void {
+    followLatest = true;
     editing = undefined;
     selected = id; anchor = undefined; placing = false; painted = ''; commandId = crypto.randomUUID(); messageId = crypto.randomUUID();
-    chooseDraft(id); panel.hidden = false; renderList(); renderMessages();
+    chooseDraft(id); layout.setOpen(true); renderList(); renderMessages();
     presence?.activate();
   }
   function report(error: unknown): void {
@@ -98,7 +102,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     activePoll = capability.list().then(next => {
       if (disposed) return;
       enabled = next.enabled; permissions = next.permissions; threads = next.threads; open.hidden = !enabled;
-      if (!enabled) { panel.hidden = true; pins.replaceChildren(); pinNodes.clear(); return; }
+      if (!enabled) { layout.setOpen(false); pins.replaceChildren(); pinNodes.clear(); return; }
       input.disabled = false;
       point.hidden = onSelection.hidden = atCenter.hidden = !permissions.create;
       renderList(); renderMessages(); reanchor();
@@ -122,7 +126,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
       const snippet = doc.createElement('span'); snippet.className = 'collab-comment-preview';
       const name = doc.createElement('strong'); name.textContent = thread.authorName;
       const summary = doc.createElement('span'); summary.textContent = item.textContent;
-      snippet.append(name, summary); item.replaceChildren(commentAvatar(doc, thread.authorName, personColor(thread.authorId)), snippet);
+      snippet.append(name, summary); item.replaceChildren(commentAvatar(doc, thread.authorName, personColor(thread.authorId), thread.authorId), snippet);
       item.setAttribute('data-comment-thread', thread.id); item.setAttribute('aria-pressed', String(selected === thread.id)); list.append(item);
     });
   }
@@ -139,6 +143,8 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     const signature = thread ? `${thread.id}:${thread.revision}:${present}:${JSON.stringify(permissions)}` : '';
     if (!thread) { reviewTools.replaceChildren(); return; }
     if (painted === signature) return;
+    const scrollTop = messages.scrollTop;
+    const atEnd = followLatest || messages.scrollHeight - messages.clientHeight - scrollTop < 48;
     reviewTools.replaceChildren();
     painted = signature; messages.replaceChildren();
     const location = button('Show comment location', () => {
@@ -179,6 +185,9 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     }
     if (permissions?.resolveAny || permissions?.create && thread.authorId === permissions.userId)
       reviewTools.append(button(thread.resolvedAt ? 'Reopen thread' : 'Resolve thread', () => { void act(thread, thread.resolvedAt ? 'reopen' : 'resolve'); }));
+    followLatest = false;
+    const settleScroll = () => { if (!disposed) messages.scrollTop = atEnd ? messages.scrollHeight : scrollTop; };
+    if (doc.defaultView?.requestAnimationFrame) doc.defaultView.requestAnimationFrame(settleScroll); else settleScroll();
   }
   composer.addEventListener('submit', event => {
     event.preventDefault(); if (busy || !input.value.trim() || !permissions?.create) return;
@@ -188,6 +197,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     void (thread ? capability.command(thread, 'reply', { messageId, body }) : capability.create(destination!, body, commandId, messageId))
       .then(result => {
         if (disposed) return;
+        followLatest = true;
         queueDraft(draftKey, ''); input.value = ''; selected = result.id; anchor = undefined; draftKey = result.id;
         messageId = crypto.randomUUID(); painted = ''; status.textContent = t('Comment saved.');
       }).catch(report).finally(() => { busy = false; send.disabled = false; void refresh(); });
@@ -206,11 +216,11 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
         y: Math.max(0, Math.min(1, .5 + (dx * Math.sin(rad) + dy * Math.cos(rad)) / object.h)) });
     } else start({ kind: 'canvas', surface: surface.id(), ...point });
   }, { capture: true, signal: abort.signal });
-  open.addEventListener('click', () => { panel.hidden = !panel.hidden; if (!panel.hidden) { void refresh(); close.focus(); } }, { signal: abort.signal });
-  panel.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); panel.hidden = true; placing = false; open.focus(); } }, { signal: abort.signal });
+  open.addEventListener('click', () => { layout.setOpen(panel.hidden); if (!panel.hidden) { void refresh(); close.focus(); } }, { signal: abort.signal });
+  panel.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); layout.setOpen(false); placing = false; open.focus(); } }, { signal: abort.signal });
   function reanchor(): void {
     if (disposed || !enabled) return;
-    if (controlsHost) {
+    if (controlsHost && !layout.positioned()) {
       const host = controlsHost.getBoundingClientRect(), style = doc.defaultView!.getComputedStyle(panel);
       if (host.height) {
         const bounds = stage.getBoundingClientRect(), compact = stage.dataset.designLayout === 'compact';
@@ -256,18 +266,18 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   const timer = setInterval(() => { void refresh(); }, 2_000); void refresh();
   return { reanchor, refresh, async locate(context?: string) {
     if (disposed) return;
-    if (context === undefined) { panel.hidden = true; placing = false; return; }
+    if (context === undefined) { layout.setOpen(false); placing = false; return; }
     await refresh();
     if (disposed || !enabled || session && session.state().connection !== 'live') return;
     if (threads.some(thread => thread.id === context)) { if (selected !== context) select(context); }
     else { selected = undefined; anchor = undefined; messages.replaceChildren(); renderList(); renderMessages(); }
-    panel.hidden = false; close.focus(); presence?.refresh();
+    layout.setOpen(true); close.focus(); presence?.refresh();
   }, dockControls(container: HTMLElement) {
     controlsHost = container;
     open.classList.add('collab-comments-open--docked'); container.append(open);
   }, endAccess() { if (draftKey) queueDraft(draftKey, input.value); report({ status: 403 }); }, teardown() {
     if (disposed) return; disposed = true; if (draftKey) queueDraft(draftKey, input.value);
-    clearInterval(timer); abort.abort(); pins.remove(); panel.remove(); open.remove();
+    clearInterval(timer); abort.abort(); layout.destroy(); pins.remove(); panel.remove(); open.remove();
     presence?.dispose();
   } };
 }

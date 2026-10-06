@@ -124,6 +124,26 @@ function press(key: string, mods: Record<string, unknown> = {}): KeyboardEvent {
 
 const near = (a: number, b: number, eps = 1e-6): boolean => Math.abs(a - b) <= eps;
 
+test('viewport changes reach canvas overlays even without a zoom readout subscriber', () => {
+  const h = mount([{ x: 0, y: 0, w: 960, h: 540 }]);
+  let changes = 0;
+  h.stage.addEventListener('lolly:stage-view', () => changes++);
+  try {
+    press('=');
+    assert.ok(changes > 0, 'zoom publishes a viewport change');
+    const zoomChanges = changes;
+    h.stage.dispatchEvent(new dom.window.WheelEvent('wheel', { deltaX: 100, deltaY: 50, bubbles: true, cancelable: true }));
+    assert.ok(changes > zoomChanges, 'pan publishes a viewport change too');
+    const panel = document.createElement('aside'); panel.className = 'collab-comments-panel'; h.stage.append(panel);
+    const beforeConversationScroll = h.outer.style.transform;
+    const scroll = new dom.window.WheelEvent('wheel', { deltaY: 200, bubbles: true, cancelable: true }); panel.dispatchEvent(scroll);
+    assert.equal(scroll.defaultPrevented, false, 'conversation scrolling remains a normal scroll');
+    assert.equal(h.outer.style.transform, beforeConversationScroll, 'scrolling comments leaves the canvas viewport unchanged');
+    h.nav.fit();
+    assert.ok(changes > zoomChanges + 1, 'fitting the document publishes its new viewport');
+  } finally { h.teardown(); }
+});
+
 test('capture holds a pending initial fit until the preview layout is restored', () => {
   const h = mount([{ x: 0, y: 0, w: 160, h: 120 }]);
   try {

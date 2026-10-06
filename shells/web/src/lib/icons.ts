@@ -378,6 +378,8 @@ const PATHS = {
 
 export type IconName = keyof typeof PATHS;
 
+/** A registry glyph as a namespaced DOM node, without a caller-owned HTML sink. */
+
 /** Shared visual metaphors. Consumers choose a stable concept; the glyph choice
  *  stays here alongside its paths, independent of section titles and copy.
  *  Use `icon(ICON_METAPHORS.colour, opts)` anywhere that concept appears. */

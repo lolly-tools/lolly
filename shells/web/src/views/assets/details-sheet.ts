@@ -11,7 +11,7 @@ import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-prev
  * from openDetails() by scripts/split-closure.ts.
  */
 import { escape as escapeText } from '../../utils.ts';
-import { assetAddedAt, assetModifiedAt } from '../assets-filter.ts';
+import { assetAddedAt, assetModifiedAt, withCatalogFacet } from '../assets-filter.ts';
 import { wireAudioTransport } from '../../lib/audio-transport.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { aiSignalsChip, assetAiKind } from '../../lib/genai-pill.ts';
@@ -46,7 +46,9 @@ import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
 import { bindOp, type DetailsCtx } from './details-context.ts';
+import { mountAssetPreviewStatus } from '../../lib/asset-preview-status.ts';
 import { appPathname } from '../../lib/any-site.ts';
+import { mountAssetFileList } from '../../components/asset-file-list.ts';
 
 /**
  * The rights rows of the details sheet (plan 253, section 7.1): who is credited,
@@ -237,7 +239,7 @@ export function readAsset(dt: DetailsCtx): void {
   const fav = cat.favSet.has(base); dt.fav = fav;
   const hidden = cat.hiddenSet.has(base); dt.hidden = hidden;
   const name = String(ref.meta?.name ?? ref.id); dt.name = name;
-  const tags = (ref.meta?.tags as string[] | undefined) ?? []; dt.tags = tags;
+  const tags = ((ref.meta?.tags as string[] | undefined) ?? []).filter(tag => !tag.startsWith('provider:')); dt.tags = tags;
   const aiKind = assetAiKind(ref); dt.aiKind = aiKind;
   // Offer the credential checker for every asset whose container the reader can
   // inspect (not just AI-flagged ones), plus any AI-flagged asset so its claim can
@@ -547,6 +549,7 @@ export function buildSheet(dt: DetailsCtx): void {
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onClose: () => {
       destroyModelPreview?.();
+      dt.previewStatusDispose?.();
       dt.emojiBrowser?.destroy();
       cat.detailsMeterDispose?.();
       cat.detailsMeterDispose = null;
@@ -577,6 +580,10 @@ export function buildSheet(dt: DetailsCtx): void {
     const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
     if (preview) destroyModelPreview = mountModelPreview(preview, ref);
   }
+  const fileSlot = document.createElement('div');
+  dlg.querySelector('.cat-details-body')?.prepend(fileSlot);
+  mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
+  dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
   cat.detailsDialog = dlg;
   cat.detailsModal = modal;
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
@@ -589,11 +596,12 @@ export function buildSheet(dt: DetailsCtx): void {
 export function paintPassport(dt: DetailsCtx): void {
   const { PASSPORT_CRED_CACHE, TREATMENT_FILTER_PREFIX, cat, dlg, initialTheme, ref, showVerify, themable, treatable } = dt;
   const sourceRef = ref.source === 'remote' && ref.original ? { ...ref, url: ref.original.url, format: ref.original.format } : ref;
-  dt.panels.renderPassport('checking');
+  const skipAutomaticBytes = Number(ref.meta?.bytes ?? ref.meta?.size ?? 0) >= 12_000_000 || !!ref.meta?.provider && !Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
+  dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : 'checking');
   void (async () => {
     const cacheKey = `${ref.id}|${ref.version ?? 'x'}`;
     let cred = PASSPORT_CRED_CACHE.get(cacheKey) ?? null;
-    if (cred === null && !PASSPORT_CRED_CACHE.has(cacheKey)) {
+    if (cred === null && !PASSPORT_CRED_CACHE.has(cacheKey) && !skipAutomaticBytes) {
       try {
         const bytes = new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer());
         const r = await verifyC2pa(bytes);
@@ -602,7 +610,7 @@ export function paintPassport(dt: DetailsCtx): void {
       PASSPORT_CRED_CACHE.set(cacheKey, cred);
     }
     if (cat.detailsDialog !== dlg) return; // paged away while hashing
-    dt.panels.renderPassport(cred);
+    dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : cred);
   })();
 
   // Technical metadata (resolution, DPI, EXIF, audio/video props, page count, viewBox…):
@@ -643,7 +651,7 @@ export function paintPassport(dt: DetailsCtx): void {
   // binds) before the heavier verify. Video/audio are skipped (a whole-file fetch just
   // for a badge isn't worth it - the checker button still covers them). Guarded on the
   // modal still being THIS dialog, since ←/→ paging swaps it out.
-  if (showVerify && ref.type !== 'video' && ref.type !== 'audio' && Number(ref.meta?.bytes ?? 0) < 12_000_000) {
+  if (!skipAutomaticBytes && showVerify && ref.type !== 'video' && ref.type !== 'audio' && Number(ref.meta?.bytes ?? 0) < 12_000_000) {
     void (async () => {
       try {
         const bytes = new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer());
@@ -814,7 +822,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     const tagBtn = target.closest<HTMLElement>('[data-tag]');
     if (tagBtn?.dataset.tag) {
       cat.sections.closeDetails();
-      setSearchBarQuery(`tag:${tagBtn.dataset.tag}`);
+      setSearchBarQuery(withCatalogFacet('', 'tag', tagBtn.dataset.tag));
       return;
     }
     const act = target.closest<HTMLElement>('[data-act]')?.dataset.act;

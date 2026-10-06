@@ -987,10 +987,10 @@ const START_HREF = location.href;
 /** Put the address bar at `href` (same origin) without a navigation. */
 const at = (href: string): void => { history.replaceState(null, '', href); };
 const address = (): string => location.pathname + location.search + location.hash;
-function homePlane(home?: 'tools' | 'projects'): void {
+function homePlane(home?: 'tools' | 'projects', homeUrl?: string): void {
   controlPlane({
     mode: 'gated', session: 'member',
-    orgConfig: { instance: { name: 'Acme' }, inboxUnread: 0, ...(home ? { home } : {}) },
+    orgConfig: { instance: { name: 'Acme' }, inboxUnread: 0, ...(home ? { home } : {}), ...(homeUrl ? { homeUrl } : {}) },
   });
 }
 
@@ -1005,6 +1005,18 @@ test('home view: a member arriving at the bare address opens Projects, replacing
     assert.equal(address(), '/#/p', `${bare} opens Projects`);
     assert.equal(history.length, entries, 'replaced, so Back does not return to the bare address');
   }
+  at(START_HREF);
+});
+
+test('a configured Home URL opens its project on arrival and stays available after navigation', async () => {
+  reset(); at('/'); homePlane('tools', '/#/p?team=prj_demo');
+  await initOrg();
+  assert.equal(address(), '/#/p?team=prj_demo');
+  const { homeHref } = await import('../lib/home-destination.ts');
+  assert.equal(homeHref(), '/#/p?team=prj_demo');
+  at('/#/settings'); await initOrg();
+  assert.equal(address(), '/#/settings');
+  assert.equal(homeHref(), '/#/p?team=prj_demo');
   at(START_HREF);
 });
 

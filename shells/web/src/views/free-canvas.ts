@@ -2018,7 +2018,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       onDirty?.(id);
       runtime.setInput(id, value as InputValue);
     },
-  }; fc.modelPort = modelPort;
+  }; modelPort.collection = blockId; fc.modelPort = modelPort;
 
   const artboardPort: ArtboardPort = {
     active: fc.document.activeArtboardId,
@@ -2193,7 +2193,11 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       const m = fc.stage.metrics();
       return { x: (m.sr.left - m.cr.left) / m.scale, y: (m.sr.top - m.cr.top) / m.scale, zoom: m.scale };
     },
-    subscribe: fn => { const a = selectionPort.onChange(fn); const b = artboardPort.onChange(fn); return () => { a(); b(); }; },
+    subscribe: fn => {
+      const a = selectionPort.onChange(fn), b = artboardPort.onChange(fn);
+      stageEl.addEventListener('lolly:stage-view', fn);
+      return () => { a(); b(); stageEl.removeEventListener('lolly:stage-view', fn); };
+    },
   });
 
   // 3D scene boxes (plan 265 milestone 3, lane B). Exactly one selected scene box becomes

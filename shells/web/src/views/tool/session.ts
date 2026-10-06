@@ -1282,6 +1282,8 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             });
             return;
           }
+          const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
+          if (agentRelayBase()) { showShareDialog(runtime, actionsEl, tview.tool.manifest); return; }
           const [{ openAgentConnect }, editor] = await Promise.all([import('../agent-connect.ts'), liveEditorFactory()]);
           if (!viewEl.isConnected) return;
           openAgentConnect({ viewEl, link: () => agentLink, setLink: (link) => { agentLink = link; }, editor });

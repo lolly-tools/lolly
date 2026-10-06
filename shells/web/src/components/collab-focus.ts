@@ -71,6 +71,9 @@ import { announce as defaultAnnounce } from '../a11y.ts';
 import { currentLang, loadNamespace, tRaw } from '../i18n.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { rowIdField } from '../lib/row-id.ts';
+import { fieldFocusToken, parseFieldFocus } from '../lib/collab-field-focus.ts';
+import { paintAccountAvatar } from '../lib/account-headshots.ts';
+import { collabInitials } from '../lib/collab-identity.ts';
 import type { RowIdInput } from '../lib/row-id.ts';
 import {
   CANVAS_LAYER_CLASS,
@@ -105,6 +108,8 @@ const CSS = `
    the chip stack names whoever is here. Both selectors are two classes deep so
    they out-specify .block-item.is-typed's own ground. */
 .input-row.is-remote-focus,
+.fc-row.is-remote-focus,
+.num-field.is-remote-focus,
 .block-item.is-remote-focus {
   /* The chip stack's containing block. .input-row is already relative (tool.css);
      .block-item is NOT, and without this a per-ROW chip escapes to the top of the
@@ -135,6 +140,7 @@ html[data-a11y-motion="reduce"] .block-item.is-remote-focus { transition: none; 
   pointer-events: none;
 }
 [data-collab-chips] .collab-focus-chip { position: static; }
+.collab-focus-chip [data-initials]::before { content: attr(data-initials); }
 
 /* Fixed ink on the collaborator's ground, for the reason collab-pill.ts's
    .collab-av states: COLLAB_BAND projects every hue into one OKLCH
@@ -216,6 +222,7 @@ function ensureFocusStyles(doc: Document | null | undefined): void {
 
 /** A parsed `Presence.focus`: an input, optionally one row inside it. */
 export interface FocusTarget {
+  readonly field?: string;
   readonly inputId: string;
   /** The row's STABLE id, or null when the focus is the whole input. */
   readonly rowId: string | null;
@@ -234,6 +241,8 @@ export function parseFocus(focus: string | null | undefined): FocusTarget | null
   if (typeof focus !== 'string') return null;
   const s = focus.trim();
   if (!s) return null;
+  const property = parseFieldFocus(s);
+  if (property) return property;
   const i = s.lastIndexOf(':');
   if (i <= 0 || i === s.length - 1) return { inputId: s, rowId: null };
   return { inputId: s.slice(0, i), rowId: s.slice(i + 1) };
@@ -271,6 +280,7 @@ export function blockRowIndex(item: RowIdInput | null | undefined, rowId: string
 
 /** One collaborator, as far as focus decoration is concerned. */
 export interface FocusPeer {
+  readonly userId?: string;
   /** The peer's collab client id - the decoration key. */
   readonly id: string;
   readonly name: string;
@@ -461,6 +471,11 @@ export function createCollabFocus(opts: CollabFocusOptions = {}): CollabFocus {
   /** The sidebar node a focus target rings: the row, or the block card inside it. */
   function sidebarTarget(target: FocusTarget): HTMLElement | null {
     if (!sidebar) return null;
+    if (target.field && target.rowId) {
+      const token = fieldFocusToken(target.inputId, target.rowId, target.field);
+      const control = scanByData(sidebar, '[data-collab-focus]', el => el.dataset.collabFocus, token);
+      if (control) return control.closest<HTMLElement>('.num-field, .fc-row') ?? control.parentElement;
+    }
     const control = scanByData(sidebar, '[data-input-id]', el => el.dataset.inputId, target.inputId);
     if (!control) return null;
     if (target.rowId === null) return control.closest<HTMLElement>('.input-row') ?? control;
@@ -563,7 +578,12 @@ export function createCollabFocus(opts: CollabFocusOptions = {}): CollabFocus {
       chip.className = 'collab-focus-chip';
       chip.style.setProperty('--collab-color', entry.peer.color);
       // textContent, never innerHTML: display names arrive over the wire (section 11.21).
-      chip.textContent = entry.peer.name;
+      const avatar = el.ownerDocument.createElement('span'), name = el.ownerDocument.createElement('span');
+      avatar.style.cssText = 'display:inline-grid;place-items:center;flex:none;width:18px;height:18px;border-radius:50%;overflow:hidden';
+      avatar.dataset.initials = collabInitials(entry.peer.name);
+      if (entry.peer.userId) paintAccountAvatar(avatar, entry.peer.userId);
+      name.textContent = entry.peer.name; chip.append(avatar, name);
+      chip.style.display = 'inline-flex'; chip.style.alignItems = 'center'; chip.style.gap = '4px';
       stack.appendChild(chip);
     }
   }

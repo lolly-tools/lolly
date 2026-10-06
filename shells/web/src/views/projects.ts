@@ -29,6 +29,7 @@ import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } fr
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
+import { groupSelectionInFolder } from './projects-folder-create.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
 import type { Folder, FolderItem, TrashEntry, ProjectTemplate } from '../folders.ts';
 import { PTPL_SLOT_PREFIX, isHiddenSlot } from '../lib/batch-slots.ts';
@@ -1160,6 +1161,7 @@ export async function mountProjects(
       if (cbtn) {
         const kind = cbtn.dataset.createBtn;
         if (kind === 'folder') {
+          if (sharedFolder) { shared.createFolder(); return; }
           const name = await promptFolderName();
           if (name && mounted) { await store.create(name, currentFolderTarget()); await reload(); render(); }
         } else if (kind === 'template') void openBlueprintChooser();
@@ -1305,17 +1307,17 @@ export async function mountProjects(
 
   const tileSelect = wireTileSelect({
     host: viewEl,
-    tiles: selectableTiles,
+    tiles: () => sharedFolder ? [] : selectableTiles(),
     refOf: (t) => t.dataset.ref!,
     current: () => new Set(selected.keys()),
     setRefs: applySelectionRefs,
     clear: () => { dropSelection(); render(); },
     // Never start a box on a tile, control, chip, bar, breadcrumb, etc. - only in a gap.
-    noStart: '.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar',
+    noStart: sharedFolder ? '*' : '.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar',
     // Keyboard grid (plans/133 WP-3 + WP-13): arrows/Space/Cmd-A come from the shared
     // model; Delete routes through the Trash path, F2 into the inline renames, the
     // Menu key opens the tile's menu, Cmd-I its info sheet, Cmd-X/C/V the clipboard.
-    keyboard: {
+    keyboard: sharedFolder ? undefined : {
       remove: (refs) => {
         selected.clear();
         for (const ref of refs) selected.set(ref, kindOfRef(ref));
@@ -1581,6 +1583,7 @@ export async function mountProjects(
   }
   async function onBackgroundAction(act: string): Promise<void> {
     if (act === 'new-folder') {
+      if (sharedFolder) { shared.createFolder(); return; }
       // The create tile's inline editor where there is one; Uncategorised and the
       // ?tools= grid render no create tiles, so they get the name prompt instead.
       const tile = viewEl.querySelector<HTMLElement>('[data-create="folder"]');
@@ -2692,14 +2695,11 @@ export async function mountProjects(
   }
 
   async function newFolderFromSelection(): Promise<void> {
+    if (sharedFolder) { shared.createFolder(); return; }
     if (!selected.size) return;
     const name = await promptFolderName();
     if (!name || !mounted) return;
-    const parent = (folderId && folderId !== UNCAT) ? folderId : null;
-    const created = await store.create(name, parent);
-    for (const ref of selectedByKind('session')) await store.moveItem(ref, created.id, 'session');
-    for (const ref of selectedByKind('image'))   await store.moveItem(ref, created.id, 'image');
-    for (const id of topLevelSelectedFolders()) { if (id !== created.id) await store.moveFolder(id, created.id); }
+    await groupSelectionInFolder(store, name, (folderId && folderId !== UNCAT) ? folderId : null, { sessions: selectedByKind('session'), images: selectedByKind('image'), folders: topLevelSelectedFolders() });
     dropSelection();
     if (!mounted) return;
     await reload(); render();

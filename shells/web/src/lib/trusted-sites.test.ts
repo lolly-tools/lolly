@@ -7,6 +7,7 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Profile } from '@lolly-tools/core/host-v1';
+import { DEFAULT_REFERENCE_SITES } from '../../../../engine/src/trusted-sites.ts';
 import { failClosedSitePolicy, setSitePolicy, sitePolicy } from './site-policy.ts';
 import {
   canTrustMore, initTrustedSites, resetTrustedSitesForTest, setBrandTrustedSites, siteVerdict, trustSite, trustedSiteRows, untrustSite,
@@ -48,7 +49,7 @@ test('brand entries apply until the person edits the list, and a removal sticks'
   await untrustSite('*.suse.com');
   assert.equal(siteVerdict('https://www.suse.com/').state, 'ask', 'removed, and the brand default is not merged back');
   assert.equal(host.record.trustedSitesSeeded, true);
-  assert.deepEqual(host.record.trustedSites, []);
+  assert.deepEqual(host.record.trustedSites, [...DEFAULT_REFERENCE_SITES]);
 });
 
 test('"Always trust" writes the stored form once, and refuses what is not an entry', async () => {
@@ -56,9 +57,24 @@ test('"Always trust" writes the stored form once, and refuses what is not an ent
   await initTrustedSites(host);
   assert.equal(await trustSite('https://Vimeo.com/'), 'vimeo.com');
   assert.equal(await trustSite('vimeo.com'), 'vimeo.com');
-  assert.deepEqual(host.record.trustedSites, ['vimeo.com']);
+  assert.deepEqual(host.record.trustedSites, [...DEFAULT_REFERENCE_SITES, 'vimeo.com']);
   assert.equal(await trustSite('http://vimeo.com'), null);
   assert.equal(siteVerdict('https://vimeo.com/1').state, 'trusted');
+});
+
+test('reference defaults admit Wikimedia and language Wikipedias, never lookalikes; removals and policy blocks stick', async () => {
+  const host = fakeHost(); await initTrustedSites(host);
+  for (const url of ['https://commons.wikimedia.org/wiki/Main_Page', 'https://upload.wikimedia.org/wikipedia/test.jpg', 'https://fr.wikipedia.org/wiki/Accueil', 'https://www.openstreetmap.org/']) {
+    assert.equal(siteVerdict(url).source, 'default');
+  }
+  for (const url of ['https://en.wikipedia.org.attacker.example/', 'https://notwikipedia.org/', 'http://en.wikipedia.org/', 'https://login.wikimedia.org/']) assert.equal(siteVerdict(url).state, 'ask');
+  await untrustSite('*.wikipedia.org');
+  assert.equal(siteVerdict('https://en.wikipedia.org/wiki/Main_Page').state, 'ask');
+  assert.equal(siteVerdict('https://commons.wikimedia.org/').source, 'default');
+  setSitePolicy({ mode: 'open', block: ['commons.wikimedia.org'] });
+  assert.equal(siteVerdict('https://commons.wikimedia.org/').state, 'blocked');
+  setSitePolicy({ mode: 'allowlist-only', allow: [] });
+  assert.equal(siteVerdict('https://fr.wikipedia.org/').state, 'blocked');
 });
 
 test('an organisation block wins over its own allow and over the person', async () => {

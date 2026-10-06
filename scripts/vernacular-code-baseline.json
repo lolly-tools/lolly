@@ -427,7 +427,7 @@
   "shells/web/src/brand-vars.ts": 7,
   "shells/web/src/bridge/asset-ref-collector.ts": 2,
   "shells/web/src/bridge/assets-credential-capture.test.ts": 3,
-  "shells/web/src/bridge/assets.ts": 13,
+  "shells/web/src/bridge/assets.ts": 12,
   "shells/web/src/bridge/audio-clean-run.ts": 1,
   "shells/web/src/bridge/audio-envelope.test.ts": 1,
   "shells/web/src/bridge/audio-envelope.ts": 9,

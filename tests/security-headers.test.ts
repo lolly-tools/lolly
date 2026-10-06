@@ -210,7 +210,7 @@ test('the directives that carry the security value are present', () => {
   // connect-src is holding, which is this policy's entire stated value. The cost
   // of keeping it closed is community/url-shot's live composer preview, whose
   // capture path runs in the extension/desktop shell anyway. Design's web page boxes
-  // (plan 288 D2) add NAMED video and map players only, which run no author code, so
+  // (plan 288 D2) add NAMED players and public reference sources, so
   // a URL to them cannot be read back by whoever wrote it; any site that runs
   // author-written code (CodePen, StackBlitz) stays out, because it would reopen the
   // channel this comment describes. engine/src/web-embed.ts HOSTED_FRAME_ORIGINS is

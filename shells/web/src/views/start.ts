@@ -333,6 +333,9 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   start.overview = null as StartCtx['overview'];
   start.versions = null as StartCtx['versions'];
 
+  let importReady!: () => void;
+  start.importReady = new Promise<void>(resolve => { importReady = resolve; });
+
   await start.brand.mountEditor();
   const editorRoot = editorMount.querySelector<HTMLElement>('[data-brand-editor]'); start.editorRoot = editorRoot;
 
@@ -568,4 +571,5 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   start.tokens.wireTokenReview();
 
   start.lifecycle.wireCleanup();
+  importReady();
 }

@@ -52,3 +52,33 @@ test('an archived projection restores declared row IDs and keeps compound fields
   assert.deepEqual(values, { title: 'Draft', boxes: [{ uid: 'one', x: 90, effect: { blur: 2 } }] });
   assert.equal((model[0]!.value as { x: number }[])[0]!.x, 5);
 });
+
+test('a safely stored recovery notice clears after five seconds, keeping its Projects copy', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const dom = new JSDOM('<div></div>'), stage = dom.window.document.querySelector('div')!, saved = new Map<string, object>(), runtime = {};
+  const host = { state: { load: async (id: string) => saved.get(id), save: async (id: string, value: object) => { saved.set(id, value); } } } as unknown as HostV1;
+  const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: {} }));
+  try {
+    retainCanvasRecovery(runtime, { title: 'Keep me' }, 'Interrupted text', 'brief');
+    await new Promise(resolve => setImmediate(resolve));
+    const notice = stage.querySelector<HTMLElement>('.collab-recovery')!;
+    assert.equal(notice.hidden, false); t.mock.timers.tick(4_999); assert.equal(notice.hidden, false);
+    t.mock.timers.tick(1); assert.equal(notice.hidden, true); assert.ok(saved.has('collab-recovery:brief'));
+  } finally { ui.teardown(); dom.window.close(); }
+});
+
+test('storage retries automatically and clears only after the retry safely saves the draft', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const dom = new JSDOM('<div></div>'), stage = dom.window.document.querySelector('div')!, runtime = {};
+  let attempts = 0, stored: unknown;
+  const host = { state: { load: async () => stored, save: async (_id: string, value: unknown) => { if (++attempts === 1) throw Error('temporary'); stored = value; } } } as unknown as HostV1;
+  const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: {} }));
+  try {
+    retainCanvasRecovery(runtime, { title: 'Retry safely' }, 'Interrupted text');
+    await new Promise(resolve => setImmediate(resolve));
+    const notice = stage.querySelector<HTMLElement>('.collab-recovery')!;
+    assert.match(notice.textContent!, /could not be saved/); t.mock.timers.tick(2_000);
+    await new Promise(resolve => setImmediate(resolve)); assert.equal(attempts, 2); assert.match(notice.textContent!, /saved on this device/);
+    t.mock.timers.tick(5_000); assert.equal(notice.hidden, true); assert.equal((stored as { title: string }).title, 'Retry safely');
+  } finally { ui.teardown(); dom.window.close(); }
+});

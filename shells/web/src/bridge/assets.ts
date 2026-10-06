@@ -14,7 +14,7 @@
  *   - on-demand → fetched lazily, then cached
  */
 
-import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers } from '../../../../engine/src/asset-modifiers.ts';
+import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers, parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
 import type { GradeLut } from '../../../../engine/src/grade.ts';
 // c2pa-verify is LAZY on purpose. It is the entry to the whole provenance
 // cluster (c2pa + c2pa-extract + c2pa-containers + c2pa-verdict + c2pa-trust +
@@ -39,7 +39,6 @@ import { isZzfxmRef, parseZzfxmRef, formatZzfxmRef } from '../../../../engine/sr
 // The engine leaf, like the imports above: the web bridge, the MCP server and
 // the CLI all apply this one predicate instead of each writing the rule out.
 import { pickHeadAssetId } from '../../../../engine/src/design-version.ts';
-import { designMaterialOf } from '../../../../engine/src/design-system.ts';
 // Where copy-on-write parks bytes a published version pins. Imported (not
 // re-spelled) so the listing filter below and the preserver that writes them can
 // never disagree about which rows are machine-owned.
@@ -67,7 +66,7 @@ interface AssetFormat {
 }
 
 /** A catalog asset's stored metadata (the 'asset-meta' IDB store). */
-interface AssetMetaRecord {
+export interface AssetMetaRecord {
   id: string;
   type: AssetRef['type'];
   name?: string;
@@ -111,8 +110,13 @@ interface AssetMetaRecord {
   formats: AssetFormat[];
 }
 
+/** File choices load with an actual file selection, rather than at app boot. */
+async function fileMeta(meta: AssetMetaRecord, file: string | null): Promise<AssetMetaRecord> {
+  return file ? (await import('./asset-file-meta.ts')).selectedFileMeta(meta, file) : meta;
+}
+
 /** A user-uploaded asset (the 'user-assets' IDB store) - already resolved to one blob/format. */
-interface UserAssetRecord {
+export interface UserAssetRecord {
   id: string;
   type: AssetRef['type'];
   format: string;
@@ -184,7 +188,7 @@ interface AssetsTx {
 }
 
 /** The slice of the idb database this API touches (the asset-* + user-assets stores). */
-interface AssetsDb {
+export interface AssetsDb {
   get(store: 'profile', key: string): Promise<unknown>;
   get(store: 'user-assets', id: string): Promise<UserAssetRecord | undefined>;
   get(store: 'asset-meta', id: string): Promise<AssetMetaRecord | undefined>;
@@ -503,9 +507,10 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
       const { baseId: treatedBase, treatment } = parseTreatedAssetId(id);
       const baseId = theme ? themedBase : treatedBase;
-
-      const currentMeta = await db.get('asset-meta', baseId);
-      if (!currentMeta) throw new Error(`Asset not in catalog: ${id}`);
+      const parsedFile = parseFileAssetId(baseId);
+      const storedMeta = await db.get('asset-meta', parsedFile.baseId);
+      if (!storedMeta) throw new Error(`Asset not in catalog: ${id}`);
+      const currentMeta = await fileMeta(storedMeta, parsedFile.file);
       const historical = opts.version !== undefined && opts.version !== currentMeta.version;
       const meta = historical ? { ...currentMeta, version: opts.version!, checksum: undefined } : currentMeta;
 
@@ -521,6 +526,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const durationMs = typeof format.durationMs === 'number' && Number.isFinite(format.durationMs) && format.durationMs > 0
         ? format.durationMs : undefined;
       const refMeta = {
+        ...withoutReservedMeta(meta.meta),
         name: meta.name,
         tags: meta.tags,
         ...(meta.type === 'model' ? { posterUrl: meta.formats.find(f => /^(thumb|png|webp|jpe?g)$/i.test(f.format))?.url || '' } : {}),
@@ -863,7 +869,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     },
 
     async _listUserAssetVersions(id: string) {
-      return (await (await assetHistory()).listUserAssetVersions(db, id)).map(({ record, ...version }) => ({ ...version, name: String(record.meta?.name || id), format: record.format }));
+      return (await import('./asset-cache-maintenance.ts')).listNamedUserAssetVersions(db, id);
     },
     async _restoreUserAssetVersion(id: string, version: string): Promise<void> {
       const snapshot = await (await assetHistory()).readUserAssetVersion(db, id, version);
@@ -953,14 +959,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      *  Personal uploads and shared frozen bytes belong to no system and are not
      *  counted here; the storage UI shows them in their own rows. */
     async _designMaterialSizes(): Promise<Record<string, number>> {
-      const all = await db.getAll('user-assets');
-      const out: Record<string, number> = {};
-      for (const r of all) {
-        const material = designMaterialOf(String(r?.id ?? ''));
-        if (!material) continue;
-        out[material.systemId] = (out[material.systemId] ?? 0) + (r?.blob?.size ?? 0);
-      }
-      return out;
+      return (await import('./asset-cache-maintenance.ts')).designMaterialSizes(db);
     },
 
     /**
@@ -978,23 +977,12 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * since, and a Trash move never re-dates one already there.
      */
     async _setUserAssetTrashed(id: string, trashedAt: string | null, setOpts: { expect?: string | null } = {}): Promise<boolean> {
-      const rec = await db.get('user-assets', id);
-      if (!rec) return false;
-      if (setOpts.expect !== undefined && (rec.trashedAt ?? null) !== setOpts.expect) return false;
-      if (trashedAt) rec.trashedAt = trashedAt; else delete rec.trashedAt;
-      await db.put('user-assets', rec);
-      return true;
+      return (await import('./asset-cache-maintenance.ts')).setUserAssetTrashed(db, id, trashedAt, setOpts);
     },
 
     /** Internal: the uploads now in the Trash, for the Trash view and its sweep. */
     async _listTrashedUserAssets(): Promise<TrashedUserAssetRow[]> {
-      return (await db.getAll('user-assets'))
-        .filter(r => typeof r.trashedAt === 'string' && r.trashedAt)
-        .map(r => ({
-          id: r.id, type: r.type, name: String(r.meta?.name ?? r.id.split('/').pop() ?? r.id),
-          ...(typeof r.meta?.family === 'string' ? { family: r.meta.family } : {}),
-          trashedAt: r.trashedAt!, bytes: r.blob?.size ?? 0,
-        }));
+      return (await import('./asset-cache-maintenance.ts')).listTrashedUserAssets(db);
     },
 
     /** Internal: delete one user image and revoke its cached object URL. */
@@ -1056,12 +1044,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * is gone.
      */
     async _renameUserAsset(id: string, name: string): Promise<void> {
-      const rec = await db.get('user-assets', id);
-      if (!rec) return;
-      // A metadata edit is an edit: stamp it, so the newer-copy import rule
-      // (lib/backup-sessions.ts) carries it to another browser (plan 277 P7).
-      rec.meta = { ...rec.meta, name, modifiedAt: Date.now() };
-      await db.put('user-assets', rec);
+      return (await import('./asset-cache-maintenance.ts')).renameUserAsset(db, id, name);
     },
 
     /**
@@ -1080,20 +1063,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * gone.
      */
     async _updateUserAssetMeta(id: string, meta: Record<string, unknown>, patch: { aiGenerated?: 'full' | 'partial' | null } = {}): Promise<void> {
-      const rec = await db.get('user-assets', id);
-      if (!rec) return;
-      rec.meta = { ...meta, modifiedAt: Date.now() };   // an edit, stamped like a rename
-      // null WITHDRAWS a declaration (the catalog's Origins control): the
-      // record-level flag and its memo go, so the next list re-derives from
-      // the file's own credential - a signed declaration cannot be cleared
-      // away, only a user's assertion can.
-      if (patch.aiGenerated === null) {
-        delete rec.aiGenerated;
-        AI_KIND_MEMO.delete(id);
-      } else if (patch.aiGenerated) {
-        rec.aiGenerated = patch.aiGenerated;
-      }
-      await db.put('user-assets', rec);
+      return (await import('./asset-cache-maintenance.ts')).updateUserAssetMeta(db, id, meta, patch, key => { AI_KIND_MEMO.delete(key); });
     },
 
     /**
@@ -1138,32 +1108,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       replaceOpts: { keepModifiedAt?: boolean } = {},
     ): Promise<void> {
       await opts.preservePinned?.(id);
-      const rec = await db.get('user-assets', id);
-      if (!rec) return;
-      await assertQuotaRoom(patch.blob.size); // the old bytes remain in version history
-      const previousVersion = rec.version;
-      rec.blob = patch.blob;
-      if (patch.credential && patch.credentialFormat) {
-        rec.credential = patch.credential;
-        rec.credentialFormat = patch.credentialFormat;
-      } else {
-        delete rec.credential;
-        delete rec.credentialFormat;
-      }
-      // The AI-kind memo is keyed by id and valid only while the bytes under
-      // that id do not change. These bytes just changed.
-      AI_KIND_MEMO.delete(id);
-      rec.meta = { ...rec.meta, ...patch.meta, bytes: patch.blob.size,
-        ...(replaceOpts.keepModifiedAt ? {} : { modifiedAt: Date.now() }) };
-      rec.version = String(Date.now());   // cache-buster - object URLs key on id:format:version
-      await (await assetHistory()).writeVersionedUserAsset(db, rec, previousVersion);
-      // The bump only stops a NEW ref from reusing the old URL; the old URL
-      // itself stays in the cache and keeps resolving to bytes that no longer
-      // exist, so anything still holding it plays the previous take. Revoke
-      // them here, the same way a delete does, and let holders re-resolve
-      // through get() - a regenerated voiceover whose box still pointed at the
-      // pre-rewrite URL played the old audio under the new cuts.
-      evictObjectUrlsByPrefix(`user:${id}:`);
+      const { replaceUserAssetBytes } = await import('./asset-cache-maintenance.ts');
+      return replaceUserAssetBytes(db, id, patch, replaceOpts, QUOTA_SAFETY_FRACTION, { clearMemo: key => { AI_KIND_MEMO.delete(key); }, evictPrefix: evictObjectUrlsByPrefix });
     },
 
     /**
@@ -1171,21 +1117,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Not part of the public HostV1 bridge contract.
      */
     async _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null }): Promise<void> {
-      const old = new Map((await db.getAll('asset-meta')).map(meta => [meta.id, meta]));
-      for (const incoming of assets) {
-        const previous = old.get(incoming.id);
-        if (!previous || previous.version !== incoming.version || JSON.stringify(previous.formats) === JSON.stringify(incoming.formats)) continue;
-        for (const format of previous.formats) {
-          const key = `${previous.id}:${format.format}:${previous.version}`;
-          await db.delete('asset-blob', key);
-          inFlight.delete(key);
-          evictObjectUrlsByPrefix(`library:${key}`);
-        }
-      }
-      const tx = db.transaction('asset-meta', 'readwrite');
-      await Promise.all(assets.map(a => tx.store.put(a)));
-      await tx.done;
-      if (source) await db.put('profile', source, 'catalog-source');
+      const { syncAssetIndex } = await import('./asset-cache-maintenance.ts');
+      await syncAssetIndex(db, assets, source, key => { inFlight.delete(key); evictObjectUrlsByPrefix(`library:${key}`); });
       ICON_THEMES_CACHE = null;       // the icon-themes palette may have changed
       PHOTO_TREATMENTS_CACHE = null;  // …as may the photo-treatments palette
     },
@@ -1249,8 +1182,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (id.startsWith('user/')) {
         return (await (await assetHistory()).readUserAssetVersion(db, id, opts.version))?.blob ?? null;
       }
-      const meta = await db.get('asset-meta', id);
-      if (!meta) return null;
+      const parsedFile = parseFileAssetId(id);
+      const storedMeta = await db.get('asset-meta', parsedFile.baseId);
+      if (!storedMeta) return null;
+      let meta: AssetMetaRecord;
+      try { meta = await fileMeta(storedMeta, parsedFile.file); } catch { return null; }
       const format = pickFormat(meta, opts.format);
       if (opts.format && format.format !== opts.format) return null;
       const version = opts.version ?? meta.version;
@@ -1343,93 +1279,15 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Returns { blobs, meta } counts of records deleted.
      */
     async _pruneStale(currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string> = new Set(), keepIds: Set<string> = new Set()): Promise<{ blobs: number; meta: number }> {
-      // All keys that exist at the current catalog version.
-      const currentVersionKeys = new Set(
-        currentAssets.flatMap(a => a.formats.map(f => `${a.id}:${f.format}:${a.version}`)),
-      );
-
-      // Core-tier blobs are kept unconditionally (needed for offline).
-      const keepBlobKeys = new Set(
-        currentAssets
-          .filter(a => a.tier === 'core')
-          .flatMap(a => a.formats.map(f => `${a.id}:${f.format}:${a.version}`)),
-      );
-
-      // Non-core blobs are kept only if a saved session references them (and they're current).
-      for (const key of sessionBlobKeys) {
-        if (currentVersionKeys.has(key)) keepBlobKeys.add(key);
-      }
-
-      const validIds = new Set(currentAssets.map(a => a.id));
-
-      const [allBlobKeys, allMetaKeys] = await Promise.all([
-        db.getAllKeys('asset-blob'),
-        db.getAllKeys('asset-meta'),
-      ]);
-
-      // keepIds: asset ids whose blobs must survive a catalog version bump,
-      // the offline-download and pinned-tool sets. Version-exact refs would
-      // let the bump prune these blobs BEFORE the idle re-prefetch has
-      // fetched the new version; if that re-fetch then fails (flaky airport
-      // wifi is this feature's home turf), the user's explicit download
-      // would be gone. So an OLD-version blob of a kept id survives exactly
-      // until the current-version copy is actually on device, then it
-      // prunes like anything else, so kept ids don't accumulate one blob per
-      // version forever.
-      const presentBlobKeys = new Set(allBlobKeys as string[]);
-      const currentKeyFor = new Map<string, string>();  // `${id}:${format}` → current-version key
-      for (const a of currentAssets) {
-        for (const f of a.formats) currentKeyFor.set(`${a.id}:${f.format}`, `${a.id}:${f.format}:${a.version}`);
-      }
-      const keptById = (k: string): boolean => {
-        for (const id of keepIds) {
-          if (!k.startsWith(`${id}:`)) continue;
-          const idFormat = k.slice(0, k.lastIndexOf(':'));
-          const current = currentKeyFor.get(idFormat);
-          return !current || !presentBlobKeys.has(current) || k === current;
-        }
-        return false;
-      };
-      const staleBlobs = allBlobKeys.filter(k => !keepBlobKeys.has(k) && !(keepIds.size && keptById(k)));
-      const staleMeta  = allMetaKeys.filter(k => !validIds.has(k));
-
-      if (staleBlobs.length) {
-        const tx = db.transaction('asset-blob', 'readwrite');
-        await Promise.all(staleBlobs.map(k => tx.store.delete(k)));
-        await tx.done;
-        // Revoke whatever live object URLs minted for these now-deleted blobs.
-        // toAssetRef keys library URLs as `library:<blobKey>` and themed
-        // icon bakes as `library:<blobKey>:t:<theme>:<colours>`. Evict both
-        // forms, or the OBJECT_URL_CACHE leaks one entry per pruned blob per
-        // sync.
-        for (const k of staleBlobs) {
-          evictObjectUrl(`library:${k}`);
-          evictObjectUrlsByPrefix(`library:${k}:t:`);   // themed icon bakes
-          evictObjectUrlsByPrefix(`library:${k}:pt:`);  // photo treatment bakes
-          evictObjectUrlsByPrefix(`library:${k}:look:`); // photo look bakes (plan 291 W7)
-        }
-      }
-      if (staleMeta.length) {
-        const tx = db.transaction('asset-meta', 'readwrite');
-        await Promise.all(staleMeta.map(k => tx.store.delete(k)));
-        await tx.done;
-      }
-
-      return { blobs: staleBlobs.length, meta: staleMeta.length };
+      const { pruneAssetCache } = await import('./asset-cache-maintenance.ts');
+      return pruneAssetCache(db, currentAssets, sessionBlobKeys, keepIds, { evict: evictObjectUrl, evictPrefix: evictObjectUrlsByPrefix });
     },
 
     // v1.183: the bytes behind a ref - blob:, data: and same-origin urls all
     // answer to the page's fetch; a foreign origin is refused so this is never
     // a way around host.net's allowlist.
     async bytes(target: AssetRef | string): Promise<Uint8Array> {
-      const url = typeof target === 'string' ? target : target.original?.url ?? target.url;
-      if (!url) throw new Error('asset has no url');
-      const ok = url.startsWith('blob:') || url.startsWith('data:') || url.startsWith('/')
-        || (typeof location !== 'undefined' && url.startsWith(location.origin + '/'));
-      if (!ok) throw new Error(`host.assets.bytes: ${url.slice(0, 40)} is not an asset url of this origin - use host.net.fetch with an allowlist`);
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`host.assets.bytes: HTTP ${res.status}`);
-      return new Uint8Array(await res.arrayBuffer());
+      return (await import('./asset-cache-maintenance.ts')).assetBytes(target);
     },
 
     async isAvailable(id: string): Promise<boolean> {
@@ -1456,29 +1314,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     // (v1.31), cached per id, since the bytes are immutable for a given
     // version.
     async credential(id: string): Promise<{ store: Uint8Array; format: string } | null> {
-      // A procedural ref names a song that is COMPOSED on demand - there are no
-      // stored bytes to carry a credential, and fetching the scheme only produces
-      // the browser's own "cannot load" console error before the catch below.
-      if (isZzfxmRef(id)) return null;
-      if (id.startsWith('user/')) {
-        const rec = await db.get('user-assets', id);
-        if (!rec?.credential || !rec.credentialFormat) return null;
-        return { store: rec.credential, format: rec.credentialFormat };
-      }
-      const cached = CREDENTIAL_CACHE.get(id);
-      if (cached !== undefined) return cached;
-      let out: { store: Uint8Array; format: string } | null = null;
-      try {
-        const ref = await api.get(stripAssetModifiers(id));
-        const blob = await (await fetch(ref.url)).blob();
-        if (blob.size <= MAX_CREDENTIAL_SCAN_BYTES) {
-          const { extractC2paStore } = await loadC2paVerify();
-          const ex = extractC2paStore(new Uint8Array(await blob.arrayBuffer()));
-          if (ex) out = { store: ex.store, format: ex.format };
-        }
-      } catch { /* unresolvable asset → no credential */ }
-      CREDENTIAL_CACHE.set(id, out);
-      return out;
+      const { assetCredential } = await import('./asset-cache-maintenance.ts');
+      return assetCredential(db, id, key => api.get(key), CREDENTIAL_CACHE, MAX_CREDENTIAL_SCAN_BYTES);
     },
   };
   return api;
@@ -1539,16 +1376,6 @@ function evictObjectUrlsByPrefix(prefix: string): void {
   }
 }
 
-interface UserAssetError extends Error {
-  code: string;
-}
-
-function userAssetError(message: string, code: string): UserAssetError {
-  const err = new Error(message) as UserAssetError;
-  err.code = code;
-  return err;
-}
-
 /**
  * Best-effort quota guard. Throws STORAGE_FULL if writing `incomingBytes`
  * would push usage past the safety fraction of the quota. If the platform
@@ -1571,20 +1398,7 @@ export async function captureUserAssetCredentials(record: UserAssetRecord): Prom
 }
 
 export async function assertQuotaRoom(incomingBytes: number): Promise<void> {
-  let est: StorageEstimate | undefined;
-  try {
-    est = await navigator.storage?.estimate?.();
-  } catch {
-    return; // estimate() failing must not block uploads.
-  }
-  if (!est || !est.quota) return;
-  const projected = (est.usage ?? 0) + incomingBytes;
-  if (projected > est.quota * QUOTA_SAFETY_FRACTION) {
-    throw userAssetError(
-      'Not enough local storage space for this image. Remove some saved images or sessions and try again.',
-      'STORAGE_FULL',
-    );
-  }
+  return (await import('./asset-cache-maintenance.ts')).checkQuotaRoom(incomingBytes, QUOTA_SAFETY_FRACTION);
 }
 
 function pickFormat(meta: AssetMetaRecord, requested?: string): AssetFormat {
@@ -1713,7 +1527,8 @@ async function fetchAndCache(meta: AssetMetaRecord, format: AssetFormat, blobKey
   // Downloaded catalog bytes remain usable when the browser refuses its cache
   // (for example, WebKit cannot persist a Blob). User uploads still require a save.
   try {
-    const current = await db.get('asset-meta', meta.id);
+    const parsed = parseFileAssetId(meta.id), stored = await db.get('asset-meta', parsed.baseId);
+    const current = stored && await fileMeta(stored, parsed.file);
     if (current && current.version === meta.version && JSON.stringify(current.formats) === JSON.stringify(meta.formats)) await db.put('asset-blob', blob, blobKey);
   }
   catch (error) { console.warn('Asset cache write failed; using verified downloaded bytes', meta.id, error); }

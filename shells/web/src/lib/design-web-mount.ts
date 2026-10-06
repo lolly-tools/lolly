@@ -46,6 +46,8 @@ export interface WebMountOptions {
   mode: WebMountMode;
   /** Present mode: whether this marker's frame should be loaded now. */
   shouldBeLive?: (marker: HTMLElement) => boolean;
+  /** A preloaded player stays paused until its slide becomes current. */
+  shouldPlay?: (marker: HTMLElement) => boolean;
   knownTool?: (id: string) => boolean;
 }
 
@@ -55,11 +57,34 @@ const REMOUNT_QUIET_MS = 700;
 
 /** Sites agreed to "just this time", by origin: this session only. "Always trust" writes
  *  to the person's trusted sites instead (lib/trusted-sites.ts). */
-const consented = new Set<string>();
+const CONSENT_KEY = 'lolly:web-consent';
+function sessionConsents(): string[] {
+  try {
+    const stored: unknown = JSON.parse(window.sessionStorage.getItem(CONSENT_KEY) ?? '[]');
+    return Array.isArray(stored) ? stored.slice(0, 128).filter((value): value is string => {
+      if (typeof value !== 'string' || value.length > 512) return false;
+      const url = new URL(value);
+      return url.origin === value && (url.protocol === 'https:' || (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)));
+    }) : [];
+  } catch { return []; }
+}
+const consented = new Set<string>(sessionConsents());
+const consentListeners = new Set<() => void>();
+
+export function onWebConsentChange(callback: () => void): () => void {
+  consentListeners.add(callback);
+  return () => { consentListeners.delete(callback); };
+}
 
 export function consentToLink(link: string): void {
   const embed = parse(link);
-  if (embed && !embed.sameOrigin) consented.add(originOf(embed.src));
+  if (!embed || embed.sameOrigin || webSiteVerdict(embed).state === 'blocked') return;
+  const origin = originOf(embed.src);
+  if (consented.has(origin)) return;
+  consented.add(origin);
+  // Survive the wider-policy reload in this tab; never sync consent to a collaborator.
+  try { window.sessionStorage.setItem(CONSENT_KEY, JSON.stringify([...consented].slice(-128))); } catch { /* consent remains in this window */ }
+  for (const callback of consentListeners) callback();
 }
 
 /** The entry "Always trust" writes for a box: the exact host its frame contacts (or the
@@ -159,7 +184,7 @@ export function webPageHref(embed: WebEmbed): string {
 
 function syncPageLink(marker: HTMLElement, embed: WebEmbed | null, mode: WebMountMode): void {
   const current = marker.querySelector<HTMLAnchorElement>('.lolly-box-web-open');
-  if (mode !== 'present' || !embed || embed.sameOrigin) { current?.remove(); return; }
+  if (!embed || embed.sameOrigin || (mode !== 'present' && !embed.refuses)) { current?.remove(); return; }
   const link = current ?? document.createElement('a');
   link.className = 'btn btn--ghost lolly-box-web-open';
   link.href = webPageHref(embed);
@@ -182,7 +207,7 @@ function note(state: WebFrameState, embed: WebEmbed | null): string {
     case 'ask': return t('Double-click to load {host}').replace('{host}', frameHost(embed));
     case 'policy': return policyNote(embed);
     case 'refused': return t('{host} does not allow being shown inside other pages. Presenting shows this picture.').replace('{host}', host);
-    case 'blocked': return t('The web version of Lolly shows only video and map players here. To show {host}, allow pages from any site in your profile, or use the desktop app.').replace('{host}', host);
+    case 'blocked': return t('Approve {host} in the document inspector to load this page.').replace('{host}', host);
     case 'browser': return t('This browser cannot show other sites inside Lolly. Chrome, Edge and Safari can.');
     case 'invalid': return embed === null ? t('Add a link to a web page, video or Sandbox demo in the inspector.') : '';
     default: return '';
@@ -258,7 +283,12 @@ function createFrame(embed: WebEmbed, marker: HTMLElement, mode: WebMountMode): 
   if (embed.sandbox) frame.setAttribute('sandbox', embed.sandbox);
   frame.setAttribute('allow', mode === 'present' && !/autoplay/.test(embed.allow) ? `${embed.allow}; autoplay` : embed.allow);
   if (mode === 'editor') frame.tabIndex = -1;
-  frame.src = embed.src;
+  const address = new URL(embed.src);
+  if (embed.provider === 'youtube') {
+    address.searchParams.set('origin', location.origin);
+    if (mode === 'editor' || marker.dataset.webPlay !== '1') address.searchParams.set('autoplay', '0');
+  }
+  frame.src = address.href;
   sizeFrame(frame, marker);
   return frame;
 }
@@ -318,6 +348,7 @@ export function mountWebFrames(root: Element, opts: WebMountOptions): void {
   for (const marker of root.querySelectorAll<HTMLElement>(MARKER)) {
     const embed = parse(marker.dataset.lollyWeb ?? '', opts.knownTool);
     let state = webFrameState(embed, opts.mode);
+    marker.dataset.webPlay = opts.mode === 'present' && (opts.shouldPlay?.(marker) ?? true) ? '1' : '0';
     if (opts.mode === 'present' && state === 'live' && opts.shouldBeLive && !opts.shouldBeLive(marker)) state = 'poster';
     if (opts.mode === 'editor' && presenting && state === 'live') state = 'poster';
     const key = keyFor(marker, embed);
@@ -328,10 +359,22 @@ export function mountWebFrames(root: Element, opts: WebMountOptions): void {
     if (opts.mode === 'editor') {
       marker.toggleAttribute('data-web-inert', !marker.classList.contains('is-entered'));
       setNote(marker, state === 'live' ? '' : note(state, embed));
-    }
+    } else if (state === 'refused') setNote(marker, note(state, embed));
     if (state !== 'live' || !embed) continue;
     seenLive.add(key);
-    if (marker.querySelector(FRAME)) { resizer?.observe(marker); continue; }
+    const kept = marker.querySelector<HTMLIFrameElement>(FRAME);
+    if (kept) {
+      if (embed.provider === 'youtube' && marker.dataset.webPlay === '1' && kept.dataset.webPlay !== '1'
+        && new URL(embed.src).searchParams.get('autoplay') === '1') {
+        // A player preloaded with autoplay off may not yet accept commands. Its first
+        // activation uses the player URL; later visits resume the existing player.
+        const address = new URL(kept.src);
+        if (address.searchParams.get('autoplay') === '0') { address.searchParams.set('autoplay', '1'); kept.src = address.href; }
+        else kept.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), 'https://www.youtube-nocookie.com');
+      }
+      kept.dataset.webPlay = marker.dataset.webPlay;
+      resizer?.observe(marker); continue;
+    }
     // Without moveBefore a repaint recreated this marker: wait for the edits to pause
     // rather than reloading the page on every keystroke.
     if (opts.mode === 'editor' && recentlyLive.has(key) && !('moveBefore' in Element.prototype)) {
@@ -342,7 +385,9 @@ export function mountWebFrames(root: Element, opts: WebMountOptions): void {
       }, REMOUNT_QUIET_MS));
       continue;
     }
-    marker.appendChild(createFrame(embed, marker, opts.mode));
+    const frame = createFrame(embed, marker, opts.mode);
+    frame.dataset.webPlay = marker.dataset.webPlay;
+    marker.appendChild(frame);
     resizer?.observe(marker);
   }
   if (opts.mode === 'editor') recentlyLive = seenLive;
@@ -519,10 +564,12 @@ export function wireWebEditing(canvas: HTMLElement, remount: () => void): () => 
   // rule) loads or unloads here without a reload.
   const offTrust = onTrustedSitesChange(remount);
   const offPolicy = onSitePolicyChange(remount);
+  const offConsent = onWebConsentChange(remount);
   presentingListeners.add(remount);
   return () => {
     offTrust();
     offPolicy();
+    offConsent();
     presentingListeners.delete(remount);
     exit();
     document.removeEventListener('dblclick', onDbl, true);

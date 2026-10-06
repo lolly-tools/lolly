@@ -657,6 +657,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/invite-link-control.ts': 1,
   // Fixed registry icons only; button labels and comment content use textContent.
   'views/tool-comment-chat.ts': 2,
+  // Comments panel buttons and resize grips use only fixed registry markup.
+  'views/tool-comment-panel.ts': 2,
   // System IDs, labels and translated status copy are escaped; icons are registry markup.
   'components/design-system-menu.ts': 3,
   // Read the already-hydrated studio marker in an inert template; never mount its content.
@@ -1345,7 +1347,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/profile/offline.ts': 2,      // the download-manager list and the persistence line
   'views/profile/identity.ts': 4,     // the credentials card: status, enrol form and its errors
   // Shared covers use only registry icons and sessionTile's escaped ids/labels.
-  'org/team-project-view.ts': 3,
+  'org/team-project-view.ts': 2,
   'org/team-previews.ts': 1,
   'views/projects.ts': 5,   // View-options markup moved to its shared-popover adapter; the Team projects modal moved to org/team-projects.ts (DOM-built, no sink).
   'views/projects-view-options.ts': 1, // Static enums + escaped t() labels and the existing theme/sound generators.
@@ -1663,6 +1665,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/text/inspection.ts': 1,
   // Inert template comparison of already hydrated tool markup; never mounted.
   'views/canvas-translation.ts': 2,
+  // Detached, inert engine HTML/style parsing; source/DOM geometry must agree before mutation.
+  'views/canvas-translation-source.ts': 2,
   // Fixed registry icons, escaped report names/indices, and escaped action labels.
   'views/valid-actions.ts': 4,
   // Static unavailable state with a registry icon and a fixed translation.

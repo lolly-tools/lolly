@@ -79,6 +79,9 @@ export interface AuthConfig {
   mode: 'open' | 'gated' | 'per-tool';
   provider: 'oidc' | 'dev' | 'proxy' | null;
   loginPath: string | null;
+  /** Same-origin management route, advertised only by an instance with native passkeys. */
+  passkeyManagementPath?: string;
+  documentAgentPath?: string;
   /** The workspace's own name ("lolly.ing"), for the sign-in gate and the profile card
    *  before (or without) a member's org-config. Absent on an older instance. */
   instanceName?: string;
@@ -175,6 +178,8 @@ export interface OrgConfig {
    *  tools gallery or their Projects. Absent ⇒ no instance opinion (the gallery). Applied
    *  once, at boot, by applyHomeView below. */
   home?: 'tools' | 'projects';
+  /** Optional root-relative or HTTPS Home destination, overriding home. */
+  homeUrl?: string;
   session?: Session;
   profilePolicy?: Record<string, ProfileFieldSpec>;
   tools?: Record<string, ToolPolicySpec>;
@@ -325,6 +330,10 @@ export function orgSession(): Session | null {
   return session;
 }
 
+export { orgAgentInvitesEnabled } from './document-agent-config.ts';
+import { setAgentInviteAvailability } from './document-agent-config.ts';
+import { homeHref, setHomeDestination } from '../lib/home-destination.ts';
+
 /** Control-plane governance for one feature flag, or null when this control plane
  *  has no opinion on it. Consumed by feature-flags.ts to resolve the default and
  *  hide governed toggles - through the org/governance.ts registry, not from here,
@@ -401,6 +410,7 @@ function workspaceName(): string {
  * no name; a name that is only the address again is dropped, so the card says it once.
  */
 export function orgProfileAccount(): {
+  securityHref?: string;
   workspace: string;
   member: { email: string; name: string } | null;
   inbox: { count(): number; onChange(fn: (count: number) => void): () => void; open(): void } | null;
@@ -412,6 +422,7 @@ export function orgProfileAccount(): {
   const email = cleanText(session.user.email, 254) || cleanText(fieldOf(fromConfig, 'email'), 254);
   const name = cleanText(session.user.name) || cleanText(fieldOf(fromConfig, 'name'));
   return {
+    ...(authState.passkeyManagementPath === '/api/auth/security' ? { securityHref: instancePath('/api/auth/security') } : {}),
     workspace: workspaceName(),
     member: { email, name: name.toLowerCase() === email.toLowerCase() ? '' : name },
     inbox: {
@@ -901,9 +912,10 @@ let homeViewDecided = false;
  * bare address, so it is not redirected either.
  */
 function applyHomeView(config: OrgConfig | null): void {
+  setHomeDestination(config?.home, config?.homeUrl);
   if (homeViewDecided) return;
   homeViewDecided = true;
-  if (config?.home !== 'projects') return;
+  if (homeHref() === '/#/' || homeHref() === '/#/tools') return;
   try {
     // A reload, or Back/Forward to a page the browser did not keep in memory, returns
     // to a view the member was already on. The Tools tab's address is the bare `/#`,
@@ -913,7 +925,10 @@ function applyHomeView(config: OrgConfig | null): void {
     if (returning) return;
     const hash = location.hash;
     if ((hash && hash !== '#' && hash !== '#/') || location.search || appPathname() !== '/') return;
-    history.replaceState(history.state, '', `${location.pathname}#/p`);
+    const target = homeHref();
+    if (target === '/' || target === location.href) return;
+    if (target.startsWith('/#/')) history.replaceState(history.state, '', target);
+    else location.replace(target);
   } catch { /* the gallery is a fine first view; never break boot over this */ }
 }
 
@@ -959,9 +974,11 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
   stopAiPolicyPolling();
   finishAiProbe(true);
   authState = auth;
+  setAgentInviteAvailability(false, null);
   try {
     session = await fetchSession();
     const isMember = session?.kind === 'member';
+    setAgentInviteAvailability(isMember, auth.documentAgentPath);
     // A session change must withdraw the previous member's fixed targets before
     // any early gate/return. A successful member load installs its fresh (or
     // bounded-cache) projection below.
@@ -1248,6 +1265,8 @@ export function _resetOrgForTests(): void {
   setInstallTag(null);
   session = null;
   authState = null;
+  setHomeDestination();
+  setAgentInviteAvailability(false, null);
   inboxModule?._resetInboxForTests();
   inboxModule = null;
   inboxLoad = null;

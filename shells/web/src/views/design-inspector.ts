@@ -1,4 +1,5 @@
 import { mountTextInspector } from '../lib/text-inspector.ts';
+import { webPlaybackRows, wireWebPlayback } from './design-web-playback.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The Design editor's INSPECTOR column - plan 179 M3, slice (c).
@@ -121,11 +122,11 @@ import { mountedDesignFindingMessage } from './design-audit-copy.ts';
 import { mountDesignTokenBindings } from './design-token-bindings.ts';
 import type { BlockFieldSpec } from '../../../../engine/src/inputs.ts';
 import { parseWebEmbed } from '../../../../engine/src/web-embed.ts';
-import { consentToLink, policyNote, trustEntryFor, webFrameState, webSiteVerdict } from '../lib/design-web-mount.ts';
-import { anySiteApplies, enterAnySite, probeAnySite } from '../lib/any-site.ts';
+import { onWebConsentChange } from '../lib/design-web-mount.ts';
+import { approveWebLink, webApprovalRows } from './design-web-policy.ts';
 import { announce } from '../a11y.ts';
-import { canTrustMore, onTrustedSitesChange, trustSite } from '../lib/trusted-sites.ts';
-import { trustedSiteHost } from '../../../../engine/src/trusted-sites.ts';
+import { fieldFocusToken } from '../lib/collab-field-focus.ts';
+import { onTrustedSitesChange } from '../lib/trusted-sites.ts';
 
 /** The dock slot this column lives in - the app's one right sidebar. */
 const DOCK_ID = 'inspector';
@@ -1591,35 +1592,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         ['slide', t('With its slide')], ['early', t('One slide early')],
         ['keep', t('Keep running')], ['click', t('Wait for a click')],
       ], String(fv(b, 'webLoad') ?? '') || 'slide')
-      + (embed && !embed.sameOrigin ? siteRows(embed) : '')
+      + (embed ? webPlaybackRows(embed) : '')
+      + (embed && !embed.sameOrigin ? webApprovalRows(embed, readRow, doorBtn) : '')
       + doorBtn(cfg.imageField && b[cfg.imageField] ? t('Change poster') : t('Choose poster'), 'pickimage', 'image')
       + (embed?.kind === 'lolly'
         ? doorBtn(embed.provider === 'sandbox' ? t('Edit in Sandbox') : t('Edit in the tool'), 'webedit', 'code')
           + doorBtn(t('Refresh poster'), 'webposter', 'refresh')
         : embed ? doorBtn(t('Open in new tab'), 'webopen', 'externalLink') : '');
-  }
-
-  /** Whether the site a web box contacts is trusted, and by whom, with "Always trust"
-   *  beside a site nobody has decided about (plan 288 D5: double-clicking the box on the
-   *  canvas loads it just this time). */
-  function siteRows(embed: NonNullable<ReturnType<typeof parseWebEmbed>>): string {
-    const verdict = webSiteVerdict(embed);
-    if (verdict.state === 'blocked') return readRow(t('Site'), policyNote(embed));
-    // The web version's own policy, which no trust can change: the way through is the
-    // device-wide "Allow pages from any site" (lib/any-site.ts), or the desktop app.
-    if (webFrameState(embed, 'editor') === 'blocked') {
-      return readRow(t('Site'), t('The web version of Lolly cannot show this site.'))
-        + (anySiteApplies() ? doorBtn(t('Allow pages from any site'), 'webanysite', 'globe') : '');
-    }
-    if (verdict.state === 'trusted') {
-      const by = verdict.source === 'organisation'
-        ? (verdict.by ? t('Trusted by {org}', { org: verdict.by }) : t('Trusted by your organisation'))
-        : verdict.source === 'brand' ? t('Trusted by your brand') : t('Trusted by you');
-      return readRow(t('Site'), by);
-    }
-    const entry = trustEntryFor(embed);
-    return readRow(t('Site'), t('Not trusted yet'))
-      + (entry && canTrustMore() ? doorBtn(t('Always trust {host}', { host: trustedSiteHost(entry) }), 'webtrust', 'shieldCheck') : '');
   }
 
   function sceneBody(b: Box): string {
@@ -1940,6 +1919,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const textSlot = scroll.querySelector<HTMLElement>('[data-composed-inspector]');
     if (textSlot && actions.text) textMounted = mountTextInspector(textSlot, g.ids, actions.text, fonts);
     wire();
+    if (model.collection && renderedIds[0]) {
+      for (const control of scroll.querySelectorAll<HTMLElement>('[data-fld], [data-num-field]')) {
+        const field = control.dataset.fld ?? control.dataset.numField?.replace(/^f:/, '').split('#')[0];
+        if (field && fieldDefs.some(def => def.id === field)) control.dataset.collabFocus = fieldFocusToken(model.collection, renderedIds[0], field);
+      }
+    }
     if (opts.tokens && g.ids.length) for (const sec of g.secs) {
       if (sec === 'text' && g.rows.some(row => row.textStory)) continue;
       const parent = scroll.querySelector<HTMLElement>(`[data-rows="${sec}"]`);
@@ -1987,9 +1972,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * labelled as a box edit.
    */
   function write(field: string | undefined, value: unknown): void {
-    // A link the person typed here is theirs to load (plan 288): agreed before the paint
-    // that follows mounts the frame.
-    if (field === F_WEB && F_WEB && typeof value === 'string') consentToLink(value);
     if (renderedGuideId && field === 'guide-snap') {
       opts.guides?.update(renderedGuideId, { snap: Boolean(value) });
       return;
@@ -2053,6 +2035,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     scroll.querySelectorAll<HTMLSelectElement>('select[data-fld]').forEach((sel) => {
       sel.addEventListener('change', () => write(sel.dataset.fld, sel.dataset.kind === 'num' ? Number(sel.value) : sel.value));
     });
+    wireWebPlayback(scroll, () => parseWebEmbed(String(fv(boxesById(renderedIds)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin }), link => write(F_WEB, link));
 
     // The DOCUMENT's own settings (plans/180's narration inputs, and the captions flag).
     // They write a top-level input, so they never travel through `write` and can never be
@@ -2086,6 +2069,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     }
 
     scroll.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[data-fld], textarea[data-fld]').forEach((inp) => {
+      if (inp.dataset.webParam) return;
       const kind = inp.dataset.kind;
       const type = (inp as HTMLInputElement).type;
       if (kind === 'bool') {
@@ -2145,18 +2129,15 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           // embed form; a Sandbox link opens the Sandbox itself, where the code can change).
           case 'webedit': actions.editWebTool?.(ids); break;
           case 'webposter': actions.refreshWebPoster?.(ids, false); break;
-          case 'webanysite':
-            void probeAnySite().then((offer) => {
-              if (offer === 'offered') enterAnySite();
-              else announce(offer === 'unreachable'
-                ? t('Lolly could not reach its server to check. Try again when you are online.')
-                : t('This server does not offer pages from any site. The desktop app can show any page.'));
-            });
-            break;
+          case 'webapprove':
           case 'webtrust': {
-            const embed = parseWebEmbed(String(fv(boxesById(ids)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin });
-            const entry = embed ? trustEntryFor(embed) : null;
-            if (entry) void trustSite(entry);
+            const link = String(fv(boxesById(ids)[0] ?? {}, F_WEB) ?? '');
+            btn.disabled = true;
+            void approveWebLink(link, btn.dataset.act === 'webtrust').then(result => {
+              if (!result.ok && result.message) announce(result.message);
+              btn.disabled = false;
+              sync(true);
+            });
             break;
           }
           case 'webopen': {
@@ -2350,6 +2331,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   // A site trusted from the pre-flight, /profile or this section repaints its Site row.
   const offTrust = onTrustedSitesChange(() => sync(true));
+  const offConsent = onWebConsentChange(() => sync(true));
 
   function sync(force = false): void {
     if (destroyed) return;
@@ -2524,6 +2506,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       if (destroyed) return;
       destroyed = true;
       offTrust();
+      offConsent();
       returnFocus = null;
       for (const h of numMounted) h.destroy();
       numMounted = [];

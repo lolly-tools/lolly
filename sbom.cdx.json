@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:5dafdefa-8f10-4dd6-8e32-82ad87059526",
+  "serialNumber": "urn:uuid:875fadc2-3384-48b4-85b2-8695855682d4",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-05T10:04:33.483Z",
+    "timestamp": "2026-10-05T12:59:18.175Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23607,20 +23607,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.11.5",
+      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.12.1",
       "name": "@tauri-apps/cli",
-      "version": "2.11.5",
-      "purl": "pkg:npm/%40tauri-apps/cli@2.11.5",
+      "version": "2.12.1",
+      "purl": "pkg:npm/%40tauri-apps/cli@2.12.1",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "Apache-2.0 OR MIT"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "61b789ead72d368a38d29bab3b8bb711ea37455aa6b2326bd0da0a411bbee29bcee2030bce48ed6bbc7493de92c522e6c7ead0fbcba6d5384e970f872e9805ba"
+          "content": "9040c4886cc6fb201ce4578bc6d5e9112fd537e1760bc1f4af880356d7d12cac53f67a7dd74d5df51106fca828da5af484a8b42290ec3838879d4dfe9da3a62e"
         }
       ],
       "properties": [
@@ -23651,25 +23646,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-fs@2.5.2",
-      "name": "@tauri-apps/plugin-fs",
-      "version": "2.5.2",
-      "purl": "pkg:npm/%40tauri-apps/plugin-fs@2.5.2",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "5d7bcc4a7162a1bf86d47f981c20dff9bcd656e9ac790b84221ce96ce2737af51f2f893453eb13029656247a682e26a68209d53c99b9749e6c0ec9e24725b196"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/%40tauri-apps/plugin-fs@2.6.0",
       "name": "@tauri-apps/plugin-fs",
       "version": "2.6.0",
@@ -23684,20 +23660,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-notification@2.4.0",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-notification@2.5.1",
       "name": "@tauri-apps/plugin-notification",
-      "version": "2.4.0",
-      "purl": "pkg:npm/%40tauri-apps/plugin-notification@2.4.0",
+      "version": "2.5.1",
+      "purl": "pkg:npm/%40tauri-apps/plugin-notification@2.5.1",
       "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c6525731c52828e8cdba9cc3b9ee70ac4b1ad70cad7fe97fda00803e169f1f23faf3763737b27ff1c95458b677be99f09294f60b5cdc2cc3101638de7081b6c6"
+          "content": "8b49c3e3c62c2e8bf5f2c88435ebc2dd7ed2989a501357089aaf8952c8eb50f76eef727c71320ec8d212f07d2ac5fb4501cd64db0eacd44ef80e8144d36262af"
         }
       ]
     },

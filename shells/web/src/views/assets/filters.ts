@@ -24,6 +24,7 @@ import type { PaletteEntry } from '../../palette.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, isThemable } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
+import { providerBrowserHtml, providerGroups } from '../assets-provider.ts';
 
 // The rules below live in ./assets-filter.ts - pure, DOM-free and unit-tested
 // (assets-filter.test.ts). This view keeps the mutable state; the module owns
@@ -158,7 +159,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
 
   // Bucket the catalog assets by (override-aware) category, in LIB_GROUPS order.
   const buckets = new Map<string, AssetRef[]>();
-  for (const a of catalogItems) {
+  for (const a of catalogItems.filter(a => !a.meta?.provider)) {
     const k = libCategory(a, cat.overrides);
     (buckets.get(k) ?? buckets.set(k, []).get(k)!).push(a);
   }
@@ -169,6 +170,12 @@ export function assetsSectionHtml(cat: CatCtx): string {
   // grid stays the whole focus.
   const showUploads = userItems.length > 0 || !cat.query;
   if (showUploads) parts.push(uploadsSectionHtml(cat, userItems));
+  const connectedGroups = providerGroups(catalogItems);
+  for (const group of connectedGroups) {
+    const items = sortAssets(group.items, cat.catSort, cat.catSortRev);
+    parts.push(cat.tiles.groupSection(group.key, `${group.source} · ${group.label}`, items.length,
+      `<div class="cat-grid">${items.map(cat.thumbs.assetTile).join('')}</div>`));
+  }
   for (const g of LIB_GROUPS) {
     const items = buckets.get(g.key) && sortAssets(buckets.get(g.key)!, cat.catSort, cat.catSortRev);
     if (!items?.length) continue;
@@ -218,6 +225,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   const renderedKeys = [
     ...(showUploads ? ['your-uploads'] : []),
     ...LIB_GROUPS.filter(g => buckets.get(g.key)?.length).map(g => g.key),
+    ...connectedGroups.map(group => group.key),
     ...(packItems.length ? ['emoji-sets'] : []),
     ...(cat.showHidden && hiddenItems.length ? ['hidden'] : []),
     'swatches', 'fonts',
@@ -257,7 +265,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   return `
       <section class="cat-assets">
         ${showStrip ? '<div class="cat-fav-strip"></div>' : ''}
-        ${toolbar}${parts.join('')}
+        ${providerBrowserHtml(visibleAssets(cat), cat.query)}${toolbar}${parts.join('')}
       </section>`;
 }
 // Mount (or re-mount) the favourites strip into its placeholder using the shared

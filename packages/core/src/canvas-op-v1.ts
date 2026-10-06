@@ -242,6 +242,8 @@ export interface Presence {
   readonly userId: string;
   readonly name: string;
   readonly color: string;
+  /** Optional portable image reference, shared only within an authenticated workspace. */
+  readonly headshot?: string;
   /** Normalized 0..1 of the design's unit space, so every zoom level and every
    *  presenter renders it identically (plans/99 section 5, plans/14 section 3.3). */
   readonly cursor: { readonly x: number; readonly y: number };
