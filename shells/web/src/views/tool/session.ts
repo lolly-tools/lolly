@@ -1,3 +1,4 @@
+import { readColumnPref, writeColumnPref } from './shared.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * tool view: session dirty state, URL sync, revisions, bulk, framing.
@@ -11,6 +12,7 @@ import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-s
 import { copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
 import { encodeAddressModelParam } from '../../lib/url-budget.ts';
 import type { FontStyleSlice } from '../../bridge/text-svg.ts';
+import { fontCoversText } from '../../bridge/font-coverage-load.ts';
 import { designTokenInspectorOptions } from '../design-token-bindings.ts';
 import type { AssetRef, Profile } from '@lolly-tools/core/host-v1';
 import { PACK_PARAM, isPackAvailable, packQuery, toCssPx } from '@lolly/engine';
@@ -41,7 +43,6 @@ import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.
 import { createDocumentThemeController } from '../../lib/document-theme.ts';
 
 async function resolveDesignFont(tview: ToolViewCtx, style: FontStyleSlice, text: string): Promise<boolean> {
-  const { fontCoversText } = await import('../../bridge/font-coverage.ts');
   return fontCoversText(style, text, tview.host.text);
 }
 
@@ -1175,28 +1176,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
     let designInspectorFloat: import('../design-inspector-float.ts').DesignInspectorFloatHandle | null = null;
     let offEmojiDoc: (() => void) | null = null;
 
-    /**
-     * Column open state is a DEVICE preference, not document data: it must never dirty the
-     * document, ride a collab op or travel in a saved session, which is what `host.state`
-     * would mean. Same reasoning (and the same try/catch) as the sidebar width.
-     */
-    const readColumnPref = (key: string): boolean => {
-      try {
-        const v = localStorage.getItem(key);
-        if (v === 'open') return true;
-        if (v === 'closed') return false;
-      } catch {
-        /* private mode / blocked storage: fall through to the width default */
-      }
-      return window.innerWidth > 1180;
-    };
-    const writeColumnPref = (key: string, open: boolean): void => {
-      try {
-        localStorage.setItem(key, open ? 'open' : 'closed');
-      } catch {
-        /* best-effort */
-      }
-    };
 
     import('../free-canvas.ts')
       .then(({ initFreeCanvas }) => {
@@ -1245,7 +1224,19 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         if (desktopAgents && toolId === 'design' && !isPresent) {
           void import('../../lib/live-agent-desktop.ts').then(({ allowAiControl }) => { if (allowAiControl()) void startDesktopServing().catch(() => {}); });
         }
+        const agentInvitationsReady = toolId === 'design' && !isPresent
+          ? Promise.all([import('../agent-share.ts'), import('../../lib/agent-invitation-host.ts'), liveEditorFactory()]).then(([{ installAgentInvitations }, { agentRelayBase }, editor]) => {
+              const base = agentRelayBase();
+              if (base && viewEl.isConnected) mountLifecycle.add('agent-invitations', installAgentInvitations(runtime, viewEl, base, editor));
+            })
+          : Promise.resolve();
         const openAgentLink = async (): Promise<void> => {
+          const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
+          if (agentRelayBase()) {
+            await agentInvitationsReady;
+            if (viewEl.isConnected) showShareDialog(runtime, actionsEl, tview.tool.manifest);
+            return;
+          }
           if (desktopAgents) {
             const [{ openAgentControl }, { allowAiControl, setAllowAiControlPref, setListener }] = await Promise.all([
               import('../agent-connect.ts'), import('../../lib/live-agent-desktop.ts'),
@@ -1270,8 +1261,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             });
             return;
           }
-          const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
-          if (agentRelayBase()) { showShareDialog(runtime, actionsEl, tview.tool.manifest); return; }
           const [{ openAgentConnect }, editor] = await Promise.all([import('../agent-connect.ts'), liveEditorFactory()]);
           if (!viewEl.isConnected) return;
           openAgentConnect({ viewEl, link: () => agentLink, setLink: (link) => { agentLink = link; }, editor });
@@ -1452,12 +1441,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           },
         } as Parameters<typeof initFreeCanvas>[0]);
 
-        if (toolId === 'design' && !isPresent) {
-          void Promise.all([import('../agent-share.ts'), import('../../lib/agent-invitation-host.ts'), liveEditorFactory()]).then(([{ installAgentInvitations }, { agentRelayBase }, editor]) => {
-            const base = agentRelayBase();
-            if (base && viewEl.isConnected) mountLifecycle.add('agent-invitations', installAgentInvitations(runtime, viewEl, base, editor));
-          });
-        }
 
         // ── The Design chrome: top bar + navigator + inspector (plan 179 M1-M3) ──────
         //

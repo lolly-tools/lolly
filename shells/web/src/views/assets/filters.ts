@@ -24,13 +24,14 @@ import type { PaletteEntry } from '../../palette.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, isThemable } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
+import { matchesAssetSource } from '../../lib/asset-source-tree.ts';
 import { providerBrowserHtml, providerGroups } from '../assets-provider.ts';
 
 // The rules below live in ./assets-filter.ts - pure, DOM-free and unit-tested
 // (assets-filter.test.ts). This view keeps the mutable state; the module owns
 // the logic. These wrappers just bind the current state to it, so every call
 // site in mountCatalog reads exactly as it did before the extraction.
-export const visibleAssets = (cat: CatCtx): AssetRef[] => visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId);
+export const visibleAssets = (cat: CatCtx): AssetRef[] => visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId).filter(a => matchesAssetSource(a, cat.sourceSelection));
 export const matchesType = (cat: CatCtx, a: AssetRef): boolean => matchesTypeRule(a, cat.typeFilter);
 export const playableHere = (cat: CatCtx, a: AssetRef): boolean => cat.modulesPlayable !== false || !isModuleFormat(a.format);
 // The search index, memoised across keystrokes and dropped whenever the asset

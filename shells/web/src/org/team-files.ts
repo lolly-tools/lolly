@@ -355,6 +355,16 @@ export async function uploadTeamFile(projectId: string, blob: Blob, name: string
   return putFile(projectId, list, clean, safe, describe({ type: kind.type, format: kind.format, meta: { name } }, 'Upload'), transfer);
 }
 
+/** Create a new file identity with the original verified bytes and metadata. */
+export async function duplicateTeamFile(projectId: string, file: TeamFile, name: string): Promise<TeamFile> {
+  const list = await listTeamFiles(projectId);
+  const blob = await downloadTeamFile(projectId, file);
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  if (await checksum(bytes) !== file.checksum) throw new TeamFileError(422);
+  return putFile(projectId, { ...list, files: [] }, blob, bytes,
+    { name, asset: { ...file.asset, meta: { ...(isRecord(file.asset.meta) ? file.asset.meta : {}), name } } }, {});
+}
+
 /**
  * Delete a project file, or cancel an unfinished upload. The person who uploaded a
  * file may always; a project manager may delete any file. A file that sessions still

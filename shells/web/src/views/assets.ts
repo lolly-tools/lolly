@@ -54,6 +54,7 @@ import { DOWNLOAD_ICON, PENCIL_ICON, REPLACE_ICON, STAR_ICON, TAG_ICON, TRASH_IC
 import type { CatalogHost } from './assets/shared.ts';
 import { actionsOps } from './assets/actions.ts';
 import type { AssetPreviewOptions, CatCtx } from './assets/context.ts';
+import { sourcesOps } from './assets/sources.ts';
 import { tilesOps } from './assets/tiles.ts';
 import { thumbsOps } from './assets/thumbs.ts';
 import { filtersOps } from './assets/filters.ts';
@@ -91,6 +92,8 @@ interface ViewElement extends HTMLElement { _cleanup?: () => void; }
 export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params = '', preview?: AssetPreviewOptions): Promise<void> {
   const cat = {} as CatCtx;
   cat.preview = preview;
+  cat.sourceSelection = new URLSearchParams(params).get('sourceNode') || 'all';
+  cat.sourcesOpen = window.innerWidth > 700; cat.sourceExpanded = new Set(); cat.sourceStatuses = []; cat.sourceCanManage = false; cat.sources = sourcesOps(cat);
   cat.actions = actionsOps(cat);
   cat.actionsPopover = null;
   cat.tiles = tilesOps(cat);
@@ -438,7 +441,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
 
   (viewEl as ViewElement)._cleanup = () => {
     unwireArrows();
-    cat.mounted = false;
+    cat.mounted = false; cat.sourceDispose?.();
     cat.actionsPopover?.close();
     viewEl.removeEventListener('dragstart', cat.wiring.onTileDragStart);
     // Deferred deletions must not outlive the view that owns their Undo.
@@ -485,6 +488,10 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   if (!cat.mounted) return;
   // Deep link: apply the validated section list before paint for this visit.
   // Reading the override leaves the saved collapsed preference untouched.
+  void cat.sources.refresh();
+  const sourcePoll = setInterval(() => { if (cat.mounted && document.visibilityState === 'visible') void cat.sources.refresh(); }, 60_000);
+  const priorCleanup = (viewEl as ViewElement)._cleanup;
+  (viewEl as ViewElement)._cleanup = () => { clearInterval(sourcePoll); priorCleanup?.(); };
   const openTargets = linkedSections.filter(k => ALL_SECTION_KEYS.includes(k)); cat.openTargets = openTargets;
   if (new URLSearchParams(params).has('section')) {
     for (const k of ALL_SECTION_KEYS) collapsed.add(k);

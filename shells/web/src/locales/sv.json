@@ -7372,5 +7372,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Din inloggning har gått ut. Logga in igen för att bjuda in personer.",
   "Only people who can edit this session can invite others.": "Bara personer som kan redigera sessionen kan bjuda in andra.",
   "This session was deleted.": "Sessionen togs bort.",
-  "Could not send the invite. Try again.": "Kunde inte skicka inbjudan. Försök igen."
+  "Could not send the invite. Try again.": "Kunde inte skicka inbjudan. Försök igen.",
+  "Live now - 1 person here": "Live nu - 1 person här",
+  "Live now - {n} people here": "Live nu - {n} personer här"
 }

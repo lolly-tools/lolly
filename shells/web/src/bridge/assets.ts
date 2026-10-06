@@ -529,6 +529,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         ...withoutReservedMeta(meta.meta),
         name: meta.name,
         tags: meta.tags,
+        ...(meta.type === 'model' ? { posterUrl: meta.formats.find(f => /^(thumb|png|webp|jpe?g)$/i.test(f.format))?.url || '' } : {}),
         ...(meta.provider ? { provider: meta.provider } : {}),
         ...(meta.description ? { description: meta.description } : {}),
         ...(meta.aiGenerated ? { aiGenerated: meta.aiGenerated } : {}),
@@ -726,7 +727,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         // the companion PNG/WebP (the mesh / lookup table stays `primary`/`url` so the
         // tool that consumes it still fetches the real file, not the picture of it).
         const filePoster = (m.type === 'model' || m.type === 'lut')
-          ? (m.formats.find(f => /^(png|webp|jpe?g)$/i.test(f.format))?.url ?? '')
+          ? still
           : '';
         if (primary?.format === 'jxl') return api.get(m.id);
         const directUrl = lottiePoster || (primary?.url ?? '');
@@ -1411,6 +1412,7 @@ function pickFormat(meta: AssetMetaRecord, requested?: string): AssetFormat {
   if (meta.type === 'raster') return meta.formats.find(f => /^(png|webp|jpe?g|gif|avif|heic|heif|tiff?|jxl)$/i.test(f.format)) ?? meta.formats[0]!;
   // A lottie entry carries the animation (json) plus a static poster variant;
   // tools always want the animation regardless of listing order.
+  if (meta.type === 'model') return meta.formats.find(f => /^(glb|stl|3mf)$/i.test(f.format)) ?? meta.formats[0]!;
   if (meta.type === 'lottie') return meta.formats.find(f => f.format === 'json') ?? meta.formats[0]!;
   // A video entry may ship a still poster alongside the clip; always resolve to the
   // clip (a <video> needs the real container), regardless of listing order.

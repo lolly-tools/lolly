@@ -8,6 +8,7 @@ import { getInstanceBase } from '../lib/instance.ts';
 import { assetVersionPin } from '../../../../engine/src/asset-version.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { restoreTeamFiles, shareTeamFiles } from './team-files.ts';
+import { shareCanvasToolImage } from './canvas-tool-image.ts';
 
 export function createWorkCanvasAssets(sessionId: string, principal: () => string | undefined): CanvasAssetsCapability {
   const account = principal(), base = getInstanceBase();
@@ -18,7 +19,7 @@ export function createWorkCanvasAssets(sessionId: string, principal: () => strin
   const check = () => { if (closed || !account || principal() !== account || getInstanceBase() !== base) throw new Error('Project access changed.'); };
   const publish = () => { for (const fn of listeners) fn({ pending, message }); };
   async function transfer<T>(label: string, action: () => Promise<T>): Promise<T> {
-    check(); pending++; message = label; retry = undefined; publish();
+    check(); pending++; message = label; failure = ''; retry = undefined; publish();
     try { const result = await action(); check(); return result; }
     catch (error) { failure = 'Image transfer failed. Your upload is still on this device.'; throw error; }
     finally { pending--; if (!pending) message = failure; publish(); }
@@ -40,6 +41,9 @@ export function createWorkCanvasAssets(sessionId: string, principal: () => strin
         const data = await session(); check();
         if (!data.projectId) throw new Error('This session has no project.');
         const host = getHostRef();
+        const toolImage = await shareCanvasToolImage(data.projectId, ref, host, { signal: controller.signal });
+        check();
+        if (toolImage) return { ...await resolve(toolImage), meta: toolImage.meta };
         let pinned = ref;
         if (ref && typeof ref === 'object' && 'source' in ref && ref.source === 'user' && 'id' in ref && typeof ref.id === 'string') {
           const current = await host?.assets.get(ref.id, assetVersionPin(ref)); check();

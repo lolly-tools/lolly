@@ -27,10 +27,16 @@ export async function inviteAgent(editor: LiveEditor, base: string, permission: 
   const session = createLiveSession({ ...editor, owner: editor.owner ?? editor, readOnly: () => permission === 'read' || !!editor.readOnly?.() }, {
     ...opts,
     onActivity(event) {
-      if (event.method === 'hello' && !connected) { connected = true; clearTimeout(expiry); expiry = setTimeout(disconnect, LIVE_LIMITS.idleMs); }
+      if (event.method === 'hello' && !connected) { connected = true; clearTimeout(expiry); expiry = setTimeout(checkIdle, LIVE_LIMITS.idleMs); }
       opts.onActivity?.(event);
     },
   });
+  function checkIdle(): void {
+    if (ended) return;
+    const remaining = LIVE_LIMITS.idleMs - session.idleFor();
+    if (remaining > 0) expiry = setTimeout(checkIdle, remaining);
+    else disconnect();
+  }
   function disconnect(): void {
     if (ended) return;
     ended = true; clearTimeout(timeout); clearTimeout(expiry); session.close(); socket.close(1000, 'Invitation ended');

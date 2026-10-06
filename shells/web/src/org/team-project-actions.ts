@@ -16,6 +16,7 @@ interface Options {
   grid: HTMLElement; content: HTMLElement; projectId: string; projectName: string; folderId: string | null;
   folders: TeamFolder[]; files: TeamFile[]; canWrite: boolean; canManage: boolean; canDeleteSession: boolean;
   current(): boolean; reload(): void; notice(message: string): void;
+  duplicate(id: string, kind: string): Promise<void>;
   sessionAction(action: string, id: string, tile: HTMLElement | null): Promise<boolean | undefined>;
 }
 const node = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
@@ -63,9 +64,12 @@ export function mountTeamProjectActions(o: Options): () => void {
   for (const tile of tiles()) {
     const id = tile.dataset.ref!, dot = control('Select {name}', 'check');
     dot.className = 'tile-check'; dot.dataset.select = id; dot.setAttribute('aria-pressed', 'false'); dot.setAttribute('aria-label', tRaw('Select {name}', { name: name(id) }));
+    dot.title = dot.getAttribute('aria-label')!;
+    const tick = iconNode('check'); if (tick) dot.replaceChildren(tick);
     dot.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); selection.onDotClick(id, event.shiftKey, () => { const next = new Set(selected); if (next.has(id)) next.delete(id); else next.add(id); setRefs(next); }); }, { signal: abort.signal });
     tile.prepend(dot);
     const more = tile.querySelector<HTMLButtonElement>('.tile-menu-btn') ?? control('Item actions', 'menu');
+    more.replaceChildren(); const moreGlyph = iconNode('menu'); if (moreGlyph) more.append(moreGlyph);
     more.className = 'tile-menu-btn'; more.setAttribute('aria-label', tRaw('Item actions for {name}', { name: name(id) })); more.setAttribute('aria-haspopup', 'menu');
     more.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); const r = more.getBoundingClientRect();
       if (selected.size > 1 && selected.has(id)) menu.openBulkAt(r.right, r.bottom); else menu.openAt(r.right, r.bottom, { ref: id, tile }, more);
@@ -75,6 +79,7 @@ export function mountTeamProjectActions(o: Options): () => void {
     + (kind(id) === 'team-session' && o.canManage ? menuItemHtml('invite', icon('users'), tRaw('Share')) : '')
     + menuItemHtml('copy', icon('link'), tRaw('Copy link'))
     + (kind(id) === 'team-file' ? menuItemHtml('download', icon('download'), tRaw('Download')) : '')
+    + (o.canWrite ? menuItemHtml('duplicate', icon('duplicate'), tRaw('Duplicate')) : '')
     + (o.canWrite ? menuItemHtml('move', icon('move'), tRaw('Move to folder')) : '')
     + (canRename(id) ? menuItemHtml('rename', icon('pen'), tRaw('Rename')) : '')
     + (canDelete(id) ? menuItemHtml('delete', icon('trash'), tRaw('Delete'), { danger: true }) : '');
@@ -102,14 +107,15 @@ export function mountTeamProjectActions(o: Options): () => void {
       try { if (href) { await navigator.clipboard.writeText(href); if (o.current()) o.notice(tRaw('Link copied')); } } catch { o.notice(tRaw('Could not copy. Try again.')); }
       return;
     }
-    if (action === 'move' && !o.canWrite || action === 'delete' && !refs.every(canDelete)) return;
+    if ((action === 'move' || action === 'duplicate') && !o.canWrite || action === 'delete' && !refs.every(canDelete)) return;
     if (action === 'move') { await chooseDestination(refs); return; }
     if (action === 'delete' && !(await confirmDialog({ title: tRaw('Delete selected items?'), message: tRaw('Delete {n} selected item(s) for everyone? Folder contents and subfolders move to the parent folder.', { n: refs.length }), confirmLabel: tRaw('Delete') }))) return;
     if (!o.current()) return;
-    busy = true; paint(); let changed = false, failed = false;
+    busy = true; paint(); let changed = false;
     try {
       for (const id of refs) {
         if (!o.current()) break;
+        if (action === 'duplicate') { await o.duplicate(id, kind(id) || ''); changed = true; continue; }
         if (kind(id) === 'team-session') { if (await o.sessionAction(action === 'delete' ? 'delete-confirmed' : action, id, tileFor(id) ?? null)) changed = true; continue; }
         if (kind(id) === 'team-folder') {
           if (action === 'delete') { await deleteTeamFolder(o.projectId, id); changed = true; }
@@ -130,8 +136,8 @@ export function mountTeamProjectActions(o: Options): () => void {
           }
         }
       }
-    } catch (error) { failed = true; if (o.current()) o.notice(error instanceof TeamFileError ? teamFileMessage(error, 'delete') : error instanceof Error ? error.message : tRaw('Could not change these items. Refresh and try again.')); }
-    finally { busy = false; if (o.current()) { paint(); if (changed && !failed) o.reload(); } }
+    } catch (error) { if (o.current()) o.notice(error instanceof TeamFileError ? teamFileMessage(error, 'delete') : error instanceof Error ? error.message : tRaw('Could not change these items. Refresh and try again.')); }
+    finally { busy = false; if (o.current()) { paint(); if (changed || action === 'duplicate') o.reload(); } }
   }
 
   async function chooseDestination(refs: string[]): Promise<void> {

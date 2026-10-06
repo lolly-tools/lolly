@@ -14492,7 +14492,8 @@
         "materials",
         "product",
         "arrangement",
-        "scene"
+        "scene",
+        "3mf"
       ],
       "formats": [
         "png",

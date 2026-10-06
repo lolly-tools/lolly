@@ -10,6 +10,8 @@
  */
 
 import type { LiveEditor } from '../lib/live-agent.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { prepareLiveAssets } from './design-live-assets.ts';
 
 export interface DesignLiveDeps {
   documentId?: string;
@@ -22,6 +24,7 @@ export interface DesignLiveDeps {
   blockId: string;
   /** The blocks input's field definitions, for a new layer's defaults. */
   fields: unknown[];
+  assets?: Pick<HostV1['assets'], 'get'>;
   selection(): string[];
   size(): { width: number; height: number };
   history: {
@@ -56,6 +59,7 @@ export function designLiveEditor(d: DesignLiveDeps): LiveEditor {
       const field = d.fields.find((f) => !!f && typeof f === 'object' && (f as { id?: unknown }).id === id) as { default?: unknown } | undefined;
       return field && 'default' in field ? field.default : fallback;
     },
+    ...(d.assets ? { prepareRows: (next: unknown[], before: unknown[]) => prepareLiveAssets(next, before, d.fields, d.assets!) } : {}),
     async commit(next, note, client) {
       const before = d.history.top();
       // The history records the step before the call first awaits, so reading the top

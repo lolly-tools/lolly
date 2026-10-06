@@ -1054,6 +1054,99 @@ test('a keyboard reorder keeps the focus (and the single tab stop) on the row th
   f.nav.destroy();
 });
 
+for (const skin of ['column', 'strip'] as const) {
+  test(`${skin}: both arrow axes select and frame the next page in document order`, () => {
+    const f = mount(THREE, { skin });
+    try {
+      const pages = [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')]
+        .find(button => button.textContent === 'Pages');
+      if (pages) click(pages);
+      f.rowById('f1').focus();
+      for (const [arrow, id] of [
+        ['ArrowDown', 'f2'], ['ArrowRight', 'f3'], ['ArrowUp', 'f2'], ['ArrowLeft', 'f1'],
+        ['End', 'f3'], ['Home', 'f1'],
+      ]) {
+        key(document.activeElement!, arrow!);
+        assert.deepEqual(f.selection.get(), [id]);
+        assert.equal(f.c.focused.at(-1), id, 'the stage receives the same frame as the list');
+        assert.equal(document.activeElement, f.rowById(id!));
+        assert.deepEqual(f.rowEls().filter(row => row.tabIndex === 0).map(row => row.dataset.id), [id]);
+        assert.equal(f.nav.isOpen(), true, 'keyboard navigation stays available for the next press');
+      }
+      const focused = [...f.c.focused];
+      key(document.activeElement!, 'ArrowLeft');
+      assert.deepEqual(f.c.focused, focused, 'the first page is a boundary');
+      key(document.activeElement!, 'End');
+      key(document.activeElement!, 'ArrowDown');
+      assert.deepEqual(f.c.focused, [...focused, 'f3'], 'the last page is a boundary');
+      assert.deepEqual(f.boxesNow(), THREE, 'navigation never moves artwork or changes its order');
+      assert.deepEqual(f.c.commits, []);
+      assert.deepEqual(f.c.setField, []);
+    } finally { f.nav.destroy(); }
+  });
+}
+
+test('clicking a page keeps keyboard focus through selection and later thumbnail rebuilds', () => {
+  const f = mount(THREE);
+  try {
+    const pages = [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')]
+      .find(button => button.textContent === 'Pages')!;
+    click(pages);
+    click(f.rowById('f2'));
+    assert.equal(document.activeElement, f.rowById('f2'));
+    f.model.setField(['f2'], 'name', 'Updated remotely');
+    assert.equal(document.activeElement, f.rowById('f2'), 'a rebuild keeps the next arrow usable');
+    key(document.activeElement!, 'ArrowRight');
+    assert.equal(f.c.focused.at(-1), 'f3');
+    const input = document.createElement('input');
+    f.canvasEl.append(input); input.focus();
+    f.model.setField(['f1'], 'name', 'Another update');
+    assert.equal(document.activeElement, input, 'updates leave the canvas caret alone');
+  } finally { f.nav.destroy(); }
+});
+
+for (const area of ['parents', 'rail'] as const) {
+  test(`${area}: repeated arrows navigate artboards and survive a rebuilt control`, () => {
+    const f = mount(THREE);
+    const spy = windowSpy();
+    const control = (id: string): HTMLElement => f.nav.el.querySelector<HTMLElement>(
+      area === 'parents' ? `[data-jump-artboard="${id}"]` : `.fc-nav-dot-btn[data-id="${id}"]`,
+    )!;
+    try {
+      if (area === 'rail') f.nav.setOpen(false);
+      control('f1').focus();
+      for (const [arrow, id] of [
+        ['ArrowRight', 'f2'], ['ArrowDown', 'f3'], ['ArrowLeft', 'f2'], ['ArrowUp', 'f1'],
+      ]) {
+        key(document.activeElement!, arrow!);
+        assert.deepEqual(f.selection.get(), [id]);
+        assert.equal(f.c.focused.at(-1), id);
+        assert.equal(document.activeElement, control(id!));
+      }
+      f.model.setField(['f1'], 'name', 'Refreshed');
+      assert.equal(document.activeElement, control('f1'));
+      assert.deepEqual(spy.keys, [], 'navigation never nudges the canvas selection');
+      assert.deepEqual(f.c.commits, []);
+    } finally { spy.off(); f.nav.destroy(); }
+  });
+}
+
+test('artboard disclosures navigate vertically and retain horizontal layer expansion', () => {
+  const f = mount(WITH_KIDS);
+  try {
+    const summary = (id: string): HTMLElement => f.nav.el.querySelector<HTMLElement>(`[data-artboard="${id}"] > summary`)!;
+    summary('f1').focus();
+    key(document.activeElement!, 'ArrowDown');
+    assert.equal(f.c.focused.at(-1), 'f2');
+    assert.equal(document.activeElement, summary('f2'));
+    key(document.activeElement!, 'ArrowLeft');
+    assert.equal(f.nav.el.querySelector<HTMLDetailsElement>('[data-artboard="f2"]')!.open, false);
+    key(document.activeElement!, 'ArrowRight');
+    assert.equal(f.nav.el.querySelector<HTMLDetailsElement>('[data-artboard="f2"]')!.open, true);
+    assert.equal((document.activeElement as HTMLElement).dataset.id, 'c9');
+  } finally { f.nav.destroy(); }
+});
+
 // ── the keyboard gate (the canvas binds its shortcuts on `window`) ────────────
 
 /** Everything a `window` keydown listener - i.e. free-canvas's `onKey` - would have seen. */
@@ -1557,6 +1650,26 @@ test('Layers and Pages switch the same document navigation without duplicating v
   click(buttons.find(button=>button.textContent==='Layers')!);
   assert.equal(f.nav.el.querySelector<HTMLElement>('.fc-nav-layers')!.hidden,false);
   f.nav.destroy();
+});
+
+test('switching navigator views keeps each list scroll position', () => {
+  const f = mount(WITH_KIDS, { active: 'f1' });
+  try {
+    const body = f.nav.el.querySelector<HTMLElement>('.fc-nav-body')!;
+    const buttons = [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')];
+    const pages = buttons.find(button => button.textContent === 'Pages')!;
+    const layers = buttons.find(button => button.textContent === 'Layers')!;
+    body.scrollTop = 120;
+    click(pages);
+    assert.equal(body.scrollTop, 0, 'a new view starts at its own top');
+    body.scrollTop = 40;
+    click(layers);
+    assert.equal(body.scrollTop, 120, 'the layers keep their place');
+    click(layers);
+    assert.equal(body.scrollTop, 120, 'clicking the selected view does not move it');
+    click(pages);
+    assert.equal(body.scrollTop, 40, 'the pages keep their place too');
+  } finally { f.nav.destroy(); }
 });
 
 test('object groups expand, collapse, select members and preserve their state across updates', () => {

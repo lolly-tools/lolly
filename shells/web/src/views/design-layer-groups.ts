@@ -21,6 +21,7 @@ export function mountLayerGroups(opts: {
   const objectExpanded = new Map<string,boolean>();
   const objectMembers = new WeakMap<HTMLElement, string[]>();
   let mode: 'layers' | 'pages' = 'layers';
+  const scroll = { layers: 0, pages: 0 };
   let active = '';
   let chosen:string[]=[];
   let hasFrames = false;
@@ -36,7 +37,12 @@ export function mountLayerGroups(opts: {
   };
   for(const [key,label] of [['layers','Layers'],['pages','Pages']] as const){
     const button=document.createElement('button');button.type='button';button.className='btn btn--ghost btn--sm';
-    button.textContent=t(label);button.onclick=()=>{mode=key;applyMode();};buttons.set(key,button);switcher.append(button);
+    button.textContent=t(label);button.onclick=()=>{
+      if (mode === key) return;
+      scroll[mode] = opts.host.scrollTop;
+      mode=key;applyMode();
+      opts.host.scrollTop = scroll[mode];
+    };buttons.set(key,button);switcher.append(button);
   }
   opts.host.prepend(switcher);opts.heading.hidden=true;
   opts.list.setAttribute('role','region');opts.list.setAttribute('aria-label',t('Document layers'));opts.list.removeAttribute('aria-multiselectable');

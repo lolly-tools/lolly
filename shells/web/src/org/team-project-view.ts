@@ -8,6 +8,7 @@ import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
 import { applyCardSize, readCardSize } from '../components/view-options.ts';
 import { confirmDialog, promptDialog } from '../components/confirm-dialog.ts';
+import { duplicateProjectItem } from './team-project-duplicate.ts';
 import { mountTeamProjectActions } from './team-project-actions.ts';
 import { orgConfig } from './index.ts';
 import { activityLabel, canWriteProject, invitePolicy, isManagerPlus, peopleAccess, roleLabel } from './team-access.ts';
@@ -29,6 +30,7 @@ import { mountInviteLinkControl } from '../components/invite-link-control.ts';
 import { projectInviteLinks } from './project-invite-links.ts';
 import { showProjectInviteLink } from './project-sharing.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
+import { mountProjectAgentsPanel } from './project-agents-panel.ts';
 
 interface ProjectViewOptions {
   host: HostV1;
@@ -54,6 +56,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   let clearPreviews: (() => void) | undefined;
   let clearAssetPreview: (() => void) | undefined;
   let clearActions: (() => void) | undefined;
+  let clearAgents: (() => void) | undefined;
+  let clearPresence: (() => void) | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
   let createFolderAction: (() => void) | undefined;
   container.addEventListener('lolly:team-folder-create', () => createFolderAction?.(), { signal: abort.signal });
@@ -94,6 +98,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     clearPreviews?.(); clearPreviews = undefined;
     clearAssetPreview?.(); clearAssetPreview = undefined;
     clearActions?.(); clearActions = undefined;
+    clearPresence?.(); clearPresence = undefined;
+    clearAgents?.(); clearAgents = undefined;
     clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
     body.replaceChildren(node('p', tRaw('Loading…'), 'team-project-notice'));
     const projects = await readSourceProjects(source);
@@ -136,10 +142,14 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (opts.tab === tab || opts.tab === 'sessions' && tab === 'sessions') link.setAttribute('aria-current', 'page'); tabs.append(link);
     };
     addTab(tRaw('Contents'), 'sessions');
+    addTab(tRaw('Agents'), 'agents');
     if (peopleAccess(project.myRole, invitePolicy(orgConfig())) !== 'hidden') addTab(tRaw('People'), 'people');
     if (orgConfig()?.sharing?.projectFiles) addTab(tRaw('Files'), 'files');
     const notice = node('p', undefined, 'team-project-notice'); notice.setAttribute('role', 'status');
     const content = node('div'); body.replaceChildren(head, tabs, notice, content);
+    if (opts.tab === 'agents') {
+      clearAgents = mountProjectAgentsPanel(content, { projectId: project.id, projectName: project.name, isCurrent: () => current() && my === ticket }); return;
+    }
     if (opts.tab === 'people') {
       content.append(buildPeoplePanel({ projectId: project.id, projectName: project.name, policy: invitePolicy(orgConfig()) })); return;
     }
@@ -193,6 +203,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     clearActions = mountTeamProjectActions({ grid, content, projectId, projectName: project.name, folderId, folders, files,
       canWrite, canManage: isManagerPlus(projectRole), canDeleteSession: isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false,
       current: () => current() && my === ticket, reload: () => { void load(); },
+      duplicate: (id, kind) => duplicateProjectItem({ projectId, id, kind, folderId, folders, writer: source?.write,
+        name: grid.querySelector<HTMLElement>(`[data-ref="${CSS.escape(id)}"] .tile-title`)?.textContent || id, current: () => current() && my === ticket }),
       notice: message => { if (current() && my === ticket) notice.textContent = message; }, sessionAction,
     });
     async function sessionAction(action: string, id: string, tile: HTMLElement | null): Promise<boolean | undefined> {
@@ -227,6 +239,9 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       event.preventDefault(); event.stopPropagation(); void open(link.dataset.openTeamSession!, notice);
     }, { signal: abort.signal });
     content.append(children.length || sessions.length || files.length ? grid : node('p', tokens.length ? tRaw('No shared folders, sessions or assets match your search.') : tRaw('No contents yet. Create a folder or session to start working together.'), 'team-project-empty'));
+    void import('./team-session-presence.ts').then(({ mountTeamSessionPresence }) => {
+      if (current() && my === ticket) clearPresence = mountTeamSessionPresence(grid, projectId, () => current() && my === ticket);
+    });
     clearPreviews = hydrateSharedPreviews(grid, source!, opts.host, current);
 
     function showNewFolder(): void {
@@ -279,5 +294,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearAssetPreview?.(); clearPreviews?.(); clearActions?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearPresence?.(); clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }

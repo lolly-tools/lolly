@@ -1007,5 +1007,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "로그인이 만료됐어요. 다시 로그인해서 사람을 초대해 주세요.",
   "Only people who can edit this session can invite others.": "이 세션을 편집할 수 있는 사람만 다른 사람을 초대할 수 있어요.",
   "This session was deleted.": "이 세션은 삭제됐어요.",
-  "Could not send the invite. Try again.": "초대를 보내지 못했어요. 다시 시도해 주세요."
+  "Could not send the invite. Try again.": "초대를 보내지 못했어요. 다시 시도해 주세요.",
+  "Live now - 1 person here": "지금 접속 중 - 1명이 참여 중",
+  "Live now - {n} people here": "지금 접속 중 - {n}명이 참여 중"
 }

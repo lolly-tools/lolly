@@ -27,6 +27,7 @@ export interface DetailsCtx {
   host: CatCtx['host'];
   emojiBrowser?: { destroy(): void };
   previewStatusDispose?: () => void;
+  formatViewer?: import('../../components/asset-format-viewer.ts').AssetFormatViewerHandle;
   nav: { prev: AssetRef | null; next: AssetRef | null; };
   base: string;
   isUser: boolean;

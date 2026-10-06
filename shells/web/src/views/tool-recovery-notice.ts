@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { t } from '../i18n.ts';
+import { configureNotifications, publishNotification } from '../lib/notifications.ts';
+import { getInstanceBase } from '../lib/instance.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import type { CollabHistoryCapability } from '../lib/collab-history.ts';
 import { historyClass, type HistoryManifest } from './tool-history-adapters.ts';
@@ -11,9 +13,11 @@ interface RecoveryContext {
   collab?: CollabHistoryCapability;
   canSave?: boolean;
   native?: boolean;
+  scope?: string;
+  onSave?(): void | Promise<void>;
 }
 
-/** Explain the current mount's recovery limits beside its editing controls. */
+/** Explain the current mount's recovery limits in the profile notification queue. */
 export function recoveryNotice(context: RecoveryContext): string | null {
   if (context.automatic) return null;
   if (context.shared || context.collab) {
@@ -33,13 +37,10 @@ export function recoveryNotice(context: RecoveryContext): string | null {
 
 export function mountRecoveryNotice(root: HTMLElement, context: RecoveryContext): () => void {
   const message = recoveryNotice({ native: isTauriShell(), ...context });
-  const parent = root.querySelector('.sidebar-body') ?? root.querySelector('.tool-stage');
-  if (!message || !parent) return () => {};
-  const note = document.createElement('p');
-  note.className = 'lp-help tool-recovery-notice';
-  note.dataset.recoveryNotice = '';
-  note.dataset.exportHide = '';
-  note.textContent = message;
-  parent.prepend(note);
-  return () => note.remove();
+  if (!message) return () => {};
+  void configureNotifications();
+  return publishNotification({ id: `recovery:${getInstanceBase()}:${context.scope ?? context.manifest.id}:${context.collab?.durability ?? historyClass(context.manifest)}`,
+    title: t('Saving and recovery'), body: message, tone: context.collab?.durability === 'durable' ? 'info' : 'warning',
+    ...(context.canSave && context.onSave ? { action: { label: t('Save a copy'), run: async () => { if (root.isConnected) await context.onSave?.(); } } } : {}),
+  });
 }

@@ -7372,5 +7372,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "你的登入已過期。請重新登入以邀請成員。",
   "Only people who can edit this session can invite others.": "只有能編輯此工作階段的人才能邀請其他人。",
   "This session was deleted.": "此工作階段已被刪除。",
-  "Could not send the invite. Try again.": "無法傳送邀請。請再試一次。"
+  "Could not send the invite. Try again.": "無法傳送邀請。請再試一次。",
+  "Live now - 1 person here": "目前在線 - 1 人在此",
+  "Live now - {n} people here": "目前在線 - {n} 人在此"
 }

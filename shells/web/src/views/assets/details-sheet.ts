@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
+import { assetViewerKind } from '../../lib/asset-viewer-source.ts';
+import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts';
+import { mountAssetViewerDetails } from '../../components/asset-viewer-details.ts';
 import { openAssetInText } from '../../lib/text-handoff.ts';
+import { mountModelPreview } from '../../lib/model-preview.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
  * catalog details: building the sheet and wiring its events, in mount order.
@@ -316,7 +320,8 @@ export function buildSheet(dt: DetailsCtx): void {
   // a Lottie renders as SVG). A video reads better auto-playing at fit-size, so it opts out; audio
   // is a player, not an image, so it opts out too; a placeholder/dataless-lottie stub has nothing
   // to zoom. attachZoom handles the <svg> player.
-  const zoomable = !ref.meta?._placeholder
+  const ownsPreview = (['pdf', 'font', 'converted'].includes(assetViewerKind(String(ref.format ?? '').toLowerCase())) || ref.format === 'svgz') || ref.type === 'font';
+  const zoomable = !ownsPreview && !ref.meta?._placeholder
     && ref.type !== 'audio'
     && ref.type !== 'text' && ref.type !== 'data'
     && ref.type !== 'palette'   // a scrollable swatch card, not a zoom stage
@@ -430,7 +435,7 @@ export function buildSheet(dt: DetailsCtx): void {
           const pinned = sharedPreview ? [downloadControl, shareControl] : [
             // A 3-D model opens in the 3D tool; a LUT opens in the Darkroom - the
             // primary "edit" verb for these types (they have no in-place crop/grade).
-            ref.type === 'model' ? `<button type="button" class="btn cat-act-open-3d" data-act="open-3d">${icon('box', { size: 14 })}<span>${t('Open in 3D')}</span></button>` : '',
+            ref.type === 'model' ? `<button type="button" class="btn cat-act-open-3d" data-act="open-3d">${icon('box', { size: 14 })}<span>${t('Open in 3D Studio')}</span></button>` : '',
             ref.type === 'lut' ? `<button type="button" class="btn cat-act-open-lut" data-act="open-lut">${icon('camera', { size: 14 })}<span>${t('Open in Darkroom')}</span></button>` : '',
             // An emoji set's primary verb: make it the set new work starts from.
             // A SEED, not a restyle - a document, a saved session or a link that
@@ -534,6 +539,7 @@ export function buildSheet(dt: DetailsCtx): void {
         ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(dt.dTheme)}</div>` : ''}
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;
+  let destroyModelPreview: (() => void) | undefined;
   // Exits inline trim mode, or null when no card is up. Assigned by enterInlineTrim
   // below; declared here so the modal's onClose can answer an open card (its teardown
   // revokes the two preview object URLs) when the dialog goes away under it.
@@ -546,6 +552,8 @@ export function buildSheet(dt: DetailsCtx): void {
     backStack: !cat.preview,
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onClose: () => {
+      destroyModelPreview?.();
+      dt.formatViewer?.destroy();
       dt.previewStatusDispose?.();
       dt.emojiBrowser?.destroy();
       cat.detailsMeterDispose?.();
@@ -573,12 +581,21 @@ export function buildSheet(dt: DetailsCtx): void {
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  if (ref.type === 'model') {
+    const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
+    if (preview) destroyModelPreview = mountModelPreview(preview, ref);
+  }
   const fileSlot = document.createElement('div');
   dlg.querySelector('.cat-details-body')?.prepend(fileSlot);
   mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
   dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
-  cat.detailsDialog = dlg;
+  cat.detailsDialog = dlg; dlg.dataset.viewerProvider = String(ref.meta?.provider ?? '');
   cat.detailsModal = modal;
+  if (ownsPreview && !ref.meta?._placeholder) {
+    dlg.classList.add('has-format-viewer');
+    mountAssetViewerDetails(dlg);
+    dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-details-preview')!, ref, cat.host);
+  }
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
   // asset is open, so copy/pasting the URL shares this exact view. Paging
   // re-syncs it per asset (Andy, 2026-08-19).
@@ -589,7 +606,7 @@ export function buildSheet(dt: DetailsCtx): void {
 export function paintPassport(dt: DetailsCtx): void {
   const { PASSPORT_CRED_CACHE, TREATMENT_FILTER_PREFIX, cat, dlg, initialTheme, ref, showVerify, themable, treatable } = dt;
   const sourceRef = ref.source === 'remote' && ref.original ? { ...ref, url: ref.original.url, format: ref.original.format } : ref;
-  const skipAutomaticBytes = Number(ref.meta?.bytes ?? ref.meta?.size ?? 0) >= 12_000_000 || !!ref.meta?.provider && !Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
+  const skipAutomaticBytes = !!dt.formatViewer || Number(ref.meta?.bytes ?? ref.meta?.size ?? 0) >= 12_000_000 || !!ref.meta?.provider && !Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
   dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : 'checking');
   void (async () => {
     const cacheKey = `${ref.id}|${ref.version ?? 'x'}`;
@@ -609,7 +626,7 @@ export function paintPassport(dt: DetailsCtx): void {
   // Technical metadata (resolution, DPI, EXIF, audio/video props, page count, viewBox…):
   // extract off-thread and fill the initially-hidden panel. Cancel/stale-safe - ←/→ paging
   // re-runs openDetails per asset, so a slow result must not overwrite a newer asset's panel.
-  void extractAssetMetadata(sourceRef).then(techFields => {
+  if (!dt.formatViewer) void extractAssetMetadata(sourceRef).then(techFields => {
     if (cat.detailsDialog !== dlg) return;          // modal closed or paged to another asset
     if (!techFields.length) return;             // nothing readable - leave the panel hidden
     const box = dlg.querySelector<HTMLElement>('[data-tech]');
@@ -1397,7 +1414,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // Each maps the asset id's tail to the tool's own preset key (lolly/3d/duck →
     // model=duck; lolly/luts/suse7-slog3-heavy → lutPreset=suse7-slog3-heavy).
     if (act === 'open-3d') {
-      window.location.hash = `#/tool/3d?model=${encodeURIComponent(ref.id.split('/').pop() ?? '')}`;
+      window.location.hash = `#/tool/3d-studio?source=model&modelAsset=${encodeURIComponent(ref.id)}&modelFormat=${encodeURIComponent(ref.format || 'auto')}`;
       return;
     }
     if (act === 'open-lut') {
@@ -1560,6 +1577,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // down mid-question. Its Escape is handled by the card itself (and cancelled in
     // the capture listener enterInlineTrim arms), so nothing to do here.
     if (dt.inlineTrim) return;
+    if ((e.target as HTMLElement).closest('.asset-format-viewer')) return;
     if (e.key === 'ArrowLeft' && nav.prev) { e.preventDefault(); dt.openDetails(cat, nav.prev, dt.dTheme, dt.dTreatment); }
     else if (e.key === 'ArrowRight' && nav.next) { e.preventDefault(); dt.openDetails(cat, nav.next, dt.dTheme, dt.dTreatment); }
   });
@@ -1570,7 +1588,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
   // Passive: it never preventDefaults, so vertical scroll (e.g. the swatch card)
   // and pinch-zoom still work; the horizontal-dominance test keeps the two apart.
   const swipeEl = dlg.querySelector<HTMLElement>('.cat-details-preview'); dt.swipeEl = swipeEl as DetailsCtx['swipeEl'];
-  if (swipeEl && (nav.prev || nav.next)) {
+  if (!dt.formatViewer && swipeEl && (nav.prev || nav.next)) {
     let sx = 0, sy = 0, armed = false;
     swipeEl.addEventListener('touchstart', (e) => {
       const p = e.touches[0];

@@ -877,5 +877,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Phiên đăng nhập của bạn đã hết hạn. Hãy đăng nhập lại để mời người khác.",
   "Only people who can edit this session can invite others.": "Chỉ những người có thể chỉnh sửa phiên này mới mời được người khác.",
   "This session was deleted.": "Phiên này đã bị xóa.",
-  "Could not send the invite. Try again.": "Không thể gửi lời mời. Hãy thử lại."
+  "Could not send the invite. Try again.": "Không thể gửi lời mời. Hãy thử lại.",
+  "Live now - 1 person here": "Đang trực tuyến - 1 người có mặt",
+  "Live now - {n} people here": "Đang trực tuyến - {n} người có mặt"
 }

@@ -121,8 +121,11 @@ test('the hidden start state is armed pre-paint and gated, so no-JS shows plain 
   assert.match(BUILD_TS, /classList\.add\('shots-motion'\)/, 'the pre-paint init script must add the gate');
   // The gate has to be in <head> (with the theme flag), not at end of body, or a long
   // page paints the shots once and blinks them out to animate them back in.
-  const head = BUILD_TS.slice(BUILD_TS.indexOf('${THEME_INIT_SCRIPT}'), BUILD_TS.indexOf('${DOCS_CSS_LINK}'));
-  assert.match(head, /SHOT_MOTION_INIT/, 'SHOT_MOTION_INIT belongs in <head>, beside THEME_INIT_SCRIPT');
+  const head = BUILD_TS.slice(BUILD_TS.indexOf('${DOCS_INIT_TAG}'), BUILD_TS.indexOf('${DOCS_CSS_LINK}'));
+  assert.match(head, /DOCS_INIT_TAG/, 'the initialisers belong in <head>, before the stylesheet');
+  assert.match(BUILD_TS, /DOCS_INIT_JS = \[THEME_INIT_SCRIPT, SHOT_MOTION_INIT\]/);
+  assert.match(BUILD_TS, /DOCS_INIT_TAG = `<script src="\/info\/\$\{DOCS_INIT_FILE\}"><\/script>`/,
+    'the shared initialiser must block parsing: async or defer would arm motion after paint');
   // Every declaration that hides the WRAPPER must sit behind the gate. Scoped to the
   // wrapper selector itself (`.shot` / `.shot--hero`, not `.shot-cred*`, which is the
   // credential line and is *meant* to start at opacity 0).

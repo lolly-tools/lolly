@@ -30,9 +30,13 @@ import type { actionsOps } from './actions.ts';
 import type { BodyPopoverHandle } from '../../components/body-popover.ts';
 import type { wiringOps } from './wiring.ts';
 
+import type { CatalogSourceStatus } from '../../lib/asset-source-tree.ts';
+import type { sourcesOps } from './sources.ts';
 export interface CatCtx {
   preview?: AssetPreviewOptions;
   detailsOpening?: boolean;
+  sourceSelection: string; sourcesOpen: boolean; sourceExpanded: Set<string>; sourceStatuses: CatalogSourceStatus[]; sourceCanManage: boolean; sourceDispose?: () => void; sourcePrefsKey?: string; sources: ReturnType<typeof sourcesOps>;
+
   // ---- state (was: closure variables of mountCatalog) ----
   viewEl: HTMLElement;
   hostIn: HostV1;

@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { decodeAssetVersion, encodeAssetVersion } from '../../../../engine/src/asset-version.ts';
 import {
-  shareTeamFiles, restoreTeamFiles, downloadTeamFile, deleteTeamFile, uploadTeamFile, listTeamFiles, teamFileMessage,
+  duplicateTeamFile, shareTeamFiles, restoreTeamFiles, downloadTeamFile, deleteTeamFile, uploadTeamFile, listTeamFiles, teamFileMessage,
   TeamFileError, PART_RETRY_DELAYS_MS, type TeamFile,
 } from './team-files.ts';
 import { createInstanceSessionWriter } from './session-source.ts';
@@ -309,5 +309,23 @@ test('a too-large refusal names the instance\'s own limit', async () => {
     assert.ok(error instanceof TeamFileError);
     assert.equal(error.limit, 10 * MiB);
     assert.equal(teamFileMessage(error, 'upload'), 'A file is too large to share. Each file can be up to 10 MB.');
+  });
+});
+
+
+test('duplicate keeps verified file bytes and metadata under a new identity', async () => {
+  const bytes = new Uint8Array([8, 9, 10]);
+  const original: TeamFile = { id: 'fil_ABCDEFGHIJKLMNOPQRSTUV', projectId: 'p1', name: 'Original.bin', size: 3,
+    checksum: hash(bytes), contentType: 'application/octet-stream', ready: true, asset: { type: 'data', format: 'bin', meta: { name: 'Original.bin', credit: 'Creator' } } };
+  const { state, route } = instance();
+  await withFetch((url, method, init) => {
+    if (method === 'GET' && url.endsWith('/files')) return json({ files: [original], limits: LIMITS });
+    if (method === 'GET' && url.endsWith('/' + original.id)) return new Response(new Blob([bytes]), { headers: { 'content-length': '3' } });
+    return route(url, method, init);
+  }, async () => {
+    const copy = await duplicateTeamFile('p1', original, 'Original copy.bin');
+    assert.notEqual(copy.id, original.id); assert.equal(copy.checksum, original.checksum);
+    assert.equal(copy.name, 'Original copy.bin'); assert.deepEqual(copy.asset.meta, { name: 'Original copy.bin', credit: 'Creator' });
+    assert.deepEqual(state.parts[0], bytes); assert.equal(original.name, 'Original.bin');
   });
 });

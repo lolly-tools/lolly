@@ -877,5 +877,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Sesi masukmu telah berakhir. Masuk lagi untuk mengundang orang.",
   "Only people who can edit this session can invite others.": "Hanya orang yang dapat mengedit sesi ini yang dapat mengundang orang lain.",
   "This session was deleted.": "Sesi ini telah dihapus.",
-  "Could not send the invite. Try again.": "Tidak dapat mengirim undangan. Coba lagi."
+  "Could not send the invite. Try again.": "Tidak dapat mengirim undangan. Coba lagi.",
+  "Live now - 1 person here": "Sedang aktif - 1 orang di sini",
+  "Live now - {n} people here": "Sedang aktif - {n} orang di sini"
 }

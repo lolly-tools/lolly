@@ -13,7 +13,7 @@ import { ANY_SITE_KEY, anySiteTarget, appPathname, onAnySitePath, probeAnySite }
 const hosted = JSON.parse(readFileSync(new URL('../../../../vercel.json', import.meta.url), 'utf8')) as {
   headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
 };
-const cspOf = (i: number): string => hosted.headers[i]!.headers.find((h) => h.key === 'Content-Security-Policy')!.value;
+const cspOf = (source: string): string => hosted.headers.find(rule => rule.source === source)!.headers.find((h) => h.key === 'Content-Security-Policy')!.value;
 
 function fakeFetch(status: number, headers: Record<string, string>): typeof fetch {
   return (async (url: string, init?: RequestInit) => {
@@ -24,8 +24,8 @@ function fakeFetch(status: number, headers: Record<string, string>): typeof fetc
 }
 
 test('the probe reads the server\'s own policy for /any-site/', async () => {
-  assert.equal(await probeAnySite(fakeFetch(200, { 'content-type': 'text/html', 'content-security-policy': cspOf(1) })), 'offered');
-  assert.equal(await probeAnySite(fakeFetch(200, { 'content-type': 'text/html', 'content-security-policy': cspOf(0) })), 'not-offered',
+  assert.equal(await probeAnySite(fakeFetch(200, { 'content-type': 'text/html', 'content-security-policy': cspOf('/any-site(/.*)?') })), 'offered');
+  assert.equal(await probeAnySite(fakeFetch(200, { 'content-type': 'text/html', 'content-security-policy': cspOf('/((?!any-site(?:/|$)).*)') })), 'not-offered',
     'a deployment serving the hosted policy there has not added the path');
   assert.equal(await probeAnySite(fakeFetch(200, { 'content-type': 'text/html' })), 'offered', 'no policy restricts no frames');
   assert.equal(await probeAnySite(fakeFetch(404, { 'content-type': 'text/html' })), 'not-offered');

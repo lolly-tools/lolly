@@ -35,5 +35,8 @@ test('saved documents offer no live invite, and instructions carry the supplied 
   assert.match(value, /invitation: https:\/\/relay.example\/live\/invite#token=/);
   assert.ok(value.includes(`https://relay.example/live/mcp with Authorization: Bearer ${'a'.repeat(43)}`));
   assert.match(value, /transactionId/); assert.match(value, /childIds/); assert.match(value, /\$in/);
+  assert.match(value, /https:\/\/lolly.tools\/api\/mcp\/agents/);
+  assert.match(value, /Pasting this invitation alone cannot install tools/);
+  assert.match(value, /same invitation on every hosted tool call/);
   assert.match(agentInstructions('invitation', 'read'), /allows reading only/);
 });

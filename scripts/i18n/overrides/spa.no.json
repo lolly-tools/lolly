@@ -1007,5 +1007,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Påloggingen din er utløpt. Logg inn igjen for å invitere folk.",
   "Only people who can edit this session can invite others.": "Bare folk som kan redigere denne økten, kan invitere andre.",
   "This session was deleted.": "Denne økten ble slettet.",
-  "Could not send the invite. Try again.": "Kunne ikke sende invitasjonen. Prøv igjen."
+  "Could not send the invite. Try again.": "Kunne ikke sende invitasjonen. Prøv igjen.",
+  "Live now - 1 person here": "Aktiv nå - 1 person er til stede",
+  "Live now - {n} people here": "Aktiv nå - {n} personer er til stede"
 }

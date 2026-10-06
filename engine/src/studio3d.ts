@@ -63,12 +63,13 @@ function vector(
   const v = record(value);
   return keys.map((key, i) => number(v[key], defaults[i]!, -limit, limit)) as StudioVector3;
 }
-function asset(value: unknown): { id: string; url: string; name: string } {
+function asset(value: unknown): { id: string; url: string; name: string; format: string } {
   const v = record(value);
   return {
     id: String(v.id || ''),
     url: typeof v.url === 'string' ? v.url : '',
-    name: String(v.name || v.filename || v.url || ''),
+    name: String(v.name || v.filename || record(v.meta).name || v.url || ''),
+    format: String(v.format || '').toLowerCase(),
   };
 }
 export const STUDIO_FINISHES: StudioFinish[] = [
@@ -144,7 +145,7 @@ function textSettings(v: Values): NonNullable<StudioSourceV1['text']> {
 
 function sourceFrom(
   kindValue: unknown,
-  picked: { id: string; url: string; name: string },
+  picked: { id: string; url: string; name: string; format: string },
   modelFormatValue: unknown,
   primitiveValue: unknown,
   where: string,
@@ -152,7 +153,19 @@ function sourceFrom(
   words?: { text: unknown; settings: NonNullable<StudioSourceV1['text']> }
 ): StudioSourceV1 {
   const kind = choice(kindValue, ['artwork', 'model', 'primitive', 'text'] as const, 'primitive');
-  const modelFormat = choice(modelFormatValue, ['auto', 'glb', 'stl'] as const, 'auto');
+  const requestedFormat = choice(modelFormatValue, ['auto', 'glb', 'stl', '3mf'] as const, 'auto');
+  const modelFormat =
+    requestedFormat === 'auto'
+      ? choice(
+          picked.format,
+          ['glb', 'stl', '3mf'] as const,
+          [picked.name, picked.url].some((name) => /\.3mf(?:$|[?#])/i.test(name))
+            ? '3mf'
+            : [picked.name, picked.url].some((name) => /\.stl(?:$|[?#])/i.test(name))
+              ? 'stl'
+              : 'glb'
+        )
+      : requestedFormat;
   if (kind === 'text') {
     const text = String(words?.text ?? '')
       .replace(/\r/g, '')
@@ -171,15 +184,7 @@ function sourceFrom(
     };
   }
   const source: StudioSourceV1 = {
-    kind:
-      kind === 'artwork'
-        ? 'svg'
-        : kind === 'model'
-          ? modelFormat === 'stl' ||
-            (modelFormat === 'auto' && /\.stl(?:$|[?#])/i.test(picked.name))
-            ? 'stl'
-            : 'glb'
-          : 'primitive',
+    kind: kind === 'artwork' ? 'svg' : kind === 'model' ? modelFormat : 'primitive',
     id: picked.id,
     url: picked.url,
     primitive: choice(primitiveValue, ['badge', 'sphere', 'box', 'torus'] as const, 'badge'),
@@ -189,7 +194,7 @@ function sourceFrom(
       `${where}${
         kind === 'artwork'
           ? 'Choose an SVG or upload your artwork.'
-          : 'Choose or upload a GLB or STL model.'
+          : 'Choose or upload a GLB, STL or 3MF model.'
       }`
     );
   return source;

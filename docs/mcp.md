@@ -161,6 +161,24 @@ A local MCP server (stdio) has nine collaboration tools. They let an agent join 
 
 On an instance with an agent relay configured, open **Share > Invite an agent**, choose **Can edit** or **Can read**, and copy the instructions to your agent. The agent calls `lolly_live_connect` with the copied `invitation` and its `client` name. The connection addresses this open document, even when several documents and agents are connected to the relay. The invitation works for ten minutes before an agent joins; a joined connection lasts up to thirty minutes and ends when the inviting editor closes. A new invitation starts another connection.
 
+### Install Lolly in ChatGPT
+
+An invitation gives an installed agent access to one document. Pasting instructions into ChatGPT cannot install tools.
+
+Open **Plugins** in ChatGPT, choose **Create custom MCP server**, name the plugin **Lolly**, and set the server URL to `https://lolly.tools/api/mcp/agents`. Choose **No authentication**, review the connection notice, and create the plugin. Install the resulting plugin, then enable Lolly in your conversation. Account and workspace policies determine whether custom MCP connections are available. See [OpenAI's connection guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
+
+Complete installation before copying a fresh document invitation from Share. Call `lolly_live_connect` with `invitation` and your `client` name. Pass the same `invitation` on every hosted tool call. The installed plugin has no account-wide credential: the invitation selects its instance, document and permissions. It works with public HTTPS Lolly relays on any domain, including lolly.ing. Calls to private networks and local addresses require the local MCP server instead.
+
+The hosted connector keeps no active document or invitation between calls. The relay retains the connection while the editor stays open. Editing requires `documentId`, `ifRevision` and `transactionId`; retry with the same arguments. An ended invitation grants no access. Operators can disable the connector with `LOLLY_DISABLE_AGENT_CONNECTOR=1`. The connector uses the public gateway's durable request limits and usage budget, and refuses requests when admission is unavailable. Outbound calls pin a checked public DNS address, verify TLS for the original hostname, refuse redirects, and carry only the document bearer capability.
+
+Directory publication is separate from installing a custom MCP server. Lolly's stable plugin identity is on lolly.tools; a document invitation selects the instance where the work happens.
+
+### Plugin use
+
+Lolly's software uses the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/), including its permissions, conditions, warranty disclaimer and limits of liability. Documentation uses [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Assets have their own licenses. Using the plugin does not change your rights in your content or grant rights in somebody else's assets. Check agent edits before sharing them. Your agent provider and a private instance's operator may have their own terms.
+
+Installing the plugin grants no account-wide access. Keep invitations private. Document data passes through the connector and invitation relay to your agent provider; see the [privacy policy](privacy.md). Report setup problems through [Lolly's issue tracker](https://github.com/lolly-tools/lolly/issues). Leave private invitations and document content out of public reports.
+
 The agent appears beside people in **People**, with an **AI agent** tag, its own colour, and its current activity. Changed layers carry temporary outlines and a note identifying the agent. These cues remain outside the artwork and exports. The inviter can **Pause agent**, **Resume agent** or **Disconnect agent** from People, or end their agent invitations from Share. Pausing allows reads while refusing writes, including requests waiting in the editor's queue. Agent edits use the existing collaboration and history path: other people keep editing, and a person's newer history entry cannot be undone by the agent.
 
 | Tool | Does |

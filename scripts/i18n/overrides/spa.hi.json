@@ -877,5 +877,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "आपका साइन-इन समाप्त हो गया है। लोगों को आमंत्रित करने के लिए फिर से साइन इन करें।",
   "Only people who can edit this session can invite others.": "सिर्फ़ वही लोग दूसरों को आमंत्रित कर सकते हैं जो इस सत्र को संपादित कर सकते हैं।",
   "This session was deleted.": "यह सत्र हटा दिया गया।",
-  "Could not send the invite. Try again.": "आमंत्रण भेजा नहीं जा सका। फिर से कोशिश करें।"
+  "Could not send the invite. Try again.": "आमंत्रण भेजा नहीं जा सका। फिर से कोशिश करें।",
+  "Live now - 1 person here": "अभी लाइव - 1 व्यक्ति यहाँ है",
+  "Live now - {n} people here": "अभी लाइव - {n} लोग यहाँ हैं"
 }

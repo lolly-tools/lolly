@@ -12,6 +12,7 @@ import type { CostWorking, Count, Fact, PreflightInput, PreflightJob, PreflightM
 import type { MoneyContext } from '@lolly-tools/core';
 import type { Unit } from '../../../../../engine/src/units.js';
 import { RASTER_DEFAULT_SCALE, SUPERSAMPLED_EXPORT_FORMATS } from '../../bridge/export-scale.ts';
+import { fontCoversText } from '../../bridge/font-coverage-load.ts';
 import { tRaw } from '../../i18n.ts';
 import { mountSlot, slotHasResolved } from '../../lib/extensions.ts';
 import { isVectorImageSrc, placedImageLabel } from '../../lib/placed-image.ts';
@@ -92,10 +93,7 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
       ta.designAuditRows = structuralRows.length ? structuralRows : [{ id: 'design.checking', tone: 'note', text: tRaw('Checking this design…') }];
       refreshPreflight(ta);
     },
-    resolveFont: async (style, text) => {
-      const { fontCoversText } = await import('../../bridge/font-coverage.ts');
-      return fontCoversText(style, text, ta.host.text);
-    },
+    resolveFont: (style, text) => fontCoversText(style, text, ta.host.text),
   });
   const brandRows = await brandCheckRows({
     boxes: () => runtime.getModel().find(input => input.id === 'boxes')?.value,

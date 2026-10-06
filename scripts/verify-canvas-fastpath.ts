@@ -22,6 +22,7 @@ import { join, extname } from 'node:path';
 import type { AddressInfo } from 'node:net';
 import { chromium, type Page } from 'playwright-core';
 import { build } from 'esbuild';
+import type {} from '../shells/web/src/views/canvas-content.ts';
 
 const DIST = process.env.LOLLY_WEB_DIST ?? join(process.cwd(), 'shells/web/dist');
 const MIME: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.wasm': 'application/wasm', '.png': 'image/png' };
@@ -105,6 +106,26 @@ async function main(): Promise<void> {
     await p.keyboard.press('Control+a');
   }
 
+  async function contentEdit(label: string, field: 'text' | 'bg' | 'w', wantPatch: boolean, boxes = FIXTURE, id = 'plain') {
+    const snapshots = [];
+    for (const fast of [true, false]) {
+      const p = await boot(boxes, fast), nodes = await p.locator('#tool-canvas .lolly-box[data-box-id]').elementHandles();
+      await p.evaluate(({ boxes, field, id }) => {
+        const set = (globalThis as { __lollySetInput?: (name: string, value: unknown) => void }).__lollySetInput;
+        if (!set) throw new Error('Runtime input setter unavailable');
+        set('boxes', boxes.map(box => box.id === id ? { ...box, [field]: field === 'text' ? 'Changed text' : field === 'bg' ? '#ff8833' : 260 } : box));
+      }, { boxes, field, id });
+      await p.waitForTimeout(500);
+      const patches = await p.evaluate(() => window.__lollyCanvasContentPath?.patches ?? 0);
+      if (fast && (wantPatch ? patches < 1 : patches !== 0)) throw new Error(`${label}: unexpected content patch count ${patches}`);
+      if (fast && wantPatch && !(await Promise.all(nodes.map(node => node.evaluate(element => element.isConnected)))).every(Boolean)) throw new Error(`${label}: an authored node was remounted`);
+      snapshots.push({ styles: await styles(p), svg: await exported(p), metadata: await metadata(p) });
+      await p.close();
+    }
+    if (JSON.stringify(snapshots[0]) !== JSON.stringify(snapshots[1])) throw new Error(`${label}: incremental/full output differs`);
+    console.log(`[${label}] ${wantPatch ? 'PATCH' : 'REFUSE'}: ok; retained nodes, computed styles, SVG and export metadata parity: ok`);
+  }
+
   async function gesture(label: string, id: string, wantSkip: boolean, boxes: unknown = FIXTURE, group = false): Promise<void> {
     const p = await boot(boxes);
     if (group) await selectAll(p, id);
@@ -166,6 +187,13 @@ async function main(): Promise<void> {
     await gesture('drag bordered board with its members', 'board', true, plainBoard);
   }
   await gesture('drag 100 selected objects with fitted text', 'group55', true, GROUP_FIXTURE, true);
+  if (!process.argv.includes('--group-only')) {
+    await contentEdit('edit independent text', 'text', true);
+    await contentEdit('change independent fill', 'bg', true);
+    await contentEdit('resize independent box', 'w', true);
+    await contentEdit('edit fitted text', 'text', false, FIXTURE, 'fit');
+    await contentEdit('resize clip mask', 'w', false, FIXTURE, 'mask');
+  }
 
   await browser.close();
   await close();

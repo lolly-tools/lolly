@@ -35,6 +35,8 @@ export interface LiveEditor {
   selection(): string[];
   /** A new layer's field default, from the manifest. */
   fieldDefault(id: string, fallback: unknown): unknown;
+  /** Resolve new asset references before recording the edit. */
+  prepareRows?(rows: unknown[], before: unknown[]): Promise<unknown[]>;
   /** Write the rows as one history entry carrying the note; resolves to that entry, or null when nothing changed. */
   commit(rows: unknown[], note: string, client?: string): Promise<object | null>;
   /** The newest undo entry, compared by identity. */
@@ -186,6 +188,12 @@ export function createLiveSession(editor: LiveEditor, opts: LiveSessionOpts = {}
     if (problems.length) {
       const more = problems.length > 5 ? ` (and ${problems.length - 5} more)` : '';
       return liveError(id, LIVE_ERRORS.refused, `${problems.slice(0, 5).join('; ')}${more}. Nothing was changed.`);
+    }
+    if (editor.prepareRows) {
+      try { rows = await editor.prepareRows(rows, before); }
+      catch (error) { return liveError(id, LIVE_ERRORS.refused, error instanceof Error ? error.message : String(error)); }
+      if (closed || paused || editor.readOnly?.()) return liveError(id, LIVE_ERRORS.refused, 'This agent can no longer change the document.');
+      if (revision() !== documentRevision(before, size.width, size.height)) return liveError(id, LIVE_ERRORS.refused, 'The document changed while preparing assets. Read it again with document.get.');
     }
     applies.push(t);
     const note = cleanNote(params.label) || `${count} change${count === 1 ? '' : 's'}`;

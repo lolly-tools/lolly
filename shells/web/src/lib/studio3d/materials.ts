@@ -8,7 +8,10 @@ import type {
 import type { StudioAsset } from './source.ts';
 
 /** Glass over a transparent output has nothing to see through, so it shows as solid crystal. */
-export function cutoutFinish(spec: StudioFinishSpec, output: StudioSceneV1['stage']['output']): StudioFinishSpec {
+export function cutoutFinish(
+  spec: StudioFinishSpec,
+  output: StudioSceneV1['stage']['output']
+): StudioFinishSpec {
   if (!spec.transmission || output === 'scene') return spec;
   return {
     ...spec,
@@ -115,7 +118,7 @@ export function applyStudioMaterials(asset: StudioAsset, scene: StudioSceneV1): 
         : undefined;
     if (explicit && !roles.has(index)) return original;
     if (
-      scene.source.kind === 'glb' &&
+      (scene.source.kind === 'glb' || scene.source.kind === '3mf') &&
       (scene.materials.mode === 'source' || (scene.materials.mode === 'custom' && !override))
     )
       return original;
@@ -144,6 +147,7 @@ export function applyStudioMaterials(asset: StudioAsset, scene: StudioSceneV1): 
       physical.alphaTest = original.alphaTest;
       physical.normalScale.copy(original.normalScale);
     }
+    physical.vertexColors = original instanceof THREE.MeshStandardMaterial && original.vertexColors;
     physical.name = original.name;
     // Words and STL models keep the colour A they were loaded with, and a colour edit does
     // not load them again, so the current colour A is set here. Finishes below copy it
@@ -155,6 +159,7 @@ export function applyStudioMaterials(asset: StudioAsset, scene: StudioSceneV1): 
       physical.color.set(scene.materials.colorA);
     const useB = explicit ? roles.get(index) === 'b' : index % 2 !== 0;
     if (scene.materials.mode === 'pair') {
+      physical.vertexColors = false;
       physical.color.set(useB ? scene.materials.colorB : scene.materials.colorA);
       physical.map = null;
       physical.roughnessMap = null;
@@ -172,13 +177,15 @@ export function applyStudioMaterials(asset: StudioAsset, scene: StudioSceneV1): 
       physical.clearcoat = finish.clearcoat;
     }
     if (override) {
+      physical.vertexColors = false;
       physical.color.set(override.color);
       physical.map = null;
       physical.roughnessMap = null;
       physical.metalnessMap = null;
       // The numbers alone leave the source's other physical features (a GLB's own
       // transmission or sheen) intact; a named finish replaces them as a whole.
-      if (override.finish) applyFinish(physical, cutoutFinish(studioFinish(override.finish), scene.stage.output));
+      if (override.finish)
+        applyFinish(physical, cutoutFinish(studioFinish(override.finish), scene.stage.output));
       else {
         physical.roughness = override.roughness;
         physical.metalness = override.metalness;

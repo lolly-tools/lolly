@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { readRecentAssets, recordRecentAsset, readTabMemory, recordTabMemory } from '../lib/picker-memory.ts';
+import { assetViewerKind } from '../lib/asset-viewer-source.ts';
 import { assetFiles } from '../lib/asset-files.ts';
 import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
 /**
@@ -31,7 +33,7 @@ import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
  *   the grids below still offer choosing a different image instead.
  */
 
-import { createCollectToast, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
+import { focusPickerCard as focusCard, movePickerSelection, createCollectToast, flashCard, renderTabCounts, guidedCollection, mountGuidedCollection } from './picker-feedback.ts';
 import '../styles/picker.css';   // async CSS chunk (lazy view - not on the landing)
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
@@ -644,10 +646,11 @@ async function render(
   let pendingTrim: (() => void) | null = null;
   let modal: ModalHandle<AssetRef | null> | undefined;
   let closed = false;
+  let fileInspection: { destroy(): void } | undefined;
   let cleanupGuided = () => {};
   const close = (value: AssetRef | null): void => {
     if (closed) return;
-    closed = true;
+    closed = true; fileInspection?.destroy();
     cleanupGuided();
     stopAudition();
     lottieThumbs?.destroy();
@@ -784,27 +787,7 @@ async function render(
     return pane ? [...pane.querySelectorAll<HTMLElement>('[data-asset-id],[data-tool-id],[data-session-slot],[data-template-ref]')]
       .filter(el => el.offsetParent !== null && el.getAttribute('aria-disabled') !== 'true') : [];
   };
-  function focusCard(el: HTMLElement | null | undefined): void { if (el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }); } }
-  function moveSelection(cur: HTMLElement, key: string): void {
-    const cards = navCards();
-    const i = cards.indexOf(cur);
-    if (key === 'ArrowRight') return focusCard(cards[i + 1]);
-    if (key === 'ArrowLeft')  return focusCard(cards[i - 1]);
-    const r = cur.getBoundingClientRect();
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    const down = key === 'ArrowDown';
-    let best: HTMLElement | null = null, bestScore = Infinity;
-    for (const c of cards) {
-      if (c === cur) continue;
-      const cr = c.getBoundingClientRect();
-      const vy = (cr.top + cr.height / 2) - cy;
-      if (down ? vy <= r.height * 0.4 : vy >= -r.height * 0.4) continue; // must be a further row
-      const dx = Math.abs((cr.left + cr.width / 2) - cx);
-      const score = dx + Math.abs(vy) * 1.5; // nearest column first, then nearest row
-      if (score < bestScore) { bestScore = score; best = c; }
-    }
-    focusCard(best);
-  }
+  const moveSelection = (cur: HTMLElement, key: string) => movePickerSelection(cur, key, navCards());
 
   // Drag a card out of the picker (plans/134 P7): carries `text/lolly-asset`,
   // the same payload catalog tiles set - a slot behind the dialog can take it.
@@ -1109,6 +1092,8 @@ async function render(
       }
       return;
     }
+    const inspect = (e.target as HTMLElement).closest<HTMLElement>('[data-preview-asset]');
+    if (inspect) { const ref = candidateById.get(inspect.dataset.previewAsset!) ?? userAssets.find(a => a.id === inspect.dataset.previewAsset); if (ref) showFileChoices(ref); return; }
     const pick = (e.target as HTMLElement).closest<HTMLElement>('[data-asset-id]');
     if (pick) {
       // A non-default icon theme / photo treatment rides in the picked id so it
@@ -1182,6 +1167,7 @@ async function render(
   // (is-active / aria-selected / roving tabindex) is applied exactly once, in one
   // place. With a single source there's no strip at all - apply the pane switch direct.
   function setTab(id: TabId): void {
+    fileInspection?.destroy(); fileInspection = undefined;
     if (selectTab) selectTab(id);
     else applyTab(id, true);
   }
@@ -1994,6 +1980,7 @@ async function render(
     toolcardHost.innerHTML = html;
   }
   function dismissTakeover(): void {
+    fileInspection?.destroy(); fileInspection = undefined;
     searchInput.value = '';
     setTab(activeTab);
   }
@@ -2001,7 +1988,8 @@ async function render(
   function showFileChoices(ref: AssetRef): void {
     showTakeover('<div class="asset-picker-toolcard asset-picker-filecard"></div>');
     const card = toolcardHost.querySelector<HTMLElement>('.asset-picker-filecard')!;
-    mountAssetFilePicker(card, ref, { back: dismissTakeover, current: () => !toolcardHost.hidden,
+    fileInspection?.destroy();
+    fileInspection = mountAssetFilePicker(card, ref, { back: dismissTakeover, current: () => !toolcardHost.hidden,
       accepts: selected => !opts.type || isAcceptable(selected.type),
       resolve: selected => host.assets.get(activeTheme && isThemableRef(selected) ? buildThemedAssetId(selected.id, activeTheme)
         : activeTreatment && isTreatableRef(selected) ? buildTreatedAssetId(selected.id, activeTreatment) : selected.id),
@@ -2739,31 +2727,6 @@ function vidMatteButton(ref: AssetRef, name: string): string {
 // ── Recents (plans/134 P1) ───────────────────────────────────────────────────
 // Most-recently PICKED asset base ids, device-local. Rendered as a pinned
 // section above Favourites; recorded on every successful pick / collect add.
-const RECENTS_KEY = 'lolly:recentAssets';
-function readRecentAssets(): string[] {
-  try { const v = JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]'); return Array.isArray(v) ? v.filter(x => typeof x === 'string') : []; }
-  catch { return []; }
-}
-function recordRecentAsset(id: string): void {
-  try {
-    const base = assetBaseId(id);
-    localStorage.setItem(RECENTS_KEY, JSON.stringify([base, ...readRecentAssets().filter(x => x !== base)].slice(0, 24)));
-  } catch { /* storage off */ }
-}
-// Last-used tab per pick type (plans/134 P1) - a default, exactly like initialTab.
-const TABMEM_KEY = 'lolly:pickerTab';
-function readTabMemory(kind: string): string | null {
-  try { return (JSON.parse(localStorage.getItem(TABMEM_KEY) || '{}') as Record<string, string>)[kind] ?? null; }
-  catch { return null; }
-}
-function recordTabMemory(kind: string, tab: string): void {
-  try {
-    const m = JSON.parse(localStorage.getItem(TABMEM_KEY) || '{}') as Record<string, string>;
-    m[kind] = tab;
-    localStorage.setItem(TABMEM_KEY, JSON.stringify(m));
-  } catch { /* storage off */ }
-}
-
 // A 3-D model or LUT thumbnail: an <img> at a .glb / .cube is the broken-image
 // icon, so paint the baked still the catalog ships beside it (host.assets.query
 // surfaces it as meta.posterUrl for model/lut) or, when there is none, a 3-D box
@@ -2784,7 +2747,9 @@ function card(ref: AssetRef): string {
   // A video plays itself in a muted looping <video>; audio draws its own waveform
   // (audioThumb - an <img> at an .mp3 is the broken-image icon); everything else is an
   // <img> (gif/apng/animated-webp animate natively there).
-  const thumb = isPlaceholder
+  const thumb = ref.type === 'font' || ['pdf', 'converted'].includes(assetViewerKind(ref.format))
+    ? (typeof ref.meta?.thumbUrl === 'string' ? `<img class="asset-picker-thumb" src="${escapeHtml(ref.meta.thumbUrl)}" alt="" loading="lazy">` : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">${ref.type === 'font' ? 'Aa' : '▦'}</span>`)
+    : isPlaceholder
     ? `<div class="asset-picker-thumb asset-picker-thumb-stub">${escapeHtml(ref.type)}</div>`
     : ref.type === 'lottie'
       ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
@@ -2798,6 +2763,8 @@ function card(ref: AssetRef): string {
           : (ref.type === 'model' || ref.type === 'lut')
             ? modelThumb(ref)
             : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
+  const inspectBtn = ['pdf', 'font', 'converted'].includes(assetViewerKind(ref.format)) || assetFiles(ref.meta).length > 1
+    ? `<button type="button" class="btn btn--ghost btn--sm" data-preview-asset="${escapeHtml(ref.id)}">${t('Preview files')}</button>` : '';
   const upBtn = upscaleButton(ref, String(name));
   const cutBtn = matteButton(ref, String(name));
   const vidBtn = vidMatteButton(ref, String(name));
@@ -2815,7 +2782,7 @@ function card(ref: AssetRef): string {
   // so the Upscale / Remove-background siblings are valid HTML; a video card does the
   // same for its Remove-background sibling (and an audio card for its audition ▶).
   // Everything with no action stays the exact single plain pick button it was before.
-  if (!upBtn && !cutBtn && !vidBtn && !audBtn) {
+  if (!inspectBtn && !upBtn && !cutBtn && !vidBtn && !audBtn) {
     return `
     <button type="button" class="asset-picker-card" data-asset-id="${escapeHtml(ref.id)}" draggable="true">
       ${inner}
@@ -2828,6 +2795,7 @@ function card(ref: AssetRef): string {
       <button type="button" class="asset-picker-card-pick" data-asset-id="${escapeHtml(ref.id)}" draggable="true">
         ${inner}
       </button>
+      ${inspectBtn}
       ${upBtn}
       ${cutBtn}
       ${vidBtn}

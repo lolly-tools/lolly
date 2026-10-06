@@ -3,7 +3,10 @@ import { registerCanvasInteractions, type CanvasInteractionLease } from '../lib/
 import { collabSurface } from '../lib/collab-surface.ts';
 import type { CollabSession, CollabSessionHandle } from '../lib/collab-session.ts';
 import type { CanvasClaim, CanvasPreview } from '@lolly-tools/core/canvas-interaction-v1';
-import { clonePreviewContent, sizePreviewContent } from './collab-preview-content.ts';
+import { sizePreviewContent } from './collab-preview-content.ts';
+import { previewRefiner } from './collab-preview-refiner.ts';
+import { previewStyleRevision } from './collab-preview-styles.ts';
+import { beginCanvasFeedback, cancelCanvasFeedback, finishCanvasFeedback } from '../lib/canvas-feedback.ts';
 
 interface OwnedInteraction {
   claim: CanvasClaim; lost: () => void; generation: number; renew: ReturnType<typeof setInterval>;
@@ -19,7 +22,13 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
   root.style.cssText = 'position:absolute;inset:0;pointer-events:none'; layer.append(root);
   let disposed = false, pending = 0, previewId: string | undefined;
   const active = new Map<string, OwnedInteraction>();
-  const nodes = new Map<string, { node: HTMLElement; source?: string }>();
+  const nodes = new Map<string, { node: HTMLElement; source?: string; revision?: number; element?: HTMLElement;
+    geometry?: { w: number; h: number }; width?: number; height?: number }>();
+  const refiner = previewRefiner(layer.ownerDocument.defaultView!, applied => {
+    if (applied) finishCanvasFeedback(runtime, 'remote-detail');
+    else cancelCanvasFeedback(runtime, 'remote-detail');
+  });
+  const styles = previewStyleRevision(layer.ownerDocument, paint);
   function stop(id: string, lost = false): void {
     const entry = active.get(id); if (!entry) return;
     active.delete(id); clearInterval(entry.renew); clearTimeout(entry.fallback);
@@ -76,10 +85,16 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
   });
   function paint(): void {
     if (disposed) return;
+    beginCanvasFeedback(runtime, 'remote-outline');
     const surface = collabSurface(runtime), rect = layer.getBoundingClientRect(), used = new Set<string>();
-    if (!surface?.object || !surface.toClient) { for (const value of nodes.values()) value.node.remove(); nodes.clear(); return; }
+    if (!surface?.object || !surface.toClient || session.state().connection !== 'live') {
+      for (const [key, value] of nodes) { value.node.remove(); refiner.delete(key); } nodes.clear();
+      cancelCanvasFeedback(runtime, 'remote-outline'); cancelCanvasFeedback(runtime, 'remote-detail'); return;
+    }
+    const revision = styles.read(surface.element()?.closest<HTMLElement>('#tool-canvas') ?? surface.element());
     const claims = capability!.list();
-    const readObject = surface.object.bind(surface), toClient = surface.toClient.bind(surface);
+    const snapshot = surface.snapshot?.() ?? surface;
+    const readObject = (snapshot.object ?? surface.object).bind(snapshot), toClient = (snapshot.toClient ?? surface.toClient).bind(snapshot);
     const objects = new Map<string, ReturnType<typeof readObject>>();
     function object(id: string) {
       if (!objects.has(id)) objects.set(id, readObject(id));
@@ -87,17 +102,23 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
     }
     const placements: Array<{ key: string; id: string; name: string; color: string; ghost: boolean;
       geometry: { w: number; h: number; rot: number }; left: number; top: number; width: number; height: number;
-      source?: string; clone?: HTMLElement }> = [];
-    // Camera metrics and scoped clone styles are read before any mounted write.
+      element?: HTMLElement; source?: string }> = [];
+    // Read camera metrics before any mounted overlay writes.
     function place(key: string, id: string, geometry: { x: number; y: number; w: number; h: number; rot: number }, name: string, color: string, ghost = false) {
       const artwork = object(id); if (!artwork) return;
       used.add(key);
-      const entry = nodes.get(key), source = ghost ? artwork.element?.outerHTML : undefined;
-      const clone = source !== undefined && artwork.element && entry?.source !== source ? clonePreviewContent(artwork.element) : undefined;
       const point = toClient({ x: geometry.x, y: geometry.y });
       const extent = toClient({ x: geometry.x + geometry.w, y: geometry.y + geometry.h });
-      placements.push({ key, id, geometry, name, color, ghost, source, clone,
-        left: point.x - rect.left, top: point.y - rect.top, width: Math.abs(extent.x - point.x), height: Math.abs(extent.y - point.y) });
+      const left = point.x - rect.left, top = point.y - rect.top;
+      const width = Math.abs(extent.x - point.x), height = Math.abs(extent.y - point.y);
+      const angle = geometry.rot * Math.PI / 180;
+      const halfW = (Math.abs(Math.cos(angle)) * width + Math.abs(Math.sin(angle)) * height) / 2;
+      const halfH = (Math.abs(Math.sin(angle)) * width + Math.abs(Math.cos(angle)) * height) / 2;
+      const visible = !rect.width || !rect.height || (left + width / 2 + halfW >= -64 && left + width / 2 - halfW <= rect.width + 64
+        && top + height / 2 + halfH >= -64 && top + height / 2 - halfH <= rect.height + 64);
+      const source = ghost && visible ? artwork.element?.outerHTML : undefined;
+      placements.push({ key, id, geometry, name, color, ghost, source, element: artwork.element ?? undefined,
+        left, top, width, height });
     }
     for (const peer of session.presence.roster()) {
       const state = peer.state; if (peer.away) continue;
@@ -117,7 +138,7 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
     for (const claim of claims) if (claim.owner !== capability!.owner?.() && claim.target.kind === 'text' && claim.target.collection === surface.collection) {
       for (const id of claim.target.ids) { const current = object(id); if (current) place(`text:${claim.id}:${id}`, id, current, `${claim.name} · editing text`, '#6554c0'); }
     }
-    for (const { key, id, geometry, name, color, ghost, source, clone, left, top, width, height } of placements) {
+    for (const { key, id, geometry, name, color, ghost, source, element, left, top, width, height } of placements) {
       let entry = nodes.get(key);
       if (!entry) {
         const node = root.ownerDocument.createElement('div');
@@ -129,10 +150,22 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
         label.style.cssText = 'position:absolute;inset-inline-start:0;bottom:100%;font:12px system-ui;padding:2px 4px;white-space:nowrap;color:white';
         node.append(label); root.append(node); entry = { node }; nodes.set(key, entry);
       }
-      if (clone) {
-        entry.source = source;
+      entry.geometry = geometry; entry.width = width; entry.height = height;
+      if (ghost && source === undefined) {
+        refiner.delete(key); entry.source = undefined; entry.revision = undefined;
         entry.node.querySelector('.collab-preview-content')?.remove();
-        entry.node.prepend(clone);
+      }
+      if (ghost && source !== undefined && element && (entry.source !== source || entry.revision !== revision || entry.element !== element)) {
+        entry.source = source; entry.revision = revision; entry.element = element;
+        entry.node.querySelector('.collab-preview-content')?.remove();
+        const expected = entry;
+        beginCanvasFeedback(runtime, 'remote-detail');
+        refiner.set(key, element, () => !disposed && nodes.get(key) === expected
+          && expected.source === source && expected.revision === revision && expected.element === element && element.isConnected,
+        clone => {
+          sizePreviewContent(clone, expected.geometry!.w, expected.geometry!.h, expected.width!, expected.height!);
+          expected.node.prepend(clone);
+        });
       }
       const content = entry.node.querySelector<HTMLElement>('.collab-preview-content');
       if (content) sizePreviewContent(content, geometry.w, geometry.h, width, height);
@@ -141,7 +174,9 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
       const label = entry.node.querySelector<HTMLElement>('.collab-object-label')!;
       label.textContent = name; label.style.backgroundColor = color;
     }
-    for (const [key, entry] of nodes) if (!used.has(key)) { entry.node.remove(); nodes.delete(key); }
+    for (const [key, entry] of nodes) if (!used.has(key)) { entry.node.remove(); nodes.delete(key); refiner.delete(key); }
+    if (placements.some(p => p.ghost)) finishCanvasFeedback(runtime, 'remote-outline');
+    else { cancelCanvasFeedback(runtime, 'remote-outline'); cancelCanvasFeedback(runtime, 'remote-detail'); }
   }
   const offSession = session.subscribe(state => {
     if (state.connection !== 'live' || state.role === 'observer') for (const id of active.keys()) stop(id, true);
@@ -161,8 +196,9 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
     reanchor: paint,
     teardown() {
       if (disposed) return; disposed = true; unregister();
+      cancelCanvasFeedback(runtime, 'remote-outline'); cancelCanvasFeedback(runtime, 'remote-detail');
       for (const id of active.keys()) stop(id, true);
-      offClaims(); offSave?.(); offSession(); root.remove(); nodes.clear();
+      offClaims(); offSave?.(); offSession(); styles.dispose(); refiner.dispose(); root.remove(); nodes.clear();
     },
   };
 }

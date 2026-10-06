@@ -14,13 +14,15 @@ test('Work refresh sees new revisions and copies use the actual tool identity', 
     assert.equal(input, '/api/v1/sessions/s%2F1/revisions');
     return new Response(JSON.stringify({ revisions: [
       ...(latest === 3 ? [{ sessionId: 's/1', rev: 3, inputs: { title: 'newest' } }] : []),
-      { sessionId: 's/1', rev: 2, inputs: { title: 'new' }, meta: { label: 'Poster' }, actor: 'u2', at: '2026-09-07T10:00:00.000Z' },
+      { sessionId: 's/1', rev: 2, inputs: { title: 'new' }, meta: { label: 'Poster' }, actor: 'u2', actorLabel: 'Alex', at: '2026-09-07T10:00:00.000Z' },
       { sessionId: 's/1', rev: 1, inputs: { title: 'old' }, meta: {}, actor: 'u1', at: '2026-09-07T09:00:00.000Z' },
     ] }), { status: 200, headers: { 'content-type': 'application/json' } });
   });
   const page = await history.list();
   assert.equal(page.entries[0]?.label, 'Poster');
   assert.equal(page.entries[0]?.toolId, 'chart');
+  assert.deepEqual(page.entries[0]?.actor, { id: 'u2', label: 'Alex' });
+  assert.deepEqual(page.entries[1]?.actor, { id: 'u1' }, 'older servers can omit display names');
   latest = 3;
   assert.equal((await history.list()).entries[0]?.revision, 3);
   const firstPage = await history.list({ limit: 1 });

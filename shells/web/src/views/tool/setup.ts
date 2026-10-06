@@ -27,6 +27,7 @@ import { takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '..
 import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { captureNeutralPinned } from '../../lib/capture-neutral.ts';
+import { fontCoversText } from '../../bridge/font-coverage-load.ts';
 import { migrateBlockRowIds } from '../../lib/row-id.ts';
 import { installDocumentSurface } from '../../lib/document-surface.ts';
 import { prepareToolDesignSystemContext } from '../tool-design-system-context.ts';
@@ -675,10 +676,7 @@ export function documentSurface(tview: ToolViewCtx): void {
         boxes: () => tview.runtime.getModel().find((input) => input.id === 'boxes')?.value,
         whenSettled: () => tview.runtime.whenSettled(),
         paintPending: () => tview.rafId !== 0 || tview.pendingFrame !== null,
-        resolveFont: async (style, text) => {
-          const { fontCoversText } = await import('../../bridge/font-coverage.ts');
-          return fontCoversText(style, text, tview.host.text);
-        },
+        resolveFont: (style, text) => fontCoversText(style, text, tview.host.text),
       });
     },
   }; tview.documentSurface = documentSurface;
@@ -909,6 +907,7 @@ export function mountActions(tview: ToolViewCtx): void {
   if (!tview.isFull && !tview.autoExport && !tview.autoCopy) mountLifecycle.add('recovery notice', mountRecoveryNotice(viewEl, {
     manifest: tview.tool.manifest, automatic: !!actionsApi?.history, canSave: !!actionsApi?.save,
     shared: !!collabHandle || !!ephemeralState || !!getCollabSessionSource(), collab: collabHandle?.history,
+    scope: slot ?? toolId, onSave: () => tview.openSaveAs?.(),
   }));
   // The retained export file (plans/236) lives only as long as this mount.
   mountLifecycle.add('export delivery result', () => actionsApi?.releaseDelivery?.());

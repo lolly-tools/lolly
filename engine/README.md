@@ -446,7 +446,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `studio3d-lights.ts` | 90 | Light placement on the preview: orbit a source about the subject and save it where the rig keeps it. | yes | `tests/studio3d-lights.test.ts` | – |
 | `studio3d-look.ts` | 305 | The boundary between a studio and a document (plan 265 step 2, milestone 2 lane A). | yes | `tests/studio3d-look.test.ts` | – |
 | `studio3d-motion.ts` | 273 | What the subject does over the loop (plan 267, lane A). | yes | `tests/studio3d-motion.test.ts` | – |
-| `studio3d.ts` | 586 | Portable studio recipe validation, material finishes and repeatable camera time. | yes | `tests/studio3d.test.ts` | – |
+| `studio3d.ts` | 591 | Portable studio recipe validation, material finishes and repeatable camera time. | yes | `tests/studio3d.test.ts` | – |
 | `surface-variant.ts` | 639 | Surface-aware logos and icons (plan 291 W4): one reference, `<id>?theme=auto`, that takes the variant the surface under the layer asks for. | yes | `tests/surface-variant.test.ts` | – |
 | `svg-colors.ts` | 126 | Pure, DOM-free colour extraction from raw SVG source text. | yes | `tests/svg-colors.test.ts` | – |
 | `svg-custgeom.ts` | 609 | Flat-SVG to native PowerPoint shapes. | yes | `tests/svg-custgeom.test.ts` | – |

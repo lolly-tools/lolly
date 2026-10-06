@@ -877,5 +877,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "サインインの有効期限が切れました。もう一度サインインして招待してください。",
   "Only people who can edit this session can invite others.": "このセッションを編集できる人だけが、ほかの人を招待できます。",
   "This session was deleted.": "このセッションは削除されました。",
-  "Could not send the invite. Try again.": "招待を送信できませんでした。もう一度お試しください。"
+  "Could not send the invite. Try again.": "招待を送信できませんでした。もう一度お試しください。",
+  "Live now - 1 person here": "ライブ中 - 1 人が参加中",
+  "Live now - {n} people here": "ライブ中 - {n} 人が参加中"
 }

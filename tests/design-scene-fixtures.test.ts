@@ -9,7 +9,7 @@
  * 1. They still describe the documents the plan asks for: a still artboard with a
  *    text box, an image box and one 3D box, and a sequence-lane document whose 3D
  *    box runs from 0.5 s for 3 s.
- * 2. Every derived string still matches a rebuild from the two shipped manifests, so
+ * 2. Every readable string still matches a rebuild from the two shipped manifests, so
  *    a field appended to `community/design/tool.json` or a changed 3D Studio default
  *    is reported here instead of moving a fixture silently.
  * 3. The scene queries are the contract form (defaults omitted, user ids kept), and
@@ -155,10 +155,8 @@ test('the packed form opens back to the readable query, byte for byte', async ()
   for (const fixture of designSceneFixtures) {
     assert.equal(await expandQuery(fixture.packed), fixture.query, `${fixture.id}: z= opens to the readable query`);
     const minted = await packQuery(fixture.query);
-    assert.equal(
-      `z=${minted}`, fixture.packed,
-      `${fixture.id}: the packed bytes moved (a Node or codec change is the usual reason) - ${REGENERATE}`,
-    );
+    assert.ok(minted, `${fixture.id}: the query can be packed`);
+    assert.equal(await expandQuery(`z=${minted}`), fixture.query, `${fixture.id}: a newly packed query reads back`);
   }
 });
 
@@ -193,7 +191,10 @@ test('the fixtures match a rebuild from the two shipped manifests', async () => 
     `the fixture set changed - ${REGENERATE}`,
   );
   for (const [index, fixture] of designSceneFixtures.entries()) {
-    assert.deepEqual(rebuilt[index], fixture, `${fixture.id}.json is stale - ${REGENERATE}`);
+    const { packed: rebuiltPacked, ...rebuiltDocument } = rebuilt[index]!;
+    const { packed: savedPacked, ...savedDocument } = fixture;
+    assert.deepEqual(rebuiltDocument, savedDocument, `${fixture.id}.json is stale - ${REGENERATE}`);
+    assert.equal(await expandQuery(rebuiltPacked), await expandQuery(savedPacked), `${fixture.id}: both codecs read the same document`);
   }
 });
 

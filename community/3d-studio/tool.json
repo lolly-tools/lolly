@@ -21,7 +21,8 @@
     "materials",
     "product",
     "arrangement",
-    "scene"
+    "scene",
+    "3mf"
   ],
   "render": {
     "width": 1280,
@@ -120,7 +121,7 @@
       "showIf": {
         "source": "model"
       },
-      "help": "Choose or upload a self-contained GLB or STL up to 32 MB. Uploads are saved on this device for reuse."
+      "help": "Choose or upload a self-contained GLB or STL up to 32 MB, or a 3MF package up to 128 MB. Uploads are saved on this device for reuse."
     },
     {
       "id": "words",
@@ -202,6 +203,10 @@
         {
           "value": "stl",
           "label": "STL"
+        },
+        {
+          "value": "3mf",
+          "label": "3MF"
         }
       ],
       "showIf": {
@@ -400,7 +405,7 @@
       },
       "labelledFields": true,
       "rowActions": true,
-      "help": "Up to 24 items. Drop several SVG, GLB or STL files here to add them at once. All use this studio; each can keep its own framing and material slots.",
+      "help": "Up to 24 items. Drop several SVG, GLB, STL or 3MF files here to add them at once. All use this studio; each can keep its own framing and material slots.",
       "default": [
         {
           "name": "Badge",
@@ -508,6 +513,10 @@
             {
               "value": "stl",
               "label": "STL"
+            },
+            {
+              "value": "3mf",
+              "label": "3MF"
             }
           ],
           "showIf": {
@@ -730,7 +739,7 @@
       },
       "dropToAdd": {
         "field": "asset",
-        "accept": "image/svg+xml,model/*,application/octet-stream"
+        "accept": "image/svg+xml,model/*,application/octet-stream,.glb,.stl,.3mf"
       }
     },
     {
@@ -757,7 +766,7 @@
       },
       "labelledFields": true,
       "rowActions": true,
-      "help": "Drop several SVG, GLB or STL files here, or choose them at once; each becomes an object placed beside the others. Up to 16 objects share the lighting, colours, finishes, stage and camera.",
+      "help": "Drop several SVG, GLB, STL or 3MF files here, or choose them at once; each becomes an object placed beside the others. Up to 16 objects share the lighting, colours, finishes, stage and camera.",
       "default": [
         {
           "name": "Badge",
@@ -878,6 +887,10 @@
             {
               "value": "stl",
               "label": "STL"
+            },
+            {
+              "value": "3mf",
+              "label": "3MF"
             }
           ],
           "showIf": {
@@ -1013,7 +1026,7 @@
       },
       "dropToAdd": {
         "field": "asset",
-        "accept": "image/svg+xml,model/*,application/octet-stream"
+        "accept": "image/svg+xml,model/*,application/octet-stream,.glb,.stl,.3mf"
       }
     },
     {
