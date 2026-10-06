@@ -106,6 +106,18 @@ export function wire(cat: CatCtx): void {
   body.addEventListener('click', async (e) => {
   const { tileSelect } = cat;
     const target = e.target as HTMLElement;
+    const more = target.closest<HTMLElement>('[data-cat-more]');
+    if (more) {
+      const scope = more.dataset.catMore!, shown = Number(more.dataset.shown);
+      const group = more.closest<HTMLElement>('[data-group]')?.dataset.group;
+      cat.assetPageSizes.set(scope, shown + 120);
+      const scroll = window.scrollY;
+      cat.sections.renderBody();
+      window.scrollTo(0, scroll);
+      const section = group ? body.querySelector<HTMLElement>(`[data-group="${CSS.escape(group)}"]`) : null;
+      section?.querySelectorAll<HTMLElement>('.cat-tile-open')[shown]?.focus({ preventScroll: true });
+      return;
+    }
     const tag = target.closest<HTMLElement>('[data-provider-tag]');
     if (tag) { setSearchBarQuery(withProviderFacet(cat.allAssets, cat.query, 'tag', tag.getAttribute('aria-pressed') === 'true' ? '' : tag.dataset.providerTag!)); return; }
     if (target.closest('[data-provider-clear]')) {

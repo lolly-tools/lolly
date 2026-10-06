@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shared Projects use the same tile selection, action bar and context menu as personal Projects. */
-import { icon, type IconName } from '../lib/icons.ts';
+import { icon } from '../lib/icons.ts';
+import { actionButton } from '../components/action-button.ts';
 import { iconNode } from '../lib/icon-node.ts';
 import { menuItemHtml, wireTileContextMenu } from '../lib/context-menu.ts';
 import { wireTileSelect } from '../lib/tile-select.ts';
@@ -22,11 +23,7 @@ interface Options {
 const node = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
   const el = document.createElement(tag); el.className = cls; el.textContent = text; return el;
 };
-const control = (name: string, symbol: IconName) => {
-  const el = node('button', 'btn btn--sm'); el.type = 'button';
-  const glyph = iconNode(symbol); if (glyph) el.append(glyph);
-  el.append(node('span', '', tRaw(name))); el.title = tRaw(name); return el;
-};
+const control = (name: string, symbol: Parameters<typeof actionButton>[1]) => actionButton(tRaw(name), symbol);
 
 export function mountTeamProjectActions(o: Options): () => void {
   const abort = new AbortController(), selected = new Set<string>();
@@ -154,6 +151,7 @@ export function mountTeamProjectActions(o: Options): () => void {
     }
     select.value = o.folderId || ''; label.append(select);
     const controls = node('div', 'modal-actions'), cancel = control('Cancel', 'close'), save = control('Move', 'move'), status = node('p', 'team-project-notice'); status.setAttribute('role', 'status');
+    save.classList.add('btn--primary');
     cancel.addEventListener('click', () => modal.close()); controls.append(cancel, save); modal.el.append(title, label, status, controls); select.focus();
     save.addEventListener('click', async () => {
       if (busy || !o.current()) return; busy = true; save.disabled = true; cancel.disabled = true; paint();

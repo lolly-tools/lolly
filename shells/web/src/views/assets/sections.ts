@@ -20,6 +20,7 @@ import { armViewEnter } from '../../view-enter.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { mountUploadDropzone } from '../../lib/upload-dropzone.ts';
 import { fitLabels } from '../../lib/fit-labels.ts';
+import { actionButtonContent, mountActionToolbar } from '../../components/action-button.ts';
 import { bulkBarHtml as buildBulkBar } from '../../lib/bulk-bar.ts';
 import { mountAudioThumbs } from '../picker.ts';
 import type { PickerHost } from '../picker.ts';
@@ -200,7 +201,7 @@ export function render(cat: CatCtx): void {
       <div class="catalog${cat.catLayout === 'list' ? ' cat-layout-list' : ''}${cat.catDensity === 'compact' ? ' cat-density-compact' : ''}"${cardSizeAttr(cat.cardSize)}>
         ${cat.tiles.catalogTopbarHtml()}
         <h1 class="visually-hidden">${t('Assets')}</h1>
-        <button type="button" class="btn btn--ghost btn--sm" data-browse-sources>${t('Browse sources')}</button>
+        <button type="button" class="btn btn--labelled btn--ghost" data-browse-sources>${actionButtonContent(t('Browse sources'), 'folder')}</button>
         <div class="catalog-workspace"><aside class="asset-sources" aria-label="${t('Sources')}"></aside><div class="catalog-body">${bodyHtml(cat)}</div></div>
         ${bulkBarHtml(cat)}
       </div>`;
@@ -217,6 +218,9 @@ export function render(cat: CatCtx): void {
   mountEmojiSpecimenGrid(cat);
   mountDropzone(cat);
   fitToolbar(cat);
+  cat.uploadToolbarDispose?.();
+  const uploadActions = viewEl.querySelector<HTMLElement>('.cat-uploads-tts');
+  cat.uploadToolbarDispose = uploadActions ? mountActionToolbar(uploadActions) : undefined;
   if (cat.firstPaint) { armViewEnter(viewEl, '.cat-assets, .cat-group--ref'); cat.firstPaint = false; }
 }
 // Search re-render: rebuild ONLY the body so the fixed footer - and the search input's
@@ -325,6 +329,9 @@ export function renderBody(cat: CatCtx): void {
   mountDropzone(cat);
   fillStorageChip(cat);
   fitToolbar(cat);
+  cat.uploadToolbarDispose?.();
+  const uploadActions = viewEl.querySelector<HTMLElement>('.cat-uploads-tts');
+  cat.uploadToolbarDispose = uploadActions ? mountActionToolbar(uploadActions) : undefined;
 }
 // The sticky toolbar drops labels only when they do not fit (lib/fit-labels.ts):
 // first the Collapse all / Show hidden labels, then the type-filter labels. Every

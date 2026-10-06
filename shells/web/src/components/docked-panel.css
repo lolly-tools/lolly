@@ -2,6 +2,7 @@
 .docked-panel > .export-popup-head { flex:none; cursor:auto; touch-action:auto; gap:var(--ui-space-control-block); padding:var(--ui-space-control-block) var(--ui-space-panel); }
 .docked-panel > .export-popup-head h2 { margin:0; font-size:var(--ui-type-label); }
 .docked-panel .export-popup-close { display:inline-flex; align-items:center; justify-content:center; min-width:var(--ui-size-target); min-height:var(--ui-size-target); }
+.docked-panel .export-popup-close svg { width:var(--ui-size-icon-md); height:var(--ui-size-icon-md); }
 .docked-panel-body { min-height:0; overflow:auto; overscroll-behavior:contain; padding:var(--ui-space-panel); }
 .docked-panel-dialog { padding:0; width:min(100% - 2 * var(--ui-space-control-block), 560px); max-height:calc(100dvh - 2 * var(--ui-space-control-block)); }
 .docked-panel-dialog .docked-panel { max-height:calc(100dvh - 2 * var(--ui-space-control-block)); }
