@@ -19,7 +19,7 @@ import { syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChang
 import { mergeInstalledToolsIntoIndex } from './lib/installed-tools.ts';
 import { saveFavouriteAssets } from './lib/asset-favourites.ts';
 import { settingsRoute } from './views/settings-route.ts';
-import { mountGallery, showGalleryWelcome } from './views/gallery.ts';
+import { showGalleryWelcome } from './views/gallery-welcome.ts';
 import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
@@ -736,19 +736,25 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       await mountDocumentModel(view, host, route.slug, route.params ?? '');
       break;
     }
-    case 'utilities':
+    case 'utilities': {
       // The gallery in only-utilities mode: same view, same wiring, filtered to
       // the on-device utility tools (compress-pdf, strip-data, countdown-timer…).
       // The 'Offline Utilities' flag governs the WHOLE view now - off means no
       // tab and no route (a deep link lands on the main gallery).
       if (!flagEnabledSync(UTILITIES_FLAG_ID)) { window.location.replace('#'); return; }
+      const { mountGallery } = await import('./views/gallery.ts');
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1], { only: 'utility', params: route.params });
       break;
-    case 'gallery':
+    }
+    case 'gallery': {
+      const { mountGallery } = await import('./views/gallery.ts');
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1], { params: route.params });
       break;
-    default:
+    }
+    default: {
+      const { mountGallery } = await import('./views/gallery.ts');
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1]);
+    }
   }
   } catch (err) {
     console.error('View mount failed:', err);

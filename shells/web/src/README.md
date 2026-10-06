@@ -9,7 +9,7 @@ Roughly 712,000 lines of TypeScript, tests included, and 58,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 485 files, 193,815 lines | 229 files, 76,015 lines | 6 files, 1,427 lines |
+| `views/` | 486 files, 193,813 lines | 229 files, 76,015 lines | 6 files, 1,427 lines |
 | `lib/` | 746 files, 156,906 lines | 422 files, 84,350 lines | 12 files, 1,805 lines |
 | `bridge/` | 202 files, 51,905 lines | 120 files, 25,211 lines | none |
 | `components/` | 111 files, 26,263 lines | 49 files, 12,422 lines | 19 files, 1,108 lines |
@@ -20,7 +20,7 @@ Roughly 712,000 lines of TypeScript, tests included, and 58,000 lines of CSS.
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
 | `styles/` | none | 6 files, 1,234 lines | 126 files, 52,899 lines |
 
-Plus 51 `.ts`/`.js` files at the top level of `src/`, 16,924 lines all told, of which 25 are tests and 3 are ambient declarations. `main.ts` is 2,255 of that.
+Plus 51 `.ts`/`.js` files at the top level of `src/`, 16,931 lines all told, of which 25 are tests and 3 are ambient declarations. `main.ts` is 2,261 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -63,8 +63,8 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,859 | `views/tool-inputs.ts` | none |
 | 3,819 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,654 | `views/color-lab.ts` | yes |
-| 3,174 | `views/gallery.ts` | none |
 | 3,141 | `bridge/sequence-render.ts` | yes |
+| 3,126 | `views/gallery.ts` | none |
 | 3,063 | `bridge/export-svg-walker.ts` | **none** |
 | 3,009 | `lib/rebrand/controller.ts` | yes |
 | 2,963 | `views/projects.ts` | none |
@@ -74,7 +74,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,466 | `views/design-import.ts` | **none** |
 | 2,363 | `views/free-canvas-math.ts` | yes |
 | 2,332 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
-| 2,255 | `main.ts` | yes |
+| 2,261 | `main.ts` | yes |
 | 2,242 | `lib/drop-router.ts` | yes |
 | 2,149 | `views/present-mode.ts` | yes |
 | 2,103 | `lib/clip-thumbs.ts` | yes |
