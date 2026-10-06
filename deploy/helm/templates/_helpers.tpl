@@ -57,11 +57,42 @@ app.kubernetes.io/component: {{ .name }}
 
 {{/*
 Image reference for a component. Pass (dict "image" .Values.web.image "root" .).
-tag defaults to the chart appVersion.
+digest takes precedence over tag. tag defaults to the chart appVersion.
 */}}
 {{- define "lolly.componentImage" -}}
+{{- if not (kindIs "string" .image.digest) -}}
+{{- fail "image.digest must be an empty string or sha256 followed by 64 lowercase hexadecimal characters" -}}
+{{- end -}}
+{{- if .image.digest -}}
+{{- if not (regexMatch "^sha256:[a-f0-9]{64}$" .image.digest) -}}
+{{- fail "image.digest must use sha256:<64 lowercase hexadecimal characters>" -}}
+{{- end -}}
+{{- if contains "@" .image.repository -}}
+{{- fail "image.repository must not include a digest; set image.digest separately" -}}
+{{- end -}}
+{{- printf "%s@%s" .image.repository .image.digest -}}
+{{- else -}}
 {{- $tag := default .root.Chart.AppVersion .image.tag -}}
 {{- printf "%s:%s" .image.repository $tag -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Disk-backed temporary volume. Pass the component's tmp or cache configuration.
+An empty sizeLimit preserves the original unbounded emptyDir behavior.
+*/}}
+{{- define "lolly.emptyDir" -}}
+{{- if not (kindIs "string" .sizeLimit) -}}
+{{- fail "tmp/cache.sizeLimit must be a string, for example 128Mi, or an empty string" -}}
+{{- end -}}
+{{- if .sizeLimit -}}
+{{- if not (regexMatch "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$" .sizeLimit) -}}
+{{- fail "tmp/cache.sizeLimit must be a positive integer byte count or storage quantity, for example 128Mi" -}}
+{{- end -}}
+sizeLimit: {{ .sizeLimit | quote }}
+{{- else -}}
+{}
+{{- end -}}
 {{- end }}
 
 {{/*

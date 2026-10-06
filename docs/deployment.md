@@ -124,6 +124,50 @@ helm install lolly deploy/helm --set web.image.repository=<registry>/lolly-web
 
 The [Build Guide](/info/build-guide.html) covers building and pushing the images, the SUSE Application Collection base-image option and how to adapt the chart.
 
+### K3s, RKE2 and SUSE dependency images
+
+Use `deploy/helm/profiles/lean.yaml` for a small cluster candidate with one pod
+per enabled public component, bounded CPU/memory and disk-backed temporary
+volumes. MCP and CA remain opt-in. Merge the profile before instance settings:
+
+```sh
+helm template lolly deploy/helm \
+  -f deploy/helm/profiles/lean.yaml -f instance-values.yaml
+```
+
+Pin each component's `image.digest` to the complete Lolly image you publish;
+this replaces its tag. Top-level `imagePullSecrets` reaches all three services.
+`tmp.sizeLimit` bounds each service's temporary volume, and `web.cache.sizeLimit`
+bounds nginx's cache. The lean profile includes container `ephemeral-storage`
+budgets too. With all three components enabled, requests total 100 millicores,
+224 MiB memory and 224 MiB ephemeral disk. Cluster services, ingress, image
+caches, browser workloads and external dependencies require additional capacity.
+These are scheduling reservations, not a measured traffic limit or an HA claim.
+
+K3s and RKE2 can share qualified node capacity between services. Cloud worker
+nodes may still be VMs; containers do not remove their compute charges. Use the
+[Work SUSE deployment runbook](https://github.com/lolly-tools/lolly-work/blob/main/deploy/suse/README.md)
+for operating-system support, resource profiles, UpCloud/Evroc CSI and Longhorn
+choices. Durable PostgreSQL storage and independently tested backups have a
+different lifecycle from reproducible shell and pack copies.
+
+Prefer `registry.suse.com` BCI bases and
+[Application Collection](https://apps.rancher.io) dependencies when their versions
+meet the release requirements. Collection OCI content comes from
+`dp.apps.rancher.io` and requires registry authentication and the account's
+entitlements. Build Lolly into the chosen base and test each architecture; a
+Node or nginx base alone does not contain the application. The optional Work
+BCI Node 24 Dockerfile is a candidate with its own build and boot checks. Public
+web/MCP/CA retain their existing bases until another variant is qualified.
+
+Following the Collection Penpot dependency model, Work can use a separately
+managed Collection PostgreSQL release. Its durable jobs already use PostgreSQL,
+so this adds no Redis requirement. A Redis TCP endpoint also cannot replace the
+public services' current REST admission adapter without an integration change.
+The public chart does not install Work, relay, Penpot or model hosting. Qualify
+all existing API routes, authentication, shared editing, recovery and capacity
+before a public or private production cutover.
+
 ### YunoHost
 
 For a self-hosting box rather than a cluster, Lolly ships as a [YunoHost](https://yunohost.org) app: `sudo yunohost app install https://github.com/lolly-tools/lolly_ynh`. The package is the `deploy/yunohost/` directory of this repo, mirrored to that app repository at each release, so the two never differ.

@@ -54,7 +54,7 @@ serviceAccount:
 web:
   enabled: true
 
-  # 2 replicas for HA. Stateless static content - raise freely for more traffic.
+  # 2 replicas by default. Node and routing configuration determine availability.
   replicaCount: 2
 
   image:
@@ -66,8 +66,10 @@ web:
     #     -t <registry>/lolly-web:0.1.0 .
     #   docker push <registry>/lolly-web:0.1.0
     repository: ghcr.io/lolly-tools/lolly-web
-    # Empty ⇒ use the chart's appVersion. Pin an immutable tag/digest in prod.
+    # Empty ⇒ use the chart's appVersion. digest takes precedence over tag.
     tag: ""
+    # Pin the pushed Lolly image: sha256:<64 lowercase hexadecimal characters>.
+    digest: ""
     pullPolicy: IfNotPresent
 
   service:
@@ -101,6 +103,14 @@ web:
     limits:
       cpu: 250m
       memory: 128Mi
+
+  # Disk-backed scratch volumes. Empty preserves the original emptyDir default.
+  # Use a positive integer quantity such as 64Mi; include ephemeral-storage
+  # requests/limits in resources when setting a deployment-wide disk budget.
+  tmp:
+    sizeLimit: ""
+  cache:
+    sizeLimit: ""
 
   # nginx `/healthz` returns 200 (see nginx.conf). Cheap and unauthenticated.
   livenessProbe:
@@ -149,6 +159,8 @@ mcp:
     #   docker build -f deploy/docker/mcp.Dockerfile -t <registry>/lolly-mcp:0.1.0 .
     repository: ghcr.io/lolly-tools/lolly-mcp
     tag: ""
+    # Optional immutable reference; takes precedence over tag.
+    digest: ""
     pullPolicy: IfNotPresent
 
   service:
@@ -175,6 +187,9 @@ mcp:
     limits:
       cpu: "1"
       memory: 512Mi
+
+  tmp:
+    sizeLimit: ""
 
   # The MCP server has no unauthenticated GET health route, so probes use a TCP
   # socket check - the port is open once the http server is listening.
@@ -233,6 +248,8 @@ ca:
     #   docker build -f deploy/docker/ca.Dockerfile -t <registry>/lolly-ca:0.1.0 .
     repository: ghcr.io/lolly-tools/lolly-ca
     tag: ""
+    # Optional immutable reference; takes precedence over tag.
+    digest: ""
     pullPolicy: IfNotPresent
 
   service:
@@ -259,6 +276,9 @@ ca:
     limits:
       cpu: 250m
       memory: 256Mi
+
+  tmp:
+    sizeLimit: ""
 
   # GET /api/ca/health answers even before the root is configured.
   livenessProbe:
