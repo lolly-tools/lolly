@@ -15,7 +15,7 @@ test('MOGRT preserves supplied previews and reads localized controls without int
   }));
   assert.equal(result.name, 'Brand title');
   assert.deepEqual(result.fonts, ['SUSE']);
-  assert.deepEqual(result.controls, [{ name: 'Title', value: '<script>hello</script>' }]);
+  assert.deepEqual(result.controls.map(({ name, value }) => ({ name, value })), [{ name: 'Title', value: '<script>hello</script>' }]);
   assert.deepEqual(new Uint8Array(await result.video!.arrayBuffer()), new Uint8Array([1, 2, 3]));
 });
 test('MOGRT refuses oversized preview members and malformed definitions; absent media stays absent', () => {

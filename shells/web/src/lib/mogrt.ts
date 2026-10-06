@@ -8,7 +8,10 @@ export interface MogrtPreview {
   video: Blob | null;
   poster: Blob | null;
   fonts: string[];
-  controls: { name: string; value: string }[];
+  width?: number;
+  height?: number;
+  duration?: number;
+  controls: { name: string; value: string; type?: number; min?: number; max?: number; fontSize?: number; font?: string }[];
 }
 const record = (v: unknown): Record<string, unknown> =>
   v !== null && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
@@ -41,12 +44,24 @@ export function readMogrt(bytes: Uint8Array): MogrtPreview {
   const video = find('thumb.mp4');
   const poster = find('thumb.png');
   const fonts = Object.values(record(doc.usedFontsLocalized)).flatMap(v => Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+  const source = record(record(doc.sourceInfoLocalized).en_US ?? Object.values(record(doc.sourceInfoLocalized))[0]);
+  const size = record(record(source.framesize).size);
+  const duration = record(source.duration);
+  const finite = (v: unknown, fallback: number, min: number, max: number) => typeof v === 'number' && Number.isFinite(v) ? Math.max(min, Math.min(max, v)) : fallback;
   return {
+    width: finite(size.x, 1920, 16, 8192),
+    height: finite(size.y, 1080, 16, 8192),
+    duration: finite(Number(duration.value) / Number(duration.scale), 6, 0.1, 600),
     name: doc.capsuleName.slice(0, 2000),
     video: video ? new Blob([video.slice().buffer], { type: 'video/mp4' }) : null,
     poster: poster ? new Blob([poster.slice().buffer], { type: 'image/png' }) : null,
     fonts: [...new Set(fonts)].slice(0, 100),
     controls: (Array.isArray(doc.clientControls) ? doc.clientControls : []).slice(0, 100).map(c => ({
+      type: typeof record(c).type === 'number' ? Number(record(c).type) : undefined,
+      min: typeof record(c).min === 'number' ? Number(record(c).min) : undefined,
+      max: typeof record(c).max === 'number' ? Number(record(c).max) : undefined,
+      fontSize: typeof record(record(c).fonteditinfo).fontSizeEditValue === 'number' ? Number(record(record(c).fonteditinfo).fontSizeEditValue) : undefined,
+      font: typeof record(record(c).fonteditinfo).fontEditValue === 'string' ? String(record(record(c).fonteditinfo).fontEditValue).slice(0, 200) : undefined,
       name: localized(record(c).uiName),
       value: typeof record(c).value === 'number' ? String(record(c).value) : localized(record(c).value),
     })).filter(c => c.name),

@@ -5,6 +5,7 @@ import { fetchAssetBytes, MOGRT_LIMIT, readMogrt } from '../../lib/mogrt.ts';
 import { detectFontFormat, parseFontMetadata } from '../../lib/font-utils.ts';
 import { t } from '../../i18n.ts';
 import type { CatCtx } from './context.ts';
+import { mountMogrtSimulation } from './mogrt-simulation.ts';
 import type { UserFontsHost } from '../../user-fonts.ts';
 
 function canInstallFonts(host: CatCtx['host']): host is CatCtx['host'] & UserFontsHost {
@@ -70,7 +71,7 @@ export function mountSpecialPreview(el: HTMLElement, ref: AssetRef, cat: CatCtx)
       return;
     }
     const template = readMogrt(bytes);
-    status.textContent = t('Supplied template preview. Editing the Adobe effects requires Premiere Pro or After Effects.');
+    status.textContent = t('Original supplied preview. Try an editable approximation below; exact Adobe rendering requires Premiere Pro or After Effects.');
     if (template.video) {
       const video = document.createElement('video');
       video.dataset.specimen = ''; video.controls = true; video.playsInline = true;
@@ -98,6 +99,7 @@ export function mountSpecialPreview(el: HTMLElement, ref: AssetRef, cat: CatCtx)
       const p = document.createElement('p'); p.textContent = `${control.name}: ${control.value}`; details.append(p);
     }
     panel.append(details);
+    mountMogrtSimulation(panel, template);
   };
   const files = Array.isArray(ref.meta?.assetFiles) ? ref.meta.assetFiles.filter((f): f is { url: string; name: string; format: string } =>
     !!f && typeof f === 'object' && typeof f.url === 'string' && typeof f.name === 'string' && ['ttf', 'otf', 'woff', 'woff2'].includes(f.format)) : [];
