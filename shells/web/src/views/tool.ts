@@ -14,6 +14,7 @@
 // View-scoped stylesheets - Vite emits these as async CSS chunks loaded WITH this
 // lazy view, instead of render-blocking the gallery/catalog landing (see app.css).
 import { parseEditorState } from '../lib/editor-state.ts';
+import { publishSiteTool } from '../lib/site-tools-context.ts';
 import { inputParamIds } from '../lib/tool-url-state.ts';
 import '../styles/parts/panel.css';
 import '../styles/parts/tool.css';
@@ -416,6 +417,10 @@ async function mountToolInto(
   await tview.session.wireLiveEditing();
   if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
   const { mountRulesEntrypoints } = await import('../lib/rules-entrypoints.ts');
+  tview.mountLifecycle.add('site tool context', publishSiteTool({ tool: tview.tool, host: tview.host,
+    model: () => tview.runtime.getModel(), slot: () => tview.slot, folder: () => tview.fileIntoFolder,
+    readOnly: () => tview.collabHandle?.role === 'observer', current: () => !tview.mountLifecycle.disposed && !tview.openDocument.stopped(),
+  }));
   tview.mountLifecycle.add('rules entry points', mountRulesEntrypoints(tview.runtime, tview.viewEl.querySelector('#tool-inputs'), () => tview.actionsApi?.sessionState?.() || {}, tview.host, tview.session.markUserDirty));
   if(tview.canvasEl) {
     const {openPendingRules}=await import('./session-rules.ts');

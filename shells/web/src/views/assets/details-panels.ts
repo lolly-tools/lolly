@@ -159,7 +159,7 @@ export const renderOrigins = (dt: DetailsCtx): void => {
     dd.appendChild(ctl);
     const note = document.createElement('span');
     note.className = 'cat-origins-note';
-    note.textContent = t('Declaring origins travels with the asset wherever it is used - so collaborators can talk about the work, not guess about the file.');
+    note.textContent = t('Your declaration is saved with the asset record.');
     dd.appendChild(note);
   }
 };

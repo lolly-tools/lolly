@@ -568,11 +568,7 @@ button.cat-download { font: inherit; cursor: pointer; }
    renamed to .cat-stat-tag (components.css, component audit M1.2). */
 .cat-tag { font-size: var(--fs-xs); padding: 1px 7px; border-radius: var(--radius-pill); background: hsl(var(--muted) / .8); color: hsl(var(--muted-foreground)); border: none; font-family: inherit; cursor: pointer; }
 .cat-tag:hover, .cat-tag:focus-visible { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-/* A top TOOLBAR now (2026-08-20): first child of .cat-details-body, above the
-   name, so the variable-length meta/tech/credential sections below never move
-   the actions around. Grouped into rows (plans/132 WP-J): pinned verbs, the
-   EDIT family, manage, destructive - whitespace does the grouping (no dividers,
-   per the border rules). Compact pills, same size .btn--sm uses. */
+/* Sharing and file controls stay grouped beside the asset information. */
 .cat-details-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; margin: 0 0 14px; }
 .cat-details-actions .btn { display: inline-flex; align-items: center; gap: 5px; padding: .3rem .6rem; font-size: calc(.76rem * var(--a11y-fs)); }
 .cat-details-actions .btn svg { width: var(--fs-md); height: var(--fs-md); }

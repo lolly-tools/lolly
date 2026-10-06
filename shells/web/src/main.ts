@@ -10,6 +10,7 @@
  */
 
 import { recordFeaturedRoute } from './lib/featured-activity.ts';
+import { clearSiteToolSources } from './lib/site-tools-context.ts';
 import { mountIOSTextScale } from './lib/ios-text-scale.ts';
 import { overlayAbsorbsPopstate } from './lib/overlay-back.ts';
 import { createBridge } from './bridge/index.ts';
@@ -363,6 +364,9 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     }
   }
   if (outgoing?._beforeLeave && !await outgoing._beforeLeave()) return;
+  clearSiteToolSources({ name: route.name,
+    ...(route.name === 'projects' ? { folderId: route.folderId, projectId: new URLSearchParams(route.params ?? '').get('team') || undefined } : {}),
+  });
   const prevSig = mountedRouteSig;
   mountedRouteSig = routeSig;
   routeLoading?.close();
@@ -1553,6 +1557,9 @@ async function boot(): Promise<void> {
   // section at all.
   const org = await orgPromise;
   if (org?.gate) { settleWelcomeDecision(); return; }
+  if (window.top === window && typeof (document as Document & { modelContext?: { registerTool?: unknown } }).modelContext?.registerTool === 'function') {
+    void import('./lib/site-tools-discovery.ts').then(module => module.installSiteTools(host)).catch(error => console.warn('[lolly:site-tools]', error));
+  }
   if (org?.config?.branding?.revision) {
     void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), org.config!.branding!.revision, () => parseRoute().name)).catch(console.error);
   }

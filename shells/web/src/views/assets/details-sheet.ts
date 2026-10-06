@@ -21,6 +21,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { aiSignalsChip, assetAiKind } from '../../lib/genai-pill.ts';
 import { announce } from '../../a11y.ts';
 import { mountModal } from '../../components/modal.ts';
+import { publishSiteInspection } from '../../lib/site-tools-context.ts';
 import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { destroyLottiePlayers, lottiePlayerFor, mountLottieMarker } from '../lottie-mount.ts';
@@ -28,7 +29,6 @@ import { extractAssetMetadata } from '../../lib/asset-metadata.ts';
 import { analyzeVerifyText } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId, saveFavouriteAssets } from '../../lib/asset-favourites.ts';
-import { icon } from '../../lib/icons.ts';
 import { storeUserUpload } from '../picker.ts';
 import type { PickerHost } from '../picker.ts';
 import type { UpscaleHost } from '../upscale-dialog.ts';
@@ -45,7 +45,7 @@ import type { RewordCandidate, } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { assetLicenceDeclaration, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
 import { lollyBadge } from '../../lib/lolly-badge.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, CROP_ICON, DOWNLOAD_ICON, EYE_ICON, EYE_OFF_ICON, PAUSE_ICON, PENCIL_ICON, PLAY_ICON, REPLACE_ICON, SHARE_ICON, SHIELD_ICON, STAR_ICON, TAG_ICON, TRASH_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
@@ -307,7 +307,7 @@ export function readAsset(dt: DetailsCtx): void {
 
 /** The dialog's DOM, zoom state and controls. */
 export function buildSheet(dt: DetailsCtx): void {
-  const { cat, configurable, fav, hidden, host, isUser, name, nav, ref, showVerify, tags, themable, treatable } = dt;
+  const { cat, host, isUser, name, nav, ref, showVerify, tags, themable, treatable } = dt;
   dt.dTextZoom = 1;    // font scale for the text reading surface (both modes)
   // A text asset (.txt/.md): the bytes are the text. Offers Copy text + Analyse text.
   const isTextAsset = ref.type === 'text'; dt.isTextAsset = isTextAsset;
@@ -322,15 +322,16 @@ export function buildSheet(dt: DetailsCtx): void {
   // is a player, not an image, so it opts out too; a placeholder/dataless-lottie stub has nothing
   // to zoom. attachZoom handles the <svg> player.
   const ownsPreview = (['pdf', 'font', 'converted'].includes(assetViewerKind(String(ref.format ?? '').toLowerCase())) || ref.format === 'svgz') || ref.type === 'font';
-  const zoomable = !ownsPreview && !ref.meta?._placeholder
-    && ref.type !== 'audio'
+  const specialPreview = (ref.original?.format ?? ref.format) === 'mogrt';
+  const zoomable = !ownsPreview && !specialPreview && !ref.meta?._placeholder
+    && ref.type !== 'audio' && ref.type !== 'model'
     && ref.type !== 'text' && ref.type !== 'data'
     && ref.type !== 'palette'   // a scrollable swatch card, not a zoom stage
     && !(ref.type === 'lottie' && !isMotionLottie); dt.zoomable = zoomable;
   // Crop only makes sense on a static raster/vector - never a live motion preview or a video.
   // model (a 3-D mesh) and lut (a colour grade) tile from a still poster, but the
   // poster is a preview - cropping it would crop the picture, not the asset - so no crop.
-  const croppable = zoomable && !isMotionLottie && ref.type !== 'video' && ref.type !== 'model' && ref.type !== 'lut'; dt.croppable = croppable;
+  const croppable = zoomable && !isMotionLottie && ref.type !== 'video' && ref.type !== 'lut'; dt.croppable = croppable;
   // On-device AI edits for a raster, brought over from the asset picker: Upscale
   // (host.upscale, v1.101) and Remove background (host.matte, v1.103) - same gates the
   // picker uses. Both route through their dialogs, which PRESERVE the source's
@@ -410,6 +411,7 @@ export function buildSheet(dt: DetailsCtx): void {
   const content = `
       <button type="button" class="cat-details-close" data-act="close" aria-label="${escapeText(t('Close'))}">×</button>
       <div class="cat-details-preview${zoomable ? ' is-zoomable' : ''}">
+        ${dt.controls.editingHtml()}
         <span class="cat-unsaved-pill" data-unsaved hidden>${t('Edits not saved')}</span>
         ${nav.prev ? `<button type="button" class="cat-details-nav cat-details-prev" data-nav="prev" aria-label="${escapeText(t('Previous asset'))}">${CHEVRON_LEFT}</button>` : ''}
         ${nav.next ? `<button type="button" class="cat-details-nav cat-details-next" data-nav="next" aria-label="${escapeText(t('Next asset'))}">${CHEVRON_RIGHT}</button>` : ''}
@@ -419,92 +421,30 @@ export function buildSheet(dt: DetailsCtx): void {
                ${isMotionLottie ? `<button type="button" class="cat-motion-toggle is-playing" data-act="motion-toggle" aria-label="${escapeText(t('Pause'))}" title="${escapeText(t('Pause'))}">${PAUSE_ICON}</button>` : ''}
                <div class="cat-zoom-hud"></div>
              </div>`
-          : emojiPackMeta(ref) ? `<div data-emoji-browser><p role="status">${t('Loading the full emoji set…')}</p></div>` : cat.thumbs.thumbHtml(ref, false, true)}
+          : emojiPackMeta(ref) ? `<div data-emoji-browser><p role="status">${t('Loading the full emoji set…')}</p></div>` : ownsPreview || ref.type === 'model' || specialPreview ? `<div class="cat-preview-content">${cat.thumbs.thumbHtml(ref, false, true)}</div>` : cat.thumbs.thumbHtml(ref, false, true)}
       </div>
       <div class="cat-details-body">
-        <!-- Toolbar FIRST: the meta/tech/credential sections below are variable
-             length, so the actions live at a fixed spot at the top of the column
-             instead of drifting down with the content (Andy, 2026-08-20). -->
-        ${(() => {
-          const sharedPreview = !!cat.preview && ref.source === 'remote';
-          const downloadControl = `<button type="button" class="btn cat-act-download" data-act="download">${DOWNLOAD_ICON}<span>${configurable ? t('Download…') : t('Download')}</span></button>`;
-          const shareControl = `<button type="button" class="btn cat-act-share" data-act="share">${SHARE_ICON}<span>${t('Copy link')}</span></button>`;
-          // Grouped toolbar (plans/132 WP-J): four rows - pinned verbs, the EDIT
-          // family, manage, destructive last - instead of ~16 flat buttons. The
-          // edit row collapses behind an "Edit…" expander under 860px (the
-          // toggle-edit act below); every button and gate is unchanged.
-          const pinned = sharedPreview ? [downloadControl, shareControl] : [
-            // A 3-D model opens in the 3D tool; a LUT opens in the Darkroom - the
-            // primary "edit" verb for these types (they have no in-place crop/grade).
-            ref.type === 'model' ? `<button type="button" class="btn cat-act-open-3d" data-act="open-3d">${icon('box', { size: 14 })}<span>${t('Open in 3D Studio')}</span></button>` : '',
-            ref.type === 'lut' ? `<button type="button" class="btn cat-act-open-lut" data-act="open-lut">${icon('camera', { size: 14 })}<span>${t('Open in Darkroom')}</span></button>` : '',
-            // An emoji set's primary verb: make it the set new work starts from.
-            // A SEED, not a restyle - a document, a saved session or a link that
-            // already names a set keeps the set it names (lib/emoji-prefs.ts).
-            emojiPackMeta(ref) ? `<button type="button" class="btn cat-act-use-emoji" data-act="use-emoji-set" aria-pressed="false">${icon('smile', { size: 14 })}<span>${t('Use this set')}</span></button>` : '',
-            `<button type="button" class="btn cat-act-fav${fav ? ' is-fav' : ''}" data-act="fav" data-sfx="twinkle" aria-pressed="${fav}">${STAR_ICON}<span>${fav ? t('Favourited') : t('Favourite')}</span></button>`,
-            downloadControl,
-            `<button type="button" class="btn" data-act="open-with" aria-haspopup="menu" ${cat.actions.choices([ref]).length ? '' : 'disabled'} title="${escapeText(cat.actions.choices([ref]).length ? t('Open in a compatible tool') : t('No tool accepts this selection.'))}">${t('Open with')}</button>`,
-            `<button type="button" class="btn" data-act="convert" ${cat.actions.canConvert([ref]) ? '' : 'disabled'} title="${escapeText(cat.actions.canConvert([ref]) ? t('Choose a supported transformation') : t('No conversion accepts this selection.'))}">${t('Convert…')}</button>`,
-            isTextAsset ? `<button type="button" class="btn cat-act-dl-as" data-act="dl-as" aria-haspopup="menu" aria-expanded="false">${DOWNLOAD_ICON}<span>${t('Download as')}</span></button>` : '',
-            `<button type="button" class="btn" data-act="prepare">${t('Prepare for sharing')}</button>`,
-            `<button type="button" class="btn cat-act-send" data-act="send">${icon('upload', { size: 14 })}<span>${t('Send to…')}</span></button>`,
-            shareControl,
-          ];
-          const edit = [
-            croppable ? `<button type="button" class="btn cat-act-crop" data-act="crop">${CROP_ICON}<span>${t('Crop…')}</span></button>` : '',
-            canRetouch ? `<button type="button" class="btn cat-act-retouch" data-act="retouch">${icon('stamp', { size: 14 })}<span>${t('Retouch…')}</span></button>` : '',
-            canGrade ? `<button type="button" class="btn cat-act-grade" data-act="grade">${icon('palette', { size: 14 })}<span>${t('Grade…')}</span></button>` : '',
-            canGrade ? `<button type="button" class="btn cat-act-darkroom" data-act="darkroom">${icon('camera', { size: 14 })}<span>${t('Open in Darkroom')}</span></button>` : '',
-            canUpscale ? `<button type="button" class="btn cat-act-upscale" data-act="upscale">${icon('aiSpark', { size: 14 })}<span>${t('Upscale…')}</span></button>` : '',
-            canMatte ? `<button type="button" class="btn cat-act-matte" data-act="matte">${icon('scissors', { size: 14 })}<span>${t('Remove background…')}</span></button>` : '',
-            trimmable ? `<button type="button" class="btn cat-act-trim" data-act="trim">${icon('fitContain', { size: 14 })}<span>${t('Trim margins')}</span></button>` : '',
-            canOcr || canReadDoc || canReadVector ? `<button type="button" class="btn cat-act-read-text" data-act="read-text">${icon('aiSpark', { size: 14 })}<span>${t('Read text')}</span></button>` : '',
-            canExtractAudio ? `<button type="button" class="btn cat-act-extract-audio" data-act="extract-audio">${icon('music', { size: 14 })}<span>${t('Extract audio…')}</span></button>` : '',
-            canEditScript ? `<button type="button" class="btn cat-act-edit-script" data-act="edit-script">${icon('mic', { size: 14 })}<span>${t('Edit script')}</span></button>` : '',
-            canVideoMatte ? `<button type="button" class="btn cat-act-vid-matte" data-act="vid-matte">${icon('scissors', { size: 14 })}<span>${t('Remove background…')}</span></button>` : '',
-            canVideoCrop ? `<button type="button" class="btn cat-act-vid-crop" data-act="vid-crop">${CROP_ICON}<span>${t('Crop…')}</span></button>` : '',
-            canVideoUpscale ? `<button type="button" class="btn cat-act-vid-upscale" data-act="vid-upscale">${icon('aiSpark', { size: 14 })}<span>${t('Upscale…')}</span></button>` : '',
-            canVideoGrade ? `<button type="button" class="btn cat-act-vid-grade" data-act="vid-grade">${icon('palette', { size: 14 })}<span>${t('Grade…')}</span></button>` : '',
-            canVideoTrim ? `<button type="button" class="btn cat-act-vid-trim" data-act="vid-trim">${icon('filmStrip', { size: 14 })}<span>${t('Trim…')}</span></button>` : '',
-            isTextAsset ? `<button type="button" class="btn cat-act-analyse-text" data-act="analyse-text">${icon('aiSpark', { size: 14 })}<span>${t('Analyse text')}</span></button>
-            <button type="button" class="btn cat-act-humanize" data-act="humanize">${icon('wrench', { size: 14 })}<span>${t('Fix characters')}</span></button>
-            <button type="button" class="btn cat-act-copy-text" data-act="copy-text">${icon('duplicate', { size: 14 })}<span>${t('Copy text')}</span></button>` : '',
-          ];
-          const manage = [
-            `<button type="button" class="btn" data-act="add-to-project">${icon('folder', { size: 14 })}<span>${t('Add to project…')}</span></button>`,
-            `<button type="button" class="btn" data-act="recategorise">${TAG_ICON}<span>${t('Recategorise…')}</span></button>`,
-            isUser ? `<button type="button" class="btn" data-act="rename">${PENCIL_ICON}<span>${t('Rename')}</span></button>
-               <button type="button" class="btn" data-act="replace">${REPLACE_ICON}<span>${t('Replace…')}</span></button>` : '',
-          ];
-          const danger = [
-            isUser
-              ? `<button type="button" class="btn cat-act-danger" data-act="delete">${TRASH_ICON}<span>${t('Move to Trash')}</span></button>`
-              : (hidden
-                  ? `<button type="button" class="btn" data-act="unhide">${EYE_ICON}<span>${t('Unhide')}</span></button>`
-                  : `<button type="button" class="btn cat-act-danger" data-act="hide">${EYE_OFF_ICON}<span>${t('Hide')}</span></button>`),
-          ];
-          const row = (btns: string[], cls = ''): string => {
-            const inner = btns.filter(Boolean).join('');
-            return inner ? `<span class="cat-act-row${cls ? ` ${cls}` : ''}">${inner}</span>` : '';
-          };
-          const editRow = sharedPreview ? '' : row(edit, 'cat-act-row--edit');
-          const editToggle = editRow
-            ? `<button type="button" class="btn cat-act-more" data-act="toggle-edit" aria-expanded="false">${PENCIL_ICON}<span>${t('Edit…')}</span></button>`
-            : '';
-          return `<div class="cat-details-actions">
-            ${row(pinned)}${editToggle}${editRow}${sharedPreview ? '' : row(manage) + row(danger, 'cat-act-row--danger')}
-          </div>`;
-        })()}
-        <div class="cat-passport" data-passport></div>
         <h2 class="cat-details-name">${escapeText(name)}${aiSignalsChip(ref)}</h2>
+        <section class="cat-details-provenance" aria-label="${escapeText(t('Content Credentials & origins'))}">
+          <h3 class="cat-inspector-heading">${t('Content Credentials & origins')}</h3>
+          <div class="cat-passport" data-passport></div>
+          ${showVerify ? `<div class="cat-details-cred">
+            <button type="button" class="btn cat-act-verify" data-act="verify">${SHIELD_ICON}<span>${t('Check Content Credentials')}</span></button>
+            <div class="cat-cred-lolly" hidden>${lollyBadge('lg')}<span class="cat-cred-lolly-sub">${t('This file’s Content Credential records a Lolly export, intact.')}</span></div>
+            <div class="cat-cred-panels" hidden></div>
+          </div>` : ''}
+          <dl class="cat-details-meta cat-provenance-meta">
+            <div><dt>${t('Origins')}</dt><dd class="cat-details-ai" data-origins></dd></div>
+            <div><dt>${t('Author')}</dt><dd class="cat-details-ai" data-authorship></dd></div>
+          </dl>
+        </section>
+        ${dt.controls.sidebarHtml()}
         ${ref.type === 'audio' ? `<div class="cat-details-art" data-audio-art aria-hidden="true">${audioCardArt(cat, ref)}</div>` : ''}
         <dl class="cat-details-meta">
           ${assetRightsRows(ref, isUser)}
           ${emojiPackRows(ref)}
           <div><dt>${t('Category')}</dt><dd>${escapeText(t(categoryLabel(libCategory(ref, cat.overrides))))}</dd></div>
           <div><dt>${t('Format')}</dt><dd>${escapeText(String(ref.format ?? ref.type).toUpperCase())}</dd></div>
-          <div class="cat-details-origins-row"><dt>${t('Origins')}</dt><dd class="cat-details-ai" data-origins></dd></div>
           ${(() => {
             // Added/Modified (plans/132 WP-A): uploads always have a date (the id
             // embeds mint time); a catalog asset shows the date its file was first
@@ -532,11 +472,6 @@ export function buildSheet(dt: DetailsCtx): void {
         <div class="cat-details-tech" data-tech hidden></div>
         <div class="cat-details-tech" data-usage hidden></div>
         ${isTextAsset || canOcr || canReadDoc || canReadVector ? `<div class="cat-details-tsig" data-tsig hidden></div>` : ''}
-        ${showVerify ? `<div class="cat-details-cred">
-          <div class="cat-cred-lolly" hidden>${lollyBadge('lg')}<span class="cat-cred-lolly-sub">${t('This file’s Content Credential records a Lolly export, intact.')}</span></div>
-          <div class="cat-cred-panels" hidden></div>
-          <button type="button" class="btn cat-act-verify" data-act="verify">${SHIELD_ICON}<span>${t('Check Content Credentials')}</span></button>
-        </div>` : ''}
         ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(dt.dTheme)}</div>` : ''}
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;
@@ -549,11 +484,14 @@ export function buildSheet(dt: DetailsCtx): void {
   // The toolbar's "Download as" format menu (text assets) - a body-popover
   // mounted INSIDE this dialog so it paints above the ::backdrop.
   dt.dlAsPopover = null;
+  let clearSiteInspection: (() => void) | undefined;
   const modal = mountModal(content, {
     className: 'cat-details',
     backStack: !cat.preview,
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
+    onEscape: () => dt.sheet.dismissLayer(),
     onClose: () => {
+      clearSiteInspection?.();
       destroyModelPreview?.();
       destroySpecialPreview?.();
       dt.formatViewer?.destroy();
@@ -584,12 +522,13 @@ export function buildSheet(dt: DetailsCtx): void {
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  clearSiteInspection = publishSiteInspection(() => dlg.isConnected ? dt.ref : null);
   if (ref.type === 'model') {
-    const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
+    const preview = dlg.querySelector<HTMLElement>('.cat-preview-content');
     if (preview) destroyModelPreview = mountModelPreview(preview, ref);
   }
-  if ((ref.original?.format ?? ref.format) === 'mogrt') {
-    const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
+  if (specialPreview) {
+    const preview = dlg.querySelector<HTMLElement>('.cat-preview-content');
     if (preview) destroySpecialPreview = mountSpecialPreview(preview, ref, cat);
   }
   const fileSlot = document.createElement('div');
@@ -601,7 +540,7 @@ export function buildSheet(dt: DetailsCtx): void {
   if (ownsPreview && !ref.meta?._placeholder) {
     dlg.classList.add('has-format-viewer');
     mountAssetViewerDetails(dlg);
-    dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-details-preview')!, ref, cat.host);
+    dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-preview-content')!, ref, cat.host);
   }
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
   // asset is open, so copy/pasting the URL shares this exact view. Paging
@@ -773,6 +712,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
   }, { capture: true });
   dlg.addEventListener('click', async (e) => {
     const target = e.target as HTMLElement;
+    if (dt.controls.handleEditingClick(e)) return;
     // The floating edit card: any click outside it closes it first, and a
     // click on an underlined swap/sentence in the preview opens its card.
     if (dt.dCard && !dt.dCard.contains(target)) dt.panels.closeEditCard();
@@ -877,7 +817,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       const on = cat.favSet.has(base);
       const btn = dlg.querySelector<HTMLElement>('.cat-act-fav');
       btn?.classList.toggle('is-fav', on); btn?.setAttribute('aria-pressed', String(on));
-      const lbl = btn?.querySelector('span'); if (lbl) lbl.textContent = on ? t('Favourited') : t('Favourite');
+      const lbl = (btn?.querySelector('.cat-edit-label') ?? btn?.querySelector('span')); if (lbl) lbl.textContent = on ? t('Favourited') : t('Favourite');
       // Reflect in the grid + favourites strip behind the modal, in place (no full
       // re-render - favouriting never moves a tile between buckets).
       if (cat.mounted) { cat.sections.reflectFavInGrid(base, on); cat.sections.refreshFavStrip(); }
@@ -894,7 +834,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
           ? `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(buildTreatedAssetId(base, dt.dTreatment))}`
           : cat.sections.assetLink(ref);
       try { await navigator.clipboard.writeText(link); } catch { /* clipboard blocked */ }
-      const s = btn?.querySelector('span');
+      const s = (btn?.querySelector('.cat-edit-label') ?? btn?.querySelector('span'));
       if (s) s.textContent = t('Copied!'); btn?.classList.add('is-copied');
       // Restore to the fixed label (never the current text) so a rapid re-click can't
       // capture 'Copied!' and leave the button stuck.
@@ -956,7 +896,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
         const text = dt.dTextContent ?? await (await fetch(ref.url)).text();
         dt.dTextContent = text;
         await navigator.clipboard.writeText(text);
-        const s = btn?.querySelector('span');
+        const s = (btn?.querySelector('.cat-edit-label') ?? btn?.querySelector('span'));
         if (s) s.textContent = t('Copied!'); btn?.classList.add('is-copied');
         setTimeout(() => { if (s) s.textContent = t('Copy text'); btn?.classList.remove('is-copied'); }, 1200);
       } catch { announce(t('That text could not be copied.')); }
@@ -998,7 +938,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       const box = dlg.querySelector<HTMLElement>('[data-tsig]');
       const btn = target.closest<HTMLButtonElement>('.cat-act-read-text');
       if (btn?.disabled) return;
-      const span = btn?.querySelector('span');
+      const span = (btn?.querySelector('.cat-edit-label') ?? btn?.querySelector('span'));
       let orig = span?.textContent ?? t('Read text');
       if (btn) btn.disabled = true;
       if (span) span.textContent = t('Reading…');
@@ -1083,7 +1023,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       const box = dlg.querySelector<HTMLElement>('[data-tsig]');
       const btn = target.closest<HTMLButtonElement>('.cat-act-read-text');
       if (btn?.disabled) return; // an OCR run is already in flight - never start a second
-      const span = btn?.querySelector('span');
+      const span = (btn?.querySelector('.cat-edit-label') ?? btn?.querySelector('span'));
       const orig = span?.textContent ?? t('Read text');
       // Disabled for the whole run (like the retry button's guard): a double-click
       // must not spin up two concurrent OCR passes over the same image.
@@ -1253,7 +1193,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       if (dt.dCleanedText != null) {
         try {
           await navigator.clipboard.writeText(dt.dCleanedText);
-          const s = btn?.querySelector('span');
+          const s = (btn?.querySelector('.cat-edit-label') ?? btn?.querySelector('span'));
           if (s) s.textContent = t('Copied!'); btn?.classList.add('is-copied');
           setTimeout(() => { if (s) s.textContent = t('Copy cleaned text'); btn?.classList.remove('is-copied'); }, 1200);
         } catch { announce(t('That text could not be copied.')); }
@@ -1303,6 +1243,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       }
       return;
     }
+    if (act === 'author-declare' || act === 'author-clear') { await dt.provenance.updateAuthorship(act === 'author-clear'); return; }
     if (act === 'origin-full' || act === 'origin-partial' || act === 'origin-clear') {
       // The Origins control: the user asserting what they know about how this
       // asset was made (or withdrawing that assertion - never a claim that it
@@ -1323,6 +1264,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
         if (kind) local.aiGenerated = kind; else delete local.aiGenerated;
         ref.meta = local as typeof ref.meta;
         dt.panels.renderOrigins();
+        dt.sheet.paintPassport();
         cat.thumbs.reflectGenAiInPlace(ref);
         announce(kind ? t('Origins declared. It travels with the asset.') : t('Origins declaration removed.'));
       } catch { announce(t('Could not update origins.')); }
@@ -1354,14 +1296,6 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       return;
     }
     if (act === 'add-to-project') { await cat.bulk.addToProject([ref.id]); return; }
-    // Mobile toolbar: the EDIT row folds behind this expander under 860px.
-    if (act === 'toggle-edit') {
-      const actions = dlg.querySelector<HTMLElement>('.cat-details-actions');
-      const btn = target.closest<HTMLElement>('.cat-act-more');
-      const open = actions?.classList.toggle('is-edit-open') ?? false;
-      btn?.setAttribute('aria-expanded', String(open));
-      return;
-    }
     // "Download as" (text assets): a format menu anchored to its toolbar button,
     // mounted inside THIS dialog. The items carry data-act="dl-text", so their
     // clicks bubble to this same dispatcher - the menu is pure presentation.
@@ -1561,30 +1495,11 @@ export function wireSheetEvents(dt: DetailsCtx): void {
   });
   // ← / → page through assets (lightbox style), like the on-screen prev/next buttons.
   dlg.addEventListener('keydown', (e) => {
-    // In crop mode Escape backs out of the crop, not the whole modal: preventDefault
-    // suppresses the native <dialog> close request (the close-watcher only fires when the
-    // Escape keydown wasn't cancelled), and paging is disabled so it can't tear down the crop.
-    if (dt.inlineCrop) {
-      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); dt.inlineCrop(); }
+    if (dt.inlineCrop || dt.inlineRetouch || dt.inlineVideoEdit || dt.inlineGrade || dt.inlineTrim) {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); dt.sheet.dismissLayer(); }
       return;
     }
-    // Same convention for Retouch: Escape backs out of the MODE - unless a
-    // save is committing, which must never be torn down mid-write.
-    if (dt.inlineRetouch) {
-      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (!dt.inlineRetouch.busy()) dt.inlineRetouch.exit(); }
-      return;
-    }
-    // And for the video Grade/Trim mode - busy() covers the beat between the Apply
-    // click and the job being enqueued, which must not be torn down half-made.
-    if (dt.inlineVideoEdit) {
-      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (!dt.inlineVideoEdit.busy()) dt.inlineVideoEdit.exit(); }
-      return;
-    }
-    // With a trim card up, paging is off for the same reason: it would tear the card
-    // down mid-question. Its Escape is handled by the card itself (and cancelled in
-    // the capture listener enterInlineTrim arms), so nothing to do here.
-    if (dt.inlineTrim) return;
-    if ((e.target as HTMLElement).closest('.asset-format-viewer')) return;
+    if ((e.target as HTMLElement).closest('.asset-format-viewer, input, textarea, select, [contenteditable]')) return;
     if (e.key === 'ArrowLeft' && nav.prev) { e.preventDefault(); dt.openDetails(cat, nav.prev, dt.dTheme, dt.dTreatment); }
     else if (e.key === 'ArrowRight' && nav.next) { e.preventDefault(); dt.openDetails(cat, nav.next, dt.dTheme, dt.dTreatment); }
   });
@@ -1599,7 +1514,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     let sx = 0, sy = 0, armed = false;
     swipeEl.addEventListener('touchstart', (e) => {
       const p = e.touches[0];
-      armed = e.touches.length === 1 && !!p && !dt.inlineCrop && !dt.inlineRetouch && !dt.inlineVideoEdit && !dt.inlineTrim;
+      armed = e.touches.length === 1 && !!p && !(e.target as HTMLElement).closest('button, .cat-stage-bar, .cat-edit-toolbar') && !dt.inlineCrop && !dt.inlineRetouch && !dt.inlineVideoEdit && !dt.inlineTrim;
       if (p) { sx = p.clientX; sy = p.clientY; }
     }, { passive: true });
     swipeEl.addEventListener('touchend', (e) => {
@@ -1615,6 +1530,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     }, { passive: true });
   }
   if (zoomable) attachZoom(dlg);
+  dt.controls.wireControls();
   // Mount the looping Lottie player over the poster (autoplays). Guarded so a mount that resolves
   // after the modal was paged/closed doesn't attach to a stale node; closeDetails reaps it.
   if (isMotionLottie) {
@@ -1661,6 +1577,17 @@ export function wireSheetEvents(dt: DetailsCtx): void {
   }
 }
 
+/** Escape exits the active inspection layer even when a hidden control lost focus. */
+export function dismissLayer(dt: DetailsCtx): void {
+  if (dt.dCard) dt.panels.closeEditCard();
+  else if (dt.inlineCrop) dt.inlineCrop();
+  else if (dt.inlineRetouch) { if (!dt.inlineRetouch.busy()) dt.inlineRetouch.exit(); }
+  else if (dt.inlineVideoEdit) { if (!dt.inlineVideoEdit.busy()) dt.inlineVideoEdit.exit(); }
+  else if (dt.inlineGrade) dt.inlineGrade.exit();
+  else if (dt.inlineTrim) dt.inlineTrim();
+  else dt.cat.sections.closeDetails();
+}
+
 export function sheetOps(dt: DetailsCtx) {
   return {
     readAsset: bindOp(dt, readAsset),
@@ -1669,5 +1596,6 @@ export function sheetOps(dt: DetailsCtx) {
     paintEmojiPack: bindOp(dt, paintEmojiPack),
     wireTextAsset: bindOp(dt, wireTextAsset),
     wireSheetEvents: bindOp(dt, wireSheetEvents),
+    dismissLayer: bindOp(dt, dismissLayer),
   };
 }

@@ -26,8 +26,7 @@ import { PairError, pairWithAgent, parsePairingCode, type AgentLink, type PairFa
 import type { LiveEditor } from '../lib/live-agent.ts';
 import type { AgentChange } from '@lolly-tools/core/agent-presence-v1';
 import { agentRosterFor } from '../lib/agent-collaborators.ts';
-import { mountCollabPill, type CollabPill } from '../components/collab-pill.ts';
-import { mountAgentChanges, type AgentChanges } from '../components/agent-changes.ts';
+import { mountAgentRosterControls } from '../lib/agent-roster-controls.ts';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -242,15 +241,7 @@ export function mountAgentPill(viewEl: HTMLElement, link: { client(): string; di
   const roster = agentRosterFor(stage);
   const name = (): string => link.client() || t('AI agent');
   const agent = roster.join(name(), { disconnect: () => link.disconnect(), pause: value => link.pause?.(value) });
-  let pill: CollabPill | null = null;
-  let changes: AgentChanges | null = null;
-  const refresh = (): void => {
-    if (roster.hasPeople()) { pill?.destroy(); pill = null; changes?.dispose(); changes = null; return; }
-    pill ??= mountCollabPill(stage, { source: roster, className: 'collab-pill--stage collab-pill--agent', onDisconnectAgent: id => roster.disconnect(id), onPauseAgent: id => roster.pause(id) });
-    if (canvas) changes ??= mountAgentChanges(stage, canvas, roster);
-  };
-  refresh();
-  const off = roster.subscribe(refresh);
+  const removeControls = mountAgentRosterControls(stage, canvas);
   let timer: ReturnType<typeof setTimeout> | undefined;
   let removed = false;
   return {
@@ -268,6 +259,6 @@ export function mountAgentPill(viewEl: HTMLElement, link: { client(): string; di
         agent.update({ ...(paused ? {} : { phase: 'idle' }), activity: undefined, change: undefined });
       }, 4000);
     },
-    remove() { if (removed) return; removed = true; clearTimeout(timer); off(); agent.remove(); pill?.destroy(); changes?.dispose(); },
+    remove() { if (removed) return; removed = true; clearTimeout(timer); agent.remove(); removeControls(); },
   };
 }

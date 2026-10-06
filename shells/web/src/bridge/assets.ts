@@ -701,7 +701,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       return PHOTO_TREATMENTS_CACHE;
     },
 
-    async query(filter: AssetQuery = {}): Promise<AssetRef[]> {
+    async _queryMetadata(filter: AssetQuery = {}): Promise<AssetRef[]> {
+      return api.query(filter, { metadataOnly: true });
+    },
+
+    async query(filter: AssetQuery = {}, listing: { metadataOnly?: boolean } = {}): Promise<AssetRef[]> {
       const all = await db.getAll('asset-meta');
       const filtered = all.filter(m => matchesFilter(m, filter));
       // Don't pre-resolve blob URLs: that forces every cached blob into
@@ -729,7 +733,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         const filePoster = (m.type === 'model' || m.type === 'lut')
           ? still
           : '';
-        if (primary?.format === 'jxl') return api.get(m.id);
+        if (primary?.format === 'jxl' && !listing.metadataOnly) return api.get(m.id);
         const directUrl = lottiePoster || (primary?.url ?? '');
         // Catalog animated rasters (gif/apng/animated-webp) are authored
         // type:'raster' and tagged "animated" so the picker badges the
@@ -754,6 +758,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           format: primary?.format ?? 'svg',
           url: directUrl,
           version: m.version,
+          width: m.width ?? primary?.width,
+          height: m.height ?? primary?.height,
           meta: {
             // The entry's own `meta` block (schemas/asset.schema.json): the
             // type-specific facts a shell needs BEFORE it downloads the bytes,
@@ -766,6 +772,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
             // than on the resolved-ref path below.
             ...withoutReservedMeta(m.meta),
             name: m.name, tags: m.tags, _placeholder: !directUrl,
+            formats: m.formats.filter(file => file.format !== 'thumb').map(file => file.format),
             ...(m.provider ? { provider: m.provider } : {}),
             ...(m.description ? { description: m.description } : {}),
             // The primary format's byte length, straight off the index. A shell

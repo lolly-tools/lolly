@@ -587,11 +587,72 @@
    during search - same quiet chip family as .cat-tag, never louder than the name. */
 .cat-match-chip { font-size: var(--fs-xs); padding: 0 6px; border-radius: var(--radius-pill); background: hsl(var(--accent) / .5); color: hsl(var(--muted-foreground)); white-space: nowrap; }
 .cat-act-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
-/* The Edit… expander exists only below 860px; above, the edit row is always out. */
-.cat-act-more { display: none; }
+.cat-details-name { overflow-wrap: anywhere; }
+.cat-details-provenance { margin-bottom: 20px; }
+.cat-inspector-heading, .cat-action-group > summary {
+  font-size: var(--fs-sm); font-weight: 700; color: hsl(var(--foreground));
+}
+.cat-inspector-heading { margin: 0 0 10px; }
+.cat-provenance-meta { margin: 12px 0 0; }
+.cat-provenance-meta > div { grid-template-columns: 1fr; gap: 4px; }
+.cat-provenance-meta .cat-details-ai { display: block; font-size: var(--fs-sm); }
+.cat-details-provenance .cat-details-cred { margin: 10px 0 0; gap: 10px; }
+.cat-act-verify { font-size: var(--fs-sm); }
+.cat-action-group { width: 100%; }
+.cat-action-group > summary { padding: 8px 0; cursor: pointer; }
+.cat-action-group > summary:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.cat-action-group .cat-act-row { padding: 4px 0 8px; }
+.cat-details-actions .btn { min-height: 36px; }
+.cat-details-preview { background-color: hsl(var(--background)); }
+.cat-details-preview:has(.cat-preview-content) { place-items: stretch; padding: 0; }
+.cat-preview-content { width: 100%; height: 100%; min-height: 0; overflow: auto; }
+
+/* The rail stays on the preview while the information column scrolls. */
+.cat-edit-toolbar {
+  --cat-tool-size: calc(44px * var(--a11y-fs));
+  position: absolute; inset-inline-start: 12px; top: 12px; z-index: 3;
+  width: calc(var(--cat-tool-size) + 8px); max-width: calc(100% - 64px);
+  max-height: calc(100% - 80px); overflow: auto; scrollbar-width: thin;
+  overscroll-behavior: contain; touch-action: pan-y;
+  display: flex; flex-direction: column; gap: 4px; padding: 4px;
+  border-radius: var(--radius); color: hsl(var(--foreground));
+}
+.cat-edit-toolbar:has(.cat-edit-tool:hover, .cat-edit-tool:focus-visible, .cat-edit-tool.is-expanded) {
+  width: min(300px, calc(100% - 64px));
+}
+.cat-edit-heading {
+  width: var(--cat-tool-size); text-align: center; font-size: var(--fs-xs); padding: 4px 0;
+  border-radius: var(--radius-pill); background: hsl(var(--card));
+}
+.cat-edit-tool {
+  display: flex; align-items: center; flex: none; gap: 0;
+  width: var(--cat-tool-size); min-height: var(--cat-tool-size); padding: 0;
+  border: 0; border-radius: calc(var(--radius) * .7); background: hsl(var(--card)); box-shadow: var(--shadow-2);
+  color: inherit; font: inherit; font-size: var(--fs-sm); text-align: start; cursor: pointer;
+}
+.cat-edit-tool:is(:hover, :focus-visible, .is-expanded) { width: 100%; background: hsl(var(--muted)); }
+.cat-edit-tool:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -2px; }
+.cat-edit-tool:disabled { opacity: .45; cursor: default; }
+.cat-edit-glyph, .cat-edit-arrow {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--cat-tool-size); min-height: var(--cat-tool-size); flex: none;
+}
+.cat-edit-tool svg { width: 18px; height: 18px; }
+.cat-edit-label { display: none; min-width: 0; flex: 1; overflow-wrap: anywhere; padding-block: 6px; }
+.cat-edit-arrow { display: none; margin-inline-start: auto; }
+.cat-edit-tool:is(:hover, :focus-visible, .is-expanded) .cat-edit-label,
+.cat-edit-tool:is(:hover, :focus-visible, .is-expanded) .cat-edit-arrow { display: inline-flex; }
+.cat-details-preview:has(.cat-edit-toolbar) .cat-details-prev { left: 76px; }
+.cat-inspect-theme svg { width: 16px; height: 16px; }
+.cat-details:is(.is-cropping, .is-retouching, .is-video-editing, .is-grading, .is-trimming) .cat-edit-toolbar { display: none; }
 @media (max-width: 859px) {
-  .cat-act-more { display: inline-flex; }
-  .cat-details-actions:not(.is-edit-open) .cat-act-row--edit { display: none; }
+  .cat-details-preview:has(.cat-preview-content) { height: 46vh; }
+}
+@media (max-width: 559px) {
+  .cat-edit-toolbar { inset-inline-start: 8px; top: 8px; }
+  .cat-details-preview:has(.cat-edit-toolbar) .cat-details-prev { left: 68px; }
+  .cat-details-preview .cat-zoom-btn { min-width: 32px; padding-inline: 5px; }
+  .cat-details-preview .cat-zoom-pct { min-width: 42px; }
 }
 /* The toolbar's "Download as" format menu (a body-popover mounted inside the
    details dialog, so it paints above the ::backdrop). Box-coloured from tokens. */
