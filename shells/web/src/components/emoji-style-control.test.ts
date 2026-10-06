@@ -50,6 +50,28 @@ const SA_SET: EmojiSetInfoV1 = {
 };
 const SA_KEY = 'community/emoji/openmoji/color@17.0.0';
 
+test('document emoji settings fold together and import stays a separate closed choice', async () => {
+  const host = fakeHost();
+  host.emoji!.install = async () => SET;
+  const r = await rig({ mode: 'document', host, compactManagement: true });
+  try {
+    const section = r.root.querySelector<HTMLDetailsElement>('[data-emoji-manage]')!;
+    assert.equal(section.open, false);
+    assert.equal(r.root.querySelector('.emoji-style')!.children.length, 1);
+    assert.ok(section.contains(r.root.querySelector('[data-emoji-set]')));
+    const imports = section.querySelector<HTMLDetailsElement>('[data-emoji-import]')!;
+    assert.equal(imports.open, false);
+    assert.equal(imports.querySelector('button')!.textContent, 'Import file…');
+    assert.equal(imports.querySelector('[role="status"]')!.textContent, '');
+    const info = section.querySelector<HTMLButtonElement>('.help-tip-btn')!;
+    assert.equal(info.getAttribute('aria-expanded'), 'false');
+    info.click();
+    assert.equal(info.getAttribute('aria-expanded'), 'true');
+    assert.equal(section.open, false, 'requesting info does not expand the section');
+    assert.equal(r.emitted.length, 0, 'opening settings never changes document artwork');
+  } finally { r.destroy(); }
+});
+
 /** Two brand colours: one accent-named, one near-black, so mono and duotone both have an answer. */
 const SWATCHES = [
   { ref: '{color.brand.primary}', value: '#0c322c' },
@@ -79,7 +101,7 @@ interface Rig {
   destroy(): void;
 }
 
-async function rig(opts: { mode: 'document' | 'preference'; value?: ControlValue; host?: HostV1; specimen?: (style: EmojiStyleV1) => Promise<string> }): Promise<Rig> {
+async function rig(opts: { mode: 'document' | 'preference'; value?: ControlValue; host?: HostV1; specimen?: (style: EmojiStyleV1) => Promise<string>; compactManagement?: boolean }): Promise<Rig> {
   document.body.innerHTML = '';
   const root = document.createElement('div');
   document.body.appendChild(root);
@@ -89,6 +111,7 @@ async function rig(opts: { mode: 'document' | 'preference'; value?: ControlValue
     mode: opts.mode,
     value: opts.value ?? null,
     onChange: (next) => emitted.push(next),
+    compactManagement: opts.compactManagement,
     ...(opts.specimen ? { specimen: opts.specimen } : {}),
   });
   // The listing and the palette both arrive on a microtask; the control renders twice.

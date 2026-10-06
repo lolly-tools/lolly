@@ -1279,7 +1279,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   function emojiDocRows(): string {
     if (!opts.emoji) return '';
-    return `<p class="lp-subhead">${t('Emoji')}</p><div data-emoji-slot></div>`;
+    return `<div data-emoji-slot role="group" aria-label="${escape(t('Emoji'))}"></div>`;
   }
 
   /** Put the shared control in the slot the Document section left for it. */

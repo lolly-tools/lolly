@@ -34,6 +34,7 @@ import { mountEmojiCredits } from './emoji-credits.ts';
 import { mountEmojiPackCreate } from './emoji-pack-create.ts';
 import { mountEmojiPackImport, mountEmojiPackExport } from './emoji-pack-import.ts';
 import { mountEmojiFallbacks } from './emoji-fallbacks.ts';
+import { helpTip, wireHelpTips, unwireHelpTips, linkHelpDescriptions } from './help-tip.ts';
 
 /** The five characters the specimen row shows. Kept as escapes so this file carries no literal emoji. */
 export const EMOJI_SPECIMEN = '\u{1F600}\u{1F60D}\u{1F914}\u{1F60E}\u2764\uFE0F';
@@ -227,8 +228,11 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
   }
 
   let managementOpen = false;
+  let importOpen = false;
   function render(focus?: string): void {
     if (destroyed) return;
+    managementOpen = el.querySelector<HTMLDetailsElement>('[data-emoji-manage]')?.open ?? managementOpen;
+    importOpen = el.querySelector<HTMLDetailsElement>('[data-emoji-import]')?.open ?? importOpen;
     const mine = ++gen;
     const keyboard = focus ?? focusKey();
     const setKey = setKeyOf(value);
@@ -255,6 +259,9 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
     // The treatment and the protection switch only make sense once a set is chosen:
     // there is nothing to treat and nothing to protect until then.
     const chosen = Boolean(setKey);
+    const setHelp = helpTip(chosen
+      ? t('Emoji are drawn from the set you choose, so every device shows the same artwork. The set\'s licence is recorded with exports that can carry it.')
+      : t('Until you choose a set, emoji in your text are drawn as a plain placeholder rather than this machine\'s own emoji font.'));
     // Protection is a property of a DOCUMENT's treatment, and only a document has
     // colours to protect anything from. A preference carries no protection field
     // at all, so offering the switch there showed a tick that did nothing and came
@@ -274,14 +281,17 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
     // is made, once, and stops there: the licence for a shared adaptation is
     // chosen in the export panel, and nothing here takes the treatment away.
     const treatment = FX_CHOICES.find(choice => choice.id === fxId);
-    const shareAlikeNote = chosen && treatment && treatment.mode !== 'original' && isShareAlike(sets.find(info => `${info.pin.id}@${info.pin.pin.version}` === setKey))
-      ? `<p class="emoji-style-note" data-emoji-sa-note>${t('Lolly records recoloured artwork from this set as an adaptation. If you share it, the export panel will ask you to choose a compatible licence.')}</p>`
+    const adaptation = chosen && treatment && treatment.mode !== 'original' && isShareAlike(sets.find(info => `${info.pin.id}@${info.pin.pin.version}` === setKey))
+      ? helpTip(t('Lolly records recoloured artwork from this set as an adaptation. If you share it, the export panel will ask you to choose a compatible licence.')) : null;
+    const shareAlikeNote = adaptation
+      ? `<div class="help-tip-host emoji-style-adaptation" data-emoji-sa-note><span>${t('Artwork licence')}</span>${adaptation.button}${adaptation.pop}</div>`
       : '';
     el.innerHTML = `
-      <label class="${rowClass}">
-        <span class="field-label">${t('Emoji set')}</span>
-        <select class="${selectClass}" data-emoji-set>${options}</select>
-      </label>
+      <div class="${rowClass} help-tip-host">
+        <span class="field-label fc-row-help-label"><span>${t('Emoji set')}</span>${setHelp.button}</span>
+        <select class="${selectClass}" data-emoji-set aria-label="${escapeText(t('Emoji set'))}">${options}</select>
+        ${setHelp.pop}
+      </div>
       ${specimenRow}
       ${chosen ? `
       <div class="${rowClass}">
@@ -290,16 +300,27 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
       </div>
       ${shareAlikeNote}
       ${protectRow}
-      <p class="emoji-style-note">${t('Emoji are drawn from the set you choose, so every device shows the same artwork. The set\'s licence is recorded with exports that can carry it.')}</p>
-      ` : `<p class="emoji-style-note">${t('Until you choose a set, emoji in your text are drawn as a plain placeholder rather than this machine\'s own emoji font.')}</p>`}
+      ` : ''}
     `;
     if (opts.mode === 'document' && isStyle(value)) {
       mountEmojiFallbacks(el, value, sets, next => { value = next; opts.onChange(next); render(); });
     }
-    if (opts.host.emoji) mountEmojiPackImport(el, opts.host.emoji, info => {
+    if (opts.host.emoji?.install) {
+      const imports = document.createElement('details');
+      imports.className = 'lp-details emoji-style-import';
+      imports.dataset.emojiImport = '';
+      imports.open = importOpen;
+      imports.addEventListener('toggle', () => { importOpen = imports.open; });
+      const heading = document.createElement('summary');
+      heading.textContent = t('Import emoji set');
+      const caret = document.createElement('i'); caret.className = 'lp-caret'; caret.setAttribute('aria-hidden', 'true'); heading.append(caret);
+      const body = document.createElement('div'); body.className = 'emoji-style-management';
+      imports.append(heading, body); el.append(imports);
+      mountEmojiPackImport(body, opts.host.emoji, info => {
       sets = [...sets.filter(set => JSON.stringify(set.pin) !== JSON.stringify(info.pin)), info];
       emit(`${info.pin.id}@${info.pin.pin.version}`, fxIdOf(value), protectOf(value));
-    });
+      });
+    }
     if (opts.host.emoji) mountEmojiPackCreate(el, opts.host.emoji, info => {
       sets = [...sets, info]; emit(`${info.pin.id}@${info.pin.pin.version}`, fxIdOf(value), protectOf(value));
     });
@@ -316,23 +337,24 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
       details.addEventListener('toggle', () => { managementOpen = details.open; });
       const summary = document.createElement('summary');
       const word = document.createElement('span');
-      word.textContent = t('Manage emoji sets');
+      word.textContent = t('Emoji');
       const caret = document.createElement('i');
       caret.className = 'lp-caret';
       caret.setAttribute('aria-hidden', 'true');
       summary.append(word, caret);
       details.append(summary);
-      const specimen = el.querySelector('[data-emoji-specimen]');
-      specimen?.remove();
-      while (el.firstChild) details.append(el.firstChild);
-      const label = document.createElement('p');
+      const body = document.createElement('div'); body.className = 'emoji-style-management';
+      while (el.firstChild) body.append(el.firstChild);
+      details.append(body);
+      const label = document.createElement('span');
       label.className = 'emoji-style-summary';
       const selected = sets.find(info => `${info.pin.id}@${info.pin.pin.version}` === setKey);
-      label.textContent = `${selected ? selected.label : t('No emoji set')} · ${treatment?.mode === 'original' ? t('Original') : treatment?.label() ?? t('Original')}`;
-      el.append(label);
-      if (specimen) el.append(specimen);
+      label.textContent = selected ? selected.label : setKey ? t('Unavailable') : t('Choose an emoji set');
+      summary.insertBefore(label, caret);
       el.append(details);
     }
+    wireHelpTips(el);
+    linkHelpDescriptions(el);
     restoreFocus(keyboard);
     if (opts.mode === 'document' && opts.specimen && isStyle(value)) {
       const target = el.querySelector('[data-emoji-specimen]');
@@ -418,6 +440,7 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
     },
     destroy(): void {
       destroyed = true;
+      unwireHelpTips(el);
       el.removeEventListener('change', onInput);
       el.removeEventListener('click', onClick);
       el.removeEventListener('keydown', onKeyDown);
