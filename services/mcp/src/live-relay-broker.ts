@@ -91,6 +91,7 @@ export class LiveRelayBroker {
     if (grant.permission === 'read' && ['document.apply', 'history.undo'].includes(request.method)) return liveError(request.id, LIVE_ERRORS.refused, 'This invitation allows reading only.');
     const documentId = request.params?.documentId;
     if (documentId !== undefined && documentId !== grant.documentId) return liveError(request.id, LIVE_ERRORS.refused, 'This invitation belongs to a different document.');
+    if (grant.client) grant.expiresAt = this.now() + LIVE_LIMITS.idleMs;
     const id = ++grant.seq;
     const reply = await new Promise<LiveReplyV1>(resolve => {
       const timer = setTimeout(() => { grant.pending.delete(id); resolve(liveError(id, LIVE_ERRORS.notReady, 'The editor did not answer. Read the document before retrying an edit, using the same transactionId.')); }, 60_000);
