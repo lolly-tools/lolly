@@ -28,6 +28,7 @@ import { mountInviteLinkControl } from '../components/invite-link-control.ts';
 import { projectInviteLinks } from './project-invite-links.ts';
 import { showProjectInviteLink } from './project-sharing.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
+import { mountProjectAgentsPanel } from './project-agents-panel.ts';
 
 interface ProjectViewOptions {
   host: HostV1;
@@ -51,6 +52,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   let disposed = false, ticket = 0, opening = false;
   let clearPreviews: (() => void) | undefined;
   let clearActions: (() => void) | undefined;
+  let clearAgents: (() => void) | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
   let createFolderAction: (() => void) | undefined;
   container.addEventListener('lolly:team-folder-create', () => createFolderAction?.(), { signal: abort.signal });
@@ -90,6 +92,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     createFolderAction = undefined;
     clearPreviews?.(); clearPreviews = undefined;
     clearActions?.(); clearActions = undefined;
+    clearAgents?.(); clearAgents = undefined;
     clearInvite?.(); clearInvite = undefined; invitation?.close(); invitation = undefined;
     body.replaceChildren(node('p', tRaw('Loading…'), 'team-project-notice'));
     const projects = await readSourceProjects(source);
@@ -132,10 +135,14 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (opts.tab === tab || opts.tab === 'sessions' && tab === 'sessions') link.setAttribute('aria-current', 'page'); tabs.append(link);
     };
     addTab(tRaw('Contents'), 'sessions');
+    addTab(tRaw('Agents'), 'agents');
     if (peopleAccess(project.myRole, invitePolicy(orgConfig())) !== 'hidden') addTab(tRaw('People'), 'people');
     if (orgConfig()?.sharing?.projectFiles) addTab(tRaw('Files'), 'files');
     const notice = node('p', undefined, 'team-project-notice'); notice.setAttribute('role', 'status');
     const content = node('div'); body.replaceChildren(head, tabs, notice, content);
+    if (opts.tab === 'agents') {
+      clearAgents = mountProjectAgentsPanel(content, { projectId: project.id, projectName: project.name, isCurrent: () => current() && my === ticket }); return;
+    }
     if (opts.tab === 'people') {
       content.append(buildPeoplePanel({ projectId: project.id, projectName: project.name, policy: invitePolicy(orgConfig()) })); return;
     }
@@ -271,5 +278,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearPreviews?.(); clearActions?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearPreviews?.(); clearActions?.(); clearAgents?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }
