@@ -605,7 +605,11 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       // Native <button> or jelly-mode <jelly-button> - disable via the attribute,
       // which both honour (jelly syncs it onto its shadow button).
       const btn = e.currentTarget as HTMLButtonElement;
-      const prev = btn.textContent;
+      const idleNodes = Array.from(btn.childNodes, node => node.cloneNode(true));
+      const restoreDownload = (): void => {
+        btn.replaceChildren(...idleNodes.map(node => node.cloneNode(true)));
+        ta.video.setExperience(ta.initialExperience);
+      };
       btn.toggleAttribute('disabled', true);
       btn.setAttribute('aria-busy', 'true');
 
@@ -1673,7 +1677,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // compositor maps its SEQ_ABORTED onto it.
         if ((err as { name?: string })?.name === 'AbortError') {
           btn.removeAttribute('aria-busy');
-          btn.textContent = prev;
+          restoreDownload();
           btn.toggleAttribute('disabled', false);
           announce(t('Export cancelled'));
           return;
@@ -1692,7 +1696,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         btn.textContent = why;
         announce(why, { assertive: true });
         setTimeout(() => {
-          btn.textContent = prev;
+          restoreDownload();
           btn.toggleAttribute('disabled', false);
         }, 3500);
         return;
@@ -1710,7 +1714,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       }
 
       btn.removeAttribute('aria-busy');
-      btn.textContent = prev;
+      restoreDownload();
       btn.toggleAttribute('disabled', false);
       announce('Export complete');
       // (b) A calm, visible line on the card for each degradation, honest not alarmed.

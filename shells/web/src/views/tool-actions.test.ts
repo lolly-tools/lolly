@@ -1770,6 +1770,17 @@ test('deliverable labels follow the selected format and retain counts for their 
   assert.equal(formatExperience(outcome, 'pptx').downloadLabel, 'Download PowerPoint');
 });
 
+test('a completed export keeps the label responsive to later format changes', async () => {
+  const h = mount({ seqMs: null, formats: ['png', 'svg'] });
+  h.download();
+  const button = h.panel.querySelector<HTMLButtonElement>('[data-action="download"]')!;
+  for (let attempt = 0; attempt < 100 && button.disabled; attempt++) await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(button.disabled, false, 'the export completed');
+  assert.ok(h.downloads().length);
+  h.setFormat('svg');
+  assert.equal(button.querySelector('[data-download-label]')?.textContent, 'Download SVG');
+});
+
 test('the timing labels read as words, with a help tip on the pair', () => {
   const h = mount({ seqMs: null, formats: ['webm', 'png'] });
   const row = h.panel.querySelector('[data-anim-params]') as HTMLElement;
