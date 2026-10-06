@@ -78,6 +78,8 @@ export type EmojiControlMode = 'document' | 'preference';
 export type EmojiControlValue = EmojiStyleV1 | EmojiPreferenceV1 | null;
 
 export interface EmojiStyleControlOpts {
+  /** UI disclosure state retained by the caller across inspector remounts. */
+  disclosureState?: { management: boolean; import: boolean };
   credits?(): string;
   host: HostV1;
   mode: EmojiControlMode;
@@ -227,12 +229,19 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
     render(focus);
   }
 
-  let managementOpen = false;
-  let importOpen = false;
-  function render(focus?: string): void {
-    if (destroyed) return;
+  let managementOpen = opts.disclosureState?.management ?? false;
+  let importOpen = opts.disclosureState?.import ?? false;
+  function rememberDisclosures(): void {
     managementOpen = el.querySelector<HTMLDetailsElement>('[data-emoji-manage]')?.open ?? managementOpen;
     importOpen = el.querySelector<HTMLDetailsElement>('[data-emoji-import]')?.open ?? importOpen;
+    if (opts.disclosureState) {
+      opts.disclosureState.management = managementOpen;
+      opts.disclosureState.import = importOpen;
+    }
+  }
+  function render(focus?: string): void {
+    if (destroyed) return;
+    rememberDisclosures();
     const mine = ++gen;
     const keyboard = focus ?? focusKey();
     const setKey = setKeyOf(value);
@@ -310,7 +319,7 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
       imports.className = 'lp-details emoji-style-import';
       imports.dataset.emojiImport = '';
       imports.open = importOpen;
-      imports.addEventListener('toggle', () => { importOpen = imports.open; });
+      imports.addEventListener('toggle', () => { if (!destroyed) rememberDisclosures(); });
       const heading = document.createElement('summary');
       heading.textContent = t('Import emoji set');
       const caret = document.createElement('i'); caret.className = 'lp-caret'; caret.setAttribute('aria-hidden', 'true'); heading.append(caret);
@@ -334,7 +343,7 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
       details.className = 'lp-details';
       details.open = managementOpen;
       details.dataset.emojiManage = '';
-      details.addEventListener('toggle', () => { managementOpen = details.open; });
+      details.addEventListener('toggle', () => { if (!destroyed) rememberDisclosures(); });
       const summary = document.createElement('summary');
       const word = document.createElement('span');
       word.textContent = t('Emoji');
@@ -439,6 +448,7 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
       render();
     },
     destroy(): void {
+      rememberDisclosures();
       destroyed = true;
       unwireHelpTips(el);
       el.removeEventListener('change', onInput);

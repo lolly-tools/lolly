@@ -686,6 +686,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   let numMounted: NumFieldHandle[] = [];
   /** The shared emoji control, while the Document section is showing it. */
   let emojiMounted: EmojiStyleControl | null = null;
+  const emojiDisclosureState = { management: false, import: false };
   const numByPair = new Map<string, NumFieldHandle>();
   let lastSig: string | null = null;   // null, so the very first sync always paints
   let lastWidth = -1;
@@ -1295,6 +1296,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       // select, the shape every other row here already has.
       compact: true,
       compactManagement: true,
+      disclosureState: emojiDisclosureState,
       specimen: port.specimen,
       onChange: (next) => port.onChange((next ?? null) as EmojiStyleV1 | null),
     });

@@ -360,3 +360,19 @@ test('two mounts in one document never share the treatment label', async () => {
   for (const id of ids) assert.equal(document.querySelectorAll(`#${id}`).length, 1, 'and that id is unique');
   for (const control of controls) control.destroy();
 });
+
+test('Inspector remounts retain disclosure state even before toggle events arrive', () => {
+  const root = document.createElement('div'); document.body.append(root);
+  const host = fakeHost(); host.emoji!.install = async () => SET;
+  const disclosureState = { management: false, import: false };
+  const options = { host, mode: 'document' as const, value: null, sets: [SET], palette: [],
+    compactManagement: true, disclosureState, onChange: () => {} };
+  const first = mountEmojiStyleControl(root, options);
+  root.querySelector<HTMLDetailsElement>('[data-emoji-manage]')!.open = true;
+  root.querySelector<HTMLDetailsElement>('[data-emoji-import]')!.open = true;
+  first.destroy();
+  const second = mountEmojiStyleControl(root, options);
+  assert.equal(root.querySelector<HTMLDetailsElement>('[data-emoji-manage]')!.open, true);
+  assert.equal(root.querySelector<HTMLDetailsElement>('[data-emoji-import]')!.open, true);
+  second.destroy(); root.remove();
+});
