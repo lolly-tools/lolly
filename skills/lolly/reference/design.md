@@ -946,4 +946,6 @@ are timing. Generated from the `boxes` block.
 | `web` | - | text | `""` | Web page | - |
 | `webView` | - | number | 0 | Lay out as | - |
 | `webLoad` | - | select | `slide` | When presenting | `"slide"`, `"early"`, `"keep"`, `"click"` |
+| `webCss` | - | text | `""` | Page CSS | - |
+| `webHideCookies` | - | boolean | false | Hide cookie banners | - |
 <!-- /GEN:design-boxes -->

@@ -155,6 +155,8 @@ export interface InspectorActions {
   refreshWebPoster?(ids: string[], onlyComposed?: boolean): void;
   /** Edit a Lolly or Sandbox web box's tool in place, writing back its link and poster. */
   editWebTool?(ids: string[]): void;
+  useWebPage?(ids: string[]): void;
+  editWebCss?(ids: string[]): void;
 }
 
 /**

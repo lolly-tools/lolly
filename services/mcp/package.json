@@ -26,12 +26,12 @@
     "jsdom": "26.1.0",
     "@lolly-tools/core": "workspace:*",
     "@lolly-tools/node-shell": "workspace:*",
-    "ws": "^8.21.1"
+    "ws": "^8.22.0"
   },
   "optionalDependencies": {
     "playwright-core": "^1.49.0"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "^2.8.0"
+    "@modelcontextprotocol/inspector": "^2.9.0"
   }
 }

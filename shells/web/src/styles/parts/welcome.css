@@ -6,9 +6,9 @@
 /*
  * First-run welcome dialog + gallery tips strip (components/welcome-dialog.ts).
  *
- * Loaded WITH the welcome-dialog module - the gallery lazy-imports it only for
- * unbranded installs, so branded catalogs never pay for this sheet. All colours
- * flow through the tokens.css HSL variables (shell chrome, not brand values).
+ * Loaded with the welcome-dialog module, including first-use web boot. Selectors
+ * stay within the dialog and tips strip. Colours flow through tokens.css HSL
+ * variables (shell chrome, not brand values).
  */
 
 /* One fixed size for every page of the two-page carousel ON DESKTOP: the body

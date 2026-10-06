@@ -70,22 +70,22 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1989,
+      "lines": 1957,
       "largestFunctionLines": 1754,
       "importFanIn": 1,
-      "importFanOut": 65,
+      "importFanOut": 64,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2471,
-      "largestFunctionLines": 2131,
+      "lines": 2438,
+      "largestFunctionLines": 2110,
       "importFanIn": 28,
-      "importFanOut": 64,
+      "importFanOut": 66,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
       "lines": 2069,
-      "largestFunctionLines": 2746,
+      "largestFunctionLines": 2740,
       "importFanIn": 1,
       "importFanOut": 54,
       "typeEscapes": 8

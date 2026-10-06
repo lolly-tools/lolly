@@ -41,9 +41,9 @@
 .tool-layout.is-editor #tool-canvas [data-pdf-page],
 .tool-layout.is-editor #tool-canvas .artboard {
   box-shadow:
-    0 0 0 1px hsl(var(--foreground) / 0.07),
-    0 2px 6px hsl(var(--foreground) / 0.10),
-    0 14px 34px hsl(var(--foreground) / 0.09);
+    0 0 0 1px #0001,
+    0 2px 6px #0001,
+    0 14px 34px #0002;
 }
 
 /* Editor mode surfaces Export/Save/Copy/Share as prominent icons in the toolbar

@@ -51,6 +51,7 @@
    every edge-docked dimension, so this mode never creates a second right sidebar. */
 @media (min-width: 641px) {
   .fc-insp.is-floating {
+    background: var(--ui-color-surface-overlay);
     position: fixed;
     z-index: 80;
     min-width: 300px;
@@ -59,7 +60,6 @@
     border-radius: var(--ui-radius-panel);
     box-shadow: var(--ui-elevation-floating);
   }
-  .fc-insp.is-maximized { border-radius: 0; }
   .fc-insp.is-dragging,
   .fc-insp.is-resizing { user-select: none; transition: none !important; }
   .fc-insp.is-floating .panel-grip { display: block; }
@@ -121,6 +121,7 @@
 .fc-insp-close:focus-visible,
 .fc-insp-tool:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .fc-insp-tools { display: inline-flex; align-items: center; gap: var(--sp-1); margin-inline-start: auto; }
+.fc-insp-tool[hidden] { display: none; }
 
 .fc-insp-scroll {
   flex: 1 1 auto;
@@ -165,6 +166,9 @@
 
 .fc-insp .fc-row input[type="text"],
 .fc-insp .fc-row select { flex: 1 1 auto; min-width: 0; }
+.fc-insp .fc-row-help-label { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.fc-insp .fc-row-help-label > span { min-width: 0; }
+.fc-insp .fc-row-help-label > .help-tip-btn { margin: 0; }
 /* The number cell (components/num-field.ts) is capped rather than greedy, and the
    cap is a flex-basis so it follows the type multiplier - `max-width` may not
    (a11y-prefs-contract.test.ts: the multiplier sizes type and icons, never arbitrary
@@ -342,8 +346,7 @@
   min-width: 0;
   min-height: 0;
 }
-.fc-insp.is-compact-sheet :is([data-act-col="detach"], [data-act-col="dock"], .panel-grip) { display: none; }
-.fc-insp.is-compact-sheet [data-act-col="maximize"] { display: inline-flex; }
+.fc-insp.is-compact-sheet :is([data-act-col="dock"], .panel-grip) { display: none; }
 .fc-insp.is-compact-sheet .fc-insp-headbar { cursor: default; }
 
 /* Option groups reuse the editor component, with room for labels and touch. */

@@ -49,7 +49,7 @@ export async function mountFontsManager(container: HTMLElement, opts: FontsManag
             <span class="fonts-upload-text">
               <strong>Drag and drop font files here</strong>
             </span>
-            <span class="fonts-upload-hint">Supports TTF, OTF, WOFF (max 5MB each)</span>
+            <span class="fonts-upload-hint">Supports TTF, OTF, WOFF, WOFF2 (max 32MB each)</span>
           </span>
         </label>
         <p class="fonts-upload-alt">or <button type="button" class="fonts-upload-btn">click to browse</button></p>

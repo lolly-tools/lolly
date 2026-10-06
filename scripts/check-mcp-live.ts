@@ -13,8 +13,10 @@
  *     fallback / no function) and NOT 500 (crash at import/handler time).
  *   - GET  /api/ca/health → JSON body ({"ok":true...}), NOT HTML (SPA fallback).
  *
- * Usage: `pnpm run check:mcp` or `node scripts/check-mcp-live.ts --base=<url>`
- * to point at a preview deployment instead of production.
+ * Usage: `pnpm run check:mcp` or `node scripts/check-mcp-live.ts --base=<url>`.
+ * Add `--public` for an explicitly open deployment such as lolly.tools; it must
+ * serve catalog calls without credentials and omit OAuth routes. The default
+ * continues to require an authenticated deployment.
  */
 
 import { PROTOCOL_VERSION, VERSION_META, CAPABILITIES_META } from '../services/mcp/src/negotiation.ts';
@@ -23,6 +25,8 @@ const DEFAULT_BASE = 'https://lolly.tools';
 
 const baseArg = process.argv.find((a) => a.startsWith('--base='));
 const base = (baseArg ? baseArg.slice('--base='.length) : DEFAULT_BASE).replace(/\/+$/, '');
+const publicMode = process.argv.includes('--public');
+const accessLabel = publicMode ? 'public' : 'authed';
 
 let failures = 0;
 function report(name: string, ok: boolean, detail: string): void {
@@ -30,14 +34,19 @@ function report(name: string, ok: boolean, detail: string): void {
   if (!ok) failures++;
 }
 
-// --- Check 1: MCP function is alive and auth-gated (401, not 405/500) ---------
+// --- Check 1: MCP function serves the declared access mode -------------------
 try {
   const res = await fetch(`${base}/api/mcp`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} }),
   });
-  if (res.status === 401) {
+  if (publicMode) {
+    const body = await res.json().catch(() => undefined) as { result?: { tools?: unknown[] } } | undefined;
+    const tools = body?.result?.tools;
+    const ok = res.status === 200 && Array.isArray(tools) && tools.length > 0;
+    report('POST /api/mcp', ok, ok ? `HTTP 200 (${tools!.length} public tools)` : `HTTP ${res.status} - expected a nonempty public tool inventory`);
+  } else if (res.status === 401) {
     report('POST /api/mcp', true, 'HTTP 401 (function alive + auth-gated)');
   } else if (res.status === 405) {
     report('POST /api/mcp', false, 'HTTP 405 - SPA fallback, MCP function not deployed');
@@ -84,6 +93,11 @@ for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth
     const text = await res.text();
     let parsed: Record<string, unknown> | undefined;
     try { parsed = JSON.parse(text) as Record<string, unknown>; } catch { parsed = undefined; }
+    if (publicMode) {
+      const omitted = res.status === 404 && parsed?.error === 'not_found';
+      report(`GET ${path}`, omitted, omitted ? 'HTTP 404 (open access omits OAuth)' : `HTTP ${res.status} - expected no OAuth surface on a public deployment`);
+      continue;
+    }
     const isJson = ctype.includes('application/json') && !!parsed;
     // A real metadata doc names a resource or an issuer; the SPA index.html does not.
     const looksRight = isJson && (('resource' in parsed!) || ('issuer' in parsed!) || ('authorization_endpoint' in parsed!));
@@ -95,20 +109,21 @@ for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth
   }
 }
 
-// --- Check 4: authenticated modern and legacy requests read bundled data ---
+// --- Check 4: modern and legacy requests read bundled data ------------------
 // The checks above are all file-read-free, so a broken `functions.includeFiles`
 // (catalog/** + tools/** not shipped into the function) passes them all while the
 // first real MCP call throws ENOENT. This is the only check that reads disk: it
 // drives discovery (serverInstructions → loadIndex), tools/list and legacy
-// initialize. Runs only when LOLLY_MCP_TOKEN is in the env.
-const token = process.env.LOLLY_MCP_TOKEN;
-if (!token) {
+// initialize. Open deployments use no credential; authenticated deployments
+// run these reads when LOLLY_MCP_TOKEN is available.
+const token = publicMode ? undefined : process.env.LOLLY_MCP_TOKEN;
+if (!token && !publicMode) {
   console.log('• skipped authenticated discovery/list/initialize checks - set LOLLY_MCP_TOKEN to enable them');
 } else {
   const rpc = async (method: string, params: Record<string, unknown>, modern = true): Promise<{ status: number; body: Record<string, unknown> | undefined }> => {
     const res = await fetch(`${base}/api/mcp`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', authorization: `Bearer ${token}`,
+      headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', ...(token ? { authorization: `Bearer ${token}` } : {}),
         ...(modern ? { 'mcp-protocol-version': PROTOCOL_VERSION, 'mcp-method': method } : {}) },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params: { ...params,
         ...(modern ? { _meta: { [VERSION_META]: PROTOCOL_VERSION, [CAPABILITIES_META]: {}, 'io.modelcontextprotocol/clientInfo': { name: 'lolly-smoke', version: '1' } } } : {}) } }),
@@ -122,12 +137,12 @@ if (!token) {
     const discovery = await rpc('server/discover', {});
     const found = discovery.body?.result as { supportedVersions?: string[]; resultType?: string } | undefined;
     const discoveryOk = discovery.status === 200 && found?.resultType === 'complete' && !!found.supportedVersions?.includes(PROTOCOL_VERSION);
-    report('POST /api/mcp server/discover (authed)', discoveryOk,
+    report(`POST /api/mcp server/discover (${accessLabel})`, discoveryOk,
       discoveryOk ? `stateless MCP ${PROTOCOL_VERSION}` : `HTTP ${discovery.status} - ${JSON.stringify(discovery.body)?.slice(0, 120)}`);
 
     const init = await rpc('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'smoke', version: '0' } }, false);
     const initOk = init.status === 200 && !!init.body && !init.body.error && !!init.body.result;
-    report('POST /api/mcp initialize (authed)', initOk,
+    report(`POST /api/mcp initialize (${accessLabel})`, initOk,
       initOk ? 'JSON-RPC result (function has catalog/tools on disk)'
       : init.status === 500 ? 'HTTP 500 - likely ENOENT: includeFiles did not ship catalog/tools'
       : `HTTP ${init.status} - ${JSON.stringify(init.body).slice(0, 120)}`);
@@ -136,11 +151,11 @@ if (!token) {
     const listed = list.body?.result as { tools?: unknown[]; resultType?: string; ttlMs?: number; cacheScope?: string } | undefined;
     const tools = listed?.tools;
     const listOk = list.status === 200 && listed?.resultType === 'complete' && typeof listed.ttlMs === 'number' && listed.cacheScope === 'private' && Array.isArray(tools) && tools.length > 0;
-    report('POST /api/mcp tools/list (authed)', listOk,
+    report(`POST /api/mcp tools/list (${accessLabel})`, listOk,
       listOk ? `${tools!.length} tools (catalog index read OK)`
       : `HTTP ${list.status} - no non-empty tools array (catalog read failed?)`);
   } catch (err) {
-    report('POST /api/mcp (authed)', false, `request failed: ${(err as Error).message}`);
+    report(`POST /api/mcp (${accessLabel})`, false, `request failed: ${(err as Error).message}`);
   }
 }
 

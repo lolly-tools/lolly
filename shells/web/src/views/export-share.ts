@@ -56,7 +56,14 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   label.textContent = t('Share and editable file');
   trigger.append(glyph, label);
   const body = document.createElement('div');
-  root.append(trigger);
+  const shareAction = root.querySelector<HTMLButtonElement>('[data-action="copy-url"]');
+  if (shareAction) {
+    // Keep the toolbar action port connected to the replacement controller.
+    trigger.dataset.action = 'copy-url';
+    trigger.className = shareAction.className;
+    label.textContent = t('Share');
+    shareAction.replaceWith(trigger);
+  } else root.append(trigger);
   const select = root.querySelector<HTMLSelectElement>('[data-action="format"]');
   let dispose: (() => void) | undefined;
   let panel: ReturnType<typeof mountDockedPanel> | undefined;
@@ -133,6 +140,7 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
     select?.removeEventListener('change', sync);
     root.removeEventListener('click', onDownload, true);
     root.classList.remove('export-is-lolly');
-    trigger.remove();
+    if (shareAction && trigger.isConnected) trigger.replaceWith(shareAction);
+    else trigger.remove();
   };
 }

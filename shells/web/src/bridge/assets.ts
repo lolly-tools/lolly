@@ -865,6 +865,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      *  id, or null. The copy-on-write preserver needs the RECORD, not just the
      *  blob, to write a faithful frozen copy of what it is about to lose. */
     async _getUserRecord(id: string, version?: string): Promise<UserAssetRecord | null> {
+      // Boot's legacy brand lookup needs only the current record, not version tooling.
+      if (!version) return ((await db.get('user-assets', id)) as UserAssetRecord | undefined) ?? null;
       return (await (await assetHistory()).readUserAssetVersion(db, id, version)) as UserAssetRecord | null;
     },
 

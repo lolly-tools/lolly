@@ -16,7 +16,7 @@ import { applyExportDimensionFields } from '../export-dimension-fields.ts';
 import type { ExportDimensionUpdate } from '../export-dimension-fields.ts';
 import { canExportLolly } from '../export-share.ts';
 import type { ExportExperience } from '../tool.ts';
-import { fmtLabel } from './shared.ts';
+import { fmtLabel, formatExperience } from './shared.ts';
 import type { ArtInfo } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
@@ -229,7 +229,9 @@ export function setFormats(ta: ActionsCtx, allowed: string[]): void {
 }
 export function setExperience(ta: ActionsCtx, next: ExportExperience): void {
   const { el, formatPicker } = ta;
+  ta.initialExperience = next;
   formatPicker?.setRecommended(next.recommendedFormats ?? []);
+  next = formatExperience(next, ta.formatEl?.value ?? ta.initialFmt ?? ta.formats[0] ?? '');
   const summary = el?.querySelector<HTMLElement>('[data-export-outcome]');
   if (summary) {
     summary.textContent = next.summary ?? '';

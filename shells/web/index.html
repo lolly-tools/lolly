@@ -149,6 +149,23 @@
        exactly as the old hint behaved. A key-pinned release never reaches slim at
        all (catalog/integrity.ts), so vite.config.js's slimIndexWarm() strips this
        whole script from such a build rather than fetching a file nothing reads. -->
+  <!-- A fresh visitor has no asset-index validator to preserve. Start one real
+       same-origin request now, and let conditionalFetch adopt its response once.
+       Cached visitors and remembered sign-in refusals keep the usual conditional
+       request. Remote instances and loaded packs decline adoption. -->
+  <script id="lolly-asset-index-warm">
+    (() => {
+      try {
+        if (window.__TAURI_INTERNALS__) return;
+        if ('sbt-tool-index' in localStorage || 'sbt-catalog:assets-index' in localStorage) return;
+        if ('lolly:catalog-refused:same-origin' in localStorage) return;
+        var u = '/catalog/assets/index.json';
+        var p = fetch(u, { credentials: 'same-origin' });
+        p.catch(function () { /* offline - catalog sync owns the fallback */ });
+        (window.__lollyBootFetch = window.__lollyBootFetch || {})[u] = p;
+      } catch (e) { /* storage or fetch blocked - boot starts the request */ }
+    })();
+  </script>
   <script id="lolly-slim-index-warm">
     (() => {
       try {

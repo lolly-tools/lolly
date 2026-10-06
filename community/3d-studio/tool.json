@@ -116,7 +116,7 @@
       "label": "Model",
       "type": "asset",
       "section": "Start",
-      "assetType": "any",
+      "assetType": "model",
       "allowUpload": true,
       "showIf": {
         "source": "model"

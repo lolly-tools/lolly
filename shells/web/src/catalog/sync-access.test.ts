@@ -40,7 +40,7 @@ globalThis.fetch = (async (input: string | URL | Request) => {
   return new Response('not found', { status: 404 });
 }) as typeof fetch;
 
-const { syncCatalog, syncCorePrefetch, networkStatus } = await import('./sync.ts');
+const { prepareAssetCatalogFetch, syncCatalog, syncCorePrefetch, networkStatus } = await import('./sync.ts');
 const { catalogRefused, catalogRefusedBefore, resetCatalogAccessForTests } = await import('../lib/catalog-access.ts');
 const { createTokensAPI } = await import('../bridge/tokens.ts');
 
@@ -182,4 +182,43 @@ test('a server error is still offline: the cached copy and the chip, as before',
   assert.equal(chipShown(), true);
   assert.equal(catalogRefused(), false);
   assert.equal(catalogRefusedBefore(), false);
+});
+
+
+test('preparing a catalog request preserves the remembered sign-in gate', async () => {
+  localStorage.setItem(REFUSED_KEY, '1');
+  const prepared = await prepareAssetCatalogFetch(async () => true);
+  assert.equal(prepared, null);
+  assert.deepEqual(requests, []);
+  assert.equal(catalogRefused(), true);
+});
+
+test('a prepared catalog refusal stays signed out without an offline chip', async () => {
+  status = 401;
+  const prepared = prepareAssetCatalogFetch();
+  await prepared;
+  await syncCatalog(mockHost(), undefined, undefined, undefined, prepared);
+  assert.equal(requests.length, 1);
+  assert.equal(catalogRefused(), true);
+  assert.equal(networkStatus.offline, false);
+  assert.equal(chipShown(), false);
+});
+
+test('an unavailable sign-in probe permits the normal prepared catalog attempt', async () => {
+  localStorage.setItem(REFUSED_KEY, '1');
+  const prepared = await prepareAssetCatalogFetch(async () => { throw new Error('probe unavailable'); });
+  assert.ok(prepared && 'response' in prepared);
+  assert.equal(requests.length, 1);
+});
+
+
+test('a failed prepared request reaches the normal offline fallback', async () => {
+  status = 503;
+  const prepared = prepareAssetCatalogFetch();
+  await prepared;
+  await syncCatalog(mockHost(), () => {}, undefined, undefined, prepared);
+  assert.equal(requests.filter(url => url.endsWith('/catalog/assets/index.json')).length, 1);
+  assert.equal(catalogRefused(), false);
+  assert.equal(networkStatus.offline, true);
+  assert.equal(chipShown(), true);
 });

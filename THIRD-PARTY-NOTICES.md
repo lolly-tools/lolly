@@ -823,7 +823,7 @@ ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ```
 
-### mediabunny 1.60.0
+### mediabunny 1.61.0
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -1204,7 +1204,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @mediabunny/flac-encoder 1.60.0
+### @mediabunny/flac-encoder 1.61.0
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -1585,7 +1585,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @tiptap/core 3.31.3
+### @tiptap/core 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1614,7 +1614,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/pm 3.31.3
+### @tiptap/pm 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1643,7 +1643,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/starter-kit 3.31.3
+### @tiptap/starter-kit 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1672,7 +1672,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-image 3.31.3
+### @tiptap/extension-image 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1701,7 +1701,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-placeholder 3.31.3
+### @tiptap/extension-placeholder 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1730,7 +1730,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table 3.31.3
+### @tiptap/extension-table 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1759,7 +1759,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-cell 3.31.3
+### @tiptap/extension-table-cell 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1788,7 +1788,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-header 3.31.3
+### @tiptap/extension-table-header 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1817,7 +1817,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-row 3.31.3
+### @tiptap/extension-table-row 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1846,7 +1846,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-text-align 3.31.3
+### @tiptap/extension-text-align 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1875,7 +1875,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-text-style 3.31.3
+### @tiptap/extension-text-style 3.31.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -2700,7 +2700,7 @@ Apache License
    limitations under the License.
 ```
 
-### heic-to 1.5.2
+### heic-to 1.6.5
 
 - SPDX-License-Identifier: `LGPL-3.0`
 - Copyright: Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>

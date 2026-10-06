@@ -218,7 +218,6 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'components/color-field.ts': 2,
   'components/help-tip.ts': 1,
   'components/music-player.ts': 6,   // play/pause now come from lib/icons.ts (2026-07-29)
-  'components/profile-menu.ts': 1,  // 2 → 1, 2026-08-23: the per-row chevron copies collapsed into one CHEVRON const
   'components/view-toggle.ts': 2,   // 3 → 2, 2026-08-20: the Tools tab's inline wrench went - it's icon('hammer') from lib/icons.ts now
   'lib/audio-coaching.ts': 1,
   // 5 → 0, plan 97 M1 (2026-08-09): the five BRAND_TABS glyphs went with the tab
@@ -234,7 +233,6 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'pro/blocks-editor.ts': 3,
   'pro/grid.ts': 5,
   'pro/run-overlay.ts': 1,
-  'theme.ts': 3,
   'views/assets.ts': 1,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
   'views/assets/shared.ts': 21,   // 2026-09-25: the view-options sliders glyph went to the shared button. 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
   'views/dashboard.ts': 1,
@@ -1966,7 +1964,7 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 300 to 299: help-tip paint is shared by the component and uses semantic elevation.
     // Shared surfaces replace repeated paint in the pending editor and report work.
     // 263 to 262: the docs reading components print with an outline, not a shadow.
-    pin: 261,
+    pin: 260,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

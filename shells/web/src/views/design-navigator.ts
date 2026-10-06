@@ -772,8 +772,12 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
 
   function onFrameControlKey(ev: KeyboardEvent): void {
     if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
-    const from = frameControlAt(ev.target as Element | null);
-    if (!from || from.area === 'pages') return;
+    const target = ev.target as Element | null;
+    const mode = target?.closest('.fc-nav-modes');
+    const from: FrameControl | null = frameControlAt(target) ?? (mode ? {
+      id: artboard.active(), area: listEl.hidden ? 'parents' : 'pages',
+    } : null);
+    if (!from || (from.area === 'pages' && !mode)) return;
     // A disclosure summary keeps its left/right expand/collapse keys.
     if (from.area === 'summary' && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) return;
     const delta = ev.key === 'ArrowDown' || ev.key === 'ArrowRight' ? 1

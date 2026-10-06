@@ -295,8 +295,8 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comments-panel:is(.is-edge-docked, :not(.is-floating)) > .panel-grip { display: none; }
 .collab-comment-thread-tools { display: flex; gap: var(--sp-1); margin-inline-start: auto; }
 .collab-comment-actions { display: flex; gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--radius-round); background: var(--ui-color-surface-muted); align-self: start; }
-.collab-comment-icon { flex: none; display: inline-grid; place-items: center; width: calc(36px * var(--a11y-fs)); height: calc(36px * var(--a11y-fs)); min-width: calc(36px * var(--a11y-fs)); padding: 0; border-radius: var(--radius-round); }
-.collab-comment-icon svg { pointer-events: none; }
+.collab-comment-icon { flex: none; display: inline-grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); min-width: var(--ui-size-target); padding: 0; border-radius: var(--radius-round); }
+.collab-comment-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); pointer-events: none; }
 .collab-comment-thread { display: flex; align-items: start; gap: var(--sp-2); padding: var(--sp-3); border-radius: var(--ui-radius-control); color: var(--ui-color-text-default); }
 .collab-comment-preview { display: grid; gap: var(--sp-1); min-width: 0; }
 .collab-comment-preview > span { color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
@@ -325,6 +325,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-composer textarea { display: block; box-sizing: border-box; width: 100%; }
 .collab-comment-pins { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
 .collab-comment-pin {
+  border:0;
   display: grid;
   place-items: center;
   position: absolute;

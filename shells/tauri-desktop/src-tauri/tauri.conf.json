@@ -13,6 +13,7 @@
     "windows": [
       {
         "title": "Lolly",
+        "dragDropEnabled": false,
         "width": 1200,
         "height": 800,
         "minWidth": 300,

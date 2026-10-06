@@ -22,7 +22,7 @@ export async function intake(fc: FcCtx): Promise<void> {
       fc.selection = new Set(ids);
       fc.chromeSync.renderChrome();
       fc.select.notifySelection();
-      fc.info?.setFilename?.(String(opening.refs[0]?.meta?.name ?? opening.refs[0]?.id.split('/').pop() ?? 'Audio'));
+      fc.info?.setFilename?.(String(opening.refs[0]?.meta?.name ?? opening.refs[0]?.id.split('/').pop() ?? fc.select.getBoxes().find(box => box.kind === 'frame')?.name ?? 'Sequence'));
       return;
     }
     const kind = fc.addKinds.find(kind => kind.id === 'image');

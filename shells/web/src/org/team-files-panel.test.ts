@@ -53,8 +53,8 @@ async function until(check: () => boolean, what: string): Promise<void> {
   assert.fail(`timed out waiting for ${what}`);
 }
 const reset = (): void => { calls.length = 0; router = () => new Response('', { status: 404 }); document.body.replaceChildren(); };
-const mount = (opts: { canUpload?: boolean; canManage?: boolean } = {}): HTMLElement => {
-  const panel = buildTeamFilesPanel({ projectId: 'p1', canUpload: opts.canUpload ?? true, canManage: opts.canManage ?? false, onBack: () => {} });
+const mount = (opts: { canUpload?: boolean; canManage?: boolean; fileId?: string } = {}): HTMLElement => {
+  const panel = buildTeamFilesPanel({ projectId: 'p1', fileId: opts.fileId, canUpload: opts.canUpload ?? true, canManage: opts.canManage ?? false, onBack: () => {} });
   document.body.append(panel);
   return panel;
 };
@@ -94,6 +94,44 @@ test('an empty project says so, and upload is offered only to people who can sav
   await until(() => /no shared files yet/.test(writer.textContent ?? ''), 'empty state');
   assert.ok(writer.querySelector('[data-act="files-upload"]'));
   assert.equal(writer.querySelector<HTMLButtonElement>('[data-act="files-cancel"]')?.hidden, true, 'Cancel shows only while uploading');
+});
+
+test('a viewer can copy an individual file link without changing project access', async () => {
+  reset(); router = listed();
+  const copied: string[] = [];
+  const previous = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text: string) => { copied.push(text); } } });
+  try {
+    const panel = mount({ canUpload: false });
+    await until(() => rows(panel).length === 2, 'rows');
+    assert.match(panel.textContent ?? '', /Sharing a link does not give someone access/);
+    const copy = rows(panel)[0]!.querySelector<HTMLButtonElement>('[data-act="file-copy-link"]')!;
+    assert.equal(copy.getAttribute('aria-label'), 'Copy link to poster.png');
+    copy.click();
+    await until(() => statusOf(panel) === 'Link copied', 'copied');
+    assert.deepEqual(copied, [`https://instance.test/#/team/project/p1?file=${fid('a')}`]);
+    assert.equal(calls.some(call => call.method !== 'GET'), false, 'a file link grants no permissions');
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('denied'); } } });
+    copy.click();
+    await until(() => statusOf(panel) === 'Could not copy. Try again.', 'copy refusal');
+  } finally {
+    if (previous) Object.defineProperty(navigator, 'clipboard', previous);
+    else Reflect.deleteProperty(navigator, 'clipboard');
+  }
+});
+
+test('a file link selects the intended file, while a deleted file says it is unavailable', async () => {
+  reset(); router = listed();
+  const panel = mount({ canUpload: false, fileId: fid('b') });
+  await until(() => rows(panel).length === 2, 'rows');
+  const selected = panel.querySelector<HTMLElement>('[aria-current="true"]');
+  assert.equal(selected?.dataset.teamFile, fid('b'));
+  assert.equal(document.activeElement, selected);
+  assert.equal(calls.some(call => call.url.endsWith(`/${fid('b')}`)), false, 'opening a link does not start a download');
+  reset(); router = listed();
+  const missing = mount({ canUpload: false, fileId: fid('z') });
+  await until(() => statusOf(missing) === 'That file is no longer available.', 'deleted file');
+  assert.equal(missing.querySelector('[aria-current]'), null);
 });
 
 test('Delete is offered to a manager on every file, and otherwise only on your own', async () => {

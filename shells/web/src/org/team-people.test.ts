@@ -46,7 +46,7 @@ const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 const {
-  listProjectPeople, inviteToProject, changeMemberRole, removeMember, revokeInvitation, teamProjectLinkUrl, peopleFromBody, personalInviteLink, renameTeamProject, renameTeamSession, deleteTeamSession,
+  listProjectPeople, inviteToProject, changeMemberRole, removeMember, revokeInvitation, teamProjectLinkUrl, teamProjectFileLinkUrl, peopleFromBody, personalInviteLink, renameTeamProject, renameTeamSession, deleteTeamSession,
   rotateInvitationLink, reinvite, answerRequest, signInProviderNames,
 } = await import('./project-members.ts');
 const { buildPeoplePanel, peoplePanelView, revealPeoplePanel, roleChoices } = await import('./team-people.ts');
@@ -123,6 +123,7 @@ test('an invite with no usable link falls back to this app address; an empty lis
   assert.ok(got.ok);
   assert.equal(got.data.link, 'https://instance.test/#/team/project/p%201');
   assert.equal(teamProjectLinkUrl('p1', 'https://w.test/'), 'https://w.test/#/team/project/p1');
+  assert.equal(teamProjectFileLinkUrl('p 1', 'fil_a&b', 'https://w.test/'), 'https://w.test/#/team/project/p%201?file=fil_a%26b');
   calls.length = 0;
   assert.deepEqual(await inviteToProject('p1', [], 'viewer'), { ok: false, status: 400 });
   assert.equal(calls.length, 0);

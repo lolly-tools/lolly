@@ -10,7 +10,7 @@ export function mountEmojiPackImport(root: HTMLElement, api: EmojiAPI, installed
   const row = document.createElement('div');
   row.className = 'field-row';
   const titleId = `emoji-import-${Math.random().toString(36).slice(2, 8)}`;
-  const title = document.createElement('span'); title.className = 'field-label'; title.id = titleId; title.textContent = tRaw('Import emoji set');
+  const title = document.createElement('span'); title.className = 'visually-hidden'; title.id = titleId; title.textContent = tRaw('Import emoji set');
   // The native file control never shows ("No file chosen"): the input is visually
   // hidden and kept out of the tab order and the accessibility tree, and a
   // standard button, named by the row label and its own text, opens it.
@@ -18,11 +18,10 @@ export function mountEmojiPackImport(root: HTMLElement, api: EmojiAPI, installed
   input.className = 'visually-hidden'; input.tabIndex = -1; input.setAttribute('aria-hidden', 'true');
   const choose = document.createElement('button'); choose.type = 'button'; choose.className = 'btn';
   choose.id = `${titleId}-choose`;
-  choose.textContent = tRaw('Choose an emoji set…');
+  choose.textContent = tRaw('Import file…');
   choose.setAttribute('aria-labelledby', `${titleId} ${choose.id}`);
   choose.addEventListener('click', () => input.click());
   const status = document.createElement('p'); status.className = 'emoji-style-note'; status.setAttribute('role', 'status');
-  status.textContent = tRaw('Import a Lolly emoji set with its artwork, version and source credits. Earlier versions stay available to saved documents.');
   input.addEventListener('change', () => {
     const file = input.files?.[0]; if (!file) return;
     input.disabled = true; choose.disabled = true; status.textContent = tRaw('Checking emoji artwork…');

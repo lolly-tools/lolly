@@ -20,6 +20,9 @@
 /* Full-bleed like the Tools masonry - fill the whole window width (minus the
    .catalog side gutters) instead of centring in a fixed 1200px column. */
 .catalog-body { max-width: none; }
+.cat-load-more { margin-block: var(--sp-4); }
+.cat-page-count { color: var(--ui-color-text-muted); font-size: var(--ui-type-help); }
+.cat-uploads-tts { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
 
 .cat-provider-browser { margin: var(--sp-6) 0; padding: var(--sp-5); border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); }
 .cat-provider-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-4); }

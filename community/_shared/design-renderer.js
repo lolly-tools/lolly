@@ -552,7 +552,9 @@ function mediaHtmlFor(b) {
         '</div>';
     return '<div class="lolly-box-web" data-lolly-web="' + esc(link) + '" data-web-view="' + view +
       '" data-web-load="' + esc(String(b.webLoad == null || b.webLoad === '' ? 'slide' : b.webLoad)) +
-      '" data-web-title="' + esc(title || label) + '" data-web-state="poster">' + inner + '</div>';
+      '" data-web-title="' + esc(title || label) + '" data-web-state="poster"' +
+      (b.webCss ? ' data-web-css="' + esc(String(b.webCss)) + '"' : '') +
+      (boolVal(b.webHideCookies, false) ? ' data-web-hide-cookies="1"' : '') + '>' + inner + '</div>';
   }
   var img = b && b.image;
   var url = img && img.url ? String(img.url) : '';
