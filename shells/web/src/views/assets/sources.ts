@@ -4,6 +4,7 @@ import { buildAssetSourceTree } from '../../lib/asset-source-tree.ts';
 import { instanceFetch, getInstanceBase } from '../../lib/instance.ts';
 import { updateRouteParams } from '../../lib/url-state.ts';
 import { t } from '../../i18n.ts';
+import { setActionButtonContent } from '../../components/action-button.ts';
 import { bindOp, type CatCtx } from './context.ts';
 export function mount(cat: CatCtx): void {
   cat.sourceDispose?.();
@@ -15,8 +16,8 @@ export function mount(cat: CatCtx): void {
     cat.sourceSelection = id; updateRouteParams({ sourceNode: id === 'all' ? null : id }); cat.sections.renderBody();
   }, () => { if (cat.sourcePrefsKey) void cat.host.state.save(cat.sourcePrefsKey, { expanded: [...cat.sourceExpanded].slice(0, 256) }).catch(() => {}); });
   const actions = document.createElement('div'); actions.className = 'asset-source-actions';
-  const projects = document.createElement('a'); projects.href = '#/projects'; projects.className = 'btn btn--ghost btn--sm'; projects.textContent = t('Browse projects'); actions.append(projects);
-  if (cat.sourceCanManage) { const manage = document.createElement('a'); manage.href = `${getInstanceBase() || ''}/admin/#/providers`; manage.className = 'btn btn--ghost btn--sm'; manage.textContent = t('Manage connections'); actions.append(manage); }
+  const projects = document.createElement('a'); projects.href = '#/projects'; projects.className = 'btn btn--labelled btn--ghost'; setActionButtonContent(projects, t('Browse projects'), 'folder'); actions.append(projects);
+  if (cat.sourceCanManage) { const manage = document.createElement('a'); manage.href = `${getInstanceBase() || ''}/admin/#/providers`; manage.className = 'btn btn--labelled btn--ghost'; setActionButtonContent(manage, t('Manage connections'), 'link'); actions.append(manage); }
   if (focusedId) root.querySelector<HTMLElement>(`[data-source-node="${CSS.escape(focusedId)}"]`)?.focus();
   root.append(actions);
   const selectedStatus = cat.sourceStatuses.find(s => JSON.stringify([s.id]) === cat.sourceSelection);

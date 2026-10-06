@@ -4,7 +4,8 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { getSessionSource, readSourceProjects, readSourceSessions } from '../lib/session-source.ts';
 import { folderTile, sessionTile } from '../folder-tiles.ts';
 import { createTeamFolder, listTeamFolders, moveTeamFolderItem, teamFolderHref } from './team-folders.ts';
-import { icon } from '../lib/icons.ts';
+import { icon, type IconName } from '../lib/icons.ts';
+import { actionButton, mountActionToolbar } from '../components/action-button.ts';
 import { tRaw } from '../i18n.ts';
 import { applyCardSize, readCardSize } from '../components/view-options.ts';
 import { confirmDialog, promptDialog } from '../components/confirm-dialog.ts';
@@ -54,6 +55,7 @@ interface ProjectViewOptions {
 export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOptions): () => void {
   const source = getSessionSource(), abort = new AbortController();
   let disposed = false, ticket = 0, opening = false;
+  let clearToolbar: (() => void) | undefined;
   let clearPreviews: (() => void) | undefined;
   let clearAssetPreview: (() => void) | undefined;
   let clearActions: (() => void) | undefined;
@@ -66,12 +68,21 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   const node = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] => {
     const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (className) el.className = className; return el;
   };
-  const button = (label: string, action: () => void, primary = false) => {
-    const el = node('button', label, `btn${primary ? ' btn--primary' : ''}`); el.type = 'button'; el.addEventListener('click', action, { signal: abort.signal }); return el;
+  const button = (label: string, action: () => void, primary = false, symbol?: IconName) => {
+    const el = symbol ? actionButton(label, symbol, primary) : node('button', label, `btn${primary ? ' btn--primary' : ''}`); el.type = 'button'; el.addEventListener('click', action, { signal: abort.signal }); return el;
   };
   const breadcrumbs = node('nav', undefined, 'projects-crumbs'); breadcrumbs.setAttribute('aria-label', tRaw('Folder path'));
   const root = node('a', tRaw('Projects')); root.href = '#/p'; breadcrumbs.append(root);
   container.append(breadcrumbs);
+  const setBreadcrumbs = (entries: Array<{ name: string; href: string }>) => {
+    breadcrumbs.replaceChildren(root);
+    for (const [index, entry] of entries.entries()) {
+      const separator = node('span', '/', 'projects-crumb-sep'); separator.setAttribute('aria-hidden', 'true');
+      const crumb = index === entries.length - 1 ? node('span', entry.name) : node('a', entry.name);
+      if (crumb instanceof HTMLAnchorElement) crumb.href = entry.href; else crumb.setAttribute('aria-current', 'page');
+      breadcrumbs.append(separator, crumb);
+    }
+  };
   const body = node('div', undefined, 'team-project-content'); container.append(body);
   const failure = (status: number, retry: () => void) => {
     body.replaceChildren(node('p', teamOpenMessage(status), 'team-project-notice'), button(tRaw('Try again'), retry));
@@ -96,6 +107,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (!source || !current()) return;
     const my = ++ticket;
     createFolderAction = undefined;
+    clearToolbar?.(); clearToolbar = undefined;
     clearPreviews?.(); clearPreviews = undefined;
     clearAssetPreview?.(); clearAssetPreview = undefined;
     clearActions?.(); clearActions = undefined;
@@ -109,7 +121,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     const project = projects.items.find(p => p.id === opts.projectId);
     if (!project) { failure(403, () => { void load(); }); return; }
     const projectId = project.id, projectRole = project.myRole;
-    const crumb = node('span', project.name); crumb.setAttribute('aria-current', 'page'); breadcrumbs.replaceChildren(root, crumb);
+    setBreadcrumbs([{ name: project.name, href: teamFolderHref(project.id) }]);
     noteProjectOpened(project.id);
     document.title = tRaw('{name} - Lolly', { name: project.name });
     const head = node('header', undefined, 'team-project-head'), identity = node('div', undefined, 'team-project-identity');
@@ -117,26 +129,26 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     const title = node('div'), name = node('h2', project.name); name.tabIndex = -1;
     title.append(name, node('p', [tRaw('Shared project'), project.myRole ? roleLabel(project.myRole) : ''].filter(Boolean).join(' · '), 'team-project-notice'));
     identity.append(glyph, title); head.append(identity);
-    const actions = node('div', undefined, 'team-project-actions');
+    const actions = node('div', undefined, 'team-project-actions action-toolbar');
     if (isManagerPlus(projectRole)) {
-      actions.append(button(tRaw('Share'), () => { window.location.hash = `#/p?team=${encodeURIComponent(projectId)}&tab=people`; }));
+      actions.append(button(tRaw('Share'), () => { window.location.hash = `#/p?team=${encodeURIComponent(projectId)}&tab=people`; }, false, 'users'));
       clearInvite = mountInviteLinkControl(actions, projectInviteLinks(projectId, invitePolicy(orgConfig()), () => current() && my === ticket));
     }
     const copy = button(tRaw('Copy project link'), () => { void copyText(teamProjectLinkUrl(project.id)).then(ok => {
       if (current()) notice.textContent = ok ? tRaw('Link copied') : tRaw('Could not copy. Try again.');
-    }); }); actions.append(copy);
+    }); }, false, 'link'); actions.append(copy);
     const canWrite = canWriteProject(project.myRole) && orgConfig()?.can?.['session.edit'] !== false;
     const canCreateSession = canWrite && orgConfig()?.can?.['session.create'] !== false;
-    if (source.write && canCreateSession) actions.append(button(tRaw('New session'), () => showNewSession(), true));
-    if (canWrite) actions.append(button(tRaw('New folder'), () => createFolderAction?.()));
+    if (source.write && canCreateSession) actions.append(button(tRaw('New session'), () => showNewSession(), true, 'filePlus'));
+    if (canWrite) actions.append(button(tRaw('New folder'), () => createFolderAction?.(), false, 'folderPlus'));
     if (isManagerPlus(projectRole)) actions.append(button(tRaw('Rename'), () => { void (async () => {
       const name = await promptDialog({ title: tRaw('Rename shared project'), message: tRaw('Project name'), value: project.name, confirmLabel: tRaw('Save') });
       if (!current() || !name?.trim() || name.trim() === project.name) return;
       const got = await renameTeamProject(projectId, name.trim().slice(0, 200));
       if (!current()) return;
       if (got.ok) void load(); else notice.textContent = tRaw('Could not rename this project. Refresh and try again.');
-    })(); }));
-    actions.append(button(tRaw('Refresh'), () => { void load(); })); head.append(actions);
+    })(); }, false, 'pen'));
+    actions.append(button(tRaw('Refresh'), () => { void load(); }, false, 'refresh')); head.append(actions);
     const tabs = node('nav', undefined, 'team-project-tabs'); tabs.setAttribute('aria-label', tRaw('Shared project'));
     const addTab = (label: string, tab: string) => {
       const link = node('a', label, 'btn btn--sm btn--ghost'); link.href = `#/p?team=${encodeURIComponent(project.id)}&tab=${tab}`;
@@ -148,6 +160,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (orgConfig()?.sharing?.projectFiles) addTab(tRaw('Files'), 'files');
     const notice = node('p', undefined, 'team-project-notice'); notice.setAttribute('role', 'status');
     const content = node('div'); body.replaceChildren(head, tabs, notice, content);
+    clearToolbar = mountActionToolbar(actions);
     if (opts.tab === 'agents') {
       clearAgents = mountProjectAgentsPanel(content, { projectId: project.id, projectName: project.name, isCurrent: () => current() && my === ticket }); return;
     }
@@ -173,9 +186,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     if (folderId && !folder) { content.append(node('p', tRaw('This shared folder is unavailable. Return to the project or refresh.'), 'team-project-notice')); return; }
     const chain = []; let ancestor = folder; const seen = new Set<string>();
     while (ancestor && !seen.has(ancestor.id)) { seen.add(ancestor.id); chain.unshift(ancestor); ancestor = folders.find(f => f.id === ancestor!.parentId); }
-    breadcrumbs.replaceChildren(root);
-    const projectCrumb = node('a', project.name); projectCrumb.href = teamFolderHref(project.id); breadcrumbs.append(projectCrumb);
-    for (const entry of chain) { const crumb = node('a', entry.name); crumb.href = teamFolderHref(project.id, entry.id); if (entry.id === folderId) crumb.setAttribute('aria-current', 'page'); breadcrumbs.append(crumb); }
+    setBreadcrumbs([{ name: project.name, href: teamFolderHref(project.id) }, ...chain.map(entry => ({ name: entry.name, href: teamFolderHref(project.id, entry.id) }))]);
     if (folder) head.querySelector('h2')!.textContent = folder.name;
     if (canWrite) createFolderAction = showNewFolder;
     if (opts.assetId) {
@@ -297,5 +308,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearPresence?.(); clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
+  return () => { disposed = true; ++ticket; clearToolbar?.(); clearPresence?.(); clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }

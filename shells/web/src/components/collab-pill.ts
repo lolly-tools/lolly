@@ -309,7 +309,7 @@ html[data-a11y-motion="reduce"] .collab-av.is-new { animation: none; }
 .collab-invite:hover,
 .collab-action:not(:disabled):hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
 .collab-invite svg,
-.collab-action svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.collab-action svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 @media (prefers-reduced-motion: reduce) { .collab-invite, .collab-action { transition: none; } }
 html[data-a11y-motion="reduce"] .collab-invite,
 html[data-a11y-motion="reduce"] .collab-action { transition: none; }
