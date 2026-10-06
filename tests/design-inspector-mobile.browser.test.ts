@@ -216,3 +216,47 @@ test('compact editing survives rotation, enlarged text, RTL and returning from i
     assert.ok(await page.getByRole('menuitemcheckbox', { name: 'Video', exact: true }).count() || await page.getByRole('menuitem', { name: 'Video', exact: true }).count());
   } finally { await context.close(); await closeBrowser(); }
 });
+
+test('profile notifications retain readable scroll space with enlarged text in phone landscape', { skip, timeout: 120000 }, async () => {
+  const browser = await getBrowser({ graphics: 'auto' });
+  try {
+    for (const [width, height] of [[320, 568], [568, 320]]) {
+      const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: width!, height: height! }, hasTouch: true });
+      try {
+        const page = await context.newPage();
+        const replies: Record<string, unknown> = {
+          '/api/auth/config': { mode: 'open', provider: 'oidc', loginPath: '/login' },
+          '/api/auth/session': { kind: 'member', user: { sub: 'notification-layout-test', email: 'test@example.invalid', groups: [], role: 'member' } },
+          '/api/v1/org-config': { instance: { name: 'Notification layout test' }, inboxUnread: 1 },
+          '/api/v1/inbox': { messages: [{ id: 'layout-notice', kind: 'notice', severity: 'info', title: 'Layout notice',
+            body: 'This message and its actions stay readable when text is enlarged and the phone rotates.', dismissible: true }] },
+        };
+        await page.route('**/api/**', async route => {
+          const body = replies[new URL(route.request().url()).pathname];
+          await route.fulfill({ status: body ? 200 : 404, contentType: 'application/json', body: JSON.stringify(body ?? {}) });
+        });
+        await visit(page);
+        await page.evaluate(() => {
+          document.documentElement.dir = 'rtl';
+          document.documentElement.style.fontSize = '200%';
+        });
+        const profile = page.locator('.design-topbar .profile-link:visible');
+        await profile.click();
+        await page.locator('[data-act="notifications"]').click();
+        const center = page.locator('dialog.notification-center');
+        await center.getByRole('heading', { name: 'Layout notice', exact: true }).waitFor();
+        const bounds = (await center.boundingBox())!;
+        assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= width! + 1 && bounds.y + bounds.height <= height! + 1);
+        const list = center.locator('.notification-center-list');
+        assert.ok(await list.evaluate(el => el.clientHeight) >= 88, 'the message viewport can show a large-text action');
+        const dismiss = center.locator('article').filter({ hasText: 'Layout notice' }).getByRole('button', { name: 'Dismiss', exact: true });
+        await dismiss.scrollIntoViewIfNeeded();
+        const listBounds = (await list.boundingBox())!, actionBounds = (await dismiss.boundingBox())!;
+        assert.ok(actionBounds.height >= 44 && actionBounds.y >= listBounds.y && actionBounds.y + actionBounds.height <= listBounds.y + listBounds.height + 1,
+          'the full dismiss button is visible inside the scrolling message list');
+        await page.keyboard.press('Escape');
+        assert.equal(await profile.evaluate(el => el === document.activeElement), true);
+      } finally { await context.close(); }
+    }
+  } finally { await closeBrowser(); }
+});
