@@ -69,7 +69,7 @@
   backdrop-filter: blur(3px);
   box-shadow: 0 1px 4px hsl(0 0% 0% / 0.15);
 }
-.projects-list .folder-tile:has(> .collab-tile-badge) { padding-block-end: calc(22px * var(--a11y-fs)); }
+.projects-list .folder-tile:has(> .collab-tile-badge) { padding-block-end: calc(var(--fs-xl) + var(--sp-8)); }
 .projects-list .collab-tile-badge { inset-block-start: auto; inset-block-end: 2px; inset-inline-start: calc(26px + var(--list-chip)); }
 .collab-tile-avatars { display: flex; align-items: center; }
 

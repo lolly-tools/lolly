@@ -229,7 +229,12 @@ export function renderCollabBadge(
   // noun, so a translator can move `{n}` wherever their grammar needs it.
   const label =
     list.length === 1 ? tRaw('Live now - 1 person here') : tRaw('Live now - {n} people here', { n: list.length });
-  badge.setAttribute('aria-label', label);
+  const names = list.map(peer => {
+    const name = peer.name || tRaw('Collaborator');
+    return peer.away ? tRaw('{name} (away)', { name }) : name;
+  }).join(', ');
+  badge.setAttribute('aria-label', `${label}. ${names}`);
+  badge.title = names;
 
   // Rebuilt in place, node by node: `replaceChildren` clears the previous pass exactly
   // as the old wholesale `innerHTML` assignment did, without a raw-HTML sink for a

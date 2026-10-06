@@ -26,6 +26,7 @@ test('session activity refreshes badges without replacing cards, clears stale pe
     assert.equal(card.querySelector('.collab-tile-avatar')?.getAttribute('title'), 'Ravan');
     assert.equal((card.querySelector('.collab-tile-avatar') as HTMLElement).style.getPropertyValue('--collab-color'), '#009966');
     assert.match(card.querySelector('[role="status"]')!.getAttribute('aria-label')!, /person here/);
+    assert.match(card.querySelector('[role="status"]')!.getAttribute('aria-label')!, /Ravan/);
     assert.equal(card.querySelector('.tile-primary'), primary); assert.equal(card.querySelector('.tile-check'), selection); assert.equal(selection?.getAttribute('aria-pressed'), 'true');
     assert.equal(card.querySelectorAll('.collab-tile-badge').length, 1);
     sessions = []; refresh!(); await tick(); assert.equal(card.querySelector('.collab-tile-badge'), null);
