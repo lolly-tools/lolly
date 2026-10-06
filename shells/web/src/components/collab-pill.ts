@@ -111,6 +111,11 @@ export const STRINGS = {
   you: 'You',
   observer: 'Observer',
   awayTag: 'Away',
+  agent: 'AI agent',
+  pauseAgent: 'Pause agent',
+  resumeAgent: 'Resume agent',
+  disconnectAgent: 'Disconnect agent',
+  paused: 'Paused',
   /** The pill's own banner: this client can watch but not edit. */
   observing: 'Observing',
 
@@ -253,6 +258,7 @@ html[data-a11y-motion="reduce"] .collab-av.is-new { animation: none; }
 }
 .collab-stack .collab-av:first-child { margin-inline-start: 0; }
 .collab-av[data-away="1"] { opacity: 0.55; }
+.collab-av[data-kind="agent"] { border-radius: calc(7px * var(--a11y-fs)); }
 .collab-av--more {
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
@@ -309,7 +315,8 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
 .collab-roster {
   position: fixed;
   z-index: 9000;
-  min-width: calc(200px * var(--a11y-fs));
+  box-sizing: border-box;
+  min-width: min(calc(200px * var(--a11y-fs)), 90vw);
   max-width: min(calc(320px * var(--a11y-fs)), 90vw);
   padding: calc(6px * var(--a11y-fs));
   border: 1px solid hsl(var(--border));
@@ -336,7 +343,10 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.collab-roster-tags { display: inline-flex; gap: calc(4px * var(--a11y-fs)); flex: none; }`;
+.collab-roster-tags { display: inline-flex; gap: calc(4px * var(--a11y-fs)); flex: none; }
+.collab-roster-row[data-kind="agent"] { display:grid; grid-template-columns:calc(24px * var(--a11y-fs)) minmax(0,1fr); }
+.collab-roster-row[data-kind="agent"] .collab-roster-tags { grid-column:2; display:flex; flex-wrap:wrap; min-width:0; }
+.collab-roster-row[data-kind="agent"] .collab-tag { max-width:100%; overflow:hidden; text-overflow:ellipsis; box-sizing:border-box; }`;
 
 function ensureStyles(): void {
   if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
@@ -456,6 +466,8 @@ export interface CollabPillAction {
 }
 
 export interface CollabPillOptions {
+  onDisconnectAgent?: (clientId: string) => void;
+  onPauseAgent?: (clientId: string) => void;
   /** The live session state. */
   source: CollabPillSource;
   /**
@@ -499,9 +511,10 @@ function avatarEl(p: CollabParticipant): HTMLElement {
   const el = document.createElement('span');
   el.className = 'collab-av';
   el.dataset.clientId = p.clientId;
+  if (p.kind === 'agent') el.dataset.kind = 'agent';
   if (p.away) el.dataset.away = '1';
   if (p.color) { const label = collabLabelColor(p.color); el.style.background = label.fill; el.style.color = label.ink; }
-  el.title = collabDisplayName(p);
+  el.title = p.kind === 'agent' ? `${collabDisplayName(p)} (${tRaw(STRINGS.agent)})` : collabDisplayName(p);
   const letters = document.createElement('span');
   letters.setAttribute('aria-hidden', 'true');
   letters.textContent = collabInitials(collabDisplayName(p));
@@ -510,7 +523,8 @@ function avatarEl(p: CollabParticipant): HTMLElement {
 }
 
 function refreshAvatar(el: HTMLElement, p: CollabParticipant): void {
-  el.title = collabDisplayName(p);
+  if (p.kind === 'agent') el.dataset.kind = 'agent'; else delete el.dataset.kind;
+  el.title = p.kind === 'agent' ? `${collabDisplayName(p)} (${tRaw(STRINGS.agent)})` : collabDisplayName(p);
   if (p.away) el.dataset.away = '1'; else delete el.dataset.away;
   const label = p.color ? collabLabelColor(p.color) : undefined;
   el.style.background = label?.fill ?? ''; el.style.color = label?.ink ?? '';
@@ -699,23 +713,25 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
 
   function visitPeer(id: string): boolean {
     const state = opts.source.state();
-    if (!opts.onPeer || state.connection !== 'live' || !state.peers.some(p => p.clientId === id && !p.away && !p.isSelf)) return false;
+    if (!opts.onPeer || state.connection !== 'live' || !state.peers.some(p => p.clientId === id && !p.away && !p.isSelf && p.kind !== 'agent')) return false;
     popover.close(true); opts.onPeer(id); return true;
   }
 
   function renderRoster(host: HTMLElement, state: CollabSessionState): void {
-    const signature = JSON.stringify([currentLang(), state.connection, ...[state.self, ...state.peers].map(p => [p.clientId, p.name, p.color, p.away, p.isSelf, p.isHost, p.role])]);
+    const signature = JSON.stringify([currentLang(), state.connection, ...[state.self, ...state.peers].map(p => [p.clientId, p.name, p.color, p.away, p.isSelf, p.isHost, p.role, p.kind, p.phase, p.activity])]);
     if (rosterSignatures.get(host) === signature) return;
     rosterSignatures.set(host, signature);
     const focused = host.ownerDocument.activeElement;
     const focusedId = focused instanceof host.ownerDocument.defaultView!.HTMLElement && host.contains(focused) ? focused.dataset.peerId : undefined;
+    const focusedAction = focused instanceof host.ownerDocument.defaultView!.HTMLElement ? focused.dataset.agentAction : undefined;
     host.textContent = '';
     const list = document.createElement('ul');
     list.className = 'collab-roster-list';
     for (const p of [state.self, ...state.peers]) {
       const row = document.createElement('li');
       row.className = 'collab-roster-row';
-      const actionable = !!opts.onPeer && !p.isSelf;
+      if (p.kind === 'agent') row.dataset.kind = 'agent';
+      const actionable = !!opts.onPeer && !p.isSelf && p.kind !== 'agent';
       const name = document.createElement(actionable ? 'button' : 'span');
       name.className = 'collab-roster-name';
       name.textContent = collabDisplayName(p);
@@ -733,12 +749,25 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       // unknown role as one would be a claim the transport never made.
       if (p.role === 'observer') rowTags.appendChild(tagEl(tRaw(STRINGS.observer)));
       if (p.away) rowTags.appendChild(tagEl(tRaw(STRINGS.awayTag)));
+      if (p.kind === 'agent') {
+        rowTags.appendChild(tagEl(tRaw(STRINGS.agent)));
+        if (p.phase === 'paused') rowTags.appendChild(tagEl(tRaw(STRINGS.paused)));
+        if (p.activity) { const activity = tagEl(p.activity); activity.title = p.activity; rowTags.appendChild(activity); }
+        for (const [action, label] of [[opts.onPauseAgent, p.phase === 'paused' ? tRaw(STRINGS.resumeAgent) : tRaw(STRINGS.pauseAgent)], [opts.onDisconnectAgent, tRaw(STRINGS.disconnectAgent)]] as const) {
+          if (!action || p.delegatedBy !== state.self.clientId) continue;
+          const control = document.createElement('button');
+          control.type = 'button'; control.className = 'btn btn--ghost btn--sm'; control.textContent = label;
+          control.dataset.peerId = p.clientId;
+          control.dataset.agentAction = action === opts.onPauseAgent ? 'pause' : 'disconnect';
+          control.addEventListener('click', () => action(p.clientId)); rowTags.appendChild(control);
+        }
+      }
       row.append(avatarEl(p), name, rowTags);
       list.appendChild(row);
     }
     host.appendChild(list);
     if (focusedId) {
-      const next = Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(button => button.dataset.peerId === focusedId && !button.disabled);
+      const next = Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(button => button.dataset.peerId === focusedId && button.dataset.agentAction === focusedAction && !button.disabled);
       (next ?? host).focus();
     }
   }
@@ -796,7 +825,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       let av = avatars.get(p.clientId);
       if (!av) { av = avatarEl(p); avatars.set(p.clientId, av); }
       else refreshAvatar(av, p);
-      if (opts.onPeer && !p.isSelf && !p.away && state.connection === 'live') av.title = tRaw(STRINGS.view, { name: collabDisplayName(p) });
+      if (opts.onPeer && !p.isSelf && !p.away && p.kind !== 'agent' && state.connection === 'live') av.title = tRaw(STRINGS.view, { name: collabDisplayName(p) });
       av.classList.toggle('is-new', !!(fresh && seen && !p.isSelf && !seen.has(p.clientId)));
       wanted.push(av);
     }

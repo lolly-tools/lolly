@@ -225,5 +225,10 @@
   "Enlarge {label} for scanning": "放大{label}以便掃描",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "將另一部裝置對準這裡進行掃描。點一下任意處或按 Esc 關閉。",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "這個連結太長，無法掃描。請改為複製，或使用「代碼」分頁。",
-  "View {name}": "檢視 {name}"
+  "View {name}": "檢視 {name}",
+  "AI agent": "AI 代理",
+  "Pause agent": "暫停代理",
+  "Resume agent": "恢復代理",
+  "Disconnect agent": "中斷代理連線",
+  "Paused": "已暫停"
 }

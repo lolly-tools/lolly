@@ -321,7 +321,7 @@
   line-height: 1.5;
   color: hsl(var(--muted-foreground));
   background: hsl(var(--muted) / 0.55);
-  border: 1px solid hsl(var(--border));
+  border: 1px solid hsl(var(--muted) / 0.5);
   border-radius: calc(var(--radius) * 0.75);
   pointer-events: none;
 }

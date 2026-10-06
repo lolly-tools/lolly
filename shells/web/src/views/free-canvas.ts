@@ -54,6 +54,7 @@
 
 import { mountDesignRules } from './design-rules.ts';
 import { registerCollabSurface } from '../lib/collab-surface.ts';
+import { canvasProjection } from './canvas-projection.ts';
 import { revealCanvasPeer } from './free-canvas/peer-view.ts';
 import { disposeCanvasInteractions } from './free-canvas/collaboration.ts';
 import { boxRect, sequenceFramesInOrder } from './free-canvas-math.ts';
@@ -2155,6 +2156,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     dirty: () => onDirty?.('__designTool'),
     saveMaster: () => fc.actions?.save?.(),
   });
+  const projection = canvasProjection(canvasEl, () => fc.select.getBoxes(), cfg);
   const unregisterCollabSurface = registerCollabSurface(runtime, {
     revealPeer: state => revealCanvasPeer(fc, state),
     collection: blockId,
@@ -2163,6 +2165,10 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       if (index < 0) return null;
       const r = boxRect(boxes[index], cfg);
       return { element: fc.stage.liveBoxEl(id), x: r.x, y: r.y, w: r.w, h: r.h, rot: r.rot ?? 0 };
+    },
+    snapshot: () => {
+      const object = projection.snapshot(), m = fc.stage.metrics();
+      return { object, toClient: point => ({ x: m.cr.left + point.x * m.scale, y: m.cr.top + point.y * m.scale }) };
     },
     fromClient: point => fc.stage.clientToNative(point.x, point.y),
     reveal: id => {
@@ -2211,6 +2217,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       disposeCanvasInteractions(fc);
       fc.rules?.destroy();
       unregisterCollabSurface();
+      projection.dispose();
       unwatchScenes();
       // Hand the scene renderer back now. Nothing repaints this canvas again, so waiting
       // for the enhancer's own reap would hold a WebGL context until some other tool paints.

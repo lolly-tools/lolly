@@ -546,4 +546,4 @@ export const LIST_TRIAD =
  * analysis (e.g. a catalog asset's stored AI-signal note) key it by this, so a
  * stored verdict from an older lexicon is recomputed rather than trusted.
  */
-export const LEXICON_VERSION = 8;
+export const LEXICON_VERSION = 9;

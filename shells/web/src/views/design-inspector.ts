@@ -115,7 +115,7 @@ import {
   appearModeOf, appearSummary, NARRATION_LEAD_IN_MS, NARRATION_TAIL_MS, resetAppearMemory, setAppear,
 } from '../lib/motion-model.ts';
 import type { AppearIntent, AppearMode } from '../lib/motion-model.ts';
-import { auditMountedDesign } from './design-mounted-audit.ts';
+import { auditCurrentDesign } from './design-mounted-audit.ts';
 import type { MountedDesignAudit, MountedFontStyle } from './design-mounted-audit.ts';
 import { mountedDesignFindingMessage } from './design-audit-copy.ts';
 import { mountDesignTokenBindings } from './design-token-bindings.ts';
@@ -1199,15 +1199,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const generation = ++mountedAuditGeneration;
     const size = canvasSize();
     const report = inspectDesignV1(model.getBoxes(), { width: size.w, height: size.h });
-    void (async () => {
-      try { await document.fonts?.ready; } catch { /* the mounted layout still answers */ }
-      const result = await auditMountedDesign(canvasEl, report, { resolveFont: opts.resolveFont });
-      if (destroyed || generation !== mountedAuditGeneration || boxesAuditKey !== currentBoxesAuditKey()) return;
+    void auditCurrentDesign(canvasEl, report, { resolveFont: opts.resolveFont, isCurrent: () => !destroyed && generation === mountedAuditGeneration }).then(result => {
+      if (!result || destroyed || generation !== mountedAuditGeneration || boxesAuditKey !== currentBoxesAuditKey()) return;
       mountedAudit = result;
       // Mounted findings are deliberately outside `signature()` (which hashes authored
       // state). Force the one repaint that publishes this asynchronous browser answer.
       sync(true);
-    })();
+    });
   }
 
   function documentBody(): string {

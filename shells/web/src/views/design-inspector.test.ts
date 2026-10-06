@@ -335,8 +335,19 @@ test('Document health merges settled mounted overflow, contrast and vector-font 
     scrollWidth: { configurable: true, value: 260 },
     scrollHeight: { configurable: true, value: 40 },
   });
+  const settled = new Promise<void>((resolve, reject) => {
+    const observer = new W.MutationObserver(() => {
+      const check = h.el.querySelector<HTMLElement>('[data-design-check]');
+      if (!check?.textContent?.includes('Font coverage could not be verified')) return;
+      observer.disconnect(); clearTimeout(timeout); resolve();
+    });
+    const timeout = setTimeout(() => {
+      observer.disconnect(); reject(new Error('Mounted audit findings were not published'));
+    }, 2000);
+    observer.observe(h.el, { subtree: true, childList: true, characterData: true });
+  });
   fire(canvas, 'lolly-canvas-painted');
-  await new Promise((resolve) => setTimeout(resolve, 10));
+  await settled;
 
   const check = h.el.querySelector<HTMLElement>('[data-design-check]');
   assert.equal(check?.dataset.designCheck, 'warn');

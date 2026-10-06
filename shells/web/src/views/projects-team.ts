@@ -5,7 +5,8 @@
  * opens this door. Shared folders mount inside Projects; their forms and previews
  * load on demand. Opening a session remembers its origin without creating a local slot.
  */
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
+import { mountAssetPreview } from './asset-preview.ts';
 import { getSessionSource, readSourceProjects, takeSourceProjectRequest } from '../lib/session-source.ts';
 import type { TeamProjectRef } from '../lib/session-source.ts';
 import { folderTile } from '../folder-tiles.ts';
@@ -54,8 +55,12 @@ export function openTeamProjects(door: TeamProjectsDoor, projectId?: string, cre
 export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; query: string; list: boolean; sort: string; reversed: boolean; assetId?: string }): Promise<() => void> {
   try {
     const module = await import('../org/team-project-view.ts');
+    const { prepareProjectAsset, projectAssetHref } = await import('../org/team-project-assets.ts');
     if (!door.isMounted() || !container.isConnected) return () => {};
-    return module.mountTeamProjectView(container, { ...door, ...opts });
+    return module.mountTeamProjectView(container, { ...door, ...opts, assetPreview(projectId, file) {
+      const link = (ref: AssetRef) => projectAssetHref(projectId, ref.id);
+      return { link, open: onClose => mountAssetPreview(door.host, () => prepareProjectAsset(projectId, file), { link, onClose }) };
+    } });
   } catch (error) {
     door.host.log?.('warn', 'projects: shared folder failed to load', { error: String(error) });
     if (container.isConnected) container.textContent = t('Team projects could not be opened.');

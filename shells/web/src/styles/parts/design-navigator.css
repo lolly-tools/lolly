@@ -177,6 +177,11 @@
   overscroll-behavior: contain;
   scrollbar-width: thin;
 }
+.fc-nav--column .fc-nav-body {
+  scrollbar-gutter: stable;
+  overflow-anchor: none;
+}
+.fc-nav-list[hidden], .fc-nav-layers[hidden] { display: none; }
 .fc-nav-empty {
   margin: 0;
   padding: var(--sp-4) var(--sp-2);
@@ -650,4 +655,6 @@ html[data-a11y-motion="reduce"] .fc-nav-dot-btn { transition: none; }
 @layer views {
   .fc-nav-modes { position: sticky; top: 0; z-index: 2; background: var(--ui-color-surface-raised); }
   .fc-nav-group > summary { position: sticky; top: calc(var(--ui-size-target) + var(--sp-2)); z-index: 1; background: var(--ui-color-surface-raised); }
+  .fc-nav-object-group > summary { position: static; }
+  .fc-nav-object-group.is-active-group > summary { background: var(--ui-color-selection-surface); }
 }

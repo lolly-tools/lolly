@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { openAssetInText } from '../../lib/text-handoff.ts';
+import { mountModelPreview } from '../../lib/model-preview.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
  * catalog details: building the sheet and wiring its events, in mount order.
@@ -72,7 +73,7 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   // it is still data, and a link is the one place a string becomes an action.
   const sourceUrl = typeof record?.sourceUrl === 'string' && /^https?:\/\//i.test(record.sourceUrl) ? record.sourceUrl : '';
   const sourceParts = [
-    isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? t('Catalog')),
+    isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? t(ref.source === 'remote' ? 'Shared asset' : 'Catalog')),
     credited ? escapeText(tRaw('credited to {who}', { who: credited })) : '',
     sourceUrl ? `<a href="${escapeText(sourceUrl)}" target="_blank" rel="noopener noreferrer">${t('Original work')}</a>` : '',
   ].filter(Boolean).join(' · ');
@@ -397,7 +398,8 @@ export function buildSheet(dt: DetailsCtx): void {
     && typeof ttsBlock?.text === 'string' && !!ttsBlock.text.trim()
     && typeof ttsBlock?.voice === 'string' && !!ttsBlock.voice.trim(); dt.canEditScript = canEditScript;
   const wasOpen = !!cat.detailsDialog; dt.wasOpen = wasOpen; // paging (←/→) replaces an open modal - cue only a FRESH open
-  cat.sections.closeDetails();
+  cat.detailsOpening = true;
+  try { cat.sections.closeDetails(); } finally { cat.detailsOpening = false; }
   const content = `
       <button type="button" class="cat-details-close" data-act="close" aria-label="${escapeText(t('Close'))}">×</button>
       <div class="cat-details-preview${zoomable ? ' is-zoomable' : ''}">
@@ -417,27 +419,30 @@ export function buildSheet(dt: DetailsCtx): void {
              length, so the actions live at a fixed spot at the top of the column
              instead of drifting down with the content (Andy, 2026-08-20). -->
         ${(() => {
+          const sharedPreview = !!cat.preview && ref.source === 'remote';
+          const downloadControl = `<button type="button" class="btn cat-act-download" data-act="download">${DOWNLOAD_ICON}<span>${configurable ? t('Download…') : t('Download')}</span></button>`;
+          const shareControl = `<button type="button" class="btn cat-act-share" data-act="share">${SHARE_ICON}<span>${t('Copy link')}</span></button>`;
           // Grouped toolbar (plans/132 WP-J): four rows - pinned verbs, the EDIT
           // family, manage, destructive last - instead of ~16 flat buttons. The
           // edit row collapses behind an "Edit…" expander under 860px (the
           // toggle-edit act below); every button and gate is unchanged.
-          const pinned = [
+          const pinned = sharedPreview ? [downloadControl, shareControl] : [
             // A 3-D model opens in the 3D tool; a LUT opens in the Darkroom - the
             // primary "edit" verb for these types (they have no in-place crop/grade).
-            ref.type === 'model' ? `<button type="button" class="btn cat-act-open-3d" data-act="open-3d">${icon('box', { size: 14 })}<span>${t('Open in 3D')}</span></button>` : '',
+            ref.type === 'model' ? `<button type="button" class="btn cat-act-open-3d" data-act="open-3d">${icon('box', { size: 14 })}<span>${t('Open in 3D Studio')}</span></button>` : '',
             ref.type === 'lut' ? `<button type="button" class="btn cat-act-open-lut" data-act="open-lut">${icon('camera', { size: 14 })}<span>${t('Open in Darkroom')}</span></button>` : '',
             // An emoji set's primary verb: make it the set new work starts from.
             // A SEED, not a restyle - a document, a saved session or a link that
             // already names a set keeps the set it names (lib/emoji-prefs.ts).
             emojiPackMeta(ref) ? `<button type="button" class="btn cat-act-use-emoji" data-act="use-emoji-set" aria-pressed="false">${icon('smile', { size: 14 })}<span>${t('Use this set')}</span></button>` : '',
             `<button type="button" class="btn cat-act-fav${fav ? ' is-fav' : ''}" data-act="fav" data-sfx="twinkle" aria-pressed="${fav}">${STAR_ICON}<span>${fav ? t('Favourited') : t('Favourite')}</span></button>`,
-            `<button type="button" class="btn cat-act-download" data-act="download">${DOWNLOAD_ICON}<span>${configurable ? t('Download…') : t('Download')}</span></button>`,
+            downloadControl,
             `<button type="button" class="btn" data-act="open-with" aria-haspopup="menu" ${cat.actions.choices([ref]).length ? '' : 'disabled'} title="${escapeText(cat.actions.choices([ref]).length ? t('Open in a compatible tool') : t('No tool accepts this selection.'))}">${t('Open with')}</button>`,
             `<button type="button" class="btn" data-act="convert" ${cat.actions.canConvert([ref]) ? '' : 'disabled'} title="${escapeText(cat.actions.canConvert([ref]) ? t('Choose a supported transformation') : t('No conversion accepts this selection.'))}">${t('Convert…')}</button>`,
             isTextAsset ? `<button type="button" class="btn cat-act-dl-as" data-act="dl-as" aria-haspopup="menu" aria-expanded="false">${DOWNLOAD_ICON}<span>${t('Download as')}</span></button>` : '',
             `<button type="button" class="btn" data-act="prepare">${t('Prepare for sharing')}</button>`,
             `<button type="button" class="btn cat-act-send" data-act="send">${icon('upload', { size: 14 })}<span>${t('Send to…')}</span></button>`,
-            `<button type="button" class="btn cat-act-share" data-act="share">${SHARE_ICON}<span>${t('Copy link')}</span></button>`,
+            shareControl,
           ];
           const edit = [
             croppable ? `<button type="button" class="btn cat-act-crop" data-act="crop">${CROP_ICON}<span>${t('Crop…')}</span></button>` : '',
@@ -476,12 +481,12 @@ export function buildSheet(dt: DetailsCtx): void {
             const inner = btns.filter(Boolean).join('');
             return inner ? `<span class="cat-act-row${cls ? ` ${cls}` : ''}">${inner}</span>` : '';
           };
-          const editRow = row(edit, 'cat-act-row--edit');
+          const editRow = sharedPreview ? '' : row(edit, 'cat-act-row--edit');
           const editToggle = editRow
             ? `<button type="button" class="btn cat-act-more" data-act="toggle-edit" aria-expanded="false">${PENCIL_ICON}<span>${t('Edit…')}</span></button>`
             : '';
           return `<div class="cat-details-actions">
-            ${row(pinned)}${editToggle}${editRow}${row(manage)}${row(danger, 'cat-act-row--danger')}
+            ${row(pinned)}${editToggle}${editRow}${sharedPreview ? '' : row(manage) + row(danger, 'cat-act-row--danger')}
           </div>`;
         })()}
         <div class="cat-passport" data-passport></div>
@@ -528,6 +533,7 @@ export function buildSheet(dt: DetailsCtx): void {
         ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(dt.dTheme)}</div>` : ''}
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;
+  let destroyModelPreview: (() => void) | undefined;
   // Exits inline trim mode, or null when no card is up. Assigned by enterInlineTrim
   // below; declared here so the modal's onClose can answer an open card (its teardown
   // revokes the two preview object URLs) when the dialog goes away under it.
@@ -537,8 +543,10 @@ export function buildSheet(dt: DetailsCtx): void {
   dt.dlAsPopover = null;
   const modal = mountModal(content, {
     className: 'cat-details',
+    backStack: !cat.preview,
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onClose: () => {
+      destroyModelPreview?.();
       dt.emojiBrowser?.destroy();
       cat.detailsMeterDispose?.();
       cat.detailsMeterDispose = null;
@@ -561,9 +569,14 @@ export function buildSheet(dt: DetailsCtx): void {
       cat.sections.syncAssetUrl(null);       // the bar goes back to the plain catalog URL
       cat.detailsDialog = null;
       cat.detailsModal = null;
+      if (cat.mounted && !cat.detailsOpening) cat.preview?.onClose?.(ref);
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  if (ref.type === 'model') {
+    const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
+    if (preview) destroyModelPreview = mountModelPreview(preview, ref);
+  }
   cat.detailsDialog = dlg;
   cat.detailsModal = modal;
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
@@ -575,13 +588,14 @@ export function buildSheet(dt: DetailsCtx): void {
 
 export function paintPassport(dt: DetailsCtx): void {
   const { PASSPORT_CRED_CACHE, TREATMENT_FILTER_PREFIX, cat, dlg, initialTheme, ref, showVerify, themable, treatable } = dt;
+  const sourceRef = ref.source === 'remote' && ref.original ? { ...ref, url: ref.original.url, format: ref.original.format } : ref;
   dt.panels.renderPassport('checking');
   void (async () => {
     const cacheKey = `${ref.id}|${ref.version ?? 'x'}`;
     let cred = PASSPORT_CRED_CACHE.get(cacheKey) ?? null;
     if (cred === null && !PASSPORT_CRED_CACHE.has(cacheKey)) {
       try {
-        const bytes = new Uint8Array(await (await fetch(ref.url)).arrayBuffer());
+        const bytes = new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer());
         const r = await verifyC2pa(bytes);
         cred = { found: !!r.found, state: String(r.state), trusted: !!(r as { trusted?: boolean }).trusted };
       } catch { cred = null; }
@@ -594,7 +608,7 @@ export function paintPassport(dt: DetailsCtx): void {
   // Technical metadata (resolution, DPI, EXIF, audio/video props, page count, viewBox…):
   // extract off-thread and fill the initially-hidden panel. Cancel/stale-safe - ←/→ paging
   // re-runs openDetails per asset, so a slow result must not overwrite a newer asset's panel.
-  void extractAssetMetadata(ref).then(techFields => {
+  void extractAssetMetadata(sourceRef).then(techFields => {
     if (cat.detailsDialog !== dlg) return;          // modal closed or paged to another asset
     if (!techFields.length) return;             // nothing readable - leave the panel hidden
     const box = dlg.querySelector<HTMLElement>('[data-tech]');
@@ -632,7 +646,7 @@ export function paintPassport(dt: DetailsCtx): void {
   if (showVerify && ref.type !== 'video' && ref.type !== 'audio' && Number(ref.meta?.bytes ?? 0) < 12_000_000) {
     void (async () => {
       try {
-        const bytes = new Uint8Array(await (await fetch(ref.url)).arrayBuffer());
+        const bytes = new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer());
         if (!extractC2paStore(bytes)) return;
         const report = await verifyC2pa(bytes);
         if (cat.detailsDialog !== dlg) return;
@@ -1382,7 +1396,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // Each maps the asset id's tail to the tool's own preset key (lolly/3d/duck →
     // model=duck; lolly/luts/suse7-slog3-heavy → lutPreset=suse7-slog3-heavy).
     if (act === 'open-3d') {
-      window.location.hash = `#/tool/3d?model=${encodeURIComponent(ref.id.split('/').pop() ?? '')}`;
+      window.location.hash = `#/tool/3d-studio?source=model&modelAsset=${encodeURIComponent(ref.id)}&modelFormat=${encodeURIComponent(ref.format || 'auto')}`;
       return;
     }
     if (act === 'open-lut') {

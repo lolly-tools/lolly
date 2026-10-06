@@ -68,6 +68,7 @@ const W = dom.window as unknown as typeof globalThis & { MouseEvent: typeof Mous
 for (const k of [
   'window', 'document', 'HTMLElement', 'Element', 'KeyboardEvent', 'Event', 'CustomEvent',
   'MouseEvent', 'Node', 'getComputedStyle', 'MutationObserver', 'Blob', 'File', 'FileReader',
+  'DOMParser', 'XMLSerializer',
 ]) {
   (globalThis as Record<string, unknown>)[k] = (dom.window as unknown as Record<string, unknown>)[k];
 }
@@ -78,6 +79,8 @@ globalThis.cancelAnimationFrame = ((h: number) => dom.window.cancelAnimationFram
 (globalThis as Record<string, unknown>).ResizeObserver = class { observe() {} disconnect() {} };
 
 const { initFreeCanvas } = await import('./free-canvas.ts');
+let readSvg = async (_url: string): Promise<Response> => new Response(String((globalThis as Record<string,unknown>).__ungroupSvg));
+globalThis.fetch = (async input => readSvg(String(input))) as typeof fetch;
 
 const NATIVE = 1000;
 const rect = (left: number, top: number, width: number, height: number): DOMRect => ({
@@ -111,10 +114,11 @@ interface Fixture {
   canvasEl: HTMLElement;
   boxes(): Box[];
   writes(): number;
+  setBoxes(rows: Box[]): void;
   destroy(): void;
 }
 
-function mount(seed: Box[], cfg: Record<string, unknown> = canvasCfg()): Fixture {
+function mount(seed: Box[], cfg: Record<string, unknown> = canvasCfg(), host: Record<string,unknown> = {}): Fixture {
   const viewEl = dom.window.document.createElement('div');
   const stageEl = dom.window.document.createElement('div');
   const canvasEl = dom.window.document.createElement('div');
@@ -135,7 +139,7 @@ function mount(seed: Box[], cfg: Record<string, unknown> = canvasCfg()): Fixture
   const handle = initFreeCanvas({
     viewEl, stageEl, canvasEl,
     runtime: runtime as never,
-    host: {} as never,
+    host: host as never,
     input: { id: 'boxes', canvas: cfg as never, fields: [] },
     nativeW: NATIVE, nativeH: NATIVE,
   });
@@ -143,6 +147,7 @@ function mount(seed: Box[], cfg: Record<string, unknown> = canvasCfg()): Fixture
     stageEl, canvasEl,
     boxes: () => model.get('boxes') as Box[],
     writes: () => writes,
+    setBoxes: rows => runtime.setInput('boxes',rows),
     destroy() { handle.destroy(); viewEl.remove(); dom.window.document.body.innerHTML = ''; },
   };
 }
@@ -297,4 +302,87 @@ test('a tool with no group field never takes a vector apart - nowhere to keep th
     assert.equal(f.writes(), 0);
     assert.equal(uploads.length, 0);
   } finally { f.destroy(); }
+});
+
+const pathCfg = () => ({...canvasCfg(),kindField:'kind',pathField:'path',labelField:'name'});
+async function requestPaths(f: Fixture): Promise<void> {
+  rightClick(f,200,200); const action=menuRows(f).get('Unpack SVG layers');
+  assert.ok(action&&!action.disabled); click(action); await settle();
+}
+test('explicit unpack is available for SVGs in path-capable tools and disabled for photographs',()=>{
+  for(const [ref,disabled] of [[svgRef(),false],[pngRef(),true]] as const){
+    const f=mount([box({image:ref})],pathCfg());
+    try{rightClick(f,200,200);assert.equal(menuRows(f).get('Unpack SVG layers')?.disabled,disabled);}finally{f.destroy();}
+  }
+  const f=mount([box({image:svgRef()})]);
+  try{rightClick(f,200,200);assert.equal(menuRows(f).has('Unpack SVG layers'),false);}finally{f.destroy();}
+});
+test('unpack prepares paths before confirming, preserves stacking and credits, and writes once without asset uploads',async()=>{
+  (globalThis as Record<string,unknown>).__ungroupSvg=ART; uploads.length=0;
+  const image=box({image:svgRef(),name:'Logo',group:'existing',z:12,artboard:'board'}), other=box({id:'z',x:700});
+  const f=mount([image,other],pathCfg());
+  try{
+    await requestPaths(f);assert.equal(f.writes(),0);assert.deepEqual(f.boxes(),[image,other]);
+    assert.match(f.stageEl.querySelector('.fc-confirm-panel')?.textContent||'',/library asset stays intact/);
+    click(f.stageEl.querySelector('[data-confirm-yes]')!);await settle();
+    assert.equal(f.writes(),1); assert.equal(uploads.length,0);
+    const parts=f.boxes().slice(0,-1);assert.equal(parts.length,4);assert.equal(f.boxes().at(-1),other);
+    assert.equal(new Set(parts.map(row=>row.id)).size,4);
+    assert.ok(parts.every(row=>row.kind==='path'&&row.path&&!row.image&&row.group==='existing'&&row.z===12&&row.artboard==='board'));
+    assert.ok(parts.every(row=>JSON.parse(String(row.vectorSource)).assetSource.id==='lolly/art/diagram'));
+    assert.match(String(parts[0]!.name),/Logo: path 1/);assert.deepEqual(image.image,svgRef());
+    const first=parts[0]!.path;parts[1]!.path='edited';assert.equal(parts[0]!.path,first,'path data is independent');
+  }finally{f.destroy();}
+});
+test('cancel leaves the original SVG intact; a single-shape SVG can still become a path',async()=>{
+  (globalThis as Record<string,unknown>).__ungroupSvg=LONE;
+  const image=box({image:svgRef()}),f=mount([image],pathCfg());
+  try{
+    await requestPaths(f);click(f.stageEl.querySelector('[data-confirm-no]')!);await settle();
+    assert.equal(f.writes(),0);assert.equal(f.boxes()[0],image);
+    await requestPaths(f);click(f.stageEl.querySelector('[data-confirm-yes]')!);await settle();
+    assert.equal(f.writes(),1);assert.equal(f.boxes().length,1);assert.equal(f.boxes()[0]!.kind,'path');assert.ok(!f.boxes()[0]!.image);
+  }finally{f.destroy();}
+});
+test('unsupported visible artwork and incoming references leave the source intact without a confirmation',async()=>{
+  for(const art of [ART.replace('</svg>','<foreignObject width="10" height="10"><div xmlns="http://www.w3.org/1999/xhtml">Label</div></foreignObject></svg>'),ART.replace('</svg>','<text>Label</text></svg>')]){
+    (globalThis as Record<string,unknown>).__ungroupSvg=art;
+    const image=box({image:svgRef()}),f=mount([image],pathCfg());
+    try{await requestPaths(f);assert.equal(f.writes(),0);assert.equal(f.boxes()[0],image);assert.ok(!f.stageEl.querySelector('[data-confirm-yes]'));assert.match(f.stageEl.textContent||'',/could not be unpacked/);}finally{f.destroy();}
+  }
+  (globalThis as Record<string,unknown>).__ungroupSvg=ART;
+  const f=mount([box({image:svgRef()}),box({id:'linked',x:700,clip:'a'})],pathCfg());
+  try{await requestPaths(f);assert.equal(f.writes(),0);assert.match(f.stageEl.textContent||'',/Remove references/);}finally{f.destroy();}
+});
+test('applying a prepared unpack refuses a changed document instead of overwriting it',async()=>{
+  (globalThis as Record<string,unknown>).__ungroupSvg=ART;
+  const image=box({image:svgRef()}),f=mount([image],pathCfg());
+  try{
+    await requestPaths(f);const newer=[{...image,x:130}];f.setBoxes(newer);
+    click(f.stageEl.querySelector('[data-confirm-yes]')!);await settle();
+    assert.equal(f.writes(),1);assert.equal(f.boxes(),newer);assert.match(f.stageEl.textContent||'',/selection changed/);
+  }finally{f.destroy();}
+});
+test('an SVG read finishing after selection changes cannot open a conversion confirmation',async()=>{
+  let finish!:(response:Response)=>void;
+  readSvg=()=>new Promise<Response>(resolve=>{finish=resolve;});
+  const f=mount([box({image:svgRef()}),box({id:'z',x:700})],pathCfg());
+  try{
+    await requestPaths(f);assert.equal(typeof finish,'function');selectBox(f,800,200);finish(new Response(ART));await settle();
+    assert.equal(f.writes(),0);assert.ok(!f.stageEl.querySelector('[data-confirm-yes]'));assert.match(f.stageEl.textContent||'',/selection changed/);
+  }finally{readSvg=async()=>new Response(String((globalThis as Record<string,unknown>).__ungroupSvg));f.destroy();}
+});
+test('unpack resolves a saved SVG identity and retains its frozen credits without needing a stored URL',async()=>{
+  (globalThis as Record<string,unknown>).__ungroupSvg=LONE;
+  const ref={source:'library',id:'library/saved',type:'vector',format:'svg',version:'1',meta:{author:'Artist'}};
+  let reads=0;
+  const f=mount([box({image:ref})],pathCfg(),{assets:{get:async(id:string,options:unknown)=>{reads++;assert.equal(id,ref.id);assert.deepEqual(options,{format:'svg',version:'1'});return{...ref,url:'https://x.test/saved.svg'};}}});
+  try{await requestPaths(f);assert.equal(reads,1);click(f.stageEl.querySelector('[data-confirm-yes]')!);await settle();assert.equal(f.writes(),1);assert.equal(JSON.parse(String(f.boxes()[0]!.vectorSource)).assetSource.meta.author,'Artist');}
+  finally{f.destroy();}
+});
+test('a failed second SVG cannot partially replace the first image in a multi-selection',async()=>{
+  readSvg=async url=>new Response(url.endsWith('bad.svg')?ART.replace('</svg>','<text>Unsupported</text></svg>'):LONE);
+  const first=box({group:'both',image:svgRef()}),second=box({id:'b',x:700,group:'both',image:{...svgRef(),url:'https://x.test/bad.svg'}}),f=mount([first,second],pathCfg());
+  try{await requestPaths(f);assert.equal(f.writes(),0);assert.deepEqual(f.boxes(),[first,second]);assert.ok(!f.stageEl.querySelector('[data-confirm-yes]'));assert.match(f.stageEl.textContent||'',/could not be unpacked/);}
+  finally{readSvg=async()=>new Response(String((globalThis as Record<string,unknown>).__ungroupSvg));f.destroy();}
 });

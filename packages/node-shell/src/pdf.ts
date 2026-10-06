@@ -129,25 +129,12 @@ export async function analyzePdf(bytes: Uint8Array): Promise<{ findings: PdfFind
   return { findings };
 }
 
-// A pdf-lib Info dictionary as accessed by the duck-typing below.
-type DictLike = { keys(): PDFNameType[]; delete(key: PDFNameType): void };
-
 export async function stripPdf(bytes: Uint8Array): Promise<{ bytes: Uint8Array }> {
-  const { PDFDocument, PDFName } = await import('pdf-lib');
-  const doc = await PDFDocument.load(bytes, PDF_LOAD_OPTS);
-
-  // Remove every entry in the Info dictionary (Author, Producer, dates, …).
-  const infoRef = doc.context.trailerInfo?.Info;
-  if (infoRef) {
-    let info: DictLike | null;
-    try { info = doc.context.lookup(infoRef) as unknown as DictLike; } catch { info = null; }
-    if (info && typeof info.keys === 'function' && typeof info.delete === 'function') {
-      for (const key of [...info.keys()]) info.delete(key);
-    }
-  }
-  // Remove the XMP metadata stream from the document catalog.
-  try { doc.catalog.delete(PDFName.of('Metadata')); } catch { /* none present */ }
-
+  if (bytes.byteLength > 128 * 1024 * 1024) throw new Error('PDF metadata cleaning supports files up to 128 MB.');
+  const { PDFDocument } = await import('pdf-lib');
+  const { removePdfMetadata } = await import('./pdf-strip.ts');
+  const doc = await PDFDocument.load(bytes, { updateMetadata: false });
+  removePdfMetadata(doc);
   const out = await doc.save({ updateFieldAppearances: false });
   return { bytes: out };
 }

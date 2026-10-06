@@ -14,11 +14,12 @@ import { boxOutlineKind } from '../vector-ops.ts';
 import { closesOnClick, convertKind, dragHandle, frameToLocal, kindReadsHandles, lowerAuthored, moveNodes, nearestOnPath, nodeAt, pullHandles } from '../free-canvas-pen.ts';
 import { announce } from '../../a11y.ts';
 import { isTypingTarget } from '../../lib/typing-target.ts';
+import { beginCanvasFeedback, finishCanvasFeedback, cancelCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { t } from '../../i18n.ts';
 import { SNAP_PX, boolOf } from './shared.ts';
 import type { AABB, Gesture, GestureInit, HandleName, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
-import { beginCanvasGesture, canvasGestureReady, finishCanvasGesture, previewCanvasRect } from './collaboration.ts';
+import { beginCanvasGesture, canvasGestureReady, finishCanvasGesture, flushCanvasPreview, previewCanvasRect } from './collaboration.ts';
 
 // ── pointer gestures on the canvas ───────────────────────────────────────────
 export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
@@ -68,6 +69,8 @@ export function endGesture(fc: FcCtx, committed = false): void {
     });
 }
 export function cancelGesture(fc: FcCtx): void {
+  cancelCanvasFeedback(fc.runtime, 'pointer-commit');
+  cancelCanvasFeedback(fc.runtime, 'pointer-preview');
   if (fc.moveRaf) cancelAnimationFrame(fc.moveRaf);
   fc.moveRaf = 0; fc.pendingMove = null;
   const pointer = fc.gesture?.pointerId;
@@ -553,13 +556,17 @@ export function onGestureMove(fc: FcCtx, e: PointerEvent): void {
   if (fc.gesture.type === 'tap') return; // stageNav owns it; only checked on up
   e.preventDefault(); // must be synchronous to suppress scroll/text-select
   fc.pendingMove = e;
+  beginCanvasFeedback(fc.runtime, 'pointer-preview', e.timeStamp);
   if (!fc.moveRaf) fc.moveRaf = requestAnimationFrame(fc.gestures.flushGestureMove);
 }
 export function flushGestureMove(fc: FcCtx): void {
   fc.moveRaf = 0;
   const e = fc.pendingMove;
   fc.pendingMove = null;
-  if (e) applyGestureMove(fc, e);
+  if (e) {
+    applyGestureMove(fc, e);
+    if (fc.gesture && canvasGestureReady(fc)) finishCanvasFeedback(fc.runtime, 'pointer-preview');
+  }
 }
 export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
   const { CAM_TILT_DEG_PER_PX, PEN_PULL_MIN, cfg, minSize } = fc;
@@ -772,6 +779,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     } else clearGuides(fc);
     fc.gesture.moveDelta = { dx: mdx, dy: mdy };
     for (const [i, r] of fc.gesture.start) applyLiveRect(fc, i, { ...r, x: r.x + mdx, y: r.y + mdy });
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     fc.connectors.liveConnUpdate();
     return;
@@ -807,6 +815,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     });
     applyLiveRect(fc, fc.gesture.index, { ...nr, rot: fc.gesture.startRect.rot });
     fc.gesture.liveRect = { ...nr, rot: fc.gesture.startRect.rot };
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     fc.connectors.liveConnUpdate();
     return;
@@ -822,6 +831,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     const live = { ...fc.gesture.startRect, rot: deg };
     applyLiveRect(fc, fc.gesture.index, live);
     fc.gesture.liveRect = live;
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     return;
   }
@@ -830,6 +840,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     const next = scaleGroup(fc.gesture.startBoxes, fc.gesture.sel, fc.gesture.anchor, k, cfg, { minSize });
     for (const i of fc.gesture.sel) applyLiveRect(fc, i, boxRect(next[i], cfg));
     fc.gesture.liveBoxes = next;
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     fc.connectors.liveConnUpdate();
     return;
@@ -842,6 +853,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     const next = rotateGroup(fc.gesture.startBoxes, fc.gesture.sel, fc.gesture.centre, deg, cfg);
     for (const i of fc.gesture.sel) applyLiveRect(fc, i, boxRect(next[i], cfg));
     fc.gesture.liveBoxes = next;
+    flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
     fc.connectors.liveConnUpdate();
     return;
@@ -854,6 +866,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     cancelGesture(fc); return;
   }
   const g = fc.gesture;
+  if (g.type !== 'tap' && g.type !== 'marquee' && g.type !== 'penmarquee') beginCanvasFeedback(fc.runtime, 'pointer-commit', e.timeStamp);
   // Apply any pending (coalesced) move first so the drop commits the final pointer
   // position, then drop the scheduled frame.
   if (fc.moveRaf) {
@@ -864,6 +877,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     const pe = fc.pendingMove;
     fc.pendingMove = null;
     applyGestureMove(fc, pe);
+    finishCanvasFeedback(fc.runtime, 'pointer-preview');
   }
   try {
     canvasEl.releasePointerCapture(e.pointerId);

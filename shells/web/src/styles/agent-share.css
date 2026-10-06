@@ -1,0 +1,6 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.share-agent { display:grid; gap:var(--sp-3); margin-block-end:var(--sp-4); padding-block-end:var(--sp-4); border-block-end:1px solid hsl(var(--border)); }
+.share-agent h3 { margin:0; font-size:var(--fs-md); font-weight:600; }
+.share-agent p { margin:0; font-size:var(--fs-sm); line-height:1.5; color:hsl(var(--muted-foreground)); }
+.share-agent label { display:grid; gap:var(--sp-2); font-size:var(--fs-sm); }
+.share-agent-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }

@@ -37,9 +37,9 @@ function setGlyph(el: HTMLElement, markup: string): void { el.innerHTML = markup
 /**
  * The editor's floating surfaces that the free canvas mounts INSIDE the stage: menus
  * (`.fc-popover`, the context menu included), panels (`.fc-panel`) and the text
- * controls (`.fc-text-popover`). A plain wheel over one scrolls it instead of panning.
+ * controls (`.fc-text-popover`) and navigator. A plain wheel scrolls these surfaces.
  */
-export const STAGE_FLOATING_SURFACES = '.fc-popover, .fc-panel, .fc-text-popover';
+export const STAGE_FLOATING_SURFACES = '.fc-popover, .fc-panel, .fc-text-popover, .fc-nav';
 
 /**
  * ── TRACKPAD PINCH: THE FINGERS' OWN RATIO, PLUS ACCELERATION ──────────────────

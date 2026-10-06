@@ -302,7 +302,6 @@ html[data-a11y-previews="hidden"] .folder-export-tile img {
   height: 74px;
   border-radius: 0 10px 10px 10px;
   background: color-mix(in oklab, var(--ftint) 30%, hsl(var(--card)));
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ftint) 55%, transparent);
 }
 .folder-cover::before {
   content: '';
@@ -310,7 +309,7 @@ html[data-a11y-previews="hidden"] .folder-export-tile img {
   top: -9px; left: 0;
   width: 42%; height: 10px;
   border-radius: 7px 10px 0 0;
-  background: color-mix(in oklab, var(--ftint) 72%, hsl(var(--card)));
+  background: color-mix(in oklab, var(--ftint) 30%, hsl(var(--card)));
 }
 /* The member mosaic sits INSIDE the folder body now. */
 .folder-cover .folder-mosaic {

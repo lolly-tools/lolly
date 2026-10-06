@@ -36,6 +36,7 @@ import {
   NAV_MAX_WIDTH, NAV_MIN_WIDTH, NAV_RAIL_WIDTH, NAV_WIDTH,
   hashBox, initDesignNavigator, insertAt, layerTextLabel, moveInSeq, navWidthFor,
 } from './design-navigator.ts';
+import { mergeLayerOrder } from './design-layer-groups.ts';
 
 // ── jsdom bootstrap (same shape as deck-editor.test.ts) ──────────────────────
 const dom = new JSDOM('<!DOCTYPE html><body></body>');
@@ -1556,4 +1557,74 @@ test('Layers and Pages switch the same document navigation without duplicating v
   click(buttons.find(button=>button.textContent==='Layers')!);
   assert.equal(f.nav.el.querySelector<HTMLElement>('.fc-nav-layers')!.hidden,false);
   f.nav.destroy();
+});
+
+test('switching navigator views keeps each list scroll position', () => {
+  const f = mount(WITH_KIDS, { active: 'f1' });
+  try {
+    const body = f.nav.el.querySelector<HTMLElement>('.fc-nav-body')!;
+    const buttons = [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')];
+    const pages = buttons.find(button => button.textContent === 'Pages')!;
+    const layers = buttons.find(button => button.textContent === 'Layers')!;
+    body.scrollTop = 120;
+    click(pages);
+    assert.equal(body.scrollTop, 0, 'a new view starts at its own top');
+    body.scrollTop = 40;
+    click(layers);
+    assert.equal(body.scrollTop, 120, 'the layers keep their place');
+    click(layers);
+    assert.equal(body.scrollTop, 120, 'clicking the selected view does not move it');
+    click(pages);
+    assert.equal(body.scrollTop, 40, 'the pages keep their place too');
+  } finally { f.nav.destroy(); }
+});
+
+test('object groups expand, collapse, select members and preserve their state across updates', () => {
+  const f = mount([
+    {id:'f1',kind:'frame',name:'Board',x:0,y:0,w:800,h:450},
+    {id:'a',kind:'text',frame:'f1',group:'g1',text:'First'},
+    {id:'b',kind:'text',frame:'f1',group:'g1',text:'Second'},
+    {id:'c',kind:'image',frame:'f1'},
+  ] as Box[]);
+  try {
+    let group = f.nav.el.querySelector<HTMLDetailsElement>('[data-object-group="g1"]')!;
+    assert.ok(group); assert.equal(group.open,true); assert.deepEqual(f.layerIds(),['c','b','a']);
+    key(group.querySelector('summary')!,'ArrowLeft'); assert.equal(group.open,false);
+    assert.deepEqual(f.layerIds(),['c']);
+    click(group.querySelector('button')!); assert.deepEqual(f.selection.get(),['b','a']);
+    assert.ok(group.classList.contains('is-active-group'));
+    f.model.setField(['c'],'hidden',true);
+    group=f.nav.el.querySelector<HTMLDetailsElement>('[data-object-group="g1"]')!;
+    assert.equal(group.open,false); assert.deepEqual(f.layerIds(),['c']);
+    key(group.querySelector('summary')!,'ArrowRight'); assert.equal(group.open,true);
+    assert.deepEqual(f.layerIds(),['c','b','a']);
+    const child=group.querySelector<HTMLElement>('[data-nav-row]')!;
+    key(child,'ArrowLeft'); assert.equal(document.activeElement,group.querySelector('summary'));
+    assert.ok(group.querySelector('[aria-label="Hide layer"]'));
+    assert.ok(group.querySelector('[aria-label="Lock layer"]'));
+  } finally { f.nav.destroy(); }
+});
+
+test('loose layer grouping reacts to grouping and ungrouping without changing the model order', () => {
+  const f=mount([{id:'a',kind:'text',text:'A'},{id:'b',kind:'text',text:'B'}] as Box[]);
+  try {
+    f.model.setField(['a','b'],'group','g2');
+    assert.ok(f.nav.el.querySelector('[data-object-group="g2"]'));
+    assert.deepEqual(f.layerIds(),['b','a']);
+    f.model.setField(['a','b'],'group','');
+    assert.equal(f.nav.el.querySelector('[data-object-group]'),null);
+    assert.deepEqual(f.model.getBoxes().map(box=>box.id),['a','b']);
+  } finally { f.nav.destroy(); }
+});
+
+test('reordering displayed group members preserves omitted siblings in their original slots', () => {
+  assert.deepEqual(mergeLayerOrder(['a','hidden','b','tail'],['b','a']),['b','hidden','a','tail']);
+  const f=mount([{id:'f1',kind:'frame',w:800,h:450},{id:'a',kind:'text',frame:'f1',group:'g1'},
+    {id:'hidden',kind:'text',frame:'f1',group:'g2'},{id:'b',kind:'text',frame:'f1',group:'g1'}] as Box[]);
+  try {
+    const collapsed=f.nav.el.querySelector<HTMLDetailsElement>('[data-object-group="g2"]')!;
+    key(collapsed.querySelector('summary')!,'ArrowLeft');
+    const row=f.layerEls().find(row=>row.dataset.id==='b')!; key(row,'ArrowDown',{altKey:true});
+    assert.deepEqual(f.c.reorderChildren.at(-1),{frameId:'f1',ids:['b','hidden','a']});
+  } finally { f.nav.destroy(); }
 });

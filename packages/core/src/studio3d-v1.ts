@@ -37,7 +37,7 @@ export interface StudioFinishSpec {
 }
 
 export interface StudioSourceV1 {
-  kind: 'svg' | 'glb' | 'stl' | 'primitive' | 'text';
+  kind: 'svg' | 'glb' | 'stl' | '3mf' | 'primitive' | 'text';
   id: string;
   url: string;
   primitive: 'badge' | 'sphere' | 'box' | 'torus';
@@ -285,7 +285,7 @@ export interface StudioSourceInfo {
   warnings: string[];
   /**
    * The size the source measures in its own file, before the studio scales its longest
-   * side to 3.25 studio units. Present for a model file (GLB or STL), where the numbers
+   * side to 3.25 studio units. Present for a model file (GLB, STL or 3MF), where the numbers
    * are the file's own; absent for artwork, words and the built-in shapes, which are
    * drawn to fit and carry no size of their own.
    */

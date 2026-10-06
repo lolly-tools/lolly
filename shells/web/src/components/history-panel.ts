@@ -11,7 +11,7 @@ import { navigateHistoryHref } from '../lib/history-navigation.ts';
 import type { AutomaticHistory } from '../views/automatic-history.ts';
 import { requestDock, releaseDock, isDocked } from '../lib/edge-dock.ts';
 import { icon } from '../lib/icons.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import './history-panel.css';
 
@@ -128,6 +128,13 @@ export function openHistoryPanel(opts: {
     navigateHistoryHref(sessionOpenHref({ slot, toolId: entry.toolId }, false));
   };
   const fidelity = history?.fidelity ? mountHistoryFidelity(history.fidelity, writeLocalCopy) : undefined;
+  const editor = (actor: CollabHistoryEntry['actor']): HTMLElement => {
+    const line = document.createElement('span'); line.className = 'revision-history-editor';
+    const name = actor.label?.trim() || (actor.id === 'collab' ? t('Collaboration')
+      : actor.id.startsWith('guest:') ? t('Guest') : t('Unknown editor'));
+    line.textContent = tRaw('Edited by {name}', { name });
+    return line;
+  };
   const row = (entry: RevisionEntry | CollabHistoryEntry): HTMLElement => {
     const article = document.createElement('article'); article.className = 'revision-history-entry';
     const image = document.createElement('img'); image.alt = ''; image.loading = 'lazy'; image.hidden = true;
@@ -148,7 +155,7 @@ export function openHistoryPanel(opts: {
         if (!closed && copy.isConnected) await writeLocalCopy(entry, data);
       } catch (error) { showError(error instanceof Error ? error.message : t('Could not open this checkpoint.')); copy.disabled = false; }
     });
-    text.append(label, when, reason, copy); article.append(image, text);
+    text.append(label, when, ...('actor' in entry ? [editor(entry.actor)] : []), reason, copy); article.append(image, text);
     if ('slot' in entry && workflows) text.append(workflows.actions(entry));
     if ('slot' in entry && fidelity) text.append(fidelity.action(entry, article));
     if (opts.collab) { image.hidden = true; return article; }
@@ -168,7 +175,7 @@ export function openHistoryPanel(opts: {
       try { await writeLocalCopy(entry, await opts.peer!.fetch(entry.id)); }
       catch (error) { showError(error instanceof Error ? error.message : t('Could not open this checkpoint.')); copy.disabled = false; }
     });
-    text.append(label, when, reason, copy); article.append(text);
+    text.append(label, when, editor(entry.actor), reason, copy); article.append(text);
     return article;
   };
   const loadFromPeer = async (): Promise<void> => {

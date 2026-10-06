@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { THREE_MF_UPLOAD_LIMIT } from '../three-mf.ts';
+import { loadThreeMf } from './three-mf.ts';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { extrudeStudioShape, studioChordTolerance } from './geometry.ts';
@@ -50,7 +52,11 @@ export async function studioTextSvg(
   const paths = shaped.map((line, i) => {
     if (!line.d) return '';
     const dx =
-      spec.align === 'left' ? 0 : spec.align === 'right' ? widest - line.advance : (widest - line.advance) / 2;
+      spec.align === 'left'
+        ? 0
+        : spec.align === 'right'
+          ? widest - line.advance
+          : (widest - line.advance) / 2;
     const dy = size * 0.8 + i * size * spec.lineHeight;
     return `<path fill="${color}" transform="translate(${dx.toFixed(3)} ${dy.toFixed(3)})" d="${line.d}"/>`;
   });
@@ -410,11 +416,22 @@ export async function loadStudioSource(
     } else {
       const bytes = await read(scene.source.url, signal);
       signal.throwIfAborted();
-      if (!bytes.length || bytes.length > MAX_BYTES)
-        throw new Error('Use a source file between 1 byte and 32 MB.');
+      if (
+        !bytes.length ||
+        bytes.length > (scene.source.kind === '3mf' ? THREE_MF_UPLOAD_LIMIT : MAX_BYTES)
+      )
+        throw new Error(
+          scene.source.kind === '3mf'
+            ? 'Use a 3MF file between 1 byte and 128 MB.'
+            : 'Use a source file between 1 byte and 32 MB.'
+        );
       if (scene.source.kind === 'svg')
         ({ object: raw, info } = svgObject(new TextDecoder().decode(bytes), scene, pixels));
-      else if (scene.source.kind === 'stl') {
+      else if (scene.source.kind === '3mf') {
+        const model = loadThreeMf(bytes);
+        raw.add(model.object);
+        info.warnings.push(...model.warnings);
+      } else if (scene.source.kind === 'stl') {
         const geometry = new STLLoader().parse(bytes.slice().buffer);
         const material = new THREE.MeshPhysicalMaterial({
           color: scene.materials.colorA,
@@ -493,11 +510,11 @@ export async function loadStudioSource(
     // What the file itself measures, kept before the longest side is scaled to 3.25. Only a
     // model file has units of its own to report: artwork, words and the built-in shapes are
     // drawn to fit, so a size in their own space would mean nothing to the reader.
-    if (scene.source.kind === 'glb' || scene.source.kind === 'stl') {
+    if (scene.source.kind === 'glb' || scene.source.kind === 'stl' || scene.source.kind === '3mf') {
       info.bounds = { x: size.x, y: size.y, z: size.z, span };
       const units = (value: number) => Math.round(value * 100) / 100;
       info.warnings.push(
-        `Model spans ${units(size.x)} by ${units(size.y)} by ${units(size.z)} units in its file; shown at 3.25 studio units.`
+        `Model spans ${units(size.x)} by ${units(size.y)} by ${units(size.z)} ${scene.source.kind === '3mf' ? 'millimeters' : 'units'} in its file; shown at 3.25 studio units.`
       );
     }
     if (

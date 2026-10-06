@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { Presence } from './canvas-op-v1.ts';
 import { readCanvasPreview, type CanvasPreview } from './canvas-interaction-v1.ts';
+import { readAgentPresence } from './agent-presence-v1.ts';
 
 /** Presence is ephemeral; its version and sequence are independent of edit clocks. */
 export const PRESENCE_VERSION = 1;
@@ -58,6 +59,7 @@ export function sanitizePresenceState(raw: unknown, identity?: { userId: string;
     out.drag = { ids: ids(s.drag.ids), dxy: [s.drag.dxy[0], s.drag.dxy[1]] };
   const preview = readCanvasPreview(s.preview);
   if (preview) out.preview = preview;
+  if (Array.isArray(s.agents)) out.agents = readAgentPresence(s.agents);
   return out;
 }
 

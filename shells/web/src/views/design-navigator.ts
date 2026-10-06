@@ -57,9 +57,10 @@
  *
  * Run its tests:  node --import ./tests/css-stub.mjs --test shells/web/src/views/design-navigator.test.ts
  */
-import { mountLayerGroups } from './design-layer-groups.ts';
+import { mergeLayerOrder, mountLayerGroups } from './design-layer-groups.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import { framesAreSequenced, num, renumberFrameOrder } from './free-canvas-math.ts';
+import { thumbnailWork } from './design-thumbnail-work.ts';
 import type {
   ArtboardPort, FramePort, FrameThumb, ModelPort, NarrationActions, NarrationStatus,
   NavigatorActions, SelectionPort,
@@ -129,6 +130,7 @@ const MENU_GAP = 4;
  * literal names the Design manifest uses - rather than a column that renders nothing.
  */
 interface NavCfg extends BoxFieldConfig {
+  groupField?: string;
   kindField?: string;
   textField?: string;
   durField?: string;
@@ -383,23 +385,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   // row queues its thumbnail and one rAF pass builds the queue: the shell requested its
   // frame first, so ours runs after the paint (the ordering free-canvas's scheduleSync
   // relies on for its own chrome).
-  const pendingThumbs = new Map<string, { b: Box; sig: string; slot: HTMLElement }>();
-  let thumbRaf = 0;
   function queueThumb(id: string, b: Box, sig: string, slot: HTMLElement): void {
-    pendingThumbs.set(id, { b, sig, slot });
-    if (!thumbRaf) thumbRaf = requestAnimationFrame(flushThumbs);
-  }
-  function flushThumbs(): void {
-    thumbRaf = 0;
-    const queue = [...pendingThumbs.entries()];
-    pendingThumbs.clear();
-    for (const [id, p] of queue) {
-      // A row rebuilt again before this frame queued its own slot; the old one is gone.
-      if (destroyed || !el.contains(p.slot)) continue;
-      let node: HTMLElement | null = null;
-      try { node = thumb(p.b, THUMB_W, THUMB_H); } catch { node = null; }
-      if (node) { thumbs.set(id, { sig: p.sig, el: node }); p.slot.replaceChildren(node); }
-    }
+    thumbWork.set(id, { b, sig }, slot);
   }
 
   // ── DOM shell ───────────────────────────────────────────────────────────────
@@ -418,6 +405,10 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   const toggleBtn = make('button', 'fc-nav-toggle');
   toggleBtn.type = 'button';
   const bodyEl = make('div', 'fc-nav-body');
+  const thumbWork = thumbnailWork<{ b: Box; sig: string }>(bodyEl, p => thumb(p.b, THUMB_W, THUMB_H), (id, p, node) => {
+    thumbs.delete(id); thumbs.set(id, { sig: p.sig, el: node });
+    if (thumbs.size > 64) thumbs.delete(thumbs.keys().next().value!);
+  });
   const listEl = make('div', 'fc-nav-list');
   listEl.setAttribute('role', 'listbox');
   // The canvas can hold two artboards (or two layers) at once, and this list MIRRORS that
@@ -476,7 +467,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   bodyEl.append(listEl, emptyEl, makeAllBtn);
   if (skin === 'column') bodyEl.append(layersEl);
   else layersEl.hidden = true;
-  const layerGroups = skin === 'column' ? mountLayerGroups({host:bodyEl,pages:listEl,section:layersEl,list:layersList,heading:layersHead,id:b=>fieldStr(b,F.id),name:(b,i)=>frameName(b,i),children:b=>childrenOf(model.getBoxes(),fieldStr(b,F.id)),row:buildLayerRow,jump:selectFrame}) : null;
+  const layerGroups = skin === 'column' ? mountLayerGroups({host:bodyEl,pages:listEl,section:layersEl,list:layersList,heading:layersHead,id:b=>fieldStr(b,F.id),name:(b,i)=>frameName(b,i),children:b=>childrenOf(model.getBoxes(),fieldStr(b,F.id)),row:buildLayerRow,jump:selectFrame,group:b=>fieldStr(b,cfg.groupField||'group'),select:ids=>selection.set(ids)}) : null;
   el.append(head);
   if (skin === 'column') el.append(railSlot);
   el.append(bodyEl);
@@ -1032,7 +1023,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     const first = model.getBoxes().find(b => fieldStr(b,F.id) === displayIds[0]);
     const frameId = first ? fieldStr(first,F.frame) : artboard.active();
     if (!frameId || !actions.reorderChildren) return false;
-    actions.reorderChildren(frameId, [...displayIds].reverse());
+    actions.reorderChildren(frameId, mergeLayerOrder(childrenOf(model.getBoxes(),frameId).map(b=>fieldStr(b,F.id)), [...displayIds].reverse()));
     return true;
   }
 
@@ -1406,7 +1397,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     const sig = [
       sigs.join('|'), activeId, String(kids.length),
       kids.map((b) => `${fieldStr(b, F.id)}:${fieldStr(b, F.kind)}:${String(b[F.label] ?? '')}:${String(b[F.text] ?? '')}`
-        + `:${String(b[F.hidden] ?? '')}:${String(b[F.locked] ?? '')}:${String(b[F.start] ?? '')}:${String(b[F.dur] ?? '')}:${String(b['lane'] ?? '')}`).join('~'),
+        + `:${String(b[F.hidden] ?? '')}:${String(b[F.locked] ?? '')}:${String(b[F.start] ?? '')}:${String(b[F.dur] ?? '')}:${String(b['lane'] ?? '')}:${fieldStr(b,cfg.groupField||'group')}`).join('~'),
       String(model.getInput('transition') ?? ''), String(model.getInput('autoAdvance') ?? ''),
       deck ? 'd' : 'a', open ? 'o' : 'c',
     ].join('#');
@@ -1686,9 +1677,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       offModel();
       offSel();
       offArt();
-      if (thumbRaf) cancelAnimationFrame(thumbRaf);
-      thumbRaf = 0;
-      pendingThumbs.clear();
+      thumbWork.dispose();
       thumbs.clear();
       el.remove();
     },

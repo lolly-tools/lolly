@@ -580,6 +580,13 @@ export function buildToolbar(fc: FcCtx): void {
     gbtn.setAttribute('aria-pressed', String(fc.gridOn));
     if (fc.gridOn) gbtn.classList.add('is-armed');
   }
+  if (actions?.agent) {
+    const agent = toolBtn(fc, t('Invite agents'), SVG.agent, () => {
+      closePopover(fc);
+      actions.agent!();
+    }, 'fc-btn-agent');
+    agent.setAttribute('aria-haspopup', 'dialog');
+  }
   // Pages / canvas size, copy, share, document info and import all live in the
   // Lolly menu at the top of the rail now - see lollyItems() above.
   const sep = document.createElement('div');

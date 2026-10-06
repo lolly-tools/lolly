@@ -158,8 +158,8 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'Sound and subtitles', desc: 'Set, key and normalise each clip’s level. <strong>Generate subtitles</strong> listens to speech on your device and writes timed captions, and the spoken words open as text you can cut to edit the clip.' },
         { name: 'Lottie clips', desc: 'Place Lottie animations, edit their supported layers, timing and colours in the timeline, and export them as one composed dotLottie.' },
       ] },
-      { icon: ICONS.cube, title: '3D Studio', shot: '3d-studio-guided', keywords: '3d three glb gltf stl model render turntable logo icon extrude depth bevel lighting material product shot scene mockup loop', features: [
-        { name: 'Logos and icons in 3D', desc: 'Turn an SVG, a GLB or STL model, or words in the brand font into a lit 3D render, with depth, bevel, materials and lighting studios. Guided controls to start, and Expert when you want every setting.' },
+      { icon: ICONS.cube, title: '3D Studio', shot: '3d-studio-guided', keywords: '3d three glb gltf stl 3mf model render turntable logo icon extrude depth bevel lighting material product shot scene mockup loop', features: [
+        { name: 'Logos and icons in 3D', desc: 'Turn an SVG, a GLB, STL or 3MF model, or words in the brand font into a lit 3D render, with depth, bevel, materials and lighting studios. Guided controls to start, and Expert when you want every setting.' },
         { name: 'Several objects, one scene', desc: 'Photograph an icon cluster or a product line-up together: each object you add is sized and placed beside the others, and the group is framed for you.' },
         { name: 'Stills and loops', desc: 'Export a still or a loop - turntable, hover, pulse, wobble, pop and more - and place a saved scene in a Design document like any other picture.' },
       ] },
@@ -384,8 +384,8 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'MP3 · M4A · WAV · OGG · FLAC', desc: 'Kept byte for byte and decoded on your device, ready to be a video’s music bed or to play in the ambient player.' },
         { name: 'MIDI · tracker modules', desc: 'A <code>.mid</code> score becomes a small on-device synth track, and MOD, XM, IT, S3M, STM and MTM tracker music plays through a bundled player.' },
       ] },
-      { icon: ICONS.cube, title: '3D models', keywords: '3d glb gltf stl model mesh import render', features: [
-        { name: 'GLB · glTF · STL', desc: '3D Studio loads your own model on your device, never uploaded, to render as a still or a turntable. An import for rendering, not a Lolly export.' },
+      { icon: ICONS.cube, title: '3D models', keywords: '3d glb gltf stl 3mf model mesh import render', features: [
+        { name: 'GLB · glTF · STL · 3MF', desc: '3D Studio loads your own model on your device, never uploaded, to render as a still or a turntable. An import for rendering, not a Lolly export.' },
       ] },
       { icon: ICONS.zip, title: 'Archives', keywords: 'zip tar gz tgz gzip archive unpack explode import', features: [
         { name: 'ZIP · tar · tar.gz · gzip', desc: 'Drop a <code>.zip</code>, <code>.tar</code> or <code>.tar.gz</code> and each file inside becomes its own asset, with an office file inside sent to its own reader; a single <code>.gz</code> unwraps on your device.' },

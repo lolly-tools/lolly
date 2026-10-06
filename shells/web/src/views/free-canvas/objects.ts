@@ -614,6 +614,24 @@ export function unpackTargetIds(fc: FcCtx, boxes: Box[]): string[] {
 }
 /** Is Ungroup live for this selection - a group to dissolve, or a vector to take apart? */
 export const canUngroup = (fc: FcCtx): boolean => selHasGroup(fc) || fc.select.getBoxes().some(box=>box.pathPaint&&fc.selection.has(String(box[fc.cfg.idField]))) || unpackTargetIds(fc, fc.select.getBoxes()).length > 0;
+export function canUnpackSvgPaths(fc: FcCtx): boolean {
+  return !!fc.cfg.pathField && !!fc.cfg.imageField && fc.select.getBoxes().some((box,i)=>fc.selection.has(fc.select.idOf(box,i))&&isSvgImageRef(box[fc.cfg.imageField]));
+}
+export async function unpackSvgPaths(fc: FcCtx, at: {x:number;y:number}): Promise<void> {
+  if (!canUnpackSvgPaths(fc)) return;
+  const stamp=JSON.stringify([fc.select.getBoxes(),[...fc.selection].sort()]);
+  const {unpackSvgImagePaths}=await import('../svg-image-unpack.ts');
+  if(fc.disposed)return;
+  if(stamp!==JSON.stringify([fc.select.getBoxes(),[...fc.selection].sort()])){fc.stage.flash(t('The selection changed. Try unpacking again.'));return;}
+  const assets=fc.host.assets as Partial<HostV1['assets']>|undefined, getAsset=assets?.get?.bind(assets);
+  await unpackSvgImagePaths({cfg:fc.cfg,labelField:fc.nameField,
+    referenceFields:[fc.cfg.clipField,'linkOf',fc.cfg.bindStartField,fc.cfg.bindEndField],
+    boxes:()=>fc.select.getBoxes(),selected:()=>fc.selection,disposed:()=>fc.disposed||fc.opts?.canEdit?.()===false,
+    resolve:getAsset?(id,version)=>getAsset(id,{format:'svg',version}):undefined,
+    freshId:rows=>fc.select.freshId(rows),confirm:ask=>fc.dialogs.askConfirm(ask),flash:message=>fc.stage.flash(message),
+    commit(rows,ids){fc.history?.endGesture?.();fc.selection=new Set(ids);fc.select.commit(rows);},
+  },at);
+}
 /**
  * Take the SVG boxes `ids` apart into their layers - ONE commit for all of them, so one
  * ⌘Z puts every picture back. Every read and every asset store happens BEFORE the
@@ -849,6 +867,8 @@ export function objectsOps(fc: FcCtx) {
     ungroupSelection: bindOp(fc, ungroupSelection),
     unpackTargetIds: bindOp(fc, unpackTargetIds),
     canUngroup: bindOp(fc, canUngroup),
+    canUnpackSvgPaths: bindOp(fc, canUnpackSvgPaths),
+    unpackSvgPaths: bindOp(fc, unpackSvgPaths),
     unpackSvgBoxes: bindOp(fc, unpackSvgBoxes),
     clipSelection: bindOp(fc, clipSelection),
     releaseClip: bindOp(fc, releaseClip),

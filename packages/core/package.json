@@ -13,6 +13,8 @@
     "./host-v1": "./src/host-v1.ts",
     "./extension-v1": "./src/extension-v1.ts",
     "./collab-presence-v1": "./src/collab-presence-v1.ts",
+    "./agent-presence-v1": "./src/agent-presence-v1.ts",
+    "./live-invite-v1": "./src/live-invite-v1.ts",
     "./canvas-interaction-v1": "./src/canvas-interaction-v1.ts",
     "./canvas-review-v1": "./src/canvas-review-v1.ts",
     "./canvas-asset-v1": "./src/canvas-asset-v1.ts",

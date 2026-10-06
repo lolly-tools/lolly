@@ -1,6 +1,6 @@
 # 3D Studio
 
-Studio for extruded SVG artwork and GLB/STL product imagery, alone, as a collection of separate photographs, or arranged together in one scene.
+Studio for extruded SVG artwork and GLB/STL/3MF product imagery, alone, as a collection of separate photographs, or arranged together in one scene.
 
 [User guide](../../docs/3d-studio.md)
 
@@ -36,3 +36,5 @@ The recipe and material pins under `tests/fixtures/studio3d/recipes/` record wha
 Preview and export share the same recipe. GPU pixels are tested for repeatability on a given backend; equality across every GPU is not promised. SVG admission and output limits are documented in the user guide.
 
 The collection review owns one temporary renderer and serializes preview updates. Closing it or changing settings invalidates unfinished previews. PNG sets use the normal batch job and its progress, cancellation and delivery behavior. Animated lights use saved clip time, never the wall clock, when exporting.
+
+3MF packages support core meshes, base and vertex colours, units, build transforms and Production Extension component references, including Bambu Studio multipart projects. Uploaded originals are kept verbatim (up to 128 MB). Studio generates a thumbnail; an embedded plate image is used when WebGL is unavailable or the mesh exceeds the preview budget (one million triangles or 256 MB of model XML). Slicer settings, painted filament assignments and texture properties are not reproduced.

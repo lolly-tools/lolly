@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { THREE_MF_UPLOAD_LIMIT, threeMfThumbnail } from './three-mf.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 
 interface ModelUploadHost {
@@ -20,11 +21,26 @@ export async function tryStoreModelUpload(
   host: ModelUploadHost,
   file: File
 ): Promise<AssetRef | null> {
-  if (!/\.(glb|stl)$/i.test(file.name) && file.type !== 'model/gltf-binary') return null;
-  if (!file.size || file.size > 32 * 1024 * 1024)
-    throw new Error('Use a model between 1 byte and 32 MB.');
+  if (
+    !/\.(glb|stl|3mf)$/i.test(file.name) &&
+    ![
+      'model/gltf-binary',
+      'model/3mf',
+      'application/vnd.ms-package.3dmanufacturing-3dmodel+xml',
+    ].includes(file.type)
+  )
+    return null;
+  const format =
+    /\.3mf$/i.test(file.name) || /3mf|3dmanufacturing/.test(file.type)
+      ? '3mf'
+      : /\.stl$/i.test(file.name)
+        ? 'stl'
+        : 'glb';
+  const limit = format === '3mf' ? THREE_MF_UPLOAD_LIMIT : 32 * 1024 * 1024;
+  if (!file.size || file.size > limit)
+    throw new Error(`Use a model between 1 byte and ${limit / 1024 / 1024} MB.`);
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const format = /\.stl$/i.test(file.name) ? 'stl' : 'glb';
+
   const view = new DataView(bytes.buffer);
   if (format === 'glb') {
     if (
@@ -34,12 +50,44 @@ export async function tryStoreModelUpload(
       view.getUint32(8, true) !== bytes.length
     )
       throw new Error('Use a valid glTF 2.0 binary (.glb) file.');
-  } else {
+  } else if (format === 'stl') {
     const binary = bytes.length >= 84 && 84 + view.getUint32(80, true) * 50 === bytes.length;
     const ascii =
       /^\s*solid\b/i.test(new TextDecoder().decode(bytes.subarray(0, 256))) &&
       /\bfacet\s+normal\b/i.test(new TextDecoder().decode(bytes.subarray(0, 4096)));
     if (!binary && !ascii) throw new Error('Use a binary or ASCII STL mesh.');
+  }
+  let posterUrl = '';
+  if (format === '3mf') {
+    let poster = threeMfThumbnail(bytes);
+    try {
+      const { renderStudioPoster } = await import('./studio3d/poster.ts');
+      poster = await renderStudioPoster(
+        {
+          source: 'model',
+          modelFormat: '3mf',
+          modelAsset: { url: 'upload.3mf', name: file.name },
+          materialMode: 'source',
+          motion: 'still',
+        },
+        384,
+        384,
+        0,
+        'preview',
+        async () => bytes,
+        undefined,
+        new AbortController().signal
+      );
+    } catch {
+      /* Oversized meshes and unavailable WebGL keep the package's plate image. */
+    }
+    if (poster)
+      posterUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(poster!);
+      });
   }
   const id = `user/upload/${crypto.randomUUID()}-${file.name.replace(/[^a-z0-9.-]/gi, '_')}`;
   await host.assets._uploadUserAsset({
@@ -48,7 +96,12 @@ export async function tryStoreModelUpload(
     format,
     blob: file,
     version: '1.0.0',
-    meta: { name: file.name, tags: ['3d'], size: file.size },
+    meta: {
+      name: file.name,
+      tags: ['3d', format],
+      size: file.size,
+      ...(posterUrl ? { posterUrl } : {}),
+    },
   });
   return host.assets.get(id);
 }
@@ -60,7 +113,13 @@ export const isRadianceAsset = (ref: { type: string; format?: string }): boolean
 
 /** Radiance .hdr starts with `#?`; OpenEXR starts with the magic 76 2f 31 01. */
 export function radianceFormat(bytes: Uint8Array): 'hdr' | 'exr' | null {
-  if (bytes.length >= 4 && bytes[0] === 0x76 && bytes[1] === 0x2f && bytes[2] === 0x31 && bytes[3] === 0x01)
+  if (
+    bytes.length >= 4 &&
+    bytes[0] === 0x76 &&
+    bytes[1] === 0x2f &&
+    bytes[2] === 0x31 &&
+    bytes[3] === 0x01
+  )
     return 'exr';
   if (bytes.length >= 2 && bytes[0] === 0x23 && bytes[1] === 0x3f) return 'hdr';
   return null;
@@ -88,7 +147,12 @@ export async function tryStoreRadianceUpload(
     format,
     blob: file,
     version: '1.0.0',
-    meta: { name: file.name, tags: ['3d', 'environment'], size: file.size, projection: 'equirectangular' },
+    meta: {
+      name: file.name,
+      tags: ['3d', 'environment'],
+      size: file.size,
+      projection: 'equirectangular',
+    },
   });
   return host.assets.get(id);
 }

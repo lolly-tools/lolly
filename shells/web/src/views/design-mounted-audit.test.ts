@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
 import { inspectDesignV1 } from '@lolly-tools/core/design-v1';
-import { auditMountedDesign } from './design-mounted-audit.ts';
+import { auditCurrentDesign, auditMountedDesign } from './design-mounted-audit.ts';
 import { mountedDesignFindingMessage } from './design-audit-copy.ts';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>');
@@ -142,4 +142,87 @@ test('mounted Design audit does not claim flat contrast over an overlapping imag
   assert.equal(audit.checked.contrast, 0);
   assert.equal(audit.manualContrastReview, 1);
   assert.equal(audit.findings[0]?.id, 'design.text.contrast-review');
+});
+
+function manyTexts(count: number) {
+  const { canvas } = mounted();
+  const board = canvas.querySelector<HTMLElement>('.artboard')!;
+  board.classList.add('lolly-frame-page');
+  board.innerHTML = Array.from({ length: count }, (_, index) => `<div class="lolly-box" data-box-id="t${index}"><div class="lolly-box-text" style="color:rgb(0,0,0);font-family:SUSE;font-size:16px">Run ${index}</div></div>`).join('');
+  const report = inspectDesignV1(Array.from({ length: count }, (_, index) => ({
+    id: `t${index}`, kind: 'text', text: `Run ${index}`, x: index * 100, y: 0, w: 80, h: 30,
+  })));
+  return { canvas, board, report };
+}
+
+test('shared artboard paint and computed styles are read once without losing contrast checks', async () => {
+  const { canvas, board, report } = manyTexts(40);
+  const reads = new Map<Element, number>();
+  const query = board.querySelector.bind(board);
+  let backgroundQueries = 0;
+  board.querySelector = ((selector: string) => {
+    if (selector === ':scope > .lolly-frame-img') backgroundQueries++;
+    return query(selector);
+  }) as typeof board.querySelector;
+  const audit = await auditMountedDesign(canvas, report, { styleOf(element) {
+    reads.set(element, (reads.get(element) ?? 0) + 1);
+    return getComputedStyle(element);
+  } });
+  assert.equal(audit.checked.contrast, 40);
+  assert.deepEqual(audit.findings, []);
+  assert.equal(backgroundQueries, 1);
+  assert.ok([...reads.values()].every(count => count === 1));
+
+  board.insertAdjacentHTML('afterbegin', '<img class="lolly-frame-img" alt="">');
+  const changed = await auditMountedDesign(canvas, report);
+  assert.equal(changed.checked.contrast, 0);
+  assert.equal(changed.manualContrastReview, 40);
+  assert.equal(changed.findings.length, 40);
+});
+
+test('font checks use bounded batches and still check every distinct text run', async () => {
+  const { canvas, report } = manyTexts(25);
+  let active = 0, peak = 0;
+  const seen: string[] = [];
+  const audit = await auditMountedDesign(canvas, report, { resolveFont: async (_style, text) => {
+    active++;
+    peak = Math.max(peak, active);
+    seen.push(text);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    active--;
+    return text !== 'Run 24';
+  } });
+  assert.equal(peak, 8);
+  assert.equal(active, 0);
+  assert.equal(seen.length, 25);
+  assert.equal(audit.checked.fonts, 25);
+  assert.deepEqual(audit.findings.map(finding => [finding.id, finding.layerId]), [['design.font.unembeddable', 't24']]);
+});
+
+test('an obsolete audit stops after its in-flight font batch and publishes no partial result', async () => {
+  const { canvas, report } = manyTexts(25);
+  let current = true, calls = 0;
+  const result = await auditCurrentDesign(canvas, report, {
+    isCurrent: () => current,
+    resolveFont: async () => { calls++; current = false; return false; },
+  });
+  assert.equal(result, null);
+  assert.equal(calls, 8);
+  await assert.rejects(auditMountedDesign(canvas, report, { isCurrent: () => false }), { name: 'AbortError' });
+  const settled = await auditCurrentDesign(canvas, report, { resolveFont: async () => true });
+  assert.equal(settled?.checked.fonts, 25);
+});
+
+test('layout checks yield within their work budget and discard an audit superseded while yielding', async (t) => {
+  const { canvas, report } = manyTexts(25);
+  let ticks = 0, yielded = 0, reads = 0, current = true;
+  t.mock.method(performance, 'now', () => ++ticks);
+  const result = await auditCurrentDesign(canvas, report, {
+    styleOf(element) { reads++; return getComputedStyle(element); },
+    isCurrent: () => current,
+    yield: async () => { yielded++; current = false; },
+  });
+  assert.equal(result, null);
+  assert.equal(yielded, 1);
+  assert.ok(reads > 0 && reads < 25);
 });

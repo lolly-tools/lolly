@@ -47,8 +47,119 @@ test('nothing but hello is answered before hello, and hello names the editor', a
   assert.equal((await call(session, 'document.get')).error.code, LIVE_ERRORS.notReady);
   assert.equal((await call(session, 'hello', { protocol: 'live-v2' })).error.code, LIVE_ERRORS.invalidParams);
   const reply = await hello(session);
-  assert.deepEqual(reply.result, { protocol: 'live-v1', tool: 'design', engine: '1.244.0', surface: 'web' });
+  assert.match(reply.result.documentId, /^doc:/);
+  assert.deepEqual({ ...reply.result, documentId: undefined }, { protocol: 'live-v1', tool: 'design', engine: '1.244.0', surface: 'web', documentId: undefined });
   assert.equal(session.client(), 'Test agent');
+});
+
+test('a transaction retry returns its first receipt and refuses another payload with that id', async () => {
+  const editor = fakeEditor(), session = createLiveSession(editor);
+  await hello(session);
+  const doc = (await call(session, 'document.get')).result;
+  const params = { documentId: doc.documentId, ifRevision: doc.revision, transactionId: 'move-title', label: 'Move title', layerPatches: [{ id: 'title', set: { x: 50 } }] };
+  const first = (await call(session, 'document.apply', params)).result;
+  const repeat = (await call(session, 'document.apply', { ...params })).result;
+  assert.equal(repeat.replayed, true); assert.equal(repeat.revision, first.revision); assert.deepEqual(first.changedIds, ['title']);
+  assert.equal(editor.stack.length, 1);
+  assert.match((await call(session, 'document.apply', { ...params, label: 'Different' })).error.message, /different edit/);
+  assert.match((await call(session, 'document.apply', { ...params, documentId: 'another' })).error.message, /different document/);
+});
+
+test('an evicted transaction receipt is refused rather than applied again', async () => {
+  const editor = fakeEditor(); let now = 0;
+  const session = createLiveSession(editor, { now: () => now }); await hello(session);
+  for (let i = 0; i < 129; i++) {
+    now += 4000;
+    const reply = await call(session, 'document.apply', { transactionId: `txn-${i}`, layerPatches: [{ id: 'title', set: { x: i + 1 } }] });
+    assert.equal(reply.error, undefined);
+  }
+  const reply = await call(session, 'document.apply', { transactionId: 'txn-0', layerPatches: [{ id: 'title', set: { x: 1 } }] });
+  assert.match(reply.error.message, /receipt has expired/); assert.equal(editor.stack.length, 129);
+  assert.equal((editor.rows()[0] as { x: number }).x, 129);
+});
+
+test('shared runtime requests finish in order and a queued paused edit cannot land', async () => {
+  const editor = fakeEditor();
+  let release: () => void = () => {};
+  const original = editor.commit;
+  editor.commit = async (rows, label) => { const result = await original(rows, label); if (label === 'First') await new Promise<void>(resolve => { release = resolve; }); return result; };
+  const one = createLiveSession(editor), two = createLiveSession(editor);
+  await hello(one); await hello(two);
+  const first = call(one, 'document.apply', { label: 'First', layerPatches: [{ id: 'title', set: { x: 10 } }] });
+  await new Promise(resolve => setImmediate(resolve));
+  const second = call(two, 'document.apply', { layerPatches: [{ id: 'title', set: { y: 20 } }] });
+  two.pause(true); release(); await first;
+  assert.match((await second).error.message, /paused/);
+  assert.equal((editor.rows()[0] as { y: number }).y, 0);
+  two.pause(false);
+  await call(two, 'document.apply', { layerPatches: [{ id: 'title', set: { y: 20 } }] });
+  assert.equal((editor.rows()[0] as { x: number }).x, 10);
+  assert.equal(editor.stack.length, 2);
+  assert.equal((await call(one, 'history.undo')).error.code, LIVE_ERRORS.notYours);
+});
+
+test('human edits and disconnect during an awaited brief fence the agent write', async () => {
+  const editor = fakeEditor();
+  let release: (value: { brief: null }) => void = () => {};
+  editor.context = () => new Promise(resolve => { release = resolve; });
+  const session = createLiveSession(editor); await hello(session);
+  const revision = (await call(session, 'document.get')).result.revision;
+  const pending = call(session, 'document.apply', { ifRevision: revision, layerPatches: [{ id: 'title', set: { text: 'Agent' } }] });
+  await new Promise(resolve => setImmediate(resolve));
+  editor.personEdits([{ ...editor.rows()[0] as object, text: 'Person' }]);
+  release({ brief: null });
+  assert.match((await pending).error.message, /changed since/);
+  const next = call(session, 'document.apply', { layerPatches: [{ id: 'title', set: { text: 'Agent' } }] });
+  await new Promise(resolve => setImmediate(resolve)); session.close(); release({ brief: null });
+  assert.match((await next).error.message, /no longer/);
+  assert.equal((editor.rows()[0] as { text: string }).text, 'Person');
+});
+
+test('a resize during rendering leaves the admitted receipt stable and reports the current revision', async () => {
+  const editor = fakeEditor(); let width = 1200;
+  editor.size = () => ({ width, height: 800 });
+  const commit = editor.commit;
+  editor.commit = async (rows, label) => { const entry = await commit(rows, label); width = 1600; return entry; };
+  const session = createLiveSession(editor); await hello(session);
+  const reply = await call(session, 'document.apply', { layerPatches: [{ id: 'title', set: { text: 'Agent' } }] });
+  assert.equal(reply.result.revision, documentRevision(editor.rows(), 1200, 800));
+  assert.equal(reply.result.currentRevision, documentRevision(editor.rows(), 1600, 800));
+});
+
+test('presence failure cannot turn an admitted edit into an error or lose its retry receipt', async context => {
+  context.mock.method(console, 'warn', () => {});
+  const editor = fakeEditor(), session = createLiveSession(editor, { onActivity() { throw new Error('Presence unavailable'); } });
+  assert.equal((await hello(session)).error, undefined);
+  const params = { transactionId: 'presence-error', layerPatches: [{ id: 'title', set: { text: 'Agent' } }] };
+  assert.equal((await call(session, 'document.apply', params)).result.changed, true);
+  assert.equal((await call(session, 'document.apply', params)).result.replayed, true);
+  assert.equal(editor.stack.length, 1);
+});
+
+test('find and scoped reads page by stable id without returning every layer field', async () => {
+  const editor = fakeEditor([{ id: 'frame', kind: 'frame', name: 'Slide 1' }, { id: 'title', kind: 'text', text: 'Hello team', frame: 'frame', fontSize: 60 }, { id: 'subtitle', kind: 'text', text: 'Hello world', frame: 'frame' }, { id: 'other', kind: 'text', text: 'Hello outside' }]);
+  const session = createLiveSession(editor); await hello(session);
+  const found = (await call(session, 'document.find', { query: 'HELLO', artboardId: 'frame', limit: 1 })).result;
+  assert.equal(found.total, 2); assert.equal(found.nextOffset, 1); assert.equal(found.rows[0].fontSize, undefined);
+  const selected = (await call(session, 'document.get', { selection: true, fields: ['text', 'fontSize'] })).result;
+  assert.deepEqual(selected.rows, [{ id: 'title', text: 'Hello team', fontSize: 60 }]);
+  assert.equal((await call(session, 'document.find', { limit: 501 })).error.code, LIVE_ERRORS.invalidParams);
+});
+
+test('create an alternative artboard and place text and generated image in one undo step', async () => {
+  const editor = fakeEditor([{ id: 'slide', kind: 'frame', x: 0, y: 0, w: 800, h: 600 }, { id: 'title', kind: 'text', text: 'Original', x: 40, y: 40, w: 600, h: 100, frame: 'slide' }]);
+  const session = createLiveSession(editor); await hello(session);
+  const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==';
+  const result = await call(session, 'document.apply', { label: 'Alternative slide', transactionId: 'alternative', layerOperations: [
+    { op: 'duplicate', id: 'slide', newId: 'alternative', childIds: { title: 'alternative-title' } },
+    { op: 'add', layer: { id: 'caption', kind: 'text', text: 'A new direction', $in: 'alternative', x: 40, y: 160, w: 600, h: 60 } },
+    { op: 'add', layer: { id: 'picture', kind: 'image', image, $in: 'alternative', x: 40, y: 260, w: 300, h: 200 } },
+  ], layerPatches: [{ id: 'alternative-title', set: { text: 'Alternative' } }] });
+  assert.equal(result.error, undefined); assert.equal(editor.stack.length, 1);
+  assert.equal((editor.rows().find(row => (row as { id: string }).id === 'title') as { text: string }).text, 'Original');
+  const picture = editor.rows().find(row => (row as { id: string }).id === 'picture') as { frame: string; image: string };
+  assert.equal(picture.frame, 'alternative'); assert.equal(picture.image, image);
+  await call(session, 'history.undo'); assert.equal(editor.rows().length, 2);
 });
 
 test('frames that are not requests are refused with the request id kept where there is one', async () => {
@@ -210,4 +321,30 @@ test('an authored add lands in global canvas coordinates, with its keys lowered 
   });
   assert.equal(refused.error.code, LIVE_ERRORS.refused);
   assert.match(refused.error.message, /^\/layerOperations\/0\/afterId: /);
+});
+
+
+test('a human edit or changed authority during asset preparation refuses the agent commit', async () => {
+  for (const change of ['human', 'paused', 'closed', 'read-only']) {
+    const editor = fakeEditor();
+    let started!: () => void;
+    let finish!: () => void;
+    const entered = new Promise<void>(resolve => { started = resolve; });
+    const waiting = new Promise<void>(resolve => { finish = resolve; });
+    editor.prepareRows = async rows => { started(); await waiting; return rows; };
+    const session = createLiveSession(editor);
+    await hello(session);
+    const pending = call(session, 'document.apply', { layerPatches: [{ id: 'title', set: { text: 'Agent' } }] });
+    await entered;
+    if (change === 'human') editor.personEdits([{ id: 'title', text: 'Human' }]);
+    else if (change === 'paused') session.pause(true);
+    else if (change === 'closed') session.close();
+    else editor.lock();
+    finish();
+    const reply = await pending;
+    assert.ok(reply.error, change);
+    assert.equal(editor.stack.length, change === 'human' ? 1 : 0);
+    assert.equal((editor.rows()[0] as { text: string }).text, change === 'human' ? 'Human' : 'Hello');
+    session.close();
+  }
 });

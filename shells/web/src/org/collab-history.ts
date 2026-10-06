@@ -7,7 +7,7 @@ import type { CollabHistoryCapability, CollabHistoryEntry, CollabHistoryPage } f
 
 interface WireRevision {
   sessionId?: string; rev?: number; inputs?: Record<string, unknown>; meta?: Record<string, unknown>;
-  actor?: string; at?: string;
+  actor?: string; actorLabel?: string; at?: string;
 }
 
 export type WorkHistoryFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;
@@ -54,7 +54,8 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
     toolId: typeof revision.meta?.toolId === 'string' && revision.meta.toolId ? revision.meta.toolId : toolId,
     label: typeof revision.meta?.label === 'string' ? revision.meta.label : `Revision ${revision.rev ?? '?'}`,
     reason: 'checkpoint',
-    actor: { id: typeof revision.actor === 'string' ? revision.actor : 'work' },
+    actor: { id: typeof revision.actor === 'string' ? revision.actor : 'work',
+      ...(typeof revision.actorLabel === 'string' && revision.actorLabel.trim() ? { label: revision.actorLabel.trim() } : {}) },
     at: typeof revision.at === 'string' ? revision.at : new Date(0).toISOString(),
     revision: typeof revision.rev === 'number' ? revision.rev : 0,
   });

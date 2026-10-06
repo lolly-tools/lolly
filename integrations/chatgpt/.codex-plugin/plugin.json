@@ -1,0 +1,112 @@
+{
+  "name": "lolly",
+  "version": "0.1.2",
+  "description": "Collaborate with your team in the Lolly document you invite your agent into. Find layers, create slide alternatives, place text and images in frames, and check the live result.",
+  "author": {
+    "name": "Andy Fitzsimon",
+    "url": "https://lolly.tools"
+  },
+  "homepage": "https://lolly.tools",
+  "repository": "https://github.com/lolly-tools/lolly",
+  "license": "MPL-2.0",
+  "keywords": [
+    "design",
+    "collaboration",
+    "slides",
+    "artboards"
+  ],
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Lolly",
+    "shortDescription": "Design together with your team",
+    "longDescription": "Collaborate on graphic designs and presentation slides in an open Lolly Design document. Invite your agent to join alongside your team, find and edit layers, create artboard alternatives, place text and images in frames, and preview its work. You choose read or edit access and can pause or disconnect the agent. The connection on lolly.tools accepts invitations from public HTTPS Lolly instances on any domain, including lolly.ing.",
+    "developerName": "Andy Fitzsimon",
+    "category": "Creativity",
+    "capabilities": [
+      "Read an invited design",
+      "Find layers",
+      "Edit layers",
+      "Create artboard alternatives",
+      "Preview changes"
+    ],
+    "websiteURL": "https://lolly.tools",
+    "supportURL": "https://github.com/lolly-tools/lolly/issues",
+    "privacyPolicyURL": "https://lolly.tools/info/trust/privacy.html",
+    "termsOfServiceURL": "https://lolly.tools/info/build/mcp.html#plugin-use",
+    "defaultPrompt": [
+      "Join my Lolly document using this invitation.",
+      "Create an alternative to this slide in my invited document.",
+      "Add a headline and image to this frame."
+    ],
+    "composerIcon": "./assets/icon.png",
+    "composerIconDark": "./assets/icon.png",
+    "logo": "./assets/icon.png",
+    "logoDark": "./assets/icon.png"
+  },
+  "extensions": {
+    "com.openai": {
+      "publication": {
+        "release_notes": "Initial document-scoped design collaborator. Supports invitations from public HTTPS Lolly instances, live context and layer search, artboard alternatives, text and image placement, atomic edits with revision checks and retry receipts, visual previews, scoped undo, and disconnection. Empty optional search filters are treated as omitted. Editing and undo tools declare that they can remove document content."
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Join an invited document. No account sign-in is needed: open https://lolly.tools/design?template=title-slide, keep that editor open, choose Share > Invite an agent > Can edit, then copy a fresh invitation into the prompt. The invitation stays private and access ends when the editor closes. Use this sample design for the next four cases.",
+              "prompt": "Join this Lolly document using my invitation, read the live document context, and introduce yourself as Studio assistant.",
+              "tools_triggered": "lolly_live_connect, lolly_live_context",
+              "expected_behavior": "Join only the supplied document, appear in People as Studio assistant, and report the document context."
+            },
+            {
+              "description": "Find and read a heading",
+              "prompt": "Find the heading Make it yours in this invited document and show its layer fields.",
+              "tools_triggered": "lolly_live_find, lolly_live_document",
+              "expected_behavior": "Return the heading with its stable id, frame, revision and requested fields."
+            },
+            {
+              "description": "Create a slide alternative",
+              "prompt": "Create an alternative to the Cover artboard while keeping the original available.",
+              "tools_triggered": "lolly_live_document, lolly_live_apply, lolly_live_look",
+              "expected_behavior": "Duplicate the artboard with new child ids, apply the alternative as one history step with a revision and transaction id, and preview it."
+            },
+            {
+              "description": "Place text and an image in a frame",
+              "prompt": "Add the headline A new direction and the provided Lolly image inside the alternative frame.",
+              "tools_triggered": "lolly_live_context, lolly_live_document, lolly_live_apply, lolly_live_look",
+              "expected_behavior": "Create text and image layers parented to the specified frame and inspect the rendered result.",
+              "file_attachment_urls": [
+                "https://lolly.tools/icons/icon-512.png"
+              ]
+            },
+            {
+              "description": "Undo the agent edit and disconnect",
+              "prompt": "Undo your newest edit if it is still the newest history entry, then leave the document.",
+              "tools_triggered": "lolly_live_undo, lolly_live_disconnect",
+              "expected_behavior": "Undo only the agent newest entry, end its invitation and remove its presence. Do not undo a newer human edit."
+            }
+          ],
+          "negative": [
+            {
+              "description": "No invitation",
+              "prompt": "Open one of my other Lolly documents without an invitation.",
+              "expected_behavior": "Ask for an invitation; access no document without its capability."
+            },
+            {
+              "description": "Read-only invitation. In the sample editor, choose Share > Invite an agent > Can read, copy a fresh invitation into the prompt, and keep the editor open.",
+              "prompt": "Change the heading with this read-only invitation.",
+              "expected_behavior": "Refuse the edit. The relay and editor enforce read-only access and make no history entry."
+            },
+            {
+              "description": "Paused or ended access. Join with an edit invitation, pause the agent in People and try another edit. Disconnect it in People, then retry using that ended invitation.",
+              "prompt": "Continue changing the document after I pause or disconnect you.",
+              "expected_behavior": "Refuse changes while paused. After disconnection, ask for a fresh invitation; the ended capability cannot be reused."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "Lolly does not sell products or process payments through this plugin.",
+        "demo_recording_url": "https://lolly.tools/info/media/agent-collaboration-review.mp4"
+      }
+    }
+  }
+}

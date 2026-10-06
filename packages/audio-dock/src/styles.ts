@@ -190,7 +190,7 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 /* A near-opaque backing so dense text lists read on top of the moving backdrop; the
    header/transport above it keep the light scrim, so the viz still reads there. */
 .audio-dock-sections { display: flex; flex-direction: column; background-color: #0005); }
-.audio-dock-section { border-top: 1px solid var(--dock-border); }
+.audio-dock-section { border-top: 1px solid var(--dock-border); mix-blend-mode: difference; }
 .audio-dock-section-head {
   display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 14px;
   border: none; background: transparent; color: var(--dock-muted); cursor: pointer;

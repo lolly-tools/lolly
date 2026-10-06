@@ -97,7 +97,7 @@ function stripJpeg(bytes: Uint8Array): Uint8Array {
 
 // ── PNG: drop tEXt / zTXt / iTXt / eXIf / tIME chunks, keep everything else ───
 
-const PNG_STRIP = new Set(['tEXt', 'zTXt', 'iTXt', 'eXIf', 'tIME']);
+const PNG_STRIP = new Set(['tEXt', 'zTXt', 'iTXt', 'eXIf', 'tIME', 'caBX']);
 
 function stripPng(bytes: Uint8Array): Uint8Array {
   const keep: Uint8Array[] = [bytes.subarray(0, 8)]; // signature
@@ -222,6 +222,54 @@ function tokenize(s: string): Tok[] {
   return toks;
 }
 
+
+// Embedded raster metadata uses the same strip and residual checks as standalone images.
+interface EmbeddedBudget { count: number; bytes: number }
+function embeddedRaster(value: string, budget: EmbeddedBudget): { bytes: Uint8Array; format: 'png' | 'jpeg' } | null {
+  value = value.replace(/&#(x[0-9a-f]+|[0-9]+);|&(amp|lt|gt|quot|apos);/gi, (raw, number: string | undefined, name: string | undefined) => {
+    if (number) { const point = parseInt(number.startsWith('x') ? number.slice(1) : number, number.startsWith('x') ? 16 : 10); return point <= 0x10ffff ? String.fromCodePoint(point) : raw; }
+    return ({ amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" } as Record<string, string>)[name!.toLowerCase()]!;
+  });
+  const match = /^data:image\/(png|jpe?g)(;base64)?,([\s\S]*)$/i.exec(value);
+  if (!match) return null;
+  if (!match[2] && /%(?![0-9a-f]{2})/i.test(match[3]!)) throw new Error('Invalid embedded image encoding.');
+  if (++budget.count > 128 || match[3]!.length > 24 * 1024 * 1024) throw new Error('Embedded image cleaning exceeds the supported size limit.');
+  let binary: string;
+  if (match[2]) binary = atob(decodeURIComponent(match[3]!).replace(/\s/g, ''));
+  else binary = match[3]!.replace(/%([0-9a-f]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+  budget.bytes += binary.length;
+  if (binary.length > 16 * 1024 * 1024 || budget.bytes > 32 * 1024 * 1024) throw new Error('Embedded image cleaning exceeds the supported size limit.');
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    if (binary.charCodeAt(i) > 255) throw new Error('Invalid embedded image encoding.');
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const format = match[1]!.toLowerCase() === 'png' ? 'png' : 'jpeg';
+  if (format === 'png') {
+    if (!bytes.subarray(0, 8).every((byte, i) => byte === [137,80,78,71,13,10,26,10][i]) || bytes.length < 20) throw new Error('Invalid embedded PNG.');
+    let offset = 8, ended = false;
+    while (offset + 12 <= bytes.length) {
+      const size = new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0);
+      const end = offset + size + 12;
+      if (end > bytes.length) throw new Error('Truncated embedded PNG.');
+      const type = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
+      offset = end;
+      if (type === 'IEND') { ended = true; break; }
+    }
+    if (!ended) throw new Error('Truncated embedded PNG.');
+  } else if (bytes[0] !== 255 || bytes[1] !== 216 || bytes[bytes.length - 2] !== 255 || bytes[bytes.length - 1] !== 217) throw new Error('Invalid embedded JPEG.');
+  return { bytes, format };
+}
+function cleanEmbeddedRaster(value: string, budget: EmbeddedBudget): string {
+  const image = embeddedRaster(value, budget);
+  if (!image) return value;
+  const clean = stripMetadata(image.bytes, image.format);
+  if (clean.length === image.bytes.length && clean.every((byte, i) => byte === image.bytes[i])) return value;
+  let binary = '';
+  for (let i = 0; i < clean.length; i += 0x8000) binary += String.fromCharCode(...clean.subarray(i, i + 0x8000));
+  return `data:image/${image.format === 'png' ? 'png' : 'jpeg'};base64,${btoa(binary)}`;
+}
+
 function rebuildTag(tk: Tok): string {
   const kept: string[] = [];
   for (const a of tk.attrs!) {
@@ -235,6 +283,7 @@ function rebuildTag(tk: Tok): string {
 }
 
 function cleanSvgTokens(toks: Tok[]): string {
+  const embeddedBudget = { count: 0, bytes: 0 };
   const out: string[] = [];
   const stack: string[] = []; // names of currently-open kept elements
   let dropName: string | null = null, dropDepth = 0;
@@ -267,8 +316,11 @@ function cleanSvgTokens(toks: Tok[]): string {
           if (tk.t === 'open') { dropName = tk.name!; dropDepth = 1; }
           break;
         }
+        const attrs = tk.attrs!.map(a => (a.name === 'href' || a.name === 'xlink:href') && a.value
+          ? { ...a, value: cleanEmbeddedRaster(a.value, embeddedBudget) } : a);
+        const embeddedChanged = attrs.some((a, i) => a.value !== tk.attrs![i]!.value);
         const hasDroppable = tk.attrs!.some((a) => shouldDropAttr(a.name));
-        out.push(hasDroppable ? rebuildTag(tk) : tk.raw);
+        out.push(hasDroppable || embeddedChanged ? rebuildTag({ ...tk, attrs }) : tk.raw);
         if (tk.t === 'open') stack.push(tk.name!.toLowerCase());
         break;
       }
@@ -322,6 +374,7 @@ export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): str
   }
   // SVG: re-tokenize the output and flag anything cleanSvgTokens is meant to drop.
   const text = new TextDecoder('utf-8').decode(bytes);
+  const embeddedBudget = { count: 0, bytes: 0 };
   for (const tk of tokenize(text)) {
     if (tk.t === 'comment') return 'an XML comment';
     if (tk.t === 'doctype') return 'a DOCTYPE declaration';
@@ -329,6 +382,10 @@ export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): str
     if (tk.t === 'open' || tk.t === 'self') {
       if (shouldDropElement(tk.name!)) return `an editor-private <${tk.name}> element`;
       for (const a of tk.attrs!) if (shouldDropAttr(a.name)) return `an editor-private ${a.name} attribute`;
+      for (const a of tk.attrs!) if ((a.name === 'href' || a.name === 'xlink:href') && a.value) {
+        const image = embeddedRaster(a.value, embeddedBudget);
+        if (image) { const residual = hasResidualMetadata(image.bytes, image.format); if (residual) return `embedded ${residual}`; }
+      }
     }
   }
   return null;
