@@ -33,9 +33,10 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { homeHref, navigateHome } from '../lib/home-destination.ts';
 import { navigateTo } from '../nav.ts';
 import { configureNotifications, notificationCount, onNotificationsChange } from '../lib/notifications.ts';
+import { icon } from '../lib/icons.ts';
 
 // The chevron every navigation row wears (was hand-copied per row).
-const CHEVRON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>';
+const CHEVRON = icon('chevronRight', { size: 15 });
 
 // setTheme's weak profile slice (see folders.ts FolderProfile for the same
 // no-index-signature pattern) plus switchLang's - the Language row hands the
