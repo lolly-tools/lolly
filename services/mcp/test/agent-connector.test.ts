@@ -61,6 +61,15 @@ test('independent hosted calls preserve invitation scope, retries, pause, read a
     assert.equal((await call('status', a.invitation)).isError, undefined);
     assert.equal((await call('context', a.invitation)).isError, undefined);
     assert.equal((await call('find', a.invitation, { query: 'doc:one' })).isError, undefined);
+    const modelDefaults = { ids: [], artboardId: '', kind: '', fields: ['text'], selection: false, offset: 0, limit: 20 };
+    const found = (await call('find', a.invitation, { query: 'doc:one', ...modelDefaults })).structuredContent as { rows: unknown[] };
+    assert.deepEqual(found.rows, [{ id: 'title', text: 'doc:one' }]);
+    const unfiltered = (await call('document', a.invitation, { ids: [], artboardId: '' })).structuredContent as { rows: unknown[] };
+    assert.equal(unfiltered.rows.length, 1);
+    for (const filter of [{ ids: ['missing'] }, { artboardId: 'missing' }, { kind: 'image' }]) {
+      const scoped = (await call('find', a.invitation, { query: 'doc:one', ...modelDefaults, ...filter })).structuredContent as { rows: unknown[] };
+      assert.deepEqual(scoped.rows, []);
+    }
     const doc = (await call('document', a.invitation)).structuredContent as { revision: string };
     const args = { documentId: 'doc:one', ifRevision: doc.revision, transactionId: 'one', layerPatches: [{ id: 'title', set: { text: 'Alternative' } }] };
     assert.equal((await call('apply', a.invitation, args)).isError, undefined);

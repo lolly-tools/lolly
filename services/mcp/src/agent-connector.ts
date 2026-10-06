@@ -17,8 +17,14 @@ export const AGENT_TOOLS = LIVE_TOOLS.map(tool => ({
   title: tool.name.replace('lolly_live_', '').replace(/^./, c => c.toUpperCase()) + ' in Lolly',
   description: tool.name === 'lolly_live_connect'
     ? 'Join the open Lolly document invited by the person. Give your name in client so people see you as a collaborator. The invitation selects the instance and document. Keep passing it on every subsequent call.'
-    : tool.description + ' Pass the same invitation supplied to lolly_live_connect.',
-  inputSchema: { ...tool.inputSchema, properties: { ...tool.inputSchema.properties, invitation: invitationArg }, required: tool.name === 'lolly_live_apply' ? ['invitation', 'documentId', 'ifRevision', 'transactionId'] : ['invitation'], additionalProperties: false },
+    : tool.description + (tool.name === 'lolly_live_apply' ? ' Layer x and y are absolute document coordinates. On added layers, $in places local coordinates inside a frame. When moving a duplicated artboard, move its duplicated children by the same offset.' : '') + ' Pass the same invitation supplied to lolly_live_connect.',
+  inputSchema: { ...tool.inputSchema, properties: { ...tool.inputSchema.properties,
+    ...(['lolly_live_find', 'lolly_live_document'].includes(tool.name) ? {
+      ids: { type: 'array', items: { type: 'string' }, maxItems: 100, description: 'Only these stable layer ids. An empty list imposes no id filter.' },
+      artboardId: { type: 'string', maxLength: 256, description: 'An artboard and its children by stable id. An empty string imposes no artboard filter.' },
+    } : {}),
+    ...(tool.name === 'lolly_live_find' ? { kind: { type: 'string', maxLength: 256, description: 'Only this layer kind. An empty string imposes no kind filter.' } } : {}),
+    invitation: invitationArg }, required: tool.name === 'lolly_live_apply' ? ['invitation', 'documentId', 'ifRevision', 'transactionId'] : ['invitation'], additionalProperties: false },
   annotations: {
     readOnlyHint: !['lolly_live_connect', 'lolly_live_apply', 'lolly_live_undo', 'lolly_live_disconnect'].includes(tool.name),
     destructiveHint: ['lolly_live_apply', 'lolly_live_undo', 'lolly_live_disconnect'].includes(tool.name),
@@ -83,6 +89,10 @@ export async function callAgentTool(name: string, args: Record<string, unknown>,
   const invitation = readLiveInvitation(args.invitation);
   if (!invitation) return { isError: true, content: [{ type: 'text', text: 'Ask the person for the complete invitation from Share > Invite an agent.' }] };
   const params = { ...args }; delete params.invitation;
+  if (name === 'lolly_live_find' || name === 'lolly_live_document') {
+    if (Array.isArray(params.ids) && !params.ids.length) delete params.ids;
+    for (const key of ['artboardId', 'kind']) if (params[key] === '') delete params[key];
+  }
   const rpc = async (method: string, values?: Record<string, unknown>): Promise<unknown> => {
     const reply = await transport(invitation, '/rpc', { jsonrpc: '2.0', id: 1, method, ...(values ? { params: values } : {}) });
     if (reply.error) throw new Error((reply.error as { message?: string }).message || 'The document refused this request.');

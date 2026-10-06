@@ -322,3 +322,29 @@ test('an authored add lands in global canvas coordinates, with its keys lowered 
   assert.equal(refused.error.code, LIVE_ERRORS.refused);
   assert.match(refused.error.message, /^\/layerOperations\/0\/afterId: /);
 });
+
+
+test('a human edit or changed authority during asset preparation refuses the agent commit', async () => {
+  for (const change of ['human', 'paused', 'closed', 'read-only']) {
+    const editor = fakeEditor();
+    let started!: () => void;
+    let finish!: () => void;
+    const entered = new Promise<void>(resolve => { started = resolve; });
+    const waiting = new Promise<void>(resolve => { finish = resolve; });
+    editor.prepareRows = async rows => { started(); await waiting; return rows; };
+    const session = createLiveSession(editor);
+    await hello(session);
+    const pending = call(session, 'document.apply', { layerPatches: [{ id: 'title', set: { text: 'Agent' } }] });
+    await entered;
+    if (change === 'human') editor.personEdits([{ id: 'title', text: 'Human' }]);
+    else if (change === 'paused') session.pause(true);
+    else if (change === 'closed') session.close();
+    else editor.lock();
+    finish();
+    const reply = await pending;
+    assert.ok(reply.error, change);
+    assert.equal(editor.stack.length, change === 'human' ? 1 : 0);
+    assert.equal((editor.rows()[0] as { text: string }).text, change === 'human' ? 'Human' : 'Hello');
+    session.close();
+  }
+});

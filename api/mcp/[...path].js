@@ -168438,8 +168438,16 @@ var invitationArg = { type: "string", maxLength: 2048, description: "The complet
 var AGENT_TOOLS = LIVE_TOOLS.map((tool) => ({
   ...tool,
   title: tool.name.replace("lolly_live_", "").replace(/^./, (c) => c.toUpperCase()) + " in Lolly",
-  description: tool.name === "lolly_live_connect" ? "Join the open Lolly document invited by the person. Give your name in client so people see you as a collaborator. The invitation selects the instance and document. Keep passing it on every subsequent call." : tool.description + " Pass the same invitation supplied to lolly_live_connect.",
-  inputSchema: { ...tool.inputSchema, properties: { ...tool.inputSchema.properties, invitation: invitationArg }, required: tool.name === "lolly_live_apply" ? ["invitation", "documentId", "ifRevision", "transactionId"] : ["invitation"], additionalProperties: false },
+  description: tool.name === "lolly_live_connect" ? "Join the open Lolly document invited by the person. Give your name in client so people see you as a collaborator. The invitation selects the instance and document. Keep passing it on every subsequent call." : tool.description + (tool.name === "lolly_live_apply" ? " Layer x and y are absolute document coordinates. On added layers, $in places local coordinates inside a frame. When moving a duplicated artboard, move its duplicated children by the same offset." : "") + " Pass the same invitation supplied to lolly_live_connect.",
+  inputSchema: { ...tool.inputSchema, properties: {
+    ...tool.inputSchema.properties,
+    ...["lolly_live_find", "lolly_live_document"].includes(tool.name) ? {
+      ids: { type: "array", items: { type: "string" }, maxItems: 100, description: "Only these stable layer ids. An empty list imposes no id filter." },
+      artboardId: { type: "string", maxLength: 256, description: "An artboard and its children by stable id. An empty string imposes no artboard filter." }
+    } : {},
+    ...tool.name === "lolly_live_find" ? { kind: { type: "string", maxLength: 256, description: "Only this layer kind. An empty string imposes no kind filter." } } : {},
+    invitation: invitationArg
+  }, required: tool.name === "lolly_live_apply" ? ["invitation", "documentId", "ifRevision", "transactionId"] : ["invitation"], additionalProperties: false },
   annotations: {
     readOnlyHint: !["lolly_live_connect", "lolly_live_apply", "lolly_live_undo", "lolly_live_disconnect"].includes(tool.name),
     destructiveHint: ["lolly_live_apply", "lolly_live_undo", "lolly_live_disconnect"].includes(tool.name),
@@ -168509,6 +168517,10 @@ async function callAgentTool(name, args, transport = requestAgentRelay) {
   if (!invitation) return { isError: true, content: [{ type: "text", text: "Ask the person for the complete invitation from Share > Invite an agent." }] };
   const params2 = { ...args };
   delete params2.invitation;
+  if (name === "lolly_live_find" || name === "lolly_live_document") {
+    if (Array.isArray(params2.ids) && !params2.ids.length) delete params2.ids;
+    for (const key of ["artboardId", "kind"]) if (params2[key] === "") delete params2[key];
+  }
   const rpc = async (method, values) => {
     const reply = await transport(invitation, "/rpc", { jsonrpc: "2.0", id: 1, method, ...values ? { params: values } : {} });
     if (reply.error) throw new Error(reply.error.message || "The document refused this request.");

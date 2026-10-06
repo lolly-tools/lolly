@@ -22,7 +22,7 @@ export function toolAgentEditor(tview: ToolViewCtx, ports: EditorPorts): () => R
     return designLiveEditor({
       documentId: ports.documentId, context: () => designLiveContext(tview.host, design.fields),
       toolId: tview.tool.manifest.id, engine: ENGINE_VERSION, surface: ports.desktop ? 'desktop' : 'web',
-      runtime: tview.runtime, blockId: design.model.blockId, fields: design.fields,
+      runtime: tview.runtime, blockId: design.model.blockId, fields: design.fields, assets: tview.host.assets,
       selection: () => design.selection.get(), size: ports.size,
       history: { commit: tview.history.commitInputs, top: () => tview.inputHistory.peekUndo(), undo: () => tview.history.undoHistory() },
       readOnly: () => tview.collabHandle?.role === 'observer',
