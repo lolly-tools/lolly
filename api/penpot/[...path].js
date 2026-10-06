@@ -56,11 +56,13 @@ function readRawBody(req) {
   });
 }
 function sendJson(res, status, body) {
+  if (res.destroyed) return;
   res.writeHead(status, { ...CORS, "content-type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(body));
 }
 function createPenpotProxy(fetchImpl = fetch) {
   return async (req, res) => {
+    if (res.destroyed) return;
     if (req.method === "OPTIONS") {
       res.writeHead(204, CORS);
       res.end();
@@ -90,16 +92,25 @@ function createPenpotProxy(fetchImpl = fetch) {
       });
       return;
     }
+    if (res.destroyed) return;
     const headers = {};
     if (typeof req.headers.authorization === "string") headers.authorization = req.headers.authorization;
     if (typeof req.headers["content-type"] === "string") headers["content-type"] = req.headers["content-type"];
     if (typeof req.headers.accept === "string") headers.accept = req.headers.accept;
     const ac = new AbortController();
+    const abortUpstream = () => {
+      if (!res.writableFinished) ac.abort();
+    };
+    res.once("close", abortUpstream);
     let timerFired = false;
     const timer = setTimeout(() => {
       timerFired = true;
       ac.abort();
     }, UPSTREAM_TIMEOUT_MS);
+    const cleanup = () => {
+      clearTimeout(timer);
+      res.off("close", abortUpstream);
+    };
     let upstream;
     try {
       upstream = await fetchImpl(UPSTREAM_BASE + command, {
@@ -110,7 +121,8 @@ function createPenpotProxy(fetchImpl = fetch) {
         signal: ac.signal
       });
     } catch (err) {
-      clearTimeout(timer);
+      cleanup();
+      if (res.destroyed) return;
       const timedOut = timerFired || err?.name === "TimeoutError";
       sendJson(res, 502, {
         error: "penpot-unreachable",
@@ -119,19 +131,26 @@ function createPenpotProxy(fetchImpl = fetch) {
       return;
     }
     clearTimeout(timer);
-    console.log(`[penpot] ${command} -> ${upstream.status}`);
-    res.writeHead(upstream.status, {
-      ...CORS,
-      "content-type": upstream.headers.get("content-type") ?? "application/json"
-    });
-    if (upstream.body) {
-      try {
-        await pipeline(Readable.fromWeb(upstream.body), res);
-      } catch {
-        if (!res.writableEnded) res.end();
+    try {
+      if (res.destroyed) {
+        await upstream.body?.cancel();
+        return;
       }
-    } else {
-      res.end(Buffer.from(await upstream.arrayBuffer()));
+      console.log(`[penpot] ${command} -> ${upstream.status}`);
+      res.writeHead(upstream.status, {
+        ...CORS,
+        "content-type": upstream.headers.get("content-type") ?? "application/json"
+      });
+      if (upstream.body) {
+        await pipeline(Readable.fromWeb(upstream.body), res, { signal: ac.signal });
+      } else {
+        const bytes = Buffer.from(await upstream.arrayBuffer());
+        if (!res.destroyed) res.end(bytes);
+      }
+    } catch {
+      if (!res.writableEnded && !res.destroyed) res.end();
+    } finally {
+      cleanup();
     }
   };
 }

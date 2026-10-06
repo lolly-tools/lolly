@@ -51,7 +51,9 @@ phase retains its 25-second limit. SSE progress flows immediately; no body parse
 or response buffering is introduced. The standalone listener admits one proxied
 POST at a time, returning 503 with `Retry-After: 2` when busy; health, preflight and
 refused commands remain available. The slot releases once on response finish or
-disconnect. Up to 32 MiB of chunks and the combined 32 MiB Buffer may coexist;
+disconnect. A disconnect aborts the upstream header request or body stream, so
+abandoned imports cannot keep fetching after their slot is released. Up to
+32 MiB of chunks and the combined 32 MiB Buffer may coexist;
 fetch receives a view over that Buffer rather than another payload copy. The
 256 MiB container cap needs measured staging evidence at the body ceiling.
 These are single-container resource bounds,

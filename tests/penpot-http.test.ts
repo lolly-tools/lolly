@@ -154,6 +154,53 @@ test('standalone Penpot bounds concurrent imports and restores exactly one slot 
   } finally { await close(server); }
 });
 
+test('standalone Penpot aborts held upstream headers on disconnect before restoring safe capacity', { timeout: 3000 }, async () => {
+  let entered: (() => void) | undefined;
+  let aborted: (() => void) | undefined;
+  let active = 0;
+  let abortCount = 0;
+  let complete = false;
+  const server = createPenpotHttpServer(async (_url, init) => {
+    if (complete) return new Response('[]');
+    active++;
+    assert.equal(active, 1, 'disconnected upstream work must not accumulate');
+    entered?.();
+    return new Promise<Response>((_resolve, reject) => {
+      const signal = init?.signal;
+      assert.ok(signal);
+      signal.addEventListener('abort', () => {
+        active--;
+        abortCount++;
+        aborted?.();
+        reject(new DOMException('Aborted', 'AbortError'));
+      }, { once: true });
+    });
+  });
+  const base = await listen(server);
+  const url = `${base}/api/penpot/rpc/import-binfile`;
+  try {
+    for (let i = 0; i < 3; i++) {
+      const started = new Promise<void>(resolve => { entered = resolve; });
+      const cancelled = new Promise<void>(resolve => { aborted = resolve; });
+      const req = request(url, { method: 'POST' });
+      req.on('error', () => {});
+      req.end(new Uint8Array([0, 255, 13, 10]));
+      await started;
+      const refused = await fetch(url, { method: 'POST' });
+      assert.equal(refused.status, 503);
+      await refused.text();
+      req.destroy();
+      await cancelled;
+      assert.equal(active, 0);
+    }
+    complete = true;
+    const response = await fetch(url, { method: 'POST' });
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), '[]');
+    assert.equal(abortCount, 3);
+  } finally { await close(server); }
+});
+
 test('Penpot caps chunked and materialized raw bodies without exposing read errors', async () => {
   const block = Buffer.alloc(1024 * 1024);
   const chunks = Array.from({ length: 33 }, () => block);
