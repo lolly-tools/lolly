@@ -24,6 +24,25 @@ Use lolly.work's [installation guide](https://github.com/lolly-tools/lolly-work/
 
 For users, link to [Use Lolly at your organisation](/info/organisation.html). For the change in data handling, read [Server Surface](/info/server-surface.html#organisation-services-with-lolly-work) and [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 
+### UpCloud and Evroc
+
+Both providers have OpenTofu and Terraform foundations for an operator-managed VM.
+Start with the maintained [cloud deployment guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/cloud-deployment.md),
+then use the [UpCloud runbook](https://github.com/lolly-tools/lolly-work/blob/main/deploy/upcloud/README.md)
+or [Evroc runbook](https://github.com/lolly-tools/lolly-work/blob/main/deploy/evroc/README.md)
+for that provider's image, network, SSH and credential requirements. The shared
+[VM runbook](https://github.com/lolly-tools/lolly-work/blob/main/deploy/vm/README.md)
+covers the application release, signed shell, configuration and rollback.
+
+Credential-free provider plans check the resource schema. An isolated PostgreSQL
+restore rehearsal checks the database recovery path. Neither proves that a chosen
+cloud image boots, that the account has capacity, or that the deployed application
+works. Before production, qualify real boot and reboot, host security, backups,
+capacity, owner sign-in, shared editing and document exports. The existing host
+provisioner supports openSUSE; another operating system needs equivalent host
+preparation. Moving the public shell also requires its complete API and route
+checks; a working private Work instance does not qualify that public cutover.
+
 ## The web shell
 
 The web shell is a static PWA built by Vite. Optional API services can run alongside it; [Server Surface](/info/server-surface.html) lists them and the separate lolly.work service.
@@ -41,6 +60,21 @@ pnpm run build:web      # ONNX runtime copy, /info, per-tool + per-view OG image
 The web build is plain static files, so this is the simplest and most portable path. Serve `shells/web/dist/` from any static host, CDN or an internal file server, with a single catch-all rewrite to `index.html` for client-side routing. Once loaded the PWA keeps working offline, and **Profile → Available offline** turns that from best-effort caching into a guarantee: users download the whole app, their tools, the catalogue (whole or by tag) and the docs ahead of a disconnection, with a progress bar and per-part sizes. That makes this the air-gapped path too: drop the static bundle behind your firewall (or into an MDM-delivered app) and nothing phones home. The build emits `dist/precache.json` (the app's own file inventory) and `/info/manifest.json` (the docs site's) - the download manager reads both, so keep them in the deployed bundle. If you don't need the optional services below, the catch-all and the headers in the next block are all you need.
 
 **Clean routes keep their own rewrites.** Alongside the catch-all, point each clean route at the prerendered per-view HTML the build emits, so a shared link carries real OG tags instead of the generic shell: `/d` → `/view/d.html`, `/t/:id` → `/t/:id.html` and the rest of the clean routes. Two reference implementations of the same rules ship in the repo - the `rewrites` array in `vercel.json` and the `location =` blocks in `deploy/docker/nginx.conf` - and between them they carry the full current set, so copy from one of those rather than a list here. (The nginx config gets most of it from a single `try_files $uri $uri.html …` fallback; only the routes whose file name differs need naming.)
+
+**Documentation routes come before the app fallback.** Both a public static host
+and a private Work instance serving a signed shell need the complete built
+`/info/` tree. Resolve `/info/` to its `index.html`, directory pages to their own
+index, and article HTML and Markdown twins to the real files. Keep the manifest,
+search indexes, styles, scripts, fonts and other documentation assets together.
+Missing documentation files must return 404 rather than the app's `index.html`.
+
+Preserve the `/docs` aliases and machine-readable discovery routes declared in
+`vercel.json` when configuring another host. Map `/robots.txt` to the chosen
+deployment's crawl policy and `/sitemap.xml` to `/info/sitemap.xml`; serve the
+Markdown and discovery files with their correct content types. Check these routes
+at the candidate origin before publishing either deployment shape. Documentation
+availability does not change authentication for workspace records, uploads or
+private APIs. The built pages retain their public documentation canonical URLs.
 
 **Headers you must serve.** A static host serves the headers you configure and no others, so these four are yours to add. Every reference deployment in the repo sends them on *every* response, and a proxy that terminates TLS and drops them loses the protection they give:
 
