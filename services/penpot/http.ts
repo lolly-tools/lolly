@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 import { createServer, type Server } from 'node:http';
 import { pathToFileURL } from 'node:url';
-import { createPenpotProxy } from './vercel-entry.ts';
+import { ALLOWLIST, createPenpotProxy } from './vercel-entry.ts';
 
 /** Provider-neutral listener; the same proxy owns token custody and import streaming. */
 export function createPenpotHttpServer(fetchImpl: typeof fetch = fetch): Server {
   const proxy = createPenpotProxy(fetchImpl);
+  let activePosts = 0;
   const server = createServer((req, res) => {
     let pathname: string;
     try { pathname = new URL(req.url ?? '/', 'http://internal').pathname; }
@@ -20,10 +21,34 @@ export function createPenpotHttpServer(fetchImpl: typeof fetch = fetch): Server 
       res.end(req.method === 'HEAD' ? undefined : 'ok\n');
       return;
     }
-    if (!/^\/api\/penpot\/rpc\/[^/]+\/?$/.test(pathname)) {
+    const route = pathname.match(/^\/api\/penpot\/rpc\/([^/]+)\/?$/);
+    if (!route) {
       res.writeHead(404, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: 'not-found' }));
       return;
+    }
+    if (req.method === 'POST' && ALLOWLIST.some(command => command === route[1])) {
+      if (activePosts >= 1) {
+        req.on('error', () => {});
+        req.resume();
+        res.writeHead(503, {
+          'content-type': 'application/json', 'retry-after': '2',
+          'access-control-allow-origin': '*', connection: 'close',
+        });
+        res.end(JSON.stringify({ error: 'penpot-busy', hint: 'Retry after the current request finishes' }));
+        return;
+      }
+      activePosts++;
+      let released = false;
+      const release = () => {
+        if (released) return;
+        released = true;
+        activePosts--;
+        res.off('finish', release);
+        res.off('close', release);
+      };
+      res.once('finish', release);
+      res.once('close', release);
     }
     // Bound inactive and total response time without buffering the SSE stream.
     res.setTimeout(120_000, () => res.destroy());

@@ -99,7 +99,11 @@ function readRawBody(req: IncomingMessage): Promise<Buffer> {
       }
       chunks.push(c);
     });
-    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('end', () => {
+      const body = Buffer.concat(chunks);
+      chunks.length = 0;
+      resolve(body);
+    });
     req.on('error', reject);
     req.on('aborted', () => reject(new Error('Request aborted')));
   });
@@ -164,7 +168,7 @@ export function createPenpotProxy(
       upstream = await fetchImpl(UPSTREAM_BASE + command, {
         method: 'POST',
         headers,
-        body: body.length > 0 ? new Uint8Array(body) : undefined,
+        body: body.length > 0 ? new Uint8Array(body.buffer as ArrayBuffer, body.byteOffset, body.byteLength) : undefined,
         redirect: 'error',
         signal: ac.signal,
       });

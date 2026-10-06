@@ -112,6 +112,48 @@ test('standalone Penpot rejects oversized Content-Length without calling upstrea
   } finally { await close(server); }
 });
 
+test('standalone Penpot bounds concurrent imports and restores exactly one slot on finish or disconnect', async () => {
+  const controllers: ReadableStreamDefaultController<Uint8Array>[] = [];
+  let cancellation: (() => void) | undefined;
+  const cancelled = new Promise<void>(resolve => { cancellation = resolve; });
+  const server = createPenpotHttpServer(async () => new Response(new ReadableStream<Uint8Array>({
+    start(controller) {
+      controllers.push(controller);
+      controller.enqueue(new TextEncoder().encode('event: progress\ndata: {}\n\n'));
+    },
+    cancel() { cancellation?.(); },
+  }), { headers: { 'content-type': 'text/event-stream' } }));
+  const base = await listen(server);
+  const url = `${base}/api/penpot/rpc/import-binfile`;
+  const post = () => fetch(url, { method: 'POST' });
+  try {
+    const first = await post();
+    const refused = await post();
+    assert.equal(refused.status, 503);
+    assert.equal(refused.headers.get('retry-after'), '2');
+    assert.equal(refused.headers.get('access-control-allow-origin'), '*');
+    assert.equal(JSON.parse(await refused.text()).error, 'penpot-busy');
+    assert.equal(controllers.length, 1, 'a refused import never reaches upstream');
+    assert.equal((await fetch(`${base}/healthz`)).status, 200);
+    assert.equal((await fetch(url, { method: 'OPTIONS' })).status, 204);
+    assert.equal((await fetch(`${base}/api/penpot/rpc/delete-project`, { method: 'POST' })).status, 403);
+    controllers[0]?.close();
+    await first.text();
+    const second = await post();
+    assert.equal(second.status, 200, 'completed response restores capacity');
+    const stillRefused = await post();
+    assert.equal(stillRefused.status, 503, 'finish followed by close releases only one slot');
+    await stillRefused.text();
+    await second.body?.cancel();
+    await cancelled;
+    const third = await post();
+    assert.equal(third.status, 200, 'client disconnect restores capacity');
+    controllers[2]?.close();
+    await third.text();
+    assert.equal(controllers.length, 3);
+  } finally { await close(server); }
+});
+
 test('Penpot caps chunked and materialized raw bodies without exposing read errors', async () => {
   const block = Buffer.alloc(1024 * 1024);
   const chunks = Array.from({ length: 33 }, () => block);

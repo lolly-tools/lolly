@@ -48,7 +48,13 @@ The raw multipart body is capped at 32 MiB in both Caddy and the handler. The
 listener bounds request/header reads to 30 seconds, inactive responses to 120
 seconds and total responses to five minutes. The upstream connection/header
 phase retains its 25-second limit. SSE progress flows immediately; no body parse
-or response buffering is introduced. These are single-container resource bounds,
+or response buffering is introduced. The standalone listener admits one proxied
+POST at a time, returning 503 with `Retry-After: 2` when busy; health, preflight and
+refused commands remain available. The slot releases once on response finish or
+disconnect. Up to 32 MiB of chunks and the combined 32 MiB Buffer may coexist;
+fetch receives a view over that Buffer rather than another payload copy. The
+256 MiB container cap needs measured staging evidence at the body ceiling.
+These are single-container resource bounds,
 not a distributed admission control or an assurance that every import completes.
 Keep CA and MCP's approved durable rate limiter; this recipe changes no limiter
 policy or anonymous render/agent permissions.
