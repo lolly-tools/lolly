@@ -58,6 +58,8 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   const body = document.createElement('div');
   const shareAction = root.querySelector<HTMLButtonElement>('[data-action="copy-url"]');
   if (shareAction) {
+    // Keep the toolbar action port connected to the replacement controller.
+    trigger.dataset.action = 'copy-url';
     trigger.className = shareAction.className;
     label.textContent = t('Share');
     shareAction.replaceWith(trigger);
