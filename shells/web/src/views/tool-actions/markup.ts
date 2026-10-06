@@ -24,7 +24,7 @@ import { formatPanelHtml, formatTriggerHtml, wireFormatPicker } from '../export-
 import { packageOptionsHtml, saveAsBridge, saveAsButtonHtml } from '../export-package-options.ts';
 import { preflightRowHtml } from '../export-preflight.ts';
 import { jellyActive } from '../../lib/jelly.ts';
-import { DEFAULT_PRINT_MARKS, fmtLabel, isC2paFmt, isCmykFmt, isHdrFmt, isImprintFmt, isPrintFmt } from './shared.ts';
+import { DEFAULT_PRINT_MARKS, fmtLabel, formatExperience, isC2paFmt, isCmykFmt, isHdrFmt, isImprintFmt, isPrintFmt } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export function buildFormatOptions(ta: ActionsCtx): void {
@@ -480,7 +480,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
           <span class="export-text-label">${t('Text')}${tip.button}</span>${tip.pop}
           <select class="field-select" data-input-id="convertPaths" aria-label="${escapeText(t('Export text'))}">
             <option value="outline"${i.value ? ' selected' : ''}>${t('Outline')}</option>
-            <option value="embed"${i.value ? '' : ' selected'} data-embed-label>${initialFmt === 'pdf' ? t('Embed (subset)') : t('Keep text')}</option>
+            <option value="embed"${i.value ? '' : ' selected'} data-embed-label>${initialFmt === 'pdf' || initialFmt === 'pdf-cmyk' ? t('Embed (subset)') : t('Keep text')}</option>
           </select>
         </div>`;
       }
@@ -554,7 +554,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
             <input type="number" class="field-input field-input--sm" data-action="video-duration" value="${defaultDuration}" min="1" max="${durationMax}" step="0.5"
                    aria-label="${escapeText(t('Recording duration (seconds)'))}"><span>s</span></span>
           <span class="vp-field" data-seq-range hidden></span>
-          ${motionControlsMarkup()}
+          ${motionControlsMarkup(true)}
           <label class="gif-dither-toggle" data-gif-only
                  style="display:${initialFmt === 'gif' ? 'flex' : 'none'}">
             <input type="checkbox" class="field-check" data-action="gif-dither">
@@ -830,7 +830,8 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
     : ''; ta.copyBtn = copyBtn;
   const saveBtn = actions.includes('save') ? ta.saving.saveBtnHtml() : ''; ta.saveBtn = saveBtn;
   // Download is the primary CTA - jelly mode gives it the accent-fill squish.
-  const initialExperience = experience.current?.() ?? {}; ta.initialExperience = initialExperience;
+  const rawExperience = experience.current?.() ?? {}; ta.initialExperience = rawExperience;
+  const initialExperience = formatExperience(rawExperience, ta.initialFmt ?? formats[0] ?? '');
   const downloadLabel =
     initialExperience.downloadLabel ||
     `Download${formats.length === 1 ? ' ' + fmtLabel(formats[0]!) : ''}`; ta.downloadLabel = downloadLabel;
@@ -922,21 +923,19 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
 }
 
 export function paintBar(ta: ActionsCtx): void {
-  const { actions, aspectWarnRow, audioRow, cmykRow, costRow, dimsRow, downloadRow, el, exportOpts, fidelityWarnRow, filenameRow, hdrRow, host, initialExperience, isAudioCaptureTool, loudnessRow, manifest, notesHandoutRow, pkgRow, preflightRow, printRow, protectionRow, recordingRow, runtime, secondaryRow, sendRow, settingsRow, timingRow, videoQualityRow } = ta;
-  // The action buttons are the sheet's PRIMARY content, so they come FIRST -
-  // Copy / Save / Share and Download at the very top, before any setting - and
-  // the dock sticks to the top edge so they stay in reach while the long sheets
-  // (Print PDF, MP4) are scrolled.
+  const { actions, aspectWarnRow, audioRow, cmykRow, costRow, dimsRow, downloadRow, el, exportOpts, fidelityWarnRow, filenameRow, hdrRow, host, isAudioCaptureTool, loudnessRow, manifest, notesHandoutRow, pkgRow, preflightRow, printRow, protectionRow, recordingRow, runtime, secondaryRow, sendRow, settingsRow, timingRow, videoQualityRow } = ta;
+  // Settings lead the export flow; the report and delivery actions follow them.
+  const initialExperience = formatExperience(ta.initialExperience, ta.initialFmt ?? ta.formats[0] ?? '');
   el.innerHTML = `
+    ${actions.includes('download') ? `${recordingRow}<div class="export-file-group">${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}</div><div class="export-options-group">${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details></div>${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${preflightRow}${costRow}${sendRow}` : ''}
     <div class="export-actions-dock">
       <p class="export-outcome-summary" data-export-outcome${initialExperience.summary ? '' : ' hidden'}>${escapeText(initialExperience.summary ?? '')}</p>
       ${manifest.status === 'experimental' ? `<p class="export-experimental-note" role="note">${escapeText(t('This tool is experimental, so every export carries a watermark.'))}</p>` : ''}
-      ${secondaryRow}
       ${downloadRow}
+      ${secondaryRow}
       ${actions.includes('download') ? `<p class="export-degraded-note" data-export-degraded role="status" hidden style="margin:.2rem 0 0;color:hsl(var(--muted-foreground));font-size:12px;text-align:center"></p>` : ''}
       ${actions.includes('download') ? `<p class="export-delivery" data-export-delivery role="status" hidden></p>` : ''}
     </div>
-    ${actions.includes('download') ? `${recordingRow}${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details>${sendRow}${preflightRow}${costRow}` : ''}
   `;
   void ta.notes.fillIngredientNote();
 

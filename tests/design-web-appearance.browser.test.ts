@@ -115,6 +115,8 @@ test('page appearance stays inside its object; external banners can be rejected 
     (window as any).webTest.consentToLink('https://vimeo.com/76979871');
     (window as any).webTest.mountWebFrames(root, { mode: 'editor' });
   });
+  // Reveal the lazy external frame before waiting for its document.
+  await page.locator('[data-box-id="external"]').scrollIntoViewIfNeeded();
   const external = page.frameLocator('[data-box-id="external"] iframe');
   await external.locator('h1').waitFor();
   assert.equal(await external.locator('h1').evaluate(el => getComputedStyle(el).color), 'rgb(0, 0, 0)');

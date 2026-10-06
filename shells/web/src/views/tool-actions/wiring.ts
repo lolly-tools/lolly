@@ -223,13 +223,14 @@ export function wireFormatChange(ta: ActionsCtx): void {
   if (formatEl) {
     formatEl.addEventListener('change', () => {
       const fmt = formatEl.value;
+      ta.video.setExperience(ta.initialExperience);
       const embedLabel = el.querySelector('[data-embed-label]');
-      if (embedLabel) embedLabel.textContent = fmt === 'pdf' ? t('Embed (subset)') : t('Keep text');
+      if (embedLabel) embedLabel.textContent = fmt === 'pdf' || fmt === 'pdf-cmyk' ? t('Embed (subset)') : t('Keep text');
       ta.audio.syncCaptionsUi(fmt);
       if (animParamsEl) animParamsEl.style.display = ta.formatRules.isAnimatedFmt(fmt) ? 'flex' : 'none';
       if (ditherEl) ditherEl.style.display = fmt === 'gif' ? 'flex' : 'none';
       el.querySelectorAll<HTMLElement>('[data-vector-only]').forEach((c) => {
-        c.style.display = ta.formatRules.isVectorFmt(fmt) ? 'flex' : 'none';
+        c.style.display = ta.formatRules.isVectorFmt(fmt) ? '' : 'none';
       });
       el.querySelectorAll<HTMLElement>('[data-alpha-only]').forEach((c) => {
         c.style.display = ta.formatRules.isAlphaFmt(fmt) ? 'flex' : 'none';
