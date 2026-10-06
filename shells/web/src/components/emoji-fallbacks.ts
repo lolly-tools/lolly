@@ -34,14 +34,14 @@ export function mountEmojiFallbacks(root: HTMLElement, style: EmojiStyleV1, sets
     const found = sets.find(set => key(set.pin) === key(pin) && pin.checksum === set.pin.checksum);
     name.textContent = `${index + 1}. ${found?.label ?? `${key(pin)} (${tRaw('Unavailable')})`}`;
     const up = document.createElement('button');
-    up.type = 'button'; up.textContent = tRaw('Move up'); up.disabled = index === 0;
+    up.type = 'button'; up.className = 'btn'; up.textContent = tRaw('Move up'); up.disabled = index === 0;
     up.addEventListener('click', () => {
       const fallbacks = [...style.fallbacks];
       [fallbacks[index - 1], fallbacks[index]] = [fallbacks[index]!, fallbacks[index - 1]!];
       change({ ...style, fallbacks });
     });
     const remove = document.createElement('button');
-    remove.type = 'button'; remove.textContent = tRaw('Remove');
+    remove.type = 'button'; remove.className = 'btn'; remove.textContent = tRaw('Remove');
     remove.addEventListener('click', () => change({ ...style, fallbacks: style.fallbacks.filter((_, i) => i !== index) }));
     row.append(name, up, remove); root.append(row);
   });
