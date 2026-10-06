@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Font upload edge case tests
- * Tests: (1) Oversized files >5MB, (2) Corrupted TTF, (3) Duplicate fonts,
+ * Tests: (1) Oversized files >32MB, (2) Corrupted TTF, (3) Duplicate fonts,
  * (4) WOFF2 decompression, (5) Delete in-use fonts, (6) Race conditions,
  * (7) A real sfnt - the platform Outfit face
  *
@@ -34,12 +34,12 @@ import {
 } from '../shells/web/src/user-fonts.ts';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Test 1: Oversized File Upload (>5MB)
+// Test 1: Oversized File Upload (>32MB)
 // ──────────────────────────────────────────────────────────────────────────────
 
-test('Edge Case #1: Oversized file (>5MB) should reject with clear error', async () => {
-  // Create a file larger than 5MB (5.1 MB)
-  const oversizedBuffer = new ArrayBuffer(5.1 * 1024 * 1024);
+test('Edge Case #1: Oversized file (>32MB) should reject with clear error', async () => {
+  // Create a file larger than 32MB (33 MB)
+  const oversizedBuffer = new ArrayBuffer(33 * 1024 * 1024);
   const oversizedFile = new File([oversizedBuffer], 'OversizedFont.ttf', {
     type: 'font/ttf',
   });
@@ -50,24 +50,24 @@ test('Edge Case #1: Oversized file (>5MB) should reject with clear error', async
   assert.ok(result.error, 'Error message should be present');
   assert.match(
     result.error!,
-    /5MB|5 MB|smaller/i,
-    'Error should mention 5MB limit'
+    /32MB|32 MB|smaller/i,
+    'Error should mention 32MB limit'
   );
 
   console.log(`  ok Oversized file rejected: "${result.error}"`);
 });
 
-test('Edge Case #1b: File at exactly 5MB should pass validation', async () => {
+test('Edge Case #1b: File at exactly 32MB should pass validation', async () => {
   const exactFile = new File(
-    [new ArrayBuffer(5 * 1024 * 1024)],
+    [new ArrayBuffer(32 * 1024 * 1024)],
     'ExactFont.ttf',
     { type: 'font/ttf' }
   );
 
   const result = validateFontFile(exactFile);
 
-  assert.equal(result.valid, true, 'File at exactly 5MB should pass');
-  console.log(`  ok 5MB file accepted`);
+  assert.equal(result.valid, true, 'File at exactly 32MB should pass');
+  console.log(`  ok 32MB file accepted`);
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -553,8 +553,8 @@ console.log('FONT UPLOAD EDGE CASE TESTS - SUMMARY');
 console.log('='.repeat(80));
 console.log(`
 Test Coverage:
-  ✓ #1 - Oversized file upload (>5MB) rejected with clear error
-  ✓ #1b - File at exactly 5MB limit accepted
+  ✓ #1 - Oversized file upload (>32MB) rejected with clear error
+  ✓ #1b - File at exactly 32MB limit accepted
   ✓ #2 - Corrupted TTF handled gracefully
   ✓ #2b - Truncated TTF handled gracefully
   ✓ #2c - Random binary data detected as unknown format
