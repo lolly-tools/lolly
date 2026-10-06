@@ -9,7 +9,7 @@ import './emoji-pack-create.css';
 
 export function mountEmojiPackCreate(root: HTMLElement, api: EmojiAPI, installed: (info: EmojiSetInfoV1) => void): void {
   if (!api.install) return;
-  const button = document.createElement('button'); button.type = 'button'; button.textContent = tRaw('Create emoji set'); root.append(button);
+  const button = document.createElement('button'); button.type = 'button'; button.className = 'btn'; button.textContent = tRaw('Create emoji set'); root.append(button);
   button.addEventListener('click', () => { void open(); });
   async function open(): Promise<void> {
     const { licenceProfiles } = await import('../../../../engine/src/rights-profiles.ts');
