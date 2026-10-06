@@ -969,17 +969,33 @@ function overrunClip(
  * the overrun search.
  *
  * Exported mutable so a test can lower it and show what the other search answers, as
- * `SCAN_LIMITS` below is and as `HOOK_BUDGET_MS` in runtime.ts is. The default is the
- * contract: raise it and slow pairs come back, lower it and ordinary pairs stop being
- * answered by the search whose answers this file has always promised.
+ * `SCAN_LIMITS` below is and as `HOOK_BUDGET_MS` in runtime.ts is.
  *
- * The number came from the node counts of the search itself, measured over every corpus and
- * shape family in this tree. Ordinary pairs finish in tens of nodes; over the recorded
- * corpora the p99.9 is 467 to 571 and the heaviest pair of a sweep of circles, ellipses,
- * stars and rounded rectangles takes 7,598. The pairs that cannot be clipped apart take
- * 21,627 and up, to six million. The gap this number sits in is wide and empty.
+ * 512 is where it is because the node counts are two populations with almost nothing between
+ * them, and because the whole range from 512 to 16,384 costs the same. Ordinary pairs finish
+ * in tens of nodes: over the two recorded corpora the median is 9, the p99 262 and the p99.9
+ * 478, and over 81,776 pairs of real artwork the median is 64 and the p90 73. The pairs that
+ * cannot be clipped apart take hundreds of thousands. Moving the line across that empty gap
+ * therefore moves almost nothing: of 122,927 pairs of the corpora and the artwork together,
+ * 1,422 cross at 16,384 and 1,495 at 512, and 59 answers change.
+ *
+ * What the 512 line costs is nothing measurable and what it buys is the near-copy families.
+ * On the catalog (176 files, 3,640 operations, medians of three alternating readings) the
+ * ratio against the committed build is 0.558 at 512, 0.562 at 1,024, 0.558 at 2,048, 0.560 at
+ * 4,096 and 0.557 at 16,384, with no operation over 10 ms and more than twice as slow at any
+ * of them. On correctness the curve is monotone: loops and cusps against near-copies are
+ * wrong on 1 and 4 grid judgements of 3,600 at 512, on 3 and 7 at 1,024, on 33 and 21 at
+ * 2,048, on 54 and 39 at 4,096 and on 73 and 62 at 16,384 (the same search with no budget at
+ * all is wrong on 1 and 4). Cusp tips go 15, 20, 21, 21, 33 the same way.
+ *
+ * And the 59 answers that move were judged against a truth computed from neither search, a
+ * dense scan of the distance surface between the two curves, refined and clustered at the
+ * tolerance: 17 are better at 512 (a contact recovered, or 2 to 7 points dropped that were
+ * not contacts), 4 are worse (one point reported on a pair that has no contact within the
+ * tolerance), and 38 score the same. At 1,024 the same judgement is 10 better, 4 worse, 21
+ * the same, so the extra octave is worth 7 more genuine contacts.
  */
-export const CLIP_BUDGET = { maxNodes: 16384 };
+export const CLIP_BUDGET = { maxNodes: 512 };
 
 /**
  * Running counts: how many cubic against cubic pairs have reached the clip search, how many
