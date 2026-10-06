@@ -81,7 +81,7 @@ test('the prepared asset request is adopted once after bridge startup', async ()
   const prepared = prepareAssetCatalogFetch();
   await prepared;
   assert.equal(assetRequests, before + 1);
-  assert.deepEqual(calls, [], 'fetching metadata does not require or write the bridge');
+  assert.equal(calls.length, 0, 'fetching metadata does not require or write the bridge');
   assert.equal(localStorage.getItem('sbt-catalog:assets-index'), null, 'an unconsumed response must not leave a validator for missing metadata');
   await syncCatalog(mockHost(calls), undefined, undefined, undefined, prepared);
   assert.equal(assetRequests, before + 1, 'sync adopts the response without a second request');
