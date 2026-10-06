@@ -1319,13 +1319,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/design-file-drop.browser.test.ts",
-      "fullName": "dropping image, video and audio adds objects, undoes together, and reopens with their media",
-      "reason": "no browser origin (set LOLLY_EXPORT_TEST_URL to a local web shell)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
       "file": "tests/design-panels.browser.test.ts",
       "fullName": "artboard parents, overflowing tracks and the narrow inspector stay usable",
       "reason": "Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.",
