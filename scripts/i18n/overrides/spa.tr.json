@@ -1005,5 +1005,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Oturumunun süresi doldu. Kişileri davet etmek için tekrar oturum aç.",
   "Only people who can edit this session can invite others.": "Yalnızca bu oturumu düzenleyebilenler başkalarını davet edebilir.",
   "This session was deleted.": "Bu oturum silindi.",
-  "Could not send the invite. Try again.": "Davet gönderilemedi. Tekrar dene."
+  "Could not send the invite. Try again.": "Davet gönderilemedi. Tekrar dene.",
+  "Live now - 1 person here": "Şu an canlı - 1 kişi burada",
+  "Live now - {n} people here": "Şu an canlı - {n} kişi burada"
 }

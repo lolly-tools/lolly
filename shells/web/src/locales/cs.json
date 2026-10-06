@@ -7372,5 +7372,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Platnost přihlášení vypršela. Přihlas se znovu a zvi lidi.",
   "Only people who can edit this session can invite others.": "Zvát další mohou jen lidé, kteří mohou tuto relaci upravovat.",
   "This session was deleted.": "Tato relace byla smazána.",
-  "Could not send the invite. Try again.": "Pozvánku se nepodařilo odeslat. Zkus to znovu."
+  "Could not send the invite. Try again.": "Pozvánku se nepodařilo odeslat. Zkus to znovu.",
+  "Live now - 1 person here": "Právě živě - 1 osoba je zde",
+  "Live now - {n} people here": "Právě živě - {n} osob je zde"
 }

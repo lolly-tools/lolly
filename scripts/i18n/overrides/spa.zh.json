@@ -877,5 +877,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "你的登录已过期。请重新登录以邀请成员。",
   "Only people who can edit this session can invite others.": "只有能编辑此会话的人才能邀请其他人。",
   "This session was deleted.": "此会话已被删除。",
-  "Could not send the invite. Try again.": "无法发送邀请。请重试。"
+  "Could not send the invite. Try again.": "无法发送邀请。请重试。",
+  "Live now - 1 person here": "当前在线 - 1 人在此",
+  "Live now - {n} people here": "当前在线 - {n} 人在此"
 }

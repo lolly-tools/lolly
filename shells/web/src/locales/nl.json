@@ -7372,5 +7372,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Je inlog is verlopen. Log opnieuw in om mensen uit te nodigen.",
   "Only people who can edit this session can invite others.": "Alleen mensen die deze sessie kunnen bewerken, kunnen anderen uitnodigen.",
   "This session was deleted.": "Deze sessie is verwijderd.",
-  "Could not send the invite. Try again.": "Kon de uitnodiging niet versturen. Probeer het opnieuw."
+  "Could not send the invite. Try again.": "Kon de uitnodiging niet versturen. Probeer het opnieuw.",
+  "Live now - 1 person here": "Nu live - 1 persoon aanwezig",
+  "Live now - {n} people here": "Nu live - {n} personen aanwezig"
 }

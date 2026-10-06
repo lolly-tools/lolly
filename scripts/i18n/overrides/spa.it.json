@@ -1007,5 +1007,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "La tua sessione di accesso è scaduta. Accedi di nuovo per invitare persone.",
   "Only people who can edit this session can invite others.": "Solo chi può modificare questa sessione può invitare altri.",
   "This session was deleted.": "Questa sessione è stata eliminata.",
-  "Could not send the invite. Try again.": "Impossibile inviare l'invito. Riprova."
+  "Could not send the invite. Try again.": "Impossibile inviare l'invito. Riprova.",
+  "Live now - 1 person here": "Attivo ora - 1 persona presente",
+  "Live now - {n} people here": "Attivo ora - {n} persone presenti"
 }

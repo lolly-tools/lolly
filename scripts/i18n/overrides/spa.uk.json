@@ -1005,5 +1005,7 @@
   "Your sign-in has expired. Sign in again to invite people.": "Термін дії вашого входу минув. Увійдіть знову, щоб запрошувати людей.",
   "Only people who can edit this session can invite others.": "Запрошувати інших можуть лише ті, хто може редагувати цю сесію.",
   "This session was deleted.": "Цю сесію видалено.",
-  "Could not send the invite. Try again.": "Не вдалося надіслати запрошення. Спробуйте ще раз."
+  "Could not send the invite. Try again.": "Не вдалося надіслати запрошення. Спробуйте ще раз.",
+  "Live now - 1 person here": "Наживо - 1 людина присутня",
+  "Live now - {n} people here": "Наживо - {n} людей присутні"
 }
