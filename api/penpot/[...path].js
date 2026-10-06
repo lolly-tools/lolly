@@ -16,36 +16,53 @@ var CORS = {
 };
 var UPSTREAM_TIMEOUT_MS = 25e3;
 var MAX_BODY = 32 * 1024 * 1024;
+var BodyTooLargeError = class extends Error {
+};
 var config = { api: { bodyParser: false } };
 function readRawBody(req) {
   const pre = req.body;
   if (pre !== void 0 && pre !== null && typeof req.on !== "function") {
-    if (typeof pre === "string") return Promise.resolve(Buffer.from(pre));
-    if (Buffer.isBuffer(pre)) return Promise.resolve(pre);
+    const bytes = typeof pre === "string" ? Buffer.from(pre) : Buffer.isBuffer(pre) ? pre : void 0;
+    if (bytes) return bytes.length > MAX_BODY ? Promise.reject(new BodyTooLargeError("Request body too large")) : Promise.resolve(bytes);
     return Promise.reject(new Error("Pre-parsed request body cannot be forwarded byte-exact"));
+  }
+  const contentLength = Number(req.headers["content-length"]);
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY) {
+    req.on("error", () => {
+    });
+    req.resume();
+    return Promise.reject(new BodyTooLargeError("Request body too large"));
   }
   return new Promise((resolve, reject) => {
     let size = 0;
     const chunks = [];
     req.on("data", (c) => {
+      if (size > MAX_BODY) return;
       size += c.length;
       if (size > MAX_BODY) {
-        reject(new Error("Request body too large"));
-        req.destroy();
+        chunks.length = 0;
+        reject(new BodyTooLargeError("Request body too large"));
         return;
       }
       chunks.push(c);
     });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("end", () => {
+      const body = Buffer.concat(chunks);
+      chunks.length = 0;
+      resolve(body);
+    });
     req.on("error", reject);
+    req.on("aborted", () => reject(new Error("Request aborted")));
   });
 }
 function sendJson(res, status, body) {
+  if (res.destroyed) return;
   res.writeHead(status, { ...CORS, "content-type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(body));
 }
 function createPenpotProxy(fetchImpl = fetch) {
   return async (req, res) => {
+    if (res.destroyed) return;
     if (req.method === "OPTIONS") {
       res.writeHead(204, CORS);
       res.end();
@@ -69,29 +86,43 @@ function createPenpotProxy(fetchImpl = fetch) {
     try {
       body = await readRawBody(req);
     } catch (err) {
-      sendJson(res, 400, { error: "bad-request", hint: String(err?.message ?? err) });
+      sendJson(res, err instanceof BodyTooLargeError ? 413 : 400, {
+        error: err instanceof BodyTooLargeError ? "request-too-large" : "bad-request",
+        hint: err instanceof BodyTooLargeError ? "Request body exceeds 32 MiB" : "Request body could not be read"
+      });
       return;
     }
+    if (res.destroyed) return;
     const headers = {};
     if (typeof req.headers.authorization === "string") headers.authorization = req.headers.authorization;
     if (typeof req.headers["content-type"] === "string") headers["content-type"] = req.headers["content-type"];
     if (typeof req.headers.accept === "string") headers.accept = req.headers.accept;
     const ac = new AbortController();
+    const abortUpstream = () => {
+      if (!res.writableFinished) ac.abort();
+    };
+    res.once("close", abortUpstream);
     let timerFired = false;
     const timer = setTimeout(() => {
       timerFired = true;
       ac.abort();
     }, UPSTREAM_TIMEOUT_MS);
+    const cleanup = () => {
+      clearTimeout(timer);
+      res.off("close", abortUpstream);
+    };
     let upstream;
     try {
       upstream = await fetchImpl(UPSTREAM_BASE + command, {
         method: "POST",
         headers,
-        body: body.length > 0 ? new Uint8Array(body) : void 0,
+        body: body.length > 0 ? new Uint8Array(body.buffer, body.byteOffset, body.byteLength) : void 0,
+        redirect: "error",
         signal: ac.signal
       });
     } catch (err) {
-      clearTimeout(timer);
+      cleanup();
+      if (res.destroyed) return;
       const timedOut = timerFired || err?.name === "TimeoutError";
       sendJson(res, 502, {
         error: "penpot-unreachable",
@@ -100,25 +131,33 @@ function createPenpotProxy(fetchImpl = fetch) {
       return;
     }
     clearTimeout(timer);
-    console.log(`[penpot] ${command} -> ${upstream.status}`);
-    res.writeHead(upstream.status, {
-      ...CORS,
-      "content-type": upstream.headers.get("content-type") ?? "application/json"
-    });
-    if (upstream.body) {
-      try {
-        await pipeline(Readable.fromWeb(upstream.body), res);
-      } catch {
-        if (!res.writableEnded) res.end();
+    try {
+      if (res.destroyed) {
+        await upstream.body?.cancel();
+        return;
       }
-    } else {
-      res.end(Buffer.from(await upstream.arrayBuffer()));
+      console.log(`[penpot] ${command} -> ${upstream.status}`);
+      res.writeHead(upstream.status, {
+        ...CORS,
+        "content-type": upstream.headers.get("content-type") ?? "application/json"
+      });
+      if (upstream.body) {
+        await pipeline(Readable.fromWeb(upstream.body), res, { signal: ac.signal });
+      } else {
+        const bytes = Buffer.from(await upstream.arrayBuffer());
+        if (!res.destroyed) res.end(bytes);
+      }
+    } catch {
+      if (!res.writableEnded && !res.destroyed) res.end();
+    } finally {
+      cleanup();
     }
   };
 }
 var vercel_entry_default = createPenpotProxy();
 export {
   ALLOWLIST,
+  MAX_BODY,
   config,
   createPenpotProxy,
   vercel_entry_default as default
