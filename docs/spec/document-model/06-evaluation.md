@@ -93,6 +93,8 @@ draft shape
     textFallbacks[]   runs that stayed live text: { text, reason }
     emoji             { set, version, treatment }
     models[]          { id, version, licence } for any on-device model the run used
+    kernels[]         { operation, implementation, revision, artifact sha256? } per numerical or pixel implementation that produced a result
+    devices[]         { api, adapter, backend, software } per graphics device the run computed on
     conversions[]     unit and DPI conversions applied, with the site that applied each
     clocks            the clocks the run read and the value each supplied
     environment       { shell, engine, suite versions, execution class }
@@ -152,6 +154,17 @@ Each unit and DPI conversion a run applied must be recorded with the site that a
 - Any on-device model must be recorded by identity and version (R15). `packages/node-shell/src/ml/matte-models.ts` carries a version string per model and copies it verbatim into the provenance edit step, which is the identity a receipt reuses.
 - The effective policy version, its issuer and the execution class the run used must be recorded (R15, R3). Where a local waiver deactivated a rule, the receipt must list the bypassed rules, and measured conformance to the unmodified rule reads failed, never passed (R6). The waiver is recorded as an exception on the acceptance, never on the report (R8).
 
+### Numerical kernels and graphics devices
+
+These rules come from the first WebGPU and Rust kernel work (plan 295), added on 2026-10-07. They describe what the tree now does for LUT grading and curve geometry, and they bind any later renderer.
+
+- A receipt must record the revision of every implementation that produced a result, by artifact digest where a compiled artifact exists. An algorithm revision is a different result identity even when the authored instance is unchanged. The precedent is LUT grading on WebGPU: `packages/node-shell/src/pixel-kernel-recipe.ts` holds the recipe identity, and `shells/web/src/bridge/assets.ts` adds the recipe to the cache key and to the asset metadata, so bytes from the earlier implementation are never served under the new identity.
+- Host arithmetic is an environment input. JavaScript engines do not round `Math.hypot`, `Math.atan2` and the other transcendental functions identically: one fixed curve derivative gives norm bits ending `a4` in V8 and `a3` in SpiderMonkey and JavaScriptCore. The same TypeScript geometry therefore gives different raw control points and different internal work counts in the CLI and in Safari or Firefox, even where the serialized SVG is equal. A result that must be repeatable across shells must come from an implementation that uses only correctly rounded operations. Import-free WebAssembly meets that requirement, and `packages/node-shell/wasm/geometry-kernel/` holds the portable geometry artifacts. `engine/src/emoji-treatment.ts` is the earlier precedent: its colour core avoids `pow`, `cbrt`, `exp` and `log` for the same reason.
+- A receipt must record each graphics device a run computed on: the interface, the adapter, the backend and whether the device was a software implementation. Software graphics and physical hardware are different evidence. `shells/web/src/lib/webgpu/device.ts` acquires the device and reports the failure codes a receipt would carry.
+- The choice of implementation is environment, never authored state. An instance record must never hold a backend selection, and a tool must never read one. `packages/node-shell/src/geometry-host.ts` keeps the geometry backend private to the host, which is the precedent.
+- A selected implementation that fails must produce a visible failure finding. A host must never retry the operation on another implementation and present that output under the selected identity, and an implementation fallback is never one of the declared fallbacks a receipt lists in `fallbacks[]`. LUT grading rethrows its failure to the asset and download callers rather than serving the untreated picture.
+- Renderer-owned resources belong to no record. Device loss invalidates GPU buffers, textures and pipelines, and a host rebuilds them from logical resources and the frozen evaluation. A package must never persist a renderer resource or a process-local handle.
+
 ## Redaction is an explicit field
 
 A receipt must never imply that it holds every private input (R15).
@@ -206,6 +219,12 @@ Q1 and Q5 are answered in [Conformance and fidelity](conformance.html). Q6 is an
 - `shells/web/src/bridge/export-svg-text-runs.ts`
 - `shells/web/src/bridge/frame-clock.ts`
 - `shells/cli/src/run.ts`
+- `packages/node-shell/src/pixel-kernel-recipe.ts`
+- `packages/node-shell/src/geometry-host.ts`
+- `packages/node-shell/wasm/geometry-kernel/`
+- `shells/web/src/bridge/assets.ts`
+- `shells/web/src/lib/webgpu/device.ts`
+- `engine/src/emoji-treatment.ts`
 - `schemas/tool.schema.json`
 - `community/design/tool.json`
 - `docs/agenda.md`

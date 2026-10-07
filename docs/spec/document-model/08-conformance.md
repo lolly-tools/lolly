@@ -130,6 +130,14 @@ PNG alpha, PDF page boxes and colour intent must each have their own checks (C8)
 
 A run whose text stayed a live `<text>` element rather than an outline must record that in its receipt, and it must never claim font-independent fidelity (R15). [Evaluation and receipts](evaluation.html) specifies the receipt.
 
+### Graphics devices and numerical hosts
+
+The first WebGPU and Rust kernel work (plan 295) supplies evidence for the fuzz band and its limits, added on 2026-10-07. It sets no threshold for any suite.
+
+- GPU output is not a byte-identity claim. WGSL floating-point arithmetic may differ between devices and drivers. LUT grading on WebGPU is checked against a Rust and a TypeScript reference with a bound of one 8-bit code value per colour channel on the admitted corpus, and exactly for alpha, identity tables, constant tables and no-op intensity (`tests/webgpu-lut.browser.test.ts`). A suite that admits a GPU renderer must declare such a band, with exact checks for the cases where exact output is the contract.
+- The reference environment of a suite must state the graphics device: the adapter, the backend and whether it is a software implementation. A pass on SwiftShader is software conformance and must never be presented as a pass on physical hardware.
+- A shell running JavaScript is a numerical host, and engines differ in the last bit of `Math.hypot` and other transcendental functions. In the measured geometry corpus those differences changed raw control points and internal work counts while the serialized SVG stayed equal. A semantic check on the produced artifact therefore stays the deciding check, and a suite must never claim raw floating-point identity across engines for an implementation that reads host maths. Import-free WebAssembly gives identical bits in every engine. Plan 295 is moving the portable geometry artifacts in `packages/node-shell/wasm/geometry-kernel/` to one checked-in answer that Node, Chromium, Firefox and WebKit must each reproduce exactly, and that qualification is not complete yet.
+
 ## Motion fidelity
 
 Appearance is compared at normalised progress points, and total duration and the time mapping are compared separately (D9, plan section 11.3).
@@ -212,5 +220,7 @@ The other open questions are carried in other chapters, each with its recommende
 - `shells/web/src/views/penpot-import.ts`
 - `scripts/characterize-export.ts`
 - `tests/docs-shots-vector.test.ts`
+- `tests/webgpu-lut.browser.test.ts`
+- `packages/node-shell/wasm/geometry-kernel/`
 - `docs/determinism.md`
 - `docs/agenda.md`
