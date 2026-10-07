@@ -1,0 +1,19 @@
+/* "Submit to <workspace>" (org/catalog-submit.ts): a small form in the shared modal. */
+@layer views {
+  .catalog-submit-dialog { width: min(92vw, 28rem); }
+  .catalog-submit-form { display: flex; flex-direction: column; gap: var(--sp-4); }
+  .catalog-submit-field { display: flex; flex-direction: column; gap: var(--sp-2); font-size: var(--fs-sm); font-weight: 600; }
+  .catalog-submit-field textarea { resize: vertical; min-height: 4.5em; font-weight: 400; }
+  .catalog-submit-field input { font-weight: 400; }
+  .catalog-submit-state {
+    margin: 0 0 var(--sp-4);
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-status-notice-surface);
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+  }
+  .catalog-submit-state[data-kind="returned"] { background: var(--ui-color-status-danger-surface); }
+  .catalog-submit-error { margin: 0; color: var(--ui-color-status-danger); font-size: var(--fs-sm); }
+  .catalog-submit-form .modal-actions { margin-top: var(--sp-2); }
+}
