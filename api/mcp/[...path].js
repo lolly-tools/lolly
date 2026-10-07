@@ -34900,8 +34900,8 @@ function parseEmojiParams(params2, sets = [], palette = []) {
     try {
       if (params2.emojistyle.length > 32768) throw new Error("Emoji style exceeds 32 KiB.");
       const style = JSON.parse(params2.emojistyle);
-      const invalid2 = validateEmojiStyle(style);
-      if (invalid2) return { issues: [invalid2] };
+      const invalid4 = validateEmojiStyle(style);
+      if (invalid4) return { issues: [invalid4] };
       const saved = structuredClone(style);
       return { style: saved, pin: saved.primary, treatment: saved.treatment, issues };
     } catch {
@@ -37240,8 +37240,8 @@ function resolveEmoji(request, style, packs) {
     meaning = { kind: "custom", id: request.id };
   } else return { status: "unresolved", issue: { code: "invalid-request", message: "Emoji input requires a Unicode sequence or a labelled custom symbol." } };
   if (style == null) return { status: "unresolved", issue: { code: "selection-required", message: "Choose an emoji set for this content." } };
-  const invalid2 = validateEmojiStyle(style);
-  if (invalid2) return { status: "unresolved", issue: invalid2 };
+  const invalid4 = validateEmojiStyle(style);
+  if (invalid4) return { status: "unresolved", issue: invalid4 };
   const pins = [style.primary, ...style.fallbacks];
   for (const [position, pin] of pins.entries()) {
     const pack = packs.find((candidate) => matchesEmojiPack(candidate, pin));
@@ -57027,6 +57027,183 @@ var init_intersect = __esm({
   }
 });
 
+// engine/src/geom/operations.ts
+function intersectWithOperations(a, b, tolerance = EPS2, operations) {
+  if (!operations?.clipping) return intersectCubics(a, b, tolerance);
+  const result = operations.clipping(a, b, tolerance, {
+    initial: CLIP_BUDGET.maxNodes,
+    overrun: OVERRUN_BUDGET.maxNodes,
+    stalled: SCAN_LIMITS.maxStalledPairs
+  });
+  const counts = result.counts;
+  if (counts.reached) {
+    CLIP_COUNTS.pairs++;
+    CLIP_COUNTS.nodes += counts.nodes;
+    CLIP_COUNTS.lastNodes = counts.nodes;
+  }
+  if (counts.overrun) CLIP_COUNTS.overruns++;
+  if (counts.searched) {
+    CLIP_COUNTS.overrunNodes += counts.overrunNodes;
+    CLIP_COUNTS.lastOverrunNodes = counts.overrunNodes;
+    CLIP_COUNTS.maxOverrunNodes = Math.max(CLIP_COUNTS.maxOverrunNodes, counts.overrunNodes);
+  }
+  if (counts.ceiling) CLIP_COUNTS.ceilings++;
+  return result.hits;
+}
+var GeometryOperationError;
+var init_operations = __esm({
+  "engine/src/geom/operations.ts"() {
+    "use strict";
+    init_intersect();
+    GeometryOperationError = class extends Error {
+      code;
+      constructor(code, message) {
+        super(message);
+        this.name = "GeometryOperationError";
+        this.code = code;
+      }
+    };
+  }
+});
+
+// engine/src/geom/near-pieces.ts
+function visitNearPieces(edges, weld, visit) {
+  const cell = Math.max(weld * 4, 1e-12);
+  const buckets = /* @__PURE__ */ new Map();
+  const cells = edges.map((edge) => {
+    const mid3 = evalCubic(edge, 0.5);
+    return [edge[0], edge[1], mid3.x, mid3.y, edge[6], edge[7]].map(
+      (value) => Math.round(value / cell)
+    );
+  });
+  for (let i = 0; i < cells.length; i++) {
+    const points = cells[i];
+    for (let at = 0; at < 6; at += 2) {
+      const x = points[at], y = points[at + 1];
+      let column = buckets.get(x);
+      if (!column) {
+        column = /* @__PURE__ */ new Map();
+        buckets.set(x, column);
+      }
+      const bucket = column.get(y);
+      if (bucket) {
+        if (bucket[bucket.length - 1] !== i) bucket.push(i);
+      } else column.set(y, [i]);
+    }
+  }
+  const seen = /* @__PURE__ */ new Set();
+  for (let i = 0; i < cells.length; i++) {
+    seen.clear();
+    const points = cells[i];
+    for (let at = 0; at < 6; at += 2) {
+      const cx2 = points[at], cy3 = points[at + 1];
+      for (let ox = -1; ox <= 1; ox++) {
+        const column = buckets.get(cx2 + ox);
+        if (!column) continue;
+        for (let oy = -1; oy <= 1; oy++) {
+          const bucket = column.get(cy3 + oy);
+          if (!bucket) continue;
+          for (const j of bucket) {
+            if (j <= i || seen.has(j)) continue;
+            seen.add(j);
+            if (!visit(i, j)) return;
+          }
+        }
+      }
+    }
+  }
+}
+var init_near_pieces = __esm({
+  "engine/src/geom/near-pieces.ts"() {
+    "use strict";
+    init_bezier();
+  }
+});
+
+// engine/src/geom/ray-cast.ts
+function inBundle(bundle, ci, t) {
+  const ranges = bundle.get(ci);
+  if (!ranges) return false;
+  for (const [t0, t1] of ranges) if (t >= t0 - 1e-6 && t <= t1 + 1e-6) return true;
+  return false;
+}
+function reachFrom(idx, px3, py) {
+  const b = idx.box;
+  if (!b) return 1;
+  const diag = Math.hypot(b.x1 - b.x0, b.y1 - b.y0);
+  const dx = Math.max(b.x0 - px3, px3 - b.x1, 0), dy = Math.max(b.y0 - py, py - b.y1, 0);
+  return 2 * (diag + Math.hypot(dx, dy)) + 1;
+}
+function castRay(idx, px3, py, ux, uy, ref, near, budget3, complete = false, bundle = null) {
+  const twin = near * 100;
+  const reach2 = reachFrom(idx, px3, py);
+  const qx = px3 + ux * reach2, qy = py + uy * reach2;
+  const nx = -uy, ny = ux;
+  const hitTol = Math.max(
+    near,
+    64 * Number.EPSILON * Math.max(Math.abs(px3), Math.abs(py), Math.abs(qx), Math.abs(qy), 1)
+  );
+  const look2 = Math.max(hitTol, 4 * twin, near * 32);
+  const rx0 = Math.min(px3, qx) - look2, rx1 = Math.max(px3, qx) + look2;
+  const ry0 = Math.min(py, qy) - look2, ry1 = Math.max(py, qy) + look2;
+  let far = 0, net = 0, ok3 = true;
+  for (let ci = 0; ci < idx.curves.length; ci++) {
+    const ic = idx.curves[ci];
+    if (budget3.work <= 0) return { far, net, ok: false };
+    budget3.work -= 1;
+    const b = ic.box;
+    if (b.x1 < rx0 || b.x0 > rx1 || b.y1 < ry0 || b.y0 > ry1) continue;
+    const c = ic.c;
+    if (Math.abs(nx * (c[0] - px3) + ny * (c[1] - py)) < near && Math.abs(nx * (c[2] - px3) + ny * (c[3] - py)) < near && Math.abs(nx * (c[4] - px3) + ny * (c[5] - py)) < near && Math.abs(nx * (c[6] - px3) + ny * (c[7] - py)) < near) {
+      ok3 = false;
+      if (!complete) return { far, net, ok: ok3 };
+      continue;
+    }
+    budget3.work -= 8;
+    const hits2 = intersectLineCubic(px3 - ux * reach2, py - uy * reach2, qx, qy, c, hitTol, false);
+    for (const hit of hits2) {
+      const t = hit.t2;
+      const s = (hit.t1 * 2 - 1) * reach2;
+      if (s < -look2) continue;
+      const tg = tangentAt(c, t);
+      const off = Math.abs(s);
+      if (bundle && ref && off <= 4 * twin && inBundle(bundle, ci, t)) {
+        net += Math.sign(tg.x * ref.x + tg.y * ref.y);
+        continue;
+      }
+      if (ref && off <= near) {
+        net += Math.sign(tg.x * ref.x + tg.y * ref.y);
+        continue;
+      }
+      const cr = hit.dir ?? Math.sign(ux * tg.y - uy * tg.x);
+      if (s < 0) {
+        if (off <= near * 32 && !complete) {
+          ok3 = false;
+          return { far, net, ok: ok3 };
+        }
+        continue;
+      }
+      const sideless = cr === 0;
+      if (sideless || t < T_GUARD || t > 1 - T_GUARD || ref !== null && off <= near * 32) {
+        ok3 = false;
+        if (!complete) return { far, net, ok: ok3 };
+        if (sideless || t > 1 - T_GUARD) continue;
+      }
+      far += cr > 0 ? 1 : -1;
+    }
+  }
+  return { far, net, ok: ok3 };
+}
+var T_GUARD;
+var init_ray_cast = __esm({
+  "engine/src/geom/ray-cast.ts"() {
+    "use strict";
+    init_bezier();
+    init_intersect();
+    T_GUARD = 1e-7;
+  }
+});
+
 // engine/src/geom/boolean.ts
 function newBudget() {
   return { splits: MAX_SPLITS, pairs: MAX_PAIRS, work: MAX_WORK };
@@ -57052,7 +57229,7 @@ function booleanPath(a, b, op, opts = {}) {
   const budget3 = newBudget();
   const splitsA = idxA.curves.map(() => []);
   const splitsB = idxB.curves.map(() => []);
-  crossSplits(idxA.curves, idxB.curves, splitsA, splitsB, tol, weld, budget3);
+  crossSplits(idxA.curves, idxB.curves, splitsA, splitsB, tol, weld, budget3, opts.operations);
   const srcA = [], srcB = [];
   const rangesA = [], rangesB = [];
   const edges = [
@@ -57116,7 +57293,7 @@ function selfUnion(p, opts = {}) {
   if (idx.curves.length > MAX_CURVES) return path;
   const budget3 = newBudget();
   const splits = idx.curves.map(() => []);
-  selfSplits(idx.curves, splits, tol, weld, budget3);
+  selfSplits(idx.curves, splits, tol, weld, budget3, opts.operations);
   if (path.length === 1 && !splits.some((s) => s.length) && !selfTouching(path[0], weld)) {
     const only = path[0];
     const probe = only.curves[0];
@@ -57388,12 +57565,12 @@ function selfIntersectCubic(c) {
   if (!(t1 > 1e-9 && t2 < 1 - 1e-9 && t2 - t1 > 1e-9)) return null;
   return [t1, t2];
 }
-function pairSplits(ci, cj, tol, weld, budget3) {
+function pairSplits(ci, cj, tol, weld, budget3, operations) {
   budget3.work -= 4;
   if (coincidence(ci, cj, weld) !== 0) return null;
   const run3 = overlapRun(ci, cj, weld, budget3);
   if (run3) return run3;
-  const hits2 = intersectCubics(ci, cj, tol);
+  const hits2 = intersectWithOperations(ci, cj, tol, operations);
   if (!hits2.length) {
     if (isLineCubic(ci, weld) && isLineCubic(cj, weld)) {
       const co = collinearSplits(ci, cj, weld, budget3);
@@ -57572,7 +57749,7 @@ function alignSplits(groups, weld, budget3) {
     }
   }
 }
-function selfSplits(curves2, splits, tol, weld, budget3) {
+function selfSplits(curves2, splits, tol, weld, budget3, operations) {
   const identities = /* @__PURE__ */ new Map();
   const ids2 = curves2.map(({ c }) => {
     const key = c.join(",");
@@ -57591,7 +57768,7 @@ function selfSplits(curves2, splits, tol, weld, budget3) {
     const key = cache4 ? `${ids2[i]},${ids2[j]}` : "";
     let found = cache4?.get(key);
     if (found === void 0) {
-      found = pairSplits(curves2[i].c, curves2[j].c, tol, weld, budget3);
+      found = pairSplits(curves2[i].c, curves2[j].c, tol, weld, budget3, operations);
       if (cache4 && budget3.work > 0 && cache4.size < 1024) cache4.set(key, found);
     }
     if (!found) return;
@@ -57600,9 +57777,9 @@ function selfSplits(curves2, splits, tol, weld, budget3) {
   });
   alignSplits([{ curves: curves2, splits }], weld, budget3);
 }
-function crossSplits(a, b, splitsA, splitsB, tol, weld, budget3) {
+function crossSplits(a, b, splitsA, splitsB, tol, weld, budget3, operations) {
   sweepPairs(a, b, false, budget3, (i, j) => {
-    const found = pairSplits(a[i].c, b[j].c, tol, weld, budget3);
+    const found = pairSplits(a[i].c, b[j].c, tol, weld, budget3, operations);
     if (!found) return;
     for (const t of found.a) addSplit(splitsA, i, t, budget3);
     for (const t of found.b) addSplit(splitsB, j, t, budget3);
@@ -57643,12 +57820,6 @@ function splitIntoEdges(curves2, splits, weld, src, ranges) {
   }
   return out;
 }
-function inBundle(bundle, ci, t) {
-  const ranges = bundle.get(ci);
-  if (!ranges) return false;
-  for (const [t0, t1] of ranges) if (t >= t0 - 1e-6 && t <= t1 + 1e-6) return true;
-  return false;
-}
 function findTwins(edges, weld, budget3) {
   const twins = edges.map(() => []);
   const spans = edges.map(extent);
@@ -57664,39 +57835,7 @@ function findTwins(edges, weld, budget3) {
   return twins;
 }
 function nearPieces(edges, weld, visit) {
-  const cell = Math.max(weld * 4, 1e-12);
-  const buckets = /* @__PURE__ */ new Map();
-  const put = (x, y, i) => {
-    const key = `${Math.round(x / cell)},${Math.round(y / cell)}`;
-    const bucket = buckets.get(key);
-    if (bucket) {
-      if (bucket[bucket.length - 1] !== i) bucket.push(i);
-    } else buckets.set(key, [i]);
-  };
-  const mids = edges.map((e) => evalCubic(e, 0.5));
-  for (let i = 0; i < edges.length; i++) {
-    const e = edges[i];
-    put(e[0], e[1], i);
-    put(mids[i].x, mids[i].y, i);
-    put(e[6], e[7], i);
-  }
-  const seen = /* @__PURE__ */ new Set();
-  for (let i = 0; i < edges.length; i++) {
-    const e = edges[i];
-    seen.clear();
-    for (const [x, y] of [[e[0], e[1]], [mids[i].x, mids[i].y], [e[6], e[7]]]) {
-      const cx2 = Math.round(x / cell), cy3 = Math.round(y / cell);
-      for (let ox = -1; ox <= 1; ox++) {
-        for (let oy = -1; oy <= 1; oy++) {
-          for (const j of buckets.get(`${cx2 + ox},${cy3 + oy}`) ?? []) {
-            if (j <= i || seen.has(j)) continue;
-            seen.add(j);
-            if (!visit(i, j)) return;
-          }
-        }
-      }
-    }
-  }
+  visitNearPieces(edges, weld, visit);
 }
 function buildRayDirs() {
   const out = [[1, 0], [0, 1]];
@@ -57711,73 +57850,6 @@ function rayDirections(rx, ry) {
   if (mag < 1e-12) return RAY_DIRS.slice();
   const out = RAY_DIRS.filter((d) => Math.abs(d[0] * ry - d[1] * rx) >= 0.25 * mag);
   return out.length ? out : RAY_DIRS.slice();
-}
-function reachFrom(idx, px3, py) {
-  const b = idx.box;
-  if (!b) return 1;
-  const diag = Math.hypot(b.x1 - b.x0, b.y1 - b.y0);
-  const dx = Math.max(b.x0 - px3, px3 - b.x1, 0), dy = Math.max(b.y0 - py, py - b.y1, 0);
-  return 2 * (diag + Math.hypot(dx, dy)) + 1;
-}
-function castRay(idx, px3, py, ux, uy, ref, near, budget3, complete = false, bundle = null) {
-  const twin = near * 100;
-  const reach2 = reachFrom(idx, px3, py);
-  const qx = px3 + ux * reach2, qy = py + uy * reach2;
-  const nx = -uy, ny = ux;
-  const hitTol = Math.max(
-    near,
-    64 * Number.EPSILON * Math.max(Math.abs(px3), Math.abs(py), Math.abs(qx), Math.abs(qy), 1)
-  );
-  const look2 = Math.max(hitTol, 4 * twin, near * 32);
-  const rx0 = Math.min(px3, qx) - look2, rx1 = Math.max(px3, qx) + look2;
-  const ry0 = Math.min(py, qy) - look2, ry1 = Math.max(py, qy) + look2;
-  let far = 0, net = 0, ok3 = true;
-  for (let ci = 0; ci < idx.curves.length; ci++) {
-    const ic = idx.curves[ci];
-    if (budget3.work <= 0) return { far, net, ok: false };
-    budget3.work -= 1;
-    const b = ic.box;
-    if (b.x1 < rx0 || b.x0 > rx1 || b.y1 < ry0 || b.y0 > ry1) continue;
-    const c = ic.c;
-    if (Math.abs(nx * (c[0] - px3) + ny * (c[1] - py)) < near && Math.abs(nx * (c[2] - px3) + ny * (c[3] - py)) < near && Math.abs(nx * (c[4] - px3) + ny * (c[5] - py)) < near && Math.abs(nx * (c[6] - px3) + ny * (c[7] - py)) < near) {
-      ok3 = false;
-      if (!complete) return { far, net, ok: ok3 };
-      continue;
-    }
-    budget3.work -= 8;
-    const hits2 = intersectLineCubic(px3 - ux * reach2, py - uy * reach2, qx, qy, c, hitTol, false);
-    for (const hit of hits2) {
-      const t = hit.t2;
-      const s = (hit.t1 * 2 - 1) * reach2;
-      if (s < -look2) continue;
-      const tg = tangentAt(c, t);
-      const off = Math.abs(s);
-      if (bundle && ref && off <= 4 * twin && inBundle(bundle, ci, t)) {
-        net += Math.sign(tg.x * ref.x + tg.y * ref.y);
-        continue;
-      }
-      if (ref && off <= near) {
-        net += Math.sign(tg.x * ref.x + tg.y * ref.y);
-        continue;
-      }
-      const cr = hit.dir ?? Math.sign(ux * tg.y - uy * tg.x);
-      if (s < 0) {
-        if (off <= near * 32 && !complete) {
-          ok3 = false;
-          return { far, net, ok: ok3 };
-        }
-        continue;
-      }
-      const sideless = cr === 0;
-      if (sideless || t < T_GUARD || t > 1 - T_GUARD || ref !== null && off <= near * 32) {
-        ok3 = false;
-        if (!complete) return { far, net, ok: ok3 };
-        if (sideless || t > 1 - T_GUARD) continue;
-      }
-      far += cr > 0 ? 1 : -1;
-    }
-  }
-  return { far, net, ok: ok3 };
 }
 function sideWindings(idx, px3, py, rx, ry, near, budget3, bundle = null) {
   const dirs = rayDirections(rx, ry);
@@ -57974,12 +58046,15 @@ function endTangent(c) {
   if (Math.hypot(t.x, t.y) > 1e-12) return t;
   return { x: c[6] - c[0], y: c[7] - c[1] };
 }
-var GeomLimitError, MAX_CURVES, MAX_SPLITS, MAX_PAIRS, MAX_WORK, MAX_CONTACT_NODES, CONTACT_SEED, MAX_CONTACT_LEAVES, T_GUARD, reverseCubic, DECIDE_TS, DECIDE_SPEED, TRACE_SAMPLES, MAX_ALIGN_PAIRS, RAY_DIRS, WALK_SLACK, WALK_HOP, TURN_TIE;
+var GeomLimitError, MAX_CURVES, MAX_SPLITS, MAX_PAIRS, MAX_WORK, MAX_CONTACT_NODES, CONTACT_SEED, MAX_CONTACT_LEAVES, reverseCubic, DECIDE_TS, DECIDE_SPEED, TRACE_SAMPLES, MAX_ALIGN_PAIRS, RAY_DIRS, WALK_SLACK, WALK_HOP, TURN_TIE;
 var init_boolean = __esm({
   "engine/src/geom/boolean.ts"() {
     "use strict";
     init_bezier();
     init_intersect();
+    init_operations();
+    init_near_pieces();
+    init_ray_cast();
     init_path();
     GeomLimitError = class extends Error {
       op;
@@ -57996,7 +58071,6 @@ var init_boolean = __esm({
     MAX_CONTACT_NODES = 300;
     CONTACT_SEED = 1 / 64;
     MAX_CONTACT_LEAVES = 24;
-    T_GUARD = 1e-7;
     reverseCubic = (k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]];
     DECIDE_TS = [0.5, 0.25, 0.75, 0.375, 0.625];
     DECIDE_SPEED = 0.1;
@@ -58815,9 +58889,109 @@ var init_fit = __esm({
   }
 });
 
+// engine/src/geom/offset-source.ts
+function offsetPoint(c, t, d) {
+  const tan = unitTangent(c, t);
+  if (!tan) return null;
+  const p = evalCubic(c, t);
+  return { x: p.x - d * tan.y, y: p.y + d * tan.x };
+}
+function unitTangent(c, t) {
+  const d = tangentAt(c, t);
+  const len2 = Math.hypot(d.x, d.y);
+  if (len2 > 1e-12) return { x: d.x / len2, y: d.y / len2 };
+  const legs = t < 0.5 ? [
+    [c[4] - c[0], c[5] - c[1]],
+    [c[6] - c[0], c[7] - c[1]]
+  ] : [
+    [c[6] - c[2], c[7] - c[3]],
+    [c[6] - c[0], c[7] - c[1]]
+  ];
+  for (const [dx, dy] of legs) {
+    const l = Math.hypot(dx, dy);
+    if (l > 1e-12) return { x: dx / l, y: dy / l };
+  }
+  return null;
+}
+var init_offset_source = __esm({
+  "engine/src/geom/offset-source.ts"() {
+    "use strict";
+    init_bezier();
+  }
+});
+
+// engine/src/geom/offset-error.ts
+function offsetError(src, approx, d, tol) {
+  const boxes = approx.map(boundsCubic);
+  const worst = { error: 0, t: 0.5 };
+  let budget3 = ERROR_BUDGET;
+  const measure3 = (u) => {
+    const want = offsetPoint(src, u, d);
+    if (!want) return null;
+    if (u > 0 && u < 1) {
+      const e = nearestOnChain(approx, want, boxes);
+      if (e > worst.error) {
+        worst.error = e;
+        worst.t = u;
+      }
+    }
+    return want;
+  };
+  const refine = (u0, u1, w0, w1, depth) => {
+    if (budget3 <= 0 || depth >= MAX_ERROR_DEPTH) return;
+    budget3--;
+    const um = (u0 + u1) / 2;
+    const wm = measure3(um);
+    if (!w0 || !w1 || !wm || sagitta(w0, wm, w1) <= tol) return;
+    refine(u0, um, w0, wm, depth + 1);
+    refine(um, u1, wm, w1, depth + 1);
+  };
+  let prev = measure3(0);
+  for (let i = 1; i <= ERROR_SAMPLES; i++) {
+    const u = i / ERROR_SAMPLES;
+    const here = measure3(u);
+    refine(u - 1 / ERROR_SAMPLES, u, prev, here, 0);
+    prev = here;
+  }
+  return worst;
+}
+function nearestOnChain(chain2, p, boxes) {
+  let best = Infinity;
+  for (let i = 0; i < chain2.length; i++) {
+    const k = chain2[i];
+    const b = boxes[i];
+    const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1);
+    if (Math.hypot(dx, dy) >= best) continue;
+    const e = nearestOnCubic(k, p.x, p.y).distance;
+    if (e < best) best = e;
+  }
+  return best;
+}
+function sagitta(a, m2, b) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < 1e-12) return Math.hypot(m2.x - a.x, m2.y - a.y);
+  return Math.abs((m2.x - a.x) * dy - (m2.y - a.y) * dx) / len2;
+}
+var ERROR_SAMPLES, MAX_ERROR_DEPTH, ERROR_BUDGET;
+var init_offset_error = __esm({
+  "engine/src/geom/offset-error.ts"() {
+    "use strict";
+    init_bezier();
+    init_offset_source();
+    ERROR_SAMPLES = 12;
+    MAX_ERROR_DEPTH = 20;
+    ERROR_BUDGET = 512;
+  }
+});
+
 // engine/src/geom/offset.ts
-function offsetCubic(c, distance4, tol = DEFAULT_TOL2) {
-  return offsetPieces(c, distance4, tol).map((p) => p.curve);
+function offsetCubic(c, distance4, tol = DEFAULT_TOL2, operations) {
+  return offsetPiecesWithOperations(c, distance4, tol, operations).map((p) => p.curve);
+}
+function offsetPiecesWithOperations(c, distance4, tol, operations) {
+  if (!operations?.fitting || !isFiniteCubic2(c) || !Number.isFinite(distance4) || Math.abs(distance4) < 1e-12) return offsetPieces(c, distance4, tol);
+  return operations.fitting(c, distance4, Math.max(tol, 1e-9));
 }
 function offsetPieces(c, distance4, tol) {
   if (!isFiniteCubic2(c)) return [];
@@ -58898,76 +59072,9 @@ function offsetBreaks(c, d) {
   for (const t of offsetCuspParams(c, d)) out.push(t);
   return out.sort((a, b) => a - b);
 }
-function offsetError(src, approx, d, tol) {
-  const worst = { error: 0, t: 0.5 };
-  let budget3 = ERROR_BUDGET;
-  const measure3 = (u) => {
-    const want = offsetPoint(src, u, d);
-    if (!want) return null;
-    if (u > 0 && u < 1) {
-      const e = nearestOnChain(approx, want);
-      if (e > worst.error) {
-        worst.error = e;
-        worst.t = u;
-      }
-    }
-    return want;
-  };
-  const refine = (u0, u1, w0, w1, depth) => {
-    if (budget3 <= 0 || depth >= MAX_ERROR_DEPTH) return;
-    budget3--;
-    const um = (u0 + u1) / 2;
-    const wm = measure3(um);
-    if (!w0 || !w1 || !wm || sagitta(w0, wm, w1) <= tol) return;
-    refine(u0, um, w0, wm, depth + 1);
-    refine(um, u1, wm, w1, depth + 1);
-  };
-  let prev = measure3(0);
-  for (let i = 1; i <= ERROR_SAMPLES; i++) {
-    const u = i / ERROR_SAMPLES;
-    const here = measure3(u);
-    refine(u - 1 / ERROR_SAMPLES, u, prev, here, 0);
-    prev = here;
-  }
-  return worst;
-}
-function nearestOnChain(chain2, p) {
-  let best = Infinity;
-  for (const k of chain2) {
-    const b = boundsCubic(k);
-    const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1);
-    if (Math.hypot(dx, dy) >= best) continue;
-    const e = nearestOnCubic(k, p.x, p.y).distance;
-    if (e < best) best = e;
-  }
-  return best;
-}
-function sagitta(a, m2, b) {
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const len2 = Math.hypot(dx, dy);
-  if (len2 < 1e-12) return Math.hypot(m2.x - a.x, m2.y - a.y);
-  return Math.abs((m2.x - a.x) * dy - (m2.y - a.y) * dx) / len2;
-}
 function isFiniteCubic2(c) {
   for (let i = 0; i < 8; i++) if (!Number.isFinite(c[i])) return false;
   return true;
-}
-function offsetPoint(c, t, d) {
-  const tan = unitTangent(c, t);
-  if (!tan) return null;
-  const p = evalCubic(c, t);
-  return { x: p.x - d * tan.y, y: p.y + d * tan.x };
-}
-function unitTangent(c, t) {
-  const d = tangentAt(c, t);
-  const len2 = Math.hypot(d.x, d.y);
-  if (len2 > 1e-12) return { x: d.x / len2, y: d.y / len2 };
-  const legs = t < 0.5 ? [[c[4] - c[0], c[5] - c[1]], [c[6] - c[0], c[7] - c[1]]] : [[c[6] - c[2], c[7] - c[3]], [c[6] - c[0], c[7] - c[1]]];
-  for (const [dx, dy] of legs) {
-    const l = Math.hypot(dx, dy);
-    if (l > 1e-12) return { x: dx / l, y: dy / l };
-  }
-  return null;
 }
 function featureSpans(c) {
   const spans = [];
@@ -59134,7 +59241,7 @@ function offsetContour(c, distance4, opts = {}) {
   const area2 = contourArea(cc);
   const curves2 = buildOffset(cc, distance4 * outwardSign(area2), opts);
   if (!curves2.length) return [];
-  return resolveLoops([{ curves: curves2, closed: true }], [cc], distance4, area2 > 0);
+  return resolveLoops([{ curves: curves2, closed: true }], [cc], distance4, area2 > 0, opts.operations);
 }
 function offsetPath(p, distance4, opts = {}) {
   const src = p.map(finiteContour).filter((c) => c !== null);
@@ -59158,7 +59265,7 @@ function offsetPath(p, distance4, opts = {}) {
       const curves2 = buildOffset(c, signed, opts);
       if (curves2.length) loops.push({ curves: curves2, closed: true });
     }
-    if (loops.length) out.push(...resolveLoops(loops, closed, distance4, ref > 0));
+    if (loops.length) out.push(...resolveLoops(loops, closed, distance4, ref > 0, opts.operations));
   }
   for (const c of open3) {
     const curves2 = buildOffset(c, distance4, opts);
@@ -59177,8 +59284,8 @@ function offsetSweep(c, distance4, opts = {}) {
 function outwardSign(area2) {
   return area2 > 0 ? -1 : 1;
 }
-function resolveLoops(raw, src, distance4, wantCcw) {
-  const resolved2 = compactPath(selfUnion(raw));
+function resolveLoops(raw, src, distance4, wantCcw, operations) {
+  const resolved2 = compactPath(selfUnion(raw, { operations }));
   const probes = regionProber(resolved2);
   const kept = resolved2.filter((c) => probes(c).some(
     (p) => isOffsetMaterial(src, p.left, distance4)
@@ -59258,7 +59365,7 @@ function buildOffset(c, d, opts) {
   const seq = [];
   const corners = [];
   for (const k of c.curves) {
-    const pieces = offsetPieces(k, d, tol);
+    const pieces = offsetPiecesWithOperations(k, d, tol, opts.operations);
     for (let i = 0; i < pieces.length; i++) {
       seq.push(pieces[i]);
       corners.push(i === pieces.length - 1 ? { x: k[6], y: k[7] } : null);
@@ -59498,7 +59605,7 @@ function normalise2(v) {
 function direction(from, to) {
   return normalise2({ x: to.x - from.x, y: to.y - from.y });
 }
-var DEFAULT_TOL2, DEFAULT_MITER_LIMIT, MAX_OFFSET_DEPTH, MAX_FIT_DEPTH, MAX_FIT_ITERATIONS, MAX_FIT_SEGMENTS, ERROR_SAMPLES, MAX_ERROR_DEPTH, ERROR_BUDGET, PROBE_CURVES, MIN_SPAN;
+var DEFAULT_TOL2, DEFAULT_MITER_LIMIT, MAX_OFFSET_DEPTH, MAX_FIT_DEPTH, MAX_FIT_ITERATIONS, MAX_FIT_SEGMENTS, PROBE_CURVES, MIN_SPAN;
 var init_offset = __esm({
   "engine/src/geom/offset.ts"() {
     "use strict";
@@ -59507,15 +59614,14 @@ var init_offset = __esm({
     init_path();
     init_boolean();
     init_fit();
+    init_offset_error();
+    init_offset_source();
     DEFAULT_TOL2 = 0.01;
     DEFAULT_MITER_LIMIT = 4;
     MAX_OFFSET_DEPTH = 8;
     MAX_FIT_DEPTH = 16;
     MAX_FIT_ITERATIONS = 8;
     MAX_FIT_SEGMENTS = 32;
-    ERROR_SAMPLES = 12;
-    MAX_ERROR_DEPTH = 20;
-    ERROR_BUDGET = 512;
     PROBE_CURVES = 6;
     MIN_SPAN = 1e-4;
   }
@@ -59526,7 +59632,7 @@ function strokeToPath(p, width, opts = {}) {
   if (!(width > 0)) return [];
   const r5 = width / 2;
   const cap = opts.cap ?? "butt";
-  const off = { join: opts.join ?? "miter", miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
+  const off = { operations: opts.operations, join: opts.join ?? "miter", miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
   const raw = [];
   for (const c of p) {
     if (!c.curves.length) continue;
@@ -59542,7 +59648,7 @@ function strokeToPath(p, width, opts = {}) {
     }
   }
   if (!raw.length) return [];
-  return keptContours(selfUnion(raw, { fillRule: "nonzero" }), p, r5);
+  return keptContours(selfUnion(raw, { fillRule: "nonzero", operations: opts.operations }), p, r5);
 }
 function keptContours(resolved2, centreline, r5) {
   if (resolved2.length < 2) return resolved2;
@@ -60831,6 +60937,54 @@ var init_vector_paint = __esm({
   }
 });
 
+// engine/src/geom-nearest-cache.ts
+function createNearestPathCache(parse) {
+  const entries = /* @__PURE__ */ new Map();
+  let characters = 0, curves2 = 0;
+  function load2(d) {
+    const cached2 = typeof d === "string" ? entries.get(d) : void 0;
+    if (cached2 && typeof d === "string") {
+      entries.delete(d);
+      entries.set(d, cached2);
+      return cached2.path;
+    }
+    const path = parse(d);
+    if (!Array.isArray(path) || typeof d !== "string") return path;
+    const count4 = path.reduce((total, contour) => total + contour.curves.length, 0);
+    if (d.length > NEAREST_CACHE_LIMITS.maxCharacters || count4 > NEAREST_CACHE_LIMITS.maxCurves)
+      return path;
+    while (entries.size >= NEAREST_CACHE_LIMITS.maxEntries || characters + d.length > NEAREST_CACHE_LIMITS.maxCharacters || curves2 + count4 > NEAREST_CACHE_LIMITS.maxCurves) {
+      const oldest = entries.keys().next().value;
+      if (oldest === void 0) break;
+      const previous = entries.get(oldest);
+      entries.delete(oldest);
+      characters -= oldest.length;
+      curves2 -= previous.curves;
+    }
+    entries.set(d, { path, curves: count4 });
+    characters += d.length;
+    curves2 += count4;
+    return path;
+  }
+  function clear() {
+    entries.clear();
+    characters = 0;
+    curves2 = 0;
+  }
+  return { load: load2, clear, stats: () => ({ entries: entries.size, characters, curves: curves2 }) };
+}
+var NEAREST_CACHE_LIMITS;
+var init_geom_nearest_cache = __esm({
+  "engine/src/geom-nearest-cache.ts"() {
+    "use strict";
+    NEAREST_CACHE_LIMITS = Object.freeze({
+      maxEntries: 8,
+      maxCharacters: 1024e3,
+      maxCurves: 32e3
+    });
+  }
+});
+
 // engine/src/geom-api.ts
 function fail2(code, message) {
   return { ok: false, code, message };
@@ -60863,6 +61017,7 @@ function attempt(run3) {
     return run3();
   } catch (e) {
     if (e instanceof GeomLimitError) return fail2("limit", e.message);
+    if (e instanceof GeometryOperationError) return fail2(e.code, `geom: ${e.message}`);
     const msg3 = e instanceof Error ? e.message : String(e);
     if (/unknown spline kind/i.test(msg3)) return fail2("invalid-argument", `geom: ${msg3}`);
     if (/not implemented/i.test(msg3)) return fail2("unsupported", `geom: ${msg3}`);
@@ -61064,13 +61219,15 @@ function nodeIn(n6) {
   }
   return o;
 }
-function makeGeomApi() {
+function makeGeomApi(dependencies = {}) {
+  const operations = Object.freeze({ ...dependencies });
+  const nearestCache = createNearestPathCache(parsePath);
   const boolOp = (ds, op, opts) => {
     const bad = checkEnums(opts);
     if (bad) return bad;
     const paths = parsePaths(ds);
     if (isFail(paths)) return paths;
-    return attempt(() => pathOut(fold(paths, op, booleanOpts(opts)), opts?.decimals));
+    return attempt(() => pathOut(fold(paths, op, { ...booleanOpts(opts), operations }), opts?.decimals));
   };
   return {
     paintAuthored: (path, paint2, width, height, prefix) => {
@@ -61089,7 +61246,7 @@ function makeGeomApi() {
       if (bad) return bad;
       const p = parsePath(d);
       if (isFail(p)) return p;
-      return attempt(() => pathOut(selfUnion(p, booleanOpts(opts)), opts?.decimals));
+      return attempt(() => pathOut(selfUnion(p, { ...booleanOpts(opts), operations }), opts?.decimals));
     },
     offset: (d, distance4, opts) => {
       const bad = checkEnums(opts);
@@ -61102,7 +61259,7 @@ function makeGeomApi() {
       }
       const p = parsePath(d);
       if (isFail(p)) return p;
-      return attempt(() => pathOut(offsetPath(p, distance4, offsetOpts(opts)), opts?.decimals));
+      return attempt(() => pathOut(offsetPath(p, distance4, { ...offsetOpts(opts), operations }), opts?.decimals));
     },
     stroke: (d, width, opts) => {
       const bad = checkEnums(opts);
@@ -61115,6 +61272,7 @@ function makeGeomApi() {
       if (isFail(p)) return p;
       return attempt(() => pathOut(strokeToPath(p, width, {
         ...offsetOpts(opts),
+        operations,
         ...opts?.cap ? { cap: opts.cap } : {}
       }), opts?.decimals));
     },
@@ -61260,7 +61418,7 @@ function makeGeomApi() {
     nearest: (d, x, y) => {
       const pt = point(x, y);
       if (isFail(pt)) return pt;
-      const p = parsePath(d);
+      const p = nearestCache.load(d);
       if (isFail(p)) return p;
       let best = null;
       for (let ci = 0; ci < p.length; ci++) {
@@ -61301,6 +61459,7 @@ var MAX_CHARS2, MAX_COMMANDS, MAX_CURVES2, MAX_PATHS, MAX_NODES2, MAX_COORD, LIM
 var init_geom_api = __esm({
   "engine/src/geom-api.ts"() {
     "use strict";
+    init_operations();
     init_bezier();
     init_path();
     init_boolean();
@@ -61311,6 +61470,7 @@ var init_geom_api = __esm({
     init_fit();
     init_svg_path();
     init_vector_paint();
+    init_geom_nearest_cache();
     MAX_CHARS2 = 512e3;
     MAX_COMMANDS = 2e4;
     MAX_CURVES2 = 16e3;
@@ -61987,12 +62147,12 @@ function gatherHostSeeds(host) {
     "matte.isAvailable": call2("matte", "isAvailable")
   };
 }
-function makeColocatedApis() {
-  return { color: makeColorApi(), geom: makeGeomApi() };
+function makeColocatedApis(geom) {
+  return { color: makeColorApi(), geom: geom ?? makeGeomApi() };
 }
 function createHookWorkerCore(port, opts = {}) {
   const runs2 = /* @__PURE__ */ new Map();
-  const apis = makeColocatedApis();
+  const apis = makeColocatedApis(opts.geom);
   let hostCallCounter = 0;
   const nextHostCallId = opts.hostCallSeq ?? (() => ++hostCallCounter);
   const canRaster = opts.canRaster ?? (() => false);
@@ -112516,16 +112676,16 @@ async function composeParagraphLines(story, range, prepared3, width) {
       const decision2 = chooseParagraphBreaks(graph, greedy);
       selected = decision2.ends;
       limited2 ||= decision2.limited;
-      let previous2 = 0, invalid2 = false;
+      let previous2 = 0, invalid4 = false;
       for (const [index2, end] of selected.entries()) {
         const line = await shape(previous2, end);
         if (!fits(previous2, end, width(firstLine2 + index2), line) && end > previous2 + 1) {
           forbidden.add(`${previous2}:${end}`);
-          invalid2 = true;
+          invalid4 = true;
         }
         previous2 = end;
       }
-      if (!invalid2) break;
+      if (!invalid4) break;
       if (attempt2 === 2) {
         selected = greedy;
         limited2 = true;
@@ -148418,6 +148578,523 @@ var init_photo_look2 = __esm({
   }
 });
 
+// packages/node-shell/src/geometry-kernel-contract.ts
+var GeometryKernelError;
+var init_geometry_kernel_contract = __esm({
+  "packages/node-shell/src/geometry-kernel-contract.ts"() {
+    "use strict";
+    GeometryKernelError = class extends Error {
+      code;
+      constructor(code, message) {
+        super(message);
+        this.name = "GeometryKernelError";
+        this.code = code;
+      }
+    };
+  }
+});
+
+// packages/node-shell/src/geometry-operation-scope.ts
+function createGeometryOperationScope(modules) {
+  const clipping = modules.clipping, fitting = modules.fitting;
+  let clip3;
+  let fit;
+  let disposed = false, clipCalls = 0, fitCalls = 0;
+  function invoke(run3) {
+    if (disposed) throw new GeometryOperationError("invalid-argument", "This geometry operation has been disposed.");
+    try {
+      return run3();
+    } catch (error2) {
+      if (error2 instanceof GeometryKernelError) throw new GeometryOperationError(error2.code, error2.message);
+      throw error2;
+    }
+  }
+  const operations = Object.freeze({
+    ...clipping ? { clipping: (...args) => invoke(() => {
+      clip3 ??= clipping.createClipWorkspace();
+      clipCalls++;
+      return clip3.intersect(...args);
+    }) } : {},
+    ...fitting ? { fitting: (...args) => invoke(() => {
+      fit ??= fitting.createOffsetFitWorkspace();
+      fitCalls++;
+      return fit.fit(...args);
+    }) } : {}
+  });
+  return {
+    operations,
+    stats: () => ({ clipCalls, fitCalls, disposed }),
+    dispose: () => {
+      if (!disposed) {
+        disposed = true;
+        clip3?.dispose();
+        fit?.dispose();
+        clip3 = void 0;
+        fit = void 0;
+      }
+    }
+  };
+}
+var init_geometry_operation_scope = __esm({
+  "packages/node-shell/src/geometry-operation-scope.ts"() {
+    "use strict";
+    init_operations();
+    init_geometry_kernel_contract();
+  }
+});
+
+// packages/node-shell/src/geometry-host.ts
+function isGeometryBackend(value) {
+  return value === "typescript" || value === "wasm-clipping" || value === "wasm-host-fitting" || value === "wasm-host-norm-clipping" || value === "wasm-host-norm-fitting" || value === "wasm-host-curves" || value === "wasm-host-norm-curves";
+}
+function geometryBackendModules(backend) {
+  if (!isGeometryBackend(backend)) throw Error("Unknown geometry backend.");
+  return Object.freeze({ norm: backend === "wasm-host-norm-clipping" || backend === "wasm-host-norm-fitting" || backend === "wasm-host-norm-curves", fitting: backend === "wasm-host-fitting" || backend === "wasm-host-norm-fitting" || backend === "wasm-host-curves" || backend === "wasm-host-norm-curves", curvesOnly: backend === "wasm-host-curves" || backend === "wasm-host-norm-curves" });
+}
+function createGeometryHost(modules = {}, operations = "all") {
+  if (operations !== "all" && operations !== "curves") throw Error("Unknown geometry operation selection.");
+  if (operations === "curves" && (!modules.clipping || !modules.fitting)) throw Error("Curve selection requires matching clipping and fitting modules.");
+  if (modules.fitting && !modules.clipping) throw Error("Host fitting selection requires the clipping module.");
+  const norm2 = modules.clipping?.stats().mathBackend === "host-norm";
+  if (modules.fitting && modules.fitting.stats().mathBackend !== (norm2 ? "host-norm" : "host")) throw Error("Host fitting selection requires host maths matching the clipping module.");
+  const selected = Object.freeze({ ...modules });
+  const backend = operations === "curves" ? norm2 ? "wasm-host-norm-curves" : "wasm-host-curves" : norm2 ? selected.fitting ? "wasm-host-norm-fitting" : "wasm-host-norm-clipping" : selected.fitting ? "wasm-host-fitting" : selected.clipping ? "wasm-clipping" : "typescript";
+  let disposed = false, calls = 0, clipCalls = 0, fitCalls = 0, typeScriptCalls = 0;
+  const base = makeGeomApi();
+  function run3(operation, boolean = false) {
+    if (disposed) return { ok: false, code: "invalid-argument", message: "geom: This geometry host has been disposed." };
+    calls++;
+    if (operations === "curves" && boolean) {
+      typeScriptCalls++;
+      return operation(base);
+    }
+    const owner2 = createGeometryOperationScope(selected);
+    try {
+      return operation(makeGeomApi(owner2.operations));
+    } finally {
+      owner2.dispose();
+      const stats = owner2.stats();
+      clipCalls += stats.clipCalls;
+      fitCalls += stats.fitCalls;
+    }
+  }
+  const api = {
+    ...base,
+    union: (...args) => run3((api2) => api2.union(...args), true),
+    intersect: (...args) => run3((api2) => api2.intersect(...args), true),
+    difference: (...args) => run3((api2) => api2.difference(...args), true),
+    xor: (...args) => run3((api2) => api2.xor(...args), true),
+    selfUnion: (...args) => run3((api2) => api2.selfUnion(...args), true),
+    offset: (...args) => run3((api2) => api2.offset(...args)),
+    stroke: (...args) => run3((api2) => api2.stroke(...args))
+  };
+  backends.set(api, backend);
+  return { api, backend, stats: () => ({ calls, typeScriptCalls, clipCalls, fitCalls, disposed, operations, clipping: selected.clipping?.stats(), fitting: selected.fitting?.stats() }), dispose: () => {
+    disposed = true;
+  } };
+}
+var backends;
+var init_geometry_host = __esm({
+  "packages/node-shell/src/geometry-host.ts"() {
+    "use strict";
+    init_geom_api();
+    init_geometry_operation_scope();
+    backends = /* @__PURE__ */ new WeakMap();
+  }
+});
+
+// packages/node-shell/src/geometry-clipping.ts
+function invalid2(message) {
+  throw new GeometryKernelError("invalid-argument", message);
+}
+async function createGeometryClipping(bytes, mathBackend = "retained") {
+  if (mathBackend !== "retained" && mathBackend !== "host-norm") invalid2("Unknown clipping maths backend.");
+  const compiled2 = await WebAssembly.compile(bytes);
+  const imported = WebAssembly.Module.imports(compiled2), hostNorm = mathBackend === "host-norm";
+  if (hostNorm ? imported.length !== 1 || imported[0].module !== "lolly_math" || imported[0].name !== "hypot" || imported[0].kind !== "function" : imported.length !== 0)
+    throw new GeometryKernelError("internal", "The clipping module has an unexpected host import.");
+  let normCalls = 0;
+  const host = { hypot(x, y) {
+    normCalls++;
+    return Math.hypot(x, y);
+  } };
+  const api = (await WebAssembly.instantiate(compiled2, hostNorm ? { lolly_math: host } : {})).exports;
+  if (!(api.memory instanceof WebAssembly.Memory) || [
+    "geom_alloc",
+    "geom_free",
+    "geom_buffer_bytes",
+    "geom_clip_create",
+    "geom_clip_len",
+    "geom_clip_read",
+    "geom_clip_free",
+    "geom_clip_count",
+    "geom_clip_hits"
+  ].some((name) => typeof api[name] !== "function"))
+    throw new GeometryKernelError("internal", "The clipping module has an incomplete owned ABI.");
+  return {
+    createClipWorkspace: () => createClipWorkspace(api),
+    stats: () => ({
+      results: api.geom_clip_count(),
+      hits: api.geom_clip_hits(),
+      bufferBytes: api.geom_buffer_bytes(),
+      linearBytes: api.memory.buffer.byteLength,
+      mathBackend,
+      mathCalls: { hypot: normCalls }
+    })
+  };
+}
+function createClipWorkspace(api) {
+  let query2 = 0, output = 0, count4 = -1, disposed = false;
+  function release() {
+    api.geom_free(query2);
+    api.geom_free(output);
+    query2 = output = 0;
+    count4 = -1;
+  }
+  function dispose() {
+    if (!disposed) {
+      disposed = true;
+      release();
+    }
+  }
+  function intersect2(a, b, tol, limits = GEOMETRY_CLIP_LIMITS) {
+    if (disposed) invalid2("This clipping workspace has been disposed.");
+    if (a.length !== 8 || b.length !== 8 || [...a, ...b, tol].some((v) => !Number.isFinite(v) || Math.abs(v) > 1e9) || tol <= 0)
+      invalid2("Clipping requires finite cubic coordinates and a positive bounded tolerance.");
+    for (const [value, cap] of [
+      [limits.initial, 1e7],
+      [limits.overrun, 262144],
+      [limits.stalled, 65536]
+    ])
+      if (!Number.isInteger(value) || value < 0 || value > cap)
+        invalid2("Clipping work controls exceed the supported range.");
+    try {
+      if (!query2) {
+        query2 = api.geom_alloc(160);
+        if (!query2)
+          throw new GeometryKernelError("limit", "The clipping kernel refused its query buffer.");
+      }
+      const input = new DataView(api.memory.buffer);
+      [...a, ...b, tol, limits.initial, limits.overrun, limits.stalled].forEach((v, i) => {
+        input.setFloat64(query2 + i * 8, v, true);
+      });
+      const handle = api.geom_clip_create(query2);
+      if (handle <= 0)
+        throw new GeometryKernelError(
+          handle === -2 ? "limit" : handle === -1 ? "invalid-argument" : "internal",
+          `The clipping kernel refused the complete pair search (${handle}).`
+        );
+      try {
+        const length2 = api.geom_clip_len(handle);
+        if (!Number.isInteger(length2) || length2 < 0 || length2 > 129)
+          throw new GeometryKernelError(
+            "internal",
+            "The clipping kernel returned an invalid hit count."
+          );
+        if (length2 !== count4) {
+          api.geom_free(output);
+          output = 0;
+          count4 = -1;
+          output = api.geom_alloc(48 + length2 * 48);
+          if (!output)
+            throw new GeometryKernelError(
+              "limit",
+              "The clipping kernel refused its result buffer."
+            );
+          count4 = length2;
+        }
+        const status = api.geom_clip_read(handle, output);
+        if (status !== 0)
+          throw new GeometryKernelError(
+            "internal",
+            `The clipping kernel refused its owned result (${status}).`
+          );
+        const view = new DataView(api.memory.buffer);
+        const header = Array.from({ length: 6 }, (_, j) => view.getFloat64(output + j * 8, true));
+        if ([0, 2, 3, 5].some((j) => ![0, 1].includes(header[j])) || [1, 4].some((j) => !Number.isInteger(header[j]) || header[j] < 0))
+          throw new GeometryKernelError(
+            "internal",
+            "The clipping kernel returned invalid work counters."
+          );
+        const hits2 = [];
+        for (let i = 0; i < length2; i++) {
+          const r5 = Array.from(
+            { length: 6 },
+            (_, j) => view.getFloat64(output + 48 + i * 48 + j * 8, true)
+          );
+          if (r5.some((v) => !Number.isFinite(v)) || ![0, 1].includes(r5[4]))
+            throw new GeometryKernelError(
+              "internal",
+              "The clipping kernel returned invalid source contacts."
+            );
+          hits2.push({ t1: r5[0], t2: r5[1], x: r5[2], y: r5[3], ...r5[4] ? { dir: r5[5] } : {} });
+        }
+        return {
+          hits: hits2,
+          counts: {
+            reached: !!header[0],
+            nodes: header[1],
+            overrun: !!header[2],
+            searched: !!header[3],
+            overrunNodes: header[4],
+            ceiling: !!header[5]
+          }
+        };
+      } finally {
+        api.geom_clip_free(handle);
+      }
+    } catch (error2) {
+      release();
+      throw error2;
+    }
+  }
+  return { intersect: intersect2, dispose };
+}
+var GEOMETRY_CLIP_LIMITS;
+var init_geometry_clipping = __esm({
+  "packages/node-shell/src/geometry-clipping.ts"() {
+    "use strict";
+    init_geometry_kernel_contract();
+    GEOMETRY_CLIP_LIMITS = { initial: 16384, overrun: 131072, stalled: 65536 };
+  }
+});
+
+// packages/node-shell/src/geometry-clipping-node.ts
+import { readFile as readFile14 } from "node:fs/promises";
+async function loadGeometryClipping(mathBackend = "retained") {
+  return createGeometryClipping(
+    await readFile14(new URL(mathBackend === "host-norm" ? "../wasm/geometry-kernel/geometry-clip-host-norm.wasm" : "../wasm/geometry-kernel/geometry-clip.wasm", import.meta.url)),
+    mathBackend
+  );
+}
+var init_geometry_clipping_node = __esm({
+  "packages/node-shell/src/geometry-clipping-node.ts"() {
+    "use strict";
+    init_geometry_clipping();
+  }
+});
+
+// packages/node-shell/src/geometry-fitting.ts
+function invalid3(message) {
+  throw new GeometryKernelError("invalid-argument", message);
+}
+function coordinate2(value) {
+  if (!Number.isFinite(value) || Math.abs(value) > 1e9)
+    invalid3("Offset fitting values must be finite and within the supported range.");
+}
+async function createGeometryFitting(bytes, mathBackend = "host") {
+  if (mathBackend !== "host" && mathBackend !== "portable" && mathBackend !== "host-norm")
+    invalid3("Unknown fitting maths backend.");
+  const compiled2 = await WebAssembly.compile(bytes);
+  const names = ["sin", "cos", "acos", "cbrt", "atan2"];
+  const expected = mathBackend === "host-norm" ? [...names, "hypot"] : names;
+  const imported = WebAssembly.Module.imports(compiled2);
+  if (mathBackend === "portable" ? imported.length !== 0 : imported.length !== expected.length || expected.some(
+    (name) => imported.filter(
+      (entry2) => entry2.module === "lolly_math" && entry2.name === name && entry2.kind === "function"
+    ).length !== 1
+  ))
+    throw new GeometryKernelError("internal", "The fitting module has an unexpected host import.");
+  const mathCalls = { sin: 0, cos: 0, acos: 0, cbrt: 0, atan2: 0 };
+  let normCalls = 0;
+  const host = {
+    hypot(x, y) {
+      normCalls++;
+      return Math.hypot(x, y);
+    },
+    sin(x) {
+      mathCalls.sin++;
+      return Math.sin(x);
+    },
+    cos(x) {
+      mathCalls.cos++;
+      return Math.cos(x);
+    },
+    acos(x) {
+      mathCalls.acos++;
+      return Math.acos(x);
+    },
+    cbrt(x) {
+      mathCalls.cbrt++;
+      return Math.cbrt(x);
+    },
+    atan2(y, x) {
+      mathCalls.atan2++;
+      return Math.atan2(y, x);
+    }
+  };
+  const instance = await WebAssembly.instantiate(
+    compiled2,
+    mathBackend === "portable" ? {} : { lolly_math: host }
+  );
+  const api = instance.exports;
+  if (!(api.memory instanceof WebAssembly.Memory) || [
+    "geom_alloc",
+    "geom_free",
+    "geom_buffer_bytes",
+    "geom_offset_fit_create",
+    "geom_offset_fit_len",
+    "geom_offset_fit_read",
+    "geom_offset_fit_free",
+    "geom_offset_fit_count",
+    "geom_offset_fit_pieces"
+  ].some((name) => typeof api[name] !== "function"))
+    throw new GeometryKernelError("internal", "The fitting module has an incomplete owned ABI.");
+  if (mathBackend === "portable" && names.some((name) => typeof api["geom_math_" + name] !== "function"))
+    throw new GeometryKernelError(
+      "internal",
+      "The portable fitting module has incomplete scalar maths."
+    );
+  return {
+    createOffsetFitWorkspace: () => createOffsetFitWorkspace(api),
+    stats: () => ({
+      mathBackend,
+      results: api.geom_offset_fit_count(),
+      pieces: api.geom_offset_fit_pieces(),
+      bufferBytes: api.geom_buffer_bytes(),
+      linearBytes: api.memory.buffer.byteLength,
+      mathCalls: { ...mathCalls, ...mathBackend === "host-norm" ? { hypot: normCalls } : {} }
+    })
+  };
+}
+function createOffsetFitWorkspace(api) {
+  let query2 = 0, output = 0, count4 = 0, disposed = false;
+  function release() {
+    api.geom_free(query2);
+    api.geom_free(output);
+    query2 = 0;
+    output = 0;
+    count4 = 0;
+  }
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    release();
+  }
+  function fit(src, distance4, tol) {
+    if (disposed) invalid3("This offset fitting workspace has been disposed.");
+    if (src.length !== 8) invalid3("Offset fitting requires eight cubic coordinates.");
+    for (const value of src) coordinate2(value);
+    coordinate2(distance4);
+    coordinate2(tol);
+    if (tol <= 0) invalid3("Offset fitting requires a positive tolerance.");
+    try {
+      if (!query2) {
+        query2 = api.geom_alloc(80);
+        if (!query2)
+          throw new GeometryKernelError("limit", "The fitting kernel refused its query buffer.");
+      }
+      const input = new DataView(api.memory.buffer);
+      [...src, distance4, tol].forEach((value, i) => {
+        input.setFloat64(query2 + i * 8, value, true);
+      });
+      const handle = api.geom_offset_fit_create(query2);
+      if (handle <= 0)
+        throw new GeometryKernelError(
+          handle === -2 ? "limit" : handle === -1 ? "invalid-argument" : "internal",
+          `The fitting kernel refused the complete offset operation (${handle}).`
+        );
+      try {
+        const length2 = api.geom_offset_fit_len(handle);
+        if (!Number.isInteger(length2) || length2 < 0 || length2 > GEOMETRY_MAX_OFFSET_PIECES)
+          throw new GeometryKernelError(
+            "internal",
+            "The fitting kernel returned an invalid piece count."
+          );
+        if (!length2) return [];
+        if (length2 !== count4) {
+          api.geom_free(output);
+          output = 0;
+          count4 = 0;
+          output = api.geom_alloc(length2 * 112);
+          if (!output)
+            throw new GeometryKernelError("limit", "The fitting kernel refused its result buffer.");
+          count4 = length2;
+        }
+        const status = api.geom_offset_fit_read(handle, output);
+        if (status !== 0)
+          throw new GeometryKernelError(
+            "internal",
+            `The fitting kernel refused its owned result (${status}).`
+          );
+        const result = new DataView(api.memory.buffer);
+        const pieces = [];
+        for (let i = 0; i < length2; i++) {
+          const record38 = Array.from(
+            { length: 14 },
+            (_, j) => result.getFloat64(output + i * 112 + j * 8, true)
+          );
+          if (record38.some((v) => !Number.isFinite(v)) || ![0, 1].includes(record38[8]) || ![0, 1].includes(record38[11]))
+            throw new GeometryKernelError(
+              "internal",
+              "The fitting kernel returned invalid controls or source directions."
+            );
+          pieces.push({
+            curve: record38.slice(0, 8),
+            dirStart: record38[8] ? { x: record38[9], y: record38[10] } : null,
+            dirEnd: record38[11] ? { x: record38[12], y: record38[13] } : null
+          });
+        }
+        return pieces;
+      } finally {
+        api.geom_offset_fit_free(handle);
+      }
+    } catch (error2) {
+      release();
+      throw error2;
+    }
+  }
+  return { fit, dispose };
+}
+var GEOMETRY_MAX_OFFSET_PIECES;
+var init_geometry_fitting = __esm({
+  "packages/node-shell/src/geometry-fitting.ts"() {
+    "use strict";
+    init_geometry_kernel_contract();
+    GEOMETRY_MAX_OFFSET_PIECES = 16384;
+  }
+});
+
+// packages/node-shell/src/geometry-fitting-node.ts
+import { readFile as readFile15 } from "node:fs/promises";
+async function loadGeometryFitting(mathBackend = "host") {
+  const bytes = await readFile15(
+    new URL(
+      mathBackend === "host-norm" ? "../wasm/geometry-kernel/geometry-fit-host-norm.wasm" : mathBackend === "portable" ? "../wasm/geometry-kernel/geometry-fit-portable.wasm" : "../wasm/geometry-kernel/geometry-fit.wasm",
+      import.meta.url
+    )
+  );
+  return createGeometryFitting(bytes, mathBackend);
+}
+var init_geometry_fitting_node = __esm({
+  "packages/node-shell/src/geometry-fitting-node.ts"() {
+    "use strict";
+    init_geometry_fitting();
+  }
+});
+
+// packages/node-shell/src/geometry-host-node.ts
+var geometry_host_node_exports = {};
+__export(geometry_host_node_exports, {
+  loadNodeGeometryHost: () => loadNodeGeometryHost
+});
+async function loadNodeGeometryHost(backend = "typescript") {
+  if (!isGeometryBackend(backend)) throw Error("Unknown geometry backend.");
+  if (backend === "typescript") return createGeometryHost();
+  const { norm: norm2, fitting: useFitting, curvesOnly } = geometryBackendModules(backend);
+  const clipping = await loadGeometryClipping(norm2 ? "host-norm" : "retained");
+  const fitting = useFitting ? await loadGeometryFitting(norm2 ? "host-norm" : "host") : void 0;
+  return createGeometryHost({ clipping, fitting }, curvesOnly ? "curves" : "all");
+}
+var init_geometry_host_node = __esm({
+  "packages/node-shell/src/geometry-host-node.ts"() {
+    "use strict";
+    init_geometry_host();
+    init_geometry_clipping_node();
+    init_geometry_fitting_node();
+  }
+});
+
 // packages/node-shell/src/text-tools.ts
 var text_tools_exports = {};
 __export(text_tools_exports, {
@@ -148482,21 +149159,21 @@ __export(emoji_exports, {
   EMOJI_PACK_TAG: () => EMOJI_PACK_TAG,
   createNodeEmojiAPI: () => createNodeEmojiAPI
 });
-import { readFile as readFile14, stat as stat3 } from "node:fs/promises";
+import { readFile as readFile16, stat as stat3 } from "node:fs/promises";
 import { resolve as resolve3, sep } from "node:path";
 import { gunzip as gunzip2 } from "node:zlib";
 import { promisify } from "node:util";
 async function bundleText(file) {
   try {
     if ((await stat3(file)).size > BUNDLE_MAX_BYTES) return null;
-    return await readFile14(file, "utf8");
+    return await readFile16(file, "utf8");
   } catch (error2) {
     if (error2.code !== "ENOENT") return null;
   }
   try {
     const compressed = `${file}.gz`;
     if ((await stat3(compressed)).size > BUNDLE_MAX_BYTES) return null;
-    const bytes = await inflateBundle(await readFile14(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
+    const bytes = await inflateBundle(await readFile16(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
     return bytes.toString("utf8");
   } catch {
     return null;
@@ -148533,7 +149210,7 @@ async function jsdomParser() {
 async function createNodeEmojiAPI(options2 = {}) {
   const parseXml = options2.parseXml ?? await jsdomParser();
   const catalogDir = options2.catalogDir;
-  const loadIndex2 = async () => catalogDir ? JSON.parse(await readFile14(`${catalogDir.replace(/\/+$/, "")}/assets/index.json`, "utf8")) : readAssetIndex();
+  const loadIndex2 = async () => catalogDir ? JSON.parse(await readFile16(`${catalogDir.replace(/\/+$/, "")}/assets/index.json`, "utf8")) : readAssetIndex();
   const bundles = /* @__PURE__ */ new Map();
   let listed = null;
   async function entries() {
@@ -149744,7 +150421,7 @@ __export(signing_identity_exports, {
   describeIdentity: () => describeIdentity,
   resolveSigningIdentity: () => resolveSigningIdentity
 });
-import { readFile as readFile15 } from "node:fs/promises";
+import { readFile as readFile17 } from "node:fs/promises";
 import { createPrivateKey, createPublicKey, webcrypto } from "node:crypto";
 function readCertChain(bytes, source) {
   const text8 = bytes.toString("latin1");
@@ -149925,7 +150602,7 @@ function sameBytes2(a, b) {
 }
 async function readSecret(path, code, flag2) {
   try {
-    return await readFile15(expandHome(path));
+    return await readFile17(expandHome(path));
   } catch (e) {
     throw new SigningIdentityError(`${flag2}: cannot read "${path}" (${firstLine(e.message)}).`, code);
   }
@@ -150305,7 +150982,7 @@ var init_production_motion = __esm({
 
 // packages/node-shell/src/production-pdf.ts
 import { execFile as execFile3 } from "node:child_process";
-import { mkdtemp as mkdtemp3, readFile as readFile18, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
+import { mkdtemp as mkdtemp3, readFile as readFile20, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
 import { join as join21 } from "node:path";
 import { promisify as promisify4 } from "node:util";
@@ -150345,7 +151022,7 @@ async function collectProductionPdf(bytes, contract2, signal) {
       if (pages !== 1 || !facts2.width || !facts2.height || Math.ceil(facts2.width) * Math.ceil(facts2.height) > PRODUCTION_MAX_PIXELS) facts2.limitations.push("pdf-pixel-budget-or-multiple-pages");
       else {
         await exec("pdftoppm", ["-f", "1", "-singlefile", "-cropbox", "-scale-dimension-before-rotation", "-r", "96", "-png", file, join21(dir, "page")], opts);
-        const raster = await productionRaster(new Uint8Array(await readFile18(join21(dir, "page.png"))), signal);
+        const raster = await productionRaster(new Uint8Array(await readFile20(join21(dir, "page.png"))), signal);
         facts2.pixels = raster.pixels;
         facts2.opaque = raster.opaque;
       }
@@ -150885,7 +151562,7 @@ __export(webshell_render_exports, {
   transformViaWebShell: () => transformViaWebShell
 });
 import { createServer as createServer2 } from "node:http";
-import { readFile as readFile21, stat as stat6 } from "node:fs/promises";
+import { readFile as readFile23, stat as stat6 } from "node:fs/promises";
 import { existsSync as existsSync13, writeFileSync as writeFileSync2 } from "node:fs";
 import { join as join24, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
@@ -150946,7 +151623,7 @@ function serveDist2() {
       if (!live && (urlPath === "/" || !existsSync13(filePath) || !(await stat6(filePath)).isFile())) {
         filePath = join24(root2, "index.html");
       }
-      const data = await readFile21(filePath);
+      const data = await readFile23(filePath);
       res.setHeader("Content-Type", MIME4[extname3(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
@@ -151198,7 +151875,7 @@ async function transformViaWebShell({ toolId, fileInputId: fileInputId2, file, q
     }
     const path = await outcome.d.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes = new Uint8Array(await readFile21(path));
+    const bytes = new Uint8Array(await readFile23(path));
     const filename = outcome.d.suggestedFilename() || file.name;
     await outcome.d.delete().catch(() => {
     });
@@ -151235,7 +151912,7 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     debug.step("read the downloaded bytes");
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes = new Uint8Array(await readFile21(path));
+    const bytes = new Uint8Array(await readFile23(path));
     await download.delete().catch(() => {
     });
     dims.onProductionInputs?.(observeInputs(bytes));
@@ -151302,7 +151979,7 @@ async function renderVideoViaScreenshot(toolId, query2, format, dims = {}) {
     debug.step("read the downloaded bytes");
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes = new Uint8Array(await readFile21(path));
+    const bytes = new Uint8Array(await readFile23(path));
     await download.delete().catch(() => {
     });
     return { bytes, mime: MIME4["." + format.toLowerCase()] ?? "application/octet-stream" };
@@ -151338,7 +152015,7 @@ async function renderToolPackageViaWebShell(bytes, toolId, query2, format, produ
     const download = await downloading;
     const path = await download.path();
     if (!path) throw new BrowserError("The tool produced no output file.");
-    const rendered = new Uint8Array(await readFile21(path));
+    const rendered = new Uint8Array(await readFile23(path));
     production.onProductionInputs?.(observeInputs(rendered));
     return rendered;
   } finally {
@@ -151444,7 +152121,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
     }
     const path = await download.path();
     if (!path) throw new BrowserError(`The ${format} export of ${label4} yielded no file.`);
-    const out = new Uint8Array(await readFile21(path));
+    const out = new Uint8Array(await readFile23(path));
     const filename = download.suggestedFilename();
     await download.delete().catch(() => {
     });
@@ -152730,8 +153407,8 @@ function lowerDesignAuthoring(doc, ds, opts) {
     return { invalid: { path, message: m2 ? m2[2] : text8 } };
   }
 }
-function authoringInvalid(invalid2, boxes) {
-  const index2 = /^\/boxes\/(\d+)(?:\/|$)/.exec(invalid2.path);
+function authoringInvalid(invalid4, boxes) {
+  const index2 = /^\/boxes\/(\d+)(?:\/|$)/.exec(invalid4.path);
   const row = index2 && Array.isArray(boxes) ? boxes[Number(index2[1])] : void 0;
   const layerId = record31(row) && typeof row.id === "string" && row.id ? row.id : void 0;
   return {
@@ -152739,8 +153416,8 @@ function authoringInvalid(invalid2, boxes) {
     family: "structure",
     severity: "error",
     // The pointer goes in the message too: the text report prints no path.
-    message: `The authoring keys could not be lowered to layers: ${invalid2.path}: ${invalid2.message}`,
-    path: invalid2.path,
+    message: `The authoring keys could not be lowered to layers: ${invalid4.path}: ${invalid4.message}`,
+    path: invalid4.path,
     ...layerId ? { layerId } : {},
     suggestion: "Fix the key at this path; the design-authoring-v1 schema lists every authoring key and macro field.",
     origin: { checker: "design-authoring", id: "authoring.invalid" }
@@ -153623,7 +154300,7 @@ var init_check = __esm({
 });
 
 // packages/node-shell/src/compose-photo-surface.ts
-import { readFile as readFile22 } from "node:fs/promises";
+import { readFile as readFile24 } from "node:fs/promises";
 function mimeOf2(bytes) {
   if (bytes[0] === 255 && bytes[1] === 216) return "image/jpeg";
   if (bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71) return "image/png";
@@ -153759,7 +154436,7 @@ async function markInks(id2) {
     const svg = (entry2?.formats ?? []).find((f) => String(f.format).toLowerCase() === "svg" && f.url);
     const file = svg?.url ? contentUrlFile2(svg.url) : null;
     if (!file) return null;
-    const colours2 = extractSvgColors(await readFile22(file, "utf8"));
+    const colours2 = extractSvgColors(await readFile24(file, "utf8"));
     if (!colours2.length) return ["#000000"];
     const lums = colours2.map((c) => hexLuminance(c)).filter((l) => l !== null);
     if (lums.length && (Math.max(...lums) + 0.05) / (Math.min(...lums) + 0.05) >= 3) return null;
@@ -153872,7 +154549,7 @@ __export(design_compose_exports, {
   resolveComposeMaster: () => resolveComposeMaster,
   suggestCompose: () => suggestCompose
 });
-import { readFile as readFile23 } from "node:fs/promises";
+import { readFile as readFile25 } from "node:fs/promises";
 function parseComposeSize(value) {
   const m2 = /^\s*(\d+)\s*[x×X]\s*(\d+)\s*$/.exec(value);
   if (!m2) return null;
@@ -153884,7 +154561,7 @@ function parseComposeSize(value) {
 async function readJsonFile(path, code, what) {
   let text8;
   try {
-    text8 = await readFile23(path, "utf8");
+    text8 = await readFile25(path, "utf8");
   } catch (err) {
     throw new DesignComposeError(code, `${what} ${path} could not be read: ${err.message}`);
   }
@@ -154774,7 +155451,7 @@ function needsBrowserTier(err) {
 init_production_browser();
 init_export_wait();
 init_open_session();
-import { readFile as readFile19, stat as stat5 } from "node:fs/promises";
+import { readFile as readFile21, stat as stat5 } from "node:fs/promises";
 
 // shells/cli/src/bridge.ts
 init_token_context();
@@ -154798,7 +155475,7 @@ init_src2();
 init_src2();
 init_pdf2();
 init_pptx3();
-import { readFile as readFile16 } from "node:fs/promises";
+import { readFile as readFile18 } from "node:fs/promises";
 import { zipSync as zipSync2 } from "fflate";
 
 // packages/node-shell/src/net.ts
@@ -158098,7 +158775,7 @@ function urlAssetKind(mime2, id2) {
   if (["mp3", "wav", "ogg", "m4a"].includes(ext)) return { type: "audio", format: ext };
   return null;
 }
-async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null } = {}) {
+async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, geometryBackend = "typescript" } = {}) {
   const w = dom.window;
   const assetIndex2 = readAssetIndex();
   const assetById = new Map(assetIndex2.assets.map((a) => [a.id, a]));
@@ -158139,7 +158816,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (source instanceof Uint8Array) return source;
       if (typeof source === "object" && "arrayBuffer" in source) return new Uint8Array(await source.arrayBuffer());
       if (typeof source !== "string") return host.assets.bytes(source);
-      if (source.startsWith("/catalog/")) return new Uint8Array(await readFile16(assetFilePath(source)));
+      if (source.startsWith("/catalog/")) return new Uint8Array(await readFile18(assetFilePath(source)));
       const response = await fetch(source);
       if (!response.ok) throw new Error(`Could not read HDR source (${response.status}).`);
       return new Uint8Array(await response.arrayBuffer());
@@ -158169,7 +158846,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile16(assetFilePath(pal.formats[0].url), "utf8"));
+      const doc = JSON.parse(await readFile18(assetFilePath(pal.formats[0].url), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -158179,7 +158856,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile16(assetFilePath(pal.formats[0].url), "utf8"));
+      const doc = JSON.parse(await readFile18(assetFilePath(pal.formats[0].url), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -158195,7 +158872,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         const meta = assetById.get(lutId);
         const fmt4 = meta?.formats.find((f) => f.format === "cube") ?? meta?.formats[0];
         if (!fmt4) return null;
-        return parseLutText(await readFile16(assetFilePath(fmt4.url), "utf8"), lutId);
+        return parseLutText(await readFile18(assetFilePath(fmt4.url), "utf8"), lutId);
       })().catch(() => null);
       lutReads.set(lutId, pending2);
     }
@@ -158231,7 +158908,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   const tokensAssets = assetIndex2.assets.filter((a) => a.type === "tokens");
   const headTokensId = pickHeadAssetId(tokensAssets.map((a) => a.id));
   const headTokensAsset3 = tokensAssets.find((a) => a.id === headTokensId) ?? null;
-  const readAssetDoc = async (asset2) => JSON.parse(await readFile16(assetFilePath(asset2.formats[0].url), "utf8"));
+  const readAssetDoc = async (asset2) => JSON.parse(await readFile18(assetFilePath(asset2.formats[0].url), "utf8"));
   let tokensDocCache = null;
   let tokensDocRevision = "";
   async function tokensDoc() {
@@ -158320,7 +158997,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     }
   };
   host.color = makeColorApi();
-  host.geom = makeGeomApi();
+  host.geom = geometryBackend === "typescript" ? makeGeomApi() : (await (await Promise.resolve().then(() => (init_geometry_host_node(), geometry_host_node_exports))).loadNodeGeometryHost(geometryBackend)).api;
   host.connectors = makeConnectorsApi();
   host.audio = createNodeAudioAPI({ repoRoot: REPO_ROOT2 });
   const speech = aiEnabled ? createNodeSpeechAPI({}) : void 0;
@@ -158417,7 +159094,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       const fmt4 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
       if (!fmt4) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
       const localPath2 = assetFilePath(fmt4.url);
-      let buf = await readFile16(localPath2);
+      let buf = await readFile18(localPath2);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt4.format === "json") {
         try {
@@ -159138,7 +159815,7 @@ function withHost(profile, fn, opts = {}) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
-import { readFile as readFile17, stat as stat4 } from "node:fs/promises";
+import { readFile as readFile19, stat as stat4 } from "node:fs/promises";
 import { existsSync as existsSync10 } from "node:fs";
 import { join as join18, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
@@ -159326,7 +160003,7 @@ function serveDist(dist2) {
       if (urlPath === "/" || !existsSync10(filePath) || !(await stat4(filePath)).isFile()) {
         filePath = join18(root2, "index.html");
       }
-      const data = await readFile17(filePath);
+      const data = await readFile19(filePath);
       res.setHeader("Content-Type", MIME2[extname(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.end(data);
@@ -159709,7 +160386,7 @@ async function readBoundedDownload(filename) {
   if (info.size > MAX_BROWSER_OUTPUT_BYTES) {
     throw new RenderError(`Browser export exceeds the ${MAX_BROWSER_OUTPUT_BYTES}-byte output limit.`);
   }
-  return new Uint8Array(await readFile19(filename));
+  return new Uint8Array(await readFile21(filename));
 }
 function browserLaunchArgs(env = process.env) {
   return [
@@ -160395,7 +161072,7 @@ function personalPresetsFile(opts = {}) {
 }
 function listPresets(opts = {}) {
   const presets = [];
-  const invalid2 = [];
+  const invalid4 = [];
   const personalFile = personalPresetsFile(opts);
   let roots2 = null;
   try {
@@ -160411,19 +161088,19 @@ function listPresets(opts = {}) {
     try {
       files = packPresetFiles(roots2);
     } catch (err) {
-      invalid2.push({ origin: "pack", file: roots2.profile, problems: [`the asset index could not be read: ${err instanceof Error ? err.message : String(err)}`] });
+      invalid4.push({ origin: "pack", file: roots2.profile, problems: [`the asset index could not be read: ${err instanceof Error ? err.message : String(err)}`] });
     }
     for (const { assetId: assetId2, file } of files) {
       if (!file) {
-        invalid2.push({ origin: "pack", file: assetId2, assetId: assetId2, problems: ["the asset has no file on disk"] });
+        invalid4.push({ origin: "pack", file: assetId2, assetId: assetId2, problems: ["the asset has no file on disk"] });
         continue;
       }
       try {
         const sorted = sortEntries(readPresetFile(file), { origin: "pack", file, assetId: assetId2 });
         presets.push(...sorted.good);
-        invalid2.push(...sorted.bad);
+        invalid4.push(...sorted.bad);
       } catch (err) {
-        invalid2.push({ origin: "pack", file, assetId: assetId2, problems: [err instanceof Error ? err.message : String(err)] });
+        invalid4.push({ origin: "pack", file, assetId: assetId2, problems: [err instanceof Error ? err.message : String(err)] });
       }
     }
   }
@@ -160432,12 +161109,12 @@ function listPresets(opts = {}) {
       const sorted = sortEntries(readPresetFile(personalFile), { origin: "personal", file: personalFile });
       const packIds = /* @__PURE__ */ new Set([
         ...presets.filter((one) => one.origin === "pack").map((one) => one.id),
-        ...invalid2.filter((one) => one.origin === "pack" && one.id !== void 0).map((one) => one.id)
+        ...invalid4.filter((one) => one.origin === "pack" && one.id !== void 0).map((one) => one.id)
       ]);
       for (const one of sorted.good) presets.push(packIds.has(one.id) ? { ...one, shadowed: true } : one);
-      invalid2.push(...sorted.bad);
+      invalid4.push(...sorted.bad);
     } catch (err) {
-      invalid2.push({ origin: "personal", file: personalFile, problems: [err instanceof Error ? err.message : String(err)] });
+      invalid4.push({ origin: "personal", file: personalFile, problems: [err instanceof Error ? err.message : String(err)] });
     }
   }
   const seen = /* @__PURE__ */ new Set();
@@ -160445,13 +161122,13 @@ function listPresets(opts = {}) {
   for (const one of presets) {
     const key = `${one.shadowed ? "shadowed:" : ""}${one.id}`;
     if (seen.has(key)) {
-      invalid2.push({ origin: one.origin, file: one.file, id: one.id, ...one.assetId ? { assetId: one.assetId } : {}, problems: [`the id ${one.id} is already taken by an earlier preset`] });
+      invalid4.push({ origin: one.origin, file: one.file, id: one.id, ...one.assetId ? { assetId: one.assetId } : {}, problems: [`the id ${one.id} is already taken by an earlier preset`] });
       continue;
     }
     seen.add(key);
     kept.push(one);
   }
-  return { profile: roots2?.profile ?? null, personalFile, presets: kept, invalid: invalid2 };
+  return { profile: roots2?.profile ?? null, personalFile, presets: kept, invalid: invalid4 };
 }
 function isPresetFileSpec(spec) {
   return /\.json$/i.test(spec) || spec.startsWith(".") || isAbsolute3(spec) || spec.includes("\\");
@@ -162504,7 +163181,7 @@ async function callRebrand(args, env = process.env, limits = REBRAND_LIMITS) {
 // packages/node-shell/src/look.ts
 init_src2();
 init_raster_child();
-import { readFile as readFile20 } from "node:fs/promises";
+import { readFile as readFile22 } from "node:fs/promises";
 import { extname as extname2, resolve as resolve6, sep as sep2 } from "node:path";
 import { fileURLToPath as fileURLToPath8 } from "node:url";
 var B642 = /^[A-Za-z0-9+/]*={0,2}$/;
@@ -162566,7 +163243,7 @@ async function cleanRef(value, roots2, depth) {
   const mime2 = IMAGE_TYPES[extname2(full).toLowerCase()];
   if (!mime2) return "";
   try {
-    const bytes = await readFile20(full);
+    const bytes = await readFile22(full);
     if (bytes.length > MAX_INLINE_BYTES) return "";
     if (mime2 === "image/svg+xml") {
       if (depth >= MAX_NESTING) return "";
@@ -167784,7 +168461,7 @@ function readProductionReference(value) {
 init_design_brief();
 init_design_brief2();
 init_src2();
-import { readFile as readFile24 } from "node:fs/promises";
+import { readFile as readFile26 } from "node:fs/promises";
 import { join as join26 } from "node:path";
 init_schema();
 var RESOURCES = [
@@ -167810,7 +168487,7 @@ async function tokensResource(uri) {
   const tokenUrl = tokenAsset2.formats[0].url;
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset2.id}: ${tokenUrl} is not in this profile's catalog.`);
-  const doc = JSON.parse(await readFile24(tokenPath, "utf8"));
+  const doc = JSON.parse(await readFile26(tokenPath, "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -167833,7 +168510,7 @@ async function assetsListing(uri) {
 async function previewResource(uri, id2) {
   for (const file of [`${id2}.svg`, `${id2}.look0.svg`]) {
     try {
-      const text8 = await readFile24(join26(previewsDir(), file), "utf8");
+      const text8 = await readFile26(join26(previewsDir(), file), "utf8");
       return { uri, mimeType: "image/svg+xml", text: text8 };
     } catch {
     }

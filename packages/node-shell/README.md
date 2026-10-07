@@ -31,6 +31,8 @@ to use means adding its subpath in the same commit.
 
 | Module | What it owns |
 |---|---|
+| `geometry-host` | `createGeometryHost()` creates a synchronous geometry API with per-call numerical ownership; `geometryBackendOf()` reports private host selection without adding tool API methods. Explicit curve policies keep all boolean methods on TypeScript and select matching WASM for offset/stroke. `geometryBackendForTarget()` maps an explicitly qualified target; unknown targets stay TypeScript and no platform is detected or activated automatically |
+| `geometry-host-node` | `loadNodeGeometryHost()` loads explicitly selected clipping or fitting WASM before publishing the synchronous API; separate host-norm variants match the local maths, and no GPU is required |
 | `repo-root` | `repoRoot()` - `LOLLY_ROOT` → marker-based walk → `cwd` resolution of the directory holding `catalog/` + `tools/` (works from source and from an esbuild bundle) |
 | `browsers` | the scoped headless-Chromium launcher/pool ("Tier B"), `resolveBrowsersDir()` (env → repo-root `.browsers` → `services/mcp/.browsers` sibling reuse), `BrowserError`, `browserInstalled()` |
 | `webshell-render` | drive the built web shell in Chromium and capture its download - byte-identical to a web/desktop export (incl. the `password` PDF-lock param) |

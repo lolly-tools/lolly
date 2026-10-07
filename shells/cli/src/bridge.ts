@@ -273,10 +273,11 @@ interface CliBridgeOpts {
    * resolves links in the system the document was lowered against.
    */
   tokensDocument?: Record<string, unknown> | null;
+  geometryBackend?: import('@lolly-tools/node-shell/geometry-host').GeometryBackend;
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, geometryBackend = 'typescript' }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -567,7 +568,8 @@ export async function createCliBridge(
   // Vector geometry (v1.64) - the geometry kernel behind SVG path-data strings.
   // Pure engine math, attached verbatim (the SAME object the web bridge attaches),
   // so a pen-tool hook computes identical geometry headlessly.
-  host.geom = makeGeomApi();
+  host.geom = geometryBackend === 'typescript' ? makeGeomApi()
+    : (await (await import('@lolly-tools/node-shell/geometry-host-node')).loadNodeGeometryHost(geometryBackend)).api;
 
   // host.connectors (v1.106; path heads + dash fitting v1.110) - the engine's committed,
   // export-safe connector geometry, attached verbatim (the SAME factory the web bridge

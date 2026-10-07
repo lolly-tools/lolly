@@ -170,6 +170,31 @@ jobs:
           echo 'LOLLY_WEBGPU_REQUIRED=1' >> "$GITHUB_ENV"
           pnpm run test:webgpu
 
+      - name: Require geometry conformance
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_BROWSER_CHANNEL: chromium
+          LOLLY_GEOMETRY_FIT_REPORT: artifacts/geometry-fit-report.json
+          LOLLY_GEOMETRY_PORTABLE_REPORT: artifacts/geometry-portable-report.json
+          LOLLY_GEOMETRY_CLIP_REPORT: artifacts/geometry-clip-report.json
+          LOLLY_GEOMETRY_SCOPE_REPORT: artifacts/geometry-scope-report.json
+          LOLLY_GEOMETRY_HOST_REPORT: artifacts/geometry-host-report.json
+        run: pnpm run test:geometry
+
+      - name: Install Firefox and WebKit for geometry qualification
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+        run: node node_modules/playwright/cli.js install --with-deps firefox webkit
+
+      - name: Require geometry host arithmetic in Chromium, Firefox and WebKit
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_BROWSER_CHANNEL: chromium
+        run: pnpm run test:geometry:host-math --output=artifacts/geometry-host-math
+
       - name: Install motion inspection tools
         if: matrix.shard == 'browser' || matrix.shard == 'contracts'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
@@ -319,6 +344,12 @@ jobs:
             artifacts/public-render-shell.log
             artifacts/public-journey-build.log
             artifacts/browser-readiness.log
+            artifacts/geometry-fit-report.json
+            artifacts/geometry-portable-report.json
+            artifacts/geometry-clip-report.json
+            artifacts/geometry-scope-report.json
+            artifacts/geometry-host-report.json
+            artifacts/geometry-host-math/
             lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error

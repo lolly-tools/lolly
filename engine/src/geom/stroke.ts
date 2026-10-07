@@ -77,6 +77,7 @@ import { selfUnion } from './boolean.ts';
 export type CapStyle = 'butt' | 'round' | 'square';
 
 export interface StrokeOptions {
+  operations?: OffsetOptions['operations'];
   cap?: CapStyle;
   join?: JoinStyle;
   miterLimit?: number;
@@ -101,7 +102,7 @@ export function strokeToPath(p: GeomPath, width: number, opts: StrokeOptions = {
   // SVG's defaults, pinned here rather than left to whatever the offsetter defaults to:
   // this function's job is to reproduce what a renderer would have painted from the
   // same declaration, so the declaration's defaults are part of the contract.
-  const off: OffsetOptions = { join: opts.join ?? 'miter', miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
+  const off: OffsetOptions = { operations: opts.operations, join: opts.join ?? 'miter', miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
 
   const raw: GeomPath = [];
   for (const c of p) {
@@ -126,7 +127,7 @@ export function strokeToPath(p: GeomPath, width: number, opts: StrokeOptions = {
   // Nonzero is not a default being accepted, it is the rule the ring is built for. Under
   // evenodd the band between the two offsets of a closed contour still fills, but every
   // place a stroke crosses itself would punch a hole instead of merging.
-  return keptContours(selfUnion(raw, { fillRule: 'nonzero' }), p, r);
+  return keptContours(selfUnion(raw, { fillRule: 'nonzero', operations: opts.operations }), p, r);
 }
 
 /**

@@ -23,6 +23,7 @@
 import { HOOK_BUDGET_MS, inRealmHookExecutor } from '@lolly/engine';
 import type { HookExecutor, Hooks } from '@lolly/engine';
 import type { HostV1, TokensAPI } from '@lolly-tools/core/host-v1';
+import { geometryBackendOf, type GeometryBackend } from '@lolly-tools/node-shell/geometry-host';
 import { getExcludedSwatches } from '../lib/brand-exclusions.ts';
 import type {
   HostShape, HookWorkerOut, WorkerHookName,
@@ -86,8 +87,8 @@ function resetRun(runId: number, reason: Error): void {
   mounts.delete(runId);
 }
 
-function createWorker(runId: number): Worker {
-  const w = new Worker(new URL('./hook-worker.worker.ts', import.meta.url), { type: 'module' });
+function createWorker(runId: number, backend: GeometryBackend): Worker {
+  const w = new Worker(new URL('./hook-worker.worker.ts', import.meta.url), { type: 'module', name: backend });
   w.onmessage = (e: MessageEvent<HookWorkerOut>): void => { onMessage(runId, w, e.data); };
   w.onerror = (): void => {
     resetRun(runId, new HookIsolationUnavailableError('hook Worker crashed'));
@@ -242,7 +243,7 @@ async function mountInWorker(
   allowInRealmExportHooks: boolean,
 ): Promise<Hooks> {
   const runId = ++runSeq;
-  const w = createWorker(runId);
+  const w = createWorker(runId, geometryBackendOf(host.geom));
   const { doc, excluded } = await snapshotTokens(host);
   const hostShape = allowInRealmExportHooks
     ? introspect(host)
@@ -339,15 +340,16 @@ export function getWorkerHookExecutor(
 ): HookExecutor {
   const allowInRealmFallback = opts.allowInRealmFallback !== false;
   return async (tool, host) => {
+    const canFallback = allowInRealmFallback && geometryBackendOf(host.geom) === 'typescript';
     if (!tool.hooksSource) return inRealmHookExecutor(tool, host);
     if (typeof Worker === 'undefined') {
-      if (allowInRealmFallback) return inRealmHookExecutor(tool, host);
+      if (canFallback) return inRealmHookExecutor(tool, host);
       throw new HookIsolationUnavailableError('hook Worker is unavailable');
     }
     try {
       return await mountInWorker(tool, host, allowInRealmFallback);
     } catch (e) {
-      if (!allowInRealmFallback) {
+      if (!canFallback) {
         if (e instanceof HookIsolationUnavailableError) throw e;
         throw new HookIsolationUnavailableError((e as Error).message);
       }

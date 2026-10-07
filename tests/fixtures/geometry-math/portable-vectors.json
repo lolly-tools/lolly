@@ -1,0 +1,285 @@
+{
+  "generator": "mpmath 1.3.0; exact binary64 inputs; 450 and 650 decimal digits agree after binary64 rounding",
+  "rows": [
+    {
+      "name": "sin",
+      "args": ["0000000000000001"],
+      "expected": "0000000000000001"
+    },
+    {
+      "name": "cos",
+      "args": ["0000000000000001"],
+      "expected": "3ff0000000000000"
+    },
+    {
+      "name": "cbrt",
+      "args": ["0000000000000001"],
+      "expected": "2990000000000000"
+    },
+    {
+      "name": "sin",
+      "args": ["01a56e1fc2f8f359"],
+      "expected": "01a56e1fc2f8f359"
+    },
+    {
+      "name": "cos",
+      "args": ["01a56e1fc2f8f359"],
+      "expected": "3ff0000000000000"
+    },
+    {
+      "name": "cbrt",
+      "args": ["01a56e1fc2f8f359"],
+      "expected": "2b2bff2ee48e0530"
+    },
+    {
+      "name": "sin",
+      "args": ["3fb999999999999a"],
+      "expected": "3fb98eaecb8bcb2c"
+    },
+    {
+      "name": "cos",
+      "args": ["3fb999999999999a"],
+      "expected": "3fefd712f9a817c1"
+    },
+    {
+      "name": "cbrt",
+      "args": ["3fb999999999999a"],
+      "expected": "3fddb4c7760bcff3"
+    },
+    {
+      "name": "sin",
+      "args": ["bfb999999999999a"],
+      "expected": "bfb98eaecb8bcb2c"
+    },
+    {
+      "name": "cos",
+      "args": ["bfb999999999999a"],
+      "expected": "3fefd712f9a817c1"
+    },
+    {
+      "name": "cbrt",
+      "args": ["bfb999999999999a"],
+      "expected": "bfddb4c7760bcff3"
+    },
+    {
+      "name": "sin",
+      "args": ["3fe0000000000000"],
+      "expected": "3fdeaee8744b05f0"
+    },
+    {
+      "name": "cos",
+      "args": ["3fe0000000000000"],
+      "expected": "3fec1528065b7d50"
+    },
+    {
+      "name": "cbrt",
+      "args": ["3fe0000000000000"],
+      "expected": "3fe965fea53d6e3d"
+    },
+    {
+      "name": "sin",
+      "args": ["3ff0000000000000"],
+      "expected": "3feaed548f090cee"
+    },
+    {
+      "name": "cos",
+      "args": ["3ff0000000000000"],
+      "expected": "3fe14a280fb5068c"
+    },
+    {
+      "name": "cbrt",
+      "args": ["3ff0000000000000"],
+      "expected": "3ff0000000000000"
+    },
+    {
+      "name": "sin",
+      "args": ["bff0000000000000"],
+      "expected": "bfeaed548f090cee"
+    },
+    {
+      "name": "cos",
+      "args": ["bff0000000000000"],
+      "expected": "3fe14a280fb5068c"
+    },
+    {
+      "name": "cbrt",
+      "args": ["bff0000000000000"],
+      "expected": "bff0000000000000"
+    },
+    {
+      "name": "sin",
+      "args": ["3ff921fb54442d18"],
+      "expected": "3ff0000000000000"
+    },
+    {
+      "name": "cos",
+      "args": ["3ff921fb54442d18"],
+      "expected": "3c91a62633145c07"
+    },
+    {
+      "name": "cbrt",
+      "args": ["3ff921fb54442d18"],
+      "expected": "3ff2996264e0e3fe"
+    },
+    {
+      "name": "sin",
+      "args": ["400921fb54442d18"],
+      "expected": "3ca1a62633145c07"
+    },
+    {
+      "name": "cos",
+      "args": ["400921fb54442d18"],
+      "expected": "bff0000000000000"
+    },
+    {
+      "name": "cbrt",
+      "args": ["400921fb54442d18"],
+      "expected": "3ff76ef7e73104b7"
+    },
+    {
+      "name": "sin",
+      "args": ["54b249ad2594c37d"],
+      "expected": "bfd85c5e5b929359"
+    },
+    {
+      "name": "cos",
+      "args": ["54b249ad2594c37d"],
+      "expected": "3fed9757496841f5"
+    },
+    {
+      "name": "cbrt",
+      "args": ["54b249ad2594c37d"],
+      "expected": "46da8e327ba6c9c9"
+    },
+    {
+      "name": "sin",
+      "args": ["7fe1ccf385ebc8a0"],
+      "expected": "3fdd0472b6b4d936"
+    },
+    {
+      "name": "cos",
+      "args": ["7fe1ccf385ebc8a0"],
+      "expected": "bfec859a523ff229"
+    },
+    {
+      "name": "cbrt",
+      "args": ["7fe1ccf385ebc8a0"],
+      "expected": "55409438d5a385e9"
+    },
+    {
+      "name": "sin",
+      "args": ["7fefffffffffffff"],
+      "expected": "3f7452fc98b34e97"
+    },
+    {
+      "name": "cos",
+      "args": ["7fefffffffffffff"],
+      "expected": "bfefffe62ecfab75"
+    },
+    {
+      "name": "cbrt",
+      "args": ["7fefffffffffffff"],
+      "expected": "554428a2f98d728b"
+    },
+    {
+      "name": "acos",
+      "args": ["bff0000000000000"],
+      "expected": "400921fb54442d18"
+    },
+    {
+      "name": "acos",
+      "args": ["bfefffffffffffff"],
+      "expected": "400921fb52442d18"
+    },
+    {
+      "name": "acos",
+      "args": ["bfefae147ae147ae"],
+      "expected": "4008001be1bc011b"
+    },
+    {
+      "name": "acos",
+      "args": ["bfe0000000000000"],
+      "expected": "4000c152382d7366"
+    },
+    {
+      "name": "acos",
+      "args": ["0000000000000000"],
+      "expected": "3ff921fb54442d18"
+    },
+    {
+      "name": "acos",
+      "args": ["3fb999999999999a"],
+      "expected": "3ff787b22ce3f590"
+    },
+    {
+      "name": "acos",
+      "args": ["3fe0000000000000"],
+      "expected": "3ff0c152382d7366"
+    },
+    {
+      "name": "acos",
+      "args": ["3fefae147ae147ae"],
+      "expected": "3fc21df72882bfd8"
+    },
+    {
+      "name": "acos",
+      "args": ["3fefffffffffffff"],
+      "expected": "3e50000000000000"
+    },
+    {
+      "name": "acos",
+      "args": ["3ff0000000000000"],
+      "expected": "0000000000000000"
+    },
+    {
+      "name": "atan2",
+      "args": ["3ff0000000000000", "3ff0000000000000"],
+      "expected": "3fe921fb54442d18"
+    },
+    {
+      "name": "atan2",
+      "args": ["bff0000000000000", "3ff0000000000000"],
+      "expected": "bfe921fb54442d18"
+    },
+    {
+      "name": "atan2",
+      "args": ["3ff0000000000000", "bff0000000000000"],
+      "expected": "4002d97c7f3321d2"
+    },
+    {
+      "name": "atan2",
+      "args": ["bff0000000000000", "bff0000000000000"],
+      "expected": "c002d97c7f3321d2"
+    },
+    {
+      "name": "atan2",
+      "args": ["01a56e1fc2f8f359", "7e37e43c8800759c"],
+      "expected": "0000000000000000"
+    },
+    {
+      "name": "atan2",
+      "args": ["7e37e43c8800759c", "01a56e1fc2f8f359"],
+      "expected": "3ff921fb54442d18"
+    },
+    {
+      "name": "atan2",
+      "args": ["0000000000000001", "3ff0000000000000"],
+      "expected": "0000000000000001"
+    },
+    {
+      "name": "atan2",
+      "args": ["3ff0000000000000", "0000000000000001"],
+      "expected": "3ff921fb54442d18"
+    },
+    {
+      "name": "atan2",
+      "args": ["c0386cad1132f49e", "4052999e6a9b73ba"],
+      "expected": "bfd44d02d2510585"
+    },
+    {
+      "name": "atan2",
+      "args": ["40307594b713abca", "404790c27bcfb2bf"],
+      "expected": "3fd580c3f7d2e432"
+    }
+  ]
+}

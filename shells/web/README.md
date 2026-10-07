@@ -43,6 +43,8 @@ This is not a style preference, it is a tested budget. `scripts/check-bundle-bud
 
 Two contractually **synchronous** APIs cannot be lazy facades, so they get their own mechanism. `host.color` (v1.40) and `host.geom` (v1.64) are pure engine maths, and nothing in this shell reads either one, only tool hooks do. `installToolApis(host)` attaches them, and the single enforced chokepoint that awaits it is `createToolRuntime` in `src/lib/mount-runtime.ts`. Failure there is non-fatal by design, because both APIs are optional in the contract and tools feature-detect them.
 
+Explicit geometry selection waits for its WASM modules before publishing a synchronous API, and loading failures reject that selected installation. The `wasm-host-norm-clipping` and `wasm-host-norm-fitting` comparisons use the current host's `Math.hypot` to preserve local results and work decisions in Chromium, Firefox and WebKit. Selected isolated hooks inherit that choice before strict lockdown. TypeScript remains the default; the [kernel guide](../../packages/node-shell/wasm/geometry-kernel/README.md#host-norm-compatibility) describes qualification and complete-call measurement. Embedded webview and native qualification remain open.
+
 `capabilities` comes from `src/bridge/capabilities-provided.ts`, plus `'capture'` when the Chrome extension's `window.__lollyCapture` flag is present. `identity` and `previews` are web-only host-UI helpers hung off the same object and are **not** part of the tool-facing v1 contract.
 
 ## Routing
