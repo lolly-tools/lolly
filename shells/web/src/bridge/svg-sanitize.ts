@@ -50,6 +50,13 @@ export async function sanitizeSvgToString(markup: string): Promise<string> {
   const DOMPurify = await getPurify();
   const dom = DOMPurify.sanitize(markup, {
     USE_PROFILES: { svg: true, svgFilters: true },
+    // DOMPurify keeps <animateTransform> with its keyTimes and keySplines but not
+    // calcMode, so an eased SMIL motion fell back to linear and a stepped one
+    // (calcMode="discrete", a flipbook) started tweening between its frames. It is
+    // an enumerated timing attribute (discrete | linear | paced | spline) that names
+    // no URL and runs nothing. <animate> and <set> stay stripped: those can retarget
+    // an href.
+    ADD_ATTR: ['calcMode'],
     RETURN_DOM: true,
   }) as unknown as ParentNode;
   const svg = dom.querySelector('svg');

@@ -265,6 +265,8 @@ export interface Presence {
   /** v1.1 (plans/100 section 3): cursor chat - ≤64 chars (schema-enforced), rides the
    *  awareness channel only, never persisted. */
   readonly chat?: string;
+  /** v1.2: this participant is presenting; followers may follow the presented slide. Never persisted. */
+  readonly presenting?: boolean;
 }
 
 /** Alias - the value carried on the awareness channel is a Presence (plans/99 section 5). */

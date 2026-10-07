@@ -261,7 +261,7 @@ export interface FcCtx {
   CAM_TILT_DEG_PER_PX: 0.2;
   inspectorPort: {
     reveal(
-      section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'web' | 'motion' | 'present' | 'guide'
+      section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present' | 'guide'
     ): void;
   } | null;
   gradEdit: string | null;
