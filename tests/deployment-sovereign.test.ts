@@ -36,3 +36,22 @@ test('private routes preserve relay ownership and cookie custody', () => {
   assert.match(source, /@session_writes/);
   assert.doesNotMatch(source, /reverse_proxy https:\/\/lolly\.tools|live-relay:8790|server:8787/);
 });
+
+test('public and private live routes have separate process owners', () => {
+  const publicSource = read('files/public.caddy');
+  const liveBlock = publicSource.match(
+    /@live path[^\n]+\n\s*handle @live \{([\s\S]*?)\n\s*\}/
+  )?.[1];
+  assert.ok(liveBlock);
+  // The request_body block precedes the proxy; inspect the complete next route.
+  const liveRoute = publicSource.slice(
+    publicSource.indexOf('@live path'),
+    publicSource.indexOf('# Unknown API')
+  );
+  assert.match(liveRoute, /"name" "mcp"/);
+  assert.doesNotMatch(liveRoute, /\.Values\.private/);
+  assert.match(read('files/private.caddy'), /\.Values\.private\.relay/);
+  const server = readFileSync(new URL('../services/mcp/src/http.ts', import.meta.url), 'utf8');
+  assert.match(server, /const relay = createLiveRelay\(\)/);
+  assert.match(server, /relay\.mount\(server\)/);
+});
