@@ -26,7 +26,8 @@ spec:
         lolly.tools/profile: sovereign-single-node
     spec:
       {{- if and (eq $name "mcp") $.Values.components.mcp.browser.localhostProfile }}
-      nodeName: {{ $.Values.edge.nodeName | quote }}
+      nodeSelector:
+        kubernetes.io/hostname: {{ $.Values.edge.nodeName | quote }}
       {{- end }}
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
