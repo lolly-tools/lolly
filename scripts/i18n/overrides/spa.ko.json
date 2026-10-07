@@ -1185,5 +1185,7 @@
   "Group created.": "그룹을 만들었어요.",
   "Commenter": "댓글 작성자",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "보기 전용은 열고 복사할 수 있어요. 댓글 작성자는 댓글도 달 수 있어요. 편집자는 변경 사항을 저장할 수 있어요. 관리자는 사람도 추가할 수 있어요.",
-  "Asks to comment": "댓글 요청"
+  "Asks to comment": "댓글 요청",
+  "Only editors can save versions.": "편집자만 버전을 저장할 수 있어요.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "이름을 붙인 버전을 저장할 수 있는 최대 개수에 도달했어요. 먼저 내 버전 중 하나를 삭제하세요."
 }

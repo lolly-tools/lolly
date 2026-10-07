@@ -1054,5 +1054,7 @@
   "Group created.": "群组已创建。",
   "Commenter": "评论者",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "查看者可以打开和复制。评论者还可以评论。编辑者可以保存更改。管理员还可以添加成员。",
-  "Asks to comment": "申请评论"
+  "Asks to comment": "申请评论",
+  "Only editors can save versions.": "只有编辑者可以保存版本。",
+  "You have saved the most named versions allowed. Delete one of yours first.": "你保存的命名版本已达上限。请先删除一个你自己的版本。"
 }

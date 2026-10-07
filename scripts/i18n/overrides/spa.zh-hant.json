@@ -1054,5 +1054,7 @@
   "Group created.": "群組已建立。",
   "Commenter": "留言者",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "檢視者可以開啟和複製。留言者還可以留言。編輯者可以儲存變更。管理者還可以加入成員。",
-  "Asks to comment": "申請留言"
+  "Asks to comment": "申請留言",
+  "Only editors can save versions.": "只有編輯者可以儲存版本。",
+  "You have saved the most named versions allowed. Delete one of yours first.": "你儲存的命名版本已達上限。請先刪除一個你自己的版本。"
 }

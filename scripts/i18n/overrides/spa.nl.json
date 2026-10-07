@@ -1046,5 +1046,7 @@
   "Group created.": "Groep gemaakt.",
   "Commenter": "Reageerder",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Lezers openen en kopiëren. Reageerders reageren ook. Bewerkers slaan wijzigingen op. Beheerders voegen ook mensen toe.",
-  "Asks to comment": "Vraagt om te reageren"
+  "Asks to comment": "Vraagt om te reageren",
+  "Only editors can save versions.": "Alleen bewerkers kunnen versies opslaan.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Je hebt het maximale aantal versies met een naam opgeslagen. Verwijder eerst een van je eigen versies."
 }

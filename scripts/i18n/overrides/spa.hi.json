@@ -1055,5 +1055,7 @@
   "Group created.": "समूह बना दिया गया।",
   "Commenter": "टिप्पणीकर्ता",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "दर्शक खोलते और कॉपी करते हैं। टिप्पणीकर्ता टिप्पणी भी करते हैं। संपादक बदलाव सहेजते हैं। प्रबंधक लोगों को भी जोड़ते हैं।",
-  "Asks to comment": "टिप्पणी करने की अनुमति माँगी"
+  "Asks to comment": "टिप्पणी करने की अनुमति माँगी",
+  "Only editors can save versions.": "केवल संपादक ही संस्करण सहेज सकते हैं।",
+  "You have saved the most named versions allowed. Delete one of yours first.": "आपने अनुमत अधिकतम नामित संस्करण सहेज लिए हैं। पहले अपना कोई एक संस्करण हटाएँ।"
 }

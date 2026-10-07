@@ -1054,5 +1054,7 @@
   "Group created.": "Kumpulan dibuat.",
   "Commenter": "Pemberi komen",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Pelihat membuka dan menyalin. Pemberi komen juga memberi komen. Penyunting menyimpan perubahan. Pengurus juga menambah orang.",
-  "Asks to comment": "Meminta untuk memberi komen"
+  "Asks to comment": "Meminta untuk memberi komen",
+  "Only editors can save versions.": "Hanya penyunting boleh menyimpan versi.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Anda telah menyimpan bilangan maksimum versi bernama yang dibenarkan. Padam salah satu versi anda dahulu."
 }

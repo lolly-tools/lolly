@@ -1055,5 +1055,7 @@
   "Group created.": "গ্রুপ তৈরি হয়েছে।",
   "Commenter": "মন্তব্যকারী",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "দর্শকরা খোলেন ও কপি করেন। মন্তব্যকারীরা মন্তব্যও করেন। এডিটররা পরিবর্তন সংরক্ষণ করেন। ম্যানেজাররা মানুষও যোগ করেন।",
-  "Asks to comment": "মন্তব্য করার অনুমতি চান"
+  "Asks to comment": "মন্তব্য করার অনুমতি চান",
+  "Only editors can save versions.": "শুধু সম্পাদকেরা সংস্করণ সেভ করতে পারেন।",
+  "You have saved the most named versions allowed. Delete one of yours first.": "আপনি অনুমোদিত সর্বোচ্চ সংখ্যক নামযুক্ত সংস্করণ সেভ করেছেন। আগে আপনার একটি সংস্করণ মুছুন।"
 }

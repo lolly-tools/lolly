@@ -1185,5 +1185,7 @@
   "Group created.": "Gruppen er opprettet.",
   "Commenter": "Kommentator",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Lesere åpner og kopierer. Kommentatorer kommenterer også. Redaktører lagrer endringer. Ledere legger også til personer.",
-  "Asks to comment": "Ber om å få kommentere"
+  "Asks to comment": "Ber om å få kommentere",
+  "Only editors can save versions.": "Bare redaktører kan lagre versjoner.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Du har lagret det høyeste tillatte antallet navngitte versjoner. Slett en av dine først."
 }

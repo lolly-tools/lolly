@@ -1183,5 +1183,7 @@
   "Group created.": "Групу створено.",
   "Commenter": "Коментатор",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Глядачі відкривають і копіюють. Коментатори також коментують. Редактори зберігають зміни. Керівники також додають людей.",
-  "Asks to comment": "Просить право коментувати"
+  "Asks to comment": "Просить право коментувати",
+  "Only editors can save versions.": "Лише редактори можуть зберігати версії.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Ви зберегли максимальну дозволену кількість іменованих версій. Спершу видаліть одну зі своїх."
 }

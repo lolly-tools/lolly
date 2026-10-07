@@ -1054,5 +1054,7 @@
   "Group created.": "Grup dibuat.",
   "Commenter": "Pemberi komentar",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Pemirsa membuka dan menyalin. Pemberi komentar juga berkomentar. Editor menyimpan perubahan. Pengelola juga menambahkan orang.",
-  "Asks to comment": "Meminta izin berkomentar"
+  "Asks to comment": "Meminta izin berkomentar",
+  "Only editors can save versions.": "Hanya editor yang dapat menyimpan versi.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Anda telah menyimpan jumlah maksimum versi bernama yang diizinkan. Hapus salah satu versi Anda terlebih dahulu."
 }

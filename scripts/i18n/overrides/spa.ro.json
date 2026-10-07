@@ -1053,5 +1053,7 @@
   "Group created.": "Grup creat.",
   "Commenter": "Comentator",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Vizualizatorii deschid și copiază. Comentatorii comentează și ei. Editorii salvează modificările. Managerii adaugă și ei persoane.",
-  "Asks to comment": "Cere să comenteze"
+  "Asks to comment": "Cere să comenteze",
+  "Only editors can save versions.": "Doar editorii pot salva versiuni.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Ai salvat numărul maxim permis de versiuni denumite. Șterge mai întâi una dintre ale tale."
 }

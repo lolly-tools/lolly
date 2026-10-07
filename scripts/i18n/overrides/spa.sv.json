@@ -1046,5 +1046,7 @@
   "Group created.": "Gruppen har skapats.",
   "Commenter": "Kommentator",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Läsare öppnar och kopierar. Kommentatorer kommenterar också. Redaktörer sparar ändringar. Förvaltare lägger också till personer.",
-  "Asks to comment": "Ber om att få kommentera"
+  "Asks to comment": "Ber om att få kommentera",
+  "Only editors can save versions.": "Bara redigerare kan spara versioner.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Du har sparat det högsta tillåtna antalet namngivna versioner. Radera en av dina först."
 }

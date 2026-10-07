@@ -1190,5 +1190,7 @@
   "Group created.": "تم إنشاء المجموعة.",
   "Commenter": "المعلّق",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "يفتح المشاهدون المشروع وينسخونه. ويعلّق المعلّقون أيضًا. ويحفظ المحررون التغييرات. ويضيف المديرون الأشخاص أيضًا.",
-  "Asks to comment": "يطلب التعليق"
+  "Asks to comment": "يطلب التعليق",
+  "Only editors can save versions.": "يمكن للمحررين فقط حفظ الإصدارات.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "لقد حفظت الحد الأقصى المسموح به من الإصدارات المسماة. احذف أحد إصداراتك أولاً."
 }

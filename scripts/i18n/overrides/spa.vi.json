@@ -1054,5 +1054,7 @@
   "Group created.": "Đã tạo nhóm.",
   "Commenter": "Người nhận xét",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Người xem có thể mở và sao chép. Người nhận xét còn có thể nhận xét. Biên tập viên lưu được thay đổi. Quản lý còn thêm được người.",
-  "Asks to comment": "Xin quyền nhận xét"
+  "Asks to comment": "Xin quyền nhận xét",
+  "Only editors can save versions.": "Chỉ người chỉnh sửa mới có thể lưu phiên bản.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Bạn đã lưu số phiên bản có tên tối đa được phép. Hãy xóa một phiên bản của bạn trước."
 }

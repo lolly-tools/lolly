@@ -1183,5 +1183,7 @@
   "Group created.": "Grup oluşturuldu.",
   "Commenter": "Yorumcu",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Görüntüleyiciler açar ve kopyalar. Yorumcular ayrıca yorum yapar. Düzenleyiciler değişiklikleri kaydeder. Yöneticiler ayrıca kişi ekler.",
-  "Asks to comment": "Yorum yapmak için izin istiyor"
+  "Asks to comment": "Yorum yapmak için izin istiyor",
+  "Only editors can save versions.": "Yalnızca düzenleyiciler sürüm kaydedebilir.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "İzin verilen en fazla adlandırılmış sürümü kaydettin. Önce kendi sürümlerinden birini sil."
 }

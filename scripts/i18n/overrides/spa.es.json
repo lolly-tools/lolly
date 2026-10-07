@@ -1054,5 +1054,7 @@
   "Group created.": "Grupo creado.",
   "Commenter": "Comentador",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Los lectores abren y copian. Los comentadores también comentan. Los editores guardan cambios. Los gestores también añaden personas.",
-  "Asks to comment": "Pide comentar"
+  "Asks to comment": "Pide comentar",
+  "Only editors can save versions.": "Solo los editores pueden guardar versiones.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Ya guardaste el máximo de versiones con nombre permitido. Elimina primero una de las tuyas."
 }

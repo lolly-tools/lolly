@@ -1048,5 +1048,7 @@
   "Group created.": "Skupina byla vytvořena.",
   "Commenter": "Komentující",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Čtenáři otevírají a kopírují. Komentující navíc komentují. Editoři ukládají změny. Správci navíc přidávají lidi.",
-  "Asks to comment": "Žádá o možnost komentovat"
+  "Asks to comment": "Žádá o možnost komentovat",
+  "Only editors can save versions.": "Verze mohou ukládat jen editoři.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Máš uložený nejvyšší povolený počet pojmenovaných verzí. Nejdřív jednu ze svých smaž."
 }

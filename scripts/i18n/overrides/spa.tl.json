@@ -1056,5 +1056,7 @@
   "Group created.": "Nagawa na ang group.",
   "Commenter": "Tagakomento",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Binubuksan at kinokopya ng mga Tagatingin. Nagko-komento rin ang mga Tagakomento. Sine-save ng mga Editor ang mga pagbabago. Nagdadagdag din ng tao ang mga Tagapamahala.",
-  "Asks to comment": "Humihiling na mag-komento"
+  "Asks to comment": "Humihiling na mag-komento",
+  "Only editors can save versions.": "Mga editor lang ang puwedeng mag-save ng mga bersyon.",
+  "You have saved the most named versions allowed. Delete one of yours first.": "Na-save mo na ang pinakamaraming bersyong may pangalan na pinapayagan. Mag-delete muna ng isa sa mga bersyon mo."
 }

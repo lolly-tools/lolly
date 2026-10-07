@@ -1054,5 +1054,7 @@
   "Group created.": "گروپ بن گیا۔",
   "Commenter": "تبصرہ کار",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "ناظرین کھولتے اور کاپی کرتے ہیں۔ تبصرہ کار تبصرہ بھی کرتے ہیں۔ ایڈیٹر تبدیلیاں محفوظ کرتے ہیں۔ منتظم لوگوں کو بھی شامل کرتے ہیں۔",
-  "Asks to comment": "تبصرے کی اجازت مانگی"
+  "Asks to comment": "تبصرے کی اجازت مانگی",
+  "Only editors can save versions.": "صرف ایڈیٹرز ورژن محفوظ کر سکتے ہیں۔",
+  "You have saved the most named versions allowed. Delete one of yours first.": "آپ اجازت شدہ زیادہ سے زیادہ نام والے ورژن محفوظ کر چکے ہیں۔ پہلے اپنا کوئی ایک ورژن حذف کریں۔"
 }
