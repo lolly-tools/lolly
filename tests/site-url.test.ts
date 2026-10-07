@@ -43,12 +43,18 @@ test('every share-tag writer reads the preview origin from the resolver', () => 
   }
   const docs = read('docs/build.ts');
   assert.match(docs, /const PREVIEW_URL = siteUrl\(\);/);
-  for (const tag of ['OG_IMAGE = `${PREVIEW_URL}', 'OG_LOGO = `${PREVIEW_URL}', '`${PREVIEW_URL}/info/og/${page.slug}.png`',
-    '<meta property="og:url" content="${esc(shareUrl)}">']) {
-    assert.ok(docs.includes(tag), `docs/build.ts: ${tag}`);
+  // Regex literals, not strings: the source text holds template placeholders, and a
+  // placeholder inside a plain string literal reads as a forgotten backtick to the linter.
+  for (const tag of [
+    /OG_IMAGE = `\$\{PREVIEW_URL\}/,
+    /OG_LOGO = `\$\{PREVIEW_URL\}/,
+    /`\$\{PREVIEW_URL\}\/info\/og\/\$\{page\.slug\}\.png`/,
+    /<meta property="og:url" content="\$\{esc\(shareUrl\)\}">/,
+  ]) {
+    assert.match(docs, tag, 'docs/build.ts');
   }
   // The docs keep the public project site for canonical links.
-  assert.ok(docs.includes('<link rel="canonical" href="${esc(localeUrl)}">'));
+  assert.match(docs, /<link rel="canonical" href="\$\{esc\(localeUrl\)\}">/);
   const vite = readFileSync(join(ROOT, 'shells/web/vite.config.js'), 'latin1');
   assert.match(vite, /brandChrome\(\), sitePreview\(\)/);
   assert.match(read('docs/og-image.ts'), /const FOOTER_HOST = new URL\(siteUrl\(\)\)\.host;/);
