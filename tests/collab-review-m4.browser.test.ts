@@ -329,6 +329,11 @@ test('M4 review: mentions, inbox notice, Open thread, unread, filters, jump and 
     await reviewer.page.locator(`.collab-comment-list [data-comment-thread="${mentionId}"]`).click();
     await waitThreadOpen(reviewer.page, mentionId, 'Done, the colour is fixed.');
     await waitForLabel(reviewer.page, 'Comments');
+    // Reading the thread clears the reviewer's reply notice as well (M2).
+    for (const deadline = Date.now() + 15_000; (await inboxNotices(reviewer.page)).some(m => m.data?.threadId === mentionId);) {
+      assert.ok(Date.now() < deadline, 'the reply notice leaves the inbox once the thread is read');
+      await reviewer.page.waitForTimeout(500);
+    }
 
     // Jump: Next thread walks to the thread on the second artboard, which becomes the
     // artboard in view (pins are drawn for that artboard only); Previous comes back.
