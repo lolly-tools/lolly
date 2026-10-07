@@ -1,0 +1,107 @@
+{
+	admin off
+}
+
+# The upstream cannot trust client-supplied proxy headers or ambient cookies.
+(public_proxy) {
+	reverse_proxy 127.0.0.1:{args[0]} {
+		header_up Host {$LOLLY_PUBLIC_HOST}
+		header_up X-Forwarded-Host {$LOLLY_PUBLIC_HOST}
+		header_up X-Forwarded-Proto https
+		header_up X-Forwarded-For {remote_host}
+		header_up -Forwarded
+		header_up -X-Real-IP
+		header_up -X-Vercel-Forwarded-For
+		header_up -Cookie
+		header_up -Proxy-Authorization
+		header_down -Set-Cookie
+		flush_interval -1
+	}
+}
+
+{$LOLLY_PUBLIC_HOST} {
+	tls {$LOLLY_PUBLIC_ACME_EMAIL}
+	route {
+		header {
+			Referrer-Policy no-referrer
+			X-Content-Type-Options nosniff
+			Cross-Origin-Opener-Policy same-origin
+			Cross-Origin-Embedder-Policy credentialless
+			Permissions-Policy "camera=(self), microphone=(self), display-capture=(self), geolocation=()"
+			defer
+		}
+		@api_surface path /api/* /live/* /tool/* /.well-known/oauth-authorization-server* /.well-known/oauth-protected-resource*
+		header @api_surface Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"
+		# Browser API calls belong to this exact origin. Agent calls may omit Origin.
+		@foreign_api {
+			path /api/* /live/*
+			header Origin *
+			not header Origin https://{$LOLLY_PUBLIC_HOST}
+		}
+		handle @foreign_api {
+			respond "Origin is not allowed" 403
+		}
+		# CA OAuth needs its own HttpOnly state cookie and canonical callback host.
+		@ca path /api/ca /api/ca/*
+		handle @ca {
+			request_body {
+				max_size 65536
+			}
+			reverse_proxy 127.0.0.1:8887 {
+				header_up Host {$LOLLY_PUBLIC_HOST}
+				header_up X-Forwarded-Host {$LOLLY_PUBLIC_HOST}
+				header_up X-Forwarded-Proto https
+				header_up X-Forwarded-For {remote_host}
+				header_up -Forwarded
+				header_up -X-Real-IP
+				header_up -X-Vercel-Forwarded-For
+				header_up -Proxy-Authorization
+			}
+		}
+		@penpot path /api/penpot/rpc/get-all-projects /api/penpot/rpc/import-binfile
+		handle @penpot {
+			request_body {
+				max_size 33554432
+			}
+			import public_proxy 8891
+		}
+		@mcp path /api/mcp /api/mcp/* /api/fetch-image /.well-known/oauth-authorization-server /.well-known/oauth-authorization-server/* /.well-known/oauth-protected-resource /.well-known/oauth-protected-resource/*
+		handle @mcp {
+			request_body {
+				max_size 33554432
+			}
+			import public_proxy 8890
+		}
+		@tool path_regexp tool ^/tool/[a-z0-9-]+\.[a-z0-9-]+$
+		handle @tool {
+			import public_proxy 8890
+		}
+		@live path /live/invitations /live/rpc /live/mcp /live/editor
+		handle @live {
+			request_body {
+				max_size 33554432
+			}
+			import public_proxy 8890
+		}
+		# Unknown API, relay and discovery paths must never receive index.html.
+		@reserved path /api /api/* /live /live/* /tool /tool/*
+		handle @reserved {
+			respond "Not found" 404
+		}
+		handle {
+			reverse_proxy 127.0.0.1:8880 {
+				header_up Host {$LOLLY_PUBLIC_HOST}
+				header_up -Cookie
+				header_up -Authorization
+				header_up -Proxy-Authorization
+				header_down -Set-Cookie
+			}
+		}
+	}
+}
+
+# List only DNS names owned by this deployment, separated by spaces.
+{$LOLLY_PUBLIC_REDIRECT_HOSTS} {
+	tls {$LOLLY_PUBLIC_ACME_EMAIL}
+	redir https://{$LOLLY_PUBLIC_HOST}{uri} 308
+}

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-name: Public Helm deployment profiles
+name: Public deployment profiles
 
 on:
   push:
@@ -7,13 +7,23 @@ on:
     paths:
       - deploy/helm/**
       - deploy/docker/**
+      - deploy/models-host/**
+      - scripts/model-release.ts
       - tests/deployment-suse.test.ts
+      - tests/deployment-public-vm.test.ts
+      - tests/deployment-public-vm.integration.ts
+      - tests/model-release.test.ts
       - .github/workflows/deployment-suse.yml
   pull_request:
     paths:
       - deploy/helm/**
       - deploy/docker/**
+      - deploy/models-host/**
+      - scripts/model-release.ts
       - tests/deployment-suse.test.ts
+      - tests/deployment-public-vm.test.ts
+      - tests/deployment-public-vm.integration.ts
+      - tests/model-release.test.ts
       - .github/workflows/deployment-suse.yml
   workflow_dispatch:
 
@@ -119,3 +129,72 @@ jobs:
               --set-string "ca.image.digest=$digest" \
               | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
           done
+
+  public-vm:
+    name: Public VM route and security acceptance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    env:
+      CADDY_VERSION: '2.11.7'
+      CADDY_LINUX_AMD64_SHA256: 727b91701a392de6ebc5027509f548bf39979e5216340d0faed8fa5e69c84f8b
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          submodules: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /deploy/docker/
+            /deploy/models-host/
+            /scripts/model-release.ts
+            /tests/deployment-public-vm.test.ts
+            /tests/deployment-public-vm.integration.ts
+            /tests/model-release.test.ts
+            /vercel.json
+            /package.json
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Install checksum-verified Caddy
+        run: |
+          bindir="$RUNNER_TEMP/lolly-public-bin"
+          mkdir -p "$bindir"
+          archive="$RUNNER_TEMP/lolly-caddy.tar.gz"
+          curl --fail --silent --show-error --location --output "$archive" \
+            "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"
+          printf '%s  %s\n' "$CADDY_LINUX_AMD64_SHA256" "$archive" | sha256sum --check
+          tar -xzf "$archive" -C "$bindir" caddy
+          echo "$bindir" >> "$GITHUB_PATH"
+          rm "$archive"
+
+      - name: Validate Compose syntax with synthetic configuration
+        run: |
+          fixture="$RUNNER_TEMP/lolly-public-compose"
+          mkdir -p "$fixture/models"
+          export LOLLY_PUBLIC_HOST=public.example
+          export LOLLY_PUBLIC_PROXY_PEER=192.0.2.10
+          export LOLLY_PUBLIC_MODELS_DIR="$fixture/models"
+          export LOLLY_PUBLIC_MCP_ENV_FILE="$fixture/mcp.env"
+          export LOLLY_PUBLIC_CA_ENV_FILE="$fixture/ca.env"
+          digest='sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          for service in WEB MCP CA PENPOT; do
+            export "LOLLY_PUBLIC_${service}_IMAGE=registry.example.com/lolly@${digest}"
+          done
+          printf '%s\n' 'LOLLY_MCP_TOKEN=synthetic-test-value' > "$fixture/mcp.env"
+          printf '%s\n' "CA_ROOT_KEY_PEM='synthetic" "multiline'" \
+            'CA_SERVICE_SECRET=synthetic-test-value' > "$fixture/ca.env"
+          docker compose --env-file /dev/null -f deploy/docker/public.compose.yml config --quiet
+
+      - name: Exercise release and public deployment contracts
+        run: |
+          caddy version
+          docker version
+          node --test tests/model-release.test.ts tests/deployment-public-vm.test.ts
+          # Native Caddy/nginx acceptance is explicit and never silently skipped.
+          node --test tests/deployment-public-vm.integration.ts
