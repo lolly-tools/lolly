@@ -7374,5 +7374,22 @@
   "This session was deleted.": "Denne økten ble slettet.",
   "Could not send the invite. Try again.": "Kunne ikke sende invitasjonen. Prøv igjen.",
   "Live now - 1 person here": "Aktiv nå - 1 person er til stede",
-  "Live now - {n} people here": "Aktiv nå - {n} personer er til stede"
+  "Live now - {n} people here": "Aktiv nå - {n} personer er til stede",
+  "{project} · Can edit": "{project} · Kan redigere",
+  "{project} · View only": "{project} · Kun visning",
+  "{project} · View only (workspace role)": "{project} · Kun visning (rolle i arbeidsområdet)",
+  "Saved just now": "Lagret akkurat nå",
+  "View only": "Kun visning",
+  "View only. Changes can’t be saved to {project}.": "Kun visning. Endringer kan ikke lagres i {project}.",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Rollen din i {workspace} gir bare visningstilgang. Be en administrator i {workspace} om å endre rollen din.",
+  "This is view only. Make a copy to keep your changes.": "Dette er kun visning. Lag en kopi for å beholde endringene dine.",
+  "Save changes to {project}?": "Lagre endringer i {project}?",
+  "Leave without saving keeps your changes on this device.": "Hvis du forlater siden uten å lagre, beholdes endringene dine på denne enheten.",
+  "Stay": "Bli",
+  "Save a copy on this device": "Lagre en kopi på denne enheten",
+  "Copy saved on this device.": "Kopien er lagret på denne enheten.",
+  "Where should the copy go?": "Hvor skal kopien havne?",
+  "In a project you can edit": "I et prosjekt du kan redigere",
+  "Make copy": "Lag kopi",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "Kopien er separat. Endringer i kopien kommer ikke til {project}."
 }

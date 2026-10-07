@@ -7374,5 +7374,22 @@
   "This session was deleted.": "یہ سیشن حذف کر دیا گیا۔",
   "Could not send the invite. Try again.": "دعوت بھیجی نہیں جا سکی۔ دوبارہ کوشش کریں۔",
   "Live now - 1 person here": "اب لائیو - 1 شخص یہاں موجود ہے",
-  "Live now - {n} people here": "اب لائیو - {n} لوگ یہاں موجود ہیں"
+  "Live now - {n} people here": "اب لائیو - {n} لوگ یہاں موجود ہیں",
+  "{project} · Can edit": "{project} · ترمیم کر سکتے ہیں",
+  "{project} · View only": "{project} · صرف دیکھنے کے لیے",
+  "{project} · View only (workspace role)": "{project} · صرف دیکھنے کے لیے (ورک اسپیس رول)",
+  "Saved just now": "ابھی محفوظ ہوا",
+  "View only": "صرف دیکھنے کے لیے",
+  "View only. Changes can’t be saved to {project}.": "صرف دیکھنے کے لیے۔ تبدیلیاں {project} میں محفوظ نہیں ہو سکتیں۔",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "{workspace} میں آپ کا رول صرف دیکھنے کی اجازت دیتا ہے۔ اپنا رول بدلنے کے لیے {workspace} کے ایڈمن سے کہیں۔",
+  "This is view only. Make a copy to keep your changes.": "یہ صرف دیکھنے کے لیے ہے۔ اپنی تبدیلیاں رکھنے کے لیے کاپی بنائیں۔",
+  "Save changes to {project}?": "کیا تبدیلیاں {project} میں محفوظ کریں؟",
+  "Leave without saving keeps your changes on this device.": "محفوظ کیے بغیر چھوڑنے پر آپ کی تبدیلیاں اس ڈیوائس پر رہتی ہیں۔",
+  "Stay": "رکیں",
+  "Save a copy on this device": "اس ڈیوائس پر کاپی محفوظ کریں",
+  "Copy saved on this device.": "کاپی اس ڈیوائس پر محفوظ ہو گئی۔",
+  "Where should the copy go?": "کاپی کہاں جائے؟",
+  "In a project you can edit": "ایسے پروجیکٹ میں جسے آپ ترمیم کر سکتے ہیں",
+  "Make copy": "کاپی بنائیں",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "کاپی الگ ہے۔ کاپی میں کی گئی تبدیلیاں {project} تک نہیں پہنچتیں۔"
 }

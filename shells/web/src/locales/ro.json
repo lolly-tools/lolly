@@ -7374,5 +7374,22 @@
   "This session was deleted.": "Această sesiune a fost ștearsă.",
   "Could not send the invite. Try again.": "Nu am putut trimite invitația. Încearcă din nou.",
   "Live now - 1 person here": "Acum în direct - 1 persoană prezentă",
-  "Live now - {n} people here": "Acum în direct - {n} persoane prezente"
+  "Live now - {n} people here": "Acum în direct - {n} persoane prezente",
+  "{project} · Can edit": "{project} · Poate edita",
+  "{project} · View only": "{project} · Doar vizualizare",
+  "{project} · View only (workspace role)": "{project} · Doar vizualizare (rol în spațiul de lucru)",
+  "Saved just now": "Salvat chiar acum",
+  "View only": "Doar vizualizare",
+  "View only. Changes can’t be saved to {project}.": "Doar vizualizare. Modificările nu pot fi salvate în {project}.",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Rolul tău în {workspace} îți permite doar vizualizarea. Roagă un administrator al {workspace} să îți schimbe rolul.",
+  "This is view only. Make a copy to keep your changes.": "Aceasta este doar vizualizare. Fă o copie pentru a-ți păstra modificările.",
+  "Save changes to {project}?": "Salvezi modificările în {project}?",
+  "Leave without saving keeps your changes on this device.": "Dacă pleci fără să salvezi, modificările tale rămân pe acest dispozitiv.",
+  "Stay": "Rămâi",
+  "Save a copy on this device": "Salvează o copie pe acest dispozitiv",
+  "Copy saved on this device.": "Copie salvată pe acest dispozitiv.",
+  "Where should the copy go?": "Unde să ajungă copia?",
+  "In a project you can edit": "Într-un proiect pe care îl poți edita",
+  "Make copy": "Fă o copie",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "Copia este separată. Modificările din copie nu ajung în {project}."
 }

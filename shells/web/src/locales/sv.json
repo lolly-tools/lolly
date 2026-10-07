@@ -7374,5 +7374,22 @@
   "This session was deleted.": "Sessionen togs bort.",
   "Could not send the invite. Try again.": "Kunde inte skicka inbjudan. Försök igen.",
   "Live now - 1 person here": "Live nu - 1 person här",
-  "Live now - {n} people here": "Live nu - {n} personer här"
+  "Live now - {n} people here": "Live nu - {n} personer här",
+  "{project} · Can edit": "{project} · Kan redigera",
+  "{project} · View only": "{project} · Endast visning",
+  "{project} · View only (workspace role)": "{project} · Endast visning (roll i arbetsytan)",
+  "Saved just now": "Sparades nyss",
+  "View only": "Endast visning",
+  "View only. Changes can’t be saved to {project}.": "Endast visning. Ändringar kan inte sparas i {project}.",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Din roll i {workspace} ger bara visningsbehörighet. Be en administratör för {workspace} att ändra din roll.",
+  "This is view only. Make a copy to keep your changes.": "Det här är endast visning. Gör en kopia för att behålla dina ändringar.",
+  "Save changes to {project}?": "Spara ändringar i {project}?",
+  "Leave without saving keeps your changes on this device.": "Om du lämnar utan att spara ligger ändringarna kvar på den här enheten.",
+  "Stay": "Stanna",
+  "Save a copy on this device": "Spara en kopia på den här enheten",
+  "Copy saved on this device.": "Kopian sparades på den här enheten.",
+  "Where should the copy go?": "Var ska kopian hamna?",
+  "In a project you can edit": "I ett projekt du kan redigera",
+  "Make copy": "Skapa kopia",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "Kopian är separat. Ändringar i kopian når inte {project}."
 }

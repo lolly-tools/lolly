@@ -7374,5 +7374,22 @@
   "This session was deleted.": "此工作階段已被刪除。",
   "Could not send the invite. Try again.": "無法傳送邀請。請再試一次。",
   "Live now - 1 person here": "目前在線 - 1 人在此",
-  "Live now - {n} people here": "目前在線 - {n} 人在此"
+  "Live now - {n} people here": "目前在線 - {n} 人在此",
+  "{project} · Can edit": "{project} · 可編輯",
+  "{project} · View only": "{project} · 僅檢視",
+  "{project} · View only (workspace role)": "{project} · 僅檢視（工作區角色）",
+  "Saved just now": "剛剛已儲存",
+  "View only": "僅檢視",
+  "View only. Changes can’t be saved to {project}.": "僅檢視。無法將變更儲存到 {project}。",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "你在 {workspace} 的角色只能檢視。請聯絡 {workspace} 的管理員變更你的角色。",
+  "This is view only. Make a copy to keep your changes.": "目前為僅檢視。建立副本即可保留你的變更。",
+  "Save changes to {project}?": "要將變更儲存到 {project} 嗎？",
+  "Leave without saving keeps your changes on this device.": "不儲存直接離開，你的變更會保留在此裝置上。",
+  "Stay": "留下",
+  "Save a copy on this device": "在此裝置上儲存副本",
+  "Copy saved on this device.": "副本已儲存在此裝置上。",
+  "Where should the copy go?": "副本要放在哪裡？",
+  "In a project you can edit": "放到你可編輯的專案中",
+  "Make copy": "建立副本",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "副本是獨立的。對副本的變更不會同步到 {project}。"
 }

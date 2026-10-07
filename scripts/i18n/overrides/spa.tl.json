@@ -881,5 +881,22 @@
   "This session was deleted.": "Natanggal ang session na ito.",
   "Could not send the invite. Try again.": "Hindi naipadala ang imbitasyon. Subukan ulit.",
   "Live now - 1 person here": "Live ngayon - 1 taong narito",
-  "Live now - {n} people here": "Live ngayon - {n} taong narito"
+  "Live now - {n} people here": "Live ngayon - {n} taong narito",
+  "{project} · Can edit": "{project} · Puwedeng mag-edit",
+  "{project} · View only": "{project} · Pantingin lang",
+  "{project} · View only (workspace role)": "{project} · Pantingin lang (role sa workspace)",
+  "Saved just now": "Kaka-save lang",
+  "View only": "Pantingin lang",
+  "View only. Changes can’t be saved to {project}.": "Pantingin lang. Hindi masa-save ang mga pagbabago sa {project}.",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Pantingin lang ang pinapayagan ng role mo sa {workspace}. Hilingin sa admin ng {workspace} na baguhin ang role mo.",
+  "This is view only. Make a copy to keep your changes.": "Pantingin lang ito. Gumawa ng kopya para mapanatili ang mga pagbabago mo.",
+  "Save changes to {project}?": "I-save ang mga pagbabago sa {project}?",
+  "Leave without saving keeps your changes on this device.": "Kapag umalis nang hindi nagse-save, mananatili ang mga pagbabago mo sa device na ito.",
+  "Stay": "Manatili",
+  "Save a copy on this device": "Mag-save ng kopya sa device na ito",
+  "Copy saved on this device.": "Na-save ang kopya sa device na ito.",
+  "Where should the copy go?": "Saan ilalagay ang kopya?",
+  "In a project you can edit": "Sa project na puwede mong i-edit",
+  "Make copy": "Gumawa ng kopya",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "Hiwalay ang kopya. Hindi umaabot sa {project} ang mga pagbabago sa kopya."
 }
