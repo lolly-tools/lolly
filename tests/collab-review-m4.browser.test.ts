@@ -548,6 +548,25 @@ async function waitForText(page: Page, selector: string, text: string): Promise<
 }
 const PILL = '.collab-pill--stage';
 const followLabel = `${PILL} .collab-follow-label`;
+/** Record every text the follow label shows from now on, so a short notice is never missed. */
+async function recordFollowLabels(page: Page): Promise<void> {
+  await page.evaluate(selector => {
+    const seen: string[] = [];
+    (window as unknown as { followLabels: string[] }).followLabels = seen;
+    const label = document.querySelector(selector)!;
+    seen.push(label.textContent ?? '');
+    new MutationObserver(() => { if (seen.at(-1) !== label.textContent) seen.push(label.textContent ?? ''); })
+      .observe(label, { childList: true, characterData: true, subtree: true });
+  }, followLabel);
+}
+async function followLabelsSeen(page: Page, text: string): Promise<void> {
+  try {
+    await page.waitForFunction(want => (window as unknown as { followLabels: string[] }).followLabels.includes(want), text, { polling: 'raf' });
+  } catch (error) {
+    const seen = await page.evaluate(() => (window as unknown as { followLabels: string[] }).followLabels);
+    throw new Error(`the follow label never read ${JSON.stringify(text)}; it read ${JSON.stringify(seen)}`, { cause: error });
+  }
+}
 /** Click a person's avatar in the stage pill, which follows them (or stops when already followed). */
 async function followFromAvatar(page: Page, name: string): Promise<void> {
   await page.waitForFunction(title => !!document.querySelector(`.collab-pill--stage .collab-stack .collab-av[title="${title}"]`), `Follow ${name}`, { polling: 'raf' });
@@ -668,8 +687,9 @@ test('M4 follow: Hide pointers, following a person, followers by name, one prese
     // The person followed leaving ends the follow, with a status.
     await followFromAvatar(editor.page, 'Admin');
     await waitForText(editor.page, followLabel, 'Following Admin');
+    await recordFollowLabels(editor.page);
     await owner.page.close();
-    await waitForText(editor.page, followLabel, 'Admin left. You stopped following.');
+    await followLabelsSeen(editor.page, 'Admin left. You stopped following.');
   } catch (error) {
     console.error('M4 follow diagnostics', await w.diagnostics());
     throw error;
