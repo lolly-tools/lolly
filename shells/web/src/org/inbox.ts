@@ -27,13 +27,16 @@
  * Lazy-loaded by org/index.ts for members only, so a plain deployment never loads
  * this file. Nothing here touches the DOM beyond the window and document events it
  * listens to; titles and bodies are data, rendered by the two views through
- * textContent or escape().
+ * textContent or escape(). A comment notice's title and body are built in the app's
+ * language (org/comment-notice.ts) for the notification queue and the announcement,
+ * as the two views build them.
  */
 import { announce } from '../a11y.ts';
 import { t, tRaw } from '../i18n.ts';
 import { instanceFetch, instancePath, usesBrowserCors, getInstanceBase } from '../lib/instance.ts';
 import { registerNotificationSource, notificationsChanged } from '../lib/notifications.ts';
 import { safeHref } from '../utils.ts';
+import { messageWords } from './comment-notice.ts';
 import { openedProjects } from './opened-projects.ts';
 
 export type Severity = 'info' | 'action' | 'blocking';
@@ -205,7 +208,7 @@ function apply(list: InboxMessage[]): void {
   const changed = JSON.stringify(keep) !== JSON.stringify(messages);
   messages = keep;
   const first = pickMessage(fresh);
-  if (first) announce(tRaw('New message: {title}', { title: first.title }));
+  if (first) announce(tRaw('New message: {title}', { title: messageWords(first).title }));
   if (changed) notify();
 }
 
@@ -291,7 +294,7 @@ export function startInbox(opts: { initialUnread: number; principal?: string; re
   started = true;
   const scope = `${getInstanceBase()}:${opts.principal ?? ''}`;
   detachNotifications = registerNotificationSource('workspace', () => messages.map(m => ({
-    id: `workspace:${scope}:${m.id}`, title: m.title, body: m.body,
+    id: `workspace:${scope}:${m.id}`, ...messageWords(m),
     tone: m.severity === 'blocking' ? 'warning' as const : m.severity === 'action' ? 'action' as const : 'info' as const,
     dismissible: m.dismissible, onDismiss: () => { if (messages.find(row => row.id === m.id)?.dismissible) dismissMessage(m.id); },
     ...(m.data?.kind === 'access-request' || m.kind === 'collab' || m.data?.kind === 'collab-invite' || m.data?.kind === 'comment-mention' || m.data?.kind === 'comment-reply'

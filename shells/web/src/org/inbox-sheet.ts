@@ -21,12 +21,12 @@
  * 4) gets its title in the app's language from the payload's name, document and count,
  * and an Open thread link built from the payload's checked session and thread ids.
  * The instance's own link (`cta.url`) is never used for one. Following the link acks
- * the notice. org/banner.ts uses the same helpers for a notice it shows.
+ * the notice. The words and the link come from org/comment-notice.ts, which
+ * org/banner.ts and org/inbox.ts use too.
  *
  * Every instance-supplied string (titles, bodies, names) reaches the page through
  * textContent; only the dialog's frame, built from this file's own strings, is markup.
  */
-import { commentId } from '@lolly-tools/core/canvas-review-v1';
 import { announce } from '../a11y.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -34,6 +34,7 @@ import { icon } from '../lib/icons.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { relTime } from '../lib/rel-time.ts';
 import { escape as escapeHtml, safeHref } from '../utils.ts';
+import { commentNoticeOf, messageWords } from './comment-notice.ts';
 import { dismissMessage, inboxLoaded, inboxMessages, onInboxChange, refreshInbox, type InboxMessage } from './inbox.ts';
 import { INVITE_ROLES, inviteRoleOf, roleLabel, type InviteRole } from './team-access.ts';
 
@@ -60,62 +61,6 @@ export function requestOf(m: InboxMessage): { id: string; kind: string; role: In
   const d = m.data;
   if (d?.kind !== 'access-request' || !d.requestId) return null;
   return { id: d.requestId, kind: d.requestKind ?? '', role: inviteRoleOf(d.role), name: (d.name || d.email || '').trim() };
-}
-
-// ── Comment notices ──────────────────────────────────────────────────────────
-
-/** The body the instance sends when the thread has no message by someone else left. */
-const NOTICE_GONE = 'This comment is no longer available.';
-
-/** The session id rule of org/team-link-shared.ts `teamLinkSessionId`, applied to the
- *  value as sent. Importing that module would put this file in org/index.ts's load
- *  cycle, so the rule is repeated here and a test keeps the two in step. */
-const TEAM_SESSION_ID = /^[A-Za-z0-9._~-]{1,200}$/;
-
-/** A mention or reply notice, read from its message's payload. */
-export interface CommentNotice {
-  kind: 'mention' | 'reply';
-  /** The thread inside this app, `#/team/<sessionId>?thread=<threadId>`, or '' when
-   *  either id fails its check. Never the instance's `cta.url`. */
-  href: string;
-  /** The person who wrote, as the instance gave the name when the inbox was read. */
-  actorName: string;
-  /** The document's name, as the instance gave it when the inbox was read. */
-  label: string;
-  /** How many replies the notice stands for: 1 to 1000. */
-  count: number;
-}
-
-/** The comment notice a message carries, or null for any other message. Pure. */
-export function commentNoticeOf(m: Pick<InboxMessage, 'data'>): CommentNotice | null {
-  const d = m.data;
-  const kind = d?.kind === 'comment-mention' ? 'mention' : d?.kind === 'comment-reply' ? 'reply' : null;
-  if (!d || !kind) return null;
-  const sessionId = d.sessionId ?? '';
-  const threadId = d.threadId ?? '';
-  const href = TEAM_SESSION_ID.test(sessionId) && commentId(threadId)
-    ? `#/team/${encodeURIComponent(sessionId)}?thread=${encodeURIComponent(threadId)}`
-    : '';
-  const n = /^\d{1,7}$/.test(d.count ?? '') ? Number(d.count) : 1;
-  return { kind, href, actorName: (d.actorName ?? '').trim(), label: (d.label ?? '').trim(), count: Math.min(Math.max(n, 1), 1000) };
-}
-
-/** A comment notice's title in the app's language. `fallback`, the instance's own
- *  title, only when the payload lacks the name or the document the title needs.
- *  Plain text, for textContent. */
-export function commentNoticeTitle(n: CommentNotice, fallback: string): string {
-  if (!n.label) return fallback;
-  if (n.kind === 'reply' && n.count > 1) return tRaw('New replies in {document}: {count}', { document: n.label, count: n.count });
-  if (!n.actorName) return fallback;
-  return n.kind === 'mention'
-    ? tRaw('{name} mentioned you in {document}', { name: n.actorName, document: n.label })
-    : tRaw('{name} replied in {document}', { name: n.actorName, document: n.label });
-}
-
-/** A comment notice's body: the quoted message as sent, or, for a thread with nothing
- *  left to quote, that sentence in the app's language. Plain text, for textContent. */
-export function commentNoticeBody(body: string | undefined): string | undefined {
-  return body?.trim() === NOTICE_GONE ? tRaw('This comment is no longer available.') : body;
 }
 
 // ── Answering a request ──────────────────────────────────────────────────────
@@ -295,8 +240,8 @@ export function openInboxSheet(opts: InboxSheetOptions = {}): void {
     li.dataset.msg = m.id;
 
     const words = el('div', { style: 'min-width:0' });
-    words.append(el('strong', { text: notice ? commentNoticeTitle(notice, m.title) : m.title, style: 'display:block;font-weight:650;overflow-wrap:anywhere' }));
-    const bodyText = notice ? commentNoticeBody(m.body) : m.body;
+    const { title, body: bodyText } = messageWords(m);
+    words.append(el('strong', { text: title, style: 'display:block;font-weight:650;overflow-wrap:anywhere' }));
     if (bodyText) words.append(el('p', { text: bodyText, style: `margin:.15rem 0 0;overflow-wrap:anywhere;${MUTED}` }));
     const when = relTime(m.data?.at, Date.now(), tRaw);
     if (when) {

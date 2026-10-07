@@ -117,7 +117,24 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
       if (!disposed && ticket === draftTicket && !input.value) input.value = body;
     }).catch(() => { if (!disposed) status.textContent = t('The saved reply could not be loaded on this device.'); });
   }
-  input.addEventListener('input', () => { if (draftKey) queueDraft(draftKey, input.value); }, { signal: abort.signal });
+  input.addEventListener('input', () => { if (draftKey) queueDraft(draftKey, input.value); if (!input.value.trim()) resume(); }, { signal: abort.signal });
+  /** A thread someone else's view opened (following them) while this person was writing: shown once the writing stops. */
+  let deferred: { context?: string } | undefined;
+  /** The person is writing here: a reply is on its way, or the composer or an edit field has focus and holds unsent text. */
+  const writing = (): boolean => {
+    const active = doc.activeElement;
+    return busy || !!win && active instanceof win.HTMLTextAreaElement && panel.contains(active) && !!active.value.trim();
+  };
+  function resume(): void {
+    if (!deferred || disposed || writing()) return;
+    const { context } = deferred; deferred = undefined;
+    void locate(context, { focus: false });
+  }
+  // Focus leaving the panel ends the writing; moving to Send or a mention inside the panel does not.
+  panel.addEventListener('focusout', event => {
+    const to = event.relatedTarget;
+    if (!(win && to instanceof win.Node && panel.contains(to))) setTimeout(resume, 0);
+  }, { signal: abort.signal });
   function start(value: Pinned): void {
     if (!permissions?.create) return;
     anchor = value; selected = undefined; placing = false; painted = ''; messages.replaceChildren(); linkField.hidden = true;
@@ -363,7 +380,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
         followLatest = true; chosenByDraft.delete(sentFrom);
         queueDraft(sentFrom, ''); input.value = ''; selected = result.id; anchor = undefined; draftKey = result.id;
         messageId = crypto.randomUUID(); painted = ''; status.textContent = sentText(result, sent, requested);
-      }).catch(report).finally(() => { busy = false; send.disabled = false; void refresh(); });
+      }).catch(report).finally(() => { busy = false; send.disabled = false; void refresh(); resume(); });
   }, { signal: abort.signal });
   canvas.addEventListener('pointerdown', event => {
     if (!placing || !permissions?.create || event.button !== 0) return;
@@ -469,14 +486,23 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     if (pollTimer && pollInterval() !== pollEvery) schedulePoll();
     if (state.connection === 'live') targets.retry();
   });
-  async function locate(context?: string): Promise<void> {
+  /**
+   * Show a thread, or close the panel with no context. `focus: false` is for a change the
+   * person did not ask for (following someone): focus stays where it is, and while the
+   * person is writing the change waits until they stop, so the field never changes under them.
+   */
+  async function locate(context?: string, opts: { focus?: boolean } = {}): Promise<void> {
     if (disposed) return;
+    const quiet = opts.focus === false;
+    if (quiet && writing()) { deferred = { context }; return; }
+    deferred = undefined;
     if (context === undefined) { layout.setOpen(false); placing = false; return; }
     await refresh();
     if (disposed || !enabled || session && session.state().connection !== 'live') return;
+    if (quiet && writing()) { deferred = { context }; return; }
     if (threads.some(thread => thread.id === context)) { if (selected !== context) select(context); }
     else { selected = undefined; anchor = undefined; messages.replaceChildren(); renderList(); renderMessages(); }
-    layout.setOpen(true); close.focus(); presence?.refresh();
+    layout.setOpen(true); if (!quiet) close.focus(); presence?.refresh();
     const thread = current(); if (thread) scheduleRead(thread);
   }
   /** A link or notification's thread: open it, then show where it is. */

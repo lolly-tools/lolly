@@ -312,7 +312,8 @@ test('M4 review: mentions, inbox notice, Open thread, unread, filters, jump and 
     console.log(`reply: click -> saved ${savedAt - clickedAt} ms; saved -> reviewer comment frame ${frameAt ? frameAt - savedAt : 'none'} ms; saved -> unread badge ${badgeAt - savedAt} ms`);
     assert.ok(frameAt > 0, 'the reviewer received a comment frame for the reply');
     assert.ok(savedAt > 0, 'the reply was saved');
-    assert.ok(badgeAt - savedAt < 1_500, `the reply reached the reviewer through the live room (${badgeAt - savedAt} ms)`);
+    // The M4f gate: peer visibility under one second in the local browser.
+    assert.ok(badgeAt - savedAt < 1_000, `the reply reached the reviewer through the live room (${badgeAt - savedAt} ms)`);
     await reviewer.page.locator('.collab-comments-open .collab-comments-badge').waitFor();
     await waitForNotice(reviewer.page, 'comment-reply', mentionId);
     // The owner is not involved: the thread is unread for them, but they get no notice.

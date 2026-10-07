@@ -8,7 +8,7 @@ import {
   _resetInboxForTests, dismissMessage, inboxMessages, onInboxChange, pickMessage, refreshInbox, sharedProjectOf, startInbox,
   type InboxMessage,
 } from './inbox.ts';
-import { commentNoticeBody, commentNoticeOf, commentNoticeTitle } from './inbox-sheet.ts';
+import { commentNoticeOf, messageWords } from './comment-notice.ts';
 import { _clearOpenedProjectsForTests, onProjectOpened } from './opened-projects.ts';
 
 export type { InboxMessage, Severity } from './inbox.ts';
@@ -125,8 +125,7 @@ function showBlocking(m: InboxMessage): void {
   let gone = false;
   // A comment notice has its own title, body and link, from its payload.
   const notice = commentNoticeOf(m);
-  const title = notice ? commentNoticeTitle(notice, m.title) : m.title;
-  const body = notice ? commentNoticeBody(m.body) : m.body;
+  const { title, body } = messageWords(m);
   const hasAction = notice ? !!notice.href : !!m.cta;
   // The title and body are set as text once the dialog is up.
   const content = `

@@ -122,6 +122,29 @@ test('locating a shared thread preserves a private reply and respects revoked ac
     f.deny(); await f.ui.locate('thread'); assert.equal(input.disabled, true); assert.equal(f.threads()[0]!.messages.length, 1);
   } finally { f.destroy(); }
 });
+test('a thread opened by following someone moves no focus, and waits while the person is writing', async () => {
+  const other = thread('other', canvasAt(10, 10), [message('other-message', 'ana', 'Check the margins')], { authorId: 'ana', authorName: 'ana' });
+  const f = fixture({ threads: [thread('thread', imageAnchor, [message('message', 'reviewer', 'Align this image')], { authorId: 'reviewer', authorName: 'Reviewer' }), other] });
+  try {
+    await tick();
+    const outside = f.doc.createElement('button'); f.doc.body.append(outside); outside.focus();
+    const input = f.panel.querySelector('textarea')!, conversation = () => f.panel.querySelector('.collab-comment-messages')!.textContent;
+    await f.ui.locate('other', { focus: false }); await tick();
+    assert.match(conversation()!, /Check the margins/, 'the followed thread is shown');
+    assert.equal(f.doc.activeElement, outside, 'focus stays where the person left it');
+    input.focus(); input.value = 'My reply about margins'; input.dispatchEvent(new f.dom.window.Event('input'));
+    await f.ui.locate('thread', { focus: false }); await tick();
+    assert.equal(input.value, 'My reply about margins', 'the field does not change under the person');
+    assert.equal(f.doc.activeElement, input);
+    assert.match(conversation()!, /Check the margins/, 'the switch waits');
+    outside.focus(); await wait(5); await tick(); await tick();
+    assert.match(conversation()!, /Align this image/, 'leaving the field shows the thread the followed person opened');
+    assert.equal(f.doc.activeElement, outside);
+    assert.equal(f.drafts.get('other'), 'My reply about margins', 'the unsent reply is kept as that thread\'s draft');
+    await f.ui.locate('other'); await tick();
+    assert.equal(f.doc.activeElement?.textContent, 'Close comments', 'a person\'s own open still moves focus into the panel');
+  } finally { f.destroy(); }
+});
 test('a review pin follows object translation, resizing and rotation; a deleted object keeps a muted pin and undo restores it', async () => {
   const f = fixture(); const artwork = f.canvas.outerHTML;
   try {

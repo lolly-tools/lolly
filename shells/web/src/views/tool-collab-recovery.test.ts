@@ -6,9 +6,9 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { retainCanvasRecovery, canvasRecoveryValues } from '../lib/canvas-recovery.ts';
 import { _resetNotificationsForTests, dismissNotification, notificationEntries } from '../lib/notifications.ts';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
-import { mountCollabRecovery, RECOVERY_MAX_AGE_MS, RECOVERY_OWNER_KEY, recoveryOwner } from './tool-collab-recovery.ts';
+import { _resetRecoveryCopiesForTests, mountCollabRecovery, RECOVERY_MAX_AGE_MS, RECOVERY_OWNER_KEY, recoveryOwner } from './tool-collab-recovery.ts';
 
-beforeEach(_resetNotificationsForTests);
+beforeEach(() => { _resetNotificationsForTests(); _resetRecoveryCopiesForTests(); });
 const WORKSPACE = 'https://lolly.ing';
 const flush = async (turns = 6): Promise<void> => { for (let i = 0; i < turns; i++) await new Promise(resolve => setImmediate(resolve)); };
 /** The earlier-copies scan starts on a 0 ms timer: wait for timers first, or a fast machine flushes before the scan has begun. */
@@ -113,8 +113,47 @@ test('a stored recovery notice stays until the person dismisses it, with a queue
     assert.equal(notice.hidden, true);
     assert.equal(notificationEntries().find(entry => entry.id === 'collab-recovery:brief')!.dismissed, true);
     ui.teardown();
-    assert.equal(notificationEntries().some(entry => entry.id.startsWith('collab-recovery:')), false, 'teardown leaves no queue entry behind');
+    assert.equal(notificationEntries().find(entry => entry.id === 'collab-recovery:brief')?.dismissed, true, 'a dismissed copy stays dismissed in the queue');
   } finally { nav.restore(); ui.teardown(); dom.window.close(); }
+});
+
+test('a saved copy stays in the queue after the document closes, offering Open and Download, until dismissed', async () => {
+  const dom = workspaceDom(), stage = dom.window.document.querySelector('div')!, runtime = {};
+  const { saved, host } = library(), downloads: Array<Record<string, unknown>> = [];
+  Object.assign(host, { export: { download: async (blob: Blob) => { downloads.push(JSON.parse(await blob.text())); } } });
+  let ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u1');
+  const nav = captureNavigation();
+  try {
+    retainCanvasRecovery(runtime, { title: 'Keep me' }, 'Interrupted text', 'kept');
+    await flush();
+    ui.teardown();
+    const queued = notificationEntries().find(entry => entry.id === 'collab-recovery:kept')!;
+    assert.equal(queued.dismissed, false, 'leaving the document does not withdraw the notice');
+    assert.equal(queued.action?.label, 'Open recovery copy'); assert.equal(queued.secondary?.label, 'Download recovery copy');
+    await queued.secondary!.run();
+    assert.equal(downloads[0]!.title, 'Keep me'); assert.equal(RECOVERY_OWNER_KEY in downloads[0]!, false);
+    await queued.action!.run!();
+    assert.deepEqual(nav.hrefs, ['#/tool/design?slot=collab-recovery%3Akept', 'event:lolly:remount'], 'the copy opens after the document closed');
+    // The next live document belongs to another account: the copy is no longer listed or opened.
+    ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u2');
+    assert.equal(notificationEntries().some(entry => entry.id === 'collab-recovery:kept'), false);
+    assert.ok(saved.has('collab-recovery:kept'), 'the copy itself stays on the device');
+    ui.teardown();
+    ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u1');
+    dismissNotification('collab-recovery:kept');
+    assert.equal(notificationEntries().find(entry => entry.id === 'collab-recovery:kept')?.dismissed, true);
+  } finally { nav.restore(); ui.teardown(); dom.window.close(); }
+});
+
+test('a copy with no known tool offers Download as its action', async () => {
+  const dom = workspaceDom(), stage = dom.window.document.querySelector('div')!, runtime = {};
+  const { host } = library([['collab-recovery:loose', { title: 'Loose', [RECOVERY_OWNER_KEY]: owned('u1', 60_000)[RECOVERY_OWNER_KEY] }]]);
+  const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: {} }), () => 'u1');
+  try {
+    await scanned();
+    const queued = notificationEntries().find(entry => entry.id === 'collab-recovery:loose')!;
+    assert.equal(queued.action?.label, 'Download recovery copy'); assert.equal(queued.secondary, undefined);
+  } finally { ui.teardown(); dom.window.close(); }
 });
 
 test('dismissing the queued notice closes the stage notice, and a replayed copy stays closed', async () => {
