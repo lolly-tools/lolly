@@ -13,7 +13,7 @@
  *
  * Server contract (lolly-work plans 74 and 75):
  *   GET    /api/v1/projects/:id/members                 -> { myRole, members, invitations, requests, message?,
- *                                                           effective?, effectiveTruncated?, adminAccess? }
+ *                                                           effective?, effectiveTruncated?, adminAccess?, canTransfer? }
  *   GET    /api/v1/projects?archived=1                  -> { projects } (archived ones carry archivedAt)
  *   PATCH  /api/v1/projects/:id {archived:false|ownerId} -> project
  *   POST   /api/v1/projects/:id/invite {emails, role, passwordSetup?}
@@ -117,6 +117,9 @@ export interface ProjectPeople {
   /** `listed`: the caller is a workspace admin or owner, who sees the admin rows. `note`:
    *  another manager, who sees no admin rows and is told that admins can open the project. */
   adminAccess?: 'listed' | 'note';
+  /** Whether the caller may hand the project on, by the instance's own test for a
+   *  transfer (the owner, or a holder of `project.manage`). Absent from an older instance. */
+  canTransfer?: boolean;
 }
 
 export interface InviteResult {
@@ -258,7 +261,7 @@ export function peopleFromBody(body: unknown): ProjectPeople | null {
   if (!body || typeof body !== 'object') return null;
   const b = body as {
     myRole?: unknown; members?: unknown; invitations?: unknown; requests?: unknown; message?: unknown;
-    effective?: unknown; effectiveTruncated?: unknown; adminAccess?: unknown;
+    effective?: unknown; effectiveTruncated?: unknown; adminAccess?: unknown; canTransfer?: unknown;
   };
   const myRole = teamRoleOf(b.myRole);
   if (!myRole || !Array.isArray(b.members)) return null;
@@ -279,6 +282,7 @@ export function peopleFromBody(body: unknown): ProjectPeople | null {
     myRole, members, invitations, requests, ...(message ? { message } : {}),
     ...(effective.length ? { effective } : {}), ...(b.effectiveTruncated === true ? { effectiveTruncated: true } : {}),
     ...(adminAccess ? { adminAccess } : {}),
+    ...(typeof b.canTransfer === 'boolean' ? { canTransfer: b.canTransfer } : {}),
   };
 }
 

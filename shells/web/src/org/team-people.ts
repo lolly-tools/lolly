@@ -26,8 +26,9 @@
  *    members: "Editor · via team", "Admin · via workspace role", with no role select and
  *    no Remove, since that access is not changed here. A manager who is not a workspace
  *    admin sees no admin rows and is told that admins can also open the project;
- *  - the owner, or a workspace admin who manages the project through that role, sees
- *    Make owner on the other member rows; the old owner stays on as a Manager.
+ *  - whoever the instance says may hand the project on (`canTransfer`: the owner, or a
+ *    holder of `project.manage`) sees Make owner on the other member rows; the old owner
+ *    stays on as a Manager. An instance that does not say offers it to the owner only.
  *
  * Data comes from org/project-members.ts and the message text from
  * org/invite-message.ts. Every instance-supplied string (names, addresses, notes,
@@ -81,19 +82,19 @@ export function peoplePanelView(people: ProjectPeople, policy: InvitePolicy | nu
   roles: InviteRole[];
   /** A viewer, on an instance that takes access requests: offer Ask to edit. */
   askToEdit: boolean;
-  /** The owner, or a workspace admin who manages the project through that role: offer
-   *  Make owner on the other member rows. The instance refuses everyone else. */
+  /** The instance says this person may hand the project on (the owner, or a holder of
+   *  `project.manage`): offer Make owner on the other member rows. Without that answer
+   *  (an older instance), the owner only, whom the transfer always accepts. */
   transfer: boolean;
 } {
   const manage = isManagerPlus(people.myRole);
   const roles = policy?.projectRoles ?? [];
-  // A workspace admin or owner (`adminAccess: 'listed'`) manages every project through
-  // `project.manage`, which is what lets them hand one on.
-  const admin = people.adminAccess === 'listed' || (people.effective ?? []).some((m) => m.isMe === true && m.via === 'admin');
   return {
     manage, invite: manage && !!policy && roles.length > 0, roles,
     askToEdit: people.myRole === 'viewer' && policy?.askToEdit === true,
-    transfer: people.myRole === 'owner' || (manage && admin),
+    // The same test the transfer applies, from the instance: a workspace role does not
+    // decide it here, since `project.manage` can be granted or denied by grant.
+    transfer: people.canTransfer ?? people.myRole === 'owner',
   };
 }
 

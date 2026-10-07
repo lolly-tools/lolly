@@ -82,7 +82,9 @@ test('the effective list holds only group and admin rows, beside how admins are 
   assert.deepEqual(got.effective!.map((m) => [m.userId, m.via]), [['u3', 'group'], ['u4', 'admin']]);
   assert.equal(got.effectiveTruncated, true);
   assert.equal(got.adminAccess, 'listed');
-  const older = peopleFromBody({ myRole: 'manager', members: [], adminAccess: 'everyone' })!;
+  assert.equal(peopleFromBody({ myRole: 'manager', members: [], canTransfer: true })!.canTransfer, true);
+  assert.equal(peopleFromBody({ myRole: 'owner', members: [], canTransfer: false })!.canTransfer, false);
+  const older = peopleFromBody({ myRole: 'manager', members: [], adminAccess: 'everyone', canTransfer: 'yes' })!;
   assert.deepEqual(Object.keys(older).sort(), ['invitations', 'members', 'myRole', 'requests'], 'an older answer keeps its old shape');
 });
 
@@ -104,13 +106,18 @@ const people = (myRole: string, more: Record<string, unknown> = {}) => peopleFro
   ...more,
 })!;
 
-test('Make owner is for the owner, or a workspace admin managing the project, and nobody else', () => {
+test('Make owner follows the instance\'s own answer (canTransfer), the test the transfer applies', () => {
+  assert.equal(peoplePanelView(people('owner', { canTransfer: true }), null).transfer, true);
+  assert.equal(peoplePanelView(people('manager', { adminAccess: 'note', canTransfer: false }), null).transfer, false, 'a member manager cannot hand the project on');
+  // A workspace role does not decide it: project.manage can be denied to an admin, or
+  // granted to someone who is not one.
+  assert.equal(peoplePanelView(people('manager', { adminAccess: 'listed', canTransfer: false }), null).transfer, false, 'an admin denied project.manage');
+  assert.equal(peoplePanelView(people('manager', { adminAccess: 'note', canTransfer: true }), null).transfer, true, 'a member granted project.manage');
+  assert.equal(peoplePanelView(people('viewer', { canTransfer: false }), null).transfer, false);
+  // An older instance that does not say: the owner only, whom a transfer always accepts.
   assert.equal(peoplePanelView(people('owner'), null).transfer, true);
-  assert.equal(peoplePanelView(people('manager', { adminAccess: 'note' }), null).transfer, false, 'a member manager cannot hand the project on');
-  assert.equal(peoplePanelView(people('manager', { adminAccess: 'listed' }), null).transfer, true, 'a workspace admin who is also a member');
-  assert.equal(peoplePanelView(people('manager', { effective: [{ userId: 'me', name: 'Kim', role: 'manager', via: 'admin', isMe: true }] }), null).transfer, true);
-  assert.equal(peoplePanelView(people('editor', { adminAccess: 'listed' }), null).transfer, false, 'admin access without project.manage');
-  assert.equal(peoplePanelView(people('viewer'), null).transfer, false);
+  assert.equal(peoplePanelView(people('manager', { adminAccess: 'listed' }), null).transfer, false);
+  assert.equal(peoplePanelView(people('manager', { effective: [{ userId: 'me', name: 'Kim', role: 'manager', via: 'admin', isMe: true }] }), null).transfer, false);
 });
 
 const LIST = {
@@ -197,6 +204,7 @@ test('the owner makes someone else the owner: asked first, then PATCH ownerId, t
         ],
         effective: [{ userId: 'u3', name: 'Lee', role: 'editor', via: 'group', group: 'team' }],
         adminAccess: 'note',
+        canTransfer: owner === 'u1',
       });
     }
     if (url === '/api/v1/projects/p1' && init?.method === 'PATCH') { owner = 'u2'; return json({ id: 'p1', name: 'Brand refresh', ownerId: 'u2' }); }
