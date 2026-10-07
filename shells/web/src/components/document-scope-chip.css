@@ -1,0 +1,91 @@
+@layer views {
+  /* The scope chip (components/document-scope-chip.ts): top centre of the tool stage,
+     clear of the URL gauge and sidebar toggle in the top-left corner and of the zoom
+     HUD and collab pill in the top-right lane, and below the Design top bar when one
+     spans the stage (views/design-topbar.ts publishes its height on <html>). A full
+     border, never a one-edge rail. */
+  .document-scope {
+    position: absolute;
+    top: calc(var(--design-topbar-h, 0px) + 12px);
+    left: 50%;
+    z-index: 35;
+    max-width: min(28rem, calc(100% - 9rem));
+    transform: translateX(-50%);
+  }
+  .document-scope-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 4px 12px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-pill, 999px);
+    background: var(--ui-color-surface-raised, hsl(var(--background)));
+    color: hsl(var(--foreground));
+    box-shadow: var(--ui-elevation-floating, none);
+    font: inherit;
+    font-size: calc(12px * var(--a11y-fs, 1));
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .document-scope-chip[hidden] { display: none; }
+  .document-scope-chip--menu { cursor: pointer; }
+  .document-scope-chip--menu:hover { border-color: hsl(var(--primary) / 0.6); }
+  .document-scope-chip--menu:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+  .document-scope-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+  }
+  .document-scope-state {
+    color: hsl(var(--muted-foreground));
+  }
+  .document-scope-state::before {
+    content: "·";
+    margin-inline-end: 6px;
+  }
+  .document-scope[data-role="view"] .document-scope-chip {
+    background: hsl(var(--primary) / 0.1);
+    border-color: hsl(var(--primary) / 0.5);
+  }
+  .document-scope-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    min-width: 14rem;
+    padding: 4px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--ui-radius-surface, 12px);
+    background: var(--ui-color-surface-raised, hsl(var(--background)));
+    box-shadow: var(--ui-elevation-floating, none);
+  }
+  .document-scope-menu[hidden] { display: none; }
+  .document-scope-item {
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: calc(var(--ui-radius-surface, 12px) - 4px);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: calc(13px * var(--a11y-fs, 1));
+    text-align: start;
+    cursor: pointer;
+  }
+  .document-scope-item:hover,
+  .document-scope-item:focus-visible {
+    background: hsl(var(--primary) / 0.12);
+    outline: none;
+  }
+  @media (pointer: coarse) {
+    .document-scope-chip,
+    .document-scope-item { min-height: 44px; }
+  }
+}

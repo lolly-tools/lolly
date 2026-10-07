@@ -31,6 +31,8 @@ import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
 import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from '../tool-actions.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { agentInvitationHost } from '../../lib/agent-invitation-host.ts';
+import { leaveQuestion } from '../tool-leave.ts';
+import { escape as escapeText } from '../../utils.ts';
 
 // ── The chosen emoji set, for every writer of this tool's URL ────────────────
 //
@@ -225,7 +227,7 @@ export interface ExportDefaults {
 export interface ActionsApi {
   copy?: (fmtOverride?: string) => Promise<{ method: string } | undefined>;
   preview?: () => Promise<void>;
-  save?: (btn?: HTMLElement | null, opts?: { folderId?: string | null }) => Promise<boolean>;
+  save?: (btn?: HTMLElement | null, opts?: { folderId?: string | null; device?: boolean }) => Promise<boolean>;
   /** Where a quick save files an unfiled session: the project the last Save as… pick
    *  chose, or null to leave it where it is. Pass the result to `save` as `folderId`. */
   quickSaveFolder?: () => Promise<string | null>;
@@ -835,6 +837,16 @@ export function showShareDialog(
   openShareDialog({ ...shareDialogOptions(runtime, exportScope, manifest, lolly), onClose: () => { if (exportScope?.isConnected) updateRouteParams({ _dialog: null }); } });
 }
 
+/** The document as a save elsewhere sends it (the Share dialog's sections, the scope
+ *  chip's Save): the values a local Save keeps, the manifest version, the name typed in
+ *  the export sheet, and the emoji set the copied link carries. */
+export function readToolDocument(runtime: Runtime, exportScope: HTMLElement | null, manifest: ToolManifest): ShareDocument {
+  const label = exportScope?.querySelector<HTMLInputElement>('[data-action="filename"]')?.value.trim();
+  const emoji = toolEmojiParams();
+  const agentInvitation = agentInvitationHost(runtime);
+  return { inputs: sessionInputValues(runtime), toolVersion: manifest.version, ...(agentInvitation ? { agentInvitation } : {}), ...(label ? { label } : {}), ...(emoji ? { emoji: { ...emoji } } : {}) };
+}
+
 export function shareDialogOptions(
   runtime: Runtime,
   exportScope: HTMLElement | null,
@@ -852,14 +864,8 @@ export function shareDialogOptions(
     exportScope?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value || '';
   const { parts, fidelity } = buildShareParams(runtime, exportScope);
   // Sections that save the document elsewhere (lib/share-sections.ts) read it when they
-  // save, not now: the values a local Save keeps, the manifest version, the name typed
-  // in the export sheet, and the emoji set the copied link carries.
-  const readDocument = (): ShareDocument => {
-    const label = exportScope?.querySelector<HTMLInputElement>('[data-action="filename"]')?.value.trim();
-    const emoji = toolEmojiParams();
-    const agentInvitation = agentInvitationHost(runtime);
-    return { inputs: sessionInputValues(runtime), toolVersion: manifest.version, ...(agentInvitation ? { agentInvitation } : {}), ...(label ? { label } : {}), ...(emoji ? { emoji: { ...emoji } } : {}) };
-  };
+  // save, not now.
+  const readDocument = (): ShareDocument => readToolDocument(runtime, exportScope, manifest);
   return { toolId, baseParts: parts.filter(part => part !== 'format=lolly'), manifest,
     currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly, document: readDocument };
 }
@@ -917,7 +923,10 @@ export function resolveCanvasAnnotations(canvasEl: HTMLElement): void {
 // button click, so "Save & leave" reliably saves *then* leaves instead of
 // trusting a fire-and-forget click + timer. Built on the shared mountModal
 // lifecycle (components/modal.ts) - Escape and a backdrop click dismiss as
-// Cancel like every other app dialog.
+// Cancel like every other app dialog. Over a document that belongs somewhere else
+// (a team project) the dialog asks that place's question instead ("Save changes to
+// Brand refresh?", views/tool-leave.ts leaveQuestion), and says that leaving keeps the
+// edits on this device: Save, Leave without saving, Stay.
 export function showUnsavedDialog(
   onSave: (() => Promise<void> | void) | null,
   onLeave: () => void,
@@ -937,15 +946,16 @@ export function showUnsavedDialog(
       ? `<jelly-button class="unsaved-btn-jelly"${act === 'save' ? '' : ' variant="platinum"'} data-act="${act}">${label}</jelly-button>`
       : `<button type="button" class="${nativeClass}" data-act="${act}">${label}</button>`;
   };
+  const scoped = leaveQuestion();
   const content = `
     <div class="unsaved-dialog-body">
-      <h2>${t('Unsaved changes')}</h2>
-      <p>${t('You have unsaved changes. <br>Would you like to save before leaving?')}</p>
+      <h2>${scoped ? escapeText(scoped) : t('Unsaved changes')}</h2>
+      <p>${scoped ? t('Leave without saving keeps your changes on this device.') : t('You have unsaved changes. <br>Would you like to save before leaving?')}</p>
       <!-- ${detail ? `<p class="unsaved-dialog-detail">${detail}</p>` : ''} -->
       <div class="unsaved-dialog-actions">
-        ${onSave ? btn('save', t('Save &amp; leave')) : ''}
+        ${onSave ? btn('save', scoped ? t('Save') : t('Save &amp; leave')) : ''}
         ${btn('leave', t('Leave without saving'))}
-        ${btn('cancel', t('Cancel'))}
+        ${btn('cancel', scoped ? t('Stay') : t('Cancel'))}
       </div>
     </div>
   `;

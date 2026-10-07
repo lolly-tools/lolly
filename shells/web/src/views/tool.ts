@@ -32,6 +32,7 @@ import { loadTool } from '@lolly/engine';
 import { consumeTeamSessionOrigin, releaseTeamSessionOrigin } from '../org/team-session-origin.ts';
 import { MountLifecycle } from '../lib/mount-lifecycle.ts';
 import { publishToolReady } from '../lib/tool-ready.ts';
+import { mountDocumentScope } from '../lib/document-scope.ts';
 import { getToolIntegrity } from '../catalog/integrity.ts';
 import { installedFetchFile, isToolInstalled } from '../lib/installed-tools.ts';
 import { makeFetchFile } from '../bridge/tool-loader.ts';
@@ -46,6 +47,7 @@ import { exportFormatDriver } from './export-format.ts';
 import type { historyParticipation } from './tool-revision-history.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.js';
 import type { BarSeq, ExportExperience, ViewEl, WebToolHost } from './tool/shared.ts';
+import { readToolDocument } from './tool/shared.ts';
 import type { ToolViewCtx } from './tool/context.ts';
 import { historyOps } from './tool/history.ts';
 import { designSystemOps } from './tool/design-system.ts';
@@ -460,12 +462,19 @@ async function mountToolInto(
   void tview.openDocument.finish();
   const stopReady = publishToolReady({ toolId, view: viewEl, collaborating: !!tview.collabHandle,
     unsaved: () => tview.userHasMadeChanges });
+  // Where the document belongs (lib/document-scope.ts): the scope chip, and what Save and
+  // a Leave mean for a document from a team project. Dormant without a workspace.
+  const stopScope = mountDocumentScope({ toolId, view: viewEl,
+    document: () => readToolDocument(tview.runtime, tview.actionsEl, tview.tool.manifest),
+    unsaved: () => tview.userHasMadeChanges && !tview.exportedSinceEdit,
+    saveOnDevice: async () => (await tview.actionsApi?.save?.(null, { device: true })) === true });
   const cleanup = viewEl._cleanup;
   viewEl._cleanup = () => {
     // A connected-session remount leaves the old DOM in place while hydrating.
     // Remove its content from paint before chrome teardown resets the camera.
     if (tview.designChrome && tview.canvasEl) tview.canvasEl.style.visibility = 'hidden';
     stopReady();
+    stopScope();
     cleanup?.();
   };
 }

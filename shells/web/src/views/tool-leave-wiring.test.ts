@@ -81,3 +81,19 @@ test('an unsaved edit present at mount counts as unsaved, and edits and saves ma
   assert.match(bodyAfter('export function rememberEntryEdits('), /syncEntryMark\(/, 'written again once a dialog entry is gone');
   assert.match(feature, /detail === 'save'\) tview\.session\.rememberEntryEdits\(false\)/, 'the export panel\'s Save clears the mark too');
 });
+
+test('a team document: Save, Cmd-S and the leave prompt reach the document scope (plan 75 G1)', () => {
+  const saving = stripComments(readFileSync(join(HERE, 'tool-actions', 'saving.ts'), 'utf8'));
+  // Every save path (the export panel's Save, the render pill and Cmd-S through it, the
+  // dialog's Save & leave) arrives in performSave, which asks the scope first.
+  assert.match(saving, /const scoped = opts\?\.device \? null : saveInDocumentScope\(manifest\.id\);\s*if \(scoped\) return saveInScope\(ta, btn, scoped\);/);
+  assert.match(saving, /exportCompleted\(ta, 'save'\);\s*return true;\s*\}/, 'a scoped save stands the leave guard down like a local one');
+  // The view announces each mount to the scope seam and takes it down with the mount.
+  assert.match(feature, /const stopScope = mountDocumentScope\(\{ toolId, view: viewEl,/);
+  assert.match(bodyAfter('viewEl._cleanup = () =>'), /stopScope\(\);/);
+  // The Unsaved changes dialog asks the scope's question when there is one.
+  const dialog = bodyAfter('export function showUnsavedDialog(');
+  assert.match(dialog, /const scoped = leaveQuestion\(\);/);
+  assert.match(dialog, /scoped \? escapeText\(scoped\) : t\('Unsaved changes'\)/, 'the question is escaped into the heading');
+  assert.match(dialog, /scoped \? t\('Stay'\) : t\('Cancel'\)/);
+});
