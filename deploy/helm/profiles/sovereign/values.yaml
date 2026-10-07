@@ -45,6 +45,13 @@ components:
       limits: {cpu: 500m, memory: 128Mi, ephemeral-storage: 64Mi}
     tmpSize: 16Mi
   mcp:
+    allowAnonymous: false
+    webBase: ""
+    browser:
+      noSandbox: false
+      maxConcurrent: 1
+      maxQueued: 4
+      queueTimeoutMs: 30000
     image: {repository: ghcr.io/lolly-tools/lolly-mcp, digest: ""}
     port: 8790
     uid: 1000

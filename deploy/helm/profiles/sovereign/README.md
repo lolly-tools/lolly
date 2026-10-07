@@ -60,9 +60,21 @@ CA needs its root key/certificate, service secret, configured identity provider,
 durable HTTPS REST limiter and approved email adapter. Keep the current REST
 limiter and CA email dependencies until their replacements have their own
 qualification. Missing credentials do not enable anonymous access. Production
-settings explicitly disable anonymous MCP, private-file access, fake CA provider
-and in-memory rate-limit fallbacks. `LOLLY_WEB_BASE` is forced empty because this
-MCP image has no Chromium; browser-only render formats need a separate review.
+settings disable anonymous MCP by default and always disable private-file access,
+fake CA provider and in-memory rate-limit fallbacks. A deployment with reviewed
+public open access can explicitly set `components.mcp.allowAnonymous: true`;
+this still exposes only its public catalog and metered tools. Never copy a shared
+token from a different deployment to change that identity policy.
+
+The standard MCP image has no Chromium and defaults to an empty web base.
+The optional `mcp-browser.Dockerfile` installs lockfile-scoped Chromium and its
+runtime dependencies without enabling a sandbox bypass. Apply
+`browser.values.yaml` for its larger memory/scratch bounds and set a qualified
+browser-image digest plus `components.mcp.webBase` to the exact public HTTPS
+origin. The browser queue is bounded to one active and four waiting jobs by
+default. Qualify sandbox startup and actual exports on the target before enabling
+this variant. `components.mcp.browser.noSandbox` stays false; any explicit bypass
+needs review of the actual container boundary and untrusted rendering workload.
 
 Set `edge.nodeName` to the exact node and `edge.upstreamSourceAddress` to a local
 node address used for outgoing Caddy sockets. Measure the actual peer at each
@@ -140,7 +152,7 @@ helm upgrade --install sovereign deploy/helm/profiles/sovereign \
 
 ## Resource and acceptance contract
 
-Starting public plus edge requests total 150 millicores and 352 MiB memory;
+The standard browser-free starting public plus edge requests total 150 millicores and 352 MiB memory;
 memory limits total 1600 MiB and CPU limits total 2.75 cores. Each pod has explicit
 CPU, memory and ephemeral-storage requests/limits and bounded disk-backed scratch
 volumes. These are initial limits, not a capacity result. Add the independently

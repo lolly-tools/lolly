@@ -1,0 +1,8 @@
+# Apply after public.compose.yml when using the independently qualified browser image.
+# Runtime defaults still require the operator to set LOLLY_PUBLIC_WEB_BASE.
+services:
+  mcp:
+    tmpfs: ["/tmp:size=512m,mode=1777"]
+    mem_limit: 2048m
+    cpus: "2.00"
+    pids_limit: 256

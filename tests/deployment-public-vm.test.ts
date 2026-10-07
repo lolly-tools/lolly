@@ -66,7 +66,7 @@ test('public VM uses bounded public services with no private mounts or access op
     assert.match(block, /pids_limit: [1-9]\d*/);
     assert.match(block, /tmpfs: \["\/tmp:size=[1-9]\d*m,mode=1777"\]/);
   }
-  assert.match(compose, /LOLLY_MCP_ALLOW_ANONYMOUS: "0"/);
+  assert.match(compose, /LOLLY_MCP_ALLOW_ANONYMOUS: \$\{LOLLY_PUBLIC_MCP_ALLOW_ANONYMOUS:-0\}/);
   assert.match(compose, /LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT: "0"/);
   assert.match(compose, /CA_ALLOW_IN_MEMORY_RATE_LIMIT: "0"/);
   assert.match(compose, /CA_DEV_FAKE_PROVIDER: "0"/);
@@ -85,4 +85,24 @@ test('public web image relay setting is optional and public content remains the 
   assert.match(dockerfile, /^ARG LOLLY_PROFILE=lolly-start$/m);
   assert.match(dockerfile, /id=LOLLY_CATALOG_SIGNING_KEY[^\n]*required=true/);
   assert.match(dockerfile, /id=VITE_CATALOG_PUBLIC_KEY_JWK[^\n]*required=true/);
+});
+
+test('browser image is optional, lockfile-scoped and retains sandbox/auth defaults', () => {
+  const source = read('deploy/docker/mcp-browser.Dockerfile');
+  assert.match(source, /FROM node:26-bookworm-slim@sha256:[a-f0-9]{64}/);
+  assert.match(source, /ARG LOLLY_PROFILE=lolly-start/);
+  assert.match(
+    source,
+    /env -u PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD node services\/mcp\/scripts\/install-browser.ts --force/
+  );
+  assert.match(source, /COPY --from=build \/opt\/lolly-browsers \/opt\/lolly-browsers/);
+  assert.match(source, /install-browser.ts --with-deps/);
+  assert.match(source, /USER node/);
+  assert.doesNotMatch(
+    source,
+    /LOLLY_BROWSER_NO_SANDBOX=1|LOLLY_MCP_ALLOW_ANONYMOUS=1|LOLLY_MCP_TOKEN=/
+  );
+  assert.match(compose, /LOLLY_BROWSER_NO_SANDBOX: \$\{LOLLY_PUBLIC_BROWSER_NO_SANDBOX:-0\}/);
+  assert.match(compose, /LOLLY_WEB_BASE: \$\{LOLLY_PUBLIC_WEB_BASE:-\}/);
+  assert.match(compose, /LOLLY_BROWSER_MAX_CONCURRENCY: "1"/);
 });

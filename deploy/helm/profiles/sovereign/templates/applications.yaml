@@ -62,10 +62,14 @@ spec:
             - {name: LOLLY_LIVE_ORIGINS, value: "https://{{ $.Values.public.host }}"}
             - {name: LOLLY_MCP_TRUST_PROXY, value: "1"}
             - {name: LOLLY_MCP_TRUSTED_PROXIES, value: {{ join "," $.Values.edge.proxyAddresses | quote }}}
-            - {name: LOLLY_MCP_ALLOW_ANONYMOUS, value: "0"}
+            - {name: LOLLY_MCP_ALLOW_ANONYMOUS, value: {{ ternary "1" "0" $component.allowAnonymous | quote }}}
             - {name: LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT, value: "0"}
             - {name: LOLLY_MCP_PRIVATE_FILES, value: "0"}
-            - {name: LOLLY_WEB_BASE, value: ""}
+            - {name: LOLLY_WEB_BASE, value: {{ $component.webBase | quote }}}
+            - {name: LOLLY_BROWSER_NO_SANDBOX, value: {{ ternary "1" "0" $component.browser.noSandbox | quote }}}
+            - {name: LOLLY_BROWSER_MAX_CONCURRENCY, value: {{ $component.browser.maxConcurrent | quote }}}
+            - {name: LOLLY_BROWSER_MAX_QUEUE, value: {{ $component.browser.maxQueued | quote }}}
+            - {name: LOLLY_BROWSER_QUEUE_TIMEOUT_MS, value: {{ $component.browser.queueTimeoutMs | quote }}}
             {{- else if eq $name "ca" }}
             - {name: CA_ALLOWED_ORIGINS, value: "https://{{ $.Values.public.host }},https://{{ $.Values.private.host }}"}
             - {name: CA_TRUST_PROXY, value: "1"}

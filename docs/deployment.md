@@ -217,6 +217,13 @@ qualified. Before publishing, run real HTTPS routes, signed-catalog verification
 admission refusal, cookie/auth custody, shared editing and invited-agent checks;
 schema validation alone does not qualify a cloud cutover.
 
+For browser-only public exports, the optional `mcp-browser.Dockerfile` and
+`browser.values.yaml` add Chromium with a bounded queue and larger resource
+budgets. The ordinary image remains browser-free. Set the exact public HTTPS web
+base, qualify sandbox startup and real exports, and preserve the deployment's
+reviewed anonymous or bearer policy. Browser enablement never grants access to
+private Work files or workspace documents.
+
 ### YunoHost
 
 For a self-hosting box rather than a cluster, Lolly ships as a [YunoHost](https://yunohost.org) app: `sudo yunohost app install https://github.com/lolly-tools/lolly_ynh`. The package is the `deploy/yunohost/` directory of this repo, mirrored to that app repository at each release, so the two never differ.

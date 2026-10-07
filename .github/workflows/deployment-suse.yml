@@ -130,6 +130,10 @@ jobs:
         run: |
           helm lint deploy/helm/profiles/sovereign --strict \
             -f deploy/helm/profiles/sovereign/fixture.values.json
+          helm lint deploy/helm/profiles/sovereign --strict \
+            -f deploy/helm/profiles/sovereign/fixture.values.json \
+            -f deploy/helm/profiles/sovereign/browser.values.yaml \
+            --set components.mcp.webBase=https://public.example
 
       - name: Validate public Kubernetes resources
         run: |
@@ -158,6 +162,11 @@ jobs:
             -f deploy/helm/profiles/sovereign/fixture.values.json \
             --set edge.tls.mode=acme --set edge.tls.email=team@example.com \
             --set edge.tls.existingClaim=caddy-data \
+            | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
+          helm template fixture deploy/helm/profiles/sovereign --namespace lolly-public \
+            -f deploy/helm/profiles/sovereign/fixture.values.json \
+            -f deploy/helm/profiles/sovereign/browser.values.yaml \
+            --set components.mcp.webBase=https://public.example \
             | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
 
   public-vm:
@@ -220,6 +229,8 @@ jobs:
           printf '%s\n' "CA_ROOT_KEY_PEM='synthetic" "multiline'" \
             'CA_SERVICE_SECRET=synthetic-test-value' > "$fixture/ca.env"
           docker compose --env-file /dev/null -f deploy/docker/public.compose.yml config --quiet
+          docker compose --env-file /dev/null -f deploy/docker/public.compose.yml \
+            -f deploy/docker/public-browser.compose.yml config --quiet
 
       - name: Exercise release and public deployment contracts
         run: |

@@ -80,6 +80,9 @@ Hosted model APIs and their unused native inference packages are omitted. This
 image supports headless SVG/data and resvg PNG rendering; it has no Chromium.
 Setting `LOLLY_WEB_BASE` alone cannot enable working browser formats. Use a
 separately reviewed browser-enabled MCP deployment if those formats are needed.
+The optional [public browser image and bounded overlays](public-vm.md#optional-public-browser-exports)
+install lockfile-scoped Chromium on a pinned Debian base. They retain sandbox and
+authentication defaults and require actual target export acceptance.
 
 Production MCP needs its approved token/signing-secret references and canonical
 `LOLLY_MCP_PUBLIC_ORIGIN`, plus `LOLLY_RATE_LIMIT_REST_URL` and the matching

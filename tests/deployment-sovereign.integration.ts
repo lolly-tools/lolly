@@ -398,3 +398,55 @@ test('automatic ACME persists certificates in the edge PVC and needs no renewal 
   invalid.edge.tls = { mode: 'acme' };
   refuses(invalid, /email|existingClaim/);
 });
+
+test('public anonymous and browser behavior need explicit reviewed configuration', () => {
+  const input = values();
+  input.components.mcp.allowAnonymous = true;
+  input.components.mcp.webBase = 'https://public.example';
+  const mcp = container(deployment(render(input), 'mcp').spec.template.spec);
+  assert.equal(env(mcp).LOLLY_MCP_ALLOW_ANONYMOUS, '1');
+  assert.equal(env(mcp).LOLLY_WEB_BASE, 'https://public.example');
+  assert.equal(env(mcp).LOLLY_MCP_PRIVATE_FILES, '0');
+  assert.equal(env(mcp).LOLLY_BROWSER_NO_SANDBOX, '0');
+  assert.equal(env(mcp).LOLLY_BROWSER_MAX_CONCURRENCY, '1');
+  assert.equal(env(mcp).LOLLY_BROWSER_MAX_QUEUE, '4');
+  for (const base of [
+    'http://public.example',
+    'https://other.example',
+    'https://public.example/path',
+  ]) {
+    const invalid = values();
+    invalid.components.mcp.webBase = base;
+    refuses(invalid, /webBase/);
+  }
+});
+
+test('optional browser profile has bounded scratch and resources without extra privileges', () => {
+  const parsed = spawnSync(
+    'python3',
+    ['-c', 'import json,sys,yaml; print(json.dumps(yaml.safe_load(sys.stdin)))'],
+    { input: readFileSync(`${chart}browser.values.yaml`, 'utf8'), encoding: 'utf8' }
+  );
+  assert.equal(parsed.status, 0, parsed.stderr);
+  const input = values();
+  const overlay = JSON.parse(parsed.stdout).components.mcp;
+  Object.assign(input.components.mcp, overlay, {
+    image: { ...input.components.mcp.image, ...overlay.image },
+    webBase: 'https://public.example',
+  });
+  const pod = deployment(render(input), 'mcp').spec.template.spec;
+  const mcp = container(pod);
+  assert.equal(mcp.resources.requests.memory, '256Mi');
+  assert.equal(mcp.resources.limits.memory, '2048Mi');
+  assert.equal(mcp.resources.limits.cpu, '2');
+  assert.equal(pod.volumes.find((volume) => volume.name === 'tmp')?.emptyDir?.sizeLimit, '512Mi');
+  assert.equal(
+    pod.securityContext.seccompProfile &&
+      (pod.securityContext.seccompProfile as { type: string }).type,
+    'RuntimeDefault'
+  );
+  assert.equal(mcp.securityContext.allowPrivilegeEscalation, false);
+  assert.deepEqual(mcp.securityContext.capabilities, { drop: ['ALL'] });
+  assert.equal(env(mcp).LOLLY_BROWSER_NO_SANDBOX, '0');
+  assert.equal(env(mcp).LOLLY_MCP_ALLOW_ANONYMOUS, '0');
+});

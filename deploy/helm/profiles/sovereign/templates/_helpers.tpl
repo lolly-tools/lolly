@@ -46,6 +46,9 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | quote }}
 {{- if eq .Values.components.mcp.existingSecret .Values.components.ca.existingSecret -}}
 {{- fail "MCP and CA must use different existingSecret references" -}}
 {{- end -}}
+{{- if and .Values.components.mcp.webBase (ne .Values.components.mcp.webBase (printf "https://%s" .Values.public.host)) -}}
+{{- fail "components.mcp.webBase must be empty or the exact canonical public HTTPS origin" -}}
+{{- end -}}
 {{- $hosts := list .Values.public.host .Values.private.host -}}
 {{- range concat .Values.public.redirectHosts .Values.private.redirectHosts -}}
 {{- if has . $hosts -}}{{- fail "Canonical and redirect hosts must be unique" -}}{{- end -}}

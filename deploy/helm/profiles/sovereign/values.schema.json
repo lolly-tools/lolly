@@ -516,6 +516,42 @@
               "type": "integer",
               "minimum": 16,
               "maximum": 384
+            },
+            "allowAnonymous": {
+              "type": "boolean"
+            },
+            "webBase": {
+              "type": "string"
+            },
+            "browser": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "noSandbox",
+                "maxConcurrent",
+                "maxQueued",
+                "queueTimeoutMs"
+              ],
+              "properties": {
+                "noSandbox": {
+                  "type": "boolean"
+                },
+                "maxConcurrent": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2
+                },
+                "maxQueued": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "queueTimeoutMs": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 60000
+                }
+              }
             }
           },
           "required": [
@@ -525,7 +561,10 @@
             "resources",
             "tmpSize",
             "existingSecret",
-            "heapMiB"
+            "heapMiB",
+            "allowAnonymous",
+            "webBase",
+            "browser"
           ]
         },
         "ca": {

@@ -79,8 +79,9 @@ by `@sha256:<64 hex characters>`, never by a moving tag. Validate the extracted
 signed catalog with `scripts/verify-release-catalog.ts` before promotion.
 
 MCP's current image supports headless SVG/data and resvg PNG. It contains no
-Chromium; browser-only export formats need a separately qualified browser-enabled
-image and configuration. `LOLLY_WEB_BASE` is deliberately not enabled here.
+Chromium; browser-only export formats need the separately qualified optional
+browser image and configuration described below. The standard recipe leaves
+`LOLLY_WEB_BASE` empty.
 HTTP/TCP liveness establishes none of those format or identity checks.
 
 ## Runtime configuration
@@ -100,8 +101,10 @@ registrations. No Work credentials, database credentials or private asset mounts
 belong in these files. Inspect the rendered configuration in a protected terminal;
 `docker compose config` includes secrets and must not be pasted into logs.
 
-The recipe overrides anonymous access, private MCP files, fake CA providers and
-per-instance limiter fallback to disabled. Missing or unavailable durable
+The recipe disables anonymous access by default; a reviewed public open-access
+deployment can explicitly preserve that policy as described below. Private MCP
+files, fake CA providers and per-instance limiter fallback stay disabled.
+Missing or unavailable durable
 admission fails closed. The HTTPS Redis REST store and configured CA email
 provider remain external dependencies during this cutover. A raw Redis TCP
 container is not a compatible replacement for the existing REST protocol.
@@ -200,11 +203,12 @@ Candidate acceptance must additionally prove:
 1. Image/source/model receipts and published catalog signature match the candidate.
 2. All document aliases and discovery files work over trusted HTTPS, with no
    private tools, Work APIs, pack indexes or asset URLs exposed anonymously.
-3. MCP discovery/challenges use the exact canonical origin. Missing authentication
-   is refused; configured limits and daily ceilings work; limiter outage refuses
+3. MCP discovery/challenges use the exact canonical origin. The reviewed anonymous
+   or bearer policy is preserved; configured limits and daily ceilings work; limiter outage refuses
    admission. Public renders and image proxy SSRF refusals retain their policy.
-4. CA root bytes and provider identities remain unchanged. Complete an approved
-   provider or email enrollment, including the HttpOnly cookie/callback round trip.
+4. CA root bytes and configured provider identities remain unchanged. Complete an
+   enabled provider or email enrollment, including the HttpOnly cookie/callback
+   round trip. Record any approved session-secret replacement and fresh-login requirement.
 5. Penpot lists projects and imports a real public test document with progress,
    without retaining tokens or gaining additional RPC commands.
 6. Two browser clients and an agent connect to the same document. Confirm read
@@ -219,3 +223,18 @@ certificate state for rollback. Move DNS only after the final-host acceptance
 passes, then repeat external checks and watch errors/resources. Keep the old
 deployment through the agreed cache and session transition window. Roll back
 the public route/DNS independently from the private Work deployment if needed.
+## Optional public browser exports
+
+The standard MCP image remains browser-free. Build `mcp-browser.Dockerfile` for
+an optional image with the lockfile's Chromium and its Debian runtime libraries.
+Apply `public-browser.compose.yml` after `public.compose.yml` for bounded browser
+scratch, memory and process counts, then set `LOLLY_PUBLIC_WEB_BASE` to the exact
+canonical HTTPS origin. The browser queue has one active and four waiting jobs.
+Qualify real sandbox startup and exports on the target; the image and recipe do
+not enable `LOLLY_PUBLIC_BROWSER_NO_SANDBOX` by default. An explicit bypass needs
+review of the container isolation and untrusted rendering workload.
+
+`LOLLY_PUBLIC_MCP_ALLOW_ANONYMOUS` defaults to zero. Set one only when preserving
+a reviewed public open-access policy, with its durable admission store and
+public-only catalog. The private-file flag stays disabled. Do not import a shared
+MCP token from another deployment to change the user's authentication flow.
