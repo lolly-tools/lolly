@@ -2,12 +2,13 @@
 /** Workspace messages live in the profile queue. Blocking messages also use the house dialog. */
 
 import { mountModal } from '../components/modal.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml, safeHref } from '../utils.ts';
 import {
   _resetInboxForTests, dismissMessage, inboxMessages, onInboxChange, pickMessage, refreshInbox, sharedProjectOf, startInbox,
   type InboxMessage,
 } from './inbox.ts';
+import { commentNoticeBody, commentNoticeOf, commentNoticeTitle } from './inbox-sheet.ts';
 import { _clearOpenedProjectsForTests, onProjectOpened } from './opened-projects.ts';
 
 export type { InboxMessage, Severity } from './inbox.ts';
@@ -104,6 +105,17 @@ export async function mountOrgBanner(): Promise<void> {
   await refreshInbox();
 }
 
+/** Open thread for a comment notice: built from the payload's checked ids (org/inbox-sheet.ts),
+ *  never from the instance's link, and labelled in the app's language. */
+function threadLink(href: string): HTMLAnchorElement {
+  const a = document.createElement('a');
+  a.className = 'btn btn--sm org-banner-cta';
+  a.style.cssText = 'min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere';
+  a.href = href;
+  a.textContent = tRaw('Open thread');
+  return a;
+}
+
 /** blocking - the house modal, Escape-closable; closing it acks. */
 function showBlocking(m: InboxMessage): void {
   // Following the message's own action (its link, or a collab's Open) is acting on it,
@@ -111,16 +123,22 @@ function showBlocking(m: InboxMessage): void {
   let acted = false;
   /** The message left the list while the dialog was open: closed without an ack. */
   let gone = false;
+  // A comment notice has its own title, body and link, from its payload.
+  const notice = commentNoticeOf(m);
+  const title = notice ? commentNoticeTitle(notice, m.title) : m.title;
+  const body = notice ? commentNoticeBody(m.body) : m.body;
+  const hasAction = notice ? !!notice.href : !!m.cta;
+  // The title and body are set as text once the dialog is up.
   const content = `
-    <h2 class="modal-title">${escapeHtml(m.title)}</h2>
-    ${m.body ? `<p class="modal-msg">${escapeHtml(m.body)}</p>` : ''}
+    <h2 class="modal-title"></h2>
+    ${body ? '<p class="modal-msg"></p>' : ''}
     <div class="modal-actions">
-      ${ctaHtml(m)}
-      <button type="button" class="btn modal-primary" data-act="ok">${escapeHtml(m.cta ? t('Dismiss') : t('Got it'))}</button>
+      ${notice ? '' : ctaHtml(m)}
+      <button type="button" class="btn modal-primary" data-act="ok">${escapeHtml(hasAction ? t('Dismiss') : t('Got it'))}</button>
     </div>`;
   const modal = mountModal<boolean>(content, {
     className: 'modal',
-    ariaLabel: m.title,
+    ariaLabel: title,
     cancelValue: true,
     initialFocus: (el) => el.querySelector<HTMLElement>('[data-act="ok"]'),
     // Closed by the person (button, Escape, backdrop, Back) or by opening its project:
@@ -135,7 +153,12 @@ function showBlocking(m: InboxMessage): void {
     },
   });
   current = { m, takeDown: () => { gone = true; modal.close(true); } };
+  const heading = modal.el.querySelector('.modal-title');
+  if (heading) heading.textContent = title;
+  const msg = modal.el.querySelector('.modal-msg');
+  if (msg && body) msg.textContent = body;
   const actions = modal.el.querySelector('.modal-actions');
+  if (actions && notice?.href) actions.insertBefore(threadLink(notice.href), actions.querySelector('[data-act="ok"]'));
   if (actions) mountCollabAction(m, actions, actions.querySelector('[data-act="ok"]'));
   modal.el.addEventListener('click', (e) => {
     if (!(e.target instanceof Element)) return;
