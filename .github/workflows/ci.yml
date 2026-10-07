@@ -101,7 +101,7 @@ jobs:
         run: pnpm run secrets:scan
 
   test:
-    name: test (${{ matrix.shard }})
+    name: ${{ matrix.partition && format('test (browser {0})', matrix.partition) || format('test ({0})', matrix.shard) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -112,7 +112,10 @@ jobs:
           - { shard: 'contracts', artifact: 'contracts' }
           - { shard: 'security', artifact: 'security' }
           - { shard: 'tools', artifact: 'tools' }
-          - { shard: 'browser', artifact: 'browser' }
+          - { shard: 'browser', artifact: 'browser-1', partition: '1/4' }
+          - { shard: 'browser', artifact: 'browser-2', partition: '2/4' }
+          - { shard: 'browser', artifact: 'browser-3', partition: '3/4' }
+          - { shard: 'browser', artifact: 'browser-4', partition: '4/4' }
           - { shard: 'tauri', artifact: 'tauri' }
           - { shard: 'conformance', artifact: 'conformance' }
           - { shard: 'fuzz:regression', artifact: 'fuzz-regression' }
@@ -270,6 +273,7 @@ jobs:
       - name: Run required test shard
         env:
           LOLLY_SKIP_REPORT: artifacts/test-skips.json
+          LOLLY_TEST_COVERAGE_REPORT: ${{ matrix.partition && 'artifacts/browser-coverage.json' || '' }}
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
           # Software rendering and video/JXL encoding use several threads per file.
           # Keep timed browser workloads serial on this shared CPU/GPU runner.
@@ -280,7 +284,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p artifacts
-          pnpm run "test:${{ matrix.shard }}" 2>&1 | tee test-output.log
+          pnpm run "test:${{ matrix.shard }}" ${{ matrix.partition && format('--partition={0}', matrix.partition) || '' }} 2>&1 | tee test-output.log
 
       # Every skip is reviewed by file, full parent-chain name, reason,
       # capability and owner. A replacement skip fails even when the count stays
@@ -292,7 +296,11 @@ jobs:
           sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
             | grep -E '^(not ok|✖|✗)' | head -50 || true
           test -f artifacts/test-skips.json
-          pnpm run check:skip-identities --report=artifacts/test-skips.json --shard="${{ matrix.shard }}"
+          if [ "${{ matrix.shard }}" = browser ]; then
+            node scripts/check-browser-partitions.ts --reports-dir=artifacts --source="$GITHUB_SHA" --partition="${{ matrix.partition }}"
+          else
+            pnpm run check:skip-identities --report=artifacts/test-skips.json --shard="${{ matrix.shard }}"
+          fi
 
       - name: Upload exact skip report
         if: always()
@@ -301,6 +309,7 @@ jobs:
           name: test-skips-${{ matrix.artifact }}-${{ github.run_attempt }}
           path: |
             artifacts/test-skips.json
+            artifacts/browser-coverage.json
             artifacts/public-journey-shell.log
             artifacts/public-render-shell.log
             artifacts/public-journey-build.log
@@ -308,6 +317,34 @@ jobs:
             lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error
+
+  browser-gate:
+    name: test (browser)
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every required test partition must succeed
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+        run: test "$TEST_RESULT" = success
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Download all browser partition reports from this attempt
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: test-skips-browser-*-${{ github.run_attempt }}
+          path: artifacts/browser-reports
+          merge-multiple: false
+
+      - name: Browser coverage and exact reviewed skips must match
+        run: node scripts/check-browser-partitions.ts --reports-dir=artifacts/browser-reports --source="$GITHUB_SHA"
 
   typecheck:
     name: typecheck

@@ -93,6 +93,10 @@ export async function runPreview(tview: ToolViewCtx, btn?: HTMLElement | null): 
 // the stage as a sibling of the canvas, so the per-render innerHTML rebuild
 // doesn't wipe it; cleared on the next successful render.
 export function showCanvasError(tview: ToolViewCtx): void {
+  if (tview.initialCanvasPending) {
+    tview.initialCanvasPending = false;
+    if (tview.canvasEl) tview.canvasEl.style.visibility = '';
+  }
   const { contentEl, stageEl } = tview;
   const stage = stageEl || contentEl?.parentElement;
   if (!stage || stage.querySelector(':scope > .canvas-error')) return;
@@ -390,6 +394,20 @@ export function paint(tview: ToolViewCtx): void {
   // Mounted Design health must never inspect the previous DOM against a newer
   // boxes model. The inspector invalidates on the synchronous model echo and only
   // resumes its layout/contrast/font checks after this clean-paint signal.
+  if (contentPainted && tview.initialCanvasPending) {
+    // The editor and its chrome are mounted before subscription. Fit the newly
+    // painted artboards in this same frame, before any content becomes visible.
+    const userView = tview.stageZoom?.isUserZoomed();
+    tview.stageLayout.refitStage();
+    // Restore against the final fitted geometry, rather than racing mount-time
+    // resize events in a separate animation frame. A gesture during open wins.
+    const linkedView = tview.urlFlags.get('_view');
+    if (linkedView && !userView) {
+      try { tview.stageZoom?.applyView(JSON.parse(linkedView)); } catch { /* unreadable viewport */ }
+    }
+    tview.initialCanvasPending = false;
+    canvasEl!.style.visibility = '';
+  }
   if (contentPainted) canvasEl?.dispatchEvent(new CustomEvent('lolly-canvas-painted'));
 
   // The canvas just moved (or was rebuilt outright, taking every annotated node
