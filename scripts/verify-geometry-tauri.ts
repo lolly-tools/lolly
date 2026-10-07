@@ -9,14 +9,8 @@ import { arch, cpus, release } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, type Plugin } from 'esbuild';
-import { clipComparisonPlugin } from './lib/geometry-clip-comparison.ts';
-import { offsetFitComparisonPlugin } from './lib/geometry-offset-fit-comparison.ts';
-import { loadGeometryFitting } from '../packages/node-shell/src/geometry-fitting-node.ts';
-import { canonicalClipCases, clipCases, clipWire, seededClipCases } from '../tests/helpers/geometry-clip-cases.ts';
-import { offsetFitCases, seededOffsetFitCases } from '../tests/helpers/geometry-offset-fit-cases.ts';
-import { assertHostNorm } from '../tests/helpers/geometry-host-norm-assert.ts';
+import { GEOMETRY_WORKFLOWS_SHA256, PORTABLE_MATH_RESULTS_SHA256 } from '../tests/helpers/portable-math-cases.ts';
 import type * as HostProbe from '../tests/helpers/geometry-host-probe.ts';
-import type { probeHostNorm } from '../tests/helpers/geometry-host-norm-qualification.ts';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 if (process.platform !== 'darwin') throw Error('This qualification requires the macOS embedded Tauri runtime.');
@@ -56,23 +50,20 @@ const workerUrl: Plugin = { name: 'packaged-geometry-worker-url', setup(builder)
     return { contents: source.replace(literal, "new URL('/geometry-hook-worker.js', import.meta.url)"), loader: 'ts', resolveDir: resolve(path, '..') };
   });
 } };
-const [host, norm, worker] = await Promise.all([
+const [host, revision, worker] = await Promise.all([
   build({ entryPoints: [join(repo, 'tests/helpers/geometry-host-probe.ts')], bundle: true, write: false, format: 'esm', platform: 'browser', loader: { '.css': 'empty' }, plugins: [workerUrl] }),
-  build({ entryPoints: [join(repo, 'tests/helpers/geometry-host-norm-qualification.ts')], bundle: true, write: false, format: 'esm', platform: 'browser', plugins: [offsetFitComparisonPlugin(), clipComparisonPlugin()] }),
+  build({ entryPoints: [join(repo, 'tests/helpers/geometry-revision-probe.ts')], bundle: true, write: false, format: 'esm', platform: 'browser' }),
   build({ entryPoints: [join(repo, 'shells/web/src/bridge/hook-worker.worker.ts')], bundle: true, write: false, format: 'esm', platform: 'browser' }),
 ]);
 const hashes: Record<string, string> = {};
 const hash = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
-for (const [name, value] of [['host.js', host.outputFiles[0]!.text], ['norm.js', norm.outputFiles[0]!.text], ['geometry-hook-worker.js', worker.outputFiles[0]!.text]] as const) { await writeFile(join(frontend, name), value); hashes[name] = hash(value); }
+for (const [name, value] of [['host.js', host.outputFiles[0]!.text], ['revision.js', revision.outputFiles[0]!.text], ['geometry-hook-worker.js', worker.outputFiles[0]!.text]] as const) { await writeFile(join(frontend, name), value); hashes[name] = hash(value); }
 const wasmDir = join(frontend, 'packages/node-shell/wasm/geometry-kernel'); await mkdir(wasmDir, { recursive: true });
-for (const name of ['geometry-clip.wasm', 'geometry-fit.wasm', 'geometry-clip-host-norm.wasm', 'geometry-fit-host-norm.wasm']) {
+for (const name of ['geometry-clip.wasm', 'geometry-fit-portable.wasm']) {
   const bytes = await readFile(join(repo, 'packages/node-shell/wasm/geometry-kernel', name));
   hashes[name] = hash(bytes); await writeFile(join(frontend, name), bytes); await writeFile(join(wasmDir, name), bytes);
 }
-const portable = await loadGeometryFitting('portable');
-const inputs = { fitting: [...offsetFitCases(), ...seededOffsetFitCases()], clipping: [...clipCases(), ...seededClipCases(), ...canonicalClipCases(portable)].map(clipWire) };
-hashes.inputs = hash(JSON.stringify(inputs)); await writeFile(join(frontend, 'inputs.json'), JSON.stringify(inputs));
-await writeFile(join(frontend, 'norm-worker.js'), 'import {probeHostNorm} from "./norm.js"; onmessage=async e=>{try{postMessage({result:await probeHostNorm(e.data)})}catch(error){postMessage({error:String(error)})}};');
+await writeFile(join(frontend, 'revision-worker.js'), 'import {probeGeometryRevision} from "./revision.js"; probeGeometryRevision().then(result=>postMessage({result}),error=>postMessage({error:String(error)}));');
 const cspModule = join(repo, 'shells/tauri-shared/vite-csp.mjs');
 const { TAURI_CSP } = await import(cspModule) as { TAURI_CSP: string };
 hashes.csp = hash(TAURI_CSP);
@@ -80,22 +71,22 @@ await writeFile(join(frontend, 'index.html'), `<!doctype html><html><head><meta 
 await run('cargo', ['+1.96.0', 'build', '--locked', '--offline', '--target-dir', target], join(output, 'build.log'), {}, 900_000);
 const binary = join(target, 'debug/lolly-geometry-probe'); hashes.binary = hash(await readFile(binary));
 await writeFile(join(output, 'environment.json'), JSON.stringify({ node: process.version, os: release(), arch: arch(), cpu: cpus()[0]?.model, desktopLockSha256: hash(lock), resolved, hashes, nonpersistent: true, hiddenWindow: false, backgroundThrottling: 'disabled-for-probe', note: 'Actual packaged Tauri/Wry WKWebView with the shared shell CSP. A test-only rewrite maps the actual worker factory URL to its compiled JS asset. Full product and other targets are not qualified.' }, null, 2) + '\n');
-interface NativeReport { report: { error?: string; origin: string; main: Awaited<ReturnType<typeof probeHostNorm>>; worker: Awaited<ReturnType<typeof probeHostNorm>>; result: Awaited<ReturnType<typeof HostProbe.probeGeometryHosts>>; loading: Awaited<ReturnType<typeof HostProbe.probeGeometryLoadingFailure>>; workerFailure: Awaited<ReturnType<typeof HostProbe.probeGeometryWorkerFailure>>; benchmark?: Awaited<ReturnType<typeof HostProbe.benchGeometryHosts>> }; native: { refusedRequests: number } }
+interface NativeReport { report: { error?: string; origin: string; main: { scalar: string; workflows: string }; worker: { scalar: string; workflows: string }; result: Awaited<ReturnType<typeof HostProbe.probeGeometryHosts>>; loading: Awaited<ReturnType<typeof HostProbe.probeGeometryLoadingFailure>>; workerFailure: Awaited<ReturnType<typeof HostProbe.probeGeometryWorkerFailure>>; benchmark?: Awaited<ReturnType<typeof HostProbe.benchGeometryHosts>> }; native: { refusedRequests: number } }
 for (const mode of args.includes('--benchmark') ? ['qualification', 'forward', 'reverse'] : ['qualification']) {
   const reportPath = join(output, `${mode}.json`);
   await run(binary, [], join(output, `${mode}.log`), { LOLLY_GEOMETRY_PROBE_REPORT: reportPath, LOLLY_GEOMETRY_PROBE_MODE: mode });
   const { report, native } = JSON.parse(await readFile(reportPath, 'utf8')) as NativeReport;
   assert.equal(report.error, undefined); assert.equal(report.origin, 'tauri://localhost');
   if (mode === 'qualification') {
-    assert.deepEqual(report.worker, report.main); assertHostNorm(report.main);
-    assert.match(report.loading.message, /loading failed/); assert.equal(report.loading.unpublished, true); assert.equal(report.loading.recovered, 'wasm-host-norm-curves');
-    assert.match(report.workerFailure.message, /loading failed/); assert.equal(report.workerFailure.fallback, false); assert.equal(report.workerFailure.identity, 'wasm-host-norm-curves'); assert.ok(native.refusedRequests >= 2);
+    assert.deepEqual(report.main, { scalar: PORTABLE_MATH_RESULTS_SHA256, workflows: GEOMETRY_WORKFLOWS_SHA256 }); assert.deepEqual(report.worker, report.main);
+    assert.match(report.loading.message, /loading failed/); assert.equal(report.loading.unpublished, true); assert.equal(report.loading.recovered, 'wasm-portable');
+    assert.match(report.workerFailure.message, /loading failed/); assert.equal(report.workerFailure.fallback, false); assert.equal(report.workerFailure.identity, 'wasm-portable'); assert.ok(native.refusedRequests >= 2);
     for (const row of report.result.modes) {
       assert.equal(row.identity, row.backend); assert.equal(row.sameApi, true); assert.equal(row.selectionRefused, true); assert.equal(row.ownership.calls, 3);
       for (const kernel of [row.ownership.clipping, row.ownership.fitting]) if (kernel) { assert.equal(kernel.bufferBytes, 0); assert.equal(kernel.results, 0); }
       for (const workflow of row.workflows) { assert.deepEqual(workflow.result, workflow.expected); assert.deepEqual(workflow.counts, workflow.expectedCounts); }
     }
-    assert.equal(report.result.workers.length, 6);
+    assert.equal(report.result.workers.length, 2);
     for (const row of report.result.workers) { const patch = row.patch as { note: string }; const value = JSON.parse(patch.note); assert.deepEqual(value.result, row.expected); assert.equal(value.fetchType, row.strict ? 'undefined' : 'function'); }
   } else { assert.equal(report.benchmark?.rows.length, 8); assert.equal(report.benchmark?.reversed, mode === 'reverse'); }
   console.log(`Embedded Tauri ${mode} passed: ${reportPath}`);

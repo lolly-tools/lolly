@@ -13,7 +13,7 @@ import type { GeometryBackend } from '../../packages/node-shell/src/geometry-hos
 import { benchGeometryWithLoader } from './geometry-host-benchmark.ts';
 const newHost = (): HostV1 => baseHost({ shell: 'web', capabilities: [] });
 
-export async function probeGeometryHosts(backends: GeometryBackend[] = ['typescript', 'wasm-clipping', 'wasm-host-fitting', 'wasm-host-norm-clipping', 'wasm-host-norm-fitting', 'wasm-host-curves', 'wasm-host-norm-curves']) {
+export async function probeGeometryHosts(backends: GeometryBackend[] = ['typescript', 'wasm-portable']) {
   const zero = Object.fromEntries(Object.keys(CLIP_COUNTS).map(key => [key, 0])), reference = makeGeomApi();
   const modes = [];
   for (const backend of backends) {
@@ -21,7 +21,7 @@ export async function probeGeometryHosts(backends: GeometryBackend[] = ['typescr
     await Promise.all([installToolApis(host, { geometryBackend: backend }), installToolApis(host, { geometryBackend: backend })]);
     const original = host.geom; await installToolApis(host, { geometryBackend: backend });
     let selectionRefused = false;
-    try { await installToolApis(host, { geometryBackend: backend === 'typescript' ? 'wasm-clipping' : 'typescript' }); } catch { selectionRefused = true; }
+    try { await installToolApis(host, { geometryBackend: backend === 'typescript' ? 'wasm-portable' : 'typescript' }); } catch { selectionRefused = true; }
     const workflows = geometryStageWorkflows().filter(row => row.runWithApi).map(row => {
       Object.assign(CLIP_COUNTS, zero); const expected = row.runWithApi!(reference), expectedCounts = { ...CLIP_COUNTS };
       Object.assign(CLIP_COUNTS, zero); const result = row.runWithApi!(host.geom!), counts = { ...CLIP_COUNTS };
@@ -42,7 +42,7 @@ export async function probeGeometryHosts(backends: GeometryBackend[] = ['typescr
 }
 
 const controlLoading = async (blocked: boolean) => { await fetch(`/control?blocked=${Number(blocked)}`); };
-export async function probeGeometryLoadingFailure(backend: GeometryBackend = 'wasm-clipping', control = controlLoading) {
+export async function probeGeometryLoadingFailure(backend: GeometryBackend = 'wasm-portable', control = controlLoading) {
   const host = newHost(); let message = '';
   try { await installToolApis(host, { geometryBackend: backend }); } catch (error) { message = String(error); }
   const unpublished = host.geom === undefined;
@@ -50,7 +50,7 @@ export async function probeGeometryLoadingFailure(backend: GeometryBackend = 'wa
   return { message, unpublished, recovered: geometryBackendOf(host.geom) };
 }
 
-export async function probeGeometryWorkerFailure(backend: GeometryBackend = 'wasm-clipping', control = controlLoading) {
+export async function probeGeometryWorkerFailure(backend: GeometryBackend = 'wasm-portable', control = controlLoading) {
   const host = newHost(), logs: string[] = []; host.log = (_level, message) => { logs.push(message); };
   await installToolApis(host, { geometryBackend: backend }); await control(true); let message = '';
   try {

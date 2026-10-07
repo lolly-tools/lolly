@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Qualify host arithmetic against each engine's unchanged TypeScript reference. */
+/** Every browser engine must reproduce the pinned geometry revision, main realm and worker, through the actual installers. */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const option = (name: string) => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
-const output = resolve(repo, option('output') ?? 'plans/295-validation/geometry-host-math');
+const output = resolve(repo, option('output') ?? 'plans/295-validation/geometry-engines');
 mkdirSync(output, { recursive: true });
 const engines = process.env.LOLLY_GEOMETRY_BROWSER ? [process.env.LOLLY_GEOMETRY_BROWSER] : ['chromium', 'firefox', 'webkit'];
 const benchmark = process.argv.includes('--benchmark');
@@ -19,10 +19,9 @@ function run(args: string[], env: NodeJS.ProcessEnv = process.env): boolean {
   return true;
 }
 for (const engine of engines) {
-  const env = { ...process.env, LOLLY_GEOMETRY_REQUIRED: '1', LOLLY_GEOMETRY_HOST_NORM: '1', LOLLY_GEOMETRY_BROWSER: engine,
-    LOLLY_GEOMETRY_HOST_REPORT: join(output, `${engine}-host.json`), LOLLY_GEOMETRY_NORM_REPORT: join(output, `${engine}-norm.json`),
+  const env = { ...process.env, LOLLY_GEOMETRY_REQUIRED: '1', LOLLY_GEOMETRY_BROWSER: engine,
+    LOLLY_GEOMETRY_HOST_REPORT: join(output, `${engine}-host.json`),
     LOLLY_GEOMETRY_HOST_BENCH: benchmark ? '1' : '0', LOLLY_GEOMETRY_REVERSE: process.argv.includes('--reverse') ? '1' : '0' };
-  if (process.argv.includes('--policy')) Object.assign(env, { LOLLY_GEOMETRY_POLICY_BENCH: '1' });
   const mounts: string[] = [];
   try {
     if (engine === 'firefox' && process.argv.includes('--isolated-firefox')) {
@@ -37,9 +36,6 @@ for (const engine of engines) {
       }
       Object.assign(env, { LOLLY_GEOMETRY_FIREFOX_OVERRIDE: ini });
     }
-    if (!run(['--test', ...(!benchmark ? ['tests/geometry-host-norm.browser.test.ts'] : []), 'tests/geometry-host.browser.test.ts'], env)) break;
+    if (!run(['--test', ...(!benchmark ? ['tests/geometry-portable-math.browser.test.ts'] : []), 'tests/geometry-host.browser.test.ts'], env)) break;
   } finally { for (const mount of mounts.reverse()) unlinkSync(mount); }
-}
-if (!benchmark && !process.exitCode) for (const backend of ['--clipping', '--offset-fit']) {
-  if (!run(['scripts/verify-geometry-ray-corpus.ts', backend, '--host-norm'])) break;
 }

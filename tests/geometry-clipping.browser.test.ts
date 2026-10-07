@@ -55,7 +55,7 @@ test('complete clipping agrees on immutable pair bits in Node, the selected brow
     ),
     loadClipComparison(),
   ]);
-  const fitting = await loadGeometryFitting('portable'),
+  const fitting = await loadGeometryFitting(),
     canonical = canonicalClipCases(fitting);
   const inputs = [...clipCases(), ...seededClipCases(), ...canonical].map(clipWire);
   const node = startNodeClipComparison(comparison.code, wasm, inputs);

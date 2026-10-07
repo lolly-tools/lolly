@@ -19,15 +19,13 @@ test('actual web installers and isolated hooks retain selected geometry and refu
   try { browser = await launchGeometryBrowser(); }
   catch (error) { if (process.env.LOLLY_GEOMETRY_REQUIRED === '1') throw error; t.skip('Geometry host qualification requires the selected browser.'); return; }
   t.after(() => browser.close());
-  const [entry, worker, clip, fit, clipNorm, fitNorm] = await Promise.all([
+  const [entry, worker, clip, fit] = await Promise.all([
     build({ entryPoints: [fileURLToPath(new URL('./helpers/geometry-host-probe.ts', import.meta.url))], bundle: true, write: false, format: 'esm', platform: 'browser', loader: { '.css': 'empty' } }),
     build({ entryPoints: [fileURLToPath(new URL('../shells/web/src/bridge/hook-worker.worker.ts', import.meta.url))], bundle: true, write: false, format: 'esm', platform: 'browser' }),
     readFile(new URL('../packages/node-shell/wasm/geometry-kernel/geometry-clip.wasm', import.meta.url)),
-    readFile(new URL('../packages/node-shell/wasm/geometry-kernel/geometry-fit.wasm', import.meta.url)),
-    readFile(new URL('../packages/node-shell/wasm/geometry-kernel/geometry-clip-host-norm.wasm', import.meta.url)),
-    readFile(new URL('../packages/node-shell/wasm/geometry-kernel/geometry-fit-host-norm.wasm', import.meta.url)),
+    readFile(new URL('../packages/node-shell/wasm/geometry-kernel/geometry-fit-portable.wasm', import.meta.url)),
   ]);
-  const binaries: Record<string, Buffer> = { 'geometry-clip.wasm': clip, 'geometry-fit.wasm': fit, 'geometry-clip-host-norm.wasm': clipNorm, 'geometry-fit-host-norm.wasm': fitNorm };
+  const binaries: Record<string, Buffer> = { 'geometry-clip.wasm': clip, 'geometry-fit-portable.wasm': fit };
   let blocked = false;
   const server = createServer((req, res) => {
     const path = new URL(req.url!, 'http://localhost').pathname;
@@ -43,12 +41,9 @@ test('actual web installers and isolated hooks retain selected geometry and refu
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
   const address = server.address(); if (!address || typeof address === 'string') throw Error('Geometry host server did not start.');
   const page = await browser.newPage(); await page.goto(`http://127.0.0.1:${address.port}/`); await page.waitForFunction(() => Boolean(window.geometryHostProbe));
-  const normOnly = process.env.LOLLY_GEOMETRY_HOST_NORM === '1';
-  const chromium = (process.env.LOLLY_GEOMETRY_BROWSER ?? 'chromium') === 'chromium';
-  const result = await page.evaluate(({ normOnly, chromium }) => window.geometryHostProbe.probeGeometryHosts(normOnly ? ['typescript', 'wasm-host-norm-clipping', 'wasm-host-norm-fitting', 'wasm-host-norm-curves', ...(chromium ? ['wasm-host-curves' as const] : [])] : undefined), { normOnly, chromium });
-  const policyBench = process.env.LOLLY_GEOMETRY_POLICY_BENCH === '1';
-  const benchmark = process.env.LOLLY_GEOMETRY_HOST_BENCH === '1' ? await page.evaluate(({ reverse, policyBench, chromium }) => window.geometryHostProbe.benchGeometryHosts(reverse, policyBench ? chromium ? ['typescript', 'wasm-host-fitting', 'wasm-host-norm-fitting', 'wasm-host-curves', 'wasm-host-norm-curves'] : ['typescript', 'wasm-host-norm-clipping', 'wasm-host-norm-fitting', 'wasm-host-norm-curves'] : undefined), { reverse: process.env.LOLLY_GEOMETRY_REVERSE === '1', policyBench, chromium }) : undefined;
-  const failureBackend: GeometryBackend = normOnly ? 'wasm-host-norm-curves' : 'wasm-host-curves';
+  const result = await page.evaluate(() => window.geometryHostProbe.probeGeometryHosts());
+  const benchmark = process.env.LOLLY_GEOMETRY_HOST_BENCH === '1' ? await page.evaluate((reverse: boolean) => window.geometryHostProbe.benchGeometryHosts(reverse), process.env.LOLLY_GEOMETRY_REVERSE === '1') : undefined;
+  const failureBackend: GeometryBackend = 'wasm-portable';
   blocked = true; const loading = await page.evaluate((backend: GeometryBackend) => window.geometryHostProbe.probeGeometryLoadingFailure(backend), failureBackend);
   const workerFailure = await page.evaluate((backend: GeometryBackend) => window.geometryHostProbe.probeGeometryWorkerFailure(backend), failureBackend);
   const report = process.env.LOLLY_GEOMETRY_HOST_REPORT;
@@ -56,7 +51,7 @@ test('actual web installers and isolated hooks retain selected geometry and refu
     const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
     const sourceArtifact = report + '.source.mjs';
     await mkdir(dirname(report), { recursive: true }); await writeFile(sourceArtifact, entry.outputFiles[0]!.text);
-    await writeFile(report, JSON.stringify({ engine: process.env.LOLLY_GEOMETRY_BROWSER ?? 'chromium', browser: browser.version(), machine: { node: process.version, platform: platform(), arch: arch(), os: release(), cpu: cpus()[0]?.model }, artifacts: { clipping: hash(clipNorm), fitting: hash(fitNorm) }, sourceArtifact, sourceSha256: hash(Buffer.from(entry.outputFiles[0]!.text)), result, loading, workerFailure, benchmark }, null, 2) + '\n');
+    await writeFile(report, JSON.stringify({ engine: process.env.LOLLY_GEOMETRY_BROWSER ?? 'chromium', browser: browser.version(), machine: { node: process.version, platform: platform(), arch: arch(), os: release(), cpu: cpus()[0]?.model }, artifacts: { clipping: hash(clip), fitting: hash(fit) }, sourceArtifact, sourceSha256: hash(Buffer.from(entry.outputFiles[0]!.text)), result, loading, workerFailure, benchmark }, null, 2) + '\n');
   }
   assert.match(loading.message, /loading failed/); assert.equal(loading.unpublished, true); assert.equal(loading.recovered, failureBackend);
   assert.match(workerFailure.message, /loading failed/); assert.equal(workerFailure.fallback, false); assert.equal(workerFailure.identity, failureBackend);

@@ -17,23 +17,22 @@ import {
 } from '../src/geometry-clipping.ts';
 import { loadGeometryClipping as loadClipping } from '../src/geometry-clipping-node.ts';
 import { loadGeometryFitting as loadFitting } from '../src/geometry-fitting-node.ts';
-for (const mathBackend of ['retained', 'host-norm'] as const) {
+for (const mathBackend of ['retained'] as const) {
 const test = (name: string, fn: () => void | Promise<void>) => nodeTest(`${mathBackend}: ${name}`, fn);
-const loadGeometryClipping = () => loadClipping(mathBackend);
-const loadGeometryFitting = (math: 'host' | 'portable' = 'host') => loadFitting(math === 'host' && mathBackend === 'host-norm' ? 'host-norm' : math);
+const loadGeometryClipping = () => loadClipping();
+const loadGeometryFitting = (_math?: 'portable') => loadFitting();
 const bytes = await readFile(
-  new URL(`../wasm/geometry-kernel/geometry-clip${mathBackend === 'host-norm' ? '-host-norm' : ''}.wasm`, import.meta.url)
+  new URL('../wasm/geometry-kernel/geometry-clip.wasm', import.meta.url)
 );
 test('clipping rejects unexpected imports and incomplete modules', async () => {
-  const host = await readFile(
-    new URL('../wasm/geometry-kernel/geometry-fit.wasm', import.meta.url)
-  );
+  // A minimal module importing lolly_math.hypot: the clipping loader admits no host import.
+  const host = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 7, 1, 96, 2, 124, 124, 1, 124, 2, 20, 1, 10, ...new TextEncoder().encode('lolly_math'), 5, ...new TextEncoder().encode('hypot'), 0, 0]);
   const base = await readFile(
     new URL('../wasm/geometry-kernel/geometry-kernel.wasm', import.meta.url)
   );
   await assert.rejects(() => createGeometryClipping(host, mathBackend), { code: 'internal' });
   await assert.rejects(() => createGeometryClipping(base, mathBackend), { code: 'internal' });
-  assert.deepEqual(WebAssembly.Module.imports(await WebAssembly.compile(bytes)), mathBackend === 'host-norm' ? [{ module: 'lolly_math', name: 'hypot', kind: 'function' }] : []);
+  assert.deepEqual(WebAssembly.Module.imports(await WebAssembly.compile(bytes)), []);
 });
 test('complete clipping preserves contact bits and every work counter on immutable requests and workflows', async () => {
   const kernel = await loadGeometryClipping(),
@@ -63,7 +62,7 @@ test('complete clipping preserves contact bits and every work counter on immutab
   assert.equal(fitting.stats().bufferBytes, 0);
 });
 test('clipping result and buffer exhaustion refuse atomically and recover with fresh owned records', async () => {
-  const api = (await WebAssembly.instantiate(await WebAssembly.compile(bytes), mathBackend === 'host-norm' ? { lolly_math: { hypot: Math.hypot } } : {}))
+  const api = (await WebAssembly.instantiate(await WebAssembly.compile(bytes), {}))
     .exports as GeometryClippingExports;
   const row = clipCases().find((r) => r.name === 'nonuniform-line-curve/0')!;
   const query = api.geom_alloc(160),

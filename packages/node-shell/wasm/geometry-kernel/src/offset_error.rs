@@ -9,26 +9,7 @@ const MAX_ERROR_DEPTH: usize = 20;
 const ERROR_BUDGET: usize = 512;
 type Point = [f64; 2];
 
-#[cfg(all(feature = "host-norm", feature = "portable-math"))]
-compile_error!("Host norms and portable maths are separate qualification artifacts.");
-
-#[cfg(all(target_arch = "wasm32", feature = "host-norm"))]
-#[allow(unsafe_code)] // Only two scalar values cross this pure host import.
-mod host {
-    #[link(wasm_import_module = "lolly_math")]
-    extern "C" {
-        pub fn hypot(x: f64, y: f64) -> f64;
-    }
-}
-
-#[cfg(all(target_arch = "wasm32", feature = "host-norm"))]
-#[allow(unsafe_code)] // The shell supplies its existing two-argument norm.
-pub(crate) fn norm(x: f64, y: f64) -> f64 {
-    unsafe { host::hypot(x, y) }
-}
-
-// The retained scaled norm remains the default, qualified against V8 arithmetic.
-#[cfg(not(all(target_arch = "wasm32", feature = "host-norm")))]
+// V8's two-argument norm in exactly rounded operations; the engine's `pmath.hypot` is the same formula.
 pub(crate) fn norm(x: f64, y: f64) -> f64 {
     let (a, b) = (x.abs(), y.abs());
     let m = a.max(b);

@@ -82,6 +82,7 @@ import type { GeometryOperations, GeometryOffsetPiece as OffsetPiece } from './o
 import { type ParamCurveFit, fitToCubics, quadratureMoments } from './fit.ts';
 import { offsetError } from './offset-error.ts';
 import { unitTangent } from './offset-source.ts';
+import * as pmath from './portable-math.ts';
 
 export type JoinStyle = 'miter' | 'round' | 'bevel';
 
@@ -255,7 +256,7 @@ function offsetSource(c: Cubic, d: number): ParamCurveFit {
   const sample = (t: number): { x: number; y: number; dx: number; dy: number } => {
     const p = evalCubic(c, t);
     const d1 = tangentAt(c, t);
-    const s = Math.hypot(d1.x, d1.y);
+    const s = pmath.hypot(d1.x, d1.y);
     if (s > 1e-12) {
       const d2 = secondDeriv(c, t);
       const k = 1 - (d * (d1.x * d2.y - d1.y * d2.x)) / (s * s * s);
@@ -280,7 +281,7 @@ function offsetSource(c: Cubic, d: number): ParamCurveFit {
  *  compares like with like. Null when the chord has no direction. */
 function translateCubic(c: Cubic, d: number): Cubic | null {
   const dx = c[6] - c[0], dy = c[7] - c[1];
-  const len = Math.hypot(dx, dy);
+  const len = pmath.hypot(dx, dy);
   if (!(len > 1e-12)) return null;
   const nx = (-d * dy) / len, ny = (d * dx) / len;
   return [c[0] + nx, c[1] + ny, c[2] + nx, c[3] + ny, c[4] + nx, c[5] + ny, c[6] + nx, c[7] + ny];
@@ -432,9 +433,9 @@ function featureParams(c: Cubic): Feature[] {
   // stationary points of D are the only places to look. Comparing against the control
   // legs keeps the test scale-free: 3·max leg length bounds |C'| for a cubic.
   const speedScale = 3 * Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[2], c[5] - c[3]),
-    Math.hypot(c[6] - c[4], c[7] - c[5]),
+    pmath.hypot(c[2] - c[0], c[3] - c[1]),
+    pmath.hypot(c[4] - c[2], c[5] - c[3]),
+    pmath.hypot(c[6] - c[4], c[7] - c[5]),
     1e-12,
   );
   for (const t of cubicRoots01(4 * d4, 3 * d3, 2 * d2, d1)) {
@@ -709,7 +710,7 @@ export function distanceToPath(p: GeomPath, x: number, y: number): number {
     for (const k of c.curves) {
       const b = boundsCubic(k);
       const dx = Math.max(b.x0 - x, 0, x - b.x1), dy = Math.max(b.y0 - y, 0, y - b.y1);
-      if (Math.hypot(dx, dy) >= best) continue;
+      if (pmath.hypot(dx, dy) >= best) continue;
       const d = nearestOnCubic(k, x, y).distance;
       if (d < best) best = d;
     }
@@ -748,7 +749,7 @@ export interface SideProbes {
 export function regionProber(region: GeomPath): (c: Contour, limit?: number) => SideProbes[] {
   const box = pathBounds(region);
   const curves = region.flatMap((c) => c.curves).map((k) => ({ k, box: boundsCubic(k) }));
-  const reach = box ? Math.hypot(box.x1 - box.x0, box.y1 - box.y0) : 0;
+  const reach = box ? pmath.hypot(box.x1 - box.x0, box.y1 - box.y0) : 0;
   // The ray starts ON the boundary, so the contact at its own origin is not a crossing.
   const skip = reach * 1e-9;
 
@@ -772,7 +773,7 @@ export function regionProber(region: GeomPath): (c: Contour, limit?: number) => 
   return (c: Contour, limit = PROBE_CURVES): SideProbes[] => {
     if (!(reach > 0)) return [];
     const order = [...c.curves]
-      .map((k, i) => ({ k, i, span: Math.hypot(k[6] - k[0], k[7] - k[1]) }))
+      .map((k, i) => ({ k, i, span: pmath.hypot(k[6] - k[0], k[7] - k[1]) }))
       .sort((a, b) => b.span - a.span || a.i - b.i)
       .slice(0, limit);
 
@@ -847,7 +848,7 @@ function buildOffset(c: Contour, d: number, opts: OffsetOptions): Cubic[] {
     const next = seq[last ? 0 : i + 1]!;
     const a: Pt = { x: cur.curve[6], y: cur.curve[7] };
     const b: Pt = { x: next.curve[0], y: next.curve[1] };
-    if (Math.hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
+    if (pmath.hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
       next.curve[0] = a.x; next.curve[1] = a.y;
       continue;
     }
@@ -911,19 +912,19 @@ function joinPieces(
   const m: Pt = { x: a.x + t0.x * s, y: a.y + t0.y * s };
   // SVG's rule: past the limit the mitre becomes a bevel, so a near-tangential corner
   // does not fire a spike across the page.
-  if (Math.hypot(m.x - pivot.x, m.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
+  if (pmath.hypot(m.x - pivot.x, m.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
   return [lineToCubic(a.x, a.y, m.x, m.y), lineToCubic(m.x, m.y, b.x, b.y)];
 }
 
 /** Circular arc from `a` to `b` about `pivot`, as cubics. `heading` is the direction the
  *  incoming piece was travelling in, and settles which way round the arc goes. */
 function arcJoin(a: Pt, b: Pt, pivot: Pt, heading: Pt | null): Cubic[] {
-  const r0 = Math.hypot(a.x - pivot.x, a.y - pivot.y);
-  const r1 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
+  const r0 = pmath.hypot(a.x - pivot.x, a.y - pivot.y);
+  const r1 = pmath.hypot(b.x - pivot.x, b.y - pivot.y);
   const r = (r0 + r1) / 2;
   if (r < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
-  const from = Math.atan2(a.y - pivot.y, a.x - pivot.x);
-  let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
+  const from = pmath.atan2(a.y - pivot.y, a.x - pivot.x);
+  let sweep = pmath.atan2(b.y - pivot.y, b.x - pivot.x) - from;
   while (sweep <= -Math.PI) sweep += 2 * Math.PI;
   while (sweep > Math.PI) sweep -= 2 * Math.PI;
   // A half turn is the one case where the endpoints do not say which way round: both
@@ -941,16 +942,16 @@ function arcJoin(a: Pt, b: Pt, pivot: Pt, heading: Pt | null): Cubic[] {
   // length that makes the arc's midpoint exact; it carries the sweep's sign with it.
   const n = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2)));
   const step = sweep / n;
-  const k = (4 / 3) * Math.tan(step / 4);
+  const k = (4 / 3) * pmath.tan(step / 4);
   const out: Cubic[] = [];
   for (let i = 0; i < n; i++) {
     const s = from + step * i, e = s + step;
-    const sx = pivot.x + r * Math.cos(s), sy = pivot.y + r * Math.sin(s);
-    const ex = pivot.x + r * Math.cos(e), ey = pivot.y + r * Math.sin(e);
+    const sx = pivot.x + r * pmath.cos(s), sy = pivot.y + r * pmath.sin(s);
+    const ex = pivot.x + r * pmath.cos(e), ey = pivot.y + r * pmath.sin(e);
     out.push([
       sx, sy,
-      sx - k * r * Math.sin(s), sy + k * r * Math.cos(s),
-      ex + k * r * Math.sin(e), ey - k * r * Math.cos(e),
+      sx - k * r * pmath.sin(s), sy + k * r * pmath.cos(s),
+      ex + k * r * pmath.sin(e), ey - k * r * pmath.cos(e),
       ex, ey,
     ]);
   }
@@ -1035,7 +1036,7 @@ function fitRecursive(pts: Pt[], t0: Pt, t1: Pt, tol: number, depth: number): Cu
     // Two points say nothing about the interior, so Wu & Barsky's heuristic stands in:
     // handles a third of the chord along the given tangents.
     const a = pts[0]!, b = pts[1]!;
-    const l = Math.hypot(b.x - a.x, b.y - a.y) / 3;
+    const l = pmath.hypot(b.x - a.x, b.y - a.y) / 3;
     return [[a.x, a.y, a.x + t0.x * l, a.y + t0.y * l, b.x + t1.x * l, b.y + t1.y * l, b.x, b.y]];
   }
 
@@ -1094,7 +1095,7 @@ function bezierWithTangents(pts: Pt[], u: number[], t0: Pt, t1: Pt): Cubic {
     x1 += a1x * rx + a1y * ry;
   }
   const det = c00 * c11 - c01 * c01;
-  const chord = Math.hypot(last.x - first.x, last.y - first.y);
+  const chord = pmath.hypot(last.x - first.x, last.y - first.y);
   let l0 = 0, l1 = 0;
   if (Math.abs(det) > 1e-18) {
     l0 = (c11 * x0 - c01 * x1) / det;
@@ -1120,7 +1121,7 @@ function fitError(pts: Pt[], u: number[], curve: Cubic): { error: number; index:
   let error = 0, index = Math.floor(pts.length / 2);
   for (let i = 1; i < pts.length - 1; i++) {
     const p = evalCubic(curve, u[i]!);
-    const d = Math.hypot(p.x - pts[i]!.x, p.y - pts[i]!.y);
+    const d = pmath.hypot(p.x - pts[i]!.x, p.y - pts[i]!.y);
     if (d > error) { error = d; index = i; }
   }
   return { error, index };
@@ -1161,7 +1162,7 @@ function centreTangent(pts: Pt[], i: number): Pt | null {
 function chordParams(pts: Pt[]): number[] {
   const u = [0];
   for (let i = 1; i < pts.length; i++) {
-    u.push(u[i - 1]! + Math.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y));
+    u.push(u[i - 1]! + pmath.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y));
   }
   const total = u[u.length - 1]!;
   if (!(total > 0)) return pts.map((_, i) => i / Math.max(1, pts.length - 1));
@@ -1174,13 +1175,13 @@ function dedupePoints(pts: Pt[]): Pt[] {
   const out: Pt[] = [];
   for (const p of pts) {
     const last = out[out.length - 1];
-    if (!last || Math.hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
+    if (!last || pmath.hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
   }
   return out;
 }
 
 function normalise(v: Pt): Pt | null {
-  const l = Math.hypot(v.x, v.y);
+  const l = pmath.hypot(v.x, v.y);
   return l > 1e-12 ? { x: v.x / l, y: v.y / l } : null;
 }
 

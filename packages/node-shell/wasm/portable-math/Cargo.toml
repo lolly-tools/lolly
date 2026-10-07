@@ -1,16 +1,12 @@
 [package]
-name = "lolly-geometry-kernel"
+name = "lolly-portable-math"
 version = "0.1.0"
 edition = "2021"
 license = "MPL-2.0"
 publish = false
 
-[features]
-fitting = []
-clipping = []
-
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]
 
 [profile.release]
 opt-level = 3

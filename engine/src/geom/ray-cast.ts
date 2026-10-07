@@ -2,6 +2,7 @@
 /** Ordered cubic ray casting with twin classification and exact work handoffs. */
 import { type Box, type Cubic, tangentAt } from './bezier.ts';
 import { intersectLineCubic } from './intersect.ts';
+import * as pmath from './portable-math.ts';
 
 export interface IndexedCurve {
   c: Cubic;
@@ -37,10 +38,10 @@ export interface Cast {
 function reachFrom(idx: CurveIndex, px: number, py: number): number {
   const b = idx.box;
   if (!b) return 1;
-  const diag = Math.hypot(b.x1 - b.x0, b.y1 - b.y0);
+  const diag = pmath.hypot(b.x1 - b.x0, b.y1 - b.y0);
   const dx = Math.max(b.x0 - px, px - b.x1, 0),
     dy = Math.max(b.y0 - py, py - b.y1, 0);
-  return 2 * (diag + Math.hypot(dx, dy)) + 1;
+  return 2 * (diag + pmath.hypot(dx, dy)) + 1;
 }
 
 /**

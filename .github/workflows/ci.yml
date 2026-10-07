@@ -188,12 +188,12 @@ jobs:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
         run: node node_modules/playwright/cli.js install --with-deps firefox webkit
 
-      - name: Require geometry host arithmetic in Chromium, Firefox and WebKit
+      - name: Require one geometry answer in Chromium, Firefox and WebKit
         if: matrix.shard == 'browser'
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
           LOLLY_BROWSER_CHANNEL: chromium
-        run: pnpm run test:geometry:host-math --output=artifacts/geometry-host-math
+        run: pnpm run test:geometry:engines --output=artifacts/geometry-engines
 
       - name: Install motion inspection tools
         if: matrix.shard == 'browser' || matrix.shard == 'contracts'
@@ -349,7 +349,7 @@ jobs:
             artifacts/geometry-clip-report.json
             artifacts/geometry-scope-report.json
             artifacts/geometry-host-report.json
-            artifacts/geometry-host-math/
+            artifacts/geometry-engines/
             lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error

@@ -18,9 +18,9 @@ import { loadGeometryFitting as loadFitting } from '../src/geometry-fitting-node
 import { GeometryKernelError } from '../src/geometry-kernel-contract.ts';
 
 const { module } = await loadOffsetFitComparison();
-for (const mathBackend of ['host', 'host-norm'] as const) {
+for (const mathBackend of ['portable'] as const) {
 const test = (name: string, fn: () => void | Promise<void>) => nodeTest(`${mathBackend}: ${name}`, fn);
-const kernel = await loadFitting(mathBackend);
+const kernel = await loadFitting();
 const cases = offsetFitCases();
 function released() {
   assert.equal(kernel.stats().bufferBytes, 0);
@@ -102,24 +102,11 @@ test('complete admission rejects invalid input before changing workspace ownersh
 });
 
 const wasm = new Uint8Array(
-  await readFile(new URL(`../wasm/geometry-kernel/geometry-fit${mathBackend === 'host-norm' ? '-host-norm' : ''}.wasm`, import.meta.url))
+  await readFile(new URL('../wasm/geometry-kernel/geometry-fit-portable.wasm', import.meta.url))
 );
 async function raw() {
-  const imports = WebAssembly.Module.imports(new WebAssembly.Module(wasm));
-  assert.deepEqual(
-    imports.map((r) => `${r.module}.${r.name}`).sort(),
-    ['acos', 'atan2', 'cbrt', 'cos', 'sin', ...(mathBackend === 'host-norm' ? ['hypot'] : [])].map((n) => `lolly_math.${n}`).sort()
-  );
-  const { instance } = await WebAssembly.instantiate(wasm, {
-    lolly_math: {
-      sin: Math.sin,
-      cos: Math.cos,
-      acos: Math.acos,
-      atan2: Math.atan2,
-      cbrt: Math.cbrt,
-      hypot: Math.hypot,
-    },
-  });
+  assert.deepEqual(WebAssembly.Module.imports(new WebAssembly.Module(wasm)), []);
+  const { instance } = await WebAssembly.instantiate(wasm, {});
   return instance.exports as GeometryFittingExports;
 }
 test('loader rejects the geometry module without the fitting maths and ABI', async () => {

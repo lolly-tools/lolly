@@ -390,8 +390,11 @@ with its existing initial search and overrun handoff.
 
 ## Import-free fitting comparison
 
-`pnpm run build:geometry:portable` builds `geometry-fit-portable.wasm` with the
-`portable-math` feature. The default and five-import fitting artifacts stay
+This is now the only fitting artifact; see "One portable answer" below. The
+history that follows is kept as the record of how it was qualified.
+
+`pnpm run build:geometry:fitting` builds `geometry-fit-portable.wasm` with the
+`fitting` feature (formerly `portable-math`). The default and five-import fitting artifacts stay
 separate. `loadGeometryFitting('portable')` explicitly selects this comparison;
 the loader rejects all imports and requires its owned fitting and scalar ABI.
 Default host mode rejects the portable artifact. No live engine selection changes.
@@ -552,9 +555,8 @@ heavy calls after disposal; those controls are absent from HostV1.
 
 `loadNodeGeometryHost(backend)` and the CLI bridge's `geometryBackend` option
 load bytes before exposing the selected API. The web shell accepts the same
-option in `installToolApis(host, {geometryBackend})`. Choices are `typescript`,
-`wasm-clipping` and `wasm-host-fitting`. The last choice requires both clipping
-and the host-maths fitter. Portable fitting is a separate compatibility lane.
+option in `installToolApis(host, {geometryBackend})`. Choices are `typescript`
+and `wasm-portable` (see "One portable answer" below).
 Selection precedes installation, stays private to that host and never enters
 tool state or saved documents. Pure CLI geometry requires no graphics device.
 
@@ -575,87 +577,48 @@ engine used by all geometry browser tests. Required checks fail on a missing
 browser or numerical mismatch. Playwright WebKit is not an embedded Tauri
 WKWebView qualification.
 
-The original scaled-norm artifacts qualify on Node/V8 and Chromium. They
-retain their recorded WebKit fitting, contact and work differences. A separate
-host-norm comparison now qualifies against each browser's local reference.
+## One portable answer
 
-## Host norm compatibility
+JavaScript engines do not round `Math.hypot` and the transcendental functions
+the same way, so the TypeScript geometry used to give different control points
+and work counts in the CLI and in Safari or Firefox. The derivative `(180,600)`
+from the smooth fixture gave norm bits `40839358dd22f9a4` in V8 and
+`40839358dd22f9a3` in WebKit and Firefox. Earlier lanes imported each host's maths
+to match its local answer; they are retired.
 
-`build:geometry:host-norm` creates separate `geometry-clip-host-norm.wasm` and
-`geometry-fit-host-norm.wasm` artifacts. Their only additional import is the
-pure two-scalar `lolly_math.hypot` function, supplied by `Math.hypot`. Clipping
-requires exactly that import; fitting requires the existing five host maths
-imports plus the norm. Loaders reject a mismatched selection or import set.
-The portable and host-norm features cannot be combined. Original artifacts,
-arithmetic order, controls, work budgets and TypeScript defaults remain intact.
+The engine now computes one answer everywhere (`engine/src/geom/portable-math.ts`):
 
-The derivative `(180,600)` from the smooth fixture gives norm bits
-`40839358dd22f9a4` in the retained formula and V8, and `40839358dd22f9a3` in the
-qualified WebKit host. Importing the local norm preserves the local legacy
-directions and subsequent fitting/clipping work. This is per-host compatibility,
-not a promise of identical legacy arithmetic across engines.
+- `hypot` is V8's two-argument formula in exactly rounded operations. It matches
+  Node's `Math.hypot` on 10,000,000 random pairs, so V8 bits are unchanged, and it
+  is the same formula as this crate's retained norm.
+- `sin`, `cos`, `tan`, `acos`, `cbrt`, `log2`, `atan2` and `pow` run in the embedded,
+  import-free [`portable-math`](../portable-math/README.md) module, built with the
+  same pinned Rust as `geometry-fit-portable.wasm`. Both call the same compiled
+  functions, so the portable fitter returns the TypeScript reference's bits on all
+  187 fitting requests.
 
-Use `wasm-host-norm-clipping` or `wasm-host-norm-fitting` as an explicit host
-selection. The latter requires both matching host-norm modules. Ownership,
-synchronous API behavior and selected failure handling are unchanged. Strict
-workers load the modules before removing ambient capabilities.
+Two backends remain. `typescript` is the reference. `wasm-portable` runs clipping
+(`geometry-clip.wasm`) and fitting (`geometry-fit-portable.wasm`) in the import-free
+kernels for every boolean, offset and stroke call and returns the same bits, so
+choosing it is a speed decision only. Both loaders reject any module with a host
+import. The revision identity is `GEOMETRY_REVISION` (`geom-portable-v1`) in
+`src/geometry-host.ts`; a pinned digest of the complete stage workflows and their
+work counters guards it.
 
-`test:geometry:host-math` requires Chromium, Firefox and WebKit with no missing
-browser skips, then runs the original corpus with both host-norm substitutions.
-Each main/worker realm checks 187 complete fits, 450 immutable pair requests,
-12 clipping workflows and 12 scoped workflows against its unchanged local
-reference. Actual installers and isolated hooks also verify selection, exact
-answers/work counters, loading refusal/retry and resource release. Reports are
-written under `plans/295-validation/geometry-host-math`, or `--output=<folder>`.
-The regular `test:geometry` gate retains all previous artifact comparisons and
-also checks the new contracts and selected Chromium path.
+`test:geometry:engines` requires Chromium, Firefox and WebKit, main realm and
+worker, to reproduce the pinned scalar and workflow digests, then exercises the
+actual installers, isolated hooks, loading refusal and per-call release with
+`wasm-portable`. Reports go to `plans/295-validation/geometry-engines` or
+`--output=<folder>`. On macOS, `--isolated-firefox` selects a fresh test
+application-data identity whose data stays under the report folder.
 
-On macOS, `--isolated-firefox` selects a fresh test application-data identity
-through Firefox's app-data override. Temporary symlinks keep that identity's
-data under the report folder and are removed after the browser closes. The
-installed binary, personal profiles, permissions and HOME remain unchanged.
-This option is unnecessary on the Linux CI runner. Playwright WebKit still
-does not qualify Tauri WKWebView or native execution.
+`test:geometry:tauri` runs the same digests and host checks in a separate macOS
+Tauri application with the desktop's pinned Tauri, Wry and Tao, packaged assets,
+the shared CSP and a nonpersistent WKWebView. It qualifies that embedded runtime,
+not the installed product, mobile, Windows or Linux. Build output and reports
+stay under `plans/295-validation/geometry-tauri` or `--output=<folder>`.
 
-`bench:geometry:hosts --host-norm` and `bench:geometry:hosts:browser` measure
-complete selected calls, including every scalar norm boundary, copying and
-disposal. Add `--reverse` for the other case order and `--isolated-firefox` on
-the affected macOS qualification host. Answers and all work counters must
-match the local TypeScript reference outside timing. Performance does not
-authorize automatic selection. The portable fitter retains its separate
-legacy compatibility finding. Embedded qualification has its own required
-probe; native arithmetic and other embedded targets remain separate.
-
-## Operation selection and embedded qualification
-
-`wasm-host-curves` selects matching retained clipping/fitting for offset and
-stroke. `wasm-host-norm-curves` selects their host-norm counterparts. Both keep
-union, intersection, difference, xor and self-union on TypeScript. Each curve
-call owns and releases its WASM workspaces, including failure paths. The full
-choice reaches isolated workers before strict lockdown; refusal does not
-change the declared operation choice or retry with another numerical backend.
-
-`geometryBackendForTarget(target)` maps an explicitly qualified `node-v8` or
-`chromium` target to retained curves, and `firefox`, `webkit` or `tauri-macos`
-to host-norm curves. Unknown targets return TypeScript. The label is a caller's
-qualification assertion, not platform detection or a claim about every OS,
-browser version or device. Constructors still default to TypeScript. Automatic
-activation and the supported-target matrix need separate release evidence.
-
-`bench:geometry:policy` compares both curve policies and both complete fitting
-lanes in the same Node run. Add `--reverse` and `--output=<report>`. Reports
-retain samples, exact answers, work, resource accounting and source snapshots.
-For the browser comparison use `bench:geometry:hosts:browser --policy`, adding
-`--reverse` and `--isolated-firefox` when needed. Short cases batch eight complete
-calls per sample; every answer and counter is checked outside timing.
-
-`test:geometry:tauri --benchmark` runs a separate macOS Tauri application with
-the desktop's pinned Tauri/Wry/Tao dependencies, packaged assets, the shared
-CSP and a nonpersistent WKWebView. Its raw corpus, actual installers and hook
-workers require exact local parity, selected loading refusal/retry and resource
-release. The recipe resolves offline from the desktop lock and checks every
-resolved registry package against that lock before compilation. Build output,
-compiled source captures and reports stay under `plans/295-validation/geometry-tauri`
-or `--output=<folder>`. Background throttling is disabled only in this probe.
-This qualifies the tested embedded runtime, not the full installed product,
-native arithmetic, mobile, Windows or Linux. No personal Lolly state is used.
+`bench:geometry:hosts` and `bench:geometry:hosts:browser` compare `typescript`
+with `wasm-portable` through long-lived host APIs, including per-call scopes,
+copying, decoding and disposal; add `--reverse` for the other case order. Every
+answer and counter is checked outside timing.

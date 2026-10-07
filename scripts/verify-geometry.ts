@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const files = [
     'tests/geom-bezier.test.ts',
+    'tests/geom-portable-math.test.ts',
     'tests/geom-nearest-cache.test.ts',
     'tests/geom-near-pieces.test.ts',
     'tests/geom-roots.test.ts',
@@ -20,8 +21,6 @@ const files = [
     'packages/node-shell/test/geometry-clipping.test.ts',
     'packages/node-shell/test/geometry-operation-scope.test.ts',
     'packages/node-shell/test/geometry-host.test.ts',
-    'packages/node-shell/test/geometry-host-norm.test.ts',
-    'packages/node-shell/test/geometry-policy.test.ts',
     'tests/geometry-host.test.ts',
     'tests/geometry-kernel.browser.test.ts',
     'tests/geometry-offset-fit.browser.test.ts',
@@ -29,7 +28,7 @@ const files = [
     'tests/geometry-clipping.browser.test.ts',
     'tests/geometry-operation-scope.browser.test.ts',
     'tests/geometry-host.browser.test.ts',
-    'tests/geometry-host-norm.browser.test.ts',
+    'tests/geometry-portable-math.browser.test.ts',
   ];
 const options = {
     cwd: fileURLToPath(new URL('../', import.meta.url)),

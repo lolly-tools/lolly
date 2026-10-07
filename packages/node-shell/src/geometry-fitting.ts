@@ -4,7 +4,7 @@ import type { Cubic, Pt } from '../../../engine/src/geom/bezier.ts';
 import { GeometryKernelError } from './geometry-kernel-contract.ts';
 
 export const GEOMETRY_MAX_OFFSET_PIECES = 16_384;
-export type GeometryFittingMath = 'host' | 'portable' | 'host-norm';
+export type GeometryFittingMath = 'portable';
 export interface GeometryOffsetPiece {
   curve: Cubic;
   dirStart: Pt | null;
@@ -31,59 +31,16 @@ function coordinate(value: number): void {
 }
 export async function createGeometryFitting(
   bytes: BufferSource,
-  mathBackend: GeometryFittingMath = 'host'
+  mathBackend: GeometryFittingMath = 'portable'
 ) {
-  if (mathBackend !== 'host' && mathBackend !== 'portable' && mathBackend !== 'host-norm')
-    invalid('Unknown fitting maths backend.');
+  if (mathBackend !== 'portable') invalid('Unknown fitting maths backend.');
   const compiled = await WebAssembly.compile(bytes);
-  const names = ['sin', 'cos', 'acos', 'cbrt', 'atan2'] as const;
-  const expected = mathBackend === 'host-norm' ? [...names, 'hypot'] : names;
-  const imported = WebAssembly.Module.imports(compiled);
-  if (
-    mathBackend === 'portable'
-      ? imported.length !== 0
-      : imported.length !== expected.length ||
-        expected.some(
-          (name) =>
-            imported.filter(
-              (entry) =>
-                entry.module === 'lolly_math' && entry.name === name && entry.kind === 'function'
-            ).length !== 1
-        )
-  )
+  // The fitter and the TypeScript reference share one compiled scalar maths; a host
+  // import would bring back the engine-specific rounding this module exists to avoid.
+  if (WebAssembly.Module.imports(compiled).length !== 0)
     throw new GeometryKernelError('internal', 'The fitting module has an unexpected host import.');
-  const mathCalls = { sin: 0, cos: 0, acos: 0, cbrt: 0, atan2: 0 };
-  let normCalls = 0;
-  const host = {
-    hypot(x: number, y: number) {
-      normCalls++;
-      return Math.hypot(x, y);
-    },
-    sin(x: number) {
-      mathCalls.sin++;
-      return Math.sin(x);
-    },
-    cos(x: number) {
-      mathCalls.cos++;
-      return Math.cos(x);
-    },
-    acos(x: number) {
-      mathCalls.acos++;
-      return Math.acos(x);
-    },
-    cbrt(x: number) {
-      mathCalls.cbrt++;
-      return Math.cbrt(x);
-    },
-    atan2(y: number, x: number) {
-      mathCalls.atan2++;
-      return Math.atan2(y, x);
-    },
-  };
-  const instance = await WebAssembly.instantiate(
-    compiled,
-    mathBackend === 'portable' ? {} : { lolly_math: host }
-  );
+  const names = ['sin', 'cos', 'acos', 'cbrt', 'atan2'] as const;
+  const instance = await WebAssembly.instantiate(compiled, {});
   const api = instance.exports as GeometryFittingExports;
   if (
     !(api.memory instanceof WebAssembly.Memory) ||
@@ -100,10 +57,7 @@ export async function createGeometryFitting(
     ].some((name) => typeof api[name] !== 'function')
   )
     throw new GeometryKernelError('internal', 'The fitting module has an incomplete owned ABI.');
-  if (
-    mathBackend === 'portable' &&
-    names.some((name) => typeof api['geom_math_' + name] !== 'function')
-  )
+  if (names.some((name) => typeof api['geom_math_' + name] !== 'function'))
     throw new GeometryKernelError(
       'internal',
       'The portable fitting module has incomplete scalar maths.'
@@ -116,7 +70,6 @@ export async function createGeometryFitting(
       pieces: api.geom_offset_fit_pieces(),
       bufferBytes: api.geom_buffer_bytes(),
       linearBytes: api.memory.buffer.byteLength,
-      mathCalls: { ...mathCalls, ...(mathBackend === 'host-norm' ? { hypot: normCalls } : {}) },
     }),
   };
 }

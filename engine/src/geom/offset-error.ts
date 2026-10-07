@@ -2,6 +2,7 @@
 /** Independent source-to-fitted-chain offset verification with bounded adaptive sampling. */
 import { boundsCubic, type Cubic, nearestOnCubic, type Pt } from './bezier.ts';
 import { offsetPoint } from './offset-source.ts';
+import * as pmath from './portable-math.ts';
 
 /** Where the error measurement STARTS. It refines from here wherever the exact offset
  *  trace is still coarser than `tol` between neighbours, so this is a floor and not the
@@ -107,7 +108,7 @@ function nearestOnChain(chain: Cubic[], p: Pt, boxes: ReturnType<typeof boundsCu
     const b = boxes[i]!;
     const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1),
       dy = Math.max(b.y0 - p.y, 0, p.y - b.y1);
-    if (Math.hypot(dx, dy) >= best) continue;
+    if (pmath.hypot(dx, dy) >= best) continue;
     const e = nearestOnCubic(k, p.x, p.y).distance;
     if (e < best) best = e;
   }
@@ -119,7 +120,7 @@ function nearestOnChain(chain: Cubic[], p: Pt, boxes: ReturnType<typeof boundsCu
 function sagitta(a: Pt, m: Pt, b: Pt): number {
   const dx = b.x - a.x,
     dy = b.y - a.y;
-  const len = Math.hypot(dx, dy);
-  if (len < 1e-12) return Math.hypot(m.x - a.x, m.y - a.y);
+  const len = pmath.hypot(dx, dy);
+  if (len < 1e-12) return pmath.hypot(m.x - a.x, m.y - a.y);
   return Math.abs((m.x - a.x) * dy - (m.y - a.y) * dx) / len;
 }

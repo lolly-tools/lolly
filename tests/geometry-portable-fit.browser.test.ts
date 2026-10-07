@@ -62,7 +62,7 @@ test('portable fitting and scalar answers are identical in Node, the selected br
       )
     ),
     loadOffsetFitComparison(),
-    loadGeometryFitting('portable'),
+    loadGeometryFitting(),
   ]);
   const inputs = [...offsetFitCases(), ...seededOffsetFitCases()];
   const scalars = portableMathCases();
@@ -197,7 +197,6 @@ test('portable fitting and scalar answers are identical in Node, the selected br
   assert.equal(main.fit.afterDispose.pieces, 0);
   assert.equal(main.fit.afterDispose.bufferBytes, 0);
   assert.ok(main.fit.afterDispose.linearBytes <= 16 * 1024 * 1024);
-  assert.deepEqual(main.fit.afterDispose.mathCalls, { sin: 0, cos: 0, acos: 0, cbrt: 0, atan2: 0 });
   const digest = (value: unknown) =>
     createHash('sha256').update(JSON.stringify(value)).digest('hex');
   const compact = (rows: ReturnType<typeof fittingCompatibility>) =>
@@ -258,13 +257,19 @@ test('portable fitting and scalar answers are identical in Node, the selected br
             browserDifferences.length === 0 &&
             nodeCounterDifferences.length === 0 &&
             browserCounterDifferences.length === 0,
-          note: 'Canonical WASM scalar bits (except NaN payloads), controls, directions and complete workflow/counter results agree in all three qualified realms. Legacy rounding and clipping-work changes are separately audited, and prevent exact legacy compatibility. Exact current serialized workflows agree. Existing geometry corpus tolerances and host-reference gates are unchanged. No native, other-browser, activation or mathematical exact-rounding claim.',
+          note: 'WASM and the TypeScript reference share one compiled scalar maths: controls, directions, complete workflows and counters agree in every qualified realm.',
         },
         null,
         2
       ) + '\n'
     );
   }
+  // The TypeScript reference now calls the same compiled scalar maths, so the WASM
+  // results and every clipping counter equal the reference in each realm.
+  assert.deepEqual(nodeDifferences, [], 'Node fitting matches the TypeScript reference');
+  assert.deepEqual(browserDifferences, [], 'browser fitting matches its TypeScript reference');
+  assert.deepEqual(nodeCounterDifferences, [], 'Node workflow counters');
+  assert.deepEqual(browserCounterDifferences, [], 'browser workflow counters');
   t.diagnostic(
     `${scalars.length} scalar requests, ${inputs.length} fits and ${main.fit.workflows.length} workflows; exact canonical results across Node/Chromium/worker; ${nodeDifferences.length} Node and ${browserDifferences.length} Chromium legacy raw differences; ${nodeCounterDifferences.length}/${browserCounterDifferences.length} legacy clipping-work changes. This qualifies portability, not exact legacy compatibility.`
   );

@@ -73,6 +73,7 @@ import {
   type JoinStyle, type OffsetOptions, distanceToPath, offsetContour, offsetSweep, regionProber,
 } from './offset.ts';
 import { selfUnion } from './boolean.ts';
+import * as pmath from './portable-math.ts';
 
 export type CapStyle = 'butt' | 'round' | 'square';
 
@@ -244,7 +245,7 @@ function offsetSide(c: Contour, distance: number, off: OffsetOptions): Cubic[] {
 function capCurves(from: Pt, to: Pt, dir: Pt, cap: CapStyle): Cubic[] {
   if (cap === 'round') return halfCircle(from, to, dir);
   if (cap === 'square') {
-    const r = Math.hypot(to.x - from.x, to.y - from.y) / 2;
+    const r = pmath.hypot(to.x - from.x, to.y - from.y) / 2;
     const ex = dir.x * r, ey = dir.y * r;
     const a = { x: from.x + ex, y: from.y + ey };
     const b = { x: to.x + ex, y: to.y + ey };
@@ -261,7 +262,7 @@ function capCurves(from: Pt, to: Pt, dir: Pt, cap: CapStyle): Cubic[] {
 function halfCircle(from: Pt, to: Pt, dir: Pt): Cubic[] {
   const cx = (from.x + to.x) / 2, cy = (from.y + to.y) / 2;
   const ux = from.x - cx, uy = from.y - cy;
-  const r = Math.hypot(ux, uy);
+  const r = pmath.hypot(ux, uy);
   if (r < JOIN_EPS) return [lineToCubic(from.x, from.y, to.x, to.y)];
   const ax = ux / r, ay = uy / r;
   // Perpendicular to the cap's diameter. Two of them face opposite ways and both give a
@@ -345,7 +346,7 @@ function dotContour(c: Contour, r: number, cap: CapStyle): Contour | null {
 // ── direction and endpoints ───────────────────────────────────────────────────
 
 function unit(x: number, y: number): Pt | null {
-  const l = Math.hypot(x, y);
+  const l = pmath.hypot(x, y);
   return l < 1e-12 ? null : { x: x / l, y: y / l };
 }
 

@@ -92,6 +92,7 @@ import {
   type Contour, type GeomPath, JOIN_EPS, closeContour, compactPath, contourArea, pathBounds,
   reverseContour,
 } from './path.ts';
+import * as pmath from './portable-math.ts';
 
 export type BooleanOp = 'union' | 'intersection' | 'difference' | 'xor';
 export type FillRule = 'nonzero' | 'evenodd';
@@ -475,9 +476,9 @@ function isFiniteCubic(c: Cubic): boolean {
 /** How far a curve reaches from its start - a chord-and-hull measure, no roots. */
 function extent(c: Cubic): number {
   return Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[0], c[5] - c[1]),
-    Math.hypot(c[6] - c[0], c[7] - c[1]),
+    pmath.hypot(c[2] - c[0], c[3] - c[1]),
+    pmath.hypot(c[4] - c[0], c[5] - c[1]),
+    pmath.hypot(c[6] - c[0], c[7] - c[1]),
   );
 }
 
@@ -511,7 +512,7 @@ function selfTouching(c: Contour, weld: number): boolean {
     for (let ox = -1; ox <= 1; ox++) {
       for (let oy = -1; oy <= 1; oy++) {
         for (const p of seen.get(`${cx + ox},${cy + oy}`) ?? []) {
-          if (Math.hypot(p.x - k[0], p.y - k[1]) <= weld) return true;
+          if (pmath.hypot(p.x - k[0], p.y - k[1]) <= weld) return true;
         }
       }
     }
@@ -546,9 +547,9 @@ const reverseCubic = (k: Cubic): Cubic => [k[6], k[7], k[4], k[5], k[2], k[3], k
  *  meaningless rather than merely imprecise. */
 function midTangent(c: Cubic, at = 0.5): { x: number; y: number } {
   const t = tangentAt(c, at);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  if (pmath.hypot(t.x, t.y) > 1e-12) return t;
   const dx = c[6] - c[0], dy = c[7] - c[1];
-  if (Math.hypot(dx, dy) > 1e-12) return { x: dx, y: dy };
+  if (pmath.hypot(dx, dy) > 1e-12) return { x: dx, y: dy };
   return { x: 1, y: 0 };
 }
 
@@ -573,7 +574,7 @@ function decideAt(c: Cubic): number {
   let bestT = 0.5, bestS = -1;
   for (const t of DECIDE_TS) {
     const d = tangentAt(c, t);
-    const sp = Math.hypot(d.x, d.y);
+    const sp = pmath.hypot(d.x, d.y);
     if (t === 0.5 && sp >= DECIDE_SPEED * ext) return 0.5;
     if (sp > bestS) { bestS = sp; bestT = t; }
   }
@@ -674,7 +675,7 @@ function addSplit(splits: number[][], index: number, t: number, budget: Budget):
  */
 function collinearSplits(a: Cubic, b: Cubic, weld: number, budget: Budget): { ta: number[]; tb: number[] } | null {
   const dx = a[6] - a[0], dy = a[7] - a[1];
-  const len = Math.hypot(dx, dy);
+  const len = pmath.hypot(dx, dy);
   if (len < weld) return null;
   const nx = -dy / len, ny = dx / len;
   for (let i = 0; i < 8; i += 2) {
@@ -942,7 +943,7 @@ function contactSplits(ci: Cubic, cj: Cubic, weld: number, budget: Budget): { a:
     const bp = boundsCubic(p), bq = boundsCubic(q);
     const dx = Math.max(bp.x0 - bq.x1, bq.x0 - bp.x1, 0);
     const dy = Math.max(bp.y0 - bq.y1, bq.y0 - bp.y1, 0);
-    if (Math.hypot(dx, dy) > weld) return;
+    if (pmath.hypot(dx, dy) > weld) return;
     if (s1 - s0 <= CONTACT_SEED && t1 - t0 <= CONTACT_SEED) { leaves.push([s0, s1]); return; }
     if (s1 - s0 >= t1 - t0) {
       const [lo, hi] = splitCubic(p, 0.5), m = (s0 + s1) / 2;
@@ -1234,7 +1235,7 @@ function buildRayDirs(): (readonly [number, number])[] {
   const out: (readonly [number, number])[] = [[1, 0], [0, 1]];
   for (let k = 1; k <= 10; k++) {
     const a = k * 2.399963229728653;
-    out.push([Math.cos(a), Math.sin(a)]);
+    out.push([pmath.cos(a), pmath.sin(a)]);
   }
   return out;
 }
@@ -1243,7 +1244,7 @@ function buildRayDirs(): (readonly [number, number])[] {
  *  parallel to that tangent cannot tell the two sides apart - the crossing at the
  *  query point becomes a double root - so those are excluded up front. */
 function rayDirections(rx: number, ry: number): (readonly [number, number])[] {
-  const mag = Math.hypot(rx, ry);
+  const mag = pmath.hypot(rx, ry);
   if (mag < 1e-12) return RAY_DIRS.slice();
   const out = RAY_DIRS.filter((d) => Math.abs(d[0] * ry - d[1] * rx) >= 0.25 * mag);
   return out.length ? out : RAY_DIRS.slice();
@@ -1462,7 +1463,7 @@ function walkLoops(edges: Cubic[], weld: number): GeomPath {
         for (const i of buckets.get(`${cx + ox},${cy + oy}`) ?? []) {
           if (used[i]) continue;
           const e = edges[i]!;
-          const d = Math.hypot(e[0] - x, e[1] - y);
+          const d = pmath.hypot(e[0] - x, e[1] - y);
           if (d <= bestD) { bestD = d; best = i; }
         }
       }
@@ -1478,7 +1479,7 @@ function walkLoops(edges: Cubic[], weld: number): GeomPath {
         for (const i of buckets.get(`${cx + ox},${cy + oy}`) ?? []) {
           if (used[i]) continue;
           const e = edges[i]!;
-          if (Math.hypot(e[0] - x, e[1] - y) <= radius) found.push(i);
+          if (pmath.hypot(e[0] - x, e[1] - y) <= radius) found.push(i);
         }
       }
     }
@@ -1509,7 +1510,7 @@ function walkLoops(edges: Cubic[], weld: number): GeomPath {
       }
       curves.push(e);
       const ex = e[6], ey = e[7];
-      if (Math.hypot(ex - sx, ey - sy) <= weld) { joined = true; break; }   // loop complete
+      if (pmath.hypot(ex - sx, ey - sy) <= weld) { joined = true; break; }   // loop complete
       // Every end in the edge set was placed to within the weld radius, so two ends that
       // belong together can be up to twice that apart, and a pair built to sit at exactly
       // one radius falls on either side of it by rounding. The radius the walk joins at is
@@ -1529,7 +1530,7 @@ function walkLoops(edges: Cubic[], weld: number): GeomPath {
         if (hop >= 0) { options = [hop]; slack = true; }
       }
       if (!options.length) {
-        if (Math.hypot(ex - sx, ey - sy) <= WALK_SLACK * weld) slack = true;
+        if (pmath.hypot(ex - sx, ey - sy) <= WALK_SLACK * weld) slack = true;
         break;                                               // dead end: nothing continues
       }
       cur = options.length === 1 ? options[0]! : pickTurn(edges, e, options);
@@ -1581,11 +1582,11 @@ function chainSpan(curves: Cubic[]): number {
 /** First candidate clockwise from the reverse of the incoming direction. */
 function pickTurn(edges: Cubic[], incoming: Cubic, options: number[]): number {
   const din = endTangent(incoming);
-  const back = Math.atan2(-din.y, -din.x);
+  const back = pmath.atan2(-din.y, -din.x);
   let best = options[0]!, bestDelta = Infinity;
   for (const i of options) {
     const d = startTangent(edges[i]!);
-    let delta = back - Math.atan2(d.y, d.x);
+    let delta = back - pmath.atan2(d.y, d.x);
     delta -= Math.floor(delta / (Math.PI * 2)) * (Math.PI * 2);
     // Turning straight back the way we came is a spur, and is only taken when nothing else
     // is on offer. "Straight back" is read at the angle two directions at a vertex are the
@@ -1610,12 +1611,12 @@ const TURN_TIE = 1e-6;
 
 function startTangent(c: Cubic): { x: number; y: number } {
   const t = tangentAt(c, 0);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  if (pmath.hypot(t.x, t.y) > 1e-12) return t;
   return { x: c[6] - c[0], y: c[7] - c[1] };
 }
 
 function endTangent(c: Cubic): { x: number; y: number } {
   const t = tangentAt(c, 1);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  if (pmath.hypot(t.x, t.y) > 1e-12) return t;
   return { x: c[6] - c[0], y: c[7] - c[1] };
 }

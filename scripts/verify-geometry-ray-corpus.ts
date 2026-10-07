@@ -19,13 +19,11 @@ const offset = process.argv.includes('--offset-error');
 const portable = process.argv.includes('--portable-math');
 const fitting = portable || process.argv.includes('--offset-fit');
 const clipping = process.argv.includes('--clipping');
-const hostNorm = process.argv.includes('--host-norm');
-if (hostNorm && (portable || (!clipping && !fitting))) throw new Error('Host norms require clipping or host fitting.');
 if ([offset, fitting, clipping].filter(Boolean).length > 1)
   throw new Error('Select one retained comparison backend.');
 const output = join(
   repo,
-  `plans/295-validation/geometry-${clipping ? 'clip' : portable ? 'portable-fit' : fitting ? 'offset-fit' : offset ? 'offset-error' : 'ray'}${hostNorm ? '-host-norm' : ''}-corpus.mjs`
+  `plans/295-validation/geometry-${clipping ? 'clip' : portable ? 'portable-fit' : fitting ? 'offset-fit' : offset ? 'offset-error' : 'ray'}-corpus.mjs`
 );
 mkdirSync(dirname(output), { recursive: true });
 await build({
@@ -35,7 +33,7 @@ await build({
       import {afterEach, after} from 'node:test';
       import {${clipping ? 'loadGeometryClipping as loadGeometryKernel' : fitting ? 'loadGeometryFitting as loadGeometryKernel' : 'loadGeometryKernel'}} from 'geometry-ray-corpus:kernel';
       ${clipping ? "import {createClipBackend as createBackend} from './tests/helpers/geometry-clip-backend.ts'; import {setClipProbe as setProbe} from './tests/helpers/geometry-clip-control.ts';" : fitting ? "import {createOffsetFitBackend as createBackend} from './tests/helpers/geometry-offset-fit-backend.ts'; import {setOffsetFitProbe as setProbe} from './tests/helpers/geometry-offset-fit-control.ts';" : offset ? "import {createOffsetErrorBackend as createBackend} from './tests/helpers/geometry-offset-error-backend.ts'; import {setOffsetErrorProbe as setProbe} from './tests/helpers/geometry-offset-error-control.ts';" : "import {createRayBackend as createBackend} from './tests/helpers/geometry-ray-backend.ts'; import {setRayProbe as setProbe} from './tests/helpers/geometry-ray-control.ts';"}
-      const kernel = await loadGeometryKernel(${hostNorm ? "'host-norm'" : portable ? "'portable'" : ''});
+      const kernel = await loadGeometryKernel();
       const backend = createBackend(kernel);
       ${
         clipping
@@ -83,7 +81,7 @@ await build({
           external: true,
         }));
         builder.onLoad(
-          { filter: /tests\/geom-(coincident-repeats|work-budget)\.test\.ts$/ },
+          { filter: /tests\/geom-(coincident-repeats|work-budget|portable-math)\.test\.ts$/ },
           (args) => ({
             contents: readFileSync(args.path, 'utf8').replaceAll(
               'import.meta.url',

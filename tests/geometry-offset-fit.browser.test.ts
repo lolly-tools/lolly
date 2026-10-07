@@ -46,7 +46,7 @@ test('complete adaptive fitting preserves each host reference in the selected br
       plugins: [offsetFitComparisonPlugin()],
     }),
     readFile(
-      new URL('../packages/node-shell/wasm/geometry-kernel/geometry-fit.wasm', import.meta.url)
+      new URL('../packages/node-shell/wasm/geometry-kernel/geometry-fit-portable.wasm', import.meta.url)
     ),
     loadOffsetFitComparison(),
   ]);
@@ -64,7 +64,7 @@ test('complete adaptive fitting preserves each host reference in the selected br
       res.end(
         'import {probeOffsetFitting} from "/entry.js"; onmessage=async e=>{try{postMessage({result:await probeOffsetFitting(e.data)})}catch(error){postMessage({error:String(error)})}};'
       );
-    } else if (req.url === '/geometry-fit.wasm') {
+    } else if (req.url === '/geometry-fit-portable.wasm') {
       res.setHeader('content-type', 'application/wasm');
       res.end(wasm);
     } else {

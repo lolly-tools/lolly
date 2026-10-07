@@ -34771,9 +34771,9 @@ var init_emoji_treatment = __esm({
     };
     clamp014 = (value) => value < 0 ? 0 : value > 1 ? 1 : value;
     scalarsOf = (key) => key.split("-").map((part) => Number.parseInt(part, 16));
-    isSkinTone = (scalar4) => scalar4 >= 127995 && scalar4 <= 127999;
-    isRegional = (scalar4) => scalar4 >= 127462 && scalar4 <= 127487;
-    isTag = (scalar4) => scalar4 >= 917536 && scalar4 <= 917631;
+    isSkinTone = (scalar5) => scalar5 >= 127995 && scalar5 <= 127999;
+    isRegional = (scalar5) => scalar5 >= 127462 && scalar5 <= 127487;
+    isTag = (scalar5) => scalar5 >= 917536 && scalar5 <= 917631;
   }
 });
 
@@ -38899,6 +38899,68 @@ var init_text_emoji = __esm({
   }
 });
 
+// engine/src/geom/portable-math-wasm.ts
+var PORTABLE_MATH_WASM;
+var init_portable_math_wasm = __esm({
+  "engine/src/geom/portable-math-wasm.ts"() {
+    "use strict";
+    PORTABLE_MATH_WASM = "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";
+  }
+});
+
+// engine/src/geom/portable-math.ts
+function hypot(x, y) {
+  const a = Math.abs(x), b = Math.abs(y);
+  if (a === Infinity || b === Infinity) return Infinity;
+  if (a !== a || b !== b) return NaN;
+  const m2 = a > b ? a : b;
+  if (m2 === 0) return 0;
+  const p = a / m2, q = b / m2;
+  return Math.sqrt(p * p + q * q) * m2;
+}
+function load() {
+  const binary = atob(PORTABLE_MATH_WASM);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const module = new WebAssembly.Module(bytes);
+  if (WebAssembly.Module.imports(module).length) throw new Error("geom: the portable maths module must not import host functions.");
+  const exports = new WebAssembly.Instance(module, {}).exports;
+  for (const name of NAMES) if (typeof exports[name] !== "function") throw new Error(`geom: the portable maths module lacks ${name}.`);
+  return exports;
+}
+function sin(x) {
+  return (scalar3 ??= load()).math_sin(x);
+}
+function cos(x) {
+  return (scalar3 ??= load()).math_cos(x);
+}
+function tan(x) {
+  return (scalar3 ??= load()).math_tan(x);
+}
+function acos(x) {
+  return (scalar3 ??= load()).math_acos(x);
+}
+function cbrt(x) {
+  return (scalar3 ??= load()).math_cbrt(x);
+}
+function log2(x) {
+  return (scalar3 ??= load()).math_log2(x);
+}
+function atan2(y, x) {
+  return (scalar3 ??= load()).math_atan2(y, x);
+}
+function pow2(x, y) {
+  return (scalar3 ??= load()).math_pow(x, y);
+}
+var NAMES, scalar3;
+var init_portable_math = __esm({
+  "engine/src/geom/portable-math.ts"() {
+    "use strict";
+    init_portable_math_wasm();
+    NAMES = ["math_sin", "math_cos", "math_tan", "math_acos", "math_cbrt", "math_log2", "math_atan2", "math_pow"];
+  }
+});
+
 // engine/src/svg-path.ts
 function scanSvgPathArgs(str11) {
   if (str11.length > SVG_PATH_MAX_CHARS) return null;
@@ -39143,8 +39205,8 @@ function parseSvgPath(d) {
 }
 function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
   if (x1 === x2 && y1 === y2) return [];
-  const cosP = Math.cos(phi);
-  const sinP = Math.sin(phi);
+  const cosP = cos(phi);
+  const sinP = sin(phi);
   const dx = (x1 - x2) / 2;
   const dy = (y1 - y2) / 2;
   const x1p = cosP * dx + sinP * dy;
@@ -39170,7 +39232,7 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
     const sign = ux * vy - uy * vx < 0 ? -1 : 1;
     const dot = ux * vx + uy * vy;
     const len2 = Math.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
-    return sign * Math.acos(Math.max(-1, Math.min(1, dot / len2)));
+    return sign * acos(Math.max(-1, Math.min(1, dot / len2)));
   };
   const theta1 = angV(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
   let dtheta = angV((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry);
@@ -39182,9 +39244,9 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
   for (let i = 0; i < n6; i++) {
     const t1 = theta1 + i * dt;
     const t2 = theta1 + (i + 1) * dt;
-    const alpha = 4 / 3 * Math.tan(dt / 4);
-    const cos1 = Math.cos(t1), sin1 = Math.sin(t1);
-    const cos2 = Math.cos(t2), sin2 = Math.sin(t2);
+    const alpha = 4 / 3 * tan(dt / 4);
+    const cos1 = cos(t1), sin1 = sin(t1);
+    const cos2 = cos(t2), sin2 = sin(t2);
     const ep1x = cosP * (rx * cos1) - sinP * (ry * sin1) + cx2;
     const ep1y = sinP * (rx * cos1) + cosP * (ry * sin1) + cy3;
     const dp1x = cosP * (-rx * sin1) - sinP * (ry * cos1);
@@ -39208,6 +39270,7 @@ var SVG_PATH_MAX_CHARS, SVG_PATH_MAX_ARGS, SVG_PATH_MAX_SEGMENTS, SVG_PATH_MAX_S
 var init_svg_path = __esm({
   "engine/src/svg-path.ts"() {
     "use strict";
+    init_portable_math();
     SVG_PATH_MAX_CHARS = 4e5;
     SVG_PATH_MAX_ARGS = 1e5;
     SVG_PATH_MAX_SEGMENTS = 1e5;
@@ -39313,16 +39376,16 @@ function boxesOverlap(a, b, eps = 0) {
 }
 function flatnessCubic(c) {
   const dx = c[6] - c[0], dy = c[7] - c[1];
-  const len2 = Math.hypot(dx, dy);
+  const len2 = hypot(dx, dy);
   if (len2 < 1e-12) {
-    return Math.max(Math.hypot(c[2] - c[0], c[3] - c[1]), Math.hypot(c[4] - c[0], c[5] - c[1]));
+    return Math.max(hypot(c[2] - c[0], c[3] - c[1]), hypot(c[4] - c[0], c[5] - c[1]));
   }
   const d1 = Math.abs((c[2] - c[0]) * dy - (c[3] - c[1]) * dx) / len2;
   const d2 = Math.abs((c[4] - c[0]) * dy - (c[5] - c[1]) * dx) / len2;
   return Math.max(d1, d2);
 }
 function lengthCubic(c, tol = 0.01, depth = 0) {
-  if (depth > 20 || flatnessCubic(c) <= tol) return Math.hypot(c[6] - c[0], c[7] - c[1]);
+  if (depth > 20 || flatnessCubic(c) <= tol) return hypot(c[6] - c[0], c[7] - c[1]);
   const [a, b] = splitCubic(c, 0.5);
   return lengthCubic(a, tol, depth + 1) + lengthCubic(b, tol, depth + 1);
 }
@@ -39462,7 +39525,7 @@ function nearestOnCubic(c, px3, py, _samples) {
     if (!(t >= 0)) t = 0;
     else if (t > 1) t = 1;
     const p = evalCubic(c, t);
-    const d2 = (p.x - px3) ** 2 + (p.y - py) ** 2;
+    const dx2 = p.x - px3, dy2 = p.y - py, d2 = dx2 * dx2 + dy2 * dy2;
     if (d2 < bestD2) {
       bestD2 = d2;
       bestT = t;
@@ -39479,6 +39542,7 @@ var CO_BUF, KN_BUF, NEAREST_OUT, EV_SLOPE;
 var init_bezier = __esm({
   "engine/src/geom/bezier.ts"() {
     "use strict";
+    init_portable_math();
     CO_BUF = [];
     KN_BUF = [];
     for (let i = 0; i <= 6; i++) {
@@ -39502,7 +39566,7 @@ function contourEnd(c) {
 function closeContour(c) {
   const s = contourStart(c), e = contourEnd(c);
   if (!s || !e) return { curves: [...c.curves], closed: true };
-  const gap = Math.hypot(e.x - s.x, e.y - s.y);
+  const gap = hypot(e.x - s.x, e.y - s.y);
   if (gap <= JOIN_EPS) return { curves: [...c.curves], closed: true };
   return { curves: [...c.curves, lineToCubic(e.x, e.y, s.x, s.y)], closed: true };
 }
@@ -39609,11 +39673,11 @@ function toSvgPathData(p, dp = 4) {
 }
 function isStraight(k, tol = 1e-9) {
   const dx = k[6] - k[0], dy = k[7] - k[1];
-  const len2 = Math.hypot(dx, dy);
+  const len2 = hypot(dx, dy);
   if (len2 < tol) return false;
   for (const [px3, py, want] of [[k[2], k[3], 1 / 3], [k[4], k[5], 2 / 3]]) {
     const p = { x: k[0] + dx * want, y: k[1] + dy * want };
-    if (Math.hypot(px3 - p.x, py - p.y) > tol * Math.max(1, len2)) return false;
+    if (hypot(px3 - p.x, py - p.y) > tol * Math.max(1, len2)) return false;
   }
   return true;
 }
@@ -39626,6 +39690,7 @@ var init_path = __esm({
   "engine/src/geom/path.ts"() {
     "use strict";
     init_bezier();
+    init_portable_math();
     JOIN_EPS = 1e-7;
   }
 });
@@ -53997,7 +54062,7 @@ function asciiVal(dv, e) {
   }
   return s.trim() || null;
 }
-function scalar3(dv, e) {
+function scalar4(dv, e) {
   try {
     if (e.type === 3) return dv.getUint16(e.valueOffset, e.le);
     if (e.type === 4) return dv.getUint32(e.valueOffset, e.le);
@@ -54078,20 +54143,20 @@ function readExif(bytes, base, len2, out) {
   push("Image description", byTag.has(270) ? asciiVal(dv, byTag.get(270)) : null, "description");
   push("Modified", byTag.has(306) ? asciiVal(dv, byTag.get(306)) : null, "timestamps");
   if (byTag.has(274)) {
-    const o = scalar3(dv, byTag.get(274));
+    const o = scalar4(dv, byTag.get(274));
     if (o != null && ORIENTATION[o]) push("Orientation", ORIENTATION[o], "technical");
   }
   const exifPtr = byTag.get(34665);
   if (exifPtr) {
     const sub = /* @__PURE__ */ new Map();
-    for (const e of readIfd(dv, scalar3(dv, exifPtr) ?? 0, le)) sub.set(e.tag, e);
-    const et = sub.has(33434) ? scalar3(dv, sub.get(33434)) : null;
+    for (const e of readIfd(dv, scalar4(dv, exifPtr) ?? 0, le)) sub.set(e.tag, e);
+    const et = sub.has(33434) ? scalar4(dv, sub.get(33434)) : null;
     if (et != null && et > 0) push("Exposure", et < 1 ? `1/${Math.round(1 / et)} s` : `${round(et)} s`, "capture");
-    const fn = sub.has(33437) ? scalar3(dv, sub.get(33437)) : null;
+    const fn = sub.has(33437) ? scalar4(dv, sub.get(33437)) : null;
     if (fn != null && fn > 0) push("Aperture", `f/${round(fn)}`, "capture");
-    const iso = sub.has(34855) ? scalar3(dv, sub.get(34855)) : null;
+    const iso = sub.has(34855) ? scalar4(dv, sub.get(34855)) : null;
     if (iso != null && iso > 0) push("ISO", `ISO ${iso}`, "capture");
-    const fl = sub.has(37386) ? scalar3(dv, sub.get(37386)) : null;
+    const fl = sub.has(37386) ? scalar4(dv, sub.get(37386)) : null;
     if (fl != null && fl > 0) push("Focal length", `${round(fl)} mm`, "capture");
     push("Taken", sub.has(36867) ? asciiVal(dv, sub.get(36867)) : null, "timestamps");
     push("Lens", [
@@ -54099,13 +54164,13 @@ function readExif(bytes, base, len2, out) {
       sub.has(42036) ? asciiVal(dv, sub.get(42036)) : null
     ].filter(Boolean).join(" ") || null, "device");
     push("Camera serial", sub.has(42033) ? asciiVal(dv, sub.get(42033)) : null, "device", true);
-    const px3 = sub.has(40962) ? scalar3(dv, sub.get(40962)) : null;
-    const py = sub.has(40963) ? scalar3(dv, sub.get(40963)) : null;
+    const px3 = sub.has(40962) ? scalar4(dv, sub.get(40962)) : null;
+    const py = sub.has(40963) ? scalar4(dv, sub.get(40963)) : null;
     if (px3 && py) push("Dimensions", `${px3} \xD7 ${py} px`, "technical");
   }
   const gpsPtr = byTag.get(34853);
   if (gpsPtr) {
-    const g2 = readGps(dv, scalar3(dv, gpsPtr) ?? 0, le);
+    const g2 = readGps(dv, scalar4(dv, gpsPtr) ?? 0, le);
     if (g2) {
       out.gps = { lat: g2.lat, lon: g2.lon };
       out.mapUrl = `https://www.openstreetmap.org/?mlat=${g2.lat.toFixed(6)}&mlon=${g2.lon.toFixed(6)}#map=15/${g2.lat.toFixed(5)}/${g2.lon.toFixed(5)}`;
@@ -55899,7 +55964,7 @@ function dedupeRoots(ts, sg, dirs) {
 }
 function intersectLineCubic(x0, y0, x1, y1, c, tol = EPS2, clamp10 = true) {
   const dx = x1 - x0, dy = y1 - y0;
-  const len2 = Math.hypot(dx, dy);
+  const len2 = hypot(dx, dy);
   if (len2 < 1e-12) return [];
   const nx = -dy / len2, ny = dx / len2;
   const dist2 = (px3, py) => nx * (px3 - x0) + ny * (py - y0);
@@ -55922,12 +55987,12 @@ function intersectLineCubic(x0, y0, x1, y1, c, tol = EPS2, clamp10 = true) {
 }
 function fatLine(c) {
   let dx = c[6] - c[0], dy = c[7] - c[1];
-  if (Math.hypot(dx, dy) < 1e-12) {
+  if (hypot(dx, dy) < 1e-12) {
     dx = c[4] - c[0];
     dy = c[5] - c[1];
-    if (Math.hypot(dx, dy) < 1e-12) return null;
+    if (hypot(dx, dy) < 1e-12) return null;
   }
-  const len2 = Math.hypot(dx, dy);
+  const len2 = hypot(dx, dy);
   const nx = -dy / len2, ny = dx / len2;
   const c0 = nx * c[0] + ny * c[1];
   const d1 = nx * c[2] + ny * c[3] - c0;
@@ -55995,7 +56060,7 @@ function atResolutionFloor(c1, c2, s1, s2, fat2, tol) {
 }
 function coincideAtParams(a, b, tol) {
   for (let i = 0; i < 8; i += 2) {
-    if (Math.hypot(a[i] - b[i], a[i + 1] - b[i + 1]) > tol) return false;
+    if (hypot(a[i] - b[i], a[i + 1] - b[i + 1]) > tol) return false;
   }
   return true;
 }
@@ -56021,7 +56086,7 @@ function nearest2(c, x, y) {
     const tn = Math.min(1, Math.max(0, t - step));
     if (tn === t) break;
     const pn = evalCubic(c, tn);
-    const dn = Math.hypot(pn.x - x, pn.y - y);
+    const dn = hypot(pn.x - x, pn.y - y);
     if (dn < best) {
       best = dn;
       bestT = tn;
@@ -56044,9 +56109,9 @@ function secondDerivative(c, t) {
 }
 function reach(c) {
   return Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[0], c[5] - c[1]),
-    Math.hypot(c[6] - c[0], c[7] - c[1])
+    hypot(c[2] - c[0], c[3] - c[1]),
+    hypot(c[4] - c[0], c[5] - c[1]),
+    hypot(c[6] - c[0], c[7] - c[1])
   );
 }
 function mayLieOn(c, fat, x, y, pad) {
@@ -56066,7 +56131,7 @@ function sharedRun(c1, c2, tol) {
   for (const t of [0, 1]) {
     for (const u of [0, 1]) {
       if (onC2[t] !== null) continue;
-      if (Math.hypot(c1[6 * t] - c2[6 * u], c1[6 * t + 1] - c2[6 * u + 1]) <= eps) {
+      if (hypot(c1[6 * t] - c2[6 * u], c1[6 * t + 1] - c2[6 * u + 1]) <= eps) {
         onC2[t] = u;
         onC1[u] ??= t;
         shared++;
@@ -56120,7 +56185,7 @@ function sharedRun(c1, c2, tol) {
 function shallow(search, swap, a, b) {
   if ((a <= TOUCH || a >= 1 - TOUCH) && (b <= TOUCH || b >= 1 - TOUCH)) return false;
   const d1 = tangentAt(search.c1, swap ? b : a), d2 = tangentAt(search.c2, swap ? a : b);
-  const l1 = Math.hypot(d1.x, d1.y), l2 = Math.hypot(d2.x, d2.y);
+  const l1 = hypot(d1.x, d1.y), l2 = hypot(d2.x, d2.y);
   const still = FOOT_SPEED * search.size;
   if (!(l1 > still && l2 > still)) return true;
   return Math.abs(d1.x * d2.y - d1.y * d2.x) < SHALLOW * l1 * l2;
@@ -56145,12 +56210,12 @@ function overrunClip(c1, c2, t1lo, t1hi, t2lo, t2hi, tol, depth, search, swap = 
     return;
   }
   const res = Math.max(tol, search.pad);
-  const s1 = Math.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
-  const s2 = Math.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
+  const s1 = hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
+  const s2 = hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
   if (s1 <= res && s2 <= res) {
     const m1 = (t1lo + t1hi) / 2, m2 = (t2lo + t2hi) / 2;
     const p = evalCubic(c1, 0.5), q = evalCubic(c2, 0.5);
-    const apart2 = Math.hypot(p.x - q.x, p.y - q.y);
+    const apart2 = hypot(p.x - q.x, p.y - q.y);
     if (apart2 > res) {
       if (apart2 <= POINT_OFF_SLACK * tol) stall(search, swap, t1lo, t1hi, t2lo, t2hi);
       return;
@@ -56216,8 +56281,8 @@ function clipIntersect(c1, c2, t1lo, t1hi, t2lo, t2hi, tol, depth, out, work, sw
   const emit = (t1, t2, x, y) => out.push(swap ? { t1: t2, t2: t1, x, y } : { t1, t2, x, y });
   if (out.length > 128 || depth > 60) return;
   if (!boxesOverlap(hullBounds(c1), hullBounds(c2), tol)) return;
-  const s1 = Math.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
-  const s2 = Math.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
+  const s1 = hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
+  const s2 = hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
   if (s1 <= tol && s2 <= tol) {
     const p = evalCubic(c1, 0.5);
     emit((t1lo + t1hi) / 2, (t2lo + t2hi) / 2, p.x, p.y);
@@ -56295,7 +56360,7 @@ function twinNode(search, swap, c1, t1lo, t1hi, t2lo, t2hi, tol) {
   const dx1 = (q[4] - q[2]) * k, dy1 = (q[5] - q[3]) * k;
   const dx2 = (q[6] - q[4]) * k, dy2 = (q[7] - q[5]) * k;
   let ux = dx0 + dx1 + dx2, uy = dy0 + dy1 + dy2;
-  const ul = Math.hypot(ux, uy);
+  const ul = hypot(ux, uy);
   if (!(ul > 0)) return false;
   ux /= ul;
   uy /= ul;
@@ -56303,15 +56368,15 @@ function twinNode(search, swap, c1, t1lo, t1hi, t2lo, t2hi, tol) {
   let vlo = Infinity;
   for (const [dx, dy] of [[dx0, dy0], [dx1, dy1], [dx2, dy2]]) {
     const along2 = dx * ux + dy * uy;
-    if (!(along2 >= TWIN_TURN * Math.hypot(dx, dy)) || along2 < still) return false;
+    if (!(along2 >= TWIN_TURN * hypot(dx, dy)) || along2 < still) return false;
     if (along2 < vlo) vlo = along2;
   }
-  const kappa = 2 * Math.max(Math.hypot(dx1 - dx0, dy1 - dy0), Math.hypot(dx2 - dx1, dy2 - dy1)) / ((R1 - R0) * vlo * vlo);
+  const kappa = 2 * Math.max(hypot(dx1 - dx0, dy1 - dy0), hypot(dx2 - dx1, dy2 - dy1)) / ((R1 - R0) * vlo * vlo);
   const m2 = subCubic(W, t1lo, t1hi);
   const dX = [c1[0] - m2[0], c1[2] - m2[2], c1[4] - m2[4], c1[6] - m2[6]];
   const dY = [c1[1] - m2[1], c1[3] - m2[3], c1[5] - m2[5], c1[7] - m2[7]];
   let T = 0;
-  for (let i = 0; i < 4; i++) T = Math.max(T, Math.hypot(dX[i], dY[i]));
+  for (let i = 0; i < 4; i++) T = Math.max(T, hypot(dX[i], dY[i]));
   const rho = tol + T;
   if (kappa * rho * rho > TWIN_BEND * tol) return false;
   const eX = [3 * (m2[2] - m2[0]), 3 * (m2[4] - m2[2]), 3 * (m2[6] - m2[4])];
@@ -56337,7 +56402,7 @@ function twinNode(search, swap, c1, t1lo, t1hi, t2lo, t2hi, tol) {
 function dedupe(list3, tol) {
   const out = [];
   for (const i of list3) {
-    if (!out.some((o) => Math.hypot(o.x - i.x, o.y - i.y) <= tol * 8 && Math.abs(o.t1 - i.t1) <= 1e-6 + tol && Math.abs(o.t2 - i.t2) <= 1e-6 + tol)) out.push(i);
+    if (!out.some((o) => hypot(o.x - i.x, o.y - i.y) <= tol * 8 && Math.abs(o.t1 - i.t1) <= 1e-6 + tol && Math.abs(o.t2 - i.t2) <= 1e-6 + tol)) out.push(i);
   }
   return out.sort((a, b) => a.t1 - b.t1);
 }
@@ -56775,7 +56840,7 @@ function reportRunEnds(scan2, samples) {
   if (lo < 0 || hi <= lo) return;
   const a = lo > 0 ? runEnd(scan2, samples[lo - 1], samples[lo]) : samples[lo];
   const b = hi < samples.length - 1 ? runEnd(scan2, samples[hi + 1], samples[hi]) : samples[hi];
-  if (Math.hypot(a.px - b.px, a.py - b.py) < RUN_MIN_REL * scan2.size) return;
+  if (hypot(a.px - b.px, a.py - b.py) < RUN_MIN_REL * scan2.size) return;
   if (out.length > MAX_HITS - 2) return;
   for (const s of [a, b]) {
     if (!out.some((h) => Math.abs(h.t1 - s.t) <= TOUCH_MERGE && Math.abs(h.t2 - s.u) <= TOUCH_MERGE)) {
@@ -56805,7 +56870,7 @@ function gapAt(scan2, t) {
   const beyond = u <= 0 || u >= 1;
   let d = beyond ? endDirection(c2, u <= 0 ? 0 : 1) : tangentAt(c2, u);
   if (d.x === 0 && d.y === 0) d = { x: c2[6] - c2[0], y: c2[7] - c2[1] };
-  const len2 = Math.hypot(d.x, d.y);
+  const len2 = hypot(d.x, d.y);
   if (!(len2 > 0)) return null;
   const g2 = (d.x * (p.y - q.y) - d.y * (p.x - q.x)) / len2;
   return { t, u, g: g2, beyond, d: near.distance, sp: len2 / scan2.size, nx: -d.y / len2, ny: d.x / len2, o: 1, px: p.x, py: p.y, qx: q.x, qy: q.y };
@@ -56926,7 +56991,7 @@ function endContact(scan2, curve, end) {
   if (near.distance > tol) return;
   let u = near.t;
   for (const e of [0, 1]) {
-    if (Math.hypot(other[6 * e] - x, other[6 * e + 1] - y) <= tol) u = e;
+    if (hypot(other[6 * e] - x, other[6 * e + 1] - y) <= tol) u = e;
   }
   out.push(curve === 1 ? { t1: end, t2: u, x, y } : { t1: u, t2: end, x: near.point.x, y: near.point.y });
 }
@@ -56966,13 +57031,14 @@ function touchPoint(scan2, samples) {
   }
   if (fc && size(fc) < size(best)) best = fc;
   if (fd && size(fd) < size(best)) best = fd;
-  return Math.hypot(best.px - best.qx, best.py - best.qy) > tol ? null : best;
+  return hypot(best.px - best.qx, best.py - best.qy) > tol ? null : best;
 }
 var EPS2, T_EPS, ROOT_SNAP, FLOOR_MIN_SIZE, POLISH_STEPS, POLISH_STEP_MIN, POLISH_PATIENCE, MAX_DEPTH, BOX_SLACK, POINT_OFF_SLACK, SHALLOW, CLIP_BUDGET, CLIP_COUNTS, TWIN_BAND, TWIN_TURN, TWIN_BEND, TWIN_REACH, TWIN_RUN_DEPTH, BINOM, ONES_6, OVERRUN_BUDGET, MAX_HITS, SCAN_LIMITS, SAMPLES_PER_PIECE, MAX_STRETCH_SAMPLES, MIN_STRETCH_SAMPLES, GAP_BUDGET, LOOK_OUT_STEPS, END_NEAR, TOUCH, TOUCH_MERGE, TOUCH_JOIN_SAMPLES, STRETCH_REACH, side, readable, FOOT_SPEED, FOOT_SHARE, RUN_MIN_REL, RUN_END_STEPS, RUN_END_SHARE, CLOSEST_STEPS, TOUCH_STEPS;
 var init_intersect = __esm({
   "engine/src/geom/intersect.ts"() {
     "use strict";
     init_bezier();
+    init_portable_math();
     EPS2 = 1e-9;
     T_EPS = 1e-9;
     ROOT_SNAP = 32;
@@ -57130,9 +57196,9 @@ function inBundle(bundle, ci, t) {
 function reachFrom(idx, px3, py) {
   const b = idx.box;
   if (!b) return 1;
-  const diag = Math.hypot(b.x1 - b.x0, b.y1 - b.y0);
+  const diag = hypot(b.x1 - b.x0, b.y1 - b.y0);
   const dx = Math.max(b.x0 - px3, px3 - b.x1, 0), dy = Math.max(b.y0 - py, py - b.y1, 0);
-  return 2 * (diag + Math.hypot(dx, dy)) + 1;
+  return 2 * (diag + hypot(dx, dy)) + 1;
 }
 function castRay(idx, px3, py, ux, uy, ref, near, budget3, complete = false, bundle = null) {
   const twin = near * 100;
@@ -57200,6 +57266,7 @@ var init_ray_cast = __esm({
     "use strict";
     init_bezier();
     init_intersect();
+    init_portable_math();
     T_GUARD = 1e-7;
   }
 });
@@ -57393,9 +57460,9 @@ function isFiniteCubic(c) {
 }
 function extent(c) {
   return Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[0], c[5] - c[1]),
-    Math.hypot(c[6] - c[0], c[7] - c[1])
+    hypot(c[2] - c[0], c[3] - c[1]),
+    hypot(c[4] - c[0], c[5] - c[1]),
+    hypot(c[6] - c[0], c[7] - c[1])
   );
 }
 function normalise(p) {
@@ -57416,7 +57483,7 @@ function selfTouching(c, weld) {
     for (let ox = -1; ox <= 1; ox++) {
       for (let oy = -1; oy <= 1; oy++) {
         for (const p of seen.get(`${cx2 + ox},${cy3 + oy}`) ?? []) {
-          if (Math.hypot(p.x - k[0], p.y - k[1]) <= weld) return true;
+          if (hypot(p.x - k[0], p.y - k[1]) <= weld) return true;
         }
       }
     }
@@ -57446,9 +57513,9 @@ function buildIndex(p) {
 }
 function midTangent(c, at = 0.5) {
   const t = tangentAt(c, at);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  if (hypot(t.x, t.y) > 1e-12) return t;
   const dx = c[6] - c[0], dy = c[7] - c[1];
-  if (Math.hypot(dx, dy) > 1e-12) return { x: dx, y: dy };
+  if (hypot(dx, dy) > 1e-12) return { x: dx, y: dy };
   return { x: 1, y: 0 };
 }
 function decideAt(c) {
@@ -57456,7 +57523,7 @@ function decideAt(c) {
   let bestT = 0.5, bestS = -1;
   for (const t of DECIDE_TS) {
     const d = tangentAt(c, t);
-    const sp = Math.hypot(d.x, d.y);
+    const sp = hypot(d.x, d.y);
     if (t === 0.5 && sp >= DECIDE_SPEED * ext) return 0.5;
     if (sp > bestS) {
       bestS = sp;
@@ -57527,7 +57594,7 @@ function addSplit(splits, index2, t, budget3) {
 }
 function collinearSplits(a, b, weld, budget3) {
   const dx = a[6] - a[0], dy = a[7] - a[1];
-  const len2 = Math.hypot(dx, dy);
+  const len2 = hypot(dx, dy);
   if (len2 < weld) return null;
   const nx = -dy / len2, ny = dx / len2;
   for (let i = 0; i < 8; i += 2) {
@@ -57645,7 +57712,7 @@ function contactSplits(ci, cj, weld, budget3) {
     const bp = boundsCubic(p), bq = boundsCubic(q);
     const dx = Math.max(bp.x0 - bq.x1, bq.x0 - bp.x1, 0);
     const dy = Math.max(bp.y0 - bq.y1, bq.y0 - bp.y1, 0);
-    if (Math.hypot(dx, dy) > weld) return;
+    if (hypot(dx, dy) > weld) return;
     if (s1 - s0 <= CONTACT_SEED && t1 - t0 <= CONTACT_SEED) {
       leaves.push([s0, s1]);
       return;
@@ -57841,12 +57908,12 @@ function buildRayDirs() {
   const out = [[1, 0], [0, 1]];
   for (let k = 1; k <= 10; k++) {
     const a = k * 2.399963229728653;
-    out.push([Math.cos(a), Math.sin(a)]);
+    out.push([cos(a), sin(a)]);
   }
   return out;
 }
 function rayDirections(rx, ry) {
-  const mag = Math.hypot(rx, ry);
+  const mag = hypot(rx, ry);
   if (mag < 1e-12) return RAY_DIRS.slice();
   const out = RAY_DIRS.filter((d) => Math.abs(d[0] * ry - d[1] * rx) >= 0.25 * mag);
   return out.length ? out : RAY_DIRS.slice();
@@ -57942,7 +58009,7 @@ function walkLoops(edges, weld) {
         for (const i of buckets.get(`${cx2 + ox},${cy3 + oy}`) ?? []) {
           if (used[i]) continue;
           const e = edges[i];
-          const d = Math.hypot(e[0] - x, e[1] - y);
+          const d = hypot(e[0] - x, e[1] - y);
           if (d <= bestD) {
             bestD = d;
             best = i;
@@ -57960,7 +58027,7 @@ function walkLoops(edges, weld) {
         for (const i of buckets.get(`${cx2 + ox},${cy3 + oy}`) ?? []) {
           if (used[i]) continue;
           const e = edges[i];
-          if (Math.hypot(e[0] - x, e[1] - y) <= radius) found.push(i);
+          if (hypot(e[0] - x, e[1] - y) <= radius) found.push(i);
         }
       }
     }
@@ -57983,7 +58050,7 @@ function walkLoops(edges, weld) {
       }
       curves2.push(e);
       const ex = e[6], ey = e[7];
-      if (Math.hypot(ex - sx, ey - sy) <= weld) {
+      if (hypot(ex - sx, ey - sy) <= weld) {
         joined = true;
         break;
       }
@@ -58000,7 +58067,7 @@ function walkLoops(edges, weld) {
         }
       }
       if (!options2.length) {
-        if (Math.hypot(ex - sx, ey - sy) <= WALK_SLACK * weld) slack = true;
+        if (hypot(ex - sx, ey - sy) <= WALK_SLACK * weld) slack = true;
         break;
       }
       cur = options2.length === 1 ? options2[0] : pickTurn(edges, e, options2);
@@ -58022,11 +58089,11 @@ function chainSpan(curves2) {
 }
 function pickTurn(edges, incoming, options2) {
   const din = endTangent(incoming);
-  const back = Math.atan2(-din.y, -din.x);
+  const back = atan2(-din.y, -din.x);
   let best = options2[0], bestDelta = Infinity;
   for (const i of options2) {
     const d = startTangent(edges[i]);
-    let delta = back - Math.atan2(d.y, d.x);
+    let delta = back - atan2(d.y, d.x);
     delta -= Math.floor(delta / (Math.PI * 2)) * (Math.PI * 2);
     if (delta <= TURN_TIE || delta >= Math.PI * 2 - TURN_TIE) delta = Math.PI * 2;
     if (delta < bestDelta) {
@@ -58038,12 +58105,12 @@ function pickTurn(edges, incoming, options2) {
 }
 function startTangent(c) {
   const t = tangentAt(c, 0);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  if (hypot(t.x, t.y) > 1e-12) return t;
   return { x: c[6] - c[0], y: c[7] - c[1] };
 }
 function endTangent(c) {
   const t = tangentAt(c, 1);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  if (hypot(t.x, t.y) > 1e-12) return t;
   return { x: c[6] - c[0], y: c[7] - c[1] };
 }
 var GeomLimitError, MAX_CURVES, MAX_SPLITS, MAX_PAIRS, MAX_WORK, MAX_CONTACT_NODES, CONTACT_SEED, MAX_CONTACT_LEAVES, reverseCubic, DECIDE_TS, DECIDE_SPEED, TRACE_SAMPLES, MAX_ALIGN_PAIRS, RAY_DIRS, WALK_SLACK, WALK_HOP, TURN_TIE;
@@ -58056,6 +58123,7 @@ var init_boolean = __esm({
     init_near_pieces();
     init_ray_cast();
     init_path();
+    init_portable_math();
     GeomLimitError = class extends Error {
       op;
       constructor(op, detail) {
@@ -58092,7 +58160,7 @@ function chordFrameMoments(raw, x0, y0, dx, dy) {
   y -= dx * (y0 * y0 + y0 * dy + dy3 * dy);
   x -= x0 * area2;
   y = 0.5 * y - y0 * area2;
-  const chord = Math.hypot(dx, dy);
+  const chord = hypot(dx, dy);
   return { area: area2, moment: chord > 0 ? (dx * x + dy * y) / chord : 0 };
 }
 function quadratureMoments(sample, t0, t1) {
@@ -58181,14 +58249,14 @@ function solveCubic(c0, c1, c2, c3) {
   const de = -2 * s2 * d0 + d1;
   if (disc < 0) {
     const sq = Math.sqrt(-0.25 * disc), r5 = -0.5 * de;
-    return [Math.cbrt(r5 + sq) + Math.cbrt(r5 - sq) - s2];
+    return [cbrt(r5 + sq) + cbrt(r5 - sq) - s2];
   }
   if (disc === 0) {
     const t1 = copysign(Math.sqrt(-d0), de);
     return [t1 - s2, -2 * t1 - s2];
   }
-  const th = Math.atan2(Math.sqrt(disc), -de) * third;
-  const thc = Math.cos(th), ss3 = Math.sin(th) * Math.sqrt(3);
+  const th = atan2(Math.sqrt(disc), -de) * third;
+  const thc = cos(th), ss3 = sin(th) * Math.sqrt(3);
   const t = 2 * Math.sqrt(-d0);
   return [t * thc - s2, t * 0.5 * (-thc + ss3) - s2, t * 0.5 * (-thc - ss3) - s2];
 }
@@ -58199,9 +58267,9 @@ function depressedCubicDominant(g2, h) {
     x = g2 > 0 ? 0 : Math.sqrt(-g2);
   } else if (r5 * r5 < q * q * q) {
     const t = r5 / Math.sqrt(q * q * q);
-    x = -2 * Math.sqrt(q) * copysign(Math.cos(Math.acos(Math.abs(t)) * (1 / 3)), t);
+    x = -2 * Math.sqrt(q) * copysign(cos(acos(Math.abs(t)) * (1 / 3)), t);
   } else {
-    const a = Math.cbrt(-r5 - copysign(Math.sqrt(r5 * r5 - q * q * q), r5));
+    const a = cbrt(-r5 - copysign(Math.sqrt(r5 * r5 - q * q * q), r5));
     x = a === 0 ? 0 : a + q / a;
   }
   let f = (x * x + g2) * x + h;
@@ -58321,26 +58389,26 @@ function mod2pi(th) {
 function endpointSample(src, t, dir, span) {
   const s = src.sample(t);
   let tx = s.dx, ty = s.dy;
-  const len2 = Math.hypot(tx, ty);
+  const len2 = hypot(tx, ty);
   let step = span * 1e-7;
   if (len2 > 1e-12) {
     const probe = src.sample(clamp016(t + dir * step));
-    const pl = Math.hypot(probe.dx, probe.dy);
+    const pl = hypot(probe.dx, probe.dy);
     if (pl > 1e-12) {
-      const sin = Math.abs(tx * probe.dy - ty * probe.dx) / (len2 * pl);
-      const cos = (tx * probe.dx + ty * probe.dy) / (len2 * pl);
-      if (cos < 0 || sin > 0.02) {
+      const sin2 = Math.abs(tx * probe.dy - ty * probe.dx) / (len2 * pl);
+      const cos2 = (tx * probe.dx + ty * probe.dy) / (len2 * pl);
+      if (cos2 < 0 || sin2 > 0.02) {
         tx = probe.dx;
         ty = probe.dy;
       }
     }
     return { x: s.x, y: s.y, tx, ty };
   }
-  for (let i = 0; i < 6 && Math.hypot(tx, ty) < 1e-12; i++) {
+  for (let i = 0; i < 6 && hypot(tx, ty) < 1e-12; i++) {
     const probe = src.sample(clamp016(t + dir * step));
     tx = probe.dx;
     ty = probe.dy;
-    if (Math.hypot(tx, ty) < 1e-12) {
+    if (hypot(tx, ty) < 1e-12) {
       tx = probe.x - s.x;
       ty = probe.y - s.y;
     }
@@ -58359,9 +58427,9 @@ function frameFor(src, t0, t1) {
   const chord2 = dx * dx + dy * dy;
   if (!(chord2 > 0) || !Number.isFinite(chord2)) return null;
   const chord = Math.sqrt(chord2);
-  const th = Math.atan2(dy, dx);
-  const th0 = mod2pi(Math.atan2(start.ty, start.tx) - th);
-  const th1 = mod2pi(th - Math.atan2(end.ty, end.tx));
+  const th = atan2(dy, dx);
+  const th0 = mod2pi(atan2(start.ty, start.tx) - th);
+  const th1 = mod2pi(th - atan2(end.ty, end.tx));
   const { area: area2, moment } = src.momentIntegrals(t0, t1);
   if (!Number.isFinite(area2) || !Number.isFinite(moment)) return null;
   return {
@@ -58379,8 +58447,8 @@ function frameFor(src, t0, t1) {
   };
 }
 function candidates(f) {
-  const s0 = Math.sin(f.th0), c0 = Math.cos(f.th0);
-  const s1 = Math.sin(f.th1), c1 = Math.cos(f.th1);
+  const s0 = sin(f.th0), c0 = cos(f.th0);
+  const s1 = sin(f.th1), c1 = cos(f.th1);
   const area2 = f.unitArea, mx = f.mx;
   const a4 = -9 * c0 * (((2 * s1 * c1 * c0 + s0 * (2 * c1 * c1 - 1)) * c0 - 2 * s1 * c1) * c0 - c1 * c1 * s0);
   const a3 = 12 * ((((c1 * (30 * area2 * c1 - s1) - 15 * area2) * c0 + 2 * s0 - c1 * s0 * (c1 + 30 * area2 * s1)) * c0 + c1 * (s1 - 15 * area2 * c1)) * c0 - s0 * c1 * c1);
@@ -58427,10 +58495,10 @@ function candidates(f) {
   return out;
 }
 function mapCandidate(f, d0, d1) {
-  const cs = Math.cos(f.th) * f.chord, sn = Math.sin(f.th) * f.chord;
+  const cs = cos(f.th) * f.chord, sn = sin(f.th) * f.chord;
   const place2 = (ux, uy) => [f.sx + cs * ux - sn * uy, f.sy + sn * ux + cs * uy];
-  const [p1x, p1y] = place2(d0 * Math.cos(f.th0), d0 * Math.sin(f.th0));
-  const [p2x, p2y] = place2(1 - d1 * Math.cos(f.th1), d1 * Math.sin(f.th1));
+  const [p1x, p1y] = place2(d0 * cos(f.th0), d0 * sin(f.th0));
+  const [p2x, p2y] = place2(1 - d1 * cos(f.th1), d1 * sin(f.th1));
   return { c: [f.sx, f.sy, p1x, p1y, p2x, p2y, f.ex, f.ey], d0, d1 };
 }
 function armPenalty(d) {
@@ -58515,7 +58583,7 @@ function rayErr2(c, q, s, miss) {
   let best = miss;
   for (const t of cubicRoots01(k3, k2, k1, k0)) {
     const p = evalCubic(c, t);
-    const e = (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
+    const ex = p.x - s.x, ey = p.y - s.y, e = ex * ex + ey * ey;
     if (e < best) best = e;
   }
   return best;
@@ -58541,7 +58609,7 @@ function arcSpan(c, a, b) {
   let sum = 0;
   for (const [w, xi] of GL16) {
     const d = tangentAt(c, mid3 + xi * half);
-    sum += w * Math.hypot(d.x, d.y);
+    sum += w * hypot(d.x, d.y);
   }
   return sum * half;
 }
@@ -58559,7 +58627,7 @@ function srcArcSpan(src, a, b) {
   let sum = 0;
   for (const [w, xi] of GL16) {
     const s = src.sample(mid3 + xi * half);
-    sum += w * Math.hypot(s.dx, s.dy);
+    sum += w * hypot(s.dx, s.dy);
   }
   return sum * half;
 }
@@ -58587,7 +58655,7 @@ function arcInvert(c, tab, target) {
   for (let i = 0; i < 3; i++) {
     const f = tab.cum[lo] + arcSpan(c, tLo, t) - s;
     const d = tangentAt(c, t);
-    const speed = Math.hypot(d.x, d.y);
+    const speed = hypot(d.x, d.y);
     if (speed < 1e-12) break;
     const next = Math.min(tHi, Math.max(tLo, t - f / speed));
     if (Math.abs(next - t) < 1e-13) {
@@ -58604,7 +58672,8 @@ function evalArc(d, c, acc2) {
   const tab = arcTable(c);
   const at = (s, frac) => {
     const p = evalCubic(c, arcInvert(c, tab, tab.total * frac));
-    return (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
+    const ex = p.x - s.x, ey = p.y - s.y;
+    return ex * ex + ey * ey;
   };
   let maxErr2 = 0;
   for (let i = 0; i < d.samples.length; i++) {
@@ -58655,7 +58724,7 @@ function fitOne(src, t0, t1, tol) {
   for (const cand of candidates(f)) {
     const err2 = evalDist(d, cand.c, acc2);
     if (!Number.isFinite(err2)) continue;
-    const scale = Math.max(armPenalty(cand.d0), armPenalty(cand.d1)) ** 2;
+    const penalty = Math.max(armPenalty(cand.d0), armPenalty(cand.d1)), scale = penalty * penalty;
     const pen = err2 * scale;
     if (pen < acc2 && pen < bestErr2) {
       best = cand.c;
@@ -58725,7 +58794,7 @@ function fitAdaptive(src, t0, t1, tol, b) {
   }
 }
 function solveItp(f, a, b, eps, n0, k1, ya, yb) {
-  const n12 = Math.max(0, Math.ceil(Math.log2((b - a) / eps)) - 1);
+  const n12 = Math.max(0, Math.ceil(log2((b - a) / eps)) - 1);
   let scaledEps = eps * 2 ** (n0 + n12);
   let lo = a, hi = b, ylo = ya, yhi = yb;
   let guard = 0;
@@ -58832,14 +58901,14 @@ function polyCubicSource(curves2) {
       const out = [];
       for (let i = 1; i < n6; i++) {
         const a = tangentAt(curves2[i - 1], 1), b2 = tangentAt(curves2[i], 0);
-        const la = Math.hypot(a.x, a.y), lb = Math.hypot(b2.x, b2.y);
+        const la = hypot(a.x, a.y), lb = hypot(b2.x, b2.y);
         if (la < 1e-12 || lb < 1e-12) {
           out.push(i / n6);
           continue;
         }
-        const cos = (a.x * b2.x + a.y * b2.y) / (la * lb);
-        const sin = Math.abs(a.x * b2.y - a.y * b2.x) / (la * lb);
-        if (cos < 0.9998 || sin > 0.02) out.push(i / n6);
+        const cos2 = (a.x * b2.x + a.y * b2.y) / (la * lb);
+        const sin2 = Math.abs(a.x * b2.y - a.y * b2.x) / (la * lb);
+        if (cos2 < 0.9998 || sin2 > 0.02) out.push(i / n6);
       }
       return out;
     }
@@ -58857,6 +58926,7 @@ var init_fit = __esm({
     "use strict";
     init_bezier();
     init_intersect();
+    init_portable_math();
     D_PENALTY_ELBOW = 0.65;
     D_PENALTY_SLOPE = 2;
     MAX_ARM_RATIO = 4;
@@ -58891,14 +58961,14 @@ var init_fit = __esm({
 
 // engine/src/geom/offset-source.ts
 function offsetPoint(c, t, d) {
-  const tan = unitTangent(c, t);
-  if (!tan) return null;
+  const tan2 = unitTangent(c, t);
+  if (!tan2) return null;
   const p = evalCubic(c, t);
-  return { x: p.x - d * tan.y, y: p.y + d * tan.x };
+  return { x: p.x - d * tan2.y, y: p.y + d * tan2.x };
 }
 function unitTangent(c, t) {
   const d = tangentAt(c, t);
-  const len2 = Math.hypot(d.x, d.y);
+  const len2 = hypot(d.x, d.y);
   if (len2 > 1e-12) return { x: d.x / len2, y: d.y / len2 };
   const legs = t < 0.5 ? [
     [c[4] - c[0], c[5] - c[1]],
@@ -58908,7 +58978,7 @@ function unitTangent(c, t) {
     [c[6] - c[0], c[7] - c[1]]
   ];
   for (const [dx, dy] of legs) {
-    const l = Math.hypot(dx, dy);
+    const l = hypot(dx, dy);
     if (l > 1e-12) return { x: dx / l, y: dy / l };
   }
   return null;
@@ -58917,6 +58987,7 @@ var init_offset_source = __esm({
   "engine/src/geom/offset-source.ts"() {
     "use strict";
     init_bezier();
+    init_portable_math();
   }
 });
 
@@ -58961,7 +59032,7 @@ function nearestOnChain(chain2, p, boxes) {
     const k = chain2[i];
     const b = boxes[i];
     const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1);
-    if (Math.hypot(dx, dy) >= best) continue;
+    if (hypot(dx, dy) >= best) continue;
     const e = nearestOnCubic(k, p.x, p.y).distance;
     if (e < best) best = e;
   }
@@ -58969,8 +59040,8 @@ function nearestOnChain(chain2, p, boxes) {
 }
 function sagitta(a, m2, b) {
   const dx = b.x - a.x, dy = b.y - a.y;
-  const len2 = Math.hypot(dx, dy);
-  if (len2 < 1e-12) return Math.hypot(m2.x - a.x, m2.y - a.y);
+  const len2 = hypot(dx, dy);
+  if (len2 < 1e-12) return hypot(m2.x - a.x, m2.y - a.y);
   return Math.abs((m2.x - a.x) * dy - (m2.y - a.y) * dx) / len2;
 }
 var ERROR_SAMPLES, MAX_ERROR_DEPTH, ERROR_BUDGET;
@@ -58979,6 +59050,7 @@ var init_offset_error = __esm({
     "use strict";
     init_bezier();
     init_offset_source();
+    init_portable_math();
     ERROR_SAMPLES = 12;
     MAX_ERROR_DEPTH = 20;
     ERROR_BUDGET = 512;
@@ -59041,15 +59113,15 @@ function offsetSource(c, d) {
   const sample = (t) => {
     const p = evalCubic(c, t);
     const d1 = tangentAt(c, t);
-    const s = Math.hypot(d1.x, d1.y);
+    const s = hypot(d1.x, d1.y);
     if (s > 1e-12) {
       const d2 = secondDeriv(c, t);
       const k = 1 - d * (d1.x * d2.y - d1.y * d2.x) / (s * s * s);
       return { x: p.x - d * d1.y / s, y: p.y + d * d1.x / s, dx: k * d1.x, dy: k * d1.y };
     }
-    const tan = unitTangent(c, t);
-    if (!tan) return { x: p.x, y: p.y, dx: 0, dy: 0 };
-    return { x: p.x - d * tan.y, y: p.y + d * tan.x, dx: 0, dy: 0 };
+    const tan2 = unitTangent(c, t);
+    if (!tan2) return { x: p.x, y: p.y, dx: 0, dy: 0 };
+    return { x: p.x - d * tan2.y, y: p.y + d * tan2.x, dx: 0, dy: 0 };
   };
   return {
     sample,
@@ -59062,7 +59134,7 @@ function offsetSource(c, d) {
 }
 function translateCubic(c, d) {
   const dx = c[6] - c[0], dy = c[7] - c[1];
-  const len2 = Math.hypot(dx, dy);
+  const len2 = hypot(dx, dy);
   if (!(len2 > 1e-12)) return null;
   const nx = -d * dy / len2, ny = d * dx / len2;
   return [c[0] + nx, c[1] + ny, c[2] + nx, c[3] + ny, c[4] + nx, c[5] + ny, c[6] + nx, c[7] + ny];
@@ -59149,9 +59221,9 @@ function featureParams(c) {
     polyScale(polyMul([a0, a1, a2], [d1, 2 * d2, 3 * d3, 4 * d4]), 3)
   ))) ts.push({ t, exact: false });
   const speedScale = 3 * Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[2], c[5] - c[3]),
-    Math.hypot(c[6] - c[4], c[7] - c[5]),
+    hypot(c[2] - c[0], c[3] - c[1]),
+    hypot(c[4] - c[2], c[5] - c[3]),
+    hypot(c[6] - c[4], c[7] - c[5]),
     1e-12
   );
   for (const t of cubicRoots01(4 * d4, 3 * d3, 2 * d2, d1)) {
@@ -59305,7 +59377,7 @@ function distanceToPath(p, x, y) {
     for (const k of c.curves) {
       const b = boundsCubic(k);
       const dx = Math.max(b.x0 - x, 0, x - b.x1), dy = Math.max(b.y0 - y, 0, y - b.y1);
-      if (Math.hypot(dx, dy) >= best) continue;
+      if (hypot(dx, dy) >= best) continue;
       const d = nearestOnCubic(k, x, y).distance;
       if (d < best) best = d;
     }
@@ -59315,7 +59387,7 @@ function distanceToPath(p, x, y) {
 function regionProber(region) {
   const box4 = pathBounds(region);
   const curves2 = region.flatMap((c) => c.curves).map((k) => ({ k, box: boundsCubic(k) }));
-  const reach2 = box4 ? Math.hypot(box4.x1 - box4.x0, box4.y1 - box4.y0) : 0;
+  const reach2 = box4 ? hypot(box4.x1 - box4.x0, box4.y1 - box4.y0) : 0;
   const skip = reach2 * 1e-9;
   const firstCrossing = (m2, dx, dy) => {
     const x1 = m2.x + dx * reach2, y1 = m2.y + dy * reach2;
@@ -59334,13 +59406,13 @@ function regionProber(region) {
   };
   return (c, limit = PROBE_CURVES) => {
     if (!(reach2 > 0)) return [];
-    const order = [...c.curves].map((k, i) => ({ k, i, span: Math.hypot(k[6] - k[0], k[7] - k[1]) })).sort((a, b) => b.span - a.span || a.i - b.i).slice(0, limit);
+    const order = [...c.curves].map((k, i) => ({ k, i, span: hypot(k[6] - k[0], k[7] - k[1]) })).sort((a, b) => b.span - a.span || a.i - b.i).slice(0, limit);
     const out = [];
     for (const { k } of order) {
-      const tan = unitTangent(k, 0.5);
-      if (!tan) continue;
+      const tan2 = unitTangent(k, 0.5);
+      if (!tan2) continue;
       const m2 = evalCubic(k, 0.5);
-      const nx = -tan.y, ny = tan.x;
+      const nx = -tan2.y, ny = tan2.x;
       const hl = firstCrossing(m2, nx, ny);
       const hr = firstCrossing(m2, -nx, -ny);
       const room = hl === null ? hr : hr === null ? Math.min(hl, reach2) : Math.min(hl, hr);
@@ -59381,7 +59453,7 @@ function buildOffset(c, d, opts) {
     const next = seq[last ? 0 : i + 1];
     const a = { x: cur.curve[6], y: cur.curve[7] };
     const b = { x: next.curve[0], y: next.curve[1] };
-    if (Math.hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
+    if (hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
       next.curve[0] = a.x;
       next.curve[1] = a.y;
       continue;
@@ -59409,16 +59481,16 @@ function joinPieces(a, b, pivot, t0, t1, d, style, miterLimit) {
   const s = ((b.x - a.x) * t1.y - (b.y - a.y) * t1.x) / cross;
   if (!(s > 0) || !Number.isFinite(s)) return bevel();
   const m2 = { x: a.x + t0.x * s, y: a.y + t0.y * s };
-  if (Math.hypot(m2.x - pivot.x, m2.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
+  if (hypot(m2.x - pivot.x, m2.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
   return [lineToCubic(a.x, a.y, m2.x, m2.y), lineToCubic(m2.x, m2.y, b.x, b.y)];
 }
 function arcJoin(a, b, pivot, heading) {
-  const r0 = Math.hypot(a.x - pivot.x, a.y - pivot.y);
-  const r12 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
+  const r0 = hypot(a.x - pivot.x, a.y - pivot.y);
+  const r12 = hypot(b.x - pivot.x, b.y - pivot.y);
   const r5 = (r0 + r12) / 2;
   if (r5 < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
-  const from = Math.atan2(a.y - pivot.y, a.x - pivot.x);
-  let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
+  const from = atan2(a.y - pivot.y, a.x - pivot.x);
+  let sweep = atan2(b.y - pivot.y, b.x - pivot.x) - from;
   while (sweep <= -Math.PI) sweep += 2 * Math.PI;
   while (sweep > Math.PI) sweep -= 2 * Math.PI;
   if (heading && Math.abs(sweep) > Math.PI - 1e-6) {
@@ -59427,19 +59499,19 @@ function arcJoin(a, b, pivot, heading) {
   }
   const n6 = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2)));
   const step = sweep / n6;
-  const k = 4 / 3 * Math.tan(step / 4);
+  const k = 4 / 3 * tan(step / 4);
   const out = [];
   for (let i = 0; i < n6; i++) {
     const s = from + step * i, e = s + step;
-    const sx = pivot.x + r5 * Math.cos(s), sy = pivot.y + r5 * Math.sin(s);
-    const ex = pivot.x + r5 * Math.cos(e), ey = pivot.y + r5 * Math.sin(e);
+    const sx = pivot.x + r5 * cos(s), sy = pivot.y + r5 * sin(s);
+    const ex = pivot.x + r5 * cos(e), ey = pivot.y + r5 * sin(e);
     out.push([
       sx,
       sy,
-      sx - k * r5 * Math.sin(s),
-      sy + k * r5 * Math.cos(s),
-      ex + k * r5 * Math.sin(e),
-      ey - k * r5 * Math.cos(e),
+      sx - k * r5 * sin(s),
+      sy + k * r5 * cos(s),
+      ex + k * r5 * sin(e),
+      ey - k * r5 * cos(e),
       ex,
       ey
     ]);
@@ -59480,7 +59552,7 @@ function fitCubic(points, tangents, tol = DEFAULT_TOL2) {
 function fitRecursive(pts, t0, t1, tol, depth) {
   if (pts.length === 2) {
     const a = pts[0], b = pts[1];
-    const l = Math.hypot(b.x - a.x, b.y - a.y) / 3;
+    const l = hypot(b.x - a.x, b.y - a.y) / 3;
     return [[a.x, a.y, a.x + t0.x * l, a.y + t0.y * l, b.x + t1.x * l, b.y + t1.y * l, b.x, b.y]];
   }
   let u = chordParams(pts);
@@ -59523,7 +59595,7 @@ function bezierWithTangents(pts, u, t0, t1) {
     x1 += a1x * rx + a1y * ry;
   }
   const det = c00 * c11 - c01 * c01;
-  const chord = Math.hypot(last.x - first.x, last.y - first.y);
+  const chord = hypot(last.x - first.x, last.y - first.y);
   let l0 = 0, l1 = 0;
   if (Math.abs(det) > 1e-18) {
     l0 = (c11 * x0 - c01 * x1) / det;
@@ -59549,7 +59621,7 @@ function fitError2(pts, u, curve) {
   let error2 = 0, index2 = Math.floor(pts.length / 2);
   for (let i = 1; i < pts.length - 1; i++) {
     const p = evalCubic(curve, u[i]);
-    const d = Math.hypot(p.x - pts[i].x, p.y - pts[i].y);
+    const d = hypot(p.x - pts[i].x, p.y - pts[i].y);
     if (d > error2) {
       error2 = d;
       index2 = i;
@@ -59584,7 +59656,7 @@ function centreTangent(pts, i) {
 function chordParams(pts) {
   const u = [0];
   for (let i = 1; i < pts.length; i++) {
-    u.push(u[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+    u.push(u[i - 1] + hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
   }
   const total = u[u.length - 1];
   if (!(total > 0)) return pts.map((_, i) => i / Math.max(1, pts.length - 1));
@@ -59594,12 +59666,12 @@ function dedupePoints(pts) {
   const out = [];
   for (const p of pts) {
     const last = out[out.length - 1];
-    if (!last || Math.hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
+    if (!last || hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
   }
   return out;
 }
 function normalise2(v) {
-  const l = Math.hypot(v.x, v.y);
+  const l = hypot(v.x, v.y);
   return l > 1e-12 ? { x: v.x / l, y: v.y / l } : null;
 }
 function direction(from, to) {
@@ -59616,6 +59688,7 @@ var init_offset = __esm({
     init_fit();
     init_offset_error();
     init_offset_source();
+    init_portable_math();
     DEFAULT_TOL2 = 0.01;
     DEFAULT_MITER_LIMIT = 4;
     MAX_OFFSET_DEPTH = 8;
@@ -59698,7 +59771,7 @@ function offsetSide(c, distance4, off) {
 function capCurves(from, to, dir, cap) {
   if (cap === "round") return halfCircle(from, to, dir);
   if (cap === "square") {
-    const r5 = Math.hypot(to.x - from.x, to.y - from.y) / 2;
+    const r5 = hypot(to.x - from.x, to.y - from.y) / 2;
     const ex = dir.x * r5, ey = dir.y * r5;
     const a = { x: from.x + ex, y: from.y + ey };
     const b = { x: to.x + ex, y: to.y + ey };
@@ -59713,7 +59786,7 @@ function capCurves(from, to, dir, cap) {
 function halfCircle(from, to, dir) {
   const cx2 = (from.x + to.x) / 2, cy3 = (from.y + to.y) / 2;
   const ux = from.x - cx2, uy = from.y - cy3;
-  const r5 = Math.hypot(ux, uy);
+  const r5 = hypot(ux, uy);
   if (r5 < JOIN_EPS) return [lineToCubic(from.x, from.y, to.x, to.y)];
   const ax = ux / r5, ay = uy / r5;
   let mx = ay, my = -ax;
@@ -59775,7 +59848,7 @@ function dotContour(c, r5, cap) {
   };
 }
 function unit(x, y) {
-  const l = Math.hypot(x, y);
+  const l = hypot(x, y);
   return l < 1e-12 ? null : { x: x / l, y: y / l };
 }
 function endDirection2(c) {
@@ -59809,6 +59882,7 @@ var init_stroke = __esm({
     init_path();
     init_offset();
     init_boolean();
+    init_portable_math();
     KAPPA = 0.5522847498307936;
   }
 });
@@ -59825,8 +59899,8 @@ function intCosSin(a, b, c, u0, u1) {
   for (let i = 0; i < GL_X.length; i++) {
     const u = mid3 + 2 * half * GL_X[i];
     const t = theta(a, b, c, u);
-    x += GL_W[i] * Math.cos(t);
-    y += GL_W[i] * Math.sin(t);
+    x += GL_W[i] * cos(t);
+    y += GL_W[i] * sin(t);
   }
   const len2 = u1 - u0;
   return { x: x * len2, y: y * len2 };
@@ -59839,8 +59913,8 @@ function solveClosing(alpha, beta) {
     for (let i = 0; i < GL_X.length; i++) {
       const u = 0.5 + GL_X[i];
       const t = theta(alpha, b, c, u);
-      f += GL_W[i] * Math.sin(t);
-      df += GL_W[i] * Math.cos(t) * (u * u - u);
+      f += GL_W[i] * sin(t);
+      df += GL_W[i] * cos(t) * (u * u - u);
     }
     if (Math.abs(f) < 1e-12) break;
     if (Math.abs(df) < 1e-12) break;
@@ -59850,13 +59924,13 @@ function solveClosing(alpha, beta) {
   return { b: beta - alpha - c, c };
 }
 function segClothoid(ax, ay, bx, by, psiA, psiB) {
-  const chord = Math.hypot(bx - ax, by - ay);
-  const phi = Math.atan2(by - ay, bx - ax);
+  const chord = hypot(bx - ax, by - ay);
+  const phi = atan2(by - ay, bx - ax);
   const alpha = mod2pi2(psiA - phi);
   const beta = mod2pi2(psiB - phi);
   const { b, c } = solveClosing(alpha, beta);
   const span = intCosSin(alpha, b, c, 0, 1);
-  const scale = chord / (Math.hypot(span.x, span.y) || 1e-12);
+  const scale = chord / (hypot(span.x, span.y) || 1e-12);
   return { alpha, b, c, scale, kEntry: b / scale, kExit: (b + 2 * c) / scale };
 }
 function partition(nodes, closed) {
@@ -59902,8 +59976,8 @@ function solveRun(pts, wrap2) {
   for (let i = 0; i < nSeg; i++) {
     const a = pts[i], b = pts[(i + 1) % m2];
     const dx = b.x - a.x, dy = b.y - a.y;
-    rawPhi[i] = Math.atan2(dy, dx);
-    len2[i] = Math.max(1e-9, Math.hypot(dx, dy));
+    rawPhi[i] = atan2(dy, dx);
+    len2[i] = Math.max(1e-9, hypot(dx, dy));
   }
   const bend = new Array(m2).fill(0);
   if (wrap2) for (let j = 0; j < m2; j++) bend[j] = mod2pi2(rawPhi[j % nSeg] - rawPhi[(j - 1 + nSeg) % nSeg]);
@@ -60003,21 +60077,21 @@ function solveDense(A, b) {
 }
 function segToCubics(ax, ay, bx, by, psiA, psiB) {
   const dx = bx - ax, dy = by - ay;
-  const chord = Math.hypot(dx, dy);
+  const chord = hypot(dx, dy);
   if (chord < 1e-12) return [];
-  const phi = Math.atan2(dy, dx);
+  const phi = atan2(dy, dx);
   const alpha = mod2pi2(psiA - phi);
   const beta = mod2pi2(psiB - phi);
   const { b, c } = solveClosing(alpha, beta);
-  const cosP = Math.cos(phi), sinP = Math.sin(phi);
+  const cosP = cos(phi), sinP = sin(phi);
   const span = intCosSin(alpha, b, c, 0, 1);
-  const scale = chord / (Math.hypot(span.x, span.y) || 1e-12);
+  const scale = chord / (hypot(span.x, span.y) || 1e-12);
   const pos = (u) => {
     const d = intCosSin(alpha, b, c, 0, u);
     const sx = scale * d.x, sy = scale * d.y;
     return { x: ax + sx * cosP - sy * sinP, y: ay + sx * sinP + sy * cosP };
   };
-  const tan = (u) => phi + theta(alpha, b, c, u);
+  const tan2 = (u) => phi + theta(alpha, b, c, u);
   const out = [];
   const emit = (u0, u1, p0, p1, depth) => {
     const dTurn = theta(alpha, b, c, u1) - theta(alpha, b, c, u0);
@@ -60028,15 +60102,15 @@ function segToCubics(ax, ay, bx, by, psiA, psiB) {
       emit(um, u1, pm, p1, depth + 1);
       return;
     }
-    const t0 = tan(u0), t1 = tan(u1);
-    const arm = Math.hypot(p1.x - p0.x, p1.y - p0.y) / 3;
+    const t0 = tan2(u0), t1 = tan2(u1);
+    const arm = hypot(p1.x - p0.x, p1.y - p0.y) / 3;
     out.push([
       p0.x,
       p0.y,
-      p0.x + arm * Math.cos(t0),
-      p0.y + arm * Math.sin(t0),
-      p1.x - arm * Math.cos(t1),
-      p1.y - arm * Math.sin(t1),
+      p0.x + arm * cos(t0),
+      p0.y + arm * sin(t0),
+      p1.x - arm * cos(t1),
+      p1.y - arm * sin(t1),
       p1.x,
       p1.y
     ]);
@@ -60078,6 +60152,7 @@ var GL_X, GL_W, theta, isCorner, ARC_TOL;
 var init_spiro = __esm({
   "engine/src/geom/spiro.ts"() {
     "use strict";
+    init_portable_math();
     GL_X = [
       -0.4830766568773831,
       -0.4183605950159868,
@@ -60150,7 +60225,7 @@ function catmullRom(n6, closed, alpha) {
   const last = closed ? n6.length : n6.length - 1;
   for (let i = 0; i < last; i++) {
     const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
-    const d = (a, b) => Math.max(1e-9, Math.hypot(b.x - a.x, b.y - a.y) ** alpha);
+    const d = (a, b) => Math.max(1e-9, pow2(hypot(b.x - a.x, b.y - a.y), alpha));
     const d1 = d(p0, p1), d2 = d(p1, p2), d3 = d(p2, p3);
     const b1x = (d1 * d1 * p2.x - d2 * d2 * p0.x + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.x) / (3 * d1 * (d1 + d2));
     const b1y = (d1 * d1 * p2.y - d2 * d2 * p0.y + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.y) / (3 * d1 * (d1 + d2));
@@ -60189,13 +60264,13 @@ function mod2pi3(th) {
 }
 function hbArm(tha, thb) {
   const w = 2 * thb;
-  const c = Math.cos(tha - 0.3 * Math.sin(w - 0.4 * Math.sin(w)));
+  const c = cos(tha - 0.3 * sin(w - 0.4 * sin(w)));
   return c * (2 - c * c) / 3;
 }
 function hbCurve(th0, th1) {
   const a0 = hbArm(th0, th1), a1 = hbArm(th1, th0);
-  const c0 = Math.cos(th0), s0 = Math.sin(th0);
-  const c1 = Math.cos(th1), s1 = Math.sin(th1);
+  const c0 = cos(th0), s0 = sin(th0);
+  const c1 = cos(th1), s1 = sin(th1);
   const p1x = a0 * c0, p1y = a0 * s0;
   const p2x = 1 - a1 * c1, p2y = a1 * s1;
   const q0x = p2x - 2 * p1x, q0y = p2y - 2 * p1y;
@@ -60206,22 +60281,22 @@ function hbCurve(th0, th1) {
   return {
     a0,
     a1,
-    ak0: Math.atan2(cross0, dot0 * Math.abs(dot0)),
-    ak1: Math.atan2(cross1, dot1 * Math.abs(dot1)),
+    ak0: atan2(cross0, dot0 * Math.abs(dot0)),
+    ak1: atan2(cross1, dot1 * Math.abs(dot1)),
     k0u: Math.abs(dot0) > 1e-9 ? cross0 / (dot0 * dot0) : 0,
     k1u: Math.abs(dot1) > 1e-9 ? cross1 / (dot1 * dot1) : 0
   };
 }
 function hbEndTangent(th) {
-  return 0.5 * Math.sin(2 * th);
+  return 0.5 * sin(2 * th);
 }
 function hbEndTangentD(th) {
-  return Math.cos(2 * th);
+  return cos(2 * th);
 }
 function hbSegState(ax, ay, bx, by, thA, thB) {
   const dx = bx - ax, dy = by - ay;
-  const len2 = Math.hypot(dx, dy);
-  const chth = len2 > HB_MIN_CHORD ? Math.atan2(dy, dx) : 0;
+  const len2 = hypot(dx, dy);
+  const chth = len2 > HB_MIN_CHORD ? atan2(dy, dx) : 0;
   const th0 = mod2pi3(thA - chth), th1 = mod2pi3(chth - thB);
   const base = hbCurve(th0, th1);
   const e = 1e-6, s = 0.5 / e;
@@ -60246,8 +60321,8 @@ function hbSegState(ax, ay, bx, by, thA, thB) {
 function hbJoin(prev, next) {
   const p = Math.sqrt(prev.chord), q = Math.sqrt(next.chord);
   const A = prev.ak1, B = next.ak0;
-  const sA = Math.sin(A), cA = Math.cos(A), sB = Math.sin(B), cB = Math.cos(B);
-  const r5 = Math.atan2(sA * q, cA * p) - Math.atan2(sB * p, cB * q);
+  const sA = sin(A), cA = cos(A), sB = sin(B), cB = cos(B);
+  const r5 = atan2(sA * q, cA * p) - atan2(sB * p, cB * q);
   const denA = q * q * sA * sA + p * p * cA * cA;
   const denB = p * p * sB * sB + q * q * cB * cB;
   const pq = p * q;
@@ -60364,14 +60439,14 @@ function hbInitialThs(pts, wrap2, startTh, endTh) {
   const ths = new Array(m2).fill(0);
   const chordTh = (i) => {
     const p = pts[i], q = pts[(i + 1) % m2];
-    return Math.atan2(q.y - p.y, q.x - p.x);
+    return atan2(q.y - p.y, q.x - p.x);
   };
   const at = (i) => {
     const h = pts[(i - 1 + m2) % m2], p = pts[i], q = pts[(i + 1) % m2];
-    const l0 = Math.hypot(p.x - h.x, p.y - h.y);
-    const l1 = Math.hypot(q.x - p.x, q.y - p.y);
-    const t0 = Math.atan2(p.y - h.y, p.x - h.x);
-    const t1 = Math.atan2(q.y - p.y, q.x - p.x);
+    const l0 = hypot(p.x - h.x, p.y - h.y);
+    const l1 = hypot(q.x - p.x, q.y - p.y);
+    const t0 = atan2(p.y - h.y, p.x - h.x);
+    const t1 = atan2(q.y - p.y, q.x - p.x);
     if (!(l0 + l1 > 0)) return t1;
     return mod2pi3(t0 + mod2pi3(t1 - t0) * (l0 / (l0 + l1)));
   };
@@ -60388,7 +60463,7 @@ function hbInitialThs(pts, wrap2, startTh, endTh) {
 }
 function hbSolveRun(pts, wrap2, startTh, endTh, warm) {
   const m2 = pts.length;
-  const chordTh0 = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+  const chordTh0 = atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
   if (!wrap2 && m2 === 2 && startTh === null && endTh === null) {
     return { ths: [chordTh0, chordTh0], converged: true, residual: 0, iterations: 0 };
   }
@@ -60440,8 +60515,8 @@ function hbPin(node) {
   const corner = (node.continuity ?? "smooth") === "corner";
   const hix = node.hInX ?? 0, hiy = node.hInY ?? 0;
   const hox = node.hOutX ?? 0, hoy = node.hOutY ?? 0;
-  let pin = Math.hypot(hix, hiy) > 1e-12 ? mod2pi3(Math.atan2(-hiy, -hix)) : null;
-  let pout = Math.hypot(hox, hoy) > 1e-12 ? mod2pi3(Math.atan2(hoy, hox)) : null;
+  let pin = hypot(hix, hiy) > 1e-12 ? mod2pi3(atan2(-hiy, -hix)) : null;
+  let pout = hypot(hox, hoy) > 1e-12 ? mod2pi3(atan2(hoy, hox)) : null;
   if (!corner) {
     if (pin === null) pin = pout;
     if (pout === null) pout = pin;
@@ -60562,12 +60637,12 @@ function hyperbezierCubics(nodes, closed, solution) {
   for (let i = 0; i < nSeg; i++) {
     const a = nodes[i], b = nodes[(i + 1) % n6];
     const dx = b.x - a.x, dy = b.y - a.y;
-    const chord = Math.hypot(dx, dy);
+    const chord = hypot(dx, dy);
     if (!(chord > HB_MIN_CHORD)) {
       out.push([a.x, a.y, a.x, a.y, b.x, b.y, b.x, b.y]);
       continue;
     }
-    const chth = Math.atan2(dy, dx);
+    const chth = atan2(dy, dx);
     const th0 = mod2pi3((solution.rth[i] ?? chth) - chth);
     const th1 = mod2pi3(chth - (solution.lth[(i + 1) % n6] ?? chth));
     const cur = hbCurve(th0, th1);
@@ -60576,8 +60651,8 @@ function hyperbezierCubics(nodes, closed, solution) {
     const kb1 = solution.kBlend[(i + 1) % n6] ?? null;
     if (kb0 !== null) arm0 = hbBlendArm(cur.a0, cur.k0u, kb0 * chord);
     if (kb1 !== null) arm1 = hbBlendArm(cur.a1, cur.k1u, kb1 * chord);
-    const ux1 = arm0 * Math.cos(th0), uy1 = arm0 * Math.sin(th0);
-    const ux2 = 1 - arm1 * Math.cos(th1), uy2 = arm1 * Math.sin(th1);
+    const ux1 = arm0 * cos(th0), uy1 = arm0 * sin(th0);
+    const ux2 = 1 - arm1 * cos(th1), uy2 = arm1 * sin(th1);
     out.push([
       a.x,
       a.y,
@@ -60595,9 +60670,9 @@ function enforceContinuity(node, moved) {
   const c = node.continuity ?? "corner";
   if (c === "corner") return node;
   const [mx, my] = moved === "in" ? [node.hInX ?? 0, node.hInY ?? 0] : [node.hOutX ?? 0, node.hOutY ?? 0];
-  const len2 = Math.hypot(mx, my);
+  const len2 = hypot(mx, my);
   if (len2 < 1e-12) return node;
-  const otherLen = moved === "in" ? Math.hypot(node.hOutX ?? 0, node.hOutY ?? 0) : Math.hypot(node.hInX ?? 0, node.hInY ?? 0);
+  const otherLen = moved === "in" ? hypot(node.hOutX ?? 0, node.hOutY ?? 0) : hypot(node.hInX ?? 0, node.hInY ?? 0);
   const k = (c === "symmetric" ? len2 : otherLen) / len2;
   const ox = -mx * k, oy = -my * k;
   return moved === "in" ? { ...node, hOutX: ox, hOutY: oy } : { ...node, hInX: ox, hInY: oy };
@@ -60608,6 +60683,7 @@ var init_spline = __esm({
     "use strict";
     init_bezier();
     init_spiro();
+    init_portable_math();
     HB_MIN_CHORD = 1e-12;
     HB_TOL = 1e-10;
     HB_MAX_ITER = 24;
@@ -60780,15 +60856,15 @@ function vectorMatrix(value = "") {
         break;
       case "rotate": {
         const angle = a[0] * Math.PI / 180;
-        next = [Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), 0, 0];
+        next = [cos(angle), sin(angle), -sin(angle), cos(angle), 0, 0];
         if (a.length === 3) next = multiplyVectorMatrix(multiplyVectorMatrix([1, 0, 0, 1, a[1], a[2]], next), [1, 0, 0, 1, -a[1], -a[2]]);
         break;
       }
       case "skewX":
-        next = [1, 0, Math.tan(a[0] * Math.PI / 180), 1, 0, 0];
+        next = [1, 0, tan(a[0] * Math.PI / 180), 1, 0, 0];
         break;
       case "skewY":
-        next = [1, Math.tan(a[0] * Math.PI / 180), 0, 1, 0, 0];
+        next = [1, tan(a[0] * Math.PI / 180), 0, 1, 0, 0];
         break;
       default:
         throw new Error("Unsupported vector transform.");
@@ -60931,6 +61007,7 @@ var init_vector_paint = __esm({
     init_spline();
     init_path();
     init_emoji_svg_syntax();
+    init_portable_math();
     presentation2 = ["id", "transform", "fill", "stroke", "fill-rule", "opacity", "fill-opacity", "stroke-opacity", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset", "stop-color", "stop-opacity", "color-interpolation", "clip-rule", "clip-path", "paint-order"];
     tags2 = { g: [], defs: [], path: [], linearGradient: ["x1", "y1", "x2", "y2", "gradientUnits", "gradientTransform", "spreadMethod"], radialGradient: ["cx", "cy", "r", "fx", "fy", "fr", "gradientUnits", "gradientTransform", "spreadMethod"], stop: ["offset"], clipPath: ["clipPathUnits"] };
     identity = [1, 0, 0, 1, 0, 0];
@@ -60941,7 +61018,7 @@ var init_vector_paint = __esm({
 function createNearestPathCache(parse) {
   const entries = /* @__PURE__ */ new Map();
   let characters = 0, curves2 = 0;
-  function load2(d) {
+  function load3(d) {
     const cached2 = typeof d === "string" ? entries.get(d) : void 0;
     if (cached2 && typeof d === "string") {
       entries.delete(d);
@@ -60971,7 +61048,7 @@ function createNearestPathCache(parse) {
     characters = 0;
     curves2 = 0;
   }
-  return { load: load2, clear, stats: () => ({ entries: entries.size, characters, curves: curves2 }) };
+  return { load: load3, clear, stats: () => ({ entries: entries.size, characters, curves: curves2 }) };
 }
 var NEAREST_CACHE_LIMITS;
 var init_geom_nearest_cache = __esm({
@@ -63159,13 +63236,13 @@ var init_psd_adjustments = __esm({
 function placement(xx, xy, yx, yy) {
   const sx = Math.hypot(xx, yx);
   if (sx <= 1e-6) return null;
-  const cos = xx / sx, sin = yx / sx;
-  const lx = cos * xy + sin * yy, ly = -sin * xy + cos * yy;
+  const cos2 = xx / sx, sin2 = yx / sx;
+  const lx = cos2 * xy + sin2 * yy, ly = -sin2 * xy + cos2 * yy;
   const sy = Math.abs(ly);
   if (sy <= 1e-6) return null;
   const big = Math.max(sx, sy);
   if (Math.abs(lx) > 0.02 * big || Math.abs(sx - sy) > 0.02 * big) return null;
-  return { scale: sx, rotation: Math.atan2(sin, cos) * 180 / Math.PI, flip: ly < 0 };
+  return { scale: sx, rotation: Math.atan2(sin2, cos2) * 180 / Math.PI, flip: ly < 0 };
 }
 function readFontName(name) {
   const dash = name.indexOf("-");
@@ -63305,7 +63382,7 @@ function readText(block, pixels2, notes) {
   const lines = content2.split("\n").length;
   const textH = lines * size * lineHeight;
   const rad = place2.rotation * Math.PI / 180;
-  const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+  const cos2 = Math.abs(Math.cos(rad)), sin2 = Math.abs(Math.sin(rad));
   const bounds = descRect(descChild(desc, "bounds"));
   const glyphs2 = descRect(descChild(desc, "boundingBox"));
   let box4;
@@ -63318,11 +63395,11 @@ function readText(block, pixels2, notes) {
     box4 = { x: r2(ccx - w / 2), y: r2(ccy - h / 2), w: r2(w), h: r2(h) };
   } else if (pixels2.w > 0 && pixels2.h > 0) {
     let w = pixels2.w;
-    if (sin > 0.01) w = cos > 0.3 ? (pixels2.w - textH * sin) / cos : (pixels2.h - textH * cos) / sin;
+    if (sin2 > 0.01) w = cos2 > 0.3 ? (pixels2.w - textH * sin2) / cos2 : (pixels2.h - textH * cos2) / sin2;
     w = Math.max(size, w) * 1.06 + size * 0.2;
     const cx2 = pixels2.x + pixels2.w / 2, cy3 = pixels2.y + pixels2.h / 2;
     box4 = { x: r2(cx2 - w / 2), y: r2(cy3 - textH / 2), w: r2(w), h: r2(textH) };
-    if (sin <= 0.01) {
+    if (sin2 <= 0.01) {
       if (align === "left") box4.x = r2(pixels2.x - size * 0.05);
       else if (align === "right") box4.x = r2(pixels2.x + pixels2.w + size * 0.05 - box4.w);
     }
@@ -68835,8 +68912,8 @@ function parseTransform(v) {
     else if (name === "matrix" && a.length >= 6) t = [a[0], a[1], a[2], a[3], a[4], a[5]];
     else if (name === "rotate") {
       const rad = (a[0] ?? 0) * Math.PI / 180;
-      const cos = Math.cos(rad), sin = Math.sin(rad);
-      const rot = [cos, sin, -sin, cos, 0, 0];
+      const cos2 = Math.cos(rad), sin2 = Math.sin(rad);
+      const rot = [cos2, sin2, -sin2, cos2, 0, 0];
       if (a.length >= 3) {
         const cx2 = a[1], cy3 = a[2];
         t = matMul(matMul([1, 0, 0, 1, cx2, cy3], rot), [1, 0, 0, 1, -cx2, -cy3]);
@@ -69736,13 +69813,13 @@ function zzfxGUnchecked(volume = 1, randomness = 0.05, frequency = 220, attack =
   let f = 0;
   const quality = 2;
   const w = PI2 * abs(filter) * 2 / sampleRate;
-  const cos = Math.cos(w);
+  const cos2 = Math.cos(w);
   const alpha = Math.sin(w) / 2 / quality;
   const a0 = 1 + alpha;
-  const a1 = -2 * cos / a0;
+  const a1 = -2 * cos2 / a0;
   const a2 = (1 - alpha) / a0;
-  const b0 = (1 + sign(filter) * cos) / 2 / a0;
-  const b1 = -(sign(filter) + cos) / a0;
+  const b0 = (1 + sign(filter) * cos2) / 2 / a0;
+  const b1 = -(sign(filter) + cos2) / a0;
   const b2 = b0;
   let x2 = 0, x1 = 0, y2 = 0, y1 = 0;
   const minAttack = 9;
@@ -74662,7 +74739,7 @@ function refitAuthoredFrame(paths, fr, warm) {
   const oy = eh < 1 ? (h - eh) / 2 : 0;
   const bx = bb.x0 - ox, by = bb.y0 - oy;
   const r5 = fr.rot * Math.PI / 180;
-  const cs = fr.rot ? Math.cos(r5) : 1, sn = fr.rot ? Math.sin(r5) : 0;
+  const cs = fr.rot ? cos(r5) : 1, sn = fr.rot ? sin(r5) : 0;
   const kx = fr.w / 2 - w / 2, ky = fr.h / 2 - h / 2;
   const gx = kx - (kx * cs - ky * sn), gy = ky - (kx * sn + ky * cs);
   const x = Math.round(fr.x + gx + (bx * cs - by * sn));
@@ -74722,6 +74799,7 @@ var init_authored_frame = __esm({
     "use strict";
     init_path();
     init_spline();
+    init_portable_math();
     SAME_POINT = 1e-9;
   }
 });
@@ -91434,13 +91512,13 @@ function intersectAa(box4, c) {
 }
 function rotatedAabb(b, deg2, ax, ay) {
   const rad = deg2 * Math.PI / 180;
-  const cos = Math.cos(rad), sin = Math.sin(rad);
+  const cos2 = Math.cos(rad), sin2 = Math.sin(rad);
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   const xs = [b.x, b.x + b.w], ys = [b.y, b.y + b.h];
   for (const x of xs) for (const y of ys) {
     const dx = x - ax, dy = y - ay;
-    const px3 = ax + dx * cos - dy * sin;
-    const py = ay + dx * sin + dy * cos;
+    const px3 = ax + dx * cos2 - dy * sin2;
+    const py = ay + dx * sin2 + dy * cos2;
     if (px3 < minX) minX = px3;
     if (px3 > maxX) maxX = px3;
     if (py < minY) minY = py;
@@ -95706,11 +95784,11 @@ function parsePenpotColor(input) {
 function geometry(x, y, w, h, rotation = 0) {
   const W = Math.max(0.01, w), H = Math.max(0.01, h);
   const rot = (fin2(rotation) % 360 + 360) % 360;
-  const rad = rot * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+  const rad = rot * Math.PI / 180, cos2 = Math.cos(rad), sin2 = Math.sin(rad);
   const cx2 = x + W / 2, cy3 = y + H / 2;
   const corner = (px3, py) => {
     const dx = px3 - cx2, dy = py - cy3;
-    return { x: r4(cx2 + dx * cos - dy * sin), y: r4(cy3 + dx * sin + dy * cos) };
+    return { x: r4(cx2 + dx * cos2 - dy * sin2), y: r4(cy3 + dx * sin2 + dy * cos2) };
   };
   const ident = rot === 0;
   return {
@@ -95721,8 +95799,8 @@ function geometry(x, y, w, h, rotation = 0) {
     rotation: r4(rot),
     selrect: { x: r4(x), y: r4(y), width: r4(W), height: r4(H), x1: r4(x), y1: r4(y), x2: r4(x + W), y2: r4(y + H) },
     points: ident ? [{ x: r4(x), y: r4(y) }, { x: r4(x + W), y: r4(y) }, { x: r4(x + W), y: r4(y + H) }, { x: r4(x), y: r4(y + H) }] : [corner(x, y), corner(x + W, y), corner(x + W, y + H), corner(x, y + H)],
-    transform: ident ? { ...IDENT } : { a: r4(cos), b: r4(sin), c: r4(-sin), d: r4(cos), e: 0, f: 0 },
-    transformInverse: ident ? { ...IDENT } : { a: r4(cos), b: r4(-sin), c: r4(sin), d: r4(cos), e: 0, f: 0 }
+    transform: ident ? { ...IDENT } : { a: r4(cos2), b: r4(sin2), c: r4(-sin2), d: r4(cos2), e: 0, f: 0 },
+    transformInverse: ident ? { ...IDENT } : { a: r4(cos2), b: r4(-sin2), c: r4(sin2), d: r4(cos2), e: 0, f: 0 }
   };
 }
 function subpathBounds(subs) {
@@ -96608,8 +96686,8 @@ function boxesToPenpotDoc(boxesIn, o) {
       const rot = fin2(b.rot);
       const fx = b.flipH === true, fy = b.flipV === true;
       if (rot || fx || fy) {
-        const cx2 = w / 2, cy3 = h / 2, rad = rot * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
-        const about = mul2(mul2({ a: 1, b: 0, c: 0, d: 1, e: cx2, f: cy3 }, { a: cos, b: sin, c: -sin, d: cos, e: 0, f: 0 }), { a: fx ? -1 : 1, b: 0, c: 0, d: fy ? -1 : 1, e: 0, f: 0 });
+        const cx2 = w / 2, cy3 = h / 2, rad = rot * Math.PI / 180, cos2 = Math.cos(rad), sin2 = Math.sin(rad);
+        const about = mul2(mul2({ a: 1, b: 0, c: 0, d: 1, e: cx2, f: cy3 }, { a: cos2, b: sin2, c: -sin2, d: cos2, e: 0, f: 0 }), { a: fx ? -1 : 1, b: 0, c: 0, d: fy ? -1 : 1, e: 0, f: 0 });
         m2 = mul2(m2, mul2(about, { a: 1, b: 0, c: 0, d: 1, e: -cx2, f: -cy3 }));
       }
       const subs = transformSubpaths(parseSvgPath(ds.join(" ")), m2);
@@ -96778,8 +96856,8 @@ function parseTransform3(s) {
     else if (fn === "translate") t = { a: 1, b: 0, c: 0, d: 1, e: a[0] ?? 0, f: a[1] ?? 0 };
     else if (fn === "scale") t = { a: a[0] ?? 1, b: 0, c: 0, d: a[1] ?? a[0] ?? 1, e: 0, f: 0 };
     else if (fn === "rotate") {
-      const r5 = (a[0] ?? 0) * Math.PI / 180, cos = Math.cos(r5), sin = Math.sin(r5);
-      const rot = { a: cos, b: sin, c: -sin, d: cos, e: 0, f: 0 };
+      const r5 = (a[0] ?? 0) * Math.PI / 180, cos2 = Math.cos(r5), sin2 = Math.sin(r5);
+      const rot = { a: cos2, b: sin2, c: -sin2, d: cos2, e: 0, f: 0 };
       if (a.length >= 3) t = mul2(mul2({ a: 1, b: 0, c: 0, d: 1, e: a[1], f: a[2] }, rot), { a: 1, b: 0, c: 0, d: 1, e: -a[1], f: -a[2] });
       else t = rot;
     } else if (fn === "skewx") t = { a: 1, b: 0, c: Math.tan((a[0] ?? 0) * Math.PI / 180), d: 1, e: 0, f: 0 };
@@ -97422,9 +97500,9 @@ function svgToPenpotDoc(svgText, o) {
           };
           if (Math.abs(rotDeg) > 0.01) {
             const cx2 = ax + estW / 2, cy3 = top + size * lineH / 2;
-            const rad = rotDeg * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+            const rad = rotDeg * Math.PI / 180, cos2 = Math.cos(rad), sin2 = Math.sin(rad);
             const dx = cx2 - px3, dy = cy3 - py;
-            const ncx = px3 + dx * cos - dy * sin, ncy = py + dx * sin + dy * cos;
+            const ncx = px3 + dx * cos2 - dy * sin2, ncy = py + dx * sin2 + dy * cos2;
             shape.x = ncx - estW / 2;
             shape.y = ncy - size * lineH / 2;
             shape.rotation = rotDeg;
@@ -117583,8 +117661,8 @@ function vectorItemsToRows(items2, place2, opts) {
   const posed = rot !== 0 || flipH || flipV;
   const cx0 = place2.x + place2.w / 2;
   const cy0 = place2.y + place2.h / 2;
-  const cos = Math.cos(rot * Math.PI / 180);
-  const sin = Math.sin(rot * Math.PI / 180);
+  const cos2 = Math.cos(rot * Math.PI / 180);
+  const sin2 = Math.sin(rot * Math.PI / 180);
   const rows2 = [];
   const setBox = (row, x, y, w, h) => {
     if (!posed) {
@@ -117598,8 +117676,8 @@ function vectorItemsToRows(items2, place2, opts) {
     let dy = y + h / 2 - cy0;
     if (flipH) dx = -dx;
     if (flipV) dy = -dy;
-    const cx2 = cx0 + dx * cos - dy * sin;
-    const cy3 = cy0 + dx * sin + dy * cos;
+    const cx2 = cx0 + dx * cos2 - dy * sin2;
+    const cy3 = cy0 + dx * sin2 + dy * cos2;
     row.x = r24(cx2 - w / 2);
     row.y = r24(cy3 - h / 2);
     row.w = r24(w);
@@ -146516,7 +146594,7 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
   const shapes3 = createTextShapeCache();
   const faces = /* @__PURE__ */ new Map(), pending2 = /* @__PURE__ */ new Map();
   let cacheBytes = 0, epoch = 0;
-  async function load2(resource) {
+  async function load3(resource) {
     validateResource(resource);
     const key = `${resource.sha256}:${resource.faceIndex}`;
     const cached2 = faces.get(key);
@@ -146580,12 +146658,12 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
   }
   return {
     async fontInfo(resource) {
-      const entry2 = await load2(resource);
+      const entry2 = await load3(resource);
       return { ...structuredClone(entry2.info), resource: structuredClone(resource) };
     },
     async shapeRun(request) {
       if (!Number.isSafeInteger(request.start) || request.start < 0) throw new TextSourceError("shape-options", "Invalid text source origin.");
-      const entry2 = await load2(request.font), hb = await loadHarfBuzz2(), axes = {};
+      const entry2 = await load3(request.font), hb = await loadHarfBuzz2(), axes = {};
       for (const [tag2, value] of Object.entries(request.axes ?? {})) {
         const axis = entry2.info.axes[tag2];
         if (!axis || !Number.isFinite(value) || value < axis.min || value > axis.max) throw new TextSourceError("font-axis", `Unsupported font axis value: ${tag2}`);
@@ -146694,10 +146772,10 @@ async function loadFace(fontUrl, repoRoot2) {
   if (faceCache.has(key)) return faceCache.get(key);
   const pending2 = pendingFaces.get(key);
   if (pending2) return pending2;
-  const load2 = readFace(fontUrl, repoRoot2, key);
-  pendingFaces.set(key, load2);
+  const load3 = readFace(fontUrl, repoRoot2, key);
+  pendingFaces.set(key, load3);
   try {
-    return await load2;
+    return await load3;
   } finally {
     pendingFaces.delete(key);
   }
@@ -146720,10 +146798,10 @@ async function loadFont(fontUrl, repoRoot2, variations) {
   if (fontCache.has(key)) return fontCache.get(key);
   const pending2 = pendingFonts.get(key);
   if (pending2) return pending2;
-  const load2 = readFont(fontUrl, repoRoot2, vars, key);
-  pendingFonts.set(key, load2);
+  const load3 = readFont(fontUrl, repoRoot2, vars, key);
+  pendingFonts.set(key, load3);
   try {
-    return await load2;
+    return await load3;
   } finally {
     pendingFonts.delete(key);
   }
@@ -147298,7 +147376,7 @@ var init_ocr_math = __esm({
 
 // packages/node-shell/src/ml/ocr.ts
 import { readFile as readFile9 } from "node:fs/promises";
-async function load(id2) {
+async function load2(id2) {
   const existing2 = loadedByModel.get(id2);
   if (existing2) return existing2;
   const files = OCR_MODEL_FILES[id2];
@@ -147346,7 +147424,7 @@ function createNodeOcrAPI() {
     async run(frame, opts = {}) {
       checkSignal(opts.signal);
       const id2 = opts.model ?? OCR_DEFAULT_MODEL;
-      const { det, rec: rec2, charset, spec } = await load(id2);
+      const { det, rec: rec2, charset, spec } = await load2(id2);
       checkSignal(opts.signal);
       const ort = await loadOrt();
       const source = { width: frame.width, height: frame.height, data: frame.data };
@@ -148645,29 +148723,18 @@ var init_geometry_operation_scope = __esm({
 
 // packages/node-shell/src/geometry-host.ts
 function isGeometryBackend(value) {
-  return value === "typescript" || value === "wasm-clipping" || value === "wasm-host-fitting" || value === "wasm-host-norm-clipping" || value === "wasm-host-norm-fitting" || value === "wasm-host-curves" || value === "wasm-host-norm-curves";
+  return value === "typescript" || value === "wasm-portable";
 }
-function geometryBackendModules(backend) {
-  if (!isGeometryBackend(backend)) throw Error("Unknown geometry backend.");
-  return Object.freeze({ norm: backend === "wasm-host-norm-clipping" || backend === "wasm-host-norm-fitting" || backend === "wasm-host-norm-curves", fitting: backend === "wasm-host-fitting" || backend === "wasm-host-norm-fitting" || backend === "wasm-host-curves" || backend === "wasm-host-norm-curves", curvesOnly: backend === "wasm-host-curves" || backend === "wasm-host-norm-curves" });
-}
-function createGeometryHost(modules = {}, operations = "all") {
-  if (operations !== "all" && operations !== "curves") throw Error("Unknown geometry operation selection.");
-  if (operations === "curves" && (!modules.clipping || !modules.fitting)) throw Error("Curve selection requires matching clipping and fitting modules.");
-  if (modules.fitting && !modules.clipping) throw Error("Host fitting selection requires the clipping module.");
-  const norm2 = modules.clipping?.stats().mathBackend === "host-norm";
-  if (modules.fitting && modules.fitting.stats().mathBackend !== (norm2 ? "host-norm" : "host")) throw Error("Host fitting selection requires host maths matching the clipping module.");
+function createGeometryHost(modules = {}) {
+  if (Boolean(modules.clipping) !== Boolean(modules.fitting)) throw Error("Portable geometry requires both the clipping and fitting modules.");
+  if (modules.fitting && modules.fitting.stats().mathBackend !== "portable") throw Error("Portable geometry requires the import-free fitting module.");
   const selected = Object.freeze({ ...modules });
-  const backend = operations === "curves" ? norm2 ? "wasm-host-norm-curves" : "wasm-host-curves" : norm2 ? selected.fitting ? "wasm-host-norm-fitting" : "wasm-host-norm-clipping" : selected.fitting ? "wasm-host-fitting" : selected.clipping ? "wasm-clipping" : "typescript";
-  let disposed = false, calls = 0, clipCalls = 0, fitCalls = 0, typeScriptCalls = 0;
+  const backend = selected.clipping ? "wasm-portable" : "typescript";
+  let disposed = false, calls = 0, clipCalls = 0, fitCalls = 0;
   const base = makeGeomApi();
-  function run3(operation, boolean = false) {
+  function run3(operation) {
     if (disposed) return { ok: false, code: "invalid-argument", message: "geom: This geometry host has been disposed." };
     calls++;
-    if (operations === "curves" && boolean) {
-      typeScriptCalls++;
-      return operation(base);
-    }
     const owner2 = createGeometryOperationScope(selected);
     try {
       return operation(makeGeomApi(owner2.operations));
@@ -148680,16 +148747,16 @@ function createGeometryHost(modules = {}, operations = "all") {
   }
   const api = {
     ...base,
-    union: (...args) => run3((api2) => api2.union(...args), true),
-    intersect: (...args) => run3((api2) => api2.intersect(...args), true),
-    difference: (...args) => run3((api2) => api2.difference(...args), true),
-    xor: (...args) => run3((api2) => api2.xor(...args), true),
-    selfUnion: (...args) => run3((api2) => api2.selfUnion(...args), true),
+    union: (...args) => run3((api2) => api2.union(...args)),
+    intersect: (...args) => run3((api2) => api2.intersect(...args)),
+    difference: (...args) => run3((api2) => api2.difference(...args)),
+    xor: (...args) => run3((api2) => api2.xor(...args)),
+    selfUnion: (...args) => run3((api2) => api2.selfUnion(...args)),
     offset: (...args) => run3((api2) => api2.offset(...args)),
     stroke: (...args) => run3((api2) => api2.stroke(...args))
   };
   backends.set(api, backend);
-  return { api, backend, stats: () => ({ calls, typeScriptCalls, clipCalls, fitCalls, disposed, operations, clipping: selected.clipping?.stats(), fitting: selected.fitting?.stats() }), dispose: () => {
+  return { api, backend, stats: () => ({ calls, clipCalls, fitCalls, disposed, clipping: selected.clipping?.stats(), fitting: selected.fitting?.stats() }), dispose: () => {
     disposed = true;
   } };
 }
@@ -148708,17 +148775,11 @@ function invalid2(message) {
   throw new GeometryKernelError("invalid-argument", message);
 }
 async function createGeometryClipping(bytes, mathBackend = "retained") {
-  if (mathBackend !== "retained" && mathBackend !== "host-norm") invalid2("Unknown clipping maths backend.");
+  if (mathBackend !== "retained") invalid2("Unknown clipping maths backend.");
   const compiled2 = await WebAssembly.compile(bytes);
-  const imported = WebAssembly.Module.imports(compiled2), hostNorm = mathBackend === "host-norm";
-  if (hostNorm ? imported.length !== 1 || imported[0].module !== "lolly_math" || imported[0].name !== "hypot" || imported[0].kind !== "function" : imported.length !== 0)
+  if (WebAssembly.Module.imports(compiled2).length !== 0)
     throw new GeometryKernelError("internal", "The clipping module has an unexpected host import.");
-  let normCalls = 0;
-  const host = { hypot(x, y) {
-    normCalls++;
-    return Math.hypot(x, y);
-  } };
-  const api = (await WebAssembly.instantiate(compiled2, hostNorm ? { lolly_math: host } : {})).exports;
+  const api = (await WebAssembly.instantiate(compiled2, {})).exports;
   if (!(api.memory instanceof WebAssembly.Memory) || [
     "geom_alloc",
     "geom_free",
@@ -148738,8 +148799,7 @@ async function createGeometryClipping(bytes, mathBackend = "retained") {
       hits: api.geom_clip_hits(),
       bufferBytes: api.geom_buffer_bytes(),
       linearBytes: api.memory.buffer.byteLength,
-      mathBackend,
-      mathCalls: { hypot: normCalls }
+      mathBackend
     })
   };
 }
@@ -148861,11 +148921,8 @@ var init_geometry_clipping = __esm({
 
 // packages/node-shell/src/geometry-clipping-node.ts
 import { readFile as readFile14 } from "node:fs/promises";
-async function loadGeometryClipping(mathBackend = "retained") {
-  return createGeometryClipping(
-    await readFile14(new URL(mathBackend === "host-norm" ? "../wasm/geometry-kernel/geometry-clip-host-norm.wasm" : "../wasm/geometry-kernel/geometry-clip.wasm", import.meta.url)),
-    mathBackend
-  );
+async function loadGeometryClipping() {
+  return createGeometryClipping(await readFile14(new URL("../wasm/geometry-kernel/geometry-clip.wasm", import.meta.url)));
 }
 var init_geometry_clipping_node = __esm({
   "packages/node-shell/src/geometry-clipping-node.ts"() {
@@ -148882,51 +148939,13 @@ function coordinate2(value) {
   if (!Number.isFinite(value) || Math.abs(value) > 1e9)
     invalid3("Offset fitting values must be finite and within the supported range.");
 }
-async function createGeometryFitting(bytes, mathBackend = "host") {
-  if (mathBackend !== "host" && mathBackend !== "portable" && mathBackend !== "host-norm")
-    invalid3("Unknown fitting maths backend.");
+async function createGeometryFitting(bytes, mathBackend = "portable") {
+  if (mathBackend !== "portable") invalid3("Unknown fitting maths backend.");
   const compiled2 = await WebAssembly.compile(bytes);
-  const names = ["sin", "cos", "acos", "cbrt", "atan2"];
-  const expected = mathBackend === "host-norm" ? [...names, "hypot"] : names;
-  const imported = WebAssembly.Module.imports(compiled2);
-  if (mathBackend === "portable" ? imported.length !== 0 : imported.length !== expected.length || expected.some(
-    (name) => imported.filter(
-      (entry2) => entry2.module === "lolly_math" && entry2.name === name && entry2.kind === "function"
-    ).length !== 1
-  ))
+  if (WebAssembly.Module.imports(compiled2).length !== 0)
     throw new GeometryKernelError("internal", "The fitting module has an unexpected host import.");
-  const mathCalls = { sin: 0, cos: 0, acos: 0, cbrt: 0, atan2: 0 };
-  let normCalls = 0;
-  const host = {
-    hypot(x, y) {
-      normCalls++;
-      return Math.hypot(x, y);
-    },
-    sin(x) {
-      mathCalls.sin++;
-      return Math.sin(x);
-    },
-    cos(x) {
-      mathCalls.cos++;
-      return Math.cos(x);
-    },
-    acos(x) {
-      mathCalls.acos++;
-      return Math.acos(x);
-    },
-    cbrt(x) {
-      mathCalls.cbrt++;
-      return Math.cbrt(x);
-    },
-    atan2(y, x) {
-      mathCalls.atan2++;
-      return Math.atan2(y, x);
-    }
-  };
-  const instance = await WebAssembly.instantiate(
-    compiled2,
-    mathBackend === "portable" ? {} : { lolly_math: host }
-  );
+  const names = ["sin", "cos", "acos", "cbrt", "atan2"];
+  const instance = await WebAssembly.instantiate(compiled2, {});
   const api = instance.exports;
   if (!(api.memory instanceof WebAssembly.Memory) || [
     "geom_alloc",
@@ -148940,7 +148959,7 @@ async function createGeometryFitting(bytes, mathBackend = "host") {
     "geom_offset_fit_pieces"
   ].some((name) => typeof api[name] !== "function"))
     throw new GeometryKernelError("internal", "The fitting module has an incomplete owned ABI.");
-  if (mathBackend === "portable" && names.some((name) => typeof api["geom_math_" + name] !== "function"))
+  if (names.some((name) => typeof api["geom_math_" + name] !== "function"))
     throw new GeometryKernelError(
       "internal",
       "The portable fitting module has incomplete scalar maths."
@@ -148952,8 +148971,7 @@ async function createGeometryFitting(bytes, mathBackend = "host") {
       results: api.geom_offset_fit_count(),
       pieces: api.geom_offset_fit_pieces(),
       bufferBytes: api.geom_buffer_bytes(),
-      linearBytes: api.memory.buffer.byteLength,
-      mathCalls: { ...mathCalls, ...mathBackend === "host-norm" ? { hypot: normCalls } : {} }
+      linearBytes: api.memory.buffer.byteLength
     })
   };
 }
@@ -149057,14 +149075,8 @@ var init_geometry_fitting = __esm({
 
 // packages/node-shell/src/geometry-fitting-node.ts
 import { readFile as readFile15 } from "node:fs/promises";
-async function loadGeometryFitting(mathBackend = "host") {
-  const bytes = await readFile15(
-    new URL(
-      mathBackend === "host-norm" ? "../wasm/geometry-kernel/geometry-fit-host-norm.wasm" : mathBackend === "portable" ? "../wasm/geometry-kernel/geometry-fit-portable.wasm" : "../wasm/geometry-kernel/geometry-fit.wasm",
-      import.meta.url
-    )
-  );
-  return createGeometryFitting(bytes, mathBackend);
+async function loadGeometryFitting() {
+  return createGeometryFitting(await readFile15(new URL("../wasm/geometry-kernel/geometry-fit-portable.wasm", import.meta.url)));
 }
 var init_geometry_fitting_node = __esm({
   "packages/node-shell/src/geometry-fitting-node.ts"() {
@@ -149081,10 +149093,8 @@ __export(geometry_host_node_exports, {
 async function loadNodeGeometryHost(backend = "typescript") {
   if (!isGeometryBackend(backend)) throw Error("Unknown geometry backend.");
   if (backend === "typescript") return createGeometryHost();
-  const { norm: norm2, fitting: useFitting, curvesOnly } = geometryBackendModules(backend);
-  const clipping = await loadGeometryClipping(norm2 ? "host-norm" : "retained");
-  const fitting = useFitting ? await loadGeometryFitting(norm2 ? "host-norm" : "host") : void 0;
-  return createGeometryHost({ clipping, fitting }, curvesOnly ? "curves" : "all");
+  const [clipping, fitting] = await Promise.all([loadGeometryClipping(), loadGeometryFitting()]);
+  return createGeometryHost({ clipping, fitting });
 }
 var init_geometry_host_node = __esm({
   "packages/node-shell/src/geometry-host-node.ts"() {
@@ -149843,7 +149853,7 @@ function writeLottieKey(property4, frame, value, interval) {
   property4.a = 1;
   property4.k = keys2;
 }
-function deleteLottieKey(property4, frame, scalar4) {
+function deleteLottieKey(property4, frame, scalar5) {
   const keys2 = propertyKeys(property4), at = keys2.findIndex((k) => Number(k.t) === frame);
   if (at < 0) throw new Error("No keyframe at this source frame.");
   const fallback = numericVector(keys2[at].s ?? keys2[at - 1]?.e);
@@ -149854,7 +149864,7 @@ function deleteLottieKey(property4, frame, scalar4) {
   if (keys2.length < 2) {
     const value = keys2.length ? numericVector(keys2[0].s) : fallback;
     property4.a = 0;
-    property4.k = scalar4 ? value[0] : value;
+    property4.k = scalar5 ? value[0] : value;
   } else {
     for (let i = 0; i < keys2.length - 1; i++) if (keys2[i].e !== void 0) keys2[i].e = keys2[i + 1].s;
     property4.k = keys2;
@@ -150035,9 +150045,9 @@ function lottieLayer(source, address) {
 }
 function lottieTracks(layer) {
   const tracks = [];
-  const add = (id2, name, value, scalar4, staticOnly = false, color4 = false) => {
+  const add = (id2, name, value, scalar5, staticOnly = false, color4 = false) => {
     if (!value || typeof value !== "object" || Array.isArray(value)) return;
-    tracks.push({ id: id2, name, property: value, scalar: scalar4, staticOnly, color: color4 });
+    tracks.push({ id: id2, name, property: value, scalar: scalar5, staticOnly, color: color4 });
   };
   const transform2 = layer.ks && typeof layer.ks === "object" && !Array.isArray(layer.ks) ? layer.ks : {};
   const position = transform2.p;
@@ -155614,8 +155624,8 @@ function parseTransformList(str11) {
       const sx = g2(0, 1);
       local = { ...IDENTITY5, a: sx, d: a.length > 1 ? g2(1, sx) : sx };
     } else if (fn === "rotate") {
-      const rad = g2(0, 0) * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
-      const rot = { a: cos, b: sin, c: -sin, d: cos, e: 0, f: 0 };
+      const rad = g2(0, 0) * Math.PI / 180, cos2 = Math.cos(rad), sin2 = Math.sin(rad);
+      const rot = { a: cos2, b: sin2, c: -sin2, d: cos2, e: 0, f: 0 };
       if (a.length >= 3) {
         const cx2 = g2(1, 0), cy3 = g2(2, 0);
         local = matMul5(matMul5({ ...IDENTITY5, e: cx2, f: cy3 }, rot), { ...IDENTITY5, e: -cx2, f: -cy3 });
@@ -165980,11 +165990,11 @@ async function callMeasureText(args, env = process.env, limits = STRUCTURED_LIMI
       const rows2 = documentRows(document2);
       const { countMeasurableTextLayers: countMeasurableTextLayers2, measureDesignRowsReport: measureDesignRowsReport2 } = await Promise.resolve().then(() => (init_text_measure(), text_measure_exports));
       const layerIds = Array.isArray(args.layerIds) && args.layerIds.length ? args.layerIds : void 0;
-      const load2 = countMeasurableTextLayers2(rows2, layerIds);
-      if (load2.layers > MEASURE_TEXT_MAX_LAYERS)
-        throw new ToolCodeError("request.invalid", `The document has ${load2.layers} text layers to measure; this tool measures up to ${MEASURE_TEXT_MAX_LAYERS}. Pass layerIds, or run lolly measure --text-layers on the CLI.`);
-      if (load2.units > MEASURE_TEXT_MAX_UNITS)
-        throw new ToolCodeError("request.invalid", `The text layers to measure hold ${load2.units} characters; this tool measures up to ${MEASURE_TEXT_MAX_UNITS} in one call. Pass layerIds, or run lolly measure --text-layers on the CLI.`);
+      const load3 = countMeasurableTextLayers2(rows2, layerIds);
+      if (load3.layers > MEASURE_TEXT_MAX_LAYERS)
+        throw new ToolCodeError("request.invalid", `The document has ${load3.layers} text layers to measure; this tool measures up to ${MEASURE_TEXT_MAX_LAYERS}. Pass layerIds, or run lolly measure --text-layers on the CLI.`);
+      if (load3.units > MEASURE_TEXT_MAX_UNITS)
+        throw new ToolCodeError("request.invalid", `The text layers to measure hold ${load3.units} characters; this tool measures up to ${MEASURE_TEXT_MAX_UNITS} in one call. Pass layerIds, or run lolly measure --text-layers on the CLI.`);
       const report4 = await measureDesignRowsReport2(rows2, { ...layerIds ? { layerIds } : {}, ...brief ? { brief } : {} });
       const clipped = report4.measured.filter((l) => l.measure.overflow?.clipped);
       const structured2 = { layers: report4.measured, skipped: report4.skipped };

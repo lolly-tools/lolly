@@ -20,12 +20,12 @@ test('shell-loaded operation owners retain exact local results and counters in t
   const [bundle, clip, fit] = await Promise.all([
     build({ entryPoints: [fileURLToPath(new URL('./helpers/geometry-operation-probe.ts', import.meta.url))], bundle: true, write: false, format: 'esm', platform: 'browser' }),
     readFile(new URL('../packages/node-shell/wasm/geometry-kernel/geometry-clip.wasm', import.meta.url)),
-    readFile(new URL('../packages/node-shell/wasm/geometry-kernel/geometry-fit.wasm', import.meta.url)),
+    readFile(new URL('../packages/node-shell/wasm/geometry-kernel/geometry-fit-portable.wasm', import.meta.url)),
   ]);
   const server = createServer((req, res) => {
     if (req.url === '/entry.js') { res.setHeader('content-type', 'text/javascript'); res.end(bundle.outputFiles[0]!.text); }
     else if (req.url === '/worker.js') { res.setHeader('content-type', 'text/javascript'); res.end('import {probeGeometryOperations} from "/entry.js"; onmessage=async()=>{try{postMessage({result:await probeGeometryOperations()})}catch(error){postMessage({error:String(error)})}};'); }
-    else if (req.url === '/geometry-clip.wasm' || req.url === '/geometry-fit.wasm') { res.setHeader('content-type', 'application/wasm'); res.end(req.url === '/geometry-clip.wasm' ? clip : fit); }
+    else if (req.url === '/geometry-clip.wasm' || req.url === '/geometry-fit-portable.wasm') { res.setHeader('content-type', 'application/wasm'); res.end(req.url === '/geometry-clip.wasm' ? clip : fit); }
     else { res.setHeader('content-type', 'text/html'); res.end('<!doctype html><script type="module">import {probeGeometryOperations} from "/entry.js"; window.geometryOperationProbe=probeGeometryOperations;</script>'); }
   });
   t.after(() => new Promise<void>(resolve => server.close(() => resolve())));

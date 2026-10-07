@@ -5,8 +5,8 @@ import { CLIP_COUNTS } from '../../engine/src/geom/intersect.ts';
 import { geometryStageWorkflows } from './geometry-stage-workflows.ts';
 import type { createGeometryHost, GeometryBackend } from '../../packages/node-shell/src/geometry-host.ts';
 
-export async function benchGeometryWithLoader(load: (backend: GeometryBackend) => Promise<ReturnType<typeof createGeometryHost>>, reverse = false, backends: GeometryBackend[] = ['typescript', 'wasm-host-norm-clipping', 'wasm-host-norm-fitting']) {
-  if (backends[0] !== 'typescript' || backends.length < 3) throw Error('Benchmark requires TypeScript first and at least three variants.');
+export async function benchGeometryWithLoader(load: (backend: GeometryBackend) => Promise<ReturnType<typeof createGeometryHost>>, reverse = false, backends: GeometryBackend[] = ['typescript', 'wasm-portable']) {
+  if (backends[0] !== 'typescript' || backends.length < 2) throw Error('Benchmark requires TypeScript first and at least one other variant.');
   const owners = await Promise.all(backends.map(backend => load(backend)));
   const reference = makeGeomApi(), zero = Object.fromEntries(Object.keys(CLIP_COUNTS).map(key => [key, 0]));
   const workflows = geometryStageWorkflows().filter(row => row.runWithApi), samples = 31, warmups = 10;
@@ -27,7 +27,7 @@ export async function benchGeometryWithLoader(load: (backend: GeometryBackend) =
         if (JSON.stringify(result) !== answer) throw Error(`Complete answer or work mismatch: ${row.id}.`);
         for (const owner of owners) for (const module of [owner.stats().clipping, owner.stats().fitting]) if (module && (module.results || module.bufferBytes)) throw Error('Benchmark retained owned resources.');
       };
-      const calls = owners.map((owner, variant) => { const before = owner.stats(); const beforeMath = [before.clipping?.mathCalls.hypot ?? 0, before.fitting?.mathCalls.hypot ?? 0]; check(execute(variant)); const after = owner.stats(); return { clipCalls: after.clipCalls - before.clipCalls, fitCalls: after.fitCalls - before.fitCalls, normCalls: { clipping: (after.clipping?.mathCalls.hypot ?? 0) - beforeMath[0]!, fitting: (after.fitting?.mathCalls.hypot ?? 0) - beforeMath[1]! } }; });
+      const calls = owners.map((owner, variant) => { const before = owner.stats(); check(execute(variant)); const after = owner.stats(); return { clipCalls: after.clipCalls - before.clipCalls, fitCalls: after.fitCalls - before.fitCalls }; });
       for (let i = 0; i < warmups; i++) for (let v = 0; v < owners.length; v++) check(execute(v));
       const times: number[][] = owners.map(() => []);
       const callsPerSample = ['union-circles', 'offset-crossing-loop', 'stroke-lost-lobe'].includes(row.id) ? 8 : 1;

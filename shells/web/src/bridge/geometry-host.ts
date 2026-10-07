@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Geometry modules are loaded before publishing a selected synchronous host API. */
-import { createGeometryHost, geometryBackendModules, geometryBackendOf, isGeometryBackend, type GeometryBackend } from '@lolly-tools/node-shell/geometry-host';
+import { createGeometryHost, geometryBackendOf, isGeometryBackend, type GeometryBackend } from '@lolly-tools/node-shell/geometry-host';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createGeometryClipping } from '@lolly-tools/node-shell/geometry-clipping';
 import { createGeometryFitting } from '@lolly-tools/node-shell/geometry-fitting';
@@ -18,14 +18,11 @@ async function bytes(url: URL): Promise<Uint8Array<ArrayBuffer>> {
 export async function loadWebGeometryHost(backend: GeometryBackend = 'typescript') {
   if (!isGeometryBackend(backend)) throw Error('Unknown geometry backend.');
   if (backend === 'typescript') return createGeometryHost();
-  const { norm, fitting: useFitting, curvesOnly } = geometryBackendModules(backend);
-  const clipping = await createGeometryClipping(await bytes(norm
-    ? new URL('../../../../packages/node-shell/wasm/geometry-kernel/geometry-clip-host-norm.wasm', import.meta.url)
-    : new URL('../../../../packages/node-shell/wasm/geometry-kernel/geometry-clip.wasm', import.meta.url)), norm ? 'host-norm' : 'retained');
-  const fitting = useFitting && norm
-    ? await createGeometryFitting(await bytes(new URL('../../../../packages/node-shell/wasm/geometry-kernel/geometry-fit-host-norm.wasm', import.meta.url)), 'host-norm') : useFitting
-    ? await createGeometryFitting(await bytes(new URL('../../../../packages/node-shell/wasm/geometry-kernel/geometry-fit.wasm', import.meta.url)), 'host') : undefined;
-  return createGeometryHost({ clipping, fitting }, curvesOnly ? 'curves' : 'all');
+  const [clipping, fitting] = await Promise.all([
+    bytes(new URL('../../../../packages/node-shell/wasm/geometry-kernel/geometry-clip.wasm', import.meta.url)).then(createGeometryClipping),
+    bytes(new URL('../../../../packages/node-shell/wasm/geometry-kernel/geometry-fit-portable.wasm', import.meta.url)).then(createGeometryFitting),
+  ]);
+  return createGeometryHost({ clipping, fitting });
 }
 
 export async function installWebGeometryApi(host: HostV1, backend: GeometryBackend): Promise<void> {

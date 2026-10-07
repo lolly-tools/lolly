@@ -44,6 +44,7 @@
  */
 import { type Cubic, lineToCubic } from './bezier.ts';
 import { spiroCubics } from './spiro.ts';
+import * as pmath from './portable-math.ts';
 
 /**
  * How a node's handles behave when one is dragged. This is authoring intent, and it
@@ -165,7 +166,7 @@ function catmullRom(n: Node[], closed: boolean, alpha: number): Cubic[] {
   const last = closed ? n.length : n.length - 1;
   for (let i = 0; i < last; i++) {
     const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
-    const d = (a: Node, b: Node) => Math.max(1e-9, Math.hypot(b.x - a.x, b.y - a.y) ** alpha);
+    const d = (a: Node, b: Node) => Math.max(1e-9, pmath.pow(pmath.hypot(b.x - a.x, b.y - a.y), alpha));
     const d1 = d(p0, p1), d2 = d(p1, p2), d3 = d(p2, p3);
     // Barry-Goldman formulation, rearranged to Bézier controls.
     const b1x = (d1 * d1 * p2.x - d2 * d2 * p0.x + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.x) / (3 * d1 * (d1 + d2));
@@ -287,7 +288,7 @@ function mod2pi(th: number): number {
  */
 function hbArm(tha: number, thb: number): number {
   const w = 2 * thb;
-  const c = Math.cos(tha - 0.3 * Math.sin(w - 0.4 * Math.sin(w)));
+  const c = pmath.cos(tha - 0.3 * pmath.sin(w - 0.4 * pmath.sin(w)));
   return (c * (2 - c * c)) / 3;
 }
 
@@ -314,8 +315,8 @@ interface HbCurve {
 
 function hbCurve(th0: number, th1: number): HbCurve {
   const a0 = hbArm(th0, th1), a1 = hbArm(th1, th0);
-  const c0 = Math.cos(th0), s0 = Math.sin(th0);
-  const c1 = Math.cos(th1), s1 = Math.sin(th1);
+  const c0 = pmath.cos(th0), s0 = pmath.sin(th0);
+  const c1 = pmath.cos(th1), s1 = pmath.sin(th1);
   const p1x = a0 * c0, p1y = a0 * s0;
   const p2x = 1 - a1 * c1, p2y = a1 * s1;
   // C''(0)/6 = P2 − 2P1 + P0 and C''(1)/6 = P3 − 2P2 + P1.
@@ -330,8 +331,8 @@ function hbCurve(th0: number, th1: number): HbCurve {
   const cross1 = 6 * (q1y * c1 + q1x * s1);
   return {
     a0, a1,
-    ak0: Math.atan2(cross0, dot0 * Math.abs(dot0)),
-    ak1: Math.atan2(cross1, dot1 * Math.abs(dot1)),
+    ak0: pmath.atan2(cross0, dot0 * Math.abs(dot0)),
+    ak1: pmath.atan2(cross1, dot1 * Math.abs(dot1)),
     k0u: Math.abs(dot0) > 1e-9 ? cross0 / (dot0 * dot0) : 0,
     k1u: Math.abs(dot1) > 1e-9 ? cross1 / (dot1 * dot1) : 0,
   };
@@ -346,12 +347,12 @@ function hbCurve(th0: number, th1: number): HbCurve {
  * what makes an open end behave like a natural spline instead of flattening or curling.
  */
 function hbEndTangent(th: number): number {
-  return 0.5 * Math.sin(2 * th);
+  return 0.5 * pmath.sin(2 * th);
 }
 
 /** ∂/∂θ of the above. */
 function hbEndTangentD(th: number): number {
-  return Math.cos(2 * th);
+  return pmath.cos(2 * th);
 }
 
 /** One segment's solved state, plus the four curvature partials the Jacobian needs. */
@@ -392,8 +393,8 @@ const HB_MIN_CHORD = 1e-12;
  */
 function hbSegState(ax: number, ay: number, bx: number, by: number, thA: number, thB: number): HbSegState {
   const dx = bx - ax, dy = by - ay;
-  const len = Math.hypot(dx, dy);
-  const chth = len > HB_MIN_CHORD ? Math.atan2(dy, dx) : 0;
+  const len = pmath.hypot(dx, dy);
+  const chth = len > HB_MIN_CHORD ? pmath.atan2(dy, dx) : 0;
   const th0 = mod2pi(thA - chth), th1 = mod2pi(chth - thB);
   const base = hbCurve(th0, th1);
   const e = 1e-6, s = 0.5 / e;
@@ -428,8 +429,8 @@ function hbSegState(ax: number, ay: number, bx: number, by: number, thA: number,
 function hbJoin(prev: HbSegState, next: HbSegState): { r: number; dA: number; dB: number } {
   const p = Math.sqrt(prev.chord), q = Math.sqrt(next.chord);
   const A = prev.ak1, B = next.ak0;
-  const sA = Math.sin(A), cA = Math.cos(A), sB = Math.sin(B), cB = Math.cos(B);
-  const r = Math.atan2(sA * q, cA * p) - Math.atan2(sB * p, cB * q);
+  const sA = pmath.sin(A), cA = pmath.cos(A), sB = pmath.sin(B), cB = pmath.cos(B);
+  const r = pmath.atan2(sA * q, cA * p) - pmath.atan2(sB * p, cB * q);
   const denA = q * q * sA * sA + p * p * cA * cA;
   const denB = p * p * sB * sB + q * q * cB * cB;
   const pq = p * q;
@@ -639,14 +640,14 @@ function hbInitialThs(pts: HbRunPoint[], wrap: boolean, startTh: number | null, 
   const ths = new Array<number>(m).fill(0);
   const chordTh = (i: number): number => {
     const p = pts[i]!, q = pts[(i + 1) % m]!;
-    return Math.atan2(q.y - p.y, q.x - p.x);
+    return pmath.atan2(q.y - p.y, q.x - p.x);
   };
   const at = (i: number): number => {
     const h = pts[(i - 1 + m) % m]!, p = pts[i]!, q = pts[(i + 1) % m]!;
-    const l0 = Math.hypot(p.x - h.x, p.y - h.y);
-    const l1 = Math.hypot(q.x - p.x, q.y - p.y);
-    const t0 = Math.atan2(p.y - h.y, p.x - h.x);
-    const t1 = Math.atan2(q.y - p.y, q.x - p.x);
+    const l0 = pmath.hypot(p.x - h.x, p.y - h.y);
+    const l1 = pmath.hypot(q.x - p.x, q.y - p.y);
+    const t0 = pmath.atan2(p.y - h.y, p.x - h.x);
+    const t1 = pmath.atan2(q.y - p.y, q.x - p.x);
     if (!(l0 + l1 > 0)) return t1;
     return mod2pi(t0 + mod2pi(t1 - t0) * (l0 / (l0 + l1)));
   };
@@ -693,7 +694,7 @@ function hbSolveRun(
   warm: number[] | null,
 ): HbRunResult {
   const m = pts.length;
-  const chordTh0 = Math.atan2(pts[1]!.y - pts[0]!.y, pts[1]!.x - pts[0]!.x);
+  const chordTh0 = pmath.atan2(pts[1]!.y - pts[0]!.y, pts[1]!.x - pts[0]!.x);
   // Two points with both ends free is the one system with no interior row, and it is
   // singular AT its own solution (both end conditions reduce to θ = 0.5·sin 2θ, whose
   // root is a double one at zero). The answer is the straight line, exactly.
@@ -809,8 +810,8 @@ function hbPin(node: Node): HbPin {
   const hox = node.hOutX ?? 0, hoy = node.hOutY ?? 0;
   // The incoming handle points BACK towards the previous node, so the direction of
   // travel through the node is its reverse.
-  let pin = Math.hypot(hix, hiy) > 1e-12 ? mod2pi(Math.atan2(-hiy, -hix)) : null;
-  let pout = Math.hypot(hox, hoy) > 1e-12 ? mod2pi(Math.atan2(hoy, hox)) : null;
+  let pin = pmath.hypot(hix, hiy) > 1e-12 ? mod2pi(pmath.atan2(-hiy, -hix)) : null;
+  let pout = pmath.hypot(hox, hoy) > 1e-12 ? mod2pi(pmath.atan2(hoy, hox)) : null;
   if (!corner) {
     // Smooth means collinear, so one handle pins both sides.
     if (pin === null) pin = pout;
@@ -990,7 +991,7 @@ export function hyperbezierCubics(nodes: Node[], closed: boolean, solution: Hype
   for (let i = 0; i < nSeg; i++) {
     const a = nodes[i]!, b = nodes[(i + 1) % n]!;
     const dx = b.x - a.x, dy = b.y - a.y;
-    const chord = Math.hypot(dx, dy);
+    const chord = pmath.hypot(dx, dy);
     if (!(chord > HB_MIN_CHORD)) {
       // Coincident nodes: there is no chord direction to build a frame on, so the
       // segment is the point itself. Emitting it keeps one cubic per segment, which
@@ -998,7 +999,7 @@ export function hyperbezierCubics(nodes: Node[], closed: boolean, solution: Hype
       out.push([a.x, a.y, a.x, a.y, b.x, b.y, b.x, b.y]);
       continue;
     }
-    const chth = Math.atan2(dy, dx);
+    const chth = pmath.atan2(dy, dx);
     const th0 = mod2pi((solution.rth[i] ?? chth) - chth);
     const th1 = mod2pi(chth - (solution.lth[(i + 1) % n] ?? chth));
     const cur = hbCurve(th0, th1);
@@ -1007,8 +1008,8 @@ export function hyperbezierCubics(nodes: Node[], closed: boolean, solution: Hype
     const kb1 = solution.kBlend[(i + 1) % n] ?? null;
     if (kb0 !== null) arm0 = hbBlendArm(cur.a0, cur.k0u, kb0 * chord);
     if (kb1 !== null) arm1 = hbBlendArm(cur.a1, cur.k1u, kb1 * chord);
-    const ux1 = arm0 * Math.cos(th0), uy1 = arm0 * Math.sin(th0);
-    const ux2 = 1 - arm1 * Math.cos(th1), uy2 = arm1 * Math.sin(th1);
+    const ux1 = arm0 * pmath.cos(th0), uy1 = arm0 * pmath.sin(th0);
+    const ux2 = 1 - arm1 * pmath.cos(th1), uy2 = arm1 * pmath.sin(th1);
     out.push([
       a.x, a.y,
       a.x + dx * ux1 - dy * uy1, a.y + dy * ux1 + dx * uy1,
@@ -1030,11 +1031,11 @@ export function enforceContinuity(node: Node, moved: 'in' | 'out'): Node {
   const c = node.continuity ?? 'corner';
   if (c === 'corner') return node;
   const [mx, my] = moved === 'in' ? [node.hInX ?? 0, node.hInY ?? 0] : [node.hOutX ?? 0, node.hOutY ?? 0];
-  const len = Math.hypot(mx, my);
+  const len = pmath.hypot(mx, my);
   if (len < 1e-12) return node;
   const otherLen = moved === 'in'
-    ? Math.hypot(node.hOutX ?? 0, node.hOutY ?? 0)
-    : Math.hypot(node.hInX ?? 0, node.hInY ?? 0);
+    ? pmath.hypot(node.hOutX ?? 0, node.hOutY ?? 0)
+    : pmath.hypot(node.hInX ?? 0, node.hInY ?? 0);
   // Opposite direction; `symmetric` mirrors the length too.
   const k = (c === 'symmetric' ? len : otherLen) / len;
   const ox = -mx * k, oy = -my * k;

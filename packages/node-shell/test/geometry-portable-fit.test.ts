@@ -19,23 +19,24 @@ import {
   type GeometryFittingExports,
 } from '../src/geometry-fitting.ts';
 import { loadGeometryFitting } from '../src/geometry-fitting-node.ts';
+import { pieceBits } from '../../../tests/helpers/geometry-portable-fit-compatibility.ts';
 
 const bytes = await readFile(
   new URL('../wasm/geometry-kernel/geometry-fit-portable.wasm', import.meta.url)
 );
-const kernel = await loadGeometryFitting('portable');
+const kernel = await loadGeometryFitting();
 const { module } = await loadOffsetFitComparison();
-test('portable fitting rejects host imports and host mode rejects the portable artifact', async () => {
-  const host = await readFile(
-    new URL('../wasm/geometry-kernel/geometry-fit.wasm', import.meta.url)
-  );
-  await assert.rejects(() => createGeometryFitting(host, 'portable'), { code: 'internal' });
-  await assert.rejects(() => createGeometryFitting(bytes), { code: 'internal' });
+test('portable fitting rejects host imports, other modules and retired maths modes', async () => {
+  // A minimal module importing lolly_math.sin: the fitting loader admits no host import.
+  const host = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 6, 1, 96, 1, 124, 1, 124, 2, 18, 1, 10, ...new TextEncoder().encode('lolly_math'), 3, ...new TextEncoder().encode('sin'), 0, 0]);
+  await assert.rejects(() => createGeometryFitting(host), { code: 'internal' });
+  await assert.rejects(() => createGeometryFitting(bytes, 'host' as never), { code: 'invalid-argument' });
   const base = await readFile(
     new URL('../wasm/geometry-kernel/geometry-kernel.wasm', import.meta.url)
   );
-  await assert.rejects(() => createGeometryFitting(base, 'portable'), { code: 'internal' });
+  await assert.rejects(() => createGeometryFitting(base), { code: 'internal' });
   assert.deepEqual(WebAssembly.Module.imports(await WebAssembly.compile(bytes)), []);
+  assert.equal((await createGeometryFitting(bytes)).stats().mathBackend, 'portable');
 });
 test('portable scalar signed zeros, quadrants and nonfinite classifications match their definitions', async () => {
   const rows: [FittingMathCase['name'], number[], number][] = [
@@ -89,23 +90,15 @@ test('portable scalars stay within two ulps of independent high-precision fixtur
     );
   });
 });
-test('portable fitting preserves source directions and piece counts while legacy controls are audited separately', () => {
+test('portable fitting returns the TypeScript reference bits on every fixed and seeded request', () => {
+  // Both implementations call one compiled scalar maths (engine/src/geom/portable-math.ts),
+  // so the earlier legacy-rounding census is now empty by construction.
   const workspace = kernel.createOffsetFitWorkspace();
   try {
     for (const row of [...offsetFitCases(), ...seededOffsetFitCases()]) {
       const input = structuredClone(row);
       const actual = workspace.fit(row.src, row.distance, row.tol);
-      const reference = module.offsetPieces(row.src, row.distance, row.tol);
-      assert.equal(actual.length, reference.length, row.name);
-      assert.deepEqual(
-        actual.map(({ dirStart, dirEnd }) => [dirStart, dirEnd]),
-        reference.map(({ dirStart, dirEnd }) => [dirStart, dirEnd]),
-        row.name
-      );
-      assert.ok(
-        actual.every((p) => p.curve.every(Number.isFinite)),
-        row.name
-      );
+      assert.deepEqual(pieceBits(actual), pieceBits(module.offsetPieces(row.src, row.distance, row.tol)), row.name);
       assert.deepEqual(row, input);
       assert.equal(kernel.stats().results, 0);
       assert.equal(kernel.stats().pieces, 0);
@@ -114,7 +107,6 @@ test('portable fitting preserves source directions and piece counts while legacy
     workspace.dispose();
   }
   assert.equal(kernel.stats().bufferBytes, 0);
-  assert.deepEqual(kernel.stats().mathCalls, { sin: 0, cos: 0, acos: 0, cbrt: 0, atan2: 0 });
 });
 test('portable result admission, atomic delivery and exhaustion preserve ownership and recovery', async () => {
   const instance = await WebAssembly.instantiate(await WebAssembly.compile(bytes));

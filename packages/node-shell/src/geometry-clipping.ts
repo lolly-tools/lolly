@@ -5,7 +5,8 @@ import type { Intersection } from '../../../engine/src/geom/intersect.ts';
 import { GeometryKernelError } from './geometry-kernel-contract.ts';
 
 export const GEOMETRY_CLIP_LIMITS = { initial: 16_384, overrun: 131_072, stalled: 65_536 };
-export type GeometryClippingMath = 'retained' | 'host-norm';
+/** The retained norm is V8's two-argument formula, the same as the TypeScript `pmath.hypot`. */
+export type GeometryClippingMath = 'retained';
 export type { GeometryClipLimits, GeometryClipCounts, GeometryClipResult } from '../../../engine/src/geom/operations.ts';
 import type { GeometryClipLimits, GeometryClipResult } from '../../../engine/src/geom/operations.ts';
 export type GeometryClippingExports = WebAssembly.Exports & {
@@ -24,14 +25,11 @@ function invalid(message: string): never {
   throw new GeometryKernelError('invalid-argument', message);
 }
 export async function createGeometryClipping(bytes: BufferSource, mathBackend: GeometryClippingMath = 'retained') {
-  if (mathBackend !== 'retained' && mathBackend !== 'host-norm') invalid('Unknown clipping maths backend.');
+  if (mathBackend !== 'retained') invalid('Unknown clipping maths backend.');
   const compiled = await WebAssembly.compile(bytes);
-  const imported = WebAssembly.Module.imports(compiled), hostNorm = mathBackend === 'host-norm';
-  if (hostNorm ? imported.length !== 1 || imported[0]!.module !== 'lolly_math' || imported[0]!.name !== 'hypot' || imported[0]!.kind !== 'function' : imported.length !== 0)
+  if (WebAssembly.Module.imports(compiled).length !== 0)
     throw new GeometryKernelError('internal', 'The clipping module has an unexpected host import.');
-  let normCalls = 0;
-  const host = { hypot(x: number, y: number) { normCalls++; return Math.hypot(x, y); } };
-  const api = (await WebAssembly.instantiate(compiled, hostNorm ? { lolly_math: host } : {})).exports as GeometryClippingExports;
+  const api = (await WebAssembly.instantiate(compiled, {})).exports as GeometryClippingExports;
   if (
     !(api.memory instanceof WebAssembly.Memory) ||
     [
@@ -55,7 +53,6 @@ export async function createGeometryClipping(bytes: BufferSource, mathBackend: G
       bufferBytes: api.geom_buffer_bytes(),
       linearBytes: api.memory.buffer.byteLength,
       mathBackend,
-      mathCalls: { hypot: normCalls },
     }),
   };
 }

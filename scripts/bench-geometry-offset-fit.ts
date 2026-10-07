@@ -21,10 +21,10 @@ const hash = (data: string | Uint8Array) => createHash('sha256').update(data).di
 const portable = process.argv.includes('--portable-math');
 const { module, code } = await loadOffsetFitComparison();
 const start = performance.now(),
-  kernel = await loadGeometryFitting(portable ? 'portable' : 'host'),
+  kernel = await loadGeometryFitting(),
   loadMs = performance.now() - start;
 const wasmFile = new URL(
-  `../packages/node-shell/wasm/geometry-kernel/geometry-fit${portable ? '-portable' : ''}.wasm`,
+  '../packages/node-shell/wasm/geometry-kernel/geometry-fit-portable.wasm',
   import.meta.url
 );
 const wasmBytes = await readFile(wasmFile);
@@ -169,19 +169,12 @@ for (const row of workflows) {
       }
     }
   };
-  const beforeMath = kernel.stats().mathCalls;
   const counts = [false, true].map((wasm) => {
     const before = counters();
     assert.deepEqual(execute(wasm), expected);
     return difference(before);
   });
   assert.deepEqual(counts[0], counts[1], row.id);
-  const mathCalls = Object.fromEntries(
-    Object.entries(kernel.stats().mathCalls).map(([key, value]) => [
-      key,
-      value - (beforeMath[key as keyof typeof beforeMath] ?? 0),
-    ])
-  );
   const complete = paired([() => execute(false), () => execute(true)], expected);
   assert.equal(backendStats!.calls, capture.length);
   const replayWorkspace = kernel.createOffsetFitWorkspace();
@@ -230,7 +223,6 @@ for (const row of workflows) {
     complete,
     replay,
     operations: capture.length,
-    mathCalls,
     captureSha256: hash(JSON.stringify(capture)),
     retainedReplaySha256: hash(JSON.stringify(retainedReplay.map(pieceBits))),
     replayDifferences,

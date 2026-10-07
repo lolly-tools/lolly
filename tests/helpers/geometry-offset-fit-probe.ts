@@ -12,11 +12,11 @@ import { getOffsetFitReference, setOffsetFitProbe } from './geometry-offset-fit-
 import { geometryStageWorkflows } from './geometry-stage-workflows.ts';
 export async function probeOffsetFitting(
   inputs: OffsetFitCase[],
-  mathBackend: GeometryFittingMath = 'host'
+  mathBackend: GeometryFittingMath = 'portable'
 ) {
   const bytes = new Uint8Array(
     await (
-      await fetch(mathBackend === 'portable' ? '/geometry-fit-portable.wasm' : mathBackend === 'host-norm' ? '/geometry-fit-host-norm.wasm' : '/geometry-fit.wasm')
+      await fetch('/geometry-fit-portable.wasm')
     ).arrayBuffer()
   );
   const kernel = await createGeometryFitting(bytes, mathBackend);

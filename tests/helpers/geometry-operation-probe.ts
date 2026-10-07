@@ -11,7 +11,7 @@ export async function probeGeometryOperations() {
   };
   const [clipping, fitting] = await Promise.all([
     load('geometry-clip.wasm').then(createGeometryClipping),
-    load('geometry-fit.wasm').then(bytes => createGeometryFitting(bytes, 'host')),
+    load('geometry-fit-portable.wasm').then(bytes => createGeometryFitting(bytes)),
   ]);
   return qualifyGeometryOperations({ clipping, fitting });
 }

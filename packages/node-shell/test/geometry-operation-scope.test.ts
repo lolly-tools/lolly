@@ -11,10 +11,10 @@ import { GeometryKernelError } from '../src/geometry-kernel-contract.ts';
 import { qualifyGeometryOperations } from '../../../tests/helpers/geometry-operation-qualification.ts';
 import type { Cubic } from '../../../engine/src/geom/bezier.ts';
 
-for (const mathBackend of ['retained', 'host-norm'] as const) {
+for (const mathBackend of ['retained'] as const) {
 const test = (name: string, fn: () => void | Promise<void>) => nodeTest(`${mathBackend}: ${name}`, fn);
-const loadGeometryClipping = () => loadClipping(mathBackend);
-const loadGeometryFitting = (math: 'host' | 'portable' = 'host') => loadFitting(math === 'host' && mathBackend === 'host-norm' ? 'host-norm' : math);
+const loadGeometryClipping = () => loadClipping();
+const loadGeometryFitting = (_math?: 'portable') => loadFitting();
 const a: Cubic = [0, 0, 30, 100, 70, -100, 100, 0], b: Cubic = [0, 10, 30, -100, 70, 100, 100, 10];
 test('operation owners are independent, return fresh contacts and release only their own buffers', async () => {
   const kernel = await loadGeometryClipping(), first = createGeometryOperationScope({ clipping: kernel }), second = createGeometryOperationScope({ clipping: kernel });
