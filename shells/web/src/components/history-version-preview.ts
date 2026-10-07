@@ -5,7 +5,7 @@
  * version form. These controls only hide what the capability says this person cannot
  * do. The host still decides, and each refusal arrives as the host's own status copy.
  */
-import type { CollabHistoryCapability, CollabHistoryEntry, CollabHistoryRestoreResult } from '../lib/collab-history.ts';
+import { UNNAMED_VERSION_LABEL, unnamedVersionLabel, type CollabHistoryCapability, type CollabHistoryEntry, type CollabHistoryRestoreResult } from '../lib/collab-history.ts';
 import { confirmDialog } from './confirm-dialog.ts';
 import { mountModal } from './modal.ts';
 import { showUndoToast } from '../lib/undo-toast.ts';
@@ -24,8 +24,10 @@ export interface VersionActions {
   changed(message?: string): void;
 }
 
+/** When a version was made, in the app's language (not the browser's). */
 export function versionTime(at: string): string {
-  return new Date(at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const date = new Date(at), shape: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  try { return date.toLocaleString(currentLang(), shape); } catch { return date.toLocaleString(undefined, shape); }
 }
 
 /** The reason line for one entry. A durable host's own checkpoints are its automatic versions. */
@@ -38,7 +40,7 @@ export function versionReason(reason: string, durable: boolean): string {
 
 /** The dialog title: a named version's name, otherwise when it was made. */
 export function versionTitle(entry: CollabHistoryEntry): string {
-  return entry.reason === 'named' ? entry.label : tRaw('Version from {time}', { time: versionTime(entry.at) });
+  return entry.reason === 'named' && !UNNAMED_VERSION_LABEL.test(entry.label) ? entry.label : tRaw('Version from {time}', { time: versionTime(entry.at) });
 }
 
 /** "Edited by Ana and Ben", or "Edited by Ana, Ben and 3 more"; null when nobody is recorded. */
@@ -70,12 +72,13 @@ export function mountVersionSave(collab: CollabHistoryCapability, actions: Versi
     event.preventDefault();
     if (save.disabled || !collab.saveVersion) return;
     save.disabled = true;
-    // The host needs a name; an unnamed version is named after when it was saved.
-    const label = name.value.trim() || tRaw('Version from {time}', { time: versionTime(new Date().toISOString()) });
+    // The host needs a name. An unnamed version is stored with the minute it was saved,
+    // and every reader sees "Version from {time}" in their own language.
+    const label = name.value.trim() || unnamedVersionLabel(new Date());
     void collab.saveVersion(label).then(() => { name.value = ''; actions.changed(tRaw('Version saved.')); },
       error => { actions.status(failure(error)); }).finally(() => { save.disabled = false; });
   });
-  return { el: form, update() { form.hidden = !(collab.saveVersion && collab.canRestore); } };
+  return { el: form, update() { form.hidden = !(collab.saveVersion && (collab.canSave ?? collab.canRestore)); } };
 }
 
 /**

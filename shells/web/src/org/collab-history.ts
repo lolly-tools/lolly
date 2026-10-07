@@ -9,9 +9,9 @@
 import type { SavedStateData } from '../bridge/state.ts';
 import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
 import { getHostRef } from '../lib/host-ref.ts';
-import { collabHistoryPolicy } from '../lib/collab-history.ts';
+import { collabHistoryPolicy, UNNAMED_VERSION_LABEL } from '../lib/collab-history.ts';
 import type { CollabHistoryCapability, CollabHistoryEntry, CollabHistoryPage, CollabHistoryRestoreResult } from '../lib/collab-history.ts';
-import { tRaw } from '../i18n.ts';
+import { currentLang, tRaw } from '../i18n.ts';
 
 interface WireRevision {
   sessionId?: string; rev?: number; inputs?: Record<string, unknown>; meta?: Record<string, unknown>;
@@ -42,16 +42,22 @@ export interface WorkHistoryOptions {
   requestId?: () => string;
 }
 
-/** A refused version request. `message` is the copy to show, in the person's language. */
+/** What a request was for: reading history, saving a version, or another change. */
+export type WorkHistoryOperation = 'read' | 'save' | 'change';
+
+/** A refused or failed history request. `message` is the copy to show, in the person's language. */
 export class WorkHistoryError extends Error {
   readonly status: number;
   readonly code: string | undefined;
-  constructor(status: number, code?: string) {
-    super(versionFailure(status, code));
+  constructor(status: number, code?: string, operation: WorkHistoryOperation = 'change') {
+    super(versionFailure(status, code, operation));
     this.status = status;
     this.code = code;
   }
 }
+
+/** What GET /versions says this person may do, when the instance says (plan 76 M4 hand-off to W3). */
+interface VersionPermissions { save?: boolean; restore?: boolean; delete?: boolean }
 
 /** Version ids, as the instance mints them (`ver_` plus base32); never a path. */
 const VERSION_ID = /^[A-Za-z0-9_-]{1,80}$/;
@@ -75,10 +81,11 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
   // Unknown until the first list: the instance either has versions or answers 404.
   let mode: 'versions' | 'revisions' | undefined;
   let role: string | undefined;
+  let allowed: VersionPermissions | undefined;
   let projectId: string | undefined;
   let lastSession: SessionFacts | undefined;
   const assertInstance = (): void => {
-    if (getInstanceBase() !== instance) throw new Error('The Work instance changed. Reopen this collaboration to view its history.');
+    if (getInstanceBase() !== instance) throw new WorkHistoryError(401, 'INSTANCE_CHANGED');
     if (options.principal && options.principal() !== person) throw new WorkHistoryError(401);
   };
   const call = async (url: string, init: RequestInit = {}): Promise<Response> => {
@@ -88,19 +95,19 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
     return response;
   };
   const json = async (response: Response): Promise<Record<string, unknown>> => {
-    const body: unknown = await response.json();
+    const body: unknown = await response.json().catch(() => undefined);
     assertInstance();
-    if (!record(body)) throw new Error('Work returned invalid history.');
+    if (!record(body)) throw invalid();
     return body;
   };
   const request = async (url: string): Promise<Record<string, unknown>> => {
     const response = await call(url);
-    if (!response.ok) throw new Error(`Work history request failed (${response.status})`);
+    if (!response.ok) throw new WorkHistoryError(response.status, undefined, 'read');
     return json(response);
   };
-  const write = async (url: string, method: 'POST' | 'DELETE', body?: object): Promise<Record<string, unknown>> => {
+  const write = async (url: string, method: 'POST' | 'DELETE', body?: object, operation: WorkHistoryOperation = 'change'): Promise<Record<string, unknown>> => {
     const response = await call(url, { method, ...(body ? { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {}) });
-    if (!response.ok) throw new WorkHistoryError(response.status, await errorCode(response));
+    if (!response.ok) throw new WorkHistoryError(response.status, await errorCode(response), operation);
     // The change is made; an empty or unreadable answer only means less to report.
     const answer: unknown = response.status === 204 ? {} : await response.json().catch(() => ({}));
     assertInstance();
@@ -110,7 +117,7 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
   // copy is given, and the caller's role, which decides what History offers them.
   const loadSession = async (): Promise<SessionFacts> => {
     const session = await request(endpoint);
-    if (typeof session.toolId !== 'string' || !session.toolId) throw new Error('Work history is missing its tool identity.');
+    if (typeof session.toolId !== 'string' || !session.toolId) throw invalid('NO_TOOL_IDENTITY');
     role = typeof session.myRole === 'string' ? session.myRole : undefined;
     projectId = typeof session.projectId === 'string' && session.projectId ? session.projectId : undefined;
     const label = text(session.label, 256);
@@ -121,7 +128,7 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
   // across actions: list must refresh and copy must recheck access.
   const loadRevisions = async (): Promise<WireRevision[]> => {
     const body = await request(`${endpoint}/revisions`);
-    if (!Array.isArray(body.revisions)) throw new Error('Work returned invalid history.');
+    if (!Array.isArray(body.revisions)) throw invalid();
     return body.revisions.filter((item): item is WireRevision => record(item)
       && Number.isSafeInteger(item.rev) && Number(item.rev) >= 0
       && (item.sessionId === undefined || item.sessionId === sessionId))
@@ -142,7 +149,7 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
     id: version.id,
     documentId: sessionId,
     toolId: session.toolId,
-    label: version.kind === 'named' && version.label ? version.label : session.label ?? versionFrom(version.at),
+    label: version.kind === 'named' && version.label ? namedLabel(version.label, version.at) : session.label ?? versionFrom(version.at),
     reason: REASONS[version.kind as Exclude<VersionKind, 'before'>],
     actor: version.createdBy
       ? { id: version.createdBy, ...(version.createdByName ? { label: version.createdByName } : {}) }
@@ -176,7 +183,7 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
     const session = known ?? await loadSession();
     const response = await call(`${endpoint}/versions/${encodeURIComponent(entryId)}`);
     if (response.status === 404 || response.status === 410) return null;
-    if (!response.ok) throw new Error(`Work history request failed (${response.status})`);
+    if (!response.ok) throw new WorkHistoryError(response.status, undefined, 'read');
     const version = (await json(response)).version;
     if (!record(version) || version.id !== entryId || !record(version.inputs)
       || (version.sessionId !== undefined && version.sessionId !== sessionId)) return null;
@@ -186,7 +193,7 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
     return {
       inputs: version.inputs,
       toolId: typeof meta.toolId === 'string' && meta.toolId ? meta.toolId : session.toolId,
-      label: named ?? text(meta.label, 256) ?? session.label ?? versionFrom(at),
+      label: (named && namedLabel(named, at)) ?? text(meta.label, 256) ?? session.label ?? versionFrom(at),
       ...(typeof meta.toolVersion === 'string' ? { toolVersion: meta.toolVersion } : {}),
     };
   };
@@ -210,13 +217,19 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
   };
   return {
     scope: 'shared', durability: 'durable', canSaveCopy: true,
-    /** Writers may restore and save versions (collabHistoryPolicy); the instance's 403 stays the boundary. */
+    /**
+     * What the instance says this person may do, from GET /versions; an instance that does
+     * not say falls back to the role (writers restore and save, managers delete). The
+     * instance's 403 stays the boundary either way.
+     */
     get canRestore(): boolean {
-      return mode === 'versions' && collabHistoryPolicy({ track: 'work', role: writerRole(role) ? 'writer' : 'observer', host: false }).canRestore;
+      return mode === 'versions' && (allowed?.restore ?? writer(role));
     },
-    /** Offered to managers only; everyone else would be refused by the instance. */
+    get canSave(): boolean {
+      return mode === 'versions' && (allowed?.save ?? writer(role));
+    },
     get remove(): ((versionId: string) => Promise<void>) | undefined {
-      return mode === 'versions' && (role === 'owner' || role === 'manager') ? remove : undefined;
+      return mode === 'versions' && (allowed?.delete ?? (role === 'owner' || role === 'manager')) ? remove : undefined;
     },
     async list(query): Promise<CollabHistoryPage> {
       const session = await loadSession();
@@ -227,10 +240,11 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
         const response = await call(`${endpoint}/versions?${params}`);
         if (response.status === 404) mode = 'revisions';
         else {
-          if (!response.ok) throw new Error(`Work history request failed (${response.status})`);
+          if (!response.ok) throw new WorkHistoryError(response.status, undefined, 'read');
           const body = await json(response);
-          if (!Array.isArray(body.versions)) throw new Error('Work returned invalid history.');
+          if (!Array.isArray(body.versions)) throw invalid();
           mode = 'versions';
+          allowed = readPermissions(body.permissions);
           // A `before` row is the state a restore replaced: reachable only through Undo restore.
           const entries = body.versions.map(value => readVersion(value, sessionId))
             .filter((version): version is WireVersion => !!version && version.kind !== 'before')
@@ -246,7 +260,7 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
     async saveVersion(label: string): Promise<void> {
       const name = clip(label.trim(), LABEL_MAX);
       if (!name) throw new WorkHistoryError(400, 'INVALID_INPUT');
-      await write(`${endpoint}/versions`, 'POST', { label: name, requestId: newRequestId() });
+      await write(`${endpoint}/versions`, 'POST', { label: name, requestId: newRequestId() }, 'save');
     },
     /** Version previews; an older instance's twenty full revisions are not fetched for thumbnails. */
     get preview(): ((entryId: string) => Promise<string | null>) | undefined {
@@ -262,12 +276,15 @@ export function createWorkCollabHistory(sessionId: string, fetcher: WorkHistoryF
   };
 }
 
-/** The copy for a refused version request. Codes are the instance's (plan 76 M4, 2.5). */
-function versionFailure(status: number, code: string | undefined): string {
+/** The copy for a refused or failed request. Codes are the instance's (plan 76 M4, 2.5). */
+function versionFailure(status: number, code: string | undefined, operation: WorkHistoryOperation): string {
+  if (operation === 'read') return tRaw('Could not load history.');
   if (status === 429) return tRaw('Too many version changes. Try again in a minute.');
   if (status === 404 || status === 410) return tRaw('This version is no longer available.');
-  if (code === 'READ_ONLY') return tRaw('Only editors can restore versions.');
-  if (code === 'VERSION_SPACE' || code === 'VERSION_LIMIT') return tRaw('History is full. Ask a manager to delete old versions.');
+  if (code === 'READ_ONLY') return operation === 'save' ? tRaw('Only editors can save versions.') : tRaw('Only editors can restore versions.');
+  // One person's own limit on named versions (20 per document): they can delete one of theirs.
+  if (code === 'VERSION_LIMIT') return tRaw('You have saved the most named versions allowed. Delete one of yours first.');
+  if (code === 'VERSION_SPACE') return tRaw('History is full. Ask a manager to delete old versions.');
   if (code === 'RESTORE_INCOMPLETE') return tRaw('Nothing was restored because the document could not take every change. Try again.');
   if (code === 'SESSION_CHANGED') return tRaw('The document changed while restoring. Try again.');
   return tRaw('Could not complete this action. Please try again.');
@@ -318,12 +335,38 @@ async function renderPreview(job: WorkHistoryRender): Promise<string | null> {
     `team-version:${getInstanceBase()}:${job.sessionId}`);
 }
 
-function versionFrom(at: string): string {
-  return tRaw('Version from {time}', { time: new Date(at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) });
+/** An answer the shell cannot read. */
+function invalid(code?: string): WorkHistoryError {
+  return new WorkHistoryError(422, code, 'read');
 }
 
-function writerRole(role: string | undefined): boolean {
-  return role === 'owner' || role === 'manager' || role === 'editor';
+/** The permissions object of GET /versions; only true or false is read, anything else is not said. */
+function readPermissions(value: unknown): VersionPermissions | undefined {
+  if (!record(value)) return undefined;
+  const said: VersionPermissions = {};
+  if (typeof value.save === 'boolean') said.save = value.save;
+  if (typeof value.restore === 'boolean') said.restore = value.restore;
+  if (typeof value.delete === 'boolean') said.delete = value.delete;
+  return said;
+}
+
+/** "Version from {time}" in the language of whoever reads the history, made when they read the list. */
+function versionFrom(at: string): string {
+  const date = new Date(at), shape: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  let time: string;
+  try { time = date.toLocaleString(currentLang(), shape); } catch { time = date.toLocaleString(undefined, shape); }
+  return tRaw('Version from {time}', { time });
+}
+
+/** A named version's label, unless it was saved unnamed (stored as its minute), which reads as its time. */
+function namedLabel(label: string, at: string): string {
+  return UNNAMED_VERSION_LABEL.test(label) ? versionFrom(at) : label;
+}
+
+/** Writers restore and save versions (collabHistoryPolicy) when the instance does not say. */
+function writer(role: string | undefined): boolean {
+  const writes = role === 'owner' || role === 'manager' || role === 'editor';
+  return collabHistoryPolicy({ track: 'work', role: writes ? 'writer' : 'observer', host: false }).canRestore;
 }
 
 function inputIds(value: unknown): string[] {

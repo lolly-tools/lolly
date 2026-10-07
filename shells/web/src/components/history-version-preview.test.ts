@@ -12,7 +12,8 @@ Object.assign(globalThis, {
 });
 dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
 dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; };
-const { contributorsText, versionReason, openVersionPreview, mountVersionSave, UNDO_RESTORE_MS } = await import('./history-version-preview.ts');
+const { contributorsText, versionReason, versionTime, versionTitle, openVersionPreview, mountVersionSave, UNDO_RESTORE_MS } = await import('./history-version-preview.ts');
+const { setActiveLang } = await import('../i18n.ts');
 const { flushUndoToasts } = await import('../lib/undo-toast.ts');
 
 const settle = () => new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -77,7 +78,7 @@ test('a viewer previews a version larger, with its facts as text and no restore 
   openVersionPreview({ collab, entry: entry({ contributors: [{ id: 'u1', label: '<b>Ana</b>' }] }), actions, openCopy: async () => {} });
   await settle();
   const dialog = preview()!;
-  const time = new Date('2026-10-08T09:00:00.000Z').toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const time = new Date('2026-10-08T09:00:00.000Z').toLocaleString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   assert.equal(dialog.getAttribute('aria-label'), `Version from ${time}`, 'an unnamed version is titled by when it was made');
   assert.equal(dialog.querySelector('img')?.getAttribute('src'), 'data:image/png;base64,AAAA');
   assert.equal(dialog.querySelector('.history-version-facts b'), null, 'names cannot inject markup');
@@ -210,10 +211,29 @@ test('Save version is offered to writers, names an unnamed version by its time a
   assert.equal(input.value, '');
   form.el.requestSubmit();
   await settle();
-  assert.match(calls.saved[1]!, /^Version from /);
+  assert.match(calls.saved[1]!, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/, 'an unnamed version is stored with its minute, in no language');
   collab.saveVersion = async () => { throw new Error('History is full. Ask a manager to delete old versions.'); };
   form.el.requestSubmit();
   await settle();
   assert.deepEqual(calls.status, ['History is full. Ask a manager to delete old versions.']);
   form.el.remove();
+});
+
+test('times read in the app language, and a version saved unnamed is titled by its time for every reader', async () => {
+  const at = '2026-10-08T09:00:00.000Z', shape: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  await setActiveLang('de', { persist: false });
+  try {
+    assert.equal(versionTime(at), new Date(at).toLocaleString('de', shape), 'the app language, not the browser locale');
+  } finally { await setActiveLang('en', { persist: false }); }
+  assert.equal(versionTitle(entry({ reason: 'named', label: '2026-10-08T09:00Z' })), `Version from ${new Date(at).toLocaleString('en', shape)}`);
+  assert.equal(versionTitle(entry({ reason: 'named', label: 'Final draft' })), 'Final draft');
+});
+
+test('Save version follows the host\'s own save permission when it gives one', () => {
+  const refused = capability('editor', { canSave: false });
+  const form = mountVersionSave(refused.collab, refused.actions); form.update();
+  assert.equal(form.el.hidden, true, 'a writer the host refuses saving is not offered the form');
+  const allowed = capability('viewer', { canSave: true });
+  const open = mountVersionSave(allowed.collab, allowed.actions); open.update();
+  assert.equal(open.el.hidden, false, 'the host may allow saving without restoring');
 });

@@ -52,9 +52,10 @@ test('access revoked after listing cannot be bypassed by reading or copying a ca
   });
   assert.equal((await history.list()).entries.length, 1);
   denied = true;
-  await assert.rejects(history.read('s:1'), /403/);
-  await assert.rejects(history.saveCopy!('s:1'), /403/);
-  await assert.rejects(history.list(), /403/);
+  const refused = (error: unknown) => error instanceof WorkHistoryError && error.status === 403 && error.message === 'Could not load history.';
+  await assert.rejects(history.read('s:1'), refused);
+  await assert.rejects(history.saveCopy!('s:1'), refused);
+  await assert.rejects(history.list(), refused);
 });
 
 test('malformed rows and rows for another session cannot be opened', async () => {
@@ -71,7 +72,8 @@ test('malformed rows and rows for another session cannot be opened', async () =>
 
 test('missing tool identity fails clearly instead of guessing Design', async () => {
   const history = createWorkCollabHistory('s', async () => Response.json({}));
-  await assert.rejects(history.list(), /tool identity/);
+  await assert.rejects(history.list(), (error: unknown) => error instanceof WorkHistoryError && error.code === 'NO_TOOL_IDENTITY'
+    && error.message === 'Could not load history.');
 });
 
 // ── Saved versions (plan 76 M4) ───────────────────────────────────────────────
@@ -132,6 +134,46 @@ test('only writers may restore or save, and only managers may delete', async () 
   }
 });
 
+test('the instance\'s permissions on GET /versions win over the role, field by field', async () => {
+  const host = (role: string, permissions: unknown) => {
+    const { fetcher } = versionsHost(role, [], url => (url.startsWith('/api/v1/sessions/s1/versions?') ? json({ versions: [], permissions }) : undefined));
+    return createWorkCollabHistory('s1', fetcher);
+  };
+  const denied = host('editor', { save: false, restore: false, delete: false });
+  await denied.list();
+  assert.deepEqual([denied.canSave, denied.canRestore, denied.remove], [false, false, undefined], 'an editor whose grants deny the edit is offered nothing');
+  const granted = host('viewer', { save: true, restore: true, delete: true });
+  await granted.list();
+  assert.deepEqual([granted.canSave, granted.canRestore, typeof granted.remove], [true, true, 'function']);
+  const partial = host('manager', { restore: false, save: 'yes' });
+  await partial.list();
+  assert.deepEqual([partial.canSave, partial.canRestore, typeof partial.remove], [true, false, 'function'], 'a field the instance does not give falls back to the role');
+  const older = host('editor', undefined);
+  await older.list();
+  assert.deepEqual([older.canSave, older.canRestore, older.remove], [true, true, undefined], 'no permissions: the role decides');
+});
+
+test('a failed or unreadable history answer is reported in the person\'s language, never as a status code', async () => {
+  for (const answer of [new Response('', { status: 500 }), refuse(403, 'FORBIDDEN'), json({ versions: 'nope' }), new Response('not json', { status: 200 })]) {
+    const { fetcher } = versionsHost('editor', [], url => (url.startsWith('/api/v1/sessions/s1/versions?') ? answer : undefined));
+    await assert.rejects(createWorkCollabHistory('s1', fetcher).list(), (error: unknown) => error instanceof WorkHistoryError && error.message === 'Could not load history.');
+  }
+  const { fetcher } = versionsHost('editor', [], url => (url === '/api/v1/sessions/s1/versions/ver_x' ? new Response('', { status: 502 }) : undefined));
+  await assert.rejects(createWorkCollabHistory('s1', fetcher).read('ver_x'), (error: unknown) => error instanceof WorkHistoryError && error.status === 502
+    && error.message === 'Could not load history.');
+});
+
+test('a version saved unnamed reads as its time, in the reader\'s language', async () => {
+  const at = '2026-10-08T09:00:00.000Z';
+  const { fetcher } = versionsHost('editor', [version('ver_unnamed', 'named', { label: '2026-10-08T09:00Z', at })], url =>
+    (url === '/api/v1/sessions/s1/versions/ver_unnamed' ? json({ version: { ...version('ver_unnamed', 'named', { label: '2026-10-08T09:00Z', at }), inputs: { title: 'v' }, meta: { label: 'Doc' } } }) : undefined));
+  const history = createWorkCollabHistory('s1', fetcher);
+  const time = new Date(at).toLocaleString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const [row] = (await history.list()).entries;
+  assert.deepEqual([row?.reason, row?.label], ['named', `Version from ${time}`]);
+  assert.equal((await history.read('ver_unnamed'))?.__label, `Version from ${time}`);
+});
+
 test('a version opens as a copy from its stored inputs, and a version of another session does not', async () => {
   const { fetcher } = versionsHost('viewer', [], url => {
     if (url === '/api/v1/sessions/s1/versions/ver_named') return json({ version: { ...version('ver_named', 'named', { label: 'Final' }), inputs: { title: 'v1' }, meta: { toolId: 'chart', toolVersion: '2' } } });
@@ -163,9 +205,9 @@ test('Save version posts the trimmed name with a fresh request id and maps refus
   await assert.rejects(history.saveVersion!('   '), WorkHistoryError);
   for (const [response, copy] of [
     [refuse(409, 'VERSION_SPACE'), 'History is full. Ask a manager to delete old versions.'],
-    [refuse(409, 'VERSION_LIMIT'), 'History is full. Ask a manager to delete old versions.'],
+    [refuse(409, 'VERSION_LIMIT'), 'You have saved the most named versions allowed. Delete one of yours first.'],
     [refuse(429, 'RATE_LIMITED'), 'Too many version changes. Try again in a minute.'],
-    [refuse(403, 'READ_ONLY'), 'Only editors can restore versions.'],
+    [refuse(403, 'READ_ONLY'), 'Only editors can save versions.'],
     [refuse(409, 'PROJECT_ARCHIVED'), 'Could not complete this action. Please try again.'],
     [new Response('not json', { status: 500 }), 'Could not complete this action. Please try again.'],
   ] as const) {
@@ -192,6 +234,7 @@ test('restore posts a fresh request id and reports the version that undoes it wi
     [refuse(404, 'NOT_FOUND'), 'This version is no longer available.'],
     [refuse(410, 'SESSION_DELETED'), 'This version is no longer available.'],
     [refuse(429, 'RATE_LIMITED'), 'Too many version changes. Try again in a minute.'],
+    [refuse(403, 'READ_ONLY'), 'Only editors can restore versions.'],
   ] as const) {
     answer = response;
     await assert.rejects(history.restore!('ver_auto'), (error: unknown) => error instanceof WorkHistoryError && error.message === copy);
