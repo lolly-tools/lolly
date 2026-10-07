@@ -240,7 +240,7 @@ async function main() {
     const [reference, imageDigest] = image.digest.split('@');
     assert.ok(reference && imageDigest);
     const packageName = reference.replace('ghcr.io/', '');
-    const tokenResponse = await fetch(
+    const tokenResponse: Response = await fetch(
       `https://ghcr.io/token?service=ghcr.io&scope=repository:${packageName}:pull`,
       {
         headers: {
@@ -250,8 +250,8 @@ async function main() {
       }
     );
     assert.ok(tokenResponse.ok, `Scoped registry authorization failed (${tokenResponse.status})`);
-    const authorization = `Bearer ${(await tokenResponse.json()).token}`;
-    const get = async (path: string) => {
+    const authorization: string = `Bearer ${(await tokenResponse.json()).token}`;
+    const get = async (path: string): Promise<Response> => {
       const response = await fetch(`https://ghcr.io/v2/${packageName}/${path}`, {
         headers: {
           authorization,
