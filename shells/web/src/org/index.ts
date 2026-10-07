@@ -518,8 +518,9 @@ export async function signOutOfInstance(): Promise<boolean> {
 }
 
 /** What a sign-out forgets on this device (see signOutOfInstance), once the instance has
- *  ended the session. */
+ *  ended the session: the team-document origins first (plan 75 G17), then the member. */
 async function forgetMemberHere(): Promise<void> {
+  await forgetTeamOrigins();
   try { localStorage.removeItem(orgConfigKey()); } catch { /* storage unavailable - the copy expires on its TTL */ }
   try { localStorage.setItem(signedOutKey(), '1'); } catch { /* storage unavailable - the gate's plain link */ }
   await setInstanceSession(null);
@@ -544,6 +545,32 @@ export async function signOutEverywhere(): Promise<'ok' | 'unsupported' | 'faile
   if (!res.ok) return 'failed';
   await forgetMemberHere();
   return 'ok';
+}
+
+/**
+ * Drop where this device's copies of team documents came from (org/team-origin-durable.ts,
+ * plan 75 G17): they are bound to the person signed in, so a sign-out or another account
+ * ends them at once, whether or not a copy is ever opened again. Lazy, off the boot path;
+ * never rejects.
+ */
+async function forgetTeamOrigins(): Promise<void> {
+  try {
+    await (await import('./team-origin-durable.ts')).dropDurableTeamOrigins();
+  } catch {
+    await import('../lib/team-origin-records.ts').then((m) => m.dropTeamOriginRecords()).catch(() => { /* unreachable chunk: the next look prunes */ });
+  }
+}
+
+/** The account the cached org-config was loaded for (its session block's `sub`), or null. */
+function cachedMemberSub(): string | null {
+  try {
+    const raw = localStorage.getItem(orgConfigKey());
+    const block = raw ? (JSON.parse(raw) as { config?: { session?: { sub?: unknown; user?: { sub?: unknown } } } }).config?.session : null;
+    const sub = block?.sub ?? block?.user?.sub;
+    return typeof sub === 'string' && sub ? sub : null;
+  } catch {
+    return null;
+  }
 }
 
 /** The outcome of one member org-config load. `ok` carries a usable config (a fresh
@@ -1115,6 +1142,10 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
     // fetch below is already a registering request - and never otherwise. An
     // anonymous or guest shell stays untagged; leaveInstance() forgets the id.
     if (isMember) {
+      // Another account than the one this device last loaded for: what the last one left
+      // here is not this person's (plan 75 G17).
+      const before = cachedMemberSub();
+      if (before && session?.kind === 'member' && before !== session.user.sub) await forgetTeamOrigins();
       try { localStorage.removeItem(signedOutKey()); } catch { /* storage unavailable */ }
       try { setInstallTag(await ensureInstallId()); } catch { /* untagged is always safe */ }
     } else {

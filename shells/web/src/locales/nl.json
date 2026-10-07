@@ -7394,5 +7394,22 @@
   "The current owner stays on the project as a Manager.": "De huidige eigenaar blijft als Beheerder op het project.",
   "{role} · via {group}": "{role} · via {group}",
   "Admin · via workspace role": "Admin · via werkruimterol",
-  "Admins of {workspace} can also open this project.": "Admins van {workspace} kunnen dit project ook openen."
+  "Admins of {workspace} can also open this project.": "Admins van {workspace} kunnen dit project ook openen.",
+  "{project} · Can edit": "{project} · Kan bewerken",
+  "{project} · View only": "{project} · Alleen weergave",
+  "{project} · View only (workspace role)": "{project} · Alleen weergave (werkruimterol)",
+  "Saved just now": "Zojuist opgeslagen",
+  "View only": "Alleen weergave",
+  "View only. Changes can’t be saved to {project}.": "Alleen weergave. Wijzigingen kunnen niet worden opgeslagen in {project}.",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Met je rol in {workspace} kun je alleen bekijken. Vraag een beheerder van {workspace} om je rol te wijzigen.",
+  "This is view only. Make a copy to keep your changes.": "Dit is alleen-lezen. Maak een kopie om je wijzigingen te bewaren.",
+  "Save changes to {project}?": "Wijzigingen opslaan in {project}?",
+  "Leave without saving keeps your changes on this device.": "Als je vertrekt zonder op te slaan, blijven je wijzigingen op dit apparaat bewaard.",
+  "Stay": "Blijven",
+  "Save a copy on this device": "Kopie op dit apparaat bewaren",
+  "Copy saved on this device.": "Kopie op dit apparaat bewaard.",
+  "Where should the copy go?": "Waar moet de kopie komen?",
+  "In a project you can edit": "In een project dat je kunt bewerken",
+  "Make copy": "Kopie maken",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "De kopie staat los van het origineel. Wijzigingen in de kopie komen niet in {project} terecht."
 }

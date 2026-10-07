@@ -899,5 +899,22 @@
   "The current owner stays on the project as a Manager.": "O proprietário atual continua no projeto como Gerente.",
   "{role} · via {group}": "{role} · via {group}",
   "Admin · via workspace role": "Administrador · via função do espaço de trabalho",
-  "Admins of {workspace} can also open this project.": "Administradores de {workspace} também podem abrir este projeto."
+  "Admins of {workspace} can also open this project.": "Administradores de {workspace} também podem abrir este projeto.",
+  "{project} · Can edit": "{project} · Pode editar",
+  "{project} · View only": "{project} · Somente visualização",
+  "{project} · View only (workspace role)": "{project} · Somente visualização (função no espaço de trabalho)",
+  "Saved just now": "Salvo agora há pouco",
+  "View only": "Somente visualização",
+  "View only. Changes can’t be saved to {project}.": "Somente visualização. Não é possível salvar alterações em {project}.",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Sua função em {workspace} permite apenas visualizar. Peça a um administrador de {workspace} para mudar sua função.",
+  "This is view only. Make a copy to keep your changes.": "Esta é uma visualização somente leitura. Faça uma cópia para manter suas alterações.",
+  "Save changes to {project}?": "Salvar alterações em {project}?",
+  "Leave without saving keeps your changes on this device.": "Sair sem salvar mantém suas alterações neste dispositivo.",
+  "Stay": "Ficar",
+  "Save a copy on this device": "Salvar uma cópia neste dispositivo",
+  "Copy saved on this device.": "Cópia salva neste dispositivo.",
+  "Where should the copy go?": "Onde a cópia deve ficar?",
+  "In a project you can edit": "Em um projeto que você pode editar",
+  "Make copy": "Fazer cópia",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "A cópia é separada. As alterações na cópia não chegam a {project}."
 }

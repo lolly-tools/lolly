@@ -68,6 +68,9 @@ export interface TeamSessionData {
   /** True when the source says that last save was the signed-in person's own (from
    *  another window or device), so a conflict does not name them as someone else. */
   updatedByYou?: boolean;
+  /** The signed-in person's effective role in the session's project, when the source
+   *  says (a viewer opens the document read-only). Absent: unknown. */
+  myRole?: TeamRole;
 }
 
 /** Who can see a new shared project: only its creator, or the named groups. */

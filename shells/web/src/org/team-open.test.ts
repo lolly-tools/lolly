@@ -12,7 +12,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { decodeAssetVersion } from '@lolly/engine';
-import { teamSessionAddress } from './team-open.ts';
+import { teamSessionAddress, teamSessionRole } from './team-open.ts';
+import { registerSessionSource } from '../lib/session-source.ts';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 type Model = Parameters<typeof teamSessionAddress>[1];
 
@@ -61,4 +64,32 @@ test('the emoji set the session draws with rides along, and an empty model opens
   const hash = teamSessionAddress('frame', [] as unknown as Model, { emoji: { emoji: 'noto', emojifx: 'original' } });
   assert.equal(query(hash).get('emoji'), 'noto');
   assert.equal(teamSessionAddress('frame', [] as unknown as Model), '#/tool/frame');
+});
+
+test('the role an origin carries: the session read\'s own, else the project row\'s (plan 75 J5)', async () => {
+  assert.equal(await teamSessionRole({ myRole: 'viewer' }, 'proj-9'), 'viewer', 'the session read says');
+  assert.equal(await teamSessionRole({}, 'proj-9'), undefined, 'no source, no list: unknown');
+  const off = registerSessionSource({
+    label: 'lolly.ing',
+    listProjects: async () => [{ id: 'proj-9', name: 'Brand refresh', myRole: 'viewer' }, { id: 'proj-2', name: 'Drafts', myRole: 'editor' }],
+    listSessions: async () => [], fetchSession: async () => null,
+  });
+  try {
+    assert.equal(await teamSessionRole({}, 'proj-9'), 'viewer', 'an older instance: the project row says');
+    assert.equal(await teamSessionRole({ myRole: 'editor' }, 'proj-9'), 'editor', 'the session read wins (a group can make a viewer row an editor)');
+    assert.equal(await teamSessionRole({}, 'proj-404'), undefined);
+    assert.equal(await teamSessionRole({}, undefined), undefined);
+  } finally {
+    off();
+  }
+});
+
+test('the open carries the role and waits for the scope provider before navigating', () => {
+  const src = readFileSync(resolve(import.meta.dirname, 'team-open.ts'), 'utf8');
+  const open = src.slice(src.indexOf('export async function openTeamSession('));
+  assert.match(open, /\.\.\.\(role \? \{ role \} : \{\}\)/);
+  const prepared = open.indexOf('await prepareTeamScope();');
+  assert.ok(prepared > 0, 'the provider is prepared');
+  assert.ok(prepared < open.indexOf('rememberTeamSessionOrigin(origin, { hash });'), 'before the stash is armed for the mount');
+  assert.ok(prepared < open.indexOf('adoptTeamSessionOrigin(origin);'), 'and before a same-address adopt');
 });

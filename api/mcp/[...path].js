@@ -159915,6 +159915,12 @@ function browserLaunchArgs(env = process.env) {
     "--font-render-hinting=none"
   ];
 }
+function browserLaunchOptions(env = process.env) {
+  return {
+    chromiumSandbox: env.LOLLY_BROWSER_NO_SANDBOX !== "1",
+    args: browserLaunchArgs(env)
+  };
+}
 async function getBrowser2() {
   if (!browserPromise2) {
     browserPromise2 = (async () => {
@@ -159935,7 +159941,7 @@ async function getBrowser2() {
           // WebGL-dependent tool (3d, viz) renders its fallback rather than GL
           // content on this tier. Add '--use-angle=swiftshader',
           // '--enable-unsafe-swiftshader' if a hosted deployment needs those tools.
-          args: browserLaunchArgs()
+          ...browserLaunchOptions()
         });
       } catch (err) {
         const msg3 = err.message || "";

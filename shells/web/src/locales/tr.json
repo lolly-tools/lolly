@@ -7394,5 +7394,22 @@
   "The current owner stays on the project as a Manager.": "Mevcut sahip projede Yönetici olarak kalır.",
   "{role} · via {group}": "{role} · {group} üzerinden",
   "Admin · via workspace role": "Admin · çalışma alanı rolü üzerinden",
-  "Admins of {workspace} can also open this project.": "{workspace} adminleri bu projeyi de açabilir."
+  "Admins of {workspace} can also open this project.": "{workspace} adminleri bu projeyi de açabilir.",
+  "{project} · Can edit": "{project} · Düzenleyebilir",
+  "{project} · View only": "{project} · Salt görüntüleme",
+  "{project} · View only (workspace role)": "{project} · Salt görüntüleme (çalışma alanı rolü)",
+  "Saved just now": "Az önce kaydedildi",
+  "View only": "Salt görüntüleme",
+  "View only. Changes can’t be saved to {project}.": "Salt görüntüleme. Değişiklikler {project} projesine kaydedilemez.",
+  "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "{workspace} içindeki rolün yalnızca görüntülemeye izin veriyor. Rolünü değiştirmesi için {workspace} yöneticisine başvur.",
+  "This is view only. Make a copy to keep your changes.": "Bu yalnızca görüntüleme modu. Değişikliklerini korumak için bir kopya oluştur.",
+  "Save changes to {project}?": "Değişiklikler {project} projesine kaydedilsin mi?",
+  "Leave without saving keeps your changes on this device.": "Kaydetmeden ayrılırsan değişikliklerin bu cihazda kalır.",
+  "Stay": "Kal",
+  "Save a copy on this device": "Bu cihaza bir kopya kaydet",
+  "Copy saved on this device.": "Kopya bu cihaza kaydedildi.",
+  "Where should the copy go?": "Kopya nereye gitsin?",
+  "In a project you can edit": "Düzenleyebildiğin bir projeye",
+  "Make copy": "Kopya oluştur",
+  "The copy is separate. Changes to the copy don’t reach {project}.": "Kopya ayrıdır. Kopyadaki değişiklikler {project} projesine ulaşmaz."
 }
