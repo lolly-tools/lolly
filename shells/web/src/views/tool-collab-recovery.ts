@@ -3,7 +3,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { subscribeCanvasRecovery } from '../lib/canvas-recovery.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { navigateHistoryHref } from '../lib/history-navigation.ts';
-import { configureNotifications, dismissNotification, notificationEntries, publishNotification } from '../lib/notifications.ts';
+import { configureNotifications, dismissNotification, notificationEntries, notificationsChanged, publishNotification, registerNotificationSource } from '../lib/notifications.ts';
 import type { ShellNotification } from '../lib/notifications.ts';
 import { tRaw } from '../i18n.ts';
 
@@ -32,12 +32,60 @@ export function recoveryOwner(data: unknown): RecoveryOwner | null {
 const openableTool = (data: CopyData): string | null =>
   typeof data.__toolId === 'string' && TOOL_ID.test(data.__toolId) ? data.__toolId : null;
 
+type Scope = { origin: string; account: string };
+/**
+ * This tab's saved copies, by slot. They outlive the document they came from, so the
+ * notice stays in the queue after the person leaves, until they dismiss the notice. Every read
+ * lists only the copies of the workspace and account of the latest live document.
+ */
+const listed = new Map<string, { copy: CopyData; host: HostV1 | null | undefined }>();
+let tabScope: (() => Scope) | null = null;
+const dismissWatchers = new Set<(slot: string) => void>();
+const ownedHere = (data: unknown): data is CopyData => {
+  const owner = recoveryOwner(data), here = tabScope?.();
+  return !!owner && !!here && owner.origin === here.origin && owner.account === here.account
+    && Date.now() - Date.parse(owner.at) <= RECOVERY_MAX_AGE_MS;
+};
+function deliverCopy(host: HostV1 | null | undefined, data: CopyData): Promise<void> {
+  const blob = new Blob([JSON.stringify(Object.fromEntries(Object.entries(data).filter(([key]) => key !== RECOVERY_OWNER_KEY)), null, 2)], { type: 'application/json' });
+  return host?.export?.download ? host.export.download(blob, 'lolly-recovery.json')
+    : import('../bridge/export.ts').then(({ anchorSave }) => anchorSave(blob, 'lolly-recovery.json'));
+}
+/** Open a listed copy after reading it again. False when it is gone or no longer this account's. */
+async function openListed(slot: string): Promise<boolean> {
+  const item = listed.get(slot), data = await item?.host?.state?.load(slot);
+  const toolId = ownedHere(data) ? openableTool(data) : null;
+  // A copy that is gone, or that belongs to someone else, is never opened.
+  if (!toolId) { if (listed.delete(slot)) notificationsChanged(); return false; }
+  const { sessionOpenHref } = await import('../lib/search/projects-source.ts');
+  navigateHistoryHref(sessionOpenHref({ slot, toolId }, false));
+  return true;
+}
+/** The queue's entries: Open recovery copy when the tool is known, and Download recovery copy always. */
+function readListed(): ShellNotification[] {
+  const entries: ShellNotification[] = [];
+  for (const [slot, { copy, host }] of listed) {
+    if (!ownedHere(copy)) continue;
+    const download = { label: tRaw('Download recovery copy'), run: () => deliverCopy(host, copy) };
+    entries.push({ id: slot, title: tRaw('Interrupted edit saved on this device.'), tone: 'action',
+      body: tRaw('Your interrupted edit is saved as a separate copy on this device. Accepted changes are already in the shared document.'),
+      ...(openableTool(copy) ? { action: { label: tRaw('Open recovery copy'), run: () => openListed(slot).then(() => {}) }, secondary: download } : { action: download }),
+      onDismiss: () => { for (const watch of [...dismissWatchers]) watch(slot); } });
+  }
+  return entries;
+}
+
+/** TEST-ONLY: forget this tab's listed copies. */
+export function _resetRecoveryCopiesForTests(): void {
+  listed.clear(); tabScope = null; dismissWatchers.clear();
+}
+
 /**
  * A new Library slot keeps interrupted work separate from the room and earlier saves.
  * The notice stays until the person dismisses it, and the account's copies stay in the
- * notification queue while a live document is open. `account` reads the signed-in
- * account of the live room; another account's or workspace's copies are never listed
- * or opened, and copies older than 30 days are removed.
+ * notification queue, after the document closes too, with Open and Download. `account`
+ * reads the signed-in account of the live room; another account's or workspace's copies
+ * are never listed or opened, and copies older than 30 days are removed.
  */
 export function mountCollabRecovery(runtime: object, host: HostV1 | null | undefined, parent: HTMLElement,
   capture: () => { state: Record<string, unknown>; label?: string }, account: () => string | undefined = () => undefined) {
@@ -53,46 +101,39 @@ export function mountCollabRecovery(runtime: object, host: HostV1 | null | undef
   root.setAttribute('data-export-hide', '');
   let disposed = false, latest: { slot: string; copy: CopyData } | undefined, generation = 0;
   let retry: ReturnType<typeof setTimeout> | undefined;
+  /** Notices for copies that could not be saved: they live as long as this document. */
   const notices = new Map<string, () => void>();
-  const scope = () => ({ origin: getInstanceBase() || win?.location.origin || '', account: account() ?? '' });
+  const scope = (): Scope => ({ origin: getInstanceBase() || win?.location.origin || '', account: account() ?? '' });
+  // This document's account decides which copies the queue lists, from now on.
+  tabScope = scope;
+  registerNotificationSource('collab-recovery', readListed);
   const owns = (data: unknown): data is CopyData => {
     const owner = recoveryOwner(data), here = scope();
     return !!owner && owner.origin === here.origin && owner.account === here.account;
   };
   const shown = (id: string): boolean => !!latest && (id === latest.slot || id === `${latest.slot}:unsaved`);
-  const deliver = (data: CopyData): Promise<void> => {
-    const blob = new Blob([JSON.stringify(Object.fromEntries(Object.entries(data).filter(([key]) => key !== RECOVERY_OWNER_KEY)), null, 2)], { type: 'application/json' });
-    return host?.export?.download ? host.export.download(blob, 'lolly-recovery.json')
-      : import('../bridge/export.ts').then(({ anchorSave }) => anchorSave(blob, 'lolly-recovery.json'));
-  };
+  const watch = (slot: string): void => { if (shown(slot)) root.hidden = true; };
+  dismissWatchers.add(watch);
   const notify = (id: string, entry: Omit<ShellNotification, 'id' | 'onDismiss'>): void => {
     notices.get(id)?.();
-    notices.set(id, publishNotification({ ...entry, id, onDismiss: () => { if (shown(id)) root.hidden = true; } }));
+    notices.set(id, publishNotification({ ...entry, id, onDismiss: () => { watch(id); } }));
   };
   const withdraw = (id: string): void => { notices.get(id)?.(); notices.delete(id); };
-  async function openCopy(slot: string): Promise<void> {
-    const data = await host?.state?.load(slot);
-    const toolId = owns(data) ? openableTool(data) : null;
-    // A copy that is gone, or that belongs to someone else, is never opened.
-    if (disposed || !toolId) { withdraw(slot); if (latest?.slot === slot) open.hidden = true; return; }
-    const { sessionOpenHref } = await import('../lib/search/projects-source.ts');
-    navigateHistoryHref(sessionOpenHref({ slot, toolId }, false));
-  }
   const listCopy = (slot: string, data: CopyData): void => {
-    notify(slot, { title: tRaw('Interrupted edit saved on this device.'), tone: 'action',
-      body: tRaw('Your interrupted edit is saved as a separate copy on this device. Accepted changes are already in the shared document.'),
-      action: openableTool(data) ? { label: tRaw('Open recovery copy'), run: () => openCopy(slot) }
-        : { label: tRaw('Download recovery copy'), run: () => deliver(data) } });
+    listed.set(slot, { copy: data, host }); notificationsChanged();
   };
   // Unreadable storage leaves the notice and its queued copy in place to try again.
-  open.addEventListener('click', () => { if (latest) openCopy(latest.slot).catch(() => {}); });
+  open.addEventListener('click', () => {
+    const slot = latest?.slot;
+    if (slot) openListed(slot).then(opened => { if (!opened && !disposed && latest?.slot === slot) open.hidden = true; }, () => {});
+  });
   download.addEventListener('click', () => {
     if (!latest) return;
-    void deliver(latest.copy).catch(() => { if (!disposed) status.textContent = tRaw('Recovery download failed. Try again.'); });
+    void deliverCopy(host, latest.copy).catch(() => { if (!disposed) status.textContent = tRaw('Recovery download failed. Try again.'); });
   });
   dismiss.addEventListener('click', () => {
     root.hidden = true;
-    for (const id of [...notices.keys()]) if (shown(id)) dismissNotification(id);
+    if (latest) for (const id of [latest.slot, `${latest.slot}:unsaved`]) dismissNotification(id);
   });
   void configureNotifications();
   const off = subscribeCanvasRecovery(runtime, draft => {
@@ -121,7 +162,7 @@ export function mountCollabRecovery(runtime: object, host: HostV1 | null | undef
         if (disposed || ticket !== generation) return;
         status.textContent = tRaw('Recovery copy could not be saved here. Download the recovery copy.');
         if (!notices.has(unsaved)) notify(unsaved, { title: tRaw('Recovery copy could not be saved here. Download the recovery copy.'),
-          tone: 'warning', action: { label: tRaw('Download recovery copy'), run: () => deliver(copy) } });
+          tone: 'warning', action: { label: tRaw('Download recovery copy'), run: () => deliverCopy(host, copy) } });
         if (retryable && ++attempts < 4) retry = setTimeout(() => { void save(); }, 2_000 * attempts);
       }
     }
@@ -137,17 +178,18 @@ export function mountCollabRecovery(runtime: object, host: HostV1 | null | undef
     const now = Date.now();
     for (const { slot } of entries) {
       if (disposed) return;
-      if (!slot.startsWith(RECOVERY_SLOT_PREFIX) || notices.has(slot)) continue;
+      if (!slot.startsWith(RECOVERY_SLOT_PREFIX) || listed.has(slot)) continue;
       try {
         const data = await state.load(slot), owner = recoveryOwner(data);
         if (!owner) continue;
         if (now - Date.parse(owner.at) > RECOVERY_MAX_AGE_MS) await state.delete(slot);
-        else if (!disposed && owns(data) && !notices.has(slot)) listCopy(slot, data);
+        else if (!disposed && owns(data) && !listed.has(slot)) listCopy(slot, data);
       } catch { /* One unreadable copy leaves the rest listed. */ }
     }
   }
   return { teardown() {
-    disposed = true; clearTimeout(retry); clearTimeout(scan); off();
+    // Saved copies stay listed until dismissed; only this document's unsaved warnings go.
+    disposed = true; clearTimeout(retry); clearTimeout(scan); off(); dismissWatchers.delete(watch);
     for (const stop of notices.values()) stop();
     notices.clear(); root.remove();
   } };
