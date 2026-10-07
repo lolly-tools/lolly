@@ -13,6 +13,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
@@ -43,7 +44,11 @@ durable._setDurableBackendForTests({
   put: async (rec) => { rows.set(rec.key, rec); },
   delete: async (key) => { rows.delete(key); },
   all: async () => [...rows.values()],
+  clear: async () => { rows.clear(); },
 });
+
+/** The account as a record stores it: never the id, a digest bound to the workspace. */
+const digest = (workspace: string, sub: string): string => createHash('sha256').update(`lolly-team-origin\n${workspace}\n${sub}`).digest('hex');
 
 const ORIGIN = { sessionId: 'sess-1', toolId: 'poster', projectId: 'proj-9', rev: 3, label: 'Spring poster', role: 'editor' as const };
 const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 20));
@@ -73,17 +78,49 @@ function at(address: string): void {
   dom.window.history.replaceState(null, '', address);
 }
 
-test('the identity is the signed-in member of this workspace, from the org-config cache', () => {
+test('the identity is the signed-in member of this workspace, from the org-config cache', async () => {
   reset();
-  assert.equal(durable.durableIdentity(), null, 'nobody signed in');
+  assert.equal(await durable.durableIdentity(), null, 'nobody signed in');
   signIn('ana');
-  assert.deepEqual(durable.durableIdentity(), { workspace: 'https://instance.test', account: 'ana' });
+  assert.deepEqual(await durable.durableIdentity(), { workspace: 'https://instance.test', account: digest('https://instance.test', 'ana') });
   signIn('ana', '', 'member');
-  assert.deepEqual(durable.durableIdentity(), { workspace: 'https://instance.test', account: 'ana' }, 'either session shape');
+  assert.deepEqual(await durable.durableIdentity(), { workspace: 'https://instance.test', account: digest('https://instance.test', 'ana') }, 'either session shape');
   signOut();
-  assert.equal(durable.durableIdentity(), null, 'a sign-out ends it');
+  assert.equal(await durable.durableIdentity(), null, 'a sign-out ends it');
   signIn('ana', 'https://work.example');
-  assert.deepEqual(durable.durableIdentity(), { workspace: 'https://work.example', account: 'ana' }, 'a remote workspace is its base');
+  assert.deepEqual(await durable.durableIdentity(), { workspace: 'https://work.example', account: digest('https://work.example', 'ana') }, 'a remote workspace is its base');
+});
+
+test('a record never holds the account id: a dev or proxy id can carry an address', async () => {
+  reset();
+  signIn('dev:ana@example.test');
+  assert.equal(await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' }), true);
+  const [rec] = [...rows.values()];
+  assert.match(rec!.account, /^[0-9a-f]{64}$/);
+  assert.ok(!JSON.stringify(rec).includes('ana@example.test'), 'no address anywhere in the record');
+  assert.equal((await durable.findDurableTeamOrigin('poster', 'poster:1'))?.sessionId, 'sess-1', 'and the same member still finds it');
+});
+
+test('dropping the records empties the store and the mark, without any copy being opened', async () => {
+  reset();
+  signIn('ana');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' });
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, sessionId: 'sess-2', slot: 'poster:2' });
+  assert.equal(rows.size, 2);
+  assert.equal(durable.mayHoldDurableTeamOrigins(), true);
+  await durable.dropDurableTeamOrigins();
+  assert.equal(rows.size, 0, 'every record is gone at once');
+  assert.equal(durable.mayHoldDurableTeamOrigins(), false, 'and the mark');
+});
+
+test('a role this shell does not know keeps no record (it fails closed)', async () => {
+  reset();
+  signIn('ana');
+  for (const role of ['commenter', 'viewer', 'reviewer']) {
+    assert.equal(await durable.rememberDurableTeamOrigin({ ...ORIGIN, role: role as 'viewer', slot: `poster:${role}` }), false, role);
+  }
+  assert.equal(rows.size, 0);
+  assert.equal(await durable.rememberDurableTeamOrigin({ ...ORIGIN, role: undefined, slot: 'poster:1' }), true, 'an absent role is unknown, not view-only');
 });
 
 test('a record is kept for its slot and found again by the same member', async () => {

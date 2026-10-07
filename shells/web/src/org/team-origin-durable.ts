@@ -13,12 +13,14 @@
  *
  * Bound to a workspace and an account, and never used across either:
  *
- *  - a record is keyed by the workspace origin, the account id and the slot, and is
- *    read only under the same workspace and the same account;
- *  - after a sign-out (the workspace's signed-out mark), every record for that
- *    workspace is dropped, so the next person on a shared device inherits nothing;
- *  - a record for another account on this workspace is dropped when it is found
- *    (an account change), and so is a record for another workspace (Leave, switch).
+ *  - a record is keyed by the workspace origin, a digest of the account id (never the
+ *    id itself: a dev or proxy sign-in's id can carry an email address or a user name)
+ *    and the slot, and is read only under the same workspace and the same account;
+ *  - every record goes the moment the person does: a sign-out, Sign out on all devices
+ *    and an account change (org/index.ts) and Leave (lib/instance-leave.ts) drop them
+ *    all ({@link dropDurableTeamOrigins}), without any copy being opened;
+ *  - and as a second line, a record found under a sign-out (the workspace's signed-out
+ *    mark), another account or another workspace is dropped when it is found.
  *
  * The workspace and account are read from what org/index.ts already keeps on this
  * device (the instance base, and the member org-config cache with its session block),
@@ -29,12 +31,14 @@
  */
 import { getInstanceBase } from '../lib/instance.ts';
 import type { TeamRole } from '../lib/session-source.ts';
+import { TEAM_ORIGINS_DB, TEAM_ORIGINS_MARK, dropTeamOriginRecords } from '../lib/team-origin-records.ts';
 
 /** One device copy's origin, as stored. */
 export interface DurableTeamOrigin {
   /** `${workspace}\n${account}\n${slot}`. */
   key: string;
   workspace: string;
+  /** A digest of the account id ({@link durableIdentity}), never the id. */
   account: string;
   /** The device creation's slot: what Projects reopens. */
   slot: string;
@@ -64,12 +68,18 @@ export interface DurableBackend {
   put(record: DurableTeamOrigin): Promise<void>;
   delete(key: string): Promise<void>;
   all(): Promise<DurableTeamOrigin[]>;
+  /** Remove every record. */
+  clear(): Promise<void>;
 }
 
 /** Set while any record may exist, so opening a device copy costs nothing otherwise. */
-export const DURABLE_MARK_KEY = 'lolly:team-origins';
-const DB_NAME = 'lolly-team-origins';
+export const DURABLE_MARK_KEY = TEAM_ORIGINS_MARK;
+const DB_NAME = TEAM_ORIGINS_DB;
 const STORE = 'origins';
+
+/** The roles that may save to a session. Any other role, one this shell does not know
+ *  included, keeps no record: it fails closed, like the view-only layer. */
+const EDIT_ROLES: readonly string[] = ['owner', 'manager', 'editor'];
 
 /** The workspace scope org/index.ts keys its caches by. */
 function scope(): string {
@@ -86,23 +96,41 @@ function readLocal(key: string): string | null {
 }
 
 /**
+ * The account as a record stores it: SHA-256 over the workspace and the account id, in
+ * hex. Null without WebCrypto (an insecure page), and then nothing is kept.
+ */
+async function accountDigest(workspace: string, sub: string): Promise<string | null> {
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) return null;
+  try {
+    const bytes = await subtle.digest('SHA-256', new TextEncoder().encode(`lolly-team-origin\n${workspace}\n${sub}`));
+    return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return null;
+  }
+}
+
+/**
  * The signed-in member of this workspace, from the org-config cache org/index.ts keeps
  * under `lolly:org-config:<scope>` (removed on sign-out and Leave, replaced when another
- * member signs in). Its session block carries the account id as `sub`. Null when no
- * member is known, or a sign-out was recorded since.
+ * member signs in). Its session block carries the account id as `sub`; the identity
+ * holds a digest of that id. Null when no member is known, or a sign-out was recorded since.
  */
-export function durableIdentity(): DurableIdentity | null {
+export async function durableIdentity(): Promise<DurableIdentity | null> {
   if (readLocal(`lolly:signed-out:${scope()}`) === '1') return null;
+  let sub: unknown;
   try {
     const raw = readLocal(`lolly:org-config:${scope()}`);
     if (!raw) return null;
     const session = (JSON.parse(raw) as { config?: { session?: { sub?: unknown; user?: { sub?: unknown } } } }).config?.session;
-    const sub = session?.sub ?? session?.user?.sub;
-    const workspace = workspaceOrigin();
-    return typeof sub === 'string' && sub && workspace ? { workspace, account: sub } : null;
+    sub = session?.sub ?? session?.user?.sub;
   } catch {
     return null;
   }
+  const workspace = workspaceOrigin();
+  if (typeof sub !== 'string' || !sub || !workspace) return null;
+  const account = await accountDigest(workspace, sub);
+  return account ? { workspace, account } : null;
 }
 
 /** The record key for one slot under one identity. Pure. */
@@ -127,7 +155,13 @@ function db(): Promise<IDBDatabase> {
       if (!idb) { reject(new Error('IndexedDB is unavailable')); return; }
       const open = idb.open(DB_NAME, 1);
       open.onupgradeneeded = () => { open.result.createObjectStore(STORE, { keyPath: 'key' }); };
-      open.onsuccess = () => resolve(open.result);
+      open.onsuccess = () => {
+        const conn = open.result;
+        // A drop from this tab or another (lib/team-origin-records.ts) deletes the
+        // database: let go at once, so the delete is never held up by this page.
+        conn.onversionchange = () => { conn.close(); dbPromise = null; };
+        resolve(conn);
+      };
       open.onerror = () => reject(open.error);
     });
     dbPromise.catch(() => { dbPromise = null; });
@@ -145,6 +179,12 @@ const indexedDbBackend: DurableBackend = {
   put: async (record) => { await tx('readwrite', (s) => s.put(record)); },
   delete: async (key) => { await tx('readwrite', (s) => s.delete(key)); },
   all: () => tx('readonly', (s) => s.getAll() as IDBRequest<DurableTeamOrigin[]>),
+  clear: async () => {
+    const open = dbPromise;
+    dbPromise = null;
+    if (open) await open.then((conn) => conn.close(), () => undefined);
+    await dropTeamOriginRecords();
+  },
 };
 
 let backend: DurableBackend = indexedDbBackend;
@@ -174,8 +214,9 @@ export function mayHoldDurableTeamOrigins(): boolean {
  * the session and copies instead. Resolves whether a record was written.
  */
 export async function rememberDurableTeamOrigin(input: DurableTeamOriginInput): Promise<boolean> {
-  const identity = durableIdentity();
-  if (!identity || !input.slot || !input.sessionId || !input.toolId || input.role === 'viewer') return false;
+  if (!input.slot || !input.sessionId || !input.toolId || (input.role !== undefined && !EDIT_ROLES.includes(input.role))) return false;
+  const identity = await durableIdentity();
+  if (!identity) return false;
   const record: DurableTeamOrigin = { ...input, ...identity, key: durableKey(identity, input.slot), at: Date.now() };
   try {
     await backend.put(record);
@@ -210,7 +251,7 @@ async function prune(identity: DurableIdentity | null): Promise<DurableTeamOrigi
 export async function findDurableTeamOrigin(toolId: string, slot: string): Promise<DurableTeamOrigin | null> {
   if (!slot || !toolId) return null;
   try {
-    const identity = durableIdentity();
+    const identity = await durableIdentity();
     const usable = await prune(identity);
     if (!identity) return null;
     const key = durableKey(identity, slot);
@@ -223,7 +264,18 @@ export async function findDurableTeamOrigin(toolId: string, slot: string): Promi
 
 /** Forget the record for `slot` (the copy was made its own, or its session is gone). */
 export async function forgetDurableTeamOrigin(slot: string): Promise<void> {
-  const identity = durableIdentity();
+  const identity = await durableIdentity();
   if (!identity || !slot) return;
   try { await backend.delete(durableKey(identity, slot)); } catch { /* nothing to forget */ }
+}
+
+/**
+ * Drop every record and the mark: the person is no longer the one signed in here (a
+ * sign-out, Sign out on all devices, another account, Leave). Never rejects; when the
+ * storage cannot be cleared, the records left are inert (no mark, and no member they
+ * could be found under) and the next look drops them.
+ */
+export async function dropDurableTeamOrigins(): Promise<void> {
+  mark(false);
+  try { await backend.clear(); } catch { /* see above */ }
 }
