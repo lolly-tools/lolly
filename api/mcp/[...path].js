@@ -171215,8 +171215,23 @@ function createGateway(env = process.env) {
   };
 }
 
+// services/mcp/src/vercel-render-url.ts
+function vercelRenderUrl(raw) {
+  const url = new URL(raw, "http://internal");
+  const match = matchRenderGetPath(url.pathname);
+  if (!match) return raw;
+  const file = `${match.toolId}.${match.ext}`;
+  if (!url.searchParams.getAll("file").includes(file)) return raw;
+  url.searchParams.delete("file", file);
+  return `${url.pathname}${url.search}`;
+}
+
 // services/mcp/src/vercel-entry.ts
-var vercel_entry_default = createGateway();
+var gateway = createGateway();
+function vercelEntry(req, res) {
+  req.url = vercelRenderUrl(req.url || "/");
+  return gateway(req, res);
+}
 export {
-  vercel_entry_default as default
+  vercelEntry as default
 };
