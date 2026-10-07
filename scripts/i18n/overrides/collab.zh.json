@@ -1,3 +1,14 @@
 {
-  "View {name}": "查看{name}"
+  "Follow {name}": "关注 {name}",
+  "Following {name}": "正在关注 {name}",
+  "Stop following": "停止关注",
+  "You stopped following {name}.": "你已停止关注 {name}。",
+  "{name} left. You stopped following.": "{name} 已离开，你已停止关注。",
+  "Followers: {count}": "关注者：{count}",
+  "Following you": "正在关注你",
+  "{name} is following you": "{name} 正在关注你",
+  "{name} is presenting": "{name} 正在演示",
+  "Follow presentation": "关注演示",
+  "Following the presentation by {name}": "正在关注 {name} 的演示",
+  "Press Escape to stop following.": "按 Esc 键停止关注。"
 }

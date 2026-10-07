@@ -1,3 +1,14 @@
 {
-  "View {name}": "{name} دیکھیں"
+  "Follow {name}": "{name} کو فالو کریں",
+  "Following {name}": "آپ {name} کو فالو کر رہے ہیں",
+  "Stop following": "فالو کرنا بند کریں",
+  "You stopped following {name}.": "آپ نے {name} کو فالو کرنا بند کر دیا۔",
+  "{name} left. You stopped following.": "{name} چلے گئے۔ آپ نے فالو کرنا بند کر دیا۔",
+  "Followers: {count}": "فالوورز: {count}",
+  "Following you": "آپ کو فالو کر رہے ہیں",
+  "{name} is following you": "{name} آپ کو فالو کر رہے ہیں",
+  "{name} is presenting": "{name} پریزنٹیشن دے رہے ہیں",
+  "Follow presentation": "پریزنٹیشن فالو کریں",
+  "Following the presentation by {name}": "آپ {name} کی پریزنٹیشن فالو کر رہے ہیں",
+  "Press Escape to stop following.": "فالو کرنا بند کرنے کے لیے Escape دبائیں۔"
 }
