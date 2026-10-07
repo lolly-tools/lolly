@@ -57,6 +57,7 @@ export const CHOREO_SHOWCASES: ReadonlyArray<{
   { id: 'type-snap', label: t('Type snap'), sub: t('Anticipate, snap, settle'), ms: 6000, icon: SVG.choreo, quick: true },
   { id: 'feature-cascade', label: t('Feature cascade'), sub: t('Deal the layers in a measured sequence'), ms: 6000, icon: SVG.front, quick: true },
   { id: 'assemble-loop', label: t('Assemble loop'), sub: t('Arrive, hold, unwind, repeat'), ms: 6000, icon: SVG.rotate, quick: true },
+  { id: 'drift-loop', label: t('Soft drift loop'), sub: t('Keep the layout readable while gently moving'), ms: 6000, icon: SVG.move, quick: true },
 ];
 
 /** Reflect the recipe without offering float/3-D controls that it cannot use. */

@@ -53,6 +53,54 @@ This is the point of importing rather than pasting a screenshot: the result is a
 
 An imported design exports exactly like a native one: **SVG, PDF, print CMYK PDF, CMYK TIFF, PNG, JPG, WebP** through the same deterministic pipeline - true page sizes and physical units, outlined type in vector output, [Content Credentials](/info/exporting.html) on every stampable format. The design's new home is its URL, so a once-off Figma file becomes a reproducible, parameter-addressable asset.
 
+**InDesign IDML (static subset)** exports text, rectangles, ovals and PNG/JPEG images, with one spread per artboard. Supported inline formatting stays editable; images travel in `Links`. Coordinates become InDesign points. Relinking, font substitution and changed wrapping may need attention. Effects, animation, composed stories and unsupported geometry fail with a named report. Use PDF for finished artwork; IDML interchange does not preserve the original document.
+
+IDML opens every spread and its margins as artboards or scenes; single-board import opens the first spread. Supported named styles and character formatting map into Design text. Bundled images enter the library; external links need supplied bytes. Missing images are reported placeholders.
+
+## Photoshop precision and preservation
+
+Photoshop imports admit 8-, 16- and 32-bit RGB, grayscale, CMYK and Lab. Previews use 8-bit pixels: Lab converts to sRGB and HDR clips to the display range. Unsupported text, effects and smart objects need approximation or raster layers.
+
+The CLI preserves unchanged source bytes. All 258 pinned Photoshop samples pass admission and byte-preservation checks; visual parity remains unverified.
+
+```sh
+lolly adobe psd-inspect original.psd
+lolly adobe psd-preserve original.psd --output=preserved.psd
+```
+
+## Adobe photo presets
+
+Darkroom's **Import Adobe photo preset** maps XMP exposure, contrast, highlights, shadows, saturation, vibrance and dehaze into existing controls. Results are approximate; profiles, Kelvin white balance, masks and unmapped settings are reported. Lua `.lrtemplate` files are refused: export XMP from Adobe.
+
+```sh
+lolly adobe preset look.xmp
+```
+
+The CLI returns the same controls and a Darkroom URL. Import preserves settings absent from the preset.
+
+**Grade a video** applies the same colour lattice per frame at the detected 1-60 fps rate; variable-rate input becomes fixed-rate output. Export a **.cube LUT** to reuse the approximate look elsewhere. Grading preserves a matching loop seam but cannot repair a source cut. Leave moving grain off for exact endpoint matching.
+
+## Motion starters
+
+Design's **Motion** collection includes **Editorial loop**, **Feature cards** and **Photo title**, with 4, 6 and 8 second variants and chooser previews. Replace the photo starter's Darkroom composition with your upload or an edited Darkroom share link.
+
+Darkroom's **Motion looks** offers **Warm editorial**, **Clean colour** and **Editorial mono**, without moving grain. Export a still or LUT, or grade a finished loop. Save edited sessions as user templates.
+
+Select imported layers, open **Choreograph**, choose a recipe and length, then preview or scrub. Preview changes no document or history. Apply writes the same result in one undo step and opens the timeline. Selected clip ends fit the length; other tracks retain their timing. Select every loop layer for a complete export.
+
+## Premiere XML exchange
+
+**Import a design** reads one Final Cut Pro 7 XML (`xmeml`) sequence in board mode. Select media or keep placeholders; clips open in Sequence. Lolly ZIPs include `sequence.xml` and `Media`. The reader retains rational rates, source references, tracks and frame counts. Design reports clock conversions, missing media and unsupported effects or transitions.
+
+**Premiere XML + media** packages timed, unprocessed clips, original media and a report. Unzip, import `sequence.xml` and relink media in Premiere. Placement, fitting and effects do not transfer. Check timing for media whose rate differs from Lolly's project rate. Render generated layers first, or export finished video. Native `.prproj` files are unsupported.
+
+```sh
+lolly adobe timeline sequence.xml
+lolly adobe idml layout.idml
+```
+
+Reports list timeline frame counts or every IDML spread, with mapped Design inputs. Parsing needs no profile or implicit download.
+
 ## Frames become a video
 
 The same files open on **Design's timeline** - and there the import means something different: **every frame becomes a scene on the timeline**. A Figma file's top-level frames, a Penpot file's boards, a PDF's pages - each arrives as its own timed clip, already playing through in order. From that first play-through you're in an ordinary sequence session: drag clips to reorder, trim and retime them, add a music bed, record a voiceover, drop text overlays on top and export **MP4, WebM, GIF or APNG** through the same deterministic pipeline.
@@ -65,6 +113,14 @@ Two ways in:
 A deck that stays a click deck can still leave as a video. **Export slides as video** in the Present menu opens the export sheet on MP4, and the render places the slides on a timeline in order for that export only: each slide plays for its own dwell, or for the Duration in the export sheet when it has none, and the deck's slide transition plays between them as a dissolve. The document itself is not changed.
 
 Each frame is baked through the Design tool's own renderer into a crisp vector still (text as outlines, images embedded), so scenes stay sharp at any export size and need no fonts at playback. A storyboard drawn in Penpot or Figma becomes a finished cut - titles, soundtrack, provenance and all - without a video editor in sight.
+
+### Animate the editable layout
+
+For motion within the artwork, import onto **Replace the board**, select the layers, and choose **Choreograph** from the selection's More menu or the context menu. The Launch recipes work with imported layers as well as native ones: **Editorial reveal**, **Type snap**, **Feature cascade**, **Assemble loop** and **Soft drift loop**. Quick Apply writes ordinary keyframes in one undo step and opens Sequence. Adjust length, stagger and order in the picker, then edit individual keys on the timeline.
+
+Selected members of a group share their movement and timing, keeping a card's lettering with its surface. Select the whole group when every member should move. Base text, colours, typography, positions and opacity remain unchanged. **Assemble loop** arrives, holds the readable layout and unwinds. **Soft drift loop** keeps every selected layer visible while gently moving; the motion returns to its starting pose and velocity. Save the session as a template or share its URL to reuse the timing with new content.
+
+Choreograph currently works on one editable board. A document imported as multiple artboards cannot use these recipes directly; import the page you want onto the board, or use timed scenes to play complete pages in sequence. Imported effects and unavailable fonts still need source comparison. Export finished motion as MP4, WebM, GIF or APNG. IDML and Premiere XML export do not carry these generated layer animations.
 
 ## From a one-off design to a reusable template
 

@@ -201,6 +201,7 @@ rmSync(OUT, { recursive: true, force: true });
 mkdirSync(BIN_DIR, { recursive: true });
 mkdirSync(join(LIB, 'dist'), { recursive: true });
 cpSync(join(REPO, 'packages/node-shell/wasm/jxl'), join(LIB, 'wasm/jxl'), { recursive: true });
+cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(LIB, 'wasm/adobe-psd'), { recursive: true });
 
 const result = await build({
   // The output names matter: shells/cli/src/tui.ts starts the TUI by looking for

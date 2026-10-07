@@ -650,8 +650,9 @@ async function readPsdSource(input: ReadDeckInputV1, sink: MediaSinkV1): Promise
       name,
       bytes: bytes.byteLength,
       reader: { name: PSD_PIPELINE_READER.name, version: PSD_PIPELINE_READER.version },
+      decode: (await import('../adobe-psd-node.ts')).readPsdPortable,
       sink,
-      inflate: (data: Uint8Array) => unzlibSync(data),
+      inflate: (data: Uint8Array, maxOut: number) => unzlibSync(data, { out: new Uint8Array(maxOut) }),
       ...(input.signal ? { signal: input.signal } : {}),
     });
   } catch (err) {
