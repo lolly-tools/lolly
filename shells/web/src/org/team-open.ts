@@ -16,6 +16,13 @@
  *
  * The fetch is org/session-source.ts's status-carrying one, because a deep link has
  * to tell a deleted session (410) from one that never existed (404) from a refusal.
+ *
+ * An open may name a comment thread (a thread link, `#/team/<id>?thread=…`). The open
+ * holds it as the session's review target (lib/review-target.ts) before anything is
+ * fetched, and setting it tells every comments panel listening. When this session is
+ * already open in this tab, its panel hears the target at once and opens the thread.
+ * Otherwise the panel of the document this open shows takes the target once its live
+ * room connects, within two minutes.
  */
 import { serializeUrlState } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
@@ -27,6 +34,7 @@ import { tRaw } from '../i18n.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { noteProjectOpened } from './opened-projects.ts';
 import { refreshToolReady } from '../lib/tool-ready.ts';
+import { setReviewTarget } from '../lib/review-target.ts';
 import { adoptTeamSessionOrigin, rememberTeamSessionOrigin, teamAddressKey } from './team-session-origin.ts';
 
 /** How one open ended. `status` is the HTTP status of a failed fetch (0: no answer,
@@ -51,6 +59,9 @@ export interface TeamOpenOptions {
   beforeNavigate?: () => void | Promise<void>;
   /** Checked right before the navigation; false abandons it (the person moved on). */
   stillWanted?: () => boolean;
+  /** A comment thread to open with the session (its id; any other value is ignored).
+   *  Held as the session's review target from the start of this open. */
+  thread?: string;
 }
 
 /** The session's display name from its meta, when it has one. Pure. */
@@ -109,6 +120,9 @@ export async function teamSessionHash(host: HostV1, data: TeamSessionData): Prom
 export async function openTeamSession(sessionId: string, opts: TeamOpenOptions = {}): Promise<TeamOpenOutcome> {
   const host = opts.host ?? getHostRef();
   if (!host) return { ok: false, status: -1 };
+  // Before the fetch, so a panel already showing this session hears the target now.
+  // A target is held only for this session, and only for two minutes.
+  if (opts.thread) setReviewTarget(sessionId, opts.thread);
   let data = opts.data;
   if (!data) {
     const got = await fetchTeamSession(sessionId);
