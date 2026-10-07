@@ -45,6 +45,11 @@ export interface InputPolicy {
   value?: unknown;
   /** For a `choice` input, the option values a select-like control is restricted to. */
   allow?: readonly string[];
+  /** Set only by the document layer ({@link setDocumentReadOnly}): the person may look
+   *  but not change the document, so the control renders read-only and READABLE
+   *  (lib/input-readonly.ts) instead of inert, and the lock is not a governed one:
+   *  it never narrows a server-bound request or rewrites a model value. */
+  readable?: boolean;
 }
 
 /** Non-select controls cannot express a restricted set of choices. */
@@ -64,17 +69,54 @@ const registry = new Map<string, Map<string, InputPolicy>>();
  *  only its own setter (or the test reset) lifts it. */
 let failClosed: InputPolicy | null = null;
 
+// ── Document layer ───────────────────────────────────────────────────────────
+// A whole document opened read-only (a viewer of a team project): every input of the
+// tool is locked, readably. Its own layer, keyed by tool, because the registry above
+// is a whole-set replace that a policy source clears on every mount and every
+// re-apply (clearInputPolicies, then setToolInputPolicies per tool): a viewer lock
+// kept there would vanish on the next org-config re-read, or drop the governed locks.
+// Only its own setters change it; whoever sets it releases it when the mount ends.
+const documentLayer = new Map<string, InputPolicy>();
+
+/** Lock every input of `toolId` read-only for the document on screen. `note` is
+ *  already localised ("View only"). A governed lock or a hidden input still wins. */
+export function setDocumentReadOnly(toolId: string, note: string): void {
+  if (!toolId) return;
+  documentLayer.set(toolId, { mode: 'locked', note, readable: true });
+}
+
+/** Lift the document layer for `toolId`. Idempotent. */
+export function clearDocumentReadOnly(toolId: string): void {
+  documentLayer.delete(toolId);
+}
+
+/** The document layer's note for `toolId`, or null when the document is editable. */
+export function documentReadOnlyNote(toolId: string | undefined): string | null {
+  return (toolId && documentLayer.get(toolId)?.note) || null;
+}
+
+/** The governed policy alone: an explicit per-tool policy, else the fail-closed overlay. */
+function governedPolicy(toolId: string, inputId: string): InputPolicy | undefined {
+  const explicit = registry.size ? registry.get(toolId)?.get(inputId) : undefined;
+  return explicit ?? failClosed ?? undefined;
+}
+
 /**
  * The policy for one input of one tool, or `undefined` when none is registered (the
  * default - the sidebar then behaves exactly as with no policy layer). An explicit
  * per-tool policy always wins; otherwise the global fail-closed overlay applies when
  * one is set, else `undefined`. The dormant common case (empty registry, no overlay)
  * still returns `undefined` with no per-input cost.
+ *
+ * The document layer sits under the governed locks: a governed `locked` or `hidden`
+ * policy, and the fail-closed overlay, win over the document layer. A governed `choice` does not: a
+ * person who may not change the document may not pick among allowed values either.
  */
 export function getInputPolicy(toolId: string | undefined, inputId: string): InputPolicy | undefined {
   if (!toolId) return undefined;
-  const explicit = registry.size ? registry.get(toolId)?.get(inputId) : undefined;
-  return explicit ?? failClosed ?? undefined;
+  const governed = governedPolicy(toolId, inputId);
+  if (!documentLayer.size || (governed && governed.mode !== 'choice')) return governed;
+  return documentLayer.get(toolId) ?? governed;
 }
 
 /**
@@ -175,7 +217,7 @@ export function policyValuesFor(
   const out: Record<string, unknown> = {};
   if (!toolId) return out;
   for (const { id, value } of inputs) {
-    const policy = getInputPolicy(toolId, id);
+    const policy = governedPolicy(toolId, id);
     if (!policy) continue;
     if (policy.mode === 'locked') {
       if (policy.value !== undefined && !sameValue(value, policy.value)) out[id] = policy.value;
@@ -191,7 +233,8 @@ export function policyValuesFor(
  * The URL param keys (input id and its urlKey alias) of this tool's inputs that a
  * policy locks or hides, for a caller building a server-bound request: an
  * instance refuses a supplied locked or hidden param and bakes locked values
- * itself, so those keys are the caller's to leave out. Empty when ungoverned.
+ * itself, so those keys are the caller's to leave out. Empty when ungoverned. The
+ * document layer is not governance: a viewer's link and export carry every value.
  */
 export function governedParamKeys(
   toolId: string | undefined,
@@ -200,7 +243,7 @@ export function governedParamKeys(
   const out = new Set<string>();
   if (!toolId) return out;
   for (const { id, urlKey } of inputs) {
-    const mode = getInputPolicy(toolId, id)?.mode;
+    const mode = governedPolicy(toolId, id)?.mode;
     if (mode !== 'locked' && mode !== 'hidden') continue;
     out.add(id);
     if (urlKey) out.add(urlKey);
@@ -208,10 +251,12 @@ export function governedParamKeys(
   return out;
 }
 
-/** TEST-ONLY convenience: empty the registry (and lift any fail-closed overlay, drop
- *  every mount hook and forget the mounted tool) back to the dormant default. */
+/** TEST-ONLY convenience: empty the registry (and lift any fail-closed overlay and
+ *  document layer, drop every mount hook and forget the mounted tool) back to the
+ *  dormant default. */
 export function _clearInputPoliciesForTests(): void {
   registry.clear();
+  documentLayer.clear();
   failClosed = null;
   mountHooks.clear();
   mountedToolId = null;

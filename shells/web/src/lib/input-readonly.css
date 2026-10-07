@@ -1,0 +1,13 @@
+@layer views {
+  /* A document opened read-only (lib/input-readonly.ts): the values stay at full
+     contrast, because reading them is the point, and text fields take the pointer so
+     a value can be selected and copied. Every other control stays behind the
+     pointer guard .input-locked already sets. */
+  .input-locked.input-locked--readable {
+    opacity: 1;
+  }
+  .input-locked--readable :is(input, textarea)[readonly] {
+    pointer-events: auto;
+    cursor: text;
+  }
+}

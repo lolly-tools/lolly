@@ -58,8 +58,8 @@ import { icon, hasIcon, type IconName } from '../lib/icons.ts';
 // Generic per-input display policy (empty/no-op unless a deployment's control plane
 // has populated it via src/org/) - a rendering overlay only; the engine input model
 // stays the single source of truth.
-import type { InputPolicy } from '../lib/input-policy.ts';
-import { policyLocksControl } from '../lib/input-policy.ts';
+import { policyLocksControl, type InputPolicy } from '../lib/input-policy.ts';
+import { lockedControlHtml } from '../lib/input-readonly.ts';
 export { policyLocksControl } from '../lib/input-policy.ts';
 import {
   nestingActive,
@@ -689,12 +689,12 @@ export function renderInputs(
         : lead
           ? `<div class="input-attached">${lead}${controlHtml(renderInput, modelValues, pol)}</div>`
           : controlHtml(renderInput, modelValues, pol);
-    // A locked control renders inert + dimmed: `inert` drops it from focus + events,
-    // and .input-locked (tool.css) adds the dim plus a pointer-events guard for
-    // controls that don't honour inert. Cooperative only - the server is the hard
-    // gate (locked values 422).
+    // A governed lock renders inert + dimmed; the document layer (a viewer) renders
+    // read-only and readable instead (lib/input-readonly.ts). .input-locked (tool.css)
+    // adds the pointer-events guard for both. Cooperative only - the server is the
+    // hard gate (locked values 422, a viewer's save READ_ONLY).
     const control = locks
-      ? `<span class="input-locked" inert aria-disabled="true">${rawControl}</span>`
+      ? lockedControlHtml(rawControl, pol)
       : rawControl;
     const help = ht ? ht.pop : '';
     if (isCheckbox) return `<label class="${cls}">${control}${label}${notice}${help}</label>`;
