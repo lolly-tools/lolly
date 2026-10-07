@@ -9,7 +9,12 @@ import type { CollabConnectionState, CollabParticipant, CollabSessionState } fro
 import type { PresencePeer, PresenceState } from '../lib/collab-presence.ts';
 
 test('presenting is read only when it is exactly true, and one presenter is shown: the earliest present', () => {
-  const state = (presenting: unknown): PresenceState => ({ userId: 'u', name: 'U', color: '#123456', ...{ presenting } });
+  // Whatever the wire carried: the contract types the field, so a test of odd values sets it past the type.
+  const state = (presenting: unknown): PresenceState => {
+    const value: PresenceState = { userId: 'u', name: 'U', color: '#123456' };
+    Reflect.set(value, 'presenting', presenting);
+    return value;
+  };
   assert.equal(isPresenting(state(true)), true);
   for (const value of ['yes', 1, false, undefined, null]) assert.equal(isPresenting(state(value)), false, String(value));
   assert.equal(isPresenting(undefined), false);
