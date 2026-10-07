@@ -25,6 +25,7 @@ import {
   isCrossOriginSocket,
   isTerminalClose,
   parseServerFrame,
+  readCommentFrame,
   withoutHeldKeys,
 } from './collab-protocol.ts';
 import type { CollabCloseEvent, CollabSocket, CollabSocketCtor } from './collab-protocol.ts';
@@ -1102,4 +1103,60 @@ test('a failed recovery write keeps rejected edits in the journal and pauses edi
   assert.equal(h.handle.state().reason, 'recovery-save-failed');
   assert.ok(h.events.some(event => event.kind === 'error' && event.code === 'recovery-save-failed'));
   h.handle.close(); await h.handle.persisted(); assert.equal(store.data.get(KEY())?.length, 1);
+});
+
+// ── Review events (plan 76 milestone 4) ───────────────────────────────────────
+
+test('a comment frame is rebuilt strictly: a valid thread id and a revision of at least 1, nothing else', () => {
+  const frame = (body: Record<string, unknown>) => parseServerFrame(JSON.stringify({ t: 'comment', ...body }));
+  assert.deepEqual(frame({ threadId: 't1', revision: 3, body: 'secret text', from: 'c2' }), { t: 'comment', threadId: 't1', revision: 3 });
+  assert.deepEqual(readCommentFrame({ t: 'comment', threadId: 'thr_A-9', revision: Number.MAX_SAFE_INTEGER }),
+    { t: 'comment', threadId: 'thr_A-9', revision: Number.MAX_SAFE_INTEGER });
+  for (const bad of [
+    {}, { threadId: 't1' }, { revision: 1 }, { threadId: 't1', revision: 0 }, { threadId: 't1', revision: -1 },
+    { threadId: 't1', revision: 1.5 }, { threadId: 't1', revision: '2' }, { threadId: 't1', revision: 2 ** 53 },
+    { threadId: 'a b', revision: 1 }, { threadId: '../t1', revision: 1 }, { threadId: 'x'.repeat(81), revision: 1 },
+    { threadId: 'constructor', revision: 1 }, { threadId: 7, revision: 1 },
+  ]) assert.equal(frame(bad), null, JSON.stringify(bad));
+  assert.equal(readCommentFrame({ t: 'ops', threadId: 't1', revision: 1 }), null);
+  assert.equal(readCommentFrame(null), null);
+});
+
+test('comment frames reach reviewEvents listeners as ids and a revision, and close() releases them', async () => {
+  const h = await harness(); joinNow(h);
+  const heard: unknown[] = [];
+  const off = h.handle.reviewEvents!.subscribe(event => heard.push(event));
+  const second: unknown[] = [];
+  h.handle.reviewEvents!.subscribe(event => { second.push(event); throw new Error('a listener bug'); });
+  h.socket().deliver({ t: 'comment', threadId: 't1', revision: 2, body: 'never forwarded' });
+  h.socket().deliver({ t: 'comment', threadId: 'bad id', revision: 3 });
+  assert.deepEqual(heard, [{ threadId: 't1', revision: 2 }]);
+  assert.deepEqual(second, heard, 'one listener failing never stops another');
+  assert.ok(!h.events.some(event => (event as { kind: string }).kind === 'comment'), 'the transport event stream is unchanged');
+  off();
+  h.socket().deliver({ t: 'comment', threadId: 't1', revision: 4 });
+  assert.equal(heard.length, 1, 'unsubscribed');
+  h.handle.close();
+  h.socket().deliver({ t: 'comment', threadId: 't1', revision: 5 });
+  assert.equal(second.length, 2, 'closed: nothing more');
+  const late: unknown[] = [];
+  h.handle.reviewEvents!.subscribe(event => late.push(event));
+  assert.deepEqual(late, []);
+});
+
+test('a comment frame is delivered at once, even while a recovery copy is being saved', async () => {
+  const store = memoryStore(), h = await harness({ store }); joinNow(h);
+  h.handle.adapter.apply(param('title', 'Draft', 'dev-a', 1)); await h.handle.persisted();
+  const sent = h.socket().framesOfType('ops')[0]!;
+  let finish!: () => void;
+  const save = store.save;
+  store.save = async (key, ops) => { if (key.endsWith(':recovery')) await new Promise<void>(resolve => { finish = resolve; }); await save(key, ops); };
+  h.socket().deliver({ t: 'receipt', batchId: sent.batchId, acceptedIds: [], rejectedIds: sent.ids, durableRevision: 1 });
+  for (let i = 0; i < 12; i++) await Promise.resolve();
+  const heard: unknown[] = [];
+  h.handle.reviewEvents!.subscribe(event => heard.push(event));
+  h.socket().deliver({ t: 'comment', threadId: 't1', revision: 2 });
+  assert.deepEqual(heard, [{ threadId: 't1', revision: 2 }]);
+  finish(); await h.handle.persisted();
+  h.handle.close(); await h.handle.persisted();
 });
