@@ -5,6 +5,14 @@ services. It runs on Kubernetes, including K3s and RKE2. The default configurati
 keeps two replicas per enabled service. Cluster nodes, ingress, certificates and
 image publication are supplied by the operator.
 
+MCP and CA use the [standalone drain runtime](../../services/shared/README.md).
+Qualify their image digests before using the chart's `/readyz` readiness probes;
+legacy images do not implement this endpoint. The 330-second termination allowance
+does not prove unfinished work or accounting has completed. For planned updates,
+configure separate runtime Secret references for the loopback operator control
+and require a settled receipt before replacing a writer. Do not expose that
+control port through a Service or ingress.
+
 Use `profiles/lean.yaml` for one pod per enabled service with CPU, memory and
 ephemeral storage budgets. MCP and the credential authority remain opt-in. With
 all three enabled, the profile requests 100 millicores, 224 MiB memory and 224 MiB

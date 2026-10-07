@@ -866,6 +866,41 @@ export function plateWindowDemands(
 }
 
 /**
+ * The stage background plate: everything on the stage that is not a planned layer,
+ * photographed once and drawn under every output frame.
+ *
+ * Hide every planned layer while photographing it: the `.lolly-box` clips (object-clip
+ * Video / Sequence Studio) AND the timed `[data-pdf-page]` frame pages (frames-as-scenes).
+ * rasterBox strips `.seq-off` from the stage + all descendants for its shot, so without
+ * hiding the frames a frames-as-scenes bg plate would capture EVERY slide un-gated and
+ * paint them, stacked, under every output frame - the "stuck on slide 1" bug. Each timed
+ * frame is instead photographed as its own per-layer plate, gated to its window. Harmless
+ * in object-clip mode: the frame selector matches nothing there. `opts.pad` is the
+ * camera's OVERSCAN, so a pan/pull-back reveals artboard rather than a hard edge
+ * (section 5.5); it is 0 on every camera-less export, and at 0 `plateShotFrame` produces
+ * byte-for-byte the shot it always did.
+ *
+ * A TRANSPARENT export still takes this plate: it is where an artboard's own fill lives
+ * (each frame page paints its surface, and an untimed frame page is not a planned layer),
+ * and the still exports keep that fill under "No background". Skipping the plate is what
+ * turned a pine slide black in a GIF or MP4 while its PNG stayed pine. "No background"
+ * means the stage's OWN background, so that alone is taken off the element for the shot,
+ * as the tilt capture does.
+ */
+async function stageBackgroundPlate(stageEl: HTMLElement, S: number, transparent: boolean, opts: Parameters<typeof rasterBox>[3]): Promise<HTMLCanvasElement | null> {
+  const stageBg = stageEl.style.background;
+  if (transparent) stageEl.style.background = 'transparent';
+  try {
+    return await rasterBox(stageEl, S, [
+      ...stageEl.querySelectorAll('.lolly-box'),
+      ...stageEl.querySelectorAll('[data-pdf-page][data-t-start]'),
+    ], opts);
+  } finally {
+    if (transparent) { if (stageBg) stageEl.style.background = stageBg; else stageEl.style.removeProperty('background'); }
+  }
+}
+
+/**
  * The OVERSCAN the stage background must be photographed with (plans/104 section 5.5).
  *
  * THE BUG THIS EXISTS TO FIX: the bg plate is drawn full-canvas and untransformed,
@@ -1825,23 +1860,8 @@ async function renderSequenceAuthored(
     // produces and nothing else.
     const restoreBlobs = await swapBlobUrls(stageEl);
     try {
-      if (!transparent) {
-        // Hide every planned layer while photographing the stage background: the
-        // `.lolly-box` clips (object-clip Video / Sequence Studio) AND the timed
-        // `[data-pdf-page]` frame pages (frames-as-scenes). rasterBox strips `.seq-off`
-        // from the stage + all descendants for its shot, so without hiding the frames a
-        // frames-as-scenes bg plate would capture EVERY slide un-gated and paint them,
-        // stacked, under every output frame - the "stuck on slide 1" bug. Each timed
-        // frame is instead photographed as its own per-layer plate below, gated to its
-        // window. Harmless in object-clip mode: the frame selector matches nothing there.
-        // …and with the camera's OVERSCAN, so a pan/pull-back reveals artboard rather
-        // than a hard edge (section 5.5). `bgPad` is 0 on every camera-less export, and at 0
-        // `plateShotFrame` produces byte-for-byte the shot it always did.
-        bgRaster = await rasterBox(stageEl, S, [
-          ...stageEl.querySelectorAll('.lolly-box'),
-          ...stageEl.querySelectorAll('[data-pdf-page][data-t-start]'),
-        ], { size: { w: nativeW, h: nativeH }, ...(bgPad > 0 ? { pad: bgPad } : {}), wideColor: deepEditing });
-      }
+      // The stage background plate, under every frame (stageBackgroundPlate).
+      bgRaster = await stageBackgroundPlate(stageEl, S, transparent, { size: { w: nativeW, h: nativeH }, ...(bgPad > 0 ? { pad: bgPad } : {}), wideColor: deepEditing });
       // A frames-as-scenes slide poses its boxes the way the podium does (plans/184 R1,
       // `poseSlideBoxes` - the one rule both read): a with-the-slide box enters when the
       // slide arrives and exits where it ends, a timed box at its time, a click box from

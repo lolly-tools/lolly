@@ -21,6 +21,7 @@
  */
 
 import { RateLimitUnavailableError, restStoreConfig } from './rate-limit.ts';
+import type { WriteObserver } from '../../shared/http-lifecycle.mjs';
 
 export interface BudgetState {
   ok: boolean;
@@ -95,12 +96,14 @@ abstract class MeteredBudget implements UsageBudget {
   readonly #cpu: CpuClock;
   #lastCpu: number;
   #cached: { state: BudgetState; until: number } | null = null;
+  readonly #onWrite?: WriteObserver;
 
-  constructor(limits: BudgetLimits, now: Clock, cpu: CpuClock) {
+  constructor(limits: BudgetLimits, now: Clock, cpu: CpuClock, onWrite?: WriteObserver) {
     this.limits = limits;
     this.now = now;
     this.#cpu = cpu;
     this.#lastCpu = cpu();
+    this.#onWrite = onWrite;
   }
 
   protected abstract totals(day: string): Promise<{ cpuMs: number; egressBytes: number }>;
@@ -130,12 +133,15 @@ abstract class MeteredBudget implements UsageBudget {
     this.#lastCpu = cpuNow;
     const bytes = Math.max(0, Math.round(egressBytes));
     const now = this.now();
+    const finish = this.#onWrite?.();
     try {
       const totals = await this.add(utcDay(now), cpuMs, bytes);
+      finish?.(true);
       // A record that crosses a ceiling closes the door at once, not a check later.
       const state = this.#judge(totals, now);
       if (!state.ok) this.#cached = { state, until: now + CHECK_TTL_MS };
     } catch (error) {
+      finish?.(false);
       console.warn(`[usage-budget] could not record usage: ${(error as Error).message}`);
     }
   }
@@ -179,8 +185,9 @@ export class RedisRestUsageBudget extends MeteredBudget {
   constructor(options: {
     url: string; token: string; namespace: string; limits: BudgetLimits;
     fetchImpl?: typeof fetch; now?: Clock; cpu?: CpuClock;
+    onWrite?: WriteObserver;
   }) {
-    super(options.limits, options.now ?? Date.now, options.cpu ?? processCpuMs);
+    super(options.limits, options.now ?? Date.now, options.cpu ?? processCpuMs, options.onWrite);
     this.#url = options.url;
     this.#token = options.token;
     this.#namespace = options.namespace;
@@ -217,14 +224,17 @@ export class RedisRestUsageBudget extends MeteredBudget {
   protected async add(day: string, cpuMs: number, egressBytes: number): Promise<{ cpuMs: number; egressBytes: number }> {
     const result = await this.#command(['EVAL', ADD_LUA, '2', ...this.#keys(day), String(cpuMs), String(egressBytes), String(KEY_TTL_SECONDS)]);
     if (!Array.isArray(result) || result.length !== 2) throw new RateLimitUnavailableError('Usage budget store returned an invalid result');
-    return { cpuMs: Number(result[0]) || 0, egressBytes: Number(result[1]) || 0 };
+    if (!result.every(value => (typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value))) && Number.isSafeInteger(Number(value)) && Number(value) >= 0)) {
+      throw new RateLimitUnavailableError('Usage budget store returned invalid counters');
+    }
+    return { cpuMs: Number(result[0]), egressBytes: Number(result[1]) };
   }
 }
 
-export function createUsageBudget(env: NodeJS.ProcessEnv, namespace = 'mcp'): UsageBudget {
+export function createUsageBudget(env: NodeJS.ProcessEnv, namespace = 'mcp', onWrite?: WriteObserver): UsageBudget {
   const limits = budgetLimits(env);
   const store = restStoreConfig(env);
-  if (store) return new RedisRestUsageBudget({ ...store, namespace, limits });
+  if (store) return new RedisRestUsageBudget({ ...store, namespace, limits, onWrite });
   if (limits.cpuMs || limits.egressBytes) {
     const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production';
     if (hosted) console.warn('[usage-budget] no durable store is configured, so the daily budget is counted per instance');
