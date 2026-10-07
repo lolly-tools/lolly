@@ -114,9 +114,9 @@ To add the AI-agent (MCP) or verified-identity (CA) endpoints, deploy the two fu
 
 The container images and the Helm chart ship in this repo, so running Lolly on your own cluster is a supported delivery model rather than a recipe to reconstruct.
 
-`deploy/docker/` holds three Dockerfiles - `web.Dockerfile`, `mcp.Dockerfile`, `ca.Dockerfile` - each built with the **repo root** as context. The web image is multi-stage: a Node stage runs the real `pnpm run build:web`, then an `nginx-unprivileged` runtime stage (non-root, listening on 8080) serves the resulting `dist/` with the `nginx.conf` and `security-headers.conf` described above. One brand profile is baked in at build time (`--build-arg LOLLY_PROFILE=suse|lolly-start`), so the running container reads nothing at serve time - no pack to mount, no runtime config, no secret. The default is `suse`, which needs the private brand pack; a public self-hoster without it should build with `--build-arg LOLLY_PROFILE=lolly-start` (or their own pack) or the image ships an empty catalogue. The two service images install the workspace and run their entry point on Node directly. A plain clone already carries `community/` and `brands/lolly-start/`, so nothing extra is needed for those; a `suse`-profile build needs the private pack mounted in the build context first, or you get a shell with an empty catalogue.
+`deploy/docker/` holds four Dockerfiles - `web.Dockerfile`, `mcp.Dockerfile`, `ca.Dockerfile` and `penpot.Dockerfile` - each built with the **repo root** as context. The web image is multi-stage: a Node stage runs the signed `pnpm run build:web:release`, then an `nginx-unprivileged` runtime stage (non-root, listening on 8080) serves the resulting `dist/` with the `nginx.conf` and `security-headers.conf` described above. One brand profile is baked in at build time (`--build-arg LOLLY_PROFILE=suse|lolly-start`), so the running container reads nothing at serve time - no pack to mount, no runtime config, no secret. The default is `lolly-start`, which ships no private SUSE pack. A SUSE-profile build requires its private pack in the build context; an unavailable profile fails the build. Release builds also require matching catalog-signing and public-pin BuildKit secrets, as described in the [Docker runbook](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md). MCP installs its runtime workspace; CA and the Penpot adapter carry their own service source and run directly on Node. A plain clone already carries `community/` and `brands/lolly-start/`, so nothing extra is needed for those; a `suse`-profile build needs the private pack mounted in the build context first, and the release checks refuse missing content.
 
-`deploy/helm/` is the chart, and one values file covers all three components. `web` is on by default: 2 stateless replicas for HA behind a ClusterIP service, a TLS-ready ingress you enable with a hostname and `/healthz` liveness/readiness probes. `mcp` and `ca` are opt-in and disabled by default. The defaults are the secure ones - every pod runs non-root under `RuntimeDefault` seccomp with all capabilities dropped, no privilege escalation and a read-only root filesystem (writable `emptyDir`s exactly where nginx needs them), soft pod anti-affinity to spread replicas, an optional NetworkPolicy and no ServiceAccount token mounted since none of the components talk to the Kubernetes API. The CA's root key, certificate and service secret come either from a chart-managed Secret or, for production, from one you manage yourself (`ca.existingSecret`). A minimal install is one flag:
+`deploy/helm/` is the chart, and one values file covers all three components. `web` is on by default: 2 stateless replicas behind a ClusterIP service, a TLS-ready ingress you enable with a hostname and `/healthz` liveness/readiness probes. `mcp` and `ca` are opt-in and disabled by default. The defaults are the secure ones - every pod runs non-root under `RuntimeDefault` seccomp with all capabilities dropped, no privilege escalation and a read-only root filesystem (writable `emptyDir`s exactly where nginx needs them), soft pod anti-affinity to spread replicas, an optional NetworkPolicy and no ServiceAccount token mounted since none of the components talk to the Kubernetes API. The CA's root key, certificate and service secret come either from a chart-managed Secret or, for production, from one you manage yourself (`ca.existingSecret`). A minimal install is one flag:
 
 ```bash
 helm install lolly deploy/helm --set web.image.repository=<registry>/lolly-web
@@ -161,12 +161,76 @@ BCI Node 24 Dockerfile is a candidate with its own build and boot checks. Public
 web/MCP/CA retain their existing bases until another variant is qualified.
 
 Following the Collection Penpot dependency model, Work can use a separately
-managed Collection PostgreSQL release. Its durable jobs already use PostgreSQL,
+managed Collection PostgreSQL 18 release after its schema, backup/restore and
+version compatibility checks pass. Its durable jobs already use PostgreSQL,
 so this adds no Redis requirement. A Redis TCP endpoint also cannot replace the
 public services' current REST admission adapter without an integration change.
-The public chart does not install Work, relay, Penpot or model hosting. Qualify
+The original public chart does not install Work, relay, Penpot or model hosting;
+the optional complete profile below adds the public routes and edge while
+retaining the private services as separate owners. Qualify
 all existing API routes, authentication, shared editing, recovery and capacity
 before a public or private production cutover.
+
+### Complete public and private routing on K3s
+
+The optional [sovereign profile](https://github.com/lolly-tools/lolly/blob/main/deploy/helm/profiles/sovereign/README.md)
+is a separate chart at `deploy/helm/profiles/sovereign/`. It combines the public
+web shell, MCP with its singleton public live relay, CA and Penpot adapter with
+one Caddy edge. The same edge has separate public and private host configuration;
+private login, API, catalog, admin and collaboration routes reach the existing
+Work Service, and private `/live/*` reaches its separate qualified relay. The
+profile does not replace Work, its database, worker or private relay and does not
+mount private content in public pods.
+
+Use the [public VM recipe](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/public-vm.md)
+for the same public route contract without Kubernetes. Both recipes include docs
+and discovery routes, reserved-path 404s, MIME/cache policy, model HEAD and Range,
+MCP and OAuth, CA, Penpot streaming, image fetch and live editing. Models use a
+verified immutable release mounted read-only in the web container. The
+[model release guide](https://github.com/lolly-tools/lolly/blob/main/deploy/models-host/README.md)
+provides the preparation and verification commands.
+
+UpCloud and Evroc remain first-class provider foundations. Select the appropriate
+CSI or existing-volume storage and qualify actual node boot and routing on each
+provider. Keep Traefik and ServiceLB disabled for this profile: the single
+non-root Caddy owner binds host 80/443 directly in a separate edge namespace,
+with a constrained admission exception. Public and private application namespaces
+retain restricted Pod Security. Provider and host firewalls must deny public
+Kubernetes, kubelet, database and VXLAN access. Measure the actual edge-to-Service
+peer before setting proxy trust; an outgoing source-address setting alone does
+not prove the observed peer.
+
+The default certificate mode uses Caddy's automatic ACME issuance and renewal
+with a persistent edge PVC. Before DNS changes, use the file-certificate mode
+with a trusted internal CA or pinned certificate and candidate-address requests.
+After domain cutover, qualify provider callbacks and ACME renewal. The profile
+starts at 352 MiB memory requests and 1600 MiB memory limits for public services
+plus edge; Work, PostgreSQL 18, worker, private relay and cluster overhead need
+separate capacity. These are starting bounds and single-process ownership, not
+an HA or load result.
+
+The original chart and this optional chart retain separate defaults. The complete
+profile requires qualified image digests, distinct MCP/CA Secrets, measured exact
+proxy peers, reviewed admission and an existing model volume. It keeps the
+current durable REST rate limiter and CA email adapters until replacements are
+qualified. Before publishing, run real HTTPS routes, signed-catalog verification,
+admission refusal, cookie/auth custody, shared editing and invited-agent checks;
+schema validation alone does not qualify a cloud cutover.
+
+For browser-only public exports, the optional `mcp-browser.Dockerfile` and
+`browser.values.yaml` add Chromium with a bounded queue and larger resource
+budgets. The ordinary image remains browser-free. Set the exact public HTTPS web
+base, qualify sandbox startup and real exports, and preserve the deployment's
+reviewed anonymous or bearer policy. Browser enablement never grants access to
+private Work files or workspace documents.
+
+The optional [namespace sandbox profile](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/seccomp/README.md)
+keeps Chromium's sandbox enabled under the container's dropped capabilities.
+Install and verify its exact hash on the selected node first, then opt MCP into
+its Localhost profile; other services retain RuntimeDefault. Qualify actual
+namespace/seccomp diagnostics and SVG/PNG/PDF exports after each browser or
+runtime change. The chart neither installs a host profile nor substitutes a
+sandbox bypass.
 
 ### YunoHost
 

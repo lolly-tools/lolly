@@ -1,0 +1,10 @@
+# Optional browser-enabled image; qualify sandbox and exports on the real node.
+# Set components.mcp.webBase to the exact canonical public HTTPS origin.
+components:
+  mcp:
+    image:
+      repository: ghcr.io/lolly-tools/lolly-mcp-browser
+    resources:
+      requests: {cpu: 100m, memory: 256Mi, ephemeral-storage: 128Mi}
+      limits: {cpu: "2", memory: 2048Mi, ephemeral-storage: 1Gi}
+    tmpSize: 512Mi

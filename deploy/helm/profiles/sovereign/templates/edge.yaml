@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sovereign.name" (dict "root" . "name" "edge") }}
+  namespace: {{ .Values.edge.namespace }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" . "name" "edge") | nindent 4 }}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      {{- include "sovereign.selector" (dict "root" . "name" "edge") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sovereign.selector" (dict "root" . "name" "edge") | nindent 8 }}
+      annotations:
+        checksum/public-host: {{ tpl (.Files.Get "files/public.caddy") . | sha256sum }}
+        checksum/private-host: {{ tpl (.Files.Get "files/private.caddy") . | sha256sum }}
+        lolly.tools/profile: sovereign-single-node
+        lolly.tools/admission-exception: reviewed-host-network-edge
+    spec:
+      nodeName: {{ .Values.edge.nodeName }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 45
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: edge
+          image: {{ include "sovereign.image" .Values.edge.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command: [caddy]
+          args: [run, --config, /etc/lolly/Caddyfile, --adapter, caddyfile]
+          ports:
+            - {name: http, containerPort: 80}
+            - {name: https, containerPort: 443}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL], add: [NET_BIND_SERVICE]}
+          env:
+            - {name: LOLLY_PUBLIC_HOST, value: {{ .Values.public.host | quote }}}
+            - {name: LOLLY_PUBLIC_REDIRECT_HOSTS, value: {{ join " " .Values.public.redirectHosts | quote }}}
+            - {name: LOLLY_PRIVATE_HOST, value: {{ .Values.private.host | quote }}}
+            - {name: LOLLY_PRIVATE_REDIRECT_HOSTS, value: {{ join " " .Values.private.redirectHosts | quote }}}
+            - {name: XDG_CONFIG_HOME, value: /tmp/config}
+            - {name: XDG_DATA_HOME, value: {{ ternary "/data" "/tmp/data" (ne .Values.edge.tls.mode "file") | quote }}}
+          resources:
+            {{- toYaml .Values.edge.resources | nindent 12 }}
+          startupProbe:
+            tcpSocket: {port: https}
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            tcpSocket: {port: https}
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket: {port: https}
+            periodSeconds: 5
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+            - {name: caddy, mountPath: /etc/lolly/Caddyfile, subPath: Caddyfile, readOnly: true}
+            - {name: public-host, mountPath: /etc/lolly/public.caddy, subPath: public.caddy, readOnly: true}
+            - {name: private-host, mountPath: /etc/lolly/private.caddy, subPath: private.caddy, readOnly: true}
+            {{- if ne .Values.edge.tls.mode "acme" }}
+            - {name: public-tls, mountPath: /tls/public, readOnly: true}
+            - {name: private-tls, mountPath: /tls/private, readOnly: true}
+            {{- end }}
+            {{- if ne .Values.edge.tls.mode "file" }}
+            - {name: caddy-data, mountPath: /data}
+            {{- end }}
+      volumes:
+        - {name: tmp, emptyDir: {sizeLimit: {{ .Values.edge.tmpSize | quote }}}}
+        - {name: caddy, configMap: {name: {{ include "sovereign.name" (dict "root" . "name" "edge") }}}}
+        - {name: public-host, configMap: {name: {{ include "sovereign.name" (dict "root" . "name" "public-host") }}}}
+        - {name: private-host, configMap: {name: {{ include "sovereign.name" (dict "root" . "name" "private-host") }}}}
+        {{- if ne .Values.edge.tls.mode "acme" }}
+        - {name: public-tls, secret: {secretName: {{ .Values.public.tlsSecret }}}}
+        - {name: private-tls, secret: {secretName: {{ .Values.private.tlsSecret }}}}
+        {{- end }}
+        {{- if ne .Values.edge.tls.mode "file" }}
+        - {name: caddy-data, persistentVolumeClaim: {claimName: {{ .Values.edge.tls.existingClaim }}}}
+        {{- end }}

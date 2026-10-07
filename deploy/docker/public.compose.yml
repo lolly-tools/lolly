@@ -1,0 +1,99 @@
+# Public services only. The host Caddy serves TLS from public.caddy.
+# Run from the repository root with an operator-owned --env-file.
+name: lolly-public
+services:
+  web:
+    image: ${LOLLY_PUBLIC_WEB_IMAGE:?Set the qualified public web image digest}
+    ports: ["127.0.0.1:8880:8080"]
+    volumes:
+      - type: bind
+        source: ./public.nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${LOLLY_PUBLIC_MODELS_DIR:?Set the verified models release directory}
+        target: /usr/share/nginx/html/models
+        read_only: true
+        bind: {create_host_path: false}
+    read_only: true
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    cpus: "0.50"
+    pids_limit: 64
+    restart: unless-stopped
+    logging: &bounded_logs
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  mcp:
+    image: ${LOLLY_PUBLIC_MCP_IMAGE:?Set the qualified public MCP image digest}
+    env_file:
+      - path: ${LOLLY_PUBLIC_MCP_ENV_FILE:?Set the operator-owned MCP environment file}
+        required: true
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=384
+      PORT: "8790"
+      LOLLY_MCP_BIND_HOST: 0.0.0.0
+      LOLLY_MCP_PUBLIC_ORIGIN: https://${LOLLY_PUBLIC_HOST:?Set the canonical public hostname}
+      LOLLY_MCP_ALLOWED_ORIGINS: https://${LOLLY_PUBLIC_HOST}
+      LOLLY_LIVE_ORIGINS: https://${LOLLY_PUBLIC_HOST}
+      LOLLY_MCP_TRUST_PROXY: "1"
+      LOLLY_MCP_TRUSTED_PROXIES: ${LOLLY_PUBLIC_PROXY_PEER:?Set the measured direct proxy IP}
+      LOLLY_MCP_ALLOW_ANONYMOUS: ${LOLLY_PUBLIC_MCP_ALLOW_ANONYMOUS:-0}
+      LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT: "0"
+      LOLLY_MCP_PRIVATE_FILES: "0"
+      LOLLY_WEB_BASE: ${LOLLY_PUBLIC_WEB_BASE:-}
+      LOLLY_BROWSER_NO_SANDBOX: ${LOLLY_PUBLIC_BROWSER_NO_SANDBOX:-0}
+      LOLLY_BROWSER_MAX_CONCURRENCY: "1"
+      LOLLY_BROWSER_MAX_QUEUE: "4"
+      LOLLY_BROWSER_QUEUE_TIMEOUT_MS: "30000"
+    ports: ["127.0.0.1:8890:8790"]
+    read_only: true
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: "1.00"
+    pids_limit: 128
+    restart: unless-stopped
+    logging: *bounded_logs
+  ca:
+    image: ${LOLLY_PUBLIC_CA_IMAGE:?Set the qualified CA image digest}
+    env_file:
+      - path: ${LOLLY_PUBLIC_CA_ENV_FILE:?Set the operator-owned CA environment file}
+        required: true
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=64
+      PORT: "8787"
+      CA_ALLOWED_ORIGINS: https://${LOLLY_PUBLIC_HOST}
+      CA_TRUST_PROXY: "1"
+      CA_TRUSTED_PROXIES: ${LOLLY_PUBLIC_PROXY_PEER}
+      CA_ALLOW_IN_MEMORY_RATE_LIMIT: "0"
+      CA_DEV_FAKE_PROVIDER: "0"
+    ports: ["127.0.0.1:8887:8787"]
+    read_only: true
+    tmpfs: ["/tmp:size=8m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 192m
+    cpus: "0.25"
+    pids_limit: 64
+    restart: unless-stopped
+    logging: *bounded_logs
+  penpot:
+    image: ${LOLLY_PUBLIC_PENPOT_IMAGE:?Set the qualified Penpot adapter image digest}
+    environment: {NODE_OPTIONS: --max-old-space-size=64}
+    ports: ["127.0.0.1:8891:8791"]
+    read_only: true
+    tmpfs: ["/tmp:size=8m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: "0.50"
+    pids_limit: 64
+    restart: unless-stopped
+    logging: *bounded_logs

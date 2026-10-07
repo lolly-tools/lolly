@@ -46,7 +46,9 @@ WORKDIR /src
 # default; a public image must not ship the private SUSE pack.
 ARG LOLLY_PROFILE=lolly-start
 ARG VITE_REQUIRE_AI_POLICY=false
+ARG VITE_LIVE_RELAY=
 ENV VITE_REQUIRE_AI_POLICY=${VITE_REQUIRE_AI_POLICY}
+ENV VITE_LIVE_RELAY=${VITE_LIVE_RELAY}
 ENV LOLLY_PROFILE=${LOLLY_PROFILE}
 ENV NODE_ENV=production
 # Native optional deps (sharp/onnxruntime/resvg/playwright) need dev tooling
