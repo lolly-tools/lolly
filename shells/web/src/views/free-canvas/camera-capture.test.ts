@@ -54,8 +54,11 @@ test('saved webcam stays inert; explicit start survives repaint and releases on 
     f.click('Start camera'); await flush();
     assert.equal(f.calls(), 1); assert.equal(f.constraints()?.audio, false);
     const video = f.canvasEl.querySelector('video'); assert.ok(video);
-    f.repaint(); await flush();
+    f.repaint();
+    f.canvasEl.querySelector<HTMLElement>('[data-live-camera]')!.dataset.cameraStyle = 'object-fit:contain';
+    await flush();
     assert.equal(f.canvasEl.querySelector('video'), video); assert.equal(f.calls(), 1); assert.equal(f.stops(), 0);
+    assert.equal(video.style.objectFit, 'contain');
     f.remove(); await flush(); assert.equal(f.stops(), 1);
   } finally { f.cleanup(); }
 });

@@ -2626,6 +2626,7 @@ function deckElementFor(cb, byId, lx, ly) {
   var cw = Math.max(1, Math.round(num(cb.w, 1)));
   var ch = Math.max(1, Math.round(num(cb.h, 1)));
   var kind = String(cb.kind);
+  if (kind === 'webcam' && cb.image && cb.image.url) kind = 'image';
   var op = clamp(num(cb.opacity, 100), 0, 100) / 100;
   if (kind === 'path') {
     // A path is native custom geometry (plan 275 decision 32): its outline at the box's
