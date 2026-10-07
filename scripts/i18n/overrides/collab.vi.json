@@ -1,3 +1,14 @@
 {
-  "View {name}": "Xem {name}"
+  "Follow {name}": "Theo dõi {name}",
+  "Following {name}": "Đang theo dõi {name}",
+  "Stop following": "Ngừng theo dõi",
+  "You stopped following {name}.": "Bạn đã ngừng theo dõi {name}.",
+  "{name} left. You stopped following.": "{name} đã rời đi. Bạn đã ngừng theo dõi.",
+  "Followers: {count}": "Người theo dõi: {count}",
+  "Following you": "Đang theo dõi bạn",
+  "{name} is following you": "{name} đang theo dõi bạn",
+  "{name} is presenting": "{name} đang trình chiếu",
+  "Follow presentation": "Theo dõi bài trình chiếu",
+  "Following the presentation by {name}": "Đang theo dõi bài trình chiếu của {name}",
+  "Press Escape to stop following.": "Nhấn Escape để ngừng theo dõi."
 }

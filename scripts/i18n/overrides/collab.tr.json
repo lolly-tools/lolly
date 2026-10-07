@@ -1,3 +1,14 @@
 {
-  "View {name}": "{name} görünümünü aç"
+  "Follow {name}": "{name} kişisini takip et",
+  "Following {name}": "{name} kişisini takip ediyorsun",
+  "Stop following": "Takibi bırak",
+  "You stopped following {name}.": "{name} kişisini takip etmeyi bıraktın.",
+  "{name} left. You stopped following.": "{name} ayrıldı. Takibi bıraktın.",
+  "Followers: {count}": "Takipçiler: {count}",
+  "Following you": "Seni takip ediyor",
+  "{name} is following you": "{name} seni takip ediyor",
+  "{name} is presenting": "{name} sunum yapıyor",
+  "Follow presentation": "Sunumu takip et",
+  "Following the presentation by {name}": "{name} kişisinin sunumunu takip ediyorsun",
+  "Press Escape to stop following.": "Takibi bırakmak için Escape tuşuna bas."
 }

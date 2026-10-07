@@ -1,3 +1,14 @@
 {
-  "View {name}": "Lihat {name}"
+  "Follow {name}": "Ikuti {name}",
+  "Following {name}": "Mengikuti {name}",
+  "Stop following": "Berhenti mengikuti",
+  "You stopped following {name}.": "Anda berhenti mengikuti {name}.",
+  "{name} left. You stopped following.": "{name} telah keluar. Anda berhenti mengikuti.",
+  "Followers: {count}": "Pengikut: {count}",
+  "Following you": "Mengikuti anda",
+  "{name} is following you": "{name} sedang mengikuti anda",
+  "{name} is presenting": "{name} sedang membuat pembentangan",
+  "Follow presentation": "Ikuti pembentangan",
+  "Following the presentation by {name}": "Mengikuti pembentangan oleh {name}",
+  "Press Escape to stop following.": "Tekan Escape untuk berhenti mengikuti."
 }
