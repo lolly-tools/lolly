@@ -186,6 +186,14 @@ Choose **3D scene** from the add menu on the tool rail and drag out a frame: 3D 
 
 **Sharing a scene built on your own upload.** A share link of a Design document carries a device-local upload id inside a scene as it stands, where an image box blanks it. So a scene whose artwork or model is a file you uploaded shows the studio's default for that picture on someone else's device, unless the document travels as a `.lolly` file, which carries the bytes.
 
+### Tools inside a design
+
+Choose **Tool** from the add menu on the tool rail, drag out a frame and pick a tool from the list. The tool is placed in the frame straight away with its own defaults, and the Inspector opens on a **Tool** section that holds that tool's own controls: the same fields its sidebar shows when you open the tool on its own. Change a field and the box on the canvas updates a moment later, with the rest of your layout in view. Every change is one undo step. **Image fit** and **Image position** work as they do for any picture, and **Replace with another tool or image** swaps the picture for something else.
+
+A placed tool keeps its recipe, not a picture. The box stores a link to the tool with your settings, and the picture is drawn again from that link whenever the document opens, so a tool update reaches every design that uses the tool.
+
+**Tools that move.** A tool whose output animates plays inside the box. A looping illustration, for example a mascot that looks around while the leaves on its branch sway, keeps looping on the canvas, follows the playhead once the timeline is open, and comes out frame by frame in a GIF, MP4 or WebM export. When such a tool says how long one loop lasts, the box gets a clip exactly that long, so a video of the timeline holds whole loops and its last frame leads straight back into its first. Change the loop length in the Tool section and a clip still at the old length follows the new one; a clip you have retimed keeps your timing. Turning the tool's motion off makes the box an ordinary still picture again.
+
 ## Timeline (Sequence)
 
 **Sequence** is Design's timeline: it adds *time* to the free canvas. Every box can start at a moment, run for a length and animate in and out, and a timeline docked under the artboard is where you arrange them. Open it and there's already a sequence playing - a title card, a clip, an end card, a lower-third and a music bed - so the model is visible before you change anything.

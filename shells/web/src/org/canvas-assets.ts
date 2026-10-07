@@ -26,6 +26,15 @@ export function createWorkCanvasAssets(sessionId: string, principal: () => strin
   }
   async function resolve(ref: AssetRef): Promise<AssetRef> {
     check(); const host = getHostRef(); if (!host?.assets) throw new Error('Asset storage is unavailable.');
+    // A placed tool is not a project file: it travels as its link (canvas-asset-v1) and is
+    // drawn again here, from its own settings, at export quality, the way a Design box's
+    // tool render is resolved when a document opens. No session read, no download.
+    if (ref.source === 'remote') {
+      const compose = host.compose as { renderUrl?: (url: string, opts?: { thumbnail?: boolean }) => Promise<AssetRef | null> } | undefined;
+      const rendered = await compose?.renderUrl?.(ref.id, { thumbnail: false }); check();
+      if (!rendered) throw new Error('This tool could not be drawn here.');
+      return rendered;
+    }
     const data = await session(); check();
     if (ref.source === 'user') await restoreTeamFiles(host, { ...data, inputs: { image: ref } });
     check(); const result = await host.assets.get(ref.id, ref.pin); check(); return { ...result, ...(ref.pin ? { pin: ref.pin } : {}) };
@@ -35,6 +44,11 @@ export function createWorkCanvasAssets(sessionId: string, principal: () => strin
       return () => { if (!released) { released = true; pending--; if (!pending) message = failure; publish(); } }; },
     async prepare(ref) {
       failure = '';
+      // A placed tool needs no transfer: its link is the shared form, and the render the
+      // editor already holds is the picture. Uploading that render as a project file, as
+      // happened before, froze the tool (and any motion it had) in every peer's canvas.
+      const tool = portableCanvasAsset(ref);
+      if (tool?.source === 'remote' && typeof (ref as AssetRef).url === 'string' && (ref as AssetRef).url) return ref as AssetRef;
       return transfer('Uploading image…', async () => {
         const existing = portableCanvasAsset(ref);
         if (existing) return resolve(existing);

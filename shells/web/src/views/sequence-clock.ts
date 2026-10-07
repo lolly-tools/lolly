@@ -1293,6 +1293,16 @@ export function createSequenceClock(opts: SequenceClockOpts): SequenceClock {
         catch { /* the renderer is mid-teardown */ }
       }
     }
+    // An animated SVG (anim-svg-mount: a CSS/SMIL vector, or a tool composed into this
+    // box with its own loop, like Pose Geeko's). It has no player, so the clock poses it
+    // directly: SMIL through its root's own timeline, CSS through the Web Animations
+    // API, both at the source time, every frame, playing or parked - the same moment
+    // the video export samples (bridge/sequence-svg-clock.ts). Without this an inlined
+    // loop free-ran on its own clock: a parked editor showed a moving picture, and the
+    // frame on screen was never the frame the export would draw. Off its window it is
+    // simply left where it was; the box is hidden there anyway.
+    const anim = el.matches?.('[data-anim-src]') ? el : el.querySelector<HTMLElement>('[data-anim-src]');
+    if (anim && active) poseAnimSvg(anim, sourceMs);
     // Lottie: the player is mounted asynchronously by lottie-mount, so it is simply
     // absent for the first frames after a repaint - that is a no-op, not an error.
     // goToAndStop(value, isFrame=false) takes MILLISECONDS of the animation's own
@@ -1306,6 +1316,25 @@ export function createSequenceClock(opts: SequenceClockOpts): SequenceClock {
     // sound is placed on the shared AudioContext instead. This is the assertion pass,
     // not the transport: see driveAudio.
     driveAudio(el, timing, active);
+  }
+
+  /** Inlined SVG roots this clock has paused, handed back to their own clock on destroy. */
+  const posedSvgs = new Set<SVGSVGElement>();
+  function poseAnimSvg(marker: HTMLElement, sourceMs: number): void {
+    const sec = Math.max(0, sourceMs) / 1000;
+    // EVERY <svg> in it, not just the root: each keeps its own SMIL timeline, and a
+    // composed tool render nests the tool's own <svg> (and its tracks) inside the
+    // export's outer one, so seeking the root alone moved nothing.
+    for (const svg of marker.querySelectorAll<SVGSVGElement>('svg')) {
+      try {
+        if (!svg.animationsPaused()) svg.pauseAnimations();
+        if (Math.abs(svg.getCurrentTime() - sec) > 1e-4) svg.setCurrentTime(sec);
+        posedSvgs.add(svg);
+      } catch { /* a detached or non-SMIL root */ }
+    }
+    for (const a of marker.getAnimations?.({ subtree: true }) ?? []) {
+      try { if (a.playState !== 'paused') a.pause(); a.currentTime = sourceMs; } catch { /* finished or cancelled */ }
+    }
   }
 
   // ── the apply pass ────────────────────────────────────────────────────────
@@ -1356,6 +1385,8 @@ export function createSequenceClock(opts: SequenceClockOpts): SequenceClock {
     // track playing to the end of the sequence with nothing on screen to explain it - 
     // and a second copy starts the moment the fresh box is placed.
     for (const [el] of [...audios]) if (!canvasEl.contains(el)) stopAudioFor(el);
+    // Posed SVGs a repaint replaced: a detached root has nothing to restore, so drop the record.
+    for (const svg of posedSvgs) if (!svg.isConnected) posedSvgs.delete(svg);
     for (const cb of [...ticks]) { try { cb(tMs); } catch { /* a bad subscriber never stops the clock */ } }
   }
 
@@ -1445,6 +1476,7 @@ export function createSequenceClock(opts: SequenceClockOpts): SequenceClock {
     document.addEventListener('visibilitychange', onVisibility);
   }
   canvasEl.addEventListener?.('lolly:lottie-ready', schedule);
+  canvasEl.addEventListener?.('lolly:anim-svg-ready', schedule);
 
   const clock: SequenceClock = {
     t: () => tMs,
@@ -1514,6 +1546,15 @@ export function createSequenceClock(opts: SequenceClockOpts): SequenceClock {
     destroy() {
       if (dead) return;
       canvasEl.removeEventListener?.('lolly:lottie-ready', schedule);
+      canvasEl.removeEventListener?.('lolly:anim-svg-ready', schedule);
+      // With the timeline closed nothing owns time any more, so every SVG this clock
+      // posed goes back to playing on its own (the no-clock ambience the box had
+      // before the timeline opened).
+      for (const svg of posedSvgs) { try { if (svg.isConnected) svg.unpauseAnimations(); } catch { /* detached */ } }
+      posedSvgs.clear();
+      for (const a of canvasEl.querySelector?.('[data-anim-src]') ? canvasEl.getAnimations?.({ subtree: true }) ?? [] : []) {
+        try { if ((a.effect as KeyframeEffect | null)?.target?.closest?.('[data-anim-src]') && a.playState === 'paused') a.play(); } catch { /* cancelled */ }
+      }
       dead = true;
       isPlaying = false;
       if (frame) { caf(frame); frame = 0; }
