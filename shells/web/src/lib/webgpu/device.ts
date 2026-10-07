@@ -19,6 +19,12 @@ export function isWebGpuFailure(error: unknown): error is Error & { code: WebGpu
 
 const REQUIRED_MESSAGE = 'Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.';
 const ACQUISITION_BUDGET_MS = 8000;
+/**
+ * An automated browser (the CLI, MCP and test renderers) draws on software graphics,
+ * whose first device can take far longer to start than a person's hardware: measured
+ * up to 9 s for the adapter alone on a loaded machine. Only those browsers wait longer.
+ */
+const AUTOMATION_BUDGET_MS = 30000;
 const lossSignals = new WeakMap<GPUDevice, AbortSignal>();
 
 export interface WebGpuProvider {
@@ -94,7 +100,7 @@ export function createWebGpuDeviceService(readGpu: () => WebGpuProvider | undefi
   return { get, reset };
 }
 
-const devices = createWebGpuDeviceService(() => globalThis.navigator?.gpu);
+const devices = createWebGpuDeviceService(() => globalThis.navigator?.gpu, globalThis.navigator?.webdriver ? AUTOMATION_BUDGET_MS : ACQUISITION_BUDGET_MS);
 export const requireWebGpu = devices.get;
 export const resetWebGpuDevice = devices.reset;
 
