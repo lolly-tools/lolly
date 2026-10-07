@@ -235,18 +235,18 @@ export function createHttpLifecycle({
     if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 900_000)
       throw new Error('Invalid drain timeout');
     begin();
-    const deadline = Date.now() + timeoutMs;
+    const deadline = performance.now() + timeoutMs;
     while (true) {
       const state = status();
       if (state.settled) return state;
-      if (state.workFinished || Date.now() >= deadline) {
+      if (state.workFinished || performance.now() >= deadline) {
         throw Object.assign(
           new Error('Drain is not settled; preserve the writer fence and resolve accounting'),
           { state }
         );
       }
       await new Promise((resolve) =>
-        setTimeout(resolve, Math.min(25, Math.max(1, deadline - Date.now())))
+        setTimeout(resolve, Math.min(25, Math.max(1, deadline - performance.now())))
       );
     }
   }

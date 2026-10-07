@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 export type WriteObserver = () => (acknowledged: boolean) => void;
 export interface WriteTracker {
