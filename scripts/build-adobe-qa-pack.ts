@@ -9,12 +9,12 @@ import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { exportDesignIdml } from '../engine/src/design-idml.ts';
 import { exportDesignPremiere } from '../engine/src/design-premiere.ts';
+import { readIdmlSpreads } from '../engine/src/idml-read.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
 import { packPng } from '../engine/src/png.ts';
 import { readPremiereXml } from '../engine/src/premiere-xml.ts';
 import { readZip, storeZip } from '../engine/src/zip.ts';
 import { loadPsdKernel } from '../packages/node-shell/src/adobe-psd-node.ts';
-import { parseIdmlSpreads } from '../shells/web/src/views/idml-import.ts';
 import type { AssetRef, HostV1 } from '../packages/core/src/host-v1.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -68,13 +68,9 @@ await add('Darkroom/preset.xmp', await readFile(join(root, 'tests/fixtures/adobe
 const dom = new JSDOM('');
 let layoutPages: { width: number; height: number }[];
 try {
-  const priorDOMParser = globalThis.DOMParser;
-  globalThis.DOMParser = dom.window.DOMParser;
-  try {
-    const spreads = await parseIdmlSpreads(Object.fromEntries(readZip(layout).map(file => [file.name, file.bytes])), { storeImage: async () => image });
-    layoutPages = spreads.map(({ width, height }) => ({ width, height }));
-    if (JSON.stringify(layoutPages) !== JSON.stringify([{ width: 600, height: 800 }, { width: 400, height: 300 }])) throw new Error('IDML page geometry changed.');
-  } finally { globalThis.DOMParser = priorDOMParser; }
+  const spreads = await readIdmlSpreads(Object.fromEntries(readZip(layout).map(file => [file.name, file.bytes])), text => new dom.window.DOMParser().parseFromString(text, 'application/xml'), { storeImage: async () => image });
+  layoutPages = spreads.map(({ width, height }) => ({ width, height }));
+  if (JSON.stringify(layoutPages) !== JSON.stringify([{ width: 600, height: 800 }, { width: 400, height: 300 }])) throw new Error('IDML page geometry changed.');
   const xml = timelineFiles.find(file => file.name === 'sequence.xml');
   const sequence = readPremiereXml(new TextDecoder().decode(xml!.bytes), text => new dom.window.DOMParser().parseFromString(text, 'application/xml'));
   if (sequence.duration !== 150 || sequence.clips.length !== 2 || sequence.clips[1]!.start !== 90) throw new Error('Premiere frame placement changed.');
