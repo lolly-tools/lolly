@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import type { CollabInviteLinks } from '../lib/collab-session.ts';
+import type { CollabInviteLinks, InviteLinkRole } from '../lib/collab-session.ts';
 import { copyText } from '../lib/copy-text.ts';
 import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
@@ -22,14 +22,14 @@ export function mountInviteLinkControl(host: HTMLElement, capability: CollabInvi
   async function refresh(): Promise<void> {
     const roles = await capability.roles(); if (disposed) return;
     const selected = role.value; role.replaceChildren();
-    for (const value of roles) { const option = doc.createElement('option'); option.value = value; option.textContent = tRaw(value === 'editor' ? 'Editor' : 'Viewer'); role.append(option); }
-    if (roles.includes(selected as 'editor' | 'viewer')) role.value = selected;
+    for (const value of roles) { const option = doc.createElement('option'); option.value = value; option.textContent = value === 'editor' ? tRaw('Editor') : value === 'commenter' ? tRaw('Commenter') : tRaw('Viewer'); role.append(option); }
+    if (roles.includes(selected as InviteLinkRole)) role.value = selected;
     row.hidden = roles.length === 0;
   }
   const onCopy = async (): Promise<void> => {
     if (busy || disposed) return; busy = true; copy.disabled = role.disabled = true; status.textContent = ''; fallback.hidden = true;
     try {
-      const value = role.value; if (value !== 'editor' && value !== 'viewer') return;
+      const value = role.value; if (value !== 'editor' && value !== 'commenter' && value !== 'viewer') return;
       const link = await capability.create(value); if (disposed) return;
       const copied = await copyText(link.url); if (disposed) return;
       if (copied) { status.textContent = tRaw('Link copied'); announce(status.textContent); }

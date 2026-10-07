@@ -44,11 +44,12 @@ import {
   type ProjectPeople, type ProjectRequest,
 } from './project-members.ts';
 import {
-  INVITE_ROLES, MAX_INVITE_EMAILS, invitationLines, inviteLinkKind, inviteResultText, isManagerPlus, parseInviteEmails,
+  INVITE_ROLES, MAX_INVITE_EMAILS, invitationLines, inviteLinkKind, inviteResultText, isManagerPlus, isReadOnlyRole, parseInviteEmails,
   passwordTickDefault, peopleMessage, requestAnsweredText, requestAskText, requestAskedText, requestRefusalText,
   roleHelpText, roleLabel, shownInviteStatus, waitingAddresses,
   type InviteLinkKind, type InvitePolicy, type InviteRole, type InviteShownStatus,
 } from './team-access.ts';
+import { shareAccessFor } from './share-access-panel.ts';
 
 export interface PeoplePanelOptions {
   projectId: string;
@@ -77,7 +78,7 @@ export function peoplePanelView(people: ProjectPeople, policy: InvitePolicy | nu
 } {
   const manage = isManagerPlus(people.myRole);
   const roles = policy?.projectRoles ?? [];
-  return { manage, invite: manage && !!policy && roles.length > 0, roles, askToEdit: people.myRole === 'viewer' && policy?.askToEdit === true };
+  return { manage, invite: manage && !!policy && roles.length > 0, roles, askToEdit: isReadOnlyRole(people.myRole) && policy?.askToEdit === true };
 }
 
 /** The roles a member's role select offers: the instance's invite roles, plus the
@@ -207,7 +208,8 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
   const listSlot = el('div');
   listSlot.append(el('p', { className: 'projects-empty', text: tRaw('Loading…') }));
   const inviteSlot = el('div');
-  panel.append(status, askSlot, listSlot, inviteSlot);
+  const access = shareAccessFor({ projectId: opts.projectId, say, context: () => ({ workspace: opts.policy?.workspace ?? '', directoryGroups: opts.policy?.sharingGroups ?? [], canCreateGroups: opts.policy?.canCreateGroups === true }) });
+  panel.append(status, askSlot, listSlot, access.section, inviteSlot);
 
   let people: ProjectPeople | null = null;
   /** Set once this person has left the project from their own row. */
@@ -352,6 +354,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
       // Anyone but the owner may leave a project, whatever their role.
       if (m.isMe && m.role !== 'owner') controls.append(removeButton(m, li));
     }
+    access.decorateMember(controls, m, manage);
     li.append(who, controls);
     return li;
   };
