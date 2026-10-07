@@ -234,6 +234,10 @@ test('a session read carries the caller\'s project role when the instance sends 
   const { sessionDataFromBody } = await import('./session-source.ts');
   assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'viewer' })?.myRole, 'viewer');
   assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'owner' })?.myRole, 'owner');
-  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'superuser' })?.myRole, undefined, 'a role this shell does not know is dropped');
+  // A role this shell does not know (a commenter, before this shell learned it) fails
+  // closed: read as a viewer's, so the document opens view-only. Only an absent role is unknown.
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'commenter' })?.myRole, 'viewer', 'a role this shell does not know fails closed');
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'superuser' })?.myRole, 'viewer');
+  assert.equal('myRole' in (sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: '  ' }) ?? {}), false, 'a blank role is no role');
   assert.equal('myRole' in (sessionDataFromBody({ toolId: 'poster', inputs: {} }) ?? {}), false, 'absent stays absent, never an undefined key');
 });

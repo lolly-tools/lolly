@@ -139,3 +139,27 @@ test('a team document asks its own question and keeps its device draft on Leave 
     'a local document discards exactly as before');
   scope._resetDocumentScopeForTests();
 });
+
+test('a viewer\'s document: the ordinary dialog, so Leave without saving discards as it says', async () => {
+  const scope = await import('../lib/document-scope.ts');
+  scope._resetDocumentScopeForTests();
+  // The document belongs to a team project (the scope claims it) but this person may only
+  // view it: no "Save changes to…" question, so the dialog is the ordinary one.
+  const off = scope.registerDocumentScope({
+    chip: () => ({ label: 'Brand refresh · View only', role: 'view' }),
+    leavePrompt: () => null,
+  });
+  const stop = scope.mountDocumentScope({
+    toolId: 'qr-code', view: document.createElement('div'),
+    document: () => ({ inputs: {} }), unsaved: () => true, saveOnDevice: async () => true,
+  });
+  assert.equal(scope.documentScopeClaimed('qr-code'), true, 'a team document');
+  const { leaveQuestion } = await import('./tool-leave.ts');
+  assert.equal(leaveQuestion(), null, 'asked nothing about the project');
+  const f = fakes('removed');
+  assert.deepEqual(await discardUnsavedWork({ host: f.host, controller: f.controller, slot: f.slot }), { outcome: 'removed', kept: null },
+    'the draft of the team document is discarded, not kept on the device without a word');
+  stop();
+  off();
+  scope._resetDocumentScopeForTests();
+});

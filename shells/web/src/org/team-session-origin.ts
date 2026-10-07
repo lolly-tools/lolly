@@ -130,8 +130,12 @@ export interface TeamSessionOriginInput {
   projectName?: string;
 }
 
-/** The roles an origin may carry; anything else is dropped as unknown. */
-const ROLES: readonly string[] = ['owner', 'manager', 'editor', 'viewer'];
+/** The roles that may change a team document. A role the instance sends that is not one
+ *  of these (a viewer, and any role this shell does not know, such as a commenter) is
+ *  carried as 'viewer': it fails closed, so the document opens view-only and keeps no
+ *  durable record. Only an absent role means unknown, which the instance's own answer
+ *  to a save then decides. */
+const EDIT_ROLES: readonly string[] = ['owner', 'manager', 'editor'];
 
 /** An armed stash: the origin, and the address the navigation it belongs to opens
  *  (rule 5). No address means the caller did not name one: the tool alone decides. */
@@ -203,7 +207,8 @@ function normalise(origin: Partial<TeamSessionOriginInput> | null | undefined): 
   const projectId = String(origin.projectId ?? '').trim();
   const label = typeof origin.label === 'string' ? origin.label.trim() : '';
   const rev = typeof origin.rev === 'number' && Number.isFinite(origin.rev) ? origin.rev : undefined;
-  const role = typeof origin.role === 'string' && ROLES.includes(origin.role) ? origin.role : undefined;
+  const named = typeof origin.role === 'string' ? origin.role.trim() : '';
+  const role: TeamRole | undefined = !named ? undefined : EDIT_ROLES.includes(named) ? named as TeamRole : 'viewer';
   const projectName = typeof origin.projectName === 'string' ? origin.projectName.trim() : '';
   return {
     sessionId,

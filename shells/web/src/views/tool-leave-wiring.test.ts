@@ -96,4 +96,9 @@ test('a team document: Save, Cmd-S and the leave prompt reach the document scope
   assert.match(dialog, /const scoped = leaveQuestion\(\);/);
   assert.match(dialog, /scoped \? escapeText\(scoped\) : t\('Unsaved changes'\)/, 'the question is escaped into the heading');
   assert.match(dialog, /scoped \? t\('Stay'\) : t\('Cancel'\)/);
+  // The draft is kept only where that question was asked: a viewer's team document gets
+  // the ordinary dialog, and its Leave without saving discards, as the dialog says.
+  const leave = stripComments(readFileSync(join(HERE, 'tool-leave.ts'), 'utf8'));
+  assert.match(leave, /if \(opts\.keep \?\? documentLeavePrompt\(\) !== null\) return \{ outcome: 'unchanged', kept: slot \};/);
+  assert.doesNotMatch(leave, /documentScopeClaimed/, 'claiming the document is not enough to keep its draft');
 });
