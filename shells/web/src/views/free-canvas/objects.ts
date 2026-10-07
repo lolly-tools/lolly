@@ -12,7 +12,8 @@ import type { AlignEdge, Axis, Box, ZOp } from '../free-canvas-math.ts';
 import { pathToBox, replaceBoxes } from '../vector-ops.ts';
 import type { OutlineGroup } from '../outline-text.ts';
 import type { MatteHost, MatteSource } from '../matte-dialog.ts';
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { AssetRef, ExportFormat, HostV1 } from '@lolly-tools/core/host-v1';
+import type { ToolSettingsHandle } from '../design-ports.ts';
 import type { InputValue } from '../../../../../engine/src/inputs.ts';
 import { designSceneDecode, designSceneEncode } from '../../../../../engine/src/design-scene.ts';
 import { buildEmbedUrl, parseToolUrl } from '../../../../../engine/src/tool-url.ts';
@@ -31,6 +32,8 @@ import { composedPosterId, consentToLink, enterWebBox, isComposedPoster, lollyTo
 export async function pickImage(fc: FcCtx, pickOpts?: {
   pickType?: 'lottie' | 'video' | 'audio';
   initialTab?: 'library' | 'tools';
+  /** Straight to the picker: the caller already chose "replace" (the Tool section). */
+  replace?: boolean;
 }): Promise<void> {
   const { cfg, editTool, host } = fc;
   if (!cfg.imageField || !host.assets?.pick) return;
@@ -44,13 +47,21 @@ export async function pickImage(fc: FcCtx, pickOpts?: {
   // A box already filled by a live Lolly render: ask edit-or-replace before
   // opening the picker (same choice-first flow as the sidebar image slots).
   const curToolUrl = curImg?.meta?.toolUrl;
-  if (curToolUrl && editTool) {
+  // With an inspector beside the board, a placed tool's inputs live in its Tool section
+  // (design-inspector.ts), so "edit" opens that section beside the board rather than a
+  // modal that covers the board. The modal stays for a host without an inspector.
+  const inlineTool = !!fc.inspectorPort;
+  if (curToolUrl && editTool && !pickOpts?.replace) {
     // Lazy: picker.ts pulls in the picker's own CSS chunk, and the overlay only needs
     // it on this one branch - a static import would ship (and evaluate) it for every
     // editor mount.
     const { askLollyIntent } = await import('../picker.ts');
     const intent = await askLollyIntent(curImg?.meta?.name);
     if (!intent) return;
+    if (intent === 'edit' && inlineTool) {
+      fc.inspectorPort!.reveal('tool');
+      return;
+    }
     if (intent === 'edit') {
       try {
         const edited = await editTool(curToolUrl, 'edit');
@@ -94,7 +105,10 @@ export async function pickImage(fc: FcCtx, pickOpts?: {
       currentToolName: curImg?.meta?.name,
       // Choosing a Lolly link or a saved creation opens its inputs first so the
       // user can set values (configure → insert), reusing the sidebar's editor.
-      editTool,
+      // With an inspector beside the board, a tool chosen from the Tools pane is instead
+      // placed at once with its own defaults (placeTool) and tuned in the inspector, with
+      // the board in view; editing the box's current render still opens the editor.
+      editTool: inlineTool && editTool ? (url: string, mode?: string) => (mode === 'edit' ? editTool(url, mode) : placeTool(fc, url)) : editTool,
     });
     if (!ref) return;
     if (ref.type === 'lottie') ref = await (await import('../lottie-import.ts')).chooseLottieAsset(ref);
@@ -105,12 +119,87 @@ export async function pickImage(fc: FcCtx, pickOpts?: {
       animationId: String(ref.meta?.lottieAnimationId ?? ''),
       start: first.start ?? fc.timelinePanel?.time() ?? 0,
       dur: Number(ref.meta?.durationMs) / 1000, clipIn: 0, speed: 1, fit: 'contain',
-    } : {};
+    } : loopTiming(first, ref, fc.timelinePanel?.time());
     fc.select.commit(boxes.map((b, i) => (sel.has(i) ? { ...b, [cfg.imageField]: ref, animationEdits: '', ...animation } : b)));
     if (ref.type === 'lottie') fc.timeline.openTimeline();
+    // A tool placed from the Tools pane opens its settings, which are where it is tuned.
+    else if (inlineTool && (ref.meta as { toolUrl?: unknown } | undefined)?.toolUrl) fc.inspectorPort!.reveal('tool');
   } catch (error) {
     if (error instanceof Error && error.name !== 'AbortError') announce(error.message);
   }
+}
+
+/**
+ * The timing an image box takes when its picture LOOPS: an animated SVG whose source
+ * says how long one loop lasts (compose.ts stamps `meta.durationMs` on a tool render
+ * that carries its own motion, such as Pose Geeko alive). The box becomes one loop
+ * long, from the playhead: a video of the timeline then holds a whole number of loops
+ * and ends exactly where it began. A box that already has a length keeps it, and a
+ * still, or a loop with no stated length, gets nothing, as before.
+ */
+export function loopTiming(
+  box: Box,
+  ref: { type?: string; meta?: Record<string, unknown> },
+  playheadSec?: number,
+  prev?: { meta?: Record<string, unknown> } | null,
+): { start?: number; dur?: number } {
+  const ms = Number(ref.meta?.durationMs);
+  if (ref.type !== 'vector' || ref.meta?.animated !== true || !(ms > 0)) return {};
+  const has = (v: unknown): boolean => v !== '' && v != null && Number.isFinite(Number(v));
+  if (has(box.dur)) {
+    // A clip that is still exactly the PREVIOUS loop's length was set by this rule,
+    // not by the person, so it follows the loop when the loop changes (Pose Geeko's
+    // Loop length in the Tool section). A clip the person retimed keeps its length.
+    const was = Number(prev?.meta?.durationMs) / 1000;
+    return was > 0 && Math.abs(Number(box.dur) - was) < 1e-3 && Math.abs(was - ms / 1000) > 1e-3 ? { dur: ms / 1000 } : {};
+  }
+  return { start: has(box.start) ? Number(box.start) : (playheadSec ?? 0), dur: ms / 1000 };
+}
+
+/**
+ * A tool chosen to be placed, rendered with its own defaults in the format the tool
+ * itself offers first (svg when it has one): the picker hands it to Design as it comes,
+ * and its inputs are the inspector's to show. Null when the tool cannot be rendered.
+ */
+async function placeTool(fc: FcCtx, url: string): Promise<AssetRef | null> {
+  const compose = fc.host.compose as (HostV1['compose'] & { _describeUrl?: (url: string) => Promise<{ format: string } | null> }) | undefined;
+  const desc = await compose?._describeUrl?.(url).catch(() => null);
+  return desc && compose?.renderUrl ? compose.renderUrl(url, { format: desc.format as ExportFormat }).catch(() => null) : null;
+}
+
+/**
+ * The Tool section's panel for box `id` (InspectorActions.mountToolSettings): the
+ * placed tool's own inputs, mounted into the inspector by tool-inputs.ts's
+ * mountEmbedPanel. Each render it hands back is written to the box as ONE commit (one
+ * undo step), carrying the clip timing a loop needs (loopTiming), so the canvas follows
+ * the panel live. Null when the box's picture is not a tool render.
+ */
+export async function mountToolSettings(fc: FcCtx, slot: HTMLElement, id: string): Promise<ToolSettingsHandle | null> {
+  const { cfg, host } = fc;
+  const field = cfg.imageField;
+  if (!field) return null;
+  const find = (rows: Box[]): number => rows.findIndex((b, i) => fc.select.idOf(b, i) === id);
+  const rows0 = fc.select.getBoxes();
+  const img = rows0[find(rows0)]?.[field] as { id?: unknown; meta?: { toolUrl?: unknown } } | undefined;
+  const url = typeof img?.meta?.toolUrl === 'string' ? img.meta.toolUrl : typeof img?.id === 'string' ? img.id : '';
+  if (!url || !parseToolUrl(url)) return null;
+  const { mountEmbedPanel } = await import('../embed-panel.ts');
+  if (fc.disposed) return null;
+  return mountEmbedPanel(host as Parameters<typeof mountEmbedPanel>[0], slot, {
+    url,
+    onRender: (ref) => {
+      if (fc.disposed) return;
+      const rows = fc.select.getBoxes();
+      const at = find(rows);
+      if (at < 0) return;
+      const cur = rows[at]!;
+      const prev = cur[field] as { meta?: Record<string, unknown> } | undefined;
+      fc.select.commit(rows.map((b, i) => (i === at
+        ? { ...b, [field]: ref, ...loopTiming(cur, ref as { type?: string; meta?: Record<string, unknown> }, fc.timelinePanel?.time(), prev) }
+        : b)));
+    },
+    onError: (message) => announce(message),
+  });
 }
 
 /** The tool a scene box is edited in, and the still format its editor previews with. */
@@ -882,6 +971,7 @@ export function objectsOps(fc: FcCtx) {
   return {
     pickImage: bindOp(fc, pickImage),
     openStudio: bindOp(fc, openStudio),
+    mountToolSettings: bindOp(fc, mountToolSettings),
     refreshWebPoster: bindOp(fc, refreshWebPoster),
     editWebTool: bindOp(fc, editWebTool),
     useWebPage: bindOp(fc, useWebPage),
