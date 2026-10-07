@@ -196,6 +196,17 @@ target. `pnpm run gate` still validates `lolly-start` through the committed
 `k3s` target. `pnpm run ship`, including preview, production and `--no-gate`
 modes, refuses that target before the gate, credential setup or upload.
 
+For the next application release, follow Work's maintained
+[application update guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/APP-UPDATES.md).
+From a qualified `lolly-work` checkout, `python3 scripts/app-update.py --target
+/protected/production-target.json --release /protected/reviewed-release.json
+--plan-out /protected/app-update-plan.json` prepares an image update. Review the
+plan, then use the guide's explicit apply command and reviewed plan hash. This
+updates the existing application's image without provisioning infrastructure.
+The public web image includes its shell, tools and catalog. A private Work image
+update preserves any mounted shell or tool pack; publish those separately using
+the guide's content release procedure.
+
 For another instance, configure `scripts/data/ship-targets.json` with an explicit
 `vercel` or `internal_it` driver and its own domain and project. Vercel also needs
 an explicit team ID. There is no default adapter, and the old Lolly production

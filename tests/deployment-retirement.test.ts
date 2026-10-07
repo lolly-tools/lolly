@@ -18,7 +18,7 @@ const RETIRED_PROJECTS = [
   'prj_35faMWKpIv5tWrDGSLwkzY7MFhIG',
 ];
 const MANAGED_DOMAINS = [
-  'lolly.tools', 'lolly.ing', 'lolly.work', 'lolly.art', 'lolly.free', 'lolly.to', 'lolly.sh',
+  'lolly.tools', 'lolly.ing', 'lolly.work', 'lolly.art', 'lolly.free', 'lolly.to', 'lolly.sh', 'vml.ai',
 ];
 const otherTarget: ShipTarget = {
   name: 'other', project: OTHER_PROJECT, profile: 'lolly-start', domain: 'models.example.org', driver: 'vercel',
