@@ -1,0 +1,132 @@
+{{- range $name, $component := .Values.components }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sovereign.name" (dict "root" $ "name" $name) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" $ "name" $name) | nindent 4 }}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      {{- include "sovereign.selector" (dict "root" $ "name" $name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sovereign.selector" (dict "root" $ "name" $name) | nindent 8 }}
+      annotations:
+        {{- if eq $name "web" }}
+        checksum/nginx: {{ $.Files.Get "files/public.nginx.conf" | sha256sum }}
+        lolly.tools/models-release: {{ $.Values.models.release | quote }}
+        {{- end }}
+        lolly.tools/profile: sovereign-single-node
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ $component.uid }}
+        runAsGroup: {{ $component.uid }}
+        fsGroup: {{ $component.uid }}
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: {{ $name }}
+          image: {{ include "sovereign.image" $component.image | quote }}
+          imagePullPolicy: IfNotPresent
+          ports: [{name: http, containerPort: {{ $component.port }}}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          {{- if or (eq $name "mcp") (eq $name "ca") }}
+          envFrom:
+            - secretRef: {name: {{ $component.existingSecret }}}
+          {{- end }}
+          {{- if ne $name "web" }}
+          env:
+            - {name: NODE_ENV, value: production}
+            - {name: NODE_OPTIONS, value: "--max-old-space-size={{ $component.heapMiB }}"}
+            - {name: PORT, value: {{ $component.port | quote }}}
+            {{- if eq $name "mcp" }}
+            - {name: LOLLY_MCP_BIND_HOST, value: 0.0.0.0}
+            - {name: LOLLY_MCP_PUBLIC_ORIGIN, value: "https://{{ $.Values.public.host }}"}
+            - {name: LOLLY_MCP_ALLOWED_ORIGINS, value: "https://{{ $.Values.public.host }},https://{{ $.Values.private.host }}"}
+            - {name: LOLLY_LIVE_ORIGINS, value: "https://{{ $.Values.public.host }}"}
+            - {name: LOLLY_MCP_TRUST_PROXY, value: "1"}
+            - {name: LOLLY_MCP_TRUSTED_PROXIES, value: {{ join "," $.Values.edge.proxyAddresses | quote }}}
+            - {name: LOLLY_MCP_ALLOW_ANONYMOUS, value: "0"}
+            - {name: LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT, value: "0"}
+            - {name: LOLLY_MCP_PRIVATE_FILES, value: "0"}
+            - {name: LOLLY_WEB_BASE, value: ""}
+            {{- else if eq $name "ca" }}
+            - {name: CA_ALLOWED_ORIGINS, value: "https://{{ $.Values.public.host }},https://{{ $.Values.private.host }}"}
+            - {name: CA_TRUST_PROXY, value: "1"}
+            - {name: CA_TRUSTED_PROXIES, value: {{ join "," $.Values.edge.proxyAddresses | quote }}}
+            - {name: CA_ALLOW_IN_MEMORY_RATE_LIMIT, value: "0"}
+            - {name: CA_DEV_FAKE_PROVIDER, value: "0"}
+            {{- else if eq $name "penpot" }}
+            - {name: LOLLY_PENPOT_BIND_HOST, value: 0.0.0.0}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{- toYaml $component.resources | nindent 12 }}
+          startupProbe:
+            tcpSocket: {port: http}
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            tcpSocket: {port: http}
+            periodSeconds: 15
+          readinessProbe:
+            {{- if eq $name "web" }}
+            httpGet: {path: /healthz, port: http}
+            {{- else if eq $name "ca" }}
+            httpGet: {path: /api/ca/health, port: http}
+            {{- else if eq $name "penpot" }}
+            httpGet: {path: /healthz, port: http}
+            {{- else }}
+            tcpSocket: {port: http}
+            {{- end }}
+            periodSeconds: 5
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+            {{- if eq $name "web" }}
+            - {name: nginx, mountPath: /etc/nginx/conf.d/default.conf, subPath: default.conf, readOnly: true}
+            - name: models
+              mountPath: /usr/share/nginx/html/models
+              readOnly: true
+              {{- if $.Values.models.subPath }}
+              subPath: {{ $.Values.models.subPath | quote }}
+              {{- end }}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {sizeLimit: {{ $component.tmpSize | quote }}}
+        {{- if eq $name "web" }}
+        - name: nginx
+          configMap: {name: {{ include "sovereign.name" (dict "root" $ "name" "nginx") }}}
+        - name: models
+          persistentVolumeClaim: {claimName: {{ $.Values.models.existingClaim }}, readOnly: true}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sovereign.name" (dict "root" $ "name" $name) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" $ "name" $name) | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "sovereign.selector" (dict "root" $ "name" $name) | nindent 4 }}
+  ports: [{name: http, port: 80, targetPort: http}]
+{{- end }}
