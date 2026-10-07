@@ -871,27 +871,6 @@ menu.addEventListener('click',function(e){if(e.target.closest&&e.target.closest(
 })();
 
 ;
-(function(){
-var btn=document.querySelector('.docs-listen');if(!btn)return;
-// The ladder (plan 131 B.3): a produced page needs Ogg/Opus playback; every page can
-// fall back to the device voice (speechSynthesis). Remove the control only when there
-// is genuinely nothing to play - a produced page this browser can't decode (iOS Safari
-// before 18.4) AND no device voice, or a device-voice page with no speechSynthesis
-// (some webkitgtk - the Linux gap a native command will close).
-var produced=btn.hasAttribute('data-listen-produced');
-var hasTts=('speechSynthesis' in window)&&(typeof SpeechSynthesisUtterance!=='undefined');
-var canOpus=false;try{canOpus=!!document.createElement('audio').canPlayType('audio/ogg; codecs=opus');}catch(e){}
-if((!produced||!canOpus)&&!hasTts){var bar=btn.closest('.listen-bar');btn.remove();if(bar&&!bar.children.length)bar.remove();return;}
-var busy=false;
-function open(auto){if(busy)return;busy=true;btn.classList.add('is-loading');
-import('/info/docs-player.js').then(function(m){
-  m.openDocsPlayer({slug:btn.getAttribute('data-listen-slug'),title:btn.getAttribute('data-listen-title'),autoplay:!!auto,trigger:btn});
-}).catch(function(e){console.warn('docs player failed to load',e);}).finally(function(){busy=false;btn.classList.remove('is-loading');});}
-btn.addEventListener('click',function(){open(true);});
-try{var s=sessionStorage.getItem('lolly-docs-listen');
-if(s&&JSON.parse(s).slug===btn.getAttribute('data-listen-slug'))open(JSON.parse(s).auto);}catch(e){}
-})();
-;
 
 "use strict";var LollyDocsReading=(()=>{var w=Object.defineProperty;var j=Object.getOwnPropertyDescriptor;var B=Object.getOwnPropertyNames;var W=Object.prototype.hasOwnProperty;var K=(c,r)=>{for(var m in r)w(c,m,{get:r[m],enumerable:!0})},z=(c,r,m,n)=>{if(r&&typeof r=="object"||typeof r=="function")for(let a of B(r))!W.call(c,a)&&a!==m&&w(c,a,{get:()=>r[a],enumerable:!(n=j(r,a))||n.enumerable});return c};var V=c=>z(w({},"__esModule",{value:!0}),c);var G={};K(G,{COPY_FEEDBACK_MS:()=>F,enhanceDocsReading:()=>_,shellCommands:()=>O});function O(c){let r=c.split(`
 `),m=/^\s*\$ /,n;if(r.some(s=>m.test(s))){n=[];let s=!1;for(let d of r)m.test(d)?(n.push(d.replace(m,"")),s=/\\$/.test(d)):s&&(n.push(d),s=/\\$/.test(d))}else n=r.filter(s=>!/^\s*#/.test(s));let a=s=>{let d=null;for(let p=0;p<s.length;p++){let y=s[p];if(d){y===d&&(d=null);continue}if(y==='"'||y==="'"){d=y;continue}if(y==="#"&&p>0&&/\s/.test(s[p-1]))return s.slice(0,p).trimEnd()}return s};return n.map(a).join(`

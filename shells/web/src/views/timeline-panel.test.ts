@@ -7655,6 +7655,32 @@ test('timeline resizing follows the visual viewport reserve without reopening a 
   } finally { h.teardown(); }
 });
 
+test('cue timing draws beats as ruler ticks and cues as named markers that seek without scrubbing', async () => {
+  const timing = JSON.stringify({ version: 1, tempo: { bpm: 120, offset: 0.25, beatsPerBar: 4 }, cues: [{ id: 'drop', beat: 2 }], bindings: [] });
+  const h = mount([clip('a', 0, 3)], 40, ADD_KINDS, {
+    projectTime: { rate: () => 25, marks: () => '', writeMarks() {}, timing: () => timing, async writeTiming() {} },
+  });
+  try {
+    h.root.dispatchEvent(new dom.window.Event('pointerenter'));
+    await seek(h, 0);
+    const beats = [...h.root.querySelectorAll<HTMLElement>('.tl-cues .tl-beat')];
+    assert.ok(beats.length >= 5, 'one tick per beat across the clip');
+    assert.ok(beats.every(beat => beat.textContent === '' && beat.getAttribute('aria-hidden') === 'true'), 'a beat is a bare tick, never text over the time labels');
+    assert.equal(h.root.querySelectorAll('.tl-cues .tl-beat--bar').length, 2, 'each bar opens with a taller tick');
+    const cue = h.root.querySelector<HTMLButtonElement>('.tl-cues .tl-cue')!;
+    assert.equal(cue.getAttribute('aria-label'), 'drop · 1.250s');
+    const pxPerSec = parseFloat(cue.style.left) / 1.25;
+    assert.ok(Math.abs(parseFloat(beats[0]!.style.left) - 0.25 * pxPerSec) < 1e-6, 'the grid starts at the tempo offset');
+    let scrubbed = 0;
+    h.root.querySelector('.tl-ruler')!.addEventListener('pointerdown', () => { scrubbed++; });
+    cue.dispatchEvent(pointer('pointerdown', 0));
+    assert.equal(scrubbed, 0, 'pressing a cue does not start a ruler scrub');
+    cue.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.match(h.root.querySelector('.tl-time')?.textContent ?? '', /0:01\.2|0:01\.3/);
+  } finally { h.teardown(); }
+});
+
 test('cue timing waits for the grouped write, reports refusals and rejects a stale preview', async () => {
   let reject!: (error: Error) => void;
   let writes = 0;

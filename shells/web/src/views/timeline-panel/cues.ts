@@ -14,24 +14,32 @@ export function cueTimingOps(tp: TpCtx) {
     let timing: MotionTiming;
     try { timing = read(); } catch { return; }
     const layer = document.createElement('div'); layer.className = 'tl-cues';
-    const times = resolveCues(timing), duration = tp.clock.duration() / 1000;
-    const add = (seconds: number, label: string, cue: boolean): void => {
-      const mark = document.createElement(cue ? 'button' : 'span'); mark.className = cue ? 'tl-marker' : 'tl-beat';
-      mark.style.cssText = `position:absolute;left:${seconds * tp.pxPerSec}px;top:${cue ? 16 : 0}px;font-size:9px`;
-      mark.textContent = label; mark.setAttribute('aria-label', `${label} ${seconds.toFixed(3)}s`);
-      if (cue) mark.addEventListener('click', () => tp.clock.seek(seconds * 1000));
+    const times = resolveCues(timing), duration = Math.max(tp.rows.durationSec(), tp.clock.duration() / 1000);
+    // The ruler is one label row high: beats are bare ticks along its lower edge (a taller
+    // one opens each bar) so the time labels stay readable, and a cue is a marker like a
+    // timeline marker, named in its tooltip and accessible label.
+    const beatTick = (seconds: number, bar: boolean): void => {
+      const tick = document.createElement('span'); tick.className = bar ? 'tl-beat tl-beat--bar' : 'tl-beat';
+      tick.style.left = `${seconds * tp.pxPerSec}px`; tick.setAttribute('aria-hidden', 'true');
+      layer.append(tick);
+    };
+    const cueMark = (seconds: number, label: string): void => {
+      const mark = document.createElement('button'); mark.type = 'button'; mark.className = 'tl-marker tl-cue';
+      mark.style.left = `${seconds * tp.pxPerSec}px`; mark.textContent = '◆';
+      mark.title = `${label} · ${seconds.toFixed(3)}s`; mark.setAttribute('aria-label', mark.title);
+      mark.addEventListener('pointerdown', event => event.stopPropagation());
+      mark.addEventListener('click', () => tp.clock.seek(seconds * 1000));
       layer.append(mark);
     };
     if (timing.tempo?.bpm) {
       const beat = 60 / timing.tempo.bpm, offset = timing.tempo.offset;
-      const step = Math.max(1, Math.ceil(30 / (beat * tp.pxPerSec)));
+      const step = Math.max(1, Math.ceil(6 / (beat * tp.pxPerSec)));
       const first = Math.max(0, Math.ceil(-offset / beat));
       for (let i = first, count = 0; offset + i * beat <= duration && count < 2000; i += step, count++) {
-        const bar = Math.floor(i / timing.tempo.beatsPerBar) + 1, within = i % timing.tempo.beatsPerBar + 1;
-        add(offset + i * beat, `${bar}.${within}`, false);
+        beatTick(offset + i * beat, i % timing.tempo.beatsPerBar === 0);
       }
     }
-    for (const [id, at] of Object.entries(times)) add(at, id, true);
+    for (const [id, at] of Object.entries(times)) cueMark(at, id);
     tp.rulerInner.append(layer);
   };
   const open = (): void => {
