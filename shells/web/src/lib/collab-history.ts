@@ -27,11 +27,23 @@ export interface CollabHistoryEntry {
   readonly parentId?: string;
   readonly toolId: string;
   readonly label: string;
-  readonly reason: 'checkpoint' | 'save' | 'recovery';
+  /** `named` is a version someone saved with a name; `restore` is the result of a restore. */
+  readonly reason: 'checkpoint' | 'save' | 'recovery' | 'named' | 'restore';
   readonly actor: { readonly id: string; readonly label?: string };
   readonly at: string;
   readonly revision: number;
   readonly preview?: string | null;
+  /** Everyone who changed the document since the previous entry; labels never carry an email address. */
+  readonly contributors?: readonly { readonly id: string; readonly label?: string }[];
+}
+
+/** What a restore reports: the entry that undoes it, and inputs it left as they were. */
+export interface CollabHistoryRestoreResult {
+  readonly undoId?: string;
+  /** Inputs the live document could not take, left unchanged. */
+  readonly skipped?: readonly string[];
+  /** Inputs locked for the person restoring, left unchanged. */
+  readonly vetoed?: readonly string[];
 }
 
 export interface CollabHistoryPage {
@@ -46,8 +58,15 @@ export interface CollabHistoryCapability {
   readonly canSaveCopy: boolean;
   list(options?: { before?: string; limit?: number }): Promise<CollabHistoryPage>;
   read(id: string): Promise<SavedStateData | null>;
-  restore?(id: string): Promise<void>;
+  // biome-ignore lint/suspicious/noConfusingVoidType: `undefined` would reject an existing `async restore(id) { await post(id) }`, whose type is Promise<void>.
+  restore?(id: string): Promise<void | CollabHistoryRestoreResult>;
   saveCopy?(id: string): Promise<SavedStateData | null>;
+  /** Save the current document as a named version. */
+  saveVersion?(label: string): Promise<void>;
+  /** A preview image URL for one entry, or null when none can be made. */
+  preview?(id: string): Promise<string | null>;
+  /** Delete one saved version (managers only; the host refuses everyone else). */
+  remove?(id: string): Promise<void>;
 }
 
 /** A checkpoint a client mints itself and hands to a {@link CapturableCollabHistory}. */
