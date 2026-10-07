@@ -420,6 +420,8 @@ export function layerKind(el: HTMLElement): SeqLayer['kind'] {
   // marker, not the class name, because `[data-cam]` is what the hooks promise both
   // evaluators. The audio precedent below only works because both evaluators detect it the same way.
   if (el.getAttribute?.('data-cam') != null || el.querySelector?.('[data-cam]')) return 'camera';
+  // A local webcam has no seekable media source. Portable exports use its current frame.
+  if (el.getAttribute?.('data-live-camera') != null || el.querySelector?.('[data-live-camera]')) return 'static';
   if (hasClass(el, 'lolly-box-audio') || el.querySelector?.('[data-audio-src]')) return 'audio';
   if (hasClass(el, 'lolly-box-lottie') || el.querySelector?.('[data-lottie-src]')) return 'lottie';
   if (el.querySelector?.('video') || hasClass(el, 'lolly-box-video')) return 'video';

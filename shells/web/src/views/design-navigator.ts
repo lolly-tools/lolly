@@ -224,7 +224,8 @@ function kindWord(kind: string): string {
     case 'path': return t('Path');
     case 'line': return t('Line');
     case 'box': return t('Box');
-    case 'camera': return t('Camera');
+    case 'camera': return t('Scene camera');
+    case 'webcam': return t('Camera');
     case 'table': return t('Table');
     case 'tool': return t('Tool');
     case 'anim': return t('Animation');
@@ -244,6 +245,7 @@ function kindIcon(kind: string): IconName {
     case 'line': return 'pen';
     case 'box': return 'box';
     case 'camera': return 'camera';
+    case 'webcam': return 'camera';
     case 'table': return 'table';
     case 'tool': return 'sparkle';
     case 'anim': return 'play';

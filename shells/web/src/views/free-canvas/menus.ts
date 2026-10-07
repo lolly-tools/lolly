@@ -1242,7 +1242,7 @@ export function openAddMenu(fc: FcCtx, anchor: HTMLElement): void {
   const { ADD_KIND_ICON, addKinds } = fc;
   spawnPopover(fc, 
     anchor,
-    [...addKinds.flatMap((k) => [{
+    [...addKinds.filter(k => !fc.timeCfg || k.id !== 'camera').flatMap((k) => [{
       label: k.label ? t(k.label) : k.id,
       icon: icon(ADD_KIND_ICON[k.id] || SVG.add),
       run: () => fc.modes.setMode('create', { kind: k }),

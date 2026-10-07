@@ -555,6 +555,17 @@ function imgCss(b) {
 // marker div is simply inert there (no browser enhancer). The url is esc()'d for
 // parity with the {{asset image}} Handlebars escaping it replaces.
 function mediaHtmlFor(b) {
+  // A live webcam is a visual layer. Saved documents carry only its captured poster;
+  // the shell owns the stream and starts it only after a person's explicit action.
+  if (b && String(b.kind) === 'webcam') {
+    var cameraPoster = b.image && b.image.url ? String(b.image.url) : '';
+    var cameraStill = cameraPoster
+      ? '<img class="lolly-box-img" src="' + esc(cameraPoster) + '" alt="Camera" draggable="false" style="' + imgCss(b) + '">'
+      : '<div class="lolly-box-camera-card" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ffffff;">' +
+        '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L19 6h0a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg></div>';
+    return '<div class="lolly-box-img lolly-box-webcam" data-live-camera="' + esc(String(b.id || '')) +
+      '" data-camera-style="' + esc(imgCss(b)) + '" data-camera-state="stopped">' + cameraStill + '</div>';
+  }
   // plan 104 section 5.4 - a CAMERA box is a bare marker and nothing else: no fill (boxCss), no
   // media, no text, no shadow (compute). It exists so the scene's pose has somewhere to
   // live - the pose itself rides on the wrapper's data-t-kf/data-t-z, exactly like every
