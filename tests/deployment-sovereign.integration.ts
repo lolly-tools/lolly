@@ -297,7 +297,9 @@ test('edge policy scopes a fail-closed constrained host-network exception', () =
     'RuntimeDefault',
     'automountServiceAccountToken',
     'ephemeralContainers',
-    'resources.requests',
+    'dyn(c.resources).requests',
+    'dyn(v.emptyDir).sizeLimit',
+    'p.hostPort == p.containerPort',
     'volumeMounts',
     digest,
   ]) {

@@ -30,13 +30,27 @@ on:
       - tests/model-release.test.ts
       - .github/workflows/deployment-suse.yml
   workflow_dispatch:
+    inputs:
+      build_images:
+        description: Opt in to native candidate image qualification and publishing
+        required: false
+        type: boolean
+        default: false
+      expected_source:
+        description: Exact reviewed 40-character commit; must match the dispatched ref
+        required: false
+        type: string
+      public_key_jwk:
+        description: Existing published public P-256 JWK; never a replacement or private key
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: deployment-suse-${{ github.ref }}
-  cancel-in-progress: true
+  group: deployment-suse-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   chart:
@@ -239,3 +253,166 @@ jobs:
           node --test tests/model-release.test.ts tests/deployment-public-vm.test.ts
           # Native Caddy/nginx acceptance is explicit and never silently skipped.
           node --test tests/deployment-public-vm.integration.ts
+
+  candidate-images:
+    name: Opt-in native public candidate images
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
+    needs: [chart, public-vm]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.expected_source }}
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.public_key_jwk }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+
+      - name: Require the reviewed source and existing public pin
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          test "$GITHUB_SHA" = "$EXPECTED_SOURCE"
+          test ! -e brands/suse/tools
+          test -z "$(git status --porcelain)"
+          docker version
+          docker buildx version
+          mkdir -p "$RUNNER_TEMP/lolly-image-receipts" "$RUNNER_TEMP/lolly-qualified-web"
+          node --input-type=module -e '
+            import { writeFileSync } from "node:fs";
+            const key = JSON.parse(process.env.VITE_CATALOG_PUBLIC_KEY_JWK);
+            if (key.kty !== "EC" || key.crv !== "P-256" || !key.x || !key.y || key.d !== undefined) throw new Error("Expected existing public P-256 pin");
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/public.jwk.json", JSON.stringify(key));
+          '
+
+      - name: Build exact public images sequentially on native amd64
+        env:
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = x86_64
+          test -n "$LOLLY_CATALOG_SIGNING_KEY"
+          for service in web mcp-browser ca penpot; do
+            arguments=()
+            if [[ "$service" == web ]]; then
+              arguments=(--build-arg LOLLY_PROFILE=lolly-start \
+                --build-arg VITE_LIVE_RELAY=https://lolly.tools/live \
+                --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
+                --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK)
+            elif [[ "$service" == mcp-browser ]]; then
+              arguments=(--build-arg LOLLY_PROFILE=lolly-start)
+            fi
+            docker buildx build --load --no-cache --platform linux/amd64 \
+              --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
+              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              --label org.lolly.profile=lolly-start \
+              "${arguments[@]}" -f "deploy/docker/${service}.Dockerfile" \
+              -t "lolly-candidate-${service}:$EXPECTED_SOURCE" .
+          done
+
+      - name: Verify the actual image catalog against the supplied public pin
+        run: |
+          set -euo pipefail
+          container=$(docker create "lolly-candidate-web:$EXPECTED_SOURCE")
+          trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+          docker cp "$container:/usr/share/nginx/html/." "$RUNNER_TEMP/lolly-qualified-web/"
+          node scripts/verify-release-catalog.ts --root "$RUNNER_TEMP/lolly-qualified-web" \
+            --public-key "$RUNNER_TEMP/lolly-image-receipts/public.jwk.json" \
+            > "$RUNNER_TEMP/lolly-image-receipts/catalog.json"
+          test "$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "lolly-candidate-web:$EXPECTED_SOURCE")" = "$EXPECTED_SOURCE"
+
+      - name: Boot native web, CA and Penpot under their restricted bounds
+        run: |
+          set -euo pipefail
+          trap 'docker rm -f probe-web probe-ca probe-penpot >/dev/null 2>&1 || true' EXIT
+          docker run -d --name probe-web --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --memory 128m --cpus 0.5 --pids-limit 64 --tmpfs /tmp:size=16m,mode=1777 \
+            -p 127.0.0.1:18880:8080 "lolly-candidate-web:$EXPECTED_SOURCE"
+          docker run -d --name probe-ca --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --memory 192m --cpus 0.25 --pids-limit 64 --tmpfs /tmp:size=8m,mode=1777 \
+            -p 127.0.0.1:18887:8787 "lolly-candidate-ca:$EXPECTED_SOURCE"
+          docker run -d --name probe-penpot --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --memory 256m --cpus 0.5 --pids-limit 64 --tmpfs /tmp:size=8m,mode=1777 \
+            -p 127.0.0.1:18891:8791 "lolly-candidate-penpot:$EXPECTED_SOURCE"
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { setTimeout as delay } from "node:timers/promises";
+            import { writeFileSync } from "node:fs";
+            const checks = [["web", "http://127.0.0.1:18880/healthz", 200], ["unconfiguredCA", "http://127.0.0.1:18887/api/ca/health", 404], ["penpot", "http://127.0.0.1:18891/healthz", 200]];
+            const results = {};
+            for (const [name, url, status] of checks) {
+              let response;
+              for (let attempt = 0; attempt < 100; attempt++) {
+                try { response = await fetch(url); } catch {}
+                if (response) break;
+                await delay(100);
+              }
+              assert.equal(response?.status, status, name);
+              results[name] = status;
+            }
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/service-boot.json", JSON.stringify({ serviceBootPassed: true, results, actualCAEnrollmentQualified: false }, null, 2));
+          '
+
+      - name: Require restricted native sandbox and actual public exports
+        run: |
+          set -euo pipefail
+          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --memory 2048m --cpus 2 --pids-limit 256 --tmpfs /tmp:size=512m,mode=1777 \
+            --env LOLLY_BROWSER_NO_SANDBOX=0 --env LOLLY_MCP_ALLOW_ANONYMOUS=0 \
+            --env LOLLY_MCP_PRIVATE_FILES=0 --env LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=0 \
+            --env LOLLY_BROWSER_MAX_CONCURRENCY=1 --env LOLLY_BROWSER_MAX_QUEUE=4 \
+            --env LOLLY_BROWSER_QUEUE_TIMEOUT_MS=30000 --env LOLLY_WEB_DIST=/qualification-web \
+            --mount "type=bind,src=$RUNNER_TEMP/lolly-qualified-web,dst=/qualification-web,readonly" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE/deploy/docker/public-image-probe.ts,dst=/qualification/probe.ts,readonly" \
+            --entrypoint node "lolly-candidate-mcp-browser:$EXPECTED_SOURCE" /qualification/probe.ts \
+            > "$RUNNER_TEMP/lolly-image-receipts/native-probe.json"
+
+      - name: Publish only qualified image digests
+        env:
+          REGISTRY_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          for service in web mcp-browser ca penpot; do
+            remote="ghcr.io/$owner/lolly-${service}:candidate-$EXPECTED_SOURCE"
+            docker tag "lolly-candidate-${service}:$EXPECTED_SOURCE" "$remote"
+            docker push "$remote"
+            docker image inspect "$remote" --format '{{json .}}' \
+              > "$RUNNER_TEMP/lolly-image-receipts/${service}.json"
+          done
+          node --input-type=module -e '
+            import { readFileSync, writeFileSync } from "node:fs";
+            const directory = process.env.RUNNER_TEMP + "/lolly-image-receipts";
+            const images = {};
+            for (const service of ["web", "mcp-browser", "ca", "penpot"]) {
+              const image = JSON.parse(readFileSync(directory + "/" + service + ".json", "utf8"));
+              if (image.Config.Labels["org.opencontainers.image.revision"] !== process.env.EXPECTED_SOURCE || image.Os !== "linux" || image.Architecture !== "amd64" || image.RepoDigests.length !== 1) throw new Error("Image/source binding failed");
+              images[service] = { imageId: image.Id, digest: image.RepoDigests[0], platform: "linux/amd64", source: process.env.EXPECTED_SOURCE };
+              writeFileSync(directory + "/" + service + ".json", JSON.stringify(images[service], null, 2));
+            }
+            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
+          '
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: public-candidate-image-receipts
+          path: ${{ runner.temp }}/lolly-image-receipts/*.json
+          if-no-files-found: warn
+          retention-days: 14

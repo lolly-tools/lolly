@@ -106,3 +106,20 @@ test('browser image is optional, lockfile-scoped and retains sandbox/auth defaul
   assert.match(compose, /LOLLY_WEB_BASE: \$\{LOLLY_PUBLIC_WEB_BASE:-\}/);
   assert.match(compose, /LOLLY_BROWSER_MAX_CONCURRENCY: "1"/);
 });
+
+test('native image publication is opt-in and follows source, catalog and sandbox qualification', () => {
+  const workflow = read('.github/workflows/deployment-suse.yml');
+  const job = workflow.split('  candidate-images:\n')[1];
+  assert.ok(job);
+  assert.match(job, /github.event_name == 'workflow_dispatch' && inputs.build_images == true/);
+  assert.match(job, /needs: \[chart, public-vm\]/);
+  assert.match(job, /test "\$GITHUB_SHA" = "\$EXPECTED_SOURCE"/);
+  assert.match(job, /submodules: false/);
+  assert.match(job, /secrets.LOLLY_CATALOG_SIGNING_KEY/);
+  assert.match(job, /--secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY/);
+  assert.match(job, /verify-release-catalog.ts/);
+  assert.match(job, /--read-only --cap-drop ALL --security-opt no-new-privileges:true/);
+  assert.match(job, /--env LOLLY_BROWSER_NO_SANDBOX=0/);
+  assert.ok(job.indexOf('public-image-probe.ts') < job.indexOf('docker push "$remote"'));
+  assert.doesNotMatch(job, /seccomp=unconfined|--privileged|SYS_ADMIN|LOLLY_BROWSER_NO_SANDBOX=1/);
+});

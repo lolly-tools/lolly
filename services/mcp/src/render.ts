@@ -564,6 +564,17 @@ export function browserLaunchArgs(env: NodeJS.ProcessEnv = process.env): string[
   ];
 }
 
+/** Playwright defaults its Chromium sandbox off, so set the launch option too. */
+export function browserLaunchOptions(env: NodeJS.ProcessEnv = process.env): {
+  chromiumSandbox: boolean;
+  args: string[];
+} {
+  return {
+    chromiumSandbox: env.LOLLY_BROWSER_NO_SANDBOX !== '1',
+    args: browserLaunchArgs(env),
+  };
+}
+
 async function getBrowser(): Promise<import('playwright-core').Browser> {
   if (!browserPromise) {
     browserPromise = (async () => {
@@ -587,7 +598,7 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
           // WebGL-dependent tool (3d, viz) renders its fallback rather than GL
           // content on this tier. Add '--use-angle=swiftshader',
           // '--enable-unsafe-swiftshader' if a hosted deployment needs those tools.
-          args: browserLaunchArgs(),
+          ...browserLaunchOptions(),
         });
       } catch (err) {
         const msg = (err as Error).message || '';
