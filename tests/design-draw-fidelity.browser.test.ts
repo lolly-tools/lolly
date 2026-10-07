@@ -12,7 +12,7 @@ import { test } from 'node:test';
 import { chromium, type Browser } from 'playwright';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
-import { compileDesignDraw, layoutDesignDrawText, outlineDesignDrawText, type DrawOp } from '../engine/src/design-draw.ts';
+import { compileDesignDraw, describeDesignDrawPictures, layoutDesignDrawText, outlineDesignDrawText, type DrawOp } from '../engine/src/design-draw.ts';
 import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { createNodeTextShaper } from '../packages/node-shell/src/text-measure.ts';
@@ -22,7 +22,7 @@ import { baseHost } from './helpers/host.ts';
 import { makeColorApi } from '../engine/src/color-tools.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
 import { makeConnectorsApi } from '../engine/src/connectors.ts';
-import { compareInBrowser, fidelityPages, type FidelityStats, type RegionStats } from './helpers/design-fidelity.ts';
+import { compareInBrowser, fidelityPages, fidelityPictures, type FidelityStats, type RegionStats } from './helpers/design-fidelity.ts';
 
 /** A pixel differs when a channel moves by more than this; CSS and SVG edge anti-aliasing measured at most 21. */
 const THRESHOLD = 24;
@@ -90,34 +90,40 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   const report: Array<{ page: string; stats: FidelityStats; ops: number }> = [];
   const withText = new Set<string>();
   const png = (bytes: Buffer) => JSON.stringify(`data:image/png;base64,${bytes.toString('base64')}`);
+  // The same pictures on both sides: the Design host resolves the fixture ids to them, and
+  // the compiled side links them and reads their own size.
+  const pictures = fidelityPictures();
+  const assets = { get: async (id: string) => (pictures[id] ? { id, ...pictures[id] } : { id, url: `asset:${id}` }) };
+  const emit = { assetHref: (ref: string) => pictures[ref]?.url, family: () => 'system-ui', mono: 'monospace' };
   let controlled = false;
   for (const page of fidelityPages()) {
     // The pure tool APIs every shell installs before a mount (`installToolApis`).
-    const host = Object.assign(baseHost(), { color: makeColorApi(), geom: makeGeomApi(), connectors: makeConnectorsApi() });
+    const host = Object.assign(baseHost(), { assets, color: makeColorApi(), geom: makeGeomApi(), connectors: makeConnectorsApi() });
     const runtime = await createRuntime(tool, host, { boxes: page.rows as never });
     assert.deepEqual(runtime.hookErrors ?? [], [], `${page.name}: the Design hooks render`);
     const design = await context.newPage();
     await design.setViewportSize({ width: page.width, height: page.height });
     await design.setContent(`<!doctype html><style>html,body{margin:0;background:#ffffff}${fonts}</style><style>${tool.styles ?? ''}</style>`
       + `<div id="tool-canvas" style="position:relative;width:${page.width}px;height:${page.height}px;overflow:hidden">${runtime.getHydrated()}</div>`);
-    await design.evaluate(() => document.fonts.ready);
+    await design.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map((img) => img.decode().catch(() => undefined))); });
     const designPng = await design.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
 
     for (const outlined of [false, true]) {
       const name = outlined ? `${page.name}-outlined` : page.name;
       const draw = compileDesignDraw(page.rows as never, { width: page.width, height: page.height }, { effects: true, colors: 'resolved' });
       await layoutDesignDrawText(draw, shaper);
-      assert.deepEqual(draw.findings.filter((f) => f.feature === 'text-unlaid'), [], `${page.name}: every text block lays out`);
+      await describeDesignDrawPictures(draw, async (ref) => pictures[ref] ?? null);
+      assert.deepEqual(draw.findings.map((f) => `${f.id}:${f.feature}`), [], `${page.name}: the compile carries every authored feature`);
       if (outlined) {
         if (!draw.ops.some((op) => op.words)) continue;
         await outlineDesignDrawText(draw, (opts) => textApi.toPath(opts));
-        assert.deepEqual(draw.findings.filter((f) => f.feature === 'text-unoutlined'), [], `${page.name}: every run outlines`);
+        assert.deepEqual(draw.findings.map((f) => `${f.id}:${f.feature}`), [], `${page.name}: every run outlines`);
       }
       const compiled = await context.newPage();
       await compiled.setViewportSize({ width: page.width, height: page.height });
       const shoot = async (drawing: typeof draw) => {
-        await compiled.setContent(`<!doctype html><style>html,body{margin:0;background:#ffffff}svg{display:block}${fonts}</style>${designDrawSvg(drawing, { assetHref: () => undefined, family: () => 'system-ui', mono: 'monospace', title: name })}`);
-        await compiled.evaluate(() => document.fonts.ready);
+        await compiled.setContent(`<!doctype html><style>html,body{margin:0;background:#ffffff}svg{display:block}${fonts}</style>${designDrawSvg(drawing, { ...emit, title: name })}`);
+        await compiled.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map((img) => img.decode().catch(() => undefined))); });
         return compiled.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
       };
       const compiledPng = await shoot(draw);
@@ -130,6 +136,10 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
         .filter((op) => op.op !== 'text' && !(outlined && op.words))
         .map((op) => ({ id: op.id, x: op.box.x - 4, y: op.box.y - 4, w: op.box.w + 8, h: op.box.h + 8 }));
       if (outlined) regions.push(...draw.ops.flatMap((op) => runRegions(op)));
+      // A frame that paints more than a flat fill is judged over the whole page.
+      if (draw.frame && (draw.frame.fills.length > 1 || draw.frame.picture || draw.frame.stroke || (draw.frame.shape.kind === 'rect' && draw.frame.shape.radius > 0))) {
+        regions.push({ id: draw.frame.id, x: 0, y: 0, w: page.width, h: page.height });
+      }
       for (const op of draw.ops) if (op.words) withText.add(`${name}/${op.id}`);
       const compare = (shot: Buffer, within: typeof regions) => compiled.evaluate(
         `(${compareInBrowser.toString()})(${png(designPng)}, ${png(shot)}, ${page.width}, ${page.height}, ${JSON.stringify(within)}, ${THRESHOLD}${groundPng ? `, ${png(groundPng)}` : ''})`,
@@ -156,7 +166,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
         const base = `${process.env.LOLLY_FIDELITY_SHOTS}/${name}`;
         await mkdir(dirname(base), { recursive: true });
         await writeFile(`${base}.design.png`, designPng); await writeFile(`${base}.compiled.png`, compiledPng);
-        await writeFile(`${base}.svg`, designDrawSvg(draw, { assetHref: () => undefined, family: () => 'system-ui', mono: 'monospace', title: name }));
+        await writeFile(`${base}.svg`, designDrawSvg(draw, { ...emit, title: name }));
       }
       await compiled.close();
     }

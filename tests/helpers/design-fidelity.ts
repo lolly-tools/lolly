@@ -4,6 +4,7 @@
  * rendered by the real Design tool and by the compiled SVG, compared region by region.
  */
 import { encodeAuthoredPaths } from '../../engine/src/geom/authored-url.ts';
+import { encodePng, type Rgba } from './studio3d-glb.ts';
 
 type Row = Record<string, unknown>;
 const path = (closed: boolean, nodes: Array<Record<string, number>>) => encodeAuthoredPaths([{ kind: 'cubic', closed, nodes }] as never) ?? '';
@@ -16,7 +17,30 @@ const ring = encodeAuthoredPaths([
 
 export interface FidelityPage { name: string; width: number; height: number; rows: Row[] }
 
-/** Pages without text or pictures: the slice that geometry, paint and effects decide. */
+/** A picture both sides can draw: the URL the Design tool and the compiled SVG load, and its own size. */
+export interface FidelityPicture { url: string; type: string; width: number; height: number }
+
+/**
+ * The fixture pictures: two rasters with hard quadrants, a border and a diagonal, so a
+ * crop, a shift or a stretch moves visible edges, and a vector with its own size.
+ */
+export function fidelityPictures(): Record<string, FidelityPicture> {
+  const png = (width: number, height: number, pixel: (x: number, y: number) => Rgba): FidelityPicture =>
+    ({ url: `data:image/png;base64,${Buffer.from(encodePng(width, height, pixel)).toString('base64')}`, type: 'image', width, height });
+  const quadrants: Rgba[] = [[224, 49, 49, 255], [25, 113, 194, 255], [47, 158, 68, 255], [240, 140, 0, 255]];
+  const vector = '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80"><rect width="120" height="80" fill="#5f3dc4"/><circle cx="40" cy="40" r="30" fill="#fcc419"/><rect x="70" y="10" width="40" height="60" fill="#20c997"/></svg>';
+  return {
+    'fixture/wide': png(160, 80, (x, y) => {
+      if (x < 3 || y < 3 || x >= 157 || y >= 77) return [33, 37, 41, 255];
+      if (Math.abs(x / 2 - y) < 3) return [255, 255, 255, 255];
+      return quadrants[(x < 80 ? 0 : 1) + (y < 40 ? 0 : 2)]!;
+    }),
+    'fixture/tall': png(60, 120, (_x, y) => (y < 3 || y >= 117 ? [33, 37, 41, 255] : quadrants[Math.min(3, Math.floor(y / 30))]!)),
+    'fixture/vector': { url: `data:image/svg+xml;base64,${Buffer.from(vector).toString('base64')}`, type: 'vector', width: 120, height: 80 },
+  };
+}
+
+/** Pages for shapes, paths, effects, text, pictures and the frame's own paint. */
 export function fidelityPages(): FidelityPage[] {
   const frame = (id: string, extra: Row = {}): Row => ({ id, kind: 'frame', x: 0, y: 0, w: 640, h: 400, bg: '#f4f1ea', order: 0, ...extra });
   const on = (id: string, row: Row): Row => ({ frame: id, ...row });
@@ -77,6 +101,41 @@ export function fidelityPages(): FidelityPage[] {
         on('text', { id: 'overflow', kind: 'text', x: 240, y: 260, w: 170, h: 70, text: 'Too many words for this small rounded box to hold', fontSize: 20, shape: 'rounded', radius: 30, bg: '#e7f5ff' }),
         on('text', { id: 'spaced', kind: 'text', x: 430, y: 260, w: 190, h: 60, text: 'TRACKED', fontSize: 22, tracking: 6, lineHeight: 1.6 }),
         on('text', { id: 'on-box', kind: 'box', x: 430, y: 330, w: 190, h: 56, text: 'On a box', fontSize: 20, bg: '#2b8a3e', fg: '#ffffff', pad: 4 }),
+      ],
+    },
+    {
+      name: 'pictures', width: 640, height: 400,
+      rows: [
+        frame('pictures', { bg: '#ffffff' }),
+        on('pictures', { id: 'contain', kind: 'image', x: 20, y: 20, w: 180, h: 120, image: 'fixture/wide', bg: '#e9ecef' }),
+        on('pictures', { id: 'cover-corner', kind: 'image', x: 220, y: 20, w: 180, h: 120, image: 'fixture/wide', fit: 'cover', imgpos: 'left top' }),
+        on('pictures', { id: 'fill', kind: 'image', x: 420, y: 20, w: 200, h: 120, image: 'fixture/wide', fit: 'fill' }),
+        on('pictures', { id: 'none', kind: 'image', x: 20, y: 160, w: 180, h: 100, image: 'fixture/wide', fit: 'none', imgpos: 'right bottom', bg: '#fff5f5' }),
+        on('pictures', { id: 'scale-down', kind: 'image', x: 220, y: 160, w: 180, h: 100, image: 'fixture/tall', fit: 'scale-down', bg: '#f8f0fc' }),
+        on('pictures', { id: 'framed', kind: 'image', x: 420, y: 160, w: 200, h: 100, image: 'fixture/wide', fit: 'cover', imageFraming: { x: 30, y: 70, zoom: 150 } }),
+        on('pictures', { id: 'rounded', kind: 'box', x: 20, y: 280, w: 180, h: 100, image: 'fixture/wide', fit: 'cover', shape: 'rounded', radius: 24, stroke: '#212529', strokeW: 6, text: 'Over a picture', fontSize: 18, fg: '#ffffff' }),
+        on('pictures', { id: 'circle', kind: 'image', x: 220, y: 280, w: 100, h: 100, image: 'fixture/tall', fit: 'cover', shape: 'circle' }),
+        on('pictures', { id: 'vector', kind: 'image', x: 340, y: 280, w: 140, h: 100, image: 'fixture/vector', bg: '#fff3bf' }),
+        on('pictures', { id: 'on-path', kind: 'path', x: 500, y: 280, w: 120, h: 100, path: triangle, bg: '#ced4da', image: 'fixture/wide', fit: 'cover', imageFraming: { x: 50, y: 50, zoom: 120 } }),
+      ],
+    },
+    {
+      name: 'board', width: 640, height: 400,
+      rows: [
+        frame('board', { bg: '#dbe4ff', grad: 'lin.srgb_180_4dabf700-0_1864abff-100', stroke: '#364fc7', strokeW: 10, shape: 'rounded', radius: 48 }),
+        on('board', { id: 'edge', kind: 'box', x: -30, y: 300, w: 200, h: 140, bg: '#f76707' }),
+        on('board', { id: 'inside', kind: 'box', x: 240, y: 120, w: 160, h: 160, bg: '#ffffff', shape: 'rounded', radius: 20 }),
+        // Zoomed out, the picture is clipped to its shrunken element inside the box.
+        on('board', { id: 'zoomed-out', kind: 'image', x: 60, y: 40, w: 160, h: 100, image: 'fixture/wide', fit: 'cover', bg: '#fff9db', imageFraming: { x: 25, y: 50, zoom: 60 } }),
+        // Contain leaves a fractional margin here (32.5 px each side), which the renderer snaps.
+        on('board', { id: 'snapped', kind: 'image', x: 440, y: 140, w: 100, h: 70, image: 'fixture/tall' }),
+      ],
+    },
+    {
+      name: 'board-picture', width: 640, height: 400,
+      rows: [
+        frame('board-picture', { bg: '#212529', image: 'fixture/wide', fit: 'contain', imgpos: 'center top', stroke: '#fab005', strokeW: 8, shape: 'rounded', radius: 32 }),
+        on('board-picture', { id: 'corner', kind: 'box', x: 560, y: 330, w: 120, h: 120, bg: '#e64980' }),
       ],
     },
   ];

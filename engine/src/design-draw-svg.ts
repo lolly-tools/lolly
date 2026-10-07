@@ -12,7 +12,7 @@
  */
 import { AVERAGE_GLYPH_EM } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
-import type { DesignDrawPage, DrawBox, DrawClip, DrawImageOp, DrawOp, DrawPaint, DrawPose, DrawShadow, DrawShape, DrawShapeOp, DrawStroke, DrawTextOp, DrawWords } from './design-draw.ts';
+import { pictureRect, type DesignDrawPage, type DrawArea, type DrawBox, type DrawClip, type DrawImageOp, type DrawOp, type DrawPaint, type DrawPicture, type DrawPose, type DrawShadow, type DrawShape, type DrawShapeOp, type DrawStroke, type DrawTextOp, type DrawWords } from './design-draw.ts';
 import { toSvgPathData } from './geom/path.ts';
 
 export interface DesignDrawSvgOpts {
@@ -345,12 +345,45 @@ function wordsSvg(op: DrawOp, words: DrawWords): string {
   return `<defs>${defs.join('')}</defs><g clip-path="url(#${clipId})">${text}</g>`;
 }
 
+function areaClip(area: DrawArea, inner: string): string {
+  const clip = `<clipPath clipPathUnits="userSpaceOnUse">${outlineSvg(area.shape, area.box, 'fill="#000000"')}</clipPath>`;
+  const id = `pc${contentId(clip)}`;
+  return `<defs>${clip.replace('<clipPath ', `<clipPath id="${id}" `)}</defs><g clip-path="url(#${id})">${inner}</g>`;
+}
+
+/**
+ * A picture the way Design draws one. With the picture's own size the placement is exact;
+ * without it `preserveAspectRatio` gives the same answer for contain, cover and fill at
+ * the 0, 50 and 100 percent anchors, and the nearest of those otherwise.
+ */
+function pictureSvg(op: DrawOp, picture: DrawPicture, opts: DesignDrawSvgOpts): string {
+  const href = opts.assetHref(picture.ref);
+  if (!href) return opts.missingImage?.({ id: op.id, box: picture.area, opacity: 100, op: 'image', ref: picture.ref, fit: picture.fit, label: picture.label }) ?? '';
+  let image: string;
+  if (picture.natural) {
+    const r = pictureRect(picture, picture.natural);
+    image = `<image x="${round2(r.x)}" y="${round2(r.y)}" width="${round2(r.w)}" height="${round2(r.h)}" href="${svgEscape(href)}" preserveAspectRatio="none"/>`;
+  } else {
+    const a = picture.area, z = picture.zoom;
+    const ox = a.x + (a.w * picture.x) / 100, oy = a.y + (a.h * picture.y) / 100;
+    const at = (p: number) => (p < 25 ? 'Min' : p > 75 ? 'Max' : 'Mid');
+    const ratio = picture.fit === 'fill' ? 'none' : `x${at(picture.x)}Y${at(picture.y)} ${picture.fit === 'cover' ? 'slice' : 'meet'}`;
+    image = `<image x="${round2(ox + (a.x - ox) * z)}" y="${round2(oy + (a.y - oy) * z)}" width="${round2(a.w * z)}" height="${round2(a.h * z)}" href="${svgEscape(href)}" preserveAspectRatio="${ratio}"/>`;
+  }
+  // The element clips the picture it holds; when the zoom only enlarges a square element,
+  // the box's own clip lies inside it and is enough.
+  const square = picture.element.shape.kind === 'rect' && picture.element.shape.radius === 0;
+  const own = picture.clip && square && picture.zoom >= 1 ? image : areaClip(picture.element, image);
+  return picture.clip ? areaClip(picture.clip, own) : own;
+}
+
 /** The markup of one operation, without its opacity and pose group. */
 export function designDrawOpBody(op: DrawOp, opts: DesignDrawSvgOpts): string {
   const words = op.words ? wordsSvg(op, op.words) : '';
-  if (op.op === 'image') return imageSvg(op, opts) + words;
-  if (op.op === 'text') return textSvg(op, opts) + words;
-  return shapeSvg(op, opts) + words;
+  const picture = op.picture ? pictureSvg(op, op.picture, opts) : '';
+  if (op.op === 'image') return imageSvg(op, opts) + picture + words;
+  if (op.op === 'text') return textSvg(op, opts) + picture + words;
+  return shapeSvg(op, opts) + picture + words;
 }
 
 /** The markup of one operation, inside its opacity and pose group when it has either. */
@@ -359,13 +392,15 @@ export function designDrawOpSvg(op: DrawOp, opts: DesignDrawSvgOpts): string {
 }
 
 /**
- * A compiled page as a standalone SVG at the page's own size, on the frame's fill or
- * white. `title` labels the drawing for assistive technology.
+ * A compiled page as a standalone SVG at the page's own size: the frame's own paint when
+ * the page carries it, otherwise the frame's fill or white, then the rows, clipped as the
+ * frame clips them. `title` labels the drawing for assistive technology.
  */
 export function designDrawSvg(page: DesignDrawPage, opts: DesignDrawSvgOpts & { title?: string }): string {
-  const body = [`<rect x="0" y="0" width="${round2(page.width)}" height="${round2(page.height)}"`
-    + ` fill="${page.background ? svgEscape(page.background) : '#ffffff'}"/>`];
-  for (const op of page.ops) body.push(designDrawOpSvg(op, opts));
+  const body = [page.frame ? designDrawOpSvg(page.frame, opts)
+    : `<rect x="0" y="0" width="${round2(page.width)}" height="${round2(page.height)}" fill="${page.background ? svgEscape(page.background) : '#ffffff'}"/>`];
+  const rows = page.ops.map((op) => designDrawOpSvg(op, opts)).join('');
+  body.push(page.clip && rows ? areaClip(page.clip, rows) : rows);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${round2(page.width)}" height="${round2(page.height)}"`
     + ` viewBox="0 0 ${round2(page.width)} ${round2(page.height)}" role="img"`
     + ` aria-label="${svgEscape(opts.title ?? '')}">${body.join('')}</svg>`;

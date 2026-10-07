@@ -150,6 +150,10 @@ Each unit and DPI conversion a run applied must be recorded with the site that a
 
 `engine/src/units.ts` holds the conversion maths and must stay the only place that holds it (plan section 8.4). The conversion is applied at several boundaries, one per export format in each shell's export bridge, which is why a receipt records the site as well as the number. Three DPI conventions are live at once: the rebrand reference space at 96 (`REBRAND_REFERENCE_DPI` in `packages/core/src/rebrand-v1.ts`), the export default at 300 (the `dpi` parameter in `engine/src/url-mode.ts`) and a Design document's own resolution (the `documentDpi` input in `community/design/tool.json`). A receipt that records the converted number without the convention cannot be read back, so both must travel.
 
+### Pictures
+
+A picture's placement depends on a fact the instance record does not hold: the picture's own size. Plan 295's drawing compiler places a picture as CSS places one, by `object-fit` from that size, `object-position` and the framing zoom, with the edges snapped to whole pixels as Chromium snaps a replaced element (`pictureRect` in `engine/src/design-draw.ts`). The host supplies the size and the media kind (`describeDesignDrawPictures`), and the media kind can decide whether a row draws at all: a row whose asset is sound leaves no mark, and an animation or a video is reported rather than drawn as a still. Both are inputs to the evaluation, so a receipt must record the digest of each picture a run resolved under `inputs[]`, and a size the host could not supply must appear as a finding (R15).
+
 ### Emoji, models and policy
 
 - The emoji set and the brand treatment must be recorded (R15). The session record already carries the pair as a stamp at format 3 and keeps it as the two reserved parameters verbatim rather than as resolved bytes (`engine/src/session-record.ts`), and the receipt must record the same identity.

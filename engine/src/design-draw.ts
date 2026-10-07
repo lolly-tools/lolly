@@ -9,14 +9,15 @@
  * here is engine-internal and versioned (`DESIGN_DRAW_VERSION`). It is not a shared
  * type, and nothing persists these operations.
  *
- * Version 0 covers what `framePreviewSvg` already drew from the same rows, and draws
- * it the same way: rectangles, rounded and pill rectangles, ellipses and circles,
- * authored paths lowered to cubics, solid fills, linear and radial gradients with
- * per-stop opacity, outlines with caps, joins and dashes, opacity, the turn and
- * mirror about the box centre, images with their `fit`, and text wrapped by the
- * average-advance estimate inside its pad. Every other authored feature a row carries
- * is reported as a finding, never dropped without a word, so a consumer can refuse or
- * label an output that would lose the feature.
+ * Two readings of a row. `design` (the default) follows the Design renderer, the
+ * authority on what a row means: whole-pixel boxes, CSS borders inside the box, the
+ * renderer's radii and flags, effects as drawing state, text laid out by the engine's
+ * measure (`layoutDesignDrawText`, then `outlineDesignDrawText` for glyph outlines),
+ * pictures fitted and framed as CSS fits them (`describeDesignDrawPictures` supplies
+ * their own size), and the frame's own paint and clip. `preview` keeps the
+ * approximations `framePreviewSvg` drew before this compiler existed. Every authored
+ * feature a reading does not carry is reported as a finding, never dropped without a
+ * word, so a consumer can refuse or label an output that would lose the feature.
  *
  * Pure: no DOM, no clock, no network, no filesystem, no randomness.
  */
@@ -53,6 +54,38 @@ export type DrawShape =
   | { kind: 'ellipse' }
   | { kind: 'path'; contours: Contour[]; evenOdd: boolean };
 
+/** A rectangle or ellipse a picture, or a frame's children, are clipped to. */
+export interface DrawArea { box: DrawBox; shape: Exclude<DrawShape, { kind: 'path' }> }
+/** The CSS `object-fit` keywords Design accepts; it reads anything else as `contain`. */
+export type DrawFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+/**
+ * A picture as Design draws it: an `<img>` filling `area` (the box inside its border),
+ * sized by CSS `object-fit`, placed by `object-position` (`x` and `y`, percent of the
+ * room left over) and scaled by `zoom` about that same point. CSS clips the picture to
+ * its element (`element`, after the zoom) and to the box that holds it (`clip`).
+ */
+export interface DrawPicture {
+  /** The authored asset reference, which a consumer resolves. */
+  ref: string;
+  fit: DrawFit;
+  x: number;
+  y: number;
+  /** 1 when the row has no framing zoom; below 1 the picture is zoomed out. */
+  zoom: number;
+  area: DrawBox;
+  /** The `<img>` element's own outline after the zoom. */
+  element: DrawArea;
+  /** What the box clips its content to; absent on a box that does not clip, as a path box. */
+  clip?: DrawArea;
+  /** What to show a person when the reference cannot be drawn. */
+  label: string;
+  /**
+   * The picture's own size, from `describeDesignDrawPictures`. Contain, cover and fill
+   * anchored at 0, 50 or 100 percent place the same without the size; other fits and anchors need the size.
+   */
+  natural?: { width: number; height: number };
+}
+
 /** Another row's silhouette, as the polygon Design clips with, in page coordinates. */
 export interface DrawClip { points: Array<[number, number]> }
 /**
@@ -80,6 +113,8 @@ interface DrawOpBase {
   blur?: number;
   /** The box outline a `box` shadow follows. */
   outline?: Exclude<DrawShape, { kind: 'path' }>;
+  /** Design semantics: the row's picture, drawn over its fills and under its words. */
+  picture?: DrawPicture;
   /** Design semantics: the row's text, which the renderer draws on any kind of box. */
   words?: DrawWords;
 }
@@ -137,7 +172,7 @@ export type DrawFeature =
   | 'clip' | 'blend' | 'shadow' | 'blur' | 'background-blur' | 'tilt' | 'vector-paint'
   | 'composed-text' | 'dash-pattern' | 'arrowheads' | 'conic-gradient' | 'image-position'
   | 'line-height' | 'tracking' | 'text-layout-estimate' | 'non-static-kind' | 'border-style' | 'bound-path' | 'frame-paint'
-  | 'fit-text' | 'text-direction' | 'text-unlaid' | 'image-design' | 'text-decoration' | 'text-unoutlined';
+  | 'fit-text' | 'text-direction' | 'text-unlaid' | 'text-decoration' | 'text-unoutlined' | 'image-motion' | 'image-unsized';
 export interface DrawFinding { id: string; feature: DrawFeature }
 
 export interface DesignDrawPage {
@@ -146,6 +181,13 @@ export interface DesignDrawPage {
   height: number;
   /** The frame row's own fill, or empty for the consumer's default ground. */
   background: string;
+  /**
+   * Design semantics: the frame's own paint (its fill, white when it has none, gradient,
+   * picture and border) as an operation the size of the page, drawn first.
+   */
+  frame?: DrawShapeOp;
+  /** Design semantics: what the frame clips its rows to, when the frame clips them and the page edge alone does not. */
+  clip?: DrawArea;
   ops: DrawOp[];
   findings: DrawFinding[];
 }
@@ -300,7 +342,7 @@ export function designDrawFindings(row: DesignBoxRowV1, opts: { effects?: boolea
   const grad = rowStr(row, 'grad');
   if (grad && parseGradientSpec(grad)?.kind === 'conic') found.push('conic-gradient');
   const kind = rowStr(row, 'kind');
-  if (kind === 'image' && set('imgpos')) found.push('image-position');
+  if (opts.semantics === 'preview' && kind === 'image' && set('imgpos')) found.push('image-position');
   if (opts.semantics === 'preview' && kind === 'text' && rowStr(row, 'text')) {
     found.push('text-layout-estimate');
     if (set('lineHeight')) found.push('line-height');
@@ -311,12 +353,57 @@ export function designDrawFindings(row: DesignBoxRowV1, opts: { effects?: boolea
     if (designFlag(row, 'fitText')) found.push('fit-text');
     if (rowStr(row, 'textDirection') === 'rtl') found.push('text-direction');
   }
-  // A picture's framing, crop and clip to the box radius are the next slice; the picture is drawn as before.
-  if (opts.semantics !== 'preview' && kind === 'image') found.push('image-design');
   if (NON_STATIC.has(kind)) found.push('non-static-kind');
   // A CSS dashed or dotted border spaces its marks to fit each side; an SVG dash pattern does not.
   if (opts.semantics !== 'preview' && kind !== 'path' && rowStr(row, 'stroke') && rowNum(row, 'strokeW') > 0 && /^(dashed|dotted)$/.test(rowStr(row, 'strokeDash'))) found.push('border-style');
   return found;
+}
+
+const FITS = new Set<string>(['contain', 'cover', 'fill', 'none', 'scale-down']);
+/** The renderer's `OBJPOS` keywords as CSS reads them, in percent across and down. */
+const OBJPOS = new Map<string, readonly [number, number]>([
+  ['center', [50, 50]], ['center top', [50, 0]], ['center bottom', [50, 100]], ['left center', [0, 50]], ['right center', [100, 50]],
+  ['left top', [0, 0]], ['right top', [100, 0]], ['left bottom', [0, 100]], ['right bottom', [100, 100]],
+  ['top', [50, 0]], ['bottom', [50, 100]], ['left', [0, 50]], ['right', [100, 50]],
+]);
+
+/**
+ * A row's picture as the renderer's `imgCss` reads it: the fit, then either the framing
+ * (anchor and zoom) or an `imgpos` keyword. `rounded` is the `<img>` element's own
+ * outline before the zoom, as a board rounds its picture; `clip` is what the box clips
+ * its content to.
+ */
+function pictureOf(row: DesignBoxRowV1, area: DrawBox, clip: DrawArea | undefined, rounded: Exclude<DrawShape, { kind: 'path' }> = { kind: 'rect', radius: 0 }): DrawPicture | undefined {
+  const ref = rowStr(row, 'image');
+  if (!ref) return undefined;
+  const fit = (FITS.has(rowStr(row, 'fit')) ? rowStr(row, 'fit') : 'contain') as DrawFit;
+  let x = 50, y = 50, zoom = 1;
+  const framing = row.imageFraming;
+  if (framing && typeof framing === 'object') {
+    const f = framing as Record<string, unknown>;
+    x = clampTo(leadingNumber(f.x, 50), 0, 100);
+    y = clampTo(leadingNumber(f.y, 50), 0, 100);
+    zoom = Math.max(1, leadingNumber(f.zoom, 100)) / 100;
+  } else {
+    const at = OBJPOS.get(String(row.imgpos ?? '').trim());
+    if (at) [x, y] = at;
+  }
+  const ox = area.x + (area.w * x) / 100, oy = area.y + (area.h * y) / 100;
+  const element: DrawArea = {
+    box: { x: ox + (area.x - ox) * zoom, y: oy + (area.y - oy) * zoom, w: area.w * zoom, h: area.h * zoom },
+    shape: rounded.kind === 'ellipse' ? rounded : { kind: 'rect', radius: rounded.radius * zoom },
+  };
+  const label = rowStr(row, 'alt') || rowStr(row, 'name') || 'Picture not available here';
+  return { ref, fit, x, y, zoom, area, element, ...(clip ? { clip } : {}), label };
+}
+
+/** The box inside an inside stroke, and the outline CSS clips its content to there. */
+function paddingArea(box: DrawBox, shape: Exclude<DrawShape, { kind: 'path' }>, stroke: DrawStroke | undefined): DrawArea {
+  const inset = stroke ? Math.min(stroke.width, box.w / 2, box.h / 2) : 0;
+  return {
+    box: { x: box.x + inset, y: box.y + inset, w: box.w - inset * 2, h: box.h - inset * 2 },
+    shape: shape.kind === 'ellipse' ? shape : { kind: 'rect', radius: Math.max(0, shape.radius - inset) },
+  };
 }
 
 const BLENDS = new Set(['multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity']);
@@ -398,11 +485,17 @@ function leadingNumber(value: unknown, fallback: number): number {
   const n = Number.parseFloat(String(value ?? ''));
   return Number.isFinite(n) ? n : fallback;
 }
-const DESIGN_TRUE = new Set(['true', '1', 'yes', 'on']);
-/** The renderer's `boolVal`: true, 1, yes or on, in any case. */
+/** The renderer's `boolVal`: true, 1, yes or on, and false, 0, no or off, in any case; anything else is `fallback`. */
+function designBool(value: unknown, fallback: boolean): boolean {
+  if (value === true || value === false) return value;
+  if (value === null || value === undefined || value === '') return fallback;
+  const s = String(value).toLowerCase();
+  if (s === 'true' || s === '1' || s === 'yes' || s === 'on') return true;
+  if (s === 'false' || s === '0' || s === 'no' || s === 'off') return false;
+  return fallback;
+}
 function designFlag(row: DesignBoxRowV1, key: string): boolean {
-  const value = row[key];
-  return value === true || value === 1 || (typeof value === 'string' && DESIGN_TRUE.has(value.trim().toLowerCase()));
+  return designBool(row[key], false);
 }
 
 /**
@@ -472,7 +565,7 @@ export function compileDesignRow(row: DesignBoxRowV1, offset: { x: number; y: nu
       ...(ink.opacity !== undefined ? { inkOpacity: ink.opacity } : {}),
     };
   }
-  if (kind === 'image') {
+  if (kind === 'image' && !design) {
     // `alt` is not one of Design's own field ids, so a document that has been through
     // Design carries none; the row's name comes next, and a plain sentence last.
     return { ...base, op: 'image', ref: rowStr(row, 'image'), fit: rowStr(row, 'fit'), label: rowStr(row, 'alt') || rowStr(row, 'name') || 'Picture not available here' };
@@ -501,11 +594,14 @@ export function compileDesignRow(row: DesignBoxRowV1, offset: { x: number; y: nu
   }
   if (kind === 'path') {
     // Design paints a path's `bg` and outline; a gradient is not applied to path boxes.
+    // A path box does not clip its children, so its picture is clipped by the picture alone.
+    const picture = design ? pictureOf(row, box, undefined) : undefined;
     return {
       ...base, op: 'shape',
       shape: { kind: 'path', contours: pathContours(row, box, opts.thumbScale), evenOdd: rowStr(row, 'fillRule') === 'evenodd' },
       fills: fill,
       ...(() => { const stroke = strokeOf(row, color, { cap: 'round', join: 'round' }); return stroke ? { stroke } : {}; })(),
+      ...(picture ? { picture } : {}),
     };
   }
   // A circle is an ellipse the editor keeps square, and a pill is a rectangle rounded
@@ -518,7 +614,37 @@ export function compileDesignRow(row: DesignBoxRowV1, offset: { x: number; y: nu
   const grad = gradientOf(row, inset ? { x: box.x + inset, y: box.y + inset, w: box.w - inset * 2, h: box.h - inset * 2 } : box);
   // Design paints `bg` under the gradient, so a row with both draws both, in that order.
   const fills: DrawPaint[] = [...fill, ...(grad ? [grad] : [])];
-  return { ...base, op: 'shape', shape, fills, ...(stroke ? { stroke } : {}) };
+  // The picture fills the box inside the border, which clips it to the inner corner radius.
+  const padding = paddingArea(box, shape, design ? stroke : undefined);
+  // A web page or a 3D scene draws its own marker in place of a picture.
+  const picture = design && !NON_STATIC.has(kind) ? pictureOf(row, padding.box, padding) : undefined;
+  return { ...base, op: 'shape', shape, fills, ...(stroke ? { stroke } : {}), ...(picture ? { picture } : {}) };
+}
+
+/**
+ * A frame's own paint, as the renderer's page style draws it: the fill (white when the
+ * frame has none), the gradient on the box inside the border, the picture filling that
+ * box with the frame's own corner radius, and the border inside the page. A frame that
+ * clips its rows clips them to the box inside the border, at the inner radius.
+ */
+function framePaint(head: DesignBoxRowV1, page: DesignDrawPage, opts: DesignDrawCompileOpts): void {
+  const color: ColorOf = opts.colors === 'resolved'
+    ? (value) => { const c = resolveDrawColor(value, opts.resolveColor); return c ? { color: c.color, ...(c.opacity < 1 ? { opacity: c.opacity } : {}) } : null; }
+    : authoredColor;
+  const box: DrawBox = { x: 0, y: 0, w: Math.max(1, Math.round(rowNum(head, 'w', 1))), h: Math.max(1, Math.round(rowNum(head, 'h', 1))) };
+  const shape = outlineOf(head, box);
+  const stroke = strokeOf(head, color);
+  if (stroke) stroke.align = 'inside';
+  const padding = paddingArea(box, shape, stroke);
+  const grad = gradientOf(head, padding.box);
+  const fills: DrawPaint[] = [{ kind: 'color', ...(color(rowStr(head, 'bg')) ?? { color: '#ffffff' }) }, ...(grad ? [grad] : [])];
+  const clips = designBool(head.clipChildren, true);
+  if (clips && (stroke || shape.kind === 'ellipse' || shape.radius > 0)) page.clip = padding;
+  // The picture is the page's first child: its own element is rounded by the frame's
+  // radius on the box inside the border, and the frame clips it with the rows.
+  const rounded = shape.kind === 'ellipse' ? shape : { kind: 'rect' as const, radius: Math.min(shape.radius, padding.box.w / 2, padding.box.h / 2) };
+  const picture = pictureOf(head, padding.box, clips ? padding : undefined, rounded);
+  page.frame = { id: rowStr(head, 'id'), box, opacity: 100, op: 'shape', shape, fills, ...(stroke ? { stroke } : {}), ...(picture ? { picture } : {}) };
 }
 
 /**
@@ -538,8 +664,14 @@ export function compileDesignDraw(rows: readonly DesignBoxRowV1[], size: { width
   const hidden = (row: DesignBoxRowV1) => (design ? designFlag(row, 'hidden') : rowFlag(row, 'hidden'));
   // A hidden frame drops its whole page in Design.
   if (framed && design && hidden(head)) return page;
-  if (framed && design && (rowStr(head, 'grad') || head.image || (rowStr(head, 'stroke') && rowNum(head, 'strokeW') > 0) || rowNum(head, 'radius') > 0 || rowStr(head, 'shadow') || leadingNumber(head.opacity, 100) < 100 || rowStr(head, 'blend'))) {
-    page.findings.push({ id: rowStr(head, 'id'), feature: 'frame-paint' });
+  if (framed && design) {
+    framePaint(head, page, opts);
+    // A page export shows none of a board's shadow, and its opacity and blend composite the
+    // page onto whatever the consumer draws it over, so those stay findings.
+    const dashed = rowStr(head, 'stroke') && rowNum(head, 'strokeW') > 0 && /^(dashed|dotted)$/.test(rowStr(head, 'strokeDash'));
+    if (rowStr(head, 'shadow') || leadingNumber(head.opacity, 100) < 100 || BLENDS.has(rowStr(head, 'blend')) || dashed) {
+      page.findings.push({ id: rowStr(head, 'id'), feature: 'frame-paint' });
+    }
   }
   for (const row of rows) {
     const kind = rowStr(row, 'kind');
@@ -599,4 +731,67 @@ export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTe
     if (decorated) page.findings.push({ id: op.id, feature: 'text-decoration' });
     if (missing) page.findings.push({ id: op.id, feature: 'text-unoutlined' });
   }
+}
+
+/**
+ * Where CSS draws a picture inside its `<img>`: `object-fit` sizes it from its own size,
+ * `object-position` shares out the room left over, the edges are snapped to whole pixels
+ * as Chromium snaps a replaced element's content, and the framing zoom scales the result
+ * about the anchor.
+ */
+export function pictureRect(picture: DrawPicture, natural: { width: number; height: number }): DrawBox {
+  const a = picture.area, iw = natural.width, ih = natural.height;
+  const contain = Math.min(a.w / iw, a.h / ih);
+  const scale = picture.fit === 'cover' ? Math.max(a.w / iw, a.h / ih)
+    : picture.fit === 'none' ? 1
+    : picture.fit === 'scale-down' ? Math.min(1, contain)
+    : contain;
+  const w = picture.fit === 'fill' ? a.w : iw * scale, h = picture.fit === 'fill' ? a.h : ih * scale;
+  const x = a.x + ((a.w - w) * picture.x) / 100, y = a.y + ((a.h - h) * picture.y) / 100;
+  const left = Math.round(x), top = Math.round(y), right = Math.round(x + w), bottom = Math.round(y + h);
+  const ox = a.x + (a.w * picture.x) / 100, oy = a.y + (a.h * picture.y) / 100;
+  const z = picture.zoom;
+  return { x: ox + (left - ox) * z, y: oy + (top - oy) * z, w: (right - left) * z, h: (bottom - top) * z };
+}
+
+/** What a host knows about a picture once it has resolved the reference. */
+export interface DrawPictureInfo {
+  /** The picture's own size, in CSS px. */
+  width: number;
+  height: number;
+  /** `motion` for an animation or a video, `audio` for sound, a still picture otherwise. */
+  media?: 'still' | 'motion' | 'audio';
+}
+
+/** A placement the renderer settles from the picture's own size, not from the box alone. */
+function needsNaturalSize(picture: DrawPicture): boolean {
+  const anchor = (p: number) => p === 0 || p === 50 || p === 100;
+  return picture.fit === 'none' || picture.fit === 'scale-down' || !anchor(picture.x) || !anchor(picture.y);
+}
+
+/**
+ * Give every picture its own size from the host, and settle what the renderer does with
+ * media that is not a still picture: an animation or a video is reported and not drawn,
+ * and a row whose asset is sound leaves no mark at all, as on the canvas. A picture whose
+ * placement needs its size and cannot be described is reported.
+ */
+export async function describeDesignDrawPictures(page: DesignDrawPage, describe: (ref: string) => Promise<DrawPictureInfo | null>): Promise<void> {
+  const settle = async (op: DrawOp): Promise<boolean> => {
+    const picture = op.picture;
+    if (!picture) return true;
+    let info: DrawPictureInfo | null;
+    try { info = await describe(picture.ref); } catch { info = null; }
+    if (info?.media === 'audio') return false;
+    if (info?.media === 'motion') {
+      delete op.picture;
+      page.findings.push({ id: op.id, feature: 'image-motion' });
+    } else if (info && info.width > 0 && info.height > 0) picture.natural = { width: info.width, height: info.height };
+    else if (needsNaturalSize(picture)) page.findings.push({ id: op.id, feature: 'image-unsized' });
+    return true;
+  };
+  // A board's picture that is sound draws nothing, and the board still paints.
+  if (page.frame && !(await settle(page.frame))) delete page.frame.picture;
+  const kept: DrawOp[] = [];
+  for (const op of page.ops) if (await settle(op)) kept.push(op);
+  page.ops = kept;
 }
