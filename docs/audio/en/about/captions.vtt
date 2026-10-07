@@ -1089,131 +1089,146 @@ the tool lives in this repo».
 00:19:10.679 --> 00:19:12.293
 Deploying.
 
-00:19:13.073 --> 00:19:16.299
-scripts/ship-ts runs the pre-push gate
+00:19:13.094 --> 00:19:15.426
+lolly-tools and lolly-ing use
 
-00:19:16.361 --> 00:19:19.202
-«typecheck, the full test suite, a
+00:19:15.527 --> 00:19:19.594
+operator-managed UpCloud K3s releases.
 
-00:19:19.263 --> 00:19:22.116
-per-profile catalog build, the docs-shot
+00:19:20.368 --> 00:19:23.217
+Use the sovereign deployment profile and
 
-00:19:22.179 --> 00:19:24.611
-and boot-budget checks» then deploys to
+00:19:23.266 --> 00:19:26.545
+the instance's current deployment handoff.
 
-00:19:24.673 --> 00:19:25.869
-Vercel.
+00:19:27.295 --> 00:19:30.830
+pnpm run gate still checks the release;
 
-00:19:26.675 --> 00:19:29.868
+00:19:30.912 --> 00:19:34.128
+scripts/ship-ts refuses these managed
+
+00:19:34.188 --> 00:19:37.170
+targets before building or uploading.
+
+00:19:37.945 --> 00:19:41.737
+Explicit Vercel and internal IT adapters
+
+00:19:41.842 --> 00:19:44.805
+remain available for separately configured
+
+00:19:44.874 --> 00:19:46.369
+instances.
+
+00:19:47.175 --> 00:19:50.368
 See scripts/README-md.
 
-00:19:31.001 --> 00:19:32.527
+00:19:51.501 --> 00:19:53.027
 Current tools
 
-00:19:33.518 --> 00:19:36.034
+00:19:54.018 --> 00:19:56.534
 The Lolly Start «blank brand» catalog
 
-00:19:36.140 --> 00:19:39.496
+00:19:56.640 --> 00:19:59.996
 ships 61 tools today - 60 listed in the
 
-00:19:39.557 --> 00:19:42.785
+00:20:00.057 --> 00:20:03.285
 gallery, plus one unlisted helper «Asset
 
-00:19:42.855 --> 00:19:44.119
+00:20:03.355 --> 00:20:04.619
 Export».
 
-00:19:44.890 --> 00:19:49.387
+00:20:05.390 --> 00:20:09.887
 Generated from catalog/tools/index-json by
 
-00:19:49.464 --> 00:19:52.969
+00:20:09.964 --> 00:20:13.469
 pnpm run build:readme-tools:
 
-00:19:53.748 --> 00:19:56.992
+00:20:14.248 --> 00:20:17.492
 The utility "Offline Utilities" section
 
-00:19:57.098 --> 00:20:00.194
+00:20:17.598 --> 00:20:20.694
 always renders last in the gallery.
 
-00:20:01.361 --> 00:20:03.822
+00:20:21.861 --> 00:20:24.322
 Licensing & structure
 
-00:20:04.909 --> 00:20:07.695
+00:20:25.409 --> 00:20:28.195
 This is one repository «see Repository
 
-00:20:07.755 --> 00:20:10.698
+00:20:28.255 --> 00:20:31.198
 layout», with one private submodule for
 
-00:20:10.758 --> 00:20:12.820
+00:20:31.258 --> 00:20:33.320
 the SUSE brand pack.
 
-00:20:13.581 --> 00:20:15.975
+00:20:34.081 --> 00:20:36.475
 Code - including the documentation
 
-00:20:16.037 --> 00:20:20.355
+00:20:36.537 --> 00:20:40.855
 generator and code examples - is MPL-2
 
-00:20:20.417 --> 00:20:21.969
+00:20:40.917 --> 00:20:42.469
 point 0.
 
-00:20:22.739 --> 00:20:26.576
+00:20:43.239 --> 00:20:47.076
 Documentation content is CC BY-SA 4 point
 
-00:20:26.665 --> 00:20:30.419
+00:20:47.165 --> 00:20:50.919
 0, with attribution to lolly-tools.
 
-00:20:31.206 --> 00:20:34.165
+00:20:51.706 --> 00:20:54.665
 Third-party material keeps its stated
 
-00:20:34.229 --> 00:20:35.518
+00:20:54.729 --> 00:20:56.018
 licence.
 
-00:20:36.293 --> 00:20:39.793
+00:20:56.793 --> 00:21:00.293
 Tool content ships as brand packs.
 
-00:20:40.554 --> 00:20:44.323
+00:21:01.054 --> 00:21:04.823
 community/ holds the brand-agnostic tools;
 
-00:20:44.388 --> 00:20:47.395
+00:21:04.888 --> 00:21:07.895
 brands/suse/ «private submodule
 
-00:20:47.536 --> 00:20:50.099
+00:21:08.036 --> 00:21:10.599
 suse-lolly» holds the SUSE tools and
 
-00:20:50.164 --> 00:20:52.854
+00:21:10.664 --> 00:21:13.354
 catalog - including its licensed
 
-00:20:52.925 --> 00:20:55.840
+00:21:13.425 --> 00:21:16.340
 PremiumBeat music, which stays private
 
-00:20:55.896 --> 00:20:57.370
+00:21:16.396 --> 00:21:17.870
 with the pack.
 
-00:20:58.174 --> 00:21:01.193
+00:21:18.674 --> 00:21:21.693
 See each pack's NOTICE-md.
 
-00:21:01.983 --> 00:21:04.519
+00:21:22.483 --> 00:21:25.019
 Fonts ship inside each brand pack under
 
-00:21:04.567 --> 00:21:08.482
+00:21:25.067 --> 00:21:28.982
 the SIL Open Font License 1 point 1 - the
 
-00:21:08.595 --> 00:21:11.725
+00:21:29.095 --> 00:21:32.225
 SUSE pack carries the SUSE and SUSE Mono
 
-00:21:11.787 --> 00:21:14.493
+00:21:32.287 --> 00:21:34.993
 typefaces «neither the MPL nor
 
-00:21:14.586 --> 00:21:18.025
+00:21:35.086 --> 00:21:38.525
 SUSE-proprietary; "SUSE" is a SUSE
 
-00:21:18.087 --> 00:21:19.444
+00:21:38.587 --> 00:21:39.944
 trademark».
 
-00:21:20.214 --> 00:21:24.819
+00:21:40.714 --> 00:21:45.319
 They appear at catalog/fonts/ in a build.
 
-00:21:25.598 --> 00:21:28.327
+00:21:46.098 --> 00:21:48.827
 Bundled third-party attributions are
 
-00:21:28.390 --> 00:21:31.818
+00:21:48.890 --> 00:21:52.318
 listed in THIRD-PARTY-NOTICES-md.
