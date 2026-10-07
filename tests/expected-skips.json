@@ -584,6 +584,27 @@
       "owner": "tests"
     },
     {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 review: mentions, inbox notice, Open thread, unread, filters, jump and pins with three people",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 review: a thread link opens after an access approval later than 120 s",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 recovery: an interrupted edit keeps a persistent recovery notice",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/collab-work.browser.test.ts",
       "fullName": "authenticated work Design: cursors, edits, reconnect, duplicate tabs, viewer and revocation",
       "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
