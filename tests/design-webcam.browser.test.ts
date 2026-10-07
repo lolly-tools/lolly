@@ -64,5 +64,10 @@ test('Design webcam starts explicitly, keeps its feed across edits and captures 
   await page.getByRole('button', { name: 'Start camera', exact: true }).waitFor();
   assert.equal(await page.evaluate(() => (window as unknown as { cameraStream: MediaStream }).cameraStream.getVideoTracks()[0]!.readyState), 'ended');
   assert.equal(await page.locator('[data-live-camera-video]').count(), 0);
+  await page.reload();
+  await page.getByRole('button', { name: 'Start camera', exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => (window as unknown as { cameraCalls: number }).cameraCalls), 0);
+  assert.equal(await page.locator('[data-live-camera-video]').count(), 0);
+  await page.waitForFunction(() => (document.querySelector<HTMLImageElement>('[data-live-camera] img')?.naturalWidth ?? 0) > 0);
   assert.deepEqual(errors, []);
 });
