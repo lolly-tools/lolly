@@ -225,10 +225,21 @@
   "Couldn't read the transfer back.": "Kon de overdracht niet teruglezen.",
   "Part of the transfer is missing.": "Een deel van de overdracht ontbreekt.",
   "The transfer was cancelled.": "De overdracht is geannuleerd.",
-  "View {name}": "{name} weergeven",
   "AI agent": "AI-agent",
   "Pause agent": "Agent pauzeren",
   "Resume agent": "Agent hervatten",
   "Disconnect agent": "Agent loskoppelen",
-  "Paused": "Gepauzeerd"
+  "Paused": "Gepauzeerd",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }

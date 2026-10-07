@@ -225,10 +225,21 @@
   "Couldn't read the transfer back.": "Přenos se nepodařilo znovu načíst.",
   "Part of the transfer is missing.": "Část přenosu chybí.",
   "The transfer was cancelled.": "Přenos byl zrušen.",
-  "View {name}": "Zobrazit {name}",
   "AI agent": "AI agent",
   "Pause agent": "Pozastavit agenta",
   "Resume agent": "Pokračovat s agentem",
   "Disconnect agent": "Odpojit agenta",
-  "Paused": "Pozastaveno"
+  "Paused": "Pozastaveno",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }

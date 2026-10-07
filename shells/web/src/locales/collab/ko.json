@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "스캔을 위해 {label} 확대",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "다른 기기를 여기로 향하게 하여 스캔하세요. 아무 곳이나 탭하거나 Esc 키를 눌러 닫습니다.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "이 링크는 너무 길어 스캔할 수 없습니다. 대신 복사하거나 코드 탭을 사용하세요.",
-  "View {name}": "{name} 보기",
   "AI agent": "AI 에이전트",
   "Pause agent": "에이전트 일시 중지",
   "Resume agent": "에이전트 재개",
   "Disconnect agent": "에이전트 연결 해제",
-  "Paused": "일시 중지됨"
+  "Paused": "일시 중지됨",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }

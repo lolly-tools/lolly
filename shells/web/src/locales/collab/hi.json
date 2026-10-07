@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "स्कैन करने के लिए {label} बड़ा करें",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "इसे स्कैन करने के लिए यहाँ दूसरा डिवाइस लगाएँ। बंद करने के लिए कहीं भी टैप करें या Esc दबाएँ।",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "यह लिंक स्कैन करने के लिए बहुत लंबा है। इसके बजाय इसे कॉपी करें, या कोड टैब का उपयोग करें।",
-  "View {name}": "{name} देखें",
   "AI agent": "एआई एजेंट",
   "Pause agent": "एजेंट रोकें",
   "Resume agent": "एजेंट फिर शुरू करें",
   "Disconnect agent": "एजेंट का कनेक्शन हटाएँ",
-  "Paused": "रुका हुआ"
+  "Paused": "रुका हुआ",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }

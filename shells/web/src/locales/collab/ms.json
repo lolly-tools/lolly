@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "Besarkan {label} untuk diimbas",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Halakan peranti lain ke sini untuk mengimbasnya. Ketik di mana-mana atau tekan Esc untuk menutup.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Pautan ini terlalu panjang untuk diimbas. Salin sahaja, atau guna tab Kod.",
-  "View {name}": "Lihat {name}",
   "AI agent": "Ejen AI",
   "Pause agent": "Jeda ejen",
   "Resume agent": "Sambung semula ejen",
   "Disconnect agent": "Putuskan ejen",
-  "Paused": "Dijeda"
+  "Paused": "Dijeda",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }

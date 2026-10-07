@@ -225,10 +225,21 @@
   "Couldn't read the transfer back.": "No se pudo volver a leer la transferencia.",
   "Part of the transfer is missing.": "Falta parte de la transferencia.",
   "The transfer was cancelled.": "La transferencia se canceló.",
-  "View {name}": "Ver {name}",
   "AI agent": "Agente de IA",
   "Pause agent": "Pausar agente",
   "Resume agent": "Reanudar agente",
   "Disconnect agent": "Desconectar agente",
-  "Paused": "En pausa"
+  "Paused": "En pausa",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }
