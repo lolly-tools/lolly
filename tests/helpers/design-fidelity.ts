@@ -189,3 +189,34 @@ export async function compareInBrowser(a: string, b: string, width: number, heig
     }),
   };
 }
+
+/**
+ * The web shell's DOM-to-SVG walker, bundled for a browser page: `__setup()` installs the
+ * export API with the shell's HarfBuzz text API (the walker outlines text only then), and
+ * `__render(node, opts)` returns the walker's SVG blob. The comparison renderer for plan
+ * 295's drawing operations.
+ */
+export async function walkerBundle(): Promise<string> {
+  const { build } = await import('esbuild');
+  const bridge = new URL('../../shells/web/src/bridge/', import.meta.url).pathname;
+  const out = await build({
+    stdin: {
+      contents: `import { renderSvgFromHtml, createExportAPI } from ${JSON.stringify(`${bridge}export.ts`)};
+                 import { createTextAPI } from ${JSON.stringify(`${bridge}text.ts`)};
+                 window.__setup = () => createExportAPI({ text: createTextAPI(), log: () => {} });
+                 window.__render = renderSvgFromHtml;`,
+      resolveDir: bridge, loader: 'ts',
+    },
+    bundle: true, write: false, format: 'esm', platform: 'browser', target: 'esnext', logLevel: 'silent',
+    loader: { '.css': 'empty' },
+    plugins: [{
+      // harfbuzzjs reaches for Node's `module` on a branch a browser never takes.
+      name: 'stub-node-module',
+      setup(b) {
+        b.onResolve({ filter: /^module$/ }, () => ({ path: 'module', namespace: 'stub-node-module' }));
+        b.onLoad({ filter: /.*/, namespace: 'stub-node-module' }, () => ({ contents: 'export function createRequire(){ return () => ({}); }\nexport default { createRequire };', loader: 'js' }));
+      },
+    }],
+  });
+  return out.outputFiles![0]!.text;
+}

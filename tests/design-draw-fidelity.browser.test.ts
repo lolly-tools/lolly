@@ -12,7 +12,7 @@ import { test } from 'node:test';
 import { chromium, type Browser } from 'playwright';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
-import { compileDesignDraw, describeDesignDrawPictures, layoutDesignDrawText, outlineDesignDrawText, type DrawOp } from '../engine/src/design-draw.ts';
+import { compileDesignDraw, describeDesignDrawPictures, layoutDesignDrawText, type DrawOp } from '../engine/src/design-draw.ts';
 import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { createNodeTextShaper } from '../packages/node-shell/src/text-measure.ts';
@@ -22,7 +22,8 @@ import { baseHost } from './helpers/host.ts';
 import { makeColorApi } from '../engine/src/color-tools.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
 import { makeConnectorsApi } from '../engine/src/connectors.ts';
-import { compareInBrowser, fidelityPages, fidelityPictures, type FidelityStats, type RegionStats } from './helpers/design-fidelity.ts';
+import { compareInBrowser, fidelityPages, fidelityPictures, walkerBundle, type FidelityStats, type RegionStats } from './helpers/design-fidelity.ts';
+import { designPageSvg, type DesignPageSvgHost } from '../engine/src/design-page-svg.ts';
 
 /** A pixel differs when a channel moves by more than this; CSS and SVG edge anti-aliasing measured at most 21. */
 const THRESHOLD = 24;
@@ -78,6 +79,21 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   t.after(() => browser.close());
   const tool = await loadTool('design', (p: string) => readFile(new URL(`../community/${p}`, import.meta.url), 'utf8'));
   const context = await browser.newContext({ deviceScaleFactor: 1 });
+  // A page on a real origin, so the walker can fetch the shell-served faces and HarfBuzz.
+  const fontsDir = new URL('../shells/web/public/fonts/', import.meta.url);
+  const harfbuzz = new URL('../node_modules/harfbuzzjs/dist/harfbuzz.wasm', import.meta.url);
+  await context.route('http://localhost/**', async (route) => {
+    const path = decodeURIComponent(new URL(route.request().url()).pathname);
+    if (path === '/') return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><body></body>' });
+    if (path.startsWith('/fonts/')) {
+      try { return await route.fulfill({ status: 200, contentType: 'font/ttf', body: await readFile(new URL(path.slice('/fonts/'.length), fontsDir)) }); }
+      catch { return route.fulfill({ status: 404, body: '' }); }
+    }
+    if (path.endsWith('.wasm')) return route.fulfill({ status: 200, contentType: 'application/wasm', body: await readFile(harfbuzz) });
+    return route.fulfill({ status: 404, body: '' });
+  });
+  const walker = await walkerBundle();
+  const walkerReport: Array<{ page: string; stats: FidelityStats; failing: string[] }> = [];
   // Both sides draw text in the repo's SUSE faces: Chromium through @font-face, the
   // compiled side through the Node HarfBuzz shaper that reads the same files.
   const face = async (file: string) => (await readFile(new URL(`../shells/web/public/fonts/${file}`, import.meta.url))).toString('base64');
@@ -95,6 +111,12 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   const pictures = fidelityPictures();
   const assets = { get: async (id: string) => (pictures[id] ? { id, ...pictures[id] } : { id, url: `asset:${id}` }) };
   const emit = { assetHref: (ref: string) => pictures[ref]?.url, family: () => 'system-ui', mono: 'monospace' };
+  // The export pipeline's host: the same shaper, outliner and pictures.
+  const pageHost: DesignPageSvgHost = {
+    shaper,
+    toPath: (opts) => textApi.toPath(opts),
+    picture: async (ref) => (pictures[ref] ? { info: { width: pictures[ref].width, height: pictures[ref].height, media: 'still' }, href: pictures[ref].url } : null),
+  };
   let controlled = false;
   for (const page of fidelityPages()) {
     // The pure tool APIs every shell installs before a mount (`installToolApis`).
@@ -103,30 +125,44 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
     assert.deepEqual(runtime.hookErrors ?? [], [], `${page.name}: the Design hooks render`);
     const design = await context.newPage();
     await design.setViewportSize({ width: page.width, height: page.height });
+    await design.goto('http://localhost/');
     await design.setContent(`<!doctype html><style>html,body{margin:0;background:#ffffff}${fonts}</style><style>${tool.styles ?? ''}</style>`
       + `<div id="tool-canvas" style="position:relative;width:${page.width}px;height:${page.height}px;overflow:hidden">${runtime.getHydrated()}</div>`);
     await design.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map((img) => img.decode().catch(() => undefined))); });
     const designPng = await design.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
+    // The walker's export of the same live page, judged below with the same regions.
+    await design.addScriptTag({ content: walker, type: 'module' });
+    await design.waitForFunction(() => !!(window as unknown as { __render?: unknown }).__render);
+    const walkerSvg = await design.evaluate(async () => {
+      const w = window as unknown as { __setup: () => void; __render: (node: Element, opts: object) => Promise<Blob> };
+      w.__setup();
+      return (await w.__render(document.querySelector('.lolly-frame-page')!, { rasterFallback: false })).text();
+    });
 
     for (const outlined of [false, true]) {
       const name = outlined ? `${page.name}-outlined` : page.name;
-      const draw = compileDesignDraw(page.rows as never, { width: page.width, height: page.height }, { effects: true, colors: 'resolved' });
-      await layoutDesignDrawText(draw, shaper);
-      await describeDesignDrawPictures(draw, async (ref) => pictures[ref] ?? null);
-      assert.deepEqual(draw.findings.map((f) => `${f.id}:${f.feature}`), [], `${page.name}: the compile carries every authored feature`);
+      // Live text from the compile itself; outlined text from the export pipeline, the bytes a page export delivers.
+      let draw = compileDesignDraw(page.rows as never, { width: page.width, height: page.height }, { effects: true, colors: 'resolved' });
+      let exported: string | undefined;
       if (outlined) {
+        const result = await designPageSvg({ boxes: page.rows }, page.name, pageHost, { title: name });
+        draw = result.page;
+        exported = result.svg;
         if (!draw.ops.some((op) => op.words)) continue;
-        await outlineDesignDrawText(draw, (opts) => textApi.toPath(opts));
-        assert.deepEqual(draw.findings.map((f) => `${f.id}:${f.feature}`), [], `${page.name}: every run outlines`);
+      } else {
+        await layoutDesignDrawText(draw, shaper);
+        await describeDesignDrawPictures(draw, async (ref) => pictures[ref] ?? null);
       }
+      assert.deepEqual(draw.findings.map((f) => `${f.id}:${f.feature}`), [], `${page.name}: the compile carries every authored feature`);
+      const judging = outlined || !draw.ops.some((op) => op.words);
       const compiled = await context.newPage();
       await compiled.setViewportSize({ width: page.width, height: page.height });
-      const shoot = async (drawing: typeof draw) => {
-        await compiled.setContent(`<!doctype html><style>html,body{margin:0;background:#ffffff}svg{display:block}${fonts}</style>${designDrawSvg(drawing, { ...emit, title: name })}`);
+      const shoot = async (drawing: typeof draw | string) => {
+        await compiled.setContent(`<!doctype html><style>html,body{margin:0;background:#ffffff}svg{display:block}${fonts}</style>${typeof drawing === 'string' ? drawing : designDrawSvg(drawing, { ...emit, title: name })}`);
         await compiled.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map((img) => img.decode().catch(() => undefined))); });
         return compiled.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
       };
-      const compiledPng = await shoot(draw);
+      const compiledPng = await shoot(exported ?? draw);
       // Outlined words are judged by their ink against the same page with the words removed.
       const groundPng = outlined ? await shoot({ ...draw, ops: draw.ops.map(({ words: _words, ...op }) => op as DrawOp) }) : undefined;
 
@@ -145,6 +181,11 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
         `(${compareInBrowser.toString()})(${png(designPng)}, ${png(shot)}, ${page.width}, ${page.height}, ${JSON.stringify(within)}, ${THRESHOLD}${groundPng ? `, ${png(groundPng)}` : ''})`,
       ) as Promise<FidelityStats>;
       report.push({ page: name, stats: await compare(compiledPng, regions), ops: draw.ops.length });
+      if (judging) {
+        const stats = await compare(await shoot(walkerSvg), regions);
+        const failing = stats.regions.flatMap((r) => { const fault = regionFault(r, withText.has(`${name}/${r.id}`)); return fault ? [`${r.id}: ${fault}`] : []; });
+        walkerReport.push({ page: page.name, stats, failing });
+      }
 
       if (outlined && !controlled) {
         // Negative controls on the narrowest run: the limits above must still catch a
@@ -166,7 +207,8 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
         const base = `${process.env.LOLLY_FIDELITY_SHOTS}/${name}`;
         await mkdir(dirname(base), { recursive: true });
         await writeFile(`${base}.design.png`, designPng); await writeFile(`${base}.compiled.png`, compiledPng);
-        await writeFile(`${base}.svg`, designDrawSvg(draw, { ...emit, title: name }));
+        await writeFile(`${base}.svg`, exported ?? designDrawSvg(draw, { ...emit, title: name }));
+        if (judging) await writeFile(`${base}.walker.svg`, walkerSvg);
       }
       await compiled.close();
     }
@@ -175,12 +217,14 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   assert.ok(controlled, 'the fixture pages include outlined text for the negative controls');
   if (process.env.LOLLY_FIDELITY_REPORT) {
     await mkdir(dirname(process.env.LOLLY_FIDELITY_REPORT), { recursive: true });
-    await writeFile(process.env.LOLLY_FIDELITY_REPORT, `${JSON.stringify(report, null, 2)}\n`);
+    await writeFile(process.env.LOLLY_FIDELITY_REPORT, `${JSON.stringify({ operations: report, walker: walkerReport }, null, 2)}\n`);
   }
   const failing = report.flatMap(({ page, stats }) => stats.regions.flatMap((r) => {
     const fault = regionFault(r, withText.has(`${page}/${r.id}`));
     return fault ? [`${page}/${r.id}: ${fault}`] : [];
   }));
   for (const { page, stats } of report) t.diagnostic(`${page}: ${stats.differing} differing px of ${stats.width * stats.height}; largest channel step ${stats.maxChannel}`);
+  // The walker is the comparison, reported and not judged: the regions it misses are the evidence for P3d.
+  for (const { page, stats, failing } of walkerReport) t.diagnostic(`walker ${page}: ${stats.differing} differing px; ${failing.length} region(s) over the limit${failing.length ? `: ${failing.join('; ')}` : ''}`);
   assert.deepEqual(failing, [], 'every operation region matches the Design renderer within the edge allowance');
 });

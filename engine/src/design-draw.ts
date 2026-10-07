@@ -374,7 +374,9 @@ const OBJPOS = new Map<string, readonly [number, number]>([
  * its content to.
  */
 function pictureOf(row: DesignBoxRowV1, area: DrawBox, clip: DrawArea | undefined, rounded: Exclude<DrawShape, { kind: 'path' }> = { kind: 'rect', radius: 0 }): DrawPicture | undefined {
-  const ref = rowStr(row, 'image');
+  // A row holds its picture as an asset id, or as the asset reference the picker wrote.
+  const image: unknown = row.image;
+  const ref = typeof image === 'string' ? image : image && typeof image === 'object' && typeof (image as { id?: unknown }).id === 'string' ? (image as { id: string }).id : '';
   if (!ref) return undefined;
   const fit = (FITS.has(rowStr(row, 'fit')) ? rowStr(row, 'fit') : 'contain') as DrawFit;
   let x = 50, y = 50, zoom = 1;
