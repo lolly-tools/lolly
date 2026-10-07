@@ -58,8 +58,8 @@ export interface CollabHistoryCapability {
   readonly canSaveCopy: boolean;
   list(options?: { before?: string; limit?: number }): Promise<CollabHistoryPage>;
   read(id: string): Promise<SavedStateData | null>;
-  // biome-ignore lint/suspicious/noConfusingVoidType: `undefined` would reject an existing `async restore(id) { await post(id) }`, whose type is Promise<void>.
-  restore?(id: string): Promise<void | CollabHistoryRestoreResult>;
+  /** Resolves with nothing (an older host) or with what the restore did; `Promise<void>` stays valid. */
+  restore?(id: string): Promise<CollabHistoryRestoreResult | undefined> | Promise<void>;
   saveCopy?(id: string): Promise<SavedStateData | null>;
   /** Save the current document as a named version. */
   saveVersion?(label: string): Promise<void>;
