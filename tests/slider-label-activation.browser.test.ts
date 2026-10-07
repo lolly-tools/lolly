@@ -7,11 +7,19 @@ const origin = process.env.LOLLY_EXPORT_TEST_URL;
 
 test('slider gestures never activate help or token actions through a wrapping label', {
   skip: origin ? false : 'set LOLLY_EXPORT_TEST_URL', timeout: 60000,
-}, async () => {
+}, async (ctx) => {
   const browser = await getBrowser();
   try {
     const page = await browser.newPage({ hasTouch: true, viewport: { width: 800, height: 900 } });
     const errors: string[] = [];
+    const recentEvents: Array<{ event: string; url: string }> = [];
+    const recordEvent = (event: string, url = page.url()): void => {
+      recentEvents.push({ event, url });
+      if (recentEvents.length > 12) recentEvents.shift();
+    };
+    page.on('framenavigated', frame => { if (frame === page.mainFrame()) recordEvent('mainframe navigation', frame.url()); });
+    page.on('domcontentloaded', () => recordEvent('document ready'));
+    page.on('load', () => recordEvent('document loaded'));
     page.on('pageerror', error => errors.push(error.message));
     // Keep the app bootstrap from racing the isolated fixture.
     await page.route(new URL(origin!).href, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><body></body>' }));
@@ -56,7 +64,31 @@ test('slider gestures never activate help or token actions through a wrapping la
       const row = page.locator(`[data-row="${id}"]`);
       const slider = row.getByRole('slider', { name: id, exact: true });
       assert.equal(await slider.getAttribute('aria-describedby'), await row.locator('.help-tip-pop').getAttribute('id'));
-      const track = (await row.locator('.cs-track').boundingBox())!;
+      const track = await (async () => {
+        try {
+          const box = await row.locator('.cs-track').boundingBox();
+          assert.ok(box, `${id}: slider track has a layout box`);
+          return box;
+        } catch (error) {
+          const state = await page.evaluate(id => {
+            const fixture = document.querySelector<HTMLElement>('#fixture');
+            const currentRow = document.querySelector(`[data-row="${id}"]`);
+            return {
+              url: location.href,
+              documentReady: document.readyState,
+              fixturePresent: !!fixture,
+              fixtureReady: fixture?.dataset.ready ?? null,
+              rows: document.querySelectorAll('[data-row]').length,
+              tracks: document.querySelectorAll('.cs-track').length,
+              rowTracks: currentRow?.querySelectorAll('.cs-track').length ?? 0,
+              activeElement: document.activeElement?.outerHTML.slice(0, 300) ?? null,
+              openMenus: document.querySelectorAll('.input-rule-menu').length,
+            };
+          }, id).catch(snapshotError => ({ snapshotError: String(snapshotError) }));
+          ctx.diagnostic(JSON.stringify({ row: id, state, recentEvents }));
+          throw error;
+        }
+      })();
       const y = track.y + track.height / 2;
       await page.mouse.click(track.x + track.width * .2, y);
       assert.equal(await slider.getAttribute('aria-valuenow'), '20');
