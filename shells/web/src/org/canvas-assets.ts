@@ -47,8 +47,9 @@ export function createWorkCanvasAssets(sessionId: string, principal: () => strin
       // A placed tool needs no transfer: its link is the shared form, and the render the
       // editor already holds is the picture. Uploading that render as a project file, as
       // happened before, froze the tool (and any motion it had) in every peer's canvas.
-      const tool = portableCanvasAsset(ref);
-      if (tool?.source === 'remote' && typeof (ref as AssetRef).url === 'string' && (ref as AssetRef).url) return ref as AssetRef;
+      // Only a local render passes through; any other picture is drawn again by resolve().
+      const tool = portableCanvasAsset(ref), held = (ref as AssetRef).url;
+      if (tool?.source === 'remote' && typeof held === 'string' && /^(?:data:image\/|blob:)/.test(held)) { check(); return ref as AssetRef; }
       return transfer('Uploading image…', async () => {
         const existing = portableCanvasAsset(ref);
         if (existing) return resolve(existing);

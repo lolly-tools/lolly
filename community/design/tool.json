@@ -517,17 +517,6 @@
             }
           },
           {
-            "id": "tool",
-            "label": "Tool",
-            "seed": {
-              "kind": "image",
-              "bg": "",
-              "shape": "rect",
-              "fit": "contain",
-              "text": ""
-            }
-          },
-          {
             "id": "lottie",
             "label": "Animation",
             "seed": {

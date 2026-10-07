@@ -188,7 +188,7 @@ Choose **3D scene** from the add menu on the tool rail and drag out a frame: 3D 
 
 ### Tools inside a design
 
-Choose **Tool** from the add menu on the tool rail, drag out a frame and pick a tool from the list. The tool is placed in the frame straight away with its own defaults, and the Inspector opens on a **Tool** section that holds that tool's own controls: the same fields its sidebar shows when you open the tool on its own. Change a field and the box on the canvas updates a moment later, with the rest of your layout in view. Every change is one undo step. **Image fit** and **Image position** work as they do for any picture, and **Replace with another tool or image** swaps the picture for something else.
+Choose **Image** from the add menu on the tool rail, drag out a frame and pick a tool on the picker's **Tools** tab. The tool is placed in the frame straight away with its own defaults, and the Inspector opens on a **Tool** section that holds that tool's own controls: the same fields its sidebar shows when you open the tool on its own. Change a field and the box on the canvas updates a moment later, with the rest of your layout in view. Every change is one undo step. **Image fit** and **Image position** work as they do for any picture, and **Replace with another tool or image** swaps the picture for something else.
 
 A placed tool keeps its recipe, not a picture. The box stores a link to the tool with your settings, and the picture is drawn again from that link whenever the document opens, so a tool update reaches every design that uses the tool.
 
