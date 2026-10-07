@@ -22,7 +22,8 @@ spec:
         lolly.tools/profile: sovereign-single-node
         lolly.tools/admission-exception: reviewed-host-network-edge
     spec:
-      nodeName: {{ .Values.edge.nodeName }}
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.edge.nodeName | quote }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       automountServiceAccountToken: false

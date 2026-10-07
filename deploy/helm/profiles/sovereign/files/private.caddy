@@ -41,6 +41,38 @@
 		max_size 65MiB
 	}
 
+	{{- if .Values.private.servePublicDeploymentGuide }}
+	# The public deployment guide is static and carries no instance credentials.
+	@public_deployment_guide path /info/operate/deployment /info/operate/deployment.html /info/operate/deployment.md /docs/operate/deployment
+	handle @public_deployment_guide {
+		@deployment_guide_read method GET HEAD
+		handle @deployment_guide_read {
+			@deployment_guide_html path /info/operate/deployment /info/operate/deployment.html /docs/operate/deployment
+			rewrite @deployment_guide_html /info/operate/deployment.html
+			reverse_proxy {{ include "sovereign.service" (dict "root" . "name" "web") }}:80 {
+				transport http {
+					local_address {{ .Values.edge.upstreamSourceAddress }}
+				}
+				header_up Host {$LOLLY_PUBLIC_HOST}
+				header_up X-Forwarded-Host {$LOLLY_PUBLIC_HOST}
+				header_up X-Forwarded-Proto https
+				header_up X-Forwarded-For {remote_host}
+				header_up -Forwarded
+				header_up -X-Real-IP
+				header_up -X-Vercel-Forwarded-For
+				header_up -Cookie
+				header_up -Authorization
+				header_up -Proxy-Authorization
+				header_down -Set-Cookie
+			}
+		}
+		handle {
+			header Allow "GET, HEAD"
+			respond "Method not allowed" 405
+		}
+	}
+	{{- end }}
+
 	# Document invitations and the editor WebSocket share one relay process.
 	@live_relay path /live/*
 	handle @live_relay {

@@ -30,6 +30,18 @@ and explicit Authorization is preserved. The remaining shell routes reach Work
 without cookies or Authorization. This does not move private catalogs into the
 public namespace or add private pack mounts to public pods.
 
+Set `private.servePublicDeploymentGuide: true` to serve the public deployment
+guide from the private hostname. Only GET and HEAD on
+`/info/operate/deployment`, `/info/operate/deployment.html`,
+`/info/operate/deployment.md` and `/docs/operate/deployment` reach the existing
+public static web Service. Other methods on those exact paths return 405.
+The three HTML aliases select the existing `/info/operate/deployment.html` file;
+the Markdown path selects its existing `.md` file.
+Cookies, Authorization and Proxy-Authorization are stripped; Work account,
+catalog, session and nearby routes retain their existing handling. The guide's
+canonical URL remains on the public hostname. This option defaults to false and
+does not alter the private shell, pack or signed release.
+
 ## Required operator inputs
 
 Every image, including Caddy, requires an independently qualified `sha256`
@@ -89,13 +101,21 @@ default. Qualify sandbox startup and actual exports on the target before enablin
 this variant. `components.mcp.browser.noSandbox` stays false; any explicit bypass
 needs review of the actual container boundary and untrusted rendering workload.
 
-Set `edge.nodeName` to the exact node and `edge.upstreamSourceAddress` to a local
+Set `edge.nodeName` to the exact node's `kubernetes.io/hostname` label and
+`edge.upstreamSourceAddress` to a local
 node address used for outgoing Caddy sockets. Measure the actual peer at each
 public API and private Work Service before setting `edge.proxyAddresses`. These
 are exact IPv4 or IPv4-mapped IPv6 addresses; pod CIDRs and wildcard trust are
 refused. Binding an outgoing address alone does not prove the observed peer;
 CNI routing and source NAT must be checked. NetworkPolicies restrict public
 Service ingress to those normalized IPv4 peers on each component's native port.
+The edge uses an exact hostname `nodeSelector`, leaving scheduling to Kubernetes
+so `WaitForFirstConsumer` PVCs can bind. Do not set Pod `nodeName` directly: it
+bypasses the scheduler and can leave the ACME volume Pending. Admission requires
+the sole reviewed selector and refuses manual node assignment on Pod creation;
+updates may retain only the expected node assigned by the scheduler. Confirm the
+hostname label matches the reviewed node before installation, then require the
+certificate PVC to be Bound and the edge Ready before exposing traffic.
 Keep private Work ingress similarly closed and preserve its qualified
 `trustedProxyHops` setting. Caddy overwrites forwarded client addresses and
 removes spoofable alternative proxy headers. Host networking bypasses some
@@ -202,7 +222,8 @@ and Seccomp-BPF sandboxes remain enabled. Other components retain RuntimeDefault
 Install and verify the exact profile on the prepared node before creating an
 MCP Pod. The sovereign option `components.mcp.browser.localhostProfile` is empty
 by default; setting the hash-bearing relative path pins only MCP to
-`edge.nodeName`. The optional Compose browser overlay requires an absolute,
+the exact hostname selector from `edge.nodeName`, preserving scheduler-driven
+model PVC binding. The optional Compose browser overlay requires an absolute,
 verified `LOLLY_PUBLIC_BROWSER_SECCOMP_FILE` on its Docker host. Do not substitute
 an unconfined profile, a capability increase or a sandbox bypass.
 
