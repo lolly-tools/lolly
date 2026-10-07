@@ -173,6 +173,8 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   function refresh(): Promise<void> {
     if (disposed || busy || doc.hidden) { schedulePoll(); return Promise.resolve(); }
     if (activePoll) return activePoll;
+    // Each refresh ends by trying a thread that waited for the person to stop writing (see
+    // locate) again, so an edit or a resolve that ended without a focus change never strands that thread.
     activePoll = capability.list().then(result => {
       if (disposed) return;
       enabled = result.enabled; permissions = result.permissions; threads = merged(result.threads); open.hidden = !enabled;
@@ -190,7 +192,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
       // A previous server has no review route. Keep its editing experience usable.
       if (statusOf(error) === 404 && !enabled) return;
       if (!disposed) report(error);
-    }).finally(() => { activePoll = undefined; schedulePoll(); });
+    }).finally(() => { activePoll = undefined; schedulePoll(); resume(); });
     return activePoll;
   }
   function suggestPeople(query: string) {
