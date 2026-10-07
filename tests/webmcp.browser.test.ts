@@ -80,6 +80,12 @@ test('Lolly site tools discover tools and edit the mounted document through visi
     assert.equal((undone.rows[0] as { text: string }).text, 'Hello');
     await page.locator('[data-agent-action="disconnect"]').click();
     await assert.rejects(call(page, 'lolly_read_document'), /disconnected/);
+    // The touch roster closes by popping its history entry before we leave.
+    await page.evaluate(async () => {
+      const path = '/src/lib/overlay-back.ts';
+      const { overlaysClosed } = await import(path);
+      await overlaysClosed();
+    });
     await page.goto(`${origin}/#/p`);
     await page.waitForFunction(() => (window as ToolWindow).siteTestTools?.has('lolly_read_project'));
     await page.locator('.projects').waitFor();
