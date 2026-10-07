@@ -80,3 +80,48 @@
 .team-project-content.has-selection { padding-block-end: calc(var(--ui-size-target) * 2); }
 .team-move-dialog .document-agent-field { margin-block: var(--sp-4); }
 .team-move-dialog .field-select { width: 100%; min-height: var(--ui-size-target); }
+
+/* Groups with access, general access and end dates (lolly plan 299 M1). Rows wrap on a
+   phone so a role, an end date and Remove never push the name off screen. */
+.share-access { margin-block-start: var(--sp-5); }
+.share-access-head { margin: var(--sp-5) 0 var(--sp-2); font-size: var(--fs-md); font-weight: 650; }
+.share-access-list { list-style: none; margin: var(--sp-1) 0 0; padding: 0; }
+.share-access-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-3);
+  flex-wrap: wrap; padding-block: var(--sp-2); border-bottom: 1px solid hsl(var(--border));
+}
+.share-access-icon {
+  display: inline-grid; place-items: center; flex: none; width: 2rem; height: 2rem;
+  border-radius: var(--radius-round); background: var(--ui-color-surface-canvas); color: var(--ui-color-text-muted);
+}
+.share-access-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.share-access-who { min-width: 0; flex: 1 1 12rem; }
+.share-access-name { font-weight: 600; overflow-wrap: anywhere; }
+.share-access-muted { color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
+.share-access-ended { color: hsl(var(--destructive)); font-size: var(--fs-sm); }
+.share-access-controls, .share-access-ends, .share-access-member, .share-access-add {
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+}
+.share-access-controls .field-select, .share-access-add .field-select, .share-access-ends .field-input,
+.share-access-controls .btn, .share-access-add .btn { min-height: var(--ui-size-target); }
+.share-access-add { margin-block-start: var(--sp-3); }
+.share-access-pick { flex: 1 1 12rem; min-width: 0; }
+.share-access-general { display: flex; align-items: flex-start; gap: var(--sp-3); }
+.share-access-general .share-access-controls { margin-block-end: var(--sp-1); }
+.share-access-day { width: auto; }
+
+.share-group-sheet { width: min(32rem, calc(100vw - var(--sp-6))); max-height: calc(100dvh - var(--sp-6)); overflow: auto; }
+.share-group-form { display: grid; gap: var(--sp-2); }
+.share-group-label { font-size: var(--fs-sm); font-weight: 600; margin-block-start: var(--sp-2); }
+.share-group-form .field-input { min-height: var(--ui-size-target); }
+.share-group-subhead { margin: var(--sp-4) 0 0; font-size: var(--fs-md); font-weight: 650; }
+.share-group-people, .share-group-results { list-style: none; margin: 0; padding: 0; }
+.share-group-results { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.share-group-add { min-height: var(--ui-size-target); }
+.share-group-empty { color: var(--ui-color-text-muted); font-size: var(--fs-sm); padding-block: var(--sp-2); }
+.share-group-check { font-size: var(--fs-sm); }
+.share-group-status { margin: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.share-group-status.is-error { color: hsl(var(--destructive)); }
+.share-group-actions { display: flex; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin-block-start: var(--sp-4); }
+.share-group-actions .btn { min-height: var(--ui-size-target); }
+.share-group-delete { color: hsl(var(--destructive)); }

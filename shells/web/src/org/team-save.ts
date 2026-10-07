@@ -48,7 +48,7 @@ import {
 } from './team-session-origin.ts';
 import { openTeamSession, teamOpenMessage, teamSessionLabel } from './team-open.ts';
 import { buildNewProjectForm } from './team-project-form.ts';
-import { canWriteProject, conflictCopy, invitePolicy, peopleAccess, teamPickerEmpty, teamSaveChoice, type InviteConfig } from './team-access.ts';
+import { canWriteProject, conflictCopy, invitePolicy, isReadOnlyRole, peopleAccess, teamPickerEmpty, teamSaveChoice, type InviteConfig } from './team-access.ts';
 import { COLLAB_ACTIVE, saveErrorCode } from './session-source.ts';
 import { buildAskForm, projectRequestsOn } from './access-request.ts';
 import { getCollabOpener } from '../lib/collab-launch.ts';
@@ -420,9 +420,9 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
       copy.addEventListener('click', () => renderFresh(null, origin));
       actions.append(copy);
     }
-    // A viewer may ask the project's managers for edit access.
+    // A viewer or commenter may ask the project's managers for edit access.
     const askSlot = el('div');
-    const askEdit = role === 'viewer' && origin.projectId ? askEditButton(origin.projectId, askSlot) : null;
+    const askEdit = isReadOnlyRole(role) && origin.projectId ? askEditButton(origin.projectId, askSlot) : null;
     if (askEdit) actions.append(askEdit);
     const peopleSlot = el('div');
     const policy = invitePolicy(readConfig());
@@ -463,7 +463,7 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
         const next = knownRoles.get(origin.projectId!);
         if (seq !== renderSeq || !next || next === role || !section.isConnected || inflight.has(inflightKey(toolId))) return;
         const nextChoice = teamSaveChoice(next, { hasDocument: !!ctx.document, canEdit, canSave });
-        const askChanged = (next === 'viewer') !== (role === 'viewer');
+        const askChanged = isReadOnlyRole(next) !== isReadOnlyRole(role);
         if (nextChoice !== choice || peopleAccess(next, policy) !== peopleAccess(role, policy) || askChanged) renderOrigin(origin, outcome);
       });
     }
@@ -685,7 +685,7 @@ export function buildTeamShareSection(ctx: ShareSectionContext, readConfig: () =
       startNew.hidden = !empty?.offerNew;
       if (askEdit) {
         // The hint that asks for edit access: projects listed, none to save to, none to make.
-        const offer = !!empty && !empty.offerNew && listed > 0 && !!askProjectId && knownRoles.get(askProjectId) === 'viewer';
+        const offer = !!empty && !empty.offerNew && listed > 0 && !!askProjectId && isReadOnlyRole(knownRoles.get(askProjectId));
         askEdit.hidden = !offer;
         if (!offer) askSlot.replaceChildren();
       }

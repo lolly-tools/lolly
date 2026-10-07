@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
+import { once } from 'node:events';
+import {
+  createServer,
+  request as httpRequest,
+  type IncomingHttpHeaders,
+  type Server,
+} from 'node:http';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -31,6 +38,7 @@ interface Container {
 }
 interface Pod {
   nodeName?: string;
+  nodeSelector?: Record<string, string>;
   hostNetwork?: boolean;
   dnsPolicy?: string;
   automountServiceAccountToken: boolean;
@@ -269,7 +277,8 @@ test('edge policy scopes a fail-closed constrained host-network exception', () =
   const pod = edge.spec.template.spec;
   assert.equal(edge.metadata.namespace, 'lolly-edge');
   assert.equal(pod.hostNetwork, true);
-  assert.equal(pod.nodeName, 'fixture-node');
+  assert.equal(pod.nodeName, undefined, 'scheduler must see WaitForFirstConsumer volumes');
+  assert.deepEqual(pod.nodeSelector, { 'kubernetes.io/hostname': 'fixture-node' });
   assert.equal(pod.dnsPolicy, 'ClusterFirstWithHostNet');
   assert.deepEqual(
     pod.volumes.flatMap((v) => (v.secret ? [v.secret.secretName] : [])),
@@ -292,6 +301,9 @@ test('edge policy scopes a fail-closed constrained host-network exception', () =
   for (const boundary of [
     'hostNetwork',
     'fixture-node',
+    'object.spec.nodeSelector.size() == 1',
+    "object.spec.nodeSelector['kubernetes.io/hostname'] == 'fixture-node'",
+    "request.operation == 'UPDATE' && object.spec.nodeName == 'fixture-node'",
     'NET_BIND_SERVICE',
     'RuntimeDefault',
     'automountServiceAccountToken',
@@ -370,6 +382,242 @@ test('actual Caddy accepts combined host routes with explicit outgoing socket bi
   assert.ok(configText.includes('public.example'));
   assert.ok(configText.includes('private.example'));
   assert.doesNotMatch(configText, /127\.0\.0\.1:8790|https:\/\/lolly\.tools/);
+});
+
+test('optional private guide runs through actual Caddy with exact methods and credential custody', {
+  timeout: 30_000,
+}, async () => {
+  const paths = [
+    '/info/operate/deployment',
+    '/info/operate/deployment.html',
+    '/info/operate/deployment.md',
+    '/docs/operate/deployment',
+  ];
+  const observed: {
+    upstream: string;
+    path: string;
+    method: string;
+    headers: IncomingHttpHeaders;
+  }[] = [];
+  const publicBytes =
+    '<link rel="canonical" href="https://public.example/info/operate/deployment.html">PUBLIC GUIDE';
+  const markdown = '# Deployment\nSUSE, UpCloud and Evroc\n';
+  const listen = async (server: Server) => {
+    server.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const address = server.address();
+    assert.ok(address && typeof address !== 'string');
+    return address.port;
+  };
+  const upstream = (name: string) =>
+    createServer((req, res) => {
+      observed.push({
+        upstream: name,
+        path: req.url ?? '',
+        method: req.method ?? '',
+        headers: req.headers,
+      });
+      res.setHeader(
+        'content-type',
+        req.url?.endsWith('.md') ? 'text/plain; charset=utf-8' : 'text/html; charset=utf-8'
+      );
+      res.setHeader('cache-control', 'public, max-age=3600');
+      res.setHeader('set-cookie', 'upstream_cookie=must-not-reach-guide');
+      res.end(name === 'public' ? (req.url?.endsWith('.md') ? markdown : publicBytes) : 'PRIVATE');
+    });
+  const web = upstream('public'),
+    work = upstream('private');
+  const directory = mkdtempSync(join(tmpdir(), 'lolly-private-guide-caddy-'));
+  let child: ChildProcess | undefined;
+  const stop = async () => {
+    if (!child || child.exitCode !== null) return;
+    const exited = once(child, 'exit');
+    child.kill('SIGTERM');
+    const timer = setTimeout(() => child?.kill('SIGKILL'), 3000);
+    try {
+      await exited;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  try {
+    const webPort = await listen(web),
+      workPort = await listen(work);
+    const socket = createServer();
+    const edgePort = await listen(socket);
+    await new Promise<void>((resolve) => socket.close(() => resolve()));
+    for (const enabled of [false, true]) {
+      const input = values();
+      input.private.servePublicDeploymentGuide = enabled;
+      const config = adapt(render(input));
+      delete config.apps.tls;
+      const servers = Object.values(config.apps.http.servers) as Record<string, any>[];
+      assert.equal(servers.length, 1);
+      for (const server of servers) {
+        server.listen = [`127.0.0.1:${edgePort}`];
+        server.automatic_https = { disable: true };
+        delete server.tls_connection_policies;
+      }
+      const patchFixtureSockets = (value: any): void => {
+        if (!value || typeof value !== 'object') return;
+        if (typeof value.dial === 'string') {
+          assert.match(value.dial, /svc[.]cluster[.]local:/);
+          value.dial = `127.0.0.1:${value.dial.startsWith('fixture-web.') ? webPort : workPort}`;
+        }
+        if (value.local_address) value.local_address = '127.0.0.1';
+        for (const item of Object.values(value)) patchFixtureSockets(item);
+      };
+      patchFixtureSockets(config);
+      const path = join(directory, `caddy-${enabled}.json`);
+      writeFileSync(path, JSON.stringify(config));
+      let diagnostics = '';
+      child = spawn('caddy', ['run', '--config', path], { stdio: ['ignore', 'pipe', 'pipe'] });
+      const record = (chunk: Buffer) => {
+        diagnostics = (diagnostics + chunk.toString()).slice(-4096);
+      };
+      child.stdout?.on('data', record);
+      child.stderr?.on('data', record);
+      const headers = {
+        host: 'private.example',
+        connection: 'close',
+        cookie: 'instance=private',
+        authorization: 'Bearer user-secret',
+        'proxy-authorization': 'Basic private-proxy',
+        forwarded: 'for=attacker',
+        'x-real-ip': '203.0.113.9',
+        'x-vercel-forwarded-for': '203.0.113.9',
+        'x-forwarded-host': 'evil.example',
+      };
+      const request = (pathname: string, method = 'GET') =>
+        new Promise<Response>((resolve, reject) => {
+          const req = httpRequest(
+            { hostname: '127.0.0.1', port: edgePort, path: pathname, method, headers },
+            (response) => {
+              const chunks: Buffer[] = [];
+              response.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+              response.on('end', () =>
+                resolve(
+                  new Response(Buffer.concat(chunks), {
+                    status: response.statusCode,
+                    headers: Object.fromEntries(
+                      Object.entries(response.headers)
+                        .filter(([, value]) => value !== undefined)
+                        .map(([key, value]) => [key, String(value)])
+                    ),
+                  })
+                )
+              );
+            }
+          );
+          req.on('error', reject);
+          req.setTimeout(2000, () => req.destroy(new Error('Fixture request timeout')));
+          req.end();
+        });
+      let ready = false;
+      for (let attempt = 0; attempt < 50; attempt++) {
+        try {
+          if ((await request('/healthz')).status === 200) {
+            ready = true;
+            break;
+          }
+        } catch {
+          /* Fixture starting. */
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      assert.ok(ready, diagnostics);
+      observed.length = 0;
+      for (const pathname of paths) {
+        for (const method of ['GET', 'HEAD']) {
+          const response = await request(pathname, method);
+          assert.equal(response.status, 200, diagnostics);
+          assert.equal(
+            await response.text(),
+            method === 'HEAD'
+              ? ''
+              : enabled
+                ? pathname.endsWith('.md')
+                  ? markdown
+                  : publicBytes
+                : 'PRIVATE'
+          );
+          const last = observed.at(-1);
+          assert.ok(last);
+          assert.equal(last.upstream, enabled ? 'public' : 'private');
+          assert.equal(
+            last.path,
+            enabled && !pathname.endsWith('.md') ? '/info/operate/deployment.html' : pathname
+          );
+          assert.equal(last.method, method);
+          for (const credential of ['cookie', 'authorization', 'proxy-authorization']) {
+            assert.equal(last.headers[credential], undefined);
+          }
+          if (enabled) {
+            assert.equal(last.headers.host, 'public.example');
+            assert.equal(last.headers['x-forwarded-host'], 'public.example');
+            assert.equal(last.headers['x-forwarded-proto'], 'https');
+            assert.equal(last.headers['x-forwarded-for'], '127.0.0.1');
+            for (const spoof of ['forwarded', 'x-real-ip', 'x-vercel-forwarded-for'])
+              assert.equal(last.headers[spoof], undefined);
+            assert.equal(response.headers.get('set-cookie'), null);
+            assert.equal(response.headers.get('cache-control'), 'public, max-age=3600');
+            assert.match(
+              response.headers.get('content-type') ?? '',
+              pathname.endsWith('.md') ? /text\/plain/ : /text\/html/
+            );
+          }
+        }
+        if (enabled)
+          for (const method of ['POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'TRACE', 'BREW']) {
+            const before = observed.length;
+            const response = await request(pathname, method);
+            assert.equal(response.status, 405, diagnostics);
+            assert.equal(response.headers.get('allow'), 'GET, HEAD');
+            await response.text();
+            assert.equal(
+              observed.length,
+              before,
+              'unsupported methods must not reach either upstream'
+            );
+          }
+      }
+      for (const pathname of [
+        '/info/operate/deployment-extra',
+        '/info/operate/deployment/child',
+        '/api/v1/users',
+        '/catalog/assets/index.json',
+        '/tools/design/tool.json',
+        '/ws/collab/example',
+        '/api/penpot/rpc',
+      ]) {
+        const response = await request(pathname);
+        assert.equal(response.status, 200);
+        await response.text();
+        const last = observed.at(-1);
+        assert.ok(last);
+        assert.equal(last.upstream, 'private');
+        const api = /^\/(api|catalog|tools|ws)\//.test(pathname);
+        assert.equal(last.headers.authorization, api ? headers.authorization : undefined);
+        assert.equal(
+          last.headers.cookie,
+          api && !pathname.startsWith('/api/penpot/') ? headers.cookie : undefined
+        );
+      }
+      await stop();
+      child = undefined;
+    }
+    const invalid = values();
+    invalid.private.servePublicDeploymentGuide = 'true';
+    refuses(invalid, /servePublicDeploymentGuide.*boolean|Invalid type/);
+  } finally {
+    await stop();
+    web.closeAllConnections();
+    work.closeAllConnections();
+    await Promise.all(
+      [web, work].map((server) => new Promise<void>((resolve) => server.close(() => resolve())))
+    );
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('automatic ACME persists certificates in the edge PVC and needs no renewal service', () => {
@@ -542,7 +790,8 @@ test('verified Localhost browser profile is explicit, node-pinned and exclusive 
       name === 'mcp' ? { type: 'Localhost', localhostProfile: profile } : { type: 'RuntimeDefault' }
     );
     if (name === 'mcp') {
-      assert.equal(pod.nodeName, input.edge.nodeName);
+      assert.equal(pod.nodeName, undefined, 'model PVC binding must go through the scheduler');
+      assert.deepEqual(pod.nodeSelector, { 'kubernetes.io/hostname': input.edge.nodeName });
       assert.equal(pod.automountServiceAccountToken, false);
       const mcp = container(pod);
       assert.equal(mcp.securityContext.readOnlyRootFilesystem, true);
@@ -551,7 +800,10 @@ test('verified Localhost browser profile is explicit, node-pinned and exclusive 
       assert.equal(env(mcp).LOLLY_BROWSER_NO_SANDBOX, '0');
       assert.equal(env(mcp).LOLLY_MCP_PRIVATE_FILES, '0');
       assert.equal(env(mcp).LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT, '0');
-    } else if (name !== 'edge') assert.equal(pod.nodeName, undefined);
+    } else if (name !== 'edge') {
+      assert.equal(pod.nodeName, undefined);
+      assert.equal(pod.nodeSelector, undefined);
+    }
   }
   for (const bad of [
     '/absolute',

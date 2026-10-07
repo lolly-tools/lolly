@@ -212,7 +212,13 @@ export interface OrgConfig {
   /** What the caller may share a new team project with (lolly-work plan 74): the
    *  groups usable for sharing. Absent on an older instance, which then offers only
    *  "Only me" (org/session-source.ts teamProjectOptions). */
-  sharing?: { groups?: string[]; projectFiles?: boolean };
+  sharing?: {
+    groups?: string[]; projectFiles?: boolean;
+    /** The sharing limits (lolly plan 299 M1, `policy.sharing`): sharing with everyone
+     *  signed in to the instance and its highest role, user-made groups and the
+     *  longest end date. Absent on an older instance, which then offers none of them. */
+    instance?: { enabled?: boolean; maxRole?: string }; customGroups?: boolean; maxGrantDays?: number | null;
+  };
   /** Limits on inviting people by email (lolly-work plan 74): the domains an invitee's
    *  address must be at (empty: any), how long an invitation lasts, and the project
    *  roles an invitation may carry. Absent on an older instance, which then has no

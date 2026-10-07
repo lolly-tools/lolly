@@ -179,6 +179,10 @@ jobs:
             | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
           helm template fixture deploy/helm/profiles/sovereign --namespace lolly-public \
             -f deploy/helm/profiles/sovereign/fixture.values.json \
+            --set private.servePublicDeploymentGuide=true \
+            | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
+          helm template fixture deploy/helm/profiles/sovereign --namespace lolly-public \
+            -f deploy/helm/profiles/sovereign/fixture.values.json \
             --set edge.tls.mode=acme --set edge.tls.email=team@example.com \
             --set edge.tls.existingClaim=caddy-data \
             | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
