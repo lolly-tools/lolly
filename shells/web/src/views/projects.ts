@@ -86,6 +86,7 @@ import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionS
 import type { TemplateActionHost } from '../lib/template-actions.ts';
 import { getSessionSource } from '../lib/session-source.ts';
 import { openRequestedTeamProject, openTeamProjects, createSharedProjectsView, type TeamProjectsDoor } from './projects-team.ts';
+import { projectsDropHooks } from './projects-drop.ts';
 import { getCollabTileProvider, renderCollabBadge } from '../lib/collab-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
@@ -265,7 +266,7 @@ export async function mountProjects(
   }));
   let mounted = true;        // false after the view is swapped out (guards async renders)
   // The Team projects door (projects-team.ts; dormant without a session source).
-  const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted };
+  const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted, refresh: () => { if (mounted) void reload().then(render); } };
   const shared = createSharedProjectsView(teamDoor, viewEl, opts.params || '', render);
   const sharedProjectId = shared.projectId, sharedFolder = shared.active;
   const sharedProjectsHtml = (q = '') => shared.rootHtml(q, viewMode === 'list', listHeadHtml(), projectsCardSizeAttr(), sortBy, sortRev);
@@ -1255,15 +1256,9 @@ export async function mountProjects(
   function attachDrops(): void {
     void dropRouter.then((m) => {
       if (!mounted) return;
-      m.attachDropRouter(viewEl, host as unknown as PickerHost, {
-        onStored: (ids) => {
-          const target = currentFolderTarget();
-          void (async () => {
-            if (target) for (const id of ids) await store.addItem(target, { type: 'image', ref: id }).catch(() => {});
-            if (mounted) { await reload(); render(); }
-          })();
-        },
-      });
+      const picker = host as unknown as PickerHost, refresh = async () => { if (mounted) { await reload(); render(); } }, addToFolder = (id: string, ref: string) => store.addItem(id, { type: 'image', ref }).catch(() => {});
+      m.attachDropRouter(viewEl, picker, { ...projectsDropHooks({ host: picker, folderTarget: currentFolderTarget, addToFolder, refresh, mounted: () => mounted }),
+        onStored: (ids) => { const target = currentFolderTarget(); void (async () => { if (target) for (const id of ids) await addToFolder(target, id); await refresh(); })(); } });
     });
   }
 
@@ -1412,7 +1407,7 @@ export async function mountProjects(
     // Session, image AND real folder tiles are draggable (not the synthetic Uncategorised,
     // not the create tiles). A folder carries 'text/lolly-folder'; a session 'text/lolly-session';
     // an image 'text/lolly-image' - the kind lets the drop target pick store.moveItem's type.
-    root.querySelectorAll<HTMLElement>('.folder-tile[data-kind="session"], .folder-tile[data-kind="image"], .folder-tile--folder').forEach(tile => {
+    root.querySelectorAll<HTMLElement>('.folder-tile[data-kind="session"], .folder-tile[data-kind="image"], .folder-tile--folder:not(.folder-tile--shared)').forEach(tile => {
       const kind = tile.dataset.kind as SelectKind;   // 'folder' | 'session' | 'image'
       const mime = kind === 'folder' ? 'text/lolly-folder' : kind === 'image' ? 'text/lolly-image' : 'text/lolly-session';
       tile.setAttribute('draggable', 'true');

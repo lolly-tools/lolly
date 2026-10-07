@@ -9,6 +9,7 @@ import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import { mountAssetPreview } from './asset-preview.ts';
 import { getSessionSource, readSourceProjects, takeSourceProjectRequest } from '../lib/session-source.ts';
 import type { TeamProjectRef } from '../lib/session-source.ts';
+import { splitOwnProjects } from '../lib/team-project-listing.ts';
 import { folderTile } from '../folder-tiles.ts';
 import { tRaw } from '../i18n.ts';
 import { tokenize } from '../lib/search/match.ts';
@@ -33,6 +34,12 @@ export interface TeamProjectsDoor {
   tools?: Array<{ id: string; name: string }>;
 }
 
+/** What a shared project tile says it is: a project shared with everyone on the
+ *  workspace, one an admin can open, or a project the person belongs to. */
+function sharedSubtitle(p: TeamProjectRef): string {
+  return p.via === 'everyone' ? tRaw('Shared with everyone') : p.via === 'admin' ? tRaw('Workspace project') : tRaw('Shared project');
+}
+
 /** Shared folders use the local folder component, with a people glyph and source label. */
 export function teamProjectTiles(projects: TeamProjectRef[], query = '', sort = 'modified', reversed = false): string {
   const tokens = tokenize(query);
@@ -41,7 +48,7 @@ export function teamProjectTiles(projects: TeamProjectRef[], query = '', sort = 
     count: p.sessionCount ?? 0,
     href: `#/p?team=${encodeURIComponent(p.id)}`,
     shared: { openLabel: tRaw('Open shared project {name}', { name: p.name }),
-      subtitle: tRaw('Shared project'), activity: p.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: p.sessionCount ?? 0 }) },
+      subtitle: sharedSubtitle(p), activity: p.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: p.sessionCount ?? 0 }) },
   })).join('');
 }
 
@@ -82,8 +89,15 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
   let projects: TeamProjectRef[] = [], state: 'loading' | 'ready' | 'error' = 'loading', read = 0, generation = 0;
   let clearFolder: (() => void) | undefined, clearPreviews: (() => void) | undefined, clearMenus: (() => void) | undefined;
   let localFolders: readonly Folder[] = [];
-  const linked = (folder: Folder) => folder.teamCopy?.complete && folder.teamCopy.instance === (getInstanceBase() || location.origin)
-    ? projects.find(project => project.id === folder.teamCopy!.projectId) : undefined;
+  const here = () => getInstanceBase() || location.origin;
+  // A local folder stands for a shared project when it was shared from this device
+  // (teamCopy) or is a shortcut to one (link, lolly plan 299).
+  const linked = (folder: Folder) => folder.teamCopy?.complete && folder.teamCopy.instance === here()
+    ? projects.find(project => project.id === folder.teamCopy!.projectId)
+    : folder.link && folder.link.instance === here() ? projects.find(project => project.id === folder.link!.projectId) : undefined;
+  /** Projects already drawn among the local folders at the top level, so the shared
+   *  section does not show them twice. A shortcut inside a subfolder stays there. */
+  const drawnLocally = () => new Set(localFolders.filter(folder => folder.teamCopy || !folder.parentId).map(linked).filter(Boolean).map(project => project!.id));
   async function refresh(): Promise<void> {
     const source = getSessionSource(), ticket = ++read;
     if (!source || !door.isMounted() || active) return;
@@ -107,17 +121,23 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
     },
     folderTile(folder: Folder, opts: Parameters<typeof folderTile>[1]): string {
       const project = linked(folder);
-      return project ? folderTile({ ...folder, ...project }, { ...opts, selectable: false, href: `#/p?team=${encodeURIComponent(project.id)}`,
-        shared: { subtitle: tRaw('Shared project'), activity: project.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
+      const inside = folder.link?.folderId ? `&folder=${encodeURIComponent(folder.link.folderId)}` : '';
+      return project ? folderTile({ ...folder, ...project, ...(folder.link ? { name: folder.name } : {}) }, { ...opts, selectable: false, href: `#/p?team=${encodeURIComponent(project.id)}${inside}`,
+        shared: { subtitle: folder.link ? tRaw('Shortcut') : sharedSubtitle(project), activity: project.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
     },
     rootHtml(filter: string, list: boolean, head: string, size: string, sort: string, reversed: boolean): string {
       const source = getSessionSource(); if (!source) return '';
-      const copied = new Set(localFolders.map(linked).filter(Boolean).map(project => project!.id));
-      const tiles = teamProjectTiles(projects.filter(project => !copied.has(project.id)), filter, sort, reversed);
+      const copied = drawnLocally();
+      // Only the person's own shared projects are listed (lolly plan 299 section 6);
+      // a search reaches every project they can open, and Browse lists the rest.
+      const pool = projects.filter(project => !copied.has(project.id));
+      const { own, other } = splitOwnProjects(pool);
+      const tiles = teamProjectTiles(filter ? pool : own, filter, sort, reversed);
+      const browse = other.length ? `<button type="button" class="btn btn--labelled btn--ghost" data-browse-team>${actionButtonContent(tRaw('Browse {n} more', { n: other.length }), 'search')}</button>` : '';
       const message = state === 'error' ? t('Shared projects could not be loaded. Try again.') : state === 'loading' ? t('Loading shared projects…')
-        : filter ? t('No shared projects match your search.') : t('Create a team project or ask a teammate to add you.');
+        : filter ? t('No shared projects match your search.') : other.length ? t('Projects you belong to, add or open appear here.') : t('Create a team project or ask a teammate to add you.');
       return `<section class="projects-shared" aria-label="${escapeHtml(tRaw('Shared projects'))}"><div class="projects-shared-head"><div><h2>${t('Shared projects')}</h2><p>${escapeHtml(source.label)}</p></div>
-        <button type="button" class="btn btn--labelled btn--ghost" data-refresh-team>${actionButtonContent(tRaw('Refresh'), 'refresh')}</button></div>
+        <div class="team-project-actions">${browse}<button type="button" class="btn btn--labelled btn--ghost" data-refresh-team>${actionButtonContent(tRaw('Refresh'), 'refresh')}</button></div></div>
         ${tiles ? `<div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${size}>${list ? head : ''}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}</section>`;
     },
     afterRender(opts: { query: string; list: boolean; sort: string; reversed: boolean }): void {
@@ -131,8 +151,20 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
         if (door.isMounted() && ticket === generation && source === getSessionSource()) {
           const current = () => door.isMounted() && ticket === generation && source === getSessionSource();
           clearPreviews = module.hydrateSharedPreviews(view, source, door.host, current);
-          const backups = new Map(localFolders.flatMap(folder => linked(folder) ? [[folder.teamCopy!.projectId, folder.id] as const] : []));
-          clearMenus = sharing.mountSharedProjectMenus(view, projects, current, () => { void refresh(); }, backups);
+          const backups = new Map(localFolders.flatMap(folder => folder.teamCopy && linked(folder) ? [[folder.teamCopy.projectId, folder.id] as const] : []));
+          const shortcuts = new Map(localFolders.flatMap(folder => folder.link && linked(folder) ? [[folder.link.projectId, folder.id] as const] : []));
+          const stopMenus = sharing.mountSharedProjectMenus(view, projects, current, () => { void refresh(); door.refresh?.(); }, backups, { host: door.host, shortcuts });
+          const browse = (event: Event) => {
+            if (!(event.target as Element).closest('[data-browse-team]')) return;
+            const { other } = splitOwnProjects(projects.filter(project => !drawnLocally().has(project.id)));
+            void import('../org/project-browse-sheet.ts').then(sheet => sheet.openProjectBrowse({
+              projects: other, workspace: source.label,
+              setListing: (id, listed) => source.setProjectListing?.(id, listed) ?? Promise.resolve(false),
+              onChanged: () => { void refresh(); },
+            }));
+          };
+          view.addEventListener('click', browse);
+          clearMenus = () => { stopMenus(); view.removeEventListener('click', browse); };
         }
       }).catch(error => door.host.log?.('warn', 'projects: shared previews could not load', { error: String(error) }));
     },
