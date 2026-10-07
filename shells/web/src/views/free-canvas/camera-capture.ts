@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Webcam streams belong to one mounted editor, never to saved document data. */
-import { icon } from '../../lib/icons.ts';
+import { iconNode } from '../../lib/icon-node.ts';
 import { t } from '../../i18n.ts';
 import type { PickerHost } from '../picker.ts';
 import { positionEditorPopover } from '../free-canvas-popover.ts';
@@ -102,8 +102,10 @@ export function cameraCaptureOps(fc: FcCtx) {
   function action(label: string, symbol: 'camera' | 'close' | 'image', run: () => void): HTMLButtonElement {
     const button = fc.canvasEl.ownerDocument.createElement('button');
     button.type = 'button'; button.className = 'btn btn--labelled btn--sm'; button.setAttribute('aria-label', label);
-    button.innerHTML = `${icon(symbol)}<span class="btn-label"></span>`;
-    button.querySelector('.btn-label')!.textContent = label;
+    const glyph = iconNode(symbol, button.ownerDocument);
+    if (glyph) button.append(glyph);
+    const text = button.ownerDocument.createElement('span');
+    text.className = 'btn-label'; text.textContent = label; button.append(text);
     button.addEventListener('click', event => { event.stopPropagation(); run(); });
     return button;
   }
