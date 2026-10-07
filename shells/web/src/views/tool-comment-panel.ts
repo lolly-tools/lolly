@@ -51,7 +51,7 @@ export function wireCommentPanel(panel: HTMLElement, head: HTMLElement, close: H
   const tools = doc.createElement('span'); tools.className = 'collab-comment-panel-tools';
   const button = (label: string, glyph: IconName, run: () => void) => {
     const b = doc.createElement('button'); b.type = 'button'; b.className = 'btn btn--ghost collab-comment-icon';
-    b.setAttribute('aria-label', t(label)); b.title = t(label); b.innerHTML = icon(glyph); b.addEventListener('click', run); tools.append(b); return b;
+    b.setAttribute('aria-label', label); b.title = label; b.innerHTML = icon(glyph); b.addEventListener('click', run); tools.append(b); return b;
   };
   const render = () => {
     const docked = isDocked('comments');
@@ -71,11 +71,11 @@ export function wireCommentPanel(panel: HTMLElement, head: HTMLElement, close: H
     rememberScroll(); box = clamp(box ?? read());
     if (requestDock('comments', panel, { icon: icon('messageCircle'), label: t('Comments'), onRelease: () => { render(); restoreScroll(); } })) { edge = true; render(); save(); restoreScroll(); }
   };
-  const detach = button('Detach comments', 'resize', float);
-  const expand = button('Expand comments to full height', 'arrowsV', () => {
+  const detach = button(t('Detach comments'), 'resize', float);
+  const expand = button(t('Expand comments to full height'), 'arrowsV', () => {
     float(); apply({ ...(box ?? read()), y: GAP, h: win.innerHeight - GAP * 2 }); save();
   });
-  const dock = button('Dock comments to the side', 'dock', enterEdge);
+  const dock = button(t('Dock comments to the side'), 'dock', enterEdge);
   head.insertBefore(tools, close);
   panel.insertAdjacentHTML('beforeend', panelGripsHtml());
   const resizeOff = wirePanelGrips(panel, { read, apply, clamp, min: MIN, locked: () => mobile() || isDocked('comments'), onEnd: save });
