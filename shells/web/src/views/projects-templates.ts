@@ -29,6 +29,7 @@ import { previewDeadline } from '../lib/preview-deadline.ts';
 import { loadTemplateStart } from '../lib/template-start.ts';
 import { resolveTemplateSeed, shippedTemplateRef, userTemplateRef } from '../lib/template-ref.ts';
 import { createUserTemplateStore, type UserTemplate } from '../lib/user-templates.ts';
+import { catalogSubmitter, openCatalogSubmit, templateSubject } from '../lib/catalog-submit.ts';
 import {
   copyShippedTemplate, deleteUserTemplate, downloadTemplateFile, hiddenTemplates, hideShippedTemplate,
   restoreShippedTemplate, setStartWith, templateDesignSystemStamp, type TemplateActionHost,
@@ -47,6 +48,7 @@ const SHARE_ICON = icon('share', { strokeWidth: 1.9 });
 const HIDE_ICON = icon('eyeOff', { strokeWidth: 1.9 });
 const SHOW_ICON = icon('eye', { strokeWidth: 1.9 });
 const TRASH_ICON = icon('trash', { strokeWidth: 1.9 });
+const SUBMIT_ICON = icon('upload', { strokeWidth: 1.9 });
 const TEMPLATE_GLYPH = icon('layersStack', { strokeWidth: 1.6 });
 const BACK_ICON = icon('chevronLeft');
 const MENU_ICON = icon('menuDots');
@@ -180,6 +182,7 @@ export function templateMenuHtml(item: TemplateItem): string {
     item.own ? '' : menuItemHtml('tpl-copy', COPY_ICON, t('Make a copy')),
     item.own ? menuItemHtml('tpl-export', DOWNLOAD_ICON, t('Export as file (.json)')) : '',
     item.own ? menuItemHtml('tpl-share', SHARE_ICON, t('Share template (.lolly)')) : '',
+    item.own && catalogSubmitter('template') ? menuItemHtml('tpl-submit', SUBMIT_ICON, catalogSubmitter('template')!.label()) : '',
     !item.own && !item.hidden ? menuItemHtml('tpl-hide', HIDE_ICON, t('Hide')) : '',
     item.hidden ? menuItemHtml('tpl-restore', SHOW_ICON, t('Restore')) : '',
     item.own ? menuItemHtml('tpl-delete', TRASH_ICON, t('Delete'), { danger: true }) : '',
@@ -487,6 +490,11 @@ export function createTemplatesCollection(ctx: TemplatesCtx): TemplatesCollectio
     if (act === 'tpl-export' && item.own) {
       const tpl = await store().get(item.id);
       if (tpl) downloadTemplateFile(tpl);
+      return;
+    }
+    if (act === 'tpl-submit' && item.own) {
+      const tpl = await store().get(item.id);
+      if (tpl) openCatalogSubmit(templateSubject(tpl));
       return;
     }
     if (act === 'tpl-share' && item.own) {

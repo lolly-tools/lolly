@@ -35,8 +35,8 @@
       "typeEscapes": 60
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1723,
-      "largestFunctionLines": 1033,
+      "lines": 1730,
+      "largestFunctionLines": 1018,
       "importFanIn": 6,
       "importFanOut": 33,
       "typeEscapes": 13
@@ -69,6 +69,13 @@
       "importFanOut": 11,
       "typeEscapes": 68
     },
+    "shells/web/src/views/design-inspector.ts": {
+      "lines": 1589,
+      "largestFunctionLines": 2103,
+      "importFanIn": 1,
+      "importFanOut": 20,
+      "typeEscapes": 0
+    },
     "shells/web/src/views/gallery.ts": {
       "lines": 1957,
       "largestFunctionLines": 1754,
@@ -79,7 +86,7 @@
     "shells/web/src/views/picker.ts": {
       "lines": 2438,
       "largestFunctionLines": 2110,
-      "importFanIn": 28,
+      "importFanIn": 31,
       "importFanOut": 66,
       "typeEscapes": 3
     },
@@ -93,15 +100,15 @@
     "shells/web/src/views/tool-inputs.ts": {
       "lines": 2835,
       "largestFunctionLines": 2085,
-      "importFanIn": 7,
+      "importFanIn": 8,
       "importFanOut": 37,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1532,
-      "largestFunctionLines": 1578,
+      "lines": 1536,
+      "largestFunctionLines": 1581,
       "importFanIn": 1,
-      "importFanOut": 63,
+      "importFanOut": 64,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {

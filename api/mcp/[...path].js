@@ -168853,14 +168853,27 @@ var RedisRestRateLimiter = class {
   #token;
   #namespace;
   #fetch;
+  #onWrite;
   constructor(options2) {
     this.#url = normalizeRestUrl(options2.url);
     this.#token = options2.token;
     this.#namespace = options2.namespace;
     this.#fetch = options2.fetchImpl ?? fetch;
+    this.#onWrite = options2.onWrite;
   }
   async consume(scope, subject, limit, windowMs) {
     validateBudget(limit, windowMs);
+    const finish2 = this.#onWrite?.();
+    try {
+      const result = await this.#consume(scope, subject, limit, windowMs);
+      finish2?.(true);
+      return result;
+    } catch (error2) {
+      finish2?.(false);
+      throw error2;
+    }
+  }
+  async #consume(scope, subject, limit, windowMs) {
     const key = `lolly:rl:${digestKey(this.#namespace, scope, subject)}`;
     let response;
     try {
@@ -168918,9 +168931,9 @@ function restStoreConfig(env) {
   }
   return null;
 }
-function createRateLimiter(env, namespace2 = "mcp") {
+function createRateLimiter(env, namespace2 = "mcp", onWrite) {
   const store = restStoreConfig(env);
-  if (store) return new RedisRestRateLimiter({ ...store, namespace: namespace2 });
+  if (store) return new RedisRestRateLimiter({ ...store, namespace: namespace2, onWrite });
   const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
   if (hosted && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== "1") {
     console.warn(`[rate-limit] ${UNCONFIGURED_REASON}`);
@@ -168993,11 +169006,13 @@ var MeteredBudget = class {
   #cpu;
   #lastCpu;
   #cached = null;
-  constructor(limits, now2, cpu) {
+  #onWrite;
+  constructor(limits, now2, cpu, onWrite) {
     this.limits = limits;
     this.now = now2;
     this.#cpu = cpu;
     this.#lastCpu = cpu();
+    this.#onWrite = onWrite;
   }
   #judge(totals, now2) {
     const { cpuMs, egressBytes } = this.limits;
@@ -169019,11 +169034,14 @@ var MeteredBudget = class {
     this.#lastCpu = cpuNow;
     const bytes = Math.max(0, Math.round(egressBytes));
     const now2 = this.now();
+    const finish2 = this.#onWrite?.();
     try {
       const totals = await this.add(utcDay(now2), cpuMs, bytes);
+      finish2?.(true);
       const state = this.#judge(totals, now2);
       if (!state.ok) this.#cached = { state, until: now2 + CHECK_TTL_MS };
     } catch (error2) {
+      finish2?.(false);
       console.warn(`[usage-budget] could not record usage: ${error2.message}`);
     }
   }
@@ -169058,7 +169076,7 @@ var RedisRestUsageBudget = class extends MeteredBudget {
   #namespace;
   #fetch;
   constructor(options2) {
-    super(options2.limits, options2.now ?? Date.now, options2.cpu ?? processCpuMs);
+    super(options2.limits, options2.now ?? Date.now, options2.cpu ?? processCpuMs, options2.onWrite);
     this.#url = options2.url;
     this.#token = options2.token;
     this.#namespace = options2.namespace;
@@ -169094,13 +169112,16 @@ var RedisRestUsageBudget = class extends MeteredBudget {
   async add(day, cpuMs, egressBytes) {
     const result = await this.#command(["EVAL", ADD_LUA, "2", ...this.#keys(day), String(cpuMs), String(egressBytes), String(KEY_TTL_SECONDS)]);
     if (!Array.isArray(result) || result.length !== 2) throw new RateLimitUnavailableError("Usage budget store returned an invalid result");
-    return { cpuMs: Number(result[0]) || 0, egressBytes: Number(result[1]) || 0 };
+    if (!result.every((value) => (typeof value === "number" || typeof value === "string" && /^\d+$/.test(value)) && Number.isSafeInteger(Number(value)) && Number(value) >= 0)) {
+      throw new RateLimitUnavailableError("Usage budget store returned invalid counters");
+    }
+    return { cpuMs: Number(result[0]), egressBytes: Number(result[1]) };
   }
 };
-function createUsageBudget(env, namespace2 = "mcp") {
+function createUsageBudget(env, namespace2 = "mcp", onWrite) {
   const limits = budgetLimits(env);
   const store = restStoreConfig(env);
-  if (store) return new RedisRestUsageBudget({ ...store, namespace: namespace2, limits });
+  if (store) return new RedisRestUsageBudget({ ...store, namespace: namespace2, limits, onWrite });
   if (limits.cpuMs || limits.egressBytes) {
     const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
     if (hosted) console.warn("[usage-budget] no durable store is configured, so the daily budget is counted per instance");
@@ -169995,7 +170016,7 @@ async function overBudget(budget3) {
     };
   }
 }
-function createGateway(env = process.env) {
+function createGateway(env = process.env, options2 = {}) {
   const mcpEnabled = !!signingSecret(env) || env.LOLLY_MCP_ALLOW_ANONYMOUS === "1";
   let base = null;
   let mcpUnavailable = null;
@@ -170007,8 +170028,8 @@ function createGateway(env = process.env) {
       console.error(`[mcp] ${mcpUnavailable} - the MCP surface answers 503 until it is set; the public render route is unaffected`);
     }
   }
-  const limiter = createRateLimiter(env);
-  const budget3 = createUsageBudget(env);
+  const limiter = createRateLimiter(env, "mcp", options2.onWrite);
+  const budget3 = options2.budget ?? createUsageBudget(env, "mcp", options2.onWrite);
   const open3 = openAccess(env);
   return async (req, res) => {
     const method = req.method || "GET";

@@ -636,10 +636,16 @@ function mediaHtmlFor(b) {
   var isAnimSvg = isSvg && (
     !!(img && img.meta && img.meta.animated === true) ||
     (Array.isArray(animTags) && animTags.indexOf('animated') >= 0));
+  // The marker holds the same picture as a POSTER <img> until the enhancer inlines the
+  // live <svg> over it. Without one the box was empty for the beat between a repaint
+  // and the async inline (every edit flashed it), and empty for good wherever nothing
+  // inlines: the CLI, a plain browser render, an inline that failed. The poster carries
+  // the fit as object-fit; an SMIL loop even plays inside it, since an <img> runs SMIL.
   if (isAnimSvg) {
     var afit = String(b.fit) === 'cover' ? 'cover' : 'meet';
     return '<div class="lolly-box-img lolly-box-anim" data-anim-src="' + esc(url) +
-      '" data-anim-fit="' + afit + '" style="' + style + '"></div>';
+      '" data-anim-fit="' + afit + '" style="' + style + '"><img class="lolly-box-anim-poster" src="' + esc(url) +
+      '" style="' + imgCss(b) + '" alt="" draggable="false"></div>';
   }
   return '<img class="lolly-box-img" data-deep-source="' + esc(JSON.stringify(img)) + '" src="' + esc(url) + '" style="' + style + '" alt="" draggable="false">';
 }
