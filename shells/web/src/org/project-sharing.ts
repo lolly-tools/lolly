@@ -45,6 +45,16 @@ export function mountSharedProjectMenus(host: HTMLElement, projects: readonly Te
     menu.openAt(rect.right, rect.bottom, { ref: tile.dataset.ref!, tile }, button);
   };
   host.addEventListener('click', click);
+  // A manager's "Show archived" switch under the shared projects (org/team-projects.ts),
+  // loaded only for someone who manages a project. Restoring one reads the list again.
+  let archived: HTMLElement | null = null;
+  let gone = false;
+  void import('./team-projects.ts').then((m) => {
+    const section = host.querySelector<HTMLElement>('.projects-shared');
+    if (gone || !current() || !section || !m.managesProjects(projects)) return;
+    archived = m.buildArchivedProjects({ current: () => !gone && current(), onRestored: () => refresh() });
+    section.append(archived);
+  }).catch(() => { /* additive; the shared projects stand without it */ });
   async function act(action: string, id: string, tile: HTMLElement | null): Promise<void> {
     const project = find(id); if (!project || !current()) return;
     if (action === 'local' && localCopies.has(id)) { window.location.hash = `#/p/${encodeURIComponent(localCopies.get(id)!)}`; return; }
@@ -57,5 +67,5 @@ export function mountSharedProjectMenus(host: HTMLElement, projects: readonly Te
     const result = await renameTeamProject(id, name.trim().slice(0, 200)); if (!current()) return;
     if (result.ok) refresh(); else announce(tRaw('Could not rename this project. Refresh and try again.'));
   }
-  return () => { host.removeEventListener('click', click); menu.destroy(); invitation?.close(); };
+  return () => { gone = true; archived?.remove(); host.removeEventListener('click', click); menu.destroy(); invitation?.close(); };
 }

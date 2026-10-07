@@ -12,7 +12,10 @@
  * page.
  *
  * Server contract (lolly-work plans 74 and 75):
- *   GET    /api/v1/projects/:id/members                 -> { myRole, members, invitations, requests, message? }
+ *   GET    /api/v1/projects/:id/members                 -> { myRole, members, invitations, requests, message?,
+ *                                                           effective?, effectiveTruncated?, adminAccess? }
+ *   GET    /api/v1/projects?archived=1                  -> { projects } (archived ones carry archivedAt)
+ *   PATCH  /api/v1/projects/:id {archived:false|ownerId} -> project
  *   POST   /api/v1/projects/:id/invite {emails, role, passwordSetup?}
  *                                                       -> { results, link, message? }
  *   PATCH  /api/v1/projects/:id/members/:userId {role}  -> member
@@ -37,6 +40,11 @@ import type { TeamRole } from '../lib/session-source.ts';
 import { teamRoleOf } from './session-source.ts';
 import { inviteRoleOf, type InviteRole, type InviteStatus } from './team-access.ts';
 
+/** How a person reaches a project: as its owner, through their own member row, through
+ *  the group the project is visible to, or through a workspace admin role. */
+export type MemberVia = 'owner' | 'member' | 'group' | 'admin';
+const VIAS: readonly MemberVia[] = ['owner', 'member', 'group', 'admin'];
+
 export interface ProjectMember {
   userId: string;
   name: string;
@@ -46,6 +54,12 @@ export interface ProjectMember {
   addedAt?: string;
   /** The signed-in person's own row (the instance marks it `isMe: true`). */
   isMe?: boolean;
+  /** Where the access comes from (lolly-work plan 75 G15): `owner` and `member` on the
+   *  rows in `members`, `group` and `admin` on the `effective` rows managers get. Absent
+   *  from an older instance. */
+  via?: MemberVia;
+  /** The group a `group` row comes through, for managers. */
+  group?: string;
 }
 
 export interface ProjectInvitation {
@@ -94,6 +108,15 @@ export interface ProjectPeople {
   invitations: ProjectInvitation[];
   requests: ProjectRequest[];
   message?: InviteMessageContext;
+  /** People who can open the project without a row on it: through its group, or as a
+   *  workspace admin (lolly-work plan 75 G15, managers only). Absent from an older
+   *  instance, and when there is nobody to list. */
+  effective?: ProjectMember[];
+  /** True when the instance stopped the effective list short (it sends at most 200). */
+  effectiveTruncated?: boolean;
+  /** `listed`: the caller is a workspace admin or owner, who sees the admin rows. `note`:
+   *  another manager, who sees no admin rows and is told that admins can open the project. */
+  adminAccess?: 'listed' | 'note';
 }
 
 export interface InviteResult {
@@ -169,9 +192,12 @@ export function memberFromRow(row: unknown): ProjectMember | null {
   if (!userId || !role) return null;
   const email = str(r.email);
   const addedAt = str(r.addedAt);
+  const via = typeof r.via === 'string' && (VIAS as readonly string[]).includes(r.via) ? r.via as MemberVia : undefined;
+  const group = via === 'group' ? str(r.group) : undefined;
   return {
     userId, name: str(r.name) ?? email ?? userId, role,
     ...(email ? { email } : {}), ...(addedAt ? { addedAt } : {}), ...(r.isMe === true ? { isMe: true } : {}),
+    ...(via ? { via } : {}), ...(group ? { group } : {}),
   };
 }
 
@@ -230,7 +256,10 @@ export function messageContextFrom(value: unknown): InviteMessageContext | undef
 /** The members response as this module's type, or null when it is not one. Pure. */
 export function peopleFromBody(body: unknown): ProjectPeople | null {
   if (!body || typeof body !== 'object') return null;
-  const b = body as { myRole?: unknown; members?: unknown; invitations?: unknown; requests?: unknown; message?: unknown };
+  const b = body as {
+    myRole?: unknown; members?: unknown; invitations?: unknown; requests?: unknown; message?: unknown;
+    effective?: unknown; effectiveTruncated?: unknown; adminAccess?: unknown;
+  };
   const myRole = teamRoleOf(b.myRole);
   if (!myRole || !Array.isArray(b.members)) return null;
   const members = b.members.map(memberFromRow).filter((m): m is ProjectMember => !!m);
@@ -241,7 +270,16 @@ export function peopleFromBody(body: unknown): ProjectPeople | null {
     ? b.requests.map(requestFromRow).filter((r): r is ProjectRequest => !!r)
     : [];
   const message = messageContextFrom(b.message);
-  return { myRole, members, invitations, requests, ...(message ? { message } : {}) };
+  // Only group and admin rows belong here: an owner or member row is in `members`.
+  const effective = Array.isArray(b.effective)
+    ? b.effective.map(memberFromRow).filter((m): m is ProjectMember => !!m && (m.via === 'group' || m.via === 'admin'))
+    : [];
+  const adminAccess = b.adminAccess === 'listed' || b.adminAccess === 'note' ? b.adminAccess : undefined;
+  return {
+    myRole, members, invitations, requests, ...(message ? { message } : {}),
+    ...(effective.length ? { effective } : {}), ...(b.effectiveTruncated === true ? { effectiveTruncated: true } : {}),
+    ...(adminAccess ? { adminAccess } : {}),
+  };
 }
 
 const STATUSES: readonly InviteStatus[] = ['added', 'invited', 'already', 'refused'];
@@ -362,6 +400,42 @@ export function removeMember(projectId: string, userId: string): Promise<PeopleG
 /** Withdraw an invitation that has not been accepted yet. */
 export function revokeInvitation(projectId: string, invitationId: string): Promise<PeopleGot<null>> {
   return deleteAt(`${base(projectId)}/invitations/${encodeURIComponent(invitationId)}`);
+}
+
+/** Hand the project to another person on it (`PATCH { ownerId }`). The instance keeps
+ *  the previous owner on the project as a Manager, and refuses anyone but the owner or a
+ *  holder of `project.manage`. */
+export async function transferProjectOwner(projectId: string, userId: string): Promise<PeopleGot<null>> {
+  const res = await request('PATCH', base(projectId), { ownerId: userId });
+  return res?.ok ? { ok: true, data: null } : res ? failureOf(res) : { ok: false, status: 0 };
+}
+
+/** An archived project, as the projects list reports it with `?archived=1`. */
+export interface ArchivedProject { id: string; name: string; archivedAt: string; myRole?: TeamRole }
+
+/** The archived projects this person may see (`GET /projects?archived=1`, which lists the
+ *  live projects too; only the archived ones are kept). */
+export async function listArchivedProjects(): Promise<PeopleGot<ArchivedProject[]>> {
+  const res = await request('GET', '/api/v1/projects?archived=1');
+  if (!res) return { ok: false, status: 0 };
+  if (!res.ok) return failureOf(res);
+  const body = obj(await readJson(res));
+  if (!Array.isArray(body?.projects)) return { ok: false, status: 0 };
+  const out: ArchivedProject[] = [];
+  for (const row of body.projects) {
+    const r = obj(row);
+    const id = str(r?.id), name = str(r?.name), archivedAt = str(r?.archivedAt);
+    if (!r || !id || !name || !archivedAt) continue;
+    const myRole = teamRoleOf(r.myRole);
+    out.push({ id, name, archivedAt, ...(myRole ? { myRole } : {}) });
+  }
+  return { ok: true, data: out };
+}
+
+/** Bring an archived project back (`PATCH { archived: false }`), for its managers. */
+export async function restoreTeamProject(projectId: string): Promise<PeopleGot<null>> {
+  const res = await request('PATCH', base(projectId), { archived: false });
+  return res?.ok ? { ok: true, data: null } : res ? failureOf(res) : { ok: false, status: 0 };
 }
 
 export async function renameTeamProject(projectId: string, name: string): Promise<PeopleGot<null>> {

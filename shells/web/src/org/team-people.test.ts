@@ -210,8 +210,8 @@ test('role change, removal and revoking use their routes and keep a refusal stat
 test('peoplePanelView: managers manage and invite, others read', () => {
   const policy = invitePolicy({ can: { 'user.invite': true }, invites: { projectRoles: ['viewer', 'editor'] } });
   const base = { members: [], invitations: [], requests: [] };
-  assert.deepEqual(peoplePanelView({ ...base, myRole: 'manager' }, policy), { manage: true, invite: true, roles: ['viewer', 'editor'], askToEdit: false });
-  assert.deepEqual(peoplePanelView({ ...base, myRole: 'editor' }, policy), { manage: false, invite: false, roles: ['viewer', 'editor'], askToEdit: false });
+  assert.deepEqual(peoplePanelView({ ...base, myRole: 'manager' }, policy), { manage: true, invite: true, roles: ['viewer', 'editor'], askToEdit: false, transfer: false });
+  assert.deepEqual(peoplePanelView({ ...base, myRole: 'editor' }, policy), { manage: false, invite: false, roles: ['viewer', 'editor'], askToEdit: false, transfer: false });
   const asks = invitePolicy({ invites: {}, requests: { project: true } });
   assert.equal(peoplePanelView({ ...base, myRole: 'viewer' }, asks).askToEdit, true, 'a viewer may ask to edit');
   assert.equal(peoplePanelView({ ...base, myRole: 'editor' }, asks).askToEdit, false, 'an editor already edits');

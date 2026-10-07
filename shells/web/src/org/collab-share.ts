@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * org/collab-share.ts - the "Work collab" section of the Share dialog
+ * org/collab-share.ts - the "Work collab" section builder for the Share dialog
  * (plans/100 section 0/section 7, Track B: org rooms on the optional control plane).
  *
- * Loaded lazily by src/org/index.ts's member branch, mirroring org/share-links.ts
- * one section over: registered through the generic lib/share-sections.ts seam so
- * the dialog itself stays control-plane-unaware, with the heavy work kept out of
- * the boot chunk. This module is the row, its gates and what a press reports; starting
- * the collab itself is org/collab-work-opener.ts's job.
+ * NOT REGISTERED in the Share dialog any more (plan 75 G10). A team document joins its
+ * live collab when it opens (org/collab-auto-join.ts), and the live collab's presence
+ * pill carries "Invite to edit now" (org/collab-invite.ts, registered by org/index.ts's
+ * member branch through lib/collab-pill-invite.ts). This row's own "Start a collab" was
+ * a second start button beside the Private collab row's, and on a document with no team
+ * origin it could only refuse at the press. org/index.ts no longer registers it with
+ * lib/share-sections.ts; the builder below is kept, with its tests, until the module is
+ * retired together with them. This module is the row, its gates and what a press
+ * reports; starting the collab itself is org/collab-work-opener.ts's job.
  *
  * Three gates, all required:
  *   - `canJoinCollab()` (org/collab-config.ts) - this instance's control plane must
- *     grant the caller `collab.join`. org/index.ts's own inline bail (its own
- *     `can['collab.join']` check, ahead of even loading this module) does the same
- *     test for the common "no control plane" case cheaply.
+ *     grant the caller `collab.join`.
  *   - a `'work'` opener registered in lib/collab-launch.ts - org/collab-work-opener.ts,
  *     registered by org/index.ts's member branch on an instance granting `collab.join`.
  *   - a document that is, or can become in this dialog, a session the instance holds:

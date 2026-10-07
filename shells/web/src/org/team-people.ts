@@ -20,7 +20,14 @@
  *  - a viewer or an editor sees the list only; a viewer is also offered Ask to edit
  *    when the instance takes access requests (the form is org/access-request.ts);
  *  - anyone but the owner may leave: their own row (`isMe` from the instance) offers
- *    Leave instead of Remove.
+ *    Leave instead of Remove;
+ *  - people who reach the project through its group or a workspace admin role (the
+ *    instance's `effective` list, sent to managers only) are rows of their own after the
+ *    members: "Editor · via team", "Admin · via workspace role", with no role select and
+ *    no Remove, since that access is not changed here. A manager who is not a workspace
+ *    admin sees no admin rows and is told that admins can also open the project;
+ *  - the owner, or a workspace admin who manages the project through that role, sees
+ *    Make owner on the other member rows; the old owner stays on as a Manager.
  *
  * Data comes from org/project-members.ts and the message text from
  * org/invite-message.ts. Every instance-supplied string (names, addresses, notes,
@@ -39,7 +46,7 @@ import type { InboxWatch } from './access-request.ts';
 import { inviteMessage } from './invite-message.ts';
 import {
   answerRequest, changeMemberRole, inviteToProject, listProjectPeople, reinvite, removeMember, revokeInvitation,
-  rotateInvitationLink, signInProviderNames,
+  rotateInvitationLink, signInProviderNames, transferProjectOwner,
   type InviteMessageContext, type InviteOutcome, type InviteResult, type ProjectInvitation, type ProjectMember,
   type ProjectPeople, type ProjectRequest,
 } from './project-members.ts';
@@ -74,10 +81,33 @@ export function peoplePanelView(people: ProjectPeople, policy: InvitePolicy | nu
   roles: InviteRole[];
   /** A viewer, on an instance that takes access requests: offer Ask to edit. */
   askToEdit: boolean;
+  /** The owner, or a workspace admin who manages the project through that role: offer
+   *  Make owner on the other member rows. The instance refuses everyone else. */
+  transfer: boolean;
 } {
   const manage = isManagerPlus(people.myRole);
   const roles = policy?.projectRoles ?? [];
-  return { manage, invite: manage && !!policy && roles.length > 0, roles, askToEdit: people.myRole === 'viewer' && policy?.askToEdit === true };
+  // A workspace admin or owner (`adminAccess: 'listed'`) manages every project through
+  // `project.manage`, which is what lets them hand one on.
+  const admin = people.adminAccess === 'listed' || (people.effective ?? []).some((m) => m.isMe === true && m.via === 'admin');
+  return {
+    manage, invite: manage && !!policy && roles.length > 0, roles,
+    askToEdit: people.myRole === 'viewer' && policy?.askToEdit === true,
+    transfer: people.myRole === 'owner' || (manage && admin),
+  };
+}
+
+/**
+ * The words for a row whose access does not come from its own place on the project:
+ * "Editor · via team" for the project's group (the group's name reaches managers only;
+ * without it the row shows the role alone), "Admin · via workspace role" for a workspace
+ * admin. Empty for the owner and for member rows, which carry their own controls. Pure;
+ * exported for tests.
+ */
+export function viaText(m: Pick<ProjectMember, 'role' | 'via' | 'group'>): string {
+  if (m.via === 'admin') return tRaw('Admin · via workspace role');
+  if (m.via !== 'group') return '';
+  return m.group ? tRaw('{role} · via {group}', { role: roleLabel(m.role), group: m.group }) : roleLabel(m.role);
 }
 
 /** The roles a member's role select offers: the instance's invite roles, plus the
@@ -298,15 +328,23 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
   };
 
   // ── Members and invitations ─────────────────────────────────────────────────
-  const memberRow = (m: ProjectMember, manage: boolean, roles: InviteRole[]): HTMLLIElement => {
+  const memberRow = (m: ProjectMember, manage: boolean, roles: InviteRole[], transfer: boolean): HTMLLIElement => {
     const li = el('li', { style: ROW_STYLE });
     li.append(accountAvatar(li.ownerDocument, m.userId, m.name));
     li.dataset.member = m.userId;
+    if (m.via) li.dataset.via = m.via;
     const who = el('div', { style: 'min-width:0;flex:1 1 12rem' });
-    who.append(el('div', { text: m.name, style: 'font-weight:600;overflow-wrap:anywhere' }));
+    const nameEl = el('div', { text: m.name, style: 'font-weight:600;overflow-wrap:anywhere' });
+    nameEl.id = nextId();
+    who.append(nameEl);
     if (m.email && m.email !== m.name) who.append(el('div', { text: m.email, style: `${MUTED};overflow-wrap:anywhere` }));
     const controls = el('div', { style: CONTROLS });
-    if (manage && m.role !== 'owner') {
+    // Access through the project's group or a workspace admin role is not a row on the
+    // project: nobody can change or remove it here, so the row says where it comes from.
+    const inherited = viaText(m);
+    if (inherited) {
+      controls.append(el('span', { text: inherited, style: MUTED }));
+    } else if (manage && m.role !== 'owner') {
       // Its own width, not the row's: a full-width select pushed Remove onto a line of its own.
       const select = el('select', { className: 'field-select field-select--sm field-select--auto' });
       select.setAttribute('aria-label', tRaw('Role for {name}', { name: m.name }));
@@ -346,7 +384,9 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
         void load();
       };
       select.addEventListener('change', () => { void commit(); });
-      controls.append(select, removeButton(m, li));
+      controls.append(select);
+      if (transfer && !m.isMe) controls.append(makeOwnerButton(m, li, nameEl.id));
+      controls.append(removeButton(m, li));
     } else {
       controls.append(el('span', { text: roleLabel(m.role), style: MUTED }));
       // Anyone but the owner may leave a project, whatever their role.
@@ -354,6 +394,34 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     }
     li.append(who, controls);
     return li;
+  };
+
+  /** Hand the project to someone already on the project. The instance keeps the current
+   *  owner on the project as a Manager; only the owner (or a workspace admin who manages
+   *  every project) is offered this. */
+  const makeOwnerButton = (m: ProjectMember, li: HTMLLIElement, nameId: string): HTMLButtonElement => {
+    const make = button(tRaw('Make owner'), 'people-make-owner', 'btn btn--sm btn--ghost');
+    // Read with the person's name, which the row already shows.
+    make.setAttribute('aria-describedby', nameId);
+    make.addEventListener('click', async () => {
+      if (li.getAttribute('aria-busy') === 'true') return;
+      const ok = await confirmDialog({
+        title: tRaw('Make {name} the owner of {project}?', { name: m.name, project: projectName() || tRaw('Team project') }),
+        message: tRaw('The current owner stays on the project as a Manager.'),
+        confirmLabel: tRaw('Make owner'),
+        danger: false,
+      });
+      if (!ok) return;
+      li.setAttribute('aria-busy', 'true');
+      const got = await transferProjectOwner(opts.projectId, m.userId);
+      li.removeAttribute('aria-busy');
+      if (!got.ok) { say(peopleMessage(got.status, 'change', got.code), true); void load(); return; }
+      say(tRaw('{name} is now {role}.', { name: m.name, role: roleLabel('owner') }), false);
+      // Drawn again from the instance: the old owner is a Manager now, and may no longer
+      // be the one who can hand the project on.
+      void load({ kind: 'member', id: m.userId, act: 'people-role' });
+    });
+    return make;
   };
 
   /** Remove someone, or, on your own row, leave the project: the same request,
@@ -657,8 +725,17 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     if (view.manage || view.askToEdit) findName();
     renderAsk(view.askToEdit);
     const members = el('ul', { style: LIST_STYLE });
-    members.append(...people.members.map((m) => memberRow(m, view.manage, view.roles)));
+    members.append(...people.members.map((m) => memberRow(m, view.manage, view.roles, view.transfer)));
+    // Group and admin access, for managers: rows of their own, after the members.
+    if (view.manage) members.append(...(people.effective ?? []).map((m) => memberRow(m, view.manage, view.roles, false)));
     listSlot.replaceChildren(members);
+    // A manager who is not a workspace admin sees no admin rows: say that admins can open the project too.
+    const workspace = opts.policy?.workspace || people.message?.workspace;
+    if (view.manage && people.adminAccess === 'note' && workspace) {
+      const note = el('p', { text: tRaw('Admins of {workspace} can also open this project.', { workspace }), style: `margin:.4rem 0 0;${MUTED}` });
+      note.dataset.adminNote = '';
+      listSlot.append(note);
+    }
     if (view.manage && people.requests.length) listSlot.prepend(requestSection(people.requests, view.roles));
     if (view.manage && people.invitations.length) {
       const pending = el('ul', { style: LIST_STYLE });

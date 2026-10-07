@@ -72,6 +72,9 @@ import { appPathname } from '../lib/any-site.ts';
 import { t, tRaw } from '../i18n.ts';
 import { invitePolicy } from './team-access.ts';
 import { escape, safeHref } from '../utils.ts';
+import { getHostRef } from '../lib/host-ref.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { exportBackup } from '../data-transfer.ts';
 
 // ── Contract types (the server product's documented shapes) ───────────────────
 
@@ -288,15 +291,14 @@ let unregisterNearbySource: (() => void) | null = null;
  *  rather than stacks the registration. Null whenever the instance does not grant
  *  `collab.join` - which is every instance until the server ships the bits. */
 let unregisterCollabFactory: (() => void) | null = null;
-/** Unregister for the Share-dialog "Work collab" section (plan 100 section 7 item 9,
- *  wave 3.1), so a re-init replaces rather than stacks the registration onto the
- *  generic share-sections registry - same reasoning as unregisterShareSection
- *  above, kept as its own handle because the two sections are independent rows. */
-let unregisterCollabShareSection: (() => void) | null = null;
-/** Unregister for the `'work'` collab opener (plan 100 section 7 item 9, wave 3.3) - the
- *  thing that makes the Share row above render at all, since the row is gated on an
- *  opener existing. Same last-wins reasoning as the handles above. */
+/** Unregister for the `'work'` collab opener (plan 100 section 7 item 9, wave 3.3), the
+ *  automatic joining that uses it and the presence pill's "Invite to edit now". Same
+ *  last-wins reasoning as the handles above. */
 let unregisterCollabOpener: (() => void) | null = null;
+/** Unregister for the header's account chip (org/account-chip.ts through the neutral
+ *  lib/account-slot.ts seam): a member's chip, or Sign in for a visitor on an open
+ *  workspace. Null on a dormant shell, which shows no chip at all. */
+let unregisterAccountChip: (() => void) | null = null;
 /** Unregister for the input-policy tool-mount hook (applyOrgToolPolicies), so a
  *  re-init replaces rather than stacks it. Null on a dormant instance: the hook is
  *  registered only on the member branch, so an ungoverned shell's mount path never
@@ -371,6 +373,19 @@ export { orgFlagGovernance } from './governance.ts';
 export function orgAdminHref(): string | null {
   const role = session?.kind === 'member' ? session.user.role : undefined;
   return role === 'admin' || role === 'owner' ? '/admin' : null;
+}
+
+/**
+ * The same console as {@link orgAdminHref}, as an absolute address on the workspace:
+ * what the account chip links to. A root-relative '/admin' resolves against the page,
+ * which in the apps is the app's own origin, not the workspace; this one opens the
+ * workspace's console from anywhere. Null for everyone orgAdminHref gives null.
+ */
+export function orgConsoleUrl(): string | null {
+  const href = orgAdminHref();
+  if (!href) return null;
+  if (getInstanceBase()) return instancePath(href);
+  try { return new URL(href, location.origin).href; } catch { return null; }
 }
 
 /**
@@ -498,6 +513,13 @@ async function fetchSession(): Promise<Session | null> {
 export async function signOutOfInstance(): Promise<boolean> {
   const res = await safeFetch('/api/auth/logout', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
   if (!res?.ok) return false;
+  await forgetMemberHere();
+  return true;
+}
+
+/** What a sign-out forgets on this device (see signOutOfInstance), once the instance has
+ *  ended the session. */
+async function forgetMemberHere(): Promise<void> {
   try { localStorage.removeItem(orgConfigKey()); } catch { /* storage unavailable - the copy expires on its TTL */ }
   try { localStorage.setItem(signedOutKey(), '1'); } catch { /* storage unavailable - the gate's plain link */ }
   await setInstanceSession(null);
@@ -505,7 +527,23 @@ export async function signOutOfInstance(): Promise<boolean> {
   session = null;
   orgConfigState = null;
   orgConfigEtag = null;
-  return true;
+}
+
+/**
+ * Sign the member out on every device (`POST /api/v1/me/revoke-sessions`): the instance
+ * ends every session this account holds, this browser's included, and clears this
+ * browser's cookie. On success this device forgets the member the same way a sign-out
+ * does. Resolves 'unsupported' when the instance has no such route (an older instance
+ * answers 404 or 405), 'failed' on a refusal (a rate limit included), a network error or
+ * the time box, having changed nothing here.
+ */
+export async function signOutEverywhere(): Promise<'ok' | 'unsupported' | 'failed'> {
+  const res = await safeFetch('/api/v1/me/revoke-sessions', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
+  if (!res) return 'failed';
+  if (res.status === 404 || res.status === 405) return 'unsupported';
+  if (!res.ok) return 'failed';
+  await forgetMemberHere();
+  return 'ok';
 }
 
 /** The outcome of one member org-config load. `ok` carries a usable config (a fresh
@@ -803,6 +841,7 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
         ${lines.map((line, i) => `<p style="margin:0 0 ${i === lines.length - 1 ? '1.5rem' : '.5rem'};color:hsl(var(--muted-foreground));font-size:.95rem;line-height:1.55">${line}</p>`).join('')}
         ${action}
         ${isTauriShell() ? '<div id="org-gate-device" style="margin-top:1.25rem"></div>' : ''}
+        <div id="org-gate-device-work" style="margin-top:1rem" hidden></div>
       </div>
     </section>`;
   // Native shells get the device-code alternative: leaving the app shell to
@@ -811,7 +850,60 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // this shell in via any browser where the person already has a session.
   const slot = view.querySelector<HTMLElement>('#org-gate-device');
   if (slot) wireDeviceCodeSignIn(slot);
+  const work = view.querySelector<HTMLElement>('#org-gate-device-work');
+  if (work) offerDeviceWork(work);
   return true;
+}
+
+type BackupHost = Parameters<typeof exportBackup>[0]['host'];
+/** Whether the live host can write a full backup (the web and app bridges can; a test host may not). */
+function canBackUp(host: HostV1): host is HostV1 & BackupHost {
+  return typeof (host.assets as { _exportUserAssets?: unknown })._exportUserAssets === 'function';
+}
+
+/**
+ * The gate's way back to the work kept in this browser. Signed out of a gated workspace,
+ * the app is out of reach, but sessions saved on this device are still here: when the
+ * device's own storage says it holds any, the gate offers "Download the work saved in
+ * this browser", the same backup file Settings exports. Nothing shows while the answer
+ * is pending, or when there is nothing to save.
+ */
+function offerDeviceWork(slot: HTMLElement): void {
+  const host = getHostRef();
+  if (!host?.state || !canBackUp(host)) return;
+  void host.state.list().then((rows) => {
+    if (!rows.length || !slot.isConnected) return;
+    const label = t('Download the work saved in this browser');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn';
+    btn.dataset.act = 'gate-device-work';
+    btn.style.cssText = 'min-width:9rem;min-height:var(--ui-size-target)';
+    btn.textContent = label;
+    const status = document.createElement('p');
+    status.setAttribute('role', 'status');
+    status.style.cssText = 'margin:.5rem 0 0;font-size:.85rem;color:hsl(var(--destructive))';
+    status.hidden = true;
+    btn.addEventListener('click', async () => {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.textContent = t('Exporting…');
+      status.hidden = true;
+      try {
+        const { exportBackup: backUp } = await import('../data-transfer.ts');
+        const { blob, filename } = await backUp({ host, storage: localStorage });
+        if (host.export?.download) await host.export.download(blob, filename);
+        else (await import('../bridge/anchor-save.ts')).anchorSave(blob, filename);
+      } catch {
+        status.textContent = t('Data export failed. Keep your local files and try again.');
+        status.hidden = false;
+      }
+      btn.disabled = false;
+      btn.textContent = label;
+    });
+    slot.replaceChildren(btn, status);
+    slot.hidden = false;
+  }).catch(() => { /* device storage unreadable: no offer, the gate stands as it is */ });
 }
 
 // ── Device-code sign-in (native shells; the deployment's /activate flow) ─────
@@ -896,6 +988,38 @@ function wireDeviceCodeSignIn(slot: HTMLElement): void {
   idle();
 }
 
+// ── Account chip (header) ─────────────────────────────────────────────────────
+
+/**
+ * Put the account chip (org/account-chip.ts) in the header's account slot, for the
+ * session `owner` (null: a visitor). Lazy, so the chip's module is not on the boot path;
+ * a sign-out, a re-init or a later session replaces the chip. Everything the chip reads and
+ * does is handed in here, so the chip module imports nothing from this one.
+ */
+function showAccountChip(auth: AuthConfig, owner: Session | null, principal: string | undefined): void {
+  unregisterAccountChip?.();
+  unregisterAccountChip = null;
+  // A visitor's chip is only Sign in: with no way in there is nothing to show.
+  if (!owner && !auth.loginPath) return;
+  void import('./account-chip.ts').then((m) => {
+    if (session !== owner || authState !== auth) return;
+    unregisterAccountChip?.();
+    unregisterAccountChip = m.registerAccountChip({
+      account: orgProfileAccount,
+      consoleUrl: orgConsoleUrl,
+      signInUrl: () => {
+        if (!auth.loginPath) return null;
+        const href = loginUrl(auth.loginPath);
+        return safeHref(href) ? href : null;
+      },
+      signOut: signOutOfInstance,
+      signOutEverywhere,
+      ...(principal ? { principal } : {}),
+      workspaceOrigin: getInstanceBase() || location.origin,
+    });
+  }).catch(() => { /* additive; the header stands without it */ });
+}
+
 // ── Home view (org-config `home`) ─────────────────────────────────────────────
 
 /** Whether this page load has had its one chance to open the instance's home view. */
@@ -975,6 +1099,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
   finishAiProbe(true);
   authState = auth;
   setAgentInviteAvailability(false, null);
+  unregisterAccountChip?.();
+  unregisterAccountChip = null;
   try {
     session = await fetchSession();
     const isMember = session?.kind === 'member';
@@ -1166,26 +1292,21 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
             const stopAutomatic = automatic.registerAutomaticWorkCollab({
               canJoin: stillAllowed, join: opener.openWorkCollab,
             });
-            unregisterCollabOpener = () => { stopAutomatic(); stopOpener?.(); };
+            const stopJoining = (): void => { stopAutomatic(); stopOpener?.(); };
+            unregisterCollabOpener = stopJoining;
+            // "Invite to edit now" lives on the live collab's presence pill
+            // (org/collab-invite.ts through lib/collab-pill-invite.ts). The Share dialog's
+            // "Work collab" row that used to carry it, beside its own "Start a collab",
+            // is no longer registered (plan 75 G10): a team document joins its live collab
+            // when it opens (org/collab-auto-join.ts), so a second start button on it was
+            // a duplicate of the Private collab row's and refused whenever it was pressed.
+            const invite = await import('./collab-invite.ts');
+            if (!stillAllowed() || unregisterCollabOpener !== stopJoining) return;
+            const stopInvite = invite.registerWorkCollabPillInvite();
+            unregisterCollabOpener = () => { stopInvite(); stopJoining(); };
           })
           .catch(() => { /* additive; never block or break boot */ });
       }
-      // Offer a "Work collab" row in the Share dialog (plan 100 section 7 item 9, wave
-      // 3.1 - the row + gating only; the ceremony/join UI that actually starts a
-      // work collab is a later wave). Registered through the same generic
-      // lib/share-sections.ts seam as "On this instance" above, with the row's
-      // builder module lazy-imported only when a member opens the dialog on an
-      // instance that grants `collab.join` - the same inline-`can` bail (and the
-      // same reasoning) as the collab-factory registration just above. The
-      // builder itself re-checks canJoinCollab() plus a registered 'work' opener
-      // (lib/collab-launch.ts) - nothing registers one yet, so the row stays
-      // absent everywhere until a later wave lands the ceremony UI.
-      unregisterCollabShareSection?.();
-      unregisterCollabShareSection = registerShareSection(async (sctx) => {
-        if (orgConfigState?.can?.['collab.join'] !== true) return null;
-        const { buildWorkCollabShareSection } = await import('./collab-share.ts');
-        return buildWorkCollabShareSection(sctx);
-      });
       emit();
       // The inbox, for every member: it refetches when the tab comes back and while it
       // is visible, so a request, an answer or a welcome arrives without a reload, and
@@ -1211,6 +1332,11 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
           .then((m) => m.mountOrgChrome(chrome))
           .catch(() => { /* chrome is additive; never block or break boot */ });
       }
+      // Who is signed in, in the header: the account chip and its menu (plan 75 G5).
+      showAccountChip(auth, memberSession, principal);
+    } else if (!session) {
+      // A visitor on a workspace that lets them in without signing in: the chip is Sign in.
+      showAccountChip(auth, null, undefined);
     }
 
     return { auth, session, config: orgConfigState, gate: false };
@@ -1288,10 +1414,10 @@ export function _resetOrgForTests(): void {
   unregisterNearbySource = null;
   unregisterCollabFactory?.();
   unregisterCollabFactory = null;
-  unregisterCollabShareSection?.();
-  unregisterCollabShareSection = null;
   unregisterCollabOpener?.();
   unregisterCollabOpener = null;
+  unregisterAccountChip?.();
+  unregisterAccountChip = null;
   unregisterToolMount?.();
   unregisterToolMount = null;
   clearOrgDeliveryTargets();
