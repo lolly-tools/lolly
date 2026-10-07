@@ -14,7 +14,7 @@ test('a document invitation offers its role picker on the first open and cleans 
     for (let i = 0; i < 5; i++) await new Promise(resolve => setTimeout(resolve, 0));
     const control = document.querySelector<HTMLElement>('.project-invite-popover .invite-link-control')!;
     assert.equal(control.hidden, false);
-    assert.deepEqual([...control.querySelectorAll('option')].map(option => option.value), ['editor', 'viewer']);
+    assert.deepEqual([...control.querySelectorAll('option')].map(option => option.value), ['editor', 'commenter', 'viewer']);
   } finally { popover.close(); }
   assert.equal(document.querySelector('.project-invite-popover'), null);
 });
