@@ -57,6 +57,7 @@ import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-bro
 import { stampBitmap } from './lib/stamp-media.ts';
 import { catalogFile, toolFile } from '@lolly-tools/node-shell/content-roots';
 import { applyProfileArg } from './lib/profile-arg.ts';
+import { DEFAULT_SITE_URL, siteUrl } from './lib/site-url.ts';
 
 // Catalog index entries are dynamic JSON; only the fields this script reads are typed.
 interface ToolEntry {
@@ -72,7 +73,9 @@ interface ToolEntry {
 applyProfileArg();
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SITE_URL = 'https://lolly.tools';
+// The origin link previews point at: lolly.tools, or LOLLY_SITE_URL for an instance
+// that serves its own shell build (scripts/lib/site-url.ts).
+const SITE_URL = siteUrl();
 
 // Author override: a tool may ship its own preferred share image as
 // tools/<id>/og.{png,jpg,jpeg,webp} (committed, served at /tools/<id>/og.<ext>).
@@ -256,6 +259,9 @@ async function main(): Promise<void> {
       const preview = previewDataUri(t.preview);
       const sig = sha256(JSON.stringify([
         OG_RENDER_VERSION, t.name, t.description ?? null, t.icon ?? null, preview ?? null,
+        // The footer prints the site's host; an instance build's host joins the inputs so its
+        // cards re-render, while lolly.tools signatures stay as they were.
+        ...(SITE_URL === DEFAULT_SITE_URL ? [] : [new URL(SITE_URL).host]),
       ]));
       const gated = sigs[t.id] === sig && existsSync(cardPath);
       if (renderer && !(PRESERVE && existsSync(cardPath)) && !gated) {
