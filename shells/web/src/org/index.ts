@@ -67,6 +67,7 @@ import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, probeInstance, rememberAb
 // tiny embed.ts leaf. (Same direct-import pattern the bridge/* modules use.)
 import { parseToolUrl } from '../../../../engine/src/tool-url.ts';
 import { createInstanceSessionSource } from './session-source.ts';
+import { createSourceFiles } from './source-files.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { appPathname } from '../lib/any-site.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -1088,7 +1089,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // project-creation options (can['project.create'], sharing.groups).
       unregisterSessionSource?.();
       unregisterSessionSource = registerSessionSource(
-        createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig()),
+        createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig(),
+          createSourceFiles(() => (session?.kind === 'member' ? session.user.sub : 'none'))),
       );
       // The signed-in member's linked sign-ins, as a card in the profile view's
       // instance section, through the generic lib/profile-sections.ts seam (so the
