@@ -177,9 +177,11 @@ export interface CollabSelf {
  * Everything a transport supplies. See the header for how each track fills it in.
  */
 export interface CollabSaveState { pending: number; message: string; retry?: () => void }
+/** The roles a reusable invite link may carry. */
+export type InviteLinkRole = 'editor' | 'commenter' | 'viewer';
 export interface CollabInviteLinks {
-  roles(): Promise<readonly ('editor' | 'viewer')[]>;
-  create(role: 'editor' | 'viewer'): Promise<{ url: string; allowNewPeople: boolean }>;
+  roles(): Promise<readonly InviteLinkRole[]>;
+  create(role: InviteLinkRole): Promise<{ url: string; allowNewPeople: boolean }>;
 }
 
 export interface CollabSessionHandle {

@@ -117,7 +117,7 @@ export async function fetchTeamSession(sessionId: string): Promise<TeamSessionFe
 
 // ── Lists ─────────────────────────────────────────────────────────────────────
 
-const ROLES: readonly TeamRole[] = ['owner', 'manager', 'editor', 'viewer'];
+const ROLES: readonly TeamRole[] = ['owner', 'manager', 'editor', 'commenter', 'viewer'];
 
 /** A role the server sent, or undefined when it sent none this shell knows. Pure. */
 export function teamRoleOf(value: unknown): TeamRole | undefined {

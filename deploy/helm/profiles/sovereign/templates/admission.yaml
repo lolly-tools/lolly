@@ -30,7 +30,7 @@ spec:
         operations: [CREATE, UPDATE]
         resources: [pods, pods/ephemeralcontainers]
   validations:
-    - expression: {{ printf "object.spec.hostNetwork == true && object.spec.dnsPolicy == 'ClusterFirstWithHostNet' && object.spec.nodeName == '%s' && (!has(object.spec.hostPID) || !object.spec.hostPID) && (!has(object.spec.hostIPC) || !object.spec.hostIPC)" .Values.edge.nodeName | quote }}
+    - expression: {{ printf "object.spec.hostNetwork == true && object.spec.dnsPolicy == 'ClusterFirstWithHostNet' && has(object.spec.nodeSelector) && object.spec.nodeSelector.size() == 1 && 'kubernetes.io/hostname' in object.spec.nodeSelector && object.spec.nodeSelector['kubernetes.io/hostname'] == '%s' && ((!has(object.spec.nodeName) || object.spec.nodeName == '') || (request.operation == 'UPDATE' && object.spec.nodeName == '%s')) && (!has(object.spec.hostPID) || !object.spec.hostPID) && (!has(object.spec.hostIPC) || !object.spec.hostIPC)" .Values.edge.nodeName .Values.edge.nodeName | quote }}
       message: Only the reviewed host-network edge may run in this namespace.
     - expression: "has(object.spec.automountServiceAccountToken) && !object.spec.automountServiceAccountToken && (!has(object.spec.initContainers) || object.spec.initContainers.size() == 0) && (!has(object.spec.ephemeralContainers) || object.spec.ephemeralContainers.size() == 0)"
       message: The edge cannot mount service-account tokens or add sidecar/debug containers.

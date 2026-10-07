@@ -150,9 +150,13 @@ test('a manager sees group and admin access as rows that cannot be changed here'
   const kim = row(panel, 'u4');
   assert.match(kim.textContent!, /Admin · via workspace role/);
   assert.equal(kim.querySelector('select, [data-act="people-remove"]'), null);
+  // End dates (the share ladder's) are a member row's: never on access the project cannot change.
+  assert.equal(lee.querySelector('.share-access-member'), null, 'no end date on a group row');
+  assert.equal(kim.querySelector('.share-access-member'), null, 'nor on an admin row');
   const bo = row(panel, 'u2');
   assert.ok(bo.querySelector('select'), 'an own member row keeps its role select');
   assert.ok(bo.querySelector('[data-act="people-remove"]'));
+  assert.ok(bo.querySelector('.share-access-member'), 'a member row keeps its end-date slot');
   assert.equal(panel.querySelector('[data-act="people-make-owner"]'), null, 'a member manager is not offered Make owner');
   assert.equal(panel.querySelector('[data-admin-note]'), null, 'no workspace name, no note');
 });

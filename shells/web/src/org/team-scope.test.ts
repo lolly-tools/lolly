@@ -278,11 +278,11 @@ test('inside a live work collab the room saves: Save says so and sends nothing',
   off();
 });
 
-test('a role this shell does not know (a commenter) fails closed: the document opens view-only', async () => {
-  for (const role of ['commenter', 'reviewer']) {
+test('a commenter, and a role this shell does not know, open the document view-only', async () => {
+  for (const [role, carried] of [['commenter', 'commenter'], ['reviewer', 'viewer']] as const) {
     const { calls, off } = source();
     const h = await open(role);
-    assert.equal(origin.activeTeamSessionOrigin('poster')?.role, 'viewer', `${role}: carried as a viewer`);
+    assert.equal(origin.activeTeamSessionOrigin('poster')?.role, carried, `${role}: carried as ${carried}`);
     assert.equal(policy.getInputPolicy('poster', 'headline')?.readable, true, `${role}: read-only from the first draw`);
     await settle();
     assert.equal(chip(h.el), 'Brand refresh · View only');

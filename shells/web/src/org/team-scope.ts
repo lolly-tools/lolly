@@ -41,7 +41,7 @@ import { getInstanceBase } from '../lib/instance.ts';
 import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
 import { COLLAB_ACTIVE, saveErrorCode } from './session-source.ts';
-import { canWriteProject, conflictCopy } from './team-access.ts';
+import { canWriteProject, conflictCopy, isReadOnlyRole } from './team-access.ts';
 import type { TeamOriginApi, TeamSessionOrigin } from './team-session-origin.ts';
 
 // ── Pure helpers (exported for tests) ─────────────────────────────────────────
@@ -117,7 +117,7 @@ function workspaceViewOnly(): boolean {
 
 /** True when the document of `origin` is view-only for this person. */
 export function originViewOnly(origin: Pick<TeamSessionOrigin, 'role'>): boolean {
-  return origin.role === 'viewer' || workspaceViewOnly();
+  return isReadOnlyRole(origin.role) || workspaceViewOnly();
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -381,7 +381,7 @@ export function teamScopeChip(mount: DocumentScopeMount): DocumentScopeChip | nu
   if (!origin) return null;
   const project = placeName(origin);
   if (workspaceViewOnly()) return { label: tRaw('{project} · View only (workspace role)', { project }), role: 'view' };
-  if (origin.role === 'viewer') return { label: tRaw('{project} · View only', { project }), role: 'view' };
+  if (isReadOnlyRole(origin.role)) return { label: tRaw('{project} · View only', { project }), role: 'view' };
   // In a live work collab the room saves every change: there is no save state to say.
   if (api?.live(origin.sessionId)) return { label: tRaw('{project} · Can edit', { project }), role: 'edit' };
   const at = savedAt.get(origin.sessionId);

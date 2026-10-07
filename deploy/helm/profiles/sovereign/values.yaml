@@ -11,6 +11,9 @@ private:
   host: ""
   redirectHosts: []
   tlsSecret: ""
+  # Opt-in public static deployment guide on this host, GET/HEAD only.
+  # Instance cookies and authorization never reach the public web Service.
+  servePublicDeploymentGuide: false
   server: {name: lolly-work, namespace: lolly-private, port: 80}
   relay: {name: lolly-live-relay, namespace: lolly-private, port: 8790}
 edge:
@@ -22,6 +25,8 @@ edge:
     mode: acme
     email: ""
     existingClaim: ""
+  # Exact kubernetes.io/hostname label. The scheduler selects this node so
+  # WaitForFirstConsumer volumes can bind; the Pod does not set nodeName.
   nodeName: ""
   image: {repository: caddy, digest: ""}
   # Measured hostNetwork-to-Service peer addresses, not guessed node/pod CIDRs.

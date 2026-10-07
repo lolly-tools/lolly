@@ -23,7 +23,7 @@ export function projectInviteLinks(projectId: string, policy: InvitePolicy | nul
     async roles() {
       current(); const people = await listProjectPeople(projectId); current();
       return people.ok && isManagerPlus(people.data.myRole)
-        ? (['editor', 'viewer'] as const).filter(role => !policy || policy.projectRoles.includes(role)) : [];
+        ? (['editor', 'commenter', 'viewer'] as const).filter(role => !policy || policy.projectRoles.includes(role)) : [];
     },
     async create(role) {
       current();

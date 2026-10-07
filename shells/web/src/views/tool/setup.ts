@@ -58,7 +58,7 @@ import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
 import { carriedEmojiPins } from '../tool-session-snapshot.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
-import { guardDocumentEdits, notifyToolInputMount, policyValuesFor } from '../../lib/input-policy.ts';
+import { notifyToolInputMount, guardDocumentEdits, policyValuesFor } from '../../lib/input-policy.ts';
 import { createLiveControls, mountSidebarLiveControls, registerLiveControls } from '../live-controls.ts';
 import { mountCaptureSignin } from '../capture-signin.ts';
 import { captureThumbnail, renderActions } from '../tool-actions.ts';
