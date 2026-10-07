@@ -121,5 +121,13 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   assert.match(job, /--read-only --cap-drop ALL --security-opt no-new-privileges:true/);
   assert.match(job, /--env LOLLY_BROWSER_NO_SANDBOX=0/);
   assert.ok(job.indexOf('public-image-probe.ts') < job.indexOf('docker push "$remote"'));
+  const diagnosis = job.slice(
+    job.indexOf('- name: Retain bounded unqualified'),
+    job.indexOf('- name: Publish only qualified')
+  );
+  assert.match(diagnosis, /failure\(\) && steps\.native_probe\.outcome == 'failure'/);
+  assert.match(diagnosis, /qualified: false, promotionAllowed: false/);
+  assert.match(diagnosis, /retention-days: 1/);
+  assert.doesNotMatch(diagnosis, /docker push|REGISTRY_TOKEN|CA_ROOT_KEY/);
   assert.doesNotMatch(job, /seccomp=unconfined|--privileged|SYS_ADMIN|LOLLY_BROWSER_NO_SANDBOX=1/);
 });

@@ -19,7 +19,7 @@
 }
 
 {$LOLLY_PUBLIC_HOST} {
-	{{- if eq .Values.edge.tls.mode "file" }}
+	{{- if ne .Values.edge.tls.mode "acme" }}
 	tls /tls/public/tls.crt /tls/public/tls.key
 	{{- else }}
 	tls {{ .Values.edge.tls.email }}
@@ -112,7 +112,7 @@
 {{- if .Values.public.redirectHosts }}
 # List only DNS names owned by this deployment, separated by spaces.
 {$LOLLY_PUBLIC_REDIRECT_HOSTS} {
-	{{- if eq .Values.edge.tls.mode "file" }}
+	{{- if ne .Values.edge.tls.mode "acme" }}
 	tls /tls/public/tls.crt /tls/public/tls.key
 	{{- else }}
 	tls {{ .Values.edge.tls.email }}

@@ -17,7 +17,7 @@
 	}
 }
 {$LOLLY_PRIVATE_HOST} {
-	{{- if eq .Values.edge.tls.mode "file" }}
+	{{- if ne .Values.edge.tls.mode "acme" }}
 	tls /tls/private/tls.crt /tls/private/tls.key
 	{{- else }}
 	tls {{ .Values.edge.tls.email }}
@@ -108,7 +108,7 @@
 
 {{- if .Values.private.redirectHosts }}
 {$LOLLY_PRIVATE_REDIRECT_HOSTS} {
-	{{- if eq .Values.edge.tls.mode "file" }}
+	{{- if ne .Values.edge.tls.mode "acme" }}
 	tls /tls/private/tls.crt /tls/private/tls.key
 	{{- else }}
 	tls {{ .Values.edge.tls.email }}

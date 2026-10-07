@@ -401,6 +401,83 @@ test('automatic ACME persists certificates in the edge PVC and needs no renewal 
   refuses(invalid, /email|existingClaim/);
 });
 
+test('TLS bootstrap retains exact file certificates and bounds persistent ACME storage', () => {
+  const input = values();
+  input.edge.tls = { mode: 'bootstrap', email: 'team@example.com', existingClaim: 'caddy-data' };
+  const resources = render(input);
+  const edge = deployment(resources, 'edge').spec.template.spec;
+  const c = container(edge);
+  assert.equal(edge.volumes.length, 7);
+  assert.equal(c.volumeMounts.length, 7);
+  assert.deepEqual(edge.volumes.find((v) => v.name === 'public-tls')?.secret, {
+    secretName: input.public.tlsSecret,
+  });
+  assert.deepEqual(edge.volumes.find((v) => v.name === 'private-tls')?.secret, {
+    secretName: input.private.tlsSecret,
+  });
+  assert.deepEqual(edge.volumes.find((v) => v.name === 'caddy-data')?.persistentVolumeClaim, {
+    claimName: 'caddy-data',
+  });
+  for (const name of ['public-tls', 'private-tls']) {
+    assert.equal(c.volumeMounts.find((m) => m.name === name)?.readOnly, true);
+  }
+  assert.equal(env(c).XDG_DATA_HOME, '/data');
+  const config = adapt(resources);
+  const servers = Object.values(config.apps.http.servers) as {
+    automatic_https?: { ignore_loaded_certificates?: boolean };
+  }[];
+  assert.ok(servers.some((server) => server.automatic_https?.ignore_loaded_certificates));
+  assert.equal(config.apps.tls.certificates.load_files.length, 2);
+  for (const name of ['public', 'private']) {
+    assert.ok(
+      config.apps.tls.certificates.load_files.some(
+        (entry: { certificate: string; key: string }) =>
+          entry.certificate === `/tls/${name}/tls.crt` && entry.key === `/tls/${name}/tls.key`
+      )
+    );
+  }
+  const subjects = config.apps.tls.automation.policies.flatMap(
+    (policy: { subjects?: string[] }) => policy.subjects ?? []
+  );
+  assert.deepEqual(subjects.sort(), [
+    'private.example',
+    'public.example',
+    'www.private.example',
+    'www.public.example',
+  ]);
+  assert.match(JSON.stringify(config.apps.tls.automation), /team@example\.com/);
+  const selections = JSON.stringify(config.apps.http.servers);
+  assert.match(selections, /certificate_selection/);
+  assert.match(selections, /any_tag/);
+  const policy = resources.find((resource) => resource.kind === 'ValidatingAdmissionPolicy');
+  assert.ok(policy);
+  const expressions = policy.spec.validations.map((validation) => validation.expression);
+  const mounts = expressions.find((expression) => expression.includes('c.volumeMounts.size()'));
+  const volumes = expressions.find((expression) =>
+    expression.startsWith('object.spec.volumes.size()')
+  );
+  assert.ok(mounts);
+  assert.ok(volumes);
+  assert.match(mounts, /c\.volumeMounts\.size\(\) == 7/);
+  assert.match(volumes, /object\.spec\.volumes\.size\(\) == 7/);
+  assert.ok(mounts.includes("m.name == 'caddy-data' && m.mountPath == '/data'"));
+  assert.ok(mounts.includes('has(m.readOnly) && m.readOnly'));
+  for (const exact of [
+    `v.secret.secretName == '${input.public.tlsSecret}'`,
+    `v.secret.secretName == '${input.private.tlsSecret}'`,
+    "v.persistentVolumeClaim.claimName == 'caddy-data'",
+  ]) {
+    assert.ok(volumes.includes(exact), exact);
+  }
+  for (const missing of ['email', 'existingClaim', 'publicSecret', 'privateSecret']) {
+    const invalid = structuredClone(input);
+    if (missing === 'publicSecret') invalid.public.tlsSecret = '';
+    else if (missing === 'privateSecret') invalid.private.tlsSecret = '';
+    else invalid.edge.tls[missing] = '';
+    refuses(invalid, /email|existingClaim|tlsSecret/);
+  }
+});
+
 test('public anonymous and browser behavior need explicit reviewed configuration', () => {
   const input = values();
   input.components.mcp.allowAnonymous = true;

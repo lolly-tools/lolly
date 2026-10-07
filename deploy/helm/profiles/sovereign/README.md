@@ -49,9 +49,22 @@ For HTTPS staging before DNS, select `edge.tls.mode: file` with existing public
 and private TLS Secrets in the edge namespace. Certificates must cover the
 respective canonical and redirect names. Use a trusted internal CA or explicitly
 pinned certificate and `curl --resolve`. File mode does not automatically renew
-certificates and needs a Caddy rollout after replacement Secrets. Return to ACME
-with the persistent PVC at cutover so no separate renewal service is needed.
-Neither mode ships TLS private keys in the chart.
+certificates and needs a Caddy rollout after replacement Secrets. No mode ships
+TLS private keys in the chart.
+
+After DNS and inbound 80/443 reach this edge, `edge.tls.mode: bootstrap` can keep
+both exact file Secrets mounted while using the same persistent
+`edge.tls.existingClaim` and `edge.tls.email` as ACME mode. Caddy's
+[`auto_https ignore_loaded_certs`](https://caddyserver.com/docs/caddyfile/options#auto-https)
+requests managed certificates even with trusted certificates already loaded.
+The file certificates continue to be selected during bootstrap. Do not enable
+this mode before DNS moves; challenges reaching the previous host can fail and
+consume issuance limits. Qualify the actual managed certificate names, chain,
+expiry and persistent storage, then select `acme` to stop selecting file
+certificates. Verify the managed certificates after a restart with the same PVC
+and record the renewal/restore procedure. An initial staging certificate or
+configuration validation does not prove automatic renewal. The single edge
+uses `Recreate`, so these rollouts require a bounded service interruption.
 
 Provide separate existing MCP and CA configuration Secrets in the public
 namespace. Only each respective service receives its Secret. MCP configuration

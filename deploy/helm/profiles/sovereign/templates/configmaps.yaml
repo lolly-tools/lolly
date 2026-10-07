@@ -22,6 +22,10 @@ data:
     {
       admin off
       grace_period 30s
+      {{- if eq .Values.edge.tls.mode "bootstrap" }}
+      auto_https ignore_loaded_certs
+      email {{ .Values.edge.tls.email }}
+      {{- end }}
     }
     import /etc/lolly/public.caddy
     import /etc/lolly/private.caddy

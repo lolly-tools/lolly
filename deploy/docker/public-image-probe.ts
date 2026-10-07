@@ -215,6 +215,19 @@ try {
   const liveTools = (await liveList.json()).result.tools;
   assert.equal(liveTools.length, 9);
   assert.ok(liveTools.every((tool: { name: string }) => tool.name.startsWith('lolly_live_')));
+  console.error(
+    JSON.stringify({
+      nativePreBrowserChecksPassed: true,
+      mcpMetaTools: expectedMetaTools.length,
+      catalogRecipes: recipes.length,
+      matchedPublicFiles,
+      publicRelayWebSocketQualified: true,
+      crossDocumentRefused: true,
+      readOnlyGrantEnforced: true,
+      invalidInvitationRefused: true,
+      candidateRuntimeQualified: false,
+    })
+  );
   const runtime = await import(`${root}/services/mcp/src/render.ts`);
   closeBrowser = runtime.closeBrowser;
   closeWebShell = runtime.closeWebShell;

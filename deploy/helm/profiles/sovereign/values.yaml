@@ -18,6 +18,7 @@ edge:
   # Operator acknowledges the separate admission exception after reviewing it.
   hostNetworkAcknowledged: false
   tls:
+    # File staging, optional post-DNS bootstrap, then persistent automatic ACME.
     mode: acme
     email: ""
     existingClaim: ""

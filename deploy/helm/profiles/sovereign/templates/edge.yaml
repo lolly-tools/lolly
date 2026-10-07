@@ -56,7 +56,7 @@ spec:
             - {name: LOLLY_PRIVATE_HOST, value: {{ .Values.private.host | quote }}}
             - {name: LOLLY_PRIVATE_REDIRECT_HOSTS, value: {{ join " " .Values.private.redirectHosts | quote }}}
             - {name: XDG_CONFIG_HOME, value: /tmp/config}
-            - {name: XDG_DATA_HOME, value: {{ ternary "/data" "/tmp/data" (eq .Values.edge.tls.mode "acme") | quote }}}
+            - {name: XDG_DATA_HOME, value: {{ ternary "/data" "/tmp/data" (ne .Values.edge.tls.mode "file") | quote }}}
           resources:
             {{- toYaml .Values.edge.resources | nindent 12 }}
           startupProbe:
@@ -74,10 +74,11 @@ spec:
             - {name: caddy, mountPath: /etc/lolly/Caddyfile, subPath: Caddyfile, readOnly: true}
             - {name: public-host, mountPath: /etc/lolly/public.caddy, subPath: public.caddy, readOnly: true}
             - {name: private-host, mountPath: /etc/lolly/private.caddy, subPath: private.caddy, readOnly: true}
-            {{- if eq .Values.edge.tls.mode "file" }}
+            {{- if ne .Values.edge.tls.mode "acme" }}
             - {name: public-tls, mountPath: /tls/public, readOnly: true}
             - {name: private-tls, mountPath: /tls/private, readOnly: true}
-            {{- else }}
+            {{- end }}
+            {{- if ne .Values.edge.tls.mode "file" }}
             - {name: caddy-data, mountPath: /data}
             {{- end }}
       volumes:
@@ -85,9 +86,10 @@ spec:
         - {name: caddy, configMap: {name: {{ include "sovereign.name" (dict "root" . "name" "edge") }}}}
         - {name: public-host, configMap: {name: {{ include "sovereign.name" (dict "root" . "name" "public-host") }}}}
         - {name: private-host, configMap: {name: {{ include "sovereign.name" (dict "root" . "name" "private-host") }}}}
-        {{- if eq .Values.edge.tls.mode "file" }}
+        {{- if ne .Values.edge.tls.mode "acme" }}
         - {name: public-tls, secret: {secretName: {{ .Values.public.tlsSecret }}}}
         - {name: private-tls, secret: {secretName: {{ .Values.private.tlsSecret }}}}
-        {{- else }}
+        {{- end }}
+        {{- if ne .Values.edge.tls.mode "file" }}
         - {name: caddy-data, persistentVolumeClaim: {claimName: {{ .Values.edge.tls.existingClaim }}}}
         {{- end }}

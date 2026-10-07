@@ -180,6 +180,11 @@ jobs:
             | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
           helm template fixture deploy/helm/profiles/sovereign --namespace lolly-public \
             -f deploy/helm/profiles/sovereign/fixture.values.json \
+            --set edge.tls.mode=bootstrap --set edge.tls.email=team@example.com \
+            --set edge.tls.existingClaim=caddy-data \
+            | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
+          helm template fixture deploy/helm/profiles/sovereign --namespace lolly-public \
+            -f deploy/helm/profiles/sovereign/fixture.values.json \
             -f deploy/helm/profiles/sovereign/browser.values.yaml \
             --set components.mcp.webBase=https://public.example \
             | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
@@ -370,6 +375,7 @@ jobs:
           '
 
       - name: Require restricted native sandbox and actual public exports
+        id: native_probe
         run: |
           set -euo pipefail
           docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges:true \
@@ -382,6 +388,43 @@ jobs:
             --mount "type=bind,src=$GITHUB_WORKSPACE/deploy/docker/public-image-probe.ts,dst=/qualification/probe.ts,readonly" \
             --entrypoint node "lolly-candidate-mcp-browser:$EXPECTED_SOURCE" /qualification/probe.ts \
             > "$RUNNER_TEMP/lolly-image-receipts/native-probe.json"
+
+      # A failed browser probe may need actual target-kernel diagnosis. This is
+      # authenticated, short-lived transport, never a qualified registry release.
+      - name: Retain bounded unqualified browser diagnosis inputs
+        if: failure() && steps.native_probe.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          directory="$RUNNER_TEMP/lolly-unqualified-diagnosis"
+          mkdir -p "$directory"
+          docker save "lolly-candidate-mcp-browser:$EXPECTED_SOURCE" | gzip -1 > "$directory/mcp-browser.tar.gz"
+          tar -C "$RUNNER_TEMP/lolly-qualified-web" -czf "$directory/web-dist.tar.gz" .
+          cp deploy/docker/public-image-probe.ts "$directory/probe.ts"
+          node --input-type=module -e '
+            import { createHash } from "node:crypto";
+            import { createReadStream, statSync, writeFileSync } from "node:fs";
+            const directory = process.env.RUNNER_TEMP + "/lolly-unqualified-diagnosis";
+            const files = {};
+            let totalBytes = 0;
+            for (const name of ["mcp-browser.tar.gz", "web-dist.tar.gz", "probe.ts"]) {
+              const bytes = statSync(directory + "/" + name).size;
+              totalBytes += bytes;
+              if (totalBytes > 2 * 1024 ** 3) throw new Error("Diagnostic transport exceeds 2 GiB");
+              const hash = createHash("sha256");
+              for await (const chunk of createReadStream(directory + "/" + name)) hash.update(chunk);
+              files[name] = { bytes, sha256: hash.digest("hex") };
+            }
+            writeFileSync(directory + "/unqualified.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, qualified: false, promotionAllowed: false, purpose: "candidate-only kernel/sandbox diagnosis", files }, null, 2));
+          '
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: failure() && steps.native_probe.outcome == 'failure'
+        with:
+          name: unqualified-public-browser-diagnosis
+          path: ${{ runner.temp }}/lolly-unqualified-diagnosis/
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Publish only qualified image digests
         env:

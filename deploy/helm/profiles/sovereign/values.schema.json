@@ -23,9 +23,7 @@
             "minLength": 1
           }
         },
-        "required": [
-          "name"
-        ]
+        "required": ["name"]
       }
     },
     "public": {
@@ -51,11 +49,7 @@
           "pattern": "^$|^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
         }
       },
-      "required": [
-        "host",
-        "redirectHosts",
-        "tlsSecret"
-      ]
+      "required": ["host", "redirectHosts", "tlsSecret"]
     },
     "private": {
       "type": "object",
@@ -99,11 +93,7 @@
               "maximum": 65535
             }
           },
-          "required": [
-            "name",
-            "namespace",
-            "port"
-          ]
+          "required": ["name", "namespace", "port"]
         },
         "relay": {
           "type": "object",
@@ -125,20 +115,10 @@
               "maximum": 65535
             }
           },
-          "required": [
-            "name",
-            "namespace",
-            "port"
-          ]
+          "required": ["name", "namespace", "port"]
         }
       },
-      "required": [
-        "host",
-        "redirectHosts",
-        "tlsSecret",
-        "server",
-        "relay"
-      ]
+      "required": ["host", "redirectHosts", "tlsSecret", "server", "relay"]
     },
     "edge": {
       "type": "object",
@@ -172,10 +152,7 @@
               "pattern": "^sha256:[a-f0-9]{64}$"
             }
           },
-          "required": [
-            "repository",
-            "digest"
-          ]
+          "required": ["repository", "digest"]
         },
         "proxyAddresses": {
           "type": "array",
@@ -207,11 +184,7 @@
                   "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                 }
               },
-              "required": [
-                "cpu",
-                "memory",
-                "ephemeral-storage"
-              ]
+              "required": ["cpu", "memory", "ephemeral-storage"]
             },
             "limits": {
               "type": "object",
@@ -230,17 +203,10 @@
                   "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                 }
               },
-              "required": [
-                "cpu",
-                "memory",
-                "ephemeral-storage"
-              ]
+              "required": ["cpu", "memory", "ephemeral-storage"]
             }
           },
-          "required": [
-            "requests",
-            "limits"
-          ]
+          "required": ["requests", "limits"]
         },
         "tmpSize": {
           "type": "string",
@@ -253,18 +219,11 @@
         "tls": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "mode",
-            "email",
-            "existingClaim"
-          ],
+          "required": ["mode", "email", "existingClaim"],
           "properties": {
             "mode": {
               "type": "string",
-              "enum": [
-                "acme",
-                "file"
-              ]
+              "enum": ["acme", "file", "bootstrap"]
             },
             "email": {
               "type": "string"
@@ -306,11 +265,7 @@
           "pattern": "^models-[a-f0-9]{64}$"
         }
       },
-      "required": [
-        "existingClaim",
-        "subPath",
-        "release"
-      ]
+      "required": ["existingClaim", "subPath", "release"]
     },
     "components": {
       "type": "object",
@@ -334,10 +289,7 @@
                   "pattern": "^sha256:[a-f0-9]{64}$"
                 }
               },
-              "required": [
-                "repository",
-                "digest"
-              ]
+              "required": ["repository", "digest"]
             },
             "port": {
               "type": "integer",
@@ -368,11 +320,7 @@
                       "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                     }
                   },
-                  "required": [
-                    "cpu",
-                    "memory",
-                    "ephemeral-storage"
-                  ]
+                  "required": ["cpu", "memory", "ephemeral-storage"]
                 },
                 "limits": {
                   "type": "object",
@@ -391,30 +339,17 @@
                       "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                     }
                   },
-                  "required": [
-                    "cpu",
-                    "memory",
-                    "ephemeral-storage"
-                  ]
+                  "required": ["cpu", "memory", "ephemeral-storage"]
                 }
               },
-              "required": [
-                "requests",
-                "limits"
-              ]
+              "required": ["requests", "limits"]
             },
             "tmpSize": {
               "type": "string",
               "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
             }
           },
-          "required": [
-            "image",
-            "port",
-            "uid",
-            "resources",
-            "tmpSize"
-          ]
+          "required": ["image", "port", "uid", "resources", "tmpSize"]
         },
         "mcp": {
           "type": "object",
@@ -434,10 +369,7 @@
                   "pattern": "^sha256:[a-f0-9]{64}$"
                 }
               },
-              "required": [
-                "repository",
-                "digest"
-              ]
+              "required": ["repository", "digest"]
             },
             "port": {
               "type": "integer",
@@ -468,11 +400,7 @@
                       "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                     }
                   },
-                  "required": [
-                    "cpu",
-                    "memory",
-                    "ephemeral-storage"
-                  ]
+                  "required": ["cpu", "memory", "ephemeral-storage"]
                 },
                 "limits": {
                   "type": "object",
@@ -491,17 +419,10 @@
                       "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                     }
                   },
-                  "required": [
-                    "cpu",
-                    "memory",
-                    "ephemeral-storage"
-                  ]
+                  "required": ["cpu", "memory", "ephemeral-storage"]
                 }
               },
-              "required": [
-                "requests",
-                "limits"
-              ]
+              "required": ["requests", "limits"]
             },
             "tmpSize": {
               "type": "string",
@@ -526,12 +447,7 @@
             "browser": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "noSandbox",
-                "maxConcurrent",
-                "maxQueued",
-                "queueTimeoutMs"
-              ],
+              "required": ["noSandbox", "maxConcurrent", "maxQueued", "queueTimeoutMs"],
               "properties": {
                 "noSandbox": {
                   "type": "boolean"
@@ -585,10 +501,7 @@
                   "pattern": "^sha256:[a-f0-9]{64}$"
                 }
               },
-              "required": [
-                "repository",
-                "digest"
-              ]
+              "required": ["repository", "digest"]
             },
             "port": {
               "type": "integer",
@@ -619,11 +532,7 @@
                       "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                     }
                   },
-                  "required": [
-                    "cpu",
-                    "memory",
-                    "ephemeral-storage"
-                  ]
+                  "required": ["cpu", "memory", "ephemeral-storage"]
                 },
                 "limits": {
                   "type": "object",
@@ -642,17 +551,10 @@
                       "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                     }
                   },
-                  "required": [
-                    "cpu",
-                    "memory",
-                    "ephemeral-storage"
-                  ]
+                  "required": ["cpu", "memory", "ephemeral-storage"]
                 }
               },
-              "required": [
-                "requests",
-                "limits"
-              ]
+              "required": ["requests", "limits"]
             },
             "tmpSize": {
               "type": "string",
@@ -669,15 +571,7 @@
               "maximum": 64
             }
           },
-          "required": [
-            "image",
-            "port",
-            "uid",
-            "resources",
-            "tmpSize",
-            "existingSecret",
-            "heapMiB"
-          ]
+          "required": ["image", "port", "uid", "resources", "tmpSize", "existingSecret", "heapMiB"]
         },
         "penpot": {
           "type": "object",
@@ -697,10 +591,7 @@
                   "pattern": "^sha256:[a-f0-9]{64}$"
                 }
               },
-              "required": [
-                "repository",
-                "digest"
-              ]
+              "required": ["repository", "digest"]
             },
             "port": {
               "type": "integer",
@@ -731,11 +622,7 @@
                       "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                     }
                   },
-                  "required": [
-                    "cpu",
-                    "memory",
-                    "ephemeral-storage"
-                  ]
+                  "required": ["cpu", "memory", "ephemeral-storage"]
                 },
                 "limits": {
                   "type": "object",
@@ -754,17 +641,10 @@
                       "pattern": "^[1-9][0-9]*([EPTGMK]i|[EPTGMk])?$"
                     }
                   },
-                  "required": [
-                    "cpu",
-                    "memory",
-                    "ephemeral-storage"
-                  ]
+                  "required": ["cpu", "memory", "ephemeral-storage"]
                 }
               },
-              "required": [
-                "requests",
-                "limits"
-              ]
+              "required": ["requests", "limits"]
             },
             "tmpSize": {
               "type": "string",
@@ -776,22 +656,10 @@
               "maximum": 64
             }
           },
-          "required": [
-            "image",
-            "port",
-            "uid",
-            "resources",
-            "tmpSize",
-            "heapMiB"
-          ]
+          "required": ["image", "port", "uid", "resources", "tmpSize", "heapMiB"]
         }
       },
-      "required": [
-        "web",
-        "mcp",
-        "ca",
-        "penpot"
-      ]
+      "required": ["web", "mcp", "ca", "penpot"]
     }
   },
   "required": [
@@ -813,7 +681,7 @@
               "tls": {
                 "properties": {
                   "mode": {
-                    "const": "acme"
+                    "enum": ["acme", "bootstrap"]
                   }
                 }
               }
@@ -842,8 +710,25 @@
             }
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "edge": {
+            "properties": {
+              "tls": {
+                "properties": {
+                  "mode": {
+                    "enum": ["file", "bootstrap"]
+                  }
+                }
+              }
+            }
+          }
+        }
       },
-      "else": {
+      "then": {
         "properties": {
           "public": {
             "properties": {
