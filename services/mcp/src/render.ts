@@ -559,6 +559,9 @@ async function readBoundedDownload(filename: string): Promise<Uint8Array> {
 export function browserLaunchArgs(env: NodeJS.ProcessEnv = process.env): string[] {
   return [
     ...(env.LOLLY_BROWSER_NO_SANDBOX === '1' ? ['--no-sandbox'] : []),
+    // The web shell requires WebGPU before it boots (plan 295); headless Chromium
+    // offers no adapter without this flag.
+    '--enable-unsafe-webgpu',
     '--force-color-profile=srgb',
     '--font-render-hinting=none',
   ];

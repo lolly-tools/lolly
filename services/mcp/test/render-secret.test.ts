@@ -6,6 +6,7 @@ import { browserLaunchArgs, exposeExportPassword, exportUrl } from '../src/rende
 test('Chromium sandbox is on unless deployment explicitly opts out', () => {
   assert.ok(!browserLaunchArgs({}).includes('--no-sandbox'));
   assert.ok(browserLaunchArgs({ LOLLY_BROWSER_NO_SANDBOX: '1' }).includes('--no-sandbox'));
+  assert.ok(browserLaunchArgs({}).includes('--enable-unsafe-webgpu'), 'the shell needs a WebGPU adapter to boot');
 });
 
 test('Tier-B navigation never carries a PDF password', () => {

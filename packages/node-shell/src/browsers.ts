@@ -91,8 +91,11 @@ export async function getBrowser({ graphics = 'software' }: { graphics?: 'softwa
           // test harnesses (export-format-golden / export-text-emission).
           // Docs captures render a whole gallery, including 3D examples. They
           // can use the available GPU; software remains the default for exports.
-          args: ['--no-sandbox', ...(graphics === 'software' ? ['--use-angle=swiftshader'] : []), '--enable-unsafe-swiftshader',
-                 '--force-color-profile=srgb', '--font-render-hinting=none'],
+          // The web shell requires WebGPU before it boots (plan 295), and headless
+          // Chromium offers no adapter without --enable-unsafe-webgpu; software
+          // graphics names SwiftShader's adapter, which is what headless gets anyway.
+          args: ['--no-sandbox', ...(graphics === 'software' ? ['--use-angle=swiftshader', '--use-webgpu-adapter=swiftshader'] : []), '--enable-unsafe-swiftshader',
+                 '--enable-unsafe-webgpu', '--force-color-profile=srgb', '--font-render-hinting=none'],
         });
       } catch (err) {
         const msg = (err as Error).message || '';
