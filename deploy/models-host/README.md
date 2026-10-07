@@ -27,3 +27,53 @@ the same change whenever a model file is added, replaced, or retired.
 
 `models/` here is gitignored (it is a hardlink assembly of
 shells/web/public/models, minus the .candidates staging dirs).
+
+## UpCloud, Evroc and other static hosts
+
+The public VM recipe in `deploy/docker/public-vm.md` serves the same `/models/**`
+URLs through its existing web service. Mount a verified model release read-only
+at `/usr/share/nginx/html/models`. Model bytes remain separate from application
+image builds; the public nginx configuration supplies GET, HEAD, Range, CORS and
+cache headers. Each provider uses the same release and verification commands.
+
+Prepare the complete model set from explicitly reviewed local roots. The
+committed `shells/web/models-manifest.json` selects exact URLs and sizes. Put any
+required model files on disk first, including the license and configuration
+files. The helper refuses missing files, symbolic links, hidden paths, incorrect
+sizes, duplicate URLs and releases larger than 8 GiB. Multiple `--source` roots
+are searched in order; an existing file must match its declared size.
+
+```sh
+node scripts/model-release.ts inspect \
+  --manifest shells/web/models-manifest.json \
+  --source shells/web/public/models --commit "$(git rev-parse HEAD)"
+node scripts/model-release.ts stage \
+  --manifest shells/web/models-manifest.json \
+  --source shells/web/public/models --commit "$(git rev-parse HEAD)" \
+  --output /srv/lolly-model-releases/candidate
+```
+
+Staging creates a new directory exclusively, copies independent bytes using
+filesystem clones where available, verifies every checksum and makes files
+read-only. Existing releases and source files are preserved. The resulting
+`.lolly-model-release.json` binds each URL, size and SHA-256 to the manifest and
+reviewed source commit. It is operator metadata; public nginx refuses dotfiles.
+
+Record the full `models-<sha256>` identity printed by staging in the approved
+deployment receipt. Verify the transferred candidate against that retained
+identity and the same reviewed manifest before mounting or changing traffic:
+
+```sh
+node scripts/model-release.ts verify \
+  --manifest shells/web/models-manifest.json \
+  --root /srv/lolly-model-releases/candidate \
+  --release models-<approved-sha256>
+```
+
+Verification rejects altered or extra bytes, missing files, symlinks, changed
+inventories and a different approved identity. Keep the approved receipt in
+trusted custody; a newly generated inventory on the destination cannot establish
+that the transferred bytes match the approved source. Test full GET, empty HEAD,
+206 byte ranges, invalid-range 416, CORS, MIME, cache headers and unknown-file 404
+at the candidate HTTPS origin. Retain the prior model release through the
+cutover observation period, together with the application rollback target.

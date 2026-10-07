@@ -1,0 +1,53 @@
+{{- include "sovereign.validate" . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sovereign.name" (dict "root" . "name" "nginx") }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" . "name" "web") | nindent 4 }}
+data:
+  default.conf: |
+    {{- .Files.Get "files/public.nginx.conf" | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sovereign.name" (dict "root" . "name" "edge") }}
+  namespace: {{ .Values.edge.namespace }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" . "name" "edge") | nindent 4 }}
+data:
+  Caddyfile: |
+    {
+      admin off
+      grace_period 30s
+      {{- if eq .Values.edge.tls.mode "bootstrap" }}
+      auto_https ignore_loaded_certs
+      email {{ .Values.edge.tls.email }}
+      {{- end }}
+    }
+    import /etc/lolly/public.caddy
+    import /etc/lolly/private.caddy
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sovereign.name" (dict "root" . "name" "public-host") }}
+  namespace: {{ .Values.edge.namespace }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" . "name" "edge") | nindent 4 }}
+data:
+  public.caddy: |
+    {{- tpl (.Files.Get "files/public.caddy") . | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sovereign.name" (dict "root" . "name" "private-host") }}
+  namespace: {{ .Values.edge.namespace }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" . "name" "edge") | nindent 4 }}
+data:
+  private.caddy: |
+    {{- tpl (.Files.Get "files/private.caddy") . | nindent 4 }}

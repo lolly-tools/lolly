@@ -160,6 +160,21 @@ jobs:
         if: matrix.shard == 'browser' || matrix.shard == 'security'
         run: pnpm run install:browser --with-deps
 
+      # Ubuntu restricts user namespaces for downloaded Chromium. Follow the
+      # official exact-executable exception on this disposable runner, retaining
+      # Chromium sandboxing and the host's global AppArmor/sysctl protections.
+      - name: Permit the locked Chromium sandbox on this runner
+        if: matrix.shard == 'browser' || matrix.shard == 'security'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+        run: |
+          set -euo pipefail
+          node scripts/ci-chromium-userns.ts > "$RUNNER_TEMP/lolly-ci-chromium.profile"
+          sudo install -o root -g root -m 0644 "$RUNNER_TEMP/lolly-ci-chromium.profile" /etc/apparmor.d/lolly-ci-chromium
+          sudo apparmor_parser -r /etc/apparmor.d/lolly-ci-chromium
+          mkdir -p artifacts
+          cp "$RUNNER_TEMP/lolly-ci-chromium.profile" artifacts/ci-chromium-userns.profile
+
       - name: Install motion inspection tools
         if: matrix.shard == 'browser' || matrix.shard == 'contracts'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg

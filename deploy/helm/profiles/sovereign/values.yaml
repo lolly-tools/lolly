@@ -1,0 +1,85 @@
+# Explicit profile: operator-provided images, TLS secrets and proxy measurements.
+# Existing top-level chart defaults and private Work workloads are untouched.
+manageNamespaces: false
+clusterDomain: cluster.local
+imagePullSecrets: []
+public:
+  host: ""
+  redirectHosts: []
+  tlsSecret: ""
+private:
+  host: ""
+  redirectHosts: []
+  tlsSecret: ""
+  server: {name: lolly-work, namespace: lolly-private, port: 80}
+  relay: {name: lolly-live-relay, namespace: lolly-private, port: 8790}
+edge:
+  namespace: lolly-edge
+  # Operator acknowledges the separate admission exception after reviewing it.
+  hostNetworkAcknowledged: false
+  tls:
+    # File staging, optional post-DNS bootstrap, then persistent automatic ACME.
+    mode: acme
+    email: ""
+    existingClaim: ""
+  nodeName: ""
+  image: {repository: caddy, digest: ""}
+  # Measured hostNetwork-to-Service peer addresses, not guessed node/pod CIDRs.
+  proxyAddresses: []
+  # Actual node address for outgoing edge sockets; qualify the observed pod peer.
+  upstreamSourceAddress: ""
+  resources:
+    requests: {cpu: 25m, memory: 64Mi, ephemeral-storage: 32Mi}
+    limits: {cpu: 500m, memory: 256Mi, ephemeral-storage: 128Mi}
+  tmpSize: 64Mi
+models:
+  existingClaim: ""
+  subPath: ""
+  release: ""
+components:
+  web:
+    image: {repository: ghcr.io/lolly-tools/lolly-web, digest: ""}
+    port: 8080
+    uid: 101
+    resources:
+      requests: {cpu: 25m, memory: 32Mi, ephemeral-storage: 16Mi}
+      limits: {cpu: 500m, memory: 128Mi, ephemeral-storage: 64Mi}
+    tmpSize: 16Mi
+  mcp:
+    allowAnonymous: false
+    webBase: ""
+    browser:
+      # Optional verified node-local profile; empty retains RuntimeDefault.
+      localhostProfile: ""
+      noSandbox: false
+      maxConcurrent: 1
+      maxQueued: 4
+      queueTimeoutMs: 30000
+    image: {repository: ghcr.io/lolly-tools/lolly-mcp, digest: ""}
+    port: 8790
+    uid: 1000
+    existingSecret: ""
+    heapMiB: 384
+    resources:
+      requests: {cpu: 50m, memory: 128Mi, ephemeral-storage: 64Mi}
+      limits: {cpu: "1", memory: 768Mi, ephemeral-storage: 128Mi}
+    tmpSize: 64Mi
+  ca:
+    image: {repository: ghcr.io/lolly-tools/lolly-ca, digest: ""}
+    port: 8787
+    uid: 1000
+    existingSecret: ""
+    heapMiB: 64
+    resources:
+      requests: {cpu: 25m, memory: 64Mi, ephemeral-storage: 8Mi}
+      limits: {cpu: 250m, memory: 192Mi, ephemeral-storage: 32Mi}
+    tmpSize: 8Mi
+  penpot:
+    image: {repository: ghcr.io/lolly-tools/lolly-penpot, digest: ""}
+    port: 8791
+    uid: 1000
+    heapMiB: 64
+    resources:
+      requests: {cpu: 25m, memory: 64Mi, ephemeral-storage: 8Mi}
+      limits: {cpu: 500m, memory: 256Mi, ephemeral-storage: 32Mi}
+    tmpSize: 8Mi

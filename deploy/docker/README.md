@@ -80,6 +80,22 @@ Hosted model APIs and their unused native inference packages are omitted. This
 image supports headless SVG/data and resvg PNG rendering; it has no Chromium.
 Setting `LOLLY_WEB_BASE` alone cannot enable working browser formats. Use a
 separately reviewed browser-enabled MCP deployment if those formats are needed.
+The optional [public browser image and bounded overlays](public-vm.md#optional-public-browser-exports)
+install lockfile-scoped Chromium on a pinned Debian base. They retain sandbox and
+authentication defaults and require actual target export acceptance.
+
+The maintained `deployment-suse.yml` workflow has an opt-in native amd64 image
+job. Dispatch its exact reviewed ref with `build_images=true`, matching
+`expected_source` and the existing published `public_key_jwk`. The repository's
+`LOLLY_CATALOG_SIGNING_KEY` secret reaches only the web BuildKit signing step;
+the release builder verifies that its public key matches the supplied pin.
+Chart and route checks run first. The job boots restricted service images,
+verifies every signed tool file, checks authentication and unavailable-admission
+refusal, and requires actual sandboxed Chromium SVG/PNG/PDF exports before
+publishing source-labelled image digests to GHCR. It retains small receipts.
+These checks do not replace candidate HTTPS, CA enrollment, proxy peer,
+invited-agent or Kubernetes runtime acceptance. A sandbox startup failure is a
+failed qualification; the workflow does not retry with a bypass.
 
 Production MCP needs its approved token/signing-secret references and canonical
 `LOLLY_MCP_PUBLIC_ORIGIN`, plus `LOLLY_RATE_LIMIT_REST_URL` and the matching

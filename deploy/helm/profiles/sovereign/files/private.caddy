@@ -1,0 +1,118 @@
+# Derived from qualified Work Caddy 823e6febd14470d941d8ed4b8b8476ef19ce184f99e75ce3800cf9a0cf3575c6.
+# Preserve the Work cookie, body-limit and websocket boundaries; use internal Services.
+(private_function) {
+	reverse_proxy {args[0]} {
+		transport http {
+			local_address {{ .Values.edge.upstreamSourceAddress }}
+		}
+		header_up Host {$LOLLY_PUBLIC_HOST}
+		header_up X-Forwarded-Proto https
+		header_up X-Forwarded-For {remote_host}
+		header_up -Forwarded
+		header_up -X-Real-IP
+		header_up -X-Vercel-Forwarded-For
+		header_up -Proxy-Authorization
+		header_up -Cookie
+		flush_interval -1
+	}
+}
+{$LOLLY_PRIVATE_HOST} {
+	{{- if ne .Values.edge.tls.mode "acme" }}
+	tls /tls/private/tls.crt /tls/private/tls.key
+	{{- else }}
+	tls {{ .Values.edge.tls.email }}
+	{{- end }}
+	# Vercel sends HSTS with every answer; keep that on this host. `?` leaves
+	# a value the upstream already set alone.
+	header ?Strict-Transport-Security "max-age=63072000"
+
+	# Request bodies. The server enforces exact limits; these stop an oversized
+	# body here. 64 MiB is the most the server accepts (a pack or a catalog
+	# submission); project file parts are 1 MiB and sessions 4 MiB.
+	@file_parts path_regexp file_parts (?i)^/api/v1/projects/[^/]+/files/[^/]+/parts/
+	request_body @file_parts {
+		max_size 2MiB
+	}
+	@session_writes path_regexp session_writes (?i)^/api/v1/(?:projects/[^/]+/sessions|sessions/[^/]+)/?$
+	request_body @session_writes {
+		max_size 5MiB
+	}
+	request_body {
+		max_size 65MiB
+	}
+
+	# Document invitations and the editor WebSocket share one relay process.
+	@live_relay path /live/*
+	handle @live_relay {
+		reverse_proxy {{ include "sovereign.upstream" (dict "root" . "upstream" .Values.private.relay) }} {
+			transport http {
+				local_address {{ .Values.edge.upstreamSourceAddress }}
+			}
+			header_up -Cookie
+			stream_close_delay 5m
+		}
+	}
+
+	# 1. The OSS project's own functions, which the shell calls on its own
+	#    origin. The instance cookie is stripped; Authorization is kept for the
+	#    Penpot proxy, which forwards it as the user's own Penpot token.
+	@shell_functions path_regexp shell_functions (?i)^/(api/(?:ca|penpot|mcp)(?:/.*)?|api/fetch-image)$
+	handle @shell_functions {
+		@private_ca path /api/ca /api/ca/*
+		handle @private_ca {
+			import private_function {{ include "sovereign.service" (dict "root" . "name" "ca") }}:80
+		}
+		@private_penpot path /api/penpot /api/penpot/*
+		handle @private_penpot {
+			import private_function {{ include "sovereign.service" (dict "root" . "name" "penpot") }}:80
+		}
+		handle {
+			import private_function {{ include "sovereign.service" (dict "root" . "name" "mcp") }}:80
+		}
+	}
+
+	# 2. Every path the lolly-work router registers, tool files under /tools/<x>
+	#    and the collab WebSocket (/ws/collab/<session>). Responses stream
+	#    (flush_interval -1); a WebSocket survives a Caddy reload for 5 minutes.
+	@control_plane path_regexp control_plane (?i)^/(?:(?:activate|admin|api|catalog|connect|healthz|l|metrics|readyz|render|scim|ws)(?:/|$)|tools/.)
+	handle @control_plane {
+		reverse_proxy {{ include "sovereign.upstream" (dict "root" . "upstream" .Values.private.server) }} {
+			transport http {
+				local_address {{ .Values.edge.upstreamSourceAddress }}
+			}
+			header_up X-Forwarded-For {remote_host}
+			header_up -Forwarded
+			header_up -X-Real-IP
+			header_up -X-Vercel-Forwarded-For
+			flush_interval -1
+			stream_close_delay 5m
+		}
+	}
+
+	# 3. Everything else is the Lolly app, proxied from the shell origin with
+	#    no credential of this instance.
+	handle {
+		reverse_proxy {{ include "sovereign.upstream" (dict "root" . "upstream" .Values.private.server) }} {
+			transport http {
+				local_address {{ .Values.edge.upstreamSourceAddress }}
+			}
+			header_up X-Forwarded-For {remote_host}
+			header_up -Forwarded
+			header_up -X-Real-IP
+			header_up -X-Vercel-Forwarded-For
+			header_up -Cookie
+			header_up -Authorization
+		}
+	}
+}
+
+{{- if .Values.private.redirectHosts }}
+{$LOLLY_PRIVATE_REDIRECT_HOSTS} {
+	{{- if ne .Values.edge.tls.mode "acme" }}
+	tls /tls/private/tls.crt /tls/private/tls.key
+	{{- else }}
+	tls {{ .Values.edge.tls.email }}
+	{{- end }}
+	redir https://{$LOLLY_PRIVATE_HOST}{uri} 308
+}
+{{- end }}
