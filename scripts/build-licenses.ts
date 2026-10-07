@@ -495,6 +495,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'PhotoCraft PSD parser and Rust dependencies',
+      version: '0.2.0 (7eb3b2e072aa3110da2a329bb49109744292a87b; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
+      copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/adobe-psd/adobe-psd.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/adobe-psd/LICENSES.txt'), 'utf8'),
+      note: 'Standalone PhotoCraft PSD crate compiled through a bounded Lolly byte adapter. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/adobe-psd/.',
+      where: 'web',
+    },
+    {
       name: 'bwip-js (with BWIPP)',
       version: '4.11.4 (@bwip-js/generic; BWIPP 2026-05-28)',
       spdx: 'MIT',

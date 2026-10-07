@@ -87,6 +87,8 @@ Usage:
   lolly measure <design.json|.lolly> --text-layers [--layer=<id>]
                                            every plain text layer, with its own fields
   lolly prepare <file…>                   inspect and prepare private files locally
+  lolly adobe <operation> <file>          PSD preservation, IDML, photo preset or
+                                           timeline inspection; adobe --help for details
   lolly inspect <file> --forensic          inspect located AI clues and coverage
   lolly diff <a.json> <b.json>              semantic document diff
   lolly optimize <document.json>            run named immutable stages
@@ -408,7 +410,8 @@ try {
   // --help / -h / --version / -v are recognised ANYWHERE in argv, before anything treats
   // the token as a tool id (`lolly --help` used to print "Tool not found: --help").
   if (args.some(a => a === '--help' || a === '-h' || a === 'help')) {
-    if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
+    if (rawFirst === 'adobe') { const { ADOBE_HELP } = await import('../src/adobe.ts'); await writeOut(ADOBE_HELP); }
+    else if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
     else if (rawFirst === 'compose') { const { COMPOSE_HELP } = await import('../src/compose.ts'); await writeOut(COMPOSE_HELP); }
     else {
       // read, check, package, measure and run on a session file have help of their own.
@@ -474,7 +477,7 @@ async function main(): Promise<void> {
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
   const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
-  beginCommand(VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
+  beginCommand(cmd === 'adobe' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
   // A command that needs them says so here, once, with the routes to a root - instead
@@ -482,6 +485,9 @@ async function main(): Promise<void> {
   if (needsContentRoot(cmd)) assertContentRoot();
 
   // ── explicit verbs ────────────────────────────────────────────────────────
+  if (cmd === 'adobe') {
+    const { adobeCli } = await import('../src/adobe.ts'); await adobeCli(positionals.slice(1), flags); return;
+  }
   // `list` / `describe` / `run` exist because the first positional is an open namespace
   // shared with tool ids: a brand pack shipping a tool called `batch` would otherwise be
   // permanently unreachable. The verbs can never be shadowed.

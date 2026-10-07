@@ -22,12 +22,12 @@
  * in points are the pixel size x 0.75.
  */
 
-import { readPsd } from '../../../../engine/src/psd.ts';
+import { readPsd, type PsdReadOptions } from '../../../../engine/src/psd.ts';
 import { packPng } from '../../../../engine/src/png.ts';
 import { sha256Hex } from '../../../../engine/src/bytes.ts';
 import { psdPathData, sameWinding, unionOutline } from '../../../../engine/src/psd-outline.ts';
 import type { PsdStroke, PsdSubpath, PsdTextInfo } from '../../../../engine/src/psd-layer-semantics.ts';
-import type { InflateFn, RasterLayer } from '../../../../engine/src/raster-layers.ts';
+import type { InflateFn, RasterLayer, LayeredRasterDoc } from '../../../../engine/src/raster-layers.ts';
 import type {
   BoxV1, FidelityV1, SlideSourceV1, SourceColorV1, SourceDeckV1, SourceObjectKindV1, SourceObjectV1,
   SourceParaV1, SourceRunV1, SourceWarningV1, VectorPathItemV1,
@@ -46,6 +46,8 @@ export interface SourcePsdOptsV1 {
   reader: { name: string; version: string };
   /** zlib inflater for ZIP-compressed channels. */
   inflate?: InflateFn;
+  /** The shell can supply the broader portable decoder without platform imports here. */
+  decode?: (bytes: Uint8Array, options: PsdReadOptions) => LayeredRasterDoc | Promise<LayeredRasterDoc>;
   onSlide?: (done: number, total: number) => void;
   signal?: AbortSignal;
 }
@@ -128,7 +130,7 @@ function groupPathOf(l: RasterLayer, doc: { layers: RasterLayer[] }): string[] |
 export async function sourceDeckFromPsd(bytes: Uint8Array, opts: SourcePsdOptsV1): Promise<SourceDeckV1> {
   opts.signal?.throwIfAborted();
   const docWarnings: string[] = [];
-  const doc = readPsd(bytes, { ...(opts.inflate ? { inflate: opts.inflate } : {}), onWarn: (code) => docWarnings.push(code) });
+  const doc = await (opts.decode ?? readPsd)(bytes, { ...(opts.inflate ? { inflate: opts.inflate } : {}), onWarn: (code) => docWarnings.push(code) });
   opts.onSlide?.(0, 1);
   const fonts = new Map<string, number>();
   const stored = new Map<string, string>();

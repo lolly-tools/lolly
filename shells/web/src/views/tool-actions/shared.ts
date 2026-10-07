@@ -45,6 +45,8 @@ export const FMT_LABEL: Record<string, string> = {
   pptx: 'PowerPoint',
   penpot: 'Penpot',
   lottie: 'dotLottie',
+  idml: 'InDesign IDML (static subset)',
+  'premiere-xml': 'Premiere XML + media',
   jxl: 'JPEG XL',
   'jxl-lossless': 'JPEG XL lossless',
   docx: 'Word',
@@ -90,6 +92,7 @@ export const FMT_EXT: Record<string, string> = {
   'svg-anim': 'svg',
   penpot: 'penpot',
   scorm: 'zip',
+  'premiere-xml': 'zip',
   rpm: 'rpm',
   'tar.gz': 'tar.gz',
 };

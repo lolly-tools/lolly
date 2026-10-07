@@ -444,7 +444,7 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
     `<div class="fc-import-title">${t('Import a design')}</div>` +
     '<p class="fc-import-hint">' +
     t(
-      'Drop a Figma <b>.fig</b> / SVG, a Penpot <b>.penpot</b>, an Illustrator <b>.ai</b> or <b>.pdf</b>, a PowerPoint <b>.pptx</b>, or an InDesign <b>.idml</b> (File → Export → InDesign Markup). (For editable text from a Figma <b>SVG</b>, uncheck “Outline text” on export.)'
+      'Drop a Figma <b>.fig</b> / SVG, a Penpot <b>.penpot</b>, a Photoshop <b>.psd</b> or <b>.psb</b>, an Illustrator <b>.ai</b> or <b>.pdf</b>, a PowerPoint <b>.pptx</b>, or an InDesign <b>.idml</b> (File → Export → InDesign Markup). For a Premiere-compatible <b>.xml</b> or XML + media ZIP, choose Replace the board. (For editable text from a Figma <b>SVG</b>, uncheck “Outline text” on export.)'
     ) +
     '</p>' +
     // The per-import choice (plans/104 section 337, widened 2026-09-02): one page onto
@@ -498,7 +498,7 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
   const fileEl = document.createElement('input');
   fileEl.type = 'file';
   fileEl.accept =
-    '.fig,.svg,.penpot,.zip,.ai,.pdf,.pptx,.idml,.indd,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    '.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.xml,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
   fileEl.style.display = 'none';
   panel.appendChild(fileEl);
   chooseBtn.addEventListener('click', (e) => {
@@ -570,8 +570,14 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
         });
         const boxes = (Array.isArray(res.boxes) ? res.boxes : []) as Box[];
         if (!boxes.length) throw new Error(t('Nothing importable was found in that file.'));
+        if (res.sequenceValues && !fc.timeCfg) throw new Error(t('Open this timeline in Design to retain clip timing.'));
         fc.selection = new Set<string>();
         fc.select.commit(boxes);
+        if (res.sequenceValues) {
+          fc.onDirty?.('projectFps');
+          await fc.runtime.setInput('projectFps', res.sequenceValues.projectFps);
+          fc.timeline.openTimeline();
+        }
         if (setCanvasSize && res.width > 0 && res.height > 0)
           setCanvasSize(res.width, res.height, 'px');
         status.classList.add('is-ok');

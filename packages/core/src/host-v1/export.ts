@@ -161,6 +161,8 @@ export type ExportFormat =
   | 'webm'
   | 'mp4'
   | 'lottie'
+  | 'idml'
+  | 'premiere-xml'
   // Audio-only exports. 'opus' is Opus in a WebM container (audio/webm); 'ogg' is
   // Opus-in-Ogg (the honest voice-memo shape) and 'aac' is bare ADTS - both written
   // through mediabunny's Ogg/Adts output formats. 'flac' is lossless, via

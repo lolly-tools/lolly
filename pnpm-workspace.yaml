@@ -31,6 +31,10 @@ allowBuilds:
   # authorised here if a later release loses one of those guards.
   '@modelcontextprotocol/inspector': false
 overrides:
+  'source-map-js': '1.2.2'
+  'proxy-addr': '2.0.8'
+  '@modelcontextprotocol/client': '2.2.0'
+  'fast-uri': '3.1.8'
   'adm-zip': '^0.6.1'
   'shell-quote': '^1.9.0'
   'ip-address': '^10.5.1'

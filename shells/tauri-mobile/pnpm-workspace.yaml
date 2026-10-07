@@ -5,3 +5,5 @@ enablePrePostScripts: true
 strictDepBuilds: true
 allowBuilds:
   fsevents: true
+overrides:
+  'source-map-js': '1.2.2'

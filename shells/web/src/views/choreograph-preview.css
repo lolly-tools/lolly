@@ -1,0 +1,12 @@
+@layer views {
+  .fc-choreo-panel { overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; }
+  .fc-choreo-panel > * { flex-shrink: 0; }
+  .fc-choreo-panel .fc-choreo-grid { max-height: 180px; }
+  .fc-choreo-preview-media { position: relative; height: 132px; flex: 0 0 132px; overflow: hidden; border-radius: var(--radius-md); background: hsl(var(--muted)); }
+  .fc-choreo-preview-media[hidden] { display: none; }
+  .choreo-preview-stage { position: absolute; inset: 0; overflow: hidden; contain: paint; pointer-events: none; }
+  .fc-choreo-preview-controls { display: flex; align-items: center; gap: var(--space-2); }
+  .fc-choreo-preview-controls input { width: 100%; min-width: 0; }
+  .fc-choreo-preview-controls button { flex: none; min-height: 44px; }
+  .fc-choreo-preview-status { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+}
