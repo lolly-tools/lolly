@@ -211,7 +211,7 @@
       "$anchor": "presence",
       "type": "object",
       "title": "Awareness / Presence",
-      "description": "Ephemeral presence - the Yjs awareness channel, NEVER written to the doc (plans/99 section 5). Carries no origin/clock: it is not an op and never converges. Broadcast at pointer-move rate. v1.1 (plans/100 section 3, section 4) adds focus/location/following/viewport/chat - all optional, all still never persisted.",
+      "description": "Ephemeral presence - the Yjs awareness channel, NEVER written to the doc (plans/99 section 5). Carries no origin/clock: it is not an op and never converges. Broadcast at pointer-move rate. v1.1 (plans/100 section 3, section 4) adds focus/location/following/viewport/chat - all optional, all still never persisted. v1.2 adds presenting.",
       "required": ["userId", "name", "color", "cursor", "selection"],
       "additionalProperties": false,
       "properties": {
@@ -278,7 +278,8 @@
           "type": "string",
           "maxLength": 64,
           "description": "v1.1 (plans/100 section 3): cursor chat - max 64 chars, rides the awareness channel only, never persisted."
-        }
+        },
+        "presenting": { "type": "boolean", "const": true, "description": "v1.2: presenting; never persisted." }
       }
     }
   }
