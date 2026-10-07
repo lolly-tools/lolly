@@ -938,7 +938,8 @@ export { parseFidelityEdits, FIDELITY_MAX_SOURCE_STRINGS, FIDELITY_MAX_RESULT_LI
 export type { CheckFidelityOptions, CheckFidelityResult } from './check-fidelity.ts';
 // Measure a plain Design text layer before it is drawn (plan 291 W5): the CSS pre-wrap
 // breaker and Chromium's line box over an injected shaper.
-export { measureDesignText, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, TEXT_MEASURE_DEFAULTS, TEXT_MEASURE_MAX_UNITS } from './design-text-measure.ts';
+export { measureDesignText, drawDesignText, textMeasureSpecOfRow, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, TEXT_MEASURE_DEFAULTS, TEXT_MEASURE_MAX_UNITS } from './design-text-measure.ts';
+export type { DesignTextDrawV1, DesignTextDrawLineV1, DesignTextDrawRunV1 } from './design-text-measure.ts';
 export type { TextShaperV1, TextShapeRunV1, TextShapeResultV1, TextFontMetricsV1, TextMeasureErrorCode } from './design-text-measure.ts';
 export { BRAND_STYLE_PROPERTIES, summarizeBrandStyles, readBrandStyleEvidence } from './brand-evidence.ts';
 export type { BrandStyleProperty, BrandStyleValue, BrandStyleEvidence } from './brand-evidence.ts';

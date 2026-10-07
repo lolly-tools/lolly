@@ -168,6 +168,8 @@ function familyOf(token: string, fonts: TextMeasureFontsV1): string {
 interface Segment {
   text: string;
   face: Face;
+  /** The authored run the segment draws, for its colour and decoration; a list marker has none. */
+  run?: ReturnType<typeof parseDesignText>[number]['runs'][number];
 }
 
 interface ShapedFace {
@@ -244,7 +246,7 @@ function segmentsOf(line: ReturnType<typeof parseDesignText>[number], s: ReturnT
         : { token: 'italic', family: italicFamily, weight, italic: true };
     } else if (run.font) face = { token: run.font, family: familyOf(run.font, s.fonts), weight, italic: false };
     else face = { ...base, weight };
-    out.push({ text: run.text, face });
+    out.push({ text: run.text, face, run });
   }
   return out;
 }
@@ -425,12 +427,60 @@ async function breakParagraph(
   return spans;
 }
 
+/** One run of a drawn line: its text, where it starts on the line, and its face and paint. */
+export interface DesignTextDrawRunV1 {
+  text: string;
+  /** From the line's start, px. */
+  x: number;
+  width: number;
+  face: TextMeasureFaceV1;
+  color?: string;
+  underline?: boolean;
+  strike?: boolean;
+}
+/** One drawn line, in the box's own coordinates: the baseline and the line's left edge after alignment. */
+export interface DesignTextDrawLineV1 { baseline: number; x: number; width: number; runs: DesignTextDrawRunV1[] }
+/** A text layer laid out for drawing, with the measure it was laid out by. */
+export interface DesignTextDrawV1 { measure: TextMeasureV1; lines: DesignTextDrawLineV1[] }
+
 /**
  * Measure one plain text layer. Rejects with a `TextMeasureError` for a spec it
  * cannot read (`input.invalid`) and passes on the shaper's own errors
  * (`font.unavailable`).
  */
 export async function measureDesignText(spec: TextMeasureSpecV1, shaper: TextShaperV1): Promise<TextMeasureV1> {
+  return (await measureCore(spec, shaper, false)).result;
+}
+
+/**
+ * Lay a plain Design text layer out for drawing (plan 295, phase 3): every line's
+ * baseline and runs, from the same breaks, faces and line boxes as the measure, placed
+ * in the box the way the canvas places them (inside the border and pad, aligned by
+ * `align`, the block placed by `valign` when the spec gives a height). As in the
+ * renderer, any alignment other than `left` or `right` is `center`.
+ */
+export async function drawDesignText(spec: TextMeasureSpecV1, shaper: TextShaperV1, opts: { align?: string } = {}): Promise<DesignTextDrawV1> {
+  const { result, drawn } = await measureCore(spec, shaper, true);
+  const align = opts.align === 'left' || opts.align === 'right' ? opts.align : 'center';
+  const client = result.box ? result.box.clientHeight : result.height;
+  const offset = result.box ? (spec.valign === 'top' ? 0 : spec.valign === 'bottom' ? client - result.height : (client - result.height) / 2) : 0;
+  const border = borderWidth(spec.strokeW);
+  return {
+    measure: result,
+    lines: drawn.map((line) => {
+      const free = result.availableWidth - line.width;
+      const shift = align === 'center' ? free / 2 : align === 'right' ? free : 0;
+      return {
+        baseline: round2(border + offset + line.baseline),
+        x: round2(border + result.pad + shift),
+        width: line.width,
+        runs: line.runs,
+      };
+    }),
+  };
+}
+
+async function measureCore(spec: TextMeasureSpecV1, shaper: TextShaperV1, draw: boolean): Promise<{ result: TextMeasureV1; drawn: Array<{ baseline: number; width: number; runs: DesignTextDrawRunV1[] }> }> {
   const s = settle(spec);
   const notes: string[] = [];
   const shaped = new Map<string, ShapedFace>();
@@ -447,6 +497,8 @@ export async function measureDesignText(spec: TextMeasureSpecV1, shaper: TextSha
   const base: Face = { token: s.token, family: s.family, weight: s.weight, italic: false };
   const lines: TextMeasureLineV1[] = [];
   const lineFaces: Face[][] = [];
+  const pendingRuns: Array<{ width: number; runs: Array<{ text: string; x: number; width: number; face: Face; seg: Segment }> }> = [];
+  const baselines: number[] = [];
   const margin = Math.max(3, 0.04 * s.size);
   let overWide = false;
   /** Characters a face had no glyph for, by the family that lacked them. */
@@ -534,6 +586,21 @@ export async function measureDesignText(spec: TextMeasureSpecV1, shaper: TextSha
       const faces = new Map<string, Face>([[faceKey(base), base]]);
       for (let k = span.start; k < z; k++) faces.set(faceKey(faceAt[k]!), faceAt[k]!);
       lineFaces.push([...faces.values()]);
+      if (draw) {
+        // The line's runs, each a stretch of one segment, placed by the paragraph's advances.
+        const runs: Array<{ text: string; x: number; width: number; face: Face; seg: Segment }> = [];
+        let x = 0;
+        for (let k = span.start; k < z;) {
+          const n = segAt[k]!;
+          const stop = Math.min(z, segStart[n]! + segments[n]!.text.length);
+          let width = 0;
+          for (let i = k; i < stop; i++) width += advances[i]!;
+          runs.push({ text: drawn.slice(k, stop), x, width, face: segments[n]!.face, seg: segments[n]! });
+          x += width;
+          k = stop;
+        }
+        pendingRuns.push({ width: round2(w), runs });
+      }
     });
   }
 
@@ -568,6 +635,7 @@ export async function measureDesignText(spec: TextMeasureSpecV1, shaper: TextSha
     const ascent = Math.max(...e.map((x) => x.ascent));
     const descent = Math.max(...e.map((x) => x.descent));
     glyphs.push({ top: y + top - ascent, bottom: y + top + descent });
+    baselines.push(y + top);
     reach = Math.max(reach, y + top + descent);
     y += top + bottom;
   }
@@ -638,5 +706,68 @@ export async function measureDesignText(spec: TextMeasureSpecV1, shaper: TextSha
   }
   if (s.border) notes.push(`A ${s.border} px border inside the box narrows the text area on both sides.`);
   if (/\t/.test(s.text)) notes.push('Tabs are measured as the face draws the tab character, not as tab stops.');
-  return result;
+  const drawnLines = pendingRuns.map((line, i) => ({
+    baseline: baselines[i] ?? 0,
+    width: line.width,
+    runs: line.runs.map((run): DesignTextDrawRunV1 => ({
+      text: run.text, x: round2(run.x), width: round2(run.width), face: faceOf(run.face),
+      ...(run.seg.run?.color ? { color: run.seg.run.color } : {}),
+      ...(run.seg.run?.underline ? { underline: true } : {}),
+      ...(run.seg.run?.strike ? { strike: true } : {}),
+    })),
+  }));
+  return { result, drawn: drawnLines };
+}
+
+/** The values `boolVal` in the renderer reads as on and off. */
+function specFlag(v: unknown, dflt: boolean): boolean {
+  if (v === true || v === false) return v;
+  if (v === null || v === undefined || v === '') return dflt;
+  const s = String(v).toLowerCase();
+  if (s === 'true' || s === '1' || s === 'yes' || s === 'on') return true;
+  if (s === 'false' || s === '0' || s === 'no' || s === 'off') return false;
+  return dflt;
+}
+
+/** A stroke colour the renderer would paint (`safeColor`), so the border counts. */
+function paintsStroke(v: unknown): boolean {
+  const s = String(v ?? '').trim();
+  if (!s) return false;
+  return /^#[0-9a-fA-F]{3,8}$/.test(s)
+    || /^(rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)$/i.test(s)
+    || (s.length <= 256 && /^(?:(?:ok)?(?:lab|lch)\([-+0-9.eE%\s/]+\)|color\((?:srgb|srgb-linear|display-p3|rec2020)\s+[-+0-9.eE%\s/]+\))$/i.test(s))
+    || /^[a-zA-Z]+$/.test(s)
+    || /^var\(\s*--[a-zA-Z0-9-]+\s*(,\s*(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|(?:rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)))?\s*\)$/.test(s);
+}
+
+/** A number field read the way the renderer's `num` reads it: `parseFloat`, so `'60px'` is 60. */
+const specNum = (v: unknown): number => (typeof v === 'number' ? v : parseFloat(String(v)));
+const given = (v: unknown): boolean => v !== undefined && v !== null && v !== '';
+
+/**
+ * A Design text row as a measure spec: the row's own fields, read as the renderer
+ * reads them, and the renderer's defaults for the rest. A field the renderer cannot
+ * read as a number is left out, so the default applies, as on the canvas.
+ */
+export function textMeasureSpecOfRow(row: Record<string, unknown>, fonts?: TextMeasureFontsV1): TextMeasureSpecV1 {
+  const spec: TextMeasureSpecV1 = { text: String(row.text ?? ''), width: specNum(row.w) };
+  const numeric = (key: 'height' | 'size' | 'lineHeight' | 'pad' | 'tracking', v: unknown): void => {
+    if (!given(v)) return;
+    const n = specNum(v);
+    if (Number.isFinite(n)) spec[key] = n;
+  };
+  numeric('height', row.h);
+  if (given(row.font)) spec.font = String(row.font);
+  if (given(row.weight)) spec.weight = row.weight as string | number;
+  numeric('size', row.fontSize);
+  numeric('lineHeight', row.lineHeight);
+  numeric('pad', row.pad);
+  numeric('tracking', row.tracking);
+  if (!specFlag(row.ligatures, true)) spec.ligatures = false;
+  if (specFlag(row.alternates, false)) spec.alternates = true;
+  if (specFlag(row.plainText, false)) spec.plain = true;
+  if (paintsStroke(row.stroke) && specNum(row.strokeW) > 0) spec.strokeW = specNum(row.strokeW);
+  spec.valign = row.valign === 'top' || row.valign === 'bottom' || row.valign === 'middle' ? row.valign : 'middle';
+  if (fonts) spec.fonts = fonts;
+  return spec;
 }

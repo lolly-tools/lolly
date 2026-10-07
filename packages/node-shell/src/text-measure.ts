@@ -23,7 +23,7 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createTokenSet, measureDesignText, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS } from '@lolly/engine';
+import { createTokenSet, measureDesignText, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, textMeasureSpecOfRow } from '@lolly/engine';
 import type { TextFontMetricsV1, TextShaperV1 } from '@lolly/engine';
 import type { TextMeasureFontsV1, TextMeasureSpecV1, TextMeasureV1 } from '@lolly-tools/core/text-measure-v1';
 import { contentRoots, contentUrlFile } from './content-roots.ts';
@@ -301,6 +301,8 @@ export async function measureTextNode(spec: TextMeasureSpecV1, opts: TextMeasure
 // ─── Design rows ─────────────────────────────────────────────────────────────
 
 type Row = Record<string, unknown>;
+/** The row-to-spec rule now lives in the engine, shared with the DOM-free drawing compiler. */
+export { textMeasureSpecOfRow };
 
 /** The values `boolVal` in the renderer reads as on and off. */
 function boolVal(v: unknown, dflt: boolean): boolean {
@@ -312,48 +314,6 @@ function boolVal(v: unknown, dflt: boolean): boolean {
   return dflt;
 }
 
-/** A stroke colour the renderer would paint (`safeColor`), so the border counts. */
-function paintsStroke(v: unknown): boolean {
-  const s = String(v ?? '').trim();
-  if (!s) return false;
-  return /^#[0-9a-fA-F]{3,8}$/.test(s)
-    || /^(rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)$/i.test(s)
-    || (s.length <= 256 && /^(?:(?:ok)?(?:lab|lch)\([-+0-9.eE%\s/]+\)|color\((?:srgb|srgb-linear|display-p3|rec2020)\s+[-+0-9.eE%\s/]+\))$/i.test(s))
-    || /^[a-zA-Z]+$/.test(s)
-    || /^var\(\s*--[a-zA-Z0-9-]+\s*(,\s*(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|(?:rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)))?\s*\)$/.test(s);
-}
-
-/** A number field read the way the renderer's `num` reads it: `parseFloat`, so `'60px'` is 60. */
-const rowNum = (v: unknown): number => (typeof v === 'number' ? v : parseFloat(String(v)));
-const given = (v: unknown): boolean => v !== undefined && v !== null && v !== '';
-
-/**
- * A Design text row as a measure spec: the row's own fields, read as the renderer
- * reads them, and the renderer's defaults for the rest. A field the renderer cannot
- * read as a number is left out, so the default applies, as on the canvas.
- */
-export function textMeasureSpecOfRow(row: Row, fonts?: TextMeasureFontsV1): TextMeasureSpecV1 {
-  const spec: TextMeasureSpecV1 = { text: String(row.text ?? ''), width: rowNum(row.w) };
-  const numeric = (key: 'height' | 'size' | 'lineHeight' | 'pad' | 'tracking', v: unknown): void => {
-    if (!given(v)) return;
-    const n = rowNum(v);
-    if (Number.isFinite(n)) spec[key] = n;
-  };
-  numeric('height', row.h);
-  if (given(row.font)) spec.font = String(row.font);
-  if (given(row.weight)) spec.weight = row.weight as string | number;
-  numeric('size', row.fontSize);
-  numeric('lineHeight', row.lineHeight);
-  numeric('pad', row.pad);
-  numeric('tracking', row.tracking);
-  if (!boolVal(row.ligatures, true)) spec.ligatures = false;
-  if (boolVal(row.alternates, false)) spec.alternates = true;
-  if (boolVal(row.plainText, false)) spec.plain = true;
-  if (paintsStroke(row.stroke) && rowNum(row.strokeW) > 0) spec.strokeW = rowNum(row.strokeW);
-  spec.valign = row.valign === 'top' || row.valign === 'bottom' || row.valign === 'middle' ? row.valign : 'middle';
-  if (fonts) spec.fonts = fonts;
-  return spec;
-}
 
 export interface MeasureDesignRowsOptions {
   /** Measure only these layers; an id that is not a plain text layer is refused. */

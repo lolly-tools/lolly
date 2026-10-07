@@ -20,10 +20,11 @@
  *
  * Pure: no DOM, no clock, no network, no filesystem, no randomness.
  */
-import type { DesignBoxRowV1 } from '@lolly-tools/core';
+import type { DesignBoxRowV1, TextMeasureFontsV1, TextMeasureSpecV1 } from '@lolly-tools/core';
 
 import { DESIGN_LINE_HEIGHT, designTextPad, layoutDesignText } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
+import { drawDesignText, textMeasureSpecOfRow, type DesignTextDrawV1, type TextShaperV1 } from './design-text-measure.ts';
 import { decodeAuthoredPaths } from './geom/authored-url.ts';
 import type { Contour } from './geom/path.ts';
 import { toCubics } from './geom/spline.ts';
@@ -79,6 +80,28 @@ interface DrawOpBase {
   blur?: number;
   /** The box outline a `box` shadow follows. */
   outline?: Exclude<DrawShape, { kind: 'path' }>;
+  /** Design semantics: the row's text, which the renderer draws on any kind of box. */
+  words?: DrawWords;
+}
+
+/**
+ * A row's text as Design lays it out: the measure spec (the renderer's defaults and
+ * clamps applied by the shared row rule), the horizontal alignment and the ink.
+ * `layout` is filled by `layoutDesignDrawText` with the host's shaper.
+ */
+export interface DrawWords {
+  spec: TextMeasureSpecV1;
+  /** `left`, `center` or `right`; Design centres a row that states none. */
+  align: string;
+  ink: string;
+  inkOpacity?: number;
+  layout?: DesignTextDrawV1;
+  /**
+   * Glyph outlines per line and run, from `outlineDesignDrawText` (the host's
+   * `text.toPath`): SVG path data with the baseline at y=0. A run the host could not
+   * outline is null and is drawn as text.
+   */
+  outlines?: Array<Array<string | null>>;
 }
 /** Fills paint in order, under first; the stroke goes with the last fill. */
 export interface DrawShapeOp extends DrawOpBase { op: 'shape'; shape: DrawShape; fills: DrawPaint[]; stroke?: DrawStroke }
@@ -113,7 +136,8 @@ export type DrawOp = DrawShapeOp | DrawImageOp | DrawTextOp;
 export type DrawFeature =
   | 'clip' | 'blend' | 'shadow' | 'blur' | 'background-blur' | 'tilt' | 'vector-paint'
   | 'composed-text' | 'dash-pattern' | 'arrowheads' | 'conic-gradient' | 'image-position'
-  | 'line-height' | 'tracking' | 'text-layout-estimate' | 'non-static-kind' | 'border-style' | 'bound-path' | 'frame-paint';
+  | 'line-height' | 'tracking' | 'text-layout-estimate' | 'non-static-kind' | 'border-style' | 'bound-path' | 'frame-paint'
+  | 'fit-text' | 'text-direction' | 'text-unlaid' | 'image-design' | 'text-decoration' | 'text-unoutlined';
 export interface DrawFinding { id: string; feature: DrawFeature }
 
 export interface DesignDrawPage {
@@ -277,11 +301,18 @@ export function designDrawFindings(row: DesignBoxRowV1, opts: { effects?: boolea
   if (grad && parseGradientSpec(grad)?.kind === 'conic') found.push('conic-gradient');
   const kind = rowStr(row, 'kind');
   if (kind === 'image' && set('imgpos')) found.push('image-position');
-  if (kind === 'text' && rowStr(row, 'text')) {
+  if (opts.semantics === 'preview' && kind === 'text' && rowStr(row, 'text')) {
     found.push('text-layout-estimate');
     if (set('lineHeight')) found.push('line-height');
     if (rowNum(row, 'tracking') !== 0) found.push('tracking');
   }
+  if (opts.semantics !== 'preview' && rowStr(row, 'text') && !set('textStory') && !set('textFrame')) {
+    // The canvas shrinks fitted text until it fits, and lays right-to-left text out by bidi; the measure does neither.
+    if (designFlag(row, 'fitText')) found.push('fit-text');
+    if (rowStr(row, 'textDirection') === 'rtl') found.push('text-direction');
+  }
+  // A picture's framing, crop and clip to the box radius are the next slice; the picture is drawn as before.
+  if (opts.semantics !== 'preview' && kind === 'image') found.push('image-design');
   if (NON_STATIC.has(kind)) found.push('non-static-kind');
   // A CSS dashed or dotted border spaces its marks to fit each side; an SVG dash pattern does not.
   if (opts.semantics !== 'preview' && kind !== 'path' && rowStr(row, 'stroke') && rowNum(row, 'strokeW') > 0 && /^(dashed|dotted)$/.test(rowStr(row, 'strokeDash'))) found.push('border-style');
@@ -350,6 +381,8 @@ export interface DesignDrawCompileOpts {
   colors?: 'authored' | 'resolved';
   /** The live brand, asked first for a `var(...)` or `{token}` colour. */
   resolveColor?: (css: string) => string | null;
+  /** The brand's font families by slot, for the text measure (Design's own faces when absent). */
+  fonts?: TextMeasureFontsV1;
   /**
    * `design` (the default) follows the Design renderer, the authority on what a row
    * means. `preview` keeps the approximations `framePreviewSvg` drew before the compiler
@@ -428,12 +461,23 @@ export function compileDesignRow(row: DesignBoxRowV1, offset: { x: number; y: nu
   const kind = rowStr(row, 'kind');
   const fillColor = color(rowStr(row, 'bg'));
   const fill: DrawPaint[] = fillColor ? [{ kind: 'color', ...fillColor }] : [];
+  // Design draws a row's text on every kind of box; composed text is laid out elsewhere.
+  if (design && rowStr(row, 'text') && !rowStr(row, 'textStory') && !rowStr(row, 'textFrame') && kind !== 'path') {
+    const align = rowStr(row, 'align');
+    const ink = color(rowStr(row, 'fg') || '#11141f') ?? { color: '#11141f' };
+    (base as DrawOpBase).words = {
+      spec: textMeasureSpecOfRow(row as Record<string, unknown>, opts.fonts),
+      align: align === 'left' || align === 'right' ? align : 'center',
+      ink: ink.color,
+      ...(ink.opacity !== undefined ? { inkOpacity: ink.opacity } : {}),
+    };
+  }
   if (kind === 'image') {
     // `alt` is not one of Design's own field ids, so a document that has been through
     // Design carries none; the row's name comes next, and a plain sentence last.
     return { ...base, op: 'image', ref: rowStr(row, 'image'), fit: rowStr(row, 'fit'), label: rowStr(row, 'alt') || rowStr(row, 'name') || 'Picture not available here' };
   }
-  if (kind === 'text') {
+  if (kind === 'text' && !design) {
     const grad = gradientOf(row, box);
     const fills: DrawPaint[] = [...fill, ...(grad ? [grad] : [])];
     const text = rowStr(row, 'text');
@@ -507,4 +551,52 @@ export function compileDesignDraw(rows: readonly DesignBoxRowV1[], size: { width
     for (const feature of designDrawFindings(row, opts)) page.findings.push({ id: rowStr(row, 'id'), feature });
   }
   return page;
+}
+
+/**
+ * Lay out every text block of a page with the host's shaper, the same breaks, faces and
+ * line boxes `measureDesignText` reports. A block whose fonts the shaper cannot supply
+ * keeps no layout and is reported, so no text is drawn from a guess.
+ */
+export async function layoutDesignDrawText(page: DesignDrawPage, shaper: TextShaperV1): Promise<void> {
+  for (const op of page.ops) {
+    if (!op.words) continue;
+    try { op.words.layout = await drawDesignText(op.words.spec, shaper, { align: op.words.align }); }
+    catch { page.findings.push({ id: op.id, feature: 'text-unlaid' }); }
+  }
+}
+
+/** The host text-to-path call, typed as in `HostV1.text.toPath`. */
+export type DrawTextToPath = (opts: { text: string; fontUrl: string; fontSize: number; features?: string[]; letterSpacing?: number; variations?: string[] }) => Promise<{ d: string }>;
+
+/**
+ * Outline every laid-out run with the host's `text.toPath`, in the face file and axes
+ * the measure chose, so the words travel as shapes and the drawing needs no font.
+ * Underline and strike-through are not outlined and are reported; a run the host
+ * cannot outline stays text and is reported.
+ */
+export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTextToPath): Promise<void> {
+  for (const op of page.ops) {
+    const words = op.words, layout = words?.layout;
+    if (!words || !layout) continue;
+    const m = layout.measure;
+    const features = [...(words.spec.ligatures === false || m.tracking !== 0 ? ['liga=0', 'clig=0'] : []), ...(words.spec.alternates ? ['salt=1'] : [])];
+    let decorated = false, missing = false;
+    words.outlines = [];
+    for (const line of layout.lines) {
+      const row: Array<string | null> = [];
+      for (const run of line.runs) {
+        if (run.underline || run.strike) decorated = true;
+        if (!run.text.trim() || !run.face.file) { row.push(run.text.trim() ? null : ''); if (run.text.trim()) missing = true; continue; }
+        try {
+          const variations = run.face.variations ? Object.entries(run.face.variations).map(([axis, value]) => `${axis}=${value}`) : undefined;
+          const { d } = await toPath({ text: run.text, fontUrl: run.face.file, fontSize: m.size, ...(features.length ? { features } : {}), ...(m.tracking ? { letterSpacing: m.tracking } : {}), ...(variations ? { variations } : {}) });
+          row.push(d);
+        } catch { row.push(null); missing = true; }
+      }
+      words.outlines.push(row);
+    }
+    if (decorated) page.findings.push({ id: op.id, feature: 'text-decoration' });
+    if (missing) page.findings.push({ id: op.id, feature: 'text-unoutlined' });
+  }
 }

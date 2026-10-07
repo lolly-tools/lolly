@@ -128,6 +128,8 @@ A receipt must record every text run that stayed a live `<text>` element, and a 
 
 `docs/determinism.md` already states the public limit this serves: vector export converts text to outlines, so the bytes depend on which font file was resolved, and a machine with a different font set is a different render. The receipt records that dependency so a reader can check it afterwards.
 
+The drawing operations from plan 295 already hold most of what this section asks a receipt to record. `engine/src/design-draw.ts` lays every Design text block out with the engine's measure (`drawDesignText` in `engine/src/design-text-measure.ts`) and the host's shaper, and each laid-out run keeps the face it resolved: family, weight, style, font file and variation axes. `outlineDesignDrawText` outlines each run from that same face through `host.text.toPath`, so the layout and the outline cannot disagree about the font. A run the host cannot outline stays live text and is reported as the `text-unoutlined` finding, which is the fact this section requires a receipt to keep. The face file is still a location, not a digest, so a receipt built from the operations must add the digest (R15).
+
 ### Clocks
 
 Clocks are explicit and separate, and a receipt must name which ones fed the run and with what values (R15, plan section 8.5).

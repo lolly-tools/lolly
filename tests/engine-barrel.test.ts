@@ -110,6 +110,12 @@ const EXPECTED: readonly string[] = [
   'TextShapeRunV1',
   'TextShaperV1',
   'measureDesignText',
+  // Plan 295 phase 3: text laid out for drawing, from the same measure, and the row-to-spec rule it shares.
+  'drawDesignText',
+  'textMeasureSpecOfRow',
+  'DesignTextDrawV1',
+  'DesignTextDrawLineV1',
+  'DesignTextDrawRunV1',
   // 1.244 (plan 291 M3): the slot a role-bound row fills, shared by Reset Slide and Tier A PowerPoint.
   'slotOrdinalOf',
   // 1.244 (plan 291 W6): the master at a page size, and slides composed from master archetypes.

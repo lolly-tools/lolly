@@ -2,8 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { CompiledFrameV1, DesignBoxRowV1 } from '@lolly-tools/core';
-import { DESIGN_DRAW_VERSION, compileDesignDraw, compileDesignRow, designDrawFindings, type DrawShapeOp, type DrawTextOp } from '../engine/src/design-draw.ts';
+import { DESIGN_DRAW_VERSION, compileDesignDraw, compileDesignRow, designDrawFindings, layoutDesignDrawText, outlineDesignDrawText, type DrawShapeOp, type DrawTextToPath } from '../engine/src/design-draw.ts';
 import { designDrawSvg } from '../engine/src/design-draw-svg.ts';
+import { drawDesignText, measureDesignText, type TextShaperV1 } from '../engine/src/design-text-measure.ts';
 import { framePreviewSvg } from '../engine/src/frame-preview-svg.ts';
 import { encodeAuthoredPaths } from '../engine/src/geom/authored-url.ts';
 
@@ -31,7 +32,7 @@ test('a static page compiles to versioned operations in page coordinates, in pai
   const draw = compileDesignDraw(rows, { width: 800, height: 600 });
   assert.equal(draw.version, DESIGN_DRAW_VERSION);
   assert.equal(draw.background, '#fafafa');
-  assert.deepEqual(draw.ops.map(op => `${op.op}:${op.id}`), ['shape:rect', 'shape:pill', 'shape:circle', 'shape:tri', 'image:pic', 'text:words', 'shape:fx']);
+  assert.deepEqual(draw.ops.map(op => `${op.op}:${op.id}`), ['shape:rect', 'shape:pill', 'shape:circle', 'shape:tri', 'image:pic', 'shape:words', 'shape:fx'], 'in Design a text row is a box that carries words');
   assert.deepEqual(draw.ops[0]!.box, { x: 10, y: 10, w: 100, h: 40 });
   assert.deepEqual(rows, before, 'compiling never mutates the authored rows');
   assert.deepEqual(compileDesignDraw(rows, { width: 800, height: 600 }), draw, 'the same rows compile to the same operations');
@@ -48,18 +49,18 @@ test('shapes, paints, strokes and poses carry Design semantics', () => {
   assert.ok(tri!.shape.kind === 'path' && tri!.shape.contours.length === 1 && tri!.shape.contours[0]!.closed);
   assert.deepEqual(tri!.stroke, { color: '#0000ff', width: 3, cap: 'round', join: 'round' });
   assert.deepEqual(tri!.pose, { rot: 30, flipH: true, flipV: false });
-  const words = draw.ops[5] as DrawTextOp;
+  const words = draw.ops[5]!;
   assert.equal(words.opacity, 50);
-  assert.equal(words.text!.valign, 'middle', 'Design centres a row that states no vertical alignment');
-  assert.equal(words.text!.font, 'display');
+  assert.deepEqual(words.words, { spec: { text: 'Hello <world> & **bold**', width: 400, height: 120, font: 'display', size: 24, lineHeight: 1.4, valign: 'middle' }, align: 'center', ink: '#333333' },
+    'the measure spec the shared row rule writes, Design\'s centred alignment and the row ink');
 });
 
 test('every feature version 0 does not draw is reported against its row, never dropped silently', () => {
   const draw = compileDesignDraw(page(), { width: 800, height: 600 });
   const by = (id: string) => draw.findings.filter(f => f.id === id).map(f => f.feature);
   assert.deepEqual(by('fx'), ['clip', 'blend', 'shadow', 'blur', 'tilt', 'arrowheads']);
-  assert.deepEqual(by('words'), ['text-layout-estimate', 'line-height']);
-  assert.deepEqual(by('pic'), ['image-position']);
+  assert.deepEqual(by('words'), [], 'the measure lays out line height and tracking itself');
+  assert.deepEqual(by('pic'), ['image-position', 'image-design']);
   assert.deepEqual(by('rect'), ['border-style'], 'a dashed CSS border spaces its marks to fit; the SVG dash does not');
   assert.deepEqual(by('gone'), [], 'a hidden row draws nothing and reports nothing');
   assert.deepEqual(designDrawFindings({ id: 'c', kind: 'box', grad: 'con_0_ff0000-0_0000ff-100' }), ['conic-gradient']);
@@ -114,4 +115,48 @@ test('effects compile to clip polygons, blends, shadows and blur, and leave the 
   assert.deepEqual(draw.findings, []);
   const svg = designDrawSvg(draw, emit);
   assert.ok(svg.includes('mix-blend-mode:multiply') && svg.includes('<clipPath') && svg.includes('<feDropShadow') && svg.includes('<feGaussianBlur'));
+});
+
+/** A shaper with fixed advances: half the size per character, a quarter for a space. */
+const shaper: TextShaperV1 = async (run) => {
+  const advances = [...run.text].map((ch) => (ch === ' ' ? run.size / 4 : run.size / 2) + run.tracking);
+  return { advances, total: advances.reduce((a, b) => a + b, 0), font: { file: `/fonts/${run.family}.ttf`, variations: { wght: run.weight }, metrics: { upem: 1000, ascent: 980, descent: 280 } } };
+};
+
+test('text lays out from the measure: runs in their faces and paint, aligned inside the pad, the block placed by valign', async () => {
+  const spec = { text: 'ab **cd** {#ff0000 u|ef}\nnext line', width: 300, height: 200, size: 20 };
+  const left = await drawDesignText({ ...spec, valign: 'top' }, shaper, { align: 'left' });
+  assert.deepEqual(left.measure, await measureDesignText({ ...spec, valign: 'top' }, shaper), 'the layout carries the measure it came from');
+  assert.deepEqual(left.lines[0]!.runs.map((r) => [r.text, r.x, r.width, r.face.weight, r.color ?? '', r.underline ?? false]),
+    [['ab ', 0, 25, 700, '', false], ['cd', 25, 20, 900, '', false], [' ', 45, 5, 700, '', false], ['ef', 50, 20, 700, '#ff0000', true]]);
+  assert.deepEqual(left.lines.map((l) => [l.baseline, l.x, l.width]), [[26, 8, 70], [48.39, 8, 85]], 'lines start at the pad, a line box (size x 1.12) apart');
+  const x = async (align: string) => (await drawDesignText(spec, shaper, { align })).lines[0]!.x;
+  assert.deepEqual([await x('center'), await x('right'), await x('justify'), await x('')], [115, 222, 115, 115], 'the free width of the 284 px text area goes before the line; the renderer centres anything else');
+  const baseline = async (valign: 'middle' | 'bottom') => (await drawDesignText({ ...spec, valign }, shaper)).lines[0]!.baseline;
+  assert.deepEqual([await baseline('middle'), await baseline('bottom')], [95.61, 165.22], 'the block moves by half, then all, of the room the 60.78 px of text leaves');
+  const bordered = await drawDesignText({ ...spec, valign: 'top', strokeW: 6 }, shaper, { align: 'left' });
+  assert.deepEqual([bordered.lines[0]!.baseline, bordered.lines[0]!.x], [32, 14], 'a border inside the box moves the text in by its width');
+});
+
+test('outlines replace runs with the host\'s glyph paths, and what cannot be outlined stays text and is reported', async () => {
+  const rows = [
+    { id: 'f', kind: 'frame', x: 0, y: 0, w: 400, h: 300 },
+    { id: 'words', kind: 'text', x: 10, y: 10, w: 300, h: 100, text: 'ab **cd** {u|ef} boom', fontSize: 20, align: 'left', valign: 'top' },
+  ];
+  const draw = compileDesignDraw(rows as never, { width: 400, height: 300 });
+  await layoutDesignDrawText(draw, shaper);
+  const calls: Array<Parameters<DrawTextToPath>[0]> = [];
+  await outlineDesignDrawText(draw, async (opts) => {
+    calls.push(opts);
+    if (opts.text.includes('boom')) throw new Error('no glyphs');
+    return { d: `M0 0H${opts.text.length}` };
+  });
+  const words = draw.ops[0]!.words!;
+  assert.deepEqual(words.layout!.lines[0]!.runs.map((r) => r.text), ['ab ', 'cd', ' ', 'ef', ' boom']);
+  assert.deepEqual(words.outlines, [['M0 0H3', 'M0 0H2', '', 'M0 0H2', null]], 'a space run outlines to nothing; a failed run stays text');
+  assert.deepEqual(calls[1], { text: 'cd', fontUrl: '/fonts/SUSE.ttf', fontSize: 20, variations: ['wght=900'] }, 'each run is outlined in the face file and axes the measure chose');
+  assert.deepEqual(draw.findings.map((f) => f.feature), ['text-decoration', 'text-unoutlined']);
+  const svg = designDrawSvg(draw, emit);
+  assert.ok(svg.includes('<path transform="translate(18 36)" d="M0 0H3"'), 'an outline sits at the run\'s start on the baseline');
+  assert.ok(svg.includes('> boom</tspan>') && !svg.includes('>ab </tspan>'), 'only the run that failed is drawn as text');
 });

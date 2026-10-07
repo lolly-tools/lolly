@@ -65,24 +65,44 @@ export function fidelityPages(): FidelityPage[] {
         on('effects', { id: 'blurred', kind: 'box', x: 560, y: 40, w: 60, h: 140, bg: '#e03131', blur: 4 }),
       ],
     },
+    {
+      name: 'text', width: 640, height: 400,
+      rows: [
+        frame('text', { bg: '#ffffff' }),
+        on('text', { id: 'default', kind: 'text', x: 20, y: 20, w: 280, h: 80, text: 'Design' }),
+        on('text', { id: 'left-top', kind: 'text', x: 320, y: 20, w: 300, h: 110, text: 'Left and top, wrapping onto more lines', fontSize: 22, align: 'left', valign: 'top', weight: 400 }),
+        on('text', { id: 'rich', kind: 'text', x: 20, y: 120, w: 280, h: 120, text: 'Plain **bold** *italic* {#d6336c|pink} and more', fontSize: 20, weight: 400, align: 'left' }),
+        on('text', { id: 'right-bottom', kind: 'text', x: 320, y: 150, w: 300, h: 90, text: 'Right, bottom', fontSize: 26, align: 'right', valign: 'bottom', fg: '#1864ab' }),
+        on('text', { id: 'bordered', kind: 'text', x: 20, y: 260, w: 200, h: 120, text: 'Inside a border', fontSize: 24, bg: '#fff3bf', stroke: '#e67700', strokeW: 6, shape: 'rounded', radius: 16 }),
+        on('text', { id: 'overflow', kind: 'text', x: 240, y: 260, w: 170, h: 70, text: 'Too many words for this small rounded box to hold', fontSize: 20, shape: 'rounded', radius: 30, bg: '#e7f5ff' }),
+        on('text', { id: 'spaced', kind: 'text', x: 430, y: 260, w: 190, h: 60, text: 'TRACKED', fontSize: 22, tracking: 6, lineHeight: 1.6 }),
+        on('text', { id: 'on-box', kind: 'box', x: 430, y: 330, w: 190, h: 56, text: 'On a box', fontSize: 20, bg: '#2b8a3e', fg: '#ffffff', pad: 4 }),
+      ],
+    },
   ];
 }
 
-export interface RegionStats { id: string; pixels: number; differing: number }
+export interface RegionStats {
+  id: string; pixels: number; differing: number;
+  /** For a region that asks for ink: what each side adds to the background (summed luminance change) and the centroid of that ink. */
+  ink?: { a: number; b: number; ax: number; ay: number; bx: number; by: number };
+}
 export interface FidelityStats { width: number; height: number; differing: number; maxChannel: number; regions: RegionStats[] }
 
 /**
  * Runs in the browser: decode two PNG screenshots, count pixels whose largest channel
- * difference exceeds `threshold`, for the whole page and inside each region.
+ * difference exceeds `threshold`, for the whole page and inside each region. A region
+ * that asks for ink is also compared with `background`, the page without the words it judges.
  */
-export async function compareInBrowser(a: string, b: string, width: number, height: number, regions: Array<{ id: string; x: number; y: number; w: number; h: number }>, threshold: number): Promise<FidelityStats> {
+export async function compareInBrowser(a: string, b: string, width: number, height: number, regions: Array<{ id: string; x: number; y: number; w: number; h: number; ink?: boolean }>, threshold: number, background?: string): Promise<FidelityStats> {
   const pixels = async (src: string) => {
     const img = new Image(); img.src = src; await img.decode();
     const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
     const ctx = canvas.getContext('2d')!; ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, width, height).data;
   };
-  const [pa, pb] = await Promise.all([pixels(a), pixels(b)]);
+  const [pa, pb, pg] = await Promise.all([pixels(a), pixels(b), background ? pixels(background) : Promise.resolve(undefined)]);
+  const lum = (p: Uint8ClampedArray, i: number) => 0.2126 * p[i * 4]! + 0.7152 * p[i * 4 + 1]! + 0.0722 * p[i * 4 + 2]!;
   const diff = new Uint8Array(width * height);
   let differing = 0, maxChannel = 0;
   for (let i = 0; i < width * height; i++) {
@@ -94,11 +114,19 @@ export async function compareInBrowser(a: string, b: string, width: number, heig
   return {
     width, height, differing, maxChannel,
     regions: regions.map((r) => {
-      let n = 0, d = 0;
+      const ink = r.ink && pg ? pg : undefined;
+      let n = 0, d = 0, ia = 0, ib = 0, ax = 0, ay = 0, bx = 0, by = 0;
       for (let y = Math.max(0, Math.floor(r.y)); y < Math.min(height, Math.ceil(r.y + r.h)); y++) {
-        for (let x = Math.max(0, Math.floor(r.x)); x < Math.min(width, Math.ceil(r.x + r.w)); x++) { n++; d += diff[y * width + x]!; }
+        for (let x = Math.max(0, Math.floor(r.x)); x < Math.min(width, Math.ceil(r.x + r.w)); x++) {
+          const i = y * width + x;
+          n++; d += diff[i]!;
+          if (ink) {
+            const g = lum(ink, i), wa = Math.abs(lum(pa, i) - g), wb = Math.abs(lum(pb, i) - g);
+            ia += wa; ib += wb; ax += wa * x; ay += wa * y; bx += wb * x; by += wb * y;
+          }
+        }
       }
-      return { id: r.id, pixels: n, differing: d };
+      return { id: r.id, pixels: n, differing: d, ...(ink ? { ink: { a: ia, b: ib, ax: ia ? ax / ia : 0, ay: ia ? ay / ia : 0, bx: ib ? bx / ib : 0, by: ib ? by / ib : 0 } } : {}) };
     }),
   };
 }

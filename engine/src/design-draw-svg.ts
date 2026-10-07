@@ -12,7 +12,7 @@
  */
 import { AVERAGE_GLYPH_EM } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
-import type { DesignDrawPage, DrawBox, DrawClip, DrawImageOp, DrawOp, DrawPaint, DrawPose, DrawShadow, DrawShape, DrawShapeOp, DrawStroke, DrawTextOp } from './design-draw.ts';
+import type { DesignDrawPage, DrawBox, DrawClip, DrawImageOp, DrawOp, DrawPaint, DrawPose, DrawShadow, DrawShape, DrawShapeOp, DrawStroke, DrawTextOp, DrawWords } from './design-draw.ts';
 import { toSvgPathData } from './geom/path.ts';
 
 export interface DesignDrawSvgOpts {
@@ -287,11 +287,70 @@ function textSvg(op: DrawTextOp, opts: DesignDrawSvgOpts): string {
   return `${lead}${clip}`;
 }
 
+/**
+ * A text block laid out by `drawDesignText`, as positioned runs in their own faces.
+ * The canvas clips a box's content to its padding box (`overflow: hidden` with the
+ * border inside), so the words are clipped to the box less its border, following the
+ * corner radius. A `text` shadow (CSS text-shadow, sigma half the blur) follows the words only.
+ */
+function wordsSvg(op: DrawOp, words: DrawWords): string {
+  const layout = words.layout;
+  if (!layout?.lines.length) return '';
+  const m = layout.measure;
+  const box = op.box;
+  const border = op.op === 'shape' && op.stroke?.align === 'inside' ? Math.min(op.stroke.width, box.w / 2, box.h / 2) : 0;
+  const inner = { x: box.x + border, y: box.y + border, w: Math.max(0, box.w - border * 2), h: Math.max(0, box.h - border * 2) };
+  const shape: Exclude<DrawShape, { kind: 'path' }> = op.op === 'shape' && op.shape.kind === 'ellipse' ? { kind: 'ellipse' }
+    : { kind: 'rect', radius: op.op === 'shape' && op.shape.kind === 'rect' ? Math.max(0, op.shape.radius - border) : 0 };
+  const features = [
+    ...(words.spec.ligatures === false || m.tracking !== 0 ? ['"liga" 0', '"clig" 0'] : []),
+    ...(words.spec.alternates ? ['"salt" 1'] : []),
+  ];
+  const style = `white-space:pre${features.length ? `;font-feature-settings:${features.join(', ')}` : ''}`;
+  let text = `<text font-size="${round2(m.size)}" style="${svgEscape(style)}"${m.tracking ? ` letter-spacing="${round2(m.tracking)}"` : ''}>`;
+  let shapes = '', live = false;
+  layout.lines.forEach((line, li) => {
+    line.runs.forEach((run, ri) => {
+      const outline = words.outlines?.[li]?.[ri];
+      if (outline !== undefined && outline !== null) {
+        if (outline) {
+          const ink = run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink;
+          shapes += `<path transform="translate(${round2(box.x + line.x + run.x)} ${round2(box.y + line.baseline)})" d="${svgEscape(outline)}"${colorPaint('fill', ink, ink === words.ink ? words.inkOpacity : undefined)}/>`;
+        }
+        return;
+      }
+      if (!run.text) return;
+      live = true;
+      const deco = [run.underline ? 'underline' : '', run.strike ? 'line-through' : ''].filter(Boolean).join(' ');
+      const ink = run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink;
+      text += `<tspan x="${round2(box.x + line.x + run.x)}" y="${round2(box.y + line.baseline)}" font-family="${svgEscape(run.face.family)}"`
+        + ` font-weight="${run.face.weight}"${run.face.italic ? ' font-style="italic"' : ''}${colorPaint('fill', ink, ink === words.ink ? words.inkOpacity : undefined)}`
+        + `${deco ? ` text-decoration="${deco}"` : ''}>${svgEscape(run.text)}</tspan>`;
+    });
+  });
+  text = shapes + (live ? `${text}</text>` : '');
+  const defs: string[] = [];
+  const shadow = op.shadow?.target === 'text' ? op.shadow : undefined;
+  if (shadow) {
+    const reach = 3 * (shadow.blur / 2) + Math.max(Math.abs(shadow.dx), Math.abs(shadow.dy)) + 2;
+    const filter = `<filter filterUnits="userSpaceOnUse" x="${round2(box.x - reach)}" y="${round2(box.y - reach)}" width="${round2(box.w + reach * 2)}" height="${round2(box.h + reach * 2)}" color-interpolation-filters="sRGB">`
+      + `<feDropShadow dx="${round2(shadow.dx)}" dy="${round2(shadow.dy)}" stdDeviation="${round2(shadow.blur / 2)}"${colorPaint('flood', shadow.color, shadow.opacity)}/></filter>`;
+    const id = `ts${contentId(filter)}`;
+    defs.push(filter.replace('<filter ', `<filter id="${id}" `));
+    text = `<g filter="url(#${id})">${text}</g>`;
+  }
+  const clip = `<clipPath clipPathUnits="userSpaceOnUse">${outlineSvg(shape, inner, 'fill="#000000"')}</clipPath>`;
+  const clipId = `tc${contentId(clip)}`;
+  defs.push(clip.replace('<clipPath ', `<clipPath id="${clipId}" `));
+  return `<defs>${defs.join('')}</defs><g clip-path="url(#${clipId})">${text}</g>`;
+}
+
 /** The markup of one operation, without its opacity and pose group. */
 export function designDrawOpBody(op: DrawOp, opts: DesignDrawSvgOpts): string {
-  if (op.op === 'image') return imageSvg(op, opts);
-  if (op.op === 'text') return textSvg(op, opts);
-  return shapeSvg(op, opts);
+  const words = op.words ? wordsSvg(op, op.words) : '';
+  if (op.op === 'image') return imageSvg(op, opts) + words;
+  if (op.op === 'text') return textSvg(op, opts) + words;
+  return shapeSvg(op, opts) + words;
 }
 
 /** The markup of one operation, inside its opacity and pose group when it has either. */

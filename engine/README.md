@@ -221,8 +221,8 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-components.ts` | 326 | Penpot component definitions → template descriptors (pure collectors). | yes | `tests/design-components.test.ts` | – |
 | `design-compose-suggest.ts` | 1354 | A first compose spec for a source deck (plan 291 W6, `lolly compose --suggest`, `lolly_compose` in suggest mode): one slide per source slide, each with a master archetype, its slots filled by reference to the inventory… | yes | `tests/design-compose-suggest.test.ts` | – |
 | `design-compose.ts` | 2033 | Compose Design slides from slide-master archetypes (plan 291 W6, contract `@lolly-tools/core` design-compose-v1). | yes | `tests/design-compose.test.ts` | – |
-| `design-draw-svg.ts` | 313 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
-| `design-draw.ts` | 510 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
+| `design-draw-svg.ts` | 372 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
+| `design-draw.ts` | 602 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
 | `design-house-rules.ts` | 493 | House rules for a Design document (plan 291 W1 and W3): brand rule records whose kind is one of `DESIGN_HOUSE_RULE_KINDS`, checked layer by layer against the boxes a Design document stores. | yes | `tests/design-house-rules.test.ts` | – |
 | `design-layer-ops.ts` | 303 | Design layer edits by stable id (plans/289 D1): `layerOperations` (add, duplicate, remove, reparent, reorder) and `layerPatches` (set fields on one layer). | no | `tests/design-layer-ops.test.ts` | – |
 | `design-lottie.ts` | 149 | Authored Design values into the shared sequence compiler, identical on every host. | no | `tests/design-lottie.test.ts` | – |
@@ -230,7 +230,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-path-author.ts` | 256 | Absolute path geometry to a stored Design path row (plan 291 W5). | yes | `tests/design-path-author.test.ts` | – |
 | `design-scene.ts` | 149 | The Design scene grammar - what a `kind:'3d'` box's `scene` field holds, and the only place that grammar lives (plan 265 milestone 3, decision Q17). | yes | indirect | – |
 | `design-system.ts` | 257 | design-system.ts - the identity and namespace rules for holding SEVERAL design systems on one device (plans/186 section 6). | yes | `tests/design-system.test.ts` | – |
-| `design-text-measure.ts` | 642 | Measure a plain Design text layer before it is drawn (plan 291, W5): where its lines break, how tall the text is, and whether its box clips the text. | yes | `tests/design-text-measure.test.ts` | – |
+| `design-text-measure.ts` | 773 | Measure a plain Design text layer before it is drawn (plan 291, W5): where its lines break, how tall the text is, and whether its box clips the text. | yes | `tests/design-text-measure.test.ts` | – |
 | `design-text-style.ts` | 223 | Named text styles for Design authoring (plan 291 W5). | yes | indirect | – |
 | `design-text.ts` | 612 | Formatted source text to Design's text subset and back (plan 275 section 7.2). | yes | `tests/design-text.test.ts` | – |
 | `design-tool/compiler.ts` | 80 |  | yes | indirect | – |
