@@ -72,9 +72,6 @@ import { appPathname } from '../lib/any-site.ts';
 import { t, tRaw } from '../i18n.ts';
 import { invitePolicy } from './team-access.ts';
 import { escape, safeHref } from '../utils.ts';
-import { getHostRef } from '../lib/host-ref.ts';
-import type { HostV1 } from '@lolly-tools/core/host-v1';
-import type { exportBackup } from '../data-transfer.ts';
 
 // ── Contract types (the server product's documented shapes) ───────────────────
 
@@ -509,10 +506,14 @@ async function fetchSession(): Promise<Session | null> {
  * it), the install tag and this module's session and config. The install id stays: it
  * identifies the device, not the person, and only Leave forgets it
  * (lib/instance-leave.ts).
+ *
+ * A 401 means the session had already ended (it was revoked from another device, or
+ * ran out): this device is signed out either way, so it forgets the member and the
+ * sign-out counts as done.
  */
 export async function signOutOfInstance(): Promise<boolean> {
   const res = await safeFetch('/api/auth/logout', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
-  if (!res?.ok) return false;
+  if (!res?.ok && res?.status !== 401) return false;
   await forgetMemberHere();
   return true;
 }
@@ -534,15 +535,17 @@ async function forgetMemberHere(): Promise<void> {
  * Sign the member out on every device (`POST /api/v1/me/revoke-sessions`): the instance
  * ends every session this account holds, this browser's included, and clears this
  * browser's cookie. On success this device forgets the member the same way a sign-out
- * does. Resolves 'unsupported' when the instance has no such route (an older instance
- * answers 404 or 405), 'failed' on a refusal (a rate limit included), a network error or
- * the time box, having changed nothing here.
+ * does. A 401 means this session had already ended (revoked from another device, or run
+ * out): nothing is left to end from here, so this device forgets the member all the
+ * same and it counts as done. Resolves 'unsupported' when the instance has no such route
+ * (an older instance answers 404 or 405), 'failed' on another refusal (a rate limit
+ * included), a network error or the time box, having changed nothing here.
  */
 export async function signOutEverywhere(): Promise<'ok' | 'unsupported' | 'failed'> {
   const res = await safeFetch('/api/v1/me/revoke-sessions', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
   if (!res) return 'failed';
   if (res.status === 404 || res.status === 405) return 'unsupported';
-  if (!res.ok) return 'failed';
+  if (!res.ok && res.status !== 401) return 'failed';
   await forgetMemberHere();
   return 'ok';
 }
@@ -877,60 +880,11 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // this shell in via any browser where the person already has a session.
   const slot = view.querySelector<HTMLElement>('#org-gate-device');
   if (slot) wireDeviceCodeSignIn(slot);
+  // The work kept in this browser, minus what is another person's or a team's
+  // (org/gate-device-work.ts, loaded only for the gate).
   const work = view.querySelector<HTMLElement>('#org-gate-device-work');
-  if (work) offerDeviceWork(work);
+  if (work) void import('./gate-device-work.ts').then((m) => m.offerDeviceWork(work)).catch(() => { /* additive: the gate stands without it */ });
   return true;
-}
-
-type BackupHost = Parameters<typeof exportBackup>[0]['host'];
-/** Whether the live host can write a full backup (the web and app bridges can; a test host may not). */
-function canBackUp(host: HostV1): host is HostV1 & BackupHost {
-  return typeof (host.assets as { _exportUserAssets?: unknown })._exportUserAssets === 'function';
-}
-
-/**
- * The gate's way back to the work kept in this browser. Signed out of a gated workspace,
- * the app is out of reach, but sessions saved on this device are still here: when the
- * device's own storage says it holds any, the gate offers "Download the work saved in
- * this browser", the same backup file Settings exports. Nothing shows while the answer
- * is pending, or when there is nothing to save.
- */
-function offerDeviceWork(slot: HTMLElement): void {
-  const host = getHostRef();
-  if (!host?.state || !canBackUp(host)) return;
-  void host.state.list().then((rows) => {
-    if (!rows.length || !slot.isConnected) return;
-    const label = t('Download the work saved in this browser');
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn';
-    btn.dataset.act = 'gate-device-work';
-    btn.style.cssText = 'min-width:9rem;min-height:var(--ui-size-target)';
-    btn.textContent = label;
-    const status = document.createElement('p');
-    status.setAttribute('role', 'status');
-    status.style.cssText = 'margin:.5rem 0 0;font-size:.85rem;color:hsl(var(--destructive))';
-    status.hidden = true;
-    btn.addEventListener('click', async () => {
-      if (btn.disabled) return;
-      btn.disabled = true;
-      btn.textContent = t('Exporting…');
-      status.hidden = true;
-      try {
-        const { exportBackup: backUp } = await import('../data-transfer.ts');
-        const { blob, filename } = await backUp({ host, storage: localStorage });
-        if (host.export?.download) await host.export.download(blob, filename);
-        else (await import('../bridge/anchor-save.ts')).anchorSave(blob, filename);
-      } catch {
-        status.textContent = t('Data export failed. Keep your local files and try again.');
-        status.hidden = false;
-      }
-      btn.disabled = false;
-      btn.textContent = label;
-    });
-    slot.replaceChildren(btn, status);
-    slot.hidden = false;
-  }).catch(() => { /* device storage unreadable: no offer, the gate stands as it is */ });
 }
 
 // ── Device-code sign-in (native shells; the deployment's /activate flow) ─────

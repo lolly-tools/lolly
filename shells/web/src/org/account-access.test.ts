@@ -10,14 +10,18 @@
  *    when it worked, and changes nothing when the route is missing or refuses;
  *  - the Share dialog no longer gets a "Work collab" row, while the presence pill's
  *    invite is registered beside the work opener;
+ *  - a 401 from either sign-out route (the session already ended elsewhere) still signs
+ *    this device out;
  *  - the sign-in gate offers "Download the work saved in this browser" only when this
- *    browser holds saved work, and the button saves the backup file.
+ *    browser holds work the gate may hand out, and the file leaves out recovery copies
+ *    tagged to an account and device copies of team documents.
  *
  * Run directly:  node --test shells/web/src/org/account-access.test.ts
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { unzipSync, strFromU8 } from 'fflate';
 import { JSDOM } from 'jsdom';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
@@ -57,7 +61,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
 const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
-const { initOrg, orgSession, orgConsoleUrl, signOutEverywhere, _resetOrgForTests } = await import('./index.ts');
+const { initOrg, orgSession, orgConsoleUrl, signOutEverywhere, signOutOfInstance, _resetOrgForTests } = await import('./index.ts');
 const { _setBaseForTests } = await import('../lib/instance.ts');
 const { setHostRef } = await import('../lib/host-ref.ts');
 const { shareSectionBuilders, _clearShareSectionsForTests } = await import('../lib/share-sections.ts');
@@ -83,9 +87,10 @@ function reset(): void {
   router = () => new Response('', { status: 404 });
 }
 
-function controlPlane(opts: { mode: 'open' | 'gated'; session?: 'member' | 'guest' | 'none'; role?: string; can?: Record<string, boolean>; revoke?: number }): void {
+function controlPlane(opts: { mode: 'open' | 'gated'; session?: 'member' | 'guest' | 'none'; role?: string; can?: Record<string, boolean>; revoke?: number; logout?: number }): void {
   router = (url, init) => {
     if (url.endsWith('/api/v1/me/revoke-sessions') && init?.method === 'POST' && opts.revoke) return new Response(null, { status: opts.revoke });
+    if (url.endsWith('/api/auth/logout') && init?.method === 'POST' && opts.logout) return new Response(null, { status: opts.logout });
     if (url.includes('/api/auth/config')) return json({ mode: opts.mode, provider: 'oidc', loginPath: '/login', instanceName: 'Acme' });
     if (url.includes('/api/auth/session')) {
       if (opts.session === 'member') return json({ kind: 'member', user: { sub: 'u1', email: 'ana@acme.com', name: 'Ana Ruiz', groups: [], role: opts.role ?? 'member' } });
@@ -187,6 +192,41 @@ test('Sign out on all devices changes nothing when the route is missing or refus
   assert.equal(orgSession()?.kind, 'member');
 });
 
+test('a session that already ended elsewhere (401) still signs this device out, by either route', async () => {
+  for (const run of [async () => signOutEverywhere(), async () => signOutOfInstance()]) {
+    reset();
+    controlPlane({ mode: 'open', session: 'member', revoke: 401, logout: 401 });
+    await initOrg();
+    assert.ok(store.has('lolly:org-config:same-origin'));
+    const outcome = await run();
+    assert.ok(outcome === 'ok' || outcome === true, `signed out (${String(outcome)})`);
+    assert.equal(orgSession(), null, 'the member is forgotten');
+    assert.equal(store.has('lolly:org-config:same-origin'), false, 'with their cached name, address and id');
+    assert.equal(store.get('lolly:signed-out:same-origin'), '1');
+  }
+});
+
+test('Sign out on all devices drops the team-document origins too (plan 75 G17)', async () => {
+  const durable = await import('./team-origin-durable.ts');
+  type Rec = import('./team-origin-durable.ts').DurableTeamOrigin;
+  const rows = new Map<string, Rec>();
+  durable._setDurableBackendForTests({
+    get: async (key) => rows.get(key), put: async (rec) => { rows.set(rec.key, rec); },
+    delete: async (key) => { rows.delete(key); }, all: async () => [...rows.values()], clear: async () => { rows.clear(); },
+  });
+  try {
+    reset();
+    controlPlane({ mode: 'open', session: 'member', revoke: 204 });
+    await initOrg();
+    store.set('lolly:org-config:same-origin', JSON.stringify({ at: Date.now(), etag: null, config: { instance: { name: 'Acme' }, session: { sub: 'u1' } } }));
+    assert.equal(await durable.rememberDurableTeamOrigin({ sessionId: 's1', toolId: 'poster', slot: 'poster:1', role: 'editor' }), true);
+    assert.equal(await signOutEverywhere(), 'ok');
+    assert.equal(rows.size, 0, 'no record is left, and no copy was opened');
+  } finally {
+    durable._setDurableBackendForTests(null);
+  }
+});
+
 // ── Duplicate collab controls (G10) ───────────────────────────────────────────
 
 test('the Share dialog gets no extra Work collab row for a member who may join live collabs', async () => {
@@ -254,6 +294,68 @@ test('the gate makes no offer when this browser holds no saved work', async () =
   await settle();
   assert.equal(gateButton(), null);
   assert.equal(document.getElementById('org-gate-device-work')!.hidden, true, 'the slot stays hidden');
+});
+
+/** A device whose storage holds exactly `slots`, saving the gate's file into `files`. */
+function slotsHost(slots: Record<string, Record<string, unknown>>, files: Blob[]): HostV1 {
+  const host = {
+    state: {
+      list: async () => Object.keys(slots).map((slot) => ({ slot, toolId: 'design', toolVersion: '1', updatedAt: '2026-10-07T00:00:00Z' })),
+      load: async (slot: string) => slots[slot] ?? null,
+      save: async () => {},
+      delete: async () => {},
+    },
+    profile: { get: async () => ({ firstname: 'Ana' }), set: async () => {} },
+    assets: { _exportUserAssets: async () => [], _importUserAsset: async () => {} },
+    export: { download: async (blob: Blob) => { files.push(blob); } },
+  };
+  return host as unknown as HostV1;
+}
+const tagged = (account: string): Record<string, unknown> => ({ __collabRecovery: { origin: 'https://instance.test', account, at: '2026-10-07T12:00:00.000Z' } });
+
+test('the gate\'s file leaves out recovery copies tagged to an account and team document copies', async () => {
+  const durable = await import('./team-origin-durable.ts');
+  type Rec = import('./team-origin-durable.ts').DurableTeamOrigin;
+  const records = new Map<string, Rec>([['k', { key: 'k', workspace: 'https://instance.test', account: 'digest', slot: 'design:team', toolId: 'design', sessionId: 's1', at: 1 }]]);
+  durable._setDurableBackendForTests({
+    get: async (key) => records.get(key), put: async (rec) => { records.set(rec.key, rec); },
+    delete: async (key) => { records.delete(key); }, all: async () => [...records.values()], clear: async () => { records.clear(); },
+  });
+  try {
+    reset();
+    store.set('lolly:team-origins', '1');
+    const files: Blob[] = [];
+    setHostRef(slotsHost({
+      'design:mine': { headline: 'My own work' },
+      'collab-recovery:old': { headline: 'An untagged copy from before the tags' },
+      'collab-recovery:ana': { headline: 'Ana\'s interrupted team edit', ...tagged('u_ana') },
+      'collab-recovery:bo': { headline: 'Bo\'s interrupted team edit', ...tagged('u_bo') },
+      'design:team': { headline: 'A copy of a team document' },
+    }, files));
+    controlPlane({ mode: 'gated', session: 'none' });
+    await initOrg();
+    await until(() => !!gateButton(), 'the offer');
+    gateButton()!.click();
+    await until(() => files.length === 1, 'the backup file');
+    const zip = unzipSync(new Uint8Array(await files[0]!.arrayBuffer()));
+    const sessions = JSON.parse(strFromU8(zip['sessions.json']!)) as Array<{ slot: string; data: unknown }>;
+    assert.deepEqual(sessions.map((row) => row.slot).sort(), ['collab-recovery:old', 'design:mine'], 'only work that belongs to nobody in particular');
+    const text = strFromU8(zip['sessions.json']!);
+    assert.ok(!text.includes('collab-recovery:ana') && !text.includes('u_bo') && !text.includes('A copy of a team document'));
+    assert.equal(zip['revision-history.json'], undefined, 'no history, whose checkpoints would carry the left-out documents');
+  } finally {
+    durable._setDurableBackendForTests(null);
+  }
+});
+
+test('the gate makes no offer when everything here is another person\'s or a team\'s', async () => {
+  reset();
+  setHostRef(slotsHost({ 'collab-recovery:bo': { headline: 'Bo\'s edit', ...tagged('u_bo') } }, []));
+  controlPlane({ mode: 'gated', session: 'none' });
+  await initOrg();
+  await settle();
+  assert.equal(gateButton(), null);
+  assert.equal(document.getElementById('org-gate-device-work')!.hidden, true);
 });
 
 test('a failed backup says so on the gate and keeps the offer', async () => {
