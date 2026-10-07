@@ -449,7 +449,7 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       return { state, ...(manifest?.name ? { label: manifest.name } : {}) };
     };
 
-    const recoveryView = mountCollabRecovery(runtime, opts.libraryHost ?? opts.host, stage, currentSession);
+    const recoveryView = mountCollabRecovery(runtime, opts.libraryHost ?? opts.host, stage, currentSession, () => handle.self.userId);
     steps.unshift(() => recoveryView.teardown());
     if (handle.recoveryIn) steps.unshift(handle.recoveryIn.subscribe(copy => {
       retainCanvasRecovery(runtime, canvasRecoveryValues(runtime.getModel(), copy.ops), 'Recovered edit', copy.id);

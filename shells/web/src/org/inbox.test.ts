@@ -264,11 +264,17 @@ test('a share message for a project already open is acked instead of listed', as
 
 test('the started inbox feeds its attached banner exactly once', async () => {
   attachBanner();
-  router = () => json({ messages: [msg('hello', { title: 'Welcome to lolly.ing' })] });
+  const notice = msg('cn_0123456789abcdef01234567', { kind: 'comment', title: 'Ana mentioned you in Poster',
+    cta: { label: 'Open thread', url: 'https://elsewhere.example/#/team/s1?thread=t1' },
+    data: { kind: 'comment-mention', sessionId: 's1', threadId: 't1', actorName: 'Ana', label: 'Poster', count: '1' } });
+  router = () => json({ messages: [msg('hello', { title: 'Welcome to lolly.ing' }), notice] });
   startInbox({ initialUnread: 1 });
   await settle();
   const { notificationEntries } = await import('../lib/notifications.ts');
   assert.ok(notificationEntries().some(row => row.title === 'Welcome to lolly.ing'));
+  // A comment notice never follows the server's cta.url: its action opens the inbox, where Open thread is built from data.
+  const queued = notificationEntries().find(row => row.id.endsWith(`:${notice.id}`));
+  assert.ok(queued?.action && !('href' in queued.action && queued.action.href), 'no link from cta.url');
   assert.equal(document.getElementById('org-banner'), null);
   startInbox({ initialUnread: 1 });
   await settle();

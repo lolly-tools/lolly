@@ -294,7 +294,7 @@ export function startInbox(opts: { initialUnread: number; principal?: string; re
     id: `workspace:${scope}:${m.id}`, title: m.title, body: m.body,
     tone: m.severity === 'blocking' ? 'warning' as const : m.severity === 'action' ? 'action' as const : 'info' as const,
     dismissible: m.dismissible, onDismiss: () => { if (messages.find(row => row.id === m.id)?.dismissible) dismissMessage(m.id); },
-    ...(m.data?.kind === 'access-request' || m.kind === 'collab' || m.data?.kind === 'collab-invite'
+    ...(m.data?.kind === 'access-request' || m.kind === 'collab' || m.data?.kind === 'collab-invite' || m.data?.kind === 'comment-mention' || m.data?.kind === 'comment-reply'
       ? { action: { label: t('Review'), run: () => { if (messages.some(row => row.id === m.id)) opts.review?.(); } } }
       : m.cta && safeHref(m.cta.url) ? { action: { label: m.cta.label, href: m.cta.url } } : {}),
   })));
