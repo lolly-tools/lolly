@@ -10,7 +10,7 @@ const RETIRED_PROJECTS = new Set([
   'prj_35famwkpiv5twrdgslwkzy7mfhig',
 ]);
 const MANAGED_DOMAINS = [
-  'lolly.tools', 'lolly.ing', 'lolly.work', 'lolly.art', 'lolly.free', 'lolly.to', 'lolly.sh',
+  'lolly.tools', 'lolly.ing', 'lolly.work', 'lolly.art', 'lolly.free', 'lolly.to', 'lolly.sh', 'vml.ai',
 ];
 
 interface DeploymentTarget {
