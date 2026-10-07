@@ -31,7 +31,7 @@ const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const BASELINE_PATH = join(ROOT, 'scripts/vernacular-code-baseline.json');
 
 /** Directory names never descended into. */
-const SKIP_DIRS = new Set(['node_modules', '.git', '.claude', 'dist', 'build', 'coverage']);
+const SKIP_DIRS = new Set(['node_modules', '.git', '.claude', '.worktrees', 'dist', 'build', 'coverage']);
 
 /** Repo-relative paths (dir or file prefix) that are vendored, generated or a
  *  gitignored profile VIEW. The tools/ and catalog/ roots are symlink views, so

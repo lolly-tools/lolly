@@ -70,6 +70,7 @@ import { announce } from './a11y.ts';
 import { beginViewFade } from './view-fade.ts';
 import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
 import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView } from './lib/back-nav.ts';
+import { requireWebGpu } from './lib/webgpu/device.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
 // module scope. All five are REGISTRATIONS - a Share-dialog row, the opener that row
@@ -1009,6 +1010,7 @@ function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGa
 }
 
 async function boot(): Promise<void> {
+  await requireWebGpu();
   // Prime the in-memory tool index from the last cached copy so the gallery can
   // paint immediately, before the network catalog sync resolves. syncCatalog
   // overwrites window.__toolIndex with fresh data when it lands. (Mirrors the
@@ -2215,41 +2217,6 @@ boot().catch(err => {
   // A stale-shell chunk failure during boot recovers the same way navigation does - 
   // reload onto the fresh shell (or a visible Reload card), never a dead screen.
   if (import.meta.env.PROD && looksLikeChunkError(err)) { recoverFromStaleShell(); return; }
-  // Build the error node with textContent - never interpolate err.message into
-  // innerHTML (it can carry attacker-influenced strings).
-  const view = document.getElementById('view')!;
-  view.textContent = '';
-  const div = document.createElement('div');
-  div.className = 'error';
-  const msg = document.createElement('p');
-  msg.style.margin = '0';
-  msg.textContent = `Boot failed: ${err.message}`;
-  div.appendChild(msg);
-
-  // A locked/wedged database is recoverable: once the offending tab (or a page
-  // frozen in the bfcache) closes, a reload boots cleanly. The common trigger is
-  // a DB version upgrade blocked by an older tab. Rather than dead-ending here,
-  // offer a Reload button AND auto-reload once when this page next regains
-  // visibility - i.e. the moment the user switches back after closing the other
-  // tab - so recovery doesn't depend on them knowing to reload manually.
-  if (err && (err.code === 'DB_BLOCKED' || err.code === 'DB_OPEN_TIMEOUT')) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn';
-    btn.textContent = 'Reload';
-    btn.style.marginTop = '10px';
-    btn.addEventListener('click', () => window.location.reload());
-    div.appendChild(btn);
-
-    let retried = false;
-    const retry = () => {
-      if (retried || document.visibilityState !== 'visible') return;
-      retried = true; // one automatic attempt, then leave it to the button
-      window.location.reload();
-    };
-    document.addEventListener('visibilitychange', retry);
-    window.addEventListener('focus', retry);
-  }
-
-  view.appendChild(div);
+  void import('./lib/boot-error.ts').then(({ showBootError }) => showBootError(err))
+    .catch(() => showReloadCard(err instanceof Error ? err.message : String(err)));
 });

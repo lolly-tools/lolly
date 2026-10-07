@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:5dafdefa-8f10-4dd6-8e32-82ad87059526",
+  "serialNumber": "urn:uuid:543edb9d-87d5-427c-886e-33f579376f88",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-05T10:04:33.483Z",
+    "timestamp": "2026-10-07T11:59:40.294Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -24765,6 +24765,33 @@
         {
           "alg": "SHA-512",
           "content": "cb12da415f609214bc7b326a08cebe9dd53b98363a82a020ef9350fb4223c0423c2183a64028244701ca5527d65d6d3be83b2a328d0393ed052b553e33946017"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40webgpu/types@0.1.74",
+      "name": "@webgpu/types",
+      "version": "0.1.74",
+      "purl": "pkg:npm/%40webgpu/types@0.1.74",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "960888e216ee2dc23dba79e6d9c2ffb6f09a414e39769d3170b589879b81ffd3011af200e05f17224ee74a205e83e2b8c56198c2064a9fcd0b984448e42c684c"
         }
       ],
       "properties": [

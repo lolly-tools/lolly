@@ -10,6 +10,19 @@ Lives at `shells/web/` in the [`lolly`](https://github.com/lolly-tools/lolly) re
 
 The `.js` specifier for a `.ts` file is deliberate, and it is the reason the Tauri shells carry a `jsToTsFallback` Vite plugin. This shell pins `vite@^8`, which resolves the sibling `.ts` implicitly; the Tauri shells pin `vite@^5`, which does not.
 
+Creative startup requires a usable WebGPU adapter and device in a secure context
+(HTTPS or local development). `src/lib/webgpu/device.ts` owns acquisition,
+deadlines and device loss; `main.ts` awaits acquisition before mounting the app.
+An unavailable adapter produces the required-environment error card. LUT photo
+grading requires WebGPU in both worker and main-realm execution, and failures
+propagate to asset/download callers. The embedded Tauri frontend has the same
+startup requirement; actual webview graphics support needs separate qualification.
+
+LUT bakes reuse a bounded worker and device-owned frame buffers, with cancellation
+acknowledgement and idle disposal. Up to eight LUT passes can share one upload and
+final readback. See the [pixel kernel guide](../../packages/node-shell/wasm/pixel-kernel/README.md)
+for numerical limits, resource ownership and `pnpm run test:webgpu` qualification.
+
 `index.html` is not a stub. It carries three things worth knowing about before you edit it:
 
 - An inline pre-paint script that reads `theme`, `brand-fonts`, `brand-radius` and `lang` from `localStorage` and stamps `data-theme`, the brand font custom properties, `<html lang>` and `dir` before the first frame. This is the **only** sanctioned use of `localStorage` in the shell. Tool and session state always goes through `host.state`, which is IndexedDB here. The language alias and `htmlLang` maps in that script are hand-inlined mirrors of `engine/src/lang.ts`, because an inline script cannot import anything.

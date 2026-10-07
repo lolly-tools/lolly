@@ -56,6 +56,9 @@ importers:
       '@types/three':
         specifier: ^0.186.0
         version: 0.186.0
+      '@webgpu/types':
+        specifier: 0.1.74
+        version: 0.1.74
       d3-geo:
         specifier: ^3.1.1
         version: 3.1.1
@@ -427,6 +430,9 @@ importers:
         specifier: 3.1.4
         version: 3.1.4(@types/emscripten@1.41.5)
     devDependencies:
+      '@webgpu/types':
+        specifier: 0.1.74
+        version: 0.1.74
       vite:
         specifier: ^8.3.1
         version: 8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
@@ -1572,6 +1578,9 @@ packages:
         optional: true
       oxc-transform-react:
         optional: true
+
+  '@webgpu/types@0.1.74':
+    resolution: {integrity: sha512-lgiI4hbuLcI9unnm2cL/tvCaQU45dp0xcLWJh5uB/9MBGvIA4F8XIk7nSiBeg+K4xWGYwgZKn80LmERI5CxoTA==}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -4018,6 +4027,8 @@ snapshots:
     dependencies:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
+
+  '@webgpu/types@0.1.74': {}
 
   accepts@2.0.0:
     dependencies:

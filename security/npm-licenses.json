@@ -230,6 +230,7 @@
   "@types/trusted-types@2.0.7": "MIT",
   "@types/webxr@0.5.24": "MIT",
   "@vitejs/plugin-react@6.1.1": "MIT",
+  "@webgpu/types@0.1.74": "BSD-3-Clause",
   "accepts@2.0.0": "MIT",
   "acorn@8.17.0": "MIT",
   "adm-zip@0.6.1": "MIT",

@@ -136,7 +136,13 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // paint. With the re-export gone boot measured 146.1,
 // ceiling unchanged, and boot-path-guard.test.ts now refuses a static fflate import
 // reachable from main.ts.
-const MAX_PRELOAD_JS_GZ = 158 * 1024;
+// 2026-10-06: the authorised hard WebGPU prerequisite needs adapter/device
+// acquisition before the creative shell starts. A same-source build with only
+// that prerequisite removed measured 157.9 KB gz; required startup measured
+// 158.5 KB after LUT admission, operation queues and recovery UI were split from
+// normal startup. Plan 295 records both measurements and the built-shell check.
+// Allow this required capability within 159 KB; later numerical work stays lazy.
+const MAX_PRELOAD_JS_GZ = 159 * 1024;
 // -----------------------------------------------------------------------------
 
 function fail(msg: string): never {

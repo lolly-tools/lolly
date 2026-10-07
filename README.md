@@ -169,6 +169,19 @@ Full command surface in [`docs/cli.md`](docs/cli.md); the setup path from a clea
 
 ## Development
 
+The current creative-shell source requires a usable WebGPU adapter and device
+at startup, including the frontend embedded by Tauri. Serve the web shell over
+HTTPS or localhost with graphics acceleration enabled. Acquisition failure
+shows guidance for using a supported environment. Browser LUT photo grading uses the
+`lut-webgpu-v1` recipe; existing CLI pixel recipes remain in place during this
+first migration slice. CLI inspection and ordinary engine operations do not
+acquire a graphics device. Embedded webviews and physical devices need separate
+qualification before release.
+
+`pnpm run test:webgpu` runs required browser conformance against the Rust/WASM
+and TypeScript references. See the [pixel kernel guide](packages/node-shell/wasm/pixel-kernel/README.md)
+for limits, rebuilding and explicit software-adapter CI configuration.
+
 > **New contributor?** Start at **[CONTRIBUTING.md](CONTRIBUTING.md)** - it routes you through the clone, content profiles, which file goes where, and the commands to run before a PR. Auditors and anyone touching a parser or a crypto module should read **[docs/threat-model.md](docs/threat-model.md)** and **[docs/parser-inventory.md](docs/parser-inventory.md)**.
 
 Lolly is one repository, with one private submodule (see [Repository layout](#repository-layout)). A plain clone and a normal commit are almost always what you want.

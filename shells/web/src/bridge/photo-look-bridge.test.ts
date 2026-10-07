@@ -17,11 +17,12 @@ import assert from 'node:assert/strict';
 import { createAssetsAPI } from './assets.ts';
 import { applyPhotoLook } from '../../../../engine/src/photo-look.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
+import { bakePhotoLookInRealm } from './photo-look-raster.ts';
 
 const LOOKS: PhotoTreatment[] = [{
   id: 'grade', kind: 'gradient-map', stops: ['#1b2a33', '#7a9a8c', '#f4f1ea'], amount: 90, contrast: 12,
   themes: { dark: { stops: ['#050608', '#1b2a33', '#b8d4c8'], amount: 95 } },
-}];
+}, { id: 'film', kind: 'lut', lut: 'test/lut/film', amount: 80 }];
 const W = 8, H = 4;
 
 function rawImage(type: string, data: Uint8ClampedArray, w: number, h: number): Blob {
@@ -112,6 +113,25 @@ test('an upload with a look the pack does not declare is the plain picture, not 
   assert.deepEqual(await bakedPixels(ref.url), SOURCE);
   const plain = await api.get('user/1/photo');
   assert.equal(ref.url, plain.url, 'the plain picture shares the upload\'s own object URL');
+});
+
+test('an upload with a LUT look fails visibly when WebGPU is absent', async () => {
+  const api = createAssetsAPI(fakeDb() as never);
+  const getBlob = api._getBlob.bind(api);
+  api._getBlob = async (id, opts) => id === 'test/lut/film'
+    ? new Blob(['LUT_1D_SIZE 2\n0 0 0\n1 1 1\n'])
+    : getBlob(id, opts);
+  await assert.rejects(api.get('user/1/photo?treatment=film'), { code: 'WEBGPU_REQUIRED' });
+  const plain = await api.get('user/1/photo');
+  assert.deepEqual(await bakedPixels(plain.url), SOURCE, 'the original upload remains available');
+});
+
+test('LUT photo dimensions are bounded before canvas and frame allocation', async () => {
+  await assert.rejects(bakePhotoLookInRealm({
+    blob: rawImage('image/png', new Uint8ClampedArray([1, 2, 3, 255]), 8193, 1024),
+    look: LOOKS[1]!,
+    lut: { kind: '1d', size: 2, data: new Float32Array([0, 0, 0, 1, 1, 1]), domainMin: [0, 0, 0], domainMax: [1, 1, 1], title: 'Identity' },
+  }), /outside the bake limit/);
 });
 
 test('a catalog look bake is revoked when the catalog prunes its blob, so the object URL does not leak', async () => {
