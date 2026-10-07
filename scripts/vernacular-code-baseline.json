@@ -66,7 +66,7 @@
   "engine/src/file-metadata.ts": 8,
   "engine/src/font-convert.ts": 2,
   "engine/src/frame-address.ts": 6,
-  "engine/src/frame-preview-svg.ts": 7,
+  "engine/src/frame-preview-svg.ts": 6,
   "engine/src/framing.ts": 3,
   "engine/src/gainmap-jpeg.ts": 2,
   "engine/src/gamut-axis.ts": 3,

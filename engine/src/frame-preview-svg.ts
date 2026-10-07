@@ -68,20 +68,13 @@
 import type { CompiledFrameV1, DesignBoxRowV1 } from '@lolly-tools/core';
 
 import {
-  AVERAGE_GLYPH_EM,
-  DESIGN_LINE_HEIGHT,
   DESIGN_TEXT_PAD,
   ESTIMATE_LINE_HEIGHT,
-  designTextPad,
-  layoutDesignText,
   wrapByAverageWidth,
 } from './deck-compile.ts';
 import { decodeAuthoredPaths } from './geom/authored-url.ts';
-import { toSvgPathData, type Contour } from './geom/path.ts';
-import { toCubics } from './geom/spline.ts';
-import type { DesignTextRunV1 } from './design-text.ts';
-import { gradientSpecStops, parseGradientSpec } from './gradient-spec.ts';
-import { colorToHexString } from './css-color.ts';
+import { compileDesignRow, rowFlag as flag, rowNum as num, rowStr as str } from './design-draw.ts';
+import { designDrawOpBody, firstBaseline, round2, svgEscape as esc, wrapOp, type DesignDrawSvgOpts } from './design-draw-svg.ts';
 
 /** The wrap the preview and the compile's fit pass share, re-exported where callers found it first. */
 export { wrapByAverageWidth };
@@ -150,74 +143,12 @@ const DEFAULT_FAMILY = 'system-ui, sans-serif';
 /** Family a `mono` slot takes when the caller names none. */
 const DEFAULT_MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
-/** Size a row with no size of its own is drawn at, in px. */
-const DEFAULT_FONT_SIZE = 16;
 
 /**
  * The inset between a text box's edge and its text, in px, when the row states
  * none: Design's `pad` default, the number the compile's fit pass reads too.
  */
 export const DESIGN_DEFAULT_PAD = DESIGN_TEXT_PAD;
-
-function esc(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function str(row: DesignBoxRowV1, key: string): string {
-  const value = row[key];
-  return typeof value === 'string' ? value : '';
-}
-
-function num(row: DesignBoxRowV1, key: string, fallback = 0): number {
-  const value = row[key];
-  if (typeof value === 'number') return Number.isFinite(value) ? value : fallback;
-  if (typeof value !== 'string' || value.trim() === '') return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function flag(row: DesignBoxRowV1, key: string): boolean {
-  const value = row[key];
-  return value === true || value === 'true' || value === 1 || value === '1';
-}
-
-function round2(n: number): number {
-  return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
-}
-
-/** The `preserveAspectRatio` one Design `fit` asks for. */
-function aspect(fit: string): string {
-  if (fit === 'cover') return 'xMidYMid slice';
-  if (fit === 'fill') return 'none';
-  return 'xMidYMid meet';
-}
-
-/** SVG text anchor and the x it is placed at, for one alignment inside a box. */
-function anchorOf(align: string, x: number, w: number): { anchor: string; x: number } {
-  if (align === 'center') return { anchor: 'middle', x: round2(x + w / 2) };
-  if (align === 'right') return { anchor: 'end', x: round2(x + w) };
-  return { anchor: 'start', x: round2(x) };
-}
-
-/**
- * The y of the first baseline inside a box, for one vertical alignment. Each line is
- * `lineHeight` of the size tall with its glyphs centred in it, as a CSS line box
- * sets them; a block taller than the box starts above it under `middle` and `bottom`,
- * as Design's flex box places it.
- */
-function firstBaseline(valign: string, y: number, h: number, fontSize: number, lines: number, lineHeight = ESTIMATE_LINE_HEIGHT): number {
-  const line = fontSize * lineHeight;
-  const block = lines * line;
-  const ascent = (line - fontSize) / 2 + fontSize * 0.8;
-  if (valign === 'middle') return round2(y + (h - block) / 2 + ascent);
-  if (valign === 'bottom') return round2(y + h - block + ascent);
-  return round2(y + ascent);
-}
 
 /** The distance between two hatch lines, across them, in frame units. */
 const HATCH_STEP = 8;
@@ -277,8 +208,7 @@ interface DrawCtxV1 {
  * `constructor` from reaching a function's source text, and the family is reduced
  * to the characters Design's own `fontFamily` keeps.
  */
-function familyOf(row: DesignBoxRowV1, ctx: DrawCtxV1): string {
-  const stated = str(row, 'font').trim();
+function familyOf(stated: string, ctx: DrawCtxV1): string {
   switch (stated) {
     case '':
       return ctx.family;
@@ -301,23 +231,6 @@ function familyOf(row: DesignBoxRowV1, ctx: DrawCtxV1): string {
       return safe ? `${safe}, ${ctx.family}` : ctx.family;
     }
   }
-}
-
-/**
- * The turn and the mirror one row states, about the box centre.
- *
- * Design folds both into one transform with its origin at the centre and composes
- * them `rotate() scale()`, so the artwork turns over in place; the same order is
- * written here, between the two translations SVG needs to move the origin.
- */
-function poseTransform(box: { x: number; y: number; w: number; h: number }, rot: number, flipH: boolean, flipV: boolean): string {
-  const cx = round2(box.x + box.w / 2);
-  const cy = round2(box.y + box.h / 2);
-  const parts = [`translate(${cx} ${cy})`];
-  if (rot !== 0) parts.push(`rotate(${round2(rot)})`);
-  if (flipH || flipV) parts.push(`scale(${flipH ? -1 : 1} ${flipV ? -1 : 1})`);
-  parts.push(`translate(${round2(-cx)} ${round2(-cy)})`);
-  return parts.join(' ');
 }
 
 /**
@@ -346,7 +259,7 @@ function drawMuted(box: { x: number; y: number; w: number; h: number }, label: s
   const size = Math.max(10, Math.min(18, round2(box.h / 4)));
   const lines = wrapByAverageWidth(label, size, box.w);
   const x = round2(box.x + box.w / 2);
-  const baseline = firstBaseline('middle', box.y, box.h, size, lines.length);
+  const baseline = firstBaseline('middle', box.y, box.h, size, lines.length, ESTIMATE_LINE_HEIGHT);
   out += `<text x="${x}" y="${baseline}" font-family="${esc(ctx.family)}" font-size="${size}"`
     + ` fill="${LABEL_INK}" text-anchor="middle">`;
   lines.forEach((line, i) => {
@@ -355,123 +268,43 @@ function drawMuted(box: { x: number; y: number; w: number; h: number }, label: s
   return `${out}</text>`;
 }
 
+/**
+ * One row of the frame. The row's meaning is compiled once (`design-draw.ts`) and its
+ * markup written by the shared emitter; this module adds only the preview's own
+ * policy: placeholders, empty slots and what a thumbnail leaves out.
+ */
 function drawRow(row: DesignBoxRowV1, offset: { x: number; y: number }, placeholder: boolean, ctx: DrawCtxV1): string {
-  const box = {
-    x: num(row, 'x') - offset.x,
-    y: num(row, 'y') - offset.y,
-    w: Math.max(0, num(row, 'w')),
-    h: Math.max(0, num(row, 'h')),
-  };
-  const opacity = num(row, 'opacity', 100);
-  const rot = num(row, 'rot');
-  const flipH = flag(row, 'flipH');
-  const flipV = flag(row, 'flipV');
-  const attrs = (opacity !== 100 ? ` opacity="${round2(Math.max(0, Math.min(100, opacity)) / 100)}"` : '')
-    + (rot !== 0 || flipH || flipV ? ` transform="${poseTransform(box, rot, flipH, flipV)}"` : '');
-  const open = attrs ? `<g${attrs}>` : '';
-  const close = open ? '</g>' : '';
+  const op = compileDesignRow(row, offset, ctx.thumbScale !== undefined ? { thumbScale: ctx.thumbScale } : {});
+  const box = op.box;
   const kind = str(row, 'kind');
+  const emit: DesignDrawSvgOpts = {
+    assetHref: ctx.assetHref,
+    family: (font) => familyOf(font, ctx),
+    mono: ctx.slots.mono,
+    // `alt`, the row's name or a plain sentence labels a picture that cannot be drawn here.
+    missingImage: (image) => drawMuted(image.box, image.label, ctx),
+    ...(ctx.thumbScale !== undefined ? { pathDecimals: 0 } : {}),
+  };
 
   if (placeholder) {
     // The label of a placeholder pair rides on its own row, so the box is drawn
     // hatched and the label row is drawn as ordinary text over it. At the thumbnail
     // rung the label is left out with the hatch.
-    if (kind === 'text') return ctx.thumbScale !== undefined ? '' : `${open}${drawText(row, box, ctx)}${close}`;
-    return `${open}${drawMuted(box, str(row, 'text'), ctx)}${close}`;
+    if (kind === 'text') return ctx.thumbScale !== undefined ? '' : wrapOp(op, designDrawOpBody(op, emit));
+    return wrapOp(op, drawMuted(box, str(row, 'text'), ctx));
   }
 
-  if (emptySlot(row)) return `${open}${drawEmptySlot(box, ctx)}${close}`;
+  if (emptySlot(row)) return wrapOp(op, drawEmptySlot(box, ctx));
 
   // At the thumbnail rung a row smaller than a pixel both ways draws nothing.
   if (ctx.thumbScale !== undefined && box.w * ctx.thumbScale < 1 && box.h * ctx.thumbScale < 1) return '';
 
-  if (kind === 'image') {
-    const ref = str(row, 'image');
-    const href = ref ? ctx.assetHref(ref) : undefined;
-    if (!href) {
-      // `alt` is not one of Design's own field ids, so a document that has been
-      // through Design carries none. The row's name is the next best thing to put
-      // in front of a person, and the plain sentence is the last resort.
-      const label = str(row, 'alt') || str(row, 'name') || 'Picture not available here';
-      return `${open}${drawMuted(box, label, ctx)}${close}`;
-    }
-    return `${open}<image x="${round2(box.x)}" y="${round2(box.y)}" width="${round2(box.w)}" height="${round2(box.h)}"`
-      + ` href="${esc(href)}" preserveAspectRatio="${aspect(str(row, 'fit'))}"/>${close}`;
+  if (kind === 'path' && ctx.thumbScale !== undefined) {
+    const paths = decodeAuthoredPaths(str(row, 'path'));
+    if (paths && glyphRun(row, box, paths)) return wrapOp(op, drawGlyphBar(row, box));
   }
 
-  if (kind === 'text') return `${open}${drawText(row, box, ctx)}${close}`;
-
-  if (kind === 'path') return `${open}${drawPath(row, box, ctx.thumbScale)}${close}`;
-
-  return `${open}${drawBox(row, box)}${close}`;
-}
-
-/**
- * A path row: every authored contour scaled from box fractions to the row's size
- * and lowered to cubics, joined into one `d` so a hole cut by an opposite contour
- * stays a hole. A value that does not decode draws nothing, the answer Design's
- * own renderer gives an unreadable path (it shows a notice there, which a
- * preview has no room for).
- */
-function drawPath(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h: number }, thumbScale?: number): string {
-  const paths = decodeAuthoredPaths(str(row, 'path'));
-  if (!paths || paths.length === 0) return '';
-  if (thumbScale !== undefined && glyphRun(row, box, paths)) return drawGlyphBar(row, box);
-  const w = Math.max(1, box.w);
-  const h = Math.max(1, box.h);
-  const contours: Contour[] = [];
-  for (const path of paths) {
-    // At the thumbnail rung a contour under a pixel both ways is left out.
-    if (thumbScale !== undefined && subPixel(path.nodes, w, h, thumbScale)) continue;
-    const nodes = path.nodes.map((n) => ({
-      ...n,
-      x: box.x + n.x * w,
-      y: box.y + n.y * h,
-      ...(n.hInX !== undefined ? { hInX: n.hInX * w } : {}),
-      ...(n.hInY !== undefined ? { hInY: n.hInY * h } : {}),
-      ...(n.hOutX !== undefined ? { hOutX: n.hOutX * w } : {}),
-      ...(n.hOutY !== undefined ? { hOutY: n.hOutY * h } : {}),
-    }));
-    try {
-      const curves = toCubics({ ...path, nodes });
-      if (curves.length) contours.push({ curves, closed: path.closed });
-    } catch {
-      // A node set the lowering refuses draws nothing, as Design draws it.
-    }
-  }
-  if (!contours.length) return '';
-  const fill = str(row, 'bg');
-  const stroke = str(row, 'stroke');
-  const strokeW = num(row, 'strokeW');
-  const rule = str(row, 'fillRule') === 'evenodd' ? ' fill-rule="evenodd"' : '';
-  let paint = `fill="${fill ? esc(fill) : 'none'}"${rule}`;
-  if (stroke && strokeW > 0) {
-    const cap = str(row, 'strokeCap') || 'round';
-    const join = str(row, 'strokeJoin') || 'round';
-    paint += ` stroke="${esc(stroke)}" stroke-width="${round2(strokeW)}" stroke-linecap="${esc(cap)}" stroke-linejoin="${esc(join)}"`;
-    if (str(row, 'strokeDash') === 'dashed') {
-      const dash = num(row, 'strokeDashLen') || strokeW * 3;
-      const gap = num(row, 'strokeGapLen') || strokeW * 2;
-      paint += ` stroke-dasharray="${round2(dash)} ${round2(gap)}"`;
-    }
-  }
-  return `<path d="${esc(toSvgPathData(contours, thumbScale !== undefined ? 0 : 2))}" ${paint}/>`;
-}
-
-/** Whether a contour, its nodes in box fractions, spans under a pixel both ways at `scale`. */
-function subPixel(nodes: ReadonlyArray<{ x: number; y: number }>, w: number, h: number, scale: number): boolean {
-  if (nodes.length === 0) return true;
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  for (const node of nodes) {
-    minX = Math.min(minX, node.x);
-    maxX = Math.max(maxX, node.x);
-    minY = Math.min(minY, node.y);
-    maxY = Math.max(maxY, node.y);
-  }
-  return (maxX - minX) * w * scale < 1 && (maxY - minY) * h * scale < 1;
+  return wrapOp(op, designDrawOpBody(op, emit));
 }
 
 /**
@@ -502,153 +335,6 @@ function drawGlyphBar(row: DesignBoxRowV1, box: { x: number; y: number; w: numbe
   const h = box.h * GLYPH_BAR_HEIGHT;
   return `<rect x="${Math.round(box.x)}" y="${Math.round(box.y + (box.h - h) / 2)}" width="${Math.max(1, Math.round(box.w))}"`
     + ` height="${Math.max(1, Math.round(h))}" fill="${esc(str(row, 'bg'))}" opacity="${GLYPH_BAR_OPACITY}"/>`;
-}
-
-/** A 32-bit FNV-1a hash in base 36, for an id derived from the content it labels. */
-function contentId(text: string): string {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  return h.toString(36);
-}
-
-/**
- * A row's `grad` spec as an SVG gradient: the definition and the `url(#id)` paint,
- * or null when the spec is absent, unreadable or conic (which SVG has no primitive
- * for). Stops are the engine's baked sRGB stops, each with its own `stop-opacity`. A
- * linear gradient runs along the CSS gradient line of the box (its length
- * |w sin a| + |h cos a|); a radial one is the ellipse through the box's corners, as
- * `gradientSpecToCss` writes the radial form. The id is a hash of the definition itself, so two
- * drawings mounted in one document can share an id only when they share the gradient.
- */
-function gradientPaint(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h: number }): { defs: string; paint: string } | null {
-  const spec = str(row, 'grad');
-  if (!spec) return null;
-  const g = parseGradientSpec(spec);
-  if (!g || g.kind === 'conic') return null;
-  const baked = gradientSpecStops(g);
-  if (baked.length < 2) return null;
-  const stops = baked.map((s) => {
-    const hex = colorToHexString(s.color);
-    const alpha = hex.length === 9 ? Number.parseInt(hex.slice(7, 9), 16) / 255 : 1;
-    return `<stop offset="${round2(Math.max(0, Math.min(100, s.pos)) / 100)}" stop-color="${hex.slice(0, 7)}"`
-      + (alpha < 1 ? ` stop-opacity="${round2(alpha)}"` : '') + '/>';
-  }).join('');
-  let head: string;
-  if (g.kind === 'linear') {
-    const rad = (g.angle * Math.PI) / 180;
-    const dx = Math.sin(rad);
-    const dy = -Math.cos(rad);
-    const half = (Math.abs(box.w * dx) + Math.abs(box.h * dy)) / 2;
-    const cx = box.x + box.w / 2;
-    const cy = box.y + box.h / 2;
-    head = `<linearGradient gradientUnits="userSpaceOnUse" x1="${round2(cx - dx * half)}" y1="${round2(cy - dy * half)}"`
-      + ` x2="${round2(cx + dx * half)}" y2="${round2(cy + dy * half)}"`;
-  } else {
-    head = '<radialGradient cx="0.5" cy="0.5" r="0.71"';
-  }
-  const tag = g.kind === 'linear' ? 'linearGradient' : 'radialGradient';
-  const body = `${head}>${stops}</${tag}>`;
-  const id = `lg${contentId(body)}`;
-  return { defs: `<defs>${body.replace(`<${tag} `, `<${tag} id="${id}" `)}</defs>`, paint: `url(#${id})` };
-}
-
-function drawBox(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h: number }): string {
-  const grad = gradientPaint(row, box);
-  if (grad) {
-    // Design paints `bg` under the gradient, so a row with both draws both, in that order.
-    const under = str(row, 'bg') ? drawBoxPaint({ ...row, stroke: '' }, box, str(row, 'bg')) : '';
-    return `${grad.defs}${under}${drawBoxPaint(row, box, grad.paint, true)}`;
-  }
-  return drawBoxPaint(row, box, str(row, 'bg'));
-}
-
-function drawBoxPaint(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h: number }, fill: string, raw = false): string {
-  const stroke = str(row, 'stroke');
-  const strokeW = num(row, 'strokeW');
-  const radius = num(row, 'radius');
-  const shape = str(row, 'shape');
-  let paint = `fill="${fill ? (raw ? fill : esc(fill)) : 'none'}"`
-    + (stroke && strokeW > 0 ? ` stroke="${esc(stroke)}" stroke-width="${round2(strokeW)}"` : '');
-  // A dashed outline draws dashed, with the same lengths `drawPath` uses.
-  if (stroke && strokeW > 0 && str(row, 'strokeDash') === 'dashed') {
-    const dash = num(row, 'strokeDashLen') || strokeW * 3;
-    const gap = num(row, 'strokeGapLen') || strokeW * 2;
-    paint += ` stroke-dasharray="${round2(dash)} ${round2(gap)}"`;
-  }
-  // A circle is an ellipse the editor keeps square, and a pill is a rectangle
-  // rounded to half its short side: the two Design's own `radiusFor` maps to 50%
-  // and 9999px. Drawing either as a square-cornered rectangle would disagree with
-  // the document Design opens.
-  if (shape === 'ellipse' || shape === 'circle') {
-    return `<ellipse cx="${round2(box.x + box.w / 2)}" cy="${round2(box.y + box.h / 2)}"`
-      + ` rx="${round2(box.w / 2)}" ry="${round2(box.h / 2)}" ${paint}/>`;
-  }
-  const rx = shape === 'pill'
-    ? Math.min(box.w, box.h) / 2
-    : shape === 'rounded' ? Math.max(radius, 0) : radius;
-  return `<rect x="${round2(box.x)}" y="${round2(box.y)}" width="${round2(box.w)}" height="${round2(box.h)}"`
-    + (rx > 0 ? ` rx="${round2(rx)}"` : '') + ` ${paint}/>`;
-}
-
-function drawText(row: DesignBoxRowV1, box: { x: number; y: number; w: number; h: number }, ctx: DrawCtxV1): string {
-  const text = str(row, 'text');
-  const size = num(row, 'fontSize', DEFAULT_FONT_SIZE) || DEFAULT_FONT_SIZE;
-  const fill = str(row, 'bg');
-  const grad = gradientPaint(row, box);
-  const rect = (paint: string): string => `<rect x="${round2(box.x)}" y="${round2(box.y)}" width="${round2(box.w)}" height="${round2(box.h)}" fill="${paint}"/>`;
-  const lead = (fill ? rect(esc(fill)) : '') + (grad ? `${grad.defs}${rect(grad.paint)}` : '');
-  if (!text) return lead;
-  // The fill covers the whole box; the words sit inside the pad, as Design lays them.
-  const pad = designTextPad(row);
-  const inner = {
-    x: box.x + pad,
-    y: box.y + pad,
-    w: Math.max(0, box.w - pad * 2),
-    h: Math.max(0, box.h - pad * 2),
-  };
-  // SVG folds leading spaces, so a styled line's indent is an offset on its first line.
-  const { lines, indents } = layoutDesignText(text, size, inner.w);
-  const { anchor, x } = anchorOf(str(row, 'align'), inner.x, inner.w);
-  // Design centres a row that states no vertical alignment, and its box clips the words.
-  const valign = str(row, 'valign') || 'middle';
-  const baseline = firstBaseline(valign, inner.y, inner.h, size, lines.length, DESIGN_LINE_HEIGHT);
-  const weight = num(row, 'weight');
-  const ink = str(row, 'fg') || '#111111';
-  let out = `<text x="${x}" y="${baseline}" font-family="${esc(familyOf(row, ctx))}" font-size="${round2(size)}"`
-    + ` fill="${esc(ink)}" text-anchor="${anchor}"`
-    + (weight > 0 ? ` font-weight="${round2(weight)}"` : '') + '>';
-  lines.forEach((runs, i) => {
-    const dx = (indents[i] ?? 0) * size * AVERAGE_GLYPH_EM;
-    out += `<tspan x="${x}"${dx > 0 ? ` dx="${round2(dx)}"` : ''}${i > 0 ? ` dy="${round2(size * DESIGN_LINE_HEIGHT)}"` : ''}>`;
-    for (const run of runs) out += runSpan(run, ctx);
-    out += '</tspan>';
-  });
-  out += '</text>';
-  // The box clips its words where Design's does (`overflow: hidden` on every box). A
-  // nested viewport clips without an id, so a drawing mounted many times in one
-  // document clips every copy.
-  const clip = `<svg x="${round2(box.x)}" y="${round2(box.y)}" width="${round2(box.w)}" height="${round2(box.h)}"`
-    + ` viewBox="${round2(box.x)} ${round2(box.y)} ${round2(box.w)} ${round2(box.h)}" overflow="hidden">${out}</svg>`;
-  return `${lead}${clip}`;
-}
-
-/**
- * One run of a styled line. A run with no style of its own is bare text in its line's
- * `tspan`, so a row in Design's text subset draws its plain words exactly as before.
- */
-function runSpan(run: DesignTextRunV1, ctx: DrawCtxV1): string {
-  const attrs: string[] = [];
-  const weight = run.weight ?? (run.bold ? 700 : undefined);
-  if (weight !== undefined) attrs.push(`font-weight="${round2(weight)}"`);
-  if (run.italic) attrs.push('font-style="italic"');
-  const deco = [run.underline ? 'underline' : '', run.strike ? 'line-through' : ''].filter(Boolean).join(' ');
-  if (deco) attrs.push(`text-decoration="${deco}"`);
-  if (run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color)) attrs.push(`fill="${esc(run.color)}"`);
-  if (run.font === 'mono') attrs.push(`font-family="${esc(ctx.slots.mono)}"`);
-  return attrs.length > 0 ? `<tspan ${attrs.join(' ')}>${esc(run.text)}</tspan>` : esc(run.text);
 }
 
 /**
