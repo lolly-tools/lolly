@@ -74,3 +74,27 @@ export function endFrameClock(c: FrameClockCanvas | null): void {
   remembered.delete(c);
   c.__lollyFrameDriven = false;
 }
+
+/**
+ * The capture for one export frame when plain dom-to-image is not enough, or null
+ * when it is (the caller then captures as usual).
+ *
+ * Two cases. A Node/Playwright caller that registered an external screenshot gets a real
+ * Chromium screenshot (`screenshot`). And SMIL motion is posed at the frame's time first:
+ * scrubAnimations reaches only what getAnimations() lists, which SMIL is not, and
+ * dom-to-image's clone restarts every <animate*> at 0, so a tool whose inline <svg>
+ * animates (Pose Geeko's alive loop) used to export its first frame N times.
+ * captureSvgTime poses SMIL and CSS at `ms`, pins the result into the markup for the
+ * one capture, then puts everything back; a picture it cannot pose is captured as is.
+ */
+export async function posedFrame<T>(node: Element, ms: number, screenshot: (() => Promise<T>) | null, clone: () => Promise<T>): Promise<T | null> {
+  if (!node.querySelector('animate, animateTransform, animateMotion, animateColor, set')) return screenshot ? screenshot() : null;
+  const capture = screenshot ?? clone;
+  try {
+    const { captureSvgTime } = await import('./sequence-svg-clock.ts');
+    return await captureSvgTime(node as HTMLElement, ms / 1000, capture);
+  } catch (e) {
+    _host?.log?.('warn', `frame capture: SMIL could not be posed, capturing as is: ${(e as Error)?.message ?? e}`);
+    return capture();
+  }
+}
