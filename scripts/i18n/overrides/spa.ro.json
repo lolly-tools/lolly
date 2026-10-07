@@ -983,5 +983,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Se afișează {shown} din {total}. Folosește căutarea pentru a restrânge lista.",
   "Added 1 file to this folder.": "A fost adăugat 1 fișier în acest folder.",
   "Added {n} files to this folder.": "Fișiere adăugate în acest folder: {n}.",
-  "Drop to add to this folder": "Eliberează pentru a adăuga în acest folder"
+  "Drop to add to this folder": "Eliberează pentru a adăuga în acest folder",
+  "Search all {n}": "Caută în toate cele {n}",
+  "Search all {facet} options": "Caută în toate opțiunile pentru {facet}"
 }

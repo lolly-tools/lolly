@@ -1112,5 +1112,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Показано {shown} з {total}. Скористайтеся пошуком, щоб звузити список.",
   "Added 1 file to this folder.": "До цієї папки додано 1 файл.",
   "Added {n} files to this folder.": "Файли, додані до цієї папки: {n}.",
-  "Drop to add to this folder": "Відпустіть, щоб додати до цієї папки"
+  "Drop to add to this folder": "Відпустіть, щоб додати до цієї папки",
+  "Search all {n}": "Пошук серед усіх {n}",
+  "Search all {facet} options": "Пошук серед усіх варіантів: {facet}"
 }

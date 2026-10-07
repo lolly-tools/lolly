@@ -1112,5 +1112,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "{total} içinden {shown} gösteriliyor. Listeyi daraltmak için ara.",
   "Added 1 file to this folder.": "Bu klasöre 1 dosya eklendi.",
   "Added {n} files to this folder.": "Bu klasöre eklenen dosya sayısı: {n}.",
-  "Drop to add to this folder": "Bu klasöre eklemek için bırak"
+  "Drop to add to this folder": "Bu klasöre eklemek için bırak",
+  "Search all {n}": "Tüm {n} içinde ara",
+  "Search all {facet} options": "Tüm {facet} seçeneklerinde ara"
 }

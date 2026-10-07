@@ -421,6 +421,11 @@
   z-index: 1;
   pointer-events: none;
 }
+/* A long library draws a page at a time (lib/lazy-grid.ts) and the cards scrolled out of
+   view skip layout and paint until they come near. `auto` keeps each card's measured
+   height once drawn; the first guess is the 100px thumb plus name, id, padding and gap. */
+.asset-picker-grid > .asset-picker-card { content-visibility: auto; contain-intrinsic-size: auto 160px; }
+.asset-picker-group-body > .lazy-grid-more { display: flex; margin: 10px auto 0; }
 .asset-picker-thumb {
   width: 100%;
   height: 100px;

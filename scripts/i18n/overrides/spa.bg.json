@@ -1114,5 +1114,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Показани са {shown} от {total}. Използвайте търсенето, за да стесните списъка.",
   "Added 1 file to this folder.": "В тази папка е добавен 1 файл.",
   "Added {n} files to this folder.": "Файлове, добавени в тази папка: {n}.",
-  "Drop to add to this folder": "Пуснете, за да добавите в тази папка"
+  "Drop to add to this folder": "Пуснете, за да добавите в тази папка",
+  "Search all {n}": "Търсене във всички {n}",
+  "Search all {facet} options": "Търсене във всички опции за {facet}"
 }

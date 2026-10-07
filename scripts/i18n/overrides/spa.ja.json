@@ -984,5 +984,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "{total}件中{shown}件を表示しています。検索して絞り込めます。",
   "Added 1 file to this folder.": "このフォルダにファイルを1件追加しました。",
   "Added {n} files to this folder.": "このフォルダにファイルを{n}件追加しました。",
-  "Drop to add to this folder": "ドロップしてこのフォルダに追加"
+  "Drop to add to this folder": "ドロップしてこのフォルダに追加",
+  "Search all {n}": "{n}件すべてを検索",
+  "Search all {facet} options": "{facet}のすべての選択肢を検索"
 }

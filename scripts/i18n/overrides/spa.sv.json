@@ -976,5 +976,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Visar {shown} av {total}. Sök för att begränsa listan.",
   "Added 1 file to this folder.": "1 fil lades till i den här mappen.",
   "Added {n} files to this folder.": "Filer som lades till i den här mappen: {n}.",
-  "Drop to add to this folder": "Släpp för att lägga till i den här mappen"
+  "Drop to add to this folder": "Släpp för att lägga till i den här mappen",
+  "Search all {n}": "Sök bland alla {n}",
+  "Search all {facet} options": "Sök bland alla alternativ för {facet}"
 }

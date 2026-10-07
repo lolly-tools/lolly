@@ -7479,5 +7479,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Ipinapakita ang {shown} sa {total}. Maghanap para paliitin ang listahan.",
   "Added 1 file to this folder.": "Nagdagdag ng 1 file sa folder na ito.",
   "Added {n} files to this folder.": "Nagdagdag ng {n} file sa folder na ito.",
-  "Drop to add to this folder": "I-drop para idagdag sa folder na ito"
+  "Drop to add to this folder": "I-drop para idagdag sa folder na ito",
+  "Search all {n}": "Maghanap sa lahat ng {n}",
+  "Search all {facet} options": "Maghanap sa lahat ng opsyon ng {facet}"
 }

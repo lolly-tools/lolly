@@ -31,3 +31,13 @@ test('file metadata refuses upstream URLs, duplicate identities and foreign asse
   const safe = assetFiles({ assetFiles: [{ ...files[0], thumbnail: 'https://private.example/preview' }] });
   assert.equal(safe[0]?.thumbnail, undefined);
 });
+test('a selected variation never borrows a picture of a different file', () => {
+  const withThumb: AssetRef = { ...ref, meta: { ...ref.meta, thumbUrl: `/catalog/${group}/thumb`, posterUrl: `/catalog/${group}/thumb` } };
+  const primary = selectAssetFile(withThumb, files[0]!), other = selectAssetFile(withThumb, files[1]!);
+  assert.equal(primary.meta?.thumbUrl, `/catalog/${group}/thumb`, 'the primary file keeps the group thumb, which pictures it');
+  assert.equal(other.meta?.thumbUrl, undefined, 'another file with no preview of its own draws itself');
+  assert.equal(other.meta?.posterUrl, undefined);
+  const previewed = { ...files[1]!, thumbnail: `${files[1]!.url}?preview=1` };
+  const own = selectAssetFile({ ...withThumb, meta: { ...withThumb.meta, assetFiles: [files[0], previewed] } }, previewed);
+  assert.equal(own.meta?.thumbUrl, `${files[1]!.url}?preview=1`, 'a file preview of its own wins');
+});

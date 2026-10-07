@@ -7479,5 +7479,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "显示 {total} 个中的 {shown} 个，可通过搜索缩小范围。",
   "Added 1 file to this folder.": "已向此文件夹添加 1 个文件。",
   "Added {n} files to this folder.": "已向此文件夹添加 {n} 个文件。",
-  "Drop to add to this folder": "松开即可添加到此文件夹"
+  "Drop to add to this folder": "松开即可添加到此文件夹",
+  "Search all {n}": "搜索全部 {n} 项",
+  "Search all {facet} options": "搜索所有{facet}选项"
 }

@@ -7479,5 +7479,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "顯示 {total} 個中的 {shown} 個，可透過搜尋縮小範圍。",
   "Added 1 file to this folder.": "已向此資料夾新增 1 個檔案。",
   "Added {n} files to this folder.": "已向此資料夾新增 {n} 個檔案。",
-  "Drop to add to this folder": "放開即可新增到此資料夾"
+  "Drop to add to this folder": "放開即可新增到此資料夾",
+  "Search all {n}": "搜尋全部 {n} 項",
+  "Search all {facet} options": "搜尋所有{facet}選項"
 }

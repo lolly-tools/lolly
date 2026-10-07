@@ -7479,5 +7479,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Viser {shown} av {total}. Søk for å begrense listen.",
   "Added 1 file to this folder.": "La til 1 fil i denne mappen.",
   "Added {n} files to this folder.": "La til {n} filer i denne mappen.",
-  "Drop to add to this folder": "Slipp for å legge til i denne mappen"
+  "Drop to add to this folder": "Slipp for å legge til i denne mappen",
+  "Search all {n}": "Søk i alle {n}",
+  "Search all {facet} options": "Søk i alle {facet}-alternativer"
 }

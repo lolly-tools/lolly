@@ -1114,5 +1114,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "{total}개 중 {shown}개 표시 중이에요. 검색해서 목록을 좁혀 보세요.",
   "Added 1 file to this folder.": "이 폴더에 파일 1개를 추가했어요.",
   "Added {n} files to this folder.": "이 폴더에 파일 {n}개를 추가했어요.",
-  "Drop to add to this folder": "여기에 놓아 이 폴더에 추가"
+  "Drop to add to this folder": "여기에 놓아 이 폴더에 추가",
+  "Search all {n}": "{n}개 전체 검색",
+  "Search all {facet} options": "{facet} 옵션 전체 검색"
 }

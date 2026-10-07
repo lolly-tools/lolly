@@ -7479,5 +7479,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "{shown} van {total} weergegeven. Zoek om de lijst te verkleinen.",
   "Added 1 file to this folder.": "1 bestand toegevoegd aan deze map.",
   "Added {n} files to this folder.": "{n} bestanden toegevoegd aan deze map.",
-  "Drop to add to this folder": "Neerzetten om toe te voegen aan deze map"
+  "Drop to add to this folder": "Neerzetten om toe te voegen aan deze map",
+  "Search all {n}": "Zoek in alle {n}",
+  "Search all {facet} options": "Zoek in alle {facet}-opties"
 }

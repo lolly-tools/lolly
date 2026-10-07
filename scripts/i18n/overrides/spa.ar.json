@@ -1119,5 +1119,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "عرض {shown} من {total}. ابحث لتضييق القائمة.",
   "Added 1 file to this folder.": "تمت إضافة ملف واحد إلى هذا المجلد.",
   "Added {n} files to this folder.": "تمت إضافة {n} ملفات إلى هذا المجلد.",
-  "Drop to add to this folder": "أفلت لإضافته إلى هذا المجلد"
+  "Drop to add to this folder": "أفلت لإضافته إلى هذا المجلد",
+  "Search all {n}": "بحث في كل {n}",
+  "Search all {facet} options": "البحث في كل خيارات {facet}"
 }

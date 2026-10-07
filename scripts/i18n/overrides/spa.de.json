@@ -984,5 +984,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "{shown} von {total} werden angezeigt. Verfeinern Sie die Liste per Suche.",
   "Added 1 file to this folder.": "1 Datei zu diesem Ordner hinzugefügt.",
   "Added {n} files to this folder.": "{n} Dateien zu diesem Ordner hinzugefügt.",
-  "Drop to add to this folder": "Hier ablegen, um zu diesem Ordner hinzuzufügen"
+  "Drop to add to this folder": "Hier ablegen, um zu diesem Ordner hinzuzufügen",
+  "Search all {n}": "In allen {n} suchen",
+  "Search all {facet} options": "In allen {facet}-Optionen suchen"
 }

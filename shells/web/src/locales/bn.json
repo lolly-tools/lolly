@@ -7479,5 +7479,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "{total}টির মধ্যে {shown}টি দেখানো হচ্ছে। তালিকা ছোট করতে খুঁজুন।",
   "Added 1 file to this folder.": "এই ফোল্ডারে 1টি ফাইল যোগ করা হয়েছে।",
   "Added {n} files to this folder.": "এই ফোল্ডারে {n}টি ফাইল যোগ করা হয়েছে।",
-  "Drop to add to this folder": "এই ফোল্ডারে যোগ করতে ছেড়ে দিন"
+  "Drop to add to this folder": "এই ফোল্ডারে যোগ করতে ছেড়ে দিন",
+  "Search all {n}": "সব {n}টিতে খুঁজুন",
+  "Search all {facet} options": "সব {facet} বিকল্পে খুঁজুন"
 }

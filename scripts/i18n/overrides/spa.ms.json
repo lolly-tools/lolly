@@ -984,5 +984,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Menunjukkan {shown} daripada {total}. Cari untuk mengecilkan senarai.",
   "Added 1 file to this folder.": "1 fail ditambah ke folder ini.",
   "Added {n} files to this folder.": "{n} fail ditambah ke folder ini.",
-  "Drop to add to this folder": "Lepaskan untuk menambah ke folder ini"
+  "Drop to add to this folder": "Lepaskan untuk menambah ke folder ini",
+  "Search all {n}": "Cari dalam semua {n}",
+  "Search all {facet} options": "Cari dalam semua pilihan {facet}"
 }

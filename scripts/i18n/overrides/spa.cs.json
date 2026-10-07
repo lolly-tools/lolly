@@ -977,5 +977,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Zobrazeno {shown} z {total}. Seznam zúžíte hledáním.",
   "Added 1 file to this folder.": "Do této složky byl přidán 1 soubor.",
   "Added {n} files to this folder.": "Soubory přidané do této složky: {n}.",
-  "Drop to add to this folder": "Pusťte pro přidání do této složky"
+  "Drop to add to this folder": "Pusťte pro přidání do této složky",
+  "Search all {n}": "Hledat ve všech {n}",
+  "Search all {facet} options": "Hledat ve všech možnostech: {facet}"
 }

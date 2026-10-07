@@ -7479,5 +7479,7 @@
   "Showing {shown} of {total}. Search to narrow the list.": "Đang hiển thị {shown} trong {total}. Hãy tìm kiếm để thu hẹp danh sách.",
   "Added 1 file to this folder.": "Đã thêm 1 tệp vào thư mục này.",
   "Added {n} files to this folder.": "Đã thêm {n} tệp vào thư mục này.",
-  "Drop to add to this folder": "Thả để thêm vào thư mục này"
+  "Drop to add to this folder": "Thả để thêm vào thư mục này",
+  "Search all {n}": "Tìm trong tất cả {n}",
+  "Search all {facet} options": "Tìm trong tất cả tùy chọn {facet}"
 }

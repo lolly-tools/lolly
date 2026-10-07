@@ -253,7 +253,7 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'views/free-canvas-fields.ts': 1,
   'views/multi-edit.ts': 1,
   'views/personalize-nudge.ts': 1,
-  'views/picker.ts': 3,
+  'views/picker.ts': 2,
   'views/record-control.ts': 1,
   'views/tool-actions/sequence.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/tool-actions/markup.ts': 9,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -1115,7 +1115,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/assets/details-inline-modes.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/wiring.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/assets/sections.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/sections.ts': 5,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts; +3 2026-10-07 (Track A scale): expandDeferred inserts the folded group's body built by the same groupSection callers the full paint uses, and appendPage inserts assetTile() output plus showMoreHtml() (a scope string the view minted and two numbers), all already escape()d where interpolated
+  'lib/lazy-grid.ts': 2,   // 2026-10-07 (Track A scale): a deferred body and a further page of cards, both from the caller's own render functions (the picker's card(), every value escapeHtml()d); the module adds no interpolation of its own
   'views/assets/downloads.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/job-toast.ts': 2,   // +2 2026-08-17 (plan 124 WP-F): the pill + panel innerHTML - title/note/id/count all ESC()d
   'lib/perf-hud.ts': 1,    // +1 2026-08-18 (perf-hud flag): root.innerHTML = scaffold() - only icon() glyphs + tRaw() strings, no interpolated values; the live FPS number is written via textContent, not markup
