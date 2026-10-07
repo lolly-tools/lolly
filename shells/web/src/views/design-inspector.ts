@@ -773,7 +773,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (kindOf(box) === '3d' && F_SCENE) secs.push('scene');
     // A web page box's section carries its poster door, so it never also takes Image.
     else if (kindOf(box) === 'web' && F_WEB) secs.push('web');
-    else if (cfg.imageField && box[cfg.imageField]) secs.push('image');
+    else if (kindOf(box) === 'webcam' || (cfg.imageField && box[cfg.imageField])) secs.push('image');
     secs.push('object', ...paintSecs(true));
     secs.push('motion');
     // …and Present LAST, for the three per-box fields only a box can carry (see
@@ -1557,8 +1557,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const fitChoices: Array<[string, string, string?]> = fit.length
       ? fit.map(([v, l]) => [v, l, ({ contain: FIELD_GLYPH.fitContain, cover: FIELD_GLYPH.fitCover, fill: FIELD_GLYPH.fitFill } as Record<string, string>)[v]])
       : [['contain', t('Contain'), FIELD_GLYPH.fitContain], ['cover', t('Cover (crop)'), FIELD_GLYPH.fitCover], ['fill', t('Stretch'), FIELD_GLYPH.fitFill]];
-    return doorBtn(t('Set image'), 'pickimage', 'uploadImage')
-      + (actions.useAsInput ? doorBtn(t('Use image as input'), 'input-image', 'sliders') : '')
+    const liveCamera = kindOf(b) === 'webcam';
+    return (liveCamera ? '' : doorBtn(t('Set image'), 'pickimage', 'uploadImage'))
+      + (!liveCamera && actions.useAsInput ? doorBtn(t('Use image as input'), 'input-image', 'sliders') : '')
       + (cfg.fitField ? segRow(FIELD_GLYPH.fitContain, t('Image fit'), segHtml(cfg.fitField, String(fv(b, cfg.fitField) ?? 'contain'), fitChoices, t('Image fit'))) : '')
       + (cfg.imgPosField ? segRow(FIELD_GLYPH.fitPos, t('Image position'), posGridHtml(cfg.imgPosField, String(fv(b, cfg.imgPosField) ?? 'center'), t('Image position'))) : '');
   }
@@ -1878,7 +1879,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     emojiMounted = null;
     // The column head says WHAT is selected; a multi-selection has no one section that
     // could carry the count now that the paint groups stand on their own.
-    colTitle.textContent = g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : [kindOf(g.box), String(fv(g.box ?? {}, F_NAME) ?? '')].filter(Boolean).join(': ');
+    colTitle.textContent = g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : [kindOf(g.box) === 'webcam' ? t('Camera') : kindOf(g.box), String(fv(g.box ?? {}, F_NAME) ?? '')].filter(Boolean).join(': ');
     selectionTab.setAttribute('aria-pressed', String(!documentView));
     documentTab.setAttribute('aria-pressed', String(documentView));
     layerName.hidden = !(g.ids.length === 1 && F_NAME);
@@ -1896,6 +1897,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // flex row, and the one section carrying an action pushed its caret 72px
     // left of all the others.
     const sectionHtml = (sec: InspectorSection): string => {
+      const cameraSection = sec === 'image' && kindOf(g.box) === 'webcam';
       const openSec = isExpanded(sec, g);
       const deferred = opts.videoWorkspace?.() && !openSec;
       // The flag column holds a FLAG and nothing else. A section action cannot go
@@ -1906,7 +1908,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       const flag = !openSec && autoOpens(sec, g.box) ? `<em class="lp-sec-flag">${t('In use')}</em>` : '<i></i>';
       return `<section class="lp-sec fc-insp-sec" data-sec="${sec}">`
         + `<button type="button" class="lp-sec-head fc-insp-head" data-head="${sec}" aria-expanded="${openSec}">`
-        + `${icon(SECTION_META[sec].glyph)}<span class="lp-sec-name">${escape(SECTION_META[sec].title())}</span>`
+        + `${icon(cameraSection ? 'camera' : SECTION_META[sec].glyph)}<span class="lp-sec-name">${escape(cameraSection ? t('Camera') : SECTION_META[sec].title())}</span>`
         + `${flag}<i class="lp-caret" aria-hidden="true"></i></button>`
         + `<div class="lp-rows fc-insp-rows" data-rows="${sec}"${deferred ? ' data-deferred' : ''}${openSec ? '' : ' hidden'}>${deferred ? '' : bodyFor(sec, g)}</div>`
         + '</section>';

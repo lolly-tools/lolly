@@ -24,6 +24,7 @@ import type { helpersOps } from './helpers.ts';
 import type { selectOps } from './select.ts';
 import type { catalogIntakeOps } from './catalog-intake.ts';
 import type { fileDropOps } from './file-drop.ts';
+import type { cameraCaptureOps } from './camera-capture.ts';
 import type { timelineOps } from './timeline.ts';
 import type { stageOps } from './stage.ts';
 import type { narrationOps } from './narration.ts';
@@ -61,6 +62,7 @@ import type { editorStateOps } from './editor-state.ts';
 import type { LoadedMaster, MasterStatus, slideMastersOps } from './slide-masters.ts';
 
 export interface FcCtx {
+  cameraCapture: ReturnType<typeof cameraCaptureOps>;
   rules?: import('../design-rules.ts').DesignRulesHandle;
   // ---- state (was: closure variables of initFreeCanvas) ----
   opts: InitFreeCanvasOpts;

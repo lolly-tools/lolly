@@ -83,6 +83,7 @@ import { helpersOps } from './free-canvas/helpers.ts';
 import { selectOps } from './free-canvas/select.ts';
 import { catalogIntakeOps } from './free-canvas/catalog-intake.ts';
 import { fileDropOps } from './free-canvas/file-drop.ts';
+import { cameraCaptureOps } from './free-canvas/camera-capture.ts';
 import { timelineOps } from './free-canvas/timeline.ts';
 import { stageOps } from './free-canvas/stage.ts';
 import { narrationOps } from './free-canvas/narration.ts';
@@ -206,6 +207,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.timeline = timelineOps(fc);
   fc.catalogIntake = catalogIntakeOps(fc);
   fc.fileDrop = fileDropOps(fc);
+  fc.cameraCapture = cameraCaptureOps(fc);
   fc.stage = stageOps(fc);
   fc.narration = narrationOps(fc);
   fc.rail = railOps(fc);
@@ -1396,6 +1398,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // The scene camera (plans/104 section 5.4). Same glyph the timeline's add menu and the
     // Camera inspector group wear, so one thing looks like one thing.
     camera: SVG.camera,
+    webcam: SVG.camera,
     // A 3D scene (plan 265 milestone 3) - the isometric cube, which is the glyph the
     // 3D Studio already wears over its own Start, Collection and Arrangement sections
     // and the one the inspector's Scene header carries, so the add-kind, the section and
@@ -1438,12 +1441,12 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
    *  are part of the SCENE, set in the studio, so a second caption typed on the canvas is
    *  two places to write the same sentence. A row that already carries text keeps the
    *  inspector's Text section, which is where such a caption is repaired or cleared. */
-  const NO_TEXT_KINDS = new Set(['frame', 'audio', 'camera', '3d', 'web']); fc.NO_TEXT_KINDS = NO_TEXT_KINDS;
+  const NO_TEXT_KINDS = new Set(['frame', 'audio', 'camera', 'webcam', '3d', 'web']); fc.NO_TEXT_KINDS = NO_TEXT_KINDS;
   /** Kinds that paint no picture from the image field. (An `audio` box DOES use it - that
    *  field is where its track lives - and a frame page paints it as the board's fill.) A
    *  `3d` box paints through the studio's renderer, and the hook returns its scene marker
    *  before ever reading the image field, so an image set here would never be drawn. */
-  const NO_IMAGE_KINDS = new Set(['camera', '3d']); fc.NO_IMAGE_KINDS = NO_IMAGE_KINDS;
+  const NO_IMAGE_KINDS = new Set(['camera', 'webcam', '3d']); fc.NO_IMAGE_KINDS = NO_IMAGE_KINDS;
 
   /**
    * The DOLLY, coalesced (section 8: "wheel coalesces one commit per pause").
@@ -1878,6 +1881,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.editorState.applyEditorState(opts.deepLink);
   void fc.catalogIntake.intake();
   const unwireFileDrop = fc.fileDrop.wire();
+  fc.cameraCapture.wire();
 
   // Universal drop front door (lib/drop-router.ts): a design file dropped on the
   // gallery/dashboard was stashed one-shot and is consumed here on mount, through
@@ -2223,6 +2227,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   return {
     design: designPorts,
     destroy() {
+      fc.cameraCapture.destroy();
       unwireFileDrop();
       disposeCanvasInteractions(fc);
       fc.rules?.destroy();
