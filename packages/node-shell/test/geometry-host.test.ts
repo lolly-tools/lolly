@@ -4,8 +4,8 @@ import { test } from 'node:test';
 import { makeGeomApi } from '../../../engine/src/geom-api.ts';
 import { CLIP_COUNTS } from '../../../engine/src/geom/intersect.ts';
 import { geometryStageWorkflows } from '../../../tests/helpers/geometry-stage-workflows.ts';
-import { GEOMETRY_REVISION, createGeometryHost, geometryBackendOf, isGeometryBackend } from '../src/geometry-host.ts';
-import { loadNodeGeometryHost } from '../src/geometry-host-node.ts';
+import { GEOMETRY_REVISION, createGeometryHost, geometryBackendOf, geometrySelectionIsStrict, isGeometryBackend } from '../src/geometry-host.ts';
+import { loadDefaultNodeGeometryHost, loadNodeGeometryHost } from '../src/geometry-host-node.ts';
 import { loadGeometryClipping } from '../src/geometry-clipping-node.ts';
 import { loadGeometryFitting } from '../src/geometry-fitting-node.ts';
 import { GeometryKernelError } from '../src/geometry-kernel-contract.ts';
@@ -72,4 +72,28 @@ test('host admission remains ahead of numerical work and both portable modules a
   assert.equal(clipping.stats().bufferBytes, 0); assert.equal(fitting.stats().bufferBytes, 0);
   assert.throws(() => createGeometryHost({ fitting }), /requires both/); assert.throws(() => createGeometryHost({ clipping }), /requires both/);
   host.dispose();
+});
+
+test('the default host completes a kernel buffer refusal on the reference with the same bits and counters', async () => {
+  const clipping = await loadGeometryClipping(), fitting = await loadGeometryFitting(); let refuse = true;
+  const host = createGeometryHost({ fitting, clipping: { ...clipping, createClipWorkspace: () => {
+    const workspace = clipping.createClipWorkspace(); return { ...workspace, intersect: (...args) => {
+      if (refuse) throw new GeometryKernelError('limit', 'Deliberate buffer refusal.'); return workspace.intersect(...args);
+    } };
+  } } }, { strict: false });
+  const zero = Object.fromEntries(Object.keys(CLIP_COUNTS).map(key => [key, 0]));
+  Object.assign(CLIP_COUNTS, zero); const expected = makeGeomApi().union(paths), counts = { ...CLIP_COUNTS };
+  Object.assign(CLIP_COUNTS, zero); assert.deepEqual(host.api.union(paths), expected); assert.deepEqual(CLIP_COUNTS, counts);
+  assert.equal(host.stats().referenceCompletions, 1); assert.equal(clipping.stats().bufferBytes, 0);
+  refuse = false; assert.deepEqual(host.api.union(paths), expected); assert.equal(host.stats().referenceCompletions, 1);
+  assert.equal(geometrySelectionIsStrict(host.api), false); host.dispose();
+});
+
+test('the default Node loader selects the shared portable kernels and is not strict', async () => {
+  const first = await loadDefaultNodeGeometryHost(), second = await loadDefaultNodeGeometryHost();
+  assert.equal(first.loadError, undefined); assert.equal(first.backend, 'wasm-portable'); assert.equal(geometrySelectionIsStrict(first.api), false);
+  const explicit = await loadNodeGeometryHost('wasm-portable'); assert.equal(geometrySelectionIsStrict(explicit.api), true);
+  assert.equal(geometrySelectionIsStrict((await loadNodeGeometryHost()).api), false);
+  assert.deepEqual(first.api.stroke(paths[0]!, 6, { join: 'round' }), makeGeomApi().stroke(paths[0]!, 6, { join: 'round' }));
+  for (const owner of [first, second, explicit]) owner.dispose();
 });

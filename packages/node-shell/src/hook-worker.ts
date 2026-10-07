@@ -34,7 +34,7 @@ import type {
   HostShape, HookWorkerOut, WorkerHookName, HookHostCallMsg, HookInitDoneMsg, HookLogMsg, HookInvokeDoneMsg,
 } from '@lolly/engine';
 import type { HostV1, TokensAPI } from '@lolly-tools/core/host-v1';
-import { geometryBackendOf } from './geometry-host.ts';
+import { geometryBackendOf, geometrySelectionIsStrict } from './geometry-host.ts';
 
 const INIT_TIMEOUT_MS = 5000;
 
@@ -119,7 +119,7 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
     // (`--import` registrations): a second thread spawned under a shared
     // customization hook never finishes linking on Node 22, and hooks.js needs
     // nothing from them. Type stripping is a default, not a flag.
-    const worker = new Worker(threadUrl, { env: {}, stdout: false, stderr: false, execArgv: [], workerData: { geometryBackend: geometryBackendOf(host.geom) } });
+    const worker = new Worker(threadUrl, { env: {}, stdout: false, stderr: false, execArgv: [], workerData: { geometryBackend: geometryBackendOf(host.geom), geometryStrict: geometrySelectionIsStrict(host.geom) } });
     // A thread must never keep the owning process alive on its own: the CLI
     // exits when the render is written, worker or not.
     worker.unref();
@@ -216,7 +216,7 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
     try {
       return await mountInThread(tool, host);
     } catch (e) {
-      if (!allowFallback || geometryBackendOf(host.geom) !== 'typescript') {
+      if (!allowFallback || geometrySelectionIsStrict(host.geom)) {
         if (e instanceof NodeHookIsolationError) throw e;
         throw new NodeHookIsolationError((e as Error).message);
       }

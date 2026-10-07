@@ -32,7 +32,7 @@ to use means adding its subpath in the same commit.
 | Module | What it owns |
 |---|---|
 | `geometry-host` | `createGeometryHost()` creates a synchronous geometry API with per-call numerical ownership; `geometryBackendOf()` reports private host selection without adding tool API methods. Backends are `typescript` (the reference) and `wasm-portable`, which runs every boolean, offset and stroke through the import-free kernels and returns the same bits. `GEOMETRY_REVISION` identifies the answer revision |
-| `geometry-host-node` | `loadNodeGeometryHost()` loads the import-free clipping and portable fitting WASM before publishing the synchronous API; no GPU is required |
+| `geometry-host-node` | `loadNodeGeometryHost(backend)` is an explicit, strict selection; `loadDefaultNodeGeometryHost()` is the CLI/TUI/MCP default, using the import-free kernels (compiled once per process) or the identical TypeScript reference if they cannot load. No GPU is required |
 | `repo-root` | `repoRoot()` - `LOLLY_ROOT` → marker-based walk → `cwd` resolution of the directory holding `catalog/` + `tools/` (works from source and from an esbuild bundle) |
 | `browsers` | the scoped headless-Chromium launcher/pool ("Tier B"), `resolveBrowsersDir()` (env → repo-root `.browsers` → `services/mcp/.browsers` sibling reuse), `BrowserError`, `browserInstalled()` |
 | `webshell-render` | drive the built web shell in Chromium and capture its download - byte-identical to a web/desktop export (incl. the `password` PDF-lock param) |

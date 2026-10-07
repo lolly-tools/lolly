@@ -12,12 +12,12 @@ export function createGeometryOperationScope(modules: {
   const clipping = modules.clipping, fitting = modules.fitting;
   let clip: ReturnType<NonNullable<typeof clipping>['createClipWorkspace']> | undefined;
   let fit: ReturnType<NonNullable<typeof fitting>['createOffsetFitWorkspace']> | undefined;
-  let disposed = false, clipCalls = 0, fitCalls = 0;
+  let disposed = false, clipCalls = 0, fitCalls = 0, refusals = 0;
   function invoke<T>(run: () => T): T {
     if (disposed) throw new GeometryOperationError('invalid-argument', 'This geometry operation has been disposed.');
     try { return run(); }
     catch (error) {
-      if (error instanceof GeometryKernelError) throw new GeometryOperationError(error.code, error.message);
+      if (error instanceof GeometryKernelError) { refusals++; throw new GeometryOperationError(error.code, error.message); }
       throw error;
     }
   }
@@ -31,7 +31,7 @@ export function createGeometryOperationScope(modules: {
   });
   return {
     operations,
-    stats: () => ({ clipCalls, fitCalls, disposed }),
+    stats: () => ({ clipCalls, fitCalls, refusals, disposed }),
     dispose: () => { if (!disposed) { disposed = true; clip?.dispose(); fit?.dispose(); clip = undefined; fit = undefined; } },
   };
 }

@@ -13,6 +13,11 @@ export async function installToolApis(host: HostV1, options: { geometryBackend?:
   try {
     const apis = await toolApiModules;
     if (options.geometryBackend !== undefined) await (await import('./geometry-host.ts')).installWebGeometryApi(host, options.geometryBackend);
+    else if (!host.geom) {
+      // The default runs the portable kernels; the reference below returns the same bits.
+      try { await (await import('./geometry-host.ts')).installDefaultWebGeometryApi(host); }
+      catch (error) { host.log?.('warn', 'Geometry kernels were not installed.', { message: error instanceof Error ? error.message : String(error) }); }
+    }
     host.color ??= apis.color; host.geom ??= apis.geometry(); host.connectors ??= apis.connectors;
   } catch (error) {
     toolApiModules = null;

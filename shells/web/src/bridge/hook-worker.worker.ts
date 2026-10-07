@@ -52,13 +52,14 @@ function inWorkerScope(): boolean {
 if (inWorkerScope()) {
   const post = postMessage as (message: unknown, transfer: Transferable[]) => void;
   async function prepare() {
-    const backend = (globalThis as { name?: string }).name || 'typescript';
+    const [backend = 'typescript', mode] = ((globalThis as { name?: string }).name || 'typescript').split(':');
     let geom: HostV1['geom'];
     if (backend !== 'typescript') {
-      const { loadWebGeometryHost } = await import('./geometry-host.ts');
+      const { loadDefaultWebGeometryHost, loadWebGeometryHost } = await import('./geometry-host.ts');
       const { isGeometryBackend } = await import('@lolly-tools/node-shell/geometry-host');
       if (!isGeometryBackend(backend)) throw Error('Unknown geometry backend.');
-      geom = (await loadWebGeometryHost(backend)).api;
+      // An explicit owner selection stays strict here too; the default may use the reference.
+      geom = (mode === 'default' ? await loadDefaultWebGeometryHost() : await loadWebGeometryHost(backend)).api;
     }
     return createHookWorkerCore({ post: (m, transfer) => post(m, (transfer ?? []) as Transferable[]) }, { canRaster: browserCanRaster, geom });
   }

@@ -273,11 +273,12 @@ interface CliBridgeOpts {
    * resolves links in the system the document was lowered against.
    */
   tokensDocument?: Record<string, unknown> | null;
+  /** Omit for the default (portable WASM kernels, or the identical TypeScript reference if they cannot load); set to select one explicitly and strictly. */
   geometryBackend?: import('@lolly-tools/node-shell/geometry-host').GeometryBackend;
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, geometryBackend = 'typescript' }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -568,8 +569,16 @@ export async function createCliBridge(
   // Vector geometry (v1.64) - the geometry kernel behind SVG path-data strings.
   // Pure engine math, attached verbatim (the SAME object the web bridge attaches),
   // so a pen-tool hook computes identical geometry headlessly.
-  host.geom = geometryBackend === 'typescript' ? makeGeomApi()
-    : (await (await import('@lolly-tools/node-shell/geometry-host-node')).loadNodeGeometryHost(geometryBackend)).api;
+  if (geometryBackend === 'typescript') host.geom = makeGeomApi();
+  else {
+    const geometry = await import('@lolly-tools/node-shell/geometry-host-node');
+    if (geometryBackend) host.geom = (await geometry.loadNodeGeometryHost(geometryBackend)).api;
+    else {
+      const owner = await geometry.loadDefaultNodeGeometryHost();
+      if (owner.loadError) host.log('warn', 'Geometry kernels did not load; the TypeScript reference returns the same results.', { message: owner.loadError });
+      host.geom = owner.api;
+    }
+  }
 
   // host.connectors (v1.106; path heads + dash fitting v1.110) - the engine's committed,
   // export-safe connector geometry, attached verbatim (the SAME factory the web bridge

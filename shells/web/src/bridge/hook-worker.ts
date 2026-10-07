@@ -23,7 +23,7 @@
 import { HOOK_BUDGET_MS, inRealmHookExecutor } from '@lolly/engine';
 import type { HookExecutor, Hooks } from '@lolly/engine';
 import type { HostV1, TokensAPI } from '@lolly-tools/core/host-v1';
-import { geometryBackendOf, type GeometryBackend } from '@lolly-tools/node-shell/geometry-host';
+import { geometryBackendOf, geometrySelectionIsStrict } from '@lolly-tools/node-shell/geometry-host';
 import { getExcludedSwatches } from '../lib/brand-exclusions.ts';
 import type {
   HostShape, HookWorkerOut, WorkerHookName,
@@ -87,8 +87,9 @@ function resetRun(runId: number, reason: Error): void {
   mounts.delete(runId);
 }
 
-function createWorker(runId: number, backend: GeometryBackend): Worker {
-  const w = new Worker(new URL('./hook-worker.worker.ts', import.meta.url), { type: 'module', name: backend });
+/** The worker name carries the owner's geometry selection: `<backend>` when explicit, `<backend>:default` otherwise. */
+function createWorker(runId: number, geometry: string): Worker {
+  const w = new Worker(new URL('./hook-worker.worker.ts', import.meta.url), { type: 'module', name: geometry });
   w.onmessage = (e: MessageEvent<HookWorkerOut>): void => { onMessage(runId, w, e.data); };
   w.onerror = (): void => {
     resetRun(runId, new HookIsolationUnavailableError('hook Worker crashed'));
@@ -243,7 +244,7 @@ async function mountInWorker(
   allowInRealmExportHooks: boolean,
 ): Promise<Hooks> {
   const runId = ++runSeq;
-  const w = createWorker(runId, geometryBackendOf(host.geom));
+  const w = createWorker(runId, geometryBackendOf(host.geom) + (geometrySelectionIsStrict(host.geom) ? '' : ':default'));
   const { doc, excluded } = await snapshotTokens(host);
   const hostShape = allowInRealmExportHooks
     ? introspect(host)
@@ -340,7 +341,7 @@ export function getWorkerHookExecutor(
 ): HookExecutor {
   const allowInRealmFallback = opts.allowInRealmFallback !== false;
   return async (tool, host) => {
-    const canFallback = allowInRealmFallback && geometryBackendOf(host.geom) === 'typescript';
+    const canFallback = allowInRealmFallback && !geometrySelectionIsStrict(host.geom);
     if (!tool.hooksSource) return inRealmHookExecutor(tool, host);
     if (typeof Worker === 'undefined') {
       if (canFallback) return inRealmHookExecutor(tool, host);

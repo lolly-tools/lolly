@@ -600,7 +600,18 @@ The engine now computes one answer everywhere (`engine/src/geom/portable-math.ts
 Two backends remain. `typescript` is the reference. `wasm-portable` runs clipping
 (`geometry-clip.wasm`) and fitting (`geometry-fit-portable.wasm`) in the import-free
 kernels for every boolean, offset and stroke call and returns the same bits, so
-choosing it is a speed decision only. Both loaders reject any module with a host
+choosing it is a speed decision only.
+
+`wasm-portable` is the default (G2k-2). Web tool mounts, both hook-worker kinds, the
+CLI, TUI and MCP hosts, the Design editor's vector operations and Studio 3D artwork
+preparation all use it. Kernels are compiled once per realm and shared; every call
+owns its workspaces. The default is not strict: if the modules cannot load, the host
+logs a warning and uses the reference, and if a kernel refuses one of its own buffers
+the call completes on the reference, with the clipping counters restored first. Both
+paths return the bits the kernels would have returned. An explicit selection
+(`geometryBackend: 'wasm-portable'`) stays strict, so qualification still sees every
+loading failure and refusal. `geometrySelectionIsStrict()` reports which kind a host
+has, and the host's `stats().referenceCompletions` counts completions. Both loaders reject any module with a host
 import. The revision identity is `GEOMETRY_REVISION` (`geom-portable-v1`) in
 `src/geometry-host.ts`; a pinned digest of the complete stage workflows and their
 work counters guards it.

@@ -6,7 +6,7 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
 import { createCliBridge } from '../shells/cli/src/bridge.ts';
 import { loadNodeGeometryHost } from '../packages/node-shell/src/geometry-host-node.ts';
-import { geometryBackendOf } from '../packages/node-shell/src/geometry-host.ts';
+import { geometryBackendOf, geometrySelectionIsStrict } from '../packages/node-shell/src/geometry-host.ts';
 import { createNodeHookExecutor, NodeHookIsolationError } from '../packages/node-shell/src/hook-worker.ts';
 import { baseHost } from './helpers/host.ts';
 import { geometryHostCurve as d, geometryHostTool as tool } from './helpers/geometry-host-hooks.ts';
@@ -18,7 +18,8 @@ test('CLI constructors publish a synchronous selected API without a GPU and keep
     const host = await createCliBridge({ dom, geometryBackend, aiEnabled: false });
     assert.equal(geometryBackendOf(host.geom), geometryBackend); assert.deepEqual(host.geom!.stroke(d, 12, { join: 'round', cap: 'round', tolerance: 0.001 }), reference);
   }
-  const host = await createCliBridge({ dom, aiEnabled: false }); assert.equal(geometryBackendOf(host.geom), 'typescript');
+  const host = await createCliBridge({ dom, aiEnabled: false }); assert.equal(geometryBackendOf(host.geom), 'wasm-portable'); assert.equal(geometrySelectionIsStrict(host.geom), false);
+  assert.deepEqual(host.geom!.stroke(d, 12, { join: 'round', cap: 'round', tolerance: 0.001 }), reference);
 });
 
 test('actual Node hook threads retain selected geometry results before strict lockdown', async () => {

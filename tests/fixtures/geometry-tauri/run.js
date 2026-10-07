@@ -15,11 +15,12 @@ export async function run() {
   let workerResult;
   try { workerResult = await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(Error('Packaged revision worker timed out.')), 120_000); worker.onmessage = e => { clearTimeout(timer); e.data.error ? reject(Error(e.data.error)) : resolve(e.data.result); }; }); }
   finally { worker.terminate(); }
-  await progress('actual host and hook qualification');
-  const result = await host.probeGeometryHosts(['typescript', 'wasm-portable']);
+  // Kernels load once per realm: observe the selected loading refusal before anything loads them.
   await progress('loading refusal');
   await control(true);
   const loading = await host.probeGeometryLoadingFailure('wasm-portable', control);
+  await progress('actual host and hook qualification');
+  const result = await host.probeGeometryHosts(['typescript', 'wasm-portable']);
   await progress('worker refusal');
   const workerFailure = await host.probeGeometryWorkerFailure('wasm-portable', control);
   return { ...metadata, main, worker: workerResult, result, loading, workerFailure };

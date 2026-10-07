@@ -4,7 +4,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { makeGeomApi } from '../../engine/src/geom-api.ts';
 import { CLIP_COUNTS } from '../../engine/src/geom/intersect.ts';
 import { installToolApis } from '../../shells/web/src/bridge/tool-apis.ts';
-import { geometryBackendOf, loadWebGeometryHost } from '../../shells/web/src/bridge/geometry-host.ts';
+import { geometryBackendOf, geometrySelectionIsStrict, loadWebGeometryHost } from '../../shells/web/src/bridge/geometry-host.ts';
 import { getWorkerHookExecutor } from '../../shells/web/src/bridge/hook-worker.ts';
 import { geometryStageWorkflows } from './geometry-stage-workflows.ts';
 import { geometryHostCurve as d, geometryHostTool } from './geometry-host-hooks.ts';
@@ -63,4 +63,23 @@ export async function probeGeometryWorkerFailure(backend: GeometryBackend = 'was
 
 export async function benchGeometryHosts(reverse = false, backends?: GeometryBackend[]) {
   return benchGeometryWithLoader(loadWebGeometryHost, reverse, backends);
+}
+
+/** Run on a fresh page: kernels load once per realm, so the refused install must come first. */
+export async function probeGeometryDefault(control = controlLoading) {
+  const options = { join: 'round', cap: 'round', tolerance: 0.001 } as const, expected = makeGeomApi().stroke(d, 12, options);
+  await control(true);
+  const refused = newHost(), warnings: string[] = []; refused.log = (level, message) => { if (level === 'warn') warnings.push(message); };
+  await installToolApis(refused);
+  const fallback = { identity: geometryBackendOf(refused.geom), result: refused.geom!.stroke(d, 12, options), warned: warnings.some(message => message.includes('did not load')) };
+  await control(false);
+  const host = newHost(); await installToolApis(host);
+  const selected = { identity: geometryBackendOf(host.geom), strict: geometrySelectionIsStrict(host.geom), result: host.geom!.stroke(d, 12, options) };
+  await control(true); let worker: unknown, workerError = '';
+  try {
+    const hooks = await getWorkerHookExecutor({ allowInRealmFallback: false })(geometryHostTool(`function onInit({host}){return {note:JSON.stringify(host.geom.stroke(${JSON.stringify(d)},12,{join:'round',cap:'round',tolerance:0.001}))};}`), host);
+    try { worker = JSON.parse(((await hooks.onInit!({ host, model: [] })) as { note: string }).note); } finally { hooks.dispose?.(); }
+  } catch (error) { workerError = String(error); }
+  finally { await control(false); }
+  return { expected, fallback, selected, worker, workerError };
 }

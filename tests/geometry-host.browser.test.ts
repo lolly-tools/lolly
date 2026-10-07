@@ -44,7 +44,9 @@ test('actual web installers and isolated hooks retain selected geometry and refu
   const result = await page.evaluate(() => window.geometryHostProbe.probeGeometryHosts());
   const benchmark = process.env.LOLLY_GEOMETRY_HOST_BENCH === '1' ? await page.evaluate((reverse: boolean) => window.geometryHostProbe.benchGeometryHosts(reverse), process.env.LOLLY_GEOMETRY_REVERSE === '1') : undefined;
   const failureBackend: GeometryBackend = 'wasm-portable';
-  blocked = true; const loading = await page.evaluate((backend: GeometryBackend) => window.geometryHostProbe.probeGeometryLoadingFailure(backend), failureBackend);
+  // Kernels load once per realm, so loading refusal is observed on a page that has not loaded them.
+  const refusalPage = await browser.newPage(); await refusalPage.goto(`http://127.0.0.1:${address.port}/`); await refusalPage.waitForFunction(() => Boolean(window.geometryHostProbe));
+  blocked = true; const loading = await refusalPage.evaluate((backend: GeometryBackend) => window.geometryHostProbe.probeGeometryLoadingFailure(backend), failureBackend);
   const workerFailure = await page.evaluate((backend: GeometryBackend) => window.geometryHostProbe.probeGeometryWorkerFailure(backend), failureBackend);
   const report = process.env.LOLLY_GEOMETRY_HOST_REPORT;
   if (report) {
@@ -53,6 +55,11 @@ test('actual web installers and isolated hooks retain selected geometry and refu
     await mkdir(dirname(report), { recursive: true }); await writeFile(sourceArtifact, entry.outputFiles[0]!.text);
     await writeFile(report, JSON.stringify({ engine: process.env.LOLLY_GEOMETRY_BROWSER ?? 'chromium', browser: browser.version(), machine: { node: process.version, platform: platform(), arch: arch(), os: release(), cpu: cpus()[0]?.model }, artifacts: { clipping: hash(clip), fitting: hash(fit) }, sourceArtifact, sourceSha256: hash(Buffer.from(entry.outputFiles[0]!.text)), result, loading, workerFailure, benchmark }, null, 2) + '\n');
   }
+  const fresh = await browser.newPage(); await fresh.goto(`http://127.0.0.1:${address.port}/`); await fresh.waitForFunction(() => Boolean(window.geometryHostProbe));
+  const defaults = await fresh.evaluate(() => window.geometryHostProbe.probeGeometryDefault());
+  assert.equal(defaults.fallback.identity, 'typescript'); assert.equal(defaults.fallback.warned, true); assert.deepEqual(defaults.fallback.result, defaults.expected);
+  assert.equal(defaults.selected.identity, 'wasm-portable'); assert.equal(defaults.selected.strict, false); assert.deepEqual(defaults.selected.result, defaults.expected);
+  assert.equal(defaults.workerError, ''); assert.deepEqual(defaults.worker, defaults.expected);
   assert.match(loading.message, /loading failed/); assert.equal(loading.unpublished, true); assert.equal(loading.recovered, failureBackend);
   assert.match(workerFailure.message, /loading failed/); assert.equal(workerFailure.fallback, false); assert.equal(workerFailure.identity, failureBackend);
   for (const mode of result.modes) {
