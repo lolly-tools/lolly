@@ -7441,5 +7441,7 @@
   "Group created.": "Grup creat.",
   "Commenter": "Comentator",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Vizualizatorii deschid și copiază. Comentatorii comentează și ei. Editorii salvează modificările. Managerii adaugă și ei persoane.",
-  "Asks to comment": "Cere să comenteze"
+  "Asks to comment": "Cere să comenteze",
+  "Search all {n}": "Caută în toate cele {n}",
+  "Search all {facet} options": "Caută în toate opțiunile pentru {facet}"
 }

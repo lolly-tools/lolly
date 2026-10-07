@@ -7441,5 +7441,7 @@
   "Group created.": "Groep gemaakt.",
   "Commenter": "Reageerder",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Lezers openen en kopiëren. Reageerders reageren ook. Bewerkers slaan wijzigingen op. Beheerders voegen ook mensen toe.",
-  "Asks to comment": "Vraagt om te reageren"
+  "Asks to comment": "Vraagt om te reageren",
+  "Search all {n}": "Zoek in alle {n}",
+  "Search all {facet} options": "Zoek in alle {facet}-opties"
 }

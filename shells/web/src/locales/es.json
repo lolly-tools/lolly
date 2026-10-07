@@ -7441,5 +7441,7 @@
   "Group created.": "Grupo creado.",
   "Commenter": "Comentador",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Los lectores abren y copian. Los comentadores también comentan. Los editores guardan cambios. Los gestores también añaden personas.",
-  "Asks to comment": "Pide comentar"
+  "Asks to comment": "Pide comentar",
+  "Search all {n}": "Buscar en los {n}",
+  "Search all {facet} options": "Buscar en todas las opciones de {facet}"
 }

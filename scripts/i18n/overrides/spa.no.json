@@ -1076,5 +1076,7 @@
   "Group created.": "Gruppen er opprettet.",
   "Commenter": "Kommentator",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Lesere åpner og kopierer. Kommentatorer kommenterer også. Redaktører lagrer endringer. Ledere legger også til personer.",
-  "Asks to comment": "Ber om å få kommentere"
+  "Asks to comment": "Ber om å få kommentere",
+  "Search all {n}": "Søk i alle {n}",
+  "Search all {facet} options": "Søk i alle {facet}-alternativer"
 }

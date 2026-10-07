@@ -946,5 +946,7 @@
   "Group created.": "Gruppe erstellt.",
   "Commenter": "Kommentator",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Betrachter öffnen und kopieren. Kommentatoren kommentieren auch. Bearbeiter speichern Änderungen. Manager fügen auch Personen hinzu.",
-  "Asks to comment": "Bittet um Kommentarrechte"
+  "Asks to comment": "Bittet um Kommentarrechte",
+  "Search all {n}": "In allen {n} suchen",
+  "Search all {facet} options": "In allen {facet}-Optionen suchen"
 }

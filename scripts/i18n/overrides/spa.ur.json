@@ -946,5 +946,7 @@
   "Group created.": "گروپ بن گیا۔",
   "Commenter": "تبصرہ کار",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "ناظرین کھولتے اور کاپی کرتے ہیں۔ تبصرہ کار تبصرہ بھی کرتے ہیں۔ ایڈیٹر تبدیلیاں محفوظ کرتے ہیں۔ منتظم لوگوں کو بھی شامل کرتے ہیں۔",
-  "Asks to comment": "تبصرے کی اجازت مانگی"
+  "Asks to comment": "تبصرے کی اجازت مانگی",
+  "Search all {n}": "تمام {n} میں تلاش کریں",
+  "Search all {facet} options": "{facet} کے تمام اختیارات میں تلاش کریں"
 }

@@ -946,5 +946,7 @@
   "Group created.": "Kumpulan dibuat.",
   "Commenter": "Pemberi komen",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Pelihat membuka dan menyalin. Pemberi komen juga memberi komen. Penyunting menyimpan perubahan. Pengurus juga menambah orang.",
-  "Asks to comment": "Meminta untuk memberi komen"
+  "Asks to comment": "Meminta untuk memberi komen",
+  "Search all {n}": "Cari dalam semua {n}",
+  "Search all {facet} options": "Cari dalam semua pilihan {facet}"
 }

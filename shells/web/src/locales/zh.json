@@ -7441,5 +7441,7 @@
   "Group created.": "群组已创建。",
   "Commenter": "评论者",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "查看者可以打开和复制。评论者还可以评论。编辑者可以保存更改。管理员还可以添加成员。",
-  "Asks to comment": "申请评论"
+  "Asks to comment": "申请评论",
+  "Search all {n}": "搜索全部 {n} 项",
+  "Search all {facet} options": "搜索所有{facet}选项"
 }

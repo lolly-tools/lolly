@@ -1076,5 +1076,7 @@
   "Group created.": "그룹을 만들었어요.",
   "Commenter": "댓글 작성자",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "보기 전용은 열고 복사할 수 있어요. 댓글 작성자는 댓글도 달 수 있어요. 편집자는 변경 사항을 저장할 수 있어요. 관리자는 사람도 추가할 수 있어요.",
-  "Asks to comment": "댓글 요청"
+  "Asks to comment": "댓글 요청",
+  "Search all {n}": "{n}개 전체 검색",
+  "Search all {facet} options": "{facet} 옵션 전체 검색"
 }

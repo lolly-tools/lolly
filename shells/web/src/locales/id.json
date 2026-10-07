@@ -7441,5 +7441,7 @@
   "Group created.": "Grup dibuat.",
   "Commenter": "Pemberi komentar",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Pemirsa membuka dan menyalin. Pemberi komentar juga berkomentar. Editor menyimpan perubahan. Pengelola juga menambahkan orang.",
-  "Asks to comment": "Meminta izin berkomentar"
+  "Asks to comment": "Meminta izin berkomentar",
+  "Search all {n}": "Cari di semua {n}",
+  "Search all {facet} options": "Cari di semua opsi {facet}"
 }
