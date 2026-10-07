@@ -20,8 +20,10 @@ test('Design panels use short labels, opaque floating surfaces and redock contro
     const inspector = page.locator('.fc-insp');
     if (!await inspector.isVisible()) await page.getByRole('button', { name: 'Inspector', exact: true }).click();
     await inspector.locator('.fc-insp-tabs').getByRole('button', { name: 'Document', exact: true }).click();
+    // A row with a help tip is a <div>, not a <label>, so read the visible label
+    // text from the row's label span rather than from an enclosing <label>.
     for (const [field, label] of [['documentUnit', 'Units'], ['editingRange', 'Colour'], ['projectFps', 'Frame rate']]) {
-      assert.equal(await inspector.locator(`[data-doc="${field}"]`).evaluate(el => el.closest('label')?.querySelector('span')?.textContent), label);
+      assert.equal(await inspector.locator(`[data-doc="${field}"]`).evaluate(el => el.closest('.fc-row')?.querySelector('.fc-row-help-label > span')?.textContent), label);
     }
     assert.equal(await inspector.locator('.fc-seg[data-seg="lolly-doc-theme-0"]').getAttribute('aria-label'), 'Theme');
     assert.equal(await inspector.locator('[data-act-col="maximize"], [data-act-col="detach"]').count(), 0);
