@@ -110,7 +110,7 @@ function boxEl(html: string, id: string): HTMLElement {
 
 test('"3d" is a Design layer kind, appended and never reordered', () => {
   assert.deepEqual([...DESIGN_LAYER_KINDS],
-    ['box', 'text', 'image', 'path', 'audio', 'camera', 'frame', '3d', 'web'],
+    ['box', 'text', 'image', 'path', 'audio', 'camera', 'frame', '3d', 'web', 'webcam'],
     'DESIGN_LAYER_KINDS is append-only: an existing wire value must never move');
   const kinds = boxesField.fields.find((f: { id: string }) => f.id === 'kind');
   assert.deepEqual(kinds.options.map((o: { value: string }) => o.value),

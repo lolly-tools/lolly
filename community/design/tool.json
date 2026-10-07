@@ -583,7 +583,7 @@
           },
           {
             "id": "camera",
-            "label": "Camera",
+            "label": "Scene camera",
             "seed": {
               "kind": "camera"
             }
@@ -618,6 +618,18 @@
               "shape": "rounded",
               "text": "",
               "web": ""
+            }
+          },
+          {
+            "id": "webcam",
+            "label": "Camera",
+            "seed": {
+              "kind": "webcam",
+              "w": 640,
+              "h": 360,
+              "bg": "#071b16",
+              "text": "",
+              "fit": "cover"
             }
           }
         ],
@@ -663,7 +675,7 @@
             },
             {
               "value": "camera",
-              "label": "Camera",
+              "label": "Scene camera",
               "repeatable": true
             },
             {
@@ -679,6 +691,11 @@
             {
               "value": "web",
               "label": "Web page",
+              "repeatable": true
+            },
+            {
+              "value": "webcam",
+              "label": "Camera",
               "repeatable": true
             }
           ]

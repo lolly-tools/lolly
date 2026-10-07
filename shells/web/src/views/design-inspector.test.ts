@@ -399,6 +399,17 @@ test('a text box adds Text; an image box adds Image, with the 3x3 position grid'
   h.handle.destroy();
 });
 
+test('a webcam offers framing before capture and keeps asset replacement out of its controls', () => {
+  const h = mount([{ id: 'cam', kind: 'webcam', x: 0, y: 0, w: 640, h: 360 }]);
+  try {
+    h.select(['cam']);
+    assert.equal(h.el.querySelector('[data-head="image"] .lp-sec-name')?.textContent, 'Camera');
+    assert.ok(h.el.querySelector('[data-seg="fit"]'));
+    assert.equal(h.el.querySelector('[data-act="pickimage"]'), null);
+    assert.equal(h.el.querySelector('[data-act="input-image"]'), null);
+  } finally { h.handle.destroy(); }
+});
+
 test('a multi-selection shows the paint groups only, and the column head carries the count', () => {
   const h = mount();
   h.select(['b1', 't1']);

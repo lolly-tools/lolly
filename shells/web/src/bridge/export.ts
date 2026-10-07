@@ -179,7 +179,7 @@ export function createExportAPI(host: WebHost) {
       // the frame at the playhead, with each video exactly where the preview had
       // it (the phase-2 WYSIWYG contract).
       const restoreMotion = ((SEQUENCE_MOTION_FORMATS.has(format) || format === 'html') && isSequenceStage(node))
-        ? (): void => {}
+        ? snapshotMotion(node, 'video[data-live-camera-video]')
         : snapshotMotion(node);
 
       // The timeline panel photographs its own clip boxes with the same dom-to-image

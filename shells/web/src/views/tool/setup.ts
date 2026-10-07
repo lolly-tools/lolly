@@ -1148,6 +1148,16 @@ export function wireBackPill(tview: ToolViewCtx): void {
 
 export async function mountLiveControls(tview: ToolViewCtx): Promise<void> {
   const { actionsApi, canvasDropInput, canvasEl, canvasFileInput, canvasLayout, contentEl, dirtyParams, inputsEl, mountLifecycle, pagesMode, runtime, stageEl, templateSeededIds, urlHeight, urlWidth, viewEl, visitorPage } = tview;
+  // Bind transport before the first subscribed paint publishes its clock. Video
+  // export capability does not select playback UI; timed canvases own their controls.
+  if (stageEl && canvasEl) {
+    const { setupAnimTransport } = await import('../anim-transport.ts');
+    if (mountLifecycle.disposed) return;
+    mountLifecycle.add('animation transport', setupAnimTransport({
+      stageEl, canvasEl, manifest: runtime.manifest,
+    }));
+  }
+
   // Live frame sources (engine v1.4 camera / v1.113 animated asset): ONE
   // controller (live-controls.ts) owns "Go live" + "Play" and every button
   // placement. SIDEBAR placement is primary - the buttons ride the source asset
@@ -1264,17 +1274,6 @@ export async function mountLiveControls(tview: ToolViewCtx): Promise<void> {
         onBake: runtime.manifest.designTool ? undefined : (key) => tview.session.bakeFraming(key),
       });
     }
-  }
-
-  // Animation transport (play/pause/scrub): any tool declaring render.video gets a
-  // reusable transport bar driven entirely by the tool's window.__lollyAnim clock - it
-  // shows itself only while an animation is actually active. Lazy-loaded to stay off the
-  // boot critical path; torn down via stageEl._animCleanup in _cleanup above.
-  if (stageEl && (runtime.manifest.render as { video?: unknown } | undefined)?.video) {
-    const { setupAnimTransport } = await import('../anim-transport.ts');
-    (stageEl as HTMLElement & { _animCleanup?: () => void })._animCleanup = setupAnimTransport({
-      stageEl,
-    });
   }
 
   // File-input tools: the whole canvas accepts a dropped file - drag-and-drop, or

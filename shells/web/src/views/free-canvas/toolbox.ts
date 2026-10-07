@@ -544,6 +544,9 @@ export function buildToolbar(fc: FcCtx): void {
   // Timeline (opt-in via the canvas time-model fields - a tool with nowhere to store
   // a start/duration has no timeline). Toggles the docked panel; the panel module
   // itself is only fetched the first time it is opened.
+  if (fc.cameraCapture.available()) {
+    toolBtn(fc, t('Camera - draw a live webcam layer'), SVG.camera, () => fc.cameraCapture.add(), 'fc-btn-camera-capture');
+  }
   if (timeCfg) {
     fc.timelineBtn = toolBtn(fc, 
       t('Timeline - arrange clips over time'),
