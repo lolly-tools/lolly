@@ -4522,7 +4522,7 @@
   "Shared design": "Design partajat",
   "Shared fields": "Shared fields",
   "Shared inputs": "Shared inputs",
-  "Shared project": "Shared project",
+  "Shared project": "Proiect partajat",
   "Shared text": "Shared text",
   "Shared with you on this instance": "Partajat cu tine pe această instanță",
   "Share…": "Distribuie…",
@@ -7481,5 +7481,11 @@
   "Added {n} files to this folder.": "Fișiere adăugate în acest folder: {n}.",
   "Drop to add to this folder": "Eliberează pentru a adăuga în acest folder",
   "Search all {n}": "Caută în toate cele {n}",
-  "Search all {facet} options": "Caută în toate opțiunile pentru {facet}"
+  "Search all {facet} options": "Caută în toate opțiunile pentru {facet}",
+  "Shared projects could not be loaded.": "Proiectele partajate nu au putut fi încărcate.",
+  "This shared project could not be opened.": "Acest proiect partajat nu a putut fi deschis.",
+  "Nothing here can go in this slot.": "Nimic de aici nu poate intra în acest slot.",
+  "{when} by {name}": "{when} de {name}",
+  "This shared item could not be placed. Try again.": "Acest element partajat nu a putut fi plasat. Încearcă din nou.",
+  "Copying {name} to your files…": "Se copiază {name} în fișierele tale…"
 }

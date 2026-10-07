@@ -1116,5 +1116,12 @@
   "Added {n} files to this folder.": "La til {n} filer i denne mappen.",
   "Drop to add to this folder": "Slipp for å legge til i denne mappen",
   "Search all {n}": "Søk i alle {n}",
-  "Search all {facet} options": "Søk i alle {facet}-alternativer"
+  "Search all {facet} options": "Søk i alle {facet}-alternativer",
+  "Shared projects could not be loaded.": "Delte prosjekter kunne ikke lastes inn.",
+  "This shared project could not be opened.": "Dette delte prosjektet kunne ikke åpnes.",
+  "Nothing here can go in this slot.": "Ingenting her kan settes inn i denne plassen.",
+  "{when} by {name}": "{when} av {name}",
+  "This shared item could not be placed. Try again.": "Dette delte elementet kunne ikke plasseres. Prøv igjen.",
+  "Copying {name} to your files…": "Kopierer {name} til filene dine…",
+  "Shared project": "Delt prosjekt"
 }

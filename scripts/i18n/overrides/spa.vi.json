@@ -986,5 +986,12 @@
   "Added {n} files to this folder.": "Đã thêm {n} tệp vào thư mục này.",
   "Drop to add to this folder": "Thả để thêm vào thư mục này",
   "Search all {n}": "Tìm trong tất cả {n}",
-  "Search all {facet} options": "Tìm trong tất cả tùy chọn {facet}"
+  "Search all {facet} options": "Tìm trong tất cả tùy chọn {facet}",
+  "Shared projects could not be loaded.": "Không thể tải các dự án được chia sẻ.",
+  "This shared project could not be opened.": "Không thể mở dự án được chia sẻ này.",
+  "Nothing here can go in this slot.": "Không có mục nào ở đây dùng được cho ô này.",
+  "{when} by {name}": "{when} bởi {name}",
+  "This shared item could not be placed. Try again.": "Không thể đặt mục được chia sẻ này. Thử lại.",
+  "Copying {name} to your files…": "Đang sao chép {name} vào tệp của bạn…",
+  "Shared project": "Dự án được chia sẻ"
 }

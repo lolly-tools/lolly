@@ -4522,7 +4522,7 @@
   "Shared design": "Samlade design",
   "Shared fields": "Shared fields",
   "Shared inputs": "Shared inputs",
-  "Shared project": "Shared project",
+  "Shared project": "Delat projekt",
   "Shared text": "Shared text",
   "Shared with you on this instance": "Delat med dig på den här instansen",
   "Share…": "Dela…",
@@ -7481,5 +7481,11 @@
   "Added {n} files to this folder.": "Filer som lades till i den här mappen: {n}.",
   "Drop to add to this folder": "Släpp för att lägga till i den här mappen",
   "Search all {n}": "Sök bland alla {n}",
-  "Search all {facet} options": "Sök bland alla alternativ för {facet}"
+  "Search all {facet} options": "Sök bland alla alternativ för {facet}",
+  "Shared projects could not be loaded.": "Delade projekt kunde inte läsas in.",
+  "This shared project could not be opened.": "Det här delade projektet kunde inte öppnas.",
+  "Nothing here can go in this slot.": "Inget här kan placeras på den här platsen.",
+  "{when} by {name}": "{when} av {name}",
+  "This shared item could not be placed. Try again.": "Det här delade objektet kunde inte placeras. Försök igen.",
+  "Copying {name} to your files…": "Kopierar {name} till dina filer…"
 }

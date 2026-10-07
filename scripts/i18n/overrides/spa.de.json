@@ -986,5 +986,12 @@
   "Added {n} files to this folder.": "{n} Dateien zu diesem Ordner hinzugefügt.",
   "Drop to add to this folder": "Hier ablegen, um zu diesem Ordner hinzuzufügen",
   "Search all {n}": "In allen {n} suchen",
-  "Search all {facet} options": "In allen {facet}-Optionen suchen"
+  "Search all {facet} options": "In allen {facet}-Optionen suchen",
+  "Shared projects could not be loaded.": "Geteilte Projekte konnten nicht geladen werden.",
+  "This shared project could not be opened.": "Dieses geteilte Projekt konnte nicht geöffnet werden.",
+  "Nothing here can go in this slot.": "Nichts hier kann in diesen Slot gelegt werden.",
+  "{when} by {name}": "{when} von {name}",
+  "This shared item could not be placed. Try again.": "Dieses geteilte Element konnte nicht platziert werden. Bitte erneut versuchen.",
+  "Copying {name} to your files…": "{name} wird in Ihre Dateien kopiert…",
+  "Shared project": "Geteiltes Projekt"
 }

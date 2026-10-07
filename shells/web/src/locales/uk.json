@@ -4522,7 +4522,7 @@
   "Shared design": "Shared design",
   "Shared fields": "Shared fields",
   "Shared inputs": "Shared inputs",
-  "Shared project": "Shared project",
+  "Shared project": "Спільний проєкт",
   "Shared text": "Shared text",
   "Shared with you on this instance": "Доступні вам на цьому інстансі",
   "Share…": "Поділитися…",
@@ -7481,5 +7481,11 @@
   "Added {n} files to this folder.": "Файли, додані до цієї папки: {n}.",
   "Drop to add to this folder": "Відпустіть, щоб додати до цієї папки",
   "Search all {n}": "Пошук серед усіх {n}",
-  "Search all {facet} options": "Пошук серед усіх варіантів: {facet}"
+  "Search all {facet} options": "Пошук серед усіх варіантів: {facet}",
+  "Shared projects could not be loaded.": "Не вдалося завантажити спільні проєкти.",
+  "This shared project could not be opened.": "Не вдалося відкрити цей спільний проєкт.",
+  "Nothing here can go in this slot.": "Нічого звідси не можна помістити в цей слот.",
+  "{when} by {name}": "{when} від {name}",
+  "This shared item could not be placed. Try again.": "Не вдалося розмістити цей спільний елемент. Спробуйте ще раз.",
+  "Copying {name} to your files…": "Копіювання {name} у ваші файли…"
 }

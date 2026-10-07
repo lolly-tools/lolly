@@ -978,5 +978,12 @@
   "Added {n} files to this folder.": "{n} bestanden toegevoegd aan deze map.",
   "Drop to add to this folder": "Neerzetten om toe te voegen aan deze map",
   "Search all {n}": "Zoek in alle {n}",
-  "Search all {facet} options": "Zoek in alle {facet}-opties"
+  "Search all {facet} options": "Zoek in alle {facet}-opties",
+  "Shared projects could not be loaded.": "Gedeelde projecten konden niet worden geladen.",
+  "This shared project could not be opened.": "Dit gedeelde project kon niet worden geopend.",
+  "Nothing here can go in this slot.": "Niets hier past in dit slot.",
+  "{when} by {name}": "{when} door {name}",
+  "This shared item could not be placed. Try again.": "Dit gedeelde item kon niet worden geplaatst. Probeer het opnieuw.",
+  "Copying {name} to your files…": "{name} wordt naar je bestanden gekopieerd…",
+  "Shared project": "Gedeeld project"
 }

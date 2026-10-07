@@ -4522,7 +4522,7 @@
   "Shared design": "Společný design",
   "Shared fields": "Shared fields",
   "Shared inputs": "Shared inputs",
-  "Shared project": "Shared project",
+  "Shared project": "Sdílený projekt",
   "Shared text": "Shared text",
   "Shared with you on this instance": "Sdíleno s tebou na této instanci",
   "Share…": "Sdílet…",
@@ -7481,5 +7481,11 @@
   "Added {n} files to this folder.": "Soubory přidané do této složky: {n}.",
   "Drop to add to this folder": "Pusťte pro přidání do této složky",
   "Search all {n}": "Hledat ve všech {n}",
-  "Search all {facet} options": "Hledat ve všech možnostech: {facet}"
+  "Search all {facet} options": "Hledat ve všech možnostech: {facet}",
+  "Shared projects could not be loaded.": "Sdílené projekty se nepodařilo načíst.",
+  "This shared project could not be opened.": "Tento sdílený projekt se nepodařilo otevřít.",
+  "Nothing here can go in this slot.": "Nic odsud nelze vložit do tohoto slotu.",
+  "{when} by {name}": "{when} od {name}",
+  "This shared item could not be placed. Try again.": "Tuto sdílenou položku se nepodařilo vložit. Zkuste to znovu.",
+  "Copying {name} to your files…": "Kopírování souboru {name} do vašich souborů…"
 }

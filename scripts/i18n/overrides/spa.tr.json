@@ -1114,5 +1114,12 @@
   "Added {n} files to this folder.": "Bu klasöre eklenen dosya sayısı: {n}.",
   "Drop to add to this folder": "Bu klasöre eklemek için bırak",
   "Search all {n}": "Tüm {n} içinde ara",
-  "Search all {facet} options": "Tüm {facet} seçeneklerinde ara"
+  "Search all {facet} options": "Tüm {facet} seçeneklerinde ara",
+  "Shared projects could not be loaded.": "Paylaşılan projeler yüklenemedi.",
+  "This shared project could not be opened.": "Bu paylaşılan proje açılamadı.",
+  "Nothing here can go in this slot.": "Buradaki hiçbir şey bu yuvaya konamaz.",
+  "{when} by {name}": "{when}, {name} tarafından",
+  "This shared item could not be placed. Try again.": "Bu paylaşılan öğe yerleştirilemedi. Tekrar dene.",
+  "Copying {name} to your files…": "{name}, dosyalarına kopyalanıyor…",
+  "Shared project": "Paylaşılan proje"
 }

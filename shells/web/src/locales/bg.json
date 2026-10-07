@@ -4522,7 +4522,7 @@
   "Shared design": "Shared design",
   "Shared fields": "Shared fields",
   "Shared inputs": "Shared inputs",
-  "Shared project": "Shared project",
+  "Shared project": "Споделен проект",
   "Shared text": "Shared text",
   "Shared with you on this instance": "Споделени с теб на тази инстанция",
   "Share…": "Сподели…",
@@ -7481,5 +7481,11 @@
   "Added {n} files to this folder.": "Файлове, добавени в тази папка: {n}.",
   "Drop to add to this folder": "Пуснете, за да добавите в тази папка",
   "Search all {n}": "Търсене във всички {n}",
-  "Search all {facet} options": "Търсене във всички опции за {facet}"
+  "Search all {facet} options": "Търсене във всички опции за {facet}",
+  "Shared projects could not be loaded.": "Споделените проекти не можаха да бъдат заредени.",
+  "This shared project could not be opened.": "Този споделен проект не можа да бъде отворен.",
+  "Nothing here can go in this slot.": "Нищо оттук не може да влезе в това гнездо.",
+  "{when} by {name}": "{when} от {name}",
+  "This shared item could not be placed. Try again.": "Този споделен елемент не можа да бъде поставен. Опитай отново.",
+  "Copying {name} to your files…": "Копиране на {name} във файловете ти…"
 }

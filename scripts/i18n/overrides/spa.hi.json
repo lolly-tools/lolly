@@ -986,5 +986,12 @@
   "Added {n} files to this folder.": "इस फ़ोल्डर में {n} फ़ाइलें जोड़ी गईं।",
   "Drop to add to this folder": "इस फ़ोल्डर में जोड़ने के लिए छोड़ें",
   "Search all {n}": "सभी {n} में खोजें",
-  "Search all {facet} options": "{facet} के सभी विकल्पों में खोजें"
+  "Search all {facet} options": "{facet} के सभी विकल्पों में खोजें",
+  "Shared projects could not be loaded.": "साझा किए गए प्रोजेक्ट लोड नहीं हो सके।",
+  "This shared project could not be opened.": "यह साझा प्रोजेक्ट खोला नहीं जा सका।",
+  "Nothing here can go in this slot.": "यहाँ की कोई भी चीज़ इस स्लॉट में नहीं रखी जा सकती।",
+  "{when} by {name}": "{name} द्वारा {when}",
+  "This shared item could not be placed. Try again.": "यह साझा आइटम रखा नहीं जा सका। फिर से कोशिश करें।",
+  "Copying {name} to your files…": "{name} को आपकी फ़ाइलों में कॉपी किया जा रहा है…",
+  "Shared project": "साझा प्रोजेक्ट"
 }

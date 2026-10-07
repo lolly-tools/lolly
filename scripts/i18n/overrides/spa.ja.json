@@ -986,5 +986,12 @@
   "Added {n} files to this folder.": "このフォルダにファイルを{n}件追加しました。",
   "Drop to add to this folder": "ドロップしてこのフォルダに追加",
   "Search all {n}": "{n}件すべてを検索",
-  "Search all {facet} options": "{facet}のすべての選択肢を検索"
+  "Search all {facet} options": "{facet}のすべての選択肢を検索",
+  "Shared projects could not be loaded.": "共有プロジェクトを読み込めませんでした。",
+  "This shared project could not be opened.": "この共有プロジェクトを開けませんでした。",
+  "Nothing here can go in this slot.": "ここにあるものは、このスロットには入れられません。",
+  "{when} by {name}": "{when}（{name}）",
+  "This shared item could not be placed. Try again.": "この共有アイテムを配置できませんでした。もう一度お試しください。",
+  "Copying {name} to your files…": "{name}をあなたのファイルにコピーしています…",
+  "Shared project": "共有プロジェクト"
 }

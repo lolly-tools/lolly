@@ -4522,7 +4522,7 @@
   "Shared design": "Conception partagée",
   "Shared fields": "Shared fields",
   "Shared inputs": "Shared inputs",
-  "Shared project": "Shared project",
+  "Shared project": "Projet partagé",
   "Shared text": "Shared text",
   "Shared with you on this instance": "Partagé avec toi sur cette instance",
   "Share…": "Partager…",
@@ -7481,5 +7481,11 @@
   "Added {n} files to this folder.": "{n} fichiers ajoutés à ce dossier.",
   "Drop to add to this folder": "Dépose pour ajouter à ce dossier",
   "Search all {n}": "Rechercher dans les {n}",
-  "Search all {facet} options": "Rechercher dans toutes les options de {facet}"
+  "Search all {facet} options": "Rechercher dans toutes les options de {facet}",
+  "Shared projects could not be loaded.": "Impossible de charger les projets partagés.",
+  "This shared project could not be opened.": "Impossible d'ouvrir ce projet partagé.",
+  "Nothing here can go in this slot.": "Rien ici ne peut aller dans cet emplacement.",
+  "{when} by {name}": "{when} par {name}",
+  "This shared item could not be placed. Try again.": "Impossible de placer cet élément partagé. Réessaie.",
+  "Copying {name} to your files…": "Copie de {name} dans tes fichiers…"
 }

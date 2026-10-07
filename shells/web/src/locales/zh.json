@@ -4522,7 +4522,7 @@
   "Shared design": "共同设计",
   "Shared fields": "Shared fields",
   "Shared inputs": "Shared inputs",
-  "Shared project": "Shared project",
+  "Shared project": "共享项目",
   "Shared text": "Shared text",
   "Shared with you on this instance": "在此实例上与你共享",
   "Share…": "分享…",
@@ -7481,5 +7481,11 @@
   "Added {n} files to this folder.": "已向此文件夹添加 {n} 个文件。",
   "Drop to add to this folder": "松开即可添加到此文件夹",
   "Search all {n}": "搜索全部 {n} 项",
-  "Search all {facet} options": "搜索所有{facet}选项"
+  "Search all {facet} options": "搜索所有{facet}选项",
+  "Shared projects could not be loaded.": "无法加载共享项目。",
+  "This shared project could not be opened.": "无法打开此共享项目。",
+  "Nothing here can go in this slot.": "这里没有任何内容可以放入此槽位。",
+  "{when} by {name}": "{when}，由 {name} 保存",
+  "This shared item could not be placed. Try again.": "无法放置此共享项目。请重试。",
+  "Copying {name} to your files…": "正在将 {name} 复制到你的文件…"
 }

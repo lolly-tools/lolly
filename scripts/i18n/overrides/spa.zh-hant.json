@@ -986,5 +986,12 @@
   "Added {n} files to this folder.": "已向此資料夾新增 {n} 個檔案。",
   "Drop to add to this folder": "放開即可新增到此資料夾",
   "Search all {n}": "搜尋全部 {n} 項",
-  "Search all {facet} options": "搜尋所有{facet}選項"
+  "Search all {facet} options": "搜尋所有{facet}選項",
+  "Shared projects could not be loaded.": "無法載入共用專案。",
+  "This shared project could not be opened.": "無法開啟此共用專案。",
+  "Nothing here can go in this slot.": "這裡沒有任何內容可以放入此插槽。",
+  "{when} by {name}": "{when}，由 {name} 儲存",
+  "This shared item could not be placed. Try again.": "無法放置此共用項目。請再試一次。",
+  "Copying {name} to your files…": "正在將 {name} 複製到你的檔案…",
+  "Shared project": "共用專案"
 }
