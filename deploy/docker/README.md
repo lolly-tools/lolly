@@ -109,6 +109,11 @@ establish these controls.
 Keep unused services out of the deployed scope. The existing private-content
 access boundary still applies to every public render route and direct asset URL.
 
+Standalone MCP and CA images support an [observable operator drain](../../services/shared/README.md)
+for application updates and accounting-store migration. Configure a separate
+runtime Secret for the loopback control listener, qualify the new readiness
+probe, and require a settled receipt before replacing an active writer.
+
 Penpot has a dependency-free standalone listener and optional hardened Compose
 service. The [public Penpot VM recipe](public-penpot.md) supplies the Caddy mount,
 two-command RPC boundary and staged qualification checklist for UpCloud or Evroc.

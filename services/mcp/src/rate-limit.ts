@@ -10,6 +10,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import type { WriteObserver } from '../../shared/http-lifecycle.mjs';
 
 export interface RateLimitDecision {
   ok: boolean;
@@ -71,16 +72,30 @@ export class RedisRestRateLimiter implements RateLimiter {
   readonly #token: string;
   readonly #namespace: string;
   readonly #fetch: typeof fetch;
+  readonly #onWrite?: WriteObserver;
 
-  constructor(options: { url: string; token: string; namespace: string; fetchImpl?: typeof fetch }) {
+  constructor(options: { url: string; token: string; namespace: string; fetchImpl?: typeof fetch; onWrite?: WriteObserver }) {
     this.#url = normalizeRestUrl(options.url);
     this.#token = options.token;
     this.#namespace = options.namespace;
     this.#fetch = options.fetchImpl ?? fetch;
+    this.#onWrite = options.onWrite;
   }
 
   async consume(scope: string, subject: string, limit: number, windowMs: number): Promise<RateLimitDecision> {
     validateBudget(limit, windowMs);
+    const finish = this.#onWrite?.();
+    try {
+      const result = await this.#consume(scope, subject, limit, windowMs);
+      finish?.(true);
+      return result;
+    } catch (error) {
+      finish?.(false);
+      throw error;
+    }
+  }
+
+  async #consume(scope: string, subject: string, limit: number, windowMs: number): Promise<RateLimitDecision> {
     const key = `lolly:rl:${digestKey(this.#namespace, scope, subject)}`;
     let response: Response;
     try {
@@ -155,9 +170,9 @@ export function restStoreConfig(env: NodeJS.ProcessEnv): { url: string; token: s
   return null;
 }
 
-export function createRateLimiter(env: NodeJS.ProcessEnv, namespace = 'mcp'): RateLimiter {
+export function createRateLimiter(env: NodeJS.ProcessEnv, namespace = 'mcp', onWrite?: WriteObserver): RateLimiter {
   const store = restStoreConfig(env);
-  if (store) return new RedisRestRateLimiter({ ...store, namespace });
+  if (store) return new RedisRestRateLimiter({ ...store, namespace, onWrite });
   const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production';
   if (hosted && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== '1') {
     console.warn(`[rate-limit] ${UNCONFIGURED_REASON}`);

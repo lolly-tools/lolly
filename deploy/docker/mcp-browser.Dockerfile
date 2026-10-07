@@ -77,6 +77,7 @@ COPY --from=build /src/packages/core ./packages/core
 COPY --from=build /src/packages/node-shell ./packages/node-shell
 COPY --from=build /src/shells/cli ./shells/cli
 COPY --from=build /src/services/mcp ./services/mcp
+COPY services/shared ./services/shared
 COPY --from=build /src/shells/web/public/fonts ./shells/web/public/fonts
 COPY --from=build /runtime-content/tools ./tools
 COPY --from=build /runtime-content/catalog ./catalog

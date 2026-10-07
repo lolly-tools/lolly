@@ -157,6 +157,28 @@ export interface InspectorActions {
   editWebTool?(ids: string[]): void;
   useWebPage?(ids: string[]): void;
   editWebCss?(ids: string[]): void;
+  /**
+   * Mount the placed tool's own inputs for the box `id` (an image box whose picture is
+   * a Lolly tool render) into `slot`: the Tool section's body. Every settled change
+   * re-renders the tool and writes the new picture to the box, one undo step each, so
+   * the canvas follows the panel live. Resolves null when the box holds no tool render
+   * this shell can open. The column keeps the handle across its own rebuilds (moving
+   * `el` into each fresh slot) and destroys it when the box leaves the selection.
+   */
+  mountToolSettings?(slot: HTMLElement, id: string): Promise<ToolSettingsHandle | null>;
+  /** Replace a box's picture through the picker, skipping the edit-or-replace question
+   *  a tool render otherwise asks first (the inspector's Tool section is the edit). */
+  replaceImage?(ids: string[]): void;
+}
+
+/** A mounted Tool section panel (see InspectorActions.mountToolSettings). */
+export interface ToolSettingsHandle {
+  el: HTMLElement;
+  /** The tool link the panel is showing, to tell its own writes from an undo. */
+  url(): string;
+  /** Working in the panel right now: the column holds its rebuild until it settles. */
+  busy(): boolean;
+  destroy(): void;
 }
 
 /**
@@ -257,7 +279,7 @@ export interface DesignCanvasPorts {
    * Register the mounted inspector so the object bar's Text / More / Dims / Stroke buttons
    * reveal its sections instead of opening the one-slot panels; null restores the panels.
    */
-  setInspector(inspector: { reveal(section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'web' | 'motion' | 'present' | 'guide'): void } | null): void;
+  setInspector(inspector: { reveal(section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present' | 'guide'): void } | null): void;
 }
 
 /** Chrome the tool view already owns and lends to the overlay's mark menu (theme, sounds, profile). */

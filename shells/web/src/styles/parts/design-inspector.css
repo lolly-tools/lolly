@@ -236,6 +236,15 @@
   font-size: calc(var(--fs-sm) * 0.8);
 }
 
+/* A placed tool's own inputs in the Tool section (InspectorActions.mountToolSettings):
+   the tool sidebar's markup (tool-inputs.ts), so it brings its own controls and
+   sections and needs only to fill the column. Its band labels are dropped, because the
+   section already sits in this column's Content band and a second ladder inside it
+   would name bands twice. */
+.fc-insp-toolset { min-width: 0; }
+.fc-insp-toolset > .embed-panel { gap: var(--sp-4); }
+.fc-insp-toolset .lp-band-label { display: none; }
+
 /* The same structural Design check MCP exposes, kept compact enough to lead the
    Document group without turning the inspector into a report. It never blocks an
    export; the authored-value findings are a status and the mount-only checks remain

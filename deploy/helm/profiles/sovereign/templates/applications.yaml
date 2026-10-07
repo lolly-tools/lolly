@@ -30,7 +30,7 @@ spec:
         kubernetes.io/hostname: {{ $.Values.edge.nodeName | quote }}
       {{- end }}
       automountServiceAccountToken: false
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: {{ ternary 330 30 (or (eq $name "mcp") (eq $name "ca")) }}
       {{- with $.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -102,8 +102,8 @@ spec:
           readinessProbe:
             {{- if eq $name "web" }}
             httpGet: {path: /healthz, port: http}
-            {{- else if eq $name "ca" }}
-            httpGet: {path: /api/ca/health, port: http}
+            {{- else if or (eq $name "ca") (eq $name "mcp") }}
+            httpGet: {path: /readyz, port: http}
             {{- else if eq $name "penpot" }}
             httpGet: {path: /healthz, port: http}
             {{- else }}
