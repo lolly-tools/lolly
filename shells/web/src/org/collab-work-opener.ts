@@ -311,7 +311,8 @@ async function loadWiring(): Promise<WorkCollabWiring> {
         const now = orgSession();
         return !!inviter && now?.kind === 'member' && now.user.sub === inviter && activeTeamSessionOrigin('design')?.sessionId === p.sessionId;
       };
-      return adapter.createWorkCollabHandle(p, { comments: comments.createWorkComments(p.sessionId, memberPrincipal),
+      // The room's own `comment` frames feed the comments panel, so it refetches one thread, not the list.
+      return adapter.createWorkCollabHandle(p, { comments: comments.createWorkComments(p.sessionId, memberPrincipal, { changes: p.reviewEvents }),
       assets: assets.createWorkCanvasAssets(p.sessionId, memberPrincipal),
       inviteLinks: links.sessionInviteLinks(p.sessionId, invitePolicy(orgConfig()), () => person === orgSession()),
       ...(orgAgentInvitesEnabled() ? { inviteAgent: () => { void import('./document-agents.ts').then(m => m.openAgentInvites(p.sessionId, sameInviter)).catch(() => announce(tRaw(STRINGS.unreachable))); } } : {}),
