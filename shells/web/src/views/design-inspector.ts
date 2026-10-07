@@ -91,6 +91,7 @@ import { webPlaybackRows, wireWebPlayback } from './design-web-playback.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { parseVoiceBlend, KOKORO_DEFAULT_VOICE } from '../../../../engine/src/speech-text.ts';
+import { parseToolUrl } from '../../../../engine/src/tool-url.ts';
 import { inspectDesignV1 } from '@lolly-tools/core';
 import type { HostV1, SpeechVoiceInfo } from '@lolly-tools/core/host-v1';
 import type { EmojiStyleV1 } from '@lolly-tools/core/emoji-v1';
@@ -111,6 +112,7 @@ import type { ChoiceField } from './free-canvas-fields.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import type {
   ArtboardPort, DesignGuide, DesignGuidePort, FramePort, InspectorActions, ModelPort, NarrationActions, NarrationStatus, SelectionPort,
+  ToolSettingsHandle,
 } from './design-ports.ts';
 import { isDocked, onDockChange } from '../lib/edge-dock.ts';
 import {
@@ -148,7 +150,7 @@ const DOCK_ID = 'inspector';
  * to be sub-headings inside Object.
  */
 export type InspectorSection =
-  | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'web' | 'motion' | 'present'
+  | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present'
   | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide';
 
 /**
@@ -393,6 +395,11 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   text: (c) => [c.textField, c.fontField, c.fontSizeField, c.weightField, c.lineHeightField, c.trackingField,
     c.ligaturesField, c.alternatesField, c.fitTextField, c.alignField, c.valignField, c.padField, c.textColorField],
   image: (c) => [c.imageField, c.fitField, c.imgPosField],
+  // A placed tool's picture is the image field, rewritten by its own settings panel on
+  // every settled change. The rebuild that write triggers MOVES the live panel into the
+  // fresh slot rather than remounting it (see mountToolPanel), so watching it costs
+  // nothing and is how an undo of a tool edit reaches the panel.
+  tool: (c) => [c.imageField, c.fitField, c.imgPosField],
   // The 3D scene box's one field (plan 265 milestone 3). Named literally, like `build`
   // and `lane` above: the Design manifest declares `scene` as a machine-written field
   // with no `canvas` key of its own, so there is no cfg name to read it through.
@@ -436,6 +443,8 @@ const SECTION_META: Record<InspectorSection, { title: () => string; glyph: IconN
   arrange: { title: () => t('Arrange'), glyph: 'orderFront', band: 'layout' },
   text: { title: () => t('Text'), glyph: 'font', band: 'content' },
   image: { title: () => t('Image'), glyph: 'image', band: 'content' },
+  // A box whose picture is another Lolly tool's render: that tool's own settings.
+  tool: { title: () => t('Tool'), glyph: 'tool', band: 'content' },
   // `box` is the registry's isometric cube, and it is already the 3D Studio's own
   // section glyph for Start, Collection, Lighting and Arrangement, so the studio and
   // the door onto it wear one picture.
@@ -469,7 +478,7 @@ export const SECTIONS_KEY = 'lolly-design-inspector-sections';
 const DEFAULT_OPEN: Record<InspectorSection, boolean> = {
   document: true, guide: true, artboard: true, object: false, fill: true, appearance: false,
   shadow: false, tilt: false, arrange: false,
-  text: true, image: true, scene: true, web: true, motion: false, present: false,
+  text: true, image: true, tool: true, scene: true, web: true, motion: false, present: false,
 };
 
 /** The remembered state, section by section. Storage can be absent or refuse. */
@@ -773,7 +782,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (kindOf(box) === '3d' && F_SCENE) secs.push('scene');
     // A web page box's section carries its poster door, so it never also takes Image.
     else if (kindOf(box) === 'web' && F_WEB) secs.push('web');
-    else if (kindOf(box) === 'webcam' || (cfg.imageField && box[cfg.imageField])) secs.push('image');
+    // A picture that is a placed TOOL takes Tool, which carries that tool's own inputs
+    // (and the image rows a picture needs); any other picture, and a webcam, takes Image.
+    else if (kindOf(box) === 'webcam' || (cfg.imageField && box[cfg.imageField])) {
+      secs.push(kindOf(box) !== 'webcam' && toolLinkOf(box) && actions.mountToolSettings ? 'tool' : 'image');
+    }
     secs.push('object', ...paintSecs(true));
     secs.push('motion');
     // …and Present LAST, for the three per-box fields only a box can carry (see
@@ -1564,6 +1577,39 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + (cfg.imgPosField ? segRow(FIELD_GLYPH.fitPos, t('Image position'), posGridHtml(cfg.imgPosField, String(fv(b, cfg.imgPosField) ?? 'center'), t('Image position'))) : '');
   }
 
+  /** The tool link a box's picture was rendered from, or '' when it is not a tool render. */
+  function toolLinkOf(b: Box): string {
+    const img = cfg.imageField ? b[cfg.imageField] as { id?: unknown; meta?: { toolUrl?: unknown } } | undefined : undefined;
+    if (!img || typeof img !== 'object') return '';
+    if (typeof img.meta?.toolUrl === 'string' && img.meta.toolUrl) return img.meta.toolUrl;
+    return typeof img.id === 'string' && parseToolUrl(img.id) ? img.id : '';
+  }
+
+  /**
+   * THE TOOL SECTION: a placed tool, tuned on the board.
+   *
+   * The body is a slot the host fills with the placed tool's OWN inputs (the same
+   * controls its sidebar shows, driven by a child runtime: InspectorActions
+   * .mountToolSettings), so a tool dropped onto the board is adjusted in this column
+   * with the canvas in view, instead of in a modal that covers the board while you decide.
+   * Every settled change re-renders the tool into the box. Below the panel sit the two
+   * rows any picture has (fit and position) and the one door out: replace it with a
+   * different tool or image.
+   */
+  function toolBody(b: Box): string {
+    const fit = optionsOf(cfg.fitField);
+    const fitChoices: Array<[string, string, string?]> = fit.length
+      ? fit.map(([v, l]) => [v, l, ({ contain: FIELD_GLYPH.fitContain, cover: FIELD_GLYPH.fitCover, fill: FIELD_GLYPH.fitFill } as Record<string, string>)[v]])
+      : [['contain', t('Contain'), FIELD_GLYPH.fitContain], ['cover', t('Cover (crop)'), FIELD_GLYPH.fitCover], ['fill', t('Stretch'), FIELD_GLYPH.fitFill]];
+    const img = cfg.imageField ? b[cfg.imageField] as { meta?: { name?: unknown } } | undefined : undefined;
+    const name = typeof img?.meta?.name === 'string' ? img.meta.name : '';
+    return (name ? readRow(t('Tool'), name) : '')
+      + '<div class="fc-insp-toolset" data-tool-settings></div>'
+      + (cfg.fitField ? segRow(FIELD_GLYPH.fitContain, t('Image fit'), segHtml(cfg.fitField, String(fv(b, cfg.fitField) ?? 'contain'), fitChoices, t('Image fit'))) : '')
+      + (cfg.imgPosField ? segRow(FIELD_GLYPH.fitPos, t('Image position'), posGridHtml(cfg.imgPosField, String(fv(b, cfg.imgPosField) ?? 'center'), t('Image position'))) : '')
+      + doorBtn(t('Replace with another tool or image'), 'replaceimage', 'uploadImage');
+  }
+
   /**
    * THE SCENE SECTION: one door and one honest line (plan 265 milestone 3, D2).
    *
@@ -1828,6 +1874,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (sec === 'text') return textBody(b, g.rows);
     if (sec === 'image') return imageBody(b);
     if (sec === 'scene') return sceneBody(b);
+    if (sec === 'tool') return toolBody(b);
     if (sec === 'web') return webBody(b);
     if (sec === 'motion') return motionBody(b, g.kind === 'frame');
     return presentBody(b, g.kind === 'frame');
@@ -1861,8 +1908,76 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   }
 
   let textMounted: ReturnType<typeof mountTextInspector> | null = null;
+
+  /**
+   * The live Tool section panel, kept ACROSS rebuilds. The column throws its markup
+   * away on most model changes, and the panel is a child runtime with its own control
+   * state, so remounting it on every one of its own writes would reset a half-typed
+   * field and restart the tool. Instead each render MOVES the same panel into the fresh
+   * slot, and mounts a new one only for a different box, or when the box's tool link
+   * changed from somewhere else (an undo, a collaborator).
+   */
+  let toolPanel: { id: string; handle: ToolSettingsHandle | null; pending: Promise<ToolSettingsHandle | null> | null } | null = null;
+  function dropToolPanel(): void {
+    toolPanel?.handle?.destroy();
+    toolPanel = null;
+  }
+  /** Move `node` under `parent`, keeping focus and an in-flight drag where the browser can. */
+  function moveInto(parent: HTMLElement, node: HTMLElement): void {
+    const move = (parent as HTMLElement & { moveBefore?: (n: Node, c: Node | null) => void }).moveBefore;
+    if (typeof move === 'function' && node.isConnected && parent.isConnected) {
+      try { move.call(parent, node, null); return; } catch { /* fall through to a plain move */ }
+    }
+    parent.appendChild(node);
+  }
+  /**
+   * Lift the live panel out of the column BEFORE a rebuild replaces the markup around
+   * it, into a holder that stays in the document, so it is never detached (a detached
+   * subtree loses focus, and cannot be moved with moveBefore). mountToolPanel moves it
+   * into the fresh slot in the same task, or destroys the panel when no slot asks for one.
+   */
+  let toolPark: HTMLElement | null = null;
+  function parkToolPanel(): void {
+    const panel = toolPanel?.handle?.el;
+    if (!panel?.isConnected || !scroll.contains(panel)) return;
+    if (!toolPark) { toolPark = document.createElement('div'); toolPark.setAttribute('data-tool-park', ''); el.appendChild(toolPark); }
+    moveInto(toolPark, panel);
+  }
+  function toolHint(text: string): HTMLElement {
+    const p = document.createElement('p');
+    p.className = 'fc-insp-hint';
+    p.textContent = text;
+    return p;
+  }
+  function mountToolPanel(g: Gate): void {
+    const slot = scroll.querySelector<HTMLElement>('[data-tool-settings]');
+    const id = g.ids[0];
+    if (!slot || !id || g.ids.length !== 1 || !actions.mountToolSettings) { dropToolPanel(); return; }
+    const link = toolLinkOf(g.box ?? {});
+    if (toolPanel && toolPanel.id === id && toolPanel.handle && toolPanel.handle.url() === link) {
+      moveInto(slot, toolPanel.handle.el);
+      return;
+    }
+    if (toolPanel && toolPanel.id === id && toolPanel.pending) return;
+    dropToolPanel();
+    const entry: NonNullable<typeof toolPanel> = { id, handle: null, pending: null };
+    toolPanel = entry;
+    slot.replaceChildren(toolHint(t('Loading the tool…')));
+    entry.pending = actions.mountToolSettings(slot, id).then((handle) => {
+      entry.pending = null;
+      if (toolPanel !== entry || destroyed) { handle?.destroy(); return null; }
+      entry.handle = handle;
+      const live = scroll.querySelector<HTMLElement>('[data-tool-settings]');
+      live?.querySelector('.fc-insp-hint')?.remove();
+      if (!handle) { live?.replaceChildren(toolHint(t('This tool is not available here.'))); return null; }
+      if (live && handle.el.parentElement !== live) live.appendChild(handle.el);
+      return handle;
+    });
+  }
+
   function render(g: Gate): void {
     const keep = focusKey(typeof document !== 'undefined' ? document.activeElement : null);
+    parkToolPanel();
     tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = [];
     textMounted?.destroy(); textMounted = null;
     renderedIds = [...g.ids];
@@ -1934,6 +2049,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     linkHelpDescriptions(scroll);
     const textSlot = scroll.querySelector<HTMLElement>('[data-composed-inspector]');
     if (textSlot && actions.text) textMounted = mountTextInspector(textSlot, g.ids, actions.text, fonts);
+    mountToolPanel(g);
     wire();
     if (model.collection && renderedIds[0]) {
       for (const control of scroll.querySelectorAll<HTMLElement>('[data-fld], [data-num-field]')) {
@@ -2137,6 +2253,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           case 'delete-guide': if (renderedGuideId) opts.guides?.remove(renderedGuideId); break;
           case 'gradient': actions.openGradient(ids); break;
           case 'pickimage': actions.pickImage(ids); break;
+          case 'replaceimage': if (actions.replaceImage) actions.replaceImage(ids); else actions.pickImage(ids); break;
           // The scene editor opens on the rows this section was BUILT for, like every
           // other door here: the studio round trip is asynchronous, and the selection can
           // move while it is open.
@@ -2308,6 +2425,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    */
   function heldOpen(): boolean {
     return typingHere()
+      || !!toolPanel?.handle?.busy()
       || numMounted.some((h) => h.scrubbing())
       || rangeDrag
       || !!scroll.querySelector('.color-popover:not([hidden])');
@@ -2521,6 +2639,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     destroy(): void {
       tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = [];
       textMounted?.destroy();
+      dropToolPanel();
       if (destroyed) return;
       destroyed = true;
       offTrust();
