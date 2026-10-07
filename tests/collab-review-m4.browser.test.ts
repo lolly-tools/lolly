@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Plan 76 milestone 4, release 1: finding and resuming a review in a real browser,
- * against a local lolly-work built from PR-W1a (tests/collab/browser-fixture.ts).
+ * Plan 76 milestone 4: finding and resuming a review (release 1), and following,
+ * presenting and versions (release 2), in a real browser against a local lolly-work
+ * built from PR-W1a or PR-W1b (tests/collab/browser-fixture.ts).
  *
  * People: the owner (admin@test, who made the project), an editor (alice@test), a
  * reviewer who may comment but not edit (viewer@test), and outsider@test, who is in
- * another group and cannot open the project. The three journeys:
+ * another group and cannot open the project. Release 1 has three journeys:
  *
  *  1. mentions, the inbox notice and Open thread, live unread state, the four filters,
  *     Mark all as read, jumping to a thread on another artboard, Previous/Next and
@@ -15,14 +16,21 @@
  *  3. an edit interrupted by a lost connection keeps a recovery notice until the person
  *     dismisses the notice, and the copy records the account that made the edit.
  *
- * Hide pointers is release 2 (S5) and is covered by S9b's additions here.
+ * Release 2 adds two more:
+ *
+ *  4. Hide pointers on one device; following a person (continuous, Escape returns,
+ *     the person's own navigation stops it and keeps the view, the leader leaving ends
+ *     it) with the followers named to the person followed; one presenter shown when two
+ *     present, and following a presentation from slide to slide until it ends;
+ *  5. saving a named version, its preview, a restore with three people in the document,
+ *     Undo restore, and a manager deleting the version.
  *
  * Opt in with LOLLY_COLLAB_TEST_URL (a local Vite shell of this checkout) and
- * LOLLY_WORK_DIR (a lolly-work checkout with the M4 comment routes). CI skips it with
- * the exact entries in tests/expected-skips.json. Message mentions also need the review
- * contract's `mentions` reader in packages/core (PR-L1). LOLLY_M4_SHOTS=<dir> keeps a
- * screenshot of every page when a journey fails. Waits are DOM predicates evaluated on
- * animation frames, never async predicates.
+ * LOLLY_WORK_DIR (a lolly-work checkout with the M4 comment routes; journey 5 also needs
+ * its session versions). CI skips it with the exact entries in tests/expected-skips.json.
+ * Message mentions and presenting also need the review contract in packages/core
+ * (PR-L1). LOLLY_M4_SHOTS=<dir> keeps a screenshot of every page when a journey fails.
+ * Waits are DOM predicates evaluated on animation frames, never async predicates.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -43,6 +51,9 @@ function skipReason(): string | false {
   return false;
 }
 const skip = skipReason();
+/** Journey 5 needs the instance's saved versions (PR-W1b). */
+const versionsSkip: string | false = skip || (existsSync(resolve(workDir, 'server/src/versions/routes.ts')) ? false
+  : 'the lolly-work checkout has no session versions; use one built from PR-W1b');
 
 type Row = { id: string; [key: string]: unknown };
 interface Fixture {
@@ -494,6 +505,288 @@ test('M4 recovery: an interrupted edit keeps a persistent recovery notice', {
     assert.deepEqual(after, [true], 'dismissing the notice dismisses its queue entry');
   } catch (error) {
     console.error('M4 recovery diagnostics', await w.diagnostics());
+    throw error;
+  } finally {
+    await w.dispose();
+  }
+});
+
+// ── Release 2: following, presenting and versions ─────────────────────────────
+
+interface View { x: number; y: number; w: number }
+/** An artboard's place in the stage: its offset from the stage's top-left corner, and its width. */
+async function frameView(page: Page, frame = 'board'): Promise<View> {
+  return await page.evaluate(id => {
+    const stage = document.querySelector('.tool-stage')!.getBoundingClientRect();
+    const box = document.querySelector(`#tool-canvas [data-frame-id="${id}"]`)!.getBoundingClientRect();
+    return { x: Math.round(box.left - stage.left), y: Math.round(box.top - stage.top), w: Math.round(box.width) };
+  }, frame);
+}
+const sameView = (a: View, b: View): boolean => Math.abs(a.x - b.x) <= 3 && Math.abs(a.y - b.y) <= 3 && Math.abs(a.w - b.w) <= 3;
+/** Wait until an artboard is at the place `want` gives, within a few pixels. */
+async function waitForView(page: Page, want: View, frame = 'board'): Promise<void> {
+  await page.waitForFunction(({ want, frame }) => {
+    const stage = document.querySelector('.tool-stage')?.getBoundingClientRect();
+    const box = document.querySelector(`#tool-canvas [data-frame-id="${frame}"]`)?.getBoundingClientRect();
+    return !!stage && !!box && Math.abs(box.left - stage.left - want.x) <= 3 && Math.abs(box.top - stage.top - want.y) <= 3
+      && Math.abs(box.width - want.w) <= 3;
+  }, { want, frame }, { polling: 'raf' });
+}
+/** One animation frame, so a camera change has been painted. */
+const frame = (page: Page) => page.evaluate(() => new Promise<void>(done => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
+/** The person's own camera move: the wheel over an empty part of the stage, zooming with Control held. */
+async function wheel(page: Page, dx: number, dy: number, zoom = false): Promise<void> {
+  const stage = await page.locator('.tool-stage').boundingBox(); assert.ok(stage);
+  await page.mouse.move(stage.x + stage.width * 0.3, stage.y + stage.height * 0.8);
+  if (zoom) await page.keyboard.down('Control');
+  await page.mouse.wheel(dx, dy);
+  if (zoom) await page.keyboard.up('Control');
+  await frame(page);
+}
+async function waitForText(page: Page, selector: string, text: string): Promise<void> {
+  await page.waitForFunction(({ selector, text }) => document.querySelector(selector)?.textContent === text, { selector, text }, { polling: 'raf' });
+}
+const PILL = '.collab-pill--stage';
+const followLabel = `${PILL} .collab-follow-label`;
+/** Click a person's avatar in the stage pill, which follows them (or stops when already followed). */
+async function followFromAvatar(page: Page, name: string): Promise<void> {
+  await page.waitForFunction(title => !!document.querySelector(`.collab-pill--stage .collab-stack .collab-av[title="${title}"]`), `Follow ${name}`, { polling: 'raf' });
+  await press(page, `${PILL} .collab-stack .collab-av[title="Follow ${name}"]`);
+}
+/** Other people's pointers drawn on this page, by the name on their label. */
+const pointerOf = (page: Page, name: string) => page.locator('.collab-cursor:not([hidden]) .collab-cursor-label', { hasText: name });
+/** Present the deck from the keyboard (the editor's Ctrl/Cmd+Enter) and wait for the first slide. */
+async function present(page: Page): Promise<void> {
+  await page.locator('.tool-stage').hover({ position: { x: 20, y: 20 } });
+  await page.keyboard.press('ControlOrMeta+Enter');
+  await page.locator('.pr-stage .pr-active[data-frame-id]').waitFor();
+}
+/** Exit with the deck's own button: a deck opens fullscreen, where the browser keeps Escape for itself. */
+async function stopPresenting(page: Page): Promise<void> {
+  await press(page, '.pr-stage button[aria-label="Exit presentation"]');
+  await page.waitForFunction(() => !document.querySelector('.pr-stage'), null, { polling: 'raf' });
+}
+
+test('M4 follow: Hide pointers, following a person, followers by name, one presenter and following a presentation', {
+  skip, timeout: 300_000,
+}, async () => {
+  const w = await world();
+  try {
+    const owner = await w.person('admin@test');
+    const editor = await w.person('alice@test');
+    const reviewer = await w.person('viewer@test');
+    // Two artboards, so a presentation has a second slide.
+    const before = await w.fixture.readSession();
+    await w.api(owner, 'PUT', `/api/v1/sessions/${w.fixture.sessionId}`, { rev: before!.rev, inputs: { ...before!.inputs, boxes: [...(before!.inputs.boxes as Row[]), ...SECOND_BOARD] } });
+    // Joined in this order: the owner is the earliest present participant.
+    for (const who of [owner, editor, reviewer]) await openSession(who.page, w.fixture.base, w.fixture.sessionId);
+
+    // Hide pointers hides other people's pointers on this device only, and is remembered here.
+    const shape = await owner.page.locator('#tool-canvas [data-box-id="shape"]').boundingBox(); assert.ok(shape);
+    await owner.page.mouse.move(shape.x + 10, shape.y + 10);
+    await owner.page.mouse.move(shape.x + 40, shape.y + 30, { steps: 4 });
+    await pointerOf(editor.page, 'Admin').first().waitFor();
+    await pointerOf(reviewer.page, 'Admin').first().waitFor();
+    await press(reviewer.page, 'button[aria-label="Hide pointers"]');
+    await reviewer.page.waitForFunction(() => !document.querySelector('.collab-cursor:not([hidden])'), null, { polling: 'raf' });
+    assert.equal(await reviewer.page.evaluate(() => localStorage.getItem('lolly.collab.pointers')), 'hidden');
+    await owner.page.mouse.move(shape.x + 70, shape.y + 50, { steps: 4 });
+    await editor.page.waitForFunction(() => [...document.querySelectorAll('.collab-cursor:not([hidden]) .collab-cursor-label')].some(l => l.textContent === 'Admin'), null, { polling: 'raf' });
+    await frame(reviewer.page); await reviewer.page.waitForTimeout(400);
+    assert.equal(await pointerOf(reviewer.page, 'Admin').count(), 0, 'the reviewer sees no pointers');
+    await press(reviewer.page, 'button[aria-label="Show pointers"]');
+    await owner.page.mouse.move(shape.x + 30, shape.y + 60, { steps: 4 });
+    await pointerOf(reviewer.page, 'Admin').first().waitFor();
+    assert.equal(await reviewer.page.evaluate(() => localStorage.getItem('lolly.collab.pointers')), null);
+
+    // Following: the owner looks somewhere else, and the editor follows them there.
+    const editorOwn = await frameView(editor.page);
+    await wheel(owner.page, 0, -240, true);
+    await wheel(owner.page, -90, 60);
+    const ownerFirst = await frameView(owner.page);
+    assert.ok(!sameView(ownerFirst, editorOwn), `the owner moved their camera: ${JSON.stringify({ ownerFirst, editorOwn })}`);
+    await followFromAvatar(editor.page, 'Admin');
+    await waitForText(editor.page, followLabel, 'Following Admin');
+    assert.equal(await editor.page.locator(`${PILL} .collab-follow-action`).textContent(), 'Stop following');
+    await waitForView(editor.page, ownerFirst);
+    await editor.page.locator('.tool-stage > .collab-follow-frame').waitFor({ state: 'attached' });
+    // The person followed sees who follows them, by name.
+    await waitForText(owner.page, `${PILL} .collab-followers`, 'Followers: 1');
+    await press(owner.page, `${PILL} .collab-stack`);
+    const roster = owner.page.locator('.collab-roster');
+    assert.equal(await roster.locator('.collab-roster-heading').textContent(), 'Following you');
+    assert.deepEqual(await roster.locator('.collab-roster-followers .collab-roster-name').allTextContents(), ['Alice']);
+    await owner.page.keyboard.press('Escape');
+    await owner.page.waitForFunction(() => !document.querySelector('.collab-roster'), null, { polling: 'raf' });
+    // Following is continuous: the owner moves again, and the editor's view comes along.
+    await wheel(owner.page, 0, 160);
+    const ownerSecond = await frameView(owner.page);
+    assert.ok(!sameView(ownerSecond, ownerFirst), 'the owner moved again');
+    await waitForView(editor.page, ownerSecond);
+    // Escape stops following and brings back the editor's own view.
+    await editor.page.keyboard.press('Escape');
+    await waitForView(editor.page, editorOwn);
+    await waitForText(editor.page, followLabel, 'You stopped following Admin.');
+    await owner.page.waitForFunction(() => !document.querySelector('.collab-pill--stage .collab-followers'), null, { polling: 'raf' });
+    assert.equal(await editor.page.locator('.tool-stage > .collab-follow-frame').count(), 0, 'the follow outline is gone');
+    // The editor's own navigation also stops following, and keeps the view where it is.
+    await followFromAvatar(editor.page, 'Admin');
+    await waitForView(editor.page, ownerSecond);
+    await wheel(editor.page, 0, -120);
+    await waitForText(editor.page, followLabel, 'You stopped following Admin.');
+    const kept = await frameView(editor.page);
+    assert.ok(!sameView(kept, editorOwn), `own navigation keeps the view it reached, not the saved one: ${JSON.stringify({ kept, editorOwn })}`);
+    await wheel(owner.page, 0, 140);
+    await owner.page.waitForTimeout(300);
+    assert.ok(sameView(await frameView(editor.page), kept), 'no longer following the owner');
+
+    // Presenting: two people present, and the others see one presenter, the one who joined first.
+    await present(owner.page);
+    await waitForText(reviewer.page, followLabel, 'Admin is presenting');
+    await waitForText(editor.page, followLabel, 'Admin is presenting');
+    await present(editor.page);
+    await reviewer.page.waitForTimeout(600);
+    assert.equal(await reviewer.page.locator(followLabel).textContent(), 'Admin is presenting', 'one presenter is shown');
+    await stopPresenting(editor.page);
+    // The reviewer follows the presentation from slide to slide.
+    const board2Before = await frameView(reviewer.page, 'board2');
+    assert.equal(await reviewer.page.locator(`${PILL} .collab-follow-action`).textContent(), 'Follow presentation');
+    await press(reviewer.page, `${PILL} .collab-follow-action`);
+    await waitForText(reviewer.page, followLabel, 'Following the presentation by Admin');
+    await owner.page.keyboard.press('ArrowRight');
+    await owner.page.locator('.pr-stage .pr-active[data-frame-id="board2"]').waitFor();
+    await reviewer.page.waitForFunction(width => {
+      const stage = document.querySelector('.tool-stage')!.getBoundingClientRect();
+      const box = document.querySelector('#tool-canvas [data-frame-id="board2"]')!.getBoundingClientRect();
+      const cx = box.left + box.width / 2, cy = box.top + box.height / 2;
+      return box.width > width * 1.5 && cx > stage.left && cx < stage.right && cy > stage.top && cy < stage.bottom;
+    }, board2Before.w, { polling: 'raf' });
+    // When the presentation ends, following the presentation ends too.
+    await stopPresenting(owner.page);
+    await waitForText(reviewer.page, followLabel, 'You stopped following Admin.');
+
+    // The person followed leaving ends the follow, with a status.
+    await followFromAvatar(editor.page, 'Admin');
+    await waitForText(editor.page, followLabel, 'Following Admin');
+    await owner.page.close();
+    await waitForText(editor.page, followLabel, 'Admin left. You stopped following.');
+  } catch (error) {
+    console.error('M4 follow diagnostics', await w.diagnostics());
+    throw error;
+  } finally {
+    await w.dispose();
+  }
+});
+
+/** Open the History panel from the editor's History button (Design's top bar) and wait for its list. */
+async function openHistory(page: Page): Promise<void> {
+  if (!await page.locator('.revision-history-panel').count()) await press(page, '[data-topbar="history"], [data-history-open]');
+  await page.locator('.revision-history-panel .revision-history-list').waitFor();
+  await page.waitForFunction(() => !!document.querySelector('.revision-history-list article, .revision-history-list p'), null, { polling: 'raf' });
+}
+const historyRow = (page: Page, label: string) => page.locator('.revision-history-entry').filter({ has: page.locator('strong', { hasText: label }) });
+async function historyStatus(page: Page, text: string): Promise<void> {
+  await waitForText(page, '.revision-history-panel .revision-history-status', text);
+}
+/** Choose a confirmation dialog's confirm button. */
+async function confirm(page: Page, title: string): Promise<void> {
+  await page.getByRole('dialog', { name: title }).locator('[data-act="ok"]').click();
+}
+const shapeCount = (page: Page) => page.locator('#tool-canvas [data-box-id="shape"]').count();
+async function waitForShape(pages: Page[], present: boolean): Promise<void> {
+  for (const page of pages) {
+    await page.waitForFunction(want => !!document.querySelector('#tool-canvas [data-box-id="shape"]') === want, present, { polling: 'raf' });
+  }
+}
+
+test('M4 versions: save a version, preview, restore with three people present, Undo restore and a manager delete', {
+  skip: versionsSkip, timeout: 300_000,
+}, async () => {
+  const w = await world();
+  try {
+    const owner = await w.person('admin@test');
+    const editor = await w.person('alice@test');
+    const reviewer = await w.person('viewer@test');
+    const everyone = [owner, editor, reviewer].map(who => who.page);
+    for (const page of everyone) await openSession(page, w.fixture.base, w.fixture.sessionId);
+    const name = 'Before the review';
+
+    // The editor saves a named version of the document as it is now.
+    await openHistory(editor.page);
+    const form = editor.page.locator('.revision-history-save');
+    await editor.page.waitForFunction(() => document.querySelector<HTMLElement>('.revision-history-save')?.hidden === false, null, { polling: 'raf' });
+    assert.equal(await form.locator('input').getAttribute('aria-label'), 'Version name (optional)');
+    await form.locator('input').fill(name);
+    await form.getByRole('button', { name: 'Save version' }).click();
+    await historyStatus(editor.page, 'Version saved.');
+    const saved = historyRow(editor.page, name);
+    await saved.waitFor();
+    const savedText = await saved.textContent() ?? '';
+    assert.match(savedText, /Saved version/);
+    assert.match(savedText, /Edited by Alice/);
+
+    // Then deletes the shape in the live document; everyone sees it go.
+    await editor.page.locator('.revision-history-panel header').getByRole('button', { name: 'Close', exact: true }).click();
+    await editor.page.waitForFunction(() => !document.querySelector('.revision-history-panel'), null, { polling: 'raf' });
+    await editor.page.locator('#tool-canvas [data-box-id="shape"]').click();
+    await editor.page.keyboard.press('Delete');
+    await waitForShape(everyone, false);
+
+    // The preview shows the saved version larger, with what this editor may do.
+    await openHistory(editor.page);
+    await historyRow(editor.page, name).getByRole('button', { name: 'Preview' }).click();
+    const preview = editor.page.locator('.history-version-preview');
+    await preview.waitFor();
+    assert.equal(await preview.locator('.modal-title').textContent(), name);
+    await editor.page.waitForFunction(() => {
+      const image = document.querySelector<HTMLImageElement>('.history-version-preview .history-version-figure img');
+      return !!image && !image.hidden && image.src.startsWith('data:image/') && image.naturalWidth > 0;
+    }, null, { polling: 'raf', timeout: 60_000 });
+    assert.match(await preview.locator('.history-version-facts').textContent() ?? '', /Saved version.*Edited by Alice/);
+    assert.equal(await preview.getByRole('button', { name: 'Delete version' }).count(), 0, 'only managers delete versions');
+    await preview.getByRole('button', { name: 'Open as a copy' }).waitFor();
+
+    // Restore, confirmed, reaches all three people through the live document.
+    await preview.getByRole('button', { name: 'Restore this version' }).click();
+    const ask = editor.page.getByRole('dialog', { name: 'Restore this version?' });
+    assert.equal(await ask.locator('.modal-msg').textContent(), 'Everyone in this document will see the restored version. The current version stays in History, so you can go back.');
+    const restoredAt = Date.now();
+    await confirm(editor.page, 'Restore this version?');
+    await waitForShape(everyone, true);
+    console.log(`restore: confirm -> shape back for all three people ${Date.now() - restoredAt} ms`);
+    const toast = editor.page.locator('.undo-toast').filter({ hasText: 'Version restored.' });
+    await toast.waitFor();
+    await editor.page.waitForFunction(() => !document.querySelector('.history-version-preview'), null, { polling: 'raf' });
+    await editor.page.locator('.revision-history-entry', { hasText: 'Restored version' }).first().waitFor();
+    for (const page of everyone) assert.equal(await page.locator('#tool-canvas [data-box-id="shape"]').count(), 1);
+    // A reviewer who may not edit is refused by the instance.
+    const versions = await w.api<{ versions: { id: string; kind: string; label?: string }[] }>(owner, 'GET', `/api/v1/sessions/${w.fixture.sessionId}/versions`);
+    const named = versions.versions.find(v => v.kind === 'named' && v.label === name);
+    assert.ok(named, JSON.stringify(versions.versions));
+    assert.deepEqual(versions.versions.map(v => v.kind).filter(kind => kind !== 'auto' && kind !== 'save'), ['restore', 'before', 'named']);
+    const refused = await reviewer.context.request.post(`${w.fixture.base}/api/v1/sessions/${w.fixture.sessionId}/versions/${named.id}/restore`, { data: { requestId: 'reviewer-restore' } });
+    assert.equal(refused.status(), 403);
+
+    // Undo restore puts back the document the restore replaced, for everyone.
+    await toast.getByRole('button', { name: 'Undo restore' }).click();
+    await waitForShape(everyone, false);
+    await historyStatus(editor.page, 'Restore undone.');
+
+    // A manager deletes the version for everyone, after a confirmation.
+    await openHistory(owner.page);
+    await historyRow(owner.page, name).getByRole('button', { name: 'Preview' }).click();
+    const managerPreview = owner.page.locator('.history-version-preview');
+    await managerPreview.getByRole('button', { name: 'Delete version' }).click();
+    const sure = owner.page.getByRole('dialog', { name: 'Delete this version?' });
+    assert.equal(await sure.locator('.modal-msg').textContent(), 'This removes the version from History for everyone.');
+    await confirm(owner.page, 'Delete this version?');
+    await historyStatus(owner.page, 'Version deleted.');
+    assert.equal(await historyRow(owner.page, name).count(), 0);
+    const after = await w.api<{ versions: { id: string }[] }>(owner, 'GET', `/api/v1/sessions/${w.fixture.sessionId}/versions`);
+    assert.equal(after.versions.some(v => v.id === named.id), false, 'the version is gone for everyone');
+    assert.equal(await shapeCount(owner.page), 0, 'deleting a version leaves the document as it is');
+  } catch (error) {
+    console.error('M4 versions diagnostics', await w.diagnostics());
     throw error;
   } finally {
     await w.dispose();

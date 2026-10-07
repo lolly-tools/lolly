@@ -605,6 +605,20 @@
       "owner": "tests"
     },
     {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 follow: Hide pointers, following a person, followers by name, one presenter and following a presentation",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 versions: save a version, preview, restore with three people present, Undo restore and a manager delete",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/collab-work.browser.test.ts",
       "fullName": "authenticated work Design: cursors, edits, reconnect, duplicate tabs, viewer and revocation",
       "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
