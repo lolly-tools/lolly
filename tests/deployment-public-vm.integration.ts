@@ -332,6 +332,10 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
     );
     await t.test('cache and security policies survive all static response locations', async () => {
       for (const [path, cache] of [
+        ['/', 'public, max-age=0, must-revalidate'],
+        ['/?proof=kept', 'public, max-age=0, must-revalidate'],
+        ['/index.html', 'public, max-age=0, must-revalidate'],
+        ['/client-route', 'public, max-age=0, must-revalidate'],
         ['/_app/app-hash.js', 'public, max-age=31536000, immutable'],
         ['/ort-hf/runtime.wasm', 'public, max-age=31536000, immutable'],
         ['/ort/runtime.wasm', 'public, max-age=86400, stale-while-revalidate=604800'],
@@ -359,6 +363,18 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
           path
         );
       }
+      for (const path of ['/', '/?proof=kept', '/index.html']) {
+        const response = await fetch(`${base}${path}`, { method: 'HEAD' });
+        assert.equal(response.status, 200, path);
+        assert.equal(
+          response.headers.get('cache-control'),
+          'public, max-age=0, must-revalidate',
+          path
+        );
+        assert.equal(await response.text(), '', path);
+        assert.equal(response.headers.get('x-content-type-options'), 'nosniff', path);
+      }
+      assert.equal(await (await fetch(`${base}/`)).text(), 'APP SHELL');
       const usual =
         (await fetch(`${base}/client-route`)).headers.get('content-security-policy') ?? '';
       const any = (await fetch(`${base}/any-site/`)).headers.get('content-security-policy') ?? '';
