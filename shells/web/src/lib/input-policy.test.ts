@@ -15,6 +15,7 @@ import {
   getInputPolicy, setToolInputPolicies, clearInputPolicies, _clearInputPoliciesForTests,
   onToolInputMount, notifyToolInputMount, policyValuesFor, governedParamKeys,
   setDocumentReadOnly, clearDocumentReadOnly, documentReadOnlyNote, setInputPolicyFailClosed, policyLocksControl,
+  refuseDocumentEdit, guardDocumentEdits,
 } from './input-policy.ts';
 
 test('dormant by default: empty registry returns undefined for anything', () => {
@@ -236,5 +237,47 @@ test('the document layer is not governance: model values, links and exports are 
   });
   assert.deepEqual(policyValuesFor('poster', inputs), { headline: 'Fixed', accent: '#111' }, 'governed values still apply under it');
   assert.deepEqual([...governedParamKeys('poster', inputs)].sort(), ['h', 'headline']);
+  _clearInputPoliciesForTests();
+});
+
+test('an edit of a read-only document is refused, its owner told; another tool, or none, is not', () => {
+  _clearInputPoliciesForTests();
+  assert.equal(refuseDocumentEdit('poster'), false, 'dormant: nothing is refused');
+  let told = 0;
+  setDocumentReadOnly('poster', 'View only', () => { told += 1; });
+  assert.equal(refuseDocumentEdit('poster'), true);
+  assert.equal(refuseDocumentEdit('chart'), false, 'another tool writes as before');
+  assert.equal(refuseDocumentEdit(undefined), false);
+  assert.equal(told, 1);
+  // A setter that throws never stops the refusal.
+  setDocumentReadOnly('poster', 'View only', () => { throw new Error('toast failed'); });
+  const errors: unknown[] = [];
+  const realError = console.error;
+  console.error = (e: unknown) => { errors.push(e); };
+  try { assert.equal(refuseDocumentEdit('poster'), true); } finally { console.error = realError; }
+  assert.equal(errors.length, 1);
+  clearDocumentReadOnly('poster');
+  assert.equal(refuseDocumentEdit('poster'), false, 'lifted');
+  _clearInputPoliciesForTests();
+});
+
+test('guardDocumentEdits: writes pass until the document is read-only; undo replays always pass', async () => {
+  _clearInputPoliciesForTests();
+  const wrote: Array<[string, unknown]> = [];
+  let replaying = false;
+  let settled = 0;
+  const setInput = guardDocumentEdits('poster', async (id: string, value: unknown) => { wrote.push([id, value]); }, () => replaying, () => { settled += 1; });
+  await setInput('headline', 'A');
+  setDocumentReadOnly('poster', 'View only');
+  await setInput('headline', 'B');
+  assert.deepEqual(wrote, [['headline', 'A']], 'the refused write never reaches the runtime');
+  assert.equal(settled, 1, 'and whatever drew it is put back');
+  replaying = true;
+  await setInput('headline', 'A');
+  assert.deepEqual(wrote.at(-1), ['headline', 'A'], 'an undo replays a state the document already had');
+  replaying = false;
+  clearDocumentReadOnly('poster');
+  await setInput('headline', 'C');
+  assert.deepEqual(wrote.at(-1), ['headline', 'C']);
   _clearInputPoliciesForTests();
 });

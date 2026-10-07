@@ -166,10 +166,31 @@ function originOf(mount: Pick<DocumentScopeMount, 'toolId'>): TeamSessionOrigin 
   return api?.active(mount.toolId) ?? null;
 }
 
+/** The mount this provider is attached to, per tool: what "Make a copy" copies. */
+const attached = new Map<string, DocumentScopeMount>();
+/** When a refused edit was last said, so a drag that writes on every move says it once. */
+let refusedSaidAt = 0;
+const REFUSED_QUIET_MS = 4000;
+
+/** Say that the document is view-only, offering a copy when the mount is known. */
+function sayViewOnly(mount: DocumentScopeMount | undefined): void {
+  const message = tRaw('This is view only. Make a copy to keep your changes.');
+  if (mount) void toast(message, tRaw('Make a copy'), () => { void makeCopy(mount); });
+  else announce(message);
+}
+
+/** An edit of a view-only document was turned away (lib/input-policy.ts refuseDocumentEdit). */
+function editRefused(toolId: string): void {
+  const now = Date.now();
+  if (now - refusedSaidAt < REFUSED_QUIET_MS) return;
+  refusedSaidAt = now;
+  sayViewOnly(attached.get(toolId));
+}
+
 /** Lock or unlock `toolId`'s inputs for the document now live in that tool. */
 function applyViewerLayer(toolId: string): void {
   const origin = api?.active(toolId);
-  if (origin && originViewOnly(origin)) setDocumentReadOnly(toolId, tRaw('View only'));
+  if (origin && originViewOnly(origin)) setDocumentReadOnly(toolId, tRaw('View only'), () => editRefused(toolId));
   else clearDocumentReadOnly(toolId);
 }
 
@@ -303,7 +324,7 @@ async function save(mount: DocumentScopeMount): Promise<boolean> {
   const origin = originOf(mount);
   if (!origin || !api) return false;
   if (originViewOnly(origin)) {
-    void toast(tRaw('This is view only. Make a copy to keep your changes.'), tRaw('Make a copy'), () => { void makeCopy(mount); });
+    sayViewOnly(mount);
     return false;
   }
   if (api.live(origin.sessionId)) {
@@ -430,10 +451,12 @@ function attach(mount: DocumentScopeMount): () => void {
       banner = mountViewerBanner(mount.view, { message: bannerMessage(now), action: { label: tRaw('Make a copy'), run: () => { void makeCopy(mount); } } });
     }).catch(() => { loading = false; });
   };
+  attached.set(mount.toolId, mount);
   const off = onDocumentScopeChange(sync);
   sync();
   return () => {
     ended = true;
+    if (attached.get(mount.toolId) === mount) attached.delete(mount.toolId);
     off();
     banner?.destroy();
     banner = null;
@@ -481,6 +504,8 @@ export function _resetTeamScopeForTests(): void {
   projectRoles.clear();
   projectsAt = 0;
   projectsLoad = null;
+  attached.clear();
+  refusedSaidAt = 0;
 }
 
 export { save as _saveTeamScopeForTests };

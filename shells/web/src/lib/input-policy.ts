@@ -77,17 +77,64 @@ let failClosed: InputPolicy | null = null;
 // kept there would vanish on the next org-config re-read, or drop the governed locks.
 // Only its own setters change it; whoever sets it releases it when the mount ends.
 const documentLayer = new Map<string, InputPolicy>();
+/** Who set each tool's document layer wants to hear when an edit is refused. */
+const refusedHandlers = new Map<string, () => void>();
 
 /** Lock every input of `toolId` read-only for the document on screen. `note` is
- *  already localised ("View only"). A governed lock or a hidden input still wins. */
-export function setDocumentReadOnly(toolId: string, note: string): void {
+ *  already localised ("View only"). A governed lock or a hidden input still wins.
+ *  `onRefused` runs each time {@link refuseDocumentEdit} turns an edit away, so the
+ *  setter can say why (and offer what the person can do instead). */
+export function setDocumentReadOnly(toolId: string, note: string, onRefused?: () => void): void {
   if (!toolId) return;
   documentLayer.set(toolId, { mode: 'locked', note, readable: true });
+  if (onRefused) refusedHandlers.set(toolId, onRefused);
+  else refusedHandlers.delete(toolId);
 }
 
 /** Lift the document layer for `toolId`. Idempotent. */
 export function clearDocumentReadOnly(toolId: string): void {
   documentLayer.delete(toolId);
+  refusedHandlers.delete(toolId);
+}
+
+/**
+ * Whether a person's edit of `toolId`'s document must be turned away: true while the
+ * document layer holds the tool, after telling whoever set the layer. The read-only
+ * controls are the visible half; this is the other half, asked where every editor's
+ * writes arrive (the mounted tool's undo-recording `setInput`, views/tool/setup.ts),
+ * so the Design inspector, top bar and stage, the canvas popovers and every other
+ * surface that writes without consulting {@link getInputPolicy} refuse the same way.
+ * An undo replay and a live collab's remote changes never ask. The instance's refusal
+ * of a viewer's save stays the boundary; this keeps the document on screen honest.
+ */
+export function refuseDocumentEdit(toolId: string | undefined): boolean {
+  if (!toolId || !documentLayer.has(toolId)) return false;
+  const tell = refusedHandlers.get(toolId);
+  if (tell) {
+    try { tell(); } catch (e) { console.error(e); }
+  }
+  return true;
+}
+
+/**
+ * `write` (a mounted tool's undo-recording `setInput`) behind the check
+ * {@link refuseDocumentEdit}; views/tool/setup.ts installs the guarded setter on every
+ * mounted tool. While `replaying()`
+ * (an undo or redo, which only moves between states the document already had) every
+ * write passes; otherwise a refused write never reaches `write`, and `settle` runs so
+ * whatever drew the attempted edit (a dragged box, a typed field) goes back to the
+ * model's values.
+ */
+export function guardDocumentEdits<A extends unknown[]>(
+  toolId: string | undefined, write: (...args: A) => Promise<void>, replaying: () => boolean, settle: () => void,
+): (...args: A) => Promise<void> {
+  return (...args: A): Promise<void> => {
+    if (!replaying() && refuseDocumentEdit(toolId)) {
+      settle();
+      return Promise.resolve();
+    }
+    return write(...args);
+  };
 }
 
 /** The document layer's note for `toolId`, or null when the document is editable. */
@@ -257,6 +304,7 @@ export function governedParamKeys(
 export function _clearInputPoliciesForTests(): void {
   registry.clear();
   documentLayer.clear();
+  refusedHandlers.clear();
   failClosed = null;
   mountHooks.clear();
   mountedToolId = null;

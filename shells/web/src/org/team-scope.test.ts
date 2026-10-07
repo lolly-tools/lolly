@@ -43,6 +43,7 @@ const { registerSessionSource } = await import('../lib/session-source.ts');
 type Src = import('../lib/session-source.ts').SessionSource;
 type Save = import('../lib/session-source.ts').TeamSessionSave;
 type Mount = import('../lib/document-scope.ts').DocumentScopeMount;
+type TeamRole = import('../lib/session-source.ts').TeamRole;
 
 const settle = (ms = 30): Promise<void> => new Promise((r) => setTimeout(r, ms));
 const ORIGIN = { sessionId: 'sess-1', toolId: 'poster', projectId: 'proj-9', rev: 3, label: 'Spring poster' };
@@ -79,7 +80,7 @@ function view(): HTMLElement {
 interface Harness { el: HTMLElement; mount: Mount; stop: () => void; deviceSaves: number }
 
 /** Open `role`'s team document the way org/team-open.ts does, then mount the tool. */
-async function open(role: 'editor' | 'viewer' | undefined, inputs: Record<string, unknown> = { headline: 'Hello' }): Promise<Harness> {
+async function open(role: string | undefined, inputs: Record<string, unknown> = { headline: 'Hello' }): Promise<Harness> {
   origin._clearTeamSessionOriginForTests();
   scope._resetDocumentScopeForTests();
   teamScope._resetTeamScopeForTests();
@@ -87,7 +88,7 @@ async function open(role: 'editor' | 'viewer' | undefined, inputs: Record<string
   document.body.replaceChildren();
   dom.window.history.replaceState(null, '', '#/tool/poster');
   await origin.prepareTeamScope();
-  origin.rememberTeamSessionOrigin({ ...ORIGIN, ...(role ? { role } : {}) });
+  origin.rememberTeamSessionOrigin({ ...ORIGIN, ...(role ? { role: role as TeamRole } : {}) });
   origin.consumeTeamSessionOrigin('poster');
   // The tool view announces its mount to the input policy before its first sidebar draw.
   policy.notifyToolInputMount('poster');
@@ -274,5 +275,46 @@ test('inside a live work collab the room saves: Save says so and sends nothing',
   assert.equal(calls.update.length, 0, 'the instance would refuse a save from outside the room');
   leave();
   h.stop();
+  off();
+});
+
+test('a role this shell does not know (a commenter) fails closed: the document opens view-only', async () => {
+  for (const role of ['commenter', 'reviewer']) {
+    const { calls, off } = source();
+    const h = await open(role);
+    assert.equal(origin.activeTeamSessionOrigin('poster')?.role, 'viewer', `${role}: carried as a viewer`);
+    assert.equal(policy.getInputPolicy('poster', 'headline')?.readable, true, `${role}: read-only from the first draw`);
+    await settle();
+    assert.equal(chip(h.el), 'Brand refresh · View only');
+    assert.equal(scope.documentLeavePrompt(), null, 'no "Save changes to…", so Leave without saving discards');
+    assert.equal(await scope.saveInDocumentScope('poster'), false);
+    assert.equal(calls.update.length, 0, 'no Save is offered, so none is refused with a 403');
+    h.stop();
+    off();
+  }
+  // Only an absent role is unknown: the instance's answer to a save decides then.
+  const { off } = source();
+  const h = await open(undefined);
+  assert.equal(origin.activeTeamSessionOrigin('poster')?.role, undefined);
+  assert.equal(policy.getInputPolicy('poster', 'headline'), undefined);
+  h.stop();
+  off();
+});
+
+test('a viewer\'s edit from any editor is refused, and said once per gesture with Make a copy', async () => {
+  const { off } = source();
+  const h = await open('viewer');
+  const said = (): number => [...document.querySelectorAll('.undo-toast-msg')]
+    .filter((m) => m.textContent === 'This is view only. Make a copy to keep your changes.').length;
+  const before = said();
+  // What the mounted runtime's guarded setInput asks on every write (views/tool/setup.ts).
+  assert.equal(policy.refuseDocumentEdit('poster'), true);
+  assert.equal(policy.refuseDocumentEdit('poster'), true, 'a drag writes on every move');
+  await settle();
+  assert.equal(said() - before, 1, 'said once, not once per move');
+  const toast = [...document.querySelectorAll('.undo-toast')].at(-1);
+  assert.equal(toast?.querySelector('.undo-toast-btn')?.textContent, 'Make a copy');
+  h.stop();
+  assert.equal(policy.refuseDocumentEdit('poster'), false, 'the mount ended: nothing is refused');
   off();
 });
