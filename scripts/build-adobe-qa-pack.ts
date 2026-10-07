@@ -42,7 +42,7 @@ for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
   pixels.set((x < 16) === (y < 16) ? [32, 160, 96, 255] : [240, 208, 80, 255], offset);
 }
 const png = packPng(pixels, { width: 32, height: 32, channels: 4 });
-const image: AssetRef = { id: 'qa/checker', source: 'user', type: 'raster', format: 'png', width: 32, height: 32 };
+const image: AssetRef = { id: 'qa/checker', source: 'user', type: 'raster', format: 'png', url: `data:image/png;base64,${Buffer.from(png).toString('base64')}`, width: 32, height: 32 };
 const host = { assets: { bytes: async () => png }, log() {} } as unknown as HostV1;
 const boxes = [
   { id: 'portrait', kind: 'frame', x: 0, y: 0, w: 600, h: 800 },
