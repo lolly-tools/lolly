@@ -262,6 +262,19 @@ jobs:
           export LOLLY_PUBLIC_BROWSER_SECCOMP_FILE="$GITHUB_WORKSPACE/deploy/docker/seccomp/public-browser-sandbox.json"
           docker compose --env-file /dev/null -f deploy/docker/public.compose.yml \
             -f deploy/docker/public-browser.compose.yml config --quiet
+          docker compose --env-file /dev/null -f deploy/docker/public.compose.yml \
+            -f deploy/docker/public-browser.compose.yml config --format json > "$fixture/browser.json"
+          node --input-type=module - "$fixture/browser.json" <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const config = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+          const options = config.services.mcp.security_opt;
+          assert.equal(options.length, 2);
+          assert.ok(options.some((option) => /^no-new-privileges[=:]true$/.test(option)));
+          assert.ok(options.some((option) => option === `seccomp=${process.env.LOLLY_PUBLIC_BROWSER_SECCOMP_FILE}`));
+          assert.equal(config.services.mcp.read_only, true);
+          assert.deepEqual(config.services.mcp.cap_drop, ['ALL']);
+          JS
 
       - name: Exercise release and public deployment contracts
         run: |

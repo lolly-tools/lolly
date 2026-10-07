@@ -141,7 +141,8 @@ test('native image publication is opt-in and follows source, catalog and sandbox
 test('Compose browser overlay requires a verified seccomp file and preserves isolation', () => {
   const overlay = read('deploy/docker/public-browser.compose.yml');
   assert.match(overlay, /seccomp=\$\{LOLLY_PUBLIC_BROWSER_SECCOMP_FILE:\?Set the verified/);
-  assert.match(overlay, /no-new-privileges:true/);
+  assert.doesNotMatch(overlay, /no-new-privileges/);
+  assert.match(compose, /no-new-privileges:true/);
   assert.doesNotMatch(overlay, /unconfined|privileged:|cap_add|no-sandbox/);
   assert.doesNotMatch(compose, /seccomp=/);
   const probe = read('deploy/docker/public-image-probe.ts');
