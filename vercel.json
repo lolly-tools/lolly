@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --frozen-lockfile",
-  "git": { "deploymentEnabled": true },
+  "git": { "deploymentEnabled": false },
   "buildCommand": "export LOLLY_STRICT_PROFILE=1 && pnpm run build:web:release && pnpm run build:mcp-fn && pnpm run build:ca-fn && pnpm run build:penpot-fn",
   "outputDirectory": "shells/web/dist",
   "functions": {
