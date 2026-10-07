@@ -77,8 +77,8 @@ export const DURABLE_MARK_KEY = TEAM_ORIGINS_MARK;
 const DB_NAME = TEAM_ORIGINS_DB;
 const STORE = 'origins';
 
-/** The roles that may save to a session. Any other role, one this shell does not know
- *  included, keeps no record: it fails closed, like the view-only layer. */
+/** The roles that may save to a session. Any other role (a viewer, a commenter, or one
+ *  this shell does not know) keeps no record: it fails closed, like the view-only layer. */
 const EDIT_ROLES: readonly string[] = ['owner', 'manager', 'editor'];
 
 /** The workspace scope org/index.ts keys its caches by. */

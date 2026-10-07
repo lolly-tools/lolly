@@ -130,12 +130,19 @@ export interface TeamSessionOriginInput {
   projectName?: string;
 }
 
-/** The roles that may change a team document. A role the instance sends that is not one
- *  of these (a viewer, and any role this shell does not know, such as a commenter) is
- *  carried as 'viewer': it fails closed, so the document opens view-only and keeps no
- *  durable record. Only an absent role means unknown, which the instance's own answer
- *  to a save then decides. */
+/** The roles that may change a team document; a viewer and a commenter only read it
+ *  (org/team-access.ts `isReadOnlyRole`, which this module may not import). */
 const EDIT_ROLES: readonly string[] = ['owner', 'manager', 'editor'];
+/** Every role this shell knows. A role the instance sends that is not one of these (one
+ *  added after this shell was built) is carried as 'viewer': it fails closed, so the
+ *  document opens view-only and keeps no durable record. Only an absent role means
+ *  unknown, which the instance's own answer to a save then decides. */
+const KNOWN_ROLES: readonly string[] = [...EDIT_ROLES, 'commenter', 'viewer'];
+
+/** Whether `role` only reads the document (a viewer or a commenter). Absent: unknown, not read-only. */
+function readOnlyRole(role: string | undefined): boolean {
+  return role !== undefined && !EDIT_ROLES.includes(role);
+}
 
 /** An armed stash: the origin, and the address the navigation it belongs to opens
  *  (rule 5). No address means the caller did not name one: the tool alone decides. */
@@ -208,7 +215,7 @@ function normalise(origin: Partial<TeamSessionOriginInput> | null | undefined): 
   const label = typeof origin.label === 'string' ? origin.label.trim() : '';
   const rev = typeof origin.rev === 'number' && Number.isFinite(origin.rev) ? origin.rev : undefined;
   const named = typeof origin.role === 'string' ? origin.role.trim() : '';
-  const role: TeamRole | undefined = !named ? undefined : EDIT_ROLES.includes(named) ? named as TeamRole : 'viewer';
+  const role: TeamRole | undefined = !named ? undefined : KNOWN_ROLES.includes(named) ? named as TeamRole : 'viewer';
   const projectName = typeof origin.projectName === 'string' ? origin.projectName.trim() : '';
   return {
     sessionId,
@@ -289,7 +296,7 @@ let durableWrite: Promise<unknown> = Promise.resolve();
 
 /** Keep the live origin against its device copy, shortly after the last change. */
 function scheduleDurable(): void {
-  if (!active || active.role === 'viewer' || typeof window === 'undefined') return;
+  if (!active || readOnlyRole(active.role) || typeof window === 'undefined') return;
   if (durableTimer) clearTimeout(durableTimer);
   durableTimer = setTimeout(() => {
     durableTimer = null;
