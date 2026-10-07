@@ -229,3 +229,11 @@ test('projectOptions: a viewer who may not save sessions is told so', () => {
   assert.deepEqual(teamProjectOptions({ can: { 'session.create': false } }), { canCreate: true, groups: [], canSave: false, canEdit: true });
   assert.deepEqual(teamProjectOptions({ can: { 'session.edit': false } }), { canCreate: true, groups: [], canSave: true, canEdit: false });
 });
+
+test('a session read carries the caller\'s project role when the instance sends one (plan 75 J5)', async () => {
+  const { sessionDataFromBody } = await import('./session-source.ts');
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'viewer' })?.myRole, 'viewer');
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'owner' })?.myRole, 'owner');
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'superuser' })?.myRole, undefined, 'a role this shell does not know is dropped');
+  assert.equal('myRole' in (sessionDataFromBody({ toolId: 'poster', inputs: {} }) ?? {}), false, 'absent stays absent, never an undefined key');
+});
