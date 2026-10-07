@@ -55,6 +55,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "servePublicDeploymentGuide": {
+          "type": "boolean"
+        },
         "host": {
           "type": "string",
           "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
@@ -118,7 +121,14 @@
           "required": ["name", "namespace", "port"]
         }
       },
-      "required": ["host", "redirectHosts", "tlsSecret", "server", "relay"]
+      "required": [
+        "host",
+        "redirectHosts",
+        "tlsSecret",
+        "server",
+        "relay",
+        "servePublicDeploymentGuide"
+      ]
     },
     "edge": {
       "type": "object",

@@ -21,8 +21,8 @@
  */
 
 /** What the person may do in a shared project: an owner or manager also decides who
- *  has access, an editor saves, a viewer only opens. */
-export type TeamRole = 'owner' | 'manager' | 'editor' | 'viewer';
+ *  has access, an editor saves, a commenter reads and comments, a viewer only opens. */
+export type TeamRole = 'owner' | 'manager' | 'editor' | 'commenter' | 'viewer';
 
 /** A shared project as the Projects view lists it. */
 export interface TeamProjectRef {

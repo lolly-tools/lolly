@@ -43,6 +43,7 @@ import { canStartCollab } from '../lib/collab-availability.ts';
 import { registerCollabPillInvite } from '../lib/collab-pill-invite.ts';
 import { getSessionSource, type TeamProjectRef } from '../lib/session-source.ts';
 import { activeTeamSessionOrigin } from './team-session-origin.ts';
+import { isReadOnlyRole } from './team-access.ts';
 import { announce } from '../a11y.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
@@ -356,7 +357,7 @@ export function openCollabInviteDialog(target: CollabInviteTarget, deps: CollabI
         projectEl.textContent = tRaw('People on {project}', { project: project.name });
         projectEl.hidden = false;
       }
-      if (project.myRole === 'viewer') {
+      if (isReadOnlyRole(project.myRole)) {
         viewOnly = true;
         seq += 1;
         listEl.replaceChildren();

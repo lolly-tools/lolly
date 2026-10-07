@@ -25,9 +25,9 @@ const NOW = Date.parse('2026-10-02T12:00:00Z');
 test('invitePolicy: absent on an older instance, defaults filled in on a newer one', () => {
   assert.equal(invitePolicy(null), null);
   assert.equal(invitePolicy({ can: { 'user.invite': true } }), null, 'no invites block: no people UI');
-  const quiet = { workspace: '', passwordSetup: false, passwordDomains: [], askToEdit: false };
+  const quiet = { workspace: '', passwordSetup: false, passwordDomains: [], askToEdit: false, sharingGroups: [], canCreateGroups: false };
   assert.deepEqual(invitePolicy({ can: { 'user.invite': true }, invites: {} }), {
-    canInvite: true, domains: [], maxTtlHours: 720, projectRoles: ['viewer', 'editor', 'manager'], ...quiet,
+    canInvite: true, domains: [], maxTtlHours: 720, projectRoles: ['viewer', 'commenter', 'editor', 'manager'], ...quiet,
   });
   assert.deepEqual(invitePolicy({ invites: { domains: [' Acme.com ', 'acme.com', 7, ''], maxTtlHours: 48, projectRoles: ['manager', 'owner', 'viewer'] } }), {
     canInvite: false, domains: ['acme.com'], maxTtlHours: 48, projectRoles: ['viewer', 'manager'], ...quiet,
@@ -286,7 +286,7 @@ test('requests: what was asked, when, and the answer sentences', () => {
   assert.equal(requestAskedText(undefined, NOW, 'en'), '');
   assert.equal(requestAnsweredText('approve', 'editor'), 'Approved as Editor.');
   assert.equal(requestAnsweredText('decline', 'editor'), 'Declined.');
-  assert.equal(roleHelpText(), 'Viewers open and copy. Editors save changes. Managers also add people.');
+  assert.equal(roleHelpText(), 'Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.');
 });
 
 test('requestRefusalText: who answered first, or why this person cannot answer', () => {

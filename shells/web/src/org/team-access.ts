@@ -20,7 +20,7 @@ import { relTime } from '../lib/rel-time.ts';
 
 /** The roles an invitation, or a role change, may give. Owner is never handed out. */
 export type InviteRole = Exclude<TeamRole, 'owner'>;
-export const INVITE_ROLES: readonly InviteRole[] = ['viewer', 'editor', 'manager'];
+export const INVITE_ROLES: readonly InviteRole[] = ['viewer', 'commenter', 'editor', 'manager'];
 
 /** A role this shell knows, or undefined. Pure. */
 export function inviteRoleOf(value: unknown): InviteRole | undefined {
@@ -48,6 +48,11 @@ export interface InvitePolicy {
   /** `requests.project`: a member may ask for access to a project, so a viewer is
    *  offered "Ask to edit". False on an instance that does not say. */
   askToEdit: boolean;
+  /** `sharing.groups`: the directory groups this person may share a project with
+   *  (lolly plan 299). Empty on an instance that sends none. */
+  sharingGroups: string[];
+  /** `can['group.create']`: this person may make groups to share with. */
+  canCreateGroups: boolean;
 }
 
 /** The org-config fields read here. Structural, so this module does not import org/index.ts. */
@@ -56,6 +61,7 @@ export interface InviteConfig {
   instance?: { name?: unknown };
   invites?: { domains?: unknown; maxTtlHours?: unknown; projectRoles?: unknown; passwordSetup?: unknown; passwordDomains?: unknown };
   requests?: { project?: unknown };
+  sharing?: { groups?: unknown };
 }
 
 /** A domain list as the instance sent it: trimmed, lower case, no blanks or repeats. */
@@ -86,6 +92,8 @@ export function invitePolicy(config: InviteConfig | null | undefined): InvitePol
     passwordSetup: inv.passwordSetup === true,
     passwordDomains: domainList(inv.passwordDomains),
     askToEdit: config?.requests?.project === true,
+    sharingGroups: Array.isArray(config?.sharing?.groups) ? config.sharing.groups.filter((g): g is string => typeof g === 'string' && g.trim() !== '') : [],
+    canCreateGroups: config?.can?.['group.create'] === true,
   };
 }
 
@@ -105,9 +113,14 @@ export function isManagerPlus(role: TeamRole | undefined): boolean {
   return role === 'owner' || role === 'manager';
 }
 
+/** Opens and reads, but never saves: a viewer or a commenter. Pure. */
+export function isReadOnlyRole(role: TeamRole | undefined): boolean {
+  return role === 'viewer' || role === 'commenter';
+}
+
 /** May save into the project. An unknown role is not refused here: the server answers. Pure. */
 export function canWriteProject(role: TeamRole | undefined): boolean {
-  return role !== 'viewer';
+  return !isReadOnlyRole(role);
 }
 
 /**
@@ -150,13 +163,14 @@ export function roleLabel(role: TeamRole): string {
     case 'owner': return tRaw('Owner');
     case 'manager': return tRaw('Manager');
     case 'editor': return tRaw('Editor');
+    case 'commenter': return tRaw('Commenter');
     default: return tRaw('Viewer');
   }
 }
 
 /** What each role may do, in one line, under every select that hands out a role. Plain text. */
 export function roleHelpText(): string {
-  return tRaw('Viewers open and copy. Editors save changes. Managers also add people.');
+  return tRaw('Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.');
 }
 
 /** "2 Nov 2026": a day for "Ends {date}" and the invite message, in the reader's
@@ -193,7 +207,7 @@ export function invitationLines(
 
 /** What a member asked for, in the words a project manager reads. Plain text. */
 export function requestAskText(role: TeamRole): string {
-  return role === 'viewer' ? tRaw('Asks to view') : tRaw('Asks to edit');
+  return role === 'viewer' ? tRaw('Asks to view') : role === 'commenter' ? tRaw('Asks to comment') : tRaw('Asks to edit');
 }
 
 /** "Asked 3 hours ago", or '' without a readable time. Plain text. */
