@@ -84,9 +84,10 @@ export function createLiveRelay(env: NodeJS.ProcessEnv = process.env) {
       json(res, 400, { error: 'The relay could not read this request.' }); return true;
     }
   }
-  function mount(server: Server): () => void {
+  function mount(server: Server, allowUpgrade = (): boolean => true): () => void {
     const upgrade = (req: IncomingMessage, socket: import('node:stream').Duplex, head: Buffer): void => {
       if ((req.url ?? '').split('?')[0] !== '/live/editor') return;
+      if (!allowUpgrade()) { socket.write('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n'); socket.destroy(); return; }
       const origin = req.headers.origin;
       if (!originOK(origin)) { socket.write('HTTP/1.1 403 Forbidden\r\n\r\n'); socket.destroy(); return; }
       wss.handleUpgrade(req, socket, head, ws => {
