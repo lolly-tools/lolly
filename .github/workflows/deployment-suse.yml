@@ -38,6 +38,19 @@ on:
         required: false
         type: boolean
         default: false
+      export_images:
+        description: Export an already qualified native run through bounded artifact transport
+        required: false
+        type: boolean
+        default: false
+      qualified_source:
+        description: Exact application SHA from a successful native qualification run
+        required: false
+        type: string
+      qualified_run:
+        description: Successful native image qualification run ID in this repository
+        required: false
+        type: string
       expected_source:
         description: Exact reviewed 40-character commit; must match the dispatched ref
         required: false
@@ -486,3 +499,56 @@ jobs:
           path: ${{ runner.temp }}/lolly-image-receipts/*.json
           if-no-files-found: warn
           retention-days: 14
+
+
+  qualified-image-transport:
+    name: Transport already qualified public images
+    if: github.event_name == 'workflow_dispatch' && inputs.export_images == true
+    needs: [chart, public-vm]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    env:
+      EXPECTED_SOURCE: ${{ inputs.expected_source }}
+      QUALIFIED_SOURCE: ${{ inputs.qualified_source }}
+      QUALIFIED_RUN: ${{ inputs.qualified_run }}
+      BUILD_IMAGES: ${{ inputs.build_images }}
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.public_key_jwk }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /deploy/docker/export-qualified-public-images.ts
+            /tests/public-image-transport.test.ts
+            /package.json
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+
+      - name: Verify qualified receipts and export exact registry bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          node --test tests/public-image-transport.test.ts
+          node deploy/docker/export-qualified-public-images.ts
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: public-qualified-image-transport
+          path: |
+            ${{ runner.temp }}/lolly-qualified-image-export/public-images.oci.tar.gz
+            ${{ runner.temp }}/lolly-qualified-image-export/*.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
