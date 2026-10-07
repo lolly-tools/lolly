@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import Ajv from 'ajv/dist/2020.js';
 import { ReferenceCanvasDoc, type ParamBinding } from '../src/canvas-op-v1.ts';
-import { readPresenceFrame } from '../src/collab-presence-v1.ts';
+import { readPresenceFrame, sanitizePresenceState } from '../src/collab-presence-v1.ts';
 test('checkpoint round-trip retains independent field origins, order and tombstones', () => {
   const doc = new ReferenceCanvasDoc('a');
   doc.apply({ k: 'add', id: 'box', row: { fill: 'red' }, orderKey: 'a', origin: { client: 'a', clock: 1 } });
@@ -23,6 +25,31 @@ test('presence envelopes stamp identity, retain sequence and away, and never inv
   assert.equal(readPresenceFrame({ seq: 8, state: {} }, bound)?.state?.cursor, undefined);
   assert.equal(readPresenceFrame({ seq: 9, state: null }, bound)?.state, null);
   assert.equal(readPresenceFrame({ v: 99, seq: 7, state: {} }, bound), null);
+});
+test('presence keeps presenting only when it is exactly true', () => {
+  const bound = { from: 'connection', epoch: 'connection', seq: 1, userId: 'user', name: 'Ada' };
+  assert.equal(readPresenceFrame({ seq: 2, state: { presenting: true } }, bound)?.state?.presenting, true);
+  assert.equal(sanitizePresenceState({ presenting: true }).presenting, true);
+  for (const presenting of ['yes', 'true', 1, false, null, {}, [true]]) {
+    const state = sanitizePresenceState({ presenting });
+    assert.equal(Object.hasOwn(state, 'presenting'), false, `presenting ${JSON.stringify(presenting)} is dropped`);
+  }
+  assert.equal(Object.hasOwn(sanitizePresenceState({}), 'presenting'), false, 'absent stays absent');
+});
+test('both canvas-op schema copies accept presenting: true on presence and nothing else for it', () => {
+  const base = { userId: 'u1', name: 'Ann', color: '#f00', cursor: { x: 0, y: 0 }, selection: [] };
+  for (const copy of ['../../../schemas/canvas-op.schema.json', '../schema/canvas-op.schema.json']) {
+    const schema = JSON.parse(readFileSync(new URL(copy, import.meta.url), 'utf8')) as { $defs: { presence: { description: string } } };
+    assert.match(schema.$defs.presence.description, /v1\.2 adds presenting/);
+    const ajv = new Ajv({ allErrors: true, strict: false });
+    ajv.addSchema(schema);
+    const validate = ajv.getSchema('https://lolly.tools/schemas/canvas-op.schema.json#presence');
+    assert.ok(validate, `${copy}: presence $anchor not resolvable`);
+    assert.equal(validate(base), true, `${copy}: a presence without presenting stays valid`);
+    assert.equal(validate({ ...base, presenting: true }), true, `${copy}: presenting true is valid`);
+    for (const presenting of [false, 'yes', 1]) assert.equal(validate({ ...base, presenting }), false, `${copy}: presenting ${JSON.stringify(presenting)} is refused`);
+    assert.equal(validate({ ...base, presenting: true, unknown: 1 }), false, `${copy}: the presence branch stays closed`);
+  }
 });
 
 test('transaction forks isolate both writers, collections, tombstones, bindings and restore', () => {
