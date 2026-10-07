@@ -4,12 +4,10 @@
  * fed by the host's `suggest`, plus the plain-text split that shows a stored mention.
  * Names and bodies reach the page only as text nodes, never as markup.
  */
-import type { CommentMessage, CommentThread } from '@lolly-tools/core/canvas-review-v1';
+import { COMMENT_MENTION_LIMIT, type CommentMessage, type CommentThread } from '@lolly-tools/core/canvas-review-v1';
 import type { CommentPerson } from '../lib/canvas-comments.ts';
 import { tRaw } from '../i18n.ts';
 
-/** The most people one message may mention (the core review contract's limit). */
-export const MENTION_LIMIT = 10;
 const QUERY_LIMIT = 64;
 const SHOWN_LIMIT = 20;
 const WORD = /[\p{L}\p{N}_]/u;
@@ -56,7 +54,7 @@ export function mentionIdsFor(body: string, chosen: ReadonlyMap<string, string>)
     for (let index = body.indexOf('@'); index >= 0 && !found; index = body.indexOf('@', index + 1)) found = mentionAt(body, index, name);
     if (found) ids.push(id);
   }
-  return ids.slice(0, MENTION_LIMIT);
+  return ids.slice(0, COMMENT_MENTION_LIMIT);
 }
 
 /** True when someone asked for in `requested` was not stored on the sent message, or the host notified nobody. */

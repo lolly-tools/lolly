@@ -2,9 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import type { CommentMessage, CommentThread } from '@lolly-tools/core/canvas-review-v1';
+import { COMMENT_MENTION_LIMIT, type CommentMessage, type CommentThread } from '@lolly-tools/core/canvas-review-v1';
 import type { CommentPerson } from '../lib/canvas-comments.ts';
-import { attachMentionPicker, mentionIdsFor, mentionSegments, mentionsMissed, mentionsOf, MENTION_LIMIT } from './tool-comment-mentions.ts';
+import { attachMentionPicker, mentionIdsFor, mentionSegments, mentionsMissed, mentionsOf } from './tool-comment-mentions.ts';
 import { commentText } from './tool-comment-chat.ts';
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -42,7 +42,7 @@ test('ids whose @Name was removed before sending are dropped, and at most ten ar
   assert.deepEqual(mentionIdsFor('Thanks @Ana Lopez', chosen), ['ana']);
   assert.deepEqual(mentionIdsFor('Thanks @Ana Lo and @Bob', chosen), []);
   const many = new Map(Array.from({ length: 12 }, (_, index) => [`p${index}`, `Person${index}`] as const));
-  assert.equal(mentionIdsFor([...many.values()].map(name => `@${name}`).join(' '), many).length, MENTION_LIMIT);
+  assert.equal(mentionIdsFor([...many.values()].map(name => `@${name}`).join(' '), many).length, COMMENT_MENTION_LIMIT);
 });
 
 test('a send is reported as not notified when a requested mention was not stored or nobody was notified', () => {

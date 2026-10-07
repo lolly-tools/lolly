@@ -9,7 +9,7 @@
  * newest list: a feature the server did not report is off, and its member makes no
  * request.
  */
-import { COMMENT_BODY_LIMIT, COMMENT_THREAD_LIMIT, commentId, readCommentThread, type CommentAnchor, type CommentThread } from '@lolly-tools/core/canvas-review-v1';
+import { COMMENT_BODY_LIMIT, COMMENT_MENTION_LIMIT, COMMENT_THREAD_LIMIT, commentId, readCommentThread, type CommentAnchor, type CommentThread } from '@lolly-tools/core/canvas-review-v1';
 import { interactionKey } from '@lolly-tools/core/canvas-interaction-v1';
 import type { CanvasCommentsCapability, CommentListResult, CommentPerson } from '../lib/canvas-comments.ts';
 import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
@@ -28,8 +28,6 @@ export class CommentAccessError extends Error {
   }
 }
 
-/** Mentions per message the server accepts (core `COMMENT_MENTION_LIMIT`). */
-const MENTION_LIMIT = 10;
 /** People one suggestion answer may hold, and the longest query (lolly-work `comment-people`). */
 const PEOPLE_LIMIT = 20, QUERY_LIMIT = 64;
 /** Threads one `comment-reads` request may name. */
@@ -49,7 +47,7 @@ const personName = (value: unknown): value is string => typeof value === 'string
 
 /** Mention ids as the server takes them: valid, distinct and at most ten. Undefined stays undefined. */
 export function mentionIds(ids: readonly unknown[] | undefined): string[] | undefined {
-  return Array.isArray(ids) ? [...new Set(ids.filter(interactionKey))].slice(0, MENTION_LIMIT) : undefined;
+  return Array.isArray(ids) ? [...new Set(ids.filter(interactionKey))].slice(0, COMMENT_MENTION_LIMIT) : undefined;
 }
 
 /** `Retry-After` in seconds (a number or an HTTP date), clamped to 1..300. */
