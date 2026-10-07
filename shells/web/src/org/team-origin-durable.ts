@@ -262,6 +262,21 @@ export async function findDurableTeamOrigin(toolId: string, slot: string): Promi
   }
 }
 
+/**
+ * Every device copy a record points at, for any workspace and account, without pruning:
+ * what the signed-out gate's download leaves out (org/index.ts), since a copy of a team
+ * document is that team's work, not the next person's at a signed-out screen. Empty when
+ * the mark says there are no records, or the store cannot be read.
+ */
+export async function durableTeamOriginSlots(): Promise<Set<string>> {
+  if (!mayHoldDurableTeamOrigins()) return new Set();
+  try {
+    return new Set((await backend.all()).map((rec) => rec.slot));
+  } catch {
+    return new Set();
+  }
+}
+
 /** Forget the record for `slot` (the copy was made its own, or its session is gone). */
 export async function forgetDurableTeamOrigin(slot: string): Promise<void> {
   const identity = await durableIdentity();

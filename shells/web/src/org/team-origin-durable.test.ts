@@ -113,6 +113,18 @@ test('dropping the records empties the store and the mark, without any copy bein
   assert.equal(durable.mayHoldDurableTeamOrigins(), false, 'and the mark');
 });
 
+test('the slots of every record are listed for the signed-out gate, whoever made them', async () => {
+  reset();
+  assert.deepEqual([...await durable.durableTeamOriginSlots()], [], 'no mark, no look');
+  signIn('ana');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' });
+  signIn('lee');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, sessionId: 'sess-2', slot: 'poster:2' });
+  signOut();
+  assert.deepEqual([...await durable.durableTeamOriginSlots()].sort(), ['poster:1', 'poster:2'], 'listed without pruning');
+  assert.equal(rows.size, 2, 'and listing drops nothing');
+});
+
 test('a role this shell does not know keeps no record (it fails closed)', async () => {
   reset();
   signIn('ana');
