@@ -84,9 +84,13 @@ export function attachMentionPicker(field: HTMLTextAreaElement, host: HTMLElemen
   const doc = field.ownerDocument, win = doc.defaultView!, abort = new win.AbortController(), id = `collab-mentions-${++serial}`;
   const box = doc.createElement('div'); box.className = 'collab-comment-mentions'; box.hidden = true;
   const list = doc.createElement('ul'); list.id = id; list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', tRaw('People you can mention'));
-  const note = doc.createElement('p'); note.className = 'collab-comment-mention-note'; note.setAttribute('aria-live', 'polite');
-  box.append(list, note); host.append(box);
-  field.setAttribute('aria-autocomplete', 'list');
+  const note = doc.createElement('p'); note.className = 'collab-comment-mention-note';
+  // A screen reader hears each move and each result note from this region. It stays in the page
+  // while the picker is attached: a live region shown in the same tick as its text is often missed.
+  const live = doc.createElement('p'); live.className = 'visually-hidden collab-comment-mention-live'; live.setAttribute('aria-live', 'polite');
+  box.append(list, note); host.append(box, live);
+  // A textarea keeps its own role (it may not be a combobox), so the popup is described on it and on the list.
+  field.setAttribute('aria-autocomplete', 'list'); field.setAttribute('aria-haspopup', 'listbox'); list.setAttribute('aria-expanded', 'false');
   let people: CommentPerson[] = [], active = 0, token: { start: number; query: string } | undefined, ticket = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   function tokenAt(): { start: number; query: string } | undefined {
@@ -99,11 +103,13 @@ export function attachMentionPicker(field: HTMLTextAreaElement, host: HTMLElemen
   function close(): void {
     ticket += 1; if (timer) clearTimeout(timer); timer = undefined;
     token = undefined; people = []; active = 0;
-    box.hidden = true; list.replaceChildren(); note.textContent = '';
+    box.hidden = true; list.replaceChildren(); note.textContent = ''; live.textContent = ''; list.setAttribute('aria-expanded', 'false');
     field.removeAttribute('aria-activedescendant'); field.removeAttribute('aria-controls');
   }
-  function paintActive(): void {
+  /** Mark the active person; `withNote` also says the result note (a fresh list, not a move). */
+  function paintActive(withNote = false): void {
     list.querySelectorAll<HTMLElement>('[role="option"]').forEach((option, index) => { option.setAttribute('aria-selected', String(index === active)); });
+    live.textContent = [people[active]?.name ?? '', withNote ? note.textContent ?? '' : ''].filter(Boolean).join('. ');
     const current = doc.getElementById(`${id}-${active}`);
     if (current) { field.setAttribute('aria-activedescendant', current.id); current.scrollIntoView?.({ block: 'nearest' }); }
     else field.removeAttribute('aria-activedescendant');
@@ -128,7 +134,7 @@ export function attachMentionPicker(field: HTMLTextAreaElement, host: HTMLElemen
     }));
     note.textContent = !people.length ? tRaw('No one who can open this document matches {query}.', { query: `@${query}` })
       : truncated ? tRaw('Keep typing to see more people.') : '';
-    box.hidden = false; field.setAttribute('aria-controls', id); paintActive();
+    box.hidden = false; list.setAttribute('aria-expanded', 'true'); field.setAttribute('aria-controls', id); paintActive(true);
   }
   function lookup(): void {
     token = tokenAt();
@@ -155,6 +161,6 @@ export function attachMentionPicker(field: HTMLTextAreaElement, host: HTMLElemen
   return {
     get open() { return !box.hidden; },
     close,
-    dispose() { close(); abort.abort(); box.remove(); field.removeAttribute('aria-autocomplete'); },
+    dispose() { close(); abort.abort(); box.remove(); live.remove(); field.removeAttribute('aria-autocomplete'); field.removeAttribute('aria-haspopup'); },
   };
 }

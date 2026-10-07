@@ -77,19 +77,26 @@ test('the @ listbox is keyboard operable: arrows move, Enter and Tab choose, Esc
   const f = picker([{ id: 'ana', name: 'Ana Lopez' }, { id: 'al', name: 'Alex' }, { id: 'bo', name: 'Bo' }]);
   try {
     let escapes = 0; f.host.addEventListener('keydown', event => { if (event.key === 'Escape') escapes += 1; });
-    assert.equal(f.field.getAttribute('aria-autocomplete'), 'list');
+    assert.equal(f.field.getAttribute('aria-autocomplete'), 'list'); assert.equal(f.field.getAttribute('aria-haspopup'), 'listbox');
+    const live = f.doc.querySelector('.collab-comment-mention-live')!;
+    assert.equal(live.parentElement, f.host, 'the live region is in the page before the list opens, outside the list box');
+    assert.equal(live.getAttribute('aria-live'), 'polite');
     await f.type('Hello @A');
     assert.deepEqual(f.queries, ['A']); assert.equal(f.box().hidden, false);
     const listbox = f.doc.querySelector('[role="listbox"]')!;
     assert.equal(listbox.getAttribute('aria-label'), 'People you can mention'); assert.equal(f.field.getAttribute('aria-controls'), listbox.id);
+    assert.equal(listbox.getAttribute('aria-expanded'), 'true');
     assert.deepEqual(f.options().map(option => [option.textContent, option.getAttribute('aria-selected')]), [['Ana Lopez', 'true'], ['Alex', 'false']]);
+    assert.equal(live.textContent, 'Ana Lopez', 'the first person is said when the list opens');
     assert.ok(f.key('ArrowDown').defaultPrevented);
     assert.equal(f.field.getAttribute('aria-activedescendant'), f.options()[1]!.id);
+    assert.equal(live.textContent, 'Alex', 'each move is said');
     f.key('ArrowDown'); assert.equal(f.options()[0]!.getAttribute('aria-selected'), 'true', 'arrows wrap');
     f.key('ArrowUp'); assert.equal(f.options()[1]!.getAttribute('aria-selected'), 'true');
     assert.ok(f.key('Enter').defaultPrevented);
     assert.equal(f.field.value, 'Hello @Alex '); assert.deepEqual([...f.chosen], [['al', 'Alex']]);
     assert.equal(f.box().hidden, true); assert.equal(f.field.hasAttribute('aria-activedescendant'), false);
+    assert.equal(listbox.getAttribute('aria-expanded'), 'false'); assert.equal(live.textContent, '');
     await f.type('Hello @Alex and @B'); f.key('Tab');
     assert.equal(f.field.value, 'Hello @Alex and @Bo '); assert.equal(f.chosen.get('bo'), 'Bo');
     await f.type('Hello @Alex and @Bo and @A'); assert.equal(f.box().hidden, false);
@@ -103,9 +110,13 @@ test('the listbox explains an empty match and a truncated list, and passes failu
   try {
     await f.type('@Zed'); assert.equal(f.box().hidden, false); assert.equal(f.options().length, 0);
     assert.equal(f.doc.querySelector('.collab-comment-mention-note')!.textContent, 'No one who can open this document matches @Zed.');
+    const live = () => f.doc.querySelector('.collab-comment-mention-live')?.textContent;
+    assert.equal(live(), 'No one who can open this document matches @Zed.', 'a match of nobody is said from the persistent region');
     await f.type('@A'); assert.equal(f.doc.querySelector('.collab-comment-mention-note')!.textContent, 'Keep typing to see more people.');
+    assert.equal(live(), 'Ana. Keep typing to see more people.');
     await f.type('plain text'); assert.equal(f.box().hidden, true);
     f.handle.dispose(); assert.equal(f.field.hasAttribute('aria-autocomplete'), false); assert.equal(f.box(), null);
+    assert.equal(f.field.hasAttribute('aria-haspopup'), false); assert.equal(live(), undefined, 'disposing removes the live region');
   } finally { f.dom.window.close(); }
   const g = picker([], { fail: Object.assign(new Error('missing'), { status: 404 }) });
   try {
