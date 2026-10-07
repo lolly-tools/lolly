@@ -11,6 +11,8 @@ import { mountCollabRecovery, RECOVERY_MAX_AGE_MS, RECOVERY_OWNER_KEY, recoveryO
 beforeEach(_resetNotificationsForTests);
 const WORKSPACE = 'https://lolly.ing';
 const flush = async (turns = 6): Promise<void> => { for (let i = 0; i < turns; i++) await new Promise(resolve => setImmediate(resolve)); };
+/** The earlier-copies scan starts on a 0 ms timer: wait for timers first, or a fast machine flushes before the scan has begun. */
+const scanned = async (): Promise<void> => { await new Promise(resolve => setTimeout(resolve, 0)); await flush(12); };
 const workspaceDom = (html = '<div></div>') => new JSDOM(html, { url: `${WORKSPACE}/` });
 const byText = (root: ParentNode, text: string) => [...root.querySelectorAll('button')].find(button => button.textContent === text);
 /** A device library with the four state calls the recovery view uses. */
@@ -164,7 +166,7 @@ test('S-27: copies from another account or workspace are not listed or opened, a
   const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => account);
   const nav = captureNavigation();
   try {
-    await flush(12);
+    await scanned();
     assert.deepEqual(notificationEntries().map(entry => entry.id), ['collab-recovery:mine']);
     assert.deepEqual([...saved.keys()].sort(), ['collab-recovery:elsewhere', 'collab-recovery:legacy', 'collab-recovery:mine', 'collab-recovery:theirs', 'design:1']);
     assert.deepEqual(saved.get('collab-recovery:legacy'), legacy, 'a copy with no binding is neither listed nor removed');
@@ -190,7 +192,7 @@ test('a private pairing binds its copies to no account and lists only those', as
   const { host } = library([['collab-recovery:paired', owned('', 60_000)], ['collab-recovery:member', owned('u1', 60_000)]]);
   const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }));
   try {
-    await flush(12);
+    await scanned();
     assert.deepEqual(notificationEntries().map(entry => entry.id), ['collab-recovery:paired']);
   } finally { ui.teardown(); dom.window.close(); }
 });
