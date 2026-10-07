@@ -263,13 +263,19 @@ test('P1 - the CAMERA add-kind is back, inside the timed group, seeding kind:"ca
     const kinds = addKindsOf(brand);
     const cam = kinds.find((k) => k.id === 'camera');
     assert.ok(cam, `${brand}: no "camera" add-kind - nothing in the UI can create a scene camera`);
-    assert.equal(cam!.label, 'Camera');
+    assert.equal(cam!.label, 'Scene camera');
     assert.deepEqual(cam!.seed, { kind: 'camera' }, `${brand}: a camera is its KIND and nothing else`);
     assert.ok(optionValues(brand, 'kind').includes('camera'),
       `${brand}: the camera add-kind seeds a kind the manifest's own select does not declare`);
     const ids = kinds.map((k) => k.id);
     assert.equal(ids.indexOf('camera') - ids.indexOf('card'), 1,
       `${brand}: the camera sits with the timed kinds - order was ${ids.join(',')}`);
+    const webcam = kinds.find(kind => kind.id === 'webcam');
+    assert.ok(webcam, `${brand}: a live camera must have its own layer kind`);
+    assert.equal(webcam.label, 'Camera');
+    assert.equal(webcam.seed?.kind, 'webcam');
+    assert.ok(optionValues(brand, 'kind').includes('webcam'));
+    assert.equal(ids.at(-1), 'webcam', 'live camera appends without moving any existing add-kind');
   }
 
   // (The THIRD COPY was Sequence Studio in `community/`. It has been RETIRED into Design
