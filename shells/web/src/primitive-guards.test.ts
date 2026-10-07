@@ -1737,6 +1737,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/token-workspace.ts': 7,
   'views/components-token-examples.ts': 1,
   'views/design-token-bindings.ts': 1,
+  // 2026-10-07 (plan 75 G19): a viewer's locked control is the sidebar's own control
+  // markup (built by views/tool-inputs.ts, which escapes every value it interpolates),
+  // parsed in an inert template to add readonly/disabled attributes, then handed back
+  // to the same sidebar render. Nothing new is interpolated.
+  'lib/input-readonly.ts': 1,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {
