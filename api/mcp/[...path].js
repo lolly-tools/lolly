@@ -8412,7 +8412,7 @@ function inspectDesignV1(boxes, opts = {}) {
       hidden: row.hidden === true,
       locked: row.locked === true,
       ...kind === "text" ? { text: text2(row.text) } : {},
-      ...["image", "audio", "camera"].includes(kind) && assetId(row.image) ? { assetId: assetId(row.image) } : {},
+      ...["image", "audio", "camera", "webcam"].includes(kind) && assetId(row.image) ? { assetId: assetId(row.image) } : {},
       // A 3D scene box reads its `scene` field and raises nothing: an empty scene is
       // a new, unedited box, not a fault, and the assets it references live inside
       // the query rather than in `image` (engine/src/design-scene.ts reads them out).
@@ -8572,7 +8572,8 @@ var init_design_v1 = __esm({
       "camera",
       "frame",
       "3d",
-      "web"
+      "web",
+      "webcam"
     ];
     KINDS = new Set(DESIGN_LAYER_KINDS);
     REQUIRES_MOUNT = ["text-overflow", "computed-contrast", "resolved-fonts"];

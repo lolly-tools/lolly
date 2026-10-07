@@ -24,6 +24,7 @@ export const DESIGN_LAYER_KINDS = [
   'frame',
   '3d',
   'web',
+  'webcam',
 ] as const;
 
 export type DesignLayerKindV1 = (typeof DESIGN_LAYER_KINDS)[number];
@@ -266,7 +267,7 @@ export function inspectDesignV1(
       hidden: row.hidden === true,
       locked: row.locked === true,
       ...(kind === 'text' ? { text: text(row.text) } : {}),
-      ...(['image', 'audio', 'camera'].includes(kind) && assetId(row.image)
+      ...(['image', 'audio', 'camera', 'webcam'].includes(kind) && assetId(row.image)
         ? { assetId: assetId(row.image) }
         : {}),
       // A 3D scene box reads its `scene` field and raises nothing: an empty scene is
