@@ -16,13 +16,17 @@
  * live document, kept in `collab-recovery:<id>` slots (views/tool-collab-recovery.ts).
  * When this account on this workspace holds any, the person chooses to download them,
  * discard them or stay signed in, so work never stays behind unnoticed on a shared
- * device. A copy counts only when it is tagged with this workspace and this account;
- * the copies of other people, and untagged older copies, are left as they are.
+ * device. Either choice takes them off the device: a download saves one file and then
+ * removes the copies, and the file carries no owner tag. A copy counts only when its tag
+ * (lib/collab-recovery-owner.ts, the reader the copies are written with) carries this
+ * workspace and this account's id; the copies of other people, and untagged older
+ * copies, are left as they are.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { mountBodyPopover, type BodyPopoverHandle } from '../components/body-popover.ts';
 import { choiceDialog } from '../components/confirm-dialog.ts';
 import { registerAccountSlot } from '../lib/account-slot.ts';
+import { RECOVERY_SLOT_PREFIX, ownsRecoveryCopy, withoutRecoveryOwner } from '../lib/collab-recovery-owner.ts';
 import { getHostRef } from '../lib/host-ref.ts';
 import { iconNode } from '../lib/icon-node.ts';
 import { announce } from '../a11y.ts';
@@ -47,7 +51,7 @@ export interface AccountChipDeps {
   signInUrl(): string | null;
   signOut(): Promise<boolean>;
   signOutEverywhere(): Promise<EverywhereOutcome>;
-  /** The member's account id, which tags their recovery copies. */
+  /** The member's account id (`OrgUser.sub`), which tags their recovery copies. */
   principal?: string;
   /** The workspace's own address, which tags recovery copies too. */
   workspaceOrigin: string;
@@ -61,38 +65,13 @@ export interface AccountChipDeps {
 
 // ── Recovery copies ─────────────────────────────────────────────────────────
 
-/** The prefix of every recovery slot (views/tool-collab-recovery.ts). */
-export const RECOVERY_SLOT_PREFIX = 'collab-recovery:';
-
 /** One recovery copy as saved on this device. */
 export interface RecoveryCopy { slot: string; data: Record<string, unknown> }
 
-/** A workspace address in one form: no trailing slashes. */
-function originKey(origin: string): string {
-  return origin.trim().replace(/\/+$/, '');
-}
-
-/**
- * Who a saved recovery copy belongs to, read from its tags: `__workspace` and
- * `__account` on the copy itself, or the same two fields inside a `__recovery` record.
- * Null when the copy carries no tags. Pure.
- */
-export function recoveryOwner(data: unknown): { workspace: string; account: string } | null {
-  if (!data || typeof data !== 'object') return null;
-  const d = data as Record<string, unknown>;
-  const meta = d.__recovery && typeof d.__recovery === 'object' ? d.__recovery as Record<string, unknown> : d;
-  const workspace = meta === d ? d.__workspace : meta.workspace;
-  const account = meta === d ? d.__account : meta.account;
-  return typeof workspace === 'string' && typeof account === 'string' && workspace && account
-    ? { workspace: originKey(workspace), account }
-    : null;
-}
-
-/** The recovery copies on this device that belong to `account` on `workspace`. Resolves
- *  [] when device storage cannot be read. */
+/** The recovery copies on this device that belong to `account` (the member's id) on the
+ *  workspace at `workspace`. Resolves [] when device storage cannot be read. */
 export async function accountRecoveryCopies(state: Pick<HostV1['state'], 'list' | 'load'>, workspace: string, account: string | undefined): Promise<RecoveryCopy[]> {
   if (!account) return [];
-  const want = originKey(workspace);
   let rows: Awaited<ReturnType<HostV1['state']['list']>>;
   try { rows = await state.list(); } catch { return []; }
   const out: RecoveryCopy[] = [];
@@ -100,15 +79,15 @@ export async function accountRecoveryCopies(state: Pick<HostV1['state'], 'list' 
     if (!row?.slot?.startsWith(RECOVERY_SLOT_PREFIX)) continue;
     let data: object | null = null;
     try { data = await state.load(row.slot); } catch { continue; }
-    const owner = recoveryOwner(data);
-    if (owner && owner.workspace === want && owner.account === account) out.push({ slot: row.slot, data: data as Record<string, unknown> });
+    if (ownsRecoveryCopy(data, workspace, account)) out.push({ slot: row.slot, data: data as Record<string, unknown> });
   }
   return out;
 }
 
-/** Every copy in one JSON file, each in the same form as a single recovery download. */
+/** Every copy in one JSON file, each in the same form as a single recovery download:
+ *  without the owner tag, so the file carries no workspace address or account id. */
 export function recoveryCopiesFile(copies: readonly RecoveryCopy[]): Blob {
-  return new Blob([JSON.stringify(copies.map((c) => c.data), null, 2)], { type: 'application/json' });
+  return new Blob([JSON.stringify(copies.map((c) => withoutRecoveryOwner(c.data)), null, 2)], { type: 'application/json' });
 }
 
 /** The file name of a download of several copies. */
@@ -333,13 +312,14 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
     });
     if (choice === 'download') {
       try { await deliver(host, recoveryCopiesFile(copies), RECOVERY_COPIES_FILENAME); } catch { fail(tRaw('Recovery download failed. Try again.')); return false; }
-      return true;
+    } else if (choice !== 'discard') {
+      return false;
     }
-    if (choice === 'discard') {
-      try { for (const c of copies) await host.state.delete(c.slot); } catch { fail(tRaw('Could not complete this action. Please try again.')); return false; }
-      return true;
-    }
-    return false;
+    // Downloaded or discarded, the copies leave this device before the person does: on a
+    // shared device the next person's browser must not hold them. A copy that cannot be
+    // removed keeps the person signed in, and says so.
+    try { for (const c of copies) await host.state.delete(c.slot); } catch { fail(tRaw('Could not complete this action. Please try again.')); return false; }
+    return true;
   };
 
   const leave = async (act: 'signout' | 'everywhere', control: HTMLElement): Promise<void> => {

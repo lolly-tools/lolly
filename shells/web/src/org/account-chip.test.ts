@@ -10,9 +10,12 @@
  *    devices, with Workspace console only for someone with a console address, absolute
  *    and opening apart from the app;
  *  - a visitor's chip is only Sign in, and there is no chip without a way in;
- *  - recovery copies count only when tagged with this workspace and this account;
+ *  - recovery copies count only when their `__collabRecovery` tag (the one the recovery
+ *    view writes, read through lib/collab-recovery-owner.ts) carries this workspace and
+ *    this account's id;
  *  - Sign out with no copies signs out at once; with copies it asks first, and Download,
- *    Discard and Cancel each do what they say;
+ *    Discard and Cancel each do what they say; Download and Discard both leave no copy of
+ *    the account on the device, and the downloaded file carries no owner tag;
  *  - a failed sign-out, and an instance with no sign-out-everywhere route, leave the
  *    person signed in and tell them at the top of the menu.
  *
@@ -38,8 +41,9 @@ Dlg.showModal = function (this: HTMLDialogElement) { this.setAttribute('open', '
 Dlg.close = function (this: HTMLDialogElement) { this.removeAttribute('open'); };
 
 const {
-  mountAccountChip, registerAccountChip, accountRecoveryCopies, recoveryOwner, chipName, RECOVERY_COPIES_FILENAME,
+  mountAccountChip, registerAccountChip, accountRecoveryCopies, chipName, RECOVERY_COPIES_FILENAME,
 } = await import('./account-chip.ts');
+const { RECOVERY_OWNER_KEY, recoveryOwnerTag } = await import('../lib/collab-recovery-owner.ts');
 const { _clearAccountSlotForTests } = await import('../lib/account-slot.ts');
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
@@ -50,6 +54,9 @@ async function until(check: () => boolean, what: string): Promise<void> {
 }
 
 const WORKSPACE = 'https://work.test';
+const AT = '2026-10-07T12:00:00.000Z';
+/** A recovery copy's owner tag, in the form the recovery view writes. */
+const owned = (account: string, origin = WORKSPACE): Record<string, unknown> => ({ [RECOVERY_OWNER_KEY]: { origin, account, at: AT } });
 
 /** A device store with the given slots. */
 function deviceState(slots: Record<string, object>) {
@@ -137,28 +144,40 @@ test('chipName prefers the name, then the address', () => {
   assert.equal(chipName({ name: '', email: 'ana@acme.com' }), 'ana@acme.com');
 });
 
-test('recoveryOwner reads the tags on the copy, or inside __recovery, and nothing else', () => {
-  assert.deepEqual(recoveryOwner({ __workspace: 'https://work.test/', __account: 'u1', x: 1 }), { workspace: 'https://work.test', account: 'u1' });
-  assert.deepEqual(recoveryOwner({ __recovery: { workspace: 'https://work.test', account: 'u2' } }), { workspace: 'https://work.test', account: 'u2' });
-  assert.equal(recoveryOwner({ __label: 'Canvas' }), null, 'an untagged copy belongs to nobody we can name');
-  assert.equal(recoveryOwner({ __workspace: 'https://work.test' }), null);
-  assert.equal(recoveryOwner(null), null);
-});
-
 test('accountRecoveryCopies keeps only this account on this workspace', async () => {
   const { state } = deviceState({
-    'collab-recovery:a': { __workspace: WORKSPACE, __account: 'u_ana', v: 1 },
-    'collab-recovery:b': { __workspace: WORKSPACE, __account: 'u_bo', v: 2 },
-    'collab-recovery:c': { __workspace: 'https://other.test', __account: 'u_ana', v: 3 },
+    'collab-recovery:a': { ...owned('u_ana'), v: 1 },
+    'collab-recovery:b': { ...owned('u_bo'), v: 2 },
+    'collab-recovery:c': { ...owned('u_ana', 'https://other.test'), v: 3 },
     'collab-recovery:d': { __label: 'old, untagged' },
-    'design-session': { __workspace: WORKSPACE, __account: 'u_ana' },
-    'collab-recovery:e': { __recovery: { workspace: `${WORKSPACE}/`, account: 'u_ana' }, v: 5 },
+    'design-session': { ...owned('u_ana') },
+    'collab-recovery:e': { ...owned('u_ana', `${WORKSPACE}/`), v: 5 },
+    // Tags this reader never wrote: never counted, so never offered and never removed.
+    'collab-recovery:f': { __workspace: WORKSPACE, __account: 'u_ana', v: 6 },
+    'collab-recovery:g': { [RECOVERY_OWNER_KEY]: { origin: WORKSPACE, account: 'u_ana' }, v: 7 },
   });
   const copies = await accountRecoveryCopies(state, WORKSPACE, 'u_ana');
-  assert.deepEqual(copies.map((c) => c.slot), ['collab-recovery:a', 'collab-recovery:e']);
+  assert.deepEqual(copies.map((c) => c.slot), ['collab-recovery:a', 'collab-recovery:e'], 'trailing slashes on the origin do not matter');
   assert.deepEqual(await accountRecoveryCopies(state, WORKSPACE, undefined), [], 'no account, no copies');
   const broken = { async list(): Promise<never> { throw new Error('blocked'); }, async load() { return null; } };
   assert.deepEqual(await accountRecoveryCopies(broken, WORKSPACE, 'u_ana'), [], 'unreadable storage counts as none');
+});
+
+test('a copy written as the recovery view writes one is counted for the signed-in member', async () => {
+  // views/tool-collab-recovery.ts (S7) stores `{ ...state, __label, __collabRecovery: { origin, account, at } }`
+  // with the origin `getInstanceBase() || location.origin` and, once it adopts the shared
+  // writer, the member's own id as the account: recoveryOwnerTag is that writer. org/index.ts
+  // hands the chip the same two values (the workspace address and the session's `sub`).
+  const tag = recoveryOwnerTag('u_ana', new Date(AT));
+  assert.deepEqual(tag, { origin: WORKSPACE, account: 'u_ana', at: AT }, 'the page origin, with no instance base');
+  const { state } = deviceState({
+    'collab-recovery:draft-1': { headline: 'Hi', __label: 'Canvas · Text', [RECOVERY_OWNER_KEY]: tag },
+    // A copy tagged with the live room's user id (the server's user row id, which the shell
+    // never has outside a room) is not this member's copy as far as the shell can tell.
+    'collab-recovery:draft-2': { headline: 'Hi', [RECOVERY_OWNER_KEY]: { origin: WORKSPACE, account: 'usr_8f3a', at: AT } },
+  });
+  const copies = await accountRecoveryCopies(state, location.origin, 'u_ana');
+  assert.deepEqual(copies.map((c) => c.slot), ['collab-recovery:draft-1']);
 });
 
 // ── The chip ──────────────────────────────────────────────────────────────────
@@ -245,7 +264,7 @@ test('registerAccountChip puts the chip in the header slot', async () => {
 // ── Signing out ───────────────────────────────────────────────────────────────
 
 test('Sign out with no recovery copies signs out at once', async () => {
-  const h = harness({ slots: { 'collab-recovery:x': { __workspace: WORKSPACE, __account: 'someone-else' } } });
+  const h = harness({ slots: { 'collab-recovery:x': { ...owned('someone-else') } } });
   const off = mountAccountChip(slot(), h.deps);
   click(chip());
   click(act('signout')!);
@@ -257,9 +276,14 @@ test('Sign out with no recovery copies signs out at once', async () => {
 });
 
 const MINE = {
-  'collab-recovery:1': { __workspace: WORKSPACE, __account: 'u_ana', __label: 'Poster · Text' },
-  'collab-recovery:2': { __workspace: WORKSPACE, __account: 'u_ana', __label: 'Poster · Image' },
+  'collab-recovery:1': { ...owned('u_ana'), __label: 'Poster · Text' },
+  'collab-recovery:2': { ...owned('u_ana'), __label: 'Poster · Image' },
+  'collab-recovery:3': { ...owned('u_bo'), __label: 'Someone else' },
 };
+
+/** The account's recovery slots still on the device. */
+const leftFor = async (h: ReturnType<typeof harness>, account = 'u_ana'): Promise<string[]> =>
+  (await accountRecoveryCopies(h.device.state, WORKSPACE, account)).map((c) => c.slot);
 
 test('with recovery copies, Discard removes them, then signs out', async () => {
   const h = harness({ slots: MINE });
@@ -271,12 +295,14 @@ test('with recovery copies, Discard removes them, then signs out', async () => {
   click(dialog()!.querySelector('[data-choice="discard"]')!);
   await until(() => h.after === 1, 'the sign-out to finish');
   assert.deepEqual(h.device.deleted.sort(), ['collab-recovery:1', 'collab-recovery:2']);
+  assert.deepEqual(await leftFor(h), [], 'no copy of the account stays on the device');
+  assert.deepEqual(await leftFor(h, 'u_bo'), ['collab-recovery:3'], "another person's copy is left alone");
   assert.equal(h.signOuts, 1);
   assert.equal(h.downloads.length, 0);
   off();
 });
 
-test('with recovery copies, Download saves one file holding them all, keeps them, then signs out', async () => {
+test('with recovery copies, Download saves one untagged file holding them all, removes them, then signs out', async () => {
   const h = harness({ slots: MINE });
   const off = mountAccountChip(slot(), h.deps);
   click(chip());
@@ -286,9 +312,28 @@ test('with recovery copies, Download saves one file holding them all, keeps them
   await until(() => h.after === 1, 'the sign-out to finish');
   assert.equal(h.downloads.length, 1);
   assert.equal(h.downloads[0]!.name, RECOVERY_COPIES_FILENAME);
-  const saved = JSON.parse(h.downloads[0]!.text) as Array<{ __label: string }>;
+  const saved = JSON.parse(h.downloads[0]!.text) as Array<Record<string, unknown>>;
   assert.deepEqual(saved.map((c) => c.__label).sort(), ['Poster · Image', 'Poster · Text']);
-  assert.deepEqual(h.device.deleted, [], 'a download keeps the copies on the device');
+  assert.ok(saved.every((c) => !(RECOVERY_OWNER_KEY in c)), 'the file carries no workspace address or account id');
+  assert.ok(!h.downloads[0]!.text.includes('u_ana') && !h.downloads[0]!.text.includes(WORKSPACE));
+  assert.deepEqual(h.device.deleted.sort(), ['collab-recovery:1', 'collab-recovery:2'], 'a download moves the copies off the device');
+  assert.deepEqual(await leftFor(h), [], 'no copy of the account stays on the device');
+  assert.deepEqual(await leftFor(h, 'u_bo'), ['collab-recovery:3']);
+  off();
+});
+
+test('a copy that cannot be removed after the download keeps the person signed in, and says so', async () => {
+  const h = harness({ slots: MINE });
+  h.device.state.delete = async () => { throw new Error('storage refused'); };
+  const off = mountAccountChip(slot(), h.deps);
+  click(chip());
+  click(act('signout')!);
+  await until(() => !!dialog(), 'the recovery question');
+  click(dialog()!.querySelector('[data-choice="download"]')!);
+  await until(() => !!menu()?.querySelector('.org-account-menu-error'), 'the failure line');
+  assert.equal(h.downloads.length, 1, 'the file was saved');
+  assert.equal(menu()!.querySelector('[role="alert"]')?.textContent, 'Could not complete this action. Please try again.');
+  assert.equal(h.signOuts + h.after, 0, 'still signed in, with the copies still here to deal with');
   off();
 });
 
