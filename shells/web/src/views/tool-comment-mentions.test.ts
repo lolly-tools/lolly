@@ -9,8 +9,9 @@ import { commentText } from './tool-comment-chat.ts';
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 function message(body: string, mentions?: unknown, extra: Partial<CommentMessage> = {}): CommentMessage {
-  const value: CommentMessage & { mentions?: unknown } = { id: 'm1', authorId: 'ana', authorName: 'Ana', body, createdAt: '2026-10-07T10:00:00Z', ...extra, ...(mentions === undefined ? {} : { mentions }) };
-  return value;
+  const value: CommentMessage = { id: 'm1', authorId: 'ana', authorName: 'Ana', body, createdAt: '2026-10-07T10:00:00Z', ...extra };
+  // Any stored value, malformed ones included: the reader must cope with whatever a host keeps.
+  return mentions === undefined ? value : Object.assign(value, { mentions });
 }
 
 test('mention names render as text nodes only, never as markup', () => {

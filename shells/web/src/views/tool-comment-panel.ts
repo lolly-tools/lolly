@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Move and resize Comments with the shared panel grips and right-side dock. */
 import { t } from '../i18n.ts';
-import { edgeDockAvailable, edgeDockHitTest, edgeDockPreview, edgeDockWidth, isDocked, releaseDock, requestDock } from '../lib/edge-dock.ts';
+import { edgeDockAvailable, edgeDockHitTest, edgeDockPreview, edgeDockWidth, isDocked, onDockChange, releaseDock, requestDock } from '../lib/edge-dock.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { panelGripsHtml, wirePanelGrips, type GripBox } from '../lib/panel-grips.ts';
 
@@ -113,9 +113,11 @@ export function wireCommentPanel(panel: HTMLElement, head: HTMLElement, close: H
   head.addEventListener('pointerdown', down); head.addEventListener('pointermove', move);
   head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
   win.addEventListener('resize', resized); render();
+  // A panel docking later (the Inspector opening beside a thread a link just opened) narrows the room a floating panel may use.
+  const dockOff = onDockChange(() => { if (!disposed && box && !panel.hidden && !isDocked('comments')) { box = clamp(box); render(); } });
   return { setOpen, positioned: () => !mobile() && !panel.hidden,
     destroy() {
-      disposed = true; releaseDock('comments', 'host'); resizeOff(); edgeDockPreview(false);
+      disposed = true; dockOff(); releaseDock('comments', 'host'); resizeOff(); edgeDockPreview(false);
       head.removeEventListener('pointerdown', down); head.removeEventListener('pointermove', move);
       head.removeEventListener('pointerup', end); head.removeEventListener('pointercancel', end);
       win.removeEventListener('resize', resized); conversation?.removeEventListener('scroll', rememberScroll); tools.remove();
