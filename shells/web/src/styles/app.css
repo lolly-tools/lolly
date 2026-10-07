@@ -58,6 +58,7 @@
 @import './parts/team-projects.css' layer(chrome);
 @import './parts/collab.css'       layer(chrome); /* the Projects live-collab tile badge (plan 100 section 4.6) - sits beside folders.css/projects.css, which it decorates; the rest of the presence chrome is self-styled components (see the file's own header) */
 @import './parts/projects.css'     layer(chrome);
+@import './parts/browse-layout.css' layer(chrome);
 @import './parts/asset-shared.css' layer(chrome); /* asset tiles, groups, bulk bar, transport, zoom HUD and inline edit modes that modules outside the Assets view render too. The view-only rules are parts/assets.css, loaded by views/assets.ts */
 @import './parts/guide.css'        layer(chrome); /* The guidance grammar + trust lamps + shared census (verify AND catalog render these) */
 @import './parts/components.css'   layer(chrome);

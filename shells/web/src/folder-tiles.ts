@@ -244,7 +244,7 @@ export interface FolderTileOpts {
   /** Real `<a href>` cover (see SessionTileOpts.href). */
   href?: string;
   /** External project folders reuse the same cover and card without local mutations. */
-  shared?: { subtitle: string; activity?: string; openLabel: string; subfolder?: boolean };
+  shared?: { subtitle: string; activity?: string; openLabel: string; subfolder?: boolean; canWrite?: boolean };
 }
 
 /**
@@ -280,7 +280,7 @@ export function folderTile(folder: { id: string; name: string; items?: readonly 
 
   const [open, close] = primaryTag(href, `${shared?.subfolder ? 'data-open-team-folder' : shared ? 'data-open-team-project' : 'data-open-folder'}="${escape(folder.id)}" aria-label="${shared ? escape(shared.openLabel) : `Open folder ${escape(folder.name)}`}"`);
   return `
-    <div class="folder-tile folder-tile--folder${shared ? ' folder-tile--shared' : ''}${selected ? ' is-selected' : ''}" data-ref="${escape(folder.id)}" data-kind="${shared?.subfolder ? 'team-folder' : shared ? 'team-project' : 'folder'}">
+    <div class="folder-tile folder-tile--folder${shared ? ' folder-tile--shared' : ''}${selected ? ' is-selected' : ''}" data-ref="${escape(folder.id)}" data-kind="${shared?.subfolder ? 'team-folder' : shared ? 'team-project' : 'folder'}"${shared?.canWrite === undefined ? '' : ` data-team-writable="${shared.canWrite}"`}>
       ${selectable ? selectToggle(folder.id, 'folder', selected, folder.name) : ''}
       ${open}
         ${cover}

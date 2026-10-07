@@ -228,6 +228,15 @@ test('the body renders the three sections, the chips and the empty state', () =>
   assert.match(none, /Save as a template/, 'the empty state points at both doors');
 });
 
+test('each template section inherits the chosen browsing layout', () => {
+  const m = model({ hidden: ['chart:flyer'] });
+  for (const layout of ['card', 'list'] as const) {
+    const html = templatesBodyHtml(m, { tool: '', hiddenOpen: true }, { query: '', isSelected: () => false, layout });
+    assert.equal((html.match(new RegExp(`projects-${layout === 'card' ? 'cards' : 'list'}`, 'g')) || []).length, (html.match(/class="folder-grid/g) || []).length);
+    assert.match(html, /data-ref="chart:flyer"/);
+  }
+});
+
 // ── the live collection over a memory host ──────────────────────────────────
 
 test('"Save as a template..." drops the per-document keys and keeps the export markers', async () => {
@@ -349,7 +358,7 @@ test('the route mounts the collection like the other synthetic folder', () => {
   assert.match(VIEW, /import \{ TEMPLATES, templateBulkMenuHtml/, 'the sentinel comes from the module that owns the route');
   assert.match(WIRING, /createTemplatesCollection\(\{\n\s+host,/,
     'and the collection is built in one place, from the six answers only the view has');
-  assert.match(CODE, /folderId === TEMPLATES \? shell\(t\('Templates'\), 'projects', tpl\.html\(query\), \{ inFolder: true \}\)/,
+  assert.match(CODE, /folderId === TEMPLATES \? shell\(t\('Templates'\), 'projects', tpl\.html\(query, viewMode\), \{ inFolder: true \}\)/,
     'render() branches to the collection body before the folder branch');
   assert.match(CODE, /if \(folderId === TEMPLATES\) await tpl\.load\(profile\);/, 'reload() fills it from the same profile pass');
   assert.match(CODE, /if \(folderId === TEMPLATES\) tpl\.wire\(root, query\);/, 'wire() hands it the fresh root');

@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 import { mountBodyPopover, type BodyPopoverHandle, type PopoverAnchor } from '../components/body-popover.ts';
-import { applyCardSize, cardSizeAttr, cardSizeHtml, favouritesViewSection, readCardSize, sortSection, syncSortDir, viewOptionsSection, wireCardSize } from '../components/view-options.ts';
+import { applyCardSize, cardSizeAttr, cardSizeHtml, favouritesViewSection, readCardSize, sortSection, syncSortDir, wireCardSize } from '../components/view-options.ts';
 import type { FeaturedViewMode } from '../components/featured-row.ts';
-import { segHtml } from '../lib/seg.ts';
+import { isBrowseLayout, layoutSection, type BrowseLayout } from '../components/browse-layout.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { perfUiOn } from '../feature-flags.ts';
 import { t } from '../i18n.ts';
 
-export type ProjectsViewMode = 'preview' | 'list';
-export type ProjectsSort = 'name' | 'added' | 'modified' | 'size' | 'tool';
+export type ProjectsViewMode = BrowseLayout;
+export type { ProjectListSort as ProjectsSort } from '../components/project-listhead.ts';
+import type { ProjectListSort as ProjectsSort } from '../components/project-listhead.ts';
+export { projectsListHeadHtml } from '../components/project-listhead.ts';
 
 interface ProjectViewPrefs { view: ProjectsViewMode; sort: ProjectsSort; reversed: boolean }
 const isSort = (value: unknown): value is ProjectsSort => ['name', 'tool', 'added', 'modified', 'size'].includes(String(value));
@@ -17,12 +19,13 @@ const isSort = (value: unknown): value is ProjectsSort => ['name', 'tool', 'adde
 export function readProjectsViewPrefs(scope: string, fallback: ProjectViewPrefs, shared = false): ProjectViewPrefs {
   const prefs = { ...fallback };
   try {
-    if (localStorage.getItem('lolly:projectsView') === 'list') prefs.view = 'list';
+    const view = localStorage.getItem('lolly:projectsView');
+    if (isBrowseLayout(view)) prefs.view = view;
     const sort = localStorage.getItem('lolly:projectsSort');
     if (isSort(sort)) prefs.sort = sort; else if (sort === 'date') prefs.sort = 'modified';
     const own = (JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, { v?: unknown; s?: unknown; r?: unknown }>)[scope];
     if (own) {
-      if (own.v === 'list' || own.v === 'preview') prefs.view = own.v;
+      if (isBrowseLayout(own.v)) prefs.view = own.v;
       if (isSort(own.s)) prefs.sort = own.s;
       prefs.reversed = !!own.r;
     }
@@ -47,7 +50,7 @@ export function projectsViewFromUrl(query: string | undefined, current: {
   const view = params.get('view');
   const sort = params.get('sort');
   return {
-    view: view === 'preview' || view === 'list' ? view : current.view,
+    view: isBrowseLayout(view) ? view : current.view,
     sort: sort === 'name' || sort === 'added' || sort === 'modified' || sort === 'size' || sort === 'tool' ? sort : current.sort,
     reversed: params.has('rev') ? params.get('rev') !== '0' : current.reversed,
   };
@@ -73,10 +76,7 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
     let reversed = options.reversed;
     el.innerHTML = [
       options.favView ? favouritesViewSection(options.favView) : '',
-      viewOptionsSection(t('Layout'), segHtml('projects-layout', [
-        { id: 'preview', label: t('Grid') },
-        { id: 'list', label: t('List') },
-      ], options.view, t('Layout'), { attr: 'data-vm' }) + cardSizeHtml(readCardSize('projects'), options.view === 'list')),
+      layoutSection('projects-layout', options.view, cardSizeHtml(readCardSize('projects'), options.view === 'list')),
       sortSection('projects-sort', [
         { id: 'name', label: t('Name') },
         ...(options.shared ? [] : [{ id: 'added', label: t('Date added') }]),

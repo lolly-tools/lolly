@@ -76,6 +76,7 @@ export function mountTeamProjectActions(o: Options): () => void {
     + (kind(id) === 'team-session' && o.canManage ? menuItemHtml('invite', icon('users'), tRaw('Share')) : '')
     + menuItemHtml('copy', icon('link'), tRaw('Copy link'))
     + (kind(id) === 'team-file' ? menuItemHtml('download', icon('download'), tRaw('Download')) : '')
+    + (kind(id) === 'team-session' ? menuItemHtml('download', icon('download'), tRaw('Download copy')) : '')
     + (o.canWrite ? menuItemHtml('duplicate', icon('duplicate'), tRaw('Duplicate')) : '')
     + (o.canWrite ? menuItemHtml('move', icon('move'), tRaw('Move to folder')) : '')
     + (canRename(id) ? menuItemHtml('rename', icon('pen'), tRaw('Rename')) : '')

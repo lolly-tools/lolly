@@ -10,6 +10,9 @@
  * Built with DOM APIs and textContent: file and session names come from the instance.
  */
 import { tRaw } from '../i18n.ts';
+import { promptDialog } from '../components/confirm-dialog.ts';
+import { renameProjectFile } from './project-folders.ts';
+import { orgConfig } from './index.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { getHostRef } from '../lib/host-ref.ts';
 import { anchorSave } from '../bridge/anchor-save.ts';
@@ -156,6 +159,18 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
         });
       });
       li.append(name, meta, get, copy);
+      if (opts.canUpload && orgConfig()?.can?.['session.edit'] !== false) {
+        const rename = button(tRaw('Rename'), 'file-rename', tRaw('Rename {name}', { name: file.name }));
+        rename.addEventListener('click', () => { void (async () => {
+          const value = await promptDialog({ title: tRaw('Rename file'), message: tRaw('File name'), value: file.name, confirmLabel: tRaw('Save') });
+          if (!value?.trim() || !panel.isConnected) return;
+          rename.disabled = true;
+          const got = await renameProjectFile(opts.projectId, file.id, value.trim().slice(0, 200));
+          if (panel.isConnected) { if (got.ok) await refresh(); else status.textContent = tRaw('Could not rename this file. Refresh and try again.'); }
+          rename.disabled = false;
+        })(); });
+        li.append(rename);
+      }
       if (opts.canManage || (mine !== null && file.createdBy === mine)) {
         const del = button(tRaw('Delete'), 'file-delete', tRaw('Delete {name}', { name: file.name }));
         del.addEventListener('click', () => void remove(file, li, del));

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { projectsLayoutClass, type BrowseLayout } from '../components/browse-layout.ts';
 /**
  * The Projects view's door to an instance's team projects (plan 74). Dormant while no
  * session source is registered (lib/session-source.ts), so the public shell never
@@ -40,7 +41,7 @@ export function teamProjectTiles(projects: TeamProjectRef[], query = '', sort = 
   return sorted.filter(p => !tokens.length || matchesHaystack(buildFolderHaystack(p.name), tokens)).map(p => folderTile(p, {
     count: p.sessionCount ?? 0,
     href: `#/p?team=${encodeURIComponent(p.id)}`,
-    shared: { openLabel: tRaw('Open shared project {name}', { name: p.name }),
+    shared: { canWrite: p.myRole !== 'viewer', openLabel: tRaw('Open shared project {name}', { name: p.name }),
       subtitle: tRaw('Shared project'), activity: p.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: p.sessionCount ?? 0 }) },
   })).join('');
 }
@@ -52,7 +53,7 @@ export function openTeamProjects(door: TeamProjectsDoor, projectId?: string, cre
   window.location.hash = create ? '#/p?create=team' : projectId ? `#/p?team=${encodeURIComponent(projectId)}` : '#/p';
 }
 
-export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; fileId?: string; query: string; list: boolean; sort: string; reversed: boolean; assetId?: string; folderId?: string }): Promise<() => void> {
+export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; fileId?: string; query: string; list: boolean; card?: boolean; sort: string; reversed: boolean; assetId?: string; folderId?: string }): Promise<() => void> {
   try {
     const module = await import('../org/team-project-view.ts');
     const { prepareProjectAsset, projectAssetHref } = await import('../org/team-project-assets.ts');
@@ -108,9 +109,9 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
     folderTile(folder: Folder, opts: Parameters<typeof folderTile>[1]): string {
       const project = linked(folder);
       return project ? folderTile({ ...folder, ...project }, { ...opts, selectable: false, href: `#/p?team=${encodeURIComponent(project.id)}`,
-        shared: { subtitle: tRaw('Shared project'), activity: project.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
+        shared: { canWrite: project.myRole !== 'viewer', subtitle: tRaw('Shared project'), activity: project.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
     },
-    rootHtml(filter: string, list: boolean, head: string, size: string, sort: string, reversed: boolean): string {
+    rootHtml(filter: string, mode: BrowseLayout, head: string, size: string, sort: string, reversed: boolean): string {
       const source = getSessionSource(); if (!source) return '';
       const copied = new Set(localFolders.map(linked).filter(Boolean).map(project => project!.id));
       const tiles = teamProjectTiles(projects.filter(project => !copied.has(project.id)), filter, sort, reversed);
@@ -118,9 +119,9 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
         : filter ? t('No shared projects match your search.') : t('Create a team project or ask a teammate to add you.');
       return `<section class="projects-shared" aria-label="${escapeHtml(tRaw('Shared projects'))}"><div class="projects-shared-head"><div><h2>${t('Shared projects')}</h2><p>${escapeHtml(source.label)}</p></div>
         <button type="button" class="btn btn--labelled btn--ghost" data-refresh-team>${actionButtonContent(tRaw('Refresh'), 'refresh')}</button></div>
-        ${tiles ? `<div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${size}>${list ? head : ''}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}</section>`;
+        ${tiles ? `<div class="folder-grid projects-grid${projectsLayoutClass(mode)}"${size}>${mode === 'list' ? head : ''}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}</section>`;
     },
-    afterRender(opts: { query: string; list: boolean; sort: string; reversed: boolean }): void {
+    afterRender(opts: { query: string; list: boolean; card?: boolean; folderId?: string; sort: string; reversed: boolean }): void {
       const ticket = generation, source = getSessionSource();
       if (active) {
         const slot = view.querySelector<HTMLElement>('[data-shared-folder]'); if (!slot) return;

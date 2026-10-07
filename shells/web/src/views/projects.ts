@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { LOCAL_ITEMS_MIME, wireLocalTeamDrops, wireTeamMoveButton, type LocalProjectItem } from '../org/local-team-transfer.ts';
+import { projectsLayoutClass, type BrowseLayout } from '../components/browse-layout.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
@@ -73,7 +75,7 @@ import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { mountActionToolbar, actionButtonContent } from '../components/action-button.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml, projectLearningActionsHtml } from './projects-create.ts';
-import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsCardSizeAttr, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
+import { projectsListHeadHtml, FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsCardSizeAttr, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
@@ -130,7 +132,7 @@ type Entry = Awaited<ReturnType<WebStateAPI['list']>>[number];
 // 'modified' = last save (updatedAt) - the old catch-all 'date', which stored prefs
 // migrate to on load. 'tool' groups by the owning tool (folder views only).
 type SortBy = 'modified' | 'added' | 'name' | 'tool' | 'size';
-type ViewMode = 'preview' | 'list';
+type ViewMode = BrowseLayout;
 type SelectKind = 'folder' | 'session' | 'image' | 'template';   // images join via marquee (no checkbox)
 
 /** Query result: the (capped) tiles to render plus the true `total` so the header can
@@ -268,7 +270,7 @@ export async function mountProjects(
   const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted };
   const shared = createSharedProjectsView(teamDoor, viewEl, opts.params || '', render);
   const sharedProjectId = shared.projectId, sharedFolder = shared.active;
-  const sharedProjectsHtml = (q = '') => shared.rootHtml(q, viewMode === 'list', listHeadHtml(), projectsCardSizeAttr(), sortBy, sortRev);
+  const sharedProjectsHtml = (q = '') => shared.rootHtml(q, viewMode, listHeadHtml(), projectsCardSizeAttr(), sortBy, sortRev);
   let overlayModal: ModalHandle<any> | null = null;      // the move-picker / new-folder-name dialog, if open
   let releaseSearch: (() => void) | null = null;         // the shell search-bar claim (set in boot, below)
   let featuredHandle: FeaturedRowHandle | null = null; // the Uncategorised preview ribbon (drift/coverflow/grip), if mounted
@@ -322,7 +324,7 @@ export async function mountProjects(
   const RECENTS_COLLAPSED_KEY = 'lolly-projects-recents-collapsed';
   let recentsCollapsed = ((): boolean => { try { return localStorage.getItem(RECENTS_COLLAPSED_KEY) === '1'; } catch { return false; } })();
 
-  const prefsScope = sharedProjectId ? `team:${sharedProjectId}` : folderId ?? '__root__';
+  const prefsScope = sharedProjectId ? `team:${sharedProjectId}${new URLSearchParams(opts.params || '').get('folder') ? ':' + new URLSearchParams(opts.params || '').get('folder') : ''}` : folderId ?? '__root__';
   ({ view: viewMode, sort: sortBy, reversed: sortRev } = readProjectsViewPrefs(prefsScope, { view: viewMode, sort: sortBy, reversed: sortRev }, sharedFolder));
   // `#/p?view=&sort=&rev` seed the same three for THIS mount, outranking both stored
   // layers above - what a shared link, a docs recipe or a screenshot run needs to land
@@ -475,27 +477,7 @@ export async function mountProjects(
    *  as every row (projects.css --list-cols), so it cannot drift from them. A
    *  sort with no column (Date added) is named beside Name, so the active
    *  order is never invisible. Rendered only in list mode. */
-  function listHeadHtml(): string {
-    // The arrow shows the REAL direction: name/kind run A→Z unreversed, while the
-    // date and size sorts run newest/biggest first unreversed - i.e. descending.
-    const descending = (key: SortBy): boolean => (key === 'name' || key === 'tool') ? sortRev : !sortRev;
-    const glyph = (key: SortBy): string => descending(key) ? '▾' : '▴';
-    // The sort state rides the accessible NAME: aria-sort is only exposed on real
-    // table header roles, and these are buttons in a div, so a screen reader would
-    // otherwise hear nothing of it.
-    const col = (key: SortBy, label: string): string => {
-      const on = sortBy === key;
-      const state = on ? (descending(key) ? t('sorted descending') : t('sorted ascending')) : t('not sorted');
-      return `<button type="button" class="listhead-col${on ? ' is-on' : ''}" data-listsort="${key}" aria-label="${escape(`${label}, ${state}`)}">${escape(label)}${on ? `<span class="listhead-dir" aria-hidden="true">${glyph(key)}</span>` : ''}</button>`;
-    };
-    const note = sortBy === 'added'
-      ? `<span class="listhead-sortnote">${t('Sorted by date added')} <span aria-hidden="true">${glyph('added')}</span></span>`
-      : '';
-    return `<div class="projects-listhead" role="row">
-      <span class="listhead-name">${col('name', t('Name'))}${note}</span>
-      ${col('tool', t('Kind'))}${col('size', t('Size'))}${col('modified', t('Modified'))}
-    </div>`;
-  }
+  const listHeadHtml = (): string => projectsListHeadHtml(sortBy, sortRev);
 
   const sessionTitle = (e: Entry): string => (e.label || e.filename || toolName(e.toolId) || '').toLowerCase();
   // A session's creation time for the "Date added" sort: the stored createdAt when the
@@ -580,13 +562,13 @@ export async function mountProjects(
     featuredHandle?.destroy(); featuredHandle = null;  // stop the prior ribbon's rAF loop + listeners before its DOM is wiped
     searchCache = null;   // recompute matches once for this render (sort/data may have changed); the two callers below then share it
     pruneSelection();     // forget refs that vanished since the last render
-    viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
+    viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query, viewMode), { inFolder: true }) : folderHtml(folderId);
     const assetId = !sharedFolder ? new URLSearchParams(opts.params || '').get('asset') : null;
     if (assetId) disposeAssetPreview = mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
     wire();
     const rootToolbar = viewEl.querySelector<HTMLElement>('.projects-roothead, .projects-head');
     if (rootToolbar) clearRootToolbar = mountActionToolbar(rootToolbar);
-    shared.afterRender({ query, list: viewMode === 'list', sort: sortBy, reversed: sortRev });
+    shared.afterRender({ query, list: viewMode === 'list', card: viewMode === 'card', sort: sortBy, reversed: sortRev });
     scenePreviews.refresh(entries);
   }
 
@@ -636,7 +618,7 @@ export async function mountProjects(
       ${sharedProjectsHtml()}
       ${favourites.size && !list ? `<div class="projects-featured" data-fav-strip></div>` : ''}
       ${invite}
-      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${projectsCardSizeAttr()}>
+      <div class="folder-grid projects-grid${projectsLayoutClass(viewMode)}"${projectsCardSizeAttr()}>
         ${list ? listHeadHtml() : ''}
         ${folderTiles}${/* "My library" names the loose block when folders sit above
           it (plans/170 keeping-model): the save dialog files here by that name,
@@ -681,7 +663,7 @@ export async function mountProjects(
     }
     const countText = ms.length === 1 ? t('1 saved session') : t('{n} saved sessions', { n: ms.length });
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for {names}', { count: countText, names: escape(label) })} · ${clearBtn}</p>`;
-    const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
+    const gridClass = `folder-grid projects-grid projects-search-grid${projectsLayoutClass(viewMode)}`;
     const tiles = ms.map(e => sessionTile(e, sessionTileOpts(e))).join('');
     return `${status}<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
   }
@@ -813,7 +795,7 @@ export async function mountProjects(
     // breadcrumb + header so the folder context (and the way back out) stays visible.
     if (searching) return shell(title, 'projects', `${header}${searchBodyHtml()}`, { inFolder: true });
 
-    const gridClass = `folder-grid projects-grid${viewMode === 'list' ? ' projects-list' : ''}`;
+    const gridClass = `folder-grid projects-grid${projectsLayoutClass(viewMode)}`;
     // Gate on whether there are TILES to show (sub-folders OR sessions), not on the
     // subtree file count: an empty sub-folder is a real tile the user needs to see, but
     // contributes 0 to `count` (tileItemCount ignores folders), so keying off `count`
@@ -852,7 +834,7 @@ export async function mountProjects(
       ? t('{total} results - showing the first {shown}, refine to narrow', { total: total.toLocaleString(), shown })
       : (total === 1 ? t('1 result') : t('{n} results', { n: total }));
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for “{query}” in {scope}', { count: countText, query: escape(query), scope: escape(scope) })} · ${clearBtn}</p>`;
-    const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
+    const gridClass = `folder-grid projects-grid projects-search-grid${projectsLayoutClass(viewMode)}`;
     const tiles = [...mf.map(folderResultTile), ...ms.map(sessionResultTile)].join('');
     return `${status}<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
   }
@@ -1233,6 +1215,7 @@ export async function mountProjects(
     });
 
     wireDrag(root);
+    wireLocalTeamDrops(root, host, () => mounted);
     if (folderId === TEMPLATES) tpl.wire(root, query);   // chips, the Hidden reveal, lazy previews
     mountUncatRibbon(root);
     mountFavStrip(root);
@@ -1297,7 +1280,7 @@ export async function mountProjects(
   // reset the Shift-anchor mid-gesture).
   const selectableTiles = (): HTMLElement[] =>
     [...viewEl.querySelectorAll<HTMLElement>('.folder-tile[data-ref][data-kind]')]
-      .filter(t => !t.classList.contains('folder-tile--create'));
+      .filter(t => !t.classList.contains('folder-tile--create') && !t.dataset.kind?.startsWith('team-'));
 
   const tileSelect = wireTileSelect({
     host: viewEl,
@@ -1418,6 +1401,7 @@ export async function mountProjects(
       tile.setAttribute('draggable', 'true');
       tile.addEventListener('dragstart', (e) => {
         e.dataTransfer!.setData(mime, tile.dataset.ref!);
+        e.dataTransfer!.setData(LOCAL_ITEMS_MIME, JSON.stringify(selected.has(tile.dataset.ref!) ? [...selected].map(([ref, kind]) => ({ ref, kind })) : [{ ref: tile.dataset.ref!, kind }]));
         e.dataTransfer!.effectAllowed = 'move';
         tile.classList.add('is-dragging');
         root.classList.add(kind === 'folder' ? 'is-dragging-folder' : 'is-dragging-session');
@@ -1647,7 +1631,7 @@ export async function mountProjects(
       // A folder can't move into itself or its own subtree - block those targets.
       const blocked = new Set([ref, ...descendantFolderIds(folders, ref)]);
       openMovePicker({
-        title: t('Move folder to…'), blocked,
+        title: t('Move folder to…'), blocked, items: [{ kind: 'folder', ref }],
         onPick: async (dest) => { await store.moveFolder(ref, dest); await reload(); render(); announce(t('Folder moved')); },
       });
     }
@@ -1658,7 +1642,7 @@ export async function mountProjects(
     else if (act === 'save-session-template') await tpl.saveSessions([sessionSource(ref)], { ask: true });
     else if (act === 'move') {
       openMovePicker({
-        title: t('Move to…'),
+        title: t('Move to…'), items: [{ kind: 'session', ref }],
         onPick: async (dest) => { await store.moveItem(ref, dest, 'session'); await reload(); render(); announce(t('Session moved')); },
       });
     }
@@ -1669,7 +1653,7 @@ export async function mountProjects(
     else if (act === 'open-image') openImagePreview(ref);
     else if (act === 'move-image') {
       openMovePicker({
-        title: t('Move to…'),
+        title: t('Move to…'), items: [{ kind: 'image', ref }],
         onPick: async (dest) => { await store.moveItem(ref, dest, 'image'); await reload(); render(); announce(t('Image moved')); },
       });
     }
@@ -1876,7 +1860,7 @@ export async function mountProjects(
     });
   }
 
-  function openMovePicker({ title, blocked = new Set<string>(), onPick }: { title: string; blocked?: Set<string>; onPick: (dest: string | null) => void }): void {
+  function openMovePicker({ title, blocked = new Set<string>(), items = [], onPick }: { title: string; blocked?: Set<string>; items?: LocalProjectItem[]; onPick: (dest: string | null) => void }): void {
     closeMenu();
     let cursor: string | null = null; // current folder id (null = top level)
 
@@ -1930,10 +1914,12 @@ export async function mountProjects(
 
     const redraw = (): void => {
       modal.el.innerHTML = render();
+      wireTeamMoveButton(modal.el, host, items, () => mounted, () => modal.close());
       // Keep keyboard focus inside the picker after a redraw (drill-in / crumb climb).
       if (modal.el.open) focusFirst(modal.el).focus({ preventScroll: true });
     };
 
+    wireTeamMoveButton(modal.el, host, items, () => mounted, () => modal.close());
     modal.el.addEventListener('click', async (e) => {
       const crumb = (e.target as HTMLElement).closest<HTMLElement>('[data-cursor]');
       if (crumb) { cursor = crumb.dataset.cursor || null; redraw(); return; }
@@ -2677,7 +2663,7 @@ export async function mountProjects(
     // Can't move a selected folder into itself or any selected folder's subtree.
     const blocked = new Set(folderIds.flatMap(id => [id, ...descendantFolderIds(folders, id)]));
     openMovePicker({
-      title: selected.size === 1 ? t('Move 1 item to…') : t('Move {n} items to…', { n: selected.size }), blocked,
+      title: selected.size === 1 ? t('Move 1 item to…') : t('Move {n} items to…', { n: selected.size }), blocked, items: [...selected].filter(([, kind]) => kind !== 'template').map(([ref, kind]) => ({ ref, kind: kind as LocalProjectItem['kind'] })),
       onPick: async (dest) => {
         const n = selected.size;
         await applySelectionMove(dest);

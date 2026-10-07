@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { projectsLayoutClass, type BrowseLayout } from '../components/browse-layout.ts';
+import { cardSizeAttr, readCardSize } from '../components/view-options.ts';
 /**
  * The Projects "Templates" collection (plans/226 section 4.3) - the route
  * `#/p/__templates__` (+ `?tool=<id>` to pre-filter), plus the session-tile
@@ -232,11 +234,11 @@ export function templateTileHtml(item: TemplateItem, selected: boolean): string 
 export function templatesBodyHtml(
   model: TemplatesModel,
   state: { tool: string; hiddenOpen: boolean },
-  opts: { query: string; isSelected: (ref: string) => boolean },
+  opts: { query: string; isSelected: (ref: string) => boolean; layout?: BrowseLayout },
 ): string {
   const { own, shipped, hidden } = selectTemplates(model, state.tool, opts.query);
   const tiles = (items: readonly TemplateItem[]): string =>
-    `<div class="folder-grid projects-grid">${items.map(i => templateTileHtml(i, opts.isSelected(i.ref))).join('')}</div>`;
+    `<div class="folder-grid projects-grid${projectsLayoutClass(opts.layout ?? 'preview')}"${cardSizeAttr(readCardSize('projects'))}>${items.map(i => templateTileHtml(i, opts.isSelected(i.ref))).join('')}</div>`;
   const chip = (id: string, label: string): string =>
     `<button type="button" class="projects-chip${state.tool === id ? ' is-on' : ''}" data-tpl-tool="${escapeHtml(id)}" aria-pressed="${state.tool === id}">${escapeHtml(label)}</button>`;
   const chips = model.tools.length > 1 || state.tool
@@ -321,7 +323,7 @@ export interface TemplatesCollection {
   load(profile: Profile | null): Promise<void>;
   loadError(): string | null;
   hydrate(root: HTMLElement): () => void;
-  html(query: string): string;
+  html(query: string, layout?: BrowseLayout): string;
   wire(root: HTMLElement, query: string): void;
   menuHtml(ref: string): string;
   action(act: string, ref: string): Promise<void>;
@@ -645,8 +647,8 @@ export function createTemplatesCollection(ctx: TemplatesCtx): TemplatesCollectio
     load,
     loadError: () => loadError,
     hydrate: (root) => hydrateTemplatePreviews(root, ctx.host, pickable()),
-    html: (query) => (loadError ? `<p class="asset-picker-empty" role="status">${escapeHtml(loadError)} <button type="button" class="btn" data-tpl-retry>${t('Try again')}</button></p>` : '')
-      + (loadError && !model.items.length ? '' : templatesBodyHtml(model, state, { query, isSelected: ctx.isSelected })),
+    html: (query, layout) => (loadError ? `<p class="asset-picker-empty" role="status">${escapeHtml(loadError)} <button type="button" class="btn" data-tpl-retry>${t('Try again')}</button></p>` : '')
+      + (loadError && !model.items.length ? '' : templatesBodyHtml(model, state, { query, isSelected: ctx.isSelected, layout })),
     wire,
     menuHtml: (ref) => { const item = byRef.get(ref); return item ? templateMenuHtml(item) : ''; },
     action,

@@ -1,0 +1,71 @@
+/* Compact columns keep each section's existing order and tile actions. */
+.projects-grid.projects-cards.projects-cards,
+.tool-masonry[data-browse-layout="card"] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--chrome-h) * 7 * var(--card-scale, 1))), 1fr));
+  gap: var(--sp-4);
+}
+.tool-masonry[data-browse-layout="list"] { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+.projects-cards .folder-tile,
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile {
+  container-type: normal;
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+.projects-grid.projects-cards .tile-primary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  padding-inline-end: calc(var(--chrome-h) + var(--sp-4));
+}
+.projects-grid.projects-cards .tile-figure,
+.projects-grid.projects-cards .folder-cover {
+  flex: 0 0 calc(var(--chrome-h) * 1.3);
+  width: calc(var(--chrome-h) * 1.3);
+  height: calc(var(--chrome-h) * 1.1);
+  min-height: 0;
+  margin: 0;
+}
+.projects-grid.projects-cards .tile-meta { min-block-size: 0; min-width: 0; padding: 0; }
+.projects-cards .tile-menu-btn { inset-block-start: 50%; transform: translateY(-50%); }
+.projects-grid.projects-cards .folder-tile .tile-check { inset-block-start: var(--sp-2); inset-inline-start: var(--sp-2); }
+.projects-cards .folder-cover-glyph svg { width: var(--fs-xl); height: var(--fs-xl); }
+.projects-cards .tile-title { font-size: var(--fs-sm); }
+.projects-cards .tile-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+}
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile > :is(.gtile-hero, .gcar, .gtile-tile) {
+  flex: 0 0 calc(var(--chrome-h) * 1.3);
+  width: calc(var(--chrome-h) * 1.3);
+  height: calc(var(--chrome-h) * 1.1);
+  aspect-ratio: auto;
+  border-radius: var(--ui-radius-control);
+}
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile-body { min-width: 0; padding: 0; }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile-cap { display: flex; flex-direction: row; align-items: center; gap: var(--sp-4); padding: 0; }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile:not(.gtile--utility) .tool-card-icon { display: none; }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile-meta { align-items: flex-start; text-align: start; min-width: 0; }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile-name { font-size: var(--fs-sm); }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) :is(.gcar-nav, .gcar-dots, .gcar-motion-play, .gcar-motion-label, .gtile-new, .gtile-template-line, .gtile-tile-txt) { display: none; }
+.tool-masonry[data-browse-layout="card"] :is(.gtile-desc, .gtile-sub) { display: none; }
+.tool-masonry[data-browse-layout="list"] .gtile-desc { -webkit-line-clamp: 1; }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile--utility .tool-card-icon { flex: 0 0 calc(var(--chrome-h) * 1.3); display: grid; place-items: center; }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile--utility .tool-card-icon svg { width: var(--chrome-h); height: var(--chrome-h); }
+.team-folder-toolbar { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-block: var(--sp-4); align-items: center; }
+.team-folder-toolbar select { max-width: 100%; }
+.team-folder-drop.is-drop { outline: 1px dashed var(--ui-color-border-default); outline-offset: var(--sp-1); }
+
+.projects-grid.projects-cards :is(.tile-cover, .tile-cover--create, .tile-cover--batch) { width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; }
+
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) :is(.gcar, .gtile-hero) > .badge { display: none; }
+.tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) .gtile--utility .gtile-body { display: block; width: 100%; }
+
+.projects-grid.projects-cards .tpl-cover { flex: 0 0 calc(var(--chrome-h) * 1.3); width: calc(var(--chrome-h) * 1.3); height: calc(var(--chrome-h) * 1.1); }

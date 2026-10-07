@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { matchesGalleryFilter } from './gallery-filter.ts';
+import { layoutSection, readBrowseLayout, wireBrowseLayout } from '../components/browse-layout.ts';
 /**
  * Gallery view - preview-forward masonry of available tools.
  *
@@ -882,6 +884,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   const firstRunBanner = privacyNoticeMarkup() || personalizeNudgeMarkup(profile) || offlineNudgeMarkup(profile);
 
   const cardSizeView = opts.only ? 'utilities' : 'tools', cardSize = readCardSize(cardSizeView);
+  const browseLayout = readBrowseLayout(cardSizeView, opts.params);
   // Render shell. The pill bar + masonry are filled by render(); the footer
   // (Pro link, search, info link) is left exactly as before.
   viewEl.classList.add('has-masonry');
@@ -896,7 +899,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         popover: visibleCats.length ? `
           <div class="filter-popover view-options" id="filter-popover" role="group" aria-label="${escape(t('View options'))}" hidden>
             ${featuredEntries.length ? favouritesViewSection(featuredView) : ''}
-            ${viewOptionsSection(t('Layout'), cardSizeHtml(cardSize))}
+            ${layoutSection('gallery-layout', browseLayout, cardSizeHtml(cardSize, browseLayout === 'list'))}
             ${sortSection('gallery-sort', SORT_KEYS.map(k => ({ id: k, label: t(SORT_LABELS[k]) })), 'recent', false)}
             ${viewOptionsSection(t('Filter'), `<div class="filter-pop-pills" aria-label="${escape(t('Filter tools by category'))}"></div>`)}
           </div>` : '',
@@ -1482,24 +1485,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
   // The search + active-category predicate, WITHOUT the sort (assumes the tool is
   // already in allTools). Drives the in-place hide-show; sort is applied separately.
-  function matchesQuery(t: GalleryTool): boolean {
-    const q = query.trim();
-    // Utilities live in their own `#/u` view now and NEVER appear in the main
-    // gallery - not even via search (the Utilities view has its own search box).
-    // In only-mode they're ordinary tiles and take the normal path below.
-    if (t.category === 'utility' && !opts.only) return false;
-    // Tags carry the vocabulary the name and description do not: a tool called
-    // "Finish Preview" is what someone searching "foil" or "spot uv" wants, and
-    // "Imperfections" is what they want for "riso". Tags are search-only - they
-    // are never rendered, so this widens recall without changing any tile.
-    // lib/search semantics (plans/99 M3): folded, multi-word queries AND across
-    // tokens over name + English stash + description + tags.
-    if (q) {
-      return scoreHaystack(searchFields.get(t.id) ?? [], queryTokens) > 0;
-    }
-    if (activeCat === FAV_CAT) return favourites.has(t.id);   // starred collection
-    return activeCat === 'all' || t.category === activeCat;
-  }
+  const matchesQuery = (tool: GalleryTool): boolean => matchesGalleryFilter(tool, { onlyUtilities: !!opts.only, query, queryTokens, fields: searchFields, category: activeCat, favouriteCategory: FAV_CAT, favourites });
 
   function renderPills(): void {
     if (!pillbar) return;
@@ -1764,6 +1750,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // and the CSS that collapses cards + the featured strip now keys off
   // html[data-a11y-previews="hidden"] directly - nothing to wire here.
 
+  if (filterPop) wireBrowseLayout(filterPop, masonry, cardSizeView, browseLayout);
   if (filterPop) wireCardSize(filterPop, cardSizeView, step => applyCardSize(viewEl.querySelector('.tool-masonry'), step));
 
   // Global sort - persisted like the theme; re-renders the grid in place.
