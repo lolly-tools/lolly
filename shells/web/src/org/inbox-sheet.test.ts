@@ -52,9 +52,10 @@ const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 const {
-  answerAccessRequest, answerText, commentNoticeBody, commentNoticeOf, commentNoticeTitle, openInboxSheet, requestOf, sortNewestFirst,
+  answerAccessRequest, answerText, openInboxSheet, requestOf, sortNewestFirst,
   _resetInboxSheetForTests,
 } = await import('./inbox-sheet.ts');
+const { commentNoticeBody, commentNoticeOf, commentNoticeTitle } = await import('./comment-notice.ts');
 const { inboxMessages, refreshInbox } = await import('./inbox.ts');
 const { _resetBannerForTests } = await import('./banner.ts');
 const { teamLinkSessionId } = await import('./team-link-shared.ts');

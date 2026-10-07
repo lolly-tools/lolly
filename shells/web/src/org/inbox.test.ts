@@ -15,7 +15,24 @@
  */
 import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
+
+// Node cannot import a locale catalog (.json with no import attribute), so i18n.ts
+// would fall back to English in every language. A small German catalog is served in
+// its place, holding only the keys the comment-notice test reads.
+const GERMAN: Record<string, string> = {
+  'New message: {title}': 'Neue Nachricht: {title}',
+  '{name} mentioned you in {document}': '{name} hat Sie in {document} erwähnt',
+  'New replies in {document}: {count}': 'Neue Antworten in {document}: {count}',
+  'This comment is no longer available.': 'Dieser Kommentar ist nicht mehr verfügbar.',
+};
+registerHooks({
+  load(url: string, ctx: unknown, next: (u: string, c: unknown) => unknown) {
+    if (url.endsWith('/locales/de.json')) return { format: 'module', shortCircuit: true, source: `export default ${JSON.stringify(GERMAN)};` };
+    return next(url, ctx);
+  },
+} as Parameters<typeof registerHooks>[0]);
 
 const dom = new JSDOM(
   '<!doctype html><html><body><div id="app"><main id="view"></main></div></body></html>',
@@ -279,4 +296,29 @@ test('the started inbox feeds its attached banner exactly once', async () => {
   startInbox({ initialUnread: 1 });
   await settle();
   assert.equal(gets(), 1, 'starting again does nothing');
+});
+
+test('a comment notice reaches the queue and the announcement in the app language, not in the instance English', async () => {
+  const { setActiveLang } = await import('../i18n.ts');
+  const { notificationEntries } = await import('../lib/notifications.ts');
+  await setActiveLang('de', { persist: false });
+  try {
+    const mention = msg('cn_mention000000000000000001', { kind: 'comment', severity: 'action', title: 'Ana mentioned you in Poster',
+      body: 'This comment is no longer available.',
+      data: { kind: 'comment-mention', sessionId: 's1', threadId: 't1', actorName: 'Ana', label: 'Poster', count: '1' } });
+    const replies = msg('cn_reply00000000000000000001', { kind: 'comment', title: 'New replies in Poster: 3', body: 'Looks good',
+      data: { kind: 'comment-reply', sessionId: 's1', threadId: 't2', actorName: 'Bo', label: 'Poster', count: '3' } });
+    router = () => json({ messages: [mention, replies, msg('hello', { title: 'Welcome to lolly.ing' })] });
+    startInbox({ initialUnread: 1 });
+    await settle();
+    const queued = (id: string) => notificationEntries().find(row => row.id.endsWith(`:${id}`));
+    assert.equal(queued(mention.id)?.title, 'Ana hat Sie in Poster erwähnt');
+    assert.equal(queued(mention.id)?.body, 'Dieser Kommentar ist nicht mehr verfügbar.');
+    assert.equal(queued(replies.id)?.title, 'Neue Antworten in Poster: 3');
+    assert.equal(queued(replies.id)?.body, 'Looks good', 'a quoted message stays as written');
+    assert.equal(queued('hello')?.title, 'Welcome to lolly.ing', 'any other message keeps the instance title');
+    assert.equal(politeText(), 'Neue Nachricht: Ana hat Sie in Poster erwähnt', 'the announcement reads the translated title');
+  } finally {
+    await setActiveLang('en', { persist: false });
+  }
 });
