@@ -67,6 +67,8 @@
     box-shadow: var(--ui-elevation-floating, none);
   }
   .document-scope-menu[hidden] { display: none; }
+  /* The hide-controls preview (views/free-canvas.ts) shows the artwork alone. */
+  .tool-view.is-chrome-hidden .document-scope { display: none; }
   .document-scope-item {
     min-height: 36px;
     padding: 6px 12px;
