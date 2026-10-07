@@ -45,6 +45,7 @@ import type { RewordCandidate, } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { assetLicenceDeclaration, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
 import { lollyBadge } from '../../lib/lolly-badge.ts';
+import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
 import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
@@ -1487,6 +1488,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     else if (act === 'recategorise') await cat.userAssets.recategorise(ref);
     else if (act === 'replace') await cat.userAssets.replaceUserAsset(ref);
     else if (act === 'rename') await cat.userAssets.renameUserAsset(ref);
+    else if (act === 'catalog-submit') openCatalogSubmit(uploadSubject(ref));
     else if (act === 'edit-tags') { await cat.userAssets.editTags([ref]); dt.openDetails(cat, cat.assetById.get(ref.id) ?? ref); }
     else if (act === 'hide') await cat.userAssets.setHidden(base, true);
     else if (act === 'unhide') await cat.userAssets.setHidden(base, false);
