@@ -52,10 +52,12 @@ const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 const {
-  answerAccessRequest, answerText, openInboxSheet, requestOf, sortNewestFirst, _resetInboxSheetForTests,
+  answerAccessRequest, answerText, commentNoticeBody, commentNoticeOf, commentNoticeTitle, openInboxSheet, requestOf, sortNewestFirst,
+  _resetInboxSheetForTests,
 } = await import('./inbox-sheet.ts');
 const { inboxMessages, refreshInbox } = await import('./inbox.ts');
 const { _resetBannerForTests } = await import('./banner.ts');
+const { teamLinkSessionId } = await import('./team-link-shared.ts');
 type InboxMessage = import('./inbox.ts').InboxMessage;
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
@@ -67,6 +69,14 @@ const projectRequest = (id: string, extra: Partial<InboxMessage> = {}): InboxMes
   kind: 'request', severity: 'action', title: 'Sam asks to edit Launch', body: 'sam@acme.com · GitHub',
   cta: { label: 'Review', url: '/#/team/project/prj_1' },
   data: { kind: 'access-request', requestId: `req_${id}`, requestKind: 'project', projectId: 'prj_1', role: 'editor', name: 'Sam', at: new Date(Date.now() - 2 * 3_600_000).toISOString() },
+  ...extra,
+});
+/** A comment notice as lolly-work sends one (plan 76 M4, spec 2.5), whose `cta.url`
+ *  points somewhere else on purpose: the sheet must never follow that link. */
+const commentNotice = (id: string, kind: string, data: Record<string, string> = {}, extra: Partial<InboxMessage> = {}): InboxMessage => msg(id, {
+  kind: 'comment', title: 'Server title in English', body: 'Can we make the logo bigger?',
+  cta: { label: 'Open thread', url: 'https://elsewhere.example/#/team/ses_other?thread=th_other' },
+  data: { kind, sessionId: 'ses_1', projectId: 'prj_1', threadId: 'th_1', actorName: 'Ana', label: 'Spring poster', count: '1', at: new Date(Date.now() - 5 * 60_000).toISOString(), ...data },
   ...extra,
 });
 
@@ -105,6 +115,61 @@ test('requestOf reads an access request off its payload, and nothing else', () =
   assert.equal(requestOf(msg('b')), null);
   assert.equal(requestOf(msg('c', { data: { kind: 'access-request' } })), null, 'no request id: nothing to answer');
   assert.equal(requestOf(msg('d', { data: { kind: 'access-request', requestId: 'r', requestKind: 'join', email: 'kim@x.org' } }))?.name, 'kim@x.org', 'the address when there is no name');
+});
+
+test('commentNoticeOf reads a mention or a reply notice off its payload, and nothing else', () => {
+  assert.deepEqual(commentNoticeOf(commentNotice('a', 'comment-mention')), {
+    kind: 'mention', href: '#/team/ses_1?thread=th_1', actorName: 'Ana', label: 'Spring poster', count: 1,
+  });
+  assert.equal(commentNoticeOf(commentNotice('b', 'comment-reply', { count: '4' }))?.kind, 'reply');
+  assert.equal(commentNoticeOf(commentNotice('b', 'comment-reply', { count: '4' }))?.count, 4);
+  assert.equal(commentNoticeOf(msg('c')), null);
+  assert.equal(commentNoticeOf(projectRequest('d')), null);
+  assert.equal(commentNoticeOf(commentNotice('e', 'comment')), null, 'only the two notice kinds');
+  assert.equal(commentNoticeOf(commentNotice('f', 'comment-resolve')), null);
+  const count = (c: string): number | undefined => commentNoticeOf(commentNotice('g', 'comment-reply', { count: c }))?.count;
+  assert.deepEqual(['2', '0', '-3', '1.5', 'x', '', '2000', '99999999'].map(count), [2, 1, 1, 1, 1, 1, 1000, 1]);
+});
+
+test('a notice links to its thread from the checked ids in its payload, never from cta.url', () => {
+  const href = (data: Record<string, string>): string | undefined => commentNoticeOf(commentNotice('a', 'comment-mention', data))?.href;
+  assert.equal(href({}), '#/team/ses_1?thread=th_1');
+  assert.equal(href({ sessionId: 'sess_1-a.b~c', threadId: 'th-2_X' }), '#/team/sess_1-a.b~c?thread=th-2_X');
+  for (const sessionId of ['ses/1', 'ses 1', '', '%41bc', 'x'.repeat(201), '../admin', 'ses?thread=x', 'ses#x']) {
+    assert.equal(href({ sessionId }), '', `session ${JSON.stringify(sessionId)}`);
+  }
+  for (const threadId of ['th 1', 'constructor', '__proto__', 'x'.repeat(81), '', 'th/1', '<b>', 'th.1', 'th&x=1']) {
+    assert.equal(href({ threadId }), '', `thread ${JSON.stringify(threadId)}`);
+  }
+  assert.equal(commentNoticeOf({ data: { kind: 'comment-reply', threadId: 'th_1', actorName: 'Ana', label: 'Doc' } })?.href, '', 'no session id: no link');
+  assert.equal(commentNoticeOf({ data: { kind: 'comment-reply', sessionId: 'ses_1', actorName: 'Ana', label: 'Doc' } })?.href, '', 'no thread id: no link');
+});
+
+test('the session id check is the one org/team-link-shared.ts applies', () => {
+  const ids = ['ses_1', 'sess_1-a.b~c', 'SES.9~x', 'a'.repeat(200), 'a'.repeat(201), 'ses%2D1', ' ses', 'ses ', 'ses/1', 'ses:1', 'é', ''];
+  for (const id of ids) {
+    const linked = commentNoticeOf(commentNotice('a', 'comment-mention', { sessionId: id }))!.href !== '';
+    assert.equal(linked, id !== '' && teamLinkSessionId(id) === id, JSON.stringify(id));
+  }
+});
+
+test('commentNoticeTitle builds the title from the payload, never from the instance title', () => {
+  const title = (kind: string, data: Record<string, string> = {}): string =>
+    commentNoticeTitle(commentNoticeOf(commentNotice('a', kind, data))!, 'Server title in English');
+  assert.equal(title('comment-mention'), 'Ana mentioned you in Spring poster');
+  assert.equal(title('comment-mention', { count: '3' }), 'Ana mentioned you in Spring poster', 'a mention stays a mention as replies arrive');
+  assert.equal(title('comment-reply'), 'Ana replied in Spring poster');
+  assert.equal(title('comment-reply', { count: '3' }), 'New replies in Spring poster: 3');
+  assert.equal(title('comment-reply', { count: '3', actorName: '' }), 'New replies in Spring poster: 3', 'no name needed for a count');
+  assert.equal(title('comment-mention', { actorName: ' ' }), 'Server title in English', 'no name: the instance title');
+  assert.equal(title('comment-reply', { label: '' }), 'Server title in English', 'no document: the instance title');
+});
+
+test('commentNoticeBody gives the app sentence for a thread with nothing to quote, and the quote otherwise', () => {
+  assert.equal(commentNoticeBody('This comment is no longer available.'), 'This comment is no longer available.');
+  assert.equal(commentNoticeBody('  This comment is no longer available.\n'), 'This comment is no longer available.');
+  assert.equal(commentNoticeBody('Can we make the <b>logo</b> bigger?'), 'Can we make the <b>logo</b> bigger?');
+  assert.equal(commentNoticeBody(undefined), undefined);
 });
 
 test('answerText gives each outcome its sentence', () => {
@@ -322,5 +387,55 @@ test('a load that fails says so and offers Try again', async () => {
   await settle();
   assert.deepEqual(rowsIds(), ['back']);
   assert.equal(document.activeElement, sheet()!.querySelector('h2'));
+  _resetInboxSheetForTests();
+});
+
+// ── Comment notices in the dialog ───────────────────────────────────────────
+
+test('a comment notice shows its own title as text and opens its thread from the payload', async () => {
+  await reset([commentNotice('cn_a', 'comment-mention', { actorName: '<img src=x onerror=alert(1)>' })]);
+  openInboxSheet();
+  const li = row('cn_a');
+  assert.equal(li.querySelector('strong')?.textContent, '<img src=x onerror=alert(1)> mentioned you in Spring poster');
+  assert.equal(li.querySelector('img, b, script'), null, 'the name stays text');
+  assert.equal(li.querySelector('p')?.textContent, 'Can we make the logo bigger?');
+  assert.equal(li.querySelector('time')?.textContent, '5m ago');
+  assert.equal(li.querySelector('a[data-act="inbox-open"]'), null, 'no link from the instance');
+  assert.equal(sheet()!.querySelector('a[href*="elsewhere"]'), null);
+  const link = li.querySelector<HTMLAnchorElement>('a[data-act="inbox-open-thread"]')!;
+  assert.equal(link.textContent, 'Open thread');
+  assert.equal(link.getAttribute('href'), '#/team/ses_1?thread=th_1');
+
+  link.click();
+  // Still in the page as the click finishes, or the browser would not follow the link.
+  assert.ok(link.isConnected, 'the link stays while the browser follows it');
+  assert.equal(li.querySelector('[data-act="inbox-dismiss"]'), null, 'nothing left to dismiss');
+  await settle();
+  assert.ok(acked('cn_a'), 'following the link acks the notice');
+  assert.deepEqual(inboxMessages().map((m) => m.id), [], 'gone from the inbox');
+  assert.equal(window.location.hash, '#/team/ses_1?thread=th_1', 'the app follows the link to the thread');
+  assert.equal(sheet(), null, 'the route change closes the dialog');
+  window.history.replaceState(null, '', '/');
+});
+
+test('a notice for several replies says how many, and one whose ids fail their checks has no link', async () => {
+  await reset([
+    commentNotice('cn_b', 'comment-reply', { count: '3', at: '2026-10-07T12:00:00Z' }),
+    commentNotice('cn_c', 'comment-reply', { threadId: 'constructor', at: '2026-10-07T11:00:00Z' }, { body: 'This comment is no longer available.' }),
+    commentNotice('other', 'comment-thread', { at: '2026-10-07T10:00:00Z' }),
+  ]);
+  openInboxSheet();
+  assert.equal(row('cn_b').querySelector('strong')?.textContent, 'New replies in Spring poster: 3');
+  assert.equal(row('cn_b').querySelector('a[data-act="inbox-open-thread"]')?.getAttribute('href'), '#/team/ses_1?thread=th_1');
+  const bad = row('cn_c');
+  assert.equal(bad.querySelector('strong')?.textContent, 'Ana replied in Spring poster');
+  assert.equal(bad.querySelector('p')?.textContent, 'This comment is no longer available.');
+  assert.equal(bad.querySelector('a'), null, 'neither a thread link nor the instance link');
+  bad.querySelector<HTMLButtonElement>('[data-act="inbox-dismiss"]')!.click();
+  await settle();
+  assert.ok(acked('cn_c'), 'Dismiss still acks');
+  const other = row('other');
+  assert.equal(other.querySelector('strong')?.textContent, 'Server title in English', 'another kind keeps the instance title');
+  assert.equal(other.querySelector('a[data-act="inbox-open"]')?.getAttribute('href'), 'https://elsewhere.example/#/team/ses_other?thread=th_other', 'and its link, as before');
   _resetInboxSheetForTests();
 });

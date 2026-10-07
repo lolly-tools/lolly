@@ -17,9 +17,16 @@
  * answer again: someone else may have answered first, or this person may no longer
  * manage the project, and each outcome has its own sentence.
  *
+ * A comment notice (`data.kind` `comment-mention` or `comment-reply`, plan 76 milestone
+ * 4) gets its title in the app's language from the payload's name, document and count,
+ * and an Open thread link built from the payload's checked session and thread ids.
+ * The instance's own link (`cta.url`) is never used for one. Following the link acks
+ * the notice. org/banner.ts uses the same helpers for a notice it shows.
+ *
  * Every instance-supplied string (titles, bodies, names) reaches the page through
  * textContent; only the dialog's frame, built from this file's own strings, is markup.
  */
+import { commentId } from '@lolly-tools/core/canvas-review-v1';
 import { announce } from '../a11y.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -53,6 +60,62 @@ export function requestOf(m: InboxMessage): { id: string; kind: string; role: In
   const d = m.data;
   if (d?.kind !== 'access-request' || !d.requestId) return null;
   return { id: d.requestId, kind: d.requestKind ?? '', role: inviteRoleOf(d.role), name: (d.name || d.email || '').trim() };
+}
+
+// ── Comment notices ──────────────────────────────────────────────────────────
+
+/** The body the instance sends when the thread has no message by someone else left. */
+const NOTICE_GONE = 'This comment is no longer available.';
+
+/** The session id rule of org/team-link-shared.ts `teamLinkSessionId`, applied to the
+ *  value as sent. Importing that module would put this file in org/index.ts's load
+ *  cycle, so the rule is repeated here and a test keeps the two in step. */
+const TEAM_SESSION_ID = /^[A-Za-z0-9._~-]{1,200}$/;
+
+/** A mention or reply notice, read from its message's payload. */
+export interface CommentNotice {
+  kind: 'mention' | 'reply';
+  /** The thread inside this app, `#/team/<sessionId>?thread=<threadId>`, or '' when
+   *  either id fails its check. Never the instance's `cta.url`. */
+  href: string;
+  /** The person who wrote, as the instance gave the name when the inbox was read. */
+  actorName: string;
+  /** The document's name, as the instance gave it when the inbox was read. */
+  label: string;
+  /** How many replies the notice stands for: 1 to 1000. */
+  count: number;
+}
+
+/** The comment notice a message carries, or null for any other message. Pure. */
+export function commentNoticeOf(m: Pick<InboxMessage, 'data'>): CommentNotice | null {
+  const d = m.data;
+  const kind = d?.kind === 'comment-mention' ? 'mention' : d?.kind === 'comment-reply' ? 'reply' : null;
+  if (!d || !kind) return null;
+  const sessionId = d.sessionId ?? '';
+  const threadId = d.threadId ?? '';
+  const href = TEAM_SESSION_ID.test(sessionId) && commentId(threadId)
+    ? `#/team/${encodeURIComponent(sessionId)}?thread=${encodeURIComponent(threadId)}`
+    : '';
+  const n = /^\d{1,7}$/.test(d.count ?? '') ? Number(d.count) : 1;
+  return { kind, href, actorName: (d.actorName ?? '').trim(), label: (d.label ?? '').trim(), count: Math.min(Math.max(n, 1), 1000) };
+}
+
+/** A comment notice's title in the app's language. `fallback`, the instance's own
+ *  title, only when the payload lacks the name or the document the title needs.
+ *  Plain text, for textContent. */
+export function commentNoticeTitle(n: CommentNotice, fallback: string): string {
+  if (!n.label) return fallback;
+  if (n.kind === 'reply' && n.count > 1) return tRaw('New replies in {document}: {count}', { document: n.label, count: n.count });
+  if (!n.actorName) return fallback;
+  return n.kind === 'mention'
+    ? tRaw('{name} mentioned you in {document}', { name: n.actorName, document: n.label })
+    : tRaw('{name} replied in {document}', { name: n.actorName, document: n.label });
+}
+
+/** A comment notice's body: the quoted message as sent, or, for a thread with nothing
+ *  left to quote, that sentence in the app's language. Plain text, for textContent. */
+export function commentNoticeBody(body: string | undefined): string | undefined {
+  return body?.trim() === NOTICE_GONE ? tRaw('This comment is no longer available.') : body;
 }
 
 // ── Answering a request ──────────────────────────────────────────────────────
@@ -224,6 +287,7 @@ export function openInboxSheet(opts: InboxSheetOptions = {}): void {
     const n = ++rowSeq;
     const req = requestOf(m);
     const answerHere = req?.kind === 'project';
+    const notice = commentNoticeOf(m);
     const li = el('li', {
       className: 'inbox-sheet-row',
       style: `display:flex;flex-direction:column;gap:.45rem;padding:.7rem .85rem;border:1px solid hsl(var(--border));border-radius:var(--radius);${m.severity === 'info' ? '' : 'background:hsl(var(--primary) / .06);border-color:hsl(var(--primary) / .35)'}`,
@@ -231,8 +295,9 @@ export function openInboxSheet(opts: InboxSheetOptions = {}): void {
     li.dataset.msg = m.id;
 
     const words = el('div', { style: 'min-width:0' });
-    words.append(el('strong', { text: m.title, style: 'display:block;font-weight:650;overflow-wrap:anywhere' }));
-    if (m.body) words.append(el('p', { text: m.body, style: `margin:.15rem 0 0;overflow-wrap:anywhere;${MUTED}` }));
+    words.append(el('strong', { text: notice ? commentNoticeTitle(notice, m.title) : m.title, style: 'display:block;font-weight:650;overflow-wrap:anywhere' }));
+    const bodyText = notice ? commentNoticeBody(m.body) : m.body;
+    if (bodyText) words.append(el('p', { text: bodyText, style: `margin:.15rem 0 0;overflow-wrap:anywhere;${MUTED}` }));
     const when = relTime(m.data?.at, Date.now(), tRaw);
     if (when) {
       const time = el('time', { text: when, style: `display:block;margin-top:.15rem;font-size:var(--fs-sm);${MUTED}` });
@@ -273,7 +338,22 @@ export function openInboxSheet(opts: InboxSheetOptions = {}): void {
       actions.append(approve, decline);
     }
 
-    if (m.cta?.url && safeHref(m.cta.url)) {
+    if (notice) {
+      // Built from the payload's checked ids, never from the instance's link. Following
+      // it acks the notice. The row is settled first, so the list change the ack makes
+      // keeps the row, and the link stays in the page while the browser follows the link.
+      if (notice.href) {
+        const link = el('a', { className: 'btn btn--sm', text: tRaw('Open thread'), style: `${TARGET};display:inline-flex;align-items:center` });
+        link.href = notice.href;
+        link.dataset.act = 'inbox-open-thread';
+        link.addEventListener('click', () => {
+          li.dataset.settled = 'true';
+          li.querySelector('[data-act="inbox-dismiss"]')?.remove();
+          dismissMessage(m.id);
+        });
+        actions.append(link);
+      }
+    } else if (m.cta?.url && safeHref(m.cta.url)) {
       const link = el('a', {
         className: 'btn btn--sm',
         text: req && !answerHere ? tRaw('Answer in the console') : tRaw('Open'),
