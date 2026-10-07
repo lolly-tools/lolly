@@ -224,6 +224,14 @@ base, qualify sandbox startup and real exports, and preserve the deployment's
 reviewed anonymous or bearer policy. Browser enablement never grants access to
 private Work files or workspace documents.
 
+The optional [namespace sandbox profile](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/seccomp/README.md)
+keeps Chromium's sandbox enabled under the container's dropped capabilities.
+Install and verify its exact hash on the selected node first, then opt MCP into
+its Localhost profile; other services retain RuntimeDefault. Qualify actual
+namespace/seccomp diagnostics and SVG/PNG/PDF exports after each browser or
+runtime change. The chart neither installs a host profile nor substitutes a
+sandbox bypass.
+
 ### YunoHost
 
 For a self-hosting box rather than a cluster, Lolly ships as a [YunoHost](https://yunohost.org) app: `sudo yunohost app install https://github.com/lolly-tools/lolly_ynh`. The package is the `deploy/yunohost/` directory of this repo, mirrored to that app repository at each release, so the two never differ.

@@ -447,8 +447,18 @@
             "browser": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["noSandbox", "maxConcurrent", "maxQueued", "queueTimeoutMs"],
+              "required": [
+                "localhostProfile",
+                "noSandbox",
+                "maxConcurrent",
+                "maxQueued",
+                "queueTimeoutMs"
+              ],
               "properties": {
+                "localhostProfile": {
+                  "type": "string",
+                  "pattern": "^$|^lolly/public-browser-sandbox-[a-f0-9]{64}\\.json$"
+                },
                 "noSandbox": {
                   "type": "boolean"
                 },

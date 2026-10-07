@@ -49,6 +49,8 @@ components:
     allowAnonymous: false
     webBase: ""
     browser:
+      # Optional verified node-local profile; empty retains RuntimeDefault.
+      localhostProfile: ""
       noSandbox: false
       maxConcurrent: 1
       maxQueued: 4

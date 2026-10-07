@@ -98,6 +98,8 @@ test('browser image is optional, lockfile-scoped and retains sandbox/auth defaul
   assert.match(source, /COPY --from=build \/opt\/lolly-browsers \/opt\/lolly-browsers/);
   assert.match(source, /install-browser.ts --with-deps/);
   assert.match(source, /USER node/);
+  assert.match(source, /ENV XDG_CONFIG_HOME=\/tmp\/config/);
+  assert.match(source, /ENV XDG_CACHE_HOME=\/tmp\/cache/);
   assert.doesNotMatch(
     source,
     /LOLLY_BROWSER_NO_SANDBOX=1|LOLLY_MCP_ALLOW_ANONYMOUS=1|LOLLY_MCP_TOKEN=/
@@ -120,6 +122,10 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   assert.match(job, /verify-release-catalog.ts/);
   assert.match(job, /--read-only --cap-drop ALL --security-opt no-new-privileges:true/);
   assert.match(job, /--env LOLLY_BROWSER_NO_SANDBOX=0/);
+  assert.match(
+    job,
+    /--security-opt "seccomp=\$GITHUB_WORKSPACE\/deploy\/docker\/seccomp\/public-browser-sandbox.json"/
+  );
   assert.ok(job.indexOf('public-image-probe.ts') < job.indexOf('docker push "$remote"'));
   const diagnosis = job.slice(
     job.indexOf('- name: Retain bounded unqualified'),
@@ -130,4 +136,17 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   assert.match(diagnosis, /retention-days: 1/);
   assert.doesNotMatch(diagnosis, /docker push|REGISTRY_TOKEN|CA_ROOT_KEY/);
   assert.doesNotMatch(job, /seccomp=unconfined|--privileged|SYS_ADMIN|LOLLY_BROWSER_NO_SANDBOX=1/);
+});
+
+test('Compose browser overlay requires a verified seccomp file and preserves isolation', () => {
+  const overlay = read('deploy/docker/public-browser.compose.yml');
+  assert.match(overlay, /seccomp=\$\{LOLLY_PUBLIC_BROWSER_SECCOMP_FILE:\?Set the verified/);
+  assert.match(overlay, /no-new-privileges:true/);
+  assert.doesNotMatch(overlay, /unconfined|privileged:|cap_add|no-sandbox/);
+  assert.doesNotMatch(compose, /seccomp=/);
+  const probe = read('deploy/docker/public-image-probe.ts');
+  assert.match(probe, /page.goto\('chrome:\/\/sandbox'\)/);
+  assert.match(probe, /Layer 1 Sandbox/);
+  assert.match(probe, /Seccomp-BPF sandbox supports TSYNC/);
+  assert.match(probe, /for \(const format of \['svg', 'png', 'pdf'\]\)/);
 });

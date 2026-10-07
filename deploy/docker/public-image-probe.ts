@@ -273,6 +273,30 @@ try {
     browserCommands.every((command) => !command.includes('--no-sandbox')),
     'actual Chromium launch must retain its sandbox'
   );
+  // The regular Chromium diagnostic page exposes its internal namespace and
+  // seccomp state; the production exports above still use the default engine.
+  const { chromium } = createRequire(join(root, 'services/mcp/package.json'))('playwright-core');
+  const diagnosticBrowser = await chromium.launch({
+    ...runtime.browserLaunchOptions(),
+    channel: 'chromium',
+  });
+  let sandboxDiagnostics = '';
+  try {
+    const page = await diagnosticBrowser.newPage();
+    await page.goto('chrome://sandbox');
+    sandboxDiagnostics = (await page.locator('body').innerText()).slice(0, 8192);
+    assert.match(sandboxDiagnostics, /Layer 1 Sandbox\s+Namespace/);
+    for (const control of [
+      'PID namespaces',
+      'Network namespaces',
+      'Seccomp-BPF sandbox',
+      'Seccomp-BPF sandbox supports TSYNC',
+    ]) {
+      assert.ok(sandboxDiagnostics.includes(`${control}\tYes`), control);
+    }
+  } finally {
+    await diagnosticBrowser.close();
+  }
   console.log(
     JSON.stringify(
       {
@@ -289,6 +313,7 @@ try {
         badOriginRefused: true,
         privateFilesDisabled: true,
         chromiumSandbox: true,
+        sandboxDiagnostics,
         observedBrowserProcesses: browserCommands.length,
         renders,
         candidateRuntimeQualified: false,

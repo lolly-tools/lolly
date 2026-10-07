@@ -62,6 +62,9 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/opt/lolly-browsers
 ENV NODE_ENV=production
 # Default transport port; the chart sets PORT explicitly too.
 ENV PORT=8790
+# Crashpad/config caches live in the already bounded writable scratch volume.
+ENV XDG_CONFIG_HOME=/tmp/config
+ENV XDG_CACHE_HOME=/tmp/cache
 ENV LOLLY_MCP_BIND_HOST=0.0.0.0
 
 # Preserve the source layout and workspace links used by the headless host,

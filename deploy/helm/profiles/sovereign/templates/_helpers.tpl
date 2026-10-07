@@ -49,6 +49,9 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | quote }}
 {{- if and .Values.components.mcp.webBase (ne .Values.components.mcp.webBase (printf "https://%s" .Values.public.host)) -}}
 {{- fail "components.mcp.webBase must be empty or the exact canonical public HTTPS origin" -}}
 {{- end -}}
+{{- if and .Values.components.mcp.browser.localhostProfile .Values.components.mcp.browser.noSandbox -}}
+{{- fail "A browser localhostProfile requires the internal Chromium sandbox to remain enabled" -}}
+{{- end -}}
 {{- $hosts := list .Values.public.host .Values.private.host -}}
 {{- range concat .Values.public.redirectHosts .Values.private.redirectHosts -}}
 {{- if has . $hosts -}}{{- fail "Canonical and redirect hosts must be unique" -}}{{- end -}}

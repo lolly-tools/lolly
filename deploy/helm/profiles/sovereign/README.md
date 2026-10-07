@@ -188,3 +188,26 @@ edge readiness; and firewall exposure. Complete provider login callback
 acceptance after the canonical domains move. Retain the previous runtime and DNS
 rollback until those checks pass. Application live behavior and HA remain
 explicitly unqualified until exercised on the real candidate.
+
+
+## Optional namespace sandbox seccomp profile
+
+When the browser needs namespace syscalls under the no-capability runtime,
+use the maintained [browser seccomp profile](../../../docker/seccomp/README.md). It preserves the captured
+RuntimeDefault baseline and adds only the measured `clone`, `setns`, `unshare`
+and `chroot` calls. All capabilities stay dropped; the root filesystem remains
+read-only and privilege escalation stays disabled. Chromium's internal namespace
+and Seccomp-BPF sandboxes remain enabled. Other components retain RuntimeDefault.
+
+Install and verify the exact profile on the prepared node before creating an
+MCP Pod. The sovereign option `components.mcp.browser.localhostProfile` is empty
+by default; setting the hash-bearing relative path pins only MCP to
+`edge.nodeName`. The optional Compose browser overlay requires an absolute,
+verified `LOLLY_PUBLIC_BROWSER_SECCOMP_FILE` on its Docker host. Do not substitute
+an unconfined profile, a capability increase or a sandbox bypass.
+
+Record actual Chromium sandbox diagnostics and real SVG/PNG/PDF exports from
+the final image under the target's kernel, seccomp and SELinux policy. Repeat
+this acceptance after runtime/browser/node upgrades. The CI native export check
+uses the same versioned profile, but does not replace target acceptance or prove
+high availability.

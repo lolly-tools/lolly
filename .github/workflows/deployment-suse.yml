@@ -15,6 +15,7 @@ on:
       - tests/deployment-public-vm.test.ts
       - tests/deployment-public-vm.integration.ts
       - tests/model-release.test.ts
+      - tests/browser-seccomp.test.ts
       - .github/workflows/deployment-suse.yml
   pull_request:
     paths:
@@ -28,6 +29,7 @@ on:
       - tests/deployment-public-vm.test.ts
       - tests/deployment-public-vm.integration.ts
       - tests/model-release.test.ts
+      - tests/browser-seccomp.test.ts
       - .github/workflows/deployment-suse.yml
   workflow_dispatch:
     inputs:
@@ -80,6 +82,8 @@ jobs:
             /tests/deployment-sovereign.test.ts
             /tests/deployment-sovereign.integration.ts
             /deploy/docker/public.nginx.conf
+            /deploy/docker/seccomp/
+            /tests/browser-seccomp.test.ts
             /services/mcp/src/http.ts
             /package.json
 
@@ -132,7 +136,7 @@ jobs:
           kubeconform -v
           python3 -c 'import yaml; assert yaml.__version__ == "6.0.3"'
           caddy version
-          node --test tests/deployment-suse.test.ts tests/deployment-sovereign.test.ts
+          node --test tests/deployment-suse.test.ts tests/deployment-sovereign.test.ts tests/browser-seccomp.test.ts
           node --test tests/deployment-sovereign.integration.ts
 
       - name: Lint defaults and lean profile
@@ -187,6 +191,11 @@ jobs:
             -f deploy/helm/profiles/sovereign/fixture.values.json \
             -f deploy/helm/profiles/sovereign/browser.values.yaml \
             --set components.mcp.webBase=https://public.example \
+            | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
+          helm template fixture deploy/helm/profiles/sovereign --namespace lolly-public \
+            -f deploy/helm/profiles/sovereign/fixture.values.json \
+            -f deploy/helm/profiles/sovereign/browser.values.yaml \
+            --set-string components.mcp.browser.localhostProfile=lolly/public-browser-sandbox-8f01960c1777252f6c70b64e00fdccec95e86b37f7617cb798df3e36fd987a9b.json \
             | kubeconform -strict -summary -kubernetes-version "$KUBERNETES_SCHEMA_VERSION"
 
   public-vm:
@@ -250,6 +259,7 @@ jobs:
           printf '%s\n' "CA_ROOT_KEY_PEM='synthetic" "multiline'" \
             'CA_SERVICE_SECRET=synthetic-test-value' > "$fixture/ca.env"
           docker compose --env-file /dev/null -f deploy/docker/public.compose.yml config --quiet
+          export LOLLY_PUBLIC_BROWSER_SECCOMP_FILE="$GITHUB_WORKSPACE/deploy/docker/seccomp/public-browser-sandbox.json"
           docker compose --env-file /dev/null -f deploy/docker/public.compose.yml \
             -f deploy/docker/public-browser.compose.yml config --quiet
 
@@ -378,7 +388,9 @@ jobs:
         id: native_probe
         run: |
           set -euo pipefail
+          node --test tests/browser-seccomp.test.ts
           docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --security-opt "seccomp=$GITHUB_WORKSPACE/deploy/docker/seccomp/public-browser-sandbox.json" \
             --memory 2048m --cpus 2 --pids-limit 256 --tmpfs /tmp:size=512m,mode=1777 \
             --env LOLLY_BROWSER_NO_SANDBOX=0 --env LOLLY_MCP_ALLOW_ANONYMOUS=0 \
             --env LOLLY_MCP_PRIVATE_FILES=0 --env LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=0 \

@@ -25,6 +25,9 @@ spec:
         {{- end }}
         lolly.tools/profile: sovereign-single-node
     spec:
+      {{- if and (eq $name "mcp") $.Values.components.mcp.browser.localhostProfile }}
+      nodeName: {{ $.Values.edge.nodeName | quote }}
+      {{- end }}
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
       {{- with $.Values.imagePullSecrets }}
@@ -36,7 +39,13 @@ spec:
         runAsUser: {{ $component.uid }}
         runAsGroup: {{ $component.uid }}
         fsGroup: {{ $component.uid }}
+        {{- if and (eq $name "mcp") $.Values.components.mcp.browser.localhostProfile }}
+        seccompProfile:
+          type: Localhost
+          localhostProfile: {{ $.Values.components.mcp.browser.localhostProfile | quote }}
+        {{- else }}
         seccompProfile: {type: RuntimeDefault}
+        {{- end }}
       containers:
         - name: {{ $name }}
           image: {{ include "sovereign.image" $component.image | quote }}
@@ -118,7 +127,8 @@ spec:
         - name: nginx
           configMap: {name: {{ include "sovereign.name" (dict "root" $ "name" "nginx") }}}
         - name: models
-          persistentVolumeClaim: {claimName: {{ $.Values.models.existingClaim }}, readOnly: true}
+          # Kubelet may initialize fsGroup; the application mount remains read-only.
+          persistentVolumeClaim: {claimName: {{ $.Values.models.existingClaim }}}
         {{- end }}
 ---
 apiVersion: v1

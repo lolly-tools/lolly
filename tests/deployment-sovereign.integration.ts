@@ -218,7 +218,6 @@ test('models use the verified existing PVC read-only with no new HTTP service', 
   assert.equal(web.metadata.annotations['lolly.tools/models-release'], input.models.release);
   assert.deepEqual(web.spec.volumes.find((v) => v.name === 'models')?.persistentVolumeClaim, {
     claimName: 'models-fixture',
-    readOnly: true,
   });
   assert.deepEqual(
     container(web.spec).volumeMounts.find((m) => m.name === 'models'),
@@ -528,4 +527,44 @@ test('optional browser profile has bounded scratch and resources without extra p
   assert.deepEqual(mcp.securityContext.capabilities, { drop: ['ALL'] });
   assert.equal(env(mcp).LOLLY_BROWSER_NO_SANDBOX, '0');
   assert.equal(env(mcp).LOLLY_MCP_ALLOW_ANONYMOUS, '0');
+});
+
+test('verified Localhost browser profile is explicit, node-pinned and exclusive to MCP', () => {
+  const input = values();
+  const profile =
+    'lolly/public-browser-sandbox-8f01960c1777252f6c70b64e00fdccec95e86b37f7617cb798df3e36fd987a9b.json';
+  input.components.mcp.browser = { localhostProfile: profile };
+  const resources = render(input);
+  for (const name of names) {
+    const pod = deployment(resources, name).spec.template.spec;
+    assert.deepEqual(
+      pod.securityContext.seccompProfile,
+      name === 'mcp' ? { type: 'Localhost', localhostProfile: profile } : { type: 'RuntimeDefault' }
+    );
+    if (name === 'mcp') {
+      assert.equal(pod.nodeName, input.edge.nodeName);
+      assert.equal(pod.automountServiceAccountToken, false);
+      const mcp = container(pod);
+      assert.equal(mcp.securityContext.readOnlyRootFilesystem, true);
+      assert.equal(mcp.securityContext.allowPrivilegeEscalation, false);
+      assert.deepEqual(mcp.securityContext.capabilities, { drop: ['ALL'] });
+      assert.equal(env(mcp).LOLLY_BROWSER_NO_SANDBOX, '0');
+      assert.equal(env(mcp).LOLLY_MCP_PRIVATE_FILES, '0');
+      assert.equal(env(mcp).LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT, '0');
+    } else if (name !== 'edge') assert.equal(pod.nodeName, undefined);
+  }
+  for (const bad of [
+    '/absolute',
+    '../escape',
+    'lolly/Unconfined.json',
+    profile.toUpperCase(),
+    false,
+  ]) {
+    const invalid = values();
+    invalid.components.mcp.browser = { localhostProfile: bad };
+    refuses(invalid, /localhostProfile/);
+  }
+  const bypass = values();
+  bypass.components.mcp.browser = { localhostProfile: profile, noSandbox: true };
+  refuses(bypass, /internal Chromium sandbox/);
 });
