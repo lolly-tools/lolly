@@ -65,7 +65,8 @@ import type {
 } from '../lib/collab-session.ts';
 import { livePalette } from '../lib/live-palette.ts';
 import { mountCanvasComments } from './tool-canvas-comments.ts';
-import { mountFollow, mountPresentationPresence } from './tool-peer-view.ts';
+import { mountFollow } from './tool-follow.ts';
+import { mountPresentationPresence } from './tool-peer-view.ts';
 import { collabPalette } from '../lib/collab-colors.ts';
 import { mountCanvasInteractions } from './tool-canvas-interactions.ts';
 import { mountCollabControls } from './tool-collab-controls.ts';
