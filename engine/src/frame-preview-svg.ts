@@ -274,7 +274,7 @@ function drawMuted(box: { x: number; y: number; w: number; h: number }, label: s
  * policy: placeholders, empty slots and what a thumbnail leaves out.
  */
 function drawRow(row: DesignBoxRowV1, offset: { x: number; y: number }, placeholder: boolean, ctx: DrawCtxV1): string {
-  const op = compileDesignRow(row, offset, ctx.thumbScale !== undefined ? { thumbScale: ctx.thumbScale } : {});
+  const op = compileDesignRow(row, offset, { semantics: 'preview', ...(ctx.thumbScale !== undefined ? { thumbScale: ctx.thumbScale } : {}) });
   const box = op.box;
   const kind = str(row, 'kind');
   const emit: DesignDrawSvgOpts = {

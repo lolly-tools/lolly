@@ -57,6 +57,7 @@
     "test:geometry": "node scripts/verify-geometry.ts",
     "test:geometry:engines": "node scripts/verify-geometry-engines.ts",
     "test:geometry:tauri": "node scripts/verify-geometry-tauri.ts",
+    "test:drawing": "node scripts/verify-drawing.ts",
     "test:shards": "node scripts/run-test-suite.ts all --list",
     "check:skip-identities": "node scripts/check-skip-identities.ts",
     "test:fuzz:regression": "node scripts/run-test-suite.ts fuzz:regression",

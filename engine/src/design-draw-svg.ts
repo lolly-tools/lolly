@@ -12,7 +12,7 @@
  */
 import { AVERAGE_GLYPH_EM } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
-import type { DesignDrawPage, DrawBox, DrawImageOp, DrawOp, DrawPaint, DrawPose, DrawShapeOp, DrawStroke, DrawTextOp } from './design-draw.ts';
+import type { DesignDrawPage, DrawBox, DrawClip, DrawImageOp, DrawOp, DrawPaint, DrawPose, DrawShadow, DrawShape, DrawShapeOp, DrawStroke, DrawTextOp } from './design-draw.ts';
 import { toSvgPathData } from './geom/path.ts';
 
 export interface DesignDrawSvgOpts {
@@ -95,11 +95,82 @@ export function poseTransform(box: DrawBox, rot: number, flipH: boolean, flipV: 
   return parts.join(' ');
 }
 
-/** The opacity and pose of one operation as a group around it; empty when it has neither. */
-export function wrapOp(op: { box: DrawBox; opacity: number; pose?: DrawPose }, inner: string): string {
-  const attrs = (op.opacity !== 100 ? ` opacity="${round2(Math.max(0, Math.min(100, op.opacity)) / 100)}"` : '')
-    + (op.pose ? ` transform="${poseTransform(op.box, op.pose.rot, op.pose.flipH, op.pose.flipV)}"` : '');
-  return attrs ? `<g${attrs}>${inner}</g>` : inner;
+interface WrapState {
+  box: DrawBox; opacity: number; pose?: DrawPose;
+  clip?: DrawClip; blend?: string; shadow?: DrawShadow; blur?: number; outline?: Exclude<DrawShape, { kind: 'path' }>;
+}
+
+function opacityAttr(op: { opacity: number }): string {
+  return op.opacity !== 100 ? ` opacity="${round2(Math.max(0, Math.min(100, op.opacity)) / 100)}"` : '';
+}
+
+/** A shape's outline at `box`, as markup with `paint` attributes. */
+function outlineSvg(shape: Exclude<DrawShape, { kind: 'path' }>, box: DrawBox, paint: string): string {
+  if (shape.kind === 'ellipse') {
+    return `<ellipse cx="${round2(box.x + box.w / 2)}" cy="${round2(box.y + box.h / 2)}" rx="${round2(box.w / 2)}" ry="${round2(box.h / 2)}" ${paint}/>`;
+  }
+  return `<rect x="${round2(box.x)}" y="${round2(box.y)}" width="${round2(box.w)}" height="${round2(box.h)}"`
+    + (shape.radius > 0 ? ` rx="${round2(shape.radius)}"` : '') + ` ${paint}/>`;
+}
+
+function colorPaint(prefix: 'fill' | 'stroke' | 'flood', color: string, opacity: number | undefined): string {
+  return ` ${prefix}${prefix === 'flood' ? '-color' : ''}="${svgEscape(color)}"` + (opacity !== undefined && opacity < 1 ? ` ${prefix}-opacity="${round2(opacity)}"` : '');
+}
+
+/**
+ * The opacity and pose of one operation as a group around it, and, when the compile
+ * carried effects, its clip, blend, shadow and layer blur. CSS applies an element's
+ * filter, then its clip, then its opacity, then blends the result: the clip, opacity
+ * and blend sit on an outer group in page coordinates, and the pose and filters on an
+ * inner group. Ids hash their own definitions, so two drawings share an id only when
+ * they share the definition.
+ */
+export function wrapOp(op: WrapState, inner: string): string {
+  if (!op.clip && !op.blend && !op.shadow && !op.blur) {
+    const attrs = opacityAttr(op) + (op.pose ? ` transform="${poseTransform(op.box, op.pose.rot, op.pose.flipH, op.pose.flipV)}"` : '');
+    return attrs ? `<g${attrs}>${inner}</g>` : inner;
+  }
+  const defs: string[] = [];
+  const box = op.box;
+  let body = inner;
+  const shadow = op.shadow;
+  if (shadow?.target === 'box' && op.outline) {
+    // CSS box-shadow: the outline, offset and blurred with sigma half the blur, drawn only outside the box.
+    const sigma = shadow.blur / 2, reach = sigma * 3;
+    const region = { x: Math.min(box.x, box.x + shadow.dx) - reach, y: Math.min(box.y, box.y + shadow.dy) - reach, w: box.w + Math.abs(shadow.dx) + reach * 2, h: box.h + Math.abs(shadow.dy) + reach * 2 };
+    const units = `x="${round2(region.x)}" y="${round2(region.y)}" width="${round2(region.w)}" height="${round2(region.h)}"`;
+    const blur = `<filter filterUnits="userSpaceOnUse" ${units} color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="${round2(sigma)}"/></filter>`;
+    const blurId = `bs${contentId(blur)}`;
+    const mask = `<mask maskUnits="userSpaceOnUse" ${units}><rect ${units} fill="#ffffff"/>${outlineSvg(op.outline, box, 'fill="#000000"')}</mask>`;
+    const maskId = `bm${contentId(mask)}`;
+    defs.push(blur.replace('<filter ', `<filter id="${blurId}" `), mask.replace('<mask ', `<mask id="${maskId}" `));
+    const offset = { ...box, x: box.x + shadow.dx, y: box.y + shadow.dy };
+    body = `<g mask="url(#${maskId})">${outlineSvg(op.outline, offset, `${colorPaint('fill', shadow.color, shadow.opacity).trim()} filter="url(#${blurId})"`)}</g>${body}`;
+  }
+  // CSS blur() and drop-shadow() take their value as the Gaussian sigma; blur runs first.
+  const drop = shadow?.target === 'content' ? shadow : undefined;
+  let filterAttr = '';
+  if (drop || op.blur) {
+    const reach = 3 * ((op.blur ?? 0) + (drop?.blur ?? 0)) + Math.max(Math.abs(drop?.dx ?? 0), Math.abs(drop?.dy ?? 0)) + 2;
+    const units = `x="${round2(box.x - reach)}" y="${round2(box.y - reach)}" width="${round2(box.w + reach * 2)}" height="${round2(box.h + reach * 2)}"`;
+    const steps = (op.blur ? `<feGaussianBlur in="SourceGraphic" stdDeviation="${round2(op.blur)}" result="blurred"/>` : '')
+      + (drop ? `<feDropShadow${op.blur ? ' in="blurred"' : ''} dx="${round2(drop.dx)}" dy="${round2(drop.dy)}" stdDeviation="${round2(drop.blur)}"${colorPaint('flood', drop.color, drop.opacity)}/>` : '');
+    const filter = `<filter filterUnits="userSpaceOnUse" ${units} color-interpolation-filters="sRGB">${steps}</filter>`;
+    const id = `fx${contentId(filter)}`;
+    defs.push(filter.replace('<filter ', `<filter id="${id}" `));
+    filterAttr = ` filter="url(#${id})"`;
+  }
+  const innerAttrs = (op.pose ? ` transform="${poseTransform(box, op.pose.rot, op.pose.flipH, op.pose.flipV)}"` : '') + filterAttr;
+  const posed = innerAttrs ? `<g${innerAttrs}>${body}</g>` : body;
+  let clipAttr = '';
+  if (op.clip) {
+    const clip = `<clipPath clipPathUnits="userSpaceOnUse"><polygon points="${op.clip.points.map(([x, y]) => `${round2(x)},${round2(y)}`).join(' ')}"/></clipPath>`;
+    const id = `cp${contentId(clip)}`;
+    defs.push(clip.replace('<clipPath ', `<clipPath id="${id}" `));
+    clipAttr = ` clip-path="url(#${id})"`;
+  }
+  const outer = opacityAttr(op) + (op.blend ? ` style="mix-blend-mode:${svgEscape(op.blend)}"` : '') + clipAttr;
+  return `<g${outer}><defs>${defs.join('')}</defs>${posed}</g>`;
 }
 
 /** A gradient as its definition and the `url(#id)` paint; the id hashes the definition. */
@@ -117,16 +188,25 @@ function gradient(paint: Exclude<DrawPaint, { kind: 'color' }>): { defs: string;
 
 function strokeAttrs(stroke: DrawStroke | undefined): string {
   if (!stroke) return '';
-  let out = ` stroke="${svgEscape(stroke.color)}" stroke-width="${round2(stroke.width)}"`;
+  let out = `${colorPaint('stroke', stroke.color, stroke.opacity)} stroke-width="${round2(stroke.width)}"`;
   if (stroke.cap !== undefined) out += ` stroke-linecap="${svgEscape(stroke.cap)}"`;
   if (stroke.join !== undefined) out += ` stroke-linejoin="${svgEscape(stroke.join)}"`;
   if (stroke.dash) out += ` stroke-dasharray="${round2(stroke.dash[0])} ${round2(stroke.dash[1])}"`;
   return out;
 }
 
-function rectOrEllipse(op: DrawShapeOp, fill: string, stroke: DrawStroke | undefined): string {
+function rectOrEllipse(op: DrawShapeOp, fill: string, stroke: DrawStroke | undefined, fillOpacity?: number): string {
   const box = op.box;
-  const paint = `fill="${fill}"${strokeAttrs(stroke)}`;
+  if (stroke?.align === 'inside' && op.shape.kind !== 'path') {
+    // A CSS border: the fill covers the whole box and the stroke's centre line runs half
+    // its width inside the edge, following the corner radius less that half width.
+    const half = stroke.width / 2;
+    const inner = { x: box.x + half, y: box.y + half, w: Math.max(0, box.w - stroke.width), h: Math.max(0, box.h - stroke.width) };
+    const innerShape: Exclude<DrawShape, { kind: 'path' }> = op.shape.kind === 'ellipse' ? op.shape : { kind: 'rect', radius: Math.max(0, op.shape.radius - half) };
+    const under = fill === 'none' ? '' : outlineSvg(op.shape, box, `fill="${fill}"${fillOpacity !== undefined && fillOpacity < 1 ? ` fill-opacity="${round2(fillOpacity)}"` : ''}`);
+    return under + outlineSvg(innerShape, inner, `fill="none"${strokeAttrs(stroke)}`);
+  }
+  const paint = `fill="${fill}"${fillOpacity !== undefined && fillOpacity < 1 ? ` fill-opacity="${round2(fillOpacity)}"` : ''}${strokeAttrs(stroke)}`;
   if (op.shape.kind === 'ellipse') {
     return `<ellipse cx="${round2(box.x + box.w / 2)}" cy="${round2(box.y + box.h / 2)}"`
       + ` rx="${round2(box.w / 2)}" ry="${round2(box.h / 2)}" ${paint}/>`;
@@ -146,10 +226,11 @@ function shapeSvg(op: DrawShapeOp, opts: DesignDrawSvgOpts): string {
   const last = op.fills[op.fills.length - 1];
   if (last && last.kind !== 'color') {
     const g = gradient(last);
-    const under = op.fills.length > 1 && op.fills[0]!.kind === 'color' ? rectOrEllipse(op, svgEscape(op.fills[0]!.color), undefined) : '';
+    const first = op.fills[0];
+    const under = op.fills.length > 1 && first?.kind === 'color' ? rectOrEllipse(op, svgEscape(first.color), undefined, first.opacity) : '';
     return `${g.defs}${under}${rectOrEllipse(op, g.paint, op.stroke)}`;
   }
-  return rectOrEllipse(op, last ? svgEscape(last.color) : 'none', op.stroke);
+  return rectOrEllipse(op, last ? svgEscape(last.color) : 'none', op.stroke, last?.opacity);
 }
 
 function imageSvg(op: DrawImageOp, opts: DesignDrawSvgOpts): string {

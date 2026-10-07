@@ -182,6 +182,13 @@ jobs:
           LOLLY_GEOMETRY_HOST_REPORT: artifacts/geometry-host-report.json
         run: pnpm run test:geometry
 
+      - name: Require drawing fidelity against the Design renderer
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_FIDELITY_REPORT: artifacts/drawing-fidelity-report.json
+        run: pnpm run test:drawing
+
       - name: Install Firefox and WebKit for geometry qualification
         if: matrix.shard == 'browser'
         env:
@@ -350,6 +357,7 @@ jobs:
             artifacts/geometry-scope-report.json
             artifacts/geometry-host-report.json
             artifacts/geometry-engines/
+            artifacts/drawing-fidelity-report.json
             lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error
