@@ -1003,9 +1003,19 @@ function rootSvgOf(node: Element | null): Element | null {
         clone.querySelectorAll('script').forEach((el) => el.remove());
         return new Blob([clone.outerHTML], { type: 'text/html' });
       }
+      // A Design frame is drawn from the engine's drawing operations when they carry the
+      // whole page (plan 295, P3d), with no browser; otherwise the browser tier draws the page.
+      let designOpsReason: string | undefined;
+      if (format === 'svg' && opts.sourceDocument?.toolId === 'design') {
+        const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
+        const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
+        if (page && 'svg' in page) return new Blob([page.svg], { type: 'image/svg+xml' });
+        if (page) designOpsReason = page.reason;
+      }
       if (format === 'svg' || format === 'svgz') {
         const svg = rootSvgOf(node);
         if (!svg) {
+          if (designOpsReason) throw new Error(`This Design page needs a browser engine for SVG because ${designOpsReason}`);
           throw new Error('SVG export requires the template\'s root drawable to be an <svg> (HTML-layout tools need a browser engine - use the desktop app or the web shell)');
         }
         // Honour requested dimensions (incl. physical units like "210mm"): set

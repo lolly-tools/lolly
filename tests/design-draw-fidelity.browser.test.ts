@@ -24,6 +24,7 @@ import { makeGeomApi } from '../engine/src/geom-api.ts';
 import { makeConnectorsApi } from '../engine/src/connectors.ts';
 import { compareInBrowser, fidelityPages, fidelityPictures, walkerBundle, type FidelityStats, type RegionStats } from './helpers/design-fidelity.ts';
 import { designPageSvg, type DesignPageSvgHost } from '../engine/src/design-page-svg.ts';
+import { toCssLength } from '../engine/src/units.ts';
 
 /** A pixel differs when a channel moves by more than this; CSS and SVG edge anti-aliasing measured at most 21. */
 const THRESHOLD = 24;
@@ -115,7 +116,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   const pageHost: DesignPageSvgHost = {
     shaper,
     toPath: (opts) => textApi.toPath(opts),
-    picture: async (ref) => (pictures[ref] ? { info: { width: pictures[ref].width, height: pictures[ref].height, media: 'still' }, href: pictures[ref].url } : null),
+    picture: async (ref) => (pictures[ref] ? { bytes: new Uint8Array(Buffer.from(pictures[ref].url.slice(pictures[ref].url.indexOf(',') + 1), 'base64')) } : null),
   };
   let controlled = false;
   for (const page of fidelityPages()) {
@@ -138,6 +139,19 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
       w.__setup();
       return (await w.__render(document.querySelector('.lolly-frame-page')!, { rasterFallback: false })).text();
     });
+    // The web bridge's own SVG export of the frame, with the authored document attached as
+    // the runtime attaches it: it must choose the drawing operations and write the same
+    // bytes the engine pipeline writes in Node, which is what the CLI delivers.
+    const bridge = await design.evaluate(async (args) => {
+      const logs: string[] = [];
+      const w = window as unknown as { __exportApi: (p: unknown, l: string[]) => { render: (n: Element, f: string, o: object) => Promise<Blob> } };
+      const blob = await w.__exportApi(args.pictures, logs).render(document.querySelector('.lolly-frame-page')!, 'svg', { sourceDocument: { toolId: 'design', values: { boxes: args.rows } } });
+      return { svg: await blob.text(), logs };
+    }, { pictures, rows: page.rows });
+    const px = { value: page.width, unit: 'px' as const }, py = { value: page.height, unit: 'px' as const };
+    const nodeSvg = (await designPageSvg({ boxes: page.rows }, page.name, pageHost, { dpi: 96, size: { width: toCssLength(px), height: toCssLength(py), px: { w: page.width, h: page.height } } })).svg;
+    assert.ok(bridge.logs.some((line) => line.includes('drawn from the drawing operations')), `${page.name}: the web export chose the drawing operations (${bridge.logs.join(' ')})`);
+    assert.equal(bridge.svg, nodeSvg, `${page.name}: the web export writes the bytes the engine pipeline writes in Node`);
 
     for (const outlined of [false, true]) {
       const name = outlined ? `${page.name}-outlined` : page.name;

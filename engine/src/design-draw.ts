@@ -25,7 +25,8 @@ import type { DesignBoxRowV1, TextMeasureFontsV1, TextMeasureSpecV1 } from '@lol
 
 import { DESIGN_LINE_HEIGHT, designTextPad, layoutDesignText } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
-import { drawDesignText, textMeasureSpecOfRow, type DesignTextDrawV1, type TextShaperV1 } from './design-text-measure.ts';
+import { DICTIONARY_SCRIPT, drawDesignText, textMeasureSpecOfRow, type DesignTextDrawV1, type TextShaperV1 } from './design-text-measure.ts';
+import { segmentEmojiText } from './emoji-segment.ts';
 import { decodeAuthoredPaths } from './geom/authored-url.ts';
 import type { Contour } from './geom/path.ts';
 import { toCubics } from './geom/spline.ts';
@@ -172,7 +173,8 @@ export type DrawFeature =
   | 'clip' | 'blend' | 'shadow' | 'blur' | 'background-blur' | 'tilt' | 'vector-paint'
   | 'composed-text' | 'dash-pattern' | 'arrowheads' | 'conic-gradient' | 'image-position'
   | 'line-height' | 'tracking' | 'text-layout-estimate' | 'non-static-kind' | 'border-style' | 'bound-path' | 'frame-paint'
-  | 'fit-text' | 'text-direction' | 'text-unlaid' | 'text-decoration' | 'text-unoutlined' | 'image-motion' | 'image-unsized';
+  | 'fit-text' | 'text-direction' | 'text-unlaid' | 'text-decoration' | 'text-unoutlined' | 'image-motion' | 'image-unsized'
+  | 'text-emoji' | 'text-dictionary' | 'text-fallback-face' | 'image-oversize' | 'image-unread' | 'color-unresolved';
 export interface DrawFinding { id: string; feature: DrawFeature }
 
 export interface DesignDrawPage {
@@ -322,7 +324,7 @@ const NON_STATIC = new Set(['audio', 'camera', '3d', 'web']);
 const DEFAULT_FONT_SIZE = 16;
 
 /** Features this row authors that the compile does not draw (`effects` carries clip, blend, shadow and blur). */
-export function designDrawFindings(row: DesignBoxRowV1, opts: { effects?: boolean; semantics?: 'design' | 'preview' } = {}): DrawFeature[] {
+export function designDrawFindings(row: DesignBoxRowV1, opts: Pick<DesignDrawCompileOpts, 'effects' | 'semantics' | 'colors' | 'resolveColor'> = {}): DrawFeature[] {
   const found: DrawFeature[] = [];
   const set = (key: string) => rowStr(row, key).trim() !== '';
   const blend = rowStr(row, 'blend');
@@ -352,11 +354,27 @@ export function designDrawFindings(row: DesignBoxRowV1, opts: { effects?: boolea
     // The canvas shrinks fitted text until it fits, and lays right-to-left text out by bidi; the measure does neither.
     if (designFlag(row, 'fitText')) found.push('fit-text');
     if (rowStr(row, 'textDirection') === 'rtl') found.push('text-direction');
+    // The canvas draws emoji from the chosen pack, and breaks these scripts by dictionary; the layout does neither yet.
+    if (segmentEmojiText(rowStr(row, 'text')).some((span) => span.kind === 'emoji')) found.push('text-emoji');
+    if (DICTIONARY_SCRIPT.test(rowStr(row, 'text'))) found.push('text-dictionary');
   }
   if (NON_STATIC.has(kind)) found.push('non-static-kind');
+  if (opts.colors === 'resolved' && unresolvedColor(row, opts.resolveColor)) found.push('color-unresolved');
   // A CSS dashed or dotted border spaces its marks to fit each side; an SVG dash pattern does not.
   if (opts.semantics !== 'preview' && kind !== 'path' && rowStr(row, 'stroke') && rowNum(row, 'strokeW') > 0 && /^(dashed|dotted)$/.test(rowStr(row, 'strokeDash'))) found.push('border-style');
   return found;
+}
+
+/**
+ * Whether the row paints with a brand colour (`var(...)` or a `{token}`) the compile
+ * could not read. The canvas resolves those through the live brand, so drawing the row
+ * without one would lose a fill the canvas shows.
+ */
+function unresolvedColor(row: DesignBoxRowV1, resolve: DesignDrawCompileOpts['resolveColor']): boolean {
+  return ['bg', 'fg', 'stroke', 'shadowColor'].some((key) => {
+    const value = rowStr(row, key).trim();
+    return /var\(|^\{/i.test(value) && !resolveDrawColor(value, resolve);
+  });
 }
 
 const FITS = new Set<string>(['contain', 'cover', 'fill', 'none', 'scale-down']);
@@ -674,6 +692,7 @@ export function compileDesignDraw(rows: readonly DesignBoxRowV1[], size: { width
     if (rowStr(head, 'shadow') || leadingNumber(head.opacity, 100) < 100 || BLENDS.has(rowStr(head, 'blend')) || dashed) {
       page.findings.push({ id: rowStr(head, 'id'), feature: 'frame-paint' });
     }
+    if (opts.colors === 'resolved' && unresolvedColor(head, opts.resolveColor)) page.findings.push({ id: rowStr(head, 'id'), feature: 'color-unresolved' });
   }
   for (const row of rows) {
     const kind = rowStr(row, 'kind');
@@ -696,7 +715,9 @@ export async function layoutDesignDrawText(page: DesignDrawPage, shaper: TextSha
   for (const op of page.ops) {
     if (!op.words) continue;
     try { op.words.layout = await drawDesignText(op.words.spec, shaper, { align: op.words.align }); }
-    catch { page.findings.push({ id: op.id, feature: 'text-unlaid' }); }
+    catch { page.findings.push({ id: op.id, feature: 'text-unlaid' }); continue; }
+    // The canvas draws a character its face lacks in a fallback face, which the layout does not know.
+    if (op.words.layout.measure.uncovered?.length) page.findings.push({ id: op.id, feature: 'text-fallback-face' });
   }
 }
 

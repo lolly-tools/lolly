@@ -193,8 +193,9 @@ export async function compareInBrowser(a: string, b: string, width: number, heig
 /**
  * The web shell's DOM-to-SVG walker, bundled for a browser page: `__setup()` installs the
  * export API with the shell's HarfBuzz text API (the walker outlines text only then), and
- * `__render(node, opts)` returns the walker's SVG blob. The comparison renderer for plan
- * 295's drawing operations.
+ * `__render(node, opts)` returns the walker's SVG blob, the comparison renderer for plan
+ * 295's drawing operations. `__exportApi(pictures, logs)` is the whole export bridge with
+ * the fixture pictures as its assets, collecting its log lines.
  */
 export async function walkerBundle(): Promise<string> {
   const { build } = await import('esbuild');
@@ -204,7 +205,11 @@ export async function walkerBundle(): Promise<string> {
       contents: `import { renderSvgFromHtml, createExportAPI } from ${JSON.stringify(`${bridge}export.ts`)};
                  import { createTextAPI } from ${JSON.stringify(`${bridge}text.ts`)};
                  window.__setup = () => createExportAPI({ text: createTextAPI(), log: () => {} });
-                 window.__render = renderSvgFromHtml;`,
+                 window.__render = renderSvgFromHtml;
+                 window.__exportApi = (pictures, logs) => createExportAPI({
+                   text: createTextAPI(), log: (_level, message) => logs.push(message),
+                   assets: { get: async (id) => { if (!pictures[id]) throw new Error('unknown asset ' + id); return { id, source: 'library', ...pictures[id] }; } },
+                 });`,
       resolveDir: bridge, loader: 'ts',
     },
     bundle: true, write: false, format: 'esm', platform: 'browser', target: 'esnext', logLevel: 'silent',

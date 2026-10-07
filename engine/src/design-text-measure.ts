@@ -298,7 +298,7 @@ export function chromiumBreakOffsets(text: string): number[] {
  * Myanmar, Khmer, Tai Tham, Tai Viet, Myanmar extended). Here they break only at spaces
  * or anywhere, so their lines are flagged.
  */
-const DICTIONARY_SCRIPT = /[\u0E00-\u0EFF\u1000-\u109F\u1780-\u17FF\u19E0-\u19FF\u1A20-\u1AAF\uA9E0-\uA9FF\uAA60-\uAADF]/;
+export const DICTIONARY_SCRIPT = /[\u0E00-\u0EFF\u1000-\u109F\u1780-\u17FF\u19E0-\u19FF\u1A20-\u1AAF\uA9E0-\uA9FF\uAA60-\uAADF]/;
 /** Characters a measure lists as uncovered, at most. */
 const UNCOVERED_LIST_MAX = 64;
 

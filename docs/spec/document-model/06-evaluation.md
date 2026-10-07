@@ -154,6 +154,12 @@ Each unit and DPI conversion a run applied must be recorded with the site that a
 
 A picture's placement depends on a fact the instance record does not hold: the picture's own size. Plan 295's drawing compiler places a picture as CSS places one, by `object-fit` from that size, `object-position` and the framing zoom, with the edges snapped to whole pixels as Chromium snaps a replaced element (`pictureRect` in `engine/src/design-draw.ts`). The host supplies the size and the media kind (`describeDesignDrawPictures`), and the media kind can decide whether a row draws at all: a row whose asset is sound leaves no mark, and an animation or a video is reported rather than drawn as a still. Both are inputs to the evaluation, so a receipt must record the digest of each picture a run resolved under `inputs[]`, and a size the host could not supply must appear as a finding (R15).
 
+### Choosing the renderer
+
+Plan 295 draws a Design page's SVG export from the drawing operations on the web and in the CLI, which needs no browser for such a page. Each page is drawn from the operations only when the compile reports no findings; any finding, such as an emoji drawn from the chosen pack, a brand colour only the live page can read, or a picture larger than its drawing needs, sends the page to the DOM walker with the reasons stated (`designOpsSvg` in `shells/web/src/bridge/export-design-ops.ts`, `designOpsSvgNode` in `packages/node-shell/src/design-ops-svg.ts`). This is a declared fallback, chosen before anything is drawn, so a receipt must list it in `fallbacks[]` with the findings that chose it; the operations never fail part way and hand their work to the walker under their own identity (R15).
+
+The two shells write identical bytes for the same page because each host lends only facts: the shaped advances and outlines from HarfBuzz, the face files and their metrics, and each picture's own bytes and media kind. Everything that shapes the output, from the layout to the picture's type, size and encoding, runs once in the engine. A host interface that passed encoded results instead, such as a data URL or a picture size, would let the two shells drift.
+
 ### Emoji, models and policy
 
 - The emoji set and the brand treatment must be recorded (R15). The session record already carries the pair as a stamp at format 3 and keeps it as the two reserved parameters verbatim rather than as resolved bytes (`engine/src/session-record.ts`), and the receipt must record the same identity.

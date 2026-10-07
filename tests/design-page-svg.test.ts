@@ -9,9 +9,11 @@ const shaper: TextShaperV1 = async (run) => {
   const advances = [...run.text].map((ch) => (ch === ' ' ? run.size / 4 : run.size / 2) + run.tracking);
   return { advances, total: advances.reduce((a, b) => a + b, 0), font: { file: `/fonts/${run.family}.ttf`, variations: { wght: run.weight }, metrics: { upem: 1000, ascent: 980, descent: 280 } } };
 };
+/** A 40 x 20 PNG header: enough for the page to read the type and the size. */
+const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 0, 40, 0, 0, 0, 20, 8, 6, 0, 0, 0]);
 const host = (extra: Partial<DesignPageSvgHost> = {}): DesignPageSvgHost => ({
   shaper,
-  picture: async (ref) => (ref === 'pics/one' ? { info: { width: 40, height: 20 }, href: 'data:image/png;base64,AAAA' } : ref === 'pics/clip' ? { info: { width: 10, height: 10, media: 'motion' }, href: 'data:video/mp4;base64,AAAA' } : null),
+  picture: async (ref) => (ref === 'pics/one' ? { bytes: PNG } : ref === 'pics/clip' ? { media: 'motion' } : null),
   ...extra,
 });
 
@@ -40,7 +42,7 @@ test('a page is the first frame unless one is asked for, drawn from its operatio
   const page = await designPageSvg(doc, undefined, host());
   assert.equal(page.id, 'first');
   assert.match(page.svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="Cover">/);
-  assert.ok(page.svg.includes('href="data:image/png;base64,AAAA" preserveAspectRatio="none"'), 'an asset reference resolves through the host and is embedded at its fitted size');
+  assert.ok(page.svg.includes(`href="data:image/png;base64,${Buffer.from(PNG).toString('base64')}" preserveAspectRatio="none"`), 'an asset reference resolves through the host and its own bytes are embedded at its fitted size');
   assert.ok(page.svg.includes('>Hello</tspan>'), 'without an outliner the words stay live text');
   assert.deepEqual(page.findings, []);
   await assert.rejects(designPageSvg(doc, 'gone', host()), /no visible frame "gone"/);

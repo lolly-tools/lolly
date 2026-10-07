@@ -939,6 +939,9 @@ export type { CheckFidelityOptions, CheckFidelityResult } from './check-fidelity
 // Measure a plain Design text layer before it is drawn (plan 291 W5): the CSS pre-wrap
 // breaker and Chromium's line box over an injected shaper.
 export { measureDesignText, drawDesignText, textMeasureSpecOfRow, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, TEXT_MEASURE_DEFAULTS, TEXT_MEASURE_MAX_UNITS } from './design-text-measure.ts';
+// The measure's shaper over the host's HarfBuzz, shared by the Node and web shells (plan 295, P3d).
+export { createHostTextShaper, sfntVerticalMetrics } from './text-shaper-host.ts';
+export type { HostShaperDeps, HostShaperFace } from './text-shaper-host.ts';
 export type { DesignTextDrawV1, DesignTextDrawLineV1, DesignTextDrawRunV1 } from './design-text-measure.ts';
 export type { TextShaperV1, TextShapeRunV1, TextShapeResultV1, TextFontMetricsV1, TextMeasureErrorCode } from './design-text-measure.ts';
 export { BRAND_STYLE_PROPERTIES, summarizeBrandStyles, readBrandStyleEvidence } from './brand-evidence.ts';

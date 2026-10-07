@@ -113,6 +113,10 @@ const EXPECTED: readonly string[] = [
   // Plan 295 phase 3: text laid out for drawing, from the same measure, and the row-to-spec rule it shares.
   'drawDesignText',
   'textMeasureSpecOfRow',
+  'createHostTextShaper',
+  'sfntVerticalMetrics',
+  'HostShaperDeps',
+  'HostShaperFace',
   'DesignTextDrawV1',
   'DesignTextDrawLineV1',
   'DesignTextDrawRunV1',

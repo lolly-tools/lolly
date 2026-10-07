@@ -115,6 +115,7 @@
     "./content-inventory": "./src/content-inventory.ts",
     "./check": "./src/check.ts",
     "./text-measure": "./src/text-measure.ts",
+    "./design-ops-svg": "./src/design-ops-svg.ts",
     "./design-lolly": "./src/design-lolly.ts",
     "./design-compose": "./src/design-compose.ts",
     "./production": "./src/production.ts"
