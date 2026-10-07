@@ -219,9 +219,11 @@ function rectOrEllipse(op: DrawShapeOp, fill: string, stroke: DrawStroke | undef
 function shapeSvg(op: DrawShapeOp, opts: DesignDrawSvgOpts): string {
   if (op.shape.kind === 'path') {
     if (!op.shape.contours.length) return '';
-    const fill = op.fills[0]?.kind === 'color' ? svgEscape(op.fills[0].color) : 'none';
+    const first = op.fills[0]?.kind === 'color' ? op.fills[0] : undefined;
+    const fill = first ? svgEscape(first.color) : 'none';
     const rule = op.shape.evenOdd ? ' fill-rule="evenodd"' : '';
-    return `<path d="${svgEscape(toSvgPathData(op.shape.contours, opts.pathDecimals ?? 2))}" fill="${fill}"${rule}${strokeAttrs(op.stroke)}/>`;
+    const fade = first?.opacity !== undefined && first.opacity < 1 ? ` fill-opacity="${round2(first.opacity)}"` : '';
+    return `<path d="${svgEscape(toSvgPathData(op.shape.contours, opts.pathDecimals ?? 2))}" fill="${fill}"${fade}${rule}${strokeAttrs(op.stroke)}/>`;
   }
   const last = op.fills[op.fills.length - 1];
   if (last && last.kind !== 'color') {

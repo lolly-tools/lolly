@@ -9,5 +9,5 @@ const run = (args: string[]): boolean => {
   if (result.error) throw result.error;
   return result.status === 0;
 };
-if (!run(['--test', 'tests/design-draw.test.ts', 'tests/design-page-svg.test.ts', 'tests/frame-preview-svg.test.ts'])
+if (!run(['--test', 'tests/design-draw.test.ts', 'tests/design-page-svg.test.ts', 'tests/design-draw-pdf.test.ts', 'tests/frame-preview-svg.test.ts'])
   || !run(['--test', 'tests/design-draw-fidelity.browser.test.ts'])) process.exitCode = 1;

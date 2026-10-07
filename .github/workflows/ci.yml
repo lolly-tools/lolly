@@ -182,13 +182,6 @@ jobs:
           LOLLY_GEOMETRY_HOST_REPORT: artifacts/geometry-host-report.json
         run: pnpm run test:geometry
 
-      - name: Require drawing fidelity against the Design renderer
-        if: matrix.shard == 'browser'
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
-          LOLLY_FIDELITY_REPORT: artifacts/drawing-fidelity-report.json
-        run: pnpm run test:drawing
-
       - name: Install Firefox and WebKit for geometry qualification
         if: matrix.shard == 'browser'
         env:
@@ -209,6 +202,15 @@ jobs:
       - name: Install PDF production inspection tools
         if: matrix.shard == 'unit:engine' || matrix.shard == 'browser'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: Require drawing fidelity against the Design renderer
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_FIDELITY_REPORT: artifacts/drawing-fidelity-report.json
+          # The PDF half rasterises with Poppler, installed by the step above.
+          LOLLY_FIDELITY_PDF_REQUIRED: '1'
+        run: pnpm run test:drawing
 
       - name: Start public shell for journey regressions
         if: matrix.shard == 'browser'

@@ -174,7 +174,8 @@ export type DrawFeature =
   | 'composed-text' | 'dash-pattern' | 'arrowheads' | 'conic-gradient' | 'image-position'
   | 'line-height' | 'tracking' | 'text-layout-estimate' | 'non-static-kind' | 'border-style' | 'bound-path' | 'frame-paint'
   | 'fit-text' | 'text-direction' | 'text-unlaid' | 'text-decoration' | 'text-unoutlined' | 'image-motion' | 'image-unsized'
-  | 'text-emoji' | 'text-dictionary' | 'text-fallback-face' | 'image-oversize' | 'image-unread' | 'color-unresolved';
+  | 'text-emoji' | 'text-dictionary' | 'text-fallback-face' | 'image-oversize' | 'image-unread' | 'color-unresolved'
+  | 'pdf-shadow' | 'pdf-blur' | 'pdf-live-text' | 'pdf-image-format' | 'pdf-preview-op';
 export interface DrawFinding { id: string; feature: DrawFeature }
 
 export interface DesignDrawPage {

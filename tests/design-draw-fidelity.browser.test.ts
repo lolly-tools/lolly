@@ -6,13 +6,15 @@
  * screenshots are compared for the whole page and inside every operation's region.
  */
 import assert from 'node:assert/strict';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { chromium, type Browser } from 'playwright';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
-import { compileDesignDraw, describeDesignDrawPictures, layoutDesignDrawText, type DrawOp } from '../engine/src/design-draw.ts';
+import { compileDesignDraw, describeDesignDrawPictures, layoutDesignDrawText, pictureRect, type DrawOp } from '../engine/src/design-draw.ts';
 import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { createNodeTextShaper } from '../packages/node-shell/src/text-measure.ts';
@@ -23,7 +25,8 @@ import { makeColorApi } from '../engine/src/color-tools.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
 import { makeConnectorsApi } from '../engine/src/connectors.ts';
 import { compareInBrowser, fidelityPages, fidelityPictures, walkerBundle, type FidelityStats, type RegionStats } from './helpers/design-fidelity.ts';
-import { designPageSvg, type DesignPageSvgHost } from '../engine/src/design-page-svg.ts';
+import { designPagesPdf, designPageSvg, type DesignPageSvgHost } from '../engine/src/design-page-svg.ts';
+import { designDrawPdf } from '../engine/src/design-draw-pdf.ts';
 import { toCssLength } from '../engine/src/units.ts';
 
 /** A pixel differs when a channel moves by more than this; CSS and SVG edge anti-aliasing measured at most 21. */
@@ -50,6 +53,24 @@ const TEXT_REGION_SHARE = 0.015;
 const OUTLINE_INK_SHARE = 0.25;
 const OUTLINE_INK_SHIFT = 1;
 
+/**
+ * A PDF is drawn by Poppler, whose edge coverage differs from Chromium's: at the
+ * Chromium threshold every curved region measured about 1% for both the operations and
+ * the walker. A pixel that matches anything within `PDF_SLACK` px in the other image is
+ * not a difference, and a half-covered edge pixel may differ by up to `PDF_THRESHOLD`
+ * (measured: 28 on an even-odd ring's straight edge at a half pixel). A shape moved by
+ * 2 px or a missing mark still differs by its full colour; the test proves the moved
+ * shape is caught.
+ */
+const PDF_SLACK = 1;
+const PDF_THRESHOLD = 40;
+/**
+ * A picture drawn at another size than its own is resampled by the viewer, and Poppler
+ * resamples differently from Chromium (measured: 1.3% of a picture drawn at 58%, the
+ * same for the walker's PDF), so its region may differ by this share.
+ */
+const PDF_RESAMPLED_SHARE = 0.02;
+
 /** One ink region per run with visible text: its advance, a size above and below the baseline, inside the box. */
 function runRegions(op: DrawOp): Array<{ id: string; x: number; y: number; w: number; h: number; ink: true }> {
   const words = op.words, size = op.words?.spec.size ?? TEXT_MEASURE_DEFAULTS.size;
@@ -62,14 +83,14 @@ function runRegions(op: DrawOp): Array<{ id: string; x: number; y: number; w: nu
   }));
 }
 
-/** Why a region fails, or undefined when it passes. */
-function regionFault(r: RegionStats, withText: boolean): string | undefined {
+/** Why a region fails, or undefined when it passes; `share` overrides the limit for a region without text. */
+function regionFault(r: RegionStats, withText: boolean, share?: number): string | undefined {
   if (r.ink) {
     // Outlined words against the browser's own text: the same ink, in the same place.
     const share = r.ink.a ? Math.abs(r.ink.a - r.ink.b) / r.ink.a : 0, shift = Math.hypot(r.ink.ax - r.ink.bx, r.ink.ay - r.ink.by);
     return share > OUTLINE_INK_SHARE || shift > OUTLINE_INK_SHIFT ? `ink differs by ${(100 * share).toFixed(1)}% and sits ${shift.toFixed(2)} px away` : undefined;
   }
-  return r.pixels > 0 && r.differing / r.pixels > (withText ? TEXT_REGION_SHARE : REGION_SHARE)
+  return r.pixels > 0 && r.differing / r.pixels > (withText ? TEXT_REGION_SHARE : share ?? REGION_SHARE)
     ? `${(100 * r.differing / r.pixels).toFixed(1)}% of ${r.pixels} px` : undefined;
 }
 
@@ -95,6 +116,21 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   });
   const walker = await walkerBundle();
   const walkerReport: Array<{ page: string; stats: FidelityStats; failing: string[] }> = [];
+  const pdfReport: Array<{ page: string; renderer: string; stats: FidelityStats; failing: string[] }> = [];
+  // Poppler draws the PDFs; without it the PDF half is reported as not run.
+  const poppler = !spawnSync('pdftoppm', ['-v']).error;
+  if (!poppler && process.env.LOLLY_FIDELITY_PDF_REQUIRED === '1') assert.fail('PDF fidelity is required here and needs pdftoppm (Poppler)');
+  if (!poppler) t.diagnostic('PDF fidelity not run: pdftoppm (Poppler) is not installed');
+  const scratch = await mkdtemp(join(tmpdir(), 'lolly-fidelity-pdf-'));
+  t.after(() => rm(scratch, { recursive: true, force: true }));
+  let rasters = 0, pdfControlled = false;
+  const rasterise = async (pdf: Uint8Array): Promise<Buffer> => {
+    const file = join(scratch, `page-${++rasters}`);
+    await writeFile(`${file}.pdf`, pdf);
+    const run = spawnSync('pdftoppm', ['-r', '96', '-png', '-singlefile', `${file}.pdf`, file], { encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stderr);
+    return readFile(`${file}.png`);
+  };
   // Both sides draw text in the repo's SUSE faces: Chromium through @font-face, the
   // compiled side through the Node HarfBuzz shaper that reads the same files.
   const face = async (file: string) => (await readFile(new URL(`../shells/web/public/fonts/${file}`, import.meta.url))).toString('base64');
@@ -152,6 +188,29 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
     const nodeSvg = (await designPageSvg({ boxes: page.rows }, page.name, pageHost, { dpi: 96, size: { width: toCssLength(px), height: toCssLength(py), px: { w: page.width, h: page.height } } })).svg;
     assert.ok(bridge.logs.some((line) => line.includes('drawn from the drawing operations')), `${page.name}: the web export chose the drawing operations (${bridge.logs.join(' ')})`);
     assert.equal(bridge.svg, nodeSvg, `${page.name}: the web export writes the bytes the engine pipeline writes in Node`);
+    // The same page as PDF: the web bridge's export with the document attached (drawn from
+    // the operations when PDF can carry the page) and without it (the walker), and the
+    // engine's own pages in Node, each rasterised by Poppler at one pixel per CSS pixel.
+    const bridgePdf = async (withDoc: boolean) => design.evaluate(async (args) => {
+      const logs: string[] = [];
+      const w = window as unknown as { __exportApi: (p: unknown, l: string[]) => { render: (n: Element, f: string, o: object) => Promise<Blob> } };
+      const blob = await w.__exportApi(args.pictures, logs).render(document.querySelector('#tool-canvas')!, 'pdf', args.withDoc ? { sourceDocument: { toolId: 'design', values: { boxes: args.rows } } } : {});
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let bin = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return { pdf: btoa(bin), logs };
+    }, { pictures, rows: page.rows, withDoc });
+    const pdfPages = poppler ? await designPagesPdf({ boxes: page.rows }, [page.name], pageHost) : undefined;
+    const opsPdf = poppler ? await bridgePdf(true) : undefined;
+    const walkerPdf = poppler ? await bridgePdf(false) : undefined;
+    if (pdfPages && opsPdf) {
+      if (pdfPages.pdf) {
+        assert.ok(opsPdf.logs.some((line) => line.includes('drawn from the drawing operations')), `${page.name}: the web PDF export chose the drawing operations (${opsPdf.logs.join(' ')})`);
+        assert.ok((await rasterise(Buffer.from(opsPdf.pdf, 'base64'))).equals(await rasterise(pdfPages.pdf)), `${page.name}: the web PDF draws exactly the engine's PDF pages`);
+      } else {
+        assert.ok(opsPdf.logs.some((line) => line.includes('Design PDF export: drawn by the DOM walker')), `${page.name}: a page PDF cannot carry goes to the walker (${pdfPages.findings.map((f) => f.feature).join(', ')})`);
+      }
+    }
 
     for (const outlined of [false, true]) {
       const name = outlined ? `${page.name}-outlined` : page.name;
@@ -191,14 +250,41 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
         regions.push({ id: draw.frame.id, x: 0, y: 0, w: page.width, h: page.height });
       }
       for (const op of draw.ops) if (op.words) withText.add(`${name}/${op.id}`);
-      const compare = (shot: Buffer, within: typeof regions) => compiled.evaluate(
-        `(${compareInBrowser.toString()})(${png(designPng)}, ${png(shot)}, ${page.width}, ${page.height}, ${JSON.stringify(within)}, ${THRESHOLD}${groundPng ? `, ${png(groundPng)}` : ''})`,
+      const compare = (shot: Buffer, within: typeof regions, slack = 0, threshold = THRESHOLD) => compiled.evaluate(
+        `(${compareInBrowser.toString()})(${png(designPng)}, ${png(shot)}, ${page.width}, ${page.height}, ${JSON.stringify(within)}, ${threshold}, ${groundPng ? png(groundPng) : 'undefined'}, ${slack})`,
       ) as Promise<FidelityStats>;
       report.push({ page: name, stats: await compare(compiledPng, regions), ops: draw.ops.length });
       if (judging) {
         const stats = await compare(await shoot(walkerSvg), regions);
         const failing = stats.regions.flatMap((r) => { const fault = regionFault(r, withText.has(`${name}/${r.id}`)); return fault ? [`${r.id}: ${fault}`] : []; });
         walkerReport.push({ page: page.name, stats, failing });
+        if (pdfPages?.pdf && walkerPdf) {
+          const resampled = new Set([...(draw.frame ? [draw.frame] : []), ...draw.ops].filter((op) => op.picture?.natural
+            && Math.abs(pictureRect(op.picture, op.picture.natural).w - op.picture.natural.width) > 0.5).map((op) => op.id));
+          for (const [renderer, bytes] of [['operations', pdfPages.pdf], ['walker', Buffer.from(walkerPdf.pdf, 'base64')]] as const) {
+            const raster = await rasterise(bytes);
+            const pdfStats = await compare(raster, regions, PDF_SLACK, PDF_THRESHOLD);
+            const pdfFailing = pdfStats.regions.flatMap((r) => {
+              const fault = regionFault(r, withText.has(`${name}/${r.id}`), resampled.has(r.id) ? PDF_RESAMPLED_SHARE : undefined);
+              return fault ? [`${r.id}: ${fault}`] : [];
+            });
+            pdfReport.push({ page: page.name, renderer, stats: pdfStats, failing: pdfFailing });
+            if (renderer === 'operations' && !pdfControlled && page.name === 'shapes') {
+              // Negative control: the same page with one rectangle moved 2 px must fail its region.
+              pdfControlled = true;
+              const moved = structuredClone(draw);
+              const target = moved.ops.find((op) => op.id === 'rect')!;
+              target.box.x += 2;
+              const shifted = await rasterise(designDrawPdf([{ page: moved, pictures: new Map(), size: { w: page.width * 0.75, h: page.height * 0.75 } }]));
+              const [region] = (await compare(shifted, regions.filter((r) => r.id === 'rect'), PDF_SLACK, PDF_THRESHOLD)).regions;
+              assert.ok(region && regionFault(region, false), 'the PDF check catches a rectangle moved by 2 px');
+            }
+            if (process.env.LOLLY_FIDELITY_SHOTS) {
+              await mkdir(process.env.LOLLY_FIDELITY_SHOTS, { recursive: true });
+              await writeFile(`${process.env.LOLLY_FIDELITY_SHOTS}/${name}.pdf-${renderer}.png`, raster);
+            }
+          }
+        }
       }
 
       if (outlined && !controlled) {
@@ -229,16 +315,22 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
     await design.close();
   }
   assert.ok(controlled, 'the fixture pages include outlined text for the negative controls');
+  if (poppler) assert.ok(pdfControlled, 'the shapes page ran the PDF negative control');
   if (process.env.LOLLY_FIDELITY_REPORT) {
     await mkdir(dirname(process.env.LOLLY_FIDELITY_REPORT), { recursive: true });
-    await writeFile(process.env.LOLLY_FIDELITY_REPORT, `${JSON.stringify({ operations: report, walker: walkerReport }, null, 2)}\n`);
+    await writeFile(process.env.LOLLY_FIDELITY_REPORT, `${JSON.stringify({ operations: report, walker: walkerReport, pdf: pdfReport }, null, 2)}\n`);
   }
-  const failing = report.flatMap(({ page, stats }) => stats.regions.flatMap((r) => {
-    const fault = regionFault(r, withText.has(`${page}/${r.id}`));
-    return fault ? [`${page}/${r.id}: ${fault}`] : [];
-  }));
+  const failing = [
+    ...report.flatMap(({ page, stats }) => stats.regions.flatMap((r) => {
+      const fault = regionFault(r, withText.has(`${page}/${r.id}`));
+      return fault ? [`${page}/${r.id}: ${fault}`] : [];
+    })),
+    // The operations' PDF is judged; the walker's is the comparison.
+    ...pdfReport.filter((p) => p.renderer === 'operations').flatMap(({ page, failing: f }) => f.map((x) => `${page} (PDF)/${x}`)),
+  ];
   for (const { page, stats } of report) t.diagnostic(`${page}: ${stats.differing} differing px of ${stats.width * stats.height}; largest channel step ${stats.maxChannel}`);
   // The walker is the comparison, reported and not judged: the regions it misses are the evidence for P3d.
+  for (const { page, renderer, stats, failing } of pdfReport) t.diagnostic(`pdf ${renderer} ${page}: ${stats.differing} differing px; ${failing.length} region(s) over the limit${failing.length ? `: ${failing.join('; ')}` : ''}`);
   for (const { page, stats, failing } of walkerReport) t.diagnostic(`walker ${page}: ${stats.differing} differing px; ${failing.length} region(s) over the limit${failing.length ? `: ${failing.join('; ')}` : ''}`);
   assert.deepEqual(failing, [], 'every operation region matches the Design renderer within the edge allowance');
 });

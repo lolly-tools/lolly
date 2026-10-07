@@ -152,8 +152,10 @@ export interface FidelityStats { width: number; height: number; differing: numbe
  * Runs in the browser: decode two PNG screenshots, count pixels whose largest channel
  * difference exceeds `threshold`, for the whole page and inside each region. A region
  * that asks for ink is also compared with `background`, the page without the words it judges.
+ * `slack` (px) lets a pixel match anything that near in the other image, which absorbs
+ * a different rasteriser's edge coverage and still counts a shift or a missing mark.
  */
-export async function compareInBrowser(a: string, b: string, width: number, height: number, regions: Array<{ id: string; x: number; y: number; w: number; h: number; ink?: boolean }>, threshold: number, background?: string): Promise<FidelityStats> {
+export async function compareInBrowser(a: string, b: string, width: number, height: number, regions: Array<{ id: string; x: number; y: number; w: number; h: number; ink?: boolean }>, threshold: number, background?: string, slack = 0): Promise<FidelityStats> {
   const pixels = async (src: string) => {
     const img = new Image(); img.src = src; await img.decode();
     const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
@@ -164,11 +166,22 @@ export async function compareInBrowser(a: string, b: string, width: number, heig
   const lum = (p: Uint8ClampedArray, i: number) => 0.2126 * p[i * 4]! + 0.7152 * p[i * 4 + 1]! + 0.0722 * p[i * 4 + 2]!;
   const diff = new Uint8Array(width * height);
   let differing = 0, maxChannel = 0;
+  const step = (p: Uint8ClampedArray, i: number, q: Uint8ClampedArray, j: number): number =>
+    Math.max(Math.abs(p[i * 4]! - q[j * 4]!), Math.abs(p[i * 4 + 1]! - q[j * 4 + 1]!), Math.abs(p[i * 4 + 2]! - q[j * 4 + 2]!));
+  // With slack, a pixel differs when, looking either way, nothing within `slack` px in the other image matches the pixel.
+  const unmatched = (p: Uint8ClampedArray, q: Uint8ClampedArray, x: number, y: number): boolean => {
+    for (let dy = -slack; dy <= slack; dy++) {
+      for (let dx = -slack; dx <= slack; dx++) {
+        const xx = x + dx, yy = y + dy;
+        if (xx >= 0 && yy >= 0 && xx < width && yy < height && step(p, y * width + x, q, yy * width + xx) <= threshold) return false;
+      }
+    }
+    return true;
+  };
   for (let i = 0; i < width * height; i++) {
-    let m = 0;
-    for (let c = 0; c < 3; c++) m = Math.max(m, Math.abs(pa[i * 4 + c]! - pb[i * 4 + c]!));
+    const m = step(pa, i, pb, i);
     maxChannel = Math.max(maxChannel, m);
-    if (m > threshold) { diff[i] = 1; differing++; }
+    if (m > threshold && (!slack || unmatched(pa, pb, i % width, Math.floor(i / width)) || unmatched(pb, pa, i % width, Math.floor(i / width)))) { diff[i] = 1; differing++; }
   }
   return {
     width, height, differing, maxChannel,

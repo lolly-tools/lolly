@@ -1866,8 +1866,8 @@ export async function createRuntime(
         } };
       }
       if (format === 'lottie' || format === 'html' && tool.manifest.id === 'design') opts = { ...opts, width: opts.width ?? tool.manifest.render?.width, height: opts.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
-      // A Design SVG page can be drawn from the authored document (plan 295, P3d); the size stays the caller's.
-      else if (format === 'svg' && tool.manifest.id === 'design') opts = { ...opts, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
+      // A Design SVG or PDF page can be drawn from the authored document (plan 295, P3d); the size stays the caller's.
+      else if ((format === 'svg' || format === 'pdf') && tool.manifest.id === 'design') opts = { ...opts, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
       if (tool.manifest.designTool) {
         if (tool.manifest.designTool.sourceTool && extras.__lollySourceError) throw new Error(String(extras.__lollySourceError));
         if (tool.manifest.designTool.sourceTool) {

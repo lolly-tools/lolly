@@ -72,7 +72,7 @@ import { beginFrameClock, renderFrameAt, endFrameClock } from './frame-clock.ts'
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, DtoRenderOpts, ImprintState, Rgba } from './export-shared.ts';
 import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pseudoDescriptor } from './export-svg-walker.ts';
-import { designOpsSvg } from './export-design-ops.ts';
+import { designOpsPdf, designOpsSvg } from './export-design-ops.ts';
 import type { Deco } from './export-svg-walker.ts';
 import { outlineSvgTextRuns } from './export-svg-text-runs.ts';
 import { buildLinearGradientEl, buildRadialGradientEl } from './export-gradients.ts';
@@ -2033,7 +2033,9 @@ export async function renderPdf(node: Element, opts: ExportOpts): Promise<Blob> 
   const pageEls = node.querySelectorAll ? [...node.querySelectorAll('[data-pdf-page]')] : [];
   let blob: Blob;
   if (pageEls.length > 0) {
-    blob = await renderMultiPagePdf(pageEls, opts);
+    // Design frames are drawn from the engine's drawing operations when every page
+    // carries all it shows (plan 295, P3d); otherwise, and for every other tool, walked.
+    blob = await renderDesignOpsPdf(pageEls, opts) ?? await renderMultiPagePdf(pageEls, opts);
   } else {
     const geo = printGeometry(node, opts);
     const artBlob = await renderArtworkPdf(node, opts, geo);
@@ -2530,6 +2532,28 @@ async function renderMultiPagePdf(pageEls: Element[], opts: ExportOpts, prepare?
   }
   // Per-page marks + boxes ride the pdf-lib finishing pass (each page's own geo).
   return await finishPdfX(blob, opts, hasGeo
+    ? { intentKind: 'srgb', geos, space: 'rgb', labels: provenanceLabels(opts.meta) }
+    : { intentKind: 'srgb' });
+}
+
+/**
+ * Design pages written by the engine from its drawing operations, then finished exactly
+ * as the walked multi-page PDF is: the same per-page print geometry (the artwork scaled
+ * into the bleed box), marks, page boxes and PDF/X-4 metadata. Null hands the document
+ * to the walker.
+ */
+async function renderDesignOpsPdf(pageEls: Element[], opts: ExportOpts): Promise<Blob | null> {
+  const bleedPt = (() => { const b = parseDimension(opts.bleed); return b ? toPoints(b) : 0; })();
+  const hasGeo = bleedPt > 0 || Boolean(opts.cropMarks) || Boolean(opts.registrationMarks) || Boolean(opts.bleedMarks) || Boolean(opts.colorBars) || Boolean(opts.provenance);
+  const geos: (PrintGeometry | null)[] = [];
+  const bytes = await designOpsPdf(pageEls, opts, (frame) => {
+    const w = toPoints({ value: frame.width, unit: 'px' }), h = toPoints({ value: frame.height, unit: 'px' });
+    const g = printGeometryForSize(w, h, opts, opts.palette);
+    geos.push(g);
+    return g ? { size: g.page, artwork: g.artwork } : { size: { w, h } };
+  });
+  if (!bytes) return null;
+  return await finishPdfX(bytes, opts, hasGeo
     ? { intentKind: 'srgb', geos, space: 'rgb', labels: provenanceLabels(opts.meta) }
     : { intentKind: 'srgb' });
 }
