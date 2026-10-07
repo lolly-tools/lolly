@@ -80,6 +80,7 @@ jobs:
             /tests/deployment-sovereign.test.ts
             /tests/deployment-sovereign.integration.ts
             /deploy/docker/public.nginx.conf
+            /services/mcp/src/http.ts
             /package.json
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
