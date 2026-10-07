@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "Phóng to {label} để quét",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Hướng một thiết bị khác vào đây để quét. Chạm vào bất kỳ đâu hoặc nhấn Esc để đóng.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Liên kết này quá dài để quét. Hãy sao chép, hoặc dùng thẻ Mã.",
-  "View {name}": "Xem {name}",
   "AI agent": "Tác nhân AI",
   "Pause agent": "Tạm dừng tác nhân",
   "Resume agent": "Tiếp tục tác nhân",
   "Disconnect agent": "Ngắt kết nối tác nhân",
-  "Paused": "Đã tạm dừng"
+  "Paused": "Đã tạm dừng",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }

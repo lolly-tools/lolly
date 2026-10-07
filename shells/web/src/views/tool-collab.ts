@@ -65,7 +65,7 @@ import type {
 } from '../lib/collab-session.ts';
 import { livePalette } from '../lib/live-palette.ts';
 import { mountCanvasComments } from './tool-canvas-comments.ts';
-import { jumpToPeer, mountPresentationPresence } from './tool-peer-view.ts';
+import { mountFollow, mountPresentationPresence } from './tool-peer-view.ts';
 import { collabPalette } from '../lib/collab-colors.ts';
 import { mountCanvasInteractions } from './tool-canvas-interactions.ts';
 import { mountCollabControls } from './tool-collab-controls.ts';
@@ -481,18 +481,27 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       toolId: opts.toolManifest?.id ?? '',
       role: () => session.state().role,
     });
+    // Clicking a person follows their view (plan 76 M4); the pill shows who follows whom.
+    const follow = mountFollow(runtime, session, {
+      stage, comments: comments || null, displayName: collabDisplayName,
+      ...(opts.now ? { now: opts.now } : {}),
+      ...(opts.setTimer ? { setTimer: opts.setTimer } : {}),
+      ...(opts.clearTimer ? { clearTimer: opts.clearTimer } : {}),
+      ...(opts.raf ? { raf: opts.raf } : {}),
+    });
+    steps.unshift(() => follow.dispose());
     const pill: CollabPill = mountCollabPill(stage, {
       source: agents,
       onDisconnectAgent: id => agents.disconnect(id),
       onPauseAgent: id => agents.pause(id),
-      onPeer: id => jumpToPeer(runtime, session, id, comments || undefined),
+      follow,
       className: 'collab-pill--stage',
       ...(onInvite ? { onInvite } : {}),
       ...(beam ? { actions: beam.actions } : {}),
     });
     steps.unshift(() => pill.destroy());
     comments?.dockControls(pill.el);
-    steps.unshift(mountCollabControls(pill.el, handle, comments?.reanchor));
+    steps.unshift(mountCollabControls(pill.el, handle, comments?.reanchor, cursors.el ? cursors : undefined));
 
     const syncPillLane = (): void => {
       const next = pillLaneOffset(stage, el => el.getBoundingClientRect().width);

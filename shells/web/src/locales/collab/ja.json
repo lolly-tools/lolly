@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "スキャン用に{label}を拡大",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "別のデバイスをここに向けてスキャンします。どこかをタップするか Esc キーを押して閉じます。",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "このリンクは長すぎてスキャンできません。代わりにコピーするか、コードタブを使ってください。",
-  "View {name}": "{name} を表示",
   "AI agent": "AIエージェント",
   "Pause agent": "エージェントを一時停止",
   "Resume agent": "エージェントを再開",
   "Disconnect agent": "エージェントを切断",
-  "Paused": "一時停止中"
+  "Paused": "一時停止中",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }

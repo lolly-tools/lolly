@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "تكبير {label} للمسح الضوئي",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "وجّه جهازاً آخر إلى هنا لمسحه ضوئياً. انقر في أي مكان أو اضغط Esc للإغلاق.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "هذا الرابط أطول من أن يُمسح ضوئياً. انسخه بدلاً من ذلك، أو استخدم علامة تبويب الرمز.",
-  "View {name}": "عرض {name}",
   "AI agent": "وكيل ذكاء اصطناعي",
   "Pause agent": "إيقاف الوكيل مؤقتًا",
   "Resume agent": "استئناف الوكيل",
   "Disconnect agent": "فصل الوكيل",
-  "Paused": "متوقف مؤقتًا"
+  "Paused": "متوقف مؤقتًا",
+  "Follow {name}": "Follow {name}",
+  "Following {name}": "Following {name}",
+  "Stop following": "Stop following",
+  "You stopped following {name}.": "You stopped following {name}.",
+  "{name} left. You stopped following.": "{name} left. You stopped following.",
+  "Followers: {count}": "Followers: {count}",
+  "Following you": "Following you",
+  "{name} is following you": "{name} is following you",
+  "{name} is presenting": "{name} is presenting",
+  "Follow presentation": "Follow presentation",
+  "Following the presentation by {name}": "Following the presentation by {name}",
+  "Press Escape to stop following.": "Press Escape to stop following."
 }
