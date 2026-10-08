@@ -37,6 +37,28 @@ export function localDocument(opts: { collab: unknown; ephemeral: unknown }): bo
   return !opts.collab && !opts.ephemeral && !getCollabSessionSource();
 }
 
+/** A take's id: what storeRecordingAsset mints, or the record control's in-memory
+ *  fallback when the store refused the take. */
+const RECORDED_TAKE_ID = /^(user\/recording\/|recording\.[a-z0-9]+$)/;
+
+/**
+ * The stored size of a recorded video take among a tool's input values, for the
+ * Unsaved changes dialog's "Includes a {size} video clip" line. Null when there
+ * is none. Bytes alone prove nothing: every upload carries its stored length in
+ * meta.bytes (plan 302). So the id must be a take's, and the type must be video,
+ * because a screenshot or a voiceover shares the take namespace.
+ */
+export function recordedClipBytes(values: readonly unknown[]): number | null {
+  for (const value of values) {
+    if (!value || typeof value !== 'object') continue;
+    const ref = value as { id?: unknown; type?: unknown; meta?: { bytes?: unknown } | null };
+    if (ref.type !== 'video' || typeof ref.id !== 'string' || !RECORDED_TAKE_ID.test(ref.id)) continue;
+    const bytes = ref.meta?.bytes;
+    if (typeof bytes === 'number' && Number.isFinite(bytes) && bytes > 0) return bytes;
+  }
+  return null;
+}
+
 /**
  * Discard the edits a Leave without saving throws away. Returns the slot the tool
  * still has a saved creation at (so the entry can point Back at it), or null when
