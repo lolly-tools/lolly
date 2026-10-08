@@ -77,6 +77,8 @@ function statusOf(path: string): Pick<Plan, 'status' | 'bucket'> {
       .replace(/^\*\*Status:\s*/i, '')
       .replace(/^Status:\s*/i, '')
       .replace(/\*\*/g, '')
+      .replace(/\[([^\]\n]+)\]\([^)]+\)/g, '$1')
+      .replace(/`/g, '')
       .trim();
     if (!raw) return { status: 'Unstated', bucket: 'reference' };
     const status = raw.length > 240 ? `${raw.slice(0, 237).trimEnd()}…` : raw;
@@ -142,6 +144,8 @@ export function buildIndex(now: Date): string {
 
   const archiveDir = join(PLANS, 'archive');
   const archived = existsSync(archiveDir) ? collect(archiveDir) : [];
+  const investigationsDir = join(PLANS, 'investigations');
+  const investigations = existsSync(investigationsDir) ? collect(investigationsDir) : [];
 
   const out = [
     '# `plans/` index',
@@ -149,6 +153,11 @@ export function buildIndex(now: Date): string {
     '**Generated - do not hand-edit.** Rebuild with `pnpm run index:plans`',
     '(`scripts/index-plans.ts`). `plans/` is gitignored, so this file is not committed;',
     'the generator is, which is why the index can never be more than one command stale.',
+    '',
+    'Numbered plans stay at the top level. Supporting logs, screenshots and scratch',
+    'outputs are grouped under `artifacts/<plan-number>/` or a named work category.',
+    'Unnumbered notes live in `investigations/`; historic plans live in `archive/`.',
+    'Git worktrees and paths used by maintained scripts retain their existing locations.',
     '',
     'Sorted by the `NN-` reading-order prefix (status → strategy → ops → security →',
     'provenance → utilities → docs/i18n → brand → editors → engine → rendering →',
@@ -174,7 +183,11 @@ export function buildIndex(now: Date): string {
     out.push('', `## \`archive/\` - ${archived.length}`, '', table(archived, 'archive/'));
   }
 
-  out.push('', `_Top level: ${plans.length} plan(s), ${recentCount} touched in the last ${RECENT_DAYS} days. Total with archive: ${plans.length + archived.length}._`, '');
+  if (investigations.length) {
+    out.push('', `## \`investigations/\` - ${investigations.length}`, '', table(investigations, 'investigations/'));
+  }
+
+  out.push('', `_Top level: ${plans.length} plan(s), ${recentCount} touched in the last ${RECENT_DAYS} days. Total with archive and investigations: ${plans.length + archived.length + investigations.length}._`, '');
   return out.join('\n');
 }
 

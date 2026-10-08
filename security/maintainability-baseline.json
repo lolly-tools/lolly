@@ -84,17 +84,17 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2438,
-      "largestFunctionLines": 2110,
-      "importFanIn": 30,
+      "lines": 2392,
+      "largestFunctionLines": 2089,
+      "importFanIn": 31,
       "importFanOut": 66,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2069,
-      "largestFunctionLines": 2740,
+      "lines": 2064,
+      "largestFunctionLines": 2734,
       "importFanIn": 1,
-      "importFanOut": 55,
+      "importFanOut": 56,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {

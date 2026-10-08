@@ -4,6 +4,15 @@
 
 Lolly has no single deployment - it's an engine plus several shells, and you ship the ones your organisation needs. This guide covers each target: the hosted web app, the desktop/mobile apps, optional integrations and the separately deployed lolly.work organisation service.
 
+The maintained `lolly.tools` and `lolly.ing` instances use operator-managed
+UpCloud K3s releases after the 2026-10-07 cutover. Their current deployment
+handoff identifies the production host, cluster and resource owners. Use the
+[sovereign Kubernetes profile](https://github.com/lolly-tools/lolly/tree/main/deploy/helm/profiles/sovereign)
+for that deployment type. `pnpm run gate` still validates the public content
+profile, but `pnpm run ship` refuses managed Lolly targets before building or
+uploading. Vercel remains an optional adapter for explicitly configured other
+instances; automatic Git deployment is disabled in the reference configuration.
+
 ## Choose a delivery model
 
 The same build serves three postures - pick per team, not per organisation:

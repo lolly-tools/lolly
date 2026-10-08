@@ -24,6 +24,7 @@ import { scan as scanVernacular, staleAllows as staleVernacularAllows } from '..
 // a repo-root catalog/ directory. Relative import, the way this file already reaches
 // engine/src and scripts/.
 import { catalogFile } from '../packages/node-shell/src/content-roots.ts';
+import { siteUrl } from '../scripts/lib/site-url.ts';
 
 // Deterministic vernacular + fingerprint-unicode gate (owner-mandated, no model
 // in the loop): the build refuses to produce /info from sources that carry a
@@ -113,6 +114,11 @@ type Lang = (typeof LANGS)[number];
 // Canonical site origin - used for absolute URLs in social/Open Graph tags.
 // Social crawlers (Slack, X, Facebook, LinkedIn, iMessage) require absolute og:image URLs.
 const SITE_URL = 'https://lolly.tools';
+// Share tags (og:url, og:image, og:logo, twitter:image) point at the origin the
+// build is served from: lolly.tools, or LOLLY_SITE_URL for an instance that serves
+// its own copy of the docs (scripts/lib/site-url.ts). Canonical links, the sitemap
+// and llms.txt keep SITE_URL, the public project site.
+const PREVIEW_URL = siteUrl();
 const REPO_URL = 'https://github.com/lolly-tools/lolly';
 const CODE_LICENSE_URL = 'https://www.mozilla.org/en-US/MPL/2.0/';
 const CONTENT_LICENSE_URL = 'https://creativecommons.org/licenses/by-sa/4.0/';
@@ -120,11 +126,11 @@ const DOCS_LICENSE_MD = `Code ([MPL 2.0](${CODE_LICENSE_URL})) · Content ([CC B
 // "Founded by SUSE" badge - reused at the same size in the hero, the social-proof
 // block, and the footer. Always links to suse.com in a new window.
 const FOUNDED_BY = `<a class="founded-badge" href="https://www.suse.com" target="_blank" rel="noopener" aria-label="Founded by SUSE"><img src="/info/founded-by.svg" alt="Founded by SUSE"></a>`;
-const OG_IMAGE = `${SITE_URL}/og.png`;
+const OG_IMAGE = `${PREVIEW_URL}/og.png`;
 // og:logo is machine-read metadata, and its consumers (GitHub-style scrapers) don't all
 // decode SVG - so point it at the derived PNG of the mark, not the signed source icon.svg.
 // It's still the one mark: icon-512.png is rasterised from icon.svg by `pnpm run icons`.
-const OG_LOGO = `${SITE_URL}/icons/icon-512.png`;
+const OG_LOGO = `${PREVIEW_URL}/icons/icon-512.png`;
 const SITE_DESCRIPTION = 'Lolly: constraint-first, template-driven platform for generating production-ready creative and content assets at scale.';
 // Landing-page <title>/share title (matches the web shell's index.html). Other
 // pages use "<page title> - Lolly", so this is landing-only. Kept short: the
@@ -5750,7 +5756,7 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // A page with its own generated card (subtitle = its title) points share tags at
   // it; the landing page and any page that failed generation keep the canonical og.png.
   // OG cards are generated once, in English, and shared across locales (see build()).
-  const ogImage    = (!isLanding && ogSlugs?.has(page.slug)) ? `${SITE_URL}/info/og/${page.slug}.png` : OG_IMAGE;
+  const ogImage    = (!isLanding && ogSlugs?.has(page.slug)) ? `${PREVIEW_URL}/info/og/${page.slug}.png` : OG_IMAGE;
   const ogImageAlt = isLanding ? 'Lolly - creative tools with the rules built in' : `Lolly - ${page.title}`;
   // What a shared link says about itself. Every page had the same site-wide
   // sentence, so forty links previewed identically and told a reader nothing
@@ -5820,6 +5826,7 @@ ${mast ? mast.band : pathwaysBand(strip)}
 
   const pageTitle  = isLanding ? LANDING_TITLE : `${t(page.title)} - Lolly`;
   const localeUrl  = `${SITE_URL}${localeHref(lang, page.slug)}`;
+  const shareUrl   = `${PREVIEW_URL}${localeHref(lang, page.slug)}`;
   const alternates = LANGS.map(l =>
     `<link rel="alternate" hreflang="${LANG_META[l].htmlLang}" href="${esc(`${SITE_URL}${localeHref(l, page.slug)}`)}">`,
   ).join('\n') + `\n<link rel="alternate" hreflang="x-default" href="${esc(`${SITE_URL}${localeHref('en', page.slug)}`)}">`
@@ -5853,7 +5860,7 @@ ${alternates}${seal}
 <meta property="og:site_name" content="Lolly">
 <meta property="og:title" content="${esc(pageTitle)}">
 <meta property="og:description" content="${esc(description)}">
-<meta property="og:url" content="${esc(localeUrl)}">
+<meta property="og:url" content="${esc(shareUrl)}">
 <meta property="og:image" content="${esc(ogImage)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">

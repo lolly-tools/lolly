@@ -29,6 +29,15 @@ export interface FolderTeamCopy {
   complete: boolean;
   copied: Record<string, string>;
 }
+/** A shortcut to a shared project, or a folder inside one, kept among the person's
+ *  own folders (lolly plan 299). The folder holds no items of its own; the Projects
+ *  view draws it as the shared project. `instance` keeps a shortcut from one
+ *  workspace from opening on another. */
+export interface FolderLink {
+  instance: string;
+  projectId: string;
+  folderId?: string;
+}
 export interface Folder {
   id: string;
   name: string;
@@ -46,6 +55,7 @@ export interface Folder {
    *  spotlight alongside the name. */
   tags?: string[];
   teamCopy?: FolderTeamCopy;
+  link?: FolderLink;
 }
 
 /** FALLBACK folder accents only (2026-08-20): the style dialog offers the
@@ -293,6 +303,16 @@ export function createFolderStore(host: FolderHost) {
         const f = folders.find(x => x.id === folderId);
         if (f) { f.name = label; f.updatedAt = now(); }
       });
+    },
+
+    /** Make a new folder that is a shortcut to shared work (lolly plan 299). */
+    async createLink(name: string, parentId: string | null, link: FolderLink): Promise<Folder> {
+      const folder = await this.create(name, parentId);
+      await mutate(folders => {
+        const made = folders.find(item => item.id === folder.id);
+        if (made) made.link = { ...link };
+      });
+      return { ...folder, link: { ...link } };
     },
 
     async setTeamCopy(folderId: string, teamCopy: FolderTeamCopy): Promise<void> {
