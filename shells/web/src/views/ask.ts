@@ -201,7 +201,7 @@ export async function mountAsk(viewEl: HTMLElement, host: AskHost, params: strin
       consentEl.innerHTML = `
         <span class="ask-consent-text">${escape(chipText)}</span>
         <button type="button" class="btn ask-consent-get" data-consent-get>${t('Download')}</button>
-        <button type="button" class="btn-link ask-consent-no" data-consent-no>${t('Not now')}</button>`;
+        <button type="button" class="btn btn-link ask-consent-no" data-consent-no>${t('Not now')}</button>`;
       consentEl.hidden = false;
       consentEl.querySelector('[data-consent-no]')?.addEventListener('click', () => {
         embedConsentDismissed = true;

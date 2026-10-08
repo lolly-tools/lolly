@@ -186,7 +186,17 @@
    hole plus the .tl-tools gap. The panel hides the `+` for a timed tool that declares
    no addKinds, so restate it, exactly as `.tl-scenery[hidden]` does further down. */
 .tl-btn[hidden] { display: none; }
-.tl-btn svg { width: var(--fs-xl); height: var(--fs-xl); }
+/* The glyph rests at half strength so the toolbar row reads quieter than the
+   tracks. Hover, keyboard focus and an on state (pressed, recording, notifying)
+   bring it to full ink: a half-strength glyph on a filled chip would lose its
+   contrast. A reader who asked for more contrast keeps full ink throughout. No
+   transition, so there is no motion to reduce. */
+.tl-btn svg { width: var(--fs-xl); height: var(--fs-xl); opacity: .5; }
+.tl-btn:hover:not(:disabled):not([aria-disabled="true"]) svg,
+.tl-btn:focus-visible svg,
+.tl-btn:is(.is-active, [aria-pressed="true"], .is-recording, .is-notifying) svg,
+html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
+@media (prefers-contrast: more) { .tl-btn svg { opacity: 1; } }
 .tl-btn:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-color-surface-muted); }
 .tl-btn:active:not(:disabled):not([aria-disabled="true"]) { filter: brightness(0.92); }
 .tl-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
