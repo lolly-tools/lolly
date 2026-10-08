@@ -14,6 +14,8 @@ import assert from 'node:assert/strict';
 import {
   getInputPolicy, setToolInputPolicies, clearInputPolicies, _clearInputPoliciesForTests,
   onToolInputMount, notifyToolInputMount, policyValuesFor, governedParamKeys,
+  setDocumentReadOnly, clearDocumentReadOnly, documentReadOnlyNote, setInputPolicyFailClosed, policyLocksControl,
+  refuseDocumentEdit, guardDocumentEdits,
 } from './input-policy.ts';
 
 test('dormant by default: empty registry returns undefined for anything', () => {
@@ -171,5 +173,111 @@ test('tool-mount hook: a throwing hook is logged and never stops the mount or th
     console.error = orig;
   }
   assert.equal(errors.length, 2, 'once on its replayed registration, once on the next mount');
+  _clearInputPoliciesForTests();
+});
+
+// ── The document layer (plan 75 J5, G2/G19): a viewer's whole document read-only ──
+
+test('document layer: every input of the tool reads locked and readable, and only that tool', () => {
+  _clearInputPoliciesForTests();
+  assert.equal(documentReadOnlyNote('poster'), null, 'dormant: no document is read-only');
+  setDocumentReadOnly('poster', 'View only');
+  for (const id of ['headline', 'logo', 'anything-at-all']) {
+    assert.deepEqual(getInputPolicy('poster', id), { mode: 'locked', note: 'View only', readable: true });
+  }
+  assert.equal(policyLocksControl('text-input', getInputPolicy('poster', 'headline')), true);
+  assert.equal(getInputPolicy('chart', 'title'), undefined, 'another tool is untouched');
+  assert.equal(getInputPolicy(undefined, 'headline'), undefined);
+  assert.equal(documentReadOnlyNote('poster'), 'View only');
+  clearDocumentReadOnly('poster');
+  assert.equal(getInputPolicy('poster', 'headline'), undefined, 'released, the dormant default again');
+  clearDocumentReadOnly('poster');
+  _clearInputPoliciesForTests();
+});
+
+test('document layer survives clearInputPolicies and a whole-set re-apply (the org-config re-read)', () => {
+  _clearInputPoliciesForTests();
+  setDocumentReadOnly('poster', 'View only');
+  // What org/index.ts applyOrgToolPolicies does on every mount and every re-apply.
+  clearInputPolicies();
+  setToolInputPolicies('poster', { logo: { mode: 'locked', note: 'Managed by Acme', value: 'acme/logo' } });
+  clearInputPolicies();
+  setToolInputPolicies('poster', {});
+  assert.equal(getInputPolicy('poster', 'headline')?.readable, true, 'the viewer lock is still there');
+  _clearInputPoliciesForTests();
+  assert.equal(getInputPolicy('poster', 'headline'), undefined, 'only the test reset (or its own setter) lifts it');
+});
+
+test('a governed lock still wins over the document layer; a governed choice does not', () => {
+  _clearInputPoliciesForTests();
+  setDocumentReadOnly('poster', 'View only');
+  setToolInputPolicies('poster', {
+    logo: { mode: 'locked', note: 'Managed by Acme', value: 'acme/logo' },
+    secret: { mode: 'hidden' },
+    accent: { mode: 'choice', note: 'Managed by Acme', allow: ['#111', '#222'] },
+  });
+  assert.deepEqual(getInputPolicy('poster', 'logo'), { mode: 'locked', note: 'Managed by Acme', value: 'acme/logo' });
+  assert.deepEqual(getInputPolicy('poster', 'secret'), { mode: 'hidden' }, 'hidden stays hidden');
+  assert.equal(getInputPolicy('poster', 'accent')?.readable, true, 'a viewer may not pick among allowed values either');
+  clearInputPolicies();
+  setInputPolicyFailClosed({ mode: 'locked', note: 'Policy unavailable' });
+  assert.deepEqual(getInputPolicy('poster', 'headline'), { mode: 'locked', note: 'Policy unavailable' }, 'fail-closed governs first');
+  _clearInputPoliciesForTests();
+});
+
+test('the document layer is not governance: model values, links and exports are untouched', () => {
+  _clearInputPoliciesForTests();
+  setDocumentReadOnly('poster', 'View only');
+  const inputs = [{ id: 'headline', value: 'Hello', urlKey: 'h' }, { id: 'accent', value: '#999' }];
+  assert.deepEqual(policyValuesFor('poster', inputs), {}, 'no value is rewritten for a viewer');
+  assert.deepEqual([...governedParamKeys('poster', inputs)], [], 'a viewer\'s link and export carry every value');
+  setToolInputPolicies('poster', {
+    accent: { mode: 'choice', allow: ['#111', '#222'] },
+    headline: { mode: 'locked', value: 'Fixed' },
+  });
+  assert.deepEqual(policyValuesFor('poster', inputs), { headline: 'Fixed', accent: '#111' }, 'governed values still apply under it');
+  assert.deepEqual([...governedParamKeys('poster', inputs)].sort(), ['h', 'headline']);
+  _clearInputPoliciesForTests();
+});
+
+test('an edit of a read-only document is refused, its owner told; another tool, or none, is not', () => {
+  _clearInputPoliciesForTests();
+  assert.equal(refuseDocumentEdit('poster'), false, 'dormant: nothing is refused');
+  let told = 0;
+  setDocumentReadOnly('poster', 'View only', () => { told += 1; });
+  assert.equal(refuseDocumentEdit('poster'), true);
+  assert.equal(refuseDocumentEdit('chart'), false, 'another tool writes as before');
+  assert.equal(refuseDocumentEdit(undefined), false);
+  assert.equal(told, 1);
+  // A setter that throws never stops the refusal.
+  setDocumentReadOnly('poster', 'View only', () => { throw new Error('toast failed'); });
+  const errors: unknown[] = [];
+  const realError = console.error;
+  console.error = (e: unknown) => { errors.push(e); };
+  try { assert.equal(refuseDocumentEdit('poster'), true); } finally { console.error = realError; }
+  assert.equal(errors.length, 1);
+  clearDocumentReadOnly('poster');
+  assert.equal(refuseDocumentEdit('poster'), false, 'lifted');
+  _clearInputPoliciesForTests();
+});
+
+test('guardDocumentEdits: writes pass until the document is read-only; undo replays always pass', async () => {
+  _clearInputPoliciesForTests();
+  const wrote: Array<[string, unknown]> = [];
+  let replaying = false;
+  let settled = 0;
+  const setInput = guardDocumentEdits('poster', async (id: string, value: unknown) => { wrote.push([id, value]); }, () => replaying, () => { settled += 1; });
+  await setInput('headline', 'A');
+  setDocumentReadOnly('poster', 'View only');
+  await setInput('headline', 'B');
+  assert.deepEqual(wrote, [['headline', 'A']], 'the refused write never reaches the runtime');
+  assert.equal(settled, 1, 'and whatever drew it is put back');
+  replaying = true;
+  await setInput('headline', 'A');
+  assert.deepEqual(wrote.at(-1), ['headline', 'A'], 'an undo replays a state the document already had');
+  replaying = false;
+  clearDocumentReadOnly('poster');
+  await setInput('headline', 'C');
+  assert.deepEqual(wrote.at(-1), ['headline', 'C']);
   _clearInputPoliciesForTests();
 });

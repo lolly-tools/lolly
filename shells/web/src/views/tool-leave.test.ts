@@ -107,3 +107,59 @@ test('a save made from a dialog clears the mark on the tool entry, not on the di
   syncEntryMark('qr-code', () => unsaved, () => false);
   assert.equal(entryHoldsUnsavedEdits('qr-code'), false, 'a tool that was left writes nothing');
 });
+
+// ── A document that belongs somewhere else (plan 75 J6 step 6) ───────────────────
+
+test('a team document asks its own question and keeps its device draft on Leave without saving', async () => {
+  const scope = await import('../lib/document-scope.ts');
+  const { leaveQuestion } = await import('./tool-leave.ts');
+  scope._resetDocumentScopeForTests();
+  assert.equal(leaveQuestion(), null, 'no scope: the ordinary dialog');
+  const off = scope.registerDocumentScope({
+    chip: () => ({ label: 'Brand refresh · Can edit', role: 'edit' }),
+    leavePrompt: () => 'Save changes to Brand refresh?',
+  });
+  const stop = scope.mountDocumentScope({
+    toolId: 'qr-code', view: document.createElement('div'),
+    document: () => ({ inputs: {} }), unsaved: () => true, saveOnDevice: async () => true,
+  });
+  assert.equal(leaveQuestion(), 'Save changes to Brand refresh?');
+  const f = fakes('removed');
+  const result = await discardUnsavedWork({ host: f.host, controller: f.controller, slot: f.slot });
+  assert.deepEqual(f.order, ['close'], 'the writer protects the edits, and nothing is discarded');
+  assert.deepEqual(result, { outcome: 'unchanged', kept: 'qr-code:auto' }, 'Back returns to the device draft');
+  const g = fakes('removed');
+  assert.deepEqual(await discardUnsavedWork({ host: g.host, controller: g.controller, slot: g.slot, keep: false }), { outcome: 'removed', kept: null },
+    'an explicit keep: false still discards');
+  stop();
+  off();
+  assert.equal(leaveQuestion(), null, 'the mount ended: back to the ordinary dialog');
+  const h = fakes('removed');
+  assert.deepEqual(await discardUnsavedWork({ host: h.host, controller: h.controller, slot: h.slot }), { outcome: 'removed', kept: null },
+    'a local document discards exactly as before');
+  scope._resetDocumentScopeForTests();
+});
+
+test('a viewer\'s document: the ordinary dialog, so Leave without saving discards as it says', async () => {
+  const scope = await import('../lib/document-scope.ts');
+  scope._resetDocumentScopeForTests();
+  // The document belongs to a team project (the scope claims it) but this person may only
+  // view it: no "Save changes to…" question, so the dialog is the ordinary one.
+  const off = scope.registerDocumentScope({
+    chip: () => ({ label: 'Brand refresh · View only', role: 'view' }),
+    leavePrompt: () => null,
+  });
+  const stop = scope.mountDocumentScope({
+    toolId: 'qr-code', view: document.createElement('div'),
+    document: () => ({ inputs: {} }), unsaved: () => true, saveOnDevice: async () => true,
+  });
+  assert.equal(scope.documentScopeClaimed('qr-code'), true, 'a team document');
+  const { leaveQuestion } = await import('./tool-leave.ts');
+  assert.equal(leaveQuestion(), null, 'asked nothing about the project');
+  const f = fakes('removed');
+  assert.deepEqual(await discardUnsavedWork({ host: f.host, controller: f.controller, slot: f.slot }), { outcome: 'removed', kept: null },
+    'the draft of the team document is discarded, not kept on the device without a word');
+  stop();
+  off();
+  scope._resetDocumentScopeForTests();
+});
