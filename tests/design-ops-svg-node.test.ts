@@ -68,7 +68,10 @@ test('the CLI exports a Design frame as SVG without a browser', async () => {
     assert.doesNotMatch(run.stderr, /Escalating/);
     const svg = await readFile(out, 'utf8');
     assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" width="640px" height="400px" viewBox="0 0 640 400"/);
-    assert.ok(svg.includes('<metadata>') && svg.includes('fill="#1c7ed6"') && !svg.includes('<text'), 'the export metadata, the box and outlined words');
+    // Convert paths is off by default, so the words stay live text. Outlined words are
+    // covered by design-draw.test.ts and design-page-svg.test.ts.
+    assert.ok(svg.includes('<metadata>') && svg.includes('fill="#1c7ed6"'), 'the export metadata and the box');
+    assert.match(svg, /<tspan [^>]*>without<\/tspan>/, 'the words as live text');
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
