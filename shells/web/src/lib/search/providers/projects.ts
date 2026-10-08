@@ -31,6 +31,7 @@ import {
 } from '../projects-source.ts';
 import type { SearchHit, SearchProvider } from '../registry.ts';
 import { getSessionSource, readSourceProjects, readSourceSessions } from '../../session-source.ts';
+import { isOwnProject } from '../../team-project-listing.ts';
 
 /** A host.state.list() row as this provider reads it (the WebStateAPI shape,
  *  reduced to what the haystack + hit need). */
@@ -95,6 +96,9 @@ export function createProjectsProvider(host: ProjectsSearchHost): SearchProvider
         const project = got.items[index++]!;
         const score = matchesHaystack(buildFolderHaystack(project.name), tokens);
         if (score) hits.push({ title: project.name, subtitle: t('Shared project'), icon: icon('folderUsers'), href: `#/p?team=${encodeURIComponent(project.id)}`, score });
+        // Documents are read only for the person's own shared projects, so a project
+        // shared with everyone on a large workspace costs no request per project.
+        if (!isOwnProject(project)) continue;
         const sessions = await readSourceSessions(source, project.id);
         if (!sessions.ok || !current()) continue;
         for (const session of sessions.items) {

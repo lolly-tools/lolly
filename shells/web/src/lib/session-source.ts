@@ -37,7 +37,19 @@ export interface TeamProjectRef {
   /** The person's own role in the project, when the source says. Absent: unknown,
    *  and the source's own answer to each action decides. */
   myRole?: TeamRole;
+  /** Why the person can open it (lolly plan 299): a relationship (`owner`, `member`,
+   *  `group`, `custom-group`) makes it theirs; `everyone` (shared with the whole
+   *  workspace) and `admin` do not. Absent on an older source: treated as theirs. */
+  via?: TeamProjectVia;
+  /** Who the project reaches without being named. */
+  audience?: 'restricted' | 'instance';
+  /** The person's own choice: kept in their list (`pinned`) or kept out (`hidden`). */
+  listed?: 'pinned' | 'hidden';
+  /** When the person last opened it, as the source recorded. */
+  lastOpenedAt?: string;
 }
+
+export type TeamProjectVia = 'owner' | 'member' | 'group' | 'custom-group' | 'everyone' | 'admin';
 
 /** A shared session, listed without its (potentially large) inputs. */
 export interface TeamSessionRef {
@@ -139,6 +151,9 @@ export interface SessionSource {
   fetchSession(sessionId: string): Promise<TeamSessionData | null>;
   /** Present only when the source can also save. */
   write?: SessionSourceWriter;
+  /** Keep a project in the person's own list (`pinned`), keep it out (`hidden`), or
+   *  follow the default (null). Absent: the source keeps no such choice. */
+  setProjectListing?(projectId: string, listed: 'pinned' | 'hidden' | null): Promise<boolean>;
 }
 
 export type SourceList<T> = { ok: true; items: T[] } | { ok: false; status: number };
