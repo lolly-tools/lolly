@@ -276,3 +276,44 @@ test('a save that failed on a file says why in its own words', () => {
   assert.equal(teamSaveFailure({ kind: 'file-error', message: 'The upload was interrupted. Try again.', code: 'UPLOAD_EXPIRED' }), 'The upload was interrupted. Try again.');
   assert.match(teamSaveFailure({ kind: 'error', status: 413 }), /This document is too large/);
 });
+
+test('Rename changes only the name, and an instance without the route turns it off with a reason', async () => {
+  reset();
+  const { resetTeamFileRenameForTest } = await import('./team-folders.ts');
+  resetTeamFileRenameForTest();
+  dom.window.HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.open = true; };
+  dom.window.HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) { this.open = false; this.dispatchEvent(new dom.window.Event('close')); };
+  Reflect.set(globalThis, 'HTMLDialogElement', dom.window.HTMLDialogElement);
+  const answer = (name: string): void => {
+    const input = document.querySelector<HTMLInputElement>('dialog .modal-input')!;
+    input.value = name;
+    document.querySelector<HTMLButtonElement>('dialog [data-act="ok"]')!.click();
+  };
+  const renamed: unknown[] = [];
+  let routed = true;
+  router = (url, method, init) => {
+    if (method === 'PATCH') {
+      if (!routed) return refuse(404, 'NOT_FOUND', { message: `no route for PATCH ${url}` });
+      renamed.push([url, JSON.parse(String(init?.body))]);
+      return json({ name: 'final logo.svg' });
+    }
+    return listed()(url, method);
+  };
+  const viewer = mount({ canUpload: false });
+  await until(() => rows(viewer).length === 2, 'rows');
+  assert.equal(viewer.querySelector('[data-act="file-rename"]'), null, 'Rename needs edit access');
+  const panel = buildTeamFilesPanel({ projectId: 'p1', canUpload: true, canRename: true, onBack: () => {} });
+  document.body.append(panel);
+  await until(() => rows(panel).length === 2, 'rows');
+  rows(panel)[1]!.querySelector<HTMLButtonElement>('[data-act="file-rename"]')!.click();
+  answer('final logo.svg');
+  await until(() => statusOf(panel) === 'Saved.', `renamed: ${statusOf(panel)}`);
+  assert.deepEqual(renamed, [[`/api/v1/projects/p1/files/${fid('b')}`, { name: 'final logo.svg' }]]);
+  routed = false;
+  rows(panel)[0]!.querySelector<HTMLButtonElement>('[data-act="file-rename"]')!.click();
+  answer('poster final.png');
+  await until(() => /cannot rename shared files yet/.test(statusOf(panel)), `old instance: ${statusOf(panel)}`);
+  assert.ok([...panel.querySelectorAll<HTMLButtonElement>('[data-act="file-rename"]')].every(b => b.disabled));
+  assert.equal(panel.querySelector<HTMLElement>('[id^="team-files-rename-"]')?.hidden, false);
+  resetTeamFileRenameForTest();
+});

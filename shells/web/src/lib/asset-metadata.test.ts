@@ -21,6 +21,7 @@ import {
   parseSvgMeta,
   lottieMetaFromJson,
   extractAssetMetadata,
+  leavesOriginalUnread,
 } from './asset-metadata.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 
@@ -33,6 +34,28 @@ test('large assets and provider originals of unknown size show recorded facts wi
     assert.ok(fields.some(field => field.label === 'Format' && field.value === 'PNG'));
   }
   assert.equal(downloads, 0);
+});
+
+test('an upload is read whatever its size: its bytes are already on this device', async (t) => {
+  // Plan 302 gave every upload its true size. A large upload must still get its
+  // full Details panel, as it did when uploads carried no size at all.
+  const reads: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (url: string) => { reads.push(url); return new Response(new Uint8Array([1, 2, 3])); });
+  const fields = await extractAssetMetadata({ source: 'user', id: 'user/upload/1800000000000-big', type: 'raster', format: 'png', url: 'blob:https://lolly.tools/big', width: 4000, height: 3000, meta: { bytes: 64_000_000 } });
+  assert.deepEqual(reads, ['blob:https://lolly.tools/big']);
+  assert.ok(fields.some(field => field.label === 'Format' && field.value === 'PNG'));
+});
+
+test('leavesOriginalUnread: large and unknown-size provider originals stay unread, uploads never do', () => {
+  assert.equal(leavesOriginalUnread({ source: 'library', meta: { size: 12_000_000 } }), true);
+  assert.equal(leavesOriginalUnread({ source: 'library', meta: { bytes: 64_000_000 } }), true);
+  assert.equal(leavesOriginalUnread({ source: 'remote', meta: { provider: 'brandfolder' } }), true);
+  assert.equal(leavesOriginalUnread({ source: 'library', meta: { size: 11_999_999 } }), false);
+  assert.equal(leavesOriginalUnread({ source: 'library', meta: {} }), false);
+  assert.equal(leavesOriginalUnread({ source: 'remote', meta: { provider: 'brandfolder', size: 2048 } }), false);
+  for (const meta of [{ bytes: 64_000_000 }, { size: 64_000_000 }, { provider: 'brandfolder' }]) {
+    assert.equal(leavesOriginalUnread({ source: 'user', meta }), false, JSON.stringify(meta));
+  }
 });
 
 // ── little-endian / big-endian byte helpers for the fixtures ────────────────

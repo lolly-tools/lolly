@@ -10,7 +10,7 @@
  *
  * What is covered: the reader fetches the built /info page, extracts its .docs-content,
  * rehosts the children into a fresh <article> inside [data-content], strips script +
- * .listen-bar while keeping <style>, rewrites internal doc links toward #/docs, fills the
+ * .docs-edition-bar while keeping <style>, rewrites internal doc links toward #/docs, fills the
  * pathways / sidebar / sitemap / TOC nav slots, honours a ?h= deep link, and renders a
  * .docs-status message on a 404 or a fetch throw.
  *
@@ -19,8 +19,8 @@
  * audience tabs without touching location.hash, opens a deep-linked FAQ <details>, points
  * the app links back into this SPA, and injects the scoped band stylesheet once.
  *
- * Most cases have no speech API, so narration is unavailable. The Listen lifecycle
- * case supplies device speech and exercises the shared player across page changes.
+ * The last case checks that the reader, which no longer offers page narration, leaves
+ * the shared music player alone across page changes.
  * With lang 'de' the fetch URL becomes /info/de/<slug>.html.
  */
 import test, { after } from 'node:test';
@@ -65,7 +65,7 @@ const host = {
   profile: { get: async () => ({}), set: async () => {} },
 } as unknown as Parameters<typeof mountDocs>[1];
 
-// A full /info page: a .docs-content main with headings, a script + .listen-bar + style to
+// A full /info page: a .docs-content main with headings, a script + .docs-edition-bar + style to
 // exercise sanitisation, and internal doc links to exercise link rewriting - plus the nav
 // landmarks (pathways / sidebar / sitemap) that live OUTSIDE .docs-content.
 const PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</title></head>
@@ -83,7 +83,7 @@ const PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</title><
     <p>Intro paragraph with an <a href="/info/quickstart.html">internal link</a> and a
       deeper <a href="/info/reference.html#config">anchored link</a>.</p>
     <style>.cmp-fig{--cmp-a:1}</style>
-    <div class="listen-bar">Listen player that must be stripped</div>
+    <div class="docs-edition-bar"><a class="docs-edition" href="/info/editions/quickstart.pdf">PDF</a></div>
     <script>window.__docsShouldNeverRun = true;</script>
     <h2 id="one">Section One</h2>
     <p>Body one.</p>
@@ -99,7 +99,7 @@ const PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</title><
 
 /**
  * The built LANDING page, shaped like the real /info/de/index.html: a `.docs-landing`
- * <main> (never a `.docs-content`), the site-sentence <title>, the floating listen bar,
+ * <main> (never a `.docs-content`), the site-sentence <title>, a print-edition bar,
  * the app links in both built forms (`/?lang=de` for the app root, `/?lang=de#/tool/…`
  * for a seeded tool), the sticky quicknav, the audience jump pills over stacked
  * always-open cards (plan 123 D1), and an FAQ <details>. It ships no `.docs-sidebar`,
@@ -115,8 +115,8 @@ const LANDING_HTML = `<!doctype html><html>
     <a href="/info/creators.html">For Creators</a>
     <a href="/info/builders.html">For Builders</a>
   </nav>
-  <main class="docs-landing page-index"><style>.listen-bar{display:flex}</style>
-    <div class="listen-bar listen-bar-float"><button class="docs-listen">Listen</button></div>
+  <main class="docs-landing page-index"><style>.docs-edition-bar{display:flex}</style>
+    <div class="docs-edition-bar"><a class="docs-edition" href="/info/editions/index.pdf">PDF</a></div>
     <section class="hero reveal">
       <a href="/?lang=de" class="hero-logo-link" aria-label="Open Lolly"><img src="/info/icon.svg" alt=""></a>
       <a href="/?lang=de" class="btn btn-primary">Launch App</a>
@@ -203,7 +203,7 @@ test('mounts the .docs-content fragment into a fresh article inside [data-conten
   view.remove();
 });
 
-test('strips script and .listen-bar from the fragment but keeps <style>', async () => {
+test('strips script and .docs-edition-bar from the fragment but keeps <style>', async () => {
   stubOkFetch();
   const view = freshView();
 
@@ -211,8 +211,23 @@ test('strips script and .listen-bar from the fragment but keeps <style>', async 
 
   const article = view.querySelector('[data-content] article.docs-content')!;
   assert.equal(article.querySelector('script'), null, 'fetched scripts are removed');
-  assert.equal(article.querySelector('.listen-bar'), null, 'the listen bar is removed');
+  assert.equal(article.querySelector('.docs-edition-bar'), null, 'the print-edition bar is removed');
   assert.ok(article.querySelector('style'), 'an inner <style> block survives (figure-local tokens)');
+
+  view.remove();
+});
+
+test('strips the bar under its old .listen-bar name from a page cached before the rename', async () => {
+  // /info pages the service worker cached before 2026-10-08 carry the print edition's
+  // PDF chip in a `.listen-bar`. The reader must not show that chip inside the article.
+  stubOkFetch(PAGE_HTML.replace('<div class="docs-edition-bar">', '<div class="listen-bar">'));
+  const view = freshView();
+
+  await mountDocs(view, host, 'quickstart', 'de', '');
+
+  const article = view.querySelector('[data-content] article.docs-content')!;
+  assert.equal(article.querySelector('.listen-bar'), null, 'the old-name bar is removed');
+  assert.equal(article.querySelector('.docs-edition'), null, 'and its PDF chip with it');
 
   view.remove();
 });
@@ -328,7 +343,7 @@ test('slug index fetches the real landing page, not the old quickstart alias', a
   assert.equal(article!.classList.contains('docs-content'), false, 'the landing is NOT a .docs-content');
   assert.ok(article!.querySelector('.hero'), 'the hero band came with it');
   assert.equal(article!.querySelector('script'), null, 'fetched scripts are still stripped');
-  assert.equal(article!.querySelector('.listen-bar'), null, 'the listen bar is still stripped');
+  assert.equal(article!.querySelector('.docs-edition-bar'), null, 'the print-edition bar is still stripped');
 
   const reader = view.querySelector<HTMLElement>('[data-reader]')!;
   assert.ok(reader.classList.contains('docs-reader--landing'), 'the reader carries the landing modifier');
@@ -343,7 +358,7 @@ test('slug index fetches the real landing page, not the old quickstart alias', a
 /**
  * A page shaped like the build since plan 277 step 3c: the site bar (with the phone
  * menu's sheet, which holds a compact copy of the rail) ahead of the masthead band,
- * whose first row is the pathways strip and whose title row holds the h1 and Listen.
+ * whose first row is the pathways strip and whose title row holds the h1 and a print edition.
  */
 const BAND_PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</title></head>
 <body>
@@ -355,7 +370,7 @@ const BAND_PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</ti
   </header>
   <div class="docs-masthead"><div class="docs-mast-inner">
     <nav class="docs-pathways" aria-label="Documentation sections"><a class="docs-pathway docs-pathway-home" href="/info/de/index.html">Willkommen</a><a class="docs-pathway active" href="/info/de/start/quickstart.html" aria-current="page">Schnellstart</a><a class="docs-pathway" href="/info/de/create/creators.html">Für Kreative</a></nav>
-    <div class="mast-title"><h1 id="quickstart">Schnellstart</h1><div class="listen-bar"><button type="button" class="docs-listen">Listen</button></div></div>
+    <div class="mast-title"><h1 id="quickstart">Schnellstart</h1><div class="docs-edition-bar"><a class="docs-edition" href="/info/editions/quickstart.pdf">PDF</a></div></div>
   </div></div>
   <div class="docs-wrap">
     <aside class="docs-sidebar"><a href="/info/de/start/quickstart.html" class="active">Schnellstart</a><a href="/info/de/start/install.html">Lolly installieren</a></aside>
@@ -382,10 +397,10 @@ test('adopts the built pathways strip, links rewritten, with its Welcome tab and
   assert.ok(tabs[0]!.classList.contains('docs-pathway-home'), 'the Welcome tab keeps the class the landing marks active');
   // The rail slot takes the real rail, never the phone menu's copy of it (which comes first in the page).
   assert.ok(view.querySelector('[data-sidebar] aside.docs-sidebar'), 'the rail is the aside, not the sheet\'s compact list');
-  // The band's title row gives the article its h1 alone: Listen stays behind.
+  // The band's title row gives the article its h1 alone: the print edition stays behind.
   const article = view.querySelector('[data-content] article')!;
   assert.equal(article.querySelector('h1.docs-page-title')?.textContent, 'Schnellstart', 'the band h1 opens the article');
-  assert.equal(article.querySelector('.docs-listen'), null, 'the band\'s Listen button is not carried into the article');
+  assert.equal(article.querySelector('.docs-edition'), null, 'the band\'s print edition is not carried into the article');
 
   view.remove();
 });
@@ -649,95 +664,15 @@ after(() => {
   dom.window.close();
 });
 
-test('Listen opens narration on demand, survives dismissal, and resets on the next page', async () => {
-  const spoken: string[] = [];
-  const speech = {
-    speaking: false,
-    paused: false,
-    speak: (u: SpeechSynthesisUtterance) => { spoken.push(u.text); speech.speaking = true; },
-    cancel: () => { speech.speaking = false; },
-    getVoices: () => [],
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  };
-  class Utterance {
-    text: string;
-    constructor(text: string) { this.text = text; }
-  }
-  Object.assign(globalThis, {
-    speechSynthesis: speech,
-    SpeechSynthesisUtterance: Utterance,
-    addEventListener: dom.window.addEventListener.bind(dom.window),
-    removeEventListener: dom.window.removeEventListener.bind(dom.window),
-    cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window),
-  });
-  Object.assign(dom.window, { speechSynthesis: speech });
+// The page narration (Listen) was removed on 2026-10-08. The reader must not offer it,
+// even where the browser has a speech API, and must leave the music player alone.
+test('the reader offers no Listen control and leaves an existing music player as it was', async () => {
+  Object.assign(dom.window, { speechSynthesis: { speak: () => {}, cancel: () => {}, getVoices: () => [] } });
   const cleanup = (view: HTMLElement): void => {
     (view as HTMLElement & { _cleanup?: () => void })._cleanup?.();
     view.remove();
   };
   try {
-    stubOkFetch();
-    const view = freshView();
-    await mountDocs(view, host, 'quickstart', 'de', '');
-    const listen = view.querySelector<HTMLButtonElement>('.docs-listen');
-    assert.ok(listen, 'device voice makes Listen available');
-    assert.equal(listen.textContent, 'Listen');
-    assert.equal(audioDock.isAudioDockVisible(), false, 'opening a page leaves the floating player hidden');
-    assert.equal(spoken.length, 0, 'opening a page does not start narration');
-    view.querySelector<HTMLElement>('#one')!.click();
-    assert.equal(spoken.length, 0, 'heading clicks cannot start narration while controls are hidden');
-
-    listen.click();
-    assert.equal(audioDock.isAudioDockVisible(), true);
-    assert.equal(audioDock.audioDockController()?.getCollapse(), 'full');
-    assert.ok(spoken.length > 0, 'Listen starts the page voice');
-    const count = spoken.length;
-    const close = audioDock.audioDockElement()?.querySelector<HTMLButtonElement>('[data-close-btn]');
-    assert.ok(close, 'the player has a close button');
-    close.click();
-    assert.equal(audioDock.isAudioDockVisible(), false, 'the player can be dismissed');
-    view.querySelector<HTMLElement>('#two')!.click();
-    assert.equal(spoken.length, count, 'dismissed controls also disable heading seeks');
-    listen.click();
-    assert.equal(audioDock.isAudioDockVisible(), true, 'Listen reopens the player');
-    assert.equal(spoken.length, count, 'reopening does not restart active narration');
-    cleanup(view);
-    assert.equal(speech.speaking, false, 'leaving the page stops its voice');
-
-    const landing = freshView();
-    stubOkFetch(LANDING_HTML);
-    await mountDocs(landing, host, 'index', 'de', '');
-    assert.ok(landing.querySelector('[data-content] > .docs-listen-actions .docs-listen'), 'the landing has an inline Listen button');
-    assert.equal(audioDock.isAudioDockVisible(), false, 'another docs page also starts with the player hidden');
-    cleanup(landing);
-
-    // A departed English page may still be waiting for its produced-audio index.
-    // Its late fallback must not cancel the next page's device voice.
-    let resolveIndex!: (value: Response) => void;
-    let indexRequested!: () => void;
-    const requested = new Promise<void>((resolve) => { indexRequested = resolve; });
-    stubOkFetch();
-    const regularFetch = globalThis.fetch;
-    globalThis.fetch = ((url, init) => {
-      if (String(url) !== '/info/audio-index.json') return regularFetch(url, init);
-      indexRequested();
-      return new Promise<Response>((resolve) => { resolveIndex = resolve; });
-    }) as typeof fetch;
-    const oldPage = freshView();
-    const oldMount = mountDocs(oldPage, host, 'quickstart', 'en', '');
-    await requested;
-    cleanup(oldPage);
-    const currentPage = freshView();
-    await mountDocs(currentPage, host, 'quickstart', 'de', '');
-    currentPage.querySelector<HTMLButtonElement>('.docs-listen')!.click();
-    assert.equal(speech.speaking, true);
-    resolveIndex(new Response('[]', { headers: { 'Content-Type': 'application/json' } }));
-    await oldMount;
-    assert.equal(speech.speaking, true, 'a late audio lookup cannot cancel the next page voice');
-    assert.equal(audioDock.isAudioDockVisible(), true, 'a late mount cannot hide the next page player');
-    cleanup(currentPage);
-
     let musicPlaying = true;
     const dock = audioDock.registerMusicSource({
       host: {
@@ -753,10 +688,10 @@ test('Listen opens narration on demand, survives dismissal, and resets on the ne
       const page = freshView();
       stubOkFetch();
       await mountDocs(page, host, 'quickstart', 'de', '');
+      assert.equal(page.querySelector('.docs-listen, .docs-listen-actions'), null, 'no Listen control is mounted');
       assert.equal(audioDock.isAudioDockVisible(), true, 'an existing Neurospicy player stays visible');
       assert.equal(dock.getCollapse(), size, 'the player keeps the size the user chose');
       assert.equal(musicPlaying, true, 'music continues playing');
-      assert.equal(speech.speaking, false, 'the new page voice waits for Listen');
       cleanup(page);
       assert.equal(audioDock.isAudioDockVisible(), true, 'leaving docs keeps the music player');
     }

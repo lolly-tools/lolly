@@ -73,7 +73,7 @@ import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { mountActionToolbar, actionButtonContent } from '../components/action-button.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml, projectLearningActionsHtml } from './projects-create.ts';
-import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsCardSizeAttr, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
+import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsGridAttrs, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
@@ -86,6 +86,8 @@ import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionS
 import type { TemplateActionHost } from '../lib/template-actions.ts';
 import { getSessionSource } from '../lib/session-source.ts';
 import { openRequestedTeamProject, openTeamProjects, createSharedProjectsView, type TeamProjectsDoor } from './projects-team.ts';
+import { projectsDropHooks } from './projects-drop.ts';
+import { onTeamMoveClick, teamMoveButtonHtml, wireLocalTeamDrops, type LocalProjectItem, type TeamTransferDeps } from './projects-team-transfer.ts';
 import { getCollabTileProvider, renderCollabBadge } from '../lib/collab-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
@@ -265,10 +267,11 @@ export async function mountProjects(
   }));
   let mounted = true;        // false after the view is swapped out (guards async renders)
   // The Team projects door (projects-team.ts; dormant without a session source).
-  const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted };
+  const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted, refresh: () => { if (mounted) void reload().then(render); } };
   const shared = createSharedProjectsView(teamDoor, viewEl, opts.params || '', render);
+  const teamMoves: TeamTransferDeps = { host, store, trash, mounted: () => mounted, selection: () => selected, refresh: async () => { if (mounted) { await reload(); render(); } } };
   const sharedProjectId = shared.projectId, sharedFolder = shared.active;
-  const sharedProjectsHtml = (q = '') => shared.rootHtml(q, viewMode === 'list', listHeadHtml(), projectsCardSizeAttr(), sortBy, sortRev);
+  const sharedProjectsHtml = (q = '') => shared.rootHtml(q, viewMode === 'list', listHeadHtml(), projectsGridAttrs(), sortBy, sortRev);
   let overlayModal: ModalHandle<any> | null = null;      // the move-picker / new-folder-name dialog, if open
   let releaseSearch: (() => void) | null = null;         // the shell search-bar claim (set in boot, below)
   let featuredHandle: FeaturedRowHandle | null = null; // the Uncategorised preview ribbon (drift/coverflow/grip), if mounted
@@ -636,7 +639,7 @@ export async function mountProjects(
       ${sharedProjectsHtml()}
       ${favourites.size && !list ? `<div class="projects-featured" data-fav-strip></div>` : ''}
       ${invite}
-      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${projectsCardSizeAttr()}>
+      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${projectsGridAttrs()}>
         ${list ? listHeadHtml() : ''}
         ${folderTiles}${/* "My library" names the loose block when folders sit above
           it (plans/170 keeping-model): the save dialog files here by that name,
@@ -683,7 +686,7 @@ export async function mountProjects(
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for {names}', { count: countText, names: escape(label) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = ms.map(e => sessionTile(e, sessionTileOpts(e))).join('');
-    return `${status}<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
+    return `${status}<div class="${gridClass}"${projectsGridAttrs()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
   }
 
   // The per-tile options every surface (root, folder, results) passes, so a tile
@@ -821,7 +824,7 @@ export async function mountProjects(
     const hasTiles = subfolders.length > 0 || sessions.length > 0 || images.length > 0;
     // Empty folder → a blank state inviting the two create actions (no grid at all).
     const body = hasTiles
-      ? `<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`
+      ? `<div class="${gridClass}"${projectsGridAttrs()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`
       : emptyFolderHtml(isUncat);
 
     return shell(title, 'projects', `${ribbon}${stripSwitch}${rail}${header}${body}`, { inFolder: true });
@@ -854,7 +857,7 @@ export async function mountProjects(
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for “{query}” in {scope}', { count: countText, query: escape(query), scope: escape(scope) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = [...mf.map(folderResultTile), ...ms.map(sessionResultTile)].join('');
-    return `${status}<div class="${gridClass}"${projectsCardSizeAttr()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
+    return `${status}<div class="${gridClass}"${projectsGridAttrs()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
   }
 
   // A search hit = the normal tile + a location breadcrumb beneath it. Reusing the shared
@@ -1232,7 +1235,7 @@ export async function mountProjects(
       profileMenu: { savedCount: entries.length, onHistory: () => { void openSavedSessionsDialog(entries, toolName); } },
     });
 
-    wireDrag(root);
+    wireDrag(root); wireLocalTeamDrops(root, teamMoves);
     if (folderId === TEMPLATES) tpl.wire(root, query);   // chips, the Hidden reveal, lazy previews
     mountUncatRibbon(root);
     mountFavStrip(root);
@@ -1255,15 +1258,9 @@ export async function mountProjects(
   function attachDrops(): void {
     void dropRouter.then((m) => {
       if (!mounted) return;
-      m.attachDropRouter(viewEl, host as unknown as PickerHost, {
-        onStored: (ids) => {
-          const target = currentFolderTarget();
-          void (async () => {
-            if (target) for (const id of ids) await store.addItem(target, { type: 'image', ref: id }).catch(() => {});
-            if (mounted) { await reload(); render(); }
-          })();
-        },
-      });
+      const picker = host as unknown as PickerHost, refresh = async () => { if (mounted) { await reload(); render(); } }, addToFolder = (id: string, ref: string) => store.addItem(id, { type: 'image', ref }).catch(() => {});
+      m.attachDropRouter(viewEl, picker, { ...projectsDropHooks({ host: picker, folderTarget: currentFolderTarget, addToFolder, refresh, mounted: () => mounted }),
+        onStored: (ids) => { const target = currentFolderTarget(); void (async () => { if (target) for (const id of ids) await addToFolder(target, id); await refresh(); })(); } });
     });
   }
 
@@ -1412,7 +1409,7 @@ export async function mountProjects(
     // Session, image AND real folder tiles are draggable (not the synthetic Uncategorised,
     // not the create tiles). A folder carries 'text/lolly-folder'; a session 'text/lolly-session';
     // an image 'text/lolly-image' - the kind lets the drop target pick store.moveItem's type.
-    root.querySelectorAll<HTMLElement>('.folder-tile[data-kind="session"], .folder-tile[data-kind="image"], .folder-tile--folder').forEach(tile => {
+    root.querySelectorAll<HTMLElement>('.folder-tile[data-kind="session"], .folder-tile[data-kind="image"], .folder-tile--folder:not(.folder-tile--shared)').forEach(tile => {
       const kind = tile.dataset.kind as SelectKind;   // 'folder' | 'session' | 'image'
       const mime = kind === 'folder' ? 'text/lolly-folder' : kind === 'image' ? 'text/lolly-image' : 'text/lolly-session';
       tile.setAttribute('draggable', 'true');
@@ -1647,7 +1644,7 @@ export async function mountProjects(
       // A folder can't move into itself or its own subtree - block those targets.
       const blocked = new Set([ref, ...descendantFolderIds(folders, ref)]);
       openMovePicker({
-        title: t('Move folder to…'), blocked,
+        title: t('Move folder to…'), blocked, items: [{ kind: 'folder', ref }],
         onPick: async (dest) => { await store.moveFolder(ref, dest); await reload(); render(); announce(t('Folder moved')); },
       });
     }
@@ -1656,10 +1653,11 @@ export async function mountProjects(
     else if (act === 'rename-session') startRenameSession(tileEl, ref);
     else if (act === 'duplicate-session') duplicateSession(ref);
     else if (act === 'save-session-template') await tpl.saveSessions([sessionSource(ref)], { ask: true });
-    else if (act === 'move') {
+    else if (act === 'move' || act === 'move-image') {
+      const kind = act === 'move' ? 'session' : 'image';
       openMovePicker({
-        title: t('Move to…'),
-        onPick: async (dest) => { await store.moveItem(ref, dest, 'session'); await reload(); render(); announce(t('Session moved')); },
+        title: t('Move to…'), items: [{ kind, ref }],
+        onPick: async (dest) => { await store.moveItem(ref, dest, kind); await reload(); render(); announce(kind === 'session' ? t('Session moved') : t('Image moved')); },
       });
     }
     else if (act.startsWith('course-')) await exportCourse(act.slice(7), ref);
@@ -1667,12 +1665,6 @@ export async function mountProjects(
     else if (act === 'share') { closeMenu(); await shareProjectFavourite(host, downloadView(), sessionSource(ref), announce); }
     else if (act === 'delete-session') { await trashSessions([ref]); }
     else if (act === 'open-image') openImagePreview(ref);
-    else if (act === 'move-image') {
-      openMovePicker({
-        title: t('Move to…'),
-        onPick: async (dest) => { await store.moveItem(ref, dest, 'image'); await reload(); render(); announce(t('Image moved')); },
-      });
-    }
     else if (act === 'delete-image') { await deleteImage(ref); }
   }
 
@@ -1876,7 +1868,7 @@ export async function mountProjects(
     });
   }
 
-  function openMovePicker({ title, blocked = new Set<string>(), onPick }: { title: string; blocked?: Set<string>; onPick: (dest: string | null) => void }): void {
+  function openMovePicker({ title, blocked = new Set<string>(), items = [], onPick }: { title: string; blocked?: Set<string>; items?: LocalProjectItem[]; onPick: (dest: string | null) => void }): void {
     closeMenu();
     let cursor: string | null = null; // current folder id (null = top level)
 
@@ -1906,7 +1898,7 @@ export async function mountProjects(
           }).join('') : `<p class="movepicker-empty">${t('No sub-folders here.')}</p>`}
         </div>
         <div class="movepicker-foot">
-          <button type="button" class="btn movepicker-newfolder"${canDropHere ? '' : ' disabled'}>${FOLDER_PLUS_ICON}<span>${t('New folder')}</span></button>
+          <button type="button" class="btn movepicker-newfolder"${canDropHere ? '' : ' disabled'}>${FOLDER_PLUS_ICON}<span>${t('New folder')}</span></button>${teamMoveButtonHtml(items)}
           <span class="projects-head-spacer"></span>
           <button type="button" class="btn movepicker-cancel">${t('Cancel')}</button>
           <button type="button" class="btn projects-render movepicker-confirm"${canDropHere ? '' : ' disabled'}>${t('Move to {name}', { name: curName })}</button>
@@ -1939,7 +1931,7 @@ export async function mountProjects(
       if (crumb) { cursor = crumb.dataset.cursor || null; redraw(); return; }
       const into = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-into]');
       if (into && !into.disabled) { cursor = into.dataset.into!; redraw(); return; }
-      if ((e.target as HTMLElement).closest('.movepicker-close, .movepicker-cancel')) { modal.close(); return; }
+      if ((e.target as HTMLElement).closest('.movepicker-close, .movepicker-cancel') || onTeamMoveClick(e, items, teamMoves, () => modal.close())) { modal.close(); return; }
       if ((e.target as HTMLElement).closest('.movepicker-confirm:not([disabled])')) { const dest = cursor; modal.close(); onPick(dest); return; }
       // "New folder" at the current level (WP-7): create it, drill into it, so the
       // move can land there in one trip. The prompt is its own modal; this one
@@ -2677,7 +2669,7 @@ export async function mountProjects(
     // Can't move a selected folder into itself or any selected folder's subtree.
     const blocked = new Set(folderIds.flatMap(id => [id, ...descendantFolderIds(folders, id)]));
     openMovePicker({
-      title: selected.size === 1 ? t('Move 1 item to…') : t('Move {n} items to…', { n: selected.size }), blocked,
+      title: selected.size === 1 ? t('Move 1 item to…') : t('Move {n} items to…', { n: selected.size }), blocked, items: [...selected].flatMap(([ref, kind]) => kind === 'template' ? [] : [{ ref, kind }]),
       onPick: async (dest) => {
         const n = selected.size;
         await applySelectionMove(dest);

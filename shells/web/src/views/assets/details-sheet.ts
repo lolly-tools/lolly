@@ -25,7 +25,7 @@ import { publishSiteInspection } from '../../lib/site-tools-context.ts';
 import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { destroyLottiePlayers, lottiePlayerFor, mountLottieMarker } from '../lottie-mount.ts';
-import { extractAssetMetadata } from '../../lib/asset-metadata.ts';
+import { extractAssetMetadata, leavesOriginalUnread } from '../../lib/asset-metadata.ts';
 import { analyzeVerifyText } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId, saveFavouriteAssets } from '../../lib/asset-favourites.ts';
@@ -40,11 +40,12 @@ import { derivePeaks } from '../../lib/audio-peaks.ts';
 import { songUrlToWavBlobUrl } from '../../lib/zzfxm-render.ts';
 import { modUrlToWavBlobUrl } from '../../lib/mod-render.ts';
 import { attachAudioMeter } from '../../lib/audio-meter.ts';
-import { applySuggestion, buildThemedAssetId, buildTreatedAssetId, extractC2paStore, humanizeText, licenceProfile, normaliseLicence, restyleIconTheme, rewordCandidates, verifyC2pa } from '@lolly/engine';
+import { applySuggestion, buildThemedAssetId, buildTreatedAssetId, extractC2paStore, humanizeText, restyleIconTheme, rewordCandidates, verifyC2pa } from '@lolly/engine';
 import type { RewordCandidate, } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { assetLicenceDeclaration, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
+import { licenceLabel, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
 import { lollyBadge } from '../../lib/lolly-badge.ts';
+import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
 import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
@@ -69,9 +70,8 @@ import { mountAssetFileList } from '../../components/asset-file-list.ts';
 export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   const meta = (ref.meta ?? {}) as AssetRightsMeta;
   const record = readAssetRightsRecord(meta.rights);
-  const declared = assetLicenceDeclaration(meta);
-  const normalised = declared ? normaliseLicence(declared) : null;
-  const profile = normalised?.id ? licenceProfile(normalised.id) : null;
+  const label = licenceLabel(meta);
+  const profile = label?.profile ?? null;
   const creators = (record?.creators ?? []).filter((party) => party.role !== 'publisher');
   const publisher = (record?.creators ?? []).find((party) => party.role === 'publisher');
   const credited = creators.map((party) => party.name).filter(Boolean).join(', ');
@@ -84,11 +84,8 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
     sourceUrl ? `<a href="${escapeText(sourceUrl)}" target="_blank" rel="noopener noreferrer">${t('Original work')}</a>` : '',
   ].filter(Boolean).join(' · ');
 
-  const licenceName = normalised?.id
-    ? `${profile?.name ?? normalised.id}${!profile?.name && normalised.version ? ` ${normalised.version}` : ''}`
-    : '';
-  const licenceCell = declared
-    ? `<span title="${escapeText(declared)}">${escapeText(licenceName || declared)}</span>`
+  const licenceCell = label
+    ? `<span title="${escapeText(label.declared)}">${escapeText(label.full)}</span>`
     : escapeText(t('Not recorded'));
 
   const credit = typeof meta.attribution === 'string' && meta.attribution.trim() ? meta.attribution.trim() : '';
@@ -106,7 +103,7 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   // destination that strips metadata. Plan section 7.1 gives a tile the
   // requirement and the proposed route; completion belongs to an output receipt,
   // and section 4.3 lets the finished sentence be said only after readback.
-  const using = !declared
+  const using = !label
     ? t('Licence not recorded.')
     : !profile?.reviewed
       ? t('Conditions recorded, not yet interpreted.')
@@ -552,7 +549,7 @@ export function buildSheet(dt: DetailsCtx): void {
 export function paintPassport(dt: DetailsCtx): void {
   const { PASSPORT_CRED_CACHE, TREATMENT_FILTER_PREFIX, cat, dlg, initialTheme, ref, showVerify, themable, treatable } = dt;
   const sourceRef = ref.source === 'remote' && ref.original ? { ...ref, url: ref.original.url, format: ref.original.format } : ref;
-  const skipAutomaticBytes = !!dt.formatViewer || Number(ref.meta?.bytes ?? ref.meta?.size ?? 0) >= 12_000_000 || !!ref.meta?.provider && !Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
+  const skipAutomaticBytes = !!dt.formatViewer || leavesOriginalUnread(ref);
   dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : 'checking');
   void (async () => {
     const cacheKey = `${ref.id}|${ref.version ?? 'x'}`;
@@ -605,9 +602,11 @@ export function paintPassport(dt: DetailsCtx): void {
   // than asserting it. Cheap gate first: fetch once, skip anything with no embedded
   // credential (most catalog art, and re-encoded user uploads whose store no longer
   // binds) before the heavier verify. Video/audio are skipped (a whole-file fetch just
-  // for a badge isn't worth it - the checker button still covers them). Guarded on the
+  // for a badge isn't worth it - the checker button still covers them). A large
+  // original is already left unread by skipAutomaticBytes, which exempts uploads, so
+  // a big Lolly export uploaded again still shows its lockup. Guarded on the
   // modal still being THIS dialog, since ←/→ paging swaps it out.
-  if (!skipAutomaticBytes && showVerify && ref.type !== 'video' && ref.type !== 'audio' && Number(ref.meta?.bytes ?? 0) < 12_000_000) {
+  if (!skipAutomaticBytes && showVerify && ref.type !== 'video' && ref.type !== 'audio') {
     void (async () => {
       try {
         const bytes = new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer());
@@ -1487,6 +1486,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     else if (act === 'recategorise') await cat.userAssets.recategorise(ref);
     else if (act === 'replace') await cat.userAssets.replaceUserAsset(ref);
     else if (act === 'rename') await cat.userAssets.renameUserAsset(ref);
+    else if (act === 'catalog-submit') openCatalogSubmit(uploadSubject(ref));
     else if (act === 'edit-tags') { await cat.userAssets.editTags([ref]); dt.openDetails(cat, cat.assetById.get(ref.id) ?? ref); }
     else if (act === 'hide') await cat.userAssets.setHidden(base, true);
     else if (act === 'unhide') await cat.userAssets.setHidden(base, false);

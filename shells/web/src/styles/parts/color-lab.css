@@ -626,6 +626,12 @@
 }
 @media (max-width: 30rem) {
   .labp-intents { display: grid; grid-template-columns: 1fr 1fr; }
+  /* The 2×2 block rounds its four outer corners, one per button. */
+  .labp-intents .view-seg-btn { border-radius: 0; }
+  .labp-intents .view-seg-btn:nth-child(1) { border-start-start-radius: var(--ui-radius-panel); }
+  .labp-intents .view-seg-btn:nth-child(2) { border-start-end-radius: var(--ui-radius-panel); }
+  .labp-intents .view-seg-btn:nth-child(3) { border-end-start-radius: var(--ui-radius-panel); }
+  .labp-intents .view-seg-btn:nth-child(4) { border-end-end-radius: var(--ui-radius-panel); }
 }
 .labp-intents .view-seg-btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 

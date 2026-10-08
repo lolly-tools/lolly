@@ -341,6 +341,33 @@ test('reanchor is safe to call before, during and after a roster', async () => {
   assert.equal(sidebar.querySelectorAll('.is-remote-focus').length, 0);
 });
 
+test('clicking a person follows their view through the real wiring, and Hide pointers hides their cursor', async () => {
+  const clock = fakeClock();
+  const transport = fakeHandle({ events: { subscribe: (fn) => { fn('live'); return () => {}; } } });
+  const { stage, canvas, collab } = await mount(clock, transport);
+  transport.arrive(peerFrame({ cursor: { x: 0.5, y: 0.5 }, viewport: { x: 1, y: 2, zoom: 1 } }));
+  const avatar = stage.querySelector<HTMLElement>('.collab-stack [data-client-id="PEER"]')!;
+  assert.equal(avatar.title, 'Follow Priya');
+  avatar.click();
+  assert.equal(collab.session.presence.self()?.following, 'PEER', 'following is published as presence');
+  assert.equal(stage.querySelector('.collab-follow-label')?.textContent, 'Following Priya');
+  assert.ok(stage.querySelector(':scope > .collab-follow-frame'), 'the stage is framed');
+  assert.equal(canvas.querySelector('.collab-follow-frame'), null, 'and the render surface is untouched');
+
+  const pointers = [...stage.querySelectorAll<HTMLButtonElement>('.collab-pill button')].find(b => b.getAttribute('aria-label') === 'Hide pointers')!;
+  assert.ok(pointers, 'the room controls offer Hide pointers');
+  assert.equal(stage.querySelectorAll('.collab-cursor').length, 1);
+  pointers.click();
+  assert.equal(stage.querySelectorAll('.collab-cursor').length, 0, 'the remote cursor is released');
+  assert.equal(stage.querySelectorAll('.collab-av').length, 2, 'avatars stay: it hides remote cursors only');
+  pointers.click();
+  assert.equal(stage.querySelectorAll('.collab-cursor').length, 1);
+
+  collab.teardown();
+  assert.equal(clock.armed(), 0, 'following leaves no timer behind');
+  assert.equal(stage.querySelector('.collab-follow-frame'), null);
+});
+
 // ── 3. teardown is complete ───────────────────────────────────────────────────
 
 test('teardown leaves ZERO timers, zero nodes and a sidebar byte-identical to before', async () => {

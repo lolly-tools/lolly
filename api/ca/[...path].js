@@ -554,13 +554,26 @@ var RedisRestRateLimiter = class {
   #url;
   #token;
   #fetch;
-  constructor({ url, token, fetchImpl = fetch }) {
+  #onWrite;
+  constructor({ url, token, fetchImpl = fetch, onWrite }) {
     this.#url = normalizeUrl(url);
     this.#token = token;
     this.#fetch = fetchImpl;
+    this.#onWrite = onWrite;
   }
   async consume(scope, subject, limit, windowMs) {
     validateBudget(limit, windowMs);
+    const finish = this.#onWrite?.();
+    try {
+      const result = await this.#consume(scope, subject, limit, windowMs);
+      finish?.(true);
+      return result;
+    } catch (error) {
+      finish?.(false);
+      throw error;
+    }
+  }
+  async #consume(scope, subject, limit, windowMs) {
     const key = `lolly:rl:${digest("ca", scope, subject)}`;
     let response;
     try {
@@ -600,11 +613,11 @@ var UnconfiguredRateLimiter = class {
   }
 };
 var UNCONFIGURED_REASON = "No durable CA rate limiter is configured for this hosted deployment: set CA_RATE_LIMIT_REST_URL + CA_RATE_LIMIT_REST_TOKEN (or the LOLLY_RATE_LIMIT_REST_* pair), or CA_ALLOW_IN_MEMORY_RATE_LIMIT=1 to accept per-instance limiting";
-function createRateLimiter(env) {
+function createRateLimiter(env, onWrite) {
   const url = String(env.CA_RATE_LIMIT_REST_URL || env.LOLLY_RATE_LIMIT_REST_URL || "").trim();
   const token = String(env.CA_RATE_LIMIT_REST_TOKEN || env.LOLLY_RATE_LIMIT_REST_TOKEN || "").trim();
   if (!!url !== !!token) throw new Error("CA rate-limit REST URL and token must be configured together");
-  if (url && token) return new RedisRestRateLimiter({ url, token });
+  if (url && token) return new RedisRestRateLimiter({ url, token, onWrite });
   const hosted = !!env.VERCEL || env.CA_HOSTED === "1" || env.NODE_ENV === "production";
   if (hosted && env.CA_ALLOW_IN_MEMORY_RATE_LIMIT !== "1") {
     console.warn(`[ca rate-limit] ${UNCONFIGURED_REASON}`);
@@ -905,9 +918,9 @@ async function route(env, req, url, path, limiter) {
   }
   return { status: 404, json: { error: "not found" } };
 }
-function createCaHandler(env = process.env) {
+function createCaHandler(env = process.env, { onWrite } = {}) {
   const caEnabled = !!(env.CA_SERVICE_SECRET || env.CA_ROOT_KEY_PEM);
-  const limiter = caEnabled ? createRateLimiter(env) : null;
+  const limiter = caEnabled ? createRateLimiter(env, onWrite) : null;
   return async function caHandler(req, res) {
     try {
       const url = new URL(req.url, "http://internal");

@@ -13,6 +13,9 @@
  *  3. Once /info is built, the English page links its edition and the offline docs
  *     manifest leaves editions out (they are megabytes each, and the reader offline
  *     already has the page).
+ *  4. The docs narration (Listen) was removed on 2026-10-08, so a built /info ships
+ *     no recordings, playlist, player bundle or Listen control. This guards against
+ *     the old pipeline coming back by accident.
  *
  * Run directly: node --test tests/docs-editions.test.ts
  */
@@ -56,14 +59,14 @@ test('docs/editions holds only files a page names', () => {
   }
 });
 
-test('the built English page preserves its print edition while Listen is withdrawn', (t) => {
+test('the built English page links its print edition', (t) => {
   for (const e of named) {
     const page = join(infoDir, e.pathway ?? '', `${e.slug}.html`);
     if (!existsSync(page)) { t.skip('no built /info on disk - run `pnpm run build:info`'); return; }
     const html = readFileSync(page, 'utf8');
-    const bar = /<div class="listen-bar[^"]*">([\s\S]*?)<\/div>/.exec(html)?.[1] ?? '';
-    assert.ok(bar.includes(`href="/info/editions/${e.pdf}"`), `${e.slug}: the listen bar does not link its edition`);
-    assert.ok(!html.includes('class="docs-listen"'), `${e.slug}: the withdrawn Listen control is still offered`);
+    const bar = /<div class="docs-edition-bar">([\s\S]*?)<\/div>/.exec(html)?.[1] ?? '';
+    assert.ok(bar.includes(`href="/info/editions/${e.pdf}"`), `${e.slug}: the edition bar does not link its edition`);
+    assert.ok(!html.includes('class="docs-listen"'), `${e.slug}: a removed Listen control is offered`);
     assert.ok(existsSync(join(infoDir, 'editions', e.pdf)), `${e.pdf} was not copied to /info/editions/`);
   }
 });
@@ -73,8 +76,12 @@ test('the offline docs manifest leaves print editions out', (t) => {
   if (!existsSync(manifest)) { t.skip('no built /info on disk - run `pnpm run build:info`'); return; }
   assert.ok(!readFileSync(manifest, 'utf8').includes('/info/editions/'), 'an edition is in the offline docs download');
   const built = JSON.parse(readFileSync(manifest, 'utf8'));
-  assert.deepEqual(built.groups.audio, [], 'withdrawn narration remains downloadable offline');
-  assert.ok(!existsSync(join(infoDir, 'audio')), 'narration recordings are still shipped');
-  assert.ok(!existsSync(join(infoDir, 'audio-index.json')), 'the narration playlist is still shipped');
-  assert.ok(!readdirSync(infoDir).some(f => /^docs-player.*\.(js|css)$/.test(f)), 'the withdrawn player is still shipped');
+  assert.equal(built.groups.audio, undefined, 'the offline manifest still has a narration group');
+  const narration = /^\/info\/(audio\/|audio-index\.json$|docs-player)/;
+  const files = Object.values(built.groups as Record<string, unknown>)
+    .flatMap((g) => (Array.isArray(g) ? g : Object.values(g as Record<string, unknown[]>).flat()) as { url: string }[]);
+  assert.ok(!files.some((f) => narration.test(f.url)), 'the offline manifest lists a narration file');
+  assert.ok(!existsSync(join(infoDir, 'audio')), 'narration recordings are shipped');
+  assert.ok(!existsSync(join(infoDir, 'audio-index.json')), 'the narration playlist is shipped');
+  assert.ok(!readdirSync(infoDir).some(f => /^docs-player.*\.(js|css)$/.test(f)), 'the narration player is shipped');
 });

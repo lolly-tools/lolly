@@ -47,6 +47,7 @@ import { registerProfileSection } from '../lib/profile-sections.ts';
 import { setExportPolicy } from '../lib/export-policy.ts';
 import { failClosedSitePolicy, setSitePolicy } from '../lib/site-policy.ts';
 import { registerApprovalOpener } from '../lib/approval-request.ts';
+import { registerCatalogSubmitter } from '../lib/catalog-submit.ts';
 import { getSessionWriter, registerSessionSource } from '../lib/session-source.ts';
 import { registerNearbyProvider } from '../lib/nearby.ts';
 import { createOrgNearbyProvider } from './nearby-source.ts';
@@ -67,6 +68,7 @@ import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, probeInstance, rememberAb
 // tiny embed.ts leaf. (Same direct-import pattern the bridge/* modules use.)
 import { parseToolUrl } from '../../../../engine/src/tool-url.ts';
 import { createInstanceSessionSource } from './session-source.ts';
+import { createSourceFiles } from './source-files.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { appPathname } from '../lib/any-site.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -269,6 +271,8 @@ let unregisterShareSection: (() => void) | null = null;
 /** Unregister for the approval-request opener, so a re-init replaces rather than
  *  leaks the previous registration. */
 let unregisterApprovalOpener: (() => void) | null = null;
+/** Unregister for "Submit to <workspace>" (lib/catalog-submit.ts), replaced on re-init. */
+let unregisterCatalogSubmitter: (() => void) | null = null;
 let unregisterSessionSource: (() => void) | null = null;
 /** Unregister for the Share-dialog "Team" section (save to a team project), so a
  *  re-init replaces the registration instead of stacking a second one. */
@@ -1099,6 +1103,20 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
           .then((m) => m.openApprovalDialog(rctx))
           .catch(() => { /* additive; never break the caller */ });
       });
+      // "Submit to <workspace>" on the member's own uploads, templates and tools,
+      // through the generic lib/catalog-submit.ts seam. `accepts` reads the live
+      // org-config, so the action follows a changed `can['catalog.submit']`; the
+      // dialog's module loads only when someone opens the dialog.
+      unregisterCatalogSubmitter?.();
+      unregisterCatalogSubmitter = registerCatalogSubmitter({
+        label: () => (workspaceName() ? tRaw('Submit to {name}', { name: workspaceName() }) : t('Submit to the catalog')),
+        accepts: () => orgConfig()?.can?.['catalog.submit'] === true,
+        open: (subject) => {
+          import('./catalog-submit.ts')
+            .then((m) => m.openCatalogSubmitDialog(subject, workspaceName()))
+            .catch(() => { /* additive; never break the caller */ });
+        },
+      });
       // Offer instance-hosted links in the Share dialog. Registered through the
       // generic lib/share-sections.ts seam (so the dialog stays control-plane-
       // unaware), with the heavy builder module lazy-imported only when a member
@@ -1119,7 +1137,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // project-creation options (can['project.create'], sharing.groups).
       unregisterSessionSource?.();
       unregisterSessionSource = registerSessionSource(
-        createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig()),
+        createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig(),
+          createSourceFiles(() => (session?.kind === 'member' ? session.user.sub : 'none'))),
       );
       // The signed-in member's linked sign-ins, as a card in the profile view's
       // instance section, through the generic lib/profile-sections.ts seam (so the
@@ -1315,6 +1334,8 @@ export function _resetOrgForTests(): void {
   unregisterShareSection = null;
   unregisterApprovalOpener?.();
   unregisterApprovalOpener = null;
+  unregisterCatalogSubmitter?.();
+  unregisterCatalogSubmitter = null;
   unregisterSessionSource?.();
   unregisterSessionSource = null;
   unregisterTeamShareSection?.();

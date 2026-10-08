@@ -21,7 +21,7 @@ import { rgbToCmyk } from '../../../../../engine/src/color.ts';
 import { categoryGlyph } from '../../lib/category-icons.ts';
 import type { PaletteEntry } from '../../palette.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, isThemable } from './shared.ts';
+import { ASSET_PAGE_SIZE, CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, isThemable, showMoreHtml } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { matchesAssetSource } from '../../lib/asset-source-tree.ts';
 import { providerBrowserHtml, providerGroups } from '../assets-provider.ts';
@@ -30,10 +30,11 @@ import { actionButtonContent } from '../../components/action-button.ts';
 /** Search and selection use every record; only the expensive tile DOM is batched. */
 export function assetGridHtml(cat: CatCtx, group: string, items: AssetRef[]): string {
   const scope = encodeURIComponent(JSON.stringify([group, cat.query, cat.typeFilter, cat.sourceSelection, cat.catSort, cat.catSortRev]));
-  const shown = Math.min(items.length, cat.assetPageSizes.get(scope) ?? 120);
-  const more = shown < items.length ? `<button type="button" class="btn btn--labelled cat-load-more" data-cat-more="${scope}" data-shown="${shown}">${actionButtonContent(t('Show more'), 'plus')}<span class="cat-page-count">${shown} / ${items.length}</span></button>` : '';
-  return `<div class="cat-grid">${items.slice(0, shown).map(cat.thumbs.assetTile).join('')}</div>${more}`;
+  const shown = Math.min(items.length, cat.assetPageSizes.get(scope) ?? ASSET_PAGE_SIZE);
+  if (shown < items.length) cat.assetPageItems.set(scope, items);
+  return `<div class="cat-grid">${items.slice(0, shown).map(cat.thumbs.assetTile).join('')}</div>${showMoreHtml(scope, shown, items.length)}`;
 }
+
 
 // The rules below live in ./assets-filter.ts - pure, DOM-free and unit-tested
 // (assets-filter.test.ts). This view keeps the mutable state; the module owns
@@ -183,7 +184,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   for (const group of connectedGroups) {
     const items = sortAssets(group.items, cat.catSort, cat.catSortRev);
     parts.push(cat.tiles.groupSection(group.key, `${group.source} · ${group.label}`, items.length,
-      assetGridHtml(cat, group.key, items)));
+      () => assetGridHtml(cat, group.key, items)));
   }
   for (const g of LIB_GROUPS) {
     const items = buckets.get(g.key) && sortAssets(buckets.get(g.key)!, cat.catSort, cat.catSortRev);
@@ -199,15 +200,15 @@ export function assetsSectionHtml(cat: CatCtx): string {
       : treatableGroup
         ? `<div class="cat-dl-section cat-group-colours"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(cat.catPhotoTreatment)}</div>`
         : '';
-    parts.push(cat.tiles.groupSection(g.key, g.label, items.length, colourRow + assetGridHtml(cat, g.key, items)));
+    parts.push(cat.tiles.groupSection(g.key, g.label, items.length, () => colourRow + assetGridHtml(cat, g.key, items)));
   }
   if (packItems.length) {
-    parts.push(cat.tiles.groupSection('emoji-sets', 'Emoji sets', packItems.length, assetGridHtml(cat, 'emoji-sets', packItems)));
+    parts.push(cat.tiles.groupSection('emoji-sets', 'Emoji sets', packItems.length, () => assetGridHtml(cat, 'emoji-sets', packItems)));
   }
   // Hidden assets never match a search (they're not in `visible`); keep them under a
   // dedicated group only in the normal (non-search) view.
   if (cat.showHidden && !cat.query && hiddenItems.length) {
-    parts.push(cat.tiles.groupSection('hidden', 'Hidden', hiddenItems.length, assetGridHtml(cat, 'hidden', sortAssets(hiddenItems, cat.catSort, cat.catSortRev))));
+    parts.push(cat.tiles.groupSection('hidden', 'Hidden', hiddenItems.length, () => assetGridHtml(cat, 'hidden', sortAssets(hiddenItems, cat.catSort, cat.catSortRev))));
   }
 
   // No asset matched the active filters → a clear empty line instead of a bare toolbar.

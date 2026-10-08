@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description xmlns:photo="http://ns.adobe.com/camera-raw-settings/1.0/"
+   photo:Name="Studio &amp; shade" photo:ProcessVersion="11.0"
+   photo:Exposure2012="0.75" photo:Contrast2012="12" photo:AlreadyApplied="True">
+   <photo:Saturation>-20</photo:Saturation>
+   <photo:Highlights2012>-35</photo:Highlights2012>
+   <photo:Temperature>5200</photo:Temperature>
+   <photo:CameraProfile>Adobe Color</photo:CameraProfile>
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>

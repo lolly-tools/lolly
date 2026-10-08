@@ -44,6 +44,20 @@ export function matchesType(asset: AssetRef, filter: TypeFilter): boolean {
   return filter === 'all' || (TYPE_FILTER_TYPES[filter]?.has(asset.type as string) ?? false);
 }
 
+/** The buckets in the order the filter bar shows them, which is also the Type sort's
+ *  order. The bar renders TYPE_FILTERS (views/assets/shared.ts) and the key order of
+ *  TYPE_FILTER_TYPES sets this list; assets-filter.test.ts pins the two together. */
+export const TYPE_BUCKETS = Object.keys(TYPE_FILTER_TYPES) as Exclude<TypeFilter, 'all'>[];
+
+/**
+ * The filter bucket an asset's type falls in, or null for a type no bucket
+ * admits (a palette or tokens document). The Type sort orders by this, so the
+ * order matches the filter bar and the Kind a list row shows.
+ */
+export function typeBucket(asset: Pick<AssetRef, 'type'>): Exclude<TypeFilter, 'all'> | null {
+  return TYPE_BUCKETS.find((bucket) => TYPE_FILTER_TYPES[bucket].has(asset.type as string)) ?? null;
+}
+
 /**
  * Assets the user has not hidden. Hidden-ness is keyed by BASE id, so hiding an
  * asset hides every modified variant of it (`<id>?theme=…`, `<id>?treatment=…`)
@@ -333,17 +347,40 @@ export function pruneSelection(selected: Set<string>, selectable: ReadonlySet<st
 export type CatSort = 'default' | 'name' | 'added' | 'modified' | 'size' | 'type';
 
 /**
- * When an asset was added. Uploads embed their mint time in the id
+ * When an upload was added. Uploads embed their mint time in the id
  * (`user/<kind>/<Date.now()>-…`), so every existing upload has a date with no
  * migration; a stored `meta.addedAt` (future writers) wins. Catalog assets
- * have no date - null, and they keep their curated order under a date sort
- * (Array.sort is stable).
+ * return null here, so the Last modified sort and the tile title leave them in
+ * their curated order (Array.sort is stable). Their own date is
+ * {@link catalogAddedAt}, which only the Date added sort reads.
  */
 export function assetAddedAt(ref: Pick<AssetRef, 'id' | 'meta'>): number | null {
   const meta = Number(ref.meta?.addedAt);
   if (Number.isFinite(meta) && meta > 0) return meta;
   const m = /^user\/[^/]+\/(\d{12,})(?:-|$)/.exec(ref.id);
   return m ? Number(m[1]) : null;
+}
+
+/**
+ * The day a catalog asset joined its brand pack, as the index carries it
+ * (`meta.added`, YYYY-MM-DD, stamped by build:catalog), read at noon UTC so a
+ * reader west of UTC is not given the day before. Null when there is none.
+ */
+export function catalogAddedAt(ref: Pick<AssetRef, 'meta'>): number | null {
+  const iso = typeof ref.meta?.added === 'string' ? ref.meta.added : '';
+  if (!iso) return null;
+  const at = new Date(`${iso}T12:00:00Z`).getTime();
+  return Number.isNaN(at) ? null : at;
+}
+
+/**
+ * The Date added sort's key: an upload's added time, else a catalog asset's
+ * pack date. Kept apart from {@link assetAddedAt} so that reading catalog dates
+ * stays a choice the person makes by picking this sort. The default sort
+ * (Last modified) keeps the curated catalog order (Andy, 2026-08-20).
+ */
+export function assetAddedSortKey(ref: Pick<AssetRef, 'id' | 'meta'>): number | null {
+  return assetAddedAt(ref) ?? catalogAddedAt(ref);
 }
 
 /** Last content modification: `meta.modifiedAt` (stamped by the bridge on every
@@ -355,22 +392,44 @@ export function assetModifiedAt(ref: Pick<AssetRef, 'id' | 'meta'>): number | nu
 }
 
 /**
+ * An asset's byte length: `meta.bytes` (an upload, stamped from its stored
+ * blob) or `meta.size` (a catalog entry, from the index). Each is read only
+ * when it is a finite, non-negative number, so a malformed `bytes` falls back
+ * to `size`. Null when neither is.
+ */
+export function assetByteSize(ref: Pick<AssetRef, 'meta'>): number | null {
+  for (const n of [ref.meta?.bytes, ref.meta?.size]) {
+    if (typeof n === 'number' && Number.isFinite(n) && n >= 0) return n;
+  }
+  return null;
+}
+
+/**
  * Sort a section's assets. 'default' preserves the curated manifest order
  * (uploads: newest-first from the bridge). Date sorts are newest-first with
- * dateless (catalog) assets keeping their relative order after the dated ones;
- * name/type are A→Z; size is largest-first. `reversed` (the view-options direction
- * toggle) flips the finished order, dateless assets included.
+ * dateless assets keeping their relative order after the dated ones: under
+ * Last modified that is every catalog asset, and under Date added it is only
+ * a catalog entry with no `added` date. Name is A→Z; size is largest-first;
+ * type follows the filter bar's buckets, then format, then name. `reversed`
+ * (the view-options direction toggle) flips the finished order, dateless
+ * assets included.
  */
 export function sortAssets(list: readonly AssetRef[], sortBy: CatSort, reversed = false): AssetRef[] {
   const arr = [...list];
   if (sortBy === 'default') return reversed ? arr.reverse() : arr;
   const name = (a: AssetRef): string => String(a.meta?.name ?? a.id).toLowerCase();
+  const bucketRank = (a: AssetRef): number => {
+    const bucket = typeBucket(a);
+    return bucket ? TYPE_BUCKETS.indexOf(bucket) : TYPE_BUCKETS.length;
+  };
   switch (sortBy) {
     case 'name': arr.sort((a, b) => name(a).localeCompare(name(b))); break;
-    case 'added': arr.sort((a, b) => (assetAddedAt(b) ?? -1) - (assetAddedAt(a) ?? -1)); break;
+    case 'added': arr.sort((a, b) => (assetAddedSortKey(b) ?? -1) - (assetAddedSortKey(a) ?? -1)); break;
     case 'modified': arr.sort((a, b) => (assetModifiedAt(b) ?? -1) - (assetModifiedAt(a) ?? -1)); break;
-    case 'size': arr.sort((a, b) => (Number(b.meta?.bytes) || 0) - (Number(a.meta?.bytes) || 0)); break;
-    case 'type': arr.sort((a, b) => String(a.format ?? a.type).localeCompare(String(b.format ?? b.type))); break;
+    case 'size': arr.sort((a, b) => (assetByteSize(b) ?? 0) - (assetByteSize(a) ?? 0)); break;
+    case 'type': arr.sort((a, b) => (bucketRank(a) - bucketRank(b))
+      || String(a.format ?? a.type).localeCompare(String(b.format ?? b.type))
+      || name(a).localeCompare(name(b))); break;
   }
   return reversed ? arr.reverse() : arr;
 }

@@ -30,3 +30,43 @@ test('transfer failures use queue actions while ordinary save feedback stays in 
     dispose(); assert.equal(notificationEntries().length, 0);
   } finally { _resetNotificationsForTests(); Object.assign(globalThis, previous); dom.window.close(); }
 });
+
+test('Hide pointers is a per-device choice that hides remote cursors only, and survives unavailable storage', () => {
+  const dom = new JSDOM('<div id="bar"></div>', { url: 'https://lolly.tools/' });
+  const previous = { window: globalThis.window, document: globalThis.document, HTMLElement: globalThis.HTMLElement };
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement });
+  try {
+    const hidden: boolean[] = [];
+    const pointers = { setHidden(value: boolean) { hidden.push(value); } };
+    const handle = { self: { clientId: 'person' } } as CollabSessionHandle;
+    const bar = dom.window.document.getElementById('bar')!;
+    const button = (): HTMLButtonElement => [...bar.querySelectorAll<HTMLButtonElement>('button')].find(b => /pointers/.test(b.getAttribute('aria-label') ?? ''))!;
+
+    const none = mountCollabControls(bar, handle);
+    assert.equal(bar.querySelector('button'), null, 'no cursor layer, no control');
+    none();
+
+    let dispose = mountCollabControls(bar, handle, undefined, pointers);
+    assert.equal(button().getAttribute('aria-label'), 'Hide pointers');
+    assert.deepEqual(hidden, [false], 'pointers start shown');
+    button().click();
+    assert.equal(button().getAttribute('aria-label'), 'Show pointers');
+    assert.deepEqual(hidden, [false, true]);
+    assert.equal(dom.window.localStorage.getItem('lolly.collab.pointers'), 'hidden');
+    dispose();
+    assert.equal(button(), undefined, 'teardown removes the control');
+
+    dispose = mountCollabControls(bar, handle, undefined, pointers);
+    assert.deepEqual(hidden.at(-1), true, 'the next document on this device starts with pointers hidden');
+    button().click();
+    assert.equal(dom.window.localStorage.getItem('lolly.collab.pointers'), null, 'showing them again forgets the choice');
+    dispose();
+
+    Object.defineProperty(dom.window, 'localStorage', { configurable: true, get() { throw new Error('blocked'); } });
+    dispose = mountCollabControls(bar, handle, undefined, pointers);
+    assert.equal(hidden.at(-1), false, 'blocked storage leaves pointers shown');
+    button().click();
+    assert.equal(hidden.at(-1), true, 'and the toggle still works for this document');
+    dispose();
+  } finally { Object.assign(globalThis, previous); dom.window.close(); }
+});

@@ -225,10 +225,21 @@
   "Couldn't read the transfer back.": "Die Übertragung konnte nicht zurückgelesen werden.",
   "Part of the transfer is missing.": "Ein Teil der Übertragung fehlt.",
   "The transfer was cancelled.": "Die Übertragung wurde abgebrochen.",
-  "View {name}": "{name} ansehen",
   "AI agent": "KI-Agent",
   "Pause agent": "Agent pausieren",
   "Resume agent": "Agent fortsetzen",
   "Disconnect agent": "Agent trennen",
-  "Paused": "Pausiert"
+  "Paused": "Pausiert",
+  "Follow {name}": "{name} folgen",
+  "Following {name}": "Sie folgen {name}",
+  "Stop following": "Nicht mehr folgen",
+  "You stopped following {name}.": "Sie folgen {name} nicht mehr.",
+  "{name} left. You stopped following.": "{name} ist gegangen. Sie folgen nicht mehr.",
+  "Followers: {count}": "Folgende: {count}",
+  "Following you": "Folgt Ihnen",
+  "{name} is following you": "{name} folgt Ihnen",
+  "{name} is presenting": "{name} präsentiert",
+  "Follow presentation": "Präsentation folgen",
+  "Following the presentation by {name}": "Sie folgen der Präsentation von {name}",
+  "Press Escape to stop following.": "Drücken Sie Escape, um nicht mehr zu folgen."
 }

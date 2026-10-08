@@ -31,7 +31,8 @@ import { galleryPreviewPriority } from '../lib/gallery-preview.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CSS = readFileSync(join(HERE, '..', 'styles', 'parts', 'gallery.css'), 'utf8');
-const VIEW = readFileSync(join(HERE, 'gallery.ts'), 'utf8');
+// The gallery is views/gallery.ts plus the tile markup it draws (views/gallery-tiles.ts).
+const VIEW = readFileSync(join(HERE, 'gallery.ts'), 'utf8') + readFileSync(join(HERE, 'gallery-tiles.ts'), 'utf8');
 
 const SLIDE_W = 300;
 

@@ -64,6 +64,76 @@ export function svgMarkupAnimated(markup: string): boolean {
   return SMIL_RE.test(markup) || KEYFRAMES_RE.test(markup) || CSS_ANIM_RE.test(markup);
 }
 
+// One SMIL animation element's opening tag, and the two attributes the loop reads.
+const SMIL_TAG_RE = /<(?:animate|animateTransform|animateMotion|animateColor|set)\b[^>]*>/gi;
+const DUR_ATTR_RE = /\bdur\s*=\s*["']([^"']+)["']/i;
+const FOREVER_RE = /\brepeat(?:Count|Dur)\s*=\s*["']\s*indefinite\s*["']/i;
+// A CSS animation declaration's value, up to the end of the declaration.
+const CSS_ANIM_DECL_RE = /\banimation\s*:\s*([^;}"]+)/gi;
+const CSS_TIME_RE = /(?:^|[\s,])(\d*\.?\d+)(ms|s)\b/i;
+/** The longest loop worth reporting; past it the parts never realign in a useful clip. */
+const MAX_LOOP_MS = 120_000;
+
+/** An SMIL clock value in ms: `8s`, `250ms`, a bare number of seconds, or `mm:ss` /
+ *  `hh:mm:ss`. 0 for anything else (including `indefinite` and `media`). */
+function smilClockMs(raw: string): number {
+  const v = raw.trim();
+  const unit = /^(\d*\.?\d+)\s*(h|min|s|ms)?$/i.exec(v);
+  if (unit) {
+    const n = Number(unit[1]);
+    const scale = { h: 3_600_000, min: 60_000, s: 1000, ms: 1 }[(unit[2] ?? 's').toLowerCase() as 'h' | 'min' | 's' | 'ms'];
+    return n * scale;
+  }
+  const clock = /^(?:(\d+):)?(\d+):(\d*\.?\d+)$/.exec(v);
+  if (clock) return ((Number(clock[1] ?? 0) * 60 + Number(clock[2])) * 60 + Number(clock[3])) * 1000;
+  return 0;
+}
+
+function gcd(a: number, b: number): number { while (b) [a, b] = [b, a % b]; return a; }
+
+/**
+ * How long one full loop of an animated SVG lasts, in ms, read off the markup;
+ * 0 when nothing in it repeats forever (a one-shot animation has no loop to report).
+ *
+ * The loop is the point where every forever-repeating animation is back at its start
+ * together: the least common multiple of their durations, taken in centiseconds so a
+ * `0.333s` cannot blow the multiple up. SMIL counts when it carries `repeatCount` or
+ * `repeatDur="indefinite"`; CSS counts for an `animation:` shorthand that says
+ * `infinite`. When the parts never realign inside {@link MAX_LOOP_MS}, the longest single
+ * duration is returned instead: still a usable length, though its end will not meet its start.
+ *
+ * Callers use it to give a moving picture a real length where they place it - a Design
+ * box gets a clip exactly one loop long, and a video of that clip ends where it began.
+ * Text-level like svgMarkupAnimated, so it is safe on untrusted markup.
+ */
+export function svgLoopMs(markup: string): number {
+  if (!markup) return 0;
+  const durs: number[] = [];
+  for (const tag of markup.match(SMIL_TAG_RE) ?? []) {
+    if (!FOREVER_RE.test(tag)) continue;
+    const d = DUR_ATTR_RE.exec(tag);
+    const ms = d ? smilClockMs(d[1]!) : 0;
+    if (ms > 0) durs.push(ms);
+  }
+  for (const m of markup.matchAll(CSS_ANIM_DECL_RE)) {
+    for (const part of m[1]!.split(',')) {
+      if (!/\binfinite\b/i.test(part)) continue;
+      const time = CSS_TIME_RE.exec(part);
+      const ms = time ? Number(time[1]) * (time[2]!.toLowerCase() === 'ms' ? 1 : 1000) : 0;
+      if (ms > 0) durs.push(ms);
+    }
+  }
+  if (!durs.length) return 0;
+  const longest = Math.max(...durs);
+  let lcm = 1;
+  for (const ms of durs) {
+    const cs = Math.max(1, Math.round(ms / 10));
+    lcm = (lcm / gcd(lcm, cs)) * cs;
+    if (lcm * 10 > MAX_LOOP_MS) return Math.round(longest);
+  }
+  return lcm * 10;
+}
+
 /**
  * Classify an asset-input value by its metadata alone (no fetch):
  *   - { kind, url } - playable now (video always; raster only when the runtime

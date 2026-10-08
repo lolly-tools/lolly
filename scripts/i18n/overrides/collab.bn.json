@@ -1,3 +1,14 @@
 {
-  "View {name}": "{name} দেখুন"
+  "Follow {name}": "{name}-কে ফলো করুন",
+  "Following {name}": "{name}-কে ফলো করছেন",
+  "Stop following": "ফলো বন্ধ করুন",
+  "You stopped following {name}.": "আপনি আর {name}-কে ফলো করছেন না।",
+  "{name} left. You stopped following.": "{name} চলে গেছেন। আপনি আর ফলো করছেন না।",
+  "Followers: {count}": "ফলোয়ার: {count}",
+  "Following you": "আপনাকে ফলো করছেন",
+  "{name} is following you": "{name} আপনাকে ফলো করছেন",
+  "{name} is presenting": "{name} প্রেজেন্ট করছেন",
+  "Follow presentation": "প্রেজেন্টেশন ফলো করুন",
+  "Following the presentation by {name}": "{name}-এর প্রেজেন্টেশন ফলো করছেন",
+  "Press Escape to stop following.": "ফলো বন্ধ করতে Escape চাপুন।"
 }

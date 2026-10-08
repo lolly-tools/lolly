@@ -55,7 +55,7 @@
 import { mountDesignRules } from './design-rules.ts';
 import { registerCollabSurface } from '../lib/collab-surface.ts';
 import { canvasProjection } from './canvas-projection.ts';
-import { revealCanvasPeer } from './free-canvas/peer-view.ts';
+import { canvasSurfaceView, revealCanvasPeer } from './free-canvas/peer-view.ts';
 import { disposeCanvasInteractions } from './free-canvas/collaboration.ts';
 import { boxRect, sequenceFramesInOrder } from './free-canvas-math.ts';
 import type { Box } from './free-canvas-math.ts';
@@ -2076,6 +2076,15 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // rows the inspector handed it, so moving the canvas selection under the dialog
     // would only change what the user comes back to.
     openStudio: (ids) => { void fc.objects.openStudio(ids); },
+    // A placed tool's own inputs, in the inspector beside the board (design-inspector's
+    // Tool section), and the section's door to a different picture.
+    mountToolSettings: (slot, id) => fc.objects.mountToolSettings(slot, id),
+    replaceImage: (ids) => {
+      if (!ids.length) return;
+      fc.selection = new Set(ids);
+      fc.chromeSync.renderChrome();
+      void fc.objects.pickImage({ replace: true });
+    },
     refreshWebPoster: (ids, onlyComposed) => { void fc.objects.refreshWebPoster(ids, onlyComposed); },
     editWebTool: (ids) => { void fc.objects.editWebTool(ids); },
     useWebPage: (ids) => fc.objects.useWebPage(ids),
@@ -2167,7 +2176,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   });
   const projection = canvasProjection(canvasEl, () => fc.select.getBoxes(), cfg);
   const unregisterCollabSurface = registerCollabSurface(runtime, {
-    revealPeer: state => revealCanvasPeer(fc, state),
+    revealPeer: state => revealCanvasPeer(fc, state), ...canvasSurfaceView(fc),
     collection: blockId,
     object: id => {
       const boxes = fc.select.getBoxes(), index = fc.select.indexOfId(boxes, id);

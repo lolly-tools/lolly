@@ -152,6 +152,9 @@ web:
 # your catalog. Like the web image, its tools/catalog are baked at build time.
 mcp:
   enabled: false
+  # The application refuses a successful drain after 300s rather than killing
+  # unfinished work. Kubernetes retains a separate final termination deadline.
+  terminationGracePeriodSeconds: 330
 
   replicaCount: 2
 
@@ -201,7 +204,8 @@ mcp:
     timeoutSeconds: 3
     failureThreshold: 3
   readinessProbe:
-    tcpSocket:
+    httpGet:
+      path: /readyz
       port: http
     initialDelaySeconds: 5
     periodSeconds: 10
@@ -241,6 +245,7 @@ mcp:
 # `ca.existingSecret` (recommended for production - see below).
 ca:
   enabled: false
+  terminationGracePeriodSeconds: 330
 
   replicaCount: 2
 
@@ -291,7 +296,7 @@ ca:
     failureThreshold: 3
   readinessProbe:
     httpGet:
-      path: /api/ca/health
+      path: /readyz
       port: http
     initialDelaySeconds: 3
     periodSeconds: 10

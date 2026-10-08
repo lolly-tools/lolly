@@ -1,0 +1,16 @@
+{
+  "id": "motion-warm",
+  "name": "Motion · Warm editorial",
+  "description": "Soft highlights and warm colour, with grain off for repeating clips.",
+  "values": {
+    "filmLook": "portrait",
+    "temperature": 4,
+    "contrast": 8,
+    "highlights": -12,
+    "shadows": 8,
+    "saturation": 95,
+    "grain": 0,
+    "vignette": 0
+  },
+  "category": "Motion looks"
+}

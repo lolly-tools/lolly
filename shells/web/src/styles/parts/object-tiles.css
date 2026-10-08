@@ -78,10 +78,11 @@
 .tile-sub { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
 
 /* Selection is a sibling button, above the card's open target. All views reveal
-   it on hover, keyboard focus, touch, or while a selection is active. */
+   it on hover, keyboard focus, touch, or while a selection is active. The inset is
+   logical, so the dot sits at the inline start and mirrors in a right-to-left page. */
 .tile-check,
 .cat-check {
-  position: absolute; left: 6px; z-index: 3;
+  position: absolute; inset-inline-start: 6px; z-index: 3;
   display: inline-flex; align-items: center; justify-content: center;
   width: var(--object-check-size); height: var(--object-check-size); padding: 0;
   border: 2px solid #fff; border-radius: var(--ui-radius-choice-round);

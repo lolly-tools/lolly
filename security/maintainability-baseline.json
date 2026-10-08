@@ -28,15 +28,15 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4468,
+      "lines": 4466,
       "largestFunctionLines": 647,
       "importFanIn": 27,
       "importFanOut": 65,
       "typeEscapes": 60
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1723,
-      "largestFunctionLines": 1033,
+      "lines": 1730,
+      "largestFunctionLines": 1018,
       "importFanIn": 6,
       "importFanOut": 33,
       "typeEscapes": 13
@@ -69,39 +69,46 @@
       "importFanOut": 11,
       "typeEscapes": 68
     },
-    "shells/web/src/views/gallery.ts": {
-      "lines": 1957,
-      "largestFunctionLines": 1754,
+    "shells/web/src/views/design-inspector.ts": {
+      "lines": 1589,
+      "largestFunctionLines": 2103,
       "importFanIn": 1,
-      "importFanOut": 64,
+      "importFanOut": 20,
+      "typeEscapes": 0
+    },
+    "shells/web/src/views/gallery.ts": {
+      "lines": 1789,
+      "largestFunctionLines": 1747,
+      "importFanIn": 1,
+      "importFanOut": 67,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2438,
-      "largestFunctionLines": 2110,
-      "importFanIn": 28,
-      "importFanOut": 66,
+      "lines": 2352,
+      "largestFunctionLines": 2037,
+      "importFanIn": 31,
+      "importFanOut": 67,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2069,
-      "largestFunctionLines": 2740,
+      "lines": 2061,
+      "largestFunctionLines": 2730,
       "importFanIn": 1,
-      "importFanOut": 54,
+      "importFanOut": 57,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
       "lines": 2835,
       "largestFunctionLines": 2085,
-      "importFanIn": 7,
+      "importFanIn": 8,
       "importFanOut": 37,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1532,
-      "largestFunctionLines": 1578,
+      "lines": 1533,
+      "largestFunctionLines": 1581,
       "importFanIn": 1,
-      "importFanOut": 63,
+      "importFanOut": 64,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
@@ -299,7 +306,6 @@
     "shells/web/src/lib/design-system/switch.ts": 3,
     "shells/web/src/lib/design-system/type-compare.ts": 2,
     "shells/web/src/lib/design-system/versions-io.ts": 4,
-    "shells/web/src/lib/docs-narration-host.ts": 1,
     "shells/web/src/lib/drop-router.ts": 16,
     "shells/web/src/lib/dropbox-send.ts": 3,
     "shells/web/src/lib/extensions.ts": 1,

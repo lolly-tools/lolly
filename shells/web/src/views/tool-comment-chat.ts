@@ -5,8 +5,9 @@ import { collabInitials } from '../lib/collab-identity.ts';
 import type { CollabSession } from '../lib/collab-session.ts';
 import type { CollabColor } from '../lib/collab-colors.ts';
 import type { CommentMessage } from '@lolly-tools/core/canvas-review-v1';
-import { currentLang } from '../i18n.ts';
+import { currentLang, tRaw } from '../i18n.ts';
 import { paintAccountAvatar } from '../lib/account-headshots.ts';
+import { mentionSegments, mentionsOf } from './tool-comment-mentions.ts';
 
 const controls: Record<string, IconName> = {
   'Comments': 'messageCircle', 'Close comments': 'close', 'Pin a comment': 'pin',
@@ -62,4 +63,16 @@ export function commentBubble(doc: Document, message: CommentMessage, color: str
   if (Number.isFinite(date.getTime())) { time.textContent = new Intl.DateTimeFormat(currentLang(), { hour: 'numeric', minute: '2-digit' }).format(date); time.title = date.toLocaleString(currentLang()); }
   meta.append(author, time); bubble.append(meta); article.append(commentAvatar(doc, message.authorName, color, message.authorId), bubble);
   return { article, bubble };
+}
+
+/** A message body as text nodes; each stored mention is a `<strong>` holding only its own text. */
+export function commentText(doc: Document, message: CommentMessage, deleted: string): HTMLParagraphElement {
+  const body = doc.createElement('p');
+  if (message.deletedAt) { body.textContent = deleted; return body; }
+  for (const part of mentionSegments(message.body, mentionsOf(message))) {
+    if (!part.mention) { body.append(doc.createTextNode(part.text)); continue; }
+    const mention = doc.createElement('strong'); mention.className = 'collab-comment-mention'; mention.textContent = part.text;
+    mention.title = tRaw('Mention of {name}', { name: part.mention.name }); body.append(mention);
+  }
+  return body;
 }

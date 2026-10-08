@@ -1,8 +1,8 @@
 {
   "alg": "ECDSA-P256-SHA256",
   "keyId": "5zVngG6s-652_L8Zdok5PTfQ6vxdPAYfcpBWxMtzs5c",
-  "signedAt": "2026-10-06T14:09:37.740Z",
-  "indexHash": "f0115ee51ee584b27a8176574e55079efb1370677d3694be4fbec729d564d419",
+  "signedAt": "2026-10-07T21:14:36.198Z",
+  "indexHash": "56853304c09b2cb8ad6a9bd3d08cccd9687ba45fef976e0cb7072ae5727a48c1",
   "files": {
     "3d/tool.json": "4785299047e8bd29552b7f5563bbc1e957b781c7b99bce640df782415db653b5",
     "3d/template.html": "e1aa2cbac3d90b8baa02aa0aed868db68d68f83f0bcf417bf06905502fd23c74",
@@ -668,7 +668,7 @@
     "countdown-timer/i18n/vi.json": "0c48ad3eefffebe8743929c1cd7441263bdb60f7107566cbcde482600a591c8b",
     "countdown-timer/i18n/zh-hant.json": "a54d0d9a954908c85b0e4f409ebf7828255d3b5707dcefee1b8a9c791b9ef413",
     "countdown-timer/i18n/zh.json": "5f9843a726f47bc51f793191b98fb28d21e9efc1c6bded2e464bcc5800aade3a",
-    "darkroom/tool.json": "857b355aa37a8b095131a433f28393a4230f74c9a0889703e657961e6abbf569",
+    "darkroom/tool.json": "6984fe2948f6a8f86447e8db0ec1edc495f89a9f272e26fe66893b3f8f0667e2",
     "darkroom/template.html": "5684fdc5316019d00216aa2dd2229446cc7b628dfea7beb33b4d132984758dbd",
     "darkroom/styles.css": "aa5e16761609191f2ec3f2b14176311f94dfa31a3e920ac3089d4d45aca67714",
     "darkroom/hooks.js": "80729a1edda311d9c9e5f30c8f27ff2744ce432582642460fb74c5840f93e69b",
@@ -699,6 +699,9 @@
     "darkroom/i18n/zh-hant.json": "f748542d76d02dbd5552f1555abc6ef636426cd978aa1f2a952825824dd67310",
     "darkroom/i18n/zh.json": "799c445b03031f298684b0600c9c320129569fb8a84fab8aeee32cd93f10ea16",
     "darkroom/templates/brand-starter.json": "d8700dc766f40902a2fc5ca5c6ba77b0507d4ced41e689ae1334cca22b627d87",
+    "darkroom/templates/motion-clean.json": "e3b43c7d4a82913a3d153bd0e250b19086dfde8d2f760332b43a96680ca1df1f",
+    "darkroom/templates/motion-mono.json": "6ca0df3835e92a545d2be6b8be3db476c2f7442a83037965439e4b681074742c",
+    "darkroom/templates/motion-warm.json": "e658eb578a04840ed0e7d5eb4a9a3aeaf022435168c16e49c784c05cdd4c4900",
     "deck-studio/tool.json": "da02e8f7b3440f2d1b9d5453f6860f7c8aaa7b366f3b0cd8ddebcc0ca612f176",
     "deck-studio/template.html": "b9b7cc0aaea66110d06f0e966cd9172d95e08b5c0114dab3cf8304f6a853ea3b",
     "deck-studio/styles.css": "8de0a2b5510a53487cb913a99657bfec6c6f3965131613ccf8b563be4fb8da47",
@@ -729,10 +732,10 @@
     "deck-studio/i18n/vi.json": "01dbaf7e3f8d8960036e68de33749e1af69c20a919b76f17c6113534ba5b8ca3",
     "deck-studio/i18n/zh-hant.json": "b1e19efe230a792fe9b44a34ecd737519dddea41e2be2895b815d2f0d2101e7d",
     "deck-studio/i18n/zh.json": "a75a2b8ef68e3d05851f281b47084c697457c73402ff1718e43ff3703c1311d0",
-    "design/tool.json": "12b5ffb6ce2f0732a9803afb2e9ce86a9d4f4a7abc07d5e9219bc7b8bf06923d",
+    "design/tool.json": "af8c5457569ee4c2164e4df100aa516d9210fca02648e1b1dd9ee8fe1d306dfb",
     "design/template.html": "2f28fafca018d9a4dc12e3cebf30a2b07d3ed8b325dcaf25b82c85a7b3a81a75",
-    "design/styles.css": "7e248f48bc8ec20460b4a8dd2a601bfa0bf11110948389d6ecd5ab259844b0a6",
-    "design/hooks.js": "d5265611ed5e7bf209f4b768d2c31c5c2dbd0b4e388e3779d3e178710c18447c",
+    "design/styles.css": "7160668b9e0c6a7feaebd52dc5608718126a09e38d3e2476a8d7cdbc2cb660fb",
+    "design/hooks.js": "d53a2932feab0f60e2c0a7adb8c54cc09565ea2bf9604af5c86637eab5063270",
     "design/i18n/ar.json": "7241ab957fba8b8915361b8a6f88d2f03b68db4be7419c52bcafb12203efbdf6",
     "design/i18n/bg.json": "e21d92c67ec0c40bfb843c6f4b6cdadc23d0e596cb3cbd80e33394e382775b34",
     "design/i18n/bn.json": "53103c6e7df4a06927ad0d9699a835c0b2b8a4d08467db5c37113daf909a0a29",
@@ -770,6 +773,9 @@
     "design/templates/launch-snap.json": "b1a72a3b5f12d84b35a1113fa7137fb968e96e82ed184d5f1d6c75ea9949dbb2",
     "design/templates/launch-teaser.json": "968aeca8b187a3f256ab4d8d4548f89cda5712f0b23e66a6af2a0aacbd62c7cd",
     "design/templates/meeting-background.json": "b8f432e24b8130fd99394bf0aad4a3a5f3f177679b4f156e59659404fbafde11",
+    "design/templates/motion-editorial-loop.json": "b17e533b388ab6046ac490b105d4355f8f5d388257327a18fa28ed7ccbcd2b8c",
+    "design/templates/motion-feature-loop.json": "f842c948c4530998551753191d5049f9933bcf67cfb40ee75c97f5a42c013615",
+    "design/templates/motion-photo-loop.json": "c9dfe1cc274661d354cf890d0f6dfa5ca141b1ae7f04a6e9079d6103c123313b",
     "design/templates/poster.json": "4cd732d9bd0e927f7221abc3c51bdcf26d6cd6ee29cbad259802c800289758da",
     "design/templates/publishing-field-notes.json": "6415d98d06e44df3b29f24ef1b8090cf36458b8497cd46716b48ffc3a52f30f1",
     "design/templates/publishing-long-read.json": "13e963a8eeadf16871108c6832ba5b5bb082cc20a47864fca7e0470a7d529bba",
@@ -2172,5 +2178,5 @@
     "work-avatar/i18n/zh.json": "8aed0e349e295ce4e1d2e7d204494687805e9a815d1ff968f2156e0ae6d4aaca",
     "work-avatar/templates/brand-starter.json": "51e781f09fdb62fbee21e3019c3df7172e4c2f87fe6310fd477c2a3275e9d12c"
   },
-  "signature": "FMC-CMjAO4LsCTszNIKiWyxoCyYRc-H51w8qBOzhl6ptE16YZzKc6S8yUfCwGjBonYhR4A5TV0BU1HqdhloLpQ"
+  "signature": "tMxzb15_8WfG8cyAOshqEAXbuSrzbvuGCcGX9kInwcQIRHlI612V7xkI3zbxmlgJCejSZUFFxL_a-zMdaWhHIw"
 }

@@ -40,6 +40,11 @@ import { resolve } from 'node:path';
 import { createTokenSet, colorToHex } from '../engine/src/tokens.ts';
 import { createSvgRasterizer } from '../scripts/lib/rasterize-svg-browser.ts';
 import { stampBitmap } from '../scripts/lib/stamp-media.ts';
+import { siteUrl } from '../scripts/lib/site-url.ts';
+
+// The site name printed in every card's footer: lolly.tools, or the host of
+// LOLLY_SITE_URL for an instance's own build, so a card shows where its link goes.
+const FOOTER_HOST = new URL(siteUrl()).host;
 
 // A self-contained SVG string → PNG bytes, at the given size. Injected into each card
 // renderer so they rasterise through the browser path (createSvgRasterizer) - a missing
@@ -399,7 +404,7 @@ export function createToolCardRenderer(rasterize: SvgToPng, chrome: BrandChrome)
     }
 
     // Footer.
-    out.push(`<text x="${M}" y="${OG_H - 54}" font-family="SUSE" font-weight="500" font-size="24" fill="${chrome.footer}">lolly.tools</text>`);
+    out.push(`<text x="${M}" y="${OG_H - 54}" font-family="SUSE" font-weight="500" font-size="24" fill="${chrome.footer}">${FOOTER_HOST}</text>`);
 
     out.push(`</svg>`);
     return out.join('');
@@ -505,7 +510,7 @@ export function createViewCardRenderer(rasterize: SvgToPng, chrome: BrandChrome)
     }
 
     // Footer.
-    out.push(`<text x="${M}" y="${OG_H - 44}" font-family="SUSE" font-weight="500" font-size="24" fill="${chrome.footer}">lolly.tools</text>`);
+    out.push(`<text x="${M}" y="${OG_H - 44}" font-family="SUSE" font-weight="500" font-size="24" fill="${chrome.footer}">${FOOTER_HOST}</text>`);
 
     out.push(`</svg>`);
     return out.join('');

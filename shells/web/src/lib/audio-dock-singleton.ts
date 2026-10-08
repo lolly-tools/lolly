@@ -1,29 +1,26 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The app-global SINGLETON audio dock - ONE draggable/resizable window on document.body
- * that BOTH the music player and the docs narration reader feed, so the user never sees
- * two competing windows (plan "this-is-a-very-sparkling-eich", unification pass).
+ * for the music player (plan "this-is-a-very-sparkling-eich", unification pass).
  *
- * COEXIST model: page voice + music can sound AT THE SAME TIME. The one window carries a
- * NARRATION block (page voice: play/scrub/follow/speed) up top and the MUSIC player below
- * (transport + Music/Effects mixer + Tracks/Atmosphere/Visualiser). Each is optional.
+ * The window carries the MUSIC player (transport + Music/Effects mixer +
+ * Tracks/Atmosphere/Visualiser). The docs reader's page narration also registered here
+ * until that feature was removed on 2026-10-08; the package keeps its optional narration
+ * block for a future source.
  *
- * Sources REGISTER into a stable `ComposedHost` that the dock is built over once:
- *   - components/neuro-dock.ts registers the MUSIC source (flag-gated on neurospicy) as the
- *     flat DockHost (transport + sources/atmosphere/viz/volumes/repeat).
- *   - views/docs.ts registers the NARRATION source (content-gated) as `narrationBlock`.
- * Unregistering removes that block; when no source remains the window hides. The window,
- * its drag position + size, and its collapse pref are shared across both.
+ * The source REGISTERS into a stable `ComposedHost` that the dock is built over once:
+ * components/neuro-dock.ts registers the MUSIC source (flag-gated on neurospicy) as the
+ * flat DockHost (transport + sources/atmosphere/viz/volumes/repeat). Unregistering it
+ * hides the window. The window, its drag position + size, and its collapse pref persist.
  *
- * The audio ENGINES (lib/neurospicy.ts, docs-narration-host's own <audio>) are untouched - 
- * this only owns the shared shell + composition.
+ * The audio ENGINE (lib/neurospicy.ts) is untouched - this only owns the shared shell +
+ * composition.
  */
 import {
   createAudioDock,
   type DockController,
   type DockCapabilities,
   type DockHost,
-  type DockNarrationPlayer,
   type DockNowPlaying,
   type DockSources,
   type DockAtmosphere,
@@ -102,12 +99,11 @@ const placement = {
 
 /**
  * The stable DockHost the dock is built over. Its flat transport + music adapters delegate
- * to the registered MUSIC source (or no-op when none); `narrationBlock` surfaces the
- * registered NARRATION source. Registering/unregistering just swaps a field + emits.
+ * to the registered MUSIC source (or no-op when none). Registering/unregistering just
+ * swaps a field + emits.
  */
 class ComposedHost implements DockHost {
   private musicSrc: DockHost | null = null;
-  private narrSrc: DockNarrationPlayer | null = null;
   private readonly listeners = new Set<() => void>();
   private musicUnsub: (() => void) | null = null;
 
@@ -119,10 +115,7 @@ class ComposedHost implements DockHost {
     if (m) this.musicUnsub = m.onChange(() => this.emit());
     this.emit();
   }
-  setNarration(n: DockNarrationPlayer | null): void { this.narrSrc = n; this.emit(); }
   hasMusic(): boolean { return !!this.musicSrc; }
-  hasNarration(): boolean { return !!this.narrSrc; }
-  hasAny(): boolean { return !!this.musicSrc || !!this.narrSrc; }
 
   // ── flat transport (the MUSIC block; no-ops when no music registered) ──
   isPlaying(): boolean { return this.musicSrc?.isPlaying() ?? false; }
@@ -146,7 +139,6 @@ class ComposedHost implements DockHost {
   get repeat(): DockRepeat | undefined { return this.musicSrc?.repeat; }
   get volume(): DockVolume | undefined { return this.musicSrc?.volume; }
   get volumes(): DockVolume[] | undefined { return this.musicSrc?.volumes; }
-  get narrationBlock(): DockNarrationPlayer | undefined { return this.narrSrc ?? undefined; }
 
   private emit(): void {
     for (const l of this.listeners) { try { l(); } catch { /* one bad listener never blocks the rest */ } }
@@ -266,33 +258,16 @@ export function registerMusicSource(reg: MusicRegistration): DockController {
   return d.controller;
 }
 
-/** Remove the MUSIC source (mode off). Hides the window unless narration remains. */
+/** Remove the MUSIC source (mode off) and hide the window. */
 export function unregisterMusicSource(): void {
   if (!composed || !controller) return;
   musicOnClose = null;
   composed.setMusic(null);
   controller.setCapabilities(musicCaps());
-  if (!composed.hasNarration()) hideAudioDock();
-  else controller.refresh();
+  hideAudioDock();
 }
 
-/** Prepare page narration without opening or resizing the window. The reader's Listen
- *  button opens it; an existing music player keeps its visibility and size. */
-export function registerNarrationSource(block: DockNarrationPlayer): void {
-  const d = ensureDock();
-  d.composed.setNarration(block);
-  d.controller.refresh();
-}
-
-/** Remove the NARRATION source (left the reader). Hides the window unless music remains. */
-export function unregisterNarrationSource(): void {
-  if (!composed || !controller) return;
-  composed.setNarration(null);
-  if (!composed.hasMusic()) hideAudioDock();
-  else controller.refresh();
-}
-
-/** Show the shared window for music or an explicit Listen action. */
+/** Show the shared window. */
 export function showAudioDock(): void {
   const d = ensureDock();
   d.el.classList.remove('is-hidden');

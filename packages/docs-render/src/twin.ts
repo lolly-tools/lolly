@@ -87,11 +87,7 @@ export function stripLogoMarkers(md: string): string {
 // furniture: on the page it renders as a row of pills. In the agent-readable
 // twin we keep the credit but move it into an HTML comment, markers unwrapped.
 // This way an agent still sees the provenance, and the twin ships no raw `%kind{`
-// noise (tests/docs-provenance-pills.test.ts). It also keeps the narration
-// correct: a comment-only line extracts to empty spoken text, matching how the
-// SOURCE pipeline (scripts/lib/docs-spoken-text.ts) skips the same `%file{…}`
-// line. So the audio and the player's twin-derived follow-along block map
-// exclude the identical set, and the highlight never drifts off a spoken block.
+// noise (tests/docs-provenance-pills.test.ts).
 // Comment FIRST (the detection keys on the raw markers), then a whole-doc unwrap
 // mops up any inline markers on ordinary prose lines.
 export function commentStandaloneProvenanceLines(md: string): string {

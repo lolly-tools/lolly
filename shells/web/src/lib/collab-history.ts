@@ -21,17 +21,39 @@ export function historySharingAgreed(peer: string | undefined): boolean {
   return peer === HISTORY_PROTOCOL_VERSION;
 }
 
+/**
+ * The label an unnamed saved version is stored with: the minute it was saved, in UTC
+ * (`2026-10-07T18:42Z`). Every reader shows it as "Version from {time}" in their own
+ * language, so the stored label never carries the saver's language or locale.
+ */
+export const UNNAMED_VERSION_LABEL = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/;
+export function unnamedVersionLabel(at: Date): string {
+  return `${at.toISOString().slice(0, 16)}Z`;
+}
+
 export interface CollabHistoryEntry {
   readonly id: string;
   readonly documentId: string;
   readonly parentId?: string;
   readonly toolId: string;
   readonly label: string;
-  readonly reason: 'checkpoint' | 'save' | 'recovery';
+  /** `named` is a version someone saved with a name; `restore` is the result of a restore. */
+  readonly reason: 'checkpoint' | 'save' | 'recovery' | 'named' | 'restore';
   readonly actor: { readonly id: string; readonly label?: string };
   readonly at: string;
   readonly revision: number;
   readonly preview?: string | null;
+  /** Everyone who changed the document since the previous entry; labels never carry an email address. */
+  readonly contributors?: readonly { readonly id: string; readonly label?: string }[];
+}
+
+/** What a restore reports: the entry that undoes it, and inputs it left as they were. */
+export interface CollabHistoryRestoreResult {
+  readonly undoId?: string;
+  /** Inputs the live document could not take, left unchanged. */
+  readonly skipped?: readonly string[];
+  /** Inputs locked for the person restoring, left unchanged. */
+  readonly vetoed?: readonly string[];
 }
 
 export interface CollabHistoryPage {
@@ -46,8 +68,17 @@ export interface CollabHistoryCapability {
   readonly canSaveCopy: boolean;
   list(options?: { before?: string; limit?: number }): Promise<CollabHistoryPage>;
   read(id: string): Promise<SavedStateData | null>;
-  restore?(id: string): Promise<void>;
+  /** Resolves with nothing (an older host) or with what the restore did; `Promise<void>` stays valid. */
+  restore?(id: string): Promise<CollabHistoryRestoreResult | undefined> | Promise<void>;
   saveCopy?(id: string): Promise<SavedStateData | null>;
+  /** Save the current document as a named version. */
+  saveVersion?(label: string): Promise<void>;
+  /** Whether this person may save versions; a host without it lets `canRestore` decide. */
+  readonly canSave?: boolean;
+  /** A preview image URL for one entry, or null when none can be made. */
+  preview?(id: string): Promise<string | null>;
+  /** Delete one saved version (managers only; the host refuses everyone else). */
+  remove?(id: string): Promise<void>;
 }
 
 /** A checkpoint a client mints itself and hands to a {@link CapturableCollabHistory}. */

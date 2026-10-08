@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "放大{label}以便扫描",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "将另一台设备对准这里进行扫描。点击任意处或按 Esc 关闭。",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "此链接太长，无法扫描。请改为复制，或使用“代码”标签页。",
-  "View {name}": "查看{name}",
   "AI agent": "AI 代理",
   "Pause agent": "暂停代理",
   "Resume agent": "恢复代理",
   "Disconnect agent": "断开代理连接",
-  "Paused": "已暂停"
+  "Paused": "已暂停",
+  "Follow {name}": "关注 {name}",
+  "Following {name}": "正在关注 {name}",
+  "Stop following": "停止关注",
+  "You stopped following {name}.": "你已停止关注 {name}。",
+  "{name} left. You stopped following.": "{name} 已离开，你已停止关注。",
+  "Followers: {count}": "关注者：{count}",
+  "Following you": "正在关注你",
+  "{name} is following you": "{name} 正在关注你",
+  "{name} is presenting": "{name} 正在演示",
+  "Follow presentation": "关注演示",
+  "Following the presentation by {name}": "正在关注 {name} 的演示",
+  "Press Escape to stop following.": "按 Esc 键停止关注。"
 }

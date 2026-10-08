@@ -82,6 +82,14 @@ test('an unsaved edit present at mount counts as unsaved, and edits and saves ma
   assert.match(feature, /detail === 'save'\) tview\.session\.rememberEntryEdits\(false\)/, 'the export panel\'s Save clears the mark too');
 });
 
+test('the video clip line keys on a recorded take, not on any stored size (plan 302)', () => {
+  // Every upload carries meta.bytes since plan 302, so reading it here would
+  // tell a person with an uploaded photo that their session includes a video clip.
+  const body = bodyAfter('export function backPillIntercept(');
+  assert.match(body, /recordedClipBytes\(runtime\.getModel\(\)\.map\(/);
+  assert.doesNotMatch(body, /meta\?\.bytes|meta\.bytes/);
+});
+
 test('a team document: Save, Cmd-S and the leave prompt reach the document scope (plan 75 G1)', () => {
   const saving = stripComments(readFileSync(join(HERE, 'tool-actions', 'saving.ts'), 'utf8'));
   // Every save path (the export panel's Save, the render pill and Cmd-S through it, the
