@@ -17,7 +17,7 @@ const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200
 
 const { folderOutline } = await import('./local-folder-chooser.ts');
 const { browseReason } = await import('./project-browse-sheet.ts');
-const { localSessionData } = await import('./team-local-copy.ts');
+const { localSessionData, copyTeamFileToLocal } = await import('./team-local-copy.ts');
 
 const folder = (id: string, name: string, parentId: string | null = null, extra: Record<string, unknown> = {}) =>
   ({ id, name, parentId, items: [], createdAt: '', updatedAt: '', ...extra });
@@ -67,4 +67,30 @@ test('a copied shared session keeps its inputs and gets its shared files under n
 test('a session with no shared files copies without touching the asset store', async () => {
   const data = await localSessionData({ assets: {} } as never, { toolId: 'qr-code', inputs: { url: 'https://example.com' } });
   assert.deepEqual(data, { url: 'https://example.com', __toolId: 'qr-code' });
+});
+
+test('a shared file picked into a slot becomes the person\'s own copy, made once per version', async () => {
+  const checksum = 'c'.repeat(64);
+  const fileId = `fil_${'d'.repeat(22)}`;
+  router = (url) => url.endsWith('/api/v1/projects/prj_2/files')
+    ? json({ files: [{ id: fileId, projectId: 'prj_2', checksum, size: 3, name: 'mark.svg', contentType: 'image/svg+xml', ready: true, asset: { type: 'svg' } }] })
+    : new Response('', { status: 404 });
+  const stored = new Map<string, Record<string, unknown>>();
+  // Already on the device under its shared id, where opening a session that uses the file leaves a copy.
+  stored.set(`user/team/${fileId}`, { id: `user/team/${fileId}`, version: checksum, format: 'svg', type: 'svg', blob: new Blob(['<svg/>']), meta: { name: 'mark.svg' } });
+  const host = {
+    assets: {
+      async _getUserRecord(id: string) { return (stored.get(id) as never) ?? null; },
+      async _uploadUserAsset(record: Record<string, unknown>) { stored.set(record.id as string, record); },
+      async _listUserAssets() { return [...stored.values()].map(r => ({ id: r.id as string, meta: r.meta as Record<string, unknown> })); },
+    },
+  };
+  const first = await copyTeamFileToLocal(host as never, 'prj_2', fileId);
+  assert.match(first, /^user\/upload\//);
+  const copy = stored.get(first);
+  assert.ok(copy, 'the copy is stored');
+  assert.equal((copy.meta as { name?: string }).name, 'mark.svg');
+  assert.equal(await copyTeamFileToLocal(host as never, 'prj_2', fileId), first, 'a second pick reuses the copy');
+  assert.equal([...stored.keys()].filter(k => k.startsWith('user/upload/')).length, 1);
+  await assert.rejects(copyTeamFileToLocal(host as never, 'prj_2', 'fil_missing'));
 });
