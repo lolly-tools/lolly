@@ -125,6 +125,28 @@ test('the slots of every record are listed for the signed-out gate, whoever made
   assert.equal(rows.size, 2, 'and listing drops nothing');
 });
 
+test('copies whose records a sign-out drops stay listed for the gate, by slot name alone', async () => {
+  reset();
+  signIn('ana');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' });
+  // What org/index.ts does on a sign-out: drop the records, then mark the sign-out.
+  await durable.dropDurableTeamOrigins();
+  signOut();
+  assert.equal(rows.size, 0, 'the records are gone');
+  assert.deepEqual([...await durable.durableTeamOriginSlots()], ['poster:1'], 'the copy is still a team copy');
+  const kept = local.get(durable.TEAM_COPY_SLOTS_KEY) ?? '';
+  assert.deepEqual(JSON.parse(kept), ['poster:1']);
+  assert.ok(!kept.includes('ana') && !kept.includes('sess-1') && !kept.includes('instance.test'), 'no account, session or workspace');
+
+  // Another account drops a record when it finds one: that copy is listed too.
+  signIn('ana');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, sessionId: 'sess-2', slot: 'poster:2' });
+  signIn('lee');
+  assert.equal(await durable.findDurableTeamOrigin('poster', 'poster:2'), null);
+  assert.deepEqual([...durable.teamCopySlots()].sort(), ['poster:1', 'poster:2']);
+  assert.deepEqual([...await durable.durableTeamOriginSlots()].sort(), ['poster:1', 'poster:2'], 'with no record left, the list alone answers');
+});
+
 test('a role this shell does not know keeps no record (it fails closed)', async () => {
   reset();
   signIn('ana');

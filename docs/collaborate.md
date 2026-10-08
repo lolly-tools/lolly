@@ -13,13 +13,14 @@ In a **work collab**, participants edit a session held by the organisation's ins
 
 1. Open your organisation's Lolly address and sign in. See [Use Lolly at your organisation](/info/organisation.html) for connecting a browser, desktop or mobile app.
 2. Open **Projects → Team projects** and choose the shared session you want to edit together.
-3. Open **Share**, find **Work collab** and press **Start a collab**.
+3. The session joins its live collab as it opens, with no extra step. The collab pill over the canvas shows **Connecting** and then **Live**; open the pill for the roster of everyone in the session.
+4. To ask someone on the project to edit with you now, press **Invite someone** on the collab pill and type their name in **Invite to edit now**. The button is there when you may invite people to the project.
 
 **To join an invitation:** press **Open the collab** in the invite in your inbox. Joining uses your organisation access; there is no private-collab reply code to exchange.
 
 **Where the work goes:** edits pass through the organisation's server and are saved to its shared session. **Saved to work** confirms the save; wait for that status before leaving. **View only** means you can follow the session but cannot change it. Your organisation manages access and retention of the shared copy.
 
-If **Team projects** or **Work collab** is absent, check with whoever runs your organisation's Lolly that the feature and your access are enabled. Work collabs need a reachable instance; the offline pairing instructions below apply to private collabs. Operators can find setup information in the [lolly.work documentation](https://github.com/lolly-tools/lolly-work/tree/main/docs).
+If **Team projects** is absent, or a shared session opens without the collab pill, check with whoever runs your organisation's Lolly that the feature and your access are enabled. Work collabs need a reachable instance; the offline pairing instructions below apply to private collabs. Operators can find setup information in the [lolly.work documentation](https://github.com/lolly-tools/lolly-work/tree/main/docs).
 :::
 
 ::: details Work collabs: comments, mentions and links

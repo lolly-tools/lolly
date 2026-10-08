@@ -14,7 +14,8 @@
  *    this device out;
  *  - the sign-in gate offers "Download the work saved in this browser" only when this
  *    browser holds work the gate may hand out, and the file leaves out recovery copies
- *    tagged to an account and device copies of team documents.
+ *    tagged to an account, device copies of team documents (after a sign-out dropped
+ *    their origins too), the team's project files and the revision history.
  *
  * Run directly:  node --test shells/web/src/org/account-access.test.ts
  */
@@ -343,6 +344,64 @@ test('the gate\'s file leaves out recovery copies tagged to an account and team 
     const text = strFromU8(zip['sessions.json']!);
     assert.ok(!text.includes('collab-recovery:ana') && !text.includes('u_bo') && !text.includes('A copy of a team document'));
     assert.equal(zip['revision-history.json'], undefined, 'no history, whose checkpoints would carry the left-out documents');
+  } finally {
+    durable._setDurableBackendForTests(null);
+  }
+});
+
+test('after a sign-out, the gate\'s file still leaves out the team\'s document copies, project files and history', async () => {
+  // The sign-out drops the team-document origins (and the lolly:team-origins mark) before
+  // the reload reaches the gate, so the gate cannot ask those records which copies are a
+  // team's. The copies, the project files restored beside them and the history stay on
+  // the device, and whoever is at the signed-out screen must not get them.
+  const durable = await import('./team-origin-durable.ts');
+  type Rec = import('./team-origin-durable.ts').DurableTeamOrigin;
+  const records = new Map<string, Rec>();
+  durable._setDurableBackendForTests({
+    get: async (key) => records.get(key), put: async (rec) => { records.set(rec.key, rec); },
+    delete: async (key) => { records.delete(key); }, all: async () => [...records.values()], clear: async () => { records.clear(); },
+  });
+  try {
+    reset();
+    controlPlane({ mode: 'gated', session: 'member', logout: 204 });
+    await initOrg();
+    assert.equal(orgSession()?.kind, 'member');
+    store.set('lolly:org-config:same-origin', JSON.stringify({ at: Date.now(), etag: null, config: { instance: { name: 'Acme' }, session: { sub: 'u1' } } }));
+    assert.equal(await durable.rememberDurableTeamOrigin({ sessionId: 's1', toolId: 'design', slot: 'design:team', role: 'editor' }), true);
+    const files: Blob[] = [];
+    let historyRead = false;
+    const host = slotsHost({
+      'design:mine': { headline: 'My own work' },
+      'design:team': { headline: 'A copy of a team document', logo: 'user/team/f1' },
+    }, files) as unknown as Record<string, unknown> & { assets: Record<string, unknown> };
+    host.assets._exportUserAssets = async () => [
+      { id: 'user/mine', format: 'png', blob: new Blob(['mine'], { type: 'image/png' }) },
+      { id: 'user/team/f1', format: 'png', blob: new Blob(['team'], { type: 'image/png' }) },
+    ];
+    host.fileHistory = { export: async () => { historyRead = true; return { assetVersions: [], operations: [] }; } };
+    setHostRef(host as unknown as HostV1);
+
+    assert.equal(await signOutOfInstance(), true);
+    assert.equal(records.size, 0, 'the sign-out dropped the records');
+    assert.equal(store.has('lolly:team-origins'), false, 'and the mark');
+
+    // The reload after the sign-out: the same device, signed out of a gated workspace.
+    _resetOrgForTests();
+    _clearShareSectionsForTests();
+    _clearAccountSlotForTests();
+    document.getElementById('view')!.innerHTML = HEADER;
+    controlPlane({ mode: 'gated', session: 'none' });
+    assert.equal((await initOrg())?.gate, true);
+    await until(() => !!gateButton(), 'the offer, for the work that is this browser\'s own');
+    gateButton()!.click();
+    await until(() => files.length === 1, 'the backup file');
+    const zip = unzipSync(new Uint8Array(await files[0]!.arrayBuffer()));
+    const sessions = JSON.parse(strFromU8(zip['sessions.json']!)) as Array<{ slot: string }>;
+    assert.deepEqual(sessions.map((row) => row.slot), ['design:mine'], 'the team document copy stays out');
+    const assets = JSON.parse(strFromU8(zip['assets.json']!)) as Array<{ id: string }>;
+    assert.deepEqual(assets.map((a) => a.id), ['user/mine'], 'the team\'s project file stays out');
+    assert.equal(historyRead, false, 'the revision history is never read');
+    assert.equal(zip['revision-history.json'], undefined);
   } finally {
     durable._setDurableBackendForTests(null);
   }

@@ -28,7 +28,9 @@
  *    admin sees no admin rows and is told that admins can also open the project;
  *  - whoever the instance says may hand the project on (`canTransfer`: the owner, or a
  *    holder of `project.manage`) sees Make owner on the other member rows; the old owner
- *    stays on as a Manager. An instance that does not say offers it to the owner only.
+ *    stays on as a Manager. An instance that does not say offers it to nobody: an older
+ *    instance's transfer does not keep the old owner on the project, so the promise in
+ *    the confirmation would not hold there.
  *
  * Data comes from org/project-members.ts and the message text from
  * org/invite-message.ts. Every instance-supplied string (names, addresses, notes,
@@ -85,7 +87,8 @@ export function peoplePanelView(people: ProjectPeople, policy: InvitePolicy | nu
   askToEdit: boolean;
   /** The instance says this person may hand the project on (the owner, or a holder of
    *  `project.manage`): offer Make owner on the other member rows. Without that answer
-   *  (an older instance), the owner only, whom the transfer always accepts. */
+   *  (an older instance), nobody: there a transfer removes the old owner's access, which
+   *  the confirmation promises it keeps. */
   transfer: boolean;
 } {
   const manage = isManagerPlus(people.myRole);
@@ -94,8 +97,10 @@ export function peoplePanelView(people: ProjectPeople, policy: InvitePolicy | nu
     manage, invite: manage && !!policy && roles.length > 0, roles,
     askToEdit: isReadOnlyRole(people.myRole) && policy?.askToEdit === true,
     // The same test the transfer applies, from the instance: a workspace role does not
-    // decide it here, since `project.manage` can be granted or denied by grant.
-    transfer: people.canTransfer ?? people.myRole === 'owner',
+    // decide it here, since `project.manage` can be granted or denied by grant. Only a
+    // stated yes counts: an instance that sends no answer predates the transfer that
+    // keeps the old owner on as a Manager.
+    transfer: people.canTransfer === true,
   };
 }
 

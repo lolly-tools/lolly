@@ -6,7 +6,8 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { retainCanvasRecovery, canvasRecoveryValues } from '../lib/canvas-recovery.ts';
 import { _resetNotificationsForTests, dismissNotification, notificationEntries } from '../lib/notifications.ts';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
-import { _resetRecoveryCopiesForTests, mountCollabRecovery, RECOVERY_MAX_AGE_MS, RECOVERY_OWNER_KEY, recoveryOwner } from './tool-collab-recovery.ts';
+import { _resetRecoveryCopiesForTests, mountCollabRecovery, RECOVERY_MAX_AGE_MS } from './tool-collab-recovery.ts';
+import { RECOVERY_OWNER_KEY, recoveryOwner } from '../lib/collab-recovery-owner.ts';
 
 beforeEach(() => { _resetNotificationsForTests(); _resetRecoveryCopiesForTests(); });
 const WORKSPACE = 'https://lolly.ing';

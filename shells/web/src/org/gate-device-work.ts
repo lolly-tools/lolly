@@ -11,8 +11,11 @@
  *  - recovery copies tagged to an account (lib/collab-recovery-owner.ts): interrupted
  *    team edits, which their owner downloads or discards from Sign out
  *    (org/account-chip.ts), and which the recovery notices show only to that account;
- *  - device copies of team documents, which a durable team origin points at
- *    (org/team-origin-durable.ts);
+ *  - device copies of team documents: those a durable team origin points at, and those
+ *    whose origin a sign-out or another account dropped, which org/team-origin-durable.ts
+ *    keeps listed by slot name alone so they stay out after the person has gone;
+ *  - project files of team documents kept on this device (`user/team/<file id>` images,
+ *    org/team-files.ts), which are the team's, not the browser's;
  *  - the revision history, whose checkpoints are kept per document and would carry
  *    those documents' earlier states. The current copy of the rest of the work travels.
  * The offer shows only when something is left after that. org/index.ts loads this
@@ -31,10 +34,13 @@ function canBackUp(host: HostV1): host is HostV1 & BackupHost {
   return typeof (host.assets as { _exportUserAssets?: unknown })._exportUserAssets === 'function';
 }
 
+/** The id prefix of a team project file kept on this device (org/team-files.ts). */
+export const TEAM_FILE_ASSET_PREFIX = 'user/team/';
+
 /**
  * The slots of `rows` the gate's download leaves out (see the header): every recovery
- * copy carrying an owner tag, or that cannot be read to tell, and every slot a durable
- * team origin points at.
+ * copy carrying an owner tag, or that cannot be read to tell, and every device copy of
+ * a team document, whether its durable origin is still kept or was dropped since.
  */
 export async function gateWithheldSlots(
   state: Pick<HostV1['state'], 'load'>, rows: ReadonlyArray<{ slot: string }>,
@@ -52,10 +58,15 @@ export async function gateWithheldSlots(
   return withheld;
 }
 
+/** Whether an exported asset record is a team project file (see the header). */
+const isTeamFile = (record: { id?: unknown }): boolean =>
+  typeof record.id === 'string' && record.id.startsWith(TEAM_FILE_ASSET_PREFIX);
+
 /**
  * `host` as the gate's export sees it: device storage that lists and loads only the
- * slots not in `withheld`, and no revision history. Everything else (profile, images,
- * design systems, preferences) is the host's own.
+ * slots not in `withheld`, images without the team's project files, and no revision
+ * history (`fileHistory` reads as absent). Everything else (profile, the person's own
+ * images, design systems, preferences) is the host's own.
  */
 export function gateExportHost<H extends BackupHost>(host: H, withheld: ReadonlySet<string>): H {
   const source = host.state;
@@ -64,7 +75,22 @@ export function gateExportHost<H extends BackupHost>(host: H, withheld: Readonly
     load: async (slot) => (withheld.has(slot) ? null : source.load(slot)),
     save: (slot, data, thumb) => source.save(slot, data, thumb),
   };
-  return new Proxy(host, { get: (target, key, receiver) => (key === 'state' ? state : Reflect.get(target, key, receiver)) });
+  const sourceAssets = host.assets;
+  const assets = new Proxy(sourceAssets, {
+    get: (target, key) => {
+      if (key === '_exportUserAssets') return async () => (await target._exportUserAssets()).filter((record) => !isTeamFile(record));
+      const value: unknown = Reflect.get(target, key);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+  return new Proxy(host, {
+    get: (target, key, receiver) => {
+      if (key === 'state') return state;
+      if (key === 'assets') return assets;
+      if (key === 'fileHistory') return undefined;
+      return Reflect.get(target, key, receiver);
+    },
+  });
 }
 
 /** Fill the gate's `slot` with the offer when this browser holds work the gate may hand out. */

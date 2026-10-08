@@ -22,6 +22,12 @@
  *  - and as a second line, a record found under a sign-out (the workspace's signed-out
  *    mark), another account or another workspace is dropped when it is found.
  *
+ * The copies themselves stay on the device when their records go, and they are still a
+ * team's documents. So every drop first lists the slots the records pointed at, by slot
+ * name alone (no workspace, account or session), and {@link durableTeamOriginSlots}
+ * keeps returning them: the signed-out gate's download (org/gate-device-work.ts) leaves
+ * them out after the person who opened them has signed out.
+ *
  * The workspace and account are read from what org/index.ts already keeps on this
  * device (the instance base, and the member org-config cache with its session block),
  * by their documented keys, as lib/instance-leave.ts reads them, so this file imports
@@ -74,6 +80,8 @@ export interface DurableBackend {
 
 /** Set while any record may exist, so opening a device copy costs nothing otherwise. */
 export const DURABLE_MARK_KEY = TEAM_ORIGINS_MARK;
+/** The slots of device copies whose records were dropped, as a JSON array of slot names. */
+export const TEAM_COPY_SLOTS_KEY = 'lolly:team-copy-slots';
 const DB_NAME = TEAM_ORIGINS_DB;
 const STORE = 'origins';
 
@@ -206,6 +214,31 @@ export function mayHoldDurableTeamOrigins(): boolean {
   return readLocal(DURABLE_MARK_KEY) === '1';
 }
 
+// ── Copies whose records were dropped ───────────────────────────────────────
+
+/** The listed slots of team copies whose records were dropped. Empty when none are
+ *  listed or the list cannot be read. */
+export function teamCopySlots(): Set<string> {
+  try {
+    const list: unknown = JSON.parse(readLocal(TEAM_COPY_SLOTS_KEY) ?? '[]');
+    return new Set(Array.isArray(list) ? list.filter((slot): slot is string => typeof slot === 'string' && !!slot) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+/**
+ * Add `slots` to the list, before the records that point at them are dropped. The list
+ * is never trimmed: a copy that left the Library may come back from Trash, and a name
+ * that points at nothing withholds nothing.
+ */
+function listTeamCopySlots(slots: Iterable<string>): void {
+  const listed = teamCopySlots(), size = listed.size;
+  for (const slot of slots) if (slot) listed.add(slot);
+  if (listed.size === size) return;
+  try { globalThis.localStorage?.setItem(TEAM_COPY_SLOTS_KEY, JSON.stringify([...listed])); } catch { /* storage blocked: nothing more can be kept */ }
+}
+
 // ── Records ─────────────────────────────────────────────────────────────────
 
 /**
@@ -234,12 +267,11 @@ export async function rememberDurableTeamOrigin(input: DurableTeamOriginInput): 
  */
 async function prune(identity: DurableIdentity | null): Promise<DurableTeamOrigin[]> {
   const all = await backend.all();
-  const keep: DurableTeamOrigin[] = [];
-  for (const rec of all) {
-    const usable = !!identity && rec.workspace === identity.workspace && rec.account === identity.account;
-    if (usable) keep.push(rec);
-    else await backend.delete(rec.key).catch(() => { /* dropped on the next look */ });
-  }
+  const usable = (rec: DurableTeamOrigin): boolean => !!identity && rec.workspace === identity.workspace && rec.account === identity.account;
+  const keep = all.filter(usable), drop = all.filter((rec) => !usable(rec));
+  // The copies stay on the device: list them before their records go (see the header).
+  listTeamCopySlots(drop.map((rec) => rec.slot));
+  for (const rec of drop) await backend.delete(rec.key).catch(() => { /* dropped on the next look */ });
   if (!keep.length) mark(false);
   return keep;
 }
@@ -263,18 +295,20 @@ export async function findDurableTeamOrigin(toolId: string, slot: string): Promi
 }
 
 /**
- * Every device copy a record points at, for any workspace and account, without pruning:
- * what the signed-out gate's download leaves out (org/index.ts), since a copy of a team
- * document is that team's work, not the next person's at a signed-out screen. Empty when
- * the mark says there are no records, or the store cannot be read.
+ * Every device copy of a team document this device knows of, for any workspace and
+ * account, without pruning: the copies a record points at, and the listed copies whose
+ * records were dropped. What the signed-out gate's download leaves out
+ * (org/gate-device-work.ts), since a copy of a team document is that team's work, not
+ * the next person's at a signed-out screen. Only the listed copies when the mark says
+ * there are no records or the store cannot be read.
  */
 export async function durableTeamOriginSlots(): Promise<Set<string>> {
-  if (!mayHoldDurableTeamOrigins()) return new Set();
+  const slots = teamCopySlots();
+  if (!mayHoldDurableTeamOrigins()) return slots;
   try {
-    return new Set((await backend.all()).map((rec) => rec.slot));
-  } catch {
-    return new Set();
-  }
+    for (const rec of await backend.all()) slots.add(rec.slot);
+  } catch { /* the listed copies stand */ }
+  return slots;
 }
 
 /** Forget the record for `slot` (the copy was made its own, or its session is gone). */
@@ -291,6 +325,10 @@ export async function forgetDurableTeamOrigin(slot: string): Promise<void> {
  * could be found under) and the next look drops them.
  */
 export async function dropDurableTeamOrigins(): Promise<void> {
+  // The copies stay on the device: list them first, so they stay out of the gate's download.
+  if (mayHoldDurableTeamOrigins()) {
+    try { listTeamCopySlots((await backend.all()).map((rec) => rec.slot)); } catch { /* the store cannot be read: nothing to list */ }
+  }
   mark(false);
   try { await backend.clear(); } catch { /* see above */ }
 }

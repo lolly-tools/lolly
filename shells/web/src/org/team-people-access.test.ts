@@ -114,8 +114,10 @@ test('Make owner follows the instance\'s own answer (canTransfer), the test the 
   assert.equal(peoplePanelView(people('manager', { adminAccess: 'listed', canTransfer: false }), null).transfer, false, 'an admin denied project.manage');
   assert.equal(peoplePanelView(people('manager', { adminAccess: 'note', canTransfer: true }), null).transfer, true, 'a member granted project.manage');
   assert.equal(peoplePanelView(people('viewer', { canTransfer: false }), null).transfer, false);
-  // An older instance that does not say: the owner only, whom a transfer always accepts.
-  assert.equal(peoplePanelView(people('owner'), null).transfer, true);
+  // An older instance that does not say: nobody, not even the owner. Its transfer does
+  // not keep the old owner on the project, so "The current owner stays on the project as
+  // a Manager." would not hold, and the owner would lose their own access.
+  assert.equal(peoplePanelView(people('owner'), null).transfer, false);
   assert.equal(peoplePanelView(people('manager', { adminAccess: 'listed' }), null).transfer, false);
   assert.equal(peoplePanelView(people('manager', { effective: [{ userId: 'me', name: 'Kim', role: 'manager', via: 'admin', isMe: true }] }), null).transfer, false);
 });
@@ -235,10 +237,23 @@ test('the owner makes someone else the owner: asked first, then PATCH ownerId, t
   assert.equal(panel.querySelector('[data-act="people-make-owner"]'), null, 'the old owner, now a Manager, is offered no transfer');
 });
 
+test('an older instance that does not say who may transfer offers Make owner to nobody', async () => {
+  reset();
+  router = (url) => {
+    if (url.endsWith('/members')) return json({ myRole: 'owner', members: [{ userId: 'u1', name: 'Andy', role: 'owner', isMe: true }, { userId: 'u2', name: 'Bo', role: 'editor' }] });
+    return new Response('', { status: 404 });
+  };
+  const panel = buildPeoplePanel({ projectId: 'p1', projectName: 'Brand refresh', policy: null });
+  document.body.append(panel);
+  await settle();
+  assert.ok(row(panel, 'u2').querySelector('select'), 'the owner still manages the row');
+  assert.equal(panel.querySelector('[data-act="people-make-owner"]'), null, 'its transfer would take the owner off the project');
+});
+
 test('a refused transfer says why and changes nothing', async () => {
   reset();
   router = (url, init) => {
-    if (url.endsWith('/members')) return json({ myRole: 'owner', members: [{ userId: 'u1', name: 'Andy', role: 'owner', isMe: true }, { userId: 'u2', name: 'Bo', role: 'editor' }] });
+    if (url.endsWith('/members')) return json({ myRole: 'owner', canTransfer: true, members: [{ userId: 'u1', name: 'Andy', role: 'owner', isMe: true }, { userId: 'u2', name: 'Bo', role: 'editor' }] });
     if (init?.method === 'PATCH') return json({ error: { code: 'FORBIDDEN', message: 'no' } }, 403);
     return new Response('', { status: 404 });
   };
