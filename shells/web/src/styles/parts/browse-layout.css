@@ -1,0 +1,310 @@
+/* Browse layouts (plan 302): Grid, Card and List, and the Comfortable | Compact
+   density beside them, for the views that browse items (components/browse-layout.ts).
+
+   The view puts `data-browse-layout="card|list"` and `data-browse-density="compact"`
+   on the element that already carries `data-card-size`. Both are absent at the
+   defaults (Grid, Comfortable), so a view at its defaults draws exactly what it drew
+   before this sheet. A switch flips the attribute on live tiles; nothing re-renders.
+
+   House rules for every rule below (styles/browse-layout-contract.test.ts):
+   - Specificity, not order. Each Card track rule has a twin with `[data-card-size]`
+     added, so it outranks the Grid card-size rules at every step.
+   - Filtering wins. A rule that sets `display` on a gallery tile skips `.is-filtered`,
+     so search and the category pills keep hiding tools in every layout.
+   - Each view's rules start with its own container class; only the custom properties
+     below sit on the bare attribute, the container itself.
+   - Logical insets, padding and margins only, so a right-to-left page mirrors.
+   - The type multiplier appears only inside custom properties, width, height and
+     min-height. Everything else reads a property declared here. */
+
+/* ── Shared properties, declared on the container ─────────────────────────── */
+[data-browse-layout],
+[data-browse-density] {
+  /* Card: column minimum and thumbnail (4:3). Step 2, the default, carries no
+     card-size attribute; the other steps are the ladder below. */
+  --browse-card-min: calc(17rem * var(--a11y-fs));
+  --browse-thumb-w: calc(72px * var(--a11y-fs));
+  --browse-thumb-h: calc(54px * var(--a11y-fs));
+  /* List: the row's thumbnail chip (4:3). */
+  --browse-chip-w: calc(40px * var(--a11y-fs));
+  --browse-chip-h: calc(30px * var(--a11y-fs));
+  /* The selection dot on a Card, smaller than Grid's so it sits on the thumbnail. */
+  --browse-check-size: calc(20px * var(--a11y-fs));
+  --browse-check-col: calc(var(--object-check-size, calc(26px * var(--a11y-fs))) + 2 * var(--sp-3));
+  --browse-menu-col: var(--sp-5);
+  /* A Card's padding, which density tightens. */
+  --browse-pad-block: var(--sp-3);
+  --browse-pad-inline: var(--sp-4);
+  /* Off-screen size guesses for content-visibility: a Card is its thumbnail (or its
+     two-line text column, 54px, whichever is taller) plus padding; a List row is its
+     chip plus padding and the hairline. */
+  --browse-card-est: calc(max(var(--browse-thumb-h), calc(54px * var(--a11y-fs))) + 2 * var(--browse-pad-block));
+  --browse-row-est: calc(var(--browse-chip-h) + 2 * var(--sp-3) + 1px);
+  /* Grid at Compact: a smaller card on the same five-step scale (--card-scale comes
+     from the card-size step in parts/gallery.css), never below 165px, where a tool
+     card still keeps its name beside "+ New". */
+  --browse-grid-compact-min: max(165px, calc(240px * var(--card-scale, 1)));
+}
+/* The Card ladder: every step moves the column minimum AND the thumbnail together, so
+   a bigger step means bigger art, as the slider's two glyphs promise. */
+[data-browse-layout="card"][data-card-size="0"] {
+  --browse-card-min: calc(15rem * var(--a11y-fs));
+  --browse-thumb-w: calc(56px * var(--a11y-fs));
+  --browse-thumb-h: calc(42px * var(--a11y-fs));
+}
+[data-browse-layout="card"][data-card-size="1"] {
+  --browse-card-min: calc(16rem * var(--a11y-fs));
+  --browse-thumb-w: calc(64px * var(--a11y-fs));
+  --browse-thumb-h: calc(48px * var(--a11y-fs));
+}
+[data-browse-layout="card"][data-card-size="3"] {
+  --browse-card-min: calc(19rem * var(--a11y-fs));
+  --browse-thumb-w: calc(88px * var(--a11y-fs));
+  --browse-thumb-h: calc(66px * var(--a11y-fs));
+}
+[data-browse-layout="card"][data-card-size="4"] {
+  --browse-card-min: calc(22rem * var(--a11y-fs));
+  --browse-thumb-w: calc(104px * var(--a11y-fs));
+  --browse-thumb-h: calc(78px * var(--a11y-fs));
+}
+/* Compact keeps the Card ladder and tightens the padding; List rows get a smaller chip. */
+[data-browse-density="compact"] {
+  --browse-pad-block: var(--sp-2);
+  --browse-pad-inline: var(--sp-3);
+  --browse-chip-w: calc(32px * var(--a11y-fs));
+  --browse-chip-h: calc(24px * var(--a11y-fs));
+}
+
+/* ── Tools and Utilities (.tool-masonry, views/gallery-tiles.ts) ──────────── */
+
+/* The pieces only Card draws. Grid hides them, so Grid's tiles are unchanged. */
+.gtile-resume,
+.gtile-new-icon,
+.gtile-status,
+.gtile-fmts,
+.tool-card-icon.tool-card-icon--fallback { display: none; }
+
+/* Grid at Compact: smaller cards, the tight gap and a tighter caption. */
+.tool-masonry[data-browse-density="compact"]:not([data-browse-layout]),
+.tool-masonry[data-browse-density="compact"]:not([data-browse-layout])[data-card-size] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--browse-grid-compact-min)), 1fr));
+  gap: var(--grid-gap-tight);
+}
+.tool-masonry[data-browse-density="compact"]:not([data-browse-layout]) .gtile-cap { padding: var(--sp-3) var(--sp-4); }
+
+/* Card: one row per tool, the thumbnail at the inline start. */
+.tool-masonry[data-browse-layout="card"],
+.tool-masonry[data-browse-layout="card"][data-card-size] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--browse-card-min)), 1fr));
+  gap: var(--grid-gap-tight);
+}
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"],
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"][data-card-size] { gap: var(--sp-2); }
+.tool-masonry[data-browse-layout="card"] .gtile:not(.is-filtered, .gtile--hiddenbox) {
+  --object-check-size: var(--browse-check-size);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-5);
+  aspect-ratio: auto;
+  min-height: calc(var(--browse-thumb-h) + 2 * var(--browse-pad-block));
+  padding: var(--browse-pad-block) var(--browse-pad-inline);
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--browse-card-est);
+}
+/* The thumbnail: the first look, still (no arrows, no dots, no swipe). Same element,
+   same image and upgraders as Grid, sized by the step. */
+.tool-masonry[data-browse-layout="card"] .gtile > .gcar {
+  flex: none;
+  width: var(--browse-thumb-w);
+  height: var(--browse-thumb-h);
+  aspect-ratio: auto;
+  border-radius: var(--ui-radius-control);
+}
+.tool-masonry[data-browse-layout="card"] .gtile > .gcar .gcar-track { overflow: hidden; }
+.tool-masonry[data-browse-layout="card"] .gcar :is(.gcar-nav, .gcar-dots, .gcar-motion-play, .gcar-motion-label),
+.tool-masonry[data-browse-layout="card"] .gcar > .badge,
+.tool-masonry[data-browse-layout="card"] .gtile > .gtile-tile { display: none; }
+.tool-masonry[data-browse-layout="card"] .gcar-slide.is-failed::after { content: none; }
+/* A tool with no look (and every utility) shows its icon in the same slot. */
+.tool-masonry[data-browse-layout="card"] .gtile-cap > .tool-card-icon {
+  display: grid;
+  place-items: center;
+  place-self: center;
+  flex: none;
+  width: var(--browse-thumb-w);
+  height: var(--browse-thumb-h);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-muted);
+}
+.tool-masonry[data-browse-layout="card"] .gtile-cap > .tool-card-icon svg { width: 50%; height: 50%; opacity: .7; }
+.tool-masonry[data-browse-layout="card"] .gtile:hover .gtile-cap > .tool-card-icon svg { opacity: 1; }
+.tool-masonry[data-browse-layout="card"] .gtile--has-preview .gtile-cap > .tool-card-icon { display: none; }
+
+/* The text column. The body steps out of the way so the name link's stretched hit
+   area covers the whole card, as the whole tile is the target in Grid. */
+.tool-masonry[data-browse-layout="card"] .gtile-body {
+  position: static;
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.tool-masonry[data-browse-layout="card"] .gtile .gtile-cap {
+  flex-direction: row;
+  align-items: center;
+  text-align: start;
+  gap: var(--sp-5);
+  padding: 0;
+}
+/* Name, then line 1 (Continue, or the description), then line 2 (starting points or
+   formats, then the status badge). Line 2's text gives way before the badge does.
+   The full-width rows are size-contained, so a long description can never widen the
+   columns past the card; each one ends in an ellipsis instead. */
+.tool-masonry[data-browse-layout="card"] .gtile-meta {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(max-content, 1fr);
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--ui-color-text-muted);
+}
+.tool-masonry[data-browse-layout="card"] .gtile-meta > * {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tool-masonry[data-browse-layout="card"] .gtile-meta > :is(.gtile-name, .gtile-desc, .gtile-resume) {
+  grid-column: 1 / -1;
+  contain: inline-size;
+}
+.tool-masonry[data-browse-layout="card"] .gtile-name {
+  grid-row: 1;
+  font-size: var(--fs-lg);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.tool-masonry[data-browse-layout="card"] .gtile-sub { display: none; }
+.tool-masonry[data-browse-layout="card"] .gtile-desc {
+  display: block;
+  grid-row: 2;
+  margin: 0;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+.tool-masonry[data-browse-layout="card"] .gtile--resumable .gtile-desc { display: none; }
+.tool-masonry[data-browse-layout="card"] .gtile-resume { display: block; grid-row: 2; }
+.tool-masonry[data-browse-layout="card"] .gtile-resume-link {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: top;
+  position: relative;
+  z-index: 2;                       /* above the stretched name link */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ui-color-action-primary);
+  text-align: start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.tool-masonry[data-browse-layout="card"] .gtile-resume-link:hover { text-decoration: underline; }
+.tool-masonry[data-browse-layout="card"] .gtile-resume-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.tool-masonry[data-browse-layout="card"] :is(.gtile-tpl, .gtile-fmts) {
+  display: block;
+  grid-row: 3;
+  grid-column: 1;
+  margin: 0;
+  padding-inline-end: var(--sp-2);
+  font-size: inherit;
+}
+.tool-masonry[data-browse-layout="card"] .gtile-status { display: flex; grid-row: 3; grid-column: 2; justify-self: start; }
+.tool-masonry[data-browse-layout="card"] .gtile-status .badge { display: inline-block; vertical-align: middle; }
+.tool-masonry[data-browse-layout="card"] .gtile-cap > .badge { display: none; }
+/* A name or description in another script keeps its own direction and truncates at
+   its own end, so the start of an English description stays visible in an Arabic
+   card. Under plaintext, text-align: start would follow the text's direction, so the
+   alignment is the physical pair, flipped for a right-to-left page. */
+.tool-masonry[data-browse-layout="card"] .gtile-meta > :is(.gtile-name, .gtile-desc) { unicode-bidi: plaintext; text-align: left; }
+.tool-masonry[data-browse-layout="card"] .gtile-meta > :is(.gtile-name, .gtile-desc):dir(rtl) { text-align: right; }
+/* Compact: line 1 and line 2 run on as one line that ends in an ellipsis, so the
+   pieces give way from the end: the status first, then the starting points. */
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile-meta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile-meta > .gtile-name { display: block; }
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile:not(.gtile--resumable) .gtile-meta > .gtile-desc,
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile-meta > :is(.gtile-resume, .gtile-tpl, .gtile-fmts, .gtile-status) {
+  display: inline;
+  contain: none;
+  padding: 0;
+  margin-inline-end: var(--sp-3);
+  unicode-bidi: normal;
+}
+
+/* "+ New" stays (it is the way to the starting points), as a quiet icon button at the
+   card's end: muted at rest, full strength while the card is hovered or holds focus,
+   and always full on a touch screen, where nothing hovers. */
+.tool-masonry[data-browse-layout="card"] .gtile-new { display: none; }
+.tool-masonry[data-browse-layout="card"] .gtile-new-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  position: relative;
+  z-index: 2;                       /* above the stretched name link */
+  width: calc(28px * var(--a11y-fs));
+  height: calc(28px * var(--a11y-fs));
+  border-radius: var(--ui-radius-choice-round);
+  color: var(--ui-color-text-muted);
+  opacity: .45;
+  transition: opacity var(--ui-motion-feedback), color var(--ui-motion-feedback), background var(--ui-motion-feedback);
+}
+.tool-masonry[data-browse-layout="card"] .gtile-new-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.tool-masonry[data-browse-layout="card"] .gtile:is(:hover, :focus-within) .gtile-new-icon,
+.tool-masonry[data-browse-layout="card"] .gtile-new-icon:focus-visible { opacity: 1; color: var(--ui-color-action-primary); }
+.tool-masonry[data-browse-layout="card"] .gtile-new-icon:hover { background: var(--ui-color-selection-surface); }
+.tool-masonry[data-browse-layout="card"] .gtile-new-icon:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+@media (hover: none) {
+  .tool-masonry[data-browse-layout="card"] .gtile-new-icon {
+    width: var(--ui-size-target);
+    height: var(--ui-size-target);
+    opacity: 1;
+    color: var(--ui-color-action-primary);
+  }
+}
+
+/* The selection dot sits on the thumbnail's lower inline-start corner. The thumbnail
+   is centred in the card, so 50% plus half its height is its lower edge. */
+.tool-masonry[data-browse-layout="card"] .gtile .tile-check {
+  top: calc(50% + var(--browse-thumb-h) / 2 - var(--object-check-size) - 3px);
+  bottom: auto;
+  inset-inline-start: calc(var(--browse-pad-inline) + 3px);
+  inset-inline-end: auto;
+}
+
+/* ── Projects (.projects-grid) ─────────────────────────────────────────────── */
+
+/* Grid at Compact: what Assets' Compact does, a 140px card on the card-size scale with
+   the tight gap; two phone columns become three. */
+.projects-grid[data-browse-density="compact"]:not(.projects-list),
+.projects-grid[data-browse-density="compact"][data-card-size]:not(.projects-list) {
+  grid-template-columns: repeat(auto-fill, calc(140px * var(--card-scale, 1)));
+  gap: var(--grid-gap-tight);
+}
+.projects-grid[data-browse-density="compact"]:not(.projects-list) .tile-meta { padding: var(--sp-3) var(--sp-4); }
+@media (max-width: 560px) {
+  .projects-grid[data-browse-density="compact"]:not(.projects-list),
+  .projects-grid[data-browse-density="compact"][data-card-size]:not(.projects-list) {
+    grid-template-columns: repeat(clamp(1, 3 + var(--card-shift, 0), 4), minmax(0, 1fr));
+  }
+}

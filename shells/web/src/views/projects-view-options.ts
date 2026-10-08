@@ -3,6 +3,7 @@ import { mountBodyPopover, type BodyPopoverHandle, type PopoverAnchor } from '..
 import { applyCardSize, cardSizeAttr, cardSizeHtml, favouritesViewSection, readCardSize, sortSection, syncSortDir, viewOptionsSection, wireCardSize } from '../components/view-options.ts';
 import type { FeaturedViewMode } from '../components/featured-row.ts';
 import { segHtml } from '../lib/seg.ts';
+import { applyDensity, densityAttr, densityHtml, readDensity, wireDensityControl } from '../components/browse-layout.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { perfUiOn } from '../feature-flags.ts';
@@ -76,7 +77,7 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
       viewOptionsSection(t('Layout'), segHtml('projects-layout', [
         { id: 'preview', label: t('Grid') },
         { id: 'list', label: t('List') },
-      ], options.view, t('Layout'), { attr: 'data-vm' }) + cardSizeHtml(readCardSize('projects'), options.view === 'list')),
+      ], options.view, t('Layout'), { attr: 'data-vm' }) + cardSizeHtml(readCardSize('projects'), options.view === 'list') + densityHtml('projects-density', readDensity('projects'))),
       sortSection('projects-sort', [
         { id: 'name', label: t('Name') },
         ...(options.shared ? [] : [{ id: 'added', label: t('Date added') }]),
@@ -103,8 +104,10 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
       if (target.closest('.view-options-dir')) { reversed = !reversed; syncSortDir(dir, reversed); options.onReverse(reversed); }
     });
     // Card size reflows the live grids as the slider moves; the view reads the saved
-    // step back through projectsCardSizeAttr on its next render.
+    // step back through projectsGridAttrs on its next render.
     wireCardSize(el, 'projects', step => { for (const g of document.querySelectorAll('.projects-grid')) applyCardSize(g, step); });
+    // Density switches the live grids in place too, and every later render reads it back.
+    wireDensityControl(el, { view: 'projects', current: readDensity('projects'), onChange: density => { for (const g of document.querySelectorAll('.projects-grid')) applyDensity(g, density); } });
     el.querySelector<HTMLSelectElement>('#projects-sort')?.addEventListener('change', event => {
       options.onSort((event.target as HTMLSelectElement).value as ProjectsSort);
     });
@@ -112,8 +115,8 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
   }, { className: 'view-options projects-viewmenu', role: 'dialog', ariaLabel: t('View options'), trackScroll: true });
 }
 
-/** The saved card size as a grid attribute (empty at the default step). */
-export const projectsCardSizeAttr = (): string => cardSizeAttr(readCardSize('projects'));
+/** The saved card size and density as grid attributes (empty at the defaults). */
+export const projectsGridAttrs = (): string => cardSizeAttr(readCardSize('projects')) + densityAttr(readDensity('projects'));
 
 /** An anchor that follows whichever button `current` finds now: the Projects view
  *  re-renders its top bar on every change, replacing the button the panel hangs from. */
