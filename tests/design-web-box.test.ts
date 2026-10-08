@@ -35,14 +35,14 @@ async function marker(box: Record<string, unknown>): Promise<HTMLElement> {
   return el!;
 }
 
-test('web keeps its original fields and appends page appearance fields', () => {
+test('web keeps its original fields and appends interaction fields', () => {
   const kind = boxesField.fields.find((f: { id: string }) => f.id === 'kind');
   assert.ok(kind.options.some((o: { value: string }) => o.value === 'web'));
   const add = boxesField.canvas.addKinds.find((k: { id: string }) => k.id === 'web');
   assert.equal(add.seed.kind, 'web');
   const ids = boxesField.fields.map((f: { id: string }) => f.id);
-  assert.deepEqual(ids.slice(114), ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies']);
-  for (const id of ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies']) {
+  assert.deepEqual(ids.slice(114), ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts']);
+  for (const id of ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts']) {
     assert.deepEqual(boxesField.fields.find((f: { id: string }) => f.id === id).showFor, [], `${id} is edited in the inspector, not the sidebar`);
   }
   const load = boxesField.fields.find((f: { id: string }) => f.id === 'webLoad');
@@ -112,4 +112,27 @@ test('a link with commas and tildes survives the compact URL', () => {
   assert.equal(back[0]!.web, link);
   assert.equal(back[0]!.webCss, css);
   assert.equal(String(back[0]!.webHideCookies), 'true');
+});
+
+
+test('interaction attributes remain inert and escaped, with no focus step on legacy objects', async () => {
+  const wire = 'hl=ring;stops=0,640,%23pricing;hlc="><img src=x>';
+  const live = await marker(webBox({ interact: 0, interactOpts: wire }));
+  assert.equal(live.dataset.interact, '0');
+  assert.equal(live.dataset.interactOpts, wire);
+  assert.equal(live.querySelector('img,iframe'), null);
+  const legacy = await marker(webBox());
+  assert.equal(legacy.hasAttribute('data-interact'), false);
+  assert.equal(legacy.hasAttribute('data-interact-opts'), false);
+  const disabled = await marker(webBox({ interact: '' }));
+  assert.equal(disabled.hasAttribute('data-interact'), false);
+});
+
+test('interaction step zero and encoded stops survive a compact URL round trip', () => {
+  const interactOpts = 'hl=spotlight;stops=0,%23price%2Cvariants,100%25;auto=focus;hand=1';
+  const model = buildInputModel(designTool.manifest, { initial: { boxes: [webBox({ interact: 0, interactOpts })] as never } });
+  const query = serializeUrlState(model as InputModelItem[], { keepUserIds: true });
+  const back = parseUrlState(query, designTool.manifest).values.boxes as Record<string, unknown>[];
+  assert.equal(String(back[0]!.interact), '0');
+  assert.equal(back[0]!.interactOpts, interactOpts);
 });

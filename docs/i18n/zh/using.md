@@ -440,3 +440,8 @@ Lolly 是一个 PWA。对你已经打开过的界面，它会继续**离线**工
 关于更新:如果某个视图在更新后一时加载失败(出现空白面板,或角落里的“failed to fetch”提示),只需重新加载一次页面 - 应用会干净利落地切换到新版本,你的作品、会话和品牌都不会受到影响;只有你添加过但从未保存的图片可能需要重新添加。它把一切都保存在你的设备上,而不是保存在页面里。
 
 Design 和 Darkroom 可以通过 **Wide colour / HDR** 编辑保留原始图片精度，Sequence 视频也是如此。品牌色板可以携带独立的 sRGB 和 P3 数值。输出选择和当前限制请见[宽色域与 HDR 编辑](/info/hdr-editing.html)。
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

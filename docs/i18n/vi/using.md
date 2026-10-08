@@ -440,3 +440,8 @@ Lolly là một PWA. Nó tiếp tục chạy **ngoại tuyến** trên những m
 Về các bản cập nhật: nếu một view không tải được ngay sau khi cập nhật (một bảng trống, một dòng "failed to fetch" ở góc màn hình), hãy tải lại trang một lần - ứng dụng sẽ nhận phiên bản mới một cách gọn gàng và công việc, phiên làm việc cùng thương hiệu đã lưu của bạn không hề bị ảnh hưởng; chỉ một ảnh bạn đã thêm nhưng chưa từng lưu mới có thể cần thêm lại. Nó lưu trữ mọi thứ trên thiết bị của bạn, không phải trong trang.
 
 Design và Darkroom có thể giữ độ chính xác ảnh gốc với chỉnh sửa **Wide colour / HDR**, kể cả video Sequence. Mẫu màu thương hiệu có thể mang giá trị sRGB và P3 riêng biệt. Xem [Chỉnh sửa Wide colour và HDR](/info/hdr-editing.html) để biết các lựa chọn đầu ra và giới hạn hiện tại.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

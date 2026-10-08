@@ -440,3 +440,8 @@ Lolly er en PWA. Den fortsetter å virke **offline** på skjermene du allerede h
 Om oppdateringer: hvis en visning noen gang ikke klarer å laste rett etter en (et tomt panel, en "failed to fetch" i hjørnet), last inn siden på nytt én gang - appen tar i bruk den nye versjonen problemfritt, og det lagrede arbeidet, øktene og merkevaren din er urørt; bare et bilde du la til, men aldri lagret, kan trenge å legges til igjen. Den lagrer alt på enheten din, ikke på siden.
 
 Design og Darkroom kan beholde original bildepresisjon med **Wide colour / HDR**-redigering, inkludert Sequence-video. Merkevarens fargeprøver kan ha separate sRGB- og P3-verdier. Se [Fargeomfang og HDR-redigering](/info/hdr-editing.html) for utdatavalg og gjeldende grenser.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

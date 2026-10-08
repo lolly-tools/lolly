@@ -440,3 +440,8 @@ Lolly - це PWA. Вона й далі працює **офлайн** на екр
 Про оновлення: якщо якийсь вигляд раптом не завантажується одразу після оновлення (порожня панель, «не вдалося отримати» в куті), перезавантажте сторінку один раз - застосунок чисто підхоплює нову версію, а ваша робота, сеанси та бренд лишаються недоторканими; лише зображення, яке ви додали й ніколи не зберегли, може знадобитися додати знову. Він зберігає все на вашому пристрої, а не на сторінці.
 
 Design і Darkroom можуть зберігати первісну точність зображення за допомогою редагування **Wide colour / HDR**, зокрема відео Sequence. Брендові зразки можуть нести окремі значення sRGB і P3. Див. [Редагування широкого кольору та HDR](/info/hdr-editing.html) для варіантів виводу та поточних обмежень.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

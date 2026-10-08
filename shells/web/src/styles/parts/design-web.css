@@ -2,6 +2,32 @@
    mounts over a web box's poster, and the editor's notes. The marker's own layout lives
    in community/design/styles.css, which exports read; everything here is shell chrome. */
 @layer views {
+  .fc-web-interact {
+    margin-block-start: var(--space-3, 12px);
+    border-block-start: 1px solid var(--ui-color-border-subtle);
+    padding-block-start: var(--space-2, 8px);
+  }
+  .fc-web-interact-group {
+    border-block-start: 1px solid var(--ui-color-border-subtle);
+    padding-block: 8px;
+  }
+  .fc-web-interact-group > summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    padding-block: 4px;
+  }
+  .fc-web-interact-group > summary:focus-visible {
+    outline: 2px solid var(--ui-color-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  .fc-web-stops { padding-inline-start: 24px; margin-block: 8px; }
+  .fc-web-stops > li { padding-block: 3px; }
+  .fc-web-stops label { display: inline-block; width: calc(100% - 38px); }
+  .fc-web-stops input { width: 100%; min-width: 0; }
+  .fc-web-interact-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fc-web-interact-error { color: var(--ui-color-status-danger, var(--ui-color-text-primary)); }
   .lolly-box-web-frame {
     position: absolute;
     left: 0;
@@ -94,4 +120,11 @@
   .pwc-dialog .modal-actions { position: sticky; bottom: 0; padding-block-start: var(--sp-3); background: var(--ui-color-surface-raised); }
   .pwc-anysite { margin-top: 12px; display: grid; gap: 8px; justify-items: start; }
   .pwc-anysite-note { margin: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+}
+
+/* Inspector base rules are unlayered; owner guidance shares their cascade. */
+.fc-insp .fc-web-interact .fc-insp-hint {
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
 }

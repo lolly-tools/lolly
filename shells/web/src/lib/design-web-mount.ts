@@ -37,6 +37,7 @@ import { siteVerdict, onTrustedSitesChange } from './trusted-sites.ts';
 import { normaliseTrustedSite } from '../../../../engine/src/trusted-sites.ts';
 import { onSitePolicyChange } from './site-policy.ts';
 import { icon } from './icons.ts';
+import { createWebPageDriver, getWebPageDriver } from './web-page-driver.ts';
 import '../styles/parts/design-web.css';
 
 export type WebFrameState = 'live' | 'poster' | 'ask' | 'policy' | 'refused' | 'blocked' | 'browser' | 'invalid';
@@ -268,6 +269,7 @@ function sizeFrame(frame: HTMLIFrameElement, marker: HTMLElement): void {
     frame.style.height = '100%';
     frame.style.transform = '';
   }
+  getWebPageDriver(marker)?.configure();
 }
 
 const resizer = typeof ResizeObserver === 'function'
@@ -295,7 +297,7 @@ function createFrame(embed: WebEmbed, marker: HTMLElement, mode: WebMountMode): 
   }
   if (embed.sandbox) frame.setAttribute('sandbox', embed.sandbox);
   frame.setAttribute('allow', mode === 'present' && !/autoplay/.test(embed.allow) ? `${embed.allow}; autoplay` : embed.allow);
-  if (mode === 'editor') frame.tabIndex = -1;
+  frame.tabIndex = -1;
   const address = new URL(embed.src);
   if (embed.provider === 'youtube') {
     address.searchParams.set('origin', location.origin);
@@ -334,6 +336,7 @@ export function pauseWebFrame(frame: HTMLIFrameElement): void {
 
 /** Blank a frame first so audio stops at once, then remove the element. */
 function dropFrame(frame: HTMLIFrameElement): void {
+  if (frame.parentElement) getWebPageDriver(frame.parentElement)?.destroy();
   appearance?.clearWebAppearance(frame);
   try { frame.src = 'about:blank'; } catch { /* detached */ }
   frame.remove();
@@ -380,6 +383,7 @@ export function mountWebFrames(root: Element, opts: WebMountOptions): void {
     const kept = marker.querySelector<HTMLIFrameElement>(FRAME);
     if (kept) {
       styleFrame(kept, marker);
+      createWebPageDriver(kept, marker).configure();
       if (embed.provider === 'youtube' && marker.dataset.webPlay === '1' && kept.dataset.webPlay !== '1'
         && new URL(embed.src).searchParams.get('autoplay') === '1') {
         // A player preloaded with autoplay off may not yet accept commands. Its first
@@ -397,13 +401,17 @@ export function mountWebFrames(root: Element, opts: WebMountOptions): void {
       const prev = pendingRemount.get(marker);
       if (prev) clearTimeout(prev);
       pendingRemount.set(marker, setTimeout(() => {
-        if (marker.isConnected && !marker.querySelector(FRAME)) marker.appendChild(createFrame(embed, marker, opts.mode));
+        if (marker.isConnected && !marker.querySelector(FRAME)) {
+          const frame = createFrame(embed, marker, opts.mode);
+          marker.appendChild(frame); createWebPageDriver(frame, marker);
+        }
       }, REMOUNT_QUIET_MS));
       continue;
     }
     const frame = createFrame(embed, marker, opts.mode);
     frame.dataset.webPlay = marker.dataset.webPlay;
     marker.appendChild(frame);
+    createWebPageDriver(frame, marker);
     resizer?.observe(marker);
   }
   if (opts.mode === 'editor') recentlyLive = seenLive;

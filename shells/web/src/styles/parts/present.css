@@ -162,6 +162,51 @@
   contain: layout paint;
 }
 
+/* A live page keeps its DOM and browsing context while the deck directs it. */
+.pr-interact-focus { --pr-interact-color: var(--brand-primary, var(--pr-accent)); }
+.pr-interact-ring {
+  outline: 4px solid var(--pr-interact-color);
+  outline-offset: 6px;
+  transition: outline-color 150ms linear;
+}
+.pr-interact-scrim { position: absolute; inset: 0; z-index: 2147482900; background: rgb(0 0 0 / 68%); pointer-events: none; }
+.pr-interact-layer { z-index: 2147482901 !important; }
+.pr-page.pr-interact-zoom {
+  transform: translate(-50%, -50%) scale(var(--pr-interact-scale, 1)) translate(var(--pr-interact-x, 0px), var(--pr-interact-y, 0px));
+  transition-duration: 180ms;
+}
+.pr-reduced .pr-interact-ring { transition: none; }
+.pr-sp-interact {
+  display: grid; gap: var(--sp-2, 8px); padding: var(--sp-3, 12px);
+  border: 1px solid rgb(255 255 255 / 18%); border-radius: var(--radius-sm, 8px);
+  background: rgb(255 255 255 / 5%); min-width: 0;
+  font: 400 var(--fs-sm)/1.5 var(--font-ui, system-ui, sans-serif);
+}
+.pr-sp-interact-title { font-weight: 600; overflow-wrap: anywhere; }
+.pr-sp-interact-info { color: rgb(255 255 255 / 85%); }
+.pr-sp-interact-depth { color: rgb(255 255 255 / 65%); font-variant-numeric: tabular-nums; }
+.pr-sp-interact .btn { justify-self: start; color: #fff; background: rgb(255 255 255 / 8%); border-color: rgb(255 255 255 / 20%); }
+.pr-sp-interact .btn:focus-visible { outline: 2px solid #8bb4ff; outline-offset: 3px; }
+.pr-speaker .pr-interact-focus { outline: 4px solid var(--pr-interact-color, var(--pr-accent)); outline-offset: 6px; }
+.pwc-interactive, .pwc-clicker { margin-top: var(--sp-4, 16px); padding-top: var(--sp-4, 16px); border-top: 1px solid var(--ui-color-border); }
+.pwc-interactive h3 { font-size: var(--fs-md); font-weight: 600; margin: 0 0 var(--sp-3, 12px); }
+.pwc-interactive-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--sp-3, 12px); }
+.pwc-interactive-list > li { padding: var(--sp-3, 12px); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-muted); }
+.pwc-interactive-title { display: flex; align-items: baseline; gap: var(--sp-2, 8px); flex-wrap: wrap; }
+.pwc-interactive-title strong { font-weight: 600; overflow-wrap: anywhere; }
+.pwc-step { color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
+.pwc-interactive p { margin: var(--sp-2, 8px) 0 0; font-size: var(--fs-sm); line-height: 1.5; }
+.pwc-interactive-warning { display: flex; align-items: start; gap: var(--sp-2, 8px); color: var(--ui-color-text-muted); }
+.pwc-interactive-warning svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+.pwc-clicker summary { cursor: pointer; font-size: var(--fs-md); font-weight: 600; padding: var(--sp-2, 8px) 0; }
+.pwc-clicker p { font-size: var(--fs-sm); line-height: 1.5; color: var(--ui-color-text-muted); }
+.pwc-clicker-result { padding: var(--sp-3, 12px); border: 1px solid var(--ui-color-border); border-radius: var(--radius-sm); font-variant-numeric: tabular-nums; background: var(--ui-color-surface-muted); }
+.pwc-clicker-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2, 8px); margin-top: var(--sp-3, 12px); }
+.pwc-clicker-actions label { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2, 8px); font-size: var(--fs-sm); }
+.pwc-clicker-actions select { min-height: 36px; max-width: 100%; background: var(--ui-color-surface); color: var(--ui-color-text); border: 1px solid var(--ui-color-border); border-radius: var(--radius-sm); font: inherit; padding: 6px 10px; }
+.pwc-clicker summary:focus-visible, .pwc-clicker select:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .pr-interact-ring { transition: none; } }
+
 /* The state-class contract → the default transition (a gentle push + fade). Only the
    active slide and its two neighbours are ever in the DOM's paint window; the rest carry
    [hidden]. Neighbours sit just off their travel side and faded, so any advance reads as

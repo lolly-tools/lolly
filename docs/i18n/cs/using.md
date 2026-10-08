@@ -440,3 +440,8 @@ Lolly je PWA. Dál funguje **offline** na obrazovkách, které jsi už otevřel/
 K aktualizacím: pokud se zobrazení někdy nenačte hned po jedné z nich (prázdný panel, "failed to fetch" v rohu), načti stránku znovu jednou - appka čistě přejde na novou verzi a tvoje uložená práce, relace a značka zůstanou nedotčené; jen obrázek, který jsi přidal/a a nikdy neuložil/a, možná bude potřeba přidat znovu. Všechno ukládá na tvém zařízení, ne na stránce.
 
 Design a Darkroom umí zachovat původní přesnost obrázku s úpravami **Wide colour / HDR**, včetně videa v Sekvenci. Vzorky značky mohou nést oddělené hodnoty sRGB a P3. Viz [Úpravy širokého barevného rozsahu a HDR](/info/hdr-editing.html) pro možnosti výstupu a aktuální omezení.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

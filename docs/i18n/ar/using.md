@@ -440,3 +440,8 @@ storage-seeding hook.
 بخصوص التحديثات: إذا فشل عرض ما في التحميل مباشرة بعد أحدها (لوحة فارغة، أو رسالة "failed to fetch" في الزاوية)، أعِد تحميل الصفحة مرة واحدة - يلتقط التطبيق الإصدار الجديد بسلاسة ويبقى عملك وجلساتك وعلامتك التجارية دون تغيير؛ ولا يحتاج إلى إضافة من جديد سوى صورة أضفتها ولم تحفظها قط. فهو يخزّن كل شيء على جهازك، لا في الصفحة.
 
 ويستطيع Design وDarkroom الحفاظ على دقة الصورة الأصلية بتحرير **Wide colour / HDR**، بما في ذلك فيديو Sequence. وتستطيع عينات ألوان العلامة التجارية حمل قيم sRGB وP3 منفصلة. انظر [تحرير الألوان الواسعة وHDR](/info/hdr-editing.html) لخيارات الخرج والحدود الحالية.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

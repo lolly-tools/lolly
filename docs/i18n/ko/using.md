@@ -440,3 +440,8 @@ Lolly는 PWA예요. 이미 열어 둔 화면에서는 **오프라인**에서도 
 업데이트에 대해: 업데이트 직후 화면이 로드되지 않는다면(빈 패널이나 구석에 뜨는 "failed to fetch" 메시지), 페이지를 한 번 새로고침하세요 - 앱은 새 버전을 깔끔하게 받아들이고, 작업물과 세션, 브랜드는 그대로 유지돼요. 추가했지만 한 번도 저장하지 않은 이미지만 다시 추가해야 할 수 있어요. 모든 것은 페이지가 아니라 기기에 저장돼요.
 
 Design와 Darkroom은 **Wide colour / HDR** 편집으로 원본 이미지의 정밀도를 지킬 수 있고, 이건 Sequence 영상도 마찬가지예요. 브랜드 색상 견본은 sRGB와 P3 값을 따로 가질 수 있어요. 출력 선택지와 현재 제한 사항은 [와이드 컬러와 HDR 편집](/info/hdr-editing.html)을 보세요.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

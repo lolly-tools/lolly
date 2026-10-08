@@ -159,7 +159,9 @@
       "webView",
       "webLoad",
       "webCss",
-      "webHideCookies"
+      "webHideCookies",
+      "interact",
+      "interactOpts"
     ],
     "diagram-builder:nodes": [
       "shape",

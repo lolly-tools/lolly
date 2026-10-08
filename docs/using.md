@@ -253,6 +253,12 @@ A Design document made of **artboards** is already a deck. Open the **Lolly menu
 
 The deck is a link as well. `?present` opens straight into it, `s=` picks the slide - a position, an artboard id or `id.step` for a build step - and the address updates as you move, so what you send is the slide you're on. Tool authors: those parameters are documented on the [URL Mode](/info/url-parameters.html#reserved-parameters) page.
 
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive** in its inspector. At its **Focus on click** step, the deck highlights the page and keeps the clicker: Up and Down control the page; Next continues builds and slides. Choose Ring, Spotlight, Zoom or None, then prepare start depths, scroll stops and optional automatic scrolling. Sites that need approval stay posters until approved before the presentation.
+
+For owner controls, clicker testing, keyboard handover and the receiver for your own pages, see [Live pages that take the clicker](/info/interactive-pages.html). Interactive settings travel with shared documents and links; exports keep the poster.
+
 ## On a phone
 
 On narrow screens the layout reflows to one column:

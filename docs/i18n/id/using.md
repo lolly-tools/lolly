@@ -440,3 +440,8 @@ Lolly adalah PWA. Lolly tetap bekerja **luring** pada layar yang sudah Anda buka
 Tentang update: jika sebuah view gagal dimuat tepat setelah update (panel kosong, sebuah "failed to fetch" di sudut), muat ulang halamannya sekali - aplikasi akan mengambil versi baru secara bersih dan pekerjaan, sesi serta brand Anda tidak tersentuh; hanya gambar yang Anda tambahkan dan belum pernah disimpan yang mungkin perlu ditambahkan lagi. Ia menyimpan semuanya di perangkat Anda, bukan di halaman.
 
 Design dan Darkroom bisa mempertahankan presisi gambar asli dengan penyuntingan **Wide colour / HDR**, termasuk video Sequence. Swatch brand bisa membawa nilai sRGB dan P3 yang terpisah. Lihat [Wide colour and HDR editing](/info/hdr-editing.html) untuk pilihan output dan batasan saat ini.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

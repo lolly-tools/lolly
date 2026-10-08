@@ -261,6 +261,7 @@ const pages: Page[] = [
   { slug: 'hdr-editing', title: 'Wide Colour and HDR', src: 'hdr-editing.md', pathway: 'creators', description: 'Keep original image and video precision, use authored P3 brand swatches, and choose HDR or SDR output.' },
   { slug: 'sequence-editor',  title: 'The sequence editor', src: 'sequence-editor.md', pathway: 'creators' },
   { slug: 'presenting', title: 'Presenting with camera', src: 'presenting.md', pathway: 'creators', description: 'Prepare camera framing, a logo and captions over slides or Countdown, with private controls, saved scenes and local recording.' },
+  { slug: 'interactive-pages', title: 'Live pages that take the clicker', src: 'interactive-pages.md', pathway: 'creators', description: 'Give web pages a focus step, scroll stops and automatic movement while the presenter keeps control of the deck.' },
   { slug: 'agenda', title: 'Agenda screens and programmes', src: 'agenda.md', pathway: 'creators', description: 'Turn an event programme into branded screens, an interactive page, video, calendars and PowerPoint slides.' },
   { slug: 'animating',        title: 'Animating: keyframes, depth and a camera', src: 'animating.md', pathway: 'creators', description: "Pose a box at one moment, lift it off the page, and fly a camera over the result - keyframes, depth, the scene camera and Lift layers, all on your device." },
   // Collab is a CREATORS page, not a Builders or Trust one: it is a thing two people
@@ -567,7 +568,8 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'sync',        label: 'Sync your devices' } ] },
       { label: 'Present', items: [
         { slug: 'agenda', label: 'Agenda screens and programmes' },
-        { slug: 'presenting', label: 'Presenting with camera' } ] },
+        { slug: 'presenting', label: 'Presenting with camera' },
+        { slug: 'interactive-pages', label: 'Live pages that take the clicker' } ] },
       { label: 'Collaborate', items: [
         { slug: 'collaborate', label: 'Working together' } ] },
       { label: 'Post', items: [
@@ -5266,7 +5268,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
     'text-composition', 'design-import', 'rebrand', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Animate', slugs: ['sequence-editor', 'hdr-editing', 'animating'] },
   { hub: 'creators', label: 'Find your way', slugs: ['search', 'ask', 'dashboard', 'favourites', 'profile', 'find-your-work', 'sync'] },
-  { hub: 'creators', label: 'Present', slugs: ['agenda', 'presenting'] },
+  { hub: 'creators', label: 'Present', slugs: ['agenda', 'presenting', 'interactive-pages'] },
   { hub: 'creators', label: 'Collaborate', slugs: ['collaborate'] },
   { hub: 'creators', label: 'Post', slugs: ['formats', 'exporting'] },
   { hub: 'builders', label: 'Architecture', slugs: ['overview', 'design-tokens', 'token-workflows', 'glossary', 'document-model'] },
@@ -5387,7 +5389,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'status-quo': 'convert', 'input-not-impersonation': 'usercheck',
   // Creators
   'design-tool-contract': 'convert', 'create-a-tool': 'pentool', 'learning-integration': 'convert', 'training-creators': 'folder', using: 'pentool', templates: 'folder', 'brand-studio': 'palette', profile: 'usercheck', 'design-import': 'upload', rebrand: 'convert',
-  agenda: 'checklist', presenting: 'monitor', 'sequence-editor': 'clock', 'hdr-editing': 'sliders', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
+  agenda: 'checklist', presenting: 'monitor', 'interactive-pages': 'globe', 'sequence-editor': 'clock', 'hdr-editing': 'sliders', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
   'compare-canva': 'checklist', 'compare-adobe': 'checklist', 'compare-figma': 'checklist', 'compare-render-apis': 'checklist', 'compare-converters': 'checklist',
   'compare-penpot': 'checklist', 'compare-brand-portals': 'checklist',
   'make-something': 'pentool', install: 'download', organisation: 'people', faq: 'document',

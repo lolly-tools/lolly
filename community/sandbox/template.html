@@ -702,9 +702,21 @@
     'window.addEventListener("error",function(e){if(e.error&&e.error.stack)send("error",[String(e.error.stack).replace(/about:srcdoc/g,"preview")]);else send("error",[(e.message||"Error")+(e.filename?" ("+String(e.filename).replace(/about:srcdoc/,"preview")+":"+e.lineno+")":"")]);});',
     'window.addEventListener("unhandledrejection",function(e){var r=e.reason;send("error",["Uncaught (in promise) "+(r&&(r.stack||r.message)||fmt(r))]);});',
     'parent.postMessage({__rwc:1,level:"__ready__"},"*");',
+    // An opaque preview starts a private port to its known parent origin.
+    // Presentation commands never use the window's wildcard console channel.
+    "var presentPort=null, presentHand=false, presentSurfaceCached=null, presentSurfaceChecked=0;",
+    "function presentSurface(){var now=performance.now();if(presentSurfaceCached&&presentSurfaceCached.isConnected&&now-presentSurfaceChecked<1000)return presentSurfaceCached;var best=document.scrollingElement||document.documentElement,score=Math.max(0,best.scrollHeight-best.clientHeight);Array.prototype.slice.call(document.querySelectorAll(\"*\"),0,5000).forEach(function(el){var room=el.scrollHeight-el.clientHeight;if(room>0&&el.clientHeight>0&&el.clientWidth>0&&/^(auto|scroll|overlay)$/.test(getComputedStyle(el).overflowY)&&getComputedStyle(el).visibility!==\"hidden\"){var weight=room*Math.min(1,el.clientWidth/Math.max(1,document.documentElement.clientWidth));if(weight>score){best=el;score=weight;}}});presentSurfaceCached=best;presentSurfaceChecked=now;return best;}",
+    "function presentDepth(){var el=presentSurface(),max=Math.min(1000000,Math.max(0,el.scrollHeight-el.clientHeight));return{y:Math.min(max,Math.max(0,el.scrollTop)),max:max};}",
+    "function presentReply(d){if(presentPort)presentPort.postMessage(Object.assign({type:\"lolly:present\",v:1},d));}",
+    "function presentScroll(to){var el=presentSurface(),max=presentDepth().max,y;if(typeof to===\"number\"&&isFinite(to))y=to;else if(typeof to===\"string\"&&to.length<=129&&/^\\d+(?:\\.\\d+)?%$/.test(to))y=max*Math.min(100,Number(to.slice(0,-1)))/100;else if(typeof to===\"string\"&&/^#[^\\s#\\x00-\\x1f]+$/.test(to)&&to.length<=129){try{var id=to.slice(1);try{id=decodeURIComponent(id);}catch(_){}var target=document.getElementById(id);if(!target)return;y=el.scrollTop+target.getBoundingClientRect().top-((el===document.scrollingElement||el===document.documentElement)?0:el.getBoundingClientRect().top);}catch(_){return;}}else return;el.scrollTop=Math.min(max,Math.max(0,y));presentReply(Object.assign({kind:\"depth\"},presentDepth()));}",
+    "function presentKey(key){if(key!==\"ArrowUp\"&&key!==\"ArrowDown\")return;var el=document.activeElement||document.body;if(!el)return;var allowed=el.dispatchEvent(new KeyboardEvent(\"keydown\",{key:key,bubbles:true,cancelable:true}));el.dispatchEvent(new KeyboardEvent(\"keyup\",{key:key,bubbles:true,cancelable:true}));if(allowed)presentScroll(presentDepth().y+(key===\"ArrowDown\"?40:-40));else presentReply(Object.assign({kind:\"depth\"},presentDepth()));}",
+    "function presentReceive(e){var d=e.data;if(!d||typeof d!==\"object\"||d.type!==\"lolly:present\"||d.v!==1)return;if(d.kind===\"hello\"){presentReply({kind:\"ready\",can:[\"key\",\"scroll\",\"depth\"]});presentReply(Object.assign({kind:\"depth\"},presentDepth()));}else if(d.kind===\"scroll\")presentScroll(d.to);else if(d.kind===\"key\")presentKey(d.key);else if(d.kind===\"handover\"&&typeof d.hand===\"boolean\")presentHand=d.hand;else if(d.kind===\"release\")presentHand=false;else if(d.kind===\"slide\"&&(d.state===\"start\"||d.state===\"stop\")){if(d.state===\"stop\")presentHand=false;document.dispatchEvent(new CustomEvent(\"lolly:present\",{detail:{kind:\"slide\",state:d.state}}));}else if(d.kind===\"focus\")document.dispatchEvent(new CustomEvent(\"lolly:present\",{detail:{kind:\"focus\"}}));}",
+    "var presentDepthPending=0;window.addEventListener(\"scroll\",function(){if(presentPort&&!presentDepthPending)presentDepthPending=requestAnimationFrame(function(){presentDepthPending=0;presentReply(Object.assign({kind:\"depth\"},presentDepth()));});},true);",
+    "window.addEventListener(\"keydown\",function(e){if(presentHand&&[\"ArrowLeft\",\"ArrowRight\",\"PageUp\",\"PageDown\"].indexOf(e.key)>=0){e.preventDefault();e.stopImmediatePropagation();presentReply({kind:\"deck-key\",key:e.key});}},true);",
+    'try{var presentChannel=new MessageChannel();presentPort=presentChannel.port1;presentPort.onmessage=presentReceive;presentPort.start();parent.postMessage({__rwcPresentChannel:1},'+JSON.stringify(location.origin)+',[presentChannel.port2]);}catch(_){}',
     // A clicker's two keys, pressed while the demo has focus, are passed up so a deck
     // showing this Sandbox on a slide can still move on (plan 288). Nothing else is sent.
-    'window.addEventListener("keydown",function(e){if(e.key==="PageDown"||e.key==="PageUp")parent.postMessage({__rwc:1,level:"__deckkey__",key:e.key},"*");},true);',
+    'window.addEventListener("keydown",function(e){if(!presentHand&&(e.key==="PageDown"||e.key==="PageUp"))parent.postMessage({__rwc:1,level:"__deckkey__",key:e.key},"*");},true);',
     // Snapshot the live preview for export. Canvas pixels do NOT survive DOM
     // serialisation, so each <canvas> is baked to an <img> of its toDataURL in a CLONE
     // of the document (the live preview is left untouched). Wholly guarded - any failure
@@ -1806,6 +1818,58 @@
       body.classList.toggle('is-narrow', w < 720);
     }).observe(root);
   }
+
+  // The outer deck talks only to this same-origin parent; the opaque preview
+  // receives the small presentation vocabulary through a transferred port.
+  var presentPreviewPort = null, presentParentOrigin = '', presentPending = [];
+  function safePresentCommand(d) {
+    if (!d || typeof d !== 'object' || Array.isArray(d) || d.type !== 'lolly:present' || d.v !== 1) return null;
+    var out = Object.assign(Object.create(null), { type: 'lolly:present', v: 1, kind: d.kind });
+    if (d.kind === 'hello' || d.kind === 'focus' || d.kind === 'release') return out;
+    if (d.kind === 'key' && (d.key === 'ArrowUp' || d.key === 'ArrowDown')) { out.key = d.key; return out; }
+    if (d.kind === 'scroll' && ((typeof d.to === 'number' && isFinite(d.to)) || (typeof d.to === 'string' && d.to.length <= 129 && /^(?:\d+(?:\.\d+)?%|#[^\s#\x00-\x1f]+)$/.test(d.to)))) {
+      out.to = typeof d.to === 'number' ? Math.min(1000000, Math.max(0, d.to)) : d.to; return out;
+    }
+    if (d.kind === 'slide' && (d.state === 'start' || d.state === 'stop')) { out.state = d.state; return out; }
+    if (d.kind === 'handover' && typeof d.hand === 'boolean') { out.hand = d.hand; return out; }
+    return null;
+  }
+  function relayPresentReply(e) {
+    var d = e.data, out = Object.assign(Object.create(null), { type: 'lolly:present', v: 1 });
+    if (!presentParentOrigin || !d || typeof d !== 'object' || d.type !== 'lolly:present' || d.v !== 1) return;
+    if (d.kind === 'ready' && Array.isArray(d.can)) { out.kind = 'ready'; out.can = d.can.slice(0, 3).filter(function(c) { return c === 'key' || c === 'scroll' || c === 'depth'; }); }
+    else if (d.kind === 'depth' && typeof d.y === 'number' && isFinite(d.y) && typeof d.max === 'number' && isFinite(d.max)) {
+      out.kind = 'depth'; out.max = Math.min(1000000, Math.max(0, d.max)); out.y = Math.min(out.max, Math.max(0, d.y));
+    } else if (d.kind === 'deck-key' && ['ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'].indexOf(d.key) >= 0) {
+      window.parent.postMessage({ type: 'lolly:deck-key', key: d.key }, presentParentOrigin); return;
+    } else return;
+    window.parent.postMessage(out, presentParentOrigin);
+  }
+  function handlePresentWindow(e) {
+    if (!root.isConnected) { disposePresentRelay(); return; }
+    if (frame && e.source === frame.contentWindow && e.origin === 'null' && e.data && e.data.__rwcPresentChannel === 1 && e.ports.length === 1) {
+      if (presentPreviewPort) presentPreviewPort.close();
+      presentPreviewPort = e.ports[0]; presentPreviewPort.onmessage = relayPresentReply; presentPreviewPort.start();
+      presentPending.forEach(function(d) { presentPreviewPort.postMessage(d); }); presentPending = [];
+      if (presentParentOrigin) presentPreviewPort.postMessage({ type: 'lolly:present', v: 1, kind: 'hello' }); return;
+    }
+    if (!framed || window.parent === window || e.source !== window.parent || e.origin !== location.origin) return;
+    var d = safePresentCommand(e.data); if (!d) return;
+    presentParentOrigin = e.origin;
+    if (presentPreviewPort) presentPreviewPort.postMessage(d);
+    else if (presentPending.length < 16) presentPending.push(d);
+  }
+  function disposePresentRelay() {
+    window.removeEventListener('message', handlePresentWindow);
+    if (presentPreviewPort) presentPreviewPort.close();
+    presentPreviewPort = null; presentPending = [];
+    if (presentDetachObserver) presentDetachObserver.disconnect();
+  }
+  window.addEventListener('message', handlePresentWindow);
+  var presentDetachObserver = typeof MutationObserver === 'function' ? new MutationObserver(function() {
+    if (!root.isConnected) disposePresentRelay();
+  }) : null;
+  if (presentDetachObserver) presentDetachObserver.observe(document.documentElement, { childList: true, subtree: true });
 
   // Receive console / lifecycle messages from the sandbox.
   window.addEventListener('message', function (e) {

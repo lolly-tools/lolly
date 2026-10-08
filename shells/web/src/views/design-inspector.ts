@@ -1,5 +1,7 @@
+import { webSectionRows } from './design-web-section.ts';
+import { webInteractRows, wireWebInteract, commitWebInteractColour } from './design-web-interact.ts';
 import { mountTextInspector } from '../lib/text-inspector.ts';
-import { webPlaybackRows, wireWebPlayback } from './design-web-playback.ts';
+import { wireWebPlayback } from './design-web-playback.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The Design editor's INSPECTOR column - plan 179 M3, slice (c).
@@ -126,7 +128,7 @@ import { mountDesignTokenBindings } from './design-token-bindings.ts';
 import type { BlockFieldSpec } from '../../../../engine/src/inputs.ts';
 import { parseWebEmbed } from '../../../../engine/src/web-embed.ts';
 import { onWebConsentChange } from '../lib/design-web-mount.ts';
-import { approveWebLink, webApprovalRows } from './design-web-policy.ts';
+import { approveWebLink } from './design-web-policy.ts';
 import { announce } from '../a11y.ts';
 import { fieldFocusToken } from '../lib/collab-field-focus.ts';
 import { onTrustedSitesChange } from '../lib/trusted-sites.ts';
@@ -405,7 +407,7 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   // with no `canvas` key of its own, so there is no cfg name to read it through.
   scene: () => ['scene'],
   // The web page box (plan 288): its link, layout width, load rule and poster.
-  web: (c) => ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', c.imageField],
+  web: (c) => ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts', c.imageField],
   // `build` and `lane` have no cfg key of their own (the manifest names them literally,
   // as `notes` and `cls` are named), and the Appears control is derived from all four of
   // build/start/dur/lane - so a build step written anywhere else has to move this memo.
@@ -1628,38 +1630,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * out, and when it loads while presenting. Every rule about the link is
    * engine/src/web-embed.ts; this reads its answer back in words.
    */
-  function webBody(b: Box): string {
-    const link = String(fv(b, F_WEB) ?? '').trim();
-    const embed = link ? parseWebEmbed(link, { appOrigin: location.origin }) : null;
-    const shows = !link ? t('No link yet')
-      : !embed ? t('This link cannot be shown in a box')
-        : embed.refuses ? t('{label}: the site does not allow being shown inside other pages', { label: embed.label })
-          : embed.label;
-    const view = Math.max(0, Math.round(clampN(fv(b, 'webView'), 0, 0, 3840)));
-    const views: Array<[string, string]> = [['0', t('Box size')], ['1280', t('Desktop (1280)')], ['1024', t('Tablet (1024)')], ['390', t('Phone (390)')]];
-    if (!views.some(([v]) => Number(v) === view)) views.push([String(view), t('{n} px wide', { n: view })]);
-    return textRow(t('Link'), 'web', link, 'https://…')
-      + readRow(t('Shows'), shows)
-      + `<label class="fc-row"><span>${t('Lay out as')}</span><select class="field-select field-select--sm" data-fld="webView" data-kind="num">`
-      + views.map(([v, l]) => opt(v, l, String(view))).join('') + '</select></label>'
-      + selectRow(t('When presenting'), 'webLoad', [
-        ['slide', t('With its slide')], ['early', t('One slide early')],
-        ['keep', t('Keep running')], ['click', t('Wait for a click')],
-      ], String(fv(b, 'webLoad') ?? '') || 'slide')
-      + (embed ? webPlaybackRows(embed) : '')
-      + (embed && !embed.sameOrigin ? webApprovalRows(embed, readRow, doorBtn) : '')
-      + (embed && !embed.refuses ? doorBtn(t('Use page'), 'webuse', 'externalLink') : '')
-      + (embed?.sameOrigin && embed.provider !== 'sandbox'
-        ? toggleRow(t('Hide cookie banners'), 'webHideCookies', boolOf(fv(b, 'webHideCookies'), false))
-          + doorBtn(fv(b, 'webCss') ? t('Edit page CSS') : t('Add page CSS'), 'webcss', 'code')
-          + readRow(t('Appearance'), t('Live page only. Hiding a banner does not accept cookies.'))
-        : embed && !embed.refuses ? readRow(t('Cookie banners'), t('Use page to reject cookies or close the banner. This site controls its own CSS.')) : '')
-      + doorBtn(cfg.imageField && b[cfg.imageField] ? t('Change poster') : t('Choose poster'), 'pickimage', 'image')
-      + (embed?.kind === 'lolly'
-        ? doorBtn(embed.provider === 'sandbox' ? t('Edit in Sandbox') : t('Edit in the tool'), 'webedit', 'code')
-          + doorBtn(t('Refresh poster'), 'webposter', 'refresh')
-        : embed ? doorBtn(t('Open in new tab'), 'webopen', 'externalLink') : '');
-  }
 
   function sceneBody(b: Box): string {
     const query = String(fv(b, F_SCENE) ?? '');
@@ -1875,7 +1845,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (sec === 'image') return imageBody(b);
     if (sec === 'scene') return sceneBody(b);
     if (sec === 'tool') return toolBody(b);
-    if (sec === 'web') return webBody(b);
+    if (sec === 'web') return webSectionRows(b, { cfg, F_WEB, fv, clampN, boolOf, textRow, readRow, selectRow, toggleRow, doorBtn })
+      + (declaredField('interact') && declaredField('interactOpts') ? webInteractRows(b, canvasEl) : '');
     if (sec === 'motion') return motionBody(b, g.kind === 'frame');
     return presentBody(b, g.kind === 'frame');
   }
@@ -1899,8 +1870,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (tokenSection) return `[data-token-section="${q(tokenSection.dataset.tokenSection)}"] ${node.hasAttribute('data-design-token-property') ? '[data-design-token-property]' : 'summary'}`;
     const seg = node.closest<HTMLElement>('.fc-seg');
     if (seg && d?.v != null) return `.fc-seg[data-seg="${q(seg.dataset.seg)}"] .fc-seg-btn[data-v="${q(d.v)}"]`;
-    for (const attr of ['fld', 'doc', 'nf', 'dm', 'mp', 'arr', 'act', 'head'] as const) {
-      if (d?.[attr] != null) return `[data-${attr}="${q(d[attr])}"]`;
+    for (const attr of ['fld', 'doc', 'nf', 'dm', 'mp', 'arr', 'act', 'head', 'webInteract', 'webStop'] as const) {
+      if (d?.[attr] != null) return `[data-${attr.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`)}="${q(d[attr])}"]`;
     }
     const cf = node.closest<HTMLElement>('[data-color-field]');
     if (cf) return `[data-color-field="${q(cf.dataset.colorField)}"] .color-trigger`;
@@ -1908,6 +1879,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   }
 
   let textMounted: ReturnType<typeof mountTextInspector> | null = null;
+  let webInteractDispose: (() => void) | null = null;
 
   /**
    * The live Tool section panel, kept ACROSS rebuilds. The column throws its markup
@@ -1980,6 +1952,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     parkToolPanel();
     tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = [];
     textMounted?.destroy(); textMounted = null;
+    webInteractDispose?.(); webInteractDispose = null;
     renderedIds = [...g.ids];
     renderedGuideId = g.kind === 'guide' ? g.guide.id : null;
     // The number cells go with the markup that held them: their listeners are on nodes
@@ -2155,8 +2128,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       write(field, v);
     });
 
+    const interactionIds = [...renderedIds];
+    const interactionColour = scroll.querySelector('[data-color-field="fc-insp-interact-highlight"]');
     wireColorField(scroll, {
       onChange: (id, val, detail) => {
+        if (id === 'fc-insp-interact-highlight') { if (interactionColour?.isConnected) commitWebInteractColour(model, interactionIds, val); return; }
         const colour = designColorValue(val, model.getInput('editingRange'), detail);
         if (id === 'fc-insp-guide' && renderedGuideId) { opts.guides?.update(renderedGuideId, { color: typeof val === 'object' ? val.value : val }); return; }
         if (id === 'fc-insp-bg') { model.setInput('background', colour); return; }
@@ -2168,6 +2144,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       sel.addEventListener('change', () => write(sel.dataset.fld, sel.dataset.kind === 'num' ? Number(sel.value) : sel.value));
     });
     wireWebPlayback(scroll, () => parseWebEmbed(String(fv(boxesById(renderedIds)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin }), link => write(F_WEB, link));
+    webInteractDispose = wireWebInteract(scroll, model, [...renderedIds], canvasEl);
 
     // The DOCUMENT's own settings (plans/180's narration inputs, and the captions flag).
     // They write a top-level input, so they never travel through `write` and can never be
@@ -2639,6 +2616,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     destroy(): void {
       tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = [];
       textMounted?.destroy();
+      webInteractDispose?.(); webInteractDispose = null;
       dropToolPanel();
       if (destroyed) return;
       destroyed = true;

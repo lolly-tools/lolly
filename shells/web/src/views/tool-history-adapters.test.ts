@@ -57,12 +57,13 @@ test('community: 50 document tools, 2 with a side file, 13 file utilities and 3 
   }
 });
 
-test('SUSE: the pack adds 11 document tools and 1 recording tool', { skip: suseMounted ? false : 'brands/suse is not checked out, so the SUSE pack cannot be counted here' }, () => {
+test('SUSE: the pack adds 12 document tools and 1 recording tool', { skip: suseMounted ? false : 'brands/suse is not checked out, so the SUSE pack cannot be counted here' }, () => {
   // 3d and 3d-studio ship in both packs; the SUSE copies are overlays, not new tools.
   const added = [...suse.values()].filter(tool => !community.has(tool.id));
   const ids = classes(added);
-  assert.deepEqual(counts(ids), { A: 11, B: 0, C: 0, D: 1 }, JSON.stringify(ids));
+  assert.deepEqual(counts(ids), { A: 12, B: 0, C: 0, D: 1 }, JSON.stringify(ids));
   assert.ok(ids.A.includes('email-signature'), 'untyped blocks fields are text, so email-signature is a document tool');
+  assert.ok(ids.A.includes('susecon-background'), 'background scenes keep their authored document history');
   assert.deepEqual(ids.D, ['top-tail-recorder']);
 });
 

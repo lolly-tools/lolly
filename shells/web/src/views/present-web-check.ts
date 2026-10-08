@@ -21,6 +21,9 @@ import { trustedSiteHost } from '../../../../engine/src/trusted-sites.ts';
 import { canTrustMore, trustSite } from '../lib/trusted-sites.ts';
 import { consentToLink, frameHost, policyNote, trustEntryFor, webPageHref, webFrameState, type WebFrameState } from '../lib/design-web-mount.ts';
 import { anySiteApplies, enterAnySite, probeAnySite } from '../lib/any-site.ts';
+import { parsePresentInteractOpts } from '../../../../engine/src/present-interact.ts';
+import { interactionStep } from './present-interact.ts';
+import { clickerPanelHtml, wireClickerPanel } from './present-clicker.ts';
 
 type CheckState = Extract<WebFrameState, 'ask' | 'policy' | 'blocked' | 'refused' | 'browser'>;
 
@@ -43,6 +46,43 @@ const CHECK_STATES = new Set<WebFrameState>(['ask', 'policy', 'blocked', 'refuse
 
 /** Issues shown in this session that no answer can change, by `host|state`. */
 const acknowledged = new Set<string>();
+
+export interface InteractiveCheckRow { slide: number; step: number; title: string; summary: string; warnings: string[] }
+export function interactiveCheckRows(source: Element): InteractiveCheckRow[] {
+  const pages = [...source.querySelectorAll<HTMLElement>('.lolly-frame-page')];
+  const rows: InteractiveCheckRow[] = [];
+  for (const marker of source.querySelectorAll<HTMLElement>('.lolly-box-web[data-lolly-web][data-interact]')) {
+    const step = interactionStep(marker), opts = parsePresentInteractOpts(marker.dataset.interactOpts);
+    const embed = parseWebEmbed(marker.dataset.lollyWeb ?? '', { appOrigin: location.origin });
+    if (step === null || !embed) continue;
+    const page = marker.closest<HTMLElement>('.lolly-frame-page');
+    const warnings: string[] = [];
+    let summary = t('Interactive page');
+    if (!opts) warnings.push(t('These interaction settings could not be read. Edit them before presenting.'));
+    else {
+      summary = opts.keys === 'none' ? t('Up and Down keep moving through the slide stack.')
+        : opts.keys === 'key' ? t('Up and Down go to the demo.')
+        : opts.stops.length ? t('Up and Down move between {n} stops.', { n: opts.stops.length }) : t('Up and Down scroll the page.');
+      if (opts.keys === 'key' && !embed.sameOrigin) warnings.push(t('Keyboard control needs a page that listens to the clicker. Otherwise Up and Down scroll instead.'));
+      if (opts.mode === 'pan' && opts.pageLength <= 0) warnings.push(t('Pan needs a page length. Set it in the inspector before presenting.'));
+      if (page?.hasAttribute('data-frame-stack') && opts.keys !== 'none') warnings.push(t('While this page is focused, Up and Down go to the page instead of the slide stack.'));
+      if (!embed.sameOrigin && opts.mode === 'none' && opts.keys !== 'none') warnings.push(t('If this page does not listen to the clicker, choose places or Pan in the inspector to scroll the page.'));
+      if (opts.hand && !embed.sameOrigin) warnings.push(t('While the page has the keyboard, the clicker goes to the page. Click Back to slides to take it back.'));
+    }
+    rows.push({ slide: page ? pages.indexOf(page) + 1 : 0, step, title: marker.dataset.webTitle || embed.host,
+      summary, warnings });
+  }
+  return rows;
+}
+
+function interactiveRowsHtml(rows: readonly InteractiveCheckRow[]): string {
+  if (!rows.length) return '';
+  return `<section class="pwc-interactive"><h3>${t('Pages that take the clicker')}</h3><ul class="pwc-interactive-list">`
+    + rows.map((row) => `<li><div class="pwc-interactive-title"><strong>${esc(row.title)}</strong><span class="pwc-step">`
+      + esc(row.step === 0 ? t('Slide {n} · when it opens', { n: row.slide }) : t('Slide {n} · click {step}', { n: row.slide, step: row.step }))
+      + `</span></div><p>${esc(row.summary)}</p>`
+      + row.warnings.map((warning) => `<p class="pwc-interactive-warning">${icon('info', { size: 16 })}<span>${esc(warning)}</span></p>`).join('') + `</li>`).join('') + `</ul></section>`;
+}
 
 /** Every site in the deck that needs a word before presenting, grouped by host. */
 export function webCheckRows(source: Element): WebCheckRow[] {
@@ -125,13 +165,15 @@ function rowHtml(row: WebCheckRow, i: number): string {
  * effect at once: "Just this time" agrees for this session, "Always trust" writes the
  * person's trusted sites, and either one loads the editor's frames too.
  */
-export function openWebCheck(rows: readonly WebCheckRow[]): Promise<boolean> {
+export function openWebCheck(rows: readonly WebCheckRow[], interactive: readonly InteractiveCheckRow[] = []): Promise<boolean> {
   return new Promise((resolve) => {
+    let releaseClicker: (() => void) | undefined;
     const title = t('Check web pages');
     const modal = mountModal<boolean>(
       `<h2 class="modal-title">${title}</h2>`
       + `<p class="modal-msg">${t('Some slides show web pages. Nothing is asked while you present, so decide here. A page that does not load shows its picture.')}</p>`
       + `<ul class="pwc-list">${rows.map(rowHtml).join('')}</ul>`
+      + interactiveRowsHtml(interactive) + clickerPanelHtml()
       + (rows.some((r) => r.state === 'blocked') && anySiteApplies()
         ? `<div class="pwc-anysite"><p class="pwc-anysite-note">${t('To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.')}</p>`
           + `<button type="button" class="btn" data-pwc-anysite>${t('Allow pages from any site')}</button><p class="pwc-anysite-note" data-pwc-anysite-msg hidden></p></div>`
@@ -144,11 +186,13 @@ export function openWebCheck(rows: readonly WebCheckRow[]): Promise<boolean> {
         cancelValue: false,
         initialFocus: (el) => el.querySelector<HTMLElement>('[data-pwc-present]'),
         onClose: (result) => {
+          releaseClicker?.();
           if (result) for (const r of rows) if (r.state !== 'ask') acknowledged.add(`${r.host}|${r.state}`);
           resolve(result === true);
         },
       },
     );
+    releaseClicker = wireClickerPanel(modal.el);
     const settle = (i: number, text: string): void => {
       const row = modal.el.querySelector<HTMLElement>(`[data-pwc-row="${i}"]`);
       row?.querySelector('.pwc-actions')?.remove();
@@ -208,7 +252,8 @@ export async function preparePresentSource(
   await runtime.applyEmojiToDom(source);
   if (!opts.loop && source.querySelector('.lolly-box-web')) {
     const rows = webCheckRows(source);
-    if (webCheckIsRelevant(rows) && !(await openWebCheck(rows))) return null;
+    const interactive = interactiveCheckRows(source);
+    if ((webCheckIsRelevant(rows) || interactive.length > 0) && !(await openWebCheck(rows, interactive))) return null;
   }
   return opts.isActive() ? source : null;
 }

@@ -73,6 +73,7 @@ security posture).
 | [extension.md](extension.md) | end user | The Lolly URL Screenshot browser extension, which gives the web app page capture that a browser tab cannot do alone. |
 | [animating.md](animating.md) | end user | Keyframes and depth: +Keyframe's two homes, the playhead-as-arm latch, the Keyframes popup and its curves, the Depth slider and Depth shadow, the scene camera and its five moves, Lift layers, Choreograph (six one-click showcases over a stack), and what a posed frame exports as. |
 | [presenting.md](presenting.md) | end user | Camera framing, logos, lower thirds, saved scenes, private controls, audience sharing, recording and current trial limitations. |
+| [interactive-pages.md](interactive-pages.md) | presenter and builder | Clicker focus, page scrolling, stops, automatic scrolling, keyboard handover and the receiver for pages you control. |
 | [agenda.md](agenda.md) | end user | Programme editing, large-type screens, interactive HTML, event clocks, calendars and animated or editable PowerPoint. |
 | [collaborate.md](collaborate.md) | end user | Private collabs between two devices: invites, presence, session transfers and offline use. A collapsed section covers optional work collabs through an organisation's lolly.work instance. |
 | [formats.md](formats.md) | end user | The whole format register as one three-zone table - read-only at the left, written-only at the right, both-ways in the middle - with a plain-language card behind every chip. |

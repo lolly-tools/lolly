@@ -440,3 +440,8 @@ Lolly e un PWA. Continuă să funcționeze **offline** pe ecranele pe care le-ai
 Despre actualizări: dacă o vedere nu reușește vreodată să se încarce imediat după una (un panou gol, un „failed to fetch” în colț), reîncarcă pagina o dată - aplicația preia curat noua versiune, iar lucrarea ta salvată, sesiunile și brandul rămân neatinse; doar o fotografie pe care ai adăugat-o și n-ai salvat-o niciodată ar putea avea nevoie să fie adăugată din nou. Stochează totul pe dispozitivul tău, nu în pagină.
 
 Design și Darkroom pot păstra precizia originală a imaginii cu editarea **Wide colour / HDR**, inclusiv video Sequence. Mostrele de brand pot purta valori separate sRGB și P3. Vezi [Editarea Wide colour și HDR](/info/hdr-editing.html) pentru alegerile de ieșire și limitele actuale.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

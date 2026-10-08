@@ -57,6 +57,8 @@ import { easingPoints, splitPhaseWindowMs } from '../lib/transitions.ts';
 import { MIN_TRANSITION_MS, MAX_TRANSITION_MS } from '../bridge/sequence-plan.ts';
 import { CAPTION_BOX_CLASS } from './timeline-captions.ts';
 import { mountWebFrames, pauseWebFrame, setWebPresenting, stripWebFrames, unmountWebFrames } from '../lib/design-web-mount.ts';
+import { mountPresentInteract, presentBuildSteps } from './present-interact.ts';
+import { clickerKey } from './present-clicker.ts';
 
 /** How long the HUD stays visible after the last pointer/key wake (the old visualiser panel used 2600). */
 const IDLE_MS = 2600;
@@ -523,8 +525,8 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   // `?kiosk` signage flag this presenter was opened with (which is also what `loop` means -
   // signage links `?present&kiosk` must keep advancing).
   const kiosk = loop || wantsAutoAdvance(source);
-  const { specs, pages } = readFrames(source, kiosk);
-  if (specs.length === 0) return null; // nothing to present - caller nudges "add frames"
+  const { specs: inputSpecs, pages } = readFrames(source, kiosk);
+  if (inputSpecs.length === 0) return null; // nothing to present - caller nudges "add frames"
   setWebPresenting(true); // the editor's web frames unload behind the stage
 
   // The two document-level narration settings the podium honours (plans/180): whether the
@@ -533,7 +535,8 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   const showCaptions = docFlag(source, 'data-present-captions');
   const narrationTailMs = docMs(source, 'data-narration-tail', NARRATION_TAIL_MS);
 
-  const deck: Deck = buildDeck(specs);
+  const deck: Deck = buildDeck(inputSpecs);
+  const specs = deck.positions.map(position => position.frame);
   const reduced = prefersReducedMotion();
 
   // ---- Stage DOM (a body-level fixed overlay; never a child of the canvas) ----------
@@ -566,13 +569,14 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   // touched. Strip the authored absolute placement (present.css centres every page in
   // one co-located stack) and stamp the per-page fit scale + walk index.
   const cloneByIndex: HTMLElement[] = [];
+  const pageById = new Map(pages.map((page, i) => [page.getAttribute('data-frame-id') || String(i), page]));
   // Does the deck SPEAK, and is any of it its own voice? Both are decided here, off the
   // clones, because both change the chrome: a deck that plays audio on its own must offer
   // a way to silence it (WCAG 1.4.2 Audio Control), and a slide narrating itself keeps its
   // captions - there is no live speaker saying the same words.
   let deckSpeaks = false;
-  for (let i = 0; i < pages.length; i++) {
-    const src = pages[i]!;
+  for (let i = 0; i < deck.count; i++) {
+    const src = pageById.get(deck.positions[i]!.id)!;
     const clone = src.cloneNode(true) as HTMLElement;
     clone.classList.add('pr-page');
     clone.removeAttribute('data-pdf-page'); // not a page to export; a slide to show
@@ -620,7 +624,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   // Pause holds a KIOSK dwell, and it also holds a voice: a narrated deck plays itself
   // whether or not the author turned auto-advance on, so the button is offered for either
   // reason. Icon/label swap in syncPauseBtn.
-  const btnPause = (deckHasDurs || deckSpeaks) ? hudBtn('play', t('Pause')) : null;
+  const btnPause = (deckHasDurs || deckSpeaks || source.querySelector('[data-interact]')) ? hudBtn('play', t('Pause')) : null;
   // WCAG 1.4.2: audio that starts on its own and runs past three seconds needs a control
   // that silences it without leaving the presentation. Blackout is not that control - it
   // blanks the screen - so a deck that speaks gets its own mute.
@@ -720,7 +724,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   }
 
   // Any frame carrying `data-build` fragments? Skip all build work when none (the common case).
-  const deckHasBuilds = cloneByIndex.some((c) => c.querySelector('[data-build]'));
+  const deckHasBuilds = cloneByIndex.some((c) => c.querySelector('[data-build], [data-interact]'));
 
   // ---- Builds (M3): fragment reveals within a slide ----------------------------------
   // Distinct build values on a frame, ascending (equal values reveal together - reveal's
@@ -729,12 +733,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   function buildStepsOf(index: number): number[] {
     const clone = cloneByIndex[clampIndex(deck, index)];
     if (!clone) return [];
-    const set = new Set<number>();
-    for (const bx of clone.querySelectorAll('[data-build]')) {
-      const v = Number(bx.getAttribute('data-build'));
-      if (Number.isFinite(v) && v >= 1) set.add(v);
-    }
-    return [...set].sort((a, b) => a - b);
+    return presentBuildSteps(clone, kiosk);
   }
   function maxBuildOf(index: number): number {
     const steps = buildStepsOf(index);
@@ -1069,6 +1068,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
       }
     }
     conductWeb();
+    interact.sync({ index: active, build, paused: blackout || autoPaused || overview, overview });
   }
 
   // ---- Web page boxes (plan 288) -----------------------------------------------------
@@ -1077,6 +1077,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   const webLoaded = new WeakSet<Element>();
   const webClicked = new WeakSet<Element>();
   const webWasCurrent = new WeakSet<Element>();
+  const interact = mountPresentInteract({ stage, pages: cloneByIndex, reduced, kiosk, load: (marker) => { if (marker.dataset.webLoad === 'click') { webClicked.add(marker); conductWeb(); } } });
   function webShouldBeLive(i: number, marker: HTMLElement): boolean {
     const current = i === active || inFlight(i);
     const rule = marker.dataset.webLoad || 'slide';
@@ -1129,7 +1130,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
       syncEmbedFocus(!!el && el.tagName === 'IFRAME' && stage.contains(el));
     }, 0);
   };
-  const onWindowFocus = (): void => { if (embedFocus) syncEmbedFocus(false); };
+  const onWindowFocus = (): void => { if (embedFocus) { syncEmbedFocus(false); interact.returnKeyboard(); } };
   // A Lolly tool framed in a box (`?iframe`) forwards a clicker's PageUp/PageDown here
   // (lib/iframe-mode.ts); arrows stay with the demo, which may need them.
   const onEmbedKey = (e: MessageEvent): void => {
@@ -1137,7 +1138,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     if (closed || e.origin !== location.origin || data?.type !== 'lolly:deck-key') return;
     const fromStage = [...stage.querySelectorAll('iframe')].some((f) => f.contentWindow === e.source);
     if (!fromStage) return;
-    if (data.key === 'PageDown') next(); else if (data.key === 'PageUp') prev();
+    if (data.key === 'PageDown' || data.key === 'ArrowRight') next(); else if (data.key === 'PageUp' || data.key === 'ArrowLeft') prev();
   };
 
   // ---- Narration conduct (plans/180 M-E) ---------------------------------------------
@@ -1517,6 +1518,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     speakerRefs.notes.textContent = notes;
     speakerRefs.notes.style.display = notes ? '' : 'none';
     speakerRefs.counter.textContent = `${active + 1} / ${deck.count}`;
+    interact.speaker(speaker);
   }
 
   function fmtClock(ms: number): string {
@@ -1622,6 +1624,8 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   // Keys inside the popup: Esc / S close the panel (not the whole deck); everything else drives
   // the deck through the shared handler, so arrows/space work from either window.
   function onSpeakerKey(e: KeyboardEvent): void {
+    if (e.key === 'F5') { e.preventDefault(); return; }
+    if (e.key === 'Escape' && interact.key(e)) { e.preventDefault(); return; }
     if (production && isTyping(e.target)) return;
     if (e.key === 'Escape' || e.key === 's' || e.key === 'S') {
       e.preventDefault(); production?.lostControls(); closeSpeaker(); return;
@@ -1823,6 +1827,8 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   function stepBuild(id: string, active_: number, b: number): void {
     build = b;
     applyBuilds(active_, build);
+    interact.sync({ index: active_, build, paused: blackout || autoPaused || overview, overview });
+    if (speaker) renderSpeaker();
     // On a slide with its own motion this is what actually reveals the fragment: its
     // start becomes NOW, so it enters with whatever it was authored to (M4 T5).
     syncBuildStarts(active_, build);
@@ -1830,6 +1836,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   }
   function next(): void {
     if (overview) { setOverview(false); return; }
+    if (interact.walk(1)) return;
     const nextStep = buildStepsOf(active).find((v) => v > build);
     if (nextStep != null) { stepBuild(frameIdAt(active), active, nextStep); return; }
     const to = walkNext(deck, active, { loop });
@@ -1837,6 +1844,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   }
   function prev(): void {
     if (overview) { setOverview(false); return; }
+    if (interact.walk(-1)) return;
     if (build > 0) { stepBuild(frameIdAt(active), active, buildStepsOf(active).filter((v) => v < build).pop() ?? 0); return; }
     const to = walkPrev(deck, active, { loop });
     // Backward arrival shows all builds (reveal behaviour).
@@ -1862,6 +1870,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     // while it is up rather than the two composing into one wrong transform.
     if (on) { cancelFlight(); setCanvasMode(false); }
     motion?.setPaused(on || blackout);
+    interact.sync({ index: active, build, paused: on || blackout || autoPaused, overview });
     if (on) {
       // Everything visible in the map; recompute positions, drop hidden. Media + kiosk
       // dwell pause while the map is up (a wall of playing videos would be chaos).
@@ -1896,7 +1905,9 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   }
 
   function onKey(e: KeyboardEvent): void {
+    if (!closed && e.key === 'F5') { e.preventDefault(); e.stopPropagation(); return; }
     if (closed || isTyping(e.target)) return;
+    const key = clickerKey(e);
     if (production) {
       if ((!e.ctrlKey && !e.metaKey && production.key(e.key)) || ['Escape', 'o', 'O', 'b', 'B'].includes(e.key)) {
         if (e.key.toLowerCase() !== 'r') production.hold();
@@ -1911,7 +1922,8 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     // keystroke is spent lifting it, not navigating.
     if (blackout) { setBlackout(false); e.preventDefault(); e.stopPropagation(); return; }
     let handled = true;
-    switch (e.key) {
+    if (interact.key(e, key)) { e.preventDefault(); e.stopPropagation(); return; }
+    switch (key) {
       case 'ArrowRight': case 'PageDown': case ' ': case 'Spacebar':
         overview ? setOverview(false) : next(); break;
       case 'ArrowLeft': case 'PageUp':
@@ -1924,8 +1936,8 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
       case 'End': goIndex(deck.count - 1, 'right'); break;
       case 'o': case 'O': setOverview(!overview); break;
       case 's': case 'S': toggleSpeaker(); break;
-      case 'b': case 'B': setBlackout(true); break;
-      case 'k': case 'K': if (deckHasDurs || deckSpeaks) togglePause(); else handled = false; break;
+      case 'b': case 'B': case '.': setBlackout(true); break;
+      case 'k': case 'K': if (btnPause) togglePause(); else handled = false; break;
       case 'm': case 'M': if (deckSpeaks) setMuted(!muted); else handled = false; break;
       case 'f': case 'F': enterFullscreen(); break;
       case 'Escape':
@@ -2000,6 +2012,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     if (closeActivePresentation === close) closeActivePresentation = null;
     window.removeEventListener('pagehide', close);
     production?.dispose();
+    interact.destroy();
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('blur', onWindowBlur);
     window.removeEventListener('focus', onWindowFocus);

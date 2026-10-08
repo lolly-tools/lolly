@@ -123,6 +123,9 @@ import { svgToCustGeomPaths, svgToNativePptx } from '../../engine/src/svg-custge
 import { makeGeomApi } from '../../engine/src/geom-api.ts';
 import { parseSvgPath, parseSvgPathArgs } from '../../engine/src/svg-path.ts';
 import { evaluateKf, kfChannelsUsed, parseKf, serialiseKf } from '../../engine/src/keyframes.ts';
+import {
+  parsePresentInteractOpts, serialisePresentInteractOpts, resolvePresentInteractStops, samplePresentInteractAuto,
+} from '../../engine/src/present-interact.ts';
 import { compileMotionCues } from '../../engine/src/motion-cues.ts';
 import { parseSampleTimes, sequenceSampleTimes } from '../../engine/src/sequence-samples.ts';
 import { parseMotionParams } from '../../engine/src/motion-sampling.ts';
@@ -1504,6 +1507,24 @@ export const keyframesTarget: FuzzTarget = {
   },
 };
 
+export const presentInteractTarget: FuzzTarget = {
+  name: 'present-interact',
+  async seeds() {
+    return [bytesOf('hl=ring;keys=scroll;mode=pan;len=3200;stops=0,640,%23pricing,100%25;auto=open;rep=loop'),
+      bytesOf('hl=zoom;walk=1;hand=1;auto=focus;sec=600;pause=2;ease=eb(0.2)(0)(0.8)(1)')];
+  },
+  async invoke(bytes) {
+    const options = parsePresentInteractOpts(new TextDecoder('utf-8').decode(bytes));
+    if (!options) return;
+    const canonical = parsePresentInteractOpts(serialisePresentInteractOpts(options));
+    if (!canonical) throw new Error('Presentation options did not round trip');
+    const context = { scrollMax: 10_000, boxHeight: 600 };
+    resolvePresentInteractStops(canonical.stops, context);
+    samplePresentInteractAuto(canonical, 1234.5, context);
+    samplePresentInteractAuto(canonical, 1234.5, context, { reducedMotion: true });
+  },
+};
+
 export const midiTarget: FuzzTarget = {
   name: 'midi',
   async seeds() {
@@ -2006,7 +2027,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
-  svgReadersTarget, keyframesTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
+  svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
   geomTarget, svgItemsTarget,
 ];

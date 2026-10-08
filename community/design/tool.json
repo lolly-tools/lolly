@@ -2,8 +2,8 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.44.0",
-  "engineVersion": "^1.245.0",
+  "version": "1.45.0",
+  "engineVersion": "^1.248.0",
   "status": "community",
   "category": "designer",
   "tags": [
@@ -2384,6 +2384,25 @@
           "default": false,
           "showFor": [],
           "help": "Hide known consent banners on an accessible live page without accepting cookies or changing the site's consent choice. Appended to preserve compact URL field positions."
+        },
+        {
+          "id": "interact",
+          "type": "number",
+          "label": "Focus on",
+          "default": "",
+          "min": 0,
+          "max": 9999,
+          "showFor": [],
+          "help": "A web page's focus step while presenting. Empty leaves the clicker with the deck; 0 focuses the page when the slide opens. Appended to preserve compact URL field positions."
+        },
+        {
+          "id": "interactOpts",
+          "type": "text",
+          "label": "Interaction settings",
+          "default": "",
+          "maxLength": 1024,
+          "showFor": [],
+          "help": "Presentation highlight, page keys and scroll settings in the bounded interaction grammar. Appended to preserve compact URL field positions."
         }
       ],
       "default": [

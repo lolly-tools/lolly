@@ -43,11 +43,12 @@ test('census: the community pack holds 50 document, 2 side-file, 13 file-utility
   }
 });
 
-test('census: the SUSE pack adds 11 document tools and 1 recording tool', { skip: packMounted(suse) ? false : 'brands/suse is not checked out, so the SUSE pack cannot be counted here' }, () => {
+test('census: the SUSE pack adds 12 document tools and 1 recording tool', { skip: packMounted(suse) ? false : 'brands/suse is not checked out, so the SUSE pack cannot be counted here' }, () => {
   const line = census({ all: true }).find(p => p.pack === 'suse');
-  assert.deepEqual(line?.counts, { A: 11, B: 0, C: 0, D: 1 }, JSON.stringify(line?.ids));
+  assert.deepEqual(line?.counts, { A: 12, B: 0, C: 0, D: 1 }, JSON.stringify(line?.ids));
   assert.deepEqual(line?.overlays, ['3d', '3d-studio'], 'the two overlays of community tools are not counted again');
   assert.ok(line?.ids.A.includes('email-signature'), 'untyped blocks fields are text, so email-signature is a document tool');
+  assert.ok(line?.ids.A.includes('susecon-background'), 'background scenes have document history');
 });
 
 test('the rule reads the discriminators the code already uses', () => {

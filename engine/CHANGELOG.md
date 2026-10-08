@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.248.0
+
+- Add `present-interact.ts`: bounded, whitelisted presentation options, depth and stop resolution, and automatic scrolling sampled through the engine's easing functions. The module is pure and supplies the same authored interpretation to the editor and presenter. Unknown or duplicate wire keys refuse the whole option record; percent, pixel and fragment stops retain their distinct meanings.
+- Design 1.45 appends the interactive focus step and options at box slots 119 and 120. Existing compact URLs retain every earlier position. Rendered web markers carry escaped, inert interaction attributes; shells choose whether to load or drive a page.
+
 ## 1.247.0
 
 - One geometry answer in every JavaScript engine (plan 295, geometry revision `geom-portable-v1`). The geometry (`geom/*`, `svg-path.ts`, `vector-paint.ts`) takes its scalar maths from `geom/portable-math.ts` instead of `Math`: `hypot` is V8's two-argument formula written out, and `sin`, `cos`, `tan`, `acos`, `cbrt`, `log2`, `atan2` and `pow` come from a 16,461-byte import-free WebAssembly module embedded in `geom/portable-math-wasm.ts` and compiled on first use. Node, Chromium, Firefox and WebKit then return the same bits for the same paths. On V8 a few results move in the last bit (of about 4,100 seeded inputs per function: sin 49, cos 50, tan 44, acos 21, cbrt 317, atan2 3; `hypot` and `log2` are unchanged). A host without WebAssembly cannot run these geometry calls.

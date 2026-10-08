@@ -440,3 +440,8 @@ Lolly to PWA. Nadal działa **offline** na ekranach, które już otworzyłeś, a
 O aktualizacjach: jeśli widok kiedykolwiek nie wczyta się zaraz po niej (pusty panel, "failed to fetch" w rogu), przeładuj stronę raz - aplikacja czysto przechodzi na nową wersję, a Twoja zapisana praca, sesje i marka pozostają nienaruszone; jedynie obraz, który dodałeś i nigdy nie zapisałeś, może wymagać ponownego dodania. Wszystko przechowuje na Twoim urządzeniu, nie na stronie.
 
 Design i Darkroom potrafią zachować oryginalną precyzję obrazu dzięki edycji **Wide colour / HDR**, w tym w wideo Sekwencji. Próbki marki mogą nieść osobne wartości sRGB i P3. Zobacz [Edycję szerokiego koloru i HDR](/info/hdr-editing.html), aby poznać opcje wyjścia i obecne ograniczenia.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

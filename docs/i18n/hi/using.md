@@ -440,3 +440,8 @@ Lolly एक PWA है। यह उन स्क्रीन पर **ऑफ�
 अपडेट के बारे में: अगर किसी अपडेट के ठीक बाद कोई व्यू लोड होने में विफल हो जाए (एक खाली पैनल, कोने में "failed to fetch"), तो पेज को एक बार फिर से लोड करें - ऐप नए वर्ज़न को साफ़-साफ़ अपना लेता है और आपका सेव किया गया काम, सेशन और ब्रांड अछूते रहते हैं; बस कोई ऐसी तस्वीर जो आपने जोड़ी पर कभी सेव नहीं की, उसे फिर से जोड़ना पड़ सकता है। यह सब कुछ आपके डिवाइस पर स्टोर करता है, पेज में नहीं।
 
 Design और Darkroom **Wide colour / HDR** एडिटिंग के साथ मूल इमेज की सटीकता बनाए रख सकते हैं, Sequence वीडियो सहित। ब्रांड स्वॉच अलग sRGB और P3 वैल्यू रख सकते हैं। आउटपुट विकल्पों और मौजूदा सीमाओं के लिए [Wide colour and HDR editing](/info/hdr-editing.html) देखें।
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

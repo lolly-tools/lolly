@@ -440,3 +440,8 @@ Lollyは PWA です。すでに開いた画面では**オフライン**でも動
 アップデートについて: アップデート直後にビューが読み込みに失敗した場合(空白のパネル、隅に表示される「failed to fetch」など)は、ページを一度リロードしてください。アプリは新しいバージョンを問題なく読み込み、あなたの作業、セッション、ブランドはそのまま保持されます。追加したものの一度も保存していない画像だけは、もう一度追加し直す必要があるかもしれません。すべてはページ内ではなくデバイス上に保存されています。
 
 Design と Darkroom は、**Wide colour / HDR**編集によって元画像の精度を保つことができ、これは Sequence の動画にも及びます。ブランドスウォッチは sRGB と P3 の値を別々に持てます。出力の選択肢と現在の制限については[ワイドカラーと HDR 編集](/info/hdr-editing.html)をご覧ください。
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

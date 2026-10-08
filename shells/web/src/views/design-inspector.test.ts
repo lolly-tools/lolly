@@ -30,6 +30,7 @@ import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import { createTokenSet } from '../../../../engine/src/tokens.ts';
 import { withBlockTokenBinding, readBlockTokenBindings } from '../../../../engine/src/token-block-bindings.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { parsePresentInteractOpts } from '../../../../engine/src/present-interact.ts';
 
 // ── jsdom bootstrap ───────────────────────────────────────────────────────────
 const dom = new JSDOM('<!DOCTYPE html><body></body>');
@@ -228,6 +229,170 @@ function mount(initial: Box[] = BOXES, extra: Partial<Parameters<typeof initDesi
 }
 
 const secs = (h: Harness): string[] => [...h.el.querySelectorAll<HTMLElement>('.fc-insp-sec')].map((s) => s.dataset.sec!);
+
+test('the Web page section preserves its link, custom viewport, loading and poster actions', () => {
+  globalThis.location = { origin: 'https://lolly.test' } as Location;
+  const h = mount([BOXES[0]!, { id: 'web1', kind: 'web', frame: 'f1', web: 'https://lolly.test/info/design.html', webView: 720, webLoad: 'keep' }], {
+    fields: [...FIELDS, { id: 'web' }, { id: 'webView' }, { id: 'webLoad' }],
+  });
+  try {
+    h.select(['web1']);
+    const web = h.el.querySelector<HTMLElement>('[data-sec="web"]')!;
+    assert.ok(web);
+    assert.equal(web.querySelector<HTMLInputElement>('[data-fld="web"]')!.value, 'https://lolly.test/info/design.html');
+    assert.equal(web.querySelector<HTMLSelectElement>('[data-fld="webView"]')!.value, '720');
+    assert.equal(web.querySelector<HTMLSelectElement>('[data-fld="webLoad"]')!.value, 'keep');
+    assert.match(web.textContent!, /720 px wide/);
+    assert.ok(web.querySelector('[data-act="pickimage"]'));
+    assert.ok(web.querySelector('[data-act="webuse"]'));
+    assert.ok(web.querySelector('[data-act="webcss"]'));
+    assert.ok(web.querySelector('[data-fld="webHideCookies"]'));
+    const view = web.querySelector<HTMLSelectElement>('[data-fld="webView"]')!;
+    view.value = '390'; fire(view, 'change');
+    assert.deepEqual(h.commits.at(-1), { ids: ['web1'], field: 'webView', value: 390 });
+  } finally { h.handle.destroy(); }
+});
+
+test('an invalid Web page link remains editable and retains its poster picker', () => {
+  globalThis.location = { origin: 'https://lolly.test' } as Location;
+  const h = mount([{ id: 'web1', kind: 'web', web: 'javascript:alert(1)' }], { fields: [...FIELDS, { id: 'web' }] });
+  try {
+    h.select(['web1']);
+    const web = h.el.querySelector<HTMLElement>('[data-sec="web"]')!;
+    assert.match(web.textContent!, /This link cannot be shown in a box/);
+    assert.equal(web.querySelector('[data-act="webuse"]'), null);
+    assert.ok(web.querySelector('[data-act="pickimage"]'));
+  } finally { h.handle.destroy(); }
+});
+
+const WEB_FIELDS = [...FIELDS, { id: 'web' }, { id: 'interact' }, { id: 'interactOpts' }];
+const webBox = (id = 'web1'): Box => ({ id, kind: 'web', frame: 'f1', web: 'https://lolly.test/info/', build: 1 });
+
+test('Make interactive chooses a free focus step and writes both fields in one undo step', () => {
+  const h = mount([BOXES[0]!, webBox(), { ...webBox('web2'), interact: 2 }], { fields: WEB_FIELDS });
+  try {
+    h.select(['web1']);
+    let toggle = h.el.querySelector<HTMLInputElement>('[data-web-interact="enabled"]')!;
+    assert.ok(toggle); assert.equal(h.el.querySelector('[data-web-interact="step"]'), null);
+    toggle.checked = true; fire(toggle, 'change');
+    assert.equal(h.arrays.length, 1);
+    assert.equal(h.boxes()[1]!.interact, 3);
+    assert.equal(parsePresentInteractOpts(h.boxes()[1]!.interactOpts)!.highlight, 'ring');
+    assert.ok(h.el.querySelector('[data-web-interact="step"]'));
+    assert.match(h.el.textContent!, /The deck keeps the clicker/);
+    toggle = h.el.querySelector<HTMLInputElement>('[data-web-interact="enabled"]')!;
+    toggle.checked = false; fire(toggle, 'change');
+    assert.equal(h.boxes()[1]!.interact, ''); assert.equal(h.arrays.length, 2);
+    assert.equal(h.el.querySelector('[data-web-interact="step"]'), null);
+  } finally { h.handle.destroy(); }
+});
+
+test('a duplicate focus step is refused and a step on another slide is allowed', () => {
+  const h = mount([webBox(), { ...webBox('web2'), interact: 2 }, { ...webBox('web3'), frame: 'other', interact: 4 }], { fields: WEB_FIELDS });
+  try {
+    h.poke(rows => rows.map(box => box.id === 'web1' ? { ...box, interact: 3 } : box)); h.select(['web1']);
+    let step = h.el.querySelector<HTMLInputElement>('[data-web-interact="step"]')!;
+    step.value = '2'; fire(step, 'change');
+    assert.equal(h.arrays.length, 0); assert.equal(h.boxes()[0]!.interact, 3);
+    assert.match(h.el.querySelector('[data-web-interact-error]')!.textContent!, /already uses this focus step/);
+    step.value = '4'; fire(step, 'change');
+    assert.equal(h.arrays.length, 1); assert.equal(h.boxes()[0]!.interact, 4);
+    step = h.el.querySelector<HTMLInputElement>('[data-web-interact="step"]')!;
+    step.value = '0'; fire(step, 'change');
+    assert.equal(h.arrays.length, 1, 'a page revealed at step 1 cannot take focus before it appears');
+  } finally { h.handle.destroy(); }
+});
+
+test('scroll options preserve other owner preferences and Pan starts with an explicit page length', () => {
+  const h = mount([{ ...webBox(), web: 'https://example.com/', interact: 2, interactOpts: 'hl=spotlight;walk=1' }], { fields: WEB_FIELDS });
+  try {
+    h.select(['web1']);
+    const mode = h.el.querySelector<HTMLSelectElement>('[data-web-interact="mode"]')!;
+    assert.equal(mode.value, 'none', 'outside pages have no automatic scrolling strategy');
+    mode.value = 'pan'; fire(mode, 'change');
+    let options = parsePresentInteractOpts(h.boxes()[0]!.interactOpts)!;
+    assert.equal(options.mode, 'pan'); assert.equal(options.pageLength, 3200);
+    assert.equal(options.highlight, 'spotlight'); assert.equal(options.walk, true);
+    const auto = h.el.querySelector<HTMLSelectElement>('[data-web-interact="auto"]')!;
+    auto.value = 'focus'; fire(auto, 'change');
+    assert.ok(h.el.querySelector('[data-web-interact="seconds"]'));
+    const seconds = h.el.querySelector<HTMLInputElement>('[data-web-interact="seconds"]')!;
+    seconds.value = '24'; fire(seconds, 'change');
+    options = parsePresentInteractOpts(h.boxes()[0]!.interactOpts)!;
+    assert.equal(options.auto, 'focus'); assert.equal(options.seconds, 24); assert.equal(options.walk, true);
+    assert.equal(h.commits.length, 0, 'each options change is one complete row transaction');
+  } finally { h.handle.destroy(); }
+});
+
+test('stop editing refuses invalid values, preserves order and caps the list at 32', () => {
+  const h = mount([{ ...webBox(), interact: 2, interactOpts: 'stops=0,640,%23pricing' }], { fields: WEB_FIELDS });
+  try {
+    h.select(['web1']);
+    const stop = h.el.querySelector<HTMLInputElement>('[data-web-stop="1"]')!;
+    stop.value = 'not a depth'; fire(stop, 'change'); assert.equal(h.arrays.length, 0);
+    stop.value = '50%'; fire(stop, 'change');
+    assert.deepEqual(parsePresentInteractOpts(h.boxes()[0]!.interactOpts)!.stops, [0, '50%', '#pricing']);
+    click(h.el.querySelector('[data-web-stop-remove="0"]')!);
+    assert.deepEqual(parsePresentInteractOpts(h.boxes()[0]!.interactOpts)!.stops, ['50%', '#pricing']);
+    h.poke(rows => rows.map(box => ({ ...box, interactOpts: 'stops=' + Array(32).fill('0').join(',') })));
+    const count = h.arrays.length;
+    click(h.el.querySelector('[data-web-add-stop]')!);
+    assert.equal(h.arrays.length, count);
+    assert.match(h.el.querySelector('[data-web-interact-error]')!.textContent!, /up to 32/);
+    assert.equal(h.el.querySelector<HTMLButtonElement>('[data-web-depth="start"]')!.disabled, true);
+  } finally { h.handle.destroy(); }
+});
+
+test('an old interaction control cannot redirect its edit onto a new selection', () => {
+  const h = mount([{ ...webBox(), interact: 2 }, { ...webBox('web2'), interact: 3 }], { fields: WEB_FIELDS });
+  try {
+    h.select(['web1']);
+    const old = h.el.querySelector<HTMLSelectElement>('[data-web-interact="highlight"]')!;
+    h.select(['web2']); old.value = 'zoom'; fire(old, 'change');
+    assert.equal(parsePresentInteractOpts(h.boxes()[0]!.interactOpts)!.highlight, 'ring');
+    assert.equal(parsePresentInteractOpts(h.boxes()[1]!.interactOpts)!.highlight, 'ring');
+    assert.equal(h.arrays.length, 0, 'a disposed control changes neither document row');
+  } finally { h.handle.destroy(); }
+});
+
+test('interaction requires both declared fields and never creates an out-of-range focus step', () => {
+  const partial = mount([webBox()], { fields: WEB_FIELDS.filter(field => field.id !== 'interactOpts') });
+  try { partial.select(['web1']); assert.equal(partial.el.querySelector('[data-web-interact]'), null); }
+  finally { partial.handle.destroy(); }
+  const h = mount([{ ...webBox(), build: 999 }], { fields: WEB_FIELDS });
+  try {
+    h.select(['web1']); const toggle = h.el.querySelector<HTMLInputElement>('[data-web-interact="enabled"]')!;
+    toggle.checked = true; fire(toggle, 'change'); assert.equal(h.arrays.length, 0); assert.equal(toggle.checked, false);
+    assert.match(h.el.querySelector('[data-web-interact-error]')!.textContent!, /0 to 999/);
+  } finally { h.handle.destroy(); }
+});
+
+test('outside Places ask for an anchor before saving a new stop; Pan refuses anchors', () => {
+  const h = mount([{ ...webBox(), web: 'https://example.com/', interact: 2, interactOpts: 'mode=places' }], { fields: WEB_FIELDS });
+  try {
+    h.select(['web1']); click(h.el.querySelector('[data-web-add-stop]')!); assert.equal(h.arrays.length, 0);
+    const pending = h.el.querySelector<HTMLInputElement>('[data-web-pending-stop]')!;
+    pending.value = '640'; fire(pending, 'change'); assert.equal(h.arrays.length, 0);
+    pending.value = '#pricing'; fire(pending, 'change');
+    assert.deepEqual(parsePresentInteractOpts(h.boxes()[0]!.interactOpts)!.stops, ['#pricing']);
+    const mode = h.el.querySelector<HTMLSelectElement>('[data-web-interact="mode"]')!; mode.value = 'pan'; fire(mode, 'change');
+    const start = h.el.querySelector<HTMLInputElement>('[data-web-interact="start"]')!;
+    const writes = h.arrays.length; start.value = '#pricing'; fire(start, 'change'); assert.equal(h.arrays.length, writes);
+    start.value = '50%'; fire(start, 'change'); assert.equal(parsePresentInteractOpts(h.boxes()[0]!.interactOpts)!.start, '50%');
+  } finally { h.handle.destroy(); }
+});
+
+test('interaction controls reject numeric bounds and display the document accent', () => {
+  const h = mount([{ ...webBox(), interact: 2, interactOpts: 'auto=focus' }], { fields: WEB_FIELDS });
+  try {
+    document.querySelector<HTMLElement>('#tool-canvas')!.style.setProperty('--brand-primary', '#30ba78');
+    h.select(['web1']);
+    const seconds = h.el.querySelector<HTMLInputElement>('[data-web-interact="seconds"]')!;
+    seconds.value = '0'; fire(seconds, 'change'); assert.equal(h.arrays.length, 0);
+    const value = h.el.querySelector<HTMLInputElement>('[data-color-field="fc-insp-interact-highlight"] .color-input')!.value;
+    assert.equal(value, '#30ba78');
+  } finally { h.handle.destroy(); }
+});
 
 test('token actions keep mixed values, one transaction and the open property across repaint', async () => {
   const host = { tokens: { get: async () => createTokenSet({ opacity: { $type: 'number', $value: 28 } }) } } as unknown as HostV1;

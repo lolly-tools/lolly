@@ -440,3 +440,8 @@ Lolly ialah PWA. Ia terus berfungsi **luar talian** pada skrin yang sudah anda b
 Berkenaan kemas kini: jika sesuatu paparan gagal dimuatkan sejurus selepas satu kemas kini (panel kosong, satu "failed to fetch" di penjuru), muat semula halaman itu sekali - aplikasi akan mengambil versi baharu dengan bersih dan kerja, sesi serta jenama anda tidak tersentuh; hanya imej yang anda tambah dan tidak pernah disimpan mungkin perlu ditambah semula. Ia menyimpan segala-galanya pada peranti anda, bukan dalam halaman itu.
 
 Design dan Darkroom boleh mengekalkan ketepatan imej asal dengan penyuntingan **Wide colour / HDR**, termasuk video Sequence. Swatch jenama boleh membawa nilai sRGB dan P3 yang berasingan. Lihat [Wide colour and HDR editing](/info/hdr-editing.html) untuk pilihan output dan had semasa.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

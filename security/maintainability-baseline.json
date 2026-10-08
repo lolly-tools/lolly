@@ -70,8 +70,8 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1589,
-      "largestFunctionLines": 2103,
+      "lines": 1567,
+      "largestFunctionLines": 2079,
       "importFanIn": 1,
       "importFanOut": 20,
       "typeEscapes": 0

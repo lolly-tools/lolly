@@ -440,3 +440,8 @@ Lolly bir PWA'dır. Zaten açtığın ekranlarda **çevrimdışı** çalışmaya
 Güncellemeler hakkında: bir güncellemeden hemen sonra bir görünüm hiç yüklenemezse (boş bir panel, köşede bir "failed to fetch"), sayfayı bir kez yeniden yükle - uygulama yeni sürümü temiz bir şekilde alır ve kaydedilmiş çalışman, oturumların ve markan dokunulmamış kalır; yalnızca eklediğin ve hiç kaydetmediğin bir görsel yeniden eklenmesi gerekebilir. Her şeyi sayfada değil, cihazında saklar.
 
 Design ve Darkroom, Sequence videosu dahil, **Wide colour / HDR** düzenlemesiyle özgün görsel hassasiyetini koruyabilir. Marka renk örnekleri ayrı sRGB ve P3 değerleri taşıyabilir. Çıktı seçenekleri ve güncel sınırlar için [Wide colour ve HDR düzenleme](/info/hdr-editing.html) sayfasına bak.
+
+
+### Live pages that take the clicker
+
+Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).

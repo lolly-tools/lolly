@@ -582,7 +582,10 @@ function mediaHtmlFor(b) {
       '" data-web-load="' + esc(String(b.webLoad == null || b.webLoad === '' ? 'slide' : b.webLoad)) +
       '" data-web-title="' + esc(title || label) + '" data-web-state="poster"' +
       (b.webCss ? ' data-web-css="' + esc(String(b.webCss)) + '"' : '') +
-      (boolVal(b.webHideCookies, false) ? ' data-web-hide-cookies="1"' : '') + '>' + inner + '</div>';
+      (boolVal(b.webHideCookies, false) ? ' data-web-hide-cookies="1"' : '') +
+      (b.interact != null && b.interact !== '' && isFinite(Number(b.interact)) && Number(b.interact) >= 0
+        ? ' data-interact="' + esc(String(Math.min(9999, Math.round(Number(b.interact))))) + '"' : '') +
+      (b.interactOpts ? ' data-interact-opts="' + esc(String(b.interactOpts)) + '"' : '') + '>' + inner + '</div>';
   }
   var img = b && b.image;
   var url = img && img.url ? String(img.url) : '';

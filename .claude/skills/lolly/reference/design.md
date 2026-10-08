@@ -8,6 +8,12 @@ naming that frame in its `frame` field is a child of it. The other top-level
 inputs are document-wide settings (background, units, guides, transitions,
 narration).
 
+## Interactive web pages while presenting
+
+A `kind: "web"` layer can append `interact` and `interactOpts`. `interact` is its focus click, with 0 meaning slide arrival and empty meaning off. Give each interactive page on an artboard a distinct focus step at or after its reveal step. The deck keeps the keyboard while highlighted; Up and Down drive the page and Next normally moves the deck.
+
+`interactOpts` is the bounded, percent-encoded `key=value;` grammar parsed by `engine/src/present-interact.ts`. For example: `hl=ring;keys=scroll;start=0;stops=0,640,100%25;auto=focus;sec=12;rep=once;hand=0`. Other options cover highlight colour, outside-page strategy and length, scroll speed, clicker stop walking and keyboard handover. Preserve existing options unless the user asks to change them. Outside pages default to no scrolling strategy; do not silently select Pan or Places. Site approval is separate, and exports keep the poster. The user guide is `docs/interactive-pages.md`.
+
 Two rules make an agent's edits safe:
 
 - **Ids are permanent.** Address a layer by its id, never by its position. The
@@ -948,4 +954,6 @@ are timing. Generated from the `boxes` block.
 | `webLoad` | - | select | `slide` | When presenting | `"slide"`, `"early"`, `"keep"`, `"click"` |
 | `webCss` | - | text | `""` | Page CSS | - |
 | `webHideCookies` | - | boolean | false | Hide cookie banners | - |
+| `interact` | - | number | `""` | Focus on | - |
+| `interactOpts` | - | text | `""` | Interaction settings | - |
 <!-- /GEN:design-boxes -->

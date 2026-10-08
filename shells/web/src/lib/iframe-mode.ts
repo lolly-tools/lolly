@@ -15,6 +15,9 @@
  * tool's own template read. The flag may ride beside a packed `z` link, in readable
  * form, like `full`. */
 
+import { attachPresentReceiver } from '../../../../packages/core/src/present-receiver.ts';
+import { isTrustedSender } from './message-sender.ts';
+
 let memo: boolean | undefined;
 
 /** Whether a URL carries the flag, in its query or in its hash route's query. */
@@ -46,7 +49,18 @@ export function forwardDeckKeys(win: Window = window): () => void {
   if (win.parent === win) return () => {};
   let sameOrigin = false;
   try { sameOrigin = win.parent.location.origin === win.location.origin; } catch { sameOrigin = false; }
-  if (!sameOrigin) return () => {};
+  if (!sameOrigin || !isTrustedSender({ origin: win.location.origin, source: win.parent }, win)) return () => {};
+  const releaseReceiver = attachPresentReceiver(win, {
+    allowedOrigins: [win.location.origin],
+    shouldHandle: () => !win.document.querySelector('[data-rwc]')
+      && !/^#\/tool\/sandbox(?:\?|$)/.test(win.location.hash)
+      && !/^\/(?:t|tool)\/sandbox\/?$/.test(win.location.pathname),
+    onLifecycle: (_kind, command) => {
+      // The tool owns its reactions; this channel cannot change shell state.
+      const Event = (win as Window & typeof globalThis).CustomEvent;
+      win.document.dispatchEvent(new Event('lolly:present', { detail: command }));
+    },
+  });
   const onKey = (e: KeyboardEvent): void => {
     if (e.key !== 'PageDown' && e.key !== 'PageUp') return;
     const el = e.target as HTMLElement | null;
@@ -54,7 +68,7 @@ export function forwardDeckKeys(win: Window = window): () => void {
     win.parent.postMessage({ type: 'lolly:deck-key', key: e.key }, win.location.origin);
   };
   win.addEventListener('keydown', onKey, true);
-  return () => win.removeEventListener('keydown', onKey, true);
+  return () => { releaseReceiver(); win.removeEventListener('keydown', onKey, true); };
 }
 
 /** Test seam: pin the answer, or pass nothing to read the URL again. */

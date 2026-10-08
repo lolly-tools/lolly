@@ -2069,14 +2069,14 @@
     },
     {
       "file": "tests/history-round-trip.test.ts",
-      "fullName": "census: the SUSE pack adds 11 document tools and 1 recording tool",
+      "fullName": "census: the SUSE pack adds 12 document tools and 1 recording tool",
       "reason": "brands/suse is not checked out, so the SUSE pack cannot be counted here",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "shells/web/src/views/tool-history-adapters.test.ts",
-      "fullName": "SUSE: the pack adds 11 document tools and 1 recording tool",
+      "fullName": "SUSE: the pack adds 12 document tools and 1 recording tool",
       "reason": "brands/suse is not checked out, so the SUSE pack cannot be counted here",
       "capability": "brand:suse",
       "owner": "shells/web"

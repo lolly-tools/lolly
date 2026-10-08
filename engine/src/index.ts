@@ -65,6 +65,14 @@ export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from '.
 export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
+export {
+  PRESENT_INTERACT_DEFAULTS, PRESENT_INTERACT_MAX_BYTES, PRESENT_INTERACT_MAX_STOPS, PRESENT_INTERACT_MAX_DEPTH,
+  parsePresentInteractOpts, serialisePresentInteractOpts, parsePresentInteractDepth,
+  resolvePresentInteractDepth, resolvePresentInteractStops, pickPresentInteractStop, samplePresentInteractAuto,
+} from './present-interact.ts';
+export type {
+  PresentInteractDepth, PresentInteractOptions, PresentInteractContext, PresentInteractStop, PresentInteractAutoSample,
+} from './present-interact.ts';
 export { looksLikeTable, parseTableText, toTsv, toMarkdown, toHtmlTable } from './table-text.ts';
 export type { HdrSettings, DepthSetting, VideoUrlSettings, VideoQuality } from './url-mode.ts';
 export { LANGS, LANG_META, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
