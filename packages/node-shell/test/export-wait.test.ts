@@ -73,6 +73,13 @@ test('an explicit export failure reaches the caller immediately and removes list
   assert.equal(page.eventNames().length, 0);
 });
 
+test('a shell that cannot start WebGPU fails the wait at once with its reason (plan 295)', async () => {
+  const page = new FakePage(), waiting = await waitForExport(page.asPage(), 'png');
+  page.emit('console', { text: () => '[lolly] WebGPU is required and unavailable: Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.' });
+  await assert.rejects(waiting.result, /WebGPU is required and unavailable: Lolly requires WebGPU/);
+  assert.equal(page.eventNames().length, 0);
+});
+
 test('one page runs several export waits: the progress binding is exposed once and reaches the current wait (plan 291 M4)', async context => {
   context.mock.timers.enable({ apis: ['setTimeout'] });
   let exposed = 0;

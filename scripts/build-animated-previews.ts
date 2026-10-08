@@ -79,6 +79,7 @@ import type { BrowserContext } from 'playwright';
 import { buildInputModel, serializeUrlState } from '../engine/src/index.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
 import { toolDirs, readToolManifest } from '@lolly-tools/node-shell/content-roots';
+import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CANVAS_SEL = '#tool-canvas, #tool-content';
@@ -209,8 +210,9 @@ async function main(): Promise<void> {
 
   // Rendering-intent pins matching packages/node-shell/src/browsers.ts (see the
   // comment there): committed output must not depend on the build host's display
-  // profile or font hinting.
-  const browser = await chromium.launch({ headless: true, args: ['--force-color-profile=srgb', '--font-render-hinting=none'] });
+  // profile or font hinting. The shell needs a WebGPU adapter to start; SwiftShader's
+  // is the same on every build host, GPU or not (webgpu-launch.ts).
+  const browser = await chromium.launch({ headless: true, args: ['--force-color-profile=srgb', '--font-render-hinting=none', ...webGpuLaunchArgs('software')] });
   // serviceWorkers:'block' so the PWA's SW can't serve a stale bundle mid-run.
   const context = await browser.newContext({ serviceWorkers: 'block' });
   try {

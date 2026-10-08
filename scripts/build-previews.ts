@@ -104,6 +104,7 @@ import { stampVector, stampBitmap } from './lib/stamp-media.ts';
 import { previewUnchanged, sharpDecoder, type RasterDecoder } from './lib/preview-compare.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
 import { toolFile, readToolManifest, catalogFile } from '@lolly-tools/node-shell/content-roots';
+import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
 
 /** Parsed CLI options. */
 interface Opts {
@@ -235,8 +236,9 @@ async function main(): Promise<void> {
 
   // Rendering-intent pins matching packages/node-shell/src/browsers.ts (see the
   // comment there): committed output must not depend on the build host's display
-  // profile or font hinting.
-  const browser = await chromium.launch({ headless: !opts.headed, args: ['--force-color-profile=srgb', '--font-render-hinting=none'] });
+  // profile or font hinting. The shell needs a WebGPU adapter to start; SwiftShader's
+  // is the same on every build host, GPU or not (webgpu-launch.ts).
+  const browser = await chromium.launch({ headless: !opts.headed, args: ['--force-color-profile=srgb', '--font-render-hinting=none', ...webGpuLaunchArgs('software')] });
   // serviceWorkers:'block' so the PWA's SW can't serve a stale catalog mid-run.
   const context = await browser.newContext({ serviceWorkers: 'block', deviceScaleFactor: 2 });
 

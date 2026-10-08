@@ -145479,6 +145479,22 @@ var init_raster3 = __esm({
   }
 });
 
+// packages/node-shell/src/webgpu-launch.ts
+function webGpuLaunchArgs(graphics = "software", platform = process.platform) {
+  if (graphics === "auto" && platform !== "linux") return ["--enable-unsafe-webgpu"];
+  return [...SOFTWARE_WEBGPU_ARGS];
+}
+var SOFTWARE_WEBGPU_ARGS;
+var init_webgpu_launch = __esm({
+  "packages/node-shell/src/webgpu-launch.ts"() {
+    "use strict";
+    SOFTWARE_WEBGPU_ARGS = Object.freeze([
+      "--enable-unsafe-webgpu",
+      "--use-webgpu-adapter=swiftshader"
+    ]);
+  }
+});
+
 // packages/node-shell/src/production-browser.ts
 import { createHash as createHash4 } from "node:crypto";
 async function observeProductionInputs(page3, toolId, ids2) {
@@ -145592,7 +145608,7 @@ async function waitForExport(page3, format, idleMs = exportIdleTimeout(format)) 
   const crashed = () => fail5(new Error("The export page crashed before producing a file."));
   const exportError = (message) => {
     const text8 = message.text();
-    if (/^Auto-export (?:failed|did not start):/.test(text8)) fail5(new Error(text8));
+    if (/^(?:Auto-export (?:failed|did not start)|\[lolly\] WebGPU is required and unavailable):/.test(text8)) fail5(new Error(text8));
   };
   sink.current = onProgress;
   page3.on("console", exportError);
@@ -148863,6 +148879,16 @@ function resolveBrowsersDir() {
   if (existsSync8(userCache)) return userCache;
   return INSTALL_BROWSERS_DIR;
 }
+function chromiumLaunchArgs(graphics = "software", platform = process.platform) {
+  return [
+    "--no-sandbox",
+    ...graphics === "software" ? ["--use-angle=swiftshader"] : [],
+    "--enable-unsafe-swiftshader",
+    ...webGpuLaunchArgs(graphics, platform),
+    "--force-color-profile=srgb",
+    "--font-render-hinting=none"
+  ];
+}
 async function getBrowser({ graphics = "software" } = {}) {
   if (!browserPromise) {
     browserPromise = (async () => {
@@ -148896,17 +148922,7 @@ async function getBrowser({ graphics = "software" } = {}) {
           // drawing fidelity harness (design-draw-fidelity).
           // Docs captures render a whole gallery, including 3D examples. They
           // can use the available GPU; software remains the default for exports.
-          // The web shell requires WebGPU before it boots (plan 295), and headless
-          // Chromium offers no adapter without --enable-unsafe-webgpu; software
-          // graphics names SwiftShader's adapter, which is what headless gets anyway.
-          args: [
-            "--no-sandbox",
-            ...graphics === "software" ? ["--use-angle=swiftshader", "--use-webgpu-adapter=swiftshader"] : [],
-            "--enable-unsafe-swiftshader",
-            "--enable-unsafe-webgpu",
-            "--force-color-profile=srgb",
-            "--font-render-hinting=none"
-          ]
+          args: chromiumLaunchArgs(graphics)
         });
       } catch (err) {
         const msg3 = err.message || "";
@@ -148929,6 +148945,7 @@ var init_browsers = __esm({
   "packages/node-shell/src/browsers.ts"() {
     "use strict";
     init_repo_root();
+    init_webgpu_launch();
     INSTALL_BROWSERS_DIR = join14(repoRoot(), ".browsers");
     SIBLING_BROWSERS_DIR = join14(repoRoot(), "services", "mcp", ".browsers");
     BrowserError = class extends Error {
@@ -158100,6 +158117,7 @@ function needsBrowserTier(err) {
 }
 
 // services/mcp/src/render.ts
+init_webgpu_launch();
 init_production_browser();
 init_export_wait();
 init_open_session();
@@ -163070,9 +163088,9 @@ async function readBoundedDownload(filename) {
 function browserLaunchArgs(env = process.env) {
   return [
     ...env.LOLLY_BROWSER_NO_SANDBOX === "1" ? ["--no-sandbox"] : [],
-    // The web shell requires WebGPU before it boots (plan 295); headless Chromium
-    // offers no adapter without this flag.
-    "--enable-unsafe-webgpu",
+    // The web shell requires a WebGPU adapter (plan 295). A hosted renderer has no
+    // GPU to offer one, so the shared flags name SwiftShader (webgpu-launch.ts).
+    ...webGpuLaunchArgs("software"),
     "--force-color-profile=srgb",
     "--font-render-hinting=none"
   ];
@@ -163099,10 +163117,11 @@ async function getBrowser2() {
           // Rendering-intent pins, mirrored from packages/node-shell/src/browsers.ts
           // (see the full comment there): host-profile-independent sRGB colour and
           // unhinted glyph metrics, so hosted layouts don't reflow vs desktop.
-          // Known divergence from node-shell: no swiftshader pair here, so a
-          // WebGL-dependent tool (3d, viz) renders its fallback rather than GL
-          // content on this tier. Add '--use-angle=swiftshader',
-          // '--enable-unsafe-swiftshader' if a hosted deployment needs those tools.
+          // Known divergence from node-shell: no SwiftShader WebGL pair here (the
+          // WebGPU adapter flags above are separate), so a WebGL-dependent tool (3d,
+          // viz) renders its fallback rather than GL content on this tier. Add
+          // '--use-angle=swiftshader', '--enable-unsafe-swiftshader' if a hosted
+          // deployment needs those tools.
           ...browserLaunchOptions()
         });
       } catch (err) {

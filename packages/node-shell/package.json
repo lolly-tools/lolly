@@ -37,6 +37,7 @@
     "./raster-child": "./src/raster-child.ts",
     "./look": "./src/look.ts",
     "./browser-tier": "./src/browser-tier.ts",
+    "./webgpu-launch": "./src/webgpu-launch.ts",
     "./desktop-renderer": "./src/desktop-renderer.ts",
     "./webshell-render": "./src/webshell-render.ts",
     "./open-session": "./src/open-session.ts",
