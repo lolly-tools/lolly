@@ -38,6 +38,7 @@ export const KNOWN_LOCAL_SECRET_PATH_HASHES = new Set([
 const LOCAL_SECRET_SCAN_SKIP = new Set([
   '.git',
   '.claude',
+  '.worktrees',
   'artifacts',
   'catalog',
   'dist',

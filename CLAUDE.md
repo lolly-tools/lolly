@@ -82,14 +82,14 @@ Three CI checks fail on **wording**, not behaviour: `check:code-comments`, `chec
 
 ## Branches and worktrees
 
-Many agent sessions share this checkout. These rules keep their work from piling up or getting lost:
+Many Claude Code runs share this checkout. These rules keep their work from piling up or getting lost:
 
-- One branch per PR, in its own worktree under `<repo>/.worktrees/<name>`, made off `origin/main`. Never under `/private/tmp` (macOS empties it nightly) and never inside `plans/`.
-- Commit the work to its branch and push before the session ends. Uncommitted files in the shared main checkout are not a safe place to keep work.
-- The main checkout stays on `main`.
+- One branch per PR, in its own worktree under `.worktrees/<name>` at the top of the main checkout: `git worktree add --no-track -b <branch> .worktrees/<name> origin/main`, then `git push -u origin <branch>` the first time you push. Never under `/tmp`, `/private/tmp` or `$TMPDIR` (macOS empties them), never inside `plans/` and never inside another worktree. A new worktree has no `brands/suse`; run `git submodule update --init --checkout brands/suse` in it before SUSE catalog work such as `build:catalog:all`.
+- Commit the work to its branch and push it before you finish, unless the user said otherwise. Uncommitted files in the shared main checkout are not a safe place to keep work.
+- The main checkout stays on `main`. If you find it on another branch or holding uncommitted files, report that; never switch, stash, reset or restore it, because the files may be someone's live work.
 - After a PR merges, remove its worktree and local branch, and its remote branch if GitHub has not already deleted the branch on merge.
 - No `backup/*`, `scratch/*`, `deploy/*` or `integrate/*` branches on the remote. Never merge a snapshot or backup branch into main wholesale: one merged that way shipped a change that had failed review. Keep superseded work as an `archive/*` tag, not a branch.
-- Run `pnpm run branch:hygiene` before ending a long session (add `../lolly-work` to check both repositories). It reports each branch as IN_MAIN, OPEN_PR or UNIQUE and lists worktrees with their state; `--prune` removes only what main already holds and nobody is using, and logs every sha to `plans/worktree-notes/` first.
+- Before ending a long run, run `pnpm run branch:hygiene` (pass `.` and the lolly-work checkout path to check both repositories). It reports each branch as IN_MAIN, OPEN_PR or UNIQUE and lists worktrees with their state. `--prune` deletes branches whose changes main already holds and that no open PR or worktree uses, and worktrees that are clean, merged or pushed, and idle (no process inside, index untouched for 30 minutes); it logs every sha to `plans/worktree-notes/` first.
 
 ## Architecture
 

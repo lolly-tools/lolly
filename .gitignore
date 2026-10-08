@@ -57,6 +57,8 @@ web_modules/
 
 # future plans
 plans/
+# git worktrees for branches (CLAUDE.md, "Branches and worktrees")
+.worktrees/
 # secrets copy kept locally (also covered by plans/ above - explicit for safety)
 plans/secrets.md
 

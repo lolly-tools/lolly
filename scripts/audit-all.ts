@@ -24,7 +24,7 @@ interface Inventory {
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const INVENTORY = join(REPO, 'security/dependency-roots.json');
-const PRUNED = new Set(['.git', '.claude', 'dist', 'node_modules', 'target', 'vendor']);
+const PRUNED = new Set(['.git', '.claude', '.worktrees', 'dist', 'node_modules', 'target', 'vendor']);
 
 function slash(path: string): string {
   return path.split(sep).join('/');

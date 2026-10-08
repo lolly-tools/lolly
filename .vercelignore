@@ -113,6 +113,8 @@ dist-packs
 # the anchored `shells/web/dist` rule above also missed) shipped on every deploy,
 # twice per ship. A bare pattern matches at any depth, like .gitignore.
 .claude
+# Branch worktrees (CLAUDE.md, "Branches and worktrees"): whole extra checkouts.
+.worktrees
 
 # macOS Finder metadata. Tracked by nothing (the root .gitignore has `**/.DS_Store`),
 # which is precisely why it kept shipping unnoticed: `git status` never mentions it
