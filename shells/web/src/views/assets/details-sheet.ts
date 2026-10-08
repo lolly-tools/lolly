@@ -25,7 +25,7 @@ import { publishSiteInspection } from '../../lib/site-tools-context.ts';
 import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { destroyLottiePlayers, lottiePlayerFor, mountLottieMarker } from '../lottie-mount.ts';
-import { extractAssetMetadata } from '../../lib/asset-metadata.ts';
+import { extractAssetMetadata, leavesOriginalUnread } from '../../lib/asset-metadata.ts';
 import { analyzeVerifyText } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId, saveFavouriteAssets } from '../../lib/asset-favourites.ts';
@@ -549,7 +549,7 @@ export function buildSheet(dt: DetailsCtx): void {
 export function paintPassport(dt: DetailsCtx): void {
   const { PASSPORT_CRED_CACHE, TREATMENT_FILTER_PREFIX, cat, dlg, initialTheme, ref, showVerify, themable, treatable } = dt;
   const sourceRef = ref.source === 'remote' && ref.original ? { ...ref, url: ref.original.url, format: ref.original.format } : ref;
-  const skipAutomaticBytes = !!dt.formatViewer || Number(ref.meta?.bytes ?? ref.meta?.size ?? 0) >= 12_000_000 || !!ref.meta?.provider && !Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
+  const skipAutomaticBytes = !!dt.formatViewer || leavesOriginalUnread(ref);
   dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : 'checking');
   void (async () => {
     const cacheKey = `${ref.id}|${ref.version ?? 'x'}`;
@@ -602,9 +602,11 @@ export function paintPassport(dt: DetailsCtx): void {
   // than asserting it. Cheap gate first: fetch once, skip anything with no embedded
   // credential (most catalog art, and re-encoded user uploads whose store no longer
   // binds) before the heavier verify. Video/audio are skipped (a whole-file fetch just
-  // for a badge isn't worth it - the checker button still covers them). Guarded on the
+  // for a badge isn't worth it - the checker button still covers them). A large
+  // original is already left unread by skipAutomaticBytes, which exempts uploads, so
+  // a big Lolly export uploaded again still shows its lockup. Guarded on the
   // modal still being THIS dialog, since ←/→ paging swaps it out.
-  if (!skipAutomaticBytes && showVerify && ref.type !== 'video' && ref.type !== 'audio' && Number(ref.meta?.bytes ?? 0) < 12_000_000) {
+  if (!skipAutomaticBytes && showVerify && ref.type !== 'video' && ref.type !== 'audio') {
     void (async () => {
       try {
         const bytes = new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer());

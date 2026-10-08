@@ -301,3 +301,13 @@ test('a catalog listing reads the duration off the format it points at, not a co
   assert.equal(ref?.url, '/intro.mp4');
   assert.equal(ref?.meta?.durationMs, 4200);
 });
+
+test('an upload asked for with a look the catalog does not offer still carries its stored size', async () => {
+  // No photo-treatments palette is synced, so the look is unknown and the plain
+  // upload comes back under the treated id: its own blob, so its own size.
+  const api = createAssetsAPI(uploadsDb([upload('user/upload/1800000000000-c', 'nine byte')]) as never);
+  const ref = await api.get('user/upload/1800000000000-c?treatment=not-a-look');
+  assert.equal(ref.id, 'user/upload/1800000000000-c?treatment=not-a-look');
+  assert.equal(ref.meta?.bytes, 9);
+  URL.revokeObjectURL(ref.url);
+});

@@ -176,6 +176,9 @@ interface AssetRefSource {
   height?: number;
   meta?: Record<string, unknown>;
   cacheKey?: string;
+  /** This ref is a photo look's bake, not the stored upload, so the upload's
+   *  byte length is not stamped on it (see withUploadBytes). */
+  baked?: boolean;
 }
 
 /** One readwrite transaction over a single store. */
@@ -409,11 +412,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const themeKey = photoLookThemeKey(def, opts.tokenSelection);
       const cacheKey = photoLookCacheKey(baseId, rec.version ?? 'x', def, themeKey);
       const meta = { ...rec.meta, treatment, baseId, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
-      if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef({ ...rec, id, cacheKey, meta, format: OBJECT_URL_FORMAT.get(cacheKey) ?? rec.format }, 'user');
+      if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef({ ...rec, id, cacheKey, baked: true, meta, format: OBJECT_URL_FORMAT.get(cacheKey) ?? rec.format }, 'user');
       try {
         const baked = await bakeLook(cacheKey, rec.blob, def, themeKey);
         OBJECT_URL_FORMAT.set(cacheKey, bakedFormat(baked));
-        return await toAssetRef({ ...rec, id, blob: baked, format: bakedFormat(baked), cacheKey, meta }, 'user');
+        return await toAssetRef({ ...rec, id, blob: baked, format: bakedFormat(baked), cacheKey, baked: true, meta }, 'user');
       } catch (error) {
         console.warn(`[assets] photo look ${treatment} was not applied to ${baseId}:`, error);
         return toAssetRef({ ...rec, id, cacheKey: plainKey }, 'user');
@@ -1453,11 +1456,12 @@ const healLegacyType = (record: AssetRefSource): AssetRef['type'] =>
  * An upload's meta with its stored byte length, so a listing can show and sort
  * by size without reading a byte (`blob.size` is a property). Most upload paths
  * never wrote `meta.bytes`; a value a writer did record is kept. Only the stored
- * record itself is stamped: a photo look passes its own cache key and may carry
- * the baked picture's blob, whose size is not the upload's.
+ * upload is stamped: a ref marked `baked` is a photo look's picture, whose size
+ * is not the upload's. The plain fallback for an unknown or non-raster look
+ * carries the upload's own blob, so it is stamped.
  */
 function withUploadBytes(record: AssetRefSource, source: 'user' | 'library'): Record<string, unknown> | undefined {
-  if (source !== 'user' || record.cacheKey !== undefined || !record.blob || record.meta?.bytes != null) return record.meta;
+  if (source !== 'user' || record.baked || !record.blob || record.meta?.bytes != null) return record.meta;
   return { ...record.meta, bytes: record.blob.size };
 }
 

@@ -44,8 +44,10 @@ export function matchesType(asset: AssetRef, filter: TypeFilter): boolean {
   return filter === 'all' || (TYPE_FILTER_TYPES[filter]?.has(asset.type as string) ?? false);
 }
 
-/** The buckets in the order the filter bar shows them, which is also the Type sort's order. */
-const TYPE_BUCKETS = Object.keys(TYPE_FILTER_TYPES) as Exclude<TypeFilter, 'all'>[];
+/** The buckets in the order the filter bar shows them, which is also the Type sort's
+ *  order. The bar renders TYPE_FILTERS (views/assets/shared.ts) and the key order of
+ *  TYPE_FILTER_TYPES sets this list; assets-filter.test.ts pins the two together. */
+export const TYPE_BUCKETS = Object.keys(TYPE_FILTER_TYPES) as Exclude<TypeFilter, 'all'>[];
 
 /**
  * The filter bucket an asset's type falls in, or null for a type no bucket
@@ -391,12 +393,15 @@ export function assetModifiedAt(ref: Pick<AssetRef, 'id' | 'meta'>): number | nu
 
 /**
  * An asset's byte length: `meta.bytes` (an upload, stamped from its stored
- * blob) or `meta.size` (a catalog entry, from the index). Null when neither
- * is a finite, non-negative number.
+ * blob) or `meta.size` (a catalog entry, from the index). Each is read only
+ * when it is a finite, non-negative number, so a malformed `bytes` falls back
+ * to `size`. Null when neither is.
  */
 export function assetByteSize(ref: Pick<AssetRef, 'meta'>): number | null {
-  const n = Number(ref.meta?.bytes ?? ref.meta?.size);
-  return Number.isFinite(n) && n >= 0 ? n : null;
+  for (const n of [ref.meta?.bytes, ref.meta?.size]) {
+    if (typeof n === 'number' && Number.isFinite(n) && n >= 0) return n;
+  }
+  return null;
 }
 
 /**

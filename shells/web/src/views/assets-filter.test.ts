@@ -21,6 +21,7 @@ import {
   assetModifiedAt,
   catalogAddedAt,
   typeBucket,
+  TYPE_BUCKETS,
   parseCatQuery,
   matchContext,
 } from './assets-filter.ts';
@@ -304,9 +305,24 @@ test('assetByteSize reads an upload\'s bytes, else a catalog entry\'s size', () 
   assert.equal(assetByteSize({ meta: { bytes: 10, size: 99 } }), 10);
   assert.equal(assetByteSize({ meta: { size: 99 } }), 99);
   assert.equal(assetByteSize({ meta: { bytes: 0 } }), 0);
-  for (const meta of [undefined, {}, { bytes: 'many' }, { size: -1 }, { bytes: Number.NaN }]) {
+  for (const meta of [undefined, {}, { bytes: 'many' }, { size: -1 }, { bytes: Number.NaN }, { bytes: '12' }]) {
     assert.equal(assetByteSize({ meta }), null, JSON.stringify(meta));
   }
+});
+
+test('assetByteSize falls back to the catalog size when bytes is malformed', () => {
+  for (const bytes of ['many', null, Number.NaN, -1, Number.POSITIVE_INFINITY]) {
+    assert.equal(assetByteSize({ meta: { bytes, size: 99 } }), 99, String(bytes));
+  }
+});
+
+test('the Type sort\'s buckets run in the order the filter bar shows them', async () => {
+  // The bar renders TYPE_FILTERS; the sort ranks by TYPE_BUCKETS. A bucket added
+  // or moved in one and not the other would make the Type sort disagree with the
+  // bar and the Kind column.
+  const { TYPE_FILTERS } = await import('./assets/shared.ts');
+  assert.equal(TYPE_FILTERS[0]?.key, 'all');
+  assert.deepEqual(TYPE_FILTERS.slice(1).map((filter) => filter.key), TYPE_BUCKETS);
 });
 
 test('typeBucket gives the filter bucket a type falls in, and null for one no bucket admits', () => {
