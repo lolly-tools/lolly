@@ -149,7 +149,11 @@
     "build:timezone": "node scripts/build-timezone.ts",
     "typecheck:timezone": "tsc -p community/timezone",
     "pnpm:devPreinstall": "node scripts/check-bootstrap.ts",
-    "update:npm-licenses": "node scripts/update-npm-licenses.ts pnpm-lock.yaml shells/tauri-desktop/pnpm-lock.yaml shells/tauri-mobile/pnpm-lock.yaml"
+    "update:npm-licenses": "node scripts/update-npm-licenses.ts pnpm-lock.yaml shells/tauri-desktop/pnpm-lock.yaml shells/tauri-mobile/pnpm-lock.yaml",
+    "build:adobe-psd": "node scripts/build-adobe-psd.ts",
+    "fetch:adobe-corpus": "node scripts/adobe-corpus.ts --fetch",
+    "verify:adobe-corpus": "node scripts/adobe-corpus.ts",
+    "build:motion-starters": "node scripts/build-motion-starters.ts"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",

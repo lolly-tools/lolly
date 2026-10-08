@@ -34,9 +34,14 @@ export function fileAssetType(format: string): AssetRef['type'] {
 export function selectAssetFile(ref: AssetRef, file: AssetFile): AssetRef {
   const group = stripAssetModifiers(ref.id), selected = assetFiles(ref.meta).find(f => f.id === file.id);
   if (!selected?.url.startsWith(`/catalog/${group}/`)) throw new Error('This file is unavailable');
-  return { ...ref, id: buildFileAssetId(group, file.id), type: fileAssetType(selected.format), format: selected.format, url: instancePath(selected.url), width: selected.width, height: selected.height,
+  // The group's own thumb pictures the group's primary file, so it only stands in for
+  // the selected file when that IS the primary; any other variation without a preview
+  // of its own draws itself rather than a picture of a different file.
+  const url = instancePath(selected.url), samePrimary = url === ref.url || selected.url === ref.url;
+  const thumb = selected.thumbnail ? instancePath(selected.thumbnail) : undefined;
+  return { ...ref, id: buildFileAssetId(group, file.id), type: fileAssetType(selected.format), format: selected.format, url, width: selected.width, height: selected.height,
     meta: { ...ref.meta, name: selected.name, assetGroupName: ref.meta?.assetGroupName ?? ref.meta?.name, assetGroupId: group, selectedFile: selected.id,
       size: selected.size, bytes: selected.size, width: selected.width, height: selected.height,
-      thumbUrl: selected.thumbnail ? instancePath(selected.thumbnail) : ref.meta?.thumbUrl, posterUrl: selected.thumbnail ? instancePath(selected.thumbnail) : ref.meta?.posterUrl } };
+      thumbUrl: thumb ?? (samePrimary ? ref.meta?.thumbUrl : undefined), posterUrl: thumb ?? (samePrimary ? ref.meta?.posterUrl : undefined) } };
 }
 export function selectedAssetFile(ref: AssetRef): string | null { return parseFileAssetId(ref.id).file; }

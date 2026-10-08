@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-07T12:41:08.100Z",
+  "generatedAt": "2026-10-07T21:03:38.940Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3873,7 +3873,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.43.0",
+      "version": "1.44.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -3920,6 +3920,8 @@
         "emf",
         "webp-anim",
         "lottie",
+        "idml",
+        "premiere-xml",
         "html"
       ],
       "width": 1920,
@@ -4309,6 +4311,87 @@
               "id": "gradient-look",
               "name": "Gradient look",
               "description": "Layered translucent shapes, still clear of the centre."
+            }
+          ]
+        },
+        {
+          "id": "motion-editorial-loop",
+          "name": "Motion · Editorial loop",
+          "category": "Motion",
+          "description": "Readable type and a geometric mark with gentle repeating movement. Replace the artwork or apply the same recipe to imported layers.",
+          "motion": {
+            "collection": "Motion",
+            "recipe": "drift-loop",
+            "durationMs": 6000,
+            "posterMs": 3000,
+            "beats": [
+              "Read the message",
+              "Drift gently",
+              "Return to the opening pose"
+            ]
+          },
+          "presets": [
+            {
+              "id": "short",
+              "name": "4 second loop"
+            },
+            {
+              "id": "long",
+              "name": "8 second loop"
+            }
+          ]
+        },
+        {
+          "id": "motion-feature-loop",
+          "name": "Motion · Feature cards",
+          "category": "Motion",
+          "description": "Three grouped cards assemble, hold and return. Card surfaces and their text move together.",
+          "motion": {
+            "collection": "Motion",
+            "recipe": "assemble-loop",
+            "durationMs": 6000,
+            "posterMs": 3000,
+            "beats": [
+              "Assemble the cards",
+              "Hold the details",
+              "Unwind and repeat"
+            ]
+          },
+          "presets": [
+            {
+              "id": "short",
+              "name": "4 second loop"
+            },
+            {
+              "id": "long",
+              "name": "8 second loop"
+            }
+          ]
+        },
+        {
+          "id": "motion-photo-loop",
+          "name": "Motion · Photo title",
+          "category": "Motion",
+          "description": "A graded Darkroom image beside editable type. Replace the image with your own photo or a Darkroom share link.",
+          "motion": {
+            "collection": "Motion",
+            "recipe": "drift-loop",
+            "durationMs": 6000,
+            "posterMs": 3000,
+            "beats": [
+              "Show the photograph",
+              "Keep the title readable",
+              "Return and repeat"
+            ]
+          },
+          "presets": [
+            {
+              "id": "short",
+              "name": "4 second loop"
+            },
+            {
+              "id": "long",
+              "name": "8 second loop"
             }
           ]
         },
@@ -5521,8 +5604,8 @@
     {
       "id": "darkroom",
       "name": "Darkroom",
-      "description": "A pro photo-grading darkroom: film looks, third-party .cube LUTs, design system colour treatments and finishing texture - then bake your look as a LUT any editor can use. Opens a Photoshop or GIMP file as layers too: position, blend and hide each one, grade the composite, and export flat images or a layered PSD.",
-      "version": "2.4.0",
+      "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
+      "version": "2.5.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5538,6 +5621,12 @@
         "3dl",
         "film",
         "preset",
+        "xmp",
+        "lightroom",
+        "camera-raw",
+        "video",
+        "motion",
+        "loop",
         "duotone",
         "gradient-map",
         "split-tone",
@@ -5659,6 +5748,24 @@
           "category": "Brand",
           "description": "A tonal study using your brand colours. Replace the sample with any image.",
           "galleryCover": true
+        },
+        {
+          "id": "motion-clean",
+          "name": "Motion · Clean colour",
+          "category": "Motion looks",
+          "description": "A small contrast lift and clear colour for product clips."
+        },
+        {
+          "id": "motion-mono",
+          "name": "Motion · Editorial mono",
+          "category": "Motion looks",
+          "description": "Black and white with open shadows and no moving grain."
+        },
+        {
+          "id": "motion-warm",
+          "name": "Motion · Warm editorial",
+          "category": "Motion looks",
+          "description": "Soft highlights and warm colour, with grain off for repeating clips."
         }
       ],
       "i18n": {

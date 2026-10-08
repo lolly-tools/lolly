@@ -108,7 +108,7 @@
 .docs-content li > pre { margin-block: 10px 4px; }
 /* The bar is static markup with no text of its own: the label is the block's
    data-label, shown through generated content so it never enters the page text
-   that search, the model index and narration read. The enhancer adds Copy. */
+   that search and the model index read. The enhancer adds Copy. */
 .docs-content .doc-code-bar {
   display: flex;
   align-items: center;

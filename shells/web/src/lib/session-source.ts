@@ -37,7 +37,19 @@ export interface TeamProjectRef {
   /** The person's own role in the project, when the source says. Absent: unknown,
    *  and the source's own answer to each action decides. */
   myRole?: TeamRole;
+  /** Why the person can open it (lolly plan 299): a relationship (`owner`, `member`,
+   *  `group`, `custom-group`) makes it theirs; `everyone` (shared with the whole
+   *  workspace) and `admin` do not. Absent on an older source: treated as theirs. */
+  via?: TeamProjectVia;
+  /** Who the project reaches without being named. */
+  audience?: 'restricted' | 'instance';
+  /** The person's own choice: kept in their list (`pinned`) or kept out (`hidden`). */
+  listed?: 'pinned' | 'hidden';
+  /** When the person last opened it, as the source recorded. */
+  lastOpenedAt?: string;
 }
+
+export type TeamProjectVia = 'owner' | 'member' | 'group' | 'custom-group' | 'everyone' | 'admin';
 
 /** A shared session, listed without its (potentially large) inputs. */
 export interface TeamSessionRef {
@@ -139,6 +151,47 @@ export interface SessionSource {
   fetchSession(sessionId: string): Promise<TeamSessionData | null>;
   /** Present only when the source can also save. */
   write?: SessionSourceWriter;
+  /** Keep a project in the person's own list (`pinned`), keep it out (`hidden`), or
+   *  follow the default (null). Absent: the source keeps no such choice. */
+  setProjectListing?(projectId: string, listed: 'pinned' | 'hidden' | null): Promise<boolean>;
+  /** Present when the source also keeps files and folders, so a picker can reach them. */
+  files?: SessionSourceFiles;
+}
+
+/** A shared folder as a picker browses it: items are session ids and file ids. */
+export interface TeamFolderRef {
+  id: string;
+  name: string;
+  parentId: string | null;
+  items: Array<{ kind: 'session' | 'file'; ref: string }>;
+}
+
+/** A shared file as listed: `type` is the asset type (`raster`, `svg`, `video`, ...). */
+export interface TeamFileRef {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+}
+
+/**
+ * The files half (lolly plan 299 X8). Both copies land on this device as the person's
+ * own: a shared file id carries no project, so placing it directly would break on
+ * another device or in another project.
+ */
+export interface SessionSourceFiles {
+  listFolders(projectId: string): Promise<TeamFolderRef[]>;
+  listFiles(projectId: string): Promise<TeamFileRef[]>;
+  /** Copy one shared file into the person's uploads; resolves the local asset id.
+   *  Picking the same file again reuses the earlier copy. */
+  copyFile(projectId: string, fileId: string): Promise<string>;
+  /** One shared session as local session data, its shared files copied under local ids. */
+  localSession(sessionId: string): Promise<Record<string, unknown> | null>;
+  /** A picture of a shared session, rendered from its saved state. */
+  sessionPreview?(sessionId: string): Promise<string | undefined>;
+  /** A picture of a shared image file listed by `listFiles`, when it is small enough
+   *  to fetch for one. */
+  filePreview?(projectId: string, fileId: string): Promise<string | undefined>;
 }
 
 export type SourceList<T> = { ok: true; items: T[] } | { ok: false; status: number };

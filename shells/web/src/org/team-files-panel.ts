@@ -7,9 +7,13 @@
  * A file that sessions still use is not deleted at once: the panel lists those
  * sessions, and a manager may then choose "Delete anyway". The transfers and the
  * sentence for each refusal live in org/team-files.ts; this module only draws them.
+ * Rename changes only a file's name (its id, bytes and checksum stay), and is offered
+ * disabled with a plain reason on an instance that does not have the route yet.
  * Built with DOM APIs and textContent: file and session names come from the instance.
  */
 import { tRaw } from '../i18n.ts';
+import { promptDialog } from '../components/confirm-dialog.ts';
+import { renameTeamFile, teamFileRenameAvailable } from './team-folders.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { getHostRef } from '../lib/host-ref.ts';
 import { anchorSave } from '../bridge/anchor-save.ts';
@@ -29,6 +33,8 @@ export interface TeamFilesPanelOptions {
   /** Manages the project (owner, manager, or the instance's project.manage): may
    *  delete any file, including one that sessions still use. */
   canManage?: boolean;
+  /** May rename files: an editor or better, where the instance lets this person edit. */
+  canRename?: boolean;
   onBack(): void;
 }
 
@@ -58,9 +64,11 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
   const linkNote = para(tRaw('File links use the same project access. Sharing a link does not give someone access.'));
   const room = para('', '');
   room.hidden = true;
+  const renameNote = para(tRaw('This workspace cannot rename shared files yet.'));
+  renameNote.id = `team-files-rename-${opts.projectId}`; renameNote.hidden = true;
   const status = document.createElement('p'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
   const list = document.createElement('ul'); list.className = 'team-files-list';
-  panel.append(back, heading, note, linkNote, room, list, status);
+  panel.append(back, heading, note, linkNote, room, list, renameNote, status);
   let selectedOnce = false;
   let linkedFileAvailable = false;
 
@@ -117,6 +125,26 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
     actions.querySelector('button')?.focus();
   };
 
+  const renameMissing = (): string => tRaw('This workspace cannot rename shared files yet.');
+  /** Rows draw their Rename disabled, with the reason once below the list, after the
+   *  instance answers that it has no rename route. */
+  const renameOff = (): void => {
+    for (const b of list.querySelectorAll<HTMLButtonElement>('[data-act="file-rename"]')) { b.disabled = true; b.setAttribute('aria-describedby', renameNote.id); }
+    renameNote.hidden = false;
+  };
+  const rename = async (file: TeamFile, b: HTMLButtonElement): Promise<void> => {
+    const value = await promptDialog({ title: tRaw('Rename file'), message: tRaw('File name'), value: file.name, confirmLabel: tRaw('Save') });
+    const name = value?.trim().slice(0, 200);
+    if (!name || name === file.name || !panel.isConnected) return;
+    b.disabled = true; status.textContent = '';
+    const got = await renameTeamFile(opts.projectId, file.id, name);
+    if (!panel.isConnected) return;
+    if (got.ok) { await refresh().catch(() => {}); status.textContent = tRaw('Saved.'); return; }
+    if (got.unsupported) { renameOff(); status.textContent = renameMissing(); return; }
+    b.disabled = false;
+    status.textContent = got.status === 404 ? tRaw('That file is no longer available.') : tRaw('Could not rename this file. Refresh and try again.');
+  };
+
   const remove = async (file: TeamFile, li: HTMLLIElement, b: HTMLButtonElement, force = false): Promise<void> => {
     b.disabled = true; status.textContent = '';
     try {
@@ -156,6 +184,11 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
         });
       });
       li.append(name, meta, get, copy);
+      if (opts.canRename) {
+        const edit = button(tRaw('Rename'), 'file-rename', tRaw('Rename {name}', { name: file.name }));
+        edit.addEventListener('click', () => void rename(file, edit));
+        li.append(edit);
+      }
       if (opts.canManage || (mine !== null && file.createdBy === mine)) {
         const del = button(tRaw('Delete'), 'file-delete', tRaw('Delete {name}', { name: file.name }));
         del.addEventListener('click', () => void remove(file, li, del));
@@ -170,6 +203,7 @@ export function buildTeamFilesPanel(opts: TeamFilesPanelOptions): HTMLElement {
       }
     }
     if (!files.length) { const li = document.createElement('li'); li.textContent = tRaw('This project has no shared files yet.'); list.append(li); }
+    if (opts.canRename && files.length && !teamFileRenameAvailable()) renameOff();
   };
 
   const refresh = async (): Promise<void> => {

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Deploy every target in scripts/data/ship-targets.json, gate first.
+ * Managed K3s targets are refused before the gate; these modes apply only to
+ * explicitly configured independent Vercel or internal IT instances.
  *
  *   pnpm run ship              # PREVIEW -> first-load check -> promote what passed
  *   pnpm run ship --preview    # stop at the staged URL: no check, no promote
@@ -30,7 +32,7 @@
  * THE DRIVER INDIRECTION STAYS. ship() is host-agnostic: it orchestrates
  * publish -> wait for ready -> bind success to deployment identity -> verify the
  * live brand, and dispatches every host-specific step to a driver picked per target
- * (the optional `driver` field, default 'vercel'). The internal-IT adapter for the
+ * (the required `driver` field). The internal-IT adapter for the
  * SUSE-IT migration already uses it, so a new target is an adapter plus a field
  * rather than a rewrite here.
  */
@@ -43,7 +45,7 @@ import { pathToFileURL } from 'node:url';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { gate } from './gate.ts';
 import { banner, err, info, ok, phase, rule, site, step, tally, warn } from './lib/log.ts';
-import { type ShipTarget, shipTargets, shipTeam } from './lib/ship-targets.ts';
+import { type ShipTarget, shipTargetError, shipTargets, shipTeam } from './lib/ship-targets.ts';
 
 const ROOT = repoRoot();
 
@@ -452,6 +454,22 @@ export function ship(argv: string[] = process.argv.slice(2)): boolean {
   const opts = parseArgs(argv);
   banner('🍭', 'lolly ship', `gate, then deploy every target · ${opts.label}`);
 
+  let targets: ShipTarget[];
+  try {
+    targets = shipTargets();
+    const errors = targets.map((target) => {
+      const reason = shipTargetError(target, shipTeam());
+      return reason ? `${target.name}: ${reason}` : null;
+    }).filter((reason) => reason !== null);
+    if (errors.length) {
+      for (const reason of errors) err(reason);
+      return false;
+    }
+  } catch (error) {
+    err(`invalid deployment configuration: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+
   if (opts.runGate) {
     if (!gate()) {
       err('gate failed - not deploying');
@@ -464,10 +482,9 @@ export function ship(argv: string[] = process.argv.slice(2)): boolean {
 
   const shipped: string[] = [];
   const failed: string[] = [];
-  const targets = shipTargets();
 
   for (const target of targets) {
-    const name = target.driver ?? 'vercel';
+    const name = target.driver;
     const driver = DRIVERS[name];
     if (!driver) {
       err(`unknown deploy driver '${name}' for target ${target.name}`);

@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-# Assemble the models tree (hardlinks - no byte copies) and deploy the static
-# model host. Run from anywhere; paths are repo-relative to this script.
+# Optional Vercel model host for a separately configured instance. Production
+# Lolly models use verified releases on UpCloud, not this adapter.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/../.." && pwd)"
+[ "${LOLLY_MODELS_VERCEL:-}" = "1" ] || {
+  echo "Vercel model deployment is opt-in for another instance; set LOLLY_MODELS_VERCEL=1 and explicit domain/project/org IDs" >&2
+  exit 1
+}
+node "$repo/scripts/lib/deployment-policy.ts" \
+  "${LOLLY_MODELS_DOMAIN:-}" "${VERCEL_PROJECT_ID:-}" "${VERCEL_ORG_ID:-}"
 src="$repo/shells/web/public/models"
 [ -d "$src" ] || { echo "no models at $src" >&2; exit 1; }
 rm -rf "$here/models"

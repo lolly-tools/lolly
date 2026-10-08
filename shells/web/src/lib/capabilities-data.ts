@@ -298,9 +298,6 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'English and 26 more', desc: 'The app and its documentation are translated into 26 languages beside English, chosen by how many people speak them: Hindi, Bengali, Urdu and Indonesian arrived alongside French and German.' },
         { name: 'Right-to-left done properly', desc: 'Arabic ships with a full right-to-left layout, not a mirrored afterthought.' },
       ] },
-      { icon: ICONS.sound, title: 'Docs that read aloud', keywords: 'listen narration read aloud audio docs documentation text to speech voice', features: [
-        { name: 'A Listen button on every page', desc: 'Every page of the documentation can be listened to: narrated pages play a produced voice, and the rest use your device’s own voice where it has one.' },
-      ] },
     ],
   },
   {

@@ -253,7 +253,7 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'views/free-canvas-fields.ts': 1,
   'views/multi-edit.ts': 1,
   'views/personalize-nudge.ts': 1,
-  'views/picker.ts': 3,
+  'views/picker.ts': 1,
   'views/record-control.ts': 1,
   'views/tool-actions/sequence.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/tool-actions/markup.ts': 9,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -722,14 +722,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // glyph (the TRUSTED LANG_ICON_SVG constant), and the full-width toggle's glyph (a
   // TRUSTED lib/icons string; its label is an aria attribute, never HTML). The rehosted
   // /info page fragment is injected as a PARSED node (DOMParser), not via a sink, and
-  // has its <script>/<style>/.listen-bar stripped.
+  // has its <script>/<style>/.docs-edition-bar stripped.
   // +1 2026-08-21: the AI-scan donut (donut.innerHTML) - fixed SVG markup whose only
   // interpolations are a clamped integer score, toFixed() arc lengths and the
   // analyser's closed band union (escape()d anyway); its label is an aria attribute.
   // +1 2026-09-26 (plan 277 step 2): the compact navigation's disclosure summary, fixed
   // markup plus two lib/icons glyphs; the section title goes in through textContent.
-  // Listen inserts a fixed registry icon; its translated label uses textContent.
-  'views/docs.ts': 7,
+  // -1 2026-10-08: the Listen button's registry icon went with the docs narration.
+  'views/docs.ts': 6,
   // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
   // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).
   'views/prepare.ts': 1,
@@ -1115,7 +1115,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/assets/details-inline-modes.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/wiring.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/assets/sections.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/sections.ts': 5,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts; +3 2026-10-07 (Track A scale): expandDeferred inserts the folded group's body built by the same groupSection callers the full paint uses, and appendPage inserts assetTile() output plus showMoreHtml() (a scope string the view minted and two numbers), all already escape()d where interpolated
+  'lib/lazy-grid.ts': 2,   // 2026-10-07 (Track A scale): a deferred body and a further page of cards, both from the caller's own render functions (the picker's card(), every value escapeHtml()d); the module adds no interpolation of its own
   'views/assets/downloads.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/job-toast.ts': 2,   // +2 2026-08-17 (plan 124 WP-F): the pill + panel innerHTML - title/note/id/count all ESC()d
   'lib/perf-hud.ts': 1,    // +1 2026-08-18 (perf-hud flag): root.innerHTML = scaffold() - only icon() glyphs + tRaw() strings, no interpolated values; the live FPS number is written via textContent, not markup
@@ -1304,7 +1305,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // state and the card grid) became one, when the pane's markup moved to the shared
   // builder in views/picker-cards.ts.
   'components/photo-treatment-strip.ts': 1, // Moved from picker.ts: SVG filters from the validated catalogue treatment builder.
-  'views/picker.ts': 27,
+  'views/picker.ts': 24,
+  // The Projects tab (lolly plan 299 X8): one pane render. Folder, project, session and file
+  // names, ids, crumbs and preview urls are escapeHtml()d; the rest is t() copy, registry
+  // icon() markup and a tool's own registry icon, drawn as the Saved creations cards draw theirs.
+  'views/picker-projects.ts': 1,
   'views/picker-webcam.ts': 1,
   // The Templates tab's pane (plans/245): ONE sink for the whole pane - loading, the
   // empty state, or the grid. Reviewed: the only dynamic values are template names,

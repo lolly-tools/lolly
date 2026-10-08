@@ -66,8 +66,8 @@ export async function parseLayeredBytes(
     warn(tRaw('Import note: {detail}', { detail: detail ? `${code} (${detail})` : code }));
   };
   if (kind === 'psd') {
-    const { readPsd } = await import('../../../../engine/src/psd.ts');
-    return readPsd(bytes, { inflate, onWarn });
+    const { readPsdPortable } = await import('../bridge/adobe-psd.ts');
+    return readPsdPortable(bytes, { inflate, onWarn });
   }
   if (kind === 'xcf') {
     const { readXcf } = await import('../../../../engine/src/xcf.ts');
