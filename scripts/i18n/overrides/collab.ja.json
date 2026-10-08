@@ -1,3 +1,14 @@
 {
-  "View {name}": "{name} を表示"
+  "Follow {name}": "{name}をフォロー",
+  "Following {name}": "{name}をフォロー中",
+  "Stop following": "フォローを解除",
+  "You stopped following {name}.": "{name}のフォローを解除しました。",
+  "{name} left. You stopped following.": "{name}が退出しました。フォローを解除しました。",
+  "Followers: {count}": "フォロワー：{count}",
+  "Following you": "あなたをフォロー中",
+  "{name} is following you": "{name}があなたをフォローしています",
+  "{name} is presenting": "{name}がプレゼンテーション中",
+  "Follow presentation": "プレゼンテーションをフォロー",
+  "Following the presentation by {name}": "{name}のプレゼンテーションをフォロー中",
+  "Press Escape to stop following.": "Escキーを押すとフォローを解除します。"
 }

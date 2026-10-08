@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "স্ক্যান করার জন্য {label} বড় করুন",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "এটি স্ক্যান করতে এখানে অন্য একটি ডিভাইস তাক করুন। বন্ধ করতে যেকোনো জায়গায় ট্যাপ করুন বা Esc চাপুন।",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "এই লিঙ্কটি স্ক্যান করার জন্য খুব দীর্ঘ। এর পরিবর্তে এটি কপি করুন, বা কোড ট্যাবটি ব্যবহার করুন।",
-  "View {name}": "{name} দেখুন",
   "AI agent": "এআই এজেন্ট",
   "Pause agent": "এজেন্ট বিরতি দিন",
   "Resume agent": "এজেন্ট চালু করুন",
   "Disconnect agent": "এজেন্টের সংযোগ বিচ্ছিন্ন করুন",
-  "Paused": "বিরতিতে"
+  "Paused": "বিরতিতে",
+  "Follow {name}": "{name}-কে ফলো করুন",
+  "Following {name}": "{name}-কে ফলো করছেন",
+  "Stop following": "ফলো বন্ধ করুন",
+  "You stopped following {name}.": "আপনি আর {name}-কে ফলো করছেন না।",
+  "{name} left. You stopped following.": "{name} চলে গেছেন। আপনি আর ফলো করছেন না।",
+  "Followers: {count}": "ফলোয়ার: {count}",
+  "Following you": "আপনাকে ফলো করছেন",
+  "{name} is following you": "{name} আপনাকে ফলো করছেন",
+  "{name} is presenting": "{name} প্রেজেন্ট করছেন",
+  "Follow presentation": "প্রেজেন্টেশন ফলো করুন",
+  "Following the presentation by {name}": "{name}-এর প্রেজেন্টেশন ফলো করছেন",
+  "Press Escape to stop following.": "ফলো বন্ধ করতে Escape চাপুন।"
 }

@@ -31,6 +31,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import type { CollabParticipant, CollabSessionState } from '../lib/collab-session.ts';
+import type { CollabFollowState, CollabPillFollow } from './collab-pill.ts';
 
 const dom = new JSDOM('<!doctype html><html><body><main id="stage"></main></body></html>', {
   url: 'http://localhost/#/t/qr-code',
@@ -80,23 +81,136 @@ const stage = (): HTMLElement => {
   return el;
 };
 
-/** A pill mounted with the announcer and the motion read stubbed out. */
-test('avatars and roster actions refuse departed or away peers and preserve keyboard focus', () => {
-  const jumps: string[] = [], peer = participant({ clientId: 'BEA', name: 'Bea' });
-  const f = mount(sessionState({ peers: [peer] }), { onPeer: id => { jumps.push(id); } });
+/** A scripted follow controller: the pill's only input for following and presenting. */
+function followSource(initial: Partial<CollabFollowState> = {}) {
+  let current: CollabFollowState = { leader: null, presenter: null, followers: [], notice: null, ...initial };
+  const subs = new Set<(s: CollabFollowState) => void>();
+  const calls: string[] = [];
+  const follow: CollabPillFollow = {
+    state: () => current,
+    subscribe(fn) { subs.add(fn); return () => { subs.delete(fn); }; },
+    follow(id) { calls.push(`follow:${id}`); },
+    followPresentation() { calls.push('present'); },
+    stop() { calls.push('stop'); },
+  };
+  return { follow, calls, subscribers: () => subs.size,
+    push(next: Partial<CollabFollowState>): void { current = { ...current, ...next }; for (const fn of [...subs]) fn(current); } };
+}
+
+test('avatars and roster rows follow people, refuse departed or away peers and preserve keyboard focus', () => {
+  const peer = participant({ clientId: 'BEA', name: 'Bea' }), f2 = followSource();
+  const f = mount(sessionState({ peers: [peer] }), { follow: f2.follow });
   try {
     const avatar = f.pill.el.querySelector<HTMLElement>('[data-client-id="BEA"]')!;
+    assert.equal(avatar.title, 'Follow Bea');
     f.src.push(sessionState({ peers: [{ ...peer, focus: 'comments:thread' }] }));
     assert.equal(f.pill.el.querySelector('[data-client-id="BEA"]'), avatar, 'focus and presence updates preserve a pending pointer click');
-    avatar.click(); assert.deepEqual(jumps, ['BEA']);
+    avatar.click(); assert.deepEqual(f2.calls, ['follow:BEA']);
     f.pill.el.querySelector<HTMLButtonElement>('.collab-stack')!.click();
-    const action = document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!; assert.equal(action.getAttribute('aria-label'), 'View Bea'); action.focus();
+    const action = document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!;
+    assert.equal(action.getAttribute('aria-label'), 'Follow Bea');
+    assert.equal(action.getAttribute('aria-pressed'), 'false');
+    action.focus();
     f.src.push(sessionState({ peers: [peer] })); assert.equal((document.activeElement as HTMLElement).dataset.peerId, 'BEA');
-    document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!.click(); assert.deepEqual(jumps, ['BEA', 'BEA']);
+    f2.push({ leader: { clientId: 'BEA', name: 'Bea', presentation: false } });
+    const pressed = document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!;
+    assert.equal(pressed.getAttribute('aria-pressed'), 'true', 'the roster says who is being followed');
+    assert.equal((document.activeElement as HTMLElement).dataset.peerId, 'BEA', 'and keeps focus through the change');
+    pressed.click(); assert.deepEqual(f2.calls, ['follow:BEA', 'stop'], 'pressing the followed person stops following');
+    const followed = f.pill.el.querySelector<HTMLElement>('[data-client-id="BEA"]')!;
+    assert.equal(followed.dataset.followed, '1');
+    assert.equal(followed.title, 'Following Bea');
     f.pill.el.querySelector<HTMLButtonElement>('.collab-stack')!.click(); const stale = document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!;
     f.src.push(sessionState({ peers: [{ ...peer, away: true }] })); assert.equal(document.querySelector<HTMLButtonElement>('[data-peer-id="BEA"]')!.disabled, true);
-    stale.click(); assert.equal(jumps.length, 2);
-    f.src.push(sessionState({ connection: 'closed', peers: [peer] })); f.pill.el.querySelector<HTMLElement>('[data-client-id="BEA"]')!.click(); assert.equal(jumps.length, 2);
+    stale.click(); assert.equal(f2.calls.length, 2);
+    f.src.push(sessionState({ connection: 'closed', peers: [peer] })); f.pill.el.querySelector<HTMLElement>('[data-client-id="BEA"]')!.click(); assert.equal(f2.calls.length, 2);
+  } finally { f.pill.destroy(); }
+  assert.equal(f2.subscribers(), 0, 'destroy() lets go of the follow controller too');
+});
+
+test('the pill says whom you follow with Stop following, and who is presenting with Follow presentation', () => {
+  const peer = participant({ clientId: 'BEA', name: 'Bea' }), f2 = followSource();
+  const f = mount(sessionState({ peers: [peer] }), { follow: f2.follow });
+  const box = f.pill.el.querySelector<HTMLElement>('.collab-follow')!;
+  const label = (): string => box.querySelector('.collab-follow-label')!.textContent ?? '';
+  const action = box.querySelector<HTMLButtonElement>('.collab-follow-action')!;
+  try {
+    assert.equal(box.hidden, true, 'nothing to say, nothing shown');
+    f2.push({ leader: { clientId: 'BEA', name: 'Bea', presentation: false } });
+    assert.equal(box.hidden, false);
+    assert.equal(label(), 'Following Bea');
+    assert.equal(action.textContent, 'Stop following');
+    assert.equal(action.title, 'Press Escape to stop following.');
+    assert.deepEqual(f.said, ['Press Escape to stop following.'], 'starting to follow tells a screen reader the way out');
+    action.click(); assert.deepEqual(f2.calls, ['stop']);
+
+    f2.push({ leader: { clientId: 'BEA', name: 'Bea', presentation: true } });
+    assert.equal(label(), 'Following the presentation by Bea');
+
+    f2.push({ leader: null, notice: { id: 1, kind: 'left', name: 'Bea' } });
+    assert.equal(label(), 'Bea left. You stopped following.');
+    assert.equal(action.hidden, true, 'a notice has no action');
+    assert.equal(f.said.at(-1), 'Bea left. You stopped following.');
+    f2.push({ notice: { id: 2, kind: 'stopped', name: 'Bea' } });
+    assert.equal(label(), 'You stopped following Bea.');
+
+    f2.push({ notice: null, presenter: { clientId: 'BEA', name: 'Bea' } });
+    assert.equal(label(), 'Bea is presenting');
+    assert.equal(action.textContent, 'Follow presentation');
+    assert.equal(f.said.at(-1), 'Bea is presenting');
+    action.click(); assert.deepEqual(f2.calls, ['stop', 'present']);
+    const said = f.said.length;
+    f.src.push(sessionState({ peers: [peer] }));
+    assert.equal(f.said.length, said, 'a repaint repeats nothing');
+    f2.push({ presenter: null });
+    assert.equal(box.hidden, true);
+  } finally { f.pill.destroy(); }
+});
+
+test('at most one presenter is shown, however many people say they present', () => {
+  const f2 = followSource({ presenter: { clientId: 'A', name: 'Ana' } });
+  const f = mount(sessionState({ peers: [participant({ clientId: 'A', name: 'Ana' }), participant({ clientId: 'C', name: 'Cy' })] }), { follow: f2.follow });
+  try {
+    assert.equal(f.pill.el.querySelectorAll('.collab-follow').length, 1);
+    assert.equal(f.pill.el.querySelector('.collab-follow-label')?.textContent, 'Ana is presenting');
+    assert.deepEqual(f.said, [], 'a presenter already there when the pill mounts is not announced');
+  } finally { f.pill.destroy(); }
+});
+
+test('followers are counted on the pill and named under "Following you", each announced once', () => {
+  const f2 = followSource({ followers: [{ clientId: 'A', name: 'Ana' }] });
+  const f = mount(sessionState({ peers: [participant({ clientId: 'A', name: 'Ana' }), participant({ clientId: 'B', name: 'Bea' })] }), { follow: f2.follow });
+  try {
+    const tag = (): HTMLElement | null => f.pill.el.querySelector('.collab-followers');
+    assert.equal(tag()?.textContent, 'Followers: 1');
+    assert.equal(tag()?.title, 'Ana');
+    assert.deepEqual(f.said, [], 'the first paint seeds silently');
+    f2.push({ followers: [{ clientId: 'A', name: 'Ana' }, { clientId: 'B', name: 'Bea' }] });
+    assert.equal(tag()?.textContent, 'Followers: 2');
+    assert.deepEqual(f.said, ['Bea is following you']);
+    f2.push({ followers: [{ clientId: 'A', name: 'Ana' }, { clientId: 'B', name: 'Bea' }] });
+    assert.deepEqual(f.said, ['Bea is following you'], 'once per new follower');
+
+    f.pill.el.querySelector<HTMLButtonElement>('.collab-stack')!.click();
+    const roster = document.querySelector('.collab-roster')!;
+    const heading = roster.querySelector<HTMLElement>('.collab-roster-heading')!;
+    assert.equal(heading.textContent, 'Following you');
+    const list = roster.querySelector('.collab-roster-followers')!;
+    assert.equal(list.getAttribute('aria-labelledby'), heading.id);
+    assert.deepEqual([...list.querySelectorAll('.collab-roster-name')].map(n => n.textContent), ['Ana', 'Bea'], 'names are visible, not only counted');
+    f2.push({ followers: [] });
+    assert.equal(document.querySelector('.collab-roster-heading'), null, 'and go when nobody follows');
+    assert.equal(tag(), null);
+  } finally { f.pill.destroy(); }
+});
+
+test('without a follow controller, avatars are not actionable and nothing about following shows', () => {
+  const f = mount(sessionState({ peers: [participant({ clientId: 'BEA', name: 'Bea' })] }));
+  try {
+    assert.equal(f.pill.el.querySelector<HTMLElement>('[data-client-id="BEA"]')!.title, 'Bea');
+    assert.equal(f.pill.el.querySelector<HTMLElement>('.collab-follow')!.hidden, true);
+    f.pill.el.querySelector<HTMLButtonElement>('.collab-stack')!.click();
+    assert.equal(document.querySelector('[data-peer-id="BEA"]'), null, 'roster names are plain text');
   } finally { f.pill.destroy(); }
 });
 
@@ -104,7 +218,7 @@ function mount(
   state: CollabSessionState,
   over: {
     onInvite?: () => void;
-    onPeer?: (id: string) => void;
+    follow?: CollabPillFollow;
     reducedMotion?: () => boolean;
     actions?: readonly import('./collab-pill.ts').CollabPillAction[];
   } = {},
@@ -488,6 +602,14 @@ test('the reconnecting pulse and the entrance flash are gated on BOTH motion sig
     const gated = new RegExp(`html\\[data-a11y-motion="reduce"\\][^{]*${cls}[^{]*\\{[^}]*animation:\\s*none`);
     assert.match(css, gated, `${cls} is not gated on the app preference`);
   }
+});
+
+test('the follow control is still under either reduced-motion signal, and following highlights with a full ring', () => {
+  const css = sheet();
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.collab-follow-action \{ transition: none; \} \}/);
+  assert.match(css, /html\[data-a11y-motion="reduce"\] \.collab-follow-action \{ transition: none; \}/);
+  assert.match(css, /\.collab-av\[data-followed="1"\] \{ box-shadow: 0 0 0 1px [^;]+, 0 0 0 calc\(3px \* var\(--a11y-fs\)\)/, 'a whole ring, never one edge');
+  assert.doesNotMatch(css, /\.collab-follow[^{]*\{[^}]*border-(?:inline|block|left|right|top|bottom)[-\w]*\s*:/, 'no single-edge rail on the rounded follow controls');
 });
 
 test('the dot has a distinct shape per state, so colour is never carrying it alone', () => {

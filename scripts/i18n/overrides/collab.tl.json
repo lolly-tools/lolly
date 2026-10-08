@@ -1,3 +1,14 @@
 {
-  "View {name}": "Tingnan ang {name}"
+  "Follow {name}": "I-follow si {name}",
+  "Following {name}": "Pinapanood si {name}",
+  "Stop following": "Ihinto ang pag-follow",
+  "You stopped following {name}.": "Huminto ka na sa pag-follow kay {name}.",
+  "{name} left. You stopped following.": "Umalis si {name}. Huminto ka na sa pag-follow.",
+  "Followers: {count}": "Mga follower: {count}",
+  "Following you": "Sinusundan ka",
+  "{name} is following you": "Sinusundan ka ni {name}",
+  "{name} is presenting": "Nagpe-present si {name}",
+  "Follow presentation": "Sundan ang presentasyon",
+  "Following the presentation by {name}": "Sinusundan ang presentasyon ni {name}",
+  "Press Escape to stop following.": "Pindutin ang Escape para huminto sa pag-follow."
 }

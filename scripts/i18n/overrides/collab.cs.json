@@ -1,3 +1,14 @@
 {
-  "View {name}": "Zobrazit {name}"
+  "Follow {name}": "Sledovat {name}",
+  "Following {name}": "Sleduješ {name}",
+  "Stop following": "Přestat sledovat",
+  "You stopped following {name}.": "Už nesleduješ {name}.",
+  "{name} left. You stopped following.": "{name} odešel(a). Už nikoho nesleduješ.",
+  "Followers: {count}": "Sledující: {count}",
+  "Following you": "Sleduje tě",
+  "{name} is following you": "{name} tě sleduje",
+  "{name} is presenting": "{name} prezentuje",
+  "Follow presentation": "Sledovat prezentaci",
+  "Following the presentation by {name}": "Sleduješ prezentaci od {name}",
+  "Press Escape to stop following.": "Sledování zastavíš klávesou Esc."
 }

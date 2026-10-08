@@ -1,3 +1,14 @@
 {
-  "View {name}": "Vizualizează {name}"
+  "Follow {name}": "Urmărește pe {name}",
+  "Following {name}": "Îl urmărești pe {name}",
+  "Stop following": "Nu mai urmări",
+  "You stopped following {name}.": "Ai încetat să îl urmărești pe {name}.",
+  "{name} left. You stopped following.": "{name} a plecat. Nu mai urmărești.",
+  "Followers: {count}": "Urmăritori: {count}",
+  "Following you": "Te urmărește",
+  "{name} is following you": "{name} te urmărește",
+  "{name} is presenting": "{name} prezintă",
+  "Follow presentation": "Urmărește prezentarea",
+  "Following the presentation by {name}": "Urmărești prezentarea lui {name}",
+  "Press Escape to stop following.": "Apasă Escape pentru a nu mai urmări."
 }

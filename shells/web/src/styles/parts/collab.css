@@ -219,6 +219,24 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
     transform: translateY(calc(var(--chrome-h) + 8px));
   }
 }
+
+/* ─── Following a person's view (plan 76 milestone 4) ─────────────────────────
+ *
+ * While this device follows someone, `views/tool-peer-view.ts` mounts one frame on the
+ * stage in that person's colour, so a borrowed view is never mistaken for your own. It
+ * is a full inset outline around the whole stage (never one edge), sits under the stage
+ * pill (z 20) and over the presence layer (z 15), takes no pointer events and is a
+ * sibling of the render surface, so an export never contains it. The pill beside it
+ * says whose view this is, so the colour is never the only signal.
+ */
+.collab-follow-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 16;
+  pointer-events: none;
+  outline: 2px solid var(--collab-color, hsl(var(--primary)));
+  outline-offset: -2px;
+}
 .collab-recovery {
   position: absolute;
   inset-inline: 12px;

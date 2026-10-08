@@ -301,8 +301,8 @@ async function loadWiring(): Promise<WorkCollabWiring> {
     makeProvider(sessionId: string): WorkCollabHandle {
       const registered = provider.getWorkCollabFactory();
       return registered
-        ? registered(sessionId, { history: createWorkCollabHistory(sessionId) })
-        : provider.createWorkCollabProvider(sessionId, { principal: memberPrincipal(), history: createWorkCollabHistory(sessionId) });
+        ? registered(sessionId, { history: createWorkCollabHistory(sessionId, undefined, { principal: memberPrincipal }) })
+        : provider.createWorkCollabProvider(sessionId, { principal: memberPrincipal(), history: createWorkCollabHistory(sessionId, undefined, { principal: memberPrincipal }) });
     },
     makeHandle(p) {
       const person = orgSession();

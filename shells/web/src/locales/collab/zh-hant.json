@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "放大{label}以便掃描",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "將另一部裝置對準這裡進行掃描。點一下任意處或按 Esc 關閉。",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "這個連結太長，無法掃描。請改為複製，或使用「代碼」分頁。",
-  "View {name}": "檢視 {name}",
   "AI agent": "AI 代理",
   "Pause agent": "暫停代理",
   "Resume agent": "恢復代理",
   "Disconnect agent": "中斷代理連線",
-  "Paused": "已暫停"
+  "Paused": "已暫停",
+  "Follow {name}": "追蹤 {name}",
+  "Following {name}": "正在追蹤 {name}",
+  "Stop following": "停止追蹤",
+  "You stopped following {name}.": "你已停止追蹤 {name}。",
+  "{name} left. You stopped following.": "{name} 已離開，你已停止追蹤。",
+  "Followers: {count}": "追蹤者：{count}",
+  "Following you": "正在追蹤你",
+  "{name} is following you": "{name} 正在追蹤你",
+  "{name} is presenting": "{name} 正在簡報",
+  "Follow presentation": "追蹤簡報",
+  "Following the presentation by {name}": "正在追蹤 {name} 的簡報",
+  "Press Escape to stop following.": "按 Esc 鍵停止追蹤。"
 }
