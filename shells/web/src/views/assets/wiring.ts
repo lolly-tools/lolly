@@ -24,7 +24,7 @@ import { staggerReveal } from '../../lib/reveal.ts';
 import { restyleIconTheme, treatmentFilterSvg } from '@lolly/engine';
 import { CAT_ICONS, isThemable, setCatToggle, svgTextToDataUrl } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
-import { withProviderFacet } from '../assets-provider.ts';
+import { findFacetOption, withProviderFacet } from '../assets-provider.ts';
 
 // ── wiring ───────────────────────────────────────────────────────────────────
 // Recolour every themable icon in a category group in place (the category "Colours"
@@ -96,6 +96,13 @@ export function wire(cat: CatCtx): void {
   if (!body) return;
 
   body.addEventListener('change', e => {
+    // A long filter list's search field (assets-provider.ts): typed text picks a value.
+    const find = (e.target as HTMLElement).closest<HTMLInputElement>('[data-provider-find]');
+    if (find) {
+      const facet = find.dataset.providerFind as CatalogFacet, option = findFacetOption(cat.allAssets, facet, find.value);
+      if (option) setSearchBarQuery(withProviderFacet(cat.allAssets, cat.query, facet, option.name));
+      return;
+    }
     const select = (e.target as HTMLElement).closest<HTMLSelectElement>('[data-provider-facet]');
     if (!select) return;
     setSearchBarQuery(withProviderFacet(cat.allAssets, cat.query, select.dataset.providerFacet as CatalogFacet, select.value));
@@ -108,14 +115,8 @@ export function wire(cat: CatCtx): void {
     const target = e.target as HTMLElement;
     const more = target.closest<HTMLElement>('[data-cat-more]');
     if (more) {
-      const scope = more.dataset.catMore!, shown = Number(more.dataset.shown);
-      const group = more.closest<HTMLElement>('[data-group]')?.dataset.group;
-      cat.assetPageSizes.set(scope, shown + 120);
-      const scroll = window.scrollY;
-      cat.sections.renderBody();
-      window.scrollTo(0, scroll);
-      const section = group ? body.querySelector<HTMLElement>(`[data-group="${CSS.escape(group)}"]`) : null;
-      section?.querySelectorAll<HTMLElement>('.cat-tile-open')[shown]?.focus({ preventScroll: true });
+      // Appended in place (sections.appendPage): the tiles already drawn stay put.
+      cat.sections.appendPage(more)?.focus({ preventScroll: true });
       return;
     }
     const tag = target.closest<HTMLElement>('[data-provider-tag]');
@@ -244,6 +245,8 @@ export function wire(cat: CatCtx): void {
       if (collapse) collapsed.add(key); else collapsed.delete(key);
       cat.tiles.persistCollapsed();
       cat.tiles.syncSectionUrl();
+      // A folded group's tiles are built the first time it opens (tiles.groupSection).
+      if (!collapse && cat.sections.expandDeferred(sec)) cat.sections.afterTilesAdded();
       // Expanding → cascade the category's tiles in with a soft shuffle (like the gallery).
       if (!collapse) staggerReveal([...sec.querySelectorAll('.cat-tile')]);
       return;
@@ -262,6 +265,7 @@ export function wire(cat: CatCtx): void {
         const key = g.dataset.group;
         if (key) { if (anyOpen) collapsed.add(key); else collapsed.delete(key); }
       }
+      if (!anyOpen && groups.map(g => cat.sections.expandDeferred(g)).some(Boolean)) cat.sections.afterTilesAdded();
       cat.tiles.persistCollapsed();
       cat.tiles.syncSectionUrl();
       // Just collapsed everything → the next action (and icon) is "Expand all", and vice

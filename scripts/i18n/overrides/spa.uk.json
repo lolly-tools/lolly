@@ -1075,6 +1075,8 @@
   "Commenter": "Коментатор",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Глядачі відкривають і копіюють. Коментатори також коментують. Редактори зберігають зміни. Керівники також додають людей.",
   "Asks to comment": "Просить право коментувати",
+  "Search all {n}": "Пошук серед усіх {n}",
+  "Search all {facet} options": "Пошук серед усіх варіантів: {facet}",
   "Copy to my projects": "Копіювати до моїх проєктів",
   "Add to a folder…": "Додати до папки…",
   "Remove shortcut": "Видалити ярлик",

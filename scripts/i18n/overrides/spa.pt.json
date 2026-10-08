@@ -947,6 +947,8 @@
   "Commenter": "Comentarista",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Leitores abrem e copiam. Comentaristas também comentam. Editores salvam alterações. Gerentes também adicionam pessoas.",
   "Asks to comment": "Pede para comentar",
+  "Search all {n}": "Buscar em todos os {n}",
+  "Search all {facet} options": "Buscar em todas as opções de {facet}",
   "Copy to my projects": "Copiar para meus projetos",
   "Add to a folder…": "Adicionar a uma pasta…",
   "Remove shortcut": "Remover atalho",

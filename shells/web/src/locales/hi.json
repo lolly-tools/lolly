@@ -7442,6 +7442,8 @@
   "Commenter": "टिप्पणीकर्ता",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "दर्शक खोलते और कॉपी करते हैं। टिप्पणीकर्ता टिप्पणी भी करते हैं। संपादक बदलाव सहेजते हैं। प्रबंधक लोगों को भी जोड़ते हैं।",
   "Asks to comment": "टिप्पणी करने की अनुमति माँगी",
+  "Search all {n}": "सभी {n} में खोजें",
+  "Search all {facet} options": "{facet} के सभी विकल्पों में खोजें",
   "Copy to my projects": "मेरे प्रोजेक्ट्स में कॉपी करें",
   "Add to a folder…": "फ़ोल्डर में जोड़ें…",
   "Remove shortcut": "शॉर्टकट हटाएँ",

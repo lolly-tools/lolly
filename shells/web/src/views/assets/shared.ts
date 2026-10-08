@@ -21,6 +21,7 @@ import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
 import type { EmojiPackPinV1 } from '@lolly-tools/core/emoji-v1';
 import type { EmojiSpecimenSource } from '../../lib/emoji-specimen.ts';
 import { VISUAL_TYPES } from '../../lib/asset-kinds.ts';
+import { actionButtonContent } from '../../components/action-button.ts';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
 
@@ -800,3 +801,10 @@ export interface CropSource {
 export interface CropTransform { rotate: number; quarter: number; skewX: number; skewY: number; flipH: boolean; flipV: boolean }
 /** cropModeActive is an ES module binding now: importers read it live and write it through here. */
 export function setCropModeActive(value: boolean): void { cropModeActive = value; }
+
+/** Tiles an asset grid draws per page; Show more appends the next page in place. */
+export const ASSET_PAGE_SIZE = 120;
+/** The Show more button after a paged grid, or nothing once every tile is drawn. */
+export const showMoreHtml = (scope: string, shown: number, total: number): string => shown < total
+  ? `<button type="button" class="btn btn--labelled cat-load-more" data-cat-more="${scope}" data-shown="${shown}">${actionButtonContent(t('Show more'), 'plus')}<span class="cat-page-count">${shown} / ${total}</span></button>`
+  : '';

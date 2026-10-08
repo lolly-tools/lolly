@@ -7442,6 +7442,8 @@
   "Commenter": "Yorumcu",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Görüntüleyiciler açar ve kopyalar. Yorumcular ayrıca yorum yapar. Düzenleyiciler değişiklikleri kaydeder. Yöneticiler ayrıca kişi ekler.",
   "Asks to comment": "Yorum yapmak için izin istiyor",
+  "Search all {n}": "Tüm {n} içinde ara",
+  "Search all {facet} options": "Tüm {facet} seçeneklerinde ara",
   "Copy to my projects": "Projelerime kopyala",
   "Add to a folder…": "Bir klasöre ekle…",
   "Remove shortcut": "Kısayolu kaldır",

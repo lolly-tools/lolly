@@ -7442,6 +7442,8 @@
   "Commenter": "Komentujący",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Przeglądający otwierają i kopiują. Komentujący także komentują. Edytorzy zapisują zmiany. Zarządcy także dodają osoby.",
   "Asks to comment": "Prosi o możliwość komentowania",
+  "Search all {n}": "Szukaj we wszystkich: {n}",
+  "Search all {facet} options": "Szukaj we wszystkich opcjach: {facet}",
   "Copy to my projects": "Kopiuj do moich projektów",
   "Add to a folder…": "Dodaj do folderu…",
   "Remove shortcut": "Usuń skrót",

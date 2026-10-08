@@ -7442,6 +7442,8 @@
   "Commenter": "Tagakomento",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Binubuksan at kinokopya ng mga Tagatingin. Nagko-komento rin ang mga Tagakomento. Sine-save ng mga Editor ang mga pagbabago. Nagdadagdag din ng tao ang mga Tagapamahala.",
   "Asks to comment": "Humihiling na mag-komento",
+  "Search all {n}": "Maghanap sa lahat ng {n}",
+  "Search all {facet} options": "Maghanap sa lahat ng opsyon ng {facet}",
   "Copy to my projects": "Kopyahin sa mga project ko",
   "Add to a folder…": "Idagdag sa folder…",
   "Remove shortcut": "Alisin ang shortcut",

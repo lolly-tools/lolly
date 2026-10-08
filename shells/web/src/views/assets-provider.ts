@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { escape as escapeText } from '../utils.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
 import { fold } from '../lib/search/match.ts';
 import { parseCatQuery, withCatalogFacet, type CatalogFacet } from './assets-filter.ts';
 
@@ -79,6 +79,27 @@ export function providerFacets(assets: readonly AssetRef[]): Record<CatalogFacet
   ])) as Record<CatalogFacet, ProviderFacetOption[]>;
 }
 
+/** A filter list longer than this shows its most-used values and a search field for the rest:
+ *  a DAM with thousands of tags made one <select> of thousands of options on every paint. */
+export const FACET_OPTION_LIMIT = 100;
+
+/** The options a facet's list shows: every value up to the limit, else the most used ones, by name. */
+export function shownFacetOptions(options: readonly ProviderFacetOption[], limit = FACET_OPTION_LIMIT): ProviderFacetOption[] {
+  if (options.length <= limit) return [...options];
+  return [...options].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)).slice(0, limit)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** What a facet's search field resolves typed text to: an exact value, else the most used value containing the text. */
+export function findFacetOption(assets: readonly AssetRef[], facet: CatalogFacet, text: string): ProviderFacetOption | null {
+  const wanted = fold(text.trim());
+  if (!wanted) return null;
+  const options = providerFacets(assets)[facet];
+  return options.find(option => fold(option.name) === wanted)
+    ?? [...options].sort((a, b) => b.count - a.count).find(option => fold(option.name).includes(wanted))
+    ?? null;
+}
+
 export function providerBrowserHtml(assets: readonly AssetRef[], query: string): string {
   const facets = providerFacets(assets);
   if (!facets.source.length) return '';
@@ -87,11 +108,17 @@ export function providerBrowserHtml(assets: readonly AssetRef[], query: string):
   const labels = { source: t('Library'), category: t('Category'), collection: t('Collection'), tag: t('Tag') };
   const selects = (['source', 'category', 'collection', 'tag'] as const).filter(facet => facets[facet].length).map(facet => {
     const current = selected[facet][0];
-    const options = [...facets[facet]];
-    if (current && !options.some(option => fold(option.name) === current)) options.unshift({ name: current, count: 0 });
+    const all = facets[facet];
+    const options = shownFacetOptions(all);
+    if (current && !options.some(option => fold(option.name) === current)) {
+      options.unshift(all.find(option => fold(option.name) === current) ?? { name: current, count: 0 });
+    }
+    const find = all.length > FACET_OPTION_LIMIT
+      ? `<input type="search" class="field-input cat-provider-find" data-provider-find="${facet}" placeholder="${escapeText(tRaw('Search all {n}', { n: all.length }))}" aria-label="${escapeText(tRaw('Search all {facet} options', { facet: labels[facet] }))}">`
+      : '';
     return `<label class="cat-provider-filter"><span>${escapeText(labels[facet])}</span><select class="field-select" data-provider-facet="${facet}">
       <option value="">${t('All')}</option>${options.map(option => `<option value="${escapeText(option.name)}"${fold(option.name) === current ? ' selected' : ''}>${escapeText(option.name)} (${option.count})</option>`).join('')}
-    </select></label>`;
+    </select>${find}</label>`;
   }).join('');
   const popular = [...facets.tag].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)).slice(0, 8);
   return `<section class="cat-provider-browser" aria-label="${escapeText(t('Browse connected libraries'))}">
