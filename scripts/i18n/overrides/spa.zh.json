@@ -1013,5 +1013,6 @@
   "Sent. It is waiting for review.": "已发送，正在等待审核。",
   "Live in {name}.": "已在 {name} 上线。",
   "Live in the catalog.": "已在目录中上线。",
-  "The workspace could not be reached. Try again.": "无法连接到工作区，请重试。"
+  "The workspace could not be reached. Try again.": "无法连接到工作区，请重试。",
+  "New {name}": "新建 {name}"
 }

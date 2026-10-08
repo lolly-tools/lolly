@@ -1013,5 +1013,6 @@
   "Sent. It is waiting for review.": "Envoyé. En attente de relecture.",
   "Live in {name}.": "En ligne dans {name}.",
   "Live in the catalog.": "En ligne dans le catalogue.",
-  "The workspace could not be reached. Try again.": "L'espace de travail est injoignable. Réessaie."
+  "The workspace could not be reached. Try again.": "L'espace de travail est injoignable. Réessaie.",
+  "New {name}": "Créer {name}"
 }

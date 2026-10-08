@@ -7507,5 +7507,6 @@
   "Sent. It is waiting for review.": "Skickat. Det väntar på granskning.",
   "Live in {name}.": "Live i {name}.",
   "Live in the catalog.": "Live i katalogen.",
-  "The workspace could not be reached. Try again.": "Det gick inte att nå arbetsytan. Försök igen."
+  "The workspace could not be reached. Try again.": "Det gick inte att nå arbetsytan. Försök igen.",
+  "New {name}": "Nytt: {name}"
 }

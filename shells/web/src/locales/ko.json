@@ -7507,5 +7507,6 @@
   "Sent. It is waiting for review.": "보냈어요. 검토를 기다리고 있어요.",
   "Live in {name}.": "{name}에 게시되었어요.",
   "Live in the catalog.": "카탈로그에 게시되었어요.",
-  "The workspace could not be reached. Try again.": "작업 공간에 연결할 수 없어요. 다시 시도하세요."
+  "The workspace could not be reached. Try again.": "작업 공간에 연결할 수 없어요. 다시 시도하세요.",
+  "New {name}": "새 {name}"
 }

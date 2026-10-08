@@ -1141,5 +1141,6 @@
   "Sent. It is waiting for review.": "Надіслано. Очікує перевірки.",
   "Live in {name}.": "Активно в {name}.",
   "Live in the catalog.": "Активно в каталозі.",
-  "The workspace could not be reached. Try again.": "Робочий простір недоступний. Спробуйте ще раз."
+  "The workspace could not be reached. Try again.": "Робочий простір недоступний. Спробуйте ще раз.",
+  "New {name}": "Створити {name}"
 }

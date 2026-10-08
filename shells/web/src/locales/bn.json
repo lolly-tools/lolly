@@ -7507,5 +7507,6 @@
   "Sent. It is waiting for review.": "পাঠানো হয়েছে। পর্যালোচনার অপেক্ষায় আছে।",
   "Live in {name}.": "{name}-এ লাইভ।",
   "Live in the catalog.": "ক্যাটালগে লাইভ।",
-  "The workspace could not be reached. Try again.": "ওয়ার্কস্পেসে পৌঁছানো যায়নি। আবার চেষ্টা করুন।"
+  "The workspace could not be reached. Try again.": "ওয়ার্কস্পেসে পৌঁছানো যায়নি। আবার চেষ্টা করুন।",
+  "New {name}": "নতুন {name} তৈরি করুন"
 }

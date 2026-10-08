@@ -7507,5 +7507,6 @@
   "Sent. It is waiting for review.": "भेज दिया गया। समीक्षा की प्रतीक्षा है।",
   "Live in {name}.": "{name} में लाइव।",
   "Live in the catalog.": "कैटलॉग में लाइव।",
-  "The workspace could not be reached. Try again.": "वर्कस्पेस से संपर्क नहीं हो सका। फिर से कोशिश करें।"
+  "The workspace could not be reached. Try again.": "वर्कस्पेस से संपर्क नहीं हो सका। फिर से कोशिश करें।",
+  "New {name}": "नया {name} बनाएँ"
 }

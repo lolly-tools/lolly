@@ -1013,5 +1013,6 @@
   "Sent. It is waiting for review.": "Đã gửi. Đang chờ xem xét.",
   "Live in {name}.": "Đang hoạt động trong {name}.",
   "Live in the catalog.": "Đang hoạt động trong danh mục.",
-  "The workspace could not be reached. Try again.": "Không thể kết nối với không gian làm việc. Hãy thử lại."
+  "The workspace could not be reached. Try again.": "Không thể kết nối với không gian làm việc. Hãy thử lại.",
+  "New {name}": "Tạo {name} mới"
 }

@@ -1013,5 +1013,6 @@
   "Sent. It is waiting for review.": "Enviado. Está esperando revisión.",
   "Live in {name}.": "Publicado en {name}.",
   "Live in the catalog.": "Publicado en el catálogo.",
-  "The workspace could not be reached. Try again.": "No se pudo contactar con el espacio de trabajo. Inténtalo de nuevo."
+  "The workspace could not be reached. Try again.": "No se pudo contactar con el espacio de trabajo. Inténtalo de nuevo.",
+  "New {name}": "Crear {name}"
 }

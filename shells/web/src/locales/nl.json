@@ -7507,5 +7507,6 @@
   "Sent. It is waiting for review.": "Verzonden. Het wacht op beoordeling.",
   "Live in {name}.": "Live in {name}.",
   "Live in the catalog.": "Live in de catalogus.",
-  "The workspace could not be reached. Try again.": "De werkruimte is niet bereikbaar. Probeer het opnieuw."
+  "The workspace could not be reached. Try again.": "De werkruimte is niet bereikbaar. Probeer het opnieuw.",
+  "New {name}": "Nieuw: {name}"
 }

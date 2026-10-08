@@ -1013,5 +1013,6 @@
   "Sent. It is waiting for review.": "已傳送，正在等待審核。",
   "Live in {name}.": "已在 {name} 上線。",
   "Live in the catalog.": "已在目錄中上線。",
-  "The workspace could not be reached. Try again.": "無法連線至工作空間，請重試。"
+  "The workspace could not be reached. Try again.": "無法連線至工作空間，請重試。",
+  "New {name}": "新增 {name}"
 }

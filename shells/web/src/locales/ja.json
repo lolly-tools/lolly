@@ -7507,5 +7507,6 @@
   "Sent. It is waiting for review.": "送信しました。レビュー待ちです。",
   "Live in {name}.": "{name} で公開中です。",
   "Live in the catalog.": "カタログで公開中です。",
-  "The workspace could not be reached. Try again.": "ワークスペースに接続できませんでした。もう一度お試しください。"
+  "The workspace could not be reached. Try again.": "ワークスペースに接続できませんでした。もう一度お試しください。",
+  "New {name}": "{name} を新規作成"
 }

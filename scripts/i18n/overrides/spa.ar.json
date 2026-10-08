@@ -1148,5 +1148,6 @@
   "Sent. It is waiting for review.": "تم الإرسال. بانتظار المراجعة.",
   "Live in {name}.": "مباشر في {name}.",
   "Live in the catalog.": "مباشر في الكتالوج.",
-  "The workspace could not be reached. Try again.": "تعذّر الوصول إلى مساحة العمل. حاول مرة أخرى."
+  "The workspace could not be reached. Try again.": "تعذّر الوصول إلى مساحة العمل. حاول مرة أخرى.",
+  "New {name}": "أنشئ {name}"
 }

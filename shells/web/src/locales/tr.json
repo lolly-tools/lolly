@@ -7507,5 +7507,6 @@
   "Sent. It is waiting for review.": "Gönderildi. İnceleme bekliyor.",
   "Live in {name}.": "{name} içinde yayında.",
   "Live in the catalog.": "Katalogda yayında.",
-  "The workspace could not be reached. Try again.": "Çalışma alanına ulaşılamadı. Tekrar dene."
+  "The workspace could not be reached. Try again.": "Çalışma alanına ulaşılamadı. Tekrar dene.",
+  "New {name}": "Yeni {name} oluştur"
 }

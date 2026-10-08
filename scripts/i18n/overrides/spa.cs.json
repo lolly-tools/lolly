@@ -1006,5 +1006,6 @@
   "Sent. It is waiting for review.": "Odesláno. Čeká na kontrolu.",
   "Live in {name}.": "Aktivní v {name}.",
   "Live in the catalog.": "Aktivní v katalogu.",
-  "The workspace could not be reached. Try again.": "Pracovní prostor není dostupný. Zkus to znovu."
+  "The workspace could not be reached. Try again.": "Pracovní prostor není dostupný. Zkus to znovu.",
+  "New {name}": "Nové: {name}"
 }
