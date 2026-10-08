@@ -16,6 +16,7 @@
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertWebGpuReleaseAllowed } from './webgpu-release-gate.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -81,6 +82,7 @@ function sign(env: NodeJS.ProcessEnv, extraArgs: string[] = []): void {
 }
 
 export function main(): void {
+  assertWebGpuReleaseAllowed();
   validateReleaseEnvironment(process.env);
   const target = parseReleaseFrontend(process.argv[2]);
   const env = {

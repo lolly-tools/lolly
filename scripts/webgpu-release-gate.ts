@@ -5,16 +5,17 @@
  * 2026-10-08: "Merge now, gate releases").
  *
  * The web shell will not start without a usable WebGPU adapter and device. Main may
- * carry that requirement, and a push to main still deploys lolly.tools, but no versioned
- * release may ship it until the WebGPU conformance has run on every required target
+ * carry that requirement; running instances retain their reviewed release pins. No
+ * versioned release may ship it until WebGPU conformance has run on every required target
  * (plan 295, P0b) and the result is published as the supported-environment table in
  * docs/supported-environments.md. Ordinary CI never runs this check. A release does:
  *
  *   pnpm run check:release                       # the release checklist in release mode
  *   node scripts/webgpu-release-gate.ts          # this check alone
  *
- * and so do the release tools that publish: scripts/yunohost-release.ts (the YunoHost
- * tarball), shells/tauri-desktop/release/build-latest-json.ts --out (the desktop updater
+ * and so do the release tools that publish: scripts/build-release-web.ts (signed web,
+ * desktop and mobile frontends, including the web container), scripts/yunohost-release.ts
+ * (the YunoHost tarball), shells/tauri-desktop/release/build-latest-json.ts --out (the desktop updater
  * manifests) and the package workflows when a `v*` tag triggers them.
  *
  * The table is an ordinary Markdown table: the first column says which environment the

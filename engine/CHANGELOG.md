@@ -1,5 +1,11 @@
 # Engine changelog
 
+One entry per ENGINE_VERSION minor (the bridge contract version in `src/version.ts`,
+re-exported from `src/index.ts`). Additive-only within v1: methods are added in
+minors, never removed or signature-changed without a major bump.
+
+Moved verbatim from the comment block that used to live in `src/index.ts`.
+
 ## 1.247.0
 
 - One geometry answer in every JavaScript engine (plan 295, geometry revision `geom-portable-v1`). The geometry (`geom/*`, `svg-path.ts`, `vector-paint.ts`) takes its scalar maths from `geom/portable-math.ts` instead of `Math`: `hypot` is V8's two-argument formula written out, and `sin`, `cos`, `tan`, `acos`, `cbrt`, `log2`, `atan2` and `pow` come from a 16,461-byte import-free WebAssembly module embedded in `geom/portable-math-wasm.ts` and compiled on first use. Node, Chromium, Firefox and WebKit then return the same bits for the same paths. On V8 a few results move in the last bit (of about 4,100 seeded inputs per function: sin 49, cos 50, tan 44, acos 21, cbrt 317, atan2 3; `hypot` and `log2` are unchanged). A host without WebAssembly cannot run these geometry calls.
@@ -25,12 +31,6 @@
 - Add supported static IDML and Premiere-compatible XML plus media exports for authored Design documents. Both use the same source snapshot on web and CLI, include readable attribution companions, and refuse features they cannot represent.
 - Add bounded Camera Raw XMP settings and Final Cut Pro 7 XML readers with shell-supplied XML parsing. Preset mapping targets existing Darkroom inputs. Timeline interchange retains rational frame counts and reports missing media and losses when mapped to Design.
 - Add Lab to the layered preview colour-mode contract. Shells can use the shared PhotoCraft WASM adapter for 32-bit and Lab PSD/PSB files while preserving source bytes through a separate no-edit writer.
-
-One entry per ENGINE_VERSION minor (the bridge contract version in `src/version.ts`,
-re-exported from `src/index.ts`). Additive-only within v1: methods are added in
-minors, never removed or signature-changed without a major bump.
-
-Moved verbatim from the comment block that used to live in `src/index.ts`.
 
 ## 1.244.0
 
