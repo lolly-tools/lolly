@@ -33,9 +33,11 @@ interface Container {
   env?: { name: string; value?: string; valueFrom?: Record<string, unknown> }[];
   envFrom?: Record<string, unknown>[];
   volumeMounts: { name: string; mountPath: string }[];
+  readinessProbe?: { httpGet?: { path: string; port: string } };
 }
 
 interface Pod {
+  terminationGracePeriodSeconds?: number;
   imagePullSecrets?: { name: string }[];
   automountServiceAccountToken: boolean;
   securityContext: Record<string, unknown>;
@@ -107,6 +109,18 @@ test('public chart keeps default replicas, tags, volumes and backend opt-in', { 
       singleContainer(spec.template.spec).resources.requests['ephemeral-storage'],
       undefined
     );
+  }
+});
+
+test('public writers have drain-aware readiness and enough termination time without exposing the control listener', { skip }, () => {
+  const resources = render(allEnabled);
+  for (const component of ['mcp', 'ca'] as const) {
+    const pod = deployment(resources, component).template.spec;
+    assert.equal(pod.terminationGracePeriodSeconds, 330);
+    assert.deepEqual(singleContainer(pod).readinessProbe?.httpGet, { path: '/readyz', port: 'http' });
+    const service = resources.find((item) => item.kind === 'Service' && item.metadata.labels?.['app.kubernetes.io/component'] === component);
+    assert.ok(service);
+    assert.doesNotMatch(JSON.stringify(service), /8792|operator|drain/);
   }
 });
 

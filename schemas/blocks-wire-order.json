@@ -303,6 +303,15 @@
       "h",
       "n"
     ],
+    "susecon-background:scenes": [
+      "look",
+      "colourway",
+      "framing",
+      "hold",
+      "transition",
+      "style",
+      "energy"
+    ],
     "wayfinding-signage:directions": [
       "label",
       "image",

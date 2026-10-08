@@ -72,3 +72,15 @@ test('a rejected image edit is archived with a reopenable project reference', ()
   assert.equal(((values.boxes as Record<string, unknown>[])[0]!.image as AssetRef).id, image.id);
   assert.equal(((values.boxes as Record<string, unknown>[])[0]!.image as AssetRef).url, '');
 });
+
+test('a placed tool is shared by its link: a fresh render of the same settings is no change, new settings are', () => {
+  const link = (q: string) => `https://lolly.tools/tool/pose-geeko.svg?${q}`;
+  const render = (q: string, url: string): AssetRef => ({ id: link(q), source: 'remote', type: 'vector', format: 'svg', url,
+    meta: { toolUrl: link(q), name: 'Pose Geeko', animated: true, durationMs: 8000 } } as AssetRef);
+  const before = item([{ id: 'g', x: 0, image: render('motion=alive&loop=8', 'data:image/svg+xml;base64,AAA') }]);
+  // Re-resolving a document draws the tool again into a new data: URL. Same link, same value.
+  assert.equal(needsCanvasAssetTransfer(before, [{ id: 'g', x: 0, image: render('motion=alive&loop=8', 'data:image/svg+xml;base64,BBB') }] as InputValue), false);
+  // A setting changed in the Tool section is a new link, so peers receive the new link.
+  assert.equal(needsCanvasAssetTransfer(before, [{ id: 'g', x: 0, image: render('motion=alive&loop=12', 'data:image/svg+xml;base64,CCC') }] as InputValue), true);
+  assert.equal(encodeCanvasAsset(render('motion=alive&loop=12', 'data:x')), `lolly-asset-v1:${JSON.stringify({ id: link('motion=alive&loop=12'), source: 'remote', type: 'vector', format: 'svg', url: '' })}`);
+});

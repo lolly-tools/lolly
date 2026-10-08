@@ -1737,6 +1737,10 @@ html[data-a11y-motion="reduce"] .tl-always-on { transition: none; }
 .tl-marks { position: absolute; inset: 0; pointer-events: none; }
 .tl-marker { position: absolute; top: 0; width: 22px; height: 18px; padding: 0; font-size: 14px; line-height: 18px; transform: translateX(-50%); border: 0; background: transparent; cursor: pointer; pointer-events: auto; z-index: 2; }
 .tl-marked-range { position: absolute; bottom: 0; height: 3px; background: var(--ui-color-action-primary); }
+/* The cue timing's beat grid sits on the ruler's lower edge, clear of the time labels. */
+.tl-beat { position: absolute; bottom: 0; width: 1px; height: 4px; background: var(--ui-color-text-muted); opacity: .55; pointer-events: none; }
+.tl-beat--bar { height: 8px; opacity: .9; }
+.tl-cue { top: auto; bottom: 0; height: 11px; font-size: 10px; line-height: 11px; color: var(--ui-color-action-primary); }
 .tl-marks-menu { position: relative; }
 .tl-mix-preview { width: min(96vw, 1000px); max-width: min(96vw, 1000px); }
 .tl-mix-preview video { display: block; max-width: 100%; max-height: 70vh; }

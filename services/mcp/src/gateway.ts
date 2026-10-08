@@ -34,6 +34,7 @@ import { createHash } from 'node:crypto';
 import { createRateLimiter, RateLimitUnavailableError, type RateLimiter } from './rate-limit.ts';
 import { budgetRefusal, createUsageBudget, type UsageBudget } from './usage-budget.ts';
 import { LIVE_LIMITS } from '@lolly-tools/core';
+import type { WriteObserver } from '../../shared/http-lifecycle.mjs';
 
 const CORS: Record<string, string> = {
   'access-control-allow-origin': '*',
@@ -206,7 +207,7 @@ async function overBudget(budget: UsageBudget): Promise<Result | null> {
   }
 }
 
-export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
+export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { onWrite?: WriteObserver; budget?: UsageBudget } = {}): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
   // Is the MCP configured to actually run on THIS deployment? It needs a shared
   // token / signing secret (or an explicit anonymous opt-in). A deployment with
   // none, for example a blank-brand deployment that carries no LOLLY_MCP_*
@@ -228,10 +229,10 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
       console.error(`[mcp] ${mcpUnavailable} - the MCP surface answers 503 until it is set; the public render route is unaffected`);
     }
   }
-  const limiter = createRateLimiter(env);
+  const limiter = createRateLimiter(env, 'mcp', options.onWrite);
   // One daily ceiling on CPU and response bytes for every metered route here
   // (usage-budget.ts), so a public deployment's worst-case bill is known.
-  const budget = createUsageBudget(env);
+  const budget = options.budget ?? createUsageBudget(env, 'mcp', options.onWrite);
   const open = openAccess(env);
   return async (req, res) => {
     const method = req.method || 'GET';

@@ -417,7 +417,7 @@ function unsafeCssValue(s: string): boolean {
  *  drift test compares against the schema's own `presence` $def. */
 export const PRESENCE_KEYS: ReadonlySet<string> = new Set([
   'userId', 'name', 'color', 'cursor', 'selection', 'drag',
-  'focus', 'location', 'following', 'viewport', 'chat', 'headshot',
+  'focus', 'location', 'following', 'viewport', 'chat', 'headshot', 'presenting',
 ]);
 
 // ── UTF-8 size, without allocating a copy of every value ──────────────────────

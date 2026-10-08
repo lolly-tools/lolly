@@ -63,7 +63,7 @@ export function sanitizePresenceState(raw: unknown, identity?: { userId: string;
   if (Array.isArray(s.agents)) out.agents = readAgentPresence(s.agents);
   const headshot = typeof s.headshot === 'string' && s.headshot.length <= 512 ? decodeCanvasAsset(s.headshot) : null;
   if (headshot && ['raster', 'vector'].includes(headshot.type)) out.headshot = encodeCanvasAsset(headshot)!;
-  if (Array.isArray(s.agents)) out.agents = readAgentPresence(s.agents);
+  if (s.presenting === true) out.presenting = true;
   return out;
 }
 

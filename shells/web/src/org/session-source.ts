@@ -16,9 +16,10 @@
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import type {
   SessionSource, SessionSourceWriter, TeamProjectCreate, TeamProjectOptions, TeamProjectRef,
-  TeamProjectVisibility, TeamRole, TeamSessionData, TeamSessionRef, TeamSessionSave, TeamSessionWrite,
+  TeamProjectVia, TeamProjectVisibility, TeamRole, TeamSessionData, TeamSessionRef, TeamSessionSave, TeamSessionWrite,
   SourceList,
 } from '../lib/session-source.ts';
+import { onProjectOpenedRecord } from './opened-projects.ts';
 
 async function getJson<T>(path: string): Promise<T | null> {
   try {
@@ -121,10 +122,28 @@ export function teamRoleOf(value: unknown): TeamRole | undefined {
 
 /** The newer list fields of a project row (the caller's role, who changed it last),
  *  each carried only when the server sent it in the right type. Pure. */
-function projectExtras(p: { myRole?: unknown; updatedByName?: unknown; createdAt?: unknown }): Pick<TeamProjectRef, 'myRole' | 'updatedByName' | 'createdAt'> {
+const VIAS: readonly TeamProjectVia[] = ['owner', 'member', 'group', 'custom-group', 'everyone', 'admin'];
+
+function projectExtras(p: { myRole?: unknown; updatedByName?: unknown; createdAt?: unknown; via?: unknown; audience?: unknown; listed?: unknown; lastOpenedAt?: unknown }): Pick<TeamProjectRef, 'myRole' | 'updatedByName' | 'createdAt' | 'via' | 'audience' | 'listed' | 'lastOpenedAt'> {
   const myRole = teamRoleOf(p.myRole);
   const name = typeof p.updatedByName === 'string' && p.updatedByName.trim() ? p.updatedByName.trim() : undefined;
-  return { ...(myRole ? { myRole } : {}), ...(name ? { updatedByName: name } : {}), ...(typeof p.createdAt === 'string' ? { createdAt: p.createdAt } : {}) };
+  const via = typeof p.via === 'string' && (VIAS as readonly string[]).includes(p.via) ? p.via as TeamProjectVia : undefined;
+  const opened = typeof p.lastOpenedAt === 'string' && Number.isFinite(Date.parse(p.lastOpenedAt)) ? p.lastOpenedAt : undefined;
+  return {
+    ...(myRole ? { myRole } : {}), ...(name ? { updatedByName: name } : {}), ...(typeof p.createdAt === 'string' ? { createdAt: p.createdAt } : {}),
+    ...(via ? { via } : {}), ...(p.audience === 'instance' || p.audience === 'restricted' ? { audience: p.audience } : {}),
+    ...(p.listed === 'pinned' || p.listed === 'hidden' ? { listed: p.listed } : {}), ...(opened ? { lastOpenedAt: opened } : {}),
+  };
+}
+
+/** Keep a project in the person's own list, keep it out, or follow the default. */
+export async function setTeamProjectListing(projectId: string, listed: 'pinned' | 'hidden' | null): Promise<boolean> {
+  try {
+    const res = await instanceFetch(instancePath(`/api/v1/projects/${encodeURIComponent(projectId)}/listing`), {
+      method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ listed }),
+    });
+    return res.ok;
+  } catch { return false; }
 }
 
 /** One session row of a project's list, without its inputs. The instance sends
@@ -349,10 +368,16 @@ export function createInstanceSessionWriter(config: () => TeamWriteConfig | null
 /** Build the source. `label` is the already-localised instance name for the heading.
  *  With `config`, the source also carries the write half (see createInstanceSessionWriter). */
 export function createInstanceSessionSource(label: string, config?: () => TeamWriteConfig | null): SessionSource {
+  // Each opening goes to the workspace for the person's own recent list. Nothing waits
+  // on the answer: an older workspace without the route simply keeps no such list.
+  onProjectOpenedRecord((projectId) => {
+    void instanceFetch(instancePath(`/api/v1/projects/${encodeURIComponent(projectId)}/opened`), { method: 'POST' }).catch(() => {});
+  });
   return {
     label,
     ...(config ? { write: createInstanceSessionWriter(config) } : {}),
     readProjects: fetchTeamProjects,
+    setProjectListing: setTeamProjectListing,
     async readSessions(projectId) {
       const got = await fetchTeamProjectSessions(projectId);
       return got.ok ? { ok: true, items: got.sessions } : got;

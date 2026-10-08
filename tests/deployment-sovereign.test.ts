@@ -53,5 +53,5 @@ test('public and private live routes have separate process owners', () => {
   assert.match(read('files/private.caddy'), /\.Values\.private\.relay/);
   const server = readFileSync(new URL('../services/mcp/src/http.ts', import.meta.url), 'utf8');
   assert.match(server, /const relay = createLiveRelay\(\)/);
-  assert.match(server, /relay\.mount\(server\)/);
+  assert.match(server, /relay\.mount\(lifecycle\.server, \(\) => !lifecycle\.isDraining\(\)\)/);
 });

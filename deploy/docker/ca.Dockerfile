@@ -30,6 +30,7 @@ ENV PORT=8787
 # The CA has no third-party runtime dependencies. Preserve its relative engine
 # imports without carrying private tool packs, web models or package managers.
 COPY services/ca ./services/ca
+COPY services/shared ./services/shared
 COPY engine/src/x509.ts engine/src/bytes.ts engine/src/der-read.ts ./engine/src/
 COPY LICENSE ./LICENSE
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx

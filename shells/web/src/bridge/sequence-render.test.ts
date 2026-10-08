@@ -282,9 +282,11 @@ test('contract: every PLANNED layer is photographed clean, and the stage backgro
     'the clip is lifted for the shot, and only the inline declaration');
   assert.ok(!/el\.style\.clipPath = 'none'/.test(src),
     'never `clip-path: none` - it would out-specify a stylesheet clip nobody re-applies');
-  const bgAt = src.indexOf('bgRaster = await rasterBox(stageEl');
+  const bgAt = src.indexOf('bgRaster = await stageBackgroundPlate(stageEl');
   const optsAt = src.indexOf('const plateOpts');
   assert.ok(bgAt > 0 && optsAt > bgAt, 'the background shot is taken before, and without, the plate recipe');
+  assert.match(src, /async function stageBackgroundPlate\([\s\S]{0,400}return await rasterBox\(stageEl, S, \[/,
+    'and the background plate is still one rasterBox shot of the stage, with the planned layers hidden');
   // The live (lottie) re-shot is a drop-in replacement for the static plate, so it has
   // to be framed identically - same opacity, same filter rule, same pad, same scale.
   // …and the HIDE LIST is the static plate's own (`entry.hide`), not `[]`: a video

@@ -12,6 +12,7 @@ import { anchorSave } from '../bridge/anchor-save.ts';
 import { deleteTeamFolder, moveTeamFolder, moveTeamFolderItem, renameTeamFolder, type TeamFolder } from './team-folders.ts';
 import { deleteTeamFile, downloadTeamFile, knownUploaderId, TeamFileError, teamFileMessage, type TeamFile } from './team-files.ts';
 import { listProjectPeople } from './project-members.ts';
+import { getHostRef } from '../lib/host-ref.ts';
 
 interface Options {
   grid: HTMLElement; content: HTMLElement; projectId: string; projectName: string; folderId: string | null;
@@ -76,6 +77,7 @@ export function mountTeamProjectActions(o: Options): () => void {
     + (kind(id) === 'team-session' && o.canManage ? menuItemHtml('invite', icon('users'), tRaw('Share')) : '')
     + menuItemHtml('copy', icon('link'), tRaw('Copy link'))
     + (kind(id) === 'team-file' ? menuItemHtml('download', icon('download'), tRaw('Download')) : '')
+    + (kind(id) === 'team-session' ? menuItemHtml('copy-local', icon('duplicate'), tRaw('Copy to my projects')) : '')
     + (o.canWrite ? menuItemHtml('duplicate', icon('duplicate'), tRaw('Duplicate')) : '')
     + (o.canWrite ? menuItemHtml('move', icon('move'), tRaw('Move to folder')) : '')
     + (canRename(id) ? menuItemHtml('rename', icon('pen'), tRaw('Rename')) : '')
@@ -83,6 +85,7 @@ export function mountTeamProjectActions(o: Options): () => void {
   const menu = wireTileContextMenu({ host: o.grid, tileSelector: '.folder-tile[data-ref]', refOf: tile => tile.dataset.ref || null,
     singleHtml: target => rows(target.ref), isBulkTarget: id => selected.size > 1 && selected.has(id),
     bulkHtml: () => (o.canWrite ? menuItemHtml('move', icon('move'), tRaw('Move to folder')) : '')
+      + ([...selected].every(id => kind(id) === 'team-session') ? menuItemHtml('copy-local', icon('duplicate'), tRaw('Copy to my projects')) : '')
       + ([...selected].every(canDelete) ? menuItemHtml('delete', icon('trash'), tRaw('Delete'), { danger: true }) : ''),
     backgroundHtml: () => menuItemHtml('select-all', icon('check'), tRaw('Select all')),
     onAction: (action, target) => { if (action === 'select-all') setRefs(new Set(tiles().map(t => t.dataset.ref!))); else void run(action, target ? [target.ref] : [...selected]); },
@@ -96,6 +99,25 @@ export function mountTeamProjectActions(o: Options): () => void {
     if (o.current() && got.ok) { uploader = got.data.members.find(m => m.isMe)?.userId ?? null; paint(); }
   }).catch(() => {});
 
+  /** Copy shared sessions into one of the person's own folders (lolly plan 299). */
+  async function copyToMine(ids: string[]): Promise<void> {
+    const host = getHostRef();
+    if (!ids.length || !host) return;
+    const app = host as Parameters<typeof import('./team-local-copy.ts').copyTeamSessionsToLocal>[0];
+    const { chooseLocalFolder } = await import('./local-folder-chooser.ts');
+    const folderId = await chooseLocalFolder(app, { title: tRaw('Copy to my projects'), confirmLabel: tRaw('Copy') });
+    if (folderId === undefined || !o.current()) return;
+    busy = true;
+    try {
+      const { copyTeamSessionsToLocal } = await import('./team-local-copy.ts');
+      const result = await copyTeamSessionsToLocal(app, ids, folderId);
+      if (!o.current()) return;
+      o.notice(result.failed
+        ? tRaw('Copied {n} sessions to your projects. {failed} could not be copied.', { n: result.copied, failed: result.failed })
+        : tRaw('Copied {n} sessions to your projects.', { n: result.copied }));
+    } finally { busy = false; }
+  }
+
   async function run(action: string, refs: string[]): Promise<void> {
     if (busy || !o.current() || !refs.length) return;
     if (action === 'open') { tileFor(refs[0]!)?.querySelector<HTMLElement>('.tile-primary')?.click(); return; }
@@ -104,6 +126,7 @@ export function mountTeamProjectActions(o: Options): () => void {
       try { if (href) { await navigator.clipboard.writeText(href); if (o.current()) o.notice(tRaw('Link copied')); } } catch { o.notice(tRaw('Could not copy. Try again.')); }
       return;
     }
+    if (action === 'copy-local') { await copyToMine(refs.filter(id => kind(id) === 'team-session')); return; }
     if ((action === 'move' || action === 'duplicate') && !o.canWrite || action === 'delete' && !refs.every(canDelete)) return;
     if (action === 'move') { await chooseDestination(refs); return; }
     if (action === 'delete' && !(await confirmDialog({ title: tRaw('Delete selected items?'), message: tRaw('Delete {n} selected item(s) for everyone? Folder contents and subfolders move to the parent folder.', { n: refs.length }), confirmLabel: tRaw('Delete') }))) return;
