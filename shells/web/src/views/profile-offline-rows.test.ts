@@ -84,3 +84,14 @@ test('the large-download tag follows the size and the row state, not the part id
   assert.match(OFFLINE_SRC, /heavy\.hidden = state\.dl\.hidden \|\| state\.dl\.disabled/, 'hidden where nothing is left to download');
   assert.match(OFFLINE_SRC, /fetchPrecacheManifest\(\),/, 'Profile reads precache.json fresh on every open');
 });
+
+test('the singing models have their own row and stay out of every bulk download', () => {
+  assert.match(OFFLINE_SRC, /'ai-detect', 'sing'\] as const\)\.map/, 'a row of its own in Available offline');
+  const sweep = /const MODEL_PARTS = \[([^\]]*)\] as const;/.exec(OFFLINE_SRC)?.[1] ?? '';
+  assert.match(sweep, /'speech'/, 'the sweep list is found');
+  assert.doesNotMatch(sweep, /'sing'/, 'not in Download everything, nor in Include all the AI models');
+  const welcome = readFileSync(new URL('../components/models-welcome.ts', import.meta.url), 'utf8');
+  const firstRun = /const WELCOME_PARTS = \[([^\]]*)\] as const;/.exec(welcome)?.[1] ?? '';
+  assert.match(firstRun, /'matte'/, 'the first-run list is found');
+  assert.doesNotMatch(firstRun, /'sing'/, 'not in the desktop first-run sheet');
+});

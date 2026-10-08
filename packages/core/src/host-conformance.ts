@@ -35,7 +35,7 @@ export const HOST_V1_REQUIRED_APIS: readonly HostRequiredApi[] = ['profile', 'as
 
 export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   profile: { required: ['get', 'subscribe'], optional: [] },
-  assets: { required: ['get', 'query', 'pick', 'isAvailable'], optional: ['resolveProvider', 'credential', 'bytes'] },
+  assets: { required: ['get', 'query', 'pick', 'isAvailable'], optional: ['resolveProvider', 'credential', 'bytes', 'add'] },
   state: { required: ['save', 'load', 'list', 'delete'], optional: [] },
   clipboard: { required: ['writeText', 'writeImage'], optional: [] },
   export: { required: ['render', 'download', 'file', 'imprint'], optional: ['pack', 'share', 'canShare', 'checkLayout'] },
@@ -55,7 +55,7 @@ export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   lift: { required: ['svg'], optional: [] },
   keyframes: { required: ['sample'], optional: [] },
   recorder: { required: ['isAvailable', 'record', 'still'], optional: [] },
-  audio: { required: ['isAvailable', 'analyse'], optional: ['clean'] },
+  audio: { required: ['isAvailable', 'analyse'], optional: ['clean', 'decode'] },
   codec: { required: ['png16', 'exr', 'radiance', 'dither8'], optional: ['decode','preview','compose','validate'] },
   layers: { required: ['writePsd'], optional: [] },
   upscale: { required: ['isAvailable', 'backend', 'models', 'modelBytes', 'cached', 'canRun', 'run'], optional: [] },
@@ -78,6 +78,7 @@ export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   },
   connectors: { required: ['build'], optional: ['pathHeadSvg', 'pathHeadInset', 'routeStyleForKind'] },
   c2pa: { required: ['sign', 'readIngredients'], optional: [] },
+  models: { required: ['files'], optional: [] },
 };
 
 export interface ConformanceIssue {

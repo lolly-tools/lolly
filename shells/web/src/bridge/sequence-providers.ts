@@ -98,9 +98,14 @@ import {
   SEEK_NUDGE_S,
   MEDIA_END_EPS_S,
   isModuleUrl,
+  isRondoUrl,
+  sniffRondoSource,
   sniffTrackerModule,
   urlExtension,
 } from '../lib/media-source.ts';
+// Types only: the rondocode client is imported lazily at the point of use, so its
+// worker chunk (QuickJS and the staging bundle) never enters this module's graph.
+import type { RondoRendered, RondoSong } from '../lib/rondo-render.ts';
 // The error vocabulary is the plan module's, not a second one invented here.
 // The renderer switches on `SeqErrorCode`, and a provider that minted its own
 // codes would be invisible to it. `toCodedError` is the single normaliser for
@@ -1287,7 +1292,25 @@ export interface ClipAudioOpts {
      * is a size-bounded fetch through the shared audio-decode ceiling.
      */
     fetchBytes?(src: Blob | string): Promise<Uint8Array | null>;
+    /**
+     * Render a rondocode song for `seconds`. Injected by the tests (the shipped
+     * renderer is a QuickJS Worker). Default: `lib/rondo-render.ts`, imported lazily.
+     */
+    renderRondo?(song: RondoSong, seconds: number): Promise<RondoClipRender>;
   };
+  /**
+   * A user-visible notice line, for what a person should see and not only the log:
+   * the parts of a rondocode song this render could not play, or a song that failed
+   * to render. The export mix wires this to the export card; absent, only `log` hears the line.
+   */
+  notice?(msg: string): void;
+  /**
+   * Told once per clip when a rondocode song has rendered into it, with what ran
+   * and what it could not play. The export mix turns this into the song's C2PA
+   * source ingredient (plan 301), so the credential lists only the songs whose
+   * sound reached the file.
+   */
+  onSong?(song: RondoSong, render: Pick<RondoRendered, 'run' | 'findings'>): void;
   /**
    * Length, in seconds, the PROCEDURAL source composes itself to. Only the
    * `zzfxm:` scheme reads it; a decoded file has an intrinsic length and ignores
@@ -1334,6 +1357,16 @@ export async function createClipAudio(src: Blob | string, opts: ClipAudioOpts = 
       }
       return clip;
     }
+    // A rondocode song that says so (a share link, or a .rondo / .rondo.json path)
+    // is code, not a container: it goes straight to the song renderer, which does
+    // not need WebCodecs either.
+    if (isRondoUrl(src)) {
+      const clip = await openRondoAudio(src, opts);
+      if (!clip) {
+        log('warn', `sequence audio: ${src.slice(0, 120)} is a rondocode song that could not be read - clip will be silent`);
+      }
+      return clip;
+    }
   }
 
   const hasWc = deps.hasWebCodecs ? deps.hasWebCodecs() : (await providerCapability()).webcodecs;
@@ -1348,18 +1381,18 @@ export async function createClipAudio(src: Blob | string, opts: ClipAudioOpts = 
     } catch (err) {
       const e = err as Error & { code?: string };
       // Nothing could open it. Before calling it silence, ask the last question
-      // the ladder has: an uploaded module arrives as a `blob:` url with no
-      // extension and a guessed MIME type, so the BYTES are the only thing that
-      // can identify it.
-      const mod = await openModuleAudio(src, opts, 'sniffed');
-      if (mod) return mod;
+      // the ladder has: an uploaded module or rondocode song arrives as a `blob:`
+      // url with no extension and a guessed MIME type, so the BYTES are the only
+      // thing that can identify it.
+      const computed = await openSniffedAudio(src, opts);
+      if (computed) return computed;
       log('warn', `sequence audio: ${e.code ?? 'error'}: ${e.message} - clip will be silent`);
       return null;
     }
   }
-  // No WebCodecs at all: a module still plays (it is rendered in plain WASM),
-  // so the sniff is the whole ladder for this provider, not just its last rung.
-  return await openModuleAudio(src, opts, 'sniffed');
+  // No WebCodecs at all: a module or a song still plays (both render without
+  // it), so the sniff is the whole ladder for this provider, not just its last rung.
+  return await openSniffedAudio(src, opts);
 }
 
 async function openClipAudio(src: Blob | string, opts: ClipAudioOpts): Promise<ClipAudio | null> {
@@ -1515,11 +1548,12 @@ async function fetchModuleBytes(src: Blob | string, opts: ClipAudioOpts): Promis
  * Open a tracker module as clip audio, or null when this source is not one (or
  * cannot be read at all).
  *
- * `mode` is the difference between the two call sites: 'declared' means the
- * url named itself a module and the bytes are fetched on that word alone.
- * 'sniffed' is the speculative last rung: the bytes have to identify
- * themselves, and anything that does not is handed straight back so the
- * caller can report its own failure.
+ * `mode` is the difference between the call sites: 'declared' means the url
+ * named itself a module and the bytes are fetched on that word alone. 'sniffed'
+ * is the speculative last rung: the bytes have to identify themselves, and
+ * anything that does not is handed straight back so the caller can report its
+ * own failure. The shipped ladder sniffs through `openSniffedAudio`, which reads
+ * the bytes once for both kinds of computed audio.
  *
  * Never throws: every failure is a null, and the caller owns the warning,
  * because only the caller knows whether a silent source is a surprise (an
@@ -1539,6 +1573,31 @@ async function openModuleAudio(
   if (!bytes || bytes.length < 32) return null;
   if (mode === 'sniffed' && !sniffTrackerModule(bytes)) return null;
   return moduleClip(bytes, opts);
+}
+
+/**
+ * The speculative last rung for COMPUTED audio: a source nothing could demux is
+ * read ONCE, and its bytes decide whether it is a tracker module (libopenmpt) or
+ * a rondocode song (the `vm` renderer). Anything else is handed back as null for
+ * the caller's own warning. One read for both, so a broken upload is still
+ * fetched a single time.
+ */
+async function openSniffedAudio(src: Blob | string, opts: ClipAudioOpts): Promise<ClipAudio | null> {
+  const timeout = opts.timeoutMs ?? OPEN_TIMEOUT_MS;
+  if (typeof src === 'string' && NON_MODULE_EXT.test(urlExtension(src))) return null;
+  let bytes: Uint8Array | null = null;
+  try {
+    bytes = await withTimeout(fetchModuleBytes(src, opts), timeout, 'read (computed audio)');
+  } catch {
+    return null;                                   // unreadable, oversized, or a stall
+  }
+  if (!bytes || bytes.length < 2) return null;
+  if (bytes.length >= 32 && sniffTrackerModule(bytes)) return moduleClip(bytes, opts);
+  if (sniffRondoSource(bytes)) {
+    const song = await readRondoSong(bytes);
+    if (song) return rondoClip(song, opts);
+  }
+  return null;
 }
 
 /**
@@ -1608,6 +1667,156 @@ function moduleClip(bytes: Uint8Array, opts: ClipAudioOpts): ClipAudio {
       disposed = true;
       source = null;
       pending = null;
+      await Promise.resolve();
+    },
+  };
+}
+
+// ── rondocode songs ─────────────────────────────────────────────────────────
+//
+// A rondocode song (plan 301) is CODE that computes audio, so like a tracker
+// module it has no encoded stream for a demuxer to read. Unlike a module, its
+// code is untrusted: it is rendered by lib/rondo-render.ts, which runs it in the
+// `vm` execution class (QuickJS in a Worker) and renders the validated data with
+// upstream's fixed DSP. Nothing here evaluates a song.
+//
+// HOW ONE ARRIVES: a user asset is canonical `.rondo.json` bytes behind a `blob:`
+// url with no extension, so it is recognised by `sniffRondoSource` on the shared
+// speculative read (`openSniffedAudio`). A source that names itself (a share
+// link, a `.rondo` or `.rondo.json` path) comes through `openRondoAudio`.
+//
+// LENGTH: a song is rendered to fit its box, like a `zzfxm:` bed. The clip asks
+// for the END of its first window (or `targetSec`), and the client rounds that
+// up to its half-second grid, so the preview (which passes `targetSec`) and the
+// export mix (which passes the window) normally land on the same render. That
+// matters for bytes, not only for speed: upstream normalises the whole mix to its
+// own peak, so two lengths of one song can differ in gain.
+//
+// WHAT IT CANNOT PLAY is named, never passed off as silence: the render's
+// findings (a sung part without the voice models, the live microphone, a sample
+// that stayed in the editor) go to the log and, through `opts.notice`, to the
+// export card.
+//
+// TIMEOUT: the client already holds a wall-clock budget per render and stops a
+// runaway by terminating its worker, which is a real stop rather than an
+// abandoned wait. So a song clip is NOT wrapped in OP_TIMEOUT_MS by default (ten
+// seconds is shorter than a legitimate render of a long song); an explicit
+// `opts.timeoutMs` still applies.
+
+/** What a song render hands a clip. `run` is absent only from a test's stand-in renderer. */
+export type RondoClipRender = Pick<RondoRendered, 'left' | 'right' | 'sampleRate' | 'findings'> & Partial<Pick<RondoRendered, 'run'>>;
+
+/** Read a stored song's bytes. Null when they are not a song. */
+async function readRondoSong(bytes: Uint8Array, fileName?: string): Promise<RondoSong | null> {
+  const { songFromBytes } = await import('../lib/rondo-render.ts');
+  return songFromBytes(bytes, fileName);
+}
+
+/** The shipped renderer, imported lazily so the worker chunk stays out of this module's graph. */
+async function defaultRenderRondo(song: RondoSong, seconds: number): Promise<RondoRendered> {
+  const { renderRondoSong } = await import('../lib/rondo-render.ts');
+  return renderRondoSong(song, { seconds });
+}
+
+/**
+ * Open a song that named itself. A share link is decoded in place (the song is
+ * inside the link; nothing is fetched from rondocode.com), and a song
+ * file is read through the shared byte ceiling. Never throws: null is the answer
+ * for anything that is not a readable song, and the caller owns the warning.
+ */
+async function openRondoAudio(src: string, opts: ClipAudioOpts): Promise<ClipAudio | null> {
+  const timeout = opts.timeoutMs ?? OPEN_TIMEOUT_MS;
+  try {
+    const r = await import('../lib/rondo-render.ts');
+    const path = (src.split('#')[0] ?? '').split('?')[0] ?? '';
+    if (!/\.rondo(?:\.json)?$/i.test(path)) {
+      // Not a file path, so a share link: decoded in place.
+      return rondoClip(await r.songFromUrl(src), opts);
+    }
+    const bytes = await withTimeout(fetchModuleBytes(src, opts), timeout, 'read (rondocode song)');
+    const song = bytes ? r.songFromBytes(bytes, path) : null;
+    return song ? rondoClip(song, opts) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A `ClipAudio` backed by the rondocode renderer.
+ *
+ * `durationSec()` is 0, the procedural clip's "composed to fit" answer: the mix
+ * asks for exactly the window the box occupies. A render is cached per target
+ * length here, and again across clips by the client, so a box read in several
+ * windows hears one coherent song.
+ */
+function rondoClip(song: RondoSong, opts: ClipAudioOpts): ClipAudio {
+  const log = opts.log ?? ((): void => {});
+  const render = opts.deps?.renderRondo ?? defaultRenderRondo;
+  const label = song.name ? `"${song.name.slice(0, 80)}"` : 'a song';
+  let disposed = false;
+  let cacheKey = -1;
+  let cached: Promise<RondoClipRender> | null = null;
+  let told = false;
+  let reported = false;
+
+  /** Say what the render could not play, once per clip, on the export card and in the log. */
+  function tell(lines: string[]): void {
+    for (const line of lines) {
+      log('warn', `sequence audio: rondocode ${label}: ${line}`);
+      opts.notice?.(line);
+    }
+  }
+
+  return {
+    durationSec: () => 0,
+
+    async pcm(fromSec, toSec, sampleRate) {
+      if (disposed) throw coded(new Error('clip audio disposed'), 'SEQ_ABORTED');
+      const from = Math.max(0, Number.isFinite(fromSec) ? fromSec : 0);
+      const to = Math.max(from, Number.isFinite(toSec) ? toSec : from);
+      const { rondoTargetSec } = await import('../lib/rondo-render.ts');
+      // The song starts at 0 and the window is read out of it, so it must cover
+      // the window's END, not its span.
+      const target = rondoTargetSec(opts.targetSec ?? to);
+      if (cacheKey !== target) {
+        cacheKey = target;
+        cached = withTimeout(render(song, target), opts.timeoutMs ?? 0, 'rondocode render');
+        // A failed render must not be remembered as this target's answer.
+        cached.catch(() => { if (cacheKey === target) { cacheKey = -1; cached = null; } });
+      }
+      let pcm: RondoClipRender;
+      try {
+        pcm = await (cached as Promise<RondoClipRender>);
+      } catch (err) {
+        if (!told) {
+          told = true;
+          const { rondoFailureSentence, rondoSilentInExport } = await import('../lib/rondo-words.ts');
+          tell([rondoSilentInExport(song.name ?? '', rondoFailureSentence(err))]);
+        }
+        throw coded(err, 'SEQ_DECODE_FAILED');
+      }
+      if (disposed) throw coded(new Error('clip audio disposed'), 'SEQ_ABORTED');
+      if (!told && pcm.findings.length) {
+        told = true;
+        const { rondoFindingSentence } = await import('../lib/rondo-words.ts');
+        tell(pcm.findings.map(rondoFindingSentence));
+      }
+      if (!reported && pcm.run) {
+        reported = true;
+        try { opts.onSong?.(song, { run: pcm.run, findings: pcm.findings }); } catch { /* a listener never breaks the mix */ }
+      }
+      // The SAME pure assembler the decoded, module and procedural paths use.
+      return assemblePcmWindow(
+        [{ channels: [pcm.left, pcm.right], sampleRate: pcm.sampleRate, timestamp: 0 }],
+        from, to, sampleRate,
+      );
+    },
+
+    async dispose() {
+      if (disposed) return;
+      disposed = true;
+      cached = null;
+      cacheKey = -1;
       await Promise.resolve();
     },
   };

@@ -1,0 +1,2547 @@
+/* Mobile-first dark shell for the live-coding instrument. Monospace, lowercase
+ * chrome; teal-green accent; every touch target >= 44px; text inputs 16px
+ * (below that iOS Safari zooms on focus). Single column: header / editor / viz
+ * panel / status strip, the editor taking every spare pixel and scrolling
+ * internally (the page itself never scrolls). Hover states are gated behind
+ * @media (hover: hover) so touch taps never stick.
+ *
+ * DESIGN TOKENS (below): one radius scale, one type scale, one spacing scale,
+ * one control height — used everywhere so the chrome reads as one system.
+ * Colors are var(--c-*), set on :root at boot from ui/palette.ts (the single
+ * source of truth — no color fallbacks here on purpose). */
+
+:root {
+  color-scheme: dark;
+
+  /* radius: controls/cards vs small inline chips (+ 50% for dots) */
+  --r: 10px;
+  --r-sm: 6px;
+
+  /* type scale (monospace chrome) */
+  --fs-meta: 12px; /* readouts, timestamps, labels */
+  --fs-ctrl: 13px; /* buttons, controls, messages */
+  --fs-title: 15px; /* wordmark, sheet + row titles */
+  --fs-input: 16px; /* text inputs — the iOS no-zoom floor */
+
+  /* spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+
+  /* the single touch-target height for every interactive control */
+  --h-ctrl: 44px;
+
+  /* Lolly: the two font stacks every rule below reads. The utility sets them
+   * from the active design system's brand and monospace faces at boot; these
+   * are upstream's own stacks, for the app on its own. */
+  --font-brand: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* subtle desaturated film-grain, replaces the old graticule grid (signature) */
+  --noise: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-brand);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Fixed to the visible viewport, not the layout viewport: --app-h / --app-top
+ * are driven from window.visualViewport by ui/viewport.ts so the software
+ * keyboard shrinks the shell (editor scrolls internally) instead of scrolling
+ * the fixed header off-screen. Fallbacks keep the old full-height behaviour
+ * before boot and on browsers without visualViewport. */
+#app {
+  position: fixed;
+  top: var(--app-top, 0px);
+  left: 0;
+  right: 0;
+  height: var(--app-h, 100dvh);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- header: the control bar — wordmark · project · [controls] --- */
+
+.topbar {
+  position: relative; /* anchors the .meter baseline */
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) calc(var(--sp-3) + env(safe-area-inset-right)) var(--sp-2) calc(var(--sp-3) + env(safe-area-inset-left));
+  padding-top: calc(var(--sp-2) + env(safe-area-inset-top));
+  /* subtle film-grain over the bar (signature) */
+  background: var(--noise), var(--c-bar);
+  background-size: 200px 200px, auto;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.logo {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--c-accent);
+}
+
+/* right-side control cluster (tempo · sample · viz · stop · run). At squeezed
+ * in-between widths the cluster can outgrow the bar — scroll it rather than
+ * push run/stop off-screen (an unreachable transport is a dead instrument). */
+.hdr-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.hdr-controls::-webkit-scrollbar {
+  display: none;
+}
+.hdr-controls > * {
+  flex: none;
+}
+
+/* Tempo: BPM is the face, cps the truth. The field edits BPM (16px so iOS
+ * never zoom-jumps on focus); the cps under it stays dimmed and unclickable,
+ * there to teach the mapping rather than to be operated. The whole pill is a
+ * 44px target, and it keeps the button chrome so it reads as one cluster. */
+.tempo {
+  display: inline-grid;
+  /* bpm value, its unit, then the meter — the cps readout spans all three */
+  grid-template-columns: auto auto auto;
+  align-items: baseline;
+  column-gap: 3px;
+  min-height: var(--h-ctrl);
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  background: var(--c-surface);
+  align-content: center;
+}
+.tempo-input {
+  /* widest value is 5 chars ('127.9'); 4.5ch clipped it against 'bpm' */
+  width: 5.5ch;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-input);
+  font-weight: 600;
+  text-align: right;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.tempo-input:focus {
+  outline: none;
+  color: var(--c-accent);
+}
+.tempo:focus-within {
+  border-color: var(--c-accent);
+}
+/* The meter reads as secondary to the tempo: same field behaviour, quieter
+ * weight, and its own left margin so `120 bpm` and `3/4` do not run together.
+ * 5 chars is the widest it can be ('12/16'). */
+.tempo-sig {
+  width: 5ch;
+  margin-left: var(--sp-2);
+  color: var(--c-dim);
+  font-weight: 500;
+  text-align: left;
+}
+.tempo-sig:focus {
+  color: var(--c-accent);
+}
+.tempo-unit {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.tempo-cps {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  line-height: 1.1;
+  color: var(--c-dim);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Where a take starts, in measures. Sits beside the tempo because both are
+ * "how this run begins" — same pill chrome, quieter by default, and outlined
+ * in the accent as soon as it is set to anything but the top, so a remembered
+ * start point can never hide. */
+.startfrom {
+  display: inline-flex;
+  gap: 3px;
+  align-items: baseline;
+  min-height: var(--h-ctrl);
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  background: var(--c-surface);
+  align-content: center;
+}
+.startfrom-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.startfrom-input {
+  /* 4 digits is every song anyone is editing ('9999') */
+  width: 4ch;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-input);
+  font-weight: 600;
+  text-align: right;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.startfrom-input:focus {
+  outline: none;
+  color: var(--c-accent);
+}
+.startfrom:focus-within,
+.startfrom.set {
+  border-color: var(--c-accent);
+}
+.startfrom.set .startfrom-input {
+  color: var(--c-accent);
+}
+
+/* "+ sample" loader button */
+.sample-btn {
+  white-space: nowrap;
+}
+
+/* samples popover: the loaded-samples list anchored under the sample button */
+.samples-pop {
+  position: fixed;
+  z-index: 45; /* above the project sheet backdrop (40) */
+  min-width: 220px;
+  max-width: min(320px, 92vw);
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-2);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.samples-pop.hidden {
+  display: none;
+}
+.samples-head {
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-dim);
+  padding: 0 var(--sp-1) var(--sp-1);
+}
+.samples-empty {
+  font-size: var(--fs-ctrl);
+  color: var(--c-dim);
+  padding: var(--sp-2) var(--sp-1);
+}
+.samples-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.samples-rowwrap {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+.samples-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.samples-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.samples-tag {
+  margin-left: var(--sp-1);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.samples-dur {
+  flex: none;
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  font-variant-numeric: tabular-nums;
+}
+.samples-play,
+.samples-wt,
+.samples-rm {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--h-ctrl);
+  padding: 0;
+  color: var(--c-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.samples-load {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-top: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  font-size: var(--fs-ctrl);
+  color: var(--c-accent);
+  background: transparent;
+  border: 1px dashed var(--c-border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.samples-load svg,
+.samples-play svg,
+.samples-wt svg,
+.samples-rm svg {
+  width: 14px;
+  height: 14px;
+}
+@media (hover: hover) {
+  .samples-row:hover {
+    background: var(--c-surface);
+    border-color: var(--c-border);
+  }
+  .samples-play:hover,
+  .samples-wt:hover {
+    color: var(--c-accent);
+  }
+  .samples-rm:hover {
+    color: var(--c-error);
+  }
+  .samples-load:hover {
+    background: var(--c-surface);
+  }
+}
+
+/* Master output meter, reimagined as the header's living baseline: a thin
+ * line sitting on the bottom border that fills + glows with the output level. */
+.meter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--c-accent), var(--c-accent-alt));
+  box-shadow:
+    0 0 6px var(--c-accent),
+    0 0 14px var(--c-accent-alt); /* phosphor bloom on the trace */
+  transition: width 0.08s linear;
+}
+
+/* Phones: keep the header to ONE row. The wordmark + cps readout drop, the
+ * sample button collapses to its "＋" icon, gaps tighten, and the project name
+ * ellipsizes into whatever space the controls leave. */
+@media (max-width: 560px) {
+  .topbar {
+    gap: var(--sp-1);
+  }
+  .logo {
+    display: none;
+  }
+  .hdr-controls {
+    gap: var(--sp-1);
+    flex: none; /* controls keep their size; the name absorbs the squeeze */
+  }
+  .project-btn {
+    flex: 1 1 0; /* take only the leftover row width, then ellipsize the name */
+    min-width: 0;
+    max-width: none; /* drop the 42vw cap so it can't push controls off-screen */
+  }
+}
+
+/* --- editor --- */
+
+.editor-host {
+  flex: 1;
+  min-height: 0; /* let the flex child shrink so CM can scroll internally */
+  /* the transport bar is gone — reserve the home-indicator inset here so code
+   * never hides under it when the viz panel is closed */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.editor-host .cm-editor {
+  height: 100%;
+}
+
+/* Code folding (editor/folding.ts). The markers are quiet until you go
+   looking: a gutter arrow competing with the line numbers reads as clutter in
+   a document you are mostly just playing. The FOLDED placeholder is the
+   opposite — it has to be obvious that something is hidden there. */
+.cm-foldGutter span {
+  color: var(--c-dim);
+  opacity: 0.35;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.cm-foldGutter span:hover { opacity: 1; color: var(--c-accent); }
+.cm-foldPlaceholder {
+  background: color-mix(in srgb, var(--c-accent) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-accent) 45%, transparent);
+  border-radius: 4px;
+  color: var(--c-accent);
+  margin: 0 4px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+/* Mini-notation inside a JS string (editor/mininotation.ts). The colours are
+   the ones rondo's own tokenizer produces for the same characters, so a
+   pattern looks the same in both languages instead of collapsing into one
+   flat string in the JS DSL. A rest especially: where the holes are IS the
+   rhythm, and it used to be the same colour as the notes. */
+.cm-mini-atom { color: var(--c-warn, #f2b155); }
+/* the REST, its own channel — see ui/palette.ts C_REST */
+.cm-mini-rest { color: var(--c-rest, #c39bf5); font-weight: 600; }
+/* A REST BEING PLAYED. Notes flash on their event; a rest has none, so this is
+   driven by the transport clock (see editor/restview.ts). Violet to match the
+   rest's own syntax channel, so the lit hole reads as the same thing louder
+   rather than as a different thing. */
+.cm-rest-lit {
+  border-radius: var(--r-sm);
+  background-color: color-mix(in srgb, var(--c-rest, #c39bf5) 42%, transparent);
+}
+.cm-mini-op { color: var(--c-dim, #6f9284); }
+
+/* Event flash: a mini-notation atom lights up when its event fires and
+ * STAYS lit for the event's duration (the decoration is removed by the
+ * flasher when the note ends). The animation is just a quick attack into
+ * the steady lit state — --flash-ms (set in mountEditor from FLASH_MS)
+ * controls only that attack. */
+.cm-flash {
+  border-radius: var(--r-sm);
+  background-color: color-mix(in srgb, var(--c-accent) 55%, transparent);
+  animation: cm-flash-attack var(--flash-ms, 150ms) ease-out;
+}
+
+@keyframes cm-flash-attack {
+  from {
+    background-color: color-mix(in srgb, var(--c-accent) 90%, transparent);
+  }
+  to {
+    background-color: color-mix(in srgb, var(--c-accent) 55%, transparent);
+  }
+}
+
+/* Karaoke highlight styles now live with their component
+ * (src/editor/karaoke.css, imported by karaoke.ts) so the docs page gets them
+ * too. */
+
+
+/* go-to-definition: while Cmd/Ctrl is held, the resolvable symbol under the
+ * pointer reads as a link (see editor/gotodef.ts). */
+.cm-gotodef-link {
+  text-decoration: underline;
+  text-decoration-color: var(--c-accent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* note/chord hovercard: a mini piano keyboard (editor/notehover.ts) */
+.cm-note-card {
+  padding: 6px 9px;
+}
+.cm-note-card-head {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-accent);
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cm-note-card-kb {
+  line-height: 0;
+}
+.cm-note-card-kb svg {
+  display: block;
+}
+
+/* --- per-synth inline meters (editor/meters.ts) ---
+ * A tiny level bar at the end of each `const X = synth(...)` line. The
+ * track is near-invisible against the editor background when silent; the
+ * fill width is mutated directly by the meters rAF loop. */
+
+.cm-meter {
+  display: inline-block;
+  width: 40px;
+  height: 10px;
+  margin-left: 10px;
+  vertical-align: middle;
+  background: var(--c-raised);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cm-meter-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--c-accent), var(--c-accent-alt));
+}
+
+/* Per-synth inline SCOPE on a `synth NAME` header. Sibling of .cm-meter and
+ * deliberately quieter than it: the trace is context you glance at, not a
+ * readout you track, so it must not compete with the code on the line. The
+ * `points` attribute is mutated directly by the meters handler. */
+
+.cm-scope {
+  display: inline-block;
+  height: 14px;
+  margin-left: 10px;
+  vertical-align: middle;
+  background: var(--c-raised);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cm-scope svg {
+  display: block;
+}
+
+.cm-scope-zero {
+  stroke: var(--c-dim);
+  stroke-width: 1;
+  opacity: 0.35;
+}
+
+.cm-scope-trace {
+  fill: var(--c-accent);
+  fill-opacity: 0.75;
+  stroke: var(--c-accent);
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+}
+
+
+/* --- viz panel: scope/spectrum canvases + mixer strip --- */
+
+.viz-toggle {
+  padding: 0 var(--sp-3);
+  color: var(--c-dim);
+}
+
+.viz-toggle.active {
+  color: var(--c-accent);
+  border-color: var(--c-green);
+}
+
+.viz-panel {
+  flex: none;
+  padding: var(--sp-2) calc(var(--sp-3) + env(safe-area-inset-right)) calc(var(--sp-2) + env(safe-area-inset-bottom))
+    calc(var(--sp-3) + env(safe-area-inset-left));
+  background: var(--noise), var(--c-bar);
+  background-size: 200px 200px, auto;
+  border-top: 1px solid var(--c-border);
+}
+
+.viz-panel.closed {
+  display: none;
+}
+
+.viz-canvases {
+  display: flex;
+  gap: var(--sp-2);
+  height: 56px; /* + panel padding ≈ the 72px strip */
+}
+
+.viz-canvases canvas {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: var(--c-bg);
+  border: 1px solid var(--c-raised);
+  border-radius: var(--r-sm);
+}
+
+/* Narrow viewports get ONE canvas: the spectrum canvas hides and viz.ts
+ * draws dim spectrum bars behind the scope line instead. */
+@media (max-width: 599px) {
+  .viz-spectrum {
+    display: none;
+  }
+}
+
+.mixer-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-ctrl); /* touch target row */
+  margin-top: var(--sp-1);
+}
+
+.mixer-name {
+  flex: none;
+  width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--fs-ctrl);
+  color: var(--c-dim);
+}
+
+.mixer-meter {
+  flex: none;
+  width: 64px;
+  height: 8px;
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.mixer-meter-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--c-accent), var(--c-accent-alt));
+}
+
+.mixer-row input[type='range'] {
+  min-height: var(--h-ctrl); /* touch target */
+  margin: 0;
+  background: transparent;
+  accent-color: var(--c-accent);
+}
+
+.mixer-gain {
+  flex: 1;
+  min-width: 0;
+}
+
+.mixer-pan {
+  flex: none;
+  width: 72px;
+}
+
+/* --- bus section: shared send buses, faders that edit the code --- */
+
+.mixer-buses {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.mixer-bus-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-ctrl);
+}
+
+.mixer-bus-name {
+  color: var(--c-accent-alt);
+}
+
+.mixer-bus-sends {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  /* indent the sends under their bus header */
+  padding-left: calc(64px + var(--sp-2));
+}
+
+.mixer-send {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-ctrl); /* touch target row */
+}
+
+.mixer-send-label {
+  flex: none;
+  width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--fs-ctrl);
+  color: var(--c-dim);
+}
+
+.mixer-send input[type='range'] {
+  min-height: var(--h-ctrl); /* touch target */
+  margin: 0;
+  background: transparent;
+  accent-color: var(--c-accent-alt);
+}
+
+/* --- runtime-error strip (scheduler/engine diagnostics) --- */
+
+.status-strip {
+  flex: none;
+  max-height: 30vh;
+  overflow-y: auto;
+  padding: var(--sp-1) calc(var(--sp-3) + env(safe-area-inset-right)) var(--sp-1) calc(var(--sp-3) + env(safe-area-inset-left));
+  background: var(--c-error-bg);
+  border-top: 1px solid var(--c-error-border);
+  font-size: var(--fs-meta);
+  color: var(--c-error);
+}
+
+.status-line {
+  padding: var(--sp-1) 0;
+  word-break: break-word;
+}
+
+/* --- header controls: buttons (run/stop/sample/viz/project) --- */
+
+.btn {
+  min-height: var(--h-ctrl); /* touch target */
+  font-family: var(--font-mono);
+  font-size: var(--fs-ctrl);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  padding: 0 var(--sp-3);
+  cursor: pointer;
+  transition:
+    box-shadow 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease,
+    transform 0.05s ease;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* uniform interaction states across every control (hover only where a real
+ * pointer exists, so touch taps never stick) */
+@media (hover: hover) {
+  .btn:hover {
+    /* a translucent overlay brightens any button background without a `filter`
+       compositing layer (which flickered neighbours on hover-in/out) */
+    box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.09);
+    border-color: var(--c-dim);
+  }
+}
+
+.btn:active {
+  box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.2);
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+/* shared styled tooltip (ui/tooltip.ts) — replaces native title */
+.tooltip {
+  position: fixed;
+  z-index: 60; /* above sheets (40) and popovers (45) */
+  max-width: min(280px, calc(100vw - 12px));
+  padding: 5px 8px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  line-height: 1.3;
+  color: var(--c-text);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  /* NO nowrap: these tips are full sentences, and refusing to wrap just sent
+   * them off the right edge of the screen (max-width cannot save a line that
+   * is forbidden to break). */
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+.tooltip.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Run/Update: the primary action. */
+.run {
+  position: relative; /* anchors the dirty dot */
+  min-width: 78px;
+  font-weight: 600;
+  color: var(--c-on-green);
+  background: var(--c-green-deep);
+  border-color: var(--c-green);
+}
+
+.run.playing {
+  background: var(--c-green);
+  border-color: var(--c-accent);
+  color: var(--c-on-green);
+}
+
+/* Tactile feedback: a quick brighten on every Run/Update (click or Mod-Enter).
+ * Only the `from` frame is set, so it animates back to whatever the button's
+ * resting style is (run vs playing). */
+.run.run-flash {
+  animation: run-flash 220ms ease-out;
+}
+
+@keyframes run-flash {
+  from {
+    background: var(--c-accent);
+    border-color: var(--c-accent);
+    color: var(--c-on-accent);
+  }
+}
+
+/* Pause: quiet like stop, and LIT while held — a held transport must not look
+ * like a stopped one, since the two differ only in what the next press does.
+ * Reserves its slot the same way stop does, so starting playback never
+ * reflows the header under someone's finger. */
+.pause-btn {
+  min-width: var(--h-ctrl);
+  padding: 0 var(--sp-3);
+  color: var(--c-dim);
+}
+.pause-btn.hidden {
+  visibility: hidden;
+}
+.pause-btn.held {
+  color: var(--c-accent);
+  border-color: var(--c-accent);
+}
+.pause-btn:active {
+  background: var(--c-raised);
+}
+
+/* Stop: quiet, icon-only; a red tint only on press. */
+.stop-btn {
+  min-width: var(--h-ctrl);
+  padding: 0 var(--sp-3);
+  color: var(--c-error);
+  border-color: var(--c-error-border);
+}
+/* Reserve the stop button's slot even when idle (visibility, not display) so
+ * starting playback doesn't reflow the header — otherwise the whole icon-toggle
+ * cluster to its left shifts ~53px and a click meant for one toggle lands on
+ * its neighbour (visuals → mixer). */
+.stop-btn.hidden {
+  visibility: hidden;
+}
+.stop-btn:active {
+  background: var(--c-error-bg);
+}
+
+/* Dirty indicator: doc differs from the last run — a dot on the Run button. */
+.dirty-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-warn);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.dirty-dot.visible {
+  opacity: 1;
+}
+
+
+/* --- boot error (audio graph failed to build) --- */
+
+.boot-error {
+  margin: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  color: var(--c-error);
+  font-size: var(--fs-ctrl);
+  background: var(--c-error-bg);
+  border: 1px solid var(--c-error-border);
+  border-radius: var(--r);
+}
+
+/* --- library: project switcher + history sheet --- */
+
+.project-btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: var(--h-ctrl);
+  min-width: 0;
+  max-width: 42vw;
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  padding: 0 var(--sp-3);
+}
+.project-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-btn svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40; /* above viz toggle (30) and editor */
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: flex-end;
+  transition: opacity 0.2s ease;
+}
+
+.sheet-backdrop.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sheet {
+  width: min(420px, 92vw);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  overflow-y: auto;
+  padding: calc(var(--sp-4) + env(safe-area-inset-top)) calc(var(--sp-4) + env(safe-area-inset-right))
+    calc(var(--sp-4) + env(safe-area-inset-bottom)) var(--sp-4);
+  background: var(--c-bar);
+  border-left: 1px solid var(--c-raised);
+  transform: translateX(0);
+  transition: transform 0.22s ease;
+}
+
+.sheet-backdrop.hidden .sheet {
+  transform: translateX(100%);
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sheet-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--c-accent);
+}
+
+.sheet-close {
+  min-width: var(--h-ctrl);
+  min-height: var(--h-ctrl);
+  font-size: var(--fs-input);
+  color: var(--c-dim);
+  background: transparent;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+}
+
+.lib-active {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.lib-name {
+  min-height: var(--h-ctrl);
+  font: inherit;
+  font-size: var(--fs-input);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  padding: 0 var(--sp-3);
+}
+
+.lib-actions,
+.lib-new {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.lib-mini {
+  min-height: var(--h-ctrl);
+  flex: 1;
+  font: inherit;
+  font-size: var(--fs-ctrl);
+  white-space: nowrap;
+  color: var(--c-text);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  padding: 0 var(--sp-3);
+}
+
+.lib-danger:active,
+.lib-danger {
+  color: var(--c-error);
+}
+
+.lib-example {
+  flex: 1;
+  min-height: var(--h-ctrl);
+  font: inherit;
+  font-size: var(--fs-input);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  padding: 0 var(--sp-3);
+}
+
+.lib-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.lib-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-ctrl);
+  text-align: left;
+  font: inherit;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  padding: 0 var(--sp-3);
+}
+
+.lib-row.active {
+  border-color: var(--c-green);
+  background: var(--c-green-deep);
+}
+
+.lib-row-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-title);
+}
+
+.lib-row-time {
+  flex: none;
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.lib-hist-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  border-top: 1px solid var(--c-raised);
+  padding-top: var(--sp-3);
+}
+
+.lib-hist-head .lib-mini {
+  flex: none;
+}
+
+.lib-snap-name {
+  flex: 1;
+  min-width: 120px;
+  min-height: var(--h-ctrl);
+  font: inherit;
+  font-size: var(--fs-input); /* no iOS focus-zoom */
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  padding: 0 var(--sp-3);
+}
+
+.lib-subtitle {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-ctrl);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--c-dim);
+}
+
+.lib-hist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.lib-empty {
+  font-size: var(--fs-ctrl);
+  color: var(--c-dim);
+  padding: var(--sp-2) var(--sp-1);
+}
+
+.lib-vrow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-ctrl);
+  text-align: left;
+  font: inherit;
+  color: var(--c-text);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 0 var(--sp-2);
+}
+
+.lib-vrow:active {
+  background: var(--c-surface);
+}
+
+.lib-vdot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-faint);
+}
+
+.lib-vdot.latest {
+  background: var(--c-accent);
+}
+
+.lib-vmeta {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.lib-vtime {
+  font-size: var(--fs-ctrl);
+  font-variant-numeric: tabular-nums;
+}
+
+.lib-vlabel {
+  font-size: var(--fs-meta);
+  color: var(--c-accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lib-vaction {
+  flex: none;
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+
+/* --- sheet controls: same interaction feel as the header buttons --- */
+
+.sheet-close,
+.lib-mini,
+.lib-example,
+.lib-row,
+.lib-vrow {
+  cursor: pointer;
+  transition:
+    box-shadow 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease,
+    transform 0.05s ease;
+}
+
+@media (hover: hover) {
+  .sheet-close:hover,
+  .lib-mini:hover,
+  .lib-example:hover,
+  .lib-row:hover {
+    box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.08);
+    border-color: var(--c-dim);
+  }
+  .lib-vrow:hover {
+    background: var(--c-surface);
+  }
+}
+
+.sheet-close:active,
+.lib-mini:active,
+.lib-example:active,
+.lib-row:active {
+  box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.2);
+  transform: translateY(1px);
+}
+
+.sheet-close:focus-visible,
+.lib-mini:focus-visible,
+.lib-example:focus-visible,
+.lib-row:focus-visible,
+.lib-vrow:focus-visible,
+.lib-name:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+/* Respect reduced-motion: keep the UI legible, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- DSL reference panel (editor/docspanel.ts) --- */
+
+.docs-search {
+  flex: none;
+}
+
+.docs-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.docs-group {
+  margin-top: var(--sp-3);
+}
+
+.docs-entry {
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--c-raised);
+}
+
+.docs-signature {
+  font-family: var(--font-mono);
+  font-size: var(--fs-ctrl);
+  color: var(--c-accent);
+  word-break: break-word;
+}
+
+.docs-summary {
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+.docs-example {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  margin-top: var(--sp-1);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* link from the ? reference panel out to the full standalone docs page */
+.docs-full-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  margin-right: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.docs-full-link svg {
+  width: 12px;
+  height: 12px;
+}
+@media (hover: hover) {
+  .docs-full-link:hover {
+    color: var(--c-accent);
+  }
+}
+.docs-full-link:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+  color: var(--c-accent);
+}
+
+/* --- synth library panel (editor/synthlib.ts) --- */
+.synthlib-btn .btn-label {
+  margin-left: 6px;
+}
+
+.sheet-hint {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+
+.synthlib-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.synthlib-row {
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--c-surface);
+}
+
+.synthlib-top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--c-bar);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.synthlib-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.synthlib-name {
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+}
+.synthlib-tags {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+
+.synthlib-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+}
+
+/* audition ▶ / ⏹ toggle — shared visual language with the docs page */
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: var(--h-ctrl);
+  padding: 0 var(--sp-2);
+  font-size: var(--fs-ctrl);
+  color: var(--c-accent);
+  background: var(--c-green-deep);
+  border: 1px solid var(--c-green);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.synthlib-insert {
+  min-height: var(--h-ctrl);
+}
+@media (hover: hover) {
+  .play-btn:hover {
+    background: var(--c-green);
+    color: var(--c-text);
+  }
+}
+.play-btn svg {
+  width: 15px;
+  height: 15px;
+}
+.play-btn.playing {
+  background: var(--c-accent);
+  color: var(--c-bg);
+  border-color: var(--c-accent);
+}
+
+/* Syntax tokens for the synth library's code preview. These rules existed
+   only in docs.css, which the main page never loads -- so highlightDsl was
+   emitting spans that rendered as flat monochrome text here. Same colours as
+   the docs page, so a preset reads the same in both places. */
+.tok-com {
+  color: var(--c-faint);
+  font-style: italic;
+}
+.tok-str {
+  color: var(--c-accent-alt);
+}
+.tok-num {
+  color: var(--c-warn);
+}
+.tok-kw {
+  color: var(--c-accent);
+}
+.tok-fn {
+  color: var(--c-accent-alt);
+}
+
+.synthlib-code {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  line-height: 1.55;
+  color: var(--c-text);
+  tab-size: 2;
+}
+
+/* --- programmable WebGPU visualizer (shaderviz/shaderviz.ts) --- */
+
+.shaderviz-canvas {
+  position: fixed;
+  inset: 0;
+  /* match the visible viewport, not 100vw/100vh: those are the LARGE mobile
+   * viewport (behind the URL bar) and 100vw ignores the scrollbar, both of
+   * which overflow on phones. --app-h tracks the keyboard too (ui/viewport.ts). */
+  width: 100%;
+  height: var(--app-h, 100dvh);
+  z-index: 0; /* behind #app content, which sits above */
+  display: none;
+  pointer-events: none; /* never intercept editor interaction */
+}
+.shaderviz-canvas.visible {
+  display: block;
+}
+
+/* when visuals are on, let them show THROUGH the code area: the editor and
+ * its chrome go transparent so the phosphor text floats over the shader */
+body.shaderviz-on #app {
+  background: transparent;
+}
+body.shaderviz-on .editor-host,
+body.shaderviz-on .cm-editor,
+body.shaderviz-on .cm-scroller,
+body.shaderviz-on .cm-gutters {
+  background: transparent !important;
+}
+/* NO BACKDROP-FILTER HERE. A backdrop blur samples what is behind it, and
+ * what is behind it is a shader repainting every frame — so the blur is
+ * recomputed every frame too, by construction, and it is one of the most
+ * expensive compositing operations there is. A more opaque solid bar reads
+ * almost the same and costs nothing. */
+body.shaderviz-on .topbar {
+  background: color-mix(in srgb, var(--c-bar) 88%, transparent);
+}
+/* Keep code legible over bright visuals — WITHOUT touching a glyph.
+ *
+ * Measured, at 74 fps idle, with a section block's notation lines in view
+ * (those run 600+ characters, so any per-glyph effect is paid thousands of
+ * times) over a live shader:
+ *
+ *   two blurred text-shadows (the original)      3.0 fps
+ *   one 1px-blur shadow                          4.2 fps
+ *   -webkit-text-stroke 2.5px                    9.2 fps
+ *   one ZERO-blur shadow                        17.4 fps
+ *   a flat scrim, no per-glyph effect           74.6 fps
+ *   nothing at all                              74.6 fps
+ *
+ * Every per-glyph treatment is fatal here and a blur is the worst of them:
+ * the text sits over a backdrop that changes every frame, so the layer cannot
+ * be cached and each glyph's effect is recomputed continuously. A single flat
+ * fill behind the column costs nothing and reads better, because the contrast
+ * is then constant instead of depending on what the shader is doing. */
+body.shaderviz-on .cm-content {
+  background: color-mix(in srgb, var(--c-bg) 52%, transparent);
+}
+
+.shaderviz-btn.active {
+  background: var(--c-accent);
+  color: var(--c-bg);
+  border-color: var(--c-accent);
+}
+
+/* `?fps=1` frame-pacing readout. Deliberately plain and out of the way: it is
+ * a diagnostic, not chrome, and it must not itself cost a frame. */
+.shaderviz-fps {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 60;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font: 11px/1.4 var(--font-mono);
+  color: #cfe3ff;
+  background: rgb(8 12 20 / 78%);
+  border: 1px solid rgb(120 160 220 / 25%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.shaderviz-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: 90vw;
+  padding: var(--sp-2) var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-error);
+  background: var(--c-error-bg);
+  border: 1px solid var(--c-error-border);
+  border-radius: var(--r-sm);
+  white-space: pre-wrap;
+}
+.shaderviz-toast.hidden {
+  display: none;
+}
+
+/* WGSL highlighting inside visual(`…`) now lives in the shared editor theme
+ * (editor/theme.ts → synthTheme) so it applies in the docs examples too. */
+
+/* --- icon buttons (ui/icons.ts) --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.ico {
+  display: block;
+  flex: none;
+}
+.sheet-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The secondary header controls are an icon toolbar — their icons + title
+ * tooltips name them, so no text labels (keeps the cluster compact at every
+ * width). Only Run carries a word, and it drops to an icon on phones. */
+.hdr-controls .btn-label {
+  display: none;
+}
+.run .btn-label {
+  /* reserve the width of the longest label ("update", 6 monospace ch) and
+     center within it, so run <-> update never resizes the button */
+  display: inline-block;
+  min-width: 6ch;
+  text-align: center;
+}
+/* The language toggle is a TEXT pill (js / rondo), not an icon — keep its
+   label visible at every width, since it's the primary way onto the rondo
+   surface (and the default on mobile). Accent it when rondo is active. */
+.lang-btn .btn-label {
+  display: inline-block;
+  min-width: 3.5ch;
+  text-align: center;
+  font-weight: 600;
+}
+.lang-btn.lang-rondo {
+  color: var(--c-accent, #6ea8fe);
+  border-color: var(--c-accent, #6ea8fe);
+}
+
+@media (max-width: 560px) {
+  .run .btn-label {
+    display: none;
+  }
+  .hdr-controls .btn {
+    padding: 0 var(--sp-2);
+    gap: 0;
+  }
+}
+
+/* export popover (editor/export.ts) */
+.export-pop {
+  position: fixed;
+  z-index: 45;
+  min-width: 244px;
+  max-width: min(340px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.export-pop.hidden {
+  display: none;
+}
+.export-head {
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-dim);
+}
+.export-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.export-label {
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.export-cycles {
+  width: 4rem;
+  padding: var(--sp-1) var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+}
+.export-select {
+  flex: 1 1 auto;
+  min-height: var(--h-ctrl); /* touch target */
+  padding: 0 var(--sp-2);
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+}
+.export-btn {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  min-height: var(--h-ctrl);
+  padding: 0 var(--sp-2);
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.export-btn svg {
+  width: 14px;
+  height: 14px;
+}
+.export-btn.armed {
+  color: var(--c-error);
+  border-color: var(--c-error-border);
+}
+.export-hint,
+.export-msg {
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.export-msg {
+  min-height: 1em;
+}
+@media (hover: hover) {
+  .export-btn:hover {
+    background: var(--c-surface);
+    border-color: var(--c-dim);
+  }
+}
+
+/* recording pill next to the export button in the header */
+.rec-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 0 var(--sp-1);
+  color: var(--c-error);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+.rec-pill.hidden {
+  display: none;
+}
+.rec-pill svg {
+  width: 10px;
+  height: 10px;
+  animation: rec-blink 1s steps(2, start) infinite;
+}
+@keyframes rec-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rec-pill svg {
+    animation: none;
+  }
+}
+
+/* header overflow menu (ui/header-overflow.ts) */
+.more-btn {
+  display: none; /* only phones, where the controls would overflow the row */
+  min-width: var(--h-ctrl);
+}
+.more-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.more-pop {
+  position: fixed;
+  z-index: 45;
+  min-width: 200px;
+  max-width: min(300px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-2);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+/* --- options / settings popover (ui/options.ts) --- */
+.options-pop {
+  position: fixed;
+  z-index: 45;
+  min-width: 260px;
+  max-width: min(340px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-2);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.options-pop.hidden {
+  display: none;
+}
+.options-head {
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-dim);
+  padding: 0 var(--sp-1) var(--sp-1);
+}
+/* a settings row: label + help on the left, a toggle switch on the right */
+.opt-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-2);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  text-align: left;
+  cursor: pointer;
+  color: var(--c-text);
+}
+.opt-row:hover {
+  background: var(--c-bg);
+  border-color: var(--c-border);
+}
+.opt-text {
+  flex: 1;
+  min-width: 0;
+}
+.opt-label {
+  font-size: var(--fs-ctrl);
+  font-weight: 600;
+}
+.opt-help {
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+/* the switch: a track with a knob that slides + lights when on */
+.opt-switch {
+  flex: none;
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.opt-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--c-dim);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.opt-row.on .opt-switch {
+  background: var(--c-green-deep);
+  border-color: var(--c-green);
+}
+.opt-row.on .opt-switch::after {
+  transform: translateX(14px);
+  background: var(--c-accent);
+}
+
+.more-pop.hidden {
+  display: none;
+}
+.more-pop .btn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: var(--sp-2);
+}
+.more-pop .btn-label {
+  display: inline; /* labels show in the menu (the bar hides them) */
+}
+/* the tempo pill spans the menu like the buttons do, value left-aligned */
+.more-pop .tempo,
+.more-pop .startfrom {
+  width: 100%;
+  justify-content: start;
+}
+@media (max-width: 560px) {
+  .more-btn {
+    display: inline-flex;
+  }
+}
+
+/* LED mask button (editor/mask.ts): lit while a mask is connected */
+.mask-btn.connected {
+  color: var(--c-accent);
+}
+.mask-error {
+  font-size: var(--fs-meta);
+  color: var(--c-error);
+}
+
+/* MIDI input popover (editor/midi.ts) — shares the export popover styles */
+.midi-pop {
+  position: fixed;
+  z-index: 45;
+  min-width: 240px;
+  max-width: min(320px, 92vw);
+  /* The panel grew a monitor and became taller than a laptop viewport (855px
+     against 813), which would have put the clock section out of reach. */
+  max-height: min(80vh, 40rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.midi-pop.hidden {
+  display: none;
+}
+.midi-status {
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.midi-pick {
+  padding: var(--sp-1) var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+}
+
+/* knob mappings: the learn row and one row per bound control */
+.midi-learn-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2);
+}
+.midi-parampick {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--h-ctrl); /* touch target */
+}
+.midi-learn {
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+}
+.midi-learn:disabled {
+  opacity: 0.45;
+}
+.midi-maps {
+  display: flex;
+  flex-direction: column;
+}
+.midi-map-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-ctrl); /* touch target row */
+  border-top: 1px solid var(--c-border);
+}
+.midi-map-row:first-child {
+  border-top: none;
+}
+.midi-map-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--fs-ctrl);
+}
+.midi-map-cc {
+  flex: 0 0 auto;
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.midi-map-stale {
+  flex: 0 0 auto;
+  font-size: var(--fs-meta);
+  color: var(--c-error);
+}
+.midi-map-row.stale .midi-map-name {
+  color: var(--c-dim);
+  text-decoration: line-through;
+}
+/* clock sync: the source selector and its tempo readout */
+.midi-sync {
+  min-height: var(--h-ctrl); /* touch target */
+}
+.midi-tempo {
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  font-variant-numeric: tabular-nums;
+}
+.midi-map-unmap {
+  flex: 0 0 auto;
+  width: var(--h-ctrl);
+  min-height: var(--h-ctrl); /* touch target */
+  font-size: var(--fs-ctrl);
+  color: var(--c-dim);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .midi-map-unmap:hover {
+    color: var(--c-text);
+  }
+}
+
+/* The sing() bake dialog + consent modal styles now live with their component
+ * (src/ui/singDialog.css, imported by singDialog.ts) so the docs page gets
+ * them too. */
+
+/* mic sampling: the record action in the samples popover */
+.samples-rec .samples-recdot { color: var(--c-error); font-size: 10px; }
+.samples-rec.recording { color: var(--c-error); }
+.samples-rec.recording .samples-recdot { animation: rec-blink 1s steps(2) infinite; }
+@keyframes rec-blink { 50% { opacity: 0.25; } }
+.samples-recmsg {
+  padding: 4px 10px 8px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* resample to loop: bounce N cycles of the staged track into the bank */
+.samples-resample {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-top: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  font-size: var(--fs-ctrl);
+  color: var(--c-accent);
+  border: 1px dashed var(--c-border);
+  border-radius: var(--r-sm);
+}
+.samples-resample.disabled {
+  color: var(--c-dim);
+}
+.samples-resample-label {
+  flex: 1 1 auto;
+}
+.samples-chip {
+  flex: none;
+  min-width: 40px;
+  min-height: var(--h-ctrl); /* touch target */
+  padding: 0 var(--sp-1);
+  font-size: var(--fs-ctrl);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.samples-chip:disabled {
+  color: var(--c-dim);
+  cursor: default;
+  opacity: 0.5;
+}
+@media (hover: hover) {
+  .samples-chip:not(:disabled):hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+  }
+}
+
+/* ---- performance lock ------------------------------------------------- */
+/* Text frozen, widgets live: the button glows, the buffer stops looking
+ * tappable. Widgets keep their own cursors (grab/ns-resize). */
+.lock-btn.active {
+  background: var(--c-accent);
+  color: var(--c-bg);
+  border-color: var(--c-accent);
+}
+.perf-locked .cm-content {
+  cursor: default;
+  /* locked = performance surface: no text selection, no iOS long-press
+   * callout - a held finger belongs to widgets (the scrub lens), not to
+   * the selection UI. Widgets never rely on selection. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ---- onboarding survey (ui/tour.ts) ------------------------------------ */
+/* One question before anything else: a small centered card with three big
+ * tappable options. The only modal piece of onboarding; the coach marks
+ * below stay overlay-free. */
+.tour-survey-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 46; /* above the header popovers (45): nothing competes with it */
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-3);
+}
+.tour-survey-backdrop.hidden {
+  display: none;
+}
+.tour-survey {
+  width: min(360px, 100%);
+  padding: var(--sp-4) var(--sp-3);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-left: 3px solid var(--c-accent);
+  border-radius: var(--r);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.tour-survey-title {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  color: var(--c-text);
+}
+.tour-survey-opt {
+  min-height: 48px; /* the primary choices: comfortably thumb-sized */
+  padding: 0 var(--sp-3);
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+  text-align: left;
+  cursor: pointer;
+}
+.tour-survey-opt:hover,
+.tour-survey-opt:focus-visible {
+  border-color: var(--c-accent);
+  color: var(--c-accent);
+}
+.tour-survey-skip {
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  cursor: pointer;
+}
+.tour-survey-skip:hover {
+  color: var(--c-text);
+}
+
+/* ---- first-run tour (ui/tour.ts) --------------------------------------- */
+/* One small coach bubble at a time, anchored near its target. No overlay:
+ * every step asks for a real action, so the app stays fully touchable. The
+ * ring is a soft accent glow on the anchor itself. */
+.tour-bubble {
+  position: fixed;
+  z-index: 44; /* under the header popovers (45): they must stay usable */
+  max-width: min(300px, 86vw);
+  padding: var(--sp-3);
+  background: var(--c-raised);
+  border: 1px solid var(--c-border);
+  border-left: 3px solid var(--c-accent);
+  border-radius: var(--r);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.tour-bubble.hidden {
+  display: none;
+}
+.tour-bubble.tour-floating {
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  right: var(--sp-3);
+}
+.tour-copy {
+  font-size: var(--fs-ctrl);
+  line-height: 1.45;
+  color: var(--c-text);
+}
+.tour-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+}
+.tour-progress {
+  flex: 1;
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.tour-btn {
+  min-height: 44px; /* thumb-sized even though the bubble is small */
+  padding: 0 var(--sp-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--r);
+  font-size: var(--fs-ctrl);
+  color: var(--c-dim);
+  cursor: pointer;
+}
+.tour-btn:hover {
+  color: var(--c-text);
+}
+.tour-btn.tour-done {
+  color: var(--c-accent);
+  font-weight: 600;
+}
+.tour-btn.hidden {
+  display: none;
+}
+/* the anchor highlight: a soft accent ring that never blocks a tap */
+.tour-ring {
+  box-shadow:
+    0 0 0 2px var(--c-accent),
+    0 0 14px var(--c-accent);
+  border-radius: var(--r);
+  animation: tour-pulse 1.6s ease-in-out infinite;
+}
+@keyframes tour-pulse {
+  50% {
+    box-shadow:
+      0 0 0 2px var(--c-accent),
+      0 0 4px var(--c-accent);
+  }
+}
+
+/* ---- workspace (desktop): the folder that IS the project list ------------ */
+.lib-ws {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-ctrl);
+  padding: var(--sp-1) var(--sp-2);
+  margin-bottom: var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  background: var(--c-surface);
+}
+.lib-ws-label {
+  flex: none;
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+/* the path is the one thing that can be arbitrarily long here: let it take the
+ * slack and ellipsize from the LEFT, so the folder name stays readable */
+.lib-ws-path {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-text);
+}
+.lib-ws-new {
+  display: flex;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+.lib-ws-new .lib-snap-name { flex: 1 1 auto; min-width: 0; }
+/* a workspace row is a container of buttons, not itself a button */
+.lib-row-open {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.lib-empty {
+  padding: var(--sp-2);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+
+/* LIBRARY NOTICE (editor/library.ts). The one event here that happens TO the
+   user: two tabs edited one project, so their work was moved to a copy. It
+   used to be a console.warn, which is the same as nothing. Stays until
+   dismissed — a fork that fades in three seconds is not a notice. */
+.lib-notice {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(560px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border: 1px solid var(--c-warn, #f2b155);
+  border-radius: 8px;
+  background: var(--c-bg, #0b0f0d);
+  color: var(--c-text, #c8e6da);
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+.lib-notice.hidden { display: none; }
+.lib-notice-close {
+  flex: none;
+  background: none;
+  border: none;
+  color: var(--c-dim, #6f9284);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  min-width: 32px;
+  min-height: 32px;
+}
+.lib-notice-close:hover { color: var(--c-accent, #6ea8fe); }
+
+/* OUTLINE (editor/outline.ts + outlinepanel.ts). What is in this document and
+   where — the question scrolling, folding and find all fail to answer, because
+   each needs you to already know what you are looking for. */
+.outline-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: calc(48px + env(safe-area-inset-top)) var(--sp-3) var(--sp-3);
+}
+.outline-backdrop.hidden { display: none; }
+.outline-sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(520px, 100%);
+  max-height: min(70vh, 640px);
+  background: var(--c-bg);
+  border: 1px solid var(--c-dim);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+.outline-search {
+  flex: none;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--c-dim);
+  color: var(--c-text);
+  font: inherit;
+  font-size: 15px;
+  padding: 12px 14px;
+}
+.outline-search:focus-visible { outline: none; border-bottom-color: var(--c-accent); }
+.outline-list { overflow-y: auto; overscroll-behavior: contain; }
+.outline-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 14px;
+  background: none;
+  border: none;
+  color: var(--c-text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.outline-row.d1 { padding-left: 34px; }
+.outline-row:hover, .outline-row:focus-visible { background: rgba(255, 255, 255, 0.06); outline: none; }
+.outline-kind {
+  flex: none;
+  min-width: 58px;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--c-dim);
+}
+.outline-kind.k-synth { color: var(--c-accent); }
+.outline-kind.k-section { color: var(--c-warn); }
+.outline-kind.k-pattern { color: var(--c-kw, #a7f3d0); }
+.outline-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.outline-line { flex: none; color: var(--c-dim); font-size: 12px; }
+.outline-empty { padding: 18px 14px; color: var(--c-dim); font-size: 13px; }
+
+/* SAVE A SELECTION as a snippet (editor/synthlib.ts + snippets.ts). The shelf
+   was 19 presets you could not add to; this is the row that changes that. */
+.synthlib-save {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0 10px;
+  border-bottom: 1px solid var(--c-dim);
+  margin-bottom: 8px;
+}
+.synthlib-savename {
+  flex: 1;
+  min-width: 140px;
+  background: transparent;
+  border: 1px solid var(--c-dim);
+  border-radius: 6px;
+  color: var(--c-text);
+  font: inherit;
+  font-size: 14px;
+  padding: 7px 9px;
+}
+.synthlib-savename:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 1px; }
+.synthlib-savemsg { flex-basis: 100%; color: var(--c-dim); font-size: 12px; }
+.synthlib-del {
+  min-width: 34px;
+  padding: 0 8px;
+  color: var(--c-dim);
+  font-size: 16px;
+  line-height: 1;
+}
+.synthlib-del:hover { color: var(--c-warn); border-color: var(--c-warn); }
+
+/* ---- options: audio devices ---------------------------------------------- *
+ * A static (non-toggle) row shape, because a device choice is a SELECT rather
+ * than an on/off — .opt-row's pointer cursor and hover would otherwise promise
+ * that the whole row is tappable. */
+.opt-section {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--c-border);
+}
+.opt-section-head {
+  padding: 0 var(--sp-2) var(--sp-1);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-dim);
+}
+.opt-row-static {
+  cursor: default;
+}
+.opt-row-static:hover {
+  background: transparent;
+  border-color: transparent;
+}
+.opt-select {
+  flex: 0 1 auto;
+  max-width: 12rem;
+  padding: 2px var(--sp-1);
+  background: var(--c-bg);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  font: inherit;
+  font-size: 0.8rem;
+}
+.opt-audio-status {
+  padding: var(--sp-1) var(--sp-2) 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- MIDI monitor ------------------------------------------------------- *
+ * A scrolling log of what arrived. Monospace and dense on purpose: it is read
+ * by scanning for the line that is missing, not by reading each row. */
+.midi-mon-ports {
+  display: flex;
+  flex-direction: column;
+}
+.midi-mon-port {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-ctrl);
+  border-top: 1px solid var(--c-border);
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+}
+.midi-mon-port:first-child {
+  border-top: none;
+}
+.midi-mon-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  color: var(--c-text);
+}
+.midi-mon-state {
+  flex: 0 0 auto;
+}
+/* the port that is actually sending is the answer to the multi-port question */
+.midi-mon-port.speaking .midi-mon-state {
+  color: var(--c-accent);
+}
+.midi-mon-port.failed .midi-mon-state {
+  color: var(--c-error);
+}
+.midi-mon-log {
+  max-height: 14rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+}
+.midi-mon-row {
+  display: flex;
+  gap: var(--sp-2);
+  padding: 1px var(--sp-2);
+  white-space: nowrap;
+}
+.midi-mon-row:nth-child(even) {
+  background: var(--c-surface-2, rgb(255 255 255 / 3%));
+}
+.midi-mon-dev {
+  flex: 0 1 7rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--c-dim);
+}
+.midi-mon-kind {
+  flex: 0 0 5.5rem;
+  color: var(--c-accent);
+}
+.midi-mon-detail {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.midi-mon-ch,
+.midi-mon-raw {
+  flex: 0 0 auto;
+  color: var(--c-dim);
+}
+.midi-mon-empty,
+.midi-mon-clocks {
+  padding: var(--sp-2);
+  color: var(--c-dim);
+}
+.midi-mon-warn {
+  padding: var(--sp-2);
+  color: var(--c-error);
+  white-space: normal;
+}
+.midi-mon-clear {
+  align-self: flex-start;
+}
+/* Why the keyboard is silent: the code on screen has not been run yet. */
+.midi-run-notice {
+  font-size: var(--fs-meta);
+  color: var(--c-warn, var(--c-error));
+  line-height: 1.3;
+}

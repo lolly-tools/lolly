@@ -17,6 +17,7 @@ import { t } from '../i18n.ts';
 import { escapeHtml } from './html.ts';
 import { icon } from './icons.ts';
 import { fetchImageUrlAsFile } from './add-via-url.ts';
+import { isRondoShareUrl } from './media-source.ts';
 
 /** What the picker lends the entry: its takeover chrome and the three outcomes. */
 export interface UrlEntryPicker<Desc> {
@@ -33,6 +34,9 @@ export interface UrlEntryPicker<Desc> {
   showToolCard: (desc: Desc, url: string) => void;
   /** Store a fetched image as the asset and pick it (or add it to the collection). */
   useImage: (file: File) => Promise<void>;
+  /** Store a rondocode share link as a song asset and pick it, or null when this
+   *  slot takes no audio. Rejects with a message a person can read. */
+  useSong?: ((url: string) => Promise<void>) | null;
   /** Neither a tool link nor an image: offer the capture fallback. */
   showFallback: (url: string) => void;
 }
@@ -76,6 +80,19 @@ export function createUrlEntry<Desc>(picker: UrlEntryPicker<Desc>): UrlEntry {
     const url = raw.trim();
     if (!url) return;
     const seq = ++detectSeq;
+    // A rondocode share link carries a song inside it (plan 301): decoded on this
+    // device and stored as an audio asset, never fetched and never run here.
+    if (picker.useSong && isRondoShareUrl(url)) {
+      picker.showTakeover(`<div class="asset-picker-loading">${t('Reading the song…')}</div>`);
+      try {
+        await picker.useSong(url);
+      } catch (err) {
+        if (seq !== detectSeq) return;
+        const msg = err instanceof Error && err.message ? err.message : t('That song could not be added.');
+        picker.showTakeover(`<p class="asset-picker-error">${escapeHtml(msg)}</p>`);
+      }
+      return;
+    }
     picker.showTakeover(`<div class="asset-picker-loading">${t('Checking link…')}</div>`);
     const desc = picker.describeUrl ? await picker.describeUrl(url) : null;
     if (seq !== detectSeq) return;                    // superseded by a newer entry

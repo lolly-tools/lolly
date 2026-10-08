@@ -915,6 +915,29 @@
 html[data-a11y-motion="reduce"] .cat-crop-img { transition: none; }
 @media (prefers-reduced-motion: reduce) { .cat-crop-img { transition: none; } }
 
+/* A rondocode song (plan 301, views/assets/details-rondo.ts): the song's own source,
+   read-only, what the render could not play, and the credit line. Quiet type that
+   rides the a11y multiplier through the --fs-* tokens; the source scrolls inside its
+   own box so a long song never pushes the sheet's actions out of reach. */
+.cat-details-rondo { margin: 0 0 var(--sp-6); }
+.cat-details-rondo .cat-details-meta { margin: 0; }
+.cat-rondo-status { margin: var(--sp-3) 0 var(--sp-2); font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.cat-rondo-status.is-failed { color: hsl(var(--foreground)); }
+.cat-rondo-findings {
+  display: grid; gap: var(--sp-2); margin: 0 0 var(--sp-4);
+  padding-inline-start: var(--sp-6); font-size: var(--fs-sm); color: hsl(var(--foreground));
+}
+.cat-rondo-code-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin: var(--sp-4) 0 var(--sp-2); }
+.cat-rondo-code-head .cat-tech-head { margin: 0; }
+.cat-rondo-code {
+  margin: 0; max-height: 22em; overflow: auto; padding: var(--sp-3) var(--sp-4);
+  background: var(--preview-surface); border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.5;
+  white-space: pre; tab-size: 2; color: hsl(var(--foreground));
+}
+.cat-rondo-code:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.cat-rondo-credit { margin: var(--sp-3) 0 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+
 } /* @layer chrome */
 
 .asset-preview-status { position: absolute; left: 50%; bottom: var(--sp-6); transform: translateX(-50%); display: flex; align-items: center; gap: var(--sp-3); max-width: calc(100% - 48px); padding: var(--sp-3) var(--sp-4); border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: var(--fs-sm); box-shadow: var(--shadow-sm); z-index: 2; }

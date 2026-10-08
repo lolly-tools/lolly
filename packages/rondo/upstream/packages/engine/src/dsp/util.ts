@@ -1,0 +1,59 @@
+/** Block-end state hygiene shared by stateful kernels, called once per
+ *  process(). Zeroes state below 1e-15 — an "inaudible tail" cutoff well above
+ *  the true denormal range, so long silent tails settle to exact 0 cheaply —
+ *  and zeroes non-finite state, so NaN/Inf arriving on ANY input (signal or
+ *  control) poisons the kernel for at most one block and recovers at block
+ *  end. */
+export const flush = (s: number): number => (!Number.isFinite(s) || Math.abs(s) < 1e-15 ? 0 : s)
+
+/** Transport tempo assumed when a host never sent one: 0.5 cycles per second,
+ *  which with four beats to a cycle is 120 bpm. */
+export const DEFAULT_CPS = 0.5
+
+/** The tempo a synced kernel should use this block. Structurally typed (not
+ *  DspContext) so util.ts stays import-free. A missing, non-finite or
+ *  non-positive cps falls back to DEFAULT_CPS — a synced LFO must keep
+ *  wobbling at a sane rate even if a host writes garbage into the ctx, and
+ *  dividing by 0 or NaN would poison every phase downstream. */
+export const cpsOf = (ctx: { cps?: number }): number => {
+  const c = ctx.cps
+  return c === undefined || !Number.isFinite(c) || c <= 0 ? DEFAULT_CPS : c
+}
+
+/** Per-sample defensive clamp; NaN passes through (flush() catches it). */
+export const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v)
+
+/** Slope-matched tanh soft knee: identity for |v| <= t, and
+ *  sign(v) * (t + (1-t) * tanh((|v|-t)/(1-t))) beyond it. Value- AND
+ *  slope-matched at ±t (f(t) = t, f'(t) = 1 — the same C1 requirement as
+ *  delay.ts's reciprocal knee; see its doc for why a naive tanh-above-
+ *  threshold writes audible steps), monotonic, asymptotes at ±1 exactly.
+ *  Assumes 0 < t < 1. Non-finite v passes through untouched — callers that
+ *  need NaN safety scrub separately (see realtime.ts masterSafety). */
+export const softClipTanh = (v: number, t: number): number => {
+  if (v > t) return t + (1 - t) * Math.tanh((v - t) / (1 - t))
+  if (v < -t) return -(t + (1 - t) * Math.tanh((-v - t) / (1 - t)))
+  return v
+}
+
+/* ------------------------------------------------------------------------- *
+ * A CONTROL THAT MAY BE A SIGNAL.
+ *
+ * chorus, phaser and flanger read rate/depth/feedback/mix once at
+ * construction, so no LFO or knob could ride them — on exactly the three
+ * effects people most want to automate. They are per-sample inputs now, and
+ * this is how a kernel reads one: the input when the graph supplies it, the
+ * constructor's value when a caller built the kernel directly, clamped to the
+ * same range either way so a signal cannot reach further than a number could.
+ * ------------------------------------------------------------------------- */
+export function ctl(
+  buf: Float32Array | undefined,
+  i: number,
+  fallback: number,
+  lo: number,
+  hi: number,
+): number {
+  if (buf === undefined) return fallback
+  const v = buf[i]!
+  return Number.isFinite(v) ? clamp(v, lo, hi) : fallback
+}

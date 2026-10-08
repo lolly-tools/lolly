@@ -120,6 +120,7 @@
   },
   "dependencies": {
     "@lolly-tools/core": "workspace:*",
+    "@lolly-tools/rondo": "workspace:*",
     "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "fflate": "^0.8.3",

@@ -42,7 +42,10 @@ export function assetGridHtml(cat: CatCtx, group: string, items: AssetRef[]): st
 // site in mountCatalog reads exactly as it did before the extraction.
 export const visibleAssets = (cat: CatCtx): AssetRef[] => visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId).filter(a => matchesAssetSource(a, cat.sourceSelection));
 export const matchesType = (cat: CatCtx, a: AssetRef): boolean => matchesTypeRule(a, cat.typeFilter);
-export const playableHere = (cat: CatCtx, a: AssetRef): boolean => cat.modulesPlayable !== false || !isModuleFormat(a.format);
+export const playableHere = (cat: CatCtx, a: AssetRef): boolean =>
+  (cat.modulesPlayable !== false || !isModuleFormat(a.format))
+  // A rondocode song renders in QuickJS inside a Worker; without both there is nothing to play.
+  && (a.format !== 'rondo' || (typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'));
 // The search index, memoised across keystrokes and dropped whenever the asset
 // set or the category overrides change (see setOverrides and the reload path).
 // Built on FIRST SEARCH, never merely on render - indexing every asset for a

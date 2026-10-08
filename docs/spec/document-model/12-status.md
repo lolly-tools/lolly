@@ -91,7 +91,7 @@ Six questions are Andy's. Each has a default so that drafting proceeds without a
 
 ## What is not built
 
-Nothing in this specification is implemented. The list below is what a reader must not assume exists.
+Nothing in this specification is implemented apart from one execution class: `vm` runs rondocode songs (plan 301, `packages/rondo/src/vm.ts`), and [values, expressions, code and time](values-and-time.html) states the contract the class now keeps. The list below is what a reader must not assume exists.
 
 - No shared document type and no schema. `packages/core/src/document-v1.ts` and `schemas/document-v1.schema.json` do not exist.
 - No shared outcome, receipt, report or acceptance type. `packages/core/src` holds no `OutcomeV1`, `EvaluationReceiptV1`, `ConformanceReportV1` or `AcceptanceV1` (R5, R8, R15).
@@ -140,6 +140,8 @@ Two rules bind that order. No shared type may be frozen before the fixtures in s
 | 2026-09-26 | Proof cases. Cases 24 and 25 are added for the two gaps the constitution's table found: one chart's accessibility metadata checked in each of four outputs, and a local utility that keeps no record of its run. The table now maps both, and the count of cases is 25. Q4 stays open; case 25 tests its default for a utility. Affects R5 and R15. |
 | 2026-09-28 | Motion requirements from plan 281 extend values and time, packaging and proof cases. Cases 26 and 27 distinguish today's editable Design source adapter from proposed hierarchy, time mapping, writer composition and retained motion records. HTML resource closure does not imply embedded fonts in the editable package. The local pilot is evidence, not an admitted conformance suite; no shared type or container version changes. Affects R1, R10, R11, R12 and R15. |
 | 2026-09-28 | Bounded scenes. Values and time records the current artboard adapter's project-time starts, frame-relative geometry, separate cameras, audio bounds and dissolve endpoint. Case 28 covers reordering and playback without treating those scenes as general nested compositions. No new source payload or package version is introduced. Affects R1, R11, R12 and R15. |
+| 2026-10-07 | The `vm` execution class is built, for rondocode songs (plan 301). Values and time replaces the reserved row with what the class enforces: no host, no clock or entropy, budgets per phase, one runtime per run, refusal rather than fallback, and data out that a trusted step inspects before a fixed interpreter reads the data. Capabilities, trust and extensions declares rondocode in the draft extension shape as the unfamiliar-media check, and adds an open point for the opaque-origin frame the Sandbox utility and the patched editor run in. Case 29 covers a song that is code on web, CLI and MCP, and the constitution's table maps the case to invariants 3, 6 and 10. No shared type or schema changes. Affects R3, R10 and R15. |
+| 2026-10-08 | Capabilities, trust and extensions records that the rondocode utility writes `frame` as the execution class of files its editor makes, the open point's default, while the point stays open. No shared type changes. Affects R15. |
 
 A change to any chapter must add a row here with its date and what changed, so that the chapter sources in `docs/spec/document-model/` carry one history (`plans/276-execution.md` section 1A). A row lists the resolution ids the change affects, which is this specification's own convention.
 

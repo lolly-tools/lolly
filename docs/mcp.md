@@ -242,6 +242,8 @@ Agent presence is delegated by the inviter's authenticated collaboration connect
 
 Formats are **per-tool** - you can only request one a tool declares (`lolly_describe_tool` lists them). Ask a QR tool for `svg` and you get vector; ask an animated-ad tool for `mp4` and you get video - the call shape is identical either way. Animation, print PDF and HTML-layout raster require the **full** endpoint.
 
+A video or audio file that plays a rondocode song records each song in its Content Credentials: its name, a hash of its source and how Lolly's sandbox rendered the song. The result reads the delivered bytes back and states, on a `Songs:` line, which songs the credential records and any it does not. `lolly_transform` adds no credential, so its result says the file records none of its songs.
+
 ## Emoji: name the set you want drawn
 
 Emoji in a render are drawn from a set somebody chose, never from the machine the server happens to run on. `lolly_render` and `lolly_build_url` both take two optional arguments for that choice, and read them the same way, so a link and the file it renders agree:

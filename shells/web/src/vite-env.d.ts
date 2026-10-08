@@ -70,3 +70,13 @@ declare module 'pdfjs-dist/build/pdf.worker.min.mjs?url' {
   const url: string;
   export default url;
 }
+
+/**
+ * The rondocode staging bundle as text (`?raw`). lib/rondo-worker.ts hands it to
+ * QuickJS, the `vm` execution class; it never runs in the shell's own realm.
+ * Named exactly, for the same reason the two suffixes above are narrowed.
+ */
+declare module '@lolly-tools/rondo/generated/stage.js?raw' {
+  const source: string;
+  export default source;
+}

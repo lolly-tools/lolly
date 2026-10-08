@@ -3437,6 +3437,26 @@
       "sparse": false
     },
     {
+      "file": "rondocode.svg",
+      "bytes": 44171,
+      "sha": "e63f9de26bdbdb10",
+      "stddev": 17.106,
+      "inkRatio": 0.04199,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 17.106,
+          "inkRatio": 0.04199
+        },
+        "black": {
+          "stddev": 17.106,
+          "inkRatio": 0.04199
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
       "file": "sandbox.svg",
       "bytes": 3393,
       "sha": "c90a2b0e7b471989",

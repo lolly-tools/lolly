@@ -59,7 +59,7 @@ export interface Envelope<T = unknown> {
   engine: string;
   cli: string;
   result: T | null;
-  warnings: Array<{ code: string; message: string; kind: string }>;
+  warnings: Array<{ code: string; message: string; kind: string; [extra: string]: unknown }>;
   error: EnvelopeError | null;
 }
 
@@ -118,7 +118,8 @@ export async function envelope<T>(result: T, ok: boolean, error: EnvelopeError |
     engine,
     cli,
     result,
-    warnings: recordedWarnings().map(w => ({ code: w.code, message: w.message, kind: w.kind })),
+    // `extra` keys first, so they can never overwrite the three every warning has.
+    warnings: recordedWarnings().map(w => ({ ...w.extra, code: w.code, message: w.message, kind: w.kind })),
     error,
   };
 }

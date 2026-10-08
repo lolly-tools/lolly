@@ -278,10 +278,12 @@ test('every audio container the catalog ships or the uploader accepts is registe
   //   tracker modules are SONG DATA, not encoded audio - libopenmpt renders them to PCM
   //   (lib/mod-render.ts), the same bypass, which is why the provider takes a
   //   `renderModule` hook alongside its zzfxm one. A demuxer would reject these bytes.
+  //   'rondo' is a rondocode song: code rendered in the `vm` class (lib/rondo-render.ts).
   const CONTAINER_FOR: Record<string, string | null> = {
     mp3: 'MP3', opus: 'OGG', ogg: 'OGG', oga: 'OGG', wav: 'WAVE',
     m4a: 'MP4', aac: 'ADTS', flac: 'FLAC', zzfxm: null,
     mod: null, xm: null, s3m: null, it: null, stm: null, mtm: null,
+    rondo: null,
   };
 
   for (const fmt of catalogFormats) {

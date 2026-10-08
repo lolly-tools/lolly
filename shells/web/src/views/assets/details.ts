@@ -20,6 +20,7 @@ import { inlineModesOps } from './details-inline-modes.ts';
 import { sheetOps } from './details-sheet.ts';
 import { controlsOps } from './details-controls.ts';
 import { provenanceOps } from './details-provenance.ts';
+import { rondoOps } from './details-rondo.ts';
 export { wireAudioViz, audioCardArt, audioElOf, meterElOf, setAudioCover } from './details-shared.ts';
 
 
@@ -31,6 +32,7 @@ export function openDetails(cat: CatCtx, ref: AssetRef, initialTheme?: string | 
   dt.sheet = sheetOps(dt);
   dt.controls = controlsOps(dt);
   dt.provenance = provenanceOps(dt);
+  dt.rondo = rondoOps(dt);
   dt.cat = cat;
   dt.ref = ref;
   dt.initialTheme = initialTheme;

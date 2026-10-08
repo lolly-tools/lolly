@@ -466,6 +466,7 @@ export function buildSheet(dt: DetailsCtx): void {
           <div><dt>${t('ID')}</dt><dd><code>${escapeText(ref.id)}</code></dd></div>
           ${tags.length || isUser ? `<div><dt>${t('Tags')}</dt><dd class="cat-details-tags">${tags.map(tag => `<button type="button" class="cat-tag" data-tag="${escapeText(String(tag))}" title="${escapeText(t('Show everything with this tag'))}">${escapeText(String(tag))}</button>`).join('')}${isUser ? `<button type="button" class="cat-tag cat-tag--edit" data-act="edit-tags">${tags.length ? t('Edit…') : t('Add tags…')}</button>` : ''}</dd></div>` : ''}
         </dl>
+        ${dt.rondo.rondoSectionHtml()}
         <div class="cat-details-tech" data-tech hidden></div>
         <div class="cat-details-tech" data-usage hidden></div>
         ${isTextAsset || canOcr || canReadDoc || canReadVector ? `<div class="cat-details-tsig" data-tsig hidden></div>` : ''}
@@ -1550,6 +1551,9 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     const zzUrl = audioEl.dataset.zzfxmUrl;
     const modUrl = audioEl.dataset.modUrl;
     const render = zzUrl ? songUrlToWavBlobUrl(zzUrl) : modUrl ? modUrlToWavBlobUrl(modUrl) : null;
+    // A rondocode song renders the same way, and its section also shows the source
+    // and names any part the render could not play (details-rondo.ts).
+    if (audioEl.dataset.rondoUrl) void dt.rondo.wireRondo(audioEl, note ?? null);
     if (render) {
       void render
         .then((wav) => { if (cat.detailsDialog === dlg) { audioEl.dataset.wavBlob = wav; audioEl.src = wav; } else URL.revokeObjectURL(wav); })

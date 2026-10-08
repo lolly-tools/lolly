@@ -14,6 +14,7 @@ const TEST_ROOTS = [
   'packages/core/test',
   'packages/node-shell/test',
   'packages/docs-render/test',
+  'packages/rondo/test',
   'shells/web/src',
   'shells/tui/src',
   'services/mcp/test',

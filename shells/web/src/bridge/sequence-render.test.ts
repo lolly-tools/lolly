@@ -537,9 +537,17 @@ test('contract: renderFormat folds the sink into the stamp after the render retu
   // the credential: `opts` is the same object, and the fold happens after dispatch.
   const exp = strip(read('./export.ts'));
   const dispatchAt = exp.indexOf('const blob = await renderFormatDispatch(node, format, opts);');
-  const foldAt = exp.indexOf('opts._ingredientSink.filter((i) => !have.has(i.activeLabel))');
-  assert.ok(dispatchAt > 0 && foldAt > dispatchAt, 'the sink is read after the render, not before');
+  const foldAt = exp.indexOf('foldIngredientSinks(opts);');
+  assert.ok(dispatchAt > 0 && foldAt > dispatchAt, 'the sinks are folded after the render, not before');
   assert.match(exp, /if \(opts\.c2pa\) opts\._ingredientSink \?\?= \[\];/, 'and created before it, under c2pa only');
+  const fold = strip(read('./export-shared.ts'));
+  assert.ok(fold.includes('opts._ingredientSink.filter((i) => !have.has(i.activeLabel))'), 'walker bitmaps are deduped by manifest label');
+  // The song ingredients the mix records (plan 301) ride a sink of their own, folded
+  // at the same point, one entry per instanceId.
+  assert.ok(fold.includes('opts._sourceIngredientSink.filter((i) => !i.instanceId || !ids.has(i.instanceId))'), 'songs are listed once per instanceId');
+  assert.match(exp, /if \(opts\.c2pa\) opts\._sourceIngredientSink \?\?= \[\];/, 'and created before it, under c2pa only');
+  const seq = strip(read('./sequence-render.ts'));
+  assert.match(seq, /const songSink = opts\.c2pa \? opts\._sourceIngredientSink : undefined;/, 'the mix records songs only when the export is stamped');
 });
 
 // ── Normalize loudness (plans/101 section 2.5): the mix-level pre-gain ─────────

@@ -23,6 +23,7 @@ export * from './host-v1/layers.ts';
 export * from './host-v1/lift.ts';
 export * from './host-v1/matte.ts';
 export * from './host-v1/media.ts';
+export * from './host-v1/models.ts';
 export * from './host-v1/net.ts';
 export * from './host-v1/ocr.ts';
 export * from './host-v1/pdf.ts';

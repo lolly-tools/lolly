@@ -146,10 +146,27 @@ The enforcement pattern a strict class needs already exists. `strictHostShape` i
 
 Which tools run isolated is decided from evidence rather than from an author's assertion. `scripts/tool-isolation.ts` sets the manifest `isolate` flag only when a static read finds no realm-bound global and a render at defaults is byte-identical in-realm and in a worker. The model keeps that arrangement (R3). A manifest hint is a request. The receiving shell assigns trust independently, and `schemas/tool.schema.json` already says so.
 
+## Rondocode songs, the unfamiliar-media check in practice
+
+The [constitution](constitution.html) keeps unfamiliar media as an extension check rather than a roadmap item (D5). Plan 301 makes that check real with a medium nobody here had built: an audio asset whose sound is computed by its own source code. The source is a rondocode song, from the MIT project at `github.com/vijaypemmaraju/rondocode`, which Lolly vendors at a pinned commit with its own patches (`packages/rondo/UPSTREAM.md`). The declaration is written in the draft shape above as data, `RONDO_EXTENSION` in `packages/rondo/src/extension.ts`, and stays out of `packages/core` until this chapter's fixtures exist.
+
+| Rule in this chapter | How a rondocode song meets the rule |
+|---|---|
+| Declare completely | Namespace `rondocode`; publisher; an immutable version made of the upstream commit and an adapter revision; one record, `RondoSourceV1` at schema version 1; three stages (inspect, evaluate, render); the `vm` class for the song's code; no powers; one output, stereo PCM at 48 kHz up to 600 seconds. |
+| Declare the dependency scope | The asset's own bytes and the length asked for. A song reads nothing else in the document, so no edit elsewhere can invalidate the song. |
+| Report capabilities with limits | The limits are data (`RONDO_LIMITS` in `packages/rondo/src/limits.ts`), and a render outside them is refused by name (`rondo.limits.seconds`). |
+| Never claim an unsupported feature | A part the render cannot play is named with its reason: a sung part without the voice models (`rondo.part.sing`), a live microphone (`rondo.part.mic`), a sample or an instrument model loaded into the editor that does not travel with the song (`rondo.part.sample`, `rondo.part.ddsp`). Silence is never presented as a complete render. |
+| Preserve the bytes | The canonical file is `.rondo.json` (`engine/src/rondo-source.ts`). Rondocode still imports the canonical file, because its import reads `name` and `code` and ignores the other fields, so the record carries a schema version without breaking the round trip. |
+| Grant no trust from publication | The licence and the pinned commit say who wrote the code. The `vm` class decides what the code may do, as [values, expressions, code and time](values-and-time.html) specifies. |
+
+The check also found a context the five classes do not name. The patched rondocode editor, which the `rondocode` utility hosts, has to run a person's code natively for realtime audio, so the editor runs in an opaque-origin frame with no access to the shell's storage, as the Sandbox utility already does. That frame is an enforcement context in its own right, and it is listed as an open point below.
+
 ## Open points
 
 - **Q5, who may publish a suite under the `lolly` namespace, and how a local or Work suite is named.** Default from plan section 16: `lolly/*` suites are published from this repository's CI only. A Work instance publishes under `work:<instance>/*` and a local person publishes under `local/*`. An acceptance record always says which suite it judged. The same namespace discipline governs an extension namespace, which is why the question touches this chapter as well as [conformance and fidelity](conformance.html). Evidence that would change it: a partner programme that needs a shared namespace.
 - **Q6, whether the specification is public from the first draft.** Default from plan section 16: yes, published under `/info/` with the draft notice at the head of every chapter. An open extension model that independent publishers are invited into is hard to review in private. Evidence that would change it: a reason to keep the drafts private until the pilots pass. The [status chapter](status.html) records the answer.
+
+- **The opaque-origin frame as an execution context.** The Sandbox utility (`community/sandbox/template.html`) and the patched rondocode editor run code a person supplies inside a frame with an opaque origin: no access to the shell's storage, cookies or session, and a small message protocol as the only channel back. The frame is not one of the five classes, and the receipt rule (R15) needs a name for the frame. Default: name it as a sixth class, `frame`, with the frame's sandbox flags and message protocol as its stated powers. Evidence that would change the default: a reason to fold the frame into `strict-worker`, whose powers are a proxied host rather than a message protocol. The rondocode utility already records `frame` as the execution class in the Content Credentials of files its editor makes (plan 301), so the default is in use while the question stays open.
 
 Q1 is carried in [conformance and fidelity](conformance.html). Q2 and Q3 are carried in [constraints, authority and local choice](policy.html). Q4 is carried in [operations and outcomes](operations.html).
 
@@ -175,3 +192,6 @@ Q1 is carried in [conformance and fidelity](conformance.html). Q2 and Q3 are car
 - `packages/node-shell/src/lolly-file.ts`
 - `lolly-work/server/src/render/capabilities.ts`
 - `lolly-work/engine-pin.json`
+- `packages/rondo/src/extension.ts`
+- `packages/rondo/src/limits.ts`
+- `engine/src/rondo-source.ts`

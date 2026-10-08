@@ -250,7 +250,9 @@ Subcommands:
   lolly transcribe <clip.wav> [--json]     on-device speech to text, with word timings
                         [--lang=en]        (WAV only here: Node has no mp3/aac codec)
   lolly mix <state|plan.json>              a design timeline's soundtrack, mixed with no
-                        [--out=mix.wav]    browser (WAV/ZzFXM sources; --normalize=-16)
+                        [--out=mix.wav]    browser (WAV/ZzFXM/rondocode sources; --normalize=-16)
+  lolly mix <song.rondo|share link>        one rondocode song to WAV, its code run in the vm
+                        [--seconds=N]      class; silent parts are warnings (--json, --strict)
   lolly upscale <image> [--scale=2|4]      on-device AI enlargement, PNG out
                         [--model=<id>] [--max-edge=N] [--out=big.png] [--models to list]
   lolly matte <image> [--out=cut.png]      on-device background removal (alpha cutout);
@@ -767,10 +769,20 @@ async function main(): Promise<void> {
   if (cmd === 'mix') {
     const { mixCli } = await import('../src/mix.ts');
     const target = Number.parseFloat(flags.normalize ?? '');
+    const seconds = flags.seconds === undefined ? undefined : Number(flags.seconds);
+    if (seconds !== undefined && !(Number.isFinite(seconds) && seconds > 0)) {
+      throw usageError(`--seconds needs a positive number of seconds, not "${flags.seconds}".`, 'BAD_FLAG_VALUE');
+    }
     process.exitCode = await mixCli(positionals[1] ?? '', {
       out: flags.out ?? flags.output, json: g.json,
       ...(Number.isFinite(target) ? { normalize: target } : {}),
+      ...(seconds !== undefined ? { seconds } : {}),
       ...(flags['user-profile'] ? { userProfile: flags['user-profile'] } : {}),
+      // A mix that holds a rondocode song is signed (plan 301); these steer that credential.
+      ...(flags.c2pa !== undefined ? { c2pa: flags.c2pa } : {}),
+      ...(isOn(flags['no-provenance']) ? { noProvenance: true } : {}),
+      ...(flags['sign-key'] ? { signKey: flags['sign-key'] } : {}),
+      ...(flags['sign-cert'] ? { signCert: flags['sign-cert'] } : {}),
     });
     return;
   }

@@ -39,8 +39,11 @@ The bridge to the catalog and the user's local images.
 | `query(filter)` | `Promise<AssetRef[]>` | Search the catalog |
 | `pick(opts)` | `Promise<AssetRef \| null>` | Open the host's picker UI; `null` if cancelled |
 | `isAvailable(id)` | `Promise<boolean>` | Is it cached/usable offline right now |
+| `add(file)` | `Promise<AssetRef>` | Optional, v1.246. Save a file the person made into their Assets; see below |
 
 `AssetQuery` / `AssetPickerOpts`: `type` (`vector`·`raster`·`video`·`audio`·`lottie`·`palette`·`tokens`·`font`), `namespace` (e.g. `suse/logo`), `tags` (AND), `includeDeprecated`; picker adds `title`, `allowUpload`, `current`. For an `asset`-typed input the host generates the picker from your manifest declaration - you usually don't call `pick()` yourself.
+
+`add({ name, bytes, mime? })` saves a file the person made with your tool, such as a render or a song file, into their Assets. It takes the same ingest as an upload: the extension decides the format, and a duplicate of something already in the library is offered back rather than stored twice. Call it only when the person asks to save. The web shell refuses a call on a page nobody has touched (`assets.add.no-gesture`), limits a burst of saves (`assets.add.rate`), and confirms each save with a toast that offers Undo. Feature-detect `host.assets.add` and keep your download as the fallback, because the Node shells have no asset library and leave the method out.
 
 `AssetRef`: `{ source: 'library'|'user'|'remote', id, type, format, url, width?, height?, version?, checksum?, meta? }`. Use `url` in your template via the `asset` helper (`{{asset logo}}`).
 
@@ -264,6 +267,7 @@ The dual of `host.recorder.meter`, which reports the **live** microphone one sam
 |---|---|
 | `isAvailable()` | `boolean` - a decoder exists here. Does **not** promise a given file decodes |
 | `analyse(src, opts?)` | `Promise<AudioAnalysis>` - decode + analyse; rejects on unfetchable bytes or a missing codec |
+| `decode(src, opts?)` | `Promise<AudioDecoded>` - optional, v1.246. PCM for a recorded clip, or the rendered audio of a computed one |
 
 `src` is a URL (including `blob:` / `data:`), an `AssetRef` or raw encoded bytes - the last so a `file` input's in-memory upload can be analysed without being stored first.
 
@@ -279,7 +283,9 @@ Three behaviours worth designing around:
 - `bass` / `mid` / `treb` share **one** scale, so they read as a balance. Normalised separately, a bass-only clip would report treble pinned at 1.0.
 - **`bpm` is `null` when there is no rhythm to find**, and that is the common answer for speech, ambience and pads. Never treat null as 120 - a visual built on a wrong beat grid looks far worse than one built on none.
 
-The shell owns the decoder; the maths is the engine's `analysePcm`, attached rather than reimplemented, so the browser and the terminal read identical numbers off the same clip. What differs is *coverage*: the web shell gets everything `decodeAudioData` supports, while the Node shells (CLI/TUI) decode **WAV** plus our own **ZzFXM** songs and reject anything needing a platform codec by name, rather than shelling out to whatever ffmpeg happens to be on `PATH`.
+The shell owns the decoder; the maths is the engine's `analysePcm`, attached rather than reimplemented, so the browser and the terminal read identical numbers off the same clip. What differs is *coverage*: the web shell gets everything `decodeAudioData` supports, while the Node shells (CLI/TUI) decode **WAV**, our own **ZzFXM** songs and **rondocode** songs (rendered in a `worker_threads` Worker the shell can stop), and reject anything needing a platform codec by name, rather than shelling out to whatever ffmpeg happens to be on `PATH`.
+
+**Computed audio.** `decode` returns `{ sampleRate, channels, seconds, findings, run }`, one `Float32Array` per channel. For a recorded clip that is the decoded file. For audio that is computed rather than recorded, the shell renders the source first: a rondocode song (an asset of format `rondo`, its `.rondo.json` bytes or a `https://rondocode.com/#s=` link), a ZzFXM song or a tracker module. `opts.seconds` sets the length of a computed source; a rondocode song renders exactly that long, or its own arrangement when no length is asked for. A song's code never runs in the tool's realm. The song runs in the `vm` execution class (QuickJS in WebAssembly, `packages/rondo`), and `run` records that class with the renderer's version and seed, so a tool can credit what made the sound. `findings` lists each part the shell could not play and why: a sung part without the voice models, a live microphone, a sample loaded into the editor and not saved with the song. Silence is never passed off as a complete render. Feature-detect `host.audio.decode`, because the method is optional.
 
 ## `host.codec` *(deep image codecs - optional, v1.100)*
 
@@ -475,6 +481,18 @@ Embed a **freshly signed** C2PA manifest into finished bytes. This is not a gene
 |---|---|---|
 | `sign(bytes, format, opts?)` | `Promise<Uint8Array>` | The stamped bytes. `format` is the output format key (`pdf`, `png`, `jpg`, `mp4`, `m4a`, …). Two modes: the default derivative path (no ingredients), and the v1.104 any-media authorship path, which stamps an existing file with the artist's author / copyright / licence and carries manifests already inside it forward as ingredients. **Throws** when the format can't carry a manifest or signing fails - the caller decides whether unsigned bytes may still ship |
 | `readIngredients(bytes)` *(v1.104)* | `Promise<IngredientCredential[]>` | Every manifest a file already carries, packaged ready to pass to `sign({ ingredients })` - the file's own container credential plus element-level credentials nested inside it (today: signed rasters an SVG embeds via `<image href="data:…">`). Read-only and **never throws**: a file with nothing signed resolves to `[]` |
+
+## `host.models` *(model files a tool may read - optional, v1.246)*
+
+Hand a tool the bytes of named files of an on-device model family. This is for a tool that runs a model in a context of its own, where the shell's model store is out of reach: the Rondocode utility's editor frame has an opaque origin, with no IndexedDB and no network of its own, so it asks here for the singing models its songs need. Not a gated capability. Feature-detect `host.models`. The web and desktop shells provide it; the Node shells do not.
+
+| Method | Returns | Notes |
+|---|---|---|
+| `files(family, paths, opts?)` | `Promise<Record<string, Uint8Array> \| null>` | The bytes of each path, keyed as asked. `null` when the person declines the download or an AI policy forbids the family |
+
+The shell decides everything about the download. When a named file is not on the device, it offers the family's download in place first, with the size and the licence facts, and nothing moves until the person says yes. A download made there counts as the Profile download, so Profile shows it as downloaded afterwards. A family tools may not read, or a path that is not one of the family's files, is refused by name: the promise rejects. Each value is the only view of its own `ArrayBuffer`, so the caller can transfer `bytes.buffer` to a frame without a copy.
+
+Only `sing` is readable: rondocode's singing models, named by their path in the family (`rondocode/vec-768.onnx`, `supertonic/onnx/tts.json`, `supertonic/voice_styles/F1.json`). The Profile download is the int8 path with all three voices, about 1.1 GB. The full-size aligner and the full-size Supertonic vector estimator and vocoder are fallbacks: asking for one that is not on the device brings up a consent line of its own, with its size. `runtime/<file>` asks for the onnxruntime-web WebAssembly binary the shell itself runs (`runtime/ort-wasm-simd-threaded.jsep.wasm`), for a frame that cannot load the shell's `/ort/` files. That binary matches the shell's own onnxruntime-web version, so the caller's bundled glue must be the same version. `ModelFilesOpts` takes `reason` (a short phrase the offer shows after "needed for:"), `onProgress` (`{ loaded, total }` for whatever is moving, the download first when one is needed, then the read) and `signal` (an `AbortSignal`; the call rejects with `AbortError` between steps).
 
 ## `host.log`
 

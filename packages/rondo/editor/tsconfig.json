@@ -1,0 +1,15 @@
+{
+  // The editor frame's Lolly code (boot.ts, chrome.ts and the shims) imports
+  // the web shell's own modules, so it is checked with the web shell's
+  // settings. packages/rondo/tsconfig.json checks the pure modules.
+  "extends": "../../../shells/web/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [],
+    "baseUrl": ".",
+    "paths": {
+      "@lolly/engine": ["./engine-color.ts"]
+    }
+  },
+  "include": ["*.ts", "shims/*.ts", "../../../shells/web/src/vendor.d.ts", "../../../shells/web/src/vite-env.d.ts"]
+}

@@ -38,6 +38,8 @@ import type { MatteAPI } from './matte.ts';
 
 import type { MediaAPI } from './media.ts';
 
+import type { ModelsAPI } from './models.ts';
+
 import type { NetAPI } from './net.ts';
 
 import type { OcrAPI } from './ocr.ts';
@@ -534,6 +536,17 @@ export interface HostV1 {
    * key; the bytes are never uploaded.
    */
   c2pa?: C2paAPI;
+
+  /**
+   * The bytes of named files of an on-device model family (v1.246), for a tool
+   * that runs a model in a context of its own and cannot reach the shell's model
+   * store (the Rondocode editor frame, plan 301 phase F). The shell offers the
+   * download in place before any bytes move; a decline or a forbidding AI policy
+   * resolves null, and a family or path tools may not read is refused by name.
+   * Optional/additive and NOT gated by a `capabilities` flag: feature-detect
+   * `host.models`. The Node shells leave `host.models` out.
+   */
+  models?: ModelsAPI;
 
   /** Logging - goes to console in dev, to a log buffer for support diagnostics. */
   log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, ctx?: object) => void;

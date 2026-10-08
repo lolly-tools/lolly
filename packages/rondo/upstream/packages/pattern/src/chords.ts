@@ -1,0 +1,516 @@
+import { Pattern, reify } from './pattern'
+import { TimeSpan, hap, hasOnset } from './types'
+import type { Hap } from './types'
+import { Fraction } from './fraction'
+import { MiniError, miniParse } from './mini'
+import type { Loc } from './mini'
+import { noteNameToMidi } from './scales'
+import type { ControlMap } from './controls'
+
+/* Chord & arpeggiator support: name chords (`chord('<Cmaj7 Am7 Dm7 G7>')`)
+ * instead of hand-stacking notes, and spread a chord's notes over time with
+ * `.arp('up')`. A chord name is root + quality (+ optional /bass); each name
+ * expands to a STACK of note events at the same time. */
+
+/** Chord qualities → semitone intervals from the root. Case matters for the
+ *  M7/m7 shorthand; everything else is matched case-insensitively. */
+const QUALITIES: Record<string, number[]> = {
+  '': [0, 4, 7], // bare root = major
+  maj: [0, 4, 7], major: [0, 4, 7], M: [0, 4, 7],
+  min: [0, 3, 7], m: [0, 3, 7], minor: [0, 3, 7],
+  dim: [0, 3, 6], aug: [0, 4, 8],
+  '5': [0, 7], // power chord
+  '6': [0, 4, 7, 9], m6: [0, 3, 7, 9], min6: [0, 3, 7, 9],
+  '7': [0, 4, 7, 10], dom7: [0, 4, 7, 10],
+  maj7: [0, 4, 7, 11], M7: [0, 4, 7, 11],
+  m7: [0, 3, 7, 10], min7: [0, 3, 7, 10],
+  m7b5: [0, 3, 6, 10], // half-diminished
+  dim7: [0, 3, 6, 9],
+  sus2: [0, 2, 7], sus4: [0, 5, 7], sus: [0, 5, 7], '7sus4': [0, 5, 7, 10],
+  add9: [0, 4, 7, 14], madd9: [0, 3, 7, 14],
+  /* ADDED TONES, KEEPING THE THIRD. `D2` is the pop/worship chart spelling and
+   * it is NOT sus2: a sus chord REPLACES the third, while `D2` keeps it and
+   * adds the 2nd beside it — D E F# A. Written out, the difference is the one
+   * that matters here:
+   *
+   *   Dsus2  [0,2,7]      D  E  A      no third: open, unresolved
+   *   D2     [0,2,4,7]    D  E  F# A   major, with the 2nd rubbing against it
+   *   Dadd9  [0,4,7,14]   D  F# A  E   the same tone an octave up: no rub
+   *
+   * add9 already existed and put the 9th on top, which is a different voicing
+   * of the same idea and does not sound like the chart. So these are their own
+   * entries rather than aliases of anything. */
+  '2': [0, 2, 4, 7], add2: [0, 2, 4, 7],
+  m2: [0, 2, 3, 7], madd2: [0, 2, 3, 7],
+  '4': [0, 4, 5, 7], add4: [0, 4, 5, 7],
+  m4: [0, 3, 5, 7], madd4: [0, 3, 5, 7],
+  add11: [0, 4, 7, 17], madd11: [0, 3, 7, 17],
+  '9': [0, 4, 7, 10, 14], maj9: [0, 4, 7, 11, 14], m9: [0, 3, 7, 10, 14],
+  '11': [0, 4, 7, 10, 14, 17], m11: [0, 3, 7, 10, 14, 17],
+  '13': [0, 4, 7, 10, 14, 21], m13: [0, 3, 7, 10, 14, 21],
+}
+
+/** Every quality name this understands, longest first so a caller listing them
+ *  shows `maj7` before `maj`. The completion list and the docs blurb both used
+ *  to spell their own copy of this and had already drifted — `sus`, `min`,
+ *  `dom7` and `5` all parse but were offered by neither. */
+export const CHORD_QUALITIES: readonly string[] = Object.keys(QUALITIES)
+  .filter((q) => q !== '')
+  .sort((a, b) => b.length - a.length || a.localeCompare(b))
+
+// A trailing number after the root is the QUALITY (C7 = dom7), never an octave —
+// chords sit in a fixed register (root octave 3); transpose with .add() if needed.
+const CHORD_RE = /^([a-gA-G][#b]?)([^/]*)(?:\/([a-gA-G][#b]?))?$/
+
+/** Parse a chord name to its midi notes (low→high), root in octave 3. Supports a
+ *  slash bass (`Cmaj7/E` adds an E below the root). undefined if not a chord. */
+export function parseChord(name: string): number[] | undefined {
+  const m = CHORD_RE.exec(name.trim())
+  if (!m) return undefined
+  const root = noteNameToMidi(m[1]! + '3')
+  if (root === undefined) return undefined
+  const qual = m[2] ?? ''
+  const iv = QUALITIES[qual] ?? QUALITIES[qual.toLowerCase()]
+  if (iv === undefined) return undefined
+  const notes = iv.map((x) => root + x)
+  // slash bass: place the named pitch class below the root
+  if (m[3] !== undefined) {
+    const bass = noteNameToMidi(m[3] + '3')
+    if (bass !== undefined) {
+      let b = bass
+      while (b >= notes[0]!) b -= 12
+      notes.unshift(b)
+    }
+  }
+  return notes
+}
+
+/** `chord('<Cmaj7 Am7>')` — a pattern of named chords, each expanded to a stack
+ *  of note events. Also accepts a Pattern/array of chord-name strings. */
+export function chord(x: string | Pattern<string>): Pattern<ControlMap> {
+  if (typeof x === 'string') {
+    /* '/' is ambiguous here: a slash-bass chord ('C/E', 'Cmaj7/E') spells it,
+     * and the mini parser reads it as the slow combinator. Both are legal and
+     * both are wanted.
+     *
+     * TRY THE CHORD READING FIRST, THEN FALL THROUGH. Committing to the chord
+     * reading on the mere PRESENCE of a '/' — which is what this did — meant
+     * `chord('<Cmaj7 Am7>/2')` was handed whole to parseChord and rejected, so
+     * a chord pattern could not be slowed at all. That is not a small corner:
+     * `<...>/n` is the way to hold a voicing for several cycles, and without
+     * it the only reachable spelling is `dur:`, which does something else
+     * entirely and stacks voices (see voice-stacking.test.ts).
+     *
+     * Slash-bass INSIDE a sequence ('<C/E Am>') stays unreachable — it is
+     * genuinely ambiguous and it did not work before either. */
+    const trimmed = x.trim()
+    if (trimmed.includes('/')) {
+      const notes = parseChord(trimmed)
+      if (notes !== undefined) {
+        const loc: Loc = { start: x.indexOf(trimmed), end: x.indexOf(trimmed) + trimmed.length, src: x }
+        return Pattern.stack(...notes.map((nt) => Pattern.pure<ControlMap>({ note: nt, loc })))
+      }
+      // not one chord name: it is mini notation that happens to contain '/'.
+      // If mini cannot read it either, the user almost certainly meant a
+      // slash-bass chord and deserves to be told that rather than shown a
+      // complaint about the slow combinator's argument.
+      try {
+        return chordPattern(x)
+      } catch {
+        throw new MiniError(`'${trimmed}' is not a chord (e.g. Cmaj7, Am, F#m7, Gsus4, C/E)`, 0, x)
+      }
+    }
+    return chordPattern(x)
+  }
+  return reify(x).outerBind((name: string) => {
+    const notes = parseChord(name)
+    if (notes === undefined) throw new TypeError(`chord(): '${name}' is not a chord name`)
+    return Pattern.stack(...notes.map((nt) => reify<ControlMap>({ note: nt })))
+  })
+}
+
+/** Mini notation whose atoms are all chord names, each expanded to a stack. */
+function chordPattern(x: string): Pattern<ControlMap> {
+  const { pattern, atoms } = miniParse(x)
+  for (const a of atoms) {
+    if (typeof a.value === 'number' || parseChord(a.value) === undefined) {
+      throw new MiniError(`'${a.value}' is not a chord (e.g. Cmaj7, Am, F#m7, Gsus4, C/E)`, a.loc.start, x)
+    }
+  }
+  return new Pattern<ControlMap>((span) =>
+    pattern.query(span).flatMap((h) => {
+      const notes = parseChord(String(h.value.value))!
+      return notes.map((nt) => hap(h.whole, h.part, { note: nt, loc: h.value.loc }))
+    }),
+  )
+}
+
+/** Arp note-index orders for N chord notes (indices into the low→high stack). */
+/** Index order per arp mode, for `n` notes. Exported so a LIVE arpeggiator
+ *  (held notes from a MIDI keyboard) walks the same orders as the pattern
+ *  `.arp()` — two tables would drift, and "updown" meaning two different
+ *  things in one app is exactly the kind of difference nobody reports. */
+export const ARP_ORDERS: Record<string, (n: number) => number[]> = {
+  up: (n) => Array.from({ length: n }, (_, i) => i),
+  down: (n) => Array.from({ length: n }, (_, i) => n - 1 - i),
+  updown: (n) => {
+    const a = Array.from({ length: n }, (_, i) => i)
+    for (let i = n - 2; i > 0; i--) a.push(i)
+    return a.length ? a : [0]
+  },
+  downup: (n) => {
+    const a = Array.from({ length: n }, (_, i) => n - 1 - i)
+    for (let i = 1; i < n - 1; i++) a.push(i)
+    return a.length ? a : [0]
+  },
+  updowninc: (n) => [...Array.from({ length: n }, (_, i) => i), ...Array.from({ length: n }, (_, i) => n - 1 - i)],
+  converge: (n) => {
+    const a: number[] = []
+    let lo = 0
+    let hi = n - 1
+    while (lo <= hi) {
+      a.push(lo)
+      if (lo !== hi) a.push(hi)
+      lo++
+      hi--
+    }
+    return a.length ? a : [0]
+  },
+}
+
+const noteVal = (v: unknown): number =>
+  v !== null && typeof v === 'object' && typeof (v as { note?: unknown }).note === 'number'
+    ? (v as { note: number }).note
+    : 0
+
+/** Copy a hap value with a new `note` (preserves loc/gain/other controls). */
+const withNote = <T>(v: T, note: number): T =>
+  v !== null && typeof v === 'object' ? ({ ...(v as object), note } as T) : ({ note } as unknown as T)
+
+/** Regroup simultaneous note haps (a chord), sort them low→high, and remap their
+ *  note values via `transform` (given the sorted MIDI notes, returns the new
+ *  ones). Non-onset fragments and non-note haps pass through untouched. Shared
+ *  by invert/octave/voicing — the note ORDER returned by transform is irrelevant
+ *  (the notes sound together), only the multiset matters. */
+const revoice = <T>(pat: Pattern<T>, transform: (notes: number[]) => number[]): Pattern<T> =>
+  new Pattern<T>((span) => {
+    const out: Hap<T>[] = []
+    const groups = new Map<string, Hap<T>[]>()
+    for (const h of pat.query(span)) {
+      // Only revoice events that carry a resolved numeric note. A held tail,
+      // or an UNSCALED n() degree (no `note` yet), passes through untouched —
+      // otherwise noteVal reads 0 for every degree and octave/invert/voicing
+      // collapse them all to one pitch. Scale first, then revoice.
+      if (!hasOnset(h) || typeof (h.value as { note?: unknown }).note !== 'number') {
+        out.push(h)
+        continue
+      }
+      const w = h.whole!
+      const key = `${w.begin.toString()}_${w.end.toString()}`
+      let g = groups.get(key)
+      if (!g) {
+        g = []
+        groups.set(key, g)
+      }
+      g.push(h)
+    }
+    for (const g of groups.values()) {
+      g.sort((a, b) => noteVal(a.value) - noteVal(b.value)) // low→high
+      const newNotes = transform(g.map((h) => noteVal(h.value)))
+      for (let i = 0; i < g.length; i++) {
+        const nn = newNotes[i]
+        if (nn === undefined) continue // transform dropped a voice
+        out.push(hap(g[i]!.whole, g[i]!.part, withNote(g[i]!.value, nn)))
+      }
+      // extra voices beyond the input count borrow the lowest hap's controls
+      for (let i = g.length; i < newNotes.length; i++) {
+        out.push(hap(g[0]!.whole, g[0]!.part, withNote(g[0]!.value, newNotes[i]!)))
+      }
+    }
+    return out
+  })
+
+/** Named voicings over a sorted (low→high) chord. */
+const VOICINGS: Record<string, (notes: number[]) => number[]> = {
+  close: (ns) => ns,
+  open: (ns) => ns.map((x, i) => (i === 1 ? x + 12 : x)), // raise the 2nd voice an octave
+  drop2: (ns) => ns.map((x, i) => (i === ns.length - 2 ? x - 12 : x)),
+  drop3: (ns) => ns.map((x, i) => (i === ns.length - 3 ? x - 12 : x)),
+  spread: (ns) => ns.map((x, i) => (i % 2 === 1 ? x + 12 : x)), // alternate voices up an octave
+}
+
+/** Group the onset haps of `haps` into chords (haps sharing a whole), each
+ *  sorted low→high, plus the leftover non-onset tails. */
+const groupChords = <T>(haps: Hap<T>[]): { groups: Hap<T>[][]; tails: Hap<T>[] } => {
+  const map = new Map<string, Hap<T>[]>()
+  const tails: Hap<T>[] = []
+  for (const h of haps) {
+    if (!hasOnset(h)) {
+      tails.push(h)
+      continue
+    }
+    const w = h.whole!
+    const key = `${w.begin.toString()}_${w.end.toString()}`
+    let g = map.get(key)
+    if (!g) {
+      g = []
+      map.set(key, g)
+    }
+    g.push(h)
+  }
+  const groups = [...map.values()]
+  for (const g of groups) g.sort((a, b) => noteVal(a.value) - noteVal(b.value))
+  return { groups, tails }
+}
+
+/** Move each note of `curr` to the octave that brings it closest to some note
+ *  of `ref` — greedy per-voice voice leading toward the reference chord. */
+const leadNotes = (curr: number[], ref: number[]): number[] =>
+  curr.map((c) => {
+    let bestShift = 0
+    let bestDist = Infinity
+    for (const r of ref) {
+      const k = Math.round((r - c) / 12)
+      const d = Math.abs(c + 12 * k - r)
+      if (d < bestDist) {
+        bestDist = d
+        bestShift = 12 * k
+      }
+    }
+    return c + bestShift
+  })
+
+/** Invert a sorted chord by `k` steps: k>0 lifts the lowest voices up octaves
+ *  (wrapping past the chord size), k<0 drops the highest voices down. */
+const invertNotes = (notes: number[], k: number): number[] => {
+  const len = notes.length
+  if (len === 0) return notes
+  if (k >= 0) {
+    const whole = Math.floor(k / len)
+    const rem = k % len
+    return notes.map((x, i) => x + 12 * (whole + (i < rem ? 1 : 0)))
+  }
+  const kk = -k
+  const whole = Math.floor(kk / len)
+  const rem = kk % len
+  return notes.map((x, i) => x - 12 * (whole + (i >= len - rem ? 1 : 0)))
+}
+
+declare module './pattern' {
+  interface Pattern<T> {
+    /** Arpeggiate: spread the notes that sound TOGETHER (a chord) across their
+     *  step, in `mode` order. Modes: up, down, updown, downup, updowninc,
+     *  converge. Best on a `chord(...)` pattern. */
+    arp(this: Pattern<T>, mode?: string): Pattern<T>
+    /** Invert a chord: `k` positive lifts the lowest voices up an octave (1 =
+     *  first inversion), negative drops the highest voices down. Wraps past the
+     *  chord size for multi-octave inversions. */
+    invert(this: Pattern<T>, k: number): Pattern<T>
+    /** Transpose whole chords/notes by `n` octaves (n·12 semitones). */
+    octave(this: Pattern<T>, n: number): Pattern<T>
+    /** Re-space a chord: 'close' (default), 'open' (2nd voice up an octave),
+     *  'drop2'/'drop3' (drop the 2nd/3rd voice from the top an octave), or
+     *  'spread' (alternate voices up an octave). */
+    voicing(this: Pattern<T>, name?: string): Pattern<T>
+    /** Voice-lead a chord progression: nudge each chord's notes to the octaves
+     *  nearest the PREVIOUS chord, so the harmony moves smoothly instead of
+     *  leaping between root positions. `center` (MIDI, default 60) anchors the
+     *  first chord's register. Deterministic. */
+    voiceLead(this: Pattern<T>, center?: number): Pattern<T>
+  }
+}
+
+Pattern.prototype.arp = function <T>(this: Pattern<T>, mode = 'up'): Pattern<T> {
+  const order = ARP_ORDERS[mode] ?? ARP_ORDERS['up']!
+  return new Pattern<T>((span) => {
+    const out: Hap<T>[] = []
+    for (const cyc of span.cycleSpans()) {
+      // Group haps by their WHOLE — haps sharing a whole are one chord. All
+      // whole-carrying haps take part (not just onsets): a partial query
+      // window still sees the chord as clipped fragments whose whole is the
+      // full step, so the subdivision is reconstructed from the WHOLE and
+      // each arp note is clipped back to the window. That keeps scheduler-
+      // shaped partial queries lossless — an arp note's onset appears in
+      // whatever window contains it. Grouping stays per cycle span: a source
+      // that splits queries (cat/alternation) fragments a multi-cycle whole
+      // at cycle lines, and per-cycle grouping keeps those fragments from
+      // piling into one oversized chord group.
+      const groups = new Map<string, Hap<T>[]>()
+      for (const h of this.query(cyc)) {
+        if (h.whole === undefined) {
+          out.push(h) // continuous: nothing to arpeggiate
+          continue
+        }
+        const w = h.whole
+        const key = `${w.begin.toString()}_${w.end.toString()}`
+        let g = groups.get(key)
+        if (!g) {
+          g = []
+          groups.set(key, g)
+        }
+        g.push(h)
+      }
+      for (const g of groups.values()) {
+        g.sort((a, b) => noteVal(a.value) - noteVal(b.value)) // low→high
+        const w = g[0]!.whole!
+        const dur = w.end.sub(w.begin)
+        const idx = order(g.length)
+        const M = idx.length
+        idx.forEach((noteIdx, slot) => {
+          const s = w.begin.add(dur.mul(Fraction.of(slot, M)))
+          const e = w.begin.add(dur.mul(Fraction.of(slot + 1, M)))
+          const whole = new TimeSpan(s, e)
+          const part = whole.intersection(cyc)
+          if (part) out.push(hap(whole, part, g[noteIdx]!.value))
+        })
+      }
+    }
+    return out
+  })
+}
+
+Pattern.prototype.invert = function <T>(this: Pattern<T>, k: number): Pattern<T> {
+  return revoice(this, (notes) => invertNotes(notes, Math.trunc(k)))
+}
+
+Pattern.prototype.octave = function <T>(this: Pattern<T>, n: number): Pattern<T> {
+  const semis = 12 * Math.trunc(n)
+  return revoice(this, (notes) => notes.map((x) => x + semis))
+}
+
+Pattern.prototype.voicing = function <T>(this: Pattern<T>, name = 'close'): Pattern<T> {
+  const fn = VOICINGS[name] ?? VOICINGS['close']!
+  return revoice(this, fn)
+}
+
+/** Cycles to look back for the previous chord (bounds the search; a slower
+ *  progression than this between chords simply anchors to `center`). */
+const VL_LOOKBACK = 4
+
+Pattern.prototype.voiceLead = function <T>(this: Pattern<T>, center = 60): Pattern<T> {
+  return new Pattern<T>((span) => {
+    const { groups, tails } = groupChords(this.query(span))
+    const out: Hap<T>[] = [...tails]
+    for (const g of groups) {
+      const begin = g[0]!.whole!.begin
+      // Reference = the previous chord (root position from the source pattern),
+      // found by looking back a bounded window. Querying `this` (not the
+      // voice-led wrapper) keeps it pure and non-recursive; if there is no
+      // prior chord in range, anchor the register to `center`.
+      const prev = groupChords(this.query(new TimeSpan(begin.sub(VL_LOOKBACK), begin))).groups
+      let ref = [center]
+      let bestBegin: Fraction | null = null
+      for (const pg of prev) {
+        const pb = pg[0]!.whole!.begin
+        if (pb.lt(begin) && (bestBegin === null || pb.gt(bestBegin))) {
+          bestBegin = pb
+          ref = pg.map((h) => noteVal(h.value))
+        }
+      }
+      const led = leadNotes(g.map((h) => noteVal(h.value)), ref)
+      g.forEach((h, i) => out.push(hap(h.whole, h.part, withNote(h.value, led[i]!))))
+    }
+    return out
+  })
+}
+
+/* ---- arpeggiating OVER a chord pattern ----------------------------------- *
+ * The live arpeggiator's pure half. A degree pattern supplies the RHYTHM and
+ * which chord tones sound; a chord pattern supplies the notes. Degrees are
+ * indices into the chord sounding at that moment, lowest note = 0, so one
+ * degree pattern re-voices itself as the harmony moves underneath it.
+ *
+ * Having this as a Pattern combinator (rather than only inside the live MIDI
+ * path) is what makes the arp testable without a keyboard, usable by people
+ * with no controller, and renderable offline — the same reasoning that makes
+ * every other part of this engine measurable. */
+
+declare module './pattern' {
+  interface Pattern<T> {
+    /** Read this pattern's numbers as CHORD DEGREES of `chords`, sounding at
+     *  each event's own time. Degrees past the top of the chord wrap up an
+     *  octave (so a 4-step figure over a triad climbs instead of repeating its
+     *  top note); negatives wrap down. An event with no chord under it is
+     *  dropped — silence is the honest answer to "the third of nothing". */
+    overChord(this: Pattern<T>, chords: Pattern<unknown>): Pattern<T>
+  }
+}
+
+/** Every note sounding across a set of haps, sorted ascending and deduped.
+ *  chord() emits ONE HAP PER CHORD TONE rather than an array, so the chord is
+ *  the whole query result, not the first element of it. */
+const chordNotesOf = (haps: readonly { value: unknown }[]): number[] => {
+  const out = new Set<number>()
+  for (const h of haps) {
+    const v = h.value
+    if (typeof v === 'number') { out.add(v); continue }
+    if (v !== null && typeof v === 'object') {
+      const note = (v as { note?: unknown }).note
+      if (typeof note === 'number') out.add(note)
+      else if (Array.isArray(note)) for (const x of note) if (typeof x === 'number') out.add(x)
+    }
+  }
+  return [...out].sort((a, b) => a - b)
+}
+
+/** The degree a hap carries. n() writes `n`, note() writes `note`, and a bare
+ *  number is itself — all three are legitimate ways to write a step. */
+const degreeOf = (v: unknown): number | null => {
+  if (typeof v === 'number') return v
+  if (v !== null && typeof v === 'object') {
+    const o = v as { n?: unknown; note?: unknown }
+    if (typeof o.n === 'number') return o.n
+    if (typeof o.note === 'number') return o.note
+  }
+  return null
+}
+
+/** Map a degree onto a chord, wrapping octaves. Shared with the live arp so
+ *  the pattern and the keyboard cannot disagree about what degree 3 means. */
+export function chordDegree(notes: readonly number[], degree: number): number | null {
+  const n = notes.length
+  if (n === 0) return null
+  const oct = Math.floor(degree / n)
+  return notes[degree - oct * n]! + oct * 12
+}
+
+Pattern.prototype.overChord = function <T>(this: Pattern<T>, chords: Pattern<unknown>): Pattern<T> {
+  return new Pattern<T>((span) => {
+    const out: Hap<T>[] = []
+    for (const h of this.query(span)) {
+      const deg = degreeOf(h.value)
+      if (deg === null) { out.push(h); continue } // not a degree: pass through
+      // the chord SOUNDING at this event's onset. A zero-width span finds a
+      // held chord whether or not it began inside this query window.
+      const at = h.whole?.begin ?? h.part.begin
+      const chordHaps = chords.query(new TimeSpan(at, at.add(Fraction.of(1, 1000000))))
+      const notes = chordNotesOf(chordHaps)
+      const mapped = chordDegree(notes, Math.round(deg))
+      if (mapped === null) continue // no chord under it: drop rather than guess
+      /* The chord ATOM's source range rides along in `locs`, so an
+       * `overchord: <Am7 F>` line lights each name as its chord takes a
+       * turn — the rule is that anywhere mini-notation is supported, it
+       * lights up. chord() stamps one loc per chord tone; any of them names
+       * the same atom, so the first is enough. */
+      let chordLoc: Loc | undefined
+      for (const ch of chordHaps) {
+        const cv = ch.value
+        if (cv !== null && typeof cv === 'object' && (cv as { loc?: Loc }).loc !== undefined) {
+          chordLoc = (cv as { loc?: Loc }).loc
+          break
+        }
+      }
+      const v = h.value
+      if (typeof v === 'number') {
+        out.push({ ...h, value: mapped as unknown as T })
+        continue
+      }
+      // write `note` and drop `n`: downstream this is a pitch now, not a
+      // scale degree waiting on a .scale()
+      const value = { ...(v as object), note: mapped, n: undefined } as { locs?: Loc[] }
+      if (chordLoc !== undefined) value.locs = [...(value.locs ?? []), chordLoc]
+      out.push({ ...h, value: value as unknown as T })
+    }
+    return out
+  })
+}

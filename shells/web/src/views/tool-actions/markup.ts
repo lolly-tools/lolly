@@ -933,11 +933,13 @@ export function paintBar(ta: ActionsCtx): void {
       ${manifest.status === 'experimental' ? `<p class="export-experimental-note" role="note">${escapeText(t('This tool is experimental, so every export carries a watermark.'))}</p>` : ''}
       ${downloadRow}
       ${secondaryRow}
+      ${actions.includes('download') ? `<div class="export-song-note-slot" data-song-note role="status" hidden></div>` : ''}
       ${actions.includes('download') ? `<p class="export-degraded-note" data-export-degraded role="status" hidden style="margin:.2rem 0 0;color:hsl(var(--muted-foreground));font-size:12px;text-align:center"></p>` : ''}
       ${actions.includes('download') ? `<p class="export-delivery" data-export-delivery role="status" hidden></p>` : ''}
     </div>
   `;
   void ta.notes.fillIngredientNote();
+  void ta.notes.fillSongNote();
 
   // "Your recording" card (audio-capture tools): paints from the shared take
   // registry and repaints when a take arrives or is cleared. Save actions are

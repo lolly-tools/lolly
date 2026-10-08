@@ -206,6 +206,14 @@ export interface ActionsCtx {
   genSeed: number;
   genWavUrl: string | null;
   genWavKey: string;
+  /** The audition WAV of a rondocode song picked as the track (audio.ts trackPreviewUrl). */
+  songWavUrl: string | null;
+  /** The rondocode songs the export sheet last said the next export's credential records (notes.ts). */
+  songNoteNames: string[];
+  /** Bumped per song-note paint, so a slower earlier check never paints over a newer one. */
+  songNoteSeq: number;
+  /** Debounce for the song note after an input change. */
+  songNoteTimer: ReturnType<typeof setTimeout> | null;
   audioPreviewBtn: HTMLButtonElement;
   previewAudio: HTMLAudioElement | null;
   previewSrcId: string | null;

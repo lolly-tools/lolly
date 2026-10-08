@@ -23,7 +23,7 @@ const API_FILE: Record<string, string> = {
   media: 'media', scan: 'scan', lift: 'lift', keyframes: 'keyframes', recorder: 'recorder', audio: 'audio',
   codec: 'codec', layers: 'layers', upscale: 'upscale', matte: 'matte', ocr: 'ocr', speech: 'speech', viz: 'viz',
   color: 'color', images: 'images', raster: 'raster', geom: 'geom', connectors: 'connectors', c2pa: 'c2pa',
-  emoji: 'emoji',
+  emoji: 'emoji', models: 'models',
 };
 const API_INTERFACE: Record<string, string> = {
   profile: 'ProfileAPI', assets: 'AssetsAPI', state: 'StateAPI', clipboard: 'ClipboardAPI', export: 'ExportAPI',
@@ -32,6 +32,7 @@ const API_INTERFACE: Record<string, string> = {
   recorder: 'RecorderAPI', audio: 'AudioAPI', codec: 'CodecAPI', layers: 'LayersAPI', upscale: 'UpscaleAPI',
   matte: 'MatteAPI', ocr: 'OcrAPI', speech: 'SpeechAPI', viz: 'VizAPI', color: 'ColorAPI', images: 'ImagesAPI',
   raster: 'RasterAPI', geom: 'GeomAPI', connectors: 'ConnectorsAPI', c2pa: 'C2paAPI', emoji: 'EmojiAPI',
+  models: 'ModelsAPI',
 };
 
 /** Method names of one interface body, split by optionality, read off the source. */

@@ -13,15 +13,17 @@ import { resolve, basename, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
-import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
+import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
+import { prerenderSongInputs } from '@lolly-tools/node-shell/audio';
 import type { InputValue } from '../../../engine/src/inputs.ts';
 import type { Runtime } from '../../../engine/src/runtime.ts';
 // NODE_FORMATS: the DOM-free/raster format split, shared with the TUI. Everything not
 // in it - raster, pdf, video - is produced by raster.ts (resvg fast path, else the
 // scoped Chromium).
-import { NODE_FORMATS, DEEP_FORMATS, needsFloatScene, pxDims, matchedExportFormat, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
+import { NODE_FORMATS, DEEP_FORMATS, needsFloatScene, nodePathFormat, pxDims, matchedExportFormat, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
 import { wantsNativeHdrStill } from './raster.ts';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 // The enrolled signing identity (key + x5chain) - type only here; the module itself is
@@ -562,6 +564,22 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     try { st = await stat(resolve(process.cwd(), r.id)); } catch { continue; }  // not a local file → catalog
     if (!st.isFile()) continue;
     const abs = resolve(process.cwd(), r.id);
+    // A rondocode song file (plan 301) becomes an audio asset holding its canonical
+    // bytes. Only read here: host.audio renders it, its code in the vm class.
+    if (isRondoFileName(abs)) {
+      let song: ReturnType<typeof rondoFromFile>;
+      try { song = rondoFromFile(new Uint8Array(await readFile(abs)), abs); }
+      catch (e) {
+        if (e instanceof RondoSourceError) throw usageError(`--${input.id}: ${basename(abs)} is not a song this version can read (${e.message})`, 'INPUT_UNREADABLE');
+        throw e;
+      }
+      values[input.id] = {
+        source: 'user', id: basename(abs), type: 'audio', format: RONDO_ASSET_FORMAT,
+        url: `data:application/json;base64,${Buffer.from(rondoSourceBytes(song)).toString('base64')}`,
+        meta: { baked: true, name: song.name, lang: song.lang },
+      } as unknown as InputValue;
+      continue;
+    }
     const mime = mimeForFile(abs);
     const isVec = mime === 'image/svg+xml';
     const bytes = await readFile(abs);
@@ -656,6 +674,11 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${q ? '?' + q : ''}\n`);
     return;
   }
+
+  // A rondocode song in an audio or file input renders before the tool mounts
+  // (plan 301), so a hook that analyses it reads the finished render instead of
+  // racing its own time budget. Its code runs in the vm class either way.
+  await prerenderSongInputs(tool.manifest.inputs ?? [], values as Record<string, unknown>, host);
 
   // Transform-path tools (on-device utilities) produce their output via the
   // exportFile hook (bytes in → bytes out), not by rendering a DOM node. They
@@ -1235,7 +1258,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         // web shell). `usedBrowser` tells us to tear the browser + server down before exit.
         const portableVisual = targetFormat.toLowerCase() !== 'ics' && tool.manifest.render.portable
           || targetFormat.toLowerCase() === 'html' && tool.manifest.id === 'design';
-        const domFree = !sampled && !motionBlur && !sequenceRange && NODE_FORMATS.includes(targetFormat.toLowerCase()) && !portableVisual && !needsFloatScene(tool.manifest.id, values.editingRange, targetFormat, exportOpts.hdr);
+        const domFree = !sampled && !motionBlur && !sequenceRange && nodePathFormat(tool.manifest, targetFormat) && !portableVisual && !needsFloatScene(tool.manifest.id, values.editingRange, targetFormat, exportOpts.hdr);
         // TIER A FOR `pptx`, on a Design document (plan 274 work package 6). Design
         // carries its authored rows in the render, so the deck is lowered straight from
         // them - real slides, placeholder-bound text where a frame names a slide master -
@@ -1396,7 +1419,11 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     if (askedC2pa || askedIdentity) warn(code, message);
     else note(`Note: ${message}`);
   };
-  if (wantC2pa && !webShellExport && C2PA_FORMATS.includes(finalFormat)) {
+  // A tool that signed its own file (the Rondocode utility signs each song render
+  // with what the song is and how it ran) keeps that credential: stamping over it
+  // would replace a specific record with a generic one.
+  const toolSigned = C2PA_FORMATS.includes(finalFormat) && extractC2paStore(new Uint8Array(buf)) !== null;
+  if (wantC2pa && !webShellExport && !toolSigned && C2PA_FORMATS.includes(finalFormat)) {
     // Only the paths that produced their OWN bytes here (DOM-free svg, Tier-A resvg PNG,
     // url-shot capture) stamp in Node. The Tier-B browser tier already stamped via the
     // forwarded ?c2pa param (exportUrl) - re-stamping would double the credential.

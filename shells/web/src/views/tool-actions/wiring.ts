@@ -10,7 +10,7 @@
 import { DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, SEPARATING_FORMATS, VIDEO_CODEC_STRINGS, composeSong, frameFilterApplies, generatedSongSpec, selectFramePage, serializeUrlState } from '@lolly/engine';
 import { announce } from '../../a11y.js';
 import { CENTRE_LOW } from '../../bridge/audio-envelope.ts';
-import { _setExportNoticeSink } from '../../bridge/export.ts';
+import { _exportNotice, _setExportNoticeSink } from '../../bridge/export.ts';
 import { linkHelpDescriptions, wireHelpTips } from '../../components/help-tip.js';
 import { currentLang, t, tRaw } from '../../i18n.ts';
 import { DeliveryResult } from '../../lib/delivery-result.ts';
@@ -34,6 +34,7 @@ import { bumpMetric, recordFormat } from '../../metrics.js';
 import { escape as escapeText } from '../../utils.js';
 import { wireDurableConsent } from '../export-durable-card.ts';
 import { wirePreflight } from '../export-preflight.ts';
+import type { SourceIngredient } from '@lolly-tools/core/host-v1';
 import type { IdentityStatus, RunExportOpts } from '../tool.ts';
 import { addScrubBehavior, captureThumbnail, exportTargetNode } from '../tool-action-helpers.ts';
 import { ZIP_BUNDLE, extFor, fmtLabel, isC2paFmt, isCmykFmt, isPrintFmt } from './shared.ts';
@@ -506,6 +507,12 @@ export function wireC2pa(ta: ActionsCtx): void {
   // promising an ingredient nothing is going to write.
   ta.rights.wireRights();
   c2paEl?.addEventListener('change', () => ta.rights.refreshRights());
+  // The song line under the buttons (plan 301) follows the same three choices that
+  // decide whether a song is recorded: credentials on, a format with sound, the track.
+  const songNote = (): void => { void ta.notes.fillSongNote(); };
+  c2paEl?.addEventListener('change', songNote);
+  formatEl?.addEventListener('change', songNote);
+  el.querySelector<HTMLSelectElement>('[data-action="video-audio"]')?.addEventListener('change', songNote);
   // The declared licence: held on the runtime, which writes it into the export's
   // metadata and records it as the output licence in the source-credit
   // evaluation. The address bar and the saved record read it back from there.
@@ -760,6 +767,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       // tool audio and a mix-in bed can each mint one); revoke them once the export
       // has consumed them (declared out here so the catch can free them too).
       const wavBlobUrls: string[] = [];
+      // The single file this export produced, read back after delivery for what its
+      // credential records about its songs (notes.ts reportSongRecord).
+      let songReadback: Blob | null = null;
       const trackBlobUrl = (url: string): string => {
         wavBlobUrls.push(url);
         return url;
@@ -773,15 +783,49 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // agnostic, and a missing/undownloadable track fails here in the UI
         // instead of mid-record. On-demand tier fetches + caches the bytes.
         let audioOpt: { audio?: NonNullable<RunExportOpts['audio']> } = {};
-        // ZzFXM songs and tracker modules have no playable audio file - render them
-        // to a transient WAV blob URL so the URL-driven muxer paths consume them
-        // exactly like an encoded loop. (mod → libopenmpt, zzfxm → the synth.)
-        const toWavIfNeeded = async (r: { url: string; format?: string }): Promise<string> =>
+        // A rondocode song is code (plan 301): rendered in the `vm` class to a WAV
+        // blob, `seconds` long when the export has a length (a video bed plays the
+        // whole clip instead of looping a short render), else at its own length. What
+        // the render could not play reaches the export card, and a render that fails
+        // fails the export with the reason in plain words.
+        // Each song rendered here becomes one C2PA source ingredient of the file it
+        // sounds in (plan 301), handed to the export through the sink renderFormat
+        // merges. The sheet said so before the click (notes.ts fillSongNote).
+        const songIngredients: SourceIngredient[] = [];
+        const songToWav = async (url: string, seconds?: number): Promise<string> => {
+          const [r, words] = await Promise.all([import('../../lib/rondo-render.ts'), import('../../lib/rondo-words.ts')]);
+          try {
+            const song = await r.songFromUrl(url);
+            const out = await r.renderRondoToWavUrl(song, seconds === undefined ? undefined : r.rondoTargetSec(seconds));
+            for (const f of out.render.findings) _exportNotice(words.rondoFindingSentence(f));
+            try {
+              const prov = await import('../../lib/rondo-provenance.ts');
+              prov.addSongIngredients(songIngredients, [await prov.songIngredient(song, out.render)]);
+            } catch (err) {
+              host.log('warn', `export: the song record for Content Credentials could not be built (${(err as Error)?.message || err}).`);
+            }
+            return trackBlobUrl(out.url);
+          } catch (err) {
+            throw new Error(words.rondoFailureSentence(err));
+          }
+        };
+        // ZzFXM songs, tracker modules and rondocode songs have no playable audio file -
+        // render them to a transient WAV blob URL so the URL-driven muxer paths consume
+        // them exactly like an encoded loop. (mod → libopenmpt, zzfxm → the synth,
+        // rondo → the song renderer.)
+        const toWavIfNeeded = async (r: { url: string; format?: string }, seconds?: number): Promise<string> =>
           r.format === 'zzfxm'
             ? trackBlobUrl(await songUrlToWavBlobUrl(r.url))
             : isModuleFormat(r.format)
               ? trackBlobUrl(await modUrlToWavBlobUrl(r.url))
-              : r.url;
+              : r.format === 'rondo'
+                ? await songToWav(r.url, seconds)
+                : r.url;
+        // The video's own length, which a song bed is rendered to fill.
+        const videoSec = (): number | undefined => {
+          const d = ta.video.videoParams().duration;
+          return Number.isFinite(d) && d > 0 ? d : undefined;
+        };
         if (isAudioFmt(fmt) && hasToolAudioInput) {
           // Audio-only export: the deliverable is the tool's OWN clip from the
           // in-point it draws from, and nothing else. No bed, no gain, no fade -
@@ -817,7 +861,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
                 id: `zzfxm-generated-${ta.genSeed}`,
               };
             }
-            return { url: await toWavIfNeeded(await host.assets.get(audioId)), id: audioId };
+            return { url: await toWavIfNeeded(await host.assets.get(audioId), videoSec()), id: audioId };
           };
           const fadeIn = numCtl('audio-fadein', 0);
           const fadeOut = numCtl('audio-fadeout', 0);
@@ -826,7 +870,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             // (read live - an emptied slot exports silent), the popup's pick is the
             // optional mix-in bed whose centre level sets its gain under the voice.
             const ref = await ta.audio.resolveToolAudio();
-            const toolUrl = ref ? await toWavIfNeeded(ref) : null;
+            const toolUrl = ref ? await toWavIfNeeded(ref, videoSec()) : null;
             const bed = await resolveTrack();
             const level = Math.max(0, Math.min(100, numCtl('audio-tool-level', 100))) / 100;
             const centreSel =
@@ -923,6 +967,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           durationUserSet?: boolean;
           cuts?: number;
           subtitlesVtt?: string;
+          _sourceIngredientSink?: SourceIngredient[];
         } & typeof audioOpt = {
           ...exportDims,
           signal: exportAbort.signal,
@@ -960,6 +1005,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             ? { cuts: ta.sequence.cutsValue() }
             : {}),
           ...audioOpt,
+          // The songs rendered into the soundtrack above; the sequence mix adds the
+          // timeline's own to the same list. Written only when credentials are on.
+          _sourceIngredientSink: songIngredients,
           ...(softCaptionsVtt ? { subtitlesVtt: softCaptionsVtt } : {}), // the embedded caption track (video only)
           ...(isGif
             ? {
@@ -1580,6 +1628,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             downloadedBlob = blob;
             await deliver(blob, `${filename}.${extFor(fmt, blob)}`);
           }
+          songReadback = blob;
         }
         revokeTrackUrls();
         bumpMetric('filesRendered');
@@ -1723,6 +1772,8 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         degradeNote.hidden = false;
       }
       ta.saving.exportCompleted();
+      // Say what the file's credential records about its songs, from its bytes.
+      void ta.notes.reportSongRecord(songReadback).catch(() => {});
       // The host has now read the delivered bytes back, so the row can stop
       // promising and start reporting: `Credits included in this file's metadata.`
       // only once a receipt confirms them, and a failed credential shows its retry
