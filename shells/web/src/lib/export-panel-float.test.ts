@@ -104,6 +104,7 @@ test('docking the export sheet leaves the rest of the sidebar exactly where it w
   try {
     dragToEdge(h.head);
     assert.equal(ED.isDocked('export'), true, 'the sheet took a slot in the column');
+    assert.equal(h.dockBtn.hidden, true, 'a docked panel has no redock action');
     assert.equal(ED.isDocked('inspector'), true, 'and the inspector kept its own');
     assert.equal(ED.dockedFullCount(), 2, 'two full panels: the stacked split, not a swap');
     assert.ok(inspector.closest('.edge-dock-slot'), 'the inspector is still mounted in a slot');

@@ -32,11 +32,25 @@ const {
   lutCreditText, lutCreditParameters,
   extrapolateEstimate, scaledEvenDims, MATTE_MAX_OUTPUT_FRAMES,
   resizeFrameRGBA, makeChromaKeyOp, CHROMA_DEFAULT_KEY, clampMatteLongEdge, MATTE_MAX_INPUT_LONG_EDGE,
+  sourceTrackFps,
   alphaVideoWriter, pickAlphaVideoCodec, MATTE_WEBM_BITRATE,
 } = await import('./video-jobs.ts');
 const { COMPOSITE_SOURCE_TYPE } = await import('@lolly/engine');
 
 type Frame = { data: Uint8ClampedArray; width: number; height: number; timestampUs: number; durationUs: number };
+
+test('source rate detection uses timestamp metrics for rounded clocks and fractional rates', async () => {
+  for (const rate of [24, 25, 30, 30000 / 1001, 60000 / 1001]) {
+    const detected = await sourceTrackFps({
+      computeFrameRateMetrics: async opts => { assert.equal(opts.targetPacketCount, 256); return { bestGuessFrameRate: rate }; },
+      computePacketStats: async () => { throw new Error('biased packet averages must not be read'); },
+    });
+    assert.equal(detected, rate);
+  }
+  assert.equal(await sourceTrackFps({ computeFrameRateMetrics: async () => ({ bestGuessFrameRate: NaN }), computePacketStats: async n => { assert.equal(n, 240); return { averagePacketRate: 25 }; } }), 25);
+  assert.equal(await sourceTrackFps({ computeFrameRateMetrics: async () => { throw new Error('unreadable'); } }), 30);
+  assert.equal(await sourceTrackFps({ computeFrameRateMetrics: async () => ({ bestGuessFrameRate: 120 }) }), 60);
+});
 
 /** A synthetic reader yielding `n` solid-colour frames. */
 function fakeReader(n: number, width = 4, height = 4, fill = 128): {

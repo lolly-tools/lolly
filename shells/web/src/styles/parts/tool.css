@@ -1533,10 +1533,11 @@ span.flatpickr-weekday {
 .tool-inputs > .lp-band-label:first-child { padding-top: 0; }
 
 .input-section {
-  /* A container, not a control: the hairline ring alone draws its edge (the
+  /* A container, not a control: the bevel and a resting drop draw its edge (the
      section owns no border) and the corner is one step larger than the fields
-     inside it, so the group and its controls never read as the same object. */
-  border: 0; box-shadow: var(--ui-edge-faint);
+     inside it, so the group and its controls never read as the same object. An
+     open section lifts to the floating drop just below. */
+  border: 0; box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
   border-radius: var(--ui-radius-card);
   /* Clip content to the rounded corners with `overflow: clip` - NOT clip-path and
      NOT overflow:hidden. `overflow: clip` clips only DESCENDANTS (never the element's
@@ -1551,6 +1552,9 @@ span.flatpickr-weekday {
      stuck at its start value, so the focus-ring border below would never paint.
      The ring switches instantly instead (the box-shadow halo carries the motion). */
   min-width: 0; /* grid item: allow shrink so inner controls can truncate */
+}
+.input-section[open] {
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-floating);
 }
 
 .input-section-summary {
@@ -1625,7 +1629,6 @@ span.flatpickr-weekday {
   gap: var(--sp-4);
   /* On the scale, and on the summary's own 12px gutter above it. */
   padding: var(--sp-7) var(--sp-6) var(--sp-6);
-  border-top: 1px solid hsl(var(--border));
 }
 
 /* Dense sections (opt-in via manifest render.denseSections) - a pro tool with
