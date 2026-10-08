@@ -1060,5 +1060,6 @@
   "Shared folder": "Folder partajat",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Folderele partajate nu au putut fi încărcate sau salvate. Verifică-ți conexiunea și încearcă din nou.",
   "Shared projects could not be loaded. Try again.": "Proiectele partajate nu au putut fi încărcate. Încearcă din nou.",
-  "You can view this project but cannot change its folders.": "Poți vedea acest proiect, dar nu îi poți modifica folderele."
+  "You can view this project but cannot change its folders.": "Poți vedea acest proiect, dar nu îi poți modifica folderele.",
+  "New {name}": "Creează {name}"
 }

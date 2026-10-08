@@ -1054,5 +1054,6 @@
   "Shared folder": "Sdílená složka",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Sdílené složky se nepodařilo načíst ani uložit. Zkontroluj připojení a zkus to znovu.",
   "Shared projects could not be loaded. Try again.": "Sdílené projekty se nepodařilo načíst. Zkus to znovu.",
-  "You can view this project but cannot change its folders.": "Tento projekt si můžeš prohlížet, ale jeho složky měnit nemůžeš."
+  "You can view this project but cannot change its folders.": "Tento projekt si můžeš prohlížet, ale jeho složky měnit nemůžeš.",
+  "New {name}": "Nové: {name}"
 }

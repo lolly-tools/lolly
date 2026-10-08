@@ -687,6 +687,7 @@ stroke-width:.81;
 
 /* Featured view-mode segmented control (Gallery | Cover Flow). */
 .view-seg { display: flex; gap: var(--sp-3) 0; }
+.view-seg[hidden] { display: none; }
 .view-seg-btn {
   flex: 1;
   padding: 7px 10px;
@@ -695,13 +696,21 @@ stroke-width:.81;
   font-weight: 600;
   border: 0;
   box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control) ;
-  border-radius: var(--ui-radius-panel);
+  border-radius: 0;
   cursor: pointer;
   transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback), border-color var(--ui-motion-feedback);
 }
 
-.view-seg-btn:nth-child(1){border-radius: var(--ui-radius-panel) 0 0 var(--ui-radius-panel)}
-.view-seg-btn:nth-child(2){border-radius: 0 var(--ui-radius-panel) var(--ui-radius-panel) 0}
+/* One pill per row, however many segments: only the outer ends round. Logical
+   corners keep the silhouette in RTL, where the first segment sits on the right. */
+.view-seg-btn:first-child {
+  border-start-start-radius: var(--ui-radius-panel);
+  border-end-start-radius: var(--ui-radius-panel);
+}
+.view-seg-btn:last-child {
+  border-start-end-radius: var(--ui-radius-panel);
+  border-end-end-radius: var(--ui-radius-panel);
+}
 
 /* Neutral fill scoped to the UNPRESSED state. The pressed segment's fill comes
    from buttons.css's `.btn--primary` alias (the `primitives` layer). Under cascade
@@ -727,6 +736,7 @@ stroke-width:.81;
    and a large-grid glyph. The glyphs stay muted so the slider reads as the control. */
 .view-options-size { display: flex; align-items: center; gap: var(--sp-4); color: hsl(var(--muted-foreground)); }
 .view-options-size[hidden] { display: none; }
+.filter-pop-sort[hidden] { display: none; }
 .view-options-size > svg { flex: none; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
 .view-options-size > .custom-slider, .view-options-size > .field-range { flex: 1 1 auto; min-width: 0; }
 /* Box, chevron, hover-lift and focus halo come from `.field-select`
@@ -858,16 +868,18 @@ stroke-width:.81;
    raw viewport edge, so a snapped title rests just ABOVE the footer instead of behind
    it - `scroll-padding-bottom` mirrors the gallery's own footer clearance (5.5rem,
    or 8.5rem while the first-visit privacy strip is up), and the title's small
-   `scroll-margin-bottom` is the gap between it and the footer. */
+   `scroll-margin-bottom` is the gap between it and the footer.
+     Grid only (plan 302): a Card row is a short strip, not a screen-sized preview,
+     so snapping its title to the footer would fight an ordinary scroll. */
 @media (max-width: 520px) {
-  html:has(#view.gallery-view) {
+  html:has(#view.gallery-view .tool-masonry:not([data-browse-layout])) {
     scroll-snap-type: y proximity;
     scroll-padding-bottom: calc(6rem + var(--safe-bottom));
   }
-  html:has(#view.gallery-view.has-privacy-notice) {
+  html:has(#view.gallery-view.has-privacy-notice .tool-masonry:not([data-browse-layout])) {
     scroll-padding-bottom: calc(9rem + var(--safe-bottom));
   }
-  #view.gallery-view .gtile-name {
+  #view.gallery-view .tool-masonry:not([data-browse-layout]) .gtile-name {
     scroll-snap-align: end;
     scroll-margin-bottom: var(--grid-gap-tight);   /* tracks the grid's phone gap */
   }
@@ -978,7 +990,7 @@ html[data-a11y-previews="hidden"] .gallery .ftile-iconfill svg { max-width: 52px
    utilities keep the dot at the bottom of their icon-and-caption card. */
 .gtile { container-type: inline-size; }
 .gtile .tile-check { top: calc(75cqw - var(--object-check-size) - 6px); }
-.gtile--utility .tile-check { right: var(--sp-4); left: auto; top: var(--sp-4); }
+.gtile--utility .tile-check { inset-inline-end: var(--sp-4); inset-inline-start: auto; top: var(--sp-4); }
 /* Hidden previews collapse the hero, so use the caption's lower-left corner. */
 html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 /* Long-press opens the context menu on touch - suppress the OS link preview /
@@ -1410,6 +1422,9 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 }
 /* Hide the whole strip in "hide previews" mode, like the demo-preview hero. */
 html[data-a11y-previews="hidden"] .tool-masonry .gcar { display: none; }
+/* Card (plan 302, styles/parts/browse-layout.css): the tool's icon takes the
+   thumbnail slot the hidden strip leaves, so no card is left without a picture. */
+html[data-a11y-previews="hidden"] .tool-masonry[data-browse-layout="card"] .gtile--has-preview .gtile-cap > .tool-card-icon { display: grid; }
 .gtile-hero::after {
   content: '';
   position: absolute;

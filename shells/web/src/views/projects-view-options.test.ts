@@ -120,6 +120,18 @@ test('card size hides in list layout, returns with Grid, and reports each step i
   f.close();
 });
 
+test('density hides in list layout, where Compact has no form yet, and returns with Grid', () => {
+  const f = fixture();
+  f.popover.open();
+  const seg = () => f.panel()!.querySelector<HTMLElement>('[data-be-seg="projects-density"]')!;
+  assert.equal(seg().hidden, true, 'no dead control in List');
+  f.panel()!.querySelector<HTMLElement>('[data-vm="preview"]')!.click();
+  assert.equal(seg().hidden, false, 'Grid brings the segment back');
+  f.panel()!.querySelector<HTMLElement>('[data-vm="list"]')!.click();
+  assert.equal(seg().hidden, true);
+  f.close();
+});
+
 
 test('shared folders retain their own layout and sort without changing other folders', () => {
   const f = fixture();

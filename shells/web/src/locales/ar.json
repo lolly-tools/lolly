@@ -7555,5 +7555,6 @@
   "Shared folder": "مجلد مشترك",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "تعذر تحميل المجلدات المشتركة أو حفظها. تحقق من اتصالك وحاول مرة أخرى.",
   "Shared projects could not be loaded. Try again.": "تعذر تحميل المشاريع المشتركة. حاول مرة أخرى.",
-  "You can view this project but cannot change its folders.": "يمكنك عرض هذا المشروع لكن لا يمكنك تغيير مجلداته."
+  "You can view this project but cannot change its folders.": "يمكنك عرض هذا المشروع لكن لا يمكنك تغيير مجلداته.",
+  "New {name}": "أنشئ {name}"
 }
