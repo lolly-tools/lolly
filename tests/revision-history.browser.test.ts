@@ -6,6 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import type { RevisionEntry } from '../shells/web/src/bridge/revision-history.ts';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)';
@@ -103,7 +104,7 @@ test('Design auto checkpoint, right History tab, and editable file export are wi
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
-    await page.goto(`${origin}/#/tool/design`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/design`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-topbar="history"]').waitFor();
     await page.keyboard.press('Escape');
     const filename = page.locator('[data-topbar="name"]');
@@ -140,7 +141,7 @@ test('Design auto checkpoint, right History tab, and editable file export are wi
     await page.locator('.revision-history-draft').first().waitFor();
     await page.locator('.revision-history-draft strong', { hasText: 'History recovery review' }).waitFor();
     await page.screenshot({ path: shot('build-history-recovery.png') });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-topbar="history"]').waitFor();
     assert.equal(await page.locator('[data-topbar="name"]').inputValue(), 'History recovery review');
     assert.equal(await page.evaluate(() => history.state?.lollyHistory?.slot), slotBeforeReload);

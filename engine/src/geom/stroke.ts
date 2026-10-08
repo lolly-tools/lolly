@@ -73,10 +73,12 @@ import {
   type JoinStyle, type OffsetOptions, distanceToPath, offsetContour, offsetSweep, regionProber,
 } from './offset.ts';
 import { selfUnion } from './boolean.ts';
+import * as pmath from './portable-math.ts';
 
 export type CapStyle = 'butt' | 'round' | 'square';
 
 export interface StrokeOptions {
+  operations?: OffsetOptions['operations'];
   cap?: CapStyle;
   join?: JoinStyle;
   miterLimit?: number;
@@ -101,7 +103,7 @@ export function strokeToPath(p: GeomPath, width: number, opts: StrokeOptions = {
   // SVG's defaults, pinned here rather than left to whatever the offsetter defaults to:
   // this function's job is to reproduce what a renderer would have painted from the
   // same declaration, so the declaration's defaults are part of the contract.
-  const off: OffsetOptions = { join: opts.join ?? 'miter', miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
+  const off: OffsetOptions = { operations: opts.operations, join: opts.join ?? 'miter', miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
 
   const raw: GeomPath = [];
   for (const c of p) {
@@ -126,7 +128,7 @@ export function strokeToPath(p: GeomPath, width: number, opts: StrokeOptions = {
   // Nonzero is not a default being accepted, it is the rule the ring is built for. Under
   // evenodd the band between the two offsets of a closed contour still fills, but every
   // place a stroke crosses itself would punch a hole instead of merging.
-  return keptContours(selfUnion(raw, { fillRule: 'nonzero' }), p, r);
+  return keptContours(selfUnion(raw, { fillRule: 'nonzero', operations: opts.operations }), p, r);
 }
 
 /**
@@ -243,7 +245,7 @@ function offsetSide(c: Contour, distance: number, off: OffsetOptions): Cubic[] {
 function capCurves(from: Pt, to: Pt, dir: Pt, cap: CapStyle): Cubic[] {
   if (cap === 'round') return halfCircle(from, to, dir);
   if (cap === 'square') {
-    const r = Math.hypot(to.x - from.x, to.y - from.y) / 2;
+    const r = pmath.hypot(to.x - from.x, to.y - from.y) / 2;
     const ex = dir.x * r, ey = dir.y * r;
     const a = { x: from.x + ex, y: from.y + ey };
     const b = { x: to.x + ex, y: to.y + ey };
@@ -260,7 +262,7 @@ function capCurves(from: Pt, to: Pt, dir: Pt, cap: CapStyle): Cubic[] {
 function halfCircle(from: Pt, to: Pt, dir: Pt): Cubic[] {
   const cx = (from.x + to.x) / 2, cy = (from.y + to.y) / 2;
   const ux = from.x - cx, uy = from.y - cy;
-  const r = Math.hypot(ux, uy);
+  const r = pmath.hypot(ux, uy);
   if (r < JOIN_EPS) return [lineToCubic(from.x, from.y, to.x, to.y)];
   const ax = ux / r, ay = uy / r;
   // Perpendicular to the cap's diameter. Two of them face opposite ways and both give a
@@ -344,7 +346,7 @@ function dotContour(c: Contour, r: number, cap: CapStyle): Contour | null {
 // ── direction and endpoints ───────────────────────────────────────────────────
 
 function unit(x: number, y: number): Pt | null {
-  const l = Math.hypot(x, y);
+  const l = pmath.hypot(x, y);
   return l < 1e-12 ? null : { x: x / l, y: y / l };
 }
 

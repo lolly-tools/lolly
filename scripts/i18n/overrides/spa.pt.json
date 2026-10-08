@@ -1189,5 +1189,6 @@
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Não foi possível carregar nem salvar as pastas compartilhadas. Verifique sua conexão e tente novamente.",
   "Shared projects could not be loaded. Try again.": "Não foi possível carregar os projetos compartilhados. Tente novamente.",
   "You can view this project but cannot change its folders.": "Você pode ver este projeto, mas não pode alterar as pastas dele.",
-  "New {name}": "Criar {name}"
+  "New {name}": "Criar {name}",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "O Lolly precisa de WebGPU, e os navegadores só oferecem WebGPU em páginas seguras (HTTPS). Esta instância é servida por HTTP sem criptografia. Peça a quem a administra para servi-la por HTTPS."
 }

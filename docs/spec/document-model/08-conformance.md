@@ -116,6 +116,12 @@ The probe establishes the need for complementary checks. It sets no threshold (R
 
 It also does not establish a validated combined comparator or cross-shell conformance (C8). Its region was discovered from the A and B difference, which a fixture must never do (C8). Its fonts were whatever the rasteriser found on one machine, and resvg-js does not report which files it resolved. The raster was composited onto white. The structural similarity is one small implementation. Nobody decoded the QR afterwards, so "nothing lost" in C and D describes the source edit only.
 
+A second measurement, from the drawing compiler's fidelity harness in plan 295 (`tests/design-draw-fidelity.browser.test.ts`), uses declared regions as this chapter requires. It mounts fixture pages through the real Design tool and draws them in Chromium beside the SVG compiled from the same rows. Shapes, paths and effects give zero differing pixels. Live text differs only where runs meet, by a fraction of a pixel (0.49% of a mixed-style text box). Outlined text cannot match pixel for pixel, because the font rasteriser thickens glyph stems that a path fill does not: on macOS Chromium a page of outlined text differs from the browser's text in 5,578 pixels while every word is present and in place. The harness therefore declares one region per laid-out run, taken from the drawing operations and never from the difference, and compares the ink each side adds to the page without its words, and the centroid of that ink. Outlines measured 2.5% to 17.4% less ink with centroids at most 0.60 px apart, and on every run the harness also draws two rejected examples, a missing word and a word moved by 2 px, and fails if its limits let either pass. Those limits come from one machine, one accepted set and two rejected examples, so they are the harness's own and are not yet a number for this specification.
+
+The same harness judges the web shell's DOM walker, today's SVG export, against the same Design pages and the same regions, so the incumbent is a candidate like any other rather than the reference. The walker passes the shapes, paths, effects and text pages, and fails eight regions the drawing operations pass: a picture fitted by `fill` (27% of its region differs) or `none` (47%), because the walker writes no aspect rule for either; a picture whose fitted edge falls between pixels, which Chromium snaps and the walker does not; and a row the frame clips inside its border, which the walker clips at the frame's outer corner instead. A reference renderer is how such faults surface, and an incumbent export cannot be its own reference.
+
+A PDF is drawn by a different rasteriser from the reference. The harness rasterises each PDF page with Poppler at one pixel per CSS pixel and compares the result with the same Design pages and regions. At the Chromium threshold, every curved region differed by about 1% for both the drawing operations and the walker, because Poppler covers an edge pixel differently. For PDF, a pixel therefore counts as different only when nothing within 1 px in the other image matches it, and a half-covered edge pixel may differ by up to 40 levels (the measured worst case was 28). A picture drawn at another size than its own is resampled by the viewer and may differ in 2% of its region (measured: 1.3% for both renderers). The harness proves those allowances still catch a fault: the same page with one rectangle moved by 2 px must fail its region, and does. With these limits the operations' PDF passes every region, and the walker's PDF still fails the clipped rows and the frame picture's corner. The numbers come from one machine and one rasteriser; they are the harness's own, not this specification's.
+
 Thresholds must be calibrated on accepted and rejected examples before any number enters this specification (R9). Masks must be explicit and justified, and human review sets and reviews the bands and must never replace the comparator (R9, plan section 11.2).
 
 ### The output-validation boundary
@@ -129,6 +135,14 @@ An `undetermined` result must never be a pass (R9, C8). `compareSources` in `eng
 PNG alpha, PDF page boxes and colour intent must each have their own checks (C8). A white RGB fixture says nothing about CMYK print conformance, and a suite must never generalise from one to the other (C8).
 
 A run whose text stayed a live `<text>` element rather than an outline must record that in its receipt, and it must never claim font-independent fidelity (R15). [Evaluation and receipts](evaluation.html) specifies the receipt.
+
+### Graphics devices and numerical hosts
+
+The first WebGPU and Rust kernel work (plan 295) supplies evidence for the fuzz band and its limits, added on 2026-10-07. It sets no threshold for any suite.
+
+- GPU output is not a byte-identity claim. WGSL floating-point arithmetic may differ between devices and drivers. LUT grading on WebGPU is checked against a Rust and a TypeScript reference with a bound of one 8-bit code value per colour channel on the admitted corpus, and exactly for alpha, identity tables, constant tables and no-op intensity (`tests/webgpu-lut.browser.test.ts`). A suite that admits a GPU renderer must declare such a band, with exact checks for the cases where exact output is the contract.
+- The reference environment of a suite must state the graphics device: the adapter, the backend and whether it is a software implementation. A pass on SwiftShader is software conformance and must never be presented as a pass on physical hardware.
+- A shell running JavaScript is a numerical host, and engines differ in the last bit of `Math.hypot` and other transcendental functions. In the measured geometry corpus those differences changed raw control points and internal work counts while the serialized SVG stayed equal. A semantic check on the produced artifact therefore stays the deciding check, and a suite must never claim raw floating-point identity across engines for an implementation that reads host maths. The geometry no longer reads host maths: `tests/geom-portable-math.test.ts` pins one digest for the complete geometry workflows and their work counters, and `tests/geometry-portable-math.browser.test.ts` requires Chromium, Firefox and WebKit to reproduce the same digest in the main realm and a worker. That is the shape a numerical suite can take: one checked-in answer that every engine must reproduce exactly.
 
 ## Motion fidelity
 
@@ -212,5 +226,9 @@ The other open questions are carried in other chapters, each with its recommende
 - `shells/web/src/views/penpot-import.ts`
 - `scripts/characterize-export.ts`
 - `tests/docs-shots-vector.test.ts`
+- `tests/webgpu-lut.browser.test.ts`
+- `tests/geom-portable-math.test.ts`
+- `tests/geometry-portable-math.browser.test.ts`
+- `packages/node-shell/wasm/geometry-kernel/`
 - `docs/determinism.md`
 - `docs/agenda.md`

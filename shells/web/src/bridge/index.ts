@@ -745,29 +745,13 @@ export async function createBridge(): Promise<WebHost> {
  * MUST await this first; do not call it directly - go through
  * lib/mount-runtime.ts's createToolRuntime(), which is the enforced chokepoint.
  *
- * Failure is non-fatal by design: both APIs are OPTIONAL in the v1 contract and
- * tools feature-detect them, so a failed import degrades a colour/vector tool to
- * its own fallback rather than blocking the mount.
+ * Default imports retain optional-API failure handling. An explicit geometry
+ * selection must finish loading before the mount continues.
  */
-let toolApiModules: Promise<{ color: HostV1['color']; geom: HostV1['geom']; connectors: HostV1['connectors'] }> | null = null;
-export async function installToolApis(host: HostV1): Promise<void> {
-  // Cache the MODULES, not the install: multi-edit and pro/render-export mount
-  // runtimes against per-mount host CLONES (scoped net, thumb assets), so the
-  // attach step has to run for whichever host object this call was handed.
-  if (!toolApiModules) {
-    toolApiModules = Promise.all([
-      import('../../../../engine/src/color-tools.ts'),
-      import('../../../../engine/src/geom-api.ts'),
-      import('../../../../engine/src/connectors.ts'),
-    ]).then(([c, g, n]) => ({ color: c.makeColorApi(), geom: g.makeGeomApi(), connectors: n.makeConnectorsApi() }));
-  }
-  try {
-    const apis = await toolApiModules;
-    host.color ??= apis.color;
-    host.geom ??= apis.geom;
-    host.connectors ??= apis.connectors;
-  } catch (err) {
-    toolApiModules = null; // let a later mount retry
-    console.warn('[warn] could not install host.color/host.geom/host.connectors', err);
+export async function installToolApis(host: HostV1, options?: Parameters<typeof import('./tool-apis.ts').installToolApis>[1]): Promise<void> {
+  try { await (await import('./tool-apis.ts')).installToolApis(host, options); }
+  catch (error) {
+    if (options?.geometryBackend !== undefined) throw error;
+    host.log('warn', 'Could not install tool capabilities.', { message: error instanceof Error ? error.message : String(error) });
   }
 }

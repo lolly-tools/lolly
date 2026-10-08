@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium, type Page } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_TIMEZONE_TEST_URL;
 const skip = origin ? false : 'LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)';
@@ -65,7 +66,7 @@ test('Timezone table: first visit, keyboard entry, list paste, row actions and r
     const before = await places(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForFunction(() => { const b = document.querySelector('.floatp')!.getBoundingClientRect(); return b.left >= 0 && b.right <= innerWidth + 1 && b.top >= 0 && b.bottom <= innerHeight + 1; });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await reveal(page);
     const content = (rows: any[]) => rows.map(({ __rid, ...row }) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, String(value)])));
     assert.deepEqual(content(await places(page)), content(before));
@@ -89,10 +90,10 @@ test('Timezone table: saved object ids, optional fields and large-list deletion 
     assert.deepEqual((await places(page))[0], before[1]);
     const saved = await places(page);
     await page.evaluate(async locations => { const module = '/src/lib/host-ref.ts'; const host = (await import(module)).getHostRef(); await host.state.save('timezone-table-fixture', { __toolId: 'timezone', locations }); }, saved);
-    await page.goto(origin + '/#/tool/timezone?slot=timezone-table-fixture', { waitUntil: 'networkidle' });
+    await page.goto(origin + '/#/tool/timezone?slot=timezone-table-fixture', { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.waitForFunction(() => JSON.parse(document.querySelector('#tool-canvas .tz-state')?.textContent || '{}').inputs?.locations?.[0]?._id === 'row-1'); await reveal(page);
     assert.deepEqual(await places(page), saved);
-    await page.reload({ waitUntil: 'networkidle' }); await reveal(page);
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page); await reveal(page);
     assert.deepEqual(await places(page), saved);
     // This tool has no automatic-history adapter: newer URL edits win on
     // refresh, while the explicitly saved record stays unchanged.
@@ -104,7 +105,7 @@ test('Timezone table: saved object ids, optional fields and large-list deletion 
     await page.locator('.dg-editor').fill('Noosa, AU');
     await page.locator('.dg-editor').press('Enter');
     await changed(page, 'Noosa, AU');
-    await page.reload({ waitUntil: 'networkidle' }); await reveal(page);
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page); await reveal(page);
     await changed(page, 'Noosa, AU');
     assert.equal(await page.evaluate(async () => { const module = '/src/lib/host-ref.ts'; return (await (await import(module)).getHostRef().state.load('timezone-table-fixture')).locations[0].place; }), 'Europe/London');
     assert.deepEqual(errors, []);

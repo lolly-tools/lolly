@@ -54,6 +54,7 @@ import { runTemplateScripts, waitForQuiescence } from '../lib/render-lifecycle.t
 import { c2paDefaultOn } from '../lib/c2pa-policy.ts';
 import { MOTION_EXPORT_FORMATS } from './folder-rows.ts';
 import { exportTargetNode } from '../lib/export-target.ts';
+import { webGpuChecked } from '../lib/webgpu/device.ts';
 
 async function applySavedEmoji(runtime: Awaited<ReturnType<typeof createRuntime>>, host: HostV1, values: Record<string, InputValue> | undefined): Promise<void> {
   const saved = values?.__emoji;
@@ -344,6 +345,9 @@ type ExportStage = HTMLDivElement & { _lottieCleanup?: () => void };
  *        `dpi` sets raster resolution for physical units.
  */
 export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, settleMs, signal, observeInputs }: RenderRowOpts = {}): Promise<RenderRowResult> {
+  // Off-screen renders (gallery previews among them) run tools on routes that paint
+  // before the WebGPU startup check settles, so they wait for it here (plan 295).
+  await webGpuChecked();
   const tool = await getTool(row.toolId, row.artifactDigest);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);

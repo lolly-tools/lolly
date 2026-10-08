@@ -13,6 +13,8 @@ import { offsetBoxes, replaceBoxes, strokeBoxesToPath } from '../vector-ops.ts';
 import type { BooleanOpName, VectorOpFailure, VectorOpResult } from '../vector-ops.ts';
 import { t } from '../../i18n.ts';
 import type { RunVectorOpts } from './shared.ts';
+import type { GeometryOperations } from '../../../../../engine/src/geom/operations.ts';
+import { withGeometryOperations } from '../../bridge/geometry-host.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /** Fields of a copied row that POINT AT another box, so a deep copy has to repoint them
@@ -205,14 +207,16 @@ export function boolEmptyMessage(_fc: FcCtx, op: BooleanOpName): string | undefi
   return undefined;
 }
 export function runVectorOp(fc: FcCtx, 
-  run: (operands: Box[], id: string) => VectorOpResult,
+  run: (operands: Box[], id: string, operations?: GeometryOperations) => VectorOpResult,
   opts: RunVectorOpts = {}
 ): void {
   const { cfg, vectorCfg } = fc;
   if (!vectorCfg) return;
   const { boxes, operands, ids } = vectorOperands(fc);
   if (!operands.length) return;
-  const res = run(operands, fc.select.freshId(boxes));
+  const id = fc.select.freshId(boxes);
+  // Each operation owns a portable kernel scope once the kernels have loaded; the bits match the reference.
+  const res = withGeometryOperations((operations) => run(operands, id, operations));
   if (!res.ok) {
     fc.stage.flash(vectorFailureMessage(fc, res, opts.empty));
     return;
@@ -278,7 +282,7 @@ export function askOutlineStroke(fc: FcCtx): void {
     step: 0.5,
     confirm: t('Outline'),
     apply: (v) =>
-      runVectorOp(fc, (ops, id) => strokeBoxesToPath(ops, { cfg: vectorCfg, id, width: v }), {
+      runVectorOp(fc, (ops, id, operations) => strokeBoxesToPath(ops, { cfg: vectorCfg, id, width: v, operations }), {
         skipNote: true,
       }),
   });
@@ -296,7 +300,7 @@ export function askOffsetPath(fc: FcCtx): void {
     step: 1,
     confirm: t('Offset'),
     apply: (v) =>
-      runVectorOp(fc, (ops, id) => offsetBoxes(ops, v, { cfg: vectorCfg, id }), {
+      runVectorOp(fc, (ops, id, operations) => offsetBoxes(ops, v, { cfg: vectorCfg, id, operations }), {
         skipNote: true,
         empty: t('Shrinking by that much removes the shape completely. Nothing was changed.'),
       }),

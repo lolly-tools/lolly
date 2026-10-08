@@ -228,10 +228,14 @@ test('the tool count words match the always-on tools the server registers', () =
   assert.ok(read('skills/lolly/reference/surfaces.md').includes(`### The ${n} tools`), `surfaces.md should head its tool table "The ${n} tools"`);
 });
 
-test('every value the barrel exports from a plans/291 W5 engine module is named under ## 1.244.0', () => {
+test('every value the barrel exports from a plans/291 W5 engine module is named under ## 1.244.0 or a later minor', () => {
   const changelog = read('engine/CHANGELOG.md');
-  const section = changelog.split(/^## 1\.244\.0$/m)[1]?.split(/^## /m)[0] ?? '';
+  const [newer = '', rest = ''] = changelog.split(/^## 1\.244\.0$/m);
+  const section = rest.split(/^## /m)[0] ?? '';
   assert.ok(section, 'engine/CHANGELOG.md has no ## 1.244.0 section');
+  // Newer minors sit above 1.244.0; a later export from the same module is named there.
+  const firstMinor = newer.search(/^## /m);
+  const named = section + (firstMinor < 0 ? '' : newer.slice(firstMinor));
   const modules = [...section.matchAll(/^- Add `([\w/-]+\.ts)` \(plans\/291 W5\)/gm)].map((m) => m[1]!);
   assert.ok(modules.length >= 4, `expected the W5 engine modules under 1.244.0, saw ${modules.join(', ') || 'none'}`);
   const barrel = read('engine/src/index.ts');
@@ -239,7 +243,7 @@ test('every value the barrel exports from a plans/291 W5 engine module is named 
     const lines = [...barrel.matchAll(new RegExp(`^export \\{([^}]*)\\} from '\\./${mod.replace(/[.]/g, '\\.')}';`, 'gm'))];
     assert.ok(lines.length, `engine/src/index.ts exports no value from ./${mod}`);
     const names = lines.flatMap((m) => m[1]!.split(',').map((s) => s.trim()).filter((s) => s && !s.startsWith('type ')));
-    for (const name of names) assert.ok(section.includes(`\`${name}\``) || section.includes(`\`${name}(`), `${mod} exports ${name}, which ## 1.244.0 does not name`);
+    for (const name of names) assert.ok(named.includes(`\`${name}\``) || named.includes(`\`${name}(`), `${mod} exports ${name}, which neither ## 1.244.0 nor a later minor names`);
   }
 });
 

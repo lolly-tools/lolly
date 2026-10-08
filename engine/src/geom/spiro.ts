@@ -55,6 +55,7 @@
  */
 import type { Cubic } from './bezier.ts';
 import type { Node } from './spline.ts';
+import * as pmath from './portable-math.ts';
 
 /** Reduce an angle to (−π, π]. */
 function mod2pi(th: number): number {
@@ -87,8 +88,8 @@ function intCosSin(a: number, b: number, c: number, u0: number, u1: number): { x
   for (let i = 0; i < GL_X.length; i++) {
     const u = mid + 2 * half * GL_X[i]!;
     const t = theta(a, b, c, u);
-    x += GL_W[i]! * Math.cos(t);
-    y += GL_W[i]! * Math.sin(t);
+    x += GL_W[i]! * pmath.cos(t);
+    y += GL_W[i]! * pmath.sin(t);
   }
   const len = u1 - u0;
   return { x: x * len, y: y * len };
@@ -110,8 +111,8 @@ function solveClosing(alpha: number, beta: number): { b: number; c: number } {
     for (let i = 0; i < GL_X.length; i++) {
       const u = 0.5 + GL_X[i]!;         // Gauss node mapped to [0,1] (GL_W sums to 1)
       const t = theta(alpha, b, c, u);
-      f += GL_W[i]! * Math.sin(t);                  // ∫₀¹ sin Θ du
-      df += GL_W[i]! * Math.cos(t) * (u * u - u);   // ∫₀¹ cos Θ · ∂Θ/∂c du
+      f += GL_W[i]! * pmath.sin(t);                  // ∫₀¹ sin Θ du
+      df += GL_W[i]! * pmath.cos(t) * (u * u - u);   // ∫₀¹ cos Θ · ∂Θ/∂c du
     }
     if (Math.abs(f) < 1e-12) break;
     if (Math.abs(df) < 1e-12) break;
@@ -127,13 +128,13 @@ function solveClosing(alpha: number, beta: number): { b: number; c: number } {
 interface SegClothoid { alpha: number; b: number; c: number; scale: number; kEntry: number; kExit: number }
 
 function segClothoid(ax: number, ay: number, bx: number, by: number, psiA: number, psiB: number): SegClothoid {
-  const chord = Math.hypot(bx - ax, by - ay);
-  const phi = Math.atan2(by - ay, bx - ax);
+  const chord = pmath.hypot(bx - ax, by - ay);
+  const phi = pmath.atan2(by - ay, bx - ax);
   const alpha = mod2pi(psiA - phi);
   const beta = mod2pi(psiB - phi);
   const { b, c } = solveClosing(alpha, beta);
   const span = intCosSin(alpha, b, c, 0, 1);
-  const scale = chord / (Math.hypot(span.x, span.y) || 1e-12);
+  const scale = chord / (pmath.hypot(span.x, span.y) || 1e-12);
   return { alpha, b, c, scale, kEntry: b / scale, kExit: (b + 2 * c) / scale };
 }
 
@@ -194,8 +195,8 @@ function solveRun(pts: { x: number; y: number }[], wrap: boolean): number[] {
   for (let i = 0; i < nSeg; i++) {
     const a = pts[i]!, b = pts[(i + 1) % m]!;
     const dx = b.x - a.x, dy = b.y - a.y;
-    rawPhi[i] = Math.atan2(dy, dx);
-    len[i] = Math.max(1e-9, Math.hypot(dx, dy));
+    rawPhi[i] = pmath.atan2(dy, dx);
+    len[i] = Math.max(1e-9, pmath.hypot(dx, dy));
   }
   // Turning at each knot (mod-2π). For an open run the first knot has no arriving chord.
   const bend = new Array<number>(m).fill(0);
@@ -318,9 +319,9 @@ function segToCubics(
   ax: number, ay: number, bx: number, by: number, psiA: number, psiB: number,
 ): Cubic[] {
   const dx = bx - ax, dy = by - ay;
-  const chord = Math.hypot(dx, dy);
+  const chord = pmath.hypot(dx, dy);
   if (chord < 1e-12) return [];
-  const phi = Math.atan2(dy, dx);
+  const phi = pmath.atan2(dy, dx);
   const alpha = mod2pi(psiA - phi);   // entry deflection from the chord (forward)
   const beta = mod2pi(psiB - phi);    // exit deflection from the chord (forward)
   const { b, c } = solveClosing(alpha, beta);
@@ -328,9 +329,9 @@ function segToCubics(
   // Chord-frame → world: the clothoid is integrated in a frame whose chord is +x from A;
   // scale so its span reaches the real chord length, and rotate by phi. The perpendicular
   // component closes to ~0 by solveClosing, so the endpoint lands on B.
-  const cosP = Math.cos(phi), sinP = Math.sin(phi);
+  const cosP = pmath.cos(phi), sinP = pmath.sin(phi);
   const span = intCosSin(alpha, b, c, 0, 1);
-  const scale = chord / (Math.hypot(span.x, span.y) || 1e-12);
+  const scale = chord / (pmath.hypot(span.x, span.y) || 1e-12);
   const pos = (u: number): { x: number; y: number } => {
     const d = intCosSin(alpha, b, c, 0, u);
     const sx = scale * d.x, sy = scale * d.y;
@@ -353,11 +354,11 @@ function segToCubics(
     // so joins are G1; curvature continuity comes from sampling the true clothoid finely
     // (ARC_TOL), the same way libspiro's own bezier output does.
     const t0 = tan(u0), t1 = tan(u1);
-    const arm = Math.hypot(p1.x - p0.x, p1.y - p0.y) / 3;
+    const arm = pmath.hypot(p1.x - p0.x, p1.y - p0.y) / 3;
     out.push([
       p0.x, p0.y,
-      p0.x + arm * Math.cos(t0), p0.y + arm * Math.sin(t0),
-      p1.x - arm * Math.cos(t1), p1.y - arm * Math.sin(t1),
+      p0.x + arm * pmath.cos(t0), p0.y + arm * pmath.sin(t0),
+      p1.x - arm * pmath.cos(t1), p1.y - arm * pmath.sin(t1),
       p1.x, p1.y,
     ]);
   };

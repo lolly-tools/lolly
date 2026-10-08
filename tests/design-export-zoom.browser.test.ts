@@ -6,6 +6,7 @@ import test from 'node:test';
 import { unzipSync } from 'fflate';
 import sharp from 'sharp';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 test('carousel PNGs retain lower-page text at different editor zoom levels and restore the view', {
@@ -20,7 +21,7 @@ test('carousel PNGs retain lower-page text at different editor zoom levels and r
     Object.defineProperty(window, 'showSaveFilePicker', { value: undefined });
   });
   try {
-    await page.goto(`${origin}/#/tool/design?template=carousel`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/design?template=carousel`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('#tool-canvas [data-pdf-page]').nth(2).waitFor();
     await page.getByRole('button', { name: 'Export', exact: true }).click();
     await page.locator('[data-action="format"]').selectOption('png', { force: true });

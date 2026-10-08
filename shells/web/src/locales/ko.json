@@ -7683,5 +7683,6 @@
   "Shared folders could not be loaded or saved. Check your connection and try again.": "공유 폴더를 불러오거나 저장하지 못했어요. 연결을 확인한 뒤 다시 시도하세요.",
   "Shared projects could not be loaded. Try again.": "공유 프로젝트를 불러오지 못했어요. 다시 시도하세요.",
   "You can view this project but cannot change its folders.": "이 프로젝트를 볼 수는 있지만 폴더를 변경할 수는 없어요.",
-  "New {name}": "새 {name}"
+  "New {name}": "새 {name}",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly에는 WebGPU가 필요하지만, 브라우저는 보안(HTTPS) 페이지에서만 WebGPU를 제공해요. 이 인스턴스는 암호화되지 않은 HTTP로 제공되고 있어요. 관리자에게 HTTPS로 제공해 달라고 요청하세요."
 }

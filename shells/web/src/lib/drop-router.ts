@@ -1932,7 +1932,10 @@ const ATTACHED = new WeakMap<HTMLElement, () => void>();
  * `.is-file-drag` and a small hint pill (styled by the view's own stylesheet).
  * The shell reuses one #view element across routes, so the attachment tears
  * itself down on any navigation - a tool view can never inherit it. Returns the
- * teardown for callers that want it earlier.
+ * teardown for callers that want it earlier. While attached, the root carries
+ * `data-drop-ready`, and a headless driver that drops a file waits for this attribute
+ * rather than for network idleness, which says nothing about when boot attached the
+ * router: the WebGPU startup check (plan 295) can keep the network quiet for seconds.
  */
 export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: DropChooserHooks = {}): () => void {
   ATTACHED.get(rootEl)?.();
@@ -1990,10 +1993,14 @@ export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: D
     hint?.remove();
     rootEl.classList.remove('is-file-drag');
     NAV_EVENTS.forEach((ev) => window.removeEventListener(ev, teardown));
-    if (ATTACHED.get(rootEl) === teardown) ATTACHED.delete(rootEl);
+    if (ATTACHED.get(rootEl) === teardown) {
+      ATTACHED.delete(rootEl);
+      delete rootEl.dataset.dropReady;
+    }
   };
   NAV_EVENTS.forEach((ev) => window.addEventListener(ev, teardown));
   ATTACHED.set(rootEl, teardown);
+  rootEl.dataset.dropReady = '';
   return teardown;
 }
 

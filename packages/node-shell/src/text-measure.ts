@@ -23,7 +23,7 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createTokenSet, measureDesignText, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS } from '@lolly/engine';
+import { createHostTextShaper, createTokenSet, measureDesignText, sfntVerticalMetrics, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, textMeasureSpecOfRow } from '@lolly/engine';
 import type { TextFontMetricsV1, TextShaperV1 } from '@lolly/engine';
 import type { TextMeasureFontsV1, TextMeasureSpecV1, TextMeasureV1 } from '@lolly-tools/core/text-measure-v1';
 import { contentRoots, contentUrlFile } from './content-roots.ts';
@@ -128,42 +128,7 @@ function fontFile(url: string, root: string): string | null {
 
 const metricsCache = new Map<string, TextFontMetricsV1 | null>();
 
-/**
- * Vertical metrics from an sfnt's head, hhea and OS/2 tables, as Chromium reads
- * them: typo metrics when fsSelection bit 7 (USE_TYPO_METRICS) is set, else hhea,
- * else typo, else the Windows metrics. Null when the file is not an sfnt.
- */
-export function sfntVerticalMetrics(bytes: Uint8Array): TextFontMetricsV1 | null {
-  if (bytes.length < 12) return null;
-  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const tag = dv.getUint32(0);
-  if (tag !== 0x00010000 && tag !== 0x4f54544f && tag !== 0x74727565) return null;
-  const count = dv.getUint16(4);
-  const tables = new Map<string, number>();
-  for (let i = 0; i < count; i++) {
-    const at = 12 + i * 16;
-    if (at + 16 > bytes.length) return null;
-    const name = String.fromCharCode(bytes[at]!, bytes[at + 1]!, bytes[at + 2]!, bytes[at + 3]!);
-    tables.set(name, dv.getUint32(at + 8));
-  }
-  const head = tables.get('head');
-  const hhea = tables.get('hhea');
-  if (head === undefined || hhea === undefined || head + 20 > bytes.length || hhea + 10 > bytes.length) return null;
-  const upem = dv.getUint16(head + 18);
-  const hAscent = dv.getInt16(hhea + 4);
-  const hDescent = dv.getInt16(hhea + 6);
-  const os2 = tables.get('OS/2');
-  if (os2 !== undefined && os2 + 78 <= bytes.length) {
-    const useTypo = (dv.getUint16(os2 + 62) & 0x80) !== 0;
-    const typoAscent = dv.getInt16(os2 + 68);
-    const typoDescent = dv.getInt16(os2 + 70);
-    if (useTypo || (hAscent === 0 && hDescent === 0)) {
-      if (typoAscent || typoDescent) return { upem, ascent: typoAscent, descent: Math.abs(typoDescent) };
-      return { upem, ascent: dv.getUint16(os2 + 74), descent: dv.getUint16(os2 + 76) };
-    }
-  }
-  return { upem, ascent: hAscent, descent: Math.abs(hDescent) };
-}
+export { sfntVerticalMetrics };
 
 function metricsOf(url: string, root: string): TextFontMetricsV1 | undefined {
   const key = `${root}\u0000${url}`;
@@ -180,33 +145,6 @@ function metricsOf(url: string, root: string): TextFontMetricsV1 | undefined {
   return metricsCache.get(key) ?? undefined;
 }
 
-const coverageCache = new Map<string, Promise<ReadonlySet<number>>>();
-
-/** Characters a missing glyph is not a fault for: controls, spaces and default ignorables, which shaping hides. */
-const IGNORABLE = /^[\p{Cc}\p{Zs}\p{Zl}\p{Zp}\p{Default_Ignorable_Code_Point}]$/u;
-
-/** UTF-16 indices of the characters in `text` the face's cmap does not map. */
-function uncoveredIndices(text: string, unicodes: ReadonlySet<number>): number[] {
-  const out: number[] = [];
-  for (let i = 0; i < text.length;) {
-    const cp = text.codePointAt(i)!;
-    const ch = String.fromCodePoint(cp);
-    if (!unicodes.has(cp) && !IGNORABLE.test(ch)) out.push(i);
-    i += ch.length;
-  }
-  return out;
-}
-
-const variationsRecord = (list: readonly string[] | undefined): Record<string, number> | undefined => {
-  if (!list?.length) return undefined;
-  const out: Record<string, number> = {};
-  for (const item of list) {
-    const [tag, value] = item.split('=');
-    if (tag && Number.isFinite(Number(value))) out[tag] = Number(value);
-  }
-  return out;
-};
-
 /**
  * A `TextShaperV1` over HarfBuzz (`createNodeTextAPI`) and the canvas's faces.
  * `onNote` hears each assumption once (an italic run measured upright).
@@ -214,74 +152,18 @@ const variationsRecord = (list: readonly string[] | undefined): Record<string, n
 export function createNodeTextShaper(opts: { repoRoot?: string; onNote?: (note: string) => void } = {}): TextShaperV1 {
   const root = opts.repoRoot ?? defaultRepoRoot();
   const host = createNodeTextAPI({ repoRoot: root });
-  const resolved = new Map<string, Promise<{ url: string; variations?: string[] }>>();
-  const noted = new Set<string>();
-  const note = (text: string): void => {
-    if (noted.has(text)) return;
-    noted.add(text);
-    opts.onNote?.(text);
-  };
-  const resolve = (family: string, weight: number, italic: boolean): Promise<{ url: string; variations?: string[] }> => {
-    const key = `${family}\u0000${weight}\u0000${italic ? 1 : 0}`;
-    let hit = resolved.get(key);
-    if (!hit) {
-      hit = (async () => {
-        const want = normFamily(family);
-        const variable = variableFaces(root).find((f) => f.family === want && f.italic === italic);
-        if (variable) return { url: variable.url, variations: [`wght=${weight}`] };
-        const found = await host.fontUrl?.(family, { weight, italic });
-        if (found) return found;
-        if (italic) {
-          const upright = variableFaces(root).find((f) => f.family === want && !f.italic);
-          const fallback = upright ? { url: upright.url, variations: [`wght=${weight}`] } : await host.fontUrl?.(family, { weight, italic: false });
-          if (fallback) {
-            note(`${family} has no italic face here, so italic text was measured in the upright face, as a browser slants it.`);
-            return fallback;
-          }
-        }
-        throw new TextMeasureError('font.unavailable', `No font file for "${family}" (weight ${weight}${italic ? ', italic' : ''}) was found under this content root; add the family's ttf or otf faces, or measure with another font.`);
-      })();
-      resolved.set(key, hit);
-      hit.catch(() => resolved.delete(key));
-    }
-    return hit;
-  };
-  return async (run) => {
-    const face = await resolve(run.family, run.weight, run.italic);
-    const shaped = await host.toPath({
-      text: run.text,
-      fontUrl: face.url,
-      fontSize: run.size,
-      ...(face.variations ? { variations: face.variations } : {}),
-      ...(run.features.length ? { features: run.features } : {}),
-      letterSpacing: run.tracking,
-      clusters: true,
-      preserveWhitespaceAdvance: true,
-    });
-    const advances = new Array<number>(run.text.length).fill(0);
-    for (const c of shaped.clusters ?? []) if (c.start >= 0 && c.start < advances.length) advances[c.start]! += c.advance;
-    const variations = variationsRecord(face.variations);
-    const metrics = metricsOf(face.url, root);
-    // Shaping drew a missing-glyph box: name the characters the face does not map.
-    let missing: number[] | undefined;
-    if ((shaped.notdef ?? 0) > 0 && host.characters) {
-      const key = `${root}\u0000${face.url}`;
-      let cover = coverageCache.get(key);
-      if (!cover) {
-        cover = host.characters(face.url).then((list) => new Set(list));
-        coverageCache.set(key, cover);
-        cover.catch(() => coverageCache.delete(key));
-      }
-      const found = uncoveredIndices(run.text, await cover);
-      if (found.length) missing = found;
-    }
-    return {
-      advances,
-      total: shaped.advanceWidth,
-      ...(missing ? { missing } : {}),
-      font: { file: face.url, ...(variations ? { variations } : {}), ...(metrics ? { metrics } : {}) },
-    };
-  };
+  return createHostTextShaper({
+    toPath: (o) => host.toPath(o),
+    ...(host.characters ? { characters: (url: string) => host.characters!(url) } : {}),
+    // The content roots' variable faces first, then whatever face file the host knows by name.
+    face: async (family, weight, italic) => {
+      const variable = variableFaces(root).find((f) => f.family === normFamily(family) && f.italic === italic);
+      if (variable) return { url: variable.url, variations: [`wght=${weight}`] };
+      return (await host.fontUrl?.(family, { weight, italic })) ?? null;
+    },
+    metrics: async (url) => metricsOf(url, root),
+    ...(opts.onNote ? { onNote: opts.onNote } : {}),
+  });
 }
 
 /**
@@ -301,6 +183,8 @@ export async function measureTextNode(spec: TextMeasureSpecV1, opts: TextMeasure
 // ─── Design rows ─────────────────────────────────────────────────────────────
 
 type Row = Record<string, unknown>;
+/** The row-to-spec rule now lives in the engine, shared with the DOM-free drawing compiler. */
+export { textMeasureSpecOfRow };
 
 /** The values `boolVal` in the renderer reads as on and off. */
 function boolVal(v: unknown, dflt: boolean): boolean {
@@ -312,48 +196,6 @@ function boolVal(v: unknown, dflt: boolean): boolean {
   return dflt;
 }
 
-/** A stroke colour the renderer would paint (`safeColor`), so the border counts. */
-function paintsStroke(v: unknown): boolean {
-  const s = String(v ?? '').trim();
-  if (!s) return false;
-  return /^#[0-9a-fA-F]{3,8}$/.test(s)
-    || /^(rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)$/i.test(s)
-    || (s.length <= 256 && /^(?:(?:ok)?(?:lab|lch)\([-+0-9.eE%\s/]+\)|color\((?:srgb|srgb-linear|display-p3|rec2020)\s+[-+0-9.eE%\s/]+\))$/i.test(s))
-    || /^[a-zA-Z]+$/.test(s)
-    || /^var\(\s*--[a-zA-Z0-9-]+\s*(,\s*(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|(?:rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)))?\s*\)$/.test(s);
-}
-
-/** A number field read the way the renderer's `num` reads it: `parseFloat`, so `'60px'` is 60. */
-const rowNum = (v: unknown): number => (typeof v === 'number' ? v : parseFloat(String(v)));
-const given = (v: unknown): boolean => v !== undefined && v !== null && v !== '';
-
-/**
- * A Design text row as a measure spec: the row's own fields, read as the renderer
- * reads them, and the renderer's defaults for the rest. A field the renderer cannot
- * read as a number is left out, so the default applies, as on the canvas.
- */
-export function textMeasureSpecOfRow(row: Row, fonts?: TextMeasureFontsV1): TextMeasureSpecV1 {
-  const spec: TextMeasureSpecV1 = { text: String(row.text ?? ''), width: rowNum(row.w) };
-  const numeric = (key: 'height' | 'size' | 'lineHeight' | 'pad' | 'tracking', v: unknown): void => {
-    if (!given(v)) return;
-    const n = rowNum(v);
-    if (Number.isFinite(n)) spec[key] = n;
-  };
-  numeric('height', row.h);
-  if (given(row.font)) spec.font = String(row.font);
-  if (given(row.weight)) spec.weight = row.weight as string | number;
-  numeric('size', row.fontSize);
-  numeric('lineHeight', row.lineHeight);
-  numeric('pad', row.pad);
-  numeric('tracking', row.tracking);
-  if (!boolVal(row.ligatures, true)) spec.ligatures = false;
-  if (boolVal(row.alternates, false)) spec.alternates = true;
-  if (boolVal(row.plainText, false)) spec.plain = true;
-  if (paintsStroke(row.stroke) && rowNum(row.strokeW) > 0) spec.strokeW = rowNum(row.strokeW);
-  spec.valign = row.valign === 'top' || row.valign === 'bottom' || row.valign === 'middle' ? row.valign : 'middle';
-  if (fonts) spec.fonts = fonts;
-  return spec;
-}
 
 export interface MeasureDesignRowsOptions {
   /** Measure only these layers; an id that is not a plain text layer is refused. */
@@ -471,5 +313,4 @@ export async function measureDesignRows(rows: readonly Row[], opts: MeasureDesig
 export function clearTextMeasureCaches(): void {
   variableCache.clear();
   metricsCache.clear();
-  coverageCache.clear();
 }

@@ -28,6 +28,7 @@
 /** A cubic Bézier as its four control points, flattened: [x0,y0, x1,y1, x2,y2, x3,y3].
  *  A tuple rather than an object because these are allocated in tight loops during
  *  subdivision, and the shape is fixed and well known. */
+import * as pmath from './portable-math.ts';
 export type Cubic = [number, number, number, number, number, number, number, number];
 
 export interface Pt { x: number; y: number }
@@ -168,10 +169,10 @@ export function boxesOverlap(a: Box, b: Box, eps = 0): boolean {
  *  curve is exactly a straight line, which lets the intersector take an exact path. */
 export function flatnessCubic(c: Cubic): number {
   const dx = c[6] - c[0], dy = c[7] - c[1];
-  const len = Math.hypot(dx, dy);
+  const len = pmath.hypot(dx, dy);
   if (len < 1e-12) {
     // Degenerate chord: measure from the start point instead, or a loop reads as flat.
-    return Math.max(Math.hypot(c[2] - c[0], c[3] - c[1]), Math.hypot(c[4] - c[0], c[5] - c[1]));
+    return Math.max(pmath.hypot(c[2] - c[0], c[3] - c[1]), pmath.hypot(c[4] - c[0], c[5] - c[1]));
   }
   const d1 = Math.abs((c[2] - c[0]) * dy - (c[3] - c[1]) * dx) / len;
   const d2 = Math.abs((c[4] - c[0]) * dy - (c[5] - c[1]) * dx) / len;
@@ -182,7 +183,7 @@ export function flatnessCubic(c: Cubic): number {
  *  Exact arc length has no closed form for a cubic; this is a bounded approximation
  *  and is documented as one. */
 export function lengthCubic(c: Cubic, tol = 0.01, depth = 0): number {
-  if (depth > 20 || flatnessCubic(c) <= tol) return Math.hypot(c[6] - c[0], c[7] - c[1]);
+  if (depth > 20 || flatnessCubic(c) <= tol) return pmath.hypot(c[6] - c[0], c[7] - c[1]);
   const [a, b] = splitCubic(c, 0.5);
   return lengthCubic(a, tol, depth + 1) + lengthCubic(b, tol, depth + 1);
 }
@@ -464,7 +465,7 @@ export function nearestOnCubic(c: Cubic, px: number, py: number, _samples?: numb
     let t = cand[i]!;
     if (!(t >= 0)) t = 0; else if (t > 1) t = 1;
     const p = evalCubic(c, t);
-    const d2 = (p.x - px) ** 2 + (p.y - py) ** 2;
+    const dx = p.x - px, dy = p.y - py, d2 = dx * dx + dy * dy;
     if (d2 < bestD2) { bestD2 = d2; bestT = t; bestP = p; }
   }
   return { t: bestT, point: bestP, distance: Math.sqrt(bestD2) };

@@ -119,6 +119,7 @@ import { chromeSyncOps } from './free-canvas/chrome-sync.ts';
 import { keysOps } from './free-canvas/keys.ts';
 import { editorStateOps } from './free-canvas/editor-state.ts';
 import { slideMastersOps } from './free-canvas/slide-masters.ts';
+import { preloadGeometryKernels } from '../bridge/geometry-host.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
 
@@ -351,6 +352,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // Design default), so the resolved config is handed over unchanged.
   // Null until the manifest declares `canvas.pathField` - see CanvasCfg.pathField.
   const vectorCfg: VectorFieldConfig | null = cv.pathField ? cfg : null; fc.vectorCfg = vectorCfg;
+  // Vector operations run synchronously; start the portable kernels now so the first one can use them.
+  if (vectorCfg) preloadGeometryKernels();
   // Plan 96's path decorations are DECLARED, not defaulted-into-existence: the field names
   // above default (so the reads are simple), but a tool that never named them in its canvas
   // block has a hooks.js that cannot draw an arrowhead or an authored dash pattern, and

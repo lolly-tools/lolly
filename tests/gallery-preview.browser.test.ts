@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_GALLERY_TEST_URL;
 test('welcome opens the native import picker before loading import handlers', {
@@ -152,7 +153,7 @@ test('gallery renders branded templates, preserves their framing, and invalidate
     for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack', 'lolly-capture-neutral']) localStorage.setItem(key, '1');
   });
   try {
-    await page.goto(`${origin}/#/`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const design = page.locator('.gtile[data-tool-id="design"]');
     await design.locator('.gcar-slide.is-loaded').first().waitFor({ timeout: 60_000 });
     const cover = design.locator('.gcar-img').first();

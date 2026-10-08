@@ -31,6 +31,9 @@ test('MCP includes compressed emoji packs without also forcing raw bundles into 
     'brands/lolly-start/catalog/previews/agenda.json', 'packages/node-shell/wasm/jxl/codec.wasm',
     'packages/node-shell/wasm/adobe-psd/adobe-psd.wasm',
     'packages/node-shell/wasm/adobe-psd/LICENSES.txt',
+    'packages/node-shell/wasm/geometry-kernel/geometry-kernel.wasm',
+    'packages/node-shell/wasm/geometry-kernel/geometry-clip.wasm',
+    'packages/node-shell/wasm/geometry-kernel/geometry-fit-portable.wasm',
     'shells/web/public/fonts/SUSE[wght].ttf',
     'shells/web/public/fonts/SUSEMono[wght].ttf',
   ]) assert.equal(matchesGlob(required, includeFiles), true, required);
