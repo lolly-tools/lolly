@@ -587,3 +587,50 @@ test('a throw DURING construction leaves no timer, no listener and no wrapped se
   assert.equal(l.stage.querySelector('.collab-canvas-layer'), null, 'no overlay layer either');
   assert.equal(l.sidebar.innerHTML, l.sidebarBefore, 'and the sidebar is exactly as it was found');
 });
+
+// ── recovery copies carry the member's workspace id (SEC-13) ──────────────────
+
+test('a recovery copy written in a work room is counted by Sign out for the member who made it', async () => {
+  // A work room's seat (`self.userId`) is the gateway's principal, which the work server
+  // keys by its own user row id. Sign out (org/account-chip.ts) looks copies up by the
+  // member's workspace id (`OrgUser.sub`), which the room publishes as `self.account`.
+  // Tagged with the seat id, the copy was never found and the offer never appeared.
+  const { retainCanvasRecovery } = await import('../lib/canvas-recovery.ts');
+  const { accountRecoveryCopies } = await import('../org/account-chip.ts');
+  const { recoveryOwner } = await import('../lib/collab-recovery-owner.ts');
+  const saved = new Map<string, object>();
+  const state = {
+    load: async (slot: string) => saved.get(slot) ?? null,
+    save: async (slot: string, value: object) => { saved.set(slot, value); },
+    delete: async (slot: string) => { saved.delete(slot); },
+    list: async () => [...saved.keys()].map(slot => ({ slot, toolId: 'qr-code', toolVersion: '1', updatedAt: new Date().toISOString() })),
+  };
+  const l = layout(), clock = fakeClock(), runtime = fakeRuntime();
+  const transport = fakeHandle({ self: { clientId: 'ME', userId: 'usr_8f3a', account: 'u_ana', name: 'Ana' } });
+  const collab = await mountToolCollab({
+    handle: transport.handle,
+    runtime,
+    toolManifest: { id: 'qr-code' },
+    host: null,
+    libraryHost: { state } as never,
+    stage: l.stage,
+    canvas: l.canvas,
+    sidebar: l.sidebar,
+    colors: [{ hex: '#aa0000', oklch: { l: 0.7, c: 0.12, h: 20 } }] as never,
+    now: clock.now,
+    setTimer: clock.setTimer,
+    clearTimer: clock.clearTimer,
+    raf: (fn) => { fn(); },
+  });
+  try {
+    retainCanvasRecovery(runtime, { headline: 'interrupted' }, 'Interrupted text', 'draft-sec13');
+    for (let i = 0; i < 40 && !saved.has('collab-recovery:draft-sec13'); i++) await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(recoveryOwner(saved.get('collab-recovery:draft-sec13'))?.account, 'u_ana', 'tagged with the member, not the seat');
+    const origin = dom.window.location.origin;
+    assert.deepEqual((await accountRecoveryCopies(state, origin, 'u_ana')).map(c => c.slot), ['collab-recovery:draft-sec13'],
+      'Sign out finds the copy for the member who made it');
+    assert.deepEqual(await accountRecoveryCopies(state, origin, 'usr_8f3a'), [], 'and not under the seat id');
+  } finally {
+    collab.teardown();
+  }
+});

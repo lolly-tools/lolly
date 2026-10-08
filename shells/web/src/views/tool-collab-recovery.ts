@@ -1,34 +1,25 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { subscribeCanvasRecovery } from '../lib/canvas-recovery.ts';
+import { RECOVERY_OWNER_KEY, RECOVERY_SLOT_PREFIX, recoveryOrigin, recoveryOwner, withoutRecoveryOwner } from '../lib/collab-recovery-owner.ts';
+import type { RecoveryOwner } from '../lib/collab-recovery-owner.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { navigateHistoryHref } from '../lib/history-navigation.ts';
 import { configureNotifications, dismissNotification, notificationEntries, notificationsChanged, publishNotification, registerNotificationSource } from '../lib/notifications.ts';
 import type { ShellNotification } from '../lib/notifications.ts';
 import { tRaw } from '../i18n.ts';
 
-/** Library slot prefix of an interrupted-edit copy; the rest of the slot is the draft id. */
-export const RECOVERY_SLOT_PREFIX = 'collab-recovery:';
 /** A copy is removed from this device once it is older than this. */
 export const RECOVERY_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
-/**
- * The key under which each copy records who it belongs to: the workspace it came from,
- * the account that made the edit ('' in a private pairing) and when it was written. A
- * save from the tool rewrites the slot without this key, so work the person has since
- * saved as their own is never listed here or removed by the age limit.
+/*
+ * Each copy records who it belongs to under RECOVERY_OWNER_KEY (lib/collab-recovery-owner.ts,
+ * the one reader and writer of that tag): the workspace it came from, the account that
+ * made the edit (the member's workspace id, '' in a private pairing) and when it was
+ * written. A save from the tool rewrites the slot without this key, so work the person
+ * has since saved as their own is never listed here or removed by the age limit.
  */
-export const RECOVERY_OWNER_KEY = '__collabRecovery';
-export interface RecoveryOwner { origin: string; account: string; at: string }
 type CopyData = Record<string, unknown>;
 const TOOL_ID = /^[a-z0-9](?:[a-z0-9-]{0,126}[a-z0-9])?$/;
-
-export function recoveryOwner(data: unknown): RecoveryOwner | null {
-  const value = data && typeof data === 'object' ? (data as CopyData)[RECOVERY_OWNER_KEY] : undefined;
-  if (!value || typeof value !== 'object') return null;
-  const { origin, account, at } = value as CopyData;
-  return typeof origin === 'string' && typeof account === 'string' && typeof at === 'string' && Number.isFinite(Date.parse(at))
-    ? { origin, account, at } : null;
-}
 const openableTool = (data: CopyData): string | null =>
   typeof data.__toolId === 'string' && TOOL_ID.test(data.__toolId) ? data.__toolId : null;
 
@@ -43,11 +34,11 @@ let tabScope: (() => Scope) | null = null;
 const dismissWatchers = new Set<(slot: string) => void>();
 const ownedHere = (data: unknown): data is CopyData => {
   const owner = recoveryOwner(data), here = tabScope?.();
-  return !!owner && !!here && owner.origin === here.origin && owner.account === here.account
+  return !!owner && !!here && recoveryOrigin(owner.origin) === here.origin && owner.account === here.account
     && Date.now() - Date.parse(owner.at) <= RECOVERY_MAX_AGE_MS;
 };
 function deliverCopy(host: HostV1 | null | undefined, data: CopyData): Promise<void> {
-  const blob = new Blob([JSON.stringify(Object.fromEntries(Object.entries(data).filter(([key]) => key !== RECOVERY_OWNER_KEY)), null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(withoutRecoveryOwner(data), null, 2)], { type: 'application/json' });
   return host?.export?.download ? host.export.download(blob, 'lolly-recovery.json')
     : import('../bridge/export.ts').then(({ anchorSave }) => anchorSave(blob, 'lolly-recovery.json'));
 }
@@ -84,7 +75,8 @@ export function _resetRecoveryCopiesForTests(): void {
  * A new Library slot keeps interrupted work separate from the room and earlier saves.
  * The notice stays until the person dismisses it, and the account's copies stay in the
  * notification queue, after the document closes too, with Open and Download. `account`
- * reads the signed-in account of the live room; another account's or workspace's copies
+ * reads the member's workspace id in the live room (`self.account`, the same id Sign out
+ * looks copies up by); another account's or workspace's copies
  * are never listed or opened, and copies older than 30 days are removed.
  */
 export function mountCollabRecovery(runtime: object, host: HostV1 | null | undefined, parent: HTMLElement,
@@ -103,13 +95,13 @@ export function mountCollabRecovery(runtime: object, host: HostV1 | null | undef
   let retry: ReturnType<typeof setTimeout> | undefined;
   /** Notices for copies that could not be saved: they live as long as this document. */
   const notices = new Map<string, () => void>();
-  const scope = (): Scope => ({ origin: getInstanceBase() || win?.location.origin || '', account: account() ?? '' });
+  const scope = (): Scope => ({ origin: recoveryOrigin(getInstanceBase() || win?.location.origin || ''), account: account() ?? '' });
   // This document's account decides which copies the queue lists, from now on.
   tabScope = scope;
   registerNotificationSource('collab-recovery', readListed);
   const owns = (data: unknown): data is CopyData => {
     const owner = recoveryOwner(data), here = scope();
-    return !!owner && owner.origin === here.origin && owner.account === here.account;
+    return !!owner && recoveryOrigin(owner.origin) === here.origin && owner.account === here.account;
   };
   const shown = (id: string): boolean => !!latest && (id === latest.slot || id === `${latest.slot}:unsaved`);
   const watch = (slot: string): void => { if (shown(slot)) root.hidden = true; };

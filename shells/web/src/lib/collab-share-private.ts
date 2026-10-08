@@ -8,12 +8,15 @@
  * Registers into the generic lib/share-sections.ts seam once, as a side effect of
  * being imported - main.ts imports this module for exactly that effect (see its
  * boot sequence, right beside the other one-shot install*()/hydrate*() calls).
- * Unlike org/collab-share.ts's registration (routed through org/index.ts's async
- * initOrg(), because it depends on a control-plane probe that may never resolve),
- * this section needs no such gate: it self-registers unconditionally, and the
+ * It needs no control-plane gate: it self-registers unconditionally, and the
  * builder itself decides on every dialog open whether it has anything to show.
  * The registry starts empty (lib/share-sections.ts), so this import is what turns
  * the row on at all - nothing else in the boot path depends on its load order.
+ *
+ * It is the dialog's one "Start a collab" (plan 75 G10). A workspace's "Work collab"
+ * row used to offer a second one beside it; org/index.ts no longer registers that row,
+ * because a team document joins its live collab when it opens
+ * (org/collab-auto-join.ts) and the live collab's pill carries the invite.
  *
  * Two independent gates, both required, checked fresh on every dialog open. Since
  * plans/108 Phase 1 the pair is asked ONCE, through `lib/collab-availability.ts`
@@ -33,9 +36,8 @@
  *
  * Row copy follows plans/100 section 0's naming: "Private collab" heading, "Start a
  * collab" verb - never "rooms"/"multiplayer". `announce()` on a successful open,
- * exactly like org/share-links.ts's rows and org/collab-share.ts's "Work collab"
- * row; a missing/throwing opener degrades to silence (openCollabLaunch's own
- * tolerance - see lib/collab-launch.ts).
+ * exactly like org/share-links.ts's rows; a missing/throwing opener degrades to
+ * silence (openCollabLaunch's own tolerance - see lib/collab-launch.ts).
  */
 
 import { registerShareSection } from './share-sections.ts';
@@ -52,9 +54,10 @@ import { announce } from '../a11y.ts';
 // step with `rendezvousKinds()` in lib/collab-rendezvous.ts by hand (4 entries).
 const RENDEZVOUS_KINDS = ['s3', 'webdav', 'gdrive', 'dropbox'] as const;
 
-/** The dialog's live mount, as the availability seam names it: a session of a tool,
- *  seeded from the state the dialog serialised. No control-plane `sessionId` - that is
- *  the Work-collab row's business (`org/collab-share.ts`), and this row is Track A. */
+/** The dialog's live mount, as the availability seam calls it: a session of a tool,
+ *  seeded from the state the dialog serialised. No control-plane `sessionId`: a work
+ *  collab is joined when a team document opens (`org/collab-auto-join.ts`), and this
+ *  row is Track A. */
 function targetOf(ctx: ShareSectionContext): CollabTarget {
   return { kind: 'session', toolId: ctx.toolId, baseParts: ctx.baseParts, currentFormat: ctx.currentFormat };
 }

@@ -450,7 +450,9 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
       return { state, ...(manifest?.name ? { label: manifest.name } : {}) };
     };
 
-    const recoveryView = mountCollabRecovery(runtime, opts.libraryHost ?? opts.host, stage, currentSession, () => handle.self.userId);
+    // Recovery copies are tagged with the member's workspace id (`self.account`, the
+    // org principal), not the room seat's `userId`: Sign out finds them by that id.
+    const recoveryView = mountCollabRecovery(runtime, opts.libraryHost ?? opts.host, stage, currentSession, () => handle.self.account);
     steps.unshift(() => recoveryView.teardown());
     if (handle.recoveryIn) steps.unshift(handle.recoveryIn.subscribe(copy => {
       retainCanvasRecovery(runtime, canvasRecoveryValues(runtime.getModel(), copy.ops), 'Recovered edit', copy.id);

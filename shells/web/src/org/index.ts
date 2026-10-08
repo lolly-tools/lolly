@@ -298,15 +298,14 @@ let unregisterNearbySource: (() => void) | null = null;
  *  rather than stacks the registration. Null whenever the instance does not grant
  *  `collab.join` - which is every instance until the server ships the bits. */
 let unregisterCollabFactory: (() => void) | null = null;
-/** Unregister for the Share-dialog "Work collab" section (plan 100 section 7 item 9,
- *  wave 3.1), so a re-init replaces rather than stacks the registration onto the
- *  generic share-sections registry - same reasoning as unregisterShareSection
- *  above, kept as its own handle because the two sections are independent rows. */
-let unregisterCollabShareSection: (() => void) | null = null;
-/** Unregister for the `'work'` collab opener (plan 100 section 7 item 9, wave 3.3) - the
- *  thing that makes the Share row above render at all, since the row is gated on an
- *  opener existing. Same last-wins reasoning as the handles above. */
+/** Unregister for the `'work'` collab opener (plan 100 section 7 item 9, wave 3.3), the
+ *  automatic joining that uses it and the presence pill's "Invite to edit now". Same
+ *  last-wins reasoning as the handles above. */
 let unregisterCollabOpener: (() => void) | null = null;
+/** Unregister for the header's account chip (org/account-chip.ts through the neutral
+ *  lib/account-slot.ts seam): a member's chip, or Sign in for a visitor on an open
+ *  workspace. Null on a dormant shell, which shows no chip at all. */
+let unregisterAccountChip: (() => void) | null = null;
 /** Unregister for the input-policy tool-mount hook (applyOrgToolPolicies), so a
  *  re-init replaces rather than stacks it. Null on a dormant instance: the hook is
  *  registered only on the member branch, so an ungoverned shell's mount path never
@@ -381,6 +380,19 @@ export { orgFlagGovernance } from './governance.ts';
 export function orgAdminHref(): string | null {
   const role = session?.kind === 'member' ? session.user.role : undefined;
   return role === 'admin' || role === 'owner' ? '/admin' : null;
+}
+
+/**
+ * The same console as {@link orgAdminHref}, as an absolute address on the workspace:
+ * what the account chip links to. A root-relative '/admin' resolves against the page,
+ * which in the apps is the app's own origin, not the workspace; this one opens the
+ * workspace's console from anywhere. Null for everyone orgAdminHref gives null.
+ */
+export function orgConsoleUrl(): string | null {
+  const href = orgAdminHref();
+  if (!href) return null;
+  if (getInstanceBase()) return instancePath(href);
+  try { return new URL(href, location.origin).href; } catch { return null; }
 }
 
 /**
@@ -504,10 +516,21 @@ async function fetchSession(): Promise<Session | null> {
  * it), the install tag and this module's session and config. The install id stays: it
  * identifies the device, not the person, and only Leave forgets it
  * (lib/instance-leave.ts).
+ *
+ * A 401 means the session had already ended (it was revoked from another device, or
+ * ran out): this device is signed out either way, so it forgets the member and the
+ * sign-out counts as done.
  */
 export async function signOutOfInstance(): Promise<boolean> {
   const res = await safeFetch('/api/auth/logout', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
-  if (!res?.ok) return false;
+  if (!res?.ok && res?.status !== 401) return false;
+  await forgetMemberHere();
+  return true;
+}
+
+/** What a sign-out forgets on this device (see signOutOfInstance), once the instance has
+ *  ended the session: the team-document origins first (plan 75 G17), then the member. */
+async function forgetMemberHere(): Promise<void> {
   await forgetTeamOrigins();
   try { localStorage.removeItem(orgConfigKey()); } catch { /* storage unavailable - the copy expires on its TTL */ }
   try { localStorage.setItem(signedOutKey(), '1'); } catch { /* storage unavailable - the gate's plain link */ }
@@ -516,7 +539,25 @@ export async function signOutOfInstance(): Promise<boolean> {
   session = null;
   orgConfigState = null;
   orgConfigEtag = null;
-  return true;
+}
+
+/**
+ * Sign the member out on every device (`POST /api/v1/me/revoke-sessions`): the instance
+ * ends every session this account holds, this browser's included, and clears this
+ * browser's cookie. On success this device forgets the member the same way a sign-out
+ * does. A 401 means this session had already ended (revoked from another device, or run
+ * out): nothing is left to end from here, so this device forgets the member all the
+ * same and it counts as done. Resolves 'unsupported' when the instance has no such route
+ * (an older instance answers 404 or 405), 'failed' on another refusal (a rate limit
+ * included), a network error or the time box, having changed nothing here.
+ */
+export async function signOutEverywhere(): Promise<'ok' | 'unsupported' | 'failed'> {
+  const res = await safeFetch('/api/v1/me/revoke-sessions', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
+  if (!res) return 'failed';
+  if (res.status === 404 || res.status === 405) return 'unsupported';
+  if (!res.ok && res.status !== 401) return 'failed';
+  await forgetMemberHere();
+  return 'ok';
 }
 
 /**
@@ -798,20 +839,15 @@ function loginUrl(loginPath: string): string {
 function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   const view = document.getElementById('view');
   if (!view) return false;
-  if (!auth.loginPath) return false; // gated but no way in - misconfigured; let boot proceed
   // loginPath comes from the control plane's /api/auth/config, and instancePath
   // passes a non-http(s) value straight through when there is no instance base - 
   // so a javascript: loginPath would otherwise reach an href. Same guard, same
   // reasoning as banner.ts/chrome.ts: escaping is not scheme validation.
   //
-  // A rejected href must NOT abandon the gate. Returning false here would mean
-  // "no gate was rendered", and the caller then lets boot proceed - turning a
-  // hostile loginPath into an authentication BYPASS on a gated instance, which is
-  // far worse than the XSS the guard exists to stop. So the gate still renders and
-  // still blocks; only the button is dropped, exactly as chrome.ts drops a link
-  // and keeps its text.
-  const href = loginUrl(auth.loginPath);
-  const linkSafe = safeHref(href);
+  // An absent or rejected href keeps the gate and replaces its link with an
+  // explanation. The caller stops boot even when the view cannot be rendered.
+  const href = typeof auth.loginPath === 'string' && auth.loginPath ? loginUrl(auth.loginPath) : '';
+  const linkSafe = !!href && safeHref(href);
   // t() HTML-escapes interpolated params (see i18n.ts), so the instance name is
   // safe in this innerHTML sink. Do NOT switch this to tRaw without escaping it.
   const heading = instanceName
@@ -848,6 +884,8 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // this shell in via any browser where the person already has a session.
   const slot = view.querySelector<HTMLElement>('#org-gate-device');
   if (slot) wireDeviceCodeSignIn(slot);
+  // Local backups remain in authenticated Settings. A signed-out visitor cannot
+  // establish custody of saved sessions or documents derived into templates/tools.
   return true;
 }
 
@@ -933,6 +971,38 @@ function wireDeviceCodeSignIn(slot: HTMLElement): void {
   idle();
 }
 
+// ── Account chip (header) ─────────────────────────────────────────────────────
+
+/**
+ * Put the account chip (org/account-chip.ts) in the header's account slot, for the
+ * session `owner` (null: a visitor). Lazy, so the chip's module is not on the boot path;
+ * a sign-out, a re-init or a later session replaces the chip. Everything the chip reads and
+ * does is handed in here, so the chip module imports nothing from this one.
+ */
+function showAccountChip(auth: AuthConfig, owner: Session | null, principal: string | undefined): void {
+  unregisterAccountChip?.();
+  unregisterAccountChip = null;
+  // A visitor's chip is only Sign in: with no way in there is nothing to show.
+  if (!owner && !auth.loginPath) return;
+  void import('./account-chip.ts').then((m) => {
+    if (session !== owner || authState !== auth) return;
+    unregisterAccountChip?.();
+    unregisterAccountChip = m.registerAccountChip({
+      account: orgProfileAccount,
+      consoleUrl: orgConsoleUrl,
+      signInUrl: () => {
+        if (!auth.loginPath) return null;
+        const href = loginUrl(auth.loginPath);
+        return safeHref(href) ? href : null;
+      },
+      signOut: signOutOfInstance,
+      signOutEverywhere,
+      ...(principal ? { principal } : {}),
+      workspaceOrigin: getInstanceBase() || location.origin,
+    });
+  }).catch(() => { /* additive; the header stands without it */ });
+}
+
 // ── Home view (org-config `home`) ─────────────────────────────────────────────
 
 /** Whether this page load has had its one chance to open the instance's home view. */
@@ -1012,6 +1082,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
   finishAiProbe(true);
   authState = auth;
   setAgentInviteAvailability(false, null);
+  unregisterAccountChip?.();
+  unregisterAccountChip = null;
   try {
     session = await fetchSession();
     const isMember = session?.kind === 'member';
@@ -1038,14 +1110,11 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
 
     // Gated instance, not a member → sign-in gate instead of the app.
     if (auth.mode === 'gated' && !isMember) {
-      const gated = renderGate(auth, workspaceName() || undefined);
-      if (gated) {
-        // Signed out of a gated instance: no catalog or tool reads until sign-in
-        // (which reloads), and the next boot asks before it syncs at all.
-        noteCatalogRefused();
-        return { auth, session, config: null, gate: true };
-      }
-      // Could not render a gate (no loginPath) - fall through and let the app mount.
+      renderGate(auth, workspaceName() || undefined);
+      // Signed out of a gated instance: no catalog or tool reads until sign-in
+      // (which reloads). A missing view or sign-in link must not let boot proceed.
+      noteCatalogRefused();
+      return { auth, session, config: null, gate: true };
     }
 
     // Member → load org-config, apply its profile policy, surface the inbox.
@@ -1222,26 +1291,21 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
             const stopAutomatic = automatic.registerAutomaticWorkCollab({
               canJoin: stillAllowed, join: opener.openWorkCollab,
             });
-            unregisterCollabOpener = () => { stopAutomatic(); stopOpener?.(); };
+            const stopJoining = (): void => { stopAutomatic(); stopOpener?.(); };
+            unregisterCollabOpener = stopJoining;
+            // "Invite to edit now" lives on the live collab's presence pill
+            // (org/collab-invite.ts through lib/collab-pill-invite.ts). The Share dialog's
+            // "Work collab" row that used to carry it, beside its own "Start a collab",
+            // is no longer registered (plan 75 G10): a team document joins its live collab
+            // when it opens (org/collab-auto-join.ts), so a second start button on it was
+            // a duplicate of the Private collab row's and refused whenever it was pressed.
+            const invite = await import('./collab-invite.ts');
+            if (!stillAllowed() || unregisterCollabOpener !== stopJoining) return;
+            const stopInvite = invite.registerWorkCollabPillInvite();
+            unregisterCollabOpener = () => { stopInvite(); stopJoining(); };
           })
           .catch(() => { /* additive; never block or break boot */ });
       }
-      // Offer a "Work collab" row in the Share dialog (plan 100 section 7 item 9, wave
-      // 3.1 - the row + gating only; the ceremony/join UI that actually starts a
-      // work collab is a later wave). Registered through the same generic
-      // lib/share-sections.ts seam as "On this instance" above, with the row's
-      // builder module lazy-imported only when a member opens the dialog on an
-      // instance that grants `collab.join` - the same inline-`can` bail (and the
-      // same reasoning) as the collab-factory registration just above. The
-      // builder itself re-checks canJoinCollab() plus a registered 'work' opener
-      // (lib/collab-launch.ts) - nothing registers one yet, so the row stays
-      // absent everywhere until a later wave lands the ceremony UI.
-      unregisterCollabShareSection?.();
-      unregisterCollabShareSection = registerShareSection(async (sctx) => {
-        if (orgConfigState?.can?.['collab.join'] !== true) return null;
-        const { buildWorkCollabShareSection } = await import('./collab-share.ts');
-        return buildWorkCollabShareSection(sctx);
-      });
       emit();
       // The inbox, for every member: it refetches when the tab comes back and while it
       // is visible, so a request, an answer or a welcome arrives without a reload, and
@@ -1267,6 +1331,11 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
           .then((m) => m.mountOrgChrome(chrome))
           .catch(() => { /* chrome is additive; never block or break boot */ });
       }
+      // Who is signed in, in the header: the account chip and its menu (plan 75 G5).
+      showAccountChip(auth, memberSession, principal);
+    } else if (!session) {
+      // A visitor on a workspace that lets them in without signing in: the chip is Sign in.
+      showAccountChip(auth, null, undefined);
     }
 
     return { auth, session, config: orgConfigState, gate: false };
@@ -1346,10 +1415,10 @@ export function _resetOrgForTests(): void {
   unregisterNearbySource = null;
   unregisterCollabFactory?.();
   unregisterCollabFactory = null;
-  unregisterCollabShareSection?.();
-  unregisterCollabShareSection = null;
   unregisterCollabOpener?.();
   unregisterCollabOpener = null;
+  unregisterAccountChip?.();
+  unregisterAccountChip = null;
   unregisterToolMount?.();
   unregisterToolMount = null;
   clearOrgDeliveryTargets();
