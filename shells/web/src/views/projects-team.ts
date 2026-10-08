@@ -20,6 +20,7 @@ import { actionButtonContent } from '../components/action-button.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import type { Folder } from '../folders.ts';
 import { getInstanceBase } from '../lib/instance.ts';
+import { canWriteProject } from '../org/team-access.ts';
 
 /** What the Projects view hands in: the things it owns. */
 export interface TeamProjectsDoor {
@@ -47,7 +48,7 @@ export function teamProjectTiles(projects: TeamProjectRef[], query = '', sort = 
   return sorted.filter(p => !tokens.length || matchesHaystack(buildFolderHaystack(p.name), tokens)).map(p => folderTile(p, {
     count: p.sessionCount ?? 0,
     href: `#/p?team=${encodeURIComponent(p.id)}`,
-    shared: { openLabel: tRaw('Open shared project {name}', { name: p.name }),
+    shared: { openLabel: tRaw('Open shared project {name}', { name: p.name }), canWrite: canWriteProject(p.myRole),
       subtitle: sharedSubtitle(p), activity: p.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: p.sessionCount ?? 0 }) },
   })).join('');
 }
@@ -67,6 +68,9 @@ export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: 
     return module.mountTeamProjectView(container, { ...door, ...opts, assetPreview(projectId, file) {
       const link = (ref: AssetRef) => projectAssetHref(projectId, ref.id);
       return { link, open: onClose => mountAssetPreview(door.host, () => prepareProjectAsset(projectId, file), { link, onClose }) };
+    }, async downloadSession(sessionId, name, current) {
+      const { downloadTeamSessionFile } = await import('./projects-team-download.ts');
+      await downloadTeamSessionFile(door.host, sessionId, name, current);
     } });
   } catch (error) {
     door.host.log?.('warn', 'projects: shared folder failed to load', { error: String(error) });
@@ -123,7 +127,7 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
       const project = linked(folder);
       const inside = folder.link?.folderId ? `&folder=${encodeURIComponent(folder.link.folderId)}` : '';
       return project ? folderTile({ ...folder, ...project, ...(folder.link ? { name: folder.name } : {}) }, { ...opts, selectable: false, href: `#/p?team=${encodeURIComponent(project.id)}${inside}`,
-        shared: { subtitle: folder.link ? tRaw('Shortcut') : sharedSubtitle(project), activity: project.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
+        shared: { canWrite: canWriteProject(project.myRole), subtitle: folder.link ? tRaw('Shortcut') : sharedSubtitle(project), activity: project.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
     },
     rootHtml(filter: string, list: boolean, head: string, size: string, sort: string, reversed: boolean): string {
       const source = getSessionSource(); if (!source) return '';
