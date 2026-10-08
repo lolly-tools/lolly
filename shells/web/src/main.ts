@@ -352,6 +352,10 @@ window.addEventListener('lolly:url-state', () => { mountedRouteSig = routeSignat
  */
 let webGpuStop: { error: unknown } | null = null;
 
+/** Counts the navigations that reached the point of mounting, so one that waited for
+ *  the WebGPU check can tell whether a newer navigation started in the meantime. */
+let navigationSeq = 0;
+
 /** Read through a call so a function that checked it before an await sees a later failure. */
 function webGpuFailed(): boolean { return webGpuStop !== null; }
 
@@ -416,6 +420,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     }
   }
   if (outgoing?._beforeLeave && !await outgoing._beforeLeave()) return;
+  const navigation = ++navigationSeq;
   clearSiteToolSources({ name: route.name,
     ...(route.name === 'projects' ? { folderId: route.folderId, projectId: new URLSearchParams(route.params ?? '').get('team') || undefined } : {}),
   });
@@ -531,8 +536,10 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // if it fails; the gallery, utilities and docs paint without waiting.
   if (!ROUTES[route.name].beforeWebGpu) {
     try { await webGpuChecked(); } catch (error) { fade?.commit(); stopForWebGpu(error); return; }
-    // A newer navigation started while this one waited, and owns the view now.
-    if (mountedRouteSig !== routeSig) { fade?.commit(); return; }
+    // A newer navigation started while this one waited, and owns the view now. Not
+    // mountedRouteSig: a view's own address update (lolly:url-state) moves that too,
+    // and the outgoing view's cleanup above may have just written one.
+    if (navigation !== navigationSeq) { fade?.commit(); return; }
   }
   switch (route.name) {
     case 'tool': {
