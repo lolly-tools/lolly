@@ -31,7 +31,22 @@ import assert from 'node:assert/strict';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
 import type { GeomPathResult, GeomResult } from '../packages/core/src/host-v1.ts';
 import { type Cubic, evalCubic, nearestOnCubic } from '../engine/src/geom/bezier.ts';
-import { intersectCubics } from '../engine/src/geom/intersect.ts';
+import { CLIP_BUDGET, intersectCubics } from '../engine/src/geom/intersect.ts';
+
+/**
+ * Run `f` with the clip budget at zero, so every cubic against cubic pair is answered by the
+ * overrun search rather than by the clip search.
+ *
+ * The cases wrapped in this are ones the clip search finishes inside `CLIP_BUDGET.maxNodes`
+ * on, so what SHIPS for them is the clip search's answer, which is what it always was. What
+ * they pin is the overrun search's promise, which the shipped build keeps for the pairs that
+ * do cross the budget. Each case says above it what the shipped answer is instead.
+ */
+function overrunOnly<T>(f: () => T): T {
+  const was = CLIP_BUDGET.maxNodes;
+  CLIP_BUDGET.maxNodes = 0;
+  try { return f(); } finally { CLIP_BUDGET.maxNodes = was; }
+}
 
 
 const geom = makeGeomApi();
@@ -226,7 +241,8 @@ const DISC = 'M1 0 C1 0.5523 0.5523 1 0 1 C-0.5523 1 -1 0.5523 -1 0 C-1 -0.5523 
 const K = 0.5523;
 const FIRST_ARC: Cubic = [1, 0, 1, K, K, 1, 0, 1];
 
-test('a disc against a copy rotated by a millionth of a radian about a point on its edge', () => {
+test('a disc against a copy rotated by a millionth of a radian about a point on its edge', () => overrunOnly(() => {
+  // Under the shipped budget the clip search answers this pair.
   // The copy crosses the disc at the pivot, at an angle of 1e-6, and the two outlines
   // stay within a millionth of each other everywhere. The first fix returned a union of
   // three contours with the centre left empty.
@@ -250,9 +266,10 @@ test('a disc against a copy rotated by a millionth of a radian about a point on 
       assert.equal(val(geom.winding(d, x, y), 'winding'), 1, `${op} winding at (${x}, ${y})`);
     }
   }
-});
+}));
 
-test('the intersector reports the pivot of a slightly rotated copy', () => {
+test('the intersector reports the pivot of a slightly rotated copy', () => overrunOnly(() => {
+  // Under the shipped budget the clip search answers this pair.
   // Rotating a curve about a point on it gives a curve that crosses it there and runs
   // alongside it, within a hair, everywhere else. The crossing is real however small the
   // angle, and a boolean needs it. The first fix reported nothing for most of these, and
@@ -295,7 +312,7 @@ test('the intersector reports the pivot of a slightly rotated copy', () => {
       }
     }
   }
-});
+}));
 
 test('two shapes sharing a curved edge whose far end was rounded to four decimals', () => {
   // The start vertex and first handle are exact, the far handle and vertex rounded. The
@@ -404,7 +421,8 @@ test('a crossing in a sliver thinner than 1e-8 of the size, near a shared start,
   checkTiles(A, B, 1000);
 });
 
-test('a crossing in a sliver that runs into two ends 1e-7 apart is reported where it is', () => {
+test('a crossing in a sliver that runs into two ends 1e-7 apart is reported where it is', () => overrunOnly(() => {
+  // Under the shipped budget the clip search answers this pair.
   // Two pieces of the stroke outline of a closed curve and a copy shifted by 1e-7. They
   // cross properly twice, and a third time 0.07 units before their ends, after which the
   // sliver between them never opens wider than the 1e-7 between the ends. That third
@@ -428,7 +446,7 @@ test('a crossing in a sliver that runs into two ends 1e-7 apart is reported wher
     const p = evalCubic(a, h.t1), q = evalCubic(b, h.t2);
     assert.ok(Math.hypot(p.x - q.x, p.y - q.y) < 1e-8, `a hit names two points: ${JSON.stringify(h)}`);
   }
-});
+}));
 
 test('strokes of a closed curve repeated with tiny shifts cover what one copy covers', () => {
   // Each copy's stroke outline runs within a millionth of the others', with slivers
