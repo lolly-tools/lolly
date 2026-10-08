@@ -248,18 +248,47 @@ test('lolly run design hands its Tier B render to a running desktop app when the
     const advert = join(dir, 'render.json');
     writeFileSync(advert, JSON.stringify({ port: desktop.port, token: 'tok', pid: process.pid, version: 'test' }));
     const rows = join(dir, 'rows.json');
-    writeFileSync(rows, JSON.stringify([{ id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 360, bg: '#ffffff' }, { id: 't', kind: 'text', frame: 'f', x: 10, y: 10, w: 300, h: 60, text: 'Hello' }]));
+    writeFileSync(rows, JSON.stringify([{ id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 360, bg: '#ffffff' }, { id: 't', kind: 'text', frame: 'f', x: 10, y: 10, w: 300, h: 60, text: 'Hello' }, { id: 'shadow', kind: 'box', frame: 'f', x: 20, y: 100, w: 100, h: 80, bg: '#1c7ed6', shadow: 'box' }]));
     const env: NodeJS.ProcessEnv = { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: join(dir, 'state'), NO_COLOR: '1', LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDER_SERVER: advert, LOLLY_DESKTOP_BIN: join(dir, 'none') };
     delete env.LOLLY_RENDERER;
     const out = join(dir, 'deck.pdf');
-    const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--export=pdf', `--output=${out}`, '--no-provenance'], { env, cwd: dir });
+    const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--text=outline', '--export=pdf', `--output=${out}`, '--no-provenance'], { env, cwd: dir });
     let stderr = '';
     child.stderr.on('data', (d) => { stderr += String(d); });
     const code = await new Promise<number | null>((done) => child.on('close', done));
     assert.equal(code, 0, stderr);
     assert.equal(desktop.seen.length, 1, stderr);
+    assert.equal((stderr.match(/Escalating to the browser render tier/g) ?? []).length, 1, stderr);
     assert.match(String(desktop.seen[0]!.toolUrl), /#\/tool\/design\?.*boxes=/);
     assert.equal(readFileSync(out, 'utf8'), '%PDF-1.7 from the desktop app');
+  } finally {
+    await desktop.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('default and explicit live-text Design PDFs keep one browser transport request', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-desktop-live-pdf-'));
+  const pdf = new TextEncoder().encode('%PDF-1.7 live text from desktop');
+  const desktop = await fakeDesktop(pdf);
+  try {
+    const advert = join(dir, 'render.json');
+    writeFileSync(advert, JSON.stringify({ port: desktop.port, token: 'tok', pid: process.pid, version: 'test' }));
+    const rows = join(dir, 'rows.json');
+    writeFileSync(rows, JSON.stringify([{ id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 360, bg: '#ffffff' }, { id: 't', kind: 'text', frame: 'f', x: 20, y: 20, w: 300, h: 60, text: 'Keep these words live' }]));
+    const env: NodeJS.ProcessEnv = { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: join(dir, 'state'), NO_COLOR: '1', LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDER_SERVER: advert, LOLLY_DESKTOP_BIN: join(dir, 'none'), LOLLY_RENDERER: 'desktop' };
+    for (const [index, flags] of [[], ['--text=live']].entries()) {
+      const out = join(dir, `live-${index}.pdf`);
+      const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--export=pdf', `--output=${out}`, '--no-provenance', ...flags], { env, cwd: dir });
+      let stderr = '';
+      child.stderr.on('data', (data) => { stderr += String(data); });
+      const code = await new Promise<number | null>((done) => child.on('close', done));
+      assert.equal(code, 0, stderr);
+      assert.equal(desktop.seen.length, index + 1, stderr);
+      assert.equal((stderr.match(/Escalating to the browser render tier/g) ?? []).length, 1, stderr);
+      assert.match(stderr, /keeps its words as live text/);
+      assert.equal(readFileSync(out, 'utf8'), '%PDF-1.7 live text from desktop');
+    }
   } finally {
     await desktop.close();
     rmSync(dir, { recursive: true, force: true });

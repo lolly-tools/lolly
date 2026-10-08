@@ -217,44 +217,8 @@ export function gradStopToRgb(raw: string, index: number, total: number): Rgb | 
   return parseSvgColor(colorStr);
 }
 
-// Normalise the shell's brand palette (hex + CMYK 0–100, and/or an independent
-// spot lock) into the engine's colour-bar form: { rgb, cmyk } both 0–1, plus a
-// label and - for a spot-locked swatch - its ink name, so the shell's bar
-// renderer can annotate the pair with the name instead of raw CMYK numbers.
-// Only entries with a declared CMYK anchor or a spot lock qualify (the others
-// fall back to generic RGB→CMYK at render time and so have nothing to verify);
-// a spot lock with no explicit cmyk still qualifies, deriving one from the
-// swatch's own hex (same fallback buildCmykPaletteMap uses) so its Separation
-// substitution has something to verify against. Deduped by hex+ink, since the
-// palette repeats Black/White as ramp endpoints; order is preserved so the
-// primary brand hues lead and survive the flat cell cap.
-export function brandSwatchPalette(palette: BrandPaletteEntry[] | undefined): { rgb: Rgb; cmyk: [number, number, number, number]; label?: string; spotName?: string }[] {
-  const out: { rgb: Rgb; cmyk: [number, number, number, number]; label?: string; spotName?: string }[] = [], seen = new Set<string>();
-  for (const { hex, cmyk, label, spot } of palette ?? []) {
-    if (!hex || (!cmyk && !spot)) continue;
-    const h = hex.replace('#', '').toLowerCase();
-    if (h.length !== 6) continue;                         // skips 'transparent' etc.
-    const r = parseInt(h.slice(0, 2), 16) / 255;
-    const g = parseInt(h.slice(2, 4), 16) / 255;
-    const b = parseInt(h.slice(4, 6), 16) / 255;
-    const frac = cmyk && cmyk.length === 4 ? (cmyk.map(v => v / 100) as [number, number, number, number]) : rgbToCmyk(r, g, b);
-    const key = `${h}:${frac.join(',')}:${spot?.name ?? ''}:${spot?.finish ?? ''}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    // The bar is a VERIFICATION strip: an RGB reference cell beside its CMYK
-    // substitution so the operator can check the conversion. A finish has no
-    // conversion to verify, so printing its swatch build would make the margin
-    // the second place in the file asserting a process build that does not
-    // exist. Its cell is the mask, and its name carries the finish.
-    out.push({
-      rgb: [r, g, b],
-      cmyk: spot?.finish ? FINISH_MASK_CMYK : frac,
-      label,
-      spotName: spot ? (spot.finish ? `${spot.name} (${spot.finish})` : spot.name) : undefined,
-    });
-  }
-  return out;
-}
+// Shared with print finishing in browser-free Design exports.
+export { brandSwatchPalette } from '@lolly-tools/node-shell/pdf-finishing';
 
 // Approximate SVG opacity by blending with white, used where there is no per-element opacity.
 export function blendSvgWithWhite(rgb: Rgb, opacity: number): Rgb {

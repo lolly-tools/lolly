@@ -94,7 +94,8 @@ export async function qualifyNative(): Promise<number> {
     }
     const inputs = ['tests/webgpu-lut.browser.test.ts', 'tests/helpers/lut-cases.ts', 'tests/helpers/webgpu-local-receiver.ts',
       'tests/helpers/webgpu-browser.ts', 'tests/fixtures/webgpu-tauri/src/main.rs', 'tests/fixtures/webgpu-tauri/Cargo.toml',
-      'tests/fixtures/webgpu-tauri/tauri.conf.json', 'scripts/verify-webgpu-native.ts', 'scripts/verify-webgpu.ts'];
+      'tests/fixtures/webgpu-tauri/tauri.conf.json', 'shells/tauri-desktop/src-tauri/icons/32x32.png',
+      'shells/tauri-desktop/src-tauri/icons/icon.ico', 'scripts/verify-webgpu-native.ts', 'scripts/verify-webgpu.ts'];
     receipt.sourceFiles = Object.fromEntries(await Promise.all(inputs.map(async path => [path, hash(await readFile(join(repo, path)))])));
     const crate = join(output, 'crate'), target = join(output, 'target');
     await cp(join(repo, 'tests/fixtures/webgpu-tauri'), crate, { recursive: true });
@@ -102,6 +103,7 @@ export async function qualifyNative(): Promise<number> {
     await writeFile(join(crate, 'frontend/index.html'), '<!doctype html><title>Lolly WebGPU Qualification</title>');
     await mkdir(join(crate, 'icons'), { recursive: true });
     await cp(join(repo, 'shells/tauri-desktop/src-tauri/icons/32x32.png'), join(crate, 'icons/icon.png'));
+    await cp(join(repo, 'shells/tauri-desktop/src-tauri/icons/icon.ico'), join(crate, 'icons/icon.ico'));
     const lock = await readFile(join(repo, 'shells/tauri-desktop/src-tauri/Cargo.lock'), 'utf8');
     const pinned = registryPackages(lock);
     const fixture = await readFile(join(crate, 'Cargo.toml'), 'utf8');

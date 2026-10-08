@@ -18,7 +18,8 @@ import { catalogFile } from './content-roots.ts';
 
 /** Formats the DOM-free engine writes on its own (svg/emf/eps + text/data), plus the
  *  pro float formats (exr/hdr) the engine's own writers emit over a resvg-rasterised
- *  frame. Everything else (raster, pdf, video) is produced by the raster tiers:
+ *  frame. Design PDF has a separate admission path; other raster, PDF and video
+ *  output is produced by the raster tiers:
  *  the resvg fast path, else the scoped Chromium driving the built web shell (see
  *  webshell-render.ts). */
 // NOT `txt`. It was listed here, reported by `describe --json`'s `nativeFormats`, and
@@ -44,10 +45,11 @@ export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dx
 export const HOOK_OWNED_FORMATS = ['wav', 'mp3', 'm4a', 'opus'];
 
 /** True when this shell's Node path renders `format` for this tool: a DOM-free
- *  format, or an audio format the tool's exportStill hook owns. */
-export function nodePathFormat(manifest: { hooks?: { exportStill?: unknown } | null }, format: string): boolean {
+ *  format, a Design PDF candidate, or an audio format the tool's exportStill hook owns.
+ *  Design PDF admission still checks the authored document and export options. */
+export function nodePathFormat(manifest: { id?: string; hooks?: { exportStill?: unknown } | null }, format: string): boolean {
   const f = format.toLowerCase();
-  return NODE_FORMATS.includes(f) || (!!manifest.hooks?.exportStill && HOOK_OWNED_FORMATS.includes(f));
+  return NODE_FORMATS.includes(f) || (manifest.id === 'design' && f === 'pdf') || (!!manifest.hooks?.exportStill && HOOK_OWNED_FORMATS.includes(f));
 }
 
 /** Design float composition requires the browser's measured scene layout. */

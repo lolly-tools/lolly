@@ -170,10 +170,8 @@ async function deckDocProps(
  */
 export { needsBrowserTier };
 
-/** ExportOpts plus the two CLI-local extensions run.ts threads to the bridge:
- *  the PDF open-password and the `hdr=` dials (the canonical HostV1 ExportOpts
- *  carries neither - the web shell extends it the same way). */
-type CliExportOpts = ExportOpts & {
+/** Shared print/security options plus the CLI-local text, HDR and imprint controls. */
+type CliExportOpts = ExportOpts & import('@lolly-tools/node-shell/pdf-finishing').PdfFinishingOpts & {
   fps?: number;
   password?: string;
   /** The resolved Imprint decision, forwarded to the DOM-free bridge for the one
@@ -1048,6 +1046,17 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     const u = unit || 'px';
     const qual = (v: number | null | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const exportOpts: CliExportOpts = { width: qual(width), height: qual(height) };
+    if (targetFormat === 'pdf' && tool.manifest.id === 'design') {
+      // The finishing pass needs the same resolved controls the browser receives.
+      exportOpts.c2pa = wantC2pa;
+      exportOpts.bleed = bleed ?? undefined;
+      const marks = parsedUrl.marks;
+      if (marks) Object.assign(exportOpts, {
+        cropMarks: marks.crop, registrationMarks: marks.registration, bleedMarks: marks.bleed,
+        colorBars: marks.colorBars, provenance: marks.provenance,
+      });
+
+    }
     if (targetFormat === 'lottie' && video.fps != null) exportOpts.fps = video.fps;
 
     // ── the `s=` still-export filter (plan 112 section 10) ────────────────────────────
@@ -1128,6 +1137,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     // values must be forwarded - `--text=outline` is emf's opt-out, not a no-op.
     if (text) {
       exportOpts.text = text;
+      if (targetFormat === 'pdf' && tool.manifest.id === 'design') exportOpts.convertPaths = text === 'outline';
       // WMF/EPS/DXF have no live-text representation at all - those emitters write
       // outlines or nothing. Report it rather than accept a flag that cannot apply.
       if (text === 'live' && ['wmf', 'eps', 'eps-cmyk', 'dxf'].includes(targetFormat.toLowerCase())) {
@@ -1250,6 +1260,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     // What the DOM-free attempt said, kept so a failed escalation can report BOTH halves
     // (why there is no browser-free path, and why the browser tier could not step in).
     let domFreeError: Error | null = null;
+    let attemptedDesignPdf = false;
     try {
       try {
         // Engine-native / data formats (svg/emf/eps/dxf + html/json/csv/ics/vcf) render DOM-free
@@ -1258,7 +1269,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         // web shell). `usedBrowser` tells us to tear the browser + server down before exit.
         const portableVisual = targetFormat.toLowerCase() !== 'ics' && tool.manifest.render.portable
           || targetFormat.toLowerCase() === 'html' && tool.manifest.id === 'design';
-        const domFree = !sampled && !motionBlur && !sequenceRange && nodePathFormat(tool.manifest, targetFormat) && !portableVisual && !needsFloatScene(tool.manifest.id, values.editingRange, targetFormat, exportOpts.hdr);
+        const composesStories = String(values.textDocument ?? '').trim() !== '';
+        const nativeDesignPdf = targetFormat.toLowerCase() === 'pdf' && tool.manifest.id === 'design' && !composesStories && !password;
+        const domFree = (targetFormat.toLowerCase() !== 'pdf' || nativeDesignPdf) && !sampled && !motionBlur && !sequenceRange && nodePathFormat(tool.manifest, targetFormat) && !portableVisual && !needsFloatScene(tool.manifest.id, values.editingRange, targetFormat, exportOpts.hdr);
         // TIER A FOR `pptx`, on a Design document (plan 274 work package 6). Design
         // carries its authored rows in the render, so the deck is lowered straight from
         // them - real slides, placeholder-bound text where a frame names a slide master -
@@ -1269,7 +1282,6 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         // `textDocument` into the frames (composeDesignStories), and this branch never
         // calls runtime.export, so those rows would be the uncomposed ones. A document
         // that composes stories therefore keeps to the tier that runs the hook.
-        const composesStories = String(values.textDocument ?? '').trim() !== '';
         const nativeDeck = targetFormat.toLowerCase() === 'pptx' && !composesStories
           ? await (await import('./raster.ts')).renderDesignPptx({
             canvas, toolId: tool.manifest.id,
@@ -1289,6 +1301,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
           buf = Buffer.from(nativeDeck);
           assertRenderOk({ hookErrors: runtime.hookErrors, format: targetFormat, bytes: buf });
         } else if (domFree) {
+          attemptedDesignPdf = nativeDesignPdf;
           const blob = await runtime.export(exportNode, targetFormat, exportOpts);
           buf = Buffer.from(await blob.arrayBuffer());
           // The DOM-free render is this runtime's own output - a swallowed onInit failure
@@ -1309,7 +1322,12 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         // EXCEPT a RenderIntegrityError, which means this runtime's own render is broken
         // (a hook threw) and re-rendering it elsewhere would only launder the bug. If the
         // browser tier can't run either, both halves are reported and nothing is written.
-        if (!VECTOR_ESCALATABLE.has(targetFormat.toLowerCase()) || (e as Error)?.name === 'RenderIntegrityError') throw e;
+        const designPdfFallback = attemptedDesignPdf && e instanceof Error && 'code' in e && e.code === 'DESIGN_PDF_BROWSER_REQUIRED';
+        // A recorded hook failure stays fatal even if PDF admission refused before producing bytes.
+        if (designPdfFallback && runtime.hookErrors.length) {
+          assertRenderOk({ hookErrors: runtime.hookErrors, format: targetFormat, bytes: new Uint8Array() });
+        }
+        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase())) || (e as Error)?.name === 'RenderIntegrityError') throw e;
         domFreeError = e as Error;
         note(
           `Note: "${targetFormat}" has no browser-free path for this tool (${firstLine(domFreeError.message)}). ` +
@@ -2214,7 +2232,7 @@ export async function listToolsCli(opts: { json?: boolean; query?: string; limit
       formats,
       capabilities,
       unmetCapabilities: unmet,
-      nativeFormats: formats.filter(f => NODE_FORMATS.includes(f.toLowerCase())),
+      nativeFormats: formats.filter(f => NODE_FORMATS.includes(f.toLowerCase()) || t.id === 'design' && f.toLowerCase() === 'pdf'),
       runnableHere: unmet.length === 0,
     };
   }));
@@ -2383,7 +2401,7 @@ async function describeToolJson(manifest: DescribableManifest): Promise<void> {
       ...(manifest.render.width ? { width: manifest.render.width } : {}),
       ...(manifest.render.height ? { height: manifest.render.height } : {}),
       capabilities: manifest.capabilities ?? [],
-      nativeFormats: manifest.render.formats.filter(f => NODE_FORMATS.includes(f.toLowerCase())),
+      nativeFormats: manifest.render.formats.filter(f => NODE_FORMATS.includes(f.toLowerCase()) || manifest.id === 'design' && f.toLowerCase() === 'pdf'),
       unmetCapabilities: unmet,
       runnableHere: unmet.length === 0,
       // An experimental tool watermarks every export (the engine forces it). A script

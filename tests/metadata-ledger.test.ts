@@ -312,7 +312,7 @@ function tinyAvif(): Uint8Array {
  * every line has to earn its place.
  */
 const BRIDGE_WRITTEN: Record<string, string> = {
-  'CMYK PDF:xmp': 'the PDF/X-4 XMP packet is assembled over pdf-lib in shells/web/src/bridge/export-pdfx.ts',
+  'CMYK PDF:xmp': 'the PDF/X-4 XMP packet is assembled over pdf-lib in packages/node-shell/src/pdfx.ts',
   'CMYK TIFF:exif': 'encodeCmykTiff writes the CMYK TIFF tags in shells/web/src/bridge/export.ts, not the engine packTiff',
   'Animated SVG:dc': 'the animated writer builds its own Dublin Core block in shells/web/src/lib/svg-anim-core.ts',
   'ICS:prodid': 'PRODID comes from the calendar tools own template and hooks (meeting-planner, calendar-ics), not an engine writer',

@@ -456,7 +456,6 @@
   "shells/web/src/bridge/export-pdf-vector.test.ts": 2,
   "shells/web/src/bridge/export-pdf-vector.ts": 6,
   "shells/web/src/bridge/export-pdfx.test.ts": 2,
-  "shells/web/src/bridge/export-pdfx.ts": 5,
   "shells/web/src/bridge/export-pptx.ts": 3,
   "shells/web/src/bridge/export-pseudo-position.test.ts": 2,
   "shells/web/src/bridge/export-scale.ts": 1,

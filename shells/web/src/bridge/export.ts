@@ -18,7 +18,7 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
 
 import { embedResolvedFont, loadFontBase64 } from './export-font-data.ts';
 import { canEmbedPdfSubset } from './pdf-font-policy.ts';
-import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, rgbToCmyk, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, computePrintGeometry, buildEncryptDictValues, preparePassword, encryptObjectBytes, exportActionSteps, embedC2pa, ENGINE_VERSION, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
+import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, rgbToCmyk, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY, textStrokeAttrs, suseFontFile, SUSE_FONT_DIR } from './text-svg.ts';
 import { resolveVectorFont } from './font-registry.ts';
@@ -55,15 +55,18 @@ import type { ExportMeta, IngredientCredential, SourceIngredient, HostV1, C2paSi
 import { checkAttributionReadback, sha256Hex, verifyC2pa } from '@lolly/engine';
 import type { C2paReport } from '../../../../engine/src/c2pa-verify.ts';
 import type { C2paActionInput } from '../../../../engine/src/c2pa.ts';
-import type { LabelSlot, PrintGeometry } from '../../../../engine/src/print-marks.ts';
+import type { PrintGeometry } from '../../../../engine/src/print-marks.ts';
 import type { CornerRadii, CornerPair } from '../../../../engine/src/css-box.ts';
 import { n2, parseCssColorFull, resolveRadii, parseCssColor, objectPositionFractions, parseCssLen } from './export-css.ts';
 import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
 import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
 import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngXmp, insertPngCicp, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
-import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, brandSwatchPalette, parseSvgColor, blendSvgWithWhite, drawSvgPathToPdf, svgLen, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
+import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, parseSvgColor, blendSvgWithWhite, drawSvgPathToPdf, svgLen, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
 import type { PaletteHit, BrandPaletteEntry } from './export-pdf-vector.ts';
 import { applyPdfX } from './export-pdfx.ts';
+import { printGeometryForSize, provenanceLabels, setPageBoxes, drawPrintMarks, finishPdfX as finishSharedPdfX, encryptPdfStrong } from '@lolly-tools/node-shell/pdf-finishing';
+import type { LabelsRecord, PdfFinishSettings } from '@lolly-tools/node-shell/pdf-finishing';
+export { encryptPdfStrong } from '@lolly-tools/node-shell/pdf-finishing';
 import { createPdfDoc } from './export-pdf-doc.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
@@ -91,7 +94,7 @@ export { pureRotationDeg, renderSvg, renderEmf, renderEps, renderDxf };
 
 // ── Local types ─────────────────────────────────────────────────────────────
 type Rgb = [number, number, number];
-type LabelsRecord = Partial<Record<LabelSlot, string>>;
+
 
 // User-visible EXPORT QUALITY notices (not errors): the frame rate was lowered to
 // fit the buffer, the clip was truncated, or a sped-up clip's audio was dropped.
@@ -1819,29 +1822,6 @@ function isSvgRooted(node: Element): boolean {
   return false;
 }
 
-// Resolve the print-marks geometry for a trim box already in points - the size-only
-// core, shared by the single-page path (below) and the per-page multi-page path
-// (renderMultiPagePdf). Null when no bleed and no marks are requested (the legacy
-// "page == trim, art fills it" path). The null gate reads ONLY opts, so geo-ness is
-// uniform across every page of a given export - only the numeric values scale.
-function printGeometryForSize(trimWpt: number, trimHpt: number, opts: ExportOpts, paletteSource: BrandPaletteEntry[] | undefined): PrintGeometry | null {
-  const bleedDim = parseDimension(opts.bleed);
-  const bleedPt = bleedDim ? toPoints(bleedDim) : 0;
-  const marks = {
-    crop:         Boolean(opts.cropMarks),
-    registration: Boolean(opts.registrationMarks),
-    bleed:        Boolean(opts.bleedMarks),
-    colorBars:    Boolean(opts.colorBars),
-    provenance:   Boolean(opts.provenance),
-  };
-  const anyMark = marks.crop || marks.registration || marks.bleed || marks.colorBars || marks.provenance;
-  if (bleedPt <= 0 && !anyMark) return null;
-  // Brand swatches drive the colour bar (RGB swatches for RGB output, RGB-beside-CMYK
-  // pairs for CMYK). The plain RGB PDF with no palette gets the generic process bar.
-  const palette = marks.colorBars ? brandSwatchPalette(paletteSource) : [];
-  return computePrintGeometry({ trimWpt, trimHpt, bleedPt, marks, palette, barStyle: opts.barStyle, barRadiusPt: opts.barRadiusPt });
-}
-
 // The whole-export geometry (the node's own box). One marks-building path only - 
 // see engine/src/print-marks.ts for the geometry, the single source of truth.
 function printGeometry(node: Element, opts: ExportOpts, paletteSource: BrandPaletteEntry[] | undefined = opts.palette): PrintGeometry | null {
@@ -1919,103 +1899,6 @@ function applyPdfMeta(pdf: any, m: ExportMeta | null | undefined): void {
   });
 }
 
-// Strong tier - AES-256 (R6 / ISO 32000-2) applied as a FINAL encrypt-last pass
-// over already-finished PDF bytes. Unlike the standard-tier 40-bit RC4 `password`
-// (which must be built into an unfinished document), this reopens the finished
-// bytes with pdf-lib and encrypts every string/stream, so it composes with the
-// PDF/X-4 / CMYK / print-marks finishing passes. The engine owns the crypto
-// (buildEncryptDictValues / encryptObjectBytes - DOM-free, byte-vector-tested);
-// this function owns the pdf-lib object walk + /Encrypt dict assembly. R6 uses one
-// file key for every object (no per-object derivation) and a fresh IV per object.
-export async function encryptPdfStrong(blob: Blob, password: string): Promise<Blob> {
-  const { PDFDocument, PDFString, PDFHexString, PDFRawStream, PDFStream, PDFDict, PDFArray } =
-    await import('pdf-lib') as any;
-  // updateMetadata:false - the finished bytes already carry Lolly's /Producer +
-  // dates (from applyPdfX / renderCmykPdf); pdf-lib would otherwise overwrite them
-  // with "pdf-lib …" + the load time, which we'd then encrypt into the file (and it
-  // would disagree with the still-Lolly XMP). Same guard finishPdfX uses.
-  const doc = await PDFDocument.load(new Uint8Array(await blob.arrayBuffer()), { updateMetadata: false });
-  const ctx = doc.context;
-
-  const rnd = (n: number): Uint8Array => globalThis.crypto.getRandomValues(new Uint8Array(n));
-  const hexU = (b: Uint8Array): string => {
-    let s = '';
-    for (const x of b) s += x.toString(16).padStart(2, '0');
-    return s.toUpperCase();
-  };
-
-  // Permissions: grant everything (P = -4). The open-password IS the protection;
-  // per-permission restrictions are unenforceable anyway once the opener holds the
-  // (owner) password, and Lolly uses the same value for user and owner.
-  const P = -4;
-  const fileKey = rnd(32);
-  const vals = await buildEncryptDictValues({
-    userPw: preparePassword(password),
-    ownerPw: preparePassword(password),
-    fileKey,
-    salts: { uvs: rnd(8), uks: rnd(8), ovs: rnd(8), oks: rnd(8) },
-    permsRandom: rnd(4),
-    P,
-    encryptMetadata: true,
-  });
-
-  // Public /ID (never encrypted).
-  const idArr = PDFArray.withContext(ctx);
-  idArr.push(PDFHexString.of(hexU(rnd(16))));
-  idArr.push(PDFHexString.of(hexU(rnd(16))));
-
-  // The /Encrypt dict - its own strings (U/O/UE/OE/Perms) are stored raw, so it is
-  // registered AFTER the encryption walk (below), never encrypted. /Length is 256
-  // (BITS) at top level but 32 (BYTES) inside the crypt filter - the classic trap.
-  const encDict = ctx.obj({
-    Filter: 'Standard', V: 5, R: 6, Length: 256, P,
-    U: PDFHexString.of(hexU(vals.U)),
-    O: PDFHexString.of(hexU(vals.O)),
-    UE: PDFHexString.of(hexU(vals.UE)),
-    OE: PDFHexString.of(hexU(vals.OE)),
-    Perms: PDFHexString.of(hexU(vals.Perms)),
-    CF: { StdCF: { CFM: 'AESV3', AuthEvent: 'DocOpen', Length: 32 } },
-    StmF: 'StdCF', StrF: 'StdCF', EncryptMetadata: true,
-  });
-
-  // Encrypt every string (→ PDFHexString, which serialises verbatim - PDFString
-  // does not escape binary) and every stream body. Same file key, fresh IV each.
-  const encStr = async (o: any): Promise<any> =>
-    PDFHexString.of(hexU(await encryptObjectBytes(fileKey, rnd(16), o.asBytes())));
-  const walk = async (c: any): Promise<void> => {
-    if (c instanceof PDFDict) {
-      for (const [k, v] of c.entries()) {
-        if (v instanceof PDFString || v instanceof PDFHexString) c.set(k, await encStr(v));
-        else if (v instanceof PDFDict || v instanceof PDFArray) await walk(v);
-      }
-    } else if (c instanceof PDFArray) {
-      for (let i = 0; i < c.size(); i++) {
-        const v = c.get(i);
-        if (v instanceof PDFString || v instanceof PDFHexString) c.set(i, await encStr(v));
-        else if (v instanceof PDFDict || v instanceof PDFArray) await walk(v);
-      }
-    }
-  };
-  for (const [ref, obj] of ctx.enumerateIndirectObjects()) {
-    if (obj instanceof PDFStream) {
-      const ct = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(obj.getContents()));
-      await walk(obj.dict);
-      ctx.assign(ref, PDFRawStream.of(obj.dict, ct));
-    } else if (obj instanceof PDFDict || obj instanceof PDFArray) {
-      await walk(obj);
-    } else if (obj instanceof PDFString || obj instanceof PDFHexString) {
-      ctx.assign(ref, await encStr(obj));
-    }
-  }
-
-  const encRef = ctx.register(encDict); // after the walk → the dict itself stays clear
-  ctx.trailerInfo.Encrypt = encRef;
-  ctx.trailerInfo.ID = idArr;
-  // Classic xref table (no object/xref streams): the encryption rule stays uniform
-  // (every indirect object encrypted, nothing stream-shaped to exempt).
-  const out = await doc.save({ useObjectStreams: false });
-  return new Blob([out], { type: 'application/pdf' });
-}
 
 // Exported for the shadow-fidelity harness (export-pdf-shadow-fidelity.test.ts),
 // which needs real PDF bytes to rasterise and diff - a recording mock cannot answer
@@ -2553,124 +2436,8 @@ async function embeddedProfile(colorProfile: string | undefined): Promise<EmbedR
 // finishPrintPdf so the plain RGB path loads pdf-lib exactly once; the CMYK path
 // has its own pdf-lib pass and calls applyPdfX inside it (see renderCmykPdf).
 // Never fed an encrypted blob - pdf-lib can't reopen an RC4-locked document.
-async function finishPdfX(
-  blobOrBytes: Blob | Uint8Array, opts: ExportOpts,
-  { intentKind = 'srgb', geo = null, geos = null, space = 'rgb', labels = null }:
-    { intentKind?: string | null; geo?: PrintGeometry | null; geos?: (PrintGeometry | null)[] | null; space?: string; labels?: LabelsRecord | null } = {},
-): Promise<Blob> {
-  const { PDFDocument } = await import('pdf-lib') as any;
-  const bytes = blobOrBytes instanceof Uint8Array
-    ? blobOrBytes
-    : new Uint8Array(await blobOrBytes.arrayBuffer());
-  // updateMetadata:false - pdf-lib would otherwise stamp itself as Producer on
-  // load; applyPdfX writes the document's real dates/producer below.
-  const pdfDoc = await PDFDocument.load(bytes, { updateMetadata: false });
-  // Marks + boxes per page. The single-page caller passes one `geo` (page 0); the
-  // multi-page caller passes `geos` (one per page, any entry may be null). Each
-  // setPageBoxes/drawPrintMarks reads its own geo, so the loop is per-page-safe.
-  const perPage = geos ?? (geo ? [geo] : null);
-  if (perPage) {
-    const pages = pdfDoc.getPages();
-    for (let i = 0; i < pages.length; i++) {
-      const g = perPage[i];
-      if (!g) continue;
-      setPageBoxes(pages[i], g);
-      await drawPrintMarks(pages[i], g, { space, labels });
-    }
-  }
-  await applyPdfX(pdfDoc, opts, intentKind, { log: pdfxLog });
-  // The C2PA embedder only parses a classic xref table; pdf-lib's default save
-  // (object streams) writes a cross-reference stream it refuses. Only flipped
-  // when credentials are requested, so ordinary PDFs keep the compact form.
-  const out = await pdfDoc.save(opts.c2pa ? { useObjectStreams: false } : undefined);
-  return new Blob([out], { type: 'application/pdf' });
-}
-
-// Compose the proof-margin credit strings from the export's provenance metadata.
-// topLeft: export timestamp; topRight: platform attribution; bottomLeftUp: tool
-// + author. Anything missing is dropped, so the line stays clean when the user
-// isn't opted into personal details. Keyed by the engine's label slots (see
-// print-marks.js).
-function provenanceLabels(meta: ExportMeta | null | undefined): LabelsRecord | null {
-  if (!meta) return null;
-  const topLeft  = formatStamp(new Date());
-  const topRight = meta.source ? `Made with ${meta.source}` : '';
-  const credit = [meta.tool, meta.author && `by ${meta.author}`].filter(Boolean).join(' ');
-  return { topLeft, topRight, bottomLeftUp: meta.tool ? credit : '' };
-}
-
-// Local export timestamp as "YYYY-MM-DD HH:MM".
-function formatStamp(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
-// Declare the print page boxes so a RIP / print shop knows the cut (trim) and
-// bleed extents: Media ⊇ Bleed ⊇ Trim (= Art); CropBox = Media. The engine's
-// geometry is top-left origin; PDF boxes are bottom-left, so flip y.
-function setPageBoxes(page: any, geo: PrintGeometry): void {
-  const H = geo.page.h;
-  const box = (b: { x: number; y: number; w: number; h: number }): [number, number, number, number] => [b.x, H - (b.y + b.h), b.w, b.h]; // → [x, y(bottom-left), w, h]
-  page.setMediaBox(...box(geo.boxes.media));
-  page.setCropBox(...box(geo.boxes.media));
-  page.setBleedBox(...box(geo.boxes.bleed));
-  page.setTrimBox(...box(geo.boxes.trim));
-  page.setArtBox(...box(geo.boxes.trim));
-}
-
-// Draw the crop / bleed / registration marks, colour bar and provenance labels
-// in the page margin. Line marks use registration colour (DeviceCMYK 1,1,1,1 on
-// the CMYK path so they print on every plate; black on the RGB path). Colour-bar
-// cells follow their own `ink`: brand pairs force 'rgb' (the unconverted
-// reference swatch) and 'cmyk' (the substitution) regardless of page space, so
-// the two sit side by side for comparison; the generic bar's 'page' cells follow
-// the page space. `labels` (optional) maps each engine label slot → its string.
-// Engine coords are top-left; flip y.
-async function drawPrintMarks(page: any, geo: PrintGeometry, { space = 'rgb', labels }: { space?: string; labels?: LabelsRecord | null } = {}): Promise<void> {
-  const { rgb, cmyk, degrees, StandardFonts } = await import('pdf-lib') as any;
-  const H = geo.page.h;
-  const fy = (y: number) => H - y;
-  const markColor = space === 'cmyk' ? cmyk(1, 1, 1, 1) : rgb(0, 0, 0);
-  const w = geo.strokeWeight;
-  for (const ln of geo.primitives.lines) {
-    page.drawLine({ start: { x: ln.x1, y: fy(ln.y1) }, end: { x: ln.x2, y: fy(ln.y2) }, thickness: w, color: markColor });
-  }
-  for (const c of geo.primitives.circles) {
-    // borderColor without `color` strokes a ring (no fill) - see pdf-lib drawEllipse.
-    page.drawCircle({ x: c.cx, y: fy(c.cy), size: c.r, borderWidth: w, borderColor: markColor });
-  }
-  for (const b of geo.primitives.bars) {
-    const ink = b.ink === 'page' || !b.ink ? space : b.ink;
-    const fill = ink === 'cmyk' ? cmyk(...b.cmyk) : rgb(...b.rgb);
-    const r = Math.max(0, Math.min(b.r ?? 0, b.w / 2, b.h / 2));
-    if (r > 0) {
-      // Rounded cell (brand --radius). pdf-lib drawSvgPath draws the path y-DOWN from
-      // its origin, so anchor at the cell's TOP edge (fy(b.y)). Any surprise falls
-      // back to a square rect rather than dropping the cell.
-      try {
-        const rad: CornerRadii = { topLeft: [r, r], topRight: [r, r], bottomRight: [r, r], bottomLeft: [r, r] };
-        page.drawSvgPath(roundedRectPath(0, 0, b.w, b.h, rad), { x: b.x, y: fy(b.y), color: fill, borderWidth: 0 });
-        continue;
-      } catch { /* fall through to a square cell */ }
-    }
-    page.drawRectangle({ x: b.x, y: fy(b.y + b.h), width: b.w, height: b.h, color: fill });
-  }
-  // Provenance text - only the engine's anchors that the caller supplied a string
-  // for. Helvetica (a standard-14 font: referenced, not embedded) keeps it light.
-  const slots = (geo.primitives.labels ?? []).filter(l => labels?.[l.slot]);
-  if (slots.length) {
-    const font = await page.doc.embedFont(StandardFonts.Helvetica);
-    const textColor = space === 'cmyk' ? cmyk(0, 0, 0, 0.7) : rgb(0.35, 0.35, 0.35);
-    for (const l of slots) {
-      const text = labels![l.slot]!;
-      // Right-aligned horizontal text shifts left by its measured width; rotated
-      // text (read-up) starts at its anchor and climbs, so no shift needed.
-      const shift = (l.rotation === 0 && l.align === 'right') ? font.widthOfTextAtSize(text, l.size) : 0;
-      page.drawText(text, {
-        x: l.x - shift, y: fy(l.y), size: l.size, font, color: textColor, rotate: degrees(l.rotation),
-      });
-    }
-  }
+async function finishPdfX(blobOrBytes: Blob | Uint8Array, opts: ExportOpts, settings: PdfFinishSettings = {}): Promise<Blob> {
+  return finishSharedPdfX(blobOrBytes, opts, { ...settings, log: pdfxLog });
 }
 
 // Renders an SVG element into a rectangular region of the PDF page.

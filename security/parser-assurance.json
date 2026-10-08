@@ -498,6 +498,18 @@
         "notes": "Junk-tolerant by design: a token matching no channel or ease form is skipped, never thrown. Hooks consuming this module never emit the raw field - they parse and re-serialise, so only charset-clean tokens ever reach a rendered attribute, closing an attribute-injection path a hand-edited `kf` value would otherwise open."
       }
     },
+    "engine/src/present-interact.ts": {
+      "fuzzTargets": [
+        "present-interact"
+      ],
+      "details": {
+        "inputSource": "a Design web box's authored `interactOpts` field and standalone presentation depth values from documents or hand-edited share URLs",
+        "bounds": "1,024 UTF-8 bytes per options wire; 32 stops; depth text at most 256 UTF-16 code units and fragment names at most 128 characters; finite depth/page length clamped to 0-1,000,000, percentages to 0-100, seconds to 1-600, pause seconds to 0-600 and scroll milliseconds to 0-10,000",
+        "directTests": "`tests/present-interact.test.ts`, `tests/present-interact.browser.test.ts`",
+        "fuzzCoverage": "`present-interact` mutates standalone depths, valid controls, duplicate/prototype keys, malformed URI escapes and byte/stop limits through parse, canonical serialise/reparse, stop resolution and auto sampling",
+        "notes": "Options use a fixed key and value grammar with once-decoded URI components. Unknown or duplicate keys and malformed values reject the whole wire. Fragments stay opaque until the page runtime resolves them; the engine parser performs no DOM or network access."
+      }
+    },
     "engine/src/svg-colors.ts": {
       "fuzzTargets": [
         "svg-readers"

@@ -47,6 +47,9 @@ to use means adding its subpath in the same commit.
 | `net` | `createNetAPI()` - host.net's allowlisted fetch: the prefix matcher and the 64 MB counting-stream body cap |
 | `pptx` | `createPptxAPI()` (+ `inflatePptx`, `looksLikePptxFile`, `PPTX_MIME`) - host.pptx deck inspect + surgical rebrand, with the XML parser injected |
 | `pdf` | `createPdfAPI()` (+ `analyzePdf`, `stripPdf`, `compressPdf`) - host.pdf's metadata inspect/strip and the compressor. Pure pdf-lib, except the image re-encode pass, which feature-detects a canvas and is skipped when there is none, so Node gets the structural re-save. `shells/web/src/bridge/pdf.ts` re-exports it |
+| `pdfx` | `applyPdfX()` and conservative output-intent/font/colour claim checks over a loaded pdf-lib document. DOM-free; the web `export-pdfx.ts` path is a compatibility re-export |
+| `pdf-finishing` | `finishPdfX()`, `printGeometryForSize()`, print marks/page boxes, attribution labels and encrypt-last `encryptPdfStrong()`. Shared by web and Node exports, with logging injected; no browser, filesystem or native-addon dependency |
+| `design-ops-pdf` | `designOpsPdfNode()` - outlined RGB Design pages from authored drawing operations, followed by that same PDF finishing pass. Whole-document browser reasons for live text, composed stories, standard passwords, credentialed pictures, watermark or unsupported artwork; finishing/security errors propagate |
 | `pdf-structure` | `scanPdfStructure()` - what a PDF CARRIES and DOES rather than what it says about itself: attachments, open-time JavaScript, outward actions, filled form values, annotations, hidden layers. Depth-capped, cycle-guarded, output-capped, and every accessor swallows a malformed object, because the graph is hostile input. `pdf` loads it lazily; `shells/web/src/bridge/pdf-structure.ts` re-exports it |
 | `text-svg` | the pure parsers vector text export runs on: the catalog font-file resolver, `canVectoriseText`, `featureSettingsToHb`, `letterSpacingPx`, `textBaselineY`, `textStrokeAttrs`. No DOM, no Node. `shells/web/src/bridge/text-svg.ts` re-exports it |
 | `svg-ir` | `svgDomToIr()` - the SVG DOM → device-pixel vector IR walk that EMF, EPS, DXF, WMF and the Penpot PDF sink all consume. DOM-light: attribute reads plus an optional computed style, so it runs under jsdom. The font resolver is injected (`ctx.resolveFont`), so it carries no registry of its own. `shells/web/src/bridge/svg-ir.ts` re-exports it with the web registry wired in |
@@ -72,7 +75,7 @@ app and in the terminal, and let a mask or a tile seam drift; one copy cannot.
 
 `text-tools` supplies the Node `host.textTools` adapter and runs the engine's operations in disposable workers. `text-xml` supplies bounded XML/XSD parsing through libxml2-wasm for both Node and web workers. Source text is never logged or fetched by either module; external DTDs and schema dependencies are refused. The shared syntax implementation is `engine/src/text-syntax.ts`.
 
-`net`, `pptx`, `pdf`, `pdf-structure`, `pdf-redact-core`, `pdf-file-operation`,
+`net`, `pptx`, `pdf`, `pdfx`, `pdf-finishing`, `pdf-structure`, `pdf-redact-core`, `pdf-file-operation`,
 `text-svg`, `svg-ir`, `speech-whisper`, `tts-blend` and the `ml/*-models` +
 `ml/*-math` pairs are shared with the WEB shell as well, not just the terminal ones.
 Each is DOM-free or DOM-optional, and each web file is a thin re-export. They lived in
@@ -123,8 +126,8 @@ is that the map has to be complete - a module reachable from `services/mcp` or
 all, and adding the import without adding the subpath breaks the function, not the
 typecheck.
 
-Two modules are NOT in the map by choice, and the table marks them `(internal)`:
-`pdf-pages` and `image-redact`. Both are used only inside this package (and, for
-`pdf-pages`, by a repo-root test that imports it by file path). Give either one a
+Three modules are NOT in the map by choice, and the table marks them `(internal)`:
+`pdf-pages`, `design-ops-host` and `image-redact`. They are used only inside this package (and, for
+`pdf-pages`, by a repo-root test that imports it by file path). Give one a
 subpath the moment a shell needs it - the web shell's `views/pdf-import.ts` calling
 `scanPdfPages()` is the obvious next one.

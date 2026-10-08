@@ -9,7 +9,7 @@ BUNDLED IN THE WEB APP
 ================================================================================
 
 --------------------------------------------------------------------------------
-handlebars 4.7.9
+handlebars 4.7.10
 SPDX-License-Identifier: MIT
 Copyright: Copyright (C) 2011-2019 by Yehuda Katz
 

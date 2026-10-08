@@ -124,7 +124,8 @@ import { makeGeomApi } from '../../engine/src/geom-api.ts';
 import { parseSvgPath, parseSvgPathArgs } from '../../engine/src/svg-path.ts';
 import { evaluateKf, kfChannelsUsed, parseKf, serialiseKf } from '../../engine/src/keyframes.ts';
 import {
-  parsePresentInteractOpts, serialisePresentInteractOpts, resolvePresentInteractStops, samplePresentInteractAuto,
+  parsePresentInteractDepth, parsePresentInteractOpts, serialisePresentInteractOpts,
+  resolvePresentInteractDepth, resolvePresentInteractStops, samplePresentInteractAuto,
 } from '../../engine/src/present-interact.ts';
 import { compileMotionCues } from '../../engine/src/motion-cues.ts';
 import { parseSampleTimes, sequenceSampleTimes } from '../../engine/src/sequence-samples.ts';
@@ -1510,15 +1511,28 @@ export const keyframesTarget: FuzzTarget = {
 export const presentInteractTarget: FuzzTarget = {
   name: 'present-interact',
   async seeds() {
-    return [bytesOf('hl=ring;keys=scroll;mode=pan;len=3200;stops=0,640,%23pricing,100%25;auto=open;rep=loop'),
-      bytesOf('hl=zoom;walk=1;hand=1;auto=focus;sec=600;pause=2;ease=eb(0.2)(0)(0.8)(1)')];
+    return [
+      bytesOf('hl=ring;keys=scroll;mode=pan;len=3200;stops=0,640,%23pricing,100%25;auto=open;rep=loop'),
+      bytesOf('hl=zoom;walk=1;hand=1;auto=focus;sec=600;pause=2;ease=eb(0.2)(0)(0.8)(1)'),
+      bytesOf('mode=places;start=%23intro;stops=%23intro,%23pricing;from=%23intro;to=%23pricing;rep=alternate'),
+      bytesOf('start=1e9;len=-20;sec=0;pause=1e9;ms=1e9'),
+      bytesOf('#pricing'), bytesOf('100%'), bytesOf('1e999'),
+      bytesOf(`#${'x'.repeat(256)}`),
+      bytesOf('hl=ring;hl=none'), bytesOf('__proto__=polluted'),
+      bytesOf('hl=%E0%A4%A'), bytesOf(`stops=${Array(33).fill('0').join(',')}`),
+      new TextEncoder().encode(`hlc=${'é'.repeat(513)}`),
+    ];
   },
   async invoke(bytes) {
-    const options = parsePresentInteractOpts(new TextDecoder('utf-8').decode(bytes));
+    const text = new TextDecoder('utf-8').decode(bytes);
+    const context = { scrollMax: 10_000, boxHeight: 600 };
+    const depth = parsePresentInteractDepth(text);
+    if (depth !== null) resolvePresentInteractDepth(depth, context);
+    parsePresentInteractDepth(Number(text));
+    const options = parsePresentInteractOpts(text);
     if (!options) return;
     const canonical = parsePresentInteractOpts(serialisePresentInteractOpts(options));
     if (!canonical) throw new Error('Presentation options did not round trip');
-    const context = { scrollMax: 10_000, boxHeight: 600 };
     resolvePresentInteractStops(canonical.stops, context);
     samplePresentInteractAuto(canonical, 1234.5, context);
     samplePresentInteractAuto(canonical, 1234.5, context, { reducedMotion: true });

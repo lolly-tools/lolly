@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:d31ba5a1-f8d1-48cb-8068-01e141dd3443",
+  "serialNumber": "urn:uuid:78817016-1682-4e62-8575-c5bec82cf41f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-08T13:44:02.956Z",
+    "timestamp": "2026-10-08T21:30:05.774Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -27443,10 +27443,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/handlebars@4.7.9",
+      "bom-ref": "pkg:npm/handlebars@4.7.10",
       "name": "handlebars",
-      "version": "4.7.9",
-      "purl": "pkg:npm/handlebars@4.7.9",
+      "version": "4.7.10",
+      "purl": "pkg:npm/handlebars@4.7.10",
       "scope": "required",
       "licenses": [
         {
@@ -27458,7 +27458,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e04ef5134ae939a42e251d80df10d9f863351f2598bf5725479f2d0bc7a640d7907b7447ecc03349b6adf95d301bbf0b401a3a9ba6f3486fcbe2906e0ac82751"
+          "content": "3f954931533baa0067eaf8d7330f161bdb9523e9dc7f6a62ef68f875ee32cf96542cb8f6446a8b61a28e606b20cab562434b5e3ce565375b430825d7b45a972a"
         }
       ]
     },

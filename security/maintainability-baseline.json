@@ -28,11 +28,11 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4464,
+      "lines": 4304,
       "largestFunctionLines": 647,
       "importFanIn": 27,
       "importFanOut": 66,
-      "typeEscapes": 60
+      "typeEscapes": 52
     },
     "shells/web/src/bridge/sequence-render.ts": {
       "lines": 1745,
@@ -229,10 +229,9 @@
     "shells/web/src/bridge/emoji.ts": 1,
     "shells/web/src/bridge/export-pdf-doc.ts": 1,
     "shells/web/src/bridge/export-pdf-vector.ts": 11,
-    "shells/web/src/bridge/export-pdfx.ts": 25,
     "shells/web/src/bridge/export-shared.ts": 1,
     "shells/web/src/bridge/export-svg-walker.ts": 19,
-    "shells/web/src/bridge/export.ts": 60,
+    "shells/web/src/bridge/export.ts": 52,
     "shells/web/src/bridge/hook-worker.ts": 2,
     "shells/web/src/bridge/hook-worker.worker.ts": 1,
     "shells/web/src/bridge/identity.ts": 1,

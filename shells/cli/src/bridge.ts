@@ -1073,6 +1073,12 @@ function rootSvgOf(node: Element | null): Element | null {
       }
       // A Design frame is drawn from the engine's drawing operations when they carry the
       // whole page (plan 295, P3d), with no browser; otherwise the browser tier draws the page.
+      if (format === 'pdf' && opts.sourceDocument?.toolId === 'design') {
+        const { designOpsPdfNode, DESIGN_PDF_BROWSER_REQUIRED } = await import('@lolly-tools/node-shell/design-ops-pdf');
+        const page = await designOpsPdfNode(node, opts as import('@lolly-tools/node-shell/pdf-finishing').PdfFinishingOpts, host, { repoRoot: REPO_ROOT });
+        if (page && 'pdf' in page) return page.pdf;
+        throw Object.assign(new Error(`This Design document needs a browser engine for PDF because ${page && 'reason' in page ? page.reason : 'it is not a Design document'}`), { code: DESIGN_PDF_BROWSER_REQUIRED });
+      }
       let designOpsReason: string | undefined;
       if (format === 'svg' && opts.sourceDocument?.toolId === 'design') {
         const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
@@ -1395,9 +1401,7 @@ function rootSvgOf(node: Element | null): Element | null {
     },
   };
 
-  // PDF metadata inspect + strip. Unlike raster/PDF *rendering* (which needs a
-  // browser engine), metadata surgery is pure pdf-lib, which runs fine in node -
-  // so the lean CLI can clean PDFs too.
+  // PDF metadata inspect + strip is pure pdf-lib and needs no browser.
   host.pdf = createPdfAPI();
 
   // pdf.redact + pdf.pages (plan 183 WS4) - the two PdfAPI members that REBUILD

@@ -1,6 +1,6 @@
 {
   "name": "@lolly-tools/node-shell",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared plumbing for the Lolly CLI, TUI, MCP server AND web shell: repo-root resolution, the scoped headless-Chromium launcher, the web-shell render tier, the resvg raster fast path, the export Content-Credentials payload builder, and the DOM-free halves of PDF/PPTX/text/SVG/ML that the browser shares with the terminal. One implementation so no shell can drift. Every consumer imports through the `exports` map, never by relative path.",
   "license": "MPL-2.0",
   "type": "module",
@@ -122,7 +122,10 @@
     "./production": "./src/production.ts",
     "./adobe-psd": "./src/adobe-psd.ts",
     "./adobe-psd-node": "./src/adobe-psd-node.ts",
-    "./adobe-psd.wasm": "./wasm/adobe-psd/adobe-psd.wasm"
+    "./adobe-psd.wasm": "./wasm/adobe-psd/adobe-psd.wasm",
+    "./pdfx": "./src/pdfx.ts",
+    "./pdf-finishing": "./src/pdf-finishing.ts",
+    "./design-ops-pdf": "./src/design-ops-pdf.ts"
   },
   "files": [
     "src",

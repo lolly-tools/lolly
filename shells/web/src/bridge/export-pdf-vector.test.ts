@@ -582,6 +582,7 @@ test('contract: every CMYK sink obtains its palette through buildCmykPaletteMap'
   const repo = `${here}../../../../`;
   const exportTs = readFileSync(`${here}export.ts`, 'utf8');
   const vectorTs = readFileSync(`${here}export-pdf-vector.ts`, 'utf8');
+  const finishingTs = readFileSync(`${repo}packages/node-shell/src/pdf-finishing.ts`, 'utf8');
   const engineTs = readFileSync(`${repo}engine/src/cmyk-palette.ts`, 'utf8');
   // The FOURTH sink lives in another shell entirely. Scanning only shells/web is
   // how the finish fix stayed web-only while `lolly … --export=eps-cmyk` went on
@@ -589,7 +590,7 @@ test('contract: every CMYK sink obtains its palette through buildCmykPaletteMap'
   // the defect crossed.
   const cliBridgeTs = readFileSync(`${repo}shells/cli/src/bridge.ts`, 'utf8');
 
-  for (const [label, src] of [['export.ts', exportTs], ['cli/bridge.ts', cliBridgeTs]] as const) {
+  for (const [label, src] of [['export.ts', exportTs], ['cli/bridge.ts', cliBridgeTs], ['pdf-finishing.ts', finishingTs]] as const) {
     for (const line of src.split('\n')) {
       if (!/\b(paletteMap|cmykPalette)\s*[:=][^:=]/.test(line)) continue;
       if (/Map</.test(line)) continue;                       // a type annotation, not a binding
@@ -611,9 +612,11 @@ test('contract: every CMYK sink obtains its palette through buildCmykPaletteMap'
   assert.match(vectorTs, /export \{ buildCmykPaletteMap, cmykKey \}/,
     'export-pdf-vector.ts must re-export the engine builder, never redefine one');
   assert.match(engineTs, /export function buildCmykPaletteMap\(/);
+  assert.match(vectorTs, /export \{ brandSwatchPalette \} from '@lolly-tools\/node-shell\/pdf-finishing'/,
+    'export-pdf-vector.ts must re-export the shared finishing helper, never redefine one');
 
   // Both places that derive a CMYK build from a brand swatch consult the finish.
-  for (const [src, fn] of [[engineTs, 'buildCmykPaletteMap'], [vectorTs, 'brandSwatchPalette']] as const) {
+  for (const [src, fn] of [[engineTs, 'buildCmykPaletteMap'], [finishingTs, 'brandSwatchPalette']] as const) {
     const start = src.indexOf(`export function ${fn}(`);
     assert.ok(start > 0, `${fn} not found`);
     const body = src.slice(start, start + 2000);
