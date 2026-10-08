@@ -1,0 +1,86 @@
+# Weekly branch hygiene report.
+#
+# Runs the report half of scripts/branch-hygiene.ts against this repository's
+# own remote branches and keeps a single issue, "Branch hygiene report", in step
+# with it: opened or updated when the remote holds more than 10 non-main
+# branches or keeps a branch whose changes are already in main, and closed when
+# the report comes back clean. The job never deletes a branch: pruning stays a
+# local, logged action (`node scripts/branch-hygiene.ts --prune`). With GitHub's
+# "Automatically delete head branches" setting on, a merged PR's branch goes
+# when the PR merges, so a clean report is the normal state.
+name: Branch hygiene
+
+on:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+    inputs:
+      max_branches:
+        description: Non-main branches allowed before the report opens an issue
+        required: false
+        default: '10'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: branch-hygiene
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: branch hygiene report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Every branch with its history: each one is compared with main.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+
+      - name: Report remote branches
+        id: report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAX_BRANCHES: ${{ inputs.max_branches || '10' }}
+        run: |
+          set +e
+          node scripts/branch-hygiene.ts --remote-only --no-fetch --check --markdown "--max-branches=$MAX_BRANCHES" > "$RUNNER_TEMP/branch-hygiene.md"
+          status=$?
+          set -e
+          cat "$RUNNER_TEMP/branch-hygiene.md" >> "$GITHUB_STEP_SUMMARY"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          # 0 is clean, 1 has findings; anything else means the report itself failed.
+          if [ "$status" -gt 1 ]; then
+            echo "::error::scripts/branch-hygiene.ts exited with $status"
+            exit "$status"
+          fi
+
+      - name: Open, update or close the report issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS: ${{ steps.report.outputs.status }}
+        run: |
+          title='Branch hygiene report'
+          body="$RUNNER_TEMP/branch-hygiene.md"
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$title\"" --json number,title \
+            --jq '.[] | select(.title == "Branch hygiene report") | .number' | head -n 1)
+          if [ "$STATUS" = 1 ]; then
+            if [ -n "$number" ]; then
+              gh issue edit "$number" --repo "$GITHUB_REPOSITORY" --body-file "$body"
+              echo "Updated issue #$number"
+            else
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$body"
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --repo "$GITHUB_REPOSITORY" --comment 'The weekly branch hygiene report is clean.'
+          fi
