@@ -42,6 +42,7 @@ export async function designOpsSvgNode(node: Element | null | undefined, opts: E
       ...(opts.meta ? { meta: opts.meta } : {}),
     });
   } catch (error) {
+    if (error instanceof Error && error.name === 'RenderIntegrityError') throw error;
     return { reason: `the drawing could not be compiled (${error instanceof Error ? error.message : String(error)})` };
   }
   if (page.findings.length) return { reason: `the page holds features the drawing operations do not carry yet: ${[...new Set(page.findings.map((f) => `${f.feature} (${f.id})`))].join(', ')}` };

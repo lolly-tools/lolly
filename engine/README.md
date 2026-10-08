@@ -447,7 +447,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `rondo-source.test.ts` | 100 | rondo-source.ts: song files, share links rondocode itself writes (made with pako, as upstream does), canonical bytes, and the ceilings on every untrusted path. | no | none | – |
 | `rondo-source.ts` | 206 | rondo-source.ts: a rondocode song as an asset's bytes. | yes | indirect | yes |
 | `rpm.ts` | 443 | RPM v4 package writer - the container half of a `.rpm`. | yes | `tests/rpm.test.ts` | – |
-| `runtime.ts` | 2768 |  | yes | indirect | – |
+| `runtime.ts` | 2780 |  | yes | indirect | – |
 | `scorm.ts` | 627 | SCORM packaging - the pure half (plans/180 section 6). | yes | `tests/scorm.test.ts` | – |
 | `seal.ts` | 756 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | yes |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |

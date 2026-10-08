@@ -60,6 +60,8 @@ lolly run design --boxes-data=slides.json --export=pdf --text=outline --bleed=3m
 
 Default/live text, composed text stories, standard-password PDFs, credentialed pictures, themed asset compositions, watermark and unsupported effects or picture formats keep the browser route. The CLI reports an operations fallback and sends the complete document once. A failed finishing/security pass fails the export; a hook failure is never retried as a tier limitation. `pdf-cmyk` stays on its existing browser route. `nativeFormats` for Design includes PDF as a candidate, with these document and option checks still applied. Running an already packed `.lolly` file uses its existing app exporter.
 
+A static Design frame also exports as `svgz` without a browser: it is gzip of the same operations SVG, with the same dimensions and metadata. Select a frame with `--s=<frame-id>`. Design preserves a shared link's **Convert paths** setting; default words stay editable. SVGZ uses the same whole-page admission checks as SVG. Composed stories, watermark, credentialed pictures, themed assets and unsupported artwork go to the browser tier once, with the reason reported; a recorded hook failure writes no file and is never retried.
+
 
 Which tier is available here is not a guess: `lolly list --json` reports it per tier, with a reason for each one that is missing. See [Discovery, for an agent](/info/cli-automation.html#discovery-for-an-agent).
 

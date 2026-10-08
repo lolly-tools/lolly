@@ -1080,16 +1080,21 @@ function rootSvgOf(node: Element | null): Element | null {
         throw Object.assign(new Error(`This Design document needs a browser engine for PDF because ${page && 'reason' in page ? page.reason : 'it is not a Design document'}`), { code: DESIGN_PDF_BROWSER_REQUIRED });
       }
       let designOpsReason: string | undefined;
-      if (format === 'svg' && opts.sourceDocument?.toolId === 'design') {
+      if ((format === 'svg' || format === 'svgz') && opts.sourceDocument?.toolId === 'design') {
+        // The snapshot precedes the story-composition hook; the browser owns that page.
+        if (String(opts.sourceDocument.values.textDocument ?? '').trim()) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because the document composes text stories`);
         const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
         const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
-        if (page && 'svg' in page) return new Blob([page.svg], { type: 'image/svg+xml' });
+        if (page && 'svg' in page) {
+          const bytes = new TextEncoder().encode(page.svg);
+          return new Blob([format === 'svgz' ? gzip(bytes) as BlobPart : bytes], { type: 'image/svg+xml' });
+        }
         if (page) designOpsReason = page.reason;
       }
       if (format === 'svg' || format === 'svgz') {
         const svg = rootSvgOf(node);
         if (!svg) {
-          if (designOpsReason) throw new Error(`This Design page needs a browser engine for SVG because ${designOpsReason}`);
+          if (designOpsReason) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because ${designOpsReason}`);
           throw new Error('SVG export requires the template\'s root drawable to be an <svg> (HTML-layout tools need a browser engine - use the desktop app or the web shell)');
         }
         // Honour requested dimensions (incl. physical units like "210mm"): set

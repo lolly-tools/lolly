@@ -77,6 +77,14 @@ export interface HookError {
   message: string;
 }
 
+/** A failed export precondition is fatal for this attempt, without poisoning the mounted tool. */
+class ExportHookError extends Error {
+  constructor(cause: unknown) {
+    super(cause instanceof Error ? cause.message : String(cause), { cause });
+    this.name = 'ExportHookError';
+  }
+}
+
 /**
  * What the emoji pass knows right now, for a shell's chrome to read and show.
  * `present` is only "this host can supply pinned packs at all" - it says nothing
@@ -1866,8 +1874,8 @@ export async function createRuntime(
         } };
       }
       if (['lottie', 'idml', 'premiere-xml'].includes(format) || format === 'html' && tool.manifest.id === 'design') opts = { ...opts, width: opts.width ?? tool.manifest.render?.width, height: opts.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
-      // A Design SVG or PDF page can be drawn from the authored document (plan 295, P3d); the size stays the caller's.
-      else if ((format === 'svg' || format === 'pdf') && tool.manifest.id === 'design') opts = { ...opts, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
+      // A Design SVG, SVGZ or PDF page can be drawn from the authored document (plan 295, P3d); the size stays the caller's.
+      else if ((format === 'svg' || format === 'svgz' || format === 'pdf') && tool.manifest.id === 'design') opts = { ...opts, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
       if (tool.manifest.designTool) {
         if (tool.manifest.designTool.sourceTool && extras.__lollySourceError) throw new Error(String(extras.__lollySourceError));
         if (tool.manifest.designTool.sourceTool) {
@@ -1892,7 +1900,11 @@ export async function createRuntime(
         // PROPAGATE and fail this export visibly - beforeExport is where tools
         // raise user-facing preconditions (e.g. url-shot's "enter a URL"), and
         // exporting an unstaged canvas silently would be worse than failing.
-        await runHook('beforeExport', () => beforeExport({ model: modelForHooks(model), lang: hookLang, node: renderedNode, format, opts, host }));
+        try {
+          await runHook('beforeExport', () => beforeExport({ model: modelForHooks(model), lang: hookLang, node: renderedNode, format, opts, host }));
+        } catch (error) {
+          throw new ExportHookError(error);
+        }
       }
       // Emoji, after the tool has finished staging the node and before anything
       // reads it. Running it here rather than only at each mount site is what

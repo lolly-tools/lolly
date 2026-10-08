@@ -1323,11 +1323,11 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         // (a hook threw) and re-rendering it elsewhere would only launder the bug. If the
         // browser tier can't run either, both halves are reported and nothing is written.
         const designPdfFallback = attemptedDesignPdf && e instanceof Error && 'code' in e && e.code === 'DESIGN_PDF_BROWSER_REQUIRED';
-        // A recorded hook failure stays fatal even if PDF admission refused before producing bytes.
-        if (designPdfFallback && runtime.hookErrors.length) {
+        // A recorded hook failure stays fatal even if PDF/SVG admission refused before producing bytes.
+        if ((designPdfFallback || ['svg', 'svgz'].includes(targetFormat.toLowerCase())) && runtime.hookErrors.length) {
           assertRenderOk({ hookErrors: runtime.hookErrors, format: targetFormat, bytes: new Uint8Array() });
         }
-        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase())) || (e as Error)?.name === 'RenderIntegrityError') throw e;
+        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase())) || ['RenderIntegrityError', 'ExportHookError'].includes((e as Error)?.name)) throw e;
         domFreeError = e as Error;
         note(
           `Note: "${targetFormat}" has no browser-free path for this tool (${firstLine(domFreeError.message)}). ` +
@@ -1620,7 +1620,7 @@ async function teardownTierB(): Promise<void> {
  * `<svg>` escalates to the browser tier instead of dying on the DOM-free refusal.
  * So a DOM-free failure on one of these is a reason to escalate, not to refuse.
  */
-const VECTOR_ESCALATABLE = new Set(['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'penpot']);
+const VECTOR_ESCALATABLE = new Set(['svg', 'svgz', 'emf', 'eps', 'eps-cmyk', 'dxf', 'penpot']);
 
 /**
  * Failures that describe THIS RENDER rather than this shell's tiers. They are never
@@ -1628,7 +1628,7 @@ const VECTOR_ESCALATABLE = new Set(['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'pen
  * something true and actionable, and each is worded to survive being handled by name
  * rather than by phrase (see render-integrity.ts and raster.ts's deepSourceRefusal).
  */
-const REAL_RENDER_FAILURES = new Set(['RenderIntegrityError', 'DeepSourceError', 'FormatMismatchError']);
+const REAL_RENDER_FAILURES = new Set(['RenderIntegrityError', 'ExportHookError', 'DeepSourceError', 'FormatMismatchError']);
 
 const firstLine = (s: string): string => String(s ?? '').split('\n')[0]!.trim();
 

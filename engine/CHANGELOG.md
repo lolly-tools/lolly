@@ -8,6 +8,7 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 
 ## 1.248.0
 
+- Carry authored Design snapshots into SVGZ exports. The CLI shares SVG admission and finishing before compression; failed `beforeExport` hooks remain fatal through renderer fallback, and later valid exports can recover.
 - Update Handlebars to 4.7.10 to fix the template compiler's JavaScript injection advisories.
 - Add `present-interact.ts`: bounded, whitelisted presentation options, depth and stop resolution, and automatic scrolling sampled through the engine's easing functions. The module is pure and supplies the same authored interpretation to the editor and presenter. Unknown or duplicate wire keys refuse the whole option record; percent, pixel and fragment stops retain their distinct meanings.
 - Design 1.45 appends the interactive focus step and options at box slots 119 and 120. Existing compact URLs retain every earlier position. Rendered web markers carry escaped, inert interaction attributes; shells choose whether to load or drive a page.

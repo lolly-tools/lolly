@@ -19,6 +19,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { createServer, type Socket } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { gzipSync, gunzipSync } from 'node:zlib';
 
 import {
   designSessionValues, OPEN_ROUTE_MAX_BYTES, OpenSessionError, packageDesignSession, serveSessionOnce, sessionExportQuery, sessionQuery, shortenUrls,
@@ -288,6 +289,42 @@ test('default and explicit live-text Design PDFs keep one browser transport requ
       assert.equal((stderr.match(/Escalating to the browser render tier/g) ?? []).length, 1, stderr);
       assert.match(stderr, /keeps its words as live text/);
       assert.equal(readFileSync(out, 'utf8'), '%PDF-1.7 live text from desktop');
+    }
+  } finally {
+    await desktop.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('unsupported Design SVGZ pages make one complete browser transport request and preserve its gzip bytes', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-desktop-svgz-'));
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="#ffffff"/></svg>';
+  const answer = gzipSync(svg);
+  const desktop = await fakeDesktop(answer);
+  try {
+    const advert = join(dir, 'render.json');
+    writeFileSync(advert, JSON.stringify({ port: desktop.port, token: 'tok', pid: process.pid, version: 'test' }));
+    const env: NodeJS.ProcessEnv = { ...process.env, LOLLY_ROOT: root, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: join(dir, 'state'), NO_COLOR: '1', LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDER_SERVER: advert, LOLLY_DESKTOP_BIN: join(dir, 'none'), LOLLY_RENDERER: 'desktop' };
+    const frame = { id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 360, bg: '#ffffff' };
+    const cases = [
+      { rows: [frame, { id: 'blur', kind: 'box', frame: 'f', x: 20, y: 100, w: 100, h: 80, bg: '#1c7ed6', bgBlur: 8 }], flags: ['--s=f'], reason: /background-blur/ },
+      { rows: [frame, { id: 'image', kind: 'image', frame: 'f', x: 20, y: 100, w: 100, h: 80, image: 'lolly/logo/primary?theme=dark' }], flags: ['--s=f'], reason: /image-unread/ },
+      { rows: [frame, { ...frame, id: 'second', x: 700 }], flags: [], reason: /not a single frame/ },
+    ];
+    for (const [index, entry] of cases.entries()) {
+      const rows = join(dir, `rows-${index}.json`), out = join(dir, `fallback-${index}.svgz`);
+      writeFileSync(rows, JSON.stringify(entry.rows));
+      const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--export=svgz', `--output=${out}`, '--no-provenance', ...entry.flags], { env, cwd: dir });
+      let stderr = '';
+      child.stderr.on('data', data => { stderr += String(data); });
+      const code = await new Promise<number | null>(done => child.on('close', done));
+      assert.equal(code, 0, stderr);
+      assert.equal(desktop.seen.length, index + 1, 'one request per complete fallback');
+      assert.equal((stderr.match(/Escalating to the browser render tier/g) ?? []).length, 1, stderr);
+      assert.match(stderr, entry.reason);
+      assert.match(String(desktop.seen[index]!.toolUrl), /#\/tool\/design\?.*boxes=/);
+      assert.deepEqual(readFileSync(out), answer);
+      assert.equal(gunzipSync(readFileSync(out)).toString(), svg);
     }
   } finally {
     await desktop.close();

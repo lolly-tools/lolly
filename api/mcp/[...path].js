@@ -49493,7 +49493,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         } };
       }
       if (["lottie", "idml", "premiere-xml"].includes(format) || format === "html" && tool.manifest.id === "design") opts2 = { ...opts2, width: opts2.width ?? tool.manifest.render?.width, height: opts2.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model2)) } };
-      else if ((format === "svg" || format === "pdf") && tool.manifest.id === "design") opts2 = { ...opts2, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model2)) } };
+      else if ((format === "svg" || format === "svgz" || format === "pdf") && tool.manifest.id === "design") opts2 = { ...opts2, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model2)) } };
       if (tool.manifest.designTool) {
         if (tool.manifest.designTool.sourceTool && extras.__lollySourceError) throw new Error(String(extras.__lollySourceError));
         if (tool.manifest.designTool.sourceTool) {
@@ -49514,7 +49514,11 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
       const beforeExport = hooks?.beforeExport;
       if (beforeExport) {
-        await runHook("beforeExport", () => beforeExport({ model: modelForHooks(model2), lang: hookLang, node: renderedNode, format, opts: opts2, host }));
+        try {
+          await runHook("beforeExport", () => beforeExport({ model: modelForHooks(model2), lang: hookLang, node: renderedNode, format, opts: opts2, host }));
+        } catch (error2) {
+          throw new ExportHookError(error2);
+        }
       }
       checkTextRevision();
       const emojiPass = await queueEmoji(() => runEmojiPass(renderedNode));
@@ -50070,7 +50074,7 @@ function mergePatch(model2, extras, patch, inputIds) {
   const newModel = hasModelPatch ? model2.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model2;
   return { model: newModel, extras: newExtras };
 }
-var HOOK_BUDGET_MS, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
+var ExportHookError, HOOK_BUDGET_MS, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
 var init_runtime = __esm({
   "engine/src/runtime.ts"() {
     "use strict";
@@ -50094,6 +50098,12 @@ var init_runtime = __esm({
     init_bake();
     init_asset_provider();
     init_asset_version();
+    ExportHookError = class extends Error {
+      constructor(cause) {
+        super(cause instanceof Error ? cause.message : String(cause), { cause });
+        this.name = "ExportHookError";
+      }
+    };
     HOOK_BUDGET_MS = {
       onInit: 5e3,
       onInput: 2e3,
@@ -154485,6 +154495,7 @@ async function designOpsSvgNode(node, opts, host, ctx) {
       ...opts.meta ? { meta: opts.meta } : {}
     });
   } catch (error2) {
+    if (error2 instanceof Error && error2.name === "RenderIntegrityError") throw error2;
     return { reason: `the drawing could not be compiled (${error2 instanceof Error ? error2.message : String(error2)})` };
   }
   if (page3.findings.length) return { reason: `the page holds features the drawing operations do not carry yet: ${[...new Set(page3.findings.map((f) => `${f.feature} (${f.id})`))].join(", ")}` };
@@ -163685,16 +163696,20 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         throw Object.assign(new Error(`This Design document needs a browser engine for PDF because ${page3 && "reason" in page3 ? page3.reason : "it is not a Design document"}`), { code: DESIGN_PDF_BROWSER_REQUIRED2 });
       }
       let designOpsReason;
-      if (format === "svg" && opts.sourceDocument?.toolId === "design") {
+      if ((format === "svg" || format === "svgz") && opts.sourceDocument?.toolId === "design") {
+        if (String(opts.sourceDocument.values.textDocument ?? "").trim()) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because the document composes text stories`);
         const { designOpsSvgNode: designOpsSvgNode2 } = await Promise.resolve().then(() => (init_design_ops_svg(), design_ops_svg_exports));
         const page3 = await designOpsSvgNode2(node, opts, host, { repoRoot: REPO_ROOT2 });
-        if (page3 && "svg" in page3) return new Blob([page3.svg], { type: "image/svg+xml" });
+        if (page3 && "svg" in page3) {
+          const bytes = new TextEncoder().encode(page3.svg);
+          return new Blob([format === "svgz" ? gzip(bytes) : bytes], { type: "image/svg+xml" });
+        }
         if (page3) designOpsReason = page3.reason;
       }
       if (format === "svg" || format === "svgz") {
         const svg = rootSvgOf(node);
         if (!svg) {
-          if (designOpsReason) throw new Error(`This Design page needs a browser engine for SVG because ${designOpsReason}`);
+          if (designOpsReason) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because ${designOpsReason}`);
           throw new Error("SVG export requires the template's root drawable to be an <svg> (HTML-layout tools need a browser engine - use the desktop app or the web shell)");
         }
         const dw = parseDimension(opts.width);
