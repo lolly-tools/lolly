@@ -165,7 +165,8 @@ test('on a touch screen the Card dot is the List variant: smaller, a neutral rin
   assert.ok(px('--browse-check-size-touch') < px('--browse-check-size'), 'smaller than the pointer dot');
   const ring = coarse.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile .tile-check');
   assert.match(ring?.body ?? '', /background:\s*transparent/);
-  assert.match(ring?.body ?? '', /border-color:\s*var\(--ui-color-border-default\)/);
+  // The muted text colour, not the hairline border colour: the ring must reach 3:1 on a thumbnail in both themes.
+  assert.match(ring?.body ?? '', /border-color:\s*var\(--ui-color-text-muted\)/);
   const pressed = coarse.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile .tile-check[aria-pressed="true"]');
   assert.match(pressed?.body ?? '', /background:\s*var\(--ui-color-action-primary\)/);
   // The 28px hit extension stays with the base rule (object-tiles.css), so nothing here may remove the ::after.

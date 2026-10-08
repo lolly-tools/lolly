@@ -327,12 +327,15 @@
 /* On a touch screen the dot shows at rest (parts/object-tiles.css), where the dark
    disc and white ring would cover every thumbnail. Card draws plan 302's List dot
    there instead: smaller, a neutral ring with no fill, and the primary fill only once
-   pressed. The base rule's 28px hit extension still applies. */
+   pressed. The ring is the muted text colour, not the hairline border colour: on a
+   thumbnail the border colour measures about 1.4:1 in light and 1.1:1 in dark, under
+   the 3:1 a control's outline needs, and the muted text colour about 6:1 and 9:1.
+   The base rule's 28px hit extension still applies. */
 @media (pointer: coarse) {
   .tool-masonry[data-browse-layout="card"] { --browse-check-size: var(--browse-check-size-touch); }
   .tool-masonry[data-browse-layout="card"] .gtile .tile-check {
     background: transparent;
-    border-color: var(--ui-color-border-default);
+    border-color: var(--ui-color-text-muted);
   }
   .tool-masonry[data-browse-layout="card"] .gtile .tile-check[aria-pressed="true"] {
     background: var(--ui-color-action-primary);

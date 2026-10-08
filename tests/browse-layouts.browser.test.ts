@@ -280,13 +280,20 @@ test('Tools Card: the first card row follows the "Yours" shelf, and the shelf cl
       // A margin that collapsed through the view would start the page tint below the top bar.
       assert.ok(at.clearance >= 40, `at ${width}px the shelf sits ${at.clearance}px inside the view`);
       if (mobile) {
-        // A touch screen shows the dot at rest, so Card draws it as a small ring with no fill.
+        // A touch screen shows the dot at rest, so Card draws it as a small ring with no fill,
+        // in the muted text colour (the hairline border colour is under 3:1 on a thumbnail).
         const dot = await page.locator('.tool-masonry .gtile--has-preview:not(.is-filtered) .tile-check').first().evaluate((el) => {
           const s = getComputedStyle(el);
-          return { opacity: s.opacity, fill: s.backgroundColor, width: el.getBoundingClientRect().width };
+          const probe = document.createElement('span');
+          probe.style.color = 'var(--ui-color-text-muted)';
+          el.parentElement!.append(probe);
+          const muted = getComputedStyle(probe).color;
+          probe.remove();
+          return { opacity: s.opacity, fill: s.backgroundColor, ring: s.borderTopColor, muted, width: el.getBoundingClientRect().width };
         });
         assert.equal(dot.opacity, '1', 'the dot stays reachable on touch');
         assert.equal(dot.fill, 'rgba(0, 0, 0, 0)', 'no disc covers the thumbnail');
+        assert.equal(dot.ring, dot.muted, 'the ring is the muted text colour');
         assert.ok(dot.width < 20, `the touch dot is ${dot.width}px`);
       }
     } finally {
