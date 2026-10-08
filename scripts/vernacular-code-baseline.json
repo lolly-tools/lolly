@@ -1238,7 +1238,7 @@
   "shells/web/src/views/free-canvas/toolbox.ts": 3,
   "shells/web/src/views/gallery-carousel.ts": 3,
   "shells/web/src/views/gallery-strip-menu.ts": 1,
-  "shells/web/src/views/gallery.ts": 17,
+  "shells/web/src/views/gallery.ts": 13,
   "shells/web/src/views/glyph-split-mount.ts": 2,
   "shells/web/src/views/grade-inline.ts": 2,
   "shells/web/src/views/input-policy-attribution.test.ts": 2,

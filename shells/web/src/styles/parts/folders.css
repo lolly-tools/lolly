@@ -133,7 +133,7 @@
 .tile-menu-btn {
   /* The box rides the icon scale with the glyph it holds - a 15px mark growing
      to 18 inside a fixed 26px circle would swallow the ring it sits in. */
-  position: absolute; top: 6px; right: 6px; width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
+  position: absolute; top: 6px; inset-inline-end: 6px; width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
   display: inline-flex; align-items: center; justify-content: center; padding: 0;
   border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-choice-round);
   background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent); color: var(--ui-color-text-default);

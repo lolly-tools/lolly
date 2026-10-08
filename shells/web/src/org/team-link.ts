@@ -24,7 +24,16 @@
  * A refusal (403) offers Ask for access and Use a different account, and opens the
  * session once an answer gives access; a lapsed sign-in (401) offers Sign in
  * (org/team-link-shared.ts). Every string reaches the page through textContent.
+ *
+ * A link to one comment thread adds `?thread=<threadId>` (`#/team/<sessionId>?thread=…`).
+ * The id must pass the core `commentId` rule; any other value is ignored and the
+ * session opens as usual. Every open hands the thread to org/team-open.ts, which holds
+ * it for the session's comments panel for two minutes (lib/review-target.ts). An
+ * answer that gives access opens the session again, so the thread is held afresh
+ * however long the answer took. Sign-in links return to the whole address, so the
+ * thread survives signing in.
  */
+import { commentId } from '@lolly-tools/core/canvas-review-v1';
 import { getSessionSource } from '../lib/session-source.ts';
 import { tRaw } from '../i18n.ts';
 import { isRecentlyAbsent, probeInstance } from './probe.ts';
@@ -36,6 +45,19 @@ import { card, noAccessCard, planTeamLink, signInAgainCard, teamLinkSessionId } 
 export { planTeamLink, teamLinkSessionId } from './team-link-shared.ts';
 
 interface TeamLinkView extends HTMLElement { _cleanup?: () => void }
+
+/**
+ * The comment thread a team link names in its `thread` param, or '' when it names none
+ * or the value is not a comment id (the core `commentId` rule). `hash` is the whole
+ * address hash, `#/team/<sessionId>?thread=<threadId>`. Pure.
+ */
+export function teamLinkThread(hash: string | null | undefined): string {
+  const raw = String(hash ?? '');
+  const at = raw.indexOf('?');
+  if (at < 0) return '';
+  const id = new URLSearchParams(raw.slice(at + 1)).get('thread') ?? '';
+  return commentId(id) ? id : '';
+}
 
 /** Mount the route. Resolves once the card is up; the open itself carries on after. */
 export async function mountTeamLink(view: HTMLElement, rawSessionId: string): Promise<void> {
@@ -52,6 +74,7 @@ export async function mountTeamLink(view: HTMLElement, rawSessionId: string): Pr
   let cancelled = false;
   (view as TeamLinkView)._cleanup = () => { cancelled = true; };
   const linkHash = window.location.hash;
+  const thread = teamLinkThread(linkHash);
 
   const hasSource = !!getSessionSource();
   let loginPath: string | null | undefined;
@@ -103,6 +126,9 @@ export async function mountTeamLink(view: HTMLElement, rawSessionId: string): Pr
     void openTeamSession(target, {
       replace: true,
       stillWanted: current,
+      // Handed over on every open, the one after an access answer too, so the thread
+      // is held for a fresh two minutes from this open.
+      ...(thread ? { thread } : {}),
       // The session is on its way: take the card down, so it does not sit behind the
       // tool's own loading state. A failure after this point still draws a card.
       beforeNavigate: () => view.replaceChildren(),
