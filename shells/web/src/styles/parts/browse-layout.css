@@ -91,6 +91,11 @@
   gap: var(--grid-gap-tight);
 }
 .tool-masonry[data-browse-density="compact"]:not([data-browse-layout]) .gtile-cap { padding: var(--sp-3) var(--sp-4); }
+/* On a phone the scale starts from the 165px phone floor, so Compact draws two columns
+   at 390px from the default step down, where Comfortable draws one. */
+@media (max-width: 640px) {
+  .tool-masonry[data-browse-density="compact"] { --browse-grid-compact-min: calc(165px * max(1, var(--card-scale, 1))); }
+}
 
 /* Card: one row per tool, the thumbnail at the inline start. */
 .tool-masonry[data-browse-layout="card"],
@@ -234,8 +239,10 @@
    alignment is the physical pair, flipped for a right-to-left page. */
 .tool-masonry[data-browse-layout="card"] .gtile-meta > :is(.gtile-name, .gtile-desc) { unicode-bidi: plaintext; text-align: left; }
 .tool-masonry[data-browse-layout="card"] .gtile-meta > :is(.gtile-name, .gtile-desc):dir(rtl) { text-align: right; }
-/* Compact: line 1 and line 2 run on as one line that ends in an ellipsis, so the
-   pieces give way from the end: the status first, then the starting points. */
+/* Compact: the status badge, then line 1 and line 2, run on as one line that ends in an
+   ellipsis. The badge leads (it comes first in the markup), so it is never the piece cut
+   off: "Experimental", "Add-on" and "Desktop" always show. The text gives way from the
+   end, the starting points or formats first, then the description. */
 .tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile-meta {
   display: block;
   overflow: hidden;
@@ -251,6 +258,19 @@
   margin-inline-end: var(--sp-3);
   unicode-bidi: normal;
 }
+
+/* With a session, Continue (a button) takes the description's place, and a button cannot
+   be cut mid-line. That line is a grid instead: the badge at its own width, Continue up
+   to its own width (it ends in its own ellipsis), then the starting points or formats
+   in what is left. */
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile--resumable .gtile-meta {
+  display: grid;
+  grid-template-columns: max-content minmax(0, max-content) minmax(0, 1fr);
+  align-items: center;
+}
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile--resumable .gtile-meta > .gtile-status { display: block; grid-row: 2; grid-column: 1; }
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile--resumable .gtile-meta > .gtile-resume { display: block; grid-row: 2; grid-column: 2; }
+.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile--resumable .gtile-meta > :is(.gtile-tpl, .gtile-fmts) { display: block; grid-row: 2; grid-column: 3; }
 
 /* "+ New" stays (it is the way to the starting points), as a quiet icon button at the
    card's end: muted at rest, full strength while the card is hovered or holds focus,

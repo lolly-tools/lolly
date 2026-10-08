@@ -687,6 +687,7 @@ stroke-width:.81;
 
 /* Featured view-mode segmented control (Gallery | Cover Flow). */
 .view-seg { display: flex; gap: var(--sp-3) 0; }
+.view-seg[hidden] { display: none; }
 .view-seg-btn {
   flex: 1;
   padding: 7px 10px;

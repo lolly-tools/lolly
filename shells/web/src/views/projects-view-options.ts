@@ -77,7 +77,10 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
       viewOptionsSection(t('Layout'), segHtml('projects-layout', [
         { id: 'preview', label: t('Grid') },
         { id: 'list', label: t('List') },
-      ], options.view, t('Layout'), { attr: 'data-vm' }) + cardSizeHtml(readCardSize('projects'), options.view === 'list') + densityHtml('projects-density', readDensity('projects'))),
+      ], options.view, t('Layout'), { attr: 'data-vm' }) + cardSizeHtml(readCardSize('projects'), options.view === 'list')
+        // Compact has no List form until the List table arrives (plan 302 PR 4), so
+        // List hides the segment rather than offer a choice that changes nothing.
+        + densityHtml('projects-density', readDensity('projects'), options.view === 'list')),
       sortSection('projects-sort', [
         { id: 'name', label: t('Name') },
         ...(options.shared ? [] : [{ id: 'added', label: t('Date added') }]),
@@ -96,6 +99,7 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
       if (vm) {
         press('projects-layout', 'data-vm', vm);
         el.querySelector<HTMLElement>('.view-options-size')?.toggleAttribute('hidden', vm === 'list');
+        el.querySelector<HTMLElement>('[data-be-seg="projects-density"]')?.toggleAttribute('hidden', vm === 'list');
         options.onView(vm);
         return;
       }

@@ -146,12 +146,14 @@ export function layoutSection(group: string, value: BrowseLayout, modes: readonl
     { attr: 'data-layout-mode', extraClass: 'view-seg--layout' }) + extra);
 }
 
-/** The density segment, Comfortable | Compact, for the Layout section. */
-export function densityHtml(group: string, value: BrowseDensity): string {
+/** The density segment, Comfortable | Compact, for the Layout section. `hidden` is for
+ *  a layout that has no Compact form yet, so the segment never offers a choice that
+ *  changes nothing. */
+export function densityHtml(group: string, value: BrowseDensity, hidden = false): string {
   return segHtml(group, [
     { id: 'comfortable', label: t('Comfortable') },
     { id: 'compact', label: t('Compact') },
-  ], value, t('Tile density'), { attr: 'data-density-mode', extraClass: 'view-seg--density' });
+  ], value, t('Tile density'), { attr: 'data-density-mode', extraClass: 'view-seg--density', ...(hidden ? { groupAttr: 'hidden' } : {}) });
 }
 
 /**

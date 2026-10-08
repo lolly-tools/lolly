@@ -161,6 +161,10 @@ test('the Layout section offers what the view draws, with the slider and density
   assert.deepEqual([...density.querySelectorAll<HTMLElement>('[data-density-mode]')].map(b => [b.textContent, b.getAttribute('aria-pressed')]), [['Comfortable', 'false'], ['Compact', 'true']]);
   const order = [...host.querySelectorAll('.view-seg--layout, .view-options-size, .view-seg--density')].map(el => el.className.split(' ').find(c => c.startsWith('view-')));
   assert.deepEqual(order, ['view-seg', 'view-options-size', 'view-seg'], 'layout, then the slider, then density');
+  assert.equal(density.hasAttribute('hidden'), false);
+  const none = document.createElement('div');
+  none.innerHTML = BL.densityHtml('projects-density', 'comfortable', true);
+  assert.equal(none.querySelector('.view-seg--density')!.hasAttribute('hidden'), true, 'a layout with no Compact form hides the segment');
 });
 
 test('the layout control presses, hides the slider in List and Favourites outside Grid, remembers and links', () => {

@@ -6,9 +6,10 @@
  * thumbnail bigger, not only the column wider (plan 296's build moved only the column).
  * Around it, the things a layout switch must never break: the tiles are the same
  * nodes after a round trip, a search still hides tools, the selection dot can be hit,
- * nothing overflows the page, Compact is shorter, right-to-left mirrors the dot,
+ * nothing overflows the page, Compact is shorter and keeps every status badge whole,
+ * Compact gives a phone two Grid columns, right-to-left mirrors the dot,
  * large text clips nothing, hidden previews leave the icon in the slot, and "+ New"
- * is quiet until the card is hovered.
+ * is quiet until the card is hovered and opens the starting points, never a seeded look.
  *
  * Gated on LOLLY_IMPORT_TEST_URL, the lolly-start dev shell CI's browser shard starts.
  * Locally:  LOLLY_IMPORT_TEST_URL=http://127.0.0.1:<port> LOLLY_BROWSER_CHANNEL=chrome \
@@ -35,6 +36,34 @@ async function openGallery(page: Page, route: string, seed: Record<string, strin
   }, seed);
   await page.goto(`${origin}/${route}`, { waitUntil: 'load' });
   await page.locator('.tool-masonry .gtile[data-tool-id]').first().waitFor({ timeout: 60_000 });
+  await settled(page);
+}
+
+/**
+ * Wait until the gallery has stopped redrawing. A cold visit paints from the slim
+ * index first and mounts again, with new tile nodes, once the full index arrives
+ * (views/gallery.ts, paintedFromSlim), so a test that keeps tile nodes must wait for
+ * that second mount and then for one quiet second.
+ */
+async function settled(page: Page): Promise<void> {
+  await page.waitForFunction(() => !!(window as unknown as { __toolIndex?: unknown }).__toolIndex, null, { timeout: 60_000 });
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    let grid = document.querySelector('.tool-masonry');
+    let quiet = 0;
+    const observer = new MutationObserver(() => { quiet = 0; });
+    const watch = (): void => { observer.disconnect(); if (grid) observer.observe(grid, { childList: true }); };
+    watch();
+    const started = Date.now();
+    const tick = setInterval(() => {
+      const now = document.querySelector('.tool-masonry');
+      if (now !== grid) { grid = now; watch(); quiet = 0; } else quiet += 100;
+      if ((quiet >= 1000 && grid?.querySelector('.gtile[data-tool-id]')) || Date.now() - started > 20_000) {
+        clearInterval(tick);
+        observer.disconnect();
+        resolve();
+      }
+    }, 100);
+  }));
 }
 
 /** The live thumbnail slot of a card: its still look, or the icon that stands in. */
@@ -166,12 +195,21 @@ test('Tools Card: search still hides tools, Compact is shorter, RTL mirrors the 
 
     await page.goto(`${origin}/#/?layout=card`, { waitUntil: 'load' });
     await page.locator('.tool-masonry[data-browse-layout="card"] .gtile[data-tool-id]').first().waitFor();
+    await settled(page);
     const cardHeight = (): Promise<number> => page.locator('.tool-masonry .gtile[data-tool-id]').first().evaluate(el => el.getBoundingClientRect().height);
     const comfortable = await cardHeight();
     await openOptions(page);
     await page.locator('#filter-popover [data-density-mode="compact"]').click();
     assert.equal(await page.locator('.tool-masonry').getAttribute('data-browse-density'), 'compact');
     assert.ok(await cardHeight() < comfortable, 'Compact cards are shorter');
+    // Compact puts both detail lines on one; the description gives way, never the
+    // status badge ("Experimental" is what says exports carry a watermark).
+    const badges = await page.locator('.tool-masonry .gtile:not(.is-filtered)[data-tool-id] .gtile-meta > .gtile-status').evaluateAll(els => els.map((el) => {
+      const meta = el.parentElement!.getBoundingClientRect(), b = el.querySelector('.badge')!.getBoundingClientRect();
+      return b.width > 0 && b.left >= meta.left - 1 && b.right <= meta.right + 1 && el.scrollWidth <= el.clientWidth + 1;
+    }));
+    assert.ok(badges.length > 0, 'some tool carries a status');
+    assert.deepEqual([...new Set(badges)], [true], 'every status badge shows whole in Compact');
     await page.locator('#filter-popover [data-density-mode="comfortable"]').click();
     await page.keyboard.press('Escape');
 
@@ -206,6 +244,49 @@ test('Tools Card: search still hides tools, Compact is shorter, RTL mirrors the 
       return { gcar: tile.querySelector(':scope > .gcar')!.getClientRects().length, icon: icon.width > 0 && icon.height > 0 };
     });
     assert.deepEqual(slot, { gcar: 0, icon: true });
+  } finally {
+    await context.close();
+  }
+});
+
+test('Tools Grid Compact on a phone: two columns at the default step, where Comfortable draws one', { skip, timeout: 90_000 }, async () => {
+  const browser = await getBrowser();
+  const columns = async (density: Record<string, string>): Promise<number> => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
+    try {
+      const page = await context.newPage();
+      await openGallery(page, '#/', density);
+      return await page.locator('.tool-masonry').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+    } finally {
+      await context.close();
+    }
+  };
+  assert.equal(await columns({}), 1);
+  assert.equal(await columns({ 'lolly-density-tools': 'compact' }), 2);
+});
+
+test('Tools Card: the quiet "+ New" opens the starting points, not the look on the card', { skip, timeout: 90_000 }, async () => {
+  const browser = await getBrowser();
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    await openGallery(page, '#/?layout=card');
+    // A tile with looks: a click on its body opens the look it shows, seeded with z=.
+    // "+ New" sits on the same body and must never be claimed by that click.
+    const tile = page.locator('.tool-masonry[data-browse-layout="card"] .gtile--has-preview:not(.is-filtered)[data-tool-id]').first();
+    const id = (await tile.getAttribute('data-tool-id'))!;
+    const seen: string[] = [];
+    page.on('framenavigated', (frame) => { if (frame === page.mainFrame()) seen.push(frame.url()); });
+    await tile.hover();
+    await tile.locator('.gtile-new-icon').click();
+    await page.waitForURL(u => u.pathname === `/${id}` || u.hash.startsWith(`#/tool/${id}`), { timeout: 30_000 });
+    await page.waitForTimeout(1_500);
+    seen.push(page.url());
+    const short = (u: string): string => u.slice(0, 120);
+    // An empty `template=` asks for the chooser; a look gives its own template.
+    assert.ok(seen.some(u => new RegExp(`#/tool/${id}\\?template=(?:&|$)`).test(u)), `"+ New" asked for the starting points: ${seen.map(short).join(' | ')}`);
+    const seeded = seen.filter(u => /[?&]z=/.test(new URL(u).search + new URL(u).hash));
+    assert.deepEqual(seeded.map(short), [], 'no look was seeded');
   } finally {
     await context.close();
   }

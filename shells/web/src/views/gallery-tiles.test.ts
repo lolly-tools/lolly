@@ -54,9 +54,11 @@ test('a tool tile carries Continue, the quiet "+ New" and its detail cells', () 
   const cells = el.querySelector<HTMLElement>('.tile-cols')!;
   assert.equal(name.dataset.describedby, cells.id);
   assert.equal(name.hasAttribute('aria-describedby'), false, 'described only outside Grid, by the layout switch');
-  assert.deepEqual([...cells.querySelectorAll<HTMLElement>('.tile-col')].map(c => [c.dataset.col, c.textContent]),
+  assert.deepEqual([...cells.querySelectorAll<HTMLElement>('.tile-col')].map(c => [c.dataset.col, c.querySelector('bdi')?.textContent]),
     [['opened', '2d ago'], ['format', 'PNG'], ['category', 'Designer'], ['description', 'Make a poster.']]);
   assert.equal(cells.querySelectorAll('.tile-col > bdi').length, 4, 'each value keeps its own direction');
+  assert.equal(cells.textContent, '2d ago, PNG, Designer, Make a poster.', 'the description reads as a list, not one run of words');
+  assert.equal(cells.querySelectorAll('.tile-col > .visually-hidden').length, 3, 'the commas are for the ear only');
 });
 
 test('a tool with no icon still has a stand-in for the Card thumbnail slot', () => {
@@ -72,6 +74,7 @@ test('a tool with no session has no Continue, and an unavailable one has no "+ N
   assert.equal(fresh.classList.contains('gtile--resumable'), false);
   assert.equal(fresh.querySelector('.gtile-resume'), null);
   assert.equal(fresh.querySelector('.tile-col[data-col="opened"]')!.textContent, '');
+  assert.equal(fresh.querySelector('.tile-cols')!.textContent, 'PNG, Designer, Make a poster.', 'an empty cell adds no comma');
   const desktop = tile(cardMarkup({ ...tool, capabilities: ['filesystem'] }, session, []));
   assert.ok(desktop.classList.contains('gtile--unavailable'), 'a capability this shell lacks');
   assert.equal(desktop.querySelector('.gtile-new, .gtile-new-icon, .gtile-resume'), null);
@@ -81,6 +84,10 @@ test('the status line copy is for the eye only where the caption already announc
   const plain = tile(cardMarkup({ ...tool, status: 'experimental' }, undefined, []));
   const line = plain.querySelector<HTMLElement>('.gtile-meta > .gtile-status')!;
   assert.ok(line.querySelector('.badge-experimental'));
+  assert.ok(line.previousElementSibling?.classList.contains('gtile-name'),
+    'the badge leads the detail text, so Compact cuts the text and never the badge');
+  const utility = tile(cardMarkup({ ...tool, status: 'experimental' }, session, [], false, true));
+  assert.ok(utility.querySelector('.gtile-meta > .gtile-status')!.previousElementSibling?.classList.contains('gtile-name'));
   assert.equal(line.hasAttribute('aria-hidden'), false, 'with no preview, Card hides the caption badge, so this one is read');
   const withLook = tile(cardMarkup({ ...tool, status: 'experimental', examples: [{ values: {} }] } as typeof tool, undefined, []));
   assert.ok(withLook.classList.contains('gtile--has-preview'));
@@ -93,6 +100,8 @@ test('a utility tile carries its formats line and cells; a view card its descrip
   const el = tile(cardMarkup(tool, undefined, [], false, true));
   assert.ok(el.classList.contains('gtile--utility'));
   assert.equal(el.querySelector('.gtile-fmts')!.textContent, 'PNG · SVG · PDF');
+  assert.equal(tile(cardMarkup({ ...tool, formats: ['png', 'svg', 'penpot'] }, undefined, [], false, true)).querySelector('.gtile-fmts')!.textContent,
+    'PNG · SVG · Penpot', 'a product name keeps its own spelling');
   assert.equal(el.querySelector('.gtile-new, .gtile-new-icon'), null, 'utilities have no starting points to choose');
   assert.equal(el.querySelector('.tile-col[data-col="format"]')!.textContent, 'PNG');
   const view = { id: 'compare', href: '#/compare', icon: 'document' as const, name: 'Compare', description: 'Compare two files.' };

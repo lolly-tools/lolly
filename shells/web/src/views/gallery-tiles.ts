@@ -41,7 +41,7 @@ export const statusLabel = (s: string | undefined) => ({ official: 'Official', c
 const FMT_LABEL: Record<string, string> = {
   'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', tiff: 'TIFF', jpeg: 'JPG', jpg: 'JPG',
   webm: 'WebM', mp4: 'MP4', emf: 'EMF', eps: 'EPS', 'eps-cmyk': 'EPS (CMYK)', dxf: 'DXF', pptx: 'PowerPoint',
-  ics: 'Calendar', vcf: 'vCard', ico: 'Icon',
+  ics: 'Calendar', vcf: 'vCard', ico: 'Icon', penpot: 'Penpot',
   zip: 'ZIP', csv: 'CSV', json: 'JSON', svg: 'SVG', 'svg-anim': 'Animated SVG', pdf: 'PDF', png: 'PNG',
   webp: 'WebP', 'webp-anim': 'Animated WebP', avif: 'AVIF', html: 'HTML', md: 'Markdown', txt: 'Text', gif: 'GIF', apng: 'aPNG',
 };
@@ -109,10 +109,15 @@ const cellsId = (ref: string): string => `gtc-${ref}`;
  * A tile's detail cells, in column order. List draws them as columns; outside Grid
  * they are the name link's description (components/browse-layout.ts). Each value sits
  * in a <bdi>, so "2d ago" or a format keeps its own direction in a right-to-left row.
+ * A comma no one sees comes before every value after the first, so a screen reader
+ * reads "2d ago, PNG, Designer" rather than one run of words. Empty cells add none.
  */
 function detailCells(ref: string, cells: ReadonlyArray<readonly [col: string, value: string]>): string {
-  return `<span class="tile-cols" id="${escapeHtml(cellsId(ref))}">${cells.map(([col, value]) =>
-    `<span class="tile-col" data-col="${col}">${value ? `<bdi>${escapeHtml(value)}</bdi>` : ''}</span>`).join('')}</span>`;
+  let filled = 0;
+  return `<span class="tile-cols" id="${escapeHtml(cellsId(ref))}">${cells.map(([col, value]) => {
+    const sep = value && filled++ ? '<span class="visually-hidden">, </span>' : '';
+    return `<span class="tile-col" data-col="${col}">${value ? `${sep}<bdi>${escapeHtml(value)}</bdi>` : ''}</span>`;
+  }).join('')}</span>`;
 }
 
 /** Up to three export formats, for a utility card's Card line. */
@@ -179,7 +184,9 @@ export function cardMarkup(
          aria-label="${escapeHtml(tRaw('Continue {name}', { name: latest!.filename || tool.name }))}">${t('Continue · {time}', { time: lastOpened })}</button></span>`
     : '';
   // Card's status line. When the badge is drawn on a preview, the caption already
-  // announces the status, so this copy is for the eye only.
+  // announces the status, so this copy is for the eye only. It comes right after the
+  // name: Compact runs the detail text on after it and cuts that text from the end, so
+  // the badge is never the piece cut off. Comfortable places every piece by grid row.
   const statusLine = (forEyeOnly: boolean): string => statusBadge
     ? `<span class="gtile-status"${forEyeOnly ? ' aria-hidden="true"' : ''}>${statusBadge}</span>` : '';
 
@@ -200,10 +207,10 @@ export function cardMarkup(
             ${iconSvg}
             <span class="gtile-meta">
               ${uName}
+              ${statusLine(false)}
               ${resumeLink}
               <p class="gtile-desc">${escapeHtml(tool.description ?? '')}</p>
               ${formats ? `<span class="gtile-fmts">${escapeHtml(formats)}</span>` : ''}
-              ${statusLine(false)}
               ${detailCells(tool.id, [['opened', lastOpened], ['format', formats.split(' · ')[0] ?? ''], ['description', tool.description ?? '']])}
             </span>
             ${statusBadge}
@@ -308,6 +315,7 @@ export function cardMarkup(
           <span class="gtile-meta">
             ${name}
             ${sub ? `<span class="gtile-sub">${sub}</span>` : ''}
+            ${statusLine(hasImageHero)}
             ${resumeLink}
             <p class="gtile-desc">${escapeHtml(tool.description ?? '')}</p>
             ${templateLine && !unavailable
@@ -317,7 +325,6 @@ export function cardMarkup(
               // and the chooser is one "+ New" click away (plans/226 section 4.4).
               ? `<span class="gtile-tpl">${escapeHtml(templateLine)}</span>`
               : ''}
-            ${statusLine(hasImageHero)}
             ${detailCells(tool.id, [['opened', lastOpened], ['format', primaryFormat], ['category', t(catLabel(tool.category))], ['description', tool.description ?? '']])}
           </span>
           ${unavailable ? ''
