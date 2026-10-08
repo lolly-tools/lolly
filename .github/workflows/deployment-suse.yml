@@ -42,6 +42,10 @@ on:
         description: Exact reviewed 40-character commit; must match the dispatched ref
         required: false
         type: string
+      archive_run:
+        description: Successful qualification run to export for offline node import
+        required: false
+        type: string
       public_key_jwk:
         description: Existing published public P-256 JWK; never a replacement or private key
         required: false
@@ -490,3 +494,82 @@ jobs:
           path: ${{ runner.temp }}/lolly-image-receipts/*.json
           if-no-files-found: warn
           retention-days: 14
+
+  archive-qualified-images:
+    if: github.event_name == 'workflow_dispatch' && inputs.archive_run != ''
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      QUALIFICATION_RUN: ${{ inputs.archive_run }}
+      SOURCE_SHA: ${{ inputs.expected_source }}
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+      - name: Require a successful exact-source qualification
+        run: |
+          set -euo pipefail
+          [[ "$QUALIFICATION_RUN" =~ ^[0-9]+$ ]]
+          [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$QUALIFICATION_RUN" > "$RUNNER_TEMP/run.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const run=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/run.json"));
+            if(run.conclusion!=="success" || run.head_sha!==process.env.SOURCE_SHA || run.path!==".github/workflows/deployment-suse.yml" || run.event!=="workflow_dispatch") throw Error("Unqualified source/run");
+          '
+          gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name public-candidate-image-receipts --dir "$RUNNER_TEMP/receipts"
+      - name: Export the qualified registry content without changing its digest
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends skopeo
+          auth="$RUNNER_TEMP/registry-auth.json"
+          trap 'rm -f "$auth"' EXIT
+          printf '%s' "$GH_TOKEN" | skopeo login --authfile "$auth" --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          mkdir "$RUNNER_TEMP/archives"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,mkdirSync,renameSync,createReadStream,statSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {spawnSync} from 'node:child_process';
+          const root=process.env.RUNNER_TEMP;
+          const release=JSON.parse(readFileSync(root+'/receipts/release.json'));
+          if(release.source!==process.env.SOURCE_SHA || release.runId!==process.env.QUALIFICATION_RUN || !release.neutralProfile) throw Error('Receipt differs');
+          const evidence={version:1,source:release.source,qualificationRun:release.runId,transportRun:process.env.GITHUB_RUN_ID,images:{}};
+          async function hash(path){const h=createHash('sha256');for await(const c of createReadStream(path))h.update(c);return h.digest('hex');}
+          function run(command,args){const r=spawnSync(command,args,{stdio:'inherit'});if(r.status!==0)throw Error(command+' failed');}
+          for(const service of ['web','mcp-browser']){
+            const receipt=release.images[service];
+            const prefix='ghcr.io/'+process.env.GITHUB_REPOSITORY_OWNER.toLowerCase()+'/lolly-'+service+'@sha256:';
+            if(!receipt.digest.startsWith(prefix) || !/^[a-f0-9]{64}$/.test(receipt.digest.slice(prefix.length)) || receipt.source!==release.source || receipt.platform!=='linux/amd64')throw Error('Invalid image receipt');
+            const raw=root+'/'+service+'-raw';mkdirSync(raw);
+            run('skopeo',['copy','--preserve-digests','--authfile',root+'/registry-auth.json','docker://'+receipt.digest,'dir:'+raw]);
+            const bytes=readFileSync(raw+'/manifest.json');
+            const manifest=JSON.parse(bytes);const digest='sha256:'+createHash('sha256').update(bytes).digest('hex');
+            if(receipt.digest!==prefix.slice(0,-7)+digest)throw Error('Registry manifest differs');
+            const config=JSON.parse(readFileSync(raw+'/'+manifest.config.digest.slice(7)));
+            if(config.os!=='linux'||config.architecture!=='amd64'||config.config.Labels['org.opencontainers.image.revision']!==release.source||manifest.config.digest!==receipt.imageId)throw Error('Image/source binding differs');
+            const oci=root+'/'+service+'-oci';mkdirSync(oci+'/blobs/sha256',{recursive:true});
+            for(const blob of [manifest.config,...manifest.layers]){
+              if(!/^sha256:[a-f0-9]{64}$/.test(blob.digest)||statSync(raw+'/'+blob.digest.slice(7)).size!==blob.size||await hash(raw+'/'+blob.digest.slice(7))!==blob.digest.slice(7))throw Error('Blob differs');
+              renameSync(raw+'/'+blob.digest.slice(7),oci+'/blobs/sha256/'+blob.digest.slice(7));
+            }
+            writeFileSync(oci+'/blobs/sha256/'+digest.slice(7),bytes);
+            writeFileSync(oci+'/oci-layout',JSON.stringify({imageLayoutVersion:'1.0.0'}));
+            writeFileSync(oci+'/index.json',JSON.stringify({schemaVersion:2,manifests:[{mediaType:manifest.mediaType,digest,size:bytes.length,annotations:{'io.containerd.image.name':receipt.digest,'org.opencontainers.image.ref.name':receipt.digest}}]}));
+            const archive=root+'/archives/'+service+'.oci.tar';run('tar',['-C',oci,'-cf',archive,'.']);
+            evidence.images[service]={...receipt,archive:service+'.oci.tar',archiveSha256:await hash(archive),archiveBytes:statSync(archive).size};
+          }
+          writeFileSync(root+'/archives/transport.json',JSON.stringify(evidence,null,2));
+          JS
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: qualified-public-image-archives
+          path: ${{ runner.temp }}/archives/
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 3

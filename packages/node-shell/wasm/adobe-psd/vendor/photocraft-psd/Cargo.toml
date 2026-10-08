@@ -1,0 +1,20 @@
+[package]
+name = "photocraft-psd"
+version = "0.2.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+description = "Pinned PhotoCraft PSD/PSB format library"
+
+[lib]
+name = "photocraft_psd"
+
+[features]
+default = []
+serde = ["dep:serde"]
+testgen = []
+
+[dependencies]
+thiserror = "2"
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
+serde = { version = "1", features = ["derive"], optional = true }

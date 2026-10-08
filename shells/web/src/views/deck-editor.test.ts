@@ -11,7 +11,7 @@
  *
  * Run directly:  node --test shells/web/src/views/deck-editor.test.ts
  */
-import { test } from 'node:test';
+import { mock, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import {
@@ -185,9 +185,16 @@ function mountFixture(deck: unknown[], extra: { host?: any; editTool?: any; nati
 // Two quick pointerdowns on the same box = a double-click (deck-editor detects it from
 // pointerdown timing, because selecting rebuilds the box DOM between the two clicks).
 const dblclickBox = (el: EventTarget): void => {
-  pointer(el, 'pointerdown', 300, 200);
-  pointer(document, 'pointerup', 300, 200);
-  pointer(el, 'pointerdown', 300, 200);
+  // Model clicks 100 ms apart regardless of the fixture's rendering time.
+  mock.timers.enable({ apis: ['Date'], now: Date.now() });
+  try {
+    pointer(el, 'pointerdown', 300, 200);
+    pointer(document, 'pointerup', 300, 200);
+    mock.timers.tick(100);
+    pointer(el, 'pointerdown', 300, 200);
+  } finally {
+    mock.timers.reset();
+  }
 };
 // Pointer event carrying modifier keys (shift/meta) for multi-select gestures.
 const pmod = (el: EventTarget, type: string, x: number, y: number, mods: Record<string, boolean> = {}): void => {

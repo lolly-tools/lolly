@@ -619,10 +619,11 @@ export async function ingestDeck(
           ...(file.name ? { name: file.name } : {}),
           bytes: file.size,
           reader: { name: PSD_READER_NAME, version: ENGINE_VERSION },
+          decode: (await import('../../bridge/adobe-psd.ts')).readPsdPortable,
           signal,
           onSlide,
           sink,
-          inflate: (data: Uint8Array) => unzlibSync(data),
+          inflate: (data: Uint8Array, maxOut: number) => unzlibSync(data, { out: new Uint8Array(maxOut) }),
         })
         : parts
         ? await sourceDeckFromPptx(parts, deps.parseXml, {
