@@ -63,6 +63,7 @@ import {
 import { parseTemplateRef, userVariants } from '../lib/template-ref.ts';
 import { loadTemplateStart, START_BLANK, type TemplateStart } from '../lib/template-start.ts';
 import { createUserTemplateStore } from '../lib/user-templates.ts';
+import { catalogSubmitter, openCatalogSubmit, templateSubject } from '../lib/catalog-submit.ts';
 
 import {
   fetchTemplateFile,
@@ -753,6 +754,11 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
             if (tpl) downloadTemplateFile(tpl);
             return;
           }
+          case 'catalog-submit': {
+            const tpl = entry?.own ? await store.get(entry.id) : null;
+            if (tpl) openCatalogSubmit(templateSubject(tpl));
+            return;
+          }
           case 'delete': {
             if (!entry?.own) return;
             const { confirmDialog } = await import('../components/confirm-dialog.ts');
@@ -798,6 +804,8 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         rows.push(mod.menuItemHtml('describe', icon('document', { size: 16 }), t('Edit description')));
         if (opts.currentValues) rows.push(mod.menuItemHtml('replace', icon('refresh', { size: 16 }), t('Update from this document')));
         rows.push(mod.menuItemHtml('export', icon('download', { size: 16 }), t('Export as file (.json)')));
+        const submitter = catalogSubmitter('template');
+        if (submitter) rows.push(mod.menuItemHtml('catalog-submit', icon('upload', { size: 16 }), submitter.label()));
         rows.push(mod.menuItemHtml('delete', icon('trash', { size: 16 }), t('Delete'), { danger: true }));
       } else if (entry) {
         rows.push(mod.menuItemHtml('copy', icon('duplicate', { size: 16 }), t('Make a copy')));

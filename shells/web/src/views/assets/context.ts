@@ -69,6 +69,10 @@ export interface CatCtx {
   TREATMENT_FILTER_PREFIX: "lolly-pt-";
   collapsed: Set<string>;
   assetPageSizes: Map<string, number>;
+  /** Each paged grid's full, sorted list, keyed like assetPageSizes, so Show more appends in place. */
+  assetPageItems: Map<string, AssetRef[]>;
+  /** Folded groups' bodies, built only when the group is opened (groupSection). */
+  deferredBodies: Map<string, () => string>;
   uploadToolbarDispose?: () => void;
   mounted: boolean;
   firstPaint: boolean;

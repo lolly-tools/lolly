@@ -71,7 +71,7 @@ export interface LayeredRasterDoc {
   /** Source bit depth per channel (pixels are always delivered as 8-bit). */
   depth: 8 | 16 | 32;
   /** Source colour mode, for honest labelling ('rgb' | 'gray' | 'cmyk'). */
-  colorMode: 'rgb' | 'gray' | 'cmyk';
+  colorMode: 'rgb' | 'gray' | 'cmyk' | 'lab';
   /** Bottom-to-top: layers[0] paints first, later entries on top. */
   layers: RasterLayer[];
   /** Flattened preview when the container carries one (PSD merged image data;

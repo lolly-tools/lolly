@@ -1,5 +1,35 @@
 # Launch motion collection
 
+## Motion collection
+
+Three starters extend the layout into repeating content:
+
+| Template | Starting point |
+| --- | --- |
+| `motion-editorial-loop` | Readable type and a geometric mark with Soft drift loop. |
+| `motion-feature-loop` | Three grouped feature cards with Assemble loop. |
+| `motion-photo-loop` | A composed Darkroom photograph beside editable type. |
+
+Open `/t/design?template=<id>`. The base loop lasts six seconds; `preset=short`
+and `preset=long` select four and eight seconds. Every track remains editable.
+Colours and font roles follow the active design system. Photo title uses an
+ordinary composed Darkroom link, so its sample comes from the active catalog or
+Darkroom's procedural fallback. Replace that image with your own upload, or paste
+your edited Darkroom share link into the image picker.
+
+Darkroom's Motion looks collection provides `motion-warm`, `motion-clean` and
+`motion-mono`. Each starts with grain off. Pick a still, export a graded image or
+LUT, or use Grade a video on the finished loop. Save your edited result as a user
+template to reuse the same artwork and look.
+
+Choreograph offers an explicit Preview motion button and a position slider.
+Preview does not write the document or its history. Length in seconds controls
+the preview and Apply; selected clip ends fit that length. Unselected tracks keep
+their timing. A requested length must reach every selected clip's start.
+
+Regenerate these seeds with `pnpm run build:motion-starters`, then rebuild and
+validate all mounted catalogs.
+
 Four editable 1920 × 1080 compositions share the same launch message:
 
 | Template | Motion treatment |

@@ -48,6 +48,14 @@
       "lockfile": "packages/node-shell/wasm/skera/Cargo.lock",
       "exposure": "shipped-runtime",
       "owner": "packages/node-shell"
+    },
+    {
+      "id": "adobe-psd-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/adobe-psd",
+      "lockfile": "packages/node-shell/wasm/adobe-psd/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
     }
   ]
 }

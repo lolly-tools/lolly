@@ -534,7 +534,7 @@ test('a profile with no slide master gets the neutral master and says so', async
     version: 1,
     assets: [{ id: 'x/tokens/brand', type: 'tokens', tags: ['tokens', 'brand'], formats: [{ format: 'json', url: '/catalog/assets/x/tokens/brand.json' }] }],
   }));
-  const resolved = await resolveProfileDesignSystem({ root });
+  const resolved = await resolveProfileDesignSystem({ root, profile: 'bare' });
   assert.ok(resolved);
   assert.equal(resolved.neutralMaster, true);
   assert.equal(resolved.input.neutralMaster, true);

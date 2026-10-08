@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xmeml>
+<xmeml version="5"><sequence id="edit">
+ <name>Interview &amp; titles</name><duration>300</duration>
+ <rate><timebase>30</timebase><ntsc>TRUE</ntsc></rate>
+ <media><video>
+  <format><samplecharacteristics><width>1920</width><height>1080</height></samplecharacteristics></format>
+  <track><clipitem id="a"><name>Interview</name><start>0</start><end>150</end><in>30</in><out>180</out>
+   <file id="source"><name>interview.mov</name><pathurl>file://localhost/Media/interview%20one.mov</pathurl><rate><timebase>30</timebase><ntsc>TRUE</ntsc></rate></file>
+  </clipitem><clipitem id="b"><name>Interview second</name><start>150</start><end>300</end><in>180</in><out>330</out><file id="source"/></clipitem></track>
+  <track><clipitem id="title"><name>Title plate</name><start>90</start><end>120</end><in>0</in><out>30</out><file id="plate"><pathurl>file://localhost/Media/title.png</pathurl></file><filter><effect><name>Opacity</name></effect></filter></clipitem></track>
+ </video><audio><track><clipitem id="sound"><name>Interview sound</name><start>0</start><end>150</end><in>30</in><out>180</out><file id="source"/></clipitem></track></audio></media>
+</sequence></xmeml>

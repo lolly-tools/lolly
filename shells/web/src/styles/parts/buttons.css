@@ -26,7 +26,7 @@
    needs the identical look without every call-site adding the class by hand. */
 .btn,
 .tool-actions button:not(.btn),
-.docs-listen, .docs-edition {                     /* docs/build.ts - /info's Listen and print-edition controls */
+.docs-edition {                                   /* docs/build.ts - /info's print-edition control */
   text-decoration: none;
   padding: 5px 14px;
   background: var(--ui-color-surface-canvas);

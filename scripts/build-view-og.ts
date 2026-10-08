@@ -42,9 +42,12 @@ import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-bro
 import { stampBitmap } from './lib/stamp-media.ts';
 import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 import { applyProfileArg } from './lib/profile-arg.ts';
+import { DEFAULT_SITE_URL, siteUrl } from './lib/site-url.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SITE_URL = 'https://lolly.tools';
+// The origin link previews point at: lolly.tools, or LOLLY_SITE_URL for an instance
+// that serves its own shell build (scripts/lib/site-url.ts).
+const SITE_URL = siteUrl();
 
 const PUBLIC   = resolve(ROOT, 'shells/web/public');
 // Flat stub files under public/view/, served /view/<slug>.html; vercel.json rewrites
@@ -301,6 +304,9 @@ async function main(): Promise<void> {
     const cardPath = resolve(OG_DIR, `${v.slug}.png`);
     const sig = sha256(JSON.stringify([
       OG_RENDER_VERSION, v.title, v.description, v.icon, v.hash,
+      // The footer prints the site's host; an instance build's host joins the inputs so its
+      // cards re-render, while lolly.tools signatures stay as they were.
+      ...(SITE_URL === DEFAULT_SITE_URL ? [] : [new URL(SITE_URL).host]),
     ]));
     const gated = sigs[v.slug] === sig && existsSync(cardPath);
     if (renderer && !(PRESERVE && existsSync(cardPath)) && !gated) {

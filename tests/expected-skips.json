@@ -1424,13 +1424,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/docs-dom-spoken-text.test.ts",
-      "fullName": "device-voice DOM extraction matches the markdown extractor heading sequence",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
       "file": "tests/docs-anchors.test.ts",
       "fullName": "every same-site section link in the English docs points at a real section",
       "reason": "no built /info on disk - run `pnpm run build:info`",
@@ -3238,7 +3231,7 @@
     },
     {
       "file": "tests/docs-editions.test.ts",
-      "fullName": "the built English page preserves its print edition while Listen is withdrawn",
+      "fullName": "the built English page links its print edition",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"

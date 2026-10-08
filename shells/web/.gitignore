@@ -47,11 +47,13 @@ public/ort-hf/
 public/viz-presets/
 
 # The rest of /info that build:info regenerates or copies (docs/build.ts):
-# shots/ + audio/ are copied at build from the docs repo (committed there),
-# the player bundle and the indexes are written per build, icon/founded-by
-# are copied from the repo root. Source-only assets that only live here
-# (mascots/, media/, fonts/, page images) STAY tracked.
+# shots/ are copied at build from docs/ (committed there), the indexes are
+# written per build, icon/founded-by are copied from the repo root. Source-only
+# assets that only live here (mascots/, media/, fonts/, page images) STAY tracked.
 public/info/shots/
+# audio/, audio-index.json and docs-player* are the removed docs narration
+# (2026-10-08). The build deletes them, but an older local build can still hold
+# them, so they stay ignored rather than show up as 29 MB of untracked files.
 public/info/audio/
 # The landing's worked-example previews (plan 117 block 2) - copied per build out
 # of the ACTIVE brand's catalog/previews/, which is where they are committed. Same

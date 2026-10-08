@@ -487,20 +487,22 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
 
 /** A preview uses the same hydration, brand scope and clock as the editor/export.
  * Only Design is admitted: arbitrary tools may own live resources or globals. */
-export async function mountTemplateMotion(host: HostV1, toolId: string, values: Record<string, InputValue>) {
+export async function mountTemplateMotion(host: HostV1, toolId: string, values: Record<string, InputValue>, size?: { width: number; height: number }) {
   if (toolId !== 'design') throw new Error('Live template motion is available for Design.');
   const tool = await getTool(toolId);
   const runtime = await createRuntime(tool, withToolNet(host, tool.manifest), values);
+  const width = size && Number.isFinite(size.width) && size.width > 0 ? size.width : tool.manifest.render.width;
+  const height = size && Number.isFinite(size.height) && size.height > 0 ? size.height : tool.manifest.render.height;
   let ownedStage: ExportStage | undefined;
   try {
     const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), {
-      layoutW: tool.manifest.render.width, fixedHeight: tool.manifest.render.height,
+      layoutW: width, fixedHeight: height,
       host, getModel: () => runtime.getModel(), mountEmoji: (el) => runtime.applyEmojiToDom(el),
     });
     ownedStage = stage;
     const clock = (await import('../bridge/sequence-dom.ts')).createSequenceTime(canvas);
     return {
-      stage, canvas, width: tool.manifest.render.width, height: tool.manifest.render.height,
+      stage, canvas, width, height,
       seek: (ms: number) => clock.apply(ms),
       destroy() { clock.restore(); stage._lottieCleanup?.(); stage.remove(); runtime.destroy(); },
     };

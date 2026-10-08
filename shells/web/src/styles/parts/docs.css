@@ -106,19 +106,6 @@
 }
 .docs-status a { color: hsl(var(--primary)); }
 
-.docs-listen-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-block: 1rem;
-}
-.docs-listen-actions .docs-listen {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: var(--ui-size-target);
-}
-.docs-content-col > .docs-listen-actions { padding-inline: 1rem; }
-
 /* ── Body: the rehosted .docs-content fragment ──────────────────────────────── */
 .docs-content {
   min-width: 0;
@@ -157,23 +144,6 @@
  * focus ring is not drawn under the back pill or the round buttons. */
 .docs-content h2[id], .docs-content h3[id], .docs-content h4[id] {
   scroll-margin-top: calc(var(--chrome-top) + var(--chrome-h) + 0.75rem);
-}
-
-/* Narration follow-along highlight (lib/docs-narration-host.ts): the currently
-   spoken block. Mirrors the static docs player's `.ldp-here` (docs/player/player.css)
-   - a soft, SYMMETRIC brand-tinted surround wash (no one-sided edge), brand-reactive
-   via the scoped bridge above so it reads in light/dark/brand. Clicking it re-engages
-   follow-along (hence the pointer). Only present while the Listen dock is playing;
-   the class is added/removed by the narration host. */
-.docs-content .docs-narr-here {
-  background: hsl(var(--primary) / 0.14);
-  box-shadow: 0 0 0 6px hsl(var(--primary) / 0.14);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 400ms ease, box-shadow 400ms ease;
-}
-@media (prefers-reduced-motion: reduce) {
-  .docs-content .docs-narr-here { transition: none; }
 }
 
 .docs-content p { margin-bottom: 1.5rem; }

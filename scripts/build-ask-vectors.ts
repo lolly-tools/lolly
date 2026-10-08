@@ -170,8 +170,8 @@ function embedInput(rec: DocsRecord, sectionText: string): string {
 }
 
 /** The transformers.js surface this script touches. The package's own typings
- *  are bundler-hostile generics, so the same minimal-shape approach as
- *  scripts/build-docs-audio.ts applies here. */
+ *  are bundler-hostile generics, so this declares only the minimal shape it
+ *  calls. */
 interface TensorLike { data: Float32Array; dims: number[] }
 type Extractor = (
   texts: string[],

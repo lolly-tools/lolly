@@ -908,6 +908,30 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'Glitch: pixel-sorted and block-displaced bitmap data. One embedded <image> and 271 B of surviving markup, the thinnest wrapper in the catalog.',
   'flythrough.svg':
     'A frame from the 3-D camera flythrough - a canvas render of the scene. One embedded <image>, 522 B of surviving markup.',
+  // susecon-background (SUSE pack only): lib/orb.js draws every look in one WebGL2
+  // fragment pass into a <canvas>, the backdrop class. The walker keeps the tool's
+  // CSS wash fallback (four full-frame gradient fills) under one full-frame JPEG of
+  // the canvas, which hides the wash completely. Measured 2026-10-08: 1,299 B of
+  // surviving markup on eight files and 1,386 B on Horizon, 76% to 90% of each file
+  // embedded.
+  'susecon-background.svg':
+    'The default glass look: orb, hairline ribbon and light pools computed per pixel by a WebGL2 shader. One embedded <image> over the CSS wash fallback, 1,299 B of surviving markup.',
+  'susecon-background.look0.svg':
+    'Jungle glass: the same WebGL2 per-pixel field as the tile, with glass refraction and glow. One embedded <image>, 1,299 B of surviving markup.',
+  'susecon-background.look1.svg':
+    'Amethyst glass: the glass orb and hairline ribbon in the amethyst colourway, all per-pixel shader output. One embedded <image>, 1,299 B of surviving markup.',
+  'susecon-background.look2.svg':
+    'Fibres meet glass: fibre strands resolved per pixel in ribbon space, with a hard seam to the rim-only half. One embedded <image>, 1,299 B of surviving markup.',
+  'susecon-background.look3.svg':
+    'Cloud dome: shader cloud lobes, a dot sheet with depth falloff and a top beam, all computed per pixel. One embedded <image>, 1,299 B of surviving markup.',
+  'susecon-background.look4.svg':
+    'Horizon: a bowl centred above the frame with its floor reflection, drawn per pixel in WebGL2. One embedded <image>, 1,386 B of surviving markup.',
+  'susecon-background.look5.svg':
+    'Orbiting light: moving light pools and rim hot spots in the persimmon colourway, per-pixel shader output. One embedded <image>, 1,299 B of surviving markup.',
+  'susecon-background.look6.svg':
+    'Live set: the glass look at energy 85 with rim waves and ripple, per-pixel shader output. One embedded <image>, 1,299 B of surviving markup.',
+  'susecon-background.look7.svg':
+    'Four scenes: the first frame of a morphing scene timeline, the same WebGL2 per-pixel field. One embedded <image>, 1,299 B of surviving markup.',
 
   // ── Class 2: the geometry IS the pixels ────────────────────────────────────
   'filter.look2.webp':

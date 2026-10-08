@@ -1610,6 +1610,12 @@ async function installToolZipDrop(file: File): Promise<void> {
  *  drop into the folder the user is looking at. */
 export interface DropChooserHooks {
   onStored?: (ids: string[]) => void;
+  /** Take the dropped files without the chooser (a folder on screen adds them as
+   *  files there, lolly plan 299). True when handled; false falls through to the
+   *  chooser. */
+  direct?: (files: File[]) => Promise<boolean>;
+  /** The words on the drop hint while files are dragged over the view. */
+  hint?: () => string;
 }
 
 export async function openDropChooser(
@@ -1930,15 +1936,17 @@ export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: D
   let depth = 0;
   let hint: HTMLElement | null = null;
 
-  const isFileDrag = (e: DragEvent): boolean => !!e.dataTransfer?.types?.includes('Files');
+  // A drag of Lolly's own tiles (text/lolly-*, application/x-lolly-*) is never a file
+  // import, even where the browser adds the tile's picture as a file.
+  const isFileDrag = (e: DragEvent): boolean => { const types = e.dataTransfer?.types; return !!types?.includes('Files') && !types.some(type => /^(?:text\/lolly-|application\/x-lolly-)/.test(type)); };
   const showHint = (on: boolean): void => {
     if (on) {
       if (!hint) {
         hint = document.createElement('div');
         hint.className = 'drop-hint';
         hint.setAttribute('aria-hidden', 'true');
-        hint.textContent = t('Drop to import');
       }
+      hint.textContent = hooks.hint?.() || t('Drop to import');
       // (Re-)append: a same-route innerHTML repaint may have orphaned the pill.
       if (!hint.isConnected) rootEl.appendChild(hint);
     } else {
@@ -1969,7 +1977,7 @@ export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: D
     e.preventDefault();
     showHint(false);
     const files = [...(e.dataTransfer?.files ?? [])];
-    if (files.length) void openDropChooser(files, host, hooks);
+    if (files.length) void (async () => { if (!(await hooks.direct?.(files))) await openDropChooser(files, host, hooks); })();
   }, { signal });
 
   const teardown = (): void => {
