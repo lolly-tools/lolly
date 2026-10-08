@@ -155,6 +155,7 @@
     "cli": "node shells/cli/bin/lolly.ts",
     "install:browser": "node shells/cli/bin/lolly.ts install-browser",
     "prune:caches": "node scripts/prune-caches.ts",
+    "branch:hygiene": "node scripts/branch-hygiene.ts",
     "smoke": "node shells/cli/bin/lolly.ts smoke",
     "tui": "pnpm --filter ./shells/tui run start",
     "mcp": "node services/mcp/bin/lolly-mcp.ts",
