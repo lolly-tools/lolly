@@ -87,6 +87,15 @@ async function settle(): Promise<void> {
   for (let i = 0; i < 20; i++) await new Promise<void>((r) => setImmediate(r));
 }
 
+/** Wait, in real time, until `cond` holds. The client's SHA-256 digest finishes on
+ *  the thread pool, so a fixed number of event-loop turns is not enough on a busy
+ *  machine: a job posted after the test looked for it would never be answered. */
+async function until(cond: () => boolean, what: string, ms = 10_000): Promise<void> {
+  const end = Date.now() + ms;
+  while (!cond() && Date.now() < end) await new Promise<void>((r) => setTimeout(r, 5));
+  assert.ok(cond(), `timed out waiting for ${what}`);
+}
+
 // ── the worker and its stop ─────────────────────────────────────────────────
 
 test('the worker is a module worker on rondo-worker.ts, spawned on first use', async () => {
@@ -127,12 +136,13 @@ test('renders run one at a time, in order', async () => {
   mode = 'manual';
   const a = renderRondoSong(TINY, { seconds: 1 });
   const b = renderRondoSong(TINY, { seconds: 1.5 });
+  await until(() => held.length === 1, 'the first render to be posted');
   await settle();
   assert.equal(FakeWorker.all[0]!.posted.length, 1, 'the second waits for the first');
-  held.shift()?.();
+  held.shift()!();
   await a;
-  await settle();
-  held.shift()?.();
+  await until(() => held.length === 1, 'the second render to be posted');
+  held.shift()!();
   await b;
   assert.equal(FakeWorker.all[0]!.posted.length, 2);
   assert.deepEqual(FakeWorker.all[0]!.posted.map((m) => m.seconds), [1, 1.5]);
