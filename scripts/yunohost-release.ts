@@ -36,6 +36,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { contentRoots } from '@lolly-tools/node-shell/content-roots';
+import { assertWebGpuReleaseAllowed } from './webgpu-release-gate.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 export const MANIFEST = join(ROOT, 'deploy', 'yunohost', 'manifest.toml');
@@ -168,6 +169,9 @@ export function parseArgs(argv: string[]): Args {
 
 export async function main(argv = process.argv.slice(2)): Promise<void> {
   const args = parseArgs(argv);
+  // A YunoHost tarball is a release: it may not ship the WebGPU startup requirement
+  // before the supported-environment table is published (plan 295 P0b).
+  assertWebGpuReleaseAllowed();
   const version = args.version ?? upstreamVersion();
   const profile = activeProfile();
   if (profile === 'suse') throw new Error("content profile is 'suse' (private pack) - build with LOLLY_PROFILE=lolly-start; the YunoHost tarball is public");

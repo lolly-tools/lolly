@@ -7,6 +7,7 @@ import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { extrudeStudioShape, studioChordTolerance } from './geometry.ts';
 import { makeGeomApi } from '../../../../../engine/src/geom-api.ts';
+import type { GeomAPI } from '@lolly-tools/core/host-v1';
 import type {
   StudioSceneV1,
   StudioSourceInfo,
@@ -84,7 +85,16 @@ export function instantiateStudioAsset(asset: StudioAsset): StudioAsset {
     },
   };
 }
-const geom = makeGeomApi();
+let geom: GeomAPI = makeGeomApi();
+let defaultGeometry: Promise<void> | undefined;
+/** Prefer the portable kernels; until they load, the reference returns the same bits. */
+function useDefaultGeometry(): Promise<void> {
+  defaultGeometry ??= import('../../bridge/geometry-host.ts')
+    .then((module) => module.loadDefaultWebGeometryHost())
+    .then((owner) => { geom = owner.api; })
+    .catch(() => { defaultGeometry = undefined; });
+  return defaultGeometry;
+}
 const MAX_BYTES = 32 * 1024 * 1024;
 const MAX_TRIANGLES = 1_000_000;
 const ALLOWED = new Set([
@@ -372,6 +382,7 @@ export async function loadStudioSource(
   shaper?: StudioShaper,
   target?: StudioDetailTarget
 ): Promise<StudioAsset> {
+  await useDefaultGeometry();
   let raw = new THREE.Group();
   let info: StudioSourceInfo = { slots: [], triangles: 0, warnings: [] };
   // Without a target the geometry is built for the studio's own preview frame.

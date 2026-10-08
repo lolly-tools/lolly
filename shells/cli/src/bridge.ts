@@ -296,6 +296,8 @@ interface CliBridgeOpts {
    * request (the MCP server builds one per render pass). Default: this host's own.
    */
   rondoBudget?: RondoBudget;
+  /** Omit for the default (portable WASM kernels, or the identical TypeScript reference if they cannot load); set to select one explicitly and strictly. */
+  geometryBackend?: import('@lolly-tools/node-shell/geometry-host').GeometryBackend;
 }
 
 /** A song as an audio asset: its canonical bytes inline, nothing of it run. */
@@ -321,7 +323,7 @@ function rondoRecordOf(bytes: Uint8Array): RondoSourceV1 | null {
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -612,7 +614,16 @@ export async function createCliBridge(
   // Vector geometry (v1.64) - the geometry kernel behind SVG path-data strings.
   // Pure engine math, attached verbatim (the SAME object the web bridge attaches),
   // so a pen-tool hook computes identical geometry headlessly.
-  host.geom = makeGeomApi();
+  if (geometryBackend === 'typescript') host.geom = makeGeomApi();
+  else {
+    const geometry = await import('@lolly-tools/node-shell/geometry-host-node');
+    if (geometryBackend) host.geom = (await geometry.loadNodeGeometryHost(geometryBackend)).api;
+    else {
+      const owner = await geometry.loadDefaultNodeGeometryHost();
+      if (owner.loadError) host.log('warn', 'Geometry kernels did not load; the TypeScript reference returns the same results.', { message: owner.loadError });
+      host.geom = owner.api;
+    }
+  }
 
   // host.connectors (v1.106; path heads + dash fitting v1.110) - the engine's committed,
   // export-safe connector geometry, attached verbatim (the SAME factory the web bridge
@@ -1060,9 +1071,19 @@ function rootSvgOf(node: Element | null): Element | null {
         clone.querySelectorAll('script').forEach((el) => el.remove());
         return new Blob([clone.outerHTML], { type: 'text/html' });
       }
+      // A Design frame is drawn from the engine's drawing operations when they carry the
+      // whole page (plan 295, P3d), with no browser; otherwise the browser tier draws the page.
+      let designOpsReason: string | undefined;
+      if (format === 'svg' && opts.sourceDocument?.toolId === 'design') {
+        const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
+        const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
+        if (page && 'svg' in page) return new Blob([page.svg], { type: 'image/svg+xml' });
+        if (page) designOpsReason = page.reason;
+      }
       if (format === 'svg' || format === 'svgz') {
         const svg = rootSvgOf(node);
         if (!svg) {
+          if (designOpsReason) throw new Error(`This Design page needs a browser engine for SVG because ${designOpsReason}`);
           throw new Error('SVG export requires the template\'s root drawable to be an <svg> (HTML-layout tools need a browser engine - use the desktop app or the web shell)');
         }
         // Honour requested dimensions (incl. physical units like "210mm"): set

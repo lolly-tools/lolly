@@ -7703,5 +7703,6 @@
   "Shared folders could not be loaded or saved. Check your connection and try again.": "مشترکہ فولڈرز لوڈ یا محفوظ نہیں ہو سکے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
   "Shared projects could not be loaded. Try again.": "مشترکہ پراجیکٹس لوڈ نہیں ہو سکے۔ دوبارہ کوشش کریں۔",
   "You can view this project but cannot change its folders.": "آپ یہ پراجیکٹ دیکھ سکتے ہیں لیکن اس کے فولڈرز تبدیل نہیں کر سکتے۔",
-  "New {name}": "نیا {name} بنائیں"
+  "New {name}": "نیا {name} بنائیں",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly کو WebGPU درکار ہے، اور براؤزر WebGPU صرف محفوظ (HTTPS) صفحات پر فراہم کرتے ہیں۔ یہ انسٹینس سادہ، غیر خفیہ کردہ HTTP پر پیش کیا جا رہا ہے۔ جو اسے چلاتا ہے اس سے اسے HTTPS پر پیش کرنے کو کہیں۔"
 }

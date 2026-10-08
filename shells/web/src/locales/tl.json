@@ -7703,5 +7703,6 @@
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Hindi ma-load o ma-save ang mga shared na folder. Tingnan ang iyong koneksyon at subukan ulit.",
   "Shared projects could not be loaded. Try again.": "Hindi ma-load ang mga shared na project. Subukan ulit.",
   "You can view this project but cannot change its folders.": "Matitingnan mo ang project na ito pero hindi mo mababago ang mga folder nito.",
-  "New {name}": "Bagong {name}"
+  "New {name}": "Bagong {name}",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Kailangan ng Lolly ang WebGPU, at sa mga secure (HTTPS) na page lang nag-aalok ng WebGPU ang mga browser. Inihahatid ang instance na ito sa plain HTTP na walang encryption. Hilingin sa nagpapatakbo nito na ihatid ito sa HTTPS."
 }

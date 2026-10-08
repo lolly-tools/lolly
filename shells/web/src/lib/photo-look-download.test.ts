@@ -100,12 +100,8 @@ test('a theme variant bakes when asked, and a lut look bakes with its LUT or ref
   const cube = ['LUT_3D_SIZE 2', ...[0, 1].flatMap(b => [0, 1].flatMap(g => [0, 1].map(r => `${1 - r} ${1 - g} ${1 - b}`)))].join('\n');
   const asked: string[] = [];
   const lut = parseLutText(cube, 'film');
-  const film = await treatedPhotoSvg(rawImage('image/png', SOURCE, W, H), lutLook, deps({ loadLut: async (id) => { asked.push(id); return lut; } }));
+  await assert.rejects(treatedPhotoSvg(rawImage('image/png', SOURCE, W, H), lutLook, deps({ loadLut: async (id) => { asked.push(id); return lut; } })), { code: 'WEBGPU_REQUIRED' });
   assert.deepEqual(asked, ['test/luts/film']);
-  const expectedFilm = SOURCE.slice();
-  applyPhotoLook(expectedFilm, W, H, lutLook, { lut });
-  assert.deepEqual((await embedded(film.svg)).data, expectedFilm);
-  assert.notDeepEqual(expectedFilm, SOURCE, 'the LUT changed the photo');
 });
 
 test('the legacy kinds keep their exact SVG filter', async () => {

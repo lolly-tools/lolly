@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { chromium } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_MOTION_TEST_URL;
 const skip = origin ? false : 'LOLLY_MOTION_TEST_URL not set (serve the web shell and point it here)';
@@ -31,7 +32,7 @@ test('Launch: branded frame sampling, real previews, mobile controls and video e
     for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
   });
   try {
-    await page.goto(`${origin}/#/tool/design?template=launch-editorial`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/design?template=launch-editorial`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('.artboard').first().waitFor({ timeout: 45000 });
     await page.waitForFunction(() => Math.abs((window as any).lolly?.ui?.getState()?.t - 3.3) < .01);
     await page.screenshot({ path: `${output}/initial.png` });
@@ -177,7 +178,7 @@ test('Launch gallery preview opens the composition it demonstrates', { skip, tim
       }));
       await route.fulfill({ response, json: data });
     });
-    await page.goto(`${origin}/#/`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const card = page.locator('.gtile[data-tool-id="design"] [data-motion-template="launch-cascade"]');
     await card.locator('.gcar-img[src]').waitFor({ timeout: 60_000 });
     await card.scrollIntoViewIfNeeded();

@@ -12,6 +12,7 @@ import { PDFDocument } from 'pdf-lib';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { readZip } from '../engine/src/index.ts';
 import type { FileOperationReportV1 } from '../packages/core/src/file-v1.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_CONVERT_TEST_URL;
 test('Convert: mobile/desktop, output bytes, receipts, collision-safe batches and failure retention', { skip: origin ? false : 'no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)', timeout: 90_000 }, async () => {
@@ -21,7 +22,7 @@ test('Convert: mobile/desktop, output bytes, receipts, collision-safe batches an
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.on('pageerror', error => errors.push(error.message));
   try {
-    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const buffer = await sharp({ create: { width: 1200, height: 800, channels: 4, background: { r: 34, g: 145, b: 128, alpha: .5 } } }).png().toBuffer();
     await page.locator('[data-file]').setInputFiles({ name: 'artwork.png', mimeType: 'image/png', buffer });
     await page.locator('[data-convert]').waitFor();
@@ -83,7 +84,7 @@ test('Convert: mobile/desktop, output bytes, receipts, collision-safe batches an
     await page.locator('[data-format]').waitFor();
     assert.deepEqual(await page.locator('[data-format] option').evaluateAll(els => els.map(el => (el as HTMLOptionElement).value)), ['woff']);
     // OPFS/IndexedDB output survives navigation and reload with exact byte identity.
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-history-search]').fill('artwork.jpg');
     const [saved] = await Promise.all([page.waitForEvent('download'), page.locator('[data-history-download]').click()]);
     assert.deepEqual(await readFile((await saved.path())!), output);

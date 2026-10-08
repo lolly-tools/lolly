@@ -6,6 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { lottiePackage } from './helpers/lottie-fixtures.ts';
 import { readLottie } from '../engine/src/dotlottie.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 test('gallery drop, selection, clip edits, save/reopen and actual dotLottie download', {
@@ -18,7 +19,10 @@ test('gallery drop, selection, clip edits, save/reopen and actual dotLottie down
   page.setDefaultTimeout(15000);
   const diagnose = journeyDiagnostics(context, 'lottie-import');
   try {
-    await page.goto(origin!, { waitUntil: 'networkidle' });
+    await page.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(page);
+    // Network idleness is not a boot signal (the WebGPU startup check can keep the
+    // network quiet), so wait for the gallery's drop router before dropping.
+    await page.locator('#view[data-drop-ready]').waitFor({ state: 'attached' });
     await page.evaluate(bytes => {
       const transfer = new DataTransfer();
       transfer.items.add(new File([new Uint8Array(bytes)], 'two.lottie', { type: 'application/zip+dotlottie' }));
@@ -57,7 +61,7 @@ test('gallery drop, selection, clip edits, save/reopen and actual dotLottie down
     const first = readLottie(new Uint8Array(await readFile((await download.path())!))).animations[0]!.animation;
     assert.equal(first.fr, 24); assert.equal(first.w, 64); assert.equal(first.h, 64);
     assert.equal(first.layers.length, 3);
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator(marker).first().waitFor();
     await page.waitForFunction(() => document.querySelectorAll('.tl-clip').length === 3);
     assert.equal(await page.locator('.tl-clip').count(), 3);

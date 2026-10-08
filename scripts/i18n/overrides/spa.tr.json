@@ -1338,5 +1338,6 @@
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Paylaşılan klasörler yüklenemedi veya kaydedilemedi. Bağlantını kontrol edip tekrar dene.",
   "Shared projects could not be loaded. Try again.": "Paylaşılan projeler yüklenemedi. Tekrar dene.",
   "You can view this project but cannot change its folders.": "Bu projeyi görüntüleyebilirsin ama klasörlerini değiştiremezsin.",
-  "New {name}": "Yeni {name} oluştur"
+  "New {name}": "Yeni {name} oluştur",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly WebGPU gerektirir ve tarayıcılar WebGPU'yu yalnızca güvenli (HTTPS) sayfalarda sunar. Bu örnek şifrelenmemiş HTTP üzerinden sunuluyor. Çalıştıran kişiden onu HTTPS üzerinden sunmasını iste."
 }

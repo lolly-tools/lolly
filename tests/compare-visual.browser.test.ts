@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { PDFDocument, StandardFonts, degrees } from 'pdf-lib';
+import { shellSettled } from './helpers/shell-settled.ts';
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)';
 if (origin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
@@ -12,7 +13,7 @@ for (const [name, engine] of [['Chromium', chromium], ['WebKit', webkit]] as con
     const browser = await engine.launch(), page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     try {
-      await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' });
+      await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page);
       await page.getByLabel('Comparison mode', { exact: true }).selectOption('visual');
       assert.equal(await page.getByRole('textbox').count(), 0, 'visual mode hides text editors');
       await page.getByLabel('Before file', { exact: true }).setInputFiles({ name: 'CONFIDENTIAL-before.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svg(20)) });
@@ -65,7 +66,7 @@ for (const [name, engine] of [['Chromium', chromium], ['WebKit', webkit]] as con
 test('catalog visual pairs and exact saved versions preserve selection and bytes offline', { skip, timeout: 90_000 }, async () => {
   const browser = await chromium.launch(), page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   try {
-    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const ids = await page.evaluate(async ({ before, after }) => {
       const p = '/src/lib/host-ref.ts'; const host = (await import(p)).getHostRef();
       const id = `user/upload/compare-${crypto.randomUUID()}`, other = `${id}-other`;
@@ -74,7 +75,7 @@ test('catalog visual pairs and exact saved versions preserve selection and bytes
       await host.assets._importUserAsset({ id: other, type: 'vector', format: 'svg', version: 'first', blob: new Blob([before], { type: 'image/svg+xml' }), meta: { name: 'Compare proof B.svg' } });
       return { id, other, version: (await host.assets.get(id)).version };
     }, { before: svg(20), after: svg(100) });
-    await page.goto(`${origin}/#/a`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/a`, { waitUntil: 'networkidle' }); await shellSettled(page);
     for (const id of [ids.id, ids.other]) await page.locator(`.cat-tile[data-id="${id}"] .cat-check`).click();
     const url = page.url(); await page.locator('.cat-bulkbar [data-bulk="compare"]').click();
     await page.getByText('1 page differs', { exact: true }).waitFor();
@@ -115,7 +116,7 @@ test('PDF comparison reports page additions, rotation, changed text and font fid
   };
   const before = await make(false), after = await make(true), browser = await chromium.launch(), page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
   try {
-    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await page.getByLabel('Comparison mode', { exact: true }).selectOption('visual');
+    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page); await page.getByLabel('Comparison mode', { exact: true }).selectOption('visual');
     await page.getByLabel('Before file', { exact: true }).setInputFiles({ name: 'before.pdf', mimeType: 'application/pdf', buffer: before });
     await page.getByLabel('After file', { exact: true }).setInputFiles({ name: 'after.pdf', mimeType: 'application/pdf', buffer: after });
     await page.getByRole('button', { name: 'Compare', exact: true }).click(); await page.getByText('2 pages differ', { exact: true }).waitFor();

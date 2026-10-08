@@ -1340,5 +1340,6 @@
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Delte mapper kunne ikke lastes inn eller lagres. Sjekk tilkoblingen og prøv igjen.",
   "Shared projects could not be loaded. Try again.": "Delte prosjekter kunne ikke lastes inn. Prøv igjen.",
   "You can view this project but cannot change its folders.": "Du kan se dette prosjektet, men ikke endre mappene i det.",
-  "New {name}": "Nytt: {name}"
+  "New {name}": "Nytt: {name}",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly krever WebGPU, og nettlesere tilbyr WebGPU bare på sikre sider (HTTPS). Denne instansen leveres over vanlig, ukryptert HTTP. Be den som drifter den om å levere den over HTTPS."
 }

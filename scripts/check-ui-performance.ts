@@ -10,6 +10,7 @@ import { tmpdir, platform, arch, cpus } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { chromium, type Browser, type CDPSession, type Page } from 'playwright';
 import { installUiMetrics, median, summarizeUiTimings } from './lib/ui-performance.ts';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const args = process.argv.slice(2);
 const usage = 'pnpm check:ui-performance <url> [--runs=3] [--cpu=4] [--json=<path>] [--enforce]';
@@ -190,7 +191,9 @@ async function sweep(browser: Browser, run: number, mode: Sample['mode']) {
   } finally { await context.close(); }
 }
 
-const browser = await chromium.launch({ headless: true });
+// The shell needs a WebGPU adapter to start: the machine's own where it has a
+// reliable one, SwiftShader on Linux (webgpu-launch.ts).
+const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('auto') });
 let failure: string | undefined;
 const browserVersion = browser.version();
 try {

@@ -25,6 +25,7 @@ import {
   hyperbezierCubics, solveHyperbezier, toCubics,
 } from './spline.ts';
 import type { SubPath } from '../svg-path.ts';
+import * as pmath from './portable-math.ts';
 
 /** A path box's frame as the renderer sees it: the same rounding `boxCss` and
  *  `pathHtmlFor` apply (whole-pixel x/y, w/h of at least 1), plus its turn in degrees. */
@@ -157,7 +158,7 @@ export function refitAuthoredFrame(paths: AuthoredPath[], fr: AuthoredFrame, war
   const bx = bb.x0 - ox, by = bb.y0 - oy;
 
   const r = (fr.rot * Math.PI) / 180;
-  const cs = fr.rot ? Math.cos(r) : 1, sn = fr.rot ? Math.sin(r) : 0;
+  const cs = fr.rot ? pmath.cos(r) : 1, sn = fr.rot ? pmath.sin(r) : 0;
   // (I - R)(c - c'): how far the centre of rotation travels when the frame resizes.
   const kx = fr.w / 2 - w / 2, ky = fr.h / 2 - h / 2;
   const gx = kx - (kx * cs - ky * sn), gy = ky - (kx * sn + ky * cs);

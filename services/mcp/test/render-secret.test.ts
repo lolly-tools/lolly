@@ -6,6 +6,8 @@ import { browserLaunchArgs, browserLaunchOptions, exposeExportPassword, exportUr
 test('Chromium sandbox is on unless deployment explicitly opts out', () => {
   assert.ok(!browserLaunchArgs({}).includes('--no-sandbox'));
   assert.ok(browserLaunchArgs({ LOLLY_BROWSER_NO_SANDBOX: '1' }).includes('--no-sandbox'));
+  assert.ok(browserLaunchArgs({}).includes('--enable-unsafe-webgpu'), 'the shell needs a WebGPU adapter to boot');
+  assert.ok(browserLaunchArgs({}).includes('--use-webgpu-adapter=swiftshader'), 'a GPU-less host only has the SwiftShader adapter');
   assert.equal(browserLaunchOptions({}).chromiumSandbox, true);
   assert.equal(browserLaunchOptions({ LOLLY_BROWSER_NO_SANDBOX: '0' }).chromiumSandbox, true);
   assert.equal(browserLaunchOptions({ LOLLY_BROWSER_NO_SANDBOX: '1' }).chromiumSandbox, false);

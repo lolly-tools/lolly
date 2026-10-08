@@ -14,6 +14,9 @@ test('every authoritative npm/Cargo lock has an audit owner', () => {
   assert.doesNotThrow(() => validateCoverage(inventory));
   assert.deepEqual(discoverAuthoritativeLocks(), [
     'packages/node-shell/wasm/adobe-psd/Cargo.lock',
+    'packages/node-shell/wasm/geometry-kernel/Cargo.lock',
+    'packages/node-shell/wasm/pixel-kernel/Cargo.lock',
+    'packages/node-shell/wasm/portable-math/Cargo.lock',
     'packages/node-shell/wasm/skera/Cargo.lock',
     'pnpm-lock.yaml',
     'shells/tauri-desktop/pnpm-lock.yaml',

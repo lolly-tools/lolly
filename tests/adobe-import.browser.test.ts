@@ -14,6 +14,7 @@ import { expandQuery } from '../engine/src/url-pack.ts';
 import { groupedIdmlParts } from './fixtures/adobe/grouped-layout.ts';
 import { baseHost } from './helpers/host.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 test('Adobe preset import reaches Darkroom controls and URL', { skip: origin ? false : 'no browser origin (set LOLLY_EXPORT_TEST_URL to a local web shell)', timeout: 90000 }, async () => {
@@ -21,7 +22,7 @@ test('Adobe preset import reaches Darkroom controls and URL', { skip: origin ? f
   try {
     const page = await browser.newPage({ serviceWorkers: 'block' });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-    await page.goto(new URL('/t/darkroom', origin!).href, { waitUntil: 'networkidle' });
+    await page.goto(new URL('/t/darkroom', origin!).href, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.getByRole('button', { name: 'Import Adobe photo preset', exact: true }).waitFor();
     await page.getByText('Blank canvas', { exact: true }).click();
     const input = page.locator('input[accept=".xmp,.lrtemplate"]');
@@ -54,7 +55,7 @@ test('Adobe layout loop preset reaches the canvas and a finished video', { skip:
     const page = await browser.newPage({ serviceWorkers: 'block', viewport: { width: 1280, height: 900 } });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     const ids = layout!.boxes.map(box => String((box as { id: string }).id));
-    await page.goto(new URL(`/t/design?${query}&width=640&height=360&_sel=${encodeURIComponent(ids.join(','))}`, origin!).href, { waitUntil: 'networkidle' });
+    await page.goto(new URL(`/t/design?${query}&width=640&height=360&_sel=${encodeURIComponent(ids.join(','))}`, origin!).href, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator(`.lolly-box[data-box-id="${ids[1]}"]`).click({ button: 'right' });
     await page.getByRole('menuitem', { name: 'Choreograph…', exact: true }).click();
     const preset = page.locator('[data-choreo-quick="drift-loop"]');

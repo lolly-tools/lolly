@@ -70,6 +70,7 @@ import {
 } from '@lolly/engine';
 import type { Box } from './free-canvas-math.ts';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
+import type { GeometryOperations } from '../../../../engine/src/geom/operations.ts';
 
 export type { Box };
 
@@ -547,6 +548,8 @@ export interface VectorOpOptions {
   cfg?: VectorFieldConfig;
   id?: string;
   tol?: number;
+  /** Portable clipping/fitting kernels for this one operation; the result bits are the same without them. */
+  operations?: GeometryOperations;
 }
 
 function fail(reason: VectorOpReason, message: string, indices?: number[]): VectorOpFailure {
@@ -567,7 +570,7 @@ interface Operand {
  * nonzero one. Resolving each first means both arrive nonzero-canonical, which is the
  * only form the pairwise pass is entitled to assume.
  */
-function lowerOperands(boxes: Box[], f: ResolvedFields, tol: number | undefined): {
+function lowerOperands(boxes: Box[], f: ResolvedFields, tol: number | undefined, operations?: GeometryOperations): {
   operands: Operand[];
   skipped: number[];
   bad: number[];
@@ -584,7 +587,7 @@ function lowerOperands(boxes: Box[], f: ResolvedFields, tol: number | undefined)
       continue;
     }
     const rule = str(box[f.fillRuleField]) === 'evenodd' ? 'evenodd' : 'nonzero';
-    const canonical = selfUnion(low.path, { fillRule: rule as FillRule, tol });
+    const canonical = selfUnion(low.path, { fillRule: rule as FillRule, tol, operations });
     if (!canonical.length) { skipped.push(i); continue; }
     operands.push({ index: i, box, path: canonical });
   }
@@ -632,14 +635,14 @@ export type BooleanOpName = 'union' | 'intersect' | 'difference' | 'xor';
 export function booleanBoxes(boxes: Box[], op: BooleanOpName, opts: VectorOpOptions = {}): VectorOpResult {
   if(boxes.some(box=>box.pathPaint))return fail('no-outline','This operation cannot preserve grouped vector paints. Use Edit points, or separate the painted objects first.',[]);
   const f = fields(opts.cfg);
-  const { operands, skipped, bad } = lowerOperands(boxes, f, opts.tol);
+  const { operands, skipped, bad } = lowerOperands(boxes, f, opts.tol, opts.operations);
   if (bad.length) return fail('bad-input', 'a selected shape has an unreadable path', bad);
   if (operands.length < 2) {
     return operands.length + skipped.length < 2
       ? fail('needs-two', 'a boolean needs two shapes', skipped)
       : fail('no-outline', 'these shapes have no outline to combine', skipped);
   }
-  const bopts = { tol: opts.tol };
+  const bopts = { tol: opts.tol, operations: opts.operations };
   const run = (): GeomPath => {
     let acc = operands[0]!.path;
     for (let i = 1; i < operands.length; i++) {
@@ -676,15 +679,15 @@ export function offsetBoxes(boxes: Box[], distance: number, opts: OffsetBoxesOpt
   if(boxes.some(box=>box.pathPaint))return fail('no-outline','This operation cannot preserve grouped vector paints. Use Edit points, or separate the painted objects first.',[]);
   const f = fields(opts.cfg);
   if (!Number.isFinite(distance)) return fail('bad-input', 'the offset distance is not a number');
-  const { operands, skipped, bad } = lowerOperands(boxes, f, opts.tol);
+  const { operands, skipped, bad } = lowerOperands(boxes, f, opts.tol, opts.operations);
   if (bad.length) return fail('bad-input', 'a selected shape has an unreadable path', bad);
   if (!operands.length) return fail('no-outline', 'these shapes have no outline to offset', skipped);
-  const merged = attempt(() => mergeRegions(operands, opts.tol));
+  const merged = attempt(() => mergeRegions(operands, opts.tol, opts.operations));
   if ('ok' in merged) return merged;
   const template = operands[operands.length - 1]!.box;
   if (distance === 0) return finish(merged.path, template, skipped, opts);
   const r = attempt(() => offsetPath(merged.path, distance, {
-    join: opts.join ?? 'miter', miterLimit: opts.miterLimit, tol: opts.tol,
+    join: opts.join ?? 'miter', miterLimit: opts.miterLimit, tol: opts.tol, operations: opts.operations,
   }));
   if ('ok' in r) return r;
   return finish(r.path, template, skipped, opts);
@@ -708,7 +711,7 @@ export interface StrokeBoxesOptions extends VectorOpOptions {
 export function strokeBoxesToPath(boxes: Box[], opts: StrokeBoxesOptions = {}): VectorOpResult {
   if(boxes.some(box=>box.pathPaint))return fail('no-outline','This operation cannot preserve grouped vector paints. Use Edit points, or separate the painted objects first.',[]);
   const f = fields(opts.cfg);
-  const { operands, skipped, bad } = lowerOperands(boxes, f, opts.tol);
+  const { operands, skipped, bad } = lowerOperands(boxes, f, opts.tol, opts.operations);
   if (bad.length) return fail('bad-input', 'a selected shape has an unreadable path', bad);
   if (!operands.length) return fail('no-outline', 'these shapes have no outline to stroke', skipped);
   const top = operands[operands.length - 1]!;
@@ -728,10 +731,10 @@ export function strokeBoxesToPath(boxes: Box[], opts: StrokeBoxesOptions = {}): 
     ? (str(top.box[f.strokeJoinField]) as JoinStyle) : undefined);
   const r = attempt(() => {
     const outlines = operands.map((o) => strokeToPath(o.path, width, {
-      cap: opts.cap, join, miterLimit: opts.miterLimit, tol: opts.tol,
+      cap: opts.cap, join, miterLimit: opts.miterLimit, tol: opts.tol, operations: opts.operations,
     }));
     let acc = outlines[0]!;
-    for (let i = 1; i < outlines.length; i++) acc = unionPath(acc, outlines[i]!, { tol: opts.tol });
+    for (let i = 1; i < outlines.length; i++) acc = unionPath(acc, outlines[i]!, { tol: opts.tol, operations: opts.operations });
     return acc;
   });
   if ('ok' in r) return r;
@@ -795,9 +798,9 @@ export function simplifyBoxes(boxes: Box[], tolerance: number, opts: VectorOpOpt
 
 /** Union every operand's region into one. Union is the one operator with an exact escape
  *  past the work ceiling, so this cannot throw `GeomLimitError`. */
-function mergeRegions(operands: Operand[], tol: number | undefined): GeomPath {
+function mergeRegions(operands: Operand[], tol: number | undefined, operations?: GeometryOperations): GeomPath {
   let acc = operands[0]!.path;
-  for (let i = 1; i < operands.length; i++) acc = unionPath(acc, operands[i]!.path, { tol });
+  for (let i = 1; i < operands.length; i++) acc = unionPath(acc, operands[i]!.path, { tol, operations });
   return acc;
 }
 

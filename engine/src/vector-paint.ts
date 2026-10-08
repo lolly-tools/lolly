@@ -6,6 +6,7 @@ import { decodeAuthoredPathsResult } from './geom/authored-url.ts';
 import { toCubics, type AuthoredPath } from './geom/spline.ts';
 import { toSvgPathData, pathBounds, type Contour } from './geom/path.ts';
 import { svgTransform } from './emoji-svg-syntax.ts';
+import * as pmath from './geom/portable-math.ts';
 export type VectorMatrix = [number,number,number,number,number,number];
 export interface VectorPaintNode { tag: string; attributes: Record<string,string>; contours?: number[]; children?: VectorPaintNode[] }
 export interface VectorPaintV1 { version: 1; width: number; height: number; root: VectorPaintNode }
@@ -25,9 +26,9 @@ export function vectorMatrix(value=''):VectorMatrix{
       case 'matrix':next=a as VectorMatrix;break;
       case 'translate':next=[1,0,0,1,a[0]!,a[1]??0];break;
       case 'scale':next=[a[0]!,0,0,a[1]??a[0]!,0,0];break;
-      case 'rotate':{const angle=a[0]!*Math.PI/180;next=[Math.cos(angle),Math.sin(angle),-Math.sin(angle),Math.cos(angle),0,0];if(a.length===3)next=multiplyVectorMatrix(multiplyVectorMatrix([1,0,0,1,a[1]!,a[2]!],next),[1,0,0,1,-a[1]!,-a[2]!]);break;}
-      case 'skewX':next=[1,0,Math.tan(a[0]!*Math.PI/180),1,0,0];break;
-      case 'skewY':next=[1,Math.tan(a[0]!*Math.PI/180),0,1,0,0];break;
+      case 'rotate':{const angle=a[0]!*Math.PI/180;next=[pmath.cos(angle),pmath.sin(angle),-pmath.sin(angle),pmath.cos(angle),0,0];if(a.length===3)next=multiplyVectorMatrix(multiplyVectorMatrix([1,0,0,1,a[1]!,a[2]!],next),[1,0,0,1,-a[1]!,-a[2]!]);break;}
+      case 'skewX':next=[1,0,pmath.tan(a[0]!*Math.PI/180),1,0,0];break;
+      case 'skewY':next=[1,pmath.tan(a[0]!*Math.PI/180),0,1,0,0];break;
       default:throw new Error('Unsupported vector transform.');
     }
     result=multiplyVectorMatrix(result,next);

@@ -7703,5 +7703,6 @@
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Không thể tải hoặc lưu các thư mục được chia sẻ. Hãy kiểm tra kết nối rồi thử lại.",
   "Shared projects could not be loaded. Try again.": "Không thể tải các dự án được chia sẻ. Hãy thử lại.",
   "You can view this project but cannot change its folders.": "Bạn có thể xem dự án này nhưng không thể thay đổi các thư mục của nó.",
-  "New {name}": "Tạo {name} mới"
+  "New {name}": "Tạo {name} mới",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly cần WebGPU, và trình duyệt chỉ cung cấp WebGPU trên các trang bảo mật (HTTPS). Instance này đang được phục vụ qua HTTP thường, không mã hóa. Hãy nhờ người quản lý instance phục vụ nó qua HTTPS."
 }

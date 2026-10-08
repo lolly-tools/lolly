@@ -217,6 +217,48 @@ jobs:
           mkdir -p artifacts
           cp "$RUNNER_TEMP/lolly-ci-chromium.profile" artifacts/ci-chromium-userns.profile
 
+      # Every browser partition runs the WebGPU check: it also exports the
+      # software adapter and the required flag that the later browser steps use.
+      # The geometry and drawing conformance runs below do not depend on a
+      # partition's test files, so each runs in one partition, not in all four.
+      - name: Require WebGPU conformance
+        if: matrix.shard == 'browser'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_BROWSER_CHANNEL: chromium
+          LOLLY_WEBGPU_TEST_ADAPTER: swiftshader
+          LOLLY_WEBGPU_REPORT: artifacts/webgpu-lut-report.json
+        run: |
+          mkdir -p artifacts
+          echo 'LOLLY_WEBGPU_TEST_ADAPTER=swiftshader' >> "$GITHUB_ENV"
+          echo 'LOLLY_WEBGPU_REQUIRED=1' >> "$GITHUB_ENV"
+          pnpm run test:webgpu
+
+      - name: Require geometry conformance
+        if: matrix.shard == 'browser' && matrix.partition == '1/4'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_BROWSER_CHANNEL: chromium
+          LOLLY_GEOMETRY_FIT_REPORT: artifacts/geometry-fit-report.json
+          LOLLY_GEOMETRY_PORTABLE_REPORT: artifacts/geometry-portable-report.json
+          LOLLY_GEOMETRY_CLIP_REPORT: artifacts/geometry-clip-report.json
+          LOLLY_GEOMETRY_SCOPE_REPORT: artifacts/geometry-scope-report.json
+          LOLLY_GEOMETRY_HOST_REPORT: artifacts/geometry-host-report.json
+        run: pnpm run test:geometry
+
+      - name: Install Firefox and WebKit for geometry qualification
+        if: matrix.shard == 'browser' && matrix.partition == '2/4'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+        run: node node_modules/playwright/cli.js install --with-deps firefox webkit
+
+      - name: Require one geometry answer in Chromium, Firefox and WebKit
+        if: matrix.shard == 'browser' && matrix.partition == '2/4'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_BROWSER_CHANNEL: chromium
+        run: pnpm run test:geometry:engines --output=artifacts/geometry-engines
+
       - name: Install motion inspection tools
         if: matrix.shard == 'browser' || matrix.shard == 'contracts'
         timeout-minutes: 25
@@ -242,6 +284,15 @@ jobs:
             sleep 15
           done
           exit 1
+
+      - name: Require drawing fidelity against the Design renderer
+        if: matrix.shard == 'browser' && matrix.partition == '3/4'
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+          LOLLY_FIDELITY_REPORT: artifacts/drawing-fidelity-report.json
+          # The PDF half rasterises with Poppler, installed by the step above.
+          LOLLY_FIDELITY_PDF_REQUIRED: '1'
+        run: pnpm run test:drawing
 
       - name: Start public shell for journey regressions
         if: matrix.shard == 'browser'
@@ -271,7 +322,7 @@ jobs:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
           LOLLY_BROWSER_CHANNEL: chromium
         run: |
-          node --input-type=module <<'JS'
+          node --import ./tests/browser-gpu.ts --input-type=module <<'JS'
           import { chromium } from 'playwright';
           const browser = await chromium.launch({ headless: true, channel: 'chromium' });
           try {
@@ -295,7 +346,7 @@ jobs:
           LOLLY_BROWSER_CHANNEL: chromium
         run: |
           set -o pipefail
-          node --import ./tests/css-stub.mjs --test --test-concurrency=1 \
+          node --import ./tests/browser-gpu.ts --import ./tests/css-stub.mjs --test --test-concurrency=1 \
             services/mcp/test/motion-samples.browser.test.ts \
             tests/design-theme.browser.test.ts \
             tests/open-route.browser.test.ts 2>&1 | tee artifacts/browser-readiness.log
@@ -374,6 +425,7 @@ jobs:
           LOLLY_TIER_B_DEBUG: ${{ matrix.shard == 'browser' && '1' || '' }}
           # Use the installed full Chromium for the same file and storage paths as Chrome.
           LOLLY_BROWSER_CHANNEL: ${{ matrix.shard == 'browser' && 'chromium' || '' }}
+          LOLLY_WEBGPU_TEST_ADAPTER: ${{ (matrix.shard == 'browser' || matrix.shard == 'security') && 'swiftshader' || '' }}
         run: |
           set -o pipefail
           mkdir -p artifacts
@@ -407,6 +459,13 @@ jobs:
             artifacts/public-render-shell.log
             artifacts/public-journey-build.log
             artifacts/browser-readiness.log
+            artifacts/geometry-fit-report.json
+            artifacts/geometry-portable-report.json
+            artifacts/geometry-clip-report.json
+            artifacts/geometry-scope-report.json
+            artifacts/geometry-host-report.json
+            artifacts/geometry-engines/
+            artifacts/drawing-fidelity-report.json
             lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error

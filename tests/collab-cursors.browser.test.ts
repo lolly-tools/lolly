@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 const origin = process.env.LOLLY_COLLAB_TEST_URL;
 const skip = origin ? false : 'set LOLLY_COLLAB_TEST_URL to a local Vite shell';
 test('real-browser surface projection, pointer publication, focus merging, clear and export exclusion', {
@@ -12,7 +13,7 @@ test('real-browser surface projection, pointer publication, focus merging, clear
   const page = await context.newPage();
   try {
     await page.route(`${origin}/collab-fixture`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body></body></html>' }));
-    await page.goto(`${origin}/collab-fixture`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/collab-fixture`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const result = await page.evaluate(async () => {
       const surfacePath = '/src/lib/collab-surface.ts', mountPath = '/src/views/tool-collab.ts';
       const { registerCollabSurface } = await import(surfacePath);
@@ -77,7 +78,7 @@ test('two tabs retain each other’s pending edits in the real IndexedDB outbox'
   const context = await browser.newContext();
   const page = await context.newPage();
   try {
-    await page.goto(origin!, { waitUntil: 'networkidle' });
+    await page.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(page);
     const result = await page.evaluate(async () => {
       const path = '/src/org/collab-provider.ts';
       const { defaultOutboxStore } = await import(path);
@@ -103,7 +104,7 @@ test('the actual Design mount registers its active artboard for pointer presence
   const page = await context.newPage();
   const errors: string[] = []; page.on('console', msg => { if (msg.type() === 'warning' || msg.type() === 'error') errors.push(msg.text()); });
   try {
-    await page.goto(origin!, { waitUntil: 'networkidle' });
+    await page.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.evaluate(async (corePath) => {
       const sourcePath = '/src/lib/collab-session-source.ts';
       const { registerCollabSessionSource } = await import(sourcePath);
