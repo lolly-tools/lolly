@@ -96,7 +96,11 @@ function regionFault(r: RegionStats, withText: boolean, share?: number): string 
 
 test('compiled drawings match the Design renderer region by region', { timeout: 180_000 }, async (t) => {
   let browser: Browser;
-  try { browser = await chromium.launch({ headless: true }); }
+  // The same rendering flags as every Lolly headless renderer (node-shell browsers.ts,
+  // the MCP render path): without hinting=none, FreeType on Linux snaps HTML glyphs to
+  // the pixel grid but not SVG text or outlines, so the text regions measured on macOS
+  // move by more than a pixel on the CI runner.
+  try { browser = await chromium.launch({ headless: true, args: ['--force-color-profile=srgb', '--font-render-hinting=none'] }); }
   catch (error) { if (process.env.LOLLY_FIDELITY_REQUIRED === '1') throw error; t.skip('Fidelity needs Playwright Chromium.'); return; }
   t.after(() => browser.close());
   const tool = await loadTool('design', (p: string) => readFile(new URL(`../community/${p}`, import.meta.url), 'utf8'));
