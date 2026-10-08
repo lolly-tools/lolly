@@ -285,9 +285,7 @@ test('a crossing closed on just past the end of the kept piece is kept', () => {
 });
 
 test('a shared start vertex is reported where the curves agree to third order', () => overrunOnly(() => {
-  // At 512 this pair still finishes inside the clip budget, so what SHIPS for it is the
-  // clip search's answer. What this pins is the overrun search's promise, which the
-  // shipped build keeps for every pair that does cross.
+  // Under the shipped budget the clip search answers this pair.
   // flat L = 100, p = (t - 0.002)³, rel = 1e-5, phi = 0.7, moved by (3700, -1100). The gap
   // is below the rounding noise for t < 0.0057, the clip trims the vertex off every piece
   // it keeps, and the scan reported nothing. The crossing at 0.002 is folded onto the
