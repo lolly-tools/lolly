@@ -12,6 +12,7 @@ import type { AssetsAPI, TextAPI, TextPathCluster } from '@lolly-tools/core/host
 import { createTextCompositionAPI } from '@lolly-tools/node-shell/text-composition';
 import { createGlyphCache } from '@lolly-tools/node-shell/text-glyphs';
 import { strikeMetricsFact, type StrikeMetrics } from '../../../../engine/src/text-decoration.ts';
+import { registerTextStrikeMetrics } from './text-drawing-facts.ts';
 import type { Blob as HbBlob, Face as HbFace, Font as HbFont, Feature as HbFeature } from 'harfbuzzjs';
 
 type HarfBuzzModule = typeof import('harfbuzzjs');
@@ -189,7 +190,7 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
     if (!response.ok) throw new Error(`The pinned text font could not be read (${response.status}).`);
     return new Uint8Array(await response.arrayBuffer());
   }, source => new DOMParser().parseFromString(source, 'image/svg+xml'));
-  return {
+  const api: TextAPI = {
     ...composition,
     async characters(fontUrl) { return [...(await loadFace(fontUrl)).unicodes].sort((a, b) => a - b); },
     /**
@@ -349,4 +350,6 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
       return { url: vf.url, ...(vf.variations ? { variations: vf.variations } : {}) };
     },
   };
+  registerTextStrikeMetrics(api, webStrikeMetrics);
+  return api;
 }

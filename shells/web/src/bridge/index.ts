@@ -65,6 +65,7 @@ import { isTauriShell } from '../lib/instance-choice.ts';
 import { PROVIDED_CAPABILITIES } from './capabilities-provided.ts';
 import { openDB } from './db.ts';
 import { noteTextLayoutDone } from '../lib/text-layout-progress.ts';
+import { registerLazyTextStrikeMetrics } from './text-drawing-facts.ts';
 
 /**
  * The web shell's full host surface: HostV1 with `shell` pinned to 'web', plus
@@ -253,7 +254,7 @@ export async function createBridge(): Promise<WebHost> {
   host.net = { fetch: async (url, init) => (await loadNet()).fetch(url, init) };
 
   const loadText = memo(async () => (await import('./text.ts')).createTextAPI(host.assets));
-  host.text = {
+  const textFacade: NonNullable<WebHost['text']> = {
     fontInfo: async (font) => (await loadText()).fontInfo!(font),
     shapeRun: async (request) => (await loadText()).shapeRun!(request),
     // Counted for the "Opening…" card's progress (lib/text-layout-progress.ts).
@@ -265,7 +266,9 @@ export async function createBridge(): Promise<WebHost> {
     axisDefaults: async (fontUrl) => (await loadText()).axisDefaults!(fontUrl),
     fontUrl: async (family, opts) => (await loadText()).fontUrl!(family, opts),
     characters: async (url) => (await loadText()).characters!(url),
-  } as WebHost['text'];
+  };
+  host.text = textFacade;
+  registerLazyTextStrikeMetrics(textFacade, loadText);
 
   // on-device PDF metadata inspect + strip/compress (pdf-lib, itself lazy inside).
   // redact + pages (v1.85) are wired from their own web-only module: pdf.ts is shared with
