@@ -5,12 +5,14 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { build } from 'vite';
 import { productProbeIdentity, productProbeOptions, productProbeSource, webGpuProductProbe } from '../shells/tauri-desktop/webgpu-product-probe.mjs';
-import { markProductBundleRoot, productConfig, productEnvironment, productExecutableName } from '../scripts/verify-webgpu-product.ts';
+import { assertProductBuildSource, assertProductCsp, assertProductSourcesUnchanged, isGeneratedInfoCss, markProductBundleRoot, productConfig, productEnvironment, productExecutableName, productSourceReceipt } from '../scripts/verify-webgpu-product.ts';
 import { assertNoMarkedBuild, MARKER_FILE } from '../scripts/webgpu-qualification.ts';
 import { PRODUCT_COMMAND_LIMIT, PRODUCT_REPLY_LIMIT, ProductProbeProtocol, decodeProductMessage, isProductUrl } from './helpers/webgpu-product-receiver.ts';
-import { TAURI_CSP } from '../shells/tauri-shared/vite-csp.mjs';
+import { TAURI_CSP, tauriCspMeta } from '../shells/tauri-shared/vite-csp.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const runId = '4c3d9db0-f06e-4870-a75f-c4a2a1502bad';
@@ -62,6 +64,87 @@ test('generated app handoffs carry the qualification marker within publisher sea
     assert.match(await readFile(marker.path, 'utf8'), /Not for release/);
     await mkdir(resolve(appRoot, 'Lolly WebGPU Product Qualification.app/Contents'), { recursive: true });
     assert.throws(() => assertNoMarkedBuild(appRoot, 'app handoff'), /Qualification builds are unsigned and never published/);
+  } finally { await rm(fixture, { recursive: true, force: true }); }
+});
+
+test('product CSP verification compares the decoded effective policy exactly', () => {
+  const policy = TAURI_CSP.replaceAll('&', '&amp;').replaceAll("'", '&#39;').replaceAll('"', '&quot;');
+  const meta = `<meta http-equiv="Content-Security-Policy" content="${policy}">`;
+  assertProductCsp(`<!doctype html><html><head>${meta}</head><body></body></html>`);
+  assertProductCsp(`<!doctype html><head>${meta.replace('Content-Security-Policy', 'CONTENT-SECURITY-POLICY')}</head>`);
+  for (const html of [
+    '<html><head></head></html>', `<html><head>${meta}${meta}</head></html>`,
+    `<html><head>${meta.replace('default-src', 'unknown-src')}</head></html>`,
+    `<html><head></head><body>${meta}</body></html>`,
+    `<html><head><!-- ${meta} --></head></html>`,
+    `<html><head><script>${JSON.stringify(meta)}</script></head></html>`,
+  ]) assert.throws(() => assertProductCsp(html));
+});
+
+test('source drift excludes only recorded fingerprinted documentation CSS outputs', () => {
+  assert.equal(isGeneratedInfoCss('shells/web/public/info/docs.E2-5K81LvdRXRXyK.css'), true);
+  for (const path of ['shells/web/public/info/docs.css', 'shells/web/public/info/docs.changed.css',
+    'shells/web/public/info/docs.E2-5K81LvdRXRXyK.js', 'shells/web/src/docs.E2-5K81LvdRXRXyK.css',
+    'shells/web/public/info/nested/docs.E2-5K81LvdRXRXyK.css', 'docs/build.ts']) assert.equal(isGeneratedInfoCss(path), false);
+  const before = { sourceSha: 'owned-source', sourceFiles: { 'shells/web/src/main.ts': 'original' },
+    workingDiffSha256: 'source-only-diff', untrackedSourceFiles: {}, sourceDirty: '',
+    fullWorkingDiffSha256: 'clean', generatedInfoCss: { 'shells/web/public/info/docs.E2-5K81LvdRXRXyK.css': { sha256: 'old' } } };
+  const after = { ...before, sourceDirty: ' D shells/web/public/info/docs.E2-5K81LvdRXRXyK.css\n?? shells/web/public/info/docs.ElA_4wbeXo5YqvEN.css',
+    fullWorkingDiffSha256: 'generated-output-diff', generatedInfoCss: { 'shells/web/public/info/docs.E2-5K81LvdRXRXyK.css': null,
+      'shells/web/public/info/docs.ElA_4wbeXo5YqvEN.css': { sha256: 'new' } } };
+  assertProductSourcesUnchanged(before, after);
+  for (const patch of [{ sourceSha: 'different-source' }, { sourceFiles: { 'shells/web/src/main.ts': 'edited' } },
+    { workingDiffSha256: 'different-input-diff' }, { untrackedSourceFiles: { 'shells/web/src/new-runtime.ts': 'added' } }]) {
+    assert.throws(() => assertProductSourcesUnchanged(before, { ...after, ...patch }));
+  }
+});
+
+test('real Git inventory separates generated CSS while refusing runtime and untracked source edits', async () => {
+  const parent = resolve(root, 'plans/295-validation/product-probe-development'); await mkdir(parent, { recursive: true });
+  const fixture = await mkdtemp(resolve(parent, 'source-inventory-'));
+  const gitEnv: NodeJS.ProcessEnv = { ...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' };
+  for (const key of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR']) delete gitEnv[key];
+  const git = (args: string[]) => {
+    const result = spawnSync('git', args, { cwd: fixture, encoding: 'utf8', env: gitEnv });
+    assert.equal(result.status, 0, result.stderr); return result.stdout;
+  };
+  const cssPath = (css: string) => `shells/web/public/info/docs.${createHash('sha256').update(css).digest('base64url').slice(0, 16)}.css`;
+  const oldCss = ':root { color: green; }', newCss = ':root { color: blue; }';
+  const oldPath = cssPath(oldCss), newPath = cssPath(newCss);
+  const runtimePath = 'shells/web/src/main.ts', addedPath = 'shells/web/src/arbitrary.ts';
+  try {
+    await mkdir(resolve(fixture, 'shells/web/public/info'), { recursive: true });
+    await mkdir(resolve(fixture, 'shells/web/src'), { recursive: true });
+    await mkdir(resolve(fixture, 'shells/tauri-desktop/src-tauri'), { recursive: true });
+    await writeFile(resolve(fixture, oldPath), oldCss);
+    await writeFile(resolve(fixture, runtimePath), 'export const runtime = 1;\n');
+    await writeFile(resolve(fixture, 'shells/tauri-desktop/src-tauri/Cargo.lock'), '# owned inventory fixture\n');
+    git(['init', '--quiet']); git(['add', '.']);
+    git(['-c', 'user.name=Lolly Test', '-c', 'user.email=test@example.invalid', '-c', 'core.hooksPath=/dev/null', 'commit', '--no-gpg-sign', '--quiet', '-m', 'Owned inventory fixture']);
+    const before = await productSourceReceipt(fixture, [runtimePath]);
+    assert.equal(before.sourceDirty, ''); assertProductBuildSource(before.sourceDirty, false);
+    await rm(resolve(fixture, oldPath)); await writeFile(resolve(fixture, newPath), newCss);
+    const generated = await productSourceReceipt(fixture, [runtimePath]);
+    assertProductSourcesUnchanged(before, generated);
+    assert.notEqual(generated.fullWorkingDiffSha256, before.fullWorkingDiffSha256);
+    assert.equal(generated.workingDiffSha256, before.workingDiffSha256);
+    assert.match(String(generated.sourceDirty), / D .*docs\..*\.css/);
+    assert.match(String(generated.sourceDirty), /\?\? .*docs\..*\.css/);
+    const css = generated.generatedInfoCss as Record<string, { sha256: string; bytes: number } | null>;
+    assert.equal(css[oldPath], null); assert.equal(css[newPath]?.sha256, createHash('sha256').update(newCss).digest('hex'));
+    assert.throws(() => assertProductBuildSource(generated.sourceDirty, false), /clean isolated source/);
+    assertProductBuildSource(generated.sourceDirty, true);
+    await writeFile(resolve(fixture, runtimePath), 'export const runtime = 2;\n');
+    const edited = await productSourceReceipt(fixture, [runtimePath]);
+    assert.notEqual(edited.workingDiffSha256, generated.workingDiffSha256);
+    assert.throws(() => assertProductSourcesUnchanged(generated, edited), /inputs changed/);
+    await writeFile(resolve(fixture, runtimePath), 'export const runtime = 1;\n');
+    await writeFile(resolve(fixture, addedPath), 'export const injected = true;\n');
+    const untracked = await productSourceReceipt(fixture, [runtimePath]);
+    assert.ok(Object.hasOwn(untracked.untrackedSourceFiles as object, addedPath));
+    assert.throws(() => assertProductSourcesUnchanged(generated, untracked), /Untracked source changed/);
+    await rm(resolve(fixture, addedPath)); await writeFile(resolve(fixture, newPath), 'mismatched CSS');
+    await assert.rejects(productSourceReceipt(fixture, [runtimePath]), /content fingerprint/);
   } finally { await rm(fixture, { recursive: true, force: true }); }
 });
 
@@ -168,16 +251,20 @@ test('actual Vite graph omits the default module and bundles shared GPU modules/
     await writeFile(resolve(fixture, 'main.ts'), `import { startWebGpuCheck } from ${JSON.stringify(resolve(root, 'shells/web/src/lib/webgpu/device.ts'))}; window.productDevice = startWebGpuCheck;`);
     const compile = async (configured: boolean) => {
       const plugin = webGpuProductProbe({ root, env: configured ? env : {} });
-      const result = await build({ configFile: false, root: fixture, publicDir: false, logLevel: 'silent', plugins: plugin ? [plugin] : [],
+      const result = await build({ configFile: false, root: fixture, publicDir: false, logLevel: 'silent', plugins: [tauriCspMeta(), ...(plugin ? [plugin] : [])],
         build: { write: false, minify: false, target: 'esnext', outDir: resolve(fixture, 'dist') }, worker: { format: 'es' } });
       assert.ok(!Array.isArray(result) && 'output' in result);
       return result.output;
     };
     const ordinary = await compile(false);
+    const ordinaryHtml = ordinary.find(row => row.type === 'asset' && row.fileName === 'index.html');
+    assert.ok(ordinaryHtml?.type === 'asset'); assertProductCsp(String(ordinaryHtml.source));
     assert.ok(ordinary.every(row => !row.fileName.includes('webgpu-product')));
     const normalText = ordinary.map(row => row.type === 'chunk' ? row.code : String(row.source)).join('\n');
     assert.doesNotMatch(normalText, /webgpu_qualification_|__lollyProductQualification|window\.lutProbe/);
     const qualified = await compile(true);
+    const qualifiedHtml = qualified.find(row => row.type === 'asset' && row.fileName === 'index.html');
+    assert.ok(qualifiedHtml?.type === 'asset'); assertProductCsp(String(qualifiedHtml.source));
     const qualifiedText = qualified.map(row => row.type === 'chunk' ? row.code : String(row.source)).join('\n');
     assert.match(qualifiedText, /webgpu_qualification_ready/);
     assert.match(qualifiedText, /dataset\.webgpu !== "ready"/);

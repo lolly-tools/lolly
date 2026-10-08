@@ -37,6 +37,8 @@ The **frontend** entry is the web shell's, `shells/web/index.html` → `/src/mai
 
 Keep the JavaScript plugin guests and their locked Rust crates on the same major/minor release. Tauri checks this before packaging. The filesystem guest is pinned to 2.5.2 in both shells and the desktop updater guest to 2.13.1, matching the existing native locks. Update each pair together; `tests/tauri-package-versions.test.ts` checks the API and every plugin pair without needing a native build. Keep the version check enabled when preparing qualification packages.
 
+On macOS 27 with Xcode 27, use Rust 1.98 or newer. Older Rust toolchains can produce stripped procedural-macro libraries that macOS refuses to load with a `mis-aligned LINKEDIT string pool` error. The [upstream Rust fix](https://github.com/rust-lang/rust/pull/158410) updates LLVM's Mach-O alignment. Select a current toolchain for the build with `RUSTUP_TOOLCHAIN`, preserving your global default; keep normal release settings and record the compiler version in qualification receipts.
+
 ### Qualify the actual macOS product
 
 The localhost WebGPU fixture diagnoses the WebView's numerical capabilities. It does not prove that the bundled application starts, mounts a tool or loads its compiled worker through `tauri://localhost`. The optional product harness runs the same mandatory corpus inside the normally started desktop GUI. It retains the shared CSP, ordinary window configuration, storage behavior and default graphics preferences. It uses a separate app identifier and removes document, URL and Quick Look registrations from its generated test bundle.
