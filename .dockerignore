@@ -42,7 +42,8 @@ services/ca/.env
 **/keys
 **/*.pem
 **/*.key
-# Local assistant state and personal release paperwork are not build inputs.
+# Local assistant state, branch worktrees and personal release paperwork are not build inputs.
 .claude
+.worktrees
 .codex-*
 appstore
