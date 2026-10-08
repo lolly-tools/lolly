@@ -89,6 +89,79 @@ test('an adapter request that answers null replaces the painted gallery and refu
   } finally { await closeBrowser(); }
 });
 
+test('a failure that arrives while the gallery is still mounting tears that mount down', { skip, timeout: 120_000 }, async () => {
+  const browser = await getBrowser();
+  try {
+    // The adapter answer is held, and so is the gallery view's module, so the gallery is
+    // still mounting when the check fails. The mount then finishes after the card is up:
+    // it paints over the card and installs its cleanup, and the shell has to stop it again.
+    const page = await openShell(browser, (dismissed) => {
+      for (const key of dismissed) localStorage.setItem(key, '1');
+      const w = window as unknown as { __releaseAdapter?: () => void; __paintedAfterFailure?: boolean };
+      const gpu = (globalThis as unknown as { GPU: { prototype: { requestAdapter: () => Promise<null> } } }).GPU;
+      gpu.prototype.requestAdapter = () => new Promise(resolve => { w.__releaseAdapter = () => resolve(null); });
+      new MutationObserver(() => {
+        if (document.documentElement.dataset.webgpu === 'unsupported' && document.querySelector('#view .gtile')) w.__paintedAfterFailure = true;
+      }).observe(document, { childList: true, subtree: true });
+    });
+    let galleryRequested!: () => void;
+    const galleryHeld = new Promise<void>(resolve => { galleryRequested = resolve; });
+    let releaseGallery!: () => void;
+    const galleryReleased = new Promise<void>(resolve => { releaseGallery = resolve; });
+    await page.route(/\/src\/views\/gallery\.ts(?:\?.*)?$/, async (route) => {
+      galleryRequested();
+      await galleryReleased;
+      await route.continue();
+    });
+    await page.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
+    await galleryHeld;
+    await page.waitForFunction(() => typeof (window as unknown as { __releaseAdapter?: unknown }).__releaseAdapter === 'function');
+    await page.evaluate(() => (window as unknown as { __releaseAdapter: () => void }).__releaseAdapter());
+    await expectCard(page, 'WEBGPU_UNAVAILABLE');
+    releaseGallery();
+    // The held mount ran after the failure (so this case exercised the race), and the
+    // shell then put the card back and ran the cleanup that mount had installed.
+    await page.waitForFunction(() => (window as unknown as { __paintedAfterFailure?: boolean }).__paintedAfterFailure === true, null, { timeout: 60_000 });
+    await page.waitForFunction(() => {
+      const view = document.getElementById('view') as (HTMLElement & { _cleanup?: unknown }) | null;
+      return !!view?.querySelector('[data-webgpu-unsupported="WEBGPU_UNAVAILABLE"]') && !view.querySelector('.gtile') && view._cleanup === undefined;
+    }, null, { timeout: 60_000 });
+    await page.waitForLoadState('networkidle');
+    assert.equal(await page.locator('#view .gtile').count(), 0, 'the late gallery is gone');
+    assert.equal(await page.evaluate(() => (document.getElementById('view') as HTMLElement & { _cleanup?: unknown })._cleanup === undefined), true, 'and its cleanup has run');
+    await expectToolRefused(page, 'WEBGPU_UNAVAILABLE');
+  } finally { await closeBrowser(); }
+});
+
+test('an adapter that refuses a device shows the card and refuses tools', { skip, timeout: 120_000 }, async () => {
+  const browser = await getBrowser();
+  try {
+    // A real adapter whose requestDevice() rejects, as when the browser blocks the
+    // device for this page. Replaced as a whole, so the case is the same on a machine
+    // with no adapter of its own.
+    const page = await openShell(browser, (dismissed) => {
+      for (const key of dismissed) localStorage.setItem(key, '1');
+      const w = window as unknown as { __deviceRequests?: number };
+      const adapter = {
+        requestDevice: () => {
+          w.__deviceRequests = (w.__deviceRequests ?? 0) + 1;
+          return Promise.reject(new DOMException('The test refused the device.', 'OperationError'));
+        },
+      };
+      Object.defineProperty(Navigator.prototype, 'gpu', { configurable: true, get: () => ({ requestAdapter: async () => adapter }) });
+    });
+    await page.goto(`${origin}/#/tool/qr-code`, { waitUntil: 'domcontentloaded' });
+    await expectCard(page, 'WEBGPU_UNAVAILABLE');
+    assert.ok(await page.evaluate(() => ((window as unknown as { __deviceRequests?: number }).__deviceRequests ?? 0) >= 1), 'the device was asked for and refused');
+    await page.waitForLoadState('networkidle');
+    assert.equal(await page.locator('#tool-canvas').count(), 0, 'the deep-linked tool never mounts');
+    await page.evaluate(() => { location.hash = '#/'; });
+    await expectCard(page, 'WEBGPU_UNAVAILABLE');
+    assert.equal(await page.locator('#view .gtile').count(), 0, 'nor does the gallery');
+    await expectToolRefused(page, 'WEBGPU_UNAVAILABLE');
+  } finally { await closeBrowser(); }
+});
+
 test('a page that is not a secure context names plain HTTP instead of the browser', { skip, timeout: 120_000 }, async () => {
   const browser = await getBrowser();
   try {

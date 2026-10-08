@@ -922,13 +922,13 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // the concrete web host carries the picker's upload surface.
   void import('../lib/drop-router.ts').then((m) => m.attachDropRouter(viewEl, host as unknown as PickerHost));
 
-  // Empty catalog: offer a re-sync without a full reload.
+  // Empty catalog: re-sync, then remount through navigate() ('lolly:remount'), which cleans up and keeps the WebGPU guard.
   viewEl.querySelector('.gallery-retry')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
     btn.disabled = true;
     btn.textContent = t('Retrying…');
     await syncCatalog(host as unknown as Parameters<typeof syncCatalog>[0]);
-    await mountGallery(viewEl, host);
+    if (btn.isConnected) window.dispatchEvent(new Event('lolly:remount'));
   });
 
   const pillbar    = viewEl.querySelector<HTMLElement>('.filter-pop-pills'); // category pills now live in the filter popover

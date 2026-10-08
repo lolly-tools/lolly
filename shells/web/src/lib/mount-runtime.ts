@@ -16,17 +16,25 @@
  * host.audio are. A pre-mount await is the only shape that keeps tools seeing a
  * fully synchronous `host.geom.union(...)`.
  *
+ * It is also where the WebGPU requirement (plan 295, section 2) holds for every
+ * tool. The startup check runs alongside boot, so the gallery, utilities and docs
+ * paint before it settles, and they start tools of their own: gallery previews,
+ * paged tiles, motion template cards. Every one of those mounts comes through here
+ * and waits for the check, and once it has failed none of them runs a hook.
+ *
  * THE INVARIANT: no module under shells/web/src may call the engine's
  * `createRuntime` directly. Call this instead. A direct call compiles, typechecks
  * and renders fine - it just silently leaves `host.color`/`host.geom` undefined,
  * and tools feature-detect those, so a colour or vector tool would quietly fall
- * back to its own approximation with no error anywhere. mount-runtime.test.ts
- * greps the source tree to hold the line.
+ * back to its own approximation with no error anywhere. It would also run the
+ * tool before the WebGPU check has passed. mount-runtime.test.ts greps the source
+ * tree to hold the line.
  */
 import { createRuntime } from '@lolly/engine';
 import type { HookExecutor } from '@lolly/engine';
 import { installToolApis } from '../bridge/index.ts';
 import { getWorkerHookExecutor } from '../bridge/hook-worker.ts';
+import { webGpuChecked } from './webgpu/device.ts';
 
 type CreateRuntime = typeof createRuntime;
 
@@ -83,6 +91,8 @@ function wantsWorkerHooks(id: string, isolate: boolean | undefined): boolean {
  * createInteractiveToolRuntime instead.
  */
 export const createToolRuntime: CreateRuntime = async (tool, host, initialState, opts) => {
+  // Rejects with the startup check's WebGpuError once it has failed, so no hook runs.
+  await webGpuChecked();
   await installToolApis(host as Parameters<typeof installToolApis>[0]);
   return createRuntime(tool, host, initialState, withHookPolicy(tool, opts, false));
 };
@@ -96,6 +106,7 @@ export const createToolRuntime: CreateRuntime = async (tool, host, initialState,
  * createToolRuntime (above), which never touches the worker.
  */
 export const createInteractiveToolRuntime: CreateRuntime = async (tool, host, initialState, opts) => {
+  await webGpuChecked();
   await installToolApis(host as Parameters<typeof installToolApis>[0]);
   return createRuntime(tool, host, initialState, withHookPolicy(tool, opts, true));
 };

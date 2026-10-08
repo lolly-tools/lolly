@@ -1190,5 +1190,11 @@
   "Shared projects could not be loaded. Try again.": "Projek yang dikongsi tidak dapat dimuatkan. Cuba lagi.",
   "You can view this project but cannot change its folders.": "Anda boleh melihat projek ini tetapi tidak boleh mengubah foldernya.",
   "New {name}": "Cipta {name} baharu",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly memerlukan WebGPU, dan pelayar hanya menyediakan WebGPU pada halaman selamat (HTTPS). Instans ini disediakan melalui HTTP biasa tanpa penyulitan. Minta pengendalinya menyediakannya melalui HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly memerlukan WebGPU, dan pelayar hanya menyediakan WebGPU pada halaman selamat (HTTPS). Instans ini disediakan melalui HTTP biasa tanpa penyulitan. Minta pengendalinya menyediakannya melalui HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly memerlukan WebGPU. Gunakan pelayar atau apl terkini dengan pecutan grafik didayakan.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Peranti grafik ini tidak menyediakan had WebGPU yang diperlukan oleh Lolly.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Pemulaan WebGPU tamat masa. Muat semula Lolly untuk mencuba lagi.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Pemulaan WebGPU telah luput. Muat semula Lolly untuk mencuba lagi.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Peranti grafik telah terputus. Muat semula Lolly untuk menyambung semula.",
+  "Reload": "Muat semula"
 }

@@ -367,9 +367,32 @@ function showWebGpuCard(): void {
 }
 
 /**
+ * Stop whatever view is mounted and replace it with the card: its cleanup (the
+ * gallery's preview queue, timers and listeners), its leave guard, its scoping classes
+ * and the search bar. Safe to run more than once, and it has to be: a view that was
+ * still mounting when the check failed (navigate() awaiting its chunk, the gallery
+ * awaiting IndexedDB, the docs reader awaiting its page) paints over the card and
+ * installs its cleanup afterwards, so navigate() runs this again once that mount settles.
+ */
+function replaceViewWithWebGpuCard(): void {
+  routeLoading?.close();
+  routeLoading = null;
+  mountedRouteSig = '';
+  const view = document.getElementById('view') as ViewElement | null;
+  if (view) {
+    try { view._cleanup?.(); } catch (e) { console.error('[nav] view cleanup threw:', e); }
+    delete view._cleanup;
+    delete view._beforeLeave;
+    for (const [cls] of VIEW_CLASS_OWNERS) view.classList.remove(cls);
+  }
+  applySearchBarRoute('none', parseRoute().name);
+  showWebGpuCard();
+}
+
+/**
  * The check failed: tear down whatever view is mounted (the gallery paints before the
- * check settles, and its preview queue and listeners must stop with it), then replace
- * it with the card. No CPU, WebGL or WASM fallback takes its place.
+ * check settles) and replace it with the card. No CPU, WebGL or WASM fallback takes
+ * its place.
  */
 function stopForWebGpu(error: unknown): void {
   if (!webGpuStop) {
@@ -378,17 +401,8 @@ function stopForWebGpu(error: unknown): void {
     // One string, so a headless driver (packages/node-shell/src/export-wait.ts) can
     // fail its export wait on this line instead of waiting out its idle limit.
     console.error(`[lolly] WebGPU is required and unavailable: ${error instanceof Error ? error.message : String(error)}`);
-    routeLoading?.close();
-    routeLoading = null;
-    mountedRouteSig = '';
-    const view = document.getElementById('view') as ViewElement | null;
-    if (view) {
-      try { view._cleanup?.(); } catch (e) { console.error('[nav] view cleanup threw:', e); }
-      delete view._cleanup;
-      delete view._beforeLeave;
-      for (const [cls] of VIEW_CLASS_OWNERS) view.classList.remove(cls);
-    }
-    applySearchBarRoute('none', parseRoute().name);
+    replaceViewWithWebGpuCard();
+    return;
   }
   showWebGpuCard();
 }
@@ -831,9 +845,10 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // Fade the outgoing snapshot out either way, so it can't linger over the
     // reload card (or the fresh shell after a stale-chunk reload).
     fade?.commit();
-    // The startup check failed while this view mounted and tore it down: the card, not
-    // a Reload card. A GPU operation's own failure is not that, and takes the path below.
-    if (webGpuFailed()) { showWebGpuCard(); return; }
+    // The startup check failed while this view mounted: the card, not a Reload card,
+    // and whatever the mount had installed before it threw is torn down too. A GPU
+    // operation's own failure is not that, and takes the path below.
+    if (webGpuFailed()) { replaceViewWithWebGpuCard(); return; }
     console.error('View mount failed:', err);
     if (import.meta.env.PROD && looksLikeChunkError(err)) { recoverFromStaleShell(); return; }
     showReloadCard('This view didn’t finish loading. Reload to try again.');
@@ -842,6 +857,11 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     loading?.close();
     if (routeLoading === loading) routeLoading = null;
   }
+
+  // The startup check failed while this view was still mounting. stopForWebGpu ran
+  // before the mount had painted or installed its cleanup, so the mount has just
+  // painted over the card: stop it and put the card back.
+  if (webGpuFailed()) { fade?.commit(); replaceViewWithWebGpuCard(); return; }
 
   // The mount settled: its document.title is set and any URL canonicalisation
   // (the tool view's /t/<id> rewrite) is done - snapshot it as the candidate

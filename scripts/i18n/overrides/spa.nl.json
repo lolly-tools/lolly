@@ -1182,5 +1182,11 @@
   "Shared projects could not be loaded. Try again.": "Gedeelde projecten konden niet worden geladen. Probeer het opnieuw.",
   "You can view this project but cannot change its folders.": "Je kunt dit project bekijken, maar de mappen ervan niet wijzigen.",
   "New {name}": "Nieuw: {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly heeft WebGPU nodig, en browsers bieden WebGPU alleen aan op beveiligde pagina's (HTTPS). Deze instantie wordt via onbeveiligd HTTP aangeboden. Vraag wie hem beheert om hem via HTTPS aan te bieden."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly heeft WebGPU nodig, en browsers bieden WebGPU alleen aan op beveiligde pagina's (HTTPS). Deze instantie wordt via onbeveiligd HTTP aangeboden. Vraag wie hem beheert om hem via HTTPS aan te bieden.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly heeft WebGPU nodig. Gebruik een actuele browser of app met grafische versnelling ingeschakeld.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Dit grafische apparaat biedt niet de WebGPU-limieten die Lolly nodig heeft.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Het initialiseren van WebGPU duurde te lang. Laad Lolly opnieuw om het nog eens te proberen.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Het initialiseren van WebGPU is verlopen. Laad Lolly opnieuw om het nog eens te proberen.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "De verbinding met het grafische apparaat is verbroken. Laad Lolly opnieuw om opnieuw te verbinden.",
+  "Reload": "Opnieuw laden"
 }

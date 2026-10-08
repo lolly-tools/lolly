@@ -3945,7 +3945,7 @@
   "Relative": "Relativ",
   "Release": "Release",
   "Release clip": "Släpp klipp",
-  "Reload": "Överlastning",
+  "Reload": "Läs in igen",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Ta bort",
   "Remove 1 keyframe": "Ta bort 1 nyckelbild",
@@ -7684,5 +7684,10 @@
   "Shared projects could not be loaded. Try again.": "Delade projekt kunde inte läsas in. Försök igen.",
   "You can view this project but cannot change its folders.": "Du kan visa projektet men inte ändra dess mappar.",
   "New {name}": "Nytt: {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly kräver WebGPU, och webbläsare erbjuder bara WebGPU på säkra sidor (HTTPS). Den här instansen levereras över okrypterad HTTP. Be den som driver den att leverera den över HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly kräver WebGPU, och webbläsare erbjuder bara WebGPU på säkra sidor (HTTPS). Den här instansen levereras över okrypterad HTTP. Be den som driver den att leverera den över HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly kräver WebGPU. Använd en uppdaterad webbläsare eller app med grafikacceleration påslagen.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Den här grafikenheten ger inte de WebGPU-gränser som Lolly kräver.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Det tog för lång tid att initiera WebGPU. Läs in Lolly igen för att försöka på nytt.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Initieringen av WebGPU har gått ut. Läs in Lolly igen för att försöka på nytt.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Anslutningen till grafikenheten bröts. Läs in Lolly igen för att ansluta på nytt."
 }

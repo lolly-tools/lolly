@@ -3945,7 +3945,7 @@
   "Relative": "Göreli",
   "Release": "Release",
   "Release clip": "Klibi bırak",
-  "Reload": "Reload",
+  "Reload": "Yeniden yükle",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Kaldır",
   "Remove 1 keyframe": "1 anahtar kareyi kaldır",
@@ -7684,5 +7684,10 @@
   "Shared projects could not be loaded. Try again.": "Paylaşılan projeler yüklenemedi. Tekrar dene.",
   "You can view this project but cannot change its folders.": "Bu projeyi görüntüleyebilirsin ama klasörlerini değiştiremezsin.",
   "New {name}": "Yeni {name} oluştur",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly WebGPU gerektirir ve tarayıcılar WebGPU'yu yalnızca güvenli (HTTPS) sayfalarda sunar. Bu örnek şifrelenmemiş HTTP üzerinden sunuluyor. Çalıştıran kişiden onu HTTPS üzerinden sunmasını iste."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly WebGPU gerektirir ve tarayıcılar WebGPU'yu yalnızca güvenli (HTTPS) sayfalarda sunar. Bu örnek şifrelenmemiş HTTP üzerinden sunuluyor. Çalıştıran kişiden onu HTTPS üzerinden sunmasını iste.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly WebGPU gerektirir. Grafik hızlandırması açık, güncel bir tarayıcı veya uygulama kullan.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Bu grafik aygıtı, Lolly'nin gerektirdiği WebGPU sınırlarını sağlamıyor.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU başlatma işlemi zaman aşımına uğradı. Tekrar denemek için Lolly'yi yeniden yükle.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU başlatma işleminin süresi doldu. Tekrar denemek için Lolly'yi yeniden yükle.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Grafik aygıtıyla bağlantı kesildi. Yeniden bağlanmak için Lolly'yi yeniden yükle."
 }

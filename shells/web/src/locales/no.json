@@ -3959,7 +3959,7 @@
   "Relative": "Relativ",
   "Release": "Release",
   "Release clip": "Slipp klipp",
-  "Reload": "Reload",
+  "Reload": "Last inn på nytt",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Fjern",
   "Remove 1 keyframe": "Fjern 1 nøkkelbilde",
@@ -7684,5 +7684,10 @@
   "Shared projects could not be loaded. Try again.": "Delte prosjekter kunne ikke lastes inn. Prøv igjen.",
   "You can view this project but cannot change its folders.": "Du kan se dette prosjektet, men ikke endre mappene i det.",
   "New {name}": "Nytt: {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly krever WebGPU, og nettlesere tilbyr WebGPU bare på sikre sider (HTTPS). Denne instansen leveres over vanlig, ukryptert HTTP. Be den som drifter den om å levere den over HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly krever WebGPU, og nettlesere tilbyr WebGPU bare på sikre sider (HTTPS). Denne instansen leveres over vanlig, ukryptert HTTP. Be den som drifter den om å levere den over HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly krever WebGPU. Bruk en oppdatert nettleser eller app med grafikkakselerasjon slått på.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Denne grafikkenheten gir ikke WebGPU-grensene Lolly krever.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Oppstarten av WebGPU tok for lang tid. Last inn Lolly på nytt for å prøve igjen.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Oppstarten av WebGPU er utløpt. Last inn Lolly på nytt for å prøve igjen.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Forbindelsen til grafikkenheten ble brutt. Last inn Lolly på nytt for å koble til igjen."
 }

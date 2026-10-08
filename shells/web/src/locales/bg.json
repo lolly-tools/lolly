@@ -3963,7 +3963,7 @@
   "Relative": "Относително",
   "Release": "Release",
   "Release clip": "Освободи клипа",
-  "Reload": "Reload",
+  "Reload": "Презареди",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Премахни",
   "Remove 1 keyframe": "Премахни 1 ключов кадър",
@@ -7684,5 +7684,10 @@
   "Shared projects could not be loaded. Try again.": "Споделените проекти не можаха да бъдат заредени. Опитай отново.",
   "You can view this project but cannot change its folders.": "Можеш да разглеждаш този проект, но не и да променяш папките му.",
   "New {name}": "Създай {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly изисква WebGPU, а браузърите предлагат WebGPU само на защитени (HTTPS) страници. Тази инстанция се обслужва през обикновен HTTP. Помоли администратора ѝ да я обслужва през HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly изисква WebGPU, а браузърите предлагат WebGPU само на защитени (HTTPS) страници. Тази инстанция се обслужва през обикновен HTTP. Помоли администратора ѝ да я обслужва през HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly изисква WebGPU. Използвай актуален браузър или приложение с включено графично ускорение.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Това графично устройство не предоставя лимитите на WebGPU, които Lolly изисква.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Инициализирането на WebGPU отне твърде дълго. Презареди Lolly и опитай пак.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Инициализирането на WebGPU изтече. Презареди Lolly и опитай пак.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Връзката с графичното устройство беше загубена. Презареди Lolly, за да се свържеш отново."
 }

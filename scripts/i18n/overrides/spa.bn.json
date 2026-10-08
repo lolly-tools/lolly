@@ -1191,5 +1191,11 @@
   "Shared projects could not be loaded. Try again.": "শেয়ার করা প্রজেক্টগুলো লোড করা যায়নি। আবার চেষ্টা করুন।",
   "You can view this project but cannot change its folders.": "আপনি এই প্রজেক্ট দেখতে পারেন, কিন্তু এর ফোল্ডার বদলাতে পারবেন না।",
   "New {name}": "নতুন {name} তৈরি করুন",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly-র জন্য WebGPU প্রয়োজন, আর ব্রাউজার শুধু নিরাপদ (HTTPS) পেজেই WebGPU দেয়। এই ইনস্ট্যান্স সাধারণ HTTP দিয়ে পরিবেশন করা হচ্ছে। যিনি এটি চালান তাঁকে এটি HTTPS দিয়ে পরিবেশন করতে বলুন।"
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly-র জন্য WebGPU প্রয়োজন, আর ব্রাউজার শুধু নিরাপদ (HTTPS) পেজেই WebGPU দেয়। এই ইনস্ট্যান্স সাধারণ HTTP দিয়ে পরিবেশন করা হচ্ছে। যিনি এটি চালান তাঁকে এটি HTTPS দিয়ে পরিবেশন করতে বলুন।",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly-র জন্য WebGPU প্রয়োজন। গ্রাফিক্স অ্যাক্সিলারেশন চালু থাকা একটি হালনাগাদ ব্রাউজার বা অ্যাপ ব্যবহার করুন।",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "এই গ্রাফিক্স ডিভাইস Lolly-র প্রয়োজনীয় WebGPU সীমা দেয় না।",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU চালু হতে সময় শেষ হয়ে গেছে। আবার চেষ্টা করতে Lolly আবার লোড করুন।",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU চালু করার মেয়াদ শেষ হয়ে গেছে। আবার চেষ্টা করতে Lolly আবার লোড করুন।",
+  "The graphics device was lost. Reload Lolly to reconnect.": "গ্রাফিক্স ডিভাইসের সংযোগ হারিয়ে গেছে। আবার সংযোগ করতে Lolly আবার লোড করুন।",
+  "Reload": "আবার লোড করুন"
 }

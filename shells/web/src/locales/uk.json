@@ -3945,7 +3945,7 @@
   "Relative": "Відносний",
   "Release": "Release",
   "Release clip": "Відпустити клип",
-  "Reload": "Reload",
+  "Reload": "Перезавантажити",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Видалити",
   "Remove 1 keyframe": "Вилучити 1 ключовий кадр",
@@ -7684,5 +7684,10 @@
   "Shared projects could not be loaded. Try again.": "Не вдалося завантажити спільні проєкти. Спробуйте ще раз.",
   "You can view this project but cannot change its folders.": "Ви можете переглядати цей проєкт, але не можете змінювати його папки.",
   "New {name}": "Створити {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly потребує WebGPU, а браузери надають WebGPU лише на захищених (HTTPS) сторінках. Цей інстанс доступний через звичайний, незашифрований HTTP. Попросіть того, хто його адмініструє, перевести його на HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly потребує WebGPU, а браузери надають WebGPU лише на захищених (HTTPS) сторінках. Цей інстанс доступний через звичайний, незашифрований HTTP. Попросіть того, хто його адмініструє, перевести його на HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly потребує WebGPU. Використовуйте оновлений браузер або застосунок з увімкненим графічним прискоренням.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Цей графічний пристрій не забезпечує обмежень WebGPU, які потрібні Lolly.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Час ініціалізації WebGPU вичерпано. Перезавантажте Lolly, щоб спробувати ще раз.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Термін ініціалізації WebGPU минув. Перезавантажте Lolly, щоб спробувати ще раз.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Графічний пристрій втрачено. Перезавантажте Lolly, щоб підключитися знову."
 }

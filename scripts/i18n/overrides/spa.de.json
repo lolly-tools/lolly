@@ -1190,5 +1190,11 @@
   "Shared projects could not be loaded. Try again.": "Geteilte Projekte konnten nicht geladen werden. Versuchen Sie es erneut.",
   "You can view this project but cannot change its folders.": "Sie können dieses Projekt ansehen, aber seine Ordner nicht ändern.",
   "New {name}": "Neu: {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly benötigt WebGPU, und Browser stellen WebGPU nur auf sicheren Seiten (HTTPS) bereit. Diese Instanz wird über unverschlüsseltes HTTP ausgeliefert. Bitten Sie den Betreiber, sie über HTTPS bereitzustellen."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly benötigt WebGPU, und Browser stellen WebGPU nur auf sicheren Seiten (HTTPS) bereit. Diese Instanz wird über unverschlüsseltes HTTP ausgeliefert. Bitten Sie den Betreiber, sie über HTTPS bereitzustellen.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly benötigt WebGPU. Verwenden Sie einen aktuellen Browser oder eine aktuelle App mit aktivierter Grafikbeschleunigung.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Dieses Grafikgerät bietet nicht die WebGPU-Grenzwerte, die Lolly benötigt.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Die Initialisierung von WebGPU hat zu lange gedauert. Laden Sie Lolly neu, um es erneut zu versuchen.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Die Initialisierung von WebGPU ist abgelaufen. Laden Sie Lolly neu, um es erneut zu versuchen.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Die Verbindung zum Grafikgerät ist verloren gegangen. Laden Sie Lolly neu, um die Verbindung wiederherzustellen.",
+  "Reload": "Neu laden"
 }
