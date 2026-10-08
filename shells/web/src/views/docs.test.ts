@@ -217,6 +217,21 @@ test('strips script and .docs-edition-bar from the fragment but keeps <style>', 
   view.remove();
 });
 
+test('strips the bar under its old .listen-bar name from a page cached before the rename', async () => {
+  // /info pages the service worker cached before 2026-10-08 carry the print edition's
+  // PDF chip in a `.listen-bar`. The reader must not show that chip inside the article.
+  stubOkFetch(PAGE_HTML.replace('<div class="docs-edition-bar">', '<div class="listen-bar">'));
+  const view = freshView();
+
+  await mountDocs(view, host, 'quickstart', 'de', '');
+
+  const article = view.querySelector('[data-content] article.docs-content')!;
+  assert.equal(article.querySelector('.listen-bar'), null, 'the old-name bar is removed');
+  assert.equal(article.querySelector('.docs-edition'), null, 'and its PDF chip with it');
+
+  view.remove();
+});
+
 test('rewrites internal /info doc links toward the in-app #/docs reader', async () => {
   stubOkFetch();
   const view = freshView();

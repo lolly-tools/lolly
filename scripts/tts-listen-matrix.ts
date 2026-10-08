@@ -171,7 +171,7 @@ interface VoiceConfig {
  * 8 x 102 matrix is ~1 hour. The default run is scoped so the whole sweep finishes
  * inside ~25 minutes, spending the budget where the question is:
  *   - bf_lily (the shipped default voice) gets the complete 10x10 - punctuation
- *     is the primary question and Lily is the narrator every doc is read in.
+ *     is the primary question and most of the app's speech is in Lily's voice.
  *   - af_heart / am_michael get all 10 variants minus the 25-word line (the
  *     single most expensive cell, and the one least about punctuation).
  *   - the 4 blends get a small cross-section: the blend question is timbre and

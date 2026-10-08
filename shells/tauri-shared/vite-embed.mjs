@@ -19,8 +19,8 @@
  *               gallery previews/ so the gallery paints on first run offline.
  *               No og/, no loops/modules media: brand content arrives from the
  *               instance the user connects (lib/instance.ts) or a loaded
- *               .lolly pack. Also drops the /info narration audio (plans/131
- *               B.3: Listen moves to device TTS in the apps).
+ *               .lolly pack. Also drops any /info narration audio an older
+ *               docs build left behind (docs Listen was removed on 2026-10-08).
  *
  * Plain .mjs: it runs inside each shell's own Vite process via a relative
  * import, so it can depend on nothing either shell would have to install. Node

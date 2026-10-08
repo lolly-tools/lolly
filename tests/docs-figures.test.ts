@@ -357,8 +357,17 @@ test('the runtime showcase and the build-time strip still agree on the rules', (
 });
 
 test('the banked art is served, and only the art - the meta sidecar stays home', () => {
-  const step = BUILD_TS.slice(BUILD_TS.indexOf("for (const bank of ['mastheads', 'figures'])"), BUILD_TS.indexOf('// Docs narration'));
+  // The slice is the bank-copy loop alone: from its `for` to the comment on the
+  // native-export copy that comes next. Both anchors must be found. A missing end
+  // anchor would make the slice run to the end of build.ts, and the checks below
+  // would then pass on code that has nothing to do with the bank.
+  const start = BUILD_TS.indexOf("for (const bank of ['mastheads', 'figures'])");
+  assert.notEqual(start, -1, 'docs/build.ts no longer copies the banked art into the site');
+  const end = BUILD_TS.indexOf('// Native Design exports accompanying the signed SVG previews.', start);
+  assert.notEqual(end, -1, 'the comment after the bank-copy step in docs/build.ts changed; re-anchor this slice on the text that now follows the step');
+  const step = BUILD_TS.slice(start, end);
   assert.ok(step.length > 100, 'docs/build.ts no longer copies the banked art into the site');
+  assert.ok(step.split('\n').length <= 30, `the bank-copy slice is ${step.split('\n').length} lines; the end anchor no longer follows the step directly`);
   assert.match(step, /\\\.\(svg\|html\)\$/, 'the copy step no longer filters to svg/html');
   assert.ok(!/meta\.json/.test(step.replace(/\/\/[^\n]*/g, '')),
     'the bank metadata sidecar must not be published - it is sign-time input');

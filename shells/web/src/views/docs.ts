@@ -21,7 +21,8 @@
  * Deliberately NOT carried across from the fetched page:
  *   - <script> nodes (never execute a fetched page's scripts). A figure's own scoped
  *     <style> is kept (see the sanitise step below); the reader's styling lives in docs.css.
- *   - the `.docs-edition-bar` (the print edition's PDF link, a static-site download).
+ *   - the `.docs-edition-bar` (the print edition's PDF link, a static-site download),
+ *     and `.listen-bar`, its old name on /info pages cached before 2026-10-08.
  *   - the masthead / nav / sidebar / footer (all live OUTSIDE `.docs-content`, so the
  *     fragment naturally excludes them). Theme/brand-reactive mastheads are M3.
  *
@@ -275,8 +276,10 @@ export async function mountDocs(
   // `.docs-strip-band` is the pathways strip a band-less page (the landing, an immersive
   // page) carries in its body; the reader shows that strip in its own slot instead. The
   // strip is adopted first, because the rehost removes the band from the parsed page.
+  // `.listen-bar` is the print edition's bar under its old name: /info pages the service
+  // worker cached before 2026-10-08 still use it, so their PDF chip must go as well.
   const pathwaysStrip = extractPathways(doc);
-  const node = rehostFragment(fragment, { strip: 'script, .docs-edition-bar, .docs-strip-band', rewriteLinks: rewriteDocLinks });
+  const node = rehostFragment(fragment, { strip: 'script, .docs-edition-bar, .listen-bar, .docs-strip-band', rewriteLinks: rewriteDocLinks });
 
   // THE PAGE TITLE. `docsMasthead` (docs/build.ts) lifts each page's <h1> out of the
   // article and into a full-width band that is a SIBLING of `.docs-wrap` - so it sits

@@ -78,7 +78,7 @@ export function findDocFragment(doc: Document, selector: string = DOC_FRAGMENT_S
 
 export interface RehostOpts {
   /** A selector whose matches are removed before the rehost. The reader passes
-   *  `script, .docs-edition-bar`: a fetched page's scripts must never run. */
+   *  `script, .docs-edition-bar, .listen-bar`: a fetched page's scripts must never run. */
   strip?: string;
   /** Runs on the fragment before it is imported, to point its links in-app. */
   rewriteLinks?: (root: ParentNode) => void;

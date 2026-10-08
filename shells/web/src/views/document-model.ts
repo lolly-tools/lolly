@@ -519,7 +519,9 @@ export async function mountDocumentModel(
   // The blockquote right under the built h1 IS the draft notice the markdown
   // wrote. It goes, and the view's own notice takes its place below, so a reader
   // meets one notice in one wording rather than two that disagree.
-  article = rehostFragment(fragment, { strip: 'script, .docs-edition-bar, :scope > h1 + blockquote' });
+  // `.listen-bar` is the print edition's bar under its old name: /info pages the service
+  // worker cached before 2026-10-08 still use it, so their PDF chip must go as well.
+  article = rehostFragment(fragment, { strip: 'script, .docs-edition-bar, .listen-bar, :scope > h1 + blockquote' });
   if (!article.querySelector('h1')) {
     // The build lifts each page's h1 into a masthead band outside the fragment,
     // so the chapter would otherwise open on its first paragraph with no title.
