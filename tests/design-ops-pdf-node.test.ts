@@ -157,3 +157,96 @@ test('a recorded hook failure cannot become a PDF browser admission fallback', a
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('a print finishing failure keeps its original cause and cannot become an admission reason', async () => {
+  const meta = { ...options().meta!, tool: 'Design 雨' };
+  await assert.rejects(bytesOf(options({ provenance: true, meta })), (error: Error) => {
+    assert.equal(error.name, 'PdfFinishingError');
+    assert.match(error.message, /WinAnsi cannot encode/);
+    assert.ok(error.cause instanceof Error);
+    assert.equal(error.cause.message, error.message);
+    return true;
+  });
+  assert.ok((await bytesOf()).length > 0, 'a later valid export is not poisoned by the failed finishing pass');
+});
+
+test('an encryption failure stays fatal and the next encrypted export can recover', async (t) => {
+  const failure = new Error('Encryption entropy unavailable');
+  const entropy = t.mock.method(globalThis.crypto, 'getRandomValues', () => { throw failure; });
+  try {
+    await assert.rejects(bytesOf(options({ strongPassword: 'test-password' })), (error: Error) => {
+      assert.equal(error.name, 'PdfFinishingError');
+      assert.equal(error.message, failure.message);
+      assert.equal(error.cause, failure);
+      return true;
+    });
+  } finally {
+    entropy.mock.restore();
+  }
+  const encrypted = await bytesOf(options({ strongPassword: 'test-password' }));
+  assert.match(new TextDecoder().decode(encrypted), /\/Encrypt \d+ 0 R/);
+});
+
+test('the CLI refuses a finishing failure even with an explicit HTML fallback', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-design-pdf-finishing-'));
+  try {
+    await mkdir(join(dir, 'catalog', 'tools'), { recursive: true });
+    await mkdir(join(dir, 'catalog', 'assets'), { recursive: true });
+    await mkdir(join(dir, 'tools', 'design'), { recursive: true });
+    await writeFile(join(dir, 'catalog', 'tools', 'index.json'), JSON.stringify({ tools: [{ id: 'design' }] }));
+    await writeFile(join(dir, 'catalog', 'assets', 'index.json'), JSON.stringify({ assets: [] }));
+    await writeFile(join(dir, 'tools', 'design', 'tool.json'), JSON.stringify({
+      id: 'design', name: 'Design 雨', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
+      render: { width: 120, height: 80, formats: ['pdf'] },
+      inputs: [{ id: 'boxes', type: 'blocks', fields: [
+        { id: 'id', type: 'text' }, { id: 'kind', type: 'text' },
+        { id: 'w', type: 'number' }, { id: 'h', type: 'number' },
+      ] }],
+    }));
+    await writeFile(join(dir, 'tools', 'design', 'template.html'), '<div data-pdf-page data-frame-id="f"></div>');
+    const output = join(dir, 'failed.pdf');
+    const run = spawnSync(process.execPath, [join(ROOT, 'shells/cli/bin/lolly.ts'), 'run', 'design',
+      '--boxes=[{"id":"f","kind":"frame","w":120,"h":80}]', '--export=pdf', '--text=outline', '--marks=prov',
+      `--output=${output}`, '--html-fallback', '--c2pa=0'], {
+      cwd: dir, encoding: 'utf8', timeout: 30_000,
+      env: { ...process.env, LOLLY_ROOT: dir, LOLLY_STATE_DIR: join(dir, 'state'), LOLLY_WEB_DIST: join(dir, 'no-web-build'),
+        LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDERER: 'chromium', NO_COLOR: '1' },
+    });
+    assert.notEqual(run.status, 0, run.stderr);
+    assert.match(run.stderr, /WinAnsi cannot encode/);
+    assert.doesNotMatch(run.stderr, /Escalating|HTML_FALLBACK|Cannot export/);
+    assert.equal(existsSync(output), false);
+    assert.equal(existsSync(join(dir, 'failed.html')), false, 'a finishing failure cannot produce an HTML substitute');
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('the CLI delivers outlined variable-weight strike-through without a browser', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-design-pdf-strike-'));
+  try {
+    const deck = [
+      { id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 400, bg: '#ffffff' },
+      ...[100, 400, 700, 900].map((weight, index) => ({ id: `strike-${weight}`, kind: 'text', frame: 'f',
+        x: 24, y: 24 + index * 88, w: 590, h: 76, font: 'sans', weight, fontSize: 34,
+        text: `{s|Strike at weight ${weight}}`, fg: index % 2 ? '#0b7285' : '#862e9c', align: 'left' })),
+    ];
+    const output = join(dir, 'strike.pdf');
+    const run = spawnSync(process.execPath, ['shells/cli/bin/lolly.ts', 'design', `--boxes=${JSON.stringify(deck)}`,
+      '--text=outline', '--export=pdf', `--output=${output}`], {
+      cwd: ROOT, encoding: 'utf8', timeout: 30_000,
+      env: { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: dir, LOLLY_WEB_DIST: join(dir, 'no-web-build'),
+        LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDERER: 'chromium', NO_COLOR: '1' },
+    });
+    assert.equal(run.status, 0, run.stderr);
+    assert.doesNotMatch(run.stderr, /Escalating|text-decoration|Content Credentials not attached/);
+    const bytes = new Uint8Array(await readFile(output));
+    const pdf = await PDFDocument.load(bytes, { updateMetadata: false });
+    assert.deepEqual(pdf.getPages().map((page) => page.getSize()), [{ width: 480, height: 300 }]);
+    assert.ok(!pdf.context.enumerateIndirectObjects().some(([, value]) => String(value).includes('/Type /Font')));
+    const report = await verifyC2pa(bytes);
+    assert.ok(report.checks.some((check) => check.code === 'assertion.dataHash.match' && check.ok));
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

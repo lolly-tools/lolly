@@ -15,7 +15,7 @@ import { chromium, type Browser } from 'playwright';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { compileDesignDraw, describeDesignDrawPictures, layoutDesignDrawText, pictureRect, type DrawOp } from '../engine/src/design-draw.ts';
-import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
+import { createNodeTextAPI, nodeStrikeMetrics } from '../packages/node-shell/src/text.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { createNodeTextShaper } from '../packages/node-shell/src/text-measure.ts';
 import { designDrawSvg } from '../engine/src/design-draw-svg.ts';
@@ -28,6 +28,7 @@ import { compareInBrowser, fidelityPages, fidelityPictures, walkerBundle, type F
 import { designPagesPdf, designPageSvg, type DesignPageSvgHost } from '../engine/src/design-page-svg.ts';
 import { designDrawPdf } from '../engine/src/design-draw-pdf.ts';
 import { toCssLength } from '../engine/src/units.ts';
+import { decorationInk, type DecorationRegion, type DecorationInk } from './helpers/decoration-fidelity.ts';
 
 /** A pixel differs when a channel moves by more than this; CSS and SVG edge anti-aliasing measured at most 21. */
 const THRESHOLD = 24;
@@ -146,6 +147,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   const textApi = createNodeTextAPI({ repoRoot: repoRoot() });
   const report: Array<{ page: string; stats: FidelityStats; ops: number }> = [];
   const withText = new Set<string>();
+  const decorationReport: Array<{ renderer: string; regions: DecorationRegion[]; ink: DecorationInk[]; controls: string[] }> = [];
   const png = (bytes: Buffer) => JSON.stringify(`data:image/png;base64,${bytes.toString('base64')}`);
   // The same pictures on both sides: the Design host resolves the fixture ids to them, and
   // the compiled side links them and reads their own size.
@@ -156,6 +158,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   const pageHost: DesignPageSvgHost = {
     shaper,
     toPath: (opts) => textApi.toPath(opts),
+    strikeMetrics: (url, variations) => nodeStrikeMetrics(url, variations, repoRoot()),
     picture: async (ref) => (pictures[ref] ? { bytes: new Uint8Array(Buffer.from(pictures[ref].url.slice(pictures[ref].url.indexOf(',') + 1), 'base64')) } : null),
   };
   let controlled = false;
@@ -171,6 +174,12 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
       + `<div id="tool-canvas" style="position:relative;width:${page.width}px;height:${page.height}px;overflow:hidden">${runtime.getHydrated()}</div>`);
     await design.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map((img) => img.decode().catch(() => undefined))); });
     const designPng = await design.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
+    let undecorated: Buffer | undefined;
+    if (page.name === 'strikes') {
+      const reset = await design.addStyleTag({ content: '* { text-decoration: none !important; }' });
+      undecorated = await design.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
+      await reset.evaluate((node) => node.parentNode?.removeChild(node));
+    }
     // The walker's export of the same live page, judged below with the same regions.
     await design.addScriptTag({ content: walker, type: 'module' });
     await design.waitForFunction(() => !!(window as unknown as { __render?: unknown }).__render);
@@ -188,6 +197,19 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
       const blob = await w.__exportApi(args.pictures, logs).render(document.querySelector('.lolly-frame-page')!, 'svg', { sourceDocument: { toolId: 'design', values: { boxes: args.rows } } });
       return { svg: await blob.text(), logs };
     }, { pictures, rows: page.rows });
+    if (page.name === 'strikes') {
+      // The web registry still cannot resolve a whitespace-only normal strut when
+      // every visible character chooses italic or mono. Keep that existing refusal.
+      for (const value of ['*{s|Italic only}*', '{mono s|Monospace only}']) {
+        const logs = await design.evaluate(async (args) => {
+          const logs: string[] = [];
+          const w = window as unknown as { __exportApi: (p: unknown, l: string[]) => { render: (n: Element, f: string, o: object) => Promise<Blob> } };
+          await w.__exportApi({}, logs).render(document.querySelector('.lolly-frame-page')!, 'svg', { sourceDocument: { toolId: 'design', values: { boxes: [args.frame, { id: 'styled', frame: 'strikes', kind: 'text', x: 20, y: 20, w: 300, h: 100, text: args.value, fontSize: 48, weight: 400 }] } } });
+          return logs;
+        }, { frame: page.rows[0], value });
+        assert.ok(logs.some((line) => line.includes('DOM walker') && line.includes('text-unlaid')), `${value}: retain the web base-face fallback (${logs.join(' ')})`);
+      }
+    }
     const px = { value: page.width, unit: 'px' as const }, py = { value: page.height, unit: 'px' as const };
     const nodeSvg = (await designPageSvg({ boxes: page.rows }, page.name, pageHost, { dpi: 96, size: { width: toCssLength(px), height: toCssLength(py), px: { w: page.width, h: page.height } } })).svg;
     assert.ok(bridge.logs.some((line) => line.includes('drawn from the drawing operations')), `${page.name}: the web export chose the drawing operations (${bridge.logs.join(' ')})`);
@@ -216,7 +238,9 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
       }
     }
 
-    for (const outlined of [false, true]) {
+    // These added decoration fixtures qualify only the new outlined path. Live SVG
+    // retains its existing native SVG-decoration paint policy, distinct from HTML.
+    for (const outlined of page.name === 'strikes' ? [true] : [false, true]) {
       const name = outlined ? `${page.name}-outlined` : page.name;
       // Live text from the compile itself; outlined text from the export pipeline, the bytes a page export delivers.
       let draw = compileDesignDraw(page.rows as never, { width: page.width, height: page.height }, { effects: true, colors: 'resolved' });
@@ -242,6 +266,54 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
       const compiledPng = await shoot(exported ?? draw);
       // Outlined words are judged by their ink against the same page with the words removed.
       const groundPng = outlined ? await shoot({ ...draw, ops: draw.ops.map(({ words: _words, ...op }) => op as DrawOp) }) : undefined;
+      if (outlined && undecorated) {
+        const regions: DecorationRegion[] = [];
+        for (const op of draw.ops.filter((op) => !op.pose)) {
+          const words = op.words;
+          for (const [li, line] of (words?.layout?.lines ?? []).entries()) for (const [ri, run] of line.runs.entries()) {
+            const strike = words?.strikes?.[li]?.[ri];
+            if (!strike || strike.width <= 0) continue;
+            let x = op.box.x + line.x + run.x - 1, w = strike.width + 2;
+            // A declared whitespace segment isolates the line from glyph rasteriser
+            // stem thickening. Runs without spaces retain their full line region.
+            const space = run.text.indexOf(' ');
+            if (space > 0) {
+              const variations = run.face.variations ? Object.entries(run.face.variations).map(([tag, value]) => `${tag}=${value}`) : undefined;
+              const shape = (text: string) => textApi.toPath({ text, fontUrl: run.face.file, fontSize: words!.layout!.measure.size, variations, letterSpacing: words!.layout!.measure.tracking, preserveWhitespaceAdvance: true });
+              const prefix = await shape(run.text.slice(0, space)), gap = await shape(' ');
+              if (gap.advanceWidth > 6) { x += 1 + prefix.advanceWidth + 2; w = gap.advanceWidth - 4; }
+            }
+            const y = Math.max(op.box.y, op.box.y + line.baseline + strike.y - 4), bottom = Math.min(op.box.y + op.box.h, op.box.y + line.baseline + strike.y + strike.height + 4);
+            if (bottom > y) regions.push({ id: `${op.id}:${li}.${ri}`, x, y, w, h: bottom - y });
+          }
+        }
+        const bare = structuredClone(draw);
+        for (const op of bare.ops) if (op.words) delete op.words.strikes;
+        const barePng = await shoot(bare);
+        const ink = (candidate: Buffer, ground: Buffer) => compiled.evaluate<DecorationInk[]>(`(${decorationInk.toString()})(${png(designPng)}, ${png(undecorated)}, ${png(candidate)}, ${png(ground)}, ${page.width}, ${page.height}, ${JSON.stringify(regions)})`);
+        const lineFault = (r: DecorationInk) => r.a <= 0 || r.share > OUTLINE_INK_SHARE || r.shift > OUTLINE_INK_SHIFT;
+        const positive = await ink(compiledPng, barePng);
+        assert.equal(new Set(positive.map((r) => r.id.split(':')[0])).size, 7, 'every unposed decoration fixture has visible declared line ink');
+        assert.deepEqual(positive.filter(lineFault), [], 'each outlined SVG strike matches its declared decoration region');
+        let barePdf: Buffer | undefined;
+        if (pdfPages?.pdf) barePdf = await rasterise(designDrawPdf([{ page: bare, pictures: new Map(), size: { w: page.width * .75, h: page.height * .75 } }]));
+        for (const renderer of barePdf ? ['SVG', 'PDF'] : ['SVG']) {
+          const raster = (drawing: typeof draw) => renderer === 'SVG' ? shoot(drawing) : rasterise(designDrawPdf([{ page: drawing, pictures: new Map(), size: { w: page.width * .75, h: page.height * .75 } }]));
+          const measured = renderer === 'SVG' ? positive : await ink(await raster(draw), barePdf!);
+          assert.deepEqual(measured.filter(lineFault), [], `each ${renderer} strike matches its declared decoration region`);
+          const controls: string[] = [];
+          for (const fault of ['missing', 'shifted'] as const) {
+            const broken = structuredClone(draw), words = broken.ops.find((op) => op.id === 'light')!.words!;
+            if (fault === 'missing') words.strikes![0]![0] = null;
+            else words.strikes![0]![0]!.y += 2;
+            const target = (await ink(await raster(broken), renderer === 'SVG' ? barePng : barePdf!)).find((r) => r.id === 'light:0.0')!;
+            assert.ok(lineFault(target), `${renderer}: the line check rejects a ${fault} strike`);
+            controls.push(fault);
+          }
+          decorationReport.push({ renderer, regions, ink: measured, controls });
+          t.diagnostic(`strike ${renderer} ink ${JSON.stringify(measured)}`);
+        }
+      }
 
       // Live text is judged with its operation's region. Outlined words are judged run by
       // run instead, so a missing or moved word fills a region of its own.
@@ -322,7 +394,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   if (poppler) assert.ok(pdfControlled, 'the shapes page ran the PDF negative control');
   if (process.env.LOLLY_FIDELITY_REPORT) {
     await mkdir(dirname(process.env.LOLLY_FIDELITY_REPORT), { recursive: true });
-    await writeFile(process.env.LOLLY_FIDELITY_REPORT, `${JSON.stringify({ operations: report, walker: walkerReport, pdf: pdfReport }, null, 2)}\n`);
+    await writeFile(process.env.LOLLY_FIDELITY_REPORT, `${JSON.stringify({ operations: report, walker: walkerReport, pdf: pdfReport, decoration: decorationReport }, null, 2)}\n`);
   }
   const failing = [
     ...report.flatMap(({ page, stats }) => stats.regions.flatMap((r) => {

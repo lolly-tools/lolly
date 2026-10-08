@@ -315,10 +315,12 @@ function wordsSvg(op: DrawOp, words: DrawWords): string {
     line.runs.forEach((run, ri) => {
       const outline = words.outlines?.[li]?.[ri];
       if (outline !== undefined && outline !== null) {
+        const ink = run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink;
         if (outline) {
-          const ink = run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink;
           shapes += `<path transform="translate(${round2(box.x + line.x + run.x)} ${round2(box.y + line.baseline)})" d="${svgEscape(outline)}"${colorPaint('fill', ink, ink === words.ink ? words.inkOpacity : undefined)}/>`;
         }
+        const strike = words.strikes?.[li]?.[ri];
+        if (strike && strike.width > 0) shapes += `<rect x="${round2(box.x + line.x + run.x)}" y="${round2(box.y + line.baseline + strike.y)}" width="${round2(strike.width)}" height="${round2(strike.height)}"${colorPaint('fill', ink, ink === words.ink ? words.inkOpacity : undefined)}/>`;
         return;
       }
       if (!run.text) return;

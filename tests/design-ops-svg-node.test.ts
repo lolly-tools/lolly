@@ -183,6 +183,38 @@ test('the CLI writes byte-identical SVG/SVGZ pages with default, live and outlin
   }
 });
 
+test('outlined decoration keeps the existing underline refusal', async () => {
+  for (const value of ['{u|Underline only}', '{u s|Underline and strike}']) {
+    const rows = [boxes[0], { ...boxes[1], text: value }];
+    const out = await designOpsSvgNode(frameNode('cover'), doc(rows), host, { repoRoot: ROOT });
+    assert.ok(out && 'reason' in out);
+    assert.match(out.reason, /text-decoration/, value);
+  }
+});
+
+test('the CLI delivers variable-face outlined strikes as identical SVG/SVGZ without a browser', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-strikes-svgz-'));
+  try {
+    const paths = await packQuery('convertPaths=1');
+    const rows = [boxes[0], ...[100, 400, 700, 900].map((weight, index) => ({ id: `strike-${weight}`, frame: 'cover', kind: 'text', x: 20, y: 20 + index * 80, w: 350, h: 70, fontSize: 48, weight, align: 'left', valign: 'top', text: '{s|Strike through}' }))];
+    const outputs: Buffer[] = [];
+    for (const format of ['svg', 'svgz']) {
+      const out = join(dir, `strikes.${format}`);
+      const run = spawnSync(process.execPath, ['shells/cli/bin/lolly.ts', 'design', `--boxes=${JSON.stringify(rows)}`, '--s=cover', `--export=${format}`, `--output=${out}`, `--z=${paths}`, '--text=outline', '--no-provenance'], {
+        cwd: ROOT, encoding: 'utf8', timeout: 30_000,
+        env: { ...process.env, LOLLY_ROOT: ROOT, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: dir, LOLLY_WEB_DIST: join(dir, 'no-web-build'), LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDERER: 'chromium', NO_COLOR: '1' },
+      });
+      assert.equal(run.status, 0, run.stderr); assert.doesNotMatch(run.stderr, /Escalating/);
+      const bytes = await readFile(out); outputs.push(format === 'svgz' ? gunzipSync(bytes) : bytes);
+    }
+    assert.deepEqual(outputs[0], outputs[1]);
+    const svg = outputs[0]!.toString();
+    assert.doesNotMatch(svg, /<text|<tspan/);
+    const document = new JSDOM(svg).window.document;
+    assert.equal(document.querySelectorAll('rect[height="4"]').length, 4, 'each resolved face carries the current CSS auto strike paint');
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
 test('a recorded hook failure cannot become an SVG/SVGZ browser fallback or write a file', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'lolly-design-svgz-broken-'));
   try {

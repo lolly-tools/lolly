@@ -438,9 +438,11 @@ export function designDrawPdf(pages: readonly DesignPdfPage[], info: DesignPdfIn
       for (const [li, line] of layout.lines.entries()) {
         for (const [ri, run] of line.runs.entries()) {
           const d = words.outlines?.[li]?.[ri];
-          if (!d) continue;
+          if (d === undefined || d === null) continue;
           const ink = run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink;
-          out += `q ${opacityGs(ink === words.ink ? words.inkOpacity : undefined)}${color(ink, 'rg')} 1 0 0 1 ${n(box.x + line.x + run.x)} ${n(box.y + line.baseline)} cm\n${svgPath(d)}f\nQ\n`;
+          const strike = words.strikes?.[li]?.[ri];
+          if (!d && !strike) continue;
+          out += `q ${opacityGs(ink === words.ink ? words.inkOpacity : undefined)}${color(ink, 'rg')} 1 0 0 1 ${n(box.x + line.x + run.x)} ${n(box.y + line.baseline)} cm\n${d ? `${svgPath(d)}f\n` : ''}${strike && strike.width > 0 ? `0 ${n(strike.y)} ${n(strike.width)} ${n(strike.height)} re f\n` : ''}Q\n`;
         }
       }
       return `${out}Q\n`;

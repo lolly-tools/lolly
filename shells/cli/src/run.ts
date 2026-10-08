@@ -1628,7 +1628,7 @@ const VECTOR_ESCALATABLE = new Set(['svg', 'svgz', 'emf', 'eps', 'eps-cmyk', 'dx
  * something true and actionable, and each is worded to survive being handled by name
  * rather than by phrase (see render-integrity.ts and raster.ts's deepSourceRefusal).
  */
-const REAL_RENDER_FAILURES = new Set(['RenderIntegrityError', 'ExportHookError', 'DeepSourceError', 'FormatMismatchError']);
+const REAL_RENDER_FAILURES = new Set(['RenderIntegrityError', 'ExportHookError', 'PdfFinishingError', 'DeepSourceError', 'FormatMismatchError']);
 
 const firstLine = (s: string): string => String(s ?? '').split('\n')[0]!.trim();
 

@@ -21,6 +21,7 @@ import { designDrawSvg, svgEscape } from './design-draw-svg.ts';
 import { injectSvgMeta } from './image-meta.ts';
 import { imageDimensions } from './penpot-file.ts';
 import type { TextShaperV1 } from './design-text-measure.ts';
+import type { DrawStrikeMetrics } from './design-draw.ts';
 
 type Row = Record<string, unknown>;
 
@@ -33,6 +34,8 @@ export interface DesignPageSvgHost {
   shaper: TextShaperV1;
   /** Outlines a run, as `HostV1.text.toPath`; without it the words stay live text. */
   toPath?: DrawTextToPath;
+  /** Strike metrics from the same resolved face instance, including variation adjustments. */
+  strikeMetrics?: DrawStrikeMetrics;
   /**
    * A picture's media kind and, for a still, the asset's own bytes, which the page embeds
    * as they are so the picture's credentials travel with the page. `width` and `height` are
@@ -154,7 +157,7 @@ export async function designPageDrawing(values: Record<string, unknown>, frameId
     ...(host.fonts ? { fonts: host.fonts } : {}),
   });
   await layoutDesignDrawText(page, host.shaper);
-  if (host.toPath) await outlineDesignDrawText(page, host.toPath);
+  if (host.toPath) await outlineDesignDrawText(page, host.toPath, host.strikeMetrics);
   const pictures = new Map<string, { bytes: Uint8Array; mime: string }>();
   const unread = new Set<string>();
   await describeDesignDrawPictures(page, async (ref) => {

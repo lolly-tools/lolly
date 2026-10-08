@@ -40,7 +40,7 @@ export function fidelityPictures(): Record<string, FidelityPicture> {
   };
 }
 
-/** Pages for shapes, paths, effects, text, pictures and the frame's own paint. */
+/** Pages for shapes, paths, effects, text, decorations, pictures and the frame's own paint. */
 export function fidelityPages(): FidelityPage[] {
   const frame = (id: string, extra: Row = {}): Row => ({ id, kind: 'frame', x: 0, y: 0, w: 640, h: 400, bg: '#f4f1ea', order: 0, ...extra });
   const on = (id: string, row: Row): Row => ({ frame: id, ...row });
@@ -101,6 +101,20 @@ export function fidelityPages(): FidelityPage[] {
         on('text', { id: 'overflow', kind: 'text', x: 240, y: 260, w: 170, h: 70, text: 'Too many words for this small rounded box to hold', fontSize: 20, shape: 'rounded', radius: 30, bg: '#e7f5ff' }),
         on('text', { id: 'spaced', kind: 'text', x: 430, y: 260, w: 190, h: 60, text: 'TRACKED', fontSize: 22, tracking: 6, lineHeight: 1.6 }),
         on('text', { id: 'on-box', kind: 'box', x: 430, y: 330, w: 190, h: 56, text: 'On a box', fontSize: 20, bg: '#2b8a3e', fg: '#ffffff', pad: 4 }),
+      ],
+    },
+    {
+      name: 'strikes', width: 640, height: 400,
+      rows: [
+        frame('strikes', { bg: '#ffffff' }),
+        on('strikes', { id: 'light', kind: 'text', x: 20, y: 20, w: 280, h: 75, text: '{s|MMMM}', fontSize: 48, weight: 100, align: 'left', valign: 'top' }),
+        on('strikes', { id: 'regular', kind: 'text', x: 320, y: 20, w: 300, h: 75, text: '{s #d6336c|WWWW}', fontSize: 48, weight: 400, align: 'right', valign: 'bottom' }),
+        on('strikes', { id: 'heavy', kind: 'text', x: 20, y: 105, w: 280, h: 75, text: '{s|MM MM}', fontSize: 48, weight: 900, align: 'left', valign: 'top' }),
+        on('strikes', { id: 'italic', kind: 'text', x: 320, y: 105, w: 300, h: 75, text: '*{s|WWWW}*.', fontSize: 48, weight: 700, align: 'left', valign: 'top' }),
+        on('strikes', { id: 'mono', kind: 'text', x: 20, y: 195, w: 280, h: 65, text: '{mono s|MM MM}.', fontSize: 36, weight: 700, tracking: 3, align: 'center', valign: 'top' }),
+        on('strikes', { id: 'clipped', kind: 'text', x: 320, y: 195, w: 220, h: 35, text: '{s #ffffff|MM MM}', fontSize: 32, shape: 'rounded', radius: 20, stroke: '#1971c2', strokeW: 4, bg: '#1864ab', opacity: 65, align: 'left', valign: 'top' }),
+        on('strikes', { id: 'wrapped', kind: 'text', x: 20, y: 265, w: 280, h: 115, text: '{s|Strike these words across two lines now}', fontSize: 28, weight: 400, tracking: 1, lineHeight: 1.5, align: 'left', valign: 'top' }),
+        on('strikes', { id: 'turned', kind: 'text', x: 330, y: 270, w: 220, h: 75, text: '{s|Turned}', fontSize: 36, weight: 700, rot: 8, flipH: true, bg: '#fff3bf', align: 'center' }),
       ],
     },
     {

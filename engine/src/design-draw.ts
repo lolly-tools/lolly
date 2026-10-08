@@ -25,6 +25,7 @@ import type { DesignBoxRowV1, TextMeasureFontsV1, TextMeasureSpecV1 } from '@lol
 
 import { DESIGN_LINE_HEIGHT, designTextPad, layoutDesignText } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
+import { strikeGeometry, type DrawStrike, type StrikeMetrics } from './text-decoration.ts';
 import { DICTIONARY_SCRIPT, drawDesignText, textMeasureSpecOfRow, type DesignTextDrawV1, type TextShaperV1 } from './design-text-measure.ts';
 import { segmentEmojiText } from './emoji-segment.ts';
 import { decodeAuthoredPaths } from './geom/authored-url.ts';
@@ -138,6 +139,8 @@ export interface DrawWords {
    * outline is null and is drawn as text.
    */
   outlines?: Array<Array<string | null>>;
+  /** Strike-through geometry per laid-out line/run, from that run's font instance. */
+  strikes?: Array<Array<DrawStrike | null>>;
 }
 /** Fills paint in order, under first; the stroke goes with the last fill. */
 export interface DrawShapeOp extends DrawOpBase { op: 'shape'; shape: DrawShape; fills: DrawPaint[]; stroke?: DrawStroke }
@@ -724,14 +727,17 @@ export async function layoutDesignDrawText(page: DesignDrawPage, shaper: TextSha
 
 /** The host text-to-path call, typed as in `HostV1.text.toPath`. */
 export type DrawTextToPath = (opts: { text: string; fontUrl: string; fontSize: number; features?: string[]; letterSpacing?: number; variations?: string[] }) => Promise<{ d: string }>;
+/** Internal host facts, not a tool capability or a renderer-produced result. */
+export type DrawStrikeMetrics = (fontUrl: string, variations?: string[]) => Promise<StrikeMetrics | null>;
 
 /**
  * Outline every laid-out run with the host's `text.toPath`, in the face file and axes
  * the measure chose, so the words travel as shapes and the drawing needs no font.
- * Underline and strike-through are not outlined and are reported; a run the host
- * cannot outline stays text and is reported.
+ * Strike-through uses the same face instance's metrics. Underline remains reported
+ * until its ink-skipping is qualified; a run the host cannot outline stays text.
  */
-export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTextToPath): Promise<void> {
+export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTextToPath, strikeMetrics?: DrawStrikeMetrics): Promise<void> {
+  const metrics = new Map<string, Promise<StrikeMetrics | null>>();
   for (const op of page.ops) {
     const words = op.words, layout = words?.layout;
     if (!words || !layout) continue;
@@ -739,18 +745,35 @@ export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTe
     const features = [...(words.spec.ligatures === false || m.tracking !== 0 ? ['liga=0', 'clig=0'] : []), ...(words.spec.alternates ? ['salt=1'] : [])];
     let decorated = false, missing = false;
     words.outlines = [];
+    delete words.strikes;
     for (const line of layout.lines) {
       const row: Array<string | null> = [];
+      const strikes: Array<DrawStrike | null> = [];
       for (const run of line.runs) {
-        if (run.underline || run.strike) decorated = true;
+        if (run.underline) decorated = true;
+        const variations = run.face.variations ? Object.entries(run.face.variations).map(([axis, value]) => `${axis}=${value}`) : undefined;
+        let strike: DrawStrike | null = null;
+        if (run.strike) {
+          if (strikeMetrics && run.face.file) {
+            const key = JSON.stringify([run.face.file, variations]);
+            let hit = metrics.get(key);
+            if (!hit) { hit = strikeMetrics(run.face.file, variations).catch(() => null); metrics.set(key, hit); }
+            strike = strikeGeometry(await hit, m.size, run.width, op.box.y + line.baseline);
+          }
+          if (!strike) decorated = true;
+        }
+        strikes.push(strike);
         if (!run.text.trim() || !run.face.file) { row.push(run.text.trim() ? null : ''); if (run.text.trim()) missing = true; continue; }
         try {
-          const variations = run.face.variations ? Object.entries(run.face.variations).map(([axis, value]) => `${axis}=${value}`) : undefined;
           const { d } = await toPath({ text: run.text, fontUrl: run.face.file, fontSize: m.size, ...(features.length ? { features } : {}), ...(m.tracking ? { letterSpacing: m.tracking } : {}), ...(variations ? { variations } : {}) });
           row.push(d);
         } catch { row.push(null); missing = true; }
       }
       words.outlines.push(row);
+      if (line.runs.some((run) => run.strike) || words.strikes) {
+        words.strikes ??= words.outlines.slice(0, -1).map((r) => r.map(() => null));
+        words.strikes.push(strikes);
+      }
     }
     if (decorated) page.findings.push({ id: op.id, feature: 'text-decoration' });
     if (missing) page.findings.push({ id: op.id, feature: 'text-unoutlined' });

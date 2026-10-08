@@ -164,6 +164,27 @@ test('outlines replace runs with the host\'s glyph paths, and what cannot be out
   assert.ok(svg.includes('> boom</tspan>') && !svg.includes('>ab </tspan>'), 'only the run that failed is drawn as text');
 });
 
+test('outlined strikes keep their exact face instance, run paint and placement; underline and missing metrics stay findings', async () => {
+  const draw = compileDesignDraw([{ id: 'words', kind: 'text', x: 10, y: 10, w: 300, h: 120, text: '{s #ff0000 w900|ab} {s w100|cd}\n{s w900|ef}', fontSize: 20, align: 'left', valign: 'top' }] as never, { width: 400, height: 200 });
+  await layoutDesignDrawText(draw, shaper);
+  const called: string[] = [];
+  await outlineDesignDrawText(draw, async () => ({ d: 'M0 0H5V-10H0Z' }), async (file, axes) => {
+    called.push(`${file}:${axes}`);
+    return { upem: 1000, ascent: 980 };
+  });
+  assert.deepEqual(called, ['/fonts/SUSE.ttf:wght=900', '/fonts/SUSE.ttf:wght=100'], 'metrics are cached by exact face instance, not just file');
+  assert.deepEqual(draw.findings, []);
+  assert.deepEqual(draw.ops[0]!.words!.strikes![0], [{ y: -8, width: 20, height: 2 }, null, { y: -8, width: 20, height: 2 }]);
+  const svg = designDrawSvg(draw, emit);
+  assert.match(svg, /<rect x="18" y="28" width="20" height="2" fill="#ff0000"/);
+  for (const text of ['{u|under}', '{s|strike}', '{u s|both}']) {
+    const refused = compileDesignDraw([{ id: 'refused', kind: 'text', x: 0, y: 0, w: 200, h: 80, text }] as never, { width: 200, height: 80 });
+    await layoutDesignDrawText(refused, shaper);
+    await outlineDesignDrawText(refused, async () => ({ d: 'M0 0H5' }), async () => ({ upem: 1000, ascent: NaN }));
+    assert.deepEqual(refused.findings.map((finding) => finding.feature), ['text-decoration']);
+  }
+});
+
 test('a picture reads its fit, keyword or framing, and is clipped inside the border at the inner radius', () => {
   const pic = (extra: Record<string, unknown>) => (compileDesignRow({ id: 'p', kind: 'image', x: 0, y: 0, w: 200, h: 100, image: 'a/b', ...extra }, { x: 0, y: 0 }) as DrawShapeOp).picture!;
   assert.deepEqual([pic({}).fit, pic({ fit: 'stretch' }).fit, pic({ fit: 'scale-down' }).fit], ['contain', 'contain', 'scale-down'], 'the renderer reads an unknown fit as contain');

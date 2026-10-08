@@ -11,6 +11,14 @@ import type { PdfFinishingOpts } from './pdf-finishing.ts';
 /** A declared admission failure can use the browser tier; finishing/security errors cannot. */
 export const DESIGN_PDF_BROWSER_REQUIRED = 'DESIGN_PDF_BROWSER_REQUIRED';
 
+/** The admitted drawing must not become another renderer's output after a finishing/security failure. */
+class PdfFinishingError extends Error {
+  constructor(cause: unknown) {
+    super(cause instanceof Error ? cause.message : String(cause), { cause });
+    this.name = 'PdfFinishingError';
+  }
+}
+
 export async function designOpsPdfNode(node: Element | null | undefined, opts: PdfFinishingOpts & { text?: string }, host: HostV1,
   ctx: { repoRoot: string }): Promise<{ pdf: Blob } | { reason: string } | null> {
   const doc = opts.sourceDocument;
@@ -53,12 +61,16 @@ export async function designOpsPdfNode(node: Element | null | undefined, opts: P
   if (use.credentialed()) return { reason: 'a picture carries Content Credentials that only the browser tier records as an ingredient' };
   const bleed = parseDimension(opts.bleed);
   const hasGeo = (bleed ? toPoints(bleed) : 0) > 0 || opts.cropMarks || opts.registrationMarks || opts.bleedMarks || opts.colorBars || opts.provenance;
-  const finished = await finishPdfX(out.pdf, opts, {
-    intentKind: 'srgb', log: (level, message) => host.log?.(level, message),
-    ...(hasGeo ? { geos, space: 'rgb', labels: provenanceLabels(opts.meta) } : {}),
-  });
-  // Encryption is last. The caller must skip its C2PA update on encrypted bytes.
-  const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
-  host.log?.('info', `Design PDF export: ${ids.length} pages drawn from the drawing operations without a browser.`);
-  return { pdf };
+  try {
+    const finished = await finishPdfX(out.pdf, opts, {
+      intentKind: 'srgb', log: (level, message) => host.log?.(level, message),
+      ...(hasGeo ? { geos, space: 'rgb', labels: provenanceLabels(opts.meta) } : {}),
+    });
+    // Encryption is last. The caller must skip its C2PA update on encrypted bytes.
+    const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
+    host.log?.('info', `Design PDF export: ${ids.length} pages drawn from the drawing operations without a browser.`);
+    return { pdf };
+  } catch (error) {
+    throw new PdfFinishingError(error);
+  }
 }

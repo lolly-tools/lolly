@@ -16,6 +16,7 @@ import { _host, exportDims, type ExportOpts } from './export-shared.ts';
 import { parseFontFamilies, resolveVectorFont } from './font-registry.ts';
 import type { DesignPageSvg, DesignPageSvgHost, DesignPdfPlacement } from '../../../../engine/src/design-page-svg.ts';
 import type { PrintGeometry } from '../../../../engine/src/print-marks.ts';
+import { webStrikeMetrics } from './text.ts';
 
 const log = (message: string): void => { _host?.log?.('info', message); };
 
@@ -109,6 +110,7 @@ function pageHost(node: Element, opts: ExportOpts, text: NonNullable<NonNullable
   return {
     shaper,
     ...(opts.convertPaths !== false ? { toPath: (o: Parameters<typeof text.toPath>[0]) => text.toPath(o) } : {}),
+    ...(opts.convertPaths !== false ? { strikeMetrics: webStrikeMetrics } : {}),
     picture,
     resolveColor: colorResolver(node),
     ...(fonts ? { fonts } : {}),

@@ -124392,6 +124392,24 @@ var init_rebrand_plan = __esm({
   }
 });
 
+// engine/src/text-decoration.ts
+function strikeMetricsFact(upem, ascent) {
+  if (!Number.isFinite(upem) || upem < 16 || upem > 16384 || ascent === void 0 || !Number.isFinite(ascent) || ascent <= 0 || ascent > upem * 2) return null;
+  return { upem, ascent };
+}
+function strikeGeometry(metrics, size, width, baseline = 0) {
+  if (!metrics || !strikeMetricsFact(metrics.upem, metrics.ascent) || !Number.isFinite(size) || size <= 0 || size > 16384 || !Number.isFinite(width) || width < 0 || width > 1e7 || !Number.isFinite(baseline) || Math.abs(baseline) > 1e7) return null;
+  const height = Math.max(1, size / 10);
+  const ascent = metrics.ascent * size / metrics.upem;
+  const top = baseline - Math.round(ascent) + 2 * ascent / 3 - height / 2;
+  return { y: Math.floor(top + 0.5) - baseline, height: Math.floor(height), width };
+}
+var init_text_decoration = __esm({
+  "engine/src/text-decoration.ts"() {
+    "use strict";
+  }
+});
+
 // engine/src/design-draw.ts
 function rowStr2(row, key) {
   const value = row[key];
@@ -124800,7 +124818,8 @@ async function layoutDesignDrawText(page3, shaper) {
     if (op.words.layout.measure.uncovered?.length) page3.findings.push({ id: op.id, feature: "text-fallback-face" });
   }
 }
-async function outlineDesignDrawText(page3, toPath) {
+async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
+  const metrics = /* @__PURE__ */ new Map();
   for (const op of page3.ops) {
     const words3 = op.words, layout2 = words3?.layout;
     if (!words3 || !layout2) continue;
@@ -124808,17 +124827,33 @@ async function outlineDesignDrawText(page3, toPath) {
     const features = [...words3.spec.ligatures === false || m2.tracking !== 0 ? ["liga=0", "clig=0"] : [], ...words3.spec.alternates ? ["salt=1"] : []];
     let decorated = false, missing = false;
     words3.outlines = [];
+    delete words3.strikes;
     for (const line of layout2.lines) {
       const row = [];
+      const strikes = [];
       for (const run3 of line.runs) {
-        if (run3.underline || run3.strike) decorated = true;
+        if (run3.underline) decorated = true;
+        const variations = run3.face.variations ? Object.entries(run3.face.variations).map(([axis, value]) => `${axis}=${value}`) : void 0;
+        let strike = null;
+        if (run3.strike) {
+          if (strikeMetrics && run3.face.file) {
+            const key = JSON.stringify([run3.face.file, variations]);
+            let hit = metrics.get(key);
+            if (!hit) {
+              hit = strikeMetrics(run3.face.file, variations).catch(() => null);
+              metrics.set(key, hit);
+            }
+            strike = strikeGeometry(await hit, m2.size, run3.width, op.box.y + line.baseline);
+          }
+          if (!strike) decorated = true;
+        }
+        strikes.push(strike);
         if (!run3.text.trim() || !run3.face.file) {
           row.push(run3.text.trim() ? null : "");
           if (run3.text.trim()) missing = true;
           continue;
         }
         try {
-          const variations = run3.face.variations ? Object.entries(run3.face.variations).map(([axis, value]) => `${axis}=${value}`) : void 0;
           const { d } = await toPath({ text: run3.text, fontUrl: run3.face.file, fontSize: m2.size, ...features.length ? { features } : {}, ...m2.tracking ? { letterSpacing: m2.tracking } : {}, ...variations ? { variations } : {} });
           row.push(d);
         } catch {
@@ -124827,6 +124862,10 @@ async function outlineDesignDrawText(page3, toPath) {
         }
       }
       words3.outlines.push(row);
+      if (line.runs.some((run3) => run3.strike) || words3.strikes) {
+        words3.strikes ??= words3.outlines.slice(0, -1).map((r5) => r5.map(() => null));
+        words3.strikes.push(strikes);
+      }
     }
     if (decorated) page3.findings.push({ id: op.id, feature: "text-decoration" });
     if (missing) page3.findings.push({ id: op.id, feature: "text-unoutlined" });
@@ -124875,6 +124914,7 @@ var init_design_draw = __esm({
   "engine/src/design-draw.ts"() {
     "use strict";
     init_deck_compile();
+    init_text_decoration();
     init_design_text_measure();
     init_emoji_segment();
     init_authored_url();
@@ -125115,10 +125155,12 @@ function wordsSvg(op, words3) {
     line.runs.forEach((run3, ri) => {
       const outline2 = words3.outlines?.[li]?.[ri];
       if (outline2 !== void 0 && outline2 !== null) {
+        const ink2 = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
         if (outline2) {
-          const ink2 = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
           shapes3 += `<path transform="translate(${round25(box4.x + line.x + run3.x)} ${round25(box4.y + line.baseline)})" d="${svgEscape(outline2)}"${colorPaint("fill", ink2, ink2 === words3.ink ? words3.inkOpacity : void 0)}/>`;
         }
+        const strike = words3.strikes?.[li]?.[ri];
+        if (strike && strike.width > 0) shapes3 += `<rect x="${round25(box4.x + line.x + run3.x)}" y="${round25(box4.y + line.baseline + strike.y)}" width="${round25(strike.width)}" height="${round25(strike.height)}"${colorPaint("fill", ink2, ink2 === words3.ink ? words3.inkOpacity : void 0)}/>`;
         return;
       }
       if (!run3.text) return;
@@ -149189,6 +149231,15 @@ async function readFont(fontUrl, repoRoot2, vars, key) {
   fontCache.set(key, entry2);
   return entry2;
 }
+async function nodeStrikeMetrics(fontUrl, variations, repoRoot2) {
+  try {
+    const { font, upem } = await loadFont(fontUrl, repoRoot2, variations);
+    const hb = await loadHarfBuzz();
+    return strikeMetricsFact(upem, font.getMetricPosition(hb.MetricsTag.HORIZONTAL_ASCENDER));
+  } catch {
+    return null;
+  }
+}
 function segmentByFace(text8, chain2) {
   const segs = [];
   let cur = 0;
@@ -149421,6 +149472,7 @@ var init_text3 = __esm({
     init_content_roots();
     init_text_composition();
     init_text_glyphs();
+    init_text_decoration();
     _hb = null;
     faceCache = /* @__PURE__ */ new Map();
     fontCache = /* @__PURE__ */ new Map();
@@ -153375,11 +153427,14 @@ ${clipTo({ box: inner, shape })}`;
       for (const [li, line] of layout2.lines.entries()) {
         for (const [ri, run3] of line.runs.entries()) {
           const d = words3.outlines?.[li]?.[ri];
-          if (!d) continue;
+          if (d === void 0 || d === null) continue;
           const ink = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
+          const strike = words3.strikes?.[li]?.[ri];
+          if (!d && !strike) continue;
           out += `q ${opacityGs(ink === words3.ink ? words3.inkOpacity : void 0)}${color4(ink, "rg")} 1 0 0 1 ${n6(box4.x + line.x + run3.x)} ${n6(box4.y + line.baseline)} cm
-${svgPath2(d)}f
-Q
+${d ? `${svgPath2(d)}f
+` : ""}${strike && strike.width > 0 ? `0 ${n6(strike.y)} ${n6(strike.width)} ${n6(strike.height)} re f
+` : ""}Q
 `;
         }
       }
@@ -153623,7 +153678,7 @@ async function designPageDrawing(values, frameId, host, opts = {}) {
     ...host.fonts ? { fonts: host.fonts } : {}
   });
   await layoutDesignDrawText(page3, host.shaper);
-  if (host.toPath) await outlineDesignDrawText(page3, host.toPath);
+  if (host.toPath) await outlineDesignDrawText(page3, host.toPath, host.strikeMetrics);
   const pictures = /* @__PURE__ */ new Map();
   const unread = /* @__PURE__ */ new Set();
   await describeDesignDrawPictures(page3, async (ref) => {
@@ -153952,6 +154007,7 @@ async function designOpsNodeHost(host, ctx, outlined = true) {
     drawing: {
       shaper: createNodeTextShaper({ repoRoot: ctx.repoRoot }),
       ...outlined ? { toPath: (o) => text8.toPath(o) } : {},
+      ...outlined ? { strikeMetrics: (url, variations) => nodeStrikeMetrics(url, variations, ctx.repoRoot) } : {},
       picture,
       ...fonts ? { fonts } : {}
     },
@@ -153965,6 +154021,7 @@ var init_design_ops_host = __esm({
     init_src2();
     init_pptx_deck();
     init_text_measure();
+    init_text3();
     MOTION = /\.(json|lottie|mp4|m4v|mov|webm)($|\?|#)/i;
     SOUND = /\.(mp3|wav|ogg|m4a|flac)($|\?|#)/i;
   }
@@ -154446,16 +154503,20 @@ async function designOpsPdfNode(node, opts, host, ctx) {
   if (use.credentialed()) return { reason: "a picture carries Content Credentials that only the browser tier records as an ingredient" };
   const bleed = parseDimension(opts.bleed);
   const hasGeo = (bleed ? toPoints(bleed) : 0) > 0 || opts.cropMarks || opts.registrationMarks || opts.bleedMarks || opts.colorBars || opts.provenance;
-  const finished = await finishPdfX(out.pdf, opts, {
-    intentKind: "srgb",
-    log: (level2, message) => host.log?.(level2, message),
-    ...hasGeo ? { geos, space: "rgb", labels: provenanceLabels(opts.meta) } : {}
-  });
-  const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
-  host.log?.("info", `Design PDF export: ${ids2.length} pages drawn from the drawing operations without a browser.`);
-  return { pdf };
+  try {
+    const finished = await finishPdfX(out.pdf, opts, {
+      intentKind: "srgb",
+      log: (level2, message) => host.log?.(level2, message),
+      ...hasGeo ? { geos, space: "rgb", labels: provenanceLabels(opts.meta) } : {}
+    });
+    const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
+    host.log?.("info", `Design PDF export: ${ids2.length} pages drawn from the drawing operations without a browser.`);
+    return { pdf };
+  } catch (error2) {
+    throw new PdfFinishingError(error2);
+  }
 }
-var DESIGN_PDF_BROWSER_REQUIRED;
+var DESIGN_PDF_BROWSER_REQUIRED, PdfFinishingError;
 var init_design_ops_pdf = __esm({
   "packages/node-shell/src/design-ops-pdf.ts"() {
     "use strict";
@@ -154464,6 +154525,12 @@ var init_design_ops_pdf = __esm({
     init_design_ops_host();
     init_pdf_finishing();
     DESIGN_PDF_BROWSER_REQUIRED = "DESIGN_PDF_BROWSER_REQUIRED";
+    PdfFinishingError = class extends Error {
+      constructor(cause) {
+        super(cause instanceof Error ? cause.message : String(cause), { cause });
+        this.name = "PdfFinishingError";
+      }
+    };
   }
 });
 

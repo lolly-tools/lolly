@@ -106,10 +106,17 @@ test('Lolly site tools discover tools and edit the mounted document through visi
     await page.getByRole('button', { name: 'Save declaration', exact: true }).click();
     await inspector.locator('[data-authorship]').getByText('Ada Example · self-declared', { exact: true }).waitFor();
     await inspector.locator('[data-act="origin-partial"]').click();
+    // The control becomes pressed after its asynchronous metadata save completes.
+    await inspector.locator('[data-act="origin-partial"][aria-pressed="true"]').waitFor();
     const uploaded = await call<{ items: Array<{ id: string }> }>(page, 'lolly_search_assets', { scope: 'uploads', query: 'Inspector.svg' });
     assert.equal(uploaded.items.length, 1);
     const metadata = await call<{ authorDeclaration: { name: string }; aiDisclosure: { kind: string; declaredByUser: boolean } }>(page, 'lolly_describe_asset', { scope: 'uploads', id: uploaded.items[0]!.id });
     assert.equal(metadata.authorDeclaration.name, 'Ada Example'); assert.deepEqual(metadata.aiDisclosure, { kind: 'partial', declaredByUser: true });
+    await page.goto(`${origin}/#/a?asset=${encodeURIComponent(uploaded.items[0]!.id)}`);
+    await page.waitForFunction(() => (window as ToolWindow).siteTestTools?.has('lolly_describe_asset'));
+    await inspector.locator('[data-act="origin-partial"][aria-pressed="true"]').waitFor();
+    const reopened = await call<typeof metadata>(page, 'lolly_describe_asset', { scope: 'uploads', id: uploaded.items[0]!.id });
+    assert.equal(reopened.authorDeclaration.name, 'Ada Example'); assert.deepEqual(reopened.aiDisclosure, { kind: 'partial', declaredByUser: true });
     await inspector.locator('[data-act="close"]').click();
     await page.locator('.updz-input').setInputFiles({ name: 'Inspector-font.ttf', mimeType: 'font/ttf', buffer: await readFile(new URL('./fixtures/text-composition/fonts/notosansarabic/NotoSansArabic[wdth,wght].ttf', import.meta.url)) });
     await page.locator('.cat-tile').filter({ hasText: 'Inspector-font.ttf' }).waitFor();

@@ -156,9 +156,19 @@ A picture's placement depends on a fact the instance record does not hold: the p
 
 ### Choosing the renderer
 
-Plan 295 draws a Design page's SVG export from the drawing operations on the web and in the CLI, which needs no browser for such a page, and a Design document's PDF from the same operations on the web (`designDrawPdf` in `engine/src/design-draw-pdf.ts`), where the CLI reaches it through its browser tier. Each page is drawn from the operations only when the compile reports no findings; any finding, such as an emoji drawn from the chosen pack, a brand colour only the live page can read, or a picture larger than its drawing needs, sends the page to the DOM walker with the reasons stated (`designOpsSvg` in `shells/web/src/bridge/export-design-ops.ts`, `designOpsSvgNode` in `packages/node-shell/src/design-ops-svg.ts`). This is a declared fallback, chosen before anything is drawn, so a receipt must list it in `fallbacks[]` with the findings that chose it; the operations never fail part way and hand their work to the walker under their own identity (R15).
+Plan 295 draws an admitted Design page's SVG export from the drawing operations on the web and in the CLI (`designOpsSvg` in `shells/web/src/bridge/export-design-ops.ts`, `designOpsSvgNode` in `packages/node-shell/src/design-ops-svg.ts`). The CLI also writes an admitted static Design document as an outlined RGB PDF without a browser (`designOpsPdfNode` in `packages/node-shell/src/design-ops-pdf.ts`). The engine draws the pages and the shared `packages/node-shell/src/pdf-finishing.ts` applies print geometry, page boxes, marks and PDF/X metadata. The browser still owns `pdf-cmyk`, default or live-text PDFs, composed text stories, standard-password PDFs and pages the Node host cannot admit.
 
-The two shells write identical bytes for the same page because each host lends only facts: the shaped advances and outlines from HarfBuzz, the face files and their metrics, and each picture's own bytes and media kind. Everything that shapes the output, from the layout to the picture's type, size and encoding, runs once in the engine. A host interface that passed encoded results instead, such as a data URL or a picture size, would let the two shells drift.
+The runtime passes a detached snapshot of the authored Design values to SVG, SVGZ and PDF before `beforeExport` runs, and keeps each page's authored dimensions rather than substituting the tool manifest's size. A story-composition hook can change the rendered pages after that snapshot. The Node path therefore refuses a document with `textDocument`; the browser owns composition and exports the completed pages. A snapshot of the earlier rows must never replace that result.
+
+Admission findings, such as an unsupported effect, unread or unsupported picture, watermark or unresolved browser-only brand value, select the existing renderer with the reasons stated. The CLI sends the whole document to its browser tier once. This is a declared fallback, chosen before delivery, so a receipt must list the choice in `fallbacks[]` with its findings (R15). A `beforeExport`, PDF-finishing or render-integrity failure is a failed run, never a renderer admission finding, and remains fatal even with `--html-fallback`. An admitted Node PDF's finishing or encryption error keeps its original message and cause as `PdfFinishingError`; the CLI refuses both browser escalation and HTML substitution. That separate flag permits an HTML artifact when the requested format cannot be produced; it does not permit a broken render to become a successful export.
+
+Finishing preserves the existing limits. Strong AES-256 encryption runs last, after print geometry and metadata, and encrypted bytes receive no later Content Credentials update. A source picture that already carries Content Credentials selects the browser even when final signing is disabled, because that path records the picture as an ingredient. The PDF/X pass withholds its claim for a named-only output colour profile, selected fonts that are not embedded, unmanaged RGB images, shadings or transparency groups under a CMYK intent, or encryption. Those checks are conservative guards, not an independent PDF/X certification. RGB operations output does not establish CMYK print conformance.
+
+SVGZ uses the same SVG drawing result, dimensions and metadata, wrapped in gzip. Decoding the wrapper returns that SVG; it introduces no renderer or different admission rules. The compiler and snapshot are shared with SVG, and composed stories and credentialed pictures retain their browser owner.
+
+Outlined strike-through uses the ascent of each run's resolved HarfBuzz font instance, including its variation axes. The host returns font-unit ascent and units-per-em; the engine validates those facts and applies the current Design HTML reference's CSS auto placement and thickness. SVG and PDF consume the same rectangle with the run's colour, opacity, transform and clip. The font's OS/2 strike position is not that CSS policy and is not an admission prerequisite. Missing ascent remains a `text-decoration` finding. Underline also remains a finding until glyph ink-skipping has been qualified; a guessed font ascent must never replace the resolved face.
+
+The two shells write identical SVG bytes for the same fixture page because each host lends only facts: the shaped advances and outlines from HarfBuzz, the face files and their metrics, and each picture's own bytes and media kind. Everything that shapes the output, from the layout to the picture's type, size and encoding, runs once in the engine. A host interface that passed encoded results instead, such as a data URL or a picture size, would let the two shells drift. These adapters and their export tests are implementation evidence; they do not build the draft `EvaluationReceiptV1` or establish a released conformance suite.
 
 ### Emoji, models and policy
 
@@ -231,6 +241,14 @@ Q1 and Q5 are answered in [Conformance and fidelity](conformance.html). Q6 is an
 - `shells/web/src/bridge/export-svg-text-runs.ts`
 - `shells/web/src/bridge/frame-clock.ts`
 - `shells/cli/src/run.ts`
+- `packages/node-shell/src/design-ops-svg.ts`
+- `packages/node-shell/src/design-ops-pdf.ts`
+- `packages/node-shell/src/pdf-finishing.ts`
+- `packages/node-shell/src/pdfx.ts`
+- `tests/design-ops-svg-node.test.ts`
+- `tests/design-ops-pdf-node.test.ts`
+- `tests/design-session-transport.test.ts`
+- `tests/pdf-finishing.test.ts`
 - `packages/node-shell/src/pixel-kernel-recipe.ts`
 - `packages/node-shell/src/geometry-host.ts`
 - `packages/node-shell/wasm/geometry-kernel/`

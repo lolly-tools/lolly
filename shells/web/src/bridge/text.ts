@@ -11,6 +11,7 @@ import { base64ToBytes } from '../../../../engine/src/bytes.ts';
 import type { AssetsAPI, TextAPI, TextPathCluster } from '@lolly-tools/core/host-v1';
 import { createTextCompositionAPI } from '@lolly-tools/node-shell/text-composition';
 import { createGlyphCache } from '@lolly-tools/node-shell/text-glyphs';
+import { strikeMetricsFact, type StrikeMetrics } from '../../../../engine/src/text-decoration.ts';
 import type { Blob as HbBlob, Face as HbFace, Font as HbFont, Feature as HbFeature } from 'harfbuzzjs';
 
 type HarfBuzzModule = typeof import('harfbuzzjs');
@@ -99,6 +100,15 @@ async function readFont(fontUrl: string, vars: string[], key: string): Promise<F
   const entry = { font, upem, unicodes };
   fontCache.set(key, entry);
   return entry;
+}
+
+/** Internal drawing facts from the same cached font instance that outlines text. */
+export async function webStrikeMetrics(fontUrl: string, variations?: string[]): Promise<StrikeMetrics | null> {
+  try {
+    const { font, upem } = await loadFont(fontUrl, variations);
+    const hb = await loadHarfBuzz();
+    return strikeMetricsFact(upem, font.getMetricPosition(hb.MetricsTag.HORIZONTAL_ASCENDER));
+  } catch { return null; }
 }
 
 /**

@@ -6,6 +6,7 @@ import type { TextMeasureFontsV1 } from '@lolly-tools/core/text-measure-v1';
 import type { DesignPageSvgHost } from '../../../engine/src/design-page-svg.ts';
 import { firstFontFamily, tokenFontStack } from './pptx-deck.ts';
 import { createNodeTextShaper } from './text-measure.ts';
+import { nodeStrikeMetrics } from './text.ts';
 
 const MOTION = /\.(json|lottie|mp4|m4v|mov|webm)($|\?|#)/i;
 const SOUND = /\.(mp3|wav|ogg|m4a|flac)($|\?|#)/i;
@@ -46,6 +47,7 @@ export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string },
     drawing: {
       shaper: createNodeTextShaper({ repoRoot: ctx.repoRoot }),
       ...(outlined ? { toPath: (o: Parameters<typeof text.toPath>[0]) => text.toPath(o) } : {}),
+      ...(outlined ? { strikeMetrics: (url: string, variations?: string[]) => nodeStrikeMetrics(url, variations, ctx.repoRoot) } : {}),
       picture,
       ...(fonts ? { fonts } : {}),
     },
