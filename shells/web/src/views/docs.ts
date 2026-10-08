@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * In-app documentation reader (#/docs/<slug>) - plan "this-is-a-very-sparkling-eich"
- * Page narration opens from Listen in the shared audio dock.
+ * In-app documentation reader (#/docs/<slug>) - plan "this-is-a-very-sparkling-eich".
+ * The page narration it offered (Listen) was removed on 2026-10-08.
  *
  * This brings the /info docs INTO the app so they render inside #view and inherit the
  * ACTIVE brand's design tokens (unlike the published static site, which is neutral for
@@ -19,10 +19,9 @@
  * (styles/parts/docs.css's scoped legacy-var bridge → the app's brand-reactive slots).
  *
  * Deliberately NOT carried across from the fetched page:
- *   - <script> and <style> nodes (never execute a fetched page's scripts; the only inner
- *     <style> today is the Listen-bar's, and stripping all of them keeps a page's CSS
- *     from leaking into the shell). The reader's own styling lives in docs.css.
- *   - the `.listen-bar` (the reader mounts its own Listen button).
+ *   - <script> nodes (never execute a fetched page's scripts). A figure's own scoped
+ *     <style> is kept (see the sanitise step below); the reader's styling lives in docs.css.
+ *   - the `.docs-edition-bar` (the print edition's PDF link, a static-site download).
  *   - the masthead / nav / sidebar / footer (all live OUTSIDE `.docs-content`, so the
  *     fragment naturally excludes them). Theme/brand-reactive mastheads are M3.
  *
@@ -48,11 +47,6 @@ import { createThemeToggle } from '../components/theme-toggle.ts';
 import { attachLangMenu } from '../components/lang-menu.ts';
 import { attachProfileMenu } from '../components/profile-menu.ts';
 import { mountHomeFab } from '../components/home-fab.ts';
-import { registerNarrationSource, unregisterNarrationSource, showAudioDock, audioDockController, isAudioDockVisible } from '../lib/audio-dock-singleton.ts';
-import { createDocsNarrationHost, type DocsNarrationHandle } from '../lib/docs-narration-host.ts';
-// The device-voice fallback is the dependency-free docs/player module (audio-dock types
-// only), shared with the static /info site so both readers speak every page identically.
-import { createDocsTtsHost, type DocsTtsHost } from '../../../../docs/player/tts-host.ts';
 import { hydrateDocsTryIt } from '../lib/docs-tryit.ts';
 import { icon } from '../lib/icons.ts';
 import { createScope } from '../lib/dispose.ts';
@@ -131,9 +125,9 @@ export async function mountDocs(
   mountBackPill(viewEl);
   mountHomeFab(viewEl);
   // One scope owns everything this mount sets up, and the view's cleanup disposes it at
-  // once, even while the fetch or the narration lookup is still in flight. #view persists
-  // across routes, so a mount that loses that race checks scope.disposed after each await
-  // and stops before it can write into, or unregister audio from, the next view.
+  // once, even while the fetch is still in flight. #view persists across routes, so a
+  // mount that loses that race checks scope.disposed after each await and stops before
+  // it can write into the next view.
   const scope = createScope();
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => scope.dispose();
   // On mobile the profile pill becomes the consolidated menu (theme / Home /
@@ -265,8 +259,8 @@ export async function mountDocs(
   // "no fetched scripts survive" invariant stays intact). Null on any other page.
   const fmtCatalogRaw = fragment.querySelector('#fmt-catalog-data')?.textContent ?? null;
 
-  // Sanitise: never run a fetched page's scripts, and drop the Listen bar (the dock owns
-  // narration now). KEEP <style>: the only style nodes inside `.docs-content` are a figure's
+  // Sanitise: never run a fetched page's scripts, and drop the print-edition bar (a
+  // static-site download). KEEP <style>: the only style nodes inside `.docs-content` are a figure's
   // OWN scoped block (e.g. `.cmp-fig` for the comparison matrix) - the page-global CSS lives
   // in <head>, which we never extract. Those blocks also DEFINE the figure's local tokens
   // (`--cmp-*`), so stripping them left figures unstyled and their headings mashed. This is
@@ -282,7 +276,7 @@ export async function mountDocs(
   // page) carries in its body; the reader shows that strip in its own slot instead. The
   // strip is adopted first, because the rehost removes the band from the parsed page.
   const pathwaysStrip = extractPathways(doc);
-  const node = rehostFragment(fragment, { strip: 'script, .listen-bar, .docs-strip-band', rewriteLinks: rewriteDocLinks });
+  const node = rehostFragment(fragment, { strip: 'script, .docs-edition-bar, .docs-strip-band', rewriteLinks: rewriteDocLinks });
 
   // THE PAGE TITLE. `docsMasthead` (docs/build.ts) lifts each page's <h1> out of the
   // article and into a full-width band that is a SIBLING of `.docs-wrap` - so it sits
@@ -493,70 +487,10 @@ export async function mountDocs(
   // and every card is open on both surfaces.
   if (isLanding) { adaptLandingLinks(node); hydrateLandingCycle(node); hydrateLandingCovers(node); hydrateLandingAgentCopy(node); fitHeroCtaInk(node); }
 
-  // Prepare narration without opening the floating player over the page. Produced
-  // English audio takes priority; other pages use the device voice when available.
-  // An existing music player keeps its current size and visibility.
-  let narration: DocsNarrationHandle | null = null;
-  let tts: DocsTtsHost | null = null;
-  if (lang === 'en') {
-    try {
-      narration = await createDocsNarrationHost({ slug, contentRoot: node, title: pageTitle || slug, canSeekFromContent: isAudioDockVisible });
-    } catch {
-      narration = null;
-    }
-  }
-  if (!narration && !scope.disposed) {
-    try {
-      tts = createDocsTtsHost({ slug, title: pageTitle || slug, contentRoot: node, canSeekFromContent: isAudioDockVisible });
-    } catch {
-      tts = null;
-    }
-  }
-  if (scope.disposed) {
-    // The reader unmounted while the track was resolving: never leave audio behind, and
-    // never touch the shared dock, which may already hold the next page's narration.
-    narration?.destroy();
-    tts?.destroy();
-    return;
-  }
-  const block = narration?.host ?? tts;
-  if (block) {
-    registerNarrationSource(block);
-    const actions = document.createElement('div');
-    actions.className = 'docs-listen-actions';
-    const listen = document.createElement('button');
-    listen.type = 'button';
-    listen.className = 'btn docs-listen';
-    listen.setAttribute('aria-controls', 'neuro-dock');
-    listen.innerHTML = icon('play', { size: 16 });
-    const label = document.createElement('span');
-    label.textContent = t('Listen');
-    listen.append(label);
-    actions.append(listen);
-    const heading = node.querySelector(':scope > h1');
-    if (heading) heading.after(actions);
-    else contentEl.prepend(actions);
-    scope.listen(listen, 'click', () => {
-      showAudioDock();
-      const dock = audioDockController();
-      if (dock?.getCollapse() === 'mini') dock.setCollapse('full');
-      if (!block.isPlaying()) void block.togglePlay();
-    });
-  }
-
-  // Resolve the heading after Listen has taken its place in the page, so inserting
-  // the button cannot shift a deep-linked section below the reading position.
+  // Scroll to a deep-linked section once the page is in place.
   if (deepLink && scrollToHeading(node, deepLink, 'auto')) viewEl.dataset.deepScrolled = '';
 
   armViewEnter(viewEl, '.docs-content, .docs-landing');
-
-  scope.add(() => {
-    // Order: detach the narration block from the shared window (the window stays if music
-    // is still registered) before dropping the host (stops audio, removes the <audio> tap).
-    unregisterNarrationSource();
-    narration?.destroy();
-    tts?.destroy();
-  });
 }
 
 /** The phone and tablet navigation: the section's pages and this page's headings as two

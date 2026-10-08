@@ -3,7 +3,7 @@
 /**
  * Phase 0 of plans/181-tts-prosody-regenerate-and-voice-blend.md - the LISTEN harness.
  *
- * ANDY-RUN ONLY, exactly like scripts/build-docs-audio.ts, and for the same
+ * ANDY-RUN ONLY, exactly like scripts/say-lines.ts, and for the same
  * reason: it needs the LOCAL Kokoro model staged at
  * shells/web/public/models/kokoro/ (scripts/fetch-kokoro-models.ts). It is
  * never invoked by pnpm install / postinstall / CI, writes nothing into the

@@ -56,10 +56,6 @@ import { readShotAnatomy } from './shot-anatomy.ts';
 // capture params a credential wants to state are exactly the ones the capture read,
 // and a second parser is a second thing to disagree with the first.
 import { parseShotRecipes, type ShotDef } from '../scripts/lib/shot-compare.ts';
-// The narration pipeline's own extraction, reused for the cue→anchor assertion
-// below - the blockIds a committed cues.json speaks must be judged by the same
-// rules that minted them, and the player already bundles this exact module.
-import { extractSpokenText } from '../scripts/lib/docs-spoken-text.ts';
 // The shared, DOM-free docs render layer (@lolly-tools/docs-render). Imported by
 // RELATIVE path because docs/ is not an npm-workspace member (same as
 // engine/src and scripts/lib above); the web shell imports the same code via the
@@ -85,8 +81,9 @@ import {
   type DocsRenderContext,
   type CredentialFacts,
 } from '../packages/docs-render/src/index.ts';
-// esbuild bundles the docs player (docs/player/) into /info/docs-player.js - it
-// is already in the tree as vite's bundler, so this adds no dependency.
+// esbuild bundles the few app modules the static pages share (covers motion, reading
+// enhancer, pathways strip, agent copy). It is already in the tree as vite's
+// bundler, so this adds no dependency.
 import { buildSync } from 'esbuild';
 // The app's icon registry: pure path data with no imports, so the static build can use
 // the very glyphs the app draws (plan 277: the docs reading components).
@@ -131,8 +128,7 @@ const OG_LOGO = `${SITE_URL}/icons/icon-512.png`;
 const SITE_DESCRIPTION = 'Lolly: constraint-first, template-driven platform for generating production-ready creative and content assets at scale.';
 // Landing-page <title>/share title (matches the web shell's index.html). Other
 // pages use "<page title> - Lolly", so this is landing-only. Kept short: the
-// Listen player and the browser tab both wear this string, so a tagline here
-// makes the player comically wide.
+// browser tab wears this string, so a tagline here would be cut off.
 const LANDING_TITLE = 'Lolly Tools';
 
 // Tool count for the hero badge - read from the generated catalog index so it
@@ -185,7 +181,7 @@ interface Page {
   // that is still one markdown source with a twin. `render` supplies the bands.
   immersive?: boolean;
   // A print edition of the page, laid out in Design: a PDF file in docs/editions/,
-  // served from /info/editions/ and linked beside the Listen pill on the English page.
+  // served from /info/editions/ and linked in the title row of the English page.
   pdf?: string;
 }
 
@@ -2101,7 +2097,7 @@ const landingCtaHref = (lang: Lang, href: string): string => (href.startsWith('#
  * build into the landing's inline covers script. It is the very module the
  * in-app reader imports for #/docs/index (lib/docs-landing.ts), so the two
  * surfaces cannot drift - the earlier hand-kept twin (COVERS_JS here plus a
- * TypeScript copy there) is gone. esbuild is already the docs player's bundler.
+ * TypeScript copy there) is gone. esbuild is already vite's bundler.
  */
 /**
  * "AI Instructions" under the hero's calls to action: one pill for the text a person
@@ -2194,7 +2190,7 @@ function stripScript(): string {
 
 /** The enhancer's words for this page, in its language, as one attribute on the article.
  *  Only pages with a copyable block carry it; attributes never reach the page text that
- *  search, the model index and narration read. */
+ *  search and the model index read. */
 function readingAttr(content: string): string {
   if (!hasCopyBlock(content)) return '';
   const words = {
@@ -2474,13 +2470,6 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
 (function(){
   var bar=document.querySelector('.site-bar');
   var hero=document.querySelector('.hero');
-  // The floating Listen pill rides the same measurement (plans/168 WP-6). At 393px the
-  // hero's CTA stack fills the bottom of the first screen, so a bottom-right pill would
-  // sit on the hero's controls - a tap collision, not just a smudge. While the hero is
-  // on screen the pill docks under the top nav instead; everywhere else it is the
-  // ordinary bottom-right float. Class is toggled at every width, the move is CSS-gated
-  // to phones (LISTEN_STYLE), so desktop is untouched.
-  var listen=document.querySelector('.listen-bar-float');
   // The dark wrap holds the hero AND the covers band (one chip field behind both);
   // its gradient is sized to the hero through --hero-h so the covers stay flat.
   var wrap=document.querySelector('.hero-wrap');
@@ -2489,13 +2478,11 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
   fitHero();
   // The bar floats over the whole dark wrap (hero and covers) and takes its ground only
   // once the wrap has passed wholly under it, so the translucent ground never lies over
-  // a dark and a light band at once, which read as a grey stripe. The Listen dock
-  // follows the hero.
+  // a dark and a light band at once, which read as a grey stripe.
   function updateNav(){
     var heroBottom=hero?hero.getBoundingClientRect().bottom:0;
     var darkBottom=wrap?wrap.getBoundingClientRect().bottom:heroBottom;
     if(bar){bar.classList.toggle('site-bar--solid',darkBottom<=0);bar.classList.toggle('site-bar--past-hero',heroBottom<=bar.offsetHeight);}
-    if(listen)listen.classList.toggle('over-hero',heroBottom>0);
   }
   window.addEventListener('scroll',updateNav,{passive:true});
   updateNav();
@@ -2706,7 +2693,7 @@ const LANDING_CSS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/parts/
 // component wins over the site's base pre/code/blockquote styles.
 const COMPONENTS_CSS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/parts/docs-components.css'), 'utf-8');
 // The app's button primitive (.btn, .btn--primary, .btn--glass), read verbatim so
-// Launch App, Listen and the home pill have one declaration on both surfaces (plan
+// Launch App, the print edition and the home pill have one declaration on both surfaces (plan
 // 277 step 3c). Its alias selectors name app-only elements and match nothing here;
 // the landing's call-to-action pill is .hero-btn for that reason.
 const BUTTONS_CSS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/parts/buttons.css'), 'utf-8');
@@ -2889,7 +2876,7 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 [data-theme="dark"] .site-fab--theme .icon-moon,[data-theme="brand"] .site-fab--theme .icon-brand{display:block}
 .site-fab--search{display:none}
 /* Pressed and current states the system colours would otherwise flatten. */
-@media(forced-colors:active){.site-sheet .profile-menu-seg[aria-pressed="true"]{outline:2px solid Highlight;outline-offset:-2px}.site-sheet .site-sheet-sections .docs-pathway.active{outline:2px solid Highlight;outline-offset:-2px}.docs-listen,.docs-edition{border:1px solid ButtonText}}
+@media(forced-colors:active){.site-sheet .profile-menu-seg[aria-pressed="true"]{outline:2px solid Highlight;outline-offset:-2px}.site-sheet .site-sheet-sections .docs-pathway.active{outline:2px solid Highlight;outline-offset:-2px}.docs-edition{border:1px solid ButtonText}}
 /* Launch App: the app's primary button (buttons.css .btn.btn--primary, the shape
    of the bottom bar's Verify) with the app's arrow, mirrored for right-to-left. */
 .site-launch{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;box-sizing:border-box;min-height:var(--chrome-h);font-weight:600}
@@ -3273,17 +3260,17 @@ ${LANDING_CSS}
    one, so it has to be out-specified rather than tied with. */
 .docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:clamp(2.25rem,3.4vw,3rem);font-weight:300;line-height:1.15}
 /* The title row: the page's h1 (the in-app reader's title size and weight) with
-   Listen beside it as an app button, on the title's last line rather than over
-   the article's first. On a phone Listen wraps under the title. */
+   a page's print edition beside it as an app button, on the title's last line
+   rather than over the article's first. On a phone the button wraps under the title. */
 .mast-title{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem 2rem}
 .mast-title h1{flex:1 1 18rem;min-width:0}
-.mast-title .listen-bar{margin:0 0 .35rem}
+.mast-title .docs-edition-bar{margin:0 0 .35rem}
 /* The pathways strip at the top of the band (docs-chrome.css, which also makes it
    one scrolling line on a phone, with its edge fades). */
 .docs-mast-inner .docs-pathways{margin:0}
 @media(max-width:640px){
   .mast-title{gap:.75rem}
-  .mast-title .listen-bar{margin:0}
+  .mast-title .docs-edition-bar{margin:0}
 }
 /* ── The strip band (wrapPage, pathwaysBand) ─────────────────────────────────
    A page with no masthead (a format or conversion page, a specification chapter,
@@ -3295,7 +3282,7 @@ ${LANDING_CSS}
 .docs-strip-band .docs-pathways{margin:0}
 .docs-strip-band .docs-mast-inner{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem 2rem}
 .docs-strip-band .docs-pathways{flex:1 1 auto;min-width:0}
-.docs-strip-band .listen-bar{margin:0}
+.docs-strip-band .docs-edition-bar{margin:0}
 .docs-strip-band--flow{padding-block:1.75rem .5rem;background:var(--page)}
 .docs-strip-band--wide .docs-mast-inner{max-width:calc(1120px + 3rem);padding-inline:1.5rem}
 @media(max-width:768px){.docs-strip-band{padding-top:calc(var(--site-bar-h) + 1.25rem)}.docs-strip-band--flow{padding-top:1.25rem}}
@@ -3741,9 +3728,6 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 .doc-jump-nav a{display:block;padding:.32rem .5rem;border-radius:6px;font-size:.875rem;line-height:1.35;color:var(--text);text-decoration:none}
 .doc-jump-nav a:hover{background:#30ba7818;color:var(--green);text-decoration:none}
 .doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
-/* The docs player dock owns this corner while it is open (html.ldp-open, fixed at
-   the same 16px). One control per corner - the reader is listening, not scanning. */
-html.ldp-open .doc-jump{display:none}
 @media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
 @media print{.doc-jump{display:none}}
 .docs-content h1{font-size:3rem;color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
@@ -5556,205 +5540,39 @@ function searchBox(lang: Lang): string {
     <button type="button" class="site-fab site-fab--search" aria-label="${esc(t('Search the docs'))}" title="${esc(t('Search the docs'))}" aria-controls="docs-search" aria-expanded="false">${docIcon('chrome-search')}</button>`;
 }
 
-// ── Docs narration - "Listen to this page" (plans/40-docs-audio-listen.md) ───────
-// Narration artefacts are rendered manually (never in CI) by
-// scripts/build-docs-audio.ts and committed under docs/audio/<lang>/<slug>/;
-// the build only LINKS what exists. A page without committed audio gets no
-// button - no dead controls - and with no audio anywhere the player bundle is
-// neither built nor referenced, so /info carries zero extra bytes.
-interface AudioEntry { slug: string; title: string; url: string; duration: number; bytes: number }
-
-// slug → playlist entry for the CURRENT build() pass. Module-level like
-// activeCatalog (wrapPage has no channel for per-build state), reset at the top
-// of every build() so a --watch reimport can never serve a previous pass's set.
-// Listen is withdrawn pending a replacement. Keep source recordings available,
-// but do not ship the player, narration assets, or device-voice controls.
-const DOCS_LISTEN_ENABLED = false;
-let audioBySlug = new Map<string, AudioEntry>();
-
-/** The committed English narration set, in pages[] (sidebar) order - that order
- *  IS the playlist auto-advance walks. */
-function collectDocsAudio(): Map<string, AudioEntry> {
-  const map = new Map<string, AudioEntry>();
-  // Match the web deployment, which excludes recorded narration from its upload.
-  if (process.env.LOLLY_DOCS_AUDIO === '0') return map;
-  const base = resolve(repoRoot, 'docs', 'audio', 'en');
-  if (!existsSync(base)) return map;
-  for (const page of pages) {
-    const dir = resolve(base, page.slug);
-    if (!existsSync(resolve(dir, 'audio.opus')) || !existsSync(resolve(dir, 'meta.json'))) continue;
-    try {
-      const meta = JSON.parse(readFileSync(resolve(dir, 'meta.json'), 'utf-8')) as { duration?: number; bytes?: number };
-      map.set(page.slug, {
-        slug: page.slug,
-        title: page.title,
-        url: `/info/audio/en/${page.slug}/audio.opus`,
-        duration: Number(meta.duration) || 0,
-        bytes: Number(meta.bytes) || statSync(resolve(dir, 'audio.opus')).size,
-      });
-    } catch {
-      console.warn(`⚠  docs audio: ${page.slug}/meta.json unreadable - page not linked`);
-    }
-  }
-  return map;
-}
-
-/** Bundle the docs player (docs/player/player.ts) to /info/docs-player.js.
- *  Static docs pages cannot import shells/web/src modules at runtime, so the
- *  player is its own tiny esm bundle; the butterchurn dynamic import splits
- *  into a docs-player-<hash>.js chunk fetched only when the viz panel opens. */
-function bundleDocsPlayer(): void {
-  buildSync({
-    entryPoints: [resolve(__dirname, 'player', 'player.ts')],
-    bundle: true,
-    format: 'esm',
-    splitting: true,
-    minify: true,
-    platform: 'browser',
-    outdir: outDir,
-    entryNames: 'docs-player',
-    chunkNames: 'docs-player-[hash]',
-    // The player bundles scripts/lib/docs-spoken-text.ts for extractSpokenText;
-    // that module's node:crypto import (spokenTextHash, unused here) is aliased
-    // to a throwing stub so the browser bundle resolves.
-    alias: { 'node:crypto': resolve(__dirname, 'player', 'crypto-stub.ts') },
-    logLevel: 'silent',
-  });
-  buildSync({
-    entryPoints: [resolve(__dirname, 'player', 'player.css')],
-    bundle: true,
-    minify: true,
-    outfile: resolve(outDir, 'docs-player.css'),
-    logLevel: 'silent',
-  });
-}
-
-const LISTEN_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
-
-// Styles for the button only - everything past the first press lives in
-// /info/docs-player.css, fetched with the bundle. Shipped inline beside the
-// button (not in CSS above) so pages without audio carry none of it.
-const LISTEN_STYLE = `<style>
-.listen-bar{display:flex;justify-content:flex-end;gap:8px;margin:0 0 -8px}
-.listen-bar-float{position:fixed;right:16px;bottom:16px;z-index:89;margin:0}
-/* Phones only: docked under the top nav while the landing hero owns the screen, so the
-   pill never sits on a hero CTA (plans/168 WP-6; the class comes from NAV_SOLID_JS). */
-@media(max-width:600px){.listen-bar-float.over-hero{bottom:auto;top:calc(var(--site-bar-h) + 8px)}}
-/* Listen and the print edition beside it are the app's button (buttons.css aliases
-   both onto .btn: canvas fill, bevel, control elevation, panel radius, body type),
-   finger-sized, with the app's glyph and the minutes in the muted ink. In the band
-   they sit in the title row (.mast-title); on the landing Listen floats. */
-.docs-listen,.docs-edition{display:inline-flex;align-items:center;gap:7px;min-height:var(--ui-size-target);box-sizing:border-box;font-weight:600;line-height:1.2}
-.docs-listen:hover,.docs-edition:hover{background:var(--ui-color-surface-muted);text-decoration:none}
-.docs-listen:focus-visible,.docs-edition:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
-.docs-listen svg,.docs-edition svg{width:16px;height:16px}
-.docs-listen .listen-mins,.docs-edition .listen-mins{font-weight:400;color:var(--ui-color-text-muted)}
-.docs-listen.is-loading{opacity:.6;pointer-events:none}
-</style>`;
-
-// The lazy loader - the ONLY player code a page carries. The bundle is fetched
-// on the first press (plan section 6.1), or on arrival when the previous page's
-// auto-advance/prev/next left a hand-off in sessionStorage.
-const LISTEN_SCRIPT = `<script>(function(){
-var btn=document.querySelector('.docs-listen');if(!btn)return;
-// The ladder (plan 131 B.3): a produced page needs Ogg/Opus playback; every page can
-// fall back to the device voice (speechSynthesis). Remove the control only when there
-// is genuinely nothing to play - a produced page this browser can't decode (iOS Safari
-// before 18.4) AND no device voice, or a device-voice page with no speechSynthesis
-// (some webkitgtk - the Linux gap a native command will close).
-var produced=btn.hasAttribute('data-listen-produced');
-var hasTts=('speechSynthesis' in window)&&(typeof SpeechSynthesisUtterance!=='undefined');
-var canOpus=false;try{canOpus=!!document.createElement('audio').canPlayType('audio/ogg; codecs=opus');}catch(e){}
-if((!produced||!canOpus)&&!hasTts){var bar=btn.closest('.listen-bar');btn.remove();if(bar&&!bar.children.length)bar.remove();return;}
-var busy=false;
-function open(auto){if(busy)return;busy=true;btn.classList.add('is-loading');
-import('/info/docs-player.js').then(function(m){
-  m.openDocsPlayer({slug:btn.getAttribute('data-listen-slug'),title:btn.getAttribute('data-listen-title'),autoplay:!!auto,trigger:btn});
-}).catch(function(e){console.warn('docs player failed to load',e);}).finally(function(){busy=false;btn.classList.remove('is-loading');});}
-btn.addEventListener('click',function(){open(true);});
-try{var s=sessionStorage.getItem('lolly-docs-listen');
-if(s&&JSON.parse(s).slug===btn.getAttribute('data-listen-slug'))open(JSON.parse(s).auto);}catch(e){}
-})();</script>`;
-
-/**
- * Build-time cue→anchor assertion (plans/40-docs-audio-listen.md section 10): every
- * blockId in a narrated page's committed cues.json must still resolve against
- * the BUILT page, judged the way the player maps blocks (buildBlockMap in
- * docs/player/player.ts) - a blockId that survives in the CURRENT extraction,
- * whose spoken text is present in the built markup (paragraphs and list items
- * are matched by text there, so text presence IS the derivable position), a
- * heading's element id being the stronger signal where the markup carries it.
- * A plain id check would be wrong on the landing page: buildLandingContent
- * mints its own section ids ("Journalists" → #press), so its headings map by
- * being present at all, not by anchor. Synthetic omission lines ("Code example
- * omitted.") have no DOM twin by design and are exempt. One console.warn per
- * miss; the build only throws when more than 20% of a page's blocks miss - 
- * drift tolerance while copy moves, since tests/docs-audio-stale.test.ts
- * already names every stale page.
- */
-function assertAudioCues(page: Page, content: string, md: string): void {
-  const cuesPath = resolve(repoRoot, 'docs', 'audio', 'en', page.slug, 'cues.json');
-  if (!existsSync(cuesPath)) return;
-  let blocks: Array<{ blockId: string }>;
-  try {
-    blocks = (JSON.parse(readFileSync(cuesPath, 'utf-8')) as { blocks?: Array<{ blockId: string }> }).blocks ?? [];
-  } catch {
-    console.warn(`⚠  docs audio: ${page.slug}/cues.json unreadable - cue assertion skipped`);
-    return;
-  }
-  if (!blocks.length) return;
-  const norm = (s: string): string => s
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&#39;/g, "'").replace(/&quot;/g, '"')
-    .toLowerCase().replace(/\s+/g, ' ').trim();
-  const domIds = new Set([...content.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]!));
-  const pageText = norm(content.replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' '));
-  const spoken = new Map(extractSpokenText(md, { pageTitle: page.title }).map((b) => [b.blockId, b.text]));
-  let missed = 0;
-  for (const b of blocks) {
-    const text = spoken.get(b.blockId);
-    const resolves = text !== undefined && (
-      /^(Code example|Table) omitted\.$/.test(text)
-      || domIds.has(b.blockId)
-      || pageText.includes(norm(text).slice(0, 40))
-    );
-    if (resolves) continue;
-    missed++;
-    console.warn(`⚠  docs audio: ${page.slug} cue "${b.blockId}" does not resolve in the built page`);
-  }
-  if (missed > blocks.length * 0.2) {
-    throw new Error(
-      `docs audio: ${page.slug} - ${missed}/${blocks.length} cues.json blocks fail to anchor; `
-      + 'the narration no longer matches the page (re-render: node scripts/build-docs-audio.ts)',
-    );
-  }
-  console.log(`✓  docs audio cues: ${page.slug} - ${blocks.length - missed}/${blocks.length} blocks anchored${missed ? ' (drift within tolerance)' : ''}`);
-}
-
-// The Listen pill ships on EVERY page (plan 131 B.3). A page with committed audio
-// (`a` present) plays its produced Kokoro voice; every other page - all locales, the
-// reference/side-door pages - falls back to the reader's device voice via
-// speechSynthesis. `data-listen-produced` lets the loader tell the two apart for its
-// codec ladder; the minutes badge only makes sense for a fixed-length produced track.
-function listenButtonHtml(page: Page, a?: AudioEntry, edition = ''): string {
-  if (!DOCS_LISTEN_ENABLED) return edition ? `<div class="listen-bar${page.isLanding ? ' listen-bar-float' : ''}">${edition}</div>` : '';
-  const mins = a && a.duration > 0 ? `${Math.max(1, Math.round(a.duration / 60))} min` : '';
-  const producedAttr = a ? ' data-listen-produced' : '';
-  return `<div class="listen-bar${page.isLanding ? ' listen-bar-float' : ''}">${edition}<button type="button" class="docs-listen"${producedAttr} data-listen-slug="${esc(page.slug)}" data-listen-title="${esc(page.title)}" aria-label="${esc(`Listen to ${page.title}`)}">${LISTEN_ICON}<span>Listen</span>${mins ? `<span class="listen-mins">${esc(mins)}</span>` : ''}</button></div>`;
-}
-
+// ── Print edition ────────────────────────────────────────────────────────────
+// A page may name a print edition (`pdf:` on its pages entry), a second way to take
+// the page away. The PDF is English, so only the English page links it. Its size is on
+// the chip because a laid-out edition is megabytes, not kilobytes. The chip sits in a
+// small bar: in the masthead's title row, at the top of <main> on a page without a
+// masthead, or beside the strip on an immersive page.
 const EDITION_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
 
-// The print edition sits beside the Listen pill as a second way to take the page away.
-// The PDF is English, like the produced narration, so only the English page links the PDF.
-// Its size is on the chip because a laid-out edition is megabytes, not kilobytes.
+// Shipped in the site stylesheet (DOCS_CSS). The chip is the app's button (buttons.css
+// aliases .docs-edition onto .btn: canvas fill, bevel, control elevation, panel radius,
+// body type), finger-sized, with the app's glyph and the size in the muted ink.
+const EDITION_CSS = `
+.docs-edition-bar{display:flex;justify-content:flex-end;gap:8px;margin:0 0 -8px}
+.docs-edition{display:inline-flex;align-items:center;gap:7px;min-height:var(--ui-size-target);box-sizing:border-box;font-weight:600;line-height:1.2}
+.docs-edition:hover{background:var(--ui-color-surface-muted);text-decoration:none}
+.docs-edition:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+.docs-edition svg{width:16px;height:16px}
+.docs-edition .docs-edition-size{font-weight:400;color:var(--ui-color-text-muted)}
+`;
+
 function editionChipHtml(page: Page): string {
   if (!page.pdf) return '';
   const file = resolve(__dirname, 'editions', page.pdf);
   if (!existsSync(file)) throw new Error(`${page.slug}: print edition docs/editions/${page.pdf} is missing`);
   const mb = statSync(file).size / (1024 * 1024);
   const size = `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`;
-  return `<a class="docs-edition" href="/info/editions/${esc(page.pdf)}" target="_blank" rel="noopener" type="application/pdf" aria-label="${esc(`${page.title}, print edition (PDF, ${size})`)}">${EDITION_ICON}<span>PDF</span><span class="listen-mins">${esc(size)}</span></a>`;
+  return `<a class="docs-edition" href="/info/editions/${esc(page.pdf)}" target="_blank" rel="noopener" type="application/pdf" aria-label="${esc(`${page.title}, print edition (PDF, ${size})`)}">${EDITION_ICON}<span>PDF</span><span class="docs-edition-size">${esc(size)}</span></a>`;
+}
+
+/** The bar that carries a page's print edition, or nothing when it has none. */
+function editionBarHtml(page: Page, lang: Lang): string {
+  const chip = lang === 'en' ? editionChipHtml(page) : '';
+  return chip ? `<div class="docs-edition-bar">${chip}</div>` : '';
 }
 
 // ── "On this page" jump nav ──────────────────────────────────────────────────
@@ -5819,13 +5637,13 @@ function pageJumpNav(content: string): string {
  * page record, and anything a reader has bookmarked. Rebuilding the heading from
  * page.title instead would have quietly renamed every one of them.
  */
-function docsMasthead(content: string, slug: string, top: { strip: string; listen: string }): { band: string; rest: string; canvas: boolean } | null {
+function docsMasthead(content: string, slug: string, top: { strip: string; edition: string }): { band: string; rest: string; canvas: boolean } | null {
   const m = /<h1(\s[^>]*)?>([\s\S]*?)<\/h1>/.exec(content);
   if (!m) return null; // a page with no h1 keeps its plain top
   const rest = content.slice(0, m.index) + content.slice(m.index + m[0].length);
   // The band's two rows (plan 277 step 3c, decisions D15 and D16): the pathways strip,
-  // then the title row, where the h1 keeps its element and id and Listen sits beside the heading.
-  const heading = `${top.strip}<div class="mast-title">${m[0]}${top.listen}</div>`;
+  // then the title row, where the h1 keeps its element and id and a print edition sits beside the heading.
+  const heading = `${top.strip}<div class="mast-title">${m[0]}${top.edition}</div>`;
   const art = mastheadArt(slug, heading);
   if (art) return { band: art, rest, canvas: false };
   const band = `<div class="docs-masthead">`
@@ -5885,7 +5703,7 @@ function mastheadArt(slug: string, heading: string): string {
 // `.btn-primary`, which exists on the landing page alone today, so on every other
 // page its querySelectorAll is an empty-set no-op. The theme and shot initialisers
 // share a blocking script in <head>, before the stylesheet and first paint.
-// Listen-button styles share the stylesheet. CSP allows both 'self'
+// The print-edition styles share the stylesheet. CSP allows both 'self'
 // and 'unsafe-inline' for script/style, so external same-origin + the head inits both
 // load. The seals (sealPages, run tail) re-hash whole-document bytes, so every English
 // page re-signs once when this first rebuilds - the intended self-healing churn.
@@ -5896,11 +5714,11 @@ const DOCS_JS = [
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
   DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
-  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, ...(DOCS_LISTEN_ENABLED ? [LISTEN_SCRIPT] : []), readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
+  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
-const DOCS_CSS = CSS + '\n' + LISTEN_STYLE.replace(/^<style>\s*|\s*<\/style>$/g, '') + '\n' + COMPONENTS_CSS;
+const DOCS_CSS = CSS + '\n' + EDITION_CSS + '\n' + COMPONENTS_CSS;
 const DOCS_CSS_FILE = `docs.${fingerprint(DOCS_CSS)}.css`;
 const DOCS_JS_FILE = `docs.${fingerprint(DOCS_JS)}.js`;
 const DOCS_INIT_JS = [THEME_INIT_SCRIPT, SHOT_MOTION_INIT].map(stripScriptTags).join('\n;\n');
@@ -5911,7 +5729,7 @@ const DOCS_JS_TAG = `<script src="/info/${DOCS_JS_FILE}" defer></script>`;
 
 const NAV_ICON_SPRITE = createIconSprite({
   language: LANG_ICON_SVG, sun: THEME_SVG_SUN, moon: THEME_SVG_MOON, brand: THEME_SVG_BRAND,
-  seal: PROV_SEAL, listen: LISTEN_ICON, edition: EDITION_ICON, jump: JUMP_ICON,
+  seal: PROV_SEAL, edition: EDITION_ICON, jump: JUMP_ICON,
   ...Object.fromEntries([...GITHUB_LINK.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
   ...Object.fromEntries(Object.entries(SITE_ICONS).map(([key, svg]) => [`site-${key}`, svg])),
   ...Object.fromEntries(Object.entries(FMT_CAT_ICON).map(([key, svg]) => [`format-${key}`, svg])),
@@ -5940,15 +5758,8 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // own first sentence, else the site line for the landing page.
   const description = t(page.description || (isLanding ? SITE_DESCRIPTION : mdDescription(md) || SITE_DESCRIPTION));
 
-  // The Listen pill ships on EVERY page (plan 131 B.3). English pages with committed
-  // audio play the produced Kokoro voice; every other page - all locales, the
-  // reference/side-door pages - falls back to the reader's device voice (the OS speaks
-  // the page's own `<html lang>`). The produced track is English-only, so only English
-  // resolves an AudioEntry; a locale page passes undefined and the loader/host take the
-  // device-voice branch. Cues (produced-only) are still asserted where audio exists.
-  const audio = lang === 'en' ? audioBySlug.get(page.slug) : undefined;
-  const listen = listenButtonHtml(page, audio, lang === 'en' ? editionChipHtml(page) : '');
-  if (audio) assertAudioCues(page, content, md);
+  // The print edition, on the English page that names one (empty everywhere else).
+  const edition = editionBarHtml(page, lang);
 
   // Docs pages only: the landing page already carries its own sticky quicknav, and
   // a second on-page nav in the corner would be two answers to one question. A
@@ -5956,17 +5767,17 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const jump = (isLanding || page.generated || page.immersive) ? '' : pageJumpNav(content);
 
   // The masthead band, and the article body with its h1 lifted out of it. The band
-  // opens with the pathways strip and carries Listen in the title row beside the h1,
-  // so neither sits over the article's first line any more. A generated page has no
+  // opens with the pathways strip and carries the print edition in the title row beside
+  // the h1, so neither sits over the article's first line any more. A generated page has no
   // banked masthead, so it gets none; the landing and the immersive pages have their
   // own designed openings. A page without a masthead still opens with the strip, in a
   // slim band of its own (pathwaysBand); the landing carries that band after its hero
-  // (buildLandingContent). Listen stays at the top of such a page's <main>, or beside
-  // the strip on an immersive page, whose own bands begin at once.
+  // (buildLandingContent). The print edition stays at the top of such a page's <main>,
+  // or beside the strip on an immersive page, whose own bands begin at once.
   const strip = pathwaysStrip(lang, activeHref, page.pathway, !!isLanding);
-  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, listen });
+  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, edition });
   const article = mast ? mast.rest : content;
-  const lead = mast ? '' : listen;
+  const lead = mast ? '' : edition;
   const reading = readingAttr(content);
   const sheet: SheetParts = {
     pages: isLanding ? null
@@ -5986,8 +5797,8 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // The class is docs-landing, NOT docs-content: the article-typography rules scoped
   // to .docs-content sit at (0,1,1) and would out-specify every band rule at (0,1,0),
   // restyling all of the landing headings.
-  const body = isLanding ? `<main class="docs-landing page-${slugClass}"${mainAttrs}>${listen}${content}</main>`
-    : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(strip + listen, { wide: true })}${content}</main>`
+  const body = isLanding ? `<main class="docs-landing page-${slugClass}"${mainAttrs}>${edition}${content}</main>`
+    : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(strip + edition, { wide: true })}${content}</main>`
     : page.generated ? `
 ${pathwaysBand(strip)}
 <div class="docs-wrap">
@@ -6289,31 +6100,13 @@ async function build() {
     console.log(`✓  /info/editions/ (${editions.length} print ${editions.length === 1 ? 'edition' : 'editions'})`);
   }
 
-  // Docs narration - mirror the committed artefacts and link them (plan section 4.5).
-  // Same mirror-don't-accumulate rule as shots: a withdrawn narration must not
-  // stay behind in the gitignored output dir to be served stale. The player
-  // bundle and audio-index.json exist only while at least one page has audio,
-  // so a no-audio checkout builds a byte-identical /info with none of this.
-  audioBySlug = DOCS_LISTEN_ENABLED ? collectDocsAudio() : new Map();
+  // The docs narration ("Listen") was removed on 2026-10-08. A build directory from
+  // before then can still hold its recordings, playlist and player bundle, and the web
+  // build copies this directory whole, so clear them rather than serve them stale.
   rmSync(resolve(outDir, 'audio'), { recursive: true, force: true });
   rmSync(resolve(outDir, 'audio-index.json'), { force: true });
   for (const f of readdirSync(outDir)) {
     if (/^docs-player.*\.(js|css)$/.test(f)) rmSync(resolve(outDir, f), { force: true });
-  }
-  if (audioBySlug.size) {
-    cpSync(resolve(repoRoot, 'docs', 'audio'), resolve(outDir, 'audio'), { recursive: true });
-    // The ordered playlist prev/next + auto-advance walk - pages[] order, which
-    // is the same order the sidebar reads in.
-    writeFileSync(resolve(outDir, 'audio-index.json'), JSON.stringify([...audioBySlug.values()]), 'utf-8');
-    try {
-      bundleDocsPlayer();
-      console.log(`✓  /info/docs-player.js (${audioBySlug.size} narrated pages)`);
-    } catch (err) {
-      // No bundle means every Listen press would 404 - withhold the buttons
-      // rather than render dead controls.
-      audioBySlug = new Map();
-      console.warn('⚠  docs player bundle failed - Listen buttons withheld:', (err as Error).message);
-    }
   }
 
   // Which pages actually have a generated OG card *on disk* right now. Derived from
@@ -6582,7 +6375,6 @@ function writeInfoManifest(): void {
   const localeDirs = new Set(LANGS.filter((l) => l !== 'en').map(String));
   const en: ManifestFile[] = [];
   const shots: ManifestFile[] = [];
-  const audio: ManifestFile[] = [];
   const locales: Record<string, ManifestFile[]> = {};
   for (const f of walk(outDir).sort((a, b) => a.url.localeCompare(b.url))) {
     const seg = f.url.split('/')[2] ?? '';
@@ -6594,21 +6386,14 @@ function writeInfoManifest(): void {
     // the whole corpus a second time, so none of it belongs in "Available offline: Docs".
     if (AGENT_SET_URLS.has(f.url)) continue;
     if (seg === 'shots') shots.push(f);
-    // Narration + its player travel as their own group, which docsFileList()
-    // deliberately EXCLUDES from the default docs part (plan section 7): audio grows
-    // linearly with pages × locales and must never silently fatten "Available
-    // offline: Docs". Online playback still caches incidentally via the SW's
-    // lolly-info bucket. The player chunks live here too - the biggest one is
-    // butterchurn, useless without the audio it visualises.
-    else if (seg === 'audio' || /^\/info\/(docs-player[^/]*|audio-index\.json)$/.test(f.url)) audio.push(f);
     else if (localeDirs.has(seg)) (locales[seg] ??= []).push(f);
     else en.push(f);
   }
-  const all = [...en, ...shots, ...audio, ...Object.values(locales).flat()];
+  const all = [...en, ...shots, ...Object.values(locales).flat()];
   const version = createHash('sha256')
     .update(all.map((f) => `${f.url}:${f.size}:${f.hash}`).join('\n'))
     .digest('base64url').slice(0, 16);
-  writeFileSync(resolve(outDir, 'manifest.json'), JSON.stringify({ version, groups: { en, shots, audio, locales } }), 'utf-8');
+  writeFileSync(resolve(outDir, 'manifest.json'), JSON.stringify({ version, groups: { en, shots, locales } }), 'utf-8');
   console.log(`✓  /info/manifest.json (${all.length} files, ${Object.keys(locales).length} locales)`);
 }
 

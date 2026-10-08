@@ -306,7 +306,6 @@
     "shells/web/src/lib/design-system/switch.ts": 3,
     "shells/web/src/lib/design-system/type-compare.ts": 2,
     "shells/web/src/lib/design-system/versions-io.ts": 4,
-    "shells/web/src/lib/docs-narration-host.ts": 1,
     "shells/web/src/lib/drop-router.ts": 16,
     "shells/web/src/lib/dropbox-send.ts": 3,
     "shells/web/src/lib/extensions.ts": 1,

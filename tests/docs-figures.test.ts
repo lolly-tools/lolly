@@ -337,8 +337,8 @@ test('the build inlines through the shared fn and credits the file it inlined', 
   // in the content column, not a masthead - and so do the immersive pages, which open
   // with their own bands; a regular page still resolves the band with its real slug,
   // which is what keeps MASTHEADS able to apply. The band also receives the pathways
-  // strip and Listen for its first rows (plan 277 step 3c).
-  assert.match(BUILD_TS, /const mast = \(isLanding \|\| page\.generated \|\| page\.immersive\) \? null : docsMasthead\(content, page\.slug, \{ strip, listen \}\);/,
+  // strip and the print edition for its first rows (plan 277 step 3c).
+  assert.match(BUILD_TS, /const mast = \(isLanding \|\| page\.generated \|\| page\.immersive\) \? null : docsMasthead\(content, page\.slug, \{ strip, edition \}\);/,
     'the masthead band no longer knows which page it is building, so MASTHEADS can never apply');
 });
 
