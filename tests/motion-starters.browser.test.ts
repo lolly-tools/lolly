@@ -7,7 +7,7 @@ import { loadTool } from '../engine/src/loader.ts';
 import { parseUrlState } from '../engine/src/url-mode.ts';
 import { expandQuery } from '../engine/src/url-pack.ts';
 
-const origin = process.env.LOLLY_MOTION_TEST_URL;
+const origin = process.env.LOLLY_MOTION_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const output = process.env.LOLLY_MOTION_TEST_OUTPUT ?? 'plans/artifacts/297/motion-starters';
 test('Motion collection, photo composition and non-writing choreography preview reach finished output', { skip: origin ? false : 'set LOLLY_MOTION_TEST_URL', timeout: 240000 }, async () => {
   await mkdir(output, { recursive: true });
